@@ -433,7 +433,7 @@ function ClassFeaturesAndFeats({
     }
 
     const sourceContext = getClassFeatureSourceContext();
-    const nextDraft = upsertFeatInDraft(featEditorDraft, featEntry, sourceContext);
+    const nextDraft = upsertFeatInDraft(featEditorDraftRef.current, featEntry, sourceContext);
 
     setFeatEditorDraft(nextDraft);
     resetPendingFeatState();

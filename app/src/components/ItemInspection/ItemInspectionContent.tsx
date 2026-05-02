@@ -4,6 +4,7 @@ import DescriptionContent from "../DescriptionContent/DescriptionContent";
 import { buildItemDetailPresentation } from "../../pages/ItemCodexEntryPage/itemPresentation";
 import type { SpellDescriptionEntry } from "../../codex/entries";
 import type { ItemRecord } from "../../types";
+import { orderDescriptionAdditionSections } from "../../pages/CharactersPage/actionModalDescriptions";
 import ItemInspectionHeader from "./ItemInspectionHeader";
 import WeaponMasteryStatusLabel from "../WeaponMasteryStatusLabel/WeaponMasteryStatusLabel";
 import styles from "./ItemInspectionContent.module.css";
@@ -12,7 +13,7 @@ type ItemInspectionContentProps = {
   item: ItemRecord;
   className?: string;
   showHeader?: boolean;
-  descriptionAdditions?: SpellDescriptionEntry[];
+  descriptionAdditions?: SpellDescriptionEntry[][];
   costSuffix?: ReactNode;
   weaponMasteryActive?: boolean;
   weaponProficient?: boolean;
@@ -34,7 +35,8 @@ function ItemInspectionContent({
   onOpenWeaponReference
 }: ItemInspectionContentProps) {
   const presentation = buildItemDetailPresentation(item);
-  const description = [...presentation.description, ...descriptionAdditions];
+  const hasBaseDescription = presentation.description.length > 0;
+  const descriptionSections = orderDescriptionAdditionSections(descriptionAdditions);
   const weaponReferenceKeywords = {
     Properties: normalizeWeaponReferenceLabels(presentation.weapon?.propertyLabels ?? []),
     Mastery: normalizeWeaponReferenceLabels(presentation.weapon?.masteryLabels ?? [])
@@ -52,13 +54,29 @@ function ItemInspectionContent({
     <article className={className ?? styles.card}>
       {showHeader ? <ItemInspectionHeader item={item} /> : null}
 
-      {description.length > 0 ? (
+      {hasBaseDescription || descriptionSections.length > 0 ? (
         <section className={styles.section}>
-          <DescriptionContent
-            description={description}
-            className={styles.descriptionBlock}
-            entryClassName={styles.descriptionParagraph}
-          />
+          <div className={styles.descriptionBlock}>
+            {hasBaseDescription ? (
+              <DescriptionContent
+                description={presentation.description}
+                className={styles.descriptionSection}
+                entryClassName={styles.descriptionParagraph}
+              />
+            ) : null}
+            {descriptionSections.map((section, index) => (
+              <div key={`${item.key ?? item.id}-description-section-${index}`}>
+                {hasBaseDescription || index > 0 ? (
+                  <hr className={styles.descriptionDivider} aria-hidden="true" />
+                ) : null}
+                <DescriptionContent
+                  description={section}
+                  className={styles.descriptionSection}
+                  entryClassName={styles.descriptionParagraph}
+                />
+              </div>
+            ))}
+          </div>
         </section>
       ) : null}
 

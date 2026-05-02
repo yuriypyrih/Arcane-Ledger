@@ -12,7 +12,7 @@ type EquipmentInventoryItemDrawerProps = {
   onClose: () => void;
   footer?: ReactNode;
   headerContent?: ReactNode;
-  descriptionAdditions?: SpellDescriptionEntry[];
+  descriptionAdditions?: SpellDescriptionEntry[][];
   costSuffix?: ReactNode;
   weaponMasteryActive?: boolean;
   weaponProficient?: boolean;

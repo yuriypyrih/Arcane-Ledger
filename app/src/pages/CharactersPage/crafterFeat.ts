@@ -1,6 +1,12 @@
-import { FEATS } from "../../codex/entries";
-import { TOOL_PROFICIENCY, type Character, type CrafterChoice, type ItemRecord } from "../../types";
+import { TOOL_PROFICIENCY, type CrafterChoice, type ItemRecord } from "../../types";
 import { getToolProficiencyLabel } from "./proficiencyOptions";
+
+export const crafterDiscountRuleText =
+  "Whenever you buy a nonmagical item, you receive a 20% discount on it.";
+export const crafterDiscountDescription = `<strong>Discount.</strong> ${crafterDiscountRuleText}`;
+export const crafterFastCraftingRuleText =
+  "When you finish a Long Rest, you can craft one piece of gear from the Fast Crafting table, provided you have the Artisan's Tools associated with that item and have proficiency with those tools. The item lasts until you finish another Long Rest, at which point the item falls apart.";
+export const crafterFastCraftingDescription = `<strong>Fast Crafting.</strong> ${crafterFastCraftingRuleText}`;
 
 export const crafterFastCraftingToolProficiencies: TOOL_PROFICIENCY[] = [
   TOOL_PROFICIENCY.CARPENTERS_TOOLS,
@@ -13,15 +19,16 @@ export const crafterFastCraftingToolProficiencies: TOOL_PROFICIENCY[] = [
   TOOL_PROFICIENCY.WOODCARVERS_TOOLS
 ];
 
-export const crafterDiscountDescription =
-  "<strong>Crafter: Discount.</strong> Whenever you buy a nonmagical item, you receive a 20 percent discount on it.";
-
 const crafterFastCraftingToolSet = new Set<TOOL_PROFICIENCY>(
   crafterFastCraftingToolProficiencies
 );
 
 export function isCrafterFastCraftingTool(tool: unknown): tool is TOOL_PROFICIENCY {
   return typeof tool === "string" && crafterFastCraftingToolSet.has(tool as TOOL_PROFICIENCY);
+}
+
+export function isCrafterDiscountEligibleItem(item: Pick<ItemRecord, "is_magic_item">): boolean {
+  return item.is_magic_item !== true;
 }
 
 export function normalizeCrafterChoice(value: unknown): CrafterChoice | undefined {
@@ -53,26 +60,4 @@ export function getCrafterChoiceSummary(choice?: CrafterChoice): string | null {
   }
 
   return choice.toolProficiencies.map((tool) => getToolProficiencyLabel(tool)).join(", ");
-}
-
-export function characterHasCrafterDiscount(character: Pick<Character, "feats">): boolean {
-  return Boolean(character.feats?.some((entry) => entry.feat === FEATS.CRAFTER));
-}
-
-export function isCrafterDiscountEligibleItem(item: Pick<ItemRecord, "is_magic_item">): boolean {
-  return !item.is_magic_item;
-}
-
-export function getCrafterDiscountMultiplier(
-  character: Pick<Character, "feats">,
-  item: Pick<ItemRecord, "is_magic_item">
-): number {
-  return characterHasCrafterDiscount(character) && isCrafterDiscountEligibleItem(item) ? 0.8 : 1;
-}
-
-export function formatCrafterDiscountCostSuffix(
-  character: Pick<Character, "feats">,
-  item: Pick<ItemRecord, "is_magic_item">
-): string | null {
-  return getCrafterDiscountMultiplier(character, item) < 1 ? "(-20% Discount)" : null;
 }

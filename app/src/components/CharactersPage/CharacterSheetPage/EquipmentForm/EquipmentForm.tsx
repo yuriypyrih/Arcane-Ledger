@@ -13,7 +13,7 @@ import NumberInput from "../../FormInputs/NumberInput";
 import RarityPill, { hasDisplayableRarity } from "../../../CodexPage/RarityPill";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import { fetchItemPackContents } from "../../../../api";
-import { ENTRY_CATEGORIES } from "../../../../codex/entries";
+import { ENTRY_CATEGORIES, FEATS } from "../../../../codex/entries";
 import { currencyKeys, type Character, type CurrencyKey } from "../../../../types";
 import {
   formatEquipmentWeight,
@@ -78,6 +78,12 @@ import {
   setInventoryItemOnHandQuantityByKey,
   type GroupedInventoryItem
 } from "../../../../pages/CharactersPage/inventoryItems";
+import {
+  crafterDiscountRuleText,
+  isCrafterDiscountEligibleItem
+} from "../../../../pages/CharactersPage/crafterFeat";
+import { normalizeCharacterFeats } from "../../../../pages/CharactersPage/feats";
+import { createSourcedDescriptionEntries } from "../../../../pages/CharactersPage/actionModalDescriptions";
 import KeywordReferenceDrawer from "../../../KeywordReferenceDrawer/KeywordReferenceDrawer";
 import type { ItemRecord } from "../../../../types";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
@@ -112,11 +118,6 @@ import styles from "./EquipmentForm.module.css";
 import { useItemEntry } from "../../../../pages/ItemCodexEntryPage/useItemEntry";
 import WeaponMasteryStatusLabel from "../../../WeaponMasteryStatusLabel/WeaponMasteryStatusLabel";
 import { getEquipmentRuntimeForCharacter } from "../../../../pages/CharactersPage/characterRuntime/equipmentRuntime";
-import {
-  crafterDiscountDescription,
-  formatCrafterDiscountCostSuffix,
-  getCrafterDiscountMultiplier
-} from "../../../../pages/CharactersPage/crafterFeat";
 
 type EquipmentFormProps = {
   character: Character;
@@ -361,6 +362,13 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     Math.floor(clampNumber(currencyAmountDraft, 0, 999999999, 0))
   );
   const canSpendCurrency = activeCurrencyAmount >= normalizedCurrencyAmount;
+  const hasCrafterDiscountFeat = useMemo(
+    () =>
+      normalizeCharacterFeats(equipmentCharacter.feats, equipmentCharacter.level).some(
+        (entry) => entry.feat === FEATS.CRAFTER
+      ),
+    [equipmentCharacter.feats, equipmentCharacter.level]
+  );
   const resolvedCustomEquipmentEntries = useMemo(
     () => getResolvedCustomLoadoutEntries(customEquipment),
     [customEquipment]
@@ -708,10 +716,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     ? selectedHeldInventoryCopies.length
     : 0;
   const selectedInventoryTransactionCost = selectedInventoryRecord
-    ? getItemTransactionCost(selectedInventoryRecord, {
-        multiplier: getCrafterDiscountMultiplier(character, selectedInventoryRecord),
-        rounding: "ceil"
-      })
+    ? getItemTransactionCost(selectedInventoryRecord)
     : null;
   const selectedInventorySaleCost = selectedInventoryRecord
     ? getItemTransactionCost(selectedInventoryRecord, {
@@ -719,9 +724,18 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
         rounding: "floor"
       })
     : null;
-  const selectedInventoryCrafterDiscountSuffix = selectedInventoryRecord
-    ? formatCrafterDiscountCostSuffix(character, selectedInventoryRecord)
-    : null;
+  const selectedInventoryHasCrafterDiscount = Boolean(
+    selectedInventoryRecord &&
+      hasCrafterDiscountFeat &&
+      isCrafterDiscountEligibleItem(selectedInventoryRecord)
+  );
+  const selectedInventoryDescriptionAdditions = useMemo(
+    () =>
+      selectedInventoryHasCrafterDiscount
+        ? [createSourcedDescriptionEntries("Crafter: Discount", [crafterDiscountRuleText])]
+        : [],
+    [selectedInventoryHasCrafterDiscount]
+  );
   const selectedInventoryHandDescriptor =
     selectedInventoryGroup && selectedAvailableInventoryCopy
       ? createHeldDescriptorForInventoryItem(
@@ -955,10 +969,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       return;
     }
 
-    const transactionCost = getItemTransactionCost(item, {
-      multiplier: getCrafterDiscountMultiplier(character, item),
-      rounding: "ceil"
-    });
+    const transactionCost = getItemTransactionCost(item);
 
     if (!transactionCost || transactionCost.amount <= 0) {
       return;
@@ -1550,10 +1561,9 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     isHandEquippableEntry, isOverCarryingCapacity, isSelectedArmorWorn, isSelectedCustomEntry, isSelectedEntryOnHand, isSelectedFeatureManagedEntry, isSelectedShield, normalizeCurrencyAmountInput,
     normalizedCurrencies, openAddModal, openCurrencyModal, openCustomEquipmentCreator, openCustomEquipmentEditor, openInventoryInspectionFromBrowser, openInventoryInspectionFromLoadout, openLoadoutEntryDetails,
     openWeaponReference, pendingDeleteCustomEquipment, removeEquipmentItem, saveCustomEquipment, selectedAdditionalWeaponMasteries, selectedEquipmentGroups, selectedInventoryInspection, selectedInventoryItemStatus,
-    selectedInventoryCrafterDiscountSuffix, selectedInventoryRecord, selectedInventoryWeaponHasActiveMastery, selectedInventoryWeaponHasProficiency, selectedLoadoutEntry, selectedLoadoutEntryData, selectedLoadoutItems, selectedLoadoutSummary, selectedWeaponHasActiveMastery,
+    selectedInventoryDescriptionAdditions, selectedInventoryRecord, selectedInventoryWeaponHasActiveMastery, selectedInventoryWeaponHasProficiency, selectedLoadoutEntry, selectedLoadoutEntryData, selectedLoadoutItems, selectedLoadoutSummary, selectedWeaponHasActiveMastery,
     selectedWeaponHasProficiency, selectedWeaponMasteryKeywords, selectedWeaponMasteryLabel, selectedWeaponReference, setActiveCurrencyKey, setCurrencyAmountDraft, setIsCurrencyDrawerOpen, setIsGeneralEquipmentExpanded,
     setPendingDeleteCustomEquipmentId, setSelectedWeaponReference, shared, sheetStyles, shouldOfferHandSwap, styles, swapEntryToHand, toggleArmorWorn,
-    crafterDiscountDescription,
     toggleEntryOnHand
   });
 }

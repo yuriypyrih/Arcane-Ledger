@@ -364,6 +364,27 @@ export const featDefinitions: FeatDefinition[] = [
 const featDefinitionsByFeat = new Map(
   featDefinitions.map((definition) => [definition.feat, definition])
 );
+const featValues = Object.values(FEATS);
+const featValueSet = new Set<string>(featValues);
+
+function normalizeFeatLookupKey(value: string): string {
+  return value
+    .trim()
+    .toUpperCase()
+    .replace(/['’]/g, "")
+    .replace(/[^A-Z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
+const featLookupByNormalizedKey = new Map<string, FEATS>();
+
+featValues.forEach((feat) => {
+  featLookupByNormalizedKey.set(normalizeFeatLookupKey(feat), feat);
+});
+
+featDefinitions.forEach((definition) => {
+  featLookupByNormalizedKey.set(normalizeFeatLookupKey(definition.label), definition.feat);
+});
 
 function isAbilityKey(value: unknown): value is AbilityKey {
   return typeof value === "string" && abilityKeySet.has(value as AbilityKey);
@@ -608,26 +629,115 @@ function createFeatEntryId(feat: FEATS): string {
   return `${feat}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
+function resolveFeatValue(value: unknown): FEATS | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const trimmedValue = value.trim();
+
+  if (featValueSet.has(trimmedValue)) {
+    return trimmedValue as FEATS;
+  }
+
+  return featLookupByNormalizedKey.get(normalizeFeatLookupKey(trimmedValue)) ?? null;
+}
+
+function getRawFeatEntries(value: unknown): unknown[] {
+  if (Array.isArray(value)) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    return value
+      .split(",")
+      .map((entry) => entry.trim())
+      .filter((entry) => entry.length > 0);
+  }
+
+  if (!value || typeof value !== "object") {
+    return [];
+  }
+
+  const record = value as Record<string, unknown>;
+
+  if ("feat" in record || "featId" in record || "value" in record || "name" in record) {
+    return [value];
+  }
+
+  return Object.entries(record).flatMap(([featKey, rawEntry]) => {
+    if (rawEntry === false || rawEntry === null || rawEntry === undefined) {
+      return [];
+    }
+
+    if (rawEntry === true) {
+      return [featKey];
+    }
+
+    if (rawEntry && typeof rawEntry === "object" && !Array.isArray(rawEntry)) {
+      return [
+        {
+          feat: featKey,
+          ...(rawEntry as Record<string, unknown>)
+        }
+      ];
+    }
+
+    return [rawEntry];
+  });
+}
+
+function getRawFeatValue(rawEntry: unknown): unknown {
+  if (typeof rawEntry === "string") {
+    return rawEntry;
+  }
+
+  if (!rawEntry || typeof rawEntry !== "object") {
+    return null;
+  }
+
+  const record = rawEntry as Record<string, unknown>;
+
+  return record.feat ?? record.featId ?? record.value ?? record.name ?? record.label;
+}
+
 export function normalizeCharacterFeats(
   value: unknown,
   currentLevel: number
 ): CharacterFeatEntry[] {
-  if (!Array.isArray(value)) {
+  const rawEntries = getRawFeatEntries(value);
+
+  if (rawEntries.length === 0) {
     return [];
   }
 
-  return value.flatMap((rawEntry, index) => {
+  return rawEntries.flatMap((rawEntry, index): CharacterFeatEntry[] => {
     if (!rawEntry || typeof rawEntry !== "object") {
-      return [];
+      const feat = resolveFeatValue(rawEntry);
+
+      if (!feat) {
+        return [];
+      }
+
+      return [
+        {
+          id: `${createFeatEntryId(feat)}-${index}`,
+          feat,
+          takenAtLevel: clampFeatLevel(undefined, currentLevel),
+          source: {
+            type: "manual"
+          }
+        }
+      ];
     }
 
     const record = rawEntry as Partial<CharacterFeatEntry>;
+    const feat = resolveFeatValue(getRawFeatValue(rawEntry));
 
-    if (typeof record.feat !== "string" || !featDefinitionsByFeat.has(record.feat as FEATS)) {
+    if (!feat) {
       return [];
     }
 
-    const feat = record.feat as FEATS;
     const abilityScoreImprovement =
       feat === FEATS.ABILITY_SCORE_IMPROVEMENT
         ? normalizeAbilityScoreImprovementChoice(record.abilityScoreImprovement)
