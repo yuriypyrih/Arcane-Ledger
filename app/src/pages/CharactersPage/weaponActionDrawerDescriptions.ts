@@ -8,10 +8,14 @@ import {
   getWizardBladesingerBladeworkWeaponActionDescriptionAdditions,
   getWizardBladesingerSongOfVictoryWeaponActionDescriptionAdditions
 } from "./classFeatures/wizard/subclasses/wizardBladesinger";
+import {
+  getSavageAttackerWeaponActionDescriptionAdditions,
+  getTavernBrawlerUnarmedStrikeDescriptionAdditions
+} from "./featRuntime";
 import type { WeaponAction } from "./gameplay";
 
 type WeaponActionDescriptionCharacter = Pick<Character, "className" | "level"> &
-  Partial<Pick<Character, "statusEntries" | "subclassId">>;
+  Partial<Pick<Character, "feats" | "statusEntries" | "subclassId">>;
 
 const extraAttackFeaturePriority: Array<{
   feature: CLASS_FEATURE;
@@ -147,6 +151,12 @@ export function getWeaponActionDrawerDescriptionAdditions(
 
   if (injectedVowOfEnmitySection) {
     injectedSections.push(injectedVowOfEnmitySection);
+  }
+
+  injectedSections.push(...getSavageAttackerWeaponActionDescriptionAdditions(character));
+
+  if (action.attackKind === "unarmed") {
+    injectedSections.push(...getTavernBrawlerUnarmedStrikeDescriptionAdditions(character));
   }
 
   injectedSections.push(...getRangerPreciseHunterWeaponActionDescriptionAdditions(character));

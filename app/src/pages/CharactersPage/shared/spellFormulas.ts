@@ -75,14 +75,16 @@ export function getSpellSaveFormulaCell(
     SpellEntry,
     "isAttackSpell" | "isSavingThrowSpell" | "savingThrowAbility" | "spellLists"
   >,
-  character?: Character | null
+  character?: Character | null,
+  spellcastingAbilityOverride?: AbilityKey | null
 ): SpellFormulaCell | null {
   if (spell.isSavingThrowSpell !== true) {
     return null;
   }
 
   const saveLabel = getSavingThrowDcLabel(spell.savingThrowAbility);
-  const spellcastingAbility = character ? getSpellcastingAbilityForCharacter(character) : null;
+  const spellcastingAbility =
+    spellcastingAbilityOverride ?? (character ? getSpellcastingAbilityForCharacter(character) : null);
 
   if (!character || !spellcastingAbility) {
     const formulaCell = formatFormulaCell({
@@ -120,13 +122,15 @@ export function getSpellSaveFormulaCell(
 
 export function getSpellAttackRollFormulaForCharacter(
   spell: Pick<SpellEntry, "isAttackSpell" | "isSavingThrowSpell" | "spellLists">,
-  character: Character
+  character: Character,
+  spellcastingAbilityOverride?: AbilityKey | null
 ): SpellAttackRollFormula | null {
   if (spell.isAttackSpell !== true) {
     return null;
   }
 
-  const spellcastingAbility = getSpellcastingAbilityForCharacter(character);
+  const spellcastingAbility =
+    spellcastingAbilityOverride ?? getSpellcastingAbilityForCharacter(character);
 
   if (!spellcastingAbility) {
     return null;
@@ -153,14 +157,15 @@ export function getSpellAttackRollFormulaForCharacter(
 
 export function getSpellAttackFormulaCell(
   spell: Pick<SpellEntry, "isAttackSpell" | "isSavingThrowSpell" | "spellLists">,
-  character?: Character | null
+  character?: Character | null,
+  spellcastingAbilityOverride?: AbilityKey | null
 ): SpellFormulaCell | null {
   if (spell.isAttackSpell !== true) {
     return null;
   }
 
   const attackRollFormula = character
-    ? getSpellAttackRollFormulaForCharacter(spell, character)
+    ? getSpellAttackRollFormulaForCharacter(spell, character, spellcastingAbilityOverride)
     : null;
 
   if (!attackRollFormula) {

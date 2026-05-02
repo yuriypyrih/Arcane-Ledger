@@ -16,7 +16,7 @@
   justify-items: center;
   gap: 0.25rem;
   border-radius: 12px;
-  background: var(--color-panel-muted);
+  background: rgba(75, 47, 29, 0.07);
   min-height: 56px;
   max-width: 70px;
   padding: 0.42rem 0.28rem;

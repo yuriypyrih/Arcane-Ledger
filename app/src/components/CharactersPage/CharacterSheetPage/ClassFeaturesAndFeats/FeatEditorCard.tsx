@@ -7,10 +7,17 @@ import {
   getAbilityScoreImprovementSummary,
   getEpicBoonAbilityChoiceSummary,
   getEpicBoonAbilityOptions,
+  getMagicInitiateCantripOptions,
+  getMagicInitiateLevelOneSpellOptions,
+  getMagicInitiateSpellListLabel,
+  isMagicInitiateSpellList,
+  magicInitiateSpellListOptions,
+  magicInitiateSpellcastingAbilityOptions,
   type FeatDefinition
 } from "../../../../pages/CharactersPage/feats";
 import {
   getToolProficiencyLabel,
+  musicalInstrumentToolProficiencies,
   skillsOptions,
   toolProficiencyOptions,
   type ToolProficiency
@@ -27,14 +34,22 @@ import {
   getPendingBlessedWarriorChoiceSummary,
   getPendingCrafterChoiceSummary,
   getPendingDruidicWarriorChoiceSummary,
+  getPendingMagicInitiateChoiceSummary,
+  getPendingMusicianChoiceSummary,
   getPendingSkilledChoiceSummary,
   getRepeatableFeatEntrySummary,
   isPendingBlessedWarriorChoiceValid,
   isPendingCrafterChoiceValid,
   isPendingDruidicWarriorChoiceValid,
+  isPendingMagicInitiateChoiceValid,
+  isPendingMusicianChoiceValid,
   isPendingSkilledChoiceValid,
   crafterNoneOptionValue,
   crafterSelectionIndices,
+  magicInitiateCantripSelectionIndices,
+  magicInitiateNoneOptionValue,
+  musicianNoneOptionValue,
+  musicianSelectionIndices,
   skilledNoneOptionValue,
   skilledSelectionIndices,
   triggerActionOnEnterOrSpace
@@ -50,6 +65,8 @@ import type {
   PendingDruidicWarriorChoice,
   PendingCrafterChoice,
   PendingFeatState,
+  PendingMagicInitiateChoice,
+  PendingMusicianChoice,
   TrackingButtonRenderer
 } from "./types";
 
@@ -72,6 +89,8 @@ type FeatEditorCardProps = {
   onSavePendingCrafterChoice: () => void;
   onSavePendingDruidicWarriorChoice: () => void;
   onSavePendingEpicBoonAbilityChoice: () => void;
+  onSavePendingMagicInitiateChoice: () => void;
+  onSavePendingMusicianChoice: () => void;
   onSavePendingSkilledChoice: () => void;
 };
 
@@ -127,6 +146,26 @@ type CrafterChoiceEditorProps = {
   onCancel: () => void;
   onSave: () => void;
   onChange: (selectionIndex: number, nextValue: string) => void;
+};
+
+type MusicianChoiceEditorProps = {
+  choice: PendingMusicianChoice;
+  summary: string | null;
+  isValid: boolean;
+  toolProficiencies: ToolProficiencyEntry[];
+  onCancel: () => void;
+  onSave: () => void;
+  onChange: (selectionIndex: number, nextValue: string) => void;
+};
+
+type MagicInitiateChoiceEditorProps = {
+  choice: PendingMagicInitiateChoice;
+  selectedEntries: CharacterFeatEntry[];
+  summary: string | null;
+  isValid: boolean;
+  onCancel: () => void;
+  onSave: () => void;
+  onChange: (nextChoice: PendingMagicInitiateChoice) => void;
 };
 
 function SelectField({ label, value, options, onChange }: SelectFieldProps) {
@@ -345,6 +384,230 @@ function CrafterChoiceEditor({
   );
 }
 
+function MusicianChoiceEditor({
+  choice,
+  summary,
+  isValid,
+  toolProficiencies,
+  onCancel,
+  onSave,
+  onChange
+}: MusicianChoiceEditorProps) {
+  return (
+    <InlineEditorFrame
+      title="Musician"
+      cancelLabel="Cancel musician instrument selection"
+      onCancel={onCancel}
+      footer={
+        <div className={modalStyles.editorActions}>
+          <ActionButton
+            icon={<Plus size={16} />}
+            fullWidth={false}
+            disabled={!isValid}
+            onClick={onSave}
+          >
+            Add Feat
+          </ActionButton>
+        </div>
+      }
+    >
+      <div className={modalStyles.singleFieldGrid}>
+        {musicianSelectionIndices.map((selectionIndex) => {
+          const currentValue = choice.toolProficiencies[selectionIndex];
+          const currentTool =
+            currentValue === musicianNoneOptionValue ? null : (currentValue as ToolProficiency);
+          const blockedSelections = choice.toolProficiencies.filter(
+            (tool, index) => index !== selectionIndex && tool !== musicianNoneOptionValue
+          ) as ToolProficiency[];
+          const availableTools = getSelectableUnproficientToolOptions(
+            { toolProficiencies },
+            musicalInstrumentToolProficiencies,
+            currentTool,
+            blockedSelections
+          );
+
+          return (
+            <SelectField
+              key={`musician-instrument-${selectionIndex}`}
+              label={`Instrument ${selectionIndex + 1}`}
+              value={currentValue}
+              options={[
+                {
+                  label: "-",
+                  value: musicianNoneOptionValue
+                },
+                ...buildToolSelectOptions(
+                  musicalInstrumentToolProficiencies,
+                  availableTools,
+                  currentTool
+                ).map((option) => ({
+                  disabled: option.disabled,
+                  label: option.label,
+                  value: option.tool
+                }))
+              ]}
+              onChange={(nextValue) => onChange(selectionIndex, nextValue)}
+            />
+          );
+        })}
+      </div>
+      {summary ? <p className={modalStyles.summary}>{summary}</p> : null}
+      {!isValid ? (
+        <p className={modalStyles.validation}>Choose three different Musical Instruments.</p>
+      ) : null}
+    </InlineEditorFrame>
+  );
+}
+
+function MagicInitiateChoiceEditor({
+  choice,
+  selectedEntries,
+  summary,
+  isValid,
+  onCancel,
+  onSave,
+  onChange
+}: MagicInitiateChoiceEditorProps) {
+  const selectedSpellList = isMagicInitiateSpellList(choice.spellList) ? choice.spellList : null;
+  const usedSpellLists = new Set(
+    selectedEntries
+      .map((entry) => entry.magicInitiate?.spellList)
+      .filter((spellList): spellList is NonNullable<typeof spellList> => Boolean(spellList))
+  );
+  const cantripOptions = selectedSpellList ? getMagicInitiateCantripOptions(selectedSpellList) : [];
+  const levelOneSpellOptions = selectedSpellList
+    ? getMagicInitiateLevelOneSpellOptions(selectedSpellList)
+    : [];
+
+  return (
+    <InlineEditorFrame
+      title="Magic Initiate"
+      cancelLabel="Cancel magic initiate spell selection"
+      onCancel={onCancel}
+      footer={
+        <div className={modalStyles.editorActions}>
+          <ActionButton
+            icon={<Plus size={16} />}
+            fullWidth={false}
+            disabled={!isValid}
+            onClick={onSave}
+          >
+            Add Feat
+          </ActionButton>
+        </div>
+      }
+    >
+      <div className={modalStyles.singleFieldGrid}>
+        <SelectField
+          label="Spell List"
+          value={choice.spellList}
+          options={[
+            {
+              label: "-",
+              value: magicInitiateNoneOptionValue
+            },
+            ...magicInitiateSpellListOptions.map((spellList) => ({
+              disabled: usedSpellLists.has(spellList),
+              label: getMagicInitiateSpellListLabel(spellList),
+              value: spellList
+            }))
+          ]}
+          onChange={(nextValue) =>
+            onChange({
+              ...choice,
+              spellList: nextValue,
+              cantripIds: ["", ""],
+              levelOneSpellId: ""
+            })
+          }
+        />
+        {magicInitiateCantripSelectionIndices.map((selectionIndex) => {
+          const selectedCantripIds = choice.cantripIds.filter(
+            (spellId, index) => index !== selectionIndex && spellId.length > 0
+          );
+
+          return (
+            <SelectField
+              key={`magic-initiate-cantrip-${selectionIndex}`}
+              label={`Cantrip ${selectionIndex + 1}`}
+              value={choice.cantripIds[selectionIndex]}
+              options={[
+                {
+                  label: "-",
+                  value: ""
+                },
+                ...cantripOptions.map((spell) => ({
+                  disabled: selectedCantripIds.includes(spell.id),
+                  label: spell.name,
+                  value: spell.id
+                }))
+              ]}
+              onChange={(nextValue) =>
+                onChange({
+                  ...choice,
+                  cantripIds: updateSelectionAtIndex(
+                    choice.cantripIds,
+                    2,
+                    selectionIndex,
+                    nextValue
+                  ) as PendingMagicInitiateChoice["cantripIds"]
+                })
+              }
+            />
+          );
+        })}
+        <SelectField
+          label="Level 1 Spell"
+          value={choice.levelOneSpellId}
+          options={[
+            {
+              label: "-",
+              value: ""
+            },
+            ...levelOneSpellOptions.map((spell) => ({
+              label: spell.name,
+              value: spell.id
+            }))
+          ]}
+          onChange={(nextValue) =>
+            onChange({
+              ...choice,
+              levelOneSpellId: nextValue
+            })
+          }
+        />
+        <SelectField
+          label="Spellcasting Ability"
+          value={choice.spellcastingAbility}
+          options={[
+            {
+              label: "-",
+              value: magicInitiateNoneOptionValue
+            },
+            ...magicInitiateSpellcastingAbilityOptions.map((ability) => ({
+              label: ability,
+              value: ability
+            }))
+          ]}
+          onChange={(nextValue) =>
+            onChange({
+              ...choice,
+              spellcastingAbility: nextValue
+            })
+          }
+        />
+      </div>
+      {summary ? <p className={modalStyles.summary}>{summary}</p> : null}
+      {!isValid ? (
+        <p className={modalStyles.validation}>
+          Choose a spell list, two different cantrips, one level 1 spell, and a spellcasting
+          ability.
+        </p>
+      ) : null}
+    </InlineEditorFrame>
+  );
+}
+
 function AbilityScoreImprovementEditor({
   choice,
   onChange,
@@ -470,6 +733,7 @@ function renderInlineEditor({
   featDefinition,
   featEligibility,
   toolProficiencies,
+  selectedEntries,
   pendingFeatState,
   blessedWarriorCantripOptions,
   druidicWarriorCantripOptions,
@@ -480,10 +744,12 @@ function renderInlineEditor({
   onSavePendingCrafterChoice,
   onSavePendingDruidicWarriorChoice,
   onSavePendingEpicBoonAbilityChoice,
+  onSavePendingMagicInitiateChoice,
+  onSavePendingMusicianChoice,
   onSavePendingSkilledChoice
 }: Omit<
   FeatEditorCardProps,
-  "selectedEntries" | "renderTrackingButton" | "onOpenFeatReference" | "onAddFeat" | "onRemoveFeat"
+  "renderTrackingButton" | "onOpenFeatReference" | "onAddFeat" | "onRemoveFeat"
 >) {
   if (featEligibility && !featEligibility.isEligible) {
     return null;
@@ -648,6 +914,67 @@ function renderInlineEditor({
     );
   }
 
+  if (featDefinition.feat === FEATS.MAGIC_INITIATE && pendingFeatState.magicInitiateChoice) {
+    const magicInitiateChoice = pendingFeatState.magicInitiateChoice;
+
+    return (
+      <MagicInitiateChoiceEditor
+        choice={magicInitiateChoice}
+        selectedEntries={selectedEntries}
+        summary={getPendingMagicInitiateChoiceSummary(magicInitiateChoice)}
+        isValid={isPendingMagicInitiateChoiceValid(magicInitiateChoice)}
+        onCancel={() =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            magicInitiateChoice: null
+          }))
+        }
+        onSave={onSavePendingMagicInitiateChoice}
+        onChange={(nextChoice) =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            magicInitiateChoice: current.magicInitiateChoice ? nextChoice : current.magicInitiateChoice
+          }))
+        }
+      />
+    );
+  }
+
+  if (featDefinition.feat === FEATS.MUSICIAN && pendingFeatState.musicianChoice) {
+    const musicianChoice = pendingFeatState.musicianChoice;
+
+    return (
+      <MusicianChoiceEditor
+        choice={musicianChoice}
+        summary={getPendingMusicianChoiceSummary(musicianChoice)}
+        isValid={isPendingMusicianChoiceValid(musicianChoice)}
+        toolProficiencies={toolProficiencies}
+        onCancel={() =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            musicianChoice: null
+          }))
+        }
+        onSave={onSavePendingMusicianChoice}
+        onChange={(selectionIndex, nextValue) =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            musicianChoice: current.musicianChoice
+              ? {
+                  toolProficiencies: updateSelectionAtIndex(
+                    current.musicianChoice.toolProficiencies,
+                    3,
+                    selectionIndex,
+                    nextValue
+                  ) as PendingMusicianChoice["toolProficiencies"]
+                }
+              : current.musicianChoice
+          }))
+        }
+      />
+    );
+  }
+
   if (
     pendingFeatState.epicBoonAbilityChoice &&
     pendingFeatState.epicBoonAbilityChoice.feat === featDefinition.feat
@@ -787,6 +1114,8 @@ function FeatEditorCard({
   onSavePendingCrafterChoice,
   onSavePendingDruidicWarriorChoice,
   onSavePendingEpicBoonAbilityChoice,
+  onSavePendingMagicInitiateChoice,
+  onSavePendingMusicianChoice,
   onSavePendingSkilledChoice
 }: FeatEditorCardProps) {
   const isRepeatable = Boolean(featDefinition.repeatable);
@@ -850,6 +1179,7 @@ function FeatEditorCard({
         featDefinition,
         featEligibility,
         toolProficiencies,
+        selectedEntries,
         pendingFeatState,
         blessedWarriorCantripOptions,
         druidicWarriorCantripOptions,
@@ -860,6 +1190,8 @@ function FeatEditorCard({
         onSavePendingCrafterChoice,
         onSavePendingDruidicWarriorChoice,
         onSavePendingEpicBoonAbilityChoice,
+        onSavePendingMagicInitiateChoice,
+        onSavePendingMusicianChoice,
         onSavePendingSkilledChoice
       })}
       <div className={modalStyles.footer}>

@@ -13,7 +13,11 @@ import {
   removeFeatGrantedToolEntries
 } from "../../../../pages/CharactersPage/proficiency";
 import { isFeatFromClassFeatureSource } from "./helpers";
-import { getCrafterToolSelections, splitSkilledSelections } from "./featEditorUtils";
+import {
+  getCrafterToolSelections,
+  getMusicianToolSelections,
+  splitSkilledSelections
+} from "./featEditorUtils";
 
 export type FeatEditorDraft = {
   feats: CharacterFeatEntry[];
@@ -75,12 +79,34 @@ function removeCrafterProficienciesFromDraft(
   };
 }
 
+function removeMusicianProficienciesFromDraft(
+  draft: FeatEditorDraft,
+  entryToRemove: CharacterFeatEntry
+): FeatEditorDraft {
+  if (entryToRemove.feat !== FEATS.MUSICIAN || !entryToRemove.musician) {
+    return draft;
+  }
+
+  return {
+    ...draft,
+    toolProficiencies: removeFeatGrantedToolEntries(
+      draft.toolProficiencies,
+      getMusicianToolSelections(entryToRemove.musician),
+      "Musician",
+      entryToRemove.id
+    )
+  };
+}
+
 function removeFeatGrantedProficienciesFromDraft(
   draft: FeatEditorDraft,
   entryToRemove: CharacterFeatEntry
 ): FeatEditorDraft {
-  return removeCrafterProficienciesFromDraft(
-    removeSkilledProficienciesFromDraft(draft, entryToRemove),
+  return removeMusicianProficienciesFromDraft(
+    removeCrafterProficienciesFromDraft(
+      removeSkilledProficienciesFromDraft(draft, entryToRemove),
+      entryToRemove
+    ),
     entryToRemove
   );
 }
@@ -136,6 +162,10 @@ export function upsertFeatInDraft(
     featEntry.feat === FEATS.CRAFTER && featEntry.crafter
       ? getCrafterToolSelections(featEntry.crafter)
       : null;
+  const musicianToolSelections =
+    featEntry.feat === FEATS.MUSICIAN && featEntry.musician
+      ? getMusicianToolSelections(featEntry.musician)
+      : null;
   const existingEntries = sourceContext
     ? draft.feats.filter((entry) =>
         isFeatFromClassFeatureSource(entry, sourceContext.level, sourceContext.feature)
@@ -161,7 +191,7 @@ export function upsertFeatInDraft(
     feats: nextFeats
   };
 
-  if (!skilledSelections && !crafterToolSelections) {
+  if (!skilledSelections && !crafterToolSelections && !musicianToolSelections) {
     return nextDraft;
   }
 
@@ -183,13 +213,25 @@ export function upsertFeatInDraft(
       }
     : nextDraft;
 
-  return crafterToolSelections
+  nextDraft = crafterToolSelections
     ? {
         ...nextDraft,
         toolProficiencies: addFeatGrantedToolEntries(
           nextDraft.toolProficiencies,
           crafterToolSelections,
           "Crafter",
+          featEntry.id
+        )
+      }
+    : nextDraft;
+
+  return musicianToolSelections
+    ? {
+        ...nextDraft,
+        toolProficiencies: addFeatGrantedToolEntries(
+          nextDraft.toolProficiencies,
+          musicianToolSelections,
+          "Musician",
           featEntry.id
         )
       }

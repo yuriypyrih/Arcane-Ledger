@@ -28,7 +28,15 @@
   gap: 1rem;
 }
 
-.listHeader span,
+.listHeaderActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.listCount,
 .empty,
 .card p {
   color: var(--color-ink-soft);
@@ -136,6 +144,7 @@
 }
 
 .viewButton,
+.createButton,
 .iconButton {
   display: inline-flex;
   align-items: center;
@@ -143,6 +152,17 @@
   border: none;
   cursor: pointer;
   font: inherit;
+}
+
+.createButton {
+  gap: 0.35rem;
+  border-radius: 14px;
+  background: var(--gradient-primary-action);
+  color: #fff8ee;
+  min-height: 42px;
+  padding: 0 0.9rem;
+  text-decoration: none;
+  white-space: nowrap;
 }
 
 .viewButton {
@@ -232,11 +252,25 @@
     min-height: 38px;
     min-width: 38px;
   }
+
+  .createButton {
+    min-height: 38px;
+  }
 }
 
 @media (max-width: 520px) {
   .modalBackdrop {
     --overlay-backdrop-padding: 0.55rem;
+  }
+
+  .listHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .listHeaderActions {
+    justify-content: flex-start;
+    width: 100%;
   }
 
   .card {

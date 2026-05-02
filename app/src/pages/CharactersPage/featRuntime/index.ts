@@ -11,7 +11,13 @@ import {
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../types";
-import type { Character, CharacterFeatEntry, ItemRecord } from "../../../types";
+import type {
+  AbilityKey,
+  Character,
+  CharacterFeatEntry,
+  ItemRecord,
+  MagicInitiateChoice
+} from "../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../actionEconomy";
 import { createSourcedDescriptionEntries } from "../actionModalDescriptions";
 import type {
@@ -33,6 +39,37 @@ const druidicWarriorCantripOptionsById = new Map(
   getSpellEntriesForSpellListClass(SPELL_LIST_CLASS.DRUID)
     .filter((spell) => spell.spellLevel === 0)
     .map((spell) => [spell.id, spell] as const)
+);
+const magicInitiateSpellLists = [
+  SPELL_LIST_CLASS.CLERIC,
+  SPELL_LIST_CLASS.DRUID,
+  SPELL_LIST_CLASS.WIZARD
+] as const;
+const magicInitiateCantripOptionsBySpellListAndId = new Map<
+  MagicInitiateChoice["spellList"],
+  Map<string, SpellEntry>
+>(
+  magicInitiateSpellLists.map((spellList) => [
+    spellList,
+    new Map(
+      getSpellEntriesForSpellListClass(spellList)
+        .filter((spell) => spell.spellLevel === 0)
+        .map((spell) => [spell.id, spell] as const)
+    )
+  ])
+);
+const magicInitiateLevelOneSpellOptionsBySpellListAndId = new Map<
+  MagicInitiateChoice["spellList"],
+  Map<string, SpellEntry>
+>(
+  magicInitiateSpellLists.map((spellList) => [
+    spellList,
+    new Map(
+      getSpellEntriesForSpellListClass(spellList)
+        .filter((spell) => spell.spellLevel === 1)
+        .map((spell) => [spell.id, spell] as const)
+    )
+  ])
 );
 const featDerivedStateCache = new WeakMap<object, Map<number, FeatDerivedState>>();
 const healerKitItemKeys = new Set(["srd_healers-kit", "srd-2024_healers-kit"]);
@@ -87,7 +124,31 @@ function getFeatCantripEntry(entry: CharacterFeatEntry): SpellEntry[] {
     });
   }
 
+  if (entry.feat === FEATS.MAGIC_INITIATE && entry.magicInitiate) {
+    const cantripOptionsById = magicInitiateCantripOptionsBySpellListAndId.get(
+      entry.magicInitiate.spellList
+    );
+
+    return entry.magicInitiate.cantripIds.flatMap((cantripId) => {
+      const cantrip = cantripOptionsById?.get(cantripId);
+
+      return cantrip ? [cantrip] : [];
+    });
+  }
+
   return [];
+}
+
+function getMagicInitiateLevelOneSpellEntry(entry: CharacterFeatEntry): SpellEntry | null {
+  if (entry.feat !== FEATS.MAGIC_INITIATE || !entry.magicInitiate) {
+    return null;
+  }
+
+  return (
+    magicInitiateLevelOneSpellOptionsBySpellListAndId
+      .get(entry.magicInitiate.spellList)
+      ?.get(entry.magicInitiate.levelOneSpellId) ?? null
+  );
 }
 
 function getFeatProficiencyBonusForLevel(level: number): number {
@@ -146,6 +207,10 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
   const featsByFeat = new Map<FEATS, CharacterFeatEntry[]>();
   const featSet = new Set<FEATS>();
   const grantedCantripEntriesById = new Map<string, SpellEntry>();
+  const alwaysPreparedCantripEntriesById = new Map<string, SpellEntry>();
+  const alwaysPreparedSpellEntriesById = new Map<string, SpellEntry>();
+  const magicInitiateSpellcastingAbilityBySpellId = new Map<string, AbilityKey>();
+  const magicInitiateFreeCastEntries: FeatDerivedState["magicInitiateFreeCastEntries"] = [];
   const abilityScoreBonuses: FeatDerivedState["abilityScoreBonuses"] = [];
   const derivedStatusEntries: FeatDerivedState["derivedStatusEntries"] = [];
   const featDefinitionCache = new Map<FEATS, SpellDescriptionEntry[]>();
@@ -154,9 +219,38 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
     featSet.add(entry.feat);
     featsByFeat.set(entry.feat, [...(featsByFeat.get(entry.feat) ?? []), entry]);
 
-    getFeatCantripEntry(entry).forEach((cantrip) => {
+    const featCantripEntries = getFeatCantripEntry(entry);
+
+    featCantripEntries.forEach((cantrip) => {
       grantedCantripEntriesById.set(cantrip.id, cantrip);
     });
+
+    if (entry.feat === FEATS.MAGIC_INITIATE && entry.magicInitiate) {
+      const magicInitiate = entry.magicInitiate;
+
+      featCantripEntries.forEach((cantrip) => {
+        alwaysPreparedCantripEntriesById.set(cantrip.id, cantrip);
+        magicInitiateSpellcastingAbilityBySpellId.set(
+          cantrip.id,
+          magicInitiate.spellcastingAbility
+        );
+      });
+
+      const levelOneSpell = getMagicInitiateLevelOneSpellEntry(entry);
+
+      if (levelOneSpell) {
+        alwaysPreparedSpellEntriesById.set(levelOneSpell.id, levelOneSpell);
+        magicInitiateSpellcastingAbilityBySpellId.set(
+          levelOneSpell.id,
+          magicInitiate.spellcastingAbility
+        );
+        magicInitiateFreeCastEntries.push({
+          featEntryId: entry.id,
+          spellId: levelOneSpell.id,
+          expended: magicInitiate.freeCastExpended === true
+        });
+      }
+    }
 
     const order = entry.takenAtLevel + index / 100;
 
@@ -224,6 +318,7 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
   });
 
   const luckyPointsTotal = featSet.has(FEATS.LUCKY) ? getFeatProficiencyBonusForLevel(level) : 0;
+  const hitPointMaximumBonus = featSet.has(FEATS.TOUGH) ? level * 2 : 0;
   const luckyPointsExpended = getLuckyPointsExpended(normalizedFeats, luckyPointsTotal);
   const luckyPointsRemaining = Math.max(0, luckyPointsTotal - luckyPointsExpended);
   const getFeatDescription = (feat: FEATS) => {
@@ -248,13 +343,23 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
     grantedCantripEntries: [...grantedCantripEntriesById.values()].sort((left, right) =>
       left.name.localeCompare(right.name)
     ),
+    alwaysPreparedCantripEntries: [...alwaysPreparedCantripEntriesById.values()].sort(
+      (left, right) => left.name.localeCompare(right.name)
+    ),
+    alwaysPreparedSpellEntries: [...alwaysPreparedSpellEntriesById.values()].sort((left, right) =>
+      left.name.localeCompare(right.name)
+    ),
+    magicInitiateSpellcastingAbilityBySpellId,
+    magicInitiateFreeCastEntries,
     abilityScoreBonuses,
+    hitPointMaximumBonus,
     derivedStatusEntries,
     actions,
     hasCrafterDiscount: featSet.has(FEATS.CRAFTER),
     hasDefenseFightingStyle: featSet.has(FEATS.DEFENSE),
     hasHealer: featSet.has(FEATS.HEALER),
     hasLucky: featSet.has(FEATS.LUCKY),
+    hasMagicInitiate: featSet.has(FEATS.MAGIC_INITIATE),
     luckyPointsRemaining,
     luckyPointsTotal
   };
@@ -288,10 +393,62 @@ export function getFeatGrantedCantripEntriesForCharacter(
   return collectFeatDerivedState(character).grantedCantripEntries;
 }
 
+export function getFeatAlwaysPreparedCantripEntriesForCharacter(
+  character: FeatRuntimeCharacter
+): SpellEntry[] {
+  return collectFeatDerivedState(character).alwaysPreparedCantripEntries;
+}
+
+export function getFeatAlwaysPreparedSpellEntriesForCharacter(
+  character: FeatRuntimeCharacter
+): SpellEntry[] {
+  return collectFeatDerivedState(character).alwaysPreparedSpellEntries;
+}
+
+export function getMagicInitiateSpellcastingAbilityForCharacter(
+  character: FeatRuntimeCharacter,
+  spellId: string
+): AbilityKey | null {
+  return collectFeatDerivedState(character).magicInitiateSpellcastingAbilityBySpellId.get(spellId) ?? null;
+}
+
+export function getMagicInitiateFreeCastStateForCharacter(
+  character: FeatRuntimeCharacter,
+  spellId: string
+): {
+  available: boolean;
+  expended: boolean;
+  usesRemaining: number;
+  usesTotal: number;
+} | null {
+  const entries = collectFeatDerivedState(character).magicInitiateFreeCastEntries.filter(
+    (entry) => entry.spellId === spellId
+  );
+
+  if (entries.length === 0) {
+    return null;
+  }
+
+  const usesRemaining = entries.filter((entry) => !entry.expended).length;
+
+  return {
+    available: usesRemaining > 0,
+    expended: usesRemaining <= 0,
+    usesRemaining,
+    usesTotal: entries.length
+  };
+}
+
 export function getFeatAbilityScoreBonusesForCharacter(
   character: FeatRuntimeCharacter
 ): FeatDerivedState["abilityScoreBonuses"] {
   return collectFeatDerivedState(character).abilityScoreBonuses;
+}
+
+export function getFeatHitPointMaximumBonusForCharacter(
+  character: FeatRuntimeCharacter
+): number {
+  return collectFeatDerivedState(character).hitPointMaximumBonus;
 }
 
 export function getFeatArmorClassBonusesForCharacter(
@@ -345,6 +502,123 @@ export function getFeatItemAdditionalDescriptionForCharacter(
   const healerDescription = getFeatDefinition(FEATS.HEALER)?.description ?? [];
 
   return createSourcedDescriptionEntries(getFeatLabel(FEATS.HEALER), healerDescription);
+}
+
+export function getSavageAttackerWeaponActionDescriptionAdditions(
+  character: FeatRuntimeCharacter
+): SpellDescriptionEntry[][] {
+  if (!hasFeatForCharacter(character, FEATS.SAVAGE_ATTACKER)) {
+    return [];
+  }
+
+  const description = getFeatDefinition(FEATS.SAVAGE_ATTACKER)?.description ?? [];
+
+  return description.length > 0
+    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.SAVAGE_ATTACKER), description)]
+    : [];
+}
+
+export function getTavernBrawlerUnarmedStrikeDescriptionAdditions(
+  character: FeatRuntimeCharacter
+): SpellDescriptionEntry[][] {
+  if (!hasFeatForCharacter(character, FEATS.TAVERN_BRAWLER)) {
+    return [];
+  }
+
+  const description = getFeatDefinition(FEATS.TAVERN_BRAWLER)?.description ?? [];
+
+  return description.length > 0
+    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.TAVERN_BRAWLER), description)]
+    : [];
+}
+
+export function getMusicianEncouragingSongDescriptionEntriesForCharacter(
+  character: FeatRuntimeCharacter
+): SpellDescriptionEntry[] {
+  if (!hasFeatForCharacter(character, FEATS.MUSICIAN)) {
+    return [];
+  }
+
+  return (getFeatDefinition(FEATS.MUSICIAN)?.description ?? []).filter((entry) =>
+    entry.includes("Encouraging Song")
+  );
+}
+
+export function consumeMagicInitiateFreeCastForCharacter(
+  character: Character,
+  spellId: string
+): Character {
+  const derivedState = collectFeatDerivedState(character);
+  let didSpendFreeCast = false;
+
+  if (!derivedState.hasMagicInitiate) {
+    return character;
+  }
+
+  const feats = derivedState.normalizedFeats.map((entry) => {
+    if (
+      didSpendFreeCast ||
+      entry.feat !== FEATS.MAGIC_INITIATE ||
+      !entry.magicInitiate ||
+      entry.magicInitiate.levelOneSpellId !== spellId ||
+      entry.magicInitiate.freeCastExpended === true
+    ) {
+      return entry;
+    }
+
+    didSpendFreeCast = true;
+
+    return {
+      ...entry,
+      magicInitiate: {
+        ...entry.magicInitiate,
+        freeCastExpended: true
+      }
+    };
+  });
+
+  return didSpendFreeCast
+    ? {
+        ...character,
+        feats
+      }
+    : character;
+}
+
+export function restoreMagicInitiateFreeCastsForCharacter(character: Character): Character {
+  const derivedState = collectFeatDerivedState(character);
+  let didRestoreFreeCast = false;
+
+  if (!derivedState.hasMagicInitiate) {
+    return character;
+  }
+
+  const feats = derivedState.normalizedFeats.map((entry) => {
+    if (
+      entry.feat !== FEATS.MAGIC_INITIATE ||
+      !entry.magicInitiate ||
+      entry.magicInitiate.freeCastExpended !== true
+    ) {
+      return entry;
+    }
+
+    didRestoreFreeCast = true;
+
+    return {
+      ...entry,
+      magicInitiate: {
+        ...entry.magicInitiate,
+        freeCastExpended: undefined
+      }
+    };
+  });
+
+  return didRestoreFreeCast
+    ? {
+        ...character,
+        feats
+      }
+    : character;
 }
 
 function setLuckyPointsExpendedForCharacter(

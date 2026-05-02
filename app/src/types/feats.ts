@@ -1,4 +1,4 @@
-import type { CLASS_FEATURE, FEATS } from "../codex/entries/enums";
+import type { CLASS_FEATURE, FEATS, SPELL_LIST_CLASS } from "../codex/entries/enums";
 import type { AbilityKey } from "./characters";
 import type { TOOL_PROFICIENCY } from "./proficiencies";
 import type { SkillName } from "./skills";
@@ -28,6 +28,18 @@ export type BlessedWarriorChoice = {
 
 export type DruidicWarriorChoice = {
   cantripIds: [string, string];
+};
+
+export type MagicInitiateChoice = {
+  spellList: SPELL_LIST_CLASS.CLERIC | SPELL_LIST_CLASS.DRUID | SPELL_LIST_CLASS.WIZARD;
+  cantripIds: [string, string];
+  levelOneSpellId: string;
+  spellcastingAbility: "INT" | "WIS" | "CHA";
+  freeCastExpended?: boolean;
+};
+
+export type MusicianChoice = {
+  toolProficiencies: [TOOL_PROFICIENCY, TOOL_PROFICIENCY, TOOL_PROFICIENCY];
 };
 
 export type CrafterChoice = {
@@ -70,6 +82,8 @@ export type CharacterFeatEntry = {
   abilityScoreImprovement?: AbilityScoreImprovementChoice;
   blessedWarrior?: BlessedWarriorChoice;
   druidicWarrior?: DruidicWarriorChoice;
+  magicInitiate?: MagicInitiateChoice;
+  musician?: MusicianChoice;
   crafter?: CrafterChoice;
   boonOfIrresistibleOffense?: BoonOfIrresistibleOffenseChoice;
   epicBoonAbilityChoice?: EpicBoonAbilityChoice;

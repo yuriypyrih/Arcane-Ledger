@@ -1,5 +1,5 @@
 import type { SpellEntry, WeaponDamage } from "../../codex/entries";
-import type { Character } from "../../types";
+import type { AbilityKey, Character } from "../../types";
 import { getAbilityModifierForCharacter } from "./abilities";
 import {
   getCantripDamageBonusForCharacter,
@@ -50,18 +50,22 @@ function formatSignedModifier(value: number): string {
 }
 
 function getSpellcastingAbilityModifier(
-  character: Pick<Character, "className" | "abilities">
+  character: Pick<Character, "className" | "abilities">,
+  spellcastingAbilityOverride?: AbilityKey | null
 ): number {
-  const mainAbility = getMainAbilityForClass(character.className);
+  const mainAbility = spellcastingAbilityOverride ?? getMainAbilityForClass(character.className);
 
   return mainAbility ? getAbilityModifierForCharacter(character, mainAbility) : 0;
 }
 
-function getSpellHealingFormatOptions(character: Pick<Character, "className" | "abilities">): {
+function getSpellHealingFormatOptions(
+  character: Pick<Character, "className" | "abilities">,
+  spellcastingAbilityOverride?: AbilityKey | null
+): {
   spellcastingAbilityLabel: string;
   spellcastingAbilityModifier: number | null;
 } {
-  const mainAbility = getMainAbilityForClass(character.className);
+  const mainAbility = spellcastingAbilityOverride ?? getMainAbilityForClass(character.className);
 
   return {
     spellcastingAbilityLabel: mainAbility ?? "Spell MOD",
@@ -73,7 +77,8 @@ function getSpellHealingFormatOptions(character: Pick<Character, "className" | "
 
 export function getSpellOutcomeSummaryForCharacter(
   character: Pick<Character, "className" | "abilities" | "level" | "classFeatureState" | "feats">,
-  spell: SpellEntry
+  spell: SpellEntry,
+  spellcastingAbilityOverride?: AbilityKey | null
 ): string {
   const damageFormulaOverride = getSpellDamageFormulaOverrideForCharacter(character, spell);
 
@@ -112,7 +117,7 @@ export function getSpellOutcomeSummaryForCharacter(
 
   const range = parseFormulaRange(healingFormula, {
     substitutions: {
-      MOD: getSpellcastingAbilityModifier(character)
+      MOD: getSpellcastingAbilityModifier(character, spellcastingAbilityOverride)
     }
   });
 
@@ -126,7 +131,8 @@ export function getSpellOutcomeSummaryForCharacter(
 export function getSpellDamageDetailForCharacter(
   character: Pick<Character, "className" | "abilities" | "level" | "classFeatureState" | "feats"> &
     Partial<Pick<Character, "subclassId">>,
-  spell: SpellEntry
+  spell: SpellEntry,
+  spellcastingAbilityOverride?: AbilityKey | null
 ): string {
   const damageFormulaOverride = getSpellDamageFormulaOverrideForCharacter(character, spell);
 
@@ -135,7 +141,10 @@ export function getSpellDamageDetailForCharacter(
   }
 
   if (spell.damage.length === 0) {
-    return formatSpellHealing(spell.healing, getSpellHealingFormatOptions(character));
+    return formatSpellHealing(
+      spell.healing,
+      getSpellHealingFormatOptions(character, spellcastingAbilityOverride)
+    );
   }
 
   const damageBonus = getSpellDamageBonusForCharacter(character, spell);

@@ -46,7 +46,7 @@
   width: 100%;
   border: none;
   border-radius: 12px;
-  background: var(--color-panel-muted);
+  background: rgba(75, 47, 29, 0.07);
   color: var(--color-ink);
   cursor: pointer;
   font: inherit;

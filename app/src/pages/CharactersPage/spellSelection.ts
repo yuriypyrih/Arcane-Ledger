@@ -17,6 +17,7 @@ import {
   usesPreparedSpellsForCharacter,
   usesSpellbookForCharacter
 } from "./spellcasting";
+import { getFeatAlwaysPreparedSpellEntriesForCharacter } from "./featRuntime";
 
 export type SpellSelectionInputStatus = {
   hasInputRequired: boolean;
@@ -89,7 +90,7 @@ export function getSpellSelectionInputStatusForCharacter(
     character.level,
     character.subclassId
   );
-  const alwaysPreparedSpellIds = getAlwaysPreparedSpellIds(
+  const classAlwaysPreparedSpellIds = getAlwaysPreparedSpellIds(
     character.className,
     character.level,
     character.classFeatureState,
@@ -97,6 +98,12 @@ export function getSpellSelectionInputStatusForCharacter(
     character.subclassId,
     character.statusEntries
   );
+  const featAlwaysPreparedSpellIds = getFeatAlwaysPreparedSpellEntriesForCharacter(character).map(
+    (spell) => spell.id
+  );
+  const alwaysPreparedSpellIds = [
+    ...new Set([...classAlwaysPreparedSpellIds, ...featAlwaysPreparedSpellIds])
+  ];
   const alwaysSpellbookSpellIds = getAlwaysSpellbookSpellIdsForCharacter(character);
   const selectedSpellbookSpellIds = usesSpellbook
     ? normalizeSpellbookSpellIds(

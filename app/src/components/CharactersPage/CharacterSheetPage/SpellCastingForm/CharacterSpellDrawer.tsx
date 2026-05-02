@@ -18,7 +18,7 @@ import {
   type SpellDescriptionEntry,
   type SpellEntry
 } from "../../../../codex/entries";
-import type { Character } from "../../../../types";
+import type { AbilityKey, Character } from "../../../../types";
 import type { RoundTrackerResource } from "../../../../pages/CharactersPage/combat";
 import {
   formatCodexLabel,
@@ -74,6 +74,7 @@ export type CharacterSpellDrawerActionOptions = {
   useTelekineticMaster?: boolean;
   useRadiantSoul?: boolean;
   useOverchannel?: boolean;
+  useMagicInitiate?: boolean;
 };
 
 export type CharacterSpellDrawerActionRadioOption = {
@@ -159,6 +160,7 @@ type CharacterSpellDrawerProps = {
   isDiceRollerSettingsOpen?: boolean;
   onDiceRollerSettingsOpenChange?: (isOpen: boolean) => void;
   damageDetailOverride?: string | null;
+  spellcastingAbilityOverride?: AbilityKey | null;
   backdropClassName?: string;
 };
 
@@ -221,6 +223,7 @@ function CharacterSpellDrawer({
   isDiceRollerSettingsOpen = false,
   onDiceRollerSettingsOpenChange,
   damageDetailOverride = null,
+  spellcastingAbilityOverride = null,
   backdropClassName
 }: CharacterSpellDrawerProps) {
   const [isComponentsTooltipOpen, setIsComponentsTooltipOpen] = useState(false);
@@ -335,7 +338,10 @@ function CharacterSpellDrawer({
       (option) => option.id === "telekinetic-master" && option.checked
     ),
     useRadiantSoul: actionOptions.some((option) => option.id === "radiant-soul" && option.checked),
-    useOverchannel: actionOptions.some((option) => option.id === "overchannel" && option.checked)
+    useOverchannel: actionOptions.some((option) => option.id === "overchannel" && option.checked),
+    useMagicInitiate: actionOptions.some(
+      (option) => option.id === "magic-initiate" && option.checked
+    )
   };
   const resolvedActionPaths =
     actionPaths && actionPaths.length > 0
@@ -392,8 +398,8 @@ function CharacterSpellDrawer({
     isInnateSorceryActiveForSpell(character, spell) ? "Innate Sorcery is Active" : null
   ].filter((value): value is string => value !== null && value.length > 0);
   const spellFormulaCells = [
-    getSpellSaveFormulaCell(spell, character),
-    getSpellAttackFormulaCell(spell, character)
+    getSpellSaveFormulaCell(spell, character, spellcastingAbilityOverride),
+    getSpellAttackFormulaCell(spell, character, spellcastingAbilityOverride)
   ].filter((cell): cell is NonNullable<typeof cell> => cell !== null);
 
   useEffect(() => {
@@ -582,7 +588,10 @@ function CharacterSpellDrawer({
                 label={
                   spell.damage.length > 0 ? "Damage" : hasSpellHealing(spell) ? "Healing" : "Damage"
                 }
-                content={damageDetailOverride ?? getSpellDamageDetailForCharacter(character, spell)}
+                content={
+                  damageDetailOverride ??
+                  getSpellDamageDetailForCharacter(character, spell, spellcastingAbilityOverride)
+                }
               />
             </div>
 

@@ -508,7 +508,7 @@ function createWeaponActionFacts(action: WeaponAction): FeatureActionFact[] {
 
 function createWeaponActionDefinition(
   character: Pick<Character, "className" | "level"> &
-    Partial<Pick<Character, "statusEntries" | "subclassId">>,
+    Partial<Pick<Character, "feats" | "statusEntries" | "subclassId">>,
   action: WeaponAction
 ): GameplayActionDefinition {
   const descriptionAdditions = mergeUniqueDescriptionAdditions(

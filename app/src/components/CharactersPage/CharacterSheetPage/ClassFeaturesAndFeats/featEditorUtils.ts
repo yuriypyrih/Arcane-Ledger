@@ -8,6 +8,12 @@ import {
   getDruidicWarriorCantripOptions,
   getDruidicWarriorChoiceSummary,
   getEpicBoonAbilityOptions,
+  getMagicInitiateCantripOptions,
+  getMagicInitiateChoiceSummary,
+  getMagicInitiateLevelOneSpellOptions,
+  getMusicianChoiceSummary,
+  isMagicInitiateSpellList,
+  magicInitiateSpellcastingAbilityOptions,
   getSkilledChoiceSummary
 } from "../../../../pages/CharactersPage/feats";
 import {
@@ -16,6 +22,7 @@ import {
 } from "../../../../pages/CharactersPage/crafterFeat";
 import {
   skillsOptions,
+  musicalInstrumentToolProficiencies,
   toolProficiencyOptions,
   type ToolProficiency
 } from "../../../../pages/CharactersPage/proficiencyOptions";
@@ -24,6 +31,8 @@ import type {
   CharacterFeatEntry,
   CrafterChoice,
   DruidicWarriorChoice,
+  MagicInitiateChoice,
+  MusicianChoice,
   SkillName,
   SkilledChoice,
   SkilledFeatSelection
@@ -36,6 +45,8 @@ import type {
   PendingDruidicWarriorChoice,
   PendingEpicBoonAbilityChoice,
   PendingFeatState,
+  PendingMagicInitiateChoice,
+  PendingMusicianChoice,
   PendingSkilledChoice
 } from "./types";
 
@@ -46,6 +57,11 @@ export const skilledNoneOptionValue = "none";
 export const skilledSelectionIndices = [0, 1, 2] as const;
 export const crafterNoneOptionValue = "none";
 export const crafterSelectionIndices = [0, 1, 2] as const;
+export const musicianNoneOptionValue = "none";
+export const musicianSelectionIndices = [0, 1, 2] as const;
+export const magicInitiateNoneOptionValue = "none";
+export const magicInitiateCantripSelectionIndices = [0, 1] as const;
+const musicianToolOptionSet = new Set<ToolProficiency>(musicalInstrumentToolProficiencies);
 
 function createDefaultPendingCantripChoice(
   options: SpellEntry[],
@@ -124,6 +140,8 @@ export function createEmptyPendingFeatState(): PendingFeatState {
     blessedWarriorChoice: null,
     crafterChoice: null,
     druidicWarriorChoice: null,
+    magicInitiateChoice: null,
+    musicianChoice: null,
     epicBoonAbilityChoice: null,
     skilledChoice: null
   };
@@ -167,6 +185,25 @@ export function createDefaultPendingCrafterChoice(): PendingCrafterChoice {
       crafterNoneOptionValue,
       crafterNoneOptionValue,
       crafterNoneOptionValue
+    ]
+  };
+}
+
+export function createDefaultPendingMagicInitiateChoice(): PendingMagicInitiateChoice {
+  return {
+    spellList: magicInitiateNoneOptionValue,
+    cantripIds: ["", ""],
+    levelOneSpellId: "",
+    spellcastingAbility: magicInitiateNoneOptionValue
+  };
+}
+
+export function createDefaultPendingMusicianChoice(): PendingMusicianChoice {
+  return {
+    toolProficiencies: [
+      musicianNoneOptionValue,
+      musicianNoneOptionValue,
+      musicianNoneOptionValue
     ]
   };
 }
@@ -228,6 +265,20 @@ export function createPendingFeatStateForFeat(feat: FEATS): PendingFeatState | n
     };
   }
 
+  if (feat === FEATS.MAGIC_INITIATE) {
+    return {
+      ...createEmptyPendingFeatState(),
+      magicInitiateChoice: createDefaultPendingMagicInitiateChoice()
+    };
+  }
+
+  if (feat === FEATS.MUSICIAN) {
+    return {
+      ...createEmptyPendingFeatState(),
+      musicianChoice: createDefaultPendingMusicianChoice()
+    };
+  }
+
   const epicBoonAbilityChoice = createDefaultPendingEpicBoonAbilityChoice(feat);
 
   if (epicBoonAbilityChoice) {
@@ -272,6 +323,46 @@ export function decodePendingDruidicWarriorChoice(
   return decodePendingCantripChoice<DruidicWarriorChoice>(choice, getDruidicWarriorCantripOptions());
 }
 
+export function decodePendingMagicInitiateChoice(
+  choice: PendingMagicInitiateChoice
+): MagicInitiateChoice | null {
+  if (!isMagicInitiateSpellList(choice.spellList)) {
+    return null;
+  }
+
+  const cantripIds = [...new Set(choice.cantripIds.filter((spellId) => spellId.length > 0))];
+  const cantripOptionIds = new Set(
+    getMagicInitiateCantripOptions(choice.spellList).map((spell) => spell.id)
+  );
+
+  if (cantripIds.length !== 2 || !cantripIds.every((spellId) => cantripOptionIds.has(spellId))) {
+    return null;
+  }
+
+  const levelOneSpellOptionIds = new Set(
+    getMagicInitiateLevelOneSpellOptions(choice.spellList).map((spell) => spell.id)
+  );
+
+  if (!levelOneSpellOptionIds.has(choice.levelOneSpellId)) {
+    return null;
+  }
+
+  if (
+    !magicInitiateSpellcastingAbilityOptions.includes(
+      choice.spellcastingAbility as MagicInitiateChoice["spellcastingAbility"]
+    )
+  ) {
+    return null;
+  }
+
+  return {
+    spellList: choice.spellList,
+    cantripIds: cantripIds as MagicInitiateChoice["cantripIds"],
+    levelOneSpellId: choice.levelOneSpellId,
+    spellcastingAbility: choice.spellcastingAbility as MagicInitiateChoice["spellcastingAbility"]
+  };
+}
+
 export function decodePendingCrafterChoice(choice: PendingCrafterChoice): CrafterChoice | null {
   const toolProficiencies = choice.toolProficiencies.filter(isCrafterFastCraftingTool);
   const uniqueToolProficiencies = [...new Set(toolProficiencies)];
@@ -296,6 +387,32 @@ export function getPendingCrafterChoiceSummary(choice: PendingCrafterChoice): st
   return getCrafterChoiceSummary(decodePendingCrafterChoice(choice) ?? undefined);
 }
 
+export function decodePendingMusicianChoice(choice: PendingMusicianChoice): MusicianChoice | null {
+  const toolProficiencies = choice.toolProficiencies.filter(
+    (tool): tool is ToolProficiency => musicianToolOptionSet.has(tool as ToolProficiency)
+  );
+  const uniqueToolProficiencies = [...new Set(toolProficiencies)];
+
+  if (uniqueToolProficiencies.length !== 3) {
+    return null;
+  }
+
+  return {
+    toolProficiencies: uniqueToolProficiencies as MusicianChoice["toolProficiencies"]
+  };
+}
+
+export function isPendingMusicianChoiceValid(choice: PendingMusicianChoice): boolean {
+  return (
+    new Set(choice.toolProficiencies).size === choice.toolProficiencies.length &&
+    decodePendingMusicianChoice(choice) !== null
+  );
+}
+
+export function getPendingMusicianChoiceSummary(choice: PendingMusicianChoice): string | null {
+  return getMusicianChoiceSummary(decodePendingMusicianChoice(choice) ?? undefined);
+}
+
 export function isPendingDruidicWarriorChoiceValid(choice: PendingDruidicWarriorChoice): boolean {
   return decodePendingDruidicWarriorChoice(choice) !== null;
 }
@@ -304,6 +421,16 @@ export function getPendingDruidicWarriorChoiceSummary(
   choice: PendingDruidicWarriorChoice
 ): string | null {
   return getDruidicWarriorChoiceSummary(decodePendingDruidicWarriorChoice(choice) ?? undefined);
+}
+
+export function isPendingMagicInitiateChoiceValid(choice: PendingMagicInitiateChoice): boolean {
+  return decodePendingMagicInitiateChoice(choice) !== null;
+}
+
+export function getPendingMagicInitiateChoiceSummary(
+  choice: PendingMagicInitiateChoice
+): string | null {
+  return getMagicInitiateChoiceSummary(decodePendingMagicInitiateChoice(choice) ?? undefined);
 }
 
 export function decodePendingSkilledChoice(choice: PendingSkilledChoice): SkilledChoice | null {
@@ -356,6 +483,10 @@ export function splitSkilledSelections(choice?: SkilledChoice): {
 }
 
 export function getCrafterToolSelections(choice?: CrafterChoice): ToolProficiency[] {
+  return choice?.toolProficiencies ? [...choice.toolProficiencies] : [];
+}
+
+export function getMusicianToolSelections(choice?: MusicianChoice): ToolProficiency[] {
   return choice?.toolProficiencies ? [...choice.toolProficiencies] : [];
 }
 

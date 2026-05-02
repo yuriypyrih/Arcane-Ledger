@@ -11,6 +11,8 @@ import type {
   DruidicWarriorChoice,
   LanguageProficiency,
   LuckyChoice,
+  MagicInitiateChoice,
+  MusicianChoice,
   SAVING_THROW_PROFICIENCY,
   SkillName,
   WEAPON_PROFICIENCY
@@ -24,7 +26,7 @@ import type {
   SkilledFeatSelection
 } from "../../types/feats";
 import { formatCodexLabel } from "../../utils/codex";
-import { getToolProficiencyLabel } from "./proficiencyOptions";
+import { getToolProficiencyLabel, musicalInstrumentToolProficiencies } from "./proficiencyOptions";
 import { getSpellEntriesForSpellListClass } from "../../codex/classes/spellAccess";
 import { SPELL_LIST_CLASS, type SpellEntry } from "../../codex/entries";
 import { phb2024MissingFeatDefinitions } from "./featDefinitions/phb2024Missing";
@@ -98,6 +100,63 @@ const druidicWarriorCantripOptions = getSpellEntriesForSpellListClass(
 ).filter((spell) => spell.spellLevel === 0);
 const druidicWarriorCantripOptionsById = new Map(
   druidicWarriorCantripOptions.map((spell) => [spell.id, spell] as const)
+);
+export const magicInitiateSpellListOptions = [
+  SPELL_LIST_CLASS.CLERIC,
+  SPELL_LIST_CLASS.DRUID,
+  SPELL_LIST_CLASS.WIZARD
+] as const;
+export const magicInitiateSpellcastingAbilityOptions = ["INT", "WIS", "CHA"] as const;
+const magicInitiateSpellListOptionSet = new Set<SPELL_LIST_CLASS>(magicInitiateSpellListOptions);
+const magicInitiateSpellcastingAbilityOptionSet = new Set<AbilityKey>(
+  magicInitiateSpellcastingAbilityOptions
+);
+const magicInitiateCantripOptionsBySpellList = new Map<
+  MagicInitiateChoice["spellList"],
+  SpellEntry[]
+>(
+  magicInitiateSpellListOptions.map((spellList) => [
+    spellList,
+    getSpellEntriesForSpellListClass(spellList).filter((spell) => spell.spellLevel === 0)
+  ])
+);
+const magicInitiateLevelOneSpellOptionsBySpellList = new Map<
+  MagicInitiateChoice["spellList"],
+  SpellEntry[]
+>(
+  magicInitiateSpellListOptions.map((spellList) => [
+    spellList,
+    getSpellEntriesForSpellListClass(spellList).filter((spell) => spell.spellLevel === 1)
+  ])
+);
+const magicInitiateCantripOptionsBySpellListAndId = new Map<
+  MagicInitiateChoice["spellList"],
+  Map<string, SpellEntry>
+>(
+  magicInitiateSpellListOptions.map((spellList) => [
+    spellList,
+    new Map(
+      (magicInitiateCantripOptionsBySpellList.get(spellList) ?? []).map(
+        (spell) => [spell.id, spell] as const
+      )
+    )
+  ])
+);
+const magicInitiateLevelOneSpellOptionsBySpellListAndId = new Map<
+  MagicInitiateChoice["spellList"],
+  Map<string, SpellEntry>
+>(
+  magicInitiateSpellListOptions.map((spellList) => [
+    spellList,
+    new Map(
+      (magicInitiateLevelOneSpellOptionsBySpellList.get(spellList) ?? []).map(
+        (spell) => [spell.id, spell] as const
+      )
+    )
+  ])
+);
+const musicalInstrumentToolProficiencySet = new Set<TOOL_PROFICIENCY>(
+  musicalInstrumentToolProficiencies
 );
 const epicBoonAbilityIncreaseFeatOptions = new Map<FEATS, AbilityKey[]>([
   [FEATS.BOON_OF_COMBAT_PROWESS, allEpicBoonAbilityOptions],
@@ -555,6 +614,67 @@ function normalizeDruidicWarriorChoice(value: unknown): DruidicWarriorChoice | u
   };
 }
 
+export function isMagicInitiateSpellList(value: unknown): value is MagicInitiateChoice["spellList"] {
+  return (
+    typeof value === "string" &&
+    magicInitiateSpellListOptionSet.has(value as MagicInitiateChoice["spellList"])
+  );
+}
+
+function normalizeMagicInitiateChoice(value: unknown): MagicInitiateChoice | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const record = value as Partial<MagicInitiateChoice>;
+
+  if (!isMagicInitiateSpellList(record.spellList)) {
+    return undefined;
+  }
+
+  if (!Array.isArray(record.cantripIds) || record.cantripIds.length !== 2) {
+    return undefined;
+  }
+
+  const cantripOptionsById = magicInitiateCantripOptionsBySpellListAndId.get(record.spellList);
+  const levelOneSpellOptionsById = magicInitiateLevelOneSpellOptionsBySpellListAndId.get(
+    record.spellList
+  );
+  const cantripIds = [
+    ...new Set(record.cantripIds.filter((id): id is string => typeof id === "string"))
+  ];
+
+  if (
+    cantripIds.length !== 2 ||
+    !cantripOptionsById ||
+    !cantripIds.every((id) => cantripOptionsById.has(id))
+  ) {
+    return undefined;
+  }
+
+  if (
+    typeof record.levelOneSpellId !== "string" ||
+    !levelOneSpellOptionsById?.has(record.levelOneSpellId)
+  ) {
+    return undefined;
+  }
+
+  if (
+    typeof record.spellcastingAbility !== "string" ||
+    !magicInitiateSpellcastingAbilityOptionSet.has(record.spellcastingAbility as AbilityKey)
+  ) {
+    return undefined;
+  }
+
+  return {
+    spellList: record.spellList,
+    cantripIds: cantripIds as MagicInitiateChoice["cantripIds"],
+    levelOneSpellId: record.levelOneSpellId,
+    spellcastingAbility: record.spellcastingAbility as MagicInitiateChoice["spellcastingAbility"],
+    freeCastExpended: record.freeCastExpended === true ? true : undefined
+  };
+}
+
 function isSkilledTool(value: unknown): value is TOOL_PROFICIENCY {
   return (
     typeof value === "string" && Object.values(TOOL_PROFICIENCY).includes(value as TOOL_PROFICIENCY)
@@ -610,6 +730,36 @@ function normalizeSkilledChoice(value: unknown): SkilledChoice | undefined {
 
   return {
     selections: selections as SkilledChoice["selections"]
+  };
+}
+
+function isMusicianInstrument(value: unknown): value is TOOL_PROFICIENCY {
+  return (
+    typeof value === "string" &&
+    musicalInstrumentToolProficiencySet.has(value as TOOL_PROFICIENCY)
+  );
+}
+
+function normalizeMusicianChoice(value: unknown): MusicianChoice | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const record = value as Partial<MusicianChoice>;
+
+  if (!Array.isArray(record.toolProficiencies) || record.toolProficiencies.length !== 3) {
+    return undefined;
+  }
+
+  const toolProficiencies = record.toolProficiencies.filter(isMusicianInstrument);
+  const uniqueToolProficiencies = [...new Set(toolProficiencies)];
+
+  if (uniqueToolProficiencies.length !== 3) {
+    return undefined;
+  }
+
+  return {
+    toolProficiencies: uniqueToolProficiencies as MusicianChoice["toolProficiencies"]
   };
 }
 
@@ -764,11 +914,17 @@ export function normalizeCharacterFeats(
       feat === FEATS.DRUIDIC_WARRIOR
         ? normalizeDruidicWarriorChoice(record.druidicWarrior)
         : undefined;
+    const magicInitiate =
+      feat === FEATS.MAGIC_INITIATE
+        ? normalizeMagicInitiateChoice(record.magicInitiate)
+        : undefined;
     const crafter = feat === FEATS.CRAFTER ? normalizeCrafterChoice(record.crafter) : undefined;
     const epicBoonAbilityChoice = epicBoonAbilityIncreaseFeatOptions.has(feat)
       ? normalizeEpicBoonAbilityChoice(feat, record.epicBoonAbilityChoice)
       : undefined;
     const skilled = feat === FEATS.SKILLED ? normalizeSkilledChoice(record.skilled) : undefined;
+    const musician =
+      feat === FEATS.MUSICIAN ? normalizeMusicianChoice(record.musician) : undefined;
     const lucky =
       feat === FEATS.LUCKY ? normalizeLuckyChoice(record.lucky, currentLevel) : undefined;
 
@@ -787,10 +943,12 @@ export function normalizeCharacterFeats(
         abilityScoreImprovement,
         blessedWarrior,
         druidicWarrior,
+        magicInitiate,
         crafter,
         boonOfIrresistibleOffense,
         epicBoonAbilityChoice,
         skilled,
+        musician,
         lucky
       }
     ];
@@ -805,6 +963,8 @@ export function createCharacterFeatEntry(
     abilityScoreImprovement?: AbilityScoreImprovementChoice;
     blessedWarrior?: BlessedWarriorChoice;
     druidicWarrior?: DruidicWarriorChoice;
+    magicInitiate?: MagicInitiateChoice;
+    musician?: MusicianChoice;
     crafter?: CrafterChoice;
     boonOfIrresistibleOffense?: BoonOfIrresistibleOffenseChoice;
     epicBoonAbilityChoice?: EpicBoonAbilityChoice;
@@ -821,6 +981,8 @@ export function createCharacterFeatEntry(
       feat === FEATS.ABILITY_SCORE_IMPROVEMENT ? options?.abilityScoreImprovement : undefined,
     blessedWarrior: feat === FEATS.BLESSED_WARRIOR ? options?.blessedWarrior : undefined,
     druidicWarrior: feat === FEATS.DRUIDIC_WARRIOR ? options?.druidicWarrior : undefined,
+    magicInitiate: feat === FEATS.MAGIC_INITIATE ? options?.magicInitiate : undefined,
+    musician: feat === FEATS.MUSICIAN ? options?.musician : undefined,
     crafter: feat === FEATS.CRAFTER ? options?.crafter : undefined,
     boonOfIrresistibleOffense:
       feat === FEATS.BOON_OF_IRRESISTIBLE_OFFENSE ? options?.boonOfIrresistibleOffense : undefined,
@@ -890,6 +1052,14 @@ export function getSkilledChoiceSummary(choice?: SkilledChoice): string | null {
   return choice.selections.map((selection) => getSkilledSelectionLabel(selection)).join(", ");
 }
 
+export function getMusicianChoiceSummary(choice?: MusicianChoice): string | null {
+  if (!choice) {
+    return null;
+  }
+
+  return choice.toolProficiencies.map((tool) => getToolProficiencyLabel(tool)).join(", ");
+}
+
 export function getEpicBoonAbilityChoiceSummary(choice?: EpicBoonAbilityChoice): string | null {
   return choice ? `${choice.ability} +1` : null;
 }
@@ -918,6 +1088,32 @@ export function getDruidicWarriorChoiceSummary(choice?: DruidicWarriorChoice): s
   return cantripNames.length > 0 ? cantripNames.join(", ") : null;
 }
 
+export function getMagicInitiateSpellListLabel(spellList: MagicInitiateChoice["spellList"]): string {
+  return formatCodexLabel(spellList);
+}
+
+export function getMagicInitiateChoiceSummary(choice?: MagicInitiateChoice): string | null {
+  if (!choice) {
+    return null;
+  }
+
+  const cantripOptionsById = magicInitiateCantripOptionsBySpellListAndId.get(choice.spellList);
+  const levelOneSpellOptionsById = magicInitiateLevelOneSpellOptionsBySpellListAndId.get(
+    choice.spellList
+  );
+  const cantripNames = choice.cantripIds
+    .map((cantripId) => cantripOptionsById?.get(cantripId)?.name)
+    .filter((name): name is string => Boolean(name));
+  const levelOneSpellName = levelOneSpellOptionsById?.get(choice.levelOneSpellId)?.name;
+  const spellNames = [...cantripNames, levelOneSpellName].filter(
+    (name): name is string => Boolean(name)
+  );
+
+  return spellNames.length > 0
+    ? `${getMagicInitiateSpellListLabel(choice.spellList)} (${choice.spellcastingAbility}): ${spellNames.join(", ")}`
+    : null;
+}
+
 export function getCharacterFeatSummary(entry: CharacterFeatEntry): string | null {
   if (entry.feat === FEATS.ABILITY_SCORE_IMPROVEMENT) {
     return getAbilityScoreImprovementSummary(entry.abilityScoreImprovement);
@@ -929,6 +1125,10 @@ export function getCharacterFeatSummary(entry: CharacterFeatEntry): string | nul
 
   if (entry.feat === FEATS.DRUIDIC_WARRIOR) {
     return getDruidicWarriorChoiceSummary(entry.druidicWarrior);
+  }
+
+  if (entry.feat === FEATS.MAGIC_INITIATE) {
+    return getMagicInitiateChoiceSummary(entry.magicInitiate);
   }
 
   if (entry.feat === FEATS.CRAFTER) {
@@ -945,6 +1145,10 @@ export function getCharacterFeatSummary(entry: CharacterFeatEntry): string | nul
 
   if (entry.feat === FEATS.SKILLED) {
     return getSkilledChoiceSummary(entry.skilled);
+  }
+
+  if (entry.feat === FEATS.MUSICIAN) {
+    return getMusicianChoiceSummary(entry.musician);
   }
 
   return null;
@@ -971,6 +1175,18 @@ export function getBlessedWarriorCantripOptions(): SpellEntry[] {
 
 export function getDruidicWarriorCantripOptions(): SpellEntry[] {
   return druidicWarriorCantripOptions;
+}
+
+export function getMagicInitiateCantripOptions(
+  spellList: MagicInitiateChoice["spellList"]
+): SpellEntry[] {
+  return magicInitiateCantripOptionsBySpellList.get(spellList) ?? [];
+}
+
+export function getMagicInitiateLevelOneSpellOptions(
+  spellList: MagicInitiateChoice["spellList"]
+): SpellEntry[] {
+  return magicInitiateLevelOneSpellOptionsBySpellList.get(spellList) ?? [];
 }
 
 export function getEpicBoonAbilityOptions(feat: FEATS): AbilityKey[] | null {

@@ -7,7 +7,10 @@ import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/C
 import { normalizeRoundTracker } from "../../../../pages/CharactersPage/combat";
 import { createSourcedDescriptionEntries } from "../../../../pages/CharactersPage/actionModalDescriptions";
 import { crafterFastCraftingRuleText } from "../../../../pages/CharactersPage/crafterFeat";
-import { characterHasCrafterDiscount } from "../../../../pages/CharactersPage/featRuntime";
+import {
+  characterHasCrafterDiscount,
+  getMusicianEncouragingSongDescriptionEntriesForCharacter
+} from "../../../../pages/CharactersPage/featRuntime";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./GameplayForm.module.css";
 import BardicInspirationWidget from "./widgets/BardicInspirationWidget";
@@ -50,12 +53,39 @@ function GameplayForm({
     () => getRestDescriptionInjectionsForCharacter(character),
     [character]
   );
+  const musicianEncouragingSongDescription = useMemo(
+    () => getMusicianEncouragingSongDescriptionEntriesForCharacter(character),
+    [character]
+  );
+  const shortRestDescriptionInjections = useMemo(() => {
+    const additions = [...restDescriptionInjections.shortRest];
+
+    if (musicianEncouragingSongDescription.length > 0) {
+      additions.push(
+        createSourcedDescriptionEntries(
+          "Musician: Encouraging Song",
+          musicianEncouragingSongDescription
+        )
+      );
+    }
+
+    return additions;
+  }, [musicianEncouragingSongDescription, restDescriptionInjections.shortRest]);
   const longRestDescriptionInjections = useMemo(() => {
     const additions = [...restDescriptionInjections.longRest];
     const hasCrafterFeat = characterHasCrafterDiscount({
       feats: character.feats,
       level: character.level
     });
+
+    if (musicianEncouragingSongDescription.length > 0) {
+      additions.push(
+        createSourcedDescriptionEntries(
+          "Musician: Encouraging Song",
+          musicianEncouragingSongDescription
+        )
+      );
+    }
 
     if (hasCrafterFeat) {
       additions.push(
@@ -64,7 +94,12 @@ function GameplayForm({
     }
 
     return additions;
-  }, [character.feats, character.level, restDescriptionInjections.longRest]);
+  }, [
+    character.feats,
+    character.level,
+    musicianEncouragingSongDescription,
+    restDescriptionInjections.longRest
+  ]);
 
   useEffect(() => {
     const wasTurnStarted = previousTurnStartedRef.current;
@@ -130,7 +165,7 @@ function GameplayForm({
           <CampButton
             character={character}
             onPersistCharacter={onPersistCharacter}
-            shortRestAdditionalDescription={restDescriptionInjections.shortRest}
+            shortRestAdditionalDescription={shortRestDescriptionInjections}
             longRestAdditionalDescription={longRestDescriptionInjections}
           />
         </div>

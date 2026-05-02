@@ -46,6 +46,8 @@ type FeatEditorModalProps = {
   onSavePendingCrafterChoice: () => void;
   onSavePendingDruidicWarriorChoice: () => void;
   onSavePendingEpicBoonAbilityChoice: () => void;
+  onSavePendingMagicInitiateChoice: () => void;
+  onSavePendingMusicianChoice: () => void;
   onSavePendingSkilledChoice: () => void;
 };
 
@@ -73,6 +75,8 @@ function FeatEditorModal({
   onSavePendingCrafterChoice,
   onSavePendingDruidicWarriorChoice,
   onSavePendingEpicBoonAbilityChoice,
+  onSavePendingMagicInitiateChoice,
+  onSavePendingMusicianChoice,
   onSavePendingSkilledChoice
 }: FeatEditorModalProps) {
   return (
@@ -142,6 +146,8 @@ function FeatEditorModal({
               onSavePendingCrafterChoice={onSavePendingCrafterChoice}
               onSavePendingDruidicWarriorChoice={onSavePendingDruidicWarriorChoice}
               onSavePendingEpicBoonAbilityChoice={onSavePendingEpicBoonAbilityChoice}
+              onSavePendingMagicInitiateChoice={onSavePendingMagicInitiateChoice}
+              onSavePendingMusicianChoice={onSavePendingMusicianChoice}
               onSavePendingSkilledChoice={onSavePendingSkilledChoice}
             />
           ))}

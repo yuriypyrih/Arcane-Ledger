@@ -261,7 +261,8 @@ import { getMagicTemporaryHitPointsFeatureForCharacter } from "../../../../../pa
 import { CLASS_FEATURE } from "../../../../../codex/entries";
 import {
   collectFeatDerivedState,
-  restoreLuckyPointsForCharacter
+  restoreLuckyPointsForCharacter,
+  restoreMagicInitiateFreeCastsForCharacter
 } from "../../../../../pages/CharactersPage/featRuntime";
 import { getHitDiceRemainingForCharacter } from "../../../../../pages/CharactersPage/gameplay";
 import { getSpellSlotTotalsForCharacter } from "../../../../../pages/CharactersPage/spellcasting";
@@ -306,6 +307,8 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const featDerivedState = collectFeatDerivedState(character);
   const luckyPointsTotal = featDerivedState.luckyPointsTotal;
   const luckyPointsAreFull = featDerivedState.luckyPointsRemaining >= luckyPointsTotal;
+  const magicInitiateFreeCastsAreFull =
+    restoreMagicInitiateFreeCastsForCharacter(character) === character;
   const arcaneWardResetAvailable =
     restoreWizardAbjurerArcaneWardOnLongRest(character) !== character;
   const temporaryHitPoints = normalizeTemporaryHitPoints(character.temporaryHitPoints);
@@ -532,6 +535,17 @@ export function createLongRestOptions(character: Character): RestOption[] {
             label: "Restore all Lucky Points",
             disabled: luckyPointsAreFull,
             apply: (currentCharacter: Character) => restoreLuckyPointsForCharacter(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(featDerivedState.hasMagicInitiate
+      ? [
+          {
+            id: "restore-magic-initiate-free-casts",
+            label: "Restore Magic Initiate free casts",
+            disabled: magicInitiateFreeCastsAreFull,
+            apply: (currentCharacter: Character) =>
+              restoreMagicInitiateFreeCastsForCharacter(currentCharacter)
           } satisfies RestOption
         ]
       : []),

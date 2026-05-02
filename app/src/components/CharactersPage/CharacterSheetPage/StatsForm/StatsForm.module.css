@@ -62,7 +62,7 @@
   display: grid;
   gap: 0.35rem;
   border-radius: 18px;
-  background: var(--color-panel-muted);
+  background: rgba(75, 47, 29, 0.07);
   padding: 0.75rem 0.85rem;
   text-align: center;
 }

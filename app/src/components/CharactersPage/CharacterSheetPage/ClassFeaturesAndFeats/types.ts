@@ -15,6 +15,8 @@ import type {
   CharacterFeatSource,
   CrafterChoice,
   DruidicWarriorChoice,
+  MagicInitiateChoice,
+  MusicianChoice,
   SkilledChoice
 } from "../../../../types";
 import type { FeatEligibilityResult } from "../../../../pages/CharactersPage/featEligibility";
@@ -63,6 +65,17 @@ export type PendingDruidicWarriorChoice = {
   cantripIds: [string, string];
 };
 
+export type PendingMagicInitiateChoice = {
+  spellList: string;
+  cantripIds: [string, string];
+  levelOneSpellId: string;
+  spellcastingAbility: string;
+};
+
+export type PendingMusicianChoice = {
+  toolProficiencies: [string, string, string];
+};
+
 export type PendingCrafterChoice = {
   toolProficiencies: [string, string, string];
 };
@@ -93,6 +106,8 @@ export type PendingFeatState = {
   blessedWarriorChoice: PendingBlessedWarriorChoice | null;
   crafterChoice: PendingCrafterChoice | null;
   druidicWarriorChoice: PendingDruidicWarriorChoice | null;
+  magicInitiateChoice: PendingMagicInitiateChoice | null;
+  musicianChoice: PendingMusicianChoice | null;
   epicBoonAbilityChoice: PendingEpicBoonAbilityChoice | null;
   skilledChoice: PendingSkilledChoice | null;
 };
@@ -101,6 +116,8 @@ export type RepeatableFeatChoice =
   | BlessedWarriorChoice
   | CrafterChoice
   | DruidicWarriorChoice
+  | MagicInitiateChoice
+  | MusicianChoice
   | SkilledChoice;
 
 export type FeatCategoryTabs = FEAT_CATEGORY[];

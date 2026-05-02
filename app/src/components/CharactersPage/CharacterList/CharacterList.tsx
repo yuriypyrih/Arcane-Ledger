@@ -1,4 +1,4 @@
-import { Download, Eye, Trash2 } from "lucide-react";
+import { Download, Eye, Plus, Trash2 } from "lucide-react";
 import { useId, useState } from "react";
 import { Link } from "react-router-dom";
 import { DestructiveConfirmationModal } from "../../Overlay";
@@ -33,7 +33,13 @@ function CharacterList({ characters, onDeleteCharacter }: CharacterListProps) {
           <p className={styles.eyebrow}>Party roster</p>
           <h3 className={styles.title}>Characters</h3>
         </div>
-        <span>{characters.length} total</span>
+        <div className={styles.listHeaderActions}>
+          <span className={styles.listCount}>{characters.length} total</span>
+          <Link to="/characters/new" className={styles.createButton}>
+            <Plus size={16} aria-hidden="true" />
+            <span>New Character</span>
+          </Link>
+        </div>
       </div>
 
       {characters.length === 0 ? (

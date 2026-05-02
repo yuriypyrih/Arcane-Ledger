@@ -108,6 +108,7 @@ import {
 } from "./actionModalDescriptions";
 import { getFeatureDescriptionForCharacter } from "./classFeatures/featureDescriptions";
 import { getBarbarianPathOfTheWildHeartStatusDescriptionEntries } from "./classFeatures/barbarian/subclasses/barbarianPathOfTheWildHeart";
+import { getFeatHitPointMaximumBonusForCharacter } from "./featRuntime";
 import { getKeywordDescriptionLines } from "./keywordDescriptions";
 import {
   getExhaustionLevel as getStoredExhaustionLevel,
@@ -644,13 +645,17 @@ export function getExhaustionSpeedAdjustment(
 
 export function getEffectiveHitPointMaximumForCharacter(
   character: Pick<Character, "className" | "hitPoints" | "statusEntries"> &
-    Partial<Pick<Character, "level" | "subclassId">>
+    Partial<Pick<Character, "feats" | "level" | "subclassId">>
 ): number {
   const baseHitPoints = Math.max(1, Math.floor(character.hitPoints));
   const featureHitPointMaximumBonus = getSorcererDraconicResilienceHitPointMaximumBonus(character);
+  const featHitPointMaximumBonus = getFeatHitPointMaximumBonusForCharacter({
+    level: character.level ?? 1,
+    feats: character.feats
+  });
   const effectiveBaseHitPoints = Math.max(
     1,
-    Math.floor(baseHitPoints + featureHitPointMaximumBonus)
+    Math.floor(baseHitPoints + featureHitPointMaximumBonus + featHitPointMaximumBonus)
   );
   const exhaustionLevel = getExhaustionLevel(character.statusEntries);
 

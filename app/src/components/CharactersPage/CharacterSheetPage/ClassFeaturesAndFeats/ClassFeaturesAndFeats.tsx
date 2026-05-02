@@ -47,6 +47,8 @@ import {
   decodePendingBlessedWarriorChoice,
   decodePendingCrafterChoice,
   decodePendingDruidicWarriorChoice,
+  decodePendingMagicInitiateChoice,
+  decodePendingMusicianChoice,
   decodePendingSkilledChoice
 } from "./featEditorUtils";
 import {
@@ -622,6 +624,46 @@ function ClassFeaturesAndFeats({
     );
   }
 
+  function savePendingMagicInitiateChoice() {
+    const choice = pendingFeatState.magicInitiateChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const magicInitiate = decodePendingMagicInitiateChoice(choice);
+
+    if (!magicInitiate) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.MAGIC_INITIATE, {
+        magicInitiate
+      })
+    );
+  }
+
+  function savePendingMusicianChoice() {
+    const choice = pendingFeatState.musicianChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const musician = decodePendingMusicianChoice(choice);
+
+    if (!musician) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.MUSICIAN, {
+        musician
+      })
+    );
+  }
+
   function savePendingEpicBoonAbilityChoice() {
     const choice = pendingFeatState.epicBoonAbilityChoice;
 
@@ -841,6 +883,8 @@ function ClassFeaturesAndFeats({
           onSavePendingCrafterChoice={savePendingCrafterChoice}
           onSavePendingDruidicWarriorChoice={savePendingDruidicWarriorChoice}
           onSavePendingEpicBoonAbilityChoice={savePendingEpicBoonAbilityChoice}
+          onSavePendingMagicInitiateChoice={savePendingMagicInitiateChoice}
+          onSavePendingMusicianChoice={savePendingMusicianChoice}
           onSavePendingSkilledChoice={savePendingSkilledChoice}
         />
       ) : null}
