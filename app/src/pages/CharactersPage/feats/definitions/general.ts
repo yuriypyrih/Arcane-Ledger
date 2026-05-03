@@ -27,7 +27,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Attack Advantage.</strong> You have Advantage on attack rolls against a creature Grappled by you.",
       "<strong>Fast Wrestler.</strong> You don't have to spend extra movement to move a creature Grappled by you if the creature is your size or smaller."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.BLESSED_WARRIOR,
@@ -64,7 +64,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Impersonation.</strong> While you're disguised as a real or fictional person, you have Advantage on Charisma (Deception or Performance) checks to convince others that you are that person.",
       "<strong>Mimicry.</strong> You can mimic the sounds of other creatures, including speech. A creature that hears the mimicry must succeed on a Wisdom (Insight) check to determine the effect is faked (DC 8 plus your Charisma modifier and Proficiency Bonus)."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   {
     feat: FEATS.ATHLETE,
@@ -78,7 +78,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Hop Up.</strong> When you have the Prone condition, you can right yourself with only 5 feet of movement.",
       "<strong>Jumping.</strong> You can make a running Long or High Jump after moving only 5 feet."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.CHARGER,
@@ -91,7 +91,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Improved Dash.</strong> When you take the Dash action, your Speed increases by 10 feet for that action.",
       "<strong>Charge Attack.</strong> If you move at least 10 feet in a straight line toward a target immediately before hitting it with a melee attack roll as part of the Attack action, choose one of the following effects: gain a 1d8 bonus to the attack's damage roll, or push the target up to 10 feet away if it is no more than one size larger than you. You can use this benefit only once on each of your turns."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.CHEF,
@@ -105,7 +105,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Replenishing Meal.</strong> As part of a Short Rest, you can cook special food if you have ingredients and Cook's Utensils on hand. You can prepare enough of this food for a number of creatures equal to 4 plus your Proficiency Bonus. At the end of the Short Rest, any creature who eats the food and spends one or more Hit Dice to regain Hit Points regains an extra 1d8 Hit Points.",
       "<strong>Bolstering Treats.</strong> With 1 hour of work or when you finish a Long Rest, you can cook a number of treats equal to your Proficiency Bonus if you have ingredients and Cook's Utensils on hand. These special treats last 8 hours after being made. A creature can use a Bonus Action to eat one of those treats to gain a number of Temporary Hit Points equal to your Proficiency Bonus."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.CROSSBOW_EXPERT,
@@ -119,7 +119,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Firing in Melee.</strong> Being within 5 feet of an enemy doesn't impose Disadvantage on your attack rolls with crossbows.",
       "<strong>Dual Wielding.</strong> When you make the extra attack of the Light property, you can add your ability modifier to the damage of the extra attack if that attack is with a crossbow that has the Light property and you aren't already adding that modifier to the damage."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.CRUSHER,
@@ -132,7 +132,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Push.</strong> Once per turn, when you hit a creature with an attack that deals Bludgeoning damage, you can move it 5 feet to an unoccupied space if the target is no more than one size larger than you.",
       "<strong>Enhanced Critical.</strong> When you score a Critical Hit that deals Bludgeoning damage to a creature, attack rolls against that creature have Advantage until the start of your next turn."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.DEFENSIVE_DUELIST,
@@ -144,7 +144,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Ability Score Increase.</strong> Increase your Dexterity score by 1, to a maximum of 20.",
       "<strong>Parry.</strong> If you're holding a Finesse weapon and another creature hits you with a melee attack, you can take a Reaction to add your Proficiency Bonus to your Armor Class, potentially causing the attack to miss you. You gain this bonus to your AC against melee attacks until the start of your next turn."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.DUAL_WIELDER,
@@ -157,7 +157,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Enhanced Dual Wielding.</strong> When you take the Attack action on your turn and attack with a weapon that has the Light property, you can make one extra attack as a Bonus Action later on the same turn with a different weapon, which must be a Melee weapon that lacks the Two-Handed property. You don't add your ability modifier to the extra attack's damage unless that modifier is negative.",
       "<strong>Quick Draw.</strong> You can draw or stow two weapons that lack the Two-Handed property when you would normally be able to draw or stow only one."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.DURABLE,
@@ -170,7 +170,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Defy Death.</strong> You have Advantage on Death Saving Throws.",
       "<strong>Speedy Recovery.</strong> As a Bonus Action, you can expend one of your Hit Point Dice, roll the die, and regain a number of Hit Points equal to the roll."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.ELEMENTAL_ADEPT,
@@ -184,7 +184,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Energy Mastery.</strong> Choose one of the following damage types: Acid, Cold, Fire, Lightning, or Thunder. Spells you cast ignore Resistance to damage of the chosen type. In addition, when you roll damage for a spell you cast that deals damage of that type, you can treat any 1 on a damage die as a 2.",
       "<strong>Repeatable.</strong> You can take this feat more than once, but you must choose a different damage type each time for Energy Mastery."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.FEY_TOUCHED,
@@ -196,7 +196,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Ability Score Increase.</strong> Increase your Intelligence, Wisdom, or Charisma by 1, to a maximum of 20.",
       "<strong>Fey Magic.</strong> Choose one level 1 spell from the Divination or Enchantment school of magic. You always have that spell and the Misty Step spell prepared. You can cast each of these spells without expending a spell slot. Once you cast either spell in this way, you can't cast that spell in this way again until you finish a Long Rest. You can also cast these spells using spell slots you have of the appropriate level. The spells' spellcasting ability is the ability increased by this feat."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.GREAT_WEAPON_MASTER,
@@ -209,7 +209,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Heavy Weapon Mastery.</strong> When you hit a creature with a weapon that has the Heavy property as part of the Attack action on your turn, you can cause the weapon to deal extra damage to the target. The extra damage equals your Proficiency Bonus.",
       "<strong>Hew.</strong> Immediately after you score a Critical Hit with a Melee weapon or reduce a creature to 0 Hit Points with one, you can make one attack with the same weapon as a Bonus Action."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.HEAVILY_ARMORED,
@@ -221,7 +221,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Ability Score Increase.</strong> Increase your Constitution or Strength by 1, to a maximum of 20.",
       "<strong>Armor Training.</strong> You gain training with Heavy armor."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.HEAVY_ARMOR_MASTER,
@@ -233,7 +233,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Ability Score Increase.</strong> Increase your Constitution or Strength by 1, to a maximum of 20.",
       "<strong>Damage Reduction.</strong> When you're hit by an attack while you're wearing Heavy armor, any Bludgeoning, Piercing, and Slashing damage dealt to you by that attack is reduced by an amount equal to your Proficiency Bonus."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.INSPIRING_LEADER,
@@ -245,7 +245,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Ability Score Increase.</strong> Increase your Wisdom or Charisma by 1, to a maximum of 20.",
       "<strong>Bolstering Performance.</strong> When you finish a Short or Long Rest, you can give an inspiring performance: a speech, song, or dance. When you do so, choose up to six allies (which can include yourself) within 30 feet of yourself who witness the performance. The chosen creatures each gain Temporary Hit Points equal to your character level plus the modifier of the ability you increased with this feat."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.KEEN_MIND,
@@ -258,7 +258,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Lore Knowledge.</strong> Choose one of the following skills: Arcana, History, Investigation, Nature, or Religion. If you lack proficiency in the chosen skill, you gain proficiency in it, and if you already have proficiency in it, you gain Expertise in it.",
       "<strong>Quick Study.</strong> You can take the Study action as a Bonus Action."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.LIGHTLY_ARMORED,
@@ -270,7 +270,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Ability Score Increase.</strong> Increase your Strength or Dexterity by 1, to a maximum of 20.",
       "<strong>Armor Training.</strong> You gain training with Light armor and Shields."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.MAGE_SLAYER,
@@ -283,7 +283,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Concentration Breaker.</strong> When you damage a creature that is Concentrating, it has Disadvantage on the saving throw it makes to maintain Concentration.",
       "<strong>Guarded Mind.</strong> If you fail an Intelligence, a Wisdom, or a Charisma saving throw, you can cause yourself to succeed instead. Once you use this benefit, you can't use it again until you finish a Short or Long Rest."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.MARTIAL_WEAPON_TRAINING,
@@ -295,7 +295,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Ability Score Increase.</strong> Increase your Strength or Dexterity by 1, to a maximum of 20.",
       "<strong>Weapon Proficiency.</strong> You gain proficiency with Martial weapons."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.MEDIUM_ARMOR_MASTER,
@@ -307,7 +307,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Ability Score Increase.</strong> Increase your Strength or Dexterity by 1, to a maximum of 20.",
       "<strong>Dexterous Wearer.</strong> While you're wearing Medium armor, you can add 3, rather than 2 to your AC if you have a Dexterity score of 16 or higher."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.MODERATELY_ARMORED,
@@ -319,7 +319,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Ability Score Increase.</strong> Increase your Strength or Dexterity by 1, to a maximum of 20.",
       "<strong>Armor Training.</strong> You gain training with Medium armor."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.MOUNTED_COMBATANT,
@@ -333,7 +333,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Leap Aside.</strong> If your mount is subjected to an effect that allows it to make a Dexterity saving throw to take only half damage, it instead takes no damage if it succeeds on the saving throw and only half damage if it fails. For your mount to gain this benefit, you must be riding it, and neither of you can have the Incapacitated condition.",
       "<strong>Veer.</strong> While mounted, you can force an attack that hits your mount to hit you instead if you don't have the Incapacitated condition."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.OBSERVANT,
@@ -342,11 +342,11 @@ export const generalFeatDefinitions: FeatDefinition[] = [
     prerequisite: "Level 4+, Intelligence or Wisdom 13+",
     description: [
       "You gain the following benefits.",
-      "<strong>Ability Score Increase.</strong> Increase your Intelligence or Wisdom by 1, to a maximum of 20.",
+      "<strong>Ability Score Increase.</strong> Increase your Intelligence or Wisdom by 1, to a maximum of 10.",
       "<strong>Keen Observer.</strong> Choose one of the following skills: Insight, Investigation, or Perception. If you lack proficiency with the chosen skill, you gain proficiency in it, and if you already have proficiency in it, you gain Expertise in it.",
       "<strong>Quick Search.</strong> You can take the Search action as a Bonus Action."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.PIERCER,
@@ -359,7 +359,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Puncture.</strong> Once per turn, when you hit a creature with an attack that deals Piercing damage, you can reroll one of the attack's damage dice, and you must use the new roll.",
       "<strong>Enhanced Critical.</strong> When you score a Critical Hit that deals Piercing damage to a creature, you can roll one additional damage die when determining the extra Piercing damage the target takes."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.POISONER,
@@ -372,7 +372,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Potent Poison.</strong> When you make a damage roll that deals Poison damage, it ignores Resistance to Poison damage.",
       "<strong>Brew Poison.</strong> You gain proficiency with the Poisoner's Kit. With 1 hour of work using such a kit and expending 50 GP worth of materials, you can create a number of poison doses equal to your Proficiency Bonus. As a Bonus Action, you can apply a poison dose to a weapon or piece of ammunition. Once applied, the poison retains its potency for 1 minute or until you deal damage with the poisoned item, whichever is shorter. When a creature takes damage from the poisoned item, that creature must succeed on a Constitution saving throw (DC 8 plus the modifier of the ability increased by this feat and your Proficiency Bonus) or take 2d8 Poison damage and have the Poisoned condition until the end of your next turn."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.POLEARM_MASTER,
@@ -397,7 +397,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Ability Score Increase.</strong> Choose one ability in which you lack saving throw proficiency. Increase the chosen ability score by 1, to a maximum of 20.",
       "<strong>Saving Throw Proficiency.</strong> You gain saving throw proficiency with the chosen ability."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.RITUAL_CASTER,
@@ -516,7 +516,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Dash over Difficult Terrain.</strong> When you take the Dash action on your turn, Difficult Terrain doesn't cost you extra movement for the rest of that turn.",
       "<strong>Agile Movement.</strong> Opportunity Attacks have Disadvantage against you."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.SPELL_SNIPER,
@@ -582,6 +582,6 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Ability Score Increase.</strong> Increase your Strength or Dexterity by 1, to a maximum of 20.",
       "<strong>Mastery Property.</strong> Your training with weapons allows you to use the mastery property of one kind of Simple or Martial weapon of your choice, provided you have proficiency with it. Whenever you finish a Long Rest, you can change the kind of weapon to another eligible kind."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   }
 ];

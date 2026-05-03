@@ -296,6 +296,26 @@ export function addFeatGrantedSkillEntries(
   ]);
 }
 
+export function addFeatGrantedSkillEntriesAtLevel(
+  entries: SkillProficiencyEntry[],
+  skills: SkillName[],
+  featLabel: string,
+  featEntryId: string,
+  proficiencyLevel: PROF_LEVEL
+): SkillProficiencyEntry[] {
+  const sourceStr = createFeatProficiencySourceStr(featLabel, featEntryId);
+
+  return mergeProficiencyEntries([
+    ...entries,
+    ...skills
+      .map((skill) => getSkillProficiencyForName(skill))
+      .filter((proficiency): proficiency is SKILL_PROFICIENCY => proficiency !== null)
+      .map((proficiency) =>
+        createSkillEntry(proficiency, PROFICIENCY_SOURCE.FEAT, sourceStr, proficiencyLevel)
+      )
+  ]);
+}
+
 export function removeFeatGrantedSkillEntries(
   entries: SkillProficiencyEntry[],
   skills: SkillName[],
@@ -316,6 +336,57 @@ export function removeFeatGrantedSkillEntries(
           entry.source === PROFICIENCY_SOURCE.FEAT &&
           entry.sourceStr === sourceStr &&
           proficienciesToRemove.has(entry.proficiency)
+        )
+    )
+  );
+}
+
+export function addFeatGrantedSavingThrowEntries(
+  entries: SavingThrowProficiencyEntry[],
+  savingThrowProficiencies: SAVING_THROW_PROFICIENCY[],
+  featLabel: string,
+  featEntryId: string
+): SavingThrowProficiencyEntry[] {
+  const sourceStr = createFeatProficiencySourceStr(featLabel, featEntryId);
+  const positiveProficiencies = new Set(
+    entries
+      .filter((entry) => hasPositiveProficiencyLevel(entry.proficiencyLevel))
+      .map((entry) => entry.proficiency)
+  );
+
+  return mergeProficiencyEntries([
+    ...entries,
+    ...savingThrowProficiencies
+      .filter((savingThrowProficiency) => !positiveProficiencies.has(savingThrowProficiency))
+      .map((savingThrowProficiency) =>
+        createSavingThrowEntry(
+          savingThrowProficiency,
+          PROFICIENCY_SOURCE.FEAT,
+          sourceStr,
+          PROF_LEVEL.PROFICIENT
+        )
+      )
+  ]);
+}
+
+export function removeFeatGrantedSavingThrowEntries(
+  entries: SavingThrowProficiencyEntry[],
+  savingThrowProficiencies: SAVING_THROW_PROFICIENCY[],
+  featLabel: string,
+  featEntryId: string
+): SavingThrowProficiencyEntry[] {
+  const sourceStr = createFeatProficiencySourceStr(featLabel, featEntryId);
+  const savingThrowProficienciesToRemove = new Set<SAVING_THROW_PROFICIENCY>(
+    savingThrowProficiencies
+  );
+
+  return mergeProficiencyEntries(
+    entries.filter(
+      (entry) =>
+        !(
+          entry.source === PROFICIENCY_SOURCE.FEAT &&
+          entry.sourceStr === sourceStr &&
+          savingThrowProficienciesToRemove.has(entry.proficiency)
         )
     )
   );
@@ -364,6 +435,112 @@ export function removeFeatGrantedToolEntries(
           entry.source === PROFICIENCY_SOURCE.FEAT &&
           entry.sourceStr === sourceStr &&
           toolsToRemove.has(entry.proficiency)
+        )
+    )
+  );
+}
+
+export function addFeatGrantedArmorEntries(
+  entries: ArmorProficiencyEntry[],
+  armorProficiencies: ARMOR_PROFICIENCY[],
+  featLabel: string,
+  featEntryId: string
+): ArmorProficiencyEntry[] {
+  const sourceStr = createFeatProficiencySourceStr(featLabel, featEntryId);
+  const manualProficiencies = new Set(
+    entries
+      .filter(
+        (entry) =>
+          entry.source === PROFICIENCY_SOURCE.MANUAL &&
+          hasPositiveProficiencyLevel(entry.proficiencyLevel)
+      )
+      .map((entry) => entry.proficiency)
+  );
+
+  return mergeProficiencyEntries([
+    ...entries,
+    ...armorProficiencies
+      .filter((armorProficiency) => !manualProficiencies.has(armorProficiency))
+      .map((armorProficiency) =>
+        createArmorEntry(
+          armorProficiency,
+          PROFICIENCY_SOURCE.FEAT,
+          sourceStr,
+          PROF_LEVEL.PROFICIENT
+        )
+      )
+  ]);
+}
+
+export function removeFeatGrantedArmorEntries(
+  entries: ArmorProficiencyEntry[],
+  armorProficiencies: ARMOR_PROFICIENCY[],
+  featLabel: string,
+  featEntryId: string
+): ArmorProficiencyEntry[] {
+  const sourceStr = createFeatProficiencySourceStr(featLabel, featEntryId);
+  const armorProficienciesToRemove = new Set<ARMOR_PROFICIENCY>(armorProficiencies);
+
+  return mergeProficiencyEntries(
+    entries.filter(
+      (entry) =>
+        !(
+          entry.source === PROFICIENCY_SOURCE.FEAT &&
+          entry.sourceStr === sourceStr &&
+          armorProficienciesToRemove.has(entry.proficiency)
+        )
+    )
+  );
+}
+
+export function addFeatGrantedWeaponEntries(
+  entries: WeaponProficiencyEntry[],
+  weaponProficiencies: WEAPON_PROFICIENCY[],
+  featLabel: string,
+  featEntryId: string
+): WeaponProficiencyEntry[] {
+  const sourceStr = createFeatProficiencySourceStr(featLabel, featEntryId);
+  const manualProficiencies = new Set(
+    entries
+      .filter(
+        (entry) =>
+          entry.source === PROFICIENCY_SOURCE.MANUAL &&
+          hasPositiveProficiencyLevel(entry.proficiencyLevel)
+      )
+      .map((entry) => entry.proficiency)
+  );
+
+  return mergeProficiencyEntries([
+    ...entries,
+    ...weaponProficiencies
+      .filter((weaponProficiency) => !manualProficiencies.has(weaponProficiency))
+      .map((weaponProficiency) =>
+        createWeaponEntry(
+          weaponProficiency,
+          PROFICIENCY_SOURCE.FEAT,
+          sourceStr,
+          PROF_LEVEL.PROFICIENT
+        )
+      )
+  ]);
+}
+
+export function removeFeatGrantedWeaponEntries(
+  entries: WeaponProficiencyEntry[],
+  weaponProficiencies: WEAPON_PROFICIENCY[],
+  featLabel: string,
+  featEntryId: string
+): WeaponProficiencyEntry[] {
+  const sourceStr = createFeatProficiencySourceStr(featLabel, featEntryId);
+  const weaponProficienciesToRemove = new Set<WEAPON_PROFICIENCY>(weaponProficiencies);
+
+  return mergeProficiencyEntries(
+    entries.filter(
+      (entry) =>
+        !(
+          entry.source === PROFICIENCY_SOURCE.FEAT &&
+          entry.sourceStr === sourceStr &&
+          weaponProficienciesToRemove.has(entry.proficiency)
         )
     )
   );

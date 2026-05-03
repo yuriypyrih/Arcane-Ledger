@@ -15,6 +15,24 @@ import type {
   CharacterFeatSource,
   CrafterChoice,
   DruidicWarriorChoice,
+  ElementalAdeptChoice,
+  FeyTouchedChoice,
+  HeavilyArmoredChoice,
+  HeavyArmorMasterChoice,
+  InspiringLeaderChoice,
+  KeenMindChoice,
+  LightlyArmoredChoice,
+  MageSlayerChoice,
+  MartialWeaponTrainingChoice,
+  MediumArmorMasterChoice,
+  ModeratelyArmoredChoice,
+  MountedCombatantChoice,
+  ObservantChoice,
+  PiercerChoice,
+  PoisonerChoice,
+  ResilientChoice,
+  SpeedyChoice,
+  WeaponMasterChoice,
   MagicInitiateChoice,
   MusicianChoice,
   SkilledChoice
@@ -55,6 +73,102 @@ export type PendingAbilityScoreImprovement = {
 
 export type PendingBoonOfIrresistibleOffense = {
   ability: "STR" | "DEX";
+};
+
+export type PendingAthleteChoice = {
+  ability: "STR" | "DEX";
+};
+
+export type PendingChargerChoice = {
+  ability: "STR" | "DEX";
+};
+
+export type PendingChefChoice = {
+  ability: "CON" | "WIS";
+};
+
+export type PendingCrusherChoice = {
+  ability: "STR" | "CON";
+};
+
+export type PendingDualWielderChoice = {
+  ability: "STR" | "DEX";
+};
+
+export type PendingElementalAdeptChoice = {
+  ability: ElementalAdeptChoice["ability"];
+  damageType: ElementalAdeptChoice["damageType"];
+};
+
+export type PendingFeyTouchedChoice = {
+  ability: FeyTouchedChoice["ability"];
+  spellId: string;
+};
+
+export type PendingHeavilyArmoredChoice = {
+  ability: HeavilyArmoredChoice["ability"];
+};
+
+export type PendingHeavyArmorMasterChoice = {
+  ability: HeavyArmorMasterChoice["ability"];
+};
+
+export type PendingInspiringLeaderChoice = {
+  ability: InspiringLeaderChoice["ability"];
+};
+
+export type PendingKeenMindChoice = {
+  skill: KeenMindChoice["skill"] | "none";
+};
+
+export type PendingLightlyArmoredChoice = {
+  ability: LightlyArmoredChoice["ability"];
+};
+
+export type PendingMageSlayerChoice = {
+  ability: MageSlayerChoice["ability"];
+};
+
+export type PendingMartialWeaponTrainingChoice = {
+  ability: MartialWeaponTrainingChoice["ability"];
+};
+
+export type PendingMediumArmorMasterChoice = {
+  ability: MediumArmorMasterChoice["ability"];
+};
+
+export type PendingModeratelyArmoredChoice = {
+  ability: ModeratelyArmoredChoice["ability"];
+};
+
+export type PendingMountedCombatantChoice = {
+  ability: MountedCombatantChoice["ability"];
+};
+
+export type PendingObservantChoice = {
+  ability: ObservantChoice["ability"];
+  skill: ObservantChoice["skill"] | "none";
+};
+
+export type PendingPiercerChoice = {
+  ability: PiercerChoice["ability"];
+};
+
+export type PendingPoisonerChoice = {
+  ability: PoisonerChoice["ability"];
+};
+
+export type PendingResilientChoice = {
+  ability: ResilientChoice["ability"] | "none";
+};
+
+export type PendingSpeedyChoice = {
+  ability: SpeedyChoice["ability"];
+};
+
+export type PendingWeaponMasterChoice = {
+  ability: WeaponMasterChoice["ability"];
+  weaponMastery: WeaponMasterChoice["weaponMastery"] | "none";
 };
 
 export type PendingBlessedWarriorChoice = {
@@ -103,6 +217,29 @@ export type FeatEditorContext =
 
 export type PendingFeatState = {
   abilityScoreImprovement: PendingAbilityScoreImprovement | null;
+  athleteChoice: PendingAthleteChoice | null;
+  chargerChoice: PendingChargerChoice | null;
+  chefChoice: PendingChefChoice | null;
+  crusherChoice: PendingCrusherChoice | null;
+  dualWielderChoice: PendingDualWielderChoice | null;
+  elementalAdeptChoice: PendingElementalAdeptChoice | null;
+  feyTouchedChoice: PendingFeyTouchedChoice | null;
+  heavilyArmoredChoice: PendingHeavilyArmoredChoice | null;
+  heavyArmorMasterChoice: PendingHeavyArmorMasterChoice | null;
+  inspiringLeaderChoice: PendingInspiringLeaderChoice | null;
+  keenMindChoice: PendingKeenMindChoice | null;
+  lightlyArmoredChoice: PendingLightlyArmoredChoice | null;
+  mageSlayerChoice: PendingMageSlayerChoice | null;
+  martialWeaponTrainingChoice: PendingMartialWeaponTrainingChoice | null;
+  mediumArmorMasterChoice: PendingMediumArmorMasterChoice | null;
+  moderatelyArmoredChoice: PendingModeratelyArmoredChoice | null;
+  mountedCombatantChoice: PendingMountedCombatantChoice | null;
+  observantChoice: PendingObservantChoice | null;
+  piercerChoice: PendingPiercerChoice | null;
+  poisonerChoice: PendingPoisonerChoice | null;
+  resilientChoice: PendingResilientChoice | null;
+  speedyChoice: PendingSpeedyChoice | null;
+  weaponMasterChoice: PendingWeaponMasterChoice | null;
   boonOfIrresistibleOffense: PendingBoonOfIrresistibleOffense | null;
   blessedWarriorChoice: PendingBlessedWarriorChoice | null;
   crafterChoice: PendingCrafterChoice | null;
@@ -117,6 +254,8 @@ export type RepeatableFeatChoice =
   | BlessedWarriorChoice
   | CrafterChoice
   | DruidicWarriorChoice
+  | ElementalAdeptChoice
+  | FeyTouchedChoice
   | MagicInitiateChoice
   | MusicianChoice
   | SkilledChoice;

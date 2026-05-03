@@ -80,6 +80,8 @@ import {
   type ReactionEntry,
   type SpellEntry
 } from "../../../../../../codex/entries";
+import { defensiveDuelistParryReactionEntryId } from "../../../../../../pages/CharactersPage/feats/runtime";
+import { characterHasHeldFinesseWeapon } from "../../../../../../pages/CharactersPage/heldWeapons";
 import { formatCodexLabel } from "../../../../../../utils/codex";
 import { getSpellSaveFormulaCell } from "../../../../../../pages/CharactersPage/shared/spellFormulas";
 import DruidCosmicOmenReactionBody from "./DruidCosmicOmenReactionBody";
@@ -669,6 +671,13 @@ const descriptors: ReactionDescriptor[] = [
     renderCustomContent: renderSuperiorHuntersDefenseDamageTypeSelector,
     apply: activateRangerHunterSuperiorHuntersDefenseForCharacter,
     skipReactionWhenUnchanged: true
+  },
+  {
+    id: defensiveDuelistParryReactionEntryId,
+    getSelectionWarning: (context) =>
+      characterHasHeldFinesseWeapon(context.character)
+        ? null
+        : "You must be holding a Finesse weapon to use Parry."
   },
   {
     id: barbarianBerserkerRetaliationReactionId,

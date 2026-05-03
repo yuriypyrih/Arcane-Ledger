@@ -19,6 +19,7 @@ import {
   type WeaponDamage,
   type WeaponDamageAmount,
   type WeaponDamageType,
+  type WEAPON_BASE,
   type WeaponEntry,
   type WeaponRange,
   type WeaponType
@@ -376,6 +377,15 @@ export function formatDivinitySubtitle(divinity: Pick<DivinityEntry, "sourceFeat
 
 export function formatWeaponType(weaponType: WeaponType): string {
   return `${formatCodexLabel(weaponType.training)} ${formatCodexLabel(weaponType.combat).toLowerCase()}`;
+}
+
+export function formatWeaponTypeWithBaseWeapon(
+  weaponType: WeaponType,
+  baseWeapon?: WEAPON_BASE | null
+): string {
+  const typeLabel = formatWeaponType(weaponType);
+
+  return baseWeapon ? `${typeLabel} (${formatCodexLabel(baseWeapon)})` : typeLabel;
 }
 
 export function formatWeaponProperties(

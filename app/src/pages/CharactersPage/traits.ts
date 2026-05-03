@@ -760,7 +760,10 @@ function getDefaultStatusEntryDescriptionEntries(
   entry: CharacterStatusEntry
 ): SpellDescriptionEntry[] {
   if (entry.description?.trim()) {
-    return [entry.description.trim()];
+    return entry.description
+      .split(/\n+/)
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0);
   }
 
   if (isExhaustionStatusEntry(entry)) {

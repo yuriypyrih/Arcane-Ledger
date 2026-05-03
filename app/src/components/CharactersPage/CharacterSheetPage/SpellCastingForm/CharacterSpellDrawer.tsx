@@ -75,6 +75,7 @@ export type CharacterSpellDrawerActionOptions = {
   useRadiantSoul?: boolean;
   useOverchannel?: boolean;
   useMagicInitiate?: boolean;
+  useFeyMagic?: boolean;
 };
 
 export type CharacterSpellDrawerActionRadioOption = {
@@ -341,6 +342,9 @@ function CharacterSpellDrawer({
     useOverchannel: actionOptions.some((option) => option.id === "overchannel" && option.checked),
     useMagicInitiate: actionOptions.some(
       (option) => option.id === "magic-initiate" && option.checked
+    ),
+    useFeyMagic: actionOptions.some(
+      (option) => option.id === "fey-magic" && option.checked
     )
   };
   const resolvedActionPaths =

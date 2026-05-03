@@ -2,8 +2,10 @@ import clsx from "clsx";
 import { Dices, Skull } from "lucide-react";
 import { useCallback, useEffect } from "react";
 import { useDiceRollerPopup } from "../../../../DicePage/DiceRollerPopup";
+import { FEATS } from "../../../../../codex/entries";
 import type { Character } from "../../../../../types";
 import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPage/CharacterSheetPage/types";
+import { hasFeatForCharacter } from "../../../../../pages/CharactersPage/feats/runtime";
 import widgetShellStyles from "../GameplayWidgetShared.module.css";
 import { createDefaultDeathSaves, normalizeDeathSaves } from "../gameplayStateUtils";
 import styles from "./DeathSavesWidget.module.css";
@@ -18,6 +20,7 @@ function DeathSavesWidget({ character, onPersistCharacter }: DeathSavesWidgetPro
   const deathSaves = normalizeDeathSaves(character.deathSaves);
   const isAtZeroHitPoints = character.currentHitPoints === 0;
   const isDeathSaveResolved = deathSaves.successes >= 3 || deathSaves.failures >= 3;
+  const hasDurableDeathSaveAdvantage = hasFeatForCharacter(character, FEATS.DURABLE);
 
   const updateDeathSaves = useCallback(
     (track: "success" | "failure") => {
@@ -70,7 +73,10 @@ function DeathSavesWidget({ character, onPersistCharacter }: DeathSavesWidgetPro
       title: "Death save",
       formula: "1d20",
       formulaDisplay: "1d20",
-      description: "Roll a death saving throw.",
+      mode: hasDurableDeathSaveAdvantage ? "advantage" : undefined,
+      description: hasDurableDeathSaveAdvantage
+        ? "Roll a death saving throw with Advantage from Durable."
+        : "Roll a death saving throw.",
       onResolvedResult: ({ result }) => {
         updateDeathSaves(result.total >= 10 ? "success" : "failure");
       }

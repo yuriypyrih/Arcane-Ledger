@@ -4,12 +4,13 @@ import {
 } from "../../codex/entries";
 import CurrencyInlineDisplay from "../../components/CurrencyInlineDisplay";
 import type { ItemRecord } from "../../types";
-import { formatEquipmentWeight, formatWeaponType } from "../../utils/codex";
+import { formatEquipmentWeight, formatWeaponTypeWithBaseWeapon } from "../../utils/codex";
 import {
   adaptItemWeapon,
   type AdaptedItemWeaponRecord
 } from "../../utils/items/adaptItemWeapon";
 import { normalizeItemDecimalString, parseItemCost } from "../../utils/items/cost";
+import { resolveWeaponBaseReference } from "../../utils/items/resolveWeaponBaseReference";
 
 type DetailCell = {
   label: string;
@@ -126,11 +127,16 @@ function buildWeaponPresentation(item: ItemRecord): AdaptedItemWeaponPreview | n
     return null;
   }
 
+  const baseWeapon = resolveWeaponBaseReference({
+    name: item.weapon?.name ?? item.name,
+    key: item.key
+  });
+
   return {
     ...adaptedWeapon,
     is_magic_item: Boolean(item.is_magic_item),
     is_attunement_needed: Boolean(item.requires_attunement),
-    typeLabel: formatWeaponType(adaptedWeapon.type),
+    typeLabel: formatWeaponTypeWithBaseWeapon(adaptedWeapon.type, baseWeapon),
     propertiesLabel: adaptedWeapon.propertyLabels.join(", ") || "None",
     masteryLabel: adaptedWeapon.masteryLabels.join(", ") || "None"
   };

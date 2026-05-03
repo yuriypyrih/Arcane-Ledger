@@ -113,15 +113,17 @@ export function useSelectedWeaponActionModel({
 
     return codexWeaponEntriesByName.get(selectedWeaponAction.name) ?? null;
   }, [customWeaponEntriesById, selectedWeaponAction]);
-  const selectedWeaponItemRecord = useMemo(() => {
+  const selectedWeaponInventoryStack = useMemo(() => {
     if (!selectedWeaponAction || !selectedWeaponAction.key.startsWith("inventory-")) {
       return null;
     }
 
     const inventoryItemId = selectedWeaponAction.key.replace(/^inventory-/, "");
 
-    return findInventoryItemStackById(character.inventoryItems, inventoryItemId)?.item ?? null;
+    return findInventoryItemStackById(character.inventoryItems, inventoryItemId);
   }, [character.inventoryItems, selectedWeaponAction]);
+  const selectedWeaponItemRecord = selectedWeaponInventoryStack?.item ?? null;
+  const selectedWeaponIsAttuned = Boolean(selectedWeaponInventoryStack?.attuned);
   const selectedWeaponHasActiveMastery = useMemo(() => {
     if (!selectedWeaponAction) {
       return false;
@@ -600,6 +602,7 @@ export function useSelectedWeaponActionModel({
     selectedWeaponAction,
     selectedWeaponEntry,
     selectedWeaponItemRecord,
+    selectedWeaponIsAttuned,
     selectedWeaponHasActiveMastery,
     selectedWeaponHasProficiency,
     selectedWeaponDetails,

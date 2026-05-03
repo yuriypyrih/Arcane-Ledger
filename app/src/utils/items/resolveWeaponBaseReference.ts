@@ -7,11 +7,6 @@ export type WeaponBaseReference = {
   key?: string | null;
 };
 
-type WeaponBaseLookupEntry = {
-  baseWeapon: WEAPON_BASE;
-  slug: string;
-};
-
 function normalizeWeaponLookupValue(value: string | null | undefined) {
   return (value ?? "")
     .trim()
@@ -20,18 +15,49 @@ function normalizeWeaponLookupValue(value: string | null | undefined) {
     .replace(/^_+|_+$/g, "");
 }
 
+function createCommaInvertedLookupValue(value: string | null | undefined): string | null {
+  const [head, ...tailParts] = (value ?? "").split(",");
+  const tail = tailParts.join(",").trim();
+
+  if (!head || !tail) {
+    return null;
+  }
+
+  return `${tail} ${head.trim()}`;
+}
+
+function createTwoWordInvertedLookupValue(value: string | null | undefined): string | null {
+  const words = (value ?? "").trim().split(/\s+/);
+
+  if (words.length !== 2) {
+    return null;
+  }
+
+  return `${words[1]} ${words[0]}`;
+}
+
+function createWeaponLookupSlugs(...values: Array<string | null | undefined>): string[] {
+  return [
+    ...new Set(
+      values.map((value) => normalizeWeaponLookupValue(value)).filter((value) => value.length > 0)
+    )
+  ];
+}
+
 const commonWeaponBaseLookupEntries = getWeaponEntries()
   .filter((entry) => entry.rarity === RARITY_TYPES.COMMON && typeof entry.baseWeapon === "string")
   .map((entry) => ({
     baseWeapon: entry.baseWeapon as WEAPON_BASE,
-    slug: normalizeWeaponLookupValue(entry.name)
+    slugs: createWeaponLookupSlugs(entry.name, createTwoWordInvertedLookupValue(entry.name))
   }));
 
 const weaponBaseByLookupKey = commonWeaponBaseLookupEntries.reduce<Map<string, WEAPON_BASE>>(
   (lookup, entry) => {
     const baseKey = normalizeWeaponLookupValue(entry.baseWeapon);
 
-    lookup.set(entry.slug, entry.baseWeapon);
+    entry.slugs.forEach((slug) => {
+      lookup.set(slug, entry.baseWeapon);
+    });
 
     if (baseKey) {
       lookup.set(baseKey, entry.baseWeapon);
@@ -40,24 +66,31 @@ const weaponBaseByLookupKey = commonWeaponBaseLookupEntries.reduce<Map<string, W
 
     return lookup;
   },
-  new Map<WeaponBaseLookupEntry["slug"], WEAPON_BASE>()
+  new Map<string, WEAPON_BASE>()
 );
 
 function resolveWeaponBaseFromLookupValue(value: string | null | undefined): WEAPON_BASE | null {
-  const normalizedValue = normalizeWeaponLookupValue(value);
+  const normalizedValues = createWeaponLookupSlugs(value, createCommaInvertedLookupValue(value));
 
-  if (!normalizedValue) {
+  if (normalizedValues.length === 0) {
     return null;
   }
 
-  const directMatch = weaponBaseByLookupKey.get(normalizedValue);
+  const directMatch = normalizedValues
+    .map((normalizedValue) => weaponBaseByLookupKey.get(normalizedValue))
+    .find((baseWeapon): baseWeapon is WEAPON_BASE => typeof baseWeapon === "string");
 
   if (directMatch) {
     return directMatch;
   }
 
   const suffixMatch = commonWeaponBaseLookupEntries.find(
-    (entry) => normalizedValue === entry.slug || normalizedValue.endsWith(`_${entry.slug}`)
+    (entry) =>
+      normalizedValues.some((normalizedValue) =>
+        entry.slugs.some(
+          (slug) => normalizedValue === slug || normalizedValue.endsWith(`_${slug}`)
+        )
+      )
   );
 
   return suffixMatch?.baseWeapon ?? null;

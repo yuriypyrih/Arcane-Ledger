@@ -98,6 +98,7 @@ import {
   createNamedResourceCardUsage
 } from "../../../../../../pages/CharactersPage/classFeatures/cardUsage";
 import {
+  durableSpeedyRecoveryActionKey,
   luckyFeatActionKey,
   resetLuckyPointForCharacter,
   restoreLuckyPointsForCharacter,
@@ -1073,6 +1074,32 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
           isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
           onConfirm={submitMonkPatientDefense}
           onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
+        />
+      );
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.drawer.kind === "confirm" &&
+      selectedAction.execute.kind === "activate" &&
+      selectedAction.action.key === durableSpeedyRecoveryActionKey
+    ) {
+      return (
+        <FighterSecondWindActionFooter
+          actionName={selectedAction.action.name}
+          confirmLabel={selectedFeaturePrimaryLabel}
+          actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
+          actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+          actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+          disabled={selectedFeatureActionPrimaryDisabledReason !== null}
+          groupRecoveryUnlocked={false}
+          groupRecoveryUsesRemaining={0}
+          groupRecoveryUsesTotal={0}
+          isGroupRecoverySelected={false}
+          isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
+          onConfirm={() => executeFeatureActivate(selectedAction.action)}
+          onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
+          onGroupRecoverySelectedChange={() => undefined}
         />
       );
     }

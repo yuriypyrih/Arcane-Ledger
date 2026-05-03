@@ -12,7 +12,8 @@ import {
 } from "../../../../../../pages/CharactersPage/classFeatures";
 import {
   getFeatDerivedStatusEntriesForCharacter,
-  getFeatGrantedCantripEntriesForCharacter
+  getFeatGrantedCantripEntriesForCharacter,
+  getFeatReactionEntriesForCharacter
 } from "../../../../../../pages/CharactersPage/feats/runtime";
 import { getCompanionStatusEntriesForCharacter } from "../../../../../../pages/CharactersPage/companions";
 import {
@@ -219,7 +220,10 @@ export function useTraitsConditionsSections({
     usesPreparedSpells
   ]);
   const featureReactionEntries = useMemo(
-    () => getFeatureReactionEntriesForCharacter(character),
+    () => [
+      ...getFeatureReactionEntriesForCharacter(character),
+      ...getFeatReactionEntriesForCharacter(character)
+    ],
     [character]
   );
   const featureReactionEntriesById = useMemo(

@@ -259,6 +259,10 @@ import {
 } from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardEvoker";
 import { getMagicTemporaryHitPointsFeatureForCharacter } from "../../../../../pages/CharactersPage/classFeatures/magicTemporaryHitPoints";
 import { CLASS_FEATURE } from "../../../../../codex/entries";
+import {
+  getMageSlayerGuardedMindStateForCharacter,
+  restoreMageSlayerGuardedMindForCharacter
+} from "../../../../../pages/CharactersPage/feats/runtime";
 import { getHitDiceRemainingForCharacter } from "../../../../../pages/CharactersPage/gameplay";
 import { getSpellSlotTotalsForCharacter } from "../../../../../pages/CharactersPage/spellcasting";
 import {
@@ -337,6 +341,7 @@ export function createShortRestOptions(character: Character): RestOption[] {
   const warlockCelestialResilienceTemporaryHitPoints =
     getWarlockCelestialResilienceTemporaryHitPoints(character);
   const clairvoyantCombatantUsesTotal = getWarlockClairvoyantCombatantUsesTotal(character);
+  const mageSlayerGuardedMindState = getMageSlayerGuardedMindStateForCharacter(character);
 
   return [
     {
@@ -347,6 +352,22 @@ export function createShortRestOptions(character: Character): RestOption[] {
         roundTracker: createDefaultRoundTracker()
       })
     },
+    ...(mageSlayerGuardedMindState
+      ? [
+          {
+            id: "restore-mage-slayer-guarded-mind",
+            label: "Restore Mage Slayer Guarded Mind",
+            charges: {
+              current: mageSlayerGuardedMindState.usesRemaining,
+              total: mageSlayerGuardedMindState.usesTotal
+            },
+            disabled:
+              mageSlayerGuardedMindState.usesRemaining >= mageSlayerGuardedMindState.usesTotal,
+            apply: (currentCharacter: Character) =>
+              restoreMageSlayerGuardedMindForCharacter(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
     ...(hasWarlockPactMagic && spellSlotTotal > 0
       ? [
           {

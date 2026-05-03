@@ -14,6 +14,10 @@ import {
   hasMonkFocusCommonActionBonusPath
 } from "../../../../../../pages/CharactersPage/classFeatures/monk/monk";
 import { hasRogueCunningActionCommonActionBonusPath } from "../../../../../../pages/CharactersPage/classFeatures/rogue/rogue";
+import {
+  hasKeenMindStudyBonusActionPath,
+  hasObservantSearchBonusActionPath
+} from "../../../../../../pages/CharactersPage/feats/runtime";
 import { getEconomyShapeState } from "../../gameplayWidgetUtils";
 
 type RoundTrackerAvailability = {
@@ -90,8 +94,10 @@ function getSecondaryCommonActionPathState(
 
   const hasMonkBonusPath = hasMonkFocusCommonActionBonusPath(character, action.key);
   const hasRogueBonusPath = hasRogueCunningActionCommonActionBonusPath(character, action.key);
+  const hasKeenMindBonusPath = hasKeenMindStudyBonusActionPath(character, action.key);
+  const hasObservantBonusPath = hasObservantSearchBonusActionPath(character, action.key);
 
-  if (!hasMonkBonusPath && !hasRogueBonusPath) {
+  if (!hasMonkBonusPath && !hasRogueBonusPath && !hasKeenMindBonusPath && !hasObservantBonusPath) {
     return null;
   }
 

@@ -261,7 +261,9 @@ import { getMagicTemporaryHitPointsFeatureForCharacter } from "../../../../../pa
 import { CLASS_FEATURE } from "../../../../../codex/entries";
 import {
   collectFeatDerivedState,
+  restoreFeyTouchedFreeCastsForCharacter,
   restoreLuckyPointsForCharacter,
+  restoreMageSlayerGuardedMindForCharacter,
   restoreMagicInitiateFreeCastsForCharacter
 } from "../../../../../pages/CharactersPage/feats/runtime";
 import { getHitDiceRemainingForCharacter } from "../../../../../pages/CharactersPage/gameplay";
@@ -307,8 +309,12 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const featDerivedState = collectFeatDerivedState(character);
   const luckyPointsTotal = featDerivedState.luckyPointsTotal;
   const luckyPointsAreFull = featDerivedState.luckyPointsRemaining >= luckyPointsTotal;
+  const mageSlayerGuardedMindAreFull =
+    featDerivedState.mageSlayerGuardedMindRemaining >= featDerivedState.mageSlayerGuardedMindTotal;
   const magicInitiateFreeCastsAreFull =
     restoreMagicInitiateFreeCastsForCharacter(character) === character;
+  const feyTouchedFreeCastsAreFull =
+    restoreFeyTouchedFreeCastsForCharacter(character) === character;
   const arcaneWardResetAvailable =
     restoreWizardAbjurerArcaneWardOnLongRest(character) !== character;
   const temporaryHitPoints = normalizeTemporaryHitPoints(character.temporaryHitPoints);
@@ -538,6 +544,21 @@ export function createLongRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
+    ...(featDerivedState.hasMageSlayer
+      ? [
+          {
+            id: "restore-mage-slayer-guarded-mind",
+            label: "Restore Mage Slayer Guarded Mind",
+            charges: {
+              current: featDerivedState.mageSlayerGuardedMindRemaining,
+              total: featDerivedState.mageSlayerGuardedMindTotal
+            },
+            disabled: mageSlayerGuardedMindAreFull,
+            apply: (currentCharacter: Character) =>
+              restoreMageSlayerGuardedMindForCharacter(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
     ...(featDerivedState.hasMagicInitiate
       ? [
           {
@@ -546,6 +567,17 @@ export function createLongRestOptions(character: Character): RestOption[] {
             disabled: magicInitiateFreeCastsAreFull,
             apply: (currentCharacter: Character) =>
               restoreMagicInitiateFreeCastsForCharacter(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(featDerivedState.hasFeyTouched
+      ? [
+          {
+            id: "restore-fey-magic-free-casts",
+            label: "Restore Fey Magic free casts",
+            disabled: feyTouchedFreeCastsAreFull,
+            apply: (currentCharacter: Character) =>
+              restoreFeyTouchedFreeCastsForCharacter(currentCharacter)
           } satisfies RestOption
         ]
       : []),

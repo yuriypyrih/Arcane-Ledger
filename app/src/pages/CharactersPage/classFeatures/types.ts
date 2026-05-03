@@ -147,6 +147,7 @@ export type FeatureActionExecuteEffectKind =
   | "know-your-enemy"
   | "bardic-inspiration-roll"
   | "second-wind"
+  | "speedy-recovery"
   | "tactical-mind"
   | "tireless";
 

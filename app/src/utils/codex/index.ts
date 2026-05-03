@@ -23,6 +23,7 @@ export {
   formatWeaponDamageFormula,
   formatWeaponProperties,
   formatWeaponType,
+  formatWeaponTypeWithBaseWeapon,
   formatWeaponWeight,
   truncateCodexText
 } from "./formatCodexLabel";

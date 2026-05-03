@@ -18,7 +18,14 @@ import {
   setDruidActiveStarryFormConstellationForCharacter,
   setPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeSelectionForCharacter
 } from "../../../../../../pages/CharactersPage/classFeatures";
+import { getAbilityModifierBreakdownForCharacter } from "../../../../../../pages/CharactersPage/abilities";
 import { isCustomFeatureTraitStatusEntry } from "../../../../../../pages/CharactersPage/customTraitEffects";
+import { actorStatusSourceId } from "../../../../../../pages/CharactersPage/feats/runtime";
+import { getProficiencyBonus } from "../../../../../../pages/CharactersPage/gameplay";
+import {
+  formatFormulaTerms,
+  formatSignedFormulaTerm
+} from "../../../../../../pages/CharactersPage/shared/formulas";
 import {
   getMonkWarriorOfTheElementsElementalResistanceDamageTypeSelection,
   hasMonkWarriorOfTheElementsElementalEpitome,
@@ -73,6 +80,18 @@ type SelectedStatusEntryDrawerProps = {
   statusDrawerDurationValue: number;
   updateExhaustionLevel: (nextLevel: ExhaustionLevel | null) => void;
 };
+
+function getActorInsightDcFormula(character: Character): string {
+  const charismaModifier = getAbilityModifierBreakdownForCharacter(character, "CHA").total;
+  const proficiencyBonus = getProficiencyBonus(character.level);
+  const insightDc = 8 + charismaModifier + proficiencyBonus;
+
+  return `Insight DC ${insightDc} = ${formatFormulaTerms([
+    "DC 8 (Base)",
+    formatSignedFormulaTerm(charismaModifier, "CHA"),
+    formatSignedFormulaTerm(proficiencyBonus, "Prof. Bonus")
+  ])}`;
+}
 
 function SelectedStatusEntryDrawer({
   applyStatusEntryDuration,
@@ -256,6 +275,13 @@ function SelectedStatusEntryDrawer({
       afterDetailsContent={
         selectedStatusEntry.sourceId === monkWarriorOfTheOpenHandQuiveringPalmStatusSourceId ? (
           <QuiveringPalmStatusDrawerFormula />
+        ) : selectedStatusEntry.sourceId === actorStatusSourceId ? (
+          <div className={styles.statusFormulaGrid}>
+            <CellContainer
+              label="Insight DC Formula"
+              content={getActorInsightDcFormula(character)}
+            />
+          </div>
         ) : selectedStatusEntry.sourceId === paladinOathOfDevotionHolyNimbusStatusSourceId ? (
           <div className={styles.statusFormulaGrid}>
             <CellContainer

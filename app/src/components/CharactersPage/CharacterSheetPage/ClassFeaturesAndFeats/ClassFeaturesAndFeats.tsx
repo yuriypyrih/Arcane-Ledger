@@ -46,6 +46,28 @@ import {
   createPendingFeatStateForEntry,
   createPendingFeatStateForFeat,
   decodePendingBlessedWarriorChoice,
+  decodePendingChargerChoice,
+  decodePendingChefChoice,
+  decodePendingCrusherChoice,
+  decodePendingDualWielderChoice,
+  decodePendingElementalAdeptChoice,
+  decodePendingFeyTouchedChoice,
+  decodePendingHeavilyArmoredChoice,
+  decodePendingHeavyArmorMasterChoice,
+  decodePendingInspiringLeaderChoice,
+  decodePendingKeenMindChoice,
+  decodePendingLightlyArmoredChoice,
+  decodePendingMageSlayerChoice,
+  decodePendingMartialWeaponTrainingChoice,
+  decodePendingMediumArmorMasterChoice,
+  decodePendingModeratelyArmoredChoice,
+  decodePendingMountedCombatantChoice,
+  decodePendingObservantChoice,
+  decodePendingPiercerChoice,
+  decodePendingPoisonerChoice,
+  decodePendingResilientChoice,
+  decodePendingSpeedyChoice,
+  decodePendingWeaponMasterChoice,
   decodePendingCrafterChoice,
   decodePendingDruidicWarriorChoice,
   decodePendingMagicInitiateChoice,
@@ -336,8 +358,10 @@ function ClassFeaturesAndFeats({
           ? featEditorContext.source.level
           : character.level,
       feats: featEditorDraft.feats,
+      armorProficiencies: featEditorDraft.armorProficiencies,
       skillProficiencies: featEditorDraft.skillProficiencies,
-      toolProficiencies: featEditorDraft.toolProficiencies
+      toolProficiencies: featEditorDraft.toolProficiencies,
+      weaponProficiencies: featEditorDraft.weaponProficiencies
     }),
     [character, featEditorContext, featEditorDraft]
   );
@@ -506,11 +530,9 @@ function ClassFeaturesAndFeats({
     setSelectedDivinityReference(divinity);
   }
 
-  function closeFeatEditor(draft?: FeatEditorDraft) {
-    const draftToPersist = draft ?? featEditorDraftRef.current;
-
+  function closeFeatEditor() {
     onPersistCharacter((currentCharacter) =>
-      applyFeatEditorDraftToCharacter(currentCharacter, draftToPersist)
+      applyFeatEditorDraftToCharacter(currentCharacter, featEditorDraftRef.current)
     );
     resetPendingFeatState();
     setFeatEditorContext({ mode: "general" });
@@ -600,6 +622,471 @@ function ClassFeaturesAndFeats({
     upsertFeatForContext(
       createContextualFeatEntry(FEATS.BOON_OF_IRRESISTIBLE_OFFENSE, {
         boonOfIrresistibleOffense: choice
+      })
+    );
+  }
+
+  function savePendingAthleteChoice() {
+    const choice = pendingFeatState.athleteChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.ATHLETE, {
+        athlete: choice
+      })
+    );
+  }
+
+  function savePendingChargerChoice() {
+    const choice = pendingFeatState.chargerChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const charger = decodePendingChargerChoice(choice);
+
+    if (!charger) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.CHARGER, {
+        charger
+      })
+    );
+  }
+
+  function savePendingChefChoice() {
+    const choice = pendingFeatState.chefChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const chef = decodePendingChefChoice(choice);
+
+    if (!chef) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.CHEF, {
+        chef
+      })
+    );
+  }
+
+  function savePendingCrusherChoice() {
+    const choice = pendingFeatState.crusherChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const crusher = decodePendingCrusherChoice(choice);
+
+    if (!crusher) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.CRUSHER, {
+        crusher
+      })
+    );
+  }
+
+  function savePendingDualWielderChoice() {
+    const choice = pendingFeatState.dualWielderChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const dualWielder = decodePendingDualWielderChoice(choice);
+
+    if (!dualWielder) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.DUAL_WIELDER, {
+        dualWielder
+      })
+    );
+  }
+
+  function savePendingElementalAdeptChoice() {
+    const choice = pendingFeatState.elementalAdeptChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const elementalAdept = decodePendingElementalAdeptChoice(choice);
+
+    if (!elementalAdept) {
+      return;
+    }
+
+    const duplicateEntry = featEditorDraftRef.current.feats.find(
+      (entry) =>
+        entry.id !== editingFeatEntryId &&
+        entry.feat === FEATS.ELEMENTAL_ADEPT &&
+        entry.elementalAdept?.damageType === elementalAdept.damageType
+    );
+
+    if (duplicateEntry) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.ELEMENTAL_ADEPT, {
+        elementalAdept
+      })
+    );
+  }
+
+  function savePendingFeyTouchedChoice() {
+    const choice = pendingFeatState.feyTouchedChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const feyTouched = decodePendingFeyTouchedChoice(choice);
+
+    if (!feyTouched) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.FEY_TOUCHED, {
+        feyTouched
+      })
+    );
+  }
+
+  function savePendingHeavilyArmoredChoice() {
+    const choice = pendingFeatState.heavilyArmoredChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const heavilyArmored = decodePendingHeavilyArmoredChoice(choice);
+
+    if (!heavilyArmored) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.HEAVILY_ARMORED, {
+        heavilyArmored
+      })
+    );
+  }
+
+  function savePendingHeavyArmorMasterChoice() {
+    const choice = pendingFeatState.heavyArmorMasterChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const heavyArmorMaster = decodePendingHeavyArmorMasterChoice(choice);
+
+    if (!heavyArmorMaster) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.HEAVY_ARMOR_MASTER, {
+        heavyArmorMaster
+      })
+    );
+  }
+
+  function savePendingInspiringLeaderChoice() {
+    const choice = pendingFeatState.inspiringLeaderChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const inspiringLeader = decodePendingInspiringLeaderChoice(choice);
+
+    if (!inspiringLeader) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.INSPIRING_LEADER, {
+        inspiringLeader
+      })
+    );
+  }
+
+  function savePendingKeenMindChoice() {
+    const choice = pendingFeatState.keenMindChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const keenMind = decodePendingKeenMindChoice(choice);
+
+    if (!keenMind) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.KEEN_MIND, {
+        keenMind
+      })
+    );
+  }
+
+  function savePendingLightlyArmoredChoice() {
+    const choice = pendingFeatState.lightlyArmoredChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const lightlyArmored = decodePendingLightlyArmoredChoice(choice);
+
+    if (!lightlyArmored) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.LIGHTLY_ARMORED, {
+        lightlyArmored
+      })
+    );
+  }
+
+  function savePendingMageSlayerChoice() {
+    const choice = pendingFeatState.mageSlayerChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const mageSlayer = decodePendingMageSlayerChoice(choice);
+
+    if (!mageSlayer) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.MAGE_SLAYER, {
+        mageSlayer
+      })
+    );
+  }
+
+  function savePendingMartialWeaponTrainingChoice() {
+    const choice = pendingFeatState.martialWeaponTrainingChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const martialWeaponTraining = decodePendingMartialWeaponTrainingChoice(choice);
+
+    if (!martialWeaponTraining) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.MARTIAL_WEAPON_TRAINING, {
+        martialWeaponTraining
+      })
+    );
+  }
+
+  function savePendingMediumArmorMasterChoice() {
+    const choice = pendingFeatState.mediumArmorMasterChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const mediumArmorMaster = decodePendingMediumArmorMasterChoice(choice);
+
+    if (!mediumArmorMaster) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.MEDIUM_ARMOR_MASTER, {
+        mediumArmorMaster
+      })
+    );
+  }
+
+  function savePendingModeratelyArmoredChoice() {
+    const choice = pendingFeatState.moderatelyArmoredChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const moderatelyArmored = decodePendingModeratelyArmoredChoice(choice);
+
+    if (!moderatelyArmored) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.MODERATELY_ARMORED, {
+        moderatelyArmored
+      })
+    );
+  }
+
+  function savePendingMountedCombatantChoice() {
+    const choice = pendingFeatState.mountedCombatantChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const mountedCombatant = decodePendingMountedCombatantChoice(choice);
+
+    if (!mountedCombatant) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.MOUNTED_COMBATANT, {
+        mountedCombatant
+      })
+    );
+  }
+
+  function savePendingObservantChoice() {
+    const choice = pendingFeatState.observantChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const observant = decodePendingObservantChoice(choice);
+
+    if (!observant) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.OBSERVANT, {
+        observant
+      })
+    );
+  }
+
+  function savePendingPiercerChoice() {
+    const choice = pendingFeatState.piercerChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const piercer = decodePendingPiercerChoice(choice);
+
+    if (!piercer) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.PIERCER, {
+        piercer
+      })
+    );
+  }
+
+  function savePendingPoisonerChoice() {
+    const choice = pendingFeatState.poisonerChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const poisoner = decodePendingPoisonerChoice(choice);
+
+    if (!poisoner) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.POISONER, {
+        poisoner
+      })
+    );
+  }
+
+  function savePendingResilientChoice() {
+    const choice = pendingFeatState.resilientChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const resilient = decodePendingResilientChoice(choice);
+
+    if (!resilient) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.RESILIENT, {
+        resilient
+      })
+    );
+  }
+
+  function savePendingSpeedyChoice() {
+    const choice = pendingFeatState.speedyChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const speedy = decodePendingSpeedyChoice(choice);
+
+    if (!speedy) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.SPEEDY, {
+        speedy
+      })
+    );
+  }
+
+  function savePendingWeaponMasterChoice() {
+    const choice = pendingFeatState.weaponMasterChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const weaponMaster = decodePendingWeaponMasterChoice(choice);
+
+    if (!weaponMaster) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.WEAPON_MASTER, {
+        weaponMaster
       })
     );
   }
@@ -905,8 +1392,12 @@ function ClassFeaturesAndFeats({
           visibleFeatCategories={visibleFeatCategories}
           visibleFeatDefinitionsByCategory={visibleFeatDefinitionsByCategory}
           featEligibilityByFeat={featEligibilityByFeat}
+          skillProficiencies={featEditorDraft.skillProficiencies}
+          savingThrowProficiencies={featEditorDraft.savingThrowProficiencies}
+          weaponProficiencies={featEditorDraft.weaponProficiencies}
           toolProficiencies={featEditorDraft.toolProficiencies}
           selectedFeats={featEditorDraft.feats}
+          editingFeatEntryId={editingFeatEntryId}
           pendingFeatState={pendingFeatState}
           blessedWarriorCantripOptions={blessedWarriorCantripOptions}
           druidicWarriorCantripOptions={druidicWarriorCantripOptions}
@@ -919,6 +1410,29 @@ function ClassFeaturesAndFeats({
           onPendingFeatStateChange={setPendingFeatState}
           renderTrackingButton={renderTrackingButton}
           onSavePendingAbilityScoreImprovement={savePendingAbilityScoreImprovement}
+          onSavePendingAthleteChoice={savePendingAthleteChoice}
+          onSavePendingChargerChoice={savePendingChargerChoice}
+          onSavePendingChefChoice={savePendingChefChoice}
+          onSavePendingCrusherChoice={savePendingCrusherChoice}
+          onSavePendingDualWielderChoice={savePendingDualWielderChoice}
+          onSavePendingElementalAdeptChoice={savePendingElementalAdeptChoice}
+          onSavePendingFeyTouchedChoice={savePendingFeyTouchedChoice}
+          onSavePendingHeavilyArmoredChoice={savePendingHeavilyArmoredChoice}
+          onSavePendingHeavyArmorMasterChoice={savePendingHeavyArmorMasterChoice}
+          onSavePendingInspiringLeaderChoice={savePendingInspiringLeaderChoice}
+          onSavePendingKeenMindChoice={savePendingKeenMindChoice}
+          onSavePendingLightlyArmoredChoice={savePendingLightlyArmoredChoice}
+          onSavePendingMageSlayerChoice={savePendingMageSlayerChoice}
+          onSavePendingMartialWeaponTrainingChoice={savePendingMartialWeaponTrainingChoice}
+          onSavePendingMediumArmorMasterChoice={savePendingMediumArmorMasterChoice}
+          onSavePendingModeratelyArmoredChoice={savePendingModeratelyArmoredChoice}
+          onSavePendingMountedCombatantChoice={savePendingMountedCombatantChoice}
+          onSavePendingObservantChoice={savePendingObservantChoice}
+          onSavePendingPiercerChoice={savePendingPiercerChoice}
+          onSavePendingPoisonerChoice={savePendingPoisonerChoice}
+          onSavePendingResilientChoice={savePendingResilientChoice}
+          onSavePendingSpeedyChoice={savePendingSpeedyChoice}
+          onSavePendingWeaponMasterChoice={savePendingWeaponMasterChoice}
           onSavePendingBoonOfIrresistibleOffense={savePendingBoonOfIrresistibleOffense}
           onSavePendingBlessedWarriorChoice={savePendingBlessedWarriorChoice}
           onSavePendingCrafterChoice={savePendingCrafterChoice}

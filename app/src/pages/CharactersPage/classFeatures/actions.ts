@@ -28,7 +28,7 @@ import {
   getCustomTraitSavingThrowBonuses,
   getCustomTraitWeaponDamageBonuses
 } from "../customTraitEffects";
-import { getFeatActionsForCharacter } from "../feats/runtime";
+import { getFeatActionsForCharacter, transformFeatCommonActionForCharacter } from "../feats/runtime";
 import {
   activateBardicInspiration,
   activateBardCollegeOfDanceInspiringMovement,
@@ -615,7 +615,7 @@ export function transformCommonActionForCharacter(
     Partial<
       Pick<
         Character,
-        "subclassId" | "abilities" | "equipment" | "inventoryItems" | "customEquipment"
+        "subclassId" | "abilities" | "equipment" | "inventoryItems" | "customEquipment" | "feats"
       >
     >,
   action: FeatureActionCard
@@ -626,9 +626,11 @@ export function transformCommonActionForCharacter(
     ? baseFeatureState.transformCommonAction(action)
     : action;
 
-  return subclassDerivedState.transformCommonAction
+  const classFeatureAction = subclassDerivedState.transformCommonAction
     ? subclassDerivedState.transformCommonAction(baseAction)
     : baseAction;
+
+  return transformFeatCommonActionForCharacter(character, classFeatureAction);
 }
 
 export function transformWeaponActionForCharacter(

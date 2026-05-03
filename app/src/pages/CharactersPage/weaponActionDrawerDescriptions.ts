@@ -9,6 +9,13 @@ import {
   getWizardBladesingerSongOfVictoryWeaponActionDescriptionAdditions
 } from "./classFeatures/wizard/subclasses/wizardBladesinger";
 import {
+  getChargerWeaponActionDescriptionAdditionsForCharacter,
+  getCrossbowExpertWeaponActionDescriptionAdditionsForCharacter,
+  getCrusherWeaponActionDescriptionAdditionsForCharacter,
+  getDualWielderWeaponActionDescriptionAdditionsForCharacter,
+  getGreatWeaponMasterWeaponActionDescriptionAdditionsForCharacter,
+  getPiercerWeaponActionDescriptionAdditionsForCharacter,
+  getPoisonerWeaponActionDescriptionAdditionsForCharacter,
   getSavageAttackerWeaponActionDescriptionAdditions,
   getTavernBrawlerUnarmedStrikeDescriptionAdditions
 } from "./feats/runtime";
@@ -116,7 +123,14 @@ export function getWeaponActionDrawerDescriptionAdditions(
   character: WeaponActionDescriptionCharacter,
   action: Pick<
     WeaponAction,
-    "attackKind" | "combatType" | "economyType" | "descriptionAdditions" | "proficiencyBonus"
+    | "attackKind"
+    | "baseWeapon"
+    | "combatType"
+    | "damageLabel"
+    | "economyType"
+    | "descriptionAdditions"
+    | "properties"
+    | "proficiencyBonus"
   >
 ): SpellDescriptionEntry[][] {
   if (!isWeaponOrUnarmedAction(action)) {
@@ -154,6 +168,23 @@ export function getWeaponActionDrawerDescriptionAdditions(
   }
 
   injectedSections.push(...getSavageAttackerWeaponActionDescriptionAdditions(character));
+  injectedSections.push(...getChargerWeaponActionDescriptionAdditionsForCharacter(character, action));
+  injectedSections.push(...getCrusherWeaponActionDescriptionAdditionsForCharacter(character, action));
+  injectedSections.push(
+    ...getPiercerWeaponActionDescriptionAdditionsForCharacter(character, action)
+  );
+  injectedSections.push(
+    ...getPoisonerWeaponActionDescriptionAdditionsForCharacter(character, action)
+  );
+  injectedSections.push(
+    ...getDualWielderWeaponActionDescriptionAdditionsForCharacter(character, action)
+  );
+  injectedSections.push(
+    ...getGreatWeaponMasterWeaponActionDescriptionAdditionsForCharacter(character, action)
+  );
+  injectedSections.push(
+    ...getCrossbowExpertWeaponActionDescriptionAdditionsForCharacter(character, action)
+  );
 
   if (action.attackKind === "unarmed") {
     injectedSections.push(...getTavernBrawlerUnarmedStrikeDescriptionAdditions(character));

@@ -3,17 +3,17 @@ import {
   DAMAGE_TYPE,
   ENTRY_CATEGORIES,
   FEATS,
+  WEAPON_BASE,
   WEAPON_COMBAT_TYPE,
   WEAPON_TRAINING,
   WEAPON_PROPERTY,
   type SpellDescriptionEntry,
-  type ClassEntry,
   type WeaponDamage,
   type WeaponDamageAmount,
   type WeaponDamageType,
   type WeaponEntry
 } from "../../codex/entries";
-import { getClassEntries, getWeaponEntries } from "../../codex/selectors";
+import { getWeaponEntries } from "../../codex/selectors";
 import type { AbilityKey, AbilityScores, Character, SkillName } from "../../types";
 import { PROF_LEVEL, SKILL } from "../../types";
 import { formatCodexLabel, formatWeaponDamage, formatWeaponDamageFormula } from "../../utils/codex";
@@ -63,6 +63,7 @@ import {
   getAdaptedItemWeapon,
   isItemShieldRecord
 } from "./inventoryItems";
+import { resolveWeaponBaseReference } from "../../utils/items/resolveWeaponBaseReference";
 import {
   getAppliedWeaponProficiency,
   getEquipmentByName,
@@ -73,6 +74,12 @@ import {
 } from "./proficiency";
 import { getResolvedCustomLoadoutEntries, type ResolvedCustomWeaponEntry } from "./customEquipment";
 import { skillGroupsByAbility } from "./skillDefinitions";
+import { getHitDieMaximumForClass } from "./hitDice";
+export {
+  getHitDiceDisplayForCharacter,
+  getHitDiceRemainingForCharacter,
+  getHitDieFormulaForClass
+} from "./hitDice";
 
 type WeaponAbilityRule = "strength" | "dexterity" | "finesse";
 
@@ -89,6 +96,7 @@ export type WeaponAction = {
   key: string;
   name: string;
   attackKind: "weapon" | "unarmed";
+  baseWeapon?: WEAPON_BASE | null;
   combatType?: WEAPON_COMBAT_TYPE | null;
   weaponTraining?: WEAPON_TRAINING | null;
   properties?: WEAPON_PROPERTY[];
@@ -185,10 +193,6 @@ const fallbackWeaponReferencesByName = new Map<string, WeaponReference>([
 
 const codexWeaponEntriesByName = new Map<string, WeaponEntry>(
   getWeaponEntries().map((entry) => [entry.name, entry])
-);
-
-const codexClassEntriesByName = new Map<string, ClassEntry>(
-  getClassEntries().map((entry) => [entry.name, entry])
 );
 
 const unarmedStrikeDescription: SpellDescriptionEntry[] = [
@@ -525,6 +529,7 @@ export function createWeaponAction(
     key: string;
     name: string;
     attackKind: "weapon" | "unarmed";
+    baseWeapon?: WEAPON_BASE | null;
     combatType?: WEAPON_COMBAT_TYPE | null;
     weaponTraining?: WEAPON_TRAINING | null;
     properties?: WEAPON_PROPERTY[];
@@ -611,6 +616,7 @@ export function createWeaponAction(
     key: options.key,
     name: options.name,
     attackKind: options.attackKind,
+    baseWeapon: options.baseWeapon ?? null,
     combatType: options.combatType ?? null,
     weaponTraining: options.weaponTraining ?? null,
     properties: options.properties ?? [],
@@ -657,29 +663,6 @@ export function getMainAbilityForClass(className: string): AbilityKey | null {
   return getPrimaryAbilityForClass(className);
 }
 
-export function getHitDieFormulaForClass(className: string): string {
-  const classEntry = codexClassEntriesByName.get(className);
-
-  if (!classEntry) {
-    return "1d8";
-  }
-
-  const rawDie = String(classEntry.hitPointDie).toLowerCase();
-  return rawDie.startsWith("d") ? `1${rawDie}` : "1d8";
-}
-
-function getHitDieMaximumForClass(className: string): number {
-  const classEntry = codexClassEntriesByName.get(className);
-  const rawHitDie = classEntry ? String(classEntry.hitPointDie) : "D8";
-  const parsedMaximum = Number(rawHitDie.replace(/\D/g, ""));
-
-  if (!Number.isFinite(parsedMaximum) || parsedMaximum <= 0) {
-    return 8;
-  }
-
-  return parsedMaximum;
-}
-
 export function getAutomaticMaxHitPointsForCharacter(
   character: Pick<Character, "className" | "level" | "abilities" | "classFeatureState"> &
     Partial<Pick<Character, "background" | "backgroundChoices">>
@@ -694,24 +677,6 @@ export function getAutomaticMaxHitPointsForCharacter(
     (normalizedLevel - 1) * (hitDieAverage + constitutionModifier);
 
   return Math.max(1, Math.floor(computedHitPoints));
-}
-
-export function getHitDiceRemainingForCharacter(character: Character): number {
-  const parsedRemaining = Number(character.hitDiceRemaining);
-
-  if (!Number.isFinite(parsedRemaining)) {
-    return character.level;
-  }
-
-  return Math.max(0, Math.min(character.level, Math.floor(parsedRemaining)));
-}
-
-export function getHitDiceDisplayForCharacter(character: Character): string {
-  const hitDieFormula = getHitDieFormulaForClass(character.className);
-  const totalHitDice = Math.max(1, Math.floor(character.level));
-  const availableHitDice = getHitDiceRemainingForCharacter(character);
-
-  return `${hitDieFormula} (${availableHitDice}/${totalHitDice})`;
 }
 
 export function getSavingThrowProficienciesForClass(className: string): AbilityKey[] {
@@ -1039,6 +1004,7 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
         key: `codex-${equipmentItem.name}`,
         name: equipmentItem.name,
         attackKind: "weapon",
+        baseWeapon: equipmentDefinition.baseWeapon ?? null,
         combatType: weaponEntry.type.combat,
         weaponTraining: weaponEntry.type.training,
         properties: weaponEntry.properties,
@@ -1102,6 +1068,7 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
         key: `custom-${weaponEntry.customEquipmentId}`,
         name: weaponEntry.name,
         attackKind: "weapon",
+        baseWeapon: weaponEntry.baseWeapon,
         combatType: weaponEntry.type.combat,
         weaponTraining: weaponEntry.type.training,
         properties: weaponEntry.properties,
@@ -1162,6 +1129,10 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
         return actions;
       }
 
+      const baseWeapon = resolveWeaponBaseReference({
+        name: inventoryItem.item.weapon?.name ?? inventoryItem.item.name,
+        key: inventoryItem.item.key
+      });
       const ability = resolveWeaponAbility(weaponReference.abilityRule, effectiveAbilityScores);
       const abilityModifier = getAbilityModifierForCharacter(character, ability);
       const appliedWeaponProficiency = getAppliedWeaponProficiency(
@@ -1181,6 +1152,7 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
           key: `inventory-${inventoryItem.id}`,
           name: inventoryItem.item.name ?? inventoryItem.item.key ?? "Weapon",
           attackKind: "weapon",
+          baseWeapon,
           combatType: weaponType.combat,
           weaponTraining: weaponType.training,
           properties: weaponProperties,

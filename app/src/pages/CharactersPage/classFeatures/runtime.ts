@@ -15,6 +15,7 @@ import {
   isRoundTrackerResourceAvailable,
   shouldTrackRoundScopedResources
 } from "../combat";
+import { transformFeatSpellEntryForCharacter } from "../feats/runtime";
 import {
   hasExhaustionAbilityCheckDisadvantage,
   hasExhaustionAttackRollDisadvantage,
@@ -703,10 +704,11 @@ export function getSpellEntryForCharacter(
   const baseSpellEntry = baseFeatureState.transformSpellEntry
     ? baseFeatureState.transformSpellEntry(spell)
     : spell;
-
-  return subclassDerivedState.transformSpellEntry
+  const subclassSpellEntry = subclassDerivedState.transformSpellEntry
     ? subclassDerivedState.transformSpellEntry(baseSpellEntry)
     : baseSpellEntry;
+
+  return transformFeatSpellEntryForCharacter(character, subclassSpellEntry);
 }
 
 export function getSpellbookSpellEntryForCharacter(
@@ -714,7 +716,10 @@ export function getSpellbookSpellEntryForCharacter(
     Partial<Pick<Character, "subclassId" | "statusEntries" | "classFeatureState" | "feats">>,
   spell: SpellEntry
 ): SpellEntry {
-  return character.className === "Wizard" ? getWizardSpellbookSpellEntry(character, spell) : spell;
+  return transformFeatSpellEntryForCharacter(
+    character,
+    character.className === "Wizard" ? getWizardSpellbookSpellEntry(character, spell) : spell
+  );
 }
 
 export function getFeatureReactionSpellForCharacter(

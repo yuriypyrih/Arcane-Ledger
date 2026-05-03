@@ -78,6 +78,13 @@ import { getFeatureDescriptionForCharacter } from "../../../../pages/CharactersP
 import { getBarbarianRageState } from "../../../../pages/CharactersPage/classFeatures/barbarian/barbarian";
 import { getInitiativeReferenceDescriptionAdditions } from "../../../../pages/CharactersPage/classFeatures/initiativeDescriptionSections";
 import {
+  getAthleteSpeedDescriptionAdditionsForCharacter,
+  getMageSlayerGuardedMindDescriptionAdditionsForCharacter,
+  getMageSlayerGuardedMindStateForCharacter,
+  getMediumArmorMasterArmorClassDescriptionAdditionsForCharacter,
+  spendMageSlayerGuardedMindForCharacter
+} from "../../../../pages/CharactersPage/feats/runtime";
+import {
   consumeMonkDisciplinedSurvivor,
   getMonkDisciplinedSurvivorOptionState
 } from "../../../../pages/CharactersPage/classFeatures/monk/monkDisciplinedSurvivor";
@@ -361,6 +368,10 @@ function getInitiativeDescriptionAdditions(character: Character): SpellDescripti
   return getInitiativeReferenceDescriptionAdditions(character);
 }
 
+function getArmorClassDescriptionAdditions(character: Character): SpellDescriptionEntry[][] {
+  return getMediumArmorMasterArmorClassDescriptionAdditionsForCharacter(character);
+}
+
 function getStrengthDescriptionAdditions(character: Character): SpellDescriptionEntry[][] {
   const indomitableMightDescription = getFeatureDescriptionForCharacter(
     character,
@@ -420,17 +431,22 @@ function getSpeedDescriptionAdditions(character: Character): SpellDescriptionEnt
     character,
     CLASS_FEATURE.ACROBATIC_MOVEMENT
   );
+  const descriptionAdditions: SpellDescriptionEntry[][] = [];
 
-  return acrobaticMovementDescription.length > 0
-    ? [
-        createFeatureSourcedDescriptionEntries(
-          character,
-          CLASS_FEATURE.ACROBATIC_MOVEMENT,
-          acrobaticMovementDescription,
-          "Acrobatic Movement"
-        )
-      ]
-    : [];
+  if (acrobaticMovementDescription.length > 0) {
+    descriptionAdditions.push(
+      createFeatureSourcedDescriptionEntries(
+        character,
+        CLASS_FEATURE.ACROBATIC_MOVEMENT,
+        acrobaticMovementDescription,
+        "Acrobatic Movement"
+      )
+    );
+  }
+
+  descriptionAdditions.push(...getAthleteSpeedDescriptionAdditionsForCharacter(character));
+
+  return descriptionAdditions;
 }
 
 function getEvasionDescriptionAdditions(character: Character): SpellDescriptionEntry[][] {
@@ -467,6 +483,9 @@ function getAbilityDescriptionAdditions(
   descriptionAdditions.push(...getMonkAbilityDescriptionAdditions(character, ability));
   descriptionAdditions.push(
     ...getSavingThrowReferenceDescriptionAdditionsForCharacter(character, ability)
+  );
+  descriptionAdditions.push(
+    ...getMageSlayerGuardedMindDescriptionAdditionsForCharacter(character, ability)
   );
 
   return descriptionAdditions.length > 0 ? descriptionAdditions : undefined;
@@ -554,6 +573,7 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
   const [isDiceRollerSettingsOpen, setIsDiceRollerSettingsOpen] = useState(false);
   const [isIndomitableSaveSelected, setIsIndomitableSaveSelected] = useState(false);
   const [isDisciplinedSurvivorSaveSelected, setIsDisciplinedSurvivorSaveSelected] = useState(false);
+  const [isMageSlayerGuardedMindSelected, setIsMageSlayerGuardedMindSelected] = useState(false);
   const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
 
   useBodyScrollLock(
@@ -1007,6 +1027,17 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
   const indomitableSaveBonus = Math.max(1, Math.floor(character.level));
   const canUseIndomitableOnSelectedSave =
     selectedAbilityReferenceKey !== null && fighterIndomitableUsesTotal > 0;
+  const canUseMageSlayerGuardedMindOnSelectedSave =
+    selectedAbilityReferenceKey === "INT" ||
+    selectedAbilityReferenceKey === "WIS" ||
+    selectedAbilityReferenceKey === "CHA";
+  const mageSlayerGuardedMindState = useMemo(
+    () =>
+      canUseMageSlayerGuardedMindOnSelectedSave
+        ? getMageSlayerGuardedMindStateForCharacter(character)
+        : null,
+    [canUseMageSlayerGuardedMindOnSelectedSave, character]
+  );
   const disciplinedSurvivorSaveState = useMemo(
     () =>
       selectedAbilityReferenceKey !== null
@@ -1018,6 +1049,7 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
   useEffect(() => {
     setIsIndomitableSaveSelected(false);
     setIsDisciplinedSurvivorSaveSelected(false);
+    setIsMageSlayerGuardedMindSelected(false);
   }, [resolvedSelectedStatReference?.keyword]);
 
   useEffect(() => {
@@ -1025,6 +1057,12 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
       setIsDisciplinedSurvivorSaveSelected(false);
     }
   }, [disciplinedSurvivorSaveState]);
+
+  useEffect(() => {
+    if (!mageSlayerGuardedMindState) {
+      setIsMageSlayerGuardedMindSelected(false);
+    }
+  }, [mageSlayerGuardedMindState]);
 
   function syncAbilityDraftFromCharacter() {
     setAbilitiesDraft(createAbilitiesDraft(character));
@@ -1077,6 +1115,7 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
     setIsDiceRollerSettingsOpen(false);
     setIsIndomitableSaveSelected(false);
     setIsDisciplinedSurvivorSaveSelected(false);
+    setIsMageSlayerGuardedMindSelected(false);
     setSelectedStatReference(null);
   }
 
@@ -1098,6 +1137,22 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
     });
   }
 
+  function changeMageSlayerGuardedMindSelection(checked: boolean) {
+    if (!checked) {
+      setIsMageSlayerGuardedMindSelected(false);
+      return;
+    }
+
+    const guardedMindState = getMageSlayerGuardedMindStateForCharacter(character);
+
+    if (!guardedMindState || guardedMindState.usesRemaining <= 0) {
+      return;
+    }
+
+    onPersistCharacter(spendMageSlayerGuardedMindForCharacter);
+    setIsMageSlayerGuardedMindSelected(true);
+  }
+
   function rollSavingThrowReference() {
     const saveRoll = resolvedSelectedStatReference?.rollActions?.save;
 
@@ -1113,11 +1168,16 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
       isDisciplinedSurvivorSaveSelected &&
       disciplinedSurvivorSaveState !== null &&
       !disciplinedSurvivorSaveState.disabled;
+    const usesMageSlayerGuardedMind =
+      isMageSlayerGuardedMindSelected &&
+      canUseMageSlayerGuardedMindOnSelectedSave &&
+      mageSlayerGuardedMindState !== null;
     const totalModifier = saveRoll.modifier + (usesIndomitable ? indomitableSaveBonus : 0);
     const rollFormula = formatD20Formula(totalModifier);
     const titleSuffixes = [
       ...(usesIndomitable ? ["Indomitable"] : []),
-      ...(usesDisciplinedSurvivor ? ["Discipline Survivor"] : [])
+      ...(usesDisciplinedSurvivor ? ["Discipline Survivor"] : []),
+      ...(usesMageSlayerGuardedMind ? ["Guarded Mind"] : [])
     ];
     const title =
       titleSuffixes.length > 0 ? `${saveRoll.title} (${titleSuffixes.join(", ")})` : saveRoll.title;
@@ -1128,6 +1188,9 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
         ? [
             "Discipline Survivor expends 1 Focus Point to reroll this saving throw; you must use the new roll."
           ]
+        : []),
+      ...(usesMageSlayerGuardedMind
+        ? ["Guarded Mind has been consumed for this saving throw."]
         : [])
     ];
 
@@ -1153,6 +1216,10 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
 
     if (usesDisciplinedSurvivor) {
       setIsDisciplinedSurvivorSaveSelected(false);
+    }
+
+    if (usesMageSlayerGuardedMind) {
+      setIsMageSlayerGuardedMindSelected(false);
     }
 
     openDiceRoller({
@@ -1196,7 +1263,12 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
               const additions = getSpeedDescriptionAdditions(character);
               return additions.length > 0 ? additions : undefined;
             })()
-          : undefined;
+          : card.label === "Armor Class"
+            ? (() => {
+                const additions = getArmorClassDescriptionAdditions(character);
+                return additions.length > 0 ? additions : undefined;
+              })()
+            : undefined;
 
     setSelectedStatReference({
       keyword: card.label,
@@ -1530,6 +1602,9 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
                 disciplinedSurvivorState={disciplinedSurvivorSaveState}
                 isDisciplinedSurvivorSelected={isDisciplinedSurvivorSaveSelected}
                 onDisciplinedSurvivorChange={setIsDisciplinedSurvivorSaveSelected}
+                mageSlayerGuardedMindState={mageSlayerGuardedMindState}
+                isMageSlayerGuardedMindSelected={isMageSlayerGuardedMindSelected}
+                onMageSlayerGuardedMindChange={changeMageSlayerGuardedMindSelection}
                 isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
                 onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
                 onRollMod={() =>

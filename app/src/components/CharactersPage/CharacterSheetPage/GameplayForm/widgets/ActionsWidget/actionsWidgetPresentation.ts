@@ -16,8 +16,9 @@ import {
   formatCodexLabel,
   formatWeaponDamage,
   formatWeaponProperties,
-  formatWeaponType
+  formatWeaponTypeWithBaseWeapon
 } from "../../../../../../utils/codex";
+import { resolveWeaponBaseReference } from "../../../../../../utils/items/resolveWeaponBaseReference";
 
 type WeaponFormulaPresentation = {
   label: string;
@@ -392,7 +393,13 @@ export function getWeaponDrawerDetails(
   weaponEntry:
     | (Pick<
         WeaponEntry,
-        "damage" | "type" | "properties" | "range" | "versatileDamage" | "propertyNotes"
+        | "baseWeapon"
+        | "damage"
+        | "type"
+        | "properties"
+        | "range"
+        | "versatileDamage"
+        | "propertyNotes"
       > & {
         mastery?: WeaponEntry["mastery"];
       })
@@ -424,6 +431,14 @@ export function getWeaponDrawerDetails(
         status: "MASTERED"
       })
     : "Mastery";
+  const itemBaseWeapon =
+    action.baseWeapon ??
+    (itemRecord
+      ? resolveWeaponBaseReference({
+          name: itemRecord.weapon?.name ?? itemRecord.name,
+          key: itemRecord.key
+        })
+      : null);
 
   if (adaptedItemWeapon) {
     const selectedDamage =
@@ -435,7 +450,7 @@ export function getWeaponDrawerDetails(
       {
         key: "type",
         label: typeLabel,
-        value: formatWeaponType(adaptedItemWeapon.type)
+        value: formatWeaponTypeWithBaseWeapon(adaptedItemWeapon.type, itemBaseWeapon)
       },
       {
         key: "damage",
@@ -470,7 +485,7 @@ export function getWeaponDrawerDetails(
       {
         key: "type",
         label: typeLabel,
-        value: "Weapon"
+        value: action.baseWeapon ? `Weapon (${formatCodexLabel(action.baseWeapon)})` : "Weapon"
       },
       {
         key: "damage",
@@ -494,12 +509,13 @@ export function getWeaponDrawerDetails(
     action.hasVersatileBonus && weaponEntry.versatileDamage?.length
       ? weaponEntry.versatileDamage
       : weaponEntry.damage;
+  const baseWeapon = action.baseWeapon ?? weaponEntry.baseWeapon ?? null;
 
   return [
     {
       key: "type",
       label: typeLabel,
-      value: formatWeaponType(weaponEntry.type)
+      value: formatWeaponTypeWithBaseWeapon(weaponEntry.type, baseWeapon)
     },
     {
       key: "damage",

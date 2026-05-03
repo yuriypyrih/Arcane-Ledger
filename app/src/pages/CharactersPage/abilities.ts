@@ -133,18 +133,20 @@ export function getAbilityScoreBreakdownForCharacter(
   relevantBonuses.forEach((bonus) => {
     const normalizedValue = Math.floor(bonus.value);
     const appliedValue = getAppliedAbilityScoreBonus(total, bonus);
+    const hasMaxScore = bonus.maxScore !== null && bonus.maxScore !== undefined;
+    const isPositiveCappedBonus =
+      Number.isFinite(normalizedValue) && normalizedValue > 0 && hasMaxScore;
+    const isFullyCappedBonus =
+      isPositiveCappedBonus && appliedValue === 0 && total >= (bonus.maxScore ?? total);
 
-    if (appliedValue === 0) {
+    if (appliedValue === 0 && !isFullyCappedBonus) {
       return;
     }
 
     total += appliedValue;
     entries.push({
       label:
-        bonus.maxScore !== null &&
-        bonus.maxScore !== undefined &&
-        normalizedValue > 0 &&
-        appliedValue < normalizedValue
+        isPositiveCappedBonus && appliedValue < normalizedValue
           ? `${bonus.label}, capped max ${bonus.maxScore}`
           : bonus.label,
       value: appliedValue

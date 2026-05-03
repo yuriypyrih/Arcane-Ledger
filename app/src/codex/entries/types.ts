@@ -174,7 +174,7 @@ export type ReactionEntry = {
   id: string;
   reaction: REACTION;
   name: string;
-  sourceType: "feature" | "item";
+  sourceType: "feature" | "item" | "feat";
   sourceFeature?: CLASS_FEATURE;
   sourceItemName?: string;
   sourceLabel: string;

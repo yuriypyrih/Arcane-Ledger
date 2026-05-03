@@ -36,6 +36,7 @@ type GameplayActionDrawerProps = {
   title: string;
   eyebrow?: string;
   badges?: string[];
+  titleAccessory?: ReactNode;
   headerAside?: ReactNode;
   description: SpellDescriptionEntry[];
   descriptionAdditions?: SpellDescriptionEntry[][];
@@ -56,6 +57,7 @@ function GameplayActionDrawer({
   title,
   eyebrow,
   badges = [],
+  titleAccessory,
   headerAside,
   description,
   descriptionAdditions = [],
@@ -120,6 +122,7 @@ function GameplayActionDrawer({
               {eyebrow ? <OverlayEyebrow>{eyebrow}</OverlayEyebrow> : null}
               <OverlayTitleRow>
                 <OverlayTitle id="gameplay-action-drawer-title">{title}</OverlayTitle>
+                {titleAccessory}
               </OverlayTitleRow>
               {helperText ? <OverlaySummary>{helperText}</OverlaySummary> : null}
             </OverlayHeaderContent>

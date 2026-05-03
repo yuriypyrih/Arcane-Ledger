@@ -289,6 +289,13 @@
   width: 100%;
 }
 
+.featDrawerHeaderActions {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 0.65rem;
+}
+
 .featDrawerBackdrop {
   z-index: 48;
 }

@@ -51,17 +51,19 @@ function FeatReferenceDrawer({
           <OverlayBadge>Feat</OverlayBadge>
           <OverlayTitleRow className={styles.featDrawerTitleRow}>
             <OverlayTitle id="feat-reference-drawer-title">{featDefinition.label}</OverlayTitle>
-            {renderTrackingButton(getFeatureTrackingState(featDefinition))}
           </OverlayTitleRow>
           <OverlaySummary>
             {getFeatCategoryLabel(featDefinition.category)} Feat
             {featDefinition.prerequisite ? ` • Prerequisite: ${featDefinition.prerequisite}` : ""}
           </OverlaySummary>
         </OverlayHeaderContent>
-        <OverlayCloseButton
-          label={`Close ${featDefinition.label} reference`}
-          onClick={onClose}
-        />
+        <div className={styles.featDrawerHeaderActions}>
+          {renderTrackingButton(getFeatureTrackingState(featDefinition))}
+          <OverlayCloseButton
+            label={`Close ${featDefinition.label} reference`}
+            onClick={onClose}
+          />
+        </div>
       </OverlayHeader>
 
       <OverlayBody className={styles.keywordDrawerBody}>

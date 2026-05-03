@@ -2,7 +2,13 @@ import clsx from "clsx";
 import type { Dispatch, SetStateAction } from "react";
 import { FEAT_CATEGORY, FEATS, type SpellEntry } from "../../../../codex/entries";
 import { getFeatCategoryLabel, type FeatDefinition } from "../../../../pages/CharactersPage/feats";
-import type { CharacterFeatEntry, ToolProficiencyEntry } from "../../../../types";
+import type {
+  CharacterFeatEntry,
+  SavingThrowProficiencyEntry,
+  SkillProficiencyEntry,
+  ToolProficiencyEntry,
+  WeaponProficiencyEntry
+} from "../../../../types";
 import {
   OverlayBody,
   OverlayCloseButton,
@@ -28,8 +34,12 @@ type FeatEditorModalProps = {
   visibleFeatCategories: FEAT_CATEGORY[];
   visibleFeatDefinitionsByCategory: Record<FEAT_CATEGORY, FeatDefinition[]>;
   featEligibilityByFeat: FeatEligibilityByFeat;
+  skillProficiencies: SkillProficiencyEntry[];
+  savingThrowProficiencies: SavingThrowProficiencyEntry[];
+  weaponProficiencies: WeaponProficiencyEntry[];
   toolProficiencies: ToolProficiencyEntry[];
   selectedFeats: CharacterFeatEntry[];
+  editingFeatEntryId: string | null;
   pendingFeatState: PendingFeatState;
   blessedWarriorCantripOptions: SpellEntry[];
   druidicWarriorCantripOptions: SpellEntry[];
@@ -42,6 +52,29 @@ type FeatEditorModalProps = {
   onPendingFeatStateChange: Dispatch<SetStateAction<PendingFeatState>>;
   renderTrackingButton: TrackingButtonRenderer;
   onSavePendingAbilityScoreImprovement: () => void;
+  onSavePendingAthleteChoice: () => void;
+  onSavePendingChargerChoice: () => void;
+  onSavePendingChefChoice: () => void;
+  onSavePendingCrusherChoice: () => void;
+  onSavePendingDualWielderChoice: () => void;
+  onSavePendingElementalAdeptChoice: () => void;
+  onSavePendingFeyTouchedChoice: () => void;
+  onSavePendingHeavilyArmoredChoice: () => void;
+  onSavePendingHeavyArmorMasterChoice: () => void;
+  onSavePendingInspiringLeaderChoice: () => void;
+  onSavePendingKeenMindChoice: () => void;
+  onSavePendingLightlyArmoredChoice: () => void;
+  onSavePendingMageSlayerChoice: () => void;
+  onSavePendingMartialWeaponTrainingChoice: () => void;
+  onSavePendingMediumArmorMasterChoice: () => void;
+  onSavePendingModeratelyArmoredChoice: () => void;
+  onSavePendingMountedCombatantChoice: () => void;
+  onSavePendingObservantChoice: () => void;
+  onSavePendingPiercerChoice: () => void;
+  onSavePendingPoisonerChoice: () => void;
+  onSavePendingResilientChoice: () => void;
+  onSavePendingSpeedyChoice: () => void;
+  onSavePendingWeaponMasterChoice: () => void;
   onSavePendingBoonOfIrresistibleOffense: () => void;
   onSavePendingBlessedWarriorChoice: () => void;
   onSavePendingCrafterChoice: () => void;
@@ -58,8 +91,12 @@ function FeatEditorModal({
   visibleFeatCategories,
   visibleFeatDefinitionsByCategory,
   featEligibilityByFeat,
+  skillProficiencies,
+  savingThrowProficiencies,
+  weaponProficiencies,
   toolProficiencies,
   selectedFeats,
+  editingFeatEntryId,
   pendingFeatState,
   blessedWarriorCantripOptions,
   druidicWarriorCantripOptions,
@@ -72,6 +109,29 @@ function FeatEditorModal({
   onPendingFeatStateChange,
   renderTrackingButton,
   onSavePendingAbilityScoreImprovement,
+  onSavePendingAthleteChoice,
+  onSavePendingChargerChoice,
+  onSavePendingChefChoice,
+  onSavePendingCrusherChoice,
+  onSavePendingDualWielderChoice,
+  onSavePendingElementalAdeptChoice,
+  onSavePendingFeyTouchedChoice,
+  onSavePendingHeavilyArmoredChoice,
+  onSavePendingHeavyArmorMasterChoice,
+  onSavePendingInspiringLeaderChoice,
+  onSavePendingKeenMindChoice,
+  onSavePendingLightlyArmoredChoice,
+  onSavePendingMageSlayerChoice,
+  onSavePendingMartialWeaponTrainingChoice,
+  onSavePendingMediumArmorMasterChoice,
+  onSavePendingModeratelyArmoredChoice,
+  onSavePendingMountedCombatantChoice,
+  onSavePendingObservantChoice,
+  onSavePendingPiercerChoice,
+  onSavePendingPoisonerChoice,
+  onSavePendingResilientChoice,
+  onSavePendingSpeedyChoice,
+  onSavePendingWeaponMasterChoice,
   onSavePendingBoonOfIrresistibleOffense,
   onSavePendingBlessedWarriorChoice,
   onSavePendingCrafterChoice,
@@ -104,7 +164,7 @@ function FeatEditorModal({
             ) : null}
           </div>
         </OverlayHeaderContent>
-        <OverlayCloseButton label="Close feat editor" onClick={onClose} />
+        <OverlayCloseButton label="Close feat editor" onClick={() => onClose()} />
       </OverlayHeader>
 
       <OverlayBody className={styles.scrollArea}>
@@ -132,8 +192,12 @@ function FeatEditorModal({
               key={featDefinition.feat}
               featDefinition={featDefinition}
               featEligibility={featEligibilityByFeat[featDefinition.feat]}
+              skillProficiencies={skillProficiencies}
+              savingThrowProficiencies={savingThrowProficiencies}
+              weaponProficiencies={weaponProficiencies}
               toolProficiencies={toolProficiencies}
               selectedEntries={selectedFeats.filter((entry) => entry.feat === featDefinition.feat)}
+              editingFeatEntryId={editingFeatEntryId}
               pendingFeatState={pendingFeatState}
               blessedWarriorCantripOptions={blessedWarriorCantripOptions}
               druidicWarriorCantripOptions={druidicWarriorCantripOptions}
@@ -144,6 +208,29 @@ function FeatEditorModal({
               onRemoveFeat={onRemoveFeat}
               onPendingFeatStateChange={onPendingFeatStateChange}
               onSavePendingAbilityScoreImprovement={onSavePendingAbilityScoreImprovement}
+              onSavePendingAthleteChoice={onSavePendingAthleteChoice}
+              onSavePendingChargerChoice={onSavePendingChargerChoice}
+              onSavePendingChefChoice={onSavePendingChefChoice}
+              onSavePendingCrusherChoice={onSavePendingCrusherChoice}
+              onSavePendingDualWielderChoice={onSavePendingDualWielderChoice}
+              onSavePendingElementalAdeptChoice={onSavePendingElementalAdeptChoice}
+              onSavePendingFeyTouchedChoice={onSavePendingFeyTouchedChoice}
+              onSavePendingHeavilyArmoredChoice={onSavePendingHeavilyArmoredChoice}
+              onSavePendingHeavyArmorMasterChoice={onSavePendingHeavyArmorMasterChoice}
+              onSavePendingInspiringLeaderChoice={onSavePendingInspiringLeaderChoice}
+              onSavePendingKeenMindChoice={onSavePendingKeenMindChoice}
+              onSavePendingLightlyArmoredChoice={onSavePendingLightlyArmoredChoice}
+              onSavePendingMageSlayerChoice={onSavePendingMageSlayerChoice}
+              onSavePendingMartialWeaponTrainingChoice={onSavePendingMartialWeaponTrainingChoice}
+              onSavePendingMediumArmorMasterChoice={onSavePendingMediumArmorMasterChoice}
+              onSavePendingModeratelyArmoredChoice={onSavePendingModeratelyArmoredChoice}
+              onSavePendingMountedCombatantChoice={onSavePendingMountedCombatantChoice}
+              onSavePendingObservantChoice={onSavePendingObservantChoice}
+              onSavePendingPiercerChoice={onSavePendingPiercerChoice}
+              onSavePendingPoisonerChoice={onSavePendingPoisonerChoice}
+              onSavePendingResilientChoice={onSavePendingResilientChoice}
+              onSavePendingSpeedyChoice={onSavePendingSpeedyChoice}
+              onSavePendingWeaponMasterChoice={onSavePendingWeaponMasterChoice}
               onSavePendingBoonOfIrresistibleOffense={onSavePendingBoonOfIrresistibleOffense}
               onSavePendingBlessedWarriorChoice={onSavePendingBlessedWarriorChoice}
               onSavePendingCrafterChoice={onSavePendingCrafterChoice}

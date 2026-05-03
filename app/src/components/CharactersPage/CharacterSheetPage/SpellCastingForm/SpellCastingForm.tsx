@@ -136,10 +136,12 @@ import {
 } from "../../../../pages/CharactersPage/spellcasting";
 import { getSpellSelectionInputStatusForCharacter } from "../../../../pages/CharactersPage/spellSelection";
 import {
+  consumeFeyTouchedFreeCastForCharacter,
   consumeMagicInitiateFreeCastForCharacter,
   getFeatAlwaysPreparedCantripEntriesForCharacter,
   getFeatAlwaysPreparedSpellEntriesForCharacter,
   getFeatGrantedCantripEntriesForCharacter,
+  getFeyTouchedFreeCastStateForCharacter,
   getMagicInitiateFreeCastStateForCharacter,
   getMagicInitiateSpellcastingAbilityForCharacter
 } from "../../../../pages/CharactersPage/feats/runtime";
@@ -317,6 +319,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   ] = useState<PaladinOathOfTheNobleGeniesElementalSmiteOptionKey | null>(null);
   const [useStarMapOnSelectedSpell, setUseStarMapOnSelectedSpell] = useState(false);
   const [useMagicInitiateOnSelectedSpell, setUseMagicInitiateOnSelectedSpell] = useState(false);
+  const [useFeyMagicOnSelectedSpell, setUseFeyMagicOnSelectedSpell] = useState(false);
   const [useFeyReinforcementsOnSelectedSpell, setUseFeyReinforcementsOnSelectedSpell] =
     useState(false);
   const [usePhantasmalCreaturesOnSelectedSpell, setUsePhantasmalCreaturesOnSelectedSpell] =
@@ -992,6 +995,13 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const selectedSpellMagicInitiateDisabled =
     selectedSpellMagicInitiateFreeCastState !== null &&
     selectedSpellMagicInitiateFreeCastState.usesRemaining <= 0;
+  const selectedSpellFeyMagicFreeCastState = selectedSpell
+    ? getFeyTouchedFreeCastStateForCharacter(character, selectedSpell.id)
+    : null;
+  const selectedSpellSupportsFeyMagic = selectedSpellFeyMagicFreeCastState !== null;
+  const selectedSpellFeyMagicDisabled =
+    selectedSpellFeyMagicFreeCastState !== null &&
+    selectedSpellFeyMagicFreeCastState.usesRemaining <= 0;
   const selectedSpellMagicInitiateAbility = selectedSpell
     ? getMagicInitiateSpellcastingAbilityForCharacter(character, selectedSpell.id)
     : null;
@@ -1169,6 +1179,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     (selectedSpellSupportsWarGodsBlessing && useWarGodsBlessingOnSelectedSpell) ||
     (selectedSpellSupportsStarMap && useStarMapOnSelectedSpell) ||
     (selectedSpellSupportsMagicInitiate && useMagicInitiateOnSelectedSpell) ||
+    (selectedSpellSupportsFeyMagic && useFeyMagicOnSelectedSpell) ||
     (selectedSpellSupportsPsionicSorcery && usePsionicSorceryOnSelectedSpell) ||
     (selectedSpellSupportsStepsOfTheFey && useStepsOfTheFeyOnSelectedSpell) ||
     (selectedSpellSupportsBewitchingMagic && useBewitchingMagicOnSelectedSpell) ||
@@ -1195,7 +1206,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       (selectedSpellSupportsMindMagic && useMindMagicOnSelectedSpell) ||
       (selectedSpellSupportsWarGodsBlessing && useWarGodsBlessingOnSelectedSpell) ||
       (selectedSpellSupportsStarMap && useStarMapOnSelectedSpell) ||
-      (selectedSpellSupportsMagicInitiate && useMagicInitiateOnSelectedSpell)
+      (selectedSpellSupportsMagicInitiate && useMagicInitiateOnSelectedSpell) ||
+      (selectedSpellSupportsFeyMagic && useFeyMagicOnSelectedSpell)
         ? minimumSlotLevel
         : clampNumber(selectedSpellSlotLevel, minimumSlotLevel, 9, minimumSlotLevel);
     const castsWithoutSpellSlot =
@@ -1203,7 +1215,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       (selectedSpellSupportsMindMagic && useMindMagicOnSelectedSpell) ||
       (selectedSpellSupportsWarGodsBlessing && useWarGodsBlessingOnSelectedSpell) ||
       (selectedSpellSupportsStarMap && useStarMapOnSelectedSpell) ||
-      (selectedSpellSupportsMagicInitiate && useMagicInitiateOnSelectedSpell);
+      (selectedSpellSupportsMagicInitiate && useMagicInitiateOnSelectedSpell) ||
+      (selectedSpellSupportsFeyMagic && useFeyMagicOnSelectedSpell);
 
     if (castsWithoutSpellSlot) {
       return spellSlotsExpended;
@@ -1219,11 +1232,13 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpellSlotLevel,
     selectedSpellSupportsMindMagic,
     selectedSpellSupportsMagicInitiate,
+    selectedSpellSupportsFeyMagic,
     selectedSpellSupportsStarMap,
     selectedSpellSupportsWarGodsBlessing,
     spellSlotsExpended,
     useMindMagicOnSelectedSpell,
     useMagicInitiateOnSelectedSpell,
+    useFeyMagicOnSelectedSpell,
     useStarMapOnSelectedSpell,
     useWarGodsBlessingOnSelectedSpell
   ]);
@@ -1315,6 +1330,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setSelectedElementalSmiteOptionOnSelectedSpell(null);
     setUseStarMapOnSelectedSpell(false);
     setUseMagicInitiateOnSelectedSpell(false);
+    setUseFeyMagicOnSelectedSpell(false);
     setUseFeyReinforcementsOnSelectedSpell(false);
     setUsePhantasmalCreaturesOnSelectedSpell(false);
     setUseStepsOfTheFeyOnSelectedSpell(false);
@@ -1369,6 +1385,14 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
 
     setUseMagicInitiateOnSelectedSpell(false);
   }, [selectedSpellMagicInitiateDisabled, selectedSpellSupportsMagicInitiate]);
+
+  useEffect(() => {
+    if (!selectedSpellSupportsFeyMagic || !selectedSpellFeyMagicDisabled) {
+      return;
+    }
+
+    setUseFeyMagicOnSelectedSpell(false);
+  }, [selectedSpellFeyMagicDisabled, selectedSpellSupportsFeyMagic]);
 
   useEffect(() => {
     if (selectedSpellSupportsPsionicSorcery && !selectedSpellPsionicSorceryDisabled) {
@@ -1763,6 +1787,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     useWarGodsBlessing?: boolean;
     useStarMap?: boolean;
     useMagicInitiate?: boolean;
+    useFeyMagic?: boolean;
     useBlessingOfMoonlight?: boolean;
     useElementalSmite?: boolean;
     elementalSmiteOption?: PaladinOathOfTheNobleGeniesElementalSmiteOptionKey | null;
@@ -1783,14 +1808,14 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   }) {
   return castSelectedSpellWithContext({
     ACTION_CATEGORY, DURATION, activateFighterPsiWarriorTelekineticMasterSpellCastForCharacter, applyPaladinOathOfTheNobleGeniesElementalSmiteEffect, applyRangerWinterWalkerFrozenHauntStatusEntriesForCharacter, applySpellCastFeatureEffectsForCharacter, applySpellConcentrationToStatusEntries, applyWizardEvokerOverchannelUse,
-    canUseWarlockCelestialPatronRadiantSoulForSpell, canUseWizardEvokerOverchannelForSpellSlot, channelDivinityUsesRemaining, character, clampNumber, closeSelectedSpell, consumeBeguilingMagicOrBardicInspirationForCharacter, consumeBlessingOfMoonlightUseForCharacter, consumeMagicInitiateFreeCastForCharacter,
+    canUseWarlockCelestialPatronRadiantSoulForSpell, canUseWizardEvokerOverchannelForSpellSlot, channelDivinityUsesRemaining, character, clampNumber, closeSelectedSpell, consumeBeguilingMagicOrBardicInspirationForCharacter, consumeBlessingOfMoonlightUseForCharacter, consumeFeyTouchedFreeCastForCharacter, consumeMagicInitiateFreeCastForCharacter,
     consumeDruidNaturalRecoveryUseForCharacter, consumeDruidStarMapGuidingBoltUseForCharacter, consumeRangerFeyReinforcementsUseForCharacter, consumeRangerMistyWandererUseForCharacter, consumeRangerWinterWalkerFrozenHauntUseForCharacter, consumeRoundTrackerResourceForCharacter, consumeSharedEconomyMultiForCharacterAction, consumeSorcererSubclassTamedSurgeUseForCharacter,
     consumeWarlockStepsOfTheFeyUseForCharacter, consumeWizardIllusionistPhantasmalCreaturesUseForCharacter, consumeWizardSignatureSpellFreeCastForCharacter, createEconomyMultiContextForSpell, druidNaturalRecoveryUsesRemaining, expendChannelDivinityUseForCharacter, fighterPsiWarriorEnergyDiceRemaining, fighterPsiWarriorTelekineticMasterConcentrationStatusSourceId,
     fighterPsiWarriorTelekineticMasterUsesRemaining, getDruidStarMapGuidingBoltUsesRemainingForCharacter, getRangerWinterWalkerFrozenHauntSpellOptionStateForCharacter, getRoundTrackerResourceForSpell, getSorceryPointsRemaining, getSpellLevel, getSpellSlotTotalsForCharacter, getWizardIllusionistPhantasmalCreaturesSpellOptionStateForCharacter,
     grantMonkFleetStepFollowUpForSpellCastIfEligible, hasWizardRitualAdept, hasWizardSignatureSpellFreeCastAvailableForCharacter, normalizeSpellSlotsExpended, onPersistCharacter, prepareCharacterForResourceConsumption, rangerFeyReinforcementsUsesRemaining, rangerMistyWandererUsesRemaining,
     restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter, rollHuntersRimeTemporaryHitPointsForSpellCast, rollSpellAttackForSpellCast, selectedSpell, selectedSpellActionPaths, selectedSpellCanIgnoreSpellcastingBlock, selectedSpellCanOnlyBeCastAsRitual, selectedSpellDisplay,
     selectedSpellFrozenHauntOptionState, selectedSpellIsSpellbookOnly, selectedSpellIsWizardSignatureSpell, selectedSpellIsWizardSpellMastery, selectedSpellPhantasmalCreaturesOptionState, selectedSpellSlotLevel, selectedSpellSupportsBewitchingMagic, selectedSpellSupportsElementalSmite,
-    selectedSpellSupportsFeyReinforcements, selectedSpellSupportsMagicInitiate, selectedSpellSupportsMindMagic, selectedSpellSupportsMistyWanderer, selectedSpellSupportsNaturalRecovery, selectedSpellSupportsOverchannel, selectedSpellSupportsPsionicSorcery, selectedSpellSupportsStarMap, selectedSpellSupportsStepsOfTheFey,
+    selectedSpellSupportsFeyMagic, selectedSpellSupportsFeyReinforcements, selectedSpellSupportsMagicInitiate, selectedSpellSupportsMindMagic, selectedSpellSupportsMistyWanderer, selectedSpellSupportsNaturalRecovery, selectedSpellSupportsOverchannel, selectedSpellSupportsPsionicSorcery, selectedSpellSupportsStarMap, selectedSpellSupportsStepsOfTheFey,
     selectedSpellSupportsTamedSurge, selectedSpellSupportsTelekineticMaster, selectedSpellSupportsWarGodsBlessing, sorceryPointsRemaining, spellSlotsExpended, spellSlotsRemaining, spellcastingState, spendSorceryPoints,
     tamedSurgeUsesRemaining, warlockStepsOfTheFeyUsesRemaining, wizardSignatureSpellLevel
   }, options);
@@ -1850,19 +1875,19 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     rangerFeyReinforcementsUsesTotal, rangerMistyWandererUsesRemaining, rangerMistyWandererUsesTotal, resetAllSpellSlotsAtLevel, selectedCantripIds, selectedDivinityActionShape, selectedDivinityActionShapeState, selectedDivinityActionWarning,
     selectedDivinityDisplay, selectedDivinityOptionKey, selectedDivinityRow, selectedElementalSmiteOptionOnSelectedSpell, selectedFrozenHauntFallbackSlotLevel, selectedInvocation, selectedInvocationCount, selectedInvocationIds,
     selectedManualSpellbookSpellIds, selectedPreparedSpellIds, selectedSpell, selectedSpellActionPaths, selectedSpellAlwaysPrepared, selectedSpellAlwaysSpellbook, selectedSpellAttackRollFormula, selectedSpellBlockedReason, selectedSpellMagicInitiateAbility, selectedSpellMagicInitiateDisabled, selectedSpellMagicInitiateFreeCastState,
-    selectedSpellCanCastAsRitualFromSpellbook, selectedSpellCanOnlyBeCastAsRitual, selectedSpellCastWarning, selectedSpellDamageDetailOverride, selectedSpellDisplay, selectedSpellElementalSmiteDisabled, selectedSpellFacts, selectedSpellFeyReinforcementsDisabled,
+    selectedSpellCanCastAsRitualFromSpellbook, selectedSpellCanOnlyBeCastAsRitual, selectedSpellCastWarning, selectedSpellDamageDetailOverride, selectedSpellDisplay, selectedSpellElementalSmiteDisabled, selectedSpellFacts, selectedSpellFeyMagicDisabled, selectedSpellFeyMagicFreeCastState, selectedSpellFeyReinforcementsDisabled,
     selectedSpellFreeCastSlotLevel, selectedSpellFrozenHauntFallbackSlotOptions, selectedSpellFrozenHauntFallbackSlotSummary, selectedSpellFrozenHauntOptionState, selectedSpellHuntersRimeTemporaryHitPointsFormula, selectedSpellIsSpellbookOnly, selectedSpellIsWizardSpellMastery, selectedSpellMindMagicDisabled,
     selectedSpellMistyWandererDisabled, selectedSpellOverchannelDisabled, selectedSpellOverchannelNecroticDamage, selectedSpellPhantasmalCreaturesDisabled, selectedSpellPhantasmalCreaturesOptionState, selectedSpellPsionicSorceryCurrentCost, selectedSpellPsionicSorceryDisabled, selectedSpellRadiantSoulDisabled,
     selectedSpellSharedCastWarning, selectedSpellSlotLevel, selectedSpellStarMapDisabled, selectedSpellStepsOfTheFeyDisabled, selectedSpellSupportsBeguilingMagic, selectedSpellSupportsBewitchingMagic, selectedSpellSupportsBlessingOfMoonlight, selectedSpellSupportsElementalSmite,
-    selectedSpellSupportsFeyReinforcements, selectedSpellSupportsMagicInitiate, selectedSpellSupportsMindMagic, selectedSpellSupportsMistyWanderer, selectedSpellSupportsNaturalRecovery, selectedSpellSupportsOverchannel, selectedSpellSupportsPhantasmalCreatures, selectedSpellSupportsPsionicSorcery, selectedSpellSupportsRadiantSoul,
+    selectedSpellSupportsFeyMagic, selectedSpellSupportsFeyReinforcements, selectedSpellSupportsMagicInitiate, selectedSpellSupportsMindMagic, selectedSpellSupportsMistyWanderer, selectedSpellSupportsNaturalRecovery, selectedSpellSupportsOverchannel, selectedSpellSupportsPhantasmalCreatures, selectedSpellSupportsPsionicSorcery, selectedSpellSupportsRadiantSoul,
     selectedSpellSupportsStarMap, selectedSpellSupportsStepsOfTheFey, selectedSpellSupportsTamedSurge, selectedSpellSupportsTelekineticMaster, selectedSpellSupportsWarGodsBlessing, selectedSpellTamedSurgeDisabled, selectedSpellTelekineticMasterDisabled, selectedSpellUnderMantleOfMajesty,
     selectedSpellViewMode, selectedSpellWarGodsBlessingDisabled, setActiveSpellSlotSheetLevel, setActiveWizardSpellFilter, setIsSelectedSpellDiceRollerSettingsOpen, setIsSpellManagementModalOpen, setSelectedElementalSmiteOptionOnSelectedSpell, setSelectedFrozenHauntFallbackSlotLevel,
-    setSelectedSpellSlotLevel, setUseBeguilingMagicOnSelectedSpell, setUseBewitchingMagicOnSelectedSpell, setUseBlessingOfMoonlightOnSelectedSpell, setUseElementalSmiteOnSelectedSpell, setUseFeyReinforcementsNoConcentrationOnSelectedSpell, setUseFeyReinforcementsOnSelectedSpell, setUseFrozenHauntOnSelectedSpell,
+    setSelectedSpellSlotLevel, setUseBeguilingMagicOnSelectedSpell, setUseBewitchingMagicOnSelectedSpell, setUseBlessingOfMoonlightOnSelectedSpell, setUseElementalSmiteOnSelectedSpell, setUseFeyMagicOnSelectedSpell, setUseFeyReinforcementsNoConcentrationOnSelectedSpell, setUseFeyReinforcementsOnSelectedSpell, setUseFrozenHauntOnSelectedSpell,
     setUseMagicInitiateOnSelectedSpell, setUseMindMagicOnSelectedSpell, setUseMistyWandererOnSelectedSpell, setUseNaturalRecoveryOnSelectedSpell, setUseOverchannelOnSelectedSpell, setUsePhantasmalCreaturesOnSelectedSpell, setUsePsionicSorceryOnSelectedSpell, setUseRadiantSoulOnSelectedSpell, setUseStarMapOnSelectedSpell,
     setUseStepsOfTheFeyOnSelectedSpell, setUseTamedSurgeOnSelectedSpell, setUseTelekineticMasterOnSelectedSpell, setUseWarGodsBlessingOnSelectedSpell, shared, SheetSurface, sheetStyles, sorceryPointsRemaining, sorceryPointsTotal,
     spellOutcomeSummariesById, spellPreparationOptions, spellSlotLevels, spellSlotTotals, spellSlotsRemaining, spellbookSpellEntriesById, spellcastingChannelDivinityRows, spellcastingState,
     styles, tamedSurgeUsesRemaining, tamedSurgeUsesTotal, updateSpellSlotsExpended, useBeguilingMagicOnSelectedSpell, useBewitchingMagicOnSelectedSpell, useBlessingOfMoonlightOnSelectedSpell, useElementalSmiteOnSelectedSpell,
-    useFeyReinforcementsNoConcentrationOnSelectedSpell, useFeyReinforcementsOnSelectedSpell, useFrozenHauntOnSelectedSpell, useMagicInitiateOnSelectedSpell, useMindMagicOnSelectedSpell, useMistyWandererOnSelectedSpell, useNaturalRecoveryOnSelectedSpell, useOverchannelOnSelectedSpell, usePhantasmalCreaturesOnSelectedSpell,
+    useFeyMagicOnSelectedSpell, useFeyReinforcementsNoConcentrationOnSelectedSpell, useFeyReinforcementsOnSelectedSpell, useFrozenHauntOnSelectedSpell, useMagicInitiateOnSelectedSpell, useMindMagicOnSelectedSpell, useMistyWandererOnSelectedSpell, useNaturalRecoveryOnSelectedSpell, useOverchannelOnSelectedSpell, usePhantasmalCreaturesOnSelectedSpell,
     usePsionicSorceryOnSelectedSpell, useRadiantSoulOnSelectedSpell, useStarMapOnSelectedSpell, useStepsOfTheFeyOnSelectedSpell, useTamedSurgeOnSelectedSpell, useTelekineticMasterOnSelectedSpell, useWarGodsBlessingOnSelectedSpell, usesPreparedSpells,
     usesSpellbook, warlockStepsOfTheFeyUsesRemaining, warlockStepsOfTheFeyUsesTotal, wizardSignatureSpellIdSet, wizardSpellMasterySpellIdSet, wizardSpellbookOnlyIdSet, wizardSpellbookOnlyRitualIdSet
   });

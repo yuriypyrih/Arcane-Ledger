@@ -1,16 +1,61 @@
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
-import { FEATS, type SpellEntry } from "../../../../codex/entries";
+import { DAMAGE_TYPE, FEATS, type SpellEntry } from "../../../../codex/entries";
 import {
+  elementalAdeptAbilityOptions,
+  elementalAdeptDamageTypeOptions,
+  feyTouchedAbilityOptions,
+  heavilyArmoredAbilityOptions,
+  heavyArmorMasterAbilityOptions,
+  inspiringLeaderAbilityOptions,
+  keenMindSkillOptions,
+  lightlyArmoredAbilityOptions,
+  mageSlayerAbilityOptions,
+  martialWeaponTrainingAbilityOptions,
+  mediumArmorMasterAbilityOptions,
+  moderatelyArmoredAbilityOptions,
+  mountedCombatantAbilityOptions,
+  observantAbilityOptions,
+  observantSkillOptions,
+  piercerAbilityOptions,
+  poisonerAbilityOptions,
+  resilientAbilityOptions,
+  speedyAbilityOptions,
+  weaponMasterAbilityOptions,
+  weaponMasterMasteryOptions,
   getBlessedWarriorCantripOptions,
   getBlessedWarriorChoiceSummary,
+  getAthleteChoiceSummary,
+  getChargerChoiceSummary,
+  getChefChoiceSummary,
   getCharacterFeatSourceLabel,
   getCharacterFeatSummary,
+  getCrusherChoiceSummary,
+  getDualWielderChoiceSummary,
+  getElementalAdeptChoiceSummary,
+  getFeyTouchedChoiceSummary,
+  getHeavilyArmoredChoiceSummary,
+  getHeavyArmorMasterChoiceSummary,
+  getInspiringLeaderChoiceSummary,
+  getKeenMindChoiceSummary,
+  getLightlyArmoredChoiceSummary,
+  getMageSlayerChoiceSummary,
+  getMartialWeaponTrainingChoiceSummary,
+  getMediumArmorMasterChoiceSummary,
+  getModeratelyArmoredChoiceSummary,
+  getMountedCombatantChoiceSummary,
+  getObservantChoiceSummary,
+  getPiercerChoiceSummary,
+  getPoisonerChoiceSummary,
+  getResilientChoiceSummary,
+  getSpeedyChoiceSummary,
+  getWeaponMasterChoiceSummary,
   getDruidicWarriorCantripOptions,
   getDruidicWarriorChoiceSummary,
   getEpicBoonAbilityOptions,
   getMagicInitiateCantripOptions,
   getMagicInitiateChoiceSummary,
   getMagicInitiateLevelOneSpellOptions,
+  getFeyTouchedSpellOptions,
   getMusicianChoiceSummary,
   isMagicInitiateSpellList,
   magicInitiateSpellcastingAbilityOptions,
@@ -29,8 +74,30 @@ import {
 import type {
   BlessedWarriorChoice,
   CharacterFeatEntry,
+  ChargerChoice,
+  ChefChoice,
+  CrusherChoice,
+  DualWielderChoice,
+  ElementalAdeptChoice,
   CrafterChoice,
   DruidicWarriorChoice,
+  FeyTouchedChoice,
+  HeavilyArmoredChoice,
+  HeavyArmorMasterChoice,
+  InspiringLeaderChoice,
+  KeenMindChoice,
+  LightlyArmoredChoice,
+  MageSlayerChoice,
+  MartialWeaponTrainingChoice,
+  MediumArmorMasterChoice,
+  ModeratelyArmoredChoice,
+  MountedCombatantChoice,
+  ObservantChoice,
+  PiercerChoice,
+  PoisonerChoice,
+  ResilientChoice,
+  SpeedyChoice,
+  WeaponMasterChoice,
   MagicInitiateChoice,
   MusicianChoice,
   SkillName,
@@ -39,12 +106,35 @@ import type {
 } from "../../../../types";
 import type {
   PendingAbilityScoreImprovement,
+  PendingAthleteChoice,
   PendingBlessedWarriorChoice,
   PendingBoonOfIrresistibleOffense,
+  PendingChargerChoice,
+  PendingChefChoice,
+  PendingCrusherChoice,
+  PendingDualWielderChoice,
+  PendingElementalAdeptChoice,
   PendingCrafterChoice,
   PendingDruidicWarriorChoice,
   PendingEpicBoonAbilityChoice,
+  PendingFeyTouchedChoice,
   PendingFeatState,
+  PendingHeavilyArmoredChoice,
+  PendingHeavyArmorMasterChoice,
+  PendingInspiringLeaderChoice,
+  PendingKeenMindChoice,
+  PendingLightlyArmoredChoice,
+  PendingMageSlayerChoice,
+  PendingMartialWeaponTrainingChoice,
+  PendingMediumArmorMasterChoice,
+  PendingModeratelyArmoredChoice,
+  PendingMountedCombatantChoice,
+  PendingObservantChoice,
+  PendingPiercerChoice,
+  PendingPoisonerChoice,
+  PendingResilientChoice,
+  PendingSpeedyChoice,
+  PendingWeaponMasterChoice,
   PendingMagicInitiateChoice,
   PendingMusicianChoice,
   PendingSkilledChoice
@@ -61,7 +151,13 @@ export const musicianNoneOptionValue = "none";
 export const musicianSelectionIndices = [0, 1, 2] as const;
 export const magicInitiateNoneOptionValue = "none";
 export const magicInitiateCantripSelectionIndices = [0, 1] as const;
+export const feyTouchedNoneOptionValue = "none";
+export const observantNoneOptionValue = "none";
+export const keenMindNoneOptionValue = "none";
+export const resilientNoneOptionValue = "none";
+export const weaponMasterNoneOptionValue = "none";
 const musicianToolOptionSet = new Set<ToolProficiency>(musicalInstrumentToolProficiencies);
+const keenMindSkillOptionSet = new Set<string>(keenMindSkillOptions);
 
 function createDefaultPendingCantripChoice(
   options: SpellEntry[],
@@ -136,6 +232,29 @@ function decodePendingCantripChoice<TChoice extends BlessedWarriorChoice | Druid
 export function createEmptyPendingFeatState(): PendingFeatState {
   return {
     abilityScoreImprovement: null,
+    athleteChoice: null,
+    chargerChoice: null,
+    chefChoice: null,
+    crusherChoice: null,
+    dualWielderChoice: null,
+    elementalAdeptChoice: null,
+    feyTouchedChoice: null,
+    heavilyArmoredChoice: null,
+    heavyArmorMasterChoice: null,
+    inspiringLeaderChoice: null,
+    keenMindChoice: null,
+    lightlyArmoredChoice: null,
+    mageSlayerChoice: null,
+    martialWeaponTrainingChoice: null,
+    mediumArmorMasterChoice: null,
+    moderatelyArmoredChoice: null,
+    mountedCombatantChoice: null,
+    observantChoice: null,
+    piercerChoice: null,
+    poisonerChoice: null,
+    resilientChoice: null,
+    speedyChoice: null,
+    weaponMasterChoice: null,
     boonOfIrresistibleOffense: null,
     blessedWarriorChoice: null,
     crafterChoice: null,
@@ -158,6 +277,148 @@ export function createDefaultPendingAbilityScoreImprovement(): PendingAbilitySco
 export function createDefaultPendingBoonOfIrresistibleOffense(): PendingBoonOfIrresistibleOffense {
   return {
     ability: "STR"
+  };
+}
+
+export function createDefaultPendingAthleteChoice(): PendingAthleteChoice {
+  return {
+    ability: "STR"
+  };
+}
+
+export function createDefaultPendingChargerChoice(): PendingChargerChoice {
+  return {
+    ability: "STR"
+  };
+}
+
+export function createDefaultPendingChefChoice(): PendingChefChoice {
+  return {
+    ability: "CON"
+  };
+}
+
+export function createDefaultPendingCrusherChoice(): PendingCrusherChoice {
+  return {
+    ability: "STR"
+  };
+}
+
+export function createDefaultPendingDualWielderChoice(): PendingDualWielderChoice {
+  return {
+    ability: "STR"
+  };
+}
+
+export function createDefaultPendingElementalAdeptChoice(): PendingElementalAdeptChoice {
+  return {
+    ability: "INT",
+    damageType: DAMAGE_TYPE.ACID
+  };
+}
+
+export function createDefaultPendingFeyTouchedChoice(): PendingFeyTouchedChoice {
+  return {
+    ability: "INT",
+    spellId: feyTouchedNoneOptionValue
+  };
+}
+
+export function createDefaultPendingHeavilyArmoredChoice(): PendingHeavilyArmoredChoice {
+  return {
+    ability: "CON"
+  };
+}
+
+export function createDefaultPendingHeavyArmorMasterChoice(): PendingHeavyArmorMasterChoice {
+  return {
+    ability: "CON"
+  };
+}
+
+export function createDefaultPendingInspiringLeaderChoice(): PendingInspiringLeaderChoice {
+  return {
+    ability: "WIS"
+  };
+}
+
+export function createDefaultPendingKeenMindChoice(): PendingKeenMindChoice {
+  return {
+    skill: keenMindNoneOptionValue
+  };
+}
+
+export function createDefaultPendingLightlyArmoredChoice(): PendingLightlyArmoredChoice {
+  return {
+    ability: "STR"
+  };
+}
+
+export function createDefaultPendingMageSlayerChoice(): PendingMageSlayerChoice {
+  return {
+    ability: "STR"
+  };
+}
+
+export function createDefaultPendingMartialWeaponTrainingChoice(): PendingMartialWeaponTrainingChoice {
+  return {
+    ability: "STR"
+  };
+}
+
+export function createDefaultPendingMediumArmorMasterChoice(): PendingMediumArmorMasterChoice {
+  return {
+    ability: "STR"
+  };
+}
+
+export function createDefaultPendingModeratelyArmoredChoice(): PendingModeratelyArmoredChoice {
+  return {
+    ability: "STR"
+  };
+}
+
+export function createDefaultPendingMountedCombatantChoice(): PendingMountedCombatantChoice {
+  return {
+    ability: "STR"
+  };
+}
+
+export function createDefaultPendingObservantChoice(): PendingObservantChoice {
+  return {
+    ability: "INT",
+    skill: observantNoneOptionValue
+  };
+}
+
+export function createDefaultPendingPiercerChoice(): PendingPiercerChoice {
+  return {
+    ability: "STR"
+  };
+}
+
+export function createDefaultPendingPoisonerChoice(): PendingPoisonerChoice {
+  return {
+    ability: "DEX"
+  };
+}
+
+export function createDefaultPendingResilientChoice(): PendingResilientChoice {
+  return {
+    ability: resilientNoneOptionValue
+  };
+}
+
+export function createDefaultPendingSpeedyChoice(): PendingSpeedyChoice {
+  return {
+    ability: "DEX"
+  };
+}
+
+export function createDefaultPendingWeaponMasterChoice(): PendingWeaponMasterChoice {
+  return {
+    ability: "STR",
+    weaponMastery: weaponMasterNoneOptionValue
   };
 }
 
@@ -241,6 +502,167 @@ export function createPendingFeatStateForFeat(feat: FEATS): PendingFeatState | n
     return {
       ...createEmptyPendingFeatState(),
       boonOfIrresistibleOffense: createDefaultPendingBoonOfIrresistibleOffense()
+    };
+  }
+
+  if (feat === FEATS.ATHLETE) {
+    return {
+      ...createEmptyPendingFeatState(),
+      athleteChoice: createDefaultPendingAthleteChoice()
+    };
+  }
+
+  if (feat === FEATS.CHARGER) {
+    return {
+      ...createEmptyPendingFeatState(),
+      chargerChoice: createDefaultPendingChargerChoice()
+    };
+  }
+
+  if (feat === FEATS.CHEF) {
+    return {
+      ...createEmptyPendingFeatState(),
+      chefChoice: createDefaultPendingChefChoice()
+    };
+  }
+
+  if (feat === FEATS.CRUSHER) {
+    return {
+      ...createEmptyPendingFeatState(),
+      crusherChoice: createDefaultPendingCrusherChoice()
+    };
+  }
+
+  if (feat === FEATS.DUAL_WIELDER) {
+    return {
+      ...createEmptyPendingFeatState(),
+      dualWielderChoice: createDefaultPendingDualWielderChoice()
+    };
+  }
+
+  if (feat === FEATS.ELEMENTAL_ADEPT) {
+    return {
+      ...createEmptyPendingFeatState(),
+      elementalAdeptChoice: createDefaultPendingElementalAdeptChoice()
+    };
+  }
+
+  if (feat === FEATS.FEY_TOUCHED) {
+    return {
+      ...createEmptyPendingFeatState(),
+      feyTouchedChoice: createDefaultPendingFeyTouchedChoice()
+    };
+  }
+
+  if (feat === FEATS.HEAVILY_ARMORED) {
+    return {
+      ...createEmptyPendingFeatState(),
+      heavilyArmoredChoice: createDefaultPendingHeavilyArmoredChoice()
+    };
+  }
+
+  if (feat === FEATS.HEAVY_ARMOR_MASTER) {
+    return {
+      ...createEmptyPendingFeatState(),
+      heavyArmorMasterChoice: createDefaultPendingHeavyArmorMasterChoice()
+    };
+  }
+
+  if (feat === FEATS.INSPIRING_LEADER) {
+    return {
+      ...createEmptyPendingFeatState(),
+      inspiringLeaderChoice: createDefaultPendingInspiringLeaderChoice()
+    };
+  }
+
+  if (feat === FEATS.KEEN_MIND) {
+    return {
+      ...createEmptyPendingFeatState(),
+      keenMindChoice: createDefaultPendingKeenMindChoice()
+    };
+  }
+
+  if (feat === FEATS.LIGHTLY_ARMORED) {
+    return {
+      ...createEmptyPendingFeatState(),
+      lightlyArmoredChoice: createDefaultPendingLightlyArmoredChoice()
+    };
+  }
+
+  if (feat === FEATS.MAGE_SLAYER) {
+    return {
+      ...createEmptyPendingFeatState(),
+      mageSlayerChoice: createDefaultPendingMageSlayerChoice()
+    };
+  }
+
+  if (feat === FEATS.MARTIAL_WEAPON_TRAINING) {
+    return {
+      ...createEmptyPendingFeatState(),
+      martialWeaponTrainingChoice: createDefaultPendingMartialWeaponTrainingChoice()
+    };
+  }
+
+  if (feat === FEATS.MEDIUM_ARMOR_MASTER) {
+    return {
+      ...createEmptyPendingFeatState(),
+      mediumArmorMasterChoice: createDefaultPendingMediumArmorMasterChoice()
+    };
+  }
+
+  if (feat === FEATS.MODERATELY_ARMORED) {
+    return {
+      ...createEmptyPendingFeatState(),
+      moderatelyArmoredChoice: createDefaultPendingModeratelyArmoredChoice()
+    };
+  }
+
+  if (feat === FEATS.MOUNTED_COMBATANT) {
+    return {
+      ...createEmptyPendingFeatState(),
+      mountedCombatantChoice: createDefaultPendingMountedCombatantChoice()
+    };
+  }
+
+  if (feat === FEATS.OBSERVANT) {
+    return {
+      ...createEmptyPendingFeatState(),
+      observantChoice: createDefaultPendingObservantChoice()
+    };
+  }
+
+  if (feat === FEATS.PIERCER) {
+    return {
+      ...createEmptyPendingFeatState(),
+      piercerChoice: createDefaultPendingPiercerChoice()
+    };
+  }
+
+  if (feat === FEATS.POISONER) {
+    return {
+      ...createEmptyPendingFeatState(),
+      poisonerChoice: createDefaultPendingPoisonerChoice()
+    };
+  }
+
+  if (feat === FEATS.RESILIENT) {
+    return {
+      ...createEmptyPendingFeatState(),
+      resilientChoice: createDefaultPendingResilientChoice()
+    };
+  }
+
+  if (feat === FEATS.SPEEDY) {
+    return {
+      ...createEmptyPendingFeatState(),
+      speedyChoice: createDefaultPendingSpeedyChoice()
+    };
+  }
+
+  if (feat === FEATS.WEAPON_MASTER) {
+    return {
+      ...createEmptyPendingFeatState(),
+      weaponMasterChoice: createDefaultPendingWeaponMasterChoice()
     };
   }
 
@@ -328,6 +750,217 @@ export function createPendingFeatStateForEntry(entry: CharacterFeatEntry): Pendi
       ...createEmptyPendingFeatState(),
       blessedWarriorChoice: {
         cantripIds: entry.blessedWarrior.cantripIds
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.ATHLETE && entry.athlete) {
+    return {
+      ...createEmptyPendingFeatState(),
+      athleteChoice: {
+        ability: entry.athlete.ability
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.CHARGER && entry.charger) {
+    return {
+      ...createEmptyPendingFeatState(),
+      chargerChoice: {
+        ability: entry.charger.ability
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.CHEF && entry.chef) {
+    return {
+      ...createEmptyPendingFeatState(),
+      chefChoice: {
+        ability: entry.chef.ability
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.CRUSHER && entry.crusher) {
+    return {
+      ...createEmptyPendingFeatState(),
+      crusherChoice: {
+        ability: entry.crusher.ability
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.DUAL_WIELDER && entry.dualWielder) {
+    return {
+      ...createEmptyPendingFeatState(),
+      dualWielderChoice: {
+        ability: entry.dualWielder.ability
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.ELEMENTAL_ADEPT && entry.elementalAdept) {
+    return {
+      ...createEmptyPendingFeatState(),
+      elementalAdeptChoice: {
+        ability: entry.elementalAdept.ability,
+        damageType: entry.elementalAdept.damageType
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.FEY_TOUCHED && entry.feyTouched) {
+    return {
+      ...createEmptyPendingFeatState(),
+      feyTouchedChoice: {
+        ability: entry.feyTouched.ability,
+        spellId: entry.feyTouched.spellId
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.HEAVILY_ARMORED && entry.heavilyArmored) {
+    return {
+      ...createEmptyPendingFeatState(),
+      heavilyArmoredChoice: {
+        ability: entry.heavilyArmored.ability
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.HEAVY_ARMOR_MASTER && entry.heavyArmorMaster) {
+    return {
+      ...createEmptyPendingFeatState(),
+      heavyArmorMasterChoice: {
+        ability: entry.heavyArmorMaster.ability
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.INSPIRING_LEADER && entry.inspiringLeader) {
+    return {
+      ...createEmptyPendingFeatState(),
+      inspiringLeaderChoice: {
+        ability: entry.inspiringLeader.ability
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.KEEN_MIND && entry.keenMind) {
+    return {
+      ...createEmptyPendingFeatState(),
+      keenMindChoice: {
+        skill: entry.keenMind.skill
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.LIGHTLY_ARMORED && entry.lightlyArmored) {
+    return {
+      ...createEmptyPendingFeatState(),
+      lightlyArmoredChoice: {
+        ability: entry.lightlyArmored.ability
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.MAGE_SLAYER && entry.mageSlayer) {
+    return {
+      ...createEmptyPendingFeatState(),
+      mageSlayerChoice: {
+        ability: entry.mageSlayer.ability
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.MARTIAL_WEAPON_TRAINING && entry.martialWeaponTraining) {
+    return {
+      ...createEmptyPendingFeatState(),
+      martialWeaponTrainingChoice: {
+        ability: entry.martialWeaponTraining.ability
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.MEDIUM_ARMOR_MASTER && entry.mediumArmorMaster) {
+    return {
+      ...createEmptyPendingFeatState(),
+      mediumArmorMasterChoice: {
+        ability: entry.mediumArmorMaster.ability
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.MODERATELY_ARMORED && entry.moderatelyArmored) {
+    return {
+      ...createEmptyPendingFeatState(),
+      moderatelyArmoredChoice: {
+        ability: entry.moderatelyArmored.ability
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.MOUNTED_COMBATANT && entry.mountedCombatant) {
+    return {
+      ...createEmptyPendingFeatState(),
+      mountedCombatantChoice: {
+        ability: entry.mountedCombatant.ability
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.OBSERVANT && entry.observant) {
+    return {
+      ...createEmptyPendingFeatState(),
+      observantChoice: {
+        ability: entry.observant.ability,
+        skill: entry.observant.skill
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.PIERCER && entry.piercer) {
+    return {
+      ...createEmptyPendingFeatState(),
+      piercerChoice: {
+        ability: entry.piercer.ability
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.POISONER && entry.poisoner) {
+    return {
+      ...createEmptyPendingFeatState(),
+      poisonerChoice: {
+        ability: entry.poisoner.ability
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.RESILIENT && entry.resilient) {
+    return {
+      ...createEmptyPendingFeatState(),
+      resilientChoice: {
+        ability: entry.resilient.ability
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.SPEEDY && entry.speedy) {
+    return {
+      ...createEmptyPendingFeatState(),
+      speedyChoice: {
+        ability: entry.speedy.ability
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.WEAPON_MASTER && entry.weaponMaster) {
+    return {
+      ...createEmptyPendingFeatState(),
+      weaponMasterChoice: {
+        ability: entry.weaponMaster.ability,
+        weaponMastery: entry.weaponMaster.weaponMastery
       }
     };
   }
@@ -425,6 +1058,384 @@ export function getPendingBlessedWarriorChoiceSummary(
   choice: PendingBlessedWarriorChoice
 ): string | null {
   return getBlessedWarriorChoiceSummary(decodePendingBlessedWarriorChoice(choice) ?? undefined);
+}
+
+export function getPendingAthleteChoiceSummary(choice: PendingAthleteChoice): string | null {
+  return getAthleteChoiceSummary(choice);
+}
+
+export function decodePendingChargerChoice(choice: PendingChargerChoice): ChargerChoice | null {
+  return choice.ability === "STR" || choice.ability === "DEX"
+    ? {
+        ability: choice.ability
+      }
+    : null;
+}
+
+export function getPendingChargerChoiceSummary(choice: PendingChargerChoice): string | null {
+  return getChargerChoiceSummary(decodePendingChargerChoice(choice) ?? undefined);
+}
+
+export function decodePendingChefChoice(choice: PendingChefChoice): ChefChoice | null {
+  return choice.ability === "CON" || choice.ability === "WIS"
+    ? {
+        ability: choice.ability
+      }
+    : null;
+}
+
+export function getPendingChefChoiceSummary(choice: PendingChefChoice): string | null {
+  return getChefChoiceSummary(decodePendingChefChoice(choice) ?? undefined);
+}
+
+export function decodePendingCrusherChoice(choice: PendingCrusherChoice): CrusherChoice | null {
+  return choice.ability === "STR" || choice.ability === "CON"
+    ? {
+        ability: choice.ability
+      }
+    : null;
+}
+
+export function getPendingCrusherChoiceSummary(choice: PendingCrusherChoice): string | null {
+  return getCrusherChoiceSummary(decodePendingCrusherChoice(choice) ?? undefined);
+}
+
+export function decodePendingDualWielderChoice(
+  choice: PendingDualWielderChoice
+): DualWielderChoice | null {
+  return choice.ability === "STR" || choice.ability === "DEX"
+    ? {
+        ability: choice.ability
+      }
+    : null;
+}
+
+export function getPendingDualWielderChoiceSummary(
+  choice: PendingDualWielderChoice
+): string | null {
+  return getDualWielderChoiceSummary(decodePendingDualWielderChoice(choice) ?? undefined);
+}
+
+export function decodePendingElementalAdeptChoice(
+  choice: PendingElementalAdeptChoice
+): ElementalAdeptChoice | null {
+  if (
+    !elementalAdeptAbilityOptions.includes(choice.ability) ||
+    !elementalAdeptDamageTypeOptions.includes(choice.damageType)
+  ) {
+    return null;
+  }
+
+  return {
+    ability: choice.ability,
+    damageType: choice.damageType
+  };
+}
+
+export function getPendingElementalAdeptChoiceSummary(
+  choice: PendingElementalAdeptChoice
+): string | null {
+  return getElementalAdeptChoiceSummary(decodePendingElementalAdeptChoice(choice) ?? undefined);
+}
+
+export function decodePendingFeyTouchedChoice(
+  choice: PendingFeyTouchedChoice
+): FeyTouchedChoice | null {
+  if (
+    !feyTouchedAbilityOptions.includes(choice.ability) ||
+    !getFeyTouchedSpellOptions().some((spell) => spell.id === choice.spellId)
+  ) {
+    return null;
+  }
+
+  return {
+    ability: choice.ability,
+    spellId: choice.spellId
+  };
+}
+
+export function isPendingFeyTouchedChoiceValid(choice: PendingFeyTouchedChoice): boolean {
+  return decodePendingFeyTouchedChoice(choice) !== null;
+}
+
+export function getPendingFeyTouchedChoiceSummary(
+  choice: PendingFeyTouchedChoice
+): string | null {
+  return getFeyTouchedChoiceSummary(decodePendingFeyTouchedChoice(choice) ?? undefined);
+}
+
+export function decodePendingHeavilyArmoredChoice(
+  choice: PendingHeavilyArmoredChoice
+): HeavilyArmoredChoice | null {
+  return heavilyArmoredAbilityOptions.includes(choice.ability)
+    ? {
+        ability: choice.ability
+      }
+    : null;
+}
+
+export function getPendingHeavilyArmoredChoiceSummary(
+  choice: PendingHeavilyArmoredChoice
+): string | null {
+  return getHeavilyArmoredChoiceSummary(decodePendingHeavilyArmoredChoice(choice) ?? undefined);
+}
+
+export function decodePendingHeavyArmorMasterChoice(
+  choice: PendingHeavyArmorMasterChoice
+): HeavyArmorMasterChoice | null {
+  return heavyArmorMasterAbilityOptions.includes(choice.ability)
+    ? {
+        ability: choice.ability
+      }
+    : null;
+}
+
+export function getPendingHeavyArmorMasterChoiceSummary(
+  choice: PendingHeavyArmorMasterChoice
+): string | null {
+  return getHeavyArmorMasterChoiceSummary(
+    decodePendingHeavyArmorMasterChoice(choice) ?? undefined
+  );
+}
+
+export function decodePendingInspiringLeaderChoice(
+  choice: PendingInspiringLeaderChoice
+): InspiringLeaderChoice | null {
+  return inspiringLeaderAbilityOptions.includes(choice.ability)
+    ? {
+        ability: choice.ability
+      }
+    : null;
+}
+
+export function getPendingInspiringLeaderChoiceSummary(
+  choice: PendingInspiringLeaderChoice
+): string | null {
+  return getInspiringLeaderChoiceSummary(decodePendingInspiringLeaderChoice(choice) ?? undefined);
+}
+
+export function decodePendingKeenMindChoice(choice: PendingKeenMindChoice): KeenMindChoice | null {
+  if (!keenMindSkillOptionSet.has(choice.skill)) {
+    return null;
+  }
+
+  return {
+    skill: choice.skill as KeenMindChoice["skill"]
+  };
+}
+
+export function isPendingKeenMindChoiceValid(choice: PendingKeenMindChoice): boolean {
+  return decodePendingKeenMindChoice(choice) !== null;
+}
+
+export function getPendingKeenMindChoiceSummary(choice: PendingKeenMindChoice): string | null {
+  return getKeenMindChoiceSummary(decodePendingKeenMindChoice(choice) ?? undefined);
+}
+
+export function decodePendingLightlyArmoredChoice(
+  choice: PendingLightlyArmoredChoice
+): LightlyArmoredChoice | null {
+  return lightlyArmoredAbilityOptions.includes(choice.ability)
+    ? {
+        ability: choice.ability
+      }
+    : null;
+}
+
+export function getPendingLightlyArmoredChoiceSummary(
+  choice: PendingLightlyArmoredChoice
+): string | null {
+  return getLightlyArmoredChoiceSummary(decodePendingLightlyArmoredChoice(choice) ?? undefined);
+}
+
+export function decodePendingMageSlayerChoice(
+  choice: PendingMageSlayerChoice
+): MageSlayerChoice | null {
+  return mageSlayerAbilityOptions.includes(choice.ability)
+    ? {
+        ability: choice.ability
+      }
+    : null;
+}
+
+export function getPendingMageSlayerChoiceSummary(
+  choice: PendingMageSlayerChoice
+): string | null {
+  return getMageSlayerChoiceSummary(decodePendingMageSlayerChoice(choice) ?? undefined);
+}
+
+export function decodePendingMartialWeaponTrainingChoice(
+  choice: PendingMartialWeaponTrainingChoice
+): MartialWeaponTrainingChoice | null {
+  return martialWeaponTrainingAbilityOptions.includes(choice.ability)
+    ? {
+        ability: choice.ability
+      }
+    : null;
+}
+
+export function getPendingMartialWeaponTrainingChoiceSummary(
+  choice: PendingMartialWeaponTrainingChoice
+): string | null {
+  return getMartialWeaponTrainingChoiceSummary(
+    decodePendingMartialWeaponTrainingChoice(choice) ?? undefined
+  );
+}
+
+export function decodePendingMediumArmorMasterChoice(
+  choice: PendingMediumArmorMasterChoice
+): MediumArmorMasterChoice | null {
+  return mediumArmorMasterAbilityOptions.includes(choice.ability)
+    ? {
+        ability: choice.ability
+      }
+    : null;
+}
+
+export function getPendingMediumArmorMasterChoiceSummary(
+  choice: PendingMediumArmorMasterChoice
+): string | null {
+  return getMediumArmorMasterChoiceSummary(
+    decodePendingMediumArmorMasterChoice(choice) ?? undefined
+  );
+}
+
+export function decodePendingModeratelyArmoredChoice(
+  choice: PendingModeratelyArmoredChoice
+): ModeratelyArmoredChoice | null {
+  return moderatelyArmoredAbilityOptions.includes(choice.ability)
+    ? {
+        ability: choice.ability
+      }
+    : null;
+}
+
+export function getPendingModeratelyArmoredChoiceSummary(
+  choice: PendingModeratelyArmoredChoice
+): string | null {
+  return getModeratelyArmoredChoiceSummary(
+    decodePendingModeratelyArmoredChoice(choice) ?? undefined
+  );
+}
+
+export function decodePendingMountedCombatantChoice(
+  choice: PendingMountedCombatantChoice
+): MountedCombatantChoice | null {
+  return mountedCombatantAbilityOptions.includes(choice.ability)
+    ? {
+        ability: choice.ability
+      }
+    : null;
+}
+
+export function getPendingMountedCombatantChoiceSummary(
+  choice: PendingMountedCombatantChoice
+): string | null {
+  return getMountedCombatantChoiceSummary(
+    decodePendingMountedCombatantChoice(choice) ?? undefined
+  );
+}
+
+export function decodePendingObservantChoice(
+  choice: PendingObservantChoice
+): ObservantChoice | null {
+  return observantAbilityOptions.includes(choice.ability) &&
+    (observantSkillOptions as readonly string[]).includes(choice.skill)
+    ? {
+        ability: choice.ability,
+        skill: choice.skill as ObservantChoice["skill"]
+      }
+    : null;
+}
+
+export function getPendingObservantChoiceSummary(
+  choice: PendingObservantChoice
+): string | null {
+  return getObservantChoiceSummary(decodePendingObservantChoice(choice) ?? undefined);
+}
+
+export function isPendingObservantChoiceValid(choice: PendingObservantChoice): boolean {
+  return decodePendingObservantChoice(choice) !== null;
+}
+
+export function decodePendingPiercerChoice(choice: PendingPiercerChoice): PiercerChoice | null {
+  return piercerAbilityOptions.includes(choice.ability)
+    ? {
+        ability: choice.ability
+      }
+    : null;
+}
+
+export function getPendingPiercerChoiceSummary(choice: PendingPiercerChoice): string | null {
+  return getPiercerChoiceSummary(decodePendingPiercerChoice(choice) ?? undefined);
+}
+
+export function decodePendingPoisonerChoice(
+  choice: PendingPoisonerChoice
+): PoisonerChoice | null {
+  return poisonerAbilityOptions.includes(choice.ability)
+    ? {
+        ability: choice.ability
+      }
+    : null;
+}
+
+export function getPendingPoisonerChoiceSummary(choice: PendingPoisonerChoice): string | null {
+  return getPoisonerChoiceSummary(decodePendingPoisonerChoice(choice) ?? undefined);
+}
+
+export function decodePendingResilientChoice(
+  choice: PendingResilientChoice
+): ResilientChoice | null {
+  return resilientAbilityOptions.includes(choice.ability as ResilientChoice["ability"])
+    ? {
+        ability: choice.ability as ResilientChoice["ability"]
+      }
+    : null;
+}
+
+export function getPendingResilientChoiceSummary(
+  choice: PendingResilientChoice
+): string | null {
+  return getResilientChoiceSummary(decodePendingResilientChoice(choice) ?? undefined);
+}
+
+export function isPendingResilientChoiceValid(choice: PendingResilientChoice): boolean {
+  return decodePendingResilientChoice(choice) !== null;
+}
+
+export function decodePendingSpeedyChoice(choice: PendingSpeedyChoice): SpeedyChoice | null {
+  return speedyAbilityOptions.includes(choice.ability)
+    ? {
+        ability: choice.ability
+      }
+    : null;
+}
+
+export function getPendingSpeedyChoiceSummary(choice: PendingSpeedyChoice): string | null {
+  return getSpeedyChoiceSummary(decodePendingSpeedyChoice(choice) ?? undefined);
+}
+
+export function decodePendingWeaponMasterChoice(
+  choice: PendingWeaponMasterChoice
+): WeaponMasterChoice | null {
+  return weaponMasterAbilityOptions.includes(choice.ability) &&
+    weaponMasterMasteryOptions.includes(choice.weaponMastery as WeaponMasterChoice["weaponMastery"])
+    ? {
+        ability: choice.ability,
+        weaponMastery: choice.weaponMastery as WeaponMasterChoice["weaponMastery"]
+      }
+    : null;
+}
+
+export function getPendingWeaponMasterChoiceSummary(
+  choice: PendingWeaponMasterChoice
+): string | null {
+  return getWeaponMasterChoiceSummary(decodePendingWeaponMasterChoice(choice) ?? undefined);
+}
+
+export function isPendingWeaponMasterChoiceValid(choice: PendingWeaponMasterChoice): boolean {
+  return decodePendingWeaponMasterChoice(choice) !== null;
 }
 
 export function decodePendingDruidicWarriorChoice(

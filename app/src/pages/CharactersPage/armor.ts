@@ -17,7 +17,10 @@ import {
   getArmorClassModesForCharacter,
   type FeatureArmorClassBonus
 } from "./classFeatures";
-import { getFeatArmorClassBonusesForCharacter } from "./feats/runtime";
+import {
+  getFeatArmorClassBonusesForCharacter,
+  hasMediumArmorMasterForCharacter
+} from "./feats/runtime";
 import {
   getInventoryItemOnHandQuantity,
   getInventoryItemStackIdFromCopyId,
@@ -83,7 +86,7 @@ type ArmorClassFormulaSelectionCharacter = Pick<
   Character,
   "className" | "level" | "equipment" | "inventoryItems" | "customEquipment"
 > &
-  Partial<Pick<Character, "classFeatureState" | "subclassId">>;
+  Partial<Pick<Character, "classFeatureState" | "feats" | "subclassId">>;
 
 type NormalizeArmorWearStateOptions = {
   autoEquipLegacyArmor?: boolean;
@@ -428,6 +431,8 @@ function getDefaultArmorClassMode(
     };
   }
 
+  const mediumArmorDexCap = hasMediumArmorMasterForCharacter(character) ? 3 : 2;
+
   return {
     key: wornBodyArmor.key,
     label: wornBodyArmor.name,
@@ -438,7 +443,7 @@ function getDefaultArmorClassMode(
         wornBodyArmor.armorType === "heavy"
           ? 0
           : wornBodyArmor.armorType === "medium"
-            ? 2
+            ? mediumArmorDexCap
             : null
     },
     shieldAllowed: true,

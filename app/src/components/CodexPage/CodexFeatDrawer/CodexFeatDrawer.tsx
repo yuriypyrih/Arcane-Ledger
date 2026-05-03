@@ -1,8 +1,18 @@
 import { useState } from "react";
-import { FEATS, type DivinityEntry, type SpellEntry } from "../../../codex/entries";
+import {
+  FEATS,
+  TRACKER,
+  getFeatureTrackingState,
+  type DivinityEntry,
+  type SpellEntry
+} from "../../../codex/entries";
 import { getFeatCategoryLabel, getFeatDefinition } from "../../../pages/CharactersPage/feats";
-import type { ResolvedKeywordReference } from "../../../utils/codex/renderCodexRichText";
+import {
+  resolveKeywordReference,
+  type ResolvedKeywordReference
+} from "../../../utils/codex/renderCodexRichText";
 import DescriptionContent from "../../DescriptionContent/DescriptionContent";
+import { FeatureTrackingBadgeButton } from "../../FeatureDisclosure";
 import KeywordReferenceDrawer from "../../KeywordReferenceDrawer/KeywordReferenceDrawer";
 import {
   OverlayBadge,
@@ -44,6 +54,14 @@ function CodexFeatDrawer({ feat, label, onClose }: CodexFeatDrawerProps) {
 
   if (!featDefinition) {
     return null;
+  }
+
+  function openTrackingKeyword(trackingState: TRACKER) {
+    const resolvedKeyword = resolveKeywordReference(trackingState);
+
+    if (resolvedKeyword) {
+      setSelectedKeyword(resolvedKeyword);
+    }
   }
 
   return (
@@ -88,7 +106,13 @@ function CodexFeatDrawer({ feat, label, onClose }: CodexFeatDrawerProps) {
               {featDefinition.prerequisite ? ` • Prerequisite: ${featDefinition.prerequisite}` : ""}
             </OverlaySummary>
           </OverlayHeaderContent>
-          <OverlayCloseButton label={`Close ${featDefinition.label} details`} onClick={onClose} />
+          <div className={styles.headerActions}>
+            <FeatureTrackingBadgeButton
+              trackingState={getFeatureTrackingState(featDefinition)}
+              onClick={openTrackingKeyword}
+            />
+            <OverlayCloseButton label={`Close ${featDefinition.label} details`} onClick={onClose} />
+          </div>
         </OverlayHeader>
 
         <OverlayBody>

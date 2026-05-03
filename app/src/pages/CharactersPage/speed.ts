@@ -2,6 +2,7 @@ import type { AbilityKey, Character } from "../../types";
 import { getSpeedBonusesForCharacter } from "./classFeatures";
 import { hasRogueThiefSecondStoryWorkFeature } from "./classFeatures/rogue/subclasses/rogueThief";
 import type { FeatureSpeedBonus, MovementSpeedType } from "./classFeatures/types";
+import { getFeatSpeedBonusesForCharacter } from "./feats/runtime";
 import { getAbilityModifierForCharacter, getAbilityScoreForCharacter } from "./abilities";
 import { getWornBodyArmorTypeForCharacter } from "./armor";
 import { getExhaustionSpeedAdjustment } from "./traits";
@@ -81,9 +82,12 @@ function getMovementSpeedBonuses(
   character: Character,
   movementType: MovementSpeedType
 ): FeatureSpeedBonus[] {
-  return getSpeedBonusesForCharacter(character, {
-    wornBodyArmorType: getWornBodyArmorTypeForCharacter(character)
-  }).filter((bonus) => (bonus.movementType ?? "walk") === movementType);
+  return [
+    ...getSpeedBonusesForCharacter(character, {
+      wornBodyArmorType: getWornBodyArmorTypeForCharacter(character)
+    }),
+    ...getFeatSpeedBonusesForCharacter(character)
+  ].filter((bonus) => (bonus.movementType ?? "walk") === movementType);
 }
 
 function getSetTotalOverride(bonuses: FeatureSpeedBonus[]): number | null {

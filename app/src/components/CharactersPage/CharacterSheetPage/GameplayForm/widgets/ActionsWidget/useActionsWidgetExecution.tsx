@@ -90,6 +90,12 @@ import {
   type FeatureActionHeaderTag,
   type FeatureActionOptionCard
 } from "../../../../../../pages/CharactersPage/classFeatures";
+import {
+  durableSpeedyRecoveryActionKey,
+  getDurableSpeedyRecoveryHealingFormulaForCharacter,
+  spendDurableSpeedyRecoveryHitDieForCharacter
+} from "../../../../../../pages/CharactersPage/feats/runtime";
+import { getHitDiceRemainingForCharacter } from "../../../../../../pages/CharactersPage/hitDice";
 import { bardicInspirationActionKey } from "../../../../../../pages/CharactersPage/classFeatures/bard/bard";
 import {
   createChargesCardUsage,
@@ -1396,6 +1402,48 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
             )
           : nextCharacterWithInspiredEclipse;
       });
+      closeActionDrawer();
+      return;
+    }
+
+    if (effectKind === "speedy-recovery" || action.key === durableSpeedyRecoveryActionKey) {
+      if (getHitDiceRemainingForCharacter(character) <= 0) {
+        return;
+      }
+
+      const healingFormula = getDurableSpeedyRecoveryHealingFormulaForCharacter(character);
+
+      onPersistCharacter((currentCharacter) => {
+        const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
+        const preparedCharacter = prepareCharacterForResourceConsumption(
+          currentCharacter,
+          roundTrackerResource
+        );
+        const nextCharacter = spendDurableSpeedyRecoveryHitDieForCharacter(preparedCharacter);
+
+        if (nextCharacter === preparedCharacter) {
+          return currentCharacter;
+        }
+
+        return roundTrackerResource
+          ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
+          : nextCharacter;
+      });
+
+      openDiceRoller({
+        title: "Speedy Recovery",
+        formula: healingFormula,
+        formulaDisplay: healingFormula,
+        description: "Expend one Hit Point Die and regain Hit Points equal to the roll.",
+        getFullManualToastText: ({ result }) =>
+          `Rolled ${result.total} Speedy Recovery healing.`,
+        onResolvedResult: ({ result }) => {
+          onPersistCharacter((currentCharacter) =>
+            applyRolledHealingToCharacter(currentCharacter, result.total)
+          );
+        }
+      });
+
       closeActionDrawer();
       return;
     }

@@ -1,16 +1,34 @@
 import { FEATS } from "../../../../codex/entries";
-import type {
-  Character,
-  CharacterFeatEntry,
-  CharacterFeatSource,
-  SkillProficiencyEntry,
-  ToolProficiencyEntry
+import {
+  ARMOR_PROFICIENCY,
+  PROF_LEVEL,
+  TOOL_PROFICIENCY,
+  WEAPON_PROFICIENCY,
+  type SAVING_THROW_PROFICIENCY,
+  type Character,
+  type CharacterFeatEntry,
+  type CharacterFeatSource,
+  type ArmorProficiencyEntry,
+  type SavingThrowProficiencyEntry,
+  type SkillName,
+  type SkillProficiencyEntry,
+  type ToolProficiencyEntry,
+  type WeaponProficiencyEntry
 } from "../../../../types";
 import {
+  addFeatGrantedArmorEntries,
+  addFeatGrantedSavingThrowEntries,
   addFeatGrantedSkillEntries,
+  addFeatGrantedSkillEntriesAtLevel,
   addFeatGrantedToolEntries,
+  addFeatGrantedWeaponEntries,
+  getSkillLevelFromEntries,
+  getSkillProficiencyForName,
+  removeFeatGrantedArmorEntries,
+  removeFeatGrantedSavingThrowEntries,
   removeFeatGrantedSkillEntries,
-  removeFeatGrantedToolEntries
+  removeFeatGrantedToolEntries,
+  removeFeatGrantedWeaponEntries
 } from "../../../../pages/CharactersPage/proficiency";
 import { isFeatEntryRemovable } from "../../../../pages/CharactersPage/feats";
 import { isFeatFromClassFeatureSource } from "./helpers";
@@ -22,8 +40,11 @@ import {
 
 export type FeatEditorDraft = {
   feats: CharacterFeatEntry[];
+  armorProficiencies: ArmorProficiencyEntry[];
+  savingThrowProficiencies: SavingThrowProficiencyEntry[];
   skillProficiencies: SkillProficiencyEntry[];
   toolProficiencies: ToolProficiencyEntry[];
+  weaponProficiencies: WeaponProficiencyEntry[];
 };
 
 type ClassFeatureFeatSource = CharacterFeatSource & {
@@ -99,17 +120,243 @@ function removeMusicianProficienciesFromDraft(
   };
 }
 
+function removeChefProficienciesFromDraft(
+  draft: FeatEditorDraft,
+  entryToRemove: CharacterFeatEntry
+): FeatEditorDraft {
+  if (entryToRemove.feat !== FEATS.CHEF) {
+    return draft;
+  }
+
+  return {
+    ...draft,
+    toolProficiencies: removeFeatGrantedToolEntries(
+      draft.toolProficiencies,
+      [TOOL_PROFICIENCY.COOKS_UTENSILS],
+      "Chef",
+      entryToRemove.id
+    )
+  };
+}
+
+function removeHeavilyArmoredProficienciesFromDraft(
+  draft: FeatEditorDraft,
+  entryToRemove: CharacterFeatEntry
+): FeatEditorDraft {
+  if (entryToRemove.feat !== FEATS.HEAVILY_ARMORED) {
+    return draft;
+  }
+
+  return {
+    ...draft,
+    armorProficiencies: removeFeatGrantedArmorEntries(
+      draft.armorProficiencies,
+      [ARMOR_PROFICIENCY.HEAVY],
+      "Heavily Armored",
+      entryToRemove.id
+    )
+  };
+}
+
+function removeKeenMindProficienciesFromDraft(
+  draft: FeatEditorDraft,
+  entryToRemove: CharacterFeatEntry
+): FeatEditorDraft {
+  if (entryToRemove.feat !== FEATS.KEEN_MIND || !entryToRemove.keenMind) {
+    return draft;
+  }
+
+  return {
+    ...draft,
+    skillProficiencies: removeFeatGrantedSkillEntries(
+      draft.skillProficiencies,
+      [entryToRemove.keenMind.skill],
+      "Keen Mind",
+      entryToRemove.id
+    )
+  };
+}
+
+function removeLightlyArmoredProficienciesFromDraft(
+  draft: FeatEditorDraft,
+  entryToRemove: CharacterFeatEntry
+): FeatEditorDraft {
+  if (entryToRemove.feat !== FEATS.LIGHTLY_ARMORED) {
+    return draft;
+  }
+
+  return {
+    ...draft,
+    armorProficiencies: removeFeatGrantedArmorEntries(
+      draft.armorProficiencies,
+      [ARMOR_PROFICIENCY.LIGHT, ARMOR_PROFICIENCY.SHIELD],
+      "Lightly Armored",
+      entryToRemove.id
+    )
+  };
+}
+
+function removeMartialWeaponTrainingProficienciesFromDraft(
+  draft: FeatEditorDraft,
+  entryToRemove: CharacterFeatEntry
+): FeatEditorDraft {
+  if (entryToRemove.feat !== FEATS.MARTIAL_WEAPON_TRAINING) {
+    return draft;
+  }
+
+  return {
+    ...draft,
+    weaponProficiencies: removeFeatGrantedWeaponEntries(
+      draft.weaponProficiencies,
+      [WEAPON_PROFICIENCY.MARTIAL],
+      "Martial Weapon Training",
+      entryToRemove.id
+    )
+  };
+}
+
+function removeModeratelyArmoredProficienciesFromDraft(
+  draft: FeatEditorDraft,
+  entryToRemove: CharacterFeatEntry
+): FeatEditorDraft {
+  if (entryToRemove.feat !== FEATS.MODERATELY_ARMORED) {
+    return draft;
+  }
+
+  return {
+    ...draft,
+    armorProficiencies: removeFeatGrantedArmorEntries(
+      draft.armorProficiencies,
+      [ARMOR_PROFICIENCY.MEDIUM],
+      "Moderately Armored",
+      entryToRemove.id
+    )
+  };
+}
+
+function removeObservantProficienciesFromDraft(
+  draft: FeatEditorDraft,
+  entryToRemove: CharacterFeatEntry
+): FeatEditorDraft {
+  if (entryToRemove.feat !== FEATS.OBSERVANT || !entryToRemove.observant) {
+    return draft;
+  }
+
+  return {
+    ...draft,
+    skillProficiencies: removeFeatGrantedSkillEntries(
+      draft.skillProficiencies,
+      [entryToRemove.observant.skill],
+      "Observant",
+      entryToRemove.id
+    )
+  };
+}
+
+function removePoisonerProficienciesFromDraft(
+  draft: FeatEditorDraft,
+  entryToRemove: CharacterFeatEntry
+): FeatEditorDraft {
+  if (entryToRemove.feat !== FEATS.POISONER) {
+    return draft;
+  }
+
+  return {
+    ...draft,
+    toolProficiencies: removeFeatGrantedToolEntries(
+      draft.toolProficiencies,
+      [TOOL_PROFICIENCY.POISONERS_KIT],
+      "Poisoner",
+      entryToRemove.id
+    )
+  };
+}
+
+function removeResilientProficienciesFromDraft(
+  draft: FeatEditorDraft,
+  entryToRemove: CharacterFeatEntry
+): FeatEditorDraft {
+  if (entryToRemove.feat !== FEATS.RESILIENT || !entryToRemove.resilient) {
+    return draft;
+  }
+
+  return {
+    ...draft,
+    savingThrowProficiencies: removeFeatGrantedSavingThrowEntries(
+      draft.savingThrowProficiencies,
+      [entryToRemove.resilient.ability as SAVING_THROW_PROFICIENCY],
+      "Resilient",
+      entryToRemove.id
+    )
+  };
+}
+
+function removeWeaponMasterProficienciesFromDraft(
+  draft: FeatEditorDraft,
+  entryToRemove: CharacterFeatEntry
+): FeatEditorDraft {
+  if (entryToRemove.feat !== FEATS.WEAPON_MASTER || !entryToRemove.weaponMaster) {
+    return draft;
+  }
+
+  return {
+    ...draft,
+    weaponProficiencies: removeFeatGrantedWeaponEntries(
+      draft.weaponProficiencies,
+      [entryToRemove.weaponMaster.weaponMastery],
+      "Weapon Master",
+      entryToRemove.id
+    )
+  };
+}
+
 function removeFeatGrantedProficienciesFromDraft(
   draft: FeatEditorDraft,
   entryToRemove: CharacterFeatEntry
 ): FeatEditorDraft {
-  return removeMusicianProficienciesFromDraft(
-    removeCrafterProficienciesFromDraft(
-      removeSkilledProficienciesFromDraft(draft, entryToRemove),
-      entryToRemove
-    ),
-    entryToRemove
+  const removers = [
+    removeSkilledProficienciesFromDraft,
+    removeCrafterProficienciesFromDraft,
+    removeMusicianProficienciesFromDraft,
+    removeChefProficienciesFromDraft,
+    removeHeavilyArmoredProficienciesFromDraft,
+    removeKeenMindProficienciesFromDraft,
+    removeLightlyArmoredProficienciesFromDraft,
+    removeMartialWeaponTrainingProficienciesFromDraft,
+    removeModeratelyArmoredProficienciesFromDraft,
+    removeObservantProficienciesFromDraft,
+    removePoisonerProficienciesFromDraft,
+    removeResilientProficienciesFromDraft,
+    removeWeaponMasterProficienciesFromDraft
+  ];
+
+  return removers.reduce(
+    (currentDraft, removeProficiencies) => removeProficiencies(currentDraft, entryToRemove),
+    draft
   );
+}
+
+function addFeatGrantedSkillAtProficiencyOrExpertise(
+  draft: FeatEditorDraft,
+  skill: SkillName,
+  featLabel: string,
+  featEntryId: string
+): FeatEditorDraft {
+  const proficiency = getSkillProficiencyForName(skill);
+  const currentLevel = proficiency
+    ? getSkillLevelFromEntries(draft.skillProficiencies, proficiency)
+    : PROF_LEVEL.NONE;
+
+  return {
+    ...draft,
+    skillProficiencies: addFeatGrantedSkillEntriesAtLevel(
+      draft.skillProficiencies,
+      [skill],
+      featLabel,
+      featEntryId,
+      currentLevel === PROF_LEVEL.NONE ? PROF_LEVEL.PROFICIENT : PROF_LEVEL.EXPERT
+    )
+  };
 }
 
 function addFeatGrantedProficienciesToDraft(
@@ -122,6 +369,32 @@ function addFeatGrantedProficienciesToDraft(
     featEntry.feat === FEATS.CRAFTER && featEntry.crafter
       ? getCrafterToolSelections(featEntry.crafter)
       : null;
+  const chefToolSelections =
+    featEntry.feat === FEATS.CHEF ? [TOOL_PROFICIENCY.COOKS_UTENSILS] : [];
+  const heavilyArmoredArmorSelections =
+    featEntry.feat === FEATS.HEAVILY_ARMORED ? [ARMOR_PROFICIENCY.HEAVY] : [];
+  const keenMindSkillSelection =
+    featEntry.feat === FEATS.KEEN_MIND && featEntry.keenMind ? featEntry.keenMind.skill : null;
+  const lightlyArmoredArmorSelections =
+    featEntry.feat === FEATS.LIGHTLY_ARMORED
+      ? [ARMOR_PROFICIENCY.LIGHT, ARMOR_PROFICIENCY.SHIELD]
+      : [];
+  const martialWeaponTrainingWeaponSelections =
+    featEntry.feat === FEATS.MARTIAL_WEAPON_TRAINING ? [WEAPON_PROFICIENCY.MARTIAL] : [];
+  const moderatelyArmoredArmorSelections =
+    featEntry.feat === FEATS.MODERATELY_ARMORED ? [ARMOR_PROFICIENCY.MEDIUM] : [];
+  const observantSkillSelection =
+    featEntry.feat === FEATS.OBSERVANT && featEntry.observant ? featEntry.observant.skill : null;
+  const poisonerToolSelections =
+    featEntry.feat === FEATS.POISONER ? [TOOL_PROFICIENCY.POISONERS_KIT] : [];
+  const resilientSavingThrowSelections =
+    featEntry.feat === FEATS.RESILIENT && featEntry.resilient
+      ? [featEntry.resilient.ability as SAVING_THROW_PROFICIENCY]
+      : [];
+  const weaponMasterWeaponSelections =
+    featEntry.feat === FEATS.WEAPON_MASTER && featEntry.weaponMaster
+      ? [featEntry.weaponMaster.weaponMastery]
+      : [];
   const musicianToolSelections =
     featEntry.feat === FEATS.MUSICIAN && featEntry.musician
       ? getMusicianToolSelections(featEntry.musician)
@@ -158,6 +431,128 @@ function addFeatGrantedProficienciesToDraft(
       }
     : nextDraft;
 
+  nextDraft =
+    chefToolSelections.length > 0
+      ? {
+          ...nextDraft,
+          toolProficiencies: addFeatGrantedToolEntries(
+            nextDraft.toolProficiencies,
+            chefToolSelections,
+            "Chef",
+            featEntry.id
+          )
+      }
+    : nextDraft;
+
+  nextDraft =
+    heavilyArmoredArmorSelections.length > 0
+      ? {
+          ...nextDraft,
+          armorProficiencies: addFeatGrantedArmorEntries(
+            nextDraft.armorProficiencies,
+            heavilyArmoredArmorSelections,
+            "Heavily Armored",
+            featEntry.id
+          )
+      }
+    : nextDraft;
+
+  if (keenMindSkillSelection) {
+    nextDraft = addFeatGrantedSkillAtProficiencyOrExpertise(
+      nextDraft,
+      keenMindSkillSelection as SkillName,
+      "Keen Mind",
+      featEntry.id
+    );
+  }
+
+  nextDraft =
+    lightlyArmoredArmorSelections.length > 0
+      ? {
+          ...nextDraft,
+          armorProficiencies: addFeatGrantedArmorEntries(
+            nextDraft.armorProficiencies,
+            lightlyArmoredArmorSelections,
+            "Lightly Armored",
+            featEntry.id
+          )
+      }
+      : nextDraft;
+
+  nextDraft =
+    martialWeaponTrainingWeaponSelections.length > 0
+      ? {
+          ...nextDraft,
+          weaponProficiencies: addFeatGrantedWeaponEntries(
+            nextDraft.weaponProficiencies,
+            martialWeaponTrainingWeaponSelections,
+            "Martial Weapon Training",
+            featEntry.id
+          )
+        }
+      : nextDraft;
+
+  nextDraft =
+    moderatelyArmoredArmorSelections.length > 0
+      ? {
+          ...nextDraft,
+          armorProficiencies: addFeatGrantedArmorEntries(
+            nextDraft.armorProficiencies,
+            moderatelyArmoredArmorSelections,
+            "Moderately Armored",
+            featEntry.id
+          )
+        }
+      : nextDraft;
+
+  if (observantSkillSelection) {
+    nextDraft = addFeatGrantedSkillAtProficiencyOrExpertise(
+      nextDraft,
+      observantSkillSelection as SkillName,
+      "Observant",
+      featEntry.id
+    );
+  }
+
+  nextDraft =
+    poisonerToolSelections.length > 0
+      ? {
+          ...nextDraft,
+          toolProficiencies: addFeatGrantedToolEntries(
+            nextDraft.toolProficiencies,
+            poisonerToolSelections,
+            "Poisoner",
+            featEntry.id
+          )
+        }
+      : nextDraft;
+
+  nextDraft =
+    resilientSavingThrowSelections.length > 0
+      ? {
+          ...nextDraft,
+          savingThrowProficiencies: addFeatGrantedSavingThrowEntries(
+            nextDraft.savingThrowProficiencies,
+            resilientSavingThrowSelections,
+            "Resilient",
+            featEntry.id
+          )
+        }
+      : nextDraft;
+
+  nextDraft =
+    weaponMasterWeaponSelections.length > 0
+      ? {
+          ...nextDraft,
+          weaponProficiencies: addFeatGrantedWeaponEntries(
+            nextDraft.weaponProficiencies,
+            weaponMasterWeaponSelections,
+            "Weapon Master",
+            featEntry.id
+          )
+        }
+      : nextDraft;
+
   return musicianToolSelections
     ? {
         ...nextDraft,
@@ -174,8 +569,11 @@ function addFeatGrantedProficienciesToDraft(
 export function createFeatEditorDraft(character: Character): FeatEditorDraft {
   return {
     feats: character.feats ?? [],
+    armorProficiencies: character.armorProficiencies,
+    savingThrowProficiencies: character.savingThrowProficiencies,
     skillProficiencies: character.skillProficiencies,
-    toolProficiencies: character.toolProficiencies
+    toolProficiencies: character.toolProficiencies,
+    weaponProficiencies: character.weaponProficiencies
   };
 }
 
@@ -185,8 +583,14 @@ export function applyFeatEditorDraftToCharacter(
 ): Character {
   if (
     areDraftListsEqual(currentCharacter.feats ?? [], draft.feats) &&
+    areDraftListsEqual(currentCharacter.armorProficiencies, draft.armorProficiencies) &&
+    areDraftListsEqual(
+      currentCharacter.savingThrowProficiencies,
+      draft.savingThrowProficiencies
+    ) &&
     areDraftListsEqual(currentCharacter.skillProficiencies, draft.skillProficiencies) &&
-    areDraftListsEqual(currentCharacter.toolProficiencies, draft.toolProficiencies)
+    areDraftListsEqual(currentCharacter.toolProficiencies, draft.toolProficiencies) &&
+    areDraftListsEqual(currentCharacter.weaponProficiencies, draft.weaponProficiencies)
   ) {
     return currentCharacter;
   }
@@ -194,8 +598,11 @@ export function applyFeatEditorDraftToCharacter(
   return {
     ...currentCharacter,
     feats: draft.feats,
+    armorProficiencies: draft.armorProficiencies,
+    savingThrowProficiencies: draft.savingThrowProficiencies,
     skillProficiencies: draft.skillProficiencies,
-    toolProficiencies: draft.toolProficiencies
+    toolProficiencies: draft.toolProficiencies,
+    weaponProficiencies: draft.weaponProficiencies
   };
 }
 

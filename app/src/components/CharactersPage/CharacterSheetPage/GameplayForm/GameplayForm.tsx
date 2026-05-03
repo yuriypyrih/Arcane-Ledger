@@ -9,7 +9,11 @@ import { createSourcedDescriptionEntries } from "../../../../pages/CharactersPag
 import { crafterFastCraftingRuleText } from "../../../../pages/CharactersPage/feats/crafter";
 import {
   characterHasCrafterDiscount,
-  getMusicianEncouragingSongDescriptionEntriesForCharacter
+  getChefLongRestDescriptionAdditionsForCharacter,
+  getChefShortRestDescriptionAdditionsForCharacter,
+  getInspiringLeaderRestDescriptionAdditionsForCharacter,
+  getMusicianEncouragingSongDescriptionEntriesForCharacter,
+  getWeaponMasterLongRestDescriptionAdditionsForCharacter
 } from "../../../../pages/CharactersPage/feats/runtime";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./GameplayForm.module.css";
@@ -57,8 +61,28 @@ function GameplayForm({
     () => getMusicianEncouragingSongDescriptionEntriesForCharacter(character),
     [character]
   );
+  const chefShortRestDescriptionInjections = useMemo(
+    () => getChefShortRestDescriptionAdditionsForCharacter(character),
+    [character]
+  );
+  const chefLongRestDescriptionInjections = useMemo(
+    () => getChefLongRestDescriptionAdditionsForCharacter(character),
+    [character]
+  );
+  const inspiringLeaderRestDescriptionInjections = useMemo(
+    () => getInspiringLeaderRestDescriptionAdditionsForCharacter(character),
+    [character]
+  );
+  const weaponMasterLongRestDescriptionInjections = useMemo(
+    () => getWeaponMasterLongRestDescriptionAdditionsForCharacter(character),
+    [character]
+  );
   const shortRestDescriptionInjections = useMemo(() => {
-    const additions = [...restDescriptionInjections.shortRest];
+    const additions = [
+      ...restDescriptionInjections.shortRest,
+      ...chefShortRestDescriptionInjections,
+      ...inspiringLeaderRestDescriptionInjections
+    ];
 
     if (musicianEncouragingSongDescription.length > 0) {
       additions.push(
@@ -70,9 +94,19 @@ function GameplayForm({
     }
 
     return additions;
-  }, [musicianEncouragingSongDescription, restDescriptionInjections.shortRest]);
+  }, [
+    chefShortRestDescriptionInjections,
+    inspiringLeaderRestDescriptionInjections,
+    musicianEncouragingSongDescription,
+    restDescriptionInjections.shortRest
+  ]);
   const longRestDescriptionInjections = useMemo(() => {
-    const additions = [...restDescriptionInjections.longRest];
+    const additions = [
+      ...restDescriptionInjections.longRest,
+      ...chefLongRestDescriptionInjections,
+      ...inspiringLeaderRestDescriptionInjections,
+      ...weaponMasterLongRestDescriptionInjections
+    ];
     const hasCrafterFeat = characterHasCrafterDiscount({
       feats: character.feats,
       level: character.level
@@ -95,10 +129,13 @@ function GameplayForm({
 
     return additions;
   }, [
+    chefLongRestDescriptionInjections,
     character.feats,
     character.level,
+    inspiringLeaderRestDescriptionInjections,
     musicianEncouragingSongDescription,
-    restDescriptionInjections.longRest
+    restDescriptionInjections.longRest,
+    weaponMasterLongRestDescriptionInjections
   ]);
 
   useEffect(() => {

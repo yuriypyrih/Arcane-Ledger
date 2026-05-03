@@ -20,6 +20,12 @@ type AbilityReferenceFooterProps = {
   disciplinedSurvivorState: MonkDisciplinedSurvivorOptionState | null;
   isDisciplinedSurvivorSelected: boolean;
   onDisciplinedSurvivorChange: (checked: boolean) => void;
+  mageSlayerGuardedMindState: {
+    usesRemaining: number;
+    usesTotal: number;
+  } | null;
+  isMageSlayerGuardedMindSelected: boolean;
+  onMageSlayerGuardedMindChange: (checked: boolean) => void;
   isDiceRollerSettingsOpen: boolean;
   onDiceRollerSettingsOpenChange: (open: boolean) => void;
   onRollMod: () => void;
@@ -36,12 +42,19 @@ function AbilityReferenceFooter({
   disciplinedSurvivorState,
   isDisciplinedSurvivorSelected,
   onDisciplinedSurvivorChange,
+  mageSlayerGuardedMindState,
+  isMageSlayerGuardedMindSelected,
+  onMageSlayerGuardedMindChange,
   isDiceRollerSettingsOpen,
   onDiceRollerSettingsOpenChange,
   onRollMod,
   onRollSave
 }: AbilityReferenceFooterProps) {
   const indomitableSaveToggleDisabled = indomitableUsesRemaining <= 0;
+  const mageSlayerGuardedMindDisabled =
+    mageSlayerGuardedMindState !== null &&
+    mageSlayerGuardedMindState.usesRemaining <= 0 &&
+    !isMageSlayerGuardedMindSelected;
 
   return (
     <div className={styles.referenceFooterStack}>
@@ -74,6 +87,29 @@ function AbilityReferenceFooter({
           )}
           application={{ targetLabel: "Save Roll" }}
           usageKey="discipline-survivor-save-roll"
+        />
+      ) : null}
+      {mageSlayerGuardedMindState ? (
+        <FeatureOptInToggle
+          label="Guarded Mind"
+          checked={isMageSlayerGuardedMindSelected}
+          disabled={mageSlayerGuardedMindDisabled}
+          muted={mageSlayerGuardedMindDisabled}
+          onCheckedChange={onMageSlayerGuardedMindChange}
+          title={
+            mageSlayerGuardedMindDisabled ? "No Guarded Mind charges remaining." : undefined
+          }
+          usage={createChargesCardUsage(
+            mageSlayerGuardedMindState.usesRemaining,
+            mageSlayerGuardedMindState.usesTotal
+          )}
+          metaItems={[
+            {
+              kind: "text",
+              label: "Consumed on check"
+            }
+          ]}
+          usageKey="mage-slayer-guarded-mind-save-roll"
         />
       ) : null}
       <div className={styles.referenceRollActions}>
