@@ -17,6 +17,36 @@ export type EquipmentRuntime = {
 };
 
 const equipmentRuntimeByCharacter = new WeakMap<Character, EquipmentRuntime>();
+const defaultInventoryAttunementLimit = 3;
+const rogueThiefSubclassId = "rogue-thief";
+
+export function getInventoryAttunementLimit(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): number {
+  if (character.className === "Artificer") {
+    if (character.level >= 18) {
+      return 6;
+    }
+
+    if (character.level >= 14) {
+      return 5;
+    }
+
+    if (character.level >= 10) {
+      return 4;
+    }
+  }
+
+  if (
+    character.className === "Rogue" &&
+    character.subclassId === rogueThiefSubclassId &&
+    character.level >= 13
+  ) {
+    return 4;
+  }
+
+  return defaultInventoryAttunementLimit;
+}
 
 function createEquipmentRuntime(character: Character): EquipmentRuntime {
   const inventoryIndex = createInventoryRuntimeIndex(character.inventoryItems);

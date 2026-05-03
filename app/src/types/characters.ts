@@ -105,6 +105,8 @@ export type CharacterInventoryItem = {
   quantity: number;
   onHandQuantity: number;
   worn: boolean;
+  attuned?: boolean;
+  usesRemaining?: number;
 };
 
 export type CustomArmorType = "light" | "medium" | "heavy" | "shield";

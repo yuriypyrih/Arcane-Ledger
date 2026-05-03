@@ -33,6 +33,11 @@ export type GroupedInventoryItem = {
   worn: boolean;
 };
 
+export type InventoryItemUseState = {
+  remaining: number;
+  total: number;
+};
+
 type InventoryTransactionCost = EquipmentCost & {
   currencyKey: CurrencyKey;
 };
@@ -56,6 +61,11 @@ const currencyCopperValueByType: Record<CURRENCY_TYPE, number> = {
   [CURRENCY_TYPE.EP]: 50,
   [CURRENCY_TYPE.GP]: 100,
   [CURRENCY_TYPE.PP]: 1000
+};
+
+const inventoryItemUsesPerCopyByKey: Record<string, number> = {
+  "srd_healers-kit": 10,
+  "srd-2024_healers-kit": 10
 };
 
 function getCopperValue(cost: EquipmentCost): number {
@@ -162,13 +172,29 @@ function normalizeItemRecord(value: unknown): ItemRecord | null {
 
 function normalizeInventoryStack(entry: CharacterInventoryItem): CharacterInventoryItem {
   const quantity = Math.max(1, Math.floor(entry.quantity));
-
-  return {
-    ...entry,
+  const onHandQuantity = Math.min(quantity, Math.max(0, Math.floor(entry.onHandQuantity)));
+  const normalizedStack: CharacterInventoryItem = {
+    id: entry.id,
+    item: entry.item,
     quantity,
-    onHandQuantity: Math.min(quantity, Math.max(0, Math.floor(entry.onHandQuantity))),
+    onHandQuantity,
     worn: Boolean(entry.worn)
   };
+  const usesPerCopy = getInventoryItemUsesPerCopy(entry.item);
+
+  if (isInventoryItemAttunable(entry.item)) {
+    normalizedStack.attuned = Boolean(entry.attuned);
+  }
+
+  if (usesPerCopy !== null) {
+    const total = quantity * usesPerCopy;
+    normalizedStack.usesRemaining = Math.min(
+      total,
+      normalizeStackNumber(entry.usesRemaining, total)
+    );
+  }
+
+  return normalizedStack;
 }
 
 function createInventoryCopyId(stackId: string, copyIndex: number): string {
@@ -218,6 +244,8 @@ export function createCharacterInventoryItem(
     onHandQuantity?: number;
     onHand?: boolean;
     worn?: boolean;
+    attuned?: boolean;
+    usesRemaining?: number;
   }
 ): CharacterInventoryItem {
   const quantity = normalizeStackNumber(options?.quantity, 1, 1);
@@ -233,7 +261,9 @@ export function createCharacterInventoryItem(
     item,
     quantity,
     onHandQuantity,
-    worn: Boolean(options?.worn)
+    worn: Boolean(options?.worn),
+    attuned: Boolean(options?.attuned),
+    usesRemaining: options?.usesRemaining
   });
 }
 
@@ -266,6 +296,8 @@ export function normalizeCharacterInventoryItems(value: unknown): CharacterInven
       onHand?: unknown;
       quantity?: unknown;
       onHandQuantity?: unknown;
+      attuned?: unknown;
+      usesRemaining?: unknown;
     };
     const item = normalizeItemRecord(record.item);
 
@@ -286,7 +318,12 @@ export function normalizeCharacterInventoryItems(value: unknown): CharacterInven
       id: typeof record.id === "string" ? record.id : undefined,
       quantity,
       onHandQuantity,
-      worn: normalizeBoolean(record.worn)
+      worn: normalizeBoolean(record.worn),
+      attuned: normalizeBoolean(record.attuned),
+      usesRemaining:
+        record.usesRemaining !== undefined
+          ? normalizeStackNumber(record.usesRemaining, 0)
+          : undefined
     });
     const existingStack = stacksByKey.get(key);
 
@@ -301,7 +338,9 @@ export function normalizeCharacterInventoryItems(value: unknown): CharacterInven
         ...existingStack,
         quantity: existingStack.quantity + stack.quantity,
         onHandQuantity: existingStack.onHandQuantity + stack.onHandQuantity,
-        worn: existingStack.worn || stack.worn
+        worn: existingStack.worn || stack.worn,
+        attuned: existingStack.attuned || stack.attuned,
+        usesRemaining: getMergedInventoryStackUsesRemaining(existingStack, stack)
       })
     );
   });
@@ -331,6 +370,64 @@ export function getInventoryItemAvailableQuantity(entry: CharacterInventoryItem)
 
 export function isInventoryItemOnHand(entry: CharacterInventoryItem): boolean {
   return getInventoryItemOnHandQuantity(entry) > 0;
+}
+
+export function isInventoryItemAttunable(item: ItemRecord | null | undefined): boolean {
+  return item?.requires_attunement === true;
+}
+
+function getInventoryItemUsesPerCopy(item: ItemRecord | null | undefined): number | null {
+  const key = getItemRecordKey(item);
+  const usesPerCopy = inventoryItemUsesPerCopyByKey[key];
+
+  return usesPerCopy ? usesPerCopy : null;
+}
+
+function getInventoryItemUseTotal(entry: CharacterInventoryItem): number | null {
+  const usesPerCopy = getInventoryItemUsesPerCopy(entry.item);
+
+  return usesPerCopy === null ? null : getInventoryItemQuantity(entry) * usesPerCopy;
+}
+
+export function getInventoryItemUseState(
+  entry: CharacterInventoryItem | null | undefined
+): InventoryItemUseState | null {
+  if (!entry) {
+    return null;
+  }
+
+  const total = getInventoryItemUseTotal(entry);
+
+  if (total === null) {
+    return null;
+  }
+
+  return {
+    remaining: Math.min(total, normalizeStackNumber(entry.usesRemaining, total)),
+    total
+  };
+}
+
+function getMergedInventoryStackUsesRemaining(
+  firstStack: CharacterInventoryItem,
+  secondStack: CharacterInventoryItem
+): number | undefined {
+  const firstUseState = getInventoryItemUseState(firstStack);
+  const secondUseState = getInventoryItemUseState(secondStack);
+
+  if (!firstUseState || !secondUseState) {
+    return undefined;
+  }
+
+  return Math.min(
+    firstUseState.total + secondUseState.total,
+    firstUseState.remaining + secondUseState.remaining
+  );
+}
+
+export function getInventoryAttunementCount(inventoryItems: CharacterInventoryItem[]): number {
+  return inventoryItems.filter((entry) => entry.attuned && isInventoryItemAttunable(entry.item))
+    .length;
 }
 
 export function findInventoryItemStackByKey(
@@ -546,12 +643,27 @@ export function addInventoryItemCopies(
 
   return inventoryItems.map((entry) =>
     entry.id === existingStack.id
-      ? normalizeInventoryStack({
-          ...entry,
-          quantity: getInventoryItemQuantity(entry) + normalizedQuantity
-        })
+      ? addInventoryItemQuantityToStack(entry, normalizedQuantity)
       : entry
   );
+}
+
+function addInventoryItemQuantityToStack(
+  entry: CharacterInventoryItem,
+  quantity: number
+): CharacterInventoryItem {
+  const usesPerCopy = getInventoryItemUsesPerCopy(entry.item);
+  const nextQuantity = getInventoryItemQuantity(entry) + quantity;
+  const useState = getInventoryItemUseState(entry);
+
+  return normalizeInventoryStack({
+    ...entry,
+    quantity: nextQuantity,
+    usesRemaining:
+      usesPerCopy === null || !useState
+        ? entry.usesRemaining
+        : Math.min(nextQuantity * usesPerCopy, useState.remaining + quantity * usesPerCopy)
+  });
 }
 
 export function setInventoryItemOnHandQuantityByKey(
@@ -567,6 +679,65 @@ export function setInventoryItemOnHandQuantityByKey(
         })
       : entry
   );
+}
+
+export function setInventoryItemAttunedByKey(
+  inventoryItems: CharacterInventoryItem[],
+  itemKey: string,
+  attuned: boolean
+): CharacterInventoryItem[] {
+  return inventoryItems.map((entry) =>
+    getItemRecordKey(entry.item) === itemKey
+      ? normalizeInventoryStack({
+          ...entry,
+          attuned: isInventoryItemAttunable(entry.item) ? attuned : false
+        })
+      : entry
+  );
+}
+
+export function useInventoryItemChargeByKey(
+  inventoryItems: CharacterInventoryItem[],
+  itemKey: string
+): CharacterInventoryItem[] {
+  return inventoryItems.map((entry) => {
+    if (getItemRecordKey(entry.item) !== itemKey) {
+      return entry;
+    }
+
+    const useState = getInventoryItemUseState(entry);
+
+    if (!useState || useState.remaining <= 0) {
+      return entry;
+    }
+
+    return normalizeInventoryStack({
+      ...entry,
+      usesRemaining: useState.remaining - 1
+    });
+  });
+}
+
+export function resetInventoryItemChargeByKey(
+  inventoryItems: CharacterInventoryItem[],
+  itemKey: string
+): CharacterInventoryItem[] {
+  return inventoryItems.map((entry) => {
+    if (getItemRecordKey(entry.item) !== itemKey) {
+      return entry;
+    }
+
+    const useState = getInventoryItemUseState(entry);
+
+    if (!useState || useState.remaining >= useState.total) {
+      return entry;
+    }
+
+    return normalizeInventoryStack({
+      ...entry,
+      usesRemaining: useState.remaining + 1
+    });
+  });
 }
 
 export function setInventoryItemWornStateById(

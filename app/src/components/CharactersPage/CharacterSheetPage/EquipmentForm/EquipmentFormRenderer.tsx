@@ -4,7 +4,7 @@
 export function renderEquipmentForm(context: Record<string, any>) {
   const {
     CellContainer, CurrencyInlineDisplay, CustomEquipmentEditor, ENTRY_CATEGORIES, EquipmentInventoryItemDrawer, EquipmentItemBrowserModal, Hand, InlineToggleButton, KeywordReferenceDrawer,
-    Minus, NumberInput, Plus, RarityPill, Shield, WeaponMasteryStatusLabel, X, activeCurrencyDefinition, activeCurrencyKey,
+    Minus, NumberInput, Plus, RarityPill, Shield, Sparkles, WeaponMasteryStatusLabel, X, activeCurrencyDefinition, activeCurrencyKey,
     adjustCurrencyBalance, canSpendCurrency, carriedWeight, carryingCapacity, className, closeAddModal, closeCustomEquipmentModal, closeInventoryItemDrawer, closeLoadoutDrawer,
     clsx, currencyAmountDraft, currencyDefinitions, customEditorMode, deleteCustomEquipment, editingCustomEquipment, equipmentGroupMeta, formatCodexLabel, formatCodexList,
     formatEquipmentWeight, formatInventoryStackName, formatOnHandLabel, formatWeaponDamage, formatWeaponProperties, formatWeaponType, formatWeaponWeight, formatWeightValue, getArmorTypeSummary,
@@ -176,6 +176,12 @@ export function renderEquipmentForm(context: Record<string, any>) {
                               <span className={styles.equipmentItemWorn}>
                                 <Shield size={13} aria-hidden="true" />
                                 <span>Worn</span>
+                              </span>
+                            ) : null}
+                            {entry.item.stack.attuned ? (
+                              <span className={styles.equipmentItemAttuned}>
+                                <Sparkles size={13} aria-hidden="true" />
+                                <span>Attuned</span>
                               </span>
                             ) : null}
                           </span>

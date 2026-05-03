@@ -69,7 +69,10 @@
 .equipmentItemOnHand,
 .drawerOnHandBadge,
 .equipmentItemWorn,
-.drawerWornBadge {
+.drawerWornBadge,
+.equipmentItemAttuned,
+.drawerAttunedBadge,
+.drawerChargesBadge {
   display: inline-flex;
   align-items: center;
   gap: 0.24rem;
@@ -87,6 +90,17 @@
 .drawerWornBadge {
   background: #e5ead5;
   color: #51631f;
+}
+
+.equipmentItemAttuned,
+.drawerAttunedBadge {
+  background: #ece2f4;
+  color: #6d3d87;
+}
+
+.drawerChargesBadge {
+  background: #dce8ef;
+  color: #315c73;
 }
 
 .drawerSummaryRow {

@@ -1,5 +1,15 @@
 import clsx from "clsx";
-import { Hand, Minus, Package, Plus, Shield, TicketMinus, TicketPlus, X } from "lucide-react";
+import {
+  Hand,
+  Minus,
+  Package,
+  Plus,
+  Shield,
+  Sparkles,
+  TicketMinus,
+  TicketPlus,
+  X
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import CellContainer from "../../../CellContainer/CellContainer";
 import coinCopperIcon from "../../../../assets/svg/coin-copper.svg";
@@ -67,6 +77,8 @@ import {
   createHeldDescriptorForInventoryItem,
   createHeldInventoryItemCopyReferences,
   findOwnedInventoryItemRecord,
+  getInventoryAttunementCount,
+  getInventoryItemUseState,
   getPreferredInventoryCopiesByKey,
   getItemTransactionCost,
   getItemWeightValue,
@@ -74,8 +86,12 @@ import {
   isExtractableEquipmentPackRecord,
   isItemBodyArmorRecord,
   isItemHandEquippableRecord,
+  isInventoryItemAttunable,
   removeOneInventoryItemCopyByKey,
+  resetInventoryItemChargeByKey,
+  setInventoryItemAttunedByKey,
   setInventoryItemOnHandQuantityByKey,
+  useInventoryItemChargeByKey as spendInventoryItemChargeByKey,
   type GroupedInventoryItem
 } from "../../../../pages/CharactersPage/inventoryItems";
 import {
@@ -121,7 +137,10 @@ import InlineToggleButton from "../InlineToggleButton";
 import styles from "./EquipmentForm.module.css";
 import { useItemEntry } from "../../../../pages/ItemCodexEntryPage/useItemEntry";
 import WeaponMasteryStatusLabel from "../../../WeaponMasteryStatusLabel/WeaponMasteryStatusLabel";
-import { getEquipmentRuntimeForCharacter } from "../../../../pages/CharactersPage/characterRuntime/equipmentRuntime";
+import {
+  getEquipmentRuntimeForCharacter,
+  getInventoryAttunementLimit
+} from "../../../../pages/CharactersPage/characterRuntime/equipmentRuntime";
 
 type EquipmentFormProps = {
   character: Character;
@@ -720,6 +739,26 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   const selectedInventoryOnHandCount = selectedInventoryInspection
     ? selectedHeldInventoryCopies.length
     : 0;
+  const selectedInventoryStack = selectedInventoryGroup?.stack ?? null;
+  const isSelectedInventoryOwnedDrawer =
+    selectedInventoryCount > 0 && selectedInventoryStack !== null;
+  const inventoryAttunementCount = useMemo(
+    () => getInventoryAttunementCount(equipmentCharacter.inventoryItems),
+    [equipmentCharacter.inventoryItems]
+  );
+  const inventoryAttunementLimit = getInventoryAttunementLimit(equipmentCharacter);
+  const inventoryAttunementLabel = `${inventoryAttunementCount}/${inventoryAttunementLimit}`;
+  const selectedInventoryUseState =
+    isSelectedInventoryOwnedDrawer && selectedInventoryStack
+      ? getInventoryItemUseState(selectedInventoryStack)
+      : null;
+  const selectedInventoryAttuned = Boolean(
+    isSelectedInventoryOwnedDrawer && selectedInventoryStack?.attuned
+  );
+  const selectedInventoryAttunable = Boolean(
+    isSelectedInventoryOwnedDrawer && isInventoryItemAttunable(selectedInventoryStack?.item)
+  );
+  const isInventoryAttunementLimitReached = inventoryAttunementCount >= inventoryAttunementLimit;
   const selectedInventoryTransactionCost = selectedInventoryRecord
     ? getItemTransactionCost(selectedInventoryRecord)
     : null;
@@ -1395,6 +1434,76 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     );
   }
 
+  function toggleSelectedInventoryItemAttunement() {
+    if (
+      !selectedInventoryInspection?.itemKey ||
+      !isSelectedInventoryOwnedDrawer ||
+      !selectedInventoryAttunable
+    ) {
+      return;
+    }
+
+    if (!selectedInventoryAttuned && isInventoryAttunementLimitReached) {
+      return;
+    }
+
+    updateEquipmentCharacter(
+      (currentCharacter) => ({
+        ...currentCharacter,
+        inventoryItems: setInventoryItemAttunedByKey(
+          currentCharacter.inventoryItems,
+          selectedInventoryInspection.itemKey,
+          !selectedInventoryAttuned
+        )
+      }),
+      { stage: selectedInventoryInspection.source === "browser" }
+    );
+  }
+
+  function useSelectedInventoryItemCharge() {
+    if (
+      !selectedInventoryInspection?.itemKey ||
+      !isSelectedInventoryOwnedDrawer ||
+      !selectedInventoryUseState ||
+      selectedInventoryUseState.remaining <= 0
+    ) {
+      return;
+    }
+
+    updateEquipmentCharacter(
+      (currentCharacter) => ({
+        ...currentCharacter,
+        inventoryItems: spendInventoryItemChargeByKey(
+          currentCharacter.inventoryItems,
+          selectedInventoryInspection.itemKey
+        )
+      }),
+      { stage: selectedInventoryInspection.source === "browser" }
+    );
+  }
+
+  function resetSelectedInventoryItemCharge() {
+    if (
+      !selectedInventoryInspection?.itemKey ||
+      !isSelectedInventoryOwnedDrawer ||
+      !selectedInventoryUseState ||
+      selectedInventoryUseState.remaining >= selectedInventoryUseState.total
+    ) {
+      return;
+    }
+
+    updateEquipmentCharacter(
+      (currentCharacter) => ({
+        ...currentCharacter,
+        inventoryItems: resetInventoryItemChargeByKey(
+          currentCharacter.inventoryItems,
+          selectedInventoryInspection.itemKey
+        )
+      }),
+      { stage: selectedInventoryInspection.source === "browser" }
+    );
+  }
+
   function adjustCurrencyBalance(mode: "spend" | "gain") {
     const amount = Math.max(0, Math.floor(clampNumber(currencyAmountDraft, 0, 999999999, 0)));
 
@@ -1432,19 +1541,6 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
 
   const inventoryLeftFooterActions: EquipmentInventoryDrawerAction[] = selectedInventoryRecord
     ? [
-        ...(isExtractableEquipmentPackRecord(selectedInventoryRecord)
-          ? [
-              {
-                key: "extract-items",
-                label: "Extract Items",
-                icon: Package,
-                disabled: extractingItemKey === selectedInventoryRecord.key,
-                onClick: () => {
-                  void extractInventoryPackContents();
-                }
-              }
-            ]
-          : []),
         ...(selectedInventoryGroup && isItemHandEquippableRecord(selectedInventoryGroup.item)
           ? [
               {
@@ -1485,6 +1581,50 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
                 label: isSelectedInventoryArmorWorn ? "DOFF" : "DON",
                 icon: Shield,
                 onClick: toggleSelectedInventoryArmorWorn
+              }
+            ]
+          : []),
+        ...(selectedInventoryAttunable
+          ? [
+              {
+                key: "attune",
+                label: `${
+                  selectedInventoryAttuned ? "Unattune" : "Attune"
+                } ${inventoryAttunementLabel}`,
+                icon: Sparkles,
+                disabled: !selectedInventoryAttuned && isInventoryAttunementLimitReached,
+                onClick: toggleSelectedInventoryItemAttunement
+              }
+            ]
+          : []),
+        ...(selectedInventoryUseState
+          ? [
+              {
+                key: "use-charge",
+                label: "Use 1",
+                icon: Minus,
+                disabled: selectedInventoryUseState.remaining <= 0,
+                onClick: useSelectedInventoryItemCharge
+              },
+              {
+                key: "reset-charge",
+                label: "Reset 1",
+                icon: Plus,
+                disabled: selectedInventoryUseState.remaining >= selectedInventoryUseState.total,
+                onClick: resetSelectedInventoryItemCharge
+              }
+            ]
+          : []),
+        ...(isExtractableEquipmentPackRecord(selectedInventoryRecord)
+          ? [
+              {
+                key: "extract-items",
+                label: "Extract Items",
+                icon: Package,
+                disabled: extractingItemKey === selectedInventoryRecord.key,
+                onClick: () => {
+                  void extractInventoryPackContents();
+                }
               }
             ]
           : [])
@@ -1563,12 +1703,14 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       item={selectedInventoryRecord}
       onHandCount={selectedInventoryOnHandCount}
       worn={isSelectedInventoryArmorWorn}
+      attuned={selectedInventoryAttuned}
+      charges={selectedInventoryUseState}
     />
   ) : undefined;
 
   return renderEquipmentForm({
     CellContainer, CurrencyInlineDisplay, CustomEquipmentEditor, ENTRY_CATEGORIES, EquipmentInventoryItemDrawer, EquipmentItemBrowserModal, Hand, InlineToggleButton,
-    KeywordReferenceDrawer, Minus, NumberInput, Plus, RarityPill, Shield, WeaponMasteryStatusLabel, X,
+    KeywordReferenceDrawer, Minus, NumberInput, Plus, RarityPill, Shield, Sparkles, WeaponMasteryStatusLabel, X,
     activeCurrencyDefinition, activeCurrencyKey, adjustCurrencyBalance, canSpendCurrency, carriedWeight, carryingCapacity, className, closeAddModal,
     closeCustomEquipmentModal, closeInventoryItemDrawer, closeLoadoutDrawer, clsx, currencyAmountDraft, currencyDefinitions, customEditorMode, deleteCustomEquipment,
     editingCustomEquipment, equipmentGroupMeta, formatCodexLabel, formatCodexList, formatEquipmentWeight, formatInventoryStackName, formatOnHandLabel, formatWeaponDamage,

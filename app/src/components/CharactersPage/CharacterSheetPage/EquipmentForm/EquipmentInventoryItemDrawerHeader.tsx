@@ -1,4 +1,4 @@
-import { Hand, Shield } from "lucide-react";
+import { Hand, Shield, Sparkles } from "lucide-react";
 import RarityPill, { hasDisplayableRarity } from "../../../CodexPage/RarityPill";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import { buildItemDetailPresentation } from "../../../../pages/ItemCodexEntryPage/itemPresentation";
@@ -9,6 +9,11 @@ type EquipmentInventoryItemDrawerHeaderProps = {
   item: ItemRecord;
   onHandCount?: number;
   worn?: boolean;
+  attuned?: boolean;
+  charges?: {
+    remaining: number;
+    total: number;
+  } | null;
 };
 
 function getOnHandLabel(onHandCount: number) {
@@ -18,7 +23,9 @@ function getOnHandLabel(onHandCount: number) {
 function EquipmentInventoryItemDrawerHeader({
   item,
   onHandCount = 0,
-  worn = false
+  worn = false,
+  attuned = false,
+  charges = null
 }: EquipmentInventoryItemDrawerHeaderProps) {
   const presentation = buildItemDetailPresentation(item);
 
@@ -39,6 +46,17 @@ function EquipmentInventoryItemDrawerHeader({
           <span className={styles.drawerWornBadge}>
             <Shield size={13} aria-hidden="true" />
             <span>Worn</span>
+          </span>
+        ) : null}
+        {attuned ? (
+          <span className={styles.drawerAttunedBadge}>
+            <Sparkles size={13} aria-hidden="true" />
+            <span>Attuned</span>
+          </span>
+        ) : null}
+        {charges ? (
+          <span className={styles.drawerChargesBadge}>
+            <span>{`Charges ${charges.remaining}/${charges.total}`}</span>
           </span>
         ) : null}
       </div>
