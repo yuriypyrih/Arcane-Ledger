@@ -1,6 +1,6 @@
-import { ARMOR_PROFICIENCY, PROF_LEVEL, type Character } from "../../types";
-import { getAbilityScoresForCharacter } from "./abilities";
-import type { FeatDefinition, FeatProficiencyRequirement, FeatRequirement } from "./feats";
+import { ARMOR_PROFICIENCY, PROF_LEVEL, type Character } from "../../../types";
+import { getAbilityScoresForCharacter } from "../abilities";
+import type { FeatDefinition, FeatProficiencyRequirement, FeatRequirement } from "./types";
 import {
   getArmorLevelFromEntries,
   getLanguageLevelFromEntries,
@@ -10,8 +10,8 @@ import {
   getSkillProficiencyForName,
   getToolLevelFromEntries,
   getWeaponLevelFromEntries
-} from "./proficiency";
-import { isSpellcastingClass } from "./spellcasting";
+} from "../proficiency";
+import { isSpellcastingClass } from "../spellcasting";
 
 export type FeatEligibilityResult = {
   isEligible: boolean;

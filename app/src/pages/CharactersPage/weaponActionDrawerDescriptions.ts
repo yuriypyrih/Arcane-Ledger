@@ -11,7 +11,7 @@ import {
 import {
   getSavageAttackerWeaponActionDescriptionAdditions,
   getTavernBrawlerUnarmedStrikeDescriptionAdditions
-} from "./featRuntime";
+} from "./feats/runtime";
 import type { WeaponAction } from "./gameplay";
 
 type WeaponActionDescriptionCharacter = Pick<Character, "className" | "level"> &

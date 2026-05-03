@@ -108,7 +108,7 @@ import {
 } from "./actionModalDescriptions";
 import { getFeatureDescriptionForCharacter } from "./classFeatures/featureDescriptions";
 import { getBarbarianPathOfTheWildHeartStatusDescriptionEntries } from "./classFeatures/barbarian/subclasses/barbarianPathOfTheWildHeart";
-import { getFeatHitPointMaximumBonusForCharacter } from "./featRuntime";
+import { getFeatHitPointMaximumBonusForCharacter } from "./feats/runtime";
 import { getKeywordDescriptionLines } from "./keywordDescriptions";
 import {
   getExhaustionLevel as getStoredExhaustionLevel,

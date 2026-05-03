@@ -142,7 +142,7 @@ import {
   getFeatGrantedCantripEntriesForCharacter,
   getMagicInitiateFreeCastStateForCharacter,
   getMagicInitiateSpellcastingAbilityForCharacter
-} from "../../../../pages/CharactersPage/featRuntime";
+} from "../../../../pages/CharactersPage/feats/runtime";
 import { formatFeatureActionOptionRangeLabel } from "../../../../pages/CharactersPage/actionOutcome";
 import { applySpellConcentrationToStatusEntries } from "../../../../pages/CharactersPage/statusEntries";
 import { fighterPsiWarriorTelekineticMasterConcentrationStatusSourceId } from "../../../../pages/CharactersPage/classFeatures/fighter/subclasses/fighterPsiWarriorShared";

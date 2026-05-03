@@ -21,7 +21,7 @@ import {
   getFeatDefinition,
   getFeatDefinitionsByCategory
 } from "../../../../pages/CharactersPage/feats";
-import { getFeatEligibilityForCharacter } from "../../../../pages/CharactersPage/featEligibility";
+import { getFeatEligibilityForCharacter } from "../../../../pages/CharactersPage/feats/eligibility";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import {
   getSelectedSubclassForCharacter,

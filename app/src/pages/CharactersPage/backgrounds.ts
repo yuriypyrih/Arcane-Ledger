@@ -17,7 +17,7 @@ import {
   getMagicInitiateLevelOneSpellOptions
 } from "./feats";
 import { abilityKeys } from "./constants";
-import { crafterFastCraftingToolProficiencies } from "./crafterFeat";
+import { crafterFastCraftingToolProficiencies } from "./feats/crafter";
 import {
   groupedToolProficiencyOptions,
   musicalInstrumentToolProficiencies,

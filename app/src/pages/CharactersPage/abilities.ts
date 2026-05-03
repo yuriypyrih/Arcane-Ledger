@@ -5,7 +5,7 @@ import {
   type FeatureAbilityScoreBonus
 } from "./classFeatures";
 import { getCustomTraitAbilityModifierBonuses } from "./customTraitEffects";
-import { getFeatAbilityScoreBonusesForCharacter } from "./featRuntime";
+import { getFeatAbilityScoreBonusesForCharacter } from "./feats/runtime";
 import { getBackgroundAbilityScoreBonusesForCharacter } from "./backgrounds";
 
 export type AbilityScoreBreakdownEntry = {

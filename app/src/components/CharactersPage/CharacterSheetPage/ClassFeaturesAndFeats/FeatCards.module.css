@@ -28,12 +28,27 @@
 }
 
 .selectedCard {
-  background: #eef5ff;
-  border-color: #2f78ff;
+  border-color: rgba(47, 109, 224, 0.72);
+  background:
+    linear-gradient(90deg, rgba(47, 109, 224, 0.12), rgba(47, 109, 224, 0) 44%),
+    rgba(255, 255, 255, 0.78);
+  box-shadow:
+    inset 4px 0 0 rgba(47, 109, 224, 0.76),
+    0 10px 22px rgba(47, 109, 224, 0.08);
 }
 
 .unavailableCard {
-  background: #f0efec;
+  border-color: rgba(75, 47, 29, 0.14);
+  background:
+    linear-gradient(90deg, rgba(75, 47, 29, 0.055), rgba(75, 47, 29, 0) 46%),
+    rgba(255, 255, 255, 0.58);
+  box-shadow: none;
+}
+
+.unavailableCard .title,
+.unavailableCard .summary,
+.unavailableCard .repeatable {
+  color: rgba(74, 63, 55, 0.7);
 }
 
 .headerRow {
@@ -80,7 +95,7 @@
 
 .metaUnavailable {
   margin: 0;
-  color: #8b3321;
+  color: #7d6054;
   font-size: 0.82rem;
   font-weight: 700;
 }
@@ -126,6 +141,12 @@
   min-height: 24px;
   min-width: 24px;
   padding: 0;
+}
+
+.selectedRemoveButton:disabled {
+  background: rgba(75, 47, 29, 0.045);
+  color: rgba(74, 63, 55, 0.38);
+  cursor: not-allowed;
 }
 
 @media (max-width: 720px) {

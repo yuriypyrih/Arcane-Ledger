@@ -35,9 +35,11 @@
 }
 
 .tabButtonActive {
-  background: rgba(255, 255, 255, 0.95);
-  color: var(--color-ink);
-  box-shadow: 0 8px 18px rgba(54, 34, 21, 0.08);
+  background: rgba(255, 255, 255, 0.92);
+  color: #2558b8;
+  box-shadow:
+    inset 0 0 0 1px rgba(47, 109, 224, 0.24),
+    0 8px 18px rgba(47, 109, 224, 0.08);
 }
 
 .scrollArea {
@@ -62,6 +64,12 @@
 .addButton,
 .removeActionButton {
   min-height: 34px;
+}
+
+.removeActionButton:disabled {
+  background: rgba(75, 47, 29, 0.055);
+  color: rgba(74, 63, 55, 0.52);
+  opacity: 1;
 }
 
 .selectionTitle {
@@ -131,9 +139,9 @@
 }
 
 .modeButtonActive {
-  background: rgba(143, 91, 56, 0.14);
-  border-color: rgba(143, 91, 56, 0.34);
-  color: var(--color-ink);
+  background: rgba(47, 109, 224, 0.08);
+  border-color: rgba(47, 109, 224, 0.34);
+  color: #2558b8;
 }
 
 .fieldGrid {

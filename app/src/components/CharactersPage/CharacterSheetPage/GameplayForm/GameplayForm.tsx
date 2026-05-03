@@ -6,11 +6,11 @@ import { getRestDescriptionInjectionsForCharacter } from "../../../../pages/Char
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { normalizeRoundTracker } from "../../../../pages/CharactersPage/combat";
 import { createSourcedDescriptionEntries } from "../../../../pages/CharactersPage/actionModalDescriptions";
-import { crafterFastCraftingRuleText } from "../../../../pages/CharactersPage/crafterFeat";
+import { crafterFastCraftingRuleText } from "../../../../pages/CharactersPage/feats/crafter";
 import {
   characterHasCrafterDiscount,
   getMusicianEncouragingSongDescriptionEntriesForCharacter
-} from "../../../../pages/CharactersPage/featRuntime";
+} from "../../../../pages/CharactersPage/feats/runtime";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./GameplayForm.module.css";
 import BardicInspirationWidget from "./widgets/BardicInspirationWidget";

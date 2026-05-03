@@ -17,7 +17,7 @@ import {
   getArmorClassModesForCharacter,
   type FeatureArmorClassBonus
 } from "./classFeatures";
-import { getFeatArmorClassBonusesForCharacter } from "./featRuntime";
+import { getFeatArmorClassBonusesForCharacter } from "./feats/runtime";
 import {
   getInventoryItemOnHandQuantity,
   getInventoryItemStackIdFromCopyId,

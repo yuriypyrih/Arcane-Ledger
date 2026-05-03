@@ -3,29 +3,29 @@ import {
   SPELL_LIST_CLASS,
   type SpellDescriptionEntry,
   type SpellEntry
-} from "../../../codex/entries";
-import { getSpellEntriesForSpellListClass } from "../../../codex/classes/spellAccess";
+} from "../../../../codex/entries";
+import { getSpellEntriesForSpellListClass } from "../../../../codex/classes/spellAccess";
 import {
   SENSE,
   STATUS_DURATION_KIND,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE
-} from "../../../types";
+} from "../../../../types";
 import type {
   AbilityKey,
   Character,
   CharacterFeatEntry,
   ItemRecord,
   MagicInitiateChoice
-} from "../../../types";
-import { ACTION_CATEGORY, ECONOMY_TYPE } from "../actionEconomy";
-import { createSourcedDescriptionEntries } from "../actionModalDescriptions";
+} from "../../../../types";
+import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
+import { createSourcedDescriptionEntries } from "../../actionModalDescriptions";
 import type {
   ArmorClassFeatureContext,
   FeatureActionCard,
   FeatureArmorClassBonus
-} from "../classFeatures/types";
-import { getFeatDefinition, getFeatLabel, normalizeCharacterFeats } from "../feats";
+} from "../../classFeatures/types";
+import { getFeatDefinition, getFeatLabel, normalizeCharacterFeats } from "..";
 import type { FeatDerivedState, FeatRuntimeCharacter } from "./types";
 
 export type { FeatDerivedState, FeatRuntimeCharacter } from "./types";
@@ -85,10 +85,7 @@ function normalizeFeatRuntimeLevel(value: unknown): number {
   return Math.max(1, Math.min(20, Math.floor(parsed)));
 }
 
-function getCachedFeatDerivedState(
-  feats: unknown,
-  level: number
-): FeatDerivedState | undefined {
+function getCachedFeatDerivedState(feats: unknown, level: number): FeatDerivedState | undefined {
   if (!Array.isArray(feats)) {
     return undefined;
   }
@@ -409,7 +406,10 @@ export function getMagicInitiateSpellcastingAbilityForCharacter(
   character: FeatRuntimeCharacter,
   spellId: string
 ): AbilityKey | null {
-  return collectFeatDerivedState(character).magicInitiateSpellcastingAbilityBySpellId.get(spellId) ?? null;
+  return (
+    collectFeatDerivedState(character).magicInitiateSpellcastingAbilityBySpellId.get(spellId) ??
+    null
+  );
 }
 
 export function getMagicInitiateFreeCastStateForCharacter(
@@ -445,9 +445,7 @@ export function getFeatAbilityScoreBonusesForCharacter(
   return collectFeatDerivedState(character).abilityScoreBonuses;
 }
 
-export function getFeatHitPointMaximumBonusForCharacter(
-  character: FeatRuntimeCharacter
-): number {
+export function getFeatHitPointMaximumBonusForCharacter(character: FeatRuntimeCharacter): number {
   return collectFeatDerivedState(character).hitPointMaximumBonus;
 }
 

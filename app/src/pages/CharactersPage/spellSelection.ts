@@ -17,7 +17,7 @@ import {
   usesPreparedSpellsForCharacter,
   usesSpellbookForCharacter
 } from "./spellcasting";
-import { getFeatAlwaysPreparedSpellEntriesForCharacter } from "./featRuntime";
+import { getFeatAlwaysPreparedSpellEntriesForCharacter } from "./feats/runtime";
 
 export type SpellSelectionInputStatus = {
   hasInputRequired: boolean;

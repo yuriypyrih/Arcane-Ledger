@@ -19,7 +19,7 @@ import type {
   MusicianChoice,
   SkilledChoice
 } from "../../../../types";
-import type { FeatEligibilityResult } from "../../../../pages/CharactersPage/featEligibility";
+import type { FeatEligibilityResult } from "../../../../pages/CharactersPage/feats/eligibility";
 
 export type FeatureRow = {
   key: string;

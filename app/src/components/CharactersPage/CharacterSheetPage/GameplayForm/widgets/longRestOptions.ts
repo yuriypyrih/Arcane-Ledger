@@ -263,7 +263,7 @@ import {
   collectFeatDerivedState,
   restoreLuckyPointsForCharacter,
   restoreMagicInitiateFreeCastsForCharacter
-} from "../../../../../pages/CharactersPage/featRuntime";
+} from "../../../../../pages/CharactersPage/feats/runtime";
 import { getHitDiceRemainingForCharacter } from "../../../../../pages/CharactersPage/gameplay";
 import { getSpellSlotTotalsForCharacter } from "../../../../../pages/CharactersPage/spellcasting";
 import {

@@ -1,5 +1,5 @@
 import type { AbilityKey, Character } from "../../../../types";
-import { getFeatAbilityScoreBonusesForCharacter } from "../../featRuntime";
+import { getFeatAbilityScoreBonusesForCharacter } from "../../feats/runtime";
 import { getBackgroundAbilityScoreBonusesForCharacter } from "../../backgrounds";
 
 type RangerAbilityModifierCharacter = Partial<

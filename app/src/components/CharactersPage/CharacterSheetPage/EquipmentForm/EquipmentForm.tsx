@@ -97,11 +97,11 @@ import {
 import {
   crafterDiscountRuleText,
   isCrafterDiscountEligibleItem
-} from "../../../../pages/CharactersPage/crafterFeat";
+} from "../../../../pages/CharactersPage/feats/crafter";
 import {
   characterHasCrafterDiscount,
   getFeatItemAdditionalDescriptionForCharacter
-} from "../../../../pages/CharactersPage/featRuntime";
+} from "../../../../pages/CharactersPage/feats/runtime";
 import { createSourcedDescriptionEntries } from "../../../../pages/CharactersPage/actionModalDescriptions";
 import KeywordReferenceDrawer from "../../../KeywordReferenceDrawer/KeywordReferenceDrawer";
 import type { ItemRecord } from "../../../../types";

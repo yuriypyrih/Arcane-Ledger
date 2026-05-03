@@ -56,7 +56,7 @@ import {
 } from "./inventory";
 import { getWornBodyArmorTypeForCharacter } from "./armor";
 import { isMonkWeapon } from "./monkWeapons";
-import { hasFeatForCharacter } from "./featRuntime";
+import { hasFeatForCharacter } from "./feats/runtime";
 import { getCustomTraitPassivePerceptionBonuses } from "./customTraitEffects";
 import {
   createHeldDescriptorForInventoryItem,

@@ -102,7 +102,7 @@ import {
   resetLuckyPointForCharacter,
   restoreLuckyPointsForCharacter,
   spendLuckyPointForCharacter
-} from "../../../../../../pages/CharactersPage/featRuntime";
+} from "../../../../../../pages/CharactersPage/feats/runtime";
 import { mantleOfInspirationActionKey } from "../../../../../../pages/CharactersPage/classFeatures/bard/subclasses/bardCollegeOfGlamour";
 import {
   channelDivinityActionKey,

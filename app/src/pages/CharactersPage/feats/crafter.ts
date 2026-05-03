@@ -1,5 +1,5 @@
-import { TOOL_PROFICIENCY, type CrafterChoice, type ItemRecord } from "../../types";
-import { getToolProficiencyLabel } from "./proficiencyOptions";
+import { TOOL_PROFICIENCY, type CrafterChoice, type ItemRecord } from "../../../types";
+import { getToolProficiencyLabel } from "../proficiencyOptions";
 
 export const crafterDiscountRuleText =
   "Whenever you buy a nonmagical item, you receive a 20% discount on it.";
@@ -19,9 +19,7 @@ export const crafterFastCraftingToolProficiencies: TOOL_PROFICIENCY[] = [
   TOOL_PROFICIENCY.WOODCARVERS_TOOLS
 ];
 
-const crafterFastCraftingToolSet = new Set<TOOL_PROFICIENCY>(
-  crafterFastCraftingToolProficiencies
-);
+const crafterFastCraftingToolSet = new Set<TOOL_PROFICIENCY>(crafterFastCraftingToolProficiencies);
 
 export function isCrafterFastCraftingTool(tool: unknown): tool is TOOL_PROFICIENCY {
   return typeof tool === "string" && crafterFastCraftingToolSet.has(tool as TOOL_PROFICIENCY);

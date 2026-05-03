@@ -22,7 +22,7 @@ import {
   PROFICIENCY_SOURCE
 } from "../../../../types";
 import { appendFeatureSourcedDescriptionAddition } from "../../actionModalDescriptions";
-import { getFeatAbilityScoreBonusesForCharacter } from "../../featRuntime";
+import { getFeatAbilityScoreBonusesForCharacter } from "../../feats/runtime";
 import { getBackgroundAbilityScoreBonusesForCharacter } from "../../backgrounds";
 import {
   createFeatureActionCardCost,

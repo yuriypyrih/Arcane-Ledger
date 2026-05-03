@@ -4,7 +4,7 @@ import {
   createFeatureSourcedDescriptionEntries,
   createSourcedDescriptionEntries
 } from "../actionModalDescriptions";
-import { hasFeatForCharacter } from "../featRuntime";
+import { hasFeatForCharacter } from "../feats/runtime";
 import { getFeatDefinition } from "../feats";
 import { getBarbarianPersistentRageInitiativeDescriptionAdditions } from "./barbarian/barbarianDescriptionSections";
 import { getFeatureDescriptionForCharacter } from "./featureDescriptions";

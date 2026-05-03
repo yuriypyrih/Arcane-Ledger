@@ -28,7 +28,7 @@ import {
   getCustomTraitSavingThrowBonuses,
   getCustomTraitWeaponDamageBonuses
 } from "../customTraitEffects";
-import { getFeatActionsForCharacter } from "../featRuntime";
+import { getFeatActionsForCharacter } from "../feats/runtime";
 import {
   activateBardicInspiration,
   activateBardCollegeOfDanceInspiringMovement,

@@ -19,7 +19,7 @@ import {
 import {
   getCrafterChoiceSummary,
   isCrafterFastCraftingTool
-} from "../../../../pages/CharactersPage/crafterFeat";
+} from "../../../../pages/CharactersPage/feats/crafter";
 import {
   skillsOptions,
   musicalInstrumentToolProficiencies,

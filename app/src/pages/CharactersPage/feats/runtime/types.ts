@@ -1,6 +1,11 @@
-import type { FEATS, SpellEntry } from "../../../codex/entries";
-import type { AbilityKey, Character, CharacterFeatEntry, CharacterStatusEntry } from "../../../types";
-import type { FeatureAbilityScoreBonus, FeatureActionCard } from "../classFeatures/types";
+import type { FEATS, SpellEntry } from "../../../../codex/entries";
+import type {
+  AbilityKey,
+  Character,
+  CharacterFeatEntry,
+  CharacterStatusEntry
+} from "../../../../types";
+import type { FeatureAbilityScoreBonus, FeatureActionCard } from "../../classFeatures/types";
 
 export type FeatRuntimeCharacter = Pick<Character, "level"> & {
   feats?: unknown;

@@ -60,7 +60,7 @@ import {
   getMagicInitiateLevelOneSpellOptions,
   magicInitiateSpellcastingAbilityOptions
 } from "../../../pages/CharactersPage/feats";
-import { crafterFastCraftingToolProficiencies } from "../../../pages/CharactersPage/crafterFeat";
+import { crafterFastCraftingToolProficiencies } from "../../../pages/CharactersPage/feats/crafter";
 import { normalizeLevelAndXp } from "../../../pages/CharactersPage/experience";
 import { getAutomaticMaxHitPointsForCharacter } from "../../../pages/CharactersPage/gameplay";
 import { getEffectiveHitPointMaximumForCharacter } from "../../../pages/CharactersPage/traits";

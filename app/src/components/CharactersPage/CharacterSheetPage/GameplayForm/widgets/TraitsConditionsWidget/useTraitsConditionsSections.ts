@@ -13,7 +13,7 @@ import {
 import {
   getFeatDerivedStatusEntriesForCharacter,
   getFeatGrantedCantripEntriesForCharacter
-} from "../../../../../../pages/CharactersPage/featRuntime";
+} from "../../../../../../pages/CharactersPage/feats/runtime";
 import { getCompanionStatusEntriesForCharacter } from "../../../../../../pages/CharactersPage/companions";
 import {
   getAlwaysPreparedSpellIds,

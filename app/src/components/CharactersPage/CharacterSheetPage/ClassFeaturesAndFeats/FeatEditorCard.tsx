@@ -23,9 +23,9 @@ import {
   toolProficiencyOptions,
   type ToolProficiency
 } from "../../../../pages/CharactersPage/proficiencyOptions";
-import { crafterFastCraftingToolProficiencies } from "../../../../pages/CharactersPage/crafterFeat";
+import { crafterFastCraftingToolProficiencies } from "../../../../pages/CharactersPage/feats/crafter";
 import type { AbilityKey, CharacterFeatEntry, ToolProficiencyEntry } from "../../../../types";
-import type { FeatEligibilityResult } from "../../../../pages/CharactersPage/featEligibility";
+import type { FeatEligibilityResult } from "../../../../pages/CharactersPage/feats/eligibility";
 import ActionButton from "../../../ActionButton";
 import SelectInput from "../../FormInputs/SelectInput";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
@@ -1140,6 +1140,9 @@ function FeatEditorCard({
   const unmetRequirementText = featEligibility?.unmetRequirements.join(" ") ?? "";
   const isRequirementBlocked = featEligibility ? !featEligibility.isEligible : false;
   const isAddDisabled = (!isRepeatable && isSelected) || isRequirementBlocked;
+  const selectedEntry = selectedEntries[0];
+  const isSelectedEntryRemovable = selectedEntry ? isFeatEntryRemovable(selectedEntry) : false;
+  const lockedRemoveTitle = "This feat is locked to its source.";
 
   return (
     <article
@@ -1190,19 +1193,19 @@ function FeatEditorCard({
                   <Pencil size={14} />
                 </button>
               ) : null}
-              {isFeatEntryRemovable(entry) ? (
-                <button
-                  type="button"
-                  className={cardStyles.selectedRemoveButton}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onRemoveFeat(entry);
-                  }}
-                  aria-label={`Remove ${featDefinition.label}`}
-                >
-                  <X size={14} />
-                </button>
-              ) : null}
+              <button
+                type="button"
+                className={cardStyles.selectedRemoveButton}
+                disabled={!isFeatEntryRemovable(entry)}
+                title={!isFeatEntryRemovable(entry) ? lockedRemoveTitle : undefined}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onRemoveFeat(entry);
+                }}
+                aria-label={`Remove ${featDefinition.label}`}
+              >
+                <X size={14} />
+              </button>
             </li>
           ))}
         </ul>
@@ -1241,7 +1244,7 @@ function FeatEditorCard({
             <Plus size={16} />
             {isRepeatable && isSelected ? "Add Another" : isAddDisabled ? "Added" : "Add"}
           </button>
-        ) : selectedEntries[0] ? (
+        ) : selectedEntry ? (
           <>
             {canEditFeat ? (
               <button
@@ -1249,26 +1252,26 @@ function FeatEditorCard({
                 className={clsx(shared.editButton, modalStyles.addButton)}
                 onClick={(event) => {
                   event.stopPropagation();
-                  onEditFeat(selectedEntries[0]);
+                  onEditFeat(selectedEntry);
                 }}
               >
                 <Pencil size={16} />
                 Edit
               </button>
             ) : null}
-            {isFeatEntryRemovable(selectedEntries[0]) ? (
-              <button
-                type="button"
-                className={clsx(shared.editButton, modalStyles.removeActionButton)}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onRemoveFeat(selectedEntries[0]);
-                }}
-              >
-                <X size={16} />
-                Remove
-              </button>
-            ) : null}
+            <button
+              type="button"
+              className={clsx(shared.editButton, modalStyles.removeActionButton)}
+              disabled={!isSelectedEntryRemovable}
+              title={!isSelectedEntryRemovable ? lockedRemoveTitle : undefined}
+              onClick={(event) => {
+                event.stopPropagation();
+                onRemoveFeat(selectedEntry);
+              }}
+            >
+              <X size={16} />
+              Remove
+            </button>
           </>
         ) : null}
       </div>
