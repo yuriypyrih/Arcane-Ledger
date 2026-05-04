@@ -4,6 +4,7 @@ import type { Dispatch, ReactNode, SetStateAction } from "react";
 import { FEATS, getFeatureTrackingState, type SpellEntry } from "../../../../codex/entries";
 import { abilityKeys } from "../../../../pages/CharactersPage/constants";
 import {
+  boonOfEnergyResistanceDamageTypeOptions,
   elementalAdeptAbilityOptions,
   elementalAdeptDamageTypeOptions,
   feyTouchedAbilityOptions,
@@ -21,7 +22,17 @@ import {
   observantSkillOptions,
   piercerAbilityOptions,
   poisonerAbilityOptions,
+  polearmMasterAbilityOptions,
+  ritualCasterAbilityOptions,
   resilientAbilityOptions,
+  sentinelAbilityOptions,
+  shadowTouchedAbilityOptions,
+  slasherAbilityOptions,
+  spellSniperAbilityOptions,
+  telekineticAbilityOptions,
+  telepathicAbilityOptions,
+  warCasterAbilityOptions,
+  skillExpertAbilityOptions,
   speedyAbilityOptions,
   weaponMasterAbilityOptions,
   weaponMasterMasteryOptions,
@@ -32,6 +43,8 @@ import {
   getFeyTouchedSpellOptions,
   getMagicInitiateLevelOneSpellOptions,
   getMagicInitiateSpellListLabel,
+  getRitualCasterSpellOptions,
+  getShadowTouchedSpellOptions,
   isMagicInitiateSpellList,
   isFeatEntryRemovable,
   magicInitiateSpellListOptions,
@@ -71,6 +84,8 @@ import modalStyles from "./FeatEditorModal.module.css";
 import {
   getPendingBlessedWarriorChoiceSummary,
   getPendingAthleteChoiceSummary,
+  getPendingBoonOfEnergyResistanceChoiceSummary,
+  getPendingBoonOfSkillChoiceSummary,
   getPendingChargerChoiceSummary,
   getPendingChefChoiceSummary,
   getPendingCrusherChoiceSummary,
@@ -90,7 +105,17 @@ import {
   getPendingObservantChoiceSummary,
   getPendingPiercerChoiceSummary,
   getPendingPoisonerChoiceSummary,
+  getPendingPolearmMasterChoiceSummary,
+  getPendingRitualCasterChoiceSummary,
   getPendingResilientChoiceSummary,
+  getPendingSentinelChoiceSummary,
+  getPendingShadowTouchedChoiceSummary,
+  getPendingSlasherChoiceSummary,
+  getPendingSpellSniperChoiceSummary,
+  getPendingTelekineticChoiceSummary,
+  getPendingTelepathicChoiceSummary,
+  getPendingWarCasterChoiceSummary,
+  getPendingSkillExpertChoiceSummary,
   getPendingSpeedyChoiceSummary,
   getPendingWeaponMasterChoiceSummary,
   getPendingCrafterChoiceSummary,
@@ -100,12 +125,17 @@ import {
   getPendingSkilledChoiceSummary,
   getRepeatableFeatEntrySummary,
   isPendingBlessedWarriorChoiceValid,
+  isPendingBoonOfEnergyResistanceChoiceValid,
+  isPendingBoonOfSkillChoiceValid,
   isPendingCrafterChoiceValid,
   isPendingDruidicWarriorChoiceValid,
   isPendingFeyTouchedChoiceValid,
   isPendingKeenMindChoiceValid,
   isPendingObservantChoiceValid,
   isPendingResilientChoiceValid,
+  isPendingRitualCasterChoiceValid,
+  isPendingShadowTouchedChoiceValid,
+  isPendingSkillExpertChoiceValid,
   isPendingWeaponMasterChoiceValid,
   isPendingMagicInitiateChoiceValid,
   isPendingMusicianChoiceValid,
@@ -114,13 +144,18 @@ import {
   crafterNoneOptionValue,
   crafterSelectionIndices,
   feyTouchedNoneOptionValue,
+  getRitualCasterSpellCountForLevel,
   magicInitiateCantripSelectionIndices,
   magicInitiateNoneOptionValue,
   musicianNoneOptionValue,
   musicianSelectionIndices,
   keenMindNoneOptionValue,
+  boonOfSkillNoneOptionValue,
   observantNoneOptionValue,
   resilientNoneOptionValue,
+  ritualCasterNoneOptionValue,
+  shadowTouchedNoneOptionValue,
+  skillExpertNoneOptionValue,
   skilledNoneOptionValue,
   skilledSelectionIndices,
   weaponMasterNoneOptionValue,
@@ -130,12 +165,16 @@ import {
   buildSkillSelectOptions,
   buildToolSelectOptions,
   getSelectableNonExpertSkillOptions,
+  getSelectableProficientSkillOptions,
+  getSelectableUnproficientSkillOptions,
   getSelectableUnproficientToolOptions,
   updateSelectionAtIndex
 } from "./helpers";
 import type {
   PendingAbilityScoreImprovement,
   PendingBlessedWarriorChoice,
+  PendingBoonOfEnergyResistanceChoice,
+  PendingBoonOfSkillChoice,
   PendingCrafterChoice,
   PendingDruidicWarriorChoice,
   PendingElementalAdeptChoice,
@@ -155,7 +194,17 @@ import type {
   PendingObservantChoice,
   PendingPiercerChoice,
   PendingPoisonerChoice,
+  PendingPolearmMasterChoice,
+  PendingRitualCasterChoice,
   PendingResilientChoice,
+  PendingSentinelChoice,
+  PendingShadowTouchedChoice,
+  PendingSlasherChoice,
+  PendingSpellSniperChoice,
+  PendingTelekineticChoice,
+  PendingTelepathicChoice,
+  PendingWarCasterChoice,
+  PendingSkillExpertChoice,
   PendingSpeedyChoice,
   PendingWeaponMasterChoice,
   PendingMusicianChoice,
@@ -165,6 +214,7 @@ import type {
 type FeatEditorCardProps = {
   featDefinition: FeatDefinition;
   featEligibility?: FeatEligibilityResult;
+  characterLevel: number;
   skillProficiencies: SkillProficiencyEntry[];
   savingThrowProficiencies: SavingThrowProficiencyEntry[];
   weaponProficiencies: WeaponProficiencyEntry[];
@@ -201,10 +251,22 @@ type FeatEditorCardProps = {
   onSavePendingObservantChoice: () => void;
   onSavePendingPiercerChoice: () => void;
   onSavePendingPoisonerChoice: () => void;
+  onSavePendingPolearmMasterChoice: () => void;
+  onSavePendingRitualCasterChoice: () => void;
   onSavePendingResilientChoice: () => void;
+  onSavePendingSentinelChoice: () => void;
+  onSavePendingShadowTouchedChoice: () => void;
+  onSavePendingSlasherChoice: () => void;
+  onSavePendingSpellSniperChoice: () => void;
+  onSavePendingTelekineticChoice: () => void;
+  onSavePendingTelepathicChoice: () => void;
+  onSavePendingWarCasterChoice: () => void;
+  onSavePendingSkillExpertChoice: () => void;
   onSavePendingSpeedyChoice: () => void;
   onSavePendingWeaponMasterChoice: () => void;
+  onSavePendingBoonOfEnergyResistanceChoice: () => void;
   onSavePendingBoonOfIrresistibleOffense: () => void;
+  onSavePendingBoonOfSkillChoice: () => void;
   onSavePendingBlessedWarriorChoice: () => void;
   onSavePendingCrafterChoice: () => void;
   onSavePendingDruidicWarriorChoice: () => void;
@@ -269,6 +331,25 @@ type ElementalAdeptChoiceEditorProps = {
   onChange: (nextChoice: PendingElementalAdeptChoice) => void;
 };
 
+type BoonOfEnergyResistanceChoiceEditorProps = {
+  choice: PendingBoonOfEnergyResistanceChoice;
+  summary: string | null;
+  isValid: boolean;
+  onCancel: () => void;
+  onSave: () => void;
+  onChange: (nextChoice: PendingBoonOfEnergyResistanceChoice) => void;
+};
+
+type BoonOfSkillChoiceEditorProps = {
+  choice: PendingBoonOfSkillChoice;
+  summary: string | null;
+  isValid: boolean;
+  skillProficiencies: SkillProficiencyEntry[];
+  onCancel: () => void;
+  onSave: () => void;
+  onChange: (nextChoice: PendingBoonOfSkillChoice) => void;
+};
+
 type FeyTouchedChoiceEditorProps = {
   choice: PendingFeyTouchedChoice;
   summary: string | null;
@@ -276,6 +357,35 @@ type FeyTouchedChoiceEditorProps = {
   onCancel: () => void;
   onSave: () => void;
   onChange: (nextChoice: PendingFeyTouchedChoice) => void;
+};
+
+type RitualCasterChoiceEditorProps = {
+  choice: PendingRitualCasterChoice;
+  characterLevel: number;
+  summary: string | null;
+  isValid: boolean;
+  onCancel: () => void;
+  onSave: () => void;
+  onChange: (nextChoice: PendingRitualCasterChoice) => void;
+};
+
+type ShadowTouchedChoiceEditorProps = {
+  choice: PendingShadowTouchedChoice;
+  summary: string | null;
+  isValid: boolean;
+  onCancel: () => void;
+  onSave: () => void;
+  onChange: (nextChoice: PendingShadowTouchedChoice) => void;
+};
+
+type SkillExpertChoiceEditorProps = {
+  choice: PendingSkillExpertChoice;
+  summary: string | null;
+  isValid: boolean;
+  skillProficiencies: SkillProficiencyEntry[];
+  onCancel: () => void;
+  onSave: () => void;
+  onChange: (nextChoice: PendingSkillExpertChoice) => void;
 };
 
 type KeenMindChoiceEditorProps = {
@@ -563,6 +673,83 @@ function ElementalAdeptChoiceEditor({
   );
 }
 
+function BoonOfEnergyResistanceChoiceEditor({
+  choice,
+  summary,
+  isValid,
+  onCancel,
+  onSave,
+  onChange
+}: BoonOfEnergyResistanceChoiceEditorProps) {
+  return (
+    <InlineEditorFrame
+      title="Boon of Energy Resistance"
+      cancelLabel="Cancel boon of energy resistance selection"
+      onCancel={onCancel}
+      footer={
+        <div className={modalStyles.editorActions}>
+          <ActionButton
+            icon={<Plus size={16} />}
+            fullWidth={false}
+            disabled={!isValid}
+            onClick={onSave}
+          >
+            Add Feat
+          </ActionButton>
+        </div>
+      }
+    >
+      <div className={modalStyles.singleFieldGrid}>
+        <SelectField
+          label="Ability"
+          value={choice.ability}
+          options={abilityKeys.map((ability) => ({
+            label: ability,
+            value: ability
+          }))}
+          onChange={(nextValue) =>
+            onChange({
+              ...choice,
+              ability: nextValue as AbilityKey
+            })
+          }
+        />
+        {[0, 1].map((selectionIndex) => {
+          const otherSelection = choice.damageTypes[selectionIndex === 0 ? 1 : 0];
+
+          return (
+            <SelectField
+              key={`boon-energy-resistance-${selectionIndex}`}
+              label={`Resistance ${selectionIndex + 1}`}
+              value={choice.damageTypes[selectionIndex]}
+              options={boonOfEnergyResistanceDamageTypeOptions.map((damageType) => ({
+                disabled: damageType === otherSelection,
+                label: formatCodexLabel(damageType),
+                value: damageType
+              }))}
+              onChange={(nextValue) =>
+                onChange({
+                  ...choice,
+                  damageTypes: updateSelectionAtIndex(
+                    choice.damageTypes,
+                    2,
+                    selectionIndex,
+                    nextValue
+                  ) as PendingBoonOfEnergyResistanceChoice["damageTypes"]
+                })
+              }
+            />
+          );
+        })}
+      </div>
+      {summary ? <p className={modalStyles.summary}>{summary}</p> : null}
+      {!isValid ? (
+        <p className={modalStyles.validation}>Choose two different energy damage types.</p>
+      ) : null}
+    </InlineEditorFrame>
+  );
+}
+
 function FeyTouchedChoiceEditor({
   choice,
   summary,
@@ -631,6 +818,388 @@ function FeyTouchedChoiceEditor({
       {!isValid ? (
         <p className={modalStyles.validation}>
           Choose a level 1 Divination or Enchantment spell.
+        </p>
+      ) : null}
+    </InlineEditorFrame>
+  );
+}
+
+function RitualCasterChoiceEditor({
+  choice,
+  characterLevel,
+  summary,
+  isValid,
+  onCancel,
+  onSave,
+  onChange
+}: RitualCasterChoiceEditorProps) {
+  const spellOptions = getRitualCasterSpellOptions();
+  const spellCount = getRitualCasterSpellCountForLevel(characterLevel);
+  const selectedSpellIds = Array.from({ length: spellCount }, (_, index) =>
+    choice.spellIds[index] ?? ritualCasterNoneOptionValue
+  );
+
+  return (
+    <InlineEditorFrame
+      title="Ritual Caster"
+      cancelLabel="Cancel ritual caster selection"
+      onCancel={onCancel}
+      footer={
+        <div className={modalStyles.editorActions}>
+          <ActionButton
+            icon={<Plus size={16} />}
+            fullWidth={false}
+            disabled={!isValid}
+            onClick={onSave}
+          >
+            Add Feat
+          </ActionButton>
+        </div>
+      }
+    >
+      <div className={modalStyles.singleFieldGrid}>
+        <SelectField
+          label="Ability"
+          value={choice.ability}
+          options={ritualCasterAbilityOptions.map((ability) => ({
+            label: ability,
+            value: ability
+          }))}
+          onChange={(nextValue) =>
+            onChange({
+              ...choice,
+              ability: nextValue as PendingRitualCasterChoice["ability"]
+            })
+          }
+        />
+        {selectedSpellIds.map((selectedSpellId, selectionIndex) => {
+          const blockedSpellIds = selectedSpellIds.filter(
+            (spellId, index) =>
+              index !== selectionIndex && spellId !== ritualCasterNoneOptionValue
+          );
+
+          return (
+            <SelectField
+              key={`ritual-caster-spell-${selectionIndex}`}
+              label={`Ritual Spell ${selectionIndex + 1}`}
+              value={selectedSpellId}
+              options={[
+                {
+                  label: "-",
+                  value: ritualCasterNoneOptionValue
+                },
+                ...spellOptions.map((spell) => ({
+                  disabled: blockedSpellIds.includes(spell.id),
+                  label: spell.name,
+                  value: spell.id
+                }))
+              ]}
+              onChange={(nextValue) =>
+                onChange({
+                  ...choice,
+                  spellIds: updateSelectionAtIndex(
+                    selectedSpellIds,
+                    spellCount,
+                    selectionIndex,
+                    nextValue
+                  )
+                })
+              }
+            />
+          );
+        })}
+      </div>
+      {summary ? <p className={modalStyles.summary}>{summary}</p> : null}
+      {!isValid ? (
+        <p className={modalStyles.validation}>
+          Choose {spellCount} different level 1 Ritual spells.
+        </p>
+      ) : null}
+    </InlineEditorFrame>
+  );
+}
+
+function ShadowTouchedChoiceEditor({
+  choice,
+  summary,
+  isValid,
+  onCancel,
+  onSave,
+  onChange
+}: ShadowTouchedChoiceEditorProps) {
+  const spellOptions = getShadowTouchedSpellOptions();
+
+  return (
+    <InlineEditorFrame
+      title="Shadow-Touched"
+      cancelLabel="Cancel shadow-touched selection"
+      onCancel={onCancel}
+      footer={
+        <div className={modalStyles.editorActions}>
+          <ActionButton
+            icon={<Plus size={16} />}
+            fullWidth={false}
+            disabled={!isValid}
+            onClick={onSave}
+          >
+            Add Feat
+          </ActionButton>
+        </div>
+      }
+    >
+      <div className={modalStyles.singleFieldGrid}>
+        <SelectField
+          label="Ability"
+          value={choice.ability}
+          options={shadowTouchedAbilityOptions.map((ability) => ({
+            label: ability,
+            value: ability
+          }))}
+          onChange={(nextValue) =>
+            onChange({
+              ...choice,
+              ability: nextValue as PendingShadowTouchedChoice["ability"]
+            })
+          }
+        />
+        <SelectField
+          label="Level 1 Spell"
+          value={choice.spellId}
+          options={[
+            {
+              label: "-",
+              value: shadowTouchedNoneOptionValue
+            },
+            ...spellOptions.map((spell) => ({
+              label: `${spell.name} (${formatCodexLabel(spell.magicSchool)})`,
+              value: spell.id
+            }))
+          ]}
+          onChange={(nextValue) =>
+            onChange({
+              ...choice,
+              spellId: nextValue
+            })
+          }
+        />
+      </div>
+      {summary ? <p className={modalStyles.summary}>{summary}</p> : null}
+      {!isValid ? (
+        <p className={modalStyles.validation}>Choose a level 1 Illusion or Necromancy spell.</p>
+      ) : null}
+    </InlineEditorFrame>
+  );
+}
+
+function BoonOfSkillChoiceEditor({
+  choice,
+  summary,
+  isValid,
+  skillProficiencies,
+  onCancel,
+  onSave,
+  onChange
+}: BoonOfSkillChoiceEditorProps) {
+  const currentSkill =
+    choice.skillExpertise === boonOfSkillNoneOptionValue
+      ? null
+      : (choice.skillExpertise as SkillName);
+  const availableSkills = getSelectableNonExpertSkillOptions(
+    { skillProficiencies },
+    skillsOptions,
+    currentSkill
+  );
+
+  return (
+    <InlineEditorFrame
+      title="Boon of Skill"
+      cancelLabel="Cancel boon of skill selection"
+      onCancel={onCancel}
+      footer={
+        <div className={modalStyles.editorActions}>
+          <ActionButton
+            icon={<Plus size={16} />}
+            fullWidth={false}
+            disabled={!isValid}
+            onClick={onSave}
+          >
+            Add Feat
+          </ActionButton>
+        </div>
+      }
+    >
+      <div className={modalStyles.singleFieldGrid}>
+        <SelectField
+          label="Ability"
+          value={choice.ability}
+          options={abilityKeys.map((ability) => ({
+            label: ability,
+            value: ability
+          }))}
+          onChange={(nextValue) =>
+            onChange({
+              ...choice,
+              ability: nextValue as AbilityKey
+            })
+          }
+        />
+        <SelectField
+          label="Expertise"
+          value={choice.skillExpertise}
+          options={[
+            {
+              label: "-",
+              value: boonOfSkillNoneOptionValue
+            },
+            ...buildSkillSelectOptions(skillsOptions, availableSkills, currentSkill).map(
+              (option) => ({
+                disabled: option.disabled,
+                label: option.label,
+                value: option.skill
+              })
+            )
+          ]}
+          onChange={(nextValue) =>
+            onChange({
+              ...choice,
+              skillExpertise: nextValue as PendingBoonOfSkillChoice["skillExpertise"]
+            })
+          }
+        />
+      </div>
+      {summary ? <p className={modalStyles.summary}>{summary}</p> : null}
+      {!isValid ? (
+        <p className={modalStyles.validation}>Choose a skill that does not already have Expertise.</p>
+      ) : null}
+    </InlineEditorFrame>
+  );
+}
+
+function SkillExpertChoiceEditor({
+  choice,
+  summary,
+  isValid,
+  skillProficiencies,
+  onCancel,
+  onSave,
+  onChange
+}: SkillExpertChoiceEditorProps) {
+  const currentSkillProficiency =
+    choice.skillProficiency === skillExpertNoneOptionValue
+      ? null
+      : (choice.skillProficiency as SkillName);
+  const currentSkillExpertise =
+    choice.skillExpertise === skillExpertNoneOptionValue
+      ? null
+      : (choice.skillExpertise as SkillName);
+  const availableProficiencySkills = getSelectableUnproficientSkillOptions(
+    { skillProficiencies },
+    skillsOptions,
+    currentSkillProficiency
+  );
+  const availableExpertiseSkills = [
+    ...new Set([
+      ...getSelectableProficientSkillOptions(
+        { skillProficiencies },
+        skillsOptions,
+        currentSkillExpertise
+      ),
+      ...(currentSkillProficiency ? [currentSkillProficiency] : [])
+    ])
+  ];
+
+  return (
+    <InlineEditorFrame
+      title="Skill Expert"
+      cancelLabel="Cancel skill expert selection"
+      onCancel={onCancel}
+      footer={
+        <div className={modalStyles.editorActions}>
+          <ActionButton
+            icon={<Plus size={16} />}
+            fullWidth={false}
+            disabled={!isValid}
+            onClick={onSave}
+          >
+            Add Feat
+          </ActionButton>
+        </div>
+      }
+    >
+      <div className={modalStyles.singleFieldGrid}>
+        <SelectField
+          label="Ability"
+          value={choice.ability}
+          options={skillExpertAbilityOptions.map((ability) => ({
+            label: ability,
+            value: ability
+          }))}
+          onChange={(nextValue) =>
+            onChange({
+              ...choice,
+              ability: nextValue as PendingSkillExpertChoice["ability"]
+            })
+          }
+        />
+        <SelectField
+          label="Skill Proficiency"
+          value={choice.skillProficiency}
+          options={[
+            {
+              label: "-",
+              value: skillExpertNoneOptionValue
+            },
+            ...buildSkillSelectOptions(
+              skillsOptions,
+              availableProficiencySkills,
+              currentSkillProficiency
+            ).map((option) => ({
+              disabled: option.disabled,
+              label: option.label,
+              value: option.skill
+            }))
+          ]}
+          onChange={(nextValue) =>
+            onChange({
+              ...choice,
+              skillProficiency: nextValue as PendingSkillExpertChoice["skillProficiency"],
+              skillExpertise:
+                choice.skillExpertise === choice.skillProficiency
+                  ? skillExpertNoneOptionValue
+                  : choice.skillExpertise
+            })
+          }
+        />
+        <SelectField
+          label="Expertise"
+          value={choice.skillExpertise}
+          options={[
+            {
+              label: "-",
+              value: skillExpertNoneOptionValue
+            },
+            ...buildSkillSelectOptions(
+              skillsOptions,
+              availableExpertiseSkills,
+              currentSkillExpertise
+            ).map((option) => ({
+              disabled: option.disabled,
+              label: option.label,
+              value: option.skill
+            }))
+          ]}
+          onChange={(nextValue) =>
+            onChange({
+              ...choice,
+              skillExpertise: nextValue as PendingSkillExpertChoice["skillExpertise"]
+            })
+          }
+        />
+      </div>
+      {summary ? <p className={modalStyles.summary}>{summary}</p> : null}
+      {!isValid ? (
+        <p className={modalStyles.validation}>
+          Choose an ability, one new skill proficiency, and one proficient skill for Expertise.
         </p>
       ) : null}
     </InlineEditorFrame>
@@ -1361,6 +1930,7 @@ function AbilityScoreImprovementEditor({
 function renderInlineEditor({
   featDefinition,
   featEligibility,
+  characterLevel,
   skillProficiencies,
   savingThrowProficiencies,
   toolProficiencies,
@@ -1391,10 +1961,22 @@ function renderInlineEditor({
   onSavePendingObservantChoice,
   onSavePendingPiercerChoice,
   onSavePendingPoisonerChoice,
+  onSavePendingPolearmMasterChoice,
+  onSavePendingRitualCasterChoice,
   onSavePendingResilientChoice,
+  onSavePendingSentinelChoice,
+  onSavePendingShadowTouchedChoice,
+  onSavePendingSlasherChoice,
+  onSavePendingSpellSniperChoice,
+  onSavePendingTelekineticChoice,
+  onSavePendingTelepathicChoice,
+  onSavePendingWarCasterChoice,
+  onSavePendingSkillExpertChoice,
   onSavePendingSpeedyChoice,
   onSavePendingWeaponMasterChoice,
+  onSavePendingBoonOfEnergyResistanceChoice,
   onSavePendingBoonOfIrresistibleOffense,
+  onSavePendingBoonOfSkillChoice,
   onSavePendingBlessedWarriorChoice,
   onSavePendingCrafterChoice,
   onSavePendingDruidicWarriorChoice,
@@ -2047,6 +2629,66 @@ function renderInlineEditor({
     );
   }
 
+  if (featDefinition.feat === FEATS.POLEARM_MASTER && pendingFeatState.polearmMasterChoice) {
+    return (
+      <SingleAbilityEditor
+        title="Polearm Master"
+        cancelLabel="Cancel polearm master selection"
+        label="Ability"
+        summary={
+          getPendingPolearmMasterChoiceSummary(pendingFeatState.polearmMasterChoice) ?? ""
+        }
+        value={pendingFeatState.polearmMasterChoice.ability}
+        options={[...polearmMasterAbilityOptions]}
+        onCancel={() =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            polearmMasterChoice: null
+          }))
+        }
+        onSave={onSavePendingPolearmMasterChoice}
+        onChange={(nextValue) =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            polearmMasterChoice: current.polearmMasterChoice
+              ? {
+                  ability: nextValue as PendingPolearmMasterChoice["ability"]
+                }
+              : current.polearmMasterChoice
+          }))
+        }
+      />
+    );
+  }
+
+  if (featDefinition.feat === FEATS.RITUAL_CASTER && pendingFeatState.ritualCasterChoice) {
+    const ritualCasterChoice = pendingFeatState.ritualCasterChoice;
+
+    return (
+      <RitualCasterChoiceEditor
+        choice={ritualCasterChoice}
+        characterLevel={characterLevel}
+        summary={getPendingRitualCasterChoiceSummary(ritualCasterChoice, characterLevel)}
+        isValid={isPendingRitualCasterChoiceValid(ritualCasterChoice, characterLevel)}
+        onCancel={() =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            ritualCasterChoice: null
+          }))
+        }
+        onSave={onSavePendingRitualCasterChoice}
+        onChange={(nextChoice) =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            ritualCasterChoice: current.ritualCasterChoice
+              ? nextChoice
+              : current.ritualCasterChoice
+          }))
+        }
+      />
+    );
+  }
+
   if (featDefinition.feat === FEATS.RESILIENT && pendingFeatState.resilientChoice) {
     const resilientChoice = pendingFeatState.resilientChoice;
 
@@ -2067,6 +2709,241 @@ function renderInlineEditor({
           onPendingFeatStateChange((current) => ({
             ...current,
             resilientChoice: current.resilientChoice ? nextChoice : current.resilientChoice
+          }))
+        }
+      />
+    );
+  }
+
+  if (featDefinition.feat === FEATS.SENTINEL && pendingFeatState.sentinelChoice) {
+    return (
+      <SingleAbilityEditor
+        title="Sentinel"
+        cancelLabel="Cancel sentinel selection"
+        label="Ability"
+        summary={getPendingSentinelChoiceSummary(pendingFeatState.sentinelChoice) ?? ""}
+        value={pendingFeatState.sentinelChoice.ability}
+        options={[...sentinelAbilityOptions]}
+        onCancel={() =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            sentinelChoice: null
+          }))
+        }
+        onSave={onSavePendingSentinelChoice}
+        onChange={(nextValue) =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            sentinelChoice: current.sentinelChoice
+              ? {
+                  ability: nextValue as PendingSentinelChoice["ability"]
+                }
+              : current.sentinelChoice
+          }))
+        }
+      />
+    );
+  }
+
+  if (featDefinition.feat === FEATS.SHADOW_TOUCHED && pendingFeatState.shadowTouchedChoice) {
+    const shadowTouchedChoice = pendingFeatState.shadowTouchedChoice;
+
+    return (
+      <ShadowTouchedChoiceEditor
+        choice={shadowTouchedChoice}
+        summary={getPendingShadowTouchedChoiceSummary(shadowTouchedChoice)}
+        isValid={isPendingShadowTouchedChoiceValid(shadowTouchedChoice)}
+        onCancel={() =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            shadowTouchedChoice: null
+          }))
+        }
+        onSave={onSavePendingShadowTouchedChoice}
+        onChange={(nextChoice) =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            shadowTouchedChoice: current.shadowTouchedChoice
+              ? nextChoice
+              : current.shadowTouchedChoice
+          }))
+        }
+      />
+    );
+  }
+
+  if (featDefinition.feat === FEATS.SLASHER && pendingFeatState.slasherChoice) {
+    return (
+      <SingleAbilityEditor
+        title="Slasher"
+        cancelLabel="Cancel slasher selection"
+        label="Ability"
+        summary={getPendingSlasherChoiceSummary(pendingFeatState.slasherChoice) ?? ""}
+        value={pendingFeatState.slasherChoice.ability}
+        options={[...slasherAbilityOptions]}
+        onCancel={() =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            slasherChoice: null
+          }))
+        }
+        onSave={onSavePendingSlasherChoice}
+        onChange={(nextValue) =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            slasherChoice: current.slasherChoice
+              ? {
+                  ability: nextValue as PendingSlasherChoice["ability"]
+                }
+              : current.slasherChoice
+          }))
+        }
+      />
+    );
+  }
+
+  if (featDefinition.feat === FEATS.SPELL_SNIPER && pendingFeatState.spellSniperChoice) {
+    return (
+      <SingleAbilityEditor
+        title="Spell Sniper"
+        cancelLabel="Cancel spell sniper selection"
+        label="Ability"
+        summary={getPendingSpellSniperChoiceSummary(pendingFeatState.spellSniperChoice) ?? ""}
+        value={pendingFeatState.spellSniperChoice.ability}
+        options={[...spellSniperAbilityOptions]}
+        onCancel={() =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            spellSniperChoice: null
+          }))
+        }
+        onSave={onSavePendingSpellSniperChoice}
+        onChange={(nextValue) =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            spellSniperChoice: current.spellSniperChoice
+              ? {
+                  ability: nextValue as PendingSpellSniperChoice["ability"]
+                }
+              : current.spellSniperChoice
+          }))
+        }
+      />
+    );
+  }
+
+  if (featDefinition.feat === FEATS.TELEKINETIC && pendingFeatState.telekineticChoice) {
+    return (
+      <SingleAbilityEditor
+        title="Telekinetic"
+        cancelLabel="Cancel telekinetic selection"
+        label="Ability"
+        summary={getPendingTelekineticChoiceSummary(pendingFeatState.telekineticChoice) ?? ""}
+        value={pendingFeatState.telekineticChoice.ability}
+        options={[...telekineticAbilityOptions]}
+        onCancel={() =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            telekineticChoice: null
+          }))
+        }
+        onSave={onSavePendingTelekineticChoice}
+        onChange={(nextValue) =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            telekineticChoice: current.telekineticChoice
+              ? {
+                  ability: nextValue as PendingTelekineticChoice["ability"]
+                }
+              : current.telekineticChoice
+          }))
+        }
+      />
+    );
+  }
+
+  if (featDefinition.feat === FEATS.TELEPATHIC && pendingFeatState.telepathicChoice) {
+    return (
+      <SingleAbilityEditor
+        title="Telepathic"
+        cancelLabel="Cancel telepathic selection"
+        label="Ability"
+        summary={getPendingTelepathicChoiceSummary(pendingFeatState.telepathicChoice) ?? ""}
+        value={pendingFeatState.telepathicChoice.ability}
+        options={[...telepathicAbilityOptions]}
+        onCancel={() =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            telepathicChoice: null
+          }))
+        }
+        onSave={onSavePendingTelepathicChoice}
+        onChange={(nextValue) =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            telepathicChoice: current.telepathicChoice
+              ? {
+                  ability: nextValue as PendingTelepathicChoice["ability"]
+                }
+              : current.telepathicChoice
+          }))
+        }
+      />
+    );
+  }
+
+  if (featDefinition.feat === FEATS.WAR_CASTER && pendingFeatState.warCasterChoice) {
+    return (
+      <SingleAbilityEditor
+        title="War Caster"
+        cancelLabel="Cancel war caster selection"
+        label="Ability"
+        summary={getPendingWarCasterChoiceSummary(pendingFeatState.warCasterChoice) ?? ""}
+        value={pendingFeatState.warCasterChoice.ability}
+        options={[...warCasterAbilityOptions]}
+        onCancel={() =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            warCasterChoice: null
+          }))
+        }
+        onSave={onSavePendingWarCasterChoice}
+        onChange={(nextValue) =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            warCasterChoice: current.warCasterChoice
+              ? {
+                  ability: nextValue as PendingWarCasterChoice["ability"]
+                }
+              : current.warCasterChoice
+          }))
+        }
+      />
+    );
+  }
+
+  if (featDefinition.feat === FEATS.SKILL_EXPERT && pendingFeatState.skillExpertChoice) {
+    const skillExpertChoice = pendingFeatState.skillExpertChoice;
+
+    return (
+      <SkillExpertChoiceEditor
+        choice={skillExpertChoice}
+        summary={getPendingSkillExpertChoiceSummary(skillExpertChoice)}
+        isValid={isPendingSkillExpertChoiceValid(skillExpertChoice)}
+        skillProficiencies={skillProficiencies}
+        onCancel={() =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            skillExpertChoice: null
+          }))
+        }
+        onSave={onSavePendingSkillExpertChoice}
+        onChange={(nextChoice) =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            skillExpertChoice: current.skillExpertChoice
+              ? nextChoice
+              : current.skillExpertChoice
           }))
         }
       />
@@ -2124,6 +3001,64 @@ function renderInlineEditor({
             weaponMasterChoice: current.weaponMasterChoice
               ? nextChoice
               : current.weaponMasterChoice
+          }))
+        }
+      />
+    );
+  }
+
+  if (
+    featDefinition.feat === FEATS.BOON_OF_ENERGY_RESISTANCE &&
+    pendingFeatState.boonOfEnergyResistanceChoice
+  ) {
+    const choice = pendingFeatState.boonOfEnergyResistanceChoice;
+
+    return (
+      <BoonOfEnergyResistanceChoiceEditor
+        choice={choice}
+        summary={getPendingBoonOfEnergyResistanceChoiceSummary(choice)}
+        isValid={isPendingBoonOfEnergyResistanceChoiceValid(choice)}
+        onCancel={() =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            boonOfEnergyResistanceChoice: null
+          }))
+        }
+        onSave={onSavePendingBoonOfEnergyResistanceChoice}
+        onChange={(nextChoice) =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            boonOfEnergyResistanceChoice: current.boonOfEnergyResistanceChoice
+              ? nextChoice
+              : current.boonOfEnergyResistanceChoice
+          }))
+        }
+      />
+    );
+  }
+
+  if (featDefinition.feat === FEATS.BOON_OF_SKILL && pendingFeatState.boonOfSkillChoice) {
+    const choice = pendingFeatState.boonOfSkillChoice;
+
+    return (
+      <BoonOfSkillChoiceEditor
+        choice={choice}
+        summary={getPendingBoonOfSkillChoiceSummary(choice)}
+        isValid={isPendingBoonOfSkillChoiceValid(choice)}
+        skillProficiencies={skillProficiencies}
+        onCancel={() =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            boonOfSkillChoice: null
+          }))
+        }
+        onSave={onSavePendingBoonOfSkillChoice}
+        onChange={(nextChoice) =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            boonOfSkillChoice: current.boonOfSkillChoice
+              ? nextChoice
+              : current.boonOfSkillChoice
           }))
         }
       />
@@ -2454,6 +3389,7 @@ function renderInlineEditor({
 function FeatEditorCard({
   featDefinition,
   featEligibility,
+  characterLevel,
   skillProficiencies,
   savingThrowProficiencies,
   weaponProficiencies,
@@ -2490,10 +3426,22 @@ function FeatEditorCard({
   onSavePendingObservantChoice,
   onSavePendingPiercerChoice,
   onSavePendingPoisonerChoice,
+  onSavePendingPolearmMasterChoice,
+  onSavePendingRitualCasterChoice,
   onSavePendingResilientChoice,
+  onSavePendingSentinelChoice,
+  onSavePendingShadowTouchedChoice,
+  onSavePendingSlasherChoice,
+  onSavePendingSpellSniperChoice,
+  onSavePendingTelekineticChoice,
+  onSavePendingTelepathicChoice,
+  onSavePendingWarCasterChoice,
+  onSavePendingSkillExpertChoice,
   onSavePendingSpeedyChoice,
   onSavePendingWeaponMasterChoice,
+  onSavePendingBoonOfEnergyResistanceChoice,
   onSavePendingBoonOfIrresistibleOffense,
+  onSavePendingBoonOfSkillChoice,
   onSavePendingBlessedWarriorChoice,
   onSavePendingCrafterChoice,
   onSavePendingDruidicWarriorChoice,
@@ -2581,6 +3529,7 @@ function FeatEditorCard({
       {renderInlineEditor({
         featDefinition,
         featEligibility,
+        characterLevel,
         skillProficiencies,
         savingThrowProficiencies,
         weaponProficiencies,
@@ -2612,10 +3561,22 @@ function FeatEditorCard({
         onSavePendingObservantChoice,
         onSavePendingPiercerChoice,
         onSavePendingPoisonerChoice,
+        onSavePendingPolearmMasterChoice,
+        onSavePendingRitualCasterChoice,
         onSavePendingResilientChoice,
+        onSavePendingSentinelChoice,
+        onSavePendingShadowTouchedChoice,
+        onSavePendingSlasherChoice,
+        onSavePendingSpellSniperChoice,
+        onSavePendingTelekineticChoice,
+        onSavePendingTelepathicChoice,
+        onSavePendingWarCasterChoice,
+        onSavePendingSkillExpertChoice,
         onSavePendingSpeedyChoice,
         onSavePendingWeaponMasterChoice,
+        onSavePendingBoonOfEnergyResistanceChoice,
         onSavePendingBoonOfIrresistibleOffense,
+        onSavePendingBoonOfSkillChoice,
         onSavePendingBlessedWarriorChoice,
         onSavePendingCrafterChoice,
         onSavePendingDruidicWarriorChoice,

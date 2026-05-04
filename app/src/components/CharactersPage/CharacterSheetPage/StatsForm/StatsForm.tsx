@@ -82,6 +82,8 @@ import {
   getMageSlayerGuardedMindDescriptionAdditionsForCharacter,
   getMageSlayerGuardedMindStateForCharacter,
   getMediumArmorMasterArmorClassDescriptionAdditionsForCharacter,
+  getShieldMasterInterposeShieldDescriptionAdditionsForCharacter,
+  getWarCasterConcentrationDescriptionAdditionsForCharacter,
   spendMageSlayerGuardedMindForCharacter
 } from "../../../../pages/CharactersPage/feats/runtime";
 import {
@@ -486,6 +488,12 @@ function getAbilityDescriptionAdditions(
   );
   descriptionAdditions.push(
     ...getMageSlayerGuardedMindDescriptionAdditionsForCharacter(character, ability)
+  );
+  descriptionAdditions.push(
+    ...getShieldMasterInterposeShieldDescriptionAdditionsForCharacter(character, ability)
+  );
+  descriptionAdditions.push(
+    ...getWarCasterConcentrationDescriptionAdditionsForCharacter(character, ability)
   );
 
   return descriptionAdditions.length > 0 ? descriptionAdditions : undefined;

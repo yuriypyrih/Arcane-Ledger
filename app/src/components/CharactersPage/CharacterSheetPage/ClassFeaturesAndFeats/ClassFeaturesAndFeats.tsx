@@ -46,6 +46,8 @@ import {
   createPendingFeatStateForEntry,
   createPendingFeatStateForFeat,
   decodePendingBlessedWarriorChoice,
+  decodePendingBoonOfEnergyResistanceChoice,
+  decodePendingBoonOfSkillChoice,
   decodePendingChargerChoice,
   decodePendingChefChoice,
   decodePendingCrusherChoice,
@@ -65,7 +67,17 @@ import {
   decodePendingObservantChoice,
   decodePendingPiercerChoice,
   decodePendingPoisonerChoice,
+  decodePendingPolearmMasterChoice,
+  decodePendingRitualCasterChoice,
   decodePendingResilientChoice,
+  decodePendingSentinelChoice,
+  decodePendingShadowTouchedChoice,
+  decodePendingSlasherChoice,
+  decodePendingSpellSniperChoice,
+  decodePendingTelekineticChoice,
+  decodePendingTelepathicChoice,
+  decodePendingWarCasterChoice,
+  decodePendingSkillExpertChoice,
   decodePendingSpeedyChoice,
   decodePendingWeaponMasterChoice,
   decodePendingCrafterChoice,
@@ -626,6 +638,46 @@ function ClassFeaturesAndFeats({
     );
   }
 
+  function savePendingBoonOfEnergyResistanceChoice() {
+    const choice = pendingFeatState.boonOfEnergyResistanceChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const boonOfEnergyResistance = decodePendingBoonOfEnergyResistanceChoice(choice);
+
+    if (!boonOfEnergyResistance) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.BOON_OF_ENERGY_RESISTANCE, {
+        boonOfEnergyResistance
+      })
+    );
+  }
+
+  function savePendingBoonOfSkillChoice() {
+    const choice = pendingFeatState.boonOfSkillChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const boonOfSkill = decodePendingBoonOfSkillChoice(choice);
+
+    if (!boonOfSkill) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.BOON_OF_SKILL, {
+        boonOfSkill
+      })
+    );
+  }
+
   function savePendingAthleteChoice() {
     const choice = pendingFeatState.athleteChoice;
 
@@ -1031,6 +1083,46 @@ function ClassFeaturesAndFeats({
     );
   }
 
+  function savePendingPolearmMasterChoice() {
+    const choice = pendingFeatState.polearmMasterChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const polearmMaster = decodePendingPolearmMasterChoice(choice);
+
+    if (!polearmMaster) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.POLEARM_MASTER, {
+        polearmMaster
+      })
+    );
+  }
+
+  function savePendingRitualCasterChoice() {
+    const choice = pendingFeatState.ritualCasterChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const ritualCaster = decodePendingRitualCasterChoice(choice, character.level);
+
+    if (!ritualCaster) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.RITUAL_CASTER, {
+        ritualCaster
+      })
+    );
+  }
+
   function savePendingResilientChoice() {
     const choice = pendingFeatState.resilientChoice;
 
@@ -1047,6 +1139,166 @@ function ClassFeaturesAndFeats({
     upsertFeatForContext(
       createContextualFeatEntry(FEATS.RESILIENT, {
         resilient
+      })
+    );
+  }
+
+  function savePendingSentinelChoice() {
+    const choice = pendingFeatState.sentinelChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const sentinel = decodePendingSentinelChoice(choice);
+
+    if (!sentinel) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.SENTINEL, {
+        sentinel
+      })
+    );
+  }
+
+  function savePendingShadowTouchedChoice() {
+    const choice = pendingFeatState.shadowTouchedChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const shadowTouched = decodePendingShadowTouchedChoice(choice);
+
+    if (!shadowTouched) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.SHADOW_TOUCHED, {
+        shadowTouched
+      })
+    );
+  }
+
+  function savePendingSlasherChoice() {
+    const choice = pendingFeatState.slasherChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const slasher = decodePendingSlasherChoice(choice);
+
+    if (!slasher) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.SLASHER, {
+        slasher
+      })
+    );
+  }
+
+  function savePendingSpellSniperChoice() {
+    const choice = pendingFeatState.spellSniperChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const spellSniper = decodePendingSpellSniperChoice(choice);
+
+    if (!spellSniper) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.SPELL_SNIPER, {
+        spellSniper
+      })
+    );
+  }
+
+  function savePendingTelekineticChoice() {
+    const choice = pendingFeatState.telekineticChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const telekinetic = decodePendingTelekineticChoice(choice);
+
+    if (!telekinetic) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.TELEKINETIC, {
+        telekinetic
+      })
+    );
+  }
+
+  function savePendingTelepathicChoice() {
+    const choice = pendingFeatState.telepathicChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const telepathic = decodePendingTelepathicChoice(choice);
+
+    if (!telepathic) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.TELEPATHIC, {
+        telepathic
+      })
+    );
+  }
+
+  function savePendingWarCasterChoice() {
+    const choice = pendingFeatState.warCasterChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const warCaster = decodePendingWarCasterChoice(choice);
+
+    if (!warCaster) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.WAR_CASTER, {
+        warCaster
+      })
+    );
+  }
+
+  function savePendingSkillExpertChoice() {
+    const choice = pendingFeatState.skillExpertChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const skillExpert = decodePendingSkillExpertChoice(choice);
+
+    if (!skillExpert) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.SKILL_EXPERT, {
+        skillExpert
       })
     );
   }
@@ -1389,6 +1641,7 @@ function ClassFeaturesAndFeats({
         <FeatEditorModal
           context={featEditorContext}
           activeFeatCategory={activeFeatCategory}
+          characterLevel={character.level}
           visibleFeatCategories={visibleFeatCategories}
           visibleFeatDefinitionsByCategory={visibleFeatDefinitionsByCategory}
           featEligibilityByFeat={featEligibilityByFeat}
@@ -1430,10 +1683,22 @@ function ClassFeaturesAndFeats({
           onSavePendingObservantChoice={savePendingObservantChoice}
           onSavePendingPiercerChoice={savePendingPiercerChoice}
           onSavePendingPoisonerChoice={savePendingPoisonerChoice}
+          onSavePendingPolearmMasterChoice={savePendingPolearmMasterChoice}
+          onSavePendingRitualCasterChoice={savePendingRitualCasterChoice}
           onSavePendingResilientChoice={savePendingResilientChoice}
+          onSavePendingSentinelChoice={savePendingSentinelChoice}
+          onSavePendingShadowTouchedChoice={savePendingShadowTouchedChoice}
+          onSavePendingSlasherChoice={savePendingSlasherChoice}
+          onSavePendingSpellSniperChoice={savePendingSpellSniperChoice}
+          onSavePendingTelekineticChoice={savePendingTelekineticChoice}
+          onSavePendingTelepathicChoice={savePendingTelepathicChoice}
+          onSavePendingWarCasterChoice={savePendingWarCasterChoice}
+          onSavePendingSkillExpertChoice={savePendingSkillExpertChoice}
           onSavePendingSpeedyChoice={savePendingSpeedyChoice}
           onSavePendingWeaponMasterChoice={savePendingWeaponMasterChoice}
+          onSavePendingBoonOfEnergyResistanceChoice={savePendingBoonOfEnergyResistanceChoice}
           onSavePendingBoonOfIrresistibleOffense={savePendingBoonOfIrresistibleOffense}
+          onSavePendingBoonOfSkillChoice={savePendingBoonOfSkillChoice}
           onSavePendingBlessedWarriorChoice={savePendingBlessedWarriorChoice}
           onSavePendingCrafterChoice={savePendingCrafterChoice}
           onSavePendingDruidicWarriorChoice={savePendingDruidicWarriorChoice}

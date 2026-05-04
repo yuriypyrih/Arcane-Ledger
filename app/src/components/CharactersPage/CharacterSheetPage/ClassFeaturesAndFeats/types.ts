@@ -30,11 +30,22 @@ import type {
   ObservantChoice,
   PiercerChoice,
   PoisonerChoice,
+  PolearmMasterChoice,
+  RitualCasterChoice,
   ResilientChoice,
+  SentinelChoice,
+  ShadowTouchedChoice,
+  SlasherChoice,
+  SpellSniperChoice,
+  TelekineticChoice,
+  TelepathicChoice,
+  WarCasterChoice,
+  SkillExpertChoice,
   SpeedyChoice,
   WeaponMasterChoice,
   MagicInitiateChoice,
   MusicianChoice,
+  BoonOfSkillChoice,
   SkilledChoice
 } from "../../../../types";
 import type { FeatEligibilityResult } from "../../../../pages/CharactersPage/feats/eligibility";
@@ -73,6 +84,16 @@ export type PendingAbilityScoreImprovement = {
 
 export type PendingBoonOfIrresistibleOffense = {
   ability: "STR" | "DEX";
+};
+
+export type PendingBoonOfEnergyResistanceChoice = {
+  ability: AbilityKey;
+  damageTypes: [string, string];
+};
+
+export type PendingBoonOfSkillChoice = {
+  ability: AbilityKey;
+  skillExpertise: BoonOfSkillChoice["skillExpertise"] | "none";
 };
 
 export type PendingAthleteChoice = {
@@ -158,8 +179,52 @@ export type PendingPoisonerChoice = {
   ability: PoisonerChoice["ability"];
 };
 
+export type PendingPolearmMasterChoice = {
+  ability: PolearmMasterChoice["ability"];
+};
+
+export type PendingRitualCasterChoice = {
+  ability: RitualCasterChoice["ability"];
+  spellIds: string[];
+};
+
 export type PendingResilientChoice = {
   ability: ResilientChoice["ability"] | "none";
+};
+
+export type PendingSentinelChoice = {
+  ability: SentinelChoice["ability"];
+};
+
+export type PendingShadowTouchedChoice = {
+  ability: ShadowTouchedChoice["ability"];
+  spellId: string;
+};
+
+export type PendingSlasherChoice = {
+  ability: SlasherChoice["ability"];
+};
+
+export type PendingSpellSniperChoice = {
+  ability: SpellSniperChoice["ability"];
+};
+
+export type PendingTelekineticChoice = {
+  ability: TelekineticChoice["ability"];
+};
+
+export type PendingTelepathicChoice = {
+  ability: TelepathicChoice["ability"];
+};
+
+export type PendingWarCasterChoice = {
+  ability: WarCasterChoice["ability"];
+};
+
+export type PendingSkillExpertChoice = {
+  ability: SkillExpertChoice["ability"];
+  skillProficiency: SkillExpertChoice["skillProficiency"] | "none";
+  skillExpertise: SkillExpertChoice["skillExpertise"] | "none";
 };
 
 export type PendingSpeedyChoice = {
@@ -237,10 +302,22 @@ export type PendingFeatState = {
   observantChoice: PendingObservantChoice | null;
   piercerChoice: PendingPiercerChoice | null;
   poisonerChoice: PendingPoisonerChoice | null;
+  polearmMasterChoice: PendingPolearmMasterChoice | null;
+  ritualCasterChoice: PendingRitualCasterChoice | null;
   resilientChoice: PendingResilientChoice | null;
+  sentinelChoice: PendingSentinelChoice | null;
+  shadowTouchedChoice: PendingShadowTouchedChoice | null;
+  slasherChoice: PendingSlasherChoice | null;
+  spellSniperChoice: PendingSpellSniperChoice | null;
+  telekineticChoice: PendingTelekineticChoice | null;
+  telepathicChoice: PendingTelepathicChoice | null;
+  warCasterChoice: PendingWarCasterChoice | null;
+  skillExpertChoice: PendingSkillExpertChoice | null;
   speedyChoice: PendingSpeedyChoice | null;
   weaponMasterChoice: PendingWeaponMasterChoice | null;
+  boonOfEnergyResistanceChoice: PendingBoonOfEnergyResistanceChoice | null;
   boonOfIrresistibleOffense: PendingBoonOfIrresistibleOffense | null;
+  boonOfSkillChoice: PendingBoonOfSkillChoice | null;
   blessedWarriorChoice: PendingBlessedWarriorChoice | null;
   crafterChoice: PendingCrafterChoice | null;
   druidicWarriorChoice: PendingDruidicWarriorChoice | null;
@@ -258,6 +335,8 @@ export type RepeatableFeatChoice =
   | FeyTouchedChoice
   | MagicInitiateChoice
   | MusicianChoice
+  | RitualCasterChoice
+  | ShadowTouchedChoice
   | SkilledChoice;
 
 export type FeatCategoryTabs = FEAT_CATEGORY[];

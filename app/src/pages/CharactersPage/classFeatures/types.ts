@@ -161,6 +161,7 @@ export type FeatureActionFormKind =
   | "lay-on-hands"
   | "nature-magician"
   | "portent"
+  | "recover-vitality"
   | "third-eye"
   | "starry-form"
   | "sneak-attack"

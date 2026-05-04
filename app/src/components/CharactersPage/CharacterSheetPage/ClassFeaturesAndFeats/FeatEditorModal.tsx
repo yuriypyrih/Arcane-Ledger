@@ -31,6 +31,7 @@ import type {
 type FeatEditorModalProps = {
   context: FeatEditorContext;
   activeFeatCategory: FEAT_CATEGORY;
+  characterLevel: number;
   visibleFeatCategories: FEAT_CATEGORY[];
   visibleFeatDefinitionsByCategory: Record<FEAT_CATEGORY, FeatDefinition[]>;
   featEligibilityByFeat: FeatEligibilityByFeat;
@@ -72,10 +73,22 @@ type FeatEditorModalProps = {
   onSavePendingObservantChoice: () => void;
   onSavePendingPiercerChoice: () => void;
   onSavePendingPoisonerChoice: () => void;
+  onSavePendingPolearmMasterChoice: () => void;
+  onSavePendingRitualCasterChoice: () => void;
   onSavePendingResilientChoice: () => void;
+  onSavePendingSentinelChoice: () => void;
+  onSavePendingShadowTouchedChoice: () => void;
+  onSavePendingSlasherChoice: () => void;
+  onSavePendingSpellSniperChoice: () => void;
+  onSavePendingTelekineticChoice: () => void;
+  onSavePendingTelepathicChoice: () => void;
+  onSavePendingWarCasterChoice: () => void;
+  onSavePendingSkillExpertChoice: () => void;
   onSavePendingSpeedyChoice: () => void;
   onSavePendingWeaponMasterChoice: () => void;
+  onSavePendingBoonOfEnergyResistanceChoice: () => void;
   onSavePendingBoonOfIrresistibleOffense: () => void;
+  onSavePendingBoonOfSkillChoice: () => void;
   onSavePendingBlessedWarriorChoice: () => void;
   onSavePendingCrafterChoice: () => void;
   onSavePendingDruidicWarriorChoice: () => void;
@@ -88,6 +101,7 @@ type FeatEditorModalProps = {
 function FeatEditorModal({
   context,
   activeFeatCategory,
+  characterLevel,
   visibleFeatCategories,
   visibleFeatDefinitionsByCategory,
   featEligibilityByFeat,
@@ -129,10 +143,22 @@ function FeatEditorModal({
   onSavePendingObservantChoice,
   onSavePendingPiercerChoice,
   onSavePendingPoisonerChoice,
+  onSavePendingPolearmMasterChoice,
+  onSavePendingRitualCasterChoice,
   onSavePendingResilientChoice,
+  onSavePendingSentinelChoice,
+  onSavePendingShadowTouchedChoice,
+  onSavePendingSlasherChoice,
+  onSavePendingSpellSniperChoice,
+  onSavePendingTelekineticChoice,
+  onSavePendingTelepathicChoice,
+  onSavePendingWarCasterChoice,
+  onSavePendingSkillExpertChoice,
   onSavePendingSpeedyChoice,
   onSavePendingWeaponMasterChoice,
+  onSavePendingBoonOfEnergyResistanceChoice,
   onSavePendingBoonOfIrresistibleOffense,
+  onSavePendingBoonOfSkillChoice,
   onSavePendingBlessedWarriorChoice,
   onSavePendingCrafterChoice,
   onSavePendingDruidicWarriorChoice,
@@ -192,6 +218,7 @@ function FeatEditorModal({
               key={featDefinition.feat}
               featDefinition={featDefinition}
               featEligibility={featEligibilityByFeat[featDefinition.feat]}
+              characterLevel={characterLevel}
               skillProficiencies={skillProficiencies}
               savingThrowProficiencies={savingThrowProficiencies}
               weaponProficiencies={weaponProficiencies}
@@ -228,10 +255,24 @@ function FeatEditorModal({
               onSavePendingObservantChoice={onSavePendingObservantChoice}
               onSavePendingPiercerChoice={onSavePendingPiercerChoice}
               onSavePendingPoisonerChoice={onSavePendingPoisonerChoice}
+              onSavePendingPolearmMasterChoice={onSavePendingPolearmMasterChoice}
+              onSavePendingRitualCasterChoice={onSavePendingRitualCasterChoice}
               onSavePendingResilientChoice={onSavePendingResilientChoice}
+              onSavePendingSentinelChoice={onSavePendingSentinelChoice}
+              onSavePendingShadowTouchedChoice={onSavePendingShadowTouchedChoice}
+              onSavePendingSlasherChoice={onSavePendingSlasherChoice}
+              onSavePendingSpellSniperChoice={onSavePendingSpellSniperChoice}
+              onSavePendingTelekineticChoice={onSavePendingTelekineticChoice}
+              onSavePendingTelepathicChoice={onSavePendingTelepathicChoice}
+              onSavePendingWarCasterChoice={onSavePendingWarCasterChoice}
+              onSavePendingSkillExpertChoice={onSavePendingSkillExpertChoice}
               onSavePendingSpeedyChoice={onSavePendingSpeedyChoice}
               onSavePendingWeaponMasterChoice={onSavePendingWeaponMasterChoice}
+              onSavePendingBoonOfEnergyResistanceChoice={
+                onSavePendingBoonOfEnergyResistanceChoice
+              }
               onSavePendingBoonOfIrresistibleOffense={onSavePendingBoonOfIrresistibleOffense}
+              onSavePendingBoonOfSkillChoice={onSavePendingBoonOfSkillChoice}
               onSavePendingBlessedWarriorChoice={onSavePendingBlessedWarriorChoice}
               onSavePendingCrafterChoice={onSavePendingCrafterChoice}
               onSavePendingDruidicWarriorChoice={onSavePendingDruidicWarriorChoice}

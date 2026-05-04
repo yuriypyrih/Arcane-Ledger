@@ -18,6 +18,35 @@ export type BoonOfIrresistibleOffenseChoice = {
   ability: "STR" | "DEX";
 };
 
+export type BoonOfEnergyResistanceDamageType =
+  | DAMAGE_TYPE.ACID
+  | DAMAGE_TYPE.COLD
+  | DAMAGE_TYPE.FIRE
+  | DAMAGE_TYPE.LIGHTNING
+  | DAMAGE_TYPE.NECROTIC
+  | DAMAGE_TYPE.POISON
+  | DAMAGE_TYPE.PSYCHIC
+  | DAMAGE_TYPE.RADIANT
+  | DAMAGE_TYPE.THUNDER;
+
+export type BoonOfEnergyResistanceChoice = {
+  ability: AbilityKey;
+  damageTypes: [BoonOfEnergyResistanceDamageType, BoonOfEnergyResistanceDamageType];
+};
+
+export type BoonOfFateState = {
+  improveFateExpended?: boolean;
+};
+
+export type BoonOfRecoveryState = {
+  recoverVitalityDiceExpended?: number;
+};
+
+export type BoonOfSkillChoice = {
+  ability: AbilityKey;
+  skillExpertise: SkillName;
+};
+
 export type AthleteChoice = {
   ability: "STR" | "DEX";
 };
@@ -108,8 +137,55 @@ export type PoisonerChoice = {
   ability: "DEX" | "INT";
 };
 
+export type PolearmMasterChoice = {
+  ability: "DEX" | "STR";
+};
+
+export type RitualCasterChoice = {
+  ability: "INT" | "WIS" | "CHA";
+  spellIds: string[];
+  quickRitualExpended?: boolean;
+};
+
 export type ResilientChoice = {
   ability: AbilityKey;
+};
+
+export type SentinelChoice = {
+  ability: "STR" | "DEX";
+};
+
+export type ShadowTouchedChoice = {
+  ability: "INT" | "WIS" | "CHA";
+  spellId: string;
+  freeCastExpendedSpellIds?: string[];
+};
+
+export type SlasherChoice = {
+  ability: "STR" | "DEX";
+};
+
+export type SpellSniperChoice = {
+  ability: "INT" | "WIS" | "CHA";
+};
+
+export type TelekineticChoice = {
+  ability: "INT" | "WIS" | "CHA";
+};
+
+export type TelepathicChoice = {
+  ability: "INT" | "WIS" | "CHA";
+  detectThoughtsExpended?: boolean;
+};
+
+export type WarCasterChoice = {
+  ability: "INT" | "WIS" | "CHA";
+};
+
+export type SkillExpertChoice = {
+  ability: AbilityKey;
+  skillProficiency: SkillName;
+  skillExpertise: SkillName;
 };
 
 export type SpeedyChoice = {
@@ -207,7 +283,17 @@ export type CharacterFeatEntry = {
   observant?: ObservantChoice;
   piercer?: PiercerChoice;
   poisoner?: PoisonerChoice;
+  polearmMaster?: PolearmMasterChoice;
+  ritualCaster?: RitualCasterChoice;
   resilient?: ResilientChoice;
+  sentinel?: SentinelChoice;
+  shadowTouched?: ShadowTouchedChoice;
+  slasher?: SlasherChoice;
+  spellSniper?: SpellSniperChoice;
+  telekinetic?: TelekineticChoice;
+  telepathic?: TelepathicChoice;
+  warCaster?: WarCasterChoice;
+  skillExpert?: SkillExpertChoice;
   speedy?: SpeedyChoice;
   weaponMaster?: WeaponMasterChoice;
   blessedWarrior?: BlessedWarriorChoice;
@@ -215,7 +301,11 @@ export type CharacterFeatEntry = {
   magicInitiate?: MagicInitiateChoice;
   musician?: MusicianChoice;
   crafter?: CrafterChoice;
+  boonOfEnergyResistance?: BoonOfEnergyResistanceChoice;
+  boonOfFate?: BoonOfFateState;
   boonOfIrresistibleOffense?: BoonOfIrresistibleOffenseChoice;
+  boonOfRecovery?: BoonOfRecoveryState;
+  boonOfSkill?: BoonOfSkillChoice;
   epicBoonAbilityChoice?: EpicBoonAbilityChoice;
   skilled?: SkilledChoice;
   lucky?: LuckyChoice;

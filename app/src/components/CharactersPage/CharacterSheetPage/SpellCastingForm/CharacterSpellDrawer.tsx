@@ -76,6 +76,10 @@ export type CharacterSpellDrawerActionOptions = {
   useOverchannel?: boolean;
   useMagicInitiate?: boolean;
   useFeyMagic?: boolean;
+  useQuickRitual?: boolean;
+  useShadowMagic?: boolean;
+  useDetectThoughts?: boolean;
+  useBoonOfSpellRecall?: boolean;
 };
 
 export type CharacterSpellDrawerActionRadioOption = {
@@ -231,11 +235,14 @@ function CharacterSpellDrawer({
   const [isRitualCastingSelected, setIsRitualCastingSelected] = useState(ritualCastingRequired);
   const spellLevel = getSpellLevel(spell);
   const minimumSelectedSlotLevel = Math.max(1, spellLevel, minimumActionSpellSlotLevel);
+  const isQuickRitualSelected = actionOptions.some(
+    (option) => option.id === "quick-ritual" && option.checked
+  );
   const ritualCastingAvailable =
     mode === "standard" &&
     spellLevel > 0 &&
     spell.ritual === true &&
-    (actionConsumesSpellSlot || allowRitualCasting);
+    (actionConsumesSpellSlot || allowRitualCasting || isQuickRitualSelected);
   const normalizedSelectedSpellSlotLevel = clampNumber(
     selectedSpellSlotLevel,
     minimumSelectedSlotLevel,
@@ -277,7 +284,8 @@ function CharacterSpellDrawer({
     mode === "standard" &&
     spellLevel > 0 &&
     (actionConsumesSpellSlot || freeCastSlotLevel !== null) &&
-    !isRitualCastingSelected;
+    !isRitualCastingSelected &&
+    !isQuickRitualSelected;
   const effectiveBlockedReason =
     isRitualCastingSelected || ritualCastingRequired ? null : blockedReason;
   const missingRequiredActionOptionSelection =
@@ -311,14 +319,16 @@ function CharacterSpellDrawer({
   const castingTimeActionShape = getActionShapeForCastingTime(spell.castingTime);
   const footerActionShape =
     actionShape ??
-    (isRitualCastingSelected || ritualCastingRequired ? "nonCombat" : castingTimeActionShape);
+    ((isRitualCastingSelected || ritualCastingRequired) && !isQuickRitualSelected
+      ? "nonCombat"
+      : castingTimeActionShape);
   const castingTimeActionShapeTitle = castingTimeActionShape
     ? getActionShapeTitle(castingTimeActionShape)
     : null;
   const visibleActionWarning =
     requiredActionOptionWarning ?? (isSpentActionWarning(actionWarning) ? null : actionWarning);
   const baseActionOptions = {
-    castAsRitual: ritualCastingRequired || isRitualCastingSelected,
+    castAsRitual: !isQuickRitualSelected && (ritualCastingRequired || isRitualCastingSelected),
     useMindMagic:
       !isRitualCastingSelected &&
       actionOptions.some((option) => option.id === "mind-magic" && option.checked),
@@ -345,6 +355,13 @@ function CharacterSpellDrawer({
     ),
     useFeyMagic: actionOptions.some(
       (option) => option.id === "fey-magic" && option.checked
+    ),
+    useQuickRitual: isQuickRitualSelected,
+    useShadowMagic: actionOptions.some(
+      (option) => option.id === "shadow-magic" && option.checked
+    ),
+    useDetectThoughts: actionOptions.some(
+      (option) => option.id === "detect-thoughts" && option.checked
     )
   };
   const resolvedActionPaths =
@@ -437,6 +454,14 @@ function CharacterSpellDrawer({
   }, [isMindMagicSelected]);
 
   useEffect(() => {
+    if (!isQuickRitualSelected) {
+      return;
+    }
+
+    setIsRitualCastingSelected(false);
+  }, [isQuickRitualSelected]);
+
+  useEffect(() => {
     if (!isRitualCastingSelected) {
       return;
     }
@@ -453,7 +478,7 @@ function CharacterSpellDrawer({
     spell.descriptionAdditions ?? []
   );
   const availabilityText =
-    isRitualCastingSelected || ritualCastingRequired
+    (isRitualCastingSelected || ritualCastingRequired) && !isQuickRitualSelected
       ? (actionAvailabilityText ??
         "Cast as a Ritual without expending a spell slot. Ritual casting can't be upcast.")
       : actionAvailabilityText;
@@ -701,8 +726,8 @@ function CharacterSpellDrawer({
                         <FeatureOptInToggle
                           className={actionStyles.ritualCastToggle}
                           label={ritualCastingRequired ? "Ritual Casting Only" : "Cast as Ritual"}
-                          checked={isRitualCastingSelected}
-                          disabled={ritualCastingRequired}
+                          checked={isRitualCastingSelected && !isQuickRitualSelected}
+                          disabled={ritualCastingRequired || isQuickRitualSelected}
                           onCheckedChange={setIsRitualCastingSelected}
                           checkboxAccentColor="#c96c14"
                         />

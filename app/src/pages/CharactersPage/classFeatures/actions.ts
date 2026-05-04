@@ -28,7 +28,11 @@ import {
   getCustomTraitSavingThrowBonuses,
   getCustomTraitWeaponDamageBonuses
 } from "../customTraitEffects";
-import { getFeatActionsForCharacter, transformFeatCommonActionForCharacter } from "../feats/runtime";
+import {
+  getFeatActionsForCharacter,
+  transformFeatCommonActionForCharacter,
+  transformFeatWeaponActionForCharacter
+} from "../feats/runtime";
 import {
   activateBardicInspiration,
   activateBardCollegeOfDanceInspiringMovement,
@@ -643,6 +647,7 @@ export function transformWeaponActionForCharacter(
     | "classFeatureState"
     | "equipment"
     | "customEquipment"
+    | "feats"
     | "statusEntries"
   >,
   action: WeaponAction
@@ -653,9 +658,11 @@ export function transformWeaponActionForCharacter(
     ? baseFeatureState.transformWeaponAction(action)
     : action;
 
-  return subclassDerivedState.transformWeaponAction
+  const classFeatureAction = subclassDerivedState.transformWeaponAction
     ? subclassDerivedState.transformWeaponAction(baseAction)
     : baseAction;
+
+  return transformFeatWeaponActionForCharacter(character, classFeatureAction);
 }
 
 export function getFeatureActionOptionsForCharacter(

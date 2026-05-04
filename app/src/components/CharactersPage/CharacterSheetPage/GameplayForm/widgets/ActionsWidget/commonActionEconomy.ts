@@ -16,6 +16,7 @@ import {
 import { hasRogueCunningActionCommonActionBonusPath } from "../../../../../../pages/CharactersPage/classFeatures/rogue/rogue";
 import {
   hasKeenMindStudyBonusActionPath,
+  hasBoonOfSpeedDisengageBonusActionPath,
   hasObservantSearchBonusActionPath
 } from "../../../../../../pages/CharactersPage/feats/runtime";
 import { getEconomyShapeState } from "../../gameplayWidgetUtils";
@@ -88,16 +89,30 @@ function getSecondaryCommonActionPathState(
   action: FeatureActionCard,
   roundTracker: RoundTrackerAvailability
 ): CommonActionPathState | null {
-  if (!shouldTrackRoundScopedResources(roundTracker)) {
-    return null;
-  }
-
   const hasMonkBonusPath = hasMonkFocusCommonActionBonusPath(character, action.key);
   const hasRogueBonusPath = hasRogueCunningActionCommonActionBonusPath(character, action.key);
   const hasKeenMindBonusPath = hasKeenMindStudyBonusActionPath(character, action.key);
   const hasObservantBonusPath = hasObservantSearchBonusActionPath(character, action.key);
+  const hasBoonOfSpeedBonusPath = hasBoonOfSpeedDisengageBonusActionPath(character, action.key);
 
-  if (!hasMonkBonusPath && !hasRogueBonusPath && !hasKeenMindBonusPath && !hasObservantBonusPath) {
+  if (
+    !hasMonkBonusPath &&
+    !hasRogueBonusPath &&
+    !hasKeenMindBonusPath &&
+    !hasObservantBonusPath &&
+    !hasBoonOfSpeedBonusPath
+  ) {
+    return null;
+  }
+
+  const shouldTrackRoundResources = shouldTrackRoundScopedResources(roundTracker);
+
+  if (
+    !shouldTrackRoundResources &&
+    !hasKeenMindBonusPath &&
+    !hasObservantBonusPath &&
+    !hasBoonOfSpeedBonusPath
+  ) {
     return null;
   }
 
@@ -106,8 +121,12 @@ function getSecondaryCommonActionPathState(
     economyType: ECONOMY_TYPE.BONUS_ACTION
   };
   const additionalUseCount =
-    getCommonActionAdditionalUseCount(character, bonusAction) +
-    (hasMonkBonusPath ? getMonkCommonActionBonusPathAdditionalUseCount(character, action.key) : 0);
+    shouldTrackRoundResources
+      ? getCommonActionAdditionalUseCount(character, bonusAction) +
+        (hasMonkBonusPath
+          ? getMonkCommonActionBonusPathAdditionalUseCount(character, action.key)
+          : 0)
+      : 0;
   const shapeState = getEconomyShapeState(
     ECONOMY_TYPE.BONUS_ACTION,
     roundTracker,

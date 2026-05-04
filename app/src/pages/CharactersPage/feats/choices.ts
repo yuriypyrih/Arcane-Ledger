@@ -30,7 +30,17 @@ import type {
   ObservantChoice,
   PiercerChoice,
   PoisonerChoice,
+  PolearmMasterChoice,
+  RitualCasterChoice,
   ResilientChoice,
+  SentinelChoice,
+  ShadowTouchedChoice,
+  SlasherChoice,
+  SpellSniperChoice,
+  TelekineticChoice,
+  TelepathicChoice,
+  WarCasterChoice,
+  SkillExpertChoice,
   SpeedyChoice,
   WeaponMasterChoice,
   LuckyChoice,
@@ -40,6 +50,8 @@ import type {
 } from "../../../types";
 import type {
   AbilityScoreImprovementChoice,
+  BoonOfEnergyResistanceChoice,
+  BoonOfSkillChoice,
   AthleteChoice,
   BoonOfIrresistibleOffenseChoice,
   ChargerChoice,
@@ -58,7 +70,6 @@ import { getCrafterChoiceSummary } from "./crafter";
 const abilityKeySet = new Set<AbilityKey>(abilityKeys);
 const skillNameSet = new Set<SkillName>(ALL_SKILLS);
 const allEpicBoonAbilityOptions: AbilityKey[] = [...abilityKeys];
-const spellRecallAbilityOptions: AbilityKey[] = ["INT", "WIS", "CHA"];
 const blessedWarriorCantripOptions = getSpellEntriesForSpellListClass(
   SPELL_LIST_CLASS.CLERIC
 ).filter((spell) => spell.spellLevel === 0);
@@ -83,6 +94,17 @@ export const elementalAdeptDamageTypeOptions = [
   DAMAGE_TYPE.COLD,
   DAMAGE_TYPE.FIRE,
   DAMAGE_TYPE.LIGHTNING,
+  DAMAGE_TYPE.THUNDER
+] as const;
+export const boonOfEnergyResistanceDamageTypeOptions = [
+  DAMAGE_TYPE.ACID,
+  DAMAGE_TYPE.COLD,
+  DAMAGE_TYPE.FIRE,
+  DAMAGE_TYPE.LIGHTNING,
+  DAMAGE_TYPE.NECROTIC,
+  DAMAGE_TYPE.POISON,
+  DAMAGE_TYPE.PSYCHIC,
+  DAMAGE_TYPE.RADIANT,
   DAMAGE_TYPE.THUNDER
 ] as const;
 export const feyTouchedAbilityOptions = ["INT", "WIS", "CHA"] as const;
@@ -110,7 +132,17 @@ export const observantSkillOptions = [
 ] as const;
 export const piercerAbilityOptions = ["STR", "DEX"] as const;
 export const poisonerAbilityOptions = ["DEX", "INT"] as const;
+export const polearmMasterAbilityOptions = ["DEX", "STR"] as const;
+export const ritualCasterAbilityOptions = ["INT", "WIS", "CHA"] as const;
 export const resilientAbilityOptions = abilityKeys;
+export const sentinelAbilityOptions = ["STR", "DEX"] as const;
+export const shadowTouchedAbilityOptions = ["INT", "WIS", "CHA"] as const;
+export const slasherAbilityOptions = ["STR", "DEX"] as const;
+export const spellSniperAbilityOptions = ["INT", "WIS", "CHA"] as const;
+export const telekineticAbilityOptions = ["INT", "WIS", "CHA"] as const;
+export const telepathicAbilityOptions = ["INT", "WIS", "CHA"] as const;
+export const warCasterAbilityOptions = ["INT", "WIS", "CHA"] as const;
+export const skillExpertAbilityOptions = abilityKeys;
 export const speedyAbilityOptions = ["DEX", "CON"] as const;
 export const weaponMasterAbilityOptions = ["STR", "DEX"] as const;
 export const weaponMasterMasteryOptions = getWeaponMasteryOptions();
@@ -120,6 +152,9 @@ const magicInitiateSpellcastingAbilityOptionSet = new Set<AbilityKey>(
 );
 const elementalAdeptAbilityOptionSet = new Set<AbilityKey>(elementalAdeptAbilityOptions);
 const elementalAdeptDamageTypeOptionSet = new Set<DAMAGE_TYPE>(elementalAdeptDamageTypeOptions);
+const boonOfEnergyResistanceDamageTypeOptionSet = new Set<DAMAGE_TYPE>(
+  boonOfEnergyResistanceDamageTypeOptions
+);
 const feyTouchedAbilityOptionSet = new Set<AbilityKey>(feyTouchedAbilityOptions);
 const heavilyArmoredAbilityOptionSet = new Set<AbilityKey>(heavilyArmoredAbilityOptions);
 const heavyArmorMasterAbilityOptionSet = new Set<AbilityKey>(heavyArmorMasterAbilityOptions);
@@ -137,7 +172,17 @@ const observantAbilityOptionSet = new Set<AbilityKey>(observantAbilityOptions);
 const observantSkillOptionSet = new Set<SkillName>(observantSkillOptions);
 const piercerAbilityOptionSet = new Set<AbilityKey>(piercerAbilityOptions);
 const poisonerAbilityOptionSet = new Set<AbilityKey>(poisonerAbilityOptions);
+const polearmMasterAbilityOptionSet = new Set<AbilityKey>(polearmMasterAbilityOptions);
+const ritualCasterAbilityOptionSet = new Set<AbilityKey>(ritualCasterAbilityOptions);
 const resilientAbilityOptionSet = new Set<AbilityKey>(resilientAbilityOptions);
+const sentinelAbilityOptionSet = new Set<AbilityKey>(sentinelAbilityOptions);
+const shadowTouchedAbilityOptionSet = new Set<AbilityKey>(shadowTouchedAbilityOptions);
+const slasherAbilityOptionSet = new Set<AbilityKey>(slasherAbilityOptions);
+const spellSniperAbilityOptionSet = new Set<AbilityKey>(spellSniperAbilityOptions);
+const telekineticAbilityOptionSet = new Set<AbilityKey>(telekineticAbilityOptions);
+const telepathicAbilityOptionSet = new Set<AbilityKey>(telepathicAbilityOptions);
+const warCasterAbilityOptionSet = new Set<AbilityKey>(warCasterAbilityOptions);
+const skillExpertAbilityOptionSet = new Set<AbilityKey>(skillExpertAbilityOptions);
 const speedyAbilityOptionSet = new Set<AbilityKey>(speedyAbilityOptions);
 const weaponMasterAbilityOptionSet = new Set<AbilityKey>(weaponMasterAbilityOptions);
 const weaponMasterMasteryOptionSet = new Set<WEAPON_PROFICIENCY>(weaponMasterMasteryOptions);
@@ -201,12 +246,36 @@ const feyTouchedSpellOptions = getSpellEntries()
 const feyTouchedSpellOptionsById = new Map(
   feyTouchedSpellOptions.map((spell) => [spell.id, spell] as const)
 );
+const ritualCasterSpellOptions = getSpellEntries()
+  .filter((spell) => spell.spellLevel === 1 && spell.ritual === true)
+  .sort((left, right) => left.name.localeCompare(right.name));
+const ritualCasterSpellOptionsById = new Map(
+  ritualCasterSpellOptions.map((spell) => [spell.id, spell] as const)
+);
+const shadowTouchedSpellSchoolOptions = new Set<MAGIC_SCHOOL>([
+  MAGIC_SCHOOL.ILLUSION,
+  MAGIC_SCHOOL.NECROMANCY
+]);
+const shadowTouchedFreeCastSpellIds = new Set(["spell-invisibility"]);
+const shadowTouchedSpellOptions = getSpellEntries()
+  .filter(
+    (spell) => spell.spellLevel === 1 && shadowTouchedSpellSchoolOptions.has(spell.magicSchool)
+  )
+  .sort((left, right) => left.name.localeCompare(right.name));
+const shadowTouchedSpellOptionsById = new Map(
+  shadowTouchedSpellOptions.map((spell) => [spell.id, spell] as const)
+);
 export const epicBoonAbilityIncreaseFeatOptions = new Map<FEATS, AbilityKey[]>([
   [FEATS.BOON_OF_COMBAT_PROWESS, allEpicBoonAbilityOptions],
   [FEATS.BOON_OF_DIMENSIONAL_TRAVEL, allEpicBoonAbilityOptions],
   [FEATS.BOON_OF_FATE, allEpicBoonAbilityOptions],
+  [FEATS.BOON_OF_FORTITUDE, allEpicBoonAbilityOptions],
+  [FEATS.BOON_OF_IRRESISTIBLE_OFFENSE, allEpicBoonAbilityOptions],
+  [FEATS.BOON_OF_RECOVERY, allEpicBoonAbilityOptions],
+  [FEATS.BOON_OF_SKILL, allEpicBoonAbilityOptions],
+  [FEATS.BOON_OF_SPEED, allEpicBoonAbilityOptions],
   [FEATS.BOON_OF_THE_NIGHT_SPIRIT, allEpicBoonAbilityOptions],
-  [FEATS.BOON_OF_SPELL_RECALL, spellRecallAbilityOptions],
+  [FEATS.BOON_OF_SPELL_RECALL, allEpicBoonAbilityOptions],
   [FEATS.BOON_OF_TRUESIGHT, allEpicBoonAbilityOptions]
 ]);
 
@@ -661,6 +730,55 @@ export function normalizePoisonerChoice(value: unknown): PoisonerChoice | undefi
   return undefined;
 }
 
+export function normalizePolearmMasterChoice(value: unknown): PolearmMasterChoice | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const record = value as Partial<PolearmMasterChoice>;
+
+  if (
+    typeof record.ability === "string" &&
+    polearmMasterAbilityOptionSet.has(record.ability as AbilityKey)
+  ) {
+    return {
+      ability: record.ability as PolearmMasterChoice["ability"]
+    };
+  }
+
+  return undefined;
+}
+
+export function normalizeRitualCasterChoice(value: unknown): RitualCasterChoice | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const record = value as Partial<RitualCasterChoice>;
+
+  if (
+    typeof record.ability !== "string" ||
+    !ritualCasterAbilityOptionSet.has(record.ability as AbilityKey) ||
+    !Array.isArray(record.spellIds)
+  ) {
+    return undefined;
+  }
+
+  const spellIds = [
+    ...new Set(record.spellIds.filter((id): id is string => typeof id === "string"))
+  ].filter((spellId) => ritualCasterSpellOptionsById.has(spellId));
+
+  if (spellIds.length === 0) {
+    return undefined;
+  }
+
+  return {
+    ability: record.ability as RitualCasterChoice["ability"],
+    spellIds,
+    quickRitualExpended: record.quickRitualExpended === true ? true : undefined
+  };
+}
+
 export function normalizeResilientChoice(value: unknown): ResilientChoice | undefined {
   if (!value || typeof value !== "object") {
     return undefined;
@@ -674,6 +792,181 @@ export function normalizeResilientChoice(value: unknown): ResilientChoice | unde
   ) {
     return {
       ability: record.ability as ResilientChoice["ability"]
+    };
+  }
+
+  return undefined;
+}
+
+export function normalizeSentinelChoice(value: unknown): SentinelChoice | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const record = value as Partial<SentinelChoice>;
+
+  if (
+    typeof record.ability === "string" &&
+    sentinelAbilityOptionSet.has(record.ability as AbilityKey)
+  ) {
+    return {
+      ability: record.ability as SentinelChoice["ability"]
+    };
+  }
+
+  return undefined;
+}
+
+export function normalizeShadowTouchedChoice(value: unknown): ShadowTouchedChoice | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const record = value as Partial<ShadowTouchedChoice>;
+
+  if (
+    typeof record.ability !== "string" ||
+    typeof record.spellId !== "string" ||
+    !shadowTouchedAbilityOptionSet.has(record.ability as AbilityKey) ||
+    !shadowTouchedSpellOptionsById.has(record.spellId)
+  ) {
+    return undefined;
+  }
+
+  const freeCastExpendedSpellIds = Array.isArray(record.freeCastExpendedSpellIds)
+    ? [
+        ...new Set(
+          record.freeCastExpendedSpellIds.filter(
+            (spellId): spellId is string =>
+              spellId === record.spellId || shadowTouchedFreeCastSpellIds.has(spellId)
+          )
+        )
+      ]
+    : [];
+
+  return {
+    ability: record.ability as ShadowTouchedChoice["ability"],
+    spellId: record.spellId,
+    freeCastExpendedSpellIds:
+      freeCastExpendedSpellIds.length > 0 ? freeCastExpendedSpellIds : undefined
+  };
+}
+
+export function normalizeSlasherChoice(value: unknown): SlasherChoice | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const record = value as Partial<SlasherChoice>;
+
+  if (
+    typeof record.ability === "string" &&
+    slasherAbilityOptionSet.has(record.ability as AbilityKey)
+  ) {
+    return {
+      ability: record.ability as SlasherChoice["ability"]
+    };
+  }
+
+  return undefined;
+}
+
+export function normalizeSpellSniperChoice(value: unknown): SpellSniperChoice | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const record = value as Partial<SpellSniperChoice>;
+
+  if (
+    typeof record.ability === "string" &&
+    spellSniperAbilityOptionSet.has(record.ability as AbilityKey)
+  ) {
+    return {
+      ability: record.ability as SpellSniperChoice["ability"]
+    };
+  }
+
+  return undefined;
+}
+
+export function normalizeTelekineticChoice(value: unknown): TelekineticChoice | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const record = value as Partial<TelekineticChoice>;
+
+  if (
+    typeof record.ability === "string" &&
+    telekineticAbilityOptionSet.has(record.ability as AbilityKey)
+  ) {
+    return {
+      ability: record.ability as TelekineticChoice["ability"]
+    };
+  }
+
+  return undefined;
+}
+
+export function normalizeTelepathicChoice(value: unknown): TelepathicChoice | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const record = value as Partial<TelepathicChoice>;
+
+  if (
+    typeof record.ability === "string" &&
+    telepathicAbilityOptionSet.has(record.ability as AbilityKey)
+  ) {
+    return {
+      ability: record.ability as TelepathicChoice["ability"],
+      detectThoughtsExpended: record.detectThoughtsExpended === true ? true : undefined
+    };
+  }
+
+  return undefined;
+}
+
+export function normalizeWarCasterChoice(value: unknown): WarCasterChoice | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const record = value as Partial<WarCasterChoice>;
+
+  if (
+    typeof record.ability === "string" &&
+    warCasterAbilityOptionSet.has(record.ability as AbilityKey)
+  ) {
+    return {
+      ability: record.ability as WarCasterChoice["ability"]
+    };
+  }
+
+  return undefined;
+}
+
+export function normalizeSkillExpertChoice(value: unknown): SkillExpertChoice | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const record = value as Partial<SkillExpertChoice>;
+
+  if (
+    typeof record.ability === "string" &&
+    skillExpertAbilityOptionSet.has(record.ability as AbilityKey) &&
+    typeof record.skillProficiency === "string" &&
+    skillNameSet.has(record.skillProficiency as SkillName) &&
+    typeof record.skillExpertise === "string" &&
+    skillNameSet.has(record.skillExpertise as SkillName)
+  ) {
+    return {
+      ability: record.ability as SkillExpertChoice["ability"],
+      skillProficiency: record.skillProficiency as SkillExpertChoice["skillProficiency"],
+      skillExpertise: record.skillExpertise as SkillExpertChoice["skillExpertise"]
     };
   }
 
@@ -743,6 +1036,61 @@ export function normalizeEpicBoonAbilityChoice(
   return {
     ability
   };
+}
+
+export function normalizeBoonOfEnergyResistanceChoice(
+  value: unknown
+): BoonOfEnergyResistanceChoice | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const record = value as Partial<BoonOfEnergyResistanceChoice>;
+
+  if (typeof record.ability !== "string" || !isAbilityKey(record.ability)) {
+    return undefined;
+  }
+
+  if (!Array.isArray(record.damageTypes) || record.damageTypes.length !== 2) {
+    return undefined;
+  }
+
+  const damageTypes = record.damageTypes;
+
+  if (
+    damageTypes[0] === damageTypes[1] ||
+    !boonOfEnergyResistanceDamageTypeOptionSet.has(damageTypes[0]) ||
+    !boonOfEnergyResistanceDamageTypeOptionSet.has(damageTypes[1])
+  ) {
+    return undefined;
+  }
+
+  return {
+    ability: record.ability,
+    damageTypes: [damageTypes[0], damageTypes[1]]
+  };
+}
+
+export function normalizeBoonOfSkillChoice(value: unknown): BoonOfSkillChoice | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const record = value as Partial<BoonOfSkillChoice>;
+
+  if (
+    typeof record.ability === "string" &&
+    isAbilityKey(record.ability) &&
+    typeof record.skillExpertise === "string" &&
+    skillNameSet.has(record.skillExpertise)
+  ) {
+    return {
+      ability: record.ability,
+      skillExpertise: record.skillExpertise
+    };
+  }
+
+  return undefined;
 }
 
 export function normalizeBlessedWarriorChoice(value: unknown): BlessedWarriorChoice | undefined {
@@ -951,7 +1299,7 @@ export function normalizeMusicianChoice(value: unknown): MusicianChoice | undefi
   };
 }
 
-function getFeatProficiencyBonusForLevel(level: number): number {
+export function getFeatProficiencyBonusForLevel(level: number): number {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
   return Math.floor((normalizedLevel - 1) / 4) + 2;
 }
@@ -1012,6 +1360,18 @@ export function getMusicianChoiceSummary(choice?: MusicianChoice): string | null
 
 export function getEpicBoonAbilityChoiceSummary(choice?: EpicBoonAbilityChoice): string | null {
   return choice ? `${choice.ability} +1` : null;
+}
+
+export function getBoonOfEnergyResistanceChoiceSummary(
+  choice?: BoonOfEnergyResistanceChoice
+): string | null {
+  return choice
+    ? `${choice.ability} +1, ${choice.damageTypes.map((damageType) => formatCodexLabel(damageType)).join(", ")}`
+    : null;
+}
+
+export function getBoonOfSkillChoiceSummary(choice?: BoonOfSkillChoice): string | null {
+  return choice ? `${choice.ability} +1, Expertise: ${choice.skillExpertise}` : null;
 }
 
 export function getAthleteChoiceSummary(choice?: AthleteChoice): string | null {
@@ -1110,8 +1470,66 @@ export function getPoisonerChoiceSummary(choice?: PoisonerChoice): string | null
   return choice ? `${choice.ability} +1, Potent Poison` : null;
 }
 
+export function getPolearmMasterChoiceSummary(choice?: PolearmMasterChoice): string | null {
+  return choice ? `${choice.ability} +1, Pole Strike` : null;
+}
+
+export function getRitualCasterChoiceSummary(choice?: RitualCasterChoice): string | null {
+  if (!choice) {
+    return null;
+  }
+
+  const spellNames = choice.spellIds
+    .map((spellId) => ritualCasterSpellOptionsById.get(spellId)?.name)
+    .filter((name): name is string => Boolean(name));
+
+  return spellNames.length > 0
+    ? `${choice.ability} +1, ${spellNames.join(", ")}`
+    : `${choice.ability} +1`;
+}
+
 export function getResilientChoiceSummary(choice?: ResilientChoice): string | null {
   return choice ? `${choice.ability} +1, ${choice.ability} Saving Throw` : null;
+}
+
+export function getSentinelChoiceSummary(choice?: SentinelChoice): string | null {
+  return choice ? `${choice.ability} +1, Guardian, Halt` : null;
+}
+
+export function getShadowTouchedChoiceSummary(choice?: ShadowTouchedChoice): string | null {
+  if (!choice) {
+    return null;
+  }
+
+  const spellName = shadowTouchedSpellOptionsById.get(choice.spellId)?.name;
+
+  return spellName ? `${choice.ability} +1, ${spellName}` : `${choice.ability} +1`;
+}
+
+export function getSlasherChoiceSummary(choice?: SlasherChoice): string | null {
+  return choice ? `${choice.ability} +1, Slashing damage` : null;
+}
+
+export function getSpellSniperChoiceSummary(choice?: SpellSniperChoice): string | null {
+  return choice ? `${choice.ability} +1, Spell attacks` : null;
+}
+
+export function getTelekineticChoiceSummary(choice?: TelekineticChoice): string | null {
+  return choice ? `${choice.ability} +1, Mage Hand, Telekinetic Shove` : null;
+}
+
+export function getTelepathicChoiceSummary(choice?: TelepathicChoice): string | null {
+  return choice ? `${choice.ability} +1, Telepathic, Detect Thoughts` : null;
+}
+
+export function getWarCasterChoiceSummary(choice?: WarCasterChoice): string | null {
+  return choice ? `${choice.ability} +1, Reactive Spell` : null;
+}
+
+export function getSkillExpertChoiceSummary(choice?: SkillExpertChoice): string | null {
+  return choice
+    ? `${choice.ability} +1, ${choice.skillProficiency}, Expertise: ${choice.skillExpertise}`
+    : null;
 }
 
 export function getSpeedyChoiceSummary(choice?: SpeedyChoice): string | null {
@@ -1197,8 +1615,18 @@ export function getCharacterFeatSummary(entry: CharacterFeatEntry): string | nul
     return getCrafterChoiceSummary(entry.crafter);
   }
 
+  if (entry.feat === FEATS.BOON_OF_ENERGY_RESISTANCE) {
+    return getBoonOfEnergyResistanceChoiceSummary(entry.boonOfEnergyResistance);
+  }
+
+  if (entry.feat === FEATS.BOON_OF_SKILL) {
+    return getBoonOfSkillChoiceSummary(entry.boonOfSkill);
+  }
+
   if (entry.feat === FEATS.BOON_OF_IRRESISTIBLE_OFFENSE) {
-    return entry.boonOfIrresistibleOffense ? `${entry.boonOfIrresistibleOffense.ability} +1` : null;
+    if (entry.boonOfIrresistibleOffense) {
+      return `${entry.boonOfIrresistibleOffense.ability} +1`;
+    }
   }
 
   if (entry.feat === FEATS.ATHLETE) {
@@ -1281,8 +1709,48 @@ export function getCharacterFeatSummary(entry: CharacterFeatEntry): string | nul
     return getPoisonerChoiceSummary(entry.poisoner);
   }
 
+  if (entry.feat === FEATS.POLEARM_MASTER) {
+    return getPolearmMasterChoiceSummary(entry.polearmMaster);
+  }
+
+  if (entry.feat === FEATS.RITUAL_CASTER) {
+    return getRitualCasterChoiceSummary(entry.ritualCaster);
+  }
+
   if (entry.feat === FEATS.RESILIENT) {
     return getResilientChoiceSummary(entry.resilient);
+  }
+
+  if (entry.feat === FEATS.SENTINEL) {
+    return getSentinelChoiceSummary(entry.sentinel);
+  }
+
+  if (entry.feat === FEATS.SHADOW_TOUCHED) {
+    return getShadowTouchedChoiceSummary(entry.shadowTouched);
+  }
+
+  if (entry.feat === FEATS.SLASHER) {
+    return getSlasherChoiceSummary(entry.slasher);
+  }
+
+  if (entry.feat === FEATS.SPELL_SNIPER) {
+    return getSpellSniperChoiceSummary(entry.spellSniper);
+  }
+
+  if (entry.feat === FEATS.TELEKINETIC) {
+    return getTelekineticChoiceSummary(entry.telekinetic);
+  }
+
+  if (entry.feat === FEATS.TELEPATHIC) {
+    return getTelepathicChoiceSummary(entry.telepathic);
+  }
+
+  if (entry.feat === FEATS.WAR_CASTER) {
+    return getWarCasterChoiceSummary(entry.warCaster);
+  }
+
+  if (entry.feat === FEATS.SKILL_EXPERT) {
+    return getSkillExpertChoiceSummary(entry.skillExpert);
   }
 
   if (entry.feat === FEATS.SPEEDY) {
@@ -1330,6 +1798,14 @@ export function getMagicInitiateLevelOneSpellOptions(
 
 export function getFeyTouchedSpellOptions(): SpellEntry[] {
   return feyTouchedSpellOptions;
+}
+
+export function getRitualCasterSpellOptions(): SpellEntry[] {
+  return ritualCasterSpellOptions;
+}
+
+export function getShadowTouchedSpellOptions(): SpellEntry[] {
+  return shadowTouchedSpellOptions;
 }
 
 export function getEpicBoonAbilityOptions(feat: FEATS): AbilityKey[] | null {

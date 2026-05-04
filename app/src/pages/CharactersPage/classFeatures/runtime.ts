@@ -108,7 +108,6 @@ import {
   getClericChannelDivinityUsesRemaining,
   getClericChannelDivinityUsesTotal,
   getClericDivineOrderChoice,
-  guidedStrikeReactionEntryId,
   hasClericWarPriestBonusAttackAvailable,
   getClericWardingFlareUsesRemaining,
   getClericWardingFlareUsesTotal,
@@ -124,8 +123,7 @@ import {
   setClericDivineOrderChoice,
   setKnowledgeDomainBlessingsSkillSelections,
   setKnowledgeDomainBlessingsToolSelection,
-  setKnowledgeDomainUnfetteredMindSavingThrowSelection,
-  wardingFlareReactionEntryId
+  setKnowledgeDomainUnfetteredMindSavingThrowSelection
 } from "./cleric/cleric";
 import {
   activateDruidNatureMagician,
@@ -787,8 +785,8 @@ export function activateClericBlessingOfTheTricksterForCharacter(
   );
 }
 
-export const clericWardingFlareReactionEntryId = wardingFlareReactionEntryId;
-export const clericGuidedStrikeReactionEntryId = guidedStrikeReactionEntryId;
+export const clericWardingFlareReactionEntryId = "reaction-cleric-warding-flare";
+export const clericGuidedStrikeReactionEntryId = "reaction-cleric-guided-strike";
 
 export function getClericWardingFlareUsesTotalForCharacter(
   character: Pick<Character, "className"> &

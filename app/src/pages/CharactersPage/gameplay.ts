@@ -51,6 +51,8 @@ import {
 import {
   createHeldShieldDescriptor,
   createHeldWeaponDescriptor,
+  getHeldWeaponSlotCount,
+  getWeaponHandSlots,
   hasVersatileHandBonus,
   type HeldWeaponDescriptor
 } from "./inventory";
@@ -115,6 +117,10 @@ export type WeaponAction = {
   abilityModifier: number;
   cardBaseAbilityModifier: number;
   abilityModifierBonusEntries: AbilityModifierBonusEntry[];
+  attackBonusEntries?: Array<{
+    label: string;
+    value: number;
+  }>;
   damageAbility?: AbilityKey;
   damageAbilityFormulaLabel?: string;
   damageAbilityModifierBaseValue?: number;
@@ -519,6 +525,44 @@ function formatFeatureDamageBonusFormula(entry: FeatureDamageBonus): string | nu
   return entry.formula ?? null;
 }
 
+function isDuelingDamageBonusHandState(
+  targetWeapon: HeldWeaponDescriptor,
+  heldWeapons: HeldWeaponDescriptor[]
+): boolean {
+  return (
+    heldWeapons[0]?.key === targetWeapon.key &&
+    getWeaponHandSlots(targetWeapon) === 1 &&
+    getHeldWeaponSlotCount(heldWeapons) === 1
+  );
+}
+
+function getDuelingDamageBonusEntriesForWeaponAction(
+  character: Pick<Character, "level"> & Partial<Pick<Character, "feats">>,
+  context: {
+    attackKind: "weapon" | "unarmed";
+    combatType?: WEAPON_COMBAT_TYPE | null;
+  },
+  targetWeapon: HeldWeaponDescriptor,
+  heldWeapons: HeldWeaponDescriptor[]
+): FeatureDamageBonus[] {
+  if (
+    !hasFeatForCharacter(character, FEATS.DUELING) ||
+    context.attackKind !== "weapon" ||
+    context.combatType !== WEAPON_COMBAT_TYPE.MELEE ||
+    !isDuelingDamageBonusHandState(targetWeapon, heldWeapons)
+  ) {
+    return [];
+  }
+
+  return [
+    {
+      label: "Dueling",
+      value: 2,
+      displayLabel: "2 Dueling"
+    }
+  ];
+}
+
 export function createWeaponAction(
   character: Pick<
     Character,
@@ -543,6 +587,7 @@ export function createWeaponAction(
     damageAbilityModifier?: number;
     proficiencyLabel: string;
     proficiencyBonus: number;
+    damageBonusEntries?: FeatureDamageBonus[];
     economyType?: EconomyType;
     economyMultiCount?: number;
     hasVersatileBonus: boolean;
@@ -560,14 +605,17 @@ export function createWeaponAction(
           bonusEntries: [] as AbilityModifierBonusEntry[],
           total: options.abilityModifier
         };
-  const damageBonusEntries = options.skipFeatureDerivedLookups
-    ? []
-    : getFeatureDamageBonusesForWeaponAction(character, {
-        name: options.name,
-        ability: options.ability,
-        attackKind: options.attackKind,
-        combatType: options.combatType ?? null
-      });
+  const damageBonusEntries = [
+    ...(options.damageBonusEntries ?? []),
+    ...(options.skipFeatureDerivedLookups
+      ? []
+      : getFeatureDamageBonusesForWeaponAction(character, {
+          name: options.name,
+          ability: options.ability,
+          attackKind: options.attackKind,
+          combatType: options.combatType ?? null
+        }))
+  ];
   const damageLabel = appendFeatureDamageBonuses(
     options.damageLabel,
     damageBonusEntries,
@@ -634,6 +682,7 @@ export function createWeaponAction(
     abilityModifier: attackAbilityBreakdown.total,
     cardBaseAbilityModifier: attackAbilityBreakdown.total,
     abilityModifierBonusEntries: attackAbilityBreakdown.bonusEntries,
+    attackBonusEntries: [],
     damageAbility,
     damageAbilityModifierBaseValue: damageAbilityBreakdown.baseValue,
     damageAbilityModifier,
@@ -955,16 +1004,12 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
       return actions;
     }
 
-    const weaponDescriptor = weaponEntry
-      ? {
-          key: `codex-${equipmentItem.name}`,
-          properties: weaponEntry.properties,
-          versatileDamage: weaponEntry.versatileDamage
-        }
-      : null;
-    const useVersatileDamage = weaponDescriptor
-      ? hasVersatileHandBonus(weaponDescriptor, heldWeaponDescriptors)
-      : false;
+    const weaponDescriptor = {
+      key: `codex-${equipmentItem.name}`,
+      properties: weaponEntry.properties,
+      versatileDamage: weaponEntry.versatileDamage
+    };
+    const useVersatileDamage = hasVersatileHandBonus(weaponDescriptor, heldWeaponDescriptors);
     const isEligibleMonkWeapon = monkMartialArtsActive && isMonkWeapon(weaponEntry);
     const monkDamageAdjustment =
       isEligibleMonkWeapon && monkMartialArtsDie
@@ -1015,6 +1060,15 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
         abilityModifier,
         proficiencyLabel,
         proficiencyBonus: appliedProficiencyBonus,
+        damageBonusEntries: getDuelingDamageBonusEntriesForWeaponAction(
+          character,
+          {
+            attackKind: "weapon",
+            combatType: weaponEntry.type.combat
+          },
+          weaponDescriptor,
+          heldWeaponDescriptors
+        ),
         hasVersatileBonus: weaponReference.hasVersatileBonus,
         hasGreatWeaponFighting: weaponReference.hasGreatWeaponFighting,
         hasMartialArtsDamageDie: Boolean(monkDamageAdjustment?.applied)
@@ -1079,6 +1133,15 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
         abilityModifier,
         proficiencyLabel,
         proficiencyBonus: appliedProficiencyBonus,
+        damageBonusEntries: getDuelingDamageBonusEntriesForWeaponAction(
+          character,
+          {
+            attackKind: "weapon",
+            combatType: weaponEntry.type.combat
+          },
+          weaponDescriptor,
+          heldWeaponDescriptors
+        ),
         hasVersatileBonus: weaponReference.hasVersatileBonus,
         hasGreatWeaponFighting: weaponReference.hasGreatWeaponFighting,
         hasMartialArtsDamageDie: Boolean(monkDamageAdjustment?.applied)
@@ -1163,6 +1226,17 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
           abilityModifier,
           proficiencyLabel,
           proficiencyBonus: appliedProficiencyBonus,
+          damageBonusEntries: weaponDescriptor
+            ? getDuelingDamageBonusEntriesForWeaponAction(
+                character,
+                {
+                  attackKind: "weapon",
+                  combatType: weaponType.combat
+                },
+                weaponDescriptor,
+                heldWeaponDescriptors
+              )
+            : [],
           hasVersatileBonus: weaponReference.hasVersatileBonus,
           hasGreatWeaponFighting: weaponReference.hasGreatWeaponFighting,
           hasMartialArtsDamageDie: Boolean(monkDamageAdjustment?.applied)

@@ -4,13 +4,13 @@
 export function castSelectedSpellWithContext(context: Record<string, any>, options?: any) {
   const {
     ACTION_CATEGORY, DURATION, activateFighterPsiWarriorTelekineticMasterSpellCastForCharacter, applyPaladinOathOfTheNobleGeniesElementalSmiteEffect, applyRangerWinterWalkerFrozenHauntStatusEntriesForCharacter, applySpellCastFeatureEffectsForCharacter, applySpellConcentrationToStatusEntries, applyWizardEvokerOverchannelUse, canUseWarlockCelestialPatronRadiantSoulForSpell,
-    canUseWizardEvokerOverchannelForSpellSlot, channelDivinityUsesRemaining, character, clampNumber, closeSelectedSpell, consumeBeguilingMagicOrBardicInspirationForCharacter, consumeBlessingOfMoonlightUseForCharacter, consumeDruidNaturalRecoveryUseForCharacter, consumeDruidStarMapGuidingBoltUseForCharacter, consumeFeyTouchedFreeCastForCharacter, consumeMagicInitiateFreeCastForCharacter,
+    canUseWizardEvokerOverchannelForSpellSlot, channelDivinityUsesRemaining, character, clampNumber, closeSelectedSpell, consumeBeguilingMagicOrBardicInspirationForCharacter, consumeBlessingOfMoonlightUseForCharacter, consumeDruidNaturalRecoveryUseForCharacter, consumeDruidStarMapGuidingBoltUseForCharacter, consumeFeyTouchedFreeCastForCharacter, consumeMagicInitiateFreeCastForCharacter, consumeRitualCasterQuickRitualForCharacter, consumeShadowTouchedFreeCastForCharacter, consumeTelepathicDetectThoughtsFreeCastForCharacter,
     consumeRangerFeyReinforcementsUseForCharacter, consumeRangerMistyWandererUseForCharacter, consumeRangerWinterWalkerFrozenHauntUseForCharacter, consumeRoundTrackerResourceForCharacter, consumeSharedEconomyMultiForCharacterAction, consumeSorcererSubclassTamedSurgeUseForCharacter, consumeWarlockStepsOfTheFeyUseForCharacter, consumeWizardIllusionistPhantasmalCreaturesUseForCharacter, consumeWizardSignatureSpellFreeCastForCharacter,
     createEconomyMultiContextForSpell, druidNaturalRecoveryUsesRemaining, expendChannelDivinityUseForCharacter, fighterPsiWarriorEnergyDiceRemaining, fighterPsiWarriorTelekineticMasterConcentrationStatusSourceId, fighterPsiWarriorTelekineticMasterUsesRemaining, getDruidStarMapGuidingBoltUsesRemainingForCharacter, getRangerWinterWalkerFrozenHauntSpellOptionStateForCharacter, getRoundTrackerResourceForSpell,
     getSorceryPointsRemaining, getSpellLevel, getSpellSlotTotalsForCharacter, getWizardIllusionistPhantasmalCreaturesSpellOptionStateForCharacter, grantMonkFleetStepFollowUpForSpellCastIfEligible, hasWizardRitualAdept, hasWizardSignatureSpellFreeCastAvailableForCharacter, normalizeSpellSlotsExpended, onPersistCharacter,
     prepareCharacterForResourceConsumption, rangerFeyReinforcementsUsesRemaining, rangerMistyWandererUsesRemaining, restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter, rollHuntersRimeTemporaryHitPointsForSpellCast, rollSpellAttackForSpellCast, selectedSpell, selectedSpellActionPaths, selectedSpellCanIgnoreSpellcastingBlock,
     selectedSpellCanOnlyBeCastAsRitual, selectedSpellDisplay, selectedSpellFrozenHauntOptionState, selectedSpellIsSpellbookOnly, selectedSpellIsWizardSignatureSpell, selectedSpellIsWizardSpellMastery, selectedSpellPhantasmalCreaturesOptionState, selectedSpellSlotLevel, selectedSpellSupportsBewitchingMagic,
-    selectedSpellSupportsElementalSmite, selectedSpellSupportsFeyMagic, selectedSpellSupportsFeyReinforcements, selectedSpellSupportsMagicInitiate, selectedSpellSupportsMindMagic, selectedSpellSupportsMistyWanderer, selectedSpellSupportsNaturalRecovery, selectedSpellSupportsOverchannel, selectedSpellSupportsPsionicSorcery, selectedSpellSupportsStarMap, selectedSpellSupportsStepsOfTheFey,
+    selectedSpellSupportsBoonOfSpellRecall, selectedSpellSupportsDetectThoughts, selectedSpellSupportsElementalSmite, selectedSpellSupportsFeyMagic, selectedSpellSupportsFeyReinforcements, selectedSpellSupportsMagicInitiate, selectedSpellSupportsMindMagic, selectedSpellSupportsMistyWanderer, selectedSpellSupportsNaturalRecovery, selectedSpellSupportsOverchannel, selectedSpellSupportsPsionicSorcery, selectedSpellSupportsQuickRitual, selectedSpellSupportsShadowMagic, selectedSpellSupportsStarMap, selectedSpellSupportsStepsOfTheFey,
     selectedSpellSupportsTamedSurge, selectedSpellSupportsTelekineticMaster, selectedSpellSupportsWarGodsBlessing, sorceryPointsRemaining, spellSlotsExpended, spellSlotsRemaining, spellcastingState, spendSorceryPoints, tamedSurgeUsesRemaining,
     warlockStepsOfTheFeyUsesRemaining, wizardSignatureSpellLevel
   } = context;
@@ -49,6 +49,12 @@ if (!selectedSpell || (spellcastingState.blocked && !selectedSpellCanIgnoreSpell
     const useMagicInitiate =
       options?.useMagicInitiate === true && selectedSpellSupportsMagicInitiate;
     const useFeyMagic = options?.useFeyMagic === true && selectedSpellSupportsFeyMagic;
+    const useQuickRitual = options?.useQuickRitual === true && selectedSpellSupportsQuickRitual;
+    const useShadowMagic = options?.useShadowMagic === true && selectedSpellSupportsShadowMagic;
+    const useDetectThoughts =
+      options?.useDetectThoughts === true && selectedSpellSupportsDetectThoughts;
+    const useBoonOfSpellRecall =
+      options?.useBoonOfSpellRecall === true && selectedSpellSupportsBoonOfSpellRecall;
     const useBlessingOfMoonlight = options?.useBlessingOfMoonlight === true;
     const useElementalSmite =
       options?.useElementalSmite === true &&
@@ -288,6 +294,10 @@ if (!selectedSpell || (spellcastingState.blocked && !selectedSpellCanIgnoreSpell
       useStarMap ||
       useMagicInitiate ||
       useFeyMagic ||
+      useQuickRitual ||
+      useShadowMagic ||
+      useDetectThoughts ||
+      useBoonOfSpellRecall ||
       useStepsOfTheFey ||
       useBewitchingMagic ||
       useMistyWanderer ||
@@ -309,6 +319,10 @@ if (!selectedSpell || (spellcastingState.blocked && !selectedSpellCanIgnoreSpell
     const castsFreeViaStarMap = useStarMap;
     const castsFreeViaMagicInitiate = useMagicInitiate;
     const castsFreeViaFeyMagic = useFeyMagic;
+    const castsFreeViaQuickRitual = useQuickRitual;
+    const castsFreeViaShadowMagic = useShadowMagic;
+    const castsFreeViaDetectThoughts = useDetectThoughts;
+    const castsFreeViaBoonOfSpellRecall = useBoonOfSpellRecall;
     const castsFreeViaMindMagic = useMindMagic;
     const castsFreeViaWarGodsBlessing = useWarGodsBlessing;
     const castsFreeViaPsionicSorcery = usePsionicSorcery && sorceryPointsRemaining >= slotLevel;
@@ -325,6 +339,10 @@ if (!selectedSpell || (spellcastingState.blocked && !selectedSpellCanIgnoreSpell
       castsFreeViaStarMap ||
       castsFreeViaMagicInitiate ||
       castsFreeViaFeyMagic ||
+      castsFreeViaQuickRitual ||
+      castsFreeViaShadowMagic ||
+      castsFreeViaDetectThoughts ||
+      castsFreeViaBoonOfSpellRecall ||
       castsFreeViaMindMagic ||
       castsFreeViaWarGodsBlessing ||
       castsFreeViaPsionicSorcery ||
@@ -453,22 +471,55 @@ if (!selectedSpell || (spellcastingState.blocked && !selectedSpellCanIgnoreSpell
         return currentCharacter;
       }
 
+      const nextCharacterWithQuickRitual = castsFreeViaQuickRitual
+        ? consumeRitualCasterQuickRitualForCharacter(nextCharacterWithFeyMagic)
+        : nextCharacterWithFeyMagic;
+
+      if (castsFreeViaQuickRitual && nextCharacterWithQuickRitual === nextCharacterWithFeyMagic) {
+        return currentCharacter;
+      }
+
+      const nextCharacterWithShadowMagic = castsFreeViaShadowMagic
+        ? consumeShadowTouchedFreeCastForCharacter(nextCharacterWithQuickRitual, selectedSpell.id)
+        : nextCharacterWithQuickRitual;
+
+      if (
+        castsFreeViaShadowMagic &&
+        nextCharacterWithShadowMagic === nextCharacterWithQuickRitual
+      ) {
+        return currentCharacter;
+      }
+
+      const nextCharacterWithDetectThoughts = castsFreeViaDetectThoughts
+        ? consumeTelepathicDetectThoughtsFreeCastForCharacter(
+            nextCharacterWithShadowMagic,
+            selectedSpell.id
+          )
+        : nextCharacterWithShadowMagic;
+
+      if (
+        castsFreeViaDetectThoughts &&
+        nextCharacterWithDetectThoughts === nextCharacterWithShadowMagic
+      ) {
+        return currentCharacter;
+      }
+
       const nextCharacterWithSpellcast = {
-        ...nextCharacterWithFeyMagic,
+        ...nextCharacterWithDetectThoughts,
         spellSlotsExpended:
           castsWithoutSpellSlot && !shouldSpendFrozenHauntFallbackSlot
-            ? nextCharacterWithFeyMagic.spellSlotsExpended
+            ? nextCharacterWithDetectThoughts.spellSlotsExpended
             : nextSpellSlotsExpended,
         statusEntries: useFrozenHaunt
           ? applyRangerWinterWalkerFrozenHauntStatusEntriesForCharacter(
               applySpellConcentrationToStatusEntries(
-                nextCharacterWithMagicInitiate.statusEntries,
+                nextCharacterWithDetectThoughts.statusEntries,
                 spellForStatusEntries,
                 concentrationStatusOptions
               )
             )
           : applySpellConcentrationToStatusEntries(
-              nextCharacterWithMagicInitiate.statusEntries,
+              nextCharacterWithDetectThoughts.statusEntries,
               spellForStatusEntries,
               concentrationStatusOptions
             )

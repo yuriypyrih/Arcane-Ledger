@@ -78,7 +78,7 @@ function FeatureActionHeaderTags({ tags, tagKeyPrefix }: FeatureActionHeaderTags
 
     return (
       <span key={key} className={styles.resourceBadge}>
-        <span className={styles.resourceBadgeLabel}>{tag.label}</span>
+        {tag.label ? <span className={styles.resourceBadgeLabel}>{tag.label}</span> : null}
         <span
           className={clsx(styles.resourceBadgeValue, getToneClassName(tag.tone))}
         >

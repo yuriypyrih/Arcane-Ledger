@@ -24,7 +24,17 @@ import type {
   ObservantChoice,
   PiercerChoice,
   PoisonerChoice,
+  PolearmMasterChoice,
+  RitualCasterChoice,
   ResilientChoice,
+  SentinelChoice,
+  ShadowTouchedChoice,
+  SlasherChoice,
+  SpellSniperChoice,
+  TelekineticChoice,
+  TelepathicChoice,
+  WarCasterChoice,
+  SkillExpertChoice,
   SpeedyChoice,
   WeaponMasterChoice,
   LuckyChoice,
@@ -33,7 +43,11 @@ import type {
 } from "../../../types";
 import type {
   AbilityScoreImprovementChoice,
+  BoonOfEnergyResistanceChoice,
+  BoonOfFateState,
   BoonOfIrresistibleOffenseChoice,
+  BoonOfRecoveryState,
+  BoonOfSkillChoice,
   CharacterFeatSource,
   EpicBoonAbilityChoice,
   SkilledChoice
@@ -44,7 +58,9 @@ import {
   normalizeAbilityScoreImprovementChoice,
   normalizeAthleteChoice,
   normalizeBlessedWarriorChoice,
+  normalizeBoonOfEnergyResistanceChoice,
   normalizeBoonOfIrresistibleOffenseChoice,
+  normalizeBoonOfSkillChoice,
   normalizeChargerChoice,
   normalizeChefChoice,
   normalizeCrusherChoice,
@@ -66,7 +82,17 @@ import {
   normalizeObservantChoice,
   normalizePiercerChoice,
   normalizePoisonerChoice,
+  normalizePolearmMasterChoice,
+  normalizeRitualCasterChoice,
   normalizeResilientChoice,
+  normalizeSentinelChoice,
+  normalizeShadowTouchedChoice,
+  normalizeSlasherChoice,
+  normalizeSpellSniperChoice,
+  normalizeTelekineticChoice,
+  normalizeTelepathicChoice,
+  normalizeWarCasterChoice,
+  normalizeSkillExpertChoice,
   normalizeSpeedyChoice,
   normalizeWeaponMasterChoice,
   normalizeLuckyChoice,
@@ -292,6 +318,32 @@ export function normalizeCharacterFeats(
       feat === FEATS.BOON_OF_IRRESISTIBLE_OFFENSE
         ? normalizeBoonOfIrresistibleOffenseChoice(record.boonOfIrresistibleOffense)
         : undefined;
+    const boonOfEnergyResistance =
+      feat === FEATS.BOON_OF_ENERGY_RESISTANCE
+        ? normalizeBoonOfEnergyResistanceChoice(record.boonOfEnergyResistance)
+        : undefined;
+    const boonOfFate =
+      feat === FEATS.BOON_OF_FATE && record.boonOfFate
+        ? {
+            improveFateExpended: record.boonOfFate.improveFateExpended === true ? true : undefined
+          }
+        : undefined;
+    const boonOfRecovery =
+      feat === FEATS.BOON_OF_RECOVERY && record.boonOfRecovery
+        ? {
+            recoverVitalityDiceExpended: Math.max(
+              0,
+              Math.min(
+                10,
+                Math.floor(Number(record.boonOfRecovery.recoverVitalityDiceExpended) || 0)
+              )
+            )
+          }
+        : undefined;
+    const boonOfSkill =
+      feat === FEATS.BOON_OF_SKILL
+        ? normalizeBoonOfSkillChoice(record.boonOfSkill)
+        : undefined;
     const athlete = feat === FEATS.ATHLETE ? normalizeAthleteChoice(record.athlete) : undefined;
     const charger = feat === FEATS.CHARGER ? normalizeChargerChoice(record.charger) : undefined;
     const chef = feat === FEATS.CHEF ? normalizeChefChoice(record.chef) : undefined;
@@ -345,8 +397,31 @@ export function normalizeCharacterFeats(
     const piercer = feat === FEATS.PIERCER ? normalizePiercerChoice(record.piercer) : undefined;
     const poisoner =
       feat === FEATS.POISONER ? normalizePoisonerChoice(record.poisoner) : undefined;
+    const polearmMaster =
+      feat === FEATS.POLEARM_MASTER
+        ? normalizePolearmMasterChoice(record.polearmMaster)
+        : undefined;
+    const ritualCaster =
+      feat === FEATS.RITUAL_CASTER ? normalizeRitualCasterChoice(record.ritualCaster) : undefined;
     const resilient =
       feat === FEATS.RESILIENT ? normalizeResilientChoice(record.resilient) : undefined;
+    const sentinel =
+      feat === FEATS.SENTINEL ? normalizeSentinelChoice(record.sentinel) : undefined;
+    const shadowTouched =
+      feat === FEATS.SHADOW_TOUCHED
+        ? normalizeShadowTouchedChoice(record.shadowTouched)
+        : undefined;
+    const slasher = feat === FEATS.SLASHER ? normalizeSlasherChoice(record.slasher) : undefined;
+    const spellSniper =
+      feat === FEATS.SPELL_SNIPER ? normalizeSpellSniperChoice(record.spellSniper) : undefined;
+    const telekinetic =
+      feat === FEATS.TELEKINETIC ? normalizeTelekineticChoice(record.telekinetic) : undefined;
+    const telepathic =
+      feat === FEATS.TELEPATHIC ? normalizeTelepathicChoice(record.telepathic) : undefined;
+    const warCaster =
+      feat === FEATS.WAR_CASTER ? normalizeWarCasterChoice(record.warCaster) : undefined;
+    const skillExpert =
+      feat === FEATS.SKILL_EXPERT ? normalizeSkillExpertChoice(record.skillExpert) : undefined;
     const speedy = feat === FEATS.SPEEDY ? normalizeSpeedyChoice(record.speedy) : undefined;
     const weaponMaster =
       feat === FEATS.WEAPON_MASTER ? normalizeWeaponMasterChoice(record.weaponMaster) : undefined;
@@ -364,7 +439,10 @@ export function normalizeCharacterFeats(
         : undefined;
     const crafter = feat === FEATS.CRAFTER ? normalizeCrafterChoice(record.crafter) : undefined;
     const epicBoonAbilityChoice = epicBoonAbilityIncreaseFeatOptions.has(feat)
-      ? normalizeEpicBoonAbilityChoice(feat, record.epicBoonAbilityChoice)
+      ? (normalizeEpicBoonAbilityChoice(feat, record.epicBoonAbilityChoice) ??
+        (feat === FEATS.BOON_OF_IRRESISTIBLE_OFFENSE && boonOfIrresistibleOffense
+          ? { ability: boonOfIrresistibleOffense.ability }
+          : undefined))
       : undefined;
     const skilled = feat === FEATS.SKILLED ? normalizeSkilledChoice(record.skilled) : undefined;
     const musician = feat === FEATS.MUSICIAN ? normalizeMusicianChoice(record.musician) : undefined;
@@ -404,14 +482,28 @@ export function normalizeCharacterFeats(
         observant,
         piercer,
         poisoner,
+        polearmMaster,
+        ritualCaster,
         resilient,
+        sentinel,
+        shadowTouched,
+        slasher,
+        spellSniper,
+        telekinetic,
+        telepathic,
+        warCaster,
+        skillExpert,
         speedy,
         weaponMaster,
         blessedWarrior,
         druidicWarrior,
         magicInitiate,
         crafter,
+        boonOfEnergyResistance,
+        boonOfFate,
         boonOfIrresistibleOffense,
+        boonOfRecovery,
+        boonOfSkill,
         epicBoonAbilityChoice,
         skilled,
         musician,
@@ -447,7 +539,17 @@ export function createCharacterFeatEntry(
     observant?: ObservantChoice;
     piercer?: PiercerChoice;
     poisoner?: PoisonerChoice;
+    polearmMaster?: PolearmMasterChoice;
+    ritualCaster?: RitualCasterChoice;
     resilient?: ResilientChoice;
+    sentinel?: SentinelChoice;
+    shadowTouched?: ShadowTouchedChoice;
+    slasher?: SlasherChoice;
+    spellSniper?: SpellSniperChoice;
+    telekinetic?: TelekineticChoice;
+    telepathic?: TelepathicChoice;
+    warCaster?: WarCasterChoice;
+    skillExpert?: SkillExpertChoice;
     speedy?: SpeedyChoice;
     weaponMaster?: WeaponMasterChoice;
     blessedWarrior?: BlessedWarriorChoice;
@@ -455,7 +557,11 @@ export function createCharacterFeatEntry(
     magicInitiate?: MagicInitiateChoice;
     musician?: MusicianChoice;
     crafter?: CrafterChoice;
+    boonOfEnergyResistance?: BoonOfEnergyResistanceChoice;
+    boonOfFate?: BoonOfFateState;
     boonOfIrresistibleOffense?: BoonOfIrresistibleOffenseChoice;
+    boonOfRecovery?: BoonOfRecoveryState;
+    boonOfSkill?: BoonOfSkillChoice;
     epicBoonAbilityChoice?: EpicBoonAbilityChoice;
     skilled?: SkilledChoice;
     lucky?: LuckyChoice;
@@ -493,7 +599,17 @@ export function createCharacterFeatEntry(
     observant: feat === FEATS.OBSERVANT ? options?.observant : undefined,
     piercer: feat === FEATS.PIERCER ? options?.piercer : undefined,
     poisoner: feat === FEATS.POISONER ? options?.poisoner : undefined,
+    polearmMaster: feat === FEATS.POLEARM_MASTER ? options?.polearmMaster : undefined,
+    ritualCaster: feat === FEATS.RITUAL_CASTER ? options?.ritualCaster : undefined,
     resilient: feat === FEATS.RESILIENT ? options?.resilient : undefined,
+    sentinel: feat === FEATS.SENTINEL ? options?.sentinel : undefined,
+    shadowTouched: feat === FEATS.SHADOW_TOUCHED ? options?.shadowTouched : undefined,
+    slasher: feat === FEATS.SLASHER ? options?.slasher : undefined,
+    spellSniper: feat === FEATS.SPELL_SNIPER ? options?.spellSniper : undefined,
+    telekinetic: feat === FEATS.TELEKINETIC ? options?.telekinetic : undefined,
+    telepathic: feat === FEATS.TELEPATHIC ? options?.telepathic : undefined,
+    warCaster: feat === FEATS.WAR_CASTER ? options?.warCaster : undefined,
+    skillExpert: feat === FEATS.SKILL_EXPERT ? options?.skillExpert : undefined,
     speedy: feat === FEATS.SPEEDY ? options?.speedy : undefined,
     weaponMaster: feat === FEATS.WEAPON_MASTER ? options?.weaponMaster : undefined,
     blessedWarrior: feat === FEATS.BLESSED_WARRIOR ? options?.blessedWarrior : undefined,
@@ -501,8 +617,13 @@ export function createCharacterFeatEntry(
     magicInitiate: feat === FEATS.MAGIC_INITIATE ? options?.magicInitiate : undefined,
     musician: feat === FEATS.MUSICIAN ? options?.musician : undefined,
     crafter: feat === FEATS.CRAFTER ? options?.crafter : undefined,
+    boonOfEnergyResistance:
+      feat === FEATS.BOON_OF_ENERGY_RESISTANCE ? options?.boonOfEnergyResistance : undefined,
+    boonOfFate: feat === FEATS.BOON_OF_FATE ? options?.boonOfFate : undefined,
     boonOfIrresistibleOffense:
       feat === FEATS.BOON_OF_IRRESISTIBLE_OFFENSE ? options?.boonOfIrresistibleOffense : undefined,
+    boonOfRecovery: feat === FEATS.BOON_OF_RECOVERY ? options?.boonOfRecovery : undefined,
+    boonOfSkill: feat === FEATS.BOON_OF_SKILL ? options?.boonOfSkill : undefined,
     epicBoonAbilityChoice: epicBoonAbilityIncreaseFeatOptions.has(feat)
       ? options?.epicBoonAbilityChoice
       : undefined,

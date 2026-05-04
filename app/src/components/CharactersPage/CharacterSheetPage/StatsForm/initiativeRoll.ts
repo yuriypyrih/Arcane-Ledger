@@ -18,6 +18,7 @@ import {
   applySuperiorInspirationOnInitiativeForCharacter,
   expendBardicInspirationUseForCharacter
 } from "../../../../pages/CharactersPage/classFeatures";
+import { restoreBoonOfFateImproveFateForCharacter } from "../../../../pages/CharactersPage/feats/runtime";
 import { setRoundTrackerCombatState } from "../../../../pages/CharactersPage/combat";
 import type { Character } from "../../../../types";
 import { formatRollResultTotal } from "../../../../utils/dice";
@@ -80,6 +81,7 @@ export function applyInitiativeRollCharacterEffects(
 ): Character {
   let nextCharacter = clearRoundScopedFeatureStateForCharacter(currentCharacter);
 
+  nextCharacter = restoreBoonOfFateImproveFateForCharacter(nextCharacter);
   nextCharacter = applySuperiorInspirationOnInitiativeForCharacter(nextCharacter);
   nextCharacter = applyArchdruidOnInitiativeForCharacter(nextCharacter);
 

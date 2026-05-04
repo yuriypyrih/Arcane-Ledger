@@ -4,6 +4,7 @@ import {
   PROF_LEVEL,
   TOOL_PROFICIENCY,
   WEAPON_PROFICIENCY,
+  ALL_SKILLS,
   type SAVING_THROW_PROFICIENCY,
   type Character,
   type CharacterFeatEntry,
@@ -253,6 +254,44 @@ function removeObservantProficienciesFromDraft(
   };
 }
 
+function removeSkillExpertProficienciesFromDraft(
+  draft: FeatEditorDraft,
+  entryToRemove: CharacterFeatEntry
+): FeatEditorDraft {
+  if (entryToRemove.feat !== FEATS.SKILL_EXPERT || !entryToRemove.skillExpert) {
+    return draft;
+  }
+
+  return {
+    ...draft,
+    skillProficiencies: removeFeatGrantedSkillEntries(
+      draft.skillProficiencies,
+      [entryToRemove.skillExpert.skillProficiency, entryToRemove.skillExpert.skillExpertise],
+      "Skill Expert",
+      entryToRemove.id
+    )
+  };
+}
+
+function removeBoonOfSkillProficienciesFromDraft(
+  draft: FeatEditorDraft,
+  entryToRemove: CharacterFeatEntry
+): FeatEditorDraft {
+  if (entryToRemove.feat !== FEATS.BOON_OF_SKILL || !entryToRemove.boonOfSkill) {
+    return draft;
+  }
+
+  return {
+    ...draft,
+    skillProficiencies: removeFeatGrantedSkillEntries(
+      draft.skillProficiencies,
+      [...ALL_SKILLS],
+      "Boon of Skill",
+      entryToRemove.id
+    )
+  };
+}
+
 function removePoisonerProficienciesFromDraft(
   draft: FeatEditorDraft,
   entryToRemove: CharacterFeatEntry
@@ -325,6 +364,8 @@ function removeFeatGrantedProficienciesFromDraft(
     removeMartialWeaponTrainingProficienciesFromDraft,
     removeModeratelyArmoredProficienciesFromDraft,
     removeObservantProficienciesFromDraft,
+    removeSkillExpertProficienciesFromDraft,
+    removeBoonOfSkillProficienciesFromDraft,
     removePoisonerProficienciesFromDraft,
     removeResilientProficienciesFromDraft,
     removeWeaponMasterProficienciesFromDraft
@@ -385,6 +426,14 @@ function addFeatGrantedProficienciesToDraft(
     featEntry.feat === FEATS.MODERATELY_ARMORED ? [ARMOR_PROFICIENCY.MEDIUM] : [];
   const observantSkillSelection =
     featEntry.feat === FEATS.OBSERVANT && featEntry.observant ? featEntry.observant.skill : null;
+  const skillExpertSelection =
+    featEntry.feat === FEATS.SKILL_EXPERT && featEntry.skillExpert
+      ? featEntry.skillExpert
+      : null;
+  const boonOfSkillSelection =
+    featEntry.feat === FEATS.BOON_OF_SKILL && featEntry.boonOfSkill
+      ? featEntry.boonOfSkill
+      : null;
   const poisonerToolSelections =
     featEntry.feat === FEATS.POISONER ? [TOOL_PROFICIENCY.POISONERS_KIT] : [];
   const resilientSavingThrowSelections =
@@ -513,6 +562,44 @@ function addFeatGrantedProficienciesToDraft(
       featEntry.id
     );
   }
+
+  nextDraft = skillExpertSelection
+    ? {
+        ...nextDraft,
+        skillProficiencies: addFeatGrantedSkillEntriesAtLevel(
+          addFeatGrantedSkillEntriesAtLevel(
+            nextDraft.skillProficiencies,
+            [skillExpertSelection.skillProficiency],
+            "Skill Expert",
+            featEntry.id,
+            PROF_LEVEL.PROFICIENT
+          ),
+          [skillExpertSelection.skillExpertise],
+          "Skill Expert",
+          featEntry.id,
+          PROF_LEVEL.EXPERT
+        )
+      }
+    : nextDraft;
+
+  nextDraft = boonOfSkillSelection
+    ? {
+        ...nextDraft,
+        skillProficiencies: addFeatGrantedSkillEntriesAtLevel(
+          addFeatGrantedSkillEntriesAtLevel(
+            nextDraft.skillProficiencies,
+            [...ALL_SKILLS],
+            "Boon of Skill",
+            featEntry.id,
+            PROF_LEVEL.PROFICIENT
+          ),
+          [boonOfSkillSelection.skillExpertise],
+          "Boon of Skill",
+          featEntry.id,
+          PROF_LEVEL.EXPERT
+        )
+      }
+    : nextDraft;
 
   nextDraft =
     poisonerToolSelections.length > 0

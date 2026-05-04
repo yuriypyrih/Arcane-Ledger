@@ -15,19 +15,19 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     openSpellDetails, openSpellManagementMenu, orderDescriptionAdditionSections, paladinOathOfTheNobleGeniesElementalSmiteOptions, preparedSpellGroups, preparedSpellLimit, rangerFeyReinforcementsUsesRemaining, rangerFeyReinforcementsUsesTotal, rangerMistyWandererUsesRemaining,
     rangerMistyWandererUsesTotal, resetAllSpellSlotsAtLevel, selectedCantripIds, selectedDivinityActionShape, selectedDivinityActionShapeState, selectedDivinityActionWarning, selectedDivinityDisplay, selectedDivinityOptionKey, selectedDivinityRow,
     selectedElementalSmiteOptionOnSelectedSpell, selectedFrozenHauntFallbackSlotLevel, selectedInvocation, selectedInvocationCount, selectedInvocationIds, selectedManualSpellbookSpellIds, selectedPreparedSpellIds, selectedSpell, selectedSpellActionPaths,
-    selectedSpellAlwaysPrepared, selectedSpellAlwaysSpellbook, selectedSpellAttackRollFormula, selectedSpellBlockedReason, selectedSpellCanCastAsRitualFromSpellbook, selectedSpellCanOnlyBeCastAsRitual, selectedSpellCastWarning, selectedSpellDamageDetailOverride, selectedSpellDisplay, selectedSpellMagicInitiateAbility, selectedSpellMagicInitiateDisabled, selectedSpellMagicInitiateFreeCastState,
+    selectedSpellAlwaysPrepared, selectedSpellAlwaysSpellbook, selectedSpellAttackRollFormula, selectedSpellBlockedReason, selectedSpellCanCastAsRitualFromSpellbook, selectedSpellCanOnlyBeCastAsRitual, selectedSpellCastWarning, selectedSpellDamageDetailOverride, selectedSpellDetectThoughtsDisabled, selectedSpellDetectThoughtsFreeCastState, selectedSpellDisplay, selectedSpellMagicInitiateAbility, selectedSpellMagicInitiateDisabled, selectedSpellMagicInitiateFreeCastState,
     selectedSpellElementalSmiteDisabled, selectedSpellFacts, selectedSpellFeyMagicDisabled, selectedSpellFeyMagicFreeCastState, selectedSpellFeyReinforcementsDisabled, selectedSpellFreeCastSlotLevel, selectedSpellFrozenHauntFallbackSlotOptions, selectedSpellFrozenHauntFallbackSlotSummary, selectedSpellFrozenHauntOptionState, selectedSpellHuntersRimeTemporaryHitPointsFormula, selectedSpellIsSpellbookOnly,
     selectedSpellIsWizardSpellMastery, selectedSpellMindMagicDisabled, selectedSpellMistyWandererDisabled, selectedSpellOverchannelDisabled, selectedSpellOverchannelNecroticDamage, selectedSpellPhantasmalCreaturesDisabled, selectedSpellPhantasmalCreaturesOptionState, selectedSpellPsionicSorceryCurrentCost, selectedSpellPsionicSorceryDisabled,
-    selectedSpellRadiantSoulDisabled, selectedSpellSharedCastWarning, selectedSpellSlotLevel, selectedSpellStarMapDisabled, selectedSpellStepsOfTheFeyDisabled, selectedSpellSupportsBeguilingMagic, selectedSpellSupportsBewitchingMagic, selectedSpellSupportsBlessingOfMoonlight, selectedSpellSupportsElementalSmite,
-    selectedSpellSupportsFeyMagic, selectedSpellSupportsFeyReinforcements, selectedSpellSupportsMagicInitiate, selectedSpellSupportsMindMagic, selectedSpellSupportsMistyWanderer, selectedSpellSupportsNaturalRecovery, selectedSpellSupportsOverchannel, selectedSpellSupportsPhantasmalCreatures, selectedSpellSupportsPsionicSorcery, selectedSpellSupportsRadiantSoul, selectedSpellSupportsStarMap,
+    selectedSpellQuickRitualDisabled, selectedSpellQuickRitualState, selectedSpellRadiantSoulDisabled, selectedSpellShadowMagicDisabled, selectedSpellShadowMagicFreeCastState, selectedSpellSharedCastWarning, selectedSpellSlotLevel, selectedSpellStarMapDisabled, selectedSpellStepsOfTheFeyDisabled, selectedSpellSupportsBeguilingMagic, selectedSpellSupportsBewitchingMagic, selectedSpellSupportsBlessingOfMoonlight, selectedSpellSupportsElementalSmite,
+    selectedSpellSupportsBoonOfSpellRecall, selectedSpellSupportsDetectThoughts, selectedSpellSupportsFeyMagic, selectedSpellSupportsFeyReinforcements, selectedSpellSupportsMagicInitiate, selectedSpellSupportsMindMagic, selectedSpellSupportsMistyWanderer, selectedSpellSupportsNaturalRecovery, selectedSpellSupportsOverchannel, selectedSpellSupportsPhantasmalCreatures, selectedSpellSupportsPsionicSorcery, selectedSpellSupportsQuickRitual, selectedSpellSupportsRadiantSoul, selectedSpellSupportsShadowMagic, selectedSpellSupportsStarMap,
     selectedSpellSupportsStepsOfTheFey, selectedSpellSupportsTamedSurge, selectedSpellSupportsTelekineticMaster, selectedSpellSupportsWarGodsBlessing, selectedSpellTamedSurgeDisabled, selectedSpellTelekineticMasterDisabled, selectedSpellUnderMantleOfMajesty, selectedSpellViewMode, selectedSpellWarGodsBlessingDisabled,
     setActiveSpellSlotSheetLevel, setActiveWizardSpellFilter, setIsSelectedSpellDiceRollerSettingsOpen, setIsSpellManagementModalOpen, setSelectedElementalSmiteOptionOnSelectedSpell, setSelectedFrozenHauntFallbackSlotLevel, setSelectedSpellSlotLevel, setUseBeguilingMagicOnSelectedSpell, setUseBewitchingMagicOnSelectedSpell,
-    setUseBlessingOfMoonlightOnSelectedSpell, setUseElementalSmiteOnSelectedSpell, setUseFeyMagicOnSelectedSpell, setUseFeyReinforcementsNoConcentrationOnSelectedSpell, setUseFeyReinforcementsOnSelectedSpell, setUseFrozenHauntOnSelectedSpell, setUseMagicInitiateOnSelectedSpell, setUseMindMagicOnSelectedSpell, setUseMistyWandererOnSelectedSpell, setUseNaturalRecoveryOnSelectedSpell, setUseOverchannelOnSelectedSpell,
-    setUsePhantasmalCreaturesOnSelectedSpell, setUsePsionicSorceryOnSelectedSpell, setUseRadiantSoulOnSelectedSpell, setUseStarMapOnSelectedSpell, setUseStepsOfTheFeyOnSelectedSpell, setUseTamedSurgeOnSelectedSpell, setUseTelekineticMasterOnSelectedSpell, setUseWarGodsBlessingOnSelectedSpell, shared, SheetSurface,
+    setUseBlessingOfMoonlightOnSelectedSpell, setUseBoonOfSpellRecallOnSelectedSpell, setUseDetectThoughtsOnSelectedSpell, setUseElementalSmiteOnSelectedSpell, setUseFeyMagicOnSelectedSpell, setUseFeyReinforcementsNoConcentrationOnSelectedSpell, setUseFeyReinforcementsOnSelectedSpell, setUseFrozenHauntOnSelectedSpell, setUseMagicInitiateOnSelectedSpell, setUseMindMagicOnSelectedSpell, setUseMistyWandererOnSelectedSpell, setUseNaturalRecoveryOnSelectedSpell, setUseOverchannelOnSelectedSpell,
+    setUsePhantasmalCreaturesOnSelectedSpell, setUsePsionicSorceryOnSelectedSpell, setUseQuickRitualOnSelectedSpell, setUseRadiantSoulOnSelectedSpell, setUseShadowMagicOnSelectedSpell, setUseStarMapOnSelectedSpell, setUseStepsOfTheFeyOnSelectedSpell, setUseTamedSurgeOnSelectedSpell, setUseTelekineticMasterOnSelectedSpell, setUseWarGodsBlessingOnSelectedSpell, shared, SheetSurface,
     sheetStyles, sorceryPointsRemaining, sorceryPointsTotal, spellOutcomeSummariesById, spellPreparationOptions, spellSlotLevels, spellSlotTotals, spellSlotsRemaining, spellbookSpellEntriesById,
     spellcastingChannelDivinityRows, spellcastingState, styles, tamedSurgeUsesRemaining, tamedSurgeUsesTotal, updateSpellSlotsExpended, useBeguilingMagicOnSelectedSpell, useBewitchingMagicOnSelectedSpell, useBlessingOfMoonlightOnSelectedSpell,
-    useElementalSmiteOnSelectedSpell, useFeyMagicOnSelectedSpell, useFeyReinforcementsNoConcentrationOnSelectedSpell, useFeyReinforcementsOnSelectedSpell, useFrozenHauntOnSelectedSpell, useMagicInitiateOnSelectedSpell, useMindMagicOnSelectedSpell, useMistyWandererOnSelectedSpell, useNaturalRecoveryOnSelectedSpell, useOverchannelOnSelectedSpell, usePhantasmalCreaturesOnSelectedSpell,
-    usePsionicSorceryOnSelectedSpell, useRadiantSoulOnSelectedSpell, useStarMapOnSelectedSpell, useStepsOfTheFeyOnSelectedSpell, useTamedSurgeOnSelectedSpell, useTelekineticMasterOnSelectedSpell, useWarGodsBlessingOnSelectedSpell, usesPreparedSpells, usesSpellbook,
+    useBoonOfSpellRecallOnSelectedSpell, useDetectThoughtsOnSelectedSpell, useElementalSmiteOnSelectedSpell, useFeyMagicOnSelectedSpell, useFeyReinforcementsNoConcentrationOnSelectedSpell, useFeyReinforcementsOnSelectedSpell, useFrozenHauntOnSelectedSpell, useMagicInitiateOnSelectedSpell, useMindMagicOnSelectedSpell, useMistyWandererOnSelectedSpell, useNaturalRecoveryOnSelectedSpell, useOverchannelOnSelectedSpell, usePhantasmalCreaturesOnSelectedSpell,
+    usePsionicSorceryOnSelectedSpell, useQuickRitualOnSelectedSpell, useRadiantSoulOnSelectedSpell, useShadowMagicOnSelectedSpell, useStarMapOnSelectedSpell, useStepsOfTheFeyOnSelectedSpell, useTamedSurgeOnSelectedSpell, useTelekineticMasterOnSelectedSpell, useWarGodsBlessingOnSelectedSpell, usesPreparedSpells, usesSpellbook,
     warlockStepsOfTheFeyUsesRemaining, warlockStepsOfTheFeyUsesTotal, wizardSignatureSpellIdSet, wizardSpellMasterySpellIdSet, wizardSpellbookOnlyIdSet, wizardSpellbookOnlyRitualIdSet
   } = context;
 
@@ -323,6 +323,10 @@ export function renderSpellCastingForm(context: Record<string, any>) {
               useStarMap: useStarMapOnSelectedSpell,
               useMagicInitiate: useMagicInitiateOnSelectedSpell,
               useFeyMagic: useFeyMagicOnSelectedSpell,
+              useQuickRitual: useQuickRitualOnSelectedSpell,
+              useShadowMagic: useShadowMagicOnSelectedSpell,
+              useDetectThoughts: useDetectThoughtsOnSelectedSpell,
+              useBoonOfSpellRecall: useBoonOfSpellRecallOnSelectedSpell,
               useBlessingOfMoonlight: useBlessingOfMoonlightOnSelectedSpell,
               useElementalSmite: useElementalSmiteOnSelectedSpell,
               elementalSmiteOption: selectedElementalSmiteOptionOnSelectedSpell,
@@ -351,6 +355,10 @@ export function renderSpellCastingForm(context: Record<string, any>) {
             !(selectedSpellSupportsStarMap && useStarMapOnSelectedSpell) &&
             !(selectedSpellSupportsMagicInitiate && useMagicInitiateOnSelectedSpell) &&
             !(selectedSpellSupportsFeyMagic && useFeyMagicOnSelectedSpell) &&
+            !(selectedSpellSupportsQuickRitual && useQuickRitualOnSelectedSpell) &&
+            !(selectedSpellSupportsShadowMagic && useShadowMagicOnSelectedSpell) &&
+            !(selectedSpellSupportsDetectThoughts && useDetectThoughtsOnSelectedSpell) &&
+            !(selectedSpellSupportsBoonOfSpellRecall && useBoonOfSpellRecallOnSelectedSpell) &&
             !(selectedSpellSupportsPsionicSorcery && usePsionicSorceryOnSelectedSpell) &&
             !(selectedSpellSupportsStepsOfTheFey && useStepsOfTheFeyOnSelectedSpell) &&
             !(selectedSpellSupportsBewitchingMagic && useBewitchingMagicOnSelectedSpell) &&
@@ -380,7 +388,16 @@ export function renderSpellCastingForm(context: Record<string, any>) {
                     ? "Magic Initiate lets you cast this spell at level 1 without expending a spell slot. This use recharges on a Long Rest."
                     : selectedSpellSupportsFeyMagic && useFeyMagicOnSelectedSpell
                       ? "Fey Magic lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
-                      : selectedSpellSupportsStepsOfTheFey && useStepsOfTheFeyOnSelectedSpell
+                      : selectedSpellSupportsQuickRitual && useQuickRitualOnSelectedSpell
+                        ? "Quick Ritual lets you cast this Ritual spell using its regular casting time without expending a spell slot. This use recharges on a Long Rest."
+                        : selectedSpellSupportsShadowMagic && useShadowMagicOnSelectedSpell
+                          ? "Shadow Magic lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                          : selectedSpellSupportsDetectThoughts && useDetectThoughtsOnSelectedSpell
+                            ? "Detect Thoughts lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                            : selectedSpellSupportsBoonOfSpellRecall &&
+                                useBoonOfSpellRecallOnSelectedSpell
+                              ? "Free Casting prevents this cast from expending a spell slot."
+                            : selectedSpellSupportsStepsOfTheFey && useStepsOfTheFeyOnSelectedSpell
                         ? selectedSpellSupportsBewitchingMagic && useBewitchingMagicOnSelectedSpell
                           ? "Steps of the Fey and Bewitching Magic both let you cast this spell without expending a spell slot. Steps of the Fey still spends one use."
                           : "Steps of the Fey lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
@@ -450,6 +467,10 @@ export function renderSpellCastingForm(context: Record<string, any>) {
             selectedSpellSupportsStarMap ||
             selectedSpellSupportsMagicInitiate ||
             selectedSpellSupportsFeyMagic ||
+            selectedSpellSupportsQuickRitual ||
+            selectedSpellSupportsShadowMagic ||
+            selectedSpellSupportsDetectThoughts ||
+            selectedSpellSupportsBoonOfSpellRecall ||
             selectedSpellSupportsPsionicSorcery ||
             selectedSpellSupportsBeguilingMagic ||
             selectedSpellSupportsBlessingOfMoonlight ||
@@ -596,7 +617,80 @@ export function renderSpellCastingForm(context: Record<string, any>) {
                         }
                       ]
                     : []),
-                  ...(selectedSpellSupportsPsionicSorcery
+                  ...(selectedSpellSupportsQuickRitual
+                    ? [
+                        {
+                          id: "quick-ritual",
+                          label: "Quick Ritual",
+                          checked: useQuickRitualOnSelectedSpell,
+                          onCheckedChange: setUseQuickRitualOnSelectedSpell,
+                          disabled: selectedSpellQuickRitualDisabled,
+                          headerTags: [
+                            createChargesHeaderTag(
+                              selectedSpellQuickRitualState?.usesRemaining ?? 0,
+                              selectedSpellQuickRitualState?.usesTotal ?? 1
+                            )
+                          ],
+                          usage: createChargesCardUsage(
+                            selectedSpellQuickRitualState?.usesRemaining ?? 0,
+                            selectedSpellQuickRitualState?.usesTotal ?? 1
+                          )
+                        }
+                      ]
+                    : []),
+                  ...(selectedSpellSupportsShadowMagic
+                    ? [
+                        {
+                          id: "shadow-magic",
+                          label: "Shadow Magic",
+                          checked: useShadowMagicOnSelectedSpell,
+                          onCheckedChange: setUseShadowMagicOnSelectedSpell,
+                          disabled: selectedSpellShadowMagicDisabled,
+                          headerTags: [
+                            createChargesHeaderTag(
+                              selectedSpellShadowMagicFreeCastState?.usesRemaining ?? 0,
+                              selectedSpellShadowMagicFreeCastState?.usesTotal ?? 1
+                            )
+                          ],
+                          usage: createChargesCardUsage(
+                            selectedSpellShadowMagicFreeCastState?.usesRemaining ?? 0,
+                            selectedSpellShadowMagicFreeCastState?.usesTotal ?? 1
+                          )
+                        }
+                      ]
+                    : []),
+	                  ...(selectedSpellSupportsDetectThoughts
+	                    ? [
+	                        {
+	                          id: "detect-thoughts",
+	                          label: "Detect Thoughts",
+                          checked: useDetectThoughtsOnSelectedSpell,
+                          onCheckedChange: setUseDetectThoughtsOnSelectedSpell,
+                          disabled: selectedSpellDetectThoughtsDisabled,
+                          headerTags: [
+                            createChargesHeaderTag(
+                              selectedSpellDetectThoughtsFreeCastState?.usesRemaining ?? 0,
+                              selectedSpellDetectThoughtsFreeCastState?.usesTotal ?? 1
+                            )
+                          ],
+                          usage: createChargesCardUsage(
+                            selectedSpellDetectThoughtsFreeCastState?.usesRemaining ?? 0,
+                            selectedSpellDetectThoughtsFreeCastState?.usesTotal ?? 1
+                          )
+	                        }
+	                      ]
+	                    : []),
+	                  ...(selectedSpellSupportsBoonOfSpellRecall
+	                    ? [
+	                        {
+	                          id: "boon-of-spell-recall",
+	                          label: "Free Casting",
+	                          checked: useBoonOfSpellRecallOnSelectedSpell,
+	                          onCheckedChange: setUseBoonOfSpellRecallOnSelectedSpell
+	                        }
+	                      ]
+	                    : []),
+	                  ...(selectedSpellSupportsPsionicSorcery
                     ? [
                         {
                           id: "psionic-sorcery",

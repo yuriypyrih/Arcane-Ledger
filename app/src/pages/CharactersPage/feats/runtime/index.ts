@@ -2,6 +2,7 @@ import {
   DAMAGE_TYPE,
   FEATS,
   REACTION,
+  SPELL_COMPONENT,
   SPELL_LIST_CLASS,
   WEAPON_BASE,
   WEAPON_COMBAT_TYPE,
@@ -25,6 +26,7 @@ import type {
   ItemRecord,
   MagicInitiateChoice
 } from "../../../../types";
+import { getAbilityModifierForCharacter } from "../../abilities";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import {
   appendSourcedDescriptionAddition,
@@ -37,16 +39,20 @@ import type {
   FeatureSpeedBonus
 } from "../../classFeatures/types";
 import {
+  createChargesCardUsage,
+  createChargesHeaderTag,
   createFeatureActionCardCost,
   createNamedResourceCardUsage,
   createTextHeaderTag
 } from "../../classFeatures/cardUsage";
+import { getProficiencyBonus } from "../../gameplay";
 import {
   getHitDiceRemainingForCharacter,
   getHitDiceTotalForCharacter,
   getHitDieFormulaForClass,
   getHitDieLabelForCharacter
 } from "../../hitDice";
+import { formatFormulaCell, formatSignedFormulaTerm } from "../../shared/formulas";
 import { getFeatDefinition, getFeatLabel, normalizeCharacterFeats } from "..";
 import { formatCodexLabel } from "../../../../utils/codex";
 import type { FeatDerivedState, FeatRuntimeCharacter } from "./types";
@@ -115,18 +121,71 @@ export const heavyArmorMasterDamageReductionStatusSourceId =
 export const mageSlayerConcentrationBreakerStatusSourceId =
   "feat-mage-slayer-concentration-breaker";
 export const speedyAgileMovementStatusSourceId = "feat-speedy-agile-movement";
+export const sentinelGuardianHaltStatusSourceId = "feat-sentinel-guardian-halt";
+export const blindFightingBlindsightStatusSourceId = "feat-blind-fighting-blindsight";
+export const skulkerBlindsightStatusSourceId = "feat-skulker-blindsight";
+export const telepathicUtteranceStatusSourceId = "feat-telepathic-utterance";
+export const boonOfEnergyResistanceStatusSourceIdPrefix = "feat-boon-energy-resistance-";
+export const boonOfNightSpiritStatusSourceId = "feat-boon-night-spirit";
 export const defensiveDuelistParryReactionEntryId = "reaction-defensive-duelist-parry";
+export const boonOfEnergyResistanceReactionEntryId =
+  "reaction-boon-of-energy-resistance-energy-redirection";
+export const interceptionReactionEntryId = "reaction-interception";
+export const polearmMasterReactiveStrikeReactionEntryId =
+  "reaction-polearm-master-reactive-strike";
+export const protectionReactionEntryId = "reaction-protection";
+export const shieldMasterReactionEntryId = "reaction-shield-master";
+export const warCasterReactiveSpellReactionEntryId = "reaction-war-caster-reactive-spell";
 export const luckyFeatActionKey = "feat-lucky";
+export const boonOfFateImproveFateActionKey = "feat-boon-of-fate-improve-fate";
+export const boonOfRecoveryRecoverVitalityActionKey =
+  "feat-boon-of-recovery-recover-vitality";
 export const durableSpeedyRecoveryActionKey = "feat-durable-speedy-recovery";
+export const telekineticShoveActionKey = "feat-telekinetic-shove";
 const feyTouchedMistyStepSpellId = "spell-misty-step";
+const telekineticMageHandSpellId = "spell-mage-hand";
+const telepathicDetectThoughtsSpellId = "spell-detect-thoughts";
+const shadowTouchedInvisibilitySpellId = "spell-invisibility";
 const elementalAdeptEnergyMasteryDescription =
   "Spells you cast ignore Resistance to damage of the chosen type. In addition, when you roll damage for a spell you cast that deals damage of that type, you can treat any 1 on a damage die as a 2.";
 const feyTouchedFeyMagicDescription =
   "Choose one level 1 spell from the Divination or Enchantment school of magic. You always have that spell and the Misty Step spell prepared. You can cast each of these spells without expending a spell slot. Once you cast either spell in this way, you can't cast that spell in this way again until you finish a Long Rest. You can also cast these spells using spell slots you have of the appropriate level. The spells' spellcasting ability is the ability increased by this feat.";
+const ritualCasterQuickRitualDescription =
+  "With this benefit, you can cast a Ritual spell that you have prepared using its regular casting time rather than the extended time for a Ritual. Doing so doesn't require a spell slot. Once you cast the spell in this way, you can't use this benefit again until you finish a Long Rest.";
+const shadowTouchedShadowMagicDescription =
+  "Choose one level 1 spell from the Illusion or Necromancy school of magic. You always have that spell and the Invisibility spell prepared. You can cast each of these spells without expending a spell slot. Once you cast either spell in this way, you can't cast that spell in this way again until you finish a Long Rest. You can also cast these spells using spell slots you have of the appropriate level. The spells' spellcasting ability is the ability increased by this feat.";
 
 type ChargerWeaponActionContext = {
   attackKind: "weapon" | "unarmed";
   combatType?: WEAPON_COMBAT_TYPE | null;
+};
+
+type ArcheryWeaponActionContext = {
+  attackKind: "weapon" | "unarmed";
+  combatType?: WEAPON_COMBAT_TYPE | null;
+};
+
+type DuelingWeaponActionContext = {
+  attackKind: "weapon" | "unarmed";
+  combatType?: WEAPON_COMBAT_TYPE | null;
+};
+
+type EpicBoonWeaponActionContext = {
+  attackKind: "weapon" | "unarmed";
+};
+
+type ThrownWeaponFightingWeaponActionContext = {
+  attackKind: "weapon" | "unarmed";
+  properties?: WEAPON_PROPERTY[];
+};
+
+type TwoWeaponFightingWeaponActionContext = {
+  attackKind: "weapon" | "unarmed";
+  properties?: WEAPON_PROPERTY[];
+};
+
+type UnarmedFightingWeaponActionContext = {
+  attackKind: "weapon" | "unarmed";
 };
 
 type CrusherWeaponActionContext = {
@@ -148,9 +207,25 @@ type GreatWeaponMasterWeaponActionContext = {
   properties?: WEAPON_PROPERTY[];
 };
 
+type PolearmMasterWeaponActionContext = {
+  attackKind: "weapon" | "unarmed";
+  baseWeapon?: WEAPON_BASE | null;
+  properties?: WEAPON_PROPERTY[];
+};
+
 type CrossbowExpertWeaponActionContext = {
   attackKind: "weapon" | "unarmed";
   baseWeapon?: WEAPON_BASE | null;
+};
+
+type SharpshooterWeaponActionContext = {
+  attackKind: "weapon" | "unarmed";
+  combatType?: WEAPON_COMBAT_TYPE | null;
+};
+
+type ShieldMasterWeaponActionContext = {
+  attackKind: "weapon" | "unarmed";
+  combatType?: WEAPON_COMBAT_TYPE | null;
 };
 
 const crossbowExpertBaseWeapons = new Set<WEAPON_BASE>([
@@ -244,6 +319,46 @@ function getFeyTouchedSpellEntries(entry: CharacterFeatEntry): SpellEntry[] {
   });
 }
 
+function getRitualCasterSpellEntries(entry: CharacterFeatEntry): SpellEntry[] {
+  if (entry.feat !== FEATS.RITUAL_CASTER || !entry.ritualCaster) {
+    return [];
+  }
+
+  return entry.ritualCaster.spellIds.flatMap((spellId) => {
+    const spell = getSpellEntryById(spellId);
+
+    return spell && spell.spellLevel === 1 && spell.ritual === true ? [spell] : [];
+  });
+}
+
+function getShadowTouchedSpellEntries(entry: CharacterFeatEntry): SpellEntry[] {
+  if (entry.feat !== FEATS.SHADOW_TOUCHED || !entry.shadowTouched) {
+    return [];
+  }
+
+  return [entry.shadowTouched.spellId, shadowTouchedInvisibilitySpellId].flatMap((spellId) => {
+    const spell = getSpellEntryById(spellId);
+
+    return spell ? [spell] : [];
+  });
+}
+
+function getTelekineticMageHandSpellEntry(entry: CharacterFeatEntry): SpellEntry | null {
+  if (entry.feat !== FEATS.TELEKINETIC || !entry.telekinetic) {
+    return null;
+  }
+
+  return getSpellEntryById(telekineticMageHandSpellId);
+}
+
+function getTelepathicDetectThoughtsSpellEntry(entry: CharacterFeatEntry): SpellEntry | null {
+  if (entry.feat !== FEATS.TELEPATHIC || !entry.telepathic) {
+    return null;
+  }
+
+  return getSpellEntryById(telepathicDetectThoughtsSpellId);
+}
+
 function getFeatProficiencyBonusForLevel(level: number): number {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
   return Math.floor((normalizedLevel - 1) / 4) + 2;
@@ -291,6 +406,157 @@ function createLuckyAction(
     execute: {
       kind: "activate",
       label: "Use 1"
+    }
+  };
+}
+
+function createBoonOfFateImproveFateAction(
+  remaining: number,
+  total: number,
+  description: SpellDescriptionEntry[]
+): FeatureActionCard {
+  const chargesTag = createChargesHeaderTag(remaining, total, "Improve Fate");
+  const disabledReason =
+    remaining > 0 ? undefined : "Improve Fate recharges when you roll Initiative or finish a rest.";
+
+  return {
+    key: boonOfFateImproveFateActionKey,
+    name: "Improve Fate",
+    summary: `Charge ${remaining}/${total}`,
+    detail: "Roll 2d4 to alter a D20 Test.",
+    breakdown: "Boon of Fate",
+    economyType: ECONOMY_TYPE.FREE,
+    actionCategory: ACTION_CATEGORY.FEATURE,
+    usesRemaining: remaining,
+    usesTotal: total,
+    hideUsesTrackerOnCard: true,
+    cardUsage: createChargesCardUsage(remaining, total),
+    disabled: remaining <= 0,
+    disabledReason,
+    description,
+    headerTags: [chargesTag],
+    drawer: {
+      kind: "confirm",
+      description,
+      confirmLabel: "Use Improve Fate",
+      headerTags: [chargesTag]
+    },
+    execute: {
+      kind: "activate",
+      label: "Use Improve Fate"
+    }
+  };
+}
+
+function createBoonOfRecoveryRecoverVitalityAction(
+  remaining: number,
+  total: number,
+  description: SpellDescriptionEntry[]
+): FeatureActionCard {
+  const poolTag = createTextHeaderTag(
+    "",
+    `${remaining}/${total} d10`,
+    undefined,
+    remaining > 0 ? undefined : "danger"
+  );
+  const disabledReason = remaining > 0 ? undefined : "No Recover Vitality d10s remaining.";
+
+  return {
+    key: boonOfRecoveryRecoverVitalityActionKey,
+    name: "Recover Vitality",
+    summary: `Pool of ${remaining}/${total} d10`,
+    detail: "Heal yourself with d10s",
+    breakdown: "Heal yourself with d10s",
+    economyType: ECONOMY_TYPE.BONUS_ACTION,
+    actionCategory: ACTION_CATEGORY.FEATURE,
+    cardUsage: createNamedResourceCardUsage(
+      createFeatureActionCardCost({
+        resourceLabel: "d10"
+      })
+    ),
+    usesRemaining: remaining,
+    usesTotal: total,
+    hideUsesTrackerOnCard: true,
+    disabled: remaining <= 0,
+    disabledReason,
+    description,
+    headerTags: [poolTag],
+    drawer: {
+      kind: "custom-form",
+      formKind: "recover-vitality",
+      description,
+      confirmLabel: "Use Recover Vitality",
+      headerTags: [poolTag]
+    },
+    execute: {
+      kind: "custom-form",
+      formKind: "recover-vitality",
+      label: "Use Recover Vitality"
+    }
+  };
+}
+
+function getTelekineticShoveSavingThrowFact(
+  character: FeatRuntimeCharacter,
+  ability: AbilityKey,
+  normalizedFeats: CharacterFeatEntry[]
+): NonNullable<FeatureActionCard["facts"]>[number] {
+  const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
+  const abilityModifier = getAbilityModifierForCharacter(
+    {
+      ...character,
+      feats: normalizedFeats
+    },
+    ability
+  );
+  const saveDc = 8 + abilityModifier + proficiencyBonus;
+  const displayTerms = [
+    "DC 8 (Base)",
+    formatSignedFormulaTerm(abilityModifier, ability),
+    formatSignedFormulaTerm(proficiencyBonus, "Prof. Bonus")
+  ];
+  const formulaCell = formatFormulaCell({
+    formula: String(saveDc),
+    displayTerms,
+    breakdownTerms: displayTerms
+  });
+
+  return {
+    label: "Strength Saving Throw Formula",
+    value: `Strength DC ${saveDc} = ${formulaCell.value}`,
+    breakdown: formulaCell.breakdown,
+    fullWidth: true
+  };
+}
+
+function createTelekineticShoveAction(
+  character: FeatRuntimeCharacter,
+  ability: AbilityKey,
+  normalizedFeats: CharacterFeatEntry[],
+  description: SpellDescriptionEntry[]
+): FeatureActionCard {
+  const facts = [getTelekineticShoveSavingThrowFact(character, ability, normalizedFeats)];
+
+  return {
+    key: telekineticShoveActionKey,
+    name: "Telekinetic Shove",
+    summary: "Telekinetic Shove",
+    detail: "Shove a creature from afar",
+    breakdown: "Shove a creature from afar",
+    economyType: ECONOMY_TYPE.BONUS_ACTION,
+    actionCategory: ACTION_CATEGORY.FEATURE,
+    description,
+    facts,
+    drawer: {
+      kind: "confirm",
+      description,
+      facts,
+      factsSectionTitle: "Saving Throw",
+      confirmLabel: "Use Telekinetic Shove"
+    },
+    execute: {
+      kind: "activate",
+      label: "Use Telekinetic Shove"
     }
   };
 }
@@ -373,6 +639,72 @@ function isChefBolsteringTreatsDescriptionEntry(entry: string): boolean {
   return entry.startsWith("<strong>Bolstering Treats.</strong>");
 }
 
+function isArcheryWeaponActionDescriptionEntry(entry: string): boolean {
+  return entry.trim().length > 0;
+}
+
+function isDuelingWeaponActionDescriptionEntry(entry: string): boolean {
+  return entry.trim().length > 0;
+}
+
+function isBoonOfCombatProwessPeerlessAimDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Peerless Aim.</strong>");
+}
+
+function isBoonOfDimensionalTravelBlinkStepsDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Blink Steps.</strong>");
+}
+
+function isBoonOfEnergyResistanceEnergyResistancesDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Energy Resistances.</strong>");
+}
+
+function isBoonOfEnergyResistanceEnergyRedirectionDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Energy Redirection.</strong>");
+}
+
+function isBoonOfFateImproveFateDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Improve Fate.</strong>");
+}
+
+function isBoonOfIrresistibleOffenseDescriptionEntry(entry: string): boolean {
+  return (
+    entry.startsWith("<strong>Overcome Defenses.</strong>") ||
+    entry.startsWith("<strong>Overwhelming Strike.</strong>")
+  );
+}
+
+function isBoonOfNightSpiritDescriptionEntry(entry: string): boolean {
+  return (
+    entry.startsWith("<strong>Merge with Shadows.</strong>") ||
+    entry.startsWith("<strong>Shadowy Form.</strong>")
+  );
+}
+
+function isBoonOfRecoveryRecoverVitalityDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Recover Vitality.</strong>");
+}
+
+function isBoonOfSpeedEscapeArtistDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Escape Artist.</strong>");
+}
+
+function isBoonOfSpellRecallFreeCastingDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Free Casting.</strong>");
+}
+
+function isThrownWeaponFightingWeaponActionDescriptionEntry(entry: string): boolean {
+  return entry.trim().length > 0;
+}
+
+function isTwoWeaponFightingWeaponActionDescriptionEntry(entry: string): boolean {
+  return entry.trim().length > 0;
+}
+
+function isUnarmedFightingWeaponActionDescriptionEntry(entry: string): boolean {
+  return entry.trim().length > 0;
+}
+
 function isCrusherWeaponActionDescriptionEntry(entry: string): boolean {
   return (
     entry.startsWith("<strong>Push.</strong>") ||
@@ -383,6 +715,13 @@ function isCrusherWeaponActionDescriptionEntry(entry: string): boolean {
 function isPiercerWeaponActionDescriptionEntry(entry: string): boolean {
   return (
     entry.startsWith("<strong>Puncture.</strong>") ||
+    entry.startsWith("<strong>Enhanced Critical.</strong>")
+  );
+}
+
+function isSlasherWeaponActionDescriptionEntry(entry: string): boolean {
+  return (
+    entry.startsWith("<strong>Hamstring.</strong>") ||
     entry.startsWith("<strong>Enhanced Critical.</strong>")
   );
 }
@@ -409,6 +748,18 @@ function isWeaponMasterMasteryPropertyDescriptionEntry(entry: string): boolean {
 
 function isDefensiveDuelistParryDescriptionEntry(entry: string): boolean {
   return entry.startsWith("<strong>Parry.</strong>");
+}
+
+function isPolearmMasterPoleStrikeDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Pole Strike.</strong>");
+}
+
+function isPolearmMasterReactiveStrikeDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Reactive Strike.</strong>");
+}
+
+function isSentinelGuardianHaltDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Guardian.</strong>") || entry.startsWith("<strong>Halt.</strong>");
 }
 
 function isDurableSpeedyRecoveryDescriptionEntry(entry: string): boolean {
@@ -463,11 +814,96 @@ function isCrossbowExpertDescriptionEntry(entry: string): boolean {
   );
 }
 
+function isSharpshooterDescriptionEntry(entry: string): boolean {
+  return (
+    entry.startsWith("<strong>Bypass Cover.</strong>") ||
+    entry.startsWith("<strong>Firing in Melee.</strong>") ||
+    entry.startsWith("<strong>Long Shots.</strong>")
+  );
+}
+
+function isShieldMasterShieldBashDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Shield Bash.</strong>");
+}
+
+function isShieldMasterInterposeShieldDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Interpose Shield.</strong>");
+}
+
+function isSkulkerHideDescriptionEntry(entry: string): boolean {
+  return (
+    entry.startsWith("<strong>Fog of War.</strong>") ||
+    entry.startsWith("<strong>Sniper.</strong>")
+  );
+}
+
+function isSpellSniperDescriptionEntry(entry: string): boolean {
+  return (
+    entry.startsWith("<strong>Bypass Cover.</strong>") ||
+    entry.startsWith("<strong>Casting in Melee.</strong>") ||
+    entry.startsWith("<strong>Increased Range.</strong>")
+  );
+}
+
+function isTelekineticMinorTelekinesisDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Minor Telekinesis.</strong>");
+}
+
+function isTelekineticShoveDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Telekinetic Shove.</strong>");
+}
+
+function isTelepathicUtteranceDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Telepathic Utterance.</strong>");
+}
+
+function isTelepathicDetectThoughtsDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Detect Thoughts.</strong>");
+}
+
+function isWarCasterConcentrationDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Concentration.</strong>");
+}
+
+function isWarCasterReactiveSpellDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Reactive Spell.</strong>");
+}
+
+function isWarCasterSomaticComponentsDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Somatic Components.</strong>");
+}
+
 function isChargerMeleeWeaponAction(action: ChargerWeaponActionContext): boolean {
   return (
     action.attackKind === "unarmed" ||
     (action.attackKind === "weapon" && action.combatType === WEAPON_COMBAT_TYPE.MELEE)
   );
+}
+
+function isArcheryWeaponAction(action: ArcheryWeaponActionContext): boolean {
+  return action.attackKind === "weapon" && action.combatType === WEAPON_COMBAT_TYPE.RANGED;
+}
+
+function isDuelingWeaponAction(action: DuelingWeaponActionContext): boolean {
+  return action.attackKind === "weapon" && action.combatType === WEAPON_COMBAT_TYPE.MELEE;
+}
+
+function isEpicBoonWeaponAction(action: EpicBoonWeaponActionContext): boolean {
+  return action.attackKind === "weapon";
+}
+
+function isThrownWeaponFightingWeaponAction(
+  action: ThrownWeaponFightingWeaponActionContext
+): boolean {
+  return action.attackKind === "weapon" && (action.properties ?? []).includes(WEAPON_PROPERTY.THROWN);
+}
+
+function isTwoWeaponFightingWeaponAction(action: TwoWeaponFightingWeaponActionContext): boolean {
+  return action.attackKind === "weapon" && (action.properties ?? []).includes(WEAPON_PROPERTY.LIGHT);
+}
+
+function isUnarmedFightingWeaponAction(action: UnarmedFightingWeaponActionContext): boolean {
+  return action.attackKind === "unarmed";
 }
 
 function isCrossbowExpertWeaponAction(action: CrossbowExpertWeaponActionContext): boolean {
@@ -476,6 +912,14 @@ function isCrossbowExpertWeaponAction(action: CrossbowExpertWeaponActionContext)
     typeof action.baseWeapon === "string" &&
     crossbowExpertBaseWeapons.has(action.baseWeapon)
   );
+}
+
+function isSharpshooterWeaponAction(action: SharpshooterWeaponActionContext): boolean {
+  return action.attackKind === "weapon" && action.combatType === WEAPON_COMBAT_TYPE.RANGED;
+}
+
+function isShieldMasterWeaponAction(action: ShieldMasterWeaponActionContext): boolean {
+  return action.attackKind === "weapon" && action.combatType === WEAPON_COMBAT_TYPE.MELEE;
 }
 
 function isCrusherWeaponAction(action: CrusherWeaponActionContext): boolean {
@@ -488,6 +932,14 @@ function isPiercerWeaponAction(action: DamageTypedWeaponActionContext): boolean 
 
 function isPoisonerWeaponAction(action: DamageTypedWeaponActionContext): boolean {
   return /\bpoison\b/i.test(action.damageLabel);
+}
+
+function isSlasherWeaponAction(action: DamageTypedWeaponActionContext): boolean {
+  return /\bslashing\b/i.test(action.damageLabel);
+}
+
+function isBoonOfIrresistibleOffenseWeaponAction(action: DamageTypedWeaponActionContext): boolean {
+  return /\b(?:bludgeoning|piercing|slashing)\b/i.test(action.damageLabel);
 }
 
 function isDualWielderWeaponAction(action: DualWielderWeaponActionContext): boolean {
@@ -506,12 +958,32 @@ function isGreatWeaponMasterMeleeWeaponAction(
   return action.attackKind === "weapon" && action.combatType === WEAPON_COMBAT_TYPE.MELEE;
 }
 
+function isPolearmMasterWeaponAction(action: PolearmMasterWeaponActionContext): boolean {
+  if (action.attackKind !== "weapon") {
+    return false;
+  }
+
+  if (action.baseWeapon === WEAPON_BASE.QUARTERSTAFF || action.baseWeapon === WEAPON_BASE.SPEAR) {
+    return true;
+  }
+
+  const properties = action.properties ?? [];
+
+  return (
+    properties.includes(WEAPON_PROPERTY.HEAVY) && properties.includes(WEAPON_PROPERTY.REACH)
+  );
+}
+
 function doesSpellDealDamageType(spell: SpellEntry, chosenDamageType: DAMAGE_TYPE): boolean {
   return spell.damage.some(([, damageType]) =>
     Array.isArray(damageType)
       ? damageType.includes(chosenDamageType)
       : damageType === chosenDamageType
   );
+}
+
+function doesSpellDealAnyDamageType(spell: SpellEntry, damageTypes: DAMAGE_TYPE[]): boolean {
+  return damageTypes.some((damageType) => doesSpellDealDamageType(spell, damageType));
 }
 
 function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState {
@@ -524,6 +996,9 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
   const magicInitiateSpellcastingAbilityBySpellId = new Map<string, AbilityKey>();
   const magicInitiateFreeCastEntries: FeatDerivedState["magicInitiateFreeCastEntries"] = [];
   const feyTouchedFreeCastEntries: FeatDerivedState["feyTouchedFreeCastEntries"] = [];
+  const shadowTouchedFreeCastEntries: FeatDerivedState["shadowTouchedFreeCastEntries"] = [];
+  const telepathicDetectThoughtsFreeCastEntries: FeatDerivedState["telepathicDetectThoughtsFreeCastEntries"] =
+    [];
   const abilityScoreBonuses: FeatDerivedState["abilityScoreBonuses"] = [];
   const derivedStatusEntries: FeatDerivedState["derivedStatusEntries"] = [];
   const featDefinitionCache = new Map<FEATS, SpellDescriptionEntry[]>();
@@ -588,6 +1063,55 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
           expended: feyTouched.freeCastExpendedSpellIds?.includes(spell.id) === true
         });
       });
+    }
+
+    if (entry.feat === FEATS.RITUAL_CASTER && entry.ritualCaster) {
+      const ritualCaster = entry.ritualCaster;
+
+      getRitualCasterSpellEntries(entry).forEach((spell) => {
+        alwaysPreparedSpellEntriesById.set(spell.id, spell);
+        magicInitiateSpellcastingAbilityBySpellId.set(spell.id, ritualCaster.ability);
+      });
+    }
+
+    if (entry.feat === FEATS.SHADOW_TOUCHED && entry.shadowTouched) {
+      const shadowTouched = entry.shadowTouched;
+
+      getShadowTouchedSpellEntries(entry).forEach((spell) => {
+        alwaysPreparedSpellEntriesById.set(spell.id, spell);
+        magicInitiateSpellcastingAbilityBySpellId.set(spell.id, shadowTouched.ability);
+        shadowTouchedFreeCastEntries.push({
+          featEntryId: entry.id,
+          spellId: spell.id,
+          expended: shadowTouched.freeCastExpendedSpellIds?.includes(spell.id) === true
+        });
+      });
+    }
+
+    if (entry.feat === FEATS.TELEKINETIC && entry.telekinetic) {
+      const mageHand = getTelekineticMageHandSpellEntry(entry);
+
+      if (mageHand) {
+        alwaysPreparedCantripEntriesById.set(mageHand.id, mageHand);
+        magicInitiateSpellcastingAbilityBySpellId.set(mageHand.id, entry.telekinetic.ability);
+      }
+    }
+
+    if (entry.feat === FEATS.TELEPATHIC && entry.telepathic) {
+      const detectThoughts = getTelepathicDetectThoughtsSpellEntry(entry);
+
+      if (detectThoughts) {
+        alwaysPreparedSpellEntriesById.set(detectThoughts.id, detectThoughts);
+        magicInitiateSpellcastingAbilityBySpellId.set(
+          detectThoughts.id,
+          entry.telepathic.ability
+        );
+        telepathicDetectThoughtsFreeCastEntries.push({
+          featEntryId: entry.id,
+          spellId: detectThoughts.id,
+          expended: entry.telepathic.detectThoughtsExpended === true
+        });
+      }
     }
 
     const order = entry.takenAtLevel + index / 100;
@@ -845,10 +1369,148 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
         maxScore: 20,
         order
       });
+    } else if (entry.feat === FEATS.POLEARM_MASTER && entry.polearmMaster) {
+      abilityScoreBonuses.push({
+        ability: entry.polearmMaster.ability,
+        label: "Polearm Master",
+        value: 1,
+        maxScore: 20,
+        order
+      });
+    } else if (entry.feat === FEATS.RITUAL_CASTER && entry.ritualCaster) {
+      abilityScoreBonuses.push({
+        ability: entry.ritualCaster.ability,
+        label: "Ritual Caster",
+        value: 1,
+        maxScore: 20,
+        order
+      });
     } else if (entry.feat === FEATS.RESILIENT && entry.resilient) {
       abilityScoreBonuses.push({
         ability: entry.resilient.ability,
         label: "Resilient",
+        value: 1,
+        maxScore: 20,
+        order
+      });
+    } else if (entry.feat === FEATS.SENTINEL && entry.sentinel) {
+      const description = filterDescriptionEntries(
+        getFeatDescription(FEATS.SENTINEL),
+        isSentinelGuardianHaltDescriptionEntry
+      );
+
+      abilityScoreBonuses.push({
+        ability: entry.sentinel.ability,
+        label: "Sentinel",
+        value: 1,
+        maxScore: 20,
+        order
+      });
+      derivedStatusEntries.push({
+        id: `${sentinelGuardianHaltStatusSourceId}-${entry.id}`,
+        group: STATUS_ENTRY_GROUP.EFFECTS,
+        value: "Sentinel",
+        source: "Sentinel",
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.FEAT,
+        duration: {
+          kind: STATUS_DURATION_KIND.INFINITE
+        },
+        sourceId: sentinelGuardianHaltStatusSourceId,
+        description: description.join("\n")
+      });
+    } else if (entry.feat === FEATS.SHADOW_TOUCHED && entry.shadowTouched) {
+      abilityScoreBonuses.push({
+        ability: entry.shadowTouched.ability,
+        label: "Shadow-Touched",
+        value: 1,
+        maxScore: 20,
+        order
+      });
+    } else if (entry.feat === FEATS.SHARPSHOOTER) {
+      abilityScoreBonuses.push({
+        ability: "DEX",
+        label: "Sharpshooter",
+        value: 1,
+        maxScore: 20,
+        order
+      });
+    } else if (entry.feat === FEATS.SHIELD_MASTER) {
+      abilityScoreBonuses.push({
+        ability: "STR",
+        label: "Shield Master",
+        value: 1,
+        maxScore: 20,
+        order
+      });
+    } else if (entry.feat === FEATS.SKULKER) {
+      abilityScoreBonuses.push({
+        ability: "DEX",
+        label: "Skulker",
+        value: 1,
+        maxScore: 20,
+        order
+      });
+    } else if (entry.feat === FEATS.SKILL_EXPERT && entry.skillExpert) {
+      abilityScoreBonuses.push({
+        ability: entry.skillExpert.ability,
+        label: "Skill Expert",
+        value: 1,
+        maxScore: 20,
+        order
+      });
+    } else if (entry.feat === FEATS.SLASHER && entry.slasher) {
+      abilityScoreBonuses.push({
+        ability: entry.slasher.ability,
+        label: "Slasher",
+        value: 1,
+        maxScore: 20,
+        order
+      });
+    } else if (entry.feat === FEATS.SPELL_SNIPER && entry.spellSniper) {
+      abilityScoreBonuses.push({
+        ability: entry.spellSniper.ability,
+        label: "Spell Sniper",
+        value: 1,
+        maxScore: 20,
+        order
+      });
+    } else if (entry.feat === FEATS.TELEKINETIC && entry.telekinetic) {
+      abilityScoreBonuses.push({
+        ability: entry.telekinetic.ability,
+        label: "Telekinetic",
+        value: 1,
+        maxScore: 20,
+        order
+      });
+    } else if (entry.feat === FEATS.TELEPATHIC && entry.telepathic) {
+      const description = filterDescriptionEntries(
+        getFeatDescription(FEATS.TELEPATHIC),
+        isTelepathicUtteranceDescriptionEntry
+      );
+
+      abilityScoreBonuses.push({
+        ability: entry.telepathic.ability,
+        label: "Telepathic",
+        value: 1,
+        maxScore: 20,
+        order
+      });
+      derivedStatusEntries.push({
+        id: `${telepathicUtteranceStatusSourceId}-${entry.id}`,
+        group: STATUS_ENTRY_GROUP.EFFECTS,
+        value: "Telepathic",
+        source: "Telepathic",
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.FEAT,
+        duration: {
+          kind: STATUS_DURATION_KIND.INFINITE
+        },
+        sourceId: telepathicUtteranceStatusSourceId,
+        description: description.join("\n")
+      });
+    } else if (entry.feat === FEATS.WAR_CASTER && entry.warCaster) {
+      abilityScoreBonuses.push({
+        ability: entry.warCaster.ability,
+        label: "War Caster",
         value: 1,
         maxScore: 20,
         order
@@ -913,6 +1575,33 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
         sourceId: actorStatusSourceId,
         description: actorDescription.join("\n")
       });
+    } else if (entry.feat === FEATS.BOON_OF_ENERGY_RESISTANCE && entry.boonOfEnergyResistance) {
+      const description = filterDescriptionEntries(
+        getFeatDescription(FEATS.BOON_OF_ENERGY_RESISTANCE),
+        isBoonOfEnergyResistanceEnergyResistancesDescriptionEntry
+      );
+
+      abilityScoreBonuses.push({
+        ability: entry.boonOfEnergyResistance.ability,
+        label: "Boon of Energy Resistance",
+        value: 1,
+        maxScore: 30,
+        order
+      });
+      entry.boonOfEnergyResistance.damageTypes.forEach((damageType) => {
+        derivedStatusEntries.push({
+          id: `${boonOfEnergyResistanceStatusSourceIdPrefix}${entry.id}-${damageType.toLowerCase()}`,
+          group: STATUS_ENTRY_GROUP.RESISTANCES,
+          value: damageType,
+          source: "Boon of Energy Resistance",
+          sourceType: STATUS_ENTRY_SOURCE_TYPE.FEAT,
+          duration: {
+            kind: STATUS_DURATION_KIND.INFINITE
+          },
+          sourceId: `${boonOfEnergyResistanceStatusSourceIdPrefix}${entry.id}-${damageType.toLowerCase()}`,
+          description: description.join("\n")
+        });
+      });
     } else if (
       entry.feat === FEATS.BOON_OF_IRRESISTIBLE_OFFENSE &&
       entry.boonOfIrresistibleOffense
@@ -924,6 +1613,14 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
         maxScore: 30,
         order
       });
+    } else if (entry.feat === FEATS.BOON_OF_SKILL && entry.boonOfSkill) {
+      abilityScoreBonuses.push({
+        ability: entry.boonOfSkill.ability,
+        label: "Boon of Skill",
+        value: 1,
+        maxScore: 30,
+        order
+      });
     } else if (entry.epicBoonAbilityChoice) {
       abilityScoreBonuses.push({
         ability: entry.epicBoonAbilityChoice.ability,
@@ -931,6 +1628,26 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
         value: 1,
         maxScore: 30,
         order
+      });
+    }
+
+    if (entry.feat === FEATS.BOON_OF_THE_NIGHT_SPIRIT) {
+      const description = filterDescriptionEntries(
+        getFeatDescription(FEATS.BOON_OF_THE_NIGHT_SPIRIT),
+        isBoonOfNightSpiritDescriptionEntry
+      );
+
+      derivedStatusEntries.push({
+        id: `${boonOfNightSpiritStatusSourceId}-${entry.id}`,
+        group: STATUS_ENTRY_GROUP.EFFECTS,
+        value: "Night Spirit",
+        source: "Boon of the Night Spirit",
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.FEAT,
+        duration: {
+          kind: STATUS_DURATION_KIND.INFINITE
+        },
+        sourceId: boonOfNightSpiritStatusSourceId,
+        description: description.join("\n")
       });
     }
 
@@ -947,10 +1664,42 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
         rangeFeet: 60
       });
     }
+
+    if (entry.feat === FEATS.BLIND_FIGHTING) {
+      derivedStatusEntries.push({
+        id: `${blindFightingBlindsightStatusSourceId}-${entry.id}`,
+        group: STATUS_ENTRY_GROUP.SENSES,
+        value: SENSE.BLINDSIGHT,
+        source: "Blind Fighting",
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.FEAT,
+        duration: {
+          kind: STATUS_DURATION_KIND.INFINITE
+        },
+        sourceId: blindFightingBlindsightStatusSourceId,
+        rangeFeet: 10
+      });
+    }
+
+    if (entry.feat === FEATS.SKULKER) {
+      derivedStatusEntries.push({
+        id: `${skulkerBlindsightStatusSourceId}-${entry.id}`,
+        group: STATUS_ENTRY_GROUP.SENSES,
+        value: SENSE.BLINDSIGHT,
+        source: "Skulker",
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.FEAT,
+        duration: {
+          kind: STATUS_DURATION_KIND.INFINITE
+        },
+        sourceId: skulkerBlindsightStatusSourceId,
+        rangeFeet: 10
+      });
+    }
   });
 
   const luckyPointsTotal = featSet.has(FEATS.LUCKY) ? getFeatProficiencyBonusForLevel(level) : 0;
-  const hitPointMaximumBonus = featSet.has(FEATS.TOUGH) ? level * 2 : 0;
+  const hitPointMaximumBonus =
+    (featSet.has(FEATS.TOUGH) ? level * 2 : 0) +
+    (featSet.has(FEATS.BOON_OF_FORTITUDE) ? 40 : 0);
   const speedBonuses: FeatureSpeedBonus[] = [];
 
   if (featSet.has(FEATS.ATHLETE)) {
@@ -970,32 +1719,166 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
     });
   }
 
+  if (featSet.has(FEATS.BOON_OF_SPEED)) {
+    speedBonuses.push({
+      label: "Boon of Speed: Quickness",
+      movementType: "walk",
+      value: 30
+    });
+  }
+
   const luckyPointsExpended = getLuckyPointsExpended(normalizedFeats, luckyPointsTotal);
   const luckyPointsRemaining = Math.max(0, luckyPointsTotal - luckyPointsExpended);
+  const boonOfFateImproveFateTotal = featSet.has(FEATS.BOON_OF_FATE) ? 1 : 0;
+  const boonOfFateImproveFateExpended = normalizedFeats.some(
+    (entry) =>
+      entry.feat === FEATS.BOON_OF_FATE && entry.boonOfFate?.improveFateExpended === true
+  );
+  const boonOfFateImproveFateRemaining =
+    boonOfFateImproveFateTotal > 0 && !boonOfFateImproveFateExpended ? 1 : 0;
+  const boonOfRecoveryDiceTotal = featSet.has(FEATS.BOON_OF_RECOVERY) ? 10 : 0;
+  const boonOfRecoveryDiceExpended = Math.max(
+    0,
+    Math.min(
+      boonOfRecoveryDiceTotal,
+      normalizedFeats.reduce(
+        (total, entry) =>
+          entry.feat === FEATS.BOON_OF_RECOVERY
+            ? total + (entry.boonOfRecovery?.recoverVitalityDiceExpended ?? 0)
+            : total,
+        0
+      )
+    )
+  );
+  const boonOfRecoveryDiceRemaining = Math.max(
+    0,
+    boonOfRecoveryDiceTotal - boonOfRecoveryDiceExpended
+  );
   const mageSlayerGuardedMindTotal = featSet.has(FEATS.MAGE_SLAYER) ? 1 : 0;
   const mageSlayerGuardedMindExpended = normalizedFeats.some(
     (entry) => entry.feat === FEATS.MAGE_SLAYER && entry.mageSlayer?.guardedMindExpended === true
   );
   const mageSlayerGuardedMindRemaining =
     mageSlayerGuardedMindTotal > 0 && !mageSlayerGuardedMindExpended ? 1 : 0;
+  const ritualCasterEntries = normalizedFeats.filter(
+    (entry) => entry.feat === FEATS.RITUAL_CASTER && entry.ritualCaster
+  );
+  const ritualCasterQuickRitualTotal = ritualCasterEntries.length;
+  const ritualCasterQuickRitualExpended = ritualCasterEntries.filter(
+    (entry) => entry.ritualCaster?.quickRitualExpended === true
+  ).length;
+  const ritualCasterQuickRitualRemaining = Math.max(
+    0,
+    ritualCasterQuickRitualTotal - ritualCasterQuickRitualExpended
+  );
+  const telepathicDetectThoughtsTotal = telepathicDetectThoughtsFreeCastEntries.length;
+  const telepathicDetectThoughtsExpended = telepathicDetectThoughtsFreeCastEntries.filter(
+    (entry) => entry.expended
+  ).length;
+  const telepathicDetectThoughtsRemaining = Math.max(
+    0,
+    telepathicDetectThoughtsTotal - telepathicDetectThoughtsExpended
+  );
   const actions: FeatureActionCard[] = featSet.has(FEATS.LUCKY)
     ? [createLuckyAction(luckyPointsRemaining, luckyPointsTotal, getFeatDescription(FEATS.LUCKY))]
     : [];
-  const reactionEntries: ReactionEntry[] = featSet.has(FEATS.DEFENSIVE_DUELIST)
-    ? [
-        {
-          id: defensiveDuelistParryReactionEntryId,
-          reaction: REACTION.PARRY,
-          name: "Parry",
-          sourceType: "feat",
-          sourceLabel: "Defensive Duelist",
-          description: filterDescriptionEntries(
-            getFeatDescription(FEATS.DEFENSIVE_DUELIST),
-            isDefensiveDuelistParryDescriptionEntry
-          )
-        }
-      ]
-    : [];
+  const reactionEntries: ReactionEntry[] = [];
+
+  if (featSet.has(FEATS.DEFENSIVE_DUELIST)) {
+    reactionEntries.push({
+      id: defensiveDuelistParryReactionEntryId,
+      reaction: REACTION.PARRY,
+      name: "Parry",
+      sourceType: "feat",
+      sourceLabel: "Defensive Duelist",
+      description: filterDescriptionEntries(
+        getFeatDescription(FEATS.DEFENSIVE_DUELIST),
+        isDefensiveDuelistParryDescriptionEntry
+      )
+    });
+  }
+
+  if (
+    normalizedFeats.some(
+      (entry) => entry.feat === FEATS.BOON_OF_ENERGY_RESISTANCE && entry.boonOfEnergyResistance
+    )
+  ) {
+    reactionEntries.push({
+      id: boonOfEnergyResistanceReactionEntryId,
+      reaction: REACTION.ENERGY_REDIRECTION,
+      name: "Energy Redirection",
+      sourceType: "feat",
+      sourceLabel: "Boon of Energy Resistance",
+      description: filterDescriptionEntries(
+        getFeatDescription(FEATS.BOON_OF_ENERGY_RESISTANCE),
+        isBoonOfEnergyResistanceEnergyRedirectionDescriptionEntry
+      )
+    });
+  }
+
+  if (featSet.has(FEATS.INTERCEPTION)) {
+    reactionEntries.push({
+      id: interceptionReactionEntryId,
+      reaction: REACTION.INTERCEPTION,
+      name: "Interception",
+      sourceType: "feat",
+      sourceLabel: "Interception",
+      description: getFeatDescription(FEATS.INTERCEPTION)
+    });
+  }
+
+  if (featSet.has(FEATS.PROTECTION)) {
+    reactionEntries.push({
+      id: protectionReactionEntryId,
+      reaction: REACTION.PROTECTION,
+      name: "Interception",
+      sourceType: "feat",
+      sourceLabel: "Protection",
+      description: getFeatDescription(FEATS.PROTECTION)
+    });
+  }
+
+  if (featSet.has(FEATS.POLEARM_MASTER)) {
+    reactionEntries.push({
+      id: polearmMasterReactiveStrikeReactionEntryId,
+      reaction: REACTION.REACTIVE_STRIKE,
+      name: "Reactive Strike",
+      sourceType: "feat",
+      sourceLabel: "Polearm Master",
+      description: filterDescriptionEntries(
+        getFeatDescription(FEATS.POLEARM_MASTER),
+        isPolearmMasterReactiveStrikeDescriptionEntry
+      )
+    });
+  }
+
+  if (featSet.has(FEATS.SHIELD_MASTER)) {
+    reactionEntries.push({
+      id: shieldMasterReactionEntryId,
+      reaction: REACTION.SHIELD_MASTER,
+      name: "Shield Master",
+      sourceType: "feat",
+      sourceLabel: "Shield Master",
+      description: filterDescriptionEntries(
+        getFeatDescription(FEATS.SHIELD_MASTER),
+        isShieldMasterInterposeShieldDescriptionEntry
+      )
+    });
+  }
+
+  if (featSet.has(FEATS.WAR_CASTER)) {
+    reactionEntries.push({
+      id: warCasterReactiveSpellReactionEntryId,
+      reaction: REACTION.REACTIVE_SPELL,
+      name: "Reactive Spell",
+      sourceType: "feat",
+      sourceLabel: "War Caster",
+      description: filterDescriptionEntries(
+        getFeatDescription(FEATS.WAR_CASTER),
+        isWarCasterReactiveSpellDescriptionEntry
+      )
+    });
+  }
 
   return {
     normalizedFeats,
@@ -1013,6 +1896,8 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
     magicInitiateSpellcastingAbilityBySpellId,
     magicInitiateFreeCastEntries,
     feyTouchedFreeCastEntries,
+    shadowTouchedFreeCastEntries,
+    telepathicDetectThoughtsFreeCastEntries,
     abilityScoreBonuses,
     speedBonuses,
     hitPointMaximumBonus,
@@ -1023,13 +1908,27 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
     hasDefenseFightingStyle: featSet.has(FEATS.DEFENSE),
     hasHealer: featSet.has(FEATS.HEALER),
     hasFeyTouched: featSet.has(FEATS.FEY_TOUCHED),
+    hasBoonOfFate: featSet.has(FEATS.BOON_OF_FATE),
+    hasBoonOfRecovery: featSet.has(FEATS.BOON_OF_RECOVERY),
+    hasBoonOfSpellRecall: featSet.has(FEATS.BOON_OF_SPELL_RECALL),
     hasLucky: featSet.has(FEATS.LUCKY),
     hasMageSlayer: featSet.has(FEATS.MAGE_SLAYER),
     hasMagicInitiate: featSet.has(FEATS.MAGIC_INITIATE),
+    hasRitualCaster: featSet.has(FEATS.RITUAL_CASTER),
+    hasShadowTouched: featSet.has(FEATS.SHADOW_TOUCHED),
+    hasTelepathic: featSet.has(FEATS.TELEPATHIC),
     luckyPointsRemaining,
     luckyPointsTotal,
+    boonOfFateImproveFateRemaining,
+    boonOfFateImproveFateTotal,
+    boonOfRecoveryDiceRemaining,
+    boonOfRecoveryDiceTotal,
     mageSlayerGuardedMindRemaining,
-    mageSlayerGuardedMindTotal
+    mageSlayerGuardedMindTotal,
+    ritualCasterQuickRitualRemaining,
+    ritualCasterQuickRitualTotal,
+    telepathicDetectThoughtsRemaining,
+    telepathicDetectThoughtsTotal
   };
 }
 
@@ -1061,6 +1960,63 @@ export function transformFeatSpellEntryForCharacter(
 ): SpellEntry {
   return collectFeatDerivedState(character).normalizedFeats.reduce<SpellEntry>(
     (currentSpell, entry) => {
+      if (entry.feat === FEATS.BOON_OF_DIMENSIONAL_TRAVEL) {
+        const description = getFeatDescriptionSlice(
+          FEATS.BOON_OF_DIMENSIONAL_TRAVEL,
+          isBoonOfDimensionalTravelBlinkStepsDescriptionEntry
+        );
+
+        return description.length > 0
+          ? appendSourcedDescriptionAddition(
+              currentSpell,
+              getFeatLabel(FEATS.BOON_OF_DIMENSIONAL_TRAVEL),
+              description
+            )
+          : currentSpell;
+      }
+
+      if (
+        entry.feat === FEATS.BOON_OF_IRRESISTIBLE_OFFENSE &&
+        entry.boonOfIrresistibleOffense &&
+        doesSpellDealAnyDamageType(currentSpell, [
+          DAMAGE_TYPE.BLUDGEONING,
+          DAMAGE_TYPE.PIERCING,
+          DAMAGE_TYPE.SLASHING
+        ])
+      ) {
+        const description = getFeatDescriptionSlice(
+          FEATS.BOON_OF_IRRESISTIBLE_OFFENSE,
+          isBoonOfIrresistibleOffenseDescriptionEntry
+        );
+
+        return description.length > 0
+          ? appendSourcedDescriptionAddition(
+              currentSpell,
+              getFeatLabel(FEATS.BOON_OF_IRRESISTIBLE_OFFENSE),
+              description
+            )
+          : currentSpell;
+      }
+
+      if (
+        entry.feat === FEATS.BOON_OF_SPELL_RECALL &&
+        currentSpell.spellLevel >= 1 &&
+        currentSpell.spellLevel <= 4
+      ) {
+        const description = getFeatDescriptionSlice(
+          FEATS.BOON_OF_SPELL_RECALL,
+          isBoonOfSpellRecallFreeCastingDescriptionEntry
+        );
+
+        return description.length > 0
+          ? appendSourcedDescriptionAddition(
+              currentSpell,
+              getFeatLabel(FEATS.BOON_OF_SPELL_RECALL),
+              description
+            )
+          : currentSpell;
+      }
+
       if (
         entry.feat === FEATS.ELEMENTAL_ADEPT &&
         entry.elementalAdept &&
@@ -1071,6 +2027,82 @@ export function transformFeatSpellEntryForCharacter(
           `Elemental Adept: Energy Mastery (${formatCodexLabel(entry.elementalAdept.damageType)})`,
           [elementalAdeptEnergyMasteryDescription]
         );
+      }
+
+      if (
+        entry.feat === FEATS.SPELL_SNIPER &&
+        entry.spellSniper &&
+        currentSpell.isAttackSpell === true
+      ) {
+        const description = getFeatDescriptionSlice(
+          FEATS.SPELL_SNIPER,
+          isSpellSniperDescriptionEntry
+        );
+
+        return description.length > 0
+          ? appendSourcedDescriptionAddition(
+              currentSpell,
+              getFeatLabel(FEATS.SPELL_SNIPER),
+              description
+            )
+          : currentSpell;
+      }
+
+      if (
+        entry.feat === FEATS.TELEKINETIC &&
+        entry.telekinetic &&
+        currentSpell.id === telekineticMageHandSpellId
+      ) {
+        const description = getFeatDescriptionSlice(
+          FEATS.TELEKINETIC,
+          isTelekineticMinorTelekinesisDescriptionEntry
+        );
+
+        return description.length > 0
+          ? appendSourcedDescriptionAddition(
+              currentSpell,
+              "Telekinetic: Minor Telekinesis",
+              description
+            )
+          : currentSpell;
+      }
+
+      if (
+        entry.feat === FEATS.TELEPATHIC &&
+        entry.telepathic &&
+        currentSpell.id === telepathicDetectThoughtsSpellId
+      ) {
+        const description = getFeatDescriptionSlice(
+          FEATS.TELEPATHIC,
+          isTelepathicDetectThoughtsDescriptionEntry
+        );
+
+        return description.length > 0
+          ? appendSourcedDescriptionAddition(
+              currentSpell,
+              "Telepathic: Detect Thoughts",
+              description
+            )
+          : currentSpell;
+      }
+
+      if (
+        entry.feat === FEATS.WAR_CASTER &&
+        entry.warCaster &&
+        currentSpell.components.includes(SPELL_COMPONENT.S)
+      ) {
+        const description = getFeatDescriptionSlice(
+          FEATS.WAR_CASTER,
+          isWarCasterSomaticComponentsDescriptionEntry
+        );
+
+        return description.length > 0
+          ? appendSourcedDescriptionAddition(
+              currentSpell,
+              "War Caster: Somatic Components",
+              description
+            )
+          : currentSpell;
       }
 
       if (
@@ -1105,6 +2137,31 @@ export function transformFeatSpellEntryForCharacter(
         return description.length > 0
           ? appendSourcedDescriptionAddition(currentSpell, "Poisoner: Potent Poison", description)
           : currentSpell;
+      }
+
+      if (
+        entry.feat === FEATS.RITUAL_CASTER &&
+        entry.ritualCaster &&
+        currentSpell.ritual === true
+      ) {
+        return appendSourcedDescriptionAddition(
+          currentSpell,
+          "Ritual Caster: Quick Ritual",
+          [ritualCasterQuickRitualDescription]
+        );
+      }
+
+      if (
+        entry.feat === FEATS.SHADOW_TOUCHED &&
+        entry.shadowTouched &&
+        (currentSpell.id === entry.shadowTouched.spellId ||
+          currentSpell.id === shadowTouchedInvisibilitySpellId)
+      ) {
+        return appendSourcedDescriptionAddition(
+          currentSpell,
+          "Shadow-Touched: Shadow Magic",
+          [shadowTouchedShadowMagicDescription]
+        );
       }
 
       if (
@@ -1208,6 +2265,80 @@ export function getFeyTouchedFreeCastStateForCharacter(
   };
 }
 
+export function getShadowTouchedFreeCastStateForCharacter(
+  character: FeatRuntimeCharacter,
+  spellId: string
+): {
+  available: boolean;
+  expended: boolean;
+  usesRemaining: number;
+  usesTotal: number;
+} | null {
+  const entries = collectFeatDerivedState(character).shadowTouchedFreeCastEntries.filter(
+    (entry) => entry.spellId === spellId
+  );
+
+  if (entries.length === 0) {
+    return null;
+  }
+
+  const usesRemaining = entries.filter((entry) => !entry.expended).length;
+
+  return {
+    available: usesRemaining > 0,
+    expended: usesRemaining <= 0,
+    usesRemaining,
+    usesTotal: entries.length
+  };
+}
+
+export function getTelepathicDetectThoughtsFreeCastStateForCharacter(
+  character: FeatRuntimeCharacter,
+  spellId: string
+): {
+  available: boolean;
+  expended: boolean;
+  usesRemaining: number;
+  usesTotal: number;
+} | null {
+  const entries = collectFeatDerivedState(
+    character
+  ).telepathicDetectThoughtsFreeCastEntries.filter((entry) => entry.spellId === spellId);
+
+  if (entries.length === 0) {
+    return null;
+  }
+
+  const usesRemaining = entries.filter((entry) => !entry.expended).length;
+
+  return {
+    available: usesRemaining > 0,
+    expended: usesRemaining <= 0,
+    usesRemaining,
+    usesTotal: entries.length
+  };
+}
+
+export function getRitualCasterQuickRitualStateForCharacter(character: FeatRuntimeCharacter): {
+  available: boolean;
+  expended: boolean;
+  usesRemaining: number;
+  usesTotal: number;
+} | null {
+  const derivedState = collectFeatDerivedState(character);
+
+  if (!derivedState.hasRitualCaster || derivedState.ritualCasterQuickRitualTotal <= 0) {
+    return null;
+  }
+
+  return {
+    available: derivedState.ritualCasterQuickRitualRemaining > 0,
+    expended: derivedState.ritualCasterQuickRitualRemaining <= 0,
+    usesRemaining: derivedState.ritualCasterQuickRitualRemaining,
+    usesTotal: derivedState.ritualCasterQuickRitualTotal
+  };
+}
+
 export function getFeatAbilityScoreBonusesForCharacter(
   character: FeatRuntimeCharacter
 ): FeatDerivedState["abilityScoreBonuses"] {
@@ -1296,6 +2427,30 @@ export function getSpeedyDashDescriptionAdditionsForCharacter(
     : [];
 }
 
+export function getBoonOfSpeedDisengageDescriptionAdditionsForCharacter(
+  character: FeatRuntimeCharacter
+): SpellDescriptionEntry[][] {
+  if (!hasFeatForCharacter(character, FEATS.BOON_OF_SPEED)) {
+    return [];
+  }
+
+  const description = getFeatDescriptionSlice(
+    FEATS.BOON_OF_SPEED,
+    isBoonOfSpeedEscapeArtistDescriptionEntry
+  );
+
+  return description.length > 0
+    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.BOON_OF_SPEED), description)]
+    : [];
+}
+
+export function hasBoonOfSpeedDisengageBonusActionPath(
+  character: FeatRuntimeCharacter,
+  actionKey: string
+): boolean {
+  return actionKey === "common-action-disengage" && hasFeatForCharacter(character, FEATS.BOON_OF_SPEED);
+}
+
 export function getChargerWeaponActionDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter,
   action: ChargerWeaponActionContext
@@ -1308,6 +2463,162 @@ export function getChargerWeaponActionDescriptionAdditionsForCharacter(
 
   return description.length > 0
     ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.CHARGER), description)]
+    : [];
+}
+
+export function getArcheryWeaponActionDescriptionAdditionsForCharacter(
+  character: FeatRuntimeCharacter,
+  action: ArcheryWeaponActionContext
+): SpellDescriptionEntry[][] {
+  if (!hasFeatForCharacter(character, FEATS.ARCHERY) || !isArcheryWeaponAction(action)) {
+    return [];
+  }
+
+  const description = getFeatDescriptionSlice(FEATS.ARCHERY, isArcheryWeaponActionDescriptionEntry);
+
+  return description.length > 0
+    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.ARCHERY), description)]
+    : [];
+}
+
+export function getDuelingWeaponActionDescriptionAdditionsForCharacter(
+  character: FeatRuntimeCharacter,
+  action: DuelingWeaponActionContext
+): SpellDescriptionEntry[][] {
+  if (!hasFeatForCharacter(character, FEATS.DUELING) || !isDuelingWeaponAction(action)) {
+    return [];
+  }
+
+  const description = getFeatDescriptionSlice(FEATS.DUELING, isDuelingWeaponActionDescriptionEntry);
+
+  return description.length > 0
+    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.DUELING), description)]
+    : [];
+}
+
+export function getBoonOfCombatProwessWeaponActionDescriptionAdditionsForCharacter(
+  character: FeatRuntimeCharacter,
+  action: EpicBoonWeaponActionContext
+): SpellDescriptionEntry[][] {
+  if (
+    !hasFeatForCharacter(character, FEATS.BOON_OF_COMBAT_PROWESS) ||
+    !isEpicBoonWeaponAction(action)
+  ) {
+    return [];
+  }
+
+  const description = getFeatDescriptionSlice(
+    FEATS.BOON_OF_COMBAT_PROWESS,
+    isBoonOfCombatProwessPeerlessAimDescriptionEntry
+  );
+
+  return description.length > 0
+    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.BOON_OF_COMBAT_PROWESS), description)]
+    : [];
+}
+
+export function getBoonOfDimensionalTravelWeaponActionDescriptionAdditionsForCharacter(
+  character: FeatRuntimeCharacter,
+  action: EpicBoonWeaponActionContext
+): SpellDescriptionEntry[][] {
+  if (
+    !hasFeatForCharacter(character, FEATS.BOON_OF_DIMENSIONAL_TRAVEL) ||
+    !isEpicBoonWeaponAction(action)
+  ) {
+    return [];
+  }
+
+  const description = getFeatDescriptionSlice(
+    FEATS.BOON_OF_DIMENSIONAL_TRAVEL,
+    isBoonOfDimensionalTravelBlinkStepsDescriptionEntry
+  );
+
+  return description.length > 0
+    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.BOON_OF_DIMENSIONAL_TRAVEL), description)]
+    : [];
+}
+
+export function getBoonOfIrresistibleOffenseWeaponActionDescriptionAdditionsForCharacter(
+  character: FeatRuntimeCharacter,
+  action: DamageTypedWeaponActionContext
+): SpellDescriptionEntry[][] {
+  if (
+    !hasFeatForCharacter(character, FEATS.BOON_OF_IRRESISTIBLE_OFFENSE) ||
+    !isBoonOfIrresistibleOffenseWeaponAction(action)
+  ) {
+    return [];
+  }
+
+  const description = getFeatDescriptionSlice(
+    FEATS.BOON_OF_IRRESISTIBLE_OFFENSE,
+    isBoonOfIrresistibleOffenseDescriptionEntry
+  );
+
+  return description.length > 0
+    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.BOON_OF_IRRESISTIBLE_OFFENSE), description)]
+    : [];
+}
+
+export function getThrownWeaponFightingWeaponActionDescriptionAdditionsForCharacter(
+  character: FeatRuntimeCharacter,
+  action: ThrownWeaponFightingWeaponActionContext
+): SpellDescriptionEntry[][] {
+  if (
+    !hasFeatForCharacter(character, FEATS.THROWN_WEAPON_FIGHTING) ||
+    !isThrownWeaponFightingWeaponAction(action)
+  ) {
+    return [];
+  }
+
+  const description = getFeatDescriptionSlice(
+    FEATS.THROWN_WEAPON_FIGHTING,
+    isThrownWeaponFightingWeaponActionDescriptionEntry
+  );
+
+  return description.length > 0
+    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.THROWN_WEAPON_FIGHTING), description)]
+    : [];
+}
+
+export function getTwoWeaponFightingWeaponActionDescriptionAdditionsForCharacter(
+  character: FeatRuntimeCharacter,
+  action: TwoWeaponFightingWeaponActionContext
+): SpellDescriptionEntry[][] {
+  if (
+    !hasFeatForCharacter(character, FEATS.TWO_WEAPON_FIGHTING) ||
+    !isTwoWeaponFightingWeaponAction(action)
+  ) {
+    return [];
+  }
+
+  const description = getFeatDescriptionSlice(
+    FEATS.TWO_WEAPON_FIGHTING,
+    isTwoWeaponFightingWeaponActionDescriptionEntry
+  );
+
+  return description.length > 0
+    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.TWO_WEAPON_FIGHTING), description)]
+    : [];
+}
+
+export function getUnarmedFightingWeaponActionDescriptionAdditionsForCharacter(
+  character: FeatRuntimeCharacter,
+  action: UnarmedFightingWeaponActionContext
+): SpellDescriptionEntry[][] {
+  if (
+    !hasFeatForCharacter(character, FEATS.UNARMED_FIGHTING) ||
+    !isUnarmedFightingWeaponAction(action)
+  ) {
+    return [];
+  }
+
+  const description = getFeatDescriptionSlice(
+    FEATS.UNARMED_FIGHTING,
+    isUnarmedFightingWeaponActionDescriptionEntry
+  );
+
+  return description.length > 0
+    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.UNARMED_FIGHTING), description)]
     : [];
 }
 
@@ -1338,6 +2649,21 @@ export function getPiercerWeaponActionDescriptionAdditionsForCharacter(
 
   return description.length > 0
     ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.PIERCER), description)]
+    : [];
+}
+
+export function getSlasherWeaponActionDescriptionAdditionsForCharacter(
+  character: FeatRuntimeCharacter,
+  action: DamageTypedWeaponActionContext
+): SpellDescriptionEntry[][] {
+  if (!hasFeatForCharacter(character, FEATS.SLASHER) || !isSlasherWeaponAction(action)) {
+    return [];
+  }
+
+  const description = getFeatDescriptionSlice(FEATS.SLASHER, isSlasherWeaponActionDescriptionEntry);
+
+  return description.length > 0
+    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.SLASHER), description)]
     : [];
 }
 
@@ -1402,6 +2728,27 @@ export function getGreatWeaponMasterWeaponActionDescriptionAdditionsForCharacter
     : [];
 }
 
+export function getPolearmMasterWeaponActionDescriptionAdditionsForCharacter(
+  character: FeatRuntimeCharacter,
+  action: PolearmMasterWeaponActionContext
+): SpellDescriptionEntry[][] {
+  if (
+    !hasFeatForCharacter(character, FEATS.POLEARM_MASTER) ||
+    !isPolearmMasterWeaponAction(action)
+  ) {
+    return [];
+  }
+
+  const description = getFeatDescriptionSlice(
+    FEATS.POLEARM_MASTER,
+    isPolearmMasterPoleStrikeDescriptionEntry
+  );
+
+  return description.length > 0
+    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.POLEARM_MASTER), description)]
+    : [];
+}
+
 export function getCrossbowExpertWeaponActionDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter,
   action: CrossbowExpertWeaponActionContext
@@ -1420,6 +2767,39 @@ export function getCrossbowExpertWeaponActionDescriptionAdditionsForCharacter(
 
   return description.length > 0
     ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.CROSSBOW_EXPERT), description)]
+    : [];
+}
+
+export function getSharpshooterWeaponActionDescriptionAdditionsForCharacter(
+  character: FeatRuntimeCharacter,
+  action: SharpshooterWeaponActionContext
+): SpellDescriptionEntry[][] {
+  if (!hasFeatForCharacter(character, FEATS.SHARPSHOOTER) || !isSharpshooterWeaponAction(action)) {
+    return [];
+  }
+
+  const description = getFeatDescriptionSlice(FEATS.SHARPSHOOTER, isSharpshooterDescriptionEntry);
+
+  return description.length > 0
+    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.SHARPSHOOTER), description)]
+    : [];
+}
+
+export function getShieldMasterWeaponActionDescriptionAdditionsForCharacter(
+  character: FeatRuntimeCharacter,
+  action: ShieldMasterWeaponActionContext
+): SpellDescriptionEntry[][] {
+  if (!hasFeatForCharacter(character, FEATS.SHIELD_MASTER) || !isShieldMasterWeaponAction(action)) {
+    return [];
+  }
+
+  const description = getFeatDescriptionSlice(
+    FEATS.SHIELD_MASTER,
+    isShieldMasterShieldBashDescriptionEntry
+  );
+
+  return description.length > 0
+    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.SHIELD_MASTER), description)]
     : [];
 }
 
@@ -1512,6 +2892,20 @@ export function getObservantSearchDescriptionAdditionsForCharacter(
     : [];
 }
 
+export function getSkulkerHideDescriptionAdditionsForCharacter(
+  character: FeatRuntimeCharacter
+): SpellDescriptionEntry[][] {
+  if (!hasFeatForCharacter(character, FEATS.SKULKER)) {
+    return [];
+  }
+
+  const description = getFeatDescriptionSlice(FEATS.SKULKER, isSkulkerHideDescriptionEntry);
+
+  return description.length > 0
+    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.SKULKER), description)]
+    : [];
+}
+
 export function getMageSlayerGuardedMindDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter,
   ability: AbilityKey
@@ -1530,6 +2924,42 @@ export function getMageSlayerGuardedMindDescriptionAdditionsForCharacter(
 
   return description.length > 0
     ? [createSourcedDescriptionEntries("Mage Slayer: Guarded Mind", description)]
+    : [];
+}
+
+export function getShieldMasterInterposeShieldDescriptionAdditionsForCharacter(
+  character: FeatRuntimeCharacter,
+  ability: AbilityKey
+): SpellDescriptionEntry[][] {
+  if (!hasFeatForCharacter(character, FEATS.SHIELD_MASTER) || ability !== "DEX") {
+    return [];
+  }
+
+  const description = getFeatDescriptionSlice(
+    FEATS.SHIELD_MASTER,
+    isShieldMasterInterposeShieldDescriptionEntry
+  );
+
+  return description.length > 0
+    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.SHIELD_MASTER), description)]
+    : [];
+}
+
+export function getWarCasterConcentrationDescriptionAdditionsForCharacter(
+  character: FeatRuntimeCharacter,
+  ability: AbilityKey
+): SpellDescriptionEntry[][] {
+  if (!hasFeatForCharacter(character, FEATS.WAR_CASTER) || ability !== "CON") {
+    return [];
+  }
+
+  const description = getFeatDescriptionSlice(
+    FEATS.WAR_CASTER,
+    isWarCasterConcentrationDescriptionEntry
+  );
+
+  return description.length > 0
+    ? [createSourcedDescriptionEntries("War Caster: Concentration", description)]
     : [];
 }
 
@@ -1590,6 +3020,30 @@ export function hasObservantSearchBonusActionPath(
   return actionKey === "common-action-search" && hasFeatForCharacter(character, FEATS.OBSERVANT);
 }
 
+export function transformFeatWeaponActionForCharacter<
+  T extends ArcheryWeaponActionContext & {
+    attackBonusEntries?: Array<{
+      label: string;
+      value: number;
+    }>;
+  }
+>(character: FeatRuntimeCharacter, action: T): T {
+  if (!hasFeatForCharacter(character, FEATS.ARCHERY) || !isArcheryWeaponAction(action)) {
+    return action;
+  }
+
+  return {
+    ...action,
+    attackBonusEntries: [
+      ...(action.attackBonusEntries ?? []),
+      {
+        label: getFeatLabel(FEATS.ARCHERY),
+        value: 2
+      }
+    ]
+  };
+}
+
 export function transformFeatCommonActionForCharacter<T extends Pick<FeatureActionCard, "key">>(
   character: FeatRuntimeCharacter,
   action: T & Pick<FeatureActionCard, "descriptionAdditions">
@@ -1601,12 +3055,20 @@ export function transformFeatCommonActionForCharacter<T extends Pick<FeatureActi
     descriptionAdditions.push(...getSpeedyDashDescriptionAdditionsForCharacter(character));
   }
 
+  if (action.key === "common-action-disengage") {
+    descriptionAdditions.push(...getBoonOfSpeedDisengageDescriptionAdditionsForCharacter(character));
+  }
+
   if (action.key === "common-action-study") {
     descriptionAdditions.push(...getKeenMindStudyDescriptionAdditionsForCharacter(character));
   }
 
   if (action.key === "common-action-search") {
     descriptionAdditions.push(...getObservantSearchDescriptionAdditionsForCharacter(character));
+  }
+
+  if (action.key === "common-action-hide") {
+    descriptionAdditions.push(...getSkulkerHideDescriptionAdditionsForCharacter(character));
   }
 
   if (descriptionAdditions.length === 0) {
@@ -1646,15 +3108,274 @@ export function spendDurableSpeedyRecoveryHitDieForCharacter(character: Characte
   };
 }
 
+export function getBoonOfFateImproveFateStateForCharacter(character: FeatRuntimeCharacter): {
+  available: boolean;
+  expended: boolean;
+  usesRemaining: number;
+  usesTotal: number;
+} | null {
+  const derivedState = collectFeatDerivedState(character);
+
+  if (!derivedState.hasBoonOfFate || derivedState.boonOfFateImproveFateTotal <= 0) {
+    return null;
+  }
+
+  return {
+    available: derivedState.boonOfFateImproveFateRemaining > 0,
+    expended: derivedState.boonOfFateImproveFateRemaining <= 0,
+    usesRemaining: derivedState.boonOfFateImproveFateRemaining,
+    usesTotal: derivedState.boonOfFateImproveFateTotal
+  };
+}
+
+export function consumeBoonOfFateImproveFateForCharacter(character: Character): Character {
+  const derivedState = collectFeatDerivedState(character);
+  let didSpendImproveFate = false;
+
+  if (!derivedState.hasBoonOfFate || derivedState.boonOfFateImproveFateRemaining <= 0) {
+    return character;
+  }
+
+  const feats = derivedState.normalizedFeats.map((entry) => {
+    if (
+      didSpendImproveFate ||
+      entry.feat !== FEATS.BOON_OF_FATE ||
+      entry.boonOfFate?.improveFateExpended === true
+    ) {
+      return entry;
+    }
+
+    didSpendImproveFate = true;
+
+    return {
+      ...entry,
+      boonOfFate: {
+        ...(entry.boonOfFate ?? {}),
+        improveFateExpended: true
+      }
+    };
+  });
+
+  return didSpendImproveFate
+    ? {
+        ...character,
+        feats
+      }
+    : character;
+}
+
+export function restoreBoonOfFateImproveFateForCharacter(character: Character): Character {
+  const derivedState = collectFeatDerivedState(character);
+  let didRestoreImproveFate = false;
+
+  if (!derivedState.hasBoonOfFate) {
+    return character;
+  }
+
+  const feats = derivedState.normalizedFeats.map((entry) => {
+    if (entry.feat !== FEATS.BOON_OF_FATE || entry.boonOfFate?.improveFateExpended !== true) {
+      return entry;
+    }
+
+    didRestoreImproveFate = true;
+
+    return {
+      ...entry,
+      boonOfFate: undefined
+    };
+  });
+
+  return didRestoreImproveFate
+    ? {
+        ...character,
+        feats
+      }
+    : character;
+}
+
+export function getBoonOfRecoveryRecoverVitalityStateForCharacter(character: FeatRuntimeCharacter): {
+  available: boolean;
+  expended: boolean;
+  usesRemaining: number;
+  usesTotal: number;
+} | null {
+  const derivedState = collectFeatDerivedState(character);
+
+  if (!derivedState.hasBoonOfRecovery || derivedState.boonOfRecoveryDiceTotal <= 0) {
+    return null;
+  }
+
+  return {
+    available: derivedState.boonOfRecoveryDiceRemaining > 0,
+    expended: derivedState.boonOfRecoveryDiceRemaining <= 0,
+    usesRemaining: derivedState.boonOfRecoveryDiceRemaining,
+    usesTotal: derivedState.boonOfRecoveryDiceTotal
+  };
+}
+
+export function getBoonOfRecoveryRecoverVitalityFormula(diceCount: number): string {
+  const normalizedDiceCount = Math.max(1, Math.min(10, Math.floor(Number(diceCount) || 1)));
+
+  return `${normalizedDiceCount}d10`;
+}
+
+export function spendBoonOfRecoveryDiceForCharacter(
+  character: Character,
+  diceCount: number
+): Character {
+  const derivedState = collectFeatDerivedState(character);
+  const normalizedDiceCount = Math.max(1, Math.min(10, Math.floor(Number(diceCount) || 1)));
+  let didSpendRecoverVitalityDice = false;
+
+  if (
+    !derivedState.hasBoonOfRecovery ||
+    normalizedDiceCount > derivedState.boonOfRecoveryDiceRemaining
+  ) {
+    return character;
+  }
+
+  const feats = derivedState.normalizedFeats.map((entry) => {
+    if (
+      didSpendRecoverVitalityDice ||
+      entry.feat !== FEATS.BOON_OF_RECOVERY ||
+      (entry.boonOfRecovery?.recoverVitalityDiceExpended ?? 0) >= 10
+    ) {
+      return entry;
+    }
+
+    didSpendRecoverVitalityDice = true;
+
+    return {
+      ...entry,
+      boonOfRecovery: {
+        ...(entry.boonOfRecovery ?? {}),
+        recoverVitalityDiceExpended: Math.max(
+          0,
+          Math.min(
+            10,
+            (entry.boonOfRecovery?.recoverVitalityDiceExpended ?? 0) + normalizedDiceCount
+          )
+        )
+      }
+    };
+  });
+
+  return didSpendRecoverVitalityDice
+    ? {
+        ...character,
+        feats
+      }
+    : character;
+}
+
+export function restoreBoonOfRecoveryDiceForCharacter(character: Character): Character {
+  const derivedState = collectFeatDerivedState(character);
+  let didRestoreRecoverVitalityDice = false;
+
+  if (!derivedState.hasBoonOfRecovery) {
+    return character;
+  }
+
+  const feats = derivedState.normalizedFeats.map((entry) => {
+    if (
+      entry.feat !== FEATS.BOON_OF_RECOVERY ||
+      (entry.boonOfRecovery?.recoverVitalityDiceExpended ?? 0) <= 0
+    ) {
+      return entry;
+    }
+
+    didRestoreRecoverVitalityDice = true;
+
+    return {
+      ...entry,
+      boonOfRecovery: undefined
+    };
+  });
+
+  return didRestoreRecoverVitalityDice
+    ? {
+        ...character,
+        feats
+      }
+    : character;
+}
+
+export function getBoonOfFortitudeHealingBonusForCharacter(
+  character: FeatRuntimeCharacter
+): number {
+  const derivedState = collectFeatDerivedState(character);
+
+  if (!derivedState.featSet.has(FEATS.BOON_OF_FORTITUDE)) {
+    return 0;
+  }
+
+  return Math.max(
+    0,
+    getAbilityModifierForCharacter(
+      {
+        ...character,
+        feats: derivedState.normalizedFeats
+      },
+      "CON"
+    )
+  );
+}
+
+export function canUseBoonOfSpellRecallFreeCastingForSpell(
+  character: FeatRuntimeCharacter,
+  spell: SpellEntry
+): boolean {
+  const derivedState = collectFeatDerivedState(character);
+
+  return derivedState.hasBoonOfSpellRecall && spell.spellLevel >= 1 && spell.spellLevel <= 4;
+}
+
 export function getFeatActionsForCharacter(character: FeatRuntimeCharacter): FeatureActionCard[] {
   const derivedState = collectFeatDerivedState(character);
   const actions = [...derivedState.actions];
+  const telekineticEntry = derivedState.normalizedFeats.find(
+    (entry) => entry.feat === FEATS.TELEKINETIC && entry.telekinetic
+  );
+
+  if (telekineticEntry?.telekinetic) {
+    actions.push(
+      createTelekineticShoveAction(
+        character,
+        telekineticEntry.telekinetic.ability,
+        derivedState.normalizedFeats,
+        getFeatDescriptionSlice(FEATS.TELEKINETIC, isTelekineticShoveDescriptionEntry)
+      )
+    );
+  }
 
   if (derivedState.featSet.has(FEATS.DURABLE)) {
     actions.push(
       createDurableSpeedyRecoveryAction(
         character,
         getFeatDescriptionSlice(FEATS.DURABLE, isDurableSpeedyRecoveryDescriptionEntry)
+      )
+    );
+  }
+
+  if (derivedState.hasBoonOfFate) {
+    actions.push(
+      createBoonOfFateImproveFateAction(
+        derivedState.boonOfFateImproveFateRemaining,
+        derivedState.boonOfFateImproveFateTotal,
+        getFeatDescriptionSlice(FEATS.BOON_OF_FATE, isBoonOfFateImproveFateDescriptionEntry)
+      )
+    );
+  }
+
+  if (derivedState.hasBoonOfRecovery) {
+    actions.push(
+      createBoonOfRecoveryRecoverVitalityAction(
+        derivedState.boonOfRecoveryDiceRemaining,
+        derivedState.boonOfRecoveryDiceTotal,
+        getFeatDescriptionSlice(
+          FEATS.BOON_OF_RECOVERY,
+          isBoonOfRecoveryRecoverVitalityDescriptionEntry
+        )
       )
     );
   }
@@ -1918,6 +3639,237 @@ export function restoreFeyTouchedFreeCastsForCharacter(character: Character): Ch
       feyTouched: {
         ...entry.feyTouched,
         freeCastExpendedSpellIds: undefined
+      }
+    };
+  });
+
+  return didRestoreFreeCast
+    ? {
+        ...character,
+        feats
+      }
+    : character;
+}
+
+export function consumeRitualCasterQuickRitualForCharacter(character: Character): Character {
+  const derivedState = collectFeatDerivedState(character);
+  let didSpendQuickRitual = false;
+
+  if (!derivedState.hasRitualCaster || derivedState.ritualCasterQuickRitualRemaining <= 0) {
+    return character;
+  }
+
+  const feats = derivedState.normalizedFeats.map((entry) => {
+    if (
+      didSpendQuickRitual ||
+      entry.feat !== FEATS.RITUAL_CASTER ||
+      !entry.ritualCaster ||
+      entry.ritualCaster.quickRitualExpended === true
+    ) {
+      return entry;
+    }
+
+    didSpendQuickRitual = true;
+
+    return {
+      ...entry,
+      ritualCaster: {
+        ...entry.ritualCaster,
+        quickRitualExpended: true
+      }
+    };
+  });
+
+  return didSpendQuickRitual
+    ? {
+        ...character,
+        feats
+      }
+    : character;
+}
+
+export function restoreRitualCasterQuickRitualForCharacter(character: Character): Character {
+  const derivedState = collectFeatDerivedState(character);
+  let didRestoreQuickRitual = false;
+
+  if (!derivedState.hasRitualCaster) {
+    return character;
+  }
+
+  const feats = derivedState.normalizedFeats.map((entry) => {
+    if (
+      entry.feat !== FEATS.RITUAL_CASTER ||
+      !entry.ritualCaster ||
+      entry.ritualCaster.quickRitualExpended !== true
+    ) {
+      return entry;
+    }
+
+    didRestoreQuickRitual = true;
+
+    return {
+      ...entry,
+      ritualCaster: {
+        ...entry.ritualCaster,
+        quickRitualExpended: undefined
+      }
+    };
+  });
+
+  return didRestoreQuickRitual
+    ? {
+        ...character,
+        feats
+      }
+    : character;
+}
+
+export function consumeShadowTouchedFreeCastForCharacter(
+  character: Character,
+  spellId: string
+): Character {
+  const derivedState = collectFeatDerivedState(character);
+  let didSpendFreeCast = false;
+
+  if (!derivedState.hasShadowTouched) {
+    return character;
+  }
+
+  const feats = derivedState.normalizedFeats.map((entry) => {
+    if (
+      didSpendFreeCast ||
+      entry.feat !== FEATS.SHADOW_TOUCHED ||
+      !entry.shadowTouched ||
+      (entry.shadowTouched.spellId !== spellId && spellId !== shadowTouchedInvisibilitySpellId) ||
+      entry.shadowTouched.freeCastExpendedSpellIds?.includes(spellId) === true
+    ) {
+      return entry;
+    }
+
+    didSpendFreeCast = true;
+
+    return {
+      ...entry,
+      shadowTouched: {
+        ...entry.shadowTouched,
+        freeCastExpendedSpellIds: [
+          ...new Set([...(entry.shadowTouched.freeCastExpendedSpellIds ?? []), spellId])
+        ]
+      }
+    };
+  });
+
+  return didSpendFreeCast
+    ? {
+        ...character,
+        feats
+      }
+    : character;
+}
+
+export function restoreShadowTouchedFreeCastsForCharacter(character: Character): Character {
+  const derivedState = collectFeatDerivedState(character);
+  let didRestoreFreeCast = false;
+
+  if (!derivedState.hasShadowTouched) {
+    return character;
+  }
+
+  const feats = derivedState.normalizedFeats.map((entry) => {
+    if (
+      entry.feat !== FEATS.SHADOW_TOUCHED ||
+      !entry.shadowTouched ||
+      !entry.shadowTouched.freeCastExpendedSpellIds ||
+      entry.shadowTouched.freeCastExpendedSpellIds.length === 0
+    ) {
+      return entry;
+    }
+
+    didRestoreFreeCast = true;
+
+    return {
+      ...entry,
+      shadowTouched: {
+        ...entry.shadowTouched,
+        freeCastExpendedSpellIds: undefined
+      }
+    };
+  });
+
+  return didRestoreFreeCast
+    ? {
+        ...character,
+        feats
+      }
+    : character;
+}
+
+export function consumeTelepathicDetectThoughtsFreeCastForCharacter(
+  character: Character,
+  spellId: string
+): Character {
+  const derivedState = collectFeatDerivedState(character);
+  let didSpendFreeCast = false;
+
+  if (!derivedState.hasTelepathic || spellId !== telepathicDetectThoughtsSpellId) {
+    return character;
+  }
+
+  const feats = derivedState.normalizedFeats.map((entry) => {
+    if (
+      didSpendFreeCast ||
+      entry.feat !== FEATS.TELEPATHIC ||
+      !entry.telepathic ||
+      entry.telepathic.detectThoughtsExpended === true
+    ) {
+      return entry;
+    }
+
+    didSpendFreeCast = true;
+
+    return {
+      ...entry,
+      telepathic: {
+        ...entry.telepathic,
+        detectThoughtsExpended: true
+      }
+    };
+  });
+
+  return didSpendFreeCast
+    ? {
+        ...character,
+        feats
+      }
+    : character;
+}
+
+export function restoreTelepathicDetectThoughtsFreeCastForCharacter(
+  character: Character
+): Character {
+  const derivedState = collectFeatDerivedState(character);
+  let didRestoreFreeCast = false;
+
+  if (!derivedState.hasTelepathic) {
+    return character;
+  }
+
+  const feats = derivedState.normalizedFeats.map((entry) => {
+    if (
+      entry.feat !== FEATS.TELEPATHIC ||
+      !entry.telepathic ||
+      entry.telepathic.detectThoughtsExpended !== true
+    ) {
+      return entry;
+    }
+
+    didRestoreFreeCast = true;
+
+    return {
+      ...entry,
+      telepathic: {
+        ...entry.telepathic,
+        detectThoughtsExpended: undefined
       }
     };
   });

@@ -5,6 +5,7 @@ import {
   clearRoundScopedFeatureStateForCharacter,
   removeFeatureStatusEntryForCharacter
 } from "../../../../pages/CharactersPage/classFeatures";
+import { getBoonOfFortitudeHealingBonusForCharacter } from "../../../../pages/CharactersPage/feats/runtime";
 import {
   advanceCharacterStatusEntries,
   normalizeCharacterStatusEntries
@@ -71,7 +72,8 @@ export function applyRolledHealingToCharacter(
   character: Character,
   rolledTotal: number
 ): Character {
-  const healedAmount = Math.max(1, rolledTotal);
+  const healedAmount =
+    Math.max(1, rolledTotal) + getBoonOfFortitudeHealingBonusForCharacter(character);
   const nextEffectiveHitPoints = getEffectiveHitPointMaximumForCharacter(character);
   const nextCurrentHitPoints = Math.max(
     0,

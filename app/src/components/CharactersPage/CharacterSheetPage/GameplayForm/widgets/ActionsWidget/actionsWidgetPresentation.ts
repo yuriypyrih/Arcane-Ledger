@@ -256,11 +256,14 @@ export function appendRollModifier(baseFormula: string, modifier: number) {
 export function getWeaponAttackFormulaPresentation(
   action: WeaponAction
 ): WeaponFormulaPresentation {
-  const attackModifier = action.abilityModifier + action.proficiencyBonus;
+  const attackBonusEntries = action.attackBonusEntries ?? [];
+  const attackBonusTotal = attackBonusEntries.reduce((total, entry) => total + entry.value, 0);
+  const attackModifier = action.abilityModifier + action.proficiencyBonus + attackBonusTotal;
   const abilityFormulaLabel = action.abilityFormulaLabel ?? action.ability;
   const breakdownEntries = [
     formatSignedFormulaTerm(action.abilityModifierBaseValue, abilityFormulaLabel),
-    ...action.abilityModifierBonusEntries.map((entry) => formatAbilityModifierBonusEntry(entry))
+    ...action.abilityModifierBonusEntries.map((entry) => formatAbilityModifierBonusEntry(entry)),
+    ...attackBonusEntries.map((entry) => formatSignedFormulaTerm(entry.value, entry.label))
   ];
 
   if (action.proficiencyBonus !== 0) {

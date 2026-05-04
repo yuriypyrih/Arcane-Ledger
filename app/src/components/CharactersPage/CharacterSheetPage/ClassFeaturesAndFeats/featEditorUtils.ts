@@ -1,6 +1,7 @@
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { DAMAGE_TYPE, FEATS, type SpellEntry } from "../../../../codex/entries";
 import {
+  boonOfEnergyResistanceDamageTypeOptions,
   elementalAdeptAbilityOptions,
   elementalAdeptDamageTypeOptions,
   feyTouchedAbilityOptions,
@@ -18,13 +19,25 @@ import {
   observantSkillOptions,
   piercerAbilityOptions,
   poisonerAbilityOptions,
+  polearmMasterAbilityOptions,
+  ritualCasterAbilityOptions,
   resilientAbilityOptions,
+  sentinelAbilityOptions,
+  shadowTouchedAbilityOptions,
+  slasherAbilityOptions,
+  spellSniperAbilityOptions,
+  telekineticAbilityOptions,
+  telepathicAbilityOptions,
+  warCasterAbilityOptions,
+  skillExpertAbilityOptions,
   speedyAbilityOptions,
   weaponMasterAbilityOptions,
   weaponMasterMasteryOptions,
   getBlessedWarriorCantripOptions,
   getBlessedWarriorChoiceSummary,
   getAthleteChoiceSummary,
+  getBoonOfEnergyResistanceChoiceSummary,
+  getBoonOfSkillChoiceSummary,
   getChargerChoiceSummary,
   getChefChoiceSummary,
   getCharacterFeatSourceLabel,
@@ -46,7 +59,17 @@ import {
   getObservantChoiceSummary,
   getPiercerChoiceSummary,
   getPoisonerChoiceSummary,
+  getPolearmMasterChoiceSummary,
+  getRitualCasterChoiceSummary,
   getResilientChoiceSummary,
+  getSentinelChoiceSummary,
+  getShadowTouchedChoiceSummary,
+  getSlasherChoiceSummary,
+  getSpellSniperChoiceSummary,
+  getTelekineticChoiceSummary,
+  getTelepathicChoiceSummary,
+  getWarCasterChoiceSummary,
+  getSkillExpertChoiceSummary,
   getSpeedyChoiceSummary,
   getWeaponMasterChoiceSummary,
   getDruidicWarriorCantripOptions,
@@ -56,7 +79,10 @@ import {
   getMagicInitiateChoiceSummary,
   getMagicInitiateLevelOneSpellOptions,
   getFeyTouchedSpellOptions,
+  getFeatProficiencyBonusForLevel,
   getMusicianChoiceSummary,
+  getRitualCasterSpellOptions,
+  getShadowTouchedSpellOptions,
   isMagicInitiateSpellList,
   magicInitiateSpellcastingAbilityOptions,
   getSkilledChoiceSummary
@@ -73,6 +99,8 @@ import {
 } from "../../../../pages/CharactersPage/proficiencyOptions";
 import type {
   BlessedWarriorChoice,
+  BoonOfEnergyResistanceChoice,
+  BoonOfSkillChoice,
   CharacterFeatEntry,
   ChargerChoice,
   ChefChoice,
@@ -95,7 +123,17 @@ import type {
   ObservantChoice,
   PiercerChoice,
   PoisonerChoice,
+  PolearmMasterChoice,
+  RitualCasterChoice,
   ResilientChoice,
+  SentinelChoice,
+  ShadowTouchedChoice,
+  SlasherChoice,
+  SpellSniperChoice,
+  TelekineticChoice,
+  TelepathicChoice,
+  WarCasterChoice,
+  SkillExpertChoice,
   SpeedyChoice,
   WeaponMasterChoice,
   MagicInitiateChoice,
@@ -108,7 +146,9 @@ import type {
   PendingAbilityScoreImprovement,
   PendingAthleteChoice,
   PendingBlessedWarriorChoice,
+  PendingBoonOfEnergyResistanceChoice,
   PendingBoonOfIrresistibleOffense,
+  PendingBoonOfSkillChoice,
   PendingChargerChoice,
   PendingChefChoice,
   PendingCrusherChoice,
@@ -132,7 +172,17 @@ import type {
   PendingObservantChoice,
   PendingPiercerChoice,
   PendingPoisonerChoice,
+  PendingPolearmMasterChoice,
+  PendingRitualCasterChoice,
   PendingResilientChoice,
+  PendingSentinelChoice,
+  PendingShadowTouchedChoice,
+  PendingSlasherChoice,
+  PendingSpellSniperChoice,
+  PendingTelekineticChoice,
+  PendingTelepathicChoice,
+  PendingWarCasterChoice,
+  PendingSkillExpertChoice,
   PendingSpeedyChoice,
   PendingWeaponMasterChoice,
   PendingMagicInitiateChoice,
@@ -152,6 +202,10 @@ export const musicianSelectionIndices = [0, 1, 2] as const;
 export const magicInitiateNoneOptionValue = "none";
 export const magicInitiateCantripSelectionIndices = [0, 1] as const;
 export const feyTouchedNoneOptionValue = "none";
+export const ritualCasterNoneOptionValue = "none";
+export const shadowTouchedNoneOptionValue = "none";
+export const skillExpertNoneOptionValue = "none";
+export const boonOfSkillNoneOptionValue = "none";
 export const observantNoneOptionValue = "none";
 export const keenMindNoneOptionValue = "none";
 export const resilientNoneOptionValue = "none";
@@ -252,10 +306,22 @@ export function createEmptyPendingFeatState(): PendingFeatState {
     observantChoice: null,
     piercerChoice: null,
     poisonerChoice: null,
+    polearmMasterChoice: null,
+    ritualCasterChoice: null,
     resilientChoice: null,
+    sentinelChoice: null,
+    shadowTouchedChoice: null,
+    slasherChoice: null,
+    spellSniperChoice: null,
+    telekineticChoice: null,
+    telepathicChoice: null,
+    warCasterChoice: null,
+    skillExpertChoice: null,
     speedyChoice: null,
     weaponMasterChoice: null,
+    boonOfEnergyResistanceChoice: null,
     boonOfIrresistibleOffense: null,
+    boonOfSkillChoice: null,
     blessedWarriorChoice: null,
     crafterChoice: null,
     druidicWarriorChoice: null,
@@ -277,6 +343,20 @@ export function createDefaultPendingAbilityScoreImprovement(): PendingAbilitySco
 export function createDefaultPendingBoonOfIrresistibleOffense(): PendingBoonOfIrresistibleOffense {
   return {
     ability: "STR"
+  };
+}
+
+export function createDefaultPendingBoonOfEnergyResistanceChoice(): PendingBoonOfEnergyResistanceChoice {
+  return {
+    ability: "STR",
+    damageTypes: [DAMAGE_TYPE.ACID, DAMAGE_TYPE.COLD]
+  };
+}
+
+export function createDefaultPendingBoonOfSkillChoice(): PendingBoonOfSkillChoice {
+  return {
+    ability: "STR",
+    skillExpertise: boonOfSkillNoneOptionValue
   };
 }
 
@@ -403,9 +483,73 @@ export function createDefaultPendingPoisonerChoice(): PendingPoisonerChoice {
   };
 }
 
+export function createDefaultPendingPolearmMasterChoice(): PendingPolearmMasterChoice {
+  return {
+    ability: "DEX"
+  };
+}
+
+export function createDefaultPendingRitualCasterChoice(): PendingRitualCasterChoice {
+  return {
+    ability: "INT",
+    spellIds: []
+  };
+}
+
 export function createDefaultPendingResilientChoice(): PendingResilientChoice {
   return {
     ability: resilientNoneOptionValue
+  };
+}
+
+export function createDefaultPendingSentinelChoice(): PendingSentinelChoice {
+  return {
+    ability: "STR"
+  };
+}
+
+export function createDefaultPendingShadowTouchedChoice(): PendingShadowTouchedChoice {
+  return {
+    ability: "INT",
+    spellId: shadowTouchedNoneOptionValue
+  };
+}
+
+export function createDefaultPendingSlasherChoice(): PendingSlasherChoice {
+  return {
+    ability: "STR"
+  };
+}
+
+export function createDefaultPendingSpellSniperChoice(): PendingSpellSniperChoice {
+  return {
+    ability: "INT"
+  };
+}
+
+export function createDefaultPendingTelekineticChoice(): PendingTelekineticChoice {
+  return {
+    ability: "INT"
+  };
+}
+
+export function createDefaultPendingTelepathicChoice(): PendingTelepathicChoice {
+  return {
+    ability: "INT"
+  };
+}
+
+export function createDefaultPendingWarCasterChoice(): PendingWarCasterChoice {
+  return {
+    ability: "INT"
+  };
+}
+
+export function createDefaultPendingSkillExpertChoice(): PendingSkillExpertChoice {
+  return {
+    ability: "STR",
+    skillProficiency: skillExpertNoneOptionValue,
+    skillExpertise: skillExpertNoneOptionValue
   };
 }
 
@@ -498,10 +642,17 @@ export function createPendingFeatStateForFeat(feat: FEATS): PendingFeatState | n
     };
   }
 
-  if (feat === FEATS.BOON_OF_IRRESISTIBLE_OFFENSE) {
+  if (feat === FEATS.BOON_OF_ENERGY_RESISTANCE) {
     return {
       ...createEmptyPendingFeatState(),
-      boonOfIrresistibleOffense: createDefaultPendingBoonOfIrresistibleOffense()
+      boonOfEnergyResistanceChoice: createDefaultPendingBoonOfEnergyResistanceChoice()
+    };
+  }
+
+  if (feat === FEATS.BOON_OF_SKILL) {
+    return {
+      ...createEmptyPendingFeatState(),
+      boonOfSkillChoice: createDefaultPendingBoonOfSkillChoice()
     };
   }
 
@@ -645,10 +796,80 @@ export function createPendingFeatStateForFeat(feat: FEATS): PendingFeatState | n
     };
   }
 
+  if (feat === FEATS.POLEARM_MASTER) {
+    return {
+      ...createEmptyPendingFeatState(),
+      polearmMasterChoice: createDefaultPendingPolearmMasterChoice()
+    };
+  }
+
+  if (feat === FEATS.RITUAL_CASTER) {
+    return {
+      ...createEmptyPendingFeatState(),
+      ritualCasterChoice: createDefaultPendingRitualCasterChoice()
+    };
+  }
+
   if (feat === FEATS.RESILIENT) {
     return {
       ...createEmptyPendingFeatState(),
       resilientChoice: createDefaultPendingResilientChoice()
+    };
+  }
+
+  if (feat === FEATS.SENTINEL) {
+    return {
+      ...createEmptyPendingFeatState(),
+      sentinelChoice: createDefaultPendingSentinelChoice()
+    };
+  }
+
+  if (feat === FEATS.SHADOW_TOUCHED) {
+    return {
+      ...createEmptyPendingFeatState(),
+      shadowTouchedChoice: createDefaultPendingShadowTouchedChoice()
+    };
+  }
+
+  if (feat === FEATS.SLASHER) {
+    return {
+      ...createEmptyPendingFeatState(),
+      slasherChoice: createDefaultPendingSlasherChoice()
+    };
+  }
+
+  if (feat === FEATS.SPELL_SNIPER) {
+    return {
+      ...createEmptyPendingFeatState(),
+      spellSniperChoice: createDefaultPendingSpellSniperChoice()
+    };
+  }
+
+  if (feat === FEATS.TELEKINETIC) {
+    return {
+      ...createEmptyPendingFeatState(),
+      telekineticChoice: createDefaultPendingTelekineticChoice()
+    };
+  }
+
+  if (feat === FEATS.TELEPATHIC) {
+    return {
+      ...createEmptyPendingFeatState(),
+      telepathicChoice: createDefaultPendingTelepathicChoice()
+    };
+  }
+
+  if (feat === FEATS.WAR_CASTER) {
+    return {
+      ...createEmptyPendingFeatState(),
+      warCasterChoice: createDefaultPendingWarCasterChoice()
+    };
+  }
+
+  if (feat === FEATS.SKILL_EXPERT) {
+    return {
+      ...createEmptyPendingFeatState(),
+      skillExpertChoice: createDefaultPendingSkillExpertChoice()
     };
   }
 
@@ -937,11 +1158,105 @@ export function createPendingFeatStateForEntry(entry: CharacterFeatEntry): Pendi
     };
   }
 
+  if (entry.feat === FEATS.POLEARM_MASTER && entry.polearmMaster) {
+    return {
+      ...createEmptyPendingFeatState(),
+      polearmMasterChoice: {
+        ability: entry.polearmMaster.ability
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.RITUAL_CASTER && entry.ritualCaster) {
+    return {
+      ...createEmptyPendingFeatState(),
+      ritualCasterChoice: {
+        ability: entry.ritualCaster.ability,
+        spellIds: entry.ritualCaster.spellIds
+      }
+    };
+  }
+
   if (entry.feat === FEATS.RESILIENT && entry.resilient) {
     return {
       ...createEmptyPendingFeatState(),
       resilientChoice: {
         ability: entry.resilient.ability
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.SENTINEL && entry.sentinel) {
+    return {
+      ...createEmptyPendingFeatState(),
+      sentinelChoice: {
+        ability: entry.sentinel.ability
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.SHADOW_TOUCHED && entry.shadowTouched) {
+    return {
+      ...createEmptyPendingFeatState(),
+      shadowTouchedChoice: {
+        ability: entry.shadowTouched.ability,
+        spellId: entry.shadowTouched.spellId
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.SLASHER && entry.slasher) {
+    return {
+      ...createEmptyPendingFeatState(),
+      slasherChoice: {
+        ability: entry.slasher.ability
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.SPELL_SNIPER && entry.spellSniper) {
+    return {
+      ...createEmptyPendingFeatState(),
+      spellSniperChoice: {
+        ability: entry.spellSniper.ability
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.TELEKINETIC && entry.telekinetic) {
+    return {
+      ...createEmptyPendingFeatState(),
+      telekineticChoice: {
+        ability: entry.telekinetic.ability
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.TELEPATHIC && entry.telepathic) {
+    return {
+      ...createEmptyPendingFeatState(),
+      telepathicChoice: {
+        ability: entry.telepathic.ability
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.WAR_CASTER && entry.warCaster) {
+    return {
+      ...createEmptyPendingFeatState(),
+      warCasterChoice: {
+        ability: entry.warCaster.ability
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.SKILL_EXPERT && entry.skillExpert) {
+    return {
+      ...createEmptyPendingFeatState(),
+      skillExpertChoice: {
+        ability: entry.skillExpert.ability,
+        skillProficiency: entry.skillExpert.skillProficiency,
+        skillExpertise: entry.skillExpert.skillExpertise
       }
     };
   }
@@ -1006,11 +1321,32 @@ export function createPendingFeatStateForEntry(entry: CharacterFeatEntry): Pendi
     };
   }
 
+  if (entry.feat === FEATS.BOON_OF_ENERGY_RESISTANCE && entry.boonOfEnergyResistance) {
+    return {
+      ...createEmptyPendingFeatState(),
+      boonOfEnergyResistanceChoice: {
+        ability: entry.boonOfEnergyResistance.ability,
+        damageTypes: entry.boonOfEnergyResistance.damageTypes
+      }
+    };
+  }
+
   if (entry.feat === FEATS.BOON_OF_IRRESISTIBLE_OFFENSE && entry.boonOfIrresistibleOffense) {
     return {
       ...createEmptyPendingFeatState(),
-      boonOfIrresistibleOffense: {
+      epicBoonAbilityChoice: {
+        feat: entry.feat,
         ability: entry.boonOfIrresistibleOffense.ability
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.BOON_OF_SKILL && entry.boonOfSkill) {
+    return {
+      ...createEmptyPendingFeatState(),
+      boonOfSkillChoice: {
+        ability: entry.boonOfSkill.ability,
+        skillExpertise: entry.boonOfSkill.skillExpertise
       }
     };
   }
@@ -1058,6 +1394,73 @@ export function getPendingBlessedWarriorChoiceSummary(
   choice: PendingBlessedWarriorChoice
 ): string | null {
   return getBlessedWarriorChoiceSummary(decodePendingBlessedWarriorChoice(choice) ?? undefined);
+}
+
+export function decodePendingBoonOfEnergyResistanceChoice(
+  choice: PendingBoonOfEnergyResistanceChoice
+): BoonOfEnergyResistanceChoice | null {
+  const firstDamageType =
+    choice.damageTypes[0] as (typeof boonOfEnergyResistanceDamageTypeOptions)[number];
+  const secondDamageType =
+    choice.damageTypes[1] as (typeof boonOfEnergyResistanceDamageTypeOptions)[number];
+
+  if (!boonOfEnergyResistanceDamageTypeOptions.includes(firstDamageType)) {
+    return null;
+  }
+
+  if (!boonOfEnergyResistanceDamageTypeOptions.includes(secondDamageType)) {
+    return null;
+  }
+
+  if (firstDamageType === secondDamageType) {
+    return null;
+  }
+
+  return {
+    ability: choice.ability,
+    damageTypes: [firstDamageType, secondDamageType]
+  };
+}
+
+export function isPendingBoonOfEnergyResistanceChoiceValid(
+  choice: PendingBoonOfEnergyResistanceChoice
+): boolean {
+  return decodePendingBoonOfEnergyResistanceChoice(choice) !== null;
+}
+
+export function getPendingBoonOfEnergyResistanceChoiceSummary(
+  choice: PendingBoonOfEnergyResistanceChoice
+): string | null {
+  return getBoonOfEnergyResistanceChoiceSummary(
+    decodePendingBoonOfEnergyResistanceChoice(choice) ?? undefined
+  );
+}
+
+export function decodePendingBoonOfSkillChoice(
+  choice: PendingBoonOfSkillChoice
+): BoonOfSkillChoice | null {
+  if (choice.skillExpertise === boonOfSkillNoneOptionValue) {
+    return null;
+  }
+
+  if (!skilledSkillOptionSet.has(choice.skillExpertise)) {
+    return null;
+  }
+
+  return {
+    ability: choice.ability,
+    skillExpertise: choice.skillExpertise
+  };
+}
+
+export function isPendingBoonOfSkillChoiceValid(choice: PendingBoonOfSkillChoice): boolean {
+  return decodePendingBoonOfSkillChoice(choice) !== null;
+}
+
+export function getPendingBoonOfSkillChoiceSummary(
+  choice: PendingBoonOfSkillChoice
+): string | null {
+  return getBoonOfSkillChoiceSummary(decodePendingBoonOfSkillChoice(choice) ?? undefined);
 }
 
 export function getPendingAthleteChoiceSummary(choice: PendingAthleteChoice): string | null {
@@ -1384,6 +1787,70 @@ export function getPendingPoisonerChoiceSummary(choice: PendingPoisonerChoice): 
   return getPoisonerChoiceSummary(decodePendingPoisonerChoice(choice) ?? undefined);
 }
 
+export function decodePendingPolearmMasterChoice(
+  choice: PendingPolearmMasterChoice
+): PolearmMasterChoice | null {
+  return polearmMasterAbilityOptions.includes(choice.ability)
+    ? {
+        ability: choice.ability
+      }
+    : null;
+}
+
+export function getPendingPolearmMasterChoiceSummary(
+  choice: PendingPolearmMasterChoice
+): string | null {
+  return getPolearmMasterChoiceSummary(decodePendingPolearmMasterChoice(choice) ?? undefined);
+}
+
+export function getRitualCasterSpellCountForLevel(level: number): number {
+  return getFeatProficiencyBonusForLevel(level);
+}
+
+export function decodePendingRitualCasterChoice(
+  choice: PendingRitualCasterChoice,
+  characterLevel: number
+): RitualCasterChoice | null {
+  const requiredSpellCount = getRitualCasterSpellCountForLevel(characterLevel);
+  const spellIds = [
+    ...new Set(
+      choice.spellIds.slice(0, requiredSpellCount).filter(
+        (spellId) => spellId !== ritualCasterNoneOptionValue && spellId.length > 0
+      )
+    )
+  ];
+  const ritualSpellOptionIds = new Set(getRitualCasterSpellOptions().map((spell) => spell.id));
+
+  if (
+    !ritualCasterAbilityOptions.includes(choice.ability) ||
+    spellIds.length !== requiredSpellCount ||
+    !spellIds.every((spellId) => ritualSpellOptionIds.has(spellId))
+  ) {
+    return null;
+  }
+
+  return {
+    ability: choice.ability,
+    spellIds
+  };
+}
+
+export function isPendingRitualCasterChoiceValid(
+  choice: PendingRitualCasterChoice,
+  characterLevel: number
+): boolean {
+  return decodePendingRitualCasterChoice(choice, characterLevel) !== null;
+}
+
+export function getPendingRitualCasterChoiceSummary(
+  choice: PendingRitualCasterChoice,
+  characterLevel: number
+): string | null {
+  return getRitualCasterChoiceSummary(
+    decodePendingRitualCasterChoice(choice, characterLevel) ?? undefined
+  );
+}
+
 export function decodePendingResilientChoice(
   choice: PendingResilientChoice
 ): ResilientChoice | null {
@@ -1402,6 +1869,152 @@ export function getPendingResilientChoiceSummary(
 
 export function isPendingResilientChoiceValid(choice: PendingResilientChoice): boolean {
   return decodePendingResilientChoice(choice) !== null;
+}
+
+export function decodePendingSentinelChoice(choice: PendingSentinelChoice): SentinelChoice | null {
+  return sentinelAbilityOptions.includes(choice.ability)
+    ? {
+        ability: choice.ability
+      }
+    : null;
+}
+
+export function getPendingSentinelChoiceSummary(
+  choice: PendingSentinelChoice
+): string | null {
+  return getSentinelChoiceSummary(decodePendingSentinelChoice(choice) ?? undefined);
+}
+
+export function decodePendingShadowTouchedChoice(
+  choice: PendingShadowTouchedChoice
+): ShadowTouchedChoice | null {
+  if (
+    !shadowTouchedAbilityOptions.includes(choice.ability) ||
+    !getShadowTouchedSpellOptions().some((spell) => spell.id === choice.spellId)
+  ) {
+    return null;
+  }
+
+  return {
+    ability: choice.ability,
+    spellId: choice.spellId
+  };
+}
+
+export function isPendingShadowTouchedChoiceValid(
+  choice: PendingShadowTouchedChoice
+): boolean {
+  return decodePendingShadowTouchedChoice(choice) !== null;
+}
+
+export function getPendingShadowTouchedChoiceSummary(
+  choice: PendingShadowTouchedChoice
+): string | null {
+  return getShadowTouchedChoiceSummary(decodePendingShadowTouchedChoice(choice) ?? undefined);
+}
+
+export function decodePendingSlasherChoice(choice: PendingSlasherChoice): SlasherChoice | null {
+  return slasherAbilityOptions.includes(choice.ability)
+    ? {
+        ability: choice.ability
+      }
+    : null;
+}
+
+export function getPendingSlasherChoiceSummary(choice: PendingSlasherChoice): string | null {
+  return getSlasherChoiceSummary(decodePendingSlasherChoice(choice) ?? undefined);
+}
+
+export function decodePendingSpellSniperChoice(
+  choice: PendingSpellSniperChoice
+): SpellSniperChoice | null {
+  return spellSniperAbilityOptions.includes(choice.ability)
+    ? {
+        ability: choice.ability
+      }
+    : null;
+}
+
+export function getPendingSpellSniperChoiceSummary(
+  choice: PendingSpellSniperChoice
+): string | null {
+  return getSpellSniperChoiceSummary(decodePendingSpellSniperChoice(choice) ?? undefined);
+}
+
+export function decodePendingTelekineticChoice(
+  choice: PendingTelekineticChoice
+): TelekineticChoice | null {
+  return telekineticAbilityOptions.includes(choice.ability)
+    ? {
+        ability: choice.ability
+      }
+    : null;
+}
+
+export function getPendingTelekineticChoiceSummary(
+  choice: PendingTelekineticChoice
+): string | null {
+  return getTelekineticChoiceSummary(decodePendingTelekineticChoice(choice) ?? undefined);
+}
+
+export function decodePendingTelepathicChoice(
+  choice: PendingTelepathicChoice
+): TelepathicChoice | null {
+  return telepathicAbilityOptions.includes(choice.ability)
+    ? {
+        ability: choice.ability
+      }
+    : null;
+}
+
+export function getPendingTelepathicChoiceSummary(
+  choice: PendingTelepathicChoice
+): string | null {
+  return getTelepathicChoiceSummary(decodePendingTelepathicChoice(choice) ?? undefined);
+}
+
+export function decodePendingWarCasterChoice(
+  choice: PendingWarCasterChoice
+): WarCasterChoice | null {
+  return warCasterAbilityOptions.includes(choice.ability)
+    ? {
+        ability: choice.ability
+      }
+    : null;
+}
+
+export function getPendingWarCasterChoiceSummary(
+  choice: PendingWarCasterChoice
+): string | null {
+  return getWarCasterChoiceSummary(decodePendingWarCasterChoice(choice) ?? undefined);
+}
+
+export function decodePendingSkillExpertChoice(
+  choice: PendingSkillExpertChoice
+): SkillExpertChoice | null {
+  if (
+    !skillExpertAbilityOptions.includes(choice.ability) ||
+    !skilledSkillOptionSet.has(choice.skillProficiency) ||
+    !skilledSkillOptionSet.has(choice.skillExpertise)
+  ) {
+    return null;
+  }
+
+  return {
+    ability: choice.ability,
+    skillProficiency: choice.skillProficiency as SkillExpertChoice["skillProficiency"],
+    skillExpertise: choice.skillExpertise as SkillExpertChoice["skillExpertise"]
+  };
+}
+
+export function isPendingSkillExpertChoiceValid(choice: PendingSkillExpertChoice): boolean {
+  return decodePendingSkillExpertChoice(choice) !== null;
+}
+
+export function getPendingSkillExpertChoiceSummary(
+  choice: PendingSkillExpertChoice
+): string | null {
+  return getSkillExpertChoiceSummary(decodePendingSkillExpertChoice(choice) ?? undefined);
 }
 
 export function decodePendingSpeedyChoice(choice: PendingSpeedyChoice): SpeedyChoice | null {

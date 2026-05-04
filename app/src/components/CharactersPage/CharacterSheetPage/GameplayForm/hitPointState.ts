@@ -1,5 +1,6 @@
 import type { Character } from "../../../../types";
 import { getAutomaticMaxHitPointsForCharacter } from "../../../../pages/CharactersPage/gameplay";
+import { getBoonOfFortitudeHealingBonusForCharacter } from "../../../../pages/CharactersPage/feats/runtime";
 import { clampNumber } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import {
   getEffectiveHitPointMaximumForCharacter,
@@ -71,9 +72,10 @@ export function applyHealingToCharacter(character: Character, amount: number): C
     return character;
   }
 
+  const healingAmount = normalizedAmount + getBoonOfFortitudeHealingBonusForCharacter(character);
   const nextEffectiveHitPoints = getEffectiveHitPointMaximumForCharacter(character);
   const nextCurrentHitPoints = clampNumber(
-    character.currentHitPoints + normalizedAmount,
+    character.currentHitPoints + healingAmount,
     0,
     nextEffectiveHitPoints,
     character.currentHitPoints

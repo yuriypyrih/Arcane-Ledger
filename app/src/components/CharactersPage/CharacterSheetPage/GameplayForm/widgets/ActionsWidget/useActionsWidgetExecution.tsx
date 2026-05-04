@@ -91,8 +91,13 @@ import {
   type FeatureActionOptionCard
 } from "../../../../../../pages/CharactersPage/classFeatures";
 import {
+  boonOfFateImproveFateActionKey,
+  boonOfRecoveryRecoverVitalityActionKey,
+  consumeBoonOfFateImproveFateForCharacter,
   durableSpeedyRecoveryActionKey,
+  getBoonOfRecoveryRecoverVitalityFormula,
   getDurableSpeedyRecoveryHealingFormulaForCharacter,
+  spendBoonOfRecoveryDiceForCharacter,
   spendDurableSpeedyRecoveryHitDieForCharacter
 } from "../../../../../../pages/CharactersPage/feats/runtime";
 import { getHitDiceRemainingForCharacter } from "../../../../../../pages/CharactersPage/hitDice";
@@ -514,6 +519,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     selectedRageOptions,
     selectedRagePowerOptionKey,
     selectedRagePowerOptions,
+    selectedRecoverVitalityDiceCount,
     selectedSpellfireBurstTarget,
     selectedStarryFormConstellation,
     selectedThirdEyeOptionKey,
@@ -1402,6 +1408,76 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
             )
           : nextCharacterWithInspiredEclipse;
       });
+      closeActionDrawer();
+      return;
+    }
+
+    if (action.key === boonOfFateImproveFateActionKey) {
+      if ((action.usesRemaining ?? 0) <= 0) {
+        return;
+      }
+
+      onPersistCharacter((currentCharacter) =>
+        consumeBoonOfFateImproveFateForCharacter(currentCharacter)
+      );
+
+      openDiceRoller({
+        title: "Improve Fate",
+        formula: "2d4",
+        formulaDisplay: "2d4",
+        description: "Roll 2d4 and apply the total as a bonus or penalty to the D20 Test.",
+        getFullManualToastText: ({ result }) => `Rolled ${result.total} Improve Fate.`
+      });
+
+      closeActionDrawer();
+      return;
+    }
+
+    if (action.key === boonOfRecoveryRecoverVitalityActionKey) {
+      const diceCount = Math.max(
+        1,
+        Math.min(10, Math.floor(Number(selectedRecoverVitalityDiceCount) || 1))
+      );
+
+      if (diceCount > (action.usesRemaining ?? 0)) {
+        return;
+      }
+
+      const healingFormula = getBoonOfRecoveryRecoverVitalityFormula(diceCount);
+
+      onPersistCharacter((currentCharacter) => {
+        const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
+        const preparedCharacter = prepareCharacterForResourceConsumption(
+          currentCharacter,
+          roundTrackerResource
+        );
+        const nextCharacter = spendBoonOfRecoveryDiceForCharacter(preparedCharacter, diceCount);
+
+        if (nextCharacter === preparedCharacter) {
+          return currentCharacter;
+        }
+
+        return roundTrackerResource
+          ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
+          : nextCharacter;
+      });
+
+      openDiceRoller({
+        title: "Recover Vitality",
+        formula: healingFormula,
+        formulaDisplay: healingFormula,
+        description: `Expend ${diceCount} Recover Vitality d10${
+          diceCount === 1 ? "" : "s"
+        } and regain Hit Points equal to the roll.`,
+        getFullManualToastText: ({ result }) =>
+          `Rolled ${result.total} Recover Vitality healing.`,
+        onResolvedResult: ({ result }) => {
+          onPersistCharacter((currentCharacter) =>
+            applyRolledHealingToCharacter(currentCharacter, result.total)
+          );
+        }
+      });
+
       closeActionDrawer();
       return;
     }

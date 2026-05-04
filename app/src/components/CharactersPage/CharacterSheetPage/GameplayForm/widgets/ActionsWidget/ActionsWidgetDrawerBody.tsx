@@ -305,6 +305,7 @@ import {
   FighterSecondWindActionFooter
 } from "./FighterSecondWindAction";
 import HealingLightActionBody, { type HealingLightTarget } from "./HealingLightActionBody";
+import RecoverVitalityActionBody from "./RecoverVitalityActionBody";
 import {
   IndomitableActionBody,
   IndomitableActionFooter,
@@ -528,6 +529,8 @@ export function renderActionDrawerBody(context: Record<string, any>) {
     selectedRagePowerOptionKey,
     selectedRagePowerOptions,
     selectedRageSelectionWarning,
+    selectedRecoverVitalityDiceCount,
+    selectedRecoverVitalityDiceRemaining,
     selectedSecondWindGroupRecoveryFormula,
     selectedSecondWindGroupRecoveryUsesRemaining,
     selectedSecondWindGroupRecoveryUsesTotal,
@@ -620,6 +623,7 @@ export function renderActionDrawerBody(context: Record<string, any>) {
     setSelectedNatureMagicianSpellSlotLevel,
     setSelectedRageOptionKey,
     setSelectedRagePowerOptionKey,
+    setSelectedRecoverVitalityDiceCount,
     setSelectedSpellfireBurstTarget,
     setSelectedStarryFormConstellation,
     setSelectedThirdEyeOptionKey,
@@ -882,6 +886,16 @@ export function renderActionDrawerBody(context: Record<string, any>) {
             selectedTarget={selectedHealingLightTarget}
             onSelectedDiceCountChange={setSelectedHealingLightDiceCount}
             onSelectedTargetChange={setSelectedHealingLightTarget}
+          />
+        );
+      }
+
+      if (selectedAction.drawer.formKind === "recover-vitality") {
+        return (
+          <RecoverVitalityActionBody
+            remainingDice={selectedRecoverVitalityDiceRemaining}
+            selectedDiceCount={selectedRecoverVitalityDiceCount}
+            onSelectedDiceCountChange={setSelectedRecoverVitalityDiceCount}
           />
         );
       }
@@ -1309,4 +1323,3 @@ export function renderActionHeaderAside(context: Record<string, any>) {
       />
     );
   }
-

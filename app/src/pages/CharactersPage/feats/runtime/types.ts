@@ -12,7 +12,18 @@ import type {
 } from "../../classFeatures/types";
 
 export type FeatRuntimeCharacter = Pick<Character, "level"> &
-  Partial<Pick<Character, "className" | "hitDiceRemaining">> & {
+  Partial<
+    Pick<
+      Character,
+      | "abilities"
+      | "background"
+      | "backgroundChoices"
+      | "classFeatureState"
+      | "className"
+      | "hitDiceRemaining"
+      | "statusEntries"
+    >
+  > & {
     feats?: unknown;
   };
 
@@ -34,6 +45,16 @@ export type FeatDerivedState = {
     spellId: string;
     expended: boolean;
   }>;
+  shadowTouchedFreeCastEntries: Array<{
+    featEntryId: string;
+    spellId: string;
+    expended: boolean;
+  }>;
+  telepathicDetectThoughtsFreeCastEntries: Array<{
+    featEntryId: string;
+    spellId: string;
+    expended: boolean;
+  }>;
   abilityScoreBonuses: FeatureAbilityScoreBonus[];
   speedBonuses: FeatureSpeedBonus[];
   hitPointMaximumBonus: number;
@@ -44,11 +65,25 @@ export type FeatDerivedState = {
   hasDefenseFightingStyle: boolean;
   hasHealer: boolean;
   hasFeyTouched: boolean;
+  hasBoonOfFate: boolean;
+  hasBoonOfRecovery: boolean;
+  hasBoonOfSpellRecall: boolean;
   hasLucky: boolean;
   hasMageSlayer: boolean;
   hasMagicInitiate: boolean;
+  hasRitualCaster: boolean;
+  hasShadowTouched: boolean;
+  hasTelepathic: boolean;
   luckyPointsRemaining: number;
   luckyPointsTotal: number;
+  boonOfFateImproveFateRemaining: number;
+  boonOfFateImproveFateTotal: number;
+  boonOfRecoveryDiceRemaining: number;
+  boonOfRecoveryDiceTotal: number;
   mageSlayerGuardedMindRemaining: number;
   mageSlayerGuardedMindTotal: number;
+  ritualCasterQuickRitualRemaining: number;
+  ritualCasterQuickRitualTotal: number;
+  telepathicDetectThoughtsRemaining: number;
+  telepathicDetectThoughtsTotal: number;
 };

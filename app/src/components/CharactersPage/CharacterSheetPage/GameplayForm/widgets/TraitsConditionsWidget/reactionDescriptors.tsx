@@ -80,9 +80,28 @@ import {
   type ReactionEntry,
   type SpellEntry
 } from "../../../../../../codex/entries";
-import { defensiveDuelistParryReactionEntryId } from "../../../../../../pages/CharactersPage/feats/runtime";
-import { characterHasHeldFinesseWeapon } from "../../../../../../pages/CharactersPage/heldWeapons";
+import {
+  boonOfEnergyResistanceReactionEntryId,
+  defensiveDuelistParryReactionEntryId,
+  interceptionReactionEntryId,
+  polearmMasterReactiveStrikeReactionEntryId,
+  protectionReactionEntryId,
+  shieldMasterReactionEntryId
+} from "../../../../../../pages/CharactersPage/feats/runtime";
+import {
+  characterHasHeldInterceptionEquipment,
+  characterHasHeldFinesseWeapon,
+  characterHasHeldPolearmMasterWeapon,
+  characterHasHeldShield
+} from "../../../../../../pages/CharactersPage/heldWeapons";
 import { formatCodexLabel } from "../../../../../../utils/codex";
+import { getAbilityModifierForCharacter } from "../../../../../../pages/CharactersPage/abilities";
+import { getProficiencyBonus } from "../../../../../../pages/CharactersPage/gameplay";
+import {
+  formatFormulaCell,
+  formatFormulaTerms,
+  formatSignedFormulaTerm
+} from "../../../../../../pages/CharactersPage/shared/formulas";
 import { getSpellSaveFormulaCell } from "../../../../../../pages/CharactersPage/shared/spellFormulas";
 import DruidCosmicOmenReactionBody from "./DruidCosmicOmenReactionBody";
 import {
@@ -373,6 +392,130 @@ function renderSpellThiefSelector(context: ReactionDescriptorContext): ReactNode
       ) : null}
     </div>
   );
+}
+
+function createInterceptionDamageReductionFormula(level: number): {
+  formula: string;
+  formulaDisplay: string;
+  value: string;
+} {
+  const proficiencyBonus = getProficiencyBonus(level);
+  const minimum = 1 + proficiencyBonus;
+  const maximum = 10 + proficiencyBonus;
+  const formula = `1d10+${proficiencyBonus}`;
+  const formulaDisplay = `1d10 + ${proficiencyBonus} Prof. Bonus`;
+
+  return {
+    formula,
+    formulaDisplay,
+    value: `${minimum}~${maximum} Damage Reduction = ${formulaDisplay}`
+  };
+}
+
+function createEnergyRedirectionSavingThrowFormula(character: Character): FeatureActionFact {
+  const constitutionModifier = getAbilityModifierForCharacter(character, "CON");
+  const proficiencyBonus = getProficiencyBonus(character.level);
+  const saveDc = 8 + constitutionModifier + proficiencyBonus;
+  const formulaCell = formatFormulaCell({
+    formula: String(saveDc),
+    displayTerms: [
+      "DC 8 (Base)",
+      formatSignedFormulaTerm(constitutionModifier, "CON"),
+      formatSignedFormulaTerm(proficiencyBonus, "Prof. Bonus")
+    ]
+  });
+
+  return {
+    label: "Dexterity Saving Throw DC Formula",
+    value: `Dexterity DC ${saveDc} = ${formulaCell.value}`,
+    breakdown: formulaCell.breakdown,
+    fullWidth: true
+  };
+}
+
+function createEnergyRedirectionDamageFormula(character: Character): {
+  formula: string;
+  formulaDisplay: string;
+  value: string;
+} {
+  const constitutionModifier = getAbilityModifierForCharacter(character, "CON");
+  const formula = `2d12${constitutionModifier >= 0 ? "+" : ""}${constitutionModifier}`;
+  const formulaDisplay = formatFormulaTerms([
+    "2d12",
+    formatSignedFormulaTerm(constitutionModifier, "CON")
+  ]);
+  const formulaCell = formatFormulaCell({
+    formula,
+    displayTerms: [formulaDisplay],
+    resultLabel: "Damage"
+  });
+
+  return {
+    formula,
+    formulaDisplay,
+    value: formulaCell.value
+  };
+}
+
+function getEnergyRedirectionReactionFacts(context: ReactionDescriptorContext): FeatureActionFact[] {
+  return [
+    createEnergyRedirectionSavingThrowFormula(context.character),
+    {
+      label: "Damage Formula",
+      value: createEnergyRedirectionDamageFormula(context.character).value,
+      fullWidth: true
+    }
+  ];
+}
+
+function createEnergyRedirectionReactionRollRequest(
+  context: ReactionDescriptorContext
+): DiceRollerRequest {
+  const formula = createEnergyRedirectionDamageFormula(context.character);
+
+  return {
+    title: "Energy Redirection",
+    description: "Energy Redirection damage roll",
+    formula: formula.formula,
+    formulaDisplay: formula.formulaDisplay,
+    entries: [
+      {
+        label: "Damage",
+        formula: formula.formula,
+        formulaDisplay: formula.formulaDisplay
+      }
+    ]
+  };
+}
+
+function getInterceptionReactionFacts(context: ReactionDescriptorContext): FeatureActionFact[] {
+  return [
+    {
+      label: "Damage Reduction Formula",
+      value: createInterceptionDamageReductionFormula(context.character.level).value,
+      fullWidth: true
+    }
+  ];
+}
+
+function createInterceptionReactionRollRequest(
+  context: ReactionDescriptorContext
+): DiceRollerRequest {
+  const formula = createInterceptionDamageReductionFormula(context.character.level);
+
+  return {
+    title: "Interception",
+    description: "Interception damage reduction roll",
+    formula: formula.formula,
+    formulaDisplay: formula.formulaDisplay,
+    entries: [
+      {
+        label: "Damage Reduction",
+        formula: formula.formula,
+        formulaDisplay: formula.formulaDisplay
+      }
+    ]
+  };
 }
 
 const descriptors: ReactionDescriptor[] = [
@@ -678,6 +821,45 @@ const descriptors: ReactionDescriptor[] = [
       characterHasHeldFinesseWeapon(context.character)
         ? null
         : "You must be holding a Finesse weapon to use Parry."
+  },
+  {
+    id: boonOfEnergyResistanceReactionEntryId,
+    footerActionName: "Energy Redirection",
+    createRollRequest: createEnergyRedirectionReactionRollRequest,
+    getFacts: getEnergyRedirectionReactionFacts,
+    getFactsSectionTitle: () => "Formulas"
+  },
+  {
+    id: interceptionReactionEntryId,
+    footerActionName: "Interception",
+    createRollRequest: createInterceptionReactionRollRequest,
+    getFacts: getInterceptionReactionFacts,
+    getFactsSectionTitle: () => null,
+    getSelectionWarning: (context) =>
+      characterHasHeldInterceptionEquipment(context.character)
+        ? null
+        : "You must be holding a Shield, Simple weapon, or Martial weapon to use Interception."
+  },
+  {
+    id: polearmMasterReactiveStrikeReactionEntryId,
+    getSelectionWarning: (context) =>
+      characterHasHeldPolearmMasterWeapon(context.character)
+        ? null
+        : "You must be holding a Quarterstaff, Spear, or a weapon with the Heavy and Reach properties to use Reactive Strike."
+  },
+  {
+    id: protectionReactionEntryId,
+    getSelectionWarning: (context) =>
+      characterHasHeldShield(context.character)
+        ? null
+        : "You must be holding a Shield to use Interception."
+  },
+  {
+    id: shieldMasterReactionEntryId,
+    getSelectionWarning: (context) =>
+      characterHasHeldShield(context.character)
+        ? null
+        : "You must be holding a Shield to use Shield Master."
   },
   {
     id: barbarianBerserkerRetaliationReactionId,

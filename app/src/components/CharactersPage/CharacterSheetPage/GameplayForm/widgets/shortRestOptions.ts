@@ -260,7 +260,9 @@ import {
 import { getMagicTemporaryHitPointsFeatureForCharacter } from "../../../../../pages/CharactersPage/classFeatures/magicTemporaryHitPoints";
 import { CLASS_FEATURE } from "../../../../../codex/entries";
 import {
+  getBoonOfFateImproveFateStateForCharacter,
   getMageSlayerGuardedMindStateForCharacter,
+  restoreBoonOfFateImproveFateForCharacter,
   restoreMageSlayerGuardedMindForCharacter
 } from "../../../../../pages/CharactersPage/feats/runtime";
 import { getHitDiceRemainingForCharacter } from "../../../../../pages/CharactersPage/gameplay";
@@ -341,6 +343,7 @@ export function createShortRestOptions(character: Character): RestOption[] {
   const warlockCelestialResilienceTemporaryHitPoints =
     getWarlockCelestialResilienceTemporaryHitPoints(character);
   const clairvoyantCombatantUsesTotal = getWarlockClairvoyantCombatantUsesTotal(character);
+  const boonOfFateImproveFateState = getBoonOfFateImproveFateStateForCharacter(character);
   const mageSlayerGuardedMindState = getMageSlayerGuardedMindStateForCharacter(character);
 
   return [
@@ -352,6 +355,22 @@ export function createShortRestOptions(character: Character): RestOption[] {
         roundTracker: createDefaultRoundTracker()
       })
     },
+    ...(boonOfFateImproveFateState
+      ? [
+          {
+            id: "restore-boon-of-fate-improve-fate",
+            label: "Restore Improve Fate",
+            charges: {
+              current: boonOfFateImproveFateState.usesRemaining,
+              total: boonOfFateImproveFateState.usesTotal
+            },
+            disabled:
+              boonOfFateImproveFateState.usesRemaining >= boonOfFateImproveFateState.usesTotal,
+            apply: (currentCharacter: Character) =>
+              restoreBoonOfFateImproveFateForCharacter(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
     ...(mageSlayerGuardedMindState
       ? [
           {

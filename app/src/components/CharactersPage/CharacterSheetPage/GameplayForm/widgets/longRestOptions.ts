@@ -261,10 +261,15 @@ import { getMagicTemporaryHitPointsFeatureForCharacter } from "../../../../../pa
 import { CLASS_FEATURE } from "../../../../../codex/entries";
 import {
   collectFeatDerivedState,
+  restoreBoonOfFateImproveFateForCharacter,
+  restoreBoonOfRecoveryDiceForCharacter,
   restoreFeyTouchedFreeCastsForCharacter,
   restoreLuckyPointsForCharacter,
   restoreMageSlayerGuardedMindForCharacter,
-  restoreMagicInitiateFreeCastsForCharacter
+  restoreMagicInitiateFreeCastsForCharacter,
+  restoreRitualCasterQuickRitualForCharacter,
+  restoreShadowTouchedFreeCastsForCharacter,
+  restoreTelepathicDetectThoughtsFreeCastForCharacter
 } from "../../../../../pages/CharactersPage/feats/runtime";
 import { getHitDiceRemainingForCharacter } from "../../../../../pages/CharactersPage/gameplay";
 import { getSpellSlotTotalsForCharacter } from "../../../../../pages/CharactersPage/spellcasting";
@@ -309,12 +314,22 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const featDerivedState = collectFeatDerivedState(character);
   const luckyPointsTotal = featDerivedState.luckyPointsTotal;
   const luckyPointsAreFull = featDerivedState.luckyPointsRemaining >= luckyPointsTotal;
+  const boonOfFateImproveFateIsFull =
+    featDerivedState.boonOfFateImproveFateRemaining >= featDerivedState.boonOfFateImproveFateTotal;
+  const boonOfRecoveryDiceAreFull =
+    featDerivedState.boonOfRecoveryDiceRemaining >= featDerivedState.boonOfRecoveryDiceTotal;
   const mageSlayerGuardedMindAreFull =
     featDerivedState.mageSlayerGuardedMindRemaining >= featDerivedState.mageSlayerGuardedMindTotal;
   const magicInitiateFreeCastsAreFull =
     restoreMagicInitiateFreeCastsForCharacter(character) === character;
   const feyTouchedFreeCastsAreFull =
     restoreFeyTouchedFreeCastsForCharacter(character) === character;
+  const ritualCasterQuickRitualIsFull =
+    restoreRitualCasterQuickRitualForCharacter(character) === character;
+  const shadowTouchedFreeCastsAreFull =
+    restoreShadowTouchedFreeCastsForCharacter(character) === character;
+  const telepathicDetectThoughtsFreeCastIsFull =
+    restoreTelepathicDetectThoughtsFreeCastForCharacter(character) === character;
   const arcaneWardResetAvailable =
     restoreWizardAbjurerArcaneWardOnLongRest(character) !== character;
   const temporaryHitPoints = normalizeTemporaryHitPoints(character.temporaryHitPoints);
@@ -544,6 +559,36 @@ export function createLongRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
+    ...(featDerivedState.hasBoonOfFate
+      ? [
+          {
+            id: "restore-boon-of-fate-improve-fate",
+            label: "Restore Improve Fate",
+            charges: {
+              current: featDerivedState.boonOfFateImproveFateRemaining,
+              total: featDerivedState.boonOfFateImproveFateTotal
+            },
+            disabled: boonOfFateImproveFateIsFull,
+            apply: (currentCharacter: Character) =>
+              restoreBoonOfFateImproveFateForCharacter(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(featDerivedState.hasBoonOfRecovery
+      ? [
+          {
+            id: "restore-boon-of-recovery-dice",
+            label: "Restore Recover Vitality dice",
+            charges: {
+              current: featDerivedState.boonOfRecoveryDiceRemaining,
+              total: featDerivedState.boonOfRecoveryDiceTotal
+            },
+            disabled: boonOfRecoveryDiceAreFull,
+            apply: (currentCharacter: Character) =>
+              restoreBoonOfRecoveryDiceForCharacter(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
     ...(featDerivedState.hasMageSlayer
       ? [
           {
@@ -578,6 +623,47 @@ export function createLongRestOptions(character: Character): RestOption[] {
             disabled: feyTouchedFreeCastsAreFull,
             apply: (currentCharacter: Character) =>
               restoreFeyTouchedFreeCastsForCharacter(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(featDerivedState.hasRitualCaster
+      ? [
+          {
+            id: "restore-ritual-caster-quick-ritual",
+            label: "Restore Quick Ritual",
+            charges: {
+              current: featDerivedState.ritualCasterQuickRitualRemaining,
+              total: featDerivedState.ritualCasterQuickRitualTotal
+            },
+            disabled: ritualCasterQuickRitualIsFull,
+            apply: (currentCharacter: Character) =>
+              restoreRitualCasterQuickRitualForCharacter(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(featDerivedState.hasShadowTouched
+      ? [
+          {
+            id: "restore-shadow-magic-free-casts",
+            label: "Restore Shadow Magic free casts",
+            disabled: shadowTouchedFreeCastsAreFull,
+            apply: (currentCharacter: Character) =>
+              restoreShadowTouchedFreeCastsForCharacter(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(featDerivedState.hasTelepathic
+      ? [
+          {
+            id: "restore-telepathic-detect-thoughts",
+            label: "Restore Detect Thoughts free cast",
+            charges: {
+              current: featDerivedState.telepathicDetectThoughtsRemaining,
+              total: featDerivedState.telepathicDetectThoughtsTotal
+            },
+            disabled: telepathicDetectThoughtsFreeCastIsFull,
+            apply: (currentCharacter: Character) =>
+              restoreTelepathicDetectThoughtsFreeCastForCharacter(currentCharacter)
           } satisfies RestOption
         ]
       : []),

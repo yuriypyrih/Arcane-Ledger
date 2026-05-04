@@ -385,7 +385,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Pole Strike.</strong> Immediately after you take the Attack action and attack with a Quarterstaff, a Spear, or a weapon that has the Heavy and Reach properties, you can use a Bonus Action to make a melee attack with the opposite end of the weapon. The weapon deals Bludgeoning damage, and the weapon's damage die for this attack is a d4.",
       "<strong>Reactive Strike.</strong> While you're holding a Quarterstaff, a Spear, or a weapon that has the Heavy and Reach properties, you can take a Reaction to make one melee attack against a creature that enters the reach you have with that weapon."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.RESILIENT,
@@ -410,7 +410,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Ritual Spells.</strong> Choose a number of level 1 spells equal to your Proficiency Bonus that have the Ritual tag. You always have those spells prepared, and you can cast them with any spell slots you have. The spells' spellcasting ability is the ability increased by this feat. Whenever your Proficiency Bonus increases thereafter, you can add an additional level 1 spell with the Ritual tag to the spells always prepared with this feature.",
       "<strong>Quick Ritual.</strong> With this benefit, you can cast a Ritual spell that you have prepared using its regular casting time rather than the extended time for a Ritual. Doing so doesn't require a spell slot. Once you cast the spell in this way, you can't use this benefit again until you finish a Long Rest."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.SENTINEL,
@@ -423,7 +423,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Guardian.</strong> Immediately after a creature within 5 feet of you takes the Disengage action or hits a target other than you with an attack, you can make an Opportunity Attack against that creature.",
       "<strong>Halt.</strong> When you hit a creature with an Opportunity Attack, the creature's Speed becomes 0 for the rest of the current turn."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.SHADOW_TOUCHED,
@@ -435,7 +435,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Ability Score Increase.</strong> Increase your Intelligence, Wisdom, or Charisma by 1, to a maximum of 20.",
       "<strong>Shadow Magic.</strong> Choose one level 1 spell from the Illusion or Necromancy school of magic. You always have that spell and the Invisibility spell prepared. You can cast each of these spells without expending a spell slot. Once you cast either spell in this way, you can't cast that spell in this way again until you finish a Long Rest. You can also cast these spells using spell slots you have of the appropriate level. The spells' spellcasting ability is the ability increased by this feat."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.SHARPSHOOTER,
@@ -449,7 +449,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Firing in Melee.</strong> Being within 5 feet of an enemy doesn't impose Disadvantage on your attack rolls with Ranged weapons.",
       "<strong>Long Shots.</strong> Attacking at long range doesn't impose Disadvantage on your attack rolls with Ranged weapons."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.SHIELD_MASTER,
@@ -462,7 +462,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Shield Bash.</strong> If you attack a creature within 5 feet of you as part of the Attack action and hit with a Melee weapon, you can immediately bash the target with your Shield if it's equipped, forcing the target to make a Strength saving throw (DC 8 plus your Strength modifier and Proficiency Bonus). On a failed save, you either push the target 5 feet from you or cause it to have the Prone condition (your choice). You can use this benefit only once on each of your turns.",
       "<strong>Interpose Shield.</strong> If you're subjected to an effect that allows you to make a Dexterity saving throw to take only half damage, you can take a Reaction to take no damage if you succeed on the saving throw and are holding a Shield."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.SKILL_EXPERT,
@@ -475,7 +475,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Skill Proficiency.</strong> You gain proficiency in one skill of your choice.",
       "<strong>Expertise.</strong> Choose one skill in which you have proficiency but lack Expertise. You gain Expertise with that skill."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.SKULKER,
@@ -489,7 +489,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Fog of War.</strong> You exploit the distractions of battle, gaining Advantage on any Dexterity (Stealth) check you make as part of the Hide action during combat.",
       "<strong>Sniper.</strong> If you make an attack roll while hidden and the roll misses, making the attack roll doesn't reveal your location."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.SLASHER,
@@ -502,7 +502,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Hamstring.</strong> Once per turn when you hit a creature with an attack that deals Slashing damage, you can reduce the Speed of that creature by 10 feet until the start of your next turn.",
       "<strong>Enhanced Critical.</strong> When you score a Critical Hit that deals Slashing damage to a creature, it has Disadvantage on attack rolls until the start of your next turn."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.SPEEDY,
@@ -530,7 +530,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Casting in Melee.</strong> Being within 5 feet of an enemy doesn't impose Disadvantage on your attack rolls with spells.",
       "<strong>Increased Range.</strong> When you cast a spell that has a range of at least 10 feet and requires you to make an attack roll, you can increase the spell's range by 60 feet."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.TELEKINETIC,
@@ -543,7 +543,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Minor Telekinesis.</strong> You learn the Mage Hand spell. You can cast it without Verbal or Somatic components, you can make the spectral hand Invisible, and its range and the distance it can be away from you both increase by 30 feet when you cast it. The spell's spellcasting ability is the ability increased by this feat.",
       "<strong>Telekinetic Shove.</strong> As a Bonus Action, you can telekinetically shove one creature you can see within 30 feet of yourself. When you do so, the target must succeed on a Strength saving throw (DC 8 plus the ability modifier of the score increased by this feat and your Proficiency Bonus) or be moved 5 feet toward or away from you."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.TELEPATHIC,
@@ -556,7 +556,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Telepathic Utterance.</strong> You can speak telepathically to any creature you can see within 60 feet of yourself. Your telepathic utterances are in a language you know, and the creature understands you only if it knows that language. Your communication doesn't give the creature the ability to respond to you telepathically.",
       "<strong>Detect Thoughts.</strong> You always have the Detect Thoughts spell prepared. You can cast it without a spell slot or spell components, and you must finish a Long Rest before you can cast it in this way again. You can also cast it using spell slots you have of the appropriate level. Your spellcasting ability for the spell is the ability increased by this feat."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.WAR_CASTER,
@@ -570,7 +570,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Reactive Spell.</strong> When a creature provokes an Opportunity Attack from you by leaving your reach, you can take a Reaction to cast a spell at the creature rather than making an Opportunity Attack. The spell must have a casting time of one action and must target only that creature.",
       "<strong>Somatic Components.</strong> You can perform the Somatic components of spells even when you have weapons or a Shield in one or both hands."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.WEAPON_MASTER,

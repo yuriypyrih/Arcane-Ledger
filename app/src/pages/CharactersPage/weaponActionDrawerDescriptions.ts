@@ -9,15 +9,27 @@ import {
   getWizardBladesingerSongOfVictoryWeaponActionDescriptionAdditions
 } from "./classFeatures/wizard/subclasses/wizardBladesinger";
 import {
+  getArcheryWeaponActionDescriptionAdditionsForCharacter,
+  getBoonOfCombatProwessWeaponActionDescriptionAdditionsForCharacter,
+  getBoonOfDimensionalTravelWeaponActionDescriptionAdditionsForCharacter,
+  getBoonOfIrresistibleOffenseWeaponActionDescriptionAdditionsForCharacter,
   getChargerWeaponActionDescriptionAdditionsForCharacter,
   getCrossbowExpertWeaponActionDescriptionAdditionsForCharacter,
   getCrusherWeaponActionDescriptionAdditionsForCharacter,
   getDualWielderWeaponActionDescriptionAdditionsForCharacter,
+  getDuelingWeaponActionDescriptionAdditionsForCharacter,
   getGreatWeaponMasterWeaponActionDescriptionAdditionsForCharacter,
   getPiercerWeaponActionDescriptionAdditionsForCharacter,
+  getPolearmMasterWeaponActionDescriptionAdditionsForCharacter,
   getPoisonerWeaponActionDescriptionAdditionsForCharacter,
   getSavageAttackerWeaponActionDescriptionAdditions,
-  getTavernBrawlerUnarmedStrikeDescriptionAdditions
+  getSharpshooterWeaponActionDescriptionAdditionsForCharacter,
+  getShieldMasterWeaponActionDescriptionAdditionsForCharacter,
+  getSlasherWeaponActionDescriptionAdditionsForCharacter,
+  getTavernBrawlerUnarmedStrikeDescriptionAdditions,
+  getThrownWeaponFightingWeaponActionDescriptionAdditionsForCharacter,
+  getTwoWeaponFightingWeaponActionDescriptionAdditionsForCharacter,
+  getUnarmedFightingWeaponActionDescriptionAdditionsForCharacter
 } from "./feats/runtime";
 import type { WeaponAction } from "./gameplay";
 
@@ -168,6 +180,23 @@ export function getWeaponActionDrawerDescriptionAdditions(
   }
 
   injectedSections.push(...getSavageAttackerWeaponActionDescriptionAdditions(character));
+  injectedSections.push(
+    ...getBoonOfCombatProwessWeaponActionDescriptionAdditionsForCharacter(character, action)
+  );
+  injectedSections.push(
+    ...getBoonOfDimensionalTravelWeaponActionDescriptionAdditionsForCharacter(character, action)
+  );
+  injectedSections.push(
+    ...getBoonOfIrresistibleOffenseWeaponActionDescriptionAdditionsForCharacter(character, action)
+  );
+  injectedSections.push(...getArcheryWeaponActionDescriptionAdditionsForCharacter(character, action));
+  injectedSections.push(...getDuelingWeaponActionDescriptionAdditionsForCharacter(character, action));
+  injectedSections.push(
+    ...getThrownWeaponFightingWeaponActionDescriptionAdditionsForCharacter(character, action)
+  );
+  injectedSections.push(
+    ...getTwoWeaponFightingWeaponActionDescriptionAdditionsForCharacter(character, action)
+  );
   injectedSections.push(...getChargerWeaponActionDescriptionAdditionsForCharacter(character, action));
   injectedSections.push(...getCrusherWeaponActionDescriptionAdditionsForCharacter(character, action));
   injectedSections.push(
@@ -177,17 +206,32 @@ export function getWeaponActionDrawerDescriptionAdditions(
     ...getPoisonerWeaponActionDescriptionAdditionsForCharacter(character, action)
   );
   injectedSections.push(
+    ...getSlasherWeaponActionDescriptionAdditionsForCharacter(character, action)
+  );
+  injectedSections.push(
     ...getDualWielderWeaponActionDescriptionAdditionsForCharacter(character, action)
   );
   injectedSections.push(
     ...getGreatWeaponMasterWeaponActionDescriptionAdditionsForCharacter(character, action)
   );
   injectedSections.push(
+    ...getPolearmMasterWeaponActionDescriptionAdditionsForCharacter(character, action)
+  );
+  injectedSections.push(
     ...getCrossbowExpertWeaponActionDescriptionAdditionsForCharacter(character, action)
+  );
+  injectedSections.push(
+    ...getSharpshooterWeaponActionDescriptionAdditionsForCharacter(character, action)
+  );
+  injectedSections.push(
+    ...getShieldMasterWeaponActionDescriptionAdditionsForCharacter(character, action)
   );
 
   if (action.attackKind === "unarmed") {
     injectedSections.push(...getTavernBrawlerUnarmedStrikeDescriptionAdditions(character));
+    injectedSections.push(
+      ...getUnarmedFightingWeaponActionDescriptionAdditionsForCharacter(character, action)
+    );
   }
 
   injectedSections.push(...getRangerPreciseHunterWeaponActionDescriptionAdditions(character));

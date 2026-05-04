@@ -98,6 +98,7 @@ import {
   createNamedResourceCardUsage
 } from "../../../../../../pages/CharactersPage/classFeatures/cardUsage";
 import {
+  boonOfFateImproveFateActionKey,
   durableSpeedyRecoveryActionKey,
   luckyFeatActionKey,
   resetLuckyPointForCharacter,
@@ -432,7 +433,7 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     isRageOfTheGodsSelected, isSacredWeaponSelected, isStunningStrikeSelected, isVowOfEnmitySelected, natureMagicianOptions, onPersistCharacter, closeActionDrawer, openMysticArcanumSpell, openWeaponDetailReference, roundTracker, selectedAction, selectedActionEconomyShapeState, selectedActionOptionKeys,
     selectedArcaneRecoverySelection, selectedArcaneWardDisabledReason, selectedArcaneWardSpellSlotLevel, selectedBardicInspirationFallbackDisabledReason, selectedBardicInspirationSpellSlotLevel, selectedBeastMasterReviveDisabledReason, selectedBeastMasterReviveSpellSlotLevel, selectedBlessingOfTheTricksterTarget, selectedChannelDivinityRows, selectedClairvoyantCombatantToggleDisabled, selectedClairvoyantCombatantToggleDisabledReason, selectedClairvoyantCombatantUsesRemaining,
     selectedClairvoyantCombatantUsesTotal, selectedCommonActionPathStates, selectedCommonActionPrimaryDisabledReason, selectedCommonActionSecondaryDisabledReason, selectedCrownOfSpellfireBlockedReason, selectedCrownOfSpellfireFallbackSorceryPointCost, selectedCrownOfSpellfireUsesRemaining, selectedCrownOfSpellfireUsesTotal, selectedDrawerOption, selectedFeatureAction, selectedFeatureActionPrimaryDisabledReason, selectedFlurryOfBlowsPrimaryDisabledReason,
-    selectedFlurryOfHealingAndHarmDisabledReason, selectedFlurryOfHealingAndHarmUsesRemaining, selectedFlurryOfHealingAndHarmUsesTotal, selectedFontOfMagicSelection, selectedFontOfMagicWarning, selectedHandOfHealingActionPathStates, selectedHandOfHealingFlurryOfHealingAndHarmHelperText, selectedHealingLightDiceCount, selectedHealingLightDiceRemaining, selectedHealingLightMaxDicePerUse, selectedHealingLightMaxSelectableDice, selectedHealingLightTarget,
+    selectedFlurryOfHealingAndHarmDisabledReason, selectedFlurryOfHealingAndHarmUsesRemaining, selectedFlurryOfHealingAndHarmUsesTotal, selectedFontOfMagicSelection, selectedFontOfMagicWarning, selectedHandOfHealingActionPathStates, selectedHandOfHealingFlurryOfHealingAndHarmHelperText, selectedHealingLightDiceCount, selectedHealingLightDiceRemaining, selectedHealingLightMaxDicePerUse, selectedHealingLightMaxSelectableDice, selectedHealingLightTarget, selectedRecoverVitalityDiceCount, selectedRecoverVitalityMaxSelectableDice,
     selectedImprovedShadowStepState, selectedIndomitableAbility, selectedIndomitableOption, selectedLayOnHandsConditions, selectedLayOnHandsPoolSpendAmount, selectedLayOnHandsPoolSpendInput, selectedLayOnHandsTarget, selectedMetamagicCost, selectedMonkElementalAttunementResistanceDamageType, selectedMonkPatientDefenseTemporaryHitPointsFormula, selectedMonkWholenessOfBodyHealingFormula, selectedNatureMagicianOption,
     selectedNatureMagicianSpellSlotLevel, selectedOptionEconomyShapeState, selectedOptionWarning, selectedRageOfTheGodsDescription, selectedRageOfTheGodsUsesRemaining, selectedRageOfTheGodsUsesTotal, selectedRageOptionKey, selectedRageOptions, selectedRagePowerOptionKey, selectedRagePowerOptions, selectedRageSelectionWarning, selectedSecondWindGroupRecoveryFormula,
     selectedSecondWindGroupRecoveryUsesRemaining, selectedSecondWindGroupRecoveryUsesTotal, selectedSecondWindHealingFormula, selectedSpellfireBurstTarget, selectedStarryFormConstellation, selectedThirdEyeOptionKey, selectedUnarmedStrikeFlurryOfHealingAndHarmHelperText, selectedWarriorOfTheGodsChargeCount, selectedWarriorOfTheGodsUsesRemaining, selectedWeaponAttackFormula, selectedWeaponColossusSlayerState, selectedWeaponColossusSlayerToggleDisabled,
@@ -748,6 +749,27 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
 
     if (
       selectedAction.kind === "feature" &&
+      selectedAction.drawer.kind === "confirm" &&
+      selectedAction.execute.kind === "activate" &&
+      selectedAction.action.key === boonOfFateImproveFateActionKey
+    ) {
+      return (
+        <ActionDiceConfirmFooter
+          actionName={selectedAction.action.name}
+          confirmLabel={selectedFeaturePrimaryLabel}
+          actionShape={null}
+          actionShapeAvailable
+          actionShapeMultiCount={0}
+          disabled={selectedFeatureActionPrimaryDisabledReason !== null}
+          isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
+          onConfirm={() => executeFeatureActivate(selectedAction.action)}
+          onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
+        />
+      );
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
       selectedAction.drawer.kind === "custom-form" &&
       selectedAction.drawer.formKind === "portent"
     ) {
@@ -841,6 +863,30 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
           onConfirm={() =>
             submitHealingLight(selectedHealingLightDiceCount, selectedHealingLightTarget)
           }
+          onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
+        />
+      );
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.drawer.kind === "custom-form" &&
+      selectedAction.drawer.formKind === "recover-vitality"
+    ) {
+      const selectedDiceCanBeUsed =
+        selectedRecoverVitalityDiceCount > 0 &&
+        selectedRecoverVitalityDiceCount <= selectedRecoverVitalityMaxSelectableDice;
+
+      return (
+        <ActionDiceConfirmFooter
+          actionName={selectedAction.action.name}
+          confirmLabel="Use Recover Vitality"
+          actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
+          actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+          actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+          disabled={selectedFeatureActionPrimaryDisabledReason !== null || !selectedDiceCanBeUsed}
+          isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
+          onConfirm={() => executeFeatureActivate(selectedAction.action)}
           onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
         />
       );
