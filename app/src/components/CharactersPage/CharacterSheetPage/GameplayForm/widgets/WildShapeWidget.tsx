@@ -9,6 +9,7 @@ import {
   restoreDruidWildShapeUseForCharacter
 } from "../../../../../pages/CharactersPage/classFeatures";
 import ResourceCountWidget from "./ResourceCountWidget";
+import { classResourcePersistOptions } from "./persistOptions";
 
 type WildShapeWidgetProps = {
   character: Character;
@@ -31,18 +32,21 @@ function WildShapeWidget({ character, onPersistCharacter }: WildShapeWidgetProps
       current={remainingUses}
       total={totalUses}
       onAdd={() =>
-        onPersistCharacter((currentCharacter) =>
-          restoreDruidWildShapeUseForCharacter(currentCharacter)
+        onPersistCharacter(
+          (currentCharacter) => restoreDruidWildShapeUseForCharacter(currentCharacter),
+          classResourcePersistOptions
         )
       }
       onUse={() =>
-        onPersistCharacter((currentCharacter) =>
-          expendDruidWildShapeUseForCharacter(currentCharacter)
+        onPersistCharacter(
+          (currentCharacter) => expendDruidWildShapeUseForCharacter(currentCharacter),
+          classResourcePersistOptions
         )
       }
       onReset={() =>
-        onPersistCharacter((currentCharacter) =>
-          restoreAllDruidWildShapeUsesForCharacter(currentCharacter)
+        onPersistCharacter(
+          (currentCharacter) => restoreAllDruidWildShapeUsesForCharacter(currentCharacter),
+          classResourcePersistOptions
         )
       }
     />

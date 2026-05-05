@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { fetchItemByKey } from "../../api";
 import type { CodexStatus, ItemRecord } from "../../types";
+import { LruCache } from "../../utils/lruCache";
 
-const itemEntryCache = new Map<string, ItemRecord>();
+const itemEntryCache = new LruCache<string, ItemRecord>(75);
 
 type UseItemEntryOptions = {
   enabled?: boolean;
@@ -37,6 +38,7 @@ export function useItemEntry(key: string | undefined, options?: UseItemEntryOpti
 
   useEffect(() => {
     let active = true;
+    const abortController = new AbortController();
 
     async function loadItem() {
       if (!enabled || !key) {
@@ -64,7 +66,7 @@ export function useItemEntry(key: string | undefined, options?: UseItemEntryOpti
       setStatus("loading");
 
       try {
-        const payload = await fetchItemByKey(key);
+        const payload = await fetchItemByKey(key, { signal: abortController.signal });
 
         if (!active) {
           return;
@@ -74,7 +76,7 @@ export function useItemEntry(key: string | undefined, options?: UseItemEntryOpti
         setItem(payload);
         setStatus("ready");
       } catch {
-        if (!active) {
+        if (!active || abortController.signal.aborted) {
           return;
         }
 
@@ -87,6 +89,7 @@ export function useItemEntry(key: string | undefined, options?: UseItemEntryOpti
 
     return () => {
       active = false;
+      abortController.abort();
     };
   }, [enabled, key, options?.initialItem]);
 

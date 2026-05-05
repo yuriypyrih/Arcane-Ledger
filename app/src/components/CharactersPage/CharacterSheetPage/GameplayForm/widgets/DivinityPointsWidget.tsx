@@ -9,6 +9,7 @@ import {
 } from "../../../../../pages/CharactersPage/classFeatures";
 import pyromancyIcon from "../../../../../assets/svg/pyromancy.svg";
 import ResourceCountWidget from "./ResourceCountWidget";
+import { classResourcePersistOptions } from "./persistOptions";
 
 type DivinityPointsWidgetProps = {
   character: Character;
@@ -31,18 +32,21 @@ function DivinityPointsWidget({ character, onPersistCharacter }: DivinityPointsW
       current={remainingUses}
       total={totalUses}
       onAdd={() =>
-        onPersistCharacter((currentCharacter) =>
-          restoreChannelDivinityUseForCharacter(currentCharacter)
+        onPersistCharacter(
+          (currentCharacter) => restoreChannelDivinityUseForCharacter(currentCharacter),
+          classResourcePersistOptions
         )
       }
       onUse={() =>
-        onPersistCharacter((currentCharacter) =>
-          expendChannelDivinityUseForCharacter(currentCharacter)
+        onPersistCharacter(
+          (currentCharacter) => expendChannelDivinityUseForCharacter(currentCharacter),
+          classResourcePersistOptions
         )
       }
       onReset={() =>
-        onPersistCharacter((currentCharacter) =>
-          restoreAllChannelDivinityUsesForCharacter(currentCharacter)
+        onPersistCharacter(
+          (currentCharacter) => restoreAllChannelDivinityUsesForCharacter(currentCharacter),
+          classResourcePersistOptions
         )
       }
     />

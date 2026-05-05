@@ -37,5 +37,6 @@ export function measureCharacterRuntime<T>(name: string, callback: () => T): T {
     window.performance.measure(name, startMark, endMark);
     window.performance.clearMarks(startMark);
     window.performance.clearMarks(endMark);
+    window.performance.clearMeasures(name);
   }
 }

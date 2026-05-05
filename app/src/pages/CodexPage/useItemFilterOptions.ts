@@ -14,11 +14,12 @@ export function useItemFilterOptions(enabled: boolean) {
     }
 
     let active = true;
+    const abortController = new AbortController();
     setStatus("loading");
 
     async function loadItemFilterOptions() {
       try {
-        const nextPayload = await fetchItemFilterOptions();
+        const nextPayload = await fetchItemFilterOptions({ signal: abortController.signal });
 
         if (!active) {
           return;
@@ -27,7 +28,7 @@ export function useItemFilterOptions(enabled: boolean) {
         setPayload(nextPayload);
         setStatus("ready");
       } catch {
-        if (!active) {
+        if (!active || abortController.signal.aborted) {
           return;
         }
 
@@ -39,6 +40,7 @@ export function useItemFilterOptions(enabled: boolean) {
 
     return () => {
       active = false;
+      abortController.abort();
     };
   }, [enabled]);
 

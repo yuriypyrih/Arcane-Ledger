@@ -9,6 +9,7 @@ import {
   restoreBardicInspirationUseForCharacter
 } from "../../../../../pages/CharactersPage/classFeatures";
 import ResourceCountWidget from "./ResourceCountWidget";
+import { classResourcePersistOptions } from "./persistOptions";
 
 type BardicInspirationWidgetProps = {
   character: Character;
@@ -31,18 +32,21 @@ function BardicInspirationWidget({ character, onPersistCharacter }: BardicInspir
       current={remainingUses}
       total={totalUses}
       onAdd={() =>
-        onPersistCharacter((currentCharacter) =>
-          restoreBardicInspirationUseForCharacter(currentCharacter)
+        onPersistCharacter(
+          (currentCharacter) => restoreBardicInspirationUseForCharacter(currentCharacter),
+          classResourcePersistOptions
         )
       }
       onUse={() =>
-        onPersistCharacter((currentCharacter) =>
-          expendBardicInspirationUseForCharacter(currentCharacter)
+        onPersistCharacter(
+          (currentCharacter) => expendBardicInspirationUseForCharacter(currentCharacter),
+          classResourcePersistOptions
         )
       }
       onReset={() =>
-        onPersistCharacter((currentCharacter) =>
-          restoreAllBardicInspirationUsesForCharacter(currentCharacter)
+        onPersistCharacter(
+          (currentCharacter) => restoreAllBardicInspirationUsesForCharacter(currentCharacter),
+          classResourcePersistOptions
         )
       }
     />

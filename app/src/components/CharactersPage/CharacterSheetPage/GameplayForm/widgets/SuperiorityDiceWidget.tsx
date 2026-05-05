@@ -10,6 +10,7 @@ import {
   restoreFighterBattleMasterSuperiorityDieForCharacter
 } from "../../../../../pages/CharactersPage/classFeatures";
 import ResourceCountWidget from "./ResourceCountWidget";
+import { classResourcePersistOptions } from "./persistOptions";
 
 type SuperiorityDiceWidgetProps = {
   character: Character;
@@ -34,18 +35,24 @@ function SuperiorityDiceWidget({ character, onPersistCharacter }: SuperiorityDic
       total={totalDice}
       titleSuffix={superiorityDie.toUpperCase()}
       onAdd={() =>
-        onPersistCharacter((currentCharacter) =>
-          restoreFighterBattleMasterSuperiorityDieForCharacter(currentCharacter)
+        onPersistCharacter(
+          (currentCharacter) =>
+            restoreFighterBattleMasterSuperiorityDieForCharacter(currentCharacter),
+          classResourcePersistOptions
         )
       }
       onUse={() =>
-        onPersistCharacter((currentCharacter) =>
-          expendFighterBattleMasterSuperiorityDieForCharacter(currentCharacter)
+        onPersistCharacter(
+          (currentCharacter) =>
+            expendFighterBattleMasterSuperiorityDieForCharacter(currentCharacter),
+          classResourcePersistOptions
         )
       }
       onReset={() =>
-        onPersistCharacter((currentCharacter) =>
-          restoreAllFighterBattleMasterSuperiorityDiceForCharacter(currentCharacter)
+        onPersistCharacter(
+          (currentCharacter) =>
+            restoreAllFighterBattleMasterSuperiorityDiceForCharacter(currentCharacter),
+          classResourcePersistOptions
         )
       }
     />

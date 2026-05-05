@@ -4,18 +4,14 @@ import {
   getDruidNatureMagicianOptionsForCharacter,
   getDruidWildResurgenceAvailableSpellSlotLevelsForCharacter
 } from "../../../../../../pages/CharactersPage/classFeatures";
-import {
-  getSpellcastingRuntimeForCharacter,
-  type SpellSlotRuntimeOption
-} from "../../../../../../pages/CharactersPage/characterRuntime/spellcastingRuntime";
+import { getCharacterRuntime } from "../../../../../../pages/CharactersPage/characterRuntime/characterRuntime";
+import type { SpellSlotRuntimeOption } from "../../../../../../pages/CharactersPage/characterRuntime/spellcastingRuntime";
 
 export function useActionResourceOptionModel(character: Character) {
   const { classFeatureState, className, level, spellSlotsExpended, subclassId } = character;
   const druidFeatureState = classFeatureState?.druid;
-  const spellcastingRuntime = useMemo(
-    () => getSpellcastingRuntimeForCharacter(character, { includeSubclassSlots: false }),
-    [character]
-  );
+  const characterRuntime = useMemo(() => getCharacterRuntime(character), [character]);
+  const spellcastingRuntime = characterRuntime.spellcastingWithoutSubclassSlots;
   const fixedSpellSlotTotals = spellcastingRuntime.spellSlotTotals;
   const fixedSpellSlotsExpended = spellcastingRuntime.spellSlotsExpended;
   const fixedSpellSlotsRemaining = spellcastingRuntime.spellSlotsRemaining;

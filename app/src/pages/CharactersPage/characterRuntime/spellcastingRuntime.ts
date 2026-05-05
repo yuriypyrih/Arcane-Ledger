@@ -89,7 +89,7 @@ export type CharacterSpellcastingRuntime = {
   fighterPsiWarriorEnergyDiceRemaining: number;
 };
 
-type SpellcastingRuntimeOptions = {
+export type SpellcastingRuntimeOptions = {
   includeSubclassSlots?: boolean;
 };
 

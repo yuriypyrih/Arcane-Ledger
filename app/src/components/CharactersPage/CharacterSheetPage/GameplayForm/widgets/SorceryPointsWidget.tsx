@@ -9,6 +9,7 @@ import {
   restoreSorceryPointForCharacter
 } from "../../../../../pages/CharactersPage/classFeatures";
 import ResourceCountWidget from "./ResourceCountWidget";
+import { classResourcePersistOptions } from "./persistOptions";
 
 type SorceryPointsWidgetProps = {
   character: Character;
@@ -31,14 +32,21 @@ function SorceryPointsWidget({ character, onPersistCharacter }: SorceryPointsWid
       current={remainingSorceryPoints}
       total={totalSorceryPoints}
       onAdd={() =>
-        onPersistCharacter((currentCharacter) => restoreSorceryPointForCharacter(currentCharacter))
+        onPersistCharacter(
+          (currentCharacter) => restoreSorceryPointForCharacter(currentCharacter),
+          classResourcePersistOptions
+        )
       }
       onUse={() =>
-        onPersistCharacter((currentCharacter) => expendSorceryPointForCharacter(currentCharacter))
+        onPersistCharacter(
+          (currentCharacter) => expendSorceryPointForCharacter(currentCharacter),
+          classResourcePersistOptions
+        )
       }
       onReset={() =>
-        onPersistCharacter((currentCharacter) =>
-          restoreAllSorceryPointsForCharacter(currentCharacter)
+        onPersistCharacter(
+          (currentCharacter) => restoreAllSorceryPointsForCharacter(currentCharacter),
+          classResourcePersistOptions
         )
       }
     />

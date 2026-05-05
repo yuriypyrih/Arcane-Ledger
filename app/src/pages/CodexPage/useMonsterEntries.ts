@@ -34,19 +34,23 @@ export function useMonsterEntries({
     }
 
     let active = true;
+    const abortController = new AbortController();
     setStatus("loading");
 
     async function loadMonsters() {
       try {
-        const nextPayload = await fetchMonsterList({
-          page,
-          limit,
-          search: search.trim() || undefined,
-          type: type ?? undefined,
-          maxCr: maxCr ?? undefined,
-          source: source ?? undefined,
-          ordering
-        });
+        const nextPayload = await fetchMonsterList(
+          {
+            page,
+            limit,
+            search: search.trim() || undefined,
+            type: type ?? undefined,
+            maxCr: maxCr ?? undefined,
+            source: source ?? undefined,
+            ordering
+          },
+          { signal: abortController.signal }
+        );
 
         if (!active) {
           return;
@@ -55,7 +59,7 @@ export function useMonsterEntries({
         setPayload(nextPayload);
         setStatus("ready");
       } catch {
-        if (!active) {
+        if (!active || abortController.signal.aborted) {
           return;
         }
 
@@ -67,6 +71,7 @@ export function useMonsterEntries({
 
     return () => {
       active = false;
+      abortController.abort();
     };
   }, [enabled, limit, maxCr, ordering, page, search, source, type]);
 

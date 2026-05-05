@@ -9,6 +9,7 @@ import {
   restoreFighterSecondWindOnShortRestForCharacter
 } from "../../../../../pages/CharactersPage/classFeatures";
 import ResourceCountWidget from "./ResourceCountWidget";
+import { classResourcePersistOptions } from "./persistOptions";
 
 type FighterSecondWindWidgetProps = {
   character: Character;
@@ -34,18 +35,21 @@ function FighterSecondWindWidget({
       current={remainingUses}
       total={totalUses}
       onAdd={() =>
-        onPersistCharacter((currentCharacter) =>
-          restoreFighterSecondWindOnShortRestForCharacter(currentCharacter)
+        onPersistCharacter(
+          (currentCharacter) => restoreFighterSecondWindOnShortRestForCharacter(currentCharacter),
+          classResourcePersistOptions
         )
       }
       onUse={() =>
-        onPersistCharacter((currentCharacter) =>
-          consumeFighterSecondWindUseForCharacter(currentCharacter)
+        onPersistCharacter(
+          (currentCharacter) => consumeFighterSecondWindUseForCharacter(currentCharacter),
+          classResourcePersistOptions
         )
       }
       onReset={() =>
-        onPersistCharacter((currentCharacter) =>
-          restoreFighterSecondWindOnLongRestForCharacter(currentCharacter)
+        onPersistCharacter(
+          (currentCharacter) => restoreFighterSecondWindOnLongRestForCharacter(currentCharacter),
+          classResourcePersistOptions
         )
       }
     />

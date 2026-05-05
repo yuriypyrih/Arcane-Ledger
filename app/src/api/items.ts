@@ -12,7 +12,7 @@ import type {
   ItemRecord,
   PaginatedApiResponse
 } from "../types";
-import { apiGet, apiPost } from "./client";
+import { apiGet, apiPost, type ApiRequestOptions } from "./client";
 
 export type FetchItemListParams = {
   page?: number;
@@ -30,21 +30,24 @@ export type FetchItemListParams = {
   ordering?: ItemOrdering;
 };
 
-export async function fetchItemList({
-  page = 1,
-  limit = 50,
-  search,
-  tab = DEFAULT_ITEM_BROWSER_TAB,
-  category,
-  attackType,
-  proficiencyType,
-  mastery,
-  property,
-  armorType,
-  rarity,
-  source,
-  ordering = "name"
-}: FetchItemListParams = {}) {
+export async function fetchItemList(
+  {
+    page = 1,
+    limit = 50,
+    search,
+    tab = DEFAULT_ITEM_BROWSER_TAB,
+    category,
+    attackType,
+    proficiencyType,
+    mastery,
+    property,
+    armorType,
+    rarity,
+    source,
+    ordering = "name"
+  }: FetchItemListParams = {},
+  options?: ApiRequestOptions
+) {
   const searchParams = new URLSearchParams();
   searchParams.set("page", String(page));
   searchParams.set("limit", String(limit));
@@ -87,21 +90,24 @@ export async function fetchItemList({
     searchParams.set("source", source);
   }
 
-  return apiGet<PaginatedApiResponse<ItemListItem>>(`items?${searchParams.toString()}`);
+  return apiGet<PaginatedApiResponse<ItemListItem>>(
+    `items?${searchParams.toString()}`,
+    options
+  );
 }
 
-export async function fetchItemByKey(key: string) {
-  return apiGet<ItemRecord>(`items/${key}`);
+export async function fetchItemByKey(key: string, options?: ApiRequestOptions) {
+  return apiGet<ItemRecord>(`items/${key}`, options);
 }
 
-export async function fetchItemsByKeys(keys: string[]) {
-  return apiPost<ItemBatchLookupRecord>("items/batch", { keys });
+export async function fetchItemsByKeys(keys: string[], options?: ApiRequestOptions) {
+  return apiPost<ItemBatchLookupRecord>("items/batch", { keys }, options);
 }
 
-export async function fetchItemPackContents(key: string) {
-  return apiGet<ItemPackContentsRecord>(`items/${key}/pack-contents`);
+export async function fetchItemPackContents(key: string, options?: ApiRequestOptions) {
+  return apiGet<ItemPackContentsRecord>(`items/${key}/pack-contents`, options);
 }
 
-export async function fetchItemFilterOptions() {
-  return apiGet<ItemFilterOptions>("items/meta");
+export async function fetchItemFilterOptions(options?: ApiRequestOptions) {
+  return apiGet<ItemFilterOptions>("items/meta", options);
 }

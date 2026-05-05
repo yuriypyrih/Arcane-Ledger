@@ -30,6 +30,7 @@ import {
   PRIMAL_BEAST_MONSTER_TYPE
 } from "../../../../pages/CharactersPage/companionPrimalBeasts";
 import { useMonsterEntries } from "../../../../pages/CodexPage/useMonsterEntries";
+import { getCachedMonsterEntry, primeMonsterEntryCache } from "../../../../utils/monsters";
 import type {
   Character,
   CharacterCompanion,
@@ -225,6 +226,7 @@ function CompanionEditorModal({
 
   useEffect(() => {
     let active = true;
+    const abortController = new AbortController();
 
     async function loadPreviewMonster() {
       if (!previewSlug) {
@@ -234,9 +236,11 @@ function CompanionEditorModal({
       }
 
       const primalBeast = getPrimalBeastTemplateBySlug(previewSlug, character);
-      const cachedMonster = primalBeast ?? monsterCache[previewSlug];
+      const cachedMonster =
+        primalBeast ?? monsterCache[previewSlug] ?? getCachedMonsterEntry(previewSlug);
 
       if (cachedMonster) {
+        primeMonsterEntryCache(cachedMonster);
         setPreviewMonster(cachedMonster);
         setPreviewStatus("ready");
         return;
@@ -245,12 +249,15 @@ function CompanionEditorModal({
       setPreviewStatus("loading");
 
       try {
-        const monster = await fetchMonsterBySlug(previewSlug);
+        const monster = await fetchMonsterBySlug(previewSlug, {
+          signal: abortController.signal
+        });
 
         if (!active) {
           return;
         }
 
+        primeMonsterEntryCache(monster);
         setMonsterCache((currentCache) => ({
           ...currentCache,
           [monster.slug]: monster
@@ -258,7 +265,7 @@ function CompanionEditorModal({
         setPreviewMonster(monster);
         setPreviewStatus("ready");
       } catch {
-        if (!active) {
+        if (!active || abortController.signal.aborted) {
           return;
         }
 
@@ -271,6 +278,7 @@ function CompanionEditorModal({
 
     return () => {
       active = false;
+      abortController.abort();
     };
   }, [character, monsterCache, previewSlug]);
 

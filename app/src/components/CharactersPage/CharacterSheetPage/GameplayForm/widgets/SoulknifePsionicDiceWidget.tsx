@@ -10,6 +10,7 @@ import {
   restoreRogueSoulknifePsionicDieForCharacter
 } from "../../../../../pages/CharactersPage/classFeatures";
 import ResourceCountWidget from "./ResourceCountWidget";
+import { classResourcePersistOptions } from "./persistOptions";
 
 type SoulknifePsionicDiceWidgetProps = {
   character: Character;
@@ -37,18 +38,21 @@ function SoulknifePsionicDiceWidget({
       total={totalDice}
       titleSuffix={psionicDie.toUpperCase()}
       onAdd={() =>
-        onPersistCharacter((currentCharacter) =>
-          restoreRogueSoulknifePsionicDieForCharacter(currentCharacter)
+        onPersistCharacter(
+          (currentCharacter) => restoreRogueSoulknifePsionicDieForCharacter(currentCharacter),
+          classResourcePersistOptions
         )
       }
       onUse={() =>
-        onPersistCharacter((currentCharacter) =>
-          expendRogueSoulknifePsionicDieForCharacter(currentCharacter)
+        onPersistCharacter(
+          (currentCharacter) => expendRogueSoulknifePsionicDieForCharacter(currentCharacter),
+          classResourcePersistOptions
         )
       }
       onReset={() =>
-        onPersistCharacter((currentCharacter) =>
-          restoreAllRogueSoulknifePsionicDiceForCharacter(currentCharacter)
+        onPersistCharacter(
+          (currentCharacter) => restoreAllRogueSoulknifePsionicDiceForCharacter(currentCharacter),
+          classResourcePersistOptions
         )
       }
     />

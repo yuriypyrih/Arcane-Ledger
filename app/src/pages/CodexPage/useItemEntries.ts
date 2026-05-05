@@ -55,25 +55,29 @@ export function useItemEntries({
     }
 
     let active = true;
+    const abortController = new AbortController();
     setStatus("loading");
 
     async function loadItems() {
       try {
-        const nextPayload = await fetchItemList({
-          page,
-          limit,
-          search: search.trim() || undefined,
-          tab,
-          category: category ?? undefined,
-          attackType: attackType ?? undefined,
-          proficiencyType: proficiencyType ?? undefined,
-          mastery: mastery ?? undefined,
-          property: property ?? undefined,
-          armorType: armorType ?? undefined,
-          rarity: rarity ?? undefined,
-          source: source ?? undefined,
-          ordering
-        });
+        const nextPayload = await fetchItemList(
+          {
+            page,
+            limit,
+            search: search.trim() || undefined,
+            tab,
+            category: category ?? undefined,
+            attackType: attackType ?? undefined,
+            proficiencyType: proficiencyType ?? undefined,
+            mastery: mastery ?? undefined,
+            property: property ?? undefined,
+            armorType: armorType ?? undefined,
+            rarity: rarity ?? undefined,
+            source: source ?? undefined,
+            ordering
+          },
+          { signal: abortController.signal }
+        );
 
         if (!active) {
           return;
@@ -82,7 +86,7 @@ export function useItemEntries({
         setPayload(nextPayload);
         setStatus("ready");
       } catch {
-        if (!active) {
+        if (!active || abortController.signal.aborted) {
           return;
         }
 
@@ -94,6 +98,7 @@ export function useItemEntries({
 
     return () => {
       active = false;
+      abortController.abort();
     };
   }, [
     armorType,

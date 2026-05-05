@@ -8,6 +8,7 @@ import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPag
 import { hasFeatForCharacter } from "../../../../../pages/CharactersPage/feats/runtime";
 import widgetShellStyles from "../GameplayWidgetShared.module.css";
 import { createDefaultDeathSaves, normalizeDeathSaves } from "../gameplayStateUtils";
+import { resourcePersistOptions } from "./persistOptions";
 import styles from "./DeathSavesWidget.module.css";
 
 type DeathSavesWidgetProps = {
@@ -24,31 +25,34 @@ function DeathSavesWidget({ character, onPersistCharacter }: DeathSavesWidgetPro
 
   const updateDeathSaves = useCallback(
     (track: "success" | "failure") => {
-      onPersistCharacter((currentCharacter) => {
-        if (currentCharacter.currentHitPoints > 0) {
-          return currentCharacter;
-        }
+      onPersistCharacter(
+        (currentCharacter) => {
+          if (currentCharacter.currentHitPoints > 0) {
+            return currentCharacter;
+          }
 
-        const currentDeathSaves = normalizeDeathSaves(currentCharacter.deathSaves);
+          const currentDeathSaves = normalizeDeathSaves(currentCharacter.deathSaves);
 
-        if (track === "success") {
+          if (track === "success") {
+            return {
+              ...currentCharacter,
+              deathSaves: {
+                ...currentDeathSaves,
+                successes: Math.min(3, currentDeathSaves.successes + 1)
+              }
+            };
+          }
+
           return {
             ...currentCharacter,
             deathSaves: {
               ...currentDeathSaves,
-              successes: Math.min(3, currentDeathSaves.successes + 1)
+              failures: Math.min(3, currentDeathSaves.failures + 1)
             }
           };
-        }
-
-        return {
-          ...currentCharacter,
-          deathSaves: {
-            ...currentDeathSaves,
-            failures: Math.min(3, currentDeathSaves.failures + 1)
-          }
-        };
-      });
+        },
+        resourcePersistOptions
+      );
     },
     [onPersistCharacter]
   );
@@ -62,10 +66,13 @@ function DeathSavesWidget({ character, onPersistCharacter }: DeathSavesWidgetPro
       return;
     }
 
-    onPersistCharacter((currentCharacter) => ({
-      ...currentCharacter,
-      deathSaves: createDefaultDeathSaves()
-    }));
+    onPersistCharacter(
+      (currentCharacter) => ({
+        ...currentCharacter,
+        deathSaves: createDefaultDeathSaves()
+      }),
+      resourcePersistOptions
+    );
   }, [character.currentHitPoints, deathSaves.failures, deathSaves.successes, onPersistCharacter]);
 
   function rollDeathSave() {

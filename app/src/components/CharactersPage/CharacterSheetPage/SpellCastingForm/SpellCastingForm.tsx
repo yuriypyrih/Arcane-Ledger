@@ -14,7 +14,7 @@ import SpellManagementModal from "./SpellManagementModal";
 import SpellSlotActionSheet from "./SpellSlotActionSheet";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import { useClassSpellEntries, usePreparedSpellEntries } from "../../../../codex/classes";
-import { getSpellcastingRuntimeForCharacter } from "../../../../pages/CharactersPage/characterRuntime/spellcastingRuntime";
+import { getCharacterRuntime } from "../../../../pages/CharactersPage/characterRuntime/characterRuntime";
 import {
   ACTION_TYPE,
   CLASS_FEATURE,
@@ -440,10 +440,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       ),
     [character]
   );
-  const spellcastingRuntime = useMemo(
-    () => getSpellcastingRuntimeForCharacter(character),
-    [character]
-  );
+  const characterRuntime = useMemo(() => getCharacterRuntime(character), [character]);
+  const spellcastingRuntime = characterRuntime.spellcasting;
   const featureAlwaysPreparedSpellIds = spellcastingRuntime.featureAlwaysPreparedSpellIds;
   const featureAlwaysSpellbookSpellIds = spellcastingRuntime.featureAlwaysSpellbookSpellIds;
   const featureRitualOnlySpellIds = spellcastingRuntime.featureRitualOnlySpellIds;

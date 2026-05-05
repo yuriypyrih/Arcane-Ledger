@@ -27,6 +27,16 @@ import { measureCharacterRuntime } from "../characterRuntime/performance";
 
 const hitPointSaveDebounceMs = 150;
 const storageSaveDebounceMs = 300;
+const storageIdleFlushTimeoutMs = 1000;
+
+type StorageIdleWindow = Window &
+  typeof globalThis & {
+    requestIdleCallback?: (
+      callback: (deadline: { didTimeout: boolean; timeRemaining: () => number }) => void,
+      options?: { timeout?: number }
+    ) => number;
+    cancelIdleCallback?: (handle: number) => void;
+  };
 
 function loadCharacter(characterId: number): Character | null {
   if (!Number.isFinite(characterId) || characterId <= 0) {
@@ -53,19 +63,30 @@ export function useCharacterSheetPersistence(characterId: number) {
   const pendingHitPointTimeoutRef = useRef<number | null>(null);
   const pendingStorageCharacterRef = useRef<Character | null>(null);
   const pendingStorageTimeoutRef = useRef<number | null>(null);
+  const pendingStorageIdleCallbackRef = useRef<number | null>(null);
   const isMountedRef = useRef(false);
 
   useEffect(() => {
     characterRef.current = character;
   }, [character]);
 
-  const clearPendingStorageTimeout = useCallback(() => {
-    if (pendingStorageTimeoutRef.current === null) {
-      return;
+  const clearPendingStorageSchedule = useCallback(() => {
+    if (pendingStorageTimeoutRef.current !== null) {
+      window.clearTimeout(pendingStorageTimeoutRef.current);
+      pendingStorageTimeoutRef.current = null;
     }
 
-    window.clearTimeout(pendingStorageTimeoutRef.current);
-    pendingStorageTimeoutRef.current = null;
+    if (pendingStorageIdleCallbackRef.current !== null) {
+      const idleWindow = window as StorageIdleWindow;
+
+      if (typeof idleWindow.cancelIdleCallback === "function") {
+        idleWindow.cancelIdleCallback(pendingStorageIdleCallbackRef.current);
+      } else {
+        window.clearTimeout(pendingStorageIdleCallbackRef.current);
+      }
+
+      pendingStorageIdleCallbackRef.current = null;
+    }
   }, []);
 
   const clearPendingHitPointTimeout = useCallback(() => {
@@ -78,7 +99,7 @@ export function useCharacterSheetPersistence(characterId: number) {
   }, []);
 
   const flushPendingStorageSave = useCallback((): Character | null => {
-    clearPendingStorageTimeout();
+    clearPendingStorageSchedule();
 
     const pendingCharacter = pendingStorageCharacterRef.current;
 
@@ -92,12 +113,12 @@ export function useCharacterSheetPersistence(characterId: number) {
     );
     dispatch(markActiveCharacterSheetPersisted({ characterId: savedCharacter.id }));
     return savedCharacter;
-  }, [clearPendingStorageTimeout, dispatch]);
+  }, [clearPendingStorageSchedule, dispatch]);
 
   const queueStorageSave = useCallback(
     (nextCharacter: Character, options?: PersistCharacterOptions) => {
       pendingStorageCharacterRef.current = nextCharacter;
-      clearPendingStorageTimeout();
+      clearPendingStorageSchedule();
 
       if (options?.flush) {
         flushPendingStorageSave();
@@ -105,10 +126,28 @@ export function useCharacterSheetPersistence(characterId: number) {
       }
 
       pendingStorageTimeoutRef.current = window.setTimeout(() => {
-        flushPendingStorageSave();
+        pendingStorageTimeoutRef.current = null;
+
+        const idleWindow = window as StorageIdleWindow;
+
+        if (typeof idleWindow.requestIdleCallback === "function") {
+          pendingStorageIdleCallbackRef.current = idleWindow.requestIdleCallback(
+            () => {
+              pendingStorageIdleCallbackRef.current = null;
+              flushPendingStorageSave();
+            },
+            { timeout: storageIdleFlushTimeoutMs }
+          );
+          return;
+        }
+
+        pendingStorageIdleCallbackRef.current = window.setTimeout(() => {
+          pendingStorageIdleCallbackRef.current = null;
+          flushPendingStorageSave();
+        }, 0);
       }, storageSaveDebounceMs);
     },
-    [clearPendingStorageTimeout, flushPendingStorageSave]
+    [clearPendingStorageSchedule, flushPendingStorageSave]
   );
 
   const normalizeCharacterSnapshot = useCallback(

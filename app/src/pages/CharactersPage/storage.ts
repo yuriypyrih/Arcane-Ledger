@@ -578,7 +578,13 @@ export function normalizeCharacter(value: unknown): Character | null {
   });
 }
 
+let storedCharacterRecordsCache: unknown[] | null = null;
+
 function loadStoredCharacterRecords(): unknown[] {
+  if (storedCharacterRecordsCache) {
+    return storedCharacterRecordsCache;
+  }
+
   if (typeof window === "undefined") {
     return [];
   }
@@ -586,14 +592,17 @@ function loadStoredCharacterRecords(): unknown[] {
   const serializedCharacters = window.localStorage.getItem(CHARACTERS_STORAGE_KEY);
 
   if (!serializedCharacters) {
-    return [];
+    storedCharacterRecordsCache = [];
+    return storedCharacterRecordsCache;
   }
 
   try {
     const parsedCharacters = JSON.parse(serializedCharacters) as unknown;
-    return Array.isArray(parsedCharacters) ? parsedCharacters : [];
+    storedCharacterRecordsCache = Array.isArray(parsedCharacters) ? parsedCharacters : [];
+    return storedCharacterRecordsCache;
   } catch {
-    return [];
+    storedCharacterRecordsCache = [];
+    return storedCharacterRecordsCache;
   }
 }
 
@@ -602,6 +611,7 @@ function saveStoredCharacterRecords(characters: unknown[]) {
     return;
   }
 
+  storedCharacterRecordsCache = characters;
   window.localStorage.setItem(CHARACTERS_STORAGE_KEY, JSON.stringify(characters));
 }
 
@@ -631,11 +641,19 @@ export function upsertTrustedCharacter(character: Character): Character {
   }
 
   const characters = loadStoredCharacterRecords();
-  const nextCharacters = characters.some((entry) => getStoredCharacterId(entry) === character.id)
-    ? characters.map((entry) => (getStoredCharacterId(entry) === character.id ? character : entry))
-    : [character, ...characters];
+  let didReplaceCharacter = false;
+  const nextCharacters = characters.map((entry) => {
+    if (getStoredCharacterId(entry) !== character.id) {
+      return entry;
+    }
 
-  saveStoredCharacterRecords(nextCharacters);
+    didReplaceCharacter = true;
+    return character;
+  });
+
+  saveStoredCharacterRecords(
+    didReplaceCharacter ? nextCharacters : [character, ...characters]
+  );
   return character;
 }
 

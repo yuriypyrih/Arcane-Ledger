@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { fetchMonsterBySlug } from "../../../../../../api";
 import { MonsterEntryDrawer } from "../../../../../MonsterEntryRenderer";
 import type { CodexStatus, MonsterRecord } from "../../../../../../types";
+import { getCachedMonsterEntry, primeMonsterEntryCache } from "../../../../../../utils/monsters";
 import styles from "./ActionsWidget.module.css";
 
 type WildShapePreviewDrawerProps = {
@@ -20,6 +21,7 @@ function WildShapePreviewDrawer({
 
   useEffect(() => {
     let active = true;
+    const abortController = new AbortController();
 
     async function loadWildShapePreview() {
       if (!monsterSlug) {
@@ -28,9 +30,10 @@ function WildShapePreviewDrawer({
         return;
       }
 
-      const cachedMonster = monsterCache[monsterSlug];
+      const cachedMonster = monsterCache[monsterSlug] ?? getCachedMonsterEntry(monsterSlug);
 
       if (cachedMonster?.document__slug?.trim()) {
+        primeMonsterEntryCache(cachedMonster);
         setMonster(cachedMonster);
         setStatus("ready");
         return;
@@ -39,16 +42,19 @@ function WildShapePreviewDrawer({
       setStatus("loading");
 
       try {
-        const nextMonster = await fetchMonsterBySlug(monsterSlug);
+        const nextMonster = await fetchMonsterBySlug(monsterSlug, {
+          signal: abortController.signal
+        });
 
         if (!active) {
           return;
         }
 
+        primeMonsterEntryCache(nextMonster);
         setMonster(nextMonster);
         setStatus("ready");
       } catch {
-        if (!active) {
+        if (!active || abortController.signal.aborted) {
           return;
         }
 
@@ -61,6 +67,7 @@ function WildShapePreviewDrawer({
 
     return () => {
       active = false;
+      abortController.abort();
     };
   }, [monsterCache, monsterSlug]);
 

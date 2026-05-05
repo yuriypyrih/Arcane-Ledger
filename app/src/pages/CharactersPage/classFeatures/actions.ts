@@ -33,6 +33,7 @@ import {
   transformFeatCommonActionForCharacter,
   transformFeatWeaponActionForCharacter
 } from "../feats/runtime";
+import { measureCharacterRuntime } from "../characterRuntime/performance";
 import {
   activateBardicInspiration,
   activateBardCollegeOfDanceInspiringMovement,
@@ -578,19 +579,41 @@ import {
 import { PROF_LEVEL } from "../../../types";
 import { clearRoundScopedFeatureStateIfOutOfCombat, exhaustionDisadvantageIndicator, mergeIndicatorMaps } from "./state";
 
-export function getFeatureActionsForCharacter(character: Character): FeatureActionCard[] {
-  const baseFeatureState = collectActiveClassFeatureState(character);
-  const subclassDerivedState = getSubclassDerivedFeatureState(character);
-  const actions = [
-    ...(baseFeatureState.actions ?? []),
-    ...(subclassDerivedState.featureActions ?? [])
-  ];
-  const transformedActions = subclassDerivedState.transformFeatureAction
-    ? actions.map(subclassDerivedState.transformFeatureAction)
-    : actions;
+const featureActionsByCharacter = new WeakMap<Character, FeatureActionCard[]>();
 
-  return [...transformedActions, ...getFeatActionsForCharacter(character)].map(
-    normalizeFeatureActionCardUsage
+export function getFeatureActionsForCharacter(character: Character): FeatureActionCard[] {
+  const cachedActions = featureActionsByCharacter.get(character);
+
+  if (cachedActions) {
+    return cachedActions;
+  }
+
+  const featureActions = measureCharacterRuntime("character-sheet:feature-actions", () => {
+    const baseFeatureState = collectActiveClassFeatureState(character);
+    const subclassDerivedState = getSubclassDerivedFeatureState(character);
+    const actions = [
+      ...(baseFeatureState.actions ?? []),
+      ...(subclassDerivedState.featureActions ?? [])
+    ];
+    const transformedActions = subclassDerivedState.transformFeatureAction
+      ? actions.map(subclassDerivedState.transformFeatureAction)
+      : actions;
+
+    return [...transformedActions, ...getFeatActionsForCharacter(character)].map(
+      normalizeFeatureActionCardUsage
+    );
+  });
+
+  featureActionsByCharacter.set(character, featureActions);
+  return featureActions;
+}
+
+export function getFeatureActionByKeyForCharacter(
+  character: Character,
+  actionKey: string
+): FeatureActionCard | null {
+  return (
+    getFeatureActionsForCharacter(character).find((action) => action.key === actionKey) ?? null
   );
 }
 

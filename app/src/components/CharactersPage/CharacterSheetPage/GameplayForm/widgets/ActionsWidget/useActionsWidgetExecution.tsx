@@ -226,10 +226,7 @@ import {
   rogueSoulknifePsychicTeleportationActionKey,
   rogueSoulknifePsychicWhispersActionKey
 } from "../../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueSoulknife";
-import {
-  getCombatActionsForCharacter,
-  type GameplayActionDefinition
-} from "../../../../../../pages/CharactersPage/combatActions";
+import { getCharacterRuntime } from "../../../../../../pages/CharactersPage/characterRuntime/characterRuntime";
 import { isCommonActionKey } from "../../../../../../pages/CharactersPage/commonActions";
 import {
   ACTION_CATEGORY,
@@ -1766,10 +1763,8 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     economyTypeOverride?: EconomyType
   ) {
     const currentAction =
-      getCombatActionsForCharacter(currentCharacter).find(
-        (combatAction): combatAction is Extract<GameplayActionDefinition, { kind: "weapon" }> =>
-          combatAction.kind === "weapon" && combatAction.action.key === action.key
-      )?.action ?? action;
+      getCharacterRuntime(currentCharacter).getWeaponCombatActionByKey(action.key)?.action ??
+      action;
     const resolvedEconomyType = economyTypeOverride ?? currentAction.economyType;
     const roundTrackerResource = getRoundTrackerResourceForEconomyType(resolvedEconomyType);
     const preparedCharacter = prepareCharacterForResourceConsumption(
@@ -1777,10 +1772,8 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
       roundTrackerResource
     );
     const preparedActionBase =
-      getCombatActionsForCharacter(preparedCharacter).find(
-        (combatAction): combatAction is Extract<GameplayActionDefinition, { kind: "weapon" }> =>
-          combatAction.kind === "weapon" && combatAction.action.key === action.key
-      )?.action ?? currentAction;
+      getCharacterRuntime(preparedCharacter).getWeaponCombatActionByKey(action.key)?.action ??
+      currentAction;
     const preparedAction =
       preparedActionBase.economyType === resolvedEconomyType
         ? preparedActionBase

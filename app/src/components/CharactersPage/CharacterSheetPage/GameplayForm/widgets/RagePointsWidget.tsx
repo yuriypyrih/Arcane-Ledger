@@ -9,6 +9,7 @@ import {
   restoreBarbarianRageUseForCharacter
 } from "../../../../../pages/CharactersPage/classFeatures";
 import ResourceCountWidget from "./ResourceCountWidget";
+import { classResourcePersistOptions } from "./persistOptions";
 
 type RagePointsWidgetProps = {
   character: Character;
@@ -31,18 +32,21 @@ function RagePointsWidget({ character, onPersistCharacter }: RagePointsWidgetPro
       current={remainingRageUses}
       total={totalRageUses}
       onAdd={() =>
-        onPersistCharacter((currentCharacter) =>
-          restoreBarbarianRageUseForCharacter(currentCharacter)
+        onPersistCharacter(
+          (currentCharacter) => restoreBarbarianRageUseForCharacter(currentCharacter),
+          classResourcePersistOptions
         )
       }
       onUse={() =>
-        onPersistCharacter((currentCharacter) =>
-          expendBarbarianRageUseForCharacter(currentCharacter)
+        onPersistCharacter(
+          (currentCharacter) => expendBarbarianRageUseForCharacter(currentCharacter),
+          classResourcePersistOptions
         )
       }
       onReset={() =>
-        onPersistCharacter((currentCharacter) =>
-          restoreAllBarbarianRageUsesForCharacter(currentCharacter)
+        onPersistCharacter(
+          (currentCharacter) => restoreAllBarbarianRageUsesForCharacter(currentCharacter),
+          classResourcePersistOptions
         )
       }
     />

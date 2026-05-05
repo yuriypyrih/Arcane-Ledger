@@ -9,6 +9,7 @@ import {
   restoreMonkFocusPointForCharacter
 } from "../../../../../pages/CharactersPage/classFeatures";
 import ResourceCountWidget from "./ResourceCountWidget";
+import { classResourcePersistOptions } from "./persistOptions";
 
 type FocusPointsWidgetProps = {
   character: Character;
@@ -31,16 +32,21 @@ function FocusPointsWidget({ character, onPersistCharacter }: FocusPointsWidgetP
       current={remainingFocusPoints}
       total={totalFocusPoints}
       onAdd={() =>
-        onPersistCharacter((currentCharacter) =>
-          restoreMonkFocusPointForCharacter(currentCharacter)
+        onPersistCharacter(
+          (currentCharacter) => restoreMonkFocusPointForCharacter(currentCharacter),
+          classResourcePersistOptions
         )
       }
       onUse={() =>
-        onPersistCharacter((currentCharacter) => expendMonkFocusPointForCharacter(currentCharacter))
+        onPersistCharacter(
+          (currentCharacter) => expendMonkFocusPointForCharacter(currentCharacter),
+          classResourcePersistOptions
+        )
       }
       onReset={() =>
-        onPersistCharacter((currentCharacter) =>
-          restoreAllMonkFocusPointsForCharacter(currentCharacter)
+        onPersistCharacter(
+          (currentCharacter) => restoreAllMonkFocusPointsForCharacter(currentCharacter),
+          classResourcePersistOptions
         )
       }
     />

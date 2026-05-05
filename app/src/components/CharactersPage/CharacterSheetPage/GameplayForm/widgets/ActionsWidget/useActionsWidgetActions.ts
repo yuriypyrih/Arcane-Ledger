@@ -1,9 +1,7 @@
 import { useMemo } from "react";
 import type { Character } from "../../../../../../types";
-import {
-  getCombatActionsForCharacter,
-  type GameplayActionDefinition
-} from "../../../../../../pages/CharactersPage/combatActions";
+import type { GameplayActionDefinition } from "../../../../../../pages/CharactersPage/combatActions";
+import { getCharacterRuntime } from "../../../../../../pages/CharactersPage/characterRuntime/characterRuntime";
 import { normalizeRoundTracker } from "../../../../../../pages/CharactersPage/combat";
 import { getCommonActionCards } from "../../../../../../pages/CharactersPage/commonActions";
 import { transformCommonActionForCharacter } from "../../../../../../pages/CharactersPage/classFeatures";
@@ -16,7 +14,8 @@ import { createCommonActionDefinition } from "./actionHelpers";
 
 export function useActionsWidgetActions(character: Character) {
   const roundTracker = normalizeRoundTracker(character.roundTracker);
-  const combatActions = useMemo(() => getCombatActionsForCharacter(character), [character]);
+  const characterRuntime = useMemo(() => getCharacterRuntime(character), [character]);
+  const combatActions = characterRuntime.combatActions;
   const commonActionCards = useMemo(
     () => getCommonActionCards().map((action) => transformCommonActionForCharacter(character, action)),
     [character]

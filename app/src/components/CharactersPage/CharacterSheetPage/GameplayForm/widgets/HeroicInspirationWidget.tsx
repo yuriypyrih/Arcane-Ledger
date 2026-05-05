@@ -21,6 +21,7 @@ import {
   toggleHeroicInspirationForCharacter
 } from "../../../../../pages/CharactersPage/heroicInspiration";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import { resourcePersistOptions } from "./persistOptions";
 import styles from "./HeroicInspirationWidget.module.css";
 
 type HeroicInspirationWidgetProps = {
@@ -105,8 +106,9 @@ function HeroicInspirationWidget({ character, onPersistCharacter }: HeroicInspir
                 hasHeroicInspiration && styles.toggleButtonActive
               )}
               onClick={() =>
-                onPersistCharacter((currentCharacter) =>
-                  toggleHeroicInspirationForCharacter(currentCharacter)
+                onPersistCharacter(
+                  (currentCharacter) => toggleHeroicInspirationForCharacter(currentCharacter),
+                  resourcePersistOptions
                 )
               }
             >

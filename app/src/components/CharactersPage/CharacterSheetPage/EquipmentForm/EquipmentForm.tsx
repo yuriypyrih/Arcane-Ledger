@@ -137,8 +137,8 @@ import InlineToggleButton from "../InlineToggleButton";
 import styles from "./EquipmentForm.module.css";
 import { useItemEntry } from "../../../../pages/ItemCodexEntryPage/useItemEntry";
 import WeaponMasteryStatusLabel from "../../../WeaponMasteryStatusLabel/WeaponMasteryStatusLabel";
+import { getCharacterRuntime } from "../../../../pages/CharactersPage/characterRuntime/characterRuntime";
 import {
-  getEquipmentRuntimeForCharacter,
   getInventoryAttunementLimit
 } from "../../../../pages/CharactersPage/characterRuntime/equipmentRuntime";
 
@@ -450,10 +450,11 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     () => groupEquipmentItems(selectedLoadoutItems),
     [selectedLoadoutItems]
   );
-  const equipmentRuntime = useMemo(
-    () => getEquipmentRuntimeForCharacter(equipmentCharacter),
+  const characterRuntime = useMemo(
+    () => getCharacterRuntime(equipmentCharacter),
     [equipmentCharacter]
   );
+  const equipmentRuntime = characterRuntime.equipment;
   const inventoryIndex = equipmentRuntime.inventoryIndex;
   const inventoryCountsByKey = inventoryIndex.countsByKey;
   const groupedInventoryItems = inventoryIndex.groups;

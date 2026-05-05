@@ -19,6 +19,7 @@ function D20Viewport({ dice, rollToken, onRollComplete }: D20ViewportProps) {
   const diceRef = useRef(dice);
   const rollTokenRef = useRef(rollToken);
   const onRollCompleteRef = useRef(onRollComplete);
+  const requestRenderFrameRef = useRef<(() => void) | null>(null);
   const completedRollTokenRef = useRef(rollToken - 1);
   const animationRef = useRef<AnimationState>({
     rolling: false,
@@ -31,6 +32,10 @@ function D20Viewport({ dice, rollToken, onRollComplete }: D20ViewportProps) {
   diceRef.current = dice;
   rollTokenRef.current = rollToken;
   onRollCompleteRef.current = onRollComplete;
+
+  useEffect(() => {
+    requestRenderFrameRef.current?.();
+  }, [dice, rollToken]);
 
   useEffect(() => {
     const mount = hostRef.current;
@@ -104,14 +109,8 @@ function D20Viewport({ dice, rollToken, onRollComplete }: D20ViewportProps) {
       camera.top = viewHeight / 2;
       camera.bottom = -viewHeight / 2;
       camera.updateProjectionMatrix();
+      requestRenderFrame();
     }
-
-    resize();
-
-    const resizeObserver = new ResizeObserver(() => {
-      resize();
-    });
-    resizeObserver.observe(host);
 
     function clearDiceLayer() {
       for (const child of [...diceLayer.children]) {
@@ -188,11 +187,20 @@ function D20Viewport({ dice, rollToken, onRollComplete }: D20ViewportProps) {
       };
     }
 
-    let rafId = 0;
+    let rafId: number | null = null;
     let lastRollToken = rollTokenRef.current;
 
+    function requestRenderFrame() {
+      if (rafId !== null) {
+        return;
+      }
+
+      rafId = window.requestAnimationFrame(renderFrame);
+    }
+
     const renderFrame = (time: number) => {
-      const animation = animationRef.current;
+      rafId = null;
+      let animation = animationRef.current;
 
       const shouldStartRoll =
         diceRef.current.length > 0 &&
@@ -204,6 +212,7 @@ function D20Viewport({ dice, rollToken, onRollComplete }: D20ViewportProps) {
       if (shouldStartRoll) {
         lastRollToken = rollTokenRef.current;
         buildRoll(diceRef.current, rollTokenRef.current, time);
+        animation = animationRef.current;
       }
 
       if (animation.rolling) {
@@ -260,24 +269,45 @@ function D20Viewport({ dice, rollToken, onRollComplete }: D20ViewportProps) {
         }
       }
 
-      keyLight.position.x = 2.35 + Math.sin(time * 0.00045) * 0.2;
-      keyLight.position.z = 2.05 + Math.cos(time * 0.0004) * 0.18;
-      rimLight.position.z = -4.4 + Math.cos(time * 0.00075) * 0.22;
+      if (animation.rolling) {
+        keyLight.position.x = 2.35 + Math.sin(time * 0.00045) * 0.2;
+        keyLight.position.z = 2.05 + Math.cos(time * 0.0004) * 0.18;
+        rimLight.position.z = -4.4 + Math.cos(time * 0.00075) * 0.22;
+      }
 
       renderer.render(scene, camera);
-      rafId = window.requestAnimationFrame(renderFrame);
+
+      if (animationRef.current.rolling) {
+        requestRenderFrame();
+      }
     };
 
-    rafId = window.requestAnimationFrame(renderFrame);
+    requestRenderFrameRef.current = requestRenderFrame;
+    resize();
+
+    const resizeObserver = new ResizeObserver(() => {
+      resize();
+    });
+    resizeObserver.observe(host);
+
+    requestRenderFrame();
 
     return () => {
-      window.cancelAnimationFrame(rafId);
+      requestRenderFrameRef.current = null;
+
+      if (rafId !== null) {
+        window.cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+
       resizeObserver.disconnect();
       clearDiceLayer();
       woodTexture.dispose();
       tabletop.geometry.dispose();
       tabletopMaterial.dispose();
+      renderer.renderLists.dispose();
       renderer.dispose();
+      renderer.forceContextLoss();
       host.removeChild(renderer.domElement);
     };
   }, []);

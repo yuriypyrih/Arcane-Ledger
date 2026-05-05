@@ -10,6 +10,7 @@ import {
   restoreFighterPsiWarriorEnergyDieForCharacter
 } from "../../../../../pages/CharactersPage/classFeatures";
 import ResourceCountWidget from "./ResourceCountWidget";
+import { classResourcePersistOptions } from "./persistOptions";
 
 type PsiEnergyDiceWidgetProps = {
   character: Character;
@@ -34,18 +35,23 @@ function PsiEnergyDiceWidget({ character, onPersistCharacter }: PsiEnergyDiceWid
       total={totalDice}
       titleSuffix={energyDie.toUpperCase()}
       onAdd={() =>
-        onPersistCharacter((currentCharacter) =>
-          restoreFighterPsiWarriorEnergyDieForCharacter(currentCharacter)
+        onPersistCharacter(
+          (currentCharacter) =>
+            restoreFighterPsiWarriorEnergyDieForCharacter(currentCharacter),
+          classResourcePersistOptions
         )
       }
       onUse={() =>
-        onPersistCharacter((currentCharacter) =>
-          expendFighterPsiWarriorEnergyDieForCharacter(currentCharacter)
+        onPersistCharacter(
+          (currentCharacter) => expendFighterPsiWarriorEnergyDieForCharacter(currentCharacter),
+          classResourcePersistOptions
         )
       }
       onReset={() =>
-        onPersistCharacter((currentCharacter) =>
-          restoreAllFighterPsiWarriorEnergyDiceForCharacter(currentCharacter)
+        onPersistCharacter(
+          (currentCharacter) =>
+            restoreAllFighterPsiWarriorEnergyDiceForCharacter(currentCharacter),
+          classResourcePersistOptions
         )
       }
     />

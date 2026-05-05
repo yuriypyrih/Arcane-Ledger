@@ -18,6 +18,7 @@ import { MonsterEntryDrawer } from "../../../MonsterEntryRenderer";
 import SearchField from "../../../SearchField";
 import { getDruidWildShapeRulesForCharacter } from "../../../../pages/CharactersPage/classFeatures";
 import { useMonsterEntries } from "../../../../pages/CodexPage/useMonsterEntries";
+import { getCachedMonsterEntry, primeMonsterEntryCache } from "../../../../utils/monsters";
 import type {
   Character,
   CodexStatus,
@@ -132,6 +133,7 @@ function DruidWildShapeMonsterModal({
 
   useEffect(() => {
     let active = true;
+    const abortController = new AbortController();
 
     async function loadPreview() {
       if (!previewSlug) {
@@ -140,9 +142,10 @@ function DruidWildShapeMonsterModal({
         return;
       }
 
-      const cachedMonster = monsterCache[previewSlug];
+      const cachedMonster = monsterCache[previewSlug] ?? getCachedMonsterEntry(previewSlug);
 
       if (cachedMonster) {
+        primeMonsterEntryCache(cachedMonster);
         setPreviewMonster(cachedMonster);
         setPreviewStatus("ready");
         return;
@@ -151,12 +154,15 @@ function DruidWildShapeMonsterModal({
       setPreviewStatus("loading");
 
       try {
-        const payload = await fetchMonsterBySlug(previewSlug);
+        const payload = await fetchMonsterBySlug(previewSlug, {
+          signal: abortController.signal
+        });
 
         if (!active) {
           return;
         }
 
+        primeMonsterEntryCache(payload);
         setMonsterCache((currentCache) => ({
           ...currentCache,
           [payload.slug]: payload
@@ -164,7 +170,7 @@ function DruidWildShapeMonsterModal({
         setPreviewMonster(payload);
         setPreviewStatus("ready");
       } catch {
-        if (!active) {
+        if (!active || abortController.signal.aborted) {
           return;
         }
 
@@ -177,6 +183,7 @@ function DruidWildShapeMonsterModal({
 
     return () => {
       active = false;
+      abortController.abort();
     };
   }, [monsterCache, previewSlug]);
 
