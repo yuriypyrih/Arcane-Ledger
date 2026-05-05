@@ -146,6 +146,7 @@ export type SpellEntry = {
   duration: SpellDurationPart[];
   description: SpellDescriptionEntry[];
   descriptionAdditions?: SpellDescriptionEntry[][];
+  trackingState: TRACKER;
   isHealingSpell?: boolean;
   isSavingThrowSpell?: boolean;
   savingThrowAbility?: ABILITY_TYPES | null;

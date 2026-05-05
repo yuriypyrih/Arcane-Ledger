@@ -242,6 +242,7 @@ import {
   applySpellConcentrationToStatusEntries,
   removeInvisibleConditionFromCharacter
 } from "../../../../../../pages/CharactersPage/statusEntries";
+import { applyMageArmorSelfCastForCharacter } from "../../../../../../pages/CharactersPage/spellEffects/mageArmor";
 import {
   applyRolledHealingToCharacter,
   applyRolledTemporaryHitPointsToCharacter,
@@ -1421,6 +1422,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     useFrozenHaunt?: boolean;
     frozenHauntFallbackSlotLevel?: number;
     castAsRitual?: boolean;
+    castMageArmorOnSelf?: boolean;
   }) {
     if (!fixedSpellExecute || !fixedSpellEntry || !selectedFeatureAction) {
       return;
@@ -1438,6 +1440,9 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
       ? (options?.frozenHauntFallbackSlotLevel ?? null)
       : null;
     const castAsRitual = options?.castAsRitual === true;
+    const castMageArmorOnSelf =
+      fixedSpellExecute.effectKind === "armor-of-shadows" ||
+      options?.castMageArmorOnSelf === true;
     const minimumSlotLevel = Math.max(
       getSpellLevel(fixedSpellEntry),
       fixedSpellMinimumActionSlotLevel ?? 1
@@ -1499,7 +1504,8 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
 
       if (
         nextCharacter === preparedCharacter &&
-        fixedSpellExecute.effectKind !== "mantle-of-majesty"
+        fixedSpellExecute.effectKind !== "mantle-of-majesty" &&
+        fixedSpellExecute.effectKind !== "armor-of-shadows"
       ) {
         return currentCharacter;
       }
@@ -1574,9 +1580,12 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
                     fixedSpellEntry
                   )
             };
-      const nextCharacterWithBeguilingMagic = useBeguilingMagic
-        ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithConcentration)
+      const nextCharacterWithMageArmor = castMageArmorOnSelf
+        ? applyMageArmorSelfCastForCharacter(nextCharacterWithConcentration, fixedSpellEntry)
         : nextCharacterWithConcentration;
+      const nextCharacterWithBeguilingMagic = useBeguilingMagic
+        ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithMageArmor)
+        : nextCharacterWithMageArmor;
       const nextCharacterWithElementalSmite = useElementalSmite
         ? applyPaladinOathOfTheNobleGeniesElementalSmiteEffect(
             expendChannelDivinityUseForCharacter(nextCharacterWithBeguilingMagic),

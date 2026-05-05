@@ -1,4 +1,4 @@
-import type { SpellEntry } from "../entries";
+import type { SpellEntry } from "../entries/types";
 import { spellEntries0 } from "./spells0";
 import { spellEntries1 } from "./spells1";
 import { spellEntries2 } from "./spells2";

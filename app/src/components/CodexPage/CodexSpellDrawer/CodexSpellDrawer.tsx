@@ -7,6 +7,8 @@ import {
   ENTRY_CATEGORIES,
   FEATS,
   KeywordTooltip,
+  TRACKER,
+  getSpellTrackingState,
   type DivinityEntry,
   type SpellEntry
 } from "../../../codex/entries";
@@ -24,7 +26,11 @@ import {
   overlayClassNames
 } from "../../Overlay";
 import KeywordReferenceDrawer from "../../KeywordReferenceDrawer/KeywordReferenceDrawer";
-import type { ResolvedKeywordReference } from "../../../utils/codex/renderCodexRichText";
+import {
+  resolveKeywordReference,
+  type ResolvedKeywordReference
+} from "../../../utils/codex/renderCodexRichText";
+import { FeatureTrackingBadgeButton } from "../../FeatureDisclosure";
 import {
   formatCodexLabel,
   formatCodexList,
@@ -74,6 +80,15 @@ function CodexSpellDrawer({ spell, onClose }: CodexSpellDrawerProps) {
     getSpellSaveFormulaCell(spell),
     getSpellAttackFormulaCell(spell)
   ].filter((cell): cell is NonNullable<typeof cell> => cell !== null);
+  const spellTrackingState = getSpellTrackingState(spell);
+
+  function openTrackingKeyword(trackingState: TRACKER) {
+    const resolvedKeyword = resolveKeywordReference(trackingState);
+
+    if (resolvedKeyword) {
+      setSelectedKeyword(resolvedKeyword);
+    }
+  }
 
   return (
     <>
@@ -119,7 +134,13 @@ function CodexSpellDrawer({ spell, onClose }: CodexSpellDrawerProps) {
               <SpellSubtitle spell={spell} />
             </OverlaySummary>
           </OverlayHeaderContent>
-          <OverlayCloseButton label="Close spell details" onClick={onClose} />
+          <div className={styles.headerActions}>
+            <FeatureTrackingBadgeButton
+              trackingState={spellTrackingState}
+              onClick={openTrackingKeyword}
+            />
+            <OverlayCloseButton label="Close spell details" onClick={onClose} />
+          </div>
         </OverlayHeader>
 
         <OverlayBody>

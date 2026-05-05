@@ -17,10 +17,12 @@ import {
 } from "../../../../codex/classes";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import { createFeatureSourcedDescriptionEntries } from "../../actionModalDescriptions";
+import { getAbilityModifierForCharacter } from "../../abilities";
 import { getFeatDefinitionsByCategory } from "../../feats";
 import type { Character, CharacterWarlockFeatureState } from "../../../../types";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../spellcasting";
-import type { FeatureActionCard } from "../types";
+import { mageArmorSpellId } from "../../spellEffects/mageArmor";
+import type { FeatureActionCard, FeatureDamageBonus, SpellFeatureContext } from "../types";
 import { getFeatureDescriptionForCharacter } from "../featureDescriptions";
 import {
   beguilingDefenseReactionId,
@@ -97,6 +99,7 @@ const mysticArcanumActionDetail =
   "Open your chosen Mystic Arcanum spells and cast each of them once per Long Rest.";
 
 export const magicalCunningActionKey = "warlock-magical-cunning";
+export const armorOfShadowsActionKey = "warlock-armor-of-shadows";
 export const contactPatronActionKey = "warlock-contact-patron";
 export const mysticArcanumActionKey = "warlock-mystic-arcanum";
 export {
@@ -364,7 +367,7 @@ function meetsInvocationPrerequisites(
 }
 
 function getChoiceLabelForSpell(spell: SpellEntry): string {
-  return `Warlock cantrip: ${spell.name}`;
+  return spell.name;
 }
 
 function getChoiceLabelForOriginFeat(feat: { label: string }): string {
@@ -678,6 +681,51 @@ export function getWarlockLearnedInvocationOptions(
   return selectedIds
     .map((selectionId) => optionMap.get(selectionId))
     .filter((option): option is WarlockEldritchInvocationOption => Boolean(option));
+}
+
+function getWarlockAgonizingBlastCantripIds(character: WarlockInvocationCharacter): Set<string> {
+  return new Set(
+    getWarlockInvocationSelectionIds(character)
+      .map(parseSelectionId)
+      .filter(
+        (
+          selection
+        ): selection is {
+          invocationId: typeof ELDRITCH_INVOCATION.AGONIZING_BLAST;
+          choiceValue: string;
+        } =>
+          selection.invocationId === ELDRITCH_INVOCATION.AGONIZING_BLAST &&
+          typeof selection.choiceValue === "string" &&
+          selection.choiceValue.length > 0
+      )
+      .map((selection) => selection.choiceValue)
+  );
+}
+
+export function getWarlockSpellDamageBonuses(
+  character: WarlockInvocationCharacter,
+  { spell }: SpellFeatureContext
+): FeatureDamageBonus[] {
+  if (
+    character.className !== "Warlock" ||
+    spell.spellLevel !== 0 ||
+    spell.damage.length === 0 ||
+    !getWarlockAgonizingBlastCantripIds(character).has(spell.id)
+  ) {
+    return [];
+  }
+
+  const charismaModifier = getAbilityModifierForCharacter(character, "CHA");
+
+  return charismaModifier === 0
+    ? []
+    : [
+        {
+          label: "Agonizing Blast",
+          value: charismaModifier,
+          abilityModifierSource: "CHA"
+        }
+      ];
 }
 
 export function getWarlockEldritchInvocationInputStatus(
@@ -1040,6 +1088,11 @@ export function getWarlockFeatureActions(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "spellSlotsExpended">
 ): FeatureActionCard[] {
   const actions: FeatureActionCard[] = [];
+  const selectedInvocationIds = new Set(
+    getWarlockInvocationSelectionIds(character)
+      .map((selectionId) => parseSelectionId(selectionId).invocationId)
+      .filter((invocationId): invocationId is ELDRITCH_INVOCATION => invocationId !== null)
+  );
 
   if (hasWarlockFeature(character, CLASS_FEATURE.MAGICAL_CUNNING)) {
     const usesRemaining = getWarlockMagicalCunningUsesRemaining(character);
@@ -1082,6 +1135,41 @@ export function getWarlockFeatureActions(
           : undefined,
       disabled: Boolean(disabledReason),
       disabledReason
+    });
+  }
+
+  if (selectedInvocationIds.has(ELDRITCH_INVOCATION.ARMOR_OF_SHADOWS)) {
+    const invocation = getEldritchInvocationEntryById(ELDRITCH_INVOCATION.ARMOR_OF_SHADOWS);
+    const description = invocation?.description ?? [
+      "You can cast Mage Armor on yourself without expending a spell slot."
+    ];
+
+    actions.push({
+      key: armorOfShadowsActionKey,
+      name: invocation?.name ?? "Armor of Shadows",
+      summary: "Cast Mage Armor on yourself without a spell slot.",
+      detail: "Open Mage Armor and cast it on yourself without expending a spell slot.",
+      breakdown: "Open Mage Armor",
+      economyType: ECONOMY_TYPE.ACTION,
+      actionCategory: ACTION_CATEGORY.MAGIC,
+      description,
+      drawer: {
+        kind: "confirm",
+        eyebrow: "Eldritch Invocation",
+        description,
+        confirmLabel: "Open Mage Armor"
+      },
+      execute: {
+        kind: "spell",
+        spellSource: "fixed",
+        effectKind: "armor-of-shadows",
+        spellId: mageArmorSpellId,
+        spellLevel: 1,
+        label: "Open Mage Armor",
+        actionContextText: "Armor of Shadows won't cost a spell slot.",
+        actionAvailabilityText: "Cast without expending a spell slot.",
+        actionConsumesSpellSlot: false
+      }
     });
   }
 
@@ -1168,7 +1256,11 @@ export function activateWarlockFeatureAction(
     return activateWarlockMagicalCunning(character);
   }
 
-  if (actionKey === contactPatronActionKey || actionKey === mysticArcanumActionKey) {
+  if (
+    actionKey === armorOfShadowsActionKey ||
+    actionKey === contactPatronActionKey ||
+    actionKey === mysticArcanumActionKey
+  ) {
     return character;
   }
 

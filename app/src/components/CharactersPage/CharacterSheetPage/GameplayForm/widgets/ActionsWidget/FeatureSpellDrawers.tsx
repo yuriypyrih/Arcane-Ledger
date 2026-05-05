@@ -254,6 +254,7 @@ function FeatureSpellDrawers({
           showActionDiceControls={fixedSpellShowActionDiceControls}
           isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
           onDiceRollerSettingsOpenChange={onDiceRollerSettingsOpenChange}
+          forceMageArmorSelfCast={fixedSpellExecute.effectKind === "armor-of-shadows"}
           actionWarning={fixedSpellCastWarning}
           actionDisabled={spellcastingBlocked || fixedSpellSharedCastWarning !== null}
           blockedReason={spellcastingBlocked ? spellcastingBlockedReason : null}

@@ -1,3 +1,12 @@
+.headerActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  gap: 0.55rem;
+  justify-content: flex-end;
+}
+
 .alwaysPreparedPill {
   display: inline-flex;
   align-items: center;

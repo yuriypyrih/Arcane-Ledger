@@ -26,6 +26,7 @@ import type {
   FeatureSavingThrowBonus,
   FeatureSavingThrowProficiencyEntry,
   FeatureSkillProficiencyEntry,
+  SpellFeatureContext,
   FeatureSpeedBonus,
   FeatureToolProficiencyEntry,
   FeatureUnarmedStrikeConfig,
@@ -51,6 +52,7 @@ export type SubclassDerivedFeatureState = {
   skillIndicators?: SkillIndicatorMap;
   weaponAttackIndicators?: FeatureIndicator[];
   getWeaponDamageBonuses?: (context: WeaponFeatureContext) => FeatureDamageBonus[];
+  getSpellDamageBonuses?: (context: SpellFeatureContext) => FeatureDamageBonus[];
   getArmorClassModes?: (context: {
     hasWornBodyArmor: boolean;
     hasShieldEquipped: boolean;

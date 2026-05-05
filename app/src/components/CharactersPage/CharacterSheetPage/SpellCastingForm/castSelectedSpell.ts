@@ -3,7 +3,7 @@
 
 export function castSelectedSpellWithContext(context: Record<string, any>, options?: any) {
   const {
-    ACTION_CATEGORY, DURATION, activateFighterPsiWarriorTelekineticMasterSpellCastForCharacter, applyPaladinOathOfTheNobleGeniesElementalSmiteEffect, applyRangerWinterWalkerFrozenHauntStatusEntriesForCharacter, applySpellCastFeatureEffectsForCharacter, applySpellConcentrationToStatusEntries, applyWizardEvokerOverchannelUse, canUseWarlockCelestialPatronRadiantSoulForSpell,
+    ACTION_CATEGORY, DURATION, activateFighterPsiWarriorTelekineticMasterSpellCastForCharacter, applyMageArmorSelfCastForCharacter, applyPaladinOathOfTheNobleGeniesElementalSmiteEffect, applyRangerWinterWalkerFrozenHauntStatusEntriesForCharacter, applySpellCastFeatureEffectsForCharacter, applySpellConcentrationToStatusEntries, applyWizardEvokerOverchannelUse, canUseWarlockCelestialPatronRadiantSoulForSpell,
     canUseWizardEvokerOverchannelForSpellSlot, channelDivinityUsesRemaining, character, clampNumber, closeSelectedSpell, consumeBeguilingMagicOrBardicInspirationForCharacter, consumeBlessingOfMoonlightUseForCharacter, consumeDruidNaturalRecoveryUseForCharacter, consumeDruidStarMapGuidingBoltUseForCharacter, consumeFeyTouchedFreeCastForCharacter, consumeMagicInitiateFreeCastForCharacter, consumeRitualCasterQuickRitualForCharacter, consumeShadowTouchedFreeCastForCharacter, consumeTelepathicDetectThoughtsFreeCastForCharacter,
     consumeRangerFeyReinforcementsUseForCharacter, consumeRangerMistyWandererUseForCharacter, consumeRangerWinterWalkerFrozenHauntUseForCharacter, consumeRoundTrackerResourceForCharacter, consumeSharedEconomyMultiForCharacterAction, consumeSorcererSubclassTamedSurgeUseForCharacter, consumeWarlockStepsOfTheFeyUseForCharacter, consumeWizardIllusionistPhantasmalCreaturesUseForCharacter, consumeWizardSignatureSpellFreeCastForCharacter,
     createEconomyMultiContextForSpell, druidNaturalRecoveryUsesRemaining, expendChannelDivinityUseForCharacter, fighterPsiWarriorEnergyDiceRemaining, fighterPsiWarriorTelekineticMasterConcentrationStatusSourceId, fighterPsiWarriorTelekineticMasterUsesRemaining, getDruidStarMapGuidingBoltUsesRemainingForCharacter, getRangerWinterWalkerFrozenHauntSpellOptionStateForCharacter, getRoundTrackerResourceForSpell,
@@ -55,6 +55,7 @@ if (!selectedSpell || (spellcastingState.blocked && !selectedSpellCanIgnoreSpell
       options?.useDetectThoughts === true && selectedSpellSupportsDetectThoughts;
     const useBoonOfSpellRecall =
       options?.useBoonOfSpellRecall === true && selectedSpellSupportsBoonOfSpellRecall;
+    const castMageArmorOnSelf = options?.castMageArmorOnSelf === true;
     const useBlessingOfMoonlight = options?.useBlessingOfMoonlight === true;
     const useElementalSmite =
       options?.useElementalSmite === true &&
@@ -524,11 +525,14 @@ if (!selectedSpell || (spellcastingState.blocked && !selectedSpellCanIgnoreSpell
               concentrationStatusOptions
             )
       };
+      const nextCharacterWithMageArmor = castMageArmorOnSelf
+        ? applyMageArmorSelfCastForCharacter(nextCharacterWithSpellcast, selectedSpell)
+        : nextCharacterWithSpellcast;
       const nextCharacterWithTelekineticMaster = castsFreeViaTelekineticMaster
         ? activateFighterPsiWarriorTelekineticMasterSpellCastForCharacter(
-            nextCharacterWithSpellcast
+            nextCharacterWithMageArmor
           )
-        : nextCharacterWithSpellcast;
+        : nextCharacterWithMageArmor;
       const nextCharacterWithBeguilingMagic = useBeguilingMagic
         ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithTelekineticMaster)
         : nextCharacterWithTelekineticMaster;

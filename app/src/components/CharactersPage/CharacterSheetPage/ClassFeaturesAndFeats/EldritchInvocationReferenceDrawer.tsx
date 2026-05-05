@@ -85,9 +85,6 @@ function EldritchInvocationReferenceDrawer({
         </OverlayHeader>
 
         <OverlayBody className={styles.keywordDrawerBody}>
-          {option.displaySubtitle && !option.isPlaceholder ? (
-            <p className={styles.featReferenceSummary}>{`Choice: ${option.displaySubtitle}`}</p>
-          ) : null}
           <DescriptionContent
             description={option.invocation.description}
             className={overlayClassNames.descriptionList}

@@ -319,6 +319,7 @@ import {
   applyShortRestToWarlockFeatures,
   getWarlockAlwaysPreparedSpellIds,
   getWarlockFeatureActions,
+  getWarlockSpellDamageBonuses,
   normalizeWarlockFeatureState
 } from "./warlock/warlock";
 import {
@@ -927,6 +928,7 @@ const classFeatureModules = {
     collectDerived(character) {
       return {
         actions: getWarlockFeatureActions(character),
+        getSpellDamageBonuses: (context) => getWarlockSpellDamageBonuses(character, context),
         alwaysPreparedSpellIds: getWarlockAlwaysPreparedSpellIds(character)
       };
     },

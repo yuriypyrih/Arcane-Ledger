@@ -562,6 +562,7 @@ import type {
   SavingThrowIndicatorMap,
   SpeedFeatureContext,
   SkillIndicatorMap,
+  SpellFeatureContext,
   WeaponAttackConsumptionContext,
   WeaponFeatureContext
 } from "./types";
@@ -1165,6 +1166,42 @@ export function getCantripDamageBonusForCharacter(
     (collectActiveClassFeatureState(character).cantripDamageBonus ?? 0) +
     (getSubclassDerivedFeatureState(character).cantripDamageBonus ?? 0)
   );
+}
+
+function createPotentSpellcastingDamageBonusEntry(
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "abilities" | "feats">,
+  spell: SpellFeatureContext["spell"]
+): FeatureDamageBonus | null {
+  if (spell.spellLevel !== 0 || spell.damage.length === 0) {
+    return null;
+  }
+
+  const cantripDamageBonus = getCantripDamageBonusForCharacter(character);
+
+  return cantripDamageBonus === 0
+    ? null
+    : {
+        label: "Potent Spellcasting",
+        value: cantripDamageBonus,
+        abilityModifierSource: "WIS"
+      };
+}
+
+export function getSpellDamageBonusesForCharacter(
+  character: Pick<
+    Character,
+    "className" | "level" | "classFeatureState" | "abilities" | "feats" | "cantripIds"
+  >,
+  spell: SpellFeatureContext["spell"]
+): FeatureDamageBonus[] {
+  const baseFeatureState = collectActiveClassFeatureState(character);
+  const subclassDerivedState = getSubclassDerivedFeatureState(character);
+
+  return [
+    createPotentSpellcastingDamageBonusEntry(character, spell),
+    ...(baseFeatureState.getSpellDamageBonuses?.({ spell }) ?? []),
+    ...(subclassDerivedState.getSpellDamageBonuses?.({ spell }) ?? [])
+  ].filter((entry): entry is FeatureDamageBonus => entry !== null);
 }
 
 export function getFeatureWeaponProficiencyEntriesForCharacter(

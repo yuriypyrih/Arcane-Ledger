@@ -28,6 +28,7 @@ import {
   isItemBodyArmorRecord,
   isItemShieldRecord
 } from "./inventoryItems";
+import { getMageArmorArmorClassModes } from "./spellEffects/mageArmor";
 
 export type BodyArmorType = "light" | "medium" | "heavy";
 
@@ -86,7 +87,7 @@ type ArmorClassFormulaSelectionCharacter = Pick<
   Character,
   "className" | "level" | "equipment" | "inventoryItems" | "customEquipment"
 > &
-  Partial<Pick<Character, "classFeatureState" | "feats" | "subclassId">>;
+  Partial<Pick<Character, "classFeatureState" | "feats" | "statusEntries" | "subclassId">>;
 
 type NormalizeArmorWearStateOptions = {
   autoEquipLegacyArmor?: boolean;
@@ -459,7 +460,10 @@ function getArmorClassModeStates(character: ArmorClassFormulaSelectionCharacter)
     hasWornBodyArmor: defaultMode.key !== "base-unarmored",
     hasShieldEquipped: shieldBonus > 0
   };
-  const featureModes = getArmorClassModesForCharacter(character, featureContext).map((mode) => ({
+  const featureModes = [
+    ...getArmorClassModesForCharacter(character, featureContext),
+    ...getMageArmorArmorClassModes(character, featureContext)
+  ].map((mode) => ({
     ...mode,
     isDefault: false
   }));

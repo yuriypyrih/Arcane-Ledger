@@ -480,7 +480,8 @@ export function normalizeCharacter(value: unknown): Character | null {
       classFeatureState: normalizedClassFeatureState,
       equipment: normalizedArmorWearState.equipment,
       inventoryItems: normalizedArmorWearState.inventoryItems,
-      customEquipment: normalizedArmorWearState.customEquipment
+      customEquipment: normalizedArmorWearState.customEquipment,
+      statusEntries: normalizedStatusEntries
     }
   );
   const normalizedCurrencies = normalizeCharacterCurrencies(record.currencies, defaults.currencies);

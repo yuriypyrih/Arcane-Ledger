@@ -23,4 +23,5 @@ export {
 } from "../selectors";
 export * from "./enums";
 export * from "./featureData";
+export * from "./spellData";
 export * from "./types";

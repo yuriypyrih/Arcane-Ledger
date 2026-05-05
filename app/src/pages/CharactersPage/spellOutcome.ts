@@ -2,7 +2,7 @@ import type { SpellEntry, WeaponDamage } from "../../codex/entries";
 import type { AbilityKey, Character } from "../../types";
 import { getAbilityModifierForCharacter } from "./abilities";
 import {
-  getCantripDamageBonusForCharacter,
+  getSpellDamageBonusesForCharacter,
   getSpellDamageFormulaOverrideForCharacter
 } from "./classFeatures";
 import { getWizardEvokerEmpoweredEvocationDamageDetail } from "./classFeatures/wizard/subclasses/wizardEvoker";
@@ -34,19 +34,41 @@ function getSpellDamageTypeLabel(damage: WeaponDamage): string {
   return labels.join("/");
 }
 
-function getSpellDamageBonusForCharacter(
-  character: Pick<Character, "className" | "abilities" | "level" | "classFeatureState" | "feats">,
+function getSpellDamageBonusTotalForCharacter(
+  character: Pick<
+    Character,
+    "className" | "abilities" | "level" | "classFeatureState" | "feats" | "cantripIds"
+  >,
   spell: SpellEntry
 ): number {
-  if (spell.spellLevel !== 0 || spell.damage.length === 0) {
-    return 0;
-  }
-
-  return getCantripDamageBonusForCharacter(character);
+  return getSpellDamageBonusesForCharacter(character, spell).reduce(
+    (total, entry) => total + (entry.value ?? 0),
+    0
+  );
 }
 
 function formatSignedModifier(value: number): string {
   return value >= 0 ? `+ ${value}` : `- ${Math.abs(value)}`;
+}
+
+function formatSpellDamageBonusDetail(entry: {
+  label: string;
+  value?: number;
+  formula?: string;
+  displayLabel?: string;
+  abilityModifierSource?: AbilityKey;
+}): string | null {
+  if (entry.displayLabel) {
+    return entry.displayLabel;
+  }
+
+  if (entry.value !== undefined) {
+    const abilityLabel = entry.abilityModifierSource ? ` ${entry.abilityModifierSource}` : "";
+
+    return `${formatSignedModifier(entry.value)}${abilityLabel} (${entry.label})`;
+  }
+
+  return entry.formula ? `+ ${entry.formula} (${entry.label})` : null;
 }
 
 function getSpellcastingAbilityModifier(
@@ -76,7 +98,10 @@ function getSpellHealingFormatOptions(
 }
 
 export function getSpellOutcomeSummaryForCharacter(
-  character: Pick<Character, "className" | "abilities" | "level" | "classFeatureState" | "feats">,
+  character: Pick<
+    Character,
+    "className" | "abilities" | "level" | "classFeatureState" | "feats" | "cantripIds"
+  >,
   spell: SpellEntry,
   spellcastingAbilityOverride?: AbilityKey | null
 ): string {
@@ -93,7 +118,7 @@ export function getSpellOutcomeSummaryForCharacter(
   }
 
   if (spell.damage.length > 0) {
-    const damageBonus = getSpellDamageBonusForCharacter(character, spell);
+    const damageBonus = getSpellDamageBonusTotalForCharacter(character, spell);
     const damageFormula = `${formatWeaponDamageFormula(spell.damage)}${
       damageBonus === 0 ? "" : damageBonus > 0 ? `+${damageBonus}` : `${damageBonus}`
     }`;
@@ -129,7 +154,10 @@ export function getSpellOutcomeSummaryForCharacter(
 }
 
 export function getSpellDamageDetailForCharacter(
-  character: Pick<Character, "className" | "abilities" | "level" | "classFeatureState" | "feats"> &
+  character: Pick<
+    Character,
+    "className" | "abilities" | "level" | "classFeatureState" | "feats" | "cantripIds"
+  > &
     Partial<Pick<Character, "subclassId">>,
   spell: SpellEntry,
   spellcastingAbilityOverride?: AbilityKey | null
@@ -147,9 +175,13 @@ export function getSpellDamageDetailForCharacter(
     );
   }
 
-  const damageBonus = getSpellDamageBonusForCharacter(character, spell);
+  const damageBonusEntries = getSpellDamageBonusesForCharacter(character, spell);
+  const damageBonusDetail = damageBonusEntries
+    .map(formatSpellDamageBonusDetail)
+    .filter((entry): entry is string => entry !== null && entry.trim().length > 0)
+    .join(" ");
 
-  if (damageBonus === 0) {
+  if (!damageBonusDetail) {
     return getWizardEvokerEmpoweredEvocationDamageDetail(
       character,
       spell,
@@ -160,6 +192,6 @@ export function getSpellDamageDetailForCharacter(
   return getWizardEvokerEmpoweredEvocationDamageDetail(
     character,
     spell,
-    `${formatWeaponDamage(spell.damage)} ${formatSignedModifier(damageBonus)} WIS (Potent Spellcasting)`
+    `${formatWeaponDamage(spell.damage)} ${damageBonusDetail}`
   );
 }

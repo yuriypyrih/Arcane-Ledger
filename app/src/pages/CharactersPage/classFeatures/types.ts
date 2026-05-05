@@ -177,6 +177,7 @@ export type FeatureActionOptionSelection = "single-immediate" | "single-confirm"
 export type FeatureActionSpellSource = "fixed" | "divine-intervention" | "mystic-arcanum";
 
 export type FeatureActionSpellEffectKind =
+  | "armor-of-shadows"
   | "contact-patron"
   | "divine-intervention"
   | "faithful-steed"
@@ -329,6 +330,7 @@ export type FeatureDamageBonus = {
   value?: number;
   formula?: string;
   displayLabel?: string;
+  abilityModifierSource?: AbilityKey;
 };
 
 export type FeatureSkillBonus = {
@@ -358,6 +360,10 @@ export type WeaponFeatureContext = {
   ability: AbilityKey;
   attackKind: "weapon" | "unarmed";
   combatType?: WEAPON_COMBAT_TYPE | null;
+};
+
+export type SpellFeatureContext = {
+  spell: Pick<SpellEntry, "id" | "spellLevel" | "damage">;
 };
 
 export type FeatureUnarmedStrikeConfig = {
@@ -477,6 +483,7 @@ export type ClassFeatureDerivedState = {
   equipmentEntries?: FeatureEquipmentEntry[];
   weaponActions?: WeaponAction[];
   getWeaponDamageBonuses?: (context: WeaponFeatureContext) => FeatureDamageBonus[];
+  getSpellDamageBonuses?: (context: SpellFeatureContext) => FeatureDamageBonus[];
   getInitiativeBonuses?: () => FeatureInitiativeBonus[];
   getSavingThrowBonuses?: (ability: AbilityKey) => FeatureSavingThrowBonus[];
   savingThrowIndicators?: SavingThrowIndicatorMap;

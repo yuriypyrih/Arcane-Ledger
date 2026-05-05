@@ -1,3 +1,10 @@
+.headerActions {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 0.65rem;
+}
+
 .detailButton {
   color: inherit;
   cursor: pointer;

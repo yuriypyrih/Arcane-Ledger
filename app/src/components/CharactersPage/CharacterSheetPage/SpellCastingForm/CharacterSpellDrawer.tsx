@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { X } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import ActionButton from "../../../ActionButton";
 import ActionShape, {
   getActionShapeForCastingTime,
@@ -15,6 +15,8 @@ import SpellDescriptionContent from "../../../SpellDescriptionContent";
 import {
   ENTRY_CATEGORIES,
   KeywordTooltip,
+  TRACKER,
+  getSpellTrackingState,
   type SpellDescriptionEntry,
   type SpellEntry
 } from "../../../../codex/entries";
@@ -27,6 +29,10 @@ import {
   formatSpellComponents,
   getSpellDurationDisplayParts
 } from "../../../../utils/codex";
+import {
+  resolveKeywordReference,
+  type ResolvedKeywordReference
+} from "../../../../utils/codex/renderCodexRichText";
 import {
   clampNumber,
   spellSlotLevels
@@ -41,6 +47,7 @@ import {
 } from "../../../../pages/CharactersPage/shared/spellFormulas";
 import { isInnateSorceryActiveForSpell } from "../../../../pages/CharactersPage/classFeatures/sorcerer/innateSorcerySpell";
 import { isRogueArcaneTricksterMagicalAmbushActiveForSpell } from "../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueArcaneTrickster";
+import { mageArmorSpellId } from "../../../../pages/CharactersPage/spellEffects/mageArmor";
 import type {
   FeatureActionCardUsage,
   FeatureActionFact,
@@ -49,6 +56,7 @@ import type {
 import FeatureOptInToggle, {
   type FeatureOptInToggleApplication
 } from "../FeatureOptInToggle/FeatureOptInToggle";
+import { FeatureTrackingBadgeButton } from "../../../FeatureDisclosure";
 import RadioContainerOption from "../RadioContainerOption";
 import FeatureActionFacts from "../GameplayForm/widgets/ActionsWidget/FeatureActionFacts";
 import FeatureActionHeaderTags from "../GameplayForm/widgets/ActionsWidget/FeatureActionHeaderTags";
@@ -80,6 +88,7 @@ export type CharacterSpellDrawerActionOptions = {
   useShadowMagic?: boolean;
   useDetectThoughts?: boolean;
   useBoonOfSpellRecall?: boolean;
+  castMageArmorOnSelf?: boolean;
 };
 
 export type CharacterSpellDrawerActionRadioOption = {
@@ -166,6 +175,7 @@ type CharacterSpellDrawerProps = {
   onDiceRollerSettingsOpenChange?: (isOpen: boolean) => void;
   damageDetailOverride?: string | null;
   spellcastingAbilityOverride?: AbilityKey | null;
+  forceMageArmorSelfCast?: boolean;
   backdropClassName?: string;
 };
 
@@ -229,13 +239,42 @@ function CharacterSpellDrawer({
   onDiceRollerSettingsOpenChange,
   damageDetailOverride = null,
   spellcastingAbilityOverride = null,
+  forceMageArmorSelfCast = false,
   backdropClassName
 }: CharacterSpellDrawerProps) {
   const [isComponentsTooltipOpen, setIsComponentsTooltipOpen] = useState(false);
+  const [selectedTrackingKeyword, setSelectedTrackingKeyword] =
+    useState<ResolvedKeywordReference | null>(null);
   const [isRitualCastingSelected, setIsRitualCastingSelected] = useState(ritualCastingRequired);
+  const [isMageArmorSelfCastSelected, setIsMageArmorSelfCastSelected] =
+    useState(forceMageArmorSelfCast);
   const spellLevel = getSpellLevel(spell);
+  const shouldShowMageArmorSelfCast = mode === "standard" && spell.id === mageArmorSpellId;
+  const allActionOptions = useMemo<CharacterSpellDrawerActionOption[]>(() => {
+    if (!shouldShowMageArmorSelfCast) {
+      return actionOptions;
+    }
+
+    return [
+      {
+        id: "mage-armor-self",
+        label: "Cast on myself",
+        checked: isMageArmorSelfCastSelected,
+        onCheckedChange: forceMageArmorSelfCast
+          ? () => undefined
+          : setIsMageArmorSelfCastSelected,
+        disabled: forceMageArmorSelfCast
+      },
+      ...actionOptions
+    ];
+  }, [
+    actionOptions,
+    forceMageArmorSelfCast,
+    isMageArmorSelfCastSelected,
+    shouldShowMageArmorSelfCast
+  ]);
   const minimumSelectedSlotLevel = Math.max(1, spellLevel, minimumActionSpellSlotLevel);
-  const isQuickRitualSelected = actionOptions.some(
+  const isQuickRitualSelected = allActionOptions.some(
     (option) => option.id === "quick-ritual" && option.checked
   );
   const ritualCastingAvailable =
@@ -262,12 +301,12 @@ function CharacterSpellDrawer({
       normalizedSelectedSpellSlotLevel >= minimumSelectedSlotLevel &&
       selectedSpellRemainingSlots > 0);
   const shouldShowActionFooter = mode !== "prepare-preview";
-  const isMindMagicSelected = actionOptions.some(
+  const isMindMagicSelected = allActionOptions.some(
     (option) => option.id === "mind-magic" && option.checked
   );
   const visibleActionOptions = isRitualCastingSelected
-    ? actionOptions.filter((option) => option.id !== "mind-magic")
-    : actionOptions;
+    ? allActionOptions.filter((option) => option.id !== "mind-magic")
+    : allActionOptions;
   const visibleHeaderTags = visibleActionOptions.flatMap((option) =>
     option.headerTags?.length
       ? (option.usage?.mode === "charges-or-resource"
@@ -308,6 +347,7 @@ function CharacterSpellDrawer({
       requiredActionOptionWarning === null
     : !effectiveBlockedReason && !actionDisabled && requiredActionOptionWarning === null;
   const componentsTooltipEntry = KeywordTooltip.components ?? null;
+  const spellTrackingState = getSpellTrackingState(spell);
   const badgeLabel =
     mode === "prepare-preview"
       ? "Spell preview"
@@ -315,6 +355,7 @@ function CharacterSpellDrawer({
         ? "Divine Intervention"
         : formatCodexLabel(ENTRY_CATEGORIES.SPELLS);
   const closeComponentsTooltip = () => setIsComponentsTooltipOpen(false);
+  const closeTrackingKeyword = () => setSelectedTrackingKeyword(null);
   const spellDuration = getSpellDurationDisplayParts(spell.duration);
   const castingTimeActionShape = getActionShapeForCastingTime(spell.castingTime);
   const footerActionShape =
@@ -331,38 +372,44 @@ function CharacterSpellDrawer({
     castAsRitual: !isQuickRitualSelected && (ritualCastingRequired || isRitualCastingSelected),
     useMindMagic:
       !isRitualCastingSelected &&
-      actionOptions.some((option) => option.id === "mind-magic" && option.checked),
-    useStarMap: actionOptions.some((option) => option.id === "star-map" && option.checked),
-    useElementalSmite: actionOptions.some(
+      allActionOptions.some((option) => option.id === "mind-magic" && option.checked),
+    useStarMap: allActionOptions.some((option) => option.id === "star-map" && option.checked),
+    useElementalSmite: allActionOptions.some(
       (option) => option.id === "elemental-smite" && option.checked
     ),
     elementalSmiteOption:
-      actionOptions.find((option) => option.id === "elemental-smite")?.radioOptions?.value ?? null,
-    usePsionicSorcery: actionOptions.some(
+      allActionOptions.find((option) => option.id === "elemental-smite")?.radioOptions?.value ??
+      null,
+    usePsionicSorcery: allActionOptions.some(
       (option) => option.id === "psionic-sorcery" && option.checked
     ),
-    useTamedSurge: actionOptions.some((option) => option.id === "tamed-surge" && option.checked),
-    usePhantasmalCreatures: actionOptions.some(
+    useTamedSurge: allActionOptions.some((option) => option.id === "tamed-surge" && option.checked),
+    usePhantasmalCreatures: allActionOptions.some(
       (option) => option.id === "phantasmal-creatures" && option.checked
     ),
-    useTelekineticMaster: actionOptions.some(
+    useTelekineticMaster: allActionOptions.some(
       (option) => option.id === "telekinetic-master" && option.checked
     ),
-    useRadiantSoul: actionOptions.some((option) => option.id === "radiant-soul" && option.checked),
-    useOverchannel: actionOptions.some((option) => option.id === "overchannel" && option.checked),
-    useMagicInitiate: actionOptions.some(
+    useRadiantSoul: allActionOptions.some(
+      (option) => option.id === "radiant-soul" && option.checked
+    ),
+    useOverchannel: allActionOptions.some(
+      (option) => option.id === "overchannel" && option.checked
+    ),
+    useMagicInitiate: allActionOptions.some(
       (option) => option.id === "magic-initiate" && option.checked
     ),
-    useFeyMagic: actionOptions.some(
+    useFeyMagic: allActionOptions.some(
       (option) => option.id === "fey-magic" && option.checked
     ),
     useQuickRitual: isQuickRitualSelected,
-    useShadowMagic: actionOptions.some(
+    useShadowMagic: allActionOptions.some(
       (option) => option.id === "shadow-magic" && option.checked
     ),
-    useDetectThoughts: actionOptions.some(
+    useDetectThoughts: allActionOptions.some(
       (option) => option.id === "detect-thoughts" && option.checked
-    )
+    ),
+    castMageArmorOnSelf: shouldShowMageArmorSelfCast && isMageArmorSelfCastSelected
   };
   const resolvedActionPaths =
     actionPaths && actionPaths.length > 0
@@ -423,6 +470,14 @@ function CharacterSpellDrawer({
     getSpellAttackFormulaCell(spell, character, spellcastingAbilityOverride)
   ].filter((cell): cell is NonNullable<typeof cell> => cell !== null);
 
+  function openTrackingKeyword(trackingState: TRACKER) {
+    const resolvedKeyword = resolveKeywordReference(trackingState);
+
+    if (resolvedKeyword) {
+      setSelectedTrackingKeyword(resolvedKeyword);
+    }
+  }
+
   useEffect(() => {
     if (shouldShowSlotControls) {
       return;
@@ -438,6 +493,10 @@ function CharacterSpellDrawer({
 
     setIsRitualCastingSelected(false);
   }, [ritualCastingAvailable, spell.id]);
+
+  useEffect(() => {
+    setIsMageArmorSelfCastSelected(forceMageArmorSelfCast);
+  }, [forceMageArmorSelfCast, spell.id]);
 
   useEffect(() => {
     if (ritualCastingRequired) {
@@ -466,12 +525,12 @@ function CharacterSpellDrawer({
       return;
     }
 
-    const mindMagicOption = actionOptions.find((option) => option.id === "mind-magic");
+    const mindMagicOption = allActionOptions.find((option) => option.id === "mind-magic");
 
     if (mindMagicOption?.checked) {
       mindMagicOption.onCheckedChange(false);
     }
-  }, [actionOptions, isRitualCastingSelected]);
+  }, [allActionOptions, isRitualCastingSelected]);
 
   const hasBaseDescription = spell.description.length > 0;
   const spellDescriptionSections = orderDescriptionAdditionSections(
@@ -496,7 +555,7 @@ function CharacterSpellDrawer({
   const shouldShowTopRow =
     relativeDescription !== null ||
     ritualCastingAvailable ||
-    actionOptions.length > 0 ||
+    allActionOptions.length > 0 ||
     visibleActionWarning !== null ||
     effectiveBlockedReason !== null ||
     actionContextTexts.length > 0;
@@ -541,7 +600,7 @@ function CharacterSpellDrawer({
                 <SpellSubtitle spell={spell} />
               </p>
             </div>
-            <div className={gameplayActionStyles.headerAside}>
+            <div className={styles.headerActions}>
               {visibleHeaderTags.length > 0 ? (
                 <div className={gameplayActionStyles.resourceBadgeRow}>
                   <FeatureActionHeaderTags
@@ -550,6 +609,10 @@ function CharacterSpellDrawer({
                   />
                 </div>
               ) : null}
+              <FeatureTrackingBadgeButton
+                trackingState={spellTrackingState}
+                onClick={openTrackingKeyword}
+              />
               <button
                 type="button"
                 className={sheetStyles.spellDrawerCloseButton}
@@ -921,6 +984,19 @@ function CharacterSpellDrawer({
           ]}
           badgeLabel="Keyword"
           onClose={closeComponentsTooltip}
+        />
+      ) : null}
+      {selectedTrackingKeyword ? (
+        <KeywordReferenceDrawer
+          title={selectedTrackingKeyword.title}
+          entries={[
+            {
+              title: selectedTrackingKeyword.title,
+              description: selectedTrackingKeyword.description
+            }
+          ]}
+          badgeLabel="Keyword"
+          onClose={closeTrackingKeyword}
         />
       ) : null}
     </>

@@ -69,7 +69,8 @@ function normalizeEquipmentRuntime(character: Character): Character {
         classFeatureState: character.classFeatureState,
         equipment: normalizedArmorWearState.equipment,
         inventoryItems: normalizedArmorWearState.inventoryItems,
-        customEquipment: normalizedArmorWearState.customEquipment
+        customEquipment: normalizedArmorWearState.customEquipment,
+        statusEntries: character.statusEntries
       }
     )
   };
