@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import type { DivinityEntry, FEATS, SpellEntry } from "../../../../codex/entries";
 import type { WarlockEldritchInvocationOption } from "../../../../pages/CharactersPage/classFeatures/warlock/warlock";
 import { getFeatDefinition } from "../../../../pages/CharactersPage/feats";
+import type { ResolvedKeywordReference } from "../../../../utils/codex/renderCodexRichText";
 import DescriptionContent from "../../../DescriptionContent/DescriptionContent";
 import CodexDivinityDrawer from "../../../CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
 import CodexSpellDrawer from "../../../CodexPage/CodexSpellDrawer/CodexSpellDrawer";
@@ -17,27 +18,25 @@ import {
   SheetDrawer,
   overlayClassNames
 } from "../../../Overlay";
-import type { ResolvedKeywordReference } from "../../../../utils/codex/renderCodexRichText";
-import styles from "./EldritchInvocationDrawer.module.css";
+import styles from "./ClassFeaturesAndFeats.module.css";
 
-type EldritchInvocationDrawerProps = {
+type EldritchInvocationReferenceDrawerProps = {
   option: WarlockEldritchInvocationOption;
   onClose: () => void;
   backdropClassName?: string;
 };
 
-function EldritchInvocationDrawer({
+function EldritchInvocationReferenceDrawer({
   option,
   onClose,
   backdropClassName
-}: EldritchInvocationDrawerProps) {
+}: EldritchInvocationReferenceDrawerProps) {
   const [selectedSpellReference, setSelectedSpellReference] = useState<SpellEntry | null>(null);
   const [selectedDivinityReference, setSelectedDivinityReference] = useState<DivinityEntry | null>(
     null
   );
   const [selectedKeyword, setSelectedKeyword] = useState<ResolvedKeywordReference | null>(null);
   const [selectedFeat, setSelectedFeat] = useState<FEATS | null>(null);
-
   const selectedFeatDefinition = useMemo(
     () => (selectedFeat ? getFeatDefinition(selectedFeat) : null),
     [selectedFeat]
@@ -46,7 +45,7 @@ function EldritchInvocationDrawer({
   return (
     <>
       <SheetDrawer
-        titleId="eldritch-invocation-drawer-title"
+        titleId="eldritch-invocation-reference-drawer-title"
         onClose={onClose}
         onEscape={() => {
           if (selectedKeyword) {
@@ -77,7 +76,7 @@ function EldritchInvocationDrawer({
           <OverlayHeaderContent>
             <OverlayBadge>Eldritch Invocation</OverlayBadge>
             <OverlayTitleRow>
-              <OverlayTitle id="eldritch-invocation-drawer-title">
+              <OverlayTitle id="eldritch-invocation-reference-drawer-title">
                 {option.invocation.name}
               </OverlayTitle>
             </OverlayTitleRow>
@@ -85,9 +84,9 @@ function EldritchInvocationDrawer({
           <OverlayCloseButton label="Close eldritch invocation" onClick={onClose} />
         </OverlayHeader>
 
-        <OverlayBody>
+        <OverlayBody className={styles.keywordDrawerBody}>
           {option.displaySubtitle && !option.isPlaceholder ? (
-            <p className={styles.selectionSummary}>{`Choice: ${option.displaySubtitle}`}</p>
+            <p className={styles.featReferenceSummary}>{`Choice: ${option.displaySubtitle}`}</p>
           ) : null}
           <DescriptionContent
             description={option.invocation.description}
@@ -145,4 +144,4 @@ function EldritchInvocationDrawer({
   );
 }
 
-export default EldritchInvocationDrawer;
+export default EldritchInvocationReferenceDrawer;

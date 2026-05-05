@@ -1,6 +1,5 @@
 import clsx from "clsx";
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentProps } from "react";
-import EldritchInvocationListRow from "../../../EldritchInvocationListRow";
 import {
   OverlayBody,
   OverlayCloseButton,
@@ -12,11 +11,6 @@ import {
 } from "../../../Overlay";
 import SpellListRow from "../../../SpellListRow";
 import type { SpellEntry } from "../../../../codex/entries";
-import type { Character } from "../../../../types";
-import {
-  getWarlockInvocationBlockingSelectionNamesForCharacter,
-  getWarlockInvocationOptionsForCharacter
-} from "../../../../pages/CharactersPage/classFeatures";
 import {
   getSpellLevel,
   normalizePreparedSpellIds
@@ -29,7 +23,6 @@ import {
   formatSpellGroupTitle,
   spellSlotLevels
 } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
-import type { WarlockEldritchInvocationOption } from "../../../../pages/CharactersPage/classFeatures/warlock/warlock";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./SpellCastingForm.module.css";
@@ -53,18 +46,14 @@ type SpellManagementModalProps = {
   alwaysSpellbookSpellIds: string[];
   cantripLimit: number | null;
   cantripOptions: SpellEntry[];
-  character: Character;
-  eldritchInvocationLimit: number;
   getSpellRowActionShapes: (spell: SpellEntry) => SpellListRowActionShapes;
   highestSpellSlotLevel: number;
   knownSpellEntriesById: Map<string, SpellEntry>;
   onClose: () => void;
-  onOpenInvocationDetails: (option: WarlockEldritchInvocationOption) => void;
   onOpenSpellDetails: (spell: SpellEntry, viewMode: "prepare-preview") => void;
   onPersistCharacter: PersistCharacterUpdater;
   preparedSpellLimit: number | null;
   selectedCantripIds: string[];
-  selectedInvocationIds: string[];
   selectedManualSpellbookSpellIds: string[];
   selectedPreparedSpellIds: string[];
   spellbookSpellEntriesById: Map<string, SpellEntry>;
@@ -133,18 +122,14 @@ function SpellManagementModal({
   alwaysSpellbookSpellIds,
   cantripLimit,
   cantripOptions,
-  character,
-  eldritchInvocationLimit,
   getSpellRowActionShapes,
   highestSpellSlotLevel,
   knownSpellEntriesById,
   onClose,
-  onOpenInvocationDetails,
   onOpenSpellDetails,
   onPersistCharacter,
   preparedSpellLimit,
   selectedCantripIds,
-  selectedInvocationIds,
   selectedManualSpellbookSpellIds,
   selectedPreparedSpellIds,
   spellbookSpellEntriesById,
@@ -174,9 +159,6 @@ function SpellManagementModal({
   const [preparedSpellDraftIds, setPreparedSpellDraftIds] = useState<string[]>(
     () => selectedPreparedSpellIds
   );
-  const [invocationDraftIds, setInvocationDraftIds] = useState<string[]>(
-    () => selectedInvocationIds
-  );
   const [activePreparedSpellLevel, setActivePreparedSpellLevel] = useState(
     firstAvailablePreparedSpellLevel
   );
@@ -202,25 +184,6 @@ function SpellManagementModal({
     () => new Set(preparedSpellDraftIds),
     [preparedSpellDraftIds]
   );
-  const invocationDraftSet = useMemo(() => new Set(invocationDraftIds), [invocationDraftIds]);
-  const invocationManagerCharacter = useMemo(
-    () => ({
-      ...character,
-      cantripIds: cantripDraftIds
-    }),
-    [cantripDraftIds, character]
-  );
-  const invocationSelectionOptions = useMemo(
-    () => getWarlockInvocationOptionsForCharacter(invocationManagerCharacter, invocationDraftIds),
-    [invocationDraftIds, invocationManagerCharacter]
-  );
-  const invocationSelectionOptionsById = useMemo(
-    () =>
-      new Map(
-        invocationSelectionOptions.map((option) => [option.selectionId, option] as const)
-      ),
-    [invocationSelectionOptions]
-  );
   const activePreparedSpellOptions = useMemo(
     () => spellPreparationLevelGroups[activePreparedSpellLevel] ?? [],
     [activePreparedSpellLevel, spellPreparationLevelGroups]
@@ -239,15 +202,11 @@ function SpellManagementModal({
     [alwaysPreparedSpellIds, knownSpellEntriesById, preparedSpellDraftIds]
   );
   const hasCantripManagement = cantripLimit !== null && cantripLimit > 0;
-  const hasEldritchInvocationManagement = eldritchInvocationLimit > 0;
   const cantripCount = cantripDraftIds.length;
   const spellbookSpellCount = spellbookDraftIds.length;
   const alwaysSpellbookCount = alwaysSpellbookSpellIds.length;
   const preparedSpellCount = preparedSpellDraftIds.length;
-  const invocationCount = invocationDraftIds.length;
   const isCantripLimitReached = cantripLimit !== null && cantripCount >= cantripLimit;
-  const isInvocationLimitReached =
-    hasEldritchInvocationManagement && invocationCount >= eldritchInvocationLimit;
   const isPreparedSpellLimitReached =
     preparedSpellLimit !== null && preparedSpellCount >= preparedSpellLimit;
   const modalTitle =
@@ -255,9 +214,7 @@ function SpellManagementModal({
       ? "Spell options"
       : mode === "cantrips"
         ? "Manage cantrips"
-        : mode === "eldritch-invocations"
-          ? "Manage eldritch invocations"
-          : "Prepare spells";
+        : "Prepare spells";
 
   const commitAndClose = useCallback(() => {
     if (isCommittingRef.current) {
@@ -276,7 +233,6 @@ function SpellManagementModal({
             cantripDraftIds,
             cantripLimit,
             cantripOptions,
-            invocationDraftIds,
             preparedSpellDraftIds,
             preparedSpellLimit,
             spellPreparationOptions,
@@ -297,7 +253,6 @@ function SpellManagementModal({
     cantripDraftIds,
     cantripLimit,
     cantripOptions,
-    invocationDraftIds,
     onClose,
     onPersistCharacter,
     preparedSpellDraftIds,
@@ -323,10 +278,6 @@ function SpellManagementModal({
     setActivePreparedSpellLevel(firstAvailablePreparedSpellLevel);
     setMode("prepared-spells");
   }, [firstAvailablePreparedSpellLevel]);
-
-  const beginInvocationManagement = useCallback(() => {
-    setMode("eldritch-invocations");
-  }, []);
 
   const toggleCantripDraft = useCallback(
     (spellId: string) => {
@@ -393,38 +344,6 @@ function SpellManagementModal({
       return [...current, spellId];
     });
   }, []);
-
-  const toggleInvocationDraft = useCallback(
-    (selectionId: string) => {
-      setInvocationDraftIds((current) => {
-        if (current.includes(selectionId)) {
-          const blockingSelections = getWarlockInvocationBlockingSelectionNamesForCharacter(
-            selectionId,
-            current
-          );
-
-          return blockingSelections.length > 0
-            ? current
-            : current.filter((currentSelectionId) => currentSelectionId !== selectionId);
-        }
-
-        const option = invocationSelectionOptionsById.get(selectionId);
-
-        if (
-          !option ||
-          option.isPlaceholder ||
-          !option.isQualified ||
-          !hasEldritchInvocationManagement ||
-          current.length >= eldritchInvocationLimit
-        ) {
-          return current;
-        }
-
-        return [...current, selectionId];
-      });
-    },
-    [eldritchInvocationLimit, hasEldritchInvocationManagement, invocationSelectionOptionsById]
-  );
 
   function renderWizardSpellManagementControls(spell: SpellEntry) {
     const isAlwaysPrepared = alwaysPreparedSpellIdSet.has(spell.id);
@@ -528,22 +447,6 @@ function SpellManagementModal({
                 <small>Choose from the list of cantrips for your class.</small>
               </button>
             ) : null}
-            {hasEldritchInvocationManagement ? (
-              <button
-                type="button"
-                className={sheetStyles.spellManagementOptionButton}
-                onClick={beginInvocationManagement}
-              >
-                <strong>
-                  Manage Eldritch Invocations{" "}
-                  <SelectionCounter
-                    current={selectedInvocationIds.length}
-                    total={eldritchInvocationLimit}
-                  />
-                </strong>
-                <small>Choose from the invocations you currently qualify for.</small>
-              </button>
-            ) : null}
             {usesPreparedSpells ? (
               <button
                 type="button"
@@ -630,63 +533,6 @@ function SpellManagementModal({
                     </ul>
                   </div>
                 ))
-              )}
-            </div>
-          </>
-        ) : mode === "eldritch-invocations" ? (
-          <>
-            <div className={styles.preparedSpellStatusRow}>
-              <div>
-                <p className={styles.preparedSpellStatusLabel}>Eldritch Invocations</p>
-                <p className={styles.preparedSpellLimitText}>
-                  <SelectionCounter current={invocationCount} total={eldritchInvocationLimit} />{" "}
-                  learned
-                </p>
-              </div>
-            </div>
-
-            <div className={clsx(sheetStyles.spellManagementList, styles.preparedSpellList)}>
-              {invocationSelectionOptions.length === 0 ? (
-                <p className={shared.emptyText}>
-                  No eldritch invocations are available for this Warlock right now.
-                </p>
-              ) : (
-                <ul className={styles.preparedSpellSelectionList}>
-                  {invocationSelectionOptions.map((option) => {
-                    const isChecked = invocationDraftSet.has(option.selectionId);
-                    const blockingSelections = isChecked
-                      ? getWarlockInvocationBlockingSelectionNamesForCharacter(
-                          option.selectionId,
-                          invocationDraftIds
-                        )
-                      : [];
-                    const isDisabled =
-                      option.isPlaceholder ||
-                      (isChecked
-                        ? blockingSelections.length > 0
-                        : !option.isQualified || isInvocationLimitReached);
-
-                    return (
-                      <li key={option.selectionId}>
-                        <EldritchInvocationListRow
-                          name={option.displayName}
-                          subtitle={option.displaySubtitle}
-                          metaText={option.requirementLabel}
-                          onClick={() => onOpenInvocationDetails(option)}
-                          selectable
-                          isSelected={isChecked}
-                          onSelect={() => toggleInvocationDraft(option.selectionId)}
-                          disabled={isDisabled}
-                          className={
-                            option.isPlaceholder || !option.isQualified
-                              ? styles.spellManagementChoiceDisabled
-                              : undefined
-                          }
-                        />
-                      </li>
-                    );
-                  })}
-                </ul>
               )}
             </div>
           </>

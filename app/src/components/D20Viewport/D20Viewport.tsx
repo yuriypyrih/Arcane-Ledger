@@ -10,9 +10,36 @@ import {
   getTargetQuaternion
 } from "./geometry";
 import { easeOutQuint, disposeSceneObject } from "./sceneUtils";
-import { createTypeTexture, createValueTexture, createWoodTexture } from "./textures";
+import { createTypeTexture, createValueTexture } from "./textures";
 import type { AnimationState, D20ViewportProps, DieVisual } from "./types";
 import styles from "./D20Viewport.module.css";
+
+const TABLETOP_SIZE = 34;
+const VIEW_HEIGHT = 13;
+const BASE_DIE_SCALE_WIDTH = 430;
+const MIN_DIE_SCALE = 0.96;
+const MAX_DIE_SCALE = 1.42;
+const DEFAULT_DIE_SCALE_MULTIPLIER = 1.18;
+const MAX_DEFAULT_DIE_SCALE = 1.64;
+const CROWDED_DICE_THRESHOLD = 6;
+
+function getResponsiveDieScale(width: number, diceCount: number): number {
+  const crowdedScale = THREE.MathUtils.clamp(
+    Math.max(width, 1) / BASE_DIE_SCALE_WIDTH,
+    MIN_DIE_SCALE,
+    MAX_DIE_SCALE
+  );
+
+  if (diceCount > CROWDED_DICE_THRESHOLD) {
+    return crowdedScale;
+  }
+
+  return THREE.MathUtils.clamp(
+    crowdedScale * DEFAULT_DIE_SCALE_MULTIPLIER,
+    MIN_DIE_SCALE,
+    MAX_DEFAULT_DIE_SCALE
+  );
+}
 
 function D20Viewport({ dice, rollToken, onRollComplete }: D20ViewportProps) {
   const hostRef = useRef<HTMLDivElement | null>(null);
@@ -81,14 +108,14 @@ function D20Viewport({ dice, rollToken, onRollComplete }: D20ViewportProps) {
     fillLight.position.set(3.2, 3.5, 5.6);
     scene.add(fillLight);
 
-    const woodTexture = createWoodTexture();
-    const tabletopMaterial = new THREE.MeshStandardMaterial({
-      map: woodTexture,
-      color: 0xffffff,
-      roughness: 0.92,
-      metalness: 0.02
+    const tabletopMaterial = new THREE.ShadowMaterial({
+      color: 0x120b08,
+      opacity: 0.28
     });
-    const tabletop = new THREE.Mesh(new THREE.PlaneGeometry(34, 34), tabletopMaterial);
+    const tabletop = new THREE.Mesh(
+      new THREE.PlaneGeometry(TABLETOP_SIZE, TABLETOP_SIZE),
+      tabletopMaterial
+    );
     tabletop.rotation.x = -Math.PI / 2;
     tabletop.position.y = TABLE_Y;
     tabletop.receiveShadow = true;
@@ -98,16 +125,42 @@ function D20Viewport({ dice, rollToken, onRollComplete }: D20ViewportProps) {
     scene.add(diceLayer);
 
     host.appendChild(renderer.domElement);
+    let responsiveDieScale = 1;
 
     function resize() {
       const bounds = host.getBoundingClientRect();
       renderer.setSize(bounds.width, bounds.height, false);
       const aspect = bounds.width / Math.max(bounds.height, 1);
-      const viewHeight = 13;
-      camera.left = (-viewHeight * aspect) / 2;
-      camera.right = (viewHeight * aspect) / 2;
-      camera.top = viewHeight / 2;
-      camera.bottom = -viewHeight / 2;
+      const viewWidth = VIEW_HEIGHT * aspect;
+      const animation = animationRef.current;
+      const activeDiceCount = diceRef.current.length || animation.dice.length;
+      responsiveDieScale = getResponsiveDieScale(bounds.width, activeDiceCount);
+
+      for (const visual of animation.dice) {
+        const { start, end } = getDiePositions(
+          visual.layoutIndex,
+          visual.layoutTotal,
+          visual.diceSides,
+          responsiveDieScale,
+          {
+            x: visual.startJitterX,
+            z: visual.startJitterZ
+          }
+        );
+
+        visual.startPosition.copy(start);
+        visual.endPosition.copy(end);
+        visual.root.scale.setScalar(responsiveDieScale);
+
+        if (!animation.rolling) {
+          visual.root.position.copy(end);
+        }
+      }
+
+      camera.left = -viewWidth / 2;
+      camera.right = viewWidth / 2;
+      camera.top = VIEW_HEIGHT / 2;
+      camera.bottom = -VIEW_HEIGHT / 2;
       camera.updateProjectionMatrix();
       requestRenderFrame();
     }
@@ -122,6 +175,11 @@ function D20Viewport({ dice, rollToken, onRollComplete }: D20ViewportProps) {
 
     function buildRoll(nextDice: RolledDie[], nextRollToken: number, time: number) {
       clearDiceLayer();
+      responsiveDieScale = getResponsiveDieScale(
+        host.getBoundingClientRect().width,
+        nextDice.length
+      );
+      const nextDiceSides = nextDice.map((entry) => entry.sides);
 
       const visuals = nextDice.map((die, index) => {
         const spinScale = index < 4 ? 0.58 : 0.7;
@@ -145,13 +203,20 @@ function D20Viewport({ dice, rollToken, onRollComplete }: D20ViewportProps) {
           shapeData.typeLabelY,
           shapeData.typeLabelZ
         );
+        const startJitter = {
+          x: Math.random() * 1.2,
+          z: (Math.random() - 0.5) * 1.4
+        };
         const { start, end } = getDiePositions(
           index,
           nextDice.length,
-          nextDice.map((entry) => entry.sides)
+          nextDiceSides,
+          responsiveDieScale,
+          startJitter
         );
 
         valueLabel.visible = false;
+        root.scale.setScalar(responsiveDieScale);
         root.position.copy(start);
         shapeData.group.quaternion.copy(createRandomQuaternion());
         root.add(shapeData.group);
@@ -164,6 +229,11 @@ function D20Viewport({ dice, rollToken, onRollComplete }: D20ViewportProps) {
           shape: shapeData.group,
           valueLabel,
           typeLabel,
+          layoutIndex: index,
+          layoutTotal: nextDice.length,
+          diceSides: nextDiceSides,
+          startJitterX: startJitter.x,
+          startJitterZ: startJitter.z,
           startPosition: start,
           endPosition: end,
           targetQuaternion: getTargetQuaternion(die.sides, die.value),
@@ -302,7 +372,6 @@ function D20Viewport({ dice, rollToken, onRollComplete }: D20ViewportProps) {
 
       resizeObserver.disconnect();
       clearDiceLayer();
-      woodTexture.dispose();
       tabletop.geometry.dispose();
       tabletopMaterial.dispose();
       renderer.renderLists.dispose();

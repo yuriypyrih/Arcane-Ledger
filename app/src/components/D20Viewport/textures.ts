@@ -99,6 +99,29 @@ export function createValueTexture(
   return texture;
 }
 
+function drawRoundedRect(
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number
+) {
+  const safeRadius = Math.min(radius, width / 2, height / 2);
+
+  context.beginPath();
+  context.moveTo(x + safeRadius, y);
+  context.lineTo(x + width - safeRadius, y);
+  context.quadraticCurveTo(x + width, y, x + width, y + safeRadius);
+  context.lineTo(x + width, y + height - safeRadius);
+  context.quadraticCurveTo(x + width, y + height, x + width - safeRadius, y + height);
+  context.lineTo(x + safeRadius, y + height);
+  context.quadraticCurveTo(x, y + height, x, y + height - safeRadius);
+  context.lineTo(x, y + safeRadius);
+  context.quadraticCurveTo(x, y, x + safeRadius, y);
+  context.closePath();
+}
+
 export function createTypeTexture(text: string): {
   texture: THREE.CanvasTexture;
   aspect: number;
@@ -112,11 +135,13 @@ export function createTypeTexture(text: string): {
 
   measureContext.font = "700 62px Trebuchet MS";
   const textWidth = Math.ceil(measureContext.measureText(text).width);
-  const horizontalPadding = 24;
-  const verticalPadding = 12;
+  const horizontalPadding = 20;
+  const verticalPadding = 8;
+  const badgeInset = 4;
+  const badgeHeight = 62 + verticalPadding * 2;
   const canvas = document.createElement("canvas");
-  canvas.width = textWidth + horizontalPadding * 2;
-  canvas.height = 62 + verticalPadding * 2;
+  canvas.width = textWidth + horizontalPadding * 2 + badgeInset * 2;
+  canvas.height = badgeHeight + badgeInset * 2;
 
   const context = canvas.getContext("2d");
 
@@ -124,38 +149,19 @@ export function createTypeTexture(text: string): {
     throw new Error("2D canvas context is unavailable.");
   }
 
-  const radius = Math.min(22, canvas.height / 2 - 6);
-  context.fillStyle = "rgba(17, 12, 9, 0.78)";
-  context.beginPath();
-  context.moveTo(radius, verticalPadding);
-  context.lineTo(canvas.width - radius, verticalPadding);
-  context.quadraticCurveTo(
-    canvas.width - horizontalPadding,
-    verticalPadding,
-    canvas.width - horizontalPadding,
-    radius
+  drawRoundedRect(
+    context,
+    badgeInset,
+    badgeInset,
+    canvas.width - badgeInset * 2,
+    badgeHeight,
+    18
   );
-  context.lineTo(canvas.width - horizontalPadding, canvas.height - radius);
-  context.quadraticCurveTo(
-    canvas.width - horizontalPadding,
-    canvas.height - verticalPadding,
-    canvas.width - radius,
-    canvas.height - verticalPadding
-  );
-  context.lineTo(radius, canvas.height - verticalPadding);
-  context.quadraticCurveTo(
-    horizontalPadding,
-    canvas.height - verticalPadding,
-    horizontalPadding,
-    canvas.height - radius
-  );
-  context.lineTo(horizontalPadding, radius);
-  context.quadraticCurveTo(horizontalPadding, verticalPadding, radius, verticalPadding);
-  context.closePath();
+  context.fillStyle = "rgba(17, 12, 9, 0.74)";
   context.fill();
 
-  context.strokeStyle = "rgba(255, 243, 222, 0.18)";
-  context.lineWidth = 2.5;
+  context.strokeStyle = "rgba(255, 243, 222, 0.28)";
+  context.lineWidth = 2;
   context.stroke();
 
   context.font = "700 62px Trebuchet MS";
@@ -172,79 +178,6 @@ export function createTypeTexture(text: string): {
     texture,
     aspect: canvas.width / canvas.height
   };
-}
-
-export function createWoodTexture(): THREE.CanvasTexture {
-  const canvas = document.createElement("canvas");
-  canvas.width = 2048;
-  canvas.height = 2048;
-
-  const context = canvas.getContext("2d");
-
-  if (!context) {
-    throw new Error("2D canvas context is unavailable.");
-  }
-
-  const base = context.createLinearGradient(0, 0, canvas.width, canvas.height);
-  base.addColorStop(0, "#5b3822");
-  base.addColorStop(0.38, "#7a4b2f");
-  base.addColorStop(0.68, "#8c5836");
-  base.addColorStop(1, "#56331f");
-  context.fillStyle = base;
-  context.fillRect(0, 0, canvas.width, canvas.height);
-
-  for (let index = 0; index < 220; index += 1) {
-    const y = (index / 220) * canvas.height;
-    const thickness = 2 + Math.random() * 8;
-    const alpha = 0.02 + Math.random() * 0.035;
-    const offset = Math.random() * canvas.width;
-
-    context.strokeStyle = `rgba(43, 22, 11, ${alpha})`;
-    context.lineWidth = thickness;
-    context.beginPath();
-    context.moveTo(0, y + Math.sin(offset * 0.0012) * 8);
-
-    for (let x = 0; x <= canvas.width; x += 28) {
-      const wave = Math.sin((x + offset) * 0.006) * 7 + Math.sin((x + offset) * 0.021) * 2;
-      context.lineTo(x, y + wave);
-    }
-
-    context.stroke();
-  }
-
-  for (let knotIndex = 0; knotIndex < 4; knotIndex += 1) {
-    const x = Math.random() * canvas.width;
-    const y = Math.random() * canvas.height;
-    const radius = 70 + Math.random() * 90;
-
-    const knot = context.createRadialGradient(x, y, radius * 0.2, x, y, radius);
-    knot.addColorStop(0, "rgba(61, 29, 12, 0.14)");
-    knot.addColorStop(0.45, "rgba(88, 48, 22, 0.08)");
-    knot.addColorStop(1, "rgba(88, 48, 22, 0)");
-    context.fillStyle = knot;
-    context.beginPath();
-    context.ellipse(x, y, radius, radius * 0.55, Math.random() * Math.PI, 0, Math.PI * 2);
-    context.fill();
-  }
-
-  const sheen = context.createRadialGradient(
-    canvas.width * 0.35,
-    canvas.height * 0.25,
-    canvas.width * 0.04,
-    canvas.width * 0.35,
-    canvas.height * 0.25,
-    canvas.width * 0.75
-  );
-  sheen.addColorStop(0, "rgba(255, 214, 166, 0.08)");
-  sheen.addColorStop(1, "rgba(255, 214, 166, 0)");
-  context.fillStyle = sheen;
-  context.fillRect(0, 0, canvas.width, canvas.height);
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  texture.needsUpdate = true;
-
-  return texture;
 }
 
 export function createRoughnessTexture(): THREE.CanvasTexture {

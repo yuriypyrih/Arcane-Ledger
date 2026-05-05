@@ -76,7 +76,10 @@ export function createMaterialSet(
       clearcoat: 1,
       clearcoatRoughness: 0.16,
       reflectivity: 0.7,
-      flatShading: true
+      flatShading: true,
+      polygonOffset: true,
+      polygonOffsetFactor: 1,
+      polygonOffsetUnits: 1
     }),
     lacquer: new THREE.MeshPhysicalMaterial({
       color: resolvedTheme.lacquer,
@@ -86,12 +89,16 @@ export function createMaterialSet(
       roughness: 0.06,
       roughnessMap: lacquerRoughnessTexture,
       clearcoat: 1,
-      clearcoatRoughness: 0.12
+      clearcoatRoughness: 0.12,
+      polygonOffset: true,
+      polygonOffsetFactor: 1,
+      polygonOffsetUnits: 1
     }),
     edge: new THREE.LineBasicMaterial({
-      color: resolvedTheme.edge,
+      color: resolvedTheme.body,
       transparent: true,
-      opacity: 0.82
+      opacity: 0.62,
+      depthWrite: false
     }),
     glow: new THREE.MeshBasicMaterial({
       color: glowStyle.color,
@@ -117,6 +124,7 @@ export function addSolidGeometry(
   parent.add(lacquer);
 
   const edgeLines = new THREE.LineSegments(new THREE.EdgesGeometry(geometry), materials.edge);
+  edgeLines.scale.setScalar(1.018);
   edgeLines.renderOrder = 3;
   parent.add(edgeLines);
 

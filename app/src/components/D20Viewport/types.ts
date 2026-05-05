@@ -18,6 +18,11 @@ export type DieVisual = {
   shape: THREE.Group;
   valueLabel: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>;
   typeLabel: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>;
+  layoutIndex: number;
+  layoutTotal: number;
+  diceSides: number[];
+  startJitterX: number;
+  startJitterZ: number;
   startPosition: THREE.Vector3;
   endPosition: THREE.Vector3;
   targetQuaternion: THREE.Quaternion;

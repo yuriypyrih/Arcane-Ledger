@@ -284,6 +284,22 @@
   font-size: 0.84rem;
 }
 
+.inlineLinkButton {
+  border: none;
+  background: none;
+  color: #2f78ff;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.15em;
+}
+
+.inlineLinkButton:hover {
+  color: #1c61d6;
+}
+
 .featDrawerTitleRow {
   justify-content: space-between;
   width: 100%;

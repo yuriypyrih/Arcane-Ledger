@@ -13,6 +13,11 @@ import {
 import { addSolidGeometry, createMaterialSet } from "./materials";
 import { createD10Geometry } from "./polyhedra";
 
+type DiePositionStartJitter = {
+  x: number;
+  z: number;
+};
+
 function createD20Shape(theme: DieTheme, naturalOutcome: NaturalOutcome): {
   group: THREE.Group;
   valueLabelY: number;
@@ -258,7 +263,12 @@ function getDieLayoutFootprint(sides: number): {
 export function getDiePositions(
   index: number,
   total: number,
-  diceSides: number[] = []
+  diceSides: number[] = [],
+  layoutScale = 1,
+  startJitter: DiePositionStartJitter = {
+    x: Math.random() * 1.2,
+    z: (Math.random() - 0.5) * 1.4
+  }
 ): {
   start: THREE.Vector3;
   end: THREE.Vector3;
@@ -278,8 +288,8 @@ export function getDiePositions(
           getDieLayoutFootprint(20)
         )
     : getDieLayoutFootprint(20);
-  const spacingX = gridFootprint.x;
-  const spacingZ = gridFootprint.z;
+  const spacingX = gridFootprint.x * layoutScale;
+  const spacingZ = gridFootprint.z * layoutScale;
   const width = (columns - 1) * spacingX;
   const depth = (rows - 1) * spacingZ;
   const end = new THREE.Vector3(
@@ -288,9 +298,9 @@ export function getDiePositions(
     row * spacingZ - depth / 2
   );
   const start = new THREE.Vector3(
-    -9 - row * 0.8 - Math.random() * 1.2,
+    -9 - row * 0.8 - startJitter.x,
     DIE_Y,
-    end.z + (Math.random() - 0.5) * 1.4
+    end.z + startJitter.z
   );
 
   return { start, end };

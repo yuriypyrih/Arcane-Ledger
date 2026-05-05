@@ -3,7 +3,7 @@
 
 export function renderClassFeatureContent(context: Record<string, any>) {
   const {
-    BattleMasterManeuverSelection, CLASS_FEATURE, FeatureChoiceOptions, FeatureDescriptionLines, Pencil, Plus, SKILL, SelectInput, WizardBladesingerTrainingInWarAndSongFields, WizardSavantFeatureFields,
+    BattleMasterManeuverSelection, CLASS_FEATURE, EldritchInvocationList, FeatureChoiceOptions, FeatureDescriptionLines, Pencil, Plus, SKILL, SelectInput, WizardBladesingerTrainingInWarAndSongFields, WizardSavantFeatureFields,
     artisanToolProficiencies, blessedStrikesChoice, buildSkillSelectOptions, buildToolSelectOptions, character, clsx, druidElementalFuryChoice, druidWildShapeKnownForms, druidWildShapeRules, featureDetails,
     featureRow, fighterBanneretKnightlyEnvoySkillOptions, formatCodexLabel, getAvailableBardExpertiseSkills, getAvailableBardLoreBonusProficiencySkills, getAvailableBardMagicalDiscoveriesSpells, getAvailableBardPrimalLoreCantrips, getAvailableBardPrimalLoreSkills, getAvailableFighterBanneretKnightlyEnvoyLanguages, getAvailableFighterBanneretKnightlyEnvoySkills,
     getAvailableKnowledgeDomainBlessingsSkills, getAvailableKnowledgeDomainBlessingsTools, getAvailableKnowledgeDomainUnfetteredMindSavingThrows, getAvailablePaladinOathOfTheNobleGeniesGeniesSplendorSkills, getAvailableRangerDeftExplorerLanguages, getAvailableRangerDeftExplorerSkills, getAvailableRangerGloomStalkerIronMindSavingThrows, getAvailableRangerLevel9ExpertiseSkills, getAvailableRangerOtherworldlyGlamourSkills, getAvailableRogueExpertiseSkills,
@@ -12,9 +12,9 @@ export function renderClassFeatureContent(context: Record<string, any>) {
     getFighterBanneretKnightlyEnvoyLanguageSelection, getFighterBanneretKnightlyEnvoySkillSelection, getKnowledgeDomainBlessingsSkillSelections, getKnowledgeDomainBlessingsToolSelection, getKnowledgeDomainUnfetteredMindSavingThrowSelection, getPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection, getProficiencyLabel, getRangerDeftExplorerExpertiseSelection, getRangerDeftExplorerLanguageSelections, getRangerFeyWandererGiftSelection,
     getRangerGloomStalkerIronMindSavingThrowSelection, getRangerHunterDefensiveTacticsChoice, getRangerHunterPreyChoice, getRangerLevel9ExpertiseSelections, getRangerOtherworldlyGlamourSkillSelection, getRogueExpertiseSelections, getRogueScionOfTheThreeDreadAllegianceChoice, getRogueThievesCantLanguageSelection, getSorcererDraconicElementalAffinityDamageTypeSelection, getSorcererMetamagicSelections,
     getSorcererMetamagicStartIndex, getWarlockFiendishResilienceDamageTypeSelection, getWarlockMysticArcanumSelection, getWarlockMysticArcanumSpellLevel, getWeaponMasterySelectionCountForCharacter, getWeaponMasterySelections, getWeaponProficiencyLabel, getWizardScholarSelection, getWizardSignatureSpellSelections, getWizardSpellMasterySelection,
-    isFeatChoiceFeature, isKnowledgeDomainUnfetteredMindLocked, isRangerGloomStalkerIronMindLocked, isSpellcastingFeatureInputRequired, isUnlocked, isWarlockFiendishResilienceInputRequired, isWizardSavantFeature, linkedFeat, linkedFeatDefinition, linkedFeatSummary,
-    onOpenDivinityReference, onOpenFeatEditorForFeature, onOpenFeatReference, onOpenKeyword, onOpenSpellReference, onPersistCharacter, paladinOathOfTheNobleGeniesGeniesSplendorSkillOptions, rangerFeyWandererGiftOptions, rangerOtherworldlyGlamourSkillOptions, recomputeCharacterFeatureProficiencies,
-    setIsWildShapeModalOpen, setSelectedWildShapeMonster, shared, skillsOptions, sorcererDraconicElementalAffinityDamageTypeOptions, spellSelectionInputStatus, styles, updateBarbarianPrimalKnowledgeSelection, updateBarbarianWildHeartAspectChoice, updateBardExpertiseSelection,
+    isEldritchInvocationInputRequired, isFeatChoiceFeature, isKnowledgeDomainUnfetteredMindLocked, isRangerGloomStalkerIronMindLocked, isSpellcastingFeatureInputRequired, isUnlocked, isWarlockFiendishResilienceInputRequired, isWizardSavantFeature, learnedInvocationOptions, linkedFeat, linkedFeatDefinition, linkedFeatSummary, eldritchInvocationInputStatus,
+    onOpenDivinityReference, onOpenEldritchInvocationEditor, onOpenFeatEditorForFeature, onOpenFeatReference, onOpenInvocationReference, onOpenKeyword, onOpenSpellReference, onPersistCharacter, paladinOathOfTheNobleGeniesGeniesSplendorSkillOptions, rangerFeyWandererGiftOptions, rangerOtherworldlyGlamourSkillOptions, recomputeCharacterFeatureProficiencies,
+    renderTrackingButton, setIsWildShapeModalOpen, setSelectedWildShapeMonster, shared, skillsOptions, sorcererDraconicElementalAffinityDamageTypeOptions, spellSelectionInputStatus, styles, updateBarbarianPrimalKnowledgeSelection, updateBarbarianWildHeartAspectChoice, updateBardExpertiseSelection,
     updateBardLoreBonusProficiencySelection, updateBardMagicalDiscoveriesSpellSelection, updateBardPrimalLoreCantripSelection, updateBardPrimalLoreSkillSelection, updateClericBlessedStrikesChoice, updateClericDivineOrderChoice, updateDruidCircleOfTheLandChoice, updateDruidElementalFuryChoice, updateDruidPrimalOrderChoice, updateFighterBanneretKnightlyEnvoyLanguageSelection,
     updateFighterBanneretKnightlyEnvoySkillSelection, updateKnowledgeDomainBlessingsSkillSelection, updateKnowledgeDomainBlessingsToolSelection, updateKnowledgeDomainUnfetteredMindSavingThrowSelection, updatePaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection, updateRangerDeftExplorerExpertiseSelection, updateRangerDeftExplorerLanguageSelection, updateRangerFeyWandererGiftSelection, updateRangerGloomStalkerIronMindSavingThrowSelection, updateRangerHunterDefensiveTacticsChoice,
     updateRangerHunterPreyChoice, updateRangerLevel9ExpertiseSelection, updateRangerOtherworldlyGlamourSkillSelection, updateRogueExpertiseSelection, updateRogueScionOfTheThreeDreadAllegianceChoice, updateRogueThievesCantLanguageSelection, updateSorcererDraconicElementalAffinityDamageTypeSelection, updateSorcererMetamagicSelection, updateWarlockFiendishResilienceDamageTypeSelection, updateWarlockMysticArcanumSelection,
@@ -260,6 +260,40 @@ export function renderClassFeatureContent(context: Record<string, any>) {
                         onOpenFeatReference={onOpenFeatReference}
                         onOpenSpellReference={onOpenSpellReference}
                         onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                    </>
+                  ) : featureRow.feature === CLASS_FEATURE.ELDRITCH_INVOCATIONS &&
+                    character.className === "Warlock" ? (
+                    <>
+                      <FeatureDescriptionLines
+                        featureKey={featureRow.key}
+                        lines={featureDetails.description}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                      <div className={styles.featureChoiceRow}>
+                        <div className={styles.featureChoiceSummary}>
+                          <span className={styles.featureChoiceLabel}>Selected invocations</span>
+                          <span className={styles.featureChoiceValueText}>
+                            {`${eldritchInvocationInputStatus.selectedCount}/${eldritchInvocationInputStatus.limit} selected`}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          className={shared.editButton}
+                          disabled={!isUnlocked}
+                          onClick={onOpenEldritchInvocationEditor}
+                        >
+                          <Pencil size={16} />
+                          Edit
+                        </button>
+                      </div>
+                      <EldritchInvocationList
+                        invocations={learnedInvocationOptions}
+                        onOpenInvocationReference={onOpenInvocationReference}
+                        renderTrackingButton={renderTrackingButton}
                       />
                     </>
                   ) : featureRow.feature === CLASS_FEATURE.PRIMAL_ORDER ? (
@@ -1798,6 +1832,13 @@ export function renderClassFeatureContent(context: Record<string, any>) {
                   {isSpellcastingFeatureInputRequired && spellSelectionInputStatus.message ? (
                     <p className={styles.featureInputRequiredDescription}>
                       {spellSelectionInputStatus.message}
+                    </p>
+                  ) : null}
+
+                  {isEldritchInvocationInputRequired &&
+                  eldritchInvocationInputStatus.message ? (
+                    <p className={styles.featureInputRequiredDescription}>
+                      {eldritchInvocationInputStatus.message}
                     </p>
                   ) : null}
 

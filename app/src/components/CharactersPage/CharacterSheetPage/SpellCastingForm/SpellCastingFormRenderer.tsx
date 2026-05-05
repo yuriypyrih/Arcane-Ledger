@@ -3,18 +3,18 @@
 
 export function renderSpellCastingForm(context: Record<string, any>) {
   const {
-    ActionButton, ActionShape, CellContainer, CharacterSpellDrawer, DURATION, DivinityListRow, EldritchInvocationDrawer, EldritchInvocationListRow, Pencil,
+    ActionButton, ActionShape, CellContainer, CharacterSpellDrawer, DURATION, DivinityListRow, Pencil,
     SpellDescriptionContent, SpellListRow, SpellManagementModal, SpellSlotActionSheet, TriangleAlert, X, activeSpellSlotSheetExpended, activeSpellSlotSheetLevel, activeSpellSlotSheetTotal,
     activeWizardSpellFilter, alwaysPreparedSpellIdSet, alwaysPreparedSpellIds, alwaysSpellbookSpellIdSet, alwaysSpellbookSpellIds, bardicInspirationUsesRemaining, bardicInspirationUsesTotal, beguilingMagicUsesRemaining, beguilingMagicUsesTotal,
     blessingOfMoonlightUsesRemaining, blessingOfMoonlightUsesTotal, cantripLimit, cantripOptions, castSelectedSpell, channelDivinityUsesRemaining, channelDivinityUsesTotal, channelSelectedDivinity, character,
-    className, closeSelectedDivinity, closeSelectedInvocation, closeSelectedSpell, closeSpellSlotActionSheet, clsx, createChargesAndUsageHeaderTags, createChargesCardUsage, createChargesHeaderTag,
-    createChargesOrResourceCardUsage, createFeatureActionCardCost, createNamedResourceCardUsage, createNamedUsageHeaderTags, diceRollerPopup, druidNaturalRecoveryUsesRemaining, druidStarMapGuidingBoltUsesRemaining, druidStarMapGuidingBoltUsesTotal, eldritchInvocationLimit,
+    className, closeSelectedDivinity, closeSelectedSpell, closeSpellSlotActionSheet, clsx, createChargesAndUsageHeaderTags, createChargesCardUsage, createChargesHeaderTag,
+    createChargesOrResourceCardUsage, createFeatureActionCardCost, createNamedResourceCardUsage, createNamedUsageHeaderTags, diceRollerPopup, druidNaturalRecoveryUsesRemaining, druidStarMapGuidingBoltUsesRemaining, druidStarMapGuidingBoltUsesTotal,
     fighterPsiWarriorEnergyDiceRemaining, fighterPsiWarriorEnergyDiceTotal, fighterPsiWarriorTelekineticMasterUsesRemaining, fighterPsiWarriorTelekineticMasterUsesTotal, formatCodexLabel, formatDivinitySubtitle, formatFeatureActionOptionRangeLabel, formatSpellCastingTime, formatSpellGroupTitle,
-    featAlwaysPreparedCantripIdSet, frozenHauntFallbackSpellSlotMinimumLevel, gameplayActionStyles, getActionShapeForEconomyType, getDivinityDrawerValueLabel, getDivinityRowActionShapeState, getSpellRowActionShapes, hasEldritchInvocationManagement, hasSpellManagementOptions, hasSpellSelectionInputRequired,
-    highestSpellSlotLevel, isPreparedSpellPreview, isSelectedSpellDiceRollerSettingsOpen, isSpellManagementModalOpen, knownSpellEntriesById, learnedInvocationOptions, onPersistCharacter, openDivinityDetails, openInvocationDetails,
+    featAlwaysPreparedCantripIdSet, frozenHauntFallbackSpellSlotMinimumLevel, gameplayActionStyles, getActionShapeForEconomyType, getDivinityDrawerValueLabel, getDivinityRowActionShapeState, getSpellRowActionShapes, hasSpellManagementOptions, hasSpellSelectionInputRequired,
+    highestSpellSlotLevel, isPreparedSpellPreview, isSelectedSpellDiceRollerSettingsOpen, isSpellManagementModalOpen, knownSpellEntriesById, onPersistCharacter, openDivinityDetails,
     openSpellDetails, openSpellManagementMenu, orderDescriptionAdditionSections, paladinOathOfTheNobleGeniesElementalSmiteOptions, preparedSpellGroups, preparedSpellLimit, rangerFeyReinforcementsUsesRemaining, rangerFeyReinforcementsUsesTotal, rangerMistyWandererUsesRemaining,
     rangerMistyWandererUsesTotal, resetAllSpellSlotsAtLevel, selectedCantripIds, selectedDivinityActionShape, selectedDivinityActionShapeState, selectedDivinityActionWarning, selectedDivinityDisplay, selectedDivinityOptionKey, selectedDivinityRow,
-    selectedElementalSmiteOptionOnSelectedSpell, selectedFrozenHauntFallbackSlotLevel, selectedInvocation, selectedInvocationCount, selectedInvocationIds, selectedManualSpellbookSpellIds, selectedPreparedSpellIds, selectedSpell, selectedSpellActionPaths,
+    selectedElementalSmiteOptionOnSelectedSpell, selectedFrozenHauntFallbackSlotLevel, selectedManualSpellbookSpellIds, selectedPreparedSpellIds, selectedSpell, selectedSpellActionPaths,
     selectedSpellAlwaysPrepared, selectedSpellAlwaysSpellbook, selectedSpellAttackRollFormula, selectedSpellBlockedReason, selectedSpellCanCastAsRitualFromSpellbook, selectedSpellCanOnlyBeCastAsRitual, selectedSpellCastWarning, selectedSpellDamageDetailOverride, selectedSpellDetectThoughtsDisabled, selectedSpellDetectThoughtsFreeCastState, selectedSpellDisplay, selectedSpellMagicInitiateAbility, selectedSpellMagicInitiateDisabled, selectedSpellMagicInitiateFreeCastState,
     selectedSpellElementalSmiteDisabled, selectedSpellFacts, selectedSpellFeyMagicDisabled, selectedSpellFeyMagicFreeCastState, selectedSpellFeyReinforcementsDisabled, selectedSpellFreeCastSlotLevel, selectedSpellFrozenHauntFallbackSlotOptions, selectedSpellFrozenHauntFallbackSlotSummary, selectedSpellFrozenHauntOptionState, selectedSpellHuntersRimeTemporaryHitPointsFormula, selectedSpellIsSpellbookOnly,
     selectedSpellIsWizardSpellMastery, selectedSpellMindMagicDisabled, selectedSpellMistyWandererDisabled, selectedSpellOverchannelDisabled, selectedSpellOverchannelNecroticDamage, selectedSpellPhantasmalCreaturesDisabled, selectedSpellPhantasmalCreaturesOptionState, selectedSpellPsionicSorceryCurrentCost, selectedSpellPsionicSorceryDisabled,
@@ -37,11 +37,9 @@ export function renderSpellCastingForm(context: Record<string, any>) {
         <div>
           <p className={shared.eyebrow}>Spellcasting</p>
           <h3 className={shared.subtitle}>
-            {hasEldritchInvocationManagement
-              ? "Invocations, prepared spells, and spell slots"
-              : usesSpellbook
-                ? "Spellbook, prepared spells, and spell slots"
-                : "Prepared spells and spell slots"}
+            {usesSpellbook
+              ? "Spellbook, prepared spells, and spell slots"
+              : "Prepared spells and spell slots"}
           </h3>
         </div>
         <div className={shared.headerActions}>
@@ -144,26 +142,6 @@ export function renderSpellCastingForm(context: Record<string, any>) {
       ) : null}
 
       <div className={styles.spellListStack}>
-        {learnedInvocationOptions.length > 0 ? (
-          <div className={styles.spellGroup}>
-            <p className={styles.spellGroupTitle}>
-              {`Eldritch Invocations (${selectedInvocationCount}/${eldritchInvocationLimit})`}
-            </p>
-            <ul className={styles.spellList}>
-              {learnedInvocationOptions.map((option) => (
-                <li key={option.selectionId}>
-                  <EldritchInvocationListRow
-                    name={option.displayName}
-                    subtitle={option.displaySubtitle}
-                    metaText="Eldritch Invocation"
-                    onClick={() => openInvocationDetails(option)}
-                  />
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
-
         {spellcastingChannelDivinityRows.length > 0 ? (
           <div className={styles.spellGroup}>
             <p className={styles.spellGroupTitle}>
@@ -194,11 +172,9 @@ export function renderSpellCastingForm(context: Record<string, any>) {
           </div>
         ) : null}
 
-        {preparedSpellGroups.length === 0 &&
-        spellcastingChannelDivinityRows.length === 0 &&
-        learnedInvocationOptions.length === 0 ? (
+        {preparedSpellGroups.length === 0 && spellcastingChannelDivinityRows.length === 0 ? (
           <p className={shared.emptyText}>
-            No spells, cantrips, or eldritch invocations have been selected yet.
+            No spells or cantrips have been selected yet.
           </p>
         ) : (
           preparedSpellGroups.map((group) => (
@@ -271,18 +247,14 @@ export function renderSpellCastingForm(context: Record<string, any>) {
           alwaysSpellbookSpellIds={alwaysSpellbookSpellIds}
           cantripLimit={cantripLimit}
           cantripOptions={cantripOptions}
-          character={character}
-          eldritchInvocationLimit={eldritchInvocationLimit}
           getSpellRowActionShapes={getSpellRowActionShapes}
           highestSpellSlotLevel={highestSpellSlotLevel}
           knownSpellEntriesById={knownSpellEntriesById}
           onClose={() => setIsSpellManagementModalOpen(false)}
-          onOpenInvocationDetails={openInvocationDetails}
           onOpenSpellDetails={openSpellDetails}
           onPersistCharacter={onPersistCharacter}
           preparedSpellLimit={preparedSpellLimit}
           selectedCantripIds={selectedCantripIds}
-          selectedInvocationIds={selectedInvocationIds}
           selectedManualSpellbookSpellIds={selectedManualSpellbookSpellIds}
           selectedPreparedSpellIds={selectedPreparedSpellIds}
           spellbookSpellEntriesById={spellbookSpellEntriesById}
@@ -292,7 +264,6 @@ export function renderSpellCastingForm(context: Record<string, any>) {
             activeSpellSlotSheetLevel !== null ||
             selectedSpell ||
             selectedDivinityOptionKey ||
-            selectedInvocation ||
             isSelectedSpellDiceRollerSettingsOpen
           )}
           usesPreparedSpells={usesPreparedSpells}
@@ -1033,16 +1004,6 @@ export function renderSpellCastingForm(context: Record<string, any>) {
               : undefined
           }
           backdropClassName={isPreparedSpellPreview ? styles.previewSpellDrawerBackdrop : undefined}
-        />
-      ) : null}
-
-      {selectedInvocation ? (
-        <EldritchInvocationDrawer
-          option={selectedInvocation}
-          onClose={closeSelectedInvocation}
-          backdropClassName={
-            isSpellManagementModalOpen ? styles.previewSpellDrawerBackdrop : undefined
-          }
         />
       ) : null}
 

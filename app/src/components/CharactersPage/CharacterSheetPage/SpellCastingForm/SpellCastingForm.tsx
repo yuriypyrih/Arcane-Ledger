@@ -4,12 +4,10 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import ActionShape, { getActionShapeForCastingTime } from "../../../ActionShape";
 import CellContainer from "../../../CellContainer/CellContainer";
 import DivinityListRow from "../../../DivinityListRow/DivinityListRow";
-import EldritchInvocationListRow from "../../../EldritchInvocationListRow";
 import SpellListRow from "../../../SpellListRow";
 import SpellDescriptionContent from "../../../SpellDescriptionContent";
 import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
 import CharacterSpellDrawer, { type CharacterSpellDrawerMode } from "./CharacterSpellDrawer";
-import EldritchInvocationDrawer from "./EldritchInvocationDrawer";
 import SpellManagementModal from "./SpellManagementModal";
 import SpellSlotActionSheet from "./SpellSlotActionSheet";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
@@ -65,10 +63,7 @@ import {
   createEconomyMultiContextForSpell,
   getSpellbookSpellEntryForCharacter,
   getSpellEntryForCharacter,
-  getWarlockEldritchInvocationLimitForCharacter,
   restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter,
-  getWarlockInvocationSelectionIdsForCharacter,
-  getWarlockLearnedInvocationOptionsForCharacter,
   consumeWizardSignatureSpellFreeCastForCharacter,
   getWizardSignatureSpellIdsForCharacter,
   hasWizardSignatureSpellFreeCastAvailableForCharacter,
@@ -156,7 +151,6 @@ import { formatFeatureActionOptionRangeLabel } from "../../../../pages/Character
 import { applySpellConcentrationToStatusEntries } from "../../../../pages/CharactersPage/statusEntries";
 import { fighterPsiWarriorTelekineticMasterConcentrationStatusSourceId } from "../../../../pages/CharactersPage/classFeatures/fighter/subclasses/fighterPsiWarriorShared";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
-import type { WarlockEldritchInvocationOption } from "../../../../pages/CharactersPage/classFeatures/warlock/warlock";
 import { hasWarlockArchfeyPatronBewitchingMagicFeature } from "../../../../pages/CharactersPage/classFeatures/warlock/subclasses/warlockArchfeyPatron";
 import {
   canUseWarlockCelestialPatronRadiantSoulForSpell,
@@ -309,8 +303,6 @@ function getActionShapeStateForRoundTrackerResource(
 function SpellCastingForm({ character, className, onPersistCharacter }: SpellCastingFormProps) {
   const [selectedSpell, setSelectedSpell] = useState<SpellEntry | null>(null);
   const [selectedDivinityOptionKey, setSelectedDivinityOptionKey] = useState<string | null>(null);
-  const [selectedInvocation, setSelectedInvocation] =
-    useState<WarlockEldritchInvocationOption | null>(null);
   const [selectedSpellViewMode, setSelectedSpellViewMode] =
     useState<SelectedSpellViewMode>("standard");
   const [selectedSpellSlotLevel, setSelectedSpellSlotLevel] = useState(1);
@@ -366,8 +358,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       isSpellManagementModalOpen ||
       activeSpellSlotSheetLevel !== null ||
       selectedSpell ||
-      selectedDivinityOptionKey ||
-      selectedInvocation
+      selectedDivinityOptionKey
     )
   );
 
@@ -403,9 +394,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   }, []);
   const closeSelectedDivinity = useCallback(() => {
     setSelectedDivinityOptionKey(null);
-  }, []);
-  const closeSelectedInvocation = useCallback(() => {
-    setSelectedInvocation(null);
   }, []);
   const closeSpellSlotActionSheet = useCallback(() => {
     setActiveSpellSlotSheetLevel(null);
@@ -466,13 +454,11 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
 
     closeSelectedSpell();
     closeSelectedDivinity();
-    closeSelectedInvocation();
     closeSpellSlotActionSheet();
     setIsSpellManagementModalOpen(false);
   }, [
     canCastSpells,
     closeSelectedDivinity,
-    closeSelectedInvocation,
     closeSelectedSpell,
     closeSpellSlotActionSheet
   ]);
@@ -882,25 +868,13 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     () => groupSpellsByLevel(visibleSpellEntries),
     [visibleSpellEntries]
   );
-  const selectedInvocationIds = useMemo(
-    () => getWarlockInvocationSelectionIdsForCharacter(character),
-    [character]
-  );
   const hasCantripManagement = cantripLimit !== null && cantripLimit > 0;
-  const eldritchInvocationLimit = getWarlockEldritchInvocationLimitForCharacter(character);
-  const hasEldritchInvocationManagement = eldritchInvocationLimit > 0;
-  const selectedInvocationCount = selectedInvocationIds.length;
-  const hasSpellManagementOptions =
-    hasCantripManagement || hasEldritchInvocationManagement || usesPreparedSpells;
+  const hasSpellManagementOptions = hasCantripManagement || usesPreparedSpells;
   const spellSelectionInputStatus = useMemo(
     () => getSpellSelectionInputStatusForCharacter(character),
     [character]
   );
   const hasSpellSelectionInputRequired = spellSelectionInputStatus.hasInputRequired;
-  const learnedInvocationOptions = useMemo(
-    () => getWarlockLearnedInvocationOptionsForCharacter(character),
-    [character]
-  );
   const spellOutcomeSummariesById = useMemo(
     () =>
       new Map(
@@ -1633,22 +1607,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setSelectedDivinityOptionKey(null);
   }, [selectedDivinityOptionKey, selectedDivinityRow]);
 
-  useEffect(() => {
-    if (!selectedInvocation || isSpellManagementModalOpen) {
-      return;
-    }
-
-    if (
-      learnedInvocationOptions.some(
-        (option) => option.selectionId === selectedInvocation.selectionId
-      )
-    ) {
-      return;
-    }
-
-    setSelectedInvocation(null);
-  }, [isSpellManagementModalOpen, learnedInvocationOptions, selectedInvocation]);
-
   const openSpellManagementMenu = useCallback(() => {
     if (!hasSpellManagementOptions) {
       return;
@@ -1661,8 +1619,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     if (
       activeSpellSlotSheetLevel === null &&
       !selectedSpell &&
-      !selectedDivinityOptionKey &&
-      !selectedInvocation
+      !selectedDivinityOptionKey
     ) {
       return;
     }
@@ -1684,11 +1641,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           return;
         }
 
-        if (selectedInvocation) {
-          closeSelectedInvocation();
-          return;
-        }
-
         if (activeSpellSlotSheetLevel !== null) {
           closeSpellSlotActionSheet();
         }
@@ -1704,11 +1656,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     activeSpellSlotSheetLevel,
     closeSpellSlotActionSheet,
     closeSelectedDivinity,
-    closeSelectedInvocation,
     closeSelectedSpell,
     isSelectedSpellDiceRollerSettingsOpen,
     selectedDivinityOptionKey,
-    selectedInvocation,
     selectedSpell
   ]);
 
@@ -1788,7 +1738,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
 
   function openSpellDetails(spell: SpellEntry, viewMode: SelectedSpellViewMode = "standard") {
     closeSelectedDivinity();
-    closeSelectedInvocation();
     const spellLevel = getSpellLevel(spell);
     const minimumSlotLevel = Math.max(1, spellLevel);
     const isWizardSpellMasterySpell = wizardSpellMasterySpellIdSet.has(spell.id);
@@ -1819,14 +1768,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
 
   function openDivinityDetails(optionKey: string) {
     closeSelectedSpell();
-    closeSelectedInvocation();
     setSelectedDivinityOptionKey(optionKey);
-  }
-
-  function openInvocationDetails(option: WarlockEldritchInvocationOption) {
-    closeSelectedSpell();
-    closeSelectedDivinity();
-    setSelectedInvocation(option);
   }
 
   function rollHuntersRimeTemporaryHitPointsForSpellCast(spell: Pick<SpellEntry, "id" | "name">) {
@@ -1960,19 +1902,19 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       : 0;
 
   return renderSpellCastingForm({
-    ActionButton, ActionShape, CellContainer, CharacterSpellDrawer, DURATION, DivinityListRow, EldritchInvocationDrawer, EldritchInvocationListRow,
+    ActionButton, ActionShape, CellContainer, CharacterSpellDrawer, DURATION, DivinityListRow,
     Pencil, SpellDescriptionContent, SpellListRow, SpellManagementModal, SpellSlotActionSheet, TriangleAlert, X, activeSpellSlotSheetExpended,
     activeSpellSlotSheetLevel, activeSpellSlotSheetTotal, activeWizardSpellFilter, alwaysPreparedSpellIdSet, alwaysPreparedSpellIds, alwaysSpellbookSpellIdSet, alwaysSpellbookSpellIds, bardicInspirationUsesRemaining,
     bardicInspirationUsesTotal, beguilingMagicUsesRemaining, beguilingMagicUsesTotal, blessingOfMoonlightUsesRemaining, blessingOfMoonlightUsesTotal, cantripLimit, cantripOptions, castSelectedSpell,
-    channelDivinityUsesRemaining, channelDivinityUsesTotal, channelSelectedDivinity, character, className, closeSelectedDivinity, closeSelectedInvocation, closeSelectedSpell,
+    channelDivinityUsesRemaining, channelDivinityUsesTotal, channelSelectedDivinity, character, className, closeSelectedDivinity, closeSelectedSpell,
     closeSpellSlotActionSheet, clsx, createChargesAndUsageHeaderTags, createChargesCardUsage, createChargesHeaderTag, createChargesOrResourceCardUsage, createFeatureActionCardCost, createNamedResourceCardUsage,
-    createNamedUsageHeaderTags, diceRollerPopup, druidNaturalRecoveryUsesRemaining, druidStarMapGuidingBoltUsesRemaining, druidStarMapGuidingBoltUsesTotal, eldritchInvocationLimit, fighterPsiWarriorEnergyDiceRemaining, fighterPsiWarriorEnergyDiceTotal,
+    createNamedUsageHeaderTags, diceRollerPopup, druidNaturalRecoveryUsesRemaining, druidStarMapGuidingBoltUsesRemaining, druidStarMapGuidingBoltUsesTotal, fighterPsiWarriorEnergyDiceRemaining, fighterPsiWarriorEnergyDiceTotal,
     fighterPsiWarriorTelekineticMasterUsesRemaining, fighterPsiWarriorTelekineticMasterUsesTotal, formatCodexLabel, formatDivinitySubtitle, formatFeatureActionOptionRangeLabel, formatSpellCastingTime, formatSpellGroupTitle, frozenHauntFallbackSpellSlotMinimumLevel,
-    featAlwaysPreparedCantripIdSet, gameplayActionStyles, getActionShapeForEconomyType, getDivinityDrawerValueLabel, getDivinityRowActionShapeState, getSpellRowActionShapes, hasEldritchInvocationManagement, hasSpellManagementOptions, hasSpellSelectionInputRequired,
-    highestSpellSlotLevel, isPreparedSpellPreview, isSelectedSpellDiceRollerSettingsOpen, isSpellManagementModalOpen, knownSpellEntriesById, learnedInvocationOptions, onPersistCharacter, openDivinityDetails,
-    openInvocationDetails, openSpellDetails, openSpellManagementMenu, orderDescriptionAdditionSections, paladinOathOfTheNobleGeniesElementalSmiteOptions, preparedSpellGroups, preparedSpellLimit, rangerFeyReinforcementsUsesRemaining,
+    featAlwaysPreparedCantripIdSet, gameplayActionStyles, getActionShapeForEconomyType, getDivinityDrawerValueLabel, getDivinityRowActionShapeState, getSpellRowActionShapes, hasSpellManagementOptions, hasSpellSelectionInputRequired,
+    highestSpellSlotLevel, isPreparedSpellPreview, isSelectedSpellDiceRollerSettingsOpen, isSpellManagementModalOpen, knownSpellEntriesById, onPersistCharacter, openDivinityDetails,
+    openSpellDetails, openSpellManagementMenu, orderDescriptionAdditionSections, paladinOathOfTheNobleGeniesElementalSmiteOptions, preparedSpellGroups, preparedSpellLimit, rangerFeyReinforcementsUsesRemaining,
     rangerFeyReinforcementsUsesTotal, rangerMistyWandererUsesRemaining, rangerMistyWandererUsesTotal, resetAllSpellSlotsAtLevel, selectedCantripIds, selectedDivinityActionShape, selectedDivinityActionShapeState, selectedDivinityActionWarning,
-    selectedDivinityDisplay, selectedDivinityOptionKey, selectedDivinityRow, selectedElementalSmiteOptionOnSelectedSpell, selectedFrozenHauntFallbackSlotLevel, selectedInvocation, selectedInvocationCount, selectedInvocationIds,
+    selectedDivinityDisplay, selectedDivinityOptionKey, selectedDivinityRow, selectedElementalSmiteOptionOnSelectedSpell, selectedFrozenHauntFallbackSlotLevel,
     selectedManualSpellbookSpellIds, selectedPreparedSpellIds, selectedSpell, selectedSpellActionPaths, selectedSpellAlwaysPrepared, selectedSpellAlwaysSpellbook, selectedSpellAttackRollFormula, selectedSpellBlockedReason, selectedSpellMagicInitiateAbility, selectedSpellMagicInitiateDisabled, selectedSpellMagicInitiateFreeCastState,
     selectedSpellCanCastAsRitualFromSpellbook, selectedSpellCanOnlyBeCastAsRitual, selectedSpellCastWarning, selectedSpellDamageDetailOverride, selectedSpellDetectThoughtsDisabled, selectedSpellDetectThoughtsFreeCastState, selectedSpellDisplay, selectedSpellElementalSmiteDisabled, selectedSpellFacts, selectedSpellFeyMagicDisabled, selectedSpellFeyMagicFreeCastState, selectedSpellFeyReinforcementsDisabled,
     selectedSpellFreeCastSlotLevel, selectedSpellFrozenHauntFallbackSlotOptions, selectedSpellFrozenHauntFallbackSlotSummary, selectedSpellFrozenHauntOptionState, selectedSpellHuntersRimeTemporaryHitPointsFormula, selectedSpellIsSpellbookOnly, selectedSpellIsWizardSpellMastery, selectedSpellMindMagicDisabled,

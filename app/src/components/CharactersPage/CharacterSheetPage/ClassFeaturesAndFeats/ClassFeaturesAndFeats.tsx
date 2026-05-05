@@ -21,6 +21,12 @@ import {
   getFeatDefinition,
   getFeatDefinitionsByCategory
 } from "../../../../pages/CharactersPage/feats";
+import {
+  getWarlockEldritchInvocationInputStatusForCharacter,
+  getWarlockInvocationSelectionIdsForCharacter,
+  getWarlockLearnedInvocationOptionsForCharacter,
+  setWarlockInvocationSelectionIdsForCharacter
+} from "../../../../pages/CharactersPage/classFeatures";
 import { getFeatEligibilityForCharacter } from "../../../../pages/CharactersPage/feats/eligibility";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import {
@@ -38,6 +44,8 @@ import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.m
 import InlineToggleButton from "../InlineToggleButton";
 import ClassFeatureList from "./ClassFeatureList";
 import ClassFeaturesGuideModal from "./ClassFeaturesGuideModal";
+import EldritchInvocationEditorModal from "./EldritchInvocationEditorModal";
+import EldritchInvocationReferenceDrawer from "./EldritchInvocationReferenceDrawer";
 import FeatEditorModal from "./FeatEditorModal";
 import FeatList from "./FeatList";
 import FeatReferenceDrawer from "./FeatReferenceDrawer";
@@ -112,6 +120,7 @@ import type {
   SelectedSpellReference,
   TrackingButtonRenderer
 } from "./types";
+import type { WarlockEldritchInvocationOption } from "../../../../pages/CharactersPage/classFeatures/warlock/warlock";
 
 type ClassFeaturesAndFeatsProps = {
   character: Character;
@@ -139,6 +148,7 @@ function ClassFeaturesAndFeats({
   const [isFutureFeaturesVisible, setIsFutureFeaturesVisible] = useState(false);
   const [expandedFeatureKeys, setExpandedFeatureKeys] = useState<string[]>([]);
   const [isFeatModalOpen, setIsFeatModalOpen] = useState(false);
+  const [isEldritchInvocationModalOpen, setIsEldritchInvocationModalOpen] = useState(false);
   const [featEditorContext, setFeatEditorContext] = useState<FeatEditorContext>({
     mode: "general"
   });
@@ -156,6 +166,8 @@ function ClassFeaturesAndFeats({
   const [selectedFeatReference, setSelectedFeatReference] = useState<SelectedFeatReference | null>(
     null
   );
+  const [selectedInvocationReference, setSelectedInvocationReference] =
+    useState<WarlockEldritchInvocationOption | null>(null);
   const [selectedSpellReference, setSelectedSpellReference] =
     useState<SelectedSpellReference | null>(null);
   const [selectedDivinityReference, setSelectedDivinityReference] =
@@ -277,6 +289,18 @@ function ClassFeaturesAndFeats({
   const blessedWarriorCantripOptions = useMemo(() => getBlessedWarriorCantripOptions(), []);
   const druidicWarriorCantripOptions = useMemo(() => getDruidicWarriorCantripOptions(), []);
   const selectedFeats = useMemo(() => character.feats ?? [], [character.feats]);
+  const selectedInvocationIds = useMemo(
+    () => getWarlockInvocationSelectionIdsForCharacter(character),
+    [character]
+  );
+  const learnedInvocationOptions = useMemo(
+    () => getWarlockLearnedInvocationOptionsForCharacter(character),
+    [character]
+  );
+  const eldritchInvocationInputStatus = useMemo(
+    () => getWarlockEldritchInvocationInputStatusForCharacter(character),
+    [character]
+  );
   const selectedFeatDefinition = selectedFeatReference
     ? getFeatDefinition(selectedFeatReference.feat)
     : null;
@@ -542,6 +566,10 @@ function ClassFeaturesAndFeats({
     setSelectedDivinityReference(divinity);
   }
 
+  function openInvocationReference(option: WarlockEldritchInvocationOption) {
+    setSelectedInvocationReference(option);
+  }
+
   function closeFeatEditor() {
     onPersistCharacter((currentCharacter) =>
       applyFeatEditorDraftToCharacter(currentCharacter, featEditorDraftRef.current)
@@ -557,6 +585,17 @@ function ClassFeaturesAndFeats({
     setFeatEditorContext({ mode: "general" });
     setActiveFeatCategory(FEAT_CATEGORY.GENERAL);
     setIsFeatModalOpen(true);
+  }
+
+  function openEldritchInvocationEditor() {
+    setIsEldritchInvocationModalOpen(true);
+  }
+
+  function closeEldritchInvocationEditor(selectionIds: string[]) {
+    onPersistCharacter((currentCharacter) =>
+      setWarlockInvocationSelectionIdsForCharacter(currentCharacter, selectionIds)
+    );
+    setIsEldritchInvocationModalOpen(false);
   }
 
   function openFeatEditorForFeature(level: number, feature: CLASS_FEATURE) {
@@ -1581,8 +1620,12 @@ function ClassFeaturesAndFeats({
                     onOpenFeatReference={openFeatReference}
                     onOpenSpellReference={openSpellReference}
                     onOpenDivinityReference={openDivinityReference}
+                    onOpenInvocationReference={openInvocationReference}
+                    onOpenEldritchInvocationEditor={openEldritchInvocationEditor}
                     onPersistCharacter={onPersistCharacter}
                     renderTrackingButton={renderTrackingButton}
+                    eldritchInvocationInputStatus={eldritchInvocationInputStatus}
+                    learnedInvocationOptions={learnedInvocationOptions}
                     getCharacterFeatSummary={(entry) =>
                       entry ? getCharacterFeatSummary(entry) : null
                     }
@@ -1612,8 +1655,12 @@ function ClassFeaturesAndFeats({
                           onOpenFeatReference={openFeatReference}
                           onOpenSpellReference={openSpellReference}
                           onOpenDivinityReference={openDivinityReference}
+                          onOpenInvocationReference={openInvocationReference}
+                          onOpenEldritchInvocationEditor={openEldritchInvocationEditor}
                           onPersistCharacter={onPersistCharacter}
                           renderTrackingButton={renderTrackingButton}
+                          eldritchInvocationInputStatus={eldritchInvocationInputStatus}
+                          learnedInvocationOptions={learnedInvocationOptions}
                           getCharacterFeatSummary={(entry) =>
                             entry ? getCharacterFeatSummary(entry) : null
                           }
@@ -1709,6 +1756,16 @@ function ClassFeaturesAndFeats({
         />
       ) : null}
 
+      {isEldritchInvocationModalOpen ? (
+        <EldritchInvocationEditorModal
+          character={character}
+          selectedInvocationIds={selectedInvocationIds}
+          onClose={closeEldritchInvocationEditor}
+          onOpenInvocationReference={openInvocationReference}
+          renderTrackingButton={renderTrackingButton}
+        />
+      ) : null}
+
       {selectedFeatReference && selectedFeatDefinition ? (
         <FeatReferenceDrawer
           selectedFeatReference={selectedFeatReference}
@@ -1720,6 +1777,16 @@ function ClassFeaturesAndFeats({
           onOpenSpellReference={openSpellReference}
           onOpenDivinityReference={openDivinityReference}
           getCharacterFeatSummary={(entry) => (entry ? getCharacterFeatSummary(entry) : null)}
+        />
+      ) : null}
+
+      {selectedInvocationReference ? (
+        <EldritchInvocationReferenceDrawer
+          option={selectedInvocationReference}
+          onClose={() => setSelectedInvocationReference(null)}
+          backdropClassName={
+            isEldritchInvocationModalOpen ? styles.referenceDrawerBackdrop : undefined
+          }
         />
       ) : null}
 

@@ -1,10 +1,5 @@
 import type { Character } from "../../types";
-import {
-  getAlwaysSpellbookSpellIdsForCharacter,
-  getWarlockEldritchInvocationLimitForCharacter,
-  getWarlockInvocationOptionsForCharacter,
-  getWarlockInvocationSelectionIdsForCharacter
-} from "./classFeatures";
+import { getAlwaysSpellbookSpellIdsForCharacter } from "./classFeatures";
 import {
   getAlwaysPreparedSpellIds,
   getCantripLimitForCharacter,
@@ -23,7 +18,6 @@ export type SpellSelectionInputStatus = {
   hasInputRequired: boolean;
   needsCantrips: boolean;
   needsPreparedSpells: boolean;
-  needsInvocations: boolean;
   message: string | null;
 };
 
@@ -125,32 +119,15 @@ export function getSpellSelectionInputStatusForCharacter(
     selectedPreparedSpellIds.length < preparedSpellLimit &&
     spellPreparationOptions.length > selectedPreparedSpellIds.length;
 
-  const eldritchInvocationLimit = getWarlockEldritchInvocationLimitForCharacter(character);
-  const selectedInvocationIds = getWarlockInvocationSelectionIdsForCharacter(character);
-  const hasRemainingQualifiedInvocationOption =
-    eldritchInvocationLimit > 0 &&
-    getWarlockInvocationOptionsForCharacter(character, selectedInvocationIds).some(
-      (option) =>
-        option.isQualified &&
-        !option.isPlaceholder &&
-        !selectedInvocationIds.includes(option.selectionId)
-    );
-  const needsInvocations =
-    eldritchInvocationLimit > 0 &&
-    selectedInvocationIds.length < eldritchInvocationLimit &&
-    hasRemainingQualifiedInvocationOption;
-
   const missingInputLabels = [
     needsCantrips ? "cantrips" : null,
-    needsPreparedSpells ? "spells" : null,
-    needsInvocations ? "eldritch invocations" : null
+    needsPreparedSpells ? "spells" : null
   ].filter((label): label is string => label !== null);
 
   return {
     hasInputRequired: missingInputLabels.length > 0,
     needsCantrips,
     needsPreparedSpells,
-    needsInvocations,
     message:
       missingInputLabels.length > 0
         ? `Input required: choose your remaining ${formatInputRequirementList(missingInputLabels)} in the Spellcasting section.`

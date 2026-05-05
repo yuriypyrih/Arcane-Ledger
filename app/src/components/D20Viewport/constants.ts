@@ -12,7 +12,6 @@ export const ROYAL_BLUE_THEME = {
   body: "#3559e0",
   emissive: "#14235f",
   lacquer: "#aab9ff",
-  edge: "#eef2ff",
   glow: "#7e95ff"
 };
 
@@ -20,7 +19,6 @@ export const EMERALD_GREEN_THEME = {
   body: "#2f9a5a",
   emissive: "#103a24",
   lacquer: "#b8ffd0",
-  edge: "#f0fff5",
   glow: "#86efac"
 };
 
@@ -28,7 +26,6 @@ export const CRIMSON_RED_THEME = {
   body: "#c94a4a",
   emissive: "#4b1515",
   lacquer: "#ffc2c2",
-  edge: "#fff0f0",
   glow: "#fca5a5"
 };
 
@@ -36,7 +33,6 @@ export const WILD_MAGIC_PURPLE_THEME = {
   body: "#7c3aed",
   emissive: "#2e1065",
   lacquer: "#ddd6fe",
-  edge: "#f5f3ff",
   glow: "#c084fc"
 };
 
@@ -44,7 +40,6 @@ export const CUSTOM_YELLOW_THEME = {
   body: "#eab308",
   emissive: "#4a3100",
   lacquer: "#fef3c7",
-  edge: "#fff7d6",
   glow: "#fde047"
 };
 

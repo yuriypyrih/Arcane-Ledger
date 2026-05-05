@@ -330,6 +330,7 @@ import {
   getContactPatronUsesTotal,
   getWarlockBeguilingDefenseUsesRemaining,
   getWarlockBeguilingDefenseUsesTotal,
+  getWarlockEldritchInvocationInputStatus,
   getWarlockEldritchInvocationLimit,
   getWarlockFiendishResilienceDamageTypeSelection,
   getWarlockHealingLightDiceRemaining,
@@ -1183,6 +1184,12 @@ export function getWarlockEldritchInvocationLimitForCharacter(
   character: Pick<Character, "className" | "level">
 ) {
   return getWarlockEldritchInvocationLimit(character);
+}
+
+export function getWarlockEldritchInvocationInputStatusForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "cantripIds" | "feats">
+) {
+  return getWarlockEldritchInvocationInputStatus(character);
 }
 
 export function getWarlockMagicalCunningUsesTotalForCharacter(

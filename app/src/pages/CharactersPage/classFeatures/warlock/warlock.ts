@@ -135,6 +135,13 @@ export type WarlockEldritchInvocationOption = {
   isPlaceholder: boolean;
 };
 
+export type WarlockEldritchInvocationInputStatus = {
+  hasInputRequired: boolean;
+  selectedCount: number;
+  limit: number;
+  message: string | null;
+};
+
 type WarlockInvocationCharacter = Pick<Character, "className" | "level"> &
   Partial<
     Pick<Character, "abilities" | "cantripIds" | "classFeatureState" | "feats" | "subclassId">
@@ -671,6 +678,36 @@ export function getWarlockLearnedInvocationOptions(
   return selectedIds
     .map((selectionId) => optionMap.get(selectionId))
     .filter((option): option is WarlockEldritchInvocationOption => Boolean(option));
+}
+
+export function getWarlockEldritchInvocationInputStatus(
+  character: WarlockInvocationCharacter
+): WarlockEldritchInvocationInputStatus {
+  const limit = getWarlockEldritchInvocationLimit(character);
+  const selectedIds = getWarlockInvocationSelectionIds(character);
+  const hasRemainingQualifiedInvocationOption =
+    limit > 0 &&
+    selectedIds.length < limit &&
+    getWarlockInvocationOptions(character, selectedIds).some(
+      (option) =>
+        option.isQualified &&
+        !option.isPlaceholder &&
+        !selectedIds.includes(option.selectionId)
+    );
+  const hasInputRequired =
+    limit > 0 && selectedIds.length < limit && hasRemainingQualifiedInvocationOption;
+  const remainingCount = Math.max(0, limit - selectedIds.length);
+
+  return {
+    hasInputRequired,
+    selectedCount: selectedIds.length,
+    limit,
+    message: hasInputRequired
+      ? `Input required: choose ${remainingCount} more eldritch invocation${
+          remainingCount === 1 ? "" : "s"
+        }.`
+      : null
+  };
 }
 
 export function getWarlockInvocationBlockingSelectionNames(

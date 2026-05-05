@@ -155,6 +155,7 @@ import styles from "./ClassFeaturesAndFeats.module.css";
 import BattleMasterManeuverSelection from "./BattleMasterManeuverSelection";
 import FeatureChoiceOptions from "./ClassFeatureChoiceOptions";
 import DruidWildShapeMonsterModal from "./DruidWildShapeMonsterModal";
+import EldritchInvocationList from "./EldritchInvocationList";
 import WizardBladesingerTrainingInWarAndSongFields from "./WizardBladesingerTrainingInWarAndSongFields";
 import WizardSavantFeatureFields from "./WizardSavantFeatureFields";
 import {
@@ -175,6 +176,10 @@ import {
 } from "./helpers";
 import type { FeatureRow, TrackingButtonRenderer } from "./types";
 import { renderClassFeatureContent } from "./ClassFeatureListFeatureContent";
+import type {
+  WarlockEldritchInvocationInputStatus,
+  WarlockEldritchInvocationOption
+} from "../../../../pages/CharactersPage/classFeatures/warlock/warlock";
 
 type ClassFeatureListProps = {
   character: Character;
@@ -187,8 +192,12 @@ type ClassFeatureListProps = {
   onOpenFeatReference: (feat: CharacterFeatEntry["feat"], entry?: CharacterFeatEntry) => void;
   onOpenSpellReference: (spell: SpellEntry) => void;
   onOpenDivinityReference: (divinity: DivinityEntry) => void;
+  onOpenInvocationReference: (option: WarlockEldritchInvocationOption) => void;
+  onOpenEldritchInvocationEditor: () => void;
   onPersistCharacter: PersistCharacterUpdater;
   renderTrackingButton: TrackingButtonRenderer;
+  eldritchInvocationInputStatus: WarlockEldritchInvocationInputStatus;
+  learnedInvocationOptions: WarlockEldritchInvocationOption[];
   getCharacterFeatSummary: (entry?: CharacterFeatEntry | null) => string | null;
   getFeatDefinition: (feat: CharacterFeatEntry["feat"]) => { label: string } | null;
 };
@@ -241,8 +250,12 @@ function ClassFeatureList({
   onOpenFeatReference,
   onOpenSpellReference,
   onOpenDivinityReference,
+  onOpenInvocationReference,
+  onOpenEldritchInvocationEditor,
   onPersistCharacter,
   renderTrackingButton,
+  eldritchInvocationInputStatus,
+  learnedInvocationOptions,
   getCharacterFeatSummary,
   getFeatDefinition
 }: ClassFeatureListProps) {
@@ -1416,6 +1429,11 @@ function ClassFeatureList({
             (featureRow.feature === CLASS_FEATURE.SPELLCASTING ||
               featureRow.feature === CLASS_FEATURE.PACT_MAGIC) &&
             spellSelectionInputStatus.hasInputRequired;
+          const isEldritchInvocationInputRequired =
+            isUnlocked &&
+            featureRow.feature === CLASS_FEATURE.ELDRITCH_INVOCATIONS &&
+            character.className === "Warlock" &&
+            eldritchInvocationInputStatus.hasInputRequired;
           const isExpertiseInputRequired =
             isUnlocked && featureRow.feature === CLASS_FEATURE.EXPERTISE
               ? character.className === "Bard"
@@ -1459,6 +1477,7 @@ function ClassFeatureList({
           const isInputRequired =
             (isUnlocked && isFeatChoiceFeature(featureRow.feature) && linkedFeat === null) ||
             isSpellcastingFeatureInputRequired ||
+            isEldritchInvocationInputRequired ||
             isExpertiseInputRequired ||
             isBardLoreBonusProficienciesRequired ||
             isBardMagicalDiscoveriesRequired ||
@@ -1607,7 +1626,7 @@ function ClassFeatureList({
               showDivider={index > 0}
             >
 {renderClassFeatureContent({
-                    BattleMasterManeuverSelection, CLASS_FEATURE, FeatureChoiceOptions, FeatureDescriptionLines, Pencil, Plus, SKILL, SelectInput,
+                    BattleMasterManeuverSelection, CLASS_FEATURE, EldritchInvocationList, FeatureChoiceOptions, FeatureDescriptionLines, Pencil, Plus, SKILL, SelectInput,
                     WizardBladesingerTrainingInWarAndSongFields, WizardSavantFeatureFields, artisanToolProficiencies, blessedStrikesChoice, buildSkillSelectOptions, buildToolSelectOptions, character, clsx,
                     druidElementalFuryChoice, druidWildShapeKnownForms, druidWildShapeRules, featureDetails, featureRow, fighterBanneretKnightlyEnvoySkillOptions, formatCodexLabel, getAvailableBardExpertiseSkills,
                     getAvailableBardLoreBonusProficiencySkills, getAvailableBardMagicalDiscoveriesSpells, getAvailableBardPrimalLoreCantrips, getAvailableBardPrimalLoreSkills, getAvailableFighterBanneretKnightlyEnvoyLanguages, getAvailableFighterBanneretKnightlyEnvoySkills, getAvailableKnowledgeDomainBlessingsSkills, getAvailableKnowledgeDomainBlessingsTools,
@@ -1618,9 +1637,9 @@ function ClassFeatureList({
                     getKnowledgeDomainUnfetteredMindSavingThrowSelection, getPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection, getProficiencyLabel, getRangerDeftExplorerExpertiseSelection, getRangerDeftExplorerLanguageSelections, getRangerFeyWandererGiftSelection, getRangerGloomStalkerIronMindSavingThrowSelection, getRangerHunterDefensiveTacticsChoice,
                     getRangerHunterPreyChoice, getRangerLevel9ExpertiseSelections, getRangerOtherworldlyGlamourSkillSelection, getRogueExpertiseSelections, getRogueScionOfTheThreeDreadAllegianceChoice, getRogueThievesCantLanguageSelection, getSorcererDraconicElementalAffinityDamageTypeSelection, getSorcererMetamagicSelections,
                     getSorcererMetamagicStartIndex, getWarlockFiendishResilienceDamageTypeSelection, getWarlockMysticArcanumSelection, getWarlockMysticArcanumSpellLevel, getWeaponMasterySelectionCountForCharacter, getWeaponMasterySelections, getWeaponProficiencyLabel, getWizardScholarSelection,
-                    getWizardSignatureSpellSelections, getWizardSpellMasterySelection, isFeatChoiceFeature, isKnowledgeDomainUnfetteredMindLocked, isRangerGloomStalkerIronMindLocked, isSpellcastingFeatureInputRequired, isUnlocked, isWarlockFiendishResilienceInputRequired,
-                    isWizardSavantFeature, linkedFeat, linkedFeatDefinition, linkedFeatSummary, onOpenDivinityReference, onOpenFeatEditorForFeature, onOpenFeatReference, onOpenKeyword,
-                    onOpenSpellReference, onPersistCharacter, paladinOathOfTheNobleGeniesGeniesSplendorSkillOptions, rangerFeyWandererGiftOptions, rangerOtherworldlyGlamourSkillOptions, recomputeCharacterFeatureProficiencies, setIsWildShapeModalOpen, setSelectedWildShapeMonster,
+                    getWizardSignatureSpellSelections, getWizardSpellMasterySelection, isEldritchInvocationInputRequired, isFeatChoiceFeature, isKnowledgeDomainUnfetteredMindLocked, isRangerGloomStalkerIronMindLocked, isSpellcastingFeatureInputRequired, isUnlocked, isWarlockFiendishResilienceInputRequired,
+                    isWizardSavantFeature, learnedInvocationOptions, linkedFeat, linkedFeatDefinition, linkedFeatSummary, eldritchInvocationInputStatus, onOpenDivinityReference, onOpenEldritchInvocationEditor, onOpenFeatEditorForFeature, onOpenFeatReference, onOpenInvocationReference, onOpenKeyword,
+                    onOpenSpellReference, onPersistCharacter, paladinOathOfTheNobleGeniesGeniesSplendorSkillOptions, rangerFeyWandererGiftOptions, rangerOtherworldlyGlamourSkillOptions, recomputeCharacterFeatureProficiencies, renderTrackingButton, setIsWildShapeModalOpen, setSelectedWildShapeMonster,
                     shared, skillsOptions, sorcererDraconicElementalAffinityDamageTypeOptions, spellSelectionInputStatus, styles, updateBarbarianPrimalKnowledgeSelection, updateBarbarianWildHeartAspectChoice, updateBardExpertiseSelection,
                     updateBardLoreBonusProficiencySelection, updateBardMagicalDiscoveriesSpellSelection, updateBardPrimalLoreCantripSelection, updateBardPrimalLoreSkillSelection, updateClericBlessedStrikesChoice, updateClericDivineOrderChoice, updateDruidCircleOfTheLandChoice, updateDruidElementalFuryChoice,
                     updateDruidPrimalOrderChoice, updateFighterBanneretKnightlyEnvoyLanguageSelection, updateFighterBanneretKnightlyEnvoySkillSelection, updateKnowledgeDomainBlessingsSkillSelection, updateKnowledgeDomainBlessingsToolSelection, updateKnowledgeDomainUnfetteredMindSavingThrowSelection, updatePaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection, updateRangerDeftExplorerExpertiseSelection,

@@ -2,7 +2,7 @@ import type { AbilityScores, AttributeMode, Character } from "../../../types";
 import type { CharacterSheetDomain } from "./domains";
 
 export type SkillLevel = "none" | "proficient" | "expert";
-export type SpellManagementMode = "menu" | "cantrips" | "prepared-spells" | "eldritch-invocations";
+export type SpellManagementMode = "menu" | "cantrips" | "prepared-spells";
 export type PersistCharacterOptions = {
   domains?: CharacterSheetDomain[];
   normalize?: "full" | "targeted" | false;
