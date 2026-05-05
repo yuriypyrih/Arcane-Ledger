@@ -177,6 +177,7 @@ export type FeatureActionOptionSelection = "single-immediate" | "single-confirm"
 export type FeatureActionSpellSource = "fixed" | "divine-intervention" | "mystic-arcanum";
 
 export type FeatureActionSpellEffectKind =
+  | "ascendant-step"
   | "armor-of-shadows"
   | "contact-patron"
   | "divine-intervention"

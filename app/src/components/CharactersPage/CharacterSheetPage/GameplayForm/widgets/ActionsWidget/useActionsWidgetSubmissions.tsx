@@ -1506,6 +1506,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
       if (
         nextCharacter === preparedCharacter &&
         fixedSpellExecute.effectKind !== "mantle-of-majesty" &&
+        fixedSpellExecute.effectKind !== "ascendant-step" &&
         fixedSpellExecute.effectKind !== "armor-of-shadows"
       ) {
         return currentCharacter;

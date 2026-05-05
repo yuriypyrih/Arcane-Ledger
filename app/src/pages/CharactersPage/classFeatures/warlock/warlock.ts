@@ -94,11 +94,13 @@ const placeholderSelectionSuffix = "placeholder";
 const magicalCunningUsesTotal = 1;
 const contactPatronUsesTotal = 1;
 const contactOtherPlaneSpellId = "spell-contact-other-plane";
+const levitateSpellId = "spell-levitate";
 const mysticArcanumActionSummary = "Cast your chosen arcanum spells without spell slots.";
 const mysticArcanumActionDetail =
   "Open your chosen Mystic Arcanum spells and cast each of them once per Long Rest.";
 
 export const magicalCunningActionKey = "warlock-magical-cunning";
+export const ascendantStepActionKey = "warlock-ascendant-step";
 export const armorOfShadowsActionKey = "warlock-armor-of-shadows";
 export const contactPatronActionKey = "warlock-contact-patron";
 export const mysticArcanumActionKey = "warlock-mystic-arcanum";
@@ -1166,7 +1168,42 @@ export function getWarlockFeatureActions(
         spellId: mageArmorSpellId,
         spellLevel: 1,
         label: "Open Mage Armor",
-        actionContextText: "Armor of Shadows won't cost a spell slot.",
+        actionContextText: "Armor of Shadows is active.",
+        actionAvailabilityText: "Cast without expending a spell slot.",
+        actionConsumesSpellSlot: false
+      }
+    });
+  }
+
+  if (selectedInvocationIds.has(ELDRITCH_INVOCATION.ASCENDANT_STEP)) {
+    const invocation = getEldritchInvocationEntryById(ELDRITCH_INVOCATION.ASCENDANT_STEP);
+    const description = invocation?.description ?? [
+      "You can cast Levitate on yourself without expending a spell slot."
+    ];
+
+    actions.push({
+      key: ascendantStepActionKey,
+      name: invocation?.name ?? "Ascendant Step",
+      summary: "Cast Levitate without a spell slot.",
+      detail: "Open Levitate and cast it without expending a spell slot.",
+      breakdown: "Open Levitate",
+      economyType: ECONOMY_TYPE.ACTION,
+      actionCategory: ACTION_CATEGORY.MAGIC,
+      description,
+      drawer: {
+        kind: "confirm",
+        eyebrow: "Eldritch Invocation",
+        description,
+        confirmLabel: "Open Levitate"
+      },
+      execute: {
+        kind: "spell",
+        spellSource: "fixed",
+        effectKind: "ascendant-step",
+        spellId: levitateSpellId,
+        spellLevel: 2,
+        label: "Open Levitate",
+        actionContextText: "Ascendant Step is active.",
         actionAvailabilityText: "Cast without expending a spell slot.",
         actionConsumesSpellSlot: false
       }

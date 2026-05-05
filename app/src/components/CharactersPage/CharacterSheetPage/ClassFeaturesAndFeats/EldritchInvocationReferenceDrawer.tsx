@@ -41,6 +41,7 @@ function EldritchInvocationReferenceDrawer({
     () => (selectedFeat ? getFeatDefinition(selectedFeat) : null),
     [selectedFeat]
   );
+  const linkedReferenceBackdropClassName = styles.linkedReferenceDrawerBackdrop;
 
   return (
     <>
@@ -102,12 +103,14 @@ function EldritchInvocationReferenceDrawer({
       {selectedSpellReference ? (
         <CodexSpellDrawer
           spell={selectedSpellReference}
+          backdropClassName={linkedReferenceBackdropClassName}
           onClose={() => setSelectedSpellReference(null)}
         />
       ) : null}
       {selectedDivinityReference ? (
         <CodexDivinityDrawer
           divinity={selectedDivinityReference}
+          backdropClassName={linkedReferenceBackdropClassName}
           onClose={() => setSelectedDivinityReference(null)}
         />
       ) : null}
@@ -121,6 +124,7 @@ function EldritchInvocationReferenceDrawer({
             }
           ]}
           badgeLabel="Keyword"
+          backdropClassName={linkedReferenceBackdropClassName}
           onClose={() => setSelectedKeyword(null)}
         />
       ) : null}
@@ -134,6 +138,7 @@ function EldritchInvocationReferenceDrawer({
               description: selectedFeatDefinition.description
             }
           ]}
+          backdropClassName={linkedReferenceBackdropClassName}
           onClose={() => setSelectedFeat(null)}
         />
       ) : null}

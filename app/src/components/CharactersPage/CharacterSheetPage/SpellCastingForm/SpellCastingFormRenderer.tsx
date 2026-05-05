@@ -81,6 +81,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
               key={slotLevel}
               type="button"
               borderSize="sm"
+              hasBorder
               hoverBorder
               className={clsx(
                 styles.spellSlotCard,

@@ -320,6 +320,10 @@
   z-index: 49;
 }
 
+.linkedReferenceDrawerBackdrop {
+  z-index: 50;
+}
+
 @media (max-width: 720px) {
   .buildSectionHeader {
     gap: 0.8rem;

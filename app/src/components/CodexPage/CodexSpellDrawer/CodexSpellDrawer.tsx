@@ -56,6 +56,7 @@ type SelectedFeatReference = {
 type CodexSpellDrawerProps = {
   spell: SpellEntry;
   onClose: () => void;
+  backdropClassName?: string;
 };
 
 function hasSpellHealing(spell: Pick<SpellEntry, "healing">): boolean {
@@ -64,7 +65,7 @@ function hasSpellHealing(spell: Pick<SpellEntry, "healing">): boolean {
     : spell.healing.label.trim().length > 0;
 }
 
-function CodexSpellDrawer({ spell, onClose }: CodexSpellDrawerProps) {
+function CodexSpellDrawer({ spell, onClose, backdropClassName }: CodexSpellDrawerProps) {
   const [isComponentsTooltipOpen, setIsComponentsTooltipOpen] = useState(false);
   const [selectedSpellReference, setSelectedSpellReference] = useState<SpellEntry | null>(null);
   const [selectedDivinityReference, setSelectedDivinityReference] = useState<DivinityEntry | null>(
@@ -95,6 +96,7 @@ function CodexSpellDrawer({ spell, onClose }: CodexSpellDrawerProps) {
       <SheetDrawer
         titleId="codex-spell-drawer-title"
         onClose={onClose}
+        backdropClassName={backdropClassName}
         onEscape={() => {
           if (selectedFeatReference) {
             setSelectedFeatReference(null);
@@ -228,6 +230,7 @@ function CodexSpellDrawer({ spell, onClose }: CodexSpellDrawerProps) {
             }
           ]}
           badgeLabel="Keyword"
+          backdropClassName={backdropClassName}
           onClose={() => setIsComponentsTooltipOpen(false)}
         />
       ) : null}
@@ -235,12 +238,14 @@ function CodexSpellDrawer({ spell, onClose }: CodexSpellDrawerProps) {
       {selectedSpellReference ? (
         <CodexSpellDrawer
           spell={selectedSpellReference}
+          backdropClassName={backdropClassName}
           onClose={() => setSelectedSpellReference(null)}
         />
       ) : null}
       {selectedDivinityReference ? (
         <CodexDivinityDrawer
           divinity={selectedDivinityReference}
+          backdropClassName={backdropClassName}
           onClose={() => setSelectedDivinityReference(null)}
         />
       ) : null}
@@ -254,6 +259,7 @@ function CodexSpellDrawer({ spell, onClose }: CodexSpellDrawerProps) {
             }
           ]}
           badgeLabel="Keyword"
+          backdropClassName={backdropClassName}
           onClose={() => setSelectedKeyword(null)}
         />
       ) : null}
@@ -261,6 +267,7 @@ function CodexSpellDrawer({ spell, onClose }: CodexSpellDrawerProps) {
         <CodexFeatDrawer
           feat={selectedFeatReference.feat}
           label={selectedFeatReference.label}
+          backdropClassName={backdropClassName}
           onClose={() => setSelectedFeatReference(null)}
         />
       ) : null}

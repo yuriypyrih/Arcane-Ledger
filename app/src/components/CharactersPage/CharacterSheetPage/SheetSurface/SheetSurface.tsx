@@ -7,6 +7,7 @@ export type SheetSurfaceBorderSize = "xm" | "sm" | "md" | "lg" | "xl";
 type SheetSurfaceOwnProps<T extends ElementType = "div"> = {
   as?: T;
   borderSize?: SheetSurfaceBorderSize;
+  hasBorder?: boolean;
   hoverBorder?: boolean;
   className?: string;
   children?: ReactNode;
@@ -26,6 +27,7 @@ const borderSizeClassNames: Record<SheetSurfaceBorderSize, string> = {
 function SheetSurface<T extends ElementType = "div">({
   as,
   borderSize = "md",
+  hasBorder = false,
   hoverBorder = false,
   className,
   children,
@@ -38,7 +40,8 @@ function SheetSurface<T extends ElementType = "div">({
       className={clsx(
         styles.root,
         borderSizeClassNames[borderSize],
-        hoverBorder && styles.hoverBorder,
+        hoverBorder && styles.hoverTint,
+        hasBorder && styles.hasBorder,
         className
       )}
       {...props}
