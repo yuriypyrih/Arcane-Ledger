@@ -175,7 +175,7 @@ import {
   getSpellOutcomeSummaryForCharacter
 } from "../../../../pages/CharactersPage/spellOutcome";
 import { getSpellAttackRollFormulaForCharacter } from "../../../../pages/CharactersPage/shared/spellFormulas";
-import { applyMageArmorSelfCastForCharacter } from "../../../../pages/CharactersPage/spellEffects/mageArmor";
+import { applySpellImplementationForCharacter } from "../../../../pages/CharactersPage/characterRuntime/spellImplementations";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import SheetSurface from "../SheetSurface";
@@ -1850,7 +1850,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     castMageArmorOnSelf?: boolean;
   }) {
   return castSelectedSpellWithContext({
-    ACTION_CATEGORY, DURATION, activateFighterPsiWarriorTelekineticMasterSpellCastForCharacter, applyMageArmorSelfCastForCharacter, applyPaladinOathOfTheNobleGeniesElementalSmiteEffect, applyRangerWinterWalkerFrozenHauntStatusEntriesForCharacter, applySpellCastFeatureEffectsForCharacter, applySpellConcentrationToStatusEntries, applyWizardEvokerOverchannelUse,
+    ACTION_CATEGORY, DURATION, activateFighterPsiWarriorTelekineticMasterSpellCastForCharacter, applyPaladinOathOfTheNobleGeniesElementalSmiteEffect, applyRangerWinterWalkerFrozenHauntStatusEntriesForCharacter, applySpellCastFeatureEffectsForCharacter, applySpellConcentrationToStatusEntries, applySpellImplementationForCharacter, applyWizardEvokerOverchannelUse,
     canUseWarlockCelestialPatronRadiantSoulForSpell, canUseWizardEvokerOverchannelForSpellSlot, channelDivinityUsesRemaining, character, clampNumber, closeSelectedSpell, consumeBeguilingMagicOrBardicInspirationForCharacter, consumeBlessingOfMoonlightUseForCharacter, consumeFeyTouchedFreeCastForCharacter, consumeMagicInitiateFreeCastForCharacter, consumeRitualCasterQuickRitualForCharacter, consumeShadowTouchedFreeCastForCharacter, consumeTelepathicDetectThoughtsFreeCastForCharacter,
     consumeDruidNaturalRecoveryUseForCharacter, consumeDruidStarMapGuidingBoltUseForCharacter, consumeRangerFeyReinforcementsUseForCharacter, consumeRangerMistyWandererUseForCharacter, consumeRangerWinterWalkerFrozenHauntUseForCharacter, consumeRoundTrackerResourceForCharacter, consumeSharedEconomyMultiForCharacterAction, consumeSorcererSubclassTamedSurgeUseForCharacter,
     consumeWarlockStepsOfTheFeyUseForCharacter, consumeWizardIllusionistPhantasmalCreaturesUseForCharacter, consumeWizardSignatureSpellFreeCastForCharacter, createEconomyMultiContextForSpell, druidNaturalRecoveryUsesRemaining, expendChannelDivinityUseForCharacter, fighterPsiWarriorEnergyDiceRemaining, fighterPsiWarriorTelekineticMasterConcentrationStatusSourceId,

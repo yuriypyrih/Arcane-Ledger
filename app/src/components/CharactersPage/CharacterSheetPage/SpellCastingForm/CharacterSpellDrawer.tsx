@@ -47,7 +47,7 @@ import {
 } from "../../../../pages/CharactersPage/shared/spellFormulas";
 import { isInnateSorceryActiveForSpell } from "../../../../pages/CharactersPage/classFeatures/sorcerer/innateSorcerySpell";
 import { isRogueArcaneTricksterMagicalAmbushActiveForSpell } from "../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueArcaneTrickster";
-import { mageArmorSpellId } from "../../../../pages/CharactersPage/spellEffects/mageArmor";
+import { mageArmorSpellId } from "../../../../pages/CharactersPage/characterRuntime/spellImplementations";
 import type {
   FeatureActionCardUsage,
   FeatureActionFact,

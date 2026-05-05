@@ -28,7 +28,7 @@ import {
   isItemBodyArmorRecord,
   isItemShieldRecord
 } from "./inventoryItems";
-import { getMageArmorArmorClassModes } from "./spellEffects/mageArmor";
+import { getMageArmorArmorClassModes } from "./characterRuntime/spellImplementations";
 
 export type BodyArmorType = "light" | "medium" | "heavy";
 

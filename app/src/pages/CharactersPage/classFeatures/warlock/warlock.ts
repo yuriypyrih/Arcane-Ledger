@@ -21,7 +21,7 @@ import { getAbilityModifierForCharacter } from "../../abilities";
 import { getFeatDefinitionsByCategory } from "../../feats";
 import type { Character, CharacterWarlockFeatureState } from "../../../../types";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../spellcasting";
-import { mageArmorSpellId } from "../../spellEffects/mageArmor";
+import { mageArmorSpellId } from "../../characterRuntime/spellImplementations";
 import type { FeatureActionCard, FeatureDamageBonus, SpellFeatureContext } from "../types";
 import { getFeatureDescriptionForCharacter } from "../featureDescriptions";
 import {

@@ -242,7 +242,7 @@ import {
   applySpellConcentrationToStatusEntries,
   removeInvisibleConditionFromCharacter
 } from "../../../../../../pages/CharactersPage/statusEntries";
-import { applyMageArmorSelfCastForCharacter } from "../../../../../../pages/CharactersPage/spellEffects/mageArmor";
+import { applySpellImplementationForCharacter } from "../../../../../../pages/CharactersPage/characterRuntime/spellImplementations";
 import {
   applyRolledHealingToCharacter,
   applyRolledTemporaryHitPointsToCharacter,
@@ -1443,6 +1443,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     const castMageArmorOnSelf =
       fixedSpellExecute.effectKind === "armor-of-shadows" ||
       options?.castMageArmorOnSelf === true;
+    const spellImplementationOptions = { castMageArmorOnSelf };
     const minimumSlotLevel = Math.max(
       getSpellLevel(fixedSpellEntry),
       fixedSpellMinimumActionSlotLevel ?? 1
@@ -1580,12 +1581,14 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
                     fixedSpellEntry
                   )
             };
-      const nextCharacterWithMageArmor = castMageArmorOnSelf
-        ? applyMageArmorSelfCastForCharacter(nextCharacterWithConcentration, fixedSpellEntry)
-        : nextCharacterWithConcentration;
+      const nextCharacterWithSpellImplementation = applySpellImplementationForCharacter({
+        character: nextCharacterWithConcentration,
+        spell: fixedSpellEntry,
+        options: spellImplementationOptions
+      });
       const nextCharacterWithBeguilingMagic = useBeguilingMagic
-        ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithMageArmor)
-        : nextCharacterWithMageArmor;
+        ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithSpellImplementation)
+        : nextCharacterWithSpellImplementation;
       const nextCharacterWithElementalSmite = useElementalSmite
         ? applyPaladinOathOfTheNobleGeniesElementalSmiteEffect(
             expendChannelDivinityUseForCharacter(nextCharacterWithBeguilingMagic),
@@ -1660,9 +1663,13 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
           selectedDivineInterventionSpell
         )
       };
+      const nextCharacterWithSpellImplementation = applySpellImplementationForCharacter({
+        character: nextCharacterWithConcentration,
+        spell: selectedDivineInterventionSpell
+      });
       const nextCharacterWithBeguilingMagic = useBeguilingMagic
-        ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithConcentration)
-        : nextCharacterWithConcentration;
+        ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithSpellImplementation)
+        : nextCharacterWithSpellImplementation;
       const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
         nextCharacterWithBeguilingMagic,
         selectedDivineInterventionSpell
@@ -1716,9 +1723,13 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
           selectedMysticArcanumSpell
         )
       };
+      const nextCharacterWithSpellImplementation = applySpellImplementationForCharacter({
+        character: nextCharacterWithConcentration,
+        spell: selectedMysticArcanumSpell
+      });
       const nextCharacterWithBeguilingMagic = useBeguilingMagic
-        ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithConcentration)
-        : nextCharacterWithConcentration;
+        ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithSpellImplementation)
+        : nextCharacterWithSpellImplementation;
       const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
         nextCharacterWithBeguilingMagic,
         selectedMysticArcanumSpell

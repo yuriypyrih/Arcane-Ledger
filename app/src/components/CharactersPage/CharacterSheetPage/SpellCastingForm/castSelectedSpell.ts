@@ -3,7 +3,7 @@
 
 export function castSelectedSpellWithContext(context: Record<string, any>, options?: any) {
   const {
-    ACTION_CATEGORY, DURATION, activateFighterPsiWarriorTelekineticMasterSpellCastForCharacter, applyMageArmorSelfCastForCharacter, applyPaladinOathOfTheNobleGeniesElementalSmiteEffect, applyRangerWinterWalkerFrozenHauntStatusEntriesForCharacter, applySpellCastFeatureEffectsForCharacter, applySpellConcentrationToStatusEntries, applyWizardEvokerOverchannelUse, canUseWarlockCelestialPatronRadiantSoulForSpell,
+    ACTION_CATEGORY, DURATION, activateFighterPsiWarriorTelekineticMasterSpellCastForCharacter, applyPaladinOathOfTheNobleGeniesElementalSmiteEffect, applyRangerWinterWalkerFrozenHauntStatusEntriesForCharacter, applySpellCastFeatureEffectsForCharacter, applySpellConcentrationToStatusEntries, applySpellImplementationForCharacter, applyWizardEvokerOverchannelUse, canUseWarlockCelestialPatronRadiantSoulForSpell,
     canUseWizardEvokerOverchannelForSpellSlot, channelDivinityUsesRemaining, character, clampNumber, closeSelectedSpell, consumeBeguilingMagicOrBardicInspirationForCharacter, consumeBlessingOfMoonlightUseForCharacter, consumeDruidNaturalRecoveryUseForCharacter, consumeDruidStarMapGuidingBoltUseForCharacter, consumeFeyTouchedFreeCastForCharacter, consumeMagicInitiateFreeCastForCharacter, consumeRitualCasterQuickRitualForCharacter, consumeShadowTouchedFreeCastForCharacter, consumeTelepathicDetectThoughtsFreeCastForCharacter,
     consumeRangerFeyReinforcementsUseForCharacter, consumeRangerMistyWandererUseForCharacter, consumeRangerWinterWalkerFrozenHauntUseForCharacter, consumeRoundTrackerResourceForCharacter, consumeSharedEconomyMultiForCharacterAction, consumeSorcererSubclassTamedSurgeUseForCharacter, consumeWarlockStepsOfTheFeyUseForCharacter, consumeWizardIllusionistPhantasmalCreaturesUseForCharacter, consumeWizardSignatureSpellFreeCastForCharacter,
     createEconomyMultiContextForSpell, druidNaturalRecoveryUsesRemaining, expendChannelDivinityUseForCharacter, fighterPsiWarriorEnergyDiceRemaining, fighterPsiWarriorTelekineticMasterConcentrationStatusSourceId, fighterPsiWarriorTelekineticMasterUsesRemaining, getDruidStarMapGuidingBoltUsesRemainingForCharacter, getRangerWinterWalkerFrozenHauntSpellOptionStateForCharacter, getRoundTrackerResourceForSpell,
@@ -56,6 +56,7 @@ if (!selectedSpell || (spellcastingState.blocked && !selectedSpellCanIgnoreSpell
     const useBoonOfSpellRecall =
       options?.useBoonOfSpellRecall === true && selectedSpellSupportsBoonOfSpellRecall;
     const castMageArmorOnSelf = options?.castMageArmorOnSelf === true;
+    const spellImplementationOptions = { castMageArmorOnSelf };
     const useBlessingOfMoonlight = options?.useBlessingOfMoonlight === true;
     const useElementalSmite =
       options?.useElementalSmite === true &&
@@ -164,13 +165,18 @@ if (!selectedSpell || (spellcastingState.blocked && !selectedSpellCanIgnoreSpell
                 elementalSmiteOption
               )
             : nextCharacterWithSpellOptions;
+          const nextCharacterWithSpellImplementation = applySpellImplementationForCharacter({
+            character: nextCharacterWithElementalSmite,
+            spell: selectedSpell,
+            options: spellImplementationOptions
+          });
 
           const nextCharacterWithSharedMulti = consumeSharedEconomyMultiForCharacterAction(
-            nextCharacterWithElementalSmite,
+            nextCharacterWithSpellImplementation,
             sharedEconomyContext
           );
 
-          if (nextCharacterWithSharedMulti !== nextCharacterWithElementalSmite) {
+          if (nextCharacterWithSharedMulti !== nextCharacterWithSpellImplementation) {
             return applySpellCastFeatureEffectsForCharacter(
               nextCharacterWithSharedMulti,
               selectedSpell,
@@ -179,7 +185,7 @@ if (!selectedSpell || (spellcastingState.blocked && !selectedSpellCanIgnoreSpell
           }
 
           const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
-            nextCharacterWithElementalSmite,
+            nextCharacterWithSpellImplementation,
             selectedSpell,
             { useRadiantSoul }
           );
@@ -210,21 +216,26 @@ if (!selectedSpell || (spellcastingState.blocked && !selectedSpellCanIgnoreSpell
                 elementalSmiteOption
               )
             : nextCharacterWithSpellOptions;
-
-          const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
-            nextCharacterWithElementalSmite,
-            selectedSpell,
-            { useRadiantSoul }
-          );
-
-          return {
-            ...nextCharacterWithSpellCastEffects,
+          const nextCharacterWithConcentration = {
+            ...nextCharacterWithElementalSmite,
             statusEntries: applySpellConcentrationToStatusEntries(
-              nextCharacterWithSpellCastEffects.statusEntries,
+              nextCharacterWithElementalSmite.statusEntries,
               spellForStatusEntries,
               concentrationStatusOptions
             )
           };
+          const nextCharacterWithSpellImplementation = applySpellImplementationForCharacter({
+            character: nextCharacterWithConcentration,
+            spell: selectedSpell,
+            options: spellImplementationOptions
+          });
+          const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
+            nextCharacterWithSpellImplementation,
+            selectedSpell,
+            { useRadiantSoul }
+          );
+
+          return nextCharacterWithSpellCastEffects;
         });
       }
 
@@ -263,9 +274,14 @@ if (!selectedSpell || (spellcastingState.blocked && !selectedSpellCanIgnoreSpell
               elementalSmiteOption
             )
           : nextCharacterWithSpellOptions;
+        const nextCharacterWithSpellImplementation = applySpellImplementationForCharacter({
+          character: nextCharacterWithElementalSmite,
+          spell: selectedSpell,
+          options: spellImplementationOptions
+        });
 
         const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
-          nextCharacterWithElementalSmite,
+          nextCharacterWithSpellImplementation,
           selectedSpell,
           { includeBardBattleMagic: false, useRadiantSoul }
         );
@@ -525,14 +541,16 @@ if (!selectedSpell || (spellcastingState.blocked && !selectedSpellCanIgnoreSpell
               concentrationStatusOptions
             )
       };
-      const nextCharacterWithMageArmor = castMageArmorOnSelf
-        ? applyMageArmorSelfCastForCharacter(nextCharacterWithSpellcast, selectedSpell)
-        : nextCharacterWithSpellcast;
+      const nextCharacterWithSpellImplementation = applySpellImplementationForCharacter({
+        character: nextCharacterWithSpellcast,
+        spell: selectedSpell,
+        options: spellImplementationOptions
+      });
       const nextCharacterWithTelekineticMaster = castsFreeViaTelekineticMaster
         ? activateFighterPsiWarriorTelekineticMasterSpellCastForCharacter(
-            nextCharacterWithMageArmor
+            nextCharacterWithSpellImplementation
           )
-        : nextCharacterWithMageArmor;
+        : nextCharacterWithSpellImplementation;
       const nextCharacterWithBeguilingMagic = useBeguilingMagic
         ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithTelekineticMaster)
         : nextCharacterWithTelekineticMaster;

@@ -1,17 +1,18 @@
-import type { SpellEntry } from "../../../codex/entries";
+import type { SpellEntry } from "../../../../codex/entries";
 import {
   STATUS_DURATION_KIND,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE,
   type Character,
   type CharacterStatusEntry
-} from "../../../types";
+} from "../../../../types";
+import type { ArmorClassFeatureContext, FeatureArmorClassMode } from "../../classFeatures";
 import {
   createCharacterStatusEntry,
   normalizeCharacterStatusEntries,
   pruneLinkedStatusEntries
-} from "../statusEntries";
-import type { ArmorClassFeatureContext, FeatureArmorClassMode } from "../classFeatures";
+} from "../../statusEntries";
+import type { SpellCastImplementationContext } from "./types";
 
 export const mageArmorSpellId = "spell-mage-armor";
 export const mageArmorStatusSourceId = "spell-mage-armor-self";
@@ -31,7 +32,7 @@ export function hasMageArmorSelfStatus(statusEntries: Character["statusEntries"]
   return normalizeCharacterStatusEntries(statusEntries).some(isMageArmorSelfStatusEntry);
 }
 
-export function applyMageArmorSelfCastForCharacter(
+function applyMageArmorSelfCastForCharacter(
   character: Character,
   spell: Pick<SpellEntry, "id" | "name" | "description">
 ): Character {
@@ -61,6 +62,16 @@ export function applyMageArmorSelfCastForCharacter(
     ...character,
     statusEntries: pruneLinkedStatusEntries(nextStatusEntries)
   };
+}
+
+export function applyMageArmorSpellImplementation(
+  context: SpellCastImplementationContext
+): Character {
+  if (!context.options.castMageArmorOnSelf) {
+    return context.character;
+  }
+
+  return applyMageArmorSelfCastForCharacter(context.character, context.spell);
 }
 
 export function getMageArmorArmorClassModes(
