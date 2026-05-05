@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { Pencil, Plus, X } from "lucide-react";
-import type { Dispatch, ReactNode, SetStateAction } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import { FEATS, getFeatureTrackingState, type SpellEntry } from "../../../../codex/entries";
 import { abilityKeys } from "../../../../pages/CharactersPage/constants";
 import {
@@ -77,10 +77,15 @@ import {
 import type { FeatEligibilityResult } from "../../../../pages/CharactersPage/feats/eligibility";
 import { formatCodexLabel } from "../../../../utils/codex";
 import ActionButton from "../../../ActionButton";
-import SelectInput from "../../FormInputs/SelectInput";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import cardStyles from "./FeatCards.module.css";
 import modalStyles from "./FeatEditorModal.module.css";
+import {
+  CantripChoiceEditor,
+  InlineEditorFrame,
+  SelectField,
+  SingleAbilityEditor
+} from "./FeatEditorPrimitives";
 import {
   getPendingBlessedWarriorChoiceSummary,
   getPendingAthleteChoiceSummary,
@@ -276,51 +281,6 @@ type FeatEditorCardProps = {
   onSavePendingSkilledChoice: () => void;
 };
 
-type InlineEditorFrameProps = {
-  title: string;
-  cancelLabel: string;
-  onCancel: () => void;
-  children: ReactNode;
-  footer: ReactNode;
-};
-
-type SelectFieldProps = {
-  label: string;
-  value: string;
-  disabled?: boolean;
-  options: Array<{
-    disabled?: boolean;
-    label: string;
-    value: string;
-  }>;
-  onChange: (nextValue: string) => void;
-};
-
-type CantripChoiceEditorProps = {
-  title: string;
-  cancelLabel: string;
-  choice: PendingBlessedWarriorChoice | PendingDruidicWarriorChoice;
-  options: SpellEntry[];
-  summary: string | null;
-  isValid: boolean;
-  validationMessage: string;
-  onCancel: () => void;
-  onSave: () => void;
-  onChange: (selectionIndex: number, nextValue: string) => void;
-};
-
-type SingleAbilityEditorProps = {
-  title: string;
-  cancelLabel: string;
-  label: string;
-  summary: string;
-  value: string;
-  options: string[];
-  onCancel: () => void;
-  onSave: () => void;
-  onChange: (nextValue: string) => void;
-};
-
 type ElementalAdeptChoiceEditorProps = {
   choice: PendingElementalAdeptChoice;
   selectedEntries: CharacterFeatEntry[];
@@ -456,146 +416,6 @@ type MagicInitiateChoiceEditorProps = {
   onSave: () => void;
   onChange: (nextChoice: PendingMagicInitiateChoice) => void;
 };
-
-function SelectField({ label, value, disabled, options, onChange }: SelectFieldProps) {
-  return (
-    <label className={modalStyles.field}>
-      <span>{label}</span>
-      <SelectInput
-        className={modalStyles.select}
-        value={value}
-        disabled={disabled}
-        onChange={(event) => onChange(event.target.value)}
-      >
-        {options.map((option) => (
-          <option key={option.value} value={option.value} disabled={option.disabled}>
-            {option.label}
-          </option>
-        ))}
-      </SelectInput>
-    </label>
-  );
-}
-
-function InlineEditorFrame({
-  title,
-  cancelLabel,
-  onCancel,
-  children,
-  footer
-}: InlineEditorFrameProps) {
-  return (
-    <section
-      className={clsx(modalStyles.editorCard, modalStyles.inlineEditor)}
-      role="presentation"
-      onClick={(event) => event.stopPropagation()}
-    >
-      <div className={modalStyles.editorHeader}>
-        <p className={modalStyles.selectionTitle}>{title}</p>
-        <button
-          type="button"
-          className={modalStyles.removeButton}
-          onClick={onCancel}
-          aria-label={cancelLabel}
-        >
-          <X size={16} />
-        </button>
-      </div>
-      {children}
-      {footer}
-    </section>
-  );
-}
-
-function CantripChoiceEditor({
-  title,
-  cancelLabel,
-  choice,
-  options,
-  summary,
-  isValid,
-  validationMessage,
-  onCancel,
-  onSave,
-  onChange
-}: CantripChoiceEditorProps) {
-  return (
-    <InlineEditorFrame
-      title={title}
-      cancelLabel={cancelLabel}
-      onCancel={onCancel}
-      footer={
-        <div className={modalStyles.editorActions}>
-          <ActionButton
-            icon={<Plus size={16} />}
-            fullWidth={false}
-            disabled={!isValid}
-            onClick={onSave}
-          >
-            Add Feat
-          </ActionButton>
-        </div>
-      }
-    >
-      <div className={modalStyles.singleFieldGrid}>
-        {[0, 1].map((selectionIndex) => (
-          <SelectField
-            key={`${title}-cantrip-${selectionIndex}`}
-            label={`Cantrip ${selectionIndex + 1}`}
-            value={choice.cantripIds[selectionIndex]}
-            options={options.map((spell) => ({
-              label: spell.name,
-              value: spell.id
-            }))}
-            onChange={(nextValue) => onChange(selectionIndex, nextValue)}
-          />
-        ))}
-      </div>
-      {summary ? <p className={modalStyles.summary}>{summary}</p> : null}
-      {!isValid ? <p className={modalStyles.validation}>{validationMessage}</p> : null}
-    </InlineEditorFrame>
-  );
-}
-
-function SingleAbilityEditor({
-  title,
-  cancelLabel,
-  label,
-  summary,
-  value,
-  options,
-  onCancel,
-  onSave,
-  onChange
-}: SingleAbilityEditorProps) {
-  return (
-    <InlineEditorFrame
-      title={title}
-      cancelLabel={cancelLabel}
-      onCancel={onCancel}
-      footer={
-        <div className={modalStyles.editorActions}>
-          <ActionButton icon={<Plus size={16} />} fullWidth={false} onClick={onSave}>
-            Add Feat
-          </ActionButton>
-        </div>
-      }
-    >
-      <div className={modalStyles.singleFieldGrid}>
-        <SelectField
-          label={label}
-          value={value}
-          options={options.map((option) => ({
-            label: option,
-            value: option
-          }))}
-          onChange={onChange}
-        />
-      </div>
-      <p className={modalStyles.summary}>{summary}</p>
-    </InlineEditorFrame>
-  );
-}
 
 function ElementalAdeptChoiceEditor({
   choice,

@@ -3,31 +3,21 @@ import {
   FEATS,
   REACTION,
   SPELL_COMPONENT,
-  SPELL_LIST_CLASS,
   WEAPON_BASE,
   WEAPON_COMBAT_TYPE,
   WEAPON_PROPERTY,
-  getSpellEntryById,
   type ReactionEntry,
   type SpellDescriptionEntry,
   type SpellEntry
 } from "../../../../codex/entries";
-import { getSpellEntriesForSpellListClass } from "../../../../codex/classes/spellAccess";
 import {
   SENSE,
   STATUS_DURATION_KIND,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../types";
-import type {
-  AbilityKey,
-  Character,
-  CharacterFeatEntry,
-  ItemRecord,
-  MagicInitiateChoice
-} from "../../../../types";
+import type { AbilityKey, Character, CharacterFeatEntry, ItemRecord } from "../../../../types";
 import { getAbilityModifierForCharacter } from "../../abilities";
-import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import {
   appendSourcedDescriptionAddition,
   createSourcedDescriptionEntries
@@ -39,121 +29,119 @@ import type {
   FeatureSpeedBonus
 } from "../../classFeatures/types";
 import {
-  createChargesCardUsage,
-  createChargesHeaderTag,
-  createFeatureActionCardCost,
-  createNamedResourceCardUsage,
-  createTextHeaderTag
-} from "../../classFeatures/cardUsage";
-import { getProficiencyBonus } from "../../gameplay";
-import {
   getHitDiceRemainingForCharacter,
-  getHitDiceTotalForCharacter,
-  getHitDieFormulaForClass,
-  getHitDieLabelForCharacter
+  getHitDieFormulaForClass
 } from "../../hitDice";
-import { formatFormulaCell, formatSignedFormulaTerm } from "../../shared/formulas";
 import { getFeatDefinition, getFeatLabel, normalizeCharacterFeats } from "..";
 import { formatCodexLabel } from "../../../../utils/codex";
+import {
+  createBoonOfFateImproveFateAction,
+  createBoonOfRecoveryRecoverVitalityAction,
+  createDurableSpeedyRecoveryAction,
+  createLuckyAction,
+  createTelekineticShoveAction
+} from "./actions";
+import {
+  actorStatusSourceId,
+  blindFightingBlindsightStatusSourceId,
+  boonOfEnergyResistanceReactionEntryId,
+  boonOfEnergyResistanceStatusSourceIdPrefix,
+  boonOfNightSpiritStatusSourceId,
+  defensiveDuelistParryReactionEntryId,
+  elementalAdeptEnergyMasteryDescription,
+  feyTouchedFeyMagicDescription,
+  feyTouchedMistyStepSpellId,
+  heavyArmorMasterDamageReductionStatusSourceId,
+  interceptionReactionEntryId,
+  mageSlayerConcentrationBreakerStatusSourceId,
+  polearmMasterReactiveStrikeReactionEntryId,
+  protectionReactionEntryId,
+  ritualCasterQuickRitualDescription,
+  sentinelGuardianHaltStatusSourceId,
+  shadowTouchedInvisibilitySpellId,
+  shadowTouchedShadowMagicDescription,
+  shieldMasterReactionEntryId,
+  skulkerBlindsightStatusSourceId,
+  speedyAgileMovementStatusSourceId,
+  telekineticMageHandSpellId,
+  telepathicDetectThoughtsSpellId,
+  telepathicUtteranceStatusSourceId,
+  warCasterReactiveSpellReactionEntryId
+} from "./constants";
+import {
+  getFeatCantripEntries,
+  getFeyTouchedSpellEntries,
+  getMagicInitiateLevelOneSpellEntry,
+  getRitualCasterSpellEntries,
+  getShadowTouchedSpellEntries,
+  getTelekineticMageHandSpellEntry,
+  getTelepathicDetectThoughtsSpellEntry
+} from "./spells";
+import {
+  filterDescriptionEntries,
+  isArcheryWeaponActionDescriptionEntry,
+  isBoonOfCombatProwessPeerlessAimDescriptionEntry,
+  isBoonOfDimensionalTravelBlinkStepsDescriptionEntry,
+  isBoonOfEnergyResistanceEnergyRedirectionDescriptionEntry,
+  isBoonOfEnergyResistanceEnergyResistancesDescriptionEntry,
+  isBoonOfFateImproveFateDescriptionEntry,
+  isBoonOfIrresistibleOffenseDescriptionEntry,
+  isBoonOfNightSpiritDescriptionEntry,
+  isBoonOfRecoveryRecoverVitalityDescriptionEntry,
+  isBoonOfSpeedEscapeArtistDescriptionEntry,
+  isBoonOfSpellRecallFreeCastingDescriptionEntry,
+  isChargerChargeAttackDescriptionEntry,
+  isChargerImprovedDashDescriptionEntry,
+  isChefBolsteringTreatsDescriptionEntry,
+  isChefReplenishingMealDescriptionEntry,
+  isCrossbowExpertDescriptionEntry,
+  isCrusherWeaponActionDescriptionEntry,
+  isDefensiveDuelistParryDescriptionEntry,
+  isDualWielderEnhancedDualWieldingDescriptionEntry,
+  isDuelingWeaponActionDescriptionEntry,
+  isDurableSpeedyRecoveryDescriptionEntry,
+  isGreatWeaponMasterHeavyWeaponMasteryDescriptionEntry,
+  isGreatWeaponMasterHewDescriptionEntry,
+  isHeavyArmorMasterDamageReductionDescriptionEntry,
+  isInspiringLeaderBolsteringPerformanceDescriptionEntry,
+  isKeenMindQuickStudyDescriptionEntry,
+  isMageSlayerConcentrationBreakerDescriptionEntry,
+  isMageSlayerGuardedMindDescriptionEntry,
+  isMediumArmorMasterDexterousWearerDescriptionEntry,
+  isObservantQuickSearchDescriptionEntry,
+  isPiercerWeaponActionDescriptionEntry,
+  isPoisonerPotentPoisonDescriptionEntry,
+  isPolearmMasterPoleStrikeDescriptionEntry,
+  isPolearmMasterReactiveStrikeDescriptionEntry,
+  isSentinelGuardianHaltDescriptionEntry,
+  isSharpshooterDescriptionEntry,
+  isShieldMasterInterposeShieldDescriptionEntry,
+  isShieldMasterShieldBashDescriptionEntry,
+  isSkulkerHideDescriptionEntry,
+  isSlasherWeaponActionDescriptionEntry,
+  isSpeedyAgileMovementDescriptionEntry,
+  isSpeedyDashOverDifficultTerrainDescriptionEntry,
+  isSpellSniperDescriptionEntry,
+  isTelekineticMinorTelekinesisDescriptionEntry,
+  isTelekineticShoveDescriptionEntry,
+  isTelepathicDetectThoughtsDescriptionEntry,
+  isTelepathicUtteranceDescriptionEntry,
+  isThrownWeaponFightingWeaponActionDescriptionEntry,
+  isTwoWeaponFightingWeaponActionDescriptionEntry,
+  isUnarmedFightingWeaponActionDescriptionEntry,
+  isWarCasterConcentrationDescriptionEntry,
+  isWarCasterReactiveSpellDescriptionEntry,
+  isWarCasterSomaticComponentsDescriptionEntry,
+  isWeaponMasterMasteryPropertyDescriptionEntry
+} from "./descriptionMatchers";
+import { getFeatItemAdditionalDescription } from "./itemAdditions";
 import type { FeatDerivedState, FeatRuntimeCharacter } from "./types";
 
 export type { FeatDerivedState, FeatRuntimeCharacter } from "./types";
+export * from "./capabilities";
+export * from "./constants";
 
-const blessedWarriorCantripOptionsById = new Map(
-  getSpellEntriesForSpellListClass(SPELL_LIST_CLASS.CLERIC)
-    .filter((spell) => spell.spellLevel === 0)
-    .map((spell) => [spell.id, spell] as const)
-);
-const druidicWarriorCantripOptionsById = new Map(
-  getSpellEntriesForSpellListClass(SPELL_LIST_CLASS.DRUID)
-    .filter((spell) => spell.spellLevel === 0)
-    .map((spell) => [spell.id, spell] as const)
-);
-const magicInitiateSpellLists = [
-  SPELL_LIST_CLASS.CLERIC,
-  SPELL_LIST_CLASS.DRUID,
-  SPELL_LIST_CLASS.WIZARD
-] as const;
-const magicInitiateCantripOptionsBySpellListAndId = new Map<
-  MagicInitiateChoice["spellList"],
-  Map<string, SpellEntry>
->(
-  magicInitiateSpellLists.map((spellList) => [
-    spellList,
-    new Map(
-      getSpellEntriesForSpellListClass(spellList)
-        .filter((spell) => spell.spellLevel === 0)
-        .map((spell) => [spell.id, spell] as const)
-    )
-  ])
-);
-const magicInitiateLevelOneSpellOptionsBySpellListAndId = new Map<
-  MagicInitiateChoice["spellList"],
-  Map<string, SpellEntry>
->(
-  magicInitiateSpellLists.map((spellList) => [
-    spellList,
-    new Map(
-      getSpellEntriesForSpellListClass(spellList)
-        .filter((spell) => spell.spellLevel === 1)
-        .map((spell) => [spell.id, spell] as const)
-    )
-  ])
-);
 const featDerivedStateCache = new WeakMap<object, Map<number, FeatDerivedState>>();
-const healerKitItemKeys = new Set([
-  "srd_healers-kit",
-  "srd-2024_healers-kit",
-  "healers-kit",
-  "healers_kit"
-]);
-const poisonersKitItemKeys = new Set([
-  "srd_poisoners-kit",
-  "srd-2024_poisoners-kit",
-  "srd_poisoners_kit",
-  "srd-2024_poisoners_kit",
-  "poisoners-kit",
-  "poisoners_kit"
-]);
-export const actorStatusSourceId = "feat-actor";
-export const heavyArmorMasterDamageReductionStatusSourceId =
-  "feat-heavy-armor-master-damage-reduction";
-export const mageSlayerConcentrationBreakerStatusSourceId =
-  "feat-mage-slayer-concentration-breaker";
-export const speedyAgileMovementStatusSourceId = "feat-speedy-agile-movement";
-export const sentinelGuardianHaltStatusSourceId = "feat-sentinel-guardian-halt";
-export const blindFightingBlindsightStatusSourceId = "feat-blind-fighting-blindsight";
-export const skulkerBlindsightStatusSourceId = "feat-skulker-blindsight";
-export const telepathicUtteranceStatusSourceId = "feat-telepathic-utterance";
-export const boonOfEnergyResistanceStatusSourceIdPrefix = "feat-boon-energy-resistance-";
-export const boonOfNightSpiritStatusSourceId = "feat-boon-night-spirit";
-export const defensiveDuelistParryReactionEntryId = "reaction-defensive-duelist-parry";
-export const boonOfEnergyResistanceReactionEntryId =
-  "reaction-boon-of-energy-resistance-energy-redirection";
-export const interceptionReactionEntryId = "reaction-interception";
-export const polearmMasterReactiveStrikeReactionEntryId =
-  "reaction-polearm-master-reactive-strike";
-export const protectionReactionEntryId = "reaction-protection";
-export const shieldMasterReactionEntryId = "reaction-shield-master";
-export const warCasterReactiveSpellReactionEntryId = "reaction-war-caster-reactive-spell";
-export const luckyFeatActionKey = "feat-lucky";
-export const boonOfFateImproveFateActionKey = "feat-boon-of-fate-improve-fate";
-export const boonOfRecoveryRecoverVitalityActionKey =
-  "feat-boon-of-recovery-recover-vitality";
-export const durableSpeedyRecoveryActionKey = "feat-durable-speedy-recovery";
-export const telekineticShoveActionKey = "feat-telekinetic-shove";
-const feyTouchedMistyStepSpellId = "spell-misty-step";
-const telekineticMageHandSpellId = "spell-mage-hand";
-const telepathicDetectThoughtsSpellId = "spell-detect-thoughts";
-const shadowTouchedInvisibilitySpellId = "spell-invisibility";
-const elementalAdeptEnergyMasteryDescription =
-  "Spells you cast ignore Resistance to damage of the chosen type. In addition, when you roll damage for a spell you cast that deals damage of that type, you can treat any 1 on a damage die as a 2.";
-const feyTouchedFeyMagicDescription =
-  "Choose one level 1 spell from the Divination or Enchantment school of magic. You always have that spell and the Misty Step spell prepared. You can cast each of these spells without expending a spell slot. Once you cast either spell in this way, you can't cast that spell in this way again until you finish a Long Rest. You can also cast these spells using spell slots you have of the appropriate level. The spells' spellcasting ability is the ability increased by this feat.";
-const ritualCasterQuickRitualDescription =
-  "With this benefit, you can cast a Ritual spell that you have prepared using its regular casting time rather than the extended time for a Ritual. Doing so doesn't require a spell slot. Once you cast the spell in this way, you can't use this benefit again until you finish a Long Rest.";
-const shadowTouchedShadowMagicDescription =
-  "Choose one level 1 spell from the Illusion or Necromancy school of magic. You always have that spell and the Invisibility spell prepared. You can cast each of these spells without expending a spell slot. Once you cast either spell in this way, you can't cast that spell in this way again until you finish a Long Rest. You can also cast these spells using spell slots you have of the appropriate level. The spells' spellcasting ability is the ability increased by this feat.";
 
 type ChargerWeaponActionContext = {
   attackKind: "weapon" | "unarmed";
@@ -263,102 +251,6 @@ function setCachedFeatDerivedState(feats: unknown, level: number, state: FeatDer
   featDerivedStateCache.set(feats, cachedByLevel);
 }
 
-function getFeatCantripEntry(entry: CharacterFeatEntry): SpellEntry[] {
-  if (entry.feat === FEATS.BLESSED_WARRIOR && entry.blessedWarrior) {
-    return entry.blessedWarrior.cantripIds.flatMap((cantripId) => {
-      const cantrip = blessedWarriorCantripOptionsById.get(cantripId);
-
-      return cantrip ? [cantrip] : [];
-    });
-  }
-
-  if (entry.feat === FEATS.DRUIDIC_WARRIOR && entry.druidicWarrior) {
-    return entry.druidicWarrior.cantripIds.flatMap((cantripId) => {
-      const cantrip = druidicWarriorCantripOptionsById.get(cantripId);
-
-      return cantrip ? [cantrip] : [];
-    });
-  }
-
-  if (entry.feat === FEATS.MAGIC_INITIATE && entry.magicInitiate) {
-    const cantripOptionsById = magicInitiateCantripOptionsBySpellListAndId.get(
-      entry.magicInitiate.spellList
-    );
-
-    return entry.magicInitiate.cantripIds.flatMap((cantripId) => {
-      const cantrip = cantripOptionsById?.get(cantripId);
-
-      return cantrip ? [cantrip] : [];
-    });
-  }
-
-  return [];
-}
-
-function getMagicInitiateLevelOneSpellEntry(entry: CharacterFeatEntry): SpellEntry | null {
-  if (entry.feat !== FEATS.MAGIC_INITIATE || !entry.magicInitiate) {
-    return null;
-  }
-
-  return (
-    magicInitiateLevelOneSpellOptionsBySpellListAndId
-      .get(entry.magicInitiate.spellList)
-      ?.get(entry.magicInitiate.levelOneSpellId) ?? null
-  );
-}
-
-function getFeyTouchedSpellEntries(entry: CharacterFeatEntry): SpellEntry[] {
-  if (entry.feat !== FEATS.FEY_TOUCHED || !entry.feyTouched) {
-    return [];
-  }
-
-  return [entry.feyTouched.spellId, feyTouchedMistyStepSpellId].flatMap((spellId) => {
-    const spell = getSpellEntryById(spellId);
-
-    return spell ? [spell] : [];
-  });
-}
-
-function getRitualCasterSpellEntries(entry: CharacterFeatEntry): SpellEntry[] {
-  if (entry.feat !== FEATS.RITUAL_CASTER || !entry.ritualCaster) {
-    return [];
-  }
-
-  return entry.ritualCaster.spellIds.flatMap((spellId) => {
-    const spell = getSpellEntryById(spellId);
-
-    return spell && spell.spellLevel === 1 && spell.ritual === true ? [spell] : [];
-  });
-}
-
-function getShadowTouchedSpellEntries(entry: CharacterFeatEntry): SpellEntry[] {
-  if (entry.feat !== FEATS.SHADOW_TOUCHED || !entry.shadowTouched) {
-    return [];
-  }
-
-  return [entry.shadowTouched.spellId, shadowTouchedInvisibilitySpellId].flatMap((spellId) => {
-    const spell = getSpellEntryById(spellId);
-
-    return spell ? [spell] : [];
-  });
-}
-
-function getTelekineticMageHandSpellEntry(entry: CharacterFeatEntry): SpellEntry | null {
-  if (entry.feat !== FEATS.TELEKINETIC || !entry.telekinetic) {
-    return null;
-  }
-
-  return getSpellEntryById(telekineticMageHandSpellId);
-}
-
-function getTelepathicDetectThoughtsSpellEntry(entry: CharacterFeatEntry): SpellEntry | null {
-  if (entry.feat !== FEATS.TELEPATHIC || !entry.telepathic) {
-    return null;
-  }
-
-  return getSpellEntryById(telepathicDetectThoughtsSpellId);
-}
-
 function getFeatProficiencyBonusForLevel(level: number): number {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
   return Math.floor((normalizedLevel - 1) / 4) + 2;
@@ -371,506 +263,11 @@ function getLuckyPointsExpended(normalizedFeats: CharacterFeatEntry[], total: nu
   return Math.max(0, Math.min(total, Math.floor(pointsExpended)));
 }
 
-function createLuckyAction(
-  remaining: number,
-  total: number,
-  description: SpellDescriptionEntry[]
-): FeatureActionCard {
-  const usageLabel = `Lucky Points ${remaining}/${total}`;
-
-  return {
-    key: luckyFeatActionKey,
-    name: "Lucky",
-    summary: usageLabel,
-    detail: "Spend Luck Points on d20 rolls.",
-    breakdown: "Origin Feat",
-    economyType: ECONOMY_TYPE.FREE,
-    actionCategory: ACTION_CATEGORY.FEATURE,
-    usesRemaining: remaining,
-    usesTotal: total,
-    hideUsesTrackerOnCard: true,
-    usesSupplementaryLabel: usageLabel,
-    description,
-    headerTags: [
-      {
-        kind: "text",
-        label: "Lucky Points",
-        value: `${remaining}/${total}`
-      }
-    ],
-    drawer: {
-      kind: "confirm",
-      description,
-      confirmLabel: "Use 1"
-    },
-    execute: {
-      kind: "activate",
-      label: "Use 1"
-    }
-  };
-}
-
-function createBoonOfFateImproveFateAction(
-  remaining: number,
-  total: number,
-  description: SpellDescriptionEntry[]
-): FeatureActionCard {
-  const chargesTag = createChargesHeaderTag(remaining, total, "Improve Fate");
-  const disabledReason =
-    remaining > 0 ? undefined : "Improve Fate recharges when you roll Initiative or finish a rest.";
-
-  return {
-    key: boonOfFateImproveFateActionKey,
-    name: "Improve Fate",
-    summary: `Charge ${remaining}/${total}`,
-    detail: "Roll 2d4 to alter a D20 Test.",
-    breakdown: "Boon of Fate",
-    economyType: ECONOMY_TYPE.FREE,
-    actionCategory: ACTION_CATEGORY.FEATURE,
-    usesRemaining: remaining,
-    usesTotal: total,
-    hideUsesTrackerOnCard: true,
-    cardUsage: createChargesCardUsage(remaining, total),
-    disabled: remaining <= 0,
-    disabledReason,
-    description,
-    headerTags: [chargesTag],
-    drawer: {
-      kind: "confirm",
-      description,
-      confirmLabel: "Use Improve Fate",
-      headerTags: [chargesTag]
-    },
-    execute: {
-      kind: "activate",
-      label: "Use Improve Fate"
-    }
-  };
-}
-
-function createBoonOfRecoveryRecoverVitalityAction(
-  remaining: number,
-  total: number,
-  description: SpellDescriptionEntry[]
-): FeatureActionCard {
-  const poolTag = createTextHeaderTag(
-    "",
-    `${remaining}/${total} d10`,
-    undefined,
-    remaining > 0 ? undefined : "danger"
-  );
-  const disabledReason = remaining > 0 ? undefined : "No Recover Vitality d10s remaining.";
-
-  return {
-    key: boonOfRecoveryRecoverVitalityActionKey,
-    name: "Recover Vitality",
-    summary: `Pool of ${remaining}/${total} d10`,
-    detail: "Heal yourself with d10s",
-    breakdown: "Heal yourself with d10s",
-    economyType: ECONOMY_TYPE.BONUS_ACTION,
-    actionCategory: ACTION_CATEGORY.FEATURE,
-    cardUsage: createNamedResourceCardUsage(
-      createFeatureActionCardCost({
-        resourceLabel: "d10"
-      })
-    ),
-    usesRemaining: remaining,
-    usesTotal: total,
-    hideUsesTrackerOnCard: true,
-    disabled: remaining <= 0,
-    disabledReason,
-    description,
-    headerTags: [poolTag],
-    drawer: {
-      kind: "custom-form",
-      formKind: "recover-vitality",
-      description,
-      confirmLabel: "Use Recover Vitality",
-      headerTags: [poolTag]
-    },
-    execute: {
-      kind: "custom-form",
-      formKind: "recover-vitality",
-      label: "Use Recover Vitality"
-    }
-  };
-}
-
-function getTelekineticShoveSavingThrowFact(
-  character: FeatRuntimeCharacter,
-  ability: AbilityKey,
-  normalizedFeats: CharacterFeatEntry[]
-): NonNullable<FeatureActionCard["facts"]>[number] {
-  const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
-  const abilityModifier = getAbilityModifierForCharacter(
-    {
-      ...character,
-      feats: normalizedFeats
-    },
-    ability
-  );
-  const saveDc = 8 + abilityModifier + proficiencyBonus;
-  const displayTerms = [
-    "DC 8 (Base)",
-    formatSignedFormulaTerm(abilityModifier, ability),
-    formatSignedFormulaTerm(proficiencyBonus, "Prof. Bonus")
-  ];
-  const formulaCell = formatFormulaCell({
-    formula: String(saveDc),
-    displayTerms,
-    breakdownTerms: displayTerms
-  });
-
-  return {
-    label: "Strength Saving Throw Formula",
-    value: `Strength DC ${saveDc} = ${formulaCell.value}`,
-    breakdown: formulaCell.breakdown,
-    fullWidth: true
-  };
-}
-
-function createTelekineticShoveAction(
-  character: FeatRuntimeCharacter,
-  ability: AbilityKey,
-  normalizedFeats: CharacterFeatEntry[],
-  description: SpellDescriptionEntry[]
-): FeatureActionCard {
-  const facts = [getTelekineticShoveSavingThrowFact(character, ability, normalizedFeats)];
-
-  return {
-    key: telekineticShoveActionKey,
-    name: "Telekinetic Shove",
-    summary: "Telekinetic Shove",
-    detail: "Shove a creature from afar",
-    breakdown: "Shove a creature from afar",
-    economyType: ECONOMY_TYPE.BONUS_ACTION,
-    actionCategory: ACTION_CATEGORY.FEATURE,
-    description,
-    facts,
-    drawer: {
-      kind: "confirm",
-      description,
-      facts,
-      factsSectionTitle: "Saving Throw",
-      confirmLabel: "Use Telekinetic Shove"
-    },
-    execute: {
-      kind: "activate",
-      label: "Use Telekinetic Shove"
-    }
-  };
-}
-
-function createDurableSpeedyRecoveryAction(
-  character: FeatRuntimeCharacter,
-  description: SpellDescriptionEntry[]
-): FeatureActionCard {
-  const hitDieLabel = getHitDieLabelForCharacter(character);
-  const hitDiceRemaining = getHitDiceRemainingForCharacter(character);
-  const hitDiceTotal = getHitDiceTotalForCharacter(character);
-  const hitDieCost = createFeatureActionCardCost({
-    amountText: "1",
-    resourceLabel: `${hitDieLabel} Hit Point Die`
-  });
-  const hitPointDiceTag = createTextHeaderTag(
-    "Hit Point Dice",
-    `${hitDieLabel} ${hitDiceRemaining}/${hitDiceTotal}`,
-    undefined,
-    hitDiceRemaining > 0 ? undefined : "danger"
-  );
-  const disabledReason = hitDiceRemaining > 0 ? undefined : "No Hit Point Dice remaining.";
-
-  return {
-    key: durableSpeedyRecoveryActionKey,
-    name: "Speedy Recovery",
-    summary: `Use 1 ${hitDieLabel} Hit Point Die`,
-    detail: "Recover healthpoints",
-    breakdown: "Recover healthpoints",
-    economyType: ECONOMY_TYPE.BONUS_ACTION,
-    actionCategory: ACTION_CATEGORY.FEATURE,
-    cardUsage: createNamedResourceCardUsage(hitDieCost),
-    disabled: hitDiceRemaining <= 0,
-    disabledReason,
-    description,
-    headerTags: [hitPointDiceTag],
-    drawer: {
-      kind: "confirm",
-      description,
-      confirmLabel: "Use Speedy Recovery",
-      headerTags: [hitPointDiceTag]
-    },
-    execute: {
-      kind: "activate",
-      label: "Use Speedy Recovery",
-      effectKind: "speedy-recovery"
-    }
-  };
-}
-
 function getFeatDescriptionSlice(
   feat: FEATS,
   predicate: (entry: string) => boolean
 ): SpellDescriptionEntry[] {
   return filterDescriptionEntries(getFeatDefinition(feat)?.description ?? [], predicate);
-}
-
-function filterDescriptionEntries(
-  description: SpellDescriptionEntry[],
-  predicate: (entry: string) => boolean
-): SpellDescriptionEntry[] {
-  return description.filter(
-    (entry): entry is string => typeof entry === "string" && predicate(entry)
-  );
-}
-
-function isChargerImprovedDashDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Improved Dash.</strong>");
-}
-
-function isChargerChargeAttackDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Charge Attack.</strong>");
-}
-
-function isChefReplenishingMealDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Replenishing Meal.</strong>");
-}
-
-function isChefBolsteringTreatsDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Bolstering Treats.</strong>");
-}
-
-function isArcheryWeaponActionDescriptionEntry(entry: string): boolean {
-  return entry.trim().length > 0;
-}
-
-function isDuelingWeaponActionDescriptionEntry(entry: string): boolean {
-  return entry.trim().length > 0;
-}
-
-function isBoonOfCombatProwessPeerlessAimDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Peerless Aim.</strong>");
-}
-
-function isBoonOfDimensionalTravelBlinkStepsDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Blink Steps.</strong>");
-}
-
-function isBoonOfEnergyResistanceEnergyResistancesDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Energy Resistances.</strong>");
-}
-
-function isBoonOfEnergyResistanceEnergyRedirectionDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Energy Redirection.</strong>");
-}
-
-function isBoonOfFateImproveFateDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Improve Fate.</strong>");
-}
-
-function isBoonOfIrresistibleOffenseDescriptionEntry(entry: string): boolean {
-  return (
-    entry.startsWith("<strong>Overcome Defenses.</strong>") ||
-    entry.startsWith("<strong>Overwhelming Strike.</strong>")
-  );
-}
-
-function isBoonOfNightSpiritDescriptionEntry(entry: string): boolean {
-  return (
-    entry.startsWith("<strong>Merge with Shadows.</strong>") ||
-    entry.startsWith("<strong>Shadowy Form.</strong>")
-  );
-}
-
-function isBoonOfRecoveryRecoverVitalityDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Recover Vitality.</strong>");
-}
-
-function isBoonOfSpeedEscapeArtistDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Escape Artist.</strong>");
-}
-
-function isBoonOfSpellRecallFreeCastingDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Free Casting.</strong>");
-}
-
-function isThrownWeaponFightingWeaponActionDescriptionEntry(entry: string): boolean {
-  return entry.trim().length > 0;
-}
-
-function isTwoWeaponFightingWeaponActionDescriptionEntry(entry: string): boolean {
-  return entry.trim().length > 0;
-}
-
-function isUnarmedFightingWeaponActionDescriptionEntry(entry: string): boolean {
-  return entry.trim().length > 0;
-}
-
-function isCrusherWeaponActionDescriptionEntry(entry: string): boolean {
-  return (
-    entry.startsWith("<strong>Push.</strong>") ||
-    entry.startsWith("<strong>Enhanced Critical.</strong>")
-  );
-}
-
-function isPiercerWeaponActionDescriptionEntry(entry: string): boolean {
-  return (
-    entry.startsWith("<strong>Puncture.</strong>") ||
-    entry.startsWith("<strong>Enhanced Critical.</strong>")
-  );
-}
-
-function isSlasherWeaponActionDescriptionEntry(entry: string): boolean {
-  return (
-    entry.startsWith("<strong>Hamstring.</strong>") ||
-    entry.startsWith("<strong>Enhanced Critical.</strong>")
-  );
-}
-
-function isPoisonerPotentPoisonDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Potent Poison.</strong>");
-}
-
-function isPoisonerBrewPoisonDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Brew Poison.</strong>");
-}
-
-function isSpeedyDashOverDifficultTerrainDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Dash over Difficult Terrain.</strong>");
-}
-
-function isSpeedyAgileMovementDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Agile Movement.</strong>");
-}
-
-function isWeaponMasterMasteryPropertyDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Mastery Property.</strong>");
-}
-
-function isDefensiveDuelistParryDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Parry.</strong>");
-}
-
-function isPolearmMasterPoleStrikeDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Pole Strike.</strong>");
-}
-
-function isPolearmMasterReactiveStrikeDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Reactive Strike.</strong>");
-}
-
-function isSentinelGuardianHaltDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Guardian.</strong>") || entry.startsWith("<strong>Halt.</strong>");
-}
-
-function isDurableSpeedyRecoveryDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Speedy Recovery.</strong>");
-}
-
-function isDualWielderEnhancedDualWieldingDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Enhanced Dual Wielding.</strong>");
-}
-
-function isGreatWeaponMasterHeavyWeaponMasteryDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Heavy Weapon Mastery.</strong>");
-}
-
-function isGreatWeaponMasterHewDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Hew.</strong>");
-}
-
-function isHeavyArmorMasterDamageReductionDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Damage Reduction.</strong>");
-}
-
-function isInspiringLeaderBolsteringPerformanceDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Bolstering Performance.</strong>");
-}
-
-function isKeenMindQuickStudyDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Quick Study.</strong>");
-}
-
-function isObservantQuickSearchDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Quick Search.</strong>");
-}
-
-function isMageSlayerConcentrationBreakerDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Concentration Breaker.</strong>");
-}
-
-function isMageSlayerGuardedMindDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Guarded Mind.</strong>");
-}
-
-function isMediumArmorMasterDexterousWearerDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Dexterous Wearer.</strong>");
-}
-
-function isCrossbowExpertDescriptionEntry(entry: string): boolean {
-  return (
-    entry.startsWith("<strong>Ignore Loading.</strong>") ||
-    entry.startsWith("<strong>Firing in Melee.</strong>") ||
-    entry.startsWith("<strong>Dual Wielding.</strong>")
-  );
-}
-
-function isSharpshooterDescriptionEntry(entry: string): boolean {
-  return (
-    entry.startsWith("<strong>Bypass Cover.</strong>") ||
-    entry.startsWith("<strong>Firing in Melee.</strong>") ||
-    entry.startsWith("<strong>Long Shots.</strong>")
-  );
-}
-
-function isShieldMasterShieldBashDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Shield Bash.</strong>");
-}
-
-function isShieldMasterInterposeShieldDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Interpose Shield.</strong>");
-}
-
-function isSkulkerHideDescriptionEntry(entry: string): boolean {
-  return (
-    entry.startsWith("<strong>Fog of War.</strong>") ||
-    entry.startsWith("<strong>Sniper.</strong>")
-  );
-}
-
-function isSpellSniperDescriptionEntry(entry: string): boolean {
-  return (
-    entry.startsWith("<strong>Bypass Cover.</strong>") ||
-    entry.startsWith("<strong>Casting in Melee.</strong>") ||
-    entry.startsWith("<strong>Increased Range.</strong>")
-  );
-}
-
-function isTelekineticMinorTelekinesisDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Minor Telekinesis.</strong>");
-}
-
-function isTelekineticShoveDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Telekinetic Shove.</strong>");
-}
-
-function isTelepathicUtteranceDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Telepathic Utterance.</strong>");
-}
-
-function isTelepathicDetectThoughtsDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Detect Thoughts.</strong>");
-}
-
-function isWarCasterConcentrationDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Concentration.</strong>");
-}
-
-function isWarCasterReactiveSpellDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Reactive Spell.</strong>");
-}
-
-function isWarCasterSomaticComponentsDescriptionEntry(entry: string): boolean {
-  return entry.startsWith("<strong>Somatic Components.</strong>");
 }
 
 function isChargerMeleeWeaponAction(action: ChargerWeaponActionContext): boolean {
@@ -1018,7 +415,7 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
     featSet.add(entry.feat);
     featsByFeat.set(entry.feat, [...(featsByFeat.get(entry.feat) ?? []), entry]);
 
-    const featCantripEntries = getFeatCantripEntry(entry);
+    const featCantripEntries = getFeatCantripEntries(entry);
 
     featCantripEntries.forEach((cantrip) => {
       grantedCantripEntriesById.set(cantrip.id, cantrip);
@@ -3389,69 +2786,11 @@ export function getFeatReactionEntriesForCharacter(
   return collectFeatDerivedState(character).reactionEntries;
 }
 
-function normalizeItemRuntimeKey(value: string): string {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/['’]/g, "")
-    .replace(/\s+/g, "-");
-}
-
-function getItemRuntimeKeys(item: Pick<ItemRecord, "id" | "key" | "name">): string[] {
-  return [
-    item.id,
-    typeof item.key === "string" ? item.key : null,
-    typeof item.name === "string" ? item.name : null
-  ].flatMap((value) => {
-    if (!value || value.trim().length === 0) {
-      return [];
-    }
-
-    const normalized = normalizeItemRuntimeKey(value);
-    return [normalized, normalized.replace(/-/g, "_")];
-  });
-}
-
-function itemMatchesRuntimeKeySet(
-  item: Pick<ItemRecord, "id" | "key" | "name">,
-  keySet: Set<string>
-): boolean {
-  return getItemRuntimeKeys(item).some((key) => keySet.has(key));
-}
-
 export function getFeatItemAdditionalDescriptionForCharacter(
   character: FeatRuntimeCharacter,
   item: Pick<ItemRecord, "id" | "key" | "name"> | null | undefined
 ): SpellDescriptionEntry[] {
-  if (!item) {
-    return [];
-  }
-
-  const derivedState = collectFeatDerivedState(character);
-  const additions: SpellDescriptionEntry[] = [];
-
-  if (derivedState.hasHealer && itemMatchesRuntimeKeySet(item, healerKitItemKeys)) {
-    const healerDescription = getFeatDefinition(FEATS.HEALER)?.description ?? [];
-    additions.push(
-      ...createSourcedDescriptionEntries(getFeatLabel(FEATS.HEALER), healerDescription)
-    );
-  }
-
-  if (
-    derivedState.featSet.has(FEATS.POISONER) &&
-    itemMatchesRuntimeKeySet(item, poisonersKitItemKeys)
-  ) {
-    const poisonerDescription = getFeatDescriptionSlice(
-      FEATS.POISONER,
-      isPoisonerBrewPoisonDescriptionEntry
-    );
-
-    additions.push(
-      ...createSourcedDescriptionEntries("Poisoner: Brew Poison", poisonerDescription)
-    );
-  }
-
-  return additions;
+  return getFeatItemAdditionalDescription(collectFeatDerivedState(character), item);
 }
 
 export function getSavageAttackerWeaponActionDescriptionAdditions(
