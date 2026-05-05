@@ -548,6 +548,7 @@ export function renderActionDrawerBody(context: Record<string, any>) {
     selectedWeaponDetails,
     selectedWeaponDreadAmbusherState,
     selectedWeaponDreadfulStrikeToggleDisabled,
+    selectedWeaponLifedrinkerState,
     selectedWeaponEmpoweredStrikesState,
     selectedWeaponEmpoweredStrikesToggleDisabled,
     selectedWeaponFeyDreadfulStrikesState,
@@ -720,6 +721,16 @@ export function renderActionDrawerBody(context: Record<string, any>) {
                 label={selectedWeaponDamageFormula.label}
                 content={selectedWeaponDamageFormula.value}
                 breakdown={selectedWeaponDamageFormula.breakdown}
+                contentClassName={styles.weaponFormulaValue}
+                breakdownClassName={styles.weaponFormulaBreakdown}
+              />
+            ) : null}
+
+            {selectedWeaponLifedrinkerState ? (
+              <CellContainer
+                label={selectedWeaponLifedrinkerState.healFormulaPresentation.label}
+                content={selectedWeaponLifedrinkerState.healFormulaPresentation.value}
+                breakdown={selectedWeaponLifedrinkerState.healFormulaPresentation.breakdown}
                 contentClassName={styles.weaponFormulaValue}
                 breakdownClassName={styles.weaponFormulaBreakdown}
               />

@@ -7,7 +7,7 @@ export function renderEquipmentForm(context: Record<string, any>) {
     Minus, NumberInput, Plus, RarityPill, Shield, Sparkles, WeaponMasteryStatusLabel, X, activeCurrencyDefinition, activeCurrencyKey,
     adjustCurrencyBalance, canSpendCurrency, carriedWeight, carryingCapacity, className, closeAddModal, closeCustomEquipmentModal, closeInventoryItemDrawer, closeLoadoutDrawer,
     clsx, currencyAmountDraft, currencyDefinitions, customEditorMode, deleteCustomEquipment, editingCustomEquipment, equipmentGroupMeta, formatCodexLabel, formatCodexList,
-    formatEquipmentWeight, formatInventoryStackName, formatOnHandLabel, formatWeaponDamage, formatWeaponProperties, formatWeaponType, formatWeaponWeight, formatWeightValue, getArmorTypeSummary,
+    formatEquipmentWeight, formatInventoryStackName, formatOnHandLabel, formatWeaponDamage, formatWeaponProperties, formatWeaponType, formatWeaponWeight, formatWeightValue, getArmorTypeSummary, getInventoryItemFeatureTagLabels,
     getItemWeightValue, groupedInventoryItems, hasDisplayableRarity, inventoryDrawerFooter, inventoryDrawerHeaderContent, inventoryEquipmentGroups, isAddModalCommitting, isAddModalOpen, isCurrencyDrawerOpen,
     isCustomEquipmentModalOpen, isGeneralEquipmentExpanded, isHandEquippableEntry, isOverCarryingCapacity, isSelectedArmorWorn, isSelectedCustomEntry, isSelectedEntryOnHand, isSelectedFeatureManagedEntry, isSelectedShield,
     normalizeCurrencyAmountInput, normalizedCurrencies, openAddModal, openCurrencyModal, openCustomEquipmentCreator, openCustomEquipmentEditor, openInventoryInspectionFromBrowser, openInventoryInspectionFromLoadout, openLoadoutEntryDetails,
@@ -91,7 +91,7 @@ export function renderEquipmentForm(context: Record<string, any>) {
                 item
               })),
               ...inventoryItems.map((item) => ({
-                key: `inventory-${item.key}`,
+                key: `inventory-${item.stack.id}`,
                 name: item.name,
                 kind: "inventory" as const,
                 item
@@ -184,6 +184,14 @@ export function renderEquipmentForm(context: Record<string, any>) {
                                 <span>Attuned</span>
                               </span>
                             ) : null}
+                            {getInventoryItemFeatureTagLabels(entry.item.stack).map((tagLabel) => (
+                              <span
+                                key={tagLabel}
+                                className={styles.equipmentItemFeatureTag}
+                              >
+                                {tagLabel}
+                              </span>
+                            ))}
                           </span>
                           <span className={styles.equipmentItemMeta}>
                             <span className={styles.equipmentItemWeight}>

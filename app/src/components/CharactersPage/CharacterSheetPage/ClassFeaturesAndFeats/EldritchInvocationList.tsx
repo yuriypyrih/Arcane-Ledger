@@ -1,5 +1,4 @@
 import clsx from "clsx";
-import { TRACKER } from "../../../../codex/entries";
 import type { WarlockEldritchInvocationOption } from "../../../../pages/CharactersPage/classFeatures/warlock/warlock";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import cardStyles from "./FeatCards.module.css";
@@ -77,7 +76,7 @@ function EldritchInvocationList({
                 ) : null}
               </div>
               <div className={cardStyles.headerActions}>
-                {renderTrackingButton(TRACKER.NOT_TRACKED)}
+                {renderTrackingButton(firstOption.invocation.trackingState)}
               </div>
             </div>
             <p className={cardStyles.meta}>Eldritch Invocation</p>

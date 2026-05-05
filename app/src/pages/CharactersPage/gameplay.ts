@@ -14,7 +14,13 @@ import {
   type WeaponEntry
 } from "../../codex/entries";
 import { getWeaponEntries } from "../../codex/selectors";
-import type { AbilityKey, AbilityScores, Character, SkillName } from "../../types";
+import type {
+  AbilityKey,
+  AbilityScores,
+  Character,
+  CharacterInventoryFeatureTag,
+  SkillName
+} from "../../types";
 import { PROF_LEVEL, SKILL } from "../../types";
 import { formatCodexLabel, formatWeaponDamage, formatWeaponDamageFormula } from "../../utils/codex";
 import {
@@ -147,6 +153,8 @@ export type WeaponAction = {
     label: string;
     value: string;
   }>;
+  inventoryStackId?: string;
+  inventoryFeatureTags?: CharacterInventoryFeatureTag[];
 };
 
 const weaponActionsByCharacter = new WeakMap<Character, WeaponAction[]>();
@@ -595,6 +603,8 @@ export function createWeaponAction(
     hasMartialArtsDamageDie?: boolean;
     hasActiveMastery?: boolean;
     skipFeatureDerivedLookups?: boolean;
+    inventoryStackId?: string;
+    inventoryFeatureTags?: CharacterInventoryFeatureTag[];
   }
 ): WeaponAction {
   const attackAbilityBreakdown =
@@ -699,7 +709,9 @@ export function createWeaponAction(
     hasMartialArtsDamageDie: Boolean(options.hasMartialArtsDamageDie),
     hasBatteringRootsBonus,
     hasActiveMastery: options.hasActiveMastery,
-    isBatteringRootsEligible
+    isBatteringRootsEligible,
+    inventoryStackId: options.inventoryStackId,
+    inventoryFeatureTags: options.inventoryFeatureTags
   };
 }
 
@@ -1239,7 +1251,9 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
             : [],
           hasVersatileBonus: weaponReference.hasVersatileBonus,
           hasGreatWeaponFighting: weaponReference.hasGreatWeaponFighting,
-          hasMartialArtsDamageDie: Boolean(monkDamageAdjustment?.applied)
+          hasMartialArtsDamageDie: Boolean(monkDamageAdjustment?.applied),
+          inventoryStackId: inventoryItem.stackId,
+          inventoryFeatureTags: inventoryItem.featureTags
         })
       ];
     },

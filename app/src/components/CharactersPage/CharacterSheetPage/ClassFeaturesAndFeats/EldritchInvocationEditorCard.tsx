@@ -1,7 +1,6 @@
 import clsx from "clsx";
 import { Plus, X } from "lucide-react";
 import { useMemo, useState } from "react";
-import { TRACKER } from "../../../../codex/entries";
 import type { WarlockEldritchInvocationOption } from "../../../../pages/CharactersPage/classFeatures/warlock/warlock";
 import ActionButton from "../../../ActionButton";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
@@ -32,6 +31,8 @@ function getSelectionLabel(option: WarlockEldritchInvocationOption): string {
       return "Origin feat";
     case "warlock-cantrip":
       return "Cantrip";
+    case "pact-blade":
+      return "Pact weapon";
     default:
       return "Choice";
   }
@@ -95,6 +96,7 @@ function EldritchInvocationEditorCard({
   const removeTitle = isRemoveDisabled
     ? `Required by ${nonRepeatableBlockingSelectionNames.join(", ")}.`
     : undefined;
+  const shouldShowPrerequisite = option.requirementLabel !== "No prerequisite";
 
   return (
     <article
@@ -117,12 +119,14 @@ function EldritchInvocationEditorCard({
           {isRepeatable ? <span className={cardStyles.repeatable}>(repeatable)</span> : null}
         </div>
         <div className={cardStyles.headerActions}>
-          {renderTrackingButton(TRACKER.NOT_TRACKED)}
+          {renderTrackingButton(option.invocation.trackingState)}
         </div>
       </div>
-      <p
-        className={clsx(cardStyles.meta, isRequirementBlocked && cardStyles.metaUnavailable)}
-      >{`Prerequisite: ${option.requirementLabel}`}</p>
+      {shouldShowPrerequisite ? (
+        <p
+          className={clsx(cardStyles.meta, isRequirementBlocked && cardStyles.metaUnavailable)}
+        >{`Prerequisite: ${option.requirementLabel}`}</p>
+      ) : null}
       {hasSelection && !hasAvailableChoiceOptions ? (
         <p className={cardStyles.summary}>{option.displaySubtitle}</p>
       ) : !hasSelection && option.displaySubtitle ? (
@@ -204,6 +208,7 @@ function EldritchInvocationEditorCard({
 
                   return {
                     disabled: isChoiceSelected || !choiceOption.isQualified,
+                    group: choiceOption.selectionGroup,
                     label: `${getChoiceLabel(choiceOption)}${
                       isChoiceSelected ? " (selected)" : ""
                     }`,

@@ -3,7 +3,9 @@ import type { Character } from "../../../../../../types";
 import type { GameplayActionDefinition } from "../../../../../../pages/CharactersPage/combatActions";
 import {
   type FeatureActionCard,
-  getMonkFocusPointsRemainingForCharacter
+  getMonkFocusPointsRemainingForCharacter,
+  getWarlockEldritchSmiteWeaponOptionStateForCharacter,
+  getWarlockLifedrinkerWeaponOptionStateForCharacter
 } from "../../../../../../pages/CharactersPage/classFeatures";
 import {
   createFeatureActionCardCost,
@@ -38,7 +40,10 @@ import {
 } from "../../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfTheOpenHand";
 import { getMonkWarriorOfShadowImprovedShadowStepOptionState } from "../../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfShadow";
 import type { ResolvedCustomWeaponEntry } from "../../../../../../pages/CharactersPage/customEquipment";
-import { findInventoryItemStackById } from "../../../../../../pages/CharactersPage/inventoryItems";
+import {
+  findInventoryItemStackById,
+  getInventoryItemFeatureTagLabels
+} from "../../../../../../pages/CharactersPage/inventoryItems";
 import { hasActiveWeaponMastery } from "../../../../../../pages/CharactersPage/weaponMasteryStatus";
 import { hasAppliedWeaponProficiency } from "../../../../../../pages/CharactersPage/weaponProficiencyStatus";
 import { adaptItemWeapon } from "../../../../../../utils/items/adaptItemWeapon";
@@ -73,8 +78,10 @@ type UseSelectedWeaponActionModelArgs = {
   isDreadfulStrikeSelected: boolean;
   isColossusSlayerSelected: boolean;
   isEmpoweredStrikesSelected: boolean;
+  isEldritchSmiteSelected: boolean;
   isHandOfHarmSelected: boolean;
   isHuntersMarkTargetSelected: boolean;
+  isLifedrinkerSelected: boolean;
   isPolarStrikesSelected: boolean;
   isPsionicStrikeSelected: boolean;
   isQuiveringPalmSelected: boolean;
@@ -92,8 +99,10 @@ export function useSelectedWeaponActionModel({
   isDreadfulStrikeSelected,
   isColossusSlayerSelected,
   isEmpoweredStrikesSelected,
+  isEldritchSmiteSelected,
   isHandOfHarmSelected,
   isHuntersMarkTargetSelected,
+  isLifedrinkerSelected,
   isPolarStrikesSelected,
   isPsionicStrikeSelected,
   isQuiveringPalmSelected,
@@ -124,6 +133,9 @@ export function useSelectedWeaponActionModel({
   }, [character.inventoryItems, selectedWeaponAction]);
   const selectedWeaponItemRecord = selectedWeaponInventoryStack?.item ?? null;
   const selectedWeaponIsAttuned = Boolean(selectedWeaponInventoryStack?.attuned);
+  const selectedWeaponFeatureTagLabels = getInventoryItemFeatureTagLabels(
+    selectedWeaponInventoryStack
+  );
   const selectedWeaponHasActiveMastery = useMemo(() => {
     if (!selectedWeaponAction) {
       return false;
@@ -218,6 +230,14 @@ export function useSelectedWeaponActionModel({
     selectedWeaponAction?.attackKind === "weapon"
       ? hasFighterPsiWarriorPsionicStrikeAvailableForCharacter(character)
       : false;
+  const selectedWeaponEldritchSmiteState = useMemo(
+    () => getWarlockEldritchSmiteWeaponOptionStateForCharacter(character, selectedWeaponAction),
+    [character, selectedWeaponAction]
+  );
+  const selectedWeaponLifedrinkerState = useMemo(
+    () => getWarlockLifedrinkerWeaponOptionStateForCharacter(character, selectedWeaponAction),
+    [character, selectedWeaponAction]
+  );
   const selectedWeaponSacredWeaponState = useMemo(
     () => getPaladinOathOfDevotionSacredWeaponOptionState(character, selectedWeaponAction),
     [character, selectedWeaponAction]
@@ -390,6 +410,10 @@ export function useSelectedWeaponActionModel({
   const selectedWeaponPolarStrikesToggleDisabled =
     selectedWeaponPolarStrikesState?.disabled ?? false;
   const selectedWeaponHuntersMarkTargetToggleDisabled = !selectedWeaponHuntersMarkTargetState;
+  const selectedWeaponEldritchSmiteToggleDisabled =
+    selectedWeaponEldritchSmiteState?.disabled ?? false;
+  const selectedWeaponLifedrinkerToggleDisabled =
+    selectedWeaponLifedrinkerState?.disabled ?? false;
   const selectedWeaponStunningStrikeToggleDisabled =
     selectedWeaponStunningStrikeDisabledReason !== null;
   const selectedWeaponEmpoweredStrikesToggleDisabled =
@@ -512,6 +536,30 @@ export function useSelectedWeaponActionModel({
 
     if (
       nextAction.attackKind === "weapon" &&
+      isEldritchSmiteSelected &&
+      selectedWeaponEldritchSmiteState &&
+      !selectedWeaponEldritchSmiteToggleDisabled
+    ) {
+      nextAction = applyWeaponDamageBonusPreview(
+        nextAction,
+        selectedWeaponEldritchSmiteState.damageBonus
+      );
+    }
+
+    if (
+      nextAction.attackKind === "weapon" &&
+      isLifedrinkerSelected &&
+      selectedWeaponLifedrinkerState &&
+      !selectedWeaponLifedrinkerToggleDisabled
+    ) {
+      nextAction = applyWeaponDamageBonusPreview(
+        nextAction,
+        selectedWeaponLifedrinkerState.damageBonus
+      );
+    }
+
+    if (
+      nextAction.attackKind === "weapon" &&
       isPsionicStrikeSelected &&
       selectedWeaponPsionicStrikeAvailable &&
       selectedWeaponPsionicStrikeFormula
@@ -528,8 +576,10 @@ export function useSelectedWeaponActionModel({
     isDreadfulStrikeSelected,
     isColossusSlayerSelected,
     isEmpoweredStrikesSelected,
+    isEldritchSmiteSelected,
     isHandOfHarmSelected,
     isHuntersMarkTargetSelected,
+    isLifedrinkerSelected,
     isPolarStrikesSelected,
     isSacredWeaponSelected,
     isVowOfEnmitySelected,
@@ -537,6 +587,8 @@ export function useSelectedWeaponActionModel({
     selectedWeaponAction,
     selectedWeaponDreadAmbusherState,
     selectedWeaponDreadfulStrikeToggleDisabled,
+    selectedWeaponEldritchSmiteState,
+    selectedWeaponEldritchSmiteToggleDisabled,
     selectedWeaponFeyDreadfulStrikesState,
     selectedWeaponFeyDreadfulStrikesToggleDisabled,
     selectedWeaponColossusSlayerState,
@@ -547,6 +599,8 @@ export function useSelectedWeaponActionModel({
     selectedWeaponHandOfHarmState,
     selectedWeaponHuntersMarkTargetState,
     selectedWeaponHuntersMarkTargetToggleDisabled,
+    selectedWeaponLifedrinkerState,
+    selectedWeaponLifedrinkerToggleDisabled,
     selectedWeaponPolarStrikesState,
     selectedWeaponPolarStrikesToggleDisabled,
     selectedWeaponSacredWeaponState,
@@ -603,11 +657,14 @@ export function useSelectedWeaponActionModel({
     selectedWeaponEntry,
     selectedWeaponItemRecord,
     selectedWeaponIsAttuned,
+    selectedWeaponFeatureTagLabels,
     selectedWeaponHasActiveMastery,
     selectedWeaponHasProficiency,
     selectedWeaponDetails,
     selectedWeaponPsionicStrikeFormula,
     selectedWeaponPsionicStrikeAvailable,
+    selectedWeaponEldritchSmiteState,
+    selectedWeaponLifedrinkerState,
     selectedWeaponSacredWeaponState,
     selectedWeaponVowOfEnmityState,
     selectedWeaponDreadAmbusherState,
@@ -632,6 +689,8 @@ export function useSelectedWeaponActionModel({
     selectedWeaponHordeBreakerToggleDisabled,
     selectedWeaponPolarStrikesToggleDisabled,
     selectedWeaponHuntersMarkTargetToggleDisabled,
+    selectedWeaponEldritchSmiteToggleDisabled,
+    selectedWeaponLifedrinkerToggleDisabled,
     selectedWeaponStunningStrikeToggleDisabled,
     selectedWeaponEmpoweredStrikesToggleDisabled,
     selectedWeaponHandOfHarmToggleDisabled,

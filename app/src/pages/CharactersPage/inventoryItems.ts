@@ -4,7 +4,12 @@ import {
   type WeaponDamage,
   type WeaponType
 } from "../../codex/entries";
-import type { CharacterInventoryItem, CurrencyKey, ItemRecord } from "../../types";
+import type {
+  CharacterInventoryFeatureTag,
+  CharacterInventoryItem,
+  CurrencyKey,
+  ItemRecord
+} from "../../types";
 import { parseItemCost } from "../../utils/items/cost";
 import {
   adaptItemWeapon,
@@ -19,10 +24,13 @@ export type InventoryItemCopyReference = {
   item: ItemRecord;
   onHand: boolean;
   worn: boolean;
+  featureTags?: CharacterInventoryFeatureTag[];
 };
 
 export type GroupedInventoryItem = {
   key: string;
+  itemKey: string;
+  stackId: string;
   name: string;
   item: ItemRecord;
   stack: CharacterInventoryItem;
@@ -67,6 +75,19 @@ const inventoryItemUsesPerCopyByKey: Record<string, number> = {
   "srd_healers-kit": 10,
   "srd-2024_healers-kit": 10
 };
+
+export const INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE = "pact-of-the-blade";
+export const INVENTORY_FEATURE_TAG_CONJURED = "conjured";
+
+const inventoryFeatureTagLabels: Record<CharacterInventoryFeatureTag, string> = {
+  [INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE]: "Pact of the Blade",
+  [INVENTORY_FEATURE_TAG_CONJURED]: "Conjured"
+};
+
+const inventoryFeatureTagOrder: CharacterInventoryFeatureTag[] = [
+  INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE,
+  INVENTORY_FEATURE_TAG_CONJURED
+];
 
 function getCopperValue(cost: EquipmentCost): number {
   return cost.amount * currencyCopperValueByType[cost.currency];
@@ -170,6 +191,40 @@ function normalizeItemRecord(value: unknown): ItemRecord | null {
   };
 }
 
+function normalizeInventoryFeatureTags(value: unknown): CharacterInventoryFeatureTag[] | undefined {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  const tagSet = new Set<CharacterInventoryFeatureTag>();
+
+  value.forEach((entry) => {
+    if (
+      entry === INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE ||
+      entry === INVENTORY_FEATURE_TAG_CONJURED
+    ) {
+      tagSet.add(entry);
+    }
+  });
+
+  const normalizedTags = inventoryFeatureTagOrder.filter((tag) => tagSet.has(tag));
+
+  return normalizedTags.length > 0 ? normalizedTags : undefined;
+}
+
+function addInventoryItemFeatureTag(
+  entry: CharacterInventoryItem,
+  tag: CharacterInventoryFeatureTag
+): CharacterInventoryItem {
+  const tagSet = new Set(normalizeInventoryFeatureTags(entry.featureTags) ?? []);
+  tagSet.add(tag);
+
+  return normalizeInventoryStack({
+    ...entry,
+    featureTags: inventoryFeatureTagOrder.filter((currentTag) => tagSet.has(currentTag))
+  });
+}
+
 function normalizeInventoryStack(entry: CharacterInventoryItem): CharacterInventoryItem {
   const quantity = Math.max(1, Math.floor(entry.quantity));
   const onHandQuantity = Math.min(quantity, Math.max(0, Math.floor(entry.onHandQuantity)));
@@ -178,7 +233,8 @@ function normalizeInventoryStack(entry: CharacterInventoryItem): CharacterInvent
     item: entry.item,
     quantity,
     onHandQuantity,
-    worn: Boolean(entry.worn)
+    worn: Boolean(entry.worn),
+    featureTags: normalizeInventoryFeatureTags(entry.featureTags)
   };
   const usesPerCopy = getInventoryItemUsesPerCopy(entry.item);
 
@@ -217,7 +273,8 @@ export function createInventoryItemCopyReferences(
     copyIndex: index,
     item: entry.item,
     onHand: index < onHandQuantity,
-    worn: entry.worn && index === 0
+    worn: entry.worn && index === 0,
+    featureTags: normalizeInventoryFeatureTags(entry.featureTags)
   }));
 }
 
@@ -246,6 +303,7 @@ export function createCharacterInventoryItem(
     worn?: boolean;
     attuned?: boolean;
     usesRemaining?: number;
+    featureTags?: CharacterInventoryFeatureTag[];
   }
 ): CharacterInventoryItem {
   const quantity = normalizeStackNumber(options?.quantity, 1, 1);
@@ -263,7 +321,8 @@ export function createCharacterInventoryItem(
     onHandQuantity,
     worn: Boolean(options?.worn),
     attuned: Boolean(options?.attuned),
-    usesRemaining: options?.usesRemaining
+    usesRemaining: options?.usesRemaining,
+    featureTags: options?.featureTags
   });
 }
 
@@ -285,9 +344,9 @@ export function normalizeCharacterInventoryItems(value: unknown): CharacterInven
     return [];
   }
 
-  const stacksByKey = new Map<string, CharacterInventoryItem>();
+  const stacksByMergeKey = new Map<string, CharacterInventoryItem>();
 
-  value.forEach((entry) => {
+  value.forEach((entry, index) => {
     if (!entry || typeof entry !== "object") {
       return;
     }
@@ -298,6 +357,7 @@ export function normalizeCharacterInventoryItems(value: unknown): CharacterInven
       onHandQuantity?: unknown;
       attuned?: unknown;
       usesRemaining?: unknown;
+      featureTags?: unknown;
     };
     const item = normalizeItemRecord(record.item);
 
@@ -323,17 +383,20 @@ export function normalizeCharacterInventoryItems(value: unknown): CharacterInven
       usesRemaining:
         record.usesRemaining !== undefined
           ? normalizeStackNumber(record.usesRemaining, 0)
-          : undefined
+          : undefined,
+      featureTags: normalizeInventoryFeatureTags(record.featureTags)
     });
-    const existingStack = stacksByKey.get(key);
+    const stackHasFeatureTags = (stack.featureTags?.length ?? 0) > 0;
+    const mergeKey = stackHasFeatureTags ? `tagged:${stack.id}:${index}` : `item:${key}`;
+    const existingStack = stacksByMergeKey.get(mergeKey);
 
     if (!existingStack) {
-      stacksByKey.set(key, stack);
+      stacksByMergeKey.set(mergeKey, stack);
       return;
     }
 
-    stacksByKey.set(
-      key,
+    stacksByMergeKey.set(
+      mergeKey,
       normalizeInventoryStack({
         ...existingStack,
         quantity: existingStack.quantity + stack.quantity,
@@ -345,7 +408,7 @@ export function normalizeCharacterInventoryItems(value: unknown): CharacterInven
     );
   });
 
-  return [...stacksByKey.values()].map(normalizeInventoryStack);
+  return [...stacksByMergeKey.values()].map(normalizeInventoryStack);
 }
 
 export function getItemRecordKey(item: ItemRecord | null | undefined): string {
@@ -437,6 +500,19 @@ export function findInventoryItemStackByKey(
   return inventoryItems.find((entry) => getItemRecordKey(entry.item) === itemKey) ?? null;
 }
 
+function findUntaggedInventoryItemStackByKey(
+  inventoryItems: CharacterInventoryItem[],
+  itemKey: string
+): CharacterInventoryItem | null {
+  return (
+    inventoryItems.find(
+      (entry) =>
+        getItemRecordKey(entry.item) === itemKey &&
+        (normalizeInventoryFeatureTags(entry.featureTags)?.length ?? 0) === 0
+    ) ?? null
+  );
+}
+
 export function findInventoryItemStackById(
   inventoryItems: CharacterInventoryItem[],
   stackId: string
@@ -444,6 +520,90 @@ export function findInventoryItemStackById(
   const resolvedStackId = getInventoryItemStackIdFromCopyId(stackId);
 
   return inventoryItems.find((entry) => entry.id === resolvedStackId) ?? null;
+}
+
+export function hasInventoryItemFeatureTag(
+  entry: Pick<CharacterInventoryItem, "featureTags"> | null | undefined,
+  tag: CharacterInventoryFeatureTag
+): boolean {
+  return Boolean(normalizeInventoryFeatureTags(entry?.featureTags)?.includes(tag));
+}
+
+export function isPactOfTheBladeInventoryItem(
+  entry: Pick<CharacterInventoryItem, "featureTags"> | null | undefined
+): boolean {
+  return hasInventoryItemFeatureTag(entry, INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE);
+}
+
+export function isConjuredInventoryItem(
+  entry: Pick<CharacterInventoryItem, "featureTags"> | null | undefined
+): boolean {
+  return hasInventoryItemFeatureTag(entry, INVENTORY_FEATURE_TAG_CONJURED);
+}
+
+export function getInventoryItemFeatureTagLabels(
+  entry: Pick<CharacterInventoryItem, "featureTags"> | null | undefined
+): string[] {
+  return (normalizeInventoryFeatureTags(entry?.featureTags) ?? []).map(
+    (tag) => inventoryFeatureTagLabels[tag]
+  );
+}
+
+function removeInventoryItemFeatureTag(
+  entry: CharacterInventoryItem,
+  tag: CharacterInventoryFeatureTag
+): CharacterInventoryItem {
+  const nextTags = (normalizeInventoryFeatureTags(entry.featureTags) ?? []).filter(
+    (currentTag) => currentTag !== tag
+  );
+
+  return normalizeInventoryStack({
+    ...entry,
+    featureTags: nextTags
+  });
+}
+
+export function clearPactOfTheBladeInventoryTags(
+  inventoryItems: CharacterInventoryItem[]
+): CharacterInventoryItem[] {
+  return inventoryItems.flatMap((entry) => {
+    if (!isPactOfTheBladeInventoryItem(entry)) {
+      return [entry];
+    }
+
+    if (isConjuredInventoryItem(entry)) {
+      return [];
+    }
+
+    return [removeInventoryItemFeatureTag(entry, INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE)];
+  });
+}
+
+export function setPactOfTheBladeInventoryItemById(
+  inventoryItems: CharacterInventoryItem[],
+  stackId: string
+): CharacterInventoryItem[] {
+  const resolvedStackId = getInventoryItemStackIdFromCopyId(stackId);
+  const clearedInventoryItems = clearPactOfTheBladeInventoryTags(inventoryItems);
+
+  return clearedInventoryItems.map((entry) =>
+    entry.id === resolvedStackId
+      ? addInventoryItemFeatureTag(entry, INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE)
+      : entry
+  );
+}
+
+export function addConjuredPactOfTheBladeInventoryItem(
+  inventoryItems: CharacterInventoryItem[],
+  item: ItemRecord
+): CharacterInventoryItem[] {
+  return [
+    ...clearPactOfTheBladeInventoryTags(inventoryItems),
+    createCharacterInventoryItem(item, {
+      quantity: 1,
+      featureTags: [INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE, INVENTORY_FEATURE_TAG_CONJURED]
+    })
+  ];
 }
 
 export function findOwnedInventoryItemRecord(
@@ -463,7 +623,7 @@ export function getInventoryItemCountsByKey(
       return counts;
     }
 
-    counts[key] = getInventoryItemQuantity(entry);
+    counts[key] = (counts[key] ?? 0) + getInventoryItemQuantity(entry);
     return counts;
   }, {});
 }
@@ -478,6 +638,8 @@ export function groupCharacterInventoryItems(
 
       return {
         key: getItemRecordKey(stack.item),
+        itemKey: getItemRecordKey(stack.item),
+        stackId: stack.id,
         name: getItemRecordName(stack.item),
         item: stack.item,
         stack,
@@ -630,7 +792,7 @@ export function addInventoryItemCopies(
     return inventoryItems;
   }
 
-  const existingStack = findInventoryItemStackByKey(inventoryItems, item.key);
+  const existingStack = findUntaggedInventoryItemStackByKey(inventoryItems, item.key);
 
   if (!existingStack) {
     return [
@@ -681,6 +843,23 @@ export function setInventoryItemOnHandQuantityByKey(
   );
 }
 
+export function setInventoryItemOnHandQuantityById(
+  inventoryItems: CharacterInventoryItem[],
+  stackId: string,
+  onHandQuantity: number
+): CharacterInventoryItem[] {
+  const resolvedStackId = getInventoryItemStackIdFromCopyId(stackId);
+
+  return inventoryItems.map((entry) =>
+    entry.id === resolvedStackId
+      ? normalizeInventoryStack({
+          ...entry,
+          onHandQuantity
+        })
+      : entry
+  );
+}
+
 export function setInventoryItemAttunedByKey(
   inventoryItems: CharacterInventoryItem[],
   itemKey: string,
@@ -688,6 +867,23 @@ export function setInventoryItemAttunedByKey(
 ): CharacterInventoryItem[] {
   return inventoryItems.map((entry) =>
     getItemRecordKey(entry.item) === itemKey
+      ? normalizeInventoryStack({
+          ...entry,
+          attuned: isInventoryItemAttunable(entry.item) ? attuned : false
+        })
+      : entry
+  );
+}
+
+export function setInventoryItemAttunedById(
+  inventoryItems: CharacterInventoryItem[],
+  stackId: string,
+  attuned: boolean
+): CharacterInventoryItem[] {
+  const resolvedStackId = getInventoryItemStackIdFromCopyId(stackId);
+
+  return inventoryItems.map((entry) =>
+    entry.id === resolvedStackId
       ? normalizeInventoryStack({
           ...entry,
           attuned: isInventoryItemAttunable(entry.item) ? attuned : false
@@ -718,12 +914,60 @@ export function useInventoryItemChargeByKey(
   });
 }
 
+export function useInventoryItemChargeById(
+  inventoryItems: CharacterInventoryItem[],
+  stackId: string
+): CharacterInventoryItem[] {
+  const resolvedStackId = getInventoryItemStackIdFromCopyId(stackId);
+
+  return inventoryItems.map((entry) => {
+    if (entry.id !== resolvedStackId) {
+      return entry;
+    }
+
+    const useState = getInventoryItemUseState(entry);
+
+    if (!useState || useState.remaining <= 0) {
+      return entry;
+    }
+
+    return normalizeInventoryStack({
+      ...entry,
+      usesRemaining: useState.remaining - 1
+    });
+  });
+}
+
 export function resetInventoryItemChargeByKey(
   inventoryItems: CharacterInventoryItem[],
   itemKey: string
 ): CharacterInventoryItem[] {
   return inventoryItems.map((entry) => {
     if (getItemRecordKey(entry.item) !== itemKey) {
+      return entry;
+    }
+
+    const useState = getInventoryItemUseState(entry);
+
+    if (!useState || useState.remaining >= useState.total) {
+      return entry;
+    }
+
+    return normalizeInventoryStack({
+      ...entry,
+      usesRemaining: useState.remaining + 1
+    });
+  });
+}
+
+export function resetInventoryItemChargeById(
+  inventoryItems: CharacterInventoryItem[],
+  stackId: string
+): CharacterInventoryItem[] {
+  const resolvedStackId = getInventoryItemStackIdFromCopyId(stackId);
+
+  return inventoryItems.map((entry) => {
+    if (entry.id !== resolvedStackId) {
       return entry;
     }
 
@@ -771,6 +1015,15 @@ export function findFirstInventoryCopyByKey(
   return stack ? (createInventoryItemCopyReferences(stack)[0] ?? null) : null;
 }
 
+export function findFirstInventoryCopyById(
+  inventoryItems: CharacterInventoryItem[],
+  stackId: string
+): InventoryItemCopyReference | null {
+  const stack = findInventoryItemStackById(inventoryItems, stackId);
+
+  return stack ? (createInventoryItemCopyReferences(stack)[0] ?? null) : null;
+}
+
 export function findHeldInventoryCopyByKey(
   inventoryItems: CharacterInventoryItem[],
   itemKey: string
@@ -787,11 +1040,33 @@ export function findHeldInventoryCopiesByKey(
   return stack ? createHeldInventoryItemCopyReferences(stack) : [];
 }
 
+export function findHeldInventoryCopiesById(
+  inventoryItems: CharacterInventoryItem[],
+  stackId: string
+): InventoryItemCopyReference[] {
+  const stack = findInventoryItemStackById(inventoryItems, stackId);
+
+  return stack ? createHeldInventoryItemCopyReferences(stack) : [];
+}
+
 export function findAvailableInventoryCopyByKey(
   inventoryItems: CharacterInventoryItem[],
   itemKey: string
 ): InventoryItemCopyReference | null {
   const stack = findInventoryItemStackByKey(inventoryItems, itemKey);
+
+  if (!stack || getInventoryItemAvailableQuantity(stack) <= 0) {
+    return null;
+  }
+
+  return createInventoryItemCopyReferences(stack).find((copy) => !copy.onHand) ?? null;
+}
+
+export function findAvailableInventoryCopyById(
+  inventoryItems: CharacterInventoryItem[],
+  stackId: string
+): InventoryItemCopyReference | null {
+  const stack = findInventoryItemStackById(inventoryItems, stackId);
 
   if (!stack || getInventoryItemAvailableQuantity(stack) <= 0) {
     return null;
@@ -810,6 +1085,16 @@ export function getPreferredInventoryCopiesByKey(
   return stack ? createPreferredInventoryItemCopyReferences(stack, count) : [];
 }
 
+export function getPreferredInventoryCopiesById(
+  inventoryItems: CharacterInventoryItem[],
+  stackId: string,
+  count: number
+): InventoryItemCopyReference[] {
+  const stack = findInventoryItemStackById(inventoryItems, stackId);
+
+  return stack ? createPreferredInventoryItemCopyReferences(stack, count) : [];
+}
+
 export function findWornInventoryCopyByKey(
   inventoryItems: CharacterInventoryItem[],
   itemKey: string
@@ -823,11 +1108,52 @@ export function findWornInventoryCopyByKey(
   return createInventoryItemCopyReferences(stack)[0] ?? null;
 }
 
+export function findWornInventoryCopyById(
+  inventoryItems: CharacterInventoryItem[],
+  stackId: string
+): InventoryItemCopyReference | null {
+  const stack = findInventoryItemStackById(inventoryItems, stackId);
+
+  if (!stack?.worn) {
+    return null;
+  }
+
+  return createInventoryItemCopyReferences(stack)[0] ?? null;
+}
+
 export function removeOneInventoryItemCopyByKey(
   inventoryItems: CharacterInventoryItem[],
   itemKey: string
 ): CharacterInventoryItem[] {
   const targetStack = findInventoryItemStackByKey(inventoryItems, itemKey);
+
+  if (!targetStack) {
+    return inventoryItems;
+  }
+
+  const nextQuantity = getInventoryItemQuantity(targetStack) - 1;
+
+  if (nextQuantity <= 0) {
+    return inventoryItems.filter((entry) => entry.id !== targetStack.id);
+  }
+
+  return inventoryItems.map((entry) =>
+    entry.id === targetStack.id
+      ? normalizeInventoryStack({
+          ...entry,
+          quantity: nextQuantity,
+          onHandQuantity: Math.min(getInventoryItemOnHandQuantity(entry), nextQuantity),
+          worn: entry.worn && nextQuantity > 0
+        })
+      : entry
+  );
+}
+
+export function removeOneInventoryItemCopyById(
+  inventoryItems: CharacterInventoryItem[],
+  stackId: string
+): CharacterInventoryItem[] {
+  const targetStack = findInventoryItemStackById(inventoryItems, stackId);
 
   if (!targetStack) {
     return inventoryItems;

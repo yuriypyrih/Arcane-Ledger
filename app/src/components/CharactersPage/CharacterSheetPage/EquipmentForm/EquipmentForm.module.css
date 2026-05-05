@@ -72,7 +72,9 @@
 .drawerWornBadge,
 .equipmentItemAttuned,
 .drawerAttunedBadge,
-.drawerChargesBadge {
+.drawerChargesBadge,
+.equipmentItemFeatureTag,
+.drawerFeatureTagBadge {
   display: inline-flex;
   align-items: center;
   gap: 0.24rem;
@@ -101,6 +103,12 @@
 .drawerChargesBadge {
   background: #dce8ef;
   color: #315c73;
+}
+
+.equipmentItemFeatureTag,
+.drawerFeatureTagBadge {
+  background: #ede9fe;
+  color: #6d28d9;
 }
 
 .drawerSummaryRow {

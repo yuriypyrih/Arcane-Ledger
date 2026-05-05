@@ -10,6 +10,8 @@ export type DiceRollerRequestEntry = {
     totalOffset: number;
     breakdownLabel?: string;
   };
+  minimumTotal?: number;
+  minimumLabel?: string;
 };
 
 export type DiceRollerResolvedRequestEntry = {
@@ -21,6 +23,8 @@ export type DiceRollerResolvedRequestEntry = {
     totalOffset: number;
     breakdownLabel?: string;
   };
+  minimumTotal?: number;
+  minimumLabel?: string;
 };
 
 export type DiceRollerResolvedEntryResult = {

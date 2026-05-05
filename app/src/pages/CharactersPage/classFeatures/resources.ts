@@ -323,6 +323,8 @@ import {
 } from "./sorcerer/subclasses";
 import {
   consumeContactPatronUse,
+  consumeWarlockEldritchSmitePactMagicSlot,
+  consumeWarlockLifedrinkerHitDie,
   expendWarlockHealingLightDie,
   consumeWarlockBeguilingDefenseUse,
   consumeMysticArcanumUse,
@@ -330,6 +332,7 @@ import {
   getContactPatronUsesTotal,
   getWarlockBeguilingDefenseUsesRemaining,
   getWarlockBeguilingDefenseUsesTotal,
+  getWarlockEldritchSmiteWeaponOptionState,
   getWarlockEldritchInvocationInputStatus,
   getWarlockEldritchInvocationLimit,
   getWarlockFiendishResilienceDamageTypeSelection,
@@ -342,6 +345,7 @@ import {
   getWarlockInvocationOptions,
   getWarlockInvocationSelectionIds,
   getWarlockLearnedInvocationOptions,
+  getWarlockLifedrinkerWeaponOptionState,
   normalizeWarlockInvocationSelectionIds,
   getWarlockMysticArcanumSelections,
   getWarlockMysticArcanumSpellId,
@@ -359,10 +363,12 @@ import {
   restoreWarlockBeguilingDefenseOnLongRest,
   restoreWarlockMagicalCunningOnLongRest,
   consumeWarlockStepsOfTheFeyUse,
+  clearWarlockPactOfTheBladeInvocationSelection,
   spendWarlockHealingLightDice,
   setWarlockFiendishResilienceDamageTypeSelection,
   setWarlockMysticArcanumSpellId,
   setWarlockInvocationSelectionIds,
+  getWarlockPactOfTheBladeConjuredItemKeyFromSelectionIds,
   warlockFiendPatronFiendishResilienceDamageTypeOptions,
   warlockBeguilingDefenseReactionId
 } from "./warlock/warlock";
@@ -1187,7 +1193,10 @@ export function getWarlockEldritchInvocationLimitForCharacter(
 }
 
 export function getWarlockEldritchInvocationInputStatusForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState" | "cantripIds" | "feats">
+  character: Pick<
+    Character,
+    "className" | "level" | "classFeatureState" | "cantripIds" | "feats" | "inventoryItems"
+  >
 ) {
   return getWarlockEldritchInvocationInputStatus(character);
 }
@@ -1285,6 +1294,30 @@ export function getWarlockPactMagicSlotsRemainingForCharacter(
   return getWarlockPactMagicSlotsRemaining(character);
 }
 
+export function getWarlockEldritchSmiteWeaponOptionStateForCharacter(
+  character: Parameters<typeof getWarlockEldritchSmiteWeaponOptionState>[0],
+  action: Parameters<typeof getWarlockEldritchSmiteWeaponOptionState>[1]
+) {
+  return getWarlockEldritchSmiteWeaponOptionState(character, action);
+}
+
+export function consumeWarlockEldritchSmitePactMagicSlotForCharacter(
+  character: Character
+): Character {
+  return consumeWarlockEldritchSmitePactMagicSlot(character);
+}
+
+export function getWarlockLifedrinkerWeaponOptionStateForCharacter(
+  character: Parameters<typeof getWarlockLifedrinkerWeaponOptionState>[0],
+  action: Parameters<typeof getWarlockLifedrinkerWeaponOptionState>[1]
+) {
+  return getWarlockLifedrinkerWeaponOptionState(character, action);
+}
+
+export function consumeWarlockLifedrinkerHitDieForCharacter(character: Character): Character {
+  return consumeWarlockLifedrinkerHitDie(character);
+}
+
 export const warlockBeguilingDefenseReactionEntryId = warlockBeguilingDefenseReactionId;
 
 export function getWarlockMysticArcanumSelectionsForCharacter(
@@ -1323,28 +1356,40 @@ export function setWarlockFiendishResilienceDamageTypeSelectionForCharacter(
 }
 
 export function getWarlockInvocationSelectionIdsForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState" | "cantripIds" | "feats">
+  character: Pick<
+    Character,
+    "className" | "level" | "classFeatureState" | "cantripIds" | "feats" | "inventoryItems"
+  >
 ) {
   return getWarlockInvocationSelectionIds(character);
 }
 
 export function normalizeWarlockInvocationSelectionIdsForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState" | "cantripIds" | "feats"> &
-    Partial<Pick<Character, "abilities" | "subclassId">>,
+  character: Pick<
+    Character,
+    "className" | "level" | "classFeatureState" | "cantripIds" | "feats" | "inventoryItems"
+  > &
+    Partial<Pick<Character, "abilities" | "statusEntries" | "subclassId">>,
   selectionIds: string[]
 ) {
   return normalizeWarlockInvocationSelectionIds(character, selectionIds);
 }
 
 export function getWarlockInvocationOptionsForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState" | "cantripIds" | "feats">,
+  character: Pick<
+    Character,
+    "className" | "level" | "classFeatureState" | "cantripIds" | "feats" | "inventoryItems"
+  >,
   selectedIds?: string[]
 ) {
   return getWarlockInvocationOptions(character, selectedIds);
 }
 
 export function getWarlockLearnedInvocationOptionsForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState" | "cantripIds" | "feats">
+  character: Pick<
+    Character,
+    "className" | "level" | "classFeatureState" | "cantripIds" | "feats" | "inventoryItems"
+  >
 ) {
   return getWarlockLearnedInvocationOptions(character);
 }
@@ -1358,9 +1403,22 @@ export function getWarlockInvocationBlockingSelectionNamesForCharacter(
 
 export function setWarlockInvocationSelectionIdsForCharacter(
   character: Character,
-  selectionIds: string[]
+  selectionIds: string[],
+  options?: Parameters<typeof setWarlockInvocationSelectionIds>[2]
 ): Character {
-  return setWarlockInvocationSelectionIds(character, selectionIds);
+  return setWarlockInvocationSelectionIds(character, selectionIds, options);
+}
+
+export function clearWarlockPactOfTheBladeInvocationSelectionForCharacter(
+  character: Character
+): Character {
+  return clearWarlockPactOfTheBladeInvocationSelection(character);
+}
+
+export function getWarlockPactOfTheBladeConjuredItemKeyFromSelectionIdsForCharacter(
+  selectionIds: string[]
+): string | null {
+  return getWarlockPactOfTheBladeConjuredItemKeyFromSelectionIds(selectionIds);
 }
 
 export function setBardExpertiseSelectionsForCharacter(

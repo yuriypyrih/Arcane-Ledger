@@ -429,7 +429,7 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
   const {
     arcaneWardSpellSlotOptions, bardicInspirationFallbackSpellSlotOptions, beastMasterReviveSpellSlotOptions, canSubmitLayOnHands, canSubmitSelectedWarriorOfTheGodsRoll, canUseInspiredEclipse, canUseSelectedWildCompanionResource, canUseSelectedWildResurgenceMode, character, confirmFontOfMagicSelection, confirmSelectedFeatureOptions, executeCommonAction,
     executeFeatureActivate, executeMonkFlurryOfBlowsAction, executeMonkHandOfHealingPath, fixedSpellSlotTotals, fixedSpellSlotsRemaining, handleWeaponAttackRoll, handleWeaponDamageRoll, indomitableSavingThrowOptions, isClairvoyantCombatantSelected, isColossusSlayerSelected, isCrownOfSpellfireSelected, isDiceRollerSettingsOpen,
-    isDreadfulStrikeSelected, isEmpoweredStrikesSelected, isFlurryOfHealingAndHarmSelected, isGroupRecoverySelected, isHandOfHarmSelected, isHordeBreakerSelected, isHuntersMarkTargetSelected, isImprovedShadowStepSelected, isInspiredEclipseSelected, isPolarStrikesSelected, isPsionicStrikeSelected, isQuiveringPalmSelected,
+    isDreadfulStrikeSelected, isEmpoweredStrikesSelected, isEldritchSmiteSelected, isLifedrinkerSelected, isFlurryOfHealingAndHarmSelected, isGroupRecoverySelected, isHandOfHarmSelected, isHordeBreakerSelected, isHuntersMarkTargetSelected, isImprovedShadowStepSelected, isInspiredEclipseSelected, isPolarStrikesSelected, isPsionicStrikeSelected, isQuiveringPalmSelected,
     isRageOfTheGodsSelected, isSacredWeaponSelected, isStunningStrikeSelected, isVowOfEnmitySelected, natureMagicianOptions, onPersistCharacter, closeActionDrawer, openMysticArcanumSpell, openWeaponDetailReference, roundTracker, selectedAction, selectedActionEconomyShapeState, selectedActionOptionKeys,
     selectedArcaneRecoverySelection, selectedArcaneWardDisabledReason, selectedArcaneWardSpellSlotLevel, selectedBardicInspirationFallbackDisabledReason, selectedBardicInspirationSpellSlotLevel, selectedBeastMasterReviveDisabledReason, selectedBeastMasterReviveSpellSlotLevel, selectedBlessingOfTheTricksterTarget, selectedChannelDivinityRows, selectedClairvoyantCombatantToggleDisabled, selectedClairvoyantCombatantToggleDisabledReason, selectedClairvoyantCombatantUsesRemaining,
     selectedClairvoyantCombatantUsesTotal, selectedCommonActionPathStates, selectedCommonActionPrimaryDisabledReason, selectedCommonActionSecondaryDisabledReason, selectedCrownOfSpellfireBlockedReason, selectedCrownOfSpellfireFallbackSorceryPointCost, selectedCrownOfSpellfireUsesRemaining, selectedCrownOfSpellfireUsesTotal, selectedDrawerOption, selectedFeatureAction, selectedFeatureActionPrimaryDisabledReason, selectedFlurryOfBlowsPrimaryDisabledReason,
@@ -437,11 +437,11 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     selectedImprovedShadowStepState, selectedIndomitableAbility, selectedIndomitableOption, selectedLayOnHandsConditions, selectedLayOnHandsPoolSpendAmount, selectedLayOnHandsPoolSpendInput, selectedLayOnHandsTarget, selectedMetamagicCost, selectedMonkElementalAttunementResistanceDamageType, selectedMonkPatientDefenseTemporaryHitPointsFormula, selectedMonkWholenessOfBodyHealingFormula, selectedNatureMagicianOption,
     selectedNatureMagicianSpellSlotLevel, selectedOptionEconomyShapeState, selectedOptionWarning, selectedRageOfTheGodsDescription, selectedRageOfTheGodsUsesRemaining, selectedRageOfTheGodsUsesTotal, selectedRageOptionKey, selectedRageOptions, selectedRagePowerOptionKey, selectedRagePowerOptions, selectedRageSelectionWarning, selectedSecondWindGroupRecoveryFormula,
     selectedSecondWindGroupRecoveryUsesRemaining, selectedSecondWindGroupRecoveryUsesTotal, selectedSecondWindHealingFormula, selectedSpellfireBurstTarget, selectedStarryFormConstellation, selectedThirdEyeOptionKey, selectedUnarmedStrikeFlurryOfHealingAndHarmHelperText, selectedWarriorOfTheGodsChargeCount, selectedWarriorOfTheGodsUsesRemaining, selectedWeaponAttackFormula, selectedWeaponColossusSlayerState, selectedWeaponColossusSlayerToggleDisabled,
-    selectedWeaponDamageFormula, selectedWeaponDetails, selectedWeaponDreadAmbusherState, selectedWeaponDreadfulStrikeToggleDisabled, selectedWeaponEmpoweredStrikesState, selectedWeaponEmpoweredStrikesToggleDisabled, selectedWeaponFeyDreadfulStrikesState, selectedWeaponFeyDreadfulStrikesToggleDisabled, selectedWeaponHandOfHarmDisabledReason, selectedWeaponHandOfHarmState, selectedWeaponHandOfHarmToggleDisabled, selectedWeaponHandOfHarmUsage,
+    selectedWeaponDamageFormula, selectedWeaponDetails, selectedWeaponDreadAmbusherState, selectedWeaponDreadfulStrikeToggleDisabled, selectedWeaponEldritchSmiteState, selectedWeaponLifedrinkerState, selectedWeaponEmpoweredStrikesState, selectedWeaponEmpoweredStrikesToggleDisabled, selectedWeaponFeyDreadfulStrikesState, selectedWeaponFeyDreadfulStrikesToggleDisabled, selectedWeaponHandOfHarmDisabledReason, selectedWeaponHandOfHarmState, selectedWeaponHandOfHarmToggleDisabled, selectedWeaponHandOfHarmUsage,
     selectedWeaponHordeBreakerState, selectedWeaponHordeBreakerToggleDisabled, selectedWeaponHuntersMarkTargetState, selectedWeaponHuntersMarkTargetToggleDisabled, selectedWeaponPolarStrikesState, selectedWeaponPolarStrikesToggleDisabled, selectedWeaponPrimaryAttackPathState, selectedWeaponPrimaryDisabledReason, selectedWeaponPsionicStrikeAvailable, selectedWeaponPsionicStrikeFormula, selectedWeaponQuiveringPalmDisabledReason, selectedWeaponQuiveringPalmState,
     selectedWeaponQuiveringPalmToggleDisabled, selectedWeaponRollState, selectedWeaponSacredWeaponState, selectedWeaponSacredWeaponToggleDisabled, selectedWeaponSecondaryAttackPathState, selectedWeaponSecondaryDisabledReason, selectedWeaponStunningStrikeDisabledReason, selectedWeaponStunningStrikeState, selectedWeaponStunningStrikeToggleDisabled, selectedWeaponVowOfEnmityState, selectedWeaponVowOfEnmityToggleDisabled, selectedWildCompanionResource,
     selectedWildCompanionSpellSlotLevel, selectedWildResurgenceMode, selectedWildResurgenceSpellSlotLevel, selectedWildShapeMonster, selectedWildShapeMonsterSlug, setIsClairvoyantCombatantSelected, setIsColossusSlayerSelected, setIsCrownOfSpellfireSelected, setIsDiceRollerSettingsOpen, setIsDreadfulStrikeSelected, setIsEmpoweredStrikesSelected, setIsFixedSpellDrawerOpen,
-    setIsFlurryOfHealingAndHarmSelected, setIsGroupRecoverySelected, setIsHandOfHarmSelected, setIsHuntersMarkTargetSelected, setIsImprovedShadowStepSelected, setIsInspiredEclipseSelected, setIsPolarStrikesSelected, setIsPsionicStrikeSelected, setIsQuiveringPalmSelected, setIsRageOfTheGodsSelected, setIsSacredWeaponSelected, setIsStunningStrikeSelected,
+    setIsEldritchSmiteSelected, setIsLifedrinkerSelected, setIsFlurryOfHealingAndHarmSelected, setIsGroupRecoverySelected, setIsHandOfHarmSelected, setIsHuntersMarkTargetSelected, setIsImprovedShadowStepSelected, setIsInspiredEclipseSelected, setIsPolarStrikesSelected, setIsPsionicStrikeSelected, setIsQuiveringPalmSelected, setIsRageOfTheGodsSelected, setIsSacredWeaponSelected, setIsStunningStrikeSelected,
     setIsVowOfEnmitySelected, setSelectedActionOptionKeys, setSelectedArcaneRecoverySelection, setSelectedArcaneWardSpellSlotLevel, setSelectedBardicInspirationSpellSlotLevel, setSelectedBeastMasterReviveSpellSlotLevel, setSelectedBlessingOfTheTricksterTarget, setSelectedChannelDivinityOptionKey, setSelectedDivineInterventionSpell, setSelectedFontOfMagicSelection, setSelectedHealingLightDiceCount, setSelectedHealingLightTarget,
     setSelectedIndomitableAbility, setSelectedLayOnHandsConditions, setSelectedLayOnHandsPoolSpendInput, setSelectedLayOnHandsTarget, setSelectedNatureMagicianSpellSlotLevel, setSelectedRageOptionKey, setSelectedRagePowerOptionKey, setSelectedSpellfireBurstTarget, setSelectedStarryFormConstellation, setSelectedThirdEyeOptionKey, setSelectedWarriorOfTheGodsChargeCount, setSelectedWildCompanionResource,
     setSelectedWildCompanionSpellSlotLevel, setSelectedWildResurgenceMode, setSelectedWildResurgenceSpellSlotLevel, setSelectedWildShapeMonsterSlug, setSelectedWildShapePreviewSlug, setSneakAttackActionSelection, showBardicInspirationFallbackSlotSelect, showSelectedFlurryOfHealingAndHarmToggle, sneakAttackActionSelection, submitArcaneRecovery, submitBlessingOfTheTrickster, submitBrutalStrike,
@@ -666,6 +666,42 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
                 targetLabel: "Damage"
               }}
               usageKey="psionic-strike"
+            />
+          ) : null}
+          {selectedWeaponEldritchSmiteState ? (
+            <FeatureOptInToggle
+              label="Eldritch Smite"
+              checked={isEldritchSmiteSelected}
+              disabled={selectedWeaponEldritchSmiteState.disabled}
+              muted={selectedWeaponEldritchSmiteState.disabled}
+              onCheckedChange={setIsEldritchSmiteSelected}
+              title={selectedWeaponEldritchSmiteState.disabledReason ?? undefined}
+              usage={createNamedResourceCardUsage(
+                createFeatureActionCardCost({
+                  amountText: "1",
+                  resourceLabel: "Pact Magic Spell"
+                })
+              )}
+              application={{ targetLabel: "Damage" }}
+              usageKey="eldritch-smite"
+            />
+          ) : null}
+          {selectedWeaponLifedrinkerState ? (
+            <FeatureOptInToggle
+              label="Lifedrinker"
+              checked={isLifedrinkerSelected}
+              disabled={selectedWeaponLifedrinkerState.disabled}
+              muted={selectedWeaponLifedrinkerState.disabled}
+              onCheckedChange={setIsLifedrinkerSelected}
+              title={selectedWeaponLifedrinkerState.disabledReason ?? undefined}
+              usage={createNamedResourceCardUsage(
+                createFeatureActionCardCost({
+                  amountText: "1",
+                  resourceLabel: "Hit Point Dice"
+                })
+              )}
+              application={{ targetLabel: "Damage" }}
+              usageKey="lifedrinker"
             />
           ) : null}
           {selectedUnarmedStrikeFlurryOfHealingAndHarmHelperText ? (

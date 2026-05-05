@@ -16,6 +16,7 @@ import type {
   ArmorProficiencyEntry,
   Character,
   CharacterClassFeatureState,
+  CharacterInventoryFeatureTag,
   CharacterStatusEntry,
   CoreStats,
   LanguageProficiencyEntry,
@@ -301,13 +302,23 @@ export type EconomyMultiAttackKind = "weapon" | "unarmed";
 
 export type WeaponAttackConsumptionContext = Pick<
   WeaponAction,
-  "key" | "economyType" | "actionCategory" | "attackKind" | "combatType"
+  | "key"
+  | "economyType"
+  | "actionCategory"
+  | "attackKind"
+  | "combatType"
+  | "inventoryStackId"
+  | "inventoryFeatureTags"
 >;
 
 export type EconomyMultiActionContext = {
   economyType: EconomyType;
   actionCategory: ActionCategory;
   attackKind?: EconomyMultiAttackKind;
+  combatType?: WeaponAction["combatType"];
+  weaponActionKey?: string;
+  weaponInventoryStackId?: string;
+  weaponInventoryFeatureTags?: CharacterInventoryFeatureTag[];
   spellLevel?: number;
 };
 
@@ -315,6 +326,7 @@ export type FeatureEconomyMultiAccessRule = {
   economyTypes?: EconomyType[];
   actionCategories?: ActionCategory[];
   attackKinds?: EconomyMultiAttackKind[];
+  weaponInventoryFeatureTags?: CharacterInventoryFeatureTag[];
   spellLevels?: number[];
   maxAccessible: number | "all";
 };
@@ -561,7 +573,12 @@ export type ClassFeatureModule<TStateKey extends keyof CharacterClassFeatureStat
   normalizeState: (
     value: unknown,
     character: Pick<Character, "className" | "level"> &
-      Partial<Pick<Character, "abilities" | "cantripIds" | "feats" | "subclassId">>
+      Partial<
+        Pick<
+          Character,
+          "abilities" | "cantripIds" | "feats" | "inventoryItems" | "statusEntries" | "subclassId"
+        >
+      >
   ) => CharacterClassFeatureState[TStateKey];
   collectDerived: (character: CollectedClassFeatureCharacter) => ClassFeatureDerivedState;
   handleAction?: (character: Character, actionKey: string) => Character | null;

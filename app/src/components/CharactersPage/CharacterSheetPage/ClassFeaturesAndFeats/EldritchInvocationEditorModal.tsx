@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import { useCallback, useMemo, useState } from "react";
 import {
   getWarlockEldritchInvocationLimitForCharacter,
@@ -5,7 +6,11 @@ import {
   getWarlockInvocationOptionsForCharacter,
   normalizeWarlockInvocationSelectionIdsForCharacter
 } from "../../../../pages/CharactersPage/classFeatures";
-import type { WarlockEldritchInvocationOption } from "../../../../pages/CharactersPage/classFeatures/warlock/warlock";
+import {
+  warlockEldritchInvocationEditorTabs,
+  type WarlockEldritchInvocationEditorTabKey,
+  type WarlockEldritchInvocationOption
+} from "../../../../pages/CharactersPage/classFeatures/warlock/warlock";
 import type { Character } from "../../../../types";
 import {
   OverlayBody,
@@ -31,6 +36,12 @@ type EldritchInvocationEditorModalProps = {
 
 type EldritchInvocationOptionGroup = {
   key: string;
+  label: string | null;
+  invocationGroups: EldritchInvocationCardGroup[];
+};
+
+type EldritchInvocationCardGroup = {
+  key: string;
   options: WarlockEldritchInvocationOption[];
 };
 
@@ -40,9 +51,9 @@ function SelectionCounter({ current, total }: { current: number; total: number }
   );
 }
 
-function groupInvocationOptions(
+function groupInvocationOptionsByInvocationId(
   options: WarlockEldritchInvocationOption[]
-): EldritchInvocationOptionGroup[] {
+): Map<string, WarlockEldritchInvocationOption[]> {
   const groupsByInvocationId = options.reduce<Map<string, WarlockEldritchInvocationOption[]>>(
     (groups, option) => {
       const currentOptions = groups.get(option.invocation.id) ?? [];
@@ -52,10 +63,36 @@ function groupInvocationOptions(
     new Map()
   );
 
-  return [...groupsByInvocationId.entries()].map(([key, groupOptions]) => ({
-    key,
-    options: groupOptions
-  }));
+  return groupsByInvocationId;
+}
+
+function getInvocationOptionGroupsForTab(
+  tabKey: WarlockEldritchInvocationEditorTabKey,
+  options: WarlockEldritchInvocationOption[]
+): EldritchInvocationOptionGroup[] {
+  const tab =
+    warlockEldritchInvocationEditorTabs.find((entry) => entry.key === tabKey) ??
+    warlockEldritchInvocationEditorTabs[0];
+  const optionsByInvocationId = groupInvocationOptionsByInvocationId(options);
+
+  return tab.groups
+    .map((group) => ({
+      key: group.key,
+      label: group.label,
+      invocationGroups: group.invocationIds.flatMap((invocationId) => {
+        const invocationOptions = optionsByInvocationId.get(invocationId);
+
+        return invocationOptions
+          ? [
+              {
+                key: invocationId,
+                options: invocationOptions
+              }
+            ]
+          : [];
+      })
+    }))
+    .filter((group) => group.invocationGroups.length > 0);
 }
 
 function EldritchInvocationEditorModal({
@@ -68,6 +105,8 @@ function EldritchInvocationEditorModal({
   const [invocationDraftIds, setInvocationDraftIds] = useState<string[]>(
     () => selectedInvocationIds
   );
+  const [activeTabKey, setActiveTabKey] =
+    useState<WarlockEldritchInvocationEditorTabKey>("general");
   const invocationLimit = getWarlockEldritchInvocationLimitForCharacter(character);
   const invocationDraftSet = useMemo(() => new Set(invocationDraftIds), [invocationDraftIds]);
   const invocationManagerCharacter = useMemo<Character>(
@@ -88,8 +127,8 @@ function EldritchInvocationEditorModal({
     [invocationDraftIds, invocationManagerCharacter]
   );
   const invocationOptionGroups = useMemo(
-    () => groupInvocationOptions(invocationOptions),
-    [invocationOptions]
+    () => getInvocationOptionGroupsForTab(activeTabKey, invocationOptions),
+    [activeTabKey, invocationOptions]
   );
   const invocationOptionsById = useMemo(
     () => new Map(invocationOptions.map((option) => [option.selectionId, option] as const)),
@@ -156,6 +195,25 @@ function EldritchInvocationEditorModal({
       </OverlayHeader>
 
       <OverlayBody className={styles.scrollArea}>
+        <div
+          className={clsx(styles.tabRow, styles.invocationTabRow)}
+          role="tablist"
+          aria-label="Eldritch invocation groups"
+        >
+          {warlockEldritchInvocationEditorTabs.map((tab) => (
+            <button
+              key={tab.key}
+              type="button"
+              role="tab"
+              aria-selected={activeTabKey === tab.key}
+              className={clsx(styles.tabButton, activeTabKey === tab.key && styles.tabButtonActive)}
+              onClick={() => setActiveTabKey(tab.key)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
         <div className={styles.optionList}>
           {invocationOptionGroups.length === 0 ? (
             <p className={shared.emptyText}>
@@ -164,24 +222,36 @@ function EldritchInvocationEditorModal({
           ) : (
             invocationOptionGroups.map((group) => {
               return (
-                <EldritchInvocationEditorCard
+                <section
                   key={group.key}
-                  options={group.options}
-                  selectedOptions={group.options.filter((option) =>
-                    invocationDraftSet.has(option.selectionId)
-                  )}
-                  isLimitReached={isInvocationLimitReached}
-                  getBlockingSelectionNames={(selectionId) =>
-                    getWarlockInvocationBlockingSelectionNamesForCharacter(
-                      selectionId,
-                      invocationDraftIds
-                    )
-                  }
-                  onAddInvocation={addInvocation}
-                  onRemoveInvocation={removeInvocation}
-                  onOpenInvocationReference={onOpenInvocationReference}
-                  renderTrackingButton={renderTrackingButton}
-                />
+                  className={clsx(group.label && styles.invocationOptionGroup)}
+                >
+                  {group.label ? (
+                    <p className={styles.invocationGroupTitle}>{group.label}</p>
+                  ) : null}
+                  <div className={styles.invocationGroupList}>
+                    {group.invocationGroups.map((invocationGroup) => (
+                      <EldritchInvocationEditorCard
+                        key={invocationGroup.key}
+                        options={invocationGroup.options}
+                        selectedOptions={invocationGroup.options.filter((option) =>
+                          invocationDraftSet.has(option.selectionId)
+                        )}
+                        isLimitReached={isInvocationLimitReached}
+                        getBlockingSelectionNames={(selectionId) =>
+                          getWarlockInvocationBlockingSelectionNamesForCharacter(
+                            selectionId,
+                            invocationDraftIds
+                          )
+                        }
+                        onAddInvocation={addInvocation}
+                        onRemoveInvocation={removeInvocation}
+                        onOpenInvocationReference={onOpenInvocationReference}
+                        renderTrackingButton={renderTrackingButton}
+                      />
+                    ))}
+                  </div>
+                </section>
               );
             })
           )}

@@ -286,18 +286,18 @@
 
 .inlineLinkButton {
   border: none;
-  background: none;
-  color: #2f78ff;
+  background: transparent;
+  color: var(--color-accent);
   cursor: pointer;
   font: inherit;
+  margin: 0;
   padding: 0;
   text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.15em;
+  text-underline-offset: 0.12em;
 }
 
 .inlineLinkButton:hover {
-  color: #1c61d6;
+  color: var(--color-accent-strong, #8f4d1f);
 }
 
 .featDrawerTitleRow {

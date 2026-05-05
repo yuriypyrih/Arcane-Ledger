@@ -33,6 +33,8 @@ import {
   consumeBeguilingMagicOrBardicInspirationForCharacter,
   consumeMantleOfMajestyUseForCharacter,
   consumeContactPatronUseForCharacter,
+  consumeWarlockEldritchSmitePactMagicSlotForCharacter,
+  consumeWarlockLifedrinkerHitDieForCharacter,
   expendChannelDivinityUseForCharacter,
   consumeFighterPsiWarriorPsionicStrikeForCharacter,
   consumeMysticArcanumUseForCharacter,
@@ -468,6 +470,8 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     isDiceRollerSettingsOpen,
     isDreadfulStrikeSelected,
     isEmpoweredStrikesSelected,
+    isEldritchSmiteSelected,
+    isLifedrinkerSelected,
     isFixedSpellDrawerOpen,
     isFlurryOfHealingAndHarmSelected,
     isGroupRecoverySelected,
@@ -524,6 +528,8 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     selectedWeaponColossusSlayerToggleDisabled,
     selectedWeaponDreadAmbusherState,
     selectedWeaponDreadfulStrikeToggleDisabled,
+    selectedWeaponEldritchSmiteState,
+    selectedWeaponLifedrinkerState,
     selectedWeaponEffectiveAction,
     selectedWeaponEmpoweredStrikesState,
     selectedWeaponEmpoweredStrikesToggleDisabled,
@@ -559,6 +565,8 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     setIsDiceRollerSettingsOpen,
     setIsDreadfulStrikeSelected,
     setIsEmpoweredStrikesSelected,
+    setIsEldritchSmiteSelected,
+    setIsLifedrinkerSelected,
     setIsFixedSpellDrawerOpen,
     setIsFlurryOfHealingAndHarmSelected,
     setIsHandOfHarmSelected,
@@ -929,6 +937,22 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
 
     setIsPsionicStrikeSelected(false);
   }, [selectedWeaponPsionicStrikeAvailable]);
+
+  useEffect(() => {
+    if (selectedWeaponEldritchSmiteState && !selectedWeaponEldritchSmiteState.disabled) {
+      return;
+    }
+
+    setIsEldritchSmiteSelected(false);
+  }, [selectedWeaponEldritchSmiteState]);
+
+  useEffect(() => {
+    if (selectedWeaponLifedrinkerState && !selectedWeaponLifedrinkerState.disabled) {
+      return;
+    }
+
+    setIsLifedrinkerSelected(false);
+  }, [selectedWeaponLifedrinkerState]);
 
   useEffect(() => {
     if (
@@ -1933,6 +1957,16 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
       isPsionicStrikeSelected &&
       selectedWeaponPsionicStrikeAvailable &&
       selectedWeaponPsionicStrikeFormula !== null;
+    const useEldritchSmite =
+      action.attackKind === "weapon" &&
+      isEldritchSmiteSelected &&
+      selectedWeaponEldritchSmiteState !== null &&
+      !selectedWeaponEldritchSmiteState.disabled;
+    const useLifedrinker =
+      action.attackKind === "weapon" &&
+      isLifedrinkerSelected &&
+      selectedWeaponLifedrinkerState !== null &&
+      !selectedWeaponLifedrinkerState.disabled;
     const useSacredWeapon =
       isSacredWeaponSelected &&
       selectedWeaponSacredWeaponState !== null &&
@@ -1946,6 +1980,8 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
         useEmpoweredStrikes ||
         useHandOfHarm ||
         usePsionicStrike ||
+        useEldritchSmite ||
+        useLifedrinker ||
         useSacredWeapon) &&
       selectedWeaponEffectiveAction
         ? selectedWeaponEffectiveAction
@@ -1961,9 +1997,40 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
 
     openDiceRoller({
       title: `${damageAction.name} damage`,
-      formula: damageFormula,
-      formulaDisplay: damageFormulaDisplay,
-      description: `${damageAction.name} damage roll`
+      formula: useLifedrinker ? undefined : damageFormula,
+      formulaDisplay: useLifedrinker ? undefined : damageFormulaDisplay,
+      entries: useLifedrinker
+        ? [
+            {
+              label: "Damage",
+              formula: damageFormula,
+              formulaDisplay: damageFormulaDisplay
+            },
+            {
+              label: "Lifedrinker Heal",
+              formula: selectedWeaponLifedrinkerState.healFormula,
+              formulaDisplay: selectedWeaponLifedrinkerState.healFormulaDisplay,
+              minimumTotal: 1,
+              minimumLabel: "Lifedrinker minimum"
+            }
+          ]
+        : undefined,
+      description: useLifedrinker
+        ? `${damageAction.name} damage roll and Lifedrinker healing.`
+        : `${damageAction.name} damage roll`,
+      onResolvedResult: useLifedrinker
+        ? ({ results }) => {
+            const healingResult = results.find((entry) => entry.label === "Lifedrinker Heal");
+
+            if (!healingResult) {
+              return;
+            }
+
+            onPersistCharacter((currentCharacter) =>
+              applyRolledHealingToCharacter(currentCharacter, healingResult.result.total)
+            );
+          }
+        : undefined
     });
 
     const hasDamageRollSideEffects =
@@ -1975,6 +2042,8 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
       useStunningStrike ||
       useEmpoweredStrikes ||
       usePsionicStrike ||
+      useEldritchSmite ||
+      useLifedrinker ||
       useHandOfHarm ||
       useQuiveringPalm;
 
@@ -1986,6 +2055,8 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     setIsHandOfHarmSelected(false);
     setIsQuiveringPalmSelected(false);
     setIsPsionicStrikeSelected(false);
+    setIsEldritchSmiteSelected(false);
+    setIsLifedrinkerSelected(false);
 
     onPersistCharacter((currentCharacter) => {
       let nextCharacter = currentCharacter;
@@ -2001,6 +2072,14 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
 
         if (usePsionicStrike) {
           nextCharacter = consumeFighterPsiWarriorPsionicStrikeForCharacter(nextCharacter);
+        }
+
+        if (useEldritchSmite) {
+          nextCharacter = consumeWarlockEldritchSmitePactMagicSlotForCharacter(nextCharacter);
+        }
+
+        if (useLifedrinker) {
+          nextCharacter = consumeWarlockLifedrinkerHitDieForCharacter(nextCharacter);
         }
 
         if (useDreadfulStrike) {

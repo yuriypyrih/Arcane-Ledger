@@ -99,6 +99,8 @@ export type CharacterEquipmentItem = {
   worn: boolean;
 };
 
+export type CharacterInventoryFeatureTag = "pact-of-the-blade" | "conjured";
+
 export type CharacterInventoryItem = {
   id: string;
   item: ItemRecord;
@@ -107,6 +109,7 @@ export type CharacterInventoryItem = {
   worn: boolean;
   attuned?: boolean;
   usesRemaining?: number;
+  featureTags?: CharacterInventoryFeatureTag[];
 };
 
 export type CustomArmorType = "light" | "medium" | "heavy" | "shield";

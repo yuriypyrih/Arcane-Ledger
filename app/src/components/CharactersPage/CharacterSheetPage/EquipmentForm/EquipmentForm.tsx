@@ -36,6 +36,7 @@ import {
 } from "../../../../utils/codex";
 import { getLoadoutCodexEntryByName } from "../../../../pages/CharactersPage/proficiency";
 import {
+  clearWarlockPactOfTheBladeInvocationSelectionForCharacter,
   getAdditionalWeaponMasteriesForCharacter,
   getFeatureEquipmentEntriesForCharacter
 } from "../../../../pages/CharactersPage/classFeatures";
@@ -76,21 +77,32 @@ import {
   addInventoryItemCopies,
   createHeldDescriptorForInventoryItem,
   createHeldInventoryItemCopyReferences,
+  findInventoryItemStackById,
+  findInventoryItemStackByKey,
   findOwnedInventoryItemRecord,
+  getInventoryItemFeatureTagLabels,
   getInventoryAttunementCount,
   getInventoryItemUseState,
+  getPreferredInventoryCopiesById,
   getPreferredInventoryCopiesByKey,
   getItemTransactionCost,
   getItemWeightValue,
   getAdaptedItemWeapon,
   isExtractableEquipmentPackRecord,
+  isConjuredInventoryItem,
+  isPactOfTheBladeInventoryItem,
   isItemBodyArmorRecord,
   isItemHandEquippableRecord,
   isInventoryItemAttunable,
+  removeOneInventoryItemCopyById,
   removeOneInventoryItemCopyByKey,
+  resetInventoryItemChargeById,
   resetInventoryItemChargeByKey,
+  setInventoryItemAttunedById,
   setInventoryItemAttunedByKey,
+  setInventoryItemOnHandQuantityById,
   setInventoryItemOnHandQuantityByKey,
+  useInventoryItemChargeById as spendInventoryItemChargeById,
   useInventoryItemChargeByKey as spendInventoryItemChargeByKey,
   type GroupedInventoryItem
 } from "../../../../pages/CharactersPage/inventoryItems";
@@ -157,6 +169,7 @@ type SelectedLoadoutEntryState = {
 };
 type SelectedInventoryInspectionState = {
   itemKey: string;
+  stackId?: string;
   initialItem: ItemRecord | null;
   source: "browser" | "inventory";
 };
@@ -457,6 +470,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   const equipmentRuntime = characterRuntime.equipment;
   const inventoryIndex = equipmentRuntime.inventoryIndex;
   const inventoryCountsByKey = inventoryIndex.countsByKey;
+  const inventoryCountsByStackId = inventoryIndex.countsByStackId;
   const groupedInventoryItems = inventoryIndex.groups;
   const inventoryEquipmentGroups = useMemo(
     () => groupInventoryEquipmentItems(groupedInventoryItems),
@@ -667,11 +681,16 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   const shouldOfferHandSwap =
     Boolean(selectedHandDescriptor) && !isSelectedEntryOnHand && !canSelectedEntryBePutOnHand;
   const selectedInventoryGroup = useMemo(
-    () =>
-      selectedInventoryInspection
-        ? (inventoryIndex.groupsByKey.get(selectedInventoryInspection.itemKey) ?? null)
-        : null,
-    [inventoryIndex.groupsByKey, selectedInventoryInspection]
+    () => {
+      if (!selectedInventoryInspection) {
+        return null;
+      }
+
+      return selectedInventoryInspection.stackId
+        ? (inventoryIndex.groupsByStackId.get(selectedInventoryInspection.stackId) ?? null)
+        : (inventoryIndex.groupsByKey.get(selectedInventoryInspection.itemKey) ?? null);
+    },
+    [inventoryIndex.groupsByKey, inventoryIndex.groupsByStackId, selectedInventoryInspection]
   );
   const { item: selectedInventoryItem, status: selectedInventoryItemStatus } = useItemEntry(
     selectedInventoryInspection?.itemKey,
@@ -681,32 +700,56 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     }
   );
   const selectedInventoryCopy = useMemo(
-    () =>
-      selectedInventoryInspection
-        ? (inventoryIndex.firstCopyByKey.get(selectedInventoryInspection.itemKey) ?? null)
-        : null,
-    [inventoryIndex.firstCopyByKey, selectedInventoryInspection]
+    () => {
+      if (!selectedInventoryInspection) {
+        return null;
+      }
+
+      return selectedInventoryInspection.stackId
+        ? (inventoryIndex.firstCopyByStackId.get(selectedInventoryInspection.stackId) ?? null)
+        : (inventoryIndex.firstCopyByKey.get(selectedInventoryInspection.itemKey) ?? null);
+    },
+    [inventoryIndex.firstCopyByKey, inventoryIndex.firstCopyByStackId, selectedInventoryInspection]
   );
   const selectedHeldInventoryCopies = useMemo(
-    () =>
-      selectedInventoryInspection
-        ? (inventoryIndex.heldCopiesByKey.get(selectedInventoryInspection.itemKey) ?? [])
-        : [],
-    [inventoryIndex.heldCopiesByKey, selectedInventoryInspection]
+    () => {
+      if (!selectedInventoryInspection) {
+        return [];
+      }
+
+      return selectedInventoryInspection.stackId
+        ? (inventoryIndex.heldCopiesByStackId.get(selectedInventoryInspection.stackId) ?? [])
+        : (inventoryIndex.heldCopiesByKey.get(selectedInventoryInspection.itemKey) ?? []);
+    },
+    [inventoryIndex.heldCopiesByKey, inventoryIndex.heldCopiesByStackId, selectedInventoryInspection]
   );
   const selectedAvailableInventoryCopy = useMemo(
-    () =>
+    () => {
+      if (!selectedInventoryInspection) {
+        return null;
+      }
+
+      return selectedInventoryInspection.stackId
+        ? (inventoryIndex.availableCopyByStackId.get(selectedInventoryInspection.stackId) ?? null)
+        : (inventoryIndex.availableCopyByKey.get(selectedInventoryInspection.itemKey) ?? null);
+    },
+    [
+      inventoryIndex.availableCopyByKey,
+      inventoryIndex.availableCopyByStackId,
       selectedInventoryInspection
-        ? (inventoryIndex.availableCopyByKey.get(selectedInventoryInspection.itemKey) ?? null)
-        : null,
-    [inventoryIndex.availableCopyByKey, selectedInventoryInspection]
+    ]
   );
   const selectedWornInventoryCopy = useMemo(
-    () =>
-      selectedInventoryInspection
-        ? (inventoryIndex.wornCopyByKey.get(selectedInventoryInspection.itemKey) ?? null)
-        : null,
-    [inventoryIndex.wornCopyByKey, selectedInventoryInspection]
+    () => {
+      if (!selectedInventoryInspection) {
+        return null;
+      }
+
+      return selectedInventoryInspection.stackId
+        ? (inventoryIndex.wornCopyByStackId.get(selectedInventoryInspection.stackId) ?? null)
+        : (inventoryIndex.wornCopyByKey.get(selectedInventoryInspection.itemKey) ?? null);
+    },
+    [inventoryIndex.wornCopyByKey, inventoryIndex.wornCopyByStackId, selectedInventoryInspection]
   );
   const selectedInventoryRecord = selectedInventoryGroup?.item ?? selectedInventoryItem ?? null;
   const selectedInventoryWeaponHasActiveMastery = useMemo(
@@ -735,12 +778,18 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     });
   }, [character.weaponProficiencies, selectedInventoryRecord]);
   const selectedInventoryCount = selectedInventoryInspection
-    ? (inventoryCountsByKey[selectedInventoryInspection.itemKey] ?? 0)
+    ? selectedInventoryInspection.stackId
+      ? (inventoryCountsByStackId[selectedInventoryInspection.stackId] ?? 0)
+      : (inventoryCountsByKey[selectedInventoryInspection.itemKey] ?? 0)
     : 0;
   const selectedInventoryOnHandCount = selectedInventoryInspection
     ? selectedHeldInventoryCopies.length
     : 0;
   const selectedInventoryStack = selectedInventoryGroup?.stack ?? null;
+  const selectedInventoryFeatureTagLabels = getInventoryItemFeatureTagLabels(selectedInventoryStack);
+  const selectedInventoryIsConjured = isConjuredInventoryItem(selectedInventoryStack);
+  const selectedInventoryIsInventoryConjuredStack =
+    selectedInventoryInspection?.source === "inventory" && selectedInventoryIsConjured;
   const isSelectedInventoryOwnedDrawer =
     selectedInventoryCount > 0 && selectedInventoryStack !== null;
   const inventoryAttunementCount = useMemo(
@@ -801,11 +850,17 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       : null;
   const selectedInventoryDualDescriptors =
     selectedInventoryGroup && selectedInventoryCount >= 2
-      ? getPreferredInventoryCopiesByKey(
-          equipmentCharacter.inventoryItems,
-          selectedInventoryGroup.key,
-          2
-        )
+      ? (selectedInventoryInspection?.stackId
+          ? getPreferredInventoryCopiesById(
+              equipmentCharacter.inventoryItems,
+              selectedInventoryInspection.stackId,
+              2
+            )
+          : getPreferredInventoryCopiesByKey(
+              equipmentCharacter.inventoryItems,
+              selectedInventoryGroup.itemKey,
+              2
+            ))
           .map((copy) => createHeldDescriptorForInventoryItem(`inventory-${copy.id}`, copy.item))
           .filter((entry): entry is HeldWeaponDescriptor => entry !== null)
       : [];
@@ -833,11 +888,13 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   useEffect(() => {
     if (
       selectedInventoryInspection?.source === "inventory" &&
-      (inventoryCountsByKey[selectedInventoryInspection.itemKey] ?? 0) === 0
+      (selectedInventoryInspection.stackId
+        ? (inventoryCountsByStackId[selectedInventoryInspection.stackId] ?? 0)
+        : (inventoryCountsByKey[selectedInventoryInspection.itemKey] ?? 0)) === 0
     ) {
       setSelectedInventoryInspection(null);
     }
-  }, [inventoryCountsByKey, selectedInventoryInspection]);
+  }, [inventoryCountsByKey, inventoryCountsByStackId, selectedInventoryInspection]);
 
   function openLoadoutEntryDetails(item: LoadoutGroupItem) {
     setIsCurrencyDrawerOpen(false);
@@ -996,7 +1053,8 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     setSelectedWeaponReference(null);
     setSelectedLoadoutEntry(null);
     setSelectedInventoryInspection({
-      itemKey: item.key,
+      itemKey: item.itemKey,
+      stackId: item.stackId,
       initialItem: item.item,
       source: "inventory"
     });
@@ -1057,21 +1115,48 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     );
   }
 
+  function getInventoryRemovalTargetStack(
+    currentCharacter: Character,
+    itemKey: string,
+    stackId?: string | null
+  ) {
+    return stackId
+      ? findInventoryItemStackById(currentCharacter.inventoryItems, stackId)
+      : findInventoryItemStackByKey(currentCharacter.inventoryItems, itemKey);
+  }
+
+  function clearPactOfTheBladeSelectionIfTargetWasPact(
+    currentCharacter: Character,
+    targetStack: ReturnType<typeof findInventoryItemStackById>
+  ): Character {
+    return isPactOfTheBladeInventoryItem(targetStack)
+      ? clearWarlockPactOfTheBladeInvocationSelectionForCharacter(currentCharacter)
+      : currentCharacter;
+  }
+
   function removeInventoryItemCopy(itemKey: string, options?: { closeDrawer?: boolean }) {
     if (!itemKey) {
       return;
     }
 
+    const stackId = selectedInventoryInspection?.stackId;
+
     updateEquipmentCharacter(
       (currentCharacter) => {
-        if (!currentCharacter.inventoryItems.some((entry) => entry.item.key === itemKey)) {
+        const targetStack = getInventoryRemovalTargetStack(currentCharacter, itemKey, stackId);
+
+        if (!targetStack) {
           return currentCharacter;
         }
 
-        return {
+        const nextCharacter = {
           ...currentCharacter,
-          inventoryItems: removeOneInventoryItemCopyByKey(currentCharacter.inventoryItems, itemKey)
+          inventoryItems: stackId
+            ? removeOneInventoryItemCopyById(currentCharacter.inventoryItems, stackId)
+            : removeOneInventoryItemCopyByKey(currentCharacter.inventoryItems, itemKey)
         };
+
+        return clearPactOfTheBladeSelectionIfTargetWasPact(nextCharacter, targetStack);
       },
       { stage: selectedInventoryInspection?.source === "browser" }
     );
@@ -1097,9 +1182,13 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       return;
     }
 
+    const stackId = selectedInventoryInspection?.stackId;
+
     updateEquipmentCharacter(
       (currentCharacter) => {
-        if (!currentCharacter.inventoryItems.some((entry) => entry.item.key === itemKey)) {
+        const targetStack = getInventoryRemovalTargetStack(currentCharacter, itemKey, stackId);
+
+        if (!targetStack) {
           return currentCharacter;
         }
 
@@ -1110,14 +1199,18 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
           )
         );
 
-        return {
+        const nextCharacter = {
           ...currentCharacter,
           currencies: {
             ...currentCharacter.currencies,
             [transactionCost.currencyKey]: currentCurrencyAmount + transactionCost.amount
           },
-          inventoryItems: removeOneInventoryItemCopyByKey(currentCharacter.inventoryItems, itemKey)
+          inventoryItems: stackId
+            ? removeOneInventoryItemCopyById(currentCharacter.inventoryItems, stackId)
+            : removeOneInventoryItemCopyByKey(currentCharacter.inventoryItems, itemKey)
         };
+
+        return clearPactOfTheBladeSelectionIfTargetWasPact(nextCharacter, targetStack);
       },
       { stage: selectedInventoryInspection?.source === "browser" }
     );
@@ -1159,7 +1252,12 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
           });
 
           if (source === "inventory") {
-            nextInventoryItems = removeOneInventoryItemCopyByKey(nextInventoryItems, packKey);
+            nextInventoryItems = selectedInventoryInspection?.stackId
+              ? removeOneInventoryItemCopyById(
+                  nextInventoryItems,
+                  selectedInventoryInspection.stackId
+                )
+              : removeOneInventoryItemCopyByKey(nextInventoryItems, packKey);
           }
 
           if (nextInventoryItems === currentCharacter.inventoryItems) {
@@ -1313,12 +1411,24 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
 
     updateEquipmentCharacter(
       (currentCharacter) => {
+        const setOnHandQuantity = (inventoryItems: Character["inventoryItems"], quantity: number) =>
+          selectedInventoryInspection.stackId
+            ? setInventoryItemOnHandQuantityById(
+                inventoryItems,
+                selectedInventoryInspection.stackId,
+                quantity
+              )
+            : setInventoryItemOnHandQuantityByKey(
+                inventoryItems,
+                selectedInventoryInspection.itemKey,
+                quantity
+              );
+
         if (isSelectedInventoryOnHand) {
           return {
             ...currentCharacter,
-            inventoryItems: setInventoryItemOnHandQuantityByKey(
+            inventoryItems: setOnHandQuantity(
               currentCharacter.inventoryItems,
-              selectedInventoryInspection.itemKey,
               selectedInventoryOnHandCount >= 2 ? 1 : 0
             )
           };
@@ -1326,11 +1436,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
 
         return {
           ...currentCharacter,
-          inventoryItems: setInventoryItemOnHandQuantityByKey(
-            currentCharacter.inventoryItems,
-            selectedInventoryInspection.itemKey,
-            1
-          )
+          inventoryItems: setOnHandQuantity(currentCharacter.inventoryItems, 1)
         };
       },
       { stage: selectedInventoryInspection.source === "browser" }
@@ -1352,11 +1458,17 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
 
         return {
           ...clearedCharacter,
-          inventoryItems: setInventoryItemOnHandQuantityByKey(
-            clearedCharacter.inventoryItems,
-            selectedInventoryInspection.itemKey,
-            1
-          )
+          inventoryItems: selectedInventoryInspection.stackId
+            ? setInventoryItemOnHandQuantityById(
+                clearedCharacter.inventoryItems,
+                selectedInventoryInspection.stackId,
+                1
+              )
+            : setInventoryItemOnHandQuantityByKey(
+                clearedCharacter.inventoryItems,
+                selectedInventoryInspection.itemKey,
+                1
+              )
         };
       },
       { stage: selectedInventoryInspection.source === "browser" }
@@ -1375,11 +1487,17 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
 
     updateEquipmentCharacter(
       (currentCharacter) => {
-        const targetCopies = getPreferredInventoryCopiesByKey(
-          currentCharacter.inventoryItems,
-          selectedInventoryInspection.itemKey,
-          2
-        );
+        const targetCopies = selectedInventoryInspection.stackId
+          ? getPreferredInventoryCopiesById(
+              currentCharacter.inventoryItems,
+              selectedInventoryInspection.stackId,
+              2
+            )
+          : getPreferredInventoryCopiesByKey(
+              currentCharacter.inventoryItems,
+              selectedInventoryInspection.itemKey,
+              2
+            );
 
         if (targetCopies.length < 2) {
           return currentCharacter;
@@ -1388,11 +1506,17 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
         if (canSelectedInventoryBeDualEquipped) {
           return {
             ...currentCharacter,
-            inventoryItems: setInventoryItemOnHandQuantityByKey(
-              currentCharacter.inventoryItems,
-              selectedInventoryInspection.itemKey,
-              2
-            )
+            inventoryItems: selectedInventoryInspection.stackId
+              ? setInventoryItemOnHandQuantityById(
+                  currentCharacter.inventoryItems,
+                  selectedInventoryInspection.stackId,
+                  2
+                )
+              : setInventoryItemOnHandQuantityByKey(
+                  currentCharacter.inventoryItems,
+                  selectedInventoryInspection.itemKey,
+                  2
+                )
           };
         }
 
@@ -1400,11 +1524,17 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
 
         return {
           ...clearedCharacter,
-          inventoryItems: setInventoryItemOnHandQuantityByKey(
-            clearedCharacter.inventoryItems,
-            selectedInventoryInspection.itemKey,
-            2
-          )
+          inventoryItems: selectedInventoryInspection.stackId
+            ? setInventoryItemOnHandQuantityById(
+                clearedCharacter.inventoryItems,
+                selectedInventoryInspection.stackId,
+                2
+              )
+            : setInventoryItemOnHandQuantityByKey(
+                clearedCharacter.inventoryItems,
+                selectedInventoryInspection.itemKey,
+                2
+              )
         };
       },
       { stage: selectedInventoryInspection.source === "browser" }
@@ -1451,11 +1581,17 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     updateEquipmentCharacter(
       (currentCharacter) => ({
         ...currentCharacter,
-        inventoryItems: setInventoryItemAttunedByKey(
-          currentCharacter.inventoryItems,
-          selectedInventoryInspection.itemKey,
-          !selectedInventoryAttuned
-        )
+        inventoryItems: selectedInventoryInspection.stackId
+          ? setInventoryItemAttunedById(
+              currentCharacter.inventoryItems,
+              selectedInventoryInspection.stackId,
+              !selectedInventoryAttuned
+            )
+          : setInventoryItemAttunedByKey(
+              currentCharacter.inventoryItems,
+              selectedInventoryInspection.itemKey,
+              !selectedInventoryAttuned
+            )
       }),
       { stage: selectedInventoryInspection.source === "browser" }
     );
@@ -1474,10 +1610,15 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     updateEquipmentCharacter(
       (currentCharacter) => ({
         ...currentCharacter,
-        inventoryItems: spendInventoryItemChargeByKey(
-          currentCharacter.inventoryItems,
-          selectedInventoryInspection.itemKey
-        )
+        inventoryItems: selectedInventoryInspection.stackId
+          ? spendInventoryItemChargeById(
+              currentCharacter.inventoryItems,
+              selectedInventoryInspection.stackId
+            )
+          : spendInventoryItemChargeByKey(
+              currentCharacter.inventoryItems,
+              selectedInventoryInspection.itemKey
+            )
       }),
       { stage: selectedInventoryInspection.source === "browser" }
     );
@@ -1496,10 +1637,15 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     updateEquipmentCharacter(
       (currentCharacter) => ({
         ...currentCharacter,
-        inventoryItems: resetInventoryItemChargeByKey(
-          currentCharacter.inventoryItems,
-          selectedInventoryInspection.itemKey
-        )
+        inventoryItems: selectedInventoryInspection.stackId
+          ? resetInventoryItemChargeById(
+              currentCharacter.inventoryItems,
+              selectedInventoryInspection.stackId
+            )
+          : resetInventoryItemChargeByKey(
+              currentCharacter.inventoryItems,
+              selectedInventoryInspection.itemKey
+            )
       }),
       { stage: selectedInventoryInspection.source === "browser" }
     );
@@ -1639,6 +1785,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
           icon: TicketPlus,
           tone: "positive",
           disabled:
+            selectedInventoryIsInventoryConjuredStack ||
             !selectedInventoryRecord ||
             !selectedInventoryTransactionCost ||
             selectedInventoryTransactionCost.amount <= 0 ||
@@ -1656,6 +1803,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
           icon: TicketMinus,
           tone: "negative",
           disabled:
+            selectedInventoryIsConjured ||
             !selectedInventoryRecord ||
             selectedInventoryCount <= 0 ||
             !selectedInventorySaleCost ||
@@ -1671,7 +1819,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
           label: "Add",
           icon: Plus,
           tone: "neutral",
-          disabled: !selectedInventoryRecord,
+          disabled: selectedInventoryIsInventoryConjuredStack || !selectedInventoryRecord,
           onClick: () => {
             if (selectedInventoryRecord) {
               addInventoryItemCopy(selectedInventoryRecord);
@@ -1706,6 +1854,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       worn={isSelectedInventoryArmorWorn}
       attuned={selectedInventoryAttuned}
       charges={selectedInventoryUseState}
+      featureTags={selectedInventoryFeatureTagLabels}
     />
   ) : undefined;
 
@@ -1715,7 +1864,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     activeCurrencyDefinition, activeCurrencyKey, adjustCurrencyBalance, canSpendCurrency, carriedWeight, carryingCapacity, className, closeAddModal,
     closeCustomEquipmentModal, closeInventoryItemDrawer, closeLoadoutDrawer, clsx, currencyAmountDraft, currencyDefinitions, customEditorMode, deleteCustomEquipment,
     editingCustomEquipment, equipmentGroupMeta, formatCodexLabel, formatCodexList, formatEquipmentWeight, formatInventoryStackName, formatOnHandLabel, formatWeaponDamage,
-    formatWeaponProperties, formatWeaponType, formatWeaponWeight, formatWeightValue, getArmorTypeSummary, getItemWeightValue, groupedInventoryItems, hasDisplayableRarity,
+    formatWeaponProperties, formatWeaponType, formatWeaponWeight, formatWeightValue, getArmorTypeSummary, getInventoryItemFeatureTagLabels, getItemWeightValue, groupedInventoryItems, hasDisplayableRarity,
     inventoryDrawerFooter, inventoryDrawerHeaderContent, inventoryEquipmentGroups, isAddModalCommitting, isAddModalOpen, isCurrencyDrawerOpen, isCustomEquipmentModalOpen, isGeneralEquipmentExpanded,
     isHandEquippableEntry, isOverCarryingCapacity, isSelectedArmorWorn, isSelectedCustomEntry, isSelectedEntryOnHand, isSelectedFeatureManagedEntry, isSelectedShield, normalizeCurrencyAmountInput,
     normalizedCurrencies, openAddModal, openCurrencyModal, openCustomEquipmentCreator, openCustomEquipmentEditor, openInventoryInspectionFromBrowser, openInventoryInspectionFromLoadout, openLoadoutEntryDetails,

@@ -14,6 +14,7 @@ type EquipmentInventoryItemDrawerHeaderProps = {
     remaining: number;
     total: number;
   } | null;
+  featureTags?: string[];
 };
 
 function getOnHandLabel(onHandCount: number) {
@@ -25,7 +26,8 @@ function EquipmentInventoryItemDrawerHeader({
   onHandCount = 0,
   worn = false,
   attuned = false,
-  charges = null
+  charges = null,
+  featureTags = []
 }: EquipmentInventoryItemDrawerHeaderProps) {
   const presentation = buildItemDetailPresentation(item);
 
@@ -59,6 +61,11 @@ function EquipmentInventoryItemDrawerHeader({
             <span>{`Charges ${charges.remaining}/${charges.total}`}</span>
           </span>
         ) : null}
+        {featureTags.map((tagLabel) => (
+          <span key={tagLabel} className={styles.drawerFeatureTagBadge}>
+            <span>{tagLabel}</span>
+          </span>
+        ))}
       </div>
       <p className={`${sheetStyles.spellDrawerSummary} ${styles.drawerSummaryRow}`}>
         <span>{presentation.categoryLabel}</span>

@@ -9,6 +9,7 @@ import modalStyles from "./FeatEditorModal.module.css";
 
 type SelectFieldOption = {
   disabled?: boolean;
+  group?: string | null;
   label: string;
   value: string;
 };
@@ -55,6 +56,31 @@ type SingleAbilityEditorProps = {
 };
 
 export function SelectField({ label, value, disabled, options, onChange }: SelectFieldProps) {
+  const ungroupedOptions = options.filter((option) => !option.group);
+  const groupedOptions = options.reduce<Array<{ label: string; options: SelectFieldOption[] }>>(
+    (groups, option) => {
+      if (!option.group) {
+        return groups;
+      }
+
+      const existingGroup = groups.find((group) => group.label === option.group);
+
+      if (existingGroup) {
+        existingGroup.options.push(option);
+        return groups;
+      }
+
+      return [
+        ...groups,
+        {
+          label: option.group,
+          options: [option]
+        }
+      ];
+    },
+    []
+  );
+
   return (
     <label className={modalStyles.field}>
       <span>{label}</span>
@@ -64,10 +90,19 @@ export function SelectField({ label, value, disabled, options, onChange }: Selec
         disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
       >
-        {options.map((option) => (
+        {ungroupedOptions.map((option) => (
           <option key={option.value} value={option.value} disabled={option.disabled}>
             {option.label}
           </option>
+        ))}
+        {groupedOptions.map((group) => (
+          <optgroup key={group.label} label={group.label}>
+            {group.options.map((option) => (
+              <option key={option.value} value={option.value} disabled={option.disabled}>
+                {option.label}
+              </option>
+            ))}
+          </optgroup>
         ))}
       </SelectInput>
     </label>

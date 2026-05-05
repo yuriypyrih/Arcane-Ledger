@@ -22,6 +22,7 @@ export enum STATUS_ENTRY_SOURCE_TYPE {
 export enum SENSE {
   DARKVISION = "Darkvision",
   BLINDSIGHT = "Blindsight",
+  DEVILS_SIGHT = "Devil's Sight",
   TREMORSENSE = "Tremorsense",
   TRUESIGHT = "Truesight"
 }

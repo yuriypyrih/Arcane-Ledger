@@ -23,10 +23,12 @@ import {
 } from "../../../../pages/CharactersPage/feats";
 import {
   getWarlockEldritchInvocationInputStatusForCharacter,
+  getWarlockPactOfTheBladeConjuredItemKeyFromSelectionIdsForCharacter,
   getWarlockInvocationSelectionIdsForCharacter,
   getWarlockLearnedInvocationOptionsForCharacter,
   setWarlockInvocationSelectionIdsForCharacter
 } from "../../../../pages/CharactersPage/classFeatures";
+import { fetchItemByKey } from "../../../../api";
 import { getFeatEligibilityForCharacter } from "../../../../pages/CharactersPage/feats/eligibility";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import {
@@ -34,7 +36,7 @@ import {
   getSubclassFeatureDetails,
   getSubclassFeatureRowsForCharacter
 } from "../../../../pages/CharactersPage/subclasses";
-import type { Character, CharacterFeatEntry } from "../../../../types";
+import type { Character, CharacterFeatEntry, ItemRecord } from "../../../../types";
 import { resolveKeywordReference } from "../../../../utils/codex/renderCodexRichText";
 import CodexDivinityDrawer from "../../../CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
 import CodexSpellDrawer from "../../../CodexPage/CodexSpellDrawer";
@@ -591,11 +593,25 @@ function ClassFeaturesAndFeats({
     setIsEldritchInvocationModalOpen(true);
   }
 
-  function closeEldritchInvocationEditor(selectionIds: string[]) {
-    onPersistCharacter((currentCharacter) =>
-      setWarlockInvocationSelectionIdsForCharacter(currentCharacter, selectionIds)
-    );
+  async function closeEldritchInvocationEditor(selectionIds: string[]) {
     setIsEldritchInvocationModalOpen(false);
+    const pactBladeConjuredItemKey =
+      getWarlockPactOfTheBladeConjuredItemKeyFromSelectionIdsForCharacter(selectionIds);
+    let pactBladeConjuredItem: ItemRecord | null = null;
+
+    if (pactBladeConjuredItemKey) {
+      try {
+        pactBladeConjuredItem = await fetchItemByKey(pactBladeConjuredItemKey);
+      } catch (error) {
+        console.error("Failed to fetch Pact of the Blade conjured weapon.", error);
+      }
+    }
+
+    onPersistCharacter((currentCharacter) =>
+      setWarlockInvocationSelectionIdsForCharacter(currentCharacter, selectionIds, {
+        pactBladeConjuredItem
+      })
+    );
   }
 
   function openFeatEditorForFeature(level: number, feature: CLASS_FEATURE) {

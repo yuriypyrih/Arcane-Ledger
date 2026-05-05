@@ -739,7 +739,12 @@ export function clearRoundScopedFeatureStateIfOutOfCombat(character: Character):
 export function normalizeCharacterClassFeatureState(
   value: unknown,
   character: Pick<Character, "className" | "level"> &
-    Partial<Pick<Character, "abilities" | "cantripIds" | "feats" | "subclassId">>
+    Partial<
+      Pick<
+        Character,
+        "abilities" | "cantripIds" | "feats" | "inventoryItems" | "statusEntries" | "subclassId"
+      >
+    >
 ): CharacterClassFeatureState {
   const record =
     value && typeof value === "object" ? (value as Partial<CharacterClassFeatureState>) : {};

@@ -29,9 +29,15 @@ import {
   getFighterEldritchKnightWarMagicMultiCount,
   getFighterEldritchKnightWarMagicSpellLevels
 } from "./fighter/subclasses/fighterEldritchKnight";
+import { INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE } from "../inventoryItems";
 import { consumeMonkWeaponAttack, getMonkExtraAttackMultiCount } from "./monk/monk";
 import { consumePaladinWeaponAttack, getPaladinWeaponAttackMultiCount } from "./paladin/paladin";
 import { consumeRangerWeaponAttack, getRangerWeaponAttackMultiCount } from "./ranger/ranger";
+import {
+  consumeWarlockPactWeaponAttack,
+  getWarlockPactWeaponAttackMultiCount,
+  hasWarlockPactBladeExtraAttackFeature
+} from "./warlock/warlock";
 import {
   consumeWizardActionCantrip,
   consumeWizardWeaponAttack,
@@ -74,6 +80,14 @@ function matchesAccessRule(
 
   if (rule.attackKinds) {
     if (!context.attackKind || !rule.attackKinds.includes(context.attackKind)) {
+      return false;
+    }
+  }
+
+  if (rule.weaponInventoryFeatureTags) {
+    const actionFeatureTags = context.weaponInventoryFeatureTags ?? [];
+
+    if (!rule.weaponInventoryFeatureTags.every((tag) => actionFeatureTags.includes(tag))) {
       return false;
     }
   }
@@ -170,10 +184,13 @@ function createWeaponAttackConsumptionContext(
   const attackKind = context.attackKind ?? "weapon";
 
   return {
-    key: attackKind === "unarmed" ? "unarmed-strike" : "shared-attack",
+    key: context.weaponActionKey ?? (attackKind === "unarmed" ? "unarmed-strike" : "shared-attack"),
     economyType: context.economyType,
     actionCategory: context.actionCategory,
-    attackKind
+    attackKind,
+    combatType: context.combatType,
+    inventoryStackId: context.weaponInventoryStackId,
+    inventoryFeatureTags: context.weaponInventoryFeatureTags
   };
 }
 
@@ -335,6 +352,29 @@ function createMonkExtraAttackPool(
   };
 }
 
+function createWarlockPactBladeExtraAttackPool(
+  character: SharedEconomyMultiCharacter
+): SharedEconomyMultiPool | null {
+  if (!hasWarlockPactBladeExtraAttackFeature(character)) {
+    return null;
+  }
+
+  return {
+    id: "warlock-pact-blade-extra-attack",
+    remaining: clampRemaining(getWarlockPactWeaponAttackMultiCount(character)),
+    priority: 10,
+    accessRules: [
+      {
+        ...createAttackAccessRule(),
+        attackKinds: ["weapon"],
+        weaponInventoryFeatureTags: [INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE]
+      }
+    ],
+    consume: (nextCharacter, context) =>
+      consumeWarlockPactWeaponAttack(nextCharacter, createWeaponAttackConsumptionContext(context))
+  };
+}
+
 function createWizardBladesingerExtraAttackPool(
   character: SharedEconomyMultiCharacter
 ): SharedEconomyMultiPool | null {
@@ -375,6 +415,7 @@ function getSharedEconomyMultiPools(
     createRangerExtraAttackPool(character),
     createPaladinExtraAttackPool(character),
     createMonkExtraAttackPool(character),
+    createWarlockPactBladeExtraAttackPool(character),
     createWizardBladesingerExtraAttackPool(character)
   ].filter((pool): pool is SharedEconomyMultiPool => pool !== null);
 
@@ -402,12 +443,25 @@ function getPoolCandidatesForConsumption(
 }
 
 export function createEconomyMultiContextForWeaponAction(
-  action: Pick<WeaponAction, "economyType" | "actionCategory" | "attackKind">
+  action: Pick<
+    WeaponAction,
+    | "key"
+    | "economyType"
+    | "actionCategory"
+    | "attackKind"
+    | "combatType"
+    | "inventoryStackId"
+    | "inventoryFeatureTags"
+  >
 ): EconomyMultiActionContext {
   return {
     economyType: action.economyType,
     actionCategory: action.actionCategory,
-    attackKind: action.attackKind
+    attackKind: action.attackKind,
+    combatType: action.combatType,
+    weaponActionKey: action.key,
+    weaponInventoryStackId: action.inventoryStackId,
+    weaponInventoryFeatureTags: action.inventoryFeatureTags
   };
 }
 

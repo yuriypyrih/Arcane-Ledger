@@ -318,8 +318,10 @@ import {
   applyLongRestToWarlockFeatures,
   applyShortRestToWarlockFeatures,
   getWarlockAlwaysPreparedSpellIds,
+  getWarlockDerivedStatusEntries,
   getWarlockFeatureActions,
   getWarlockSpellDamageBonuses,
+  getWarlockWeaponAction,
   normalizeWarlockFeatureState
 } from "./warlock/warlock";
 import {
@@ -929,7 +931,9 @@ const classFeatureModules = {
       return {
         actions: getWarlockFeatureActions(character),
         getSpellDamageBonuses: (context) => getWarlockSpellDamageBonuses(character, context),
-        alwaysPreparedSpellIds: getWarlockAlwaysPreparedSpellIds(character)
+        alwaysPreparedSpellIds: getWarlockAlwaysPreparedSpellIds(character),
+        derivedStatusEntries: getWarlockDerivedStatusEntries(character),
+        transformWeaponAction: (action) => getWarlockWeaponAction(character, action)
       };
     },
     handleAction(character, actionKey) {
@@ -979,6 +983,7 @@ export function collectActiveClassFeatureState(
         | "statusEntries"
         | "roundTracker"
         | "equipment"
+        | "inventoryItems"
         | "customEquipment"
         | "spellbookSpellIds"
         | "cantripIds"

@@ -3,26 +3,70 @@ import {
   SPELL_LIST_CLASS,
   CLASS_FEATURE,
   ELDRITCH_INVOCATION,
-  getEldritchInvocationEntries,
+  WEAPON_COMBAT_TYPE,
   getEldritchInvocationEntryById,
   getSpellEntryById,
   type EldritchInvocationEntry,
   type FEATS,
-  type SpellEntry
+  type SpellEntry,
+  type WEAPON_BASE
 } from "../../../../codex/entries";
+import { getWeaponEntries } from "../../../../codex/selectors";
 import {
   getSpellEntriesForClassName,
   warlockFeatures,
   type WarlockFeatureClassObj
 } from "../../../../codex/classes";
-import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
-import { createFeatureSourcedDescriptionEntries } from "../../actionModalDescriptions";
-import { getAbilityModifierForCharacter } from "../../abilities";
+import {
+  ACTION_CATEGORY,
+  ECONOMY_TYPE,
+  getRoundTrackerResourceForEconomyType
+} from "../../actionEconomy";
+import {
+  createFeatureSourcedDescriptionEntries,
+  createSourcedDescriptionEntries
+} from "../../actionModalDescriptions";
+import {
+  getAbilityModifierBreakdownForCharacter,
+  getAbilityModifierForCharacter
+} from "../../abilities";
+import {
+  getHitDiceRemainingForCharacter,
+  getHitDiceTotalForCharacter,
+  getHitDieFormulaForClass
+} from "../../hitDice";
 import { getFeatDefinitionsByCategory } from "../../feats";
-import type { Character, CharacterWarlockFeatureState } from "../../../../types";
+import {
+  SENSE,
+  STATUS_DURATION_KIND,
+  STATUS_ENTRY_GROUP,
+  STATUS_ENTRY_SOURCE_TYPE,
+  type Character,
+  type CharacterWarlockFeatureState
+} from "../../../../types";
+import type { ItemRecord } from "../../../../types";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../spellcasting";
 import { mageArmorSpellId } from "../../characterRuntime/spellImplementations";
-import type { FeatureActionCard, FeatureDamageBonus, SpellFeatureContext } from "../types";
+import type { WeaponAction } from "../../gameplay";
+import {
+  addConjuredPactOfTheBladeInventoryItem,
+  clearPactOfTheBladeInventoryTags,
+  findInventoryItemStackById,
+  getInventoryItemStackIdFromCopyId,
+  isConjuredInventoryItem,
+  isPactOfTheBladeInventoryItem,
+  setPactOfTheBladeInventoryItemById
+} from "../../inventoryItems";
+import { getOfficial2024BackendItemKeyForWeaponBase } from "../../../../utils/items/weaponBaseItemKeys";
+import { formatFormulaCell, formatSignedFormulaTerm } from "../../shared/formulas";
+import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../combat";
+import type {
+  DerivedFeatureStatusEntry,
+  FeatureActionCard,
+  FeatureDamageBonus,
+  SpellFeatureContext,
+  WeaponAttackConsumptionContext
+} from "../types";
 import { getFeatureDescriptionForCharacter } from "../featureDescriptions";
 import {
   beguilingDefenseReactionId,
@@ -95,9 +139,15 @@ const magicalCunningUsesTotal = 1;
 const contactPatronUsesTotal = 1;
 const contactOtherPlaneSpellId = "spell-contact-other-plane";
 const levitateSpellId = "spell-levitate";
+const devilsSightStatusSourceId = "warlock-invocation-devils-sight";
+const pactBladeOwnedSelectionPrefix = "owned:";
+const pactBladeConjuredSelectionPrefix = "conjured:";
+const pactOfTheBladeDamageTypeLabel = "Necrotic/Psychic/Radiant";
 const mysticArcanumActionSummary = "Cast your chosen arcanum spells without spell slots.";
 const mysticArcanumActionDetail =
   "Open your chosen Mystic Arcanum spells and cast each of them once per Long Rest.";
+const pactOfTheBladeAttackDamageDescription =
+  "Whenever you attack with the bonded weapon, you can use your Charisma modifier for the attack and damage rolls instead of using Strength or Dexterity, and you can cause the weapon to deal Necrotic, Psychic, or Radiant damage or its normal damage type.";
 
 export const magicalCunningActionKey = "warlock-magical-cunning";
 export const ascendantStepActionKey = "warlock-ascendant-step";
@@ -115,6 +165,34 @@ export { warlockFiendPatronFiendishResilienceDamageTypeOptions };
 export type MysticArcanumLevel = 6 | 7 | 8 | 9;
 
 type MysticArcanumSpellIdMap = Partial<Record<MysticArcanumLevel, string>>;
+
+type SetWarlockInvocationSelectionIdsOptions = {
+  pactBladeConjuredItem?: ItemRecord | null;
+};
+
+export type WarlockEldritchSmiteWeaponOptionState = {
+  damageBonus: FeatureDamageBonus;
+  disabled: boolean;
+  disabledReason: string | null;
+  pactMagicSlotLevel: number;
+  pactMagicSlotsRemaining: number;
+  pactMagicSlotsTotal: number;
+};
+
+export type WarlockLifedrinkerWeaponOptionState = {
+  damageBonus: FeatureDamageBonus;
+  disabled: boolean;
+  disabledReason: string | null;
+  healFormula: string;
+  healFormulaDisplay: string;
+  healFormulaPresentation: {
+    label: string;
+    value: string;
+    breakdown?: string;
+  };
+  hitDiceRemaining: number;
+  hitDiceTotal: number;
+};
 
 export type WarlockMysticArcanumSelection = {
   spellLevel: MysticArcanumLevel;
@@ -135,10 +213,96 @@ export type WarlockEldritchInvocationOption = {
   invocation: EldritchInvocationEntry;
   displayName: string;
   displaySubtitle: string | null;
+  selectionGroup?: string | null;
   requirementLabel: string;
   isQualified: boolean;
   isPlaceholder: boolean;
 };
+
+export type WarlockEldritchInvocationEditorTabKey = "general" | "pacts";
+
+type WarlockEldritchInvocationEditorGroupDefinition = {
+  key: string;
+  label: string | null;
+  invocationIds: readonly ELDRITCH_INVOCATION[];
+};
+
+type WarlockEldritchInvocationEditorTabDefinition = {
+  key: WarlockEldritchInvocationEditorTabKey;
+  label: string;
+  groups: readonly WarlockEldritchInvocationEditorGroupDefinition[];
+};
+
+export const warlockEldritchInvocationEditorTabs = [
+  {
+    key: "general",
+    label: "General",
+    groups: [
+      {
+        key: "general",
+        label: null,
+        invocationIds: [
+          ELDRITCH_INVOCATION.ARMOR_OF_SHADOWS,
+          ELDRITCH_INVOCATION.ELDRITCH_MIND,
+          ELDRITCH_INVOCATION.AGONIZING_BLAST,
+          ELDRITCH_INVOCATION.DEVILS_SIGHT,
+          ELDRITCH_INVOCATION.ELDRITCH_SPEAR,
+          ELDRITCH_INVOCATION.FIENDISH_VIGOR,
+          ELDRITCH_INVOCATION.LESSONS_OF_THE_FIRST_ONES,
+          ELDRITCH_INVOCATION.MASK_OF_MANY_FACES,
+          ELDRITCH_INVOCATION.MISTY_VISIONS,
+          ELDRITCH_INVOCATION.OTHERWORLDLY_LEAP,
+          ELDRITCH_INVOCATION.REPELLING_BLAST,
+          ELDRITCH_INVOCATION.ASCENDANT_STEP,
+          ELDRITCH_INVOCATION.GAZE_OF_TWO_MINDS,
+          ELDRITCH_INVOCATION.GIFT_OF_THE_DEPTHS,
+          ELDRITCH_INVOCATION.MASTER_OF_MYRIAD_FORMS,
+          ELDRITCH_INVOCATION.ONE_WITH_SHADOWS,
+          ELDRITCH_INVOCATION.WHISPERS_OF_THE_GRAVE,
+          ELDRITCH_INVOCATION.VISIONS_OF_DISTANT_REALMS,
+          ELDRITCH_INVOCATION.WITCH_SIGHT
+        ]
+      }
+    ]
+  },
+  {
+    key: "pacts",
+    label: "Pacts",
+    groups: [
+      {
+        key: "pact-blade",
+        label: "Pact of the Blade",
+        invocationIds: [
+          ELDRITCH_INVOCATION.PACT_OF_THE_BLADE,
+          ELDRITCH_INVOCATION.ELDRITCH_SMITE,
+          ELDRITCH_INVOCATION.THIRSTING_BLADE,
+          ELDRITCH_INVOCATION.LIFEDRINKER,
+          ELDRITCH_INVOCATION.DEVOURING_BLADE
+        ]
+      },
+      {
+        key: "pact-chain",
+        label: "Pact of the Chain",
+        invocationIds: [
+          ELDRITCH_INVOCATION.PACT_OF_THE_CHAIN,
+          ELDRITCH_INVOCATION.INVESTMENT_OF_THE_CHAIN_MASTER
+        ]
+      },
+      {
+        key: "pact-tome",
+        label: "Pact of the Tome",
+        invocationIds: [
+          ELDRITCH_INVOCATION.PACT_OF_THE_TOME,
+          ELDRITCH_INVOCATION.GIFT_OF_THE_PROTECTORS
+        ]
+      }
+    ]
+  }
+] as const satisfies readonly WarlockEldritchInvocationEditorTabDefinition[];
+
+const orderedWarlockEldritchInvocationIds = warlockEldritchInvocationEditorTabs.flatMap((tab) =>
+  tab.groups.flatMap((group) => group.invocationIds)
+);
 
 export type WarlockEldritchInvocationInputStatus = {
   hasInputRequired: boolean;
@@ -149,7 +313,19 @@ export type WarlockEldritchInvocationInputStatus = {
 
 type WarlockInvocationCharacter = Pick<Character, "className" | "level"> &
   Partial<
-    Pick<Character, "abilities" | "cantripIds" | "classFeatureState" | "feats" | "subclassId">
+    Pick<
+      Character,
+      | "abilities"
+      | "cantripIds"
+      | "classFeatureState"
+      | "feats"
+      | "hitDiceRemaining"
+      | "inventoryItems"
+      | "roundTracker"
+      | "spellSlotsExpended"
+      | "statusEntries"
+      | "subclassId"
+    >
   >;
 
 function isMysticArcanumLevel(value: number): value is MysticArcanumLevel {
@@ -313,6 +489,97 @@ function getEligibleWarlockCantripEntries(
 
     return spell.isAttackSpell === true;
   });
+}
+
+function getPactBladeOwnedSelectionValue(stackId: string): string {
+  return `${pactBladeOwnedSelectionPrefix}${getInventoryItemStackIdFromCopyId(stackId)}`;
+}
+
+function getPactBladeConjuredSelectionValue(baseWeapon: string): string {
+  return `${pactBladeConjuredSelectionPrefix}${baseWeapon}`;
+}
+
+function getPactBladeOwnedStackIdFromChoice(choiceValue: string | null): string | null {
+  if (!choiceValue?.startsWith(pactBladeOwnedSelectionPrefix)) {
+    return null;
+  }
+
+  const stackId = choiceValue.slice(pactBladeOwnedSelectionPrefix.length).trim();
+  return stackId.length > 0 ? stackId : null;
+}
+
+function getPactBladeConjuredBaseWeaponFromChoice(choiceValue: string | null): string | null {
+  if (!choiceValue?.startsWith(pactBladeConjuredSelectionPrefix)) {
+    return null;
+  }
+
+  const baseWeapon = choiceValue.slice(pactBladeConjuredSelectionPrefix.length).trim();
+  return baseWeapon.length > 0 ? baseWeapon : null;
+}
+
+function getWarlockPactBladeConjuredWeaponOptions() {
+  return getWeaponEntries()
+    .filter(
+      (weapon): weapon is ReturnType<typeof getWeaponEntries>[number] & { baseWeapon: WEAPON_BASE } =>
+        Boolean(weapon.baseWeapon) &&
+        weapon.type.combat === WEAPON_COMBAT_TYPE.MELEE &&
+        getOfficial2024BackendItemKeyForWeaponBase(weapon.baseWeapon) !== null
+    )
+    .sort((left, right) => left.name.localeCompare(right.name));
+}
+
+function getSelectedPactBladeSelection(
+  selectionIds: string[]
+): { kind: "owned"; stackId: string } | { kind: "conjured"; baseWeapon: string } | null {
+  const parsedSelection = selectionIds
+    .map(parseSelectionId)
+    .find((selection) => selection.invocationId === ELDRITCH_INVOCATION.PACT_OF_THE_BLADE);
+
+  if (!parsedSelection) {
+    return null;
+  }
+
+  const ownedStackId = getPactBladeOwnedStackIdFromChoice(parsedSelection.choiceValue);
+
+  if (ownedStackId) {
+    return {
+      kind: "owned",
+      stackId: ownedStackId
+    };
+  }
+
+  const conjuredBaseWeapon = getPactBladeConjuredBaseWeaponFromChoice(parsedSelection.choiceValue);
+
+  return conjuredBaseWeapon
+    ? {
+        kind: "conjured",
+        baseWeapon: conjuredBaseWeapon
+      }
+    : null;
+}
+
+function getSelectedInvocationIdSetFromSelectionIds(
+  selectionIds: string[]
+): Set<ELDRITCH_INVOCATION> {
+  return new Set(
+    selectionIds
+      .map((selectionId) => parseSelectionId(selectionId).invocationId)
+      .filter((invocationId): invocationId is ELDRITCH_INVOCATION => invocationId !== null)
+  );
+}
+
+function getWarlockPactBladeAdditionalAttackCountFromInvocationIds(
+  selectedInvocationIds: Set<ELDRITCH_INVOCATION>
+): number {
+  if (!selectedInvocationIds.has(ELDRITCH_INVOCATION.PACT_OF_THE_BLADE)) {
+    return 0;
+  }
+
+  if (selectedInvocationIds.has(ELDRITCH_INVOCATION.DEVOURING_BLADE)) {
+    return 2;
+  }
+
+  return selectedInvocationIds.has(ELDRITCH_INVOCATION.THIRSTING_BLADE) ? 1 : 0;
 }
 
 function getRequirementLabels(invocation: EldritchInvocationEntry): string[] {
@@ -609,7 +876,13 @@ export function getWarlockInvocationOptions(
       .filter((invocationId): invocationId is ELDRITCH_INVOCATION => invocationId !== null)
   );
 
-  return getEldritchInvocationEntries().flatMap((invocation) => {
+  return orderedWarlockEldritchInvocationIds.flatMap((invocationId) => {
+    const invocation = getEldritchInvocationEntryById(invocationId);
+
+    if (!invocation) {
+      return [];
+    }
+
     const baseQualified = meetsInvocationPrerequisites(
       invocation,
       character,
@@ -653,6 +926,74 @@ export function getWarlockInvocationOptions(
           isQualified: baseQualified,
           isPlaceholder: false
         }));
+    }
+
+    if (invocation.selection?.kind === "pact-blade") {
+      const inventoryItems = character.inventoryItems ?? [];
+      const ownedWeaponOptions = inventoryItems
+        .filter((entry) => Boolean(entry.item.weapon) && !isConjuredInventoryItem(entry))
+        .slice()
+        .sort((left, right) =>
+          (left.item.name ?? left.item.key ?? "").localeCompare(
+            right.item.name ?? right.item.key ?? ""
+          )
+        )
+        .map((entry) => ({
+          selectionId: createSelectionId(
+            invocation.id,
+            getPactBladeOwnedSelectionValue(entry.id)
+          ),
+          invocation,
+          displayName: invocation.name,
+          displaySubtitle: `Owned: ${entry.item.name ?? entry.item.key ?? "Weapon"}`,
+          selectionGroup: "Owned weapons",
+          requirementLabel,
+          isQualified: baseQualified,
+          isPlaceholder: false
+        }));
+      const conjuredWeaponOptions = getWarlockPactBladeConjuredWeaponOptions().map((weapon) => ({
+        selectionId: createSelectionId(
+          invocation.id,
+          getPactBladeConjuredSelectionValue(weapon.baseWeapon)
+        ),
+        invocation,
+        displayName: invocation.name,
+        displaySubtitle: `Conjure: ${weapon.name}`,
+        selectionGroup: "Conjured base weapons",
+        requirementLabel,
+        isQualified: baseQualified,
+        isPlaceholder: false
+      }));
+      const availableSelectionIds = new Set(
+        [...ownedWeaponOptions, ...conjuredWeaponOptions].map((option) => option.selectionId)
+      );
+      const missingSelectedWeaponOptions = selectedIds.flatMap((selectionId) => {
+        const { invocationId, choiceValue } = parseSelectionId(selectionId);
+
+        if (
+          invocationId !== ELDRITCH_INVOCATION.PACT_OF_THE_BLADE ||
+          availableSelectionIds.has(selectionId) ||
+          (!getPactBladeOwnedStackIdFromChoice(choiceValue) &&
+            !getPactBladeConjuredBaseWeaponFromChoice(choiceValue))
+        ) {
+          return [];
+        }
+
+        return [
+          {
+            selectionId,
+            invocation,
+            displayName: invocation.name,
+            displaySubtitle: "Missing pact weapon",
+            selectionGroup: "Missing saved choices",
+            requirementLabel,
+            isQualified: baseQualified,
+            isPlaceholder: false
+          }
+        ];
+      });
+
+      return [...ownedWeaponOptions, ...conjuredWeaponOptions, ...missingSelectedWeaponOptions];
     }
 
     return [
@@ -730,6 +1071,422 @@ export function getWarlockSpellDamageBonuses(
       ];
 }
 
+function getProficiencyBonusForLevel(level: number): number {
+  const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
+  return Math.floor((normalizedLevel - 1) / 4) + 2;
+}
+
+function createSignedFormula(baseFormula: string, modifier: number): string {
+  if (modifier === 0) {
+    return baseFormula;
+  }
+
+  return `${baseFormula}${modifier > 0 ? "+" : ""}${modifier}`;
+}
+
+function createSignedDisplay(baseFormula: string, modifier: number): string {
+  if (modifier === 0) {
+    return baseFormula;
+  }
+
+  return `${baseFormula} ${modifier >= 0 ? "+" : ""}${modifier}`;
+}
+
+function getWeaponActionPactBladeInventoryStack(
+  character: WarlockInvocationCharacter,
+  action: WeaponAction
+) {
+  const stackId =
+    action.inventoryStackId ??
+    (action.key.startsWith("inventory-") ? action.key.replace(/^inventory-/, "") : null);
+
+  return stackId ? findInventoryItemStackById(character.inventoryItems ?? [], stackId) : null;
+}
+
+function isPactBladeWeaponAction(
+  character: WarlockInvocationCharacter,
+  action: WeaponAction
+): boolean {
+  if (
+    character.className !== "Warlock" ||
+    action.attackKind !== "weapon" ||
+    !getWarlockSelectedInvocationIds(character).has(ELDRITCH_INVOCATION.PACT_OF_THE_BLADE)
+  ) {
+    return false;
+  }
+
+  if ((action.inventoryFeatureTags ?? []).includes("pact-of-the-blade")) {
+    return true;
+  }
+
+  return isPactOfTheBladeInventoryItem(getWeaponActionPactBladeInventoryStack(character, action));
+}
+
+function isPactBladeWeaponAttackContext(
+  character: WarlockInvocationCharacter,
+  action: WeaponAttackConsumptionContext
+): boolean {
+  if (
+    character.className !== "Warlock" ||
+    action.attackKind !== "weapon" ||
+    !getWarlockSelectedInvocationIds(character).has(ELDRITCH_INVOCATION.PACT_OF_THE_BLADE)
+  ) {
+    return false;
+  }
+
+  if ((action.inventoryFeatureTags ?? []).includes("pact-of-the-blade")) {
+    return true;
+  }
+
+  return action.inventoryStackId
+    ? isPactOfTheBladeInventoryItem(
+        findInventoryItemStackById(character.inventoryItems ?? [], action.inventoryStackId)
+      )
+    : false;
+}
+
+function appendPactOfTheBladeDescription(action: WeaponAction): WeaponAction {
+  const descriptionAddition = createSourcedDescriptionEntries("Pact of the Blade", [
+    pactOfTheBladeAttackDamageDescription
+  ]);
+  const hasExistingDescription = (action.descriptionAdditions ?? []).some((section) =>
+    section.some(
+      (entry) =>
+        typeof entry === "string" &&
+        entry.includes("Pact of the Blade") &&
+        entry.includes("Charisma modifier")
+    )
+  );
+
+  return hasExistingDescription
+    ? action
+    : {
+        ...action,
+        descriptionAdditions: [...(action.descriptionAdditions ?? []), descriptionAddition]
+      };
+}
+
+function appendEldritchSmiteDescription(
+  character: WarlockInvocationCharacter,
+  action: WeaponAction
+): WeaponAction {
+  if (!getWarlockSelectedInvocationIds(character).has(ELDRITCH_INVOCATION.ELDRITCH_SMITE)) {
+    return action;
+  }
+
+  const invocation = getEldritchInvocationEntryById(ELDRITCH_INVOCATION.ELDRITCH_SMITE);
+  const sourceName = invocation?.name ?? "Eldritch Smite";
+  const description = invocation?.description ?? [];
+  const hasExistingDescription = (action.descriptionAdditions ?? []).some((section) =>
+    section.some((entry) => typeof entry === "string" && entry.includes(sourceName))
+  );
+
+  if (hasExistingDescription || description.length === 0) {
+    return action;
+  }
+
+  return {
+    ...action,
+    descriptionAdditions: [
+      ...(action.descriptionAdditions ?? []),
+      createSourcedDescriptionEntries(sourceName, description)
+    ]
+  };
+}
+
+function appendPactBladeExtraAttackInvocationDescription(
+  character: WarlockInvocationCharacter,
+  action: WeaponAction
+): WeaponAction {
+  const selectedInvocationIds = getWarlockSelectedInvocationIds(character);
+  const invocationId = selectedInvocationIds.has(ELDRITCH_INVOCATION.DEVOURING_BLADE)
+    ? ELDRITCH_INVOCATION.DEVOURING_BLADE
+    : selectedInvocationIds.has(ELDRITCH_INVOCATION.THIRSTING_BLADE)
+      ? ELDRITCH_INVOCATION.THIRSTING_BLADE
+      : null;
+
+  if (invocationId === null) {
+    return action;
+  }
+
+  const invocation = getEldritchInvocationEntryById(invocationId);
+  const sourceName =
+    invocation?.name ??
+    (invocationId === ELDRITCH_INVOCATION.DEVOURING_BLADE
+      ? "Devouring Blade"
+      : "Thirsting Blade");
+  const description = invocation?.description ?? [];
+  const hasExistingDescription = (action.descriptionAdditions ?? []).some((section) =>
+    section.some((entry) => typeof entry === "string" && entry.includes(sourceName))
+  );
+
+  if (hasExistingDescription || description.length === 0) {
+    return action;
+  }
+
+  return {
+    ...action,
+    descriptionAdditions: [
+      ...(action.descriptionAdditions ?? []),
+      createSourcedDescriptionEntries(sourceName, description)
+    ]
+  };
+}
+
+function appendLifedrinkerDescription(
+  character: WarlockInvocationCharacter,
+  action: WeaponAction
+): WeaponAction {
+  if (!getWarlockSelectedInvocationIds(character).has(ELDRITCH_INVOCATION.LIFEDRINKER)) {
+    return action;
+  }
+
+  const invocation = getEldritchInvocationEntryById(ELDRITCH_INVOCATION.LIFEDRINKER);
+  const sourceName = invocation?.name ?? "Lifedrinker";
+  const description = invocation?.description ?? [];
+  const hasExistingDescription = (action.descriptionAdditions ?? []).some((section) =>
+    section.some((entry) => typeof entry === "string" && entry.includes(sourceName))
+  );
+
+  if (hasExistingDescription || description.length === 0) {
+    return action;
+  }
+
+  return {
+    ...action,
+    descriptionAdditions: [
+      ...(action.descriptionAdditions ?? []),
+      createSourcedDescriptionEntries(sourceName, description)
+    ]
+  };
+}
+
+export function getWarlockWeaponAction(
+  character: WarlockInvocationCharacter,
+  action: WeaponAction
+): WeaponAction {
+  if (!isPactBladeWeaponAction(character, action)) {
+    return action;
+  }
+
+  const charismaBreakdown = getAbilityModifierBreakdownForCharacter(character, "CHA");
+  const shouldUseCharisma = charismaBreakdown.total >= action.abilityModifier;
+  const proficiencyBonus =
+    action.proficiencyBonus !== 0
+      ? action.proficiencyBonus
+      : getProficiencyBonusForLevel(character.level);
+  const proficiencyLabel =
+    action.proficiencyBonus !== 0 ? action.proficiencyLabel : "Pact of the Blade";
+  const charismaAction = shouldUseCharisma
+    ? {
+        ...action,
+        ability: "CHA" as const,
+        abilityFormulaLabel: "CHA (Pact of the Blade)",
+        cardBaseAbility: "CHA" as const,
+        abilityModifierBaseValue: charismaBreakdown.baseValue,
+        abilityModifier: charismaBreakdown.total,
+        cardBaseAbilityModifier: charismaBreakdown.total,
+        abilityModifierBonusEntries: charismaBreakdown.bonusEntries,
+        damageAbility: "CHA" as const,
+        damageAbilityFormulaLabel: "CHA (Pact of the Blade)",
+        damageAbilityModifierBaseValue: charismaBreakdown.baseValue,
+        damageAbilityModifier: charismaBreakdown.total,
+        damageAbilityModifierBonusEntries: charismaBreakdown.bonusEntries
+      }
+    : action;
+  const damageAbilityModifier =
+    charismaAction.damageAbilityModifier ?? charismaAction.abilityModifier;
+  const damageBonusTotal = charismaAction.damageBonusEntries.reduce(
+    (total, entry) => total + (entry.value ?? 0),
+    0
+  );
+  const totalModifier = damageAbilityModifier + damageBonusTotal;
+
+  const pactAction = appendPactOfTheBladeDescription({
+    ...charismaAction,
+    damageLabel: replaceBaseWeaponDamageType(
+      charismaAction.damageLabel,
+      pactOfTheBladeDamageTypeLabel
+    ),
+    proficiencyBonus,
+    proficiencyLabel,
+    totalModifier,
+    rollDisplay: createSignedDisplay(charismaAction.damageFormula, totalModifier),
+    rollFormulaDisplay: createSignedFormula(charismaAction.damageFormula, totalModifier),
+    rollFormula: createSignedFormula(charismaAction.damageFormula, totalModifier)
+  });
+
+  return appendPactBladeExtraAttackInvocationDescription(
+    character,
+    appendLifedrinkerDescription(character, appendEldritchSmiteDescription(character, pactAction))
+  );
+}
+
+export function getWarlockEldritchSmiteWeaponOptionState(
+  character: WarlockInvocationCharacter,
+  action: WeaponAction | null
+): WarlockEldritchSmiteWeaponOptionState | null {
+  if (
+    !action ||
+    !isPactBladeWeaponAction(character, action) ||
+    !getWarlockSelectedInvocationIds(character).has(ELDRITCH_INVOCATION.ELDRITCH_SMITE)
+  ) {
+    return null;
+  }
+
+  const pactMagicSlotLevel = getWarlockPactMagicSlotLevel(character);
+  const pactMagicSlotsTotal = getWarlockPactMagicSlotTotal(character);
+  const pactMagicSlotsRemaining = getWarlockPactMagicSlotsRemaining({
+    className: character.className,
+    level: character.level,
+    spellSlotsExpended: character.spellSlotsExpended ?? []
+  });
+  const disabled =
+    pactMagicSlotLevel <= 0 || pactMagicSlotsTotal <= 0 || pactMagicSlotsRemaining <= 0;
+  const formula = `${Math.max(1, pactMagicSlotLevel)}d8`;
+
+  return {
+    damageBonus: {
+      label: "Eldritch Smite",
+      formula,
+      displayLabel: `${formula} Force`
+    },
+    disabled,
+    disabledReason: disabled ? "No Pact Magic spell slots remaining." : null,
+    pactMagicSlotLevel,
+    pactMagicSlotsRemaining,
+    pactMagicSlotsTotal
+  };
+}
+
+export function consumeWarlockEldritchSmitePactMagicSlot(character: Character): Character {
+  if (character.className !== "Warlock") {
+    return character;
+  }
+
+  const pactMagicSlotLevel = getWarlockPactMagicSlotLevel(character);
+  const pactMagicSlotsTotal = getWarlockPactMagicSlotTotal(character);
+
+  if (
+    pactMagicSlotLevel <= 0 ||
+    pactMagicSlotsTotal <= 0 ||
+    getWarlockPactMagicSlotsRemaining(character) <= 0
+  ) {
+    return character;
+  }
+
+  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const spellSlotsExpended = normalizeSpellSlotsExpended(
+    character.spellSlotsExpended,
+    spellSlotTotals
+  );
+  const slotIndex = pactMagicSlotLevel - 1;
+  const nextSpellSlotsExpended = [...spellSlotsExpended];
+
+  nextSpellSlotsExpended[slotIndex] = Math.min(
+    pactMagicSlotsTotal,
+    (nextSpellSlotsExpended[slotIndex] ?? 0) + 1
+  );
+
+  return {
+    ...character,
+    spellSlotsExpended: nextSpellSlotsExpended
+  };
+}
+
+export function getWarlockLifedrinkerWeaponOptionState(
+  character: WarlockInvocationCharacter,
+  action: WeaponAction | null
+): WarlockLifedrinkerWeaponOptionState | null {
+  if (
+    !action ||
+    !isPactBladeWeaponAction(character, action) ||
+    !getWarlockSelectedInvocationIds(character).has(ELDRITCH_INVOCATION.LIFEDRINKER)
+  ) {
+    return null;
+  }
+
+  const hitDieFormula = getHitDieFormulaForClass(character.className);
+  const constitutionBreakdown = getAbilityModifierBreakdownForCharacter(character, "CON");
+  const healFormula = createSignedFormula(hitDieFormula, constitutionBreakdown.total);
+  const constitutionDisplayTerm =
+    constitutionBreakdown.total === 0
+      ? null
+      : formatSignedFormulaTerm(constitutionBreakdown.total, "CON");
+  const healFormulaPresentation = formatFormulaCell({
+    formula: healFormula,
+    displayTerms: [hitDieFormula, constitutionDisplayTerm],
+    resultLabel: "Heal",
+    breakdownTerms: [
+      constitutionBreakdown.baseValue === 0
+        ? null
+        : formatSignedFormulaTerm(constitutionBreakdown.baseValue, "CON"),
+      ...constitutionBreakdown.bonusEntries.map((entry) =>
+        formatSignedFormulaTerm(entry.value, entry.label)
+      )
+    ],
+    minimumValue: 1,
+    minimumLabel: "(MIN:1)"
+  });
+  const hitDiceRemaining = getHitDiceRemainingForCharacter(character);
+  const hitDiceTotal = getHitDiceTotalForCharacter(character);
+  const disabled = hitDiceRemaining <= 0;
+
+  return {
+    damageBonus: {
+      label: "Lifedrinker",
+      formula: "1d6",
+      displayLabel: "1d6 Necrotic/Psychic/Radiant"
+    },
+    disabled,
+    disabledReason: disabled ? "No Hit Point Dice remaining." : null,
+    healFormula,
+    healFormulaDisplay: healFormulaPresentation.value,
+    healFormulaPresentation: {
+      label: "Lifedrinker Heal",
+      ...healFormulaPresentation
+    },
+    hitDiceRemaining,
+    hitDiceTotal
+  };
+}
+
+export function consumeWarlockLifedrinkerHitDie(character: Character): Character {
+  if (character.className !== "Warlock") {
+    return character;
+  }
+
+  const selectedInvocationIds = getWarlockSelectedInvocationIds(character);
+
+  if (
+    !selectedInvocationIds.has(ELDRITCH_INVOCATION.PACT_OF_THE_BLADE) ||
+    !selectedInvocationIds.has(ELDRITCH_INVOCATION.LIFEDRINKER)
+  ) {
+    return character;
+  }
+
+  const hitDiceRemaining = getHitDiceRemainingForCharacter(character);
+
+  if (hitDiceRemaining <= 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    hitDiceRemaining: hitDiceRemaining - 1
+  };
+}
+
+function replaceBaseWeaponDamageType(damageLabel: string, damageTypeLabel: string): string {
+  const [baseDamageLabel, ...bonusLabels] = damageLabel.split(" + ");
+  const nextBaseDamageLabel = (baseDamageLabel ?? damageLabel).replace(
+    /\s+[A-Za-z]+(?:\/[A-Za-z]+)*$/,
+    ` ${damageTypeLabel}`
+  );
+
+  return [nextBaseDamageLabel, ...bonusLabels].join(" + ");
+}
+
 export function getWarlockEldritchInvocationInputStatus(
   character: WarlockInvocationCharacter
 ): WarlockEldritchInvocationInputStatus {
@@ -746,17 +1503,27 @@ export function getWarlockEldritchInvocationInputStatus(
     );
   const hasInputRequired =
     limit > 0 && selectedIds.length < limit && hasRemainingQualifiedInvocationOption;
+  const hasPactBladeSelected = selectedIds.some(
+    (selectionId) =>
+      parseSelectionId(selectionId).invocationId === ELDRITCH_INVOCATION.PACT_OF_THE_BLADE
+  );
+  const hasPactBladeInventoryTag = (character.inventoryItems ?? []).some((entry) =>
+    isPactOfTheBladeInventoryItem(entry)
+  );
+  const hasMissingPactBladeWeapon = hasPactBladeSelected && !hasPactBladeInventoryTag;
   const remainingCount = Math.max(0, limit - selectedIds.length);
 
   return {
-    hasInputRequired,
+    hasInputRequired: hasInputRequired || hasMissingPactBladeWeapon,
     selectedCount: selectedIds.length,
     limit,
-    message: hasInputRequired
-      ? `Input required: choose ${remainingCount} more eldritch invocation${
-          remainingCount === 1 ? "" : "s"
-        }.`
-      : null
+    message: hasMissingPactBladeWeapon
+      ? "Input required: choose a Pact of the Blade weapon."
+      : hasInputRequired
+        ? `Input required: choose ${remainingCount} more eldritch invocation${
+            remainingCount === 1 ? "" : "s"
+          }.`
+        : null
   };
 }
 
@@ -820,6 +1587,22 @@ export function normalizeWarlockFeatureState(
     character,
     rawSelectionIds
   );
+  const selectedInvocationIds = getSelectedInvocationIdSetFromSelectionIds(normalizedSelectionIds);
+  const pactBladeAdditionalAttackCount =
+    getWarlockPactBladeAdditionalAttackCountFromInvocationIds(selectedInvocationIds);
+  const rawExtraAttacksRemainingThisTurn = Number(record.extraAttacksRemainingThisTurn);
+  const extraAttacksRemainingThisTurn =
+    pactBladeAdditionalAttackCount > 0
+      ? Math.max(
+          0,
+          Math.min(
+            pactBladeAdditionalAttackCount,
+            Number.isFinite(rawExtraAttacksRemainingThisTurn)
+              ? Math.floor(rawExtraAttacksRemainingThisTurn)
+              : 0
+          )
+        )
+      : undefined;
 
   const totalMagicalCunningUses = getWarlockMagicalCunningUsesTotal(character);
   const rawMagicalCunningUsesExpended = Number(record.magicalCunningUsesExpended);
@@ -864,6 +1647,7 @@ export function normalizeWarlockFeatureState(
 
   return {
     eldritchInvocationIds: normalizedSelectionIds,
+    extraAttacksRemainingThisTurn,
     magicalCunningUsesExpended,
     contactPatronUsesExpended,
     mysticArcanumSpellIds,
@@ -1053,7 +1837,8 @@ export function setWarlockFiendishResilienceDamageTypeSelection(
 
 export function setWarlockInvocationSelectionIds(
   character: Character,
-  selectionIds: string[]
+  selectionIds: string[],
+  options: SetWarlockInvocationSelectionIdsOptions = {}
 ): Character {
   if (character.className !== "Warlock") {
     return character;
@@ -1066,14 +1851,71 @@ export function setWarlockInvocationSelectionIds(
     },
     character
   );
+  const normalizedSelectionIds = nextWarlockState.eldritchInvocationIds ?? [];
+  const pactBladeSelection = getSelectedPactBladeSelection(normalizedSelectionIds);
+  const nextInventoryItems = (() => {
+    if (!pactBladeSelection) {
+      return clearPactOfTheBladeInventoryTags(character.inventoryItems);
+    }
+
+    if (pactBladeSelection.kind === "owned") {
+      return setPactOfTheBladeInventoryItemById(
+        character.inventoryItems,
+        pactBladeSelection.stackId
+      );
+    }
+
+    if (options.pactBladeConjuredItem) {
+      const existingConjuredPactStack = character.inventoryItems.find(
+        (entry) => isPactOfTheBladeInventoryItem(entry) && isConjuredInventoryItem(entry)
+      );
+
+      if (existingConjuredPactStack?.item.key === options.pactBladeConjuredItem.key) {
+        return character.inventoryItems;
+      }
+
+      return addConjuredPactOfTheBladeInventoryItem(
+        character.inventoryItems,
+        options.pactBladeConjuredItem
+      );
+    }
+
+    return clearPactOfTheBladeInventoryTags(character.inventoryItems);
+  })();
 
   return {
     ...character,
+    inventoryItems: nextInventoryItems,
     classFeatureState: {
       ...character.classFeatureState,
       warlock: nextWarlockState
     }
   };
+}
+
+export function clearWarlockPactOfTheBladeInvocationSelection(character: Character): Character {
+  if (character.className !== "Warlock") {
+    return character;
+  }
+
+  const nextSelectionIds = getWarlockInvocationSelectionIds(character).filter(
+    (selectionId) =>
+      parseSelectionId(selectionId).invocationId !== ELDRITCH_INVOCATION.PACT_OF_THE_BLADE
+  );
+
+  return setWarlockInvocationSelectionIds(character, nextSelectionIds);
+}
+
+export function getWarlockPactOfTheBladeConjuredItemKeyFromSelectionIds(
+  selectionIds: string[]
+): string | null {
+  const pactBladeSelection = getSelectedPactBladeSelection(selectionIds);
+
+  if (pactBladeSelection?.kind !== "conjured") {
+    return null;
+  }
+
+  return getOfficial2024BackendItemKeyForWeaponBase(pactBladeSelection.baseWeapon as WEAPON_BASE);
 }
 
 export function getWarlockInvocationFeatChoice(selectionId: string): FEATS | null {
@@ -1086,15 +1928,136 @@ export function getWarlockInvocationFeatChoice(selectionId: string): FEATS | nul
   return choiceValue as FEATS;
 }
 
+function getWarlockSelectedInvocationIds(
+  character: WarlockInvocationCharacter
+): Set<ELDRITCH_INVOCATION> {
+  return getSelectedInvocationIdSetFromSelectionIds(getWarlockInvocationSelectionIds(character));
+}
+
+export function getWarlockPactBladeAdditionalAttackCount(
+  character: WarlockInvocationCharacter
+): number {
+  return getWarlockPactBladeAdditionalAttackCountFromInvocationIds(
+    getWarlockSelectedInvocationIds(character)
+  );
+}
+
+export function hasWarlockPactBladeExtraAttackFeature(
+  character: WarlockInvocationCharacter
+): boolean {
+  return getWarlockPactBladeAdditionalAttackCount(character) > 0;
+}
+
+export function getWarlockPactWeaponAttackMultiCount(
+  character: WarlockInvocationCharacter
+): number {
+  if (!hasWarlockPactBladeExtraAttackFeature(character)) {
+    return 0;
+  }
+
+  return getWarlockFeatureState(character).extraAttacksRemainingThisTurn ?? 0;
+}
+
+export function consumeWarlockPactWeaponAttack(
+  character: Character,
+  action: WeaponAttackConsumptionContext
+): Character {
+  const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
+  const consumeBaseAction = () =>
+    roundTrackerResource &&
+    isRoundTrackerResourceAvailable(character.roundTracker, roundTrackerResource)
+      ? {
+          ...character,
+          roundTracker: consumeRoundTrackerResource(character.roundTracker, roundTrackerResource)
+        }
+      : character;
+
+  if (
+    character.className !== "Warlock" ||
+    action.economyType !== ECONOMY_TYPE.ACTION ||
+    action.actionCategory !== ACTION_CATEGORY.ATTACK ||
+    !isPactBladeWeaponAttackContext(character, action)
+  ) {
+    return consumeBaseAction();
+  }
+
+  const additionalAttackCount = getWarlockPactBladeAdditionalAttackCount(character);
+
+  if (additionalAttackCount <= 0) {
+    return consumeBaseAction();
+  }
+
+  const warlockState = getWarlockFeatureState(character);
+  const extraAttacksRemaining = warlockState.extraAttacksRemainingThisTurn ?? 0;
+  const actionAvailable =
+    roundTrackerResource !== null &&
+    isRoundTrackerResourceAvailable(character.roundTracker, roundTrackerResource);
+
+  if (actionAvailable) {
+    return {
+      ...character,
+      roundTracker: consumeRoundTrackerResource(character.roundTracker, roundTrackerResource),
+      classFeatureState: {
+        ...character.classFeatureState,
+        warlock: {
+          ...warlockState,
+          extraAttacksRemainingThisTurn: additionalAttackCount
+        }
+      }
+    };
+  }
+
+  if (extraAttacksRemaining <= 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      warlock: {
+        ...warlockState,
+        extraAttacksRemainingThisTurn: extraAttacksRemaining - 1
+      }
+    }
+  };
+}
+
+export function getWarlockDerivedStatusEntries(
+  character: WarlockInvocationCharacter
+): DerivedFeatureStatusEntry[] {
+  if (!getWarlockSelectedInvocationIds(character).has(ELDRITCH_INVOCATION.DEVILS_SIGHT)) {
+    return [];
+  }
+
+  const invocation = getEldritchInvocationEntryById(ELDRITCH_INVOCATION.DEVILS_SIGHT);
+  const name = invocation?.name ?? "Devil's Sight";
+  const description = invocation?.description ?? [
+    "You can see normally in Dim Light and Darkness, both magical and nonmagical, within 120 feet of yourself."
+  ];
+
+  return [
+    {
+      id: devilsSightStatusSourceId,
+      group: STATUS_ENTRY_GROUP.SENSES,
+      value: SENSE.DEVILS_SIGHT,
+      source: name,
+      sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+      duration: {
+        kind: STATUS_DURATION_KIND.INFINITE
+      },
+      sourceId: devilsSightStatusSourceId,
+      rangeFeet: 120,
+      description: description.join("\n")
+    }
+  ];
+}
+
 export function getWarlockFeatureActions(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "spellSlotsExpended">
 ): FeatureActionCard[] {
   const actions: FeatureActionCard[] = [];
-  const selectedInvocationIds = new Set(
-    getWarlockInvocationSelectionIds(character)
-      .map((selectionId) => parseSelectionId(selectionId).invocationId)
-      .filter((invocationId): invocationId is ELDRITCH_INVOCATION => invocationId !== null)
-  );
+  const selectedInvocationIds = getWarlockSelectedInvocationIds(character);
 
   if (hasWarlockFeature(character, CLASS_FEATURE.MAGICAL_CUNNING)) {
     const usesRemaining = getWarlockMagicalCunningUsesRemaining(character);
@@ -1295,6 +2258,7 @@ export function activateWarlockFeatureAction(
 
   if (
     actionKey === armorOfShadowsActionKey ||
+    actionKey === ascendantStepActionKey ||
     actionKey === contactPatronActionKey ||
     actionKey === mysticArcanumActionKey
   ) {
@@ -1613,7 +2577,22 @@ export function applyLongRestToWarlockFeatures(character: Character): Character 
 }
 
 export function advanceWarlockFeaturesForNewRound(character: Character): Character {
-  return advanceWarlockCelestialPatronFeaturesForNewRound(character);
+  const warlockState = getWarlockFeatureState(character);
+  const nextCharacter =
+    (warlockState.extraAttacksRemainingThisTurn ?? 0) === 0
+      ? character
+      : {
+          ...character,
+          classFeatureState: {
+            ...character.classFeatureState,
+            warlock: {
+              ...warlockState,
+              extraAttacksRemainingThisTurn: 0
+            }
+          }
+        };
+
+  return advanceWarlockCelestialPatronFeaturesForNewRound(nextCharacter);
 }
 
 export const warlockBeguilingDefenseReactionId = beguilingDefenseReactionId;

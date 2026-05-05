@@ -112,6 +112,9 @@ export type EldritchInvocationSelection =
     }
   | {
       kind: "origin-feat";
+    }
+  | {
+      kind: "pact-blade";
     };
 export type FeatureClassObj = {
   level: number;
@@ -185,6 +188,7 @@ export type ReactionEntry = {
 export type EldritchInvocationEntry = {
   id: ELDRITCH_INVOCATION;
   name: string;
+  trackingState: TRACKER;
   description: SpellDescriptionEntry[];
   prerequisites?: EldritchInvocationPrerequisite[];
   selection?: EldritchInvocationSelection;

@@ -356,6 +356,7 @@ import {
   restoreWarlockHealingLightOnLongRest,
   restoreWarlockBeguilingDefenseOnLongRest,
   restoreWarlockMagicalCunningOnLongRest,
+  consumeWarlockPactWeaponAttack,
   consumeWarlockStepsOfTheFeyUse,
   spendWarlockHealingLightDice,
   setWarlockFiendishResilienceDamageTypeSelection,
@@ -1575,6 +1576,10 @@ export function consumeWeaponAttackActionForCharacter(
 
   if (character.className === "Fighter") {
     return finalize(consumeFighterWeaponAttack(character, action));
+  }
+
+  if (character.className === "Warlock") {
+    return finalize(consumeWarlockPactWeaponAttack(character, action));
   }
 
   if (character.className === "Wizard") {

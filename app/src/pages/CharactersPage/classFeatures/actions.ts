@@ -670,6 +670,7 @@ export function transformWeaponActionForCharacter(
     | "abilities"
     | "classFeatureState"
     | "equipment"
+    | "inventoryItems"
     | "customEquipment"
     | "feats"
     | "statusEntries"

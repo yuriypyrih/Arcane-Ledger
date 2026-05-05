@@ -214,6 +214,7 @@ export type CharacterWizardFeatureState = {
 
 export type CharacterWarlockFeatureState = {
   eldritchInvocationIds?: string[];
+  extraAttacksRemainingThisTurn?: number;
   magicalCunningUsesExpended?: number;
   contactPatronUsesExpended?: number;
   darkOnesOwnLuckUsesExpended?: number;

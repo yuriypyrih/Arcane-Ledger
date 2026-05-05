@@ -56,6 +56,8 @@ type ActionsWidgetUiState = {
   isInspiredEclipseSelected: boolean;
   isGroupRecoverySelected: boolean;
   isClairvoyantCombatantSelected: boolean;
+  isEldritchSmiteSelected: boolean;
+  isLifedrinkerSelected: boolean;
   isPsionicStrikeSelected: boolean;
   isDreadfulStrikeSelected: boolean;
   isColossusSlayerSelected: boolean;
@@ -141,6 +143,8 @@ function createInitialState(
     isInspiredEclipseSelected: false,
     isGroupRecoverySelected: false,
     isClairvoyantCombatantSelected: false,
+    isEldritchSmiteSelected: false,
+    isLifedrinkerSelected: false,
     isPsionicStrikeSelected: false,
     isDreadfulStrikeSelected: false,
     isColossusSlayerSelected: false,
@@ -194,6 +198,8 @@ function getActionDrawerResetState(): Partial<ActionsWidgetUiState> {
     isInspiredEclipseSelected: false,
     isGroupRecoverySelected: false,
     isClairvoyantCombatantSelected: false,
+    isEldritchSmiteSelected: false,
+    isLifedrinkerSelected: false,
     isPsionicStrikeSelected: false,
     isDreadfulStrikeSelected: false,
     isColossusSlayerSelected: false,
@@ -237,6 +243,8 @@ function getActionSelectionResetState(): Partial<ActionsWidgetUiState> {
     isCrownOfSpellfireSelected: false,
     isGroupRecoverySelected: false,
     isClairvoyantCombatantSelected: false,
+    isEldritchSmiteSelected: false,
+    isLifedrinkerSelected: false,
     isPsionicStrikeSelected: false,
     isColossusSlayerSelected: false,
     isSacredWeaponSelected: false,
@@ -408,6 +416,8 @@ export function useActionsWidgetUiState(
         dispatch,
         "isClairvoyantCombatantSelected"
       ),
+      setIsEldritchSmiteSelected: createFieldSetter(dispatch, "isEldritchSmiteSelected"),
+      setIsLifedrinkerSelected: createFieldSetter(dispatch, "isLifedrinkerSelected"),
       setIsPsionicStrikeSelected: createFieldSetter(dispatch, "isPsionicStrikeSelected"),
       setIsDreadfulStrikeSelected: createFieldSetter(dispatch, "isDreadfulStrikeSelected"),
       setIsColossusSlayerSelected: createFieldSetter(dispatch, "isColossusSlayerSelected"),

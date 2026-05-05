@@ -11,7 +11,7 @@ import {
   useAppDispatch
 } from "../../../store";
 import { formatRollResultTotal, rollFormulaWithDice } from "../../../utils/dice";
-import type { RollMode, RolledDie } from "../../../types";
+import type { RollMode, RollResult, RolledDie } from "../../../types";
 import DiceRollerPopup from "./DiceRollerPopup";
 import type {
   DiceRollerPopupState,
@@ -52,7 +52,9 @@ function normalizeRequest(
       label: entry.label,
       formula: entry.formula,
       formulaDisplay: entry.formulaDisplay ?? entry.formula,
-      derivedResult: entry.derivedResult
+      derivedResult: entry.derivedResult,
+      minimumTotal: entry.minimumTotal,
+      minimumLabel: entry.minimumLabel
     }))
   };
 }
@@ -82,6 +84,25 @@ function createEntryResult(
   previousResults: DiceRollerResolvedEntryResult[]
 ): DiceRollerResolvedEntryResult {
   const entry = request.entries[entryIndex]!;
+  const applyMinimumTotal = (result: RollResult): RollResult => {
+    const minimumTotal = entry.minimumTotal;
+
+    if (
+      typeof minimumTotal !== "number" ||
+      !Number.isFinite(minimumTotal) ||
+      result.total >= minimumTotal
+    ) {
+      return result;
+    }
+
+    const minimumLabel = entry.minimumLabel?.trim() || `minimum ${minimumTotal}`;
+
+    return {
+      ...result,
+      total: minimumTotal,
+      breakdown: `${result.breakdown}; ${minimumLabel} -> ${minimumTotal}`
+    };
+  };
 
   if (entry.derivedResult) {
     const source = previousResults[entry.derivedResult.sourceEntryIndex];
@@ -93,7 +114,7 @@ function createEntryResult(
     return {
       label: entry.label,
       request: entry,
-      result: {
+      result: applyMinimumTotal({
         formula: entry.formula,
         total: source.result.total + entry.derivedResult.totalOffset,
         breakdown: formatDerivedResultBreakdown(
@@ -103,7 +124,7 @@ function createEntryResult(
         ),
         modeApplied: "normal",
         naturalOutcome: null
-      },
+      }),
       dice: []
     };
   }
@@ -113,7 +134,7 @@ function createEntryResult(
   return {
     label: entry.label,
     request: entry,
-    result,
+    result: applyMinimumTotal(result),
     dice: prefixDiceIds(dice, `entry-${entryIndex}`)
   };
 }
