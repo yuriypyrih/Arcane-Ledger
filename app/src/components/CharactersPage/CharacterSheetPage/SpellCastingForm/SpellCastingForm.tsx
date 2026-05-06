@@ -175,7 +175,14 @@ import {
   getSpellOutcomeSummaryForCharacter
 } from "../../../../pages/CharactersPage/spellOutcome";
 import { getSpellAttackRollFormulaForCharacter } from "../../../../pages/CharactersPage/shared/spellFormulas";
-import { applySpellImplementationForCharacter } from "../../../../pages/CharactersPage/characterRuntime/spellImplementations";
+import {
+  applyFalseLifeTemporaryHitPointsToCharacter,
+  applySpellImplementationForCharacter,
+  falseLifeSpellId,
+  getFalseLifeTemporaryHitPointsFormula,
+  getFalseLifeTemporaryHitPointsFormulaDisplay,
+  getFalseLifeTemporaryHitPointsFromRoll
+} from "../../../../pages/CharactersPage/characterRuntime/spellImplementations";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import SheetSurface from "../SheetSurface";
@@ -1294,6 +1301,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpell?.id === huntersMarkSpellId
       ? getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormulaDisplayForCharacter(character)
       : null;
+  const selectedSpellFalseLifeTemporaryHitPointsFormula =
+    selectedSpell?.id === falseLifeSpellId ? getFalseLifeTemporaryHitPointsFormula() : null;
   const selectedSpellAttackRollFormula = selectedSpellDisplay
     ? getSpellAttackRollFormulaForCharacter(
         selectedSpellDisplay,
@@ -1792,6 +1801,32 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     });
   }
 
+  function rollFalseLifeTemporaryHitPointsForSpellCast(
+    spell: Pick<SpellEntry, "id" | "name">,
+    spellSlotLevel: number
+  ) {
+    if (spell.id !== falseLifeSpellId) {
+      return;
+    }
+
+    openDiceRoller({
+      title: spell.name,
+      formula: getFalseLifeTemporaryHitPointsFormula(),
+      formulaDisplay: getFalseLifeTemporaryHitPointsFormulaDisplay(spellSlotLevel),
+      description: `When you cast ${spell.name}, you gain Temporary Hit Points.`,
+      onResolvedResult: ({ result }) => {
+        const temporaryHitPoints = getFalseLifeTemporaryHitPointsFromRoll(
+          result.total,
+          spellSlotLevel
+        );
+
+        onPersistCharacter((currentCharacter) =>
+          applyFalseLifeTemporaryHitPointsToCharacter(currentCharacter, temporaryHitPoints)
+        );
+      }
+    });
+  }
+
   function rollSpellAttackForSpellCast(
     spell: Pick<SpellEntry, "isAttackSpell" | "isSavingThrowSpell" | "name" | "spellLists">
   ) {
@@ -1856,7 +1891,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     consumeWarlockStepsOfTheFeyUseForCharacter, consumeWizardIllusionistPhantasmalCreaturesUseForCharacter, consumeWizardSignatureSpellFreeCastForCharacter, createEconomyMultiContextForSpell, druidNaturalRecoveryUsesRemaining, expendChannelDivinityUseForCharacter, fighterPsiWarriorEnergyDiceRemaining, fighterPsiWarriorTelekineticMasterConcentrationStatusSourceId,
     fighterPsiWarriorTelekineticMasterUsesRemaining, getDruidStarMapGuidingBoltUsesRemainingForCharacter, getRangerWinterWalkerFrozenHauntSpellOptionStateForCharacter, getRoundTrackerResourceForSpell, getSorceryPointsRemaining, getSpellLevel, getSpellSlotTotalsForCharacter, getWizardIllusionistPhantasmalCreaturesSpellOptionStateForCharacter,
     grantMonkFleetStepFollowUpForSpellCastIfEligible, hasWizardRitualAdept, hasWizardSignatureSpellFreeCastAvailableForCharacter, normalizeSpellSlotsExpended, onPersistCharacter, prepareCharacterForResourceConsumption, rangerFeyReinforcementsUsesRemaining, rangerMistyWandererUsesRemaining,
-    restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter, rollHuntersRimeTemporaryHitPointsForSpellCast, rollSpellAttackForSpellCast, selectedSpell, selectedSpellActionPaths, selectedSpellCanIgnoreSpellcastingBlock, selectedSpellCanOnlyBeCastAsRitual, selectedSpellDisplay,
+    restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter, rollFalseLifeTemporaryHitPointsForSpellCast, rollHuntersRimeTemporaryHitPointsForSpellCast, rollSpellAttackForSpellCast, selectedSpell, selectedSpellActionPaths, selectedSpellCanIgnoreSpellcastingBlock, selectedSpellCanOnlyBeCastAsRitual, selectedSpellDisplay,
     selectedSpellFrozenHauntOptionState, selectedSpellIsSpellbookOnly, selectedSpellIsWizardSignatureSpell, selectedSpellIsWizardSpellMastery, selectedSpellPhantasmalCreaturesOptionState, selectedSpellSlotLevel, selectedSpellSupportsBewitchingMagic, selectedSpellSupportsElementalSmite,
     selectedSpellSupportsBoonOfSpellRecall, selectedSpellSupportsDetectThoughts, selectedSpellSupportsFeyMagic, selectedSpellSupportsFeyReinforcements, selectedSpellSupportsMagicInitiate, selectedSpellSupportsMindMagic, selectedSpellSupportsMistyWanderer, selectedSpellSupportsNaturalRecovery, selectedSpellSupportsOverchannel, selectedSpellSupportsPsionicSorcery, selectedSpellSupportsQuickRitual, selectedSpellSupportsShadowMagic, selectedSpellSupportsStarMap, selectedSpellSupportsStepsOfTheFey,
     selectedSpellSupportsTamedSurge, selectedSpellSupportsTelekineticMaster, selectedSpellSupportsWarGodsBlessing, sorceryPointsRemaining, spellSlotsExpended, spellSlotsRemaining, spellcastingState, spendSorceryPoints,
@@ -1919,7 +1954,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedDivinityDisplay, selectedDivinityOptionKey, selectedDivinityRow, selectedElementalSmiteOptionOnSelectedSpell, selectedFrozenHauntFallbackSlotLevel,
     selectedManualSpellbookSpellIds, selectedPreparedSpellIds, selectedSpell, selectedSpellActionPaths, selectedSpellAlwaysPrepared, selectedSpellAlwaysSpellbook, selectedSpellAttackRollFormula, selectedSpellBlockedReason, selectedSpellMagicInitiateAbility, selectedSpellMagicInitiateDisabled, selectedSpellMagicInitiateFreeCastState,
     selectedSpellCanCastAsRitualFromSpellbook, selectedSpellCanOnlyBeCastAsRitual, selectedSpellCastWarning, selectedSpellDamageDetailOverride, selectedSpellDetectThoughtsDisabled, selectedSpellDetectThoughtsFreeCastState, selectedSpellDisplay, selectedSpellElementalSmiteDisabled, selectedSpellFacts, selectedSpellFeyMagicDisabled, selectedSpellFeyMagicFreeCastState, selectedSpellFeyReinforcementsDisabled,
-    selectedSpellFreeCastSlotLevel, selectedSpellFrozenHauntFallbackSlotOptions, selectedSpellFrozenHauntFallbackSlotSummary, selectedSpellFrozenHauntOptionState, selectedSpellHuntersRimeTemporaryHitPointsFormula, selectedSpellIsSpellbookOnly, selectedSpellIsWizardSpellMastery, selectedSpellMindMagicDisabled,
+    selectedSpellFalseLifeTemporaryHitPointsFormula, selectedSpellFreeCastSlotLevel, selectedSpellFrozenHauntFallbackSlotOptions, selectedSpellFrozenHauntFallbackSlotSummary, selectedSpellFrozenHauntOptionState, selectedSpellHuntersRimeTemporaryHitPointsFormula, selectedSpellIsSpellbookOnly, selectedSpellIsWizardSpellMastery, selectedSpellMindMagicDisabled,
     selectedSpellMistyWandererDisabled, selectedSpellOverchannelDisabled, selectedSpellOverchannelNecroticDamage, selectedSpellPhantasmalCreaturesDisabled, selectedSpellPhantasmalCreaturesOptionState, selectedSpellPsionicSorceryCurrentCost, selectedSpellPsionicSorceryDisabled, selectedSpellQuickRitualDisabled, selectedSpellQuickRitualState, selectedSpellRadiantSoulDisabled,
     selectedSpellShadowMagicDisabled, selectedSpellShadowMagicFreeCastState, selectedSpellSharedCastWarning, selectedSpellSlotLevel, selectedSpellStarMapDisabled, selectedSpellStepsOfTheFeyDisabled, selectedSpellSupportsBeguilingMagic, selectedSpellSupportsBewitchingMagic, selectedSpellSupportsBlessingOfMoonlight, selectedSpellSupportsBoonOfSpellRecall, selectedSpellSupportsElementalSmite,
     selectedSpellSupportsDetectThoughts, selectedSpellSupportsFeyMagic, selectedSpellSupportsFeyReinforcements, selectedSpellSupportsMagicInitiate, selectedSpellSupportsMindMagic, selectedSpellSupportsMistyWanderer, selectedSpellSupportsNaturalRecovery, selectedSpellSupportsOverchannel, selectedSpellSupportsPhantasmalCreatures, selectedSpellSupportsPsionicSorcery, selectedSpellSupportsQuickRitual, selectedSpellSupportsRadiantSoul,

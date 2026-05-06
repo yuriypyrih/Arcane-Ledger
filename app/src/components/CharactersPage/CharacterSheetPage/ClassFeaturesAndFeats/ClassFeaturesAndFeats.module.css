@@ -312,6 +312,15 @@
   gap: 0.65rem;
 }
 
+.invocationDrawerHeaderActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  gap: 0.55rem;
+  justify-content: flex-end;
+}
+
 .featDrawerBackdrop {
   z-index: 48;
 }

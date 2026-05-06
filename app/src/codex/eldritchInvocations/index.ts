@@ -33,7 +33,7 @@ export const eldritchInvocationEntries: EldritchInvocationEntry[] = [
   {
     id: ELDRITCH_INVOCATION.DEVILS_SIGHT,
     name: "Devil's Sight",
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.TRACKED,
     prerequisites: [{ type: "warlock-level", minimumLevel: 2 }],
     description: [
       "You can see normally in Dim Light and Darkness, both magical and nonmagical, within 120 feet of yourself."
@@ -54,7 +54,7 @@ export const eldritchInvocationEntries: EldritchInvocationEntry[] = [
   {
     id: ELDRITCH_INVOCATION.ELDRITCH_MIND,
     name: "Eldritch Mind",
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.TRACKED,
     description: [
       "You have Advantage on Constitution saving throws that you make to maintain <link:Concentration>Concentration</link>."
     ]
@@ -74,7 +74,7 @@ export const eldritchInvocationEntries: EldritchInvocationEntry[] = [
   {
     id: ELDRITCH_INVOCATION.ELDRITCH_SPEAR,
     name: "Eldritch Spear",
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.TRACKED,
     prerequisites: [{ type: "warlock-level", minimumLevel: 2 }],
     selection: {
       kind: "warlock-cantrip",
@@ -89,7 +89,7 @@ export const eldritchInvocationEntries: EldritchInvocationEntry[] = [
   {
     id: ELDRITCH_INVOCATION.FIENDISH_VIGOR,
     name: "Fiendish Vigor",
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.TRACKED,
     prerequisites: [{ type: "warlock-level", minimumLevel: 2 }],
     description: [
       "You can cast <spell:False Life>False Life</spell> on yourself without expending a spell slot. When you cast the spell with this feature, you don't roll the die for the <link:Temporary Hit Points>Temporary Hit Points</link>; you automatically get the highest number on the die."
@@ -98,7 +98,7 @@ export const eldritchInvocationEntries: EldritchInvocationEntry[] = [
   {
     id: ELDRITCH_INVOCATION.GAZE_OF_TWO_MINDS,
     name: "Gaze of Two Minds",
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.TRACKED,
     prerequisites: [{ type: "warlock-level", minimumLevel: 5 }],
     description: [
       "You can use a Bonus Action to touch a willing creature and perceive through its senses until the end of your next turn. As long as the creature is on the same plane of existence as you, you can take a Bonus Action on subsequent turns to maintain this connection, extending the duration until the end of your next turn. The connection ends if you don't maintain it in this way.",
@@ -108,7 +108,7 @@ export const eldritchInvocationEntries: EldritchInvocationEntry[] = [
   {
     id: ELDRITCH_INVOCATION.GIFT_OF_THE_DEPTHS,
     name: "Gift of the Depths",
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.TRACKED,
     prerequisites: [{ type: "warlock-level", minimumLevel: 5 }],
     description: [
       "You can breathe underwater, and you gain a Swim Speed equal to your Speed.",
@@ -118,7 +118,7 @@ export const eldritchInvocationEntries: EldritchInvocationEntry[] = [
   {
     id: ELDRITCH_INVOCATION.GIFT_OF_THE_PROTECTORS,
     name: "Gift of the Protectors",
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.TRACKED,
     prerequisites: [
       { type: "warlock-level", minimumLevel: 9 },
       { type: "invocation", invocation: ELDRITCH_INVOCATION.PACT_OF_THE_TOME }
@@ -132,7 +132,7 @@ export const eldritchInvocationEntries: EldritchInvocationEntry[] = [
   {
     id: ELDRITCH_INVOCATION.INVESTMENT_OF_THE_CHAIN_MASTER,
     name: "Investment of the Chain Master",
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.TRACKED,
     prerequisites: [
       { type: "warlock-level", minimumLevel: 5 },
       { type: "invocation", invocation: ELDRITCH_INVOCATION.PACT_OF_THE_CHAIN }
@@ -155,7 +155,7 @@ export const eldritchInvocationEntries: EldritchInvocationEntry[] = [
   {
     id: ELDRITCH_INVOCATION.LESSONS_OF_THE_FIRST_ONES,
     name: "Lessons of the First Ones",
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.TRACKED,
     prerequisites: [{ type: "warlock-level", minimumLevel: 2 }],
     selection: {
       kind: "origin-feat"
@@ -181,28 +181,28 @@ export const eldritchInvocationEntries: EldritchInvocationEntry[] = [
   {
     id: ELDRITCH_INVOCATION.MASK_OF_MANY_FACES,
     name: "Mask of Many Faces",
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.TRACKED,
     prerequisites: [{ type: "warlock-level", minimumLevel: 2 }],
     description: ["You can cast <spell:Disguise Self>Disguise Self</spell> without expending a spell slot."]
   },
   {
     id: ELDRITCH_INVOCATION.MASTER_OF_MYRIAD_FORMS,
     name: "Master of Myriad Forms",
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.TRACKED,
     prerequisites: [{ type: "warlock-level", minimumLevel: 5 }],
     description: ["You can cast <spell:Alter Self>Alter Self</spell> without expending a spell slot."]
   },
   {
     id: ELDRITCH_INVOCATION.MISTY_VISIONS,
     name: "Misty Visions",
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.TRACKED,
     prerequisites: [{ type: "warlock-level", minimumLevel: 2 }],
     description: ["You can cast <spell:Silent Image>Silent Image</spell> without expending a spell slot."]
   },
   {
     id: ELDRITCH_INVOCATION.ONE_WITH_SHADOWS,
     name: "One with Shadows",
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.TRACKED,
     prerequisites: [{ type: "warlock-level", minimumLevel: 5 }],
     description: [
       "While you're in an area of Dim Light or Darkness, you can cast <spell:Invisibility>Invisibility</spell> on yourself without expending a spell slot."
@@ -211,7 +211,7 @@ export const eldritchInvocationEntries: EldritchInvocationEntry[] = [
   {
     id: ELDRITCH_INVOCATION.OTHERWORLDLY_LEAP,
     name: "Otherworldly Leap",
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.TRACKED,
     prerequisites: [{ type: "warlock-level", minimumLevel: 2 }],
     description: ["You can cast <spell:Jump>Jump</spell> on yourself without expending a spell slot."]
   },
@@ -229,7 +229,7 @@ export const eldritchInvocationEntries: EldritchInvocationEntry[] = [
   {
     id: ELDRITCH_INVOCATION.PACT_OF_THE_CHAIN,
     name: "Pact of the Chain",
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.TRACKED,
     description: [
       "You learn the <spell:Find Familiar>Find Familiar</spell> spell and can cast it as a Magic action without expending a spell slot.",
       "When you cast the spell, you choose one of the normal forms for your familiar or one of the following special forms: Imp, Pseudodragon, Quasit, Skeleton, Slaad Tadpole, Sphinx of Wonder, Sprite, or Venomous Snake.",
@@ -239,7 +239,8 @@ export const eldritchInvocationEntries: EldritchInvocationEntry[] = [
   {
     id: ELDRITCH_INVOCATION.PACT_OF_THE_TOME,
     name: "Pact of the Tome",
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.TRACKED,
+    selection: { kind: "pact-tome" },
     description: [
       "Stitching together strands of shadow, you conjure forth a book in your hand at the end of a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>. This Book of Shadows, whose appearance you determine, contains eldritch magic that only you can access. The book disappears if you conjure another book with this feature or if you die.",
       "When the book appears, choose three cantrips and two level 1 spells that have the Ritual tag. The spells can be from any class's spell list, and they must be spells you don't already have prepared. While the book is on your person, you have the chosen spells prepared, and they function as Warlock spells for you.",
@@ -249,7 +250,7 @@ export const eldritchInvocationEntries: EldritchInvocationEntry[] = [
   {
     id: ELDRITCH_INVOCATION.REPELLING_BLAST,
     name: "Repelling Blast",
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.TRACKED,
     prerequisites: [{ type: "warlock-level", minimumLevel: 2 }],
     selection: {
       kind: "warlock-cantrip",
@@ -276,14 +277,14 @@ export const eldritchInvocationEntries: EldritchInvocationEntry[] = [
   {
     id: ELDRITCH_INVOCATION.VISIONS_OF_DISTANT_REALMS,
     name: "Visions of Distant Realms",
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.TRACKED,
     prerequisites: [{ type: "warlock-level", minimumLevel: 9 }],
     description: ["You can cast <spell:Arcane Eye>Arcane Eye</spell> without expending a spell slot."]
   },
   {
     id: ELDRITCH_INVOCATION.WHISPERS_OF_THE_GRAVE,
     name: "Whispers of the Grave",
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.TRACKED,
     prerequisites: [{ type: "warlock-level", minimumLevel: 7 }],
     description: [
       "You can cast <spell:Speak with Dead>Speak with Dead</spell> without expending a spell slot."
@@ -292,7 +293,7 @@ export const eldritchInvocationEntries: EldritchInvocationEntry[] = [
   {
     id: ELDRITCH_INVOCATION.WITCH_SIGHT,
     name: "Witch Sight",
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.TRACKED,
     prerequisites: [{ type: "warlock-level", minimumLevel: 15 }],
     description: ["You have Truesight with a range of 30 feet."]
   }

@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { useCallback, useMemo, useState } from "react";
+import { ELDRITCH_INVOCATION } from "../../../../codex/entries";
 import {
   getWarlockEldritchInvocationLimitForCharacter,
   getWarlockInvocationBlockingSelectionNamesForCharacter,
@@ -7,11 +8,13 @@ import {
   normalizeWarlockInvocationSelectionIdsForCharacter
 } from "../../../../pages/CharactersPage/classFeatures";
 import {
+  getWarlockPactTomeSelectionFromSelectionId,
+  getWarlockInvocationFeatChoice,
   warlockEldritchInvocationEditorTabs,
   type WarlockEldritchInvocationEditorTabKey,
   type WarlockEldritchInvocationOption
 } from "../../../../pages/CharactersPage/classFeatures/warlock/warlock";
-import type { Character } from "../../../../types";
+import type { Character, CharacterFeatEntry } from "../../../../types";
 import {
   OverlayBody,
   OverlayCloseButton,
@@ -29,7 +32,7 @@ import type { TrackingButtonRenderer } from "./types";
 type EldritchInvocationEditorModalProps = {
   character: Character;
   selectedInvocationIds: string[];
-  onClose: (selectionIds: string[]) => void;
+  onClose: (selectionIds: string[], lessonsFeatEntries: CharacterFeatEntry[]) => void;
   onOpenInvocationReference: (option: WarlockEldritchInvocationOption) => void;
   renderTrackingButton: TrackingButtonRenderer;
 };
@@ -64,6 +67,19 @@ function groupInvocationOptionsByInvocationId(
   );
 
   return groupsByInvocationId;
+}
+
+function getLessonsFeatEntriesBySelectionId(character: Character): Record<string, CharacterFeatEntry> {
+  return (character.feats ?? []).reduce<Record<string, CharacterFeatEntry>>((entriesBySelectionId, entry) => {
+    if (
+      entry.source.type === "eldritch-invocation" &&
+      entry.source.invocation === ELDRITCH_INVOCATION.LESSONS_OF_THE_FIRST_ONES
+    ) {
+      entriesBySelectionId[entry.source.selectionId] = entry;
+    }
+
+    return entriesBySelectionId;
+  }, {});
 }
 
 function getInvocationOptionGroupsForTab(
@@ -105,6 +121,9 @@ function EldritchInvocationEditorModal({
   const [invocationDraftIds, setInvocationDraftIds] = useState<string[]>(
     () => selectedInvocationIds
   );
+  const [lessonsFeatEntriesBySelectionId, setLessonsFeatEntriesBySelectionId] = useState<
+    Record<string, CharacterFeatEntry>
+  >(() => getLessonsFeatEntriesBySelectionId(character));
   const [activeTabKey, setActiveTabKey] =
     useState<WarlockEldritchInvocationEditorTabKey>("general");
   const invocationLimit = getWarlockEldritchInvocationLimitForCharacter(character);
@@ -137,40 +156,84 @@ function EldritchInvocationEditorModal({
   const isInvocationLimitReached = invocationDraftIds.length >= invocationLimit;
 
   const commitAndClose = useCallback(() => {
-    onClose(normalizeWarlockInvocationSelectionIdsForCharacter(character, invocationDraftIds));
-  }, [character, invocationDraftIds, onClose]);
+    const normalizedSelectionIds = normalizeWarlockInvocationSelectionIdsForCharacter(
+      character,
+      invocationDraftIds
+    );
+    const lessonsFeatEntries = normalizedSelectionIds
+      .filter((selectionId) => getWarlockInvocationFeatChoice(selectionId) !== null)
+      .flatMap((selectionId) => {
+        const entry = lessonsFeatEntriesBySelectionId[selectionId];
+
+        return entry ? [entry] : [];
+      });
+
+    onClose(normalizedSelectionIds, lessonsFeatEntries);
+  }, [character, invocationDraftIds, lessonsFeatEntriesBySelectionId, onClose]);
 
   const addInvocation = useCallback(
-    (selectionId: string) => {
-      setInvocationDraftIds((current) => {
-        if (current.includes(selectionId) || current.length >= invocationLimit) {
-          return current;
-        }
+    (selectionId: string, featEntry?: CharacterFeatEntry) => {
+      if (invocationDraftIds.includes(selectionId) || invocationDraftIds.length >= invocationLimit) {
+        return;
+      }
 
-        const option = invocationOptionsById.get(selectionId);
+      const option =
+        invocationOptionsById.get(selectionId) ??
+        (getWarlockPactTomeSelectionFromSelectionId(selectionId)
+          ? invocationOptions.find(
+              (currentOption) =>
+                currentOption.invocation.id === ELDRITCH_INVOCATION.PACT_OF_THE_TOME &&
+                !currentOption.isPlaceholder
+            )
+          : undefined);
 
-        if (!option || option.isPlaceholder || !option.isQualified) {
-          return current;
-        }
+      if (
+        !option ||
+        option.isPlaceholder ||
+        !option.isQualified ||
+        option.isChoiceDisabled === true
+      ) {
+        return;
+      }
 
-        return [...current, selectionId];
-      });
+      if (getWarlockInvocationFeatChoice(selectionId) !== null && !featEntry) {
+        return;
+      }
+
+      setInvocationDraftIds((current) => [...current, selectionId]);
+
+      if (featEntry) {
+        setLessonsFeatEntriesBySelectionId((current) => ({
+          ...current,
+          [selectionId]: featEntry
+        }));
+      }
     },
-    [invocationLimit, invocationOptionsById]
+    [invocationDraftIds, invocationLimit, invocationOptions, invocationOptionsById]
   );
 
   const removeInvocation = useCallback((selectionId: string) => {
-    setInvocationDraftIds((current) => {
-      const blockingSelections = getWarlockInvocationBlockingSelectionNamesForCharacter(
-        selectionId,
-        current
-      );
+    const blockingSelections = getWarlockInvocationBlockingSelectionNamesForCharacter(
+      selectionId,
+      invocationDraftIds
+    );
 
-      return blockingSelections.length > 0
-        ? current
-        : current.filter((currentSelectionId) => currentSelectionId !== selectionId);
+    if (blockingSelections.length > 0) {
+      return;
+    }
+
+    setInvocationDraftIds((current) =>
+      current.filter((currentSelectionId) => currentSelectionId !== selectionId)
+    );
+    setLessonsFeatEntriesBySelectionId((current) => {
+      if (!(selectionId in current)) {
+        return current;
+      }
+
+      const { [selectionId]: _removedEntry, ...nextEntries } = current;
+      return nextEntries;
     });
-  }, []);
+  }, [invocationDraftIds]);
 
   return (
     <SheetModal
@@ -237,6 +300,12 @@ function EldritchInvocationEditorModal({
                         selectedOptions={invocationGroup.options.filter((option) =>
                           invocationDraftSet.has(option.selectionId)
                         )}
+                        character={invocationManagerCharacter}
+                        characterLevel={character.level}
+                        skillProficiencies={character.skillProficiencies}
+                        savingThrowProficiencies={character.savingThrowProficiencies}
+                        weaponProficiencies={character.weaponProficiencies}
+                        toolProficiencies={character.toolProficiencies}
                         isLimitReached={isInvocationLimitReached}
                         getBlockingSelectionNames={(selectionId) =>
                           getWarlockInvocationBlockingSelectionNamesForCharacter(

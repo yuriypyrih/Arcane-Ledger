@@ -217,6 +217,9 @@ export type CharacterWarlockFeatureState = {
   extraAttacksRemainingThisTurn?: number;
   magicalCunningUsesExpended?: number;
   contactPatronUsesExpended?: number;
+  giftOfTheDepthsUsesExpended?: number;
+  giftOfTheProtectorsUsesExpended?: number;
+  giftOfTheProtectorsBookOfShadowsText?: string;
   darkOnesOwnLuckUsesExpended?: number;
   hurlThroughHellUsesExpended?: number;
   fiendishResilienceDamageType?: DAMAGE_TYPE;

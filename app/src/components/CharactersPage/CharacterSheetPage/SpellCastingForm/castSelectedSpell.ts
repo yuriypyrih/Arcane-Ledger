@@ -8,7 +8,7 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
     consumeRangerFeyReinforcementsUseForCharacter, consumeRangerMistyWandererUseForCharacter, consumeRangerWinterWalkerFrozenHauntUseForCharacter, consumeRoundTrackerResourceForCharacter, consumeSharedEconomyMultiForCharacterAction, consumeSorcererSubclassTamedSurgeUseForCharacter, consumeWarlockStepsOfTheFeyUseForCharacter, consumeWizardIllusionistPhantasmalCreaturesUseForCharacter, consumeWizardSignatureSpellFreeCastForCharacter,
     createEconomyMultiContextForSpell, druidNaturalRecoveryUsesRemaining, expendChannelDivinityUseForCharacter, fighterPsiWarriorEnergyDiceRemaining, fighterPsiWarriorTelekineticMasterConcentrationStatusSourceId, fighterPsiWarriorTelekineticMasterUsesRemaining, getDruidStarMapGuidingBoltUsesRemainingForCharacter, getRangerWinterWalkerFrozenHauntSpellOptionStateForCharacter, getRoundTrackerResourceForSpell,
     getSorceryPointsRemaining, getSpellLevel, getSpellSlotTotalsForCharacter, getWizardIllusionistPhantasmalCreaturesSpellOptionStateForCharacter, grantMonkFleetStepFollowUpForSpellCastIfEligible, hasWizardRitualAdept, hasWizardSignatureSpellFreeCastAvailableForCharacter, normalizeSpellSlotsExpended, onPersistCharacter,
-    prepareCharacterForResourceConsumption, rangerFeyReinforcementsUsesRemaining, rangerMistyWandererUsesRemaining, restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter, rollHuntersRimeTemporaryHitPointsForSpellCast, rollSpellAttackForSpellCast, selectedSpell, selectedSpellActionPaths, selectedSpellCanIgnoreSpellcastingBlock,
+    prepareCharacterForResourceConsumption, rangerFeyReinforcementsUsesRemaining, rangerMistyWandererUsesRemaining, restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter, rollFalseLifeTemporaryHitPointsForSpellCast, rollHuntersRimeTemporaryHitPointsForSpellCast, rollSpellAttackForSpellCast, selectedSpell, selectedSpellActionPaths, selectedSpellCanIgnoreSpellcastingBlock,
     selectedSpellCanOnlyBeCastAsRitual, selectedSpellDisplay, selectedSpellFrozenHauntOptionState, selectedSpellIsSpellbookOnly, selectedSpellIsWizardSignatureSpell, selectedSpellIsWizardSpellMastery, selectedSpellPhantasmalCreaturesOptionState, selectedSpellSlotLevel, selectedSpellSupportsBewitchingMagic,
     selectedSpellSupportsBoonOfSpellRecall, selectedSpellSupportsDetectThoughts, selectedSpellSupportsElementalSmite, selectedSpellSupportsFeyMagic, selectedSpellSupportsFeyReinforcements, selectedSpellSupportsMagicInitiate, selectedSpellSupportsMindMagic, selectedSpellSupportsMistyWanderer, selectedSpellSupportsNaturalRecovery, selectedSpellSupportsOverchannel, selectedSpellSupportsPsionicSorcery, selectedSpellSupportsQuickRitual, selectedSpellSupportsShadowMagic, selectedSpellSupportsStarMap, selectedSpellSupportsStepsOfTheFey,
     selectedSpellSupportsTamedSurge, selectedSpellSupportsTelekineticMaster, selectedSpellSupportsWarGodsBlessing, sorceryPointsRemaining, spellSlotsExpended, spellSlotsRemaining, spellcastingState, spendSorceryPoints, tamedSurgeUsesRemaining,
@@ -240,6 +240,7 @@ if (!selectedSpell || (spellcastingState.blocked && !selectedSpellCanIgnoreSpell
       }
 
       rollHuntersRimeTemporaryHitPointsForSpellCast(selectedSpell);
+      rollFalseLifeTemporaryHitPointsForSpellCast(selectedSpell, 1);
       rollSpellAttackForSpellCast(selectedSpell);
       closeSelectedSpell();
       return;
@@ -299,6 +300,7 @@ if (!selectedSpell || (spellcastingState.blocked && !selectedSpellCanIgnoreSpell
       });
 
       rollHuntersRimeTemporaryHitPointsForSpellCast(selectedSpell);
+      rollFalseLifeTemporaryHitPointsForSpellCast(selectedSpell, 1);
       rollSpellAttackForSpellCast(selectedSpell);
       closeSelectedSpell();
       return;
@@ -645,6 +647,7 @@ if (!selectedSpell || (spellcastingState.blocked && !selectedSpellCanIgnoreSpell
     });
 
     rollHuntersRimeTemporaryHitPointsForSpellCast(selectedSpell);
+    rollFalseLifeTemporaryHitPointsForSpellCast(selectedSpell, slotLevel);
     rollSpellAttackForSpellCast(selectedSpell);
     closeSelectedSpell();
 }

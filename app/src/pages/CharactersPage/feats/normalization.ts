@@ -1,4 +1,9 @@
-import { CLASS_FEATURE, FEATS } from "../../../codex/entries";
+import {
+  CLASS_FEATURE,
+  ELDRITCH_INVOCATION,
+  FEATS,
+  getEldritchInvocationEntryById
+} from "../../../codex/entries";
 import type {
   AthleteChoice,
   BlessedWarriorChoice,
@@ -122,6 +127,7 @@ const deprecatedSubclassPlaceholderFeatures = new Set<CLASS_FEATURE>([
 
 const featValues = Object.values(FEATS);
 const featValueSet = new Set<string>(featValues);
+const eldritchInvocationValueSet = new Set<string>(Object.values(ELDRITCH_INVOCATION));
 
 function normalizeFeatLookupKey(value: string): string {
   return value
@@ -189,6 +195,25 @@ function normalizeCharacterFeatSource(value: unknown, takenAtLevel: number): Cha
       type: "class-feature",
       feature: record.feature as CLASS_FEATURE,
       level: clampFeatLevel(record.level, takenAtLevel)
+    };
+  }
+
+  if (record.type === "eldritch-invocation") {
+    if (
+      typeof record.invocation === "string" &&
+      eldritchInvocationValueSet.has(record.invocation) &&
+      typeof record.selectionId === "string" &&
+      record.selectionId.trim().length > 0
+    ) {
+      return {
+        type: "eldritch-invocation",
+        invocation: record.invocation as ELDRITCH_INVOCATION,
+        selectionId: record.selectionId.trim()
+      };
+    }
+
+    return {
+      type: "manual"
     };
   }
 
@@ -641,6 +666,10 @@ export function getCharacterFeatSourceLabel(entry: CharacterFeatEntry): string {
     return `Background: ${entry.source.background}`;
   }
 
+  if (entry.source.type === "eldritch-invocation") {
+    return getEldritchInvocationEntryById(entry.source.invocation)?.name ?? "Eldritch Invocation";
+  }
+
   if (entry.source.feature === CLASS_FEATURE.ABILITY_SCORE_IMPROVEMENT) {
     return `Level ${entry.source.level}: ASI`;
   }
@@ -659,5 +688,5 @@ export function isFeatFromBackgroundSource(
 }
 
 export function isFeatEntryRemovable(entry: CharacterFeatEntry): boolean {
-  return !isFeatFromBackgroundSource(entry);
+  return !isFeatFromBackgroundSource(entry) && entry.source.type !== "eldritch-invocation";
 }

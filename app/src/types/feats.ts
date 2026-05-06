@@ -1,4 +1,10 @@
-import type { CLASS_FEATURE, DAMAGE_TYPE, FEATS, SPELL_LIST_CLASS } from "../codex/entries/enums";
+import type {
+  CLASS_FEATURE,
+  DAMAGE_TYPE,
+  ELDRITCH_INVOCATION,
+  FEATS,
+  SPELL_LIST_CLASS
+} from "../codex/entries/enums";
 import type { AbilityKey } from "./characters";
 import type { TOOL_PROFICIENCY, WEAPON_PROFICIENCY } from "./proficiencies";
 import type { SkillName } from "./skills";
@@ -251,6 +257,11 @@ export type CharacterFeatSource =
       type: "class-feature";
       feature: CLASS_FEATURE;
       level: number;
+    }
+  | {
+      type: "eldritch-invocation";
+      invocation: ELDRITCH_INVOCATION;
+      selectionId: string;
     }
   | {
       type: "background";

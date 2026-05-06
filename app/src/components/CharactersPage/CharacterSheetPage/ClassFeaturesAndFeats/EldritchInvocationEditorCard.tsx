@@ -2,20 +2,43 @@ import clsx from "clsx";
 import { Plus, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { WarlockEldritchInvocationOption } from "../../../../pages/CharactersPage/classFeatures/warlock/warlock";
+import type {
+  Character,
+  CharacterFeatEntry,
+  SavingThrowProficiencyEntry,
+  SkillProficiencyEntry,
+  ToolProficiencyEntry,
+  WeaponProficiencyEntry
+} from "../../../../types";
 import ActionButton from "../../../ActionButton";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import cardStyles from "./FeatCards.module.css";
 import modalStyles from "./FeatEditorModal.module.css";
 import { InlineEditorFrame, SelectField } from "./FeatEditorPrimitives";
-import { triggerActionOnEnterOrSpace } from "./featEditorUtils";
+import {
+  triggerActionOnEnterOrSpace
+} from "./featEditorUtils";
+import {
+  createLessonsOfTheFirstOnesFeatEntry,
+  doesLessonsOriginFeatNeedInput,
+  getLessonsOriginFeatForSelection
+} from "./eldritchInvocationLessonsFeatUtils";
+import EldritchInvocationLessonsFeatEditor from "./EldritchInvocationLessonsFeatEditor";
+import EldritchInvocationPactTomeEditor from "./EldritchInvocationPactTomeEditor";
 import type { TrackingButtonRenderer } from "./types";
 
 type EldritchInvocationEditorCardProps = {
   options: WarlockEldritchInvocationOption[];
   selectedOptions: WarlockEldritchInvocationOption[];
+  character: Character;
+  characterLevel: number;
+  skillProficiencies: SkillProficiencyEntry[];
+  savingThrowProficiencies: SavingThrowProficiencyEntry[];
+  weaponProficiencies: WeaponProficiencyEntry[];
+  toolProficiencies: ToolProficiencyEntry[];
   isLimitReached: boolean;
   getBlockingSelectionNames: (selectionId: string) => string[];
-  onAddInvocation: (selectionId: string) => void;
+  onAddInvocation: (selectionId: string, featEntry?: CharacterFeatEntry) => void;
   onRemoveInvocation: (selectionId: string) => void;
   onOpenInvocationReference: (option: WarlockEldritchInvocationOption) => void;
   renderTrackingButton: TrackingButtonRenderer;
@@ -33,6 +56,8 @@ function getSelectionLabel(option: WarlockEldritchInvocationOption): string {
       return "Cantrip";
     case "pact-blade":
       return "Pact weapon";
+    case "pact-tome":
+      return "Book spells";
     default:
       return "Choice";
   }
@@ -41,6 +66,12 @@ function getSelectionLabel(option: WarlockEldritchInvocationOption): string {
 function EldritchInvocationEditorCard({
   options,
   selectedOptions,
+  character,
+  characterLevel,
+  skillProficiencies,
+  savingThrowProficiencies,
+  weaponProficiencies,
+  toolProficiencies,
   isLimitReached,
   getBlockingSelectionNames,
   onAddInvocation,
@@ -51,6 +82,7 @@ function EldritchInvocationEditorCard({
   const option = options[0];
   const [isChoiceEditorOpen, setIsChoiceEditorOpen] = useState(false);
   const [draftSelectionId, setDraftSelectionId] = useState("");
+  const [configuredFeatEntry, setConfiguredFeatEntry] = useState<CharacterFeatEntry | null>(null);
   const selectedSelectionIdSet = useMemo(
     () => new Set(selectedOptions.map((selectedOption) => selectedOption.selectionId)),
     [selectedOptions]
@@ -63,11 +95,17 @@ function EldritchInvocationEditorCard({
   const isRepeatable = Boolean(option.invocation.repeatable);
   const isSelected = selectedOptions.length > 0;
   const hasSelection = Boolean(option.invocation.selection);
+  const isPactTomeSelection = option.invocation.selection?.kind === "pact-tome";
   const choiceOptions = options.filter((currentOption) => !currentOption.isPlaceholder);
   const selectedOption = selectedOptions[0] ?? null;
   const selectedChoiceOption = hasSelection
     ? options.find((currentOption) => currentOption.selectionId === draftSelectionId) ?? null
     : option;
+  const selectedOriginFeat =
+    selectedChoiceOption?.invocation.selection?.kind === "origin-feat"
+      ? getLessonsOriginFeatForSelection(selectedChoiceOption.selectionId)
+      : null;
+  const selectedOriginFeatNeedsInput = doesLessonsOriginFeatNeedInput(selectedOriginFeat);
   const hasAvailableChoiceOptions = choiceOptions.length > 0;
   const isRequirementBlocked = options.every(
     (currentOption) => currentOption.isPlaceholder || !currentOption.isQualified
@@ -76,7 +114,9 @@ function EldritchInvocationEditorCard({
     !selectedChoiceOption ||
     selectedChoiceOption.isPlaceholder ||
     !selectedChoiceOption.isQualified ||
-    selectedSelectionIdSet.has(selectedChoiceOption.selectionId);
+    selectedChoiceOption.isChoiceDisabled === true ||
+    selectedSelectionIdSet.has(selectedChoiceOption.selectionId) ||
+    (selectedOriginFeatNeedsInput && configuredFeatEntry === null);
   const isAddButtonDisabled =
     (!isRepeatable && isSelected) ||
     isLimitReached ||
@@ -97,6 +137,35 @@ function EldritchInvocationEditorCard({
     ? `Required by ${nonRepeatableBlockingSelectionNames.join(", ")}.`
     : undefined;
   const shouldShowPrerequisite = option.requirementLabel !== "No prerequisite";
+
+  function resetLessonsFeatChoice(nextSelectionId: string) {
+    setDraftSelectionId(nextSelectionId);
+    setConfiguredFeatEntry(null);
+  }
+
+  function createFeatEntryForSelectedChoice(): CharacterFeatEntry | undefined {
+    if (!selectedOriginFeat || !selectedChoiceOption) {
+      return undefined;
+    }
+
+    const choiceOption = selectedChoiceOption;
+
+    if (selectedOriginFeatNeedsInput) {
+      return configuredFeatEntry ?? undefined;
+    }
+
+    return createLessonsOfTheFirstOnesFeatEntry(
+      selectedOriginFeat,
+      characterLevel,
+      choiceOption.selectionId
+    );
+  }
+
+  function closeChoiceEditor() {
+    setDraftSelectionId("");
+    setConfiguredFeatEntry(null);
+    setIsChoiceEditorOpen(false);
+  }
 
   return (
     <article
@@ -163,14 +232,20 @@ function EldritchInvocationEditorCard({
           })}
         </ul>
       ) : null}
-      {isChoiceEditorOpen ? (
+      {isChoiceEditorOpen && isPactTomeSelection ? (
+        <EldritchInvocationPactTomeEditor
+          character={character}
+          option={option}
+          selectedOptions={selectedOptions}
+          onAddInvocation={onAddInvocation}
+          onCancel={closeChoiceEditor}
+        />
+      ) : null}
+      {isChoiceEditorOpen && !isPactTomeSelection ? (
         <InlineEditorFrame
           title={option.displayName}
           cancelLabel={`Cancel ${option.displayName} selection`}
-          onCancel={() => {
-            setDraftSelectionId("");
-            setIsChoiceEditorOpen(false);
-          }}
+          onCancel={closeChoiceEditor}
           footer={
             <div className={modalStyles.editorActions}>
               <ActionButton
@@ -182,9 +257,11 @@ function EldritchInvocationEditorCard({
                     return;
                   }
 
-                  onAddInvocation(selectedChoiceOption.selectionId);
-                  setDraftSelectionId("");
-                  setIsChoiceEditorOpen(false);
+                  onAddInvocation(
+                    selectedChoiceOption.selectionId,
+                    createFeatEntryForSelectedChoice()
+                  );
+                  closeChoiceEditor();
                 }}
               >
                 Add Invocation
@@ -205,22 +282,46 @@ function EldritchInvocationEditorCard({
                   const isChoiceSelected = selectedSelectionIdSet.has(
                     choiceOption.selectionId
                   );
+                  const choiceDisabledReason = choiceOption.isChoiceDisabled
+                    ? ` (${choiceOption.choiceDisabledReason ?? "unavailable"})`
+                    : "";
 
                   return {
-                    disabled: isChoiceSelected || !choiceOption.isQualified,
+                    disabled:
+                      isChoiceSelected ||
+                      !choiceOption.isQualified ||
+                      choiceOption.isChoiceDisabled === true,
                     group: choiceOption.selectionGroup,
                     label: `${getChoiceLabel(choiceOption)}${
                       isChoiceSelected ? " (selected)" : ""
-                    }`,
+                    }${choiceDisabledReason}`,
                     value: choiceOption.selectionId
                   };
                 })
               ]}
-              onChange={setDraftSelectionId}
+              onChange={resetLessonsFeatChoice}
             />
           </div>
+          {selectedChoiceOption && selectedOriginFeatNeedsInput ? (
+            <EldritchInvocationLessonsFeatEditor
+              key={selectedChoiceOption.selectionId}
+              selectedChoiceOption={selectedChoiceOption}
+              characterLevel={characterLevel}
+              skillProficiencies={skillProficiencies}
+              savingThrowProficiencies={savingThrowProficiencies}
+              weaponProficiencies={weaponProficiencies}
+              toolProficiencies={toolProficiencies}
+              renderTrackingButton={renderTrackingButton}
+              onConfiguredFeatEntryChange={setConfiguredFeatEntry}
+            />
+          ) : null}
           {selectedChoiceOption && !selectedChoiceOption.isQualified ? (
             <p className={modalStyles.validation}>{selectedChoiceOption.requirementLabel}</p>
+          ) : null}
+          {selectedChoiceOption?.isChoiceDisabled ? (
+            <p className={modalStyles.validation}>
+              {selectedChoiceOption.choiceDisabledReason ?? "This choice is unavailable."}
+            </p>
           ) : null}
         </InlineEditorFrame>
       ) : null}

@@ -115,6 +115,9 @@ export type EldritchInvocationSelection =
     }
   | {
       kind: "pact-blade";
+    }
+  | {
+      kind: "pact-tome";
     };
 export type FeatureClassObj = {
   level: number;

@@ -3,6 +3,7 @@ import { ChevronDown, CircleHelp, Pencil } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   CLASS_FEATURE,
+  ELDRITCH_INVOCATION,
   FEAT_CATEGORY,
   FEATS,
   FeatureMap,
@@ -140,6 +141,17 @@ const featCategoryTabs: FEAT_CATEGORY[] = [
 const classEntriesByName = new Map<string, ClassEntry>(
   getClassEntries().map((entry) => [entry.name, entry])
 );
+
+function isLessonsOfTheFirstOnesFeatEntry(
+  entry: CharacterFeatEntry
+): entry is CharacterFeatEntry & {
+  source: Extract<CharacterFeatEntry["source"], { type: "eldritch-invocation" }>;
+} {
+  return (
+    entry.source.type === "eldritch-invocation" &&
+    entry.source.invocation === ELDRITCH_INVOCATION.LESSONS_OF_THE_FIRST_ONES
+  );
+}
 
 function ClassFeaturesAndFeats({
   character,
@@ -593,7 +605,10 @@ function ClassFeaturesAndFeats({
     setIsEldritchInvocationModalOpen(true);
   }
 
-  async function closeEldritchInvocationEditor(selectionIds: string[]) {
+  async function closeEldritchInvocationEditor(
+    selectionIds: string[],
+    lessonsFeatEntries: CharacterFeatEntry[]
+  ) {
     setIsEldritchInvocationModalOpen(false);
     const pactBladeConjuredItemKey =
       getWarlockPactOfTheBladeConjuredItemKeyFromSelectionIdsForCharacter(selectionIds);
@@ -607,11 +622,29 @@ function ClassFeaturesAndFeats({
       }
     }
 
-    onPersistCharacter((currentCharacter) =>
-      setWarlockInvocationSelectionIdsForCharacter(currentCharacter, selectionIds, {
+    onPersistCharacter((currentCharacter) => {
+      const characterWithInvocations = setWarlockInvocationSelectionIdsForCharacter(currentCharacter, selectionIds, {
         pactBladeConjuredItem
-      })
-    );
+      });
+      const selectedLessonsSelectionIds = new Set(selectionIds);
+      const nextLessonsFeatEntries = lessonsFeatEntries.filter(
+        (entry) =>
+          isLessonsOfTheFirstOnesFeatEntry(entry) &&
+          selectedLessonsSelectionIds.has(entry.source.selectionId)
+      );
+      const characterWithInvocationFeatDraft = (characterWithInvocations.feats ?? [])
+        .filter(isLessonsOfTheFirstOnesFeatEntry)
+        .reduce(
+          (draft, entry) => removeFeatFromDraft(draft, entry),
+          createFeatEditorDraft(characterWithInvocations)
+        );
+      const nextInvocationFeatDraft = nextLessonsFeatEntries.reduce(
+        (draft, entry) => upsertFeatInDraft(draft, entry, null),
+        characterWithInvocationFeatDraft
+      );
+
+      return applyFeatEditorDraftToCharacter(characterWithInvocations, nextInvocationFeatDraft);
+    });
   }
 
   function openFeatEditorForFeature(level: number, feature: CLASS_FEATURE) {

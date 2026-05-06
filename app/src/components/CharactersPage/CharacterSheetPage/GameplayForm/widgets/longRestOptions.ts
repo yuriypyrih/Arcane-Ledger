@@ -210,6 +210,8 @@ import {
   getWarlockCelestialResilienceTemporaryHitPoints,
   getWarlockClairvoyantCombatantUsesTotal,
   getContactPatronUsesTotal,
+  getWarlockGiftOfTheDepthsUsesTotal,
+  getWarlockGiftOfTheProtectorsUsesTotal,
   getWarlockDarkOnesOwnLuckUsesTotal,
   getWarlockHurlThroughHellUsesTotal,
   getWarlockHealingLightDiceTotal,
@@ -221,6 +223,8 @@ import {
   restoreWarlockClairvoyantCombatantOnLongRest,
   restoreWarlockClairvoyantCombatantOnShortRest,
   restoreContactPatronOnLongRest,
+  restoreWarlockGiftOfTheDepthsOnLongRest,
+  restoreWarlockGiftOfTheProtectorsOnLongRest,
   restoreWarlockDarkOnesOwnLuckOnLongRest,
   restoreWarlockHurlThroughHellOnLongRest,
   restoreWarlockHealingLightOnLongRest,
@@ -422,6 +426,8 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const sorcererTranceOfOrderUsesTotal = getSorcererSubclassTranceOfOrderUsesTotal(character);
   const sorcererWarpingImplosionUsesTotal = getSorcererSubclassWarpingImplosionUsesTotal(character);
   const magicalCunningUsesTotal = getWarlockMagicalCunningUsesTotal(character);
+  const giftOfTheDepthsUsesTotal = getWarlockGiftOfTheDepthsUsesTotal(character);
+  const giftOfTheProtectorsUsesTotal = getWarlockGiftOfTheProtectorsUsesTotal(character);
   const warlockCelestialResilienceTemporaryHitPoints =
     getWarlockCelestialResilienceTemporaryHitPoints(character);
   const arcaneRecoveryUsesTotal = getArcaneRecoveryUsesTotal(character);
@@ -1322,6 +1328,26 @@ export function createLongRestOptions(character: Character): RestOption[] {
             label: "Restore Magical Cunning",
             apply: (currentCharacter: Character) =>
               restoreWarlockMagicalCunningOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(giftOfTheDepthsUsesTotal > 0
+      ? [
+          {
+            id: "restore-gift-of-the-depths",
+            label: "Restore Gift of the Depths",
+            apply: (currentCharacter: Character) =>
+              restoreWarlockGiftOfTheDepthsOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(giftOfTheProtectorsUsesTotal > 0
+      ? [
+          {
+            id: "restore-gift-of-the-protectors",
+            label: "Restore Gift of the Protectors",
+            apply: (currentCharacter: Character) =>
+              restoreWarlockGiftOfTheProtectorsOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),

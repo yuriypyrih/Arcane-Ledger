@@ -229,6 +229,7 @@ type FeatEditorCardProps = {
   pendingFeatState: PendingFeatState;
   blessedWarriorCantripOptions: SpellEntry[];
   druidicWarriorCantripOptions: SpellEntry[];
+  hideFooter?: boolean;
   renderTrackingButton: TrackingButtonRenderer;
   onOpenFeatReference: (feat: FEATS) => void;
   onAddFeat: (feat: FEATS) => void;
@@ -3219,6 +3220,7 @@ function FeatEditorCard({
   pendingFeatState,
   blessedWarriorCantripOptions,
   druidicWarriorCantripOptions,
+  hideFooter = false,
   renderTrackingButton,
   onOpenFeatReference,
   onAddFeat,
@@ -3405,52 +3407,54 @@ function FeatEditorCard({
         onSavePendingMusicianChoice,
         onSavePendingSkilledChoice
       })}
-      <div className={modalStyles.footer}>
-        {isRepeatable || !isSelected ? (
-          <button
-            type="button"
-            className={clsx(shared.editButton, modalStyles.addButton)}
-            disabled={isAddDisabled}
-            title={unmetRequirementText || undefined}
-            onClick={(event) => {
-              event.stopPropagation();
-              onAddFeat(featDefinition.feat);
-            }}
-          >
-            <Plus size={16} />
-            {isRepeatable && isSelected ? "Add Another" : isAddDisabled ? "Added" : "Add"}
-          </button>
-        ) : selectedEntry ? (
-          <>
-            {canEditFeat ? (
-              <button
-                type="button"
-                className={clsx(shared.editButton, modalStyles.addButton)}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onEditFeat(selectedEntry);
-                }}
-              >
-                <Pencil size={16} />
-                Edit
-              </button>
-            ) : null}
+      {hideFooter ? null : (
+        <div className={modalStyles.footer}>
+          {isRepeatable || !isSelected ? (
             <button
               type="button"
-              className={clsx(shared.editButton, modalStyles.removeActionButton)}
-              disabled={!isSelectedEntryRemovable}
-              title={!isSelectedEntryRemovable ? lockedRemoveTitle : undefined}
+              className={clsx(shared.editButton, modalStyles.addButton)}
+              disabled={isAddDisabled}
+              title={unmetRequirementText || undefined}
               onClick={(event) => {
                 event.stopPropagation();
-                onRemoveFeat(selectedEntry);
+                onAddFeat(featDefinition.feat);
               }}
             >
-              <X size={16} />
-              Remove
+              <Plus size={16} />
+              {isRepeatable && isSelected ? "Add Another" : isAddDisabled ? "Added" : "Add"}
             </button>
-          </>
-        ) : null}
-      </div>
+          ) : selectedEntry ? (
+            <>
+              {canEditFeat ? (
+                <button
+                  type="button"
+                  className={clsx(shared.editButton, modalStyles.addButton)}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onEditFeat(selectedEntry);
+                  }}
+                >
+                  <Pencil size={16} />
+                  Edit
+                </button>
+              ) : null}
+              <button
+                type="button"
+                className={clsx(shared.editButton, modalStyles.removeActionButton)}
+                disabled={!isSelectedEntryRemovable}
+                title={!isSelectedEntryRemovable ? lockedRemoveTitle : undefined}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onRemoveFeat(selectedEntry);
+                }}
+              >
+                <X size={16} />
+                Remove
+              </button>
+            </>
+          ) : null}
+        </div>
+      )}
     </article>
   );
 }

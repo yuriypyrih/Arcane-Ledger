@@ -322,6 +322,8 @@ import {
 } from "./sorcerer/subclasses";
 import {
   consumeContactPatronUse,
+  consumeWarlockGiftOfTheDepthsUse,
+  consumeWarlockGiftOfTheProtectorsUse,
   expendWarlockHealingLightDie,
   consumeWarlockBeguilingDefenseUse,
   consumeMysticArcanumUse,
@@ -331,6 +333,9 @@ import {
   getWarlockBeguilingDefenseUsesTotal,
   getWarlockEldritchInvocationLimit,
   getWarlockFiendishResilienceDamageTypeSelection,
+  getWarlockGiftOfTheProtectorsBookOfShadowsText,
+  getWarlockGiftOfTheProtectorsUsesRemaining,
+  getWarlockGiftOfTheProtectorsUsesTotal,
   getWarlockHealingLightDiceRemaining,
   getWarlockHealingLightDiceTotal,
   getWarlockHealingLightMaxSpend,
@@ -352,6 +357,8 @@ import {
   getWarlockStepsOfTheFeyUsesTotal,
   restoreAllWarlockHealingLightDice,
   restoreContactPatronOnLongRest,
+  restoreWarlockGiftOfTheDepthsOnLongRest,
+  restoreWarlockGiftOfTheProtectorsOnLongRest,
   restoreWarlockHealingLightDie,
   restoreWarlockHealingLightOnLongRest,
   restoreWarlockBeguilingDefenseOnLongRest,
@@ -360,6 +367,7 @@ import {
   consumeWarlockStepsOfTheFeyUse,
   spendWarlockHealingLightDice,
   setWarlockFiendishResilienceDamageTypeSelection,
+  setWarlockGiftOfTheProtectorsBookOfShadowsText,
   setWarlockMysticArcanumSpellId,
   setWarlockInvocationSelectionIds,
   warlockFiendPatronFiendishResilienceDamageTypeOptions,
@@ -1370,6 +1378,18 @@ export function restoreContactPatronOnLongRestForCharacter(character: Character)
   return restoreContactPatronOnLongRest(character);
 }
 
+export function restoreWarlockGiftOfTheDepthsOnLongRestForCharacter(
+  character: Character
+): Character {
+  return restoreWarlockGiftOfTheDepthsOnLongRest(character);
+}
+
+export function restoreWarlockGiftOfTheProtectorsOnLongRestForCharacter(
+  character: Character
+): Character {
+  return restoreWarlockGiftOfTheProtectorsOnLongRest(character);
+}
+
 export function restoreWarlockBeguilingDefenseOnLongRestForCharacter(
   character: Character
 ): Character {
@@ -1382,6 +1402,39 @@ export function restoreWarlockHealingLightOnLongRestForCharacter(character: Char
 
 export function consumeContactPatronUseForCharacter(character: Character): Character {
   return consumeContactPatronUse(character);
+}
+
+export function consumeWarlockGiftOfTheDepthsUseForCharacter(character: Character): Character {
+  return consumeWarlockGiftOfTheDepthsUse(character);
+}
+
+export function consumeWarlockGiftOfTheProtectorsUseForCharacter(character: Character): Character {
+  return consumeWarlockGiftOfTheProtectorsUse(character);
+}
+
+export function getWarlockGiftOfTheProtectorsUsesTotalForCharacter(
+  character: Character
+): number {
+  return getWarlockGiftOfTheProtectorsUsesTotal(character);
+}
+
+export function getWarlockGiftOfTheProtectorsUsesRemainingForCharacter(
+  character: Character
+): number {
+  return getWarlockGiftOfTheProtectorsUsesRemaining(character);
+}
+
+export function getWarlockGiftOfTheProtectorsBookOfShadowsTextForCharacter(
+  character: Character
+): string {
+  return getWarlockGiftOfTheProtectorsBookOfShadowsText(character);
+}
+
+export function setWarlockGiftOfTheProtectorsBookOfShadowsTextForCharacter(
+  character: Character,
+  text: string
+): Character {
+  return setWarlockGiftOfTheProtectorsBookOfShadowsText(character, text);
 }
 
 export function consumeWarlockStepsOfTheFeyUseForCharacter(character: Character): Character {

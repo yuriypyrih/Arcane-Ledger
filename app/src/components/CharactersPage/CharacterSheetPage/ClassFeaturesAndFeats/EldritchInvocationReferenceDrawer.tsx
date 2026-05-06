@@ -2,10 +2,10 @@ import { useMemo, useState } from "react";
 import type { DivinityEntry, FEATS, SpellEntry } from "../../../../codex/entries";
 import type { WarlockEldritchInvocationOption } from "../../../../pages/CharactersPage/classFeatures/warlock/warlock";
 import { getFeatDefinition } from "../../../../pages/CharactersPage/feats";
-import type { ResolvedKeywordReference } from "../../../../utils/codex/renderCodexRichText";
 import DescriptionContent from "../../../DescriptionContent/DescriptionContent";
 import CodexDivinityDrawer from "../../../CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
 import CodexSpellDrawer from "../../../CodexPage/CodexSpellDrawer/CodexSpellDrawer";
+import { FeatureTrackingBadgeButton } from "../../../FeatureDisclosure";
 import KeywordReferenceDrawer from "../../../KeywordReferenceDrawer/KeywordReferenceDrawer";
 import {
   OverlayBadge,
@@ -18,6 +18,10 @@ import {
   SheetDrawer,
   overlayClassNames
 } from "../../../Overlay";
+import {
+  resolveKeywordReference,
+  type ResolvedKeywordReference
+} from "../../../../utils/codex/renderCodexRichText";
 import styles from "./ClassFeaturesAndFeats.module.css";
 
 type EldritchInvocationReferenceDrawerProps = {
@@ -42,6 +46,14 @@ function EldritchInvocationReferenceDrawer({
     [selectedFeat]
   );
   const linkedReferenceBackdropClassName = styles.linkedReferenceDrawerBackdrop;
+
+  function openTrackingKeyword() {
+    const resolvedKeyword = resolveKeywordReference(option.invocation.trackingState);
+
+    if (resolvedKeyword) {
+      setSelectedKeyword(resolvedKeyword);
+    }
+  }
 
   return (
     <>
@@ -82,7 +94,13 @@ function EldritchInvocationReferenceDrawer({
               </OverlayTitle>
             </OverlayTitleRow>
           </OverlayHeaderContent>
-          <OverlayCloseButton label="Close eldritch invocation" onClick={onClose} />
+          <div className={styles.invocationDrawerHeaderActions}>
+            <FeatureTrackingBadgeButton
+              trackingState={option.invocation.trackingState}
+              onClick={openTrackingKeyword}
+            />
+            <OverlayCloseButton label="Close eldritch invocation" onClick={onClose} />
+          </div>
         </OverlayHeader>
 
         <OverlayBody className={styles.keywordDrawerBody}>

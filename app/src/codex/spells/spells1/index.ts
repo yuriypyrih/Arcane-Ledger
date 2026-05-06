@@ -965,7 +965,7 @@ export const falseLife: SpellEntry = {
   id: "spell-false-life",
   name: "False Life",
   category: ENTRY_CATEGORIES.SPELLS,
-  trackingState: TRACKER.NOT_TRACKED,
+  trackingState: TRACKER.TRACKED,
   magicSchool: MAGIC_SCHOOL.NECROMANCY,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",

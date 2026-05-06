@@ -17,6 +17,16 @@ export type {
   SpellCastImplementationOptions
 } from "./types";
 export {
+  applyFalseLifeTemporaryHitPointsToCharacter,
+  falseLifeSpellId,
+  falseLifeTemporaryHitPointsSource,
+  fiendishVigorTemporaryHitPointsSource,
+  getFalseLifeTemporaryHitPointsBonus,
+  getFalseLifeTemporaryHitPointsFormula,
+  getFalseLifeTemporaryHitPointsFormulaDisplay,
+  getFalseLifeTemporaryHitPointsFromRoll
+} from "./falseLife";
+export {
   getMageArmorArmorClassModes,
   hasMageArmorSelfStatus,
   isMageArmorSelfStatusEntry,

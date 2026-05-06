@@ -184,10 +184,20 @@ export type FeatureActionSpellEffectKind =
   | "divine-intervention"
   | "faithful-steed"
   | "favored-enemy"
+  | "fiendish-vigor"
+  | "gift-of-the-depths"
+  | "mask-of-many-faces"
   | "mantle-of-majesty"
+  | "master-of-myriad-forms"
+  | "misty-visions"
   | "mystic-arcanum"
+  | "one-with-shadows"
+  | "otherworldly-leap"
+  | "pact-of-the-chain"
   | "paladins-smite"
-  | "shadow-arts-darkness";
+  | "shadow-arts-darkness"
+  | "visions-of-distant-realms"
+  | "whispers-of-the-grave";
 
 export type FeatureActionDrawerConfig = {
   kind: FeatureActionDrawerKind;

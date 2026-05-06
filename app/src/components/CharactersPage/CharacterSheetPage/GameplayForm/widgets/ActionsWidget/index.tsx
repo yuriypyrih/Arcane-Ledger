@@ -268,6 +268,7 @@ import {
   getSpellSlotTotalsForCharacter,
   normalizeSpellSlotsExpended
 } from "../../../../../../pages/CharactersPage/spellcasting";
+import { falseLifeSpellId } from "../../../../../../pages/CharactersPage/characterRuntime/spellImplementations";
 import sheetStyles from "../../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import {
   getActionShapeForEconomyType,
@@ -1524,6 +1525,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     fixedSpellEntry?.id === huntersMarkSpellId
       ? getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormulaDisplayForCharacter(character)
       : null;
+  const fixedSpellFalseLifeUsesDiceControls = fixedSpellEntry?.id === falseLifeSpellId;
   const fixedSpellFacts =
     fixedSpellEntry?.id === huntersMarkSpellId
       ? getRangerWinterWalkerHuntersRimeTemporaryHitPointsFactsForCharacter(character)
@@ -2080,7 +2082,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         fixedSpellActionContextText={fixedSpellActionContextText}
         fixedSpellActionAvailabilityText={fixedSpellActionAvailabilityText}
         fixedSpellFacts={fixedSpellFacts}
-        fixedSpellShowActionDiceControls={fixedSpellHuntersRimeTemporaryHitPointsFormula !== null}
+        fixedSpellShowActionDiceControls={
+          fixedSpellFalseLifeUsesDiceControls ||
+          fixedSpellHuntersRimeTemporaryHitPointsFormula !== null
+        }
         isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
         onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
         fixedSpellCastWarning={fixedSpellCastWarning}

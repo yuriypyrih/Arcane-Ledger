@@ -320,6 +320,8 @@ import {
   getWarlockAlwaysPreparedSpellIds,
   getWarlockDerivedStatusEntries,
   getWarlockFeatureActions,
+  getWarlockSpeedBonuses,
+  getWarlockSpellEntry,
   getWarlockSpellDamageBonuses,
   getWarlockWeaponAction,
   normalizeWarlockFeatureState
@@ -931,8 +933,10 @@ const classFeatureModules = {
       return {
         actions: getWarlockFeatureActions(character),
         getSpellDamageBonuses: (context) => getWarlockSpellDamageBonuses(character, context),
+        getSpeedBonuses: (context) => getWarlockSpeedBonuses(character, context),
         alwaysPreparedSpellIds: getWarlockAlwaysPreparedSpellIds(character),
         derivedStatusEntries: getWarlockDerivedStatusEntries(character),
+        transformSpellEntry: (spell) => getWarlockSpellEntry(character, spell),
         transformWeaponAction: (action) => getWarlockWeaponAction(character, action)
       };
     },

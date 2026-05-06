@@ -33,6 +33,7 @@ import {
   consumeBeguilingMagicOrBardicInspirationForCharacter,
   consumeMantleOfMajestyUseForCharacter,
   consumeContactPatronUseForCharacter,
+  consumeWarlockGiftOfTheDepthsUseForCharacter,
   expendChannelDivinityUseForCharacter,
   consumeFighterPsiWarriorPsionicStrikeForCharacter,
   consumeMysticArcanumUseForCharacter,
@@ -188,6 +189,7 @@ import {
   getWarlockClairvoyantCombatantUsesTotal,
   hurlThroughHellActionKey
 } from "../../../../../../pages/CharactersPage/classFeatures/warlock/warlock";
+import { isWarlockInvocationSpellEffectKind } from "../../../../../../pages/CharactersPage/classFeatures/warlock/warlockInvocationSpellActions";
 import { awakenedMindActionKey } from "../../../../../../pages/CharactersPage/classFeatures/warlock/subclasses/warlockGreatOldOnePatron";
 import {
   getArcaneRecoverySelectionLevelTotal,
@@ -242,7 +244,15 @@ import {
   applySpellConcentrationToStatusEntries,
   removeInvisibleConditionFromCharacter
 } from "../../../../../../pages/CharactersPage/statusEntries";
-import { applySpellImplementationForCharacter } from "../../../../../../pages/CharactersPage/characterRuntime/spellImplementations";
+import {
+  applyFalseLifeTemporaryHitPointsToCharacter,
+  applySpellImplementationForCharacter,
+  falseLifeSpellId,
+  fiendishVigorTemporaryHitPointsSource,
+  getFalseLifeTemporaryHitPointsFormula,
+  getFalseLifeTemporaryHitPointsFormulaDisplay,
+  getFalseLifeTemporaryHitPointsFromRoll
+} from "../../../../../../pages/CharactersPage/characterRuntime/spellImplementations";
 import {
   applyRolledHealingToCharacter,
   applyRolledTemporaryHitPointsToCharacter,
@@ -1397,6 +1407,44 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     });
   }
 
+  function rollFixedSpellFalseLifeTemporaryHitPoints(
+    spell: Pick<SpellEntry, "id" | "name">,
+    spellSlotLevel: number,
+    maximizeDie: boolean
+  ) {
+    if (spell.id !== falseLifeSpellId) {
+      return;
+    }
+
+    openDiceRoller({
+      title: maximizeDie ? "Fiendish Vigor" : spell.name,
+      formula: getFalseLifeTemporaryHitPointsFormula({
+        maximizeDie,
+        spellSlotLevel
+      }),
+      formulaDisplay: getFalseLifeTemporaryHitPointsFormulaDisplay(spellSlotLevel, {
+        maximizeDie
+      }),
+      description: maximizeDie
+        ? "When you cast False Life with Fiendish Vigor, you gain Temporary Hit Points and treat the d4 as a 4."
+        : `When you cast ${spell.name}, you gain Temporary Hit Points.`,
+      onResolvedResult: ({ result }) => {
+        const temporaryHitPoints = maximizeDie
+          ? result.total
+          : getFalseLifeTemporaryHitPointsFromRoll(result.total, spellSlotLevel);
+        const source = maximizeDie ? fiendishVigorTemporaryHitPointsSource : spell.name;
+
+        onPersistCharacter((currentCharacter) =>
+          applyFalseLifeTemporaryHitPointsToCharacter(
+            currentCharacter,
+            temporaryHitPoints,
+            source
+          )
+        );
+      }
+    });
+  }
+
   function rollFortifyingSoulHealing(action: FeatureActionCard) {
     const healingFormula = getRangerWinterWalkerFortifyingSoulHealingFormula(character);
     const healingFormulaDisplay =
@@ -1496,6 +1544,8 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
         nextCharacter = expendMonkFocusPointForCharacter(preparedCharacter);
       } else if (fixedSpellExecute.effectKind === "contact-patron") {
         nextCharacter = consumeContactPatronUseForCharacter(preparedCharacter);
+      } else if (fixedSpellExecute.effectKind === "gift-of-the-depths") {
+        nextCharacter = consumeWarlockGiftOfTheDepthsUseForCharacter(preparedCharacter);
       } else if (fixedSpellExecute.effectKind === "mantle-of-majesty") {
         nextCharacter =
           getMantleOfMajestyUsesRemainingForCharacter(preparedCharacter) > 0
@@ -1505,9 +1555,15 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
 
       if (
         nextCharacter === preparedCharacter &&
+        fixedSpellExecute.effectKind === "gift-of-the-depths"
+      ) {
+        return currentCharacter;
+      }
+
+      if (
+        nextCharacter === preparedCharacter &&
         fixedSpellExecute.effectKind !== "mantle-of-majesty" &&
-        fixedSpellExecute.effectKind !== "ascendant-step" &&
-        fixedSpellExecute.effectKind !== "armor-of-shadows"
+        !isWarlockInvocationSpellEffectKind(fixedSpellExecute.effectKind)
       ) {
         return currentCharacter;
       }
@@ -1630,6 +1686,11 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     });
 
     rollFixedSpellHuntersRimeTemporaryHitPoints(fixedSpellEntry);
+    rollFixedSpellFalseLifeTemporaryHitPoints(
+      fixedSpellEntry,
+      slotLevel,
+      fixedSpellExecute.effectKind === "fiendish-vigor"
+    );
     closeActionDrawer();
   }
 

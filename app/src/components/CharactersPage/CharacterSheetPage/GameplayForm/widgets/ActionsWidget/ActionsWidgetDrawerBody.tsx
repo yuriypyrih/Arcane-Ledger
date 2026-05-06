@@ -184,6 +184,7 @@ import {
 import {
   activateWarlockAwakenedMind,
   darkOnesOwnLuckActionKey,
+  giftOfTheProtectorsActionKey,
   getWarlockClairvoyantCombatantUsesRemaining,
   getWarlockClairvoyantCombatantUsesTotal,
   hurlThroughHellActionKey
@@ -293,6 +294,7 @@ import ActionDiceConfirmFooter from "./ActionDiceConfirmFooter";
 import { ArcaneWardActionFooter } from "./ArcaneWardActionFooter";
 import { BardicInspirationActionFooter } from "./BardicInspirationActionFooter";
 import { BeastMasterReviveActionFooter } from "./BeastMasterReviveActionFooter";
+import BookOfShadowsActionBody from "./BookOfShadowsActionBody";
 import CodexDivinityDrawer from "../../../../../CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
 import BlessingOfTheTricksterActionBody from "./BlessingOfTheTricksterActionBody";
 import { ClericPreserveLifeActionBody } from "./ClericPreserveLifeAction";
@@ -775,6 +777,15 @@ export function renderActionDrawerBody(context: Record<string, any>) {
 
     if (selectedAction.kind === "feature" && selectedAction.action.key === preserveLifeActionKey) {
       return <ClericPreserveLifeActionBody clericLevel={character.level} />;
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.action.key === giftOfTheProtectorsActionKey
+    ) {
+      return (
+        <BookOfShadowsActionBody character={character} onPersistCharacter={onPersistCharacter} />
+      );
     }
 
     if (

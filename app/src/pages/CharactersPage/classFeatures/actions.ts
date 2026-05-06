@@ -336,6 +336,7 @@ import {
   getContactPatronUsesTotal,
   getWarlockBeguilingDefenseUsesRemaining,
   getWarlockBeguilingDefenseUsesTotal,
+  getWarlockEldritchMindSavingThrowDescriptionAdditions,
   getWarlockEldritchInvocationLimit,
   getWarlockFiendishResilienceDamageTypeSelection,
   getWarlockHealingLightDiceRemaining,
@@ -858,12 +859,15 @@ export function getSkillReferenceDescriptionAdditionsForCharacter(
 
 export function getSavingThrowReferenceDescriptionAdditionsForCharacter(
   character: Pick<Character, "className" | "level"> &
-    Partial<Pick<Character, "statusEntries" | "subclassId">>,
+    Partial<Pick<Character, "classFeatureState" | "statusEntries" | "subclassId">>,
   ability: AbilityKey
 ): SpellDescriptionEntry[][] {
   const descriptionAdditions: SpellDescriptionEntry[][] = [];
 
   descriptionAdditions.push(...getWarlockFiendPatronDarkOnesOwnLuckDescriptionAdditions(character));
+  descriptionAdditions.push(
+    ...getWarlockEldritchMindSavingThrowDescriptionAdditions(character, ability)
+  );
   descriptionAdditions.push(
     ...getWizardAbjurerSpellResistanceSavingThrowDescriptionAdditions(character)
   );
