@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import CharacterSpellDrawer, {
   type CharacterSpellDrawerActionOptions
 } from "../../../SpellCastingForm/CharacterSpellDrawer";
@@ -9,10 +10,18 @@ import type {
   FeatureActionFact
 } from "../../../../../../pages/CharactersPage/classFeatures";
 import {
+  createChargesCardUsage,
+  createChargesHeaderTag,
   createChargesOrResourceCardUsage,
   createFeatureActionCardCost,
   createNamedResourceCardUsage
 } from "../../../../../../pages/CharactersPage/classFeatures/cardUsage";
+import { getSpellDamageDetailForCharacter } from "../../../../../../pages/CharactersPage/spellOutcome";
+import {
+  appendGoliathAttackDescriptionAddition,
+  getGoliathAttackDamageDetail
+} from "../../../../../../pages/CharactersPage/species";
+import type { GoliathAttackOptionState } from "../../../../../../pages/CharactersPage/speciesGoliath";
 import {
   paladinOathOfTheNobleGeniesElementalSmiteOptions,
   type PaladinOathOfTheNobleGeniesElementalSmiteOptionKey
@@ -52,7 +61,7 @@ type FeatureSpellDrawersProps = {
   isFixedSpellDrawerOpen: boolean;
   fixedSpellEntry: SpellEntry | null;
   fixedSpellExecute: FixedSpellExecute | null;
-  fixedSpellElementalSmiteDamageDetail: string | null;
+  fixedSpellDamageDetailOverride: string | null;
   fixedSpellSlotTotals: number[];
   fixedSpellSlotsRemaining: number[];
   selectedFixedSpellSlotLevel: number;
@@ -91,6 +100,9 @@ type FeatureSpellDrawersProps = {
   onUseBeguilingMagicOnActionSpellChange: (checked: boolean) => void;
   useElementalSmiteOnActionSpell: boolean;
   onUseElementalSmiteOnActionSpellChange: (checked: boolean) => void;
+  selectedActionSpellGoliathAncestryState: GoliathAttackOptionState | null;
+  useGoliathAncestryOnActionSpell: boolean;
+  onUseGoliathAncestryOnActionSpellChange: (checked: boolean) => void;
   selectedElementalSmiteOptionOnActionSpell:
     | PaladinOathOfTheNobleGeniesElementalSmiteOptionKey
     | null;
@@ -149,12 +161,56 @@ function createBeguilingMagicOption({
   };
 }
 
+function createGoliathAncestryOption({
+  state,
+  checked,
+  onCheckedChange
+}: {
+  state: GoliathAttackOptionState | null;
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+}) {
+  if (!state) {
+    return null;
+  }
+
+  return {
+    id: "goliath-giant-ancestry",
+    label: state.featureName,
+    checked,
+    onCheckedChange,
+    disabled: state.disabled,
+    headerTags: [createChargesHeaderTag(state.usesRemaining, state.usesTotal)],
+    usage: createChargesCardUsage(state.usesRemaining, state.usesTotal),
+    application: {
+      targetLabel: "Damage"
+    }
+  };
+}
+
+function getGoliathSpellDisplay(spell: SpellEntry, state: GoliathAttackOptionState | null) {
+  return spell.isAttackSpell === true ? appendGoliathAttackDescriptionAddition(spell, state) : spell;
+}
+
+function getGoliathDamageDetailOverride(
+  character: Character,
+  spell: SpellEntry | null,
+  state: GoliathAttackOptionState | null,
+  checked: boolean
+) {
+  if (!spell || !checked || !state) {
+    return null;
+  }
+
+  return getGoliathAttackDamageDetail(getSpellDamageDetailForCharacter(character, spell), state);
+}
+
 function FeatureSpellDrawers({
   character,
   isFixedSpellDrawerOpen,
   fixedSpellEntry,
   fixedSpellExecute,
-  fixedSpellElementalSmiteDamageDetail,
+  fixedSpellDamageDetailOverride,
   fixedSpellSlotTotals,
   fixedSpellSlotsRemaining,
   selectedFixedSpellSlotLevel,
@@ -187,6 +243,9 @@ function FeatureSpellDrawers({
   onUseBeguilingMagicOnActionSpellChange,
   useElementalSmiteOnActionSpell,
   onUseElementalSmiteOnActionSpellChange,
+  selectedActionSpellGoliathAncestryState,
+  useGoliathAncestryOnActionSpell,
+  onUseGoliathAncestryOnActionSpellChange,
   selectedElementalSmiteOptionOnActionSpell,
   onSelectedElementalSmiteOptionOnActionSpellChange,
   useFrozenHauntOnActionSpell,
@@ -209,6 +268,60 @@ function FeatureSpellDrawers({
   onCastMysticArcanumSpell
 }: FeatureSpellDrawersProps) {
   const selectedFeatureActionSource = selectedFeatureAction ? [selectedFeatureAction.name] : [];
+  const fixedSpellDisplay = useMemo(
+    () =>
+      fixedSpellEntry
+        ? getGoliathSpellDisplay(fixedSpellEntry, selectedActionSpellGoliathAncestryState)
+        : null,
+    [fixedSpellEntry, selectedActionSpellGoliathAncestryState]
+  );
+  const divineInterventionSpellDisplay = useMemo(
+    () =>
+      selectedDivineInterventionSpell
+        ? getGoliathSpellDisplay(
+            selectedDivineInterventionSpell,
+            selectedActionSpellGoliathAncestryState
+          )
+        : null,
+    [selectedActionSpellGoliathAncestryState, selectedDivineInterventionSpell]
+  );
+  const mysticArcanumSpellDisplay = useMemo(
+    () =>
+      selectedMysticArcanumSpell
+        ? getGoliathSpellDisplay(selectedMysticArcanumSpell, selectedActionSpellGoliathAncestryState)
+        : null,
+    [selectedActionSpellGoliathAncestryState, selectedMysticArcanumSpell]
+  );
+  const divineInterventionDamageDetailOverride = useMemo(
+    () =>
+      getGoliathDamageDetailOverride(
+        character,
+        selectedDivineInterventionSpell,
+        selectedActionSpellGoliathAncestryState,
+        useGoliathAncestryOnActionSpell
+      ),
+    [
+      character,
+      selectedActionSpellGoliathAncestryState,
+      selectedDivineInterventionSpell,
+      useGoliathAncestryOnActionSpell
+    ]
+  );
+  const mysticArcanumDamageDetailOverride = useMemo(
+    () =>
+      getGoliathDamageDetailOverride(
+        character,
+        selectedMysticArcanumSpell,
+        selectedActionSpellGoliathAncestryState,
+        useGoliathAncestryOnActionSpell
+      ),
+    [
+      character,
+      selectedActionSpellGoliathAncestryState,
+      selectedMysticArcanumSpell,
+      useGoliathAncestryOnActionSpell
+    ]
+  );
   const beguilingMagicOption =
     selectedActionSpellSupportsBeguilingMagic
       ? createBeguilingMagicOption({
@@ -219,14 +332,19 @@ function FeatureSpellDrawers({
           usesTotal: beguilingMagicUsesTotal
         })
       : null;
+  const goliathAncestryOption = createGoliathAncestryOption({
+    state: selectedActionSpellGoliathAncestryState,
+    checked: useGoliathAncestryOnActionSpell,
+    onCheckedChange: onUseGoliathAncestryOnActionSpellChange
+  });
 
   return (
     <>
-      {isFixedSpellDrawerOpen && fixedSpellEntry && fixedSpellExecute ? (
+      {isFixedSpellDrawerOpen && fixedSpellDisplay && fixedSpellExecute ? (
         <CharacterSpellDrawer
           character={character}
-          spell={fixedSpellEntry}
-          damageDetailOverride={fixedSpellElementalSmiteDamageDetail}
+          spell={fixedSpellDisplay}
+          damageDetailOverride={fixedSpellDamageDetailOverride}
           alwaysPrepared
           alwaysPreparedSources={selectedFeatureActionSource}
           mode="standard"
@@ -240,6 +358,7 @@ function FeatureSpellDrawers({
               ...options,
               useBeguilingMagic: useBeguilingMagicOnActionSpell,
               useElementalSmite: useElementalSmiteOnActionSpell,
+              useGoliathAncestry: useGoliathAncestryOnActionSpell,
               elementalSmiteOption: selectedElementalSmiteOptionOnActionSpell,
               useFrozenHaunt: useFrozenHauntOnActionSpell,
               frozenHauntFallbackSlotLevel: selectedFrozenHauntFallbackSlotLevel
@@ -280,10 +399,12 @@ function FeatureSpellDrawers({
             .filter((path): path is NonNullable<typeof path> => path !== null)}
           actionOptions={
             beguilingMagicOption ||
+            goliathAncestryOption ||
             selectedActionSpellSupportsElementalSmite ||
             selectedActionSpellFrozenHauntOptionState !== null
               ? [
                   ...(beguilingMagicOption ? [beguilingMagicOption] : []),
+                  ...(goliathAncestryOption ? [goliathAncestryOption] : []),
                   ...(selectedActionSpellFrozenHauntOptionState
                     ? [
                         {
@@ -354,10 +475,11 @@ function FeatureSpellDrawers({
         />
       ) : null}
 
-      {selectedDivineInterventionSpell && selectedFeatureAction ? (
+      {divineInterventionSpellDisplay && selectedFeatureAction ? (
         <CharacterSpellDrawer
           character={character}
-          spell={selectedDivineInterventionSpell}
+          spell={divineInterventionSpellDisplay}
+          damageDetailOverride={divineInterventionDamageDetailOverride}
           mode="divine-intervention"
           spellSlotTotals={emptySpellSlots}
           spellSlotsRemaining={emptySpellSlots}
@@ -367,7 +489,8 @@ function FeatureSpellDrawers({
           onAction={(options) =>
             onCastDivineInterventionSpell({
               ...options,
-              useBeguilingMagic: useBeguilingMagicOnActionSpell
+              useBeguilingMagic: useBeguilingMagicOnActionSpell,
+              useGoliathAncestry: useGoliathAncestryOnActionSpell
             })
           }
           actionLabel="Divine Intervention"
@@ -375,29 +498,38 @@ function FeatureSpellDrawers({
           actionDisabled={selectedFeatureActionPrimaryDisabledReason !== null}
           blockedReason={selectedDivineInterventionBlockedReason}
           actionAvailabilityText={selectedFeatureAction.usesLabel ?? null}
-          actionOptions={beguilingMagicOption ? [beguilingMagicOption] : undefined}
+          actionOptions={
+            beguilingMagicOption || goliathAncestryOption
+              ? [
+                  ...(beguilingMagicOption ? [beguilingMagicOption] : []),
+                  ...(goliathAncestryOption ? [goliathAncestryOption] : [])
+                ]
+              : undefined
+          }
           backdropClassName={styles.divineInterventionDrawerBackdrop}
         />
       ) : null}
 
-      {selectedMysticArcanumSpell ? (
+      {mysticArcanumSpellDisplay ? (
         <CharacterSpellDrawer
           character={character}
-          spell={selectedMysticArcanumSpell}
+          spell={mysticArcanumSpellDisplay}
+          damageDetailOverride={mysticArcanumDamageDetailOverride}
           alwaysPrepared
           alwaysPreparedSources={selectedFeatureActionSource}
           mode="standard"
           spellSlotTotals={emptySpellSlots}
           spellSlotsRemaining={emptySpellSlots}
           selectedSpellSlotLevel={
-            selectedMysticArcanumSpellLevel ?? selectedMysticArcanumSpell.spellLevel
+            selectedMysticArcanumSpellLevel ?? mysticArcanumSpellDisplay.spellLevel
           }
           onSelectedSpellSlotLevelChange={() => {}}
           onClose={onCloseMysticArcanumSpell}
           onAction={(options) =>
             onCastMysticArcanumSpell({
               ...options,
-              useBeguilingMagic: useBeguilingMagicOnActionSpell
+              useBeguilingMagic: useBeguilingMagicOnActionSpell,
+              useGoliathAncestry: useGoliathAncestryOnActionSpell
             })
           }
           actionConsumesSpellSlot={false}
@@ -415,7 +547,14 @@ function FeatureSpellDrawers({
             selectedMysticArcanumActionWarning !== null
           }
           blockedReason={selectedMysticArcanumBlockedReason}
-          actionOptions={beguilingMagicOption ? [beguilingMagicOption] : undefined}
+          actionOptions={
+            beguilingMagicOption || goliathAncestryOption
+              ? [
+                  ...(beguilingMagicOption ? [beguilingMagicOption] : []),
+                  ...(goliathAncestryOption ? [goliathAncestryOption] : [])
+                ]
+              : undefined
+          }
           backdropClassName={styles.divineInterventionDrawerBackdrop}
         />
       ) : null}

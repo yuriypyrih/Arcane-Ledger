@@ -97,6 +97,10 @@ import {
   createNamedUsageHeaderTags,
   createNamedResourceCardUsage
 } from "../../../../../../pages/CharactersPage/classFeatures/cardUsage";
+import {
+  getGoliathAttackDamageDetail,
+  getGoliathAttackOptionStateForCharacter
+} from "../../../../../../pages/CharactersPage/species";
 import { mantleOfInspirationActionKey } from "../../../../../../pages/CharactersPage/classFeatures/bard/subclasses/bardCollegeOfGlamour";
 import {
   channelDivinityActionKey,
@@ -516,6 +520,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setUseBeguilingMagicOnActionSpell,
     useElementalSmiteOnActionSpell,
     setUseElementalSmiteOnActionSpell,
+    useGoliathAncestryOnActionSpell,
+    setUseGoliathAncestryOnActionSpell,
     selectedElementalSmiteOptionOnActionSpell,
     setSelectedElementalSmiteOptionOnActionSpell,
     useFrozenHauntOnActionSpell,
@@ -1506,20 +1512,36 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     hasPaladinOathOfTheNobleGeniesElementalSmite(character);
   const selectedActionSpellElementalSmiteDisabled =
     selectedActionSpellSupportsElementalSmite && channelDivinityUsesRemaining <= 0;
-  const fixedSpellElementalSmiteDamageDetail = useMemo(() => {
-    if (!fixedSpellEntry || !useElementalSmiteOnActionSpell) {
+  const selectedActionSpellGoliathAncestryState =
+    selectedActionSpellEntry?.isAttackSpell === true
+      ? getGoliathAttackOptionStateForCharacter(character)
+      : null;
+  const fixedSpellDamageDetailOverride = useMemo(() => {
+    if (!fixedSpellEntry || (!useElementalSmiteOnActionSpell && !useGoliathAncestryOnActionSpell)) {
       return null;
     }
 
-    return getPaladinOathOfTheNobleGeniesElementalSmiteDamageDetail(
-      getSpellDamageDetailForCharacter(character, fixedSpellEntry),
-      selectedElementalSmiteOptionOnActionSpell
-    );
+    const baseDamageDetail = getSpellDamageDetailForCharacter(character, fixedSpellEntry);
+    const elementalSmiteDamageDetail = useElementalSmiteOnActionSpell
+      ? getPaladinOathOfTheNobleGeniesElementalSmiteDamageDetail(
+          baseDamageDetail,
+          selectedElementalSmiteOptionOnActionSpell
+        )
+      : baseDamageDetail;
+
+    return useGoliathAncestryOnActionSpell
+      ? getGoliathAttackDamageDetail(
+          elementalSmiteDamageDetail,
+          selectedActionSpellGoliathAncestryState
+        )
+      : elementalSmiteDamageDetail;
   }, [
     character,
     fixedSpellEntry,
     selectedElementalSmiteOptionOnActionSpell,
-    useElementalSmiteOnActionSpell
+    selectedActionSpellGoliathAncestryState,
+    useElementalSmiteOnActionSpell,
+    useGoliathAncestryOnActionSpell
   ]);
   const selectedActionSpellFrozenHauntOptionState = useMemo(
     () =>
@@ -1796,6 +1818,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     isFixedSpellDrawerOpen,
     isFlurryOfHealingAndHarmSelected,
     isGroupRecoverySelected,
+    isGoliathAncestryStrikeSelected,
     isHandOfHarmSelected,
     isHordeBreakerSelected,
     isHuntersMarkTargetSelected,
@@ -1818,6 +1841,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedActionSpellEntry,
     selectedActionSpellFrozenHauntFallbackSlotLevelIsValid,
     selectedActionSpellFrozenHauntOptionState,
+    selectedActionSpellGoliathAncestryState,
     selectedActionSpellSupportsElementalSmite,
     selectedAasimarCelestialRevelationOptionKey,
     selectedAasimarHealingHandsTarget,
@@ -2149,6 +2173,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setIsDreadfulStrikeSelected,
     setIsColossusSlayerSelected,
     setIsPolarStrikesSelected,
+    setIsGoliathAncestryStrikeSelected,
     setIsSacredWeaponSelected,
     setIsVowOfEnmitySelected,
     setIsStunningStrikeSelected,
@@ -2365,7 +2390,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         isFixedSpellDrawerOpen={isFixedSpellDrawerOpen}
         fixedSpellEntry={fixedSpellEntry}
         fixedSpellExecute={fixedSpellExecute}
-        fixedSpellElementalSmiteDamageDetail={fixedSpellElementalSmiteDamageDetail}
+        fixedSpellDamageDetailOverride={fixedSpellDamageDetailOverride}
         fixedSpellSlotTotals={fixedSpellSlotTotals}
         fixedSpellSlotsRemaining={fixedSpellSlotsRemaining}
         selectedFixedSpellSlotLevel={selectedFixedSpellSlotLevel}
@@ -2373,6 +2398,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         onCloseFixedSpellDrawer={() => {
           setUseBeguilingMagicOnActionSpell(false);
           setUseElementalSmiteOnActionSpell(false);
+          setUseGoliathAncestryOnActionSpell(false);
           setSelectedElementalSmiteOptionOnActionSpell(null);
           setUseFrozenHauntOnActionSpell(false);
           setSelectedFrozenHauntFallbackSlotLevel(frozenHauntFallbackSpellSlotMinimumLevel);
@@ -2411,6 +2437,9 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         onUseBeguilingMagicOnActionSpellChange={setUseBeguilingMagicOnActionSpell}
         useElementalSmiteOnActionSpell={useElementalSmiteOnActionSpell}
         onUseElementalSmiteOnActionSpellChange={setUseElementalSmiteOnActionSpell}
+        selectedActionSpellGoliathAncestryState={selectedActionSpellGoliathAncestryState}
+        useGoliathAncestryOnActionSpell={useGoliathAncestryOnActionSpell}
+        onUseGoliathAncestryOnActionSpellChange={setUseGoliathAncestryOnActionSpell}
         selectedElementalSmiteOptionOnActionSpell={selectedElementalSmiteOptionOnActionSpell}
         onSelectedElementalSmiteOptionOnActionSpellChange={
           setSelectedElementalSmiteOptionOnActionSpell
@@ -2426,6 +2455,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         selectedDivineInterventionBlockedReason={selectedDivineInterventionBlockedReason}
         onCloseDivineInterventionSpell={() => {
           setUseBeguilingMagicOnActionSpell(false);
+          setUseGoliathAncestryOnActionSpell(false);
           setSelectedDivineInterventionSpell(null);
         }}
         onCastDivineInterventionSpell={castDivineInterventionSpell}
@@ -2436,6 +2466,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         selectedMysticArcanumBlockedReason={selectedMysticArcanumBlockedReason}
         onCloseMysticArcanumSpell={() => {
           setUseBeguilingMagicOnActionSpell(false);
+          setUseGoliathAncestryOnActionSpell(false);
           setSelectedMysticArcanumSpell(null);
           setSelectedMysticArcanumSpellLevel(null);
         }}

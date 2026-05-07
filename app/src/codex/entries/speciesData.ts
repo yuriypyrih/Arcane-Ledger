@@ -59,6 +59,7 @@ export const speciesEntries: SpeciesEntry[] = [
     tags: [SPECIES_TYPES.HUMANOID, SPECIES_TYPES.DRACONIC_LINEAGE],
     speed: 30,
     size: [BODY_SIZE.MEDIUM],
+    trackingState: TRACKER.TRACKED,
     starterPack: {
       recommendedBodySize: BODY_SIZE.MEDIUM,
       recommendedDraconicAncestry: "black"
@@ -83,9 +84,9 @@ export const speciesEntries: SpeciesEntry[] = [
     tags: [SPECIES_TYPES.HUMANOID, SPECIES_TYPES.HARDY],
     speed: 30,
     size: [BODY_SIZE.MEDIUM],
+    trackingState: TRACKER.SEMI_TRACKED,
     starterPack: {
-      recommendedBodySize: BODY_SIZE.MEDIUM,
-      recommendedGiantAncestry: "cloud"
+      recommendedBodySize: BODY_SIZE.MEDIUM
     },
     summary: "",
     description: [
@@ -105,6 +106,7 @@ export const speciesEntries: SpeciesEntry[] = [
     tags: [SPECIES_TYPES.HUMANOID, SPECIES_TYPES.FEY_ANCESTRY, SPECIES_TYPES.ARCANE_AFFINITY],
     speed: 30,
     size: [BODY_SIZE.MEDIUM],
+    trackingState: TRACKER.TRACKED,
     starterPack: {
       recommendedBodySize: BODY_SIZE.MEDIUM
     },
@@ -129,6 +131,7 @@ export const speciesEntries: SpeciesEntry[] = [
     tags: [SPECIES_TYPES.HUMANOID, SPECIES_TYPES.ARCANE_AFFINITY],
     speed: 30,
     size: [BODY_SIZE.SMALL],
+    trackingState: TRACKER.TRACKED,
     starterPack: {
       recommendedBodySize: BODY_SIZE.SMALL
     },
@@ -150,8 +153,10 @@ export const speciesEntries: SpeciesEntry[] = [
     tags: [SPECIES_TYPES.HUMANOID, SPECIES_TYPES.HARDY],
     speed: 35,
     size: [BODY_SIZE.MEDIUM],
+    trackingState: TRACKER.TRACKED,
     starterPack: {
-      recommendedBodySize: BODY_SIZE.MEDIUM
+      recommendedBodySize: BODY_SIZE.MEDIUM,
+      recommendedGiantAncestry: "cloud"
     },
     summary: "",
     description: [
@@ -175,6 +180,7 @@ export const speciesEntries: SpeciesEntry[] = [
     tags: [SPECIES_TYPES.HUMANOID],
     speed: 30,
     size: [BODY_SIZE.SMALL],
+    trackingState: TRACKER.TRACKED,
     starterPack: {
       recommendedBodySize: BODY_SIZE.SMALL
     },
@@ -195,10 +201,9 @@ export const speciesEntries: SpeciesEntry[] = [
     tags: [SPECIES_TYPES.HUMANOID],
     speed: 30,
     size: [BODY_SIZE.SMALL, BODY_SIZE.MEDIUM],
+    trackingState: TRACKER.TRACKED,
     starterPack: {
-      recommendedBodySize: BODY_SIZE.MEDIUM,
-      recommendedTieflingLegacy: "infernal",
-      recommendedTieflingSpellcastingAbility: "CHA"
+      recommendedBodySize: BODY_SIZE.MEDIUM
     },
     summary: "",
     description: [
@@ -216,6 +221,7 @@ export const speciesEntries: SpeciesEntry[] = [
     tags: [SPECIES_TYPES.HUMANOID, SPECIES_TYPES.HARDY],
     speed: 30,
     size: [BODY_SIZE.MEDIUM],
+    trackingState: TRACKER.TRACKED,
     starterPack: {
       recommendedBodySize: BODY_SIZE.MEDIUM
     },
@@ -236,8 +242,11 @@ export const speciesEntries: SpeciesEntry[] = [
     tags: [SPECIES_TYPES.HUMANOID, SPECIES_TYPES.ARCANE_AFFINITY],
     speed: 30,
     size: [BODY_SIZE.SMALL, BODY_SIZE.MEDIUM],
+    trackingState: TRACKER.SEMI_TRACKED,
     starterPack: {
-      recommendedBodySize: BODY_SIZE.MEDIUM
+      recommendedBodySize: BODY_SIZE.MEDIUM,
+      recommendedTieflingLegacy: "infernal",
+      recommendedTieflingSpellcastingAbility: "CHA"
     },
     summary: "",
     description: [

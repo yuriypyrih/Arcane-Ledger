@@ -874,7 +874,8 @@ export function renderSpellCastingForm(context: Record<string, any>) {
                     ? [
                         {
                           id: "goliath-giant-ancestry",
-                          label: `${selectedSpellGoliathAncestryState?.featureName ?? "Giant Ancestry"} | Charges`,
+                          label:
+                            selectedSpellGoliathAncestryState?.featureName ?? "Giant Ancestry",
                           checked: useGoliathAncestryOnSelectedSpell,
                           onCheckedChange: setUseGoliathAncestryOnSelectedSpell,
                           disabled: selectedSpellGoliathAncestryDisabled,
@@ -890,15 +891,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
                           ),
                           application: {
                             targetLabel: "Damage"
-                          },
-                          metaItems: selectedSpellGoliathAncestryState?.damageBonus?.displayLabel
-                            ? [
-                                {
-                                  kind: "text" as const,
-                                  label: selectedSpellGoliathAncestryState.damageBonus.displayLabel
-                                }
-                              ]
-                            : []
+                          }
                         }
                       ]
                     : []),

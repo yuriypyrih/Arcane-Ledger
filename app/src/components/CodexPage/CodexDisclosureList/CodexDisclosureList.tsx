@@ -20,7 +20,10 @@ import {
   type SpeciesEntry,
   type SpellEntry
 } from "../../../codex/entries";
-import type { ResolvedKeywordReference } from "../../../utils/codex/renderCodexRichText";
+import {
+  resolveKeywordReference,
+  type ResolvedKeywordReference
+} from "../../../utils/codex/renderCodexRichText";
 import {
   formatBackgroundAbilityScoreOptions,
   formatBackgroundEquipmentOptions,
@@ -63,8 +66,10 @@ function getListTitle(category: CodexDisclosureCategory): string {
   return category === ENTRY_CATEGORIES.BACKGROUNDS ? "Background Entries" : "Species Entries";
 }
 
-function getTrackingState(category: CodexDisclosureCategory): TRACKER {
-  return category === ENTRY_CATEGORIES.BACKGROUNDS ? TRACKER.TRACKED : TRACKER.NOT_TRACKED;
+function getEntryTrackingState(entry: BackgroundEntry | SpeciesEntry): TRACKER {
+  return entry.category === ENTRY_CATEGORIES.BACKGROUNDS
+    ? TRACKER.TRACKED
+    : (entry.trackingState ?? TRACKER.NOT_TRACKED);
 }
 
 function getStatusLabel(category: CodexDisclosureCategory): string {
@@ -94,6 +99,16 @@ function CodexDisclosureList({ entries, status, category }: CodexDisclosureListP
         ? currentKeys.filter((currentKey) => currentKey !== entryKey)
         : [...currentKeys, entryKey]
     );
+  }
+
+  function openTrackingReference(trackingState: TRACKER) {
+    const reference = resolveKeywordReference(trackingState);
+
+    if (!reference) {
+      return;
+    }
+
+    setSelectedKeywordReference(reference);
   }
 
   function renderEntryBody(entry: BackgroundEntry | SpeciesEntry) {
@@ -194,8 +209,8 @@ function CodexDisclosureList({ entries, status, category }: CodexDisclosureListP
                 bodyClassName={`${featureDisclosureStyles.descriptionList} ${styles.featBody}`}
                 trackingButton={
                   <FeatureTrackingBadgeButton
-                    trackingState={getTrackingState(category)}
-                    onClick={() => toggleEntryKey(entryKey)}
+                    trackingState={getEntryTrackingState(entry)}
+                    onClick={openTrackingReference}
                   />
                 }
                 showDivider={index > 0}

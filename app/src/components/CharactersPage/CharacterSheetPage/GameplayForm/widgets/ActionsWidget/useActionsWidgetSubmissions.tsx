@@ -509,6 +509,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     selectedActionSpellSupportsElementalSmite,
     selectedActionSpellElementalSmiteDisabled,
     selectedActionSpellFrozenHauntOptionState,
+    selectedActionSpellGoliathAncestryState,
     selectedActionSpellFrozenHauntFallbackSlotLevelIsValid,
     selectedFixedSpellSlotLevel,
     channelDivinityUsesRemaining,
@@ -1779,6 +1780,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     useBeguilingMagic?: boolean;
     useElementalSmite?: boolean;
     elementalSmiteOption?: PaladinOathOfTheNobleGeniesElementalSmiteOptionKey | null;
+    useGoliathAncestry?: boolean;
     useFrozenHaunt?: boolean;
     frozenHauntFallbackSlotLevel?: number;
     castAsRitual?: boolean;
@@ -1796,6 +1798,10 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     const elementalSmiteOption = useElementalSmite ? (options?.elementalSmiteOption ?? null) : null;
     const useFrozenHaunt =
       options?.useFrozenHaunt === true && selectedActionSpellFrozenHauntOptionState !== null;
+    const useGoliathAncestry =
+      options?.useGoliathAncestry === true &&
+      selectedActionSpellGoliathAncestryState !== null &&
+      !selectedActionSpellGoliathAncestryState.disabled;
     const frozenHauntFallbackSlotLevel = useFrozenHaunt
       ? (options?.frozenHauntFallbackSlotLevel ?? null)
       : null;
@@ -1966,12 +1972,17 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
       const nextCharacterWithFrozenHaunt = usesFrozenHauntCharge
         ? consumeRangerWinterWalkerFrozenHauntUseForCharacter(nextCharacterWithElementalSmite)
         : nextCharacterWithElementalSmite;
+      const nextCharacterWithGoliathAncestry = useGoliathAncestry
+        ? consumeGoliathGiantAncestryUseForCharacter(nextCharacterWithFrozenHaunt)
+        : nextCharacterWithFrozenHaunt;
       const spellConsumedSpellSlot =
         (fixedSpellConsumesSpellSlot && !castsWithoutSpellSlot) ||
         shouldSpendFrozenHauntFallbackSlot;
       const nextCharacterWithSorcererSubclassRecharge = spellConsumedSpellSlot
-        ? restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter(nextCharacterWithFrozenHaunt)
-        : nextCharacterWithFrozenHaunt;
+        ? restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter(
+            nextCharacterWithGoliathAncestry
+          )
+        : nextCharacterWithGoliathAncestry;
       const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
         nextCharacterWithSorcererSubclassRecharge,
         fixedSpellEntry,
@@ -2005,12 +2016,19 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     closeActionDrawer();
   }
 
-  function castDivineInterventionSpell(options?: { useBeguilingMagic?: boolean }) {
+  function castDivineInterventionSpell(options?: {
+    useBeguilingMagic?: boolean;
+    useGoliathAncestry?: boolean;
+  }) {
     if (!selectedDivineInterventionSpell || !selectedFeatureAction) {
       return;
     }
 
     const useBeguilingMagic = options?.useBeguilingMagic === true;
+    const useGoliathAncestry =
+      options?.useGoliathAncestry === true &&
+      selectedActionSpellGoliathAncestryState !== null &&
+      !selectedActionSpellGoliathAncestryState.disabled;
 
     onPersistCharacter((currentCharacter) => {
       const roundTrackerResource = getRoundTrackerResourceForEconomyType(
@@ -2043,8 +2061,11 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
       const nextCharacterWithBeguilingMagic = useBeguilingMagic
         ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithSpellImplementation)
         : nextCharacterWithSpellImplementation;
+      const nextCharacterWithGoliathAncestry = useGoliathAncestry
+        ? consumeGoliathGiantAncestryUseForCharacter(nextCharacterWithBeguilingMagic)
+        : nextCharacterWithBeguilingMagic;
       const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
-        nextCharacterWithBeguilingMagic,
+        nextCharacterWithGoliathAncestry,
         selectedDivineInterventionSpell
       );
 
@@ -2068,12 +2089,19 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     setSelectedMysticArcanumSpellLevel(spellLevel);
   }
 
-  function castMysticArcanumSpell(options?: { useBeguilingMagic?: boolean }) {
+  function castMysticArcanumSpell(options?: {
+    useBeguilingMagic?: boolean;
+    useGoliathAncestry?: boolean;
+  }) {
     if (!selectedMysticArcanumSpell || selectedMysticArcanumSpellLevel === null) {
       return;
     }
 
     const useBeguilingMagic = options?.useBeguilingMagic === true;
+    const useGoliathAncestry =
+      options?.useGoliathAncestry === true &&
+      selectedActionSpellGoliathAncestryState !== null &&
+      !selectedActionSpellGoliathAncestryState.disabled;
 
     onPersistCharacter((currentCharacter) => {
       const roundTrackerResource = getRoundTrackerResourceForSpell(selectedMysticArcanumSpell);
@@ -2103,8 +2131,11 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
       const nextCharacterWithBeguilingMagic = useBeguilingMagic
         ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithSpellImplementation)
         : nextCharacterWithSpellImplementation;
+      const nextCharacterWithGoliathAncestry = useGoliathAncestry
+        ? consumeGoliathGiantAncestryUseForCharacter(nextCharacterWithBeguilingMagic)
+        : nextCharacterWithBeguilingMagic;
       const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
-        nextCharacterWithBeguilingMagic,
+        nextCharacterWithGoliathAncestry,
         selectedMysticArcanumSpell
       );
 

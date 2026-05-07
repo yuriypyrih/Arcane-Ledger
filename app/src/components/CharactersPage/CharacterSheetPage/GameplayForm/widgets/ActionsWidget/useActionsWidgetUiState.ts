@@ -55,6 +55,7 @@ type ActionsWidgetUiState = {
   selectedMysticArcanumSpellLevel: MysticArcanumLevel | null;
   useBeguilingMagicOnActionSpell: boolean;
   useElementalSmiteOnActionSpell: boolean;
+  useGoliathAncestryOnActionSpell: boolean;
   selectedElementalSmiteOptionOnActionSpell: PaladinOathOfTheNobleGeniesElementalSmiteOptionKey | null;
   useFrozenHauntOnActionSpell: boolean;
   selectedFrozenHauntFallbackSlotLevel: number;
@@ -146,6 +147,7 @@ function createInitialState(
     selectedMysticArcanumSpellLevel: null,
     useBeguilingMagicOnActionSpell: false,
     useElementalSmiteOnActionSpell: false,
+    useGoliathAncestryOnActionSpell: false,
     selectedElementalSmiteOptionOnActionSpell: null,
     useFrozenHauntOnActionSpell: false,
     selectedFrozenHauntFallbackSlotLevel: frozenHauntFallbackSpellSlotMinimumLevel,
@@ -201,6 +203,7 @@ function getActionDrawerResetState(): Partial<ActionsWidgetUiState> {
     selectedWarriorOfTheGodsChargeCount: 1,
     useBeguilingMagicOnActionSpell: false,
     useElementalSmiteOnActionSpell: false,
+    useGoliathAncestryOnActionSpell: false,
     selectedElementalSmiteOptionOnActionSpell: null,
     isDiceRollerSettingsOpen: false,
     isFixedSpellDrawerOpen: false,
@@ -427,6 +430,10 @@ export function useActionsWidgetUiState(
       setUseElementalSmiteOnActionSpell: createFieldSetter(
         dispatch,
         "useElementalSmiteOnActionSpell"
+      ),
+      setUseGoliathAncestryOnActionSpell: createFieldSetter(
+        dispatch,
+        "useGoliathAncestryOnActionSpell"
       ),
       setSelectedElementalSmiteOptionOnActionSpell: createFieldSetter(
         dispatch,

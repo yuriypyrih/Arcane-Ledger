@@ -350,6 +350,7 @@ import {
   huntersMarkWeaponDamageBonusLabel
 } from "./rangerHuntersMarkWeapon";
 import RangerHunterWeaponOptions from "./RangerHunterWeaponOptions";
+import { applyWeaponDamageBonusPreview } from "./fighterPsiWarriorWeapon";
 import { applyCriticalHitToWeaponAction } from "./weaponCriticalHit";
 import { consumeMonkStunningStrike } from "../../../../../../pages/CharactersPage/classFeatures/monk/monkStunningStrike";
 import {
@@ -2062,7 +2063,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     const useRecklessAttackDamage =
       selectedWeaponRecklessAttackState?.active === true &&
       !selectedWeaponRecklessAttackToggleDisabled;
-    const effectiveAction =
+    let effectiveAction =
       (useDreadfulStrike ||
         useFeyDreadfulStrikes ||
         useColossusSlayer ||
@@ -2079,6 +2080,20 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
       selectedWeaponEffectiveAction
         ? selectedWeaponEffectiveAction
         : action;
+
+    if (
+      useGoliathAncestryStrike &&
+      selectedWeaponGoliathAncestryState?.damageBonus &&
+      !effectiveAction.damageBonusEntries.some(
+        (entry) => entry.label === selectedWeaponGoliathAncestryState.damageBonus?.label
+      )
+    ) {
+      effectiveAction = applyWeaponDamageBonusPreview(
+        effectiveAction,
+        selectedWeaponGoliathAncestryState.damageBonus
+      );
+    }
+
     const damageAction = nextRollCriticalHitOverride
       ? applyCriticalHitToWeaponAction(effectiveAction)
       : effectiveAction;

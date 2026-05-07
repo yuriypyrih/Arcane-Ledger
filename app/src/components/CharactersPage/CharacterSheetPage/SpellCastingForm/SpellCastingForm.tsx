@@ -1269,7 +1269,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         selectedSpellMagicInitiateAbility
       )
     : null;
-  const selectedSpellGoliathAncestryState = selectedSpellAttackRollFormula
+  const selectedSpellGoliathAncestryState = selectedSpell?.isAttackSpell === true
     ? getGoliathAttackOptionStateForCharacter(character)
     : null;
   const selectedSpellSupportsGoliathAncestry = selectedSpellGoliathAncestryState !== null;

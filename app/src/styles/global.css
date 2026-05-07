@@ -4,21 +4,7 @@
   line-height: 1.5;
   font-weight: 400;
   color: #2e2017;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(239, 228, 211, 0.02) 0%,
-      rgba(244, 239, 230, 0.66) 50%,
-      rgba(231, 220, 200, 0.04) 100%
-    ),
-    url("../assets/img/paper-background.jpg");
-  background-attachment: fixed, fixed;
   background-color: #efe4d3;
-  background-position:
-    top center,
-    top center;
-  background-repeat: no-repeat, no-repeat;
-  background-size: auto, cover;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -52,7 +38,13 @@ html {
 }
 
 body {
+  background-color: #efe4d3;
   min-width: 320px;
+}
+
+#root {
+  position: relative;
+  z-index: 1;
 }
 
 @media (max-width: 620px) {
@@ -79,10 +71,21 @@ body::before {
   content: "";
   position: fixed;
   inset: 0;
-  /*background-image:*/
-  /*  linear-gradient(rgba(75, 47, 29, 0.03) 1px, transparent 1px),*/
-  /*  linear-gradient(90deg, rgba(75, 47, 29, 0.03) 1px, transparent 1px);*/
-  /*background-size: 22px 22px;*/
+  z-index: 0;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(239, 228, 211, 0.02) 0%,
+      rgba(244, 239, 230, 0.66) 50%,
+      rgba(231, 220, 200, 0.04) 100%
+    ),
+    url("../assets/img/paper-background.jpg");
+  background-color: #efe4d3;
+  background-position:
+    top center,
+    top center;
+  background-repeat: no-repeat, no-repeat;
+  background-size: auto, cover;
   pointer-events: none;
 }
 

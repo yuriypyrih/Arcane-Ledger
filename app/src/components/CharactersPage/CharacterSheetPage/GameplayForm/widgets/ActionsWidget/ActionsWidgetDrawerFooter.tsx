@@ -808,7 +808,7 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
         ) : null}
         {selectedWeaponGoliathAncestryState ? (
           <FeatureOptInToggle
-            label={`${selectedWeaponGoliathAncestryState.featureName} | Charges`}
+            label={selectedWeaponGoliathAncestryState.featureName}
             checked={isGoliathAncestryStrikeSelected}
             disabled={selectedWeaponGoliathAncestryToggleDisabled}
             muted={selectedWeaponGoliathAncestryToggleDisabled}
@@ -820,16 +820,6 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
               selectedWeaponGoliathAncestryState.usesTotal
             )}
             usageKey="goliath-giant-ancestry"
-            metaItems={
-              selectedWeaponGoliathAncestryState.damageBonus?.displayLabel
-                ? [
-                    {
-                      kind: "text" as const,
-                      label: selectedWeaponGoliathAncestryState.damageBonus.displayLabel
-                    }
-                  ]
-                : []
-            }
           />
         ) : null}
         {selectedWeaponSacredWeaponState ? (

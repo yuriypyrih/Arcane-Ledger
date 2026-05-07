@@ -443,6 +443,12 @@ function CodexEntryPage() {
               </p>
               <div className={styles.titleRow}>
                 <h2>{entry.name}</h2>
+                {entry.category === ENTRY_CATEGORIES.SPECIES ? (
+                  <FeatureTrackingBadgeButton
+                    trackingState={entry.trackingState ?? TRACKER.NOT_TRACKED}
+                    onClick={openTrackingReference}
+                  />
+                ) : null}
                 {"rarity" in entry ? <RarityPill rarity={entry.rarity} /> : null}
               </div>
               {entry.summary.trim().length > 0 ? <p>{entry.summary}</p> : null}
