@@ -10,17 +10,10 @@ import {
 import type { CharacterStatusDuration, CharacterStatusEntry } from "../../../../../../types";
 import {
   CONDITION_NAME,
-  EFFECT_NAME,
   STATUS_DURATION_KIND,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../../types";
-import { fighterPsiWarriorBulwarkOfForceStatusSourceId } from "../../../../../../pages/CharactersPage/classFeatures/fighter/subclasses/fighterPsiWarriorShared";
-import { barbarianRecklessAttackStatusSourceId } from "../../../../../../pages/CharactersPage/classFeatures/barbarian/barbarianRecklessAttack";
-import { isRogueArcaneTricksterSpellThiefStatusSourceId } from "../../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueArcaneTrickster";
-import { awakenedMindStatusSourceId } from "../../../../../../pages/CharactersPage/classFeatures/warlock/subclasses/warlockGreatOldOnePatron";
-
-const monkSuperiorDefenseStatusSourceId = "feature-monk-superior-defense";
 
 export type TraitEditorTab =
   | "conditions"
@@ -141,83 +134,22 @@ export function formatTraitEditorOptionLabel(tab: TraitEditorTab, value: string)
 }
 
 export function isStatusEntryRemovable(entry: CharacterStatusEntry): boolean {
-  const isRageEffect =
-    entry.sourceType === STATUS_ENTRY_SOURCE_TYPE.FEATURE &&
-    entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
-    entry.value === EFFECT_NAME.RAGE &&
-    entry.sourceId === "feature-rage";
+  if (
+    entry.duration.kind === STATUS_DURATION_KIND.LINKED ||
+    entry.duration.kind === STATUS_DURATION_KIND.CONCENTRATION
+  ) {
+    return false;
+  }
 
-  if (isRageEffect) {
+  if (entry.sourceType === STATUS_ENTRY_SOURCE_TYPE.MANUAL) {
     return true;
   }
 
-  const isRecklessAttackEffect =
-    entry.sourceType === STATUS_ENTRY_SOURCE_TYPE.FEATURE &&
-    entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
-    entry.sourceId === barbarianRecklessAttackStatusSourceId;
-
-  if (isRecklessAttackEffect) {
-    return true;
-  }
-
-  const isFanaticalFocusEffect =
-    entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
-    entry.value === "Fanatical Focus" &&
-    entry.sourceId === "feature-barbarian-fanatical-focus";
-
-  if (isFanaticalFocusEffect) {
-    return true;
-  }
-
-  const isSpellThiefEffect =
-    entry.sourceType === STATUS_ENTRY_SOURCE_TYPE.FEATURE &&
-    entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
-    isRogueArcaneTricksterSpellThiefStatusSourceId(entry.sourceId);
-
-  if (isSpellThiefEffect) {
-    return true;
-  }
-
-  const isBulwarkOfForceEffect =
-    entry.sourceType === STATUS_ENTRY_SOURCE_TYPE.FEATURE &&
-    entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
-    entry.sourceId === fighterPsiWarriorBulwarkOfForceStatusSourceId;
-
-  if (isBulwarkOfForceEffect) {
-    return true;
-  }
-
-  const isSuperiorDefenseEffect =
-    entry.sourceType === STATUS_ENTRY_SOURCE_TYPE.FEATURE &&
-    entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
-    entry.sourceId === monkSuperiorDefenseStatusSourceId;
-
-  if (isSuperiorDefenseEffect) {
-    return true;
-  }
-
-  const isAwakenedMindEffect =
-    entry.sourceType === STATUS_ENTRY_SOURCE_TYPE.FEATURE &&
-    entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
-    entry.sourceId === awakenedMindStatusSourceId;
-
-  if (isAwakenedMindEffect) {
-    return true;
-  }
-
-  return (
-    entry.sourceType === STATUS_ENTRY_SOURCE_TYPE.MANUAL &&
-    entry.duration.kind !== STATUS_DURATION_KIND.LINKED
-  );
+  return entry.duration.kind !== STATUS_DURATION_KIND.INFINITE;
 }
 
 export function isStatusEntryDurationEditable(entry: CharacterStatusEntry): boolean {
-  return (
-    isStatusEntryRemovable(entry) &&
-    entry.duration.kind !== STATUS_DURATION_KIND.CONCENTRATION &&
-    entry.duration.kind !== STATUS_DURATION_KIND.LINKED &&
-    !isExhaustionStatusEntry(entry)
-  );
+  return isStatusEntryRemovable(entry) && !isExhaustionStatusEntry(entry);
 }
 
 export function getStatusDrawerBadgeLabel(group: STATUS_ENTRY_GROUP): string {
