@@ -698,6 +698,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
             selectedSpellSupportsMagicInitiate ||
             selectedSpellSupportsForestGnome ||
             selectedSpellSupportsFiendishLegacy ||
+            selectedSpellSupportsGoliathAncestry ||
             selectedSpellSupportsFeyMagic ||
             selectedSpellSupportsQuickRitual ||
             selectedSpellSupportsShadowMagic ||
