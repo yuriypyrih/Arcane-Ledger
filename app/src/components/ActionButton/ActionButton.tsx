@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { LoaderCircle } from "lucide-react";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import styles from "./ActionButton.module.css";
 
@@ -14,6 +15,8 @@ type ActionButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   trailingBadge?: ReactNode;
   fullWidth?: boolean;
   iconOnly?: boolean;
+  loading?: boolean;
+  loadingLabel?: string;
 };
 
 function ActionButton({
@@ -24,33 +27,46 @@ function ActionButton({
   trailingBadge,
   fullWidth = true,
   iconOnly = false,
+  loading = false,
+  loadingLabel = "Loading",
   className,
   children,
+  disabled,
   type = "button",
   ...buttonProps
 }: ActionButtonProps) {
   const hasText = !iconOnly && children !== undefined && children !== null;
   const iconNode = icon ? <span className={styles.icon}>{icon}</span> : null;
+  const isDisabled = disabled || loading;
 
   return (
     <button
       {...buttonProps}
       type={type}
+      disabled={isDisabled}
+      aria-busy={loading || undefined}
       className={clsx(
         styles.button,
         styles[`type${actionType}`],
         styles[`variant${variant}`],
         fullWidth ? styles.fullWidth : styles.autoWidth,
         iconOnly && styles.iconOnly,
+        loading && styles.loading,
         className
       )}
     >
-      <span className={styles.content}>
+      <span className={clsx(styles.content, loading && styles.contentLoading)}>
         {iconPosition === "left" ? iconNode : null}
         {hasText ? <span className={styles.label}>{children}</span> : null}
         {iconPosition === "right" ? iconNode : null}
         {trailingBadge ? <span className={styles.trailingBadge}>{trailingBadge}</span> : null}
       </span>
+      {loading ? (
+        <span className={styles.loadingIndicator} role="status">
+          <LoaderCircle size={18} aria-hidden="true" />
+          <span className={styles.visuallyHidden}>{loadingLabel}</span>
+        </span>
+      ) : null}
     </button>
   );
 }

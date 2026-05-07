@@ -124,6 +124,7 @@ import {
   resolveStarterPackChoiceCurrencies
 } from "./starterPackUtils";
 import { randomNamePrefixes, randomNameSuffixes } from "./characterRandomNames";
+import { useCharacterFormPendingAction } from "./useCharacterFormPendingAction";
 import styles from "./CharacterForm.module.css";
 
 type CharacterFormProps = {
@@ -666,6 +667,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   const [stepOneSnapshot, setStepOneSnapshot] = useState<CharacterFormValues | null>(null);
   const [attemptedBuildAdvance, setAttemptedBuildAdvance] = useState(false);
   const [starterPackWarnings, setStarterPackWarnings] = useState<string[]>([]);
+  const { hasPendingAction, pendingAction, runPendingAction } = useCharacterFormPendingAction();
   const initialFormValues = useMemo(
     () =>
       createFormValues(initialValues, {
@@ -687,6 +689,9 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   } = useForm<CharacterFormValues>({
     defaultValues: initialFormValues
   });
+  const handlePendingSubmit = handleSubmit((values) =>
+    runPendingAction("submit", () => submitForm(values))
+  );
   const [
     selectedName,
     selectedClassName,
@@ -3647,7 +3652,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         className={styles.form}
         onSubmit={
           isEditing || wizardStep === 3
-            ? handleSubmit(submitForm)
+            ? handlePendingSubmit
             : (event) => {
                 event.preventDefault();
               }
@@ -3686,10 +3691,20 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         <div className={styles.actions}>
           {isEditing ? (
             <>
-              <ActionButton type="submit" fullWidth={false}>
+              <ActionButton
+                type="submit"
+                fullWidth={false}
+                loading={pendingAction === "submit"}
+                disabled={hasPendingAction}
+              >
                 Update character
               </ActionButton>
-              <ActionButton type="button" fullWidth={false} onClick={onBack}>
+              <ActionButton
+                type="button"
+                fullWidth={false}
+                onClick={onBack}
+                disabled={hasPendingAction}
+              >
                 Cancel
               </ActionButton>
             </>
@@ -3700,9 +3715,10 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
               <ActionButton
                 type="button"
                 fullWidth={false}
-                disabled={!isCoreProfileReady}
+                loading={pendingAction === "recommended"}
+                disabled={hasPendingAction || !isCoreProfileReady}
                 onClick={() => {
-                  void handleRecommendedCreate();
+                  void runPendingAction("recommended", handleRecommendedCreate);
                 }}
               >
                 Create with recommended build
@@ -3710,9 +3726,10 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
               <ActionButton
                 type="button"
                 fullWidth={false}
-                disabled={!isCoreProfileReady}
+                loading={pendingAction === "customize"}
+                disabled={hasPendingAction || !isCoreProfileReady}
                 onClick={() => {
-                  void handleStartCustomization();
+                  void runPendingAction("customize", handleStartCustomization);
                 }}
               >
                 Customize based on your needs
@@ -3722,15 +3739,21 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
 
           {!isEditing && wizardStep === 2 ? (
             <>
-              <ActionButton type="button" fullWidth={false} onClick={handleBackToStepOne}>
+              <ActionButton
+                type="button"
+                fullWidth={false}
+                onClick={handleBackToStepOne}
+                disabled={hasPendingAction}
+              >
                 Back (reset changes)
               </ActionButton>
               <ActionButton
                 type="button"
                 fullWidth={false}
-                disabled={!isBuildSetupReady}
+                loading={pendingAction === "proceed"}
+                disabled={hasPendingAction || !isBuildSetupReady}
                 onClick={() => {
-                  void handleProceedToNotes();
+                  void runPendingAction("proceed", handleProceedToNotes);
                 }}
               >
                 Proceed
@@ -3740,10 +3763,20 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
 
           {!isEditing && wizardStep === 3 ? (
             <>
-              <ActionButton type="button" fullWidth={false} onClick={() => setWizardStep(2)}>
+              <ActionButton
+                type="button"
+                fullWidth={false}
+                onClick={() => setWizardStep(2)}
+                disabled={hasPendingAction}
+              >
                 Back
               </ActionButton>
-              <ActionButton type="submit" fullWidth={false}>
+              <ActionButton
+                type="submit"
+                fullWidth={false}
+                loading={pendingAction === "submit"}
+                disabled={hasPendingAction}
+              >
                 Create Character
               </ActionButton>
             </>
