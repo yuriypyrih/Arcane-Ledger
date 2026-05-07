@@ -9,6 +9,7 @@ import type {
   CharacterBackgroundChoices,
   CharacterDraft,
   CharacterFeatEntry,
+  CharacterSpeciesChoices,
   MagicInitiateChoice,
   SkillName
 } from "../../../types";
@@ -66,12 +67,31 @@ import { getAutomaticMaxHitPointsForCharacter } from "../../../pages/CharactersP
 import { getEffectiveHitPointMaximumForCharacter } from "../../../pages/CharactersPage/traits";
 import {
   createDefaultSpeciesChoicesForSpecies,
+  formatDragonbornDraconicAncestryOptionLabel,
+  formatElfLineageOptionLabel,
+  formatGoliathGiantAncestryOptionLabel,
+  formatGnomeLineageOptionLabel,
+  formatHumanOriginFeatOptionLabel,
+  formatTieflingFiendishLegacyOptionLabel,
   formatBodySize,
   formatBodySizeOptions,
   getSpeciesBodySizeOptions,
+  getDragonbornDraconicAncestryOptionsForSpecies,
+  getElfLineageOptionsForSpecies,
+  getElfSkillProficiencyOptionsForSpecies,
+  getElfSpellcastingAbilityOptionsForSpecies,
+  getGoliathGiantAncestryOptionsForSpecies,
+  getGnomeLineageOptionsForSpecies,
+  getGnomeSpellcastingAbilityOptionsForSpecies,
+  getHumanOriginFeatOptionsForSpecies,
+  getHumanSkillOptionsForSpecies,
+  getSpeciesSpeedBonusesForCharacter,
   getSpeciesSpeedForCharacter,
+  getTieflingFiendishLegacyOptionsForSpecies,
+  getTieflingSpellcastingAbilityOptionsForSpecies,
   normalizeCharacterSpeciesChoices,
-  normalizeCharacterSpeciesFeatureState
+  normalizeCharacterSpeciesFeatureState,
+  reconcileHumanOriginFeatEntries
 } from "../../../pages/CharactersPage/species";
 import {
   getSubclassOptionsForClassName,
@@ -378,6 +398,7 @@ function createFallbackRecommendedAbilities(
 
 function createFallbackRecommendedSkills(
   species: string,
+  speciesChoices: CharacterSpeciesChoices | undefined,
   className: string,
   background: string,
   backgroundChoices: CharacterBackgroundChoices | undefined,
@@ -386,9 +407,13 @@ function createFallbackRecommendedSkills(
   const availableClassSkills = getSkillProficiencyOptionsForClass(className);
   const targetCount = getSkillSelectionLimitForClass(className);
   const grantedSkillSet = new Set(
-    getGrantedSkillProficienciesForCharacter(className, species, background, backgroundChoices).map(
-      (entry) => entry.skill
-    )
+    getGrantedSkillProficienciesForCharacter(
+      className,
+      species,
+      background,
+      backgroundChoices,
+      speciesChoices
+    ).map((entry) => entry.skill)
   );
 
   return normalizeSelection(
@@ -405,6 +430,7 @@ function createFallbackRecommendedSkills(
 
 function createRecommendedCharacterDraft(profile: CharacterFormValues): CharacterFormValues {
   const normalizedProgress = normalizeLevelAndXp(profile.level, profile.xp);
+  const speciesChoices = createDefaultSpeciesChoicesForSpecies(profile.species);
   const starterPack = getResolvedStarterPack(profile.className);
   const configuredStarterPack = getClassStarterPack(profile.className);
   const buildPlan = getBuildPlan(profile.className);
@@ -429,7 +455,8 @@ function createRecommendedCharacterDraft(profile: CharacterFormValues): Characte
         profile.className,
         profile.species,
         profile.background,
-        backgroundChoices
+        backgroundChoices,
+        speciesChoices
       ).map((entry) => entry.skill)
     );
     const recommendedSkills = normalizeSelection(
@@ -467,7 +494,7 @@ function createRecommendedCharacterDraft(profile: CharacterFormValues): Characte
         ...createEmptyCharacter(),
         name: profile.name,
         species: profile.species,
-        speciesChoices: createDefaultSpeciesChoicesForSpecies(profile.species),
+        speciesChoices,
         speciesFeatureState: normalizeCharacterSpeciesFeatureState(profile.species, undefined),
         className: profile.className,
         subclassId: profile.subclassId,
@@ -517,7 +544,7 @@ function createRecommendedCharacterDraft(profile: CharacterFormValues): Characte
       ...createEmptyCharacter(),
       name: profile.name,
       species: profile.species,
-      speciesChoices: createDefaultSpeciesChoicesForSpecies(profile.species),
+      speciesChoices,
       speciesFeatureState: normalizeCharacterSpeciesFeatureState(profile.species, undefined),
       className: profile.className,
       subclassId: profile.subclassId,
@@ -534,6 +561,7 @@ function createRecommendedCharacterDraft(profile: CharacterFormValues): Characte
       currencies: resolveStarterPackChoiceCurrencies(backgroundEquipmentChoice),
       skills: createFallbackRecommendedSkills(
         profile.species,
+        speciesChoices,
         profile.className,
         profile.background,
         backgroundChoices,
@@ -746,11 +774,67 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     () => getSpeciesBodySizeOptions(resolvedSpecies),
     [resolvedSpecies]
   );
+  const draconicAncestryOptions = useMemo(
+    () => getDragonbornDraconicAncestryOptionsForSpecies(resolvedSpecies),
+    [resolvedSpecies]
+  );
+  const elfLineageOptions = useMemo(
+    () => getElfLineageOptionsForSpecies(resolvedSpecies),
+    [resolvedSpecies]
+  );
+  const elfSkillProficiencyOptions = useMemo(
+    () => getElfSkillProficiencyOptionsForSpecies(resolvedSpecies),
+    [resolvedSpecies]
+  );
+  const elfSpellcastingAbilityOptions = useMemo(
+    () => getElfSpellcastingAbilityOptionsForSpecies(resolvedSpecies),
+    [resolvedSpecies]
+  );
+  const gnomeLineageOptions = useMemo(
+    () => getGnomeLineageOptionsForSpecies(resolvedSpecies),
+    [resolvedSpecies]
+  );
+  const gnomeSpellcastingAbilityOptions = useMemo(
+    () => getGnomeSpellcastingAbilityOptionsForSpecies(resolvedSpecies),
+    [resolvedSpecies]
+  );
+  const giantAncestryOptions = useMemo(
+    () => getGoliathGiantAncestryOptionsForSpecies(resolvedSpecies),
+    [resolvedSpecies]
+  );
+  const humanSkillProficiencyOptions = useMemo(
+    () => getHumanSkillOptionsForSpecies(resolvedSpecies),
+    [resolvedSpecies]
+  );
+  const humanOriginFeatOptions = useMemo(
+    () => getHumanOriginFeatOptionsForSpecies(resolvedSpecies),
+    [resolvedSpecies]
+  );
+  const tieflingLegacyOptions = useMemo(
+    () => getTieflingFiendishLegacyOptionsForSpecies(resolvedSpecies),
+    [resolvedSpecies]
+  );
+  const tieflingSpellcastingAbilityOptions = useMemo(
+    () => getTieflingSpellcastingAbilityOptionsForSpecies(resolvedSpecies),
+    [resolvedSpecies]
+  );
   const normalizedSpeciesChoices = useMemo(
     () => normalizeCharacterSpeciesChoices(resolvedSpecies, resolvedSpeciesChoices),
     [resolvedSpecies, resolvedSpeciesChoices]
   );
   const selectedBodySize = normalizedSpeciesChoices?.bodySize ?? "";
+  const selectedDraconicAncestry = normalizedSpeciesChoices?.draconicAncestry ?? "";
+  const selectedElvenLineage = normalizedSpeciesChoices?.elvenLineage ?? "";
+  const selectedElvenSkillProficiency = normalizedSpeciesChoices?.elvenSkillProficiency ?? "";
+  const selectedElvenSpellcastingAbility = normalizedSpeciesChoices?.elvenSpellcastingAbility ?? "";
+  const selectedGnomeLineage = normalizedSpeciesChoices?.gnomeLineage ?? "";
+  const selectedGnomeSpellcastingAbility = normalizedSpeciesChoices?.gnomeSpellcastingAbility ?? "";
+  const selectedGiantAncestry = normalizedSpeciesChoices?.giantAncestry ?? "";
+  const selectedHumanSkillProficiency = normalizedSpeciesChoices?.humanSkillProficiency ?? "";
+  const selectedHumanOriginFeat = normalizedSpeciesChoices?.humanOriginFeat ?? "";
+  const selectedTieflingLegacy = normalizedSpeciesChoices?.tieflingLegacy ?? "";
+  const selectedTieflingSpellcastingAbility =
+    normalizedSpeciesChoices?.tieflingSpellcastingAbility ?? "";
   const availableSubclassOptions = getSubclassOptionsForClassName(resolvedClassName);
   const starterPack = getResolvedStarterPack(resolvedClassName);
   const configuredStarterPack = getClassStarterPack(resolvedClassName);
@@ -841,8 +925,19 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     resolvedSpecies,
     resolvedBackground,
     resolvedSkills,
-    resolvedBackgroundChoices
+    resolvedBackgroundChoices,
+    normalizedSpeciesChoices
   );
+  const humanSkillSelectOptions = useMemo(() => {
+    const unavailableSkillSet = new Set(
+      resolvedSkillSelections.all.filter((skill) => skill !== selectedHumanSkillProficiency)
+    );
+
+    return humanSkillProficiencyOptions.map((skill) => ({
+      skill,
+      disabled: selectedHumanSkillProficiency !== skill && unavailableSkillSet.has(skill)
+    }));
+  }, [humanSkillProficiencyOptions, resolvedSkillSelections.all, selectedHumanSkillProficiency]);
   const availableManualSkillOptions = availableSkillOptions;
   const selectedSkillCount = resolvedSkillSelections.manual.length;
   const selectedToolCount = resolvedToolSelections.length;
@@ -882,6 +977,33 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     isBackgroundEquipmentSelectionReady;
   const isSpeciesBodySizeReady =
     speciesBodySizeOptions.length <= 1 || Boolean(normalizedSpeciesChoices?.bodySize);
+  const isSpeciesDraconicAncestryReady =
+    draconicAncestryOptions.length === 0 || Boolean(normalizedSpeciesChoices?.draconicAncestry);
+  const isSpeciesElvenLineageReady =
+    elfLineageOptions.length === 0 || Boolean(normalizedSpeciesChoices?.elvenLineage);
+  const isSpeciesElfSkillProficiencyReady =
+    elfSkillProficiencyOptions.length === 0 ||
+    Boolean(normalizedSpeciesChoices?.elvenSkillProficiency);
+  const isSpeciesElfSpellcastingAbilityReady =
+    elfSpellcastingAbilityOptions.length === 0 ||
+    Boolean(normalizedSpeciesChoices?.elvenSpellcastingAbility);
+  const isSpeciesGnomeLineageReady =
+    gnomeLineageOptions.length === 0 || Boolean(normalizedSpeciesChoices?.gnomeLineage);
+  const isSpeciesGnomeSpellcastingAbilityReady =
+    gnomeSpellcastingAbilityOptions.length === 0 ||
+    Boolean(normalizedSpeciesChoices?.gnomeSpellcastingAbility);
+  const isSpeciesGiantAncestryReady =
+    giantAncestryOptions.length === 0 || Boolean(normalizedSpeciesChoices?.giantAncestry);
+  const isSpeciesHumanSkillProficiencyReady =
+    humanSkillProficiencyOptions.length === 0 ||
+    Boolean(normalizedSpeciesChoices?.humanSkillProficiency);
+  const isSpeciesHumanOriginFeatReady =
+    humanOriginFeatOptions.length === 0 || Boolean(normalizedSpeciesChoices?.humanOriginFeat);
+  const isSpeciesTieflingLegacyReady =
+    tieflingLegacyOptions.length === 0 || Boolean(normalizedSpeciesChoices?.tieflingLegacy);
+  const isSpeciesTieflingSpellcastingAbilityReady =
+    tieflingSpellcastingAbilityOptions.length === 0 ||
+    Boolean(normalizedSpeciesChoices?.tieflingSpellcastingAbility);
   const isPointBuyReady = resolvedAttributeMode !== "pointBuy" || pointBuyRemaining === 0;
   const isBuildSetupReady =
     isSkillSelectionReady &&
@@ -890,6 +1012,17 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     isStarterPackSelectionReady &&
     isBackgroundSetupReady &&
     isSpeciesBodySizeReady &&
+    isSpeciesDraconicAncestryReady &&
+    isSpeciesElvenLineageReady &&
+    isSpeciesElfSkillProficiencyReady &&
+    isSpeciesElfSpellcastingAbilityReady &&
+    isSpeciesGnomeLineageReady &&
+    isSpeciesGnomeSpellcastingAbilityReady &&
+    isSpeciesGiantAncestryReady &&
+    isSpeciesHumanSkillProficiencyReady &&
+    isSpeciesHumanOriginFeatReady &&
+    isSpeciesTieflingLegacyReady &&
+    isSpeciesTieflingSpellcastingAbilityReady &&
     isPointBuyReady &&
     (resolvedMaxHitPointsMode !== "custom" || automaticHitPoints > 0);
   const isCoreProfileReady =
@@ -1399,6 +1532,10 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     const normalizedProgress = normalizeLevelAndXp(draftValues.level, draftValues.xp);
     const normalizedClassName = draftValues.className.trim();
     const normalizedSpecies = draftValues.species.trim();
+    const normalizedSpeciesChoices = normalizeCharacterSpeciesChoices(
+      normalizedSpecies,
+      draftValues.speciesChoices
+    );
     const normalizedBackground = draftValues.background.trim();
     const resolvedNormalizedBackground =
       backgroundOptions.includes(normalizedBackground) || isEditing ? normalizedBackground : "";
@@ -1435,9 +1572,15 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     const normalizedSubclassId =
       normalizeSubclassId(draftValues.subclassId, normalizedClassName) ?? "";
     const backgroundFeat = getBackgroundFeatEntry(draftValues.feats, resolvedNormalizedBackground);
-    const normalizedFeats = backgroundFeat
+    const backgroundReconciledFeats = backgroundFeat
       ? upsertBackgroundFeatEntry(draftValues.feats, resolvedNormalizedBackground, backgroundFeat)
       : (draftValues.feats ?? []).filter((featEntry) => featEntry.source?.type !== "background");
+    const normalizedFeats = reconcileHumanOriginFeatEntries(
+      backgroundReconciledFeats,
+      normalizedSpecies,
+      normalizedSpeciesChoices,
+      normalizedProgress.level
+    );
     const normalizedCurrentHitPointMaximum = getEffectiveHitPointMaximumForDraft({
       className: normalizedClassName,
       subclassId: normalizedSubclassId,
@@ -1451,10 +1594,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       ...draftValues,
       name: draftValues.name.trim(),
       species: normalizedSpecies,
-      speciesChoices: normalizeCharacterSpeciesChoices(
-        normalizedSpecies,
-        draftValues.speciesChoices
-      ),
+      speciesChoices: normalizedSpeciesChoices,
       speciesFeatureState: normalizeCharacterSpeciesFeatureState(
         normalizedSpecies,
         draftValues.speciesFeatureState
@@ -1546,6 +1686,51 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   }
 
   async function submitForm(values: CharacterFormValues) {
+    const submittedSpeciesChoices = normalizeCharacterSpeciesChoices(
+      values.species,
+      values.speciesChoices
+    );
+    const requiresDraconicAncestry =
+      getDragonbornDraconicAncestryOptionsForSpecies(values.species).length > 0;
+    const requiresElvenLineage = getElfLineageOptionsForSpecies(values.species).length > 0;
+    const requiresElfSkillProficiency =
+      getElfSkillProficiencyOptionsForSpecies(values.species).length > 0;
+    const requiresElfSpellcastingAbility =
+      getElfSpellcastingAbilityOptionsForSpecies(values.species).length > 0;
+    const requiresGnomeLineage = getGnomeLineageOptionsForSpecies(values.species).length > 0;
+    const requiresGnomeSpellcastingAbility =
+      getGnomeSpellcastingAbilityOptionsForSpecies(values.species).length > 0;
+    const requiresGiantAncestry =
+      getGoliathGiantAncestryOptionsForSpecies(values.species).length > 0;
+    const requiresHumanSkillProficiency = getHumanSkillOptionsForSpecies(values.species).length > 0;
+    const requiresHumanOriginFeat = getHumanOriginFeatOptionsForSpecies(values.species).length > 0;
+    const requiresTieflingLegacy =
+      getTieflingFiendishLegacyOptionsForSpecies(values.species).length > 0;
+    const requiresTieflingSpellcastingAbility =
+      getTieflingSpellcastingAbilityOptionsForSpecies(values.species).length > 0;
+
+    if (
+      (requiresDraconicAncestry && !submittedSpeciesChoices?.draconicAncestry) ||
+      (requiresElvenLineage && !submittedSpeciesChoices?.elvenLineage) ||
+      (requiresElfSkillProficiency && !submittedSpeciesChoices?.elvenSkillProficiency) ||
+      (requiresElfSpellcastingAbility && !submittedSpeciesChoices?.elvenSpellcastingAbility) ||
+      (requiresGnomeLineage && !submittedSpeciesChoices?.gnomeLineage) ||
+      (requiresGnomeSpellcastingAbility && !submittedSpeciesChoices?.gnomeSpellcastingAbility) ||
+      (requiresGiantAncestry && !submittedSpeciesChoices?.giantAncestry) ||
+      (requiresHumanSkillProficiency && !submittedSpeciesChoices?.humanSkillProficiency) ||
+      (requiresHumanOriginFeat && !submittedSpeciesChoices?.humanOriginFeat) ||
+      (requiresTieflingLegacy && !submittedSpeciesChoices?.tieflingLegacy) ||
+      (requiresTieflingSpellcastingAbility && !submittedSpeciesChoices?.tieflingSpellcastingAbility)
+    ) {
+      setAttemptedBuildAdvance(true);
+
+      if (!isEditing) {
+        setWizardStep(2);
+      }
+
+      return;
+    }
+
     await submitResolvedDraft(values);
   }
 
@@ -2804,7 +2989,27 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   }
 
   function renderSpeciesSetupSection() {
-    const speciesSpeed = getSpeciesSpeedForCharacter({ species: resolvedSpecies });
+    const speciesSpeedBonuses = getSpeciesSpeedBonusesForCharacter({
+      species: resolvedSpecies,
+      speciesChoices: normalizedSpeciesChoices
+    });
+    const speciesSpeed =
+      getSpeciesSpeedForCharacter({ species: resolvedSpecies }) +
+      speciesSpeedBonuses
+        .filter((bonus) => (bonus.movementType ?? "walk") === "walk")
+        .reduce((total, bonus) => total + bonus.value, 0);
+    const selectedDraconicAncestryOption =
+      draconicAncestryOptions.find((option) => option.key === selectedDraconicAncestry) ?? null;
+    const selectedElvenLineageOption =
+      elfLineageOptions.find((option) => option.key === selectedElvenLineage) ?? null;
+    const selectedGnomeLineageOption =
+      gnomeLineageOptions.find((option) => option.key === selectedGnomeLineage) ?? null;
+    const selectedGiantAncestryOption =
+      giantAncestryOptions.find((option) => option.key === selectedGiantAncestry) ?? null;
+    const selectedHumanOriginFeatOption =
+      humanOriginFeatOptions.find((option) => option.feat === selectedHumanOriginFeat) ?? null;
+    const selectedTieflingLegacyOption =
+      tieflingLegacyOptions.find((option) => option.key === selectedTieflingLegacy) ?? null;
 
     return (
       <section className={styles.sectionCard}>
@@ -2826,6 +3031,96 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                 : "Not configured yet"
             }
           />
+          {draconicAncestryOptions.length > 0 ? (
+            <CellContainer
+              label="Draconic Ancestry"
+              content={
+                selectedDraconicAncestryOption
+                  ? formatDragonbornDraconicAncestryOptionLabel(selectedDraconicAncestryOption)
+                  : "Choose ancestry"
+              }
+            />
+          ) : null}
+          {elfLineageOptions.length > 0 ? (
+            <CellContainer
+              label="Elven Lineage"
+              content={
+                selectedElvenLineageOption
+                  ? formatElfLineageOptionLabel(selectedElvenLineageOption)
+                  : "Choose lineage"
+              }
+            />
+          ) : null}
+          {elfSkillProficiencyOptions.length > 0 ? (
+            <CellContainer
+              label="Keen Senses"
+              content={selectedElvenSkillProficiency || "Choose skill"}
+            />
+          ) : null}
+          {elfSpellcastingAbilityOptions.length > 0 ? (
+            <CellContainer
+              label="Lineage Spells"
+              content={selectedElvenSpellcastingAbility || "Choose ability"}
+            />
+          ) : null}
+          {gnomeLineageOptions.length > 0 ? (
+            <CellContainer
+              label="Gnomish Lineage"
+              content={
+                selectedGnomeLineageOption
+                  ? formatGnomeLineageOptionLabel(selectedGnomeLineageOption)
+                  : "Choose lineage"
+              }
+            />
+          ) : null}
+          {gnomeSpellcastingAbilityOptions.length > 0 ? (
+            <CellContainer
+              label="Gnome Spellcasting"
+              content={selectedGnomeSpellcastingAbility || "Choose ability"}
+            />
+          ) : null}
+          {giantAncestryOptions.length > 0 ? (
+            <CellContainer
+              label="Giant Ancestry"
+              content={
+                selectedGiantAncestryOption
+                  ? formatGoliathGiantAncestryOptionLabel(selectedGiantAncestryOption)
+                  : "Choose ancestry"
+              }
+            />
+          ) : null}
+          {humanSkillProficiencyOptions.length > 0 ? (
+            <CellContainer
+              label="Skillful"
+              content={selectedHumanSkillProficiency || "Choose skill"}
+            />
+          ) : null}
+          {humanOriginFeatOptions.length > 0 ? (
+            <CellContainer
+              label="Origin Feat"
+              content={
+                selectedHumanOriginFeatOption
+                  ? formatHumanOriginFeatOptionLabel(selectedHumanOriginFeatOption)
+                  : "Choose feat"
+              }
+            />
+          ) : null}
+          {tieflingLegacyOptions.length > 0 ? (
+            <CellContainer
+              label="Fiendish Legacy"
+              content={
+                selectedTieflingLegacyOption
+                  ? formatTieflingFiendishLegacyOptionLabel(selectedTieflingLegacyOption)
+                  : "Choose legacy"
+              }
+            />
+          ) : null}
+          {tieflingSpellcastingAbilityOptions.length > 0 ? (
+            <CellContainer
+              label="Legacy Spells"
+              content={selectedTieflingSpellcastingAbility || "Choose ability"}
+            />
+          ) : null}
         </div>
 
         {speciesBodySizeOptions.length > 1 ? (
@@ -2866,6 +3161,387 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             <small>Derived from species</small>
           </div>
         )}
+
+        {draconicAncestryOptions.length > 0 ? (
+          <label className={styles.field}>
+            <span>Draconic Ancestry</span>
+            <SelectInput
+              className={styles.fieldInput}
+              invalid={attemptedBuildAdvance && !isSpeciesDraconicAncestryReady}
+              value={selectedDraconicAncestry}
+              onChange={(event) => {
+                const nextAncestry = event.target.value;
+                const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                  ...(getValues("speciesChoices") ?? {}),
+                  draconicAncestry: nextAncestry || undefined
+                });
+
+                setValue("speciesChoices", nextChoices, {
+                  shouldDirty: true,
+                  shouldValidate: true
+                });
+              }}
+            >
+              <option value="">-</option>
+              {draconicAncestryOptions.map((option) => (
+                <option key={option.key} value={option.key}>
+                  {formatDragonbornDraconicAncestryOptionLabel(option)}
+                </option>
+              ))}
+            </SelectInput>
+            {attemptedBuildAdvance && !isSpeciesDraconicAncestryReady ? (
+              <small className={styles.errorText}>
+                Choose a Draconic Ancestry before continuing.
+              </small>
+            ) : null}
+          </label>
+        ) : null}
+
+        {elfLineageOptions.length > 0 ? (
+          <label className={styles.field}>
+            <span>Elven Lineage</span>
+            <SelectInput
+              className={styles.fieldInput}
+              invalid={attemptedBuildAdvance && !isSpeciesElvenLineageReady}
+              value={selectedElvenLineage}
+              onChange={(event) => {
+                const nextLineage = event.target.value;
+                const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                  ...(getValues("speciesChoices") ?? {}),
+                  elvenLineage: nextLineage || undefined
+                });
+
+                setValue("speciesChoices", nextChoices, {
+                  shouldDirty: true,
+                  shouldValidate: true
+                });
+              }}
+            >
+              <option value="">-</option>
+              {elfLineageOptions.map((option) => (
+                <option key={option.key} value={option.key}>
+                  {formatElfLineageOptionLabel(option)}
+                </option>
+              ))}
+            </SelectInput>
+            {attemptedBuildAdvance && !isSpeciesElvenLineageReady ? (
+              <small className={styles.errorText}>Choose an Elven Lineage before continuing.</small>
+            ) : null}
+          </label>
+        ) : null}
+
+        {elfSkillProficiencyOptions.length > 0 ? (
+          <label className={styles.field}>
+            <span>Keen Senses Proficiency</span>
+            <SelectInput
+              className={styles.fieldInput}
+              invalid={attemptedBuildAdvance && !isSpeciesElfSkillProficiencyReady}
+              value={selectedElvenSkillProficiency}
+              onChange={(event) => {
+                const nextSkill = event.target.value;
+                const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                  ...(getValues("speciesChoices") ?? {}),
+                  elvenSkillProficiency: nextSkill || undefined
+                });
+
+                setValue("speciesChoices", nextChoices, {
+                  shouldDirty: true,
+                  shouldValidate: true
+                });
+              }}
+            >
+              <option value="">-</option>
+              {elfSkillProficiencyOptions.map((skill) => (
+                <option key={skill} value={skill}>
+                  {skill}
+                </option>
+              ))}
+            </SelectInput>
+            {attemptedBuildAdvance && !isSpeciesElfSkillProficiencyReady ? (
+              <small className={styles.errorText}>
+                Choose a Keen Senses skill before continuing.
+              </small>
+            ) : null}
+          </label>
+        ) : null}
+
+        {elfSpellcastingAbilityOptions.length > 0 ? (
+          <label className={styles.field}>
+            <span>Elven Spellcasting Ability</span>
+            <SelectInput
+              className={styles.fieldInput}
+              invalid={attemptedBuildAdvance && !isSpeciesElfSpellcastingAbilityReady}
+              value={selectedElvenSpellcastingAbility}
+              onChange={(event) => {
+                const nextAbility = event.target.value;
+                const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                  ...(getValues("speciesChoices") ?? {}),
+                  elvenSpellcastingAbility: nextAbility || undefined
+                });
+
+                setValue("speciesChoices", nextChoices, {
+                  shouldDirty: true,
+                  shouldValidate: true
+                });
+              }}
+            >
+              <option value="">-</option>
+              {elfSpellcastingAbilityOptions.map((ability) => (
+                <option key={ability} value={ability}>
+                  {ability}
+                </option>
+              ))}
+            </SelectInput>
+            {attemptedBuildAdvance && !isSpeciesElfSpellcastingAbilityReady ? (
+              <small className={styles.errorText}>
+                Choose an Elven spellcasting ability before continuing.
+              </small>
+            ) : null}
+          </label>
+        ) : null}
+
+        {gnomeLineageOptions.length > 0 ? (
+          <label className={styles.field}>
+            <span>Gnomish Lineage</span>
+            <SelectInput
+              className={styles.fieldInput}
+              invalid={attemptedBuildAdvance && !isSpeciesGnomeLineageReady}
+              value={selectedGnomeLineage}
+              onChange={(event) => {
+                const nextLineage = event.target.value;
+                const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                  ...(getValues("speciesChoices") ?? {}),
+                  gnomeLineage: nextLineage || undefined
+                });
+
+                setValue("speciesChoices", nextChoices, {
+                  shouldDirty: true,
+                  shouldValidate: true
+                });
+              }}
+            >
+              <option value="">-</option>
+              {gnomeLineageOptions.map((option) => (
+                <option key={option.key} value={option.key}>
+                  {formatGnomeLineageOptionLabel(option)}
+                </option>
+              ))}
+            </SelectInput>
+            {attemptedBuildAdvance && !isSpeciesGnomeLineageReady ? (
+              <small className={styles.errorText}>
+                Choose a Gnomish Lineage before continuing.
+              </small>
+            ) : null}
+          </label>
+        ) : null}
+
+        {gnomeSpellcastingAbilityOptions.length > 0 ? (
+          <label className={styles.field}>
+            <span>Gnome Spellcasting Ability</span>
+            <SelectInput
+              className={styles.fieldInput}
+              invalid={attemptedBuildAdvance && !isSpeciesGnomeSpellcastingAbilityReady}
+              value={selectedGnomeSpellcastingAbility}
+              onChange={(event) => {
+                const nextAbility = event.target.value;
+                const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                  ...(getValues("speciesChoices") ?? {}),
+                  gnomeSpellcastingAbility: nextAbility || undefined
+                });
+
+                setValue("speciesChoices", nextChoices, {
+                  shouldDirty: true,
+                  shouldValidate: true
+                });
+              }}
+            >
+              <option value="">-</option>
+              {gnomeSpellcastingAbilityOptions.map((ability) => (
+                <option key={ability} value={ability}>
+                  {ability}
+                </option>
+              ))}
+            </SelectInput>
+            {attemptedBuildAdvance && !isSpeciesGnomeSpellcastingAbilityReady ? (
+              <small className={styles.errorText}>
+                Choose a Gnome spellcasting ability before continuing.
+              </small>
+            ) : null}
+          </label>
+        ) : null}
+
+        {giantAncestryOptions.length > 0 ? (
+          <label className={styles.field}>
+            <span>Giant Ancestry</span>
+            <SelectInput
+              className={styles.fieldInput}
+              invalid={attemptedBuildAdvance && !isSpeciesGiantAncestryReady}
+              value={selectedGiantAncestry}
+              onChange={(event) => {
+                const nextAncestry = event.target.value;
+                const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                  ...(getValues("speciesChoices") ?? {}),
+                  giantAncestry: nextAncestry || undefined
+                });
+
+                setValue("speciesChoices", nextChoices, {
+                  shouldDirty: true,
+                  shouldValidate: true
+                });
+              }}
+            >
+              <option value="">-</option>
+              {giantAncestryOptions.map((option) => (
+                <option key={option.key} value={option.key}>
+                  {formatGoliathGiantAncestryOptionLabel(option)}
+                </option>
+              ))}
+            </SelectInput>
+            {attemptedBuildAdvance && !isSpeciesGiantAncestryReady ? (
+              <small className={styles.errorText}>Choose a Giant Ancestry before continuing.</small>
+            ) : null}
+          </label>
+        ) : null}
+
+        {humanSkillProficiencyOptions.length > 0 ? (
+          <label className={styles.field}>
+            <span>Skillful Proficiency</span>
+            <SelectInput
+              className={styles.fieldInput}
+              invalid={attemptedBuildAdvance && !isSpeciesHumanSkillProficiencyReady}
+              value={selectedHumanSkillProficiency}
+              onChange={(event) => {
+                const nextSkill = event.target.value;
+                const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                  ...(getValues("speciesChoices") ?? {}),
+                  humanSkillProficiency: nextSkill || undefined
+                });
+
+                setValue("speciesChoices", nextChoices, {
+                  shouldDirty: true,
+                  shouldValidate: true
+                });
+              }}
+            >
+              <option value="">-</option>
+              {humanSkillSelectOptions.map((option) => (
+                <option key={option.skill} value={option.skill} disabled={option.disabled}>
+                  {option.skill}
+                </option>
+              ))}
+            </SelectInput>
+            {attemptedBuildAdvance && !isSpeciesHumanSkillProficiencyReady ? (
+              <small className={styles.errorText}>
+                Choose a Skillful proficiency before continuing.
+              </small>
+            ) : null}
+          </label>
+        ) : null}
+
+        {humanOriginFeatOptions.length > 0 ? (
+          <label className={styles.field}>
+            <span>Origin Feat</span>
+            <SelectInput
+              className={styles.fieldInput}
+              invalid={attemptedBuildAdvance && !isSpeciesHumanOriginFeatReady}
+              value={selectedHumanOriginFeat}
+              onChange={(event) => {
+                const nextFeat = event.target.value as FEATS | "";
+                const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                  ...(getValues("speciesChoices") ?? {}),
+                  humanOriginFeat: nextFeat || undefined
+                });
+
+                setValue("speciesChoices", nextChoices, {
+                  shouldDirty: true,
+                  shouldValidate: true
+                });
+              }}
+            >
+              <option value="">-</option>
+              {humanOriginFeatOptions.map((option) => (
+                <option key={option.feat} value={option.feat}>
+                  {formatHumanOriginFeatOptionLabel(option)}
+                </option>
+              ))}
+            </SelectInput>
+            {attemptedBuildAdvance && !isSpeciesHumanOriginFeatReady ? (
+              <small className={styles.errorText}>
+                Choose a Human origin feat before continuing.
+              </small>
+            ) : null}
+          </label>
+        ) : null}
+
+        {tieflingLegacyOptions.length > 0 ? (
+          <label className={styles.field}>
+            <span>Fiendish Legacy</span>
+            <SelectInput
+              className={styles.fieldInput}
+              invalid={attemptedBuildAdvance && !isSpeciesTieflingLegacyReady}
+              value={selectedTieflingLegacy}
+              onChange={(event) => {
+                const nextLegacy = event.target.value;
+                const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                  ...(getValues("speciesChoices") ?? {}),
+                  tieflingLegacy: nextLegacy || undefined
+                });
+
+                setValue("speciesChoices", nextChoices, {
+                  shouldDirty: true,
+                  shouldValidate: true
+                });
+              }}
+            >
+              <option value="">-</option>
+              {tieflingLegacyOptions.map((option) => (
+                <option key={option.key} value={option.key}>
+                  {formatTieflingFiendishLegacyOptionLabel(option)}
+                </option>
+              ))}
+            </SelectInput>
+            {attemptedBuildAdvance && !isSpeciesTieflingLegacyReady ? (
+              <small className={styles.errorText}>
+                Choose a Fiendish Legacy before continuing.
+              </small>
+            ) : null}
+          </label>
+        ) : null}
+
+        {tieflingSpellcastingAbilityOptions.length > 0 ? (
+          <label className={styles.field}>
+            <span>Tiefling Spellcasting Ability</span>
+            <SelectInput
+              className={styles.fieldInput}
+              invalid={attemptedBuildAdvance && !isSpeciesTieflingSpellcastingAbilityReady}
+              value={selectedTieflingSpellcastingAbility}
+              onChange={(event) => {
+                const nextAbility = event.target.value;
+                const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                  ...(getValues("speciesChoices") ?? {}),
+                  tieflingSpellcastingAbility: nextAbility || undefined
+                });
+
+                setValue("speciesChoices", nextChoices, {
+                  shouldDirty: true,
+                  shouldValidate: true
+                });
+              }}
+            >
+              <option value="">-</option>
+              {tieflingSpellcastingAbilityOptions.map((ability) => (
+                <option key={ability} value={ability}>
+                  {ability}
+                </option>
+              ))}
+            </SelectInput>
+            {attemptedBuildAdvance && !isSpeciesTieflingSpellcastingAbilityReady ? (
+              <small className={styles.errorText}>
+                Choose a Tiefling spellcasting ability before continuing.
+              </small>
+            ) : null}
+          </label>
+        ) : null}
       </section>
     );
   }

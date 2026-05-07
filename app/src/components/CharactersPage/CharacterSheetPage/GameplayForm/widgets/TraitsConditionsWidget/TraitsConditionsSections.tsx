@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { ChevronsUp } from "lucide-react";
 import type { CSSProperties } from "react";
 import ActionShape from "../../../../../ActionShape";
 import ConcentrationLabel from "../../../../../ConcentrationLabel";
@@ -6,7 +7,8 @@ import {
   getStatusDurationTickOn,
   getStatusDurationShortLabel,
   getStatusEntrySourceLabel,
-  getStatusEntryTitle
+  getStatusEntryTitle,
+  hasStatusEntryDescriptionAdditions
 } from "../../../../../../pages/CharactersPage/traits";
 import type { CharacterStatusEntry } from "../../../../../../types";
 import {
@@ -70,6 +72,7 @@ function TraitsConditionsSections({
               const roundTickOn = getStatusDurationTickOn(entry.duration);
               const roundPrefix = roundTickOn === STATUS_DURATION_ROUND_TICK.ROUND_START ? "<" : "";
               const roundSuffix = roundTickOn === STATUS_DURATION_ROUND_TICK.ROUND_END ? ">" : "";
+              const hasDescriptionAdditions = hasStatusEntryDescriptionAdditions(entry);
 
               return (
                 <li key={entry.id}>
@@ -86,13 +89,26 @@ function TraitsConditionsSections({
                     disabled={entry.disabled === true}
                   >
                     <span className={styles.buttonText}>
-                      <span>
+                      <span className={styles.buttonTitle}>
                         {entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
                         entry.value === EFFECT_NAME.CONCENTRATION ? (
-                          <ConcentrationLabel iconSize={14} />
+                          <span className={styles.buttonTitleText}>
+                            <ConcentrationLabel iconSize={14} />
+                          </span>
                         ) : (
-                          getStatusEntryTitle(entry)
+                          <span className={styles.buttonTitleText}>
+                            {getStatusEntryTitle(entry)}
+                          </span>
                         )}
+                        {hasDescriptionAdditions ? (
+                          <span
+                            className={styles.modifiedIcon}
+                            title="Additional trait rules"
+                            aria-label="Additional trait rules"
+                          >
+                            <ChevronsUp size={14} aria-hidden="true" />
+                          </span>
+                        ) : null}
                       </span>
                       <small>{getStatusEntrySourceLabel(entry)}</small>
                     </span>

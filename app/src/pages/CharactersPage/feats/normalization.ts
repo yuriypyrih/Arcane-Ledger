@@ -178,6 +178,17 @@ function normalizeCharacterFeatSource(value: unknown, takenAtLevel: number): Cha
         };
   }
 
+  if (record.type === "species") {
+    return typeof record.species === "string" && record.species.trim().length > 0
+      ? {
+          type: "species",
+          species: record.species.trim()
+        }
+      : {
+          type: "manual"
+        };
+  }
+
   if (record.type === "class-feature") {
     if (typeof record.feature !== "string") {
       return {
@@ -366,9 +377,7 @@ export function normalizeCharacterFeats(
           }
         : undefined;
     const boonOfSkill =
-      feat === FEATS.BOON_OF_SKILL
-        ? normalizeBoonOfSkillChoice(record.boonOfSkill)
-        : undefined;
+      feat === FEATS.BOON_OF_SKILL ? normalizeBoonOfSkillChoice(record.boonOfSkill) : undefined;
     const athlete = feat === FEATS.ATHLETE ? normalizeAthleteChoice(record.athlete) : undefined;
     const charger = feat === FEATS.CHARGER ? normalizeChargerChoice(record.charger) : undefined;
     const chef = feat === FEATS.CHEF ? normalizeChefChoice(record.chef) : undefined;
@@ -420,8 +429,7 @@ export function normalizeCharacterFeats(
     const observant =
       feat === FEATS.OBSERVANT ? normalizeObservantChoice(record.observant) : undefined;
     const piercer = feat === FEATS.PIERCER ? normalizePiercerChoice(record.piercer) : undefined;
-    const poisoner =
-      feat === FEATS.POISONER ? normalizePoisonerChoice(record.poisoner) : undefined;
+    const poisoner = feat === FEATS.POISONER ? normalizePoisonerChoice(record.poisoner) : undefined;
     const polearmMaster =
       feat === FEATS.POLEARM_MASTER
         ? normalizePolearmMasterChoice(record.polearmMaster)
@@ -430,8 +438,7 @@ export function normalizeCharacterFeats(
       feat === FEATS.RITUAL_CASTER ? normalizeRitualCasterChoice(record.ritualCaster) : undefined;
     const resilient =
       feat === FEATS.RESILIENT ? normalizeResilientChoice(record.resilient) : undefined;
-    const sentinel =
-      feat === FEATS.SENTINEL ? normalizeSentinelChoice(record.sentinel) : undefined;
+    const sentinel = feat === FEATS.SENTINEL ? normalizeSentinelChoice(record.sentinel) : undefined;
     const shadowTouched =
       feat === FEATS.SHADOW_TOUCHED
         ? normalizeShadowTouchedChoice(record.shadowTouched)
@@ -607,20 +614,16 @@ export function createCharacterFeatEntry(
     elementalAdept: feat === FEATS.ELEMENTAL_ADEPT ? options?.elementalAdept : undefined,
     feyTouched: feat === FEATS.FEY_TOUCHED ? options?.feyTouched : undefined,
     heavilyArmored: feat === FEATS.HEAVILY_ARMORED ? options?.heavilyArmored : undefined,
-    heavyArmorMaster:
-      feat === FEATS.HEAVY_ARMOR_MASTER ? options?.heavyArmorMaster : undefined,
+    heavyArmorMaster: feat === FEATS.HEAVY_ARMOR_MASTER ? options?.heavyArmorMaster : undefined,
     inspiringLeader: feat === FEATS.INSPIRING_LEADER ? options?.inspiringLeader : undefined,
     keenMind: feat === FEATS.KEEN_MIND ? options?.keenMind : undefined,
     lightlyArmored: feat === FEATS.LIGHTLY_ARMORED ? options?.lightlyArmored : undefined,
     mageSlayer: feat === FEATS.MAGE_SLAYER ? options?.mageSlayer : undefined,
     martialWeaponTraining:
       feat === FEATS.MARTIAL_WEAPON_TRAINING ? options?.martialWeaponTraining : undefined,
-    mediumArmorMaster:
-      feat === FEATS.MEDIUM_ARMOR_MASTER ? options?.mediumArmorMaster : undefined,
-    moderatelyArmored:
-      feat === FEATS.MODERATELY_ARMORED ? options?.moderatelyArmored : undefined,
-    mountedCombatant:
-      feat === FEATS.MOUNTED_COMBATANT ? options?.mountedCombatant : undefined,
+    mediumArmorMaster: feat === FEATS.MEDIUM_ARMOR_MASTER ? options?.mediumArmorMaster : undefined,
+    moderatelyArmored: feat === FEATS.MODERATELY_ARMORED ? options?.moderatelyArmored : undefined,
+    mountedCombatant: feat === FEATS.MOUNTED_COMBATANT ? options?.mountedCombatant : undefined,
     observant: feat === FEATS.OBSERVANT ? options?.observant : undefined,
     piercer: feat === FEATS.PIERCER ? options?.piercer : undefined,
     poisoner: feat === FEATS.POISONER ? options?.poisoner : undefined,
@@ -666,6 +669,10 @@ export function getCharacterFeatSourceLabel(entry: CharacterFeatEntry): string {
     return `Background: ${entry.source.background}`;
   }
 
+  if (entry.source.type === "species") {
+    return `Species: ${entry.source.species}`;
+  }
+
   if (entry.source.type === "eldritch-invocation") {
     return getEldritchInvocationEntryById(entry.source.invocation)?.name ?? "Eldritch Invocation";
   }
@@ -688,5 +695,9 @@ export function isFeatFromBackgroundSource(
 }
 
 export function isFeatEntryRemovable(entry: CharacterFeatEntry): boolean {
-  return !isFeatFromBackgroundSource(entry) && entry.source.type !== "eldritch-invocation";
+  return (
+    !isFeatFromBackgroundSource(entry) &&
+    entry.source.type !== "species" &&
+    entry.source.type !== "eldritch-invocation"
+  );
 }

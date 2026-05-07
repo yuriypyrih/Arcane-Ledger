@@ -54,7 +54,8 @@ import type {
   FeatureActionHeaderTag
 } from "../../../../pages/CharactersPage/classFeatures";
 import FeatureOptInToggle, {
-  type FeatureOptInToggleApplication
+  type FeatureOptInToggleApplication,
+  type FeatureOptInToggleMetaItem
 } from "../FeatureOptInToggle/FeatureOptInToggle";
 import { FeatureTrackingBadgeButton } from "../../../FeatureDisclosure";
 import RadioContainerOption from "../RadioContainerOption";
@@ -83,7 +84,9 @@ export type CharacterSpellDrawerActionOptions = {
   useRadiantSoul?: boolean;
   useOverchannel?: boolean;
   useMagicInitiate?: boolean;
+  useGoliathAncestry?: boolean;
   useFeyMagic?: boolean;
+  useFiendishLegacy?: boolean;
   useQuickRitual?: boolean;
   useShadowMagic?: boolean;
   useDetectThoughts?: boolean;
@@ -109,6 +112,7 @@ export type CharacterSpellDrawerActionOption = {
   headerTags?: FeatureActionHeaderTag[];
   usage?: FeatureActionCardUsage;
   application?: FeatureOptInToggleApplication;
+  metaItems?: FeatureOptInToggleMetaItem[];
   radioOptions?: {
     value: string | null;
     onValueChange: (value: string) => void;
@@ -270,9 +274,7 @@ function CharacterSpellDrawer({
         id: "mage-armor-self",
         label: "Cast on myself",
         checked: isMageArmorSelfCastSelected,
-        onCheckedChange: forceMageArmorSelfCast
-          ? () => undefined
-          : setIsMageArmorSelfCastSelected,
+        onCheckedChange: forceMageArmorSelfCast ? () => undefined : setIsMageArmorSelfCastSelected,
         disabled: forceMageArmorSelfCast
       },
       ...actionOptions
@@ -409,9 +411,7 @@ function CharacterSpellDrawer({
     useMagicInitiate: allActionOptions.some(
       (option) => option.id === "magic-initiate" && option.checked
     ),
-    useFeyMagic: allActionOptions.some(
-      (option) => option.id === "fey-magic" && option.checked
-    ),
+    useFeyMagic: allActionOptions.some((option) => option.id === "fey-magic" && option.checked),
     useQuickRitual: isQuickRitualSelected,
     useShadowMagic: allActionOptions.some(
       (option) => option.id === "shadow-magic" && option.checked
@@ -479,9 +479,8 @@ function CharacterSpellDrawer({
     getSpellSaveFormulaCell(spell, character, spellcastingAbilityOverride),
     getSpellAttackFormulaCell(spell, character, spellcastingAbilityOverride)
   ].filter((cell): cell is NonNullable<typeof cell> => cell !== null);
-  const alwaysPreparedSourceDetailText = formatAlwaysPreparedSourceDetailText(
-    alwaysPreparedSources
-  );
+  const alwaysPreparedSourceDetailText =
+    formatAlwaysPreparedSourceDetailText(alwaysPreparedSources);
 
   function openTrackingKeyword(trackingState: TRACKER) {
     const resolvedKeyword = resolveKeywordReference(trackingState);
@@ -829,6 +828,7 @@ function CharacterSpellDrawer({
                               usage={option.usage}
                               application={option.application}
                               usageKey={option.id}
+                              metaItems={option.metaItems}
                             />
                             {option.radioOptions && option.radioOptions.placement !== "body" ? (
                               <div

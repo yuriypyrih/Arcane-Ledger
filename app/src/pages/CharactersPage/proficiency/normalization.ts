@@ -89,7 +89,9 @@ function normalizeLegacyManualSkillEntries(
   ]);
 }
 
-function normalizeLegacyManualToolEntries(selectedToolProficiencies: string[]): ToolProficiencyEntry[] {
+function normalizeLegacyManualToolEntries(
+  selectedToolProficiencies: string[]
+): ToolProficiencyEntry[] {
   return mergeProficiencyEntries(
     normalizeToolProficiencySelections(selectedToolProficiencies).map((toolProficiency) =>
       createToolEntry(toolProficiency, PROFICIENCY_SOURCE.MANUAL, undefined, PROF_LEVEL.PROFICIENT)
@@ -192,7 +194,9 @@ export function normalizeCharacterProficiencies(
   const normalizedStoredSavingThrowEntries = normalizeSavingThrowProficiencyEntries(
     options.savingThrowProficiencies
   );
-  const normalizedStoredWeaponEntries = normalizeWeaponProficiencyEntries(options.weaponProficiencies);
+  const normalizedStoredWeaponEntries = normalizeWeaponProficiencyEntries(
+    options.weaponProficiencies
+  );
   const normalizedStoredArmorEntries = normalizeArmorProficiencyEntries(options.armorProficiencies);
   const normalizedStoredToolEntries = normalizeToolProficiencyEntries(options.toolProficiencies);
   const normalizedStoredLanguageEntries = normalizeLanguageProficiencyEntries(
@@ -217,6 +221,7 @@ export function normalizeCharacterProficiencies(
       level: options.level,
       subclassId: options.subclassId,
       classFeatureState: options.classFeatureState,
+      speciesChoices: options.speciesChoices,
       skillProficiencies: normalizedStoredSkillEntries,
       savingThrowProficiencies: normalizedStoredSavingThrowEntries,
       selectedClassSkills: [

@@ -6,7 +6,6 @@ function createSpeciesEntry(
     SpeciesEntry,
     | "id"
     | "name"
-    | "page"
     | "speed"
     | "size"
     | "trackingState"
@@ -19,7 +18,6 @@ function createSpeciesEntry(
   return {
     ...entry,
     category: ENTRY_CATEGORIES.SPECIES,
-    source: "PHB'24",
     abilityBonuses: {},
     innateProficiencies: [],
     grantedSkillProficiencies: [],
@@ -31,7 +29,6 @@ export const speciesEntries: SpeciesEntry[] = [
   createSpeciesEntry({
     id: "species-aasimar-2024",
     name: "Aasimar",
-    page: 186,
     tags: [SPECIES_TYPES.HUMANOID],
     speed: 30,
     size: [BODY_SIZE.SMALL, BODY_SIZE.MEDIUM],
@@ -41,7 +38,6 @@ export const speciesEntries: SpeciesEntry[] = [
     },
     summary: "",
     description: [
-      "Source: PHB'24, p186.",
       "<strong>Creature Type.</strong> Humanoid.",
       "<strong>Size.</strong> Medium (about 4-7 feet tall) or Small (about 2-4 feet tall), chosen when you select this species.",
       "<strong>Speed.</strong> 30 feet.",
@@ -60,16 +56,15 @@ export const speciesEntries: SpeciesEntry[] = [
   createSpeciesEntry({
     id: "species-dragonborn-2024",
     name: "Dragonborn",
-    page: 187,
     tags: [SPECIES_TYPES.HUMANOID, SPECIES_TYPES.DRACONIC_LINEAGE],
     speed: 30,
     size: [BODY_SIZE.MEDIUM],
     starterPack: {
-      recommendedBodySize: BODY_SIZE.MEDIUM
+      recommendedBodySize: BODY_SIZE.MEDIUM,
+      recommendedDraconicAncestry: "black"
     },
     summary: "",
     description: [
-      "Source: PHB'24, p187.",
       "<strong>Creature Type.</strong> Humanoid.",
       "<strong>Size.</strong> Medium (about 5-7 feet tall).",
       "<strong>Speed.</strong> 30 feet.",
@@ -85,16 +80,15 @@ export const speciesEntries: SpeciesEntry[] = [
   createSpeciesEntry({
     id: "species-dwarf-2024",
     name: "Dwarf",
-    page: 188,
     tags: [SPECIES_TYPES.HUMANOID, SPECIES_TYPES.HARDY],
     speed: 30,
     size: [BODY_SIZE.MEDIUM],
     starterPack: {
-      recommendedBodySize: BODY_SIZE.MEDIUM
+      recommendedBodySize: BODY_SIZE.MEDIUM,
+      recommendedGiantAncestry: "cloud"
     },
     summary: "",
     description: [
-      "Source: PHB'24, p188.",
       "<strong>Creature Type.</strong> Humanoid.",
       "<strong>Size.</strong> Medium (about 4-5 feet tall).",
       "<strong>Speed.</strong> 30 feet.",
@@ -108,7 +102,6 @@ export const speciesEntries: SpeciesEntry[] = [
   createSpeciesEntry({
     id: "species-elf-2024",
     name: "Elf",
-    page: 189,
     tags: [SPECIES_TYPES.HUMANOID, SPECIES_TYPES.FEY_ANCESTRY, SPECIES_TYPES.ARCANE_AFFINITY],
     speed: 30,
     size: [BODY_SIZE.MEDIUM],
@@ -117,7 +110,6 @@ export const speciesEntries: SpeciesEntry[] = [
     },
     summary: "",
     description: [
-      "Source: PHB'24, p189.",
       "<strong>Creature Type.</strong> Humanoid.",
       "<strong>Size.</strong> Medium (about 5-6 feet tall).",
       "<strong>Speed.</strong> 30 feet.",
@@ -134,7 +126,6 @@ export const speciesEntries: SpeciesEntry[] = [
   createSpeciesEntry({
     id: "species-gnome-2024",
     name: "Gnome",
-    page: 191,
     tags: [SPECIES_TYPES.HUMANOID, SPECIES_TYPES.ARCANE_AFFINITY],
     speed: 30,
     size: [BODY_SIZE.SMALL],
@@ -143,7 +134,6 @@ export const speciesEntries: SpeciesEntry[] = [
     },
     summary: "",
     description: [
-      "Source: PHB'24, p191.",
       "<strong>Creature Type.</strong> Humanoid.",
       "<strong>Size.</strong> Small (about 3-4 feet tall).",
       "<strong>Speed.</strong> 30 feet.",
@@ -157,7 +147,6 @@ export const speciesEntries: SpeciesEntry[] = [
   createSpeciesEntry({
     id: "species-goliath-2024",
     name: "Goliath",
-    page: 192,
     tags: [SPECIES_TYPES.HUMANOID, SPECIES_TYPES.HARDY],
     speed: 35,
     size: [BODY_SIZE.MEDIUM],
@@ -166,7 +155,6 @@ export const speciesEntries: SpeciesEntry[] = [
     },
     summary: "",
     description: [
-      "Source: PHB'24, p192.",
       "<strong>Creature Type.</strong> Humanoid.",
       "<strong>Size.</strong> Medium (about 7-8 feet tall).",
       "<strong>Speed.</strong> 35 feet.",
@@ -184,7 +172,6 @@ export const speciesEntries: SpeciesEntry[] = [
   createSpeciesEntry({
     id: "species-halfling-2024",
     name: "Halfling",
-    page: 193,
     tags: [SPECIES_TYPES.HUMANOID],
     speed: 30,
     size: [BODY_SIZE.SMALL],
@@ -193,7 +180,6 @@ export const speciesEntries: SpeciesEntry[] = [
     },
     summary: "",
     description: [
-      "Source: PHB'24, p193.",
       "<strong>Creature Type.</strong> Humanoid.",
       "<strong>Size.</strong> Small (about 2-3 feet tall).",
       "<strong>Speed.</strong> 30 feet.",
@@ -206,16 +192,16 @@ export const speciesEntries: SpeciesEntry[] = [
   createSpeciesEntry({
     id: "species-human-2024",
     name: "Human",
-    page: 194,
     tags: [SPECIES_TYPES.HUMANOID],
     speed: 30,
     size: [BODY_SIZE.SMALL, BODY_SIZE.MEDIUM],
     starterPack: {
-      recommendedBodySize: BODY_SIZE.MEDIUM
+      recommendedBodySize: BODY_SIZE.MEDIUM,
+      recommendedTieflingLegacy: "infernal",
+      recommendedTieflingSpellcastingAbility: "CHA"
     },
     summary: "",
     description: [
-      "Source: PHB'24, p194.",
       "<strong>Creature Type.</strong> Humanoid.",
       "<strong>Size.</strong> Medium (about 4-7 feet tall) or Small (about 2-4 feet tall), chosen when you select this species.",
       "<strong>Speed.</strong> 30 feet.",
@@ -227,7 +213,6 @@ export const speciesEntries: SpeciesEntry[] = [
   createSpeciesEntry({
     id: "species-orc-2024",
     name: "Orc",
-    page: 195,
     tags: [SPECIES_TYPES.HUMANOID, SPECIES_TYPES.HARDY],
     speed: 30,
     size: [BODY_SIZE.MEDIUM],
@@ -236,12 +221,11 @@ export const speciesEntries: SpeciesEntry[] = [
     },
     summary: "",
     description: [
-      "Source: PHB'24, p195.",
       "<strong>Creature Type.</strong> Humanoid.",
       "<strong>Size.</strong> Medium (about 6-7 feet tall).",
       "<strong>Speed.</strong> 30 feet.",
       "<strong>Adrenaline Rush.</strong> You can take the Dash action as a Bonus Action. When you do so, you gain a number of Temporary Hit Points equal to your Proficiency Bonus.",
-      "You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Short or Long Rest.",
+      "You can use this trait a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest.",
       "<strong>Darkvision.</strong> You have Darkvision with a range of 120 feet.",
       "<strong>Relentless Endurance.</strong> When you are reduced to 0 Hit Points but not killed outright, you can drop to 1 Hit Point instead. Once you use this trait, you can't do so again until you finish a Long Rest."
     ]
@@ -249,7 +233,6 @@ export const speciesEntries: SpeciesEntry[] = [
   createSpeciesEntry({
     id: "species-tiefling-2024",
     name: "Tiefling",
-    page: 197,
     tags: [SPECIES_TYPES.HUMANOID, SPECIES_TYPES.ARCANE_AFFINITY],
     speed: 30,
     size: [BODY_SIZE.SMALL, BODY_SIZE.MEDIUM],
@@ -258,7 +241,6 @@ export const speciesEntries: SpeciesEntry[] = [
     },
     summary: "",
     description: [
-      "Source: PHB'24, p197.",
       "<strong>Creature Type.</strong> Humanoid.",
       "<strong>Size.</strong> Medium (about 4-7 feet tall) or Small (about 3-4 feet tall), chosen when you select this species.",
       "<strong>Speed.</strong> 30 feet.",

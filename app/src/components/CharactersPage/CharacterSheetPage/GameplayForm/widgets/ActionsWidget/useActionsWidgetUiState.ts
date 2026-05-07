@@ -68,6 +68,7 @@ type ActionsWidgetUiState = {
   isDreadfulStrikeSelected: boolean;
   isColossusSlayerSelected: boolean;
   isPolarStrikesSelected: boolean;
+  isGoliathAncestryStrikeSelected: boolean;
   isHuntersMarkTargetSelected: boolean;
   isRecklessAttackSelected: boolean;
   isSacredWeaponSelected: boolean;
@@ -158,6 +159,7 @@ function createInitialState(
     isDreadfulStrikeSelected: false,
     isColossusSlayerSelected: false,
     isPolarStrikesSelected: false,
+    isGoliathAncestryStrikeSelected: false,
     isHuntersMarkTargetSelected: false,
     isRecklessAttackSelected: false,
     isSacredWeaponSelected: false,
@@ -216,6 +218,7 @@ function getActionDrawerResetState(): Partial<ActionsWidgetUiState> {
     isDreadfulStrikeSelected: false,
     isColossusSlayerSelected: false,
     isPolarStrikesSelected: false,
+    isGoliathAncestryStrikeSelected: false,
     isHuntersMarkTargetSelected: false,
     isRecklessAttackSelected: false,
     isSacredWeaponSelected: false,
@@ -262,6 +265,7 @@ function getActionSelectionResetState(): Partial<ActionsWidgetUiState> {
     isLifedrinkerSelected: false,
     isPsionicStrikeSelected: false,
     isColossusSlayerSelected: false,
+    isGoliathAncestryStrikeSelected: false,
     isSacredWeaponSelected: false,
     isVowOfEnmitySelected: false,
     isHuntersMarkTargetSelected: false,
@@ -446,6 +450,10 @@ export function useActionsWidgetUiState(
       setIsDreadfulStrikeSelected: createFieldSetter(dispatch, "isDreadfulStrikeSelected"),
       setIsColossusSlayerSelected: createFieldSetter(dispatch, "isColossusSlayerSelected"),
       setIsPolarStrikesSelected: createFieldSetter(dispatch, "isPolarStrikesSelected"),
+      setIsGoliathAncestryStrikeSelected: createFieldSetter(
+        dispatch,
+        "isGoliathAncestryStrikeSelected"
+      ),
       setIsHuntersMarkTargetSelected: createFieldSetter(dispatch, "isHuntersMarkTargetSelected"),
       setIsRecklessAttackSelected: createFieldSetter(dispatch, "isRecklessAttackSelected"),
       setIsSacredWeaponSelected: createFieldSetter(dispatch, "isSacredWeaponSelected"),

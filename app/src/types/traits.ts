@@ -1,4 +1,4 @@
-import type { DAMAGE_TYPE, WEAPON_COMBAT_TYPE } from "../codex/entries";
+import type { DAMAGE_TYPE, SpellDescriptionEntry, WEAPON_COMBAT_TYPE } from "../codex/entries";
 import type { AbilityKey } from "./characters";
 
 export enum STATUS_ENTRY_GROUP {
@@ -190,5 +190,6 @@ export type CharacterStatusEntry = {
   sourceSpellId?: string;
   rangeFeet?: number | null;
   description?: string;
+  descriptionAdditions?: SpellDescriptionEntry[][];
   customEffects?: CharacterCustomTraitEffect[];
 };

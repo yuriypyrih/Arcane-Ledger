@@ -1,4 +1,3 @@
-import clsx from "clsx";
 import { getFeatureTrackingState, type FEATS } from "../../../../codex/entries";
 import {
   getCharacterFeatSourceLabel,
@@ -9,11 +8,8 @@ import {
 import type { CharacterFeatEntry } from "../../../../types";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import cardStyles from "./FeatCards.module.css";
-import {
-  getRepeatableFeatEntrySummary,
-  groupFeatEntriesByFeat,
-  triggerActionOnEnterOrSpace
-} from "./featEditorUtils";
+import BuildSummaryCard from "./BuildSummaryCard";
+import { getRepeatableFeatEntrySummary, groupFeatEntriesByFeat } from "./featEditorUtils";
 import type { TrackingButtonRenderer } from "./types";
 
 type FeatListProps = {
@@ -52,45 +48,20 @@ function FeatList({
           : getFeatCategoryLabel(featDefinition.category);
 
         return (
-          <li
+          <BuildSummaryCard
             key={featDefinition.feat}
-            className={clsx(cardStyles.card, cardStyles.interactiveCard)}
-            role="button"
-            tabIndex={0}
-            onClick={() => onOpenFeatReference(featDefinition.feat)}
-            onKeyDown={(event) =>
-              triggerActionOnEnterOrSpace(event, () => onOpenFeatReference(featDefinition.feat))
+            title={featDefinition.label}
+            meta={featMetaLabel}
+            summary={isRepeatable ? null : featSummary}
+            selectedItems={
+              isRepeatable
+                ? entries.map((entry) => getRepeatableFeatEntrySummary(entry))
+                : undefined
             }
-          >
-            <div className={cardStyles.headerRow}>
-              <div className={cardStyles.titleBlock}>
-                <span className={cardStyles.title}>{featDefinition.label}</span>
-                {isRepeatable ? (
-                  <>
-                    {" "}
-                    <span className={cardStyles.repeatable}>(repeatable)</span>
-                  </>
-                ) : null}
-              </div>
-              <div className={cardStyles.headerActions}>
-                {renderTrackingButton(getFeatureTrackingState(featDefinition))}
-              </div>
-            </div>
-            <p className={cardStyles.meta}>{featMetaLabel}</p>
-            {isRepeatable ? (
-              <ul className={cardStyles.selectedList}>
-                {entries.map((entry) => (
-                  <li key={entry.id} className={cardStyles.selectedItem}>
-                    <span className={cardStyles.selectedText}>
-                      {getRepeatableFeatEntrySummary(entry)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            ) : featSummary ? (
-              <p className={cardStyles.summary}>{featSummary}</p>
-            ) : null}
-          </li>
+            isRepeatable={isRepeatable}
+            onClick={() => onOpenFeatReference(featDefinition.feat)}
+            headerActions={renderTrackingButton(getFeatureTrackingState(featDefinition))}
+          />
         );
       })}
     </ul>

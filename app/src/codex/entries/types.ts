@@ -239,13 +239,15 @@ export type BackgroundEntry = BaseCodexEntry<ENTRY_CATEGORIES.BACKGROUNDS, BACKG
   };
 };
 export type SpeciesEntry = BaseCodexEntry<ENTRY_CATEGORIES.SPECIES, SPECIES_TYPES> & {
-  source: "PHB'24";
-  page: number;
   speed: number;
   size: BODY_SIZE[];
   trackingState?: TRACKER;
   starterPack: {
     recommendedBodySize?: BODY_SIZE;
+    recommendedDraconicAncestry?: string;
+    recommendedGiantAncestry?: string;
+    recommendedTieflingLegacy?: string;
+    recommendedTieflingSpellcastingAbility?: string;
   };
   description: SpellDescriptionEntry[];
   abilityBonuses: Partial<Record<ABILITY_TYPES, number>>;

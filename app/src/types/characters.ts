@@ -1,6 +1,7 @@
 import type {
   BODY_SIZE,
   EquipmentCost,
+  FEATS,
   WeaponDamage,
   WeaponRange,
   WeaponType,
@@ -53,15 +54,86 @@ export type CharacterBackgroundChoices = {
 
 export type CharacterSpeciesChoices = {
   bodySize?: BODY_SIZE;
+  draconicAncestry?: CharacterDragonbornDraconicAncestry;
+  elvenLineage?: CharacterElfLineage;
+  elvenSkillProficiency?: CharacterElfSkillProficiency;
+  elvenSpellcastingAbility?: CharacterElfSpellcastingAbility;
+  gnomeLineage?: CharacterGnomeLineage;
+  gnomeSpellcastingAbility?: CharacterGnomeSpellcastingAbility;
+  giantAncestry?: CharacterGoliathGiantAncestry;
+  humanSkillProficiency?: SkillName;
+  humanOriginFeat?: FEATS;
+  tieflingLegacy?: CharacterTieflingFiendishLegacy;
+  tieflingSpellcastingAbility?: CharacterTieflingSpellcastingAbility;
 };
+
+export type CharacterDragonbornDraconicAncestry =
+  | "black"
+  | "blue"
+  | "brass"
+  | "bronze"
+  | "copper"
+  | "gold"
+  | "green"
+  | "red"
+  | "silver"
+  | "white";
+
+export type CharacterElfLineage = "drow" | "high-elf" | "wood-elf";
+
+export type CharacterElfSkillProficiency = "Insight" | "Perception" | "Survival";
+
+export type CharacterElfSpellcastingAbility = Extract<AbilityKey, "INT" | "WIS" | "CHA">;
+
+export type CharacterGnomeLineage = "forest-gnome" | "rock-gnome";
+
+export type CharacterGnomeSpellcastingAbility = Extract<AbilityKey, "INT" | "WIS" | "CHA">;
+
+export type CharacterGoliathGiantAncestry = "cloud" | "fire" | "frost" | "hill" | "stone" | "storm";
+
+export type CharacterTieflingFiendishLegacy = "abyssal" | "chthonic" | "infernal";
+
+export type CharacterTieflingSpellcastingAbility = Extract<AbilityKey, "INT" | "WIS" | "CHA">;
 
 export type CharacterAasimarFeatureState = {
   healingHandsExpended?: boolean;
   celestialRevelationExpended?: boolean;
 };
 
+export type CharacterDragonbornFeatureState = {
+  breathWeaponUsesExpended?: number;
+  draconicFlightExpended?: boolean;
+};
+
+export type CharacterDwarfFeatureState = {
+  stonecunningUsesExpended?: number;
+};
+
+export type CharacterGnomeFeatureState = {
+  speakWithAnimalsUsesExpended?: number;
+};
+
+export type CharacterGoliathFeatureState = {
+  giantAncestryUsesExpended?: number;
+  largeFormExpended?: boolean;
+};
+
+export type CharacterOrcFeatureState = {
+  adrenalineRushUsesExpended?: number;
+};
+
+export type CharacterTieflingFeatureState = {
+  fiendishLegacyFreeCastExpendedSpellIds?: string[];
+};
+
 export type CharacterSpeciesFeatureState = {
   aasimar?: CharacterAasimarFeatureState;
+  dragonborn?: CharacterDragonbornFeatureState;
+  dwarf?: CharacterDwarfFeatureState;
+  gnome?: CharacterGnomeFeatureState;
+  goliath?: CharacterGoliathFeatureState;
+  orc?: CharacterOrcFeatureState;
+  tiefling?: CharacterTieflingFeatureState;
 };
 
 export type CoreStats = {

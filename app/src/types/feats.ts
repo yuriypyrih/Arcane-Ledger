@@ -266,6 +266,10 @@ export type CharacterFeatSource =
   | {
       type: "background";
       background: string;
+    }
+  | {
+      type: "species";
+      species: string;
     };
 
 export type CharacterFeatEntry = {

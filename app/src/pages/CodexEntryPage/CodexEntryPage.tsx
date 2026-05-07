@@ -530,12 +530,6 @@ function CodexEntryPage() {
                 {entry.category === ENTRY_CATEGORIES.SPECIES ? (
                   <>
                     <div className={styles.detailItem}>
-                      <span>Source</span>
-                      <strong>
-                        {entry.source}, p{entry.page}
-                      </strong>
-                    </div>
-                    <div className={styles.detailItem}>
                       <span>Speed</span>
                       <strong>{entry.speed} ft</strong>
                     </div>

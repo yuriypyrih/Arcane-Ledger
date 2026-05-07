@@ -19,6 +19,10 @@ import {
   hasBoonOfSpeedDisengageBonusActionPath,
   hasObservantSearchBonusActionPath
 } from "../../../../../../pages/CharactersPage/feats/runtime";
+import {
+  getOrcAdrenalineRushUsesRemaining,
+  hasOrcAdrenalineRushCommonActionBonusPath
+} from "../../../../../../pages/CharactersPage/species";
 import { getEconomyShapeState } from "../../gameplayWidgetUtils";
 
 type RoundTrackerAvailability = {
@@ -94,13 +98,15 @@ function getSecondaryCommonActionPathState(
   const hasKeenMindBonusPath = hasKeenMindStudyBonusActionPath(character, action.key);
   const hasObservantBonusPath = hasObservantSearchBonusActionPath(character, action.key);
   const hasBoonOfSpeedBonusPath = hasBoonOfSpeedDisengageBonusActionPath(character, action.key);
+  const hasOrcBonusPath = hasOrcAdrenalineRushCommonActionBonusPath(character, action.key);
 
   if (
     !hasMonkBonusPath &&
     !hasRogueBonusPath &&
     !hasKeenMindBonusPath &&
     !hasObservantBonusPath &&
-    !hasBoonOfSpeedBonusPath
+    !hasBoonOfSpeedBonusPath &&
+    !hasOrcBonusPath
   ) {
     return null;
   }
@@ -111,7 +117,8 @@ function getSecondaryCommonActionPathState(
     !shouldTrackRoundResources &&
     !hasKeenMindBonusPath &&
     !hasObservantBonusPath &&
-    !hasBoonOfSpeedBonusPath
+    !hasBoonOfSpeedBonusPath &&
+    !hasOrcBonusPath
   ) {
     return null;
   }
@@ -120,20 +127,29 @@ function getSecondaryCommonActionPathState(
     ...action,
     economyType: ECONOMY_TYPE.BONUS_ACTION
   };
-  const additionalUseCount =
-    shouldTrackRoundResources
-      ? getCommonActionAdditionalUseCount(character, bonusAction) +
-        (hasMonkBonusPath
-          ? getMonkCommonActionBonusPathAdditionalUseCount(character, action.key)
-          : 0)
-      : 0;
+  const additionalUseCount = shouldTrackRoundResources
+    ? getCommonActionAdditionalUseCount(character, bonusAction) +
+      (hasMonkBonusPath ? getMonkCommonActionBonusPathAdditionalUseCount(character, action.key) : 0)
+    : 0;
   const shapeState = getEconomyShapeState(
     ECONOMY_TYPE.BONUS_ACTION,
     roundTracker,
     additionalUseCount
   );
+  const hasNonOrcBonusPath =
+    hasMonkBonusPath ||
+    hasRogueBonusPath ||
+    hasKeenMindBonusPath ||
+    hasObservantBonusPath ||
+    hasBoonOfSpeedBonusPath;
+  const orcDisabledReason =
+    hasOrcBonusPath && !hasNonOrcBonusPath && getOrcAdrenalineRushUsesRemaining(character) <= 0
+      ? "Adrenaline Rush recharges when you finish a Long Rest."
+      : null;
   const disabledReason =
-    action.disabled === true ? (action.disabledReason ?? "This action is unavailable.") : null;
+    action.disabled === true
+      ? (action.disabledReason ?? "This action is unavailable.")
+      : orcDisabledReason;
 
   return {
     id: "secondary",

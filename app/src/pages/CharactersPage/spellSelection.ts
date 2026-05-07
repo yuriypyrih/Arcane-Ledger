@@ -1,5 +1,6 @@
 import type { Character } from "../../types";
 import { getAlwaysSpellbookSpellIdsForCharacter } from "./classFeatures";
+import { getSpeciesAlwaysPreparedSpellIdsForCharacter } from "./species";
 import {
   getAlwaysPreparedSpellIds,
   getCantripLimitForCharacter,
@@ -44,6 +45,8 @@ export function getSpellSelectionInputStatusForCharacter(
     | "preparedSpellIds"
     | "spellbookSpellIds"
     | "feats"
+    | "species"
+    | "speciesChoices"
     | "statusEntries"
   >
 ): SpellSelectionInputStatus {
@@ -95,8 +98,13 @@ export function getSpellSelectionInputStatusForCharacter(
   const featAlwaysPreparedSpellIds = getFeatAlwaysPreparedSpellEntriesForCharacter(character).map(
     (spell) => spell.id
   );
+  const speciesAlwaysPreparedSpellIds = getSpeciesAlwaysPreparedSpellIdsForCharacter(character);
   const alwaysPreparedSpellIds = [
-    ...new Set([...classAlwaysPreparedSpellIds, ...featAlwaysPreparedSpellIds])
+    ...new Set([
+      ...classAlwaysPreparedSpellIds,
+      ...featAlwaysPreparedSpellIds,
+      ...speciesAlwaysPreparedSpellIds
+    ])
   ];
   const alwaysSpellbookSpellIds = getAlwaysSpellbookSpellIdsForCharacter(character);
   const selectedSpellbookSpellIds = usesSpellbook

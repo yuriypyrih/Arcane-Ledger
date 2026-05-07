@@ -15,9 +15,15 @@ import {
   STATUS_ENTRY_SOURCE_TYPE,
   type Character,
   type CharacterAasimarFeatureState,
+  type CharacterDragonbornFeatureState,
+  type CharacterDwarfFeatureState,
+  type CharacterGnomeFeatureState,
+  type CharacterGoliathFeatureState,
+  type CharacterOrcFeatureState,
   type CharacterSpeciesChoices,
   type CharacterSpeciesFeatureState,
-  type CharacterStatusEntry
+  type CharacterStatusEntry,
+  type CharacterTieflingFeatureState
 } from "../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "./actionEconomy";
 import { createChargesCardUsage } from "./classFeatures/cardUsage";
@@ -30,15 +36,201 @@ import type {
 } from "./classFeatures/types";
 import { formatFormulaBreakdown, formatFormulaCell } from "./shared/formulas";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "./statusEntries";
+import {
+  getDefaultDragonbornDraconicAncestryForSpecies,
+  getDragonbornActionsForCharacter,
+  getDragonbornDerivedStatusEntriesForCharacter,
+  getDragonbornDraconicAncestryForCharacter,
+  getDragonbornDraconicAncestryOptionsForSpecies,
+  getDragonbornSpeedBonusesForCharacter,
+  formatDragonbornDraconicAncestryOptionLabel as formatDragonbornDraconicAncestrySummaryLabel,
+  isDragonbornDraconicFlightStatusEntry,
+  isDragonbornSpecies,
+  normalizeDragonbornDraconicAncestry,
+  normalizeDragonbornDraconicFlightStatusEntry,
+  normalizeDragonbornFeatureState
+} from "./speciesDragonborn";
+import {
+  getDwarfActionsForCharacter,
+  getDwarfDerivedStatusEntriesForCharacter,
+  isDwarfSpecies,
+  isDwarfStonecunningStatusEntry,
+  normalizeDwarfFeatureState,
+  normalizeDwarfStonecunningStatusEntry
+} from "./speciesDwarf";
+import {
+  getDefaultElfLineageForSpecies,
+  getDefaultElfSkillProficiencyForSpecies,
+  getDefaultElfSpellcastingAbilityForSpecies,
+  getElfAlwaysPreparedSpellIdsForCharacter,
+  getElfAlwaysPreparedSpellSourceMapForCharacter,
+  getElfDerivedStatusEntriesForCharacter,
+  getElfGrantedCantripEntriesForCharacter,
+  getElfLineageOptionsForSpecies,
+  getElfSkillProficiencyOptionsForSpecies,
+  getElfSpeedBonusesForCharacter,
+  getElfSpellcastingAbilityForCharacter,
+  getElfSpellcastingAbilityOptionsForSpecies,
+  formatElfLineageOptionLabel as formatElfLineageSummaryLabel,
+  normalizeElfLineage,
+  normalizeElfSkillProficiency,
+  normalizeElfSpellcastingAbility
+} from "./speciesElf";
+import {
+  getDefaultGnomeLineageForSpecies,
+  getDefaultGnomeSpellcastingAbilityForSpecies,
+  getGnomeAlwaysPreparedSpellIdsForCharacter,
+  getGnomeAlwaysPreparedSpellSourceMapForCharacter,
+  getGnomeDerivedStatusEntriesForCharacter,
+  getGnomeGrantedCantripEntriesForCharacter,
+  getGnomeLineageOptionsForSpecies,
+  getGnomeSpellEntryForCharacter,
+  getGnomeSpellcastingAbilityForCharacter,
+  getGnomeSpellcastingAbilityOptionsForSpecies,
+  formatGnomeLineageOptionLabel as formatGnomeLineageSummaryLabel,
+  isGnomeSpecies,
+  normalizeGnomeFeatureState,
+  normalizeGnomeLineage,
+  normalizeGnomeSpellcastingAbility
+} from "./speciesGnome";
+import {
+  getDefaultGoliathGiantAncestryForSpecies,
+  getGoliathActionsForCharacter,
+  getGoliathBodySizeOverrideForCharacter,
+  getGoliathDerivedStatusEntriesForCharacter,
+  getGoliathGiantAncestryForCharacter,
+  getGoliathGiantAncestryOptionsForSpecies,
+  getGoliathSpeedBonusesForCharacter,
+  formatGoliathGiantAncestryOptionLabel as formatGoliathGiantAncestrySummaryLabel,
+  isGoliathLargeFormStatusEntry,
+  isGoliathSpecies,
+  normalizeGoliathFeatureState,
+  normalizeGoliathGiantAncestry,
+  normalizeGoliathLargeFormStatusEntry
+} from "./speciesGoliath";
+import { getHalflingDerivedStatusEntriesForCharacter } from "./speciesHalfling";
+import {
+  formatHumanOriginFeatOptionLabel as formatHumanOriginFeatSummaryLabel,
+  getDefaultHumanOriginFeatForSpecies,
+  getDefaultHumanSkillProficiencyForSpecies,
+  getHumanOriginFeatForCharacter,
+  getHumanOriginFeatOptionsForSpecies,
+  getHumanSkillOptionsForSpecies,
+  normalizeHumanOriginFeat,
+  normalizeHumanSkillProficiency
+} from "./speciesHuman";
+import {
+  getOrcCommonActionForCharacter,
+  getOrcDerivedStatusEntriesForCharacter,
+  isOrcSpecies,
+  normalizeOrcFeatureState
+} from "./speciesOrc";
+import {
+  formatTieflingFiendishLegacyOptionLabel as formatTieflingFiendishLegacySummaryLabel,
+  getDefaultTieflingFiendishLegacyForSpecies,
+  getDefaultTieflingSpellcastingAbilityForSpecies,
+  getTieflingAlwaysPreparedSpellIdsForCharacter,
+  getTieflingAlwaysPreparedSpellSourceMapForCharacter,
+  getTieflingDerivedStatusEntriesForCharacter,
+  getTieflingFiendishLegacyForCharacter,
+  getTieflingFiendishLegacyOptionsForSpecies,
+  getTieflingGrantedCantripEntriesForCharacter,
+  getTieflingSpellcastingAbilityForCharacter,
+  getTieflingSpellcastingAbilityOptionsForSpecies,
+  isTieflingSpecies,
+  normalizeTieflingFeatureState,
+  normalizeTieflingFiendishLegacy,
+  normalizeTieflingSpellcastingAbility
+} from "./speciesTiefling";
+
+export {
+  activateDragonbornDraconicFlightForCharacter,
+  formatDragonbornDraconicAncestryOptionLabel,
+  getDragonbornBreathWeaponDamageFormula,
+  getDragonbornBreathWeaponDamageTypeLabelForCharacter,
+  getDragonbornBreathWeaponUsesTotal,
+  getDragonbornDraconicAncestryOptionsForSpecies,
+  getDragonbornDraconicFlightUsesTotal,
+  restoreDragonbornBreathWeaponOnLongRest,
+  restoreDragonbornDraconicFlightOnLongRest,
+  spendDragonbornBreathWeaponForCharacter
+} from "./speciesDragonborn";
+export {
+  activateDwarfStonecunningForCharacter,
+  getDwarfStonecunningUsesTotal,
+  restoreDwarfStonecunningOnLongRest
+} from "./speciesDwarf";
+export {
+  formatElfLineageOptionLabel,
+  getElfLineageOptionsForSpecies,
+  getElfSkillProficiencyOptionsForSpecies,
+  getElfSpellcastingAbilityOptionsForSpecies
+} from "./speciesElf";
+export {
+  consumeGnomeSpeakWithAnimalsFreeCastForCharacter,
+  formatGnomeLineageOptionLabel,
+  getGnomeLineageOptionsForSpecies,
+  getGnomeSpeakWithAnimalsFreeCastStateForCharacter,
+  getGnomeSpeakWithAnimalsUsesTotal,
+  getGnomeSpellcastingAbilityOptionsForSpecies,
+  restoreGnomeSpeakWithAnimalsOnLongRest
+} from "./speciesGnome";
+export {
+  activateGoliathLargeFormForCharacter,
+  appendGoliathAttackDescriptionAddition,
+  consumeGoliathGiantAncestryUseForCharacter,
+  formatGoliathGiantAncestryOptionLabel,
+  getGoliathAttackDamageDetail,
+  getGoliathAttackOptionStateForCharacter,
+  getGoliathGiantAncestryOptionsForSpecies,
+  getGoliathGiantAncestryUsesTotal,
+  getGoliathLargeFormUsesTotal,
+  getGoliathStoneEnduranceDamageReductionFormula,
+  getGoliathStoneEnduranceDamageReductionFormulaDisplay,
+  getGoliathStormThunderDamageFormula,
+  restoreGoliathGiantAncestryOnLongRest,
+  restoreGoliathLargeFormOnLongRest
+} from "./speciesGoliath";
+export {
+  formatHumanOriginFeatOptionLabel,
+  getHumanOriginFeatOptionsForSpecies,
+  getHumanResourcefulDescriptionEntriesForCharacter,
+  getHumanSkillOptionsForSpecies,
+  isHumanSpecies,
+  reconcileHumanOriginFeatEntries,
+  restoreHumanResourcefulHeroicInspirationOnLongRest
+} from "./speciesHuman";
+export {
+  applyOrcAdrenalineRushForCharacter,
+  getOrcAdrenalineRushUsesRemaining,
+  getOrcAdrenalineRushUsesTotal,
+  hasOrcAdrenalineRushCommonActionBonusPath,
+  isOrcSpecies,
+  restoreOrcAdrenalineRushOnLongRest
+} from "./speciesOrc";
+export {
+  consumeTieflingFiendishLegacyFreeCastForCharacter,
+  formatTieflingFiendishLegacyOptionLabel,
+  getTieflingFiendishLegacyFreeCastStateForCharacter,
+  getTieflingFiendishLegacyOptionsForSpecies,
+  getTieflingFiendishLegacyUsesTotal,
+  getTieflingSpellcastingAbilityOptionsForSpecies,
+  restoreTieflingFiendishLegacyOnLongRest
+} from "./speciesTiefling";
 
 type SpeciesRuntimeCharacter = Pick<Character, "species"> &
-  Partial<Pick<Character, "speciesChoices">>;
+  Partial<Pick<Character, "speciesChoices" | "statusEntries">>;
 type SpeciesFeatureRuntimeCharacter = Pick<Character, "species" | "level"> &
   Partial<Pick<Character, "speciesFeatureState" | "statusEntries">>;
 
 export type SpeciesSpeedDetails = {
   speed: number;
   source: string;
+};
+
+export type SpeciesChoiceSummaryItem = {
+  label: string;
+  value: string;
 };
 
 export type AasimarHealingHandsTarget = "self" | "other";
@@ -189,6 +381,30 @@ function normalizeAasimarFeatureState(value: unknown): CharacterAasimarFeatureSt
   };
 }
 
+function normalizeDragonbornSpeciesFeatureState(value: unknown): CharacterDragonbornFeatureState {
+  return normalizeDragonbornFeatureState(value);
+}
+
+function normalizeDwarfSpeciesFeatureState(value: unknown): CharacterDwarfFeatureState {
+  return normalizeDwarfFeatureState(value);
+}
+
+function normalizeGnomeSpeciesFeatureState(value: unknown): CharacterGnomeFeatureState {
+  return normalizeGnomeFeatureState(value);
+}
+
+function normalizeGoliathSpeciesFeatureState(value: unknown): CharacterGoliathFeatureState {
+  return normalizeGoliathFeatureState(value);
+}
+
+function normalizeOrcSpeciesFeatureState(value: unknown): CharacterOrcFeatureState {
+  return normalizeOrcFeatureState(value);
+}
+
+function normalizeTieflingSpeciesFeatureState(value: unknown): CharacterTieflingFeatureState {
+  return normalizeTieflingFeatureState(value);
+}
+
 function getAasimarCelestialRevelationStatusSourceId(
   optionKey: AasimarCelestialRevelationOptionKey
 ): string {
@@ -293,27 +509,138 @@ export function normalizeCharacterSpeciesChoices(
   value: unknown
 ): CharacterSpeciesChoices | undefined {
   const bodySizeOptions = getSpeciesBodySizeOptions(species);
+  const draconicAncestryOptions = getDragonbornDraconicAncestryOptionsForSpecies(species);
+  const elvenLineageOptions = getElfLineageOptionsForSpecies(species);
+  const elfSkillProficiencyOptions = getElfSkillProficiencyOptionsForSpecies(species);
+  const elfSpellcastingAbilityOptions = getElfSpellcastingAbilityOptionsForSpecies(species);
+  const gnomeLineageOptions = getGnomeLineageOptionsForSpecies(species);
+  const gnomeSpellcastingAbilityOptions = getGnomeSpellcastingAbilityOptionsForSpecies(species);
+  const giantAncestryOptions = getGoliathGiantAncestryOptionsForSpecies(species);
+  const humanSkillOptions = getHumanSkillOptionsForSpecies(species);
+  const humanOriginFeatOptions = getHumanOriginFeatOptionsForSpecies(species);
+  const tieflingLegacyOptions = getTieflingFiendishLegacyOptionsForSpecies(species);
+  const tieflingSpellcastingAbilityOptions =
+    getTieflingSpellcastingAbilityOptionsForSpecies(species);
 
-  if (bodySizeOptions.length === 0) {
+  if (
+    bodySizeOptions.length === 0 &&
+    draconicAncestryOptions.length === 0 &&
+    elvenLineageOptions.length === 0 &&
+    elfSkillProficiencyOptions.length === 0 &&
+    elfSpellcastingAbilityOptions.length === 0 &&
+    gnomeLineageOptions.length === 0 &&
+    gnomeSpellcastingAbilityOptions.length === 0 &&
+    giantAncestryOptions.length === 0 &&
+    humanSkillOptions.length === 0 &&
+    humanOriginFeatOptions.length === 0 &&
+    tieflingLegacyOptions.length === 0 &&
+    tieflingSpellcastingAbilityOptions.length === 0
+  ) {
     return undefined;
   }
 
   const record = value && typeof value === "object" ? (value as Record<string, unknown>) : {};
   const rawBodySize = record.bodySize ?? record.size;
+  const draconicAncestry = normalizeDragonbornDraconicAncestry(
+    record.draconicAncestry ?? record.draconicAncestryKey ?? record.dragonbornAncestry
+  );
+  const elvenLineage = normalizeElfLineage(
+    record.elvenLineage ?? record.elfLineage ?? record.lineage
+  );
+  const elvenSkillProficiency = normalizeElfSkillProficiency(
+    record.elvenSkillProficiency ?? record.elfSkillProficiency ?? record.keenSenses
+  );
+  const elvenSpellcastingAbility = normalizeElfSpellcastingAbility(
+    record.elvenSpellcastingAbility ?? record.elfSpellcastingAbility
+  );
+  const gnomeLineage = normalizeGnomeLineage(
+    record.gnomeLineage ?? record.gnomishLineage ?? record.lineage
+  );
+  const gnomeSpellcastingAbility = normalizeGnomeSpellcastingAbility(
+    record.gnomeSpellcastingAbility ?? record.gnomishSpellcastingAbility
+  );
+  const giantAncestry = normalizeGoliathGiantAncestry(
+    record.giantAncestry ?? record.goliathGiantAncestry ?? record.goliathAncestry
+  );
+  const humanSkillProficiency = normalizeHumanSkillProficiency(
+    record.humanSkillProficiency ?? record.humanSkill ?? record.skillfulSkill
+  );
+  const humanOriginFeat = normalizeHumanOriginFeat(
+    record.humanOriginFeat ?? record.originFeat ?? record.versatileFeat
+  );
+  const tieflingLegacy = normalizeTieflingFiendishLegacy(
+    record.tieflingLegacy ?? record.fiendishLegacy ?? record.legacy
+  );
+  const tieflingSpellcastingAbility = normalizeTieflingSpellcastingAbility(
+    record.tieflingSpellcastingAbility ?? record.fiendishLegacySpellcastingAbility
+  );
+  const normalizedChoices: CharacterSpeciesChoices = {};
 
   if (isBodySize(rawBodySize) && bodySizeOptions.includes(rawBodySize)) {
-    return {
-      bodySize: rawBodySize
-    };
+    normalizedChoices.bodySize = rawBodySize;
   }
 
-  if (bodySizeOptions.length === 1) {
-    return {
-      bodySize: bodySizeOptions[0]!
-    };
+  if (!normalizedChoices.bodySize && bodySizeOptions.length === 1) {
+    normalizedChoices.bodySize = bodySizeOptions[0]!;
   }
 
-  return undefined;
+  if (
+    draconicAncestry &&
+    draconicAncestryOptions.some((option) => option.key === draconicAncestry)
+  ) {
+    normalizedChoices.draconicAncestry = draconicAncestry;
+  }
+
+  if (elvenLineage && elvenLineageOptions.some((option) => option.key === elvenLineage)) {
+    normalizedChoices.elvenLineage = elvenLineage;
+  }
+
+  if (elvenSkillProficiency && elfSkillProficiencyOptions.includes(elvenSkillProficiency)) {
+    normalizedChoices.elvenSkillProficiency = elvenSkillProficiency;
+  }
+
+  if (
+    elvenSpellcastingAbility &&
+    elfSpellcastingAbilityOptions.includes(elvenSpellcastingAbility)
+  ) {
+    normalizedChoices.elvenSpellcastingAbility = elvenSpellcastingAbility;
+  }
+
+  if (gnomeLineage && gnomeLineageOptions.some((option) => option.key === gnomeLineage)) {
+    normalizedChoices.gnomeLineage = gnomeLineage;
+  }
+
+  if (
+    gnomeSpellcastingAbility &&
+    gnomeSpellcastingAbilityOptions.includes(gnomeSpellcastingAbility)
+  ) {
+    normalizedChoices.gnomeSpellcastingAbility = gnomeSpellcastingAbility;
+  }
+
+  if (giantAncestry && giantAncestryOptions.some((option) => option.key === giantAncestry)) {
+    normalizedChoices.giantAncestry = giantAncestry;
+  }
+
+  if (humanSkillProficiency && humanSkillOptions.includes(humanSkillProficiency)) {
+    normalizedChoices.humanSkillProficiency = humanSkillProficiency;
+  }
+
+  if (humanOriginFeat && humanOriginFeatOptions.some((option) => option.feat === humanOriginFeat)) {
+    normalizedChoices.humanOriginFeat = humanOriginFeat;
+  }
+
+  if (tieflingLegacy && tieflingLegacyOptions.some((option) => option.key === tieflingLegacy)) {
+    normalizedChoices.tieflingLegacy = tieflingLegacy;
+  }
+
+  if (
+    tieflingSpellcastingAbility &&
+    tieflingSpellcastingAbilityOptions.includes(tieflingSpellcastingAbility)
+  ) {
+    normalizedChoices.tieflingSpellcastingAbility = tieflingSpellcastingAbility;
+  }
+
+  return Object.keys(normalizedChoices).length > 0 ? normalizedChoices : undefined;
 }
 
 export function createDefaultSpeciesChoicesForSpecies(
@@ -326,15 +653,77 @@ export function createDefaultSpeciesChoicesForSpecies(
     recommendedBodySize && bodySizeOptions.includes(recommendedBodySize)
       ? recommendedBodySize
       : bodySizeOptions[0];
+  const draconicAncestry = getDefaultDragonbornDraconicAncestryForSpecies(species);
+  const elvenLineage = getDefaultElfLineageForSpecies(species);
+  const elvenSkillProficiency = getDefaultElfSkillProficiencyForSpecies(species);
+  const elvenSpellcastingAbility = getDefaultElfSpellcastingAbilityForSpecies(species);
+  const gnomeLineage = getDefaultGnomeLineageForSpecies(species);
+  const gnomeSpellcastingAbility = getDefaultGnomeSpellcastingAbilityForSpecies(species);
+  const giantAncestry = getDefaultGoliathGiantAncestryForSpecies(species);
+  const humanSkillProficiency = getDefaultHumanSkillProficiencyForSpecies(species);
+  const humanOriginFeat = getDefaultHumanOriginFeatForSpecies(species);
+  const tieflingLegacy = getDefaultTieflingFiendishLegacyForSpecies(species);
+  const tieflingSpellcastingAbility = getDefaultTieflingSpellcastingAbilityForSpecies(species);
+  const defaultChoices: CharacterSpeciesChoices = {};
 
-  return bodySize
-    ? {
-        bodySize
-      }
-    : undefined;
+  if (bodySize) {
+    defaultChoices.bodySize = bodySize;
+  }
+
+  if (draconicAncestry) {
+    defaultChoices.draconicAncestry = draconicAncestry;
+  }
+
+  if (elvenLineage) {
+    defaultChoices.elvenLineage = elvenLineage;
+  }
+
+  if (elvenSkillProficiency) {
+    defaultChoices.elvenSkillProficiency = elvenSkillProficiency;
+  }
+
+  if (elvenSpellcastingAbility) {
+    defaultChoices.elvenSpellcastingAbility = elvenSpellcastingAbility;
+  }
+
+  if (gnomeLineage) {
+    defaultChoices.gnomeLineage = gnomeLineage;
+  }
+
+  if (gnomeSpellcastingAbility) {
+    defaultChoices.gnomeSpellcastingAbility = gnomeSpellcastingAbility;
+  }
+
+  if (giantAncestry) {
+    defaultChoices.giantAncestry = giantAncestry;
+  }
+
+  if (humanSkillProficiency) {
+    defaultChoices.humanSkillProficiency = humanSkillProficiency;
+  }
+
+  if (humanOriginFeat) {
+    defaultChoices.humanOriginFeat = humanOriginFeat;
+  }
+
+  if (tieflingLegacy) {
+    defaultChoices.tieflingLegacy = tieflingLegacy;
+  }
+
+  if (tieflingSpellcastingAbility) {
+    defaultChoices.tieflingSpellcastingAbility = tieflingSpellcastingAbility;
+  }
+
+  return Object.keys(defaultChoices).length > 0 ? defaultChoices : undefined;
 }
 
 export function getBodySizeForCharacter(character: SpeciesRuntimeCharacter): BODY_SIZE | null {
+  const bodySizeOverride = getGoliathBodySizeOverrideForCharacter(character);
+
+  if (bodySizeOverride) {
+    return bodySizeOverride;
+  }
+
   return (
     normalizeCharacterSpeciesChoices(character.species, character.speciesChoices)?.bodySize ??
     createDefaultSpeciesChoicesForSpecies(character.species)?.bodySize ??
@@ -345,6 +734,145 @@ export function getBodySizeForCharacter(character: SpeciesRuntimeCharacter): BOD
 export function getBodySizeLabelForCharacter(character: SpeciesRuntimeCharacter): string {
   const bodySize = getBodySizeForCharacter(character);
   return bodySize ? formatBodySize(bodySize) : "-";
+}
+
+export function getSpeciesChoiceSummaryItemsForCharacter(
+  character: SpeciesRuntimeCharacter
+): SpeciesChoiceSummaryItem[] {
+  const choices = normalizeCharacterSpeciesChoices(character.species, character.speciesChoices);
+  const items: SpeciesChoiceSummaryItem[] = [];
+  const bodySize = getBodySizeForCharacter({
+    species: character.species,
+    speciesChoices: choices
+  });
+  const bodySizeOptions = getSpeciesBodySizeOptions(character.species);
+
+  if (bodySizeOptions.length > 0) {
+    items.push({
+      label: "Size",
+      value: bodySize ? formatBodySize(bodySize) : "Not selected"
+    });
+  }
+
+  const draconicAncestry = getDragonbornDraconicAncestryForCharacter({
+    species: character.species,
+    speciesChoices: choices
+  });
+
+  if (getDragonbornDraconicAncestryOptionsForSpecies(character.species).length > 0) {
+    items.push({
+      label: "Draconic Ancestry",
+      value: draconicAncestry
+        ? formatDragonbornDraconicAncestrySummaryLabel(draconicAncestry)
+        : "Not selected"
+    });
+  }
+
+  const elfLineageOptions = getElfLineageOptionsForSpecies(character.species);
+
+  if (elfLineageOptions.length > 0) {
+    const lineage =
+      elfLineageOptions.find((option) => option.key === choices?.elvenLineage) ?? null;
+
+    items.push({
+      label: "Elven Lineage",
+      value: lineage ? formatElfLineageSummaryLabel(lineage) : "Not selected"
+    });
+  }
+
+  if (getElfSkillProficiencyOptionsForSpecies(character.species).length > 0) {
+    items.push({
+      label: "Keen Senses",
+      value: choices?.elvenSkillProficiency ?? "Not selected"
+    });
+  }
+
+  if (getElfSpellcastingAbilityOptionsForSpecies(character.species).length > 0) {
+    items.push({
+      label: "Elven Spellcasting",
+      value: choices?.elvenSpellcastingAbility ?? "Not selected"
+    });
+  }
+
+  const gnomeLineageOptions = getGnomeLineageOptionsForSpecies(character.species);
+
+  if (gnomeLineageOptions.length > 0) {
+    const lineage =
+      gnomeLineageOptions.find((option) => option.key === choices?.gnomeLineage) ?? null;
+
+    items.push({
+      label: "Gnomish Lineage",
+      value: lineage ? formatGnomeLineageSummaryLabel(lineage) : "Not selected"
+    });
+  }
+
+  if (getGnomeSpellcastingAbilityOptionsForSpecies(character.species).length > 0) {
+    items.push({
+      label: "Gnome Spellcasting",
+      value: choices?.gnomeSpellcastingAbility ?? "Not selected"
+    });
+  }
+
+  const giantAncestryOptions = getGoliathGiantAncestryOptionsForSpecies(character.species);
+
+  if (giantAncestryOptions.length > 0) {
+    const ancestry = getGoliathGiantAncestryForCharacter({
+      species: character.species,
+      speciesChoices: choices
+    });
+
+    items.push({
+      label: "Giant Ancestry",
+      value: ancestry ? formatGoliathGiantAncestrySummaryLabel(ancestry) : "Not selected"
+    });
+  }
+
+  if (getHumanSkillOptionsForSpecies(character.species).length > 0) {
+    items.push({
+      label: "Skillful",
+      value: choices?.humanSkillProficiency ?? "Not selected"
+    });
+  }
+
+  const humanOriginFeatOptions = getHumanOriginFeatOptionsForSpecies(character.species);
+
+  if (humanOriginFeatOptions.length > 0) {
+    const originFeat = getHumanOriginFeatForCharacter({
+      species: character.species,
+      speciesChoices: choices
+    });
+    const originFeatOption =
+      humanOriginFeatOptions.find((option) => option.feat === originFeat) ?? null;
+
+    items.push({
+      label: "Origin Feat",
+      value: originFeatOption ? formatHumanOriginFeatSummaryLabel(originFeatOption) : "Not selected"
+    });
+  }
+
+  const tieflingLegacyOptions = getTieflingFiendishLegacyOptionsForSpecies(character.species);
+
+  if (tieflingLegacyOptions.length > 0) {
+    const legacy = getTieflingFiendishLegacyForCharacter({
+      species: character.species,
+      speciesChoices: choices
+    });
+    const legacyOption = tieflingLegacyOptions.find((option) => option.key === legacy) ?? null;
+
+    items.push({
+      label: "Fiendish Legacy",
+      value: legacyOption ? formatTieflingFiendishLegacySummaryLabel(legacyOption) : "Not selected"
+    });
+  }
+
+  if (getTieflingSpellcastingAbilityOptionsForSpecies(character.species).length > 0) {
+    items.push({
+      label: "Legacy Spellcasting",
+      value: choices?.tieflingSpellcastingAbility ?? "Not selected"
+    });
+  }
+
+  return items;
 }
 
 export function getSpeciesSpeedDetailsForCharacter(
@@ -366,31 +894,97 @@ export function normalizeCharacterSpeciesFeatureState(
   species: string,
   value: unknown
 ): CharacterSpeciesFeatureState {
-  if (!isAasimarSpecies(species)) {
-    return {};
-  }
-
   const record = value && typeof value === "object" ? (value as Record<string, unknown>) : {};
 
-  return {
-    aasimar: normalizeAasimarFeatureState(record.aasimar)
-  };
+  if (isAasimarSpecies(species)) {
+    return {
+      aasimar: normalizeAasimarFeatureState(record.aasimar)
+    };
+  }
+
+  if (isDragonbornSpecies(species)) {
+    return {
+      dragonborn: normalizeDragonbornSpeciesFeatureState(record.dragonborn)
+    };
+  }
+
+  if (isDwarfSpecies(species)) {
+    return {
+      dwarf: normalizeDwarfSpeciesFeatureState(record.dwarf)
+    };
+  }
+
+  if (isGnomeSpecies(species)) {
+    return {
+      gnome: normalizeGnomeSpeciesFeatureState(record.gnome)
+    };
+  }
+
+  if (isGoliathSpecies(species)) {
+    return {
+      goliath: normalizeGoliathSpeciesFeatureState(record.goliath)
+    };
+  }
+
+  if (isOrcSpecies(species)) {
+    return {
+      orc: normalizeOrcSpeciesFeatureState(record.orc)
+    };
+  }
+
+  if (isTieflingSpecies(species)) {
+    return {
+      tiefling: normalizeTieflingSpeciesFeatureState(record.tiefling)
+    };
+  }
+
+  return {};
 }
 
 export function normalizeSpeciesStatusEntriesForCharacter(
   character: Pick<Character, "species" | "level"> & Partial<Pick<Character, "statusEntries">>
 ): CharacterStatusEntry[] {
-  const statusEntries = normalizeCharacterStatusEntries(character.statusEntries);
+  let statusEntries = normalizeCharacterStatusEntries(character.statusEntries);
 
   if (isAasimarSpecies(character.species) && character.level >= 3) {
-    return statusEntries.map((entry) =>
+    statusEntries = statusEntries.map((entry) =>
       isAasimarCelestialRevelationStatusEntry(entry)
         ? normalizeAasimarCelestialRevelationStatusEntry(entry)
         : entry
     );
+  } else {
+    statusEntries = statusEntries.filter(
+      (entry) => !isAasimarCelestialRevelationStatusEntry(entry)
+    );
   }
 
-  return statusEntries.filter((entry) => !isAasimarCelestialRevelationStatusEntry(entry));
+  if (isDragonbornSpecies(character.species) && character.level >= 5) {
+    statusEntries = statusEntries.map((entry) =>
+      isDragonbornDraconicFlightStatusEntry(entry)
+        ? normalizeDragonbornDraconicFlightStatusEntry(entry)
+        : entry
+    );
+  } else {
+    statusEntries = statusEntries.filter((entry) => !isDragonbornDraconicFlightStatusEntry(entry));
+  }
+
+  if (isDwarfSpecies(character.species)) {
+    statusEntries = statusEntries.map((entry) =>
+      isDwarfStonecunningStatusEntry(entry) ? normalizeDwarfStonecunningStatusEntry(entry) : entry
+    );
+  } else {
+    statusEntries = statusEntries.filter((entry) => !isDwarfStonecunningStatusEntry(entry));
+  }
+
+  if (isGoliathSpecies(character.species) && character.level >= 5) {
+    statusEntries = statusEntries.map((entry) =>
+      isGoliathLargeFormStatusEntry(entry) ? normalizeGoliathLargeFormStatusEntry(entry) : entry
+    );
+  } else {
+    statusEntries = statusEntries.filter((entry) => !isGoliathLargeFormStatusEntry(entry));
+  }
+
+  return statusEntries;
 }
 
 export function getAasimarHealingHandsFormula(character: Pick<Character, "level">): string {
@@ -658,38 +1252,71 @@ export function getAasimarCelestialRevelationOptions(): AasimarCelestialRevelati
 }
 
 export function getSpeciesActionsForCharacter(character: Character): FeatureActionCard[] {
-  if (!isAasimarSpecies(character.species)) {
-    return [];
+  if (isAasimarSpecies(character.species)) {
+    return [
+      getAasimarHealingHandsAction(character),
+      ...(character.level >= 3 ? [getAasimarCelestialRevelationAction(character)] : [])
+    ];
   }
 
   return [
-    getAasimarHealingHandsAction(character),
-    ...(character.level >= 3 ? [getAasimarCelestialRevelationAction(character)] : [])
+    ...getDragonbornActionsForCharacter(character),
+    ...getDwarfActionsForCharacter(character),
+    ...getGoliathActionsForCharacter(character)
   ];
 }
 
+export function transformSpeciesCommonActionForCharacter(
+  character: Pick<Character, "species" | "level"> & Partial<Pick<Character, "speciesFeatureState">>,
+  action: FeatureActionCard
+): FeatureActionCard {
+  return getOrcCommonActionForCharacter(character, action);
+}
+
 export function getSpeciesGrantedCantripEntriesForCharacter(
-  character: Pick<Character, "species">
+  character: Pick<Character, "species"> & Partial<Pick<Character, "speciesChoices">>
 ): SpellEntry[] {
-  if (!isAasimarSpecies(character.species)) {
-    return [];
+  const grantedCantrips: SpellEntry[] = [];
+
+  if (isAasimarSpecies(character.species)) {
+    const light = getSpellEntryById(aasimarLightCantripId);
+
+    if (light) {
+      grantedCantrips.push(light);
+    }
   }
 
-  const light = getSpellEntryById(aasimarLightCantripId);
+  grantedCantrips.push(...getElfGrantedCantripEntriesForCharacter(character));
+  grantedCantrips.push(...getGnomeGrantedCantripEntriesForCharacter(character));
+  grantedCantrips.push(...getTieflingGrantedCantripEntriesForCharacter(character));
 
-  return light ? [light] : [];
+  return grantedCantrips;
 }
 
 export function getSpeciesAlwaysPreparedCantripEntriesForCharacter(
-  character: Pick<Character, "species">
+  character: Pick<Character, "species"> & Partial<Pick<Character, "speciesChoices">>
 ): SpellEntry[] {
   return getSpeciesGrantedCantripEntriesForCharacter(character);
 }
 
+export function getSpeciesAlwaysPreparedSpellIdsForCharacter(
+  character: Pick<Character, "species"> & Partial<Pick<Character, "level" | "speciesChoices">>
+): string[] {
+  return [
+    ...getElfAlwaysPreparedSpellIdsForCharacter(character),
+    ...getGnomeAlwaysPreparedSpellIdsForCharacter(character),
+    ...getTieflingAlwaysPreparedSpellIdsForCharacter(character)
+  ];
+}
+
 export function getSpeciesAlwaysPreparedSpellSourceMapForCharacter(
-  character: Pick<Character, "species">
+  character: Pick<Character, "species"> & Partial<Pick<Character, "level" | "speciesChoices">>
 ): SpellSourceMap {
-  const sourceMap: SpellSourceMap = {};
+  const sourceMap: SpellSourceMap = {
+    ...getElfAlwaysPreparedSpellSourceMapForCharacter(character),
+    ...getGnomeAlwaysPreparedSpellSourceMapForCharacter(character),
+    ...getTieflingAlwaysPreparedSpellSourceMapForCharacter(character)
+  };
 
   if (isAasimarSpecies(character.species)) {
     addSpellSource(sourceMap, aasimarLightCantripId, "Aasimar");
@@ -699,37 +1326,60 @@ export function getSpeciesAlwaysPreparedSpellSourceMapForCharacter(
 }
 
 export function getSpeciesSpellcastingAbilityForCharacter(
-  character: Pick<Character, "species">,
+  character: Pick<Character, "species"> & Partial<Pick<Character, "speciesChoices">>,
   spellId: string
 ): AbilityKey | null {
   if (isAasimarSpecies(character.species) && spellId === aasimarLightCantripId) {
     return "CHA";
   }
 
-  return null;
+  const elfSpellcastingAbility = getElfSpellcastingAbilityForCharacter(character, spellId);
+
+  if (elfSpellcastingAbility) {
+    return elfSpellcastingAbility;
+  }
+
+  const gnomeSpellcastingAbility = getGnomeSpellcastingAbilityForCharacter(character, spellId);
+
+  if (gnomeSpellcastingAbility) {
+    return gnomeSpellcastingAbility;
+  }
+
+  return getTieflingSpellcastingAbilityForCharacter(character, spellId);
+}
+
+export function getSpeciesSpellEntryForCharacter(
+  character: Pick<Character, "species"> & Partial<Pick<Character, "speciesChoices">>,
+  spell: SpellEntry
+): SpellEntry {
+  return getGnomeSpellEntryForCharacter(character, spell);
 }
 
 export function getSpeciesSpeedBonusesForCharacter(
-  character: Pick<Character, "species"> & Partial<Pick<Character, "statusEntries">>
+  character: Pick<Character, "species"> &
+    Partial<Pick<Character, "speciesChoices" | "statusEntries">>
 ): FeatureSpeedBonus[] {
-  if (!isAasimarSpecies(character.species)) {
-    return [];
-  }
-
   const hasHeavenlyWingsActive = normalizeCharacterStatusEntries(character.statusEntries).some(
     (entry) => getAasimarCelestialRevelationStatusOptionKey(entry) === "heavenly-wings"
   );
+  const aasimarSpeedBonuses =
+    isAasimarSpecies(character.species) && hasHeavenlyWingsActive
+      ? [
+          {
+            label: "Heavenly Wings",
+            value: 0,
+            movementType: "fly" as const,
+            setBaseFromWalkMultiplier: 1
+          }
+        ]
+      : [];
 
-  return hasHeavenlyWingsActive
-    ? [
-        {
-          label: "Heavenly Wings",
-          value: 0,
-          movementType: "fly",
-          setBaseFromWalkMultiplier: 1
-        }
-      ]
-    : [];
+  return [
+    ...aasimarSpeedBonuses,
+    ...getDragonbornSpeedBonusesForCharacter(character),
+    ...getElfSpeedBonusesForCharacter(character),
+    ...getGoliathSpeedBonusesForCharacter(character)
+  ];
 }
 
 function createAasimarStatusEntry(
@@ -789,7 +1439,7 @@ function getAasimarDerivedStatusEntries(entry: SpeciesEntry): CharacterStatusEnt
 }
 
 export function getSpeciesDerivedStatusEntriesForCharacter(
-  character: Pick<Character, "species">
+  character: Pick<Character, "species"> & Partial<Pick<Character, "speciesChoices">>
 ): CharacterStatusEntry[] {
   const entry = getSpeciesEntry(character.species);
 
@@ -800,6 +1450,22 @@ export function getSpeciesDerivedStatusEntriesForCharacter(
   switch (entry.id) {
     case "species-aasimar-2024":
       return getAasimarDerivedStatusEntries(entry);
+    case "species-dragonborn-2024":
+      return getDragonbornDerivedStatusEntriesForCharacter(character);
+    case "species-dwarf-2024":
+      return getDwarfDerivedStatusEntriesForCharacter(character);
+    case "species-elf-2024":
+      return getElfDerivedStatusEntriesForCharacter(character);
+    case "species-gnome-2024":
+      return getGnomeDerivedStatusEntriesForCharacter(character);
+    case "species-goliath-2024":
+      return getGoliathDerivedStatusEntriesForCharacter(character);
+    case "species-halfling-2024":
+      return getHalflingDerivedStatusEntriesForCharacter(character);
+    case "species-orc-2024":
+      return getOrcDerivedStatusEntriesForCharacter(character);
+    case "species-tiefling-2024":
+      return getTieflingDerivedStatusEntriesForCharacter(character);
     default:
       return [];
   }

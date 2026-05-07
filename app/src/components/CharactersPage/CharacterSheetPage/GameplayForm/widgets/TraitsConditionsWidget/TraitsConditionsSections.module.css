@@ -75,6 +75,26 @@
   text-transform: uppercase;
 }
 
+.buttonTitle {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.22rem;
+  min-width: 0;
+}
+
+.buttonTitleText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.modifiedIcon {
+  color: #1d4ed8;
+  display: inline-flex;
+  flex: 0 0 auto;
+}
+
 .buttonMeta {
   display: inline-flex;
   align-items: center;

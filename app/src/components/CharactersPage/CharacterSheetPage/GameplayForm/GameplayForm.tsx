@@ -3,6 +3,7 @@ import { CircleHelp } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Character } from "../../../../types";
 import { getRestDescriptionInjectionsForCharacter } from "../../../../pages/CharactersPage/classFeatures/restDescriptionInjections";
+import { getHumanResourcefulDescriptionEntriesForCharacter } from "../../../../pages/CharactersPage/species";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { normalizeRoundTracker } from "../../../../pages/CharactersPage/combat";
 import { createSourcedDescriptionEntries } from "../../../../pages/CharactersPage/actionModalDescriptions";
@@ -77,6 +78,10 @@ function GameplayForm({
     () => getWeaponMasterLongRestDescriptionAdditionsForCharacter(character),
     [character]
   );
+  const humanResourcefulLongRestDescription = useMemo(
+    () => getHumanResourcefulDescriptionEntriesForCharacter(character),
+    [character]
+  );
   const shortRestDescriptionInjections = useMemo(() => {
     const additions = [
       ...restDescriptionInjections.shortRest,
@@ -127,11 +132,16 @@ function GameplayForm({
       );
     }
 
+    if (humanResourcefulLongRestDescription.length > 0) {
+      additions.push(humanResourcefulLongRestDescription);
+    }
+
     return additions;
   }, [
     chefLongRestDescriptionInjections,
     character.feats,
     character.level,
+    humanResourcefulLongRestDescription,
     inspiringLeaderRestDescriptionInjections,
     musicianEncouragingSongDescription,
     restDescriptionInjections.longRest,

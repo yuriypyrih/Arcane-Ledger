@@ -27,6 +27,7 @@ import {
   getWarlockPactOfTheBladeConjuredItemKeyFromSelectionIdsForCharacter,
   getWarlockInvocationSelectionIdsForCharacter,
   getWarlockLearnedInvocationOptionsForCharacter,
+  normalizeCharacterClassFeatureState,
   setWarlockInvocationSelectionIdsForCharacter
 } from "../../../../pages/CharactersPage/classFeatures";
 import { fetchItemByKey } from "../../../../api";
@@ -34,10 +35,22 @@ import { getFeatEligibilityForCharacter } from "../../../../pages/CharactersPage
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import {
   getSelectedSubclassForCharacter,
+  getSubclassOptionsForClassName,
   getSubclassFeatureDetails,
   getSubclassFeatureRowsForCharacter
 } from "../../../../pages/CharactersPage/subclasses";
-import type { Character, CharacterFeatEntry, ItemRecord } from "../../../../types";
+import type {
+  Character,
+  CharacterFeatEntry,
+  CharacterSpeciesChoices,
+  ItemRecord
+} from "../../../../types";
+import {
+  normalizeCharacterSpeciesChoices,
+  normalizeCharacterSpeciesFeatureState,
+  normalizeSpeciesStatusEntriesForCharacter,
+  reconcileHumanOriginFeatEntries
+} from "../../../../pages/CharactersPage/species";
 import { resolveKeywordReference } from "../../../../utils/codex/renderCodexRichText";
 import CodexDivinityDrawer from "../../../CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
 import CodexSpellDrawer from "../../../CodexPage/CodexSpellDrawer";
@@ -52,6 +65,9 @@ import EldritchInvocationReferenceDrawer from "./EldritchInvocationReferenceDraw
 import FeatEditorModal from "./FeatEditorModal";
 import FeatList from "./FeatList";
 import FeatReferenceDrawer from "./FeatReferenceDrawer";
+import SpeciesBuildCard from "./SpeciesBuildCard";
+import SpeciesEditorModal from "./SpeciesEditorModal";
+import SubclassEditorModal from "./SubclassEditorModal";
 import {
   createEmptyPendingFeatState,
   createPendingFeatStateForEntry,
@@ -161,6 +177,8 @@ function ClassFeaturesAndFeats({
   const [isExpanded, setIsExpanded] = useState(true);
   const [isFutureFeaturesVisible, setIsFutureFeaturesVisible] = useState(false);
   const [expandedFeatureKeys, setExpandedFeatureKeys] = useState<string[]>([]);
+  const [isSpeciesModalOpen, setIsSpeciesModalOpen] = useState(false);
+  const [isSubclassModalOpen, setIsSubclassModalOpen] = useState(false);
   const [isFeatModalOpen, setIsFeatModalOpen] = useState(false);
   const [isEldritchInvocationModalOpen, setIsEldritchInvocationModalOpen] = useState(false);
   const [featEditorContext, setFeatEditorContext] = useState<FeatEditorContext>({
@@ -198,6 +216,11 @@ function ClassFeaturesAndFeats({
       }),
     [character.className, character.subclassId]
   );
+  const subclassOptions = useMemo(
+    () => getSubclassOptionsForClassName(character.className),
+    [character.className]
+  );
+  const selectedSubclassLabel = selectedSubclass?.name ?? "No subclass selected";
   const allFeatures = useMemo<FeatureRow[]>(() => {
     if (!classEntry) {
       return [];
@@ -593,6 +616,53 @@ function ClassFeaturesAndFeats({
     setIsFeatModalOpen(false);
   }
 
+  function saveSpecies(species: string, speciesChoices?: CharacterSpeciesChoices) {
+    setIsSpeciesModalOpen(false);
+    onPersistCharacter((currentCharacter) => {
+      const normalizedSpecies = species.trim();
+      const normalizedChoices = normalizeCharacterSpeciesChoices(normalizedSpecies, speciesChoices);
+
+      return {
+        ...currentCharacter,
+        species: normalizedSpecies,
+        speciesChoices: normalizedChoices,
+        speciesFeatureState: normalizeCharacterSpeciesFeatureState(
+          normalizedSpecies,
+          currentCharacter.species === normalizedSpecies
+            ? currentCharacter.speciesFeatureState
+            : undefined
+        ),
+        feats: reconcileHumanOriginFeatEntries(
+          currentCharacter.feats ?? [],
+          normalizedSpecies,
+          normalizedChoices,
+          currentCharacter.level
+        ),
+        statusEntries: normalizeSpeciesStatusEntriesForCharacter({
+          species: normalizedSpecies,
+          level: currentCharacter.level,
+          statusEntries: currentCharacter.statusEntries
+        })
+      };
+    });
+  }
+
+  function saveSubclass(subclassId: string) {
+    setIsSubclassModalOpen(false);
+    onPersistCharacter((currentCharacter) => ({
+      ...currentCharacter,
+      subclassId,
+      classFeatureState: normalizeCharacterClassFeatureState(currentCharacter.classFeatureState, {
+        className: currentCharacter.className,
+        level: currentCharacter.level,
+        subclassId,
+        abilities: currentCharacter.abilities,
+        cantripIds: currentCharacter.cantripIds,
+        feats: currentCharacter.feats
+      })
+    }));
+  }
+
   function openFeatEditor() {
     resetPendingFeatState();
     resetFeatEditorDraft();
@@ -623,9 +693,13 @@ function ClassFeaturesAndFeats({
     }
 
     onPersistCharacter((currentCharacter) => {
-      const characterWithInvocations = setWarlockInvocationSelectionIdsForCharacter(currentCharacter, selectionIds, {
-        pactBladeConjuredItem
-      });
+      const characterWithInvocations = setWarlockInvocationSelectionIdsForCharacter(
+        currentCharacter,
+        selectionIds,
+        {
+          pactBladeConjuredItem
+        }
+      );
       const selectedLessonsSelectionIds = new Set(selectionIds);
       const nextLessonsFeatEntries = lessonsFeatEntries.filter(
         (entry) =>
@@ -1600,9 +1674,9 @@ function ClassFeaturesAndFeats({
                 <CircleHelp size={16} />
               </button>
             </div>
-            <h2 className={shared.title}>Class Features &amp; Feats</h2>
+            <h2 className={shared.title}>Species, Feats &amp; Class Features</h2>
             <p className={shared.helperText}>
-              Review unlocked class features and manage feat selections for your build.
+              Review species choices, feat selections, and unlocked class features for your build.
             </p>
           </div>
           <button
@@ -1626,6 +1700,24 @@ function ClassFeaturesAndFeats({
 
         {isExpanded ? (
           <div id="class-features-and-feats-content" className={styles.sectionStack}>
+            <section className={styles.subsection} aria-labelledby="character-species-title">
+              <div className={styles.subsectionHeader}>
+                <h3 id="character-species-title" className={styles.subsectionTitle}>
+                  Species
+                </h3>
+                <button
+                  type="button"
+                  className={shared.editButton}
+                  onClick={() => setIsSpeciesModalOpen(true)}
+                  disabled={isSpeciesModalOpen}
+                >
+                  <Pencil size={16} />
+                  Edit
+                </button>
+              </div>
+              <SpeciesBuildCard character={character} />
+            </section>
+
             <section className={styles.subsection} aria-labelledby="character-feats-title">
               <div className={styles.subsectionHeader}>
                 <h3 id="character-feats-title" className={styles.subsectionTitle}>
@@ -1651,9 +1743,21 @@ function ClassFeaturesAndFeats({
 
             <section className={styles.subsection} aria-labelledby="character-class-features-title">
               <div className={styles.subsectionHeader}>
-                <h3 id="character-class-features-title" className={styles.subsectionTitle}>
-                  Class Features
-                </h3>
+                <div className={styles.subsectionHeaderText}>
+                  <h3 id="character-class-features-title" className={styles.subsectionTitle}>
+                    Class Features
+                  </h3>
+                  <p className={styles.subsectionMeta}>Subclass: {selectedSubclassLabel}</p>
+                </div>
+                <button
+                  type="button"
+                  className={shared.editButton}
+                  onClick={() => setIsSubclassModalOpen(true)}
+                  disabled={isSubclassModalOpen || subclassOptions.length === 0}
+                >
+                  <Pencil size={16} />
+                  Edit
+                </button>
               </div>
 
               {unlockedFeatures.length > 0 ? (
@@ -1732,6 +1836,22 @@ function ClassFeaturesAndFeats({
       </article>
 
       {isGuideOpen ? <ClassFeaturesGuideModal onClose={() => setIsGuideOpen(false)} /> : null}
+
+      {isSpeciesModalOpen ? (
+        <SpeciesEditorModal
+          character={character}
+          onCancel={() => setIsSpeciesModalOpen(false)}
+          onSave={saveSpecies}
+        />
+      ) : null}
+
+      {isSubclassModalOpen ? (
+        <SubclassEditorModal
+          character={character}
+          onCancel={() => setIsSubclassModalOpen(false)}
+          onSave={saveSubclass}
+        />
+      ) : null}
 
       {isFeatModalOpen ? (
         <FeatEditorModal

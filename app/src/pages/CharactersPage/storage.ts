@@ -40,9 +40,11 @@ import { normalizeCharacterCompanions } from "./companions";
 import { normalizeCharacterFeats } from "./feats";
 import { normalizeBackgroundChoices, reconcileBackgroundOriginFeatEntries } from "./backgrounds";
 import {
+  getSpeciesAlwaysPreparedSpellIdsForCharacter,
   normalizeCharacterSpeciesChoices,
   normalizeCharacterSpeciesFeatureState,
-  normalizeSpeciesStatusEntriesForCharacter
+  normalizeSpeciesStatusEntriesForCharacter,
+  reconcileHumanOriginFeatEntries
 } from "./species";
 import { normalizeCharacterInventoryItems } from "./inventoryItems";
 import {
@@ -289,9 +291,14 @@ export function normalizeCharacter(value: unknown): Character | null {
     ...createDefaultAbilities(),
     ...(record.abilities ?? {})
   };
-  const normalizedFeats = reconcileBackgroundOriginFeatEntries(
-    normalizeCharacterFeats(record.feats, normalizedLevel),
-    isBackgroundName(resolvedBackground) ? resolvedBackground : "",
+  const normalizedFeats = reconcileHumanOriginFeatEntries(
+    reconcileBackgroundOriginFeatEntries(
+      normalizeCharacterFeats(record.feats, normalizedLevel),
+      isBackgroundName(resolvedBackground) ? resolvedBackground : "",
+      normalizedLevel
+    ),
+    normalizedSpecies,
+    normalizedSpeciesChoices,
     normalizedLevel
   );
   const rawPersistedCantripIds = Array.isArray(record.cantripIds)
@@ -360,6 +367,7 @@ export function normalizeCharacter(value: unknown): Character | null {
     className: normalizedClassName,
     level: normalizedLevel,
     species: normalizedSpecies,
+    speciesChoices: normalizedSpeciesChoices,
     background: resolvedBackground,
     backgroundChoices: normalizedBackgroundChoices,
     subclassId: normalizedSubclassId,
@@ -439,14 +447,21 @@ export function normalizeCharacter(value: unknown): Character | null {
     ),
     preparedSpellSelectionOptions,
     preparedSpellLimit,
-    getAlwaysPreparedSpellIds(
-      normalizedClassName,
-      normalizedLevel,
-      normalizedClassFeatureState,
-      undefined,
-      normalizedSubclassId,
-      normalizedStatusEntries
-    )
+    [
+      ...getAlwaysPreparedSpellIds(
+        normalizedClassName,
+        normalizedLevel,
+        normalizedClassFeatureState,
+        undefined,
+        normalizedSubclassId,
+        normalizedStatusEntries
+      ),
+      ...getSpeciesAlwaysPreparedSpellIdsForCharacter({
+        species: normalizedSpecies,
+        level: normalizedLevel,
+        speciesChoices: normalizedSpeciesChoices
+      })
+    ]
   );
   const spellSlotTotals = getSpellSlotTotalsForCharacter(
     normalizedClassName,

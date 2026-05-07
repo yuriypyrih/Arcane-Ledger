@@ -112,6 +112,12 @@ import {
   createNamedUsageHeaderTags,
   createNamedResourceCardUsage
 } from "../../../../../../pages/CharactersPage/classFeatures/cardUsage";
+import {
+  applyOrcAdrenalineRushForCharacter,
+  consumeGoliathGiantAncestryUseForCharacter,
+  getOrcAdrenalineRushUsesRemaining,
+  hasOrcAdrenalineRushCommonActionBonusPath
+} from "../../../../../../pages/CharactersPage/species";
 import { mantleOfInspirationActionKey } from "../../../../../../pages/CharactersPage/classFeatures/bard/subclasses/bardCollegeOfGlamour";
 import {
   channelDivinityActionKey,
@@ -473,6 +479,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     isDreadfulStrikeSelected,
     isEmpoweredStrikesSelected,
     isEldritchSmiteSelected,
+    isGoliathAncestryStrikeSelected,
     isLifedrinkerSelected,
     isFixedSpellDrawerOpen,
     isFlurryOfHealingAndHarmSelected,
@@ -544,6 +551,8 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     selectedWeaponHandOfHarmToggleDisabled,
     selectedWeaponHordeBreakerState,
     selectedWeaponHordeBreakerToggleDisabled,
+    selectedWeaponGoliathAncestryState,
+    selectedWeaponGoliathAncestryToggleDisabled,
     selectedWeaponHuntersMarkTargetState,
     selectedWeaponHuntersMarkTargetToggleDisabled,
     selectedWeaponRecklessAttackState,
@@ -576,6 +585,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     setIsLifedrinkerSelected,
     setIsFixedSpellDrawerOpen,
     setIsFlurryOfHealingAndHarmSelected,
+    setIsGoliathAncestryStrikeSelected,
     setIsHandOfHarmSelected,
     setIsHuntersMarkTargetSelected,
     setIsImprovedShadowStepSelected,
@@ -684,6 +694,12 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
       setIsVowOfEnmitySelected(false);
     }
   }, [selectedWeaponVowOfEnmityState, selectedWeaponVowOfEnmityToggleDisabled]);
+
+  useEffect(() => {
+    if (!selectedWeaponGoliathAncestryState || selectedWeaponGoliathAncestryToggleDisabled) {
+      setIsGoliathAncestryStrikeSelected(false);
+    }
+  }, [selectedWeaponGoliathAncestryState, selectedWeaponGoliathAncestryToggleDisabled]);
 
   useEffect(() => {
     if (selectedWeaponHuntersMarkTargetToggleDisabled) {
@@ -1096,11 +1112,46 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     action: FeatureActionCard,
     economyType: EconomyType = action.economyType
   ) {
+    const isBonusActionDash =
+      action.key === "common-action-dash" && economyType === ECONOMY_TYPE.BONUS_ACTION;
+
     if (
-      action.key === "common-action-dash" &&
-      economyType === ECONOMY_TYPE.BONUS_ACTION &&
-      shouldConsumeMonkFleetStepFollowUp(character)
+      isBonusActionDash &&
+      hasOrcAdrenalineRushCommonActionBonusPath(character, action.key) &&
+      getOrcAdrenalineRushUsesRemaining(character) > 0
     ) {
+      onPersistCharacter((currentCharacter) => {
+        if (
+          !hasOrcAdrenalineRushCommonActionBonusPath(currentCharacter, action.key) ||
+          getOrcAdrenalineRushUsesRemaining(currentCharacter) <= 0
+        ) {
+          return currentCharacter;
+        }
+
+        const shouldConsumeFleetStep = shouldConsumeMonkFleetStepFollowUp(currentCharacter);
+        const roundTrackerResource = shouldConsumeFleetStep
+          ? null
+          : getRoundTrackerResourceForEconomyType(ECONOMY_TYPE.BONUS_ACTION);
+        const preparedCharacter = prepareCharacterForResourceConsumption(
+          currentCharacter,
+          roundTrackerResource
+        );
+        const rushedCharacter = applyOrcAdrenalineRushForCharacter(preparedCharacter);
+        const characterWithFleetStep =
+          shouldConsumeFleetStep && shouldConsumeMonkFleetStepFollowUp(rushedCharacter)
+            ? consumeMonkWarriorOfTheOpenHandFleetStepFollowUpUse(rushedCharacter)
+            : rushedCharacter;
+
+        return roundTrackerResource
+          ? consumeRoundTrackerResourceForCharacter(characterWithFleetStep, roundTrackerResource)
+          : characterWithFleetStep;
+      });
+      closeActionDrawer();
+      setIsCommonActionsOpen(false);
+      return;
+    }
+
+    if (isBonusActionDash && shouldConsumeMonkFleetStepFollowUp(character)) {
       onPersistCharacter((currentCharacter) =>
         shouldConsumeMonkFleetStepFollowUp(currentCharacter)
           ? consumeMonkWarriorOfTheOpenHandFleetStepFollowUpUse(currentCharacter)
@@ -1962,6 +2013,10 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
       isPolarStrikesSelected &&
       selectedWeaponPolarStrikesState !== null &&
       !selectedWeaponPolarStrikesToggleDisabled;
+    const useGoliathAncestryStrike =
+      isGoliathAncestryStrikeSelected &&
+      selectedWeaponGoliathAncestryState !== null &&
+      !selectedWeaponGoliathAncestryToggleDisabled;
     const useHuntersMarkTarget =
       isHuntersMarkTargetSelected &&
       selectedWeaponHuntersMarkTargetState !== null &&
@@ -2012,6 +2067,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
         useFeyDreadfulStrikes ||
         useColossusSlayer ||
         usePolarStrikes ||
+        useGoliathAncestryStrike ||
         useHuntersMarkTarget ||
         useEmpoweredStrikes ||
         useHandOfHarm ||
@@ -2073,6 +2129,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
       useFeyDreadfulStrikes ||
       useColossusSlayer ||
       usePolarStrikes ||
+      useGoliathAncestryStrike ||
       useStunningStrike ||
       useEmpoweredStrikes ||
       usePsionicStrike ||
@@ -2084,6 +2141,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     setIsDreadfulStrikeSelected(false);
     setIsColossusSlayerSelected(false);
     setIsPolarStrikesSelected(false);
+    setIsGoliathAncestryStrikeSelected(false);
     setIsStunningStrikeSelected(false);
     setIsEmpoweredStrikesSelected(false);
     setIsHandOfHarmSelected(false);
@@ -2122,6 +2180,10 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
 
         if (usePolarStrikes) {
           nextCharacter = consumeRangerWinterWalkerPolarStrikesUseForCharacter(nextCharacter);
+        }
+
+        if (useGoliathAncestryStrike) {
+          nextCharacter = consumeGoliathGiantAncestryUseForCharacter(nextCharacter);
         }
 
         if (useQuiveringPalm) {

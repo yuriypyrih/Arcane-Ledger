@@ -100,8 +100,18 @@ import {
 } from "../../../../../../pages/CharactersPage/classFeatures/cardUsage";
 import {
   activateAasimarCelestialRevelationForCharacter,
+  activateDragonbornDraconicFlightForCharacter,
+  activateDwarfStonecunningForCharacter,
+  activateGoliathLargeFormForCharacter,
+  consumeGoliathGiantAncestryUseForCharacter,
   getAasimarHealingHandsFormula,
-  spendAasimarHealingHandsForCharacter
+  getDragonbornBreathWeaponDamageFormula,
+  getDragonbornBreathWeaponDamageTypeLabelForCharacter,
+  getGoliathStoneEnduranceDamageReductionFormula,
+  getGoliathStoneEnduranceDamageReductionFormulaDisplay,
+  getGoliathStormThunderDamageFormula,
+  spendAasimarHealingHandsForCharacter,
+  spendDragonbornBreathWeaponForCharacter
 } from "../../../../../../pages/CharactersPage/species";
 import { mantleOfInspirationActionKey } from "../../../../../../pages/CharactersPage/classFeatures/bard/subclasses/bardCollegeOfGlamour";
 import {
@@ -880,6 +890,232 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
       return roundTrackerResource
         ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
         : nextCharacter;
+    });
+
+    closeActionDrawer();
+  }
+
+  function submitDragonbornBreathWeapon() {
+    if (!selectedFeatureAction) {
+      return;
+    }
+
+    const damageFormula = getDragonbornBreathWeaponDamageFormula(character);
+    const damageTypeLabel =
+      getDragonbornBreathWeaponDamageTypeLabelForCharacter(character) ?? "Draconic Ancestry";
+
+    onPersistCharacter((currentCharacter) => {
+      const roundTrackerResource = getRoundTrackerResourceForEconomyType(
+        selectedFeatureAction.economyType
+      );
+      const preparedCharacter = prepareCharacterForResourceConsumption(
+        currentCharacter,
+        roundTrackerResource
+      );
+      const nextCharacter = spendDragonbornBreathWeaponForCharacter(preparedCharacter);
+
+      if (nextCharacter === preparedCharacter) {
+        return currentCharacter;
+      }
+
+      return roundTrackerResource
+        ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
+        : nextCharacter;
+    });
+
+    openDiceRoller({
+      title: selectedFeatureAction.name,
+      formula: damageFormula,
+      formulaDisplay: damageFormula,
+      description: `${selectedFeatureAction.detail} Damage type: ${damageTypeLabel}.`,
+      getFullManualToastText: ({ result }) =>
+        `Rolled ${result.total} ${damageTypeLabel} Breath Weapon damage.`
+    });
+
+    closeActionDrawer();
+  }
+
+  function submitDragonbornDraconicFlight() {
+    if (!selectedFeatureAction) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      const roundTrackerResource = getRoundTrackerResourceForEconomyType(
+        selectedFeatureAction.economyType
+      );
+      const preparedCharacter = prepareCharacterForResourceConsumption(
+        currentCharacter,
+        roundTrackerResource
+      );
+      const nextCharacter = activateDragonbornDraconicFlightForCharacter(preparedCharacter);
+
+      if (nextCharacter === preparedCharacter) {
+        return currentCharacter;
+      }
+
+      return roundTrackerResource
+        ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
+        : nextCharacter;
+    });
+
+    closeActionDrawer();
+  }
+
+  function submitDwarfStonecunning() {
+    if (!selectedFeatureAction) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      const roundTrackerResource = getRoundTrackerResourceForEconomyType(
+        selectedFeatureAction.economyType
+      );
+      const preparedCharacter = prepareCharacterForResourceConsumption(
+        currentCharacter,
+        roundTrackerResource
+      );
+      const nextCharacter = activateDwarfStonecunningForCharacter(preparedCharacter);
+
+      if (nextCharacter === preparedCharacter) {
+        return currentCharacter;
+      }
+
+      return roundTrackerResource
+        ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
+        : nextCharacter;
+    });
+
+    closeActionDrawer();
+  }
+
+  function submitGoliathCloudsJaunt() {
+    if (!selectedFeatureAction) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      const roundTrackerResource = getRoundTrackerResourceForEconomyType(
+        selectedFeatureAction.economyType
+      );
+      const preparedCharacter = prepareCharacterForResourceConsumption(
+        currentCharacter,
+        roundTrackerResource
+      );
+      const nextCharacter = consumeGoliathGiantAncestryUseForCharacter(preparedCharacter);
+
+      if (nextCharacter === preparedCharacter) {
+        return currentCharacter;
+      }
+
+      return roundTrackerResource
+        ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
+        : nextCharacter;
+    });
+
+    closeActionDrawer();
+  }
+
+  function submitGoliathLargeForm() {
+    if (!selectedFeatureAction) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      const roundTrackerResource = getRoundTrackerResourceForEconomyType(
+        selectedFeatureAction.economyType
+      );
+      const preparedCharacter = prepareCharacterForResourceConsumption(
+        currentCharacter,
+        roundTrackerResource
+      );
+      const nextCharacter = activateGoliathLargeFormForCharacter(preparedCharacter);
+
+      if (nextCharacter === preparedCharacter) {
+        return currentCharacter;
+      }
+
+      return roundTrackerResource
+        ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
+        : nextCharacter;
+    });
+
+    closeActionDrawer();
+  }
+
+  function submitGoliathStonesEndurance() {
+    if (!selectedFeatureAction) {
+      return;
+    }
+
+    const damageReductionFormula = getGoliathStoneEnduranceDamageReductionFormula(character);
+    const damageReductionFormulaDisplay =
+      getGoliathStoneEnduranceDamageReductionFormulaDisplay(character);
+
+    onPersistCharacter((currentCharacter) => {
+      const roundTrackerResource = getRoundTrackerResourceForEconomyType(
+        selectedFeatureAction.economyType
+      );
+      const preparedCharacter = prepareCharacterForResourceConsumption(
+        currentCharacter,
+        roundTrackerResource
+      );
+      const nextCharacter = consumeGoliathGiantAncestryUseForCharacter(preparedCharacter);
+
+      if (nextCharacter === preparedCharacter) {
+        return currentCharacter;
+      }
+
+      return roundTrackerResource
+        ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
+        : nextCharacter;
+    });
+
+    openDiceRoller({
+      title: selectedFeatureAction.name,
+      formula: damageReductionFormula,
+      formulaDisplay: damageReductionFormulaDisplay,
+      description: "Stone's Endurance damage reduction roll.",
+      getFullManualToastText: ({ result }) =>
+        `Reduced incoming damage by ${result.total} with Stone's Endurance.`
+    });
+
+    closeActionDrawer();
+  }
+
+  function submitGoliathStormsThunder() {
+    if (!selectedFeatureAction) {
+      return;
+    }
+
+    const damageFormula = getGoliathStormThunderDamageFormula();
+
+    onPersistCharacter((currentCharacter) => {
+      const roundTrackerResource = getRoundTrackerResourceForEconomyType(
+        selectedFeatureAction.economyType
+      );
+      const preparedCharacter = prepareCharacterForResourceConsumption(
+        currentCharacter,
+        roundTrackerResource
+      );
+      const nextCharacter = consumeGoliathGiantAncestryUseForCharacter(preparedCharacter);
+
+      if (nextCharacter === preparedCharacter) {
+        return currentCharacter;
+      }
+
+      return roundTrackerResource
+        ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
+        : nextCharacter;
+    });
+
+    openDiceRoller({
+      title: selectedFeatureAction.name,
+      formula: damageFormula,
+      formulaDisplay: "1d8 Thunder",
+      description: "Storm's Thunder damage roll.",
+      getFullManualToastText: ({ result }) =>
+        `Rolled ${result.total} Thunder damage for Storm's Thunder.`
     });
 
     closeActionDrawer();
@@ -1900,6 +2136,13 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     submitLayOnHands,
     submitAasimarHealingHands,
     submitAasimarCelestialRevelation,
+    submitDragonbornBreathWeapon,
+    submitDragonbornDraconicFlight,
+    submitDwarfStonecunning,
+    submitGoliathCloudsJaunt,
+    submitGoliathLargeForm,
+    submitGoliathStonesEndurance,
+    submitGoliathStormsThunder,
     submitWarriorOfTheGods,
     submitIndomitable,
     submitHealingLight,

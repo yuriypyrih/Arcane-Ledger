@@ -17,6 +17,7 @@ import {
 } from "../../../../../../pages/CharactersPage/feats/runtime";
 import { getCompanionStatusEntriesForCharacter } from "../../../../../../pages/CharactersPage/companions";
 import {
+  getSpeciesAlwaysPreparedSpellIdsForCharacter,
   getSpeciesDerivedStatusEntriesForCharacter,
   getSpeciesGrantedCantripEntriesForCharacter
 } from "../../../../../../pages/CharactersPage/species";
@@ -127,19 +128,29 @@ export function useTraitsConditionsSections({
     [character.className, character.level, character.subclassId]
   );
   const alwaysPreparedSpellIds = useMemo(
-    () =>
-      getAlwaysPreparedSpellIds(
-        character.className,
-        character.level,
-        character.classFeatureState,
-        undefined,
-        character.subclassId,
-        character.statusEntries
-      ),
+    () => [
+      ...new Set([
+        ...getAlwaysPreparedSpellIds(
+          character.className,
+          character.level,
+          character.classFeatureState,
+          undefined,
+          character.subclassId,
+          character.statusEntries
+        ),
+        ...getSpeciesAlwaysPreparedSpellIdsForCharacter({
+          species: character.species,
+          level: character.level,
+          speciesChoices: character.speciesChoices
+        })
+      ])
+    ],
     [
       character.classFeatureState,
       character.className,
       character.level,
+      character.species,
+      character.speciesChoices,
       character.statusEntries,
       character.subclassId
     ]
@@ -215,18 +226,22 @@ export function useTraitsConditionsSections({
       return spellLevel > 0 && spellLevel <= highestSpellSlotLevel;
     });
 
-    return usesPreparedSpells
-      ? [
-          ...alwaysPreparedSpellIds,
-          ...normalizePreparedSpellIds(
+    const preparedSpells = [
+      ...alwaysPreparedSpellIds,
+      ...(usesPreparedSpells
+        ? normalizePreparedSpellIds(
             character.preparedSpellIds,
             spellPreparationOptions,
             preparedSpellLimit,
             alwaysPreparedSpellIds
           )
-        ]
-          .map((spellId) => classSpellEntriesById.get(spellId))
-          .filter((spell): spell is SpellEntry => spell !== undefined)
+        : [])
+    ]
+      .map((spellId) => classSpellEntriesById.get(spellId))
+      .filter((spell): spell is SpellEntry => spell !== undefined);
+
+    return usesPreparedSpells || preparedSpells.length > 0
+      ? preparedSpells
       : spellPreparationOptions;
   }, [
     alwaysPreparedSpellIds,

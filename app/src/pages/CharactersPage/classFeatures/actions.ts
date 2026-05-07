@@ -34,6 +34,12 @@ import {
   transformFeatWeaponActionForCharacter
 } from "../feats/runtime";
 import { getSpeciesActionsForCharacter } from "../species";
+import { getGnomeSavingThrowIndicatorsForCharacter } from "../speciesGnome";
+import {
+  getGoliathAbilityCheckIndicatorsForCharacter,
+  getGoliathSavingThrowIndicatorsForCharacter,
+  getGoliathSkillIndicatorsForCharacter
+} from "../speciesGoliath";
 import { measureCharacterRuntime } from "../characterRuntime/performance";
 import {
   activateBardicInspiration,
@@ -767,25 +773,42 @@ export function getAdditionalWeaponMasteriesForCharacter(
 }
 
 export function getSavingThrowIndicatorsForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState" | "statusEntries">
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "statusEntries"> &
+    Partial<Pick<Character, "species" | "speciesChoices">>
 ): SavingThrowIndicatorMap {
   const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
+  const gnomeSavingThrowIndicators = character.species
+    ? getGnomeSavingThrowIndicatorsForCharacter({
+        species: character.species,
+        speciesChoices: character.speciesChoices
+      })
+    : {};
   const exhaustionIndicators = hasExhaustionSavingThrowDisadvantage(character.statusEntries)
     ? (Object.fromEntries(
         abilityKeys.map((ability) => [ability, [exhaustionDisadvantageIndicator]])
       ) as SavingThrowIndicatorMap)
     : {};
+  const goliathSavingThrowIndicators = character.species
+    ? getGoliathSavingThrowIndicatorsForCharacter({
+        species: character.species,
+        speciesChoices: character.speciesChoices,
+        statusEntries: character.statusEntries
+      })
+    : {};
 
   return mergeIndicatorMaps(
     baseFeatureState.savingThrowIndicators ?? {},
     subclassDerivedState.savingThrowIndicators ?? {},
+    gnomeSavingThrowIndicators,
+    goliathSavingThrowIndicators,
     exhaustionIndicators
   );
 }
 
 export function getAbilityCheckIndicatorsForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState" | "statusEntries">
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "statusEntries"> &
+    Partial<Pick<Character, "species" | "speciesChoices">>
 ): AbilityCheckIndicatorMap {
   const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
@@ -794,10 +817,18 @@ export function getAbilityCheckIndicatorsForCharacter(
         abilityKeys.map((ability) => [ability, [exhaustionDisadvantageIndicator]])
       ) as AbilityCheckIndicatorMap)
     : {};
+  const goliathAbilityCheckIndicators = character.species
+    ? getGoliathAbilityCheckIndicatorsForCharacter({
+        species: character.species,
+        speciesChoices: character.speciesChoices,
+        statusEntries: character.statusEntries
+      })
+    : {};
 
   return mergeIndicatorMaps(
     baseFeatureState.abilityCheckIndicators ?? {},
     subclassDerivedState.abilityCheckIndicators ?? {},
+    goliathAbilityCheckIndicators,
     exhaustionIndicators
   );
 }
@@ -831,7 +862,7 @@ export function getInitiativeBonusesForCharacter(
 
 export function getSkillIndicatorsForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "statusEntries"> &
-    Partial<Pick<Character, "subclassId">>
+    Partial<Pick<Character, "subclassId" | "species" | "speciesChoices">>
 ): SkillIndicatorMap {
   const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
@@ -840,10 +871,18 @@ export function getSkillIndicatorsForCharacter(
         ALL_SKILLS.map((skill) => [skill, [exhaustionDisadvantageIndicator]])
       ) as SkillIndicatorMap)
     : {};
+  const goliathSkillIndicators = character.species
+    ? getGoliathSkillIndicatorsForCharacter({
+        species: character.species,
+        speciesChoices: character.speciesChoices,
+        statusEntries: character.statusEntries
+      })
+    : {};
 
   return mergeIndicatorMaps(
     baseFeatureState.skillIndicators ?? {},
     subclassDerivedState.skillIndicators ?? {},
+    goliathSkillIndicators,
     exhaustionIndicators
   );
 }

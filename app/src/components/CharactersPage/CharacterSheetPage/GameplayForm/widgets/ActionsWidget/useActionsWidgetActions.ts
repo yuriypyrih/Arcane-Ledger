@@ -5,6 +5,7 @@ import { getCharacterRuntime } from "../../../../../../pages/CharactersPage/char
 import { normalizeRoundTracker } from "../../../../../../pages/CharactersPage/combat";
 import { getCommonActionCards } from "../../../../../../pages/CharactersPage/commonActions";
 import { transformCommonActionForCharacter } from "../../../../../../pages/CharactersPage/classFeatures";
+import { transformSpeciesCommonActionForCharacter } from "../../../../../../pages/CharactersPage/species";
 import {
   getResolvedCustomLoadoutEntries,
   type ResolvedCustomWeaponEntry
@@ -17,7 +18,13 @@ export function useActionsWidgetActions(character: Character) {
   const characterRuntime = useMemo(() => getCharacterRuntime(character), [character]);
   const combatActions = characterRuntime.combatActions;
   const commonActionCards = useMemo(
-    () => getCommonActionCards().map((action) => transformCommonActionForCharacter(character, action)),
+    () =>
+      getCommonActionCards().map((action) =>
+        transformSpeciesCommonActionForCharacter(
+          character,
+          transformCommonActionForCharacter(character, action)
+        )
+      ),
     [character]
   );
   const commonActions = useMemo(

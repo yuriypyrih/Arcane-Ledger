@@ -122,6 +122,12 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     selectedSpellFalseLifeTemporaryHitPointsFormula,
     selectedSpellFeyMagicDisabled,
     selectedSpellFeyMagicFreeCastState,
+    selectedSpellFiendishLegacyDisabled,
+    selectedSpellFiendishLegacyFreeCastState,
+    selectedSpellForestGnomeDisabled,
+    selectedSpellForestGnomeFreeCastState,
+    selectedSpellGoliathAncestryDisabled,
+    selectedSpellGoliathAncestryState,
     selectedSpellFeyReinforcementsDisabled,
     selectedSpellFreeCastSlotLevel,
     selectedSpellFrozenHauntFallbackSlotOptions,
@@ -154,7 +160,10 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     selectedSpellSupportsBoonOfSpellRecall,
     selectedSpellSupportsDetectThoughts,
     selectedSpellSupportsFeyMagic,
+    selectedSpellSupportsFiendishLegacy,
+    selectedSpellSupportsForestGnome,
     selectedSpellSupportsFeyReinforcements,
+    selectedSpellSupportsGoliathAncestry,
     selectedSpellSupportsMagicInitiate,
     selectedSpellSupportsMindMagic,
     selectedSpellSupportsMistyWanderer,
@@ -189,6 +198,9 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     setUseDetectThoughtsOnSelectedSpell,
     setUseElementalSmiteOnSelectedSpell,
     setUseFeyMagicOnSelectedSpell,
+    setUseFiendishLegacyOnSelectedSpell,
+    setUseForestGnomeOnSelectedSpell,
+    setUseGoliathAncestryOnSelectedSpell,
     setUseFeyReinforcementsNoConcentrationOnSelectedSpell,
     setUseFeyReinforcementsOnSelectedSpell,
     setUseFrozenHauntOnSelectedSpell,
@@ -231,6 +243,9 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     useDetectThoughtsOnSelectedSpell,
     useElementalSmiteOnSelectedSpell,
     useFeyMagicOnSelectedSpell,
+    useFiendishLegacyOnSelectedSpell,
+    useForestGnomeOnSelectedSpell,
+    useGoliathAncestryOnSelectedSpell,
     useFeyReinforcementsNoConcentrationOnSelectedSpell,
     useFeyReinforcementsOnSelectedSpell,
     useFrozenHauntOnSelectedSpell,
@@ -521,6 +536,9 @@ export function renderSpellCastingForm(context: Record<string, any>) {
               useWarGodsBlessing: useWarGodsBlessingOnSelectedSpell,
               useStarMap: useStarMapOnSelectedSpell,
               useMagicInitiate: useMagicInitiateOnSelectedSpell,
+              useForestGnome: useForestGnomeOnSelectedSpell,
+              useFiendishLegacy: useFiendishLegacyOnSelectedSpell,
+              useGoliathAncestry: useGoliathAncestryOnSelectedSpell,
               useFeyMagic: useFeyMagicOnSelectedSpell,
               useQuickRitual: useQuickRitualOnSelectedSpell,
               useShadowMagic: useShadowMagicOnSelectedSpell,
@@ -553,6 +571,8 @@ export function renderSpellCastingForm(context: Record<string, any>) {
             !(selectedSpellSupportsWarGodsBlessing && useWarGodsBlessingOnSelectedSpell) &&
             !(selectedSpellSupportsStarMap && useStarMapOnSelectedSpell) &&
             !(selectedSpellSupportsMagicInitiate && useMagicInitiateOnSelectedSpell) &&
+            !(selectedSpellSupportsForestGnome && useForestGnomeOnSelectedSpell) &&
+            !(selectedSpellSupportsFiendishLegacy && useFiendishLegacyOnSelectedSpell) &&
             !(selectedSpellSupportsFeyMagic && useFeyMagicOnSelectedSpell) &&
             !(selectedSpellSupportsQuickRitual && useQuickRitualOnSelectedSpell) &&
             !(selectedSpellSupportsShadowMagic && useShadowMagicOnSelectedSpell) &&
@@ -585,46 +605,51 @@ export function renderSpellCastingForm(context: Record<string, any>) {
                   ? "Star Map lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
                   : selectedSpellSupportsMagicInitiate && useMagicInitiateOnSelectedSpell
                     ? "Magic Initiate lets you cast this spell at level 1 without expending a spell slot. This use recharges on a Long Rest."
-                    : selectedSpellSupportsFeyMagic && useFeyMagicOnSelectedSpell
-                      ? "Fey Magic lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
-                      : selectedSpellSupportsQuickRitual && useQuickRitualOnSelectedSpell
-                        ? "Quick Ritual lets you cast this Ritual spell using its regular casting time without expending a spell slot. This use recharges on a Long Rest."
-                        : selectedSpellSupportsShadowMagic && useShadowMagicOnSelectedSpell
-                          ? "Shadow Magic lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
-                          : selectedSpellSupportsDetectThoughts && useDetectThoughtsOnSelectedSpell
-                            ? "Detect Thoughts lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
-                            : selectedSpellSupportsBoonOfSpellRecall &&
-                                useBoonOfSpellRecallOnSelectedSpell
-                              ? "Free Casting prevents this cast from expending a spell slot."
-                              : selectedSpellSupportsStepsOfTheFey &&
-                                  useStepsOfTheFeyOnSelectedSpell
-                                ? selectedSpellSupportsBewitchingMagic &&
-                                  useBewitchingMagicOnSelectedSpell
-                                  ? "Steps of the Fey and Bewitching Magic both let you cast this spell without expending a spell slot. Steps of the Fey still spends one use."
-                                  : "Steps of the Fey lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
-                                : selectedSpellSupportsBewitchingMagic &&
-                                    useBewitchingMagicOnSelectedSpell
-                                  ? "Bewitching Magic lets you cast this spell without expending a spell slot."
-                                  : selectedSpellSupportsMistyWanderer &&
-                                      useMistyWandererOnSelectedSpell
-                                    ? "Misty Wanderer lets you cast this spell without expending a spell slot."
-                                    : selectedSpellSupportsFeyReinforcements &&
-                                        useFeyReinforcementsOnSelectedSpell
-                                      ? "Fey Reinforcements lets you cast this spell without expending a spell slot."
-                                      : selectedSpellSupportsPhantasmalCreatures &&
-                                          usePhantasmalCreaturesOnSelectedSpell
-                                        ? "Phantasmal Creatures lets you cast this spell without expending a spell slot. This shared use recharges on a Long Rest, and the summoned creature has half Hit Points."
-                                        : selectedSpellSupportsTelekineticMaster &&
-                                            useTelekineticMasterOnSelectedSpell
-                                          ? fighterPsiWarriorTelekineticMasterUsesRemaining > 0
-                                            ? "Telekinetic Master lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
-                                            : "Telekinetic Master lets you cast this spell without expending a spell slot by using 1 Psi Energy Die."
-                                          : selectedSpellSupportsTamedSurge &&
-                                              useTamedSurgeOnSelectedSpell
-                                            ? "Tamed Surge will be spent after this spell consumes a spell slot."
-                                            : selectedSpellUnderMantleOfMajesty
-                                              ? "Mantle of Majesty is active. Cast at level 1 without expending a spell slot, or upcast normally."
-                                              : null
+                    : selectedSpellSupportsForestGnome && useForestGnomeOnSelectedSpell
+                      ? "Forest Gnome lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                      : selectedSpellSupportsFiendishLegacy && useFiendishLegacyOnSelectedSpell
+                        ? "Fiendish Legacy lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                        : selectedSpellSupportsFeyMagic && useFeyMagicOnSelectedSpell
+                          ? "Fey Magic lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                          : selectedSpellSupportsQuickRitual && useQuickRitualOnSelectedSpell
+                            ? "Quick Ritual lets you cast this Ritual spell using its regular casting time without expending a spell slot. This use recharges on a Long Rest."
+                            : selectedSpellSupportsShadowMagic && useShadowMagicOnSelectedSpell
+                              ? "Shadow Magic lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                              : selectedSpellSupportsDetectThoughts &&
+                                  useDetectThoughtsOnSelectedSpell
+                                ? "Detect Thoughts lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                                : selectedSpellSupportsBoonOfSpellRecall &&
+                                    useBoonOfSpellRecallOnSelectedSpell
+                                  ? "Free Casting prevents this cast from expending a spell slot."
+                                  : selectedSpellSupportsStepsOfTheFey &&
+                                      useStepsOfTheFeyOnSelectedSpell
+                                    ? selectedSpellSupportsBewitchingMagic &&
+                                      useBewitchingMagicOnSelectedSpell
+                                      ? "Steps of the Fey and Bewitching Magic both let you cast this spell without expending a spell slot. Steps of the Fey still spends one use."
+                                      : "Steps of the Fey lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                                    : selectedSpellSupportsBewitchingMagic &&
+                                        useBewitchingMagicOnSelectedSpell
+                                      ? "Bewitching Magic lets you cast this spell without expending a spell slot."
+                                      : selectedSpellSupportsMistyWanderer &&
+                                          useMistyWandererOnSelectedSpell
+                                        ? "Misty Wanderer lets you cast this spell without expending a spell slot."
+                                        : selectedSpellSupportsFeyReinforcements &&
+                                            useFeyReinforcementsOnSelectedSpell
+                                          ? "Fey Reinforcements lets you cast this spell without expending a spell slot."
+                                          : selectedSpellSupportsPhantasmalCreatures &&
+                                              usePhantasmalCreaturesOnSelectedSpell
+                                            ? "Phantasmal Creatures lets you cast this spell without expending a spell slot. This shared use recharges on a Long Rest, and the summoned creature has half Hit Points."
+                                            : selectedSpellSupportsTelekineticMaster &&
+                                                useTelekineticMasterOnSelectedSpell
+                                              ? fighterPsiWarriorTelekineticMasterUsesRemaining > 0
+                                                ? "Telekinetic Master lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                                                : "Telekinetic Master lets you cast this spell without expending a spell slot by using 1 Psi Energy Die."
+                                              : selectedSpellSupportsTamedSurge &&
+                                                  useTamedSurgeOnSelectedSpell
+                                                ? "Tamed Surge will be spent after this spell consumes a spell slot."
+                                                : selectedSpellUnderMantleOfMajesty
+                                                  ? "Mantle of Majesty is active. Cast at level 1 without expending a spell slot, or upcast normally."
+                                                  : null
           }
           actionContextText={
             selectedSpellSupportsWarGodsBlessing &&
@@ -671,6 +696,8 @@ export function renderSpellCastingForm(context: Record<string, any>) {
             selectedSpellSupportsMindMagic ||
             selectedSpellSupportsStarMap ||
             selectedSpellSupportsMagicInitiate ||
+            selectedSpellSupportsForestGnome ||
+            selectedSpellSupportsFiendishLegacy ||
             selectedSpellSupportsFeyMagic ||
             selectedSpellSupportsQuickRitual ||
             selectedSpellSupportsShadowMagic ||
@@ -798,6 +825,80 @@ export function renderSpellCastingForm(context: Record<string, any>) {
                             selectedSpellMagicInitiateFreeCastState?.usesRemaining ?? 0,
                             selectedSpellMagicInitiateFreeCastState?.usesTotal ?? 1
                           )
+                        }
+                      ]
+                    : []),
+                  ...(selectedSpellSupportsForestGnome
+                    ? [
+                        {
+                          id: "forest-gnome",
+                          label: "Forest Gnome | Charges",
+                          checked: useForestGnomeOnSelectedSpell,
+                          onCheckedChange: setUseForestGnomeOnSelectedSpell,
+                          disabled: selectedSpellForestGnomeDisabled,
+                          headerTags: [
+                            createChargesHeaderTag(
+                              selectedSpellForestGnomeFreeCastState?.usesRemaining ?? 0,
+                              selectedSpellForestGnomeFreeCastState?.usesTotal ?? 1
+                            )
+                          ],
+                          usage: createChargesCardUsage(
+                            selectedSpellForestGnomeFreeCastState?.usesRemaining ?? 0,
+                            selectedSpellForestGnomeFreeCastState?.usesTotal ?? 1
+                          )
+                        }
+                      ]
+                    : []),
+                  ...(selectedSpellSupportsFiendishLegacy
+                    ? [
+                        {
+                          id: "fiendish-legacy",
+                          label: "Fiendish Legacy | Charges",
+                          checked: useFiendishLegacyOnSelectedSpell,
+                          onCheckedChange: setUseFiendishLegacyOnSelectedSpell,
+                          disabled: selectedSpellFiendishLegacyDisabled,
+                          headerTags: [
+                            createChargesHeaderTag(
+                              selectedSpellFiendishLegacyFreeCastState?.usesRemaining ?? 0,
+                              selectedSpellFiendishLegacyFreeCastState?.usesTotal ?? 1
+                            )
+                          ],
+                          usage: createChargesCardUsage(
+                            selectedSpellFiendishLegacyFreeCastState?.usesRemaining ?? 0,
+                            selectedSpellFiendishLegacyFreeCastState?.usesTotal ?? 1
+                          )
+                        }
+                      ]
+                    : []),
+                  ...(selectedSpellSupportsGoliathAncestry
+                    ? [
+                        {
+                          id: "goliath-giant-ancestry",
+                          label: `${selectedSpellGoliathAncestryState?.featureName ?? "Giant Ancestry"} | Charges`,
+                          checked: useGoliathAncestryOnSelectedSpell,
+                          onCheckedChange: setUseGoliathAncestryOnSelectedSpell,
+                          disabled: selectedSpellGoliathAncestryDisabled,
+                          headerTags: [
+                            createChargesHeaderTag(
+                              selectedSpellGoliathAncestryState?.usesRemaining ?? 0,
+                              selectedSpellGoliathAncestryState?.usesTotal ?? 1
+                            )
+                          ],
+                          usage: createChargesCardUsage(
+                            selectedSpellGoliathAncestryState?.usesRemaining ?? 0,
+                            selectedSpellGoliathAncestryState?.usesTotal ?? 1
+                          ),
+                          application: {
+                            targetLabel: "Damage"
+                          },
+                          metaItems: selectedSpellGoliathAncestryState?.damageBonus?.displayLabel
+                            ? [
+                                {
+                                  kind: "text" as const,
+                                  label: selectedSpellGoliathAncestryState.damageBonus.displayLabel
+                                }
+                              ]
+                            : []
                         }
                       ]
                     : []),

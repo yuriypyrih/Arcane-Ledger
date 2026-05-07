@@ -454,6 +454,7 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     isDreadfulStrikeSelected,
     isEmpoweredStrikesSelected,
     isEldritchSmiteSelected,
+    isGoliathAncestryStrikeSelected,
     isLifedrinkerSelected,
     isFlurryOfHealingAndHarmSelected,
     isGroupRecoverySelected,
@@ -570,6 +571,8 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     selectedWeaponHandOfHarmUsage,
     selectedWeaponHordeBreakerState,
     selectedWeaponHordeBreakerToggleDisabled,
+    selectedWeaponGoliathAncestryState,
+    selectedWeaponGoliathAncestryToggleDisabled,
     selectedWeaponHuntersMarkTargetState,
     selectedWeaponHuntersMarkTargetToggleDisabled,
     selectedWeaponRecklessAttackState,
@@ -607,6 +610,7 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     setIsEmpoweredStrikesSelected,
     setIsFixedSpellDrawerOpen,
     setIsEldritchSmiteSelected,
+    setIsGoliathAncestryStrikeSelected,
     setIsLifedrinkerSelected,
     setIsFlurryOfHealingAndHarmSelected,
     setIsGroupRecoverySelected,
@@ -659,6 +663,13 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     submitBrutalStrike,
     submitAasimarCelestialRevelation,
     submitAasimarHealingHands,
+    submitDragonbornBreathWeapon,
+    submitDragonbornDraconicFlight,
+    submitDwarfStonecunning,
+    submitGoliathCloudsJaunt,
+    submitGoliathLargeForm,
+    submitGoliathStonesEndurance,
+    submitGoliathStormsThunder,
     submitHealingLight,
     submitIndomitable,
     submitLayOnHands,
@@ -789,6 +800,32 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
                     {
                       kind: "text" as const,
                       label: selectedWeaponPolarStrikesState.damageBonus.displayLabel
+                    }
+                  ]
+                : []
+            }
+          />
+        ) : null}
+        {selectedWeaponGoliathAncestryState ? (
+          <FeatureOptInToggle
+            label={`${selectedWeaponGoliathAncestryState.featureName} | Charges`}
+            checked={isGoliathAncestryStrikeSelected}
+            disabled={selectedWeaponGoliathAncestryToggleDisabled}
+            muted={selectedWeaponGoliathAncestryToggleDisabled}
+            onCheckedChange={setIsGoliathAncestryStrikeSelected}
+            title={selectedWeaponGoliathAncestryState.disabledReason ?? undefined}
+            application={{ targetLabel: "Damage" }}
+            usage={createChargesCardUsage(
+              selectedWeaponGoliathAncestryState.usesRemaining,
+              selectedWeaponGoliathAncestryState.usesTotal
+            )}
+            usageKey="goliath-giant-ancestry"
+            metaItems={
+              selectedWeaponGoliathAncestryState.damageBonus?.displayLabel
+                ? [
+                    {
+                      kind: "text" as const,
+                      label: selectedWeaponGoliathAncestryState.damageBonus.displayLabel
                     }
                   ]
                 : []
@@ -1150,6 +1187,26 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
   if (
     selectedAction.kind === "feature" &&
     selectedAction.drawer.kind === "custom-form" &&
+    selectedAction.drawer.formKind === "dragonborn-breath-weapon"
+  ) {
+    return (
+      <ActionDiceConfirmFooter
+        actionName={selectedAction.action.name}
+        confirmLabel={selectedFeaturePrimaryLabel}
+        actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
+        actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+        actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+        disabled={selectedFeatureActionPrimaryDisabledReason !== null}
+        isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
+        onConfirm={submitDragonbornBreathWeapon}
+        onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
+      />
+    );
+  }
+
+  if (
+    selectedAction.kind === "feature" &&
+    selectedAction.drawer.kind === "custom-form" &&
     selectedAction.drawer.formKind === "aasimar-celestial-revelation"
   ) {
     const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
@@ -1175,6 +1232,158 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
       >
         {selectedFeaturePrimaryLabel}
       </ActionButton>
+    );
+  }
+
+  if (
+    selectedAction.kind === "feature" &&
+    selectedAction.execute.kind === "custom-form" &&
+    selectedAction.execute.formKind === "dragonborn-draconic-flight"
+  ) {
+    const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
+
+    return (
+      <ActionButton
+        className={styles.footerActionButton}
+        onClick={submitDragonbornDraconicFlight}
+        disabled={selectedFeatureActionPrimaryDisabledReason !== null}
+        trailingBadge={
+          actionShape ? (
+            <ActionShape
+              shape={actionShape}
+              isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
+              multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+              className={styles.footerActionShape}
+            />
+          ) : null
+        }
+      >
+        {selectedFeaturePrimaryLabel}
+      </ActionButton>
+    );
+  }
+
+  if (
+    selectedAction.kind === "feature" &&
+    selectedAction.execute.kind === "custom-form" &&
+    selectedAction.execute.formKind === "dwarf-stonecunning"
+  ) {
+    const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
+
+    return (
+      <ActionButton
+        className={styles.footerActionButton}
+        onClick={submitDwarfStonecunning}
+        disabled={selectedFeatureActionPrimaryDisabledReason !== null}
+        trailingBadge={
+          actionShape ? (
+            <ActionShape
+              shape={actionShape}
+              isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
+              multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+              className={styles.footerActionShape}
+            />
+          ) : null
+        }
+      >
+        {selectedFeaturePrimaryLabel}
+      </ActionButton>
+    );
+  }
+
+  if (
+    selectedAction.kind === "feature" &&
+    selectedAction.execute.kind === "custom-form" &&
+    selectedAction.execute.formKind === "goliath-clouds-jaunt"
+  ) {
+    const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
+
+    return (
+      <ActionButton
+        className={styles.footerActionButton}
+        onClick={submitGoliathCloudsJaunt}
+        disabled={selectedFeatureActionPrimaryDisabledReason !== null}
+        trailingBadge={
+          actionShape ? (
+            <ActionShape
+              shape={actionShape}
+              isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
+              multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+              className={styles.footerActionShape}
+            />
+          ) : null
+        }
+      >
+        {selectedFeaturePrimaryLabel}
+      </ActionButton>
+    );
+  }
+
+  if (
+    selectedAction.kind === "feature" &&
+    selectedAction.execute.kind === "custom-form" &&
+    selectedAction.execute.formKind === "goliath-large-form"
+  ) {
+    const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
+
+    return (
+      <ActionButton
+        className={styles.footerActionButton}
+        onClick={submitGoliathLargeForm}
+        disabled={selectedFeatureActionPrimaryDisabledReason !== null}
+        trailingBadge={
+          actionShape ? (
+            <ActionShape
+              shape={actionShape}
+              isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
+              multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+              className={styles.footerActionShape}
+            />
+          ) : null
+        }
+      >
+        {selectedFeaturePrimaryLabel}
+      </ActionButton>
+    );
+  }
+
+  if (
+    selectedAction.kind === "feature" &&
+    selectedAction.execute.kind === "custom-form" &&
+    selectedAction.execute.formKind === "goliath-stones-endurance"
+  ) {
+    return (
+      <ActionDiceConfirmFooter
+        actionName={selectedAction.action.name}
+        confirmLabel={selectedFeaturePrimaryLabel}
+        actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
+        actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+        actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+        disabled={selectedFeatureActionPrimaryDisabledReason !== null}
+        isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
+        onConfirm={submitGoliathStonesEndurance}
+        onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
+      />
+    );
+  }
+
+  if (
+    selectedAction.kind === "feature" &&
+    selectedAction.execute.kind === "custom-form" &&
+    selectedAction.execute.formKind === "goliath-storms-thunder"
+  ) {
+    return (
+      <ActionDiceConfirmFooter
+        actionName={selectedAction.action.name}
+        confirmLabel={selectedFeaturePrimaryLabel}
+        actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
+        actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+        actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+        disabled={selectedFeatureActionPrimaryDisabledReason !== null}
+        isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
+        onConfirm={submitGoliathStormsThunder}
+        onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
+      />
     );
   }
 

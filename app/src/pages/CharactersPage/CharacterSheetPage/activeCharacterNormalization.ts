@@ -10,6 +10,7 @@ import {
 import { normalizeCharacter, normalizeCharacterCurrencies } from "../storage";
 import { normalizeCharacterStatusEntries } from "../statusEntries";
 import {
+  getSpeciesAlwaysPreparedSpellIdsForCharacter,
   normalizeCharacterSpeciesFeatureState,
   normalizeSpeciesStatusEntriesForCharacter
 } from "../species";
@@ -194,14 +195,17 @@ function normalizeSpellRuntime(character: Character): Character {
     ),
     preparedSpellSelectionOptions,
     getPreparedSpellLimitForCharacter(character.className, character.level, character.subclassId),
-    getAlwaysPreparedSpellIds(
-      character.className,
-      character.level,
-      normalizedClassFeatureState,
-      undefined,
-      character.subclassId,
-      character.statusEntries
-    )
+    [
+      ...getAlwaysPreparedSpellIds(
+        character.className,
+        character.level,
+        normalizedClassFeatureState,
+        undefined,
+        character.subclassId,
+        character.statusEntries
+      ),
+      ...getSpeciesAlwaysPreparedSpellIdsForCharacter(character)
+    ]
   );
   const spellSlotTotals = getSpellSlotTotalsForCharacter(
     character.className,
@@ -228,6 +232,7 @@ function normalizeProficiencyRuntime(character: Character): Character {
     className: character.className,
     level: character.level,
     species: character.species,
+    speciesChoices: character.speciesChoices,
     background: character.background,
     backgroundChoices: character.backgroundChoices,
     subclassId: character.subclassId,

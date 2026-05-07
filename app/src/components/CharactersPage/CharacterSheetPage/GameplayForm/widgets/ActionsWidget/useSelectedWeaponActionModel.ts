@@ -67,6 +67,10 @@ import {
   createPsiWarriorPsionicStrikeDamageBonus
 } from "./fighterPsiWarriorWeapon";
 import {
+  appendGoliathAttackDescriptionAddition,
+  getGoliathAttackOptionStateForCharacter
+} from "../../../../../../pages/CharactersPage/species";
+import {
   applyRangerHuntersMarkTargetWeaponAction,
   getRangerHuntersMarkTargetWeaponOptionState
 } from "./rangerHuntersMarkWeapon";
@@ -84,6 +88,7 @@ type UseSelectedWeaponActionModelArgs = {
   isColossusSlayerSelected: boolean;
   isEmpoweredStrikesSelected: boolean;
   isEldritchSmiteSelected: boolean;
+  isGoliathAncestryStrikeSelected: boolean;
   isHandOfHarmSelected: boolean;
   isHuntersMarkTargetSelected: boolean;
   isLifedrinkerSelected: boolean;
@@ -106,6 +111,7 @@ export function useSelectedWeaponActionModel({
   isColossusSlayerSelected,
   isEmpoweredStrikesSelected,
   isEldritchSmiteSelected,
+  isGoliathAncestryStrikeSelected,
   isHandOfHarmSelected,
   isHuntersMarkTargetSelected,
   isLifedrinkerSelected,
@@ -273,6 +279,10 @@ export function useSelectedWeaponActionModel({
     () => getRangerWinterWalkerPolarStrikesOptionState(character, selectedWeaponAction),
     [character, selectedWeaponAction]
   );
+  const selectedWeaponGoliathAncestryState = useMemo(
+    () => (selectedWeaponAction ? getGoliathAttackOptionStateForCharacter(character) : null),
+    [character, selectedWeaponAction]
+  );
   const selectedWeaponHuntersMarkTargetState = useMemo(
     () => getRangerHuntersMarkTargetWeaponOptionState(character, selectedWeaponAction),
     [character, selectedWeaponAction]
@@ -420,13 +430,14 @@ export function useSelectedWeaponActionModel({
     selectedWeaponHordeBreakerState?.disabled ?? false;
   const selectedWeaponPolarStrikesToggleDisabled =
     selectedWeaponPolarStrikesState?.disabled ?? false;
+  const selectedWeaponGoliathAncestryToggleDisabled =
+    selectedWeaponGoliathAncestryState?.disabled ?? false;
   const selectedWeaponHuntersMarkTargetToggleDisabled = !selectedWeaponHuntersMarkTargetState;
   const selectedWeaponRecklessAttackToggleDisabled =
     selectedWeaponRecklessAttackState?.disabled ?? false;
   const selectedWeaponEldritchSmiteToggleDisabled =
     selectedWeaponEldritchSmiteState?.disabled ?? false;
-  const selectedWeaponLifedrinkerToggleDisabled =
-    selectedWeaponLifedrinkerState?.disabled ?? false;
+  const selectedWeaponLifedrinkerToggleDisabled = selectedWeaponLifedrinkerState?.disabled ?? false;
   const selectedWeaponStunningStrikeToggleDisabled =
     selectedWeaponStunningStrikeDisabledReason !== null;
   const selectedWeaponEmpoweredStrikesToggleDisabled =
@@ -535,6 +546,17 @@ export function useSelectedWeaponActionModel({
     }
 
     if (
+      isGoliathAncestryStrikeSelected &&
+      selectedWeaponGoliathAncestryState?.damageBonus &&
+      !selectedWeaponGoliathAncestryToggleDisabled
+    ) {
+      nextAction = applyWeaponDamageBonusPreview(
+        nextAction,
+        selectedWeaponGoliathAncestryState.damageBonus
+      );
+    }
+
+    if (
       isHuntersMarkTargetSelected &&
       selectedWeaponHuntersMarkTargetState &&
       !selectedWeaponHuntersMarkTargetToggleDisabled
@@ -610,6 +632,7 @@ export function useSelectedWeaponActionModel({
     isColossusSlayerSelected,
     isEmpoweredStrikesSelected,
     isEldritchSmiteSelected,
+    isGoliathAncestryStrikeSelected,
     isHandOfHarmSelected,
     isHuntersMarkTargetSelected,
     isLifedrinkerSelected,
@@ -627,6 +650,8 @@ export function useSelectedWeaponActionModel({
     selectedWeaponFeyDreadfulStrikesToggleDisabled,
     selectedWeaponColossusSlayerState,
     selectedWeaponColossusSlayerToggleDisabled,
+    selectedWeaponGoliathAncestryState,
+    selectedWeaponGoliathAncestryToggleDisabled,
     selectedWeaponEmpoweredStrikesState,
     selectedWeaponEmpoweredStrikesToggleDisabled,
     selectedWeaponHandOfHarmToggleDisabled,
@@ -670,16 +695,19 @@ export function useSelectedWeaponActionModel({
         }
       : formulaPresentation;
   }, [nextRollCriticalHitOverride, selectedWeaponEffectiveAction]);
-  const selectedWeaponDrawerDescription = useMemo(
-    () =>
-      selectedWeaponAction
-        ? getWeaponDrawerDescription(selectedWeaponAction, selectedWeaponItemRecord)
-        : {
-            description: [],
-            descriptionAdditions: []
-          },
-    [selectedWeaponAction, selectedWeaponItemRecord]
-  );
+  const selectedWeaponDrawerDescription = useMemo(() => {
+    const drawerDescription = selectedWeaponAction
+      ? getWeaponDrawerDescription(selectedWeaponAction, selectedWeaponItemRecord)
+      : {
+          description: [],
+          descriptionAdditions: []
+        };
+
+    return appendGoliathAttackDescriptionAddition(
+      drawerDescription,
+      selectedWeaponGoliathAncestryState
+    );
+  }, [selectedWeaponAction, selectedWeaponGoliathAncestryState, selectedWeaponItemRecord]);
   const selectedWeaponRollState = useMemo(
     () =>
       selectedWeaponEffectiveAction
@@ -708,6 +736,7 @@ export function useSelectedWeaponActionModel({
     selectedWeaponColossusSlayerState,
     selectedWeaponHordeBreakerState,
     selectedWeaponPolarStrikesState,
+    selectedWeaponGoliathAncestryState,
     selectedWeaponHuntersMarkTargetState,
     selectedWeaponRecklessAttackState,
     selectedWeaponFocusPointsRemaining,
@@ -725,6 +754,7 @@ export function useSelectedWeaponActionModel({
     selectedWeaponColossusSlayerToggleDisabled,
     selectedWeaponHordeBreakerToggleDisabled,
     selectedWeaponPolarStrikesToggleDisabled,
+    selectedWeaponGoliathAncestryToggleDisabled,
     selectedWeaponHuntersMarkTargetToggleDisabled,
     selectedWeaponRecklessAttackToggleDisabled,
     selectedWeaponEldritchSmiteToggleDisabled,

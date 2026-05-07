@@ -1,4 +1,4 @@
-import type { SpellDurationPart } from "../../codex/entries";
+import type { SpellDescriptionEntry, SpellDurationPart } from "../../codex/entries";
 import { DAMAGE_TYPE, DURATION } from "../../codex/entries";
 import {
   CONDITION_NAME,
@@ -289,6 +289,57 @@ function normalizeStatusValue(
   }
 }
 
+function normalizeSpellDescriptionEntry(value: unknown): SpellDescriptionEntry | null {
+  if (typeof value === "string") {
+    const text = value.trim();
+
+    return text.length > 0 ? text : null;
+  }
+
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const record = value as Partial<Extract<SpellDescriptionEntry, { type: "list" }>>;
+
+  if (
+    record.type !== "list" ||
+    (record.style !== "bullet" && record.style !== "number") ||
+    !Array.isArray(record.items)
+  ) {
+    return null;
+  }
+
+  const items = record.items
+    .filter((item): item is string => typeof item === "string")
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
+
+  return items.length > 0
+    ? {
+        type: "list",
+        style: record.style,
+        items
+      }
+    : null;
+}
+
+function normalizeStatusDescriptionAdditions(value: unknown): SpellDescriptionEntry[][] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((section) =>
+      Array.isArray(section)
+        ? section
+            .map((entry) => normalizeSpellDescriptionEntry(entry))
+            .filter((entry): entry is SpellDescriptionEntry => entry !== null)
+        : []
+    )
+    .filter((section) => section.length > 0);
+}
+
 function normalizeStatusEntry(value: unknown): CharacterStatusEntry | null {
   if (!value || typeof value !== "object") {
     return null;
@@ -326,6 +377,7 @@ function normalizeStatusEntry(value: unknown): CharacterStatusEntry | null {
     normalizeLegacyDuration(record.roundsRemaining) ?? {
       kind: STATUS_DURATION_KIND.INFINITE
     };
+  const descriptionAdditions = normalizeStatusDescriptionAdditions(record.descriptionAdditions);
 
   return {
     id:
@@ -364,6 +416,7 @@ function normalizeStatusEntry(value: unknown): CharacterStatusEntry | null {
       typeof record.description === "string" && record.description.trim().length > 0
         ? record.description.trim()
         : undefined,
+    descriptionAdditions: descriptionAdditions.length > 0 ? descriptionAdditions : undefined,
     customEffects: normalizeCharacterCustomTraitEffects(record.customEffects)
   };
 }
@@ -541,8 +594,11 @@ export function createCharacterStatusEntry(options: {
   sourceSpellId?: string;
   rangeFeet?: number | null;
   description?: string;
+  descriptionAdditions?: SpellDescriptionEntry[][];
   customEffects?: CharacterCustomTraitEffect[];
 }): CharacterStatusEntry {
+  const descriptionAdditions = normalizeStatusDescriptionAdditions(options.descriptionAdditions);
+
   return {
     id: createStatusEntryId(),
     group: options.group,
@@ -565,6 +621,7 @@ export function createCharacterStatusEntry(options: {
     sourceSpellId: options.sourceSpellId,
     rangeFeet: options.rangeFeet ?? null,
     description: options.description?.trim() || undefined,
+    descriptionAdditions: descriptionAdditions.length > 0 ? descriptionAdditions : undefined,
     customEffects: normalizeCharacterCustomTraitEffects(options.customEffects)
   };
 }

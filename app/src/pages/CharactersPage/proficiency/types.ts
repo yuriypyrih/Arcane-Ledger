@@ -2,6 +2,7 @@ import type {
   ArmorProficiencyEntry,
   CharacterBackgroundChoices,
   CharacterClassFeatureState,
+  CharacterSpeciesChoices,
   LanguageProficiencyEntry,
   SavingThrowProficiencyEntry,
   SkillName,
@@ -67,6 +68,7 @@ export type NormalizeCharacterProficienciesOptions = {
   className: string;
   level: number;
   species: string;
+  speciesChoices?: CharacterSpeciesChoices;
   background: string;
   backgroundChoices?: CharacterBackgroundChoices;
   subclassId?: string;

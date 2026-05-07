@@ -1,8 +1,7 @@
-import clsx from "clsx";
 import type { WarlockEldritchInvocationOption } from "../../../../pages/CharactersPage/classFeatures/warlock/warlock";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import cardStyles from "./FeatCards.module.css";
-import { triggerActionOnEnterOrSpace } from "./featEditorUtils";
+import BuildSummaryCard from "./BuildSummaryCard";
 import type { TrackingButtonRenderer } from "./types";
 
 type EldritchInvocationListProps = {
@@ -55,45 +54,20 @@ function EldritchInvocationList({
         const isRepeatable = Boolean(firstOption.invocation.repeatable);
 
         return (
-          <li
+          <BuildSummaryCard
             key={key}
-            className={clsx(cardStyles.card, cardStyles.interactiveCard)}
-            role="button"
-            tabIndex={0}
-            onClick={() => onOpenInvocationReference(firstOption)}
-            onKeyDown={(event) =>
-              triggerActionOnEnterOrSpace(event, () => onOpenInvocationReference(firstOption))
+            title={firstOption.invocation.name}
+            meta="Eldritch Invocation"
+            summary={isRepeatable ? null : firstOption.displaySubtitle}
+            selectedItems={
+              isRepeatable
+                ? options.map((option) => option.displaySubtitle ?? option.displayName)
+                : undefined
             }
-          >
-            <div className={cardStyles.headerRow}>
-              <div className={cardStyles.titleBlock}>
-                <span className={cardStyles.title}>{firstOption.invocation.name}</span>
-                {isRepeatable ? (
-                  <>
-                    {" "}
-                    <span className={cardStyles.repeatable}>(repeatable)</span>
-                  </>
-                ) : null}
-              </div>
-              <div className={cardStyles.headerActions}>
-                {renderTrackingButton(firstOption.invocation.trackingState)}
-              </div>
-            </div>
-            <p className={cardStyles.meta}>Eldritch Invocation</p>
-            {isRepeatable ? (
-              <ul className={cardStyles.selectedList}>
-                {options.map((option) => (
-                  <li key={option.selectionId} className={cardStyles.selectedItem}>
-                    <span className={cardStyles.selectedText}>
-                      {option.displaySubtitle ?? option.displayName}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            ) : firstOption.displaySubtitle ? (
-              <p className={cardStyles.summary}>{firstOption.displaySubtitle}</p>
-            ) : null}
-          </li>
+            isRepeatable={isRepeatable}
+            onClick={() => onOpenInvocationReference(firstOption)}
+            headerActions={renderTrackingButton(firstOption.invocation.trackingState)}
+          />
         );
       })}
     </ul>

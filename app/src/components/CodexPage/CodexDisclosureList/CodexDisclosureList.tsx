@@ -126,9 +126,6 @@ function CodexDisclosureList({ entries, status, category }: CodexDisclosureListP
 
     return (
       <>
-        <p className={styles.featMeta}>
-          {entry.source}, p{entry.page}
-        </p>
         <DescriptionContent
           description={entry.description}
           className={featureDisclosureStyles.descriptionList}

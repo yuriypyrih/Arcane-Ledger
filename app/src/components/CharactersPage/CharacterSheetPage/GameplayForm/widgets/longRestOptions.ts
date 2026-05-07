@@ -3,8 +3,26 @@ import type { Character } from "../../../../../types";
 import {
   getAasimarCelestialRevelationUsesTotal,
   getAasimarHealingHandsUsesTotal,
+  getDragonbornBreathWeaponUsesTotal,
+  getDragonbornDraconicFlightUsesTotal,
+  getDwarfStonecunningUsesTotal,
+  getGnomeSpeakWithAnimalsUsesTotal,
+  getGoliathGiantAncestryUsesTotal,
+  getGoliathLargeFormUsesTotal,
+  getOrcAdrenalineRushUsesTotal,
+  getTieflingFiendishLegacyUsesTotal,
+  isHumanSpecies,
   restoreAasimarCelestialRevelationOnLongRest,
-  restoreAasimarHealingHandsOnLongRest
+  restoreAasimarHealingHandsOnLongRest,
+  restoreDragonbornBreathWeaponOnLongRest,
+  restoreDragonbornDraconicFlightOnLongRest,
+  restoreDwarfStonecunningOnLongRest,
+  restoreGnomeSpeakWithAnimalsOnLongRest,
+  restoreGoliathGiantAncestryOnLongRest,
+  restoreGoliathLargeFormOnLongRest,
+  restoreHumanResourcefulHeroicInspirationOnLongRest,
+  restoreOrcAdrenalineRushOnLongRest,
+  restoreTieflingFiendishLegacyOnLongRest
 } from "../../../../../pages/CharactersPage/species";
 import {
   getBarbarianIntimidatingPresenceUsesTotal,
@@ -455,6 +473,14 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const searingVengeanceUsesTotal = getWarlockSearingVengeanceUsesTotal(character);
   const aasimarHealingHandsUsesTotal = getAasimarHealingHandsUsesTotal(character);
   const aasimarCelestialRevelationUsesTotal = getAasimarCelestialRevelationUsesTotal(character);
+  const dragonbornBreathWeaponUsesTotal = getDragonbornBreathWeaponUsesTotal(character);
+  const dragonbornDraconicFlightUsesTotal = getDragonbornDraconicFlightUsesTotal(character);
+  const dwarfStonecunningUsesTotal = getDwarfStonecunningUsesTotal(character);
+  const gnomeSpeakWithAnimalsUsesTotal = getGnomeSpeakWithAnimalsUsesTotal(character);
+  const goliathGiantAncestryUsesTotal = getGoliathGiantAncestryUsesTotal(character);
+  const goliathLargeFormUsesTotal = getGoliathLargeFormUsesTotal(character);
+  const orcAdrenalineRushUsesTotal = getOrcAdrenalineRushUsesTotal(character);
+  const tieflingFiendishLegacyUsesTotal = getTieflingFiendishLegacyUsesTotal(character);
   const hasMysticArcanum = hasWarlockFeature(character, CLASS_FEATURE.MYSTIC_ARCANUM);
   const monkFocusPointsTotal = getMonkFocusPointsTotal(character);
   const monkFlurryOfHealingAndHarmUsesTotal = getMonkFlurryOfHealingAndHarmUsesTotal(character);
@@ -528,6 +554,21 @@ export function createLongRestOptions(character: Character): RestOption[] {
         };
       }
     },
+    ...(isHumanSpecies(character.species)
+      ? [
+          {
+            id: "gain-human-resourceful-heroic-inspiration",
+            label: "Gain Heroic Inspiration from Resourceful",
+            detail: character.heroicInspiration
+              ? "You already have Heroic Inspiration."
+              : "Gain Heroic Inspiration if you do not already have it.",
+            disabled: character.heroicInspiration,
+            emphasis: "feature",
+            apply: (currentCharacter: Character) =>
+              restoreHumanResourcefulHeroicInspirationOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
     ...(aasimarHealingHandsUsesTotal > 0
       ? [
           {
@@ -545,6 +586,86 @@ export function createLongRestOptions(character: Character): RestOption[] {
             label: "Restore Celestial Revelation",
             apply: (currentCharacter: Character) =>
               restoreAasimarCelestialRevelationOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(dragonbornBreathWeaponUsesTotal > 0
+      ? [
+          {
+            id: "restore-dragonborn-breath-weapon",
+            label: "Restore Breath Weapon",
+            apply: (currentCharacter: Character) =>
+              restoreDragonbornBreathWeaponOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(dragonbornDraconicFlightUsesTotal > 0
+      ? [
+          {
+            id: "restore-dragonborn-draconic-flight",
+            label: "Restore Draconic Flight",
+            apply: (currentCharacter: Character) =>
+              restoreDragonbornDraconicFlightOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(dwarfStonecunningUsesTotal > 0
+      ? [
+          {
+            id: "restore-dwarf-stonecunning",
+            label: "Restore Stonecunning",
+            apply: (currentCharacter: Character) =>
+              restoreDwarfStonecunningOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(gnomeSpeakWithAnimalsUsesTotal > 0
+      ? [
+          {
+            id: "restore-gnome-speak-with-animals",
+            label: "Restore Forest Gnome Spellcasting",
+            apply: (currentCharacter: Character) =>
+              restoreGnomeSpeakWithAnimalsOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(goliathGiantAncestryUsesTotal > 0
+      ? [
+          {
+            id: "restore-goliath-giant-ancestry",
+            label: "Restore Giant Ancestry",
+            apply: (currentCharacter: Character) =>
+              restoreGoliathGiantAncestryOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(goliathLargeFormUsesTotal > 0
+      ? [
+          {
+            id: "restore-goliath-large-form",
+            label: "Restore Large Form",
+            apply: (currentCharacter: Character) =>
+              restoreGoliathLargeFormOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(orcAdrenalineRushUsesTotal > 0
+      ? [
+          {
+            id: "restore-orc-adrenaline-rush",
+            label: "Restore Adrenaline Rush",
+            apply: (currentCharacter: Character) =>
+              restoreOrcAdrenalineRushOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(tieflingFiendishLegacyUsesTotal > 0
+      ? [
+          {
+            id: "restore-tiefling-fiendish-legacy",
+            label: "Restore Fiendish Legacy",
+            apply: (currentCharacter: Character) =>
+              restoreTieflingFiendishLegacyOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),

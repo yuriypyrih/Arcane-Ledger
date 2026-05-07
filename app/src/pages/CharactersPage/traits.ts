@@ -766,6 +766,10 @@ export function getStatusEntryKeyword(entry: CharacterStatusEntry): string {
   return formatCodexLabel(String(entry.value));
 }
 
+export function hasStatusEntryDescriptionAdditions(entry: CharacterStatusEntry): boolean {
+  return (entry.descriptionAdditions ?? []).some((section) => section.length > 0);
+}
+
 function getDefaultStatusEntryDescriptionEntries(
   entry: CharacterStatusEntry
 ): SpellDescriptionEntry[] {
@@ -1538,7 +1542,10 @@ export function getStatusEntryDescriptionContent(
 
   return {
     description: getDefaultStatusEntryDescriptionEntries(entry),
-    descriptionAdditions: getConcentrationDescriptionAdditions(entry, character)
+    descriptionAdditions: [
+      ...(entry.descriptionAdditions ?? []),
+      ...getConcentrationDescriptionAdditions(entry, character)
+    ]
   };
 }
 

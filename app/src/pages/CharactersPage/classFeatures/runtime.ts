@@ -16,6 +16,7 @@ import {
   shouldTrackRoundScopedResources
 } from "../combat";
 import { transformFeatSpellEntryForCharacter } from "../feats/runtime";
+import { getSpeciesSpellEntryForCharacter } from "../species";
 import {
   hasExhaustionAbilityCheckDisadvantage,
   hasExhaustionAttackRollDisadvantage,
@@ -707,7 +708,17 @@ export function getDerivedFeatureStatusEntriesForCharacter(
 
 export function getSpellEntryForCharacter(
   character: Pick<Character, "className" | "level"> &
-    Partial<Pick<Character, "subclassId" | "statusEntries" | "classFeatureState" | "feats">>,
+    Partial<
+      Pick<
+        Character,
+        | "subclassId"
+        | "statusEntries"
+        | "classFeatureState"
+        | "feats"
+        | "species"
+        | "speciesChoices"
+      >
+    >,
   spell: SpellEntry
 ): SpellEntry {
   const baseFeatureState = collectActiveClassFeatureState(character);
@@ -719,18 +730,48 @@ export function getSpellEntryForCharacter(
     ? subclassDerivedState.transformSpellEntry(baseSpellEntry)
     : baseSpellEntry;
 
-  return transformFeatSpellEntryForCharacter(character, subclassSpellEntry);
+  const transformedSpellEntry = transformFeatSpellEntryForCharacter(character, subclassSpellEntry);
+
+  return character.species
+    ? getSpeciesSpellEntryForCharacter(
+        {
+          species: character.species,
+          speciesChoices: character.speciesChoices
+        },
+        transformedSpellEntry
+      )
+    : transformedSpellEntry;
 }
 
 export function getSpellbookSpellEntryForCharacter(
   character: Pick<Character, "className" | "level"> &
-    Partial<Pick<Character, "subclassId" | "statusEntries" | "classFeatureState" | "feats">>,
+    Partial<
+      Pick<
+        Character,
+        | "subclassId"
+        | "statusEntries"
+        | "classFeatureState"
+        | "feats"
+        | "species"
+        | "speciesChoices"
+      >
+    >,
   spell: SpellEntry
 ): SpellEntry {
-  return transformFeatSpellEntryForCharacter(
+  const transformedSpellEntry = transformFeatSpellEntryForCharacter(
     character,
     character.className === "Wizard" ? getWizardSpellbookSpellEntry(character, spell) : spell
   );
+
+  return character.species
+    ? getSpeciesSpellEntryForCharacter(
+        {
+          species: character.species,
+          speciesChoices: character.speciesChoices
+        },
+        transformedSpellEntry
+      )
+    : transformedSpellEntry;
 }
 
 export function getFeatureReactionSpellForCharacter(
@@ -1416,9 +1457,7 @@ export function consumeWarlockGiftOfTheProtectorsUseForCharacter(character: Char
   return consumeWarlockGiftOfTheProtectorsUse(character);
 }
 
-export function getWarlockGiftOfTheProtectorsUsesTotalForCharacter(
-  character: Character
-): number {
+export function getWarlockGiftOfTheProtectorsUsesTotalForCharacter(character: Character): number {
   return getWarlockGiftOfTheProtectorsUsesTotal(character);
 }
 
@@ -1606,8 +1645,7 @@ export function consumeWeaponAttackActionForCharacter(
       return nextCharacter;
     }
 
-    const shouldPreserveFrenzyPending =
-      getBarbarianRageState(nextCharacter).frenzyPending === true;
+    const shouldPreserveFrenzyPending = getBarbarianRageState(nextCharacter).frenzyPending === true;
     const clearedCharacter = clearRoundScopedFeatureStateForCharacter(nextCharacter);
 
     if (!shouldPreserveFrenzyPending) {

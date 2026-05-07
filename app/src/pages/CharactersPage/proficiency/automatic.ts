@@ -4,6 +4,7 @@ import type {
   CharacterDraft,
   CharacterEquipmentItem,
   CharacterProficiencyCollections,
+  CharacterSpeciesChoices,
   SavingThrowProficiencyEntry,
   SkillName,
   SkillProficiencyEntry,
@@ -58,6 +59,8 @@ import {
   getBackgroundToolProficiencies,
   normalizeBackgroundChoices
 } from "../backgrounds";
+import { getElfSkillProficiencyForCharacter } from "../speciesElf";
+import { getHumanSkillProficiencyForCharacter } from "../speciesHuman";
 import {
   buildGrantedEntriesFromCollections,
   createArmorEntry,
@@ -171,14 +174,30 @@ function getBackgroundGrantedToolProficiencies(
     .filter((toolProficiency): toolProficiency is ToolProficiency => toolProficiency !== null);
 }
 
-function getSpeciesGrantedSkillProficiencies(species: string): SkillName[] {
+function getSpeciesGrantedSkillProficiencies(
+  species: string,
+  speciesChoices?: CharacterSpeciesChoices
+): SkillName[] {
   const entry = getSpeciesEntryByName(species);
 
   if (!entry) {
     return [];
   }
 
-  return entry.grantedSkillProficiencies
+  const elfSkill = getElfSkillProficiencyForCharacter({
+    species,
+    speciesChoices
+  });
+  const humanSkill = getHumanSkillProficiencyForCharacter({
+    species,
+    speciesChoices
+  });
+
+  return [
+    ...entry.grantedSkillProficiencies,
+    ...(elfSkill ? [elfSkill] : []),
+    ...(humanSkill ? [humanSkill] : [])
+  ]
     .map((skill) => normalizeSkillName(skill))
     .filter((skill): skill is SkillName => skill !== null);
 }
@@ -216,7 +235,8 @@ function getAutomaticSkillEntries(
   species: string,
   background = "",
   backgroundChoices?: CharacterBackgroundChoices,
-  selectedClassSkills: SkillName[] = []
+  selectedClassSkills: SkillName[] = [],
+  speciesChoices?: CharacterSpeciesChoices
 ): SkillProficiencyEntry[] {
   const classSourceLabel = className.trim() || undefined;
   const speciesSourceLabel = species.trim() || undefined;
@@ -229,7 +249,7 @@ function getAutomaticSkillEntries(
       .map((skill) =>
         createSkillEntry(skill, PROFICIENCY_SOURCE.CLASS, classSourceLabel, PROF_LEVEL.PROFICIENT)
       ),
-    ...getSpeciesGrantedSkillProficiencies(species)
+    ...getSpeciesGrantedSkillProficiencies(species, speciesChoices)
       .map((skill) => getSkillProficiencyForName(skill))
       .filter((skill): skill is SKILL_PROFICIENCY => skill !== null)
       .map((skill) =>
@@ -376,6 +396,7 @@ function getFeatureProficiencyCollectionsForCharacter(
     level?: number;
     subclassId?: string;
     classFeatureState?: CharacterClassFeatureState;
+    speciesChoices?: CharacterSpeciesChoices;
     skillProficiencies?: SkillProficiencyEntry[];
     savingThrowProficiencies?: SavingThrowProficiencyEntry[];
   }
@@ -523,6 +544,7 @@ export function getAutomaticProficiencyCollectionsForCharacter(
     level?: number;
     subclassId?: string;
     classFeatureState?: CharacterClassFeatureState;
+    speciesChoices?: CharacterSpeciesChoices;
     skillProficiencies?: SkillProficiencyEntry[];
     savingThrowProficiencies?: SavingThrowProficiencyEntry[];
     selectedClassSkills?: string[];
@@ -548,7 +570,8 @@ export function getAutomaticProficiencyCollectionsForCharacter(
         species,
         background,
         options?.backgroundChoices,
-        normalizedSelectedClassSkills
+        normalizedSelectedClassSkills,
+        options?.speciesChoices
       ),
       ...featureCollections.skillProficiencies
     ]),
@@ -592,11 +615,19 @@ export function getGrantedSkillProficienciesForCharacter(
   className: string,
   species: string,
   background = "",
-  backgroundChoices?: CharacterBackgroundChoices
+  backgroundChoices?: CharacterBackgroundChoices,
+  speciesChoices?: CharacterSpeciesChoices
 ): GrantedSkillProficiency[] {
   const grantedBySkill = new Map<SkillName, Set<string>>();
 
-  getAutomaticSkillEntries(className, species, background, backgroundChoices).forEach((entry) => {
+  getAutomaticSkillEntries(
+    className,
+    species,
+    background,
+    backgroundChoices,
+    [],
+    speciesChoices
+  ).forEach((entry) => {
     const skill = getSharedSkillNameForProficiency(entry.proficiency);
     const sources = grantedBySkill.get(skill) ?? new Set<string>();
     sources.add(getSourceLabel(entry.source, entry.sourceStr));
@@ -690,13 +721,15 @@ export function resolveSkillProficienciesForCharacter(
   species: string,
   background: string,
   selectedSkills: string[],
-  backgroundChoices?: CharacterBackgroundChoices
+  backgroundChoices?: CharacterBackgroundChoices,
+  speciesChoices?: CharacterSpeciesChoices
 ): ResolvedSkillProficiencies {
   const granted = getGrantedSkillProficienciesForCharacter(
     className,
     species,
     background,
-    backgroundChoices
+    backgroundChoices,
+    speciesChoices
   );
   const manual = normalizeSkillSelectionsForClass(className, selectedSkills, species, background);
   const all = dedupe([...granted.map((entry) => entry.skill), ...manual]).filter(
