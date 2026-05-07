@@ -27,6 +27,8 @@ function CharacterBuilderPage() {
         ...emptyCharacter,
         name: existingCharacter.name,
         species: existingCharacter.species,
+        speciesChoices: existingCharacter.speciesChoices,
+        speciesFeatureState: existingCharacter.speciesFeatureState,
         className: existingCharacter.className,
         subclassId: existingCharacter.subclassId ?? "",
         level: existingCharacter.level,

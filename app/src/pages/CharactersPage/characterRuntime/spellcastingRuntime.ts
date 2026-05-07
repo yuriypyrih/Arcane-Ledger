@@ -1,6 +1,7 @@
 import type { Character } from "../../../types";
 import {
   getAlwaysPreparedSpellIdsForCharacter,
+  getAlwaysPreparedSpellSourceMapForCharacter,
   getAlwaysSpellbookSpellIdsForCharacter,
   getBardicInspirationUsesRemainingForCharacter,
   getBardicInspirationUsesTotalForCharacter,
@@ -28,7 +29,7 @@ import {
   getSpellcastingStateForCharacter,
   type FeatureActionCard
 } from "../classFeatures";
-import type { FeatureSpellcastingState } from "../classFeatures/types";
+import type { FeatureSpellcastingState, SpellSourceMap } from "../classFeatures/types";
 import { getSorceryPointsRemaining, getSorceryPointsTotal } from "../classFeatures/sorcerer/sorcerer";
 import {
   getSorcererSubclassTamedSurgeUsesRemaining,
@@ -52,6 +53,7 @@ export type CharacterSpellcastingRuntime = {
   spellcastingState: FeatureSpellcastingState;
   featureActions: FeatureActionCard[];
   featureAlwaysPreparedSpellIds: string[];
+  featureAlwaysPreparedSpellSourceMap: SpellSourceMap;
   featureAlwaysSpellbookSpellIds: string[];
   featureRitualOnlySpellIds: string[];
   cantripLimit: number | null;
@@ -155,6 +157,7 @@ function createSpellcastingRuntime(
     spellcastingState: getSpellcastingStateForCharacter(character),
     featureActions: getFeatureActionsForCharacter(character),
     featureAlwaysPreparedSpellIds: getAlwaysPreparedSpellIdsForCharacter(character),
+    featureAlwaysPreparedSpellSourceMap: getAlwaysPreparedSpellSourceMapForCharacter(character),
     featureAlwaysSpellbookSpellIds: getAlwaysSpellbookSpellIdsForCharacter(character),
     featureRitualOnlySpellIds: getRitualOnlySpellIdsForCharacter(character),
     cantripLimit: getCantripLimitForCharacter(

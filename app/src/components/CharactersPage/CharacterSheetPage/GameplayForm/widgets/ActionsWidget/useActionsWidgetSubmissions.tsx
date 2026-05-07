@@ -98,6 +98,11 @@ import {
   createNamedUsageHeaderTags,
   createNamedResourceCardUsage
 } from "../../../../../../pages/CharactersPage/classFeatures/cardUsage";
+import {
+  activateAasimarCelestialRevelationForCharacter,
+  getAasimarHealingHandsFormula,
+  spendAasimarHealingHandsForCharacter
+} from "../../../../../../pages/CharactersPage/species";
 import { mantleOfInspirationActionKey } from "../../../../../../pages/CharactersPage/classFeatures/bard/subclasses/bardCollegeOfGlamour";
 import {
   channelDivinityActionKey,
@@ -430,9 +435,7 @@ import WildShapePreviewDrawer from "./WildShapePreviewDrawer";
 type ActionsWidgetSubmissionContext = Record<string, any>;
 
 export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionContext) {
-  const {
-    ...values
-  } = context;
+  const { ...values } = context;
   Object.assign(globalThis as Record<string, unknown>, {});
   const {
     character,
@@ -460,6 +463,8 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     selectedDrawerOptions,
     selectedActionOptionKeys,
     selectedChannelDivinityRow,
+    selectedAasimarCelestialRevelationOptionKey,
+    selectedAasimarHealingHandsTarget,
     selectedLayOnHandsTarget,
     selectedLayOnHandsTotalCost,
     selectedHealingLightTarget,
@@ -800,6 +805,81 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
               );
             }
           : undefined
+    });
+
+    closeActionDrawer();
+  }
+
+  function submitAasimarHealingHands() {
+    if (!selectedFeatureAction) {
+      return;
+    }
+
+    const healingFormula = getAasimarHealingHandsFormula(character);
+
+    onPersistCharacter((currentCharacter) => {
+      const roundTrackerResource = getRoundTrackerResourceForEconomyType(
+        selectedFeatureAction.economyType
+      );
+      const preparedCharacter = prepareCharacterForResourceConsumption(
+        currentCharacter,
+        roundTrackerResource
+      );
+      const nextCharacter = spendAasimarHealingHandsForCharacter(preparedCharacter);
+
+      if (nextCharacter === preparedCharacter) {
+        return currentCharacter;
+      }
+
+      return roundTrackerResource
+        ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
+        : nextCharacter;
+    });
+
+    openDiceRoller({
+      title: selectedFeatureAction.name,
+      formula: healingFormula,
+      formulaDisplay: healingFormula,
+      description: selectedFeatureAction.detail,
+      getFullManualToastText: ({ result }) => `Rolled ${result.total} Healing Hands healing.`,
+      onResolvedResult:
+        selectedAasimarHealingHandsTarget === "self"
+          ? ({ result }) => {
+              onPersistCharacter((currentCharacter) =>
+                applyRolledHealingToCharacter(currentCharacter, result.total)
+              );
+            }
+          : undefined
+    });
+
+    closeActionDrawer();
+  }
+
+  function submitAasimarCelestialRevelation() {
+    if (!selectedFeatureAction || !selectedAasimarCelestialRevelationOptionKey) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      const roundTrackerResource = getRoundTrackerResourceForEconomyType(
+        selectedFeatureAction.economyType
+      );
+      const preparedCharacter = prepareCharacterForResourceConsumption(
+        currentCharacter,
+        roundTrackerResource
+      );
+      const nextCharacter = activateAasimarCelestialRevelationForCharacter(
+        preparedCharacter,
+        selectedAasimarCelestialRevelationOptionKey
+      );
+
+      if (nextCharacter === preparedCharacter) {
+        return currentCharacter;
+      }
+
+      return roundTrackerResource
+        ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
+        : nextCharacter;
     });
 
     closeActionDrawer();
@@ -1435,11 +1515,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
         const source = maximizeDie ? fiendishVigorTemporaryHitPointsSource : spell.name;
 
         onPersistCharacter((currentCharacter) =>
-          applyFalseLifeTemporaryHitPointsToCharacter(
-            currentCharacter,
-            temporaryHitPoints,
-            source
-          )
+          applyFalseLifeTemporaryHitPointsToCharacter(currentCharacter, temporaryHitPoints, source)
         );
       }
     });
@@ -1489,8 +1565,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
       : null;
     const castAsRitual = options?.castAsRitual === true;
     const castMageArmorOnSelf =
-      fixedSpellExecute.effectKind === "armor-of-shadows" ||
-      options?.castMageArmorOnSelf === true;
+      fixedSpellExecute.effectKind === "armor-of-shadows" || options?.castMageArmorOnSelf === true;
     const spellImplementationOptions = { castMageArmorOnSelf };
     const minimumSlotLevel = Math.max(
       getSpellLevel(fixedSpellEntry),
@@ -1817,14 +1892,14 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     );
   }
 
-
-
   return {
     toggleFeatureOptionSelection,
     handleFeatureOptionExecute,
     activateSelectedChannelDivinity,
     confirmSelectedFeatureOptions,
     submitLayOnHands,
+    submitAasimarHealingHands,
+    submitAasimarCelestialRevelation,
     submitWarriorOfTheGods,
     submitIndomitable,
     submitHealingLight,

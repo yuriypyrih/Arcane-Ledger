@@ -3,6 +3,7 @@ import type {
   ABILITY_TYPES,
   ARMOR_TYPES,
   BACKGROUND_TYPES,
+  BODY_SIZE,
   CLASS_FEATURE,
   CURRENCY_TYPE,
   CLASS_TYPES,
@@ -241,6 +242,11 @@ export type SpeciesEntry = BaseCodexEntry<ENTRY_CATEGORIES.SPECIES, SPECIES_TYPE
   source: "PHB'24";
   page: number;
   speed: number;
+  size: BODY_SIZE[];
+  trackingState?: TRACKER;
+  starterPack: {
+    recommendedBodySize?: BODY_SIZE;
+  };
   description: SpellDescriptionEntry[];
   abilityBonuses: Partial<Record<ABILITY_TYPES, number>>;
   innateProficiencies: GENERAL_PROFICIENCIES[];

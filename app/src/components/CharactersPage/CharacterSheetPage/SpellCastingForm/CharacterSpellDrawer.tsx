@@ -143,6 +143,7 @@ type CharacterSpellDrawerProps = {
   character: Character;
   spell: SpellEntry;
   alwaysPrepared?: boolean;
+  alwaysPreparedSources?: string[];
   alwaysSpellbook?: boolean;
   mode: CharacterSpellDrawerMode;
   spellSlotTotals: number[];
@@ -203,10 +204,19 @@ function hasSpellHealing(spell: Pick<SpellEntry, "healing">): boolean {
     : spell.healing.label.trim().length > 0;
 }
 
+function formatAlwaysPreparedSourceDetailText(sources: string[]): string | null {
+  const normalizedSources = [
+    ...new Set(sources.map((source) => source.trim()).filter((source) => source.length > 0))
+  ];
+
+  return normalizedSources.length > 0 ? `From ${normalizedSources.join(", ")}` : null;
+}
+
 function CharacterSpellDrawer({
   character,
   spell,
   alwaysPrepared = false,
+  alwaysPreparedSources = [],
   alwaysSpellbook = false,
   mode,
   spellSlotTotals,
@@ -469,6 +479,9 @@ function CharacterSpellDrawer({
     getSpellSaveFormulaCell(spell, character, spellcastingAbilityOverride),
     getSpellAttackFormulaCell(spell, character, spellcastingAbilityOverride)
   ].filter((cell): cell is NonNullable<typeof cell> => cell !== null);
+  const alwaysPreparedSourceDetailText = formatAlwaysPreparedSourceDetailText(
+    alwaysPreparedSources
+  );
 
   function openTrackingKeyword(trackingState: TRACKER) {
     const resolvedKeyword = resolveKeywordReference(trackingState);
@@ -585,7 +598,14 @@ function CharacterSpellDrawer({
                   <span
                     className={clsx(styles.alwaysPreparedPill, styles.alwaysPreparedDrawerPill)}
                   >
-                    Always Prepared
+                    <span className={styles.alwaysPreparedPillLabel}>
+                      {alwaysPreparedSourceDetailText ? "Always Prepared:" : "Always Prepared"}
+                    </span>
+                    {alwaysPreparedSourceDetailText ? (
+                      <span className={styles.alwaysPreparedPillDetail}>
+                        {alwaysPreparedSourceDetailText}
+                      </span>
+                    ) : null}
                   </span>
                 ) : null}
                 {alwaysSpellbook ? (

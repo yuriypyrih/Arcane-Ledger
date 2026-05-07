@@ -2,10 +2,22 @@ import clsx from "clsx";
 import { Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
 import SelectInput from "../../FormInputs/SelectInput";
-import type { Character } from "../../../../types";
+import type { Character, CharacterSpeciesChoices } from "../../../../types";
 import { speciesOptions } from "../../../../pages/CharactersPage/constants";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
-import { getSelectedSubclassForCharacter, getSubclassOptionsForClassName, normalizeSubclassId } from "../../../../pages/CharactersPage/subclasses";
+import {
+  getSelectedSubclassForCharacter,
+  getSubclassOptionsForClassName,
+  normalizeSubclassId
+} from "../../../../pages/CharactersPage/subclasses";
+import {
+  formatBodySize,
+  getBodySizeLabelForCharacter,
+  getSpeciesBodySizeOptions,
+  normalizeCharacterSpeciesChoices,
+  normalizeCharacterSpeciesFeatureState,
+  normalizeSpeciesStatusEntriesForCharacter
+} from "../../../../pages/CharactersPage/species";
 import { getClassSignatureStyle } from "../../classSignature";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import CharacterProgressModal from "./CharacterProgressModal";
@@ -14,6 +26,7 @@ import InlineToggleButton from "../InlineToggleButton";
 
 type ProfileDraft = {
   species: string;
+  speciesChoices?: CharacterSpeciesChoices;
   subclassId: string;
 };
 
@@ -26,6 +39,7 @@ type CharacterProfileFormProps = {
 function createProfileDraft(character: Character): ProfileDraft {
   return {
     species: character.species,
+    speciesChoices: normalizeCharacterSpeciesChoices(character.species, character.speciesChoices),
     subclassId: character.subclassId ?? ""
   };
 }
@@ -51,6 +65,10 @@ function CharacterProfileForm({
   const selectedSubclass = getSelectedSubclassForCharacter(character);
   const subclassOptions = getSubclassOptionsForClassName(character.className);
   const subclassLabel = selectedSubclass?.name ?? "No subclass selected";
+  const bodySizeOptions = getSpeciesBodySizeOptions(profileDraft.species);
+  const selectedBodySize =
+    normalizeCharacterSpeciesChoices(profileDraft.species, profileDraft.speciesChoices)?.bodySize ??
+    "";
 
   function beginEditing() {
     setProfileDraft(createProfileDraft(character));
@@ -64,8 +82,16 @@ function CharacterProfileForm({
 
   function saveProfile() {
     const normalizedSpecies = profileDraft.species.trim();
+    const normalizedSpeciesChoices = normalizeCharacterSpeciesChoices(
+      normalizedSpecies,
+      profileDraft.speciesChoices
+    );
+    const normalizedBodySizeOptions = getSpeciesBodySizeOptions(normalizedSpecies);
 
-    if (!normalizedSpecies) {
+    if (
+      !normalizedSpecies ||
+      (normalizedBodySizeOptions.length > 1 && !normalizedSpeciesChoices?.bodySize)
+    ) {
       return;
     }
 
@@ -73,6 +99,18 @@ function CharacterProfileForm({
       return {
         ...currentCharacter,
         species: normalizedSpecies,
+        speciesChoices: normalizedSpeciesChoices,
+        speciesFeatureState: normalizeCharacterSpeciesFeatureState(
+          normalizedSpecies,
+          currentCharacter.species === normalizedSpecies
+            ? currentCharacter.speciesFeatureState
+            : undefined
+        ),
+        statusEntries: normalizeSpeciesStatusEntriesForCharacter({
+          species: normalizedSpecies,
+          level: currentCharacter.level,
+          statusEntries: currentCharacter.statusEntries
+        }),
         subclassId: normalizeSubclassId(profileDraft.subclassId, currentCharacter.className) ?? ""
       };
     });
@@ -115,7 +153,8 @@ function CharacterProfileForm({
               onChange={(event) =>
                 setProfileDraft((current) => ({
                   ...current,
-                  species: event.target.value
+                  species: event.target.value,
+                  speciesChoices: undefined
                 }))
               }
             >
@@ -127,6 +166,32 @@ function CharacterProfileForm({
               ))}
             </SelectInput>
           </label>
+
+          {bodySizeOptions.length > 0 ? (
+            <label className={shared.field}>
+              <span className={shared.fieldLabel}>Size</span>
+              <SelectInput
+                value={selectedBodySize}
+                disabled={bodySizeOptions.length === 1}
+                onChange={(event) =>
+                  setProfileDraft((current) => ({
+                    ...current,
+                    speciesChoices: {
+                      ...(current.speciesChoices ?? {}),
+                      bodySize: event.target.value as CharacterSpeciesChoices["bodySize"]
+                    }
+                  }))
+                }
+              >
+                {bodySizeOptions.length > 1 ? <option value="">Select a size</option> : null}
+                {bodySizeOptions.map((bodySize) => (
+                  <option key={bodySize} value={bodySize}>
+                    {formatBodySize(bodySize)}
+                  </option>
+                ))}
+              </SelectInput>
+            </label>
+          ) : null}
 
           <label className={shared.field}>
             <span className={shared.fieldLabel}>Subclass</span>
@@ -172,6 +237,10 @@ function CharacterProfileForm({
             <li>
               <span>Species</span>
               <strong>{character.species}</strong>
+            </li>
+            <li>
+              <span>Size</span>
+              <strong>{getBodySizeLabelForCharacter(character)}</strong>
             </li>
             <li>
               <span>Background</span>

@@ -5,6 +5,7 @@ import type { FeatureSpeedBonus, MovementSpeedType } from "./classFeatures/types
 import { getFeatSpeedBonusesForCharacter } from "./feats/runtime";
 import { getAbilityModifierForCharacter, getAbilityScoreForCharacter } from "./abilities";
 import { getWornBodyArmorTypeForCharacter } from "./armor";
+import { getSpeciesSpeedBonusesForCharacter, getSpeciesSpeedDetailsForCharacter } from "./species";
 import { getExhaustionSpeedAdjustment } from "./traits";
 
 export type SpeedBreakdownEntry = {
@@ -86,6 +87,7 @@ function getMovementSpeedBonuses(
     ...getSpeedBonusesForCharacter(character, {
       wornBodyArmorType: getWornBodyArmorTypeForCharacter(character)
     }),
+    ...getSpeciesSpeedBonusesForCharacter(character),
     ...getFeatSpeedBonusesForCharacter(character)
   ].filter((bonus) => (bonus.movementType ?? "walk") === movementType);
 }
@@ -138,8 +140,7 @@ function resolveTotalFromBaseAndBonuses(
 }
 
 function createWalkSpeedBreakdown(character: Character): MovementSpeedBreakdown {
-  const baseSpeed = 30;
-  const source = "Base";
+  const { speed: baseSpeed, source } = getSpeciesSpeedDetailsForCharacter(character);
   const bonuses = getMovementSpeedBonuses(character, "walk");
   const { total: preExhaustionTotal, entries } = resolveTotalFromBaseAndBonuses(baseSpeed, bonuses);
   const exhaustionAdjustment = getExhaustionSpeedAdjustment(
@@ -322,5 +323,7 @@ export function canCharacterHover(character: Character): boolean {
 
   return getSpeedBonusesForCharacter(character, {
     wornBodyArmorType: getWornBodyArmorTypeForCharacter(character)
-  }).some((bonus) => bonus.hover === true);
+  })
+    .concat(getSpeciesSpeedBonusesForCharacter(character))
+    .some((bonus) => bonus.hover === true);
 }

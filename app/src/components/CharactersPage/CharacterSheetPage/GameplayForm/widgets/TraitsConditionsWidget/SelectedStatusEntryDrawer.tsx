@@ -23,9 +23,11 @@ import { isCustomFeatureTraitStatusEntry } from "../../../../../../pages/Charact
 import { actorStatusSourceId } from "../../../../../../pages/CharactersPage/feats/runtime";
 import { getProficiencyBonus } from "../../../../../../pages/CharactersPage/gameplay";
 import {
+  formatFormulaCell,
   formatFormulaTerms,
   formatSignedFormulaTerm
 } from "../../../../../../pages/CharactersPage/shared/formulas";
+import { getAasimarCelestialRevelationStatusOption } from "../../../../../../pages/CharactersPage/species";
 import {
   getMonkWarriorOfTheElementsElementalResistanceDamageTypeSelection,
   hasMonkWarriorOfTheElementsElementalEpitome,
@@ -93,6 +95,46 @@ function getActorInsightDcFormula(character: Character): string {
   ])}`;
 }
 
+function getAasimarCelestialRevelationStatusFormula(
+  character: Character,
+  entry: CharacterStatusEntry
+): { label: string; content: string } | null {
+  const option = getAasimarCelestialRevelationStatusOption(entry);
+
+  if (!option) {
+    return null;
+  }
+
+  const proficiencyBonus = getProficiencyBonus(character.level);
+
+  if (option.key === "inner-radiance") {
+    return {
+      label: "INNER RADIANCE DAMAGE",
+      content: `${proficiencyBonus} Radiant Damage = ${proficiencyBonus} Prof. Bonus`
+    };
+  }
+
+  if (option.key === "necrotic-shroud") {
+    const charismaModifier = getAbilityModifierBreakdownForCharacter(character, "CHA").total;
+    const saveDc = 8 + charismaModifier + proficiencyBonus;
+    const formulaCell = formatFormulaCell({
+      formula: String(saveDc),
+      displayTerms: [
+        "DC 8 (Base)",
+        formatSignedFormulaTerm(charismaModifier, "CHA"),
+        formatSignedFormulaTerm(proficiencyBonus, "Prof. Bonus")
+      ]
+    });
+
+    return {
+      label: "CHARISMA SAVE DC",
+      content: `DC ${saveDc} = ${formulaCell.value}`
+    };
+  }
+
+  return null;
+}
+
 function SelectedStatusEntryDrawer({
   applyStatusEntryDuration,
   cancelStatusDurationEdit,
@@ -146,6 +188,8 @@ function SelectedStatusEntryDrawer({
     selectedStatusEntry.sourceId === monkWarriorOfTheOpenHandQuiveringPalmStatusSourceId
       ? getRoundTrackerActionWarning("action", roundTracker)
       : null;
+  const selectedAasimarCelestialRevelationFormula =
+    getAasimarCelestialRevelationStatusFormula(character, selectedStatusEntry);
 
   function endSelectedWildShape() {
     removeStatusEntry(selectedStatusEntry!);
@@ -273,7 +317,14 @@ function SelectedStatusEntryDrawer({
         ) : null
       }
       afterDetailsContent={
-        selectedStatusEntry.sourceId === monkWarriorOfTheOpenHandQuiveringPalmStatusSourceId ? (
+        selectedAasimarCelestialRevelationFormula ? (
+          <div className={styles.statusFormulaGrid}>
+            <CellContainer
+              label={selectedAasimarCelestialRevelationFormula.label}
+              content={selectedAasimarCelestialRevelationFormula.content}
+            />
+          </div>
+        ) : selectedStatusEntry.sourceId === monkWarriorOfTheOpenHandQuiveringPalmStatusSourceId ? (
           <QuiveringPalmStatusDrawerFormula />
         ) : selectedStatusEntry.sourceId === actorStatusSourceId ? (
           <div className={styles.statusFormulaGrid}>

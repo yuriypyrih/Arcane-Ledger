@@ -62,6 +62,12 @@
   font-weight: 600;
 }
 
+.aasimarTargetBody {
+  display: grid;
+  gap: 0.75rem;
+  width: 100%;
+}
+
 .weaponFooterActions {
   display: flex;
   flex-wrap: wrap;

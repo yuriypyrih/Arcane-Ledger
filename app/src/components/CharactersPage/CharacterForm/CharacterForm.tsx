@@ -65,6 +65,15 @@ import { normalizeLevelAndXp } from "../../../pages/CharactersPage/experience";
 import { getAutomaticMaxHitPointsForCharacter } from "../../../pages/CharactersPage/gameplay";
 import { getEffectiveHitPointMaximumForCharacter } from "../../../pages/CharactersPage/traits";
 import {
+  createDefaultSpeciesChoicesForSpecies,
+  formatBodySize,
+  formatBodySizeOptions,
+  getSpeciesBodySizeOptions,
+  getSpeciesSpeedForCharacter,
+  normalizeCharacterSpeciesChoices,
+  normalizeCharacterSpeciesFeatureState
+} from "../../../pages/CharactersPage/species";
+import {
   getSubclassOptionsForClassName,
   normalizeSubclassId
 } from "../../../pages/CharactersPage/subclasses";
@@ -273,6 +282,8 @@ function createBasicProfileSnapshot(
       ...defaults,
       name: values.name,
       species: values.species,
+      speciesChoices: undefined,
+      speciesFeatureState: normalizeCharacterSpeciesFeatureState(values.species, undefined),
       className: values.className,
       subclassId: values.subclassId,
       background: values.background,
@@ -456,6 +467,8 @@ function createRecommendedCharacterDraft(profile: CharacterFormValues): Characte
         ...createEmptyCharacter(),
         name: profile.name,
         species: profile.species,
+        speciesChoices: createDefaultSpeciesChoicesForSpecies(profile.species),
+        speciesFeatureState: normalizeCharacterSpeciesFeatureState(profile.species, undefined),
         className: profile.className,
         subclassId: profile.subclassId,
         background: profile.background,
@@ -504,6 +517,8 @@ function createRecommendedCharacterDraft(profile: CharacterFormValues): Characte
       ...createEmptyCharacter(),
       name: profile.name,
       species: profile.species,
+      speciesChoices: createDefaultSpeciesChoicesForSpecies(profile.species),
+      speciesFeatureState: normalizeCharacterSpeciesFeatureState(profile.species, undefined),
       className: profile.className,
       subclassId: profile.subclassId,
       background: profile.background,
@@ -649,6 +664,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     selectedClassName,
     selectedSubclassId,
     selectedSpecies,
+    selectedSpeciesChoices,
     selectedBackground,
     selectedBackgroundChoices,
     selectedLevel,
@@ -669,6 +685,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       "className",
       "subclassId",
       "species",
+      "speciesChoices",
       "background",
       "backgroundChoices",
       "level",
@@ -688,6 +705,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   const resolvedClassName = selectedClassName ?? initialFormValues.className;
   const resolvedSubclassId = selectedSubclassId ?? initialFormValues.subclassId ?? "";
   const resolvedSpecies = selectedSpecies ?? initialFormValues.species;
+  const resolvedSpeciesChoices = selectedSpeciesChoices ?? initialFormValues.speciesChoices;
   const resolvedBackground = selectedBackground ?? initialFormValues.background;
   const resolvedBackgroundChoiceInput =
     selectedBackgroundChoices ?? initialFormValues.backgroundChoices;
@@ -724,6 +742,15 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     () => selectedFeats ?? initialFormValues.feats ?? [],
     [initialFormValues.feats, selectedFeats]
   );
+  const speciesBodySizeOptions = useMemo(
+    () => getSpeciesBodySizeOptions(resolvedSpecies),
+    [resolvedSpecies]
+  );
+  const normalizedSpeciesChoices = useMemo(
+    () => normalizeCharacterSpeciesChoices(resolvedSpecies, resolvedSpeciesChoices),
+    [resolvedSpecies, resolvedSpeciesChoices]
+  );
+  const selectedBodySize = normalizedSpeciesChoices?.bodySize ?? "";
   const availableSubclassOptions = getSubclassOptionsForClassName(resolvedClassName);
   const starterPack = getResolvedStarterPack(resolvedClassName);
   const configuredStarterPack = getClassStarterPack(resolvedClassName);
@@ -853,6 +880,8 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     isBackgroundSkillSelectionReady &&
     isBackgroundToolSelectionReady &&
     isBackgroundEquipmentSelectionReady;
+  const isSpeciesBodySizeReady =
+    speciesBodySizeOptions.length <= 1 || Boolean(normalizedSpeciesChoices?.bodySize);
   const isPointBuyReady = resolvedAttributeMode !== "pointBuy" || pointBuyRemaining === 0;
   const isBuildSetupReady =
     isSkillSelectionReady &&
@@ -860,6 +889,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     isEquipmentChoiceReady &&
     isStarterPackSelectionReady &&
     isBackgroundSetupReady &&
+    isSpeciesBodySizeReady &&
     isPointBuyReady &&
     (resolvedMaxHitPointsMode !== "custom" || automaticHitPoints > 0);
   const isCoreProfileReady =
@@ -933,6 +963,18 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       });
     }
   }, [getValues, resolvedBackground, resolvedClassName, resolvedSpecies, setValue]);
+
+  useEffect(() => {
+    const currentChoices = getValues("speciesChoices");
+    const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, currentChoices);
+
+    if (!areJsonValuesEqual(currentChoices, nextChoices)) {
+      setValue("speciesChoices", nextChoices, {
+        shouldDirty: true,
+        shouldValidate: true
+      });
+    }
+  }, [getValues, resolvedSpecies, setValue]);
 
   useEffect(() => {
     if (!isEditing && wizardStep === 2) {
@@ -1356,6 +1398,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     } = values;
     const normalizedProgress = normalizeLevelAndXp(draftValues.level, draftValues.xp);
     const normalizedClassName = draftValues.className.trim();
+    const normalizedSpecies = draftValues.species.trim();
     const normalizedBackground = draftValues.background.trim();
     const resolvedNormalizedBackground =
       backgroundOptions.includes(normalizedBackground) || isEditing ? normalizedBackground : "";
@@ -1382,7 +1425,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     const normalizedSkills = normalizeSkillSelectionsForClass(
       normalizedClassName,
       draftValues.skills ?? [],
-      draftValues.species,
+      normalizedSpecies,
       resolvedNormalizedBackground
     );
     const normalizedTools = normalizeToolSelectionsForClass(
@@ -1407,7 +1450,15 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     return {
       ...draftValues,
       name: draftValues.name.trim(),
-      species: draftValues.species.trim(),
+      species: normalizedSpecies,
+      speciesChoices: normalizeCharacterSpeciesChoices(
+        normalizedSpecies,
+        draftValues.speciesChoices
+      ),
+      speciesFeatureState: normalizeCharacterSpeciesFeatureState(
+        normalizedSpecies,
+        draftValues.speciesFeatureState
+      ),
       className: normalizedClassName,
       subclassId: normalizedSubclassId,
       level: normalizedProgress.level,
@@ -1578,6 +1629,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       randomToolSelections,
       {}
     );
+    const randomSpecies = getRandomItem(speciesOptions);
     const randomMode: AttributeMode = Math.random() < 0.5 ? "custom" : "pointBuy";
     const randomizedAbilities =
       randomMode === "custom" ? createRandomCustomAbilities() : createRandomPointBuyAbilities();
@@ -1589,7 +1641,9 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       {
         ...createEmptyCharacter(),
         name: createRandomName(),
-        species: getRandomItem(speciesOptions),
+        species: randomSpecies,
+        speciesChoices: createDefaultSpeciesChoicesForSpecies(randomSpecies),
+        speciesFeatureState: normalizeCharacterSpeciesFeatureState(randomSpecies, undefined),
         className: randomClassName,
         subclassId: getRandomSubclassIdForClass(randomClassName),
         level: 1,
@@ -1625,6 +1679,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
 
   function renderBasicProfileSection() {
     const showRandomize = !isEditing && wizardStep === 1;
+    const speciesRegistration = register("species", { required: "Choose a species" });
 
     return (
       <section className={clsx(styles.sectionCard, styles.primarySection)}>
@@ -1737,7 +1792,22 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
               <SelectInput
                 className={styles.fieldInput}
                 invalid={Boolean(errors.species)}
-                {...register("species", { required: "Choose a species" })}
+                {...speciesRegistration}
+                onChange={(event) => {
+                  void speciesRegistration.onChange(event);
+                  setValue("speciesChoices", undefined, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  });
+                  setValue(
+                    "speciesFeatureState",
+                    normalizeCharacterSpeciesFeatureState(event.target.value, undefined),
+                    {
+                      shouldDirty: true,
+                      shouldValidate: true
+                    }
+                  );
+                }}
               >
                 <option value="">Select a species</option>
                 {speciesOptions.map((species) => (
@@ -2733,18 +2803,69 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     );
   }
 
-  function renderFutureSection(title: string, eyebrow: string, description: string) {
+  function renderSpeciesSetupSection() {
+    const speciesSpeed = getSpeciesSpeedForCharacter({ species: resolvedSpecies });
+
     return (
       <section className={styles.sectionCard}>
         <div className={styles.sectionHeader}>
           <div>
-            <p className={styles.sectionEyebrow}>{eyebrow}</p>
-            <h3>{title}</h3>
+            <p className={styles.sectionEyebrow}>Species</p>
+            <h3>Species setup</h3>
           </div>
+          <span>{resolvedSpecies || "Choose a species first"}</span>
         </div>
-        <div className={styles.placeholderCard}>
-          <p>{description}</p>
+
+        <div className={styles.summaryGrid}>
+          <CellContainer label="Speed" content={`${speciesSpeed} ft`} />
+          <CellContainer
+            label="Size Options"
+            content={
+              speciesBodySizeOptions.length > 0
+                ? formatBodySizeOptions(speciesBodySizeOptions)
+                : "Not configured yet"
+            }
+          />
         </div>
+
+        {speciesBodySizeOptions.length > 1 ? (
+          <fieldset className={styles.choiceGroup}>
+            <legend>Body Size</legend>
+            <div className={styles.choiceGrid}>
+              {speciesBodySizeOptions.map((bodySize) => (
+                <RadioContainerOption
+                  key={bodySize}
+                  name="species-body-size"
+                  header={formatBodySize(bodySize)}
+                  selected={selectedBodySize === bodySize}
+                  onSelect={() =>
+                    setValue(
+                      "speciesChoices",
+                      {
+                        ...(getValues("speciesChoices") ?? {}),
+                        bodySize
+                      },
+                      {
+                        shouldDirty: true,
+                        shouldValidate: true
+                      }
+                    )
+                  }
+                />
+              ))}
+            </div>
+            {attemptedBuildAdvance && !isSpeciesBodySizeReady ? (
+              <p className={styles.errorText}>Choose a body size before continuing.</p>
+            ) : null}
+          </fieldset>
+        ) : (
+          <div className={styles.infoCard}>
+            <strong>
+              {speciesBodySizeOptions[0] ? formatBodySize(speciesBodySizeOptions[0]) : "-"}
+            </strong>
+            <small>Derived from species</small>
+          </div>
+        )}
       </section>
     );
   }
@@ -2867,6 +2988,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             {renderStartingHitPointsSection()}
             {renderAbilityDistributionSection()}
             {renderClassSetupSection({ showStartingEquipmentChoice: false })}
+            {renderSpeciesSetupSection()}
             {renderNotesSection()}
           </>
         ) : null}
@@ -2878,11 +3000,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             {renderStartingHitPointsSection()}
             {renderAbilityDistributionSection()}
             {renderClassSetupSection()}
-            {renderFutureSection(
-              "",
-              "Species",
-              "Species-specific builder choices will appear here in a future pass."
-            )}
+            {renderSpeciesSetupSection()}
             {renderBackgroundSetupSection()}
           </>
         ) : null}

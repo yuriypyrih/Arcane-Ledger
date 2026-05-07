@@ -104,6 +104,8 @@ import {
 } from "../../../../../../pages/CharactersPage/feats/runtime";
 import { getHitDiceRemainingForCharacter } from "../../../../../../pages/CharactersPage/hitDice";
 import { bardicInspirationActionKey } from "../../../../../../pages/CharactersPage/classFeatures/bard/bard";
+import { activateBarbarianRecklessAttack } from "../../../../../../pages/CharactersPage/classFeatures/barbarian/barbarian";
+import { applyBarbarianRecklessAttackIndicatorToWeaponAction } from "../../../../../../pages/CharactersPage/classFeatures/barbarian/barbarianRecklessAttack";
 import {
   createChargesCardUsage,
   createFeatureActionCardCost,
@@ -484,6 +486,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     isPsionicStrikeSelected,
     isQuiveringPalmSelected,
     isRageOfTheGodsSelected,
+    isRecklessAttackSelected,
     isSacredWeaponSelected,
     isStunningStrikeSelected,
     isVowOfEnmitySelected,
@@ -497,6 +500,8 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     selectedActionSpellFrozenHauntFallbackSlotLevelIsValid,
     selectedActionSpellFrozenHauntOptionState,
     selectedActionSpellSupportsElementalSmite,
+    selectedAasimarCelestialRevelationOptionKey,
+    selectedAasimarHealingHandsTarget,
     selectedArcaneWardSpellSlotLevel,
     selectedBardicInspirationFallbackSlotIsValid,
     selectedBardicInspirationSpellSlotLevel,
@@ -541,6 +546,8 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     selectedWeaponHordeBreakerToggleDisabled,
     selectedWeaponHuntersMarkTargetState,
     selectedWeaponHuntersMarkTargetToggleDisabled,
+    selectedWeaponRecklessAttackState,
+    selectedWeaponRecklessAttackToggleDisabled,
     selectedWeaponPolarStrikesState,
     selectedWeaponPolarStrikesToggleDisabled,
     selectedWeaponPsionicStrikeAvailable,
@@ -575,6 +582,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     setIsPolarStrikesSelected,
     setIsPsionicStrikeSelected,
     setIsQuiveringPalmSelected,
+    setIsRecklessAttackSelected,
     setIsSacredWeaponSelected,
     setIsStunningStrikeSelected,
     setIsVowOfEnmitySelected,
@@ -1490,8 +1498,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
         description: `Expend ${diceCount} Recover Vitality d10${
           diceCount === 1 ? "" : "s"
         } and regain Hit Points equal to the roll.`,
-        getFullManualToastText: ({ result }) =>
-          `Rolled ${result.total} Recover Vitality healing.`,
+        getFullManualToastText: ({ result }) => `Rolled ${result.total} Recover Vitality healing.`,
         onResolvedResult: ({ result }) => {
           onPersistCharacter((currentCharacter) =>
             applyRolledHealingToCharacter(currentCharacter, result.total)
@@ -1532,8 +1539,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
         formula: healingFormula,
         formulaDisplay: healingFormula,
         description: "Expend one Hit Point Die and regain Hit Points equal to the roll.",
-        getFullManualToastText: ({ result }) =>
-          `Rolled ${result.total} Speedy Recovery healing.`,
+        getFullManualToastText: ({ result }) => `Rolled ${result.total} Speedy Recovery healing.`,
         onResolvedResult: ({ result }) => {
           onPersistCharacter((currentCharacter) =>
             applyRolledHealingToCharacter(currentCharacter, result.total)
@@ -1826,6 +1832,10 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
       isHuntersMarkTargetSelected &&
       selectedWeaponHuntersMarkTargetState !== null &&
       !selectedWeaponHuntersMarkTargetToggleDisabled;
+    const useRecklessAttack =
+      isRecklessAttackSelected &&
+      selectedWeaponRecklessAttackState !== null &&
+      !selectedWeaponRecklessAttackToggleDisabled;
     const useHordeBreaker =
       isHordeBreakerSelected &&
       selectedWeaponHordeBreakerState !== null &&
@@ -1868,6 +1878,11 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
         }
       }
 
+      if (useRecklessAttack) {
+        effectivePreparedAction =
+          applyBarbarianRecklessAttackIndicatorToWeaponAction(effectivePreparedAction);
+      }
+
       const attackFormula = getWeaponAttackFormulaPresentation(effectivePreparedAction).value;
       const attackRollMode = getRollModeFromIndicators(effectivePreparedAction.indicators);
 
@@ -1890,6 +1905,10 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
         nextCharacter = activatePaladinOathOfVengeanceVowOfEnmity(nextCharacter);
       }
 
+      if (useRecklessAttack) {
+        nextCharacter = activateBarbarianRecklessAttack(nextCharacter);
+      }
+
       const shouldSpendHordeBreaker =
         shouldSpendHordeBreakerOnThisAttack &&
         shouldTrackRoundScopedResources(currentCharacter.roundTracker) &&
@@ -1908,6 +1927,20 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
 
     setIsSacredWeaponSelected(false);
     setIsVowOfEnmitySelected(false);
+    setIsRecklessAttackSelected(false);
+  }
+
+  function getWeaponDamageRollFormula(action: WeaponAction): string {
+    const damageAbilityModifier = action.damageAbilityModifier ?? action.abilityModifier;
+    const numericDamageBonusTotal = action.damageBonusEntries.reduce(
+      (total, entry) => total + (entry.value ?? 0),
+      0
+    );
+
+    return appendRollModifier(
+      action.damageFormula,
+      damageAbilityModifier + numericDamageBonusTotal
+    );
   }
 
   function handleWeaponDamageRoll(action: WeaponAction) {
@@ -1971,6 +2004,9 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
       isSacredWeaponSelected &&
       selectedWeaponSacredWeaponState !== null &&
       !selectedWeaponSacredWeaponToggleDisabled;
+    const useRecklessAttackDamage =
+      selectedWeaponRecklessAttackState?.active === true &&
+      !selectedWeaponRecklessAttackToggleDisabled;
     const effectiveAction =
       (useDreadfulStrike ||
         useFeyDreadfulStrikes ||
@@ -1982,17 +2018,15 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
         usePsionicStrike ||
         useEldritchSmite ||
         useLifedrinker ||
-        useSacredWeapon) &&
+        useSacredWeapon ||
+        useRecklessAttackDamage) &&
       selectedWeaponEffectiveAction
         ? selectedWeaponEffectiveAction
         : action;
     const damageAction = nextRollCriticalHitOverride
       ? applyCriticalHitToWeaponAction(effectiveAction)
       : effectiveAction;
-    const damageFormula = appendRollModifier(
-      damageAction.damageFormula,
-      damageAction.damageAbilityModifier ?? damageAction.abilityModifier
-    );
+    const damageFormula = getWeaponDamageRollFormula(damageAction);
     const damageFormulaDisplay = getWeaponDamageFormulaPresentation(damageAction).value;
 
     openDiceRoller({

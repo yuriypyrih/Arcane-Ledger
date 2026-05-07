@@ -122,6 +122,7 @@ import {
 } from "./statusEntries";
 
 const conditionValues = new Set<CONDITION_NAME>(Object.values(CONDITION_NAME));
+const damageTypeValues = new Set<DAMAGE_TYPE>(Object.values(DAMAGE_TYPE));
 const exhaustionConditionOptionPrefix = "EXHAUSTION_LEVEL_";
 const inspiredEclipseStatusSourceId = "feature-bard-inspired-eclipse";
 const mantleOfMajestyStatusSourceId = "feature-bard-mantle-of-majesty";
@@ -739,6 +740,15 @@ export function getStatusEntryTitle(entry: CharacterStatusEntry): string {
     const exhaustionLevel = normalizeExhaustionLevel(entry.conditionLevel) ?? 1;
 
     return `Exhaustion ${exhaustionLevel}`;
+  }
+
+  if (
+    (entry.group === STATUS_ENTRY_GROUP.RESISTANCES ||
+      entry.group === STATUS_ENTRY_GROUP.VULNERABILITIES ||
+      entry.group === STATUS_ENTRY_GROUP.IMMUNITIES) &&
+    damageTypeValues.has(entry.value as DAMAGE_TYPE)
+  ) {
+    return formatCodexLabel(String(entry.value));
   }
 
   return typeof entry.value === "string" ? entry.value : formatCodexLabel(String(entry.value));

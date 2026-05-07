@@ -205,11 +205,13 @@ export function getBarbarianPathOfTheBerserkerWeaponDamageBonuses(
   rageState: CharacterRageFeatureState,
   context: WeaponFeatureContext,
   rageDamage: number,
-  isRaging: boolean
+  isRaging: boolean,
+  hasRecklessAttack: boolean
 ): FeatureDamageBonus[] {
   if (
     !isBarbarianPathOfTheBerserker(character) ||
     !isRaging ||
+    !hasRecklessAttack ||
     context.ability !== "STR" ||
     (context.attackKind !== "weapon" && context.attackKind !== "unarmed") ||
     rageState.frenzyPending !== true ||

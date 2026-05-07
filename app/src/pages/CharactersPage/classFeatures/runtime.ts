@@ -85,6 +85,7 @@ import {
   hasBarbarianBatteringRootsBonus,
   getBarbarianPersistentRageUsesRemaining,
   getBarbarianPersistentRageUsesTotal,
+  getBarbarianRageState,
   getBarbarianRageUsesRemaining,
   getBarbarianRageUsesTotal,
   getBarbarianPrimalKnowledgeSkillOptions,
@@ -579,7 +580,10 @@ import {
   type WEAPON_PROPERTY
 } from "../../../codex/entries";
 import { PROF_LEVEL } from "../../../types";
-import { clearRoundScopedFeatureStateIfOutOfCombat } from "./state";
+import {
+  clearRoundScopedFeatureStateForCharacter,
+  clearRoundScopedFeatureStateIfOutOfCombat
+} from "./state";
 
 export function activateBardCollegeOfDanceInspiringMovementForCharacter(
   character: Character
@@ -1596,7 +1600,30 @@ export function consumeWeaponAttackActionForCharacter(
     clearRoundScopedFeatureStateIfOutOfCombat(nextCharacter);
 
   if (character.className === "Barbarian") {
-    return finalize(consumeBarbarianWeaponAttack(character));
+    const nextCharacter = consumeBarbarianWeaponAttack(character);
+
+    if (shouldTrackRoundScopedResources(nextCharacter.roundTracker)) {
+      return nextCharacter;
+    }
+
+    const shouldPreserveFrenzyPending =
+      getBarbarianRageState(nextCharacter).frenzyPending === true;
+    const clearedCharacter = clearRoundScopedFeatureStateForCharacter(nextCharacter);
+
+    if (!shouldPreserveFrenzyPending) {
+      return clearedCharacter;
+    }
+
+    return {
+      ...clearedCharacter,
+      classFeatureState: {
+        ...clearedCharacter.classFeatureState,
+        rage: {
+          ...getBarbarianRageState(clearedCharacter),
+          frenzyPending: true
+        }
+      }
+    };
   }
 
   if (character.className === "Bard") {

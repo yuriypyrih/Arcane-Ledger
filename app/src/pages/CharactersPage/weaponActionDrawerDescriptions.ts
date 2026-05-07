@@ -2,6 +2,7 @@ import { CLASS_FEATURE, WEAPON_COMBAT_TYPE, type SpellDescriptionEntry } from ".
 import type { Character } from "../../types";
 import { ECONOMY_TYPE } from "./actionEconomy";
 import { createFeatureSourcedDescriptionEntries } from "./actionModalDescriptions";
+import { getBarbarianRecklessAttackWeaponActionDescriptionAdditions } from "./classFeatures/barbarian/barbarianRecklessAttack";
 import { getFeatureDescriptionForCharacter } from "./classFeatures/featureDescriptions";
 import { getRangerPreciseHunterWeaponActionDescriptionAdditions } from "./classFeatures/ranger/ranger";
 import {
@@ -158,6 +159,8 @@ export function getWeaponActionDrawerDescriptionAdditions(
       injectedSections.push(injectedExtraAttackSection);
     }
   }
+
+  injectedSections.push(...getBarbarianRecklessAttackWeaponActionDescriptionAdditions(character));
 
   if (isMeleeWeaponOrUnarmedAction(action)) {
     const injectedRadiantStrikesSection = getInjectedRadiantStrikesSection(character);

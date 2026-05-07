@@ -4,10 +4,7 @@ import type { CharacterSheetDomain, CharacterSheetDomainRevisions } from "./doma
 
 type CharacterField = keyof Character;
 
-function createCharacterFieldsSelector(
-  fields: CharacterField[],
-  domains: CharacterSheetDomain[]
-) {
+function createCharacterFieldsSelector(fields: CharacterField[], domains: CharacterSheetDomain[]) {
   let previousSource: Character | null = null;
   let previousSelected: Character | null = null;
   let previousRevisions: CharacterSheetDomainRevisions | null = null;
@@ -50,6 +47,8 @@ export const selectProfileCharacter = createCharacterFieldsSelector(
     "id",
     "name",
     "species",
+    "speciesChoices",
+    "speciesFeatureState",
     "className",
     "subclassId",
     "level",
@@ -65,6 +64,9 @@ export const selectProfileCharacter = createCharacterFieldsSelector(
 export const selectGameplayCharacter = createCharacterFieldsSelector(
   [
     "id",
+    "species",
+    "speciesChoices",
+    "speciesFeatureState",
     "className",
     "subclassId",
     "background",
@@ -114,6 +116,9 @@ export const selectGameplayCharacter = createCharacterFieldsSelector(
 export const selectStatsCharacter = createCharacterFieldsSelector(
   [
     "id",
+    "species",
+    "speciesChoices",
+    "speciesFeatureState",
     "className",
     "subclassId",
     "background",
@@ -143,6 +148,9 @@ export const selectStatsCharacter = createCharacterFieldsSelector(
 export const selectSkillsCharacter = createCharacterFieldsSelector(
   [
     "id",
+    "species",
+    "speciesChoices",
+    "speciesFeatureState",
     "className",
     "subclassId",
     "background",
@@ -165,6 +173,9 @@ export const selectSkillsCharacter = createCharacterFieldsSelector(
 export const selectFeaturesCharacter = createCharacterFieldsSelector(
   [
     "id",
+    "species",
+    "speciesChoices",
+    "speciesFeatureState",
     "className",
     "subclassId",
     "background",
@@ -194,6 +205,9 @@ export const selectCompanionsCharacter = createCharacterFieldsSelector(
 export const selectEquipmentCharacter = createCharacterFieldsSelector(
   [
     "id",
+    "species",
+    "speciesChoices",
+    "speciesFeatureState",
     "className",
     "subclassId",
     "background",
@@ -213,6 +227,9 @@ export const selectEquipmentCharacter = createCharacterFieldsSelector(
 export const selectSpellcastingCharacter = createCharacterFieldsSelector(
   [
     "id",
+    "species",
+    "speciesChoices",
+    "speciesFeatureState",
     "className",
     "subclassId",
     "background",

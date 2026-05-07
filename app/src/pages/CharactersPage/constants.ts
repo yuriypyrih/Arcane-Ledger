@@ -84,6 +84,8 @@ export function createEmptyCharacter(): CharacterDraft {
   return {
     name: "",
     species: "",
+    speciesChoices: undefined,
+    speciesFeatureState: {},
     className: "",
     subclassId: "",
     level: 1,

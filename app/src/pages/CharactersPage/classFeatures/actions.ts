@@ -33,6 +33,7 @@ import {
   transformFeatCommonActionForCharacter,
   transformFeatWeaponActionForCharacter
 } from "../feats/runtime";
+import { getSpeciesActionsForCharacter } from "../species";
 import { measureCharacterRuntime } from "../characterRuntime/performance";
 import {
   activateBardicInspiration,
@@ -579,7 +580,11 @@ import {
   type WEAPON_PROPERTY
 } from "../../../codex/entries";
 import { PROF_LEVEL } from "../../../types";
-import { clearRoundScopedFeatureStateIfOutOfCombat, exhaustionDisadvantageIndicator, mergeIndicatorMaps } from "./state";
+import {
+  clearRoundScopedFeatureStateIfOutOfCombat,
+  exhaustionDisadvantageIndicator,
+  mergeIndicatorMaps
+} from "./state";
 
 const featureActionsByCharacter = new WeakMap<Character, FeatureActionCard[]>();
 
@@ -601,9 +606,11 @@ export function getFeatureActionsForCharacter(character: Character): FeatureActi
       ? actions.map(subclassDerivedState.transformFeatureAction)
       : actions;
 
-    return [...transformedActions, ...getFeatActionsForCharacter(character)].map(
-      normalizeFeatureActionCardUsage
-    );
+    return [
+      ...transformedActions,
+      ...getSpeciesActionsForCharacter(character),
+      ...getFeatActionsForCharacter(character)
+    ].map(normalizeFeatureActionCardUsage);
   });
 
   featureActionsByCharacter.set(character, featureActions);

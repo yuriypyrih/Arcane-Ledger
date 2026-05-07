@@ -67,6 +67,7 @@ import {
   normalizeBarbarianRageState,
   setBarbarianWeaponMasterySelections
 } from "./barbarian/barbarian";
+import { transformBarbarianRecklessAttackWeaponAction } from "./barbarian/barbarianRecklessAttack";
 import {
   activateClericBlessingOfTheTrickster,
   activateClericCoronaOfLight,
@@ -383,6 +384,8 @@ const classFeatureModules = {
         getArmorClassModes: (context) => getBarbarianArmorClassModes(character, context),
         getArmorClassBonuses: (context) => getBarbarianArmorClassBonuses(character, context),
         getSpeedBonuses: (context) => getBarbarianSpeedBonuses(character, context),
+        transformWeaponAction: (action) =>
+          transformBarbarianRecklessAttackWeaponAction(character, action),
         abilityScoreBonuses: getBarbarianAbilityScoreBonuses(character),
         weaponProficiencyEntries: getBarbarianWeaponProficiencyEntries(character),
         weaponMastery: createWeaponMasteryState(

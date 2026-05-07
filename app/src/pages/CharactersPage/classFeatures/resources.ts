@@ -412,6 +412,7 @@ import {
   soulOfVengeanceReactionId
 } from "./paladin/subclasses/paladinOathOfVengeance";
 import { getSubclassDerivedFeatureState } from "./subclasses";
+import { getSelectedSubclassForCharacter } from "../subclasses";
 import {
   applyLayOnHands,
   consumeElementalRebukeUse,
@@ -556,6 +557,7 @@ import type {
   FeatureSavingThrowProficiencyEntry,
   FeatureSkillBonus,
   FeatureSkillProficiencyEntry,
+  SpellSourceMap,
   FeatureSpeedBonus,
   FeatureSpellcastingState,
   FeatureToolProficiencyEntry,
@@ -566,6 +568,7 @@ import type {
   WeaponAttackConsumptionContext,
   WeaponFeatureContext
 } from "./types";
+import { addSpellSourcesForIds, mergeSpellSourceMaps } from "./spellSources";
 import type { CharacterStatusEntry } from "../../../types";
 import {
   getSpellEntryById,
@@ -1152,6 +1155,54 @@ export function getAlwaysPreparedSpellIdsForCharacter(
       ...(subclassDerivedState.alwaysPreparedSpellIds ?? [])
     ])
   ];
+}
+
+function addFallbackSpellSources(
+  sourceMap: SpellSourceMap,
+  spellIds: readonly string[] | null | undefined,
+  source: string,
+  explicitSourceMap: SpellSourceMap | null | undefined
+) {
+  spellIds?.forEach((spellId) => {
+    if ((explicitSourceMap?.[spellId]?.length ?? 0) > 0) {
+      return;
+    }
+
+    addSpellSourcesForIds(sourceMap, [spellId], source);
+  });
+}
+
+export function getAlwaysPreparedSpellSourceMapForCharacter(
+  character: Pick<
+    Character,
+    "className" | "level" | "classFeatureState" | "spellbookSpellIds" | "subclassId"
+  > &
+    Partial<Pick<Character, "statusEntries">>
+): SpellSourceMap {
+  const baseFeatureState = collectActiveClassFeatureState(character);
+  const subclassDerivedState = getSubclassDerivedFeatureState(character);
+  const subclass = getSelectedSubclassForCharacter(character);
+  const subclassSourceLabel = subclass?.name ?? "Subclass";
+  const baseSourceMap = baseFeatureState.alwaysPreparedSpellSources;
+  const subclassSourceMap = subclassDerivedState.alwaysPreparedSpellSources;
+  let sourceMap = mergeSpellSourceMaps(baseSourceMap);
+
+  addFallbackSpellSources(
+    sourceMap,
+    baseFeatureState.alwaysPreparedSpellIds,
+    character.className,
+    baseSourceMap
+  );
+
+  sourceMap = mergeSpellSourceMaps(sourceMap, subclassSourceMap);
+  addFallbackSpellSources(
+    sourceMap,
+    subclassDerivedState.alwaysPreparedSpellIds,
+    subclassSourceLabel,
+    subclassSourceMap
+  );
+
+  return sourceMap;
 }
 
 export function getAlwaysSpellbookSpellIdsForCharacter(

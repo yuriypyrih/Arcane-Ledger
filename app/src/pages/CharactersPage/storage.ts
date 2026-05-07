@@ -10,10 +10,7 @@ import {
   createEmptyCharacter
 } from "./constants";
 import { normalizeRoundTracker } from "./combat";
-import {
-  normalizeArmorClassFormulaSelection,
-  normalizeCharacterArmorWearState
-} from "./armor";
+import { normalizeArmorClassFormulaSelection, normalizeCharacterArmorWearState } from "./armor";
 import {
   isBackgroundName,
   normalizeCharacterEquipmentSelections,
@@ -41,10 +38,12 @@ import { normalizeLevelAndXp } from "./experience";
 import { normalizeCustomEquipmentEntries } from "./customEquipment";
 import { normalizeCharacterCompanions } from "./companions";
 import { normalizeCharacterFeats } from "./feats";
+import { normalizeBackgroundChoices, reconcileBackgroundOriginFeatEntries } from "./backgrounds";
 import {
-  normalizeBackgroundChoices,
-  reconcileBackgroundOriginFeatEntries
-} from "./backgrounds";
+  normalizeCharacterSpeciesChoices,
+  normalizeCharacterSpeciesFeatureState,
+  normalizeSpeciesStatusEntriesForCharacter
+} from "./species";
 import { normalizeCharacterInventoryItems } from "./inventoryItems";
 import {
   normalizeHeroicInspiration,
@@ -207,6 +206,8 @@ export function normalizeCharacter(value: unknown): Character | null {
     classFeatureState?: unknown;
     feats?: unknown;
     heroicInspiration?: unknown;
+    speciesChoices?: unknown;
+    speciesFeatureState?: unknown;
   };
   const id = Number(record.id);
 
@@ -222,6 +223,14 @@ export function normalizeCharacter(value: unknown): Character | null {
   );
   const normalizedSpecies =
     typeof record.species === "string" ? record.species.trim() : defaults.species;
+  const normalizedSpeciesChoices = normalizeCharacterSpeciesChoices(
+    normalizedSpecies,
+    record.speciesChoices
+  );
+  const normalizedSpeciesFeatureState = normalizeCharacterSpeciesFeatureState(
+    normalizedSpecies,
+    record.speciesFeatureState
+  );
   const normalizedClassName =
     typeof record.className === "string"
       ? record.className.trim()
@@ -366,10 +375,11 @@ export function normalizeCharacter(value: unknown): Character | null {
     legacySavingThrowProficiencies: rawLegacySavingThrowProficiencies,
     legacyToolProficiencies: rawLegacyToolProficiencies
   });
-  const normalizedStatusEntries = normalizeCharacterStatusEntries(
-    record.statusEntries,
-    record.conditions
-  );
+  const normalizedStatusEntries = normalizeSpeciesStatusEntriesForCharacter({
+    species: normalizedSpecies,
+    level: normalizedLevel,
+    statusEntries: normalizeCharacterStatusEntries(record.statusEntries, record.conditions)
+  });
   const rawKnownSpellIds = Array.isArray(record.knownSpellIds)
     ? record.knownSpellIds.filter((spellId): spellId is string => typeof spellId === "string")
     : [];
@@ -520,6 +530,8 @@ export function normalizeCharacter(value: unknown): Character | null {
     id,
     name: typeof record.name === "string" ? record.name : defaults.name,
     species: normalizedSpecies,
+    speciesChoices: normalizedSpeciesChoices,
+    speciesFeatureState: normalizedSpeciesFeatureState,
     className: normalizedClassName,
     subclassId: normalizedSubclassId,
     level: normalizedLevel,
@@ -652,9 +664,7 @@ export function upsertTrustedCharacter(character: Character): Character {
     return character;
   });
 
-  saveStoredCharacterRecords(
-    didReplaceCharacter ? nextCharacters : [character, ...characters]
-  );
+  saveStoredCharacterRecords(didReplaceCharacter ? nextCharacters : [character, ...characters]);
   return character;
 }
 
@@ -696,8 +706,7 @@ export function upsertCharacter(
       ? null
       : (() => {
           const previousCharacterRecord =
-            characters.find((character) => getStoredCharacterId(character) === characterId) ??
-            null;
+            characters.find((character) => getStoredCharacterId(character) === characterId) ?? null;
 
           return previousCharacterRecord ? normalizeCharacter(previousCharacterRecord) : null;
         })();

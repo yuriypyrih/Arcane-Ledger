@@ -17,6 +17,10 @@ import {
 } from "../../../../../../pages/CharactersPage/feats/runtime";
 import { getCompanionStatusEntriesForCharacter } from "../../../../../../pages/CharactersPage/companions";
 import {
+  getSpeciesDerivedStatusEntriesForCharacter,
+  getSpeciesGrantedCantripEntriesForCharacter
+} from "../../../../../../pages/CharactersPage/species";
+import {
   getAlwaysPreparedSpellIds,
   getCantripLimitForCharacter,
   getPreparedSpellLimitForCharacter,
@@ -68,6 +72,13 @@ export function useTraitsConditionsSections({
   const featGrantedCantripEntries = useMemo(
     () =>
       getFeatGrantedCantripEntriesForCharacter(character).map((spell) =>
+        getSpellEntryForCharacter(character, spell)
+      ),
+    [character]
+  );
+  const speciesGrantedCantripEntries = useMemo(
+    () =>
+      getSpeciesGrantedCantripEntriesForCharacter(character).map((spell) =>
         getSpellEntryForCharacter(character, spell)
       ),
     [character]
@@ -147,6 +158,7 @@ export function useTraitsConditionsSections({
         [
           ...classSpellEntries,
           ...featGrantedCantripEntries,
+          ...speciesGrantedCantripEntries,
           ...preparedSpellPoolEntries,
           ...alwaysPreparedSpellEntries
         ].map((spell) => [spell.id, spell])
@@ -155,6 +167,7 @@ export function useTraitsConditionsSections({
       alwaysPreparedSpellEntries,
       classSpellEntries,
       featGrantedCantripEntries,
+      speciesGrantedCantripEntries,
       preparedSpellPoolEntries
     ]
   );
@@ -177,6 +190,10 @@ export function useTraitsConditionsSections({
       selectedCantripEntries.set(spell.id, spell);
     });
 
+    speciesGrantedCantripEntries.forEach((spell) => {
+      selectedCantripEntries.set(spell.id, spell);
+    });
+
     return [...selectedCantripEntries.values()].sort((left, right) =>
       left.name.localeCompare(right.name)
     );
@@ -185,7 +202,8 @@ export function useTraitsConditionsSections({
     character.cantripIds,
     classSpellEntries,
     classSpellEntriesById,
-    featGrantedCantripEntries
+    featGrantedCantripEntries,
+    speciesGrantedCantripEntries
   ]);
   const selectedPreparedSpells = useMemo(() => {
     const highestSpellSlotLevel = spellSlotTotals.reduce(
@@ -249,6 +267,7 @@ export function useTraitsConditionsSections({
         ...getDerivedFeatureStatusEntriesForCharacter(character),
         ...getCompanionStatusEntriesForCharacter(character),
         ...getFeatDerivedStatusEntriesForCharacter(character),
+        ...getSpeciesDerivedStatusEntriesForCharacter(character),
         ...reactionStatusEntries
       ]),
     [character, reactionStatusEntries]

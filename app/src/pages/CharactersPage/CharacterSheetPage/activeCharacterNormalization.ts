@@ -1,20 +1,18 @@
 import type { Character } from "../../../types";
 import { createDefaultCurrencies } from "../constants";
-import {
-  normalizeArmorClassFormulaSelection,
-  normalizeCharacterArmorWearState
-} from "../armor";
+import { normalizeArmorClassFormulaSelection, normalizeCharacterArmorWearState } from "../armor";
 import { normalizeCustomEquipmentEntries } from "../customEquipment";
 import { normalizeCharacterInventoryItems } from "../inventoryItems";
 import {
   normalizeCharacterEquipmentSelections,
   normalizeCharacterProficiencies
 } from "../proficiency";
-import {
-  normalizeCharacter,
-  normalizeCharacterCurrencies
-} from "../storage";
+import { normalizeCharacter, normalizeCharacterCurrencies } from "../storage";
 import { normalizeCharacterStatusEntries } from "../statusEntries";
+import {
+  normalizeCharacterSpeciesFeatureState,
+  normalizeSpeciesStatusEntriesForCharacter
+} from "../species";
 import {
   getAlwaysPreparedSpellIds,
   getCantripLimitForCharacter,
@@ -35,10 +33,7 @@ import {
 } from "../classFeatures";
 import { shouldTrackRoundScopedResources } from "../combat";
 import { reconcileCharacterStatusConsequences } from "../traits";
-import {
-  characterSheetDomains,
-  type CharacterSheetDomain
-} from "./domains";
+import { characterSheetDomains, type CharacterSheetDomain } from "./domains";
 
 function hasDomain(domains: readonly CharacterSheetDomain[], domain: CharacterSheetDomain) {
   return domains.includes(domain);
@@ -79,13 +74,21 @@ function normalizeEquipmentRuntime(character: Character): Character {
 function normalizeStatusRuntime(character: Character): Character {
   return reconcileCharacterStatusConsequences({
     ...character,
-    statusEntries: normalizeCharacterStatusEntries(character.statusEntries)
+    statusEntries: normalizeSpeciesStatusEntriesForCharacter({
+      species: character.species,
+      level: character.level,
+      statusEntries: normalizeCharacterStatusEntries(character.statusEntries)
+    })
   });
 }
 
 function normalizeFeatureRuntime(character: Character): Character {
   const normalizedCharacter = {
     ...character,
+    speciesFeatureState: normalizeCharacterSpeciesFeatureState(
+      character.species,
+      character.speciesFeatureState
+    ),
     classFeatureState: normalizeCharacterClassFeatureState(character.classFeatureState, {
       className: character.className,
       level: character.level,
@@ -152,7 +155,9 @@ function normalizeSpellRuntime(character: Character): Character {
     preparedSpellSelectionOptions.map((spell) => spell.id)
   );
   const rawSpellbookSpellIds = Array.isArray(character.spellbookSpellIds)
-    ? character.spellbookSpellIds.filter((spellId): spellId is string => typeof spellId === "string")
+    ? character.spellbookSpellIds.filter(
+        (spellId): spellId is string => typeof spellId === "string"
+      )
     : usesSpellbookForCharacter(character.className, character.subclassId)
       ? rawPreparedSpellIds
       : [];
@@ -188,11 +193,7 @@ function normalizeSpellRuntime(character: Character): Character {
           normalizedSpellbookSpellIdSet.has(spellId))
     ),
     preparedSpellSelectionOptions,
-    getPreparedSpellLimitForCharacter(
-      character.className,
-      character.level,
-      character.subclassId
-    ),
+    getPreparedSpellLimitForCharacter(character.className, character.level, character.subclassId),
     getAlwaysPreparedSpellIds(
       character.className,
       character.level,
@@ -210,14 +211,15 @@ function normalizeSpellRuntime(character: Character): Character {
 
   return {
     ...character,
+    speciesFeatureState: normalizeCharacterSpeciesFeatureState(
+      character.species,
+      character.speciesFeatureState
+    ),
     classFeatureState: normalizedClassFeatureState,
     cantripIds: normalizedCantripIds,
     spellbookSpellIds: normalizedSpellbookSpellIds,
     preparedSpellIds: normalizedPreparedSpellIds,
-    spellSlotsExpended: normalizeSpellSlotsExpended(
-      character.spellSlotsExpended,
-      spellSlotTotals
-    )
+    spellSlotsExpended: normalizeSpellSlotsExpended(character.spellSlotsExpended, spellSlotTotals)
   };
 }
 
@@ -254,8 +256,7 @@ export function normalizeCharacterRuntimeUpdate(
   domains: readonly CharacterSheetDomain[] = characterSheetDomains
 ): Character {
   const shouldUseFullNormalization =
-    hasDomain(domains, "profile") ||
-    hasDomain(domains, "companions");
+    hasDomain(domains, "profile") || hasDomain(domains, "companions");
 
   if (shouldUseFullNormalization) {
     return normalizeCharacter(character) ?? character;

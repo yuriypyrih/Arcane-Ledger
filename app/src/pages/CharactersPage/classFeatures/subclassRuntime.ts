@@ -26,6 +26,7 @@ import type {
   FeatureSavingThrowBonus,
   FeatureSavingThrowProficiencyEntry,
   FeatureSkillProficiencyEntry,
+  SpellSourceMap,
   SpellFeatureContext,
   FeatureSpeedBonus,
   FeatureToolProficiencyEntry,
@@ -72,6 +73,7 @@ export type SubclassDerivedFeatureState = {
   toolProficiencyEntries?: FeatureToolProficiencyEntry[];
   languageProficiencyEntries?: FeatureLanguageProficiencyEntry[];
   alwaysPreparedSpellIds?: string[];
+  alwaysPreparedSpellSources?: SpellSourceMap;
   alwaysSpellbookSpellIds?: string[];
   magicTemporaryHitPointsFeature?: MagicTemporaryHitPointsFeature | null;
   ritualOnlySpellIds?: string[];

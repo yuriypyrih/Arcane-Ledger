@@ -1,4 +1,5 @@
 import type {
+  BODY_SIZE,
   EquipmentCost,
   WeaponDamage,
   WeaponRange,
@@ -48,6 +49,19 @@ export type CharacterBackgroundChoices = {
   toolProficiencies?: TOOL_PROFICIENCY[];
   toolProficiency?: TOOL_PROFICIENCY;
   equipmentMode?: CharacterBackgroundEquipmentMode;
+};
+
+export type CharacterSpeciesChoices = {
+  bodySize?: BODY_SIZE;
+};
+
+export type CharacterAasimarFeatureState = {
+  healingHandsExpended?: boolean;
+  celestialRevelationExpended?: boolean;
+};
+
+export type CharacterSpeciesFeatureState = {
+  aasimar?: CharacterAasimarFeatureState;
 };
 
 export type CoreStats = {
@@ -183,6 +197,8 @@ export type Character = {
   id: number;
   name: string;
   species: string;
+  speciesChoices?: CharacterSpeciesChoices;
+  speciesFeatureState?: CharacterSpeciesFeatureState;
   className: string;
   subclassId?: string;
   level: number;
@@ -231,6 +247,8 @@ export type Character = {
 export type CharacterDraft = {
   name: string;
   species: string;
+  speciesChoices?: CharacterSpeciesChoices;
+  speciesFeatureState?: CharacterSpeciesFeatureState;
   className: string;
   subclassId?: string;
   level: number;

@@ -1,8 +1,20 @@
-import { ENTRY_CATEGORIES, SPECIES_TYPES } from "./enums";
+import { BODY_SIZE, ENTRY_CATEGORIES, SPECIES_TYPES, TRACKER } from "./enums";
 import type { SpeciesEntry } from "./types";
 
 function createSpeciesEntry(
-  entry: Pick<SpeciesEntry, "id" | "name" | "page" | "speed" | "tags" | "summary" | "description">
+  entry: Pick<
+    SpeciesEntry,
+    | "id"
+    | "name"
+    | "page"
+    | "speed"
+    | "size"
+    | "trackingState"
+    | "starterPack"
+    | "tags"
+    | "summary"
+    | "description"
+  >
 ): SpeciesEntry {
   return {
     ...entry,
@@ -22,6 +34,11 @@ export const speciesEntries: SpeciesEntry[] = [
     page: 186,
     tags: [SPECIES_TYPES.HUMANOID],
     speed: 30,
+    size: [BODY_SIZE.SMALL, BODY_SIZE.MEDIUM],
+    trackingState: TRACKER.TRACKED,
+    starterPack: {
+      recommendedBodySize: BODY_SIZE.MEDIUM
+    },
     summary: "",
     description: [
       "Source: PHB'24, p186.",
@@ -46,6 +63,10 @@ export const speciesEntries: SpeciesEntry[] = [
     page: 187,
     tags: [SPECIES_TYPES.HUMANOID, SPECIES_TYPES.DRACONIC_LINEAGE],
     speed: 30,
+    size: [BODY_SIZE.MEDIUM],
+    starterPack: {
+      recommendedBodySize: BODY_SIZE.MEDIUM
+    },
     summary: "",
     description: [
       "Source: PHB'24, p187.",
@@ -67,6 +88,10 @@ export const speciesEntries: SpeciesEntry[] = [
     page: 188,
     tags: [SPECIES_TYPES.HUMANOID, SPECIES_TYPES.HARDY],
     speed: 30,
+    size: [BODY_SIZE.MEDIUM],
+    starterPack: {
+      recommendedBodySize: BODY_SIZE.MEDIUM
+    },
     summary: "",
     description: [
       "Source: PHB'24, p188.",
@@ -86,6 +111,10 @@ export const speciesEntries: SpeciesEntry[] = [
     page: 189,
     tags: [SPECIES_TYPES.HUMANOID, SPECIES_TYPES.FEY_ANCESTRY, SPECIES_TYPES.ARCANE_AFFINITY],
     speed: 30,
+    size: [BODY_SIZE.MEDIUM],
+    starterPack: {
+      recommendedBodySize: BODY_SIZE.MEDIUM
+    },
     summary: "",
     description: [
       "Source: PHB'24, p189.",
@@ -108,6 +137,10 @@ export const speciesEntries: SpeciesEntry[] = [
     page: 191,
     tags: [SPECIES_TYPES.HUMANOID, SPECIES_TYPES.ARCANE_AFFINITY],
     speed: 30,
+    size: [BODY_SIZE.SMALL],
+    starterPack: {
+      recommendedBodySize: BODY_SIZE.SMALL
+    },
     summary: "",
     description: [
       "Source: PHB'24, p191.",
@@ -127,6 +160,10 @@ export const speciesEntries: SpeciesEntry[] = [
     page: 192,
     tags: [SPECIES_TYPES.HUMANOID, SPECIES_TYPES.HARDY],
     speed: 35,
+    size: [BODY_SIZE.MEDIUM],
+    starterPack: {
+      recommendedBodySize: BODY_SIZE.MEDIUM
+    },
     summary: "",
     description: [
       "Source: PHB'24, p192.",
@@ -150,6 +187,10 @@ export const speciesEntries: SpeciesEntry[] = [
     page: 193,
     tags: [SPECIES_TYPES.HUMANOID],
     speed: 30,
+    size: [BODY_SIZE.SMALL],
+    starterPack: {
+      recommendedBodySize: BODY_SIZE.SMALL
+    },
     summary: "",
     description: [
       "Source: PHB'24, p193.",
@@ -168,6 +209,10 @@ export const speciesEntries: SpeciesEntry[] = [
     page: 194,
     tags: [SPECIES_TYPES.HUMANOID],
     speed: 30,
+    size: [BODY_SIZE.SMALL, BODY_SIZE.MEDIUM],
+    starterPack: {
+      recommendedBodySize: BODY_SIZE.MEDIUM
+    },
     summary: "",
     description: [
       "Source: PHB'24, p194.",
@@ -185,6 +230,10 @@ export const speciesEntries: SpeciesEntry[] = [
     page: 195,
     tags: [SPECIES_TYPES.HUMANOID, SPECIES_TYPES.HARDY],
     speed: 30,
+    size: [BODY_SIZE.MEDIUM],
+    starterPack: {
+      recommendedBodySize: BODY_SIZE.MEDIUM
+    },
     summary: "",
     description: [
       "Source: PHB'24, p195.",
@@ -203,6 +252,10 @@ export const speciesEntries: SpeciesEntry[] = [
     page: 197,
     tags: [SPECIES_TYPES.HUMANOID, SPECIES_TYPES.ARCANE_AFFINITY],
     speed: 30,
+    size: [BODY_SIZE.SMALL, BODY_SIZE.MEDIUM],
+    starterPack: {
+      recommendedBodySize: BODY_SIZE.MEDIUM
+    },
     summary: "",
     description: [
       "Source: PHB'24, p197.",

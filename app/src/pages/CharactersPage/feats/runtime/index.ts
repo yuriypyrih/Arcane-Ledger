@@ -26,8 +26,10 @@ import type {
   ArmorClassFeatureContext,
   FeatureActionCard,
   FeatureArmorClassBonus,
+  SpellSourceMap,
   FeatureSpeedBonus
 } from "../../classFeatures/types";
+import { addSpellSource } from "../../classFeatures/spellSources";
 import {
   getHitDiceRemainingForCharacter,
   getHitDieFormulaForClass
@@ -390,6 +392,7 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
   const grantedCantripEntriesById = new Map<string, SpellEntry>();
   const alwaysPreparedCantripEntriesById = new Map<string, SpellEntry>();
   const alwaysPreparedSpellEntriesById = new Map<string, SpellEntry>();
+  const alwaysPreparedSpellSourceMap: SpellSourceMap = {};
   const magicInitiateSpellcastingAbilityBySpellId = new Map<string, AbilityKey>();
   const magicInitiateFreeCastEntries: FeatDerivedState["magicInitiateFreeCastEntries"] = [];
   const feyTouchedFreeCastEntries: FeatDerivedState["feyTouchedFreeCastEntries"] = [];
@@ -410,6 +413,9 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
     featDefinitionCache.set(feat, description);
     return description;
   };
+  const addAlwaysPreparedSpellSource = (spellId: string, feat: FEATS) => {
+    addSpellSource(alwaysPreparedSpellSourceMap, spellId, getFeatLabel(feat));
+  };
 
   normalizedFeats.forEach((entry, index) => {
     featSet.add(entry.feat);
@@ -426,6 +432,7 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
 
       featCantripEntries.forEach((cantrip) => {
         alwaysPreparedCantripEntriesById.set(cantrip.id, cantrip);
+        addAlwaysPreparedSpellSource(cantrip.id, entry.feat);
         magicInitiateSpellcastingAbilityBySpellId.set(
           cantrip.id,
           magicInitiate.spellcastingAbility
@@ -436,6 +443,7 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
 
       if (levelOneSpell) {
         alwaysPreparedSpellEntriesById.set(levelOneSpell.id, levelOneSpell);
+        addAlwaysPreparedSpellSource(levelOneSpell.id, entry.feat);
         magicInitiateSpellcastingAbilityBySpellId.set(
           levelOneSpell.id,
           magicInitiate.spellcastingAbility
@@ -453,6 +461,7 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
 
       getFeyTouchedSpellEntries(entry).forEach((spell) => {
         alwaysPreparedSpellEntriesById.set(spell.id, spell);
+        addAlwaysPreparedSpellSource(spell.id, entry.feat);
         magicInitiateSpellcastingAbilityBySpellId.set(spell.id, feyTouched.ability);
         feyTouchedFreeCastEntries.push({
           featEntryId: entry.id,
@@ -467,6 +476,7 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
 
       getRitualCasterSpellEntries(entry).forEach((spell) => {
         alwaysPreparedSpellEntriesById.set(spell.id, spell);
+        addAlwaysPreparedSpellSource(spell.id, entry.feat);
         magicInitiateSpellcastingAbilityBySpellId.set(spell.id, ritualCaster.ability);
       });
     }
@@ -476,6 +486,7 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
 
       getShadowTouchedSpellEntries(entry).forEach((spell) => {
         alwaysPreparedSpellEntriesById.set(spell.id, spell);
+        addAlwaysPreparedSpellSource(spell.id, entry.feat);
         magicInitiateSpellcastingAbilityBySpellId.set(spell.id, shadowTouched.ability);
         shadowTouchedFreeCastEntries.push({
           featEntryId: entry.id,
@@ -490,6 +501,7 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
 
       if (mageHand) {
         alwaysPreparedCantripEntriesById.set(mageHand.id, mageHand);
+        addAlwaysPreparedSpellSource(mageHand.id, entry.feat);
         magicInitiateSpellcastingAbilityBySpellId.set(mageHand.id, entry.telekinetic.ability);
       }
     }
@@ -499,6 +511,7 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
 
       if (detectThoughts) {
         alwaysPreparedSpellEntriesById.set(detectThoughts.id, detectThoughts);
+        addAlwaysPreparedSpellSource(detectThoughts.id, entry.feat);
         magicInitiateSpellcastingAbilityBySpellId.set(
           detectThoughts.id,
           entry.telepathic.ability
@@ -1290,6 +1303,7 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
     alwaysPreparedSpellEntries: [...alwaysPreparedSpellEntriesById.values()].sort((left, right) =>
       left.name.localeCompare(right.name)
     ),
+    alwaysPreparedSpellSourceMap,
     magicInitiateSpellcastingAbilityBySpellId,
     magicInitiateFreeCastEntries,
     feyTouchedFreeCastEntries,
@@ -1596,6 +1610,12 @@ export function getFeatAlwaysPreparedSpellEntriesForCharacter(
   character: FeatRuntimeCharacter
 ): SpellEntry[] {
   return collectFeatDerivedState(character).alwaysPreparedSpellEntries;
+}
+
+export function getFeatAlwaysPreparedSpellSourceMapForCharacter(
+  character: FeatRuntimeCharacter
+): SpellSourceMap {
+  return collectFeatDerivedState(character).alwaysPreparedSpellSourceMap;
 }
 
 export function getMagicInitiateSpellcastingAbilityForCharacter(

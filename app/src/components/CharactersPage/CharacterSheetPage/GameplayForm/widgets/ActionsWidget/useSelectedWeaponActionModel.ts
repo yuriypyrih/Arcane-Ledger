@@ -8,6 +8,11 @@ import {
   getWarlockLifedrinkerWeaponOptionStateForCharacter
 } from "../../../../../../pages/CharactersPage/classFeatures";
 import {
+  applyBarbarianRecklessAttackIndicatorToWeaponAction,
+  getBarbarianRecklessAttackWeaponOptionState
+} from "../../../../../../pages/CharactersPage/classFeatures/barbarian/barbarianRecklessAttack";
+import { getBarbarianRecklessAttackWeaponDamagePreviewBonuses } from "../../../../../../pages/CharactersPage/classFeatures/barbarian/barbarian";
+import {
   createFeatureActionCardCost,
   createFreeCardUsage,
   createNamedResourceCardUsage
@@ -85,6 +90,7 @@ type UseSelectedWeaponActionModelArgs = {
   isPolarStrikesSelected: boolean;
   isPsionicStrikeSelected: boolean;
   isQuiveringPalmSelected: boolean;
+  isRecklessAttackSelected: boolean;
   isSacredWeaponSelected: boolean;
   isStunningStrikeSelected: boolean;
   isVowOfEnmitySelected: boolean;
@@ -106,6 +112,7 @@ export function useSelectedWeaponActionModel({
   isPolarStrikesSelected,
   isPsionicStrikeSelected,
   isQuiveringPalmSelected,
+  isRecklessAttackSelected,
   isSacredWeaponSelected,
   isStunningStrikeSelected,
   isVowOfEnmitySelected
@@ -270,6 +277,10 @@ export function useSelectedWeaponActionModel({
     () => getRangerHuntersMarkTargetWeaponOptionState(character, selectedWeaponAction),
     [character, selectedWeaponAction]
   );
+  const selectedWeaponRecklessAttackState = useMemo(
+    () => getBarbarianRecklessAttackWeaponOptionState(character, selectedWeaponAction),
+    [character, selectedWeaponAction]
+  );
   const selectedWeaponFocusPointsRemaining = useMemo(
     () => getMonkFocusPointsRemainingForCharacter(character),
     [character]
@@ -410,6 +421,8 @@ export function useSelectedWeaponActionModel({
   const selectedWeaponPolarStrikesToggleDisabled =
     selectedWeaponPolarStrikesState?.disabled ?? false;
   const selectedWeaponHuntersMarkTargetToggleDisabled = !selectedWeaponHuntersMarkTargetState;
+  const selectedWeaponRecklessAttackToggleDisabled =
+    selectedWeaponRecklessAttackState?.disabled ?? false;
   const selectedWeaponEldritchSmiteToggleDisabled =
     selectedWeaponEldritchSmiteState?.disabled ?? false;
   const selectedWeaponLifedrinkerToggleDisabled =
@@ -440,6 +453,26 @@ export function useSelectedWeaponActionModel({
     }
 
     let nextAction = selectedWeaponAction;
+
+    if (
+      (isRecklessAttackSelected || selectedWeaponRecklessAttackState?.active === true) &&
+      selectedWeaponRecklessAttackState &&
+      !selectedWeaponRecklessAttackToggleDisabled
+    ) {
+      nextAction = applyBarbarianRecklessAttackIndicatorToWeaponAction(nextAction);
+    }
+
+    if (selectedWeaponRecklessAttackState?.active === true) {
+      getBarbarianRecklessAttackWeaponDamagePreviewBonuses(character, {
+        name: nextAction.name,
+        ability: nextAction.ability,
+        attackKind: nextAction.attackKind,
+        combatType: nextAction.combatType ?? null,
+        damageBonusEntries: nextAction.damageBonusEntries
+      }).forEach((damageBonus) => {
+        nextAction = applyWeaponDamageBonusPreview(nextAction, damageBonus);
+      });
+    }
 
     if (
       isSacredWeaponSelected &&
@@ -581,6 +614,7 @@ export function useSelectedWeaponActionModel({
     isHuntersMarkTargetSelected,
     isLifedrinkerSelected,
     isPolarStrikesSelected,
+    isRecklessAttackSelected,
     isSacredWeaponSelected,
     isVowOfEnmitySelected,
     isPsionicStrikeSelected,
@@ -603,6 +637,8 @@ export function useSelectedWeaponActionModel({
     selectedWeaponLifedrinkerToggleDisabled,
     selectedWeaponPolarStrikesState,
     selectedWeaponPolarStrikesToggleDisabled,
+    selectedWeaponRecklessAttackState,
+    selectedWeaponRecklessAttackToggleDisabled,
     selectedWeaponSacredWeaponState,
     selectedWeaponSacredWeaponToggleDisabled,
     selectedWeaponVowOfEnmityState,
@@ -673,6 +709,7 @@ export function useSelectedWeaponActionModel({
     selectedWeaponHordeBreakerState,
     selectedWeaponPolarStrikesState,
     selectedWeaponHuntersMarkTargetState,
+    selectedWeaponRecklessAttackState,
     selectedWeaponFocusPointsRemaining,
     selectedWeaponStunningStrikeState,
     selectedWeaponEmpoweredStrikesState,
@@ -689,6 +726,7 @@ export function useSelectedWeaponActionModel({
     selectedWeaponHordeBreakerToggleDisabled,
     selectedWeaponPolarStrikesToggleDisabled,
     selectedWeaponHuntersMarkTargetToggleDisabled,
+    selectedWeaponRecklessAttackToggleDisabled,
     selectedWeaponEldritchSmiteToggleDisabled,
     selectedWeaponLifedrinkerToggleDisabled,
     selectedWeaponStunningStrikeToggleDisabled,

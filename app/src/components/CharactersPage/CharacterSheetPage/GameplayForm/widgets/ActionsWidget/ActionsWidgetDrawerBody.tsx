@@ -291,6 +291,10 @@ import { getSpellActionPathStates, getSpellActionPathWarning } from "../../../sp
 import SneakAttackActionBody, { type SneakAttackActionSelection } from "./SneakAttackModal";
 import GameplayActionDrawer from "./GameplayActionDrawer";
 import ActionDiceConfirmFooter from "./ActionDiceConfirmFooter";
+import {
+  AasimarCelestialRevelationActionBody,
+  AasimarHealingHandsActionBody
+} from "./AasimarActionBody";
 import { ArcaneWardActionFooter } from "./ArcaneWardActionFooter";
 import { BardicInspirationActionFooter } from "./BardicInspirationActionFooter";
 import { BeastMasterReviveActionFooter } from "./BeastMasterReviveActionFooter";
@@ -420,8 +424,6 @@ import ActionsGrid from "./ActionsGrid";
 import FeatureSpellDrawers from "./FeatureSpellDrawers";
 import WildShapePreviewDrawer from "./WildShapePreviewDrawer";
 
-
-
 export function renderActionDrawerBody(context: Record<string, any>) {
   const {
     arcaneWardSpellSlotOptions,
@@ -472,6 +474,8 @@ export function renderActionDrawerBody(context: Record<string, any>) {
     selectedAction,
     selectedActionEconomyShapeState,
     selectedActionOptionKeys,
+    selectedAasimarCelestialRevelationOptionKey,
+    selectedAasimarHealingHandsTarget,
     selectedArcaneRecoverySelection,
     selectedArcaneWardDisabledReason,
     selectedArcaneWardSpellSlotLevel,
@@ -608,6 +612,8 @@ export function renderActionDrawerBody(context: Record<string, any>) {
     setIsSacredWeaponSelected,
     setIsStunningStrikeSelected,
     setIsVowOfEnmitySelected,
+    setSelectedAasimarCelestialRevelationOptionKey,
+    setSelectedAasimarHealingHandsTarget,
     setSelectedActionOptionKeys,
     setSelectedArcaneRecoverySelection,
     setSelectedArcaneWardSpellSlotLevel,
@@ -673,76 +679,377 @@ export function renderActionDrawerBody(context: Record<string, any>) {
     wildShapeUsesRemaining,
     wildShapeUsesTotal
   } = context;
-    if (!selectedAction) {
-      return null;
-    }
+  if (!selectedAction) {
+    return null;
+  }
 
-    if (selectedAction.kind === "weapon") {
-      return (
-        <div className={styles.weaponDrawerBody}>
-          <div className={sheetStyles.spellDrawerDetails}>
-            {selectedWeaponDetails.map((detail) => {
-              const detailKey = `${selectedAction.key}-${detail.key}`;
+  if (selectedAction.kind === "weapon") {
+    return (
+      <div className={styles.weaponDrawerBody}>
+        <div className={sheetStyles.spellDrawerDetails}>
+          {selectedWeaponDetails.map((detail) => {
+            const detailKey = `${selectedAction.key}-${detail.key}`;
 
-              if (detail.referenceKeywords?.length) {
-                return (
-                  <CellContainer
-                    key={detailKey}
-                    as="button"
-                    type="button"
-                    className={styles.weaponDetailButton}
-                    label={detail.label}
-                    content={detail.value}
-                    onClick={() =>
-                      openWeaponDetailReference(
-                        detail.referenceTitle ?? String(detail.label),
-                        detail.referenceKeywords
-                      )
-                    }
-                  />
-                );
-              }
+            if (detail.referenceKeywords?.length) {
+              return (
+                <CellContainer
+                  key={detailKey}
+                  as="button"
+                  type="button"
+                  className={styles.weaponDetailButton}
+                  label={detail.label}
+                  content={detail.value}
+                  onClick={() =>
+                    openWeaponDetailReference(
+                      detail.referenceTitle ?? String(detail.label),
+                      detail.referenceKeywords
+                    )
+                  }
+                />
+              );
+            }
 
-              return <CellContainer key={detailKey} label={detail.label} content={detail.value} />;
-            })}
-          </div>
-
-          <div className={clsx(sheetStyles.spellDrawerDetails, styles.weaponFormulaList)}>
-            {selectedWeaponAttackFormula ? (
-              <CellContainer
-                label={selectedWeaponAttackFormula.label}
-                content={selectedWeaponAttackFormula.value}
-                breakdown={selectedWeaponAttackFormula.breakdown}
-                contentClassName={styles.weaponFormulaValue}
-                breakdownClassName={styles.weaponFormulaBreakdown}
-              />
-            ) : null}
-
-            {selectedWeaponDamageFormula ? (
-              <CellContainer
-                label={selectedWeaponDamageFormula.label}
-                content={selectedWeaponDamageFormula.value}
-                breakdown={selectedWeaponDamageFormula.breakdown}
-                contentClassName={styles.weaponFormulaValue}
-                breakdownClassName={styles.weaponFormulaBreakdown}
-              />
-            ) : null}
-
-            {selectedWeaponLifedrinkerState ? (
-              <CellContainer
-                label={selectedWeaponLifedrinkerState.healFormulaPresentation.label}
-                content={selectedWeaponLifedrinkerState.healFormulaPresentation.value}
-                breakdown={selectedWeaponLifedrinkerState.healFormulaPresentation.breakdown}
-                contentClassName={styles.weaponFormulaValue}
-                breakdownClassName={styles.weaponFormulaBreakdown}
-              />
-            ) : null}
-          </div>
+            return <CellContainer key={detailKey} label={detail.label} content={detail.value} />;
+          })}
         </div>
+
+        <div className={clsx(sheetStyles.spellDrawerDetails, styles.weaponFormulaList)}>
+          {selectedWeaponAttackFormula ? (
+            <CellContainer
+              label={selectedWeaponAttackFormula.label}
+              content={selectedWeaponAttackFormula.value}
+              breakdown={selectedWeaponAttackFormula.breakdown}
+              contentClassName={styles.weaponFormulaValue}
+              breakdownClassName={styles.weaponFormulaBreakdown}
+            />
+          ) : null}
+
+          {selectedWeaponDamageFormula ? (
+            <CellContainer
+              label={selectedWeaponDamageFormula.label}
+              content={selectedWeaponDamageFormula.value}
+              breakdown={selectedWeaponDamageFormula.breakdown}
+              contentClassName={styles.weaponFormulaValue}
+              breakdownClassName={styles.weaponFormulaBreakdown}
+            />
+          ) : null}
+
+          {selectedWeaponLifedrinkerState ? (
+            <CellContainer
+              label={selectedWeaponLifedrinkerState.healFormulaPresentation.label}
+              content={selectedWeaponLifedrinkerState.healFormulaPresentation.value}
+              breakdown={selectedWeaponLifedrinkerState.healFormulaPresentation.breakdown}
+              contentClassName={styles.weaponFormulaValue}
+              breakdownClassName={styles.weaponFormulaBreakdown}
+            />
+          ) : null}
+        </div>
+      </div>
+    );
+  }
+
+  if (selectedAction.action.key === barbarianRageActionKey) {
+    return (
+      <RageActionBody
+        action={selectedAction.action}
+        rageOptions={selectedRageOptions}
+        powerOptions={selectedRagePowerOptions}
+        rageOfTheGodsDescription={selectedRageOfTheGodsDescription}
+        selectedRageOptionKey={selectedRageOptionKey}
+        selectedPowerOptionKey={selectedRagePowerOptionKey}
+        onSelectRageOption={setSelectedRageOptionKey}
+        onSelectPowerOption={setSelectedRagePowerOptionKey}
+        rageOfTheGodsUsesRemaining={selectedRageOfTheGodsUsesRemaining}
+        rageOfTheGodsUsesTotal={selectedRageOfTheGodsUsesTotal}
+        isRageOfTheGodsSelected={isRageOfTheGodsSelected}
+        onToggleRageOfTheGods={setIsRageOfTheGodsSelected}
+      />
+    );
+  }
+
+  if (
+    selectedAction.kind === "feature" &&
+    selectedAction.action.key === fighterSecondWindActionKey
+  ) {
+    return (
+      <FighterSecondWindActionBody
+        healingFormula={
+          selectedSecondWindHealingFormula ?? getFighterSecondWindHealingFormula(character)
+        }
+        groupRecoveryFormula={selectedSecondWindGroupRecoveryFormula}
+      />
+    );
+  }
+
+  if (selectedAction.kind === "feature" && selectedAction.action.key === preserveLifeActionKey) {
+    return <ClericPreserveLifeActionBody clericLevel={character.level} />;
+  }
+
+  if (
+    selectedAction.kind === "feature" &&
+    selectedAction.action.key === giftOfTheProtectorsActionKey
+  ) {
+    return (
+      <BookOfShadowsActionBody character={character} onPersistCharacter={onPersistCharacter} />
+    );
+  }
+
+  if (
+    selectedAction.kind === "feature" &&
+    selectedAction.action.key === monkElementalAttunementActionKey &&
+    hasMonkWarriorOfTheElementsElementalEpitome(character)
+  ) {
+    return (
+      <ElementalAttunementResistanceSelector
+        selectedDamageType={selectedMonkElementalAttunementResistanceDamageType}
+        onSelectDamageType={updateMonkElementalAttunementResistanceDamageType}
+        name="monk-elemental-attunement-resistance"
+      />
+    );
+  }
+
+  if (
+    selectedAction.kind === "feature" &&
+    selectedAction.drawer.kind === "options" &&
+    selectedChannelDivinityRows.length > 0
+  ) {
+    return (
+      <ClericChannelDivinityAction
+        rows={selectedChannelDivinityRows}
+        character={character}
+        roundTracker={roundTracker}
+        onOpenDivinity={(row) => setSelectedChannelDivinityOptionKey(row.option.key)}
+      />
+    );
+  }
+
+  if (selectedAction.drawer.kind === "options") {
+    if (selectedAction.action.key === metamagicActionKey) {
+      return (
+        <MetamagicOptionsActionBody
+          options={selectedAction.drawer.options}
+          selectedOptionKeys={selectedActionOptionKeys}
+          selectionLimit={
+            selectedAction.drawer.selectionLimit ?? selectedAction.drawer.options.length
+          }
+          onToggleOption={toggleFeatureOptionSelection}
+        />
       );
     }
 
-    if (selectedAction.action.key === barbarianRageActionKey) {
+    return (
+      <FeatureOptionsActionBody
+        action={selectedAction}
+        character={character}
+        roundTracker={roundTracker}
+        selectedOptionKeys={selectedActionOptionKeys}
+        onToggleOption={toggleFeatureOptionSelection}
+      />
+    );
+  }
+
+  if (selectedAction.drawer.kind === "custom-form") {
+    if (selectedAction.drawer.formKind === "aasimar-healing-hands") {
+      return (
+        <AasimarHealingHandsActionBody
+          selectedTarget={selectedAasimarHealingHandsTarget}
+          onSelectedTargetChange={setSelectedAasimarHealingHandsTarget}
+        />
+      );
+    }
+
+    if (selectedAction.drawer.formKind === "aasimar-celestial-revelation") {
+      return (
+        <AasimarCelestialRevelationActionBody
+          selectedOptionKey={selectedAasimarCelestialRevelationOptionKey}
+          onSelectOption={setSelectedAasimarCelestialRevelationOptionKey}
+        />
+      );
+    }
+
+    if (selectedAction.drawer.formKind === "portent") {
+      return <PortentActionBody character={character} onSubmit={submitPortent} />;
+    }
+
+    if (selectedAction.drawer.formKind === "third-eye") {
+      return (
+        <ThirdEyeActionBody
+          selectedOptionKey={selectedThirdEyeOptionKey}
+          onSelectOption={setSelectedThirdEyeOptionKey}
+        />
+      );
+    }
+
+    if (selectedAction.drawer.formKind === "blessing-of-the-trickster") {
+      return (
+        <BlessingOfTheTricksterActionBody
+          selectedTarget={selectedBlessingOfTheTricksterTarget}
+          onSelectTarget={setSelectedBlessingOfTheTricksterTarget}
+        />
+      );
+    }
+
+    if (selectedAction.drawer.formKind === "arcane-recovery") {
+      return (
+        <ArcaneRecoveryActionBody
+          character={character}
+          selection={selectedArcaneRecoverySelection}
+          onSelectionChange={setSelectedArcaneRecoverySelection}
+        />
+      );
+    }
+
+    if (selectedAction.drawer.formKind === "indomitable") {
+      return (
+        <IndomitableActionBody
+          options={indomitableSavingThrowOptions}
+          selectedAbility={selectedIndomitableAbility}
+          onSelectAbility={setSelectedIndomitableAbility}
+        />
+      );
+    }
+
+    if (selectedAction.drawer.formKind === "lay-on-hands") {
+      return (
+        <LayOnHandsActionBody
+          conditionOptions={getLayOnHandsCurableConditionsForCharacter(character)}
+          target={selectedLayOnHandsTarget}
+          poolSpendInput={selectedLayOnHandsPoolSpendInput}
+          selectedConditions={selectedLayOnHandsConditions}
+          onTargetChange={setSelectedLayOnHandsTarget}
+          onPoolSpendInputChange={setSelectedLayOnHandsPoolSpendInput}
+          onSelectedConditionsChange={setSelectedLayOnHandsConditions}
+        />
+      );
+    }
+
+    if (selectedAction.drawer.formKind === "healing-light") {
+      return (
+        <HealingLightActionBody
+          remainingDice={selectedHealingLightDiceRemaining}
+          maxDicePerUse={selectedHealingLightMaxDicePerUse}
+          selectedDiceCount={selectedHealingLightDiceCount}
+          selectedTarget={selectedHealingLightTarget}
+          onSelectedDiceCountChange={setSelectedHealingLightDiceCount}
+          onSelectedTargetChange={setSelectedHealingLightTarget}
+        />
+      );
+    }
+
+    if (selectedAction.drawer.formKind === "recover-vitality") {
+      return (
+        <RecoverVitalityActionBody
+          remainingDice={selectedRecoverVitalityDiceRemaining}
+          selectedDiceCount={selectedRecoverVitalityDiceCount}
+          onSelectedDiceCountChange={setSelectedRecoverVitalityDiceCount}
+        />
+      );
+    }
+
+    if (selectedAction.drawer.formKind === "warrior-of-the-gods") {
+      return (
+        <WarriorOfTheGodsActionBody
+          remainingCharges={selectedWarriorOfTheGodsUsesRemaining}
+          selectedChargeCount={selectedWarriorOfTheGodsChargeCount}
+          onSelectedChargeCountChange={setSelectedWarriorOfTheGodsChargeCount}
+        />
+      );
+    }
+
+    if (selectedAction.drawer.formKind === "sneak-attack") {
+      return (
+        <SneakAttackActionBody
+          action={selectedAction.action}
+          character={character}
+          selection={sneakAttackActionSelection}
+          onSelectionChange={setSneakAttackActionSelection}
+        />
+      );
+    }
+
+    if (selectedAction.drawer.formKind === "spellfire-burst") {
+      return (
+        <SpellfireBurstActionBody
+          selectedTarget={selectedSpellfireBurstTarget}
+          onSelectTarget={setSelectedSpellfireBurstTarget}
+        />
+      );
+    }
+
+    if (selectedAction.drawer.formKind === "wild-shape") {
+      return (
+        <WildShapeActionBody
+          monsters={wildShapeKnownForms}
+          selectedMonsterSlug={selectedWildShapeMonsterSlug}
+          onSelectMonster={setSelectedWildShapeMonsterSlug}
+          onPreviewMonster={setSelectedWildShapePreviewSlug}
+        />
+      );
+    }
+
+    if (selectedAction.drawer.formKind === "starry-form") {
+      return (
+        <DruidStarryFormActionBody
+          selectedConstellation={selectedStarryFormConstellation}
+          hasTwinklingConstellations={hasDruidTwinklingConstellationsFeatureForCharacter(character)}
+          onSelectConstellation={setSelectedStarryFormConstellation}
+        />
+      );
+    }
+
+    if (selectedAction.drawer.formKind === "wild-companion") {
+      return (
+        <WildCompanionActionBody
+          wildShapeUsesRemaining={wildShapeUsesRemaining}
+          wildShapeUsesTotal={wildShapeUsesTotal}
+          spellSlotOptions={wildCompanionSpellSlotOptions}
+          selectedResource={selectedWildCompanionResource}
+          selectedSpellSlotLevel={selectedWildCompanionSpellSlotLevel}
+          onSelectResource={setSelectedWildCompanionResource}
+          onSelectSpellSlotLevel={setSelectedWildCompanionSpellSlotLevel}
+        />
+      );
+    }
+
+    if (selectedAction.drawer.formKind === "nature-magician") {
+      return (
+        <NatureMagicianActionBody
+          options={natureMagicianOptions}
+          selectedSpellSlotLevel={selectedNatureMagicianSpellSlotLevel}
+          onSelectSpellSlotLevel={setSelectedNatureMagicianSpellSlotLevel}
+        />
+      );
+    }
+
+    if (selectedAction.drawer.formKind === "wild-resurgence") {
+      return (
+        <WildResurgenceActionBody
+          spellSlotOptions={wildResurgenceSpellSlotOptions}
+          selectedMode={selectedWildResurgenceMode}
+          selectedSpellSlotLevel={selectedWildResurgenceSpellSlotLevel}
+          wildShapeUsesRemaining={wildShapeUsesRemaining}
+          wildShapeUsesTotal={wildShapeUsesTotal}
+          levelOneSpellSlotRemaining={fixedSpellSlotsRemaining[0] ?? 0}
+          levelOneSpellSlotTotal={fixedSpellSlotTotals[0] ?? 0}
+          spellSlotRecoveryUsesRemaining={wildResurgenceSpellSlotRecoveryUsesRemaining}
+          onSelectMode={setSelectedWildResurgenceMode}
+          onSelectSpellSlotLevel={setSelectedWildResurgenceSpellSlotLevel}
+        />
+      );
+    }
+
+    if (selectedAction.drawer.formKind === "font-of-magic") {
+      return (
+        <FontOfMagicActionBody
+          actionWarning={selectedFontOfMagicWarning}
+          character={character}
+          selectedSelection={selectedFontOfMagicSelection}
+          onSelectSelection={setSelectedFontOfMagicSelection}
+        />
+      );
+    }
+
+    if (selectedAction.drawer.formKind === "wild-heart-rage") {
       return (
         <RageActionBody
           action={selectedAction.action}
@@ -761,330 +1068,43 @@ export function renderActionDrawerBody(context: Record<string, any>) {
       );
     }
 
-    if (
-      selectedAction.kind === "feature" &&
-      selectedAction.action.key === fighterSecondWindActionKey
-    ) {
+    if (selectedAction.drawer.formKind === "brutal-strike") {
       return (
-        <FighterSecondWindActionBody
-          healingFormula={
-            selectedSecondWindHealingFormula ?? getFighterSecondWindHealingFormula(character)
-          }
-          groupRecoveryFormula={selectedSecondWindGroupRecoveryFormula}
-        />
-      );
-    }
-
-    if (selectedAction.kind === "feature" && selectedAction.action.key === preserveLifeActionKey) {
-      return <ClericPreserveLifeActionBody clericLevel={character.level} />;
-    }
-
-    if (
-      selectedAction.kind === "feature" &&
-      selectedAction.action.key === giftOfTheProtectorsActionKey
-    ) {
-      return (
-        <BookOfShadowsActionBody character={character} onPersistCharacter={onPersistCharacter} />
-      );
-    }
-
-    if (
-      selectedAction.kind === "feature" &&
-      selectedAction.action.key === monkElementalAttunementActionKey &&
-      hasMonkWarriorOfTheElementsElementalEpitome(character)
-    ) {
-      return (
-        <ElementalAttunementResistanceSelector
-          selectedDamageType={selectedMonkElementalAttunementResistanceDamageType}
-          onSelectDamageType={updateMonkElementalAttunementResistanceDamageType}
-          name="monk-elemental-attunement-resistance"
-        />
-      );
-    }
-
-    if (
-      selectedAction.kind === "feature" &&
-      selectedAction.drawer.kind === "options" &&
-      selectedChannelDivinityRows.length > 0
-    ) {
-      return (
-        <ClericChannelDivinityAction
-          rows={selectedChannelDivinityRows}
-          character={character}
-          roundTracker={roundTracker}
-          onOpenDivinity={(row) => setSelectedChannelDivinityOptionKey(row.option.key)}
-        />
-      );
-    }
-
-    if (selectedAction.drawer.kind === "options") {
-      if (selectedAction.action.key === metamagicActionKey) {
-        return (
-          <MetamagicOptionsActionBody
-            options={selectedAction.drawer.options}
-            selectedOptionKeys={selectedActionOptionKeys}
-            selectionLimit={
-              selectedAction.drawer.selectionLimit ?? selectedAction.drawer.options.length
-            }
-            onToggleOption={toggleFeatureOptionSelection}
-          />
-        );
-      }
-
-      return (
-        <FeatureOptionsActionBody
-          action={selectedAction}
-          character={character}
-          roundTracker={roundTracker}
+        <BrutalStrikeActionBody
+          options={selectedAction.drawer.options ?? []}
+          selectionLimit={getBarbarianBrutalStrikeSelectionLimit(character)}
+          damageFormula={getBarbarianBrutalStrikeDamageFormula(character)}
           selectedOptionKeys={selectedActionOptionKeys}
-          onToggleOption={toggleFeatureOptionSelection}
+          onToggleOption={(optionKey) =>
+            setSelectedActionOptionKeys((currentKeys) =>
+              currentKeys.includes(optionKey)
+                ? currentKeys.filter((entry) => entry !== optionKey)
+                : [...currentKeys, optionKey]
+            )
+          }
+        />
+      );
+    }
+  }
+
+  if (selectedAction.drawer.kind === "spell-list") {
+    if (
+      selectedAction.execute.kind === "spell" &&
+      selectedAction.execute.spellSource === "divine-intervention"
+    ) {
+      return (
+        <DivineInterventionActionBody
+          character={character}
+          onSpellSelect={setSelectedDivineInterventionSpell}
         />
       );
     }
 
-    if (selectedAction.drawer.kind === "custom-form") {
-      if (selectedAction.drawer.formKind === "portent") {
-        return <PortentActionBody character={character} onSubmit={submitPortent} />;
-      }
-
-      if (selectedAction.drawer.formKind === "third-eye") {
-        return (
-          <ThirdEyeActionBody
-            selectedOptionKey={selectedThirdEyeOptionKey}
-            onSelectOption={setSelectedThirdEyeOptionKey}
-          />
-        );
-      }
-
-      if (selectedAction.drawer.formKind === "blessing-of-the-trickster") {
-        return (
-          <BlessingOfTheTricksterActionBody
-            selectedTarget={selectedBlessingOfTheTricksterTarget}
-            onSelectTarget={setSelectedBlessingOfTheTricksterTarget}
-          />
-        );
-      }
-
-      if (selectedAction.drawer.formKind === "arcane-recovery") {
-        return (
-          <ArcaneRecoveryActionBody
-            character={character}
-            selection={selectedArcaneRecoverySelection}
-            onSelectionChange={setSelectedArcaneRecoverySelection}
-          />
-        );
-      }
-
-      if (selectedAction.drawer.formKind === "indomitable") {
-        return (
-          <IndomitableActionBody
-            options={indomitableSavingThrowOptions}
-            selectedAbility={selectedIndomitableAbility}
-            onSelectAbility={setSelectedIndomitableAbility}
-          />
-        );
-      }
-
-      if (selectedAction.drawer.formKind === "lay-on-hands") {
-        return (
-          <LayOnHandsActionBody
-            conditionOptions={getLayOnHandsCurableConditionsForCharacter(character)}
-            target={selectedLayOnHandsTarget}
-            poolSpendInput={selectedLayOnHandsPoolSpendInput}
-            selectedConditions={selectedLayOnHandsConditions}
-            onTargetChange={setSelectedLayOnHandsTarget}
-            onPoolSpendInputChange={setSelectedLayOnHandsPoolSpendInput}
-            onSelectedConditionsChange={setSelectedLayOnHandsConditions}
-          />
-        );
-      }
-
-      if (selectedAction.drawer.formKind === "healing-light") {
-        return (
-          <HealingLightActionBody
-            remainingDice={selectedHealingLightDiceRemaining}
-            maxDicePerUse={selectedHealingLightMaxDicePerUse}
-            selectedDiceCount={selectedHealingLightDiceCount}
-            selectedTarget={selectedHealingLightTarget}
-            onSelectedDiceCountChange={setSelectedHealingLightDiceCount}
-            onSelectedTargetChange={setSelectedHealingLightTarget}
-          />
-        );
-      }
-
-      if (selectedAction.drawer.formKind === "recover-vitality") {
-        return (
-          <RecoverVitalityActionBody
-            remainingDice={selectedRecoverVitalityDiceRemaining}
-            selectedDiceCount={selectedRecoverVitalityDiceCount}
-            onSelectedDiceCountChange={setSelectedRecoverVitalityDiceCount}
-          />
-        );
-      }
-
-      if (selectedAction.drawer.formKind === "warrior-of-the-gods") {
-        return (
-          <WarriorOfTheGodsActionBody
-            remainingCharges={selectedWarriorOfTheGodsUsesRemaining}
-            selectedChargeCount={selectedWarriorOfTheGodsChargeCount}
-            onSelectedChargeCountChange={setSelectedWarriorOfTheGodsChargeCount}
-          />
-        );
-      }
-
-      if (selectedAction.drawer.formKind === "sneak-attack") {
-        return (
-          <SneakAttackActionBody
-            action={selectedAction.action}
-            character={character}
-            selection={sneakAttackActionSelection}
-            onSelectionChange={setSneakAttackActionSelection}
-          />
-        );
-      }
-
-      if (selectedAction.drawer.formKind === "spellfire-burst") {
-        return (
-          <SpellfireBurstActionBody
-            selectedTarget={selectedSpellfireBurstTarget}
-            onSelectTarget={setSelectedSpellfireBurstTarget}
-          />
-        );
-      }
-
-      if (selectedAction.drawer.formKind === "wild-shape") {
-        return (
-          <WildShapeActionBody
-            monsters={wildShapeKnownForms}
-            selectedMonsterSlug={selectedWildShapeMonsterSlug}
-            onSelectMonster={setSelectedWildShapeMonsterSlug}
-            onPreviewMonster={setSelectedWildShapePreviewSlug}
-          />
-        );
-      }
-
-      if (selectedAction.drawer.formKind === "starry-form") {
-        return (
-          <DruidStarryFormActionBody
-            selectedConstellation={selectedStarryFormConstellation}
-            hasTwinklingConstellations={hasDruidTwinklingConstellationsFeatureForCharacter(
-              character
-            )}
-            onSelectConstellation={setSelectedStarryFormConstellation}
-          />
-        );
-      }
-
-      if (selectedAction.drawer.formKind === "wild-companion") {
-        return (
-          <WildCompanionActionBody
-            wildShapeUsesRemaining={wildShapeUsesRemaining}
-            wildShapeUsesTotal={wildShapeUsesTotal}
-            spellSlotOptions={wildCompanionSpellSlotOptions}
-            selectedResource={selectedWildCompanionResource}
-            selectedSpellSlotLevel={selectedWildCompanionSpellSlotLevel}
-            onSelectResource={setSelectedWildCompanionResource}
-            onSelectSpellSlotLevel={setSelectedWildCompanionSpellSlotLevel}
-          />
-        );
-      }
-
-      if (selectedAction.drawer.formKind === "nature-magician") {
-        return (
-          <NatureMagicianActionBody
-            options={natureMagicianOptions}
-            selectedSpellSlotLevel={selectedNatureMagicianSpellSlotLevel}
-            onSelectSpellSlotLevel={setSelectedNatureMagicianSpellSlotLevel}
-          />
-        );
-      }
-
-      if (selectedAction.drawer.formKind === "wild-resurgence") {
-        return (
-          <WildResurgenceActionBody
-            spellSlotOptions={wildResurgenceSpellSlotOptions}
-            selectedMode={selectedWildResurgenceMode}
-            selectedSpellSlotLevel={selectedWildResurgenceSpellSlotLevel}
-            wildShapeUsesRemaining={wildShapeUsesRemaining}
-            wildShapeUsesTotal={wildShapeUsesTotal}
-            levelOneSpellSlotRemaining={fixedSpellSlotsRemaining[0] ?? 0}
-            levelOneSpellSlotTotal={fixedSpellSlotTotals[0] ?? 0}
-            spellSlotRecoveryUsesRemaining={wildResurgenceSpellSlotRecoveryUsesRemaining}
-            onSelectMode={setSelectedWildResurgenceMode}
-            onSelectSpellSlotLevel={setSelectedWildResurgenceSpellSlotLevel}
-          />
-        );
-      }
-
-      if (selectedAction.drawer.formKind === "font-of-magic") {
-        return (
-          <FontOfMagicActionBody
-            actionWarning={selectedFontOfMagicWarning}
-            character={character}
-            selectedSelection={selectedFontOfMagicSelection}
-            onSelectSelection={setSelectedFontOfMagicSelection}
-          />
-        );
-      }
-
-      if (selectedAction.drawer.formKind === "wild-heart-rage") {
-        return (
-          <RageActionBody
-            action={selectedAction.action}
-            rageOptions={selectedRageOptions}
-            powerOptions={selectedRagePowerOptions}
-            rageOfTheGodsDescription={selectedRageOfTheGodsDescription}
-            selectedRageOptionKey={selectedRageOptionKey}
-            selectedPowerOptionKey={selectedRagePowerOptionKey}
-            onSelectRageOption={setSelectedRageOptionKey}
-            onSelectPowerOption={setSelectedRagePowerOptionKey}
-            rageOfTheGodsUsesRemaining={selectedRageOfTheGodsUsesRemaining}
-            rageOfTheGodsUsesTotal={selectedRageOfTheGodsUsesTotal}
-            isRageOfTheGodsSelected={isRageOfTheGodsSelected}
-            onToggleRageOfTheGods={setIsRageOfTheGodsSelected}
-          />
-        );
-      }
-
-      if (selectedAction.drawer.formKind === "brutal-strike") {
-        return (
-          <BrutalStrikeActionBody
-            options={selectedAction.drawer.options ?? []}
-            selectionLimit={getBarbarianBrutalStrikeSelectionLimit(character)}
-            damageFormula={getBarbarianBrutalStrikeDamageFormula(character)}
-            selectedOptionKeys={selectedActionOptionKeys}
-            onToggleOption={(optionKey) =>
-              setSelectedActionOptionKeys((currentKeys) =>
-                currentKeys.includes(optionKey)
-                  ? currentKeys.filter((entry) => entry !== optionKey)
-                  : [...currentKeys, optionKey]
-              )
-            }
-          />
-        );
-      }
-    }
-
-    if (selectedAction.drawer.kind === "spell-list") {
-      if (
-        selectedAction.execute.kind === "spell" &&
-        selectedAction.execute.spellSource === "divine-intervention"
-      ) {
-        return (
-          <DivineInterventionActionBody
-            character={character}
-            onSpellSelect={setSelectedDivineInterventionSpell}
-          />
-        );
-      }
-
-      return (
-        <MysticArcanumActionBody character={character} onSpellSelect={openMysticArcanumSpell} />
-      );
-    }
-
-    return null;
+    return <MysticArcanumActionBody character={character} onSpellSelect={openMysticArcanumSpell} />;
   }
+
+  return null;
+}
 
 export function renderActionHeaderAside(context: Record<string, any>) {
   const {
@@ -1333,15 +1353,15 @@ export function renderActionHeaderAside(context: Record<string, any>) {
     wildShapeUsesRemaining,
     wildShapeUsesTotal
   } = context;
-    if (!selectedAction || !selectedWeaponRollState) {
-      return null;
-    }
-
-    return (
-      <RollStatePill
-        tone={selectedWeaponRollState.tone}
-        label={selectedWeaponRollState.label}
-        detailText={formatResolvedRollStateDetailText(selectedWeaponRollState)}
-      />
-    );
+  if (!selectedAction || !selectedWeaponRollState) {
+    return null;
   }
+
+  return (
+    <RollStatePill
+      tone={selectedWeaponRollState.tone}
+      label={selectedWeaponRollState.label}
+      detailText={formatResolvedRollStateDetailText(selectedWeaponRollState)}
+    />
+  );
+}

@@ -153,6 +153,8 @@ export type FeatureActionExecuteEffectKind =
   | "tireless";
 
 export type FeatureActionFormKind =
+  | "aasimar-celestial-revelation"
+  | "aasimar-healing-hands"
   | "arcane-recovery"
   | "blessing-of-the-trickster"
   | "brutal-strike"
@@ -411,6 +413,8 @@ export type FeatureIndicator = {
   source: string | string[];
 };
 
+export type SpellSourceMap = Record<string, string[]>;
+
 export type CoreStatIndicatorMap = Partial<Record<keyof CoreStats, FeatureIndicator[]>>;
 
 export type AbilityCheckIndicatorMap = Partial<Record<AbilityKey, FeatureIndicator[]>>;
@@ -528,6 +532,7 @@ export type ClassFeatureDerivedState = {
   toolProficiencyEntries?: FeatureToolProficiencyEntry[];
   languageProficiencyEntries?: FeatureLanguageProficiencyEntry[];
   alwaysPreparedSpellIds?: string[];
+  alwaysPreparedSpellSources?: SpellSourceMap;
   alwaysSpellbookSpellIds?: string[];
   magicTemporaryHitPointsFeature?: MagicTemporaryHitPointsFeature | null;
   ritualOnlySpellIds?: string[];

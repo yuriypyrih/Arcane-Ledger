@@ -1,6 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type { Character } from "../../../../../types";
 import {
+  getAasimarCelestialRevelationUsesTotal,
+  getAasimarHealingHandsUsesTotal,
+  restoreAasimarCelestialRevelationOnLongRest,
+  restoreAasimarHealingHandsOnLongRest
+} from "../../../../../pages/CharactersPage/species";
+import {
   getBarbarianIntimidatingPresenceUsesTotal,
   getBarbarianZealousPresenceUsesTotal,
   getBarbarianPersistentRageUsesTotal,
@@ -447,6 +453,8 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const contactPatronUsesTotal = getContactPatronUsesTotal(character);
   const healingLightDiceTotal = getWarlockHealingLightDiceTotal(character);
   const searingVengeanceUsesTotal = getWarlockSearingVengeanceUsesTotal(character);
+  const aasimarHealingHandsUsesTotal = getAasimarHealingHandsUsesTotal(character);
+  const aasimarCelestialRevelationUsesTotal = getAasimarCelestialRevelationUsesTotal(character);
   const hasMysticArcanum = hasWarlockFeature(character, CLASS_FEATURE.MYSTIC_ARCANUM);
   const monkFocusPointsTotal = getMonkFocusPointsTotal(character);
   const monkFlurryOfHealingAndHarmUsesTotal = getMonkFlurryOfHealingAndHarmUsesTotal(character);
@@ -520,6 +528,26 @@ export function createLongRestOptions(character: Character): RestOption[] {
         };
       }
     },
+    ...(aasimarHealingHandsUsesTotal > 0
+      ? [
+          {
+            id: "restore-aasimar-healing-hands",
+            label: "Restore Healing Hands",
+            apply: (currentCharacter: Character) =>
+              restoreAasimarHealingHandsOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(aasimarCelestialRevelationUsesTotal > 0
+      ? [
+          {
+            id: "restore-aasimar-celestial-revelation",
+            label: "Restore Celestial Revelation",
+            apply: (currentCharacter: Character) =>
+              restoreAasimarCelestialRevelationOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
     {
       id: "reset-round-tracker",
       label: "Reset round tracker",

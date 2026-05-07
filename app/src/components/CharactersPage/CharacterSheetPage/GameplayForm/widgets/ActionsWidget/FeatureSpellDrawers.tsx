@@ -208,6 +208,7 @@ function FeatureSpellDrawers({
   onCloseMysticArcanumSpell,
   onCastMysticArcanumSpell
 }: FeatureSpellDrawersProps) {
+  const selectedFeatureActionSource = selectedFeatureAction ? [selectedFeatureAction.name] : [];
   const beguilingMagicOption =
     selectedActionSpellSupportsBeguilingMagic
       ? createBeguilingMagicOption({
@@ -227,6 +228,7 @@ function FeatureSpellDrawers({
           spell={fixedSpellEntry}
           damageDetailOverride={fixedSpellElementalSmiteDamageDetail}
           alwaysPrepared
+          alwaysPreparedSources={selectedFeatureActionSource}
           mode="standard"
           spellSlotTotals={fixedSpellSlotTotals}
           spellSlotsRemaining={fixedSpellSlotsRemaining}
@@ -383,6 +385,7 @@ function FeatureSpellDrawers({
           character={character}
           spell={selectedMysticArcanumSpell}
           alwaysPrepared
+          alwaysPreparedSources={selectedFeatureActionSource}
           mode="standard"
           spellSlotTotals={emptySpellSlots}
           spellSlotsRemaining={emptySpellSlots}

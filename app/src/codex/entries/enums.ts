@@ -250,6 +250,15 @@ export enum DAMAGE_TYPE {
   PSYCHIC = "PSYCHIC"
 }
 
+export enum BODY_SIZE {
+  TINY = "TINY",
+  SMALL = "SMALL",
+  MEDIUM = "MEDIUM",
+  LARGE = "LARGE",
+  HUGE = "HUGE",
+  GARGANTUAN = "GARGANTUAN"
+}
+
 export enum COLOR_TYPES {
   WHITE = "#ffffff",
   BLUE = "#0070DD",

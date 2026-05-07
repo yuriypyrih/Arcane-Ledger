@@ -857,7 +857,6 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
               : undefined
     } satisfies CoreStatCard;
   });
-
   const additionalCoreStatCards: CoreStatCard[] = [];
 
   if (barbarianRageDamageBonus > 0) {

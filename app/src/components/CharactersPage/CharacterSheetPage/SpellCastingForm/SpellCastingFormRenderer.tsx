@@ -3,32 +3,260 @@
 
 export function renderSpellCastingForm(context: Record<string, any>) {
   const {
-    ActionButton, ActionShape, CellContainer, CharacterSpellDrawer, DURATION, DivinityListRow, Pencil,
-    SpellDescriptionContent, SpellListRow, SpellManagementModal, SpellSlotActionSheet, TriangleAlert, X, activeSpellSlotSheetExpended, activeSpellSlotSheetLevel, activeSpellSlotSheetTotal,
-    activeWizardSpellFilter, alwaysPreparedSpellIdSet, alwaysPreparedSpellIds, alwaysSpellbookSpellIdSet, alwaysSpellbookSpellIds, bardicInspirationUsesRemaining, bardicInspirationUsesTotal, beguilingMagicUsesRemaining, beguilingMagicUsesTotal,
-    blessingOfMoonlightUsesRemaining, blessingOfMoonlightUsesTotal, cantripLimit, cantripOptions, castSelectedSpell, channelDivinityUsesRemaining, channelDivinityUsesTotal, channelSelectedDivinity, character,
-    className, closeSelectedDivinity, closeSelectedSpell, closeSpellSlotActionSheet, clsx, createChargesAndUsageHeaderTags, createChargesCardUsage, createChargesHeaderTag,
-    createChargesOrResourceCardUsage, createFeatureActionCardCost, createNamedResourceCardUsage, createNamedUsageHeaderTags, diceRollerPopup, druidNaturalRecoveryUsesRemaining, druidStarMapGuidingBoltUsesRemaining, druidStarMapGuidingBoltUsesTotal,
-    fighterPsiWarriorEnergyDiceRemaining, fighterPsiWarriorEnergyDiceTotal, fighterPsiWarriorTelekineticMasterUsesRemaining, fighterPsiWarriorTelekineticMasterUsesTotal, formatCodexLabel, formatDivinitySubtitle, formatFeatureActionOptionRangeLabel, formatSpellCastingTime, formatSpellGroupTitle,
-    featAlwaysPreparedCantripIdSet, frozenHauntFallbackSpellSlotMinimumLevel, gameplayActionStyles, getActionShapeForEconomyType, getDivinityDrawerValueLabel, getDivinityRowActionShapeState, getSpellRowActionShapes, hasSpellManagementOptions, hasSpellSelectionInputRequired,
-    highestSpellSlotLevel, isPreparedSpellPreview, isSelectedSpellDiceRollerSettingsOpen, isSpellManagementModalOpen, knownSpellEntriesById, onPersistCharacter, openDivinityDetails,
-    openSpellDetails, openSpellManagementMenu, orderDescriptionAdditionSections, paladinOathOfTheNobleGeniesElementalSmiteOptions, preparedSpellGroups, preparedSpellLimit, rangerFeyReinforcementsUsesRemaining, rangerFeyReinforcementsUsesTotal, rangerMistyWandererUsesRemaining,
-    rangerMistyWandererUsesTotal, resetAllSpellSlotsAtLevel, selectedCantripIds, selectedDivinityActionShape, selectedDivinityActionShapeState, selectedDivinityActionWarning, selectedDivinityDisplay, selectedDivinityOptionKey, selectedDivinityRow,
-    selectedElementalSmiteOptionOnSelectedSpell, selectedFrozenHauntFallbackSlotLevel, selectedManualSpellbookSpellIds, selectedPreparedSpellIds, selectedSpell, selectedSpellActionPaths,
-    selectedSpellAlwaysPrepared, selectedSpellAlwaysSpellbook, selectedSpellAttackRollFormula, selectedSpellBlockedReason, selectedSpellCanCastAsRitualFromSpellbook, selectedSpellCanOnlyBeCastAsRitual, selectedSpellCastWarning, selectedSpellDamageDetailOverride, selectedSpellDetectThoughtsDisabled, selectedSpellDetectThoughtsFreeCastState, selectedSpellDisplay, selectedSpellMagicInitiateAbility, selectedSpellMagicInitiateDisabled, selectedSpellMagicInitiateFreeCastState,
-    selectedSpellElementalSmiteDisabled, selectedSpellFacts, selectedSpellFalseLifeTemporaryHitPointsFormula, selectedSpellFeyMagicDisabled, selectedSpellFeyMagicFreeCastState, selectedSpellFeyReinforcementsDisabled, selectedSpellFreeCastSlotLevel, selectedSpellFrozenHauntFallbackSlotOptions, selectedSpellFrozenHauntFallbackSlotSummary, selectedSpellFrozenHauntOptionState, selectedSpellHuntersRimeTemporaryHitPointsFormula, selectedSpellIsSpellbookOnly,
-    selectedSpellIsWizardSpellMastery, selectedSpellMindMagicDisabled, selectedSpellMistyWandererDisabled, selectedSpellOverchannelDisabled, selectedSpellOverchannelNecroticDamage, selectedSpellPhantasmalCreaturesDisabled, selectedSpellPhantasmalCreaturesOptionState, selectedSpellPsionicSorceryCurrentCost, selectedSpellPsionicSorceryDisabled,
-    selectedSpellQuickRitualDisabled, selectedSpellQuickRitualState, selectedSpellRadiantSoulDisabled, selectedSpellShadowMagicDisabled, selectedSpellShadowMagicFreeCastState, selectedSpellSharedCastWarning, selectedSpellSlotLevel, selectedSpellStarMapDisabled, selectedSpellStepsOfTheFeyDisabled, selectedSpellSupportsBeguilingMagic, selectedSpellSupportsBewitchingMagic, selectedSpellSupportsBlessingOfMoonlight, selectedSpellSupportsElementalSmite,
-    selectedSpellSupportsBoonOfSpellRecall, selectedSpellSupportsDetectThoughts, selectedSpellSupportsFeyMagic, selectedSpellSupportsFeyReinforcements, selectedSpellSupportsMagicInitiate, selectedSpellSupportsMindMagic, selectedSpellSupportsMistyWanderer, selectedSpellSupportsNaturalRecovery, selectedSpellSupportsOverchannel, selectedSpellSupportsPhantasmalCreatures, selectedSpellSupportsPsionicSorcery, selectedSpellSupportsQuickRitual, selectedSpellSupportsRadiantSoul, selectedSpellSupportsShadowMagic, selectedSpellSupportsStarMap,
-    selectedSpellSupportsStepsOfTheFey, selectedSpellSupportsTamedSurge, selectedSpellSupportsTelekineticMaster, selectedSpellSupportsWarGodsBlessing, selectedSpellTamedSurgeDisabled, selectedSpellTelekineticMasterDisabled, selectedSpellUnderMantleOfMajesty, selectedSpellViewMode, selectedSpellWarGodsBlessingDisabled,
-    setActiveSpellSlotSheetLevel, setActiveWizardSpellFilter, setIsSelectedSpellDiceRollerSettingsOpen, setIsSpellManagementModalOpen, setSelectedElementalSmiteOptionOnSelectedSpell, setSelectedFrozenHauntFallbackSlotLevel, setSelectedSpellSlotLevel, setUseBeguilingMagicOnSelectedSpell, setUseBewitchingMagicOnSelectedSpell,
-    setUseBlessingOfMoonlightOnSelectedSpell, setUseBoonOfSpellRecallOnSelectedSpell, setUseDetectThoughtsOnSelectedSpell, setUseElementalSmiteOnSelectedSpell, setUseFeyMagicOnSelectedSpell, setUseFeyReinforcementsNoConcentrationOnSelectedSpell, setUseFeyReinforcementsOnSelectedSpell, setUseFrozenHauntOnSelectedSpell, setUseMagicInitiateOnSelectedSpell, setUseMindMagicOnSelectedSpell, setUseMistyWandererOnSelectedSpell, setUseNaturalRecoveryOnSelectedSpell, setUseOverchannelOnSelectedSpell,
-    setUsePhantasmalCreaturesOnSelectedSpell, setUsePsionicSorceryOnSelectedSpell, setUseQuickRitualOnSelectedSpell, setUseRadiantSoulOnSelectedSpell, setUseShadowMagicOnSelectedSpell, setUseStarMapOnSelectedSpell, setUseStepsOfTheFeyOnSelectedSpell, setUseTamedSurgeOnSelectedSpell, setUseTelekineticMasterOnSelectedSpell, setUseWarGodsBlessingOnSelectedSpell, shared, SheetSurface,
-    sheetStyles, sorceryPointsRemaining, sorceryPointsTotal, spellOutcomeSummariesById, spellPreparationOptions, spellSlotLevels, spellSlotTotals, spellSlotsRemaining, spellbookSpellEntriesById,
-    spellcastingChannelDivinityRows, spellcastingState, styles, tamedSurgeUsesRemaining, tamedSurgeUsesTotal, updateSpellSlotsExpended, useBeguilingMagicOnSelectedSpell, useBewitchingMagicOnSelectedSpell, useBlessingOfMoonlightOnSelectedSpell,
-    useBoonOfSpellRecallOnSelectedSpell, useDetectThoughtsOnSelectedSpell, useElementalSmiteOnSelectedSpell, useFeyMagicOnSelectedSpell, useFeyReinforcementsNoConcentrationOnSelectedSpell, useFeyReinforcementsOnSelectedSpell, useFrozenHauntOnSelectedSpell, useMagicInitiateOnSelectedSpell, useMindMagicOnSelectedSpell, useMistyWandererOnSelectedSpell, useNaturalRecoveryOnSelectedSpell, useOverchannelOnSelectedSpell, usePhantasmalCreaturesOnSelectedSpell,
-    usePsionicSorceryOnSelectedSpell, useQuickRitualOnSelectedSpell, useRadiantSoulOnSelectedSpell, useShadowMagicOnSelectedSpell, useStarMapOnSelectedSpell, useStepsOfTheFeyOnSelectedSpell, useTamedSurgeOnSelectedSpell, useTelekineticMasterOnSelectedSpell, useWarGodsBlessingOnSelectedSpell, usesPreparedSpells, usesSpellbook,
-    warlockStepsOfTheFeyUsesRemaining, warlockStepsOfTheFeyUsesTotal, wizardSignatureSpellIdSet, wizardSpellMasterySpellIdSet, wizardSpellbookOnlyIdSet, wizardSpellbookOnlyRitualIdSet
+    ActionButton,
+    ActionShape,
+    CellContainer,
+    CharacterSpellDrawer,
+    DURATION,
+    DivinityListRow,
+    Pencil,
+    SpellDescriptionContent,
+    SpellListRow,
+    SpellManagementModal,
+    SpellSlotActionSheet,
+    TriangleAlert,
+    X,
+    activeSpellSlotSheetExpended,
+    activeSpellSlotSheetLevel,
+    activeSpellSlotSheetTotal,
+    activeWizardSpellFilter,
+    alwaysPreparedSpellIdSet,
+    alwaysPreparedSpellIds,
+    alwaysSpellbookSpellIdSet,
+    alwaysSpellbookSpellIds,
+    bardicInspirationUsesRemaining,
+    bardicInspirationUsesTotal,
+    beguilingMagicUsesRemaining,
+    beguilingMagicUsesTotal,
+    blessingOfMoonlightUsesRemaining,
+    blessingOfMoonlightUsesTotal,
+    cantripLimit,
+    cantripOptions,
+    castSelectedSpell,
+    channelDivinityUsesRemaining,
+    channelDivinityUsesTotal,
+    channelSelectedDivinity,
+    character,
+    className,
+    closeSelectedDivinity,
+    closeSelectedSpell,
+    closeSpellSlotActionSheet,
+    clsx,
+    createChargesAndUsageHeaderTags,
+    createChargesCardUsage,
+    createChargesHeaderTag,
+    createChargesOrResourceCardUsage,
+    createFeatureActionCardCost,
+    createNamedResourceCardUsage,
+    createNamedUsageHeaderTags,
+    diceRollerPopup,
+    druidNaturalRecoveryUsesRemaining,
+    druidStarMapGuidingBoltUsesRemaining,
+    druidStarMapGuidingBoltUsesTotal,
+    fighterPsiWarriorEnergyDiceRemaining,
+    fighterPsiWarriorEnergyDiceTotal,
+    fighterPsiWarriorTelekineticMasterUsesRemaining,
+    fighterPsiWarriorTelekineticMasterUsesTotal,
+    formatCodexLabel,
+    formatDivinitySubtitle,
+    formatFeatureActionOptionRangeLabel,
+    formatSpellCastingTime,
+    formatSpellGroupTitle,
+    alwaysPreparedCantripIdSet,
+    frozenHauntFallbackSpellSlotMinimumLevel,
+    gameplayActionStyles,
+    getActionShapeForEconomyType,
+    getDivinityDrawerValueLabel,
+    getDivinityRowActionShapeState,
+    getSpellRowActionShapes,
+    hasSpellManagementOptions,
+    hasSpellSelectionInputRequired,
+    highestSpellSlotLevel,
+    isPreparedSpellPreview,
+    isSelectedSpellDiceRollerSettingsOpen,
+    isSpellManagementModalOpen,
+    knownSpellEntriesById,
+    onPersistCharacter,
+    openDivinityDetails,
+    openSpellDetails,
+    openSpellManagementMenu,
+    orderDescriptionAdditionSections,
+    paladinOathOfTheNobleGeniesElementalSmiteOptions,
+    preparedSpellGroups,
+    preparedSpellLimit,
+    rangerFeyReinforcementsUsesRemaining,
+    rangerFeyReinforcementsUsesTotal,
+    rangerMistyWandererUsesRemaining,
+    rangerMistyWandererUsesTotal,
+    resetAllSpellSlotsAtLevel,
+    selectedCantripIds,
+    selectedDivinityActionShape,
+    selectedDivinityActionShapeState,
+    selectedDivinityActionWarning,
+    selectedDivinityDisplay,
+    selectedDivinityOptionKey,
+    selectedDivinityRow,
+    selectedElementalSmiteOptionOnSelectedSpell,
+    selectedFrozenHauntFallbackSlotLevel,
+    selectedManualSpellbookSpellIds,
+    selectedPreparedSpellIds,
+    selectedSpell,
+    selectedSpellActionPaths,
+    selectedSpellAlwaysPrepared,
+    selectedSpellAlwaysPreparedSources,
+    selectedSpellAlwaysSpellbook,
+    selectedSpellAttackRollFormula,
+    selectedSpellBlockedReason,
+    selectedSpellCanCastAsRitualFromSpellbook,
+    selectedSpellCanOnlyBeCastAsRitual,
+    selectedSpellCastWarning,
+    selectedSpellDamageDetailOverride,
+    selectedSpellDetectThoughtsDisabled,
+    selectedSpellDetectThoughtsFreeCastState,
+    selectedSpellDisplay,
+    selectedSpellMagicInitiateAbility,
+    selectedSpellMagicInitiateDisabled,
+    selectedSpellMagicInitiateFreeCastState,
+    selectedSpellElementalSmiteDisabled,
+    selectedSpellFacts,
+    selectedSpellFalseLifeTemporaryHitPointsFormula,
+    selectedSpellFeyMagicDisabled,
+    selectedSpellFeyMagicFreeCastState,
+    selectedSpellFeyReinforcementsDisabled,
+    selectedSpellFreeCastSlotLevel,
+    selectedSpellFrozenHauntFallbackSlotOptions,
+    selectedSpellFrozenHauntFallbackSlotSummary,
+    selectedSpellFrozenHauntOptionState,
+    selectedSpellHuntersRimeTemporaryHitPointsFormula,
+    selectedSpellIsSpellbookOnly,
+    selectedSpellIsWizardSpellMastery,
+    selectedSpellMindMagicDisabled,
+    selectedSpellMistyWandererDisabled,
+    selectedSpellOverchannelDisabled,
+    selectedSpellOverchannelNecroticDamage,
+    selectedSpellPhantasmalCreaturesDisabled,
+    selectedSpellPhantasmalCreaturesOptionState,
+    selectedSpellPsionicSorceryCurrentCost,
+    selectedSpellPsionicSorceryDisabled,
+    selectedSpellQuickRitualDisabled,
+    selectedSpellQuickRitualState,
+    selectedSpellRadiantSoulDisabled,
+    selectedSpellShadowMagicDisabled,
+    selectedSpellShadowMagicFreeCastState,
+    selectedSpellSharedCastWarning,
+    selectedSpellSlotLevel,
+    selectedSpellStarMapDisabled,
+    selectedSpellStepsOfTheFeyDisabled,
+    selectedSpellSupportsBeguilingMagic,
+    selectedSpellSupportsBewitchingMagic,
+    selectedSpellSupportsBlessingOfMoonlight,
+    selectedSpellSupportsElementalSmite,
+    selectedSpellSupportsBoonOfSpellRecall,
+    selectedSpellSupportsDetectThoughts,
+    selectedSpellSupportsFeyMagic,
+    selectedSpellSupportsFeyReinforcements,
+    selectedSpellSupportsMagicInitiate,
+    selectedSpellSupportsMindMagic,
+    selectedSpellSupportsMistyWanderer,
+    selectedSpellSupportsNaturalRecovery,
+    selectedSpellSupportsOverchannel,
+    selectedSpellSupportsPhantasmalCreatures,
+    selectedSpellSupportsPsionicSorcery,
+    selectedSpellSupportsQuickRitual,
+    selectedSpellSupportsRadiantSoul,
+    selectedSpellSupportsShadowMagic,
+    selectedSpellSupportsStarMap,
+    selectedSpellSupportsStepsOfTheFey,
+    selectedSpellSupportsTamedSurge,
+    selectedSpellSupportsTelekineticMaster,
+    selectedSpellSupportsWarGodsBlessing,
+    selectedSpellTamedSurgeDisabled,
+    selectedSpellTelekineticMasterDisabled,
+    selectedSpellUnderMantleOfMajesty,
+    selectedSpellViewMode,
+    selectedSpellWarGodsBlessingDisabled,
+    setActiveSpellSlotSheetLevel,
+    setActiveWizardSpellFilter,
+    setIsSelectedSpellDiceRollerSettingsOpen,
+    setIsSpellManagementModalOpen,
+    setSelectedElementalSmiteOptionOnSelectedSpell,
+    setSelectedFrozenHauntFallbackSlotLevel,
+    setSelectedSpellSlotLevel,
+    setUseBeguilingMagicOnSelectedSpell,
+    setUseBewitchingMagicOnSelectedSpell,
+    setUseBlessingOfMoonlightOnSelectedSpell,
+    setUseBoonOfSpellRecallOnSelectedSpell,
+    setUseDetectThoughtsOnSelectedSpell,
+    setUseElementalSmiteOnSelectedSpell,
+    setUseFeyMagicOnSelectedSpell,
+    setUseFeyReinforcementsNoConcentrationOnSelectedSpell,
+    setUseFeyReinforcementsOnSelectedSpell,
+    setUseFrozenHauntOnSelectedSpell,
+    setUseMagicInitiateOnSelectedSpell,
+    setUseMindMagicOnSelectedSpell,
+    setUseMistyWandererOnSelectedSpell,
+    setUseNaturalRecoveryOnSelectedSpell,
+    setUseOverchannelOnSelectedSpell,
+    setUsePhantasmalCreaturesOnSelectedSpell,
+    setUsePsionicSorceryOnSelectedSpell,
+    setUseQuickRitualOnSelectedSpell,
+    setUseRadiantSoulOnSelectedSpell,
+    setUseShadowMagicOnSelectedSpell,
+    setUseStarMapOnSelectedSpell,
+    setUseStepsOfTheFeyOnSelectedSpell,
+    setUseTamedSurgeOnSelectedSpell,
+    setUseTelekineticMasterOnSelectedSpell,
+    setUseWarGodsBlessingOnSelectedSpell,
+    shared,
+    SheetSurface,
+    sheetStyles,
+    sorceryPointsRemaining,
+    sorceryPointsTotal,
+    spellOutcomeSummariesById,
+    spellPreparationOptions,
+    spellSlotLevels,
+    spellSlotTotals,
+    spellSlotsRemaining,
+    spellbookSpellEntriesById,
+    spellcastingChannelDivinityRows,
+    spellcastingState,
+    styles,
+    tamedSurgeUsesRemaining,
+    tamedSurgeUsesTotal,
+    updateSpellSlotsExpended,
+    useBeguilingMagicOnSelectedSpell,
+    useBewitchingMagicOnSelectedSpell,
+    useBlessingOfMoonlightOnSelectedSpell,
+    useBoonOfSpellRecallOnSelectedSpell,
+    useDetectThoughtsOnSelectedSpell,
+    useElementalSmiteOnSelectedSpell,
+    useFeyMagicOnSelectedSpell,
+    useFeyReinforcementsNoConcentrationOnSelectedSpell,
+    useFeyReinforcementsOnSelectedSpell,
+    useFrozenHauntOnSelectedSpell,
+    useMagicInitiateOnSelectedSpell,
+    useMindMagicOnSelectedSpell,
+    useMistyWandererOnSelectedSpell,
+    useNaturalRecoveryOnSelectedSpell,
+    useOverchannelOnSelectedSpell,
+    usePhantasmalCreaturesOnSelectedSpell,
+    usePsionicSorceryOnSelectedSpell,
+    useQuickRitualOnSelectedSpell,
+    useRadiantSoulOnSelectedSpell,
+    useShadowMagicOnSelectedSpell,
+    useStarMapOnSelectedSpell,
+    useStepsOfTheFeyOnSelectedSpell,
+    useTamedSurgeOnSelectedSpell,
+    useTelekineticMasterOnSelectedSpell,
+    useWarGodsBlessingOnSelectedSpell,
+    usesPreparedSpells,
+    usesSpellbook,
+    warlockStepsOfTheFeyUsesRemaining,
+    warlockStepsOfTheFeyUsesTotal,
+    wizardSignatureSpellIdSet,
+    wizardSpellMasterySpellIdSet,
+    wizardSpellbookOnlyIdSet,
+    wizardSpellbookOnlyRitualIdSet
   } = context;
 
   return (
@@ -174,9 +402,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
         ) : null}
 
         {preparedSpellGroups.length === 0 && spellcastingChannelDivinityRows.length === 0 ? (
-          <p className={shared.emptyText}>
-            No spells or cantrips have been selected yet.
-          </p>
+          <p className={shared.emptyText}>No spells or cantrips have been selected yet.</p>
         ) : (
           preparedSpellGroups.map((group) => (
             <div key={group.level} className={styles.spellGroup}>
@@ -208,7 +434,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
                           }
                           alwaysPrepared={
                             alwaysPreparedSpellIdSet.has(spell.id) ||
-                            featAlwaysPreparedCantripIdSet.has(spell.id)
+                            alwaysPreparedCantripIdSet.has(spell.id)
                           }
                           alwaysSpellbook={alwaysSpellbookSpellIdSet.has(spell.id)}
                           highlightTone={
@@ -279,6 +505,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
           damageDetailOverride={selectedSpellDamageDetailOverride}
           spellcastingAbilityOverride={selectedSpellMagicInitiateAbility}
           alwaysPrepared={selectedSpellAlwaysPrepared}
+          alwaysPreparedSources={selectedSpellAlwaysPreparedSources}
           alwaysSpellbook={selectedSpellAlwaysSpellbook}
           mode={selectedSpellViewMode}
           spellSlotTotals={spellSlotTotals}
@@ -369,30 +596,35 @@ export function renderSpellCastingForm(context: Record<string, any>) {
                             : selectedSpellSupportsBoonOfSpellRecall &&
                                 useBoonOfSpellRecallOnSelectedSpell
                               ? "Free Casting prevents this cast from expending a spell slot."
-                            : selectedSpellSupportsStepsOfTheFey && useStepsOfTheFeyOnSelectedSpell
-                        ? selectedSpellSupportsBewitchingMagic && useBewitchingMagicOnSelectedSpell
-                          ? "Steps of the Fey and Bewitching Magic both let you cast this spell without expending a spell slot. Steps of the Fey still spends one use."
-                          : "Steps of the Fey lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
-                        : selectedSpellSupportsBewitchingMagic && useBewitchingMagicOnSelectedSpell
-                          ? "Bewitching Magic lets you cast this spell without expending a spell slot."
-                          : selectedSpellSupportsMistyWanderer && useMistyWandererOnSelectedSpell
-                            ? "Misty Wanderer lets you cast this spell without expending a spell slot."
-                            : selectedSpellSupportsFeyReinforcements &&
-                                useFeyReinforcementsOnSelectedSpell
-                              ? "Fey Reinforcements lets you cast this spell without expending a spell slot."
-                              : selectedSpellSupportsPhantasmalCreatures &&
-                                  usePhantasmalCreaturesOnSelectedSpell
-                                ? "Phantasmal Creatures lets you cast this spell without expending a spell slot. This shared use recharges on a Long Rest, and the summoned creature has half Hit Points."
-                                : selectedSpellSupportsTelekineticMaster &&
-                                    useTelekineticMasterOnSelectedSpell
-                                  ? fighterPsiWarriorTelekineticMasterUsesRemaining > 0
-                                    ? "Telekinetic Master lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
-                                    : "Telekinetic Master lets you cast this spell without expending a spell slot by using 1 Psi Energy Die."
-                                  : selectedSpellSupportsTamedSurge && useTamedSurgeOnSelectedSpell
-                                    ? "Tamed Surge will be spent after this spell consumes a spell slot."
-                                    : selectedSpellUnderMantleOfMajesty
-                                      ? "Mantle of Majesty is active. Cast at level 1 without expending a spell slot, or upcast normally."
-                                      : null
+                              : selectedSpellSupportsStepsOfTheFey &&
+                                  useStepsOfTheFeyOnSelectedSpell
+                                ? selectedSpellSupportsBewitchingMagic &&
+                                  useBewitchingMagicOnSelectedSpell
+                                  ? "Steps of the Fey and Bewitching Magic both let you cast this spell without expending a spell slot. Steps of the Fey still spends one use."
+                                  : "Steps of the Fey lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                                : selectedSpellSupportsBewitchingMagic &&
+                                    useBewitchingMagicOnSelectedSpell
+                                  ? "Bewitching Magic lets you cast this spell without expending a spell slot."
+                                  : selectedSpellSupportsMistyWanderer &&
+                                      useMistyWandererOnSelectedSpell
+                                    ? "Misty Wanderer lets you cast this spell without expending a spell slot."
+                                    : selectedSpellSupportsFeyReinforcements &&
+                                        useFeyReinforcementsOnSelectedSpell
+                                      ? "Fey Reinforcements lets you cast this spell without expending a spell slot."
+                                      : selectedSpellSupportsPhantasmalCreatures &&
+                                          usePhantasmalCreaturesOnSelectedSpell
+                                        ? "Phantasmal Creatures lets you cast this spell without expending a spell slot. This shared use recharges on a Long Rest, and the summoned creature has half Hit Points."
+                                        : selectedSpellSupportsTelekineticMaster &&
+                                            useTelekineticMasterOnSelectedSpell
+                                          ? fighterPsiWarriorTelekineticMasterUsesRemaining > 0
+                                            ? "Telekinetic Master lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                                            : "Telekinetic Master lets you cast this spell without expending a spell slot by using 1 Psi Energy Die."
+                                          : selectedSpellSupportsTamedSurge &&
+                                              useTamedSurgeOnSelectedSpell
+                                            ? "Tamed Surge will be spent after this spell consumes a spell slot."
+                                            : selectedSpellUnderMantleOfMajesty
+                                              ? "Mantle of Majesty is active. Cast at level 1 without expending a spell slot, or upcast normally."
+                                              : null
           }
           actionContextText={
             selectedSpellSupportsWarGodsBlessing &&
@@ -632,11 +864,11 @@ export function renderSpellCastingForm(context: Record<string, any>) {
                         }
                       ]
                     : []),
-	                  ...(selectedSpellSupportsDetectThoughts
-	                    ? [
-	                        {
-	                          id: "detect-thoughts",
-	                          label: "Detect Thoughts",
+                  ...(selectedSpellSupportsDetectThoughts
+                    ? [
+                        {
+                          id: "detect-thoughts",
+                          label: "Detect Thoughts",
                           checked: useDetectThoughtsOnSelectedSpell,
                           onCheckedChange: setUseDetectThoughtsOnSelectedSpell,
                           disabled: selectedSpellDetectThoughtsDisabled,
@@ -650,20 +882,20 @@ export function renderSpellCastingForm(context: Record<string, any>) {
                             selectedSpellDetectThoughtsFreeCastState?.usesRemaining ?? 0,
                             selectedSpellDetectThoughtsFreeCastState?.usesTotal ?? 1
                           )
-	                        }
-	                      ]
-	                    : []),
-	                  ...(selectedSpellSupportsBoonOfSpellRecall
-	                    ? [
-	                        {
-	                          id: "boon-of-spell-recall",
-	                          label: "Free Casting",
-	                          checked: useBoonOfSpellRecallOnSelectedSpell,
-	                          onCheckedChange: setUseBoonOfSpellRecallOnSelectedSpell
-	                        }
-	                      ]
-	                    : []),
-	                  ...(selectedSpellSupportsPsionicSorcery
+                        }
+                      ]
+                    : []),
+                  ...(selectedSpellSupportsBoonOfSpellRecall
+                    ? [
+                        {
+                          id: "boon-of-spell-recall",
+                          label: "Free Casting",
+                          checked: useBoonOfSpellRecallOnSelectedSpell,
+                          onCheckedChange: setUseBoonOfSpellRecallOnSelectedSpell
+                        }
+                      ]
+                    : []),
+                  ...(selectedSpellSupportsPsionicSorcery
                     ? [
                         {
                           id: "psionic-sorcery",

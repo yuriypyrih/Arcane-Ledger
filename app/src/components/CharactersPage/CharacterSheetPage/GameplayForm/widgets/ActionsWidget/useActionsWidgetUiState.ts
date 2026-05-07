@@ -6,6 +6,10 @@ import type { DruidStarryFormConstellation } from "../../../../../../pages/Chara
 import type { LayOnHandsCondition } from "../../../../../../pages/CharactersPage/classFeatures/paladin/paladin";
 import type { PaladinOathOfTheNobleGeniesElementalSmiteOptionKey } from "../../../../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfTheNobleGenies";
 import type { WizardDivinerThirdEyeOptionKey } from "../../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardDivinerThirdEyeConfig";
+import type {
+  AasimarCelestialRevelationOptionKey,
+  AasimarHealingHandsTarget
+} from "../../../../../../pages/CharactersPage/species";
 import type { LayOnHandsTarget } from "./LayOnHandsAction";
 import type {
   BlessingOfTheTricksterTarget,
@@ -32,6 +36,8 @@ type ActionsWidgetUiState = {
   selectedLayOnHandsTarget: LayOnHandsTarget;
   selectedLayOnHandsPoolSpendInput: string;
   selectedLayOnHandsConditions: LayOnHandsCondition[];
+  selectedAasimarHealingHandsTarget: AasimarHealingHandsTarget;
+  selectedAasimarCelestialRevelationOptionKey: AasimarCelestialRevelationOptionKey | null;
   selectedBlessingOfTheTricksterTarget: BlessingOfTheTricksterTarget;
   selectedThirdEyeOptionKey: WizardDivinerThirdEyeOptionKey | null;
   selectedStarryFormConstellation: DruidStarryFormConstellation | null;
@@ -63,6 +69,7 @@ type ActionsWidgetUiState = {
   isColossusSlayerSelected: boolean;
   isPolarStrikesSelected: boolean;
   isHuntersMarkTargetSelected: boolean;
+  isRecklessAttackSelected: boolean;
   isSacredWeaponSelected: boolean;
   isVowOfEnmitySelected: boolean;
   isStunningStrikeSelected: boolean;
@@ -119,6 +126,8 @@ function createInitialState(
     selectedLayOnHandsTarget: "self",
     selectedLayOnHandsPoolSpendInput: "0",
     selectedLayOnHandsConditions: [],
+    selectedAasimarHealingHandsTarget: "other",
+    selectedAasimarCelestialRevelationOptionKey: null,
     selectedBlessingOfTheTricksterTarget: "self",
     selectedThirdEyeOptionKey: null,
     selectedStarryFormConstellation: null,
@@ -150,6 +159,7 @@ function createInitialState(
     isColossusSlayerSelected: false,
     isPolarStrikesSelected: false,
     isHuntersMarkTargetSelected: false,
+    isRecklessAttackSelected: false,
     isSacredWeaponSelected: false,
     isVowOfEnmitySelected: false,
     isStunningStrikeSelected: false,
@@ -178,6 +188,8 @@ function getActionDrawerResetState(): Partial<ActionsWidgetUiState> {
     selectedLayOnHandsTarget: "self",
     selectedLayOnHandsPoolSpendInput: "0",
     selectedLayOnHandsConditions: [],
+    selectedAasimarHealingHandsTarget: "other",
+    selectedAasimarCelestialRevelationOptionKey: null,
     selectedBlessingOfTheTricksterTarget: "self",
     selectedThirdEyeOptionKey: null,
     selectedStarryFormConstellation: null,
@@ -205,6 +217,7 @@ function getActionDrawerResetState(): Partial<ActionsWidgetUiState> {
     isColossusSlayerSelected: false,
     isPolarStrikesSelected: false,
     isHuntersMarkTargetSelected: false,
+    isRecklessAttackSelected: false,
     isSacredWeaponSelected: false,
     isVowOfEnmitySelected: false,
     isStunningStrikeSelected: false,
@@ -234,6 +247,8 @@ function getActionSelectionResetState(): Partial<ActionsWidgetUiState> {
     selectedLayOnHandsTarget: "self",
     selectedLayOnHandsPoolSpendInput: "0",
     selectedLayOnHandsConditions: [],
+    selectedAasimarHealingHandsTarget: "other",
+    selectedAasimarCelestialRevelationOptionKey: null,
     selectedThirdEyeOptionKey: null,
     selectedStarryFormConstellation: null,
     selectedRageOptionKey: null,
@@ -250,6 +265,7 @@ function getActionSelectionResetState(): Partial<ActionsWidgetUiState> {
     isSacredWeaponSelected: false,
     isVowOfEnmitySelected: false,
     isHuntersMarkTargetSelected: false,
+    isRecklessAttackSelected: false,
     isStunningStrikeSelected: false,
     isEmpoweredStrikesSelected: false,
     isHandOfHarmSelected: false,
@@ -362,6 +378,14 @@ export function useActionsWidgetUiState(
         "selectedLayOnHandsPoolSpendInput"
       ),
       setSelectedLayOnHandsConditions: createFieldSetter(dispatch, "selectedLayOnHandsConditions"),
+      setSelectedAasimarHealingHandsTarget: createFieldSetter(
+        dispatch,
+        "selectedAasimarHealingHandsTarget"
+      ),
+      setSelectedAasimarCelestialRevelationOptionKey: createFieldSetter(
+        dispatch,
+        "selectedAasimarCelestialRevelationOptionKey"
+      ),
       setSelectedBlessingOfTheTricksterTarget: createFieldSetter(
         dispatch,
         "selectedBlessingOfTheTricksterTarget"
@@ -423,6 +447,7 @@ export function useActionsWidgetUiState(
       setIsColossusSlayerSelected: createFieldSetter(dispatch, "isColossusSlayerSelected"),
       setIsPolarStrikesSelected: createFieldSetter(dispatch, "isPolarStrikesSelected"),
       setIsHuntersMarkTargetSelected: createFieldSetter(dispatch, "isHuntersMarkTargetSelected"),
+      setIsRecklessAttackSelected: createFieldSetter(dispatch, "isRecklessAttackSelected"),
       setIsSacredWeaponSelected: createFieldSetter(dispatch, "isSacredWeaponSelected"),
       setIsVowOfEnmitySelected: createFieldSetter(dispatch, "isVowOfEnmitySelected"),
       setIsStunningStrikeSelected: createFieldSetter(dispatch, "isStunningStrikeSelected"),

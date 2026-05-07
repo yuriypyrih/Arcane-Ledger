@@ -16,7 +16,8 @@ export enum STATUS_ENTRY_GROUP {
 export enum STATUS_ENTRY_SOURCE_TYPE {
   MANUAL = "MANUAL",
   FEAT = "FEAT",
-  FEATURE = "FEATURE"
+  FEATURE = "FEATURE",
+  SPECIES = "SPECIES"
 }
 
 export enum SENSE {

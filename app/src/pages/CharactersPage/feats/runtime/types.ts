@@ -8,6 +8,7 @@ import type {
 import type {
   FeatureAbilityScoreBonus,
   FeatureActionCard,
+  SpellSourceMap,
   FeatureSpeedBonus
 } from "../../classFeatures/types";
 
@@ -34,6 +35,7 @@ export type FeatDerivedState = {
   grantedCantripEntries: SpellEntry[];
   alwaysPreparedCantripEntries: SpellEntry[];
   alwaysPreparedSpellEntries: SpellEntry[];
+  alwaysPreparedSpellSourceMap: SpellSourceMap;
   magicInitiateSpellcastingAbilityBySpellId: Map<string, AbilityKey>;
   magicInitiateFreeCastEntries: Array<{
     featEntryId: string;

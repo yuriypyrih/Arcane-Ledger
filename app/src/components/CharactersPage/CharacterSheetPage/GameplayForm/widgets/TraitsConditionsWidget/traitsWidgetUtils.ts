@@ -16,6 +16,7 @@ import {
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../../types";
 import { fighterPsiWarriorBulwarkOfForceStatusSourceId } from "../../../../../../pages/CharactersPage/classFeatures/fighter/subclasses/fighterPsiWarriorShared";
+import { barbarianRecklessAttackStatusSourceId } from "../../../../../../pages/CharactersPage/classFeatures/barbarian/barbarianRecklessAttack";
 import { isRogueArcaneTricksterSpellThiefStatusSourceId } from "../../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueArcaneTrickster";
 import { awakenedMindStatusSourceId } from "../../../../../../pages/CharactersPage/classFeatures/warlock/subclasses/warlockGreatOldOnePatron";
 
@@ -147,6 +148,15 @@ export function isStatusEntryRemovable(entry: CharacterStatusEntry): boolean {
     entry.sourceId === "feature-rage";
 
   if (isRageEffect) {
+    return true;
+  }
+
+  const isRecklessAttackEffect =
+    entry.sourceType === STATUS_ENTRY_SOURCE_TYPE.FEATURE &&
+    entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
+    entry.sourceId === barbarianRecklessAttackStatusSourceId;
+
+  if (isRecklessAttackEffect) {
     return true;
   }
 
