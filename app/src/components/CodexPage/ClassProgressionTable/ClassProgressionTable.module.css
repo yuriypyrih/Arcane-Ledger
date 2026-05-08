@@ -100,7 +100,7 @@
   white-space: nowrap;
 }
 
-@media (max-width: 620px) {
+@media (max-width: 599px) {
   .table {
     font-size: 0.72rem;
   }

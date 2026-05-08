@@ -9,6 +9,7 @@ export type Preferences = {
   skillsProficienciesVisible: boolean;
   defaultMaxHitPointsMode: MaxHitPointsModePreference;
   diceRollerBehavior: DiceRollerBehaviorPreference;
+  broadLayout: boolean;
 };
 
 const PREFERENCES_STORAGE_KEY = "dnd-companion.preferences";
@@ -17,7 +18,8 @@ const defaultPreferences: Preferences = {
   statsViewMode: "tabs",
   skillsProficienciesVisible: true,
   defaultMaxHitPointsMode: "automatic",
-  diceRollerBehavior: "manual_with_roller"
+  diceRollerBehavior: "manual_with_roller",
+  broadLayout: false
 };
 
 function normalizeStatsViewMode(value: unknown): StatsViewMode {
@@ -50,7 +52,8 @@ function normalizePreferences(value: unknown): Preferences {
       defaultPreferences.skillsProficienciesVisible
     ),
     defaultMaxHitPointsMode: normalizeMaxHitPointsModePreference(record.defaultMaxHitPointsMode),
-    diceRollerBehavior: normalizeDiceRollerBehaviorPreference(record.diceRollerBehavior)
+    diceRollerBehavior: normalizeDiceRollerBehaviorPreference(record.diceRollerBehavior),
+    broadLayout: normalizeBoolean(record.broadLayout, defaultPreferences.broadLayout)
   };
 }
 
@@ -111,5 +114,15 @@ export function updateDiceRollerBehaviorPreference(
 ): Preferences {
   return updatePreferences({
     diceRollerBehavior
+  });
+}
+
+export function getBroadLayoutPreference(): boolean {
+  return loadPreferences().broadLayout;
+}
+
+export function updateBroadLayoutPreference(broadLayout: boolean): Preferences {
+  return updatePreferences({
+    broadLayout
   });
 }

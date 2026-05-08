@@ -99,7 +99,7 @@
   text-align: center;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 599px) {
   .arcaneRecoveryGrid {
     grid-template-columns: 1fr;
   }

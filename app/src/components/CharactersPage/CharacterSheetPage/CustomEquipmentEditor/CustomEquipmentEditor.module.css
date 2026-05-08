@@ -240,7 +240,7 @@
   gap: 0.6rem;
 }
 
-@media (max-width: 710px) {
+@media (max-width: 599px) {
   .customEquipmentThreeColumnRow,
   .customEquipmentFormGrid,
   .customDamageRow {

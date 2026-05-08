@@ -83,7 +83,7 @@
   width: 100%;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 599px) {
   .topRow {
     grid-template-columns: 1fr;
   }

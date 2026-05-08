@@ -78,7 +78,7 @@
   border-color: #2f78ff;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 599px) {
   .borderXm {
     --sheet-surface-radius: 4px;
   }

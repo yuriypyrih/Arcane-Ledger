@@ -90,7 +90,7 @@
   color: var(--color-accent);
 }
 
-@media (max-width: 720px) {
+@media (max-width: 599px) {
   .shapeGroupRow {
     grid-template-columns: 1fr;
   }

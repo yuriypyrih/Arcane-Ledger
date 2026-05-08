@@ -99,7 +99,7 @@
   font-size: 0.82rem;
 }
 
-@media (max-width: 620px) {
+@media (max-width: 599px) {
   .trackGrid {
     grid-template-columns: 1fr;
   }

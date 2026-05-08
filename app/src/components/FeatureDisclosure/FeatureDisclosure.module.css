@@ -197,7 +197,7 @@
   white-space: nowrap;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 599px) {
   .sectionToggle {
     gap: 0.8rem;
   }

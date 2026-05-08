@@ -346,7 +346,7 @@
   z-index: 50;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 599px) {
   .buildSectionHeader {
     gap: 0.8rem;
   }

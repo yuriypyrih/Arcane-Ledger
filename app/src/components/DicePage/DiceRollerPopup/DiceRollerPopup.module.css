@@ -213,7 +213,7 @@
   }
 }
 
-@media (max-width: 680px) {
+@media (max-width: 599px) {
   .modalBackdrop {
     padding: 0 0.45rem 0.45rem;
   }

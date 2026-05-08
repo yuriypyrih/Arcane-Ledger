@@ -296,7 +296,7 @@
   padding: 0 1rem;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 599px) {
   .floatingControls {
     --die-height: 2.72rem;
     --roll-size: 4.45rem;

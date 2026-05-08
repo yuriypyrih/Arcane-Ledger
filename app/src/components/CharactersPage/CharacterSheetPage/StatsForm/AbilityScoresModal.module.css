@@ -173,13 +173,13 @@
   opacity: 0.45;
 }
 
-@media (max-width: 620px) {
+@media (max-width: 599px) {
   .abilityInputGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 599px) {
   .abilityInputGrid {
     grid-template-columns: 1fr;
   }

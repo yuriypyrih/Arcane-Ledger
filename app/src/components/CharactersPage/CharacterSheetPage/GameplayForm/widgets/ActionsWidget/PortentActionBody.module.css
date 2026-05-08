@@ -55,7 +55,7 @@
   accent-color: #25508d;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 599px) {
   .portentRollGrid {
     grid-template-columns: 1fr;
   }

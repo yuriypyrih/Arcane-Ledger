@@ -217,7 +217,7 @@
   font-weight: 700;
 }
 
-@media (max-width: 620px) {
+@media (max-width: 599px) {
   .contentRow {
     grid-template-columns: minmax(8rem, max-content) minmax(0, 1fr) auto;
     gap: 0.55rem;

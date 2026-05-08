@@ -126,7 +126,7 @@
   color: var(--color-ink);
 }
 
-@media (max-width: 720px) {
+@media (max-width: 599px) {
   .featureActionOptionGrid {
     grid-template-columns: 1fr;
   }

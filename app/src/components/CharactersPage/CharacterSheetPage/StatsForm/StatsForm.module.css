@@ -402,7 +402,7 @@
   filter: brightness(0) invert(1);
 }
 
-@media (max-width: 860px) {
+@media (max-width: 899px) {
   .modifierGrid,
   .coreStatGridWide {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -413,7 +413,7 @@
   }
 }
 
-@media (max-width: 620px) {
+@media (max-width: 599px) {
   .modifierGrid,
   .coreStatGridWide {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -432,7 +432,7 @@
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 599px) {
   .modifierGrid,
   .coreStatGridWide {
     grid-template-columns: 1fr;

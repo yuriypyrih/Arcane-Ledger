@@ -38,7 +38,7 @@
   width: 100%;
 }
 
-@media (max-width: 620px) {
+@media (max-width: 599px) {
   .footerActions {
     grid-template-columns: 1fr;
   }

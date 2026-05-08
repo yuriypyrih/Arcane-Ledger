@@ -349,13 +349,13 @@
   padding: 0.18rem;
 }
 
-@media (max-width: 860px) {
+@media (max-width: 899px) {
   .spellSlotGrid {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 620px) {
+@media (max-width: 599px) {
   .spellSlotGrid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }

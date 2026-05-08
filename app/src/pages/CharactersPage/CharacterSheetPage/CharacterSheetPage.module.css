@@ -711,7 +711,7 @@
   }
 }
 
-@media (max-width: 860px) {
+@media (max-width: 899px) {
   .restOptionGrid {
     grid-template-columns: 1fr;
   }
@@ -722,7 +722,7 @@
   }
 }
 
-@media (max-width: 620px) {
+@media (max-width: 599px) {
   .spellManagementBackdrop,
   .restPopupBackdrop,
   .xpPopupBackdrop {

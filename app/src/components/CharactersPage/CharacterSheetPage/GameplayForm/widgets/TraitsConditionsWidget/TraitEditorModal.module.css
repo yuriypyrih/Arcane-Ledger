@@ -98,7 +98,7 @@
   width: 100%;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 599px) {
   .titleRow {
     align-items: flex-start;
     flex-direction: column;

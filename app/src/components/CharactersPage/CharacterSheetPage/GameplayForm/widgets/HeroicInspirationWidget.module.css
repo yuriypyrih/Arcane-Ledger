@@ -118,7 +118,7 @@
   inline-size: 18px;
 }
 
-@media (max-width: 620px) {
+@media (max-width: 599px) {
   .toggleButton {
     flex-direction: column;
     align-items: stretch;

@@ -23,7 +23,7 @@
   opacity: 0.45;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 599px) {
   .row {
     grid-template-columns: 1fr;
   }

@@ -106,7 +106,7 @@
   }
 }
 
-@media (max-width: 920px) {
+@media (max-width: 899px) {
   .dashboardGrid {
     grid-template-columns: 1fr;
   }
@@ -117,7 +117,7 @@
   }
 }
 
-@media (max-width: 620px) {
+@media (max-width: 599px) {
   .gameplaySectionHeader {
     align-items: flex-start;
     flex-wrap: wrap;

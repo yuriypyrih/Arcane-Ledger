@@ -208,7 +208,7 @@
   }
 }
 
-@media (max-width: 620px) {
+@media (max-width: 599px) {
   .viewport {
     gap: 0.5rem;
     width: calc(100vw - 1rem);

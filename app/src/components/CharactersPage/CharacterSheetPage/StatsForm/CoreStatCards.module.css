@@ -129,7 +129,7 @@
   white-space: nowrap;
 }
 
-@media (max-width: 860px) {
+@media (max-width: 899px) {
   .gridWide,
   .grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -149,13 +149,13 @@
   }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 599px) {
   .compactGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 620px) {
+@media (max-width: 599px) {
   .gridWide,
   .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -163,7 +163,7 @@
 
 }
 
-@media (max-width: 480px) {
+@media (max-width: 599px) {
   .gridWide,
   .grid {
     grid-template-columns: 1fr;

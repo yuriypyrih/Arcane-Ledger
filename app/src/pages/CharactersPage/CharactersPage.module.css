@@ -48,7 +48,7 @@
   white-space: nowrap;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 599px) {
   .heroCard {
     align-items: stretch;
     flex-direction: column;

@@ -74,7 +74,7 @@
   text-transform: uppercase;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 599px) {
   .effectsHeader {
     align-items: flex-start;
     flex-direction: column;

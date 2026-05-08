@@ -64,7 +64,7 @@
   color: var(--color-accent-strong, #8f4d1f);
 }
 
-@media (max-width: 620px) {
+@media (max-width: 599px) {
   .drawerFacts {
     grid-template-columns: 1fr;
   }

@@ -34,7 +34,7 @@
   padding: 0;
 }
 
-@media (max-width: 620px) {
+@media (max-width: 599px) {
   .footerActions {
     width: 100%;
   }

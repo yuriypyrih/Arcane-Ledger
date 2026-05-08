@@ -183,7 +183,7 @@
   height: 0.88rem;
 }
 
-@media (max-width: 760px) {
+@media (max-width: 599px) {
   .table th,
   .table td {
     padding: 0.4rem 0.5rem;

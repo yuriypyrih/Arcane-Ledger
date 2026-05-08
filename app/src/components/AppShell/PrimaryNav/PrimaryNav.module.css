@@ -8,7 +8,8 @@
 }
 
 .leftCluster,
-.linkGroup {
+.linkGroup,
+.rightCluster {
   display: inline-flex;
   align-items: center;
   min-width: 0;
@@ -22,9 +23,15 @@
   gap: 0.28rem;
 }
 
+.rightCluster {
+  flex: 0 0 auto;
+  gap: 0.45rem;
+}
+
 .brandLink,
 .navLink,
-.menuButton {
+.menuButton,
+.broadLayoutSwitch {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -58,6 +65,69 @@
   white-space: nowrap;
 }
 
+.broadLayoutSwitch {
+  display: none;
+  gap: 0.45rem;
+  padding: 0 0.42rem 0 0.68rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.broadLayoutSwitch:hover,
+.broadLayoutSwitch:focus-visible {
+  background: rgba(255, 198, 112, 0.14);
+  border-color: rgba(255, 218, 164, 0.2);
+  color: #fff8ee;
+}
+
+.broadLayoutSwitchActive {
+  background: rgba(196, 81, 43, 0.34);
+  border-color: rgba(255, 205, 128, 0.32);
+  color: #fff8ee;
+}
+
+.broadLayoutLabel {
+  line-height: 1;
+}
+
+.switchTrack {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 30px;
+  height: 16px;
+  border: 1px solid rgba(255, 218, 164, 0.3);
+  border-radius: 999px;
+  background: rgba(25, 15, 12, 0.52);
+  transition:
+    background 140ms ease,
+    border-color 140ms ease;
+}
+
+.switchThumb {
+  position: absolute;
+  left: 2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 244, 225, 0.82);
+  box-shadow: 0 1px 2px rgba(25, 15, 12, 0.45);
+  transition:
+    background 140ms ease,
+    transform 140ms ease;
+}
+
+.broadLayoutSwitchActive .switchTrack {
+  border-color: rgba(255, 205, 128, 0.48);
+  background: rgba(162, 77, 45, 0.66);
+}
+
+.broadLayoutSwitchActive .switchThumb {
+  background: #fff8ee;
+  transform: translateX(14px);
+}
+
 .brandLink:hover,
 .navLink:hover {
   background: rgba(255, 198, 112, 0.14);
@@ -83,7 +153,13 @@
   opacity: 0.45;
 }
 
-@media (max-width: 560px) {
+@media (min-width: 1536px) {
+  .broadLayoutSwitch {
+    display: inline-flex;
+  }
+}
+
+@media (max-width: 599px) {
   .leftCluster {
     gap: 0.24rem;
   }

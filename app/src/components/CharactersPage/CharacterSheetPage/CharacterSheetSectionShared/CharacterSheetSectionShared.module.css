@@ -231,13 +231,13 @@
   opacity: 0.6;
 }
 
-@media (max-width: 860px) {
+@media (max-width: 899px) {
   .choiceGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 620px) {
+@media (max-width: 599px) {
   .sectionCard {
     border-radius: 22px;
     padding: var(--space-card-padding-tight);

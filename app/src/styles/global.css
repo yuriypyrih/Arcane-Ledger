@@ -47,7 +47,7 @@ body {
   z-index: 1;
 }
 
-@media (max-width: 620px) {
+@media (max-width: 599px) {
   :root {
     --space-shell-gutter: clamp(0.45rem, 1.9vw, 0.9rem);
     --space-page-gap: clamp(0.52rem, 1.8vw, 0.92rem);
@@ -61,7 +61,7 @@ body {
   }
 }
 
-@media (max-width: 420px) {
+@media (max-width: 599px) {
   html {
     font-size: 13.5px;
   }

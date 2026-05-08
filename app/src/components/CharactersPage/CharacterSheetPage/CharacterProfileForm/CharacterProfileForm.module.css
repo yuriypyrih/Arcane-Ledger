@@ -175,7 +175,7 @@
   white-space: pre-wrap;
 }
 
-@media (max-width: 1120px) {
+@media (max-width: 1199px) {
   .profileShell {
     grid-template-columns: clamp(94px, 15vw, 118px) minmax(0, 1fr);
     row-gap: 0.54rem;
@@ -187,7 +187,7 @@
   }
 }
 
-@media (max-width: 620px) {
+@media (max-width: 599px) {
   .profileCard {
     border-radius: 16px;
     padding: 0.5rem 0.58rem 0.5rem 0.5rem;
@@ -221,7 +221,7 @@
   }
 }
 
-@media (max-width: 440px) {
+@media (max-width: 599px) {
   .profileShell {
     grid-template-columns: 1fr;
   }

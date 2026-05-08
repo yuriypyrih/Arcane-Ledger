@@ -118,7 +118,7 @@
   line-height: 1;
 }
 
-@media (max-width: 620px) {
+@media (max-width: 599px) {
   .tempHpTrigger {
     padding: 0 0.62rem;
   }

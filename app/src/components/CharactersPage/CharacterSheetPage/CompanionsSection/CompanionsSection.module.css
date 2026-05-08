@@ -302,7 +302,7 @@
   padding: 1rem;
 }
 
-@media (max-width: 860px) {
+@media (max-width: 899px) {
   .browserControls {
     grid-template-columns: 1fr;
   }
@@ -320,7 +320,7 @@
   }
 }
 
-@media (max-width: 620px) {
+@media (max-width: 599px) {
   .companionCard,
   .companionEditButton,
   .browserModal,

@@ -138,7 +138,7 @@
   text-align: left;
 }
 
-@media (max-width: 900px) {
+@media (max-width: 899px) {
   .titleRow {
     flex-wrap: wrap;
   }

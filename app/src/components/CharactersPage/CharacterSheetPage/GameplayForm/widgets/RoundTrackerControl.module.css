@@ -104,7 +104,7 @@
   outline-offset: 2px;
 }
 
-@media (max-width: 620px) {
+@media (max-width: 599px) {
   .root {
     width: auto;
     justify-content: flex-start;
