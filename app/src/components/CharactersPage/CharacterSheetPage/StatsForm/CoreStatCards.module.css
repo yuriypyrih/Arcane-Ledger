@@ -1,0 +1,175 @@
+.grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.gridWide {
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+
+.gridWide > * {
+  grid-column: span 3;
+}
+
+.gridWide > :nth-child(5):nth-last-child(3),
+.gridWide > :nth-child(6):nth-last-child(2),
+.gridWide > :nth-child(7):nth-last-child(1) {
+  grid-column: span 4;
+}
+
+.rows {
+  display: grid;
+  gap: 0.85rem;
+  max-width: 100%;
+  width: 100%;
+}
+
+.row {
+  display: grid;
+  align-items: start;
+  gap: 0.85rem;
+  grid-template-columns: repeat(var(--core-stat-row-count), minmax(0, 1fr));
+  max-width: 100%;
+  width: 100%;
+}
+
+.row > * {
+  justify-self: stretch;
+  width: 100%;
+}
+
+.compactGrid {
+  gap: 0.55rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.card {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.75rem 0.85rem;
+  text-align: center;
+}
+
+.floatingStateCard {
+  overflow: visible;
+}
+
+.compactCard {
+  gap: 0.2rem;
+  min-width: 0;
+  padding: 0.46rem 0.5rem;
+}
+
+.button {
+  color: var(--color-ink);
+  cursor: pointer;
+  font: inherit;
+}
+
+.labelRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.38rem;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.label {
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.compactLabel {
+  color: var(--color-ink-soft);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.valueRow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.42rem;
+  min-width: 0;
+}
+
+.valueRow strong,
+.card strong {
+  font-size: 1.4rem;
+}
+
+.compactCard strong {
+  font-size: 1.02rem;
+}
+
+.valueIcon {
+  color: #2f7fd8;
+  flex: 0 0 auto;
+}
+
+.floatingState {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  z-index: 2;
+  display: flex;
+  max-width: calc(100% - 0.6rem);
+  pointer-events: none;
+  transform: translate(-50%, 50%);
+}
+
+.floatingStatePill {
+  box-shadow: 0 0 0 3px var(--color-panel-strong);
+  white-space: nowrap;
+}
+
+@media (max-width: 860px) {
+  .gridWide,
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .gridWide > * {
+    grid-column: auto;
+  }
+
+  .rows {
+    width: 100%;
+  }
+
+  .row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+}
+
+@media (max-width: 720px) {
+  .compactGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .gridWide,
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+}
+
+@media (max-width: 480px) {
+  .gridWide,
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .compactGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

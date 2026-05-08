@@ -56,9 +56,26 @@ export const selectProfileCharacter = createCharacterFieldsSelector(
     "alignment",
     "background",
     "backgroundChoices",
-    "backgroundNotes"
+    "backgroundNotes",
+    "abilities",
+    "attributeMode",
+    "hitPoints",
+    "currentHitPoints",
+    "maxHitPointsMode",
+    "hover",
+    "coreStats",
+    "armorClassFormulaSelection",
+    "equipment",
+    "inventoryItems",
+    "customEquipment",
+    "classFeatureState",
+    "statusEntries",
+    "savingThrowProficiencies",
+    "skillProficiencies",
+    "feats",
+    "hitDiceRemaining"
   ],
-  ["profile"]
+  ["profile", "resources", "equipment", "inventory", "features", "statuses", "proficiencies"]
 );
 
 export const selectGameplayCharacter = createCharacterFieldsSelector(
