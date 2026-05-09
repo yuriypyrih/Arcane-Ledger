@@ -253,6 +253,7 @@ import {
   type WeaponAction
 } from "../../../../../../pages/CharactersPage/gameplay";
 import {
+  clearLightWeaponDamagePenalty,
   isRoundTrackerResourceAvailable,
   shouldTrackRoundScopedResources
 } from "../../../../../../pages/CharactersPage/combat";
@@ -416,7 +417,7 @@ import {
   createChannelDivinityOptionRows,
   type ChannelDivinityOptionRow
 } from "../../../channelDivinityUtils";
-import { getWeaponAttackPathStates } from "./weaponActionEconomy";
+import { getWeaponAttackPathStates, type WeaponAttackPathState } from "./weaponActionEconomy";
 import {
   formatD20RollFormula,
   getFeatureActionDrawerPrimaryLabel,
@@ -1871,7 +1872,8 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     };
   }
 
-  function handleWeaponAttackRoll(action: WeaponAction, economyTypeOverride?: EconomyType) {
+  function handleWeaponAttackRoll(action: WeaponAction, pathState?: WeaponAttackPathState) {
+    const economyTypeOverride = pathState?.economyType;
     const useSacredWeapon =
       isSacredWeaponSelected &&
       selectedWeaponSacredWeaponState !== null &&
@@ -1973,7 +1975,12 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
       }
 
       return roundTrackerResource
-        ? consumeWeaponAttackActionForCharacter(nextCharacter, preparedAction)
+        ? consumeWeaponAttackActionForCharacter(nextCharacter, {
+            ...preparedAction,
+            lightFollowUpKind: pathState?.usesLightFollowUp
+              ? pathState.lightFollowUpKind
+              : undefined
+          })
         : nextCharacter;
     });
 
@@ -2063,23 +2070,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     const useRecklessAttackDamage =
       selectedWeaponRecklessAttackState?.active === true &&
       !selectedWeaponRecklessAttackToggleDisabled;
-    let effectiveAction =
-      (useDreadfulStrike ||
-        useFeyDreadfulStrikes ||
-        useColossusSlayer ||
-        usePolarStrikes ||
-        useGoliathAncestryStrike ||
-        useHuntersMarkTarget ||
-        useEmpoweredStrikes ||
-        useHandOfHarm ||
-        usePsionicStrike ||
-        useEldritchSmite ||
-        useLifedrinker ||
-        useSacredWeapon ||
-        useRecklessAttackDamage) &&
-      selectedWeaponEffectiveAction
-        ? selectedWeaponEffectiveAction
-        : action;
+    let effectiveAction = selectedWeaponEffectiveAction ?? action;
 
     if (
       useGoliathAncestryStrike &&
@@ -2099,6 +2090,9 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
       : effectiveAction;
     const damageFormula = getWeaponDamageRollFormula(damageAction);
     const damageFormulaDisplay = getWeaponDamageFormulaPresentation(damageAction).value;
+    const shouldClearLightDamagePenalty = Boolean(
+      damageAction.damageAbilityModifierSuppressionLabel
+    );
 
     openDiceRoller({
       title: `${damageAction.name} damage`,
@@ -2123,19 +2117,37 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
       description: useLifedrinker
         ? `${damageAction.name} damage roll and Lifedrinker healing.`
         : `${damageAction.name} damage roll`,
-      onResolvedResult: useLifedrinker
-        ? ({ results }) => {
-            const healingResult = results.find((entry) => entry.label === "Lifedrinker Heal");
+      onResolvedResult:
+        useLifedrinker || shouldClearLightDamagePenalty
+          ? ({ results }) => {
+              onPersistCharacter((currentCharacter) => {
+                let nextCharacter = currentCharacter;
 
-            if (!healingResult) {
-              return;
+                if (useLifedrinker) {
+                  const healingResult = results.find((entry) => entry.label === "Lifedrinker Heal");
+
+                  if (healingResult) {
+                    nextCharacter = applyRolledHealingToCharacter(
+                      nextCharacter,
+                      healingResult.result.total
+                    );
+                  }
+                }
+
+                if (shouldClearLightDamagePenalty) {
+                  nextCharacter = {
+                    ...nextCharacter,
+                    roundTracker: clearLightWeaponDamagePenalty(
+                      nextCharacter.roundTracker,
+                      damageAction.key
+                    )
+                  };
+                }
+
+                return nextCharacter;
+              });
             }
-
-            onPersistCharacter((currentCharacter) =>
-              applyRolledHealingToCharacter(currentCharacter, healingResult.result.total)
-            );
-          }
-        : undefined
+          : undefined
     });
 
     const hasDamageRollSideEffects =

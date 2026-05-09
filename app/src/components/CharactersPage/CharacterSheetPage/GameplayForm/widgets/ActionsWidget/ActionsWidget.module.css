@@ -95,6 +95,10 @@
   font-weight: 600;
 }
 
+.footerHelperTextInfo {
+  color: #1f6fd2;
+}
+
 .weaponFooterButton,
 .weaponFooterIconButton {
   margin-left: 0;

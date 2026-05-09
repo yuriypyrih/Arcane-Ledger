@@ -325,10 +325,16 @@ export type WeaponAttackConsumptionContext = Pick<
   | "economyType"
   | "actionCategory"
   | "attackKind"
+  | "baseWeapon"
   | "combatType"
+  | "properties"
+  | "mastery"
+  | "hasActiveMastery"
   | "inventoryStackId"
   | "inventoryFeatureTags"
->;
+> & {
+  lightFollowUpKind?: "bonus" | "nick";
+};
 
 export type EconomyMultiActionContext = {
   economyType: EconomyType;

@@ -1975,6 +1975,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     character,
     selectedAction,
     selectedWeaponRollState,
+    selectedWeaponEffectiveAction,
     selectedWeaponDetails,
     selectedWeaponAttackFormula,
     selectedWeaponDamageFormula,

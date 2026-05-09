@@ -5,6 +5,7 @@ import {
   FEATS,
   WEAPON_BASE,
   WEAPON_COMBAT_TYPE,
+  WEAPON_MASTERY,
   WEAPON_TRAINING,
   WEAPON_PROPERTY,
   type SpellDescriptionEntry,
@@ -108,6 +109,7 @@ export type WeaponAction = {
   combatType?: WEAPON_COMBAT_TYPE | null;
   weaponTraining?: WEAPON_TRAINING | null;
   properties?: WEAPON_PROPERTY[];
+  mastery?: WEAPON_MASTERY | null;
   economyType: EconomyType;
   actionCategory: ActionCategory;
   economyMultiCount?: number;
@@ -132,6 +134,7 @@ export type WeaponAction = {
   damageAbilityModifierBaseValue?: number;
   damageAbilityModifier?: number;
   damageAbilityModifierBonusEntries?: AbilityModifierBonusEntry[];
+  damageAbilityModifierSuppressionLabel?: string;
   proficiencyLabel: string;
   proficiencyBonus: number;
   totalModifier: number;
@@ -585,6 +588,7 @@ export function createWeaponAction(
     combatType?: WEAPON_COMBAT_TYPE | null;
     weaponTraining?: WEAPON_TRAINING | null;
     properties?: WEAPON_PROPERTY[];
+    mastery?: WEAPON_MASTERY | null;
     damageLabel: string;
     damageFormula: string;
     rollFormulaBase: string;
@@ -678,6 +682,7 @@ export function createWeaponAction(
     combatType: options.combatType ?? null,
     weaponTraining: options.weaponTraining ?? null,
     properties: options.properties ?? [],
+    mastery: options.mastery ?? null,
     economyType: options.economyType ?? ECONOMY_TYPE.ACTION,
     actionCategory: ACTION_CATEGORY.ATTACK,
     economyMultiCount: options.economyMultiCount,
@@ -894,6 +899,7 @@ function createUnarmedStrikeAction(
       combatType: WEAPON_COMBAT_TYPE.MELEE,
       weaponTraining: null,
       properties: [],
+      mastery: null,
       damageLabel: `${damageFormula} ${damageTypeLabel}`,
       damageFormula,
       rollFormulaBase: damageFormula,
@@ -1065,6 +1071,7 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
         combatType: weaponEntry.type.combat,
         weaponTraining: weaponEntry.type.training,
         properties: weaponEntry.properties,
+        mastery: weaponEntry.mastery,
         damageLabel: weaponReference.damageLabel,
         damageFormula: weaponReference.damageFormula,
         rollFormulaBase: weaponReference.rollFormulaBase,
@@ -1138,6 +1145,7 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
         combatType: weaponEntry.type.combat,
         weaponTraining: weaponEntry.type.training,
         properties: weaponEntry.properties,
+        mastery: weaponEntry.mastery,
         damageLabel: weaponReference.damageLabel,
         damageFormula: weaponReference.damageFormula,
         rollFormulaBase: weaponReference.rollFormulaBase,
@@ -1200,7 +1208,7 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
         abilityRuleOverride: isEligibleMonkWeapon ? "finesse" : undefined
       });
 
-      if (!weaponType || !weaponReference) {
+      if (!adaptedWeapon || !weaponType || !weaponReference) {
         return actions;
       }
 
@@ -1231,6 +1239,7 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
           combatType: weaponType.combat,
           weaponTraining: weaponType.training,
           properties: weaponProperties,
+          mastery: adaptedWeapon.mastery,
           damageLabel: weaponReference.damageLabel,
           damageFormula: weaponReference.damageFormula,
           rollFormulaBase: weaponReference.rollFormulaBase,

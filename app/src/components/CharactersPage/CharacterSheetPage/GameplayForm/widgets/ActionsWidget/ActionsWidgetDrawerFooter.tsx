@@ -559,6 +559,7 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     selectedWeaponDetails,
     selectedWeaponDreadAmbusherState,
     selectedWeaponDreadfulStrikeToggleDisabled,
+    selectedWeaponEffectiveAction,
     selectedWeaponEldritchSmiteState,
     selectedWeaponLifedrinkerState,
     selectedWeaponEmpoweredStrikesState,
@@ -706,6 +707,9 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
   if (selectedAction.kind === "weapon") {
     const showPsionicStrikeToggle =
       selectedAction.action.attackKind === "weapon" && selectedWeaponPsionicStrikeFormula !== null;
+    const selectedWeaponLightDamagePenaltyActive = Boolean(
+      selectedWeaponEffectiveAction?.damageAbilityModifierSuppressionLabel
+    );
 
     return (
       <div className={styles.footerActionStack}>
@@ -989,6 +993,11 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
             {selectedUnarmedStrikeFlurryOfHealingAndHarmHelperText}
           </p>
         ) : null}
+        {selectedWeaponLightDamagePenaltyActive ? (
+          <p className={clsx(styles.footerHelperText, styles.footerHelperTextInfo)}>
+            Light Property is active on the next Damage roll.
+          </p>
+        ) : null}
         <WeaponAttackFooterButtons
           actionName={selectedAction.name}
           attackPaths={[
@@ -1010,7 +1019,7 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
               : [])
           ]}
           isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
-          onAttack={(economyType) => handleWeaponAttackRoll(selectedAction.action, economyType)}
+          onAttack={(pathState) => handleWeaponAttackRoll(selectedAction.action, pathState)}
           onDamage={() => handleWeaponDamageRoll(selectedAction.action)}
           onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
         />

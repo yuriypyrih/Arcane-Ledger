@@ -1083,6 +1083,7 @@ function createRogueSoulknifePsychicBladeWeaponAction(
       combatType: psychicBladeWeaponEntry.type.combat,
       weaponTraining: psychicBladeWeaponEntry.type.training,
       properties: psychicBladeWeaponEntry.properties,
+      mastery: psychicBladeWeaponEntry.mastery,
       damageLabel: formatWeaponDamage(damage),
       damageFormula,
       rollFormulaBase: damageFormula,

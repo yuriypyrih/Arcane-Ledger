@@ -172,6 +172,13 @@ export type CharacterRoundTracker = {
   actionAvailable: boolean;
   bonusActionAvailable: boolean;
   reactionAvailable: boolean;
+  lightWeaponAttack?: {
+    triggerWeaponKey: string;
+    triggerHasNickMastery: boolean;
+    followUpUsed: boolean;
+    followUpWeaponKey?: string;
+    followUpDamagePenaltyPending?: boolean;
+  };
 };
 
 export type CharacterDeathSaves = {

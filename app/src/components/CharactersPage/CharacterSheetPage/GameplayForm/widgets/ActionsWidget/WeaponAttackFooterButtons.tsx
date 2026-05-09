@@ -1,6 +1,5 @@
 import ActionButton from "../../../../../ActionButton";
 import ActionShape from "../../../../../ActionShape";
-import type { EconomyType } from "../../../../../../pages/CharactersPage/actionEconomy";
 import d20Icon from "../../../../../../assets/svg/d20.svg";
 import { getActionShapeForEconomyType } from "../../gameplayWidgetUtils";
 import type { WeaponAttackPathState } from "./weaponActionEconomy";
@@ -14,7 +13,7 @@ type WeaponAttackFooterButtonsProps = {
     disabledReason: string | null;
   }>;
   isDiceRollerSettingsOpen: boolean;
-  onAttack: (economyType: EconomyType) => void;
+  onAttack: (pathState: WeaponAttackPathState) => void;
   onDamage: () => void;
   onDiceRollerSettingsOpenChange: (isOpen: boolean) => void;
 };
@@ -40,7 +39,7 @@ function WeaponAttackFooterButtons({
           <ActionButton
             key={`${actionName}-${pathState.id}`}
             className={styles.weaponFooterButton}
-            onClick={() => onAttack(pathState.economyType)}
+            onClick={() => onAttack(pathState)}
             disabled={disabledReason !== null}
             title={disabledReason ?? undefined}
             icon={<img src={d20Icon} alt="" className={styles.weaponFooterIcon} />}
@@ -59,7 +58,9 @@ function WeaponAttackFooterButtons({
               </span>
             }
           >
-            Attack
+            {pathState.usesLightFollowUp && pathState.lightFollowUpKind === "nick"
+              ? "Attack (Nick)"
+              : "Attack"}
           </ActionButton>
         );
       })}

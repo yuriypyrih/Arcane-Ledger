@@ -1,6 +1,7 @@
 import type { CharacterRoundTracker } from "../../types";
 
 export type RoundTrackerResource = "action" | "bonusAction" | "reaction";
+export type LightWeaponAttackState = NonNullable<CharacterRoundTracker["lightWeaponAttack"]>;
 
 export function createDefaultRoundTracker(): CharacterRoundTracker {
   return {
@@ -24,6 +25,29 @@ function normalizeCombatRound(value: unknown, isInCombat: boolean): number {
     : 1;
 }
 
+function normalizeLightWeaponAttackState(value: unknown): LightWeaponAttackState | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const record = value as Partial<LightWeaponAttackState>;
+
+  if (typeof record.triggerWeaponKey !== "string" || record.triggerWeaponKey.trim().length === 0) {
+    return undefined;
+  }
+
+  return {
+    triggerWeaponKey: record.triggerWeaponKey,
+    triggerHasNickMastery: record.triggerHasNickMastery === true,
+    followUpUsed: record.followUpUsed === true,
+    followUpWeaponKey:
+      typeof record.followUpWeaponKey === "string" && record.followUpWeaponKey.trim().length > 0
+        ? record.followUpWeaponKey
+        : undefined,
+    followUpDamagePenaltyPending: record.followUpDamagePenaltyPending === true
+  };
+}
+
 export function normalizeRoundTracker(value: unknown): CharacterRoundTracker {
   if (!value || typeof value !== "object") {
     return createDefaultRoundTracker();
@@ -31,6 +55,7 @@ export function normalizeRoundTracker(value: unknown): CharacterRoundTracker {
 
   const record = value as Partial<CharacterRoundTracker>;
   const isInCombat = typeof record.isInCombat === "boolean" ? record.isInCombat : false;
+  const lightWeaponAttack = normalizeLightWeaponAttackState(record.lightWeaponAttack);
 
   if (!isInCombat) {
     return createDefaultRoundTracker();
@@ -49,7 +74,8 @@ export function normalizeRoundTracker(value: unknown): CharacterRoundTracker {
     bonusActionAvailable:
       typeof record.bonusActionAvailable === "boolean" ? record.bonusActionAvailable : true,
     reactionAvailable:
-      typeof record.reactionAvailable === "boolean" ? record.reactionAvailable : true
+      typeof record.reactionAvailable === "boolean" ? record.reactionAvailable : true,
+    lightWeaponAttack
   };
 }
 
@@ -94,7 +120,8 @@ export function startRoundTrackerTurn(value?: unknown): CharacterRoundTracker {
     reactionAvailable: true,
     combatRound,
     combatRoundAdvancePending: false,
-    turnStarted: true
+    turnStarted: true,
+    lightWeaponAttack: undefined
   };
 }
 
@@ -109,7 +136,8 @@ export function finishRoundTrackerTurn(value: unknown): CharacterRoundTracker {
     ...tracker,
     turnStarted: false,
     combatRound: Math.max(1, tracker.combatRound),
-    combatRoundAdvancePending: true
+    combatRoundAdvancePending: true,
+    lightWeaponAttack: undefined
   };
 }
 
@@ -131,7 +159,8 @@ export function setRoundTrackerCombatState(
     combatRoundAdvancePending: false,
     actionAvailable: true,
     bonusActionAvailable: true,
-    reactionAvailable: true
+    reactionAvailable: true,
+    lightWeaponAttack: undefined
   };
 }
 
@@ -172,4 +201,80 @@ export function consumeRoundTrackerResource(
   resource: RoundTrackerResource
 ): CharacterRoundTracker {
   return setRoundTrackerResourceAvailability(value, resource, false);
+}
+
+export function recordLightWeaponAttackTrigger(
+  value: unknown,
+  triggerWeaponKey: string,
+  triggerHasNickMastery: boolean
+): CharacterRoundTracker {
+  const tracker = normalizeRoundTracker(value);
+
+  if (!tracker.isInCombat || tracker.lightWeaponAttack) {
+    return tracker;
+  }
+
+  return {
+    ...tracker,
+    lightWeaponAttack: {
+      triggerWeaponKey,
+      triggerHasNickMastery,
+      followUpUsed: false
+    }
+  };
+}
+
+export function markLightWeaponFollowUpUsed(
+  value: unknown,
+  followUpWeaponKey: string
+): CharacterRoundTracker {
+  const tracker = normalizeRoundTracker(value);
+  const lightWeaponAttack = tracker.lightWeaponAttack;
+
+  if (!tracker.isInCombat || !lightWeaponAttack || lightWeaponAttack.followUpUsed) {
+    return tracker;
+  }
+
+  return {
+    ...tracker,
+    lightWeaponAttack: {
+      ...lightWeaponAttack,
+      followUpUsed: true,
+      followUpWeaponKey,
+      followUpDamagePenaltyPending: true
+    }
+  };
+}
+
+export function clearLightWeaponDamagePenalty(
+  value: unknown,
+  followUpWeaponKey: string
+): CharacterRoundTracker {
+  const tracker = normalizeRoundTracker(value);
+  const lightWeaponAttack = tracker.lightWeaponAttack;
+
+  if (
+    !tracker.isInCombat ||
+    !lightWeaponAttack ||
+    lightWeaponAttack.triggerWeaponKey === followUpWeaponKey
+  ) {
+    return tracker;
+  }
+
+  if (
+    lightWeaponAttack.followUpUsed &&
+    lightWeaponAttack.followUpWeaponKey !== followUpWeaponKey
+  ) {
+    return tracker;
+  }
+
+  return {
+    ...tracker,
+    lightWeaponAttack: {
+      ...lightWeaponAttack,
+      followUpUsed: true,
+      followUpWeaponKey,
+      followUpDamagePenaltyPending: false
+    }
+  };
 }

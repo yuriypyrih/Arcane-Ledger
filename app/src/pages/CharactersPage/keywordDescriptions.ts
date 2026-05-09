@@ -1,10 +1,11 @@
-import { WEAPON_BASE, WEAPON_MASTERY, WEAPON_PROPERTY } from "../../codex/entries/enums";
+import { TRACKER, WEAPON_BASE, WEAPON_MASTERY, WEAPON_PROPERTY } from "../../codex/entries/enums";
 import { fighterBattleMasterManeuverReferenceEntries } from "../../codex/subclasses/fighterBattleMaster";
 import type { AbilityKey, SkillName } from "../../types";
 
 export type KeywordReference = {
   title: string;
   description: string[];
+  trackingState?: TRACKER;
 };
 
 export const keywordDescriptions = {
@@ -328,6 +329,23 @@ function normalizeKeyword(keyword: string): string {
     .replace(/[\s-]+/g, "_");
 }
 
+const weaponKeywordTrackingLookup = new Map<string, TRACKER>([
+  ...Object.values(WEAPON_MASTERY).map(
+    (mastery) => [normalizeKeyword(mastery), TRACKER.NOT_TRACKED] as const
+  ),
+  [normalizeKeyword(WEAPON_MASTERY.NICK), TRACKER.TRACKED],
+  [normalizeKeyword(WEAPON_PROPERTY.AMMUNITION), TRACKER.NOT_TRACKED],
+  [normalizeKeyword(WEAPON_PROPERTY.FINESSE), TRACKER.TRACKED],
+  [normalizeKeyword(WEAPON_PROPERTY.HEAVY), TRACKER.NOT_TRACKED],
+  [normalizeKeyword(WEAPON_PROPERTY.LIGHT), TRACKER.TRACKED],
+  [normalizeKeyword(WEAPON_PROPERTY.LOADING), TRACKER.NOT_TRACKED],
+  [normalizeKeyword(WEAPON_PROPERTY.RANGE), TRACKER.NOT_TRACKED],
+  [normalizeKeyword(WEAPON_PROPERTY.REACH), TRACKER.NOT_TRACKED],
+  [normalizeKeyword(WEAPON_PROPERTY.THROWN), TRACKER.NOT_TRACKED],
+  [normalizeKeyword(WEAPON_PROPERTY.TWO_HANDED), TRACKER.TRACKED],
+  [normalizeKeyword(WEAPON_PROPERTY.VERSATILE), TRACKER.TRACKED]
+]);
+
 const keywordDescriptionLookup = new Map<string, string>();
 
 Object.values(keywordDescriptions).forEach((group) => {
@@ -396,7 +414,8 @@ export function getKeywordReferences(keywords: string[]): KeywordReference[] {
     return [
       {
         title,
-        description: splitKeywordDescription(description)
+        description: splitKeywordDescription(description),
+        trackingState: weaponKeywordTrackingLookup.get(normalizedKeyword)
       }
     ];
   });

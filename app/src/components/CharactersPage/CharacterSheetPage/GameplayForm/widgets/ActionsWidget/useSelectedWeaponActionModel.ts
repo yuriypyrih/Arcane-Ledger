@@ -50,6 +50,10 @@ import {
   getInventoryItemFeatureTagLabels
 } from "../../../../../../pages/CharactersPage/inventoryItems";
 import { hasActiveWeaponMastery } from "../../../../../../pages/CharactersPage/weaponMasteryStatus";
+import {
+  applyLightWeaponDamagePenalty,
+  shouldApplyLightWeaponDamagePenalty
+} from "../../../../../../pages/CharactersPage/weaponLightProperty";
 import { hasAppliedWeaponProficiency } from "../../../../../../pages/CharactersPage/weaponProficiencyStatus";
 import { adaptItemWeapon } from "../../../../../../utils/items/adaptItemWeapon";
 import {
@@ -623,6 +627,10 @@ export function useSelectedWeaponActionModel({
         nextAction,
         createPsiWarriorPsionicStrikeDamageBonus(selectedWeaponPsionicStrikeFormula)
       );
+    }
+
+    if (shouldApplyLightWeaponDamagePenalty(character.roundTracker, nextAction)) {
+      nextAction = applyLightWeaponDamagePenalty(nextAction);
     }
 
     return nextAction;

@@ -291,6 +291,7 @@ export function getWeaponDamageFormulaPresentation(
     action.damageAbilityModifierBaseValue ?? action.abilityModifierBaseValue;
   const damageAbilityModifierBonusEntries =
     action.damageAbilityModifierBonusEntries ?? action.abilityModifierBonusEntries;
+  const damageAbilityModifierSuppressionLabel = action.damageAbilityModifierSuppressionLabel;
   const baseDamageLabel = stripAppendedWeaponBonusExpression(
     action.damageLabel,
     action,
@@ -320,7 +321,9 @@ export function getWeaponDamageFormulaPresentation(
     breakdownEntries.push("Martial Arts");
   }
 
-  if (damageAbilityModifierBaseValue !== 0) {
+  if (damageAbilityModifierSuppressionLabel) {
+    breakdownEntries.push(formatSignedFormulaTerm(0, damageAbilityModifierSuppressionLabel));
+  } else if (damageAbilityModifierBaseValue !== 0) {
     mainDamageGroup.numericTotal += damageAbilityModifierBaseValue;
     breakdownEntries.push(
       formatSignedFormulaTerm(damageAbilityModifierBaseValue, damageAbilityFormulaLabel)
@@ -378,6 +381,9 @@ export function getWeaponDamageFormulaPresentation(
     formatMainDamageTerms(mainDamageGroup);
   const visibleTerms = [
     ...mainLeadingTerms,
+    ...(damageAbilityModifierSuppressionLabel
+      ? [formatSignedFormulaTerm(0, damageAbilityModifierSuppressionLabel)]
+      : []),
     ...[...typedBonusGroups.values()].map((group) =>
       formatDamageGroup(group, { wrapMultiTermWithDamageType: true })
     ),

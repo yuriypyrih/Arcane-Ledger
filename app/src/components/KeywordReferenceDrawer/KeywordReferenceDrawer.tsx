@@ -5,6 +5,7 @@ import DescriptionContent from "../DescriptionContent/DescriptionContent";
 import CodexDivinityDrawer from "../CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
 import CodexFeatDrawer from "../CodexPage/CodexFeatDrawer/CodexFeatDrawer";
 import CodexSpellDrawer from "../CodexPage/CodexSpellDrawer/CodexSpellDrawer";
+import FeatureTrackingBadgeButton from "../FeatureDisclosure/FeatureTrackingBadgeButton";
 import {
   OverlayBadge,
   OverlayBody,
@@ -17,7 +18,10 @@ import {
   overlayClassNames
 } from "../Overlay";
 import type { KeywordReference } from "../../pages/CharactersPage/keywordDescriptions";
-import type { ResolvedKeywordReference } from "../../utils/codex/renderCodexRichText";
+import {
+  resolveKeywordReference,
+  type ResolvedKeywordReference
+} from "../../utils/codex/renderCodexRichText";
 import styles from "./KeywordReferenceDrawer.module.css";
 
 type SelectedFeatReference = {
@@ -59,6 +63,16 @@ function KeywordReferenceDrawer({
     }
 
     return !(entries.length === 1 && entryTitle.trim() === title.trim());
+  }
+
+  function openTrackingReference(trackingState: NonNullable<KeywordReference["trackingState"]>) {
+    const reference = resolveKeywordReference(trackingState);
+
+    if (!reference) {
+      return;
+    }
+
+    setSelectedKeyword(reference);
   }
 
   return (
@@ -108,8 +122,18 @@ function KeywordReferenceDrawer({
                 key={`${entry.title || "reference"}-${index}`}
                 className={styles.referenceEntry}
               >
-                {shouldShowEntryTitle(entry.title) ? (
-                  <h4 className={styles.referenceTitle}>{entry.title}</h4>
+                {shouldShowEntryTitle(entry.title) || entry.trackingState ? (
+                  <div className={styles.referenceHeadingRow}>
+                    {shouldShowEntryTitle(entry.title) ? (
+                      <h4 className={styles.referenceTitle}>{entry.title}</h4>
+                    ) : null}
+                    {entry.trackingState ? (
+                      <FeatureTrackingBadgeButton
+                        trackingState={entry.trackingState}
+                        onClick={openTrackingReference}
+                      />
+                    ) : null}
+                  </div>
                 ) : null}
                 <DescriptionContent
                   description={entry.description}

@@ -9,6 +9,10 @@ import {
 import { ECONOMY_TYPE, type EconomyType } from "../../../../../../pages/CharactersPage/actionEconomy";
 import { shouldTrackRoundScopedResources } from "../../../../../../pages/CharactersPage/combat";
 import type { WeaponAction } from "../../../../../../pages/CharactersPage/gameplay";
+import {
+  getLightWeaponFollowUpKind,
+  type LightWeaponFollowUpKind
+} from "../../../../../../pages/CharactersPage/weaponLightProperty";
 import { getEconomyShapeState } from "../../gameplayWidgetUtils";
 
 type RoundTrackerAvailability = {
@@ -35,6 +39,8 @@ export type WeaponAttackPathState = {
   shapeState: ReturnType<typeof getEconomyShapeState>;
   additionalUseCount: number;
   totalUseCount: number;
+  lightFollowUpKind?: LightWeaponFollowUpKind;
+  usesLightFollowUp: boolean;
 };
 
 function isMonkMartialArtsUnarmedStrikeAction(
@@ -81,7 +87,8 @@ function getTotalUseCount(
 function getPrimaryWeaponAttackAdditionalUseCount(
   character: Character,
   action: WeaponAction,
-  roundTracker: RoundTrackerAvailability
+  roundTracker: RoundTrackerAvailability,
+  lightFollowUpKind: LightWeaponFollowUpKind | null
 ): number {
   if (!shouldTrackRoundScopedResources(roundTracker)) {
     return 0;
@@ -89,7 +96,11 @@ function getPrimaryWeaponAttackAdditionalUseCount(
 
   return (
     (action.economyMultiCount ?? 0) +
-    getSharedEconomyMultiCountForCharacterAction(character, createEconomyMultiContextForWeaponAction(action))
+    getSharedEconomyMultiCountForCharacterAction(
+      character,
+      createEconomyMultiContextForWeaponAction(action)
+    ) +
+    (lightFollowUpKind === "nick" ? 1 : 0)
   );
 }
 
@@ -98,10 +109,12 @@ export function getPrimaryWeaponAttackPathState(
   action: WeaponAction,
   roundTracker: RoundTrackerAvailability
 ): WeaponAttackPathState {
+  const lightFollowUpKind = getLightWeaponFollowUpKind(roundTracker, action);
   const additionalUseCount = getPrimaryWeaponAttackAdditionalUseCount(
     character,
     action,
-    roundTracker
+    roundTracker,
+    lightFollowUpKind
   );
   const shapeState = getEconomyShapeState(
     action.economyType,
@@ -114,7 +127,10 @@ export function getPrimaryWeaponAttackPathState(
     economyType: action.economyType,
     shapeState,
     additionalUseCount,
-    totalUseCount: getTotalUseCount(shapeState, additionalUseCount)
+    totalUseCount: getTotalUseCount(shapeState, additionalUseCount),
+    lightFollowUpKind: lightFollowUpKind === "nick" ? lightFollowUpKind : undefined,
+    usesLightFollowUp:
+      lightFollowUpKind === "nick" && !shapeState.isAvailable && shapeState.isUsable
   };
 }
 
@@ -127,11 +143,16 @@ export function getSecondaryWeaponAttackPathState(
     return null;
   }
 
-  if (!hasSecondaryBonusWeaponAttackForCharacter(character, action)) {
+  const lightFollowUpKind = getLightWeaponFollowUpKind(roundTracker, action);
+  const hasFeatureSecondaryPath = hasSecondaryBonusWeaponAttackForCharacter(character, action);
+
+  if (!hasFeatureSecondaryPath && lightFollowUpKind !== "bonus") {
     return null;
   }
 
-  const additionalUseCount = getSecondaryBonusWeaponAttackMultiCountForCharacter(character, action);
+  const additionalUseCount = hasFeatureSecondaryPath
+    ? getSecondaryBonusWeaponAttackMultiCountForCharacter(character, action)
+    : 0;
   const shapeState = getEconomyShapeState(
     ECONOMY_TYPE.BONUS_ACTION,
     roundTracker,
@@ -143,7 +164,9 @@ export function getSecondaryWeaponAttackPathState(
     economyType: ECONOMY_TYPE.BONUS_ACTION,
     shapeState,
     additionalUseCount,
-    totalUseCount: getTotalUseCount(shapeState, additionalUseCount)
+    totalUseCount: getTotalUseCount(shapeState, additionalUseCount),
+    lightFollowUpKind: lightFollowUpKind === "bonus" ? lightFollowUpKind : undefined,
+    usesLightFollowUp: lightFollowUpKind === "bonus" && shapeState.isAvailable
   };
 }
 

@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { X } from "lucide-react";
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import D20Viewport from "../../D20Viewport";
 import { useBodyScrollLock } from "../../../lib/useBodyScrollLock";
 import type { NaturalOutcome } from "../../../types";
@@ -64,10 +65,14 @@ function DiceRollerPopup({ state, onClose, onRollComplete }: DiceRollerPopupProp
     return null;
   }
 
+  if (typeof document === "undefined") {
+    return null;
+  }
+
   const { request, result, error } = state;
   const hasMultipleResults = state.results.length > 1;
 
-  return (
+  return createPortal(
     <div className={styles.modalBackdrop} role="presentation" onClick={onClose}>
       <section
         className={styles.modalCard}
@@ -136,7 +141,8 @@ function DiceRollerPopup({ state, onClose, onRollComplete }: DiceRollerPopupProp
           <p className={styles.errorText}>No dice available for this formula.</p>
         )}
       </section>
-    </div>
+    </div>,
+    document.body
   );
 }
 

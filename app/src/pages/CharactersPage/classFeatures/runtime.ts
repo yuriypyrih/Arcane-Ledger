@@ -8,13 +8,19 @@ import type {
   WEAPON_PROFICIENCY
 } from "../../../types";
 import type { WeaponAction } from "../gameplay";
-import { getRoundTrackerResourceForEconomyType } from "../actionEconomy";
+import { ECONOMY_TYPE, getRoundTrackerResourceForEconomyType } from "../actionEconomy";
 import { abilityKeys } from "../constants";
 import {
   consumeRoundTrackerResource,
   isRoundTrackerResourceAvailable,
+  markLightWeaponFollowUpUsed,
+  recordLightWeaponAttackTrigger,
   shouldTrackRoundScopedResources
 } from "../combat";
+import {
+  hasActiveNickMasteryForWeaponAction,
+  isLightWeaponAction
+} from "../weaponLightProperty";
 import { transformFeatSpellEntryForCharacter } from "../feats/runtime";
 import { getSpeciesSpellEntryForCharacter } from "../species";
 import {
@@ -1635,11 +1641,60 @@ export function consumeWeaponAttackActionForCharacter(
   character: Character,
   action: WeaponAttackConsumptionContext
 ): Character {
+  const consumeLightFollowUp = (nextCharacter: Character): Character => {
+    if (
+      action.lightFollowUpKind === "bonus" &&
+      !isRoundTrackerResourceAvailable(nextCharacter.roundTracker, "bonusAction")
+    ) {
+      return nextCharacter;
+    }
+
+    const roundTracker =
+      action.lightFollowUpKind === "bonus"
+        ? consumeRoundTrackerResource(nextCharacter.roundTracker, "bonusAction")
+        : nextCharacter.roundTracker;
+
+    return {
+      ...nextCharacter,
+      roundTracker: markLightWeaponFollowUpUsed(roundTracker, action.key)
+    };
+  };
+  const applyLightTrigger = (nextCharacter: Character): Character => {
+    if (
+      nextCharacter === character ||
+      action.lightFollowUpKind ||
+      action.economyType !== ECONOMY_TYPE.ACTION ||
+      !isLightWeaponAction({
+        attackKind: action.attackKind,
+        properties: action.properties ?? []
+      })
+    ) {
+      return nextCharacter;
+    }
+
+    return {
+      ...nextCharacter,
+      roundTracker: recordLightWeaponAttackTrigger(
+        nextCharacter.roundTracker,
+        action.key,
+        hasActiveNickMasteryForWeaponAction(character, {
+          attackKind: action.attackKind,
+          baseWeapon: action.baseWeapon,
+          mastery: action.mastery,
+          hasActiveMastery: action.hasActiveMastery
+        })
+      )
+    };
+  };
   const finalize = (nextCharacter: Character) =>
-    clearRoundScopedFeatureStateIfOutOfCombat(nextCharacter);
+    clearRoundScopedFeatureStateIfOutOfCombat(applyLightTrigger(nextCharacter));
+
+  if (action.lightFollowUpKind) {
+    return finalize(consumeLightFollowUp(character));
+  }
 
   if (character.className === "Barbarian") {
-    const nextCharacter = consumeBarbarianWeaponAttack(character);
+    const nextCharacter = applyLightTrigger(consumeBarbarianWeaponAttack(character));
 
     if (shouldTrackRoundScopedResources(nextCharacter.roundTracker)) {
       return nextCharacter;
