@@ -83,16 +83,11 @@
   white-space: nowrap;
 }
 
-.editorModal {
-  width: min(760px, 100%);
-}
-
 .browserBackdrop {
   z-index: 47;
 }
 
 .browserModal {
-  width: min(1180px, 100%);
   height: calc(100dvh - (var(--overlay-backdrop-padding) * 2));
 }
 
@@ -255,10 +250,6 @@
   background: rgba(143, 91, 56, 0.16);
   border-color: rgba(143, 91, 56, 0.42);
   color: var(--color-accent);
-}
-
-.drawerPanel {
-  width: min(980px, 100%);
 }
 
 .drawerBody {

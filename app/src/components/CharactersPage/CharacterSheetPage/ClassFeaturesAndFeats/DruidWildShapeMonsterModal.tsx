@@ -250,6 +250,7 @@ function DruidWildShapeMonsterModal({
       <SheetModal
         titleId="druid-wild-shape-monster-modal-title"
         onClose={onClose}
+        size="large"
         panelClassName={styles.modalPanel}
       >
         <OverlayHeader>

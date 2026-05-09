@@ -2,7 +2,19 @@ import clsx from "clsx";
 import { Cog, X } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
+import ActionButton from "../../../ActionButton";
+import TextInput from "../../FormInputs/TextInput";
 import DiceRollerSettingsButton from "../GameplayForm/widgets/DiceRollerSettingsButton";
+import {
+  OverlayBody,
+  OverlayCloseButton,
+  OverlayFooter,
+  OverlayHeader,
+  OverlayHeaderContent,
+  OverlaySummary,
+  OverlayTitle,
+  SheetModal
+} from "../../../Overlay";
 import d20Icon from "../../../../assets/svg/d20.svg";
 import type { DiceSelection, DiceSides, RollMode } from "../../../../types";
 import {
@@ -249,47 +261,45 @@ function ThumbDiceButton() {
       </div>
 
       {isCustomModalOpen ? (
-        <div
-          className={styles.modalBackdrop}
-          role="presentation"
-          onClick={() => setIsCustomModalOpen(false)}
+        <SheetModal
+          titleId="custom-dice-modal-title"
+          onClose={() => setIsCustomModalOpen(false)}
+          size="small"
         >
-          <form
-            className={styles.customModal}
-            onSubmit={submitCustomDice}
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className={styles.customModalHeader}>
-              <h3>Custom Dice</h3>
-              <button
-                type="button"
-                className={styles.customModalClose}
-                onClick={() => setIsCustomModalOpen(false)}
-                aria-label="Close custom dice"
-              >
-                x
-              </button>
-            </div>
-            <label className={styles.customField}>
-              <span>Dice</span>
-              <input
-                value={customDraftText}
-                onChange={(event) => setCustomDraftText(event.target.value)}
-                placeholder="1d7,2d25"
-                autoFocus
-              />
-            </label>
-            <p className={styles.customHint}>
-              Enter custom dice separated by commas, for example 1d7,2d25. Leave empty to clear.
-            </p>
-            {customError ? <p className={styles.customError}>{customError}</p> : null}
-            <div className={styles.customModalActions}>
-              <button type="submit" className={styles.customAddButton}>
-                Add
-              </button>
-            </div>
+          <OverlayHeader>
+            <OverlayHeaderContent>
+              <OverlayTitle id="custom-dice-modal-title">Custom Dice</OverlayTitle>
+              <OverlaySummary>
+                Enter custom dice separated by commas, for example 1d7,2d25.
+              </OverlaySummary>
+            </OverlayHeaderContent>
+            <OverlayCloseButton
+              label="Close custom dice"
+              onClick={() => setIsCustomModalOpen(false)}
+            />
+          </OverlayHeader>
+
+          <form className={styles.customDiceForm} onSubmit={submitCustomDice}>
+            <OverlayBody>
+              <label className={styles.customField}>
+                <span>Dice</span>
+                <TextInput
+                  value={customDraftText}
+                  onChange={(event) => setCustomDraftText(event.target.value)}
+                  placeholder="1d7,2d25"
+                  invalid={customError.length > 0}
+                  autoFocus
+                />
+              </label>
+              <p className={styles.customHint}>Leave empty to clear custom dice.</p>
+              {customError ? <p className={styles.customError}>{customError}</p> : null}
+            </OverlayBody>
+
+            <OverlayFooter>
+              <ActionButton type="submit">Add</ActionButton>
+            </OverlayFooter>
           </form>
-        </div>
+        </SheetModal>
       ) : null}
 
       {diceRollerPopup}

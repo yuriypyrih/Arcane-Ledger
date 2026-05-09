@@ -1,7 +1,3 @@
-.featureActionModal {
-  width: min(860px, 100%);
-}
-
 .modalHeading {
   display: grid;
   gap: 0.22rem;

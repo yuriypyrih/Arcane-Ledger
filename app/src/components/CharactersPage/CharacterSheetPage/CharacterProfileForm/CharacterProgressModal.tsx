@@ -36,6 +36,16 @@ type ProgressDraft = {
   xp: number;
 };
 
+type LevelValidationResult =
+  | {
+      isValid: true;
+      level: number;
+    }
+  | {
+      isValid: false;
+      message: string;
+    };
+
 type CharacterProgressModalProps = {
   character: Character;
   onClose: () => void;
@@ -67,6 +77,29 @@ function deriveDraftFromLevel(level: number): ProgressDraft {
   };
 }
 
+function validateLevelInput(value: string): LevelValidationResult {
+  const trimmedValue = value.trim();
+  const parsedLevel = Number(trimmedValue);
+
+  if (
+    trimmedValue.length === 0 ||
+    !Number.isFinite(parsedLevel) ||
+    !Number.isInteger(parsedLevel) ||
+    parsedLevel < 1 ||
+    parsedLevel > MAX_CHARACTER_LEVEL
+  ) {
+    return {
+      isValid: false,
+      message: `Enter a whole level from 1 to ${MAX_CHARACTER_LEVEL}.`
+    };
+  }
+
+  return {
+    isValid: true,
+    level: parsedLevel
+  };
+}
+
 function CharacterProgressModal({
   character,
   onClose,
@@ -77,13 +110,15 @@ function CharacterProgressModal({
     createProgressDraft(character)
   );
   const [activeMode, setActiveMode] = useState<ProgressEditMode>("idle");
-  const [activeModeValue, setActiveModeValue] = useState(0);
+  const [activeModeValue, setActiveModeValue] = useState("0");
+  const [levelInputError, setLevelInputError] = useState<string | null>(null);
 
   useEffect(() => {
     setDraft(createProgressDraft(character));
     setActiveModeBaseDraft(createProgressDraft(character));
     setActiveMode("idle");
-    setActiveModeValue(0);
+    setActiveModeValue("0");
+    setLevelInputError(null);
   }, [character]);
 
   const currentNextLevelThreshold = getNextLevelThreshold(character.level);
@@ -111,40 +146,44 @@ function CharacterProgressModal({
   function startAddXp() {
     setActiveMode("add-xp");
     setActiveModeBaseDraft(draft);
-    setActiveModeValue(0);
+    setActiveModeValue("0");
+    setLevelInputError(null);
   }
 
   function startEditXp() {
     setActiveMode("edit-xp");
     setActiveModeBaseDraft(draft);
-    setActiveModeValue(draft.xp);
+    setActiveModeValue(String(draft.xp));
+    setLevelInputError(null);
   }
 
   function startEditLevel() {
     setActiveMode("edit-level");
     setActiveModeBaseDraft(draft);
-    setActiveModeValue(draft.level);
+    setActiveModeValue(String(draft.level));
+    setLevelInputError(null);
   }
 
   function handleActiveModeValueChange(value: unknown) {
+    const rawValue = typeof value === "string" ? value : String(value ?? "");
+
     if (activeMode === "add-xp") {
-      const nextValue = clampNumber(value, 0, 99999999, 0);
-      setActiveModeValue(nextValue);
+      const nextValue = clampNumber(rawValue, 0, 99999999, 0);
+      setActiveModeValue(String(nextValue));
       setDraft(deriveDraftFromXp(activeModeBaseDraft.xp + nextValue));
       return;
     }
 
     if (activeMode === "edit-xp") {
-      const nextValue = clampNumber(value, 0, 99999999, activeModeBaseDraft.xp);
-      setActiveModeValue(nextValue);
+      const nextValue = clampNumber(rawValue, 0, 99999999, activeModeBaseDraft.xp);
+      setActiveModeValue(String(nextValue));
       setDraft(deriveDraftFromXp(nextValue));
       return;
     }
 
     if (activeMode === "edit-level") {
-      const nextValue = clampNumber(value, 1, MAX_CHARACTER_LEVEL, activeModeBaseDraft.level);
-      setActiveModeValue(nextValue);
-      setDraft(deriveDraftFromLevel(nextValue));
+      setActiveModeValue(rawValue);
+      setLevelInputError(null);
     }
   }
 
@@ -153,9 +192,28 @@ function CharacterProgressModal({
       return;
     }
 
+    if (activeMode === "edit-level") {
+      const levelValidation = validateLevelInput(activeModeValue);
+
+      if (!levelValidation.isValid) {
+        setLevelInputError(levelValidation.message);
+        return;
+      }
+
+      const nextDraft = deriveDraftFromLevel(levelValidation.level);
+
+      setDraft(nextDraft);
+      setActiveModeBaseDraft(nextDraft);
+      setActiveMode("idle");
+      setActiveModeValue("0");
+      setLevelInputError(null);
+      return;
+    }
+
     setActiveModeBaseDraft(draft);
     setActiveMode("idle");
-    setActiveModeValue(0);
+    setActiveModeValue("0");
+    setLevelInputError(null);
   }
 
   function cancelActiveMode() {
@@ -165,7 +223,8 @@ function CharacterProgressModal({
 
     setDraft(activeModeBaseDraft);
     setActiveMode("idle");
-    setActiveModeValue(0);
+    setActiveModeValue("0");
+    setLevelInputError(null);
   }
 
   function levelUp() {
@@ -350,11 +409,19 @@ function CharacterProgressModal({
               <label className={styles.inputField}>
                 <span className={styles.inputLabel}>{modeFieldLabel}</span>
                 <NumberInput
-                  min={1}
-                  max={MAX_CHARACTER_LEVEL}
+                  step={1}
                   value={activeModeValue}
+                  invalid={Boolean(levelInputError)}
+                  aria-describedby={
+                    levelInputError ? "character-progress-level-input-error" : undefined
+                  }
                   onChange={(event) => handleActiveModeValueChange(event.target.value)}
                 />
+                {levelInputError ? (
+                  <span id="character-progress-level-input-error" className={styles.errorText}>
+                    {levelInputError}
+                  </span>
+                ) : null}
               </label>
             ) : null}
           </section>

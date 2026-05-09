@@ -53,7 +53,7 @@ function CompanionDrawer({
   }
 
   return (
-    <SheetDrawer titleId={titleId} onClose={onClose} drawerClassName={styles.drawerPanel}>
+    <SheetDrawer titleId={titleId} onClose={onClose}>
       <OverlayHeader>
         <OverlayHeaderContent>
           <OverlayBadge>Companion</OverlayBadge>

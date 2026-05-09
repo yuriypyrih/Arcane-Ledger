@@ -1,4 +1,4 @@
-const levelXpRequirements = [
+const standardLevelXpRequirements = [
   0,
   300,
   900,
@@ -22,7 +22,18 @@ const levelXpRequirements = [
 ] as const;
 
 const MIN_CHARACTER_LEVEL = 1;
-export const MAX_CHARACTER_LEVEL = levelXpRequirements.length;
+export const MAX_CHARACTER_LEVEL = 100;
+const EPIC_LEVEL_XP_INCREMENT = 30000;
+const LEVEL_20_XP_REQUIREMENT =
+  standardLevelXpRequirements[standardLevelXpRequirements.length - 1] ?? 355000;
+const levelXpRequirements: readonly number[] = Array.from(
+  { length: MAX_CHARACTER_LEVEL },
+  (_value, index) =>
+    index < standardLevelXpRequirements.length
+      ? (standardLevelXpRequirements[index] ?? LEVEL_20_XP_REQUIREMENT)
+      : LEVEL_20_XP_REQUIREMENT +
+        (index - standardLevelXpRequirements.length + 1) * EPIC_LEVEL_XP_INCREMENT
+);
 
 function clampCharacterLevel(value: unknown): number {
   const parsedLevel = Number(value);
@@ -96,12 +107,21 @@ export function getXpProgressPercent(level: number, xp: number): number {
   const normalizedLevel = clampCharacterLevel(level);
   const currentLevelThreshold = getMinimumXpForLevel(normalizedLevel);
   const nextLevelThreshold = getNextLevelThreshold(normalizedLevel);
+  const normalizedXp = Math.max(0, Math.floor(xp));
+
+  if (normalizedXp <= currentLevelThreshold) {
+    return normalizedXp === currentLevelThreshold ? 100 : 0;
+  }
 
   if (nextLevelThreshold === null) {
     return 100;
   }
 
-  const xpInLevel = Math.max(0, Math.floor(xp)) - currentLevelThreshold;
+  if (normalizedXp >= nextLevelThreshold) {
+    return 100;
+  }
+
+  const xpInLevel = normalizedXp - currentLevelThreshold;
   const levelRange = Math.max(1, nextLevelThreshold - currentLevelThreshold);
   const progressPercent = (xpInLevel / levelRange) * 100;
 

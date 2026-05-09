@@ -47,7 +47,7 @@ function CommonActionsModal({
       onClose={onClose}
       onEscape={isActionDrawerOpen ? () => undefined : onClose}
       backdropClassName={styles.backdrop}
-      panelClassName={styles.panel}
+      size="large"
     >
       <OverlayHeader>
         <OverlayHeaderContent>

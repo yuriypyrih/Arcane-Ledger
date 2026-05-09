@@ -20,6 +20,9 @@
   --space-section-gap: clamp(0.6rem, 1.7vw, 1.1rem);
   --space-card-padding: clamp(0.78rem, 2.3vw, 1.35rem);
   --space-card-padding-tight: clamp(0.68rem, 2vw, 1.15rem);
+  --overlay-size-small: 700px;
+  --overlay-size-medium: 920px;
+  --overlay-size-large: 1080px;
 }
 
 * {

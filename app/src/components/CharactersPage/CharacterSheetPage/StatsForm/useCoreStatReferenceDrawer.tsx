@@ -16,8 +16,14 @@ import {
   getArmorClassResolutionForCharacter,
   setArmorClassFormulaSelectionForCharacter
 } from "../../../../pages/CharactersPage/armor";
+import {
+  getHitDiceRemainingForCharacter,
+  getHitDiceTotalForCharacter,
+  getHitDieLabelForCharacter
+} from "../../../../pages/CharactersPage/hitDice";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { getRollModeFromIndicators } from "../../../RollStatePill/rollState";
+import ResourceManagementModal from "../ResourceManagementModal";
 import ArmorClassFormulaFooter from "./ArmorClassFormulaFooter";
 import InitiativeReferenceFooter from "./InitiativeReferenceFooter";
 import StatReferenceDrawer, { type SelectedStatReference } from "./StatReferenceDrawer";
@@ -37,6 +43,7 @@ export function useCoreStatReferenceDrawer(
   const [selectedStatReference, setSelectedStatReference] = useState<SelectedStatReference | null>(
     null
   );
+  const [isHitDiceManagementOpen, setIsHitDiceManagementOpen] = useState(false);
   const [useUncannyMetabolismOnInitiative, setUseUncannyMetabolismOnInitiative] = useState(false);
   const [usePersistentRageOnInitiative, setUsePersistentRageOnInitiative] = useState(false);
   const [useTandemFootworkOnInitiative, setUseTandemFootworkOnInitiative] = useState(false);
@@ -63,6 +70,9 @@ export function useCoreStatReferenceDrawer(
   const initiativeBreakdown = getInitiativeBreakdownForCharacter(character);
   const monkMartialArtsDie = getMonkMartialArtsDieForCharacter(character);
   const hasThiefsReflexes = hasRogueThiefThiefsReflexesForCharacter(character);
+  const hitDiceRemaining = getHitDiceRemainingForCharacter(character);
+  const hitDiceTotal = getHitDiceTotalForCharacter(character);
+  const hitDieLabel = getHitDieLabelForCharacter(character);
   const resolvedSelectedStatReference =
     selectedStatReference?.keyword === "Armor Class"
       ? {
@@ -81,6 +91,12 @@ export function useCoreStatReferenceDrawer(
   }
 
   function openCoreStatReference(card: CoreStatCard) {
+    if (card.key === "hitDice") {
+      closeCoreStatReference();
+      setIsHitDiceManagementOpen(true);
+      return;
+    }
+
     if (card.label === "Initiative" && hasPersistentRage) {
       setUsePersistentRageOnInitiative(false);
     }
@@ -95,6 +111,34 @@ export function useCoreStatReferenceDrawer(
 
     setIsDiceRollerSettingsOpen(false);
     setSelectedStatReference(createCoreStatReference(character, card));
+  }
+
+  function updateHitDiceRemaining(getNextRemaining: (remaining: number, total: number) => number) {
+    onPersistCharacter((currentCharacter) => {
+      const total = getHitDiceTotalForCharacter(currentCharacter);
+      const remaining = getHitDiceRemainingForCharacter(currentCharacter);
+      const nextRemaining = Math.max(
+        0,
+        Math.min(total, Math.floor(getNextRemaining(remaining, total)))
+      );
+
+      return {
+        ...currentCharacter,
+        hitDiceRemaining: nextRemaining
+      };
+    });
+  }
+
+  function useHitDie() {
+    updateHitDiceRemaining((remaining) => remaining - 1);
+  }
+
+  function resetHitDie() {
+    updateHitDiceRemaining((remaining) => remaining + 1);
+  }
+
+  function resetAllHitDice() {
+    updateHitDiceRemaining((_remaining, total) => total);
   }
 
   function selectArmorClassFormula(formulaKey: string) {
@@ -136,6 +180,36 @@ export function useCoreStatReferenceDrawer(
 
   const coreStatReferenceDrawer = (
     <>
+      {isHitDiceManagementOpen ? (
+        <ResourceManagementModal
+          titleId="hit-dice-resource-management-title"
+          title={`Hit Dice ${hitDiceRemaining}/${hitDiceTotal}`}
+          closeLabel="Close hit dice resource management"
+          onClose={() => setIsHitDiceManagementOpen(false)}
+          description="Manually spend or restore Hit Dice outside of a rest."
+          titleAccessory={hitDieLabel}
+          actions={[
+            {
+              label: "Use 1",
+              onClick: useHitDie,
+              disabled: hitDiceRemaining <= 0,
+              ariaLabel: "Use 1 Hit Die"
+            },
+            {
+              label: "Reset 1",
+              onClick: resetHitDie,
+              disabled: hitDiceRemaining >= hitDiceTotal,
+              ariaLabel: "Reset 1 Hit Die"
+            },
+            {
+              label: "Reset All",
+              onClick: resetAllHitDice,
+              disabled: hitDiceRemaining >= hitDiceTotal,
+              ariaLabel: "Reset all Hit Dice"
+            }
+          ]}
+        />
+      ) : null}
       {resolvedSelectedStatReference ? (
         <StatReferenceDrawer
           reference={resolvedSelectedStatReference}

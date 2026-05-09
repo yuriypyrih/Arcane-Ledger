@@ -1,17 +1,11 @@
 .abilityEditorModal {
-  width: min(640px, 100%);
   max-height: 100%;
-  grid-template-rows: auto minmax(0, 1fr) auto;
   overflow: hidden;
 }
 
 .modalHeading {
   display: grid;
   gap: 0.3rem;
-}
-
-.modalTitle {
-  margin: 0;
 }
 
 .modalBody {
@@ -171,6 +165,12 @@
 .pointBuyStepperButton:disabled {
   cursor: not-allowed;
   opacity: 0.45;
+}
+
+.footerActions {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 @media (max-width: 599px) {

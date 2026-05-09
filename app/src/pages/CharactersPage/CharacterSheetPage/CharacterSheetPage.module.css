@@ -220,7 +220,7 @@
   display: grid;
   align-content: start;
   gap: 0.88rem;
-  width: min(700px, 100%);
+  width: min(var(--overlay-size-small), 100%);
   max-height: calc(100dvh - (var(--overlay-backdrop-padding) * 2));
   border: 1px solid rgba(75, 47, 29, 0.2);
   border-radius: 24px;
@@ -495,7 +495,7 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-  width: min(920px, 100%);
+  width: min(var(--overlay-size-medium), 100%);
   max-height: calc(100dvh - (var(--overlay-backdrop-padding) * 2));
   border: 1px solid rgba(75, 47, 29, 0.22);
   border-radius: 24px 24px 18px 18px;
@@ -701,52 +701,6 @@
   min-height: 44px;
 }
 
-.currencyDrawerActions {
-  display: flex;
-  align-items: center;
-  flex-wrap: nowrap;
-  gap: 0.58rem;
-}
-
-.currencySpendButton,
-.currencyGainButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.32rem;
-  border: none;
-  border-radius: 14px;
-  color: var(--color-ink);
-  cursor: pointer;
-  font: inherit;
-  min-height: 42px;
-  min-width: 104px;
-  padding: 0 0.9rem;
-}
-
-.currencySpendButton {
-  background: rgba(210, 79, 62, 0.14);
-  color: #7d2216;
-}
-
-.currencyGainButton {
-  background: rgba(75, 47, 29, 0.09);
-}
-
-.currencyActionIconSpend {
-  color: #af3022;
-}
-
-.currencyActionIconGain {
-  color: #2a7f45;
-}
-
-.currencySpendButton:disabled,
-.currencyGainButton:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-
 @keyframes drawerSlideUp {
   from {
     transform: translateY(calc(100% + 1.5rem));
@@ -832,13 +786,4 @@
     gap: 0.5rem;
   }
 
-  .currencyDrawerActions {
-    gap: 0.42rem;
-  }
-
-  .currencySpendButton,
-  .currencyGainButton {
-    min-width: 92px;
-    padding: 0 0.72rem;
-  }
 }

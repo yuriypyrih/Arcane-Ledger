@@ -37,39 +37,3 @@
   font-size: 0.85rem;
   line-height: 1;
 }
-
-.editGrid {
-  display: grid;
-  gap: 0.62rem;
-}
-
-.modeSwitch {
-  display: inline-grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  border-radius: 999px;
-  background: rgba(75, 47, 29, 0.08);
-  padding: 0.24rem;
-}
-
-.modeSwitchButton {
-  border: none;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--color-ink-soft);
-  cursor: pointer;
-  font: inherit;
-  min-height: 36px;
-  padding: 0 0.86rem;
-}
-
-.modeSwitchButtonActive {
-  background: rgba(255, 255, 255, 0.95);
-  color: var(--color-ink);
-  box-shadow: 0 8px 18px rgba(54, 34, 21, 0.08);
-}
-
-.editActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.55rem;
-}

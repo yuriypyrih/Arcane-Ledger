@@ -1,7 +1,3 @@
-.modalPanel {
-  width: min(840px, 100%);
-}
-
 .modalPanelExpanded {
   height: calc(100dvh - (var(--overlay-backdrop-padding) * 2));
 }

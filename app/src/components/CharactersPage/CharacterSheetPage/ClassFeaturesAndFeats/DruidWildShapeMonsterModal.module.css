@@ -2,7 +2,6 @@
   height: calc(100dvh - (var(--overlay-backdrop-padding) * 2));
   gap: 1rem;
   min-height: 0;
-  width: min(1040px, 100%);
   overflow: hidden;
 }
 

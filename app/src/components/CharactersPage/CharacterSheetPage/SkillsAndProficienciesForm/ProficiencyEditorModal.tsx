@@ -558,6 +558,7 @@ function ProficiencyEditorModal({
     <SheetModal
       titleId="character-proficiency-editor-title"
       onClose={saveAndClose}
+      size="medium"
       panelClassName={styles.modalPanel}
     >
       <OverlayHeader>

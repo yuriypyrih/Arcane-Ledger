@@ -171,6 +171,7 @@ function FeatEditorModal({
     <SheetModal
       titleId="character-feat-editor-title"
       onClose={onClose}
+      size="medium"
       panelClassName={styles.modalPanel}
     >
       <OverlayHeader>

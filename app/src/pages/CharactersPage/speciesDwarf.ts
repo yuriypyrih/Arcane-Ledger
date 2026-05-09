@@ -127,6 +127,19 @@ function getDwarvenResilienceDescriptionAddition(): SpellDescriptionEntry[] {
   );
 }
 
+export function getDwarvenToughnessDescriptionAddition(): SpellDescriptionEntry[] {
+  const description = getDwarfDescriptionSection("Dwarven Toughness");
+
+  return createSourcedDescriptionEntries(
+    "Dwarven Toughness",
+    description.length > 0
+      ? description
+      : [
+          "Your Hit Point maximum increases by 1, and it increases by 1 again whenever you gain a level."
+        ]
+  );
+}
+
 function getStonecunningDescription(): SpellDescriptionEntry[] {
   const description = getDwarfDescriptionSection("Stonecunning");
 
@@ -154,6 +167,16 @@ function getStonecunningTremorsenseDescriptionAddition(): SpellDescriptionEntry[
 
 export function isDwarfSpecies(species: string): boolean {
   return getSpeciesEntryByName(species.trim())?.id === dwarfSpeciesId;
+}
+
+export function getDwarvenToughnessHitPointMaximumBonus(
+  character: Partial<Pick<Character, "species" | "level">>
+): number {
+  if (!character.species || !isDwarfSpecies(character.species)) {
+    return 0;
+  }
+
+  return Math.max(1, Math.floor(character.level ?? 1));
 }
 
 export function normalizeDwarfFeatureState(value: unknown): CharacterDwarfFeatureState {

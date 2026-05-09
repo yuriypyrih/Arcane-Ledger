@@ -14,7 +14,7 @@
   display: grid;
   align-content: start;
   gap: 0.6rem;
-  width: min(960px, 100%);
+  width: min(var(--overlay-size-medium), 100%);
   border: 1px solid rgba(75, 47, 29, 0.2);
   border-radius: 0 0 26px 26px;
   background: linear-gradient(165deg, rgba(255, 252, 245, 0.98), rgba(246, 236, 221, 0.98));

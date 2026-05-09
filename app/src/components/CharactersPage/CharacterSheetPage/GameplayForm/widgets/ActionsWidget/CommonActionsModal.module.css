@@ -2,10 +2,6 @@
   z-index: 44;
 }
 
-.panel {
-  width: min(1080px, 100%);
-}
-
 .body {
   gap: 0.9rem;
 }

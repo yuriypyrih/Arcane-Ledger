@@ -38,7 +38,7 @@ function FeatureActionOptionsModal({
     <SheetModal
       titleId="feature-action-modal-title"
       onClose={onClose}
-      panelClassName={styles.featureActionModal}
+      size="medium"
     >
       <OverlayHeader>
         <OverlayHeaderContent>

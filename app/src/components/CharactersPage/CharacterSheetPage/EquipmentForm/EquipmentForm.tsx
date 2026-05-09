@@ -117,6 +117,7 @@ import {
 import { createSourcedDescriptionEntries } from "../../../../pages/CharactersPage/actionModalDescriptions";
 import KeywordReferenceDrawer from "../../../KeywordReferenceDrawer/KeywordReferenceDrawer";
 import type { ItemRecord } from "../../../../types";
+import ActionButton from "../../../ActionButton";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import SheetSurface from "../SheetSurface";
 import CustomEquipmentEditor from "../CustomEquipmentEditor";
@@ -149,6 +150,16 @@ import InlineToggleButton from "../InlineToggleButton";
 import styles from "./EquipmentForm.module.css";
 import { useItemEntry } from "../../../../pages/ItemCodexEntryPage/useItemEntry";
 import WeaponMasteryStatusLabel from "../../../WeaponMasteryStatusLabel/WeaponMasteryStatusLabel";
+import {
+  OverlayBody,
+  OverlayCloseButton,
+  OverlayEyebrow,
+  OverlayFooter,
+  OverlayHeader,
+  OverlayHeaderContent,
+  OverlayTitle,
+  SheetModal
+} from "../../../Overlay";
 import { getCharacterRuntime } from "../../../../pages/CharactersPage/characterRuntime/characterRuntime";
 import {
   getInventoryAttunementLimit
@@ -1859,8 +1870,8 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   ) : undefined;
 
   return renderEquipmentForm({
-    CellContainer, CurrencyInlineDisplay, CustomEquipmentEditor, ENTRY_CATEGORIES, EquipmentInventoryItemDrawer, EquipmentItemBrowserModal, Hand, InlineToggleButton,
-    KeywordReferenceDrawer, Minus, NumberInput, Plus, RarityPill, Shield, Sparkles, WeaponMasteryStatusLabel, X,
+    ActionButton, CellContainer, CurrencyInlineDisplay, CustomEquipmentEditor, ENTRY_CATEGORIES, EquipmentInventoryItemDrawer, EquipmentItemBrowserModal, Hand, InlineToggleButton,
+    KeywordReferenceDrawer, Minus, NumberInput, OverlayBody, OverlayCloseButton, OverlayEyebrow, OverlayFooter, OverlayHeader, OverlayHeaderContent, OverlayTitle, Plus, RarityPill, SheetModal, Shield, Sparkles, WeaponMasteryStatusLabel, X,
     activeCurrencyDefinition, activeCurrencyKey, adjustCurrencyBalance, canSpendCurrency, carriedWeight, carryingCapacity, className, closeAddModal,
     closeCustomEquipmentModal, closeInventoryItemDrawer, closeLoadoutDrawer, clsx, currencyAmountDraft, currencyDefinitions, customEditorMode, deleteCustomEquipment,
     editingCustomEquipment, equipmentGroupMeta, formatCodexLabel, formatCodexList, formatEquipmentWeight, formatInventoryStackName, formatOnHandLabel, formatWeaponDamage,

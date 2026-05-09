@@ -108,10 +108,9 @@
 }
 
 .footer {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
+  display: grid;
   gap: 0.65rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 @media (max-width: 599px) {
@@ -140,12 +139,7 @@
     justify-content: flex-start;
   }
 
-  .footer {
-    justify-content: stretch;
-  }
-
   .footer :global(button) {
-    flex: 1 1 0;
     justify-content: center;
   }
 }

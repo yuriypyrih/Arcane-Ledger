@@ -17,8 +17,6 @@ import {
 import { getAbilityModifierForCharacter } from "../../../../../pages/CharactersPage/abilities";
 import { getEffectiveHitPointMaximumForCharacter } from "../../../../../pages/CharactersPage/traits";
 import type { RestDescriptionInjectionSection } from "../../../../../pages/CharactersPage/classFeatures/restDescriptionInjections";
-import { hasWarlockFeature } from "../../../../../pages/CharactersPage/classFeatures/warlock/warlock";
-import { CLASS_FEATURE } from "../../../../../codex/entries";
 import {
   formatFormulaCell,
   formatFormulaTerms,
@@ -75,6 +73,10 @@ function getGroupedRestOptions(options: RestOption[]) {
     secondaryOptions,
     featureOptions
   };
+}
+
+function isRestOptionDisabled(option: RestOption) {
+  return option.emphasis === "feature" && option.disabled === true;
 }
 
 function getHitDiceBaseFormulaForCount(character: Character, count: number): string {
@@ -153,7 +155,6 @@ function CampButton({
   const effectiveHitPointMaximum = getEffectiveHitPointMaximumForCharacter(character);
   const shortRestOptions = useMemo(() => createShortRestOptions(character), [character]);
   const longRestOptions = useMemo(() => createLongRestOptions(character), [character]);
-  const hasWarlockPactMagic = hasWarlockFeature(character, CLASS_FEATURE.PACT_MAGIC);
   const normalizedShortRestHitDiceCount = Math.min(
     availableHitDice,
     Math.max(0, Math.floor(shortRestHitDiceCount))
@@ -216,7 +217,7 @@ function CampButton({
     setShortRestHitDiceCount(0);
     setSelectedRestOptionIds(
       nextOptions
-        .filter((option) => option.defaultSelected !== false && option.disabled !== true)
+        .filter((option) => option.defaultSelected !== false && !isRestOptionDisabled(option))
         .map((option) => option.id)
     );
   }
@@ -224,7 +225,7 @@ function CampButton({
   function toggleRestOption(optionId: string) {
     const selectedOption = selectedRestOptions.find((option) => option.id === optionId);
 
-    if (selectedOption?.disabled === true) {
+    if (selectedOption && isRestOptionDisabled(selectedOption)) {
       return;
     }
 
@@ -237,7 +238,7 @@ function CampButton({
 
   function toggleAllRestOptions() {
     const selectableOptionIds = selectedRestOptions
-      .filter((option) => option.defaultSelected !== false && option.disabled !== true)
+      .filter((option) => option.defaultSelected !== false && !isRestOptionDisabled(option))
       .map((option) => option.id);
 
     setSelectedRestOptionIds((currentOptionIds) =>
@@ -268,7 +269,7 @@ function CampButton({
           : createLongRestOptions(currentCharacter);
       const selectedOptionIdSet = new Set(selectedRestOptionIds);
       const restedCharacter = availableOptions.reduce((nextCharacter, option) => {
-        if (!selectedOptionIdSet.has(option.id) || option.disabled === true) {
+        if (!selectedOptionIdSet.has(option.id) || isRestOptionDisabled(option)) {
           return nextCharacter;
         }
 
@@ -318,7 +319,7 @@ function CampButton({
       </button>
 
       {isOpen ? (
-        <SheetModal titleId={titleId} onClose={closePopup} onEscape={closePopup}>
+        <SheetModal titleId={titleId} onClose={closePopup} onEscape={closePopup} size="medium">
           <OverlayHeader>
             <OverlayHeaderContent>
               <OverlayEyebrow>Camp</OverlayEyebrow>
@@ -376,11 +377,7 @@ function CampButton({
                 header="Long Rest"
                 selected={selectedRestType === "long"}
                 onSelect={() => selectRestType("long")}
-                breakdown={
-                  hasWarlockPactMagic
-                    ? "Restore full HP, refresh Pact Magic spell slots, and reset short rests."
-                    : "Restore full HP, refresh all spell slots, and reset short rests."
-                }
+                breakdown="Restore full HP, half of Hit Dice, reset Short Rest charges, and refresh Long Rest resources."
                 className={styles.restTypeOption}
               />
             </div>

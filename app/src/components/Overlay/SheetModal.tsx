@@ -4,6 +4,14 @@ import { LoaderCircle } from "lucide-react";
 import styles from "./Overlay.module.css";
 import { useDismissableOverlay } from "./useDismissableOverlay";
 
+export type SheetModalSize = "small" | "medium" | "large";
+
+const modalSizeClassNames: Record<SheetModalSize, string> = {
+  small: styles.modalPanelSmall,
+  medium: styles.modalPanelMedium,
+  large: styles.modalPanelLarge
+};
+
 type SheetModalProps = {
   titleId: string;
   onClose: () => void;
@@ -13,6 +21,7 @@ type SheetModalProps = {
   busyLabel?: string;
   isBusy?: boolean;
   panelClassName?: string;
+  size?: SheetModalSize;
 };
 
 function SheetModal({
@@ -23,7 +32,8 @@ function SheetModal({
   backdropClassName,
   busyLabel = "Saving changes",
   isBusy = false,
-  panelClassName
+  panelClassName,
+  size = "small"
 }: SheetModalProps) {
   const { onBackdropClick, onContentClick } = useDismissableOverlay({
     isOpen: true,
@@ -42,7 +52,12 @@ function SheetModal({
       onClick={onBackdropClick}
     >
       <section
-        className={[styles.modalPanel, isBusy ? styles.modalPanelBusy : "", panelClassName ?? ""]
+        className={[
+          styles.modalPanel,
+          modalSizeClassNames[size],
+          isBusy ? styles.modalPanelBusy : "",
+          panelClassName ?? ""
+        ]
           .join(" ")
           .trim()}
         role="dialog"

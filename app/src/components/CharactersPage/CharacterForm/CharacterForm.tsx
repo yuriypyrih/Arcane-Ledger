@@ -276,12 +276,13 @@ function createFormValues(
 
 function getEffectiveHitPointMaximumForDraft(
   draft: Pick<CharacterDraft, "className" | "hitPoints"> &
-    Partial<Pick<CharacterDraft, "level" | "subclassId" | "statusEntries" | "feats">>
+    Partial<Pick<CharacterDraft, "level" | "species" | "subclassId" | "statusEntries" | "feats">>
 ): number {
   return getEffectiveHitPointMaximumForCharacter({
     className: draft.className,
     subclassId: draft.subclassId,
     level: draft.level,
+    species: draft.species,
     hitPoints: draft.hitPoints,
     statusEntries: draft.statusEntries ?? [],
     feats: draft.feats

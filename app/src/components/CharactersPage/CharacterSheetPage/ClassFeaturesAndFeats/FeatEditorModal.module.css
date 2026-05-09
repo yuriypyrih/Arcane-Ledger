@@ -1,5 +1,4 @@
 .modalPanel {
-  width: min(920px, 100%);
   min-height: 0;
   overflow: hidden;
 }

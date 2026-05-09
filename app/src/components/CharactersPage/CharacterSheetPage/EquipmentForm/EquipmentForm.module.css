@@ -216,7 +216,7 @@
 }
 
 .catalogModal {
-  width: min(920px, 100%);
+  width: min(var(--overlay-size-medium), 100%);
   max-height: 100%;
   min-height: 0;
   grid-template-rows: auto auto auto minmax(0, 1fr) auto;
@@ -604,8 +604,11 @@
 }
 
 .currencyModal {
-  width: min(560px, 100%);
   max-height: 100%;
+}
+
+.currencyModalBody {
+  gap: 0.85rem;
 }
 
 .currencyModalActionRow {
@@ -613,7 +616,9 @@
 }
 
 .currencyModalActions {
-  flex-shrink: 0;
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .loadoutDrawerActions {
@@ -713,7 +718,7 @@
   display: grid;
   align-content: stretch;
   grid-template-rows: auto minmax(0, 1fr);
-  width: min(760px, 100%);
+  width: min(var(--overlay-size-medium), 100%);
   max-height: 100%;
   overflow: hidden;
 }
@@ -745,7 +750,7 @@
 .customEquipmentDeleteCard {
   display: grid;
   gap: 0.85rem;
-  width: min(420px, 100%);
+  width: min(var(--overlay-size-small), 100%);
   border: 1px solid rgba(75, 47, 29, 0.2);
   border-radius: 20px;
   background: rgba(255, 250, 241, 0.98);
@@ -769,29 +774,9 @@
     padding: 0.55rem;
   }
 
-  .catalogModal {
-    width: min(100%, calc(100dvw - 1rem));
-  }
-
-  .customEquipmentModal {
-    width: min(100%, calc(100dvw - 1rem));
-  }
-
-  .currencyModal {
-    width: min(100%, calc(100dvw - 1rem));
-  }
-
   .currencyModalActionRow {
     align-items: stretch;
     flex-direction: column;
-  }
-
-  .currencyModalActions {
-    width: 100%;
-  }
-
-  .currencyModalActions button {
-    flex: 1 1 0;
   }
 
   .catalogCurrencyPill {

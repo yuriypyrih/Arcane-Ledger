@@ -3,8 +3,8 @@
 
 export function renderEquipmentForm(context: Record<string, any>) {
   const {
-    CellContainer, CurrencyInlineDisplay, CustomEquipmentEditor, ENTRY_CATEGORIES, EquipmentInventoryItemDrawer, EquipmentItemBrowserModal, Hand, InlineToggleButton, KeywordReferenceDrawer,
-    Minus, NumberInput, Plus, RarityPill, Shield, Sparkles, WeaponMasteryStatusLabel, X, activeCurrencyDefinition, activeCurrencyKey,
+    ActionButton, CellContainer, CurrencyInlineDisplay, CustomEquipmentEditor, ENTRY_CATEGORIES, EquipmentInventoryItemDrawer, EquipmentItemBrowserModal, Hand, InlineToggleButton, KeywordReferenceDrawer,
+    Minus, NumberInput, OverlayBody, OverlayCloseButton, OverlayEyebrow, OverlayFooter, OverlayHeader, OverlayHeaderContent, OverlayTitle, Plus, RarityPill, SheetModal, Shield, Sparkles, WeaponMasteryStatusLabel, X, activeCurrencyDefinition, activeCurrencyKey,
     adjustCurrencyBalance, canSpendCurrency, carriedWeight, carryingCapacity, className, closeAddModal, closeCustomEquipmentModal, closeInventoryItemDrawer, closeLoadoutDrawer,
     clsx, currencyAmountDraft, currencyDefinitions, customEditorMode, deleteCustomEquipment, editingCustomEquipment, equipmentGroupMeta, formatCodexLabel, formatCodexList,
     formatEquipmentWeight, formatInventoryStackName, formatOnHandLabel, formatWeaponDamage, formatWeaponProperties, formatWeaponType, formatWeaponWeight, formatWeightValue, getArmorTypeSummary, getInventoryItemFeatureTagLabels,
@@ -289,35 +289,25 @@ export function renderEquipmentForm(context: Record<string, any>) {
       ) : null}
 
       {isCurrencyDrawerOpen ? (
-        <div
-          className={clsx(sheetStyles.spellManagementBackdrop, styles.currencyModalBackdrop)}
-          role="presentation"
-          onClick={() => setIsCurrencyDrawerOpen(false)}
+        <SheetModal
+          titleId="character-currency-modal-title"
+          onClose={() => setIsCurrencyDrawerOpen(false)}
+          size="small"
+          backdropClassName={styles.currencyModalBackdrop}
+          panelClassName={styles.currencyModal}
         >
-          <section
-            className={clsx(sheetStyles.spellManagementModal, styles.currencyModal)}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="character-currency-modal-title"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className={sheetStyles.spellManagementHeader}>
-              <div>
-                <p className={sheetStyles.eyebrow}>Currency</p>
-                <h3 id="character-currency-modal-title" className={sheetStyles.sheetPanelTitle}>
-                  Currency balance
-                </h3>
-              </div>
-              <button
-                type="button"
-                className={sheetStyles.spellManagementCloseButton}
-                onClick={() => setIsCurrencyDrawerOpen(false)}
-                aria-label="Close currency modal"
-              >
-                <X size={18} />
-              </button>
-            </div>
+          <OverlayHeader>
+            <OverlayHeaderContent>
+              <OverlayEyebrow>Currency</OverlayEyebrow>
+              <OverlayTitle id="character-currency-modal-title">Currency balance</OverlayTitle>
+            </OverlayHeaderContent>
+            <OverlayCloseButton
+              label="Close currency modal"
+              onClick={() => setIsCurrencyDrawerOpen(false)}
+            />
+          </OverlayHeader>
 
+          <OverlayBody className={styles.currencyModalBody}>
             <div className={styles.currencySelectorRow}>
               {currencyDefinitions.map((currency) => (
                 <button
@@ -362,36 +352,29 @@ export function renderEquipmentForm(context: Record<string, any>) {
                   }
                 />
               </label>
-              <div className={clsx(sheetStyles.currencyDrawerActions, styles.currencyModalActions)}>
-                <button
-                  type="button"
-                  className={sheetStyles.currencySpendButton}
-                  disabled={!canSpendCurrency}
-                  onClick={() => adjustCurrencyBalance("spend")}
-                >
-                  <Minus
-                    size={16}
-                    aria-hidden="true"
-                    className={sheetStyles.currencyActionIconSpend}
-                  />
-                  Spend
-                </button>
-                <button
-                  type="button"
-                  className={sheetStyles.currencyGainButton}
-                  onClick={() => adjustCurrencyBalance("gain")}
-                >
-                  <Plus
-                    size={16}
-                    aria-hidden="true"
-                    className={sheetStyles.currencyActionIconGain}
-                  />
-                  Gain
-                </button>
-              </div>
             </div>
-          </section>
-        </div>
+          </OverlayBody>
+
+          <OverlayFooter>
+            <div className={styles.currencyModalActions}>
+              <ActionButton
+                actionType="ERROR"
+                icon={<Minus size={16} aria-hidden="true" />}
+                disabled={!canSpendCurrency}
+                onClick={() => adjustCurrencyBalance("spend")}
+              >
+                Spend
+              </ActionButton>
+              <ActionButton
+                actionType="SUCCESS"
+                icon={<Plus size={16} aria-hidden="true" />}
+                onClick={() => adjustCurrencyBalance("gain")}
+              >
+                Gain
+              </ActionButton>
+            </div>
+          </OverlayFooter>
+        </SheetModal>
       ) : null}
 
       {selectedLoadoutEntry && selectedLoadoutEntryData ? (

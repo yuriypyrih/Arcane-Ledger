@@ -24,6 +24,8 @@ type HitPointEditInput = {
   maxHitPointsMode: MaxHitPointsMode;
 };
 
+const MAX_HIT_POINTS = 9999;
+
 function getResolvedDeathSaves(character: Character, nextCurrentHitPoints: number) {
   return nextCurrentHitPoints > 0
     ? createDefaultDeathSaves()
@@ -151,7 +153,7 @@ export function applyHitPointEditToCharacter(
   character: Character,
   { hitPoints, currentHitPoints, maxHitPointsMode }: HitPointEditInput
 ): Character {
-  const nextBaseHitPoints = clampNumber(hitPoints, 1, 999, character.hitPoints);
+  const nextBaseHitPoints = clampNumber(hitPoints, 1, MAX_HIT_POINTS, character.hitPoints);
   const nextEffectiveHitPoints = getEffectiveHitPointsForBase(character, nextBaseHitPoints);
   const nextCurrentHitPoints = clampNumber(
     currentHitPoints,

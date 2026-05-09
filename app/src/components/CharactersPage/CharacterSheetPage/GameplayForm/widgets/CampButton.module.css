@@ -59,7 +59,7 @@
 }
 
 .hitDiceControlRow {
-  align-items: start;
+  align-items: end;
   display: grid;
   gap: 0.65rem;
   grid-template-columns: minmax(4.4rem, auto) minmax(0, 1fr);
@@ -142,7 +142,7 @@
 }
 
 .hitDiceFormulaCell {
-  align-self: start;
+  align-self: end;
 }
 
 .footerActions {

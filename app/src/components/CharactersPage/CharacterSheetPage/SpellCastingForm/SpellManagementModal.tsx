@@ -416,7 +416,7 @@ function SpellManagementModal({
       onEscape={suspendEscapeClose ? ignoreModalEscapeClose : commitAndClose}
       isBusy={isCommitting}
       busyLabel="Saving spell choices"
-      panelClassName={styles.spellManagementModalPanel}
+      size="medium"
     >
       <OverlayHeader>
         <OverlayHeaderContent>

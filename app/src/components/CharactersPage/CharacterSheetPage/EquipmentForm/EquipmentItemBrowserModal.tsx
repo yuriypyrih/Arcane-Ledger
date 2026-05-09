@@ -171,6 +171,7 @@ function EquipmentItemBrowserModal({
       onClose={onClose}
       isBusy={isClosing}
       busyLabel="Saving equipment"
+      size="large"
       panelClassName={styles.modal}
     >
       <OverlayHeader>

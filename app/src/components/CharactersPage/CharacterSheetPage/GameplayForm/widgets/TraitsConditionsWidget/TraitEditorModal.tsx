@@ -84,7 +84,8 @@ function TraitEditorModal({
     <SheetModal
       titleId="trait-modal-title"
       onClose={onClose}
-      panelClassName={clsx(styles.modalPanel, isCustomTraitMode && styles.modalPanelExpanded)}
+      size="medium"
+      panelClassName={isCustomTraitMode ? styles.modalPanelExpanded : undefined}
     >
       <OverlayHeader className={styles.header}>
         <OverlayHeaderContent className={styles.headerContent}>

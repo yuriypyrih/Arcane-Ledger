@@ -68,6 +68,7 @@ function MonsterBrowserModal({
     <SheetModal
       titleId={titleId}
       onClose={onClose}
+      size="large"
       panelClassName={styles.browserModal}
       backdropClassName={styles.browserBackdrop}
     >

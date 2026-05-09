@@ -239,6 +239,7 @@ function EldritchInvocationEditorModal({
     <SheetModal
       titleId="eldritch-invocation-editor-title"
       onClose={commitAndClose}
+      size="medium"
       panelClassName={styles.modalPanel}
     >
       <OverlayHeader>

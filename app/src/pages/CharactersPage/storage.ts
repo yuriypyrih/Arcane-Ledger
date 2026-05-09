@@ -218,7 +218,7 @@ export function normalizeCharacter(value: unknown): Character | null {
   }
 
   const defaults = createEmptyCharacter();
-  const normalizedHitPoints = clampNumber(record.hitPoints, 1, 999, defaults.hitPoints);
+  const normalizedHitPoints = clampNumber(record.hitPoints, 1, 9999, defaults.hitPoints);
   const { level: normalizedLevel, xp: normalizedXp } = normalizeLevelAndXp(
     record.level,
     record.xp ?? record.experience
@@ -537,6 +537,7 @@ export function normalizeCharacter(value: unknown): Character | null {
     className: normalizedClassName,
     subclassId: normalizedSubclassId,
     level: normalizedLevel,
+    species: normalizedSpecies,
     hitPoints: normalizedHitPoints,
     statusEntries: normalizedStatusEntries
   });

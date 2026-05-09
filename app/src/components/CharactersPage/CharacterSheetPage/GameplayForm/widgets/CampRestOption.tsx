@@ -36,6 +36,8 @@ function RestOptionCharges({ charges }: { charges: NonNullable<RestOption["charg
 }
 
 function CampRestOption({ option, selected, onToggle }: CampRestOptionProps) {
+  const isDisabled = option.emphasis === "feature" && option.disabled === true;
+
   if (option.emphasis === "feature") {
     return (
       <RadioContainerOption
@@ -43,7 +45,7 @@ function CampRestOption({ option, selected, onToggle }: CampRestOptionProps) {
         breakdown={option.detail}
         selected={selected}
         onSelect={() => onToggle(option.id)}
-        disabled={option.disabled === true}
+        disabled={isDisabled}
         indicatorType="checkbox"
         aside={option.charges ? <RestOptionCharges charges={option.charges} /> : undefined}
       />
@@ -55,7 +57,6 @@ function CampRestOption({ option, selected, onToggle }: CampRestOptionProps) {
       <input
         type="checkbox"
         checked={selected}
-        disabled={option.disabled === true}
         onChange={() => onToggle(option.id)}
       />
       <span>{option.label}</span>

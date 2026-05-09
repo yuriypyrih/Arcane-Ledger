@@ -388,7 +388,7 @@ function CompanionEditorModal({
 
   return (
     <>
-      <SheetModal titleId={titleId} onClose={onClose} panelClassName={styles.editorModal}>
+      <SheetModal titleId={titleId} onClose={onClose} size="medium">
         <OverlayHeader>
           <OverlayHeaderContent>
             <OverlayTitle id={titleId}>

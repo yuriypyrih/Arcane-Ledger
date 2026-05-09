@@ -110,6 +110,7 @@ import { getFeatureDescriptionForCharacter } from "./classFeatures/featureDescri
 import { getBarbarianPathOfTheWildHeartStatusDescriptionEntries } from "./classFeatures/barbarian/subclasses/barbarianPathOfTheWildHeart";
 import { getFeatHitPointMaximumBonusForCharacter } from "./feats/runtime";
 import { getKeywordDescriptionLines } from "./keywordDescriptions";
+import { getDwarvenToughnessHitPointMaximumBonus } from "./speciesDwarf";
 import {
   getExhaustionLevel as getStoredExhaustionLevel,
   hasStatusCondition,
@@ -646,7 +647,7 @@ export function getExhaustionSpeedAdjustment(
 
 export function getEffectiveHitPointMaximumForCharacter(
   character: Pick<Character, "className" | "hitPoints" | "statusEntries"> &
-    Partial<Pick<Character, "feats" | "level" | "subclassId">>
+    Partial<Pick<Character, "feats" | "level" | "species" | "subclassId">>
 ): number {
   const baseHitPoints = Math.max(1, Math.floor(character.hitPoints));
   const featureHitPointMaximumBonus = getSorcererDraconicResilienceHitPointMaximumBonus(character);
@@ -654,9 +655,18 @@ export function getEffectiveHitPointMaximumForCharacter(
     level: character.level ?? 1,
     feats: character.feats
   });
+  const speciesHitPointMaximumBonus = getDwarvenToughnessHitPointMaximumBonus({
+    level: character.level,
+    species: character.species
+  });
   const effectiveBaseHitPoints = Math.max(
     1,
-    Math.floor(baseHitPoints + featureHitPointMaximumBonus + featHitPointMaximumBonus)
+    Math.floor(
+      baseHitPoints +
+        featureHitPointMaximumBonus +
+        featHitPointMaximumBonus +
+        speciesHitPointMaximumBonus
+    )
   );
   const exhaustionLevel = getExhaustionLevel(character.statusEntries);
 
