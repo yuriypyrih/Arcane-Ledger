@@ -682,10 +682,7 @@ function getWarlockFiendPatronHurlThroughHellAction(
         resourceLabel: "Pact Magic Slot"
       }),
       pactMagicSlotsRemaining,
-      pactMagicSlotsTotal,
-      {
-        label: "Pact Magic Slots"
-      }
+      pactMagicSlotsTotal
     ),
     resources,
     drawer: {

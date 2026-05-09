@@ -16,7 +16,6 @@ import {
   OverlayEyebrow,
   OverlayHeader,
   OverlayHeaderContent,
-  OverlaySummary,
   OverlayTitle,
   OverlayTitleRow,
   SheetDrawer,
@@ -43,7 +42,6 @@ type GameplayActionDrawerProps = {
   facts?: FeatureActionFact[];
   factsSectionTitle?: string | null;
   headerTags?: FeatureActionHeaderTag[];
-  helperText?: string;
   warning?: string | null;
   blockedReason?: string | null;
   footer?: ReactNode;
@@ -64,7 +62,6 @@ function GameplayActionDrawer({
   facts = [],
   factsSectionTitle = "Details",
   headerTags = [],
-  helperText,
   warning = null,
   blockedReason = null,
   footer,
@@ -124,7 +121,6 @@ function GameplayActionDrawer({
                 <OverlayTitle id="gameplay-action-drawer-title">{title}</OverlayTitle>
                 {titleAccessory}
               </OverlayTitleRow>
-              {helperText ? <OverlaySummary>{helperText}</OverlaySummary> : null}
             </OverlayHeaderContent>
             <div className={styles.headerAside}>
               {headerTags.length > 0 ? (

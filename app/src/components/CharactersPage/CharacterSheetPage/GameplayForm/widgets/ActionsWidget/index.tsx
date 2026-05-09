@@ -2326,7 +2326,6 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
             selectedAction.kind === "weapon" ? undefined : selectedAction.drawer.factsSectionTitle
           }
           headerTags={selectedActionHeaderTags}
-          helperText={selectedAction.drawer.helperText}
           warning={selectedDrawerWarning}
           blockedReason={
             selectedAction.kind === "feature"

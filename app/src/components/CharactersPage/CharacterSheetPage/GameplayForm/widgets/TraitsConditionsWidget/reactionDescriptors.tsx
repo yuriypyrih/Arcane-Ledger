@@ -778,9 +778,7 @@ const descriptors: ReactionDescriptor[] = [
         }),
         context.warlockPactMagicSlotsRemaining,
         context.warlockPactMagicSlotTotal,
-        {
-          label: "Pact Magic Slots"
-        },
+        {},
         "Long Rest",
         {
           isFallback: true
