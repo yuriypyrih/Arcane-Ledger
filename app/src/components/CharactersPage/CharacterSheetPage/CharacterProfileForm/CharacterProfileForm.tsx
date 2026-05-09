@@ -12,17 +12,22 @@ import { getClassSignatureStyle } from "../../classSignature";
 import CharacterProgressModal from "./CharacterProgressModal";
 import styles from "./CharacterProfileForm.module.css";
 import InlineToggleButton from "../InlineToggleButton";
-import { createProfileCoreStatRows } from "../StatsForm/coreStatModel";
+import {
+  createBroadProfileCoreStatRows,
+  createProfileCoreStatRows
+} from "../StatsForm/coreStatModel";
 import { useCoreStatReferenceDrawer } from "../StatsForm/useCoreStatReferenceDrawer";
 import CoreStatCards from "../StatsForm/CoreStatCards";
 
 type CharacterProfileFormProps = {
+  broadLayout?: boolean;
   character: Character;
   className?: string;
   onPersistCharacter: PersistCharacterUpdater;
 };
 
 function CharacterProfileForm({
+  broadLayout = false,
   character,
   className,
   onPersistCharacter
@@ -31,7 +36,9 @@ function CharacterProfileForm({
   const [isProgressModalOpen, setIsProgressModalOpen] = useState(false);
 
   const selectedSubclass = getSelectedSubclassForCharacter(character);
-  const profileCoreStatRows = createProfileCoreStatRows(character);
+  const profileCoreStatRows = broadLayout
+    ? createBroadProfileCoreStatRows(character)
+    : createProfileCoreStatRows(character);
   const { coreStatReferenceDrawer, openCoreStatReference } = useCoreStatReferenceDrawer(
     character,
     onPersistCharacter
@@ -69,10 +76,10 @@ function CharacterProfileForm({
   return (
     <>
       <article
-        className={clsx(styles.profileCard, className)}
+        className={clsx(styles.profileCard, broadLayout && styles.profileCardBroad, className)}
         style={getClassSignatureStyle(character.className)}
       >
-        <div className={styles.profileShell}>
+        <div className={clsx(styles.profileShell, broadLayout && styles.profileShellBroad)}>
           <div className={styles.portraitFrame} aria-label="Character portrait placeholder">
             <User size={42} strokeWidth={1.8} aria-hidden="true" />
           </div>
@@ -97,11 +104,11 @@ function CharacterProfileForm({
             />
           </div>
 
-          <aside className={styles.profileSummary} aria-label="Character quick stats">
-            <CoreStatCards
-              rows={profileCoreStatRows}
-              onOpenCard={openCoreStatReference}
-            />
+          <aside
+            className={clsx(styles.profileSummary, broadLayout && styles.profileSummaryBroad)}
+            aria-label="Character quick stats"
+          >
+            <CoreStatCards rows={profileCoreStatRows} onOpenCard={openCoreStatReference} />
           </aside>
         </div>
 

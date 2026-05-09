@@ -1,31 +1,21 @@
 import { Home, Menu } from "lucide-react";
-import { useState } from "react";
-import { NavLink, useMatch } from "react-router-dom";
-import { useMediaQuery } from "../../../lib/useMediaQuery";
-import {
-  getBroadLayoutPreference,
-  updateBroadLayoutPreference
-} from "../../../storage/preferences";
-import { MEDIA_QUERIES } from "../../../styles/breakpoints";
+import { NavLink } from "react-router-dom";
 import type { NavigationLink } from "../navigationLinks";
 import styles from "./PrimaryNav.module.css";
 
 type PrimaryNavProps = {
   links: NavigationLink[];
+  broadLayout: boolean;
+  showBroadLayoutSwitch: boolean;
+  onToggleBroadLayout: () => void;
 };
 
-function PrimaryNav({ links }: PrimaryNavProps) {
-  const characterSheetMatch = useMatch({ path: "/characters/:characterId", end: true });
-  const isXlUp = useMediaQuery(MEDIA_QUERIES.xlUp);
-  const [broadLayout, setBroadLayout] = useState(() => getBroadLayoutPreference());
-  const showBroadLayoutSwitch = Boolean(characterSheetMatch) && isXlUp;
-
-  function toggleBroadLayout() {
-    const nextBroadLayout = !broadLayout;
-    setBroadLayout(nextBroadLayout);
-    updateBroadLayoutPreference(nextBroadLayout);
-  }
-
+function PrimaryNav({
+  links,
+  broadLayout,
+  showBroadLayoutSwitch,
+  onToggleBroadLayout
+}: PrimaryNavProps) {
   return (
     <nav className={styles.nav} aria-label="Primary">
       <div className={styles.leftCluster}>
@@ -66,7 +56,7 @@ function PrimaryNav({ links }: PrimaryNavProps) {
                 ? `${styles.broadLayoutSwitch} ${styles.broadLayoutSwitchActive}`
                 : styles.broadLayoutSwitch
             }
-            onClick={toggleBroadLayout}
+            onClick={onToggleBroadLayout}
           >
             <span className={styles.broadLayoutLabel}>Broad Layout</span>
             <span className={styles.switchTrack} aria-hidden="true">

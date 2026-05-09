@@ -59,6 +59,7 @@
 }
 
 .modifierCard {
+  overflow: visible;
   display: grid;
   gap: 0.35rem;
   padding: 0.75rem 0.85rem;
@@ -152,9 +153,11 @@
 }
 
 .combinedValueColumn {
+  position: relative;
   display: grid;
   gap: 0.02rem;
   justify-items: center;
+  padding-bottom: 0.72rem;
 }
 
 .combinedValueLabel {
@@ -183,6 +186,22 @@
 
 .savingThrowValueProficient {
   color: #6f2bc5;
+}
+
+.combinedRollState {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  z-index: 2;
+  display: flex;
+  max-width: calc(100% + 1.4rem);
+  pointer-events: none;
+  transform: translate(-50%, 50%);
+}
+
+.combinedRollStatePill {
+  box-shadow: 0 0 0 3px var(--color-panel-strong);
+  white-space: nowrap;
 }
 
 .combinedValueDivider {

@@ -11,6 +11,7 @@ import { getAutomaticMaxHitPointsForCharacter } from "../../../../../pages/Chara
 import { getEffectiveHitPointMaximumForCharacter } from "../../../../../pages/CharactersPage/traits";
 import HitPointControls from "../../HitPointControls/HitPointControls";
 import MagicTemporaryHitPoints from "../../MagicTemporaryHitPoints";
+import TemporaryHitPoints from "../../TemporaryHitPoints";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import widgetShellStyles from "../GameplayWidgetShared.module.css";
 import {
@@ -80,6 +81,12 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
     onPersistCharacter
   ]);
 
+  const normalizedCurrentHitPoints = clampNumber(
+    character.currentHitPoints,
+    0,
+    effectiveHitPoints,
+    character.currentHitPoints
+  );
   const temporaryHitPoints = normalizeTemporaryHitPoints(character.temporaryHitPoints);
   const magicTemporaryHitPoints = normalizeMagicTemporaryHitPoints(character.magicTemporaryHitPoints);
   const magicTemporaryHitPointsFeature = getMagicTemporaryHitPointsFeatureForCharacter(character);
@@ -89,11 +96,13 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
       ? "Dead"
       : deathSaves.successes >= 3
         ? "Stable"
-        : character.currentHitPoints === 0
+        : normalizedCurrentHitPoints === 0
           ? "Unconscious"
-          : character.currentHitPoints <= Math.ceil(effectiveHitPoints * 0.35)
+          : normalizedCurrentHitPoints <= Math.ceil(effectiveHitPoints * 0.35)
             ? "Critical"
             : "Stable";
+  const temporaryHitPointsDescription =
+    "When taking damage the temporary hit points are consumed first. They do not stack and they vanish after resting at a camp.";
 
   function beginEditing() {
     setHpDraft(createHpDraft(character));
@@ -175,8 +184,34 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
 
   return (
     <section className={clsx(widgetShellStyles.widgetCard, styles.root)}>
-      <header className={widgetShellStyles.widgetHeader}>
-        <p className={widgetShellStyles.widgetTitle}>Hit Points</p>
+      <header className={clsx(widgetShellStyles.widgetHeader, styles.header)}>
+        <div className={styles.headerSummary}>
+          <p className={widgetShellStyles.widgetTitle}>Hit Points</p>
+          <div className={styles.headerValueRow}>
+            <strong className={styles.headerHitPoints}>
+              {normalizedCurrentHitPoints}/{effectiveHitPoints} HP
+            </strong>
+            <TemporaryHitPoints
+              temporaryHitPoints={temporaryHitPoints}
+              temporaryHitPointsSource={character.temporaryHitPointsSource}
+              description={temporaryHitPointsDescription}
+              onSaveTemporaryHitPoints={(value) =>
+                onPersistCharacter((currentCharacter) =>
+                  assignManualTemporaryHitPointsForCharacter(currentCharacter, value)
+                )
+              }
+            />
+            {magicTemporaryHitPointsFeature ? (
+              <MagicTemporaryHitPoints
+                feature={magicTemporaryHitPointsFeature}
+                magicTemporaryHitPoints={magicTemporaryHitPoints}
+                magicTemporaryHitPointsSource={character.magicTemporaryHitPointsSource}
+                onPersistCharacter={onPersistCharacter}
+              />
+            ) : null}
+          </div>
+          <span className={styles.statusLabel}>{statusLabel}</span>
+        </div>
         {isEditing ? null : (
           <button
             type="button"
@@ -253,17 +288,8 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
           temporaryHitPointsSource={character.temporaryHitPointsSource}
           magicTemporaryHitPoints={magicTemporaryHitPoints}
           statusText={statusLabel}
-          temporaryHitPointsDescription="When taking damage the temporary hit points are consumed first. They do not stack and they vanish after resting at a camp."
-          extraTemporaryHitPointControl={
-            magicTemporaryHitPointsFeature ? (
-              <MagicTemporaryHitPoints
-                feature={magicTemporaryHitPointsFeature}
-                magicTemporaryHitPoints={magicTemporaryHitPoints}
-                magicTemporaryHitPointsSource={character.magicTemporaryHitPointsSource}
-                onPersistCharacter={onPersistCharacter}
-              />
-            ) : null
-          }
+          showSummary={false}
+          temporaryHitPointsDescription={temporaryHitPointsDescription}
           onDamage={(amount) =>
             onPersistCharacter((currentCharacter) =>
               applyDamageToCharacter(currentCharacter, amount)

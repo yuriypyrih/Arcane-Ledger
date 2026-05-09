@@ -539,6 +539,25 @@ export function createProfileCoreStatRows(character: Character): CoreStatCard[][
   return rows;
 }
 
+function createChunkedCoreStatRows(cards: CoreStatCard[], cardsPerRow: number): CoreStatCard[][] {
+  const rows: CoreStatCard[][] = [];
+
+  for (let index = 0; index < cards.length; index += cardsPerRow) {
+    rows.push(cards.slice(index, index + cardsPerRow));
+  }
+
+  return rows;
+}
+
+export function createBroadProfileCoreStatRows(character: Character): CoreStatCard[][] {
+  const { cards: baseCards } = createBaseCoreStatCards(character, profileCoreStatFields);
+
+  return createChunkedCoreStatRows(
+    [...baseCards, ...createAdditionalCoreStatCards(character)],
+    2
+  );
+}
+
 export function createCoreStatReference(
   character: Character,
   card: CoreStatCard

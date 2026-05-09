@@ -1,6 +1,7 @@
 import { useMemo } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useOutletContext, useParams } from "react-router-dom";
 import { ThumbDiceButton } from "../../../components/CharactersPage/CharacterSheetPage";
+import type { AppShellOutletContext } from "../../../components/AppShell/outletContext";
 import styles from "./CharacterSheetPage.module.css";
 import { useCharacterSheetPersistence } from "./useCharacterSheetPersistence";
 import {
@@ -16,13 +17,17 @@ import {
 
 function CharacterSheetPage() {
   const { characterId } = useParams();
+  const { isBroadLayoutActive } = useOutletContext<AppShellOutletContext>();
   const parsedCharacterId = useMemo(() => Number(characterId), [characterId]);
   const { character, persistCharacter, queueHitPointCharacterSave } =
     useCharacterSheetPersistence(parsedCharacterId);
+  const pageClassName = isBroadLayoutActive
+    ? `${styles.page} ${styles.pageBroad}`
+    : styles.page;
 
   if (!character) {
     return (
-      <section className={styles.page}>
+      <section className={pageClassName}>
         <article className={styles.notFoundCard}>
           <p className={styles.eyebrow}>Character sheet</p>
           <h2>Character not found</h2>
@@ -36,10 +41,17 @@ function CharacterSheetPage() {
   }
 
   return (
-    <section className={styles.page}>
-      <div className={styles.cascadeStack}>
+    <section className={pageClassName}>
+      <div
+        className={
+          isBroadLayoutActive
+            ? `${styles.cascadeStack} ${styles.cascadeStackBroad}`
+            : styles.cascadeStack
+        }
+      >
         <CharacterProfileSection
           className={styles.cascadeOne}
+          broadLayout={isBroadLayoutActive}
           onPersistCharacter={persistCharacter}
         />
         <GameplaySection
@@ -49,7 +61,6 @@ function CharacterSheetPage() {
         />
         <StatsSection className={styles.cascadeThree} onPersistCharacter={persistCharacter} />
         <SkillsSection className={styles.cascadeFive} onPersistCharacter={persistCharacter} />
-        <FeaturesSection className={styles.cascadeFour} onPersistCharacter={persistCharacter} />
         <CompanionsSheetSection
           className={styles.cascadeSix}
           onPersistCharacter={persistCharacter}
@@ -58,6 +69,7 @@ function CharacterSheetPage() {
           className={styles.cascadeSeven}
           onPersistCharacter={persistCharacter}
         />
+        <FeaturesSection className={styles.cascadeFour} onPersistCharacter={persistCharacter} />
         <SpellcastingSection
           className={styles.cascadeEight}
           onPersistCharacter={persistCharacter}

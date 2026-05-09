@@ -6,6 +6,10 @@
   padding-bottom: calc(env(safe-area-inset-bottom, 0px) + clamp(6.8rem, 12vw, 9.2rem));
 }
 
+.pageBroad {
+  max-width: 1920px;
+}
+
 .editButton,
 .saveButton,
 .cancelButton,
@@ -49,6 +53,18 @@
   gap: var(--space-page-gap);
 }
 
+.cascadeStackBroad {
+  align-items: start;
+  grid-template-areas:
+    "profile gameplay spellcasting"
+    "profile stats spellcasting"
+    "profile skills spellcasting"
+    "profile companions spellcasting"
+    "profile equipment spellcasting"
+    "profile features spellcasting";
+  grid-template-columns: minmax(0, 1fr) minmax(0, 3fr) minmax(0, 2fr);
+}
+
 .cascadeOne,
 .cascadeTwo,
 .cascadeThree,
@@ -58,6 +74,38 @@
 .cascadeSeven,
 .cascadeEight {
   transform: none;
+}
+
+.cascadeStackBroad .cascadeOne {
+  grid-area: profile;
+}
+
+.cascadeStackBroad .cascadeTwo {
+  grid-area: gameplay;
+}
+
+.cascadeStackBroad .cascadeThree {
+  grid-area: stats;
+}
+
+.cascadeStackBroad .cascadeFour {
+  grid-area: features;
+}
+
+.cascadeStackBroad .cascadeFive {
+  grid-area: skills;
+}
+
+.cascadeStackBroad .cascadeSix {
+  grid-area: companions;
+}
+
+.cascadeStackBroad .cascadeSeven {
+  grid-area: equipment;
+}
+
+.cascadeStackBroad .cascadeEight {
+  grid-area: spellcasting;
 }
 
 .eyebrow {

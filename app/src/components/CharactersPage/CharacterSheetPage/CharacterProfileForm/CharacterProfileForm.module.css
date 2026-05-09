@@ -28,12 +28,45 @@
   z-index: 1;
 }
 
+.profileCardBroad {
+  align-self: start;
+  padding: 0.72rem;
+}
+
 .profileShell {
   display: grid;
   grid-template-columns: clamp(96px, 8.8vw, 120px) minmax(0, 1fr) minmax(600px, 600px);
   align-items: stretch;
   gap: 0.72rem;
   min-width: 0;
+}
+
+.profileShellBroad {
+  grid-template-columns: 1fr;
+  align-items: start;
+  gap: 0.82rem;
+}
+
+.profileShellBroad .portraitFrame {
+  justify-self: center;
+  width: min(152px, 72%);
+  margin-top: -1rem;
+  margin-left: 0;
+}
+
+.profileShellBroad .identityBlock {
+  grid-template-rows: auto auto auto;
+}
+
+.profileShellBroad .nameStack {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 0.38rem;
+}
+
+.profileShellBroad .characterName,
+.profileShellBroad .identityRows p {
+  white-space: normal;
 }
 
 .portraitFrame {
@@ -113,6 +146,13 @@
   padding-left: 0.78rem;
 }
 
+.profileSummaryBroad {
+  border-top: 1px solid rgba(75, 47, 29, 0.12);
+  border-left: 0;
+  padding-top: 0.82rem;
+  padding-left: 0;
+}
+
 .levelButton {
   display: inline-flex;
   align-items: center;
@@ -146,6 +186,10 @@
   font-size: 0.84rem;
 }
 
+.profileShellBroad .notesToggle {
+  align-self: start;
+}
+
 .notesPanel {
   display: grid;
   gap: 0.42rem;
@@ -153,6 +197,10 @@
   border-radius: 8px;
   background: rgba(75, 47, 29, 0.055);
   padding: 0.58rem 0.66rem;
+}
+
+.profileCardBroad .notesPanel {
+  margin: 0;
 }
 
 .notesRow {

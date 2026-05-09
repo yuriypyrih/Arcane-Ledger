@@ -279,11 +279,6 @@ export function renderSpellCastingForm(context: Record<string, any>) {
       <div className={shared.sectionHeader}>
         <div>
           <p className={shared.eyebrow}>Spellcasting</p>
-          <h3 className={shared.subtitle}>
-            {usesSpellbook
-              ? "Spellbook, prepared spells, and spell slots"
-              : "Prepared spells and spell slots"}
-          </h3>
         </div>
         <div className={shared.headerActions}>
           {hasSpellSelectionInputRequired ? (

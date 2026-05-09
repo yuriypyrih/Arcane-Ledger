@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Moon } from "lucide-react";
+import { FlameKindling } from "lucide-react";
 import { useId, useMemo, useState } from "react";
 import ActionButton from "../../../../ActionButton";
 import d20Icon from "../../../../../assets/svg/d20.svg";
@@ -313,7 +313,7 @@ function CampButton({
   return (
     <>
       <button type="button" className={clsx(shared.editButton, styles.button)} onClick={openPopup}>
-        <Moon size={16} />
+        <FlameKindling size={16} />
         Camp
       </button>
 

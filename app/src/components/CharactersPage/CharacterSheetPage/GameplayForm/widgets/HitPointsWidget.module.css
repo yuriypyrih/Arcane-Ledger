@@ -1,11 +1,41 @@
 .root {
   grid-column: 1 / -1;
+  gap: 0;
 }
 
 .editButton {
   min-height: 34px;
   min-width: 34px;
   padding: 0 0.72rem;
+}
+
+.header {
+  align-items: flex-start;
+}
+
+.headerSummary {
+  display: grid;
+  gap: 0.12rem;
+  min-width: 0;
+}
+
+.headerHitPoints {
+  color: var(--color-ink);
+  font-size: 1.08rem;
+  line-height: 1;
+}
+
+.headerValueRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.statusLabel {
+  color: var(--color-ink-soft);
+  font-size: 0.85rem;
+  line-height: 1;
 }
 
 .editGrid {

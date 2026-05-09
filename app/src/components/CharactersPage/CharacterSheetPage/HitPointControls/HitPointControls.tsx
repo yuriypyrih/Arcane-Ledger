@@ -21,6 +21,7 @@ type HitPointControlsProps = {
   extraTemporaryHitPointControl?: ReactNode;
   temporaryHitPointsDescription?: string;
   className?: string;
+  showSummary?: boolean;
   onDamage: (amount: number) => void;
   onHeal: (amount: number) => void;
   onSaveTemporaryHitPoints: (value: number) => void;
@@ -36,6 +37,7 @@ function HitPointControls({
   extraTemporaryHitPointControl,
   temporaryHitPointsDescription,
   className,
+  showSummary = true,
   onDamage,
   onHeal,
   onSaveTemporaryHitPoints
@@ -94,26 +96,28 @@ function HitPointControls({
 
   return (
     <div className={clsx(styles.root, className)}>
-      <div className={styles.summary}>
-        <div className={styles.valueRow}>
-          <div className={styles.summaryCopy}>
-            <div className={styles.currentRow}>
-              <strong>
-                {normalizedCurrentHitPoints}/{normalizedMaxHitPoints} HP
-              </strong>
-              <TemporaryHitPoints
-                temporaryHitPoints={normalizedTemporaryHitPoints}
-                temporaryHitPointsSource={temporaryHitPointsSource}
-                description={temporaryHitPointsDescription}
-                onSaveTemporaryHitPoints={onSaveTemporaryHitPoints}
-              />
-              {extraTemporaryHitPointControl}
-            </div>
+      {showSummary ? (
+        <div className={styles.summary}>
+          <div className={styles.valueRow}>
+            <div className={styles.summaryCopy}>
+              <div className={styles.currentRow}>
+                <strong>
+                  {normalizedCurrentHitPoints}/{normalizedMaxHitPoints} HP
+                </strong>
+                <TemporaryHitPoints
+                  temporaryHitPoints={normalizedTemporaryHitPoints}
+                  temporaryHitPointsSource={temporaryHitPointsSource}
+                  description={temporaryHitPointsDescription}
+                  onSaveTemporaryHitPoints={onSaveTemporaryHitPoints}
+                />
+                {extraTemporaryHitPointControl}
+              </div>
 
-            {statusText ? <span>{statusText}</span> : null}
+              {statusText ? <span>{statusText}</span> : null}
+            </div>
           </div>
         </div>
-      </div>
+      ) : null}
 
       <div className={styles.actionRow}>
         <div className={styles.barTrack}>
