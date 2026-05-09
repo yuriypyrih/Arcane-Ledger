@@ -1,5 +1,6 @@
 import { X } from "lucide-react";
 import type { ReactNode } from "react";
+import { createPortal } from "react-dom";
 import ItemInspectionContent, { ItemInspectionHeader } from "../../../ItemInspection";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import type { SpellDescriptionEntry } from "../../../../codex/entries";
@@ -39,7 +40,11 @@ function EquipmentInventoryItemDrawer({
       <ItemInspectionHeader item={item} titleId="equipment-item-drawer-title" headingLevel="h3" />
     ) : null);
 
-  return (
+  if (typeof document === "undefined") {
+    return null;
+  }
+
+  return createPortal(
     <div
       className={`${sheetStyles.spellDrawerBackdrop} ${styles.backdrop}`}
       role="presentation"
@@ -111,7 +116,8 @@ function EquipmentInventoryItemDrawer({
 
         {footer ? <div className={styles.footer}>{footer}</div> : null}
       </section>
-    </div>
+    </div>,
+    document.body
   );
 }
 

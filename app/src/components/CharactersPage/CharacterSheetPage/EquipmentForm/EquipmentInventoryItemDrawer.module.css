@@ -1,5 +1,5 @@
 .backdrop {
-  z-index: 50;
+  --sheet-drawer-z-index: 50;
 }
 
 .drawer {

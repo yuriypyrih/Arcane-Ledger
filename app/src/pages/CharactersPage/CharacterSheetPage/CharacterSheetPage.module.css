@@ -485,7 +485,7 @@
   justify-content: center;
   background: rgba(32, 18, 12, 0.56);
   padding: var(--overlay-backdrop-padding);
-  z-index: 45;
+  z-index: var(--sheet-drawer-z-index, 45);
 }
 
 .spellDrawer {
@@ -785,5 +785,4 @@
   .currencyDrawerContent {
     gap: 0.5rem;
   }
-
 }
