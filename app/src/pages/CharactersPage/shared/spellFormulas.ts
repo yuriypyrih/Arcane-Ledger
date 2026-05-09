@@ -4,6 +4,7 @@ import type { AbilityKey, Character } from "../../../types";
 import { isInnateSorceryActiveForSpell } from "../classFeatures/sorcerer/innateSorcerySpell";
 import { getAbilityModifierForCharacter } from "../abilities";
 import { getProficiencyBonus } from "../gameplay";
+import { getExhaustionD20TestPenalty } from "../statusEntries";
 import {
   formatD20Formula,
   formatFormulaCell,
@@ -138,12 +139,14 @@ export function getSpellAttackRollFormulaForCharacter(
 
   const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
   const abilityModifier = getAbilityModifierForCharacter(character, spellcastingAbility);
-  const attackBonus = proficiencyBonus + abilityModifier;
+  const exhaustionPenalty = getExhaustionD20TestPenalty(character.statusEntries);
+  const attackBonus = proficiencyBonus + abilityModifier + exhaustionPenalty;
   const innateSorceryActive = isInnateSorceryActiveForSpell(character, spell);
   const displayTerms = [
     "1d20",
     formatSignedFormulaTerm(proficiencyBonus, "Prof. Bonus"),
-    formatSignedFormulaTerm(abilityModifier, spellcastingAbility)
+    formatSignedFormulaTerm(abilityModifier, spellcastingAbility),
+    exhaustionPenalty !== 0 ? formatSignedFormulaTerm(exhaustionPenalty, "Exhaustion") : null
   ];
 
   return {

@@ -888,6 +888,10 @@ export function getExhaustionLevel(value: unknown): number | null {
   return normalizeExhaustionLevel(exhaustionEntry.conditionLevel) ?? 1;
 }
 
+export function getExhaustionD20TestPenalty(value: unknown): number {
+  return -2 * (getExhaustionLevel(value) ?? 0);
+}
+
 export function setCharacterExhaustionLevel(
   value: unknown,
   nextLevel: number | null
@@ -926,18 +930,6 @@ export function setCharacterExhaustionLevel(
       duration: { kind: STATUS_DURATION_KIND.INFINITE }
     })
   ]);
-}
-
-export function hasExhaustionAbilityCheckDisadvantage(value: unknown): boolean {
-  return (getExhaustionLevel(value) ?? 0) >= 1;
-}
-
-export function hasExhaustionAttackRollDisadvantage(value: unknown): boolean {
-  return (getExhaustionLevel(value) ?? 0) >= 3;
-}
-
-export function hasExhaustionSavingThrowDisadvantage(value: unknown): boolean {
-  return (getExhaustionLevel(value) ?? 0) >= 3;
 }
 
 export function advanceCharacterStatusEntries(

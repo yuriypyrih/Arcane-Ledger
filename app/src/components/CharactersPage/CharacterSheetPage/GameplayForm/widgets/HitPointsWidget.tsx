@@ -5,6 +5,7 @@ import type { Character } from "../../../../../types";
 import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { getMagicTemporaryHitPointsFeatureForCharacter } from "../../../../../pages/CharactersPage/classFeatures/magicTemporaryHitPoints";
 import { clampNumber } from "../../../../../pages/CharactersPage/CharacterSheetPage/utils";
+import { getDeathSaveStatusLabel } from "../../../../../pages/CharactersPage/deathSaves";
 import { getEffectiveHitPointMaximumForCharacter } from "../../../../../pages/CharactersPage/traits";
 import HitPointControls from "../../HitPointControls/HitPointControls";
 import MagicTemporaryHitPoints from "../../MagicTemporaryHitPoints";
@@ -23,6 +24,7 @@ import {
   assignManualTemporaryHitPointsForCharacter,
   syncAutomaticHitPointsForCharacter
 } from "../hitPointState";
+import DeathSavesWidget from "./DeathSavesWidget";
 import HitPointsEditModal from "./HitPointsEditModal";
 import styles from "./HitPointsWidget.module.css";
 
@@ -70,16 +72,11 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
   );
   const magicTemporaryHitPointsFeature = getMagicTemporaryHitPointsFeatureForCharacter(character);
   const deathSaves = normalizeDeathSaves(character.deathSaves);
-  const statusLabel =
-    deathSaves.failures >= 3
-      ? "Dead"
-      : deathSaves.successes >= 3
-        ? "Stable"
-        : normalizedCurrentHitPoints === 0
-          ? "Unconscious"
-          : normalizedCurrentHitPoints <= Math.ceil(effectiveHitPoints * 0.35)
-            ? "Critical"
-            : "Stable";
+  const statusLabel = getDeathSaveStatusLabel(
+    normalizedCurrentHitPoints,
+    effectiveHitPoints,
+    deathSaves
+  );
   const temporaryHitPointsDescription =
     "When taking damage the temporary hit points are consumed first. They do not stack and they vanish after resting at a camp.";
 
@@ -110,6 +107,7 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
                 onPersistCharacter={onPersistCharacter}
               />
             ) : null}
+            <DeathSavesWidget character={character} onPersistCharacter={onPersistCharacter} />
           </div>
           <span className={styles.statusLabel}>{statusLabel}</span>
         </div>

@@ -84,6 +84,7 @@ import {
 import { getResolvedCustomLoadoutEntries, type ResolvedCustomWeaponEntry } from "./customEquipment";
 import { skillGroupsByAbility } from "./skillDefinitions";
 import { getHitDieMaximumForClass } from "./hitDice";
+import { getExhaustionD20TestPenalty } from "./statusEntries";
 export {
   getHitDiceDisplayForCharacter,
   getHitDiceRemainingForCharacter,
@@ -666,6 +667,16 @@ export function createWeaponAction(
         combatType: options.combatType ?? null,
         properties: options.properties
       });
+  const exhaustionPenalty = getExhaustionD20TestPenalty(character.statusEntries);
+  const attackBonusEntries =
+    exhaustionPenalty !== 0
+      ? [
+          {
+            label: "Exhaustion",
+            value: exhaustionPenalty
+          }
+        ]
+      : [];
   const isBatteringRootsEligible = options.skipFeatureDerivedLookups
     ? false
     : getAdditionalWeaponMasteriesForCharacter(character, {
@@ -697,7 +708,7 @@ export function createWeaponAction(
     abilityModifier: attackAbilityBreakdown.total,
     cardBaseAbilityModifier: attackAbilityBreakdown.total,
     abilityModifierBonusEntries: attackAbilityBreakdown.bonusEntries,
-    attackBonusEntries: [],
+    attackBonusEntries,
     damageAbility,
     damageAbilityModifierBaseValue: damageAbilityBreakdown.baseValue,
     damageAbilityModifier,
@@ -787,6 +798,15 @@ export function getInitiativeBreakdownForCharacter(character: Character): Initia
     entries.push({
       label: "Proficiency Bonus (Alert)",
       value: getProficiencyBonus(character.level)
+    });
+  }
+
+  const exhaustionPenalty = getExhaustionD20TestPenalty(character.statusEntries);
+
+  if (exhaustionPenalty !== 0) {
+    entries.push({
+      label: "Exhaustion",
+      value: exhaustionPenalty
     });
   }
 

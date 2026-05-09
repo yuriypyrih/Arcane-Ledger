@@ -1,116 +1,188 @@
-.root {
-  grid-column: 1 / -1;
-}
-
-.stateRow {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  color: var(--color-ink);
-}
-
-.headerRow {
-  align-items: center;
-}
-
-.headerMain {
-  display: grid;
-  gap: 0.22rem;
-  min-width: 0;
-}
-
-.summaryRow {
-  display: grid;
-  gap: 0.65rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  min-width: 190px;
-}
-
-.summaryRow span {
-  color: var(--color-ink-soft);
-  font-size: 0.75rem;
-  letter-spacing: 0.06em;
-  text-align: center;
-  text-transform: uppercase;
-}
-
-.trackGrid {
-  display: grid;
-  gap: 0.65rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.dotsRow {
-  display: flex;
-  gap: 0.3rem;
-}
-
-.dot {
-  block-size: 10px;
-  inline-size: 10px;
-  border: 1px solid rgba(75, 47, 29, 0.25);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.84);
-}
-
-.dotSuccess {
-  border-color: #2f8a4f;
-  background: #40b464;
-}
-
-.dotFailure {
-  border-color: #a63a2a;
-  background: #d24f3a;
-}
-
-.actionRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.46rem;
-}
-
-.actionButton {
-  border: none;
-  border-radius: 10px;
-  background: rgba(75, 47, 29, 0.1);
-  color: var(--color-ink);
-  cursor: pointer;
-  font: inherit;
-  min-height: 34px;
-  padding: 0 0.68rem;
-}
-
-.rollButton {
+.trigger {
   display: inline-flex;
   align-items: center;
   gap: 0.34rem;
-  background: rgba(47, 120, 255, 0.18);
-  color: #18468f;
+  min-height: 30px;
+  border: 1px solid rgba(75, 47, 29, 0.14);
+  border-radius: 999px;
+  background: rgba(75, 47, 29, 0.06);
+  color: var(--color-ink);
+  cursor: pointer;
+  font: inherit;
+  padding: 0.2rem 0.55rem;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
 }
 
-.actionButton:disabled {
-  cursor: not-allowed;
-  opacity: 0.52;
+.trigger:hover {
+  border-color: rgba(75, 47, 29, 0.24);
+  background: rgba(75, 47, 29, 0.1);
 }
 
-.rollResult {
+.trigger:focus-visible {
+  outline: 2px solid rgba(179, 92, 28, 0.34);
+  outline-offset: 2px;
+}
+
+.triggerLabel {
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.triggerDots {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.34rem;
+  margin-left: 0.14rem;
+}
+
+.dotsRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22rem;
+}
+
+.dot {
+  --death-save-dot-border: rgba(75, 47, 29, 0.25);
+  --death-save-dot-background: rgba(255, 255, 255, 0.84);
+  --death-save-dot-active: var(--death-save-dot-background);
+  block-size: 9px;
+  inline-size: 9px;
+  border: 1px solid var(--death-save-dot-border);
+  border-radius: 999px;
+  background: var(--death-save-dot-background);
+}
+
+.dotSuccess {
+  --death-save-dot-border: rgba(47, 138, 79, 0.52);
+  --death-save-dot-background: rgba(64, 180, 100, 0.16);
+  --death-save-dot-active: #40b464;
+}
+
+.dotFailure {
+  --death-save-dot-border: rgba(166, 58, 42, 0.52);
+  --death-save-dot-background: rgba(210, 79, 58, 0.15);
+  --death-save-dot-active: #d24f3a;
+}
+
+.dotActive {
+  background: var(--death-save-dot-active);
+}
+
+.dotDivider {
+  color: rgba(75, 47, 29, 0.36);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.modalBody {
+  gap: 1rem;
+}
+
+.descriptionStack {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.descriptionSection {
+  display: grid;
+  gap: 0.62rem;
+}
+
+.descriptionDivider {
+  width: 100%;
   margin: 0;
+  border: none;
+  border-top: 1px solid rgba(75, 47, 29, 0.12);
+}
+
+.modalTracker {
+  display: grid;
+  gap: 0.58rem;
+  justify-self: center;
+  width: min(17rem, 100%);
+  padding: 0.72rem;
+  border: 1px solid rgba(75, 47, 29, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.48);
+}
+
+.trackRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.trackRow span:first-child {
   color: var(--color-ink-soft);
-  font-size: 0.82rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.footer {
+  display: grid;
+}
+
+.footerActions {
+  display: grid;
+  gap: 0.58rem;
+}
+
+.rollRow {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.rollButton {
+  flex: 1 1 auto;
+}
+
+.rollButtonIcon {
+  block-size: 20px;
+  inline-size: 20px;
+  filter: brightness(0) invert(1);
+}
+
+.settingsButton {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.incrementRow {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.incrementButton {
+  min-width: 0;
+  padding-inline: 0.55rem;
 }
 
 @media (max-width: 599px) {
-  .trackGrid {
-    grid-template-columns: 1fr;
+  .trigger {
+    gap: 0.28rem;
+    padding-inline: 0.48rem;
   }
 
-  .headerRow {
-    align-items: flex-start;
-    flex-direction: column;
+  .triggerLabel {
+    font-size: 0.7rem;
   }
 
-  .summaryRow {
-    min-width: 0;
-    width: 100%;
+  .incrementRow {
+    gap: 0.42rem;
+  }
+
+  .incrementButton {
+    font-size: 0.84rem;
+    padding-inline: 0.3rem;
   }
 }

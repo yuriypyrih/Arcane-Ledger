@@ -23,13 +23,12 @@ import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import type {
   DerivedFeatureStatusEntry,
   FeatureActionCard,
-  FeatureIndicator,
   FeatureSpeedBonus
 } from "../../types";
 import type { WeaponAction } from "../../../gameplay";
 import {
   createCharacterStatusEntry,
-  hasExhaustionAttackRollDisadvantage,
+  getExhaustionD20TestPenalty,
   normalizeCharacterStatusEntries
 } from "../../../statusEntries";
 import { getSelectedSubclassForCharacter, getSubclassFeatureDetails } from "../../../subclasses";
@@ -59,11 +58,6 @@ const guidanceSpellId = getSpellEntryByName("Guidance")?.id ?? null;
 const guidingBoltSpellId = getSpellEntryByName("Guiding Bolt")?.id ?? null;
 const cosmicOmenName = "Cosmic Omen";
 const cosmicOmenSourceLabel = "Circle of the Stars";
-const exhaustionDisadvantageIndicator: FeatureIndicator = {
-  label: "Disadvantage",
-  tone: "disadvantage",
-  source: "Exhaustion"
-};
 const defaultAbilities: Character["abilities"] = {
   STR: 10,
   DEX: 10,
@@ -685,6 +679,7 @@ export function getCircleOfTheStarsWeaponActions(
   const wisdomModifierBreakdown = getAbilityModifierBreakdownForCharacter(character, "WIS");
   const wisdomModifier = wisdomModifierBreakdown.total;
   const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
+  const exhaustionPenalty = getExhaustionD20TestPenalty(character.statusEntries);
   const hasTwinklingConstellations = hasDruidTwinklingConstellationsFeature(character);
   const damageFormula = hasTwinklingConstellations ? "2d8" : "1d8";
 
@@ -705,6 +700,15 @@ export function getCircleOfTheStarsWeaponActions(
       abilityModifier: wisdomModifier,
       cardBaseAbilityModifier: wisdomModifier,
       abilityModifierBonusEntries: wisdomModifierBreakdown.bonusEntries,
+      attackBonusEntries:
+        exhaustionPenalty !== 0
+          ? [
+              {
+                label: "Exhaustion",
+                value: exhaustionPenalty
+              }
+            ]
+          : [],
       damageAbility: "WIS",
       damageAbilityModifierBaseValue: wisdomModifierBreakdown.baseValue,
       damageAbilityModifier: wisdomModifier,
@@ -712,9 +716,7 @@ export function getCircleOfTheStarsWeaponActions(
       proficiencyLabel: "Spell attack",
       proficiencyBonus,
       totalModifier: wisdomModifier,
-      indicators: hasExhaustionAttackRollDisadvantage(character.statusEntries)
-        ? [exhaustionDisadvantageIndicator]
-        : [],
+      indicators: [],
       damageBonusEntries: [],
       cardBonusLabels: [],
       rollFormula: createRollFormula(damageFormula, wisdomModifier),

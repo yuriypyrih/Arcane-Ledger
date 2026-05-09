@@ -60,6 +60,7 @@ import {
   getSavingThrowLevelFromEntries,
   getSavingThrowProficiencyForAbilityKey
 } from "../../../../pages/CharactersPage/proficiency";
+import { getExhaustionD20TestPenalty } from "../../../../pages/CharactersPage/statusEntries";
 import type {
   AbilitiesDraft,
   PersistCharacterUpdater
@@ -627,14 +628,23 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
     description: string,
     indicators?: FeatureIndicator[]
   ) {
-    const rollFormula = formatD20Formula(modifier);
+    const exhaustionPenalty = getExhaustionD20TestPenalty(character.statusEntries);
+    const totalModifier = modifier + exhaustionPenalty;
+    const rollFormula = formatD20Formula(totalModifier);
     const mode = getRollModeFromIndicators(indicators);
+    const exhaustionDescription = `Exhaustion applies ${formatAbilityModifier(
+      exhaustionPenalty
+    )} to D20 Tests.`;
+    const rollDescription =
+      exhaustionPenalty === 0
+        ? description
+        : `${description}${description.endsWith(".") ? "" : "."} ${exhaustionDescription}`;
 
     openDiceRoller({
       title,
       formula: rollFormula,
       formulaDisplay: rollFormula,
-      description,
+      description: rollDescription,
       mode
     });
   }

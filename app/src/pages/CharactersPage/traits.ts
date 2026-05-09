@@ -499,12 +499,9 @@ const exhaustionConditionOptionValues = exhaustionLevels.map(
   (level) => `${exhaustionConditionOptionPrefix}${level}` as ExhaustionConditionOptionValue
 );
 const exhaustionDescriptionEntries: SpellDescriptionEntry[] = [
-  "Higher Exhaustion levels include all lower-level effects.",
-  "<strong>Level 1.</strong> You have <link:Disadvantage>Disadvantage</link> on ability checks.",
-  "<strong>Level 2.</strong> Your <link:Speed>Speed</link> is halved.",
-  "<strong>Level 3.</strong> You have <link:Disadvantage>Disadvantage</link> on attack rolls and saving throws.",
-  "<strong>Level 4.</strong> Your Hit Point maximum is halved.",
-  "<strong>Level 5.</strong> Your <link:Speed>Speed</link> is reduced to 0.",
+  "Each Exhaustion level strengthens the same penalties.",
+  "<strong>D20 Tests.</strong> You take a penalty to each D20 Test equal to 2 times your Exhaustion level.",
+  "<strong>Speed.</strong> Your <link:Speed>Speed</link> is reduced by 5 feet for each Exhaustion level.",
   "<strong>Level 6.</strong> You die. This death bypasses death saving throws."
 ];
 
@@ -538,10 +535,8 @@ export {
   applyShortRestToCharacterStatusEntries,
   applySpellConcentrationToStatusEntries,
   createCharacterStatusEntry,
+  getExhaustionD20TestPenalty,
   getExhaustionStatusEntry,
-  hasExhaustionAbilityCheckDisadvantage,
-  hasExhaustionAttackRollDisadvantage,
-  hasExhaustionSavingThrowDisadvantage,
   hasStatusCondition,
   isExhaustionStatusEntry,
   normalizeCharacterStatusEntries,
@@ -628,21 +623,10 @@ export function getExhaustionSpeedAdjustment(
     return null;
   }
 
-  if (exhaustionLevel >= 5) {
-    return {
-      label: "Exhaustion",
-      value: -baseSpeed
-    };
-  }
-
-  if (exhaustionLevel >= 2) {
-    return {
-      label: "Exhaustion",
-      value: Math.floor(baseSpeed / 2) - baseSpeed
-    };
-  }
-
-  return null;
+  return {
+    label: "Exhaustion",
+    value: -5 * exhaustionLevel
+  };
 }
 
 export function getEffectiveHitPointMaximumForCharacter(
@@ -668,12 +652,6 @@ export function getEffectiveHitPointMaximumForCharacter(
         speciesHitPointMaximumBonus
     )
   );
-  const exhaustionLevel = getExhaustionLevel(character.statusEntries);
-
-  if (exhaustionLevel !== null && exhaustionLevel >= 4) {
-    return Math.max(1, Math.floor(effectiveBaseHitPoints / 2));
-  }
-
   return effectiveBaseHitPoints;
 }
 
@@ -794,7 +772,7 @@ function getDefaultStatusEntryDescriptionEntries(
     const exhaustionLevel = normalizeExhaustionLevel(entry.conditionLevel) ?? 1;
 
     return [
-      `<strong>Current Level.</strong> Level ${exhaustionLevel}. Higher Exhaustion levels include all lower-level effects.`,
+      `<strong>Current Level.</strong> Level ${exhaustionLevel}. D20 Tests take a -${2 * exhaustionLevel} penalty, and Speed is reduced by ${5 * exhaustionLevel} feet.`,
       ...exhaustionDescriptionEntries.slice(1)
     ];
   }

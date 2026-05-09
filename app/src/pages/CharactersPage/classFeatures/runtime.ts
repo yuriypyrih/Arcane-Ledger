@@ -24,9 +24,6 @@ import {
 import { transformFeatSpellEntryForCharacter } from "../feats/runtime";
 import { getSpeciesSpellEntryForCharacter } from "../species";
 import {
-  hasExhaustionAbilityCheckDisadvantage,
-  hasExhaustionAttackRollDisadvantage,
-  hasExhaustionSavingThrowDisadvantage,
   removeCharacterStatusEntry
 } from "../statusEntries";
 import {

@@ -123,7 +123,7 @@ export const keywordDescriptions = {
     "Thieves' Cant":
       "Thieves' Cant is the secret mix of slang, coded phrasing, and signs used by rogues to pass hidden messages without drawing attention.",
     Exhaustion:
-      "Exhaustion represents accumulating strain. Higher levels include all lower-level effects.\n\nLevel 1: You have Disadvantage on ability checks.\n\nLevel 2: Your Speed is halved.\n\nLevel 3: You have Disadvantage on attack rolls and saving throws.\n\nLevel 4: Your Hit Point maximum is halved.\n\nLevel 5: Your Speed is reduced to 0.\n\nLevel 6: You die, bypassing death saving throws.",
+      "Exhaustion represents accumulating strain. Each Exhaustion level strengthens the same penalties.\n\nD20 Tests: You take a penalty to each D20 Test equal to 2 times your Exhaustion level.\n\nSpeed: Your Speed is reduced by 5 feet for each Exhaustion level.\n\nLevel 6: You die, bypassing death saving throws.",
     "Druidic Focus":
       "A Druidic Focus is a symbolic natural object or tool that can stand in for non-costly Material components when a class feature lets you use it as a Spellcasting Focus.",
     "Arcane Focus":

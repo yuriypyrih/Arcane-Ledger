@@ -16,9 +16,6 @@ import {
   shouldTrackRoundScopedResources
 } from "../combat";
 import {
-  hasExhaustionAbilityCheckDisadvantage,
-  hasExhaustionAttackRollDisadvantage,
-  hasExhaustionSavingThrowDisadvantage,
   removeCharacterStatusEntry
 } from "../statusEntries";
 import {

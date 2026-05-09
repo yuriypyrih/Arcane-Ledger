@@ -8,6 +8,7 @@ import {
 import { getSkillBonusesForCharacter } from "./classFeatures";
 import { getResolvedSkillProficiencyEntry, getSkillProficiencyForName } from "./proficiency";
 import { skillGroupsByAbility } from "./skillDefinitions";
+import { getExhaustionD20TestPenalty } from "./statusEntries";
 
 export type SkillProficiencyMultiplier = 0 | 1 | 2;
 
@@ -98,7 +99,18 @@ export function getSkillRowsByAbility(
             }
           ];
         });
-        const bonusTotal = bonusEntries.reduce((total, entry) => total + entry.value, 0);
+        const exhaustionPenalty = getExhaustionD20TestPenalty(character.statusEntries);
+        const rollBonusEntries =
+          exhaustionPenalty !== 0
+            ? [
+                ...bonusEntries,
+                {
+                  label: "Exhaustion",
+                  value: exhaustionPenalty
+                }
+              ]
+            : bonusEntries;
+        const bonusTotal = rollBonusEntries.reduce((total, entry) => total + entry.value, 0);
 
         return {
           name: skill,
@@ -112,7 +124,7 @@ export function getSkillRowsByAbility(
           proficiencyContribution,
           proficiencySourceLabels: resolvedProficiency.sourceLabels,
           proficiencyLocked: resolvedProficiency.locked,
-          bonusEntries,
+          bonusEntries: rollBonusEntries,
           totalModifier: effectiveAbilityModifier + proficiencyContribution + bonusTotal
         };
       })

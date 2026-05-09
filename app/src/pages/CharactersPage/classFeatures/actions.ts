@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type { AbilityKey, Character, CharacterClassFeatureState } from "../../../types";
-import { ALL_SKILLS } from "../../../types";
 import type {
   RangerHunterDefensiveTacticsChoice,
   RangerHunterPreyChoice,
@@ -15,12 +14,7 @@ import {
   isRoundTrackerResourceAvailable,
   shouldTrackRoundScopedResources
 } from "../combat";
-import {
-  hasExhaustionAbilityCheckDisadvantage,
-  hasExhaustionAttackRollDisadvantage,
-  hasExhaustionSavingThrowDisadvantage,
-  removeCharacterStatusEntry
-} from "../statusEntries";
+import { getExhaustionD20TestPenalty, removeCharacterStatusEntry } from "../statusEntries";
 import {
   getCustomTraitAbilityScoreBonuses,
   getCustomTraitArmorClassBonuses,
@@ -586,11 +580,7 @@ import {
   type WEAPON_PROPERTY
 } from "../../../codex/entries";
 import { PROF_LEVEL } from "../../../types";
-import {
-  clearRoundScopedFeatureStateIfOutOfCombat,
-  exhaustionDisadvantageIndicator,
-  mergeIndicatorMaps
-} from "./state";
+import { clearRoundScopedFeatureStateIfOutOfCombat, mergeIndicatorMaps } from "./state";
 
 const featureActionsByCharacter = new WeakMap<Character, FeatureActionCard[]>();
 
@@ -784,11 +774,6 @@ export function getSavingThrowIndicatorsForCharacter(
         speciesChoices: character.speciesChoices
       })
     : {};
-  const exhaustionIndicators = hasExhaustionSavingThrowDisadvantage(character.statusEntries)
-    ? (Object.fromEntries(
-        abilityKeys.map((ability) => [ability, [exhaustionDisadvantageIndicator]])
-      ) as SavingThrowIndicatorMap)
-    : {};
   const goliathSavingThrowIndicators = character.species
     ? getGoliathSavingThrowIndicatorsForCharacter({
         species: character.species,
@@ -801,8 +786,7 @@ export function getSavingThrowIndicatorsForCharacter(
     baseFeatureState.savingThrowIndicators ?? {},
     subclassDerivedState.savingThrowIndicators ?? {},
     gnomeSavingThrowIndicators,
-    goliathSavingThrowIndicators,
-    exhaustionIndicators
+    goliathSavingThrowIndicators
   );
 }
 
@@ -812,11 +796,6 @@ export function getAbilityCheckIndicatorsForCharacter(
 ): AbilityCheckIndicatorMap {
   const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
-  const exhaustionIndicators = hasExhaustionAbilityCheckDisadvantage(character.statusEntries)
-    ? (Object.fromEntries(
-        abilityKeys.map((ability) => [ability, [exhaustionDisadvantageIndicator]])
-      ) as AbilityCheckIndicatorMap)
-    : {};
   const goliathAbilityCheckIndicators = character.species
     ? getGoliathAbilityCheckIndicatorsForCharacter({
         species: character.species,
@@ -828,8 +807,7 @@ export function getAbilityCheckIndicatorsForCharacter(
   return mergeIndicatorMaps(
     baseFeatureState.abilityCheckIndicators ?? {},
     subclassDerivedState.abilityCheckIndicators ?? {},
-    goliathAbilityCheckIndicators,
-    exhaustionIndicators
+    goliathAbilityCheckIndicators
   );
 }
 
@@ -866,11 +844,6 @@ export function getSkillIndicatorsForCharacter(
 ): SkillIndicatorMap {
   const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
-  const exhaustionIndicators = hasExhaustionAbilityCheckDisadvantage(character.statusEntries)
-    ? (Object.fromEntries(
-        ALL_SKILLS.map((skill) => [skill, [exhaustionDisadvantageIndicator]])
-      ) as SkillIndicatorMap)
-    : {};
   const goliathSkillIndicators = character.species
     ? getGoliathSkillIndicatorsForCharacter({
         species: character.species,
@@ -882,8 +855,7 @@ export function getSkillIndicatorsForCharacter(
   return mergeIndicatorMaps(
     baseFeatureState.skillIndicators ?? {},
     subclassDerivedState.skillIndicators ?? {},
-    goliathSkillIndicators,
-    exhaustionIndicators
+    goliathSkillIndicators
   );
 }
 
@@ -945,11 +917,8 @@ export function getWeaponAttackIndicatorsForCharacter(
   character: Pick<Character, "className" | "statusEntries"> & Partial<Pick<Character, "subclassId">>
 ): FeatureIndicator[] {
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
-  const baseIndicators = hasExhaustionAttackRollDisadvantage(character.statusEntries)
-    ? [exhaustionDisadvantageIndicator]
-    : [];
 
-  return [...(subclassDerivedState.weaponAttackIndicators ?? []), ...baseIndicators];
+  return subclassDerivedState.weaponAttackIndicators ?? [];
 }
 
 export function getSkillBonusesForCharacter(
@@ -967,6 +936,7 @@ export function getSavingThrowBonusesForCharacter(
 ): FeatureSavingThrowBonus[] {
   const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
+  const exhaustionPenalty = getExhaustionD20TestPenalty(character.statusEntries);
 
   return [
     ...(baseFeatureState.getSavingThrowBonuses?.(ability) ?? []),
@@ -974,7 +944,15 @@ export function getSavingThrowBonusesForCharacter(
     ...getCustomTraitSavingThrowBonuses(character.statusEntries, ability).map((bonus) => ({
       label: bonus.label,
       value: bonus.value
-    }))
+    })),
+    ...(exhaustionPenalty !== 0
+      ? [
+          {
+            label: "Exhaustion",
+            value: exhaustionPenalty
+          }
+        ]
+      : [])
   ];
 }
 

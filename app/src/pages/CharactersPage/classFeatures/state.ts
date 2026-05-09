@@ -16,9 +16,6 @@ import {
   shouldTrackRoundScopedResources
 } from "../combat";
 import {
-  hasExhaustionAbilityCheckDisadvantage,
-  hasExhaustionAttackRollDisadvantage,
-  hasExhaustionSavingThrowDisadvantage,
   removeCharacterStatusEntry
 } from "../statusEntries";
 import {
@@ -571,12 +568,6 @@ import {
   type WEAPON_PROPERTY
 } from "../../../codex/entries";
 import { PROF_LEVEL } from "../../../types";
-
-export const exhaustionDisadvantageIndicator: FeatureIndicator = {
-  label: "Disadvantage",
-  tone: "disadvantage",
-  source: "Exhaustion"
-};
 
 export function mergeIndicatorMaps<T extends string>(
   ...maps: Array<Partial<Record<T, FeatureIndicator[]>>>

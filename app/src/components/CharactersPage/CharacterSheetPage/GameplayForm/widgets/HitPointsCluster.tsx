@@ -4,7 +4,6 @@ import type {
   PersistCharacterUpdater,
   QueueCharacterSave
 } from "../../../../../pages/CharactersPage/CharacterSheetPage/types";
-import DeathSavesWidget from "./DeathSavesWidget";
 import HitPointsWidget from "./HitPointsWidget";
 
 type HitPointsClusterProps = {
@@ -38,16 +37,10 @@ function HitPointsCluster({ character, onQueueCharacterSave }: HitPointsClusterP
   );
 
   return (
-    <>
-      <HitPointsWidget
-        character={optimisticCharacter}
-        onPersistCharacter={persistOptimisticCharacter}
-      />
-      <DeathSavesWidget
-        character={optimisticCharacter}
-        onPersistCharacter={persistOptimisticCharacter}
-      />
-    </>
+    <HitPointsWidget
+      character={optimisticCharacter}
+      onPersistCharacter={persistOptimisticCharacter}
+    />
   );
 }
 
