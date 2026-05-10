@@ -78,17 +78,18 @@ define(['./workbox-7484adb8'], (function (workbox) { 'use strict';
    * See https://goo.gl/S9QRab
    */
   workbox.precacheAndRoute([{
-    "url": "index.html",
-    "revision": "0.bj5rmg56ipg"
+    "url": "/index.html",
+    "revision": "0.endnqduic48"
   }], {});
   workbox.cleanupOutdatedCaches();
-  workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("index.html"), {
-    allowlist: [/^\/$/]
+  workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("/index.html"), {
+    allowlist: [/^\/$/],
+    denylist: [/^\/api\//]
   }));
   workbox.registerRoute(({
     request,
     url
-  }) => request.destination === "" && url.pathname.endsWith(".json"), new workbox.StaleWhileRevalidate({
+  }) => request.destination === "" && url.pathname.endsWith(".json") && !url.pathname.startsWith("/api/"), new workbox.StaleWhileRevalidate({
     "cacheName": "json-assets-cache",
     plugins: []
   }), 'GET');

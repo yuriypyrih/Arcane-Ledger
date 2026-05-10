@@ -77,13 +77,15 @@ export function getAppConfig(): AppConfig {
   const open5eMonstersRootDir = resolveRootPath(
     process.env.OPEN5E_MONSTERS_ROOT_DIR ?? "data/open5e/monsters"
   );
-  const open5eItemsRootDir = resolveRootPath(process.env.OPEN5E_ITEMS_ROOT_DIR ?? "data/open5e/items");
+  const open5eItemsRootDir = resolveRootPath(
+    process.env.OPEN5E_ITEMS_ROOT_DIR ?? "data/open5e/items"
+  );
 
   return {
     nodeEnv,
     port,
     mongodbUri: process.env.MONGODB_URI ?? "",
-    dbName: process.env.DB_NAME ?? "dnd_companion",
+    dbName: process.env.DB_NAME ?? "arcane_ledger",
     corsAllowedOrigins: parseCommaSeparatedList(process.env.CORS_ALLOWED_ORIGINS),
     open5eBaseUrl,
     open5eMonstersUrl,

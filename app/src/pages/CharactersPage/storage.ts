@@ -3,6 +3,7 @@ import { currencyKeys } from "../../types";
 import { loadPreferences } from "../../storage/preferences";
 import {
   CHARACTERS_STORAGE_KEY,
+  LEGACY_CHARACTERS_STORAGE_KEY,
   alignmentOptions,
   createDefaultCoreStats,
   createDefaultAbilities,
@@ -619,15 +620,28 @@ function loadStoredCharacterRecords(): unknown[] {
   }
 
   const serializedCharacters = window.localStorage.getItem(CHARACTERS_STORAGE_KEY);
+  const legacySerializedCharacters =
+    serializedCharacters === null
+      ? window.localStorage.getItem(LEGACY_CHARACTERS_STORAGE_KEY)
+      : null;
+  const storedCharactersSource = serializedCharacters ?? legacySerializedCharacters;
 
-  if (!serializedCharacters) {
+  if (!storedCharactersSource) {
     storedCharacterRecordsCache = [];
     return storedCharacterRecordsCache;
   }
 
   try {
-    const parsedCharacters = JSON.parse(serializedCharacters) as unknown;
+    const parsedCharacters = JSON.parse(storedCharactersSource) as unknown;
     storedCharacterRecordsCache = Array.isArray(parsedCharacters) ? parsedCharacters : [];
+
+    if (serializedCharacters === null && legacySerializedCharacters !== null) {
+      window.localStorage.setItem(
+        CHARACTERS_STORAGE_KEY,
+        JSON.stringify(storedCharacterRecordsCache)
+      );
+    }
+
     return storedCharacterRecordsCache;
   } catch {
     storedCharacterRecordsCache = [];

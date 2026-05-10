@@ -1,14 +1,47 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" role="img" aria-labelledby="title desc">
-  <title id="title">DnD Companion Icon</title>
-  <desc id="desc">A twenty-sided die on a parchment background.</desc>
-  <rect width="192" height="192" rx="32" fill="#f4efe6" />
-  <rect x="14" y="14" width="164" height="164" rx="26" fill="#4b2f1d" opacity="0.12" />
-  <polygon
-    points="96,26 145,56 160,112 126,161 66,161 32,112 47,56"
-    fill="#7a4b2f"
-    stroke="#4b2f1d"
-    stroke-width="8"
-    stroke-linejoin="round"
+<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">Arcane Ledger Icon</title>
+  <desc id="desc">A gold-trimmed arcane ledger with a magical sigil on a dark background.</desc>
+  <defs>
+    <linearGradient id="background" x1="76" y1="54" x2="436" y2="468" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#291834" />
+      <stop offset="0.55" stop-color="#1b2230" />
+      <stop offset="1" stop-color="#111827" />
+    </linearGradient>
+    <linearGradient id="cover" x1="112" y1="112" x2="390" y2="420" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#613446" />
+      <stop offset="0.6" stop-color="#3e2838" />
+      <stop offset="1" stop-color="#241f2d" />
+    </linearGradient>
+  </defs>
+
+  <rect x="22" y="22" width="468" height="468" rx="100" fill="url(#background)" />
+  <rect x="36" y="36" width="440" height="440" rx="86" fill="none" stroke="#c99b48" stroke-width="14" />
+
+  <path
+    d="M132 98h246c25 0 45 20 45 45v226c0 25-20 45-45 45H132c-24 0-43-19-43-43V141c0-24 19-43 43-43Z"
+    fill="#ead6aa"
+    stroke="#221a25"
+    stroke-width="14"
   />
-  <text x="96" y="108" text-anchor="middle" font-size="48" font-family="Georgia, serif" fill="#f4efe6">20</text>
+  <path
+    d="M132 86h229c28 0 51 23 51 51v225c0 28-23 51-51 51H132c-24 0-43-19-43-43V129c0-24 19-43 43-43Z"
+    fill="url(#cover)"
+    stroke="#d8aa52"
+    stroke-width="16"
+  />
+  <path d="M143 101h58v298h-58c-30 0-54-24-54-54V155c0-30 24-54 54-54Z" fill="#231d2b" opacity="0.88" />
+  <path d="M199 101v298" fill="none" stroke="#d8aa52" stroke-width="12" />
+
+  <path d="M333 114h47c9 0 17 8 17 17v47" fill="none" stroke="#efc96a" stroke-width="18" stroke-linecap="round" />
+  <path d="M333 398h47c9 0 17-8 17-17v-47" fill="none" stroke="#efc96a" stroke-width="18" stroke-linecap="round" />
+  <path d="M118 178v-47c0-9 8-17 17-17h39" fill="none" stroke="#efc96a" stroke-width="18" stroke-linecap="round" />
+  <path d="M118 334v47c0 9 8 17 17 17h39" fill="none" stroke="#efc96a" stroke-width="18" stroke-linecap="round" />
+
+  <circle cx="296" cy="224" r="66" fill="#2b2230" stroke="#efc96a" stroke-width="12" />
+  <path d="M296 156v136M228 224h136" fill="none" stroke="#73d9cb" stroke-width="10" stroke-linecap="round" />
+  <path d="M296 174 337 224 296 274 255 224Z" fill="none" stroke="#efc96a" stroke-width="10" stroke-linejoin="round" />
+  <circle cx="296" cy="224" r="16" fill="#73d9cb" stroke="#f4deb2" stroke-width="6" />
+
+  <path d="M248 329h112M248 358h92M248 387h118" fill="none" stroke="#e8c978" stroke-width="14" stroke-linecap="round" />
+  <path d="M157 137v224" fill="none" stroke="#6f4b78" stroke-width="10" stroke-linecap="round" />
 </svg>

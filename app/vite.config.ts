@@ -28,27 +28,42 @@ export default defineConfig({
     VitePWA({
       injectRegister: "auto",
       registerType: "autoUpdate",
-      includeAssets: ["icons/icon-192.svg", "icons/icon-512.svg"],
+      includeAssets: [
+        "favicon.ico",
+        "favicon.svg",
+        "favicon-16x16.png",
+        "favicon-32x32.png",
+        "apple-touch-icon.png",
+        "icons/icon-192.png",
+        "icons/icon-512.png"
+      ],
       manifest: {
-        name: "DnD Companion",
-        short_name: "DnD Companion",
-        description: "Offline-first tools for rolling dice, tracking characters, and browsing codex entries.",
-        theme_color: "#4b2f1d",
-        background_color: "#f4efe6",
+        name: "Arcane Ledger",
+        short_name: "Arcane Ledger",
+        description:
+          "Offline-first tools for rolling dice, tracking characters, and browsing codex entries.",
+        theme_color: "#1b2230",
+        background_color: "#111827",
         display: "standalone",
         start_url: "/",
         icons: [
           {
-            src: "icons/icon-192.svg",
+            src: "icons/icon-192.png",
             sizes: "192x192",
-            type: "image/svg+xml",
+            type: "image/png",
             purpose: "any"
           },
           {
-            src: "icons/icon-512.svg",
+            src: "icons/icon-512.png",
             sizes: "512x512",
-            type: "image/svg+xml",
+            type: "image/png",
             purpose: "any"
+          },
+          {
+            src: "icons/icon-512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable"
           }
         ]
       },

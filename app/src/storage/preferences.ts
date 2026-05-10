@@ -12,7 +12,8 @@ export type Preferences = {
   broadLayout: boolean;
 };
 
-const PREFERENCES_STORAGE_KEY = "dnd-companion.preferences";
+const PREFERENCES_STORAGE_KEY = "arcane-ledger.preferences";
+const LEGACY_PREFERENCES_STORAGE_KEY = "dnd-companion.preferences";
 
 const defaultPreferences: Preferences = {
   statsViewMode: "tabs",
@@ -63,17 +64,25 @@ export function loadPreferences(): Preferences {
   }
 
   const serializedPreferences = window.localStorage.getItem(PREFERENCES_STORAGE_KEY);
+  const legacySerializedPreferences =
+    serializedPreferences === null
+      ? window.localStorage.getItem(LEGACY_PREFERENCES_STORAGE_KEY)
+      : null;
+  const storedPreferencesSource = serializedPreferences ?? legacySerializedPreferences;
 
-  if (!serializedPreferences) {
+  if (!storedPreferencesSource) {
     return defaultPreferences;
   }
 
   try {
-    const parsedPreferences = JSON.parse(serializedPreferences) as unknown;
+    const parsedPreferences = JSON.parse(storedPreferencesSource) as unknown;
     const normalizedPreferences = normalizePreferences(parsedPreferences);
     const normalizedSerializedPreferences = JSON.stringify(normalizedPreferences);
 
-    if (normalizedSerializedPreferences !== serializedPreferences) {
+    if (
+      serializedPreferences === null ||
+      normalizedSerializedPreferences !== serializedPreferences
+    ) {
       window.localStorage.setItem(PREFERENCES_STORAGE_KEY, normalizedSerializedPreferences);
     }
 

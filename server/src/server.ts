@@ -12,7 +12,7 @@ export async function startServer() {
 
   return new Promise<Server>((resolve, reject) => {
     const server = app.listen(config.port, () => {
-      console.log(`DnD Companion server listening on port ${config.port}.`);
+      console.log(`Arcane Ledger server listening on port ${config.port}.`);
       resolve(server);
     });
 

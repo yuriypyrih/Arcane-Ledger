@@ -25,10 +25,10 @@ function PrimaryNav({
             isActive ? `${styles.brandLink} ${styles.navLinkActive}` : styles.brandLink
           }
           end
-          aria-label="D&D Companion home"
+          aria-label="Arcane Ledger home"
         >
           <Home size={16} aria-hidden="true" />
-          <span>D&amp;D Companion</span>
+          <span>Arcane Ledger</span>
         </NavLink>
         <div className={styles.linkGroup}>
           {links.map(({ to, label, icon: Icon }) => (

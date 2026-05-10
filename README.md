@@ -1,6 +1,6 @@
-# DnD Companion PWA
+# Arcane Ledger PWA
 
-Lightweight DnD companion app with three core features:
+Lightweight Arcane Ledger app with three core features:
 
 1. Dice Roller with formula input, advantage/disadvantage, and roll history.
 2. Character Sheets with create and edit flows stored in memory for now.

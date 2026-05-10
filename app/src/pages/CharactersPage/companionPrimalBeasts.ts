@@ -29,7 +29,7 @@ function createPrimalBeastTemplate(
     ...record,
     id: `primal-beast-${kind}`,
     slug: `primal-beast-${kind}`,
-    document__slug: "dad-companion",
+    document__slug: "arcane-ledger",
     document__title: "Primal Beast",
     document__license_url: "",
     document__url: "",
@@ -37,7 +37,10 @@ function createPrimalBeastTemplate(
   };
 }
 
-function getPrimalBeastFormulaHitPoints(kind: PrimalBeastKind, character?: Pick<Character, "level">) {
+function getPrimalBeastFormulaHitPoints(
+  kind: PrimalBeastKind,
+  character?: Pick<Character, "level">
+) {
   const level = Math.max(1, Math.floor(character?.level ?? 3));
 
   return kind === "sky" ? 4 + 4 * level : 5 + 5 * level;
@@ -261,8 +264,10 @@ export function isPrimalBeastKind(value: unknown): value is PrimalBeastKind {
 export function getPrimalBeastKindFromSlug(slug: string): PrimalBeastKind | null {
   const normalizedSlug = slug.trim();
 
-  return primalBeastKindOptions.find((option) => `primal-beast-${option.value}` === normalizedSlug)
-    ?.value ?? null;
+  return (
+    primalBeastKindOptions.find((option) => `primal-beast-${option.value}` === normalizedSlug)
+      ?.value ?? null
+  );
 }
 
 export function getPrimalBeastTemplateBySlug(
