@@ -179,6 +179,19 @@ function ItemCodexTable({
       );
     }
 
+    if (status === "server-unavailable") {
+      return (
+        <tr>
+          <td colSpan={6} className={styles.statusCell}>
+            <div className={styles.statusContent}>
+              <strong>Server Unavailable</strong>
+              <span>Item data is unavailable while the app is offline.</span>
+            </div>
+          </td>
+        </tr>
+      );
+    }
+
     if (items.length === 0) {
       return (
         <tr>

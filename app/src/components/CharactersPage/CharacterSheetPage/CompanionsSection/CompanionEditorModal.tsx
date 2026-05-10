@@ -1,7 +1,8 @@
 import { Search, Trash2 } from "lucide-react";
 import { useEffect, useId, useMemo, useState } from "react";
-import { fetchMonsterBySlug } from "../../../../api";
+import { fetchMonsterBySlug, isApiOfflineError } from "../../../../api";
 import ActionButton from "../../../ActionButton";
+import { useOnlineStatus } from "../../../../lib/useOnlineStatus";
 import {
   DestructiveConfirmationModal,
   OverlayBody,
@@ -119,6 +120,7 @@ function CompanionEditorModal({
   onRemoveCompanion,
   onClose
 }: CompanionEditorModalProps) {
+  const isOnline = useOnlineStatus();
   const titleId = useId();
   const deleteTitleId = useId();
   const isEditingExisting = companion !== null;
@@ -131,6 +133,7 @@ function CompanionEditorModal({
   const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
   const [isMonsterBrowserOpen, setIsMonsterBrowserOpen] = useState(false);
   const [monsterQuery, setMonsterQuery] = useState("");
+  const [monsterSearchResetSignal, setMonsterSearchResetSignal] = useState(0);
   const [monsterTypeFilter, setMonsterTypeFilter] = useState<string>(defaultMonsterTypeFilter);
   const [monsterSourceFilter, setMonsterSourceFilter] = useState<string>("all");
   const [monsterOrdering, setMonsterOrdering] = useState<MonsterOrdering>("name");
@@ -246,6 +249,12 @@ function CompanionEditorModal({
         return;
       }
 
+      if (!isOnline) {
+        setPreviewMonster(null);
+        setPreviewStatus("server-unavailable");
+        return;
+      }
+
       setPreviewStatus("loading");
 
       try {
@@ -264,13 +273,13 @@ function CompanionEditorModal({
         }));
         setPreviewMonster(monster);
         setPreviewStatus("ready");
-      } catch {
+      } catch (error) {
         if (!active || abortController.signal.aborted) {
           return;
         }
 
         setPreviewMonster(null);
-        setPreviewStatus("error");
+        setPreviewStatus(isApiOfflineError(error) ? "server-unavailable" : "error");
       }
     }
 
@@ -280,7 +289,7 @@ function CompanionEditorModal({
       active = false;
       abortController.abort();
     };
-  }, [character, monsterCache, previewSlug]);
+  }, [character, isOnline, monsterCache, previewSlug]);
 
   function handleDraftChange<Key extends keyof CompanionDraft>(
     key: Key,
@@ -327,8 +336,12 @@ function CompanionEditorModal({
       setIsMonsterBrowserOpen(false);
       setPreviewSlug(null);
       setMonsterNotice(null);
-    } catch {
-      setMonsterNotice("The full monster entry could not be loaded.");
+    } catch (error) {
+      setMonsterNotice(
+        isApiOfflineError(error)
+          ? "Server Unavailable"
+          : "The full monster entry could not be loaded."
+      );
     } finally {
       setPendingSelectSlug(null);
     }
@@ -566,6 +579,7 @@ function CompanionEditorModal({
           currentPage={currentPage}
           totalPages={totalPages}
           query={monsterQuery}
+          searchResetSignal={monsterSearchResetSignal}
           selectedMonsterSlug={selectedMonsterSlug}
           monsterTypeFilter={monsterTypeFilter}
           monsterSourceFilter={monsterSourceFilter}
@@ -573,8 +587,16 @@ function CompanionEditorModal({
           pendingSelectSlug={pendingSelectSlug}
           onClose={() => setIsMonsterBrowserOpen(false)}
           onQueryChange={setMonsterQuery}
-          onMonsterTypeFilterChange={setMonsterTypeFilter}
-          onMonsterSourceFilterChange={setMonsterSourceFilter}
+          onMonsterTypeFilterChange={(value) => {
+            setMonsterQuery("");
+            setMonsterSearchResetSignal((currentSignal) => currentSignal + 1);
+            setMonsterTypeFilter(value);
+          }}
+          onMonsterSourceFilterChange={(value) => {
+            setMonsterQuery("");
+            setMonsterSearchResetSignal((currentSignal) => currentSignal + 1);
+            setMonsterSourceFilter(value);
+          }}
           onOrderingChange={setMonsterOrdering}
           onPageChange={setCurrentPage}
           onOpenMonsterPreview={(monster) => setPreviewSlug(monster.slug)}

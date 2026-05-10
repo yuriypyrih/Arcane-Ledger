@@ -45,13 +45,17 @@ function MonsterEntryDrawer({
       ? (getKnownMonsterText(monster.name) ?? "Unknown Monster")
       : status === "loading"
         ? "Loading monster..."
-        : "Monster unavailable";
+        : status === "server-unavailable"
+          ? "Server Unavailable"
+          : "Monster unavailable";
   const summary =
     status === "ready" && monster
       ? formatMonsterTitleMeta(monster)
       : status === "loading"
         ? "Fetching the full monster entry."
-        : "The full monster entry could not be loaded.";
+        : status === "server-unavailable"
+          ? "Monster details are unavailable while the app is offline."
+          : "The full monster entry could not be loaded.";
 
   return (
     <SheetDrawer
@@ -85,6 +89,12 @@ function MonsterEntryDrawer({
         {status === "error" ? (
           <div className={styles.statusState}>
             <p>The full monster entry could not be loaded.</p>
+          </div>
+        ) : null}
+
+        {status === "server-unavailable" ? (
+          <div className={styles.statusState}>
+            <p>Server Unavailable</p>
           </div>
         ) : null}
 

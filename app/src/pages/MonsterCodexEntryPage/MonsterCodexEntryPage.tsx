@@ -34,6 +34,16 @@ function MonsterCodexEntryPage() {
         </article>
       ) : null}
 
+      {status === "server-unavailable" ? (
+        <article className={styles.card}>
+          <h2>Server Unavailable</h2>
+          <p>Monster details are unavailable while the app is offline.</p>
+          <Link to={backToCodexPath} className={styles.linkButton}>
+            Back to library
+          </Link>
+        </article>
+      ) : null}
+
       {status === "ready" && !monster ? (
         <article className={styles.card}>
           <h2>Monster not found</h2>

@@ -34,6 +34,16 @@ function ItemCodexEntryPage() {
         </article>
       ) : null}
 
+      {status === "server-unavailable" ? (
+        <article className={styles.card}>
+          <h2>Server Unavailable</h2>
+          <p>Item details are unavailable while the app is offline.</p>
+          <Link to={backToCodexPath} className={styles.linkButton}>
+            Back to library
+          </Link>
+        </article>
+      ) : null}
+
       {status === "ready" && !item ? (
         <article className={styles.card}>
           <h2>Item not found</h2>

@@ -166,6 +166,19 @@ function MonsterCodexTable({
       );
     }
 
+    if (status === "server-unavailable") {
+      return (
+        <tr>
+          <td colSpan={4} className={styles.statusCell}>
+            <div className={styles.statusContent}>
+              <strong>Server Unavailable</strong>
+              <span>Monster data is unavailable while the app is offline.</span>
+            </div>
+          </td>
+        </tr>
+      );
+    }
+
     if (monsters.length === 0) {
       return (
         <tr>

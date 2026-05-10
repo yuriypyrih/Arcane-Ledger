@@ -1,6 +1,8 @@
 import { Suspense, lazy } from "react";
+import { LoaderCircle } from "lucide-react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import AppShell from "./components/AppShell";
+import styles from "./App.module.css";
 
 const CharacterBuilderPage = lazy(() => import("./pages/CharactersPage/CharacterBuilderPage"));
 const CharacterSheetPage = lazy(() => import("./pages/CharactersPage/CharacterSheetPage"));
@@ -13,16 +15,12 @@ const MonsterCodexEntryPage = lazy(() => import("./pages/MonsterCodexEntryPage")
 
 function RouteFallback() {
   return (
-    <section
-      style={{
-        display: "grid",
-        gap: "0.5rem",
-        padding: "2rem",
-        color: "var(--color-ink-soft)"
-      }}
-    >
-      <h2 style={{ margin: 0, color: "var(--color-ink)" }}>Loading...</h2>
-      <p style={{ margin: 0 }}>Preparing the next page.</p>
+    <section className={styles.routeFallback} aria-live="polite" aria-busy="true">
+      <h2 className={styles.loadingTitle}>
+        <span>Loading</span>
+        <LoaderCircle className={styles.loadingIcon} aria-hidden="true" />
+      </h2>
+      <p className={styles.loadingText}>Next page is loading.</p>
     </section>
   );
 }

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { fetchMonsterList } from "../../api";
+import { fetchMonsterList, isApiOfflineError } from "../../api";
+import { useOnlineStatus } from "../../lib/useOnlineStatus";
 import type { CodexStatus, MonsterListItem, MonsterOrdering, PaginatedApiResponse } from "../../types";
 
 type UseMonsterEntriesOptions = {
@@ -23,6 +24,7 @@ export function useMonsterEntries({
   source,
   ordering
 }: UseMonsterEntriesOptions) {
+  const isOnline = useOnlineStatus();
   const [payload, setPayload] = useState<PaginatedApiResponse<MonsterListItem> | null>(null);
   const [status, setStatus] = useState<CodexStatus>(enabled ? "loading" : "ready");
 
@@ -30,6 +32,12 @@ export function useMonsterEntries({
     if (!enabled) {
       setPayload(null);
       setStatus("ready");
+      return;
+    }
+
+    if (!isOnline) {
+      setPayload(null);
+      setStatus("server-unavailable");
       return;
     }
 
@@ -58,12 +66,12 @@ export function useMonsterEntries({
 
         setPayload(nextPayload);
         setStatus("ready");
-      } catch {
+      } catch (error) {
         if (!active || abortController.signal.aborted) {
           return;
         }
 
-        setStatus("error");
+        setStatus(isApiOfflineError(error) ? "server-unavailable" : "error");
       }
     }
 
@@ -73,7 +81,7 @@ export function useMonsterEntries({
       active = false;
       abortController.abort();
     };
-  }, [enabled, limit, maxCr, ordering, page, search, source, type]);
+  }, [enabled, isOnline, limit, maxCr, ordering, page, search, source, type]);
 
   return {
     payload,

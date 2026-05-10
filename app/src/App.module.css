@@ -1,0 +1,43 @@
+.routeFallback {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 0.55rem;
+  min-height: 100dvh;
+  padding: 2rem;
+  color: var(--color-ink);
+  text-align: center;
+  text-shadow:
+    0 0 10px rgba(247, 176, 88, 0.36),
+    0 0 22px rgba(222, 132, 42, 0.18);
+}
+
+.loadingTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin: 0;
+  color: var(--color-ink);
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.loadingIcon {
+  width: 1.3rem;
+  height: 1.3rem;
+  color: #d78d43;
+  filter: drop-shadow(0 0 7px rgba(247, 176, 88, 0.44));
+  animation: loadingSpin 920ms linear infinite;
+}
+
+.loadingText {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: 0.95rem;
+}
+
+@keyframes loadingSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}

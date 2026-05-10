@@ -20,6 +20,7 @@ import styles from "./ItemBrowserFilters.module.css";
 
 type ItemBrowserFiltersProps = {
   query: string;
+  searchResetSignal?: unknown;
   tab: ItemBrowserTab;
   category: string | null;
   rarity: string | null;
@@ -44,6 +45,7 @@ type ItemBrowserFiltersProps = {
 
 function ItemBrowserFilters({
   query,
+  searchResetSignal,
   tab,
   category,
   rarity,
@@ -258,6 +260,7 @@ function ItemBrowserFilters({
           <SearchField
             className={styles.input}
             value={query}
+            resetSignal={searchResetSignal}
             onValueChange={onQueryChange}
             placeholder="Search by name, rarity, category, or source..."
           />

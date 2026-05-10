@@ -27,6 +27,14 @@ import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/Cha
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./SpellCastingForm.module.css";
 import { applySpellManagementDraftToCharacter } from "./spellManagementDrafts";
+import SpellManagementFilterControls from "./SpellManagementFilterControls";
+import {
+  emptySpellManagementFilters,
+  filterSpellManagementSpells,
+  getSpellManagementFilterOptions,
+  hasActiveSpellManagementFilters,
+  type SpellManagementFilters
+} from "./spellManagementFilters";
 
 type SpellListRowActionShapes = ComponentProps<typeof SpellListRow>["actionShapes"];
 
@@ -140,7 +148,6 @@ function SpellManagementModal({
   usesSpellbook
 }: SpellManagementModalProps) {
   const isCommittingRef = useRef(false);
-  const cantripGroups = useMemo(() => groupSpellsByLevel(cantripOptions), [cantripOptions]);
   const spellPreparationLevelGroups = useMemo(
     () => createSpellPreparationLevelGroups(spellPreparationOptions),
     [spellPreparationOptions]
@@ -162,6 +169,12 @@ function SpellManagementModal({
   const [activePreparedSpellLevel, setActivePreparedSpellLevel] = useState(
     firstAvailablePreparedSpellLevel
   );
+  const [cantripFilters, setCantripFilters] = useState<SpellManagementFilters>(() => ({
+    ...emptySpellManagementFilters
+  }));
+  const [preparedSpellFilters, setPreparedSpellFilters] = useState<SpellManagementFilters>(() => ({
+    ...emptySpellManagementFilters
+  }));
   const alwaysPreparedSpellIdSet = useMemo(
     () => new Set(alwaysPreparedSpellIds),
     [alwaysPreparedSpellIds]
@@ -193,6 +206,26 @@ function SpellManagementModal({
       activePreparedSpellOptions.map((spell) => spellbookSpellEntriesById.get(spell.id) ?? spell),
     [activePreparedSpellOptions, spellbookSpellEntriesById]
   );
+  const cantripFilterOptions = useMemo(
+    () => getSpellManagementFilterOptions(cantripOptions),
+    [cantripOptions]
+  );
+  const preparedSpellFilterOptions = useMemo(
+    () => getSpellManagementFilterOptions(spellPreparationOptions),
+    [spellPreparationOptions]
+  );
+  const filteredCantripOptions = useMemo(
+    () => filterSpellManagementSpells(cantripOptions, cantripFilters),
+    [cantripFilters, cantripOptions]
+  );
+  const cantripGroups = useMemo(
+    () => groupSpellsByLevel(filteredCantripOptions),
+    [filteredCantripOptions]
+  );
+  const filteredActivePreparedSpellDisplayOptions = useMemo(
+    () => filterSpellManagementSpells(activePreparedSpellDisplayOptions, preparedSpellFilters),
+    [activePreparedSpellDisplayOptions, preparedSpellFilters]
+  );
   const preparedSpellDraftCountsByLevel = useMemo(
     () =>
       countTrackedSpellsByLevel(
@@ -206,6 +239,8 @@ function SpellManagementModal({
   const spellbookSpellCount = spellbookDraftIds.length;
   const alwaysSpellbookCount = alwaysSpellbookSpellIds.length;
   const preparedSpellCount = preparedSpellDraftIds.length;
+  const hasActiveCantripFilters = hasActiveSpellManagementFilters(cantripFilters);
+  const hasActivePreparedSpellFilters = hasActiveSpellManagementFilters(preparedSpellFilters);
   const isCantripLimitReached = cantripLimit !== null && cantripCount >= cantripLimit;
   const isPreparedSpellLimitReached =
     preparedSpellLimit !== null && preparedSpellCount >= preparedSpellLimit;
@@ -409,6 +444,8 @@ function SpellManagementModal({
     );
   }
 
+  const isSpellSelectionMode = mode !== "menu";
+
   return (
     <SheetModal
       titleId="spell-management-title"
@@ -416,6 +453,9 @@ function SpellManagementModal({
       onEscape={suspendEscapeClose ? ignoreModalEscapeClose : commitAndClose}
       isBusy={isCommitting}
       busyLabel="Saving spell choices"
+      panelClassName={
+        isSpellSelectionMode ? styles.spellManagementModalPanelFullHeight : undefined
+      }
       size="medium"
     >
       <OverlayHeader>
@@ -430,8 +470,12 @@ function SpellManagementModal({
         />
       </OverlayHeader>
 
-      <OverlayBody className={styles.spellManagementModalBody}>
-
+      <OverlayBody
+        className={clsx(
+          styles.spellManagementModalBody,
+          isSpellSelectionMode && styles.spellManagementModalBodyFullHeight
+        )}
+      >
         {mode === "menu" ? (
           <div className={sheetStyles.spellManagementOptionGrid}>
             {hasCantripManagement ? (
@@ -493,10 +537,24 @@ function SpellManagementModal({
               </div>
             </div>
 
+            {cantripOptions.length > 0 ? (
+              <SpellManagementFilterControls
+                filters={cantripFilters}
+                options={cantripFilterOptions}
+                onFiltersChange={setCantripFilters}
+              />
+            ) : null}
+
             <div className={clsx(sheetStyles.spellManagementList, styles.preparedSpellList)}>
-              {cantripGroups.length === 0 ? (
+              {cantripOptions.length === 0 ? (
                 <p className={shared.emptyText}>
                   No cantrips are available for this class right now.
+                </p>
+              ) : cantripGroups.length === 0 ? (
+                <p className={shared.emptyText}>
+                  {hasActiveCantripFilters
+                    ? "No cantrips match these filters."
+                    : "No cantrips are available for this class right now."}
                 </p>
               ) : (
                 cantripGroups.map((group) => (
@@ -523,6 +581,7 @@ function SpellManagementModal({
                               onSelect={() => toggleCantripDraft(spell.id)}
                               disabled={isDisabled}
                               actionShapes={actionShapes}
+                              contentLayout="natural"
                               className={
                                 isDisabled ? styles.spellManagementChoiceDisabled : undefined
                               }
@@ -604,15 +663,29 @@ function SpellManagementModal({
               </div>
             </div>
 
+            {spellPreparationOptions.length > 0 ? (
+              <SpellManagementFilterControls
+                filters={preparedSpellFilters}
+                options={preparedSpellFilterOptions}
+                onFiltersChange={setPreparedSpellFilters}
+              />
+            ) : null}
+
             <div className={clsx(sheetStyles.spellManagementList, styles.preparedSpellList)}>
               {activePreparedSpellDisplayOptions.length === 0 ? (
                 <p className={shared.emptyText}>
                   No {formatSpellGroupTitle(activePreparedSpellLevel).toLowerCase()} are available
                   for this class and level yet.
                 </p>
+              ) : filteredActivePreparedSpellDisplayOptions.length === 0 ? (
+                <p className={shared.emptyText}>
+                  {hasActivePreparedSpellFilters
+                    ? `No ${formatSpellGroupTitle(activePreparedSpellLevel).toLowerCase()} match these filters.`
+                    : `No ${formatSpellGroupTitle(activePreparedSpellLevel).toLowerCase()} are available for this class and level yet.`}
+                </p>
               ) : (
                 <ul className={styles.preparedSpellSelectionList}>
-                  {activePreparedSpellDisplayOptions.map((spell) => {
+                  {filteredActivePreparedSpellDisplayOptions.map((spell) => {
                     const isAlwaysPrepared = alwaysPreparedSpellIdSet.has(spell.id);
                     const isAlwaysSpellbook = alwaysSpellbookSpellIdSet.has(spell.id);
                     const isChecked = isAlwaysPrepared || preparedSpellDraftSet.has(spell.id);
@@ -644,6 +717,7 @@ function SpellManagementModal({
                           }
                           disabled={isDisabled}
                           actionShapes={actionShapes}
+                          contentLayout="natural"
                           className={
                             isAlwaysPrepared ? styles.spellManagementChoiceDisabled : undefined
                           }

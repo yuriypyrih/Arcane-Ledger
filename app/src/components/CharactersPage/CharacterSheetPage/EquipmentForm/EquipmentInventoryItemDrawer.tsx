@@ -93,6 +93,13 @@ function EquipmentInventoryItemDrawer({
             </div>
           ) : null}
 
+          {status === "server-unavailable" ? (
+            <div className={styles.statusCard}>
+              <strong>Server Unavailable</strong>
+              <span>Item details are unavailable while the app is offline.</span>
+            </div>
+          ) : null}
+
           {status === "ready" && !item ? (
             <div className={styles.statusCard}>
               <strong>Item not found</strong>

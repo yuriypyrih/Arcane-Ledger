@@ -43,6 +43,11 @@
   min-width: 0;
 }
 
+.contentRowNatural {
+  grid-template-columns: minmax(12rem, max-content) fit-content(24rem) auto;
+  justify-content: start;
+}
+
 .selectableCard {
   display: flex;
   align-items: stretch;
@@ -221,6 +226,10 @@
   .contentRow {
     grid-template-columns: minmax(8rem, max-content) minmax(0, 1fr) auto;
     gap: 0.55rem;
+  }
+
+  .contentRowNatural {
+    grid-template-columns: minmax(8rem, max-content) fit-content(14rem) auto;
   }
 
   .primaryBlock {

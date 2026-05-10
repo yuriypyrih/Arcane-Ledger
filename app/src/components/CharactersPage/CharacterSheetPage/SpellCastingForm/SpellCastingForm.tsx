@@ -123,7 +123,6 @@ import {
   getSpellLevel,
   getSpellSlotTotalsForCharacter,
   hasClassFeatureForCharacter,
-  isSpellcastingClass,
   normalizeTrackedSpellIds,
   normalizePreparedSpellIds,
   normalizeSpellbookSpellIds,
@@ -131,6 +130,9 @@ import {
   usesSpellbookForCharacter,
   usesPreparedSpellsForCharacter
 } from "../../../../pages/CharactersPage/spellcasting";
+import {
+  hasSpellcastingForCharacter
+} from "../../../../pages/CharactersPage/spellcastingAvailability";
 import { getSpellSelectionInputStatusForCharacter } from "../../../../pages/CharactersPage/spellSelection";
 import {
   consumeFeyTouchedFreeCastForCharacter,
@@ -482,7 +484,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   );
   const characterRuntime = useMemo(() => getCharacterRuntime(character), [character]);
   const spellcastingRuntime = characterRuntime.spellcasting;
-  const featureAlwaysPreparedSpellIds = spellcastingRuntime.featureAlwaysPreparedSpellIds;
   const featureAlwaysSpellbookSpellIds = spellcastingRuntime.featureAlwaysSpellbookSpellIds;
   const featureRitualOnlySpellIds = spellcastingRuntime.featureRitualOnlySpellIds;
   const basePreparedSpellPoolEntries = usePreparedSpellEntries(
@@ -490,14 +491,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     character.level,
     character.subclassId
   );
-  const canCastSpells =
-    isSpellcastingClass(character.className, character.level, character.subclassId) ||
-    featGrantedCantripEntries.length > 0 ||
-    speciesGrantedCantripEntries.length > 0 ||
-    featAlwaysPreparedCantripEntries.length > 0 ||
-    featAlwaysPreparedSpellEntries.length > 0 ||
-    featureAlwaysPreparedSpellIds.length > 0 ||
-    featureAlwaysSpellbookSpellIds.length > 0;
+  const canCastSpells = hasSpellcastingForCharacter(character);
   const spellcastingState = spellcastingRuntime.spellcastingState;
 
   useEffect(() => {

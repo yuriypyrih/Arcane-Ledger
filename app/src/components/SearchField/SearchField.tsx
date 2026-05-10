@@ -1,10 +1,12 @@
-import { useEffect, useState, type ComponentPropsWithoutRef } from "react";
+import { useEffect, useLayoutEffect, useState, type ComponentPropsWithoutRef } from "react";
+import { useDebouncedValue } from "../../lib/useDebouncedValue";
 import TextInput from "../CharactersPage/FormInputs/TextInput";
 
 type SearchFieldProps = Omit<ComponentPropsWithoutRef<"input">, "onChange" | "type" | "value"> & {
   value: string;
   onValueChange: (value: string) => void;
   debounceMs?: number;
+  resetSignal?: unknown;
   invalid?: boolean;
 };
 
@@ -14,25 +16,21 @@ function SearchField({
   value,
   onValueChange,
   debounceMs = DEFAULT_DEBOUNCE_MS,
+  resetSignal,
   ...inputProps
 }: SearchFieldProps) {
   const [draftValue, setDraftValue] = useState(value);
+  const debouncedDraftValue = useDebouncedValue(draftValue, debounceMs);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setDraftValue(value);
-  }, [value]);
+  }, [resetSignal, value]);
 
   useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      if (draftValue !== value) {
-        onValueChange(draftValue);
-      }
-    }, debounceMs);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, [debounceMs, draftValue, onValueChange, value]);
+    if (debouncedDraftValue !== value && debouncedDraftValue === draftValue) {
+      onValueChange(debouncedDraftValue);
+    }
+  }, [debouncedDraftValue, draftValue, onValueChange, value]);
 
   return (
     <TextInput

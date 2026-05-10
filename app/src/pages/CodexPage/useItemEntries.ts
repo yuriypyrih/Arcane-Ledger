@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { fetchItemList } from "../../api";
+import { fetchItemList, isApiOfflineError } from "../../api";
+import { useOnlineStatus } from "../../lib/useOnlineStatus";
 import type {
   CodexStatus,
   ItemArmorType,
@@ -44,6 +45,7 @@ export function useItemEntries({
   source,
   ordering
 }: UseItemEntriesOptions) {
+  const isOnline = useOnlineStatus();
   const [payload, setPayload] = useState<PaginatedApiResponse<ItemListItem> | null>(null);
   const [status, setStatus] = useState<CodexStatus>(enabled ? "loading" : "ready");
 
@@ -51,6 +53,12 @@ export function useItemEntries({
     if (!enabled) {
       setPayload(null);
       setStatus("ready");
+      return;
+    }
+
+    if (!isOnline) {
+      setPayload(null);
+      setStatus("server-unavailable");
       return;
     }
 
@@ -85,12 +93,12 @@ export function useItemEntries({
 
         setPayload(nextPayload);
         setStatus("ready");
-      } catch {
+      } catch (error) {
         if (!active || abortController.signal.aborted) {
           return;
         }
 
-        setStatus("error");
+        setStatus(isApiOfflineError(error) ? "server-unavailable" : "error");
       }
     }
 
@@ -105,6 +113,7 @@ export function useItemEntries({
     attackType,
     category,
     enabled,
+    isOnline,
     limit,
     mastery,
     ordering,

@@ -276,4 +276,4 @@ export type CodexEntry =
   | RuleEntry
   | MonsterEntry;
 
-export type CodexStatus = "loading" | "ready" | "error";
+export type CodexStatus = "loading" | "ready" | "error" | "server-unavailable";

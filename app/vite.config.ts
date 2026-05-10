@@ -54,10 +54,14 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,png,ico,json}"],
+        navigateFallback: "/index.html",
+        navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [
           {
             urlPattern: ({ request, url }) =>
-              request.destination === "" && url.pathname.endsWith(".json"),
+              request.destination === "" &&
+              url.pathname.endsWith(".json") &&
+              !url.pathname.startsWith("/api/"),
             handler: "StaleWhileRevalidate",
             options: {
               cacheName: "json-assets-cache"

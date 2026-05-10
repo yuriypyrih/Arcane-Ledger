@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { fetchItemFilterOptions } from "../../api";
+import { fetchItemFilterOptions, isApiOfflineError } from "../../api";
+import { useOnlineStatus } from "../../lib/useOnlineStatus";
 import type { CodexStatus, ItemFilterOptions } from "../../types";
 
 export function useItemFilterOptions(enabled: boolean) {
+  const isOnline = useOnlineStatus();
   const [payload, setPayload] = useState<ItemFilterOptions | null>(null);
   const [status, setStatus] = useState<CodexStatus>(enabled ? "loading" : "ready");
 
@@ -10,6 +12,12 @@ export function useItemFilterOptions(enabled: boolean) {
     if (!enabled) {
       setPayload(null);
       setStatus("ready");
+      return;
+    }
+
+    if (!isOnline) {
+      setPayload(null);
+      setStatus("server-unavailable");
       return;
     }
 
@@ -27,12 +35,12 @@ export function useItemFilterOptions(enabled: boolean) {
 
         setPayload(nextPayload);
         setStatus("ready");
-      } catch {
+      } catch (error) {
         if (!active || abortController.signal.aborted) {
           return;
         }
 
-        setStatus("error");
+        setStatus(isApiOfflineError(error) ? "server-unavailable" : "error");
       }
     }
 
@@ -42,7 +50,7 @@ export function useItemFilterOptions(enabled: boolean) {
       active = false;
       abortController.abort();
     };
-  }, [enabled]);
+  }, [enabled, isOnline]);
 
   return {
     payload,

@@ -1,8 +1,9 @@
 import { Minus, Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { fetchMonsterBySlug } from "../../../../api";
+import { fetchMonsterBySlug, isApiOfflineError } from "../../../../api";
 import MonsterCodexTable from "../../../CodexPage/MonsterCodexTable";
 import { MONSTER_SOURCE_OPTIONS, MONSTER_TYPE_OPTIONS } from "../../../../constants/monsters";
+import { useOnlineStatus } from "../../../../lib/useOnlineStatus";
 import {
   OverlayBody,
   OverlayCloseButton,
@@ -57,7 +58,9 @@ function DruidWildShapeMonsterModal({
   onClose
 }: DruidWildShapeMonsterModalProps) {
   const rules = getDruidWildShapeRulesForCharacter(character);
+  const isOnline = useOnlineStatus();
   const [query, setQuery] = useState("");
+  const [searchResetSignal, setSearchResetSignal] = useState(0);
   const [monsterTypeFilter, setMonsterTypeFilter] = useState<string | null>(
     DEFAULT_VALID_MONSTER_TYPE
   );
@@ -151,6 +154,12 @@ function DruidWildShapeMonsterModal({
         return;
       }
 
+      if (!isOnline) {
+        setPreviewMonster(null);
+        setPreviewStatus("server-unavailable");
+        return;
+      }
+
       setPreviewStatus("loading");
 
       try {
@@ -169,13 +178,13 @@ function DruidWildShapeMonsterModal({
         }));
         setPreviewMonster(payload);
         setPreviewStatus("ready");
-      } catch {
+      } catch (error) {
         if (!active || abortController.signal.aborted) {
           return;
         }
 
         setPreviewMonster(null);
-        setPreviewStatus("error");
+        setPreviewStatus(isApiOfflineError(error) ? "server-unavailable" : "error");
       }
     }
 
@@ -185,7 +194,7 @@ function DruidWildShapeMonsterModal({
       active = false;
       abortController.abort();
     };
-  }, [monsterCache, previewSlug]);
+  }, [isOnline, monsterCache, previewSlug]);
 
   function removeMonster(slug: string) {
     setNotice(null);
@@ -238,8 +247,12 @@ function DruidWildShapeMonsterModal({
       }));
       onSelectedMonstersChange([...selectedMonsters, fullMonster]);
       setNotice(null);
-    } catch {
-      setNotice("The full monster entry could not be loaded.");
+    } catch (error) {
+      setNotice(
+        isApiOfflineError(error)
+          ? "Server Unavailable"
+          : "The full monster entry could not be loaded."
+      );
     } finally {
       setPendingAddSlug(null);
     }
@@ -321,6 +334,7 @@ function DruidWildShapeMonsterModal({
               <SearchField
                 className={styles.input}
                 value={query}
+                resetSignal={searchResetSignal}
                 onValueChange={setQuery}
                 placeholder="Search monsters..."
               />
@@ -332,9 +346,11 @@ function DruidWildShapeMonsterModal({
                 className={styles.select}
                 value={monsterTypeFilter ?? "ALL"}
                 disabled={onlyValidBeasts}
-                onChange={(event) =>
-                  setMonsterTypeFilter(event.target.value === "ALL" ? null : event.target.value)
-                }
+                onChange={(event) => {
+                  setQuery("");
+                  setSearchResetSignal((currentSignal) => currentSignal + 1);
+                  setMonsterTypeFilter(event.target.value === "ALL" ? null : event.target.value);
+                }}
               >
                 <option value="ALL">All</option>
                 {MONSTER_TYPE_OPTIONS.map((monsterType) => (
@@ -351,9 +367,11 @@ function DruidWildShapeMonsterModal({
                 className={styles.select}
                 value={monsterSourceFilter ?? "ALL"}
                 disabled={onlyValidBeasts}
-                onChange={(event) =>
-                  setMonsterSourceFilter(event.target.value === "ALL" ? null : event.target.value)
-                }
+                onChange={(event) => {
+                  setQuery("");
+                  setSearchResetSignal((currentSignal) => currentSignal + 1);
+                  setMonsterSourceFilter(event.target.value === "ALL" ? null : event.target.value);
+                }}
               >
                 <option value="ALL">All</option>
                 {MONSTER_SOURCE_OPTIONS.map((monsterSource) => (

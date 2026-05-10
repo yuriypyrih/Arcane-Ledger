@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Link, useOutletContext, useParams } from "react-router-dom";
 import { ThumbDiceButton } from "../../../components/CharactersPage/CharacterSheetPage";
 import type { AppShellOutletContext } from "../../../components/AppShell/outletContext";
+import { hasSpellcastingForCharacter } from "../spellcastingAvailability";
 import styles from "./CharacterSheetPage.module.css";
 import { useCharacterSheetPersistence } from "./useCharacterSheetPersistence";
 import {
@@ -21,9 +22,17 @@ function CharacterSheetPage() {
   const parsedCharacterId = useMemo(() => Number(characterId), [characterId]);
   const { character, persistCharacter, queueHitPointCharacterSave } =
     useCharacterSheetPersistence(parsedCharacterId);
+  const hasSpellcastingSection = character ? hasSpellcastingForCharacter(character) : false;
   const pageClassName = isBroadLayoutActive
     ? `${styles.page} ${styles.pageBroad}`
     : styles.page;
+  const cascadeStackClassName = [
+    styles.cascadeStack,
+    isBroadLayoutActive ? styles.cascadeStackBroad : "",
+    isBroadLayoutActive && !hasSpellcastingSection ? styles.cascadeStackBroadNoSpellcasting : ""
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   if (!character) {
     return (
@@ -42,13 +51,7 @@ function CharacterSheetPage() {
 
   return (
     <section className={pageClassName}>
-      <div
-        className={
-          isBroadLayoutActive
-            ? `${styles.cascadeStack} ${styles.cascadeStackBroad}`
-            : styles.cascadeStack
-        }
-      >
+      <div className={cascadeStackClassName}>
         <CharacterProfileSection
           className={styles.cascadeOne}
           broadLayout={isBroadLayoutActive}
@@ -70,10 +73,12 @@ function CharacterSheetPage() {
           onPersistCharacter={persistCharacter}
         />
         <FeaturesSection className={styles.cascadeFour} onPersistCharacter={persistCharacter} />
-        <SpellcastingSection
-          className={styles.cascadeEight}
-          onPersistCharacter={persistCharacter}
-        />
+        {hasSpellcastingSection ? (
+          <SpellcastingSection
+            className={styles.cascadeEight}
+            onPersistCharacter={persistCharacter}
+          />
+        ) : null}
       </div>
       <ThumbDiceButton />
     </section>

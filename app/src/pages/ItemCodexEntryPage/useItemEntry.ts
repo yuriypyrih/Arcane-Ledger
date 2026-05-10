@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { fetchItemByKey } from "../../api";
+import { fetchItemByKey, isApiOfflineError } from "../../api";
+import { useOnlineStatus } from "../../lib/useOnlineStatus";
 import type { CodexStatus, ItemRecord } from "../../types";
 import { LruCache } from "../../utils/lruCache";
 
@@ -20,6 +21,7 @@ export function primeItemEntryCache(item: ItemRecord | null | undefined) {
 
 export function useItemEntry(key: string | undefined, options?: UseItemEntryOptions) {
   const enabled = options?.enabled ?? true;
+  const isOnline = useOnlineStatus();
   const [item, setItem] = useState<ItemRecord | null>(() => {
     if (options?.initialItem) {
       primeItemEntryCache(options.initialItem);
@@ -63,6 +65,12 @@ export function useItemEntry(key: string | undefined, options?: UseItemEntryOpti
         return;
       }
 
+      if (!isOnline) {
+        setItem(null);
+        setStatus("server-unavailable");
+        return;
+      }
+
       setStatus("loading");
 
       try {
@@ -75,13 +83,13 @@ export function useItemEntry(key: string | undefined, options?: UseItemEntryOpti
         primeItemEntryCache(payload);
         setItem(payload);
         setStatus("ready");
-      } catch {
+      } catch (error) {
         if (!active || abortController.signal.aborted) {
           return;
         }
 
         setItem(null);
-        setStatus("error");
+        setStatus(isApiOfflineError(error) ? "server-unavailable" : "error");
       }
     }
 
@@ -91,7 +99,7 @@ export function useItemEntry(key: string | undefined, options?: UseItemEntryOpti
       active = false;
       abortController.abort();
     };
-  }, [enabled, key, options?.initialItem]);
+  }, [enabled, isOnline, key, options?.initialItem]);
 
   return {
     item,

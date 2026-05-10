@@ -65,6 +65,17 @@
   grid-template-columns: minmax(0, 1fr) minmax(0, 3fr) minmax(0, 2fr);
 }
 
+.cascadeStackBroadNoSpellcasting {
+  grid-template-areas:
+    "profile gameplay"
+    "profile stats"
+    "profile skills"
+    "profile companions"
+    "profile equipment"
+    "profile features";
+  grid-template-columns: minmax(0, 1fr) minmax(0, 5fr);
+}
+
 .cascadeOne,
 .cascadeTwo,
 .cascadeThree,

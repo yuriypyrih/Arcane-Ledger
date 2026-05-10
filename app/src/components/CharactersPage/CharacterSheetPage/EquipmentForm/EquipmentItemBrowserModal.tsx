@@ -55,8 +55,14 @@ function EquipmentItemBrowserModal({
   const [source, setSource] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [ordering, setOrdering] = useState<ItemOrdering>("name");
+  const [searchResetSignal, setSearchResetSignal] = useState(0);
+  const clearSearch = useCallback(() => {
+    setQuery("");
+    setSearchResetSignal((currentSignal) => currentSignal + 1);
+  }, []);
   const resetBrowserState = useCallback(() => {
     setQuery("");
+    setSearchResetSignal((currentSignal) => currentSignal + 1);
     setTab(DEFAULT_ITEM_BROWSER_TAB);
     setCategory(null);
     setAttackType(null);
@@ -208,6 +214,7 @@ function EquipmentItemBrowserModal({
       <OverlayBody className={styles.body}>
         <ItemBrowserFilters
           query={query}
+          searchResetSignal={searchResetSignal}
           tab={sanitizedScopedFilters.tab}
           category={sanitizedScopedFilters.category}
           attackType={sanitizedScopedFilters.attackType}
@@ -223,6 +230,7 @@ function EquipmentItemBrowserModal({
             setPage(1);
           }}
           onTabChange={(value: ItemBrowserTab) => {
+            clearSearch();
             setTab(value);
             setCategory(null);
             setAttackType(null);
@@ -233,34 +241,42 @@ function EquipmentItemBrowserModal({
             setPage(1);
           }}
           onCategoryChange={(value: string | null) => {
+            clearSearch();
             setCategory(value);
             setPage(1);
           }}
           onAttackTypeChange={(value: ItemAttackType | null) => {
+            clearSearch();
             setAttackType(value);
             setPage(1);
           }}
           onProficiencyTypeChange={(value: ItemProficiencyType | null) => {
+            clearSearch();
             setProficiencyType(value);
             setPage(1);
           }}
           onMasteryChange={(value: string | null) => {
+            clearSearch();
             setMastery(value);
             setPage(1);
           }}
           onPropertyChange={(value: string | null) => {
+            clearSearch();
             setProperty(value);
             setPage(1);
           }}
           onArmorTypeChange={(value: ItemArmorType | null) => {
+            clearSearch();
             setArmorType(value);
             setPage(1);
           }}
           onRarityChange={(value: string | null) => {
+            clearSearch();
             setRarity(value);
             setPage(1);
           }}
           onSourceChange={(value: string | null) => {
+            clearSearch();
             setSource(value);
             setPage(1);
           }}

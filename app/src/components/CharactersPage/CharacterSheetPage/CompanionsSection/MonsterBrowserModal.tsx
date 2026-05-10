@@ -26,6 +26,7 @@ type MonsterBrowserModalProps = {
   currentPage: number;
   totalPages: number;
   query: string;
+  searchResetSignal?: unknown;
   selectedMonsterSlug: string | null;
   monsterTypeFilter: string;
   monsterSourceFilter: string;
@@ -48,6 +49,7 @@ function MonsterBrowserModal({
   currentPage,
   totalPages,
   query,
+  searchResetSignal,
   selectedMonsterSlug,
   monsterTypeFilter,
   monsterSourceFilter,
@@ -86,6 +88,7 @@ function MonsterBrowserModal({
             <span className={shared.fieldLabel}>Search Monsters</span>
             <SearchField
               value={query}
+              resetSignal={searchResetSignal}
               onValueChange={onQueryChange}
               placeholder="Search by monster name"
             />

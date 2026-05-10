@@ -30,6 +30,7 @@ import {
   normalizePointBuyAbilities,
   speciesOptions
 } from "../../../pages/CharactersPage/constants";
+import { showToast, useAppDispatch } from "../../../store";
 import { clampNumber } from "../../../pages/CharactersPage/shared";
 import {
   backgroundOptions,
@@ -140,6 +141,11 @@ type CharacterFormValues = CharacterDraft & {
   startingEquipmentChoiceIndex: string;
   starterPackSelectionValues: Record<string, string>;
 };
+
+const disabledCreationClassNames = new Set<string>(["Artificer"]);
+const randomizableClassOptions = classOptions.filter(
+  (className) => !disabledCreationClassNames.has(className)
+);
 
 function normalizeCustomAbilities(abilities: AbilityScores): AbilityScores {
   return abilityKeys.reduce((next, ability) => {
@@ -594,6 +600,10 @@ function getRandomSubclassIdForClass(className: string): string {
   return subclassOptions.length > 0 ? getRandomItem(subclassOptions).id : "";
 }
 
+function getDefaultSubclassIdForClass(className: string): string {
+  return getSubclassOptionsForClassName(className)[0]?.id ?? "";
+}
+
 function shuffle<T>(values: T[]): T[] {
   const nextValues = [...values];
 
@@ -664,6 +674,7 @@ function createRandomName(): string {
 }
 
 function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: CharacterFormProps) {
+  const dispatch = useAppDispatch();
   const [wizardStep, setWizardStep] = useState<CreationStep>(1);
   const [stepOneSnapshot, setStepOneSnapshot] = useState<CharacterFormValues | null>(null);
   const [attemptedBuildAdvance, setAttemptedBuildAdvance] = useState(false);
@@ -1146,11 +1157,13 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   }, [getValues, resolvedBackground, setValue]);
 
   useEffect(() => {
-    const normalizedSubclassId = normalizeSubclassId(resolvedSubclassId, resolvedClassName) ?? "";
+    const normalizedSubclassId =
+      normalizeSubclassId(resolvedSubclassId, resolvedClassName) ??
+      getDefaultSubclassIdForClass(resolvedClassName);
 
     if (resolvedSubclassId !== normalizedSubclassId) {
       setValue("subclassId", normalizedSubclassId, {
-        shouldDirty: resolvedSubclassId.length > 0,
+        shouldDirty: resolvedSubclassId.length > 0 || normalizedSubclassId.length > 0,
         shouldValidate: true
       });
     }
@@ -1685,6 +1698,19 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       ...materializedClassStarterPack.warnings,
       ...materializedBackgroundStarterPack.warnings
     ]);
+
+    if (
+      materializedClassStarterPack.itemsSkipped ||
+      materializedBackgroundStarterPack.itemsSkipped
+    ) {
+      dispatch(
+        showToast({
+          text: "Starter equipment could not be loaded. Character created without those items.",
+          type: "error"
+        })
+      );
+    }
+
     await onSubmit({
       ...normalizedDraft,
       inventoryItems: materializedBackgroundStarterPack.inventoryItems
@@ -1800,7 +1826,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   }
 
   function handleRandomize() {
-    const randomClassName = getRandomItem(classOptions);
+    const randomClassName = getRandomItem(randomizableClassOptions);
     const randomBackgroundState = createRandomBackgroundState(randomClassName);
     const randomClassSkillOptions = getSkillProficiencyOptionsForClass(randomClassName);
     const randomClassSkillLimit = getSkillSelectionLimitForClass(randomClassName);
@@ -1870,6 +1896,13 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
 
   function renderBasicProfileSection() {
     const showRandomize = !isEditing && wizardStep === 1;
+    const classRegistration = register("className", {
+      required: "Choose a class",
+      validate: (value) =>
+        isEditing || !disabledCreationClassNames.has(value)
+          ? true
+          : "Choose a supported class"
+    });
     const speciesRegistration = register("species", { required: "Choose a species" });
 
     return (
@@ -1935,11 +1968,22 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
               <SelectInput
                 className={styles.fieldInput}
                 invalid={Boolean(errors.className)}
-                {...register("className", { required: "Choose a class" })}
+                {...classRegistration}
+                onChange={(event) => {
+                  void classRegistration.onChange(event);
+                  setValue("subclassId", getDefaultSubclassIdForClass(event.target.value), {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  });
+                }}
               >
                 <option value="">Select a class</option>
                 {classOptions.map((characterClass) => (
-                  <option key={characterClass} value={characterClass}>
+                  <option
+                    key={characterClass}
+                    value={characterClass}
+                    disabled={!isEditing && disabledCreationClassNames.has(characterClass)}
+                  >
                     {characterClass}
                   </option>
                 ))}

@@ -68,6 +68,7 @@ function CodexPage() {
   const { entries, status } = useCodexEntries();
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedSpell, setSelectedSpell] = useState<SpellEntry | null>(null);
+  const [searchResetSignal, setSearchResetSignal] = useState(0);
   const categories = getCodexCategories();
   const {
     category,
@@ -143,16 +144,21 @@ function CodexPage() {
     source: monsterSourceFilter,
     ordering: monsterOrdering
   });
+  const clearSearchForSelectionChange = useCallback((nextSearchParams: URLSearchParams) => {
+    setSearchParamValue(nextSearchParams, QUERY_PARAM, null);
+    setSearchResetSignal((currentSignal) => currentSignal + 1);
+  }, []);
   const updateCategory = useCallback(
     (nextCategory: CodexFilterCategory) => {
       const nextSearchParams = new URLSearchParams(searchParams);
       nextSearchParams.set("category", nextCategory);
+      clearSearchForSelectionChange(nextSearchParams);
       resetPageSearchParam(nextSearchParams);
       clearCategoryScopedSearchParams(nextSearchParams, nextCategory);
 
       setSearchParams(nextSearchParams, { replace: true });
     },
-    [searchParams, setSearchParams]
+    [clearSearchForSelectionChange, searchParams, setSearchParams]
   );
 
   useEffect(() => {
@@ -302,37 +308,41 @@ function CodexPage() {
     (value: number | null) => {
       const nextSearchParams = new URLSearchParams(searchParams);
       setSearchParamValue(nextSearchParams, SPELL_LEVEL_PARAM, value);
+      clearSearchForSelectionChange(nextSearchParams);
       resetPageSearchParam(nextSearchParams);
       setSearchParams(nextSearchParams, { replace: true });
     },
-    [searchParams, setSearchParams]
+    [clearSearchForSelectionChange, searchParams, setSearchParams]
   );
   const handleSpellClassFilterChange = useCallback(
     (value: SPELL_LIST_CLASS | null) => {
       const nextSearchParams = new URLSearchParams(searchParams);
       setSearchParamValue(nextSearchParams, SPELL_CLASS_PARAM, value);
+      clearSearchForSelectionChange(nextSearchParams);
       resetPageSearchParam(nextSearchParams);
       setSearchParams(nextSearchParams, { replace: true });
     },
-    [searchParams, setSearchParams]
+    [clearSearchForSelectionChange, searchParams, setSearchParams]
   );
   const handleMonsterTypeFilterChange = useCallback(
     (value: string | null) => {
       const nextSearchParams = new URLSearchParams(searchParams);
       setSearchParamValue(nextSearchParams, MONSTER_TYPE_PARAM, value);
+      clearSearchForSelectionChange(nextSearchParams);
       resetPageSearchParam(nextSearchParams);
       setSearchParams(nextSearchParams, { replace: true });
     },
-    [searchParams, setSearchParams]
+    [clearSearchForSelectionChange, searchParams, setSearchParams]
   );
   const handleMonsterSourceFilterChange = useCallback(
     (value: string | null) => {
       const nextSearchParams = new URLSearchParams(searchParams);
       setSearchParamValue(nextSearchParams, MONSTER_SOURCE_PARAM, value);
+      clearSearchForSelectionChange(nextSearchParams);
       resetPageSearchParam(nextSearchParams);
       setSearchParams(nextSearchParams, { replace: true });
     },
-    [searchParams, setSearchParams]
+    [clearSearchForSelectionChange, searchParams, setSearchParams]
   );
   const handleMonsterOrderingChange = useCallback(
     (value: MonsterOrdering) => {
@@ -347,10 +357,11 @@ function CodexPage() {
     (value: string | null) => {
       const nextSearchParams = new URLSearchParams(searchParams);
       setSearchParamValue(nextSearchParams, ITEM_CATEGORY_PARAM, value);
+      clearSearchForSelectionChange(nextSearchParams);
       resetPageSearchParam(nextSearchParams);
       setSearchParams(nextSearchParams, { replace: true });
     },
-    [searchParams, setSearchParams]
+    [clearSearchForSelectionChange, searchParams, setSearchParams]
   );
   const handleItemTabChange = useCallback(
     (value: ItemBrowserTab) => {
@@ -366,73 +377,81 @@ function CodexPage() {
       setSearchParamValue(nextSearchParams, ITEM_MASTERY_PARAM, null);
       setSearchParamValue(nextSearchParams, ITEM_PROPERTY_PARAM, null);
       setSearchParamValue(nextSearchParams, ITEM_ARMOR_TYPE_PARAM, null);
+      clearSearchForSelectionChange(nextSearchParams);
       resetPageSearchParam(nextSearchParams);
       setSearchParams(nextSearchParams, { replace: true });
     },
-    [searchParams, setSearchParams]
+    [clearSearchForSelectionChange, searchParams, setSearchParams]
   );
   const handleItemAttackTypeFilterChange = useCallback(
     (value: ItemAttackType | null) => {
       const nextSearchParams = new URLSearchParams(searchParams);
       setSearchParamValue(nextSearchParams, ITEM_ATTACK_TYPE_PARAM, value);
+      clearSearchForSelectionChange(nextSearchParams);
       resetPageSearchParam(nextSearchParams);
       setSearchParams(nextSearchParams, { replace: true });
     },
-    [searchParams, setSearchParams]
+    [clearSearchForSelectionChange, searchParams, setSearchParams]
   );
   const handleItemProficiencyTypeFilterChange = useCallback(
     (value: ItemProficiencyType | null) => {
       const nextSearchParams = new URLSearchParams(searchParams);
       setSearchParamValue(nextSearchParams, ITEM_PROFICIENCY_TYPE_PARAM, value);
+      clearSearchForSelectionChange(nextSearchParams);
       resetPageSearchParam(nextSearchParams);
       setSearchParams(nextSearchParams, { replace: true });
     },
-    [searchParams, setSearchParams]
+    [clearSearchForSelectionChange, searchParams, setSearchParams]
   );
   const handleItemArmorTypeFilterChange = useCallback(
     (value: ItemArmorType | null) => {
       const nextSearchParams = new URLSearchParams(searchParams);
       setSearchParamValue(nextSearchParams, ITEM_ARMOR_TYPE_PARAM, value);
+      clearSearchForSelectionChange(nextSearchParams);
       resetPageSearchParam(nextSearchParams);
       setSearchParams(nextSearchParams, { replace: true });
     },
-    [searchParams, setSearchParams]
+    [clearSearchForSelectionChange, searchParams, setSearchParams]
   );
   const handleItemMasteryFilterChange = useCallback(
     (value: string | null) => {
       const nextSearchParams = new URLSearchParams(searchParams);
       setSearchParamValue(nextSearchParams, ITEM_MASTERY_PARAM, value);
+      clearSearchForSelectionChange(nextSearchParams);
       resetPageSearchParam(nextSearchParams);
       setSearchParams(nextSearchParams, { replace: true });
     },
-    [searchParams, setSearchParams]
+    [clearSearchForSelectionChange, searchParams, setSearchParams]
   );
   const handleItemPropertyFilterChange = useCallback(
     (value: string | null) => {
       const nextSearchParams = new URLSearchParams(searchParams);
       setSearchParamValue(nextSearchParams, ITEM_PROPERTY_PARAM, value);
+      clearSearchForSelectionChange(nextSearchParams);
       resetPageSearchParam(nextSearchParams);
       setSearchParams(nextSearchParams, { replace: true });
     },
-    [searchParams, setSearchParams]
+    [clearSearchForSelectionChange, searchParams, setSearchParams]
   );
   const handleItemRarityFilterChange = useCallback(
     (value: string | null) => {
       const nextSearchParams = new URLSearchParams(searchParams);
       setSearchParamValue(nextSearchParams, ITEM_RARITY_PARAM, value);
+      clearSearchForSelectionChange(nextSearchParams);
       resetPageSearchParam(nextSearchParams);
       setSearchParams(nextSearchParams, { replace: true });
     },
-    [searchParams, setSearchParams]
+    [clearSearchForSelectionChange, searchParams, setSearchParams]
   );
   const handleItemSourceFilterChange = useCallback(
     (value: string | null) => {
       const nextSearchParams = new URLSearchParams(searchParams);
       setSearchParamValue(nextSearchParams, ITEM_SOURCE_PARAM, value);
+      clearSearchForSelectionChange(nextSearchParams);
       resetPageSearchParam(nextSearchParams);
       setSearchParams(nextSearchParams, { replace: true });
     },
-    [searchParams, setSearchParams]
+    [clearSearchForSelectionChange, searchParams, setSearchParams]
   );
   const handleItemOrderingChange = useCallback(
     (value: ItemOrdering) => {
@@ -447,10 +466,11 @@ function CodexPage() {
     (value: FEAT_CATEGORY | null) => {
       const nextSearchParams = new URLSearchParams(searchParams);
       setSearchParamValue(nextSearchParams, FEAT_CATEGORY_PARAM, value);
+      clearSearchForSelectionChange(nextSearchParams);
       resetPageSearchParam(nextSearchParams);
       setSearchParams(nextSearchParams, { replace: true });
     },
-    [searchParams, setSearchParams]
+    [clearSearchForSelectionChange, searchParams, setSearchParams]
   );
   const handlePageChange = useCallback(
     (page: number) => {
@@ -492,6 +512,7 @@ function CodexPage() {
 
         <CodexFilters
           query={query}
+          searchResetSignal={searchResetSignal}
           category={category}
           categories={categories}
           spellLevelFilter={spellLevelFilter}

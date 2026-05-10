@@ -13,34 +13,40 @@ export type EquipmentInventoryDrawerAction = {
 type EquipmentInventoryItemDrawerFooterProps = {
   leftActions?: EquipmentInventoryDrawerAction[];
   rightActions?: EquipmentInventoryDrawerAction[];
+  notice?: string | null;
   ownedCount?: number;
 };
 
 function EquipmentInventoryItemDrawerFooter({
   leftActions = [],
+  notice = null,
   rightActions = [],
   ownedCount = 0
 }: EquipmentInventoryItemDrawerFooterProps) {
-  if (leftActions.length === 0 && rightActions.length === 0 && ownedCount <= 0) {
+  if (leftActions.length === 0 && rightActions.length === 0 && ownedCount <= 0 && !notice) {
     return null;
   }
 
   return (
-    <div className={styles.footerLayout}>
-      <div className={styles.footerActionGroup}>
-        {leftActions.map((action) => (
-          <FooterActionButton key={action.key} action={action} />
-        ))}
-      </div>
+    <div className={styles.footerStack}>
+      {notice ? <p className={styles.footerNotice}>{notice}</p> : null}
 
-      <div className={styles.footerRightGroup}>
-        {ownedCount > 0 ? (
-          <span className={styles.copyCountBadge}>{`[x${ownedCount}]`}</span>
-        ) : null}
+      <div className={styles.footerLayout}>
         <div className={styles.footerActionGroup}>
-          {rightActions.map((action) => (
+          {leftActions.map((action) => (
             <FooterActionButton key={action.key} action={action} />
           ))}
+        </div>
+
+        <div className={styles.footerRightGroup}>
+          {ownedCount > 0 ? (
+            <span className={styles.copyCountBadge}>{`[x${ownedCount}]`}</span>
+          ) : null}
+          <div className={styles.footerActionGroup}>
+            {rightActions.map((action) => (
+              <FooterActionButton key={action.key} action={action} />
+            ))}
+          </div>
         </div>
       </div>
     </div>

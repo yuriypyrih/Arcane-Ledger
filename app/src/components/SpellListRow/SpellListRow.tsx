@@ -33,6 +33,7 @@ type SpellListRowProps = {
   disabled?: boolean;
   compactConcentrationDuration?: boolean;
   highlightTone?: "default" | "spell-mastery";
+  contentLayout?: "default" | "natural";
 };
 
 function formatSpellSummaryRange(range: string): string {
@@ -119,7 +120,8 @@ function SpellListRow({
   selectionControls,
   disabled = false,
   compactConcentrationDuration = false,
-  highlightTone = "default"
+  highlightTone = "default",
+  contentLayout = "default"
 }: SpellListRowProps) {
   const hasValueSummary = valueSummary.trim().length > 0;
   const hasDetailNote = (detailNote ?? "").trim().length > 0;
@@ -199,7 +201,12 @@ function SpellListRow({
         )}
         <button type="button" className={styles.selectableDetailButton} onClick={onClick}>
           <div className={styles.selectableTextBlock}>
-            <div className={styles.contentRow}>
+            <div
+              className={clsx(
+                styles.contentRow,
+                contentLayout === "natural" && styles.contentRowNatural
+              )}
+            >
               <div className={styles.primaryBlock}>
                 <div className={styles.nameRow}>
                   <span className={styles.name}>{spell.name}</span>
@@ -252,7 +259,12 @@ function SpellListRow({
       onClick={onClick}
       disabled={disabled}
     >
-      <div className={styles.contentRow}>
+      <div
+        className={clsx(
+          styles.contentRow,
+          contentLayout === "natural" && styles.contentRowNatural
+        )}
+      >
         <div className={styles.primaryBlock}>
           <div className={styles.nameRow}>
             <span className={styles.name}>{spell.name}</span>

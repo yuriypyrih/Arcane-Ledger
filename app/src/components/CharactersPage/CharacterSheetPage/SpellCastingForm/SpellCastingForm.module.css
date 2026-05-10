@@ -132,8 +132,18 @@
   color: #a63729;
 }
 
+.spellManagementModalPanelFullHeight {
+  height: calc(100dvh - (var(--overlay-backdrop-padding) * 2));
+}
+
 .spellManagementModalBody {
   gap: 0.88rem;
+}
+
+.spellManagementModalBodyFullHeight {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .spellGroup {
@@ -245,8 +255,42 @@
   min-height: 0.92rem;
 }
 
+.spellManagementFilterPanel {
+  display: grid;
+  align-items: end;
+  gap: 0.55rem;
+  grid-template-columns: minmax(12rem, 1.35fr) repeat(3, minmax(8.5rem, 1fr));
+}
+
+.spellManagementFilterField {
+  display: grid;
+  gap: 0.28rem;
+  min-width: 0;
+}
+
+.spellManagementFilterField span {
+  color: var(--color-ink-soft);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.spellManagementFilterField input,
+.spellManagementFilterField select {
+  min-width: 0;
+  width: 100%;
+}
+
 .preparedSpellList {
   gap: 0.55rem;
+}
+
+.spellManagementModalBodyFullHeight .preparedSpellList {
+  flex: 1 1 auto;
+  max-height: none;
+  min-height: 0;
+  overflow: auto;
 }
 
 .preparedSpellSelectionList {
@@ -349,6 +393,10 @@
   .spellSlotGrid {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
+
+  .spellManagementFilterPanel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 599px) {
@@ -367,5 +415,9 @@
   .preparedSpellTabLabel {
     min-height: 0;
     padding-top: 0.7rem;
+  }
+
+  .spellManagementFilterPanel {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

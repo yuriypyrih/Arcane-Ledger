@@ -1,3 +1,5 @@
+import { showToast, store } from "../store";
+
 function getApiBaseUrl() {
   const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
   const baseUrl = configuredBaseUrl ? configuredBaseUrl : "/api/v1";
@@ -8,19 +10,102 @@ function getApiBaseUrl() {
 
 export type ApiRequestOptions = {
   signal?: AbortSignal;
+  suppressFailureToast?: boolean;
 };
 
-export async function apiGet<T>(path: string, options?: ApiRequestOptions): Promise<T> {
+export class ApiOfflineError extends Error {
+  constructor() {
+    super("Server Unavailable");
+    this.name = "ApiOfflineError";
+  }
+}
+
+export class ApiRequestFailedError extends Error {
+  readonly originalError?: unknown;
+  readonly status?: number;
+
+  constructor(message: string, options?: { status?: number; originalError?: unknown }) {
+    super(message);
+    this.name = "ApiRequestFailedError";
+    this.originalError = options?.originalError;
+    this.status = options?.status;
+  }
+}
+
+export function isApiOfflineError(error: unknown): error is ApiOfflineError {
+  return error instanceof ApiOfflineError;
+}
+
+export function isApiAbortError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "name" in error &&
+    error.name === "AbortError"
+  );
+}
+
+function isBrowserOffline() {
+  return typeof navigator !== "undefined" && navigator.onLine === false;
+}
+
+function notifyApiRequestFailed(options?: ApiRequestOptions) {
+  if (options?.suppressFailureToast) {
+    return;
+  }
+
+  store.dispatch(
+    showToast({
+      text: "Server call failed.",
+      type: "error"
+    })
+  );
+}
+
+async function apiRequest<T>(
+  path: string,
+  requestInit: RequestInit,
+  options?: ApiRequestOptions
+): Promise<T> {
   const normalizedPath = path.replace(/^\//, "");
-  const response = await fetch(new URL(normalizedPath, getApiBaseUrl()).toString(), {
-    signal: options?.signal
-  });
+  const requestUrl = new URL(normalizedPath, getApiBaseUrl()).toString();
+
+  if (isBrowserOffline()) {
+    throw new ApiOfflineError();
+  }
+
+  let response: Response;
+
+  try {
+    response = await fetch(requestUrl, {
+      ...requestInit,
+      signal: options?.signal
+    });
+  } catch (error) {
+    if (isApiAbortError(error)) {
+      throw error;
+    }
+
+    if (isBrowserOffline()) {
+      throw new ApiOfflineError();
+    }
+
+    notifyApiRequestFailed(options);
+    throw new ApiRequestFailedError("API request failed.", { originalError: error });
+  }
 
   if (!response.ok) {
-    throw new Error(`API request failed with status ${response.status}`);
+    notifyApiRequestFailed(options);
+    throw new ApiRequestFailedError(`API request failed with status ${response.status}`, {
+      status: response.status
+    });
   }
 
   return (await response.json()) as T;
+}
+
+export async function apiGet<T>(path: string, options?: ApiRequestOptions): Promise<T> {
+  return apiRequest<T>(path, {}, options);
 }
 
 export async function apiPost<T>(
@@ -28,19 +113,15 @@ export async function apiPost<T>(
   body: unknown,
   options?: ApiRequestOptions
 ): Promise<T> {
-  const normalizedPath = path.replace(/^\//, "");
-  const response = await fetch(new URL(normalizedPath, getApiBaseUrl()).toString(), {
-    method: "POST",
-    signal: options?.signal,
-    headers: {
-      "Content-Type": "application/json"
+  return apiRequest<T>(
+    path,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body)
     },
-    body: JSON.stringify(body)
-  });
-
-  if (!response.ok) {
-    throw new Error(`API request failed with status ${response.status}`);
-  }
-
-  return (await response.json()) as T;
+    options
+  );
 }

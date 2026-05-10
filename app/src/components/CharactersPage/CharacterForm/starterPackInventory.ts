@@ -140,6 +140,7 @@ export async function materializeStarterPackChoiceToInventory(
   choice: StarterPackEquipmentChoice | null,
   context: StarterPackResolutionContext
 ): Promise<{
+  itemsSkipped: boolean;
   inventoryItems: CharacterInventoryItem[];
   warnings: string[];
 }> {
@@ -150,15 +151,17 @@ export async function materializeStarterPackChoiceToInventory(
 
   if (requestKeys.length === 0) {
     return {
+      itemsSkipped: false,
       inventoryItems: nextInventoryItems,
       warnings: [...new Set(nextWarnings)]
     };
   }
 
   let itemsByKey = new Map<string, ItemRecord>();
+  let itemsSkipped = false;
 
   try {
-    const payload = await fetchItemsByKeys(requestKeys);
+    const payload = await fetchItemsByKeys(requestKeys, { suppressFailureToast: true });
 
     itemsByKey = new Map(
       payload.items
@@ -167,14 +170,17 @@ export async function materializeStarterPackChoiceToInventory(
     );
 
     if (payload.message) {
+      itemsSkipped = true;
       nextWarnings.push(payload.message);
     }
   } catch {
+    itemsSkipped = true;
     nextWarnings.push(
       "Couldn't fetch starter equipment from the backend, so it was skipped during character creation."
     );
 
     return {
+      itemsSkipped,
       inventoryItems: nextInventoryItems,
       warnings: [...new Set(nextWarnings)]
     };
@@ -184,6 +190,7 @@ export async function materializeStarterPackChoiceToInventory(
     const item = itemsByKey.get(request.itemKey);
 
     if (!item) {
+      itemsSkipped = true;
       nextWarnings.push(
         `Couldn't fetch ${request.label} from the backend, so it was skipped during character creation.`
       );
@@ -198,6 +205,7 @@ export async function materializeStarterPackChoiceToInventory(
   }
 
   return {
+    itemsSkipped,
     inventoryItems: nextInventoryItems,
     warnings: [...new Set(nextWarnings)]
   };

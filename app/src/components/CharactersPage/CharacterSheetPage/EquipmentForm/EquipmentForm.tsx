@@ -22,7 +22,7 @@ import { deferModalCommit } from "../../../Overlay";
 import NumberInput from "../../FormInputs/NumberInput";
 import RarityPill, { hasDisplayableRarity } from "../../../CodexPage/RarityPill";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
-import { fetchItemPackContents } from "../../../../api";
+import { fetchItemPackContents, isApiOfflineError } from "../../../../api";
 import { ENTRY_CATEGORIES } from "../../../../codex/entries";
 import { currencyKeys, type Character, type CurrencyKey } from "../../../../types";
 import {
@@ -230,6 +230,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   const [editingCustomEquipmentId, setEditingCustomEquipmentId] = useState<string | null>(null);
   const [isGeneralEquipmentExpanded, setIsGeneralEquipmentExpanded] = useState(false);
   const [extractingItemKey, setExtractingItemKey] = useState<string | null>(null);
+  const [inventoryDrawerNotice, setInventoryDrawerNotice] = useState<string | null>(null);
   const [pendingDeleteCustomEquipmentId, setPendingDeleteCustomEquipmentId] = useState<
     string | null
   >(null);
@@ -1053,6 +1054,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   function openInventoryInspectionFromBrowser(item: { key: string }) {
     setSelectedWeaponReference(null);
     setSelectedLoadoutEntry(null);
+    setInventoryDrawerNotice(null);
     setSelectedInventoryInspection({
       itemKey: item.key,
       initialItem: findOwnedInventoryItemRecord(equipmentCharacter.inventoryItems, item.key),
@@ -1063,6 +1065,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   function openInventoryInspectionFromLoadout(item: GroupedInventoryItem) {
     setSelectedWeaponReference(null);
     setSelectedLoadoutEntry(null);
+    setInventoryDrawerNotice(null);
     setSelectedInventoryInspection({
       itemKey: item.itemKey,
       stackId: item.stackId,
@@ -1072,6 +1075,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   }
 
   function closeInventoryItemDrawer() {
+    setInventoryDrawerNotice(null);
     setSelectedInventoryInspection(null);
   }
 
@@ -1246,6 +1250,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     }
 
     setExtractingItemKey(packKey);
+    setInventoryDrawerNotice(null);
 
     try {
       const payload = await fetchItemPackContents(packKey);
@@ -1283,6 +1288,11 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
         { stage: source === "browser" }
       );
     } catch (error) {
+      if (isApiOfflineError(error)) {
+        setInventoryDrawerNotice("Server Unavailable");
+        return;
+      }
+
       console.error("Failed to extract equipment pack contents.", error);
     } finally {
       setExtractingItemKey((currentKey) => (currentKey === packKey ? null : currentKey));
@@ -1854,6 +1864,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   const inventoryDrawerFooter = selectedInventoryInspection ? (
     <EquipmentInventoryItemDrawerFooter
       leftActions={inventoryLeftFooterActions}
+      notice={inventoryDrawerNotice}
       rightActions={inventoryRightFooterActions}
       ownedCount={selectedInventoryCount}
     />

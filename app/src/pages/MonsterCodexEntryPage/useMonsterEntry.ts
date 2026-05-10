@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { fetchMonsterBySlug } from "../../api";
+import { fetchMonsterBySlug, isApiOfflineError } from "../../api";
+import { useOnlineStatus } from "../../lib/useOnlineStatus";
 import type { CodexStatus, MonsterRecord } from "../../types";
 import {
   getCachedMonsterEntry,
@@ -8,6 +9,7 @@ import {
 } from "../../utils/monsters";
 
 export function useMonsterEntry(slug: string | undefined) {
+  const isOnline = useOnlineStatus();
   const [monster, setMonster] = useState<MonsterRecord | null>(() =>
     slug ? (getCachedMonsterEntry(slug) ?? null) : null
   );
@@ -34,6 +36,12 @@ export function useMonsterEntry(slug: string | undefined) {
         return;
       }
 
+      if (!isOnline) {
+        setMonster(null);
+        setStatus("server-unavailable");
+        return;
+      }
+
       setStatus("loading");
 
       try {
@@ -46,13 +54,13 @@ export function useMonsterEntry(slug: string | undefined) {
         primeMonsterEntryCache(payload);
         setMonster(payload);
         setStatus("ready");
-      } catch {
+      } catch (error) {
         if (!active || abortController.signal.aborted) {
           return;
         }
 
         setMonster(null);
-        setStatus("error");
+        setStatus(isApiOfflineError(error) ? "server-unavailable" : "error");
       }
     }
 
@@ -62,7 +70,7 @@ export function useMonsterEntry(slug: string | undefined) {
       active = false;
       abortController.abort();
     };
-  }, [slug]);
+  }, [isOnline, slug]);
 
   return {
     monster,

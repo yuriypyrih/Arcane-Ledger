@@ -30,7 +30,7 @@ export type ToastEntry = {
   effect?: ToastEffect;
 };
 
-export const DEFAULT_TOAST_DISMISS_MS = 4_000;
+export const DEFAULT_TOAST_DISMISS_MS = 6_000;
 
 const DEFAULT_TOAST_TYPE: ToastType = "info";
 const DEFAULT_TOAST_POSITION: ToastPosition = "top-middle";

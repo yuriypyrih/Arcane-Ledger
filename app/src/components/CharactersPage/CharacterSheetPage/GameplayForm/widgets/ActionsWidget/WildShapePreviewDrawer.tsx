@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { fetchMonsterBySlug } from "../../../../../../api";
+import { fetchMonsterBySlug, isApiOfflineError } from "../../../../../../api";
 import { MonsterEntryDrawer } from "../../../../../MonsterEntryRenderer";
+import { useOnlineStatus } from "../../../../../../lib/useOnlineStatus";
 import type { CodexStatus, MonsterRecord } from "../../../../../../types";
 import { getCachedMonsterEntry, primeMonsterEntryCache } from "../../../../../../utils/monsters";
 import styles from "./ActionsWidget.module.css";
@@ -16,6 +17,7 @@ function WildShapePreviewDrawer({
   monsterSlug,
   onClose
 }: WildShapePreviewDrawerProps) {
+  const isOnline = useOnlineStatus();
   const [monster, setMonster] = useState<MonsterRecord | null>(null);
   const [status, setStatus] = useState<CodexStatus>("ready");
 
@@ -39,6 +41,12 @@ function WildShapePreviewDrawer({
         return;
       }
 
+      if (!isOnline) {
+        setMonster(null);
+        setStatus("server-unavailable");
+        return;
+      }
+
       setStatus("loading");
 
       try {
@@ -53,13 +61,13 @@ function WildShapePreviewDrawer({
         primeMonsterEntryCache(nextMonster);
         setMonster(nextMonster);
         setStatus("ready");
-      } catch {
+      } catch (error) {
         if (!active || abortController.signal.aborted) {
           return;
         }
 
         setMonster(null);
-        setStatus("error");
+        setStatus(isApiOfflineError(error) ? "server-unavailable" : "error");
       }
     }
 
@@ -69,7 +77,7 @@ function WildShapePreviewDrawer({
       active = false;
       abortController.abort();
     };
-  }, [monsterCache, monsterSlug]);
+  }, [isOnline, monsterCache, monsterSlug]);
 
   if (!monsterSlug) {
     return null;

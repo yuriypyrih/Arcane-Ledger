@@ -14,6 +14,7 @@ import styles from "./CodexFilters.module.css";
 
 type CodexFiltersProps = {
   query: string;
+  searchResetSignal?: unknown;
   category: CodexFilterCategory;
   categories: CodexFilterCategory[];
   spellLevelFilter: number | null;
@@ -97,6 +98,7 @@ function formatFeatCategoryOptionLabel(category: FEAT_CATEGORY): string {
 
 function CodexFilters({
   query,
+  searchResetSignal,
   category,
   categories,
   spellLevelFilter,
@@ -266,6 +268,7 @@ function CodexFilters({
         <div className={styles.itemControls}>
           <ItemBrowserFilters
             query={query}
+            searchResetSignal={searchResetSignal}
             tab={itemTab}
             category={itemCategoryFilter}
             attackType={itemAttackTypeFilter}
@@ -296,6 +299,7 @@ function CodexFilters({
           <SearchField
             className={styles.input}
             value={query}
+            resetSignal={searchResetSignal}
             onValueChange={onQueryChange}
             placeholder={searchPlaceholder}
           />
