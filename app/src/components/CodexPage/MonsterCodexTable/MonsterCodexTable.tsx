@@ -146,7 +146,7 @@ function MonsterCodexTable({
           <td colSpan={4} className={styles.statusCell}>
             <div className={styles.statusContent}>
               <strong>Loading monsters...</strong>
-              <span>Fetching live monster data from the local backend.</span>
+              <span>Fetching live monster data from the configured backend.</span>
             </div>
           </td>
         </tr>
@@ -172,7 +172,7 @@ function MonsterCodexTable({
           <td colSpan={4} className={styles.statusCell}>
             <div className={styles.statusContent}>
               <strong>Server Unavailable</strong>
-              <span>Monster data is unavailable while the app is offline.</span>
+              <span>Monster data is unavailable because the backend is not configured or cannot be reached.</span>
             </div>
           </td>
         </tr>

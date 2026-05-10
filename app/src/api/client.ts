@@ -2,7 +2,11 @@ import { showToast, store } from "../store";
 
 function getApiBaseUrl() {
   const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
-  const baseUrl = configuredBaseUrl ? configuredBaseUrl : "/api/v1";
+  if (!configuredBaseUrl) {
+    return null;
+  }
+
+  const baseUrl = configuredBaseUrl;
   const normalizedBaseUrl = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
 
   return new URL(normalizedBaseUrl, globalThis.location.origin);
@@ -67,12 +71,14 @@ async function apiRequest<T>(
   requestInit: RequestInit,
   options?: ApiRequestOptions
 ): Promise<T> {
-  const normalizedPath = path.replace(/^\//, "");
-  const requestUrl = new URL(normalizedPath, getApiBaseUrl()).toString();
+  const apiBaseUrl = getApiBaseUrl();
 
-  if (isBrowserOffline()) {
+  if (!apiBaseUrl || isBrowserOffline()) {
     throw new ApiOfflineError();
   }
+
+  const normalizedPath = path.replace(/^\//, "");
+  const requestUrl = new URL(normalizedPath, apiBaseUrl).toString();
 
   let response: Response;
 

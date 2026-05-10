@@ -82,7 +82,7 @@ function EquipmentInventoryItemDrawer({
           {status === "loading" ? (
             <div className={styles.statusCard}>
               <strong>Loading item...</strong>
-              <span>Fetching item details from the backend.</span>
+              <span>Fetching item details from the configured backend.</span>
             </div>
           ) : null}
 
@@ -96,7 +96,7 @@ function EquipmentInventoryItemDrawer({
           {status === "server-unavailable" ? (
             <div className={styles.statusCard}>
               <strong>Server Unavailable</strong>
-              <span>Item details are unavailable while the app is offline.</span>
+              <span>Item details are unavailable because the backend is not configured or cannot be reached.</span>
             </div>
           ) : null}
 

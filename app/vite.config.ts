@@ -3,24 +3,14 @@ import react from "@vitejs/plugin-react";
 import svgr from "vite-plugin-svgr";
 import { VitePWA } from "vite-plugin-pwa";
 
-// Keep API requests on the same host the frontend was opened from, including LAN previews.
-const apiProxy = {
-  "/api/v1": {
-    target: "http://127.0.0.1:3001",
-    changeOrigin: true
-  }
-};
-
 export default defineConfig({
   server: {
     host: "0.0.0.0",
-    port: 5174,
-    proxy: apiProxy
+    port: 5174
   },
   preview: {
     host: "0.0.0.0",
-    port: 4173,
-    proxy: apiProxy
+    port: 4173
   },
   plugins: [
     react(),

@@ -18,6 +18,7 @@ Install and run each project independently:
 ```bash
 cd app
 npm install
+cp .env.example .env
 npm run dev
 ```
 
@@ -37,6 +38,7 @@ cd server && npm run build
 ## Backend Notes
 
 - The backend exposes its API under `server` at `/api/v1`.
+- Set the frontend `VITE_API_BASE_URL` to the full backend API root, such as `http://localhost:3001/api/v1`. If it is omitted or blank, API-backed frontend features treat the backend as unavailable instead of guessing a same-origin API path.
 - Monster fetch snapshots are stored under `server/data/open5e/monsters/fetch-MM-DD-YYYY/`.
 - Item fetch snapshots are stored under `server/data/open5e/items/fetch-MM-DD-YYYY/`.
 - Fetch Open5e monsters with `npm --prefix server run db:monsters:fetch`.

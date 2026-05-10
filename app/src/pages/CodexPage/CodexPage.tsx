@@ -492,11 +492,11 @@ function CodexPage() {
   const isBackgroundCategory = category === ENTRY_CATEGORIES.BACKGROUNDS;
   const isSpeciesCategory = category === ENTRY_CATEGORIES.SPECIES;
   const headerDescription = isMonsterCategory
-    ? "Bestiary entries are loaded from the local backend and kept paginated at 50 per page."
+    ? "Bestiary entries are loaded from the configured backend and kept paginated at 50 per page."
     : isFeatCategory
       ? "Feat entries are loaded from the character feature registry and show implementation tracking."
       : isItemCategory
-        ? "Equipment entries are loaded from the local backend and exposed with backend-driven filters."
+        ? "Equipment entries are loaded from the configured backend and exposed with backend-driven filters."
         : "Starter entries are bundled with the app.";
 
   return (

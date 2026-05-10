@@ -54,7 +54,7 @@ function MonsterEntryDrawer({
       : status === "loading"
         ? "Fetching the full monster entry."
         : status === "server-unavailable"
-          ? "Monster details are unavailable while the app is offline."
+          ? "Monster details are unavailable because the backend is not configured or cannot be reached."
           : "The full monster entry could not be loaded.";
 
   return (

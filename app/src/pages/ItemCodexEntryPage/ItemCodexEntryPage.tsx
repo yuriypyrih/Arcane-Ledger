@@ -20,7 +20,7 @@ function ItemCodexEntryPage() {
       {status === "loading" ? (
         <article className={styles.card}>
           <h2>Loading item...</h2>
-          <p>Fetching item details from the backend.</p>
+          <p>Fetching item details from the configured backend.</p>
         </article>
       ) : null}
 
@@ -37,7 +37,7 @@ function ItemCodexEntryPage() {
       {status === "server-unavailable" ? (
         <article className={styles.card}>
           <h2>Server Unavailable</h2>
-          <p>Item details are unavailable while the app is offline.</p>
+          <p>Item details are unavailable because the backend is not configured or cannot be reached.</p>
           <Link to={backToCodexPath} className={styles.linkButton}>
             Back to library
           </Link>
