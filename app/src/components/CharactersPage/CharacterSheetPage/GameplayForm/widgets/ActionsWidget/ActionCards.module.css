@@ -55,6 +55,7 @@
 .actionCardUnavailable {
   background: rgba(58, 55, 51, 0.12);
   border-color: rgba(58, 55, 51, 0.2);
+  opacity: 0.6;
 }
 
 .actionCardMulti {
@@ -172,9 +173,9 @@
     linear-gradient(
         180deg,
         rgba(255, 255, 255, 0) 0%,
-        rgba(255, 255, 255, 0) 60%,
-        var(--action-card-theme-panel-soft) 60%,
-        var(--action-card-theme-panel-strong) 85%,
+        rgba(255, 255, 255, 0) 75%,
+        var(--action-card-theme-panel-soft) 75%,
+        var(--action-card-theme-panel-strong) 90%,
         var(--action-card-theme-panel-peak) 100%
       )
       0 0 / 100% 100% no-repeat,

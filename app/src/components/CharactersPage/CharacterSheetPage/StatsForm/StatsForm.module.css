@@ -146,10 +146,14 @@
 }
 
 .combinedValueRow {
-  display: inline-flex;
+  position: relative;
+  display: grid;
   align-items: center;
   justify-content: center;
-  gap: 0.68rem;
+  column-gap: 0.68rem;
+  grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr);
+  margin: 0 auto;
+  width: min(100%, 7.5rem);
 }
 
 .combinedValueColumn {
@@ -157,6 +161,7 @@
   display: grid;
   gap: 0.02rem;
   justify-items: center;
+  min-width: 0;
   padding-bottom: 0.72rem;
 }
 
