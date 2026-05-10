@@ -5,9 +5,14 @@ import FeatureUsageLabel from "../../../FeatureUsageLabel";
 import type { Character } from "../../../../../../types";
 import type { FeatureActionCard } from "../../../../../../pages/CharactersPage/classFeatures";
 import type { EconomyType } from "../../../../../../pages/CharactersPage/actionEconomy";
+import { resolveActionCardTheme } from "../../../../../../pages/CharactersPage/actionCardTheme";
 import { getActionShapeForEconomyType } from "../../gameplayWidgetUtils";
 import actionCardStyles from "./ActionCards.module.css";
 import actionStyles from "./ActionsWidget.module.css";
+import {
+  ActionCardThemeTexture,
+  getActionCardThemeClassNames
+} from "./actionCardThemeStyles";
 import {
   getCommonActionPathStates,
   type CommonActionPathState
@@ -83,6 +88,7 @@ export function CommonActionCard({
   const actionPaths = getCommonActionPathStates(character, action, roundTracker);
   const isUnavailable = actionPaths.every((path) => path.disabledReason !== null);
   const hasAdditionalPathUses = actionPaths.some((path) => path.additionalUseCount > 0);
+  const cardTheme = resolveActionCardTheme(action);
 
   return (
     <button
@@ -90,6 +96,7 @@ export function CommonActionCard({
       className={clsx(
         actionCardStyles.button,
         actionCardStyles.actionCard,
+        getActionCardThemeClassNames(cardTheme),
         isUnavailable && actionCardStyles.actionCardUnavailable,
         hasAdditionalPathUses && actionCardStyles.actionCardMulti,
         actionCardStyles.featureButton,
@@ -98,6 +105,7 @@ export function CommonActionCard({
       aria-disabled={isUnavailable}
       onClick={() => onClick(action)}
     >
+      <ActionCardThemeTexture theme={cardTheme} />
       <span className={actionCardStyles.shapeBadgeRow} aria-hidden="true">
         {actionPaths.map((path) => {
           const actionShape = getActionShapeForEconomyType(path.economyType);

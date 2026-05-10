@@ -10,6 +10,7 @@ export type RadioContainerOptionProps = {
   subheader?: ReactNode;
   breakdown?: ReactNode;
   actionBadge?: ReactNode;
+  backgroundTexture?: ReactNode;
   aside?: ReactNode;
   asideClassName?: string;
   disabled?: boolean;
@@ -27,6 +28,7 @@ function RadioContainerOption({
   subheader,
   breakdown,
   actionBadge,
+  backgroundTexture,
   aside,
   asideClassName,
   disabled = false,
@@ -46,6 +48,7 @@ function RadioContainerOption({
       )}
       style={{ width: width ?? "100%" }}
     >
+      {backgroundTexture}
       {actionBadge ? (
         <div className={styles.actionBadge} aria-hidden="true">
           {actionBadge}

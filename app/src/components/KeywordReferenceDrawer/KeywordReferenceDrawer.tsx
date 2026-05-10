@@ -155,12 +155,14 @@ function KeywordReferenceDrawer({
       {selectedSpellReference ? (
         <CodexSpellDrawer
           spell={selectedSpellReference}
+          backdropClassName={backdropClassName}
           onClose={() => setSelectedSpellReference(null)}
         />
       ) : null}
       {selectedDivinityReference ? (
         <CodexDivinityDrawer
           divinity={selectedDivinityReference}
+          backdropClassName={backdropClassName}
           onClose={() => setSelectedDivinityReference(null)}
         />
       ) : null}
@@ -182,6 +184,7 @@ function KeywordReferenceDrawer({
         <CodexFeatDrawer
           feat={selectedFeatReference.feat}
           label={selectedFeatReference.label}
+          backdropClassName={backdropClassName}
           onClose={() => setSelectedFeatReference(null)}
         />
       ) : null}

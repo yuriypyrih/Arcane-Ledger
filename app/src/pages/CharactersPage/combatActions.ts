@@ -1,6 +1,7 @@
 import type { SpellDescriptionEntry } from "../../codex/entries";
 import type { Character } from "../../types";
 import type { ActionCategory, EconomyType } from "./actionEconomy";
+import { ACTION_CARD_THEME, resolveActionCardTheme } from "./actionCardTheme";
 import { measureCharacterRuntime } from "./characterRuntime/performance";
 import {
   createChargesHeaderTag,
@@ -31,6 +32,7 @@ import { getWeaponActionDrawerDescriptionAdditions } from "./weaponActionDrawerD
 type GameplayActionBase = {
   key: string;
   name: string;
+  cardTheme?: ACTION_CARD_THEME;
   economyType: EconomyType;
   actionCategory: ActionCategory;
   economyMultiCount?: number;
@@ -402,12 +404,17 @@ function createFeatureActionDrawer(
       headerTags,
       selection: action.drawer?.optionSelection ?? "single-immediate",
       selectionLimit: action.drawer?.optionSelectionLimit,
-      options: options.map((option) => ({
-        ...option,
-        description: createOptionDescription(option),
-        facts: createOptionFacts(option),
-        resources: createOptionResources(option)
-      })),
+      options: options.map((option) => {
+        const preparedOption = {
+          ...option,
+          cardTheme: resolveActionCardTheme(option, action.cardTheme),
+          description: createOptionDescription(option),
+          facts: createOptionFacts(option),
+          resources: createOptionResources(option)
+        };
+
+        return preparedOption;
+      }),
       confirmLabel
     };
   }
@@ -429,6 +436,7 @@ function createFeatureActionDrawer(
         (execute.kind === "custom-form" ? execute.formKind : "lay-on-hands"),
       options: options.map((option) => ({
         ...option,
+        cardTheme: resolveActionCardTheme(option, action.cardTheme),
         description: createOptionDescription(option),
         facts: createOptionFacts(option),
         resources: createOptionResources(option)
@@ -471,21 +479,26 @@ function createFeatureActionDefinition(
   character: Character,
   action: FeatureActionCard
 ): GameplayActionDefinition {
-  const options = getFeatureActionOptionsForCharacter(character, action.key);
-  const execute = createFeatureActionExecute(action, options);
+  const preparedAction: FeatureActionCard = {
+    ...action,
+    cardTheme: resolveActionCardTheme(action)
+  };
+  const options = getFeatureActionOptionsForCharacter(character, preparedAction.key);
+  const execute = createFeatureActionExecute(preparedAction, options);
 
   return {
     kind: "feature",
-    key: action.key,
-    name: action.name,
-    economyType: action.economyType,
-    actionCategory: action.actionCategory,
-    economyMultiCount: action.economyMultiCount,
-    disabled: action.disabled,
-    disabledReason: action.disabledReason,
-    action,
+    key: preparedAction.key,
+    name: preparedAction.name,
+    cardTheme: preparedAction.cardTheme,
+    economyType: preparedAction.economyType,
+    actionCategory: preparedAction.actionCategory,
+    economyMultiCount: preparedAction.economyMultiCount,
+    disabled: preparedAction.disabled,
+    disabledReason: preparedAction.disabledReason,
+    action: preparedAction,
     execute,
-    drawer: createFeatureActionDrawer(character, action, options, execute)
+    drawer: createFeatureActionDrawer(character, preparedAction, options, execute)
   };
 }
 
@@ -516,6 +529,7 @@ function createWeaponActionDefinition(
   );
   const preparedAction: WeaponAction = {
     ...action,
+    cardTheme: action.cardTheme ?? ACTION_CARD_THEME.WEAPON,
     descriptionAdditions
   };
 
@@ -523,6 +537,7 @@ function createWeaponActionDefinition(
     kind: "weapon",
     key: preparedAction.key,
     name: preparedAction.name,
+    cardTheme: preparedAction.cardTheme,
     economyType: preparedAction.economyType,
     actionCategory: preparedAction.actionCategory,
     economyMultiCount: preparedAction.economyMultiCount,

@@ -53,24 +53,15 @@ function HitPointControls({
   const normalizedTemporaryHitPoints = normalizeTemporaryHitPoints(temporaryHitPoints);
   const normalizedMagicTemporaryHitPoints =
     normalizeMagicTemporaryHitPoints(magicTemporaryHitPoints);
+  const totalDisplayedHitPoints =
+    normalizedCurrentHitPoints + normalizedTemporaryHitPoints + normalizedMagicTemporaryHitPoints;
+  const barMaximumHitPoints = Math.max(normalizedMaxHitPoints, totalDisplayedHitPoints);
   const currentHitPointPercent =
-    normalizedMaxHitPoints > 0 ? (normalizedCurrentHitPoints / normalizedMaxHitPoints) * 100 : 0;
-  const rawTemporaryHitPointPercent =
-    normalizedMaxHitPoints > 0
-      ? (normalizedTemporaryHitPoints / normalizedMaxHitPoints) * 100
-      : 0;
-  const rawMagicTemporaryHitPointPercent =
-    normalizedMaxHitPoints > 0
-      ? (normalizedMagicTemporaryHitPoints / normalizedMaxHitPoints) * 100
-      : 0;
-  const visibleTemporaryHitPointPercent = Math.min(
-    Math.max(0, 100 - currentHitPointPercent),
-    rawTemporaryHitPointPercent
-  );
-  const visibleMagicTemporaryHitPointPercent = Math.min(
-    Math.max(0, 100 - currentHitPointPercent - visibleTemporaryHitPointPercent),
-    rawMagicTemporaryHitPointPercent
-  );
+    barMaximumHitPoints > 0 ? (normalizedCurrentHitPoints / barMaximumHitPoints) * 100 : 0;
+  const visibleTemporaryHitPointPercent =
+    barMaximumHitPoints > 0 ? (normalizedTemporaryHitPoints / barMaximumHitPoints) * 100 : 0;
+  const visibleMagicTemporaryHitPointPercent =
+    barMaximumHitPoints > 0 ? (normalizedMagicTemporaryHitPoints / barMaximumHitPoints) * 100 : 0;
 
   function updateHitPointStep(event: ChangeEvent<HTMLInputElement>) {
     const normalizedValue = event.target.value.replace(/^0+(?=\d)/, "");

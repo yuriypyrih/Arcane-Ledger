@@ -49,6 +49,7 @@ import {
   type FeatureDamageBonus
 } from "./classFeatures";
 import type { FeatureIndicator } from "./classFeatures";
+import type { ACTION_CARD_THEME } from "./actionCardTheme";
 import {
   ACTION_CATEGORY,
   ECONOMY_TYPE,
@@ -105,6 +106,7 @@ type WeaponReference = {
 export type WeaponAction = {
   key: string;
   name: string;
+  cardTheme?: ACTION_CARD_THEME;
   attackKind: "weapon" | "unarmed";
   baseWeapon?: WEAPON_BASE | null;
   combatType?: WEAPON_COMBAT_TYPE | null;

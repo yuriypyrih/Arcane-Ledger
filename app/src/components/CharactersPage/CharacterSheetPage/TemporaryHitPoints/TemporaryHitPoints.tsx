@@ -1,15 +1,12 @@
 import clsx from "clsx";
-import { Shield, X } from "lucide-react";
+import { Shield } from "lucide-react";
 import { useEffect, useState } from "react";
-import NumberInput from "../../FormInputs/NumberInput";
-import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
-import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
-import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./TemporaryHitPoints.module.css";
 import {
   normalizeTemporaryHitPoints,
   normalizeTemporaryHitPointsSource
 } from "../GameplayForm/gameplayStateUtils";
+import TemporaryHitPointsEditorModal from "./TemporaryHitPointsEditorModal";
 
 type TemporaryHitPointsProps = {
   temporaryHitPoints: number;
@@ -31,37 +28,15 @@ function TemporaryHitPoints({
     normalizeTemporaryHitPoints(temporaryHitPoints)
   );
   const normalizedTemporaryHitPoints = normalizeTemporaryHitPoints(temporaryHitPoints);
-  const normalizedTemporaryHitPointsSource = normalizeTemporaryHitPointsSource(
-    temporaryHitPointsSource
-  );
+  const normalizedTemporaryHitPointsSource =
+    normalizeTemporaryHitPointsSource(temporaryHitPointsSource);
   const hasUnsavedChanges = temporaryHitPointsDraft !== normalizedTemporaryHitPoints;
-
-  useBodyScrollLock(isModalOpen);
 
   useEffect(() => {
     if (!isModalOpen) {
       setTemporaryHitPointsDraft(normalizedTemporaryHitPoints);
     }
   }, [normalizedTemporaryHitPoints, isModalOpen]);
-
-  useEffect(() => {
-    if (!isModalOpen) {
-      return;
-    }
-
-    function handleKeyDown(event: globalThis.KeyboardEvent) {
-      if (event.key === "Escape") {
-        setTemporaryHitPointsDraft(normalizedTemporaryHitPoints);
-        setIsModalOpen(false);
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isModalOpen, normalizedTemporaryHitPoints]);
 
   const hasTemporaryHitPoints = normalizedTemporaryHitPoints > 0;
 
@@ -84,6 +59,13 @@ function TemporaryHitPoints({
     setIsModalOpen(false);
   }
 
+  function clearTemporaryHitPoints() {
+    onSaveTemporaryHitPoints(0);
+
+    setTemporaryHitPointsDraft(0);
+    setIsModalOpen(false);
+  }
+
   return (
     <>
       <button
@@ -103,64 +85,22 @@ function TemporaryHitPoints({
       </button>
 
       {isModalOpen ? (
-        <div className={sheetStyles.xpPopupBackdrop} role="presentation" onClick={closeModal}>
-          <section
-            className={clsx(sheetStyles.xpPopupCard, styles.tempHpModalCard)}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="temp-hp-modal-title"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className={sheetStyles.restPopupHeader}>
-              <div>
-                <h3 id="temp-hp-modal-title" className={sheetStyles.sheetPanelTitle}>
-                  {modalTitle}
-                </h3>
-              </div>
-              <button
-                type="button"
-                className={sheetStyles.spellManagementCloseButton}
-                onClick={closeModal}
-                aria-label="Close temporary hit points modal"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className={styles.tempHpModalContent}>
-              <p className={styles.tempHpDescription}>{description}</p>
-              {normalizedTemporaryHitPoints > 0 && normalizedTemporaryHitPointsSource ? (
-                <p className={styles.tempHpSource}>
-                  Source: <strong>{normalizedTemporaryHitPointsSource}</strong>
-                </p>
-              ) : null}
-
-              <div className={styles.tempHpFieldBlock}>
-                <span className={styles.tempHpFieldLabel}>Current Temporary HP</span>
-                <div className={styles.tempHpInputRow}>
-                  <NumberInput
-                    min={0}
-                    className={styles.tempHpInput}
-                    value={temporaryHitPointsDraft}
-                    onChange={(event) =>
-                      setTemporaryHitPointsDraft(
-                        normalizeTemporaryHitPoints(event.target.value.replace(/^0+(?=\d)/, ""))
-                      )
-                    }
-                  />
-                  <button
-                    type="button"
-                    className={clsx(shared.saveButton, styles.tempHpSaveButton)}
-                    disabled={!hasUnsavedChanges}
-                    onClick={saveTemporaryHitPoints}
-                  >
-                    Save
-                  </button>
-                </div>
-              </div>
-            </div>
-          </section>
-        </div>
+        <TemporaryHitPointsEditorModal
+          titleId="temp-hp-modal-title"
+          title={modalTitle}
+          closeLabel="Close temporary hit points modal"
+          description={description}
+          sourceLabel={
+            normalizedTemporaryHitPoints > 0 ? normalizedTemporaryHitPointsSource : undefined
+          }
+          fieldLabel="Current Temporary HP"
+          value={temporaryHitPointsDraft}
+          hasUnsavedChanges={hasUnsavedChanges}
+          onChange={(value) => setTemporaryHitPointsDraft(normalizeTemporaryHitPoints(value))}
+          onClear={clearTemporaryHitPoints}
+          onClose={closeModal}
+          onSave={saveTemporaryHitPoints}
+        />
       ) : null}
     </>
   );

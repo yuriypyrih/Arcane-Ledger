@@ -1,0 +1,78 @@
+.body {
+  gap: 0.88rem;
+}
+
+.description {
+  margin: 0;
+  color: var(--color-ink);
+  line-height: 1.5;
+}
+
+.source {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.source strong {
+  color: var(--color-ink);
+}
+
+.fieldBlock {
+  display: grid;
+  gap: 0.42rem;
+}
+
+.fieldLabel {
+  color: var(--color-ink-soft);
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.input {
+  min-height: 44px;
+  width: 100%;
+}
+
+.detailGrid {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.detailItem {
+  display: grid;
+  gap: 0.3rem;
+  border: 1px solid rgba(69, 143, 214, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.64);
+  padding: 0.78rem 0.9rem;
+}
+
+.detailLabel {
+  color: var(--color-ink-soft);
+  font-size: 0.76rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.detailValue {
+  color: #15507d;
+  font-size: 1.24rem;
+  line-height: 1;
+}
+
+.footerActions {
+  display: grid;
+}
+
+.footerActionsWithClear {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.footerButton {
+  min-height: 44px;
+}

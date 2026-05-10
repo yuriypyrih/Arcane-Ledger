@@ -11,6 +11,7 @@ import {
   ECONOMY_TYPE,
   type EconomyType
 } from "../../../../../../pages/CharactersPage/actionEconomy";
+import { resolveActionCardTheme } from "../../../../../../pages/CharactersPage/actionCardTheme";
 import { getAbilityModifierBreakdownForCharacter } from "../../../../../../pages/CharactersPage/abilities";
 import {
   getSavingThrowBonusesForCharacter,
@@ -86,31 +87,38 @@ export function shouldConsumeMonkFleetStepFollowUp(
 }
 
 export function createCommonActionDefinition(action: FeatureActionCard): GameplayActionDefinition {
+  const preparedAction: FeatureActionCard = {
+    ...action,
+    cardTheme: resolveActionCardTheme(action)
+  };
+
   return {
     kind: "feature",
-    key: action.key,
-    name: action.name,
-    economyType: action.economyType,
-    actionCategory: action.actionCategory,
-    economyMultiCount: action.economyMultiCount,
-    disabled: action.disabled,
-    disabledReason: action.disabledReason,
-    action,
+    key: preparedAction.key,
+    name: preparedAction.name,
+    cardTheme: preparedAction.cardTheme,
+    economyType: preparedAction.economyType,
+    actionCategory: preparedAction.actionCategory,
+    economyMultiCount: preparedAction.economyMultiCount,
+    disabled: preparedAction.disabled,
+    disabledReason: preparedAction.disabledReason,
+    action: preparedAction,
     execute: {
       kind: "activate"
     },
     drawer: {
       kind: "confirm",
       eyebrow: "Common Action",
-      description: action.description ?? [],
-      descriptionAdditions: action.descriptionAdditions ?? [],
-      helperText: action.drawer?.helperText,
-      helperTextTone: action.drawer?.helperTextTone,
-      blockedReason: action.drawer?.blockedReason,
-      facts: action.drawer?.facts ?? action.facts ?? [],
-      factsSectionTitle: action.drawer?.factsSectionTitle,
-      headerTags: action.drawer?.headerTags ?? action.headerTags ?? [],
-      confirmLabel: action.drawer?.confirmLabel ?? getFeatureActionDrawerPrimaryLabel(action)
+      description: preparedAction.description ?? [],
+      descriptionAdditions: preparedAction.descriptionAdditions ?? [],
+      helperText: preparedAction.drawer?.helperText,
+      helperTextTone: preparedAction.drawer?.helperTextTone,
+      blockedReason: preparedAction.drawer?.blockedReason,
+      facts: preparedAction.drawer?.facts ?? preparedAction.facts ?? [],
+      factsSectionTitle: preparedAction.drawer?.factsSectionTitle,
+      headerTags: preparedAction.drawer?.headerTags ?? preparedAction.headerTags ?? [],
+      confirmLabel:
+        preparedAction.drawer?.confirmLabel ?? getFeatureActionDrawerPrimaryLabel(preparedAction)
     }
   };
 }

@@ -11,6 +11,7 @@ import type {
 } from "../../../codex/entries";
 import { WEAPON_COMBAT_TYPE } from "../../../codex/entries";
 import type { ActionCategory, EconomyType } from "../actionEconomy";
+import type { ACTION_CARD_THEME } from "../actionCardTheme";
 import type {
   AbilityKey,
   ArmorProficiencyEntry,
@@ -260,6 +261,7 @@ export type FeatureActionCard = {
   key: string;
   name: string;
   sourceFeature?: CLASS_FEATURE;
+  cardTheme?: ACTION_CARD_THEME;
   summary: string;
   detail: string;
   valueLabel?: string;
@@ -296,6 +298,7 @@ export type FeatureActionCard = {
 export type FeatureActionOptionCard = {
   key: string;
   name: string;
+  cardTheme?: ACTION_CARD_THEME;
   summary: string;
   detail: string;
   trackingState?: TRACKER;

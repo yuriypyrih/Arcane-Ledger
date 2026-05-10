@@ -43,69 +43,6 @@
   font-weight: 700;
 }
 
-.tempHpModalCard {
-  grid-template-rows: auto minmax(0, 1fr);
-}
-
-.tempHpModalContent {
-  display: flex;
-  flex-direction: column;
-  gap: 0.88rem;
-  min-height: 0;
-}
-
-.tempHpDescription {
-  margin: 0;
-  color: var(--color-ink);
-  line-height: 1.5;
-}
-
-.tempHpSource {
-  margin: 0;
-  color: var(--color-ink-soft);
-  font-size: 0.92rem;
-  line-height: 1.4;
-}
-
-.tempHpSource strong {
-  color: var(--color-ink);
-}
-
-.tempHpFieldBlock {
-  display: grid;
-  gap: 0.35rem;
-  margin-top: auto;
-}
-
-.tempHpFieldLabel {
-  color: var(--color-ink-soft);
-  font-size: 0.82rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.tempHpInputRow {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
-  gap: 0.62rem;
-}
-
-.tempHpInput {
-  min-height: 44px;
-  width: 100%;
-}
-
-.tempHpSaveButton {
-  min-height: 54px;
-  padding-inline: 1rem;
-}
-
-.tempHpSaveButton:disabled {
-  cursor: not-allowed;
-  opacity: 0.58;
-}
-
 @media (max-width: 599px) {
   .tempHpTrigger {
     padding: 0 0.62rem;

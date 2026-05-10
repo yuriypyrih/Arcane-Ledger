@@ -12,6 +12,10 @@ import type {
   FeatureActionOptionCard
 } from "../../../../../../pages/CharactersPage/classFeatures";
 import {
+  ACTION_CARD_THEME,
+  resolveActionCardTheme
+} from "../../../../../../pages/CharactersPage/actionCardTheme";
+import {
   createEconomyMultiContextForFeatureAction,
   createEconomyMultiContextForFeatureActionOption,
   getSharedEconomyMultiCountForCharacterAction
@@ -25,6 +29,10 @@ import {
 } from "../../gameplayWidgetUtils";
 import { resolveFeatureIndicators } from "../../../../../RollStatePill/rollState";
 import { getWeaponAttackPathStates } from "./weaponActionEconomy";
+import {
+  ActionCardThemeTexture,
+  getActionCardThemeClassNames
+} from "./actionCardThemeStyles";
 import styles from "./ActionCards.module.css";
 import modalStyles from "./FeatureActionModal.module.css";
 
@@ -64,6 +72,7 @@ export function WeaponActionCard({
   const isUnavailable = attackPaths.every((path) => !path.shapeState.isUsable);
   const hasAdditionalPathUses = attackPaths.some((path) => path.additionalUseCount > 0);
   const resolvedRollState = resolveFeatureIndicators(action.indicators);
+  const cardTheme = action.cardTheme ?? ACTION_CARD_THEME.WEAPON;
 
   return (
     <button
@@ -71,12 +80,14 @@ export function WeaponActionCard({
       className={clsx(
         styles.button,
         styles.actionCard,
+        getActionCardThemeClassNames(cardTheme),
         isUnavailable && styles.actionCardUnavailable,
         hasAdditionalPathUses && styles.actionCardMulti
       )}
       aria-disabled={isUnavailable}
       onClick={() => onClick(action)}
     >
+      <ActionCardThemeTexture theme={cardTheme} />
       {attackPaths.length > 0 ? (
         <span className={styles.shapeBadgeRow} aria-hidden="true">
           {attackPaths.map((path) => {
@@ -216,6 +227,7 @@ export function FeatureActionCardButton({
   );
   const isUnavailable =
     action.disabled === true || (!action.ignoreEconomyAvailability && !economyShapeState.isUsable);
+  const cardTheme = resolveActionCardTheme(action);
 
   return (
     <button
@@ -223,6 +235,7 @@ export function FeatureActionCardButton({
       className={clsx(
         styles.button,
         styles.actionCard,
+        getActionCardThemeClassNames(cardTheme),
         isUnavailable && styles.actionCardUnavailable,
         economyShapeState.multiCount > 0 && styles.actionCardMulti,
         styles.featureButton,
@@ -231,6 +244,7 @@ export function FeatureActionCardButton({
       aria-disabled={isUnavailable}
       onClick={() => onClick(action)}
     >
+      <ActionCardThemeTexture theme={cardTheme} />
       {actionShape ? (
         <span className={styles.shapeBadge} aria-hidden="true">
           <ActionShape
@@ -292,6 +306,7 @@ export function FeatureActionOptionButton({
     : formatValueLabel(option);
   const breakdownLabel =
     option.disabledReason ?? economyShapeState.disabledReason ?? option.breakdown ?? option.summary;
+  const cardTheme = resolveActionCardTheme(option);
 
   return (
     <RadioContainerOption
@@ -320,9 +335,11 @@ export function FeatureActionOptionButton({
       disabled={isDisabled}
       indicatorType={selectionIndicatorType}
       className={clsx(
+        getActionCardThemeClassNames(cardTheme),
         economyShapeState.multiCount > 0 && styles.actionCardMulti,
         modalStyles.featureActionOptionButton
       )}
+      backgroundTexture={<ActionCardThemeTexture theme={cardTheme} />}
       actionBadge={
         actionShape ? (
           <ActionShape
@@ -351,6 +368,7 @@ export function FeatureActionChoiceRow({
   groupName
 }: FeatureActionChoiceRowProps) {
   const isDisabled = option.disabled === true;
+  const cardTheme = resolveActionCardTheme(option);
 
   return (
     <RadioContainerOption
@@ -360,6 +378,8 @@ export function FeatureActionChoiceRow({
       onSelect={onClick}
       name={groupName}
       disabled={isDisabled}
+      className={clsx(getActionCardThemeClassNames(cardTheme))}
+      backgroundTexture={<ActionCardThemeTexture theme={cardTheme} />}
       aside={
         option.trackingState ? (
           <FeatureTrackingBadgeButton trackingState={option.trackingState} />

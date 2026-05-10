@@ -53,7 +53,9 @@
 }
 
 .actionCardUnavailable {
-  opacity: 0.72;
+  background: rgba(58, 55, 51, 0.12);
+  border-color: rgba(58, 55, 51, 0.2);
+  opacity: 0.6;
 }
 
 .actionCardMulti {
@@ -153,6 +155,138 @@
 .featureButtonActive {
   background: rgba(181, 86, 42, 0.16);
   border-color: rgba(181, 86, 42, 0.34);
+}
+
+.themedActionCard {
+  --action-card-theme-base: rgba(68, 64, 60, 0.045);
+  --action-card-theme-panel-soft: rgba(145, 101, 54, 0.02);
+  --action-card-theme-panel-strong: rgba(145, 101, 54, 0.09);
+  --action-card-theme-panel-peak: rgba(145, 101, 54, 0.28);
+  --action-card-theme-edge: rgba(145, 101, 54, 0.3);
+  --action-card-theme-border-shadow: inset 0 0 0 1.5px var(--action-card-theme-border);
+  --action-card-theme-edge-shadow: inset -4px 0 0 var(--action-card-theme-edge);
+  --action-card-theme-border: rgba(75, 47, 29, 0.14);
+  --action-card-theme-icon-color: rgb(75, 47, 29);
+  --action-card-theme-icon-opacity: 0.12;
+
+  background:
+    linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0) 25%,
+        var(--action-card-theme-panel-soft) 52%,
+        var(--action-card-theme-panel-strong) 85%,
+        var(--action-card-theme-panel-peak) 100%
+      )
+      0 0 / 100% 100% no-repeat,
+    var(--action-card-theme-base);
+  border-color: transparent;
+  box-shadow:
+    var(--action-card-theme-border-shadow),
+    var(--action-card-theme-edge-shadow);
+  isolation: isolate;
+}
+
+.themedActionCard.actionCardMulti {
+  box-shadow:
+    var(--action-card-theme-border-shadow),
+    var(--action-card-theme-edge-shadow),
+    0 0 0 1px rgba(220, 176, 42, 1),
+    0 0 4px rgba(220, 176, 42, 1);
+}
+
+.themeTextureIcon {
+  color: var(--action-card-theme-icon-color);
+  height: 100%;
+  opacity: var(--action-card-theme-icon-opacity);
+  pointer-events: none;
+  position: absolute;
+  right: 0.42rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: auto;
+  z-index: -1;
+}
+
+.themeFeature {
+  --action-card-theme-panel-soft: rgba(172, 116, 56, 0.024);
+  --action-card-theme-panel-strong: rgba(172, 116, 56, 0.1);
+  --action-card-theme-panel-peak: rgba(172, 116, 56, 0.3);
+  --action-card-theme-edge: rgba(145, 101, 54, 0.3);
+  --action-card-theme-border: rgba(145, 101, 54, 0.22);
+  --action-card-theme-icon-color: rgb(145, 101, 54);
+  --action-card-theme-icon-opacity: 0.13;
+}
+
+.themeAttack {
+  --action-card-theme-panel-soft: rgba(204, 68, 54, 0.02);
+  --action-card-theme-panel-strong: rgba(204, 68, 54, 0.1);
+  --action-card-theme-panel-peak: rgba(204, 68, 54, 0.32);
+  --action-card-theme-edge: rgba(169, 55, 45, 0.3);
+  --action-card-theme-border: rgba(169, 55, 45, 0.28);
+  --action-card-theme-icon-color: rgb(169, 55, 45);
+  --action-card-theme-icon-opacity: 0.13;
+}
+
+.themeMagic {
+  --action-card-theme-panel-soft: rgba(64, 116, 210, 0.02);
+  --action-card-theme-panel-strong: rgba(64, 116, 210, 0.1);
+  --action-card-theme-panel-peak: rgba(64, 116, 210, 0.3);
+  --action-card-theme-edge: rgba(51, 93, 174, 0.3);
+  --action-card-theme-border: rgba(51, 93, 174, 0.28);
+  --action-card-theme-icon-color: rgb(51, 93, 174);
+  --action-card-theme-icon-opacity: 0.13;
+}
+
+.themeUtil {
+  --action-card-theme-panel-soft: rgba(126, 84, 190, 0.02);
+  --action-card-theme-panel-strong: rgba(126, 84, 190, 0.09);
+  --action-card-theme-panel-peak: rgba(126, 84, 190, 0.29);
+  --action-card-theme-edge: rgba(101, 68, 157, 0.3);
+  --action-card-theme-border: rgba(101, 68, 157, 0.28);
+  --action-card-theme-icon-color: rgb(101, 68, 157);
+  --action-card-theme-icon-opacity: 0.13;
+}
+
+.themeHeal {
+  --action-card-theme-panel-soft: rgba(77, 166, 112, 0.02);
+  --action-card-theme-panel-strong: rgba(77, 166, 112, 0.1);
+  --action-card-theme-panel-peak: rgba(77, 166, 112, 0.3);
+  --action-card-theme-edge: rgba(54, 139, 88, 0.3);
+  --action-card-theme-border: rgba(54, 139, 88, 0.28);
+  --action-card-theme-icon-color: rgb(54, 139, 88);
+  --action-card-theme-icon-opacity: 0.13;
+}
+
+.themeDefense {
+  --action-card-theme-panel-soft: rgba(218, 177, 43, 0.024);
+  --action-card-theme-panel-strong: rgba(218, 177, 43, 0.1);
+  --action-card-theme-panel-peak: rgba(218, 177, 43, 0.32);
+  --action-card-theme-edge: rgba(174, 137, 28, 0.3);
+  --action-card-theme-border: rgba(174, 137, 28, 0.28);
+  --action-card-theme-icon-color: rgb(174, 137, 28);
+  --action-card-theme-icon-opacity: 0.13;
+}
+
+.themeWeapon {
+  --action-card-theme-panel-soft: rgba(109, 122, 137, 0.016);
+  --action-card-theme-panel-strong: rgba(109, 122, 137, 0.08);
+  --action-card-theme-panel-peak: rgba(109, 122, 137, 0.26);
+  --action-card-theme-edge: rgba(91, 101, 114, 0.3);
+  --action-card-theme-border: rgba(91, 101, 114, 0.26);
+  --action-card-theme-icon-color: rgb(91, 101, 114);
+  --action-card-theme-icon-opacity: 0.13;
+}
+
+.themedActionCard.actionCardUnavailable {
+  --action-card-theme-base: rgba(58, 55, 51, 0.1);
+  --action-card-theme-panel-soft: rgba(48, 48, 46, 0.012);
+  --action-card-theme-panel-strong: rgba(48, 48, 46, 0.04);
+  --action-card-theme-panel-peak: rgba(40, 40, 38, 0.14);
+  --action-card-theme-edge: rgba(48, 48, 46, 0.15);
+  --action-card-theme-border: rgba(58, 55, 51, 0.22);
+  --action-card-theme-icon-color: rgb(48, 48, 46);
+  --action-card-theme-icon-opacity: 0.1;
 }
 
 .featureMeta {

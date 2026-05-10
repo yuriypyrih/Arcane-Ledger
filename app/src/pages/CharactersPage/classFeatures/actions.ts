@@ -603,9 +603,9 @@ export function getFeatureActionsForCharacter(character: Character): FeatureActi
       : actions;
 
     return [
-      ...transformedActions,
       ...getSpeciesActionsForCharacter(character),
-      ...getFeatActionsForCharacter(character)
+      ...getFeatActionsForCharacter(character),
+      ...transformedActions
     ].map(normalizeFeatureActionCardUsage);
   });
 

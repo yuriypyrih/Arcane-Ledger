@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { X } from "lucide-react";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import ActionButton from "../../../ActionButton";
 import ActionShape, {
   getActionShapeForCastingTime,
@@ -572,7 +573,11 @@ function CharacterSpellDrawer({
     effectiveBlockedReason !== null ||
     actionContextTexts.length > 0;
 
-  return (
+  if (typeof document === "undefined") {
+    return null;
+  }
+
+  return createPortal(
     <>
       <div
         className={clsx(sheetStyles.spellDrawerBackdrop, backdropClassName)}
@@ -1003,6 +1008,7 @@ function CharacterSpellDrawer({
             }
           ]}
           badgeLabel="Keyword"
+          backdropClassName={backdropClassName}
           onClose={closeComponentsTooltip}
         />
       ) : null}
@@ -1016,10 +1022,12 @@ function CharacterSpellDrawer({
             }
           ]}
           badgeLabel="Keyword"
+          backdropClassName={backdropClassName}
           onClose={closeTrackingKeyword}
         />
       ) : null}
-    </>
+    </>,
+    document.body
   );
 }
 

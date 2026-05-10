@@ -204,12 +204,14 @@ function GameplayActionDrawer({
       {selectedSpellReference ? (
         <CodexSpellDrawer
           spell={selectedSpellReference}
+          backdropClassName={backdropClassName}
           onClose={() => setSelectedSpellReference(null)}
         />
       ) : null}
       {selectedDivinityReference ? (
         <CodexDivinityDrawer
           divinity={selectedDivinityReference}
+          backdropClassName={backdropClassName}
           onClose={() => setSelectedDivinityReference(null)}
         />
       ) : null}
@@ -223,6 +225,7 @@ function GameplayActionDrawer({
             }
           ]}
           badgeLabel="Keyword"
+          backdropClassName={backdropClassName}
           onClose={() => setSelectedKeyword(null)}
         />
       ) : null}
@@ -230,6 +233,7 @@ function GameplayActionDrawer({
         <CodexFeatDrawer
           feat={selectedFeatReference.feat}
           label={selectedFeatReference.label}
+          backdropClassName={backdropClassName}
           onClose={() => setSelectedFeatReference(null)}
         />
       ) : null}

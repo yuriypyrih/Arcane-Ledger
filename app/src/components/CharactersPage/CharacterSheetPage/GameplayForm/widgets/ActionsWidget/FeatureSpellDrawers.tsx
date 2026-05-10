@@ -471,7 +471,7 @@ function FeatureSpellDrawers({
                 ]
               : undefined
           }
-          backdropClassName={styles.divineInterventionDrawerBackdrop}
+          backdropClassName={styles.featureSpellDrawerBackdrop}
         />
       ) : null}
 
@@ -506,7 +506,7 @@ function FeatureSpellDrawers({
                 ]
               : undefined
           }
-          backdropClassName={styles.divineInterventionDrawerBackdrop}
+          backdropClassName={styles.featureSpellDrawerBackdrop}
         />
       ) : null}
 
@@ -555,7 +555,7 @@ function FeatureSpellDrawers({
                 ]
               : undefined
           }
-          backdropClassName={styles.divineInterventionDrawerBackdrop}
+          backdropClassName={styles.featureSpellDrawerBackdrop}
         />
       ) : null}
     </>
