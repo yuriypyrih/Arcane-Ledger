@@ -9,7 +9,7 @@ jobs:
     env:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-      DOCKER_IMAGE: lausi95/arcane-ledger:latest
+      DOCKER_IMAGE: lausi95/arcane-ledger-backend:latest
     steps:
       - uses: actions/checkout@v6
       - run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
