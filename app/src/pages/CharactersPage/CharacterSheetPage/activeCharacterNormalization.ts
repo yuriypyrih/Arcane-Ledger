@@ -1,4 +1,5 @@
 import type { Character } from "../../../types";
+import { resolveSpellIdAlias } from "../../../codex/entries";
 import { createDefaultCurrencies } from "../constants";
 import { normalizeArmorClassFormulaSelection, normalizeCharacterArmorWearState } from "../armor";
 import { normalizeCustomEquipmentEntries } from "../customEquipment";
@@ -38,6 +39,19 @@ import { characterSheetDomains, type CharacterSheetDomain } from "./domains";
 
 function hasDomain(domains: readonly CharacterSheetDomain[], domain: CharacterSheetDomain) {
   return domains.includes(domain);
+}
+
+function normalizeRuntimeSpellId(value: string): string {
+  return resolveSpellIdAlias(value.trim());
+}
+
+function normalizeRuntimeSpellIds(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value
+        .filter((spellId): spellId is string => typeof spellId === "string")
+        .map(normalizeRuntimeSpellId)
+        .filter((spellId) => spellId.length > 0)
+    : [];
 }
 
 function normalizeEquipmentRuntime(character: Character): Character {
@@ -106,9 +120,7 @@ function normalizeFeatureRuntime(character: Character): Character {
 }
 
 function normalizeSpellRuntime(character: Character): Character {
-  const rawPersistedCantripIds = Array.isArray(character.cantripIds)
-    ? character.cantripIds.filter((spellId): spellId is string => typeof spellId === "string")
-    : [];
+  const rawPersistedCantripIds = normalizeRuntimeSpellIds(character.cantripIds);
   const rawCantripIds = Array.isArray(character.cantripIds)
     ? rawPersistedCantripIds
     : getDefaultCantripIdsForCharacter(
@@ -144,9 +156,7 @@ function normalizeSpellRuntime(character: Character): Character {
       feats: character.feats
     }
   );
-  const rawPreparedSpellIds = Array.isArray(character.preparedSpellIds)
-    ? character.preparedSpellIds.filter((spellId): spellId is string => typeof spellId === "string")
-    : [];
+  const rawPreparedSpellIds = normalizeRuntimeSpellIds(character.preparedSpellIds);
   const preparedSpellSelectionOptions = getPreparedSpellSelectionOptionsForCharacter(
     character.className,
     character.level,
@@ -156,9 +166,7 @@ function normalizeSpellRuntime(character: Character): Character {
     preparedSpellSelectionOptions.map((spell) => spell.id)
   );
   const rawSpellbookSpellIds = Array.isArray(character.spellbookSpellIds)
-    ? character.spellbookSpellIds.filter(
-        (spellId): spellId is string => typeof spellId === "string"
-      )
+    ? normalizeRuntimeSpellIds(character.spellbookSpellIds)
     : usesSpellbookForCharacter(character.className, character.subclassId)
       ? rawPreparedSpellIds
       : [];

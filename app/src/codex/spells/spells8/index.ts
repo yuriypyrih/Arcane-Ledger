@@ -16,6 +16,7 @@ export const abiDalzimsHorridWilting: SpellEntry = {
   id: "spell-abi-dalzims-horrid-wilting",
   name: "Abi-Dalzim's Horrid Wilting",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.NECROMANCY,
   castingTime: [ACTION_TYPE.ACTION],
@@ -52,16 +53,15 @@ export const animalShapes: SpellEntry = {
   id: "spell-animal-shapes",
   name: "Animal Shapes",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_animal-shapes", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "30 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: [DURATION.CONCENTRATION, "up to 24 hours"],
+  duration: ["24 hours"],
   description: [
-    "Your magic turns others into Beasts. Choose any number of willing creatures that you can see within range. You transform each target into the form of a Large or smaller Beast with a Challenge Rating of 4 or lower. On subsequent turns, you can use your action to transform affected creatures into new forms.",
-    "The transformation lasts for the duration for each target, or until the target drops to 0 Hit Points or dies. You can choose a different form for each target. A target's game statistics are replaced by the statistics of the chosen Beast, though the target retains its alignment and Intelligence, Wisdom, and Charisma scores. The target assumes the Hit Points of its new form, and when it reverts to its normal form, it returns to the number of Hit Points it had before it transformed. If it reverts as a result of dropping to 0 Hit Points, any excess damage carries over to its normal form. As long as the excess damage doesn't reduce the creature's normal form to 0 Hit Points, it isn't knocked Unconscious. The creature is limited in the actions it can perform by the nature of its new form, and it can't speak or cast spells.",
-    "The target's gear melds into the new form. The target can't activate, wield, or otherwise benefit from any of its equipment."
+    "Choose any number of willing creatures that you can see within range. Each target shape-shifts into a Large or smaller Beast of your choice that has a Challenge Rating of 4 or lower. You can choose a different form for each target. On later turns, you can take a Magic action to transform the targets again. A target's game statistics are replaced by the chosen Beast's statistics, but the target retains its creature type; Hit Points; Hit Point Dice; alignment; ability to communicate; and Intelligence, Wisdom, and Charisma scores. The target's actions are limited by the Beast form's anatomy, and it can't cast spells. The target's equipment melds into the new form, and the target can't use any of that equipment while in that form. The target gains a number of Temporary Hit Points equal to the Hit Points of the first form into which it shape-shifts. These Temporary Hit Points vanish if any remain when the spell ends. The transformation lasts for the duration or until the target ends it as a Bonus Action."
   ],
   damage: [],
   healing: [],
@@ -73,28 +73,15 @@ export const antimagicField: SpellEntry = {
   id: "spell-antimagic-field",
   name: "Antimagic Field",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_antimagic-field", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.ACTION],
-  range: "Self (10-foot-radius sphere)",
+  range: "Self",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: [DURATION.CONCENTRATION, "up to 1 hour"],
   description: [
-    "A 10-foot-radius Invisible sphere of antimagic surrounds you. This area is divorced from the magical energy that suffuses the multiverse. Within the sphere, spells can't be cast, summoned creatures disappear, and even magic items become mundane. Until the spell ends, the sphere moves with you, centered on you.",
-    "Spells and other magical effects, except those created by an artifact or a deity, are suppressed in the sphere and can't protrude into it. A slot expended to cast a suppressed spell is consumed. While an effect is suppressed, it doesn't function, but the time it spends suppressed counts against its duration.",
-    {
-      type: "list",
-      style: "bullet",
-      items: [
-        "<strong>Targeted Effects.</strong> Spells and other magical effects, such as magic missile and charm person, that target a creature or an object in the sphere have no effect on that target.",
-        "<strong>Areas of Magic.</strong> The area of another spell or magical effect, such as fireball, can't extend into the sphere. If the sphere overlaps an area of magic, the part of the area that is covered by the sphere is suppressed.",
-        "<strong>Spells.</strong> Any active spell or other magical effect on a creature or an object in the sphere is suppressed while the creature or object is in it.",
-        "<strong>Magic Items.</strong> The properties and powers of magic items are suppressed in the sphere. A magic weapon's properties and powers are suppressed if it is used against a target in the sphere or wielded by an attacker in the sphere. If a magic weapon or piece of magic ammunition fully leaves the sphere, the magic of the item ceases to be suppressed as soon as it exits.",
-        "<strong>Magical Travel.</strong> Teleportation and planar travel fail to work in the sphere, whether the sphere is the destination or the departure point for such magical travel. A portal to another location, world, or plane of existence, as well as an opening to an extradimensional space such as that created by the rope trick spell, temporarily closes while in the sphere.",
-        "<strong>Creatures and Objects.</strong> A creature or object summoned or created by magic temporarily winks out of existence in the sphere. Such a creature instantly reappears once the space the creature occupied is no longer within the sphere.",
-        "<strong>Dispel Magic.</strong> Spells and magical effects such as dispel magic have no effect on the sphere. Likewise, the spheres created by different antimagic field spells don't nullify each other."
-      ]
-    }
+    "An aura of antimagic surrounds you in 10-foot Emanation. No one can cast spells, take Magic actions, or create other magical effects inside the aura, and those things can't target or otherwise affect anything inside it. Magical properties of magic items don't work inside the aura or on anything inside it. Areas of effect created by spells or other magic can't extend into the aura, and no one can teleport into or out of it or use planar travel there. Portals close temporarily while in the aura. Ongoing spells, except those cast by an Artifact or a deity, are suppressed in the area. While an effect is suppressed, it doesn't function, but the time it spends suppressed counts against its duration."
   ],
   damage: [],
   healing: [],
@@ -106,23 +93,18 @@ export const antipathySympathy: SpellEntry = {
   id: "spell-antipathy-sympathy",
   name: "Antipathy/Sympathy",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_antipathysympathy", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
   castingTime: [ACTION_TYPE.HOUR],
   range: "60 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: ["10 days"],
+  duration: ["10 day"],
   description: [
-    "This spell attracts or repels creatures of your choice. You target something within range, either a Huge or smaller object or creature or an area that is no larger than a 200-foot cube. Then specify a kind of intelligent creature, such as red dragons, goblins, or vampires. You invest the target with an aura that either attracts or repels the specified creatures for the duration. Choose antipathy or sympathy as the aura's effect.",
-    {
-      type: "list",
-      style: "bullet",
-      items: [
-        "<strong>Antipathy.</strong> The enchantment causes creatures of the kind you designated to feel an intense urge to leave the area and avoid the target. When such a creature can see the target or comes within 60 feet of it, the creature must succeed on a Wisdom saving throw or become Frightened. The creature remains Frightened while it can see the target or is within 60 feet of it. While Frightened by the target, the creature must use its movement to move to the nearest safe spot from which it can't see the target. If the creature moves more than 60 feet from the target and can't see it, the creature is no longer Frightened, but it becomes Frightened again if it regains sight of the target or moves within 60 feet of it.",
-        "<strong>Sympathy.</strong> The enchantment causes the specified creatures to feel an intense urge to approach the target while within 60 feet of it or able to see it. When such a creature can see the target or comes within 60 feet of it, the creature must succeed on a Wisdom saving throw or use its movement on each of its turns to enter the area or move within reach of the target. When the creature has done so, it can't willingly move away from the target. If the target damages or otherwise harms an affected creature, the affected creature can make a Wisdom saving throw to end the effect, as described below.",
-        "<strong>Ending the Effect.</strong> If an affected creature ends its turn while not within 60 feet of the target or able to see it, the creature makes a Wisdom saving throw. On a successful save, the creature is no longer affected by the target and recognizes the feeling of repugnance or attraction as magical. In addition, a creature affected by the spell is allowed another Wisdom saving throw every 24 hours while the spell persists. A creature that successfully saves against this effect is immune to it for 1 minute, after which time it can be affected again."
-      ]
-    }
+    "As you cast the spell, choose whether it creates antipathy or sympathy, and target one creature or object that is Huge or smaller. Then specify a kind of creature, such as red dragons, goblins, or vampires. A creature of the chosen kind makes a Wisdom saving throw when it comes within 120 feet of the target. Your choice of antipathy or sympathy determines what happens to a creature when it fails that save:",
+    "<strong>Antipathy</strong>. The creature has the Frightened condition. The Frightened creature must use its movement on its turns to get as far away as possible from the target, moving by the safest route.",
+    "<strong>Sympathy</strong>. The creature has the Charmed condition. The Charmed creature must use its movement on its turns to get as close as possible to the target, moving by the safest route. If the creature is within 5 feet of the target, the creature can't willingly move away. If the target damages the Charmed creature, that creature can make a Wisdom saving throw to end the effect, as described below.",
+    "<strong>Ending the Effect</strong>. If the Frightened or Charmed creature ends its turn more than 120 feet away from the target, the creature makes a Wisdom saving throw. On a successful save, the creature is no longer affected by the target. A creature that successfully saves against this effect is immune to it for 1 minute, after which it can be affected again."
   ],
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.WIS,
@@ -132,10 +114,47 @@ export const antipathySympathy: SpellEntry = {
   spellLevel: 8
 };
 
+export const befuddlement: SpellEntry = {
+  id: "spell-befuddlement",
+  name: "Befuddlement",
+  category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_befuddlement", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  legacyIds: ["spell-feeblemind"],
+  legacyNames: ["Feeblemind"],
+  trackingState: TRACKER.NOT_TRACKED,
+  magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
+  castingTime: [ACTION_TYPE.ACTION],
+  range: "150 feet",
+  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  duration: ["Instantaneous"],
+  description: [
+    "You blast the mind of a creature that you can see within range. The target makes an Intelligence saving throw. On a failed save, the target takes <strong>10d12</strong> Psychic damage and can't cast spells or take the Magic action. At the end of every 30 days, the target repeats the save, ending the effect on a success. The effect can also be ended by the Greater Restoration, Heal, or Wish spell. On a successful save, the target takes half as much damage only."
+  ],
+  isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.INT,
+  isDamagingSpell: true,
+  damage: [
+    [DICE.D12, DAMAGE_TYPE.PSYCHIC],
+    [DICE.D12, DAMAGE_TYPE.PSYCHIC],
+    [DICE.D12, DAMAGE_TYPE.PSYCHIC],
+    [DICE.D12, DAMAGE_TYPE.PSYCHIC],
+    [DICE.D12, DAMAGE_TYPE.PSYCHIC],
+    [DICE.D12, DAMAGE_TYPE.PSYCHIC],
+    [DICE.D12, DAMAGE_TYPE.PSYCHIC],
+    [DICE.D12, DAMAGE_TYPE.PSYCHIC],
+    [DICE.D12, DAMAGE_TYPE.PSYCHIC],
+    [DICE.D12, DAMAGE_TYPE.PSYCHIC]
+  ],
+  healing: [],
+  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
+  spellLevel: 8
+};
+
 export const clone: SpellEntry = {
   id: "spell-clone",
   name: "Clone",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_clone", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.NECROMANCY,
   castingTime: [ACTION_TYPE.HOUR],
@@ -143,8 +162,7 @@ export const clone: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["Instantaneous"],
   description: [
-    "This spell grows an inert duplicate of a living creature as a safeguard against death. This clone forms inside the vessel used in the spell's casting and grows to full size and maturity after 120 days. You can also choose to have the clone be a younger version of the same creature. It remains inert and endures indefinitely, as long as its vessel remains undisturbed.",
-    "At any time after the clone matures, if the original creature dies, its soul transfers to the clone, provided that the soul is free and willing to return. The clone is physically identical to the original and has the same personality, memories, and abilities, but none of the original's equipment. The original creature's physical remains, if they still exist, become inert and can't thereafter be restored to life, since the creature's soul is elsewhere."
+    "You touch a creature or at least 1 cubic inch of its flesh. An inert duplicate of that creature forms inside the vessel used in the spell's casting and finishes growing after 120 days; you choose whether the finished clone is the same age as the creature or younger. The clone remains inert and endures indefinitely while its vessel remains undisturbed. If the original creature dies after the clone finishes forming, the creature's soul transfers to the clone if the soul is free and willing to return. The clone is physically identical to the original and has the same personality, memories, and abilities, but none of the original's equipment. The creature's original remains, if any, become inert and can't be revived, since the creature's soul is elsewhere."
   ],
   damage: [],
   healing: [],
@@ -156,53 +174,15 @@ export const controlWeather: SpellEntry = {
   id: "spell-control-weather",
   name: "Control Weather",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_control-weather", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.TEN_MINUTES],
-  range: "Self (5-mile radius)",
+  range: "Self",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: [DURATION.CONCENTRATION, "up to 8 hours"],
   description: [
-    "You take control of the weather within 5 miles of you for the duration. You must be outdoors to cast this spell. Moving to a place where you don't have a clear path to the sky ends the spell early.",
-    "When you cast the spell, you change the current weather conditions, which are determined by the DM based on the climate and season. You can change precipitation, temperature, and wind. It takes <strong>1d4</strong> x 10 minutes for the new conditions to take effect. Once they do so, you can change the conditions again. When the spell ends, the weather gradually returns to normal.",
-    "When you change the weather conditions, find a current condition on the following tables and change its stage by one, up or down. When changing the wind, you can change its direction.",
-    "Precipitation:",
-    {
-      type: "list",
-      style: "bullet",
-      items: [
-        "<strong>Stage 1.</strong> Clear.",
-        "<strong>Stage 2.</strong> Light clouds.",
-        "<strong>Stage 3.</strong> Overcast or ground fog.",
-        "<strong>Stage 4.</strong> Rain, hail, or snow.",
-        "<strong>Stage 5.</strong> Torrential rain, driving hail, or blizzard."
-      ]
-    },
-    "Temperature:",
-    {
-      type: "list",
-      style: "bullet",
-      items: [
-        "<strong>Stage 1.</strong> Unbearable heat.",
-        "<strong>Stage 2.</strong> Hot.",
-        "<strong>Stage 3.</strong> Warm.",
-        "<strong>Stage 4.</strong> Cool.",
-        "<strong>Stage 5.</strong> Cold.",
-        "<strong>Stage 6.</strong> Arctic cold."
-      ]
-    },
-    "Wind:",
-    {
-      type: "list",
-      style: "bullet",
-      items: [
-        "<strong>Stage 1.</strong> Calm.",
-        "<strong>Stage 2.</strong> Moderate wind.",
-        "<strong>Stage 3.</strong> Strong wind.",
-        "<strong>Stage 4.</strong> Gale.",
-        "<strong>Stage 5.</strong> Storm."
-      ]
-    }
+    "You take control of the weather within 5 miles of you for the duration. You must be outdoors to cast this spell, and it ends early if you go indoors. When you cast the spell, you change the current weather conditions, which are determined by the GM. You can change precipitation, temperature, and wind. It takes <strong>1d4</strong> × 10 minutes for the new conditions to take effect. Once they do so, you can change the conditions again. When the spell ends, the weather gradually returns to normal. When you change the weather conditions, find a current condition on the following tables and change its stage by one, up or down. When changing the wind, you can change its direction. Table: Precipitation | Stage | Condition | |-------|--------------------------------------------| | 1 | Clear | | 2 | Light clouds | | 3 | Overcast or ground fog | | 4 | Rain, hail, or snow | | 5 | Torrential rain, driving hail, or blizzard | Table: Temperature | Stage | Condition | |-------------|-----------| | 1 | Heat wave | | 2 | Hot | | 3 | Warm | | 4 | Cool | | 5 | Cold | | 6 | Freezing | Table: Wind | Stage | Condition | |-------|---------------| | 1 | Calm | | 2 | Moderate wind | | 3 | Strong wind | | 4 | Gale | | 5 | Storm |"
   ],
   damage: [],
   healing: [],
@@ -214,6 +194,7 @@ export const darkStar: SpellEntry = {
   id: "spell-dark-star",
   name: "Dark Star",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -247,6 +228,7 @@ export const demiplane: SpellEntry = {
   id: "spell-demiplane",
   name: "Demiplane",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_demiplane", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -254,8 +236,7 @@ export const demiplane: SpellEntry = {
   components: [SPELL_COMPONENT.S],
   duration: ["1 hour"],
   description: [
-    "You create a shadowy door on a flat solid surface that you can see within range. The door is large enough to allow Medium creatures to pass through unhindered. When opened, the door leads to a demiplane that appears to be an empty room 30 feet in each dimension, made of wood or stone. When the spell ends, the door disappears, and any creatures or objects inside the demiplane remain trapped there, as the door also disappears from the other side.",
-    "Each time you cast this spell, you can create a new demiplane, or have the shadowy door connect to a demiplane you created with a previous casting of this spell. Additionally, if you know the nature and contents of a demiplane created by a casting of this spell by another creature, you can have the shadowy door connect to its demiplane instead."
+    "You create a shadowy Medium door on a flat solid surface that you can see within range. This door can be opened and closed, and it leads to a demiplane that is an empty room 30 feet in each dimension, made of wood or stone (your choice). When the spell ends, the door vanishes, and any objects inside the demiplane remain there. Any creatures inside also remain unless they opt to be shunted through the door as it vanishes, landing with the Prone condition in the unoccupied spaces closest to the door's former space. Each time you cast this spell, you can create a new demiplane or connect the shadowy door to a demiplane you created with a previous casting of this spell. Additionally, if you know the nature and contents of a demiplane created by a casting of this spell by another creature, you can connect the shadowy door to that demiplane instead."
   ],
   damage: [],
   healing: [],
@@ -267,6 +248,7 @@ export const dominateMonster: SpellEntry = {
   id: "spell-dominate-monster",
   name: "Dominate Monster",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_dominate-monster", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
   castingTime: [ACTION_TYPE.ACTION],
@@ -274,22 +256,14 @@ export const dominateMonster: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: [DURATION.CONCENTRATION, "up to 1 hour"],
   description: [
-    "You attempt to beguile a creature that you can see within range. It must succeed on a Wisdom saving throw or be Charmed by you for the duration. If you or creatures that are friendly to you are fighting it, it has advantage on the saving throw.",
-    'While the creature is Charmed, you have a telepathic link with it as long as the two of you are on the same plane of existence. You can use this telepathic link to issue commands to the creature while you are conscious, no action required, which it does its best to obey. You can specify a simple and general course of action, such as "Attack that creature," "Run over there," or "Fetch that object." If the creature completes the order and doesn\'t receive further direction from you, it defends and preserves itself to the best of its ability.',
-    "You can use your action to take total and precise control of the target. Until the end of your next turn, the creature takes only the actions you choose, and doesn't do anything that you don't allow it to do. During this time, you can also cause the creature to use a reaction, but this requires you to use your own reaction as well.",
-    "Each time the target takes damage, it makes a new Wisdom saving throw against the spell. If the saving throw succeeds, the spell ends.",
-    "<strong>At Higher Levels.</strong> When you cast this spell with a 9th-level spell slot, the duration is concentration, up to 8 hours."
+    "One creature you can see within range must succeed on a Wisdom saving throw or have the Charmed condition for the duration. The target has Advantage on the save if you or your allies are fighting it. Whenever the target takes damage, it repeats the save, ending the spell on itself on a success. You have a telepathic link with the Charmed target while the two of you are on the same plane of existence. On your turn, you can use this link to issue commands to the target (no action required), such as \"Attack that creature,\" \"Move over there,\" or \"Fetch that object.\" The target does its best to obey on its turn. If it completes an order and doesn't receive further direction from you, it acts and moves as it likes, focusing on protecting itself. You can command the target to take a Reaction but must take your own Reaction to do so.",
+    "<strong>Using a Higher-Level Spell Slot.</strong> Your Concentration can last longer with a level 9 spell slot (up to 8 hours)."
   ],
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
   healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.BARD,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WARLOCK,
-    SPELL_LIST_CLASS.WIZARD
-  ],
+  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 8
 };
 
@@ -297,30 +271,32 @@ export const earthquake: SpellEntry = {
   id: "spell-earthquake",
   name: "Earthquake",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_earthquake", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
-  magicSchool: MAGIC_SCHOOL.EVOCATION,
+  magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "500 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "You create a seismic disturbance at a point on the ground that you can see within range. For the duration, an intense tremor rips through the ground in a 100-foot-radius circle centered on that point and shakes creatures and structures in contact with the ground in that area.",
-    "The ground in the area becomes difficult terrain. Each creature on the ground that is concentrating must make a Constitution saving throw. On a failed save, the creature's Concentration is broken.",
-    "When you cast this spell and at the end of each turn you spend concentrating on it, each creature on the ground in the area must make a Dexterity saving throw. On a failed save, the creature is knocked Prone.",
-    "This spell can have additional effects depending on the terrain in the area, as determined by the DM.",
-    {
-      type: "list",
-      style: "bullet",
-      items: [
-        "<strong>Fissures.</strong> Fissures open throughout the spell's area at the start of your next turn after you cast the spell. A total of <strong>1d6</strong> such fissures open in locations chosen by the DM. Each is <strong>1d10</strong> x 10 feet deep, 10 feet wide, and extends from one edge of the spell's area to the opposite side. A creature standing on a spot where a fissure opens must succeed on a Dexterity saving throw or fall in. A creature that successfully saves moves with the fissure's edge as it opens. A fissure that opens beneath a structure causes it to automatically collapse.",
-        "<strong>Structures.</strong> The tremor deals 50 Bludgeoning damage to any structure in contact with the ground in the area when you cast the spell and at the start of each of your turns until the spell ends. If a structure drops to 0 Hit Points, it collapses and potentially damages nearby creatures. A creature within half the distance of a structure's height must make a Dexterity saving throw. On a failed save, the creature takes <strong>5d6</strong> Bludgeoning damage, is knocked Prone, and is buried in the rubble, requiring a DC 20 Strength (Athletics) check as an action to escape. On a successful save, the creature takes half as much damage and doesn't fall Prone or become buried."
-      ]
-    }
+    "Choose a point on the ground that you can see within range. For the duration, an intense tremor rips through the ground in a 100-foot-radius circle centered on that point. The ground there is Difficult Terrain.",
+    "When you cast this spell and at the end of each of your turns for the duration, each creature on the ground in the area makes a Dexterity saving throw. On a failed save, a creature has the Prone condition, and its Concentration is broken.",
+    "You can also cause the effects below.",
+    "<em><strong>Fissures.</strong></em> A total of <strong>1d6</strong> fissures open in the spell's area at the end of the turn you cast it. You choose the fissures' locations, which can't be under structures. Each fissure is <strong>1d10</strong> × 10 feet deep and 10 feet wide, and it extends from one edge of the spell's area to another edge. A creature in the same space as a fissure must succeed on a Dexterity saving throw or fall in. A creature that successfully saves moves with the fissure's edge as it opens.",
+    "<em><strong>Structures.</strong></em> The tremor deals 50 Bludgeoning damage to any structure in contact with the ground in the area when you cast the spell and at the end of each of your turns until the spell ends. If a structure drops to 0 Hit Points, it collapses.",
+    "A creature within a distance from a collapsing structure equal to half the structure's height makes a Dexterity saving throw. On a failed save, the creature takes <strong>12d6</strong> Bludgeoning damage, has the Prone condition, and is buried in the rubble, requiring a DC 20 Strength (Athletics) check as an action to escape. On a successful save, the creature takes half as much damage only."
   ],
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
   damage: [
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
     [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
     [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
     [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
@@ -332,46 +308,13 @@ export const earthquake: SpellEntry = {
   spellLevel: 8
 };
 
-export const feeblemind: SpellEntry = {
-  id: "spell-feeblemind",
-  name: "Feeblemind",
-  category: ENTRY_CATEGORIES.SPELLS,
-  trackingState: TRACKER.NOT_TRACKED,
-  magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
-  castingTime: [ACTION_TYPE.ACTION],
-  range: "150 feet",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: ["Instantaneous"],
-  description: [
-    "You blast the mind of a creature that you can see within range, attempting to shatter its intellect and personality. The target takes <strong>4d6</strong> Psychic damage and must make an Intelligence saving throw.",
-    "On a failed save, the creature's Intelligence and Charisma scores become 1. The creature can't cast spells, activate magic items, understand language, or communicate in any intelligible way. The creature can, however, identify its friends, follow them, and even protect them.",
-    "At the end of every 30 days, the creature can repeat its saving throw against this spell. If it succeeds on its saving throw, the spell ends. The spell can also be ended by Greater Restoration, Heal, or Wish."
-  ],
-  isSavingThrowSpell: true,
-  savingThrowAbility: ABILITY_TYPES.INT,
-  isDamagingSpell: true,
-  damage: [
-    [DICE.D6, DAMAGE_TYPE.PSYCHIC],
-    [DICE.D6, DAMAGE_TYPE.PSYCHIC],
-    [DICE.D6, DAMAGE_TYPE.PSYCHIC],
-    [DICE.D6, DAMAGE_TYPE.PSYCHIC]
-  ],
-  healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.BARD,
-    SPELL_LIST_CLASS.DRUID,
-    SPELL_LIST_CLASS.WARLOCK,
-    SPELL_LIST_CLASS.WIZARD
-  ],
-  spellLevel: 8
-};
-
 export const glibness: SpellEntry = {
   id: "spell-glibness",
   name: "Glibness",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_glibness", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
-  magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
+  magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
   components: [SPELL_COMPONENT.V],
@@ -389,6 +332,7 @@ export const holyAura: SpellEntry = {
   id: "spell-holy-aura",
   name: "Holy Aura",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_holy-aura", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -396,11 +340,9 @@ export const holyAura: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "Divine light washes out from you and coalesces in a soft radiance in a 30-foot radius around you. Creatures of your choice in that radius when you cast this spell shed dim light in a 5-foot radius and have advantage on all saving throws, and other creatures have disadvantage on attack rolls against them until the spell ends.",
-    "In addition, when a Fiend or an Undead hits an affected creature with a melee attack, the aura flashes with brilliant light. The attacker must succeed on a Constitution saving throw or be Blinded until the spell ends."
+    "For the duration, you emit an aura in a 30-foot Emanation. While in the aura, creatures of your choice have Advantage on all saving throws, and other creatures have Disadvantage on attack rolls against them. In addition, when a Fiend or an Undead hits an affected creature with a melee attack roll, the attacker must succeed on a Constitution saving throw or have the Blinded condition until the end of its next turn."
   ],
-  isSavingThrowSpell: true,
-  savingThrowAbility: ABILITY_TYPES.CON,
+  isAttackSpell: true,
   damage: [],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC],
@@ -411,6 +353,7 @@ export const illusoryDragon: SpellEntry = {
   id: "spell-illusory-dragon",
   name: "Illusory Dragon",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ILLUSION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -428,83 +371,13 @@ export const illusoryDragon: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.WIS,
   isDamagingSpell: true,
   damage: [
-    [
-      DICE.D6,
-      [
-        DAMAGE_TYPE.ACID,
-        DAMAGE_TYPE.COLD,
-        DAMAGE_TYPE.FIRE,
-        DAMAGE_TYPE.LIGHTNING,
-        DAMAGE_TYPE.NECROTIC,
-        DAMAGE_TYPE.POISON
-      ]
-    ],
-    [
-      DICE.D6,
-      [
-        DAMAGE_TYPE.ACID,
-        DAMAGE_TYPE.COLD,
-        DAMAGE_TYPE.FIRE,
-        DAMAGE_TYPE.LIGHTNING,
-        DAMAGE_TYPE.NECROTIC,
-        DAMAGE_TYPE.POISON
-      ]
-    ],
-    [
-      DICE.D6,
-      [
-        DAMAGE_TYPE.ACID,
-        DAMAGE_TYPE.COLD,
-        DAMAGE_TYPE.FIRE,
-        DAMAGE_TYPE.LIGHTNING,
-        DAMAGE_TYPE.NECROTIC,
-        DAMAGE_TYPE.POISON
-      ]
-    ],
-    [
-      DICE.D6,
-      [
-        DAMAGE_TYPE.ACID,
-        DAMAGE_TYPE.COLD,
-        DAMAGE_TYPE.FIRE,
-        DAMAGE_TYPE.LIGHTNING,
-        DAMAGE_TYPE.NECROTIC,
-        DAMAGE_TYPE.POISON
-      ]
-    ],
-    [
-      DICE.D6,
-      [
-        DAMAGE_TYPE.ACID,
-        DAMAGE_TYPE.COLD,
-        DAMAGE_TYPE.FIRE,
-        DAMAGE_TYPE.LIGHTNING,
-        DAMAGE_TYPE.NECROTIC,
-        DAMAGE_TYPE.POISON
-      ]
-    ],
-    [
-      DICE.D6,
-      [
-        DAMAGE_TYPE.ACID,
-        DAMAGE_TYPE.COLD,
-        DAMAGE_TYPE.FIRE,
-        DAMAGE_TYPE.LIGHTNING,
-        DAMAGE_TYPE.NECROTIC,
-        DAMAGE_TYPE.POISON
-      ]
-    ],
-    [
-      DICE.D6,
-      [
-        DAMAGE_TYPE.ACID,
-        DAMAGE_TYPE.COLD,
-        DAMAGE_TYPE.FIRE,
-        DAMAGE_TYPE.LIGHTNING,
-        DAMAGE_TYPE.NECROTIC,
-        DAMAGE_TYPE.POISON
-      ]
-    ]
+    [DICE.D6, [DAMAGE_TYPE.ACID, DAMAGE_TYPE.COLD, DAMAGE_TYPE.FIRE, DAMAGE_TYPE.LIGHTNING, DAMAGE_TYPE.NECROTIC, DAMAGE_TYPE.POISON]],
+    [DICE.D6, [DAMAGE_TYPE.ACID, DAMAGE_TYPE.COLD, DAMAGE_TYPE.FIRE, DAMAGE_TYPE.LIGHTNING, DAMAGE_TYPE.NECROTIC, DAMAGE_TYPE.POISON]],
+    [DICE.D6, [DAMAGE_TYPE.ACID, DAMAGE_TYPE.COLD, DAMAGE_TYPE.FIRE, DAMAGE_TYPE.LIGHTNING, DAMAGE_TYPE.NECROTIC, DAMAGE_TYPE.POISON]],
+    [DICE.D6, [DAMAGE_TYPE.ACID, DAMAGE_TYPE.COLD, DAMAGE_TYPE.FIRE, DAMAGE_TYPE.LIGHTNING, DAMAGE_TYPE.NECROTIC, DAMAGE_TYPE.POISON]],
+    [DICE.D6, [DAMAGE_TYPE.ACID, DAMAGE_TYPE.COLD, DAMAGE_TYPE.FIRE, DAMAGE_TYPE.LIGHTNING, DAMAGE_TYPE.NECROTIC, DAMAGE_TYPE.POISON]],
+    [DICE.D6, [DAMAGE_TYPE.ACID, DAMAGE_TYPE.COLD, DAMAGE_TYPE.FIRE, DAMAGE_TYPE.LIGHTNING, DAMAGE_TYPE.NECROTIC, DAMAGE_TYPE.POISON]],
+    [DICE.D6, [DAMAGE_TYPE.ACID, DAMAGE_TYPE.COLD, DAMAGE_TYPE.FIRE, DAMAGE_TYPE.LIGHTNING, DAMAGE_TYPE.NECROTIC, DAMAGE_TYPE.POISON]]
   ],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
@@ -515,6 +388,7 @@ export const incendiaryCloud: SpellEntry = {
   id: "spell-incendiary-cloud",
   name: "Incendiary Cloud",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_incendiary-cloud", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -522,25 +396,11 @@ export const incendiaryCloud: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "A swirling cloud of smoke shot through with white-hot embers appears in a 20-foot-radius sphere centered on a point within range. The cloud spreads around corners and is heavily obscured. It lasts for the duration or until a wind of moderate or greater speed, at least 10 miles per hour, disperses it.",
-    "When the cloud appears, each creature in it must make a Dexterity saving throw. A creature takes <strong>10d8</strong> Fire damage on a failed save, or half as much damage on a successful one. A creature must also make this saving throw when it enters the spell's area for the first time on a turn or ends its turn there.",
-    "The cloud moves 10 feet directly away from you in a direction that you choose at the start of each of your turns."
+    "A swirling cloud of embers and smoke fills a 20-foot-radius Sphere centered on a point within range. The cloud's area is Heavily Obscured. It lasts for the duration or until a strong wind (like that created by Gust of Wind) disperses it. When the cloud appears, each creature in it makes a Dexterity saving throw, taking <strong>10d8</strong> Fire damage on a failed save or half as much damage on a successful one. A creature must also make this save when the Sphere moves into its space and when it enters the Sphere or ends its turn there. A creature makes this save only once per turn. The cloud moves 10 feet away from you in a direction you choose at the start of each of your turns."
   ],
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.DEX,
-  isDamagingSpell: true,
-  damage: [
-    [DICE.D8, DAMAGE_TYPE.FIRE],
-    [DICE.D8, DAMAGE_TYPE.FIRE],
-    [DICE.D8, DAMAGE_TYPE.FIRE],
-    [DICE.D8, DAMAGE_TYPE.FIRE],
-    [DICE.D8, DAMAGE_TYPE.FIRE],
-    [DICE.D8, DAMAGE_TYPE.FIRE],
-    [DICE.D8, DAMAGE_TYPE.FIRE],
-    [DICE.D8, DAMAGE_TYPE.FIRE],
-    [DICE.D8, DAMAGE_TYPE.FIRE],
-    [DICE.D8, DAMAGE_TYPE.FIRE]
-  ],
+  damage: [],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 8
@@ -550,6 +410,7 @@ export const maddeningDarkness: SpellEntry = {
   id: "spell-maddening-darkness",
   name: "Maddening Darkness",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -582,6 +443,7 @@ export const maze: SpellEntry = {
   id: "spell-maze",
   name: "Maze",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_maze", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -589,9 +451,7 @@ export const maze: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: [
-    "You banish a creature that you can see within range into a labyrinthine demiplane. The target remains there for the duration or until it escapes the maze.",
-    "The target can use its action to attempt to escape. When it does so, it makes a DC 20 Intelligence check. If it succeeds, it escapes, and the spell ends. A minotaur or goristro demon automatically succeeds.",
-    "When the spell ends, the target reappears in the space it left or, if that space is occupied, in the nearest unoccupied space."
+    "You banish a creature that you can see within range into a labyrinthine demiplane. The target remains there for the duration or until it escapes the maze. The target can take a Study action to try to escape. When it does so, it makes a DC 20 Intelligence (Investigation) check. If it succeeds, it escapes, and the spell ends. When the spell ends, the target reappears in the space it left or, if that space is occupied, in the nearest unoccupied space."
   ],
   damage: [],
   healing: [],
@@ -603,6 +463,7 @@ export const mightyFortress: SpellEntry = {
   id: "spell-mighty-fortress",
   name: "Mighty Fortress",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.MINUTE],
@@ -628,6 +489,7 @@ export const mindBlank: SpellEntry = {
   id: "spell-mind-blank",
   name: "Mind Blank",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_mind-blank", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -635,7 +497,7 @@ export const mindBlank: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["24 hours"],
   description: [
-    "Until the spell ends, one willing creature you touch is immune to Psychic damage, any effect that would sense its emotions or read its thoughts, Divination spells, and the Charmed condition. The spell even foils Wish spells and spells or effects of similar power used to affect the target's mind or to gain information about the target."
+    "Until the spell ends, one willing creature you touch has Immunity to Psychic damage and the Charmed condition. The target is also unaffected by anything that would sense its emotions or alignment, read its thoughts, or magically detect its location, and no spell—not even Wish—can gather information about the target, observe it remotely, or control its mind."
   ],
   damage: [],
   healing: [],
@@ -645,28 +507,24 @@ export const mindBlank: SpellEntry = {
 
 export const powerWordStun: SpellEntry = {
   id: "spell-power-word-stun",
-  name: "Power Word: Stun",
+  name: "Power Word Stun",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_power-word-stun", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  legacyNames: ["Power Word: Stun"],
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
+  components: [SPELL_COMPONENT.V],
   duration: ["Instantaneous"],
   description: [
-    "You speak a word of power that can overwhelm the mind of one creature you can see within range, leaving it dumbfounded. If the target has 150 Hit Points or fewer, it is Stunned. Otherwise, the spell has no effect.",
-    "The Stunned target must make a Constitution saving throw at the end of each of its turns. On a successful save, this stunning effect ends."
+    "You overwhelm the mind of one creature you can see within range. If the target has 150 Hit Points or fewer, it has the Stunned condition. Otherwise, its Speed is 0 until the start of your next turn. The Stunned target makes a Constitution saving throw at the end of each of its turns, ending the condition on itself on a success."
   ],
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.CON,
   damage: [],
   healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.BARD,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WARLOCK,
-    SPELL_LIST_CLASS.WIZARD
-  ],
+  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 8
 };
 
@@ -674,6 +532,7 @@ export const realityBreak: SpellEntry = {
   id: "spell-reality-break",
   name: "Reality Break",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -682,16 +541,7 @@ export const realityBreak: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "You shatter the barriers between realities and timelines, thrusting a creature into turmoil and madness. The target must succeed on a Wisdom saving throw, or it can't take reactions until the spell ends. The affected target must also roll a <strong>d10</strong> at the start of each of its turns. The number rolled determines what happens to the target.",
-    {
-      type: "list",
-      style: "bullet",
-      items: [
-        "<strong>1-2. Vision of the Far Realm.</strong> The target takes <strong>6d12</strong> Psychic damage, and it is Stunned until the end of the turn.",
-        "<strong>3-5. Rending Rift.</strong> The target must make a Dexterity saving throw, taking <strong>8d12</strong> Force damage on a failed save, or half as much damage on a successful save.",
-        "<strong>6-8. Wormhole.</strong> The target is teleported, along with everything it is wearing and carrying, up to 30 feet to an unoccupied space of your choice that you can see. The target also takes <strong>10d12</strong> Force damage and is knocked Prone.",
-        "<strong>9-10. Chill of the Dark Void.</strong> The target takes <strong>10d12</strong> Cold damage, and it is Blinded until the end of the turn."
-      ]
-    },
+    { type: "list", style: "bullet", items: ["<strong>1-2. Vision of the Far Realm.</strong> The target takes <strong>6d12</strong> Psychic damage, and it is Stunned until the end of the turn.", "<strong>3-5. Rending Rift.</strong> The target must make a Dexterity saving throw, taking <strong>8d12</strong> Force damage on a failed save, or half as much damage on a successful save.", "<strong>6-8. Wormhole.</strong> The target is teleported, along with everything it is wearing and carrying, up to 30 feet to an unoccupied space of your choice that you can see. The target also takes <strong>10d12</strong> Force damage and is knocked Prone.", "<strong>9-10. Chill of the Dark Void.</strong> The target takes <strong>10d12</strong> Cold damage, and it is Blinded until the end of the turn."] },
     "At the end of each of its turns, the affected target can repeat the Wisdom saving throw, ending the spell on itself on a success."
   ],
   isSavingThrowSpell: true,
@@ -718,6 +568,7 @@ export const sunburst: SpellEntry = {
   id: "spell-sunburst",
   name: "Sunburst",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_sunburst", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -725,9 +576,7 @@ export const sunburst: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["Instantaneous"],
   description: [
-    "Brilliant sunlight flashes in a 60-foot radius centered on a point you choose within range. Each creature in that light must make a Constitution saving throw. On a failed save, a creature takes <strong>12d6</strong> Radiant damage and is Blinded for 1 minute. On a successful save, it takes half as much damage and isn't Blinded by this spell. Undead and Oozes have disadvantage on this saving throw.",
-    "A creature Blinded by this spell makes another Constitution saving throw at the end of each of its turns. On a successful save, it is no longer Blinded.",
-    "This spell dispels any darkness in its area that was created by a spell."
+    "Brilliant sunlight flashes in a 60-foot-radius Sphere centered on a point you choose within range. Each creature in the Sphere makes a Constitution saving throw. On a failed save, a creature takes <strong>12d6</strong> Radiant damage and has the Blinded condition for 1 minute. On a successful save, it takes half as much damage only. A creature Blinded by this spell makes another Constitution saving throw at the end of each of its turns, ending the effect on itself on a success. This spell dispels Darkness in its area that was created by any spell."
   ],
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.CON,
@@ -747,12 +596,7 @@ export const sunburst: SpellEntry = {
     [DICE.D6, DAMAGE_TYPE.RADIANT]
   ],
   healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.CLERIC,
-    SPELL_LIST_CLASS.DRUID,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WIZARD
-  ],
+  spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 8
 };
 
@@ -760,6 +604,7 @@ export const telepathy: SpellEntry = {
   id: "spell-telepathy",
   name: "Telepathy",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -780,22 +625,25 @@ export const tsunami: SpellEntry = {
   id: "spell-tsunami",
   name: "Tsunami",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_tsunami", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.MINUTE],
-  range: "Sight",
+  range: "1 mile",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: [DURATION.CONCENTRATION, "up to 6 rounds"],
+  duration: [DURATION.CONCENTRATION, "up to 6 round"],
   description: [
-    "A wall of water springs into existence at a point you choose within range. You can make the wall up to 300 feet long, 300 feet high, and 50 feet thick. The wall lasts for the duration.",
-    "When the wall appears, each creature within its area must make a Strength saving throw. On a failed save, a creature takes <strong>6d10</strong> Bludgeoning damage, or half as much damage on a successful save.",
-    "At the start of each of your turns after the wall appears, the wall, along with any creatures in it, moves 50 feet away from you. Any Huge or smaller creature inside the wall or whose space the wall enters when it moves must succeed on a Strength saving throw or take <strong>5d10</strong> Bludgeoning damage. A creature can take this damage only once per round. At the end of the turn, the wall's height is reduced by 50 feet, and the damage creatures take from the spell on subsequent rounds is reduced by <strong>1d10</strong>. When the wall reaches 0 feet in height, the spell ends.",
-    "A creature caught in the wall can move by swimming. Because of the force of the wave, though, the creature must make a successful Strength (Athletics) check against your spell save DC in order to move at all. If it fails the check, it can't move. A creature that moves out of the area falls to the ground."
+    "A wall of water springs into existence at a point you choose within range. You can make the wall up to 300 feet long, 300 feet high, and 50 feet thick. The wall lasts for the duration. When the wall appears, each creature in its area makes a Strength saving throw, taking <strong>6d10</strong> Bludgeoning damage on a failed save or half as much damage on a successful one. At the start of each of your turns after the wall appears, the wall, along with any creatures in it, moves 50 feet away from you. Any Huge or smaller creature inside the wall or whose space the wall enters when it moves must succeed on a Strength saving throw or take <strong>5d10</strong> Bludgeoning damage. A creature can take this damage only once per round. At the end of the turn, the wall's height is reduced by 50 feet, and the damage the wall deals on later rounds is reduced by <strong>1d10</strong>. When the wall reaches 0 feet in height, the spell ends. A creature caught in the wall can move by swimming. Because of the wave's force, though, the creature must succeed on a Strength (Athletics) check against your spell save DC to move at all. If it fails the check, it can't move. A creature that moves out of the wall falls to the ground. ### U-Z Spells"
   ],
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.STR,
   isDamagingSpell: true,
   damage: [
+    [DICE.D10, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D10, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D10, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D10, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D10, DAMAGE_TYPE.BLUDGEONING],
     [DICE.D10, DAMAGE_TYPE.BLUDGEONING],
     [DICE.D10, DAMAGE_TYPE.BLUDGEONING],
     [DICE.D10, DAMAGE_TYPE.BLUDGEONING],
@@ -813,13 +661,13 @@ export const spellEntries8: SpellEntry[] = [
   animalShapes,
   antimagicField,
   antipathySympathy,
+  befuddlement,
   clone,
   controlWeather,
   darkStar,
   demiplane,
   dominateMonster,
   earthquake,
-  feeblemind,
   glibness,
   holyAura,
   illusoryDragon,

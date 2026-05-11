@@ -60,9 +60,11 @@ export type AppConfig = {
   open5eBaseUrl: string;
   open5eMonstersUrl: string;
   open5eItemsUrl: string;
+  open5eSpellsUrl: string;
   open5eRequestDelayMs: number;
   open5eMonstersRootDir: string;
   open5eItemsRootDir: string;
+  open5eSpellsRootDir: string;
 };
 
 export function getAppConfig(): AppConfig {
@@ -73,12 +75,16 @@ export function getAppConfig(): AppConfig {
   const open5eBaseUrl = trimTrailingSlash(process.env.OPEN5E_BASE_URL ?? "https://api.open5e.com");
   const open5eMonstersUrl = process.env.OPEN5E_MONSTERS_URL ?? `${open5eBaseUrl}/monsters/`;
   const open5eItemsUrl = process.env.OPEN5E_ITEMS_URL ?? `${open5eBaseUrl}/v2/items/?limit=100`;
+  const open5eSpellsUrl = process.env.OPEN5E_SPELLS_URL ?? `${open5eBaseUrl}/v2/spells/?limit=100`;
   const open5eRequestDelayMs = parseInteger(process.env.OPEN5E_REQUEST_DELAY_MS, 200);
   const open5eMonstersRootDir = resolveRootPath(
     process.env.OPEN5E_MONSTERS_ROOT_DIR ?? "data/open5e/monsters"
   );
   const open5eItemsRootDir = resolveRootPath(
     process.env.OPEN5E_ITEMS_ROOT_DIR ?? "data/open5e/items"
+  );
+  const open5eSpellsRootDir = resolveRootPath(
+    process.env.OPEN5E_SPELLS_ROOT_DIR ?? "data/open5e/spells"
   );
 
   return {
@@ -90,9 +96,11 @@ export function getAppConfig(): AppConfig {
     open5eBaseUrl,
     open5eMonstersUrl,
     open5eItemsUrl,
+    open5eSpellsUrl,
     open5eRequestDelayMs,
     open5eMonstersRootDir,
-    open5eItemsRootDir
+    open5eItemsRootDir,
+    open5eSpellsRootDir
   };
 }
 

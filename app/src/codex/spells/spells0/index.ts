@@ -16,22 +16,25 @@ export const acidSplash: SpellEntry = {
   id: "spell-acid-splash",
   name: "Acid Splash",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_acid-splash", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
-  magicSchool: MAGIC_SCHOOL.CONJURATION,
+  magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["Instantaneous"],
   description: [
-    "You hurl a bubble of acid. Choose one creature you can see within range, or choose two creatures you can see within range that are within 5 feet of each other. A target must succeed on a Dexterity saving throw or take <strong>1d6</strong> Acid damage.",
-    "<strong>At Higher Levels.</strong> This spell's damage increases by <strong>1d6</strong> when you reach 5th level (<strong>2d6</strong>), 11th level (<strong>3d6</strong>), and 17th level (<strong>4d6</strong>)."
+    "You create an acidic bubble at a point within range, where it explodes in a 5-foot-radius Sphere. Each creature in that Sphere must succeed on a Dexterity saving throw or take <strong>1d6</strong> Acid damage.",
+    "<strong>Cantrip Upgrade.</strong> The damage increases by <strong>1d6</strong> when you reach levels 5 (<strong>2d6</strong>), 11 (<strong>3d6</strong>), and 17 (<strong>4d6</strong>)."
   ],
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
-  damage: [[DICE.D6, DAMAGE_TYPE.ACID]],
+  damage: [
+    [DICE.D6, DAMAGE_TYPE.ACID]
+  ],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
 
@@ -39,6 +42,7 @@ export const bladeWard: SpellEntry = {
   id: "spell-blade-ward",
   name: "Blade Ward",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -50,12 +54,7 @@ export const bladeWard: SpellEntry = {
   ],
   damage: [],
   healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.BARD,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WARLOCK,
-    SPELL_LIST_CLASS.WIZARD
-  ],
+  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
 
@@ -63,6 +62,7 @@ export const boomingBlade: SpellEntry = {
   id: "spell-booming-blade",
   name: "Booming Blade",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -74,14 +74,11 @@ export const boomingBlade: SpellEntry = {
     "<strong>At Higher Levels.</strong> At 5th level, the melee attack deals an extra <strong>1d8</strong> Thunder damage to the target on a hit, and the damage the target takes for moving increases to <strong>2d8</strong>. Both damage rolls increase by <strong>1d8</strong> at 11th level (<strong>2d8</strong> and <strong>3d8</strong>) and again at 17th level (<strong>3d8</strong> and <strong>4d8</strong>)."
   ],
   isDamagingSpell: true,
-  damage: [[DICE.D8, DAMAGE_TYPE.THUNDER]],
-  healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.ARTIFICER,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WARLOCK,
-    SPELL_LIST_CLASS.WIZARD
+  damage: [
+    [DICE.D8, DAMAGE_TYPE.THUNDER]
   ],
+  healing: [],
+  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
 
@@ -89,19 +86,22 @@ export const chillTouch: SpellEntry = {
   id: "spell-chill-touch",
   name: "Chill Touch",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_chill-touch", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.NECROMANCY,
   castingTime: [ACTION_TYPE.ACTION],
-  range: "120 feet",
+  range: "Touch",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: ["1 round"],
+  duration: ["Instantaneous"],
   description: [
-    "You create a ghostly, skeletal hand in the space of a creature within range. Make a ranged spell attack against the creature to assail it with the chill of the grave. On a hit, the target takes <strong>1d8</strong> Necrotic damage, and it can't regain Hit Points until the start of your next turn. Until then, the hand clings to the target. If you hit an Undead target, it also has Disadvantage on attack rolls against you until the end of your next turn.",
-    "<strong>At Higher Levels.</strong> This spell's damage increases by <strong>1d8</strong> when you reach 5th level (<strong>2d8</strong>), 11th level (<strong>3d8</strong>), and 17th level (<strong>4d8</strong>)."
+    "Channeling the chill of the grave, make a melee spell attack against a target within reach. On a hit, the target takes <strong>1d10</strong> Necrotic damage, and it can't regain Hit Points until the end of your next turn.",
+    "<strong>Cantrip Upgrade.</strong> The damage increases by <strong>1d10</strong> when you reach levels 5 (<strong>2d10</strong>), 11 (<strong>3d10</strong>), and 17 (<strong>4d10</strong>)."
   ],
   isAttackSpell: true,
   isDamagingSpell: true,
-  damage: [[DICE.D8, DAMAGE_TYPE.NECROTIC]],
+  damage: [
+    [DICE.D10, DAMAGE_TYPE.NECROTIC]
+  ],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
@@ -111,6 +111,7 @@ export const controlFlames: SpellEntry = {
   id: "spell-control-flames",
   name: "Control Flames",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -127,12 +128,7 @@ export const controlFlames: SpellEntry = {
   ],
   damage: [],
   healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.ARTIFICER,
-    SPELL_LIST_CLASS.DRUID,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WIZARD
-  ],
+  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
 
@@ -140,6 +136,7 @@ export const createBonfire: SpellEntry = {
   id: "spell-create-bonfire",
   name: "Create Bonfire",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -153,15 +150,11 @@ export const createBonfire: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
-  damage: [[DICE.D8, DAMAGE_TYPE.FIRE]],
-  healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.ARTIFICER,
-    SPELL_LIST_CLASS.DRUID,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WARLOCK,
-    SPELL_LIST_CLASS.WIZARD
+  damage: [
+    [DICE.D8, DAMAGE_TYPE.FIRE]
   ],
+  healing: [],
+  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
 
@@ -169,24 +162,19 @@ export const dancingLights: SpellEntry = {
   id: "spell-dancing-lights",
   name: "Dancing Lights",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_dancing-lights", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
-  magicSchool: MAGIC_SCHOOL.EVOCATION,
+  magicSchool: MAGIC_SCHOOL.ILLUSION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "120 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "You create up to four torch-sized lights within range, making them appear as torches, lanterns, or glowing orbs that hover in the air for the duration. You can also combine the four lights into one glowing vaguely humanoid form of Medium size. Whichever form you choose, each light sheds dim light in a 10-foot radius.",
-    "As a Bonus Action on your turn, you can move the lights up to 60 feet to a new spot within range. A light must be within 20 feet of another light created by this spell, and a light winks out if it exceeds the spell's range."
+    "You create up to four torch-size lights within range, making them appear as torches, lanterns, or glowing orbs that hover for the duration. Alternatively, you combine the four lights into one glowing Medium form that is vaguely humanlike. Whichever form you choose, each light sheds Dim Light in a 10 foot radius. As a Bonus Action, you can move the lights up to 60 feet to a space within range. A light must be within 20 feet of another light created by this spell, and a light vanishes if it exceeds the spell's range."
   ],
   damage: [],
   healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.ARTIFICER,
-    SPELL_LIST_CLASS.BARD,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WIZARD
-  ],
+  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
 
@@ -194,6 +182,7 @@ export const druidcraft: SpellEntry = {
   id: "spell-druidcraft",
   name: "Druidcraft",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_druidcraft", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -201,11 +190,8 @@ export const druidcraft: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["Instantaneous"],
   description: [
-    "Whispering to the spirits of nature, you create one of the following effects within range:",
-    "You create a tiny, harmless sensory effect that predicts what the weather will be at your location for the next 24 hours. The effect might manifest as a golden orb for clear skies, a cloud for rain, falling snowflakes for snow, and so on. This effect persists for 1 round.",
-    "You instantly make a flower blossom, a seed pod open, or a leaf bud bloom.",
-    "You create an instantaneous, harmless sensory effect, such as falling leaves, a puff of wind, the sound of a small animal, or the faint odor of skunk. The effect must fit in a 5-foot cube.",
-    "You instantly light or snuff out a candle, a torch, or a small campfire."
+    "Whispering to the spirits of nature, you create one of the following effects within range.",
+    { type: "list", style: "bullet", items: ["<em><strong>Weather Sensor.</strong></em> You create a Tiny, harmless sensory effect that predicts what the weather will be at your location for the next 24 hours. The effect might manifest as a golden orb for clear skies, a cloud for rain, falling snowflakes for snow, and so on. This effect persists for 1 round.", "<em><strong>Bloom.</strong></em> You instantly make a flower blossom, a seed pod open, or a leaf bud bloom.", "<em><strong>Sensory Effect.</strong></em> You create a harmless sensory effect, such as falling leaves, spectral dancing fairies, a gentle breeze, the sound of an animal, or the faint odor of skunk. The effect must fit in a 5-foot Cube.", "<em><strong>Fire Play.</strong></em> You light or snuff out a candle, a torch, or a campfire."] }
   ],
   damage: [],
   healing: [],
@@ -213,10 +199,36 @@ export const druidcraft: SpellEntry = {
   spellLevel: 0
 };
 
+export const eldritchBlast: SpellEntry = {
+  id: "spell-eldritch-blast",
+  name: "Eldritch Blast",
+  category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_eldritch-blast", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  trackingState: TRACKER.NOT_TRACKED,
+  magicSchool: MAGIC_SCHOOL.EVOCATION,
+  castingTime: [ACTION_TYPE.ACTION],
+  range: "120 feet",
+  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
+  duration: ["Instantaneous"],
+  description: [
+    "You hurl a beam of crackling energy. Make a ranged spell attack against one creature or object in range. On a hit, the target takes <strong>1d10</strong> Force damage.",
+    "<strong>Cantrip Upgrade.</strong> The spell creates two beams at level 5, three beams at level 11, and four beams at level 17. You can direct the beams at the same target or at different ones. Make a separate attack roll for each beam."
+  ],
+  isAttackSpell: true,
+  isDamagingSpell: true,
+  damage: [
+    [DICE.D10, DAMAGE_TYPE.FORCE]
+  ],
+  healing: [],
+  spellLists: [SPELL_LIST_CLASS.WARLOCK],
+  spellLevel: 0
+};
+
 export const elementalism: SpellEntry = {
   id: "spell-elementalism",
   name: "Elementalism",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_elementalism", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -225,42 +237,15 @@ export const elementalism: SpellEntry = {
   duration: ["Instantaneous"],
   description: [
     "You exert control over the elements, creating one of the following effects within range.",
-    "<strong>Beckon Air.</strong> You create a breeze strong enough to ripple cloth, stir dust, rustle leaves, and close open doors and shutters, all in a 5-foot Cube. Doors and shutters being held open by someone or something aren't affected.",
-    "<strong>Beckon Earth.</strong> You create a thin shroud of dust or sand that covers surfaces in a 5-foot-square area, or you cause a single word to appear in your handwriting in a patch of dirt or sand.",
-    "<strong>Beckon Fire.</strong> You create a thin cloud of harmless embers and colored, scented smoke in a 5-foot Cube. You choose the color and scent, and the embers can light candles, torches, or lamps in that area. The smoke's scent lingers for 1 minute.",
-    "<strong>Beckon Water.</strong> You create a spray of cool mist that lightly dampens creatures and objects in a 5-foot Cube. Alternatively, you create 1 cup of clean water either in an open container or on a surface, and the water evaporates in 1 minute.",
-    "<strong>Sculpt Element.</strong> You cause dirt, sand, fire, smoke, mist, or water that can fit in a 1-foot Cube to assume a crude shape (such as that of a creature) for 1 hour."
+    "<em><strong>Beckon Air.</strong></em> You create a breeze strong enough to ripple cloth, stir dust, rustle leaves, and close open doors and shutters, all in a 5-foot Cube. Doors and shutters being held open by someone or something aren't affected.",
+    "<em><strong>Beckon Earth.</strong></em> You create a thin shroud of dust or sand that covers surfaces in a 5-foot-square area, or you cause a single word to appear in your handwriting in a patch of dirt or sand.",
+    "<em><strong>Beckon Fire.</strong></em> You create a thin cloud of harmless embers and colored, scented smoke in a 5-foot Cube. You choose the color and scent, and the embers can light candles, torches, or lamps in that area. The smoke's scent lingers for 1 minute.",
+    "<em><strong>Beckon Water.</strong></em> You create a spray of cool mist that lightly dampens creatures and objects in a 5-foot Cube. Alternatively, you create 1 cup of clean water either in an open container or on a surface, and the water evaporates in 1 minute.",
+    "<em><strong>Sculpt Element.</strong></em> You cause dirt, sand, fire, smoke, mist, or water that can fit in a 1-foot Cube to assume a crude shape (such as that of a creature) for 1 hour."
   ],
   damage: [],
   healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.ARTIFICER,
-    SPELL_LIST_CLASS.DRUID,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WIZARD
-  ],
-  spellLevel: 0
-};
-
-export const eldritchBlast: SpellEntry = {
-  id: "spell-eldritch-blast",
-  name: "Eldritch Blast",
-  category: ENTRY_CATEGORIES.SPELLS,
-  trackingState: TRACKER.NOT_TRACKED,
-  magicSchool: MAGIC_SCHOOL.EVOCATION,
-  castingTime: [ACTION_TYPE.ACTION],
-  range: "120 feet",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: ["Instantaneous"],
-  description: [
-    "A beam of crackling energy streaks toward a creature within range. Make a ranged spell attack against the target. On a hit, the target takes <strong>1d10</strong> Force damage.",
-    "<strong>At Higher Levels.</strong> The spell creates more than one beam when you reach higher levels: two beams at 5th level, three beams at 11th level, and four beams at 17th level. You can direct the beams at the same target or at different ones. Make a separate attack roll for each beam."
-  ],
-  isAttackSpell: true,
-  isDamagingSpell: true,
-  damage: [[DICE.D10, DAMAGE_TYPE.FORCE]],
-  healing: [],
-  spellLists: [SPELL_LIST_CLASS.WARLOCK],
+  spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
 
@@ -268,6 +253,7 @@ export const encodeThoughts: SpellEntry = {
   id: "spell-encode-thoughts",
   name: "Encode Thoughts",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
   castingTime: [ACTION_TYPE.ACTION],
@@ -289,6 +275,7 @@ export const fireBolt: SpellEntry = {
   id: "spell-fire-bolt",
   name: "Fire Bolt",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_fire-bolt", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -296,14 +283,16 @@ export const fireBolt: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["Instantaneous"],
   description: [
-    "You hurl a mote of fire at a creature or object within range. Make a ranged spell attack against the target. On a hit, the target takes <strong>1d10</strong> Fire damage. A flammable object hit by this spell ignites if it isn't being worn or carried.",
-    "<strong>At Higher Levels.</strong> This spell's damage increases by <strong>1d10</strong> when you reach 5th level (<strong>2d10</strong>), 11th level (<strong>3d10</strong>), and 17th level (<strong>4d10</strong>)."
+    "You hurl a mote of fire at a creature or an object within range. Make a ranged spell attack against the target. On a hit, the target takes <strong>1d10</strong> Fire damage. A flammable object hit by this spell starts burning if it isn't being worn or carried.",
+    "<strong>Cantrip Upgrade.</strong> The damage increases by <strong>1d10</strong> when you reach levels 5 (<strong>2d10</strong>), 11 (<strong>3d10</strong>), and 17 (<strong>4d10</strong>)."
   ],
   isAttackSpell: true,
   isDamagingSpell: true,
-  damage: [[DICE.D10, DAMAGE_TYPE.FIRE]],
+  damage: [
+    [DICE.D10, DAMAGE_TYPE.FIRE]
+  ],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
 
@@ -311,6 +300,7 @@ export const friends: SpellEntry = {
   id: "spell-friends",
   name: "Friends",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
   castingTime: [ACTION_TYPE.ACTION],
@@ -323,12 +313,7 @@ export const friends: SpellEntry = {
   ],
   damage: [],
   healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.BARD,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WARLOCK,
-    SPELL_LIST_CLASS.WIZARD
-  ],
+  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
 
@@ -336,6 +321,7 @@ export const frostbite: SpellEntry = {
   id: "spell-frostbite",
   name: "Frostbite",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -349,15 +335,11 @@ export const frostbite: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
-  damage: [[DICE.D6, DAMAGE_TYPE.COLD]],
-  healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.ARTIFICER,
-    SPELL_LIST_CLASS.DRUID,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WARLOCK,
-    SPELL_LIST_CLASS.WIZARD
+  damage: [
+    [DICE.D6, DAMAGE_TYPE.COLD]
   ],
+  healing: [],
+  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
 
@@ -365,6 +347,7 @@ export const greenFlameBlade: SpellEntry = {
   id: "spell-green-flame-blade",
   name: "Green-Flame Blade",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -376,14 +359,11 @@ export const greenFlameBlade: SpellEntry = {
     "<strong>At Higher Levels.</strong> At 5th level, the melee attack deals an extra <strong>1d8</strong> Fire damage to the target on a hit, and the fire damage to the second creature increases to <strong>1d8</strong> + your spellcasting ability modifier. Both damage rolls increase by <strong>1d8</strong> at 11th level (<strong>2d8</strong> and <strong>2d8</strong>) and 17th level (<strong>3d8</strong> and <strong>3d8</strong>)."
   ],
   isDamagingSpell: true,
-  damage: [[DICE.D8, DAMAGE_TYPE.FIRE]],
-  healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.ARTIFICER,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WARLOCK,
-    SPELL_LIST_CLASS.WIZARD
+  damage: [
+    [DICE.D8, DAMAGE_TYPE.FIRE]
   ],
+  healing: [],
+  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
 
@@ -391,6 +371,7 @@ export const guidance: SpellEntry = {
   id: "spell-guidance",
   name: "Guidance",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_guidance", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.DIVINATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -398,11 +379,11 @@ export const guidance: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "You touch one willing creature. Once before the spell ends, the target can roll a <strong>d4</strong> and add the number rolled to one ability check of its choice. It can roll the die before or after making the ability check. The spell then ends."
+    "You touch a willing creature and choose a skill. Until the spell ends, the creature adds <strong>1d4</strong> to any ability check using the chosen skill."
   ],
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID],
+  spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID],
   spellLevel: 0
 };
 
@@ -410,6 +391,7 @@ export const gust: SpellEntry = {
   id: "spell-gust",
   name: "Gust",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -434,6 +416,7 @@ export const handOfRadiance: SpellEntry = {
   id: "spell-hand-of-radiance",
   name: "Hand of Radiance",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -447,7 +430,9 @@ export const handOfRadiance: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
-  damage: [[DICE.D6, DAMAGE_TYPE.RADIANT]],
+  damage: [
+    [DICE.D6, DAMAGE_TYPE.RADIANT]
+  ],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC],
   spellLevel: 0
@@ -457,6 +442,7 @@ export const infestation: SpellEntry = {
   id: "spell-infestation",
   name: "Infestation",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -470,14 +456,11 @@ export const infestation: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
-  damage: [[DICE.D6, DAMAGE_TYPE.POISON]],
-  healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.DRUID,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WARLOCK,
-    SPELL_LIST_CLASS.WIZARD
+  damage: [
+    [DICE.D6, DAMAGE_TYPE.POISON]
   ],
+  healing: [],
+  spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
 
@@ -485,6 +468,7 @@ export const light: SpellEntry = {
   id: "spell-light",
   name: "Light",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_light", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -492,20 +476,11 @@ export const light: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.M],
   duration: ["1 hour"],
   description: [
-    "You touch one object that is no larger than 10 feet in any dimension. Until the spell ends, the object sheds bright light in a 20-foot radius and dim light for an additional 20 feet. The light can be colored as you like. Completely covering the object with something opaque blocks the light. The spell ends if you cast it again or dismiss it as an action.",
-    "If you target an object held or worn by a hostile creature, that creature must succeed on a Dexterity saving throw to avoid the spell."
+    "You touch one Large or smaller object that isn't being worn or carried by someone else. Until the spell ends, the object sheds Bright Light in a 20-foot radius and Dim Light for an additional 20 feet. The light can be colored as you like. Covering the object with something opaque blocks the light. The spell ends if you cast it again."
   ],
-  isSavingThrowSpell: true,
-  savingThrowAbility: ABILITY_TYPES.DEX,
   damage: [],
   healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.ARTIFICER,
-    SPELL_LIST_CLASS.BARD,
-    SPELL_LIST_CLASS.CLERIC,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WIZARD
-  ],
+  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
 
@@ -513,6 +488,7 @@ export const lightningLure: SpellEntry = {
   id: "spell-lightning-lure",
   name: "Lightning Lure",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -526,14 +502,11 @@ export const lightningLure: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.STR,
   isDamagingSpell: true,
-  damage: [[DICE.D8, DAMAGE_TYPE.LIGHTNING]],
-  healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.ARTIFICER,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WARLOCK,
-    SPELL_LIST_CLASS.WIZARD
+  damage: [
+    [DICE.D8, DAMAGE_TYPE.LIGHTNING]
   ],
+  healing: [],
+  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
 
@@ -541,6 +514,7 @@ export const mageHand: SpellEntry = {
   id: "spell-mage-hand",
   name: "Mage Hand",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_mage-hand", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -548,19 +522,11 @@ export const mageHand: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["1 minute"],
   description: [
-    "A spectral, floating hand appears at a point you choose within range. The hand lasts for the duration or until you dismiss it as an action. The hand vanishes if it is ever more than 30 feet away from you or if you cast this spell again.",
-    "You can use your action to control the hand. You can use the hand to manipulate an object, open an unlocked door or container, stow or retrieve an item from an open container, or pour the contents out of a vial. You can move the hand up to 30 feet each time you use it.",
-    "The hand can't attack, activate magical items, or carry more than 10 pounds."
+    "A spectral, floating hand appears at a point you choose within range. The hand lasts for the duration. The hand vanishes if it is ever more than 30 feet away from you or if you cast this spell again. When you cast the spell, you can use the hand to manipulate an object, open an unlocked door or container, stow or retrieve an item from an open container, or pour the contents out of a vial. As a Magic action on your later turns, you can control the hand thus again. As part of that action, you can move the hand up to 30 feet. The hand can't attack, activate magic items, or carry more than 10 pounds."
   ],
   damage: [],
   healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.ARTIFICER,
-    SPELL_LIST_CLASS.BARD,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WARLOCK,
-    SPELL_LIST_CLASS.WIZARD
-  ],
+  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
 
@@ -568,6 +534,7 @@ export const magicStone: SpellEntry = {
   id: "spell-magic-stone",
   name: "Magic Stone",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.BONUS_ACTION],
@@ -580,7 +547,9 @@ export const magicStone: SpellEntry = {
   ],
   isAttackSpell: true,
   isDamagingSpell: true,
-  damage: [[DICE.D6, DAMAGE_TYPE.BLUDGEONING]],
+  damage: [
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING]
+  ],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.WARLOCK],
   spellLevel: 0
@@ -590,6 +559,7 @@ export const mending: SpellEntry = {
   id: "spell-mending",
   name: "Mending",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_mending", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.MINUTE],
@@ -597,19 +567,11 @@ export const mending: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["Instantaneous"],
   description: [
-    "This spell repairs a single break or tear in an object you touch, such as a broken chain link, two halves of a broken key, a torn cloak, or a leaking wineskin. As long as the break or tear is no larger than 1 foot in any dimension, you mend it, leaving no trace of the former damage.",
-    "This spell can physically repair a magic item or construct, but the spell can't restore magic to such an object."
+    "This spell repairs a single break or tear in an object you touch, such as a broken chain link, two halves of a broken key, a torn cloak, or a leaking wineskin. As long as the break or tear is no larger than 1 foot in any dimension, you mend it, leaving no trace of the former damage. This spell can physically repair a magic item, but it can't restore magic to such an object."
   ],
   damage: [],
   healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.ARTIFICER,
-    SPELL_LIST_CLASS.BARD,
-    SPELL_LIST_CLASS.CLERIC,
-    SPELL_LIST_CLASS.DRUID,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WIZARD
-  ],
+  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
 
@@ -617,24 +579,19 @@ export const message: SpellEntry = {
   id: "spell-message",
   name: "Message",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_message", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "120 feet",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  components: [SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["1 round"],
   description: [
-    "You point your finger toward a creature within range and whisper a message. The target, and only the target, hears the message and can reply in a whisper that only you can hear.",
-    "You can cast this spell through solid objects if you are familiar with the target and know it is beyond the barrier. Magical silence, 1 foot of stone, 1 inch of common metal, a thin sheet of lead, or 3 feet of wood blocks the spell. The spell doesn't have to follow a straight line and can travel freely around corners or through openings."
+    "You point toward a creature within range and whisper a message. The target (and only the target) hears the message and can reply in a whisper that only you can hear. You can cast this spell through solid objects if you are familiar with the target and know it is beyond the barrier. Magical silence; 1 foot of stone, metal, or wood; or a thin sheet of lead blocks the spell."
   ],
   damage: [],
   healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.ARTIFICER,
-    SPELL_LIST_CLASS.BARD,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WIZARD
-  ],
+  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
 
@@ -642,6 +599,7 @@ export const mindSliver: SpellEntry = {
   id: "spell-mind-sliver",
   name: "Mind Sliver",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
   castingTime: [ACTION_TYPE.ACTION],
@@ -655,7 +613,9 @@ export const mindSliver: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.INT,
   isDamagingSpell: true,
-  damage: [[DICE.D6, DAMAGE_TYPE.PSYCHIC]],
+  damage: [
+    [DICE.D6, DAMAGE_TYPE.PSYCHIC]
+  ],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
@@ -665,6 +625,7 @@ export const minorIllusion: SpellEntry = {
   id: "spell-minor-illusion",
   name: "Minor Illusion",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_minor-illusion", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ILLUSION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -672,19 +633,13 @@ export const minorIllusion: SpellEntry = {
   components: [SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["1 minute"],
   description: [
-    "You create a sound or an image of an object within range that lasts for the duration. The illusion also ends if you dismiss it as an action or cast this spell again.",
-    "If you create a sound, its volume can range from a whisper to a scream. It can be your voice, someone else's voice, a lion's roar, a beating of drums, or any other sound you choose. The sound continues unabated throughout the duration, or you can make discrete sounds at different times before the spell ends.",
-    "If you create an image of an object, such as a chair, muddy footprints, or a small chest, it must be no larger than a 5-foot cube. The image can't create sound, light, smell, or any other sensory effect. Physical interaction with the image reveals it to be an illusion, because things can pass through it.",
-    "If a creature uses its action to examine the sound or image, the creature can determine that it is an illusion with a successful Intelligence (Investigation) check against your spell save DC. If a creature discerns the illusion for what it is, the illusion becomes faint to the creature."
+    "You create a sound or an image of an object within range that lasts for the duration. See the descriptions below for the effects of each. The illusion ends if you cast this spell again. If a creature takes a Study action to examine the sound or image, the creature can determine that it is an illusion with a successful Intelligence (Investigation) check against your spell save DC. If a creature discerns the illusion for what it is, the illusion becomes faint to the creature.",
+    "<strong>_Sound._</strong> If you create a sound, its volume can range from a whisper to a scream. It can be your voice, someone else's voice, a lion's roar, a beating of drums, or any other sound you choose. The sound continues unabated throughout the duration, or you can make discrete sounds at different times before the spell ends.",
+    "<strong>_Image._</strong> If you create an image of an object—such as a chair, muddy footprints, or a small chest—it must be no larger than a 5-foot Cube. The image can't create sound, light, smell, or any other sensory effect. Physical interaction with the image reveals it to be an illusion, since things can pass through it."
   ],
   damage: [],
   healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.BARD,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WARLOCK,
-    SPELL_LIST_CLASS.WIZARD
-  ],
+  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
 
@@ -692,6 +647,7 @@ export const moldEarth: SpellEntry = {
   id: "spell-mold-earth",
   name: "Mold Earth",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -715,6 +671,7 @@ export const onOff: SpellEntry = {
   id: "spell-on-off",
   name: "On/Off",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -734,28 +691,24 @@ export const poisonSpray: SpellEntry = {
   id: "spell-poison-spray",
   name: "Poison Spray",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_poison-spray", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
-  magicSchool: MAGIC_SCHOOL.CONJURATION,
+  magicSchool: MAGIC_SCHOOL.NECROMANCY,
   castingTime: [ACTION_TYPE.ACTION],
-  range: "10 feet",
+  range: "30 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["Instantaneous"],
   description: [
-    "You extend your hand toward a creature you can see within range and project a puff of noxious gas from your palm. The creature must succeed on a Constitution saving throw or take <strong>1d12</strong> Poison damage.",
-    "<strong>At Higher Levels.</strong> This spell's damage increases by <strong>1d12</strong> when you reach 5th level (<strong>2d12</strong>), 11th level (<strong>3d12</strong>), and 17th level (<strong>4d12</strong>)."
+    "You spray toxic mist at a creature within range. Make a ranged spell attack against the target. On a hit, the target takes <strong>1d12</strong> Poison damage.",
+    "<strong>Cantrip Upgrade.</strong> The damage increases by <strong>1d12</strong> when you reach levels 5 (<strong>2d12</strong>), 11 (<strong>3d12</strong>), and 17 (<strong>4d12</strong>)."
   ],
-  isSavingThrowSpell: true,
-  savingThrowAbility: ABILITY_TYPES.CON,
+  isAttackSpell: true,
   isDamagingSpell: true,
-  damage: [[DICE.D12, DAMAGE_TYPE.POISON]],
-  healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.ARTIFICER,
-    SPELL_LIST_CLASS.DRUID,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WARLOCK,
-    SPELL_LIST_CLASS.WIZARD
+  damage: [
+    [DICE.D12, DAMAGE_TYPE.POISON]
   ],
+  healing: [],
+  spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
 
@@ -763,31 +716,25 @@ export const prestidigitation: SpellEntry = {
   id: "spell-prestidigitation",
   name: "Prestidigitation",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_prestidigitation", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "10 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: ["Up to 1 hour"],
+  duration: ["1 hour"],
   description: [
-    "This spell is a minor magical trick that novice spellcasters use for practice. You create one of the following magical effects within range:",
-    "You create an instantaneous, harmless sensory effect, such as a shower of sparks, a puff of wind, faint musical notes, or an odd odor.",
-    "You instantaneously light or snuff out a candle, a torch, or a small campfire.",
-    "You instantaneously clean or soil an object no larger than 1 cubic foot.",
-    "You chill, warm, or flavor up to 1 cubic foot of nonliving material for 1 hour.",
-    "You make a color, a small mark, or a symbol appear on an object or a surface for 1 hour.",
-    "You create a nonmagical trinket or an illusory image that can fit in your hand and that lasts until the end of your next turn.",
-    "If you cast this spell multiple times, you can have up to three of its non-instantaneous effects active at a time, and you can dismiss such an effect as an action."
+    "You create a magical effect within range. Choose the effect from the options below. If you cast this spell multiple times, you can have up to three of its non-instantaneous effects active at a time.",
+    "<strong>_Sensory Effect._</strong> You create an instantaneous, harmless sensory effect, such as a shower of sparks, a puff of wind, faint musical notes, or an odd odor.",
+    "<strong>_Fire Play._</strong> You instantaneously light or snuff out a candle, a torch, or a small campfire.",
+    "<strong>_Clean or Soil._</strong> You instantaneously clean or soil an object no larger than 1 cubic foot.",
+    "<strong>_Minor Sensation._</strong> You chill, warm, or flavor up to 1 cubic foot of nonliving material for 1 hour.",
+    "<strong>_Magic Mark._</strong> You make a color, a small mark, or a symbol appear on an object or a surface for 1 hour.",
+    "<strong>_Minor Creation._</strong> You create a nonmagical trinket or an illusory image that can fit in your hand. It lasts until the end of your next turn. A trinket can deal no damage and has no monetary worth."
   ],
   damage: [],
   healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.ARTIFICER,
-    SPELL_LIST_CLASS.BARD,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WARLOCK,
-    SPELL_LIST_CLASS.WIZARD
-  ],
+  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
 
@@ -795,6 +742,7 @@ export const primalSavagery: SpellEntry = {
   id: "spell-primal-savagery",
   name: "Primal Savagery",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -807,7 +755,9 @@ export const primalSavagery: SpellEntry = {
   ],
   isAttackSpell: true,
   isDamagingSpell: true,
-  damage: [[DICE.D10, DAMAGE_TYPE.ACID]],
+  damage: [
+    [DICE.D10, DAMAGE_TYPE.ACID]
+  ],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID],
   spellLevel: 0
@@ -817,20 +767,22 @@ export const produceFlame: SpellEntry = {
   id: "spell-produce-flame",
   name: "Produce Flame",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_produce-flame", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
-  castingTime: [ACTION_TYPE.ACTION],
+  castingTime: [ACTION_TYPE.BONUS_ACTION],
   range: "Self",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["10 minutes"],
   description: [
-    "A flickering flame appears in your hand. The flame remains there for the duration and harms neither you nor your equipment. The flame sheds bright light in a 10-foot radius and dim light for an additional 10 feet. The spell ends if you dismiss it as an action or if you cast it again.",
-    "You can also attack with the flame, although doing so ends the spell. When you cast this spell, or as an action on a later turn, you can hurl the flame at a creature within 30 feet of you. Make a ranged spell attack. On a hit, the target takes <strong>1d8</strong> Fire damage.",
-    "<strong>At Higher Levels.</strong> This spell's damage increases by <strong>1d8</strong> when you reach 5th level (<strong>2d8</strong>), 11th level (<strong>3d8</strong>), and 17th level (<strong>4d8</strong>)."
+    "A flickering flame appears in your hand and remains there for the duration. While there, the flame emits no heat and ignites nothing, and it sheds Bright Light in a 20-foot radius and Dim Light for an additional 20 feet. The spell ends if you cast it again. Until the spell ends, you can take a Magic action to hurl fire at a creature or an object within 60 feet of you. Make a ranged spell attack. On a hit, the target takes <strong>1d8</strong> Fire damage.",
+    "<strong>Cantrip Upgrade.</strong> The damage increases by <strong>1d8</strong> when you reach levels 5 (<strong>2d8</strong>), 11 (<strong>3d8</strong>), and 17 (<strong>4d8</strong>)."
   ],
   isAttackSpell: true,
   isDamagingSpell: true,
-  damage: [[DICE.D8, DAMAGE_TYPE.FIRE]],
+  damage: [
+    [DICE.D8, DAMAGE_TYPE.FIRE]
+  ],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID],
   spellLevel: 0
@@ -840,6 +792,7 @@ export const rayOfFrost: SpellEntry = {
   id: "spell-ray-of-frost",
   name: "Ray of Frost",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_ray-of-frost", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -848,13 +801,15 @@ export const rayOfFrost: SpellEntry = {
   duration: ["Instantaneous"],
   description: [
     "A frigid beam of blue-white light streaks toward a creature within range. Make a ranged spell attack against the target. On a hit, it takes <strong>1d8</strong> Cold damage, and its Speed is reduced by 10 feet until the start of your next turn.",
-    "<strong>At Higher Levels.</strong> The spell's damage increases by <strong>1d8</strong> when you reach 5th level (<strong>2d8</strong>), 11th level (<strong>3d8</strong>), and 17th level (<strong>4d8</strong>)."
+    "<strong>Cantrip Upgrade.</strong> The damage increases by <strong>1d8</strong> when you reach levels 5 (<strong>2d8</strong>), 11 (<strong>3d8</strong>), and 17 (<strong>4d8</strong>)."
   ],
   isAttackSpell: true,
   isDamagingSpell: true,
-  damage: [[DICE.D8, DAMAGE_TYPE.COLD]],
+  damage: [
+    [DICE.D8, DAMAGE_TYPE.COLD]
+  ],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
 
@@ -862,18 +817,19 @@ export const resistance: SpellEntry = {
   id: "spell-resistance",
   name: "Resistance",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_resistance", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  components: [],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "You touch one willing creature. Once before the spell ends, the target can roll a <strong>d4</strong> and add the number rolled to one saving throw of its choice. It can roll the die before or after the saving throw. The spell then ends."
+    "You touch a willing creature and choose a damage type: Acid, Bludgeoning, Cold, Fire, Lightning, Necrotic, Piercing, Poison, Radiant, Slashing, or Thunder. When the creature takes damage of the chosen type before the spell ends, the creature reduces the total damage taken by <strong>1d4</strong>. A creature can benefit from this spell only once per turn."
   ],
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID],
+  spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID],
   spellLevel: 0
 };
 
@@ -881,6 +837,7 @@ export const sacredFlame: SpellEntry = {
   id: "spell-sacred-flame",
   name: "Sacred Flame",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_sacred-flame", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -888,13 +845,15 @@ export const sacredFlame: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["Instantaneous"],
   description: [
-    "Flame-like radiance descends on a creature that you can see within range. The target must succeed on a Dexterity saving throw or take <strong>1d8</strong> Radiant damage. The target gains no benefit from cover for this saving throw.",
-    "<strong>At Higher Levels.</strong> The spell's damage increases by <strong>1d8</strong> when you reach 5th level (<strong>2d8</strong>), 11th level (<strong>3d8</strong>), and 17th level (<strong>4d8</strong>)."
+    "Flame-like radiance descends on a creature that you can see within range. The target must succeed on a Dexterity saving throw or take <strong>1d8</strong> Radiant damage. The target gains no benefit from Half Cover or Three-Quarters Cover for this save.",
+    "<strong>Cantrip Upgrade.</strong> The damage increases by <strong>1d8</strong> when you reach levels 5 (<strong>2d8</strong>), 11 (<strong>3d8</strong>), and 17 (<strong>4d8</strong>)."
   ],
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
-  damage: [[DICE.D8, DAMAGE_TYPE.RADIANT]],
+  damage: [
+    [DICE.D8, DAMAGE_TYPE.RADIANT]
+  ],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC],
   spellLevel: 0
@@ -904,6 +863,7 @@ export const sappingSting: SpellEntry = {
   id: "spell-sapping-sting",
   name: "Sapping Sting",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.NECROMANCY,
   castingTime: [ACTION_TYPE.ACTION],
@@ -917,7 +877,9 @@ export const sappingSting: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
-  damage: [[DICE.D4, DAMAGE_TYPE.NECROTIC]],
+  damage: [
+    [DICE.D4, DAMAGE_TYPE.NECROTIC]
+  ],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
@@ -927,6 +889,7 @@ export const shapeWater: SpellEntry = {
   id: "spell-shape-water",
   name: "Shape Water",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -951,17 +914,21 @@ export const shillelagh: SpellEntry = {
   id: "spell-shillelagh",
   name: "Shillelagh",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_shillelagh", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.BONUS_ACTION],
-  range: "Touch",
+  range: "Self",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["1 minute"],
   description: [
-    "The wood of a club or quarterstaff you are holding is imbued with nature's power. For the duration, you can use your spellcasting ability instead of Strength for the attack and damage rolls of melee attacks using that weapon, and the weapon's damage die becomes a <strong>d8</strong>. The weapon also becomes magical, if it isn't already. The spell ends if you cast it again or if you let go of the weapon."
+    "A Club or Quarterstaff you are holding is imbued with nature's power. For the duration, you can use your spellcasting ability instead of Strength for the attack and damage rolls of melee attacks using that weapon, and the weapon's damage die becomes a d8. If the attack deals damage, it can be Force damage or the weapon's normal damage type (your choice). The spell ends early if you cast it again or if you let go of the weapon.",
+    "<strong>Cantrip Upgrade.</strong> The damage die changes when you reach levels 5 (d10), 11 (d12), and 17 (<strong>2d6</strong>)."
   ],
   isDamagingSpell: true,
-  damage: [[DICE.D8, DAMAGE_TYPE.BLUDGEONING]],
+  damage: [
+    [DICE.D8, DAMAGE_TYPE.BLUDGEONING]
+  ],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID],
   spellLevel: 0
@@ -971,6 +938,7 @@ export const shockingGrasp: SpellEntry = {
   id: "spell-shocking-grasp",
   name: "Shocking Grasp",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_shocking-grasp", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -978,14 +946,41 @@ export const shockingGrasp: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["Instantaneous"],
   description: [
-    "Lightning springs from your hand to deliver a shock to a creature you try to touch. Make a melee spell attack against the target. You have Advantage on the attack roll if the target is wearing armor made of metal. On a hit, the target takes <strong>1d8</strong> Lightning damage, and it can't take reactions until the start of its next turn.",
-    "<strong>At Higher Levels.</strong> The spell's damage increases by <strong>1d8</strong> when you reach 5th level (<strong>2d8</strong>), 11th level (<strong>3d8</strong>), and 17th level (<strong>4d8</strong>)."
+    "Lightning springs from you to a creature that you try to touch. Make a melee spell attack against the target. On a hit, the target takes <strong>1d8</strong> Lightning damage, and it can't make Opportunity Attacks until the start of its next turn.",
+    "<strong>Cantrip Upgrade.</strong> The damage increases by <strong>1d8</strong> when you reach levels 5 (<strong>2d8</strong>), 11 (<strong>3d8</strong>), and 17 (<strong>4d8</strong>)."
   ],
   isAttackSpell: true,
   isDamagingSpell: true,
-  damage: [[DICE.D8, DAMAGE_TYPE.LIGHTNING]],
+  damage: [
+    [DICE.D8, DAMAGE_TYPE.LIGHTNING]
+  ],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
+  spellLevel: 0
+};
+
+export const sorcerousBurst: SpellEntry = {
+  id: "spell-sorcerous-burst",
+  name: "Sorcerous Burst",
+  category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_sorcerous-burst", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  trackingState: TRACKER.NOT_TRACKED,
+  magicSchool: MAGIC_SCHOOL.EVOCATION,
+  castingTime: [ACTION_TYPE.ACTION],
+  range: "120 feet",
+  components: [],
+  duration: ["Instantaneous"],
+  description: [
+    "You cast sorcerous energy at one creature or object within range. Make a ranged spell attack against the target. On a hit, the target takes <strong>1d8</strong> damage of a type you choose: Acid, Cold, Fire, Lightning, Poison, Psychic, or Thunder. If you roll an 8 on a d8 for this spell, you can roll another d8, and add it to the damage. When you cast this spell, the maximum number of these d8s you can add to the spell's damage equals your spellcasting ability modifier.",
+    "<strong>Cantrip Upgrade.</strong> The damage increases by <strong>1d8</strong> when you reach levels 5 (<strong>2d8</strong>), 11 (<strong>3d8</strong>), and 17 (<strong>4d8</strong>)."
+  ],
+  isAttackSpell: true,
+  isDamagingSpell: true,
+  damage: [
+    [DICE.D8, [DAMAGE_TYPE.ACID, DAMAGE_TYPE.COLD, DAMAGE_TYPE.FIRE, DAMAGE_TYPE.LIGHTNING, DAMAGE_TYPE.POISON, DAMAGE_TYPE.PSYCHIC, DAMAGE_TYPE.THUNDER]]
+  ],
+  healing: [],
+  spellLists: [SPELL_LIST_CLASS.SORCERER],
   spellLevel: 0
 };
 
@@ -993,18 +988,20 @@ export const spareTheDying: SpellEntry = {
   id: "spell-spare-the-dying",
   name: "Spare the Dying",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_spare-the-dying", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.NECROMANCY,
   castingTime: [ACTION_TYPE.ACTION],
-  range: "Touch",
+  range: "15 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["Instantaneous"],
   description: [
-    "You touch a living creature that has 0 Hit Points. The creature becomes stable. This spell has no effect on Undead or constructs."
+    "Choose a creature within range that has 0 Hit Points and isn't dead. The creature becomes Stable.",
+    "<strong>Cantrip Upgrade.</strong> The range doubles when you reach levels 5 (30 feet), 11 (60 feet), and 17 (120 feet)."
   ],
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.CLERIC],
+  spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID],
   spellLevel: 0
 };
 
@@ -1012,6 +1009,7 @@ export const starryWisp: SpellEntry = {
   id: "spell-starry-wisp",
   name: "Starry Wisp",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_starry-wisp", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1020,11 +1018,13 @@ export const starryWisp: SpellEntry = {
   duration: ["Instantaneous"],
   description: [
     "You launch a mote of light at one creature or object within range. Make a ranged spell attack against the target. On a hit, the target takes <strong>1d8</strong> Radiant damage, and until the end of your next turn, it emits Dim Light in a 10-foot radius and can't benefit from the Invisible condition.",
-    "<strong>At Higher Levels.</strong> The spell's damage increases by <strong>1d8</strong> when you reach 5th level (<strong>2d8</strong>), 11th level (<strong>3d8</strong>), and 17th level (<strong>4d8</strong>)."
+    "<strong>Cantrip Upgrade.</strong> The damage increases by <strong>1d8</strong> when you reach levels 5 (<strong>2d8</strong>), 11 (<strong>3d8</strong>), and 17 (<strong>4d8</strong>)."
   ],
   isAttackSpell: true,
   isDamagingSpell: true,
-  damage: [[DICE.D8, DAMAGE_TYPE.RADIANT]],
+  damage: [
+    [DICE.D8, DAMAGE_TYPE.RADIANT]
+  ],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.DRUID],
   spellLevel: 0
@@ -1034,6 +1034,7 @@ export const swordBurst: SpellEntry = {
   id: "spell-sword-burst",
   name: "Sword Burst",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1047,14 +1048,11 @@ export const swordBurst: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
-  damage: [[DICE.D6, DAMAGE_TYPE.FORCE]],
-  healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.ARTIFICER,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WARLOCK,
-    SPELL_LIST_CLASS.WIZARD
+  damage: [
+    [DICE.D6, DAMAGE_TYPE.FORCE]
   ],
+  healing: [],
+  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
 
@@ -1062,21 +1060,21 @@ export const thaumaturgy: SpellEntry = {
   id: "spell-thaumaturgy",
   name: "Thaumaturgy",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_thaumaturgy", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "30 feet",
   components: [SPELL_COMPONENT.V],
-  duration: ["Up to 1 minute"],
+  duration: ["1 minute"],
   description: [
-    "You manifest a minor wonder, a sign of supernatural power, within range. You create one of the following magical effects within range:",
-    "Your voice booms up to three times as loud as normal for 1 minute.",
-    "You cause flames to flicker, brighten, dim, or change color for 1 minute.",
-    "You cause harmless tremors in the ground for 1 minute.",
-    "You create an instantaneous sound that originates from a point of your choice within range, such as a rumble of thunder, the cry of a raven, or ominous whispers.",
-    "You instantaneously cause an unlocked door or window to fly open or slam shut.",
-    "You alter the appearance of your eyes for 1 minute.",
-    "If you cast this spell multiple times, you can have up to three of its 1-minute effects active at a time, and you can dismiss such an effect as an action."
+    "You manifest a minor wonder within range. You create one of the effects below within range. If you cast this spell multiple times, you can have up to three of its 1-minute effects active at a time.",
+    "<strong>_Altered Eyes._</strong> You alter the appearance of your eyes for 1 minute.",
+    "<strong>_Booming Voice._</strong> Your voice booms up to three times as loud as normal for 1 minute. For the duration, you have Advantage on Charisma (Intimidation) checks.",
+    "<strong>_Fire Play._</strong> You cause flames to flicker, brighten, dim, or change color for 1 minute.",
+    "<strong>_Invisible Hand._</strong> You instantaneously cause an unlocked door or window to fly open or slam shut.",
+    "<strong>_Phantom Sound._</strong> You create an instantaneous sound that originates from a point of your choice within range, such as a rumble of thunder, the cry of a raven, or ominous whispers.",
+    "<strong>_Tremors._</strong> You cause harmless tremors in the ground for 1 minute."
   ],
   damage: [],
   healing: [],
@@ -1088,6 +1086,7 @@ export const thornWhip: SpellEntry = {
   id: "spell-thorn-whip",
   name: "Thorn Whip",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1100,7 +1099,9 @@ export const thornWhip: SpellEntry = {
   ],
   isAttackSpell: true,
   isDamagingSpell: true,
-  damage: [[DICE.D6, DAMAGE_TYPE.PIERCING]],
+  damage: [
+    [DICE.D6, DAMAGE_TYPE.PIERCING]
+  ],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.DRUID],
   spellLevel: 0
@@ -1110,6 +1111,7 @@ export const thunderclap: SpellEntry = {
   id: "spell-thunderclap",
   name: "Thunderclap",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1123,16 +1125,11 @@ export const thunderclap: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
-  damage: [[DICE.D6, DAMAGE_TYPE.THUNDER]],
-  healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.ARTIFICER,
-    SPELL_LIST_CLASS.BARD,
-    SPELL_LIST_CLASS.DRUID,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WARLOCK,
-    SPELL_LIST_CLASS.WIZARD
+  damage: [
+    [DICE.D6, DAMAGE_TYPE.THUNDER]
   ],
+  healing: [],
+  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
 
@@ -1140,6 +1137,7 @@ export const tollTheDead: SpellEntry = {
   id: "spell-toll-the-dead",
   name: "Toll the Dead",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.NECROMANCY,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1166,23 +1164,20 @@ export const trueStrike: SpellEntry = {
   id: "spell-true-strike",
   name: "True Strike",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_true-strike", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.DIVINATION,
   castingTime: [ACTION_TYPE.ACTION],
-  range: "30 feet",
-  components: [SPELL_COMPONENT.S],
-  duration: [DURATION.CONCENTRATION, "up to 1 round"],
+  range: "Self",
+  components: [SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  duration: ["Instantaneous"],
   description: [
-    "You extend your hand and point a finger at a target in range. Your magic grants you a brief insight into the target's defenses. On your next turn, you gain Advantage on your first attack roll against the target, provided that this spell hasn't ended."
+    "Guided by a flash of magical insight, you make one attack with the weapon used in the spell's casting. The attack uses your spellcasting ability for the attack and damage rolls instead of using Strength or Dexterity. If the attack deals damage, it can be Radiant damage or the weapon's normal damage type (your choice).",
+    "<strong>Cantrip Upgrade.</strong> Whether you deal Radiant damage or the weapon's normal damage type, the attack deals extra Radiant damage when you reach levels 5 (<strong>1d6</strong>), 11 (<strong>2d6</strong>), and 17 (<strong>3d6</strong>)."
   ],
   damage: [],
   healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.BARD,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WARLOCK,
-    SPELL_LIST_CLASS.WIZARD
-  ],
+  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
 
@@ -1190,6 +1185,7 @@ export const viciousMockery: SpellEntry = {
   id: "spell-vicious-mockery",
   name: "Vicious Mockery",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_vicious-mockery", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1197,13 +1193,16 @@ export const viciousMockery: SpellEntry = {
   components: [SPELL_COMPONENT.V],
   duration: ["Instantaneous"],
   description: [
-    "You unleash a string of insults laced with subtle enchantments at a creature you can see within range. If the target can hear you, though it need not understand you, it must succeed on a Wisdom saving throw or take <strong>1d4</strong> Psychic damage and have Disadvantage on the next attack roll it makes before the end of its next turn.",
-    "<strong>At Higher Levels.</strong> This spell's damage increases by <strong>1d4</strong> when you reach 5th level (<strong>2d4</strong>), 11th level (<strong>3d4</strong>), and 17th level (<strong>4d4</strong>)."
+    "You unleash a string of insults laced with subtle enchantments at one creature you can see or hear within range. The target must succeed on a Wisdom saving throw or take <strong>1d6</strong> Psychic damage and have Disadvantage on the next attack roll it makes before the end of its next turn.",
+    "<strong>Cantrip Upgrade.</strong> The damage increases by <strong>1d6</strong> when you reach levels 5 (<strong>2d6</strong>), 11 (<strong>3d6</strong>), and 17 (<strong>4d6</strong>)."
   ],
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.WIS,
+  isAttackSpell: true,
   isDamagingSpell: true,
-  damage: [[DICE.D4, DAMAGE_TYPE.PSYCHIC]],
+  damage: [
+    [DICE.D6, DAMAGE_TYPE.PSYCHIC]
+  ],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD],
   spellLevel: 0
@@ -1213,6 +1212,7 @@ export const virtue: SpellEntry = {
   id: "spell-virtue",
   name: "Virtue",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1232,6 +1232,7 @@ export const wordOfRadiance: SpellEntry = {
   id: "spell-word-of-radiance",
   name: "Word of Radiance",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1245,7 +1246,9 @@ export const wordOfRadiance: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
-  damage: [[DICE.D6, DAMAGE_TYPE.RADIANT]],
+  damage: [
+    [DICE.D6, DAMAGE_TYPE.RADIANT]
+  ],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC],
   spellLevel: 0
@@ -1260,8 +1263,8 @@ export const spellEntries0: SpellEntry[] = [
   createBonfire,
   dancingLights,
   druidcraft,
-  elementalism,
   eldritchBlast,
+  elementalism,
   encodeThoughts,
   fireBolt,
   friends,
@@ -1292,6 +1295,7 @@ export const spellEntries0: SpellEntry[] = [
   shapeWater,
   shillelagh,
   shockingGrasp,
+  sorcerousBurst,
   spareTheDying,
   starryWisp,
   swordBurst,

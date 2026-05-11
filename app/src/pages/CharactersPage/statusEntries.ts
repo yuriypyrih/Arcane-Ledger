@@ -1,5 +1,5 @@
 import type { SpellDescriptionEntry, SpellDurationPart } from "../../codex/entries";
-import { DAMAGE_TYPE, DURATION } from "../../codex/entries";
+import { DAMAGE_TYPE, DURATION, resolveSpellIdAlias } from "../../codex/entries";
 import {
   CONDITION_NAME,
   EFFECT_NAME,
@@ -404,7 +404,7 @@ function normalizeStatusEntry(value: unknown): CharacterStatusEntry | null {
         : undefined,
     sourceSpellId:
       typeof record.sourceSpellId === "string" && record.sourceSpellId.trim().length > 0
-        ? record.sourceSpellId
+        ? resolveSpellIdAlias(record.sourceSpellId.trim())
         : undefined,
     rangeFeet:
       typeof record.rangeFeet === "number" &&

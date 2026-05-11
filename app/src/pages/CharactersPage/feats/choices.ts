@@ -5,6 +5,7 @@ import {
   MAGIC_SCHOOL,
   SPELL_LIST_CLASS,
   getSpellEntries,
+  resolveSpellIdAlias,
   type SpellEntry
 } from "../../../codex/entries";
 import { ALL_SKILLS, TOOL_PROFICIENCY, type WEAPON_PROFICIENCY } from "../../../types";
@@ -104,6 +105,10 @@ import {
 
 const abilityKeySet = new Set<AbilityKey>(abilityKeys);
 const skillNameSet = new Set<SkillName>(ALL_SKILLS);
+
+function normalizeFeatSpellId(value: string): string {
+  return resolveSpellIdAlias(value.trim());
+}
 const allEpicBoonAbilityOptions: AbilityKey[] = [...abilityKeys];
 const blessedWarriorCantripOptions = getSpellEntriesForSpellListClass(
   SPELL_LIST_CLASS.CLERIC
@@ -412,12 +417,13 @@ export function normalizeFeyTouchedChoice(value: unknown): FeyTouchedChoice | un
   }
 
   const record = value as Partial<FeyTouchedChoice>;
+  const spellId =
+    typeof record.spellId === "string" ? normalizeFeatSpellId(record.spellId) : "";
 
   if (
     typeof record.ability !== "string" ||
-    typeof record.spellId !== "string" ||
     !feyTouchedAbilityOptionSet.has(record.ability as AbilityKey) ||
-    !feyTouchedSpellOptionsById.has(record.spellId)
+    !feyTouchedSpellOptionsById.has(spellId)
   ) {
     return undefined;
   }
@@ -425,17 +431,20 @@ export function normalizeFeyTouchedChoice(value: unknown): FeyTouchedChoice | un
   const freeCastExpendedSpellIds = Array.isArray(record.freeCastExpendedSpellIds)
     ? [
         ...new Set(
-          record.freeCastExpendedSpellIds.filter(
-            (spellId): spellId is string =>
-              spellId === record.spellId || feyTouchedFreeCastSpellIds.has(spellId)
-          )
+          record.freeCastExpendedSpellIds
+            .filter((freeCastSpellId): freeCastSpellId is string => typeof freeCastSpellId === "string")
+            .map(normalizeFeatSpellId)
+            .filter(
+              (freeCastSpellId) =>
+                freeCastSpellId === spellId || feyTouchedFreeCastSpellIds.has(freeCastSpellId)
+            )
         )
       ]
     : [];
 
   return {
     ability: record.ability as FeyTouchedChoice["ability"],
-    spellId: record.spellId,
+    spellId,
     freeCastExpendedSpellIds:
       freeCastExpendedSpellIds.length > 0 ? freeCastExpendedSpellIds : undefined
   };
@@ -736,7 +745,11 @@ export function normalizeRitualCasterChoice(value: unknown): RitualCasterChoice 
   }
 
   const spellIds = [
-    ...new Set(record.spellIds.filter((id): id is string => typeof id === "string"))
+    ...new Set(
+      record.spellIds
+        .filter((id): id is string => typeof id === "string")
+        .map(normalizeFeatSpellId)
+    )
   ].filter((spellId) => ritualCasterSpellOptionsById.has(spellId));
 
   if (spellIds.length === 0) {
@@ -794,12 +807,13 @@ export function normalizeShadowTouchedChoice(value: unknown): ShadowTouchedChoic
   }
 
   const record = value as Partial<ShadowTouchedChoice>;
+  const spellId =
+    typeof record.spellId === "string" ? normalizeFeatSpellId(record.spellId) : "";
 
   if (
     typeof record.ability !== "string" ||
-    typeof record.spellId !== "string" ||
     !shadowTouchedAbilityOptionSet.has(record.ability as AbilityKey) ||
-    !shadowTouchedSpellOptionsById.has(record.spellId)
+    !shadowTouchedSpellOptionsById.has(spellId)
   ) {
     return undefined;
   }
@@ -807,17 +821,20 @@ export function normalizeShadowTouchedChoice(value: unknown): ShadowTouchedChoic
   const freeCastExpendedSpellIds = Array.isArray(record.freeCastExpendedSpellIds)
     ? [
         ...new Set(
-          record.freeCastExpendedSpellIds.filter(
-            (spellId): spellId is string =>
-              spellId === record.spellId || shadowTouchedFreeCastSpellIds.has(spellId)
-          )
+          record.freeCastExpendedSpellIds
+            .filter((freeCastSpellId): freeCastSpellId is string => typeof freeCastSpellId === "string")
+            .map(normalizeFeatSpellId)
+            .filter(
+              (freeCastSpellId) =>
+                freeCastSpellId === spellId || shadowTouchedFreeCastSpellIds.has(freeCastSpellId)
+            )
         )
       ]
     : [];
 
   return {
     ability: record.ability as ShadowTouchedChoice["ability"],
-    spellId: record.spellId,
+    spellId,
     freeCastExpendedSpellIds:
       freeCastExpendedSpellIds.length > 0 ? freeCastExpendedSpellIds : undefined
   };
@@ -1076,7 +1093,11 @@ export function normalizeBlessedWarriorChoice(value: unknown): BlessedWarriorCho
   }
 
   const cantripIds = [
-    ...new Set(record.cantripIds.filter((id): id is string => typeof id === "string"))
+    ...new Set(
+      record.cantripIds
+        .filter((id): id is string => typeof id === "string")
+        .map(normalizeFeatSpellId)
+    )
   ];
 
   if (cantripIds.length !== 2) {
@@ -1104,7 +1125,11 @@ export function normalizeDruidicWarriorChoice(value: unknown): DruidicWarriorCho
   }
 
   const cantripIds = [
-    ...new Set(record.cantripIds.filter((id): id is string => typeof id === "string"))
+    ...new Set(
+      record.cantripIds
+        .filter((id): id is string => typeof id === "string")
+        .map(normalizeFeatSpellId)
+    )
   ];
 
   if (cantripIds.length !== 2) {
@@ -1149,8 +1174,16 @@ export function normalizeMagicInitiateChoice(value: unknown): MagicInitiateChoic
     record.spellList
   );
   const cantripIds = [
-    ...new Set(record.cantripIds.filter((id): id is string => typeof id === "string"))
+    ...new Set(
+      record.cantripIds
+        .filter((id): id is string => typeof id === "string")
+        .map(normalizeFeatSpellId)
+    )
   ];
+  const levelOneSpellId =
+    typeof record.levelOneSpellId === "string"
+      ? normalizeFeatSpellId(record.levelOneSpellId)
+      : "";
 
   if (
     cantripIds.length !== 2 ||
@@ -1161,8 +1194,8 @@ export function normalizeMagicInitiateChoice(value: unknown): MagicInitiateChoic
   }
 
   if (
-    typeof record.levelOneSpellId !== "string" ||
-    !levelOneSpellOptionsById?.has(record.levelOneSpellId)
+    !levelOneSpellId ||
+    !levelOneSpellOptionsById?.has(levelOneSpellId)
   ) {
     return undefined;
   }
@@ -1177,7 +1210,7 @@ export function normalizeMagicInitiateChoice(value: unknown): MagicInitiateChoic
   return {
     spellList: record.spellList,
     cantripIds: cantripIds as MagicInitiateChoice["cantripIds"],
-    levelOneSpellId: record.levelOneSpellId,
+    levelOneSpellId,
     spellcastingAbility: record.spellcastingAbility as MagicInitiateChoice["spellcastingAbility"],
     freeCastExpended: record.freeCastExpended === true ? true : undefined
   };

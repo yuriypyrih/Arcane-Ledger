@@ -16,6 +16,7 @@ export const arcaneEye: SpellEntry = {
   id: "spell-arcane-eye",
   name: "Arcane Eye",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_arcane-eye", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.DIVINATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -23,12 +24,11 @@ export const arcaneEye: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: [DURATION.CONCENTRATION, "up to 1 hour"],
   description: [
-    "You create an invisible, magical eye within range that hovers in the air for the duration. You mentally receive visual information from the eye, which has normal vision and Darkvision out to 30 feet. The eye can look in every direction.",
-    "As an action, you can move the eye up to 30 feet in any direction. There is no limit to how far away from you the eye can move, but it can't enter another plane of existence. A solid barrier blocks the eye's movement, but the eye can pass through an opening as small as 1 inch in diameter."
+    "You create an Invisible, invulnerable eye within range that hovers for the duration. You mentally receive visual information from the eye, which can see in every direction. It also has Darkvision with a range of 30 feet. As a Bonus Action, you can move the eye up to 30 feet in any direction. A solid barrier blocks the eye's movement, but the eye can pass through an opening as small as 1 inch in diameter."
   ],
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
 
@@ -36,14 +36,15 @@ export const auraOfLife: SpellEntry = {
   id: "spell-aura-of-life",
   name: "Aura of Life",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_aura-of-life", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.ACTION],
-  range: "Self (30-foot radius)",
+  range: "Self",
   components: [SPELL_COMPONENT.V],
   duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: [
-    "Life-preserving energy radiates from you in an aura with a 30-foot radius. Until the spell ends, the aura moves with you, centered on you. Each non-hostile creature in the aura, including you, has Resistance to Necrotic damage, and its Hit Point maximum can't be reduced. In addition, a non-hostile, living creature regains 1 Hit Point when it starts its turn in the aura with 0 Hit Points."
+    "An aura radiates from you in a 30-foot Emanation for the duration. While in the aura, you and your allies have Resistance to Necrotic damage, and your Hit Point maximums can't be reduced. If an ally with 0 Hit Points starts its turn in the aura, that ally regains 1 Hit Point."
   ],
   isHealingSpell: true,
   damage: [],
@@ -56,6 +57,7 @@ export const auraOfPurity: SpellEntry = {
   id: "spell-aura-of-purity",
   name: "Aura of Purity",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -75,29 +77,51 @@ export const banishment: SpellEntry = {
   id: "spell-banishment",
   name: "Banishment",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_banishment", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.ACTION],
-  range: "60 feet",
+  range: "30 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "You attempt to send one creature that you can see within range to another place of existence. The target must succeed on a Charisma saving throw or be banished.",
-    "If the target is native to the plane of existence you're on, you banish the target to a harmless demiplane. While there, the target is Incapacitated. The target remains there until the spell ends, at which point the target reappears in the space it left or in the nearest unoccupied space if that space is occupied.",
-    "If the target is native to a different plane of existence than the one you're on, the target is banished with a faint popping noise, returning to its home plane. If the spell ends before 1 minute has passed, the target reappears in the space it left or in the nearest unoccupied space if that space is occupied. Otherwise, the target doesn't return.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, you can target one additional creature for each slot level above 4th."
+    "One creature that you can see within range must succeed on a Charisma saving throw or be transported to a harmless demiplane for the duration. While there, the target has the Incapacitated condition. When the spell ends, the target reappears in the space it left or in the nearest unoccupied space if that space is occupied. If the target is an Aberration, a Celestial, an Elemental, a Fey, or a Fiend, the target doesn't return if the spell lasts for 1 minute. The target is instead transported to a random location on a plane (GM's choice) associated with its creature type.",
+    "<strong>Using a Higher-Level Spell Slot.</strong> You can target one additional creature for each spell slot level above 4."
   ],
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.CHA,
   damage: [],
   healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.CLERIC,
-    SPELL_LIST_CLASS.PALADIN,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WARLOCK,
-    SPELL_LIST_CLASS.WIZARD
+  spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.PALADIN, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
+  spellLevel: 4
+};
+
+export const blackTentacles: SpellEntry = {
+  id: "spell-black-tentacles",
+  name: "Black Tentacles",
+  category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_black-tentacles", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  legacyIds: ["spell-evards-black-tentacles"],
+  legacyNames: ["Evard's Black Tentacles"],
+  trackingState: TRACKER.NOT_TRACKED,
+  magicSchool: MAGIC_SCHOOL.CONJURATION,
+  castingTime: [ACTION_TYPE.ACTION],
+  range: "90 feet",
+  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  duration: [DURATION.CONCENTRATION, "up to 1 minute"],
+  description: [
+    "Squirming, ebony tentacles fill a 20-foot square on ground that you can see within range. For the duration, these tentacles turn the ground in that area into Difficult Terrain. Each creature in that area makes a Strength saving throw. On a failed save, it takes <strong>3d6</strong> Bludgeoning damage, and it has the Restrained condition until the spell ends. A creature also makes that save if it enters the area or ends it turn there. A creature makes that save only once per turn. A Restrained creature can take an action to make a Strength (Athletics) check against your spell save DC, ending the condition on itself on a success."
   ],
+  isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.STR,
+  isDamagingSpell: true,
+  damage: [
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING]
+  ],
+  healing: [],
+  spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
 
@@ -105,6 +129,7 @@ export const blight: SpellEntry = {
   id: "spell-blight",
   name: "Blight",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_blight", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.NECROMANCY,
   castingTime: [ACTION_TYPE.ACTION],
@@ -112,30 +137,14 @@ export const blight: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["Instantaneous"],
   description: [
-    "Necromantic energy washes over a creature of your choice that you can see within range, draining moisture and vitality from it. The target must make a Constitution saving throw. The target takes <strong>8d8</strong> Necrotic damage on a failed save, or half as much damage on a successful one. This spell has no effect on Undead or Constructs.",
-    "If you target a plant creature or a magical plant, it makes the saving throw with Disadvantage, and the spell deals maximum damage to it. If you target a nonmagical plant that isn't a creature, such as a tree or shrub, it doesn't make a saving throw; it simply withers and dies.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the damage increases by <strong>1d8</strong> for each slot level above 4th."
+    "A creature that you can see within range makes a Constitution saving throw, taking <strong>8d8</strong> Necrotic damage on a failed save or half as much damage on a successful one. A Plant creature automatically fails the save. Alternatively, target a nonmagical plant that isn't a creature, such as a tree or shrub. It doesn't make a save; it simply withers and dies.",
+    "<strong>Using a Higher-Level Spell Slot.</strong> The damage increases by <strong>1d8</strong> for each spell slot level above 4."
   ],
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.CON,
-  isDamagingSpell: true,
-  damage: [
-    [DICE.D8, DAMAGE_TYPE.NECROTIC],
-    [DICE.D8, DAMAGE_TYPE.NECROTIC],
-    [DICE.D8, DAMAGE_TYPE.NECROTIC],
-    [DICE.D8, DAMAGE_TYPE.NECROTIC],
-    [DICE.D8, DAMAGE_TYPE.NECROTIC],
-    [DICE.D8, DAMAGE_TYPE.NECROTIC],
-    [DICE.D8, DAMAGE_TYPE.NECROTIC],
-    [DICE.D8, DAMAGE_TYPE.NECROTIC]
-  ],
+  damage: [],
   healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.DRUID,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WARLOCK,
-    SPELL_LIST_CLASS.WIZARD
-  ],
+  spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
 
@@ -143,6 +152,7 @@ export const charmMonster: SpellEntry = {
   id: "spell-charm-monster",
   name: "Charm Monster",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_charm-monster", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
   castingTime: [ACTION_TYPE.ACTION],
@@ -150,20 +160,14 @@ export const charmMonster: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["1 hour"],
   description: [
-    "You attempt to charm a creature you can see within range. It must make a Wisdom saving throw, and it does so with Advantage if you or your companions are fighting it. If it fails the saving throw, it is Charmed by you until the spell ends or until you or your companions do anything harmful to it. The Charmed creature is friendly to you. When the spell ends, the creature knows it was Charmed by you.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, you can target one additional creature for each slot level above 4th. The creatures must be within 30 feet of each other when you target them."
+    "One creature you can see within range makes a Wisdom saving throw. It does so with Advantage if you or your allies are fighting it. On a failed save, the target has the Charmed condition until the spell ends or until you or your allies damage it. The Charmed creature is Friendly to you. When the spell ends, the target knows it was Charmed by you.",
+    "<strong>Using a Higher-Level Spell Slot.</strong> You can target one additional creature for each spell slot level above 4."
   ],
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
   healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.BARD,
-    SPELL_LIST_CLASS.DRUID,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WARLOCK,
-    SPELL_LIST_CLASS.WIZARD
-  ],
+  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
 
@@ -171,6 +175,7 @@ export const compulsion: SpellEntry = {
   id: "spell-compulsion",
   name: "Compulsion",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_compulsion", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
   castingTime: [ACTION_TYPE.ACTION],
@@ -178,8 +183,7 @@ export const compulsion: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "Creatures of your choice that you can see within range and that can hear you must make a Wisdom saving throw. A target automatically succeeds on this saving throw if it can't be Charmed. On a failed save, a target is affected by this spell. Until the spell ends, you can use a Bonus Action on each of your turns to designate a direction that is horizontal to you. Each affected target must use as much of its movement as possible to move in that direction on its next turn. It can take its action before it moves. After moving in this way, it can make another Wisdom saving throw to try to end the effect.",
-    "A target isn't compelled to move into an obviously deadly hazard, such as a fire pit, but it will provoke Opportunity Attacks to move in the designated direction."
+    "Each creature of your choice that you can see within range must succeed on a Wisdom saving throw or have the Charmed condition until the spell ends. For the duration, you can take a Bonus Action to designate a direction that is horizontal to you. Each Charmed target must use as much of its movement as possible to move in that direction on its next turn, taking the safest route. After moving in this way, a target repeats the save, ending the spell on itself on a success."
   ],
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.WIS,
@@ -193,6 +197,7 @@ export const confusion: SpellEntry = {
   id: "spell-confusion",
   name: "Confusion",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_confusion", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
   castingTime: [ACTION_TYPE.ACTION],
@@ -200,25 +205,14 @@ export const confusion: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "This spell assaults and twists creatures' minds, spawning delusions and provoking uncontrolled actions. Each creature in a 10-foot-radius sphere centered on a point you choose within range must succeed on a Wisdom saving throw when you cast this spell or be affected by it.",
-    "An affected target can't take Reactions and must roll a <strong>d10</strong> at the start of each of its turns to determine its behavior for that turn.",
-    "<strong>1.</strong> The creature uses all its movement to move in a random direction. To determine the direction, roll a <strong>d8</strong> and assign a direction to each die face. The creature doesn't take an action this turn.",
-    "<strong>2-6.</strong> The creature doesn't move or take actions this turn.",
-    "<strong>7-8.</strong> The creature uses its action to make a melee attack against a randomly determined creature within its reach. If there is no creature within its reach, the creature does nothing this turn.",
-    "<strong>9-10.</strong> The creature can act and move normally.",
-    "At the end of its turns, an affected target can make a Wisdom saving throw. If it succeeds, this effect ends for that target.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the radius of the sphere increases by 5 feet for each slot level above 4th."
+    "Each creature in a 10-foot-radius Sphere centered on a point you choose within range must succeed on a Wisdom saving throw, or that target can't take Bonus Actions or Reactions and must roll <strong>1d10</strong> at the start of each of its turns to determine its behavior for that turn, consulting the table below. Table: <strong>1d10</strong> Behavior for the Turn | d10 | Behavior for the Turn | |------|----------------------------------------------------------------------------------------------------------------------------------------------| | 1 | The target doesn't take an action, and it uses all its movement to move. Roll <strong>1d4</strong> for the direction: 1, north; 2, east; 3, south; or 4, west.| | 2–6 | The target doesn't move or take actions. | | 7–8 | The target doesn't move, and it takes the Attack action to make one melee attack against a random creature within reach. If none are within reach, the target takes no action. | | 9–10 | The target chooses its behavior. | At the end of each of its turns, an affected target repeats the save, ending the spell on itself on a success.",
+    "<strong>Using a Higher-Level Spell Slot.</strong> The Sphere's radius increases by 5 feet for each spell slot level above 4."
   ],
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
   healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.BARD,
-    SPELL_LIST_CLASS.DRUID,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WIZARD
-  ],
+  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
 
@@ -226,6 +220,7 @@ export const conjureBarlgura: SpellEntry = {
   id: "spell-conjure-barlgura",
   name: "Conjure Barlgura",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -247,6 +242,7 @@ export const conjureKnowbot: SpellEntry = {
   id: "spell-conjure-knowbot",
   name: "Conjure Knowbot",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -269,21 +265,16 @@ export const conjureMinorElementals: SpellEntry = {
   id: "spell-conjure-minor-elementals",
   name: "Conjure Minor Elementals",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_conjure-minor-elementals", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
-  castingTime: [ACTION_TYPE.MINUTE],
-  range: "90 feet",
+  castingTime: [ACTION_TYPE.ACTION],
+  range: "Self",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: [DURATION.CONCENTRATION, "up to 1 hour"],
+  duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: [
-    "You summon elementals that appear in unoccupied spaces that you can see within range. You choose one of the following options for what appears:",
-    "One elemental of Challenge Rating 2 or lower.",
-    "Two elementals of Challenge Rating 1 or lower.",
-    "Four elementals of Challenge Rating 1/2 or lower.",
-    "Eight elementals of Challenge Rating 1/4 or lower.",
-    "An elemental summoned by this spell disappears when it drops to 0 Hit Points or when the spell ends.",
-    "The summoned creatures are friendly to you and your companions. Roll Initiative for the summoned creatures as a group, which has its own turns. They obey any verbal commands that you issue to them, no action required by you. If you don't issue any commands to them, they defend themselves from hostile creatures, but otherwise take no actions. The DM has the creatures' statistics.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using certain higher-level spell slots, you choose one of the summoning options above, and more creatures appear: twice as many with a 6th-level slot and three times as many with an 8th-level slot."
+    "You conjure spirits from the Elemental Planes that flit around you in a 15-foot Emanation for the duration. Until the spell ends, any attack you make deals an extra <strong>2d8</strong> damage when you hit a creature in the Emanation. This damage is Acid, Cold, Fire, or Lightning (your choice when you make the attack). In addition, the ground in the Emanation is Difficult Terrain for your enemies.",
+    "<strong>Using a Higher-Level Spell Slot.</strong> The damage increases by <strong>1d8</strong> for each spell slot level above 4."
   ],
   damage: [],
   healing: [],
@@ -295,6 +286,7 @@ export const conjureShadowDemon: SpellEntry = {
   id: "spell-conjure-shadow-demon",
   name: "Conjure Shadow Demon",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -316,23 +308,27 @@ export const conjureWoodlandBeings: SpellEntry = {
   id: "spell-conjure-woodland-beings",
   name: "Conjure Woodland Beings",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_conjure-woodland-beings", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
-  range: "60 feet",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: [DURATION.CONCENTRATION, "up to 1 hour"],
+  range: "Self",
+  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
+  duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: [
-    "You summon Fey creatures that appear in unoccupied spaces that you can see within range. Choose one of the following options for what appears:",
-    "One Fey creature of Challenge Rating 2 or lower.",
-    "Two Fey creatures of Challenge Rating 1 or lower.",
-    "Four Fey creatures of Challenge Rating 1/2 or lower.",
-    "Eight Fey creatures of Challenge Rating 1/4 or lower.",
-    "A summoned creature disappears when it drops to 0 Hit Points or when the spell ends.",
-    "The summoned creatures are friendly to you and your companions. Roll Initiative for the summoned creatures as a group, which have their own turns. They obey any verbal commands that you issue to them, no action required by you. If you don't issue any commands to them, they defend themselves from hostile creatures, but otherwise take no actions. The DM has the creatures' statistics.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using certain higher-level spell slots, you choose one of the summoning options above, and more creatures appear: twice as many with a 6th-level slot and three times as many with an 8th-level slot."
+    "You conjure nature spirits that flit around you in a 10-foot Emanation for the duration. Whenever the Emanation enters the space of a creature you can see and whenever a creature you can see enters the Emanation or ends its turn there, you can force that creature to make a Wisdom saving throw. The creature takes <strong>5d8</strong> Force damage on a failed save or half as much damage on a successful one. A creature makes this save only once per turn. In addition, you can take the Disengage action as a Bonus Action for the spell's duration.",
+    "<strong>Using a Higher-Level Spell Slot.</strong> The damage increases by <strong>1d8</strong> for each spell slot level above 4."
   ],
-  damage: [],
+  isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.WIS,
+  isDamagingSpell: true,
+  damage: [
+    [DICE.D8, DAMAGE_TYPE.FORCE],
+    [DICE.D8, DAMAGE_TYPE.FORCE],
+    [DICE.D8, DAMAGE_TYPE.FORCE],
+    [DICE.D8, DAMAGE_TYPE.FORCE],
+    [DICE.D8, DAMAGE_TYPE.FORCE]
+  ],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.RANGER],
   spellLevel: 4
@@ -342,6 +338,7 @@ export const controlWater: SpellEntry = {
   id: "spell-control-water",
   name: "Control Water",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_control-water", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -349,21 +346,9 @@ export const controlWater: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: [
-    "Until the spell ends, you control any freestanding water inside an area you choose that is a cube up to 100 feet on a side. You can choose from any of the following effects when you cast this spell. As an action on your turn, you can repeat the same effect or choose a different one.",
-    "<strong>Flood.</strong> You cause the water level of all standing water in the area to rise by as much as 20 feet. If the area includes a shore, the flooding water spills over onto dry land. If you choose an area in a large body of water, you instead create a 20-foot-tall wave that travels from one side of the area to the other and then crashes down. Any Huge or smaller vehicles in the wave's path are carried with it to the other side. Any Huge or smaller vehicles struck by the wave have a 25 percent chance of capsizing. The water level remains elevated until the spell ends or you choose a different effect. If this effect produced a wave, the wave repeats at the start of your next turn while the flood effect lasts.",
-    "<strong>Part Water.</strong> You cause water in the area to move apart and create a trench. The trench extends across the spell's area, and the separated water forms a wall to either side. The trench remains until the spell ends or you choose a different effect. The water then slowly fills in the trench over the course of the next round until the normal water level is restored.",
-    "<strong>Redirect Flow.</strong> You cause flowing water in the area to move in a direction you choose, even if the water has to flow over obstacles, up walls, or in other unlikely directions. The water in the area moves as you direct it, but once it moves beyond the spell's area, it resumes its flow based on the terrain conditions. The water continues to move in the direction you chose until the spell ends or you choose a different effect.",
-    "<strong>Whirlpool.</strong> This effect requires a body of water at least 50 feet square and 25 feet deep. You cause a whirlpool to form in the center of the area. The whirlpool forms a vortex that is 5 feet wide at the base, up to 50 feet wide at the top, and 25 feet tall. Any creature or object in the water and within 25 feet of the vortex is pulled 10 feet toward it. A creature can swim away from the vortex by making a Strength (Athletics) check against your spell save DC.",
-    "When a creature enters the vortex for the first time on a turn or starts its turn there, it must make a Strength saving throw. On a failed save, the creature takes <strong>2d8</strong> Bludgeoning damage and is caught in the vortex until the spell ends. On a successful save, the creature takes half damage and isn't caught in the vortex. A creature caught in the vortex can use its action to try to swim away from the vortex as described above, but has Disadvantage on the Strength (Athletics) check to do so.",
-    "The first time each turn that an object enters the vortex, the object takes <strong>2d8</strong> Bludgeoning damage, and this damage occurs each round it remains in the vortex."
+    "Until the spell ends, you control any water inside an area you choose that is a Cube up to 100 feet on a side, using one of the following effects. As a Magic action on your later turns, you can repeat the same effect or choose a different one. The water level remains elevated until the spell ends or you choose a different effect. If this effect produced a wave, the wave repeats on the start of your next turn while the flood effect lasts."
   ],
-  isSavingThrowSpell: true,
-  savingThrowAbility: ABILITY_TYPES.STR,
-  isDamagingSpell: true,
-  damage: [
-    [DICE.D8, DAMAGE_TYPE.BLUDGEONING],
-    [DICE.D8, DAMAGE_TYPE.BLUDGEONING]
-  ],
+  damage: [],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
@@ -373,6 +358,7 @@ export const deathWard: SpellEntry = {
   id: "spell-death-ward",
   name: "Death Ward",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_death-ward", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -380,7 +366,7 @@ export const deathWard: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["8 hours"],
   description: [
-    "You touch a creature and grant it a measure of protection from death. The first time the target would drop to 0 Hit Points as a result of taking damage, the target instead drops to 1 Hit Point, and the spell ends. If the spell is still in effect when the target is subjected to an effect that would kill it instantaneously without dealing damage, that effect is instead negated against the target, and the spell ends."
+    "You touch a creature and grant it a measure of protection from death. The first time the target would drop to 0 Hit Points before the spell ends, the target instead drops to 1 Hit Point, and the spell ends. If the spell is still in effect when the target is subjected to an effect that would kill it instantly without dealing damage, that effect is negated against the target, and the spell ends."
   ],
   damage: [],
   healing: [],
@@ -392,6 +378,7 @@ export const dimensionDoor: SpellEntry = {
   id: "spell-dimension-door",
   name: "Dimension Door",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_dimension-door", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -399,18 +386,17 @@ export const dimensionDoor: SpellEntry = {
   components: [SPELL_COMPONENT.V],
   duration: ["Instantaneous"],
   description: [
-    'You teleport yourself from your current location to any other spot within range. You arrive at exactly the spot desired. It can be a place you can see, one you can visualize, or one you can describe by stating distance and direction, such as "200 feet straight downward" or "upward to the northwest at a 45-degree angle, 300 feet."',
-    "You can bring along objects as long as their weight doesn't exceed what you can carry. You can also bring one willing creature of your size or smaller who is carrying gear up to its carrying capacity. The creature must be within 5 feet of you when you cast this spell.",
-    "If you would arrive in a place already occupied by an object or a creature, you and any creature traveling with you each take <strong>4d6</strong> Force damage, and the spell fails to teleport you."
+    "You teleport to a location within range. You arrive at exactly the spot desired. It can be a place you can see, one you can visualize, or one you can describe by stating distance and direction, such as \"200 feet straight downward\" or \"300 feet upward to the northwest at a 45-degree angle.\" You can also teleport one willing creature. The creature must be within 5 feet of you when you teleport, and it teleports to a space within 5 feet of your destination space. If you, the other creature, or both would arrive in a space occupied by a creature or completely filled by one or more objects, you and any creature traveling with you each take <strong>4d6</strong> Force damage, and the teleportation fails."
   ],
-  damage: [],
+  isDamagingSpell: true,
+  damage: [
+    [DICE.D6, DAMAGE_TYPE.FORCE],
+    [DICE.D6, DAMAGE_TYPE.FORCE],
+    [DICE.D6, DAMAGE_TYPE.FORCE],
+    [DICE.D6, DAMAGE_TYPE.FORCE]
+  ],
   healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.BARD,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WARLOCK,
-    SPELL_LIST_CLASS.WIZARD
-  ],
+  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
 
@@ -418,28 +404,28 @@ export const divination: SpellEntry = {
   id: "spell-divination",
   name: "Divination",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_divination", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.DIVINATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["Instantaneous"],
-  ritual: true,
   description: [
-    "Your magic and an offering put you in contact with a god or a god's servants. You ask a single question concerning a specific goal, event, or activity to occur within 7 days. The DM offers a truthful reply. The reply might be a short phrase, a cryptic rhyme, or an omen.",
-    "The spell doesn't take into account any possible circumstances that might change the outcome, such as the casting of additional spells or the loss or gain of a companion.",
-    "If you cast this spell two or more times before finishing your next Long Rest, there is a cumulative 25 percent chance for each casting after the first that you get a random reading. The DM makes this roll in secret."
+    "This spell puts you in contact with a god or a god's servants. You ask one question about a specific goal, event, or activity to occur within 7 days. The GM offers a truthful reply, which might be a short phrase or cryptic rhyme. The spell doesn't account for circumstances that might change the answer, such as the casting of other spells. If you cast the spell more than once before finishing a Long Rest, there is a cumulative 25 percent chance for each casting after the first that you get no answer."
   ],
   damage: [],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.WIZARD],
-  spellLevel: 4
+  spellLevel: 4,
+  ritual: true
 };
 
 export const dominateBeast: SpellEntry = {
   id: "spell-dominate-beast",
   name: "Dominate Beast",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_dominate-beast", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
   castingTime: [ACTION_TYPE.ACTION],
@@ -447,11 +433,8 @@ export const dominateBeast: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "You attempt to beguile a Beast that you can see within range. It must succeed on a Wisdom saving throw or be Charmed by you for the duration. If you or creatures that are friendly to you are fighting it, it has Advantage on the saving throw.",
-    'While the Beast is Charmed, you have a telepathic link with it as long as the two of you are on the same plane of existence. You can use this telepathic link to issue commands to the creature while you are conscious, no action required, which it does its best to obey. You can specify a simple and general course of action, such as "Attack that creature," "Run over there," or "Fetch that object." If the creature completes the order and doesn\'t receive further direction from you, it defends and preserves itself to the best of its ability.',
-    "You can use your action to take total and precise control of the target. Until the end of your next turn, the creature takes only the actions you choose, and doesn't do anything that you don't allow it to do. During this time, you can also cause the creature to use a Reaction, but this requires you to use your own Reaction as well.",
-    "Each time the target takes damage, it makes a new Wisdom saving throw against the spell. If the saving throw succeeds, the spell ends.",
-    "<strong>At Higher Levels.</strong> When you cast this spell with a 5th-level spell slot, the duration is Concentration, up to 10 minutes. When you use a 6th-level spell slot, the duration is Concentration, up to 1 hour. When you use a spell slot of 7th level or higher, the duration is Concentration, up to 8 hours."
+    "One Beast you can see within range must succeed on a Wisdom saving throw or have the Charmed condition for the duration. The target has Advantage on the save if you or your allies are fighting it. Whenever the target takes damage, it repeats the save, ending the spell on itself on a success. You have a telepathic link with the Charmed target while the two of you are on the same plane of existence. On your turn, you can use this link to issue commands to the target (no action required), such as \"Attack that creature,\" \"Move over there,\" or \"Fetch that object.\" The target does its best to obey on its turn. If it completes an order and doesn't receive further direction from you, it acts and moves as it likes, focusing on protecting itself. You can command the target to take a Reaction but must take your own Reaction to do so.",
+    "<strong>Using a Higher-Level Spell Slot.</strong> Your Concentration can last longer with a spell slot of level 5 (up to 10 minutes), 6 (up to 1 hour), or 7+ (up to 8 hours)."
   ],
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.WIS,
@@ -465,6 +448,7 @@ export const egoWhip: SpellEntry = {
   id: "spell-ego-whip",
   name: "Ego Whip",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
   castingTime: [ACTION_TYPE.ACTION],
@@ -478,12 +462,7 @@ export const egoWhip: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.INT,
   damage: [],
   healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.BARD,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WARLOCK,
-    SPELL_LIST_CLASS.WIZARD
-  ],
+  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
 
@@ -491,6 +470,7 @@ export const elementalBane: SpellEntry = {
   id: "spell-elemental-bane",
   name: "Elemental Bane",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -505,62 +485,11 @@ export const elementalBane: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
   damage: [
-    [
-      DICE.D6,
-      [
-        DAMAGE_TYPE.ACID,
-        DAMAGE_TYPE.COLD,
-        DAMAGE_TYPE.FIRE,
-        DAMAGE_TYPE.LIGHTNING,
-        DAMAGE_TYPE.THUNDER
-      ]
-    ],
-    [
-      DICE.D6,
-      [
-        DAMAGE_TYPE.ACID,
-        DAMAGE_TYPE.COLD,
-        DAMAGE_TYPE.FIRE,
-        DAMAGE_TYPE.LIGHTNING,
-        DAMAGE_TYPE.THUNDER
-      ]
-    ]
+    [DICE.D6, [DAMAGE_TYPE.ACID, DAMAGE_TYPE.COLD, DAMAGE_TYPE.FIRE, DAMAGE_TYPE.LIGHTNING, DAMAGE_TYPE.THUNDER]],
+    [DICE.D6, [DAMAGE_TYPE.ACID, DAMAGE_TYPE.COLD, DAMAGE_TYPE.FIRE, DAMAGE_TYPE.LIGHTNING, DAMAGE_TYPE.THUNDER]]
   ],
   healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.DRUID,
-    SPELL_LIST_CLASS.WARLOCK,
-    SPELL_LIST_CLASS.WIZARD,
-    SPELL_LIST_CLASS.ARTIFICER
-  ],
-  spellLevel: 4
-};
-
-export const evardsBlackTentacles: SpellEntry = {
-  id: "spell-evards-black-tentacles",
-  name: "Evard's Black Tentacles",
-  category: ENTRY_CATEGORIES.SPELLS,
-  trackingState: TRACKER.NOT_TRACKED,
-  magicSchool: MAGIC_SCHOOL.CONJURATION,
-  castingTime: [ACTION_TYPE.ACTION],
-  range: "90 feet",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: [DURATION.CONCENTRATION, "up to 1 minute"],
-  description: [
-    "Squirming, ebony tentacles fill a 20-foot square on ground that you can see within range. For the duration, these tentacles turn the ground in the area into difficult terrain.",
-    "When a creature enters the affected area for the first time on a turn or starts its turn there, the creature must succeed on a Dexterity saving throw or take <strong>3d6</strong> Bludgeoning damage and be Restrained by the tentacles until the spell ends. A creature that starts its turn in the area and is already Restrained by the tentacles takes <strong>3d6</strong> Bludgeoning damage.",
-    "A creature Restrained by the tentacles can use its action to make a Strength or Dexterity check, its choice, against your spell save DC. On a success, it frees itself."
-  ],
-  isSavingThrowSpell: true,
-  savingThrowAbility: ABILITY_TYPES.DEX,
-  isDamagingSpell: true,
-  damage: [
-    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
-    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
-    [DICE.D6, DAMAGE_TYPE.BLUDGEONING]
-  ],
-  healing: [],
-  spellLists: [SPELL_LIST_CLASS.WIZARD],
+  spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD, SPELL_LIST_CLASS.ARTIFICER],
   spellLevel: 4
 };
 
@@ -568,6 +497,7 @@ export const fabricate: SpellEntry = {
   id: "spell-fabricate",
   name: "Fabricate",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_fabricate", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.TEN_MINUTES],
@@ -575,13 +505,41 @@ export const fabricate: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["Instantaneous"],
   description: [
-    "You convert raw materials into products of the same material. For example, you can fabricate a wooden bridge from a clump of trees, a rope from a patch of hemp, and clothes from flax or wool.",
-    "Choose raw materials that you can see within range. You can fabricate a Large or smaller object, contained within a 10-foot cube, or eight connected 5-foot cubes, given a sufficient quantity of raw material. If you are working with metal, stone, or another mineral substance, however, the fabricated object can be no larger than Medium, contained within a single 5-foot cube. The quality of objects made by the spell is commensurate with the quality of the raw materials.",
-    "Creatures or magic items can't be created or transmuted by this spell. You also can't use it to create items that ordinarily require a high degree of craftsmanship, such as jewelry, weapons, glass, or armor, unless you have proficiency with the type of artisan's tools used to craft such objects."
+    "You convert raw materials into products of the same material. For example, you can fabricate a wooden bridge from a clump of trees, a rope from a patch of hemp, or clothes from flax or wool. Choose raw materials that you can see within range. You can fabricate a Large or smaller object (contained within a 10-foot Cube or eight connected 5-foot Cubes) given a sufficient quantity of material. If you're working with metal, stone, or another mineral substance, however, the fabricated object can be no larger than Medium (contained within a 5-foot Cube). The quality of any fabricated objects is based on the quality of the raw materials. Creatures and magic items can't be created by this spell. You also can't use it to create items that require a high degree of skill—such as weapons and armor—unless you have proficiency with the type of Artisan's Tools used to craft such objects."
   ],
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [SPELL_LIST_CLASS.WIZARD],
+  spellLevel: 4
+};
+
+export const faithfulHound: SpellEntry = {
+  id: "spell-faithful-hound",
+  name: "Faithful Hound",
+  category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_faithful-hound", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  legacyIds: ["spell-mordenkainens-faithful-hound"],
+  legacyNames: ["Mordenkainen's Faithful Hound"],
+  trackingState: TRACKER.NOT_TRACKED,
+  magicSchool: MAGIC_SCHOOL.CONJURATION,
+  castingTime: [ACTION_TYPE.ACTION],
+  range: "30 feet",
+  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  duration: ["8 hours"],
+  description: [
+    "You conjure a phantom watchdog in an unoccupied space that you can see within range. The hound remains for the duration or until the two of you are more than 300 feet apart from each other. No one but you can see the hound, and it is intangible and invulnerable. When a Small or larger creature comes within 30 feet of it without first speaking the password that you specify when you cast this spell, the hound starts barking loudly. The hound has Truesight with a range of 30 feet. At the start of each of your turns, the hound attempts to bite one enemy within 5 feet of it. That enemy must succeed on a Dexterity saving throw or take <strong>4d8</strong> Force damage. On your later turns, you can take a Magic action to move the hound up to 30 feet."
+  ],
+  isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.DEX,
+  isDamagingSpell: true,
+  damage: [
+    [DICE.D8, DAMAGE_TYPE.FORCE],
+    [DICE.D8, DAMAGE_TYPE.FORCE],
+    [DICE.D8, DAMAGE_TYPE.FORCE],
+    [DICE.D8, DAMAGE_TYPE.FORCE]
+  ],
+  healing: [],
+  spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
 
@@ -589,6 +547,7 @@ export const findGreaterSteed: SpellEntry = {
   id: "spell-find-greater-steed",
   name: "Find Greater Steed",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.TEN_MINUTES],
@@ -609,6 +568,7 @@ export const fireShield: SpellEntry = {
   id: "spell-fire-shield",
   name: "Fire Shield",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_fire-shield", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -616,14 +576,15 @@ export const fireShield: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["10 minutes"],
   description: [
-    "Thin and wispy flames wreathe your body for the duration, shedding bright light in a 10-foot radius and dim light for an additional 10 feet. You can end the spell early by using an action to dismiss it.",
-    "The flames provide you with a warm shield or a chill shield, as you choose. The warm shield grants you Resistance to Cold damage, and the chill shield grants you Resistance to Fire damage.",
-    "In addition, whenever a creature within 5 feet of you hits you with a melee attack, the shield erupts with flame. The attacker takes <strong>2d8</strong> Fire damage from a warm shield, or <strong>2d8</strong> Cold damage from a cold shield."
+    "Wispy flames wreathe your body for the duration, shedding Bright Light in a 10-foot radius and Dim Light for an additional 10 feet. The flames provide you with a warm shield or a chill shield, as you choose. The warm shield grants you Resistance to Cold damage, and the chill shield grants you Resistance to Fire damage. In addition, whenever a creature within 5 feet of you hits you with a melee attack roll, the shield erupts with flame. The attacker takes <strong>2d8</strong> Fire damage from a warm shield or <strong>2d8</strong> Cold damage from a chill shield."
   ],
+  isAttackSpell: true,
   isDamagingSpell: true,
   damage: [
-    [DICE.D8, [DAMAGE_TYPE.FIRE, DAMAGE_TYPE.COLD]],
-    [DICE.D8, [DAMAGE_TYPE.FIRE, DAMAGE_TYPE.COLD]]
+    [DICE.D8, DAMAGE_TYPE.FIRE],
+    [DICE.D8, DAMAGE_TYPE.FIRE],
+    [DICE.D8, DAMAGE_TYPE.COLD],
+    [DICE.D8, DAMAGE_TYPE.COLD]
   ],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
@@ -634,6 +595,7 @@ export const freedomOfMovement: SpellEntry = {
   id: "spell-freedom-of-movement",
   name: "Freedom of Movement",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_freedom-of-movement", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -641,18 +603,15 @@ export const freedomOfMovement: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["1 hour"],
   description: [
-    "You touch a willing creature. For the duration, the target's movement is unaffected by difficult terrain, and spells and other magical effects can neither reduce the target's Speed nor cause the target to be Paralyzed or Restrained.",
-    "The target can also spend 5 feet of movement to automatically escape from nonmagical restraints, such as manacles or a creature that has it Grappled. Finally, being underwater imposes no penalties on the target's movement or attacks."
+    "You touch a willing creature. For the duration, the target's movement is unaffected by Difficult Terrain, and spells and other magical effects can neither reduce the target's Speed nor cause the target to have the Paralyzed or Restrained conditions. The target also has a Swim Speed equal to its Speed.",
+    "In addition, the target can spend 5 feet of movement to automatically escape from nonmagical restraints, such as manacles or a creature imposing the Grappled condition on it.",
+    "<strong>Using a Higher-Level Spell Slot.</strong> You can target one additional creature for each spell slot level above 4."
   ],
+  isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CON,
   damage: [],
   healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.ARTIFICER,
-    SPELL_LIST_CLASS.BARD,
-    SPELL_LIST_CLASS.CLERIC,
-    SPELL_LIST_CLASS.DRUID,
-    SPELL_LIST_CLASS.RANGER
-  ],
+  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.RANGER],
   spellLevel: 4
 };
 
@@ -660,6 +619,7 @@ export const galdersSpeedyCourier: SpellEntry = {
   id: "spell-galders-speedy-courier",
   name: "Galder's Speedy Courier",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -682,6 +642,7 @@ export const gateSeal: SpellEntry = {
   id: "spell-gate-seal",
   name: "Gate Seal",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.MINUTE],
@@ -702,17 +663,16 @@ export const giantInsect: SpellEntry = {
   id: "spell-giant-insect",
   name: "Giant Insect",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_giant-insect", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
-  magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
+  magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
-  range: "30 feet",
+  range: "60 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: [
-    "You transform up to ten centipedes, three spiders, five wasps, or one scorpion within range into giant versions of their natural forms for the duration. A centipede becomes a giant centipede, a spider becomes a giant spider, a wasp becomes a giant wasp, and a scorpion becomes a giant scorpion.",
-    "Each creature obeys your verbal commands, and in combat, they act on your turn each round. The DM has the statistics for these creatures and resolves their actions and movement.",
-    "A creature remains in its giant size for the duration, until it drops to 0 Hit Points, or until you use an action to dismiss the effect on it.",
-    "The DM might allow you to choose different targets. For example, if you transform a bee, its giant version might have the same statistics as a giant wasp."
+    "You summon a giant centipede, spider, or wasp (chosen when you cast the spell). It manifests in an unoccupied space you can see within range and uses the Giant Insect stat block. The form you choose determines certain details in its stat block. The creature disappears when it drops to 0 Hit Points or when the spell ends. The creature is an ally to you and your allies. In combat, the creature shares your Initiative count, but it takes its turn immediately after yours. It obeys your verbal commands (no action required by you). If you don't issue any, it takes the Dodge action and uses its movement to avoid danger.",
+    "<strong>Using a Higher-Level Spell Slot.</strong> Use the spell slot's level for the spell's level in the stat block."
   ],
   damage: [],
   healing: [],
@@ -724,6 +684,7 @@ export const graspingVine: SpellEntry = {
   id: "spell-grasping-vine",
   name: "Grasping Vine",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.BONUS_ACTION],
@@ -746,6 +707,7 @@ export const gravitySinkhole: SpellEntry = {
   id: "spell-gravity-sinkhole",
   name: "Gravity Sinkhole",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -775,6 +737,7 @@ export const greaterInvisibility: SpellEntry = {
   id: "spell-greater-invisibility",
   name: "Greater Invisibility",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_greater-invisibility", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ILLUSION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -794,6 +757,7 @@ export const guardianOfFaith: SpellEntry = {
   id: "spell-guardian-of-faith",
   name: "Guardian of Faith",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_guardian-of-faith", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -801,13 +765,11 @@ export const guardianOfFaith: SpellEntry = {
   components: [SPELL_COMPONENT.V],
   duration: ["8 hours"],
   description: [
-    "A Large spectral guardian appears and hovers for the duration in an unoccupied space of your choice that you can see within range. The guardian occupies that space and is indistinct except for a gleaming sword and shield emblazoned with the symbol of your deity.",
-    "Any creature hostile to you that moves to a space within 10 feet of the guardian for the first time on a turn must succeed on a Dexterity saving throw. The creature takes 20 Radiant damage on a failed save, or half as much damage on a successful one. The guardian vanishes when it has dealt a total of 60 damage."
+    "A Large spectral guardian appears and hovers for the duration in an unoccupied space that you can see within range. The guardian occupies that space and is invulnerable, and it appears in a form appropriate for your deity or pantheon. Any enemy that moves to a space within 10 feet of the guardian for the first time on a turn or starts its turn there makes a Dexterity saving throw, taking 20 Radiant damage on a failed save or half as much damage on a successful one. The guardian vanishes when it has dealt a total of 60 damage."
   ],
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.DEX,
-  isDamagingSpell: true,
-  damage: [[20, DAMAGE_TYPE.RADIANT]],
+  damage: [],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC],
   spellLevel: 4
@@ -817,6 +779,7 @@ export const guardianOfNature: SpellEntry = {
   id: "spell-guardian-of-nature",
   name: "Guardian of Nature",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.BONUS_ACTION],
@@ -837,7 +800,9 @@ export const guardianOfNature: SpellEntry = {
     "While you are on the ground, the ground within 15 feet of you is difficult terrain for your enemies."
   ],
   isDamagingSpell: true,
-  damage: [[DICE.D6, DAMAGE_TYPE.FORCE]],
+  damage: [
+    [DICE.D6, DAMAGE_TYPE.FORCE]
+  ],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.RANGER],
   spellLevel: 4
@@ -847,6 +812,7 @@ export const hallucinatoryTerrain: SpellEntry = {
   id: "spell-hallucinatory-terrain",
   name: "Hallucinatory Terrain",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_hallucinatory-terrain", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ILLUSION,
   castingTime: [ACTION_TYPE.TEN_MINUTES],
@@ -854,17 +820,11 @@ export const hallucinatoryTerrain: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["24 hours"],
   description: [
-    "You make natural terrain in a 150-foot cube in range look, sound, and smell like some other sort of natural terrain. Thus, open fields or a road can be made to resemble a swamp, hill, crevasse, or some other difficult or impassable terrain. A pond can be made to seem like a grassy meadow, a precipice like a gentle slope, or a rock-strewn gully like a wide and smooth road. Manufactured structures, equipment, and creatures within the area aren't changed in appearance.",
-    "The tactile characteristics of the terrain are unchanged, so creatures entering the area are likely to see through the illusion. If the difference isn't obvious by touch, a creature carefully examining the illusion can attempt an Intelligence (Investigation) check against your spell save DC to disbelieve it. A creature who discerns the illusion for what it is sees it as a vague image superimposed on the terrain."
+    "You make natural terrain in a 150-foot Cube in range look, sound, and smell like another sort of natural terrain. Thus, open fields or a road can be made to resemble a swamp, hill, crevasse, or some other difficult or impassable terrain. A pond can be made to seem like a grassy meadow, a precipice like a gentle slope, or a rock-strewn gully like a wide and smooth road. Manufactured structures, equipment, and creatures within the area aren't changed. The tactile characteristics of the terrain are unchanged, so creatures entering the area are likely to notice the illusion. If the difference isn't obvious by touch, a creature examining the illusion can take the Study action to make an Intelligence (Investigation) check against your spell save DC to disbelieve it. If a creature discerns that the terrain is illusory, the creature sees a vague image superimposed on the real terrain."
   ],
   damage: [],
   healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.BARD,
-    SPELL_LIST_CLASS.DRUID,
-    SPELL_LIST_CLASS.WARLOCK,
-    SPELL_LIST_CLASS.WIZARD
-  ],
+  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
 
@@ -872,6 +832,7 @@ export const iceStorm: SpellEntry = {
   id: "spell-ice-storm",
   name: "Ice Storm",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_ice-storm", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -879,16 +840,15 @@ export const iceStorm: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["Instantaneous"],
   description: [
-    "A hail of rock-hard ice pounds to the ground in a 20-foot-radius, 40-foot-high cylinder centered on a point within range. Each creature in the cylinder must make a Dexterity saving throw. A creature takes <strong>2d8</strong> Bludgeoning damage and <strong>4d6</strong> Cold damage on a failed save, or half as much damage on a successful one.",
-    "Hailstones turn the storm's area of effect into difficult terrain until the end of your next turn.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the Bludgeoning damage increases by <strong>1d8</strong> for each slot level above 4th."
+    "Hail falls in a 20-foot-radius, 40-foot-high Cylinder centered on a point within range. Each creature in the Cylinder makes a Dexterity saving throw. A creature takes <strong>2d10</strong> Bludgeoning damage and <strong>4d6</strong> Cold damage on a failed save or half as much damage on a successful one. Hailstones turn ground in the Cylinder into Difficult Terrain until the end of your next turn.",
+    "<strong>Using a Higher-Level Spell Slot.</strong> The Bludgeoning damage increases by <strong>1d10</strong> for each spell slot level above 4."
   ],
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
   damage: [
-    [DICE.D8, DAMAGE_TYPE.BLUDGEONING],
-    [DICE.D8, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D10, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D10, DAMAGE_TYPE.BLUDGEONING],
     [DICE.D6, DAMAGE_TYPE.COLD],
     [DICE.D6, DAMAGE_TYPE.COLD],
     [DICE.D6, DAMAGE_TYPE.COLD],
@@ -899,31 +859,11 @@ export const iceStorm: SpellEntry = {
   spellLevel: 4
 };
 
-export const leomundsSecretChest: SpellEntry = {
-  id: "spell-leomunds-secret-chest",
-  name: "Leomund's Secret Chest",
-  category: ENTRY_CATEGORIES.SPELLS,
-  trackingState: TRACKER.NOT_TRACKED,
-  magicSchool: MAGIC_SCHOOL.CONJURATION,
-  castingTime: [ACTION_TYPE.ACTION],
-  range: "Touch",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: ["Instantaneous"],
-  description: [
-    "You hide a chest, and all its contents, on the Ethereal Plane. You must touch the chest and the miniature replica that serves as a material component for the spell. The chest can contain up to 12 cubic feet of nonliving material, 3 feet by 2 feet by 2 feet.",
-    "While the chest remains on the Ethereal Plane, you can use an action and touch the replica to recall the chest. It appears in an unoccupied space on the ground within 5 feet of you. You can send the chest back to the Ethereal Plane by using an action and touching both the chest and the replica.",
-    "After 60 days, there is a cumulative 5 percent chance per day that the spell's effect ends. This effect ends if you cast this spell again, if the smaller replica chest is destroyed, or if you choose to end the spell as an action. If the spell ends and the larger chest is on the Ethereal Plane, it is irretrievably lost."
-  ],
-  damage: [],
-  healing: [],
-  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.WIZARD],
-  spellLevel: 4
-};
-
 export const locateCreature: SpellEntry = {
   id: "spell-locate-creature",
   name: "Locate Creature",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_locate-creature", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.DIVINATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -931,99 +871,11 @@ export const locateCreature: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: [DURATION.CONCENTRATION, "up to 1 hour"],
   description: [
-    "Describe or name a creature that is familiar to you. You sense the direction to the creature's location, as long as that creature is within 1,000 feet of you. If the creature is moving, you know the direction of its movement.",
-    "The spell can locate a specific creature known to you, or the nearest creature of a specific kind, such as a Human or a unicorn, so long as you have seen such a creature up close, within 30 feet, at least once. If the creature you described or named is in a different form, such as being under the effects of a Polymorph spell, this spell doesn't locate the creature.",
-    "This spell can't locate a creature if running water at least 10 feet wide blocks a direct path between you and the creature."
+    "Describe or name a creature that is familiar to you. You sense the direction to the creature's location if that creature is within 1,000 feet of you. If the creature is moving, you know the direction of its movement. The spell can locate a specific creature known to you or the nearest creature of a specific kind (such as a human or a unicorn) if you have seen such a creature up close—within 30 feet—at least once. If the creature you described or named is in a different form, such as under the effects of a Flesh to Stone or Polymorph spell, this spell doesn't locate the creature. This spell can't locate a creature if any thickness of lead blocks a direct path between you and the creature."
   ],
   damage: [],
   healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.BARD,
-    SPELL_LIST_CLASS.CLERIC,
-    SPELL_LIST_CLASS.DRUID,
-    SPELL_LIST_CLASS.PALADIN,
-    SPELL_LIST_CLASS.RANGER,
-    SPELL_LIST_CLASS.WIZARD
-  ],
-  spellLevel: 4
-};
-
-export const mordenkainensFaithfulHound: SpellEntry = {
-  id: "spell-mordenkainens-faithful-hound",
-  name: "Mordenkainen's Faithful Hound",
-  category: ENTRY_CATEGORIES.SPELLS,
-  trackingState: TRACKER.NOT_TRACKED,
-  magicSchool: MAGIC_SCHOOL.CONJURATION,
-  castingTime: [ACTION_TYPE.ACTION],
-  range: "30 feet",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: ["8 hours"],
-  description: [
-    "You conjure a phantom watchdog in an unoccupied space that you can see within range, where it remains for the duration, until you dismiss it as an action, or until you move more than 100 feet away from it.",
-    "The hound is Invisible to all creatures except you and can't be harmed. When a Small or larger creature comes within 30 feet of it without first speaking the password that you specify when you cast this spell, the hound starts barking loudly. The hound sees Invisible creatures and can see into the Ethereal Plane. It ignores illusions.",
-    "At the start of each of your turns, the hound attempts to bite one creature within 5 feet of it that is hostile to you. The hound's attack bonus is equal to your spellcasting ability modifier + your proficiency bonus. On a hit, it deals <strong>4d8</strong> Piercing damage."
-  ],
-  isDamagingSpell: true,
-  damage: [
-    [DICE.D8, DAMAGE_TYPE.PIERCING],
-    [DICE.D8, DAMAGE_TYPE.PIERCING],
-    [DICE.D8, DAMAGE_TYPE.PIERCING],
-    [DICE.D8, DAMAGE_TYPE.PIERCING]
-  ],
-  healing: [],
-  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.WIZARD],
-  spellLevel: 4
-};
-
-export const mordenkainensPrivateSanctum: SpellEntry = {
-  id: "spell-mordenkainens-private-sanctum",
-  name: "Mordenkainen's Private Sanctum",
-  category: ENTRY_CATEGORIES.SPELLS,
-  trackingState: TRACKER.NOT_TRACKED,
-  magicSchool: MAGIC_SCHOOL.ABJURATION,
-  castingTime: [ACTION_TYPE.TEN_MINUTES],
-  range: "120 feet",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: ["24 hours"],
-  description: [
-    "You make an area within range magically secure. The area is a cube that can be as small as 5 feet to as large as 100 feet on each side. The spell lasts for the duration or until you use an action to dismiss it.",
-    "When you cast the spell, you decide what sort of security the spell provides, choosing any or all of the following properties:",
-    "Sound can't pass through the barrier at the edge of the warded area.",
-    "The barrier of the warded area appears dark and foggy, preventing vision, including Darkvision, through it.",
-    "Sensors created by Divination spells can't appear inside the protected area or pass through the barrier at its perimeter.",
-    "Creatures in the area can't be targeted by Divination spells.",
-    "Nothing can teleport into or out of the warded area.",
-    "Planar travel is blocked within the warded area.",
-    "Casting this spell on the same spot every day for a year makes this effect permanent.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, you can increase the size of the cube by 100 feet for each slot level beyond 4th. Thus you could protect a cube that can be up to 200 feet on one side by using a spell slot of 5th level."
-  ],
-  damage: [],
-  healing: [],
-  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.WIZARD],
-  spellLevel: 4
-};
-
-export const otilukesResilientSphere: SpellEntry = {
-  id: "spell-otilukes-resilient-sphere",
-  name: "Otiluke's Resilient Sphere",
-  category: ENTRY_CATEGORIES.SPELLS,
-  trackingState: TRACKER.NOT_TRACKED,
-  magicSchool: MAGIC_SCHOOL.EVOCATION,
-  castingTime: [ACTION_TYPE.ACTION],
-  range: "30 feet",
-  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: [DURATION.CONCENTRATION, "up to 1 minute"],
-  description: [
-    "A sphere of shimmering force encloses a creature or object of Large size or smaller within range. An unwilling creature must make a Dexterity saving throw. On a failed save, the creature is enclosed for the duration.",
-    "Nothing, not physical objects, energy, or other spell effects, can pass through the barrier, in or out, though a creature in the sphere can breathe there. The sphere is immune to all damage, and a creature or object inside can't be damaged by attacks or effects originating from outside, nor can a creature inside the sphere damage anything outside it.",
-    "The sphere is weightless and just large enough to contain the creature or object inside. An enclosed creature can use its action to push against the sphere's walls and thus roll the sphere at up to half the creature's Speed. Similarly, the globe can be picked up and moved by other creatures.",
-    "A Disintegrate spell targeting the globe destroys it without harming anything inside it."
-  ],
-  isSavingThrowSpell: true,
-  savingThrowAbility: ABILITY_TYPES.DEX,
-  damage: [],
-  healing: [],
-  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.PALADIN, SPELL_LIST_CLASS.RANGER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
 
@@ -1031,6 +883,7 @@ export const phantasmalKiller: SpellEntry = {
   id: "spell-phantasmal-killer",
   name: "Phantasmal Killer",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_phantasmal-killer", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ILLUSION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1038,12 +891,12 @@ export const phantasmalKiller: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "You tap into the nightmares of a creature you can see within range and create an illusory manifestation of its deepest fears, visible only to that creature.",
-    "The target must make a Wisdom saving throw. On a failed save, the target becomes Frightened for the duration. At the end of each of the target's turns before the spell ends, the target must succeed on a Wisdom saving throw or take <strong>4d10</strong> Psychic damage. On a successful save, the spell ends.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the damage increases by <strong>1d10</strong> for each slot level above 4th."
+    "You tap into the nightmares of a creature you can see within range and create an illusion of its deepest fears, visible only to that creature. The target makes a Wisdom saving throw. On a failed save, the target takes <strong>4d10</strong> Psychic damage and has Disadvantage on ability checks and attack rolls for the duration. On a successful save, the target takes half as much damage, and the spell ends. For the duration, the target makes a Wisdom saving throw at the end of each of its turns. On a failed save, it takes the Psychic damage again. On a successful save, the spell ends.",
+    "<strong>Using a Higher-Level Spell Slot.</strong> The damage increases by <strong>1d10</strong> for each spell slot level above 4."
   ],
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.WIS,
+  isAttackSpell: true,
   isDamagingSpell: true,
   damage: [
     [DICE.D10, DAMAGE_TYPE.PSYCHIC],
@@ -1060,6 +913,7 @@ export const polymorph: SpellEntry = {
   id: "spell-polymorph",
   name: "Polymorph",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_polymorph", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1067,22 +921,38 @@ export const polymorph: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: [DURATION.CONCENTRATION, "up to 1 hour"],
   description: [
-    "This spell transforms a creature that you can see within range into a new form. An unwilling creature must make a Wisdom saving throw to avoid the effect. A Shapechanger automatically succeeds on this saving throw.",
-    "The transformation lasts for the duration, or until the target drops to 0 Hit Points or dies. The new form can be any Beast whose Challenge Rating is equal to or less than the target's, or the target's level, if it doesn't have a Challenge Rating. The target's game statistics, including mental ability scores, are replaced by the statistics of the chosen Beast. It retains its alignment and personality.",
-    "The target assumes the Hit Points of its new form. When it reverts to its normal form, the creature returns to the number of Hit Points it had before it transformed. If it reverts as a result of dropping to 0 Hit Points, any excess damage carries over to its normal form. As long as the excess damage doesn't reduce the creature's normal form to 0 Hit Points, it isn't knocked Unconscious.",
-    "The creature is limited in the actions it can perform by the nature of its new form, and it can't speak, cast spells, or take any other action that requires hands or speech.",
-    "The target's gear melds into the new form. The creature can't activate, use, wield, or otherwise benefit from any of its equipment. This spell can't affect a target that has 0 Hit Points."
+    "You attempt to transform a creature that you can see within range into a Beast. The target must succeed on a Wisdom saving throw or shape-shift into a Beast form for the duration. That form can be any Beast you choose that has a Challenge Rating equal to or less than the target's (or the target's level if it doesn't have a Challenge Rating). The target's game statistics are replaced by the stat block of the chosen Beast, but the target retains its alignment, personality, creature type, Hit Points, and Hit Point Dice. See the \"Animals\" section of \"Monsters\" for a sample of Beast stat blocks. The target gains a number of Temporary Hit Points equal to the Hit Points of the Beast form. These Temporary Hit Points vanish if any remain when the spell ends. The spell ends early on the target if it has no Temporary Hit Points left. The target is limited in the actions it can perform by the anatomy of its new form, and it can't speak or cast spells. The target's gear melds into the new form. The creature can't use or otherwise benefit from any of that equipment."
   ],
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
   healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.BARD,
-    SPELL_LIST_CLASS.DRUID,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WIZARD
+  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
+  spellLevel: 4
+};
+
+export const privateSanctum: SpellEntry = {
+  id: "spell-private-sanctum",
+  name: "Private Sanctum",
+  category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_private-sanctum", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  legacyIds: ["spell-mordenkainens-private-sanctum"],
+  legacyNames: ["Mordenkainen's Private Sanctum"],
+  trackingState: TRACKER.NOT_TRACKED,
+  magicSchool: MAGIC_SCHOOL.ABJURATION,
+  castingTime: [ACTION_TYPE.TEN_MINUTES],
+  range: "120 feet",
+  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  duration: ["24 hours"],
+  description: [
+    "You make an area within range magically secure. The area is a Cube that can be as small as 5 feet to as large as 100 feet on each side. The spell lasts for the duration.",
+    "When you cast the spell, you decide what sort of security the spell provides, choosing any of the following properties:",
+    { type: "list", style: "bullet", items: ["Sound can't pass through the barrier at the edge of the warded area.", "The barrier of the warded area appears dark and foggy, preventing vision (including Darkvision) through it.", "Sensors created by Divination spells can't appear inside the protected area or pass through the barrier at its perimeter. - Creatures in the area can't be targeted by Divination spells.", "Nothing can teleport into or out of the warded area.", "Planar travel is blocked within the warded area. Casting this spell on the same spot every day for 365 days makes the spell last until dispelled."] },
+    "<strong>Using a Higher-Level Spell Slot.</strong> You can increase the size of the Cube by 100 feet for each spell slot level above 4."
   ],
+  damage: [],
+  healing: [],
+  spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
 
@@ -1090,6 +960,7 @@ export const raulothimsPsychicLance: SpellEntry = {
   id: "spell-raulothims-psychic-lance",
   name: "Raulothim's Psychic Lance",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1114,12 +985,53 @@ export const raulothimsPsychicLance: SpellEntry = {
     [DICE.D6, DAMAGE_TYPE.PSYCHIC]
   ],
   healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.BARD,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WARLOCK,
-    SPELL_LIST_CLASS.WIZARD
+  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
+  spellLevel: 4
+};
+
+export const resilientSphere: SpellEntry = {
+  id: "spell-resilient-sphere",
+  name: "Resilient Sphere",
+  category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_resilient-sphere", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  legacyIds: ["spell-otilukes-resilient-sphere"],
+  legacyNames: ["Otiluke's Resilient Sphere"],
+  trackingState: TRACKER.NOT_TRACKED,
+  magicSchool: MAGIC_SCHOOL.ABJURATION,
+  castingTime: [ACTION_TYPE.ACTION],
+  range: "30 feet",
+  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  duration: [DURATION.CONCENTRATION, "up to 1 minute"],
+  description: [
+    "A shimmering sphere encloses a Large or smaller creature or object within range. An unwilling creature must succeed on a Dexterity saving throw or be enclosed for the duration. Nothing—not physical objects, energy, or other spell effects—can pass through the barrier, in or out, though a creature in the sphere can breathe there. The sphere is immune to all damage, and a creature or object inside can't be damaged by attacks or effects originating from outside, nor can a creature inside the sphere damage anything outside it. The sphere is weightless and just large enough to contain the creature or object inside. An enclosed creature can take an action to push against the sphere's walls and thus roll the sphere at up to half the creature's Speed. Similarly, the globe can be picked up and moved by other creatures. A Disintegrate spell targeting the globe destroys it without harming anything inside."
   ],
+  isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.DEX,
+  damage: [],
+  healing: [],
+  spellLists: [SPELL_LIST_CLASS.WIZARD],
+  spellLevel: 4
+};
+
+export const secretChest: SpellEntry = {
+  id: "spell-secret-chest",
+  name: "Secret Chest",
+  category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_secret-chest", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  legacyIds: ["spell-leomunds-secret-chest"],
+  legacyNames: ["Leomund's Secret Chest"],
+  trackingState: TRACKER.NOT_TRACKED,
+  magicSchool: MAGIC_SCHOOL.CONJURATION,
+  castingTime: [ACTION_TYPE.ACTION],
+  range: "Touch",
+  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  duration: ["Until dispelled"],
+  description: [
+    "You hide a chest and all its contents on the Ethereal Plane. You must touch the chest and the miniature replica that serve as Material components for the spell. The chest can contain up to 12 cubic feet of nonliving material (3 feet by 2 feet by 2 feet). While the chest remains on the Ethereal Plane, you can take a Magic action and touch the replica to recall the chest. It appears in an unoccupied space on the ground within 5 feet of you. You can send the chest back to the Ethereal Plane by taking a Magic action to touch the chest and the replica. After 60 days, there is a cumulative 5 percent chance at the end of each day that the spell ends. The spell also ends if you cast this spell again or if the Tiny replica chest is destroyed. If the spell ends and the larger chest is on the Ethereal Plane, the chest remains there for you or someone else to find."
+  ],
+  damage: [],
+  healing: [],
+  spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
 
@@ -1127,6 +1039,7 @@ export const shadowOfMoil: SpellEntry = {
   id: "spell-shadow-of-moil",
   name: "Shadow Of Moil",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.NECROMANCY,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1151,6 +1064,7 @@ export const sickeningRadiance: SpellEntry = {
   id: "spell-sickening-radiance",
   name: "Sickening Radiance",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1179,6 +1093,7 @@ export const spiritOfDeath: SpellEntry = {
   id: "spell-spirit-of-death",
   name: "Spirit Of Death",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.NECROMANCY,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1205,7 +1120,9 @@ export const spiritOfDeath: SpellEntry = {
     "<strong>Haunt Creature.</strong> The spirit targets a creature it can see within 10 feet of itself and begins haunting it. While the target is haunted, you and the spirit sense the direction and distance to the target if it is on the same plane of existence as you. Additionally, if the target starts its turn within 10 feet of the spirit, the target must succeed on a Wisdom saving throw against your spell save DC or have the Frightened condition until the start of the target's next turn. The target remains haunted until it dies, the spirit disappears, or the spirit uses this action again."
   ],
   isDamagingSpell: true,
-  damage: [[DICE.D8, DAMAGE_TYPE.NECROTIC]],
+  damage: [
+    [DICE.D8, DAMAGE_TYPE.NECROTIC]
+  ],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
@@ -1215,6 +1132,7 @@ export const staggeringSmite: SpellEntry = {
   id: "spell-staggering-smite",
   name: "Staggering Smite",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.BONUS_ACTION],
@@ -1242,6 +1160,7 @@ export const stoneShape: SpellEntry = {
   id: "spell-stone-shape",
   name: "Stone Shape",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_stone-shape", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1249,16 +1168,11 @@ export const stoneShape: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["Instantaneous"],
   description: [
-    "You touch a stone object of Medium size or smaller or a section of stone no more than 5 feet in any dimension and form it into any shape that suits your purpose. So, for example, you could shape a large rock into a weapon, idol, or coffer, or make a small passage through a wall, as long as the wall is less than 5 feet thick. You could also shape a stone door or its frame to seal the door shut. The object you create can have up to two hinges and a latch, but finer mechanical detail isn't possible."
+    "You touch a stone object of Medium size or smaller or a section of stone no more than 5 feet in any dimension and form it into any shape you like. For example, you could shape a large rock into a weapon, statue, or coffer, or you could make a small passage through a wall that is 5 feet thick. You could also shape a stone door or its frame to seal the door shut. The object you create can have up to two hinges and a latch, but finer mechanical detail isn't possible."
   ],
   damage: [],
   healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.ARTIFICER,
-    SPELL_LIST_CLASS.CLERIC,
-    SPELL_LIST_CLASS.DRUID,
-    SPELL_LIST_CLASS.WIZARD
-  ],
+  spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
 
@@ -1266,24 +1180,19 @@ export const stoneskin: SpellEntry = {
   id: "spell-stoneskin",
   name: "Stoneskin",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_stoneskin", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
-  magicSchool: MAGIC_SCHOOL.ABJURATION,
+  magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: [DURATION.CONCENTRATION, "up to 1 hour"],
   description: [
-    "This spell turns the flesh of a willing creature you touch as hard as stone. Until the spell ends, the target has Resistance to nonmagical Bludgeoning, Piercing, and Slashing damage."
+    "Until the spell ends, one willing creature you touch has Resistance to Bludgeoning, Piercing, and Slashing damage."
   ],
   damage: [],
   healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.ARTIFICER,
-    SPELL_LIST_CLASS.DRUID,
-    SPELL_LIST_CLASS.RANGER,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WIZARD
-  ],
+  spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.RANGER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
 
@@ -1291,6 +1200,7 @@ export const stormSphere: SpellEntry = {
   id: "spell-storm-sphere",
   name: "Storm Sphere",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1324,6 +1234,7 @@ export const summonAberration: SpellEntry = {
   id: "spell-summon-aberration",
   name: "Summon Aberration",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1345,6 +1256,7 @@ export const summonConstruct: SpellEntry = {
   id: "spell-summon-construct",
   name: "Summon Construct",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1366,6 +1278,7 @@ export const summonElemental: SpellEntry = {
   id: "spell-summon-elemental",
   name: "Summon Elemental",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1387,6 +1300,7 @@ export const summonGreaterDemon: SpellEntry = {
   id: "spell-summon-greater-demon",
   name: "Summon Greater Demon",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1410,6 +1324,7 @@ export const synchronicity: SpellEntry = {
   id: "spell-synchronicity",
   name: "Synchronicity",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1431,6 +1346,7 @@ export const systemBackdoor: SpellEntry = {
   id: "spell-system-backdoor",
   name: "System Backdoor",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.MINUTE],
@@ -1452,6 +1368,7 @@ export const vitriolicSphere: SpellEntry = {
   id: "spell-vitriolic-sphere",
   name: "Vitriolic Sphere",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_vitriolic-sphere", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1459,8 +1376,8 @@ export const vitriolicSphere: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["Instantaneous"],
   description: [
-    "You point at a place within range, and a glowing 1-foot ball of emerald acid streaks there and explodes in a 20-foot radius. Each creature in that area must make a Dexterity saving throw. On a failed save, a creature takes <strong>10d4</strong> Acid damage and <strong>5d4</strong> Acid damage at the end of its next turn. On a successful save, a creature takes half the initial damage and no damage at the end of its next turn.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the initial damage increases by <strong>2d4</strong> for each slot level above 4th."
+    "You point at a location within range, and a glowing, 1-foot-diameter ball of acid streaks there and explodes in a 20-foot-radius Sphere. Each creature in that area makes a Dexterity saving throw. On a failed save, a creature takes <strong>10d4</strong> Acid damage and another <strong>5d4</strong> Acid damage at the end of its next turn. On a successful save, a creature takes half the initial damage only.",
+    "<strong>Using a Higher-Level Spell Slot.</strong> The initial damage increases by <strong>2d4</strong> for each spell slot level above 4."
   ],
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.DEX,
@@ -1491,6 +1408,7 @@ export const wallOfFire: SpellEntry = {
   id: "spell-wall-of-fire",
   name: "Wall of Fire",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_wall-of-fire", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1498,15 +1416,18 @@ export const wallOfFire: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "You create a wall of fire on a solid surface within range. You can make the wall up to 60 feet long, 20 feet high, and 1 foot thick, or a ringed wall up to 20 feet in diameter, 20 feet high, and 1 foot thick. The wall is opaque and lasts for the duration.",
-    "When the wall appears, each creature within its area must make a Dexterity saving throw. On a failed save, a creature takes <strong>5d8</strong> Fire damage, or half as much damage on a successful save.",
-    "One side of the wall, selected by you when you cast this spell, deals <strong>5d8</strong> Fire damage to each creature that ends its turn within 10 feet of that side or inside the wall. A creature takes the same damage when it enters the wall for the first time on a turn or ends its turn there. The other side of the wall deals no damage.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the damage increases by <strong>1d8</strong> for each slot level above 4th."
+    "You create a wall of fire on a solid surface within range. You can make the wall up to 60 feet long, 20 feet high, and 1 foot thick, or a ringed wall up to 20 feet in diameter, 20 feet high, and 1 foot thick. The wall is opaque and lasts for the duration. When the wall appears, each creature in its area makes a Dexterity saving throw, taking <strong>5d8</strong> Fire damage on a failed save or half as much damage on a successful one. One side of the wall, selected by you when you cast this spell, deals <strong>5d8</strong> Fire damage to each creature that ends its turn within 10 feet of that side or inside the wall. A creature takes the same damage when it enters the wall for the first time on a turn or ends its turn there. The other side of the wall deals no damage.",
+    "<strong>Using a Higher-Level Spell Slot.</strong> The damage increases by <strong>1d8</strong> for each spell slot level above 4."
   ],
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
   damage: [
+    [DICE.D8, DAMAGE_TYPE.FIRE],
+    [DICE.D8, DAMAGE_TYPE.FIRE],
+    [DICE.D8, DAMAGE_TYPE.FIRE],
+    [DICE.D8, DAMAGE_TYPE.FIRE],
+    [DICE.D8, DAMAGE_TYPE.FIRE],
     [DICE.D8, DAMAGE_TYPE.FIRE],
     [DICE.D8, DAMAGE_TYPE.FIRE],
     [DICE.D8, DAMAGE_TYPE.FIRE],
@@ -1522,6 +1443,7 @@ export const waterySphere: SpellEntry = {
   id: "spell-watery-sphere",
   name: "Watery Sphere",
   category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1548,6 +1470,7 @@ export const spellEntries4: SpellEntry[] = [
   auraOfLife,
   auraOfPurity,
   banishment,
+  blackTentacles,
   blight,
   charmMonster,
   compulsion,
@@ -1564,8 +1487,8 @@ export const spellEntries4: SpellEntry[] = [
   dominateBeast,
   egoWhip,
   elementalBane,
-  evardsBlackTentacles,
   fabricate,
+  faithfulHound,
   findGreaterSteed,
   fireShield,
   freedomOfMovement,
@@ -1579,14 +1502,13 @@ export const spellEntries4: SpellEntry[] = [
   guardianOfNature,
   hallucinatoryTerrain,
   iceStorm,
-  leomundsSecretChest,
   locateCreature,
-  mordenkainensFaithfulHound,
-  mordenkainensPrivateSanctum,
-  otilukesResilientSphere,
   phantasmalKiller,
   polymorph,
+  privateSanctum,
   raulothimsPsychicLance,
+  resilientSphere,
+  secretChest,
   shadowOfMoil,
   sickeningRadiance,
   spiritOfDeath,

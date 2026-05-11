@@ -7,7 +7,8 @@ export const fiendishVigorTemporaryHitPointsSource = "Fiendish Vigor";
 
 const falseLifeBaseBonus = 4;
 const falseLifeUpcastBonusPerLevel = 5;
-const falseLifeMaximumDieResult = 4;
+const falseLifeBaseDiceFormula = "2d4";
+const falseLifeMaximumDieResult = 8;
 
 function normalizeFalseLifeSpellSlotLevel(spellSlotLevel: unknown): number {
   const numericSpellSlotLevel = Number(spellSlotLevel);
@@ -39,7 +40,7 @@ export function getFalseLifeTemporaryHitPointsFormula(options?: {
     );
   }
 
-  return "1d4";
+  return falseLifeBaseDiceFormula;
 }
 
 export function getFalseLifeTemporaryHitPointsFormulaDisplay(
@@ -52,7 +53,7 @@ export function getFalseLifeTemporaryHitPointsFormulaDisplay(
     return `${falseLifeMaximumDieResult + bonus} Temporary Hit Points`;
   }
 
-  return `1d4 + ${bonus} Temporary Hit Points`;
+  return `${falseLifeBaseDiceFormula} + ${bonus} Temporary Hit Points`;
 }
 
 export function getFalseLifeTemporaryHitPointsFromRoll(

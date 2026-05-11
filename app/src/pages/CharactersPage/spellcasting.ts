@@ -1,5 +1,6 @@
 import {
   CLASS_FEATURE,
+  resolveSpellIdAlias,
   type ClassEntry,
   type FeatureClassObj,
   type SpellEntry
@@ -43,6 +44,19 @@ function sanitizeSpellLevel(value: unknown): number {
   }
 
   return Math.max(0, Math.min(9, Math.floor(numericValue)));
+}
+
+function normalizeSpellId(value: string): string {
+  return resolveSpellIdAlias(value.trim());
+}
+
+function normalizeSpellIdList(spellIds: unknown): string[] {
+  return Array.isArray(spellIds)
+    ? spellIds
+        .filter((spellId): spellId is string => typeof spellId === "string")
+        .map(normalizeSpellId)
+        .filter((spellId) => spellId.length > 0)
+    : [];
 }
 
 function getClassEntry(className: string): ClassEntry | undefined {
@@ -229,10 +243,8 @@ export function normalizePreparedSpellIds(
   excludedSpellIds: string[] = []
 ): string[] {
   const availableSpellsById = new Map(availableSpells.map((spell) => [spell.id, spell]));
-  const excludedSpellIdSet = new Set(excludedSpellIds);
-  const rawSpellIds = Array.isArray(spellIds)
-    ? spellIds.filter((spellId): spellId is string => typeof spellId === "string")
-    : [];
+  const excludedSpellIdSet = new Set(excludedSpellIds.map(normalizeSpellId));
+  const rawSpellIds = normalizeSpellIdList(spellIds);
   const selectedSpellIds: string[] = [];
 
   for (const spellId of [...new Set(rawSpellIds)]) {
@@ -268,12 +280,12 @@ export function normalizeSpellbookSpellIds(
   alwaysIncludedSpellIds: string[] = []
 ): string[] {
   const availableSpellsById = new Map(availableSpells.map((spell) => [spell.id, spell]));
-  const rawSpellIds = Array.isArray(spellIds)
-    ? spellIds.filter((spellId): spellId is string => typeof spellId === "string")
-    : [];
+  const rawSpellIds = normalizeSpellIdList(spellIds);
   const selectedSpellIds: string[] = [];
 
-  for (const spellId of [...new Set([...rawSpellIds, ...alwaysIncludedSpellIds])]) {
+  for (const spellId of [
+    ...new Set([...rawSpellIds, ...alwaysIncludedSpellIds.map(normalizeSpellId)])
+  ]) {
     const spell = availableSpellsById.get(spellId);
 
     if (!spell) {
@@ -296,9 +308,7 @@ export function normalizeTrackedSpellIds(
   limit: number | null
 ): string[] {
   const availableSpellIds = new Set(availableSpells.map((spell) => spell.id));
-  const rawSpellIds = Array.isArray(spellIds)
-    ? spellIds.filter((spellId): spellId is string => typeof spellId === "string")
-    : [];
+  const rawSpellIds = normalizeSpellIdList(spellIds);
 
   return [...new Set(rawSpellIds)]
     .filter((spellId) => availableSpellIds.has(spellId))

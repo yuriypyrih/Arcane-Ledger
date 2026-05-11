@@ -265,7 +265,7 @@ export const bardFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
   [CLASS_FEATURE.WORDS_OF_CREATION]: {
     description: [
       "You have mastered two of the Words of Creation: the words of life and death.",
-      "You therefore always have the <spell:Power Word: Heal>Power Word Heal</spell> and <spell:Power Word: Kill>Power Word Kill</spell> spells prepared.",
+      "You therefore always have the <spell:Power Word Heal>Power Word Heal</spell> and <spell:Power Word Kill>Power Word Kill</spell> spells prepared.",
       "When you cast either spell, you can target a second creature with it if that creature is within 10 feet of the first target."
     ],
     trackingState: TRACKER.TRACKED

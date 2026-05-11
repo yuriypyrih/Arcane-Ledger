@@ -216,7 +216,7 @@ export const warlockSubclassEntries: SubclassEntry[] = [
         {
           description: [
             "When you reach a Warlock level specified in the Great Old One Spells table, you thereafter always have the listed spells prepared.",
-            "<strong>Level 3.</strong> <spell:Detect Thoughts>Detect Thoughts</spell>, <spell:Dissonant Whispers>Dissonant Whispers</spell>, <spell:Phantasmal Force>Phantasmal Force</spell>, <spell:Tasha's Hideous Laughter>Tasha's Hideous Laughter</spell>",
+            "<strong>Level 3.</strong> <spell:Detect Thoughts>Detect Thoughts</spell>, <spell:Dissonant Whispers>Dissonant Whispers</spell>, <spell:Phantasmal Force>Phantasmal Force</spell>, <spell:Hideous Laughter>Hideous Laughter</spell>",
             "<strong>Level 5.</strong> <spell:Clairvoyance>Clairvoyance</spell>, <spell:Hunger of Hadar>Hunger of Hadar</spell>",
             "<strong>Level 7.</strong> <spell:Confusion>Confusion</spell>, <spell:Summon Aberration>Summon Aberration</spell>",
             "<strong>Level 9.</strong> <spell:Modify Memory>Modify Memory</spell>, <spell:Telekinesis>Telekinesis</spell>"

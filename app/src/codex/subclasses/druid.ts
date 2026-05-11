@@ -153,7 +153,7 @@ export const druidSubclassEntries: SubclassEntry[] = [
             "You can also cast the spells from this feature while you're in a Wild Shape form.",
             "<strong>Level 3.</strong> <spell:Cure Wounds>Cure Wounds</spell>, <spell:Moonbeam>Moonbeam</spell>, <spell:Starry Wisp>Starry Wisp</spell>",
             "<strong>Level 5.</strong> <spell:Conjure Animals>Conjure Animals</spell>",
-            "<strong>Level 7.</strong> <spell:Fount of Moonlight>Fount of Moonlight</spell>",
+            "<strong>Level 7.</strong> Fount of Moonlight",
             "<strong>Level 9.</strong> <spell:Mass Cure Wounds>Mass Cure Wounds</spell>"
           ],
           trackingState: TRACKER.TRACKED

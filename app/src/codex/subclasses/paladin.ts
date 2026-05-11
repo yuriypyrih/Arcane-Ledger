@@ -169,7 +169,7 @@ export const paladinSubclassEntries: SubclassEntry[] = [
             "<strong>Level 5.</strong> <spell:Enhance Ability>Enhance Ability</spell>, <spell:Magic Weapon>Magic Weapon</spell>",
             "<strong>Level 9.</strong> <spell:Haste>Haste</spell>, <spell:Protection from Energy>Protection from Energy</spell>",
             "<strong>Level 13.</strong> <spell:Compulsion>Compulsion</spell>, <spell:Freedom of Movement>Freedom of Movement</spell>",
-            "<strong>Level 17.</strong> <spell:Legend Lore>Legend Lore</spell>, <spell:Yolande's Regal Presence>Yolande's Regal Presence</spell>"
+            "<strong>Level 17.</strong> <spell:Legend Lore>Legend Lore</spell>, Yolande's Regal Presence"
           ],
           trackingState: TRACKER.TRACKED
         }

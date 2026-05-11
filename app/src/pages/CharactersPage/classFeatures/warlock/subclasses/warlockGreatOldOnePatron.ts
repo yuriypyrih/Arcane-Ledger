@@ -54,7 +54,7 @@ const greatOldOnePatronSpellIdsByLevel = {
     "Detect Thoughts",
     "Dissonant Whispers",
     "Phantasmal Force",
-    "Tasha's Hideous Laughter"
+    "Hideous Laughter"
   ]),
   5: resolveSpellIdsByName(["Clairvoyance", "Hunger of Hadar"]),
   7: resolveSpellIdsByName(["Confusion", "Summon Aberration"]),

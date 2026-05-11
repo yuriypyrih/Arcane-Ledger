@@ -1,5 +1,10 @@
 import { wizardFeatures, type WizardFeatureClassObj } from "../../../../codex/classes";
-import { CLASS_FEATURE, getSpellEntryById, type SpellEntry } from "../../../../codex/entries";
+import {
+  CLASS_FEATURE,
+  getSpellEntryById,
+  resolveSpellIdAlias,
+  type SpellEntry
+} from "../../../../codex/entries";
 import type {
   Character,
   CharacterWizardFeatureState,
@@ -140,7 +145,7 @@ function normalizeWizardSpellMasterySpellIds(
     const spellId = record[spellLevel];
 
     if (typeof spellId === "string" && spellId.trim().length > 0) {
-      normalized[spellLevel] = spellId;
+      normalized[spellLevel] = resolveSpellIdAlias(spellId.trim());
     }
   });
 
@@ -156,10 +161,13 @@ function normalizeWizardTrackedSpellIds(value: unknown, limit: number): string[]
     return [];
   }
 
-  return [...new Set(value.filter((entry): entry is string => typeof entry === "string"))].slice(
-    0,
-    limit
-  );
+  return [
+    ...new Set(
+      value
+        .filter((entry): entry is string => typeof entry === "string")
+        .map((spellId) => resolveSpellIdAlias(spellId.trim()))
+    )
+  ].slice(0, limit);
 }
 
 function getWizardPreparedSpellSelectionOptions(character: Pick<Character, "className" | "level">) {
@@ -178,7 +186,9 @@ function isWizardSpellMasterySpellIdValid(
 
   const spellbookSpellIdSet = new Set([
     ...(Array.isArray(character.spellbookSpellIds)
-      ? character.spellbookSpellIds.filter((entry): entry is string => typeof entry === "string")
+      ? character.spellbookSpellIds
+          .filter((entry): entry is string => typeof entry === "string")
+          .map((entry) => resolveSpellIdAlias(entry.trim()))
       : []),
     ...getWizardAlwaysSpellbookSpellIds(character)
   ]);
@@ -211,7 +221,9 @@ function isWizardSignatureSpellIdValid(
 
   const spellbookSpellIdSet = new Set([
     ...(Array.isArray(character.spellbookSpellIds)
-      ? character.spellbookSpellIds.filter((entry): entry is string => typeof entry === "string")
+      ? character.spellbookSpellIds
+          .filter((entry): entry is string => typeof entry === "string")
+          .map((entry) => resolveSpellIdAlias(entry.trim()))
       : []),
     ...getWizardAlwaysSpellbookSpellIds(character)
   ]);
@@ -426,7 +438,9 @@ export function setWizardSavantSpellIds(character: Character, spellIds: string[]
   const normalizedSpellIds = normalizeWizardSavantSpellIds(spellIds, character);
   const savantSpellIdSet = new Set(normalizedSpellIds);
   const nextSpellbookSpellIds = Array.isArray(character.spellbookSpellIds)
-    ? character.spellbookSpellIds.filter((spellId) => !savantSpellIdSet.has(spellId))
+    ? character.spellbookSpellIds
+        .filter((spellId) => !savantSpellIdSet.has(resolveSpellIdAlias(spellId.trim())))
+        .map((spellId) => resolveSpellIdAlias(spellId.trim()))
     : [];
 
   return {

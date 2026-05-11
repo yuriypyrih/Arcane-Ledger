@@ -88,6 +88,20 @@ export type SpellDescriptionList = {
 export type SpellDescriptionEntry = string | SpellDescriptionList;
 export type SpellCastingTimePart = ACTION_TYPE | string;
 export type SpellDurationPart = DURATION | string;
+export type SpellSourceRuleset =
+  | "5e-2024"
+  | "5e-2014"
+  | "a5e"
+  | "third-party"
+  | "legacy-local";
+export type SpellSourceMetadata = {
+  documentKey: string;
+  documentName: string;
+  ruleset: SpellSourceRuleset;
+  open5eKey?: string;
+  publisherKey?: string;
+  permalink?: string;
+};
 export type DivinityValue = {
   amounts: WeaponDamageAmount[];
   damageTypes?: DAMAGE_TYPE[];
@@ -146,6 +160,9 @@ export type SpellEntry = {
   id: string;
   name: string;
   category: ENTRY_CATEGORIES.SPELLS;
+  source: SpellSourceMetadata;
+  legacyIds?: string[];
+  legacyNames?: string[];
   magicSchool: MAGIC_SCHOOL;
   castingTime: SpellCastingTimePart[];
   range: string;

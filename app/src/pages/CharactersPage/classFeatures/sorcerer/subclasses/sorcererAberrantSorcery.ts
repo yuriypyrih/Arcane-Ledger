@@ -62,8 +62,8 @@ const aberrantSorcerySpellIdsByLevel = {
     "Mind Sliver"
   ]),
   5: resolveSpellIdsByName(["Hunger of Hadar", "Sending"]),
-  7: resolveSpellIdsByName(["Evard's Black Tentacles", "Summon Aberration"]),
-  9: resolveSpellIdsByName(["Rary's Telepathic Bond", "Telekinesis"])
+  7: resolveSpellIdsByName(["Black Tentacles", "Summon Aberration"]),
+  9: resolveSpellIdsByName(["Telepathic Bond", "Telekinesis"])
 } as const;
 
 const telepathicSpeechName = "Telepathic Speech";

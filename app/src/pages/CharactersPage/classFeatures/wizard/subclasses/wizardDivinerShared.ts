@@ -1,4 +1,4 @@
-import { CLASS_FEATURE } from "../../../../../codex/entries";
+import { CLASS_FEATURE, resolveSpellIdAlias } from "../../../../../codex/entries";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character } from "../../../../../types";
 import { getWizardSavantSpellIdsFromFeatureState } from "../savant";
@@ -40,7 +40,9 @@ export function getWizardDivinerSpellbookSpellIds(
   return [
     ...new Set([
       ...(Array.isArray(character.spellbookSpellIds)
-        ? character.spellbookSpellIds.filter((spellId): spellId is string => typeof spellId === "string")
+        ? character.spellbookSpellIds
+            .filter((spellId): spellId is string => typeof spellId === "string")
+            .map((spellId) => resolveSpellIdAlias(spellId.trim()))
         : []),
       ...getWizardSavantSpellIdsFromFeatureState({
         className: character.className,

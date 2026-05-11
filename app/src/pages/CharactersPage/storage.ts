@@ -1,5 +1,6 @@
 import type { Character, CharacterDraft, CoreStats } from "../../types";
 import { currencyKeys } from "../../types";
+import { resolveSpellIdAlias } from "../../codex/entries";
 import { loadPreferences } from "../../storage/preferences";
 import {
   CHARACTERS_STORAGE_KEY,
@@ -74,6 +75,19 @@ function normalizeCoreStatValue(value: unknown, fallback: string): string {
   const trimmedValue = value.trim();
 
   return trimmedValue.length > 0 ? trimmedValue : fallback;
+}
+
+function normalizePersistedSpellId(value: string): string {
+  return resolveSpellIdAlias(value.trim());
+}
+
+function normalizePersistedSpellIds(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value
+        .filter((spellId): spellId is string => typeof spellId === "string")
+        .map(normalizePersistedSpellId)
+        .filter((spellId) => spellId.length > 0)
+    : [];
 }
 
 function normalizeCoreStats(value: unknown): CoreStats {
@@ -302,9 +316,7 @@ export function normalizeCharacter(value: unknown): Character | null {
     normalizedSpeciesChoices,
     normalizedLevel
   );
-  const rawPersistedCantripIds = Array.isArray(record.cantripIds)
-    ? record.cantripIds.filter((spellId): spellId is string => typeof spellId === "string")
-    : [];
+  const rawPersistedCantripIds = normalizePersistedSpellIds(record.cantripIds);
   const preliminaryClassFeatureState = normalizeCharacterClassFeatureState(
     record.classFeatureState,
     {
@@ -389,14 +401,12 @@ export function normalizeCharacter(value: unknown): Character | null {
     level: normalizedLevel,
     statusEntries: normalizeCharacterStatusEntries(record.statusEntries, record.conditions)
   });
-  const rawKnownSpellIds = Array.isArray(record.knownSpellIds)
-    ? record.knownSpellIds.filter((spellId): spellId is string => typeof spellId === "string")
-    : [];
+  const rawKnownSpellIds = normalizePersistedSpellIds(record.knownSpellIds);
   const rawPreparedSpellIds = Array.isArray(record.preparedSpellIds)
-    ? record.preparedSpellIds.filter((spellId): spellId is string => typeof spellId === "string")
+    ? normalizePersistedSpellIds(record.preparedSpellIds)
     : rawKnownSpellIds.length > 0
       ? rawKnownSpellIds
-      : (defaults.preparedSpellIds ?? []);
+      : (defaults.preparedSpellIds ?? []).map(normalizePersistedSpellId);
   const preparedSpellLimit = getPreparedSpellLimitForCharacter(
     normalizedClassName,
     normalizedLevel,
@@ -411,7 +421,7 @@ export function normalizeCharacter(value: unknown): Character | null {
     preparedSpellSelectionOptions.map((spell) => spell.id)
   );
   const rawSpellbookSpellIds = Array.isArray(record.spellbookSpellIds)
-    ? record.spellbookSpellIds.filter((spellId): spellId is string => typeof spellId === "string")
+    ? normalizePersistedSpellIds(record.spellbookSpellIds)
     : usesSpellbookForCharacter(normalizedClassName, normalizedSubclassId)
       ? [...rawKnownSpellIds, ...rawPreparedSpellIds]
       : [];

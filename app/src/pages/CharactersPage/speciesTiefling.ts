@@ -2,6 +2,7 @@ import {
   DAMAGE_TYPE,
   getSpeciesEntryByName,
   getSpellEntryById,
+  resolveSpellIdAlias,
   type SpeciesEntry,
   type SpellDescriptionEntry,
   type SpellEntry
@@ -165,7 +166,9 @@ function getTieflingDescriptionText(heading: string, fallback: string): string {
 
 function clampExpendedSpellIds(value: unknown): string[] {
   return Array.isArray(value)
-    ? value.filter((spellId): spellId is string => typeof spellId === "string")
+    ? value
+        .filter((spellId): spellId is string => typeof spellId === "string")
+        .map((spellId) => resolveSpellIdAlias(spellId.trim()))
     : [];
 }
 

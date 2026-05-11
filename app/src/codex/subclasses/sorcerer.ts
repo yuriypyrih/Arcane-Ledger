@@ -41,8 +41,8 @@ export const sorcererSubclassEntries: SubclassEntry[] = [
           "When you reach a Sorcerer level specified in the Psionic Spells table, you thereafter always have the listed spells prepared.",
           "<strong>Level 3.</strong> <spell:Arms of Hadar>Arms of Hadar</spell>, <spell:Calm Emotions>Calm Emotions</spell>, <spell:Detect Thoughts>Detect Thoughts</spell>, <spell:Dissonant Whispers>Dissonant Whispers</spell>, <spell:Mind Sliver>Mind Sliver</spell>",
           "<strong>Level 5.</strong> <spell:Hunger of Hadar>Hunger of Hadar</spell>, <spell:Sending>Sending</spell>",
-          "<strong>Level 7.</strong> <spell:Evard's Black Tentacles>Evard's Black Tentacles</spell>, <spell:Summon Aberration>Summon Aberration</spell>",
-          "<strong>Level 9.</strong> <spell:Rary's Telepathic Bond>Rary's Telepathic Bond</spell>, <spell:Telekinesis>Telekinesis</spell>"
+          "<strong>Level 7.</strong> <spell:Black Tentacles>Black Tentacles</spell>, <spell:Summon Aberration>Summon Aberration</spell>",
+          "<strong>Level 9.</strong> <spell:Telepathic Bond>Telepathic Bond</spell>, <spell:Telekinesis>Telekinesis</spell>"
         ],
         trackingState: TRACKER.TRACKED
       }),
