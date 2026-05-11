@@ -1,5 +1,5 @@
 services:
-  tcm:
+  al:
     image: lausi95/arcane-ledger-backend
     networks: [traefik]
     env_file: [arcane-ledger-backend.env]
