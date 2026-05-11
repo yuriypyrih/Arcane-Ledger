@@ -55,6 +55,8 @@ export type AppConfig = {
   nodeEnv: string;
   port: number;
   mongodbUri: string;
+  mongoUsername: string;
+  mongoPassword: string;
   dbName: string;
   corsAllowedOrigins: string[];
   open5eBaseUrl: string;
@@ -91,7 +93,9 @@ export function getAppConfig(): AppConfig {
     nodeEnv,
     port,
     mongodbUri: process.env.MONGODB_URI ?? "",
-    dbName: process.env.DB_NAME ?? "arcane_ledger",
+    mongoUsername: process.env.MONGO_INITDB_ROOT_USERNAME ?? "",
+    mongoPassword: process.env.MONGO_INITDB_ROOT_PASSWORD ?? "",
+    dbName: process.env.DB_NAME ?? process.env.MONGO_DB_NAME ?? "arcane_ledger",
     corsAllowedOrigins: parseCommaSeparatedList(process.env.CORS_ALLOWED_ORIGINS),
     open5eBaseUrl,
     open5eMonstersUrl,
@@ -113,6 +117,8 @@ export function requireMongoConfig() {
 
   return {
     mongodbUri: config.mongodbUri,
+    mongoUsername: config.mongoUsername,
+    mongoPassword: config.mongoPassword,
     dbName: config.dbName
   };
 }
