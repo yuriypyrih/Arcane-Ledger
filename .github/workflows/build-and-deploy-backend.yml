@@ -1,0 +1,46 @@
+name: Build and Deploy Backend
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    env:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      DOCKER_IMAGE: lausi95/arcane-ledger-backend:latest
+    steps:
+      - uses: actions/checkout@v6
+      - run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+      - run: docker build -t $DOCKER_IMAGE .
+        working-directory: server
+      - run: docker push $DOCKER_IMAGE
+
+  deploy:
+    name: Deploy
+    needs: [ build ]
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://arcane-ledger.lausi95.net
+    steps:
+      - uses: actions/checkout@v6
+      - name: Setup SSH
+        shell: bash
+        run: |
+          eval `ssh-agent -s`
+          mkdir -p /home/runner/.ssh/
+          touch /home/runner/.ssh/id_rsa
+          echo -e "${{ secrets.SSH_PRIVATE_KEY }}" > /home/runner/.ssh/id_rsa
+          chmod 700 /home/runner/.ssh/id_rsa
+          ssh-keyscan -t rsa,dsa,ecdsa,ed25519 lausi95.net >> /home/runner/.ssh/known_hosts
+      - name: Run ansible script
+        shell: bash
+        run: |
+          sudo service ssh start
+          sudo service ssh status
+          cd ansible
+          echo "${{ secrets.ANSIBLE_VAULT_PASSWORD }}" > vault_password.yml
+          cat deploy-prod.yml
+          ansible-playbook -vvv -e "ansible_user=tom" --vault-password-file=vault_password.yml --private-key /home/runner/.ssh/id_rsa -i hosts.yml deploy-prod.yml
