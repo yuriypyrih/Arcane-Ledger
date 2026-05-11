@@ -44,8 +44,7 @@
 }
 
 .contentRowNatural {
-  grid-template-columns: minmax(12rem, max-content) fit-content(24rem) auto;
-  justify-content: start;
+  grid-template-columns: minmax(12rem, max-content) minmax(0, 1fr) auto;
 }
 
 .selectableCard {
@@ -190,11 +189,16 @@
   vertical-align: middle;
 }
 
+.concentrationLabel span {
+  display: none;
+}
+
 .metaGroup {
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
   gap: 0.42rem;
+  justify-self: end;
   min-width: 0;
 }
 
@@ -209,12 +213,12 @@
 .outcome {
   align-self: center;
   color: var(--color-ink-soft);
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
   line-height: 1.35;
   min-width: 0;
-  white-space: normal;
+  overflow: hidden;
 }
 
 .outcomeAccent {
@@ -226,10 +230,6 @@
   .contentRow {
     grid-template-columns: minmax(8rem, max-content) minmax(0, 1fr) auto;
     gap: 0.55rem;
-  }
-
-  .contentRowNatural {
-    grid-template-columns: minmax(8rem, max-content) fit-content(14rem) auto;
   }
 
   .primaryBlock {

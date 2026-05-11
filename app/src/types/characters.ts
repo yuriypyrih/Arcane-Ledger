@@ -184,6 +184,7 @@ export type CharacterRoundTracker = {
 export type CharacterDeathSaves = {
   successes: number;
   failures: number;
+  resolution?: "instant-death";
 };
 
 export type CharacterEquipmentItem = {

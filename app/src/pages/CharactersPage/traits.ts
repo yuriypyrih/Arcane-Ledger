@@ -692,7 +692,9 @@ export function reconcileCharacterStatusConsequences(character: Character): Char
       }
     : character.deathSaves;
   const deathSavesUnchanged = isDeadFromExhaustion
-    ? character.deathSaves?.successes === 0 && character.deathSaves?.failures === 3
+    ? character.deathSaves?.successes === 0 &&
+      character.deathSaves?.failures === 3 &&
+      character.deathSaves?.resolution !== "instant-death"
     : true;
 
   if (

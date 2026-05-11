@@ -1,5 +1,11 @@
-export { CODEX_FEATS_CATEGORY, filterCodexEntries, getCodexCategories } from "./filterCodexEntries";
-export type { CodexFilterCategory } from "./filterCodexEntries";
+export {
+  CODEX_FEATS_CATEGORY,
+  CODEX_SPELL_SPECIAL_FILTERS,
+  filterCodexEntries,
+  getCodexCategories,
+  getCodexSpellSpecialFilterLabel
+} from "./filterCodexEntries";
+export type { CodexFilterCategory, CodexSpellSpecialFilter } from "./filterCodexEntries";
 export {
   formatEquipmentCost,
   formatEquipmentWeight,

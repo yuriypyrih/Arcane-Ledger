@@ -1,4 +1,9 @@
-import { ENTRY_CATEGORIES, FEAT_CATEGORY, SPELL_LIST_CLASS } from "../../codex/entries";
+import {
+  ENTRY_CATEGORIES,
+  FEAT_CATEGORY,
+  MAGIC_SCHOOL,
+  SPELL_LIST_CLASS
+} from "../../codex/entries";
 import { MONSTER_SOURCE_OPTIONS, MONSTER_TYPE_OPTIONS } from "../../constants/monsters";
 import {
   DEFAULT_ITEM_BROWSER_TAB,
@@ -9,14 +14,20 @@ import {
   type ItemProficiencyType,
   type MonsterOrdering
 } from "../../types";
-import type { CodexFilterCategory } from "../../utils/codex";
-import { CODEX_FEATS_CATEGORY } from "../../utils/codex";
+import {
+  CODEX_FEATS_CATEGORY,
+  CODEX_SPELL_SPECIAL_FILTERS,
+  type CodexFilterCategory,
+  type CodexSpellSpecialFilter
+} from "../../utils/codex";
 
 export const SPELLS_PER_PAGE = 20;
 export const MONSTERS_PER_PAGE = 50;
 export const ITEMS_PER_PAGE = 50;
 export const SPELL_LEVEL_PARAM = "spellLevel";
 export const SPELL_CLASS_PARAM = "spellClass";
+export const SPELL_SCHOOL_PARAM = "spellSchool";
+export const SPELL_SPECIAL_PARAM = "spellSpecial";
 export const MONSTER_TYPE_PARAM = "monsterType";
 export const MONSTER_SOURCE_PARAM = "monsterSource";
 export const MONSTER_ORDER_PARAM = "monsterOrder";
@@ -57,12 +68,16 @@ const ITEM_ATTACK_TYPES = new Set<ItemAttackType>(["melee", "range"]);
 const ITEM_PROFICIENCY_TYPES = new Set<ItemProficiencyType>(["simple", "martial"]);
 const ITEM_ARMOR_TYPES = new Set<ItemArmorType>(["light", "medium", "heavy"]);
 const FEAT_CATEGORIES = new Set<FEAT_CATEGORY>(Object.values(FEAT_CATEGORY));
+const SPELL_MAGIC_SCHOOLS = new Set<MAGIC_SCHOOL>(Object.values(MAGIC_SCHOOL));
+const SPELL_SPECIAL_FILTERS = new Set<CodexSpellSpecialFilter>(CODEX_SPELL_SPECIAL_FILTERS);
 
 export type ParsedCodexSearchState = {
   category: CodexFilterCategory;
   query: string;
   spellLevelFilter: number | null;
   spellClassFilter: SPELL_LIST_CLASS | null;
+  spellSchoolFilter: MAGIC_SCHOOL | null;
+  spellSpecialFilter: CodexSpellSpecialFilter | null;
   monsterTypeFilter: string | null;
   monsterSourceFilter: string | null;
   monsterOrdering: MonsterOrdering;
@@ -183,6 +198,11 @@ export function parseCodexSearchState(
     query: searchParams.get(QUERY_PARAM) ?? "",
     spellLevelFilter: parseSpellLevelFilter(searchParams.get(SPELL_LEVEL_PARAM)),
     spellClassFilter: parseSpellClassFilter(searchParams.get(SPELL_CLASS_PARAM)),
+    spellSchoolFilter: parseEnumFilter(searchParams.get(SPELL_SCHOOL_PARAM), SPELL_MAGIC_SCHOOLS),
+    spellSpecialFilter: parseEnumFilter(
+      searchParams.get(SPELL_SPECIAL_PARAM),
+      SPELL_SPECIAL_FILTERS
+    ),
     monsterTypeFilter: parseMonsterTypeFilter(searchParams.get(MONSTER_TYPE_PARAM)),
     monsterSourceFilter: parseMonsterSourceFilter(searchParams.get(MONSTER_SOURCE_PARAM)),
     monsterOrdering: parseMonsterOrdering(searchParams.get(MONSTER_ORDER_PARAM)),
@@ -208,6 +228,8 @@ export function parseCodexSearchState(
 export function clearSpellSearchParams(searchParams: URLSearchParams): URLSearchParams {
   searchParams.delete(SPELL_LEVEL_PARAM);
   searchParams.delete(SPELL_CLASS_PARAM);
+  searchParams.delete(SPELL_SCHOOL_PARAM);
+  searchParams.delete(SPELL_SPECIAL_PARAM);
   return searchParams;
 }
 
@@ -264,6 +286,8 @@ export function hasCategoryScopedSearchParams(searchParams: URLSearchParams): bo
   return (
     searchParams.has(SPELL_LEVEL_PARAM) ||
     searchParams.has(SPELL_CLASS_PARAM) ||
+    searchParams.has(SPELL_SCHOOL_PARAM) ||
+    searchParams.has(SPELL_SPECIAL_PARAM) ||
     searchParams.has(MONSTER_TYPE_PARAM) ||
     searchParams.has(MONSTER_SOURCE_PARAM) ||
     searchParams.has(MONSTER_ORDER_PARAM) ||

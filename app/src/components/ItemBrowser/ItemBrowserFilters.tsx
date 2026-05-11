@@ -262,7 +262,7 @@ function ItemBrowserFilters({
             value={query}
             resetSignal={searchResetSignal}
             onValueChange={onQueryChange}
-            placeholder="Search by name, rarity, category, or source..."
+            placeholder="Search item names..."
           />
         </label>
       </div>

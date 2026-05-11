@@ -14,14 +14,9 @@ import {
   FEAT_CATEGORY,
   TRACKER,
   type DivinityEntry,
-  type SpellDescriptionEntry,
   type SpellEntry
 } from "../../../codex/entries";
-import {
-  featDefinitions,
-  getFeatCategoryLabel,
-  type FeatDefinition
-} from "../../../pages/CharactersPage/feats";
+import { featDefinitions, getFeatCategoryLabel } from "../../../pages/CharactersPage/feats";
 import type { ResolvedKeywordReference } from "../../../utils/codex/renderCodexRichText";
 import styles from "./FeatCodexList.module.css";
 import resultStyles from "../CodexResults/CodexResults.module.css";
@@ -35,21 +30,6 @@ type FeatCodexListProps = {
   query: string;
   featCategoryFilter: FEAT_CATEGORY | null;
 };
-
-function getDescriptionSearchText(description: SpellDescriptionEntry[]): string[] {
-  return description.flatMap((entry) => (typeof entry === "string" ? [entry] : entry.items));
-}
-
-function getFeatSearchText(definition: FeatDefinition): string {
-  return [
-    definition.label,
-    getFeatCategoryLabel(definition.category),
-    definition.prerequisite ?? "",
-    ...getDescriptionSearchText(definition.description)
-  ]
-    .join(" ")
-    .toLowerCase();
-}
 
 function FeatCodexList({ query, featCategoryFilter }: FeatCodexListProps) {
   const [expandedFeatKeys, setExpandedFeatKeys] = useState<string[]>([]);
@@ -72,7 +52,7 @@ function FeatCodexList({ query, featCategoryFilter }: FeatCodexListProps) {
         : featDefinitions.filter(
             (definition) =>
               (featCategoryFilter === null || definition.category === featCategoryFilter) &&
-              getFeatSearchText(definition).includes(normalizedQuery)
+              definition.label.toLowerCase().includes(normalizedQuery)
           );
 
     return [...filteredFeatDefinitions].sort((left, right) =>

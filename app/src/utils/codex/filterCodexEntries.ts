@@ -1,14 +1,26 @@
 import {
+  ACTION_TYPE,
+  DURATION,
   ENTRY_CATEGORIES,
-  SPELL_LIST_CLASS,
   type CodexCategory,
-  type CodexEntry
+  type CodexEntry,
+  type MAGIC_SCHOOL,
+  type SPELL_LIST_CLASS
 } from "../../codex/entries";
-import { flattenSpellDescriptionLines } from "./spellDescription";
 
 export const CODEX_FEATS_CATEGORY = "FEATS" as const;
 
 export type CodexFilterCategory = CodexCategory | typeof CODEX_FEATS_CATEGORY;
+export const CODEX_SPELL_SPECIAL_FILTERS = [
+  "ritual",
+  "action",
+  "bonus-action",
+  "reaction",
+  "concentration",
+  "healing",
+  "damage"
+] as const;
+export type CodexSpellSpecialFilter = (typeof CODEX_SPELL_SPECIAL_FILTERS)[number];
 
 const LIBRARY_FILTER_CATEGORIES: CodexFilterCategory[] = [
   ENTRY_CATEGORIES.CLASSES,
@@ -24,8 +36,49 @@ export function getCodexCategories(): CodexFilterCategory[] {
   return [...LIBRARY_FILTER_CATEGORIES];
 }
 
-function enumToSearchText(value: string): string {
-  return value.toLowerCase().replace(/_/g, " ");
+export function getCodexSpellSpecialFilterLabel(filter: CodexSpellSpecialFilter): string {
+  switch (filter) {
+    case "ritual":
+      return "Ritual";
+    case "action":
+      return "Action";
+    case "bonus-action":
+      return "Bonus action";
+    case "reaction":
+      return "Reaction";
+    case "concentration":
+      return "Concentration";
+    case "healing":
+      return "Healing";
+    case "damage":
+      return "Damage";
+  }
+}
+
+function matchesCodexSpellSpecialFilter(
+  entry: CodexEntry,
+  filter: CodexSpellSpecialFilter | null
+): boolean {
+  if (entry.category !== ENTRY_CATEGORIES.SPELLS || filter === null) {
+    return true;
+  }
+
+  switch (filter) {
+    case "ritual":
+      return entry.ritual === true;
+    case "action":
+      return entry.castingTime.includes(ACTION_TYPE.ACTION);
+    case "bonus-action":
+      return entry.castingTime.includes(ACTION_TYPE.BONUS_ACTION);
+    case "reaction":
+      return entry.castingTime.includes(ACTION_TYPE.REACTION);
+    case "concentration":
+      return entry.duration.includes(DURATION.CONCENTRATION);
+    case "healing":
+      return entry.isHealingSpell === true;
+    case "damage":
+      return entry.isDamagingSpell === true;
+  }
 }
 
 export function filterCodexEntries(
@@ -33,7 +86,9 @@ export function filterCodexEntries(
   query: string,
   category: CodexFilterCategory,
   spellLevelFilter: number | null = null,
-  spellClassFilter: SPELL_LIST_CLASS | null = null
+  spellClassFilter: SPELL_LIST_CLASS | null = null,
+  spellSchoolFilter: MAGIC_SCHOOL | null = null,
+  spellSpecialFilter: CodexSpellSpecialFilter | null = null
 ): CodexEntry[] {
   const normalizedQuery = query.trim().toLowerCase();
 
@@ -51,38 +106,21 @@ export function filterCodexEntries(
       entry.category !== ENTRY_CATEGORIES.SPELLS ||
       spellClassFilter === null ||
       entry.spellLists.includes(spellClassFilter);
-    const rarityValues = "rarity" in entry ? [entry.rarity] : [];
-    const weaponSearchValues =
-      entry.category === ENTRY_CATEGORIES.WEAPONS
-        ? [
-            entry.type.training,
-            entry.type.combat,
-            entry.mastery,
-            ...entry.properties,
-            ...entry.damage.flatMap(([, damageType]) =>
-              Array.isArray(damageType) ? damageType : [damageType]
-            ),
-            ...(entry.range?.ammunition ? [entry.range.ammunition] : [])
-          ]
-        : [];
-    const spellSearchValues =
-      entry.category === ENTRY_CATEGORIES.SPELLS
-        ? [
-            entry.magicSchool,
-            ...entry.components,
-            ...entry.spellLists,
-            ...flattenSpellDescriptionLines(entry.description)
-          ]
-        : [];
-    const tagValues = "tags" in entry ? entry.tags : [];
+    const matchesSpellSchool =
+      entry.category !== ENTRY_CATEGORIES.SPELLS ||
+      spellSchoolFilter === null ||
+      entry.magicSchool === spellSchoolFilter;
+    const matchesSpellSpecial = matchesCodexSpellSpecialFilter(entry, spellSpecialFilter);
     const matchesQuery =
-      normalizedQuery.length === 0 ||
-      entry.name.toLowerCase().includes(normalizedQuery) ||
-      tagValues.some((entryType) => enumToSearchText(entryType).includes(normalizedQuery)) ||
-      weaponSearchValues.some((value) => enumToSearchText(value).includes(normalizedQuery)) ||
-      spellSearchValues.some((value) => enumToSearchText(value).includes(normalizedQuery)) ||
-      rarityValues.some((rarity) => enumToSearchText(rarity).includes(normalizedQuery));
+      normalizedQuery.length === 0 || entry.name.toLowerCase().includes(normalizedQuery);
 
-    return matchesCategory && matchesSpellLevel && matchesSpellClass && matchesQuery;
+    return (
+      matchesCategory &&
+      matchesSpellLevel &&
+      matchesSpellClass &&
+      matchesSpellSchool &&
+      matchesSpellSpecial &&
+      matchesQuery
+    );
   });
 }

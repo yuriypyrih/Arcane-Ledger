@@ -1674,10 +1674,6 @@ function ClassFeaturesAndFeats({
                 <CircleHelp size={16} />
               </button>
             </div>
-            <h2 className={shared.title}>Species, Feats &amp; Class Features</h2>
-            <p className={shared.helperText}>
-              Review species choices, feat selections, and unlocked class features for your build.
-            </p>
           </div>
           <button
             type="button"

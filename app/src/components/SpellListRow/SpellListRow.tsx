@@ -37,30 +37,41 @@ type SpellListRowProps = {
 };
 
 function formatSpellSummaryRange(range: string): string {
-  return range.replace(/(\d+)\s*feet\b/gi, "$1ft").replace(/(\d+)-foot\b/gi, "$1ft");
+  const compactRange = range
+    .replace(/(\d+)\s*feet\b/gi, "$1ft")
+    .replace(/(\d+)-foot\b/gi, "$1ft")
+    .trim();
+
+  return /^self\s*\(/i.test(compactRange) ? "Self" : compactRange;
+}
+
+function formatSpellRowDurationPart(part: string): string {
+  if (part === DURATION.CONCENTRATION) {
+    return "Conc";
+  }
+
+  return part.trim().toLowerCase() === "instantaneous" ? "Insta" : part.trim();
 }
 
 function getSpellRowDurationNode(
   spell: Pick<SpellEntry, "duration">,
   compactConcentrationDuration: boolean
 ): ReactNode | null {
-  const { hasConcentration, detailText } = getSpellDurationDisplayParts(spell.duration);
+  void compactConcentrationDuration;
 
-  if (compactConcentrationDuration && hasConcentration) {
-    return <ConcentrationLabel className={styles.concentrationLabel} iconSize={12} />;
-  }
+  const { hasConcentration } = getSpellDurationDisplayParts(spell.duration);
 
   if (hasConcentration) {
     return (
       <>
         <ConcentrationLabel className={styles.concentrationLabel} iconSize={12} />
-        {detailText ? <span>, {detailText}</span> : null}
+        <span> Conc</span>
       </>
     );
   }
 
   const formattedDuration = spell.duration
-    .map((part) => (part === DURATION.CONCENTRATION ? "Concentration" : part.trim()))
+    .map((part) => formatSpellRowDurationPart(part))
     .filter((part) => part.length > 0)
     .join(", ");
 
@@ -226,13 +237,16 @@ function SpellListRow({
                 </small>
               </div>
               {hasValueSummary ? (
-                <small className={styles.outcome}>{valueSummary}</small>
+                <small className={styles.outcome} title={valueSummary}>
+                  {valueSummary}
+                </small>
               ) : hasDetailNote ? (
                 <small
                   className={clsx(
                     styles.outcome,
                     detailNoteTone === "accent" && styles.outcomeAccent
                   )}
+                  title={detailNote}
                 >
                   {detailNote}
                 </small>
@@ -284,10 +298,13 @@ function SpellListRow({
           </small>
         </div>
         {hasValueSummary ? (
-          <small className={styles.outcome}>{valueSummary}</small>
+          <small className={styles.outcome} title={valueSummary}>
+            {valueSummary}
+          </small>
         ) : hasDetailNote ? (
           <small
             className={clsx(styles.outcome, detailNoteTone === "accent" && styles.outcomeAccent)}
+            title={detailNote}
           >
             {detailNote}
           </small>

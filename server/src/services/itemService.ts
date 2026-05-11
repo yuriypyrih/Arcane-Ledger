@@ -241,14 +241,7 @@ function buildItemFilter(query: ItemListQuery): FilterQuery<Open5eItemRecord> {
   if (query.search) {
     const searchPattern = new RegExp(escapeRegularExpression(query.search), "i");
     filters.push({
-      $or: [
-        { name: searchPattern },
-        { "category.name": searchPattern },
-        { "rarity.name": searchPattern },
-        { "document.display_name": searchPattern },
-        { "document.name": searchPattern },
-        { "document.key": searchPattern }
-      ]
+      name: searchPattern
     });
   }
 

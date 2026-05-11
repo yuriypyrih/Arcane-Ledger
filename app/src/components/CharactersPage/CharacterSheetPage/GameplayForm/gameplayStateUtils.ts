@@ -39,6 +39,7 @@ import { clampNumber } from "../../../../pages/CharactersPage/CharacterSheetPage
 export type DeathSaveState = {
   successes: number;
   failures: number;
+  resolution?: "instant-death";
 };
 
 export type MaxHitPointsMode = "automatic" | "custom";
@@ -62,9 +63,15 @@ export function createDefaultDeathSaves(): DeathSaveState {
 }
 
 export function normalizeDeathSaves(value: Character["deathSaves"]): DeathSaveState {
+  const successes = Math.floor(clampNumber(value?.successes, 0, 3, 0));
+  const failures = Math.floor(clampNumber(value?.failures, 0, 3, 0));
+
   return {
-    successes: Math.floor(clampNumber(value?.successes, 0, 3, 0)),
-    failures: Math.floor(clampNumber(value?.failures, 0, 3, 0))
+    successes,
+    failures,
+    ...(value?.resolution === "instant-death" && failures >= 3
+      ? { resolution: "instant-death" as const }
+      : {})
   };
 }
 

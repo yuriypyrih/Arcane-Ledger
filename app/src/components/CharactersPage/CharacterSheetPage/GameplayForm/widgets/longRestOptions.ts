@@ -299,7 +299,6 @@ import {
   restoreShadowTouchedFreeCastsForCharacter,
   restoreTelepathicDetectThoughtsFreeCastForCharacter
 } from "../../../../../pages/CharactersPage/feats/runtime";
-import { getHitDiceRemainingForCharacter } from "../../../../../pages/CharactersPage/gameplay";
 import { getSpellSlotTotalsForCharacter } from "../../../../../pages/CharactersPage/spellcasting";
 import {
   applyLongRestToCharacterStatusEntries,
@@ -502,6 +501,7 @@ export function createLongRestOptions(character: Character): RestOption[] {
           {
             id: "reduce-exhaustion",
             label: "Lower Exhaustion by 1 level",
+            detail: "A Long Rest reduces your Exhaustion level by 1.",
             apply: (currentCharacter: Character) => {
               const currentExhaustionLevel = getExhaustionLevel(currentCharacter.statusEntries);
               const nextExhaustionLevel =
@@ -538,19 +538,15 @@ export function createLongRestOptions(character: Character): RestOption[] {
         })
     },
     {
-      id: "restore-half-hit-dice",
-      label: "Restore Half of the Hit Dice",
-      detail: "Restore half your missing Hit Dice, rounded down, with a minimum of 1.",
+      id: "restore-all-hit-dice",
+      label: "Restore all Hit Dice",
+      detail: "Restore all level-based Hit Dice.",
       apply: (currentCharacter: Character) => {
         const totalHitDice = Math.max(1, Math.floor(currentCharacter.level));
-        const availableHitDice = getHitDiceRemainingForCharacter(currentCharacter);
-        const missingHitDice = Math.max(0, totalHitDice - availableHitDice);
-        const restoredHitDice =
-          missingHitDice <= 0 ? 0 : Math.max(1, Math.floor(missingHitDice / 2));
 
         return {
           ...currentCharacter,
-          hitDiceRemaining: Math.min(totalHitDice, availableHitDice + restoredHitDice)
+          hitDiceRemaining: totalHitDice
         };
       }
     },

@@ -13,12 +13,14 @@ import {
   CODEX_FEATS_CATEGORY,
   filterCodexEntries,
   getCodexCategories,
-  type CodexFilterCategory
+  type CodexFilterCategory,
+  type CodexSpellSpecialFilter
 } from "../../utils/codex";
 import {
   ENTRY_CATEGORIES,
   FEAT_CATEGORY,
   SPELL_LIST_CLASS,
+  type MAGIC_SCHOOL,
   type SpellEntry
 } from "../../codex/entries";
 import { useCodexEntries } from "./useCodexEntries";
@@ -48,6 +50,8 @@ import {
   setSearchParamValue,
   SPELL_CLASS_PARAM,
   SPELL_LEVEL_PARAM,
+  SPELL_SCHOOL_PARAM,
+  SPELL_SPECIAL_PARAM,
   SPELLS_PER_PAGE
 } from "./searchParams";
 import { useItemEntries } from "./useItemEntries";
@@ -89,7 +93,9 @@ function CodexPage() {
     featCategoryFilter,
     query,
     spellClassFilter,
-    spellLevelFilter
+    spellLevelFilter,
+    spellSchoolFilter,
+    spellSpecialFilter
   } = useMemo(() => parseCodexSearchState(searchParams, categories), [categories, searchParams]);
   const { payload: itemFilterOptionsPayload } = useItemFilterOptions(
     category === ENTRY_CATEGORIES.ITEMS
@@ -228,8 +234,25 @@ function CodexPage() {
   }, [category]);
 
   const filteredEntries = useMemo(
-    () => filterCodexEntries(entries, query, category, spellLevelFilter, spellClassFilter),
-    [entries, query, category, spellClassFilter, spellLevelFilter]
+    () =>
+      filterCodexEntries(
+        entries,
+        query,
+        category,
+        spellLevelFilter,
+        spellClassFilter,
+        spellSchoolFilter,
+        spellSpecialFilter
+      ),
+    [
+      category,
+      entries,
+      query,
+      spellClassFilter,
+      spellLevelFilter,
+      spellSchoolFilter,
+      spellSpecialFilter
+    ]
   );
   const sortedEntries = useMemo(() => {
     if (category !== ENTRY_CATEGORIES.SPELLS) {
@@ -318,6 +341,26 @@ function CodexPage() {
     (value: SPELL_LIST_CLASS | null) => {
       const nextSearchParams = new URLSearchParams(searchParams);
       setSearchParamValue(nextSearchParams, SPELL_CLASS_PARAM, value);
+      clearSearchForSelectionChange(nextSearchParams);
+      resetPageSearchParam(nextSearchParams);
+      setSearchParams(nextSearchParams, { replace: true });
+    },
+    [clearSearchForSelectionChange, searchParams, setSearchParams]
+  );
+  const handleSpellSchoolFilterChange = useCallback(
+    (value: MAGIC_SCHOOL | null) => {
+      const nextSearchParams = new URLSearchParams(searchParams);
+      setSearchParamValue(nextSearchParams, SPELL_SCHOOL_PARAM, value);
+      clearSearchForSelectionChange(nextSearchParams);
+      resetPageSearchParam(nextSearchParams);
+      setSearchParams(nextSearchParams, { replace: true });
+    },
+    [clearSearchForSelectionChange, searchParams, setSearchParams]
+  );
+  const handleSpellSpecialFilterChange = useCallback(
+    (value: CodexSpellSpecialFilter | null) => {
+      const nextSearchParams = new URLSearchParams(searchParams);
+      setSearchParamValue(nextSearchParams, SPELL_SPECIAL_PARAM, value);
       clearSearchForSelectionChange(nextSearchParams);
       resetPageSearchParam(nextSearchParams);
       setSearchParams(nextSearchParams, { replace: true });
@@ -517,6 +560,8 @@ function CodexPage() {
           categories={categories}
           spellLevelFilter={spellLevelFilter}
           spellClassFilter={spellClassFilter}
+          spellSchoolFilter={spellSchoolFilter}
+          spellSpecialFilter={spellSpecialFilter}
           monsterTypeFilter={monsterTypeFilter}
           monsterTypeOptions={MONSTER_TYPE_OPTIONS}
           monsterSourceFilter={monsterSourceFilter}
@@ -536,6 +581,8 @@ function CodexPage() {
           onCategoryChange={updateCategory}
           onSpellLevelFilterChange={handleSpellLevelFilterChange}
           onSpellClassFilterChange={handleSpellClassFilterChange}
+          onSpellSchoolFilterChange={handleSpellSchoolFilterChange}
+          onSpellSpecialFilterChange={handleSpellSpecialFilterChange}
           onMonsterTypeFilterChange={handleMonsterTypeFilterChange}
           onMonsterSourceFilterChange={handleMonsterSourceFilterChange}
           onItemTabChange={handleItemTabChange}

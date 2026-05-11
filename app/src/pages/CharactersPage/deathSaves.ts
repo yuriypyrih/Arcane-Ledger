@@ -6,6 +6,7 @@ import { hasFeatForCharacter } from "./feats/runtime";
 type DeathSaveTrackState = {
   successes: number;
   failures: number;
+  resolution?: "instant-death";
 };
 
 export const deathSaveDescription: SpellDescriptionEntry[] = [
@@ -19,6 +20,10 @@ export function getDeathSaveStatusLabel(
   deathSaves: DeathSaveTrackState
 ): string {
   if (currentHitPoints <= 0) {
+    if (deathSaves.resolution === "instant-death") {
+      return "Instant Death";
+    }
+
     if (deathSaves.failures >= 3) {
       return "Dead";
     }

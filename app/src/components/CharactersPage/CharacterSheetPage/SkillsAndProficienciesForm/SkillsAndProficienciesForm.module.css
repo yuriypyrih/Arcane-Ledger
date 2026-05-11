@@ -8,6 +8,15 @@
   gap: 0.55rem;
 }
 
+.proficiencyGroup {
+  gap: 0.68rem;
+}
+
+.proficiencySubsection {
+  display: grid;
+  gap: 0.18rem;
+}
+
 .skillGroupHeader {
   display: flex;
   align-items: center;
@@ -17,10 +26,12 @@
 
 .skillGroupTitle {
   margin: 0;
-  color: var(--color-ink-soft);
-  font-size: 0.8rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  color: var(--color-ink);
+  font-family: "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  font-size: 1.17rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .skillGroupSubtitle {
@@ -157,6 +168,18 @@
 
 .skillLevelSelect {
   min-width: 118px;
+}
+
+.skillEditorBody {
+  min-height: 0;
+  overflow: hidden;
+  padding: 0 var(--overlay-panel-inline-padding);
+}
+
+.skillEditorScrollArea {
+  min-height: 0;
+  overflow: auto;
+  padding-right: 0.12rem;
 }
 
 .proficiencyPillGrid {

@@ -1,6 +1,16 @@
-import type { CodexFilterCategory } from "../../../utils/codex";
-import { CODEX_FEATS_CATEGORY } from "../../../utils/codex";
-import { ENTRY_CATEGORIES, FEAT_CATEGORY, SPELL_LIST_CLASS } from "../../../codex/entries";
+import {
+  CODEX_FEATS_CATEGORY,
+  CODEX_SPELL_SPECIAL_FILTERS,
+  getCodexSpellSpecialFilterLabel,
+  type CodexFilterCategory,
+  type CodexSpellSpecialFilter
+} from "../../../utils/codex";
+import {
+  ENTRY_CATEGORIES,
+  FEAT_CATEGORY,
+  MAGIC_SCHOOL,
+  SPELL_LIST_CLASS
+} from "../../../codex/entries";
 import ItemBrowserFilters from "../../ItemBrowser";
 import type {
   ItemArmorType,
@@ -19,6 +29,8 @@ type CodexFiltersProps = {
   categories: CodexFilterCategory[];
   spellLevelFilter: number | null;
   spellClassFilter: SPELL_LIST_CLASS | null;
+  spellSchoolFilter: MAGIC_SCHOOL | null;
+  spellSpecialFilter: CodexSpellSpecialFilter | null;
   monsterTypeFilter: string | null;
   monsterTypeOptions: readonly string[];
   monsterSourceFilter: string | null;
@@ -38,6 +50,8 @@ type CodexFiltersProps = {
   onCategoryChange: (value: CodexFilterCategory) => void;
   onSpellLevelFilterChange: (value: number | null) => void;
   onSpellClassFilterChange: (value: SPELL_LIST_CLASS | null) => void;
+  onSpellSchoolFilterChange: (value: MAGIC_SCHOOL | null) => void;
+  onSpellSpecialFilterChange: (value: CodexSpellSpecialFilter | null) => void;
   onMonsterTypeFilterChange: (value: string | null) => void;
   onMonsterSourceFilterChange: (value: string | null) => void;
   onItemTabChange: (value: ItemBrowserTab) => void;
@@ -85,6 +99,7 @@ function formatSpellLevelOptionLabel(level: number | null): string {
 }
 
 const spellClassOptions = Object.values(SPELL_LIST_CLASS);
+const spellSchoolOptions = Object.values(MAGIC_SCHOOL);
 const featCategoryOptions = [
   FEAT_CATEGORY.ORIGIN,
   FEAT_CATEGORY.GENERAL,
@@ -103,6 +118,8 @@ function CodexFilters({
   categories,
   spellLevelFilter,
   spellClassFilter,
+  spellSchoolFilter,
+  spellSpecialFilter,
   monsterTypeFilter,
   monsterTypeOptions,
   monsterSourceFilter,
@@ -122,6 +139,8 @@ function CodexFilters({
   onCategoryChange,
   onSpellLevelFilterChange,
   onSpellClassFilterChange,
+  onSpellSchoolFilterChange,
+  onSpellSpecialFilterChange,
   onMonsterTypeFilterChange,
   onMonsterSourceFilterChange,
   onItemTabChange,
@@ -137,10 +156,14 @@ function CodexFilters({
 }: CodexFiltersProps) {
   const searchPlaceholder =
     category === ENTRY_CATEGORIES.ITEMS
-      ? "Search equipment by name, rarity, category, or source..."
+      ? "Search equipment names..."
       : category === CODEX_FEATS_CATEGORY
-        ? "Search feats by name, category, prerequisite, or description..."
-        : "Search based on name, rarity, type..";
+        ? "Search feat names..."
+        : category === ENTRY_CATEGORIES.SPELLS
+          ? "Search spell names..."
+          : category === ENTRY_CATEGORIES.MONSTERS
+            ? "Search monster names..."
+            : "Search names...";
 
   return (
     <div className={styles.controls}>
@@ -195,6 +218,48 @@ function CodexFilters({
               {spellClassOptions.map((spellClass) => (
                 <option key={spellClass} value={spellClass}>
                   {formatEnumLabel(spellClass)}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className={styles.field}>
+            <span>School</span>
+            <select
+              className={styles.input}
+              value={spellSchoolFilter ?? "ALL"}
+              onChange={(event) =>
+                onSpellSchoolFilterChange(
+                  event.target.value === "ALL" ? null : (event.target.value as MAGIC_SCHOOL)
+                )
+              }
+            >
+              <option value="ALL">All</option>
+              {spellSchoolOptions.map((magicSchool) => (
+                <option key={magicSchool} value={magicSchool}>
+                  {formatEnumLabel(magicSchool)}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className={styles.field}>
+            <span>Special</span>
+            <select
+              className={styles.input}
+              value={spellSpecialFilter ?? "ALL"}
+              onChange={(event) =>
+                onSpellSpecialFilterChange(
+                  event.target.value === "ALL"
+                    ? null
+                    : (event.target.value as CodexSpellSpecialFilter)
+                )
+              }
+            >
+              <option value="ALL">All</option>
+              {CODEX_SPELL_SPECIAL_FILTERS.map((filter) => (
+                <option key={filter} value={filter}>
+                  {getCodexSpellSpecialFilterLabel(filter)}
                 </option>
               ))}
             </select>

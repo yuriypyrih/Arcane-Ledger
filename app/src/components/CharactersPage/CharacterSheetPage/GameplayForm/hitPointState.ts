@@ -39,6 +39,14 @@ function getEffectiveHitPointsForBase(character: Character, baseHitPoints: numbe
   });
 }
 
+function createInstantDeathSaves() {
+  return {
+    successes: 0,
+    failures: 3,
+    resolution: "instant-death" as const
+  };
+}
+
 export function syncAutomaticHitPointsForCharacter(character: Character): Character {
   if (normalizeMaxHitPointsMode(character.maxHitPointsMode) !== "automatic") {
     return character;
@@ -119,6 +127,8 @@ export function applyDamageToCharacter(character: Character, amount: number): Ch
   const nextTemporaryHitPoints = currentTemporaryHitPoints - absorbedByTemporaryHitPoints;
   const remainingDamage = damageAfterMagicTemporaryHitPoints - absorbedByTemporaryHitPoints;
   const nextEffectiveHitPoints = getEffectiveHitPointMaximumForCharacter(character);
+  const isInstantDeath =
+    remainingDamage >= character.currentHitPoints + nextEffectiveHitPoints;
   const nextCurrentHitPoints = clampNumber(
     character.currentHitPoints - remainingDamage,
     0,
@@ -145,7 +155,9 @@ export function applyDamageToCharacter(character: Character, amount: number): Ch
       nextTemporaryHitPoints > 0 ? character.temporaryHitPointsSource : undefined
     ),
     currentHitPoints: nextCurrentHitPoints,
-    deathSaves: getResolvedDeathSaves(character, nextCurrentHitPoints)
+    deathSaves: isInstantDeath
+      ? createInstantDeathSaves()
+      : getResolvedDeathSaves(character, nextCurrentHitPoints)
   });
 }
 

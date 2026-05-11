@@ -55,7 +55,7 @@ type CampButtonProps = {
 
 const primaryRestOptionIds = new Set([
   "reduce-exhaustion",
-  "restore-half-hit-dice",
+  "restore-all-hit-dice",
   "restore-hit-points",
   "reset-round-tracker",
   "update-statuses"
@@ -377,7 +377,7 @@ function CampButton({
                 header="Long Rest"
                 selected={selectedRestType === "long"}
                 onSelect={() => selectRestType("long")}
-                breakdown="Restore full HP, half of Hit Dice, reset Short Rest charges, and refresh Long Rest resources."
+                breakdown="Restore full HP, all Hit Dice, reduce Exhaustion, reset Short Rest charges, and refresh Long Rest resources."
                 className={styles.restTypeOption}
               />
             </div>

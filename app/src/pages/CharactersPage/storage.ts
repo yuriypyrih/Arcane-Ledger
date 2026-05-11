@@ -155,10 +155,15 @@ function normalizeDeathSaves(value: unknown): NonNullable<Character["deathSaves"
   }
 
   const record = value as Partial<NonNullable<Character["deathSaves"]>>;
+  const successes = Math.floor(clampNumber(record.successes, 0, 3, 0));
+  const failures = Math.floor(clampNumber(record.failures, 0, 3, 0));
 
   return {
-    successes: Math.floor(clampNumber(record.successes, 0, 3, 0)),
-    failures: Math.floor(clampNumber(record.failures, 0, 3, 0))
+    successes,
+    failures,
+    ...(record.resolution === "instant-death" && failures >= 3
+      ? { resolution: "instant-death" as const }
+      : {})
   };
 }
 

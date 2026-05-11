@@ -72,6 +72,11 @@
   gap: 0.9rem;
 }
 
+.subsection + .subsection {
+  border-top: 1px solid rgba(75, 47, 29, 0.14);
+  padding-top: 1.6rem;
+}
+
 .subsectionHeader {
   display: flex;
   align-items: center;
@@ -87,10 +92,12 @@
 
 .subsectionTitle {
   margin: 0;
-  color: var(--color-ink-soft);
-  font-size: 0.84rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  color: var(--color-ink);
+  font-family: "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  font-size: 1.17rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .subsectionMeta {
