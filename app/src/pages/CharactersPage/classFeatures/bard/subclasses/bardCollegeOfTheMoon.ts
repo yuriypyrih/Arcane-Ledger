@@ -664,15 +664,7 @@ function getBardCollegeOfTheMoonLunarVitalityAction(
     description: getLunarVitalityDescription(character),
     drawer: {
       kind: "confirm",
-      eyebrow: "College of the Moon",
-      resources: [
-        {
-          kind: "text",
-          label: "Use",
-          value: "1",
-          icon: "music"
-        }
-      ]
+      eyebrow: "College of the Moon"
     },
     execute: {
       kind: "activate"

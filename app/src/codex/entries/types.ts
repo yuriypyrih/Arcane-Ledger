@@ -22,7 +22,6 @@ import type {
   SPECIES_TYPES,
   SPELL_COMPONENT,
   SPELL_LIST_CLASS,
-  TOOL_PROFICIENCIES,
   TRACKER,
   WEAPON_BASE,
   WEAPON_COMBAT_TYPE,
@@ -161,8 +160,6 @@ export type SpellEntry = {
   name: string;
   category: ENTRY_CATEGORIES.SPELLS;
   source: SpellSourceMetadata;
-  legacyIds?: string[];
-  legacyNames?: string[];
   magicSchool: MAGIC_SCHOOL;
   castingTime: SpellCastingTimePart[];
   range: string;
@@ -270,7 +267,7 @@ export type SpeciesEntry = BaseCodexEntry<ENTRY_CATEGORIES.SPECIES, SPECIES_TYPE
   abilityBonuses: Partial<Record<ABILITY_TYPES, number>>;
   innateProficiencies: GENERAL_PROFICIENCIES[];
   grantedSkillProficiencies: SkillName[];
-  grantedToolProficiencies: TOOL_PROFICIENCIES[];
+  grantedToolProficiencies: TOOL_PROFICIENCY[];
 };
 export type ClassEntry = BaseCodexEntry<ENTRY_CATEGORIES.CLASSES, CLASS_TYPES> & {
   hitPointDie: DICE_TYPES;

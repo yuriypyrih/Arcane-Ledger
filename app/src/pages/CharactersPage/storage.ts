@@ -1,10 +1,8 @@
 import type { Character, CharacterDraft, CoreStats } from "../../types";
 import { currencyKeys } from "../../types";
-import { resolveSpellIdAlias } from "../../codex/entries";
 import { loadPreferences } from "../../storage/preferences";
 import {
   CHARACTERS_STORAGE_KEY,
-  LEGACY_CHARACTERS_STORAGE_KEY,
   alignmentOptions,
   createDefaultCoreStats,
   createDefaultAbilities,
@@ -78,7 +76,7 @@ function normalizeCoreStatValue(value: unknown, fallback: string): string {
 }
 
 function normalizePersistedSpellId(value: string): string {
-  return resolveSpellIdAlias(value.trim());
+  return value.trim();
 }
 
 function normalizePersistedSpellIds(value: unknown): string[] {
@@ -107,20 +105,6 @@ function normalizeCoreStats(value: unknown): CoreStats {
     proficiencyBonus: normalizeCoreStatValue(record.proficiencyBonus, defaults.proficiencyBonus),
     hitDice: normalizeCoreStatValue(record.hitDice, defaults.hitDice)
   };
-}
-
-function hasExplicitArmorWornState(value: unknown): boolean {
-  if (!Array.isArray(value)) {
-    return false;
-  }
-
-  return value.some((entry) => {
-    if (!entry || typeof entry !== "object") {
-      return false;
-    }
-
-    return "worn" in entry && typeof (entry as { worn?: unknown }).worn === "boolean";
-  });
 }
 
 export function normalizeCharacterCurrencies(
@@ -184,18 +168,12 @@ export function normalizeCharacter(value: unknown): Character | null {
   }
 
   const record = value as Partial<Character> & {
-    role?: unknown;
-    class?: unknown;
     subclassId?: unknown;
     xp?: unknown;
-    experience?: unknown;
-    knownSpellIds?: unknown;
     spellbookSpellIds?: unknown;
     cantripIds?: unknown;
     preparedSpellIds?: unknown;
-    skills?: unknown;
     skillProficiencies?: unknown;
-    skillExpertise?: unknown;
     weaponProficiencies?: unknown;
     armorProficiencies?: unknown;
     toolProficiencies?: unknown;
@@ -214,7 +192,6 @@ export function normalizeCharacter(value: unknown): Character | null {
     temporaryHitPointsSource?: unknown;
     hover?: unknown;
     roundTracker?: unknown;
-    conditions?: unknown;
     statusEntries?: unknown;
     deathSaves?: unknown;
     inventoryItems?: unknown;
@@ -236,7 +213,7 @@ export function normalizeCharacter(value: unknown): Character | null {
   const normalizedHitPoints = clampNumber(record.hitPoints, 1, 9999, defaults.hitPoints);
   const { level: normalizedLevel, xp: normalizedXp } = normalizeLevelAndXp(
     record.level,
-    record.xp ?? record.experience
+    record.xp
   );
   const normalizedSpecies =
     typeof record.species === "string" ? record.species.trim() : defaults.species;
@@ -249,13 +226,7 @@ export function normalizeCharacter(value: unknown): Character | null {
     record.speciesFeatureState
   );
   const normalizedClassName =
-    typeof record.className === "string"
-      ? record.className.trim()
-      : typeof record.class === "string"
-        ? record.class.trim()
-        : typeof record.role === "string"
-          ? record.role.trim()
-          : defaults.className;
+    typeof record.className === "string" ? record.className.trim() : defaults.className;
   const normalizedBackground =
     typeof record.background === "string" ? record.background.trim() : defaults.background;
   const normalizedBackgroundNotes =
@@ -268,39 +239,14 @@ export function normalizeCharacter(value: unknown): Character | null {
     isBackgroundName(resolvedBackground) ? resolvedBackground : "",
     record.backgroundChoices
   );
-  const rawSkills = Array.isArray(record.skills)
-    ? (record.skills as unknown[]).filter((skill): skill is string => typeof skill === "string")
-    : defaults.skills;
   const rawEquipment = Array.isArray(record.equipment) ? record.equipment : defaults.equipment;
-  const rawSkillExpertise = Array.isArray(record.skillExpertise)
-    ? (record.skillExpertise as unknown[]).filter(
-        (skill): skill is string => typeof skill === "string"
-      )
-    : (defaults.skillExpertise ?? []);
-  const rawLegacySavingThrowProficiencies = Array.isArray(record.savingThrowProficiencies)
-    ? (record.savingThrowProficiencies as unknown[]).filter(
-        (ability): ability is string => typeof ability === "string"
-      )
-    : (defaults.savingThrowProficiencies ?? []);
-  const rawLegacyToolProficiencies = Array.isArray(record.toolProficiencies)
-    ? (record.toolProficiencies as unknown[]).filter(
-        (toolProficiency): toolProficiency is string => typeof toolProficiency === "string"
-      )
-    : (defaults.toolProficiencies ?? []);
-  const hasPersistedArmorWearState =
-    hasExplicitArmorWornState(record.equipment) ||
-    hasExplicitArmorWornState(record.inventoryItems) ||
-    hasExplicitArmorWornState(record.customEquipment);
   const normalizedEquipment = normalizeCharacterEquipmentSelections(rawEquipment);
   const normalizedInventoryItems = normalizeCharacterInventoryItems(record.inventoryItems);
   const normalizedCustomEquipment = normalizeCustomEquipmentEntries(record.customEquipment);
   const normalizedArmorWearState = normalizeCharacterArmorWearState(
     normalizedEquipment,
     normalizedInventoryItems,
-    normalizedCustomEquipment,
-    {
-      autoEquipLegacyArmor: !hasPersistedArmorWearState
-    }
+    normalizedCustomEquipment
   );
   const normalizedAbilities = {
     ...createDefaultAbilities(),
@@ -352,7 +298,7 @@ export function normalizeCharacter(value: unknown): Character | null {
   const normalizedCantripIds = [...new Set(rawCantripIds)]
     .filter((spellId) => cantripSelectionOptionIds.has(spellId))
     .slice(0, cantripLimit ?? Number.POSITIVE_INFINITY);
-  let normalizedClassFeatureState = normalizeCharacterClassFeatureState(record.classFeatureState, {
+  const normalizedClassFeatureState = normalizeCharacterClassFeatureState(record.classFeatureState, {
     className: normalizedClassName,
     level: normalizedLevel,
     subclassId: normalizedSubclassId,
@@ -360,22 +306,6 @@ export function normalizeCharacter(value: unknown): Character | null {
     cantripIds: normalizedCantripIds,
     feats: normalizedFeats
   });
-  const hasLegacyArcaneWardMagicTemporaryHitPoints =
-    normalizedClassName === "Wizard" &&
-    normalizedSubclassId === "wizard-abjurer" &&
-    normalizedLevel >= 3 &&
-    normalizedClassFeatureState.wizard?.arcaneWardCreatedThisLongRest !== true &&
-    clampNumber(record.magicTemporaryHitPoints, 0, 999, 0) > 0;
-
-  if (hasLegacyArcaneWardMagicTemporaryHitPoints) {
-    normalizedClassFeatureState = {
-      ...normalizedClassFeatureState,
-      wizard: {
-        ...normalizedClassFeatureState.wizard,
-        arcaneWardCreatedThisLongRest: true
-      }
-    };
-  }
   const normalizedProficiencies = normalizeCharacterProficiencies({
     className: normalizedClassName,
     level: normalizedLevel,
@@ -390,23 +320,16 @@ export function normalizeCharacter(value: unknown): Character | null {
     weaponProficiencies: record.weaponProficiencies,
     armorProficiencies: record.armorProficiencies,
     toolProficiencies: record.toolProficiencies,
-    languageProficiencies: record.languageProficiencies,
-    legacySkills: rawSkills,
-    legacySkillExpertise: rawSkillExpertise,
-    legacySavingThrowProficiencies: rawLegacySavingThrowProficiencies,
-    legacyToolProficiencies: rawLegacyToolProficiencies
+    languageProficiencies: record.languageProficiencies
   });
   const normalizedStatusEntries = normalizeSpeciesStatusEntriesForCharacter({
     species: normalizedSpecies,
     level: normalizedLevel,
-    statusEntries: normalizeCharacterStatusEntries(record.statusEntries, record.conditions)
+    statusEntries: normalizeCharacterStatusEntries(record.statusEntries)
   });
-  const rawKnownSpellIds = normalizePersistedSpellIds(record.knownSpellIds);
   const rawPreparedSpellIds = Array.isArray(record.preparedSpellIds)
     ? normalizePersistedSpellIds(record.preparedSpellIds)
-    : rawKnownSpellIds.length > 0
-      ? rawKnownSpellIds
-      : (defaults.preparedSpellIds ?? []).map(normalizePersistedSpellId);
+    : (defaults.preparedSpellIds ?? []).map(normalizePersistedSpellId);
   const preparedSpellLimit = getPreparedSpellLimitForCharacter(
     normalizedClassName,
     normalizedLevel,
@@ -422,9 +345,7 @@ export function normalizeCharacter(value: unknown): Character | null {
   );
   const rawSpellbookSpellIds = Array.isArray(record.spellbookSpellIds)
     ? normalizePersistedSpellIds(record.spellbookSpellIds)
-    : usesSpellbookForCharacter(normalizedClassName, normalizedSubclassId)
-      ? [...rawKnownSpellIds, ...rawPreparedSpellIds]
-      : [];
+    : [];
   const alwaysSpellbookSpellIds = getAlwaysSpellbookSpellIdsForCharacter({
     className: normalizedClassName,
     level: normalizedLevel,
@@ -630,27 +551,14 @@ function loadStoredCharacterRecords(): unknown[] {
   }
 
   const serializedCharacters = window.localStorage.getItem(CHARACTERS_STORAGE_KEY);
-  const legacySerializedCharacters =
-    serializedCharacters === null
-      ? window.localStorage.getItem(LEGACY_CHARACTERS_STORAGE_KEY)
-      : null;
-  const storedCharactersSource = serializedCharacters ?? legacySerializedCharacters;
-
-  if (!storedCharactersSource) {
+  if (!serializedCharacters) {
     storedCharacterRecordsCache = [];
     return storedCharacterRecordsCache;
   }
 
   try {
-    const parsedCharacters = JSON.parse(storedCharactersSource) as unknown;
+    const parsedCharacters = JSON.parse(serializedCharacters) as unknown;
     storedCharacterRecordsCache = Array.isArray(parsedCharacters) ? parsedCharacters : [];
-
-    if (serializedCharacters === null && legacySerializedCharacters !== null) {
-      window.localStorage.setItem(
-        CHARACTERS_STORAGE_KEY,
-        JSON.stringify(storedCharacterRecordsCache)
-      );
-    }
 
     return storedCharacterRecordsCache;
   } catch {

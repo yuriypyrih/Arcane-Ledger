@@ -62,16 +62,6 @@ export function getClericLifeDomainFeatureActions(
       usesRemaining,
       usesTotal: totalUses,
       description: [...preserveLifeDescription],
-      resources: [
-        {
-          kind: "tracker",
-          label: "Uses",
-          current: usesRemaining,
-          total: totalUses,
-          icon: "pyromancy",
-          cost: 1
-        }
-      ],
       drawer: {
         kind: "confirm",
         eyebrow: "Life Domain",

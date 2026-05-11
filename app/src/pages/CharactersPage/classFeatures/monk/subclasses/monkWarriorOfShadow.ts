@@ -18,6 +18,7 @@ import {
   normalizeCharacterStatusEntries
 } from "../../../statusEntries";
 import type { DerivedFeatureStatusEntry, FeatureActionCard, FeatureIndicator } from "../../types";
+import { createHeaderTagsFromResources } from "../../cardUsage";
 import { resolveSpellIdsByName, type SubclassRuntimeResolver } from "../../subclassRuntime";
 
 export const warriorOfShadowSubclassId = "monk-warrior-of-shadow";
@@ -458,7 +459,7 @@ function getMonkWarriorOfShadowFeatureActions(
       usesInlineLabel: "Use 1",
       usesInlineIcon: "brain",
       description: [...shadowArtsDarknessDescription],
-      resources: [
+      headerTags: createHeaderTagsFromResources([
         {
           kind: "tracker",
           label: "Focus",
@@ -467,7 +468,7 @@ function getMonkWarriorOfShadowFeatureActions(
           icon: "brain",
           cost: 1
         }
-      ],
+      ]),
       drawer: {
         kind: "confirm",
         eyebrow: "Warrior of Shadow",
@@ -540,7 +541,7 @@ function getMonkWarriorOfShadowFeatureActions(
       usesInlineLabel: "Use 3",
       usesInlineIcon: "brain",
       description: [...cloakOfShadowsDescription],
-      resources: [
+      headerTags: createHeaderTagsFromResources([
         {
           kind: "tracker",
           label: "Focus",
@@ -549,7 +550,7 @@ function getMonkWarriorOfShadowFeatureActions(
           icon: "brain",
           cost: cloakOfShadowFocusCost
         }
-      ],
+      ]),
       drawer: {
         kind: "confirm",
         eyebrow: "Warrior of Shadow",

@@ -20,7 +20,11 @@ import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../combat";
 import { hasStatusCondition, normalizeCharacterStatusEntries } from "../../statusEntries";
 import { getFeatureDescriptionForCharacter } from "../featureDescriptions";
-import { createFeatureActionCardCost, createNamedUsageHeaderTags } from "../cardUsage";
+import {
+  createFeatureActionCardCost,
+  createHeaderTagsFromResources,
+  createNamedUsageHeaderTags
+} from "../cardUsage";
 import {
   getEffectiveHitPointMaximumForCharacter,
   reconcileCharacterStatusConsequences
@@ -646,7 +650,7 @@ export function getPaladinFeatureActions(
       usesRemaining,
       usesTotal: totalUses,
       description: getPaladinChannelDivinityDescription(character),
-      resources: [
+      headerTags: createHeaderTagsFromResources([
         {
           kind: "tracker",
           label: "Uses",
@@ -655,7 +659,7 @@ export function getPaladinFeatureActions(
           icon: "pyromancy",
           cost: 1
         }
-      ],
+      ]),
       drawer: {
         kind: "options",
         eyebrow: "Paladin",

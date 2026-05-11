@@ -38,33 +38,24 @@ export function getFighterEldritchKnightWarMagicSpellLevels(
 function getFighterEldritchKnightWarMagicUsesThisTurn(
   character: FighterEldritchKnightCharacter
 ): number {
-  const fighterState = character.classFeatureState?.fighter as
-    | (Partial<CharacterFighterFeatureState> & {
-        eldritchKnightWarMagicUsedThisTurn?: unknown;
-      })
-    | undefined;
+  const fighterState = character.classFeatureState?.fighter;
   const currentValue = fighterState?.eldritchKnightWarMagicUsesThisTurn;
 
   if (Number.isFinite(Number(currentValue))) {
     return Math.max(0, Math.floor(Number(currentValue)));
   }
 
-  return fighterState?.eldritchKnightWarMagicUsedThisTurn === true ? 1 : 0;
+  return 0;
 }
 
 export function normalizeFighterEldritchKnightFeatureState(
   value: Partial<CharacterFighterFeatureState>,
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): Partial<CharacterFighterFeatureState> {
-  const legacyValue = value as Partial<CharacterFighterFeatureState> & {
-    eldritchKnightWarMagicUsedThisTurn?: unknown;
-  };
   const warMagicUseLimit = getFighterEldritchKnightWarMagicUseLimit(character);
   const warMagicUsesThisTurn = Number.isFinite(Number(value.eldritchKnightWarMagicUsesThisTurn))
     ? Math.floor(Number(value.eldritchKnightWarMagicUsesThisTurn))
-    : legacyValue.eldritchKnightWarMagicUsedThisTurn === true
-      ? 1
-      : 0;
+    : 0;
 
   return {
     eldritchKnightWarMagicUsesThisTurn: hasFighterEldritchKnightWarMagicFeature(character)

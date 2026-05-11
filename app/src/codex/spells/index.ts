@@ -9,7 +9,6 @@ import { spellEntries6 } from "./spells6";
 import { spellEntries7 } from "./spells7";
 import { spellEntries8 } from "./spells8";
 import { spellEntries9 } from "./spells9";
-import { resolveSpellIdAlias, resolveSpellNameAlias, spellAliasEntries } from "./aliases";
 
 export const spellEntries: SpellEntry[] = [
   ...spellEntries0,
@@ -33,41 +32,16 @@ const spellEntriesByName = new Map<string, SpellEntry>();
 
 spellEntries.forEach((entry) => {
   spellEntriesByName.set(normalizeSpellLookupName(entry.name), entry);
-
-  entry.legacyIds?.forEach((legacyId) => {
-    spellEntriesById.set(legacyId, entry);
-  });
-  entry.legacyNames?.forEach((legacyName) => {
-    spellEntriesByName.set(normalizeSpellLookupName(legacyName), entry);
-  });
-});
-
-spellAliasEntries.forEach((alias) => {
-  const canonicalEntry = spellEntriesById.get(alias.canonicalId);
-
-  if (!canonicalEntry) {
-    return;
-  }
-
-  spellEntriesById.set(alias.legacyId, canonicalEntry);
-  spellEntriesByName.set(normalizeSpellLookupName(alias.legacyName), canonicalEntry);
 });
 
 export function getSpellEntryById(id: string): SpellEntry | null {
-  return spellEntriesById.get(resolveSpellIdAlias(id)) ?? spellEntriesById.get(id) ?? null;
+  return spellEntriesById.get(id) ?? null;
 }
 
 export function getSpellEntryByName(name: string): SpellEntry | null {
-  const canonicalName = resolveSpellNameAlias(name);
-
-  return (
-    spellEntriesByName.get(normalizeSpellLookupName(canonicalName)) ??
-    spellEntriesByName.get(normalizeSpellLookupName(name)) ??
-    null
-  );
+  return spellEntriesByName.get(normalizeSpellLookupName(name)) ?? null;
 }
 
-export * from "./aliases";
 export * from "./spells0";
 export * from "./spells1";
 export * from "./spells2";

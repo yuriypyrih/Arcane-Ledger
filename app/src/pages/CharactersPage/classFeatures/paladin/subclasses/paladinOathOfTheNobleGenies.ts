@@ -736,45 +736,9 @@ function getPaladinOathOfTheNobleGeniesFeatureActions(
           label: "Spell Slots"
         }
       ),
-      resources: [
-        {
-          kind: "tracker",
-          label: "Uses",
-          current: usesRemaining,
-          total: nobleScionUsesTotal,
-          cost: 1
-        },
-        ...(showFallbackSlotInfo
-          ? [
-              {
-                kind: "text" as const,
-                label: "Level 5 Slots",
-                value: `${fallbackSlotSummary.remaining}/${fallbackSlotSummary.total}`
-              }
-            ]
-          : [])
-      ],
       drawer: {
         kind: "confirm",
-        eyebrow: "Oath of the Noble Genies",
-        resources: [
-          {
-            kind: "tracker" as const,
-            label: "Uses",
-            current: usesRemaining,
-            total: nobleScionUsesTotal,
-            cost: 1
-          },
-          ...(showFallbackSlotInfo
-            ? [
-                {
-                  kind: "text" as const,
-                  label: "Level 5 Slots",
-                  value: `${fallbackSlotSummary.remaining}/${fallbackSlotSummary.total}`
-                }
-              ]
-            : [])
-        ]
+        eyebrow: "Oath of the Noble Genies"
       },
       execute: {
         kind: "activate"

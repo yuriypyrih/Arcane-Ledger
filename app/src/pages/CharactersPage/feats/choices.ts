@@ -5,7 +5,6 @@ import {
   MAGIC_SCHOOL,
   SPELL_LIST_CLASS,
   getSpellEntries,
-  resolveSpellIdAlias,
   type SpellEntry
 } from "../../../codex/entries";
 import { ALL_SKILLS, TOOL_PROFICIENCY, type WEAPON_PROFICIENCY } from "../../../types";
@@ -107,7 +106,7 @@ const abilityKeySet = new Set<AbilityKey>(abilityKeys);
 const skillNameSet = new Set<SkillName>(ALL_SKILLS);
 
 function normalizeFeatSpellId(value: string): string {
-  return resolveSpellIdAlias(value.trim());
+  return value.trim();
 }
 const allEpicBoonAbilityOptions: AbilityKey[] = [...abilityKeys];
 const blessedWarriorCantripOptions = getSpellEntriesForSpellListClass(

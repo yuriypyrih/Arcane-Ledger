@@ -17,6 +17,7 @@ import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import { getPreparedSpellIdsByLevel, resolveSpellIdsByName } from "../../subclassRuntime";
 import type { DerivedFeatureStatusEntry, FeatureActionCard } from "../../types";
+import { createHeaderTagsFromResources } from "../../cardUsage";
 import {
   druidLandsAidActionKey,
   druidNaturesSanctuaryActionKey,
@@ -345,12 +346,11 @@ function getCircleOfTheLandFeatureActions(character: Parameters<SubclassRuntimeR
       hideUsesTrackerOnCard: true,
       usesInlineLabel: "Use 1",
       usesInlineIcon: "paw" as const,
-      resources,
+      headerTags: createHeaderTagsFromResources(resources),
       drawer: {
         kind: "confirm" as const,
         eyebrow: "Circle of the Land",
-        description,
-        resources
+        description
       },
       execute: {
         kind: "activate" as const
@@ -374,12 +374,11 @@ function getCircleOfTheLandFeatureActions(character: Parameters<SubclassRuntimeR
             hideUsesTrackerOnCard: true,
             usesInlineLabel: "Use 1",
             usesInlineIcon: "paw" as const,
-            resources,
+            headerTags: createHeaderTagsFromResources(resources),
             drawer: {
               kind: "confirm" as const,
               eyebrow: "Circle of the Land",
-              description: naturesSanctuaryDescription,
-              resources
+              description: naturesSanctuaryDescription
             },
             execute: {
               kind: "activate" as const

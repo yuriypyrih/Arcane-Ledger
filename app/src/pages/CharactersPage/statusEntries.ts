@@ -1,5 +1,5 @@
 import type { SpellDescriptionEntry, SpellDurationPart } from "../../codex/entries";
-import { DAMAGE_TYPE, DURATION, resolveSpellIdAlias } from "../../codex/entries";
+import { DAMAGE_TYPE, DURATION } from "../../codex/entries";
 import {
   CONDITION_NAME,
   EFFECT_NAME,
@@ -237,26 +237,6 @@ export function normalizeCharacterStatusDuration(
   return normalizeStatusDuration(value) ?? fallback;
 }
 
-function normalizeLegacyDuration(roundsRemaining: unknown): CharacterStatusDuration | null {
-  const parsed = Number(roundsRemaining);
-
-  if (!Number.isFinite(parsed)) {
-    return null;
-  }
-
-  if (parsed === Number.POSITIVE_INFINITY || parsed === 0) {
-    return {
-      kind: STATUS_DURATION_KIND.INFINITE
-    };
-  }
-
-  return {
-    kind: STATUS_DURATION_KIND.ROUNDS,
-    amount: clampInteger(parsed, 1, 999, 1),
-    tickOn: STATUS_DURATION_ROUND_TICK.ROUND_START
-  };
-}
-
 function normalizeStatusValue(
   group: STATUS_ENTRY_GROUP,
   value: unknown
@@ -345,9 +325,7 @@ function normalizeStatusEntry(value: unknown): CharacterStatusEntry | null {
     return null;
   }
 
-  const record = value as Partial<CharacterStatusEntry> & {
-    roundsRemaining?: unknown;
-  };
+  const record = value as Partial<CharacterStatusEntry>;
   const rawGroup = statusGroupValues.has(record.group as STATUS_ENTRY_GROUP)
     ? (record.group as STATUS_ENTRY_GROUP)
     : null;
@@ -373,8 +351,7 @@ function normalizeStatusEntry(value: unknown): CharacterStatusEntry | null {
   const sourceType = statusSourceTypeValues.has(record.sourceType as STATUS_ENTRY_SOURCE_TYPE)
     ? (record.sourceType as STATUS_ENTRY_SOURCE_TYPE)
     : STATUS_ENTRY_SOURCE_TYPE.MANUAL;
-  const duration = normalizeStatusDuration(record.duration) ??
-    normalizeLegacyDuration(record.roundsRemaining) ?? {
+  const duration = normalizeStatusDuration(record.duration) ?? {
       kind: STATUS_DURATION_KIND.INFINITE
     };
   const descriptionAdditions = normalizeStatusDescriptionAdditions(record.descriptionAdditions);
@@ -404,7 +381,7 @@ function normalizeStatusEntry(value: unknown): CharacterStatusEntry | null {
         : undefined,
     sourceSpellId:
       typeof record.sourceSpellId === "string" && record.sourceSpellId.trim().length > 0
-        ? resolveSpellIdAlias(record.sourceSpellId.trim())
+        ? record.sourceSpellId.trim()
         : undefined,
     rangeFeet:
       typeof record.rangeFeet === "number" &&
@@ -418,40 +395,6 @@ function normalizeStatusEntry(value: unknown): CharacterStatusEntry | null {
         : undefined,
     descriptionAdditions: descriptionAdditions.length > 0 ? descriptionAdditions : undefined,
     customEffects: normalizeCharacterCustomTraitEffects(record.customEffects)
-  };
-}
-
-function normalizeLegacyConditionEntry(value: unknown, index: number): CharacterStatusEntry | null {
-  if (!value || typeof value !== "object") {
-    return null;
-  }
-
-  const record = value as {
-    name?: unknown;
-    roundsRemaining?: unknown;
-  };
-
-  if (!isConditionName(record.name)) {
-    return null;
-  }
-
-  const duration = normalizeLegacyDuration(record.roundsRemaining);
-
-  if (!duration) {
-    return null;
-  }
-
-  return {
-    id: `legacy-condition-${index}-${record.name.toLowerCase().replace(/\s+/g, "-")}`,
-    group: STATUS_ENTRY_GROUP.CONDITIONS,
-    value: record.name,
-    conditionLevel: record.name === CONDITION_NAME.EXHAUSTION ? 1 : null,
-    disabled: false,
-    source: "Manual",
-    sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
-    duration,
-    rangeFeet: null,
-    customEffects: []
   };
 }
 
@@ -558,27 +501,13 @@ function ensureLinkedStatusDependencies(entries: CharacterStatusEntry[]): Charac
   return pruneLinkedStatusEntries(nextEntries);
 }
 
-export function normalizeCharacterStatusEntries(
-  value: unknown,
-  legacyConditions?: unknown
-): CharacterStatusEntry[] {
+export function normalizeCharacterStatusEntries(value: unknown): CharacterStatusEntry[] {
   const normalizedEntries = Array.isArray(value)
     ? value
         .map((entry) => normalizeStatusEntry(entry))
         .filter((entry): entry is CharacterStatusEntry => entry !== null)
     : [];
-
-  const migratedLegacyConditions = Array.isArray(legacyConditions)
-    ? legacyConditions
-        .map((entry, index) => normalizeLegacyConditionEntry(entry, index))
-        .filter((entry): entry is CharacterStatusEntry => entry !== null)
-    : [];
-
-  if (normalizedEntries.length > 0) {
-    return normalizedEntries;
-  }
-
-  return migratedLegacyConditions;
+  return normalizedEntries;
 }
 
 export function createCharacterStatusEntry(options: {

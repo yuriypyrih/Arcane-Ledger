@@ -34,7 +34,6 @@ export const alignmentOptions = alignmentGrid.flat();
 export const POINT_BUY_BUDGET = 27;
 
 export const CHARACTERS_STORAGE_KEY = "arcane-ledger.characters";
-export const LEGACY_CHARACTERS_STORAGE_KEY = "dnd-companion.characters";
 
 const pointBuyCostByScore: Record<number, number> = {
   8: 0,

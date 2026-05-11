@@ -7,7 +7,6 @@ import {
   createChargesHeaderTag,
   createFeatureActionHeaderTagPool,
   markUsageHeaderTagsAsFallback,
-  createTextHeaderTag,
   createUsageHeaderTag
 } from "./classFeatures/cardUsage";
 import { createDefaultFeatureActionDescription } from "./classFeatures/featureActionDescription";
@@ -117,37 +116,15 @@ function createTextResource(
 }
 
 function createFeatureActionHeaderTags(action: FeatureActionCard): FeatureActionHeaderTag[] {
-  const explicitHeaderTags = action.drawer?.headerTags ?? action.headerTags;
+  const headerTags = action.drawer?.headerTags ?? action.headerTags;
 
-  if (explicitHeaderTags && explicitHeaderTags.length > 0) {
+  if (headerTags && headerTags.length > 0) {
     return action.cardUsage?.mode === "charges-or-resource"
-      ? markUsageHeaderTagsAsFallback(explicitHeaderTags)
-      : explicitHeaderTags;
+      ? markUsageHeaderTagsAsFallback(headerTags)
+      : headerTags;
   }
 
-  const legacyResources = action.drawer?.resources ?? action.resources ?? [];
-  const consumedLegacyResourceIndexes = new Set<number>();
-  const headerTags: FeatureActionHeaderTag[] = [];
-
-  const consumeLegacyChargeTracker = () => {
-    const legacyChargeTrackerIndex = legacyResources.findIndex(
-      (resource, index) =>
-        !consumedLegacyResourceIndexes.has(index) && resource.kind === "tracker" && !resource.icon
-    );
-
-    if (legacyChargeTrackerIndex >= 0) {
-      consumedLegacyResourceIndexes.add(legacyChargeTrackerIndex);
-    }
-  };
-
-  const findUsagePoolResource = () =>
-    legacyResources.find((resource, index) => {
-      if (consumedLegacyResourceIndexes.has(index)) {
-        return false;
-      }
-
-      return resource.kind === "tracker" && Boolean(resource.icon);
-    });
+  const normalizedHeaderTags: FeatureActionHeaderTag[] = [];
 
   const appendUsageTag = () => {
     if (
@@ -159,28 +136,9 @@ function createFeatureActionHeaderTags(action: FeatureActionCard): FeatureAction
     }
 
     const usageCost = action.cardUsage.cost;
-    const usagePoolResource = findUsagePoolResource();
-
-    if (usagePoolResource && usagePoolResource.kind === "tracker") {
-      const usagePoolIndex = legacyResources.indexOf(usagePoolResource);
-
-      headerTags.push(
-        createUsageHeaderTag(
-          usageCost,
-          createFeatureActionHeaderTagPool(usagePoolResource.current, usagePoolResource.total, {
-            icon: usagePoolResource.icon
-          }),
-          {
-            isFallback: action.cardUsage?.mode === "charges-or-resource"
-          }
-        )
-      );
-      consumedLegacyResourceIndexes.add(usagePoolIndex);
-      return;
-    }
 
     if (action.usesTotal && action.usesTotal > 0) {
-      headerTags.push(
+      normalizedHeaderTags.push(
         createUsageHeaderTag(
           usageCost,
           createFeatureActionHeaderTagPool(action.usesRemaining ?? 0, action.usesTotal, {
@@ -197,17 +155,15 @@ function createFeatureActionHeaderTags(action: FeatureActionCard): FeatureAction
   if (action.cardUsage) {
     switch (action.cardUsage.mode) {
       case "charges":
-        headerTags.push(
+        normalizedHeaderTags.push(
           createChargesHeaderTag(action.cardUsage.charges.current, action.cardUsage.charges.total)
         );
-        consumeLegacyChargeTracker();
         break;
       case "charges-and-resource":
       case "charges-or-resource":
-        headerTags.push(
+        normalizedHeaderTags.push(
           createChargesHeaderTag(action.cardUsage.charges.current, action.cardUsage.charges.total)
         );
-        consumeLegacyChargeTracker();
         appendUsageTag();
         break;
       case "named-resource":
@@ -219,28 +175,7 @@ function createFeatureActionHeaderTags(action: FeatureActionCard): FeatureAction
     }
   }
 
-  legacyResources.forEach((resource, index) => {
-    if (consumedLegacyResourceIndexes.has(index)) {
-      return;
-    }
-
-    if (resource.kind === "tracker") {
-      if (resource.icon) {
-        return;
-      }
-
-      headerTags.push(
-        createChargesHeaderTag(resource.current, resource.total, resource.supplementary)
-      );
-      return;
-    }
-
-    headerTags.push(
-      createTextHeaderTag(resource.label, resource.value, resource.icon, resource.tone)
-    );
-  });
-
-  return headerTags;
+  return normalizedHeaderTags;
 }
 
 function createFeatureActionFacts(action: FeatureActionCard): FeatureActionFact[] {

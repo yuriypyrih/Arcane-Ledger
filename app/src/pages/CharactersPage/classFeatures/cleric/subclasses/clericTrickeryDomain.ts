@@ -288,16 +288,6 @@ function getClericInvokeDuplicityAction(
     usesTotal,
     description: [...invokeDuplicityDescription],
     descriptionAdditions,
-    resources: [
-      {
-        kind: "tracker",
-        label: "Uses",
-        current: usesRemaining,
-        total: usesTotal,
-        icon: "pyromancy",
-        cost: 1
-      }
-    ],
     drawer: {
       kind: "confirm",
       eyebrow: "Trickery Domain",

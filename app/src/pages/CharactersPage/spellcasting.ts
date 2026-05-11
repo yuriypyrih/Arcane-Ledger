@@ -1,6 +1,5 @@
 import {
   CLASS_FEATURE,
-  resolveSpellIdAlias,
   type ClassEntry,
   type FeatureClassObj,
   type SpellEntry
@@ -47,7 +46,7 @@ function sanitizeSpellLevel(value: unknown): number {
 }
 
 function normalizeSpellId(value: string): string {
-  return resolveSpellIdAlias(value.trim());
+  return value.trim();
 }
 
 function normalizeSpellIdList(spellIds: unknown): string[] {

@@ -43,6 +43,7 @@ import type {
   FeatureActionFact,
   FeatureDamageBonus
 } from "../../types";
+import { createHeaderTagsFromResources } from "../../cardUsage";
 import { getRangerFeatAdjustedWisdomModifier } from "../abilityModifiers";
 
 export const winterWalkerSubclassId = "ranger-winter-walker";
@@ -757,7 +758,7 @@ function getRangerWinterWalkerFeatureActions(
       usesRemaining,
       usesTotal,
       description: [...fortifyingSoulDescription],
-      resources: [
+      headerTags: createHeaderTagsFromResources([
         {
           kind: "tracker",
           label: "Uses",
@@ -766,23 +767,13 @@ function getRangerWinterWalkerFeatureActions(
           supplementary: "Long Rest",
           cost: 1
         }
-      ],
+      ]),
       drawer: {
         kind: "confirm",
         eyebrow: "Winter Walker",
         description: [...fortifyingSoulDescription],
         facts: healingFacts,
-        factsSectionTitle: null,
-        resources: [
-          {
-            kind: "tracker",
-            label: "Uses",
-            current: usesRemaining,
-            total: usesTotal,
-            supplementary: "Long Rest",
-            cost: 1
-          }
-        ]
+        factsSectionTitle: null
       },
       execute: {
         kind: "activate"

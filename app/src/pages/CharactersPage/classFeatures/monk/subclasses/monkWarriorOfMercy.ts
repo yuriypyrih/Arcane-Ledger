@@ -12,7 +12,11 @@ import {
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { formatFormulaCell, formatSignedFormulaTerm } from "../../../shared/formulas";
-import { createChargesAndResourceCardUsage, createFeatureActionCardCost } from "../../cardUsage";
+import {
+  createChargesAndResourceCardUsage,
+  createFeatureActionCardCost,
+  createHeaderTagsFromResources
+} from "../../cardUsage";
 import type {
   FeatureActionCard,
   FeatureActionFact,
@@ -301,18 +305,12 @@ export function getMonkWarriorOfMercyHandOfHealingFlurryUsesThisTurn(
   const rawUsesThisTurn = Number(
     character.classFeatureState?.monk?.warriorOfMercyHandOfHealingFlurryUsesThisTurn
   );
-  const legacyUsedThisTurn =
-    (
-      character.classFeatureState?.monk as
-        | { warriorOfMercyHandOfHealingFlurryUsedThisTurn?: unknown }
-        | undefined
-    )?.warriorOfMercyHandOfHealingFlurryUsedThisTurn === true;
 
   if (Number.isFinite(rawUsesThisTurn)) {
     return Math.max(0, Math.floor(rawUsesThisTurn));
   }
 
-  return legacyUsedThisTurn ? 1 : 0;
+  return 0;
 }
 
 export function normalizeMonkWarriorOfMercyFeatureState(
@@ -578,7 +576,7 @@ export function getMonkWarriorOfMercyFeatureActions(
       usesInlineIcon: "brain",
       description: [...handOfHealingDescription],
       facts: handOfHealingFacts,
-      resources: [
+      headerTags: createHeaderTagsFromResources([
         {
           kind: "tracker",
           label: "Focus",
@@ -587,7 +585,7 @@ export function getMonkWarriorOfMercyFeatureActions(
           icon: "brain",
           cost: 1
         }
-      ],
+      ]),
       drawer: {
         kind: "confirm",
         eyebrow: "Warrior of Mercy",
@@ -636,23 +634,6 @@ export function getMonkWarriorOfMercyFeatureActions(
       usesInlineLabel: "Use 5",
       usesInlineIcon: "brain",
       description: [...handOfUltimateMercyDescription],
-      resources: [
-        {
-          kind: "tracker",
-          label: "Charges",
-          current: usesRemaining,
-          total: handOfUltimateMercyUsesTotal,
-          cost: 1
-        },
-        {
-          kind: "tracker",
-          label: "Focus",
-          current: focusPointsRemaining,
-          total: focusPointsTotal,
-          icon: "brain",
-          cost: handOfUltimateMercyFocusCost
-        }
-      ],
       drawer: {
         kind: "confirm",
         eyebrow: "Warrior of Mercy",

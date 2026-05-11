@@ -79,15 +79,15 @@ export function renderEquipmentForm(context: Record<string, any>) {
       ) : (
         <div className={styles.equipmentGroupStack}>
           {equipmentGroupMeta.map((group) => {
-            const legacyItems =
+            const loadoutItems =
               selectedEquipmentGroups.find((entry) => entry.key === group.key)?.items ?? [];
             const inventoryItems =
               inventoryEquipmentGroups.find((entry) => entry.key === group.key)?.items ?? [];
             const combinedItems = [
-              ...legacyItems.map((item) => ({
+              ...loadoutItems.map((item) => ({
                 key: item.key,
                 name: item.name,
-                kind: "legacy" as const,
+                kind: "loadout" as const,
                 item
               })),
               ...inventoryItems.map((item) => ({
@@ -116,7 +116,7 @@ export function renderEquipmentForm(context: Record<string, any>) {
                 </header>
                 <ul className={styles.equipmentItemList}>
                   {visibleGroupItems.map((entry) =>
-                    entry.kind === "legacy" ? (
+                    entry.kind === "loadout" ? (
                       <li key={entry.key}>
                         <SheetSurface
                           as="button"

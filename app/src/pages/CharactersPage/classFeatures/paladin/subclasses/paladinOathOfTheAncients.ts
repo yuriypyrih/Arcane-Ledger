@@ -25,7 +25,8 @@ import {
 import {
   createChargesAndUsageHeaderTags,
   createChargesOrResourceCardUsage,
-  createFeatureActionCardCost
+  createFeatureActionCardCost,
+  createHeaderTagsFromResources
 } from "../../cardUsage";
 import {
   getPreparedSpellIdsByLevel,
@@ -268,7 +269,7 @@ function getPaladinOathOfTheAncientsFeatureActions(
       usesRemaining: channelDivinityUsesRemaining,
       usesTotal: channelDivinityUsesTotal,
       description: [...naturesWrathDescription],
-      resources: [
+      headerTags: createHeaderTagsFromResources([
         {
           kind: "tracker",
           label: "Uses",
@@ -277,20 +278,10 @@ function getPaladinOathOfTheAncientsFeatureActions(
           icon: "pyromancy",
           cost: 1
         }
-      ],
+      ]),
       drawer: {
         kind: "confirm",
-        eyebrow: "Oath of the Ancients",
-        resources: [
-          {
-            kind: "tracker",
-            label: "Uses",
-            current: channelDivinityUsesRemaining,
-            total: channelDivinityUsesTotal,
-            icon: "pyromancy",
-            cost: 1
-          }
-        ]
+        eyebrow: "Oath of the Ancients"
       },
       execute: {
         kind: "activate"
@@ -315,7 +306,7 @@ function getPaladinOathOfTheAncientsFeatureActions(
       usesRemaining,
       usesTotal: undyingSentinelUsesTotal,
       description: [...undyingSentinelDescription],
-      resources: [
+      headerTags: createHeaderTagsFromResources([
         {
           kind: "tracker",
           label: "Uses",
@@ -323,23 +314,14 @@ function getPaladinOathOfTheAncientsFeatureActions(
           total: undyingSentinelUsesTotal,
           cost: 1
         }
-      ],
+      ]),
       drawer: {
         kind: "confirm",
         eyebrow: "Oath of the Ancients",
         blockedReason:
           character.currentHitPoints === 0
             ? undefined
-            : "Undying Sentinel can only activate while you are at 0 Hit Points.",
-        resources: [
-          {
-            kind: "tracker",
-            label: "Uses",
-            current: usesRemaining,
-            total: undyingSentinelUsesTotal,
-            cost: 1
-          }
-        ]
+            : "Undying Sentinel can only activate while you are at 0 Hit Points."
       },
       execute: {
         kind: "activate"
@@ -390,45 +372,9 @@ function getPaladinOathOfTheAncientsFeatureActions(
           label: "Spell Slots"
         }
       ),
-      resources: [
-        {
-          kind: "tracker",
-          label: "Uses",
-          current: usesRemaining,
-          total: elderChampionUsesTotal,
-          cost: 1
-        },
-        ...(showFallbackSlotInfo
-          ? [
-              {
-                kind: "text" as const,
-                label: "Level 5 Slots",
-                value: `${fallbackSlotSummary.remaining}/${fallbackSlotSummary.total}`
-              }
-            ]
-          : [])
-      ],
       drawer: {
         kind: "confirm",
-        eyebrow: "Oath of the Ancients",
-        resources: [
-          {
-            kind: "tracker" as const,
-            label: "Uses",
-            current: usesRemaining,
-            total: elderChampionUsesTotal,
-            cost: 1
-          },
-          ...(showFallbackSlotInfo
-            ? [
-                {
-                  kind: "text" as const,
-                  label: "Level 5 Slots",
-                  value: `${fallbackSlotSummary.remaining}/${fallbackSlotSummary.total}`
-                }
-              ]
-            : [])
-        ]
+        eyebrow: "Oath of the Ancients"
       },
       execute: {
         kind: "activate"

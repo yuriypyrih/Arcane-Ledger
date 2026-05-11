@@ -69,7 +69,6 @@ import {
   createToolEntry,
   createWeaponEntry,
   dedupe,
-  getLegacyToolProficiency,
   getSourceLabel,
   isToolProficiency,
   mergeProficiencyEntries,
@@ -125,9 +124,9 @@ export function normalizeToolProficiencySelections(
 ): ToolProficiency[] {
   return dedupe(
     selectedToolProficiencies
-      .map((toolProficiency) => getLegacyToolProficiency(toolProficiency) ?? toolProficiency)
       .filter(
-        (toolProficiency): toolProficiency is ToolProficiency => typeof toolProficiency === "string"
+        (toolProficiency): toolProficiency is ToolProficiency =>
+          typeof toolProficiency === "string" && isToolProficiency(toolProficiency)
       )
   );
 }
@@ -154,7 +153,7 @@ function getBackgroundGrantedSkillProficiencies(
 }
 
 function normalizeStoredToolProficiency(value: string): ToolProficiency | null {
-  return getLegacyToolProficiency(value) ?? (isToolProficiency(value) ? value : null);
+  return isToolProficiency(value) ? value : null;
 }
 
 function getBackgroundGrantedToolProficiencies(
@@ -210,8 +209,9 @@ function getSpeciesGrantedToolProficiencies(species: string): ToolProficiency[] 
   }
 
   return entry.grantedToolProficiencies
-    .map((toolProficiency) => getLegacyToolProficiency(toolProficiency))
-    .filter((toolProficiency): toolProficiency is ToolProficiency => toolProficiency !== null);
+    .filter((toolProficiency): toolProficiency is ToolProficiency =>
+      isToolProficiency(toolProficiency)
+    );
 }
 
 function getClassGrantedSkillProficiencies(className: string): SkillName[] {
@@ -451,29 +451,6 @@ export function normalizeSkillSelectionsForClass(
     .slice(0, profile.skillProficiencyCount);
 }
 
-export function splitLegacySkillSelectionsForClass(
-  className: string,
-  selectedSkills: string[],
-  species = "",
-  background = ""
-): { classSelections: SkillName[]; manualSelections: SkillName[] } {
-  const classSelections = normalizeSkillSelectionsForClass(
-    className,
-    selectedSkills,
-    species,
-    background
-  );
-  const classSelectionSet = new Set(classSelections);
-  const manualSelections = normalizeManualSkillSelections(selectedSkills).filter(
-    (skill) => !classSelectionSet.has(skill)
-  );
-
-  return {
-    classSelections,
-    manualSelections
-  };
-}
-
 export function normalizeToolSelectionsForClass(
   className: string,
   selectedTools: string[]
@@ -484,22 +461,6 @@ export function normalizeToolSelectionsForClass(
   return dedupe(
     normalizeToolProficiencySelections(selectedTools).filter((tool) => allowedToolSet.has(tool))
   ).slice(0, count);
-}
-
-export function splitLegacyToolSelectionsForClass(
-  className: string,
-  selectedTools: string[]
-): { classSelections: ToolProficiency[]; manualSelections: ToolProficiency[] } {
-  const classSelections = normalizeToolSelectionsForClass(className, selectedTools);
-  const classSelectionSet = new Set(classSelections);
-  const manualSelections = normalizeToolProficiencySelections(selectedTools).filter(
-    (tool) => !classSelectionSet.has(tool)
-  );
-
-  return {
-    classSelections,
-    manualSelections
-  };
 }
 
 export function normalizeManualSkillSelections(selectedSkills: string[]): SkillName[] {

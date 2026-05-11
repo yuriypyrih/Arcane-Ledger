@@ -427,7 +427,7 @@ export function normalizeRogueFeatureState(
     sneakAttackUsedThisTurn: hasSneakAttack ? Boolean(record.sneakAttackUsedThisTurn) : undefined,
     steadyAimActive: hasSteadyAim ? Boolean(record.steadyAimActive) : undefined,
     steadyAimAttackAdvantageAvailable: hasSteadyAim
-      ? Boolean(record.steadyAimAttackAdvantageAvailable ?? record.steadyAimActive)
+      ? Boolean(record.steadyAimAttackAdvantageAvailable)
       : undefined,
     spellThiefUsesExpended: hasSpellThief
       ? Math.max(

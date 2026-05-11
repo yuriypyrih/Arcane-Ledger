@@ -42,7 +42,6 @@ import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "..
 import type {
   FeatureArmorProficiencyEntry,
   FeatureActionCard,
-  FeatureActionResource,
   FeatureLanguageProficiencyEntry,
   FeatureSkillBonus,
   FeatureSkillProficiencyEntry,
@@ -993,30 +992,7 @@ export function getBardFeatureAction(
   const spellSlotAvailability = getBardSpellSlotAvailability(character);
   const hasFallbackSpellSlot =
     fontOfInspirationUnlocked && spellSlotAvailability.remainingCount > 0;
-  const spellSlotLabel = fontOfInspirationUnlocked
-    ? `${spellSlotAvailability.remainingCount}/${spellSlotAvailability.totalCount} spell slots`
-    : undefined;
   const bardicInspirationDrawerDescription = getBardicInspirationDrawerDescription(character);
-  const drawerResources: FeatureActionResource[] = [
-    {
-      kind: "tracker",
-      label: "Uses",
-      current: usesRemaining,
-      total: totalUses,
-      icon: "music",
-      cost: 1
-    },
-    ...(spellSlotLabel
-      ? [
-          {
-            kind: "text" as const,
-            label: "Spell Slots",
-            value: spellSlotLabel
-          }
-        ]
-      : [])
-  ];
-
   const disabled = usesRemaining <= 0 && !hasFallbackSpellSlot;
   const disabledReason = disabled
     ? fontOfInspirationUnlocked
@@ -1087,8 +1063,7 @@ export function getBardFeatureAction(
       kind: "confirm",
       eyebrow: "Bard",
       description: bardicInspirationDrawerDescription.description,
-      descriptionAdditions: bardicInspirationDrawerDescription.descriptionAdditions,
-      resources: drawerResources
+      descriptionAdditions: bardicInspirationDrawerDescription.descriptionAdditions
     },
     execute: {
       kind: "activate"

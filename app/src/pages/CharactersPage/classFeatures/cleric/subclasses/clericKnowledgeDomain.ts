@@ -664,25 +664,7 @@ export function getKnowledgeDomainFeatureActions(
       ),
       drawer: {
         kind: "confirm",
-        eyebrow: "Knowledge Domain",
-        resources: [
-          {
-            kind: "tracker",
-            label: "Uses",
-            current: usesRemaining,
-            total: usesTotal,
-            cost: 1
-          },
-          ...(fallbackSlotSummary.total > 0
-            ? [
-                {
-                  kind: "text" as const,
-                  label: "Level 6+ Slots",
-                  value: `${fallbackSlotSummary.remaining}/${fallbackSlotSummary.total}`
-                }
-              ]
-            : [])
-        ]
+        eyebrow: "Knowledge Domain"
       },
       execute: {
         kind: "activate"

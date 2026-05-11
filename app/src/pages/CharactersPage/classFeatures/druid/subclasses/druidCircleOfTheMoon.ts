@@ -353,24 +353,6 @@ function getCircleOfTheMoonFeatureActions(character: Parameters<SubclassRuntimeR
       10,
       CLASS_FEATURE.MOONLIGHT_STEP
     )?.description ?? [];
-  const resources = [
-    {
-      kind: "tracker" as const,
-      label: "Uses",
-      current: usesRemaining,
-      total: usesTotal,
-      cost: 1
-    },
-    ...(fallbackSlotSummary.total > 0
-      ? [
-          {
-            kind: "text" as const,
-            label: "2+ Spell Slots",
-            value: `${fallbackSlotSummary.remaining}/${fallbackSlotSummary.total}`
-          }
-        ]
-      : [])
-  ];
   const disabled = usesRemaining <= 0 && fallbackSlotLevel === null;
 
   return [
@@ -408,13 +390,11 @@ function getCircleOfTheMoonFeatureActions(character: Parameters<SubclassRuntimeR
           label: "Spell Slots"
         }
       ),
-      resources,
       drawer: {
         kind: "confirm" as const,
         eyebrow: "Circle of the Moon",
         description,
-        descriptionAdditions: getDruidCircleOfTheMoonMoonlightStepDescriptionAdditions(character),
-        resources
+        descriptionAdditions: getDruidCircleOfTheMoonMoonlightStepDescriptionAdditions(character)
       },
       execute: {
         kind: "activate" as const

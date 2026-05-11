@@ -393,45 +393,9 @@ function getPaladinOathOfVengeanceFeatureActions(
           label: "Spell Slots"
         }
       ),
-      resources: [
-        {
-          kind: "tracker",
-          label: "Uses",
-          current: usesRemaining,
-          total: avengingAngelUsesTotal,
-          cost: 1
-        },
-        ...(showFallbackSlotInfo
-          ? [
-              {
-                kind: "text" as const,
-                label: "Level 5 Slots",
-                value: `${fallbackSlotSummary.remaining}/${fallbackSlotSummary.total}`
-              }
-            ]
-          : [])
-      ],
       drawer: {
         kind: "confirm",
-        eyebrow: "Oath of Vengeance",
-        resources: [
-          {
-            kind: "tracker" as const,
-            label: "Uses",
-            current: usesRemaining,
-            total: avengingAngelUsesTotal,
-            cost: 1
-          },
-          ...(showFallbackSlotInfo
-            ? [
-                {
-                  kind: "text" as const,
-                  label: "Level 5 Slots",
-                  value: `${fallbackSlotSummary.remaining}/${fallbackSlotSummary.total}`
-                }
-              ]
-            : [])
-        ]
+        eyebrow: "Oath of Vengeance"
       },
       execute: {
         kind: "activate"

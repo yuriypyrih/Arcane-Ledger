@@ -13,7 +13,8 @@ import { getProficiencyBonus } from "../../../gameplay";
 import {
   createChargesAndUsageHeaderTags,
   createChargesOrResourceCardUsage,
-  createFeatureActionCardCost
+  createFeatureActionCardCost,
+  createHeaderTagsFromResources
 } from "../../cardUsage";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
@@ -608,14 +609,14 @@ function getFighterBattleMasterCombatSuperiorityAction(
     description: getCombatSuperiorityDescriptionEntries(character),
     descriptionAdditions: getCombatSuperiorityDescriptionAdditions(character),
     facts: getCombatSuperiorityFacts(character),
-    resources: [
+    headerTags: createHeaderTagsFromResources([
       {
         kind: "text",
         label: "Superiority Dice",
         value: `${remainingDice}/${totalDice}`,
         icon: "superiority"
       }
-    ],
+    ]),
     drawer: {
       kind: "confirm",
       eyebrow: "Fighter"
@@ -687,25 +688,6 @@ function getFighterBattleMasterKnowYourEnemyAction(
       },
       "Long Rest"
     ),
-    resources: [
-      {
-        kind: "tracker",
-        label: "Charge",
-        current: usesRemaining,
-        total: usesTotal,
-        supplementary: "Long Rest"
-      },
-      ...(canUseFallback
-        ? [
-            {
-              kind: "text" as const,
-              label: "Fallback",
-              value: "Use 1",
-              icon: "superiority" as const
-            }
-          ]
-        : [])
-    ],
     drawer: {
       kind: "confirm",
       eyebrow: "Fighter",

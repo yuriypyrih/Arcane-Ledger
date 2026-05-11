@@ -763,25 +763,6 @@ function getRogueSoulknifePsychicWhispersAction(
       },
       "Long Rest"
     ),
-    resources: [
-      {
-        kind: "tracker",
-        label: "Charge",
-        current: usesRemaining,
-        total: usesTotal,
-        supplementary: "Long Rest"
-      },
-      ...(canUseFallback
-        ? [
-            {
-              kind: "text" as const,
-              label: "Fallback",
-              value: "Use 1 Psionic Die",
-              icon: "psi" as const
-            }
-          ]
-        : [])
-    ],
     drawer: {
       kind: "confirm",
       eyebrow: soulknifeDrawerEyebrow
@@ -830,16 +811,6 @@ function getRogueSoulknifePsychicTeleportationAction(
       icon: "psi"
     }),
     facts: formulaFact ? [formulaFact] : [],
-    resources: [
-      {
-        kind: "tracker",
-        label: "Psionic Dice",
-        current: psionicDiceRemaining,
-        total: psionicDiceTotal,
-        icon: "psi",
-        cost: rogueSoulknifePsychicTeleportationCost
-      }
-    ],
     drawer: {
       kind: "confirm",
       eyebrow: soulknifeDrawerEyebrow
@@ -907,25 +878,6 @@ function getRogueSoulknifePsychicVeilAction(
       },
       "Long Rest"
     ),
-    resources: [
-      {
-        kind: "tracker",
-        label: "Charge",
-        current: usesRemaining,
-        total: usesTotal,
-        supplementary: "Long Rest"
-      },
-      ...(canUseFallback
-        ? [
-            {
-              kind: "text" as const,
-              label: "Fallback",
-              value: "Use 1 Psionic Die",
-              icon: "psi" as const
-            }
-          ]
-        : [])
-    ],
     drawer: {
       kind: "confirm",
       eyebrow: soulknifeDrawerEyebrow

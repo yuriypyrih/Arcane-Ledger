@@ -650,46 +650,10 @@ function getPaladinOathOfDevotionFeatureActions(
           label: "Spell Slots"
         }
       ),
-      resources: [
-        {
-          kind: "tracker",
-          label: "Uses",
-          current: usesRemaining,
-          total: holyNimbusUsesTotal,
-          cost: 1
-        },
-        ...(showFallbackSlotInfo
-          ? [
-              {
-                kind: "text" as const,
-                label: "Level 5 Slots",
-                value: `${fallbackSlotSummary.remaining}/${fallbackSlotSummary.total}`
-              }
-            ]
-          : [])
-      ],
       drawer: {
         kind: "confirm",
         eyebrow: "Oath of Devotion",
-        factsSectionTitle: null,
-        resources: [
-          {
-            kind: "tracker" as const,
-            label: "Uses",
-            current: usesRemaining,
-            total: holyNimbusUsesTotal,
-            cost: 1
-          },
-          ...(showFallbackSlotInfo
-            ? [
-                {
-                  kind: "text" as const,
-                  label: "Level 5 Slots",
-                  value: `${fallbackSlotSummary.remaining}/${fallbackSlotSummary.total}`
-                }
-              ]
-            : [])
-        ]
+        factsSectionTitle: null
       },
       execute: {
         kind: "activate"

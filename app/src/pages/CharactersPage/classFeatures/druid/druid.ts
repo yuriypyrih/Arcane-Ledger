@@ -39,6 +39,7 @@ import type {
   WeaponFeatureContext,
   FeatureWeaponProficiencyEntry
 } from "../types";
+import { createHeaderTagsFromResources } from "../cardUsage";
 import * as landSubclass from "./subclasses/druidCircleOfTheLand";
 import * as moonSubclass from "./subclasses/druidCircleOfTheMoon";
 import * as seaSubclass from "./subclasses/druidCircleOfTheSea";
@@ -1256,7 +1257,7 @@ function getDruidWildShapeAction(
     hideUsesTrackerOnCard: true,
     usesInlineLabel: "Use 1",
     usesInlineIcon: "paw",
-    resources: [
+    headerTags: createHeaderTagsFromResources([
       {
         kind: "tracker",
         label: "Uses",
@@ -1265,7 +1266,7 @@ function getDruidWildShapeAction(
         icon: "paw",
         cost: 1
       }
-    ],
+    ]),
     drawer: {
       kind: "custom-form",
       eyebrow: "Druid",
@@ -1312,7 +1313,7 @@ function getDruidWildCompanionAction(
     hideUsesTrackerOnCard: true,
     usesInlineLabel: "Use 1",
     usesInlineIcon: "paw",
-    resources: [
+    headerTags: createHeaderTagsFromResources([
       {
         kind: "text",
         label: "Wild Shape",
@@ -1328,13 +1329,13 @@ function getDruidWildCompanionAction(
             }
           ]
         : [])
-    ],
+    ]),
     drawer: {
       kind: "custom-form",
       eyebrow: "Druid",
       description: getDruidWildCompanionDescription(),
       formKind: "wild-companion",
-      resources: [
+      headerTags: createHeaderTagsFromResources([
         {
           kind: "text",
           label: "Wild Shape",
@@ -1350,7 +1351,7 @@ function getDruidWildCompanionAction(
               }
             ]
           : [])
-      ]
+      ])
     },
     execute: {
       kind: "custom-form",
@@ -1423,7 +1424,7 @@ function getDruidWildResurgenceAction(
       kind: "custom-form",
       formKind: "wild-resurgence"
     },
-    resources: [
+    headerTags: createHeaderTagsFromResources([
       {
         kind: "text",
         label: "Wild Shape",
@@ -1439,7 +1440,7 @@ function getDruidWildResurgenceAction(
             }
           ]
         : [])
-    ],
+    ]),
     disabled: disabledReason !== undefined,
     disabledReason
   };
@@ -1486,14 +1487,14 @@ function getDruidNatureMagicianAction(
       kind: "custom-form",
       formKind: "nature-magician"
     },
-    resources: [
+    headerTags: createHeaderTagsFromResources([
       {
         kind: "text",
         label: "Wild Shape",
         value: `${wildShapeUsesRemaining}/${wildShapeUsesTotal}`,
         icon: "paw"
       }
-    ],
+    ]),
     disabled: disabledReason !== undefined,
     disabledReason
   };

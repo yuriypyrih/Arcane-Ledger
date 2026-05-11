@@ -2,7 +2,6 @@ import { wizardFeatures, type WizardFeatureClassObj } from "../../../../codex/cl
 import {
   CLASS_FEATURE,
   getSpellEntryById,
-  resolveSpellIdAlias,
   type SpellEntry
 } from "../../../../codex/entries";
 import type {
@@ -145,7 +144,7 @@ function normalizeWizardSpellMasterySpellIds(
     const spellId = record[spellLevel];
 
     if (typeof spellId === "string" && spellId.trim().length > 0) {
-      normalized[spellLevel] = resolveSpellIdAlias(spellId.trim());
+      normalized[spellLevel] = spellId.trim();
     }
   });
 
@@ -165,7 +164,7 @@ function normalizeWizardTrackedSpellIds(value: unknown, limit: number): string[]
     ...new Set(
       value
         .filter((entry): entry is string => typeof entry === "string")
-        .map((spellId) => resolveSpellIdAlias(spellId.trim()))
+        .map((spellId) => spellId.trim())
     )
   ].slice(0, limit);
 }
@@ -188,7 +187,7 @@ function isWizardSpellMasterySpellIdValid(
     ...(Array.isArray(character.spellbookSpellIds)
       ? character.spellbookSpellIds
           .filter((entry): entry is string => typeof entry === "string")
-          .map((entry) => resolveSpellIdAlias(entry.trim()))
+          .map((entry) => entry.trim())
       : []),
     ...getWizardAlwaysSpellbookSpellIds(character)
   ]);
@@ -223,7 +222,7 @@ function isWizardSignatureSpellIdValid(
     ...(Array.isArray(character.spellbookSpellIds)
       ? character.spellbookSpellIds
           .filter((entry): entry is string => typeof entry === "string")
-          .map((entry) => resolveSpellIdAlias(entry.trim()))
+          .map((entry) => entry.trim())
       : []),
     ...getWizardAlwaysSpellbookSpellIds(character)
   ]);
@@ -439,8 +438,8 @@ export function setWizardSavantSpellIds(character: Character, spellIds: string[]
   const savantSpellIdSet = new Set(normalizedSpellIds);
   const nextSpellbookSpellIds = Array.isArray(character.spellbookSpellIds)
     ? character.spellbookSpellIds
-        .filter((spellId) => !savantSpellIdSet.has(resolveSpellIdAlias(spellId.trim())))
-        .map((spellId) => resolveSpellIdAlias(spellId.trim()))
+        .filter((spellId) => !savantSpellIdSet.has(spellId.trim()))
+        .map((spellId) => spellId.trim())
     : [];
 
   return {

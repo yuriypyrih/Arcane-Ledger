@@ -255,23 +255,6 @@ function getSorcererDragonWingsAction(
             }
           )
         : undefined,
-    resources:
-      totalPoints > 0
-        ? [
-            {
-              kind: "tracker",
-              label: "Sorcery Points",
-              current: remainingPoints,
-              total: totalPoints,
-              icon: "sparkles",
-              tone:
-                usesRemaining <= 0 && remainingPoints < dragonWingsFallbackSorceryPointCost
-                  ? "danger"
-                  : "default",
-              cost: usesRemaining <= 0 ? dragonWingsFallbackSorceryPointCost : undefined
-            }
-          ]
-        : undefined,
     drawer: {
       kind: "confirm",
       eyebrow: "Draconic Sorcery",
@@ -281,24 +264,7 @@ function getSorcererDragonWingsAction(
           ? `Manifest your wings for ${dragonWingsDurationHours} hour and gain a Fly Speed of ${dragonWingsFlySpeed} feet.`
           : fallbackAvailable
             ? `Your normal use is depleted, so activating this feature will spend ${dragonWingsFallbackSorceryPointCost} Sorcery Points.`
-            : `You need ${dragonWingsFallbackSorceryPointCost} Sorcery Points to activate ${dragonWingsName} again.`,
-      resources:
-        totalPoints > 0
-          ? [
-              {
-                kind: "tracker",
-                label: "Sorcery Points",
-                current: remainingPoints,
-                total: totalPoints,
-                icon: "sparkles",
-                tone:
-                  usesRemaining <= 0 && remainingPoints < dragonWingsFallbackSorceryPointCost
-                    ? "danger"
-                    : "default",
-                cost: usesRemaining <= 0 ? dragonWingsFallbackSorceryPointCost : undefined
-              }
-            ]
-          : undefined
+            : `You need ${dragonWingsFallbackSorceryPointCost} Sorcery Points to activate ${dragonWingsName} again.`
     },
     execute: {
       kind: "activate"

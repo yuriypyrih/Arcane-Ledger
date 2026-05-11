@@ -2,7 +2,6 @@ export * from "../classes";
 export * from "../divinities";
 export * from "../eldritchInvocations";
 export * from "../reactions";
-export { resolveSpellIdAlias, resolveSpellNameAlias, spellAliasEntries } from "../spells/aliases";
 export {
   getArmorEntries,
   getBackgroundEntries,

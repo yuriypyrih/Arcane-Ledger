@@ -607,17 +607,7 @@ export const getBardCollegeOfGlamourDerivedFeatureState: SubclassRuntimeResolver
         description: [...mantleOfInspirationDescription],
         drawer: {
           kind: "confirm",
-          eyebrow: "College of Glamour",
-          resources: [
-            {
-              kind: "tracker",
-              label: "Uses",
-              current: usesRemaining,
-              total: usesTotal,
-              icon: "music",
-              cost: 1
-            }
-          ]
+          eyebrow: "College of Glamour"
         },
         execute: {
           kind: "activate",
@@ -679,23 +669,6 @@ export const getBardCollegeOfGlamourDerivedFeatureState: SubclassRuntimeResolver
             label: "Spell Slots"
           }
         ),
-        resources: [
-          {
-            kind: "tracker",
-            label: "Uses",
-            current: usesRemaining,
-            total: usesTotal
-          },
-          ...(usesRemaining <= 0 && hasFallbackSlot
-            ? [
-                {
-                  kind: "text" as const,
-                  label: "Level 3+ Slots",
-                  value: `${fallbackSlotSummary.remaining}/${fallbackSlotSummary.total}`
-                }
-              ]
-            : [])
-        ],
         drawer: {
           kind: "confirm",
           eyebrow: "College of Glamour",
@@ -736,14 +709,6 @@ export const getBardCollegeOfGlamourDerivedFeatureState: SubclassRuntimeResolver
         usesTotal,
         isActive: unbreakableMajestyActive,
         description: [...unbreakableMajestyDescription],
-        resources: [
-          {
-            kind: "tracker",
-            label: "Uses",
-            current: usesRemaining,
-            total: usesTotal
-          }
-        ],
         drawer: {
           kind: "confirm",
           eyebrow: "College of Glamour"

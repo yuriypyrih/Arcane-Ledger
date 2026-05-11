@@ -252,61 +252,17 @@ function resolveFeatValue(value: unknown): FEATS | null {
 }
 
 function getRawFeatEntries(value: unknown): unknown[] {
-  if (Array.isArray(value)) {
-    return value;
-  }
-
-  if (typeof value === "string") {
-    return value
-      .split(",")
-      .map((entry) => entry.trim())
-      .filter((entry) => entry.length > 0);
-  }
-
-  if (!value || typeof value !== "object") {
-    return [];
-  }
-
-  const record = value as Record<string, unknown>;
-
-  if ("feat" in record || "featId" in record || "value" in record || "name" in record) {
-    return [value];
-  }
-
-  return Object.entries(record).flatMap(([featKey, rawEntry]) => {
-    if (rawEntry === false || rawEntry === null || rawEntry === undefined) {
-      return [];
-    }
-
-    if (rawEntry === true) {
-      return [featKey];
-    }
-
-    if (rawEntry && typeof rawEntry === "object" && !Array.isArray(rawEntry)) {
-      return [
-        {
-          feat: featKey,
-          ...(rawEntry as Record<string, unknown>)
-        }
-      ];
-    }
-
-    return [rawEntry];
-  });
+  return Array.isArray(value) ? value : [];
 }
 
 function getRawFeatValue(rawEntry: unknown): unknown {
-  if (typeof rawEntry === "string") {
-    return rawEntry;
-  }
-
   if (!rawEntry || typeof rawEntry !== "object") {
     return null;
   }
 
   const record = rawEntry as Record<string, unknown>;
 
-  return record.feat ?? record.featId ?? record.value ?? record.name ?? record.label;
+  return record.feat;
 }
 
 export function normalizeCharacterFeats(

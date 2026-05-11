@@ -838,16 +838,6 @@ function getClericChannelDivinityAction(
     usesInlineIcon: "pyromancy",
     usesRemaining,
     usesTotal: totalUses,
-    resources: [
-      {
-        kind: "tracker",
-        label: "Uses",
-        current: usesRemaining,
-        total: totalUses,
-        icon: "pyromancy",
-        cost: 1
-      }
-    ],
     drawer: {
       kind: "options",
       eyebrow: "Cleric",

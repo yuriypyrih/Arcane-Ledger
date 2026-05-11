@@ -2,7 +2,6 @@ import {
   DAMAGE_TYPE,
   getSpeciesEntryByName,
   getSpellEntryById,
-  resolveSpellIdAlias,
   type SpeciesEntry,
   type SpellDescriptionEntry,
   type SpellEntry
@@ -107,15 +106,10 @@ const tieflingFiendishLegacyNameByKey = tieflingFiendishLegacyOptions.reduce<
   },
   {} as Record<CharacterTieflingFiendishLegacy, string>
 );
-const tieflingFiendishLegacyAliases = new Map<string, CharacterTieflingFiendishLegacy>();
+const tieflingFiendishLegacyKeys = new Set<CharacterTieflingFiendishLegacy>(
+  tieflingFiendishLegacyOptions.map((option) => option.key)
+);
 const tieflingSpellcastingAbilitySet = new Set<string>(tieflingSpellcastingAbilityOptions);
-
-tieflingFiendishLegacyOptions.forEach((option) => {
-  tieflingFiendishLegacyAliases.set(option.key, option.key);
-  tieflingFiendishLegacyAliases.set(option.name.toLowerCase(), option.key);
-});
-tieflingFiendishLegacyAliases.set("chtonic", "chthonic");
-tieflingFiendishLegacyAliases.set("cthonic", "chthonic");
 
 type TieflingRuntimeCharacter = Pick<Character, "species"> &
   Partial<Pick<Character, "level" | "speciesChoices" | "speciesFeatureState">>;
@@ -168,7 +162,7 @@ function clampExpendedSpellIds(value: unknown): string[] {
   return Array.isArray(value)
     ? value
         .filter((spellId): spellId is string => typeof spellId === "string")
-        .map((spellId) => resolveSpellIdAlias(spellId.trim()))
+        .map((spellId) => spellId.trim())
     : [];
 }
 
@@ -250,7 +244,10 @@ export function normalizeTieflingFiendishLegacy(
     return undefined;
   }
 
-  return tieflingFiendishLegacyAliases.get(value.trim().toLowerCase());
+  const key = value.trim();
+  return tieflingFiendishLegacyKeys.has(key as CharacterTieflingFiendishLegacy)
+    ? (key as CharacterTieflingFiendishLegacy)
+    : undefined;
 }
 
 export function normalizeTieflingSpellcastingAbility(

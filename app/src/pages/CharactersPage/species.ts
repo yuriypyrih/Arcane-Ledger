@@ -540,39 +540,23 @@ export function normalizeCharacterSpeciesChoices(
   }
 
   const record = value && typeof value === "object" ? (value as Record<string, unknown>) : {};
-  const rawBodySize = record.bodySize ?? record.size;
-  const draconicAncestry = normalizeDragonbornDraconicAncestry(
-    record.draconicAncestry ?? record.draconicAncestryKey ?? record.dragonbornAncestry
-  );
-  const elvenLineage = normalizeElfLineage(
-    record.elvenLineage ?? record.elfLineage ?? record.lineage
-  );
-  const elvenSkillProficiency = normalizeElfSkillProficiency(
-    record.elvenSkillProficiency ?? record.elfSkillProficiency ?? record.keenSenses
-  );
+  const rawBodySize = record.bodySize;
+  const draconicAncestry = normalizeDragonbornDraconicAncestry(record.draconicAncestry);
+  const elvenLineage = normalizeElfLineage(record.elvenLineage);
+  const elvenSkillProficiency = normalizeElfSkillProficiency(record.elvenSkillProficiency);
   const elvenSpellcastingAbility = normalizeElfSpellcastingAbility(
-    record.elvenSpellcastingAbility ?? record.elfSpellcastingAbility
+    record.elvenSpellcastingAbility
   );
-  const gnomeLineage = normalizeGnomeLineage(
-    record.gnomeLineage ?? record.gnomishLineage ?? record.lineage
-  );
+  const gnomeLineage = normalizeGnomeLineage(record.gnomeLineage);
   const gnomeSpellcastingAbility = normalizeGnomeSpellcastingAbility(
-    record.gnomeSpellcastingAbility ?? record.gnomishSpellcastingAbility
+    record.gnomeSpellcastingAbility
   );
-  const giantAncestry = normalizeGoliathGiantAncestry(
-    record.giantAncestry ?? record.goliathGiantAncestry ?? record.goliathAncestry
-  );
-  const humanSkillProficiency = normalizeHumanSkillProficiency(
-    record.humanSkillProficiency ?? record.humanSkill ?? record.skillfulSkill
-  );
-  const humanOriginFeat = normalizeHumanOriginFeat(
-    record.humanOriginFeat ?? record.originFeat ?? record.versatileFeat
-  );
-  const tieflingLegacy = normalizeTieflingFiendishLegacy(
-    record.tieflingLegacy ?? record.fiendishLegacy ?? record.legacy
-  );
+  const giantAncestry = normalizeGoliathGiantAncestry(record.giantAncestry);
+  const humanSkillProficiency = normalizeHumanSkillProficiency(record.humanSkillProficiency);
+  const humanOriginFeat = normalizeHumanOriginFeat(record.humanOriginFeat);
+  const tieflingLegacy = normalizeTieflingFiendishLegacy(record.tieflingLegacy);
   const tieflingSpellcastingAbility = normalizeTieflingSpellcastingAbility(
-    record.tieflingSpellcastingAbility ?? record.fiendishLegacySpellcastingAbility
+    record.tieflingSpellcastingAbility
   );
   const normalizedChoices: CharacterSpeciesChoices = {};
 

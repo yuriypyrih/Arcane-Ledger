@@ -89,10 +89,6 @@ type ArmorClassFormulaSelectionCharacter = Pick<
 > &
   Partial<Pick<Character, "classFeatureState" | "feats" | "statusEntries" | "subclassId">>;
 
-type NormalizeArmorWearStateOptions = {
-  autoEquipLegacyArmor?: boolean;
-};
-
 const codexArmorEntriesByName = new Map<string, ArmorEntry>(
   getArmorEntries().map((entry) => [entry.name, entry])
 );
@@ -197,14 +193,6 @@ function getInventoryBodyArmorCandidate(
   };
 }
 
-function pickLegacyBodyArmorCandidate(candidates: BodyArmorCandidate[]): BodyArmorCandidate | null {
-  if (candidates.length === 0) {
-    return null;
-  }
-
-  return [...candidates].sort((left, right) => right.armorBase - left.armorBase)[0] ?? null;
-}
-
 function getBodyArmorCandidates(
   character: Pick<Character, "equipment" | "inventoryItems" | "customEquipment">
 ): BodyArmorCandidate[] {
@@ -230,8 +218,7 @@ export function getWornBodyArmorTypeForCharacter(
 export function normalizeCharacterArmorWearState(
   equipment: CharacterEquipmentItem[],
   inventoryItems: CharacterInventoryItem[],
-  customEquipment: CharacterCustomEquipment[],
-  options?: NormalizeArmorWearStateOptions
+  customEquipment: CharacterCustomEquipment[]
 ): {
   equipment: CharacterEquipmentItem[];
   inventoryItems: CharacterInventoryItem[];
@@ -281,12 +268,8 @@ export function normalizeCharacterArmorWearState(
       .map((entry) => getCustomBodyArmorCandidate(entry))
       .filter((candidate): candidate is BodyArmorCandidate => candidate !== null)
   ];
-  let selectedBodyArmorKey =
+  const selectedBodyArmorKey =
     candidates.find((candidate) => candidate.worn)?.key ?? null;
-
-  if (options?.autoEquipLegacyArmor && !selectedBodyArmorKey) {
-    selectedBodyArmorKey = pickLegacyBodyArmorCandidate(candidates)?.key ?? null;
-  }
 
   return {
     equipment: normalizedEquipment.map((item) => ({

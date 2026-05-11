@@ -59,6 +59,7 @@ const elfLineageCantripIds: Record<CharacterElfLineage, string> = {
   "high-elf": "spell-prestidigitation",
   "wood-elf": "spell-druidcraft"
 };
+const elfLineageKeys = new Set<CharacterElfLineage>(elfLineageOptions.map((option) => option.key));
 
 const elfLineageSpellIdsByLevel: Record<
   CharacterElfLineage,
@@ -103,19 +104,8 @@ const elfLineageNameByKey = elfLineageOptions.reduce<Record<CharacterElfLineage,
   },
   {} as Record<CharacterElfLineage, string>
 );
-const elfLineageAliases = new Map<string, CharacterElfLineage>();
 const elfSkillProficiencySet = new Set<string>(elfSkillProficiencyOptions);
 const elfSpellcastingAbilitySet = new Set<string>(elfSpellcastingAbilityOptions);
-
-elfLineageOptions.forEach((option) => {
-  elfLineageAliases.set(option.key, option.key);
-  elfLineageAliases.set(option.name.toLowerCase(), option.key);
-});
-elfLineageAliases.set("high", "high-elf");
-elfLineageAliases.set("wood", "wood-elf");
-elfLineageAliases.set("woof", "wood-elf");
-elfLineageAliases.set("woof elf", "wood-elf");
-elfLineageAliases.set("woof-elf", "wood-elf");
 
 type ElfRuntimeCharacter = Pick<Character, "species"> &
   Partial<Pick<Character, "level" | "speciesChoices">>;
@@ -188,7 +178,8 @@ export function normalizeElfLineage(value: unknown): CharacterElfLineage | undef
     return undefined;
   }
 
-  return elfLineageAliases.get(value.trim().toLowerCase());
+  const key = value.trim();
+  return elfLineageKeys.has(key as CharacterElfLineage) ? (key as CharacterElfLineage) : undefined;
 }
 
 export function normalizeElfSkillProficiency(

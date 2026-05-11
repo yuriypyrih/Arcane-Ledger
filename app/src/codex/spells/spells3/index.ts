@@ -1841,8 +1841,6 @@ export const tinyHut: SpellEntry = {
   name: "Tiny Hut",
   category: ENTRY_CATEGORIES.SPELLS,
   source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_tiny-hut", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
-  legacyIds: ["spell-leomunds-tiny-hut"],
-  legacyNames: ["Leomund's Tiny Hut"],
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.MINUTE],

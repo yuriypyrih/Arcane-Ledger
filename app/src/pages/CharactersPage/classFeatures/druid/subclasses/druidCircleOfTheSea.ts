@@ -10,6 +10,7 @@ import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import { getPreparedSpellIdsByLevel, resolveSpellIdsByName } from "../../subclassRuntime";
 import type { DerivedFeatureStatusEntry, FeatureActionCard } from "../../types";
+import { createHeaderTagsFromResources } from "../../cardUsage";
 import {
   getDruidCircleOfTheSeaWrathOfTheSeaDescription,
   getDruidCircleOfTheSeaWrathOfTheSeaDescriptionAdditions
@@ -170,12 +171,11 @@ function getCircleOfTheSeaFeatureActions(character: Parameters<SubclassRuntimeRe
       usesInlineLabel: "Use 1",
       usesInlineIcon: "paw" as const,
       isActive: wrathActive,
-      resources,
+      headerTags: createHeaderTagsFromResources(resources),
       drawer: {
         kind: "confirm" as const,
         eyebrow: "Circle of the Sea",
-        description,
-        resources
+        description
       },
       execute: {
         kind: "activate" as const

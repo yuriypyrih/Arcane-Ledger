@@ -1,6 +1,5 @@
 import { hardcodedCodexEntries } from "../entries/data";
 import { ENTRY_CATEGORIES, SPELL_LIST_CLASS } from "../entries/enums";
-import { resolveSpellIdAlias, resolveSpellNameAlias } from "../spells/aliases";
 import type {
   ArmorEntry,
   BackgroundEntry,
@@ -59,15 +58,11 @@ export function getCodexEntries(): CodexEntry[] {
 }
 
 export function getCodexEntryById(entryId: string): CodexEntry | null {
-  return codexEntriesById.get(entryId) ?? codexEntriesById.get(resolveSpellIdAlias(entryId)) ?? null;
+  return codexEntriesById.get(entryId) ?? null;
 }
 
 export function getCodexEntryByName(name: string): CodexEntry | null {
-  return (
-    codexEntriesByName.get(name.trim().toLowerCase()) ??
-    codexEntriesByName.get(resolveSpellNameAlias(name).trim().toLowerCase()) ??
-    null
-  );
+  return codexEntriesByName.get(name.trim().toLowerCase()) ?? null;
 }
 
 export function getEntriesByCategory<TCategory extends CodexCategory>(

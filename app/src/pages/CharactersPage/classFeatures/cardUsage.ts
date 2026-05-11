@@ -6,6 +6,7 @@ import type {
   FeatureActionCardUsageCharges,
   FeatureActionCardUsageCost,
   FeatureActionIcon,
+  FeatureActionResource,
   FeatureActionTone
 } from "./types";
 
@@ -154,6 +155,33 @@ export function createTextHeaderTag(
   };
 }
 
+export function createHeaderTagsFromResources(
+  resources: FeatureActionResource[]
+): FeatureActionHeaderTag[] {
+  return resources.flatMap((resource): FeatureActionHeaderTag[] => {
+    if (resource.kind === "text") {
+      return [createTextHeaderTag(resource.label, resource.value, resource.icon, resource.tone)];
+    }
+
+    if (!resource.icon) {
+      return [createChargesHeaderTag(resource.current, resource.total, resource.supplementary)];
+    }
+
+    return [
+      createUsageHeaderTag(
+        createFeatureActionCardCost({
+          amountText: resource.cost ? String(resource.cost) : undefined,
+          resourceLabel: resource.label,
+          icon: resource.icon
+        }),
+        createFeatureActionHeaderTagPool(resource.current, resource.total, {
+          icon: resource.icon
+        })
+      )
+    ];
+  });
+}
+
 export function createFreeCardUsage(): FeatureActionCardUsage {
   return {
     mode: "free"
@@ -211,7 +239,7 @@ export function createChargesOrResourceCardUsage(
   };
 }
 
-function parseLegacyUsesLabelCost(
+function parseUsesLabelCost(
   usesLabel: string | undefined,
   icon: FeatureActionIcon | undefined
 ): FeatureActionCardUsageCost | null {
@@ -233,7 +261,7 @@ function parseLegacyUsesLabelCost(
   });
 }
 
-function parseLegacyInlineCost(action: FeatureActionCard): FeatureActionCardUsageCost | null {
+function parseInlineCost(action: FeatureActionCard): FeatureActionCardUsageCost | null {
   if (!action.usesInlineLabel) {
     return null;
   }
@@ -269,7 +297,7 @@ export function normalizeFeatureActionCardUsage(action: FeatureActionCard): Feat
     return action;
   }
 
-  const inlineCost = parseLegacyInlineCost(action);
+  const inlineCost = parseInlineCost(action);
 
   if (inlineCost) {
     return {
@@ -278,7 +306,7 @@ export function normalizeFeatureActionCardUsage(action: FeatureActionCard): Feat
     };
   }
 
-  const usesLabelCost = parseLegacyUsesLabelCost(action.usesLabel, action.usesIcon);
+  const usesLabelCost = parseUsesLabelCost(action.usesLabel, action.usesIcon);
 
   if (usesLabelCost) {
     return {

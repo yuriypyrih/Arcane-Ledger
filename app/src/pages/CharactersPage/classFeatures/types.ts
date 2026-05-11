@@ -220,7 +220,6 @@ export type FeatureActionDrawerConfig = {
   facts?: FeatureActionFact[];
   factsSectionTitle?: string | null;
   headerTags?: FeatureActionHeaderTag[];
-  resources?: FeatureActionResource[];
   confirmLabel?: string;
   optionSelection?: FeatureActionOptionSelection;
   optionSelectionLimit?: number;
@@ -290,7 +289,6 @@ export type FeatureActionCard = {
   descriptionAdditions?: SpellDescriptionEntry[][];
   facts?: FeatureActionFact[];
   headerTags?: FeatureActionHeaderTag[];
-  resources?: FeatureActionResource[];
   drawer?: FeatureActionDrawerConfig;
   execute?: FeatureActionExecuteConfig;
 };

@@ -16,7 +16,8 @@ import { formatFormulaCell, formatSignedFormulaTerm } from "../../../shared/form
 import {
   createChargesAndUsageHeaderTags,
   createChargesOrResourceCardUsage,
-  createFeatureActionCardCost
+  createFeatureActionCardCost,
+  createHeaderTagsFromResources
 } from "../../cardUsage";
 import {
   activateTelepathicBond,
@@ -596,9 +597,9 @@ function getSorcererAberrantSorceryFeatureActions(
       breakdown: "Choose aberrant traits",
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.MAGIC,
-      resources:
+      headerTags:
         totalPoints > 0
-          ? [
+          ? createHeaderTagsFromResources([
               {
                 kind: "tracker",
                 label: "Sorcery Points",
@@ -607,7 +608,7 @@ function getSorcererAberrantSorceryFeatureActions(
                 icon: "sparkles",
                 tone: remainingPoints > 0 ? "default" : "danger"
               }
-            ]
+            ])
           : undefined,
       drawer: {
         kind: "options",

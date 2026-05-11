@@ -2,9 +2,16 @@ import mongoose from "mongoose";
 import { requireMongoConfig } from "./env.js";
 import { AppError } from "../errors/AppError.js";
 
-function createCredentialedMongoUri(mongodbUri: string, username: string, password: string): string {
+const USERNAME_PLACEHOLDER = "${USERNAME}";
+const PASSWORD_PLACEHOLDER = "${PASSWORD}";
+const USERNAME_PLACEHOLDER_PATTERN = /\$\{USERNAME\}/g;
+const PASSWORD_PLACEHOLDER_PATTERN = /\$\{PASSWORD\}/g;
+
+function resolveMongoUriCredentials(mongodbUri: string, username: string, password: string): string {
   const hasUsername = Boolean(username);
   const hasPassword = Boolean(password);
+  const hasUsernamePlaceholder = mongodbUri.includes(USERNAME_PLACEHOLDER);
+  const hasPasswordPlaceholder = mongodbUri.includes(PASSWORD_PLACEHOLDER);
 
   if (hasUsername !== hasPassword) {
     throw new AppError(
@@ -12,6 +19,28 @@ function createCredentialedMongoUri(mongodbUri: string, username: string, passwo
       500,
       "INCOMPLETE_MONGODB_CREDENTIALS"
     );
+  }
+
+  if (hasUsernamePlaceholder !== hasPasswordPlaceholder) {
+    throw new AppError(
+      "MONGODB_URI must include both ${USERNAME} and ${PASSWORD} placeholders.",
+      500,
+      "INCOMPLETE_MONGODB_URI_CREDENTIAL_PLACEHOLDERS"
+    );
+  }
+
+  if (hasUsernamePlaceholder && hasPasswordPlaceholder) {
+    if (!hasUsername || !hasPassword) {
+      throw new AppError(
+        "MongoDB username and password are required when MONGODB_URI uses credential placeholders.",
+        500,
+        "MISSING_MONGODB_CREDENTIALS"
+      );
+    }
+
+    return mongodbUri
+      .replace(USERNAME_PLACEHOLDER_PATTERN, encodeURIComponent(username))
+      .replace(PASSWORD_PLACEHOLDER_PATTERN, encodeURIComponent(password));
   }
 
   if (!hasUsername || !hasPassword) {
@@ -44,8 +73,8 @@ export async function connectToDatabase() {
   }
 
   const { mongodbUri, mongoUsername, mongoPassword, dbName } = requireMongoConfig();
-  const credentialedMongoUri = createCredentialedMongoUri(mongodbUri, mongoUsername, mongoPassword);
-  const connectionSummary = getMongoConnectionSummary(mongodbUri, dbName);
+  const credentialedMongoUri = resolveMongoUriCredentials(mongodbUri, mongoUsername, mongoPassword);
+  const connectionSummary = getMongoConnectionSummary(credentialedMongoUri, dbName);
 
   console.log("Connecting to Database..");
 

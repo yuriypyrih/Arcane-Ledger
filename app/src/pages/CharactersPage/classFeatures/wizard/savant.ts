@@ -1,7 +1,6 @@
 import {
   CLASS_FEATURE,
   MAGIC_SCHOOL,
-  resolveSpellIdAlias,
   type SpellEntry
 } from "../../../../codex/entries";
 import type { Character } from "../../../../types";
@@ -130,7 +129,7 @@ export function normalizeWizardSavantSpellIds(
   const rawSpellIds = Array.isArray(value)
     ? value
         .filter((spellId): spellId is string => typeof spellId === "string")
-        .map((spellId) => resolveSpellIdAlias(spellId.trim()))
+        .map((spellId) => spellId.trim())
     : [];
 
   return [...new Set(rawSpellIds)]

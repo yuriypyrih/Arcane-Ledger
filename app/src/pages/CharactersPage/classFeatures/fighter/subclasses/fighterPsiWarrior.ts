@@ -1113,24 +1113,6 @@ function getFighterPsiWarriorTelekineticMovementAction(
         icon: "psi"
       }
     ),
-    resources: [
-      {
-        kind: "tracker",
-        label: "Charge",
-        current: usesRemaining,
-        total: usesTotal
-      },
-      ...(canUseFallback
-        ? [
-            {
-              kind: "text" as const,
-              label: "Fallback",
-              value: "Use 1",
-              icon: "psi" as const
-            }
-          ]
-        : [])
-    ],
     drawer: {
       kind: "confirm",
       eyebrow: fighterPsiWarriorSource
@@ -1194,24 +1176,6 @@ function getFighterPsiWarriorPsiPoweredLeapAction(
         icon: "psi"
       }
     ),
-    resources: [
-      {
-        kind: "tracker",
-        label: "Charge",
-        current: usesRemaining,
-        total: usesTotal
-      },
-      ...(canUseFallback
-        ? [
-            {
-              kind: "text" as const,
-              label: "Fallback",
-              value: "Use 1",
-              icon: "psi" as const
-            }
-          ]
-        : [])
-    ],
     drawer: {
       kind: "confirm",
       eyebrow: fighterPsiWarriorSource
@@ -1275,24 +1239,6 @@ function getFighterPsiWarriorBulwarkOfForceAction(
         icon: "psi"
       }
     ),
-    resources: [
-      {
-        kind: "tracker",
-        label: "Charge",
-        current: usesRemaining,
-        total: usesTotal
-      },
-      ...(canUseFallback
-        ? [
-            {
-              kind: "text" as const,
-              label: "Fallback",
-              value: "Use 1",
-              icon: "psi" as const
-            }
-          ]
-        : [])
-    ],
     drawer: {
       kind: "confirm",
       eyebrow: fighterPsiWarriorSource

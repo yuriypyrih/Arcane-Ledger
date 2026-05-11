@@ -1,5 +1,4 @@
 import type { Character } from "../../../types";
-import { resolveSpellIdAlias } from "../../../codex/entries";
 import { createDefaultCurrencies } from "../constants";
 import { normalizeArmorClassFormulaSelection, normalizeCharacterArmorWearState } from "../armor";
 import { normalizeCustomEquipmentEntries } from "../customEquipment";
@@ -42,7 +41,7 @@ function hasDomain(domains: readonly CharacterSheetDomain[], domain: CharacterSh
 }
 
 function normalizeRuntimeSpellId(value: string): string {
-  return resolveSpellIdAlias(value.trim());
+  return value.trim();
 }
 
 function normalizeRuntimeSpellIds(value: unknown): string[] {

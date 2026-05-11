@@ -16,8 +16,8 @@ import type {
   FeatureActionCard,
   FeatureActionDrawerConfig,
   FeatureActionExecuteConfig,
+  FeatureActionHeaderTag,
   FeatureActionOptionCard,
-  FeatureActionResource,
   FeatureSpeedBonus,
   SpeedFeatureContext
 } from "../../types";
@@ -276,14 +276,14 @@ export function setBarbarianPathOfTheWildHeartAspectChoice(
 export function getBarbarianPathOfTheWildHeartRageActionOverride(
   character: BarbarianSubclassCharacter,
   rageState: CharacterRageFeatureState,
-  resources: FeatureActionResource[]
+  headerTags: FeatureActionHeaderTag[]
 ): Pick<FeatureActionCard, "drawer" | "execute"> {
   if (rageState.active || !hasBarbarianPathOfTheWildHeartRageOfTheWilds(character)) {
     return {
       drawer: {
         kind: "confirm",
         eyebrow: "Barbarian",
-        resources
+        headerTags
       },
       execute: {
         kind: "activate"
@@ -296,7 +296,7 @@ export function getBarbarianPathOfTheWildHeartRageActionOverride(
       kind: "custom-form",
       eyebrow: "Barbarian",
       formKind: "wild-heart-rage",
-      resources
+      headerTags
     } satisfies FeatureActionDrawerConfig,
     execute: {
       kind: "custom-form",

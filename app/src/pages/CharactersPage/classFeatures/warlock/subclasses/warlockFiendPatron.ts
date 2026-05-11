@@ -629,26 +629,6 @@ function getWarlockFiendPatronHurlThroughHellAction(
   const hasFallbackSlot = usesRemaining <= 0 && pactMagicSlotsRemaining > 0 && pactMagicSlotLevel > 0;
   const disabled = usesRemaining <= 0 && !hasFallbackSlot;
   const spellDcFact = getWarlockFiendPatronHurlThroughHellSpellDcFact(character);
-  const resources = [
-    {
-      kind: "tracker" as const,
-      label: "Uses",
-      current: usesRemaining,
-      total: usesTotal,
-      cost: 1
-    },
-    ...(pactMagicSlotsTotal > 0
-      ? [
-          {
-            kind: "text" as const,
-            label: "Pact Magic Slots",
-            value: `${pactMagicSlotsRemaining}/${pactMagicSlotsTotal}`,
-            icon: "sparkles" as const
-          }
-        ]
-      : [])
-  ];
-
   return {
     key: hurlThroughHellActionKey,
     name: hurlThroughHellName,
@@ -684,7 +664,6 @@ function getWarlockFiendPatronHurlThroughHellAction(
       pactMagicSlotsRemaining,
       pactMagicSlotsTotal
     ),
-    resources,
     drawer: {
       kind: "confirm",
       eyebrow: "Fiend Patron",
@@ -694,8 +673,7 @@ function getWarlockFiendPatronHurlThroughHellAction(
         ? "Your free use is spent. Activating this now expends one Pact Magic spell slot."
         : pactMagicSlotsTotal > 0
           ? "After your free use is spent, Hurl Through Hell can expend one Pact Magic spell slot instead."
-          : undefined,
-      resources
+          : undefined
     },
     execute: {
       kind: "activate"

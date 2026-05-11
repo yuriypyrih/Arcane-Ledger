@@ -79,8 +79,4 @@ export type NormalizeCharacterProficienciesOptions = {
   armorProficiencies?: unknown;
   toolProficiencies?: unknown;
   languageProficiencies?: unknown;
-  legacySkills?: string[];
-  legacySkillExpertise?: string[];
-  legacySavingThrowProficiencies?: string[];
-  legacyToolProficiencies?: string[];
 };

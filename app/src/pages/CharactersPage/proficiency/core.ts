@@ -20,7 +20,6 @@ import {
   WEAPON_PROFICIENCY,
   getSkillNameForProficiency as getSharedSkillNameForProficiency
 } from "../../../types";
-import { TOOL_PROFICIENCIES as LEGACY_TOOL_PROFICIENCIES } from "../../../codex/entries";
 import {
   getCustomLanguageNameFromProficiency,
   isCustomLanguageProficiency,
@@ -60,13 +59,6 @@ export const proficiencyLevelRank: Record<PROF_LEVEL, number> = {
 export const proficiencyOverridePolicyRank: Record<PROFICIENCY_OVERRIDE_POLICY, number> = {
   [PROFICIENCY_OVERRIDE_POLICY.OVERRIDABLE]: 0,
   [PROFICIENCY_OVERRIDE_POLICY.LOCKED]: 1
-};
-
-export const toolProficiencyByLegacyType: Record<LEGACY_TOOL_PROFICIENCIES, TOOL_PROFICIENCY> = {
-  [LEGACY_TOOL_PROFICIENCIES.THIEVES_TOOLKIT]: TOOL_PROFICIENCY.THIEVES_TOOLKIT,
-  [LEGACY_TOOL_PROFICIENCIES.SMITHS_TOOLKIT]: TOOL_PROFICIENCY.SMITHS_TOOLKIT,
-  [LEGACY_TOOL_PROFICIENCIES.DISGUIDE_KIT]: TOOL_PROFICIENCY.DISGUISE_KIT,
-  [LEGACY_TOOL_PROFICIENCIES.DISARM_KIT]: TOOL_PROFICIENCY.DISARM_KIT
 };
 
 export const skillProficiencySet = new Set<string>(Object.values(SKILL_PROFICIENCY));
@@ -150,14 +142,6 @@ export function normalizeOverridePolicy(
 
 export function compareProficiencyLevels(left: PROF_LEVEL, right: PROF_LEVEL): number {
   return proficiencyLevelRank[left] - proficiencyLevelRank[right];
-}
-
-export function getLegacyToolProficiency(value: string): TOOL_PROFICIENCY | null {
-  if (!Object.values(LEGACY_TOOL_PROFICIENCIES).includes(value as LEGACY_TOOL_PROFICIENCIES)) {
-    return null;
-  }
-
-  return toolProficiencyByLegacyType[value as LEGACY_TOOL_PROFICIENCIES];
 }
 
 export function getSourceLabel(source: PROFICIENCY_SOURCE, sourceStr?: string): string {

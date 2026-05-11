@@ -27,7 +27,7 @@ import {
   createCharacterStatusEntry,
   normalizeCharacterStatusEntries
 } from "../../statusEntries";
-import { createTextHeaderTag } from "../cardUsage";
+import { createHeaderTagsFromResources, createTextHeaderTag } from "../cardUsage";
 import { skillGroupsByAbility } from "../../skillDefinitions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../combat";
@@ -727,7 +727,7 @@ export function getBarbarianFeatureAction(
   const rageState = getBarbarianRageState(character);
   const totalUses = getBarbarianRageUsesTotal(character);
   const usesRemaining = Math.max(0, totalUses - rageState.usesExpended);
-  const rageDrawerResources = [
+  const rageDrawerHeaderTags = createHeaderTagsFromResources([
     {
       kind: "tracker" as const,
       label: "Uses",
@@ -736,12 +736,12 @@ export function getBarbarianFeatureAction(
       icon: "flame" as const,
       cost: 1
     }
-  ];
+  ]);
   const descriptionAdditions = getBarbarianRageActionDescriptionAdditions(character);
   const rageActionOverride = wildHeartSubclass.getBarbarianPathOfTheWildHeartRageActionOverride(
     character,
     rageState,
-    rageDrawerResources
+    rageDrawerHeaderTags
   );
 
   return {

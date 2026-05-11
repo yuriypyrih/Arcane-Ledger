@@ -112,13 +112,9 @@ const goliathGiantAncestryOptions = [
     sectionHeading: "Storm's Thunder (Storm Giant)"
   }
 ] as const satisfies readonly GoliathGiantAncestryOption[];
-const goliathGiantAncestryAliases = new Map<string, CharacterGoliathGiantAncestry>();
-
-goliathGiantAncestryOptions.forEach((option) => {
-  goliathGiantAncestryAliases.set(option.key, option.key);
-  goliathGiantAncestryAliases.set(option.name.toLowerCase(), option.key);
-  goliathGiantAncestryAliases.set(option.name.replace(/\s+giant$/i, "").toLowerCase(), option.key);
-});
+const goliathGiantAncestryKeys = new Set<CharacterGoliathGiantAncestry>(
+  goliathGiantAncestryOptions.map((option) => option.key)
+);
 
 function getGoliathEntry(): SpeciesEntry | null {
   const entry = getSpeciesEntryByName("Goliath");
@@ -324,7 +320,10 @@ export function normalizeGoliathGiantAncestry(
     return undefined;
   }
 
-  return goliathGiantAncestryAliases.get(value.trim().toLowerCase());
+  const key = value.trim();
+  return goliathGiantAncestryKeys.has(key as CharacterGoliathGiantAncestry)
+    ? (key as CharacterGoliathGiantAncestry)
+    : undefined;
 }
 
 export function getDefaultGoliathGiantAncestryForSpecies(

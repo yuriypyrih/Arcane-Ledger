@@ -23,6 +23,7 @@ import type {
   FeatureSpeedBonus,
   FeatureUnarmedStrikeConfig
 } from "../../types";
+import { createHeaderTagsFromResources } from "../../cardUsage";
 import { resolveSpellIdsByName, type SubclassRuntimeResolver } from "../../subclassRuntime";
 
 export const warriorOfTheElementsSubclassId = "monk-warrior-of-the-elements";
@@ -468,7 +469,7 @@ function getMonkWarriorOfTheElementsElementalAttunementAction(
     usesInlineLabel: "Use 1",
     usesInlineIcon: "brain",
     description: [...elementalAttunementDescription],
-    resources: [
+    headerTags: createHeaderTagsFromResources([
       {
         kind: "tracker",
         label: "Focus",
@@ -477,7 +478,7 @@ function getMonkWarriorOfTheElementsElementalAttunementAction(
         icon: "brain",
         cost: elementalAttunementFocusCost
       }
-    ],
+    ]),
     drawer: {
       kind: "confirm",
       eyebrow: "Warrior of the Elements",
@@ -539,7 +540,7 @@ function getMonkWarriorOfTheElementsElementalBurstAction(
     usesInlineLabel: "Use 2",
     usesInlineIcon: "brain",
     description: [...elementalBurstDescription],
-    resources: [
+    headerTags: createHeaderTagsFromResources([
       {
         kind: "tracker",
         label: "Focus",
@@ -548,7 +549,7 @@ function getMonkWarriorOfTheElementsElementalBurstAction(
         icon: "brain",
         cost: elementalBurstFocusCost
       }
-    ],
+    ]),
     drawer: {
       kind: "confirm",
       eyebrow: "Warrior of the Elements",

@@ -170,16 +170,6 @@ export function getClericLightDomainFeatureActions(
       usesRemaining: channelDivinityUsesRemaining,
       usesTotal: totalChannelDivinityUses,
       description: [...radianceOfTheDawnDescription],
-      resources: [
-        {
-          kind: "tracker",
-          label: "Uses",
-          current: channelDivinityUsesRemaining,
-          total: totalChannelDivinityUses,
-          icon: "pyromancy",
-          cost: 1
-        }
-      ],
       drawer: {
         kind: "confirm",
         eyebrow: "Light Domain",

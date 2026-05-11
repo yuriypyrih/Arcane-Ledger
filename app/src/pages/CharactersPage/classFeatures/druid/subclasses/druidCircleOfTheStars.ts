@@ -25,6 +25,7 @@ import type {
   FeatureActionCard,
   FeatureSpeedBonus
 } from "../../types";
+import { createHeaderTagsFromResources } from "../../cardUsage";
 import type { WeaponAction } from "../../../gameplay";
 import {
   createCharacterStatusEntry,
@@ -623,7 +624,7 @@ export function getCircleOfTheStarsFeatureActions(
       usesInlineIcon: "paw",
       description: starryFormDescription,
       descriptionAdditions: twinklingConstellationsDescriptionAdditions,
-      resources: [
+      headerTags: createHeaderTagsFromResources([
         {
           kind: "tracker",
           label: "Wild Shape",
@@ -632,7 +633,7 @@ export function getCircleOfTheStarsFeatureActions(
           icon: "paw",
           cost: 1
         }
-      ],
+      ]),
       drawer: {
         kind: "custom-form",
         eyebrow: "Circle of the Stars",

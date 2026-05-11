@@ -18,7 +18,8 @@ import {
 import {
   createChargesAndUsageHeaderTags,
   createChargesOrResourceCardUsage,
-  createFeatureActionCardCost
+  createFeatureActionCardCost,
+  createHeaderTagsFromResources
 } from "../../cardUsage";
 import {
   getPreparedSpellIdsByLevel,
@@ -294,7 +295,7 @@ function getPaladinOathOfGloryFeatureActions(
       usesRemaining,
       usesTotal,
       description: [...peerlessAthleteDescription],
-      resources: [
+      headerTags: createHeaderTagsFromResources([
         {
           kind: "tracker",
           label: "Uses",
@@ -303,20 +304,10 @@ function getPaladinOathOfGloryFeatureActions(
           icon: "pyromancy",
           cost: 1
         }
-      ],
+      ]),
       drawer: {
         kind: "confirm",
-        eyebrow: "Oath of Glory",
-        resources: [
-          {
-            kind: "tracker",
-            label: "Uses",
-            current: usesRemaining,
-            total: usesTotal,
-            icon: "pyromancy",
-            cost: 1
-          }
-        ]
+        eyebrow: "Oath of Glory"
       },
       execute: {
         kind: "activate"
@@ -365,45 +356,9 @@ function getPaladinOathOfGloryFeatureActions(
           label: "Spell Slots"
         }
       ),
-      resources: [
-        {
-          kind: "tracker",
-          label: "Uses",
-          current: livingLegendUsesRemaining,
-          total: livingLegendUsesTotal,
-          cost: 1
-        },
-        ...(showLivingLegendFallbackSlotInfo
-          ? [
-              {
-                kind: "text" as const,
-                label: "Level 5 Slots",
-                value: `${livingLegendFallbackSlotSummary.remaining}/${livingLegendFallbackSlotSummary.total}`
-              }
-            ]
-          : [])
-      ],
       drawer: {
         kind: "confirm",
-        eyebrow: "Oath of Glory",
-        resources: [
-          {
-            kind: "tracker" as const,
-            label: "Uses",
-            current: livingLegendUsesRemaining,
-            total: livingLegendUsesTotal,
-            cost: 1
-          },
-          ...(showLivingLegendFallbackSlotInfo
-            ? [
-                {
-                  kind: "text" as const,
-                  label: "Level 5 Slots",
-                  value: `${livingLegendFallbackSlotSummary.remaining}/${livingLegendFallbackSlotSummary.total}`
-                }
-              ]
-            : [])
-        ]
+        eyebrow: "Oath of Glory"
       },
       execute: {
         kind: "activate"

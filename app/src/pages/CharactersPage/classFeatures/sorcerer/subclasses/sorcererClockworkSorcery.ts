@@ -13,7 +13,8 @@ import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../
 import {
   createChargesAndUsageHeaderTags,
   createChargesOrResourceCardUsage,
-  createFeatureActionCardCost
+  createFeatureActionCardCost,
+  createHeaderTagsFromResources
 } from "../../cardUsage";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import { getPreparedSpellIdsByLevel, resolveSpellIdsByName } from "../../subclassRuntime";
@@ -228,7 +229,7 @@ function clearSorcererClockworkLongRestStatuses(statusEntries: Character["status
   );
 }
 
-function getSorcererClockworkLegacyDerivedStatusEntries(
+function getSorcererClockworkActiveDerivedStatusEntries(
   character: ClockworkSorceryCharacter
 ): DerivedFeatureStatusEntry[] {
   return normalizeCharacterStatusEntries(character.statusEntries)
@@ -331,9 +332,9 @@ function getSorcererClockworkFeatureActions(
       economyType: ECONOMY_TYPE.ACTION,
       actionCategory: ACTION_CATEGORY.MAGIC,
       description: bastionOfLawDescription,
-      resources:
+      headerTags:
         totalPoints > 0
-          ? [
+          ? createHeaderTagsFromResources([
               {
                 kind: "tracker",
                 label: "Sorcery Points",
@@ -342,7 +343,7 @@ function getSorcererClockworkFeatureActions(
                 icon: "sparkles",
                 tone: remainingPoints > 0 ? "default" : "danger"
               }
-            ]
+            ])
           : undefined,
       drawer: {
         kind: "options",
@@ -410,44 +411,10 @@ function getSorcererClockworkFeatureActions(
               }
             )
           : undefined,
-      resources:
-        totalPoints > 0
-          ? [
-              {
-                kind: "tracker",
-                label: "Sorcery Points",
-                current: remainingPoints,
-                total: totalPoints,
-                icon: "sparkles",
-                tone:
-                  usesRemaining <= 0 && remainingPoints < tranceOfOrderFallbackSorceryPointCost
-                    ? "danger"
-                    : "default",
-                cost: usesRemaining <= 0 ? tranceOfOrderFallbackSorceryPointCost : undefined
-              }
-            ]
-          : undefined,
       drawer: {
         kind: "confirm",
         eyebrow: "Clockwork Sorcery",
-        description: tranceOfOrderDescription,
-        resources:
-          totalPoints > 0
-            ? [
-                {
-                  kind: "tracker",
-                  label: "Sorcery Points",
-                  current: remainingPoints,
-                  total: totalPoints,
-                  icon: "sparkles",
-                  tone:
-                    usesRemaining <= 0 && remainingPoints < tranceOfOrderFallbackSorceryPointCost
-                      ? "danger"
-                      : "default",
-                  cost: usesRemaining <= 0 ? tranceOfOrderFallbackSorceryPointCost : undefined
-                }
-              ]
-            : undefined
+        description: tranceOfOrderDescription
       },
       execute: {
         kind: "activate"
@@ -508,45 +475,10 @@ function getSorcererClockworkFeatureActions(
               }
             )
           : undefined,
-      resources:
-        totalPoints > 0
-          ? [
-              {
-                kind: "tracker",
-                label: "Sorcery Points",
-                current: remainingPoints,
-                total: totalPoints,
-                icon: "sparkles",
-                tone:
-                  usesRemaining <= 0 && remainingPoints < clockworkCavalcadeFallbackSorceryPointCost
-                    ? "danger"
-                    : "default",
-                cost: usesRemaining <= 0 ? clockworkCavalcadeFallbackSorceryPointCost : undefined
-              }
-            ]
-          : undefined,
       drawer: {
         kind: "confirm",
         eyebrow: "Clockwork Sorcery",
-        description: clockworkCavalcadeDescription,
-        resources:
-          totalPoints > 0
-            ? [
-                {
-                  kind: "tracker",
-                  label: "Sorcery Points",
-                  current: remainingPoints,
-                  total: totalPoints,
-                  icon: "sparkles",
-                  tone:
-                    usesRemaining <= 0 &&
-                    remainingPoints < clockworkCavalcadeFallbackSorceryPointCost
-                      ? "danger"
-                      : "default",
-                  cost: usesRemaining <= 0 ? clockworkCavalcadeFallbackSorceryPointCost : undefined
-                }
-              ]
-            : undefined
+        description: clockworkCavalcadeDescription
       },
       execute: {
         kind: "activate"
@@ -809,7 +741,7 @@ export const getSorcererClockworkSorceryDerivedFeatureState: SubclassRuntimeReso
   character.subclassId === clockworkSorcerySubclassId &&
   (character.level ?? 0) >= 3
     ? {
-        derivedStatusEntries: getSorcererClockworkLegacyDerivedStatusEntries(character),
+        derivedStatusEntries: getSorcererClockworkActiveDerivedStatusEntries(character),
         featureActions: getSorcererClockworkFeatureActions(character),
         featureActionOptions: hasSorcererClockworkBastionOfLawFeature(character)
           ? {

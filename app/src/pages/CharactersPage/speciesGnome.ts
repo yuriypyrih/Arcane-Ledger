@@ -65,18 +65,10 @@ const gnomeLineageNameByKey = gnomeLineageOptions.reduce<Record<CharacterGnomeLi
   },
   {} as Record<CharacterGnomeLineage, string>
 );
-const gnomeLineageAliases = new Map<string, CharacterGnomeLineage>();
+const gnomeLineageKeys = new Set<CharacterGnomeLineage>(
+  gnomeLineageOptions.map((option) => option.key)
+);
 const gnomeSpellcastingAbilitySet = new Set<string>(gnomeSpellcastingAbilityOptions);
-
-gnomeLineageOptions.forEach((option) => {
-  gnomeLineageAliases.set(option.key, option.key);
-  gnomeLineageAliases.set(option.name.toLowerCase(), option.key);
-});
-gnomeLineageAliases.set("forest", "forest-gnome");
-gnomeLineageAliases.set("forst", "forest-gnome");
-gnomeLineageAliases.set("forst gnome", "forest-gnome");
-gnomeLineageAliases.set("forst-gnome", "forest-gnome");
-gnomeLineageAliases.set("rock", "rock-gnome");
 
 type GnomeRuntimeCharacter = Pick<Character, "species"> &
   Partial<Pick<Character, "level" | "speciesChoices" | "speciesFeatureState">>;
@@ -219,7 +211,10 @@ export function normalizeGnomeLineage(value: unknown): CharacterGnomeLineage | u
     return undefined;
   }
 
-  return gnomeLineageAliases.get(value.trim().toLowerCase());
+  const key = value.trim();
+  return gnomeLineageKeys.has(key as CharacterGnomeLineage)
+    ? (key as CharacterGnomeLineage)
+    : undefined;
 }
 
 export function normalizeGnomeSpellcastingAbility(
