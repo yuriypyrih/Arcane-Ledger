@@ -36,7 +36,7 @@
   display: flex;
   align-items: center;
   gap: 0.55rem;
-  border-radius: 14px;
+  border-radius: var(--radius-control);
   background: rgba(255, 252, 245, 0.48);
   color: #463327;
   cursor: pointer;

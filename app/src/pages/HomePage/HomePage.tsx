@@ -1,8 +1,9 @@
-import { BookOpen, Clock3, Plus, ScrollText, Shield, Users } from "lucide-react";
+import { BookOpen, Clock3, Plus, ScrollText, Shield } from "lucide-react";
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import ActionButton from "../../components/ActionButton";
-import { getClassSignatureStyle } from "../../components/CharactersPage/classSignature";
+import CharacterEmptyState from "../../components/CharactersPage/CharacterEmptyState";
+import CharacterRow from "../../components/CharactersPage/CharacterRow";
 import { loadCharacters } from "../CharactersPage/storage";
 import styles from "./HomePage.module.css";
 
@@ -52,28 +53,12 @@ function HomePage() {
             <ul className={styles.characterList}>
               {visibleCharacters.map((character) => (
                 <li key={character.id}>
-                  <Link
-                    to={`/characters/${character.id}`}
-                    className={styles.characterRow}
-                    style={getClassSignatureStyle(character.className)}
-                  >
-                    <span className={styles.characterMark} aria-hidden="true" />
-                    <span className={styles.characterMain}>
-                      <strong>{character.name}</strong>
-                      <span>
-                        {character.species} {character.className}
-                      </span>
-                    </span>
-                    <span className={styles.characterMeta}>Lv {character.level}</span>
-                  </Link>
+                  <CharacterRow character={character} />
                 </li>
               ))}
             </ul>
           ) : (
-            <div className={styles.emptyState}>
-              <Users size={18} aria-hidden="true" />
-              <span>No characters yet</span>
-            </div>
+            <CharacterEmptyState />
           )}
         </section>
 

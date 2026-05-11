@@ -2,7 +2,7 @@
   display: grid;
   gap: var(--space-section-gap);
   border: 1px solid rgba(75, 47, 29, 0.12);
-  border-radius: 30px;
+  border-radius: var(--radius-section);
   background: var(--color-panel-strong) !important;
   background-color: var(--color-panel-strong) !important;
   box-shadow:
@@ -44,7 +44,7 @@
   align-items: center;
   gap: 0.4rem;
   border: none;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(75, 47, 29, 0.1);
   color: var(--color-ink);
   cursor: pointer;
@@ -59,7 +59,7 @@
   align-items: center;
   gap: 0.5rem;
   border: none;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(75, 47, 29, 0.1);
   color: var(--color-ink);
   cursor: pointer;
@@ -117,7 +117,7 @@
   align-items: center;
   gap: 0.4rem;
   border: none;
-  border-radius: 14px;
+  border-radius: var(--radius-control);
   cursor: pointer;
   font: inherit;
   min-height: 42px;
@@ -168,7 +168,7 @@
   align-items: center;
   gap: 0.5rem;
   border: 1px solid rgba(75, 47, 29, 0.14);
-  border-radius: 14px;
+  border-radius: var(--radius-control);
   background: rgba(255, 255, 255, 0.72);
   padding: 0.45rem 0.55rem;
 }
@@ -198,7 +198,7 @@
 
 .tagButton {
   border: none;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(75, 47, 29, 0.1);
   color: var(--color-ink);
   cursor: pointer;
@@ -239,7 +239,6 @@
 
 @media (max-width: 599px) {
   .sectionCard {
-    border-radius: 22px;
     padding: var(--space-card-padding-tight);
   }
 

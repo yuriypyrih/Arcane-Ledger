@@ -24,7 +24,7 @@
   align-items: center;
   justify-content: center;
   border: none;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(75, 47, 29, 0.08);
   color: var(--color-accent);
   cursor: pointer;
@@ -119,7 +119,7 @@
   align-items: center;
   align-self: center;
   border: 1px solid rgba(75, 47, 29, 0.12);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(75, 47, 29, 0.05);
   color: rgba(75, 47, 29, 0.78);
   font-size: 0.68rem;
@@ -141,7 +141,7 @@
   align-items: start;
   gap: 0.7rem;
   border: 1px solid rgba(75, 47, 29, 0.12);
-  border-radius: 14px;
+  border-radius: var(--radius-control);
   background: var(--color-panel-surface);
   cursor: pointer;
   padding: 0.72rem 0.82rem;
@@ -220,7 +220,7 @@
   justify-content: space-between;
   gap: 0.8rem;
   border: 1px solid rgba(75, 47, 29, 0.12);
-  border-radius: 14px;
+  border-radius: var(--radius-control);
   background: var(--color-panel-surface);
   padding: 0.75rem 0.85rem;
 }
@@ -271,7 +271,7 @@
   justify-content: space-between;
   gap: 0.75rem;
   border: 1px solid rgba(75, 47, 29, 0.12);
-  border-radius: 14px;
+  border-radius: var(--radius-control);
   background: var(--color-panel-surface);
   color: inherit;
   cursor: pointer;

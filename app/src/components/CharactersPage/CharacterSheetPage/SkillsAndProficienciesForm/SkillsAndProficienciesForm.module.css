@@ -162,7 +162,7 @@
 
 .skillLevelSelect {
   min-height: 34px;
-  border-radius: 10px;
+  border-radius: var(--radius-tiny);
   padding-right: 2rem;
 }
 

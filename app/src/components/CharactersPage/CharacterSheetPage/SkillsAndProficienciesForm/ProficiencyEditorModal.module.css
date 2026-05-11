@@ -15,14 +15,14 @@
   display: inline-grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 0.2rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(75, 47, 29, 0.08);
   padding: 0.24rem;
 }
 
 .tabButton {
   border: none;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: transparent;
   color: var(--color-ink-soft);
   cursor: pointer;
@@ -120,7 +120,7 @@
   justify-content: center;
   gap: 0.4rem;
   border: none;
-  border-radius: 14px;
+  border-radius: var(--radius-control);
   cursor: pointer;
   font: inherit;
 }
@@ -147,7 +147,7 @@
   justify-content: space-between;
   gap: 0.75rem;
   border: 1px solid rgba(75, 47, 29, 0.12);
-  border-radius: 14px;
+  border-radius: var(--radius-control);
   background: rgba(255, 255, 255, 0.72);
   padding: 0.65rem 0.72rem;
 }

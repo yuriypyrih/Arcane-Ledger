@@ -88,7 +88,7 @@
   font: inherit;
   padding: 0.26rem 0.42rem;
   text-align: left;
-  border-radius: 0.6rem;
+  border-radius: var(--radius-tiny);
   transition:
     background-color 160ms ease,
     box-shadow 160ms ease,
@@ -123,7 +123,7 @@
   display: grid;
   gap: 0.55rem;
   margin-left: 1.35rem;
-  border-radius: 0.75rem;
+  border-radius: var(--radius-compact);
   background: rgba(255, 255, 255, 0.34);
   box-shadow:
     inset 3px 0 0 rgba(75, 47, 29, 0.12),

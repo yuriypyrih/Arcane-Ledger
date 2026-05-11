@@ -92,7 +92,7 @@
   width: 100%;
   min-height: 48px;
   pointer-events: auto;
-  border-radius: 10px;
+  border-radius: var(--radius-tiny);
   background: var(--toast-background);
   color: var(--toast-foreground);
   box-shadow:
@@ -155,7 +155,7 @@
   min-height: 34px;
   min-width: 34px;
   border: none;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: transparent;
   color: inherit;
   cursor: pointer;

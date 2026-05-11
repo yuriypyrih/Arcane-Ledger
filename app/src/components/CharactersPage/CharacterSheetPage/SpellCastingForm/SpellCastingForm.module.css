@@ -5,19 +5,22 @@
 
 .spellSlotGrid {
   display: grid;
-  gap: 0.45rem;
+  gap: clamp(0.12rem, 1vw, 0.45rem);
   grid-template-columns: repeat(9, minmax(0, 1fr));
   justify-items: center;
+  width: 100%;
 }
 
 .spellSlotCard {
   display: grid;
-  align-content: start;
+  align-content: center;
   justify-items: center;
-  gap: 0.25rem;
-  min-height: 56px;
+  gap: clamp(0.06rem, 0.55vw, 0.25rem);
+  aspect-ratio: 1;
+  min-block-size: 0;
   max-width: 70px;
-  padding: 0.42rem 0.28rem;
+  min-width: 0;
+  padding: clamp(0.12rem, 0.9vw, 0.42rem) clamp(0.06rem, 0.7vw, 0.28rem);
   width: 100%;
 }
 
@@ -34,8 +37,9 @@
 
 .spellSlotCard span {
   color: var(--color-ink-soft);
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
+  font-size: clamp(0.48rem, 1.8vw, 0.72rem);
+  letter-spacing: clamp(0.01em, 0.18vw, 0.08em);
+  line-height: 1;
   text-transform: uppercase;
 }
 
@@ -45,22 +49,22 @@
 
 .spellSlotDash {
   color: var(--color-ink-soft);
-  font-size: 0.9rem;
+  font-size: clamp(0.5rem, 1.8vw, 0.9rem);
   line-height: 1;
 }
 
 .spellSlotSquares {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.2rem;
+  gap: clamp(0.04rem, 0.45vw, 0.2rem);
   justify-content: center;
 }
 
 .spellSlotSquare {
-  block-size: 9px;
-  inline-size: 9px;
+  block-size: clamp(3px, 1.6vw, 9px);
+  inline-size: clamp(3px, 1.6vw, 9px);
   border: 1px solid rgba(47, 120, 255, 0.42);
-  border-radius: 2px;
+  border-radius: clamp(1px, 0.35vw, 2px);
   background: var(--color-panel-surface);
 }
 
@@ -79,7 +83,7 @@
   align-items: center;
   margin-top: 0.85rem;
   border: 1px solid rgba(75, 47, 29, 0.14);
-  border-radius: 14px;
+  border-radius: var(--radius-control);
   background: var(--color-panel-surface);
   overflow: hidden;
   width: fit-content;
@@ -208,7 +212,7 @@
   gap: 0.35rem;
   flex: 0 0 auto;
   border: 1px solid rgba(75, 47, 29, 0.14);
-  border-radius: 12px;
+  border-radius: var(--radius-compact);
   background: var(--color-panel-surface);
   color: var(--color-ink-soft);
   cursor: pointer;
@@ -372,27 +376,19 @@
 .divinityDrawerActionButtonShape {
   align-items: center;
   background: var(--color-panel-surface);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   flex-shrink: 0;
   justify-content: center;
   padding: 0.18rem;
 }
 
 @media (max-width: 899px) {
-  .spellSlotGrid {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-  }
-
   .spellManagementFilterPanel {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 599px) {
-  .spellSlotGrid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
   .preparedSpellStatusRow {
     align-items: start;
   }

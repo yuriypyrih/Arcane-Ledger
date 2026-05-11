@@ -5,7 +5,7 @@
   min-height: 38px;
   min-width: 0;
   border: 1px solid rgba(75, 47, 29, 0.12);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: linear-gradient(165deg, rgba(255, 252, 245, 0.96), rgba(244, 234, 219, 0.92));
   color: var(--color-ink);
   cursor: pointer;

@@ -78,7 +78,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.24rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: #eadccc;
   color: var(--color-ink-soft);
   font-size: 0.72rem;
@@ -139,7 +139,7 @@
   display: inline-flex;
   align-items: center;
   min-height: 24px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: #eadccc;
   color: var(--color-ink-soft);
   font-size: 0.74rem;
@@ -152,7 +152,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.16rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--color-panel-muted);
   color: var(--color-ink);
   font-size: 0.92rem;
@@ -246,7 +246,7 @@
 
 .catalogTabButton {
   border: 1px solid rgba(75, 47, 29, 0.16);
-  border-radius: 12px;
+  border-radius: var(--radius-compact);
   background: var(--color-panel-surface);
   color: var(--color-ink);
   cursor: pointer;
@@ -282,7 +282,7 @@
   align-items: center;
   min-height: 40px;
   border: 1px solid rgba(75, 47, 29, 0.16);
-  border-radius: 14px;
+  border-radius: var(--radius-control);
   background: var(--color-panel-surface);
   padding: 0 0.9rem;
 }
@@ -297,7 +297,7 @@
   align-items: center;
   justify-content: center;
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-compact);
   background: rgba(75, 47, 29, 0.08);
   color: var(--color-ink);
   cursor: pointer;
@@ -317,7 +317,7 @@
 
 .catalogSearchButton {
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-compact);
   background: rgba(75, 47, 29, 0.1);
   color: var(--color-ink);
   cursor: pointer;
@@ -348,7 +348,7 @@
   gap: 0.75rem;
   align-items: center;
   border: 1px solid rgba(75, 47, 29, 0.14);
-  border-radius: 14px;
+  border-radius: var(--radius-control);
   background: var(--color-panel-surface);
   min-height: 56px;
   padding: 0.48rem 0.68rem;
@@ -421,7 +421,7 @@
   display: inline-flex;
   align-items: center;
   min-height: 24px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(75, 47, 29, 0.08);
   color: var(--color-ink-soft);
   font-size: 0.74rem;
@@ -464,7 +464,7 @@
   justify-content: center;
   gap: 0.3rem;
   border: none;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(75, 47, 29, 0.1);
   color: var(--color-ink);
   cursor: pointer;
@@ -485,7 +485,7 @@
   align-items: center;
   justify-content: center;
   border: none;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(110, 69, 41, 0.92);
   color: #fff8ef;
   cursor: pointer;
@@ -537,7 +537,7 @@
 
 .catalogPageButton {
   border: none;
-  border-radius: 10px;
+  border-radius: var(--radius-tiny);
   background: rgba(75, 47, 29, 0.08);
   color: var(--color-ink);
   cursor: pointer;
@@ -564,7 +564,7 @@
   justify-items: center;
   gap: 0.12rem;
   border: 1px solid transparent;
-  border-radius: 12px;
+  border-radius: var(--radius-compact);
   background: rgba(75, 47, 29, 0.08);
   color: var(--color-ink);
   cursor: pointer;
@@ -646,7 +646,7 @@
 
 .removeItemButton {
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-compact);
   background: rgba(197, 57, 43, 0.14);
   color: #8a2519;
   cursor: pointer;
@@ -668,7 +668,7 @@
   justify-content: center;
   gap: 0.35rem;
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-compact);
   cursor: pointer;
   font: inherit;
 }
@@ -752,7 +752,7 @@
   gap: 0.85rem;
   width: min(var(--overlay-size-small), 100%);
   border: 1px solid rgba(75, 47, 29, 0.2);
-  border-radius: 20px;
+  border-radius: var(--radius-card);
   background: rgba(255, 250, 241, 0.98);
   box-shadow: 0 18px 50px rgba(54, 34, 21, 0.18);
   padding: 1rem;

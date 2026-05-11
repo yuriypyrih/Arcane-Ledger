@@ -27,7 +27,7 @@
 
 .progressTrack {
   overflow: hidden;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(61, 125, 255, 0.18);
   block-size: 14px;
 }
@@ -46,7 +46,7 @@
 .progressRowCard {
   display: grid;
   gap: 0.7rem;
-  border-radius: 18px;
+  border-radius: var(--radius-field);
   background: rgba(75, 47, 29, 0.055);
   padding: 0.88rem 0.92rem;
 }

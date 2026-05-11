@@ -1,7 +1,7 @@
 .arcaneRecoverySummary {
   display: grid;
   gap: 0.18rem;
-  border-radius: 14px;
+  border-radius: var(--radius-control);
   background: rgba(47, 120, 255, 0.1);
   margin-bottom: 0.9rem;
   padding: 0.75rem 0.82rem;
@@ -30,7 +30,7 @@
   display: grid;
   gap: 0.65rem;
   border: 1px solid rgba(75, 47, 29, 0.12);
-  border-radius: 12px;
+  border-radius: var(--radius-compact);
   background: rgba(255, 255, 255, 0.82);
   padding: 0.8rem 0.85rem;
 }
@@ -60,7 +60,7 @@
 .arcaneRecoveryControlButton {
   align-items: center;
   border: 1px solid transparent;
-  border-radius: 12px;
+  border-radius: var(--radius-compact);
   background: linear-gradient(135deg, #2f6de0, #4a8eff);
   color: #f7fbff;
   cursor: pointer;

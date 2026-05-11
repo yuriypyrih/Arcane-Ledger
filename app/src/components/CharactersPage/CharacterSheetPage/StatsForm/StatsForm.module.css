@@ -354,7 +354,7 @@
 
 .referenceWarningCard {
   margin: 0;
-  border-radius: 16px;
+  border-radius: var(--radius-control-lg);
   background: rgba(169, 56, 32, 0.12);
   color: #8b2d1f;
   padding: 0.9rem 1rem;

@@ -20,7 +20,7 @@
 }
 
 .fontOfMagicWarning {
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(188, 63, 78, 0.12);
   color: #bc3f4e;
   font-size: 0.76rem;

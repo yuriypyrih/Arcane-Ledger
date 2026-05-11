@@ -9,7 +9,7 @@
   align-items: center;
   justify-self: start;
   border: 1px solid rgba(75, 47, 29, 0.1);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(255, 250, 241, 0.42);
   color: var(--color-ink-soft);
   cursor: pointer;
@@ -32,7 +32,7 @@
   display: grid;
   gap: 0.72rem;
   border: 1px solid rgba(75, 47, 29, 0.12);
-  border-radius: 18px;
+  border-radius: var(--radius-field);
   background: rgba(255, 250, 241, 0.95);
   box-shadow: 0 10px 30px rgba(54, 34, 21, 0.05);
   padding: var(--space-card-padding-tight);

@@ -1,14 +1,14 @@
 .targetSwitch {
   display: inline-grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(75, 47, 29, 0.08);
   padding: 0.24rem;
 }
 
 .targetButton {
   border: none;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: transparent;
   color: var(--color-ink-soft);
   cursor: pointer;

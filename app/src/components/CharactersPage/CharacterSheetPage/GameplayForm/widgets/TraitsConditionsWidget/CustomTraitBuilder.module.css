@@ -36,7 +36,7 @@
   align-items: center;
   gap: 0.42rem;
   border: 1px solid rgba(37, 80, 141, 0.16);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(37, 80, 141, 0.08);
   color: #25508d;
   cursor: pointer;
@@ -60,7 +60,7 @@
   display: grid;
   gap: 0.65rem;
   border: 1px solid rgba(75, 47, 29, 0.12);
-  border-radius: 18px;
+  border-radius: var(--radius-field);
   background: rgba(255, 255, 255, 0.72);
   padding: 0.9rem;
 }

@@ -2223,7 +2223,21 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             <p className={styles.sectionEyebrow}>Core profile</p>
             <h3>Character identity</h3>
           </div>
-          {!isCoreProfileReady ? <InputRequiredBadge /> : null}
+          <div className={styles.sectionHeaderActions}>
+            {!isCoreProfileReady ? <InputRequiredBadge /> : null}
+            {!isEditing ? (
+              <ActionButton
+                type="button"
+                fullWidth={false}
+                iconOnly
+                icon={<Dice6 size={20} />}
+                onClick={handleRandomize}
+                disabled={hasPendingAction}
+                aria-label="Randomize character"
+                title="Randomize character"
+              />
+            ) : null}
+          </div>
         </div>
 
         <div className={styles.profileGrid}>
@@ -3771,16 +3785,6 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                 <ActionButton
                   type="button"
                   fullWidth={false}
-                  iconOnly
-                  icon={<Dice6 size={20} />}
-                  onClick={handleRandomize}
-                  disabled={hasPendingAction}
-                  aria-label="Randomize character"
-                  title="Randomize character"
-                />
-                <ActionButton
-                  type="button"
-                  fullWidth={false}
                   loading={pendingAction === "recommended"}
                   disabled={hasPendingAction || !isCoreProfileReady}
                   onClick={() => {
@@ -3811,7 +3815,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                   onClick={handleBackToStepOne}
                   disabled={hasPendingAction}
                 >
-                  Back (reset changes)
+                  Back
                 </ActionButton>
                 <ActionButton
                   type="button"

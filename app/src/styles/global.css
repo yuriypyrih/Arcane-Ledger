@@ -20,6 +20,21 @@
   --space-section-gap: clamp(0.6rem, 1.7vw, 1.1rem);
   --space-card-padding: clamp(0.78rem, 2.3vw, 1.35rem);
   --space-card-padding-tight: clamp(0.68rem, 2vw, 1.15rem);
+  --sheet-surface-radius-xm: 10px;
+  --sheet-surface-radius-sm: 12px;
+  --sheet-surface-radius-md: 14px;
+  --sheet-surface-radius-lg: 16px;
+  --sheet-surface-radius-xl: 18px;
+  --radius-section: 30px;
+  --radius-panel: calc(var(--sheet-surface-radius-xl) + 6px);
+  --radius-card-large: calc(var(--sheet-surface-radius-xl) + 4px);
+  --radius-card: calc(var(--sheet-surface-radius-xl) + 2px);
+  --radius-field: var(--sheet-surface-radius-xl);
+  --radius-control-lg: var(--sheet-surface-radius-lg);
+  --radius-control: var(--sheet-surface-radius-md);
+  --radius-compact: var(--sheet-surface-radius-sm);
+  --radius-tiny: var(--sheet-surface-radius-xm);
+  --radius-pill: 999px;
   --overlay-size-small: 700px;
   --overlay-size-medium: 920px;
   --overlay-size-large: 1080px;
@@ -50,6 +65,28 @@ body {
   z-index: 1;
 }
 
+@media (max-width: 1199px) {
+  :root {
+    --sheet-surface-radius-xm: 9px;
+    --sheet-surface-radius-sm: 11px;
+    --sheet-surface-radius-md: 13px;
+    --sheet-surface-radius-lg: 15px;
+    --sheet-surface-radius-xl: 17px;
+    --radius-section: 26px;
+  }
+}
+
+@media (max-width: 899px) {
+  :root {
+    --sheet-surface-radius-xm: 8px;
+    --sheet-surface-radius-sm: 10px;
+    --sheet-surface-radius-md: 12px;
+    --sheet-surface-radius-lg: 14px;
+    --sheet-surface-radius-xl: 16px;
+    --radius-section: 20px;
+  }
+}
+
 @media (max-width: 599px) {
   :root {
     --space-shell-gutter: clamp(0.45rem, 1.9vw, 0.9rem);
@@ -57,6 +94,12 @@ body {
     --space-section-gap: clamp(0.45rem, 1.6vw, 0.8rem);
     --space-card-padding: clamp(0.65rem, 2.2vw, 0.98rem);
     --space-card-padding-tight: clamp(0.58rem, 1.9vw, 0.9rem);
+    --sheet-surface-radius-xm: 4px;
+    --sheet-surface-radius-sm: 6px;
+    --sheet-surface-radius-md: 8px;
+    --sheet-surface-radius-lg: 10px;
+    --sheet-surface-radius-xl: 12px;
+    --radius-section: 10px;
   }
 
   html {

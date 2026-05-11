@@ -16,7 +16,7 @@
   gap: 0.6rem;
   width: min(var(--overlay-size-medium), 100%);
   border: 1px solid rgba(75, 47, 29, 0.2);
-  border-radius: 0 0 26px 26px;
+  border-radius: 0 0 var(--radius-panel) var(--radius-panel);
   background: linear-gradient(165deg, rgba(255, 252, 245, 0.98), rgba(246, 236, 221, 0.98));
   box-shadow: 0 24px 70px rgba(38, 23, 14, 0.24);
   padding: 0.7rem;
@@ -31,7 +31,7 @@
   top: 1rem;
   right: 1rem;
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-compact);
   background: rgba(255, 255, 255, 0.88);
   color: var(--color-ink);
   cursor: pointer;
@@ -43,7 +43,7 @@
 
 .viewportStage {
   height: clamp(210px, 36vh, 400px);
-  border-radius: 18px;
+  border-radius: var(--radius-field);
   overflow: hidden;
 }
 
@@ -52,7 +52,7 @@
   align-content: start;
   justify-items: center;
   gap: 0.42rem;
-  border-radius: 18px;
+  border-radius: var(--radius-field);
   background: rgba(75, 47, 29, 0.06);
   padding: 0.8rem 0.9rem;
   text-align: center;
@@ -62,7 +62,7 @@
   display: grid;
   align-content: start;
   gap: 0.8rem;
-  border-radius: 18px;
+  border-radius: var(--radius-field);
   background: rgba(75, 47, 29, 0.06);
   padding: 0.8rem 0.9rem;
   text-align: center;
@@ -100,7 +100,7 @@
 .multiResultCard {
   display: grid;
   gap: 0.35rem;
-  border-radius: 16px;
+  border-radius: var(--radius-control-lg);
   background: rgba(255, 255, 255, 0.72);
   padding: 0.8rem 0.9rem;
 }
@@ -126,7 +126,7 @@
   align-items: center;
   justify-content: center;
   min-height: 28px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   border: 1px solid transparent;
   padding: 0.2rem 0.58rem;
   font-size: 0.66rem;

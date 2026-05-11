@@ -62,7 +62,7 @@
   align-items: center;
   justify-content: center;
   border: none;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(75, 47, 29, 0.08);
   color: var(--color-accent);
   cursor: pointer;

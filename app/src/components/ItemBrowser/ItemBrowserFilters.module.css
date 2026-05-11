@@ -14,7 +14,7 @@
   align-items: center;
   gap: 0.5rem;
   border: 1px solid rgba(92, 59, 37, 0.16);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(255, 252, 246, 0.72);
   color: var(--color-ink-soft);
   cursor: pointer;
@@ -41,7 +41,7 @@
 }
 
 .tabCount {
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(92, 59, 37, 0.08);
   color: inherit;
   font-size: 0.78rem;
@@ -65,7 +65,7 @@
 .input {
   min-height: 42px;
   border: 1px solid rgba(92, 59, 37, 0.15);
-  border-radius: 12px;
+  border-radius: var(--radius-compact);
   background: rgba(255, 252, 246, 0.96);
   color: var(--color-ink);
   font: inherit;

@@ -2,7 +2,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.28rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   padding: 0.18rem 0.44rem;
 }
 

@@ -35,7 +35,7 @@
   justify-content: space-between;
   gap: 0.65rem;
   border: none;
-  border-radius: 14px;
+  border-radius: var(--radius-control);
   background: rgba(75, 47, 29, 0.1);
   color: var(--color-ink);
   cursor: pointer;

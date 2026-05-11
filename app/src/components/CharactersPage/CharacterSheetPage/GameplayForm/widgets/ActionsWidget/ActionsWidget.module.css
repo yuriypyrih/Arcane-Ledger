@@ -122,7 +122,7 @@
 }
 
 .channelDivinityFooterWarning {
-  border-radius: 16px;
+  border-radius: var(--radius-control-lg);
   background: rgba(139, 51, 33, 0.1);
   color: #6d2417;
   margin: 0;
@@ -137,7 +137,7 @@
 .footerActionShape {
   align-items: center;
   background: rgba(255, 255, 255, 0.76);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   flex-shrink: 0;
   justify-content: center;
   padding: 0.18rem;
@@ -201,7 +201,7 @@
 }
 
 .rageEnhancementModeBadge {
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(181, 86, 42, 0.12);
   color: #8a4d26;
   font-size: 0.68rem;
@@ -234,7 +234,7 @@
   align-items: center;
   background: transparent;
   border: 1px solid rgba(120, 96, 76, 0.24);
-  border-radius: 12px;
+  border-radius: var(--radius-compact);
   color: #5a3b2a;
   display: inline-flex;
   flex: 0 0 auto;

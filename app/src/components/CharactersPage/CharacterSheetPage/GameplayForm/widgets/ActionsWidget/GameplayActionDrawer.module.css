@@ -49,7 +49,7 @@
 .badgePill {
   display: inline-flex;
   align-items: center;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   min-height: 38px;
 }
 
@@ -162,7 +162,7 @@
 }
 
 .warningCard {
-  border-radius: 16px;
+  border-radius: var(--radius-control-lg);
   background: rgba(139, 51, 33, 0.1);
   color: #6d2417;
   margin: 0;

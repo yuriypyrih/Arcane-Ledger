@@ -41,7 +41,7 @@
   height: 100%;
   overflow: auto;
   border: 1px solid rgba(75, 47, 29, 0.12);
-  border-radius: 18px;
+  border-radius: var(--radius-field);
   background: rgba(255, 250, 241, 0.95);
   box-shadow: 0 14px 38px rgba(54, 34, 21, 0.05);
 }

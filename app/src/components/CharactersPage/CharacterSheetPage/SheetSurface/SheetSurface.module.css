@@ -1,5 +1,5 @@
 .root {
-  --sheet-surface-radius: 14px;
+  --sheet-surface-radius: var(--sheet-surface-radius-md);
 
   position: relative;
   overflow: hidden;
@@ -26,23 +26,23 @@
 }
 
 .borderXm {
-  --sheet-surface-radius: 10px;
+  --sheet-surface-radius: var(--sheet-surface-radius-xm);
 }
 
 .borderSm {
-  --sheet-surface-radius: 12px;
+  --sheet-surface-radius: var(--sheet-surface-radius-sm);
 }
 
 .borderMd {
-  --sheet-surface-radius: 14px;
+  --sheet-surface-radius: var(--sheet-surface-radius-md);
 }
 
 .borderLg {
-  --sheet-surface-radius: 16px;
+  --sheet-surface-radius: var(--sheet-surface-radius-lg);
 }
 
 .borderXl {
-  --sheet-surface-radius: 18px;
+  --sheet-surface-radius: var(--sheet-surface-radius-xl);
 }
 
 .hoverTint {
@@ -76,26 +76,4 @@
 .hasBorder.hoverTint:focus-visible:not(:disabled),
 .hasBorder.hoverTint:focus-within:not(:disabled) {
   border-color: #2f78ff;
-}
-
-@media (max-width: 599px) {
-  .borderXm {
-    --sheet-surface-radius: 4px;
-  }
-
-  .borderSm {
-    --sheet-surface-radius: 6px;
-  }
-
-  .borderMd {
-    --sheet-surface-radius: 8px;
-  }
-
-  .borderLg {
-    --sheet-surface-radius: 10px;
-  }
-
-  .borderXl {
-    --sheet-surface-radius: 12px;
-  }
 }

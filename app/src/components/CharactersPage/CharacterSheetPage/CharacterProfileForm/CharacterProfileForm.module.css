@@ -4,7 +4,7 @@
   gap: 0.38rem;
   overflow: visible;
   border: 1px solid rgba(75, 47, 29, 0.14);
-  border-radius: 20px;
+  border-radius: var(--radius-card);
   background: var(--color-panel-strong);
   background-color: var(--color-panel-strong);
   box-shadow:
@@ -78,7 +78,7 @@
   margin-top: -0.9rem;
   margin-left: -1.1rem;
   border: 2px solid rgba(75, 47, 29, 0.78);
-  border-radius: 18px;
+  border-radius: var(--radius-field);
   background: linear-gradient(150deg, #6f4629 0%, #3c2518 48%, #160f0d 100%);
   color: #f7ead6;
   box-shadow:
@@ -160,7 +160,7 @@
   min-height: 30px;
   flex: 0 0 auto;
   border: 1px solid rgba(75, 47, 29, 0.2);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.76);
   color: var(--color-ink);
   cursor: pointer;
@@ -194,7 +194,7 @@
   display: grid;
   gap: 0.42rem;
   margin: 0 0.16rem 0 0;
-  border-radius: 8px;
+  border-radius: var(--radius-tiny);
   background: rgba(75, 47, 29, 0.055);
   padding: 0.58rem 0.66rem;
 }
@@ -237,7 +237,7 @@
 
 @media (max-width: 599px) {
   .profileCard {
-    border-radius: 16px;
+    border-radius: var(--radius-control-lg);
     padding: 0.5rem 0.58rem 0.5rem 0.5rem;
   }
 
@@ -249,7 +249,7 @@
   .portraitFrame {
     margin-top: -0.76rem;
     margin-left: -0.88rem;
-    border-radius: 14px;
+    border-radius: var(--radius-control);
   }
 
   .identityRows {

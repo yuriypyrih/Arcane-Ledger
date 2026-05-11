@@ -7,7 +7,7 @@
   width: 100%;
   min-width: 0;
   border: 1px solid rgba(75, 47, 29, 0.12);
-  border-radius: 14px;
+  border-radius: var(--radius-control);
   background: rgba(255, 255, 255, 0.6);
   cursor: pointer;
   padding: 0.72rem 0.82rem;

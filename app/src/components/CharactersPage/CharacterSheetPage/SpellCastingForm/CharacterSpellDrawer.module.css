@@ -11,7 +11,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.28rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(222, 102, 158, 0.16);
   color: #c04f86;
   line-height: 1;
@@ -39,7 +39,7 @@
 .alwaysSpellbookPill {
   display: inline-flex;
   align-items: center;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(47, 120, 255, 0.14);
   color: #2f78ff;
   font-size: 0.62rem;
@@ -64,7 +64,7 @@
   align-items: center;
   gap: 0.38rem;
   min-height: 38px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(75, 47, 29, 0.08);
   color: var(--color-ink);
   font-size: 0.76rem;

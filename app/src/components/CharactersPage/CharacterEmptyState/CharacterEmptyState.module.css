@@ -1,0 +1,14 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  min-height: 48px;
+  border-radius: var(--radius-field);
+  background: var(--color-panel-muted);
+  color: var(--color-ink-soft);
+  padding: 0 0.7rem;
+}
+
+.root svg {
+  flex: 0 0 auto;
+}

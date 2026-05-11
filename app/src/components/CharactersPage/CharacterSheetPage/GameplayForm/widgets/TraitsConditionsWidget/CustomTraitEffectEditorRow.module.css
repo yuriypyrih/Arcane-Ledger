@@ -12,7 +12,7 @@
   min-height: 44px;
   min-width: 44px;
   border: 1px solid rgba(197, 57, 43, 0.2);
-  border-radius: 14px;
+  border-radius: var(--radius-control);
   background: rgba(197, 57, 43, 0.12);
   color: #a03326;
   cursor: pointer;

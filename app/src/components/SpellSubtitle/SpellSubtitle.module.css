@@ -15,7 +15,7 @@
 .ritualPill {
   display: inline-flex;
   align-items: center;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: #d37f1e;
   color: #fff8ef;
   font-size: 0.62rem;

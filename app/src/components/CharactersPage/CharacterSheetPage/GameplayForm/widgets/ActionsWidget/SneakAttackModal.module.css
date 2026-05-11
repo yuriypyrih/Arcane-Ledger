@@ -15,7 +15,7 @@
 }
 
 .sneakAttackEffectSpend {
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(181, 86, 42, 0.12);
   color: #8a4d26;
   font-size: 0.76rem;

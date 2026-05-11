@@ -2,7 +2,7 @@
   display: grid;
   gap: 0.3rem;
   border: 1px solid rgba(75, 47, 29, 0.16);
-  border-radius: 14px;
+  border-radius: var(--radius-control);
   background: rgba(255, 255, 255, 0.8);
   color: var(--color-ink);
   cursor: pointer;
@@ -69,7 +69,7 @@
   position: absolute;
   inset: 2px;
   border: 1px solid rgba(220, 176, 42, 0.72);
-  border-radius: 10px;
+  border-radius: max(6px, calc(var(--radius-control) - 4px));
   pointer-events: none;
 }
 

@@ -34,7 +34,7 @@
   place-items: center;
   flex: 0 0 auto;
   border: 1px solid rgba(75, 47, 29, 0.14);
-  border-radius: 12px;
+  border-radius: var(--radius-compact);
   background: rgba(255, 255, 255, 0.78);
   color: var(--color-ink-soft);
   cursor: pointer;

@@ -3,7 +3,7 @@
   align-items: center;
   gap: 0.18rem;
   flex: 0 0 auto;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: #f1e9e0;
   padding: 0.2rem;
 }
@@ -13,7 +13,7 @@
   align-items: center;
   justify-content: center;
   border: none;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: transparent;
   color: var(--color-ink);
   cursor: pointer;
@@ -68,7 +68,7 @@
   align-self: stretch;
   inline-size: 1px;
   margin: 0.18rem 0.16rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(46, 32, 23, 0.24);
   box-shadow: 1px 0 0 rgba(255, 255, 255, 0.38);
 }

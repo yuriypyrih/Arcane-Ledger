@@ -33,7 +33,7 @@
 
 .item {
   border: 1px solid rgba(37, 80, 141, 0.12);
-  border-radius: 14px;
+  border-radius: var(--radius-control);
   background: rgba(37, 80, 141, 0.06);
   color: var(--color-ink);
   font-weight: 600;

@@ -2,7 +2,7 @@
   display: block;
   width: 100%;
   border: 1px solid rgba(75, 47, 29, 0.16);
-  border-radius: 14px;
+  border-radius: var(--radius-control);
   background: var(--color-panel-surface);
   color: var(--color-ink);
   cursor: pointer;
@@ -141,7 +141,7 @@
 .namePill {
   display: inline-flex;
   align-items: center;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   font-size: 0.62rem;
   font-weight: 700;
   letter-spacing: 0.05em;

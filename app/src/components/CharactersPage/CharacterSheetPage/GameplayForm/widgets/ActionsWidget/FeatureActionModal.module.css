@@ -43,7 +43,7 @@
 .chargeSpendInput {
   min-height: 48px;
   border: 1px solid rgba(75, 47, 29, 0.16);
-  border-radius: 12px;
+  border-radius: var(--radius-compact);
   background: rgba(255, 255, 255, 0.94);
   color: var(--color-ink);
   font: inherit;

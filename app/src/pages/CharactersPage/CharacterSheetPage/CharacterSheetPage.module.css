@@ -24,7 +24,7 @@
   display: grid;
   gap: var(--space-section-gap);
   border: 1px solid rgba(75, 47, 29, 0.12);
-  border-radius: 30px;
+  border-radius: var(--radius-section);
   background: rgba(255, 250, 241, 0.95);
   box-shadow: 0 18px 50px rgba(54, 34, 21, 0.08);
   padding: var(--space-card-padding);
@@ -40,7 +40,7 @@
   align-items: center;
   justify-content: center;
   justify-self: start;
-  border-radius: 16px;
+  border-radius: var(--radius-control-lg);
   background: var(--gradient-primary-action);
   color: #fff8ee;
   min-height: 46px;
@@ -131,7 +131,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(75, 47, 29, 0.1);
   color: var(--color-ink);
   min-height: 38px;
@@ -174,7 +174,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  border-radius: 14px;
+  border-radius: var(--radius-control);
   min-height: 42px;
   padding: 0 0.9rem;
 }
@@ -234,7 +234,7 @@
   width: min(var(--overlay-size-small), 100%);
   max-height: calc(100dvh - (var(--overlay-backdrop-padding) * 2));
   border: 1px solid rgba(75, 47, 29, 0.2);
-  border-radius: 24px;
+  border-radius: var(--radius-panel);
   background: linear-gradient(165deg, rgba(255, 252, 245, 0.98), rgba(246, 236, 221, 0.98));
   box-shadow: 0 24px 60px rgba(38, 23, 14, 0.24);
   overflow: auto;
@@ -276,7 +276,7 @@
   align-items: center;
   justify-content: center;
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-compact);
   background: rgba(75, 47, 29, 0.08);
   color: var(--color-ink);
   cursor: pointer;
@@ -294,7 +294,7 @@
   display: grid;
   gap: 0.3rem;
   border: 1px solid rgba(75, 47, 29, 0.16);
-  border-radius: 16px;
+  border-radius: var(--radius-control-lg);
   background: rgba(255, 255, 255, 0.8);
   color: var(--color-ink);
   cursor: pointer;
@@ -331,7 +331,7 @@
   display: grid;
   gap: 0.3rem;
   border: 1px solid rgba(75, 47, 29, 0.16);
-  border-radius: 16px;
+  border-radius: var(--radius-control-lg);
   background: rgba(255, 255, 255, 0.8);
   color: var(--color-ink);
   cursor: pointer;
@@ -366,7 +366,7 @@
   block-size: 8px;
   inline-size: 8px;
   border: 1px solid rgba(55, 132, 255, 0.46);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.8);
 }
 
@@ -449,7 +449,7 @@
 
 .xpProgressTrack {
   block-size: 16px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(75, 47, 29, 0.13);
   overflow: hidden;
 }
@@ -509,7 +509,7 @@
   width: min(var(--overlay-size-medium), 100%);
   max-height: calc(100dvh - (var(--overlay-backdrop-padding) * 2));
   border: 1px solid rgba(75, 47, 29, 0.22);
-  border-radius: 24px 24px 18px 18px;
+  border-radius: var(--radius-panel) var(--radius-panel) var(--radius-field) var(--radius-field);
   background: linear-gradient(160deg, rgba(255, 252, 245, 0.99), rgba(245, 234, 218, 0.99));
   box-shadow: 0 28px 70px rgba(32, 18, 12, 0.35);
   overflow: hidden;
@@ -574,7 +574,7 @@
   align-items: center;
   justify-content: center;
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-compact);
   background: rgba(75, 47, 29, 0.08);
   color: var(--color-ink);
   cursor: pointer;
@@ -664,7 +664,7 @@
 
 .spellSlotSelect {
   min-height: 44px;
-  border-radius: 14px;
+  border-radius: var(--radius-control);
   padding: 0 2.4rem 0 0.82rem;
 }
 
@@ -673,7 +673,7 @@
   align-items: center;
   justify-content: center;
   margin-left: auto;
-  border-radius: 14px;
+  border-radius: var(--radius-control);
   background: linear-gradient(135deg, #2f6de0, #4a8eff);
   color: #f7fbff;
   font-weight: 600;
@@ -747,7 +747,7 @@
   }
 
   .notFoundCard {
-    border-radius: 22px;
+    border-radius: var(--radius-card-large);
     padding: var(--space-card-padding-tight);
   }
 
@@ -758,7 +758,7 @@
   .spellManagementModal,
   .restPopupCard,
   .xpPopupCard {
-    border-radius: 20px;
+    border-radius: var(--radius-card);
     --sheet-panel-inline-padding: 0.9rem;
     --sheet-panel-top-padding: 0.9rem;
     --sheet-panel-bottom-padding: 0.9rem;
@@ -774,7 +774,7 @@
   }
 
   .spellDrawer {
-    border-radius: 20px;
+    border-radius: var(--radius-card);
     --sheet-drawer-inline-padding: 0.85rem;
     --sheet-drawer-top-padding: 0.85rem;
     --sheet-drawer-bottom-padding: 0.85rem;

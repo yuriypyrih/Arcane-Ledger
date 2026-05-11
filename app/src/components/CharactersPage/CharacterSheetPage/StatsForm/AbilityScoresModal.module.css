@@ -19,14 +19,14 @@
 .modeControl {
   display: inline-grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  border-radius: 22px;
+  border-radius: var(--radius-card-large);
   background: rgba(75, 47, 29, 0.07);
   padding: 0.25rem;
 }
 
 .modeButton {
   border: none;
-  border-radius: 18px;
+  border-radius: var(--radius-field);
   background: transparent;
   color: var(--color-ink-soft);
   cursor: pointer;
@@ -51,7 +51,7 @@
   gap: 0.24rem;
   grid-template-columns: minmax(0, 1fr) auto;
   border: 1px solid rgba(143, 91, 56, 0.18);
-  border-radius: 18px;
+  border-radius: var(--radius-field);
   background:
     linear-gradient(155deg, rgba(255, 255, 255, 0.92), rgba(250, 240, 227, 0.88)),
     rgba(255, 255, 255, 0.8);
@@ -144,7 +144,7 @@
   align-items: center;
   justify-content: center;
   border: 1px solid rgba(75, 47, 29, 0.16);
-  border-radius: 14px;
+  border-radius: var(--radius-control);
   background: rgba(255, 255, 255, 0.78);
   color: var(--color-ink);
   cursor: pointer;

@@ -1,0 +1,136 @@
+.row {
+  position: relative;
+  display: grid;
+  align-items: center;
+  gap: 0.7rem;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  min-height: 54px;
+  border: 1px solid rgba(75, 47, 29, 0.1);
+  border-radius: var(--radius-card-large);
+  background: var(--class-signature-gradient), rgba(255, 250, 241, 0.78);
+  color: inherit;
+  overflow: hidden;
+  padding: 0.56rem 0.68rem;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 120ms ease;
+}
+
+.row:hover {
+  border-color: rgba(143, 91, 56, 0.32);
+  box-shadow: 0 10px 24px rgba(54, 34, 21, 0.08);
+}
+
+.row:has(.rowLink:focus-visible) {
+  border-color: rgba(47, 120, 255, 0.55);
+  box-shadow: 0 0 0 3px rgba(47, 120, 255, 0.18);
+}
+
+.rowLink {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+}
+
+.rowLink:focus-visible {
+  outline: none;
+}
+
+.characterMark,
+.characterMain,
+.characterSide {
+  position: relative;
+  z-index: 2;
+}
+
+.characterMark,
+.characterMain,
+.characterMeta {
+  pointer-events: none;
+}
+
+.characterMark {
+  width: 0.42rem;
+  height: 2rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+}
+
+.characterMain {
+  display: grid;
+  gap: 0.06rem;
+  min-width: 0;
+}
+
+.characterMain strong,
+.characterMain span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.characterMain span,
+.characterMeta {
+  color: var(--color-ink-soft);
+  font-size: 0.82rem;
+}
+
+.characterMeta {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.characterSide {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.58rem;
+  pointer-events: none;
+}
+
+.characterActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+  pointer-events: auto;
+  position: relative;
+  z-index: 3;
+}
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-control);
+  background: rgba(75, 47, 29, 0.08);
+  color: var(--color-ink);
+  cursor: pointer;
+  font: inherit;
+  min-height: 40px;
+  min-width: 40px;
+  padding: 0;
+}
+
+.iconButton:hover,
+.iconButton:focus-visible {
+  background: rgba(75, 47, 29, 0.14);
+}
+
+.iconButton:focus-visible {
+  outline: 2px solid rgba(47, 120, 255, 0.4);
+  outline-offset: 2px;
+}
+
+@media (max-width: 599px) {
+  .row {
+    align-items: start;
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .characterSide {
+    grid-column: 2;
+    justify-self: start;
+  }
+}

@@ -12,7 +12,7 @@
 
 .resourceBadge {
   align-items: center;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   display: inline-flex;
   gap: 0.38rem;
   min-height: 38px;
