@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Pencil, Plus, TriangleAlert } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
 import { useState } from "react";
 import {
   CLASS_FEATURE,
@@ -9,6 +9,7 @@ import {
   type SpellEntry
 } from "../../../../codex/entries";
 import SelectInput from "../../FormInputs/SelectInput";
+import InputRequiredBadge from "../../../InputRequiredBadge";
 import {
   getBarbarianPrimalKnowledgeSkillOptionsForCharacter,
   getBarbarianPrimalKnowledgeSkillSelectionForCharacter,
@@ -1619,10 +1620,7 @@ function ClassFeatureList({
               trackingButton={renderTrackingButton(getFeatureTrackingState(featureDetails))}
               headerMeta={
                 isInputRequired ? (
-                  <span className={featureDisclosureStyles.featureInputRequired}>
-                    <TriangleAlert size={16} aria-hidden="true" />
-                    INPUT REQUIRED
-                  </span>
+                  <InputRequiredBadge />
                 ) : null
               }
               showDivider={index > 0}

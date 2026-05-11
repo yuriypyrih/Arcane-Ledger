@@ -206,7 +206,7 @@ function CodexDisclosureList({ entries, status, category }: CodexDisclosureListP
                 isExpanded={isExpanded}
                 onToggle={() => toggleEntryKey(entryKey)}
                 bodyId={`${entryKey}-content`}
-                bodyClassName={`${featureDisclosureStyles.descriptionList} ${styles.featBody}`}
+                bodyClassName={featureDisclosureStyles.descriptionList}
                 trackingButton={
                   <FeatureTrackingBadgeButton
                     trackingState={getEntryTrackingState(entry)}

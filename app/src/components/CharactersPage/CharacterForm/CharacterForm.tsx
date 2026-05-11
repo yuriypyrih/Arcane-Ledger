@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import { Dice6 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Controller, useForm, useWatch } from "react-hook-form";
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import type {
   AbilityKey,
   AbilityScores,
@@ -45,24 +45,12 @@ import {
 } from "../../../pages/CharactersPage/proficiency";
 import { getToolProficiencyLabel } from "../../../pages/CharactersPage/proficiencyOptions";
 import {
-  groupedToolProficiencyOptions,
-  musicalInstrumentToolProficiencies,
-  skillsOptions
-} from "../../../pages/CharactersPage/proficiencyOptions";
-import {
   createDefaultBackgroundOriginFeatEntry,
   getBackgroundEntry,
   getBackgroundEquipmentChoice,
   getBackgroundToolChoiceOptions,
   normalizeBackgroundChoices
 } from "../../../pages/CharactersPage/backgrounds";
-import {
-  getMagicInitiateCantripOptions,
-  getFeatLabel,
-  getMagicInitiateLevelOneSpellOptions,
-  magicInitiateSpellcastingAbilityOptions
-} from "../../../pages/CharactersPage/feats";
-import { crafterFastCraftingToolProficiencies } from "../../../pages/CharactersPage/feats/crafter";
 import { normalizeLevelAndXp } from "../../../pages/CharactersPage/experience";
 import { getAutomaticMaxHitPointsForCharacter } from "../../../pages/CharactersPage/gameplay";
 import { getEffectiveHitPointMaximumForCharacter } from "../../../pages/CharactersPage/traits";
@@ -100,12 +88,18 @@ import {
 } from "../../../pages/CharactersPage/subclasses";
 import ActionButton from "../../ActionButton";
 import CellContainer from "../../CellContainer/CellContainer";
+import InputRequiredBadge from "../../InputRequiredBadge";
 import NumberInput from "../FormInputs/NumberInput";
 import SelectInput from "../FormInputs/SelectInput";
 import TextAreaInput from "../FormInputs/TextAreaInput";
 import TextInput from "../FormInputs/TextInput";
 import RadioContainerOption from "../CharacterSheetPage/RadioContainerOption";
-import abilityEditorStyles from "../CharacterSheetPage/StatsForm/AbilityScoresModal.module.css";
+import AbilityScoresEditorContent from "../CharacterSheetPage/StatsForm/AbilityScoresEditorContent";
+import HitPointsEditorContent, {
+  HIT_POINTS_MODAL_SUMMARY,
+  MAX_HIT_POINTS,
+  type HitPointsEditorCharacter
+} from "../CharacterSheetPage/GameplayForm/widgets/HitPointsEditorContent";
 import {
   type ClassBuildPlan,
   getBuildPlan,
@@ -125,6 +119,7 @@ import {
   resolveStarterPackChoiceCurrencies
 } from "./starterPackUtils";
 import { randomNamePrefixes, randomNameSuffixes } from "./characterRandomNames";
+import OriginFeatSetupControls from "./OriginFeatSetupControls";
 import { useCharacterFormPendingAction } from "./useCharacterFormPendingAction";
 import styles from "./CharacterForm.module.css";
 
@@ -250,6 +245,130 @@ function upsertBackgroundFeatEntry(
   return [...nonBackgroundFeats, nextEntry];
 }
 
+const humanOriginFeatSourceSpecies = "Human";
+
+function isHumanOriginFeatEntry(featEntry: CharacterFeatEntry): boolean {
+  return (
+    featEntry.source?.type === "species" &&
+    featEntry.source.species === humanOriginFeatSourceSpecies
+  );
+}
+
+function getHumanOriginFeatEntry(
+  feats: CharacterFeatEntry[] | undefined,
+  feat: FEATS | ""
+): CharacterFeatEntry | null {
+  if (!feat) {
+    return null;
+  }
+
+  return (
+    feats?.find((featEntry) => isHumanOriginFeatEntry(featEntry) && featEntry.feat === feat) ?? null
+  );
+}
+
+function upsertHumanOriginFeatEntry(
+  feats: CharacterFeatEntry[] | undefined,
+  nextEntry: CharacterFeatEntry
+): CharacterFeatEntry[] {
+  return [...(feats ?? []).filter((featEntry) => !isHumanOriginFeatEntry(featEntry)), nextEntry];
+}
+
+function updateMagicInitiateFeatEntry(
+  featEntry: CharacterFeatEntry | null,
+  partialChoice: Partial<MagicInitiateChoice>
+): CharacterFeatEntry | null {
+  if (!featEntry?.magicInitiate) {
+    return null;
+  }
+
+  return {
+    ...featEntry,
+    magicInitiate: {
+      ...featEntry.magicInitiate,
+      ...partialChoice
+    }
+  };
+}
+
+function updateToolFeatEntry(
+  featEntry: CharacterFeatEntry | null,
+  feat: FEATS.CRAFTER | FEATS.MUSICIAN,
+  index: number,
+  tool: TOOL_PROFICIENCY
+): CharacterFeatEntry | null {
+  if (!featEntry) {
+    return null;
+  }
+
+  if (feat === FEATS.CRAFTER && featEntry.crafter) {
+    const toolProficiencies = [...featEntry.crafter.toolProficiencies] as [
+      TOOL_PROFICIENCY,
+      TOOL_PROFICIENCY,
+      TOOL_PROFICIENCY
+    ];
+    toolProficiencies[index] = tool;
+
+    return {
+      ...featEntry,
+      crafter: {
+        toolProficiencies
+      }
+    };
+  }
+
+  if (feat === FEATS.MUSICIAN && featEntry.musician) {
+    const toolProficiencies = [...featEntry.musician.toolProficiencies] as [
+      TOOL_PROFICIENCY,
+      TOOL_PROFICIENCY,
+      TOOL_PROFICIENCY
+    ];
+    toolProficiencies[index] = tool;
+
+    return {
+      ...featEntry,
+      musician: {
+        toolProficiencies
+      }
+    };
+  }
+
+  return null;
+}
+
+function updateSkilledFeatEntry(
+  featEntry: CharacterFeatEntry | null,
+  index: number,
+  value: string
+): CharacterFeatEntry | null {
+  if (!featEntry?.skilled) {
+    return null;
+  }
+
+  const selections = [...featEntry.skilled.selections] as NonNullable<
+    CharacterFeatEntry["skilled"]
+  >["selections"];
+
+  if (value.startsWith("skill:")) {
+    selections[index] = {
+      kind: "skill",
+      skill: value.slice("skill:".length) as SkillName
+    };
+  } else if (value.startsWith("tool:")) {
+    selections[index] = {
+      kind: "tool",
+      tool: value.slice("tool:".length) as TOOL_PROFICIENCY
+    };
+  }
+
+  return {
+    ...featEntry,
+    skilled: {
+      selections
+    }
+  };
+}
+
 function createRandomBackgroundState(
   className: string
 ): Pick<CharacterDraft, "background" | "backgroundChoices" | "feats"> {
@@ -304,6 +423,11 @@ function createBasicProfileSnapshot(
   const defaults = createEmptyCharacter();
   const normalizedProgress = normalizeLevelAndXp(values.level, values.xp);
   const includeBackgroundDefaults = options?.includeBackgroundDefaults ?? true;
+  const backgroundDefaults = getNormalizedBackgroundChoices(
+    values.background,
+    values.backgroundChoices,
+    values.className
+  );
 
   return createFormValues(
     {
@@ -316,12 +440,10 @@ function createBasicProfileSnapshot(
       subclassId: values.subclassId,
       background: values.background,
       backgroundChoices: includeBackgroundDefaults
-        ? getNormalizedBackgroundChoices(
-            values.background,
-            values.backgroundChoices,
-            values.className
-          )
-        : undefined,
+        ? backgroundDefaults
+        : backgroundDefaults
+          ? { abilityScoreIncrease: backgroundDefaults.abilityScoreIncrease }
+          : undefined,
       level: normalizedProgress.level,
       xp: normalizedProgress.xp,
       attributeMode: "pointBuy",
@@ -715,6 +837,8 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     selectedLevel,
     attributeMode,
     abilities,
+    selectedHitPoints,
+    selectedCurrentHitPoints,
     selectedMaxHitPointsMode,
     alignment,
     selectedSkills,
@@ -736,6 +860,8 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       "level",
       "attributeMode",
       "abilities",
+      "hitPoints",
+      "currentHitPoints",
       "maxHitPointsMode",
       "alignment",
       "skills",
@@ -769,6 +895,8 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   const resolvedLevel = selectedLevel ?? initialFormValues.level;
   const resolvedAttributeMode = attributeMode ?? initialFormValues.attributeMode;
   const resolvedAbilities = abilities ?? initialFormValues.abilities;
+  const resolvedHitPoints = selectedHitPoints ?? initialFormValues.hitPoints;
+  const resolvedCurrentHitPoints = selectedCurrentHitPoints ?? initialFormValues.currentHitPoints;
   const resolvedMaxHitPointsMode =
     selectedMaxHitPointsMode ?? initialFormValues.maxHitPointsMode ?? "automatic";
   const resolvedAlignment = alignment ?? initialFormValues.alignment;
@@ -857,16 +985,18 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   const configuredStarterPack = getClassStarterPack(resolvedClassName);
   const backgroundEntry = getBackgroundEntry(resolvedBackground);
   const backgroundToolOptions = getBackgroundToolChoiceOptions(resolvedBackground);
-  const backgroundToolSelectionOptions =
-    backgroundEntry && backgroundToolOptions.length > 0
-      ? backgroundToolOptions
-      : groupedToolProficiencyOptions;
+  const backgroundSkillOptions = backgroundEntry?.grantedSkillProficiencies ?? [];
+  const backgroundSkillSelectionLimit = Math.min(2, backgroundSkillOptions.length);
+  const hasBackgroundSkillChoice = backgroundSkillOptions.length > backgroundSkillSelectionLimit;
+  const hasBackgroundToolChoice = backgroundToolOptions.length > 0;
   const selectedBackgroundSkillProficiencies = displayedBackgroundChoices?.skillProficiencies ?? [];
   const selectedBackgroundToolProficiencies =
     displayedBackgroundChoices?.toolProficiencies ??
     (displayedBackgroundChoices?.toolProficiency
       ? [displayedBackgroundChoices.toolProficiency]
       : []);
+  const selectedBackgroundToolChoice: TOOL_PROFICIENCY | "" =
+    displayedBackgroundChoices?.toolProficiency ?? selectedBackgroundToolProficiencies[0] ?? "";
   const selectedBackgroundEquipmentChoice = useMemo(() => {
     if (
       !isEditing &&
@@ -887,6 +1017,20 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     wizardStep
   ]);
   const selectedBackgroundFeatEntry = getBackgroundFeatEntry(resolvedFeats, resolvedBackground);
+  const reconciledHumanOriginFeats = useMemo(
+    () =>
+      reconcileHumanOriginFeatEntries(
+        resolvedFeats,
+        resolvedSpecies,
+        normalizedSpeciesChoices,
+        resolvedLevel
+      ),
+    [normalizedSpeciesChoices, resolvedFeats, resolvedLevel, resolvedSpecies]
+  );
+  const selectedHumanOriginFeatEntry = getHumanOriginFeatEntry(
+    reconciledHumanOriginFeats,
+    selectedHumanOriginFeat
+  );
   const availableSkillOptions = starterPack.skillProficiencies;
   const skillSelectionLimit = starterPack.skillProficiencySelectionCount;
   const { choices: availableToolOptions, count: toolSelectionLimit } =
@@ -930,6 +1074,20 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     background: resolvedBackground,
     backgroundChoices: resolvedBackgroundChoices
   });
+  const hitPointEditorCharacter: HitPointsEditorCharacter = {
+    abilities: resolvedAbilities,
+    background: resolvedBackground,
+    backgroundChoices: resolvedBackgroundChoices,
+    classFeatureState: getValues("classFeatureState") ?? {},
+    className: resolvedClassName,
+    currentHitPoints: resolvedCurrentHitPoints,
+    feats: resolvedFeats,
+    hitPoints: resolvedHitPoints,
+    level: resolvedLevel,
+    species: resolvedSpecies,
+    statusEntries: getValues("statusEntries") ?? [],
+    subclassId: resolvedSubclassId
+  };
   const lastCustomAbilitiesRef = useRef(cloneAbilities(initialFormValues.abilities));
   const lastPointBuyAbilitiesRef = useRef(
     initialFormValues.attributeMode === "pointBuy"
@@ -977,12 +1135,18 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       displayedBackgroundChoices?.abilityScoreIncrease
     );
   const isBackgroundSkillSelectionReady =
-    !backgroundEntry || isEditing || selectedBackgroundSkillProficiencies.length === 2;
+    !backgroundEntry ||
+    isEditing ||
+    !hasBackgroundSkillChoice ||
+    (selectedBackgroundSkillProficiencies.length === backgroundSkillSelectionLimit &&
+      selectedBackgroundSkillProficiencies.every((skill) =>
+        backgroundSkillOptions.includes(skill)
+      ));
   const isBackgroundToolSelectionReady =
     !backgroundEntry ||
     isEditing ||
-    (selectedBackgroundToolProficiencies.length === 1 &&
-      backgroundToolSelectionOptions.includes(selectedBackgroundToolProficiencies[0]));
+    !hasBackgroundToolChoice ||
+    backgroundToolOptions.includes(selectedBackgroundToolChoice as TOOL_PROFICIENCY);
   const isBackgroundEquipmentSelectionReady =
     !backgroundEntry ||
     isEditing ||
@@ -1022,12 +1186,14 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     tieflingSpellcastingAbilityOptions.length === 0 ||
     Boolean(normalizedSpeciesChoices?.tieflingSpellcastingAbility);
   const isPointBuyReady = resolvedAttributeMode !== "pointBuy" || pointBuyRemaining === 0;
-  const isBuildSetupReady =
+  const isStartingHitPointsReady =
+    resolvedMaxHitPointsMode !== "custom" || Number(resolvedHitPoints) >= 1;
+  const isClassSetupReady =
     isSkillSelectionReady &&
     isToolSelectionReady &&
     isEquipmentChoiceReady &&
-    isStarterPackSelectionReady &&
-    isBackgroundSetupReady &&
+    isStarterPackSelectionReady;
+  const isSpeciesSetupReady =
     isSpeciesBodySizeReady &&
     isSpeciesDraconicAncestryReady &&
     isSpeciesElvenLineageReady &&
@@ -1039,9 +1205,13 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     isSpeciesHumanSkillProficiencyReady &&
     isSpeciesHumanOriginFeatReady &&
     isSpeciesTieflingLegacyReady &&
-    isSpeciesTieflingSpellcastingAbilityReady &&
-    isPointBuyReady &&
-    (resolvedMaxHitPointsMode !== "custom" || automaticHitPoints > 0);
+    isSpeciesTieflingSpellcastingAbilityReady;
+  const isBuildSetupReady =
+    isStartingHitPointsReady &&
+    isClassSetupReady &&
+    isBackgroundSetupReady &&
+    isSpeciesSetupReady &&
+    isPointBuyReady;
   const isCoreProfileReady =
     resolvedClassName.trim().length > 0 &&
     resolvedSpecies.trim().length > 0 &&
@@ -1051,17 +1221,6 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     Number.isFinite(resolvedLevel) &&
     resolvedLevel >= 1 &&
     resolvedLevel <= 20;
-
-  const creationTitleByStep: Record<CreationStep, string> = {
-    1: "Create a new character",
-    2: "Customize your build",
-    3: "Finalize your notes"
-  };
-  const creationDescriptionByStep: Record<CreationStep, string> = {
-    1: "Set the essentials first, then either create instantly with the recommended starter pack or continue customizing manually.",
-    2: "Choose your starting HP approach, distribute ability scores, and lock in class starter choices before moving on.",
-    3: "Finish with alignment and optional character notes."
-  };
 
   useEffect(() => {
     const nextInitialValues = createFormValues(initialValues, {
@@ -1125,6 +1284,23 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       });
     }
   }, [getValues, resolvedSpecies, setValue]);
+
+  useEffect(() => {
+    const currentFeats = getValues("feats") ?? [];
+    const nextFeats = reconcileHumanOriginFeatEntries(
+      currentFeats,
+      resolvedSpecies,
+      normalizedSpeciesChoices,
+      resolvedLevel
+    );
+
+    if (!areJsonValuesEqual(currentFeats, nextFeats)) {
+      setValue("feats", nextFeats, {
+        shouldDirty: true,
+        shouldValidate: true
+      });
+    }
+  }, [getValues, normalizedSpeciesChoices, resolvedLevel, resolvedSpecies, setValue]);
 
   useEffect(() => {
     if (!isEditing && wizardStep === 2) {
@@ -1350,6 +1526,87 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     );
   }
 
+  function handleMaxHitPointsModeChange(nextMode: NonNullable<CharacterDraft["maxHitPointsMode"]>) {
+    setValue("maxHitPointsMode", nextMode, {
+      shouldDirty: true,
+      shouldValidate: true
+    });
+
+    if (nextMode !== "automatic") {
+      return;
+    }
+
+    const nextMaximum = getEffectiveHitPointMaximumForDraft({
+      className: resolvedClassName,
+      subclassId: resolvedSubclassId,
+      level: resolvedLevel,
+      hitPoints: automaticHitPoints,
+      statusEntries: getValues("statusEntries") ?? [],
+      feats: resolvedFeats,
+      species: resolvedSpecies
+    });
+
+    setValue("hitPoints", automaticHitPoints, {
+      shouldDirty: true,
+      shouldValidate: true
+    });
+    setValue(
+      "currentHitPoints",
+      isEditing ? Math.min(resolvedCurrentHitPoints, nextMaximum) : nextMaximum,
+      {
+        shouldDirty: true,
+        shouldValidate: true
+      }
+    );
+  }
+
+  function handleHitPointsChange(event: ChangeEvent<HTMLInputElement>) {
+    const nextBaseHitPoints = clampNumber(event.target.value, 1, MAX_HIT_POINTS, resolvedHitPoints);
+    const nextMaximum = getEffectiveHitPointMaximumForDraft({
+      className: resolvedClassName,
+      subclassId: resolvedSubclassId,
+      level: resolvedLevel,
+      hitPoints: nextBaseHitPoints,
+      statusEntries: getValues("statusEntries") ?? [],
+      feats: resolvedFeats,
+      species: resolvedSpecies
+    });
+
+    setValue("hitPoints", nextBaseHitPoints, {
+      shouldDirty: true,
+      shouldValidate: true
+    });
+    setValue(
+      "currentHitPoints",
+      isEditing ? Math.min(resolvedCurrentHitPoints, nextMaximum) : nextMaximum,
+      {
+        shouldDirty: true,
+        shouldValidate: true
+      }
+    );
+  }
+
+  function handleCurrentHitPointsChange(event: ChangeEvent<HTMLInputElement>) {
+    const nextMaximum = getEffectiveHitPointMaximumForDraft({
+      className: resolvedClassName,
+      subclassId: resolvedSubclassId,
+      level: resolvedLevel,
+      hitPoints: resolvedHitPoints,
+      statusEntries: getValues("statusEntries") ?? [],
+      feats: resolvedFeats,
+      species: resolvedSpecies
+    });
+
+    setValue(
+      "currentHitPoints",
+      clampNumber(event.target.value, 0, nextMaximum, resolvedCurrentHitPoints),
+      {
+        shouldDirty: true,
+        shouldValidate: true
+      }
+    );
+  }
+
   function commitBackgroundChoices(nextChoices: CharacterBackgroundChoices | undefined) {
     setValue("backgroundChoices", nextChoices, {
       shouldDirty: true,
@@ -1372,7 +1629,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
 
     commitBackgroundChoices({
       ...currentChoices,
-      skillProficiencies: normalizeSelection(nextSkills, skillsOptions)
+      skillProficiencies: normalizeSelection(nextSkills, backgroundSkillOptions)
     });
   }
 
@@ -1450,6 +1707,41 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     });
   }
 
+  function updateBackgroundOneOneOneAbility(index: number, ability: AbilityKey) {
+    if (!backgroundEntry) {
+      return;
+    }
+
+    const currentChoice = resolvedBackgroundChoices?.abilityScoreIncrease;
+    const selectedAbilities =
+      currentChoice?.mode === "one-one-one"
+        ? [...currentChoice.abilities]
+        : [...backgroundEntry.abilityScoreOptions];
+    const usedAbilities = new Set<AbilityKey>();
+
+    selectedAbilities[index] = ability;
+
+    const nextAbilities = selectedAbilities.map((selectedAbility) => {
+      const normalizedAbility =
+        backgroundEntry.abilityScoreOptions.includes(selectedAbility) &&
+        !usedAbilities.has(selectedAbility)
+          ? selectedAbility
+          : (backgroundEntry.abilityScoreOptions.find((option) => !usedAbilities.has(option)) ??
+            backgroundEntry.abilityScoreOptions[0]);
+
+      usedAbilities.add(normalizedAbility);
+      return normalizedAbility;
+    }) as [AbilityKey, AbilityKey, AbilityKey];
+
+    commitBackgroundChoices({
+      ...getBackgroundChoiceDraftBase(),
+      abilityScoreIncrease: {
+        mode: "one-one-one",
+        abilities: nextAbilities
+      }
+    });
+  }
+
   function commitBackgroundFeat(nextEntry: CharacterFeatEntry) {
     setValue("feats", upsertBackgroundFeatEntry(resolvedFeats, resolvedBackground, nextEntry), {
       shouldDirty: true,
@@ -1457,18 +1749,27 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     });
   }
 
-  function updateBackgroundMagicInitiate(partialChoice: Partial<MagicInitiateChoice>) {
-    if (!selectedBackgroundFeatEntry?.magicInitiate) {
-      return;
-    }
-
-    commitBackgroundFeat({
-      ...selectedBackgroundFeatEntry,
-      magicInitiate: {
-        ...selectedBackgroundFeatEntry.magicInitiate,
-        ...partialChoice
-      }
+  function commitHumanOriginFeat(nextEntry: CharacterFeatEntry) {
+    setValue("feats", upsertHumanOriginFeatEntry(resolvedFeats, nextEntry), {
+      shouldDirty: true,
+      shouldValidate: true
     });
+  }
+
+  function updateBackgroundMagicInitiate(partialChoice: Partial<MagicInitiateChoice>) {
+    const nextEntry = updateMagicInitiateFeatEntry(selectedBackgroundFeatEntry, partialChoice);
+
+    if (nextEntry) {
+      commitBackgroundFeat(nextEntry);
+    }
+  }
+
+  function updateHumanMagicInitiate(partialChoice: Partial<MagicInitiateChoice>) {
+    const nextEntry = updateMagicInitiateFeatEntry(selectedHumanOriginFeatEntry, partialChoice);
+
+    if (nextEntry) {
+      commitHumanOriginFeat(nextEntry);
+    }
   }
 
   function updateBackgroundToolFeatSelection(
@@ -1476,70 +1777,39 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     index: number,
     tool: TOOL_PROFICIENCY
   ) {
-    if (!selectedBackgroundFeatEntry) {
-      return;
-    }
+    const nextEntry = updateToolFeatEntry(selectedBackgroundFeatEntry, feat, index, tool);
 
-    if (feat === FEATS.CRAFTER && selectedBackgroundFeatEntry.crafter) {
-      const toolProficiencies = [...selectedBackgroundFeatEntry.crafter.toolProficiencies] as [
-        TOOL_PROFICIENCY,
-        TOOL_PROFICIENCY,
-        TOOL_PROFICIENCY
-      ];
-      toolProficiencies[index] = tool;
-      commitBackgroundFeat({
-        ...selectedBackgroundFeatEntry,
-        crafter: {
-          toolProficiencies
-        }
-      });
+    if (nextEntry) {
+      commitBackgroundFeat(nextEntry);
     }
+  }
 
-    if (feat === FEATS.MUSICIAN && selectedBackgroundFeatEntry.musician) {
-      const toolProficiencies = [...selectedBackgroundFeatEntry.musician.toolProficiencies] as [
-        TOOL_PROFICIENCY,
-        TOOL_PROFICIENCY,
-        TOOL_PROFICIENCY
-      ];
-      toolProficiencies[index] = tool;
-      commitBackgroundFeat({
-        ...selectedBackgroundFeatEntry,
-        musician: {
-          toolProficiencies
-        }
-      });
+  function updateHumanToolFeatSelection(
+    feat: FEATS.CRAFTER | FEATS.MUSICIAN,
+    index: number,
+    tool: TOOL_PROFICIENCY
+  ) {
+    const nextEntry = updateToolFeatEntry(selectedHumanOriginFeatEntry, feat, index, tool);
+
+    if (nextEntry) {
+      commitHumanOriginFeat(nextEntry);
     }
   }
 
   function updateBackgroundSkilledSelection(index: number, value: string) {
-    if (!selectedBackgroundFeatEntry?.skilled) {
-      return;
+    const nextEntry = updateSkilledFeatEntry(selectedBackgroundFeatEntry, index, value);
+
+    if (nextEntry) {
+      commitBackgroundFeat(nextEntry);
     }
+  }
 
-    const selections = [...selectedBackgroundFeatEntry.skilled.selections] as NonNullable<
-      CharacterFeatEntry["skilled"]
-    >["selections"];
+  function updateHumanSkilledSelection(index: number, value: string) {
+    const nextEntry = updateSkilledFeatEntry(selectedHumanOriginFeatEntry, index, value);
 
-    if (value.startsWith("skill:")) {
-      selections[index] = {
-        kind: "skill",
-        skill: value.slice("skill:".length) as SkillName
-      };
+    if (nextEntry) {
+      commitHumanOriginFeat(nextEntry);
     }
-
-    if (value.startsWith("tool:")) {
-      selections[index] = {
-        kind: "tool",
-        tool: value.slice("tool:".length) as TOOL_PROFICIENCY
-      };
-    }
-
-    commitBackgroundFeat({
-      ...selectedBackgroundFeatEntry,
-      skilled: {
-        selections
-      }
-    });
   }
 
   function normalizeDraft(values: CharacterFormValues): CharacterDraft {
@@ -1825,6 +2095,50 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     setAttemptedBuildAdvance(false);
   }
 
+  function handleWizardStepClick(step: CreationStep) {
+    if (step >= wizardStep) {
+      return;
+    }
+
+    if (step === 1) {
+      handleBackToStepOne();
+      return;
+    }
+
+    setWizardStep(step);
+  }
+
+  function renderWizardStepBadge(step: CreationStep, label: string) {
+    const isActive = wizardStep === step;
+    const isDone = wizardStep > step;
+    const className = clsx(
+      styles.stepBadge,
+      isActive && styles.stepBadgeActive,
+      isDone && styles.stepBadgeDone,
+      isDone && styles.stepBadgeButton
+    );
+
+    if (isDone) {
+      return (
+        <button
+          key={step}
+          type="button"
+          className={className}
+          onClick={() => handleWizardStepClick(step)}
+          disabled={hasPendingAction}
+        >
+          {label}
+        </button>
+      );
+    }
+
+    return (
+      <span key={step} className={className} aria-current={isActive ? "step" : undefined}>
+        {label}
+      </span>
+    );
+  }
+
   function handleRandomize() {
     const randomClassName = getRandomItem(randomizableClassOptions);
     const randomBackgroundState = createRandomBackgroundState(randomClassName);
@@ -1895,13 +2209,10 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   }
 
   function renderBasicProfileSection() {
-    const showRandomize = !isEditing && wizardStep === 1;
     const classRegistration = register("className", {
       required: "Choose a class",
       validate: (value) =>
-        isEditing || !disabledCreationClassNames.has(value)
-          ? true
-          : "Choose a supported class"
+        isEditing || !disabledCreationClassNames.has(value) ? true : "Choose a supported class"
     });
     const speciesRegistration = register("species", { required: "Choose a species" });
 
@@ -1912,17 +2223,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             <p className={styles.sectionEyebrow}>Core profile</p>
             <h3>Character identity</h3>
           </div>
-          {showRandomize ? (
-            <button
-              type="button"
-              className={styles.randomizeButton}
-              onClick={handleRandomize}
-              aria-label="Randomize character"
-              title="Randomize character"
-            >
-              <Dice6 size={20} />
-            </button>
-          ) : null}
+          {!isCoreProfileReady ? <InputRequiredBadge /> : null}
         </div>
 
         <div className={styles.profileGrid}>
@@ -2088,81 +2389,35 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         <div className={styles.sectionHeader}>
           <div>
             <p className={styles.sectionEyebrow}>Starting HP</p>
-            <h3>Choose how to set max hit points</h3>
+            <h3>Hit Points</h3>
           </div>
-          <span>{resolvedMaxHitPointsMode === "automatic" ? "Average" : "Custom"}</span>
+          {!isStartingHitPointsReady ? <InputRequiredBadge /> : null}
         </div>
 
-        <div
-          className={styles.segmentedControl}
-          role="tablist"
-          aria-label="Starting hit points mode"
-        >
-          <button
-            type="button"
-            className={clsx(
-              styles.segmentButton,
-              resolvedMaxHitPointsMode === "automatic" && styles.segmentButtonActive
-            )}
-            onClick={() =>
-              setValue("maxHitPointsMode", "automatic", {
-                shouldDirty: true,
-                shouldValidate: true
-              })
-            }
-          >
-            Average
-          </button>
-          <button
-            type="button"
-            className={clsx(
-              styles.segmentButton,
-              resolvedMaxHitPointsMode === "custom" && styles.segmentButtonActive
-            )}
-            onClick={() =>
-              setValue("maxHitPointsMode", "custom", {
-                shouldDirty: true,
-                shouldValidate: true
-              })
-            }
-          >
-            Custom
-          </button>
-        </div>
+        <p className={styles.helperText}>{HIT_POINTS_MODAL_SUMMARY}</p>
 
-        {resolvedMaxHitPointsMode === "automatic" ? (
-          <div className={styles.infoCard}>
-            <strong>{automaticHitPoints} HP</strong>
-            <small>Average class hit points using your current Constitution score.</small>
-          </div>
-        ) : (
-          <label className={styles.field}>
-            <span>Custom starting HP</span>
-            <NumberInput
-              className={styles.fieldInput}
-              invalid={Boolean(errors.hitPoints)}
-              min={1}
-              {...register("hitPoints", {
-                valueAsNumber: true,
-                min: { value: 1, message: "Hit points must be at least 1" },
-                onChange: (event) => {
-                  const nextHitPoints = clampNumber(event.target.value, 1, 999, 1);
+        <HitPointsEditorContent
+          character={hitPointEditorCharacter}
+          mode={resolvedMaxHitPointsMode}
+          hitPoints={resolvedHitPoints}
+          currentHitPoints={resolvedCurrentHitPoints}
+          onSetMode={handleMaxHitPointsModeChange}
+          onHitPointsChange={handleHitPointsChange}
+          onCurrentHitPointsChange={handleCurrentHitPointsChange}
+          currentHitPointsDisabled={!isEditing}
+          hitPointsInvalid={Boolean(errors.hitPoints)}
+        />
 
-                  if (!isEditing) {
-                    setValue("currentHitPoints", nextHitPoints, { shouldDirty: true });
-                  }
-                }
-              })}
-            />
-            {errors.hitPoints ? (
-              <small className={styles.errorText}>{errors.hitPoints.message}</small>
-            ) : (
-              <small className={styles.helperText}>
-                Manual HP stays independent from the automatic class average.
-              </small>
-            )}
-          </label>
-        )}
+        <input
+          type="hidden"
+          {...register("hitPoints", {
+            valueAsNumber: true,
+            min: { value: 1, message: "Hit points must be at least 1" }
+          })}
+        />
+        {errors.hitPoints ? (
+          <small className={styles.errorText}>{errors.hitPoints.message}</small>
+        ) : null}
       </section>
     );
   }
@@ -2173,130 +2428,30 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         <div className={styles.sectionHeader}>
           <div>
             <p className={styles.sectionEyebrow}>Ability scores</p>
+            <h3>Ability Scores</h3>
           </div>
-          <span>
-            {resolvedAttributeMode === "pointBuy"
-              ? `${pointBuyRemaining} points left`
-              : "Custom values"}
-          </span>
+          {!isPointBuyReady ? <InputRequiredBadge /> : null}
         </div>
 
-        <div className={abilityEditorStyles.modeControl}>
-          <button
-            type="button"
-            className={clsx(
-              abilityEditorStyles.modeButton,
-              resolvedAttributeMode === "pointBuy" && abilityEditorStyles.modeButtonActive
-            )}
-            onClick={() => handleAttributeModeChange("pointBuy")}
-          >
-            Point Buy
-          </button>
-          <button
-            type="button"
-            className={clsx(
-              abilityEditorStyles.modeButton,
-              resolvedAttributeMode === "custom" && abilityEditorStyles.modeButtonActive
-            )}
-            onClick={() => handleAttributeModeChange("custom")}
-          >
-            Custom
-          </button>
-        </div>
+        <p className={styles.helperText}>
+          Update your base ability scores using Point Buy or Custom values.
+        </p>
 
-        {resolvedAttributeMode === "pointBuy" ? (
-          <div className={abilityEditorStyles.pointBuyInfo}>
-            <div
-              className={clsx(
-                abilityEditorStyles.pointBuySummary,
-                pointBuyRemaining < 0 && abilityEditorStyles.pointBuySummaryOverdraft
-              )}
-            >
-              <span className={abilityEditorStyles.pointBuyLabel}>POINTS REMAINING</span>
-              <strong className={abilityEditorStyles.pointBuyValue}>{pointBuyRemaining}</strong>
-            </div>
-            <p className={abilityEditorStyles.pointBuyHint}>
-              Scores start at 8 and you must spend the full 27-point budget before proceeding.
-            </p>
-          </div>
-        ) : (
-          <p className={styles.helperText}>
-            Custom mode lets you enter any scores you want. Point Buy is the default guided path.
-          </p>
-        )}
+        <AbilityScoresEditorContent
+          attributeMode={resolvedAttributeMode}
+          abilities={resolvedAbilities}
+          pointBuyRemaining={pointBuyRemaining}
+          onSetAttributeMode={handleAttributeModeChange}
+          onUpdateAbilityScore={(ability, value) => {
+            if (resolvedAttributeMode === "pointBuy") {
+              handlePointBuyAbilityChange(ability, value);
+              return;
+            }
 
-        <div className={abilityEditorStyles.abilityInputGrid}>
-          {abilityKeys.map((ability) => (
-            <Controller
-              key={ability}
-              control={control}
-              name={`abilities.${ability}` as const}
-              render={({ field }) => {
-                const currentValue = field.value ?? 8;
-                const maxPointBuyScore =
-                  resolvedAttributeMode === "pointBuy"
-                    ? getAffordablePointBuyMax(ability, resolvedAbilities)
-                    : 99;
-
-                return (
-                  <label className={abilityEditorStyles.abilityInputCard}>
-                    <span>{ability}</span>
-                    {resolvedAttributeMode === "pointBuy" ? (
-                      <div className={abilityEditorStyles.pointBuyInputShell}>
-                        <NumberInput
-                          className={abilityEditorStyles.pointBuyInput}
-                          min={8}
-                          max={15}
-                          readOnly
-                          value={currentValue}
-                          onBeforeInput={(event) => {
-                            event.preventDefault();
-                          }}
-                          onChange={(event) =>
-                            handlePointBuyAbilityChange(ability, event.target.value)
-                          }
-                        />
-                        <div className={abilityEditorStyles.pointBuyStepper}>
-                          <button
-                            type="button"
-                            className={abilityEditorStyles.pointBuyStepperButton}
-                            onClick={() =>
-                              handlePointBuyAbilityChange(ability, String(currentValue + 1))
-                            }
-                            disabled={currentValue >= maxPointBuyScore}
-                            aria-label={`Increase ${ability}`}
-                          >
-                            +
-                          </button>
-                          <button
-                            type="button"
-                            className={abilityEditorStyles.pointBuyStepperButton}
-                            onClick={() =>
-                              handlePointBuyAbilityChange(ability, String(currentValue - 1))
-                            }
-                            disabled={currentValue <= 8}
-                            aria-label={`Decrease ${ability}`}
-                          >
-                            -
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <NumberInput
-                        className={styles.abilityInput}
-                        min={1}
-                        max={99}
-                        value={currentValue}
-                        onBlur={field.onBlur}
-                        onChange={(event) => handleCustomAbilityChange(ability, event.target.value)}
-                      />
-                    )}
-                  </label>
-                );
-              }}
-            />
-          ))}
-        </div>
+            handleCustomAbilityChange(ability, value);
+          }}
+          getMaxPointBuyScore={(ability) => getAffordablePointBuyMax(ability, resolvedAbilities)}
+        />
 
         {attemptedBuildAdvance && !isPointBuyReady ? (
           <p className={styles.errorText}>Spend all 27 point-buy points before continuing.</p>
@@ -2307,14 +2462,21 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
 
   function renderClassSetupSection(options?: { showStartingEquipmentChoice?: boolean }) {
     const showStartingEquipmentChoice = options?.showStartingEquipmentChoice ?? true;
+    const isRenderedClassSetupReady =
+      isSkillSelectionReady &&
+      isToolSelectionReady &&
+      (!showStartingEquipmentChoice || (isEquipmentChoiceReady && isStarterPackSelectionReady));
 
     return (
       <section className={styles.sectionCard}>
         <div className={styles.sectionHeader}>
           <div>
             <p className={styles.sectionEyebrow}>Class setup</p>
+            <h3 className={styles.sectionValueHeading}>
+              {resolvedClassName || "Choose a class first"}
+            </h3>
           </div>
-          <span>{resolvedClassName || "Choose a class first"}</span>
+          {!isRenderedClassSetupReady ? <InputRequiredBadge /> : null}
         </div>
 
         <div className={styles.summaryGrid}>
@@ -2327,7 +2489,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             content={starterPack.hitPointDieLabel ?? "Not configured yet"}
           />
           <CellContainer
-            label="Saving Throws"
+            label="Saving Throw Proficiencies"
             content={
               starterPack.savingThrowProficiencies.length > 0
                 ? starterPack.savingThrowProficiencies.join(", ")
@@ -2335,7 +2497,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             }
           />
           <CellContainer
-            label="Weapons"
+            label="Weapon Proficiencies"
             content={
               starterPack.weaponProficiencies.length > 0
                 ? starterPack.weaponProficiencies.join(", ")
@@ -2343,7 +2505,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             }
           />
           <CellContainer
-            label="Armor"
+            label="Armor Training"
             content={
               starterPack.armorTrainingProficiencies.length > 0
                 ? starterPack.armorTrainingProficiencies.join(", ")
@@ -2356,7 +2518,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
           />
         </div>
 
-        <div className={styles.classSetupGrid}>
+        <div className={styles.choiceGroupColumns}>
           <fieldset className={styles.choiceGroup}>
             <legend>Skill Proficiencies</legend>
             {buildRequiresSkillSelection ? (
@@ -2368,17 +2530,6 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                 This class doesn&apos;t have a starter-pack skill choice configured yet.
               </p>
             )}
-
-            {resolvedSkillSelections.granted.length > 0 ? (
-              <ul className={styles.grantedSkillList}>
-                {resolvedSkillSelections.granted.map((entry) => (
-                  <li key={entry.skill}>
-                    <span>{entry.skill}</span>
-                    <small>{entry.sources.join(", ")}</small>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
 
             <div className={styles.choiceGrid}>
               {availableManualSkillOptions.map((skill) => {
@@ -2603,235 +2754,51 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   }
 
   function renderBackgroundOriginFeatControls() {
-    if (!backgroundEntry || !selectedBackgroundFeatEntry) {
-      return <p className={styles.helperText}>Choose a supported background first.</p>;
-    }
-
-    if (
-      backgroundEntry.originFeat === FEATS.MAGIC_INITIATE &&
-      selectedBackgroundFeatEntry.magicInitiate
-    ) {
-      const choice = selectedBackgroundFeatEntry.magicInitiate;
-      const cantripOptions = getMagicInitiateCantripOptions(choice.spellList);
-      const levelOneSpellOptions = getMagicInitiateLevelOneSpellOptions(choice.spellList);
-
-      return (
-        <div className={styles.classSetupGrid}>
-          <label className={styles.field}>
-            <span>Spell list</span>
-            <SelectInput className={styles.fieldInput} value={choice.spellList} disabled>
-              <option value={choice.spellList}>{choice.spellList}</option>
-            </SelectInput>
-          </label>
-
-          <label className={styles.field}>
-            <span>Spellcasting ability</span>
-            <SelectInput
-              className={styles.fieldInput}
-              value={choice.spellcastingAbility}
-              onChange={(event) =>
-                updateBackgroundMagicInitiate({
-                  spellcastingAbility: event.target
-                    .value as MagicInitiateChoice["spellcastingAbility"]
-                })
-              }
-            >
-              {magicInitiateSpellcastingAbilityOptions.map((ability) => (
-                <option key={ability} value={ability}>
-                  {ability}
-                </option>
-              ))}
-            </SelectInput>
-          </label>
-
-          {choice.cantripIds.map((cantripId, index) => (
-            <label key={`magic-initiate-cantrip-${index}`} className={styles.field}>
-              <span>Cantrip {index + 1}</span>
-              <SelectInput
-                className={styles.fieldInput}
-                value={cantripId}
-                onChange={(event) => {
-                  const cantripIds = [...choice.cantripIds] as MagicInitiateChoice["cantripIds"];
-                  cantripIds[index] = event.target.value;
-                  updateBackgroundMagicInitiate({ cantripIds });
-                }}
-              >
-                {cantripOptions.map((spell) => (
-                  <option
-                    key={spell.id}
-                    value={spell.id}
-                    disabled={choice.cantripIds.includes(spell.id) && spell.id !== cantripId}
-                  >
-                    {spell.name}
-                  </option>
-                ))}
-              </SelectInput>
-            </label>
-          ))}
-
-          <label className={styles.field}>
-            <span>Level 1 spell</span>
-            <SelectInput
-              className={styles.fieldInput}
-              value={choice.levelOneSpellId}
-              onChange={(event) =>
-                updateBackgroundMagicInitiate({
-                  levelOneSpellId: event.target.value
-                })
-              }
-            >
-              {levelOneSpellOptions.map((spell) => (
-                <option key={spell.id} value={spell.id}>
-                  {spell.name}
-                </option>
-              ))}
-            </SelectInput>
-          </label>
-        </div>
-      );
-    }
-
-    if (backgroundEntry.originFeat === FEATS.CRAFTER && selectedBackgroundFeatEntry.crafter) {
-      const selectedTools = selectedBackgroundFeatEntry.crafter.toolProficiencies;
-
-      return (
-        <div className={styles.classSetupGrid}>
-          {selectedTools.map((selectedTool, index) => (
-            <label key={`crafter-tool-${index}`} className={styles.field}>
-              <span>Crafter tool {index + 1}</span>
-              <SelectInput
-                className={styles.fieldInput}
-                value={selectedTool}
-                onChange={(event) =>
-                  updateBackgroundToolFeatSelection(
-                    FEATS.CRAFTER,
-                    index,
-                    event.target.value as TOOL_PROFICIENCY
-                  )
-                }
-              >
-                {crafterFastCraftingToolProficiencies.map((tool) => (
-                  <option
-                    key={tool}
-                    value={tool}
-                    disabled={selectedTools.includes(tool) && tool !== selectedTool}
-                  >
-                    {getToolProficiencyLabel(tool)}
-                  </option>
-                ))}
-              </SelectInput>
-            </label>
-          ))}
-        </div>
-      );
-    }
-
-    if (backgroundEntry.originFeat === FEATS.MUSICIAN && selectedBackgroundFeatEntry.musician) {
-      const selectedTools = selectedBackgroundFeatEntry.musician.toolProficiencies;
-
-      return (
-        <div className={styles.classSetupGrid}>
-          {selectedTools.map((selectedTool, index) => (
-            <label key={`musician-tool-${index}`} className={styles.field}>
-              <span>Instrument {index + 1}</span>
-              <SelectInput
-                className={styles.fieldInput}
-                value={selectedTool}
-                onChange={(event) =>
-                  updateBackgroundToolFeatSelection(
-                    FEATS.MUSICIAN,
-                    index,
-                    event.target.value as TOOL_PROFICIENCY
-                  )
-                }
-              >
-                {musicalInstrumentToolProficiencies.map((tool) => (
-                  <option
-                    key={tool}
-                    value={tool}
-                    disabled={selectedTools.includes(tool) && tool !== selectedTool}
-                  >
-                    {getToolProficiencyLabel(tool)}
-                  </option>
-                ))}
-              </SelectInput>
-            </label>
-          ))}
-        </div>
-      );
-    }
-
-    if (backgroundEntry.originFeat === FEATS.SKILLED && selectedBackgroundFeatEntry.skilled) {
-      const selectedValues = selectedBackgroundFeatEntry.skilled.selections.map((selection) =>
-        selection.kind === "skill" ? `skill:${selection.skill}` : `tool:${selection.tool}`
-      );
-
-      return (
-        <div className={styles.classSetupGrid}>
-          {selectedValues.map((selectedValue, index) => (
-            <label key={`skilled-selection-${index}`} className={styles.field}>
-              <span>Skilled choice {index + 1}</span>
-              <SelectInput
-                className={styles.fieldInput}
-                value={selectedValue}
-                onChange={(event) => updateBackgroundSkilledSelection(index, event.target.value)}
-              >
-                <optgroup label="Skills">
-                  {skillsOptions.map((skill) => {
-                    const value = `skill:${skill}`;
-
-                    return (
-                      <option
-                        key={value}
-                        value={value}
-                        disabled={selectedValues.includes(value) && value !== selectedValue}
-                      >
-                        {skill}
-                      </option>
-                    );
-                  })}
-                </optgroup>
-                <optgroup label="Tools">
-                  {groupedToolProficiencyOptions.map((tool) => {
-                    const value = `tool:${tool}`;
-
-                    return (
-                      <option
-                        key={value}
-                        value={value}
-                        disabled={selectedValues.includes(value) && value !== selectedValue}
-                      >
-                        {getToolProficiencyLabel(tool)}
-                      </option>
-                    );
-                  })}
-                </optgroup>
-              </SelectInput>
-            </label>
-          ))}
-        </div>
-      );
-    }
-
     return (
-      <p className={styles.helperText}>
-        {getFeatLabel(backgroundEntry.originFeat)} is granted by this background and has no setup
-        choices.
-      </p>
+      <OriginFeatSetupControls
+        feat={backgroundEntry?.originFeat ?? null}
+        featEntry={selectedBackgroundFeatEntry}
+        sourceLabel="background"
+        emptyText="Choose a supported background first."
+        lockedMagicInitiateSpellList={backgroundEntry?.originFeatSpellList}
+        onMagicInitiateChange={updateBackgroundMagicInitiate}
+        onToolFeatSelection={updateBackgroundToolFeatSelection}
+        onSkilledSelection={updateBackgroundSkilledSelection}
+      />
+    );
+  }
+
+  function renderHumanOriginFeatControls() {
+    return (
+      <OriginFeatSetupControls
+        feat={selectedHumanOriginFeat || null}
+        featEntry={selectedHumanOriginFeatEntry}
+        sourceLabel="species"
+        emptyText="Choose a Human origin feat first."
+        onMagicInitiateChange={updateHumanMagicInitiate}
+        onToolFeatSelection={updateHumanToolFeatSelection}
+        onSkilledSelection={updateHumanSkilledSelection}
+      />
     );
   }
 
   function renderBackgroundSetupSection() {
     const abilityScoreIncrease = displayedBackgroundChoices?.abilityScoreIncrease;
     const twoOneChoice = abilityScoreIncrease?.mode === "two-one" ? abilityScoreIncrease : null;
+    const oneOneOneChoice =
+      abilityScoreIncrease?.mode === "one-one-one" ? abilityScoreIncrease : null;
+    const fixedBackgroundTools = backgroundEntry?.grantedToolProficiencies ?? [];
 
     return (
       <section className={styles.sectionCard}>
         <div className={styles.sectionHeader}>
           <div>
             <p className={styles.sectionEyebrow}>Background</p>
+            <h3 className={styles.sectionValueHeading}>
+              {backgroundEntry?.name ?? "Choose a background first"}
+            </h3>
           </div>
-          <span>{backgroundEntry?.name ?? "Choose a background first"}</span>
+          {!isBackgroundSetupReady ? <InputRequiredBadge /> : null}
         </div>
 
         {!backgroundEntry ? (
@@ -2839,7 +2806,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             <p>Choose a supported 2024 background in the core profile step.</p>
           </div>
         ) : (
-          <div className={styles.classSetupGrid}>
+          <div className={styles.choiceGroupColumns}>
             <fieldset className={styles.choiceGroup}>
               <legend>Ability Scores</legend>
               <p className={styles.helperText}>
@@ -2923,10 +2890,34 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                     </SelectInput>
                   </label>
                 </div>
-              ) : abilityScoreIncrease?.mode === "one-one-one" ? (
-                <p className={styles.helperText}>
-                  {backgroundEntry.abilityScoreOptions.map((ability) => `${ability} +1`).join(", ")}
-                </p>
+              ) : oneOneOneChoice ? (
+                <div className={styles.classSetupGrid}>
+                  {oneOneOneChoice.abilities.map((selectedAbility, index) => (
+                    <label key={`background-plus-one-${index}`} className={styles.field}>
+                      <span>+1 ability {index + 1}</span>
+                      <SelectInput
+                        className={styles.fieldInput}
+                        value={selectedAbility}
+                        onChange={(event) =>
+                          updateBackgroundOneOneOneAbility(index, event.target.value as AbilityKey)
+                        }
+                      >
+                        {backgroundEntry.abilityScoreOptions.map((ability) => (
+                          <option
+                            key={ability}
+                            value={ability}
+                            disabled={
+                              ability !== selectedAbility &&
+                              oneOneOneChoice.abilities.includes(ability)
+                            }
+                          >
+                            {ability}
+                          </option>
+                        ))}
+                      </SelectInput>
+                    </label>
+                  ))}
+                </div>
               ) : (
                 <p className={styles.helperText}>Choose an ability increase mode.</p>
               )}
@@ -2938,54 +2929,88 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             </fieldset>
 
             <fieldset className={styles.choiceGroup}>
-              <legend>Proficiencies</legend>
-              <p className={styles.helperText}>Choose exactly 2 background skills.</p>
-              <div className={styles.choiceGrid}>
-                {skillsOptions.map((skill) => {
-                  const isActive = selectedBackgroundSkillProficiencies.includes(skill);
-                  const disabled = !isActive && selectedBackgroundSkillProficiencies.length >= 2;
+              <legend>Skill Proficiencies</legend>
+              {hasBackgroundSkillChoice ? (
+                <>
+                  <p className={styles.helperText}>
+                    Choose exactly {backgroundSkillSelectionLimit} background skills.
+                  </p>
+                  <div className={styles.choiceGrid}>
+                    {backgroundSkillOptions.map((skill) => {
+                      const isActive = selectedBackgroundSkillProficiencies.includes(skill);
+                      const disabled =
+                        !isActive &&
+                        selectedBackgroundSkillProficiencies.length >=
+                          backgroundSkillSelectionLimit;
 
-                  return (
-                    <RadioContainerOption
-                      key={skill}
-                      header={skill}
-                      selected={isActive}
-                      onSelect={() => {
-                        if (disabled) {
-                          return;
-                        }
+                      return (
+                        <RadioContainerOption
+                          key={skill}
+                          header={skill}
+                          selected={isActive}
+                          onSelect={() => {
+                            if (disabled) {
+                              return;
+                            }
 
-                        toggleBackgroundSkillProficiency(skill);
-                      }}
-                      disabled={disabled}
-                      indicatorType="checkbox"
-                    />
-                  );
-                })}
-              </div>
+                            toggleBackgroundSkillProficiency(skill);
+                          }}
+                          disabled={disabled}
+                          indicatorType="checkbox"
+                        />
+                      );
+                    })}
+                  </div>
+                </>
+              ) : (
+                <CellContainer
+                  label="Background Skills"
+                  content={
+                    backgroundSkillOptions.length > 0
+                      ? backgroundSkillOptions.join(", ")
+                      : "No skill proficiencies configured"
+                  }
+                />
+              )}
               {attemptedBuildAdvance && !isBackgroundSkillSelectionReady ? (
                 <p className={styles.errorText}>
-                  Choose exactly 2 background skills before continuing.
+                  Choose exactly {backgroundSkillSelectionLimit} background skills before
+                  continuing.
                 </p>
               ) : null}
+            </fieldset>
 
-              <p className={styles.helperText}>
-                Choose one {backgroundEntry.toolProficiencyChoiceLabel ?? "background tool"}.
-              </p>
-              <div className={styles.choiceGrid}>
-                {backgroundToolSelectionOptions.map((tool) => {
-                  const isActive = selectedBackgroundToolProficiencies.includes(tool);
-
-                  return (
-                    <RadioContainerOption
-                      key={tool}
-                      header={getToolProficiencyLabel(tool)}
-                      selected={isActive}
-                      onSelect={() => commitBackgroundToolProficiency(tool)}
-                    />
-                  );
-                })}
-              </div>
+            <fieldset className={styles.choiceGroup}>
+              <legend>Tool Proficiency</legend>
+              {hasBackgroundToolChoice ? (
+                <label className={styles.field}>
+                  <span>{backgroundEntry.toolProficiencyChoiceLabel ?? "Background tool"}</span>
+                  <SelectInput
+                    className={styles.fieldInput}
+                    invalid={attemptedBuildAdvance && !isBackgroundToolSelectionReady}
+                    value={selectedBackgroundToolChoice}
+                    onChange={(event) =>
+                      commitBackgroundToolProficiency(event.target.value as TOOL_PROFICIENCY)
+                    }
+                  >
+                    <option value="">-</option>
+                    {backgroundToolOptions.map((tool) => (
+                      <option key={tool} value={tool}>
+                        {getToolProficiencyLabel(tool)}
+                      </option>
+                    ))}
+                  </SelectInput>
+                </label>
+              ) : (
+                <CellContainer
+                  label="Background Tool"
+                  content={
+                    fixedBackgroundTools.length > 0
+                      ? fixedBackgroundTools.map((tool) => getToolProficiencyLabel(tool)).join(", ")
+                      : "No tool proficiency configured"
+                  }
+                />
+              )}
               {attemptedBuildAdvance && !isBackgroundToolSelectionReady ? (
                 <p className={styles.errorText}>
                   Choose the background tool proficiency before continuing.
@@ -2995,9 +3020,6 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
 
             <fieldset className={styles.choiceGroup}>
               <legend>Origin Feat</legend>
-              <p className={styles.helperText}>
-                {getFeatLabel(backgroundEntry.originFeat)} is granted by this background.
-              </p>
               {renderBackgroundOriginFeatControls()}
             </fieldset>
 
@@ -3066,9 +3088,11 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         <div className={styles.sectionHeader}>
           <div>
             <p className={styles.sectionEyebrow}>Species</p>
-            <h3>Species setup</h3>
+            <h3 className={styles.sectionValueHeading}>
+              {resolvedSpecies || "Choose a species first"}
+            </h3>
           </div>
-          <span>{resolvedSpecies || "Choose a species first"}</span>
+          {!isSpeciesSetupReady ? <InputRequiredBadge /> : null}
         </div>
 
         <div className={styles.summaryGrid}>
@@ -3212,385 +3236,398 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
           </div>
         )}
 
-        {draconicAncestryOptions.length > 0 ? (
-          <label className={styles.field}>
-            <span>Draconic Ancestry</span>
-            <SelectInput
-              className={styles.fieldInput}
-              invalid={attemptedBuildAdvance && !isSpeciesDraconicAncestryReady}
-              value={selectedDraconicAncestry}
-              onChange={(event) => {
-                const nextAncestry = event.target.value;
-                const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
-                  ...(getValues("speciesChoices") ?? {}),
-                  draconicAncestry: nextAncestry || undefined
-                });
+        <div className={styles.speciesChoiceGrid}>
+          {draconicAncestryOptions.length > 0 ? (
+            <label className={styles.field}>
+              <span>Draconic Ancestry</span>
+              <SelectInput
+                className={styles.fieldInput}
+                invalid={attemptedBuildAdvance && !isSpeciesDraconicAncestryReady}
+                value={selectedDraconicAncestry}
+                onChange={(event) => {
+                  const nextAncestry = event.target.value;
+                  const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                    ...(getValues("speciesChoices") ?? {}),
+                    draconicAncestry: nextAncestry || undefined
+                  });
 
-                setValue("speciesChoices", nextChoices, {
-                  shouldDirty: true,
-                  shouldValidate: true
-                });
-              }}
-            >
-              <option value="">-</option>
-              {draconicAncestryOptions.map((option) => (
-                <option key={option.key} value={option.key}>
-                  {formatDragonbornDraconicAncestryOptionLabel(option)}
-                </option>
-              ))}
-            </SelectInput>
-            {attemptedBuildAdvance && !isSpeciesDraconicAncestryReady ? (
-              <small className={styles.errorText}>
-                Choose a Draconic Ancestry before continuing.
-              </small>
-            ) : null}
-          </label>
-        ) : null}
+                  setValue("speciesChoices", nextChoices, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  });
+                }}
+              >
+                <option value="">-</option>
+                {draconicAncestryOptions.map((option) => (
+                  <option key={option.key} value={option.key}>
+                    {formatDragonbornDraconicAncestryOptionLabel(option)}
+                  </option>
+                ))}
+              </SelectInput>
+              {attemptedBuildAdvance && !isSpeciesDraconicAncestryReady ? (
+                <small className={styles.errorText}>
+                  Choose a Draconic Ancestry before continuing.
+                </small>
+              ) : null}
+            </label>
+          ) : null}
 
-        {elfLineageOptions.length > 0 ? (
-          <label className={styles.field}>
-            <span>Elven Lineage</span>
-            <SelectInput
-              className={styles.fieldInput}
-              invalid={attemptedBuildAdvance && !isSpeciesElvenLineageReady}
-              value={selectedElvenLineage}
-              onChange={(event) => {
-                const nextLineage = event.target.value;
-                const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
-                  ...(getValues("speciesChoices") ?? {}),
-                  elvenLineage: nextLineage || undefined
-                });
+          {elfLineageOptions.length > 0 ? (
+            <label className={styles.field}>
+              <span>Elven Lineage</span>
+              <SelectInput
+                className={styles.fieldInput}
+                invalid={attemptedBuildAdvance && !isSpeciesElvenLineageReady}
+                value={selectedElvenLineage}
+                onChange={(event) => {
+                  const nextLineage = event.target.value;
+                  const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                    ...(getValues("speciesChoices") ?? {}),
+                    elvenLineage: nextLineage || undefined
+                  });
 
-                setValue("speciesChoices", nextChoices, {
-                  shouldDirty: true,
-                  shouldValidate: true
-                });
-              }}
-            >
-              <option value="">-</option>
-              {elfLineageOptions.map((option) => (
-                <option key={option.key} value={option.key}>
-                  {formatElfLineageOptionLabel(option)}
-                </option>
-              ))}
-            </SelectInput>
-            {attemptedBuildAdvance && !isSpeciesElvenLineageReady ? (
-              <small className={styles.errorText}>Choose an Elven Lineage before continuing.</small>
-            ) : null}
-          </label>
-        ) : null}
+                  setValue("speciesChoices", nextChoices, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  });
+                }}
+              >
+                <option value="">-</option>
+                {elfLineageOptions.map((option) => (
+                  <option key={option.key} value={option.key}>
+                    {formatElfLineageOptionLabel(option)}
+                  </option>
+                ))}
+              </SelectInput>
+              {attemptedBuildAdvance && !isSpeciesElvenLineageReady ? (
+                <small className={styles.errorText}>
+                  Choose an Elven Lineage before continuing.
+                </small>
+              ) : null}
+            </label>
+          ) : null}
 
-        {elfSkillProficiencyOptions.length > 0 ? (
-          <label className={styles.field}>
-            <span>Keen Senses Proficiency</span>
-            <SelectInput
-              className={styles.fieldInput}
-              invalid={attemptedBuildAdvance && !isSpeciesElfSkillProficiencyReady}
-              value={selectedElvenSkillProficiency}
-              onChange={(event) => {
-                const nextSkill = event.target.value;
-                const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
-                  ...(getValues("speciesChoices") ?? {}),
-                  elvenSkillProficiency: nextSkill || undefined
-                });
+          {elfSkillProficiencyOptions.length > 0 ? (
+            <label className={styles.field}>
+              <span>Keen Senses Proficiency</span>
+              <SelectInput
+                className={styles.fieldInput}
+                invalid={attemptedBuildAdvance && !isSpeciesElfSkillProficiencyReady}
+                value={selectedElvenSkillProficiency}
+                onChange={(event) => {
+                  const nextSkill = event.target.value;
+                  const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                    ...(getValues("speciesChoices") ?? {}),
+                    elvenSkillProficiency: nextSkill || undefined
+                  });
 
-                setValue("speciesChoices", nextChoices, {
-                  shouldDirty: true,
-                  shouldValidate: true
-                });
-              }}
-            >
-              <option value="">-</option>
-              {elfSkillProficiencyOptions.map((skill) => (
-                <option key={skill} value={skill}>
-                  {skill}
-                </option>
-              ))}
-            </SelectInput>
-            {attemptedBuildAdvance && !isSpeciesElfSkillProficiencyReady ? (
-              <small className={styles.errorText}>
-                Choose a Keen Senses skill before continuing.
-              </small>
-            ) : null}
-          </label>
-        ) : null}
+                  setValue("speciesChoices", nextChoices, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  });
+                }}
+              >
+                <option value="">-</option>
+                {elfSkillProficiencyOptions.map((skill) => (
+                  <option key={skill} value={skill}>
+                    {skill}
+                  </option>
+                ))}
+              </SelectInput>
+              {attemptedBuildAdvance && !isSpeciesElfSkillProficiencyReady ? (
+                <small className={styles.errorText}>
+                  Choose a Keen Senses skill before continuing.
+                </small>
+              ) : null}
+            </label>
+          ) : null}
 
-        {elfSpellcastingAbilityOptions.length > 0 ? (
-          <label className={styles.field}>
-            <span>Elven Spellcasting Ability</span>
-            <SelectInput
-              className={styles.fieldInput}
-              invalid={attemptedBuildAdvance && !isSpeciesElfSpellcastingAbilityReady}
-              value={selectedElvenSpellcastingAbility}
-              onChange={(event) => {
-                const nextAbility = event.target.value;
-                const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
-                  ...(getValues("speciesChoices") ?? {}),
-                  elvenSpellcastingAbility: nextAbility || undefined
-                });
+          {elfSpellcastingAbilityOptions.length > 0 ? (
+            <label className={styles.field}>
+              <span>Elven Spellcasting Ability</span>
+              <SelectInput
+                className={styles.fieldInput}
+                invalid={attemptedBuildAdvance && !isSpeciesElfSpellcastingAbilityReady}
+                value={selectedElvenSpellcastingAbility}
+                onChange={(event) => {
+                  const nextAbility = event.target.value;
+                  const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                    ...(getValues("speciesChoices") ?? {}),
+                    elvenSpellcastingAbility: nextAbility || undefined
+                  });
 
-                setValue("speciesChoices", nextChoices, {
-                  shouldDirty: true,
-                  shouldValidate: true
-                });
-              }}
-            >
-              <option value="">-</option>
-              {elfSpellcastingAbilityOptions.map((ability) => (
-                <option key={ability} value={ability}>
-                  {ability}
-                </option>
-              ))}
-            </SelectInput>
-            {attemptedBuildAdvance && !isSpeciesElfSpellcastingAbilityReady ? (
-              <small className={styles.errorText}>
-                Choose an Elven spellcasting ability before continuing.
-              </small>
-            ) : null}
-          </label>
-        ) : null}
+                  setValue("speciesChoices", nextChoices, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  });
+                }}
+              >
+                <option value="">-</option>
+                {elfSpellcastingAbilityOptions.map((ability) => (
+                  <option key={ability} value={ability}>
+                    {ability}
+                  </option>
+                ))}
+              </SelectInput>
+              {attemptedBuildAdvance && !isSpeciesElfSpellcastingAbilityReady ? (
+                <small className={styles.errorText}>
+                  Choose an Elven spellcasting ability before continuing.
+                </small>
+              ) : null}
+            </label>
+          ) : null}
 
-        {gnomeLineageOptions.length > 0 ? (
-          <label className={styles.field}>
-            <span>Gnomish Lineage</span>
-            <SelectInput
-              className={styles.fieldInput}
-              invalid={attemptedBuildAdvance && !isSpeciesGnomeLineageReady}
-              value={selectedGnomeLineage}
-              onChange={(event) => {
-                const nextLineage = event.target.value;
-                const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
-                  ...(getValues("speciesChoices") ?? {}),
-                  gnomeLineage: nextLineage || undefined
-                });
+          {gnomeLineageOptions.length > 0 ? (
+            <label className={styles.field}>
+              <span>Gnomish Lineage</span>
+              <SelectInput
+                className={styles.fieldInput}
+                invalid={attemptedBuildAdvance && !isSpeciesGnomeLineageReady}
+                value={selectedGnomeLineage}
+                onChange={(event) => {
+                  const nextLineage = event.target.value;
+                  const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                    ...(getValues("speciesChoices") ?? {}),
+                    gnomeLineage: nextLineage || undefined
+                  });
 
-                setValue("speciesChoices", nextChoices, {
-                  shouldDirty: true,
-                  shouldValidate: true
-                });
-              }}
-            >
-              <option value="">-</option>
-              {gnomeLineageOptions.map((option) => (
-                <option key={option.key} value={option.key}>
-                  {formatGnomeLineageOptionLabel(option)}
-                </option>
-              ))}
-            </SelectInput>
-            {attemptedBuildAdvance && !isSpeciesGnomeLineageReady ? (
-              <small className={styles.errorText}>
-                Choose a Gnomish Lineage before continuing.
-              </small>
-            ) : null}
-          </label>
-        ) : null}
+                  setValue("speciesChoices", nextChoices, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  });
+                }}
+              >
+                <option value="">-</option>
+                {gnomeLineageOptions.map((option) => (
+                  <option key={option.key} value={option.key}>
+                    {formatGnomeLineageOptionLabel(option)}
+                  </option>
+                ))}
+              </SelectInput>
+              {attemptedBuildAdvance && !isSpeciesGnomeLineageReady ? (
+                <small className={styles.errorText}>
+                  Choose a Gnomish Lineage before continuing.
+                </small>
+              ) : null}
+            </label>
+          ) : null}
 
-        {gnomeSpellcastingAbilityOptions.length > 0 ? (
-          <label className={styles.field}>
-            <span>Gnome Spellcasting Ability</span>
-            <SelectInput
-              className={styles.fieldInput}
-              invalid={attemptedBuildAdvance && !isSpeciesGnomeSpellcastingAbilityReady}
-              value={selectedGnomeSpellcastingAbility}
-              onChange={(event) => {
-                const nextAbility = event.target.value;
-                const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
-                  ...(getValues("speciesChoices") ?? {}),
-                  gnomeSpellcastingAbility: nextAbility || undefined
-                });
+          {gnomeSpellcastingAbilityOptions.length > 0 ? (
+            <label className={styles.field}>
+              <span>Gnome Spellcasting Ability</span>
+              <SelectInput
+                className={styles.fieldInput}
+                invalid={attemptedBuildAdvance && !isSpeciesGnomeSpellcastingAbilityReady}
+                value={selectedGnomeSpellcastingAbility}
+                onChange={(event) => {
+                  const nextAbility = event.target.value;
+                  const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                    ...(getValues("speciesChoices") ?? {}),
+                    gnomeSpellcastingAbility: nextAbility || undefined
+                  });
 
-                setValue("speciesChoices", nextChoices, {
-                  shouldDirty: true,
-                  shouldValidate: true
-                });
-              }}
-            >
-              <option value="">-</option>
-              {gnomeSpellcastingAbilityOptions.map((ability) => (
-                <option key={ability} value={ability}>
-                  {ability}
-                </option>
-              ))}
-            </SelectInput>
-            {attemptedBuildAdvance && !isSpeciesGnomeSpellcastingAbilityReady ? (
-              <small className={styles.errorText}>
-                Choose a Gnome spellcasting ability before continuing.
-              </small>
-            ) : null}
-          </label>
-        ) : null}
+                  setValue("speciesChoices", nextChoices, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  });
+                }}
+              >
+                <option value="">-</option>
+                {gnomeSpellcastingAbilityOptions.map((ability) => (
+                  <option key={ability} value={ability}>
+                    {ability}
+                  </option>
+                ))}
+              </SelectInput>
+              {attemptedBuildAdvance && !isSpeciesGnomeSpellcastingAbilityReady ? (
+                <small className={styles.errorText}>
+                  Choose a Gnome spellcasting ability before continuing.
+                </small>
+              ) : null}
+            </label>
+          ) : null}
 
-        {giantAncestryOptions.length > 0 ? (
-          <label className={styles.field}>
-            <span>Giant Ancestry</span>
-            <SelectInput
-              className={styles.fieldInput}
-              invalid={attemptedBuildAdvance && !isSpeciesGiantAncestryReady}
-              value={selectedGiantAncestry}
-              onChange={(event) => {
-                const nextAncestry = event.target.value;
-                const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
-                  ...(getValues("speciesChoices") ?? {}),
-                  giantAncestry: nextAncestry || undefined
-                });
+          {giantAncestryOptions.length > 0 ? (
+            <label className={styles.field}>
+              <span>Giant Ancestry</span>
+              <SelectInput
+                className={styles.fieldInput}
+                invalid={attemptedBuildAdvance && !isSpeciesGiantAncestryReady}
+                value={selectedGiantAncestry}
+                onChange={(event) => {
+                  const nextAncestry = event.target.value;
+                  const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                    ...(getValues("speciesChoices") ?? {}),
+                    giantAncestry: nextAncestry || undefined
+                  });
 
-                setValue("speciesChoices", nextChoices, {
-                  shouldDirty: true,
-                  shouldValidate: true
-                });
-              }}
-            >
-              <option value="">-</option>
-              {giantAncestryOptions.map((option) => (
-                <option key={option.key} value={option.key}>
-                  {formatGoliathGiantAncestryOptionLabel(option)}
-                </option>
-              ))}
-            </SelectInput>
-            {attemptedBuildAdvance && !isSpeciesGiantAncestryReady ? (
-              <small className={styles.errorText}>Choose a Giant Ancestry before continuing.</small>
-            ) : null}
-          </label>
-        ) : null}
+                  setValue("speciesChoices", nextChoices, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  });
+                }}
+              >
+                <option value="">-</option>
+                {giantAncestryOptions.map((option) => (
+                  <option key={option.key} value={option.key}>
+                    {formatGoliathGiantAncestryOptionLabel(option)}
+                  </option>
+                ))}
+              </SelectInput>
+              {attemptedBuildAdvance && !isSpeciesGiantAncestryReady ? (
+                <small className={styles.errorText}>
+                  Choose a Giant Ancestry before continuing.
+                </small>
+              ) : null}
+            </label>
+          ) : null}
 
-        {humanSkillProficiencyOptions.length > 0 ? (
-          <label className={styles.field}>
-            <span>Skillful Proficiency</span>
-            <SelectInput
-              className={styles.fieldInput}
-              invalid={attemptedBuildAdvance && !isSpeciesHumanSkillProficiencyReady}
-              value={selectedHumanSkillProficiency}
-              onChange={(event) => {
-                const nextSkill = event.target.value;
-                const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
-                  ...(getValues("speciesChoices") ?? {}),
-                  humanSkillProficiency: nextSkill || undefined
-                });
+          {humanSkillProficiencyOptions.length > 0 ? (
+            <label className={styles.field}>
+              <span>Skillful Proficiency</span>
+              <SelectInput
+                className={styles.fieldInput}
+                invalid={attemptedBuildAdvance && !isSpeciesHumanSkillProficiencyReady}
+                value={selectedHumanSkillProficiency}
+                onChange={(event) => {
+                  const nextSkill = event.target.value;
+                  const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                    ...(getValues("speciesChoices") ?? {}),
+                    humanSkillProficiency: nextSkill || undefined
+                  });
 
-                setValue("speciesChoices", nextChoices, {
-                  shouldDirty: true,
-                  shouldValidate: true
-                });
-              }}
-            >
-              <option value="">-</option>
-              {humanSkillSelectOptions.map((option) => (
-                <option key={option.skill} value={option.skill} disabled={option.disabled}>
-                  {option.skill}
-                </option>
-              ))}
-            </SelectInput>
-            {attemptedBuildAdvance && !isSpeciesHumanSkillProficiencyReady ? (
-              <small className={styles.errorText}>
-                Choose a Skillful proficiency before continuing.
-              </small>
-            ) : null}
-          </label>
-        ) : null}
+                  setValue("speciesChoices", nextChoices, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  });
+                }}
+              >
+                <option value="">-</option>
+                {humanSkillSelectOptions.map((option) => (
+                  <option key={option.skill} value={option.skill} disabled={option.disabled}>
+                    {option.skill}
+                  </option>
+                ))}
+              </SelectInput>
+              {attemptedBuildAdvance && !isSpeciesHumanSkillProficiencyReady ? (
+                <small className={styles.errorText}>
+                  Choose a Skillful proficiency before continuing.
+                </small>
+              ) : null}
+            </label>
+          ) : null}
+
+          {humanOriginFeatOptions.length > 0 ? (
+            <label className={styles.field}>
+              <span>Origin Feat</span>
+              <SelectInput
+                className={styles.fieldInput}
+                invalid={attemptedBuildAdvance && !isSpeciesHumanOriginFeatReady}
+                value={selectedHumanOriginFeat}
+                onChange={(event) => {
+                  const nextFeat = event.target.value as FEATS | "";
+                  const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                    ...(getValues("speciesChoices") ?? {}),
+                    humanOriginFeat: nextFeat || undefined
+                  });
+
+                  setValue("speciesChoices", nextChoices, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  });
+                }}
+              >
+                <option value="">-</option>
+                {humanOriginFeatOptions.map((option) => (
+                  <option key={option.feat} value={option.feat}>
+                    {formatHumanOriginFeatOptionLabel(option)}
+                  </option>
+                ))}
+              </SelectInput>
+              {attemptedBuildAdvance && !isSpeciesHumanOriginFeatReady ? (
+                <small className={styles.errorText}>
+                  Choose a Human origin feat before continuing.
+                </small>
+              ) : null}
+            </label>
+          ) : null}
+
+          {tieflingLegacyOptions.length > 0 ? (
+            <label className={styles.field}>
+              <span>Fiendish Legacy</span>
+              <SelectInput
+                className={styles.fieldInput}
+                invalid={attemptedBuildAdvance && !isSpeciesTieflingLegacyReady}
+                value={selectedTieflingLegacy}
+                onChange={(event) => {
+                  const nextLegacy = event.target.value;
+                  const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                    ...(getValues("speciesChoices") ?? {}),
+                    tieflingLegacy: nextLegacy || undefined
+                  });
+
+                  setValue("speciesChoices", nextChoices, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  });
+                }}
+              >
+                <option value="">-</option>
+                {tieflingLegacyOptions.map((option) => (
+                  <option key={option.key} value={option.key}>
+                    {formatTieflingFiendishLegacyOptionLabel(option)}
+                  </option>
+                ))}
+              </SelectInput>
+              {attemptedBuildAdvance && !isSpeciesTieflingLegacyReady ? (
+                <small className={styles.errorText}>
+                  Choose a Fiendish Legacy before continuing.
+                </small>
+              ) : null}
+            </label>
+          ) : null}
+
+          {tieflingSpellcastingAbilityOptions.length > 0 ? (
+            <label className={styles.field}>
+              <span>Tiefling Spellcasting Ability</span>
+              <SelectInput
+                className={styles.fieldInput}
+                invalid={attemptedBuildAdvance && !isSpeciesTieflingSpellcastingAbilityReady}
+                value={selectedTieflingSpellcastingAbility}
+                onChange={(event) => {
+                  const nextAbility = event.target.value;
+                  const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                    ...(getValues("speciesChoices") ?? {}),
+                    tieflingSpellcastingAbility: nextAbility || undefined
+                  });
+
+                  setValue("speciesChoices", nextChoices, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  });
+                }}
+              >
+                <option value="">-</option>
+                {tieflingSpellcastingAbilityOptions.map((ability) => (
+                  <option key={ability} value={ability}>
+                    {ability}
+                  </option>
+                ))}
+              </SelectInput>
+              {attemptedBuildAdvance && !isSpeciesTieflingSpellcastingAbilityReady ? (
+                <small className={styles.errorText}>
+                  Choose a Tiefling spellcasting ability before continuing.
+                </small>
+              ) : null}
+            </label>
+          ) : null}
+        </div>
 
         {humanOriginFeatOptions.length > 0 ? (
-          <label className={styles.field}>
-            <span>Origin Feat</span>
-            <SelectInput
-              className={styles.fieldInput}
-              invalid={attemptedBuildAdvance && !isSpeciesHumanOriginFeatReady}
-              value={selectedHumanOriginFeat}
-              onChange={(event) => {
-                const nextFeat = event.target.value as FEATS | "";
-                const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
-                  ...(getValues("speciesChoices") ?? {}),
-                  humanOriginFeat: nextFeat || undefined
-                });
-
-                setValue("speciesChoices", nextChoices, {
-                  shouldDirty: true,
-                  shouldValidate: true
-                });
-              }}
-            >
-              <option value="">-</option>
-              {humanOriginFeatOptions.map((option) => (
-                <option key={option.feat} value={option.feat}>
-                  {formatHumanOriginFeatOptionLabel(option)}
-                </option>
-              ))}
-            </SelectInput>
-            {attemptedBuildAdvance && !isSpeciesHumanOriginFeatReady ? (
-              <small className={styles.errorText}>
-                Choose a Human origin feat before continuing.
-              </small>
-            ) : null}
-          </label>
-        ) : null}
-
-        {tieflingLegacyOptions.length > 0 ? (
-          <label className={styles.field}>
-            <span>Fiendish Legacy</span>
-            <SelectInput
-              className={styles.fieldInput}
-              invalid={attemptedBuildAdvance && !isSpeciesTieflingLegacyReady}
-              value={selectedTieflingLegacy}
-              onChange={(event) => {
-                const nextLegacy = event.target.value;
-                const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
-                  ...(getValues("speciesChoices") ?? {}),
-                  tieflingLegacy: nextLegacy || undefined
-                });
-
-                setValue("speciesChoices", nextChoices, {
-                  shouldDirty: true,
-                  shouldValidate: true
-                });
-              }}
-            >
-              <option value="">-</option>
-              {tieflingLegacyOptions.map((option) => (
-                <option key={option.key} value={option.key}>
-                  {formatTieflingFiendishLegacyOptionLabel(option)}
-                </option>
-              ))}
-            </SelectInput>
-            {attemptedBuildAdvance && !isSpeciesTieflingLegacyReady ? (
-              <small className={styles.errorText}>
-                Choose a Fiendish Legacy before continuing.
-              </small>
-            ) : null}
-          </label>
-        ) : null}
-
-        {tieflingSpellcastingAbilityOptions.length > 0 ? (
-          <label className={styles.field}>
-            <span>Tiefling Spellcasting Ability</span>
-            <SelectInput
-              className={styles.fieldInput}
-              invalid={attemptedBuildAdvance && !isSpeciesTieflingSpellcastingAbilityReady}
-              value={selectedTieflingSpellcastingAbility}
-              onChange={(event) => {
-                const nextAbility = event.target.value;
-                const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
-                  ...(getValues("speciesChoices") ?? {}),
-                  tieflingSpellcastingAbility: nextAbility || undefined
-                });
-
-                setValue("speciesChoices", nextChoices, {
-                  shouldDirty: true,
-                  shouldValidate: true
-                });
-              }}
-            >
-              <option value="">-</option>
-              {tieflingSpellcastingAbilityOptions.map((ability) => (
-                <option key={ability} value={ability}>
-                  {ability}
-                </option>
-              ))}
-            </SelectInput>
-            {attemptedBuildAdvance && !isSpeciesTieflingSpellcastingAbilityReady ? (
-              <small className={styles.errorText}>
-                Choose a Tiefling spellcasting ability before continuing.
-              </small>
-            ) : null}
-          </label>
+          <fieldset className={styles.choiceGroup}>
+            <legend>Origin Feat Setup</legend>
+            {renderHumanOriginFeatControls()}
+          </fieldset>
         ) : null}
       </section>
     );
@@ -3602,31 +3639,24 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         <div className={styles.sectionHeader}>
           <div>
             <p className={styles.sectionEyebrow}>Notes</p>
-            <h3>Choose alignment and add notes</h3>
+            <h3>Alignment and notes</h3>
           </div>
-          <span>Everything here is optional except alignment, which defaults to True Neutral.</span>
         </div>
 
         <div className={styles.alignmentGrid} role="radiogroup" aria-label="Character alignment">
           {alignmentOptions.map((option) => (
-            <button
+            <RadioContainerOption
               key={option}
-              type="button"
-              role="radio"
-              aria-checked={resolvedAlignment === option}
-              className={clsx(
-                styles.alignmentOption,
-                resolvedAlignment === option && styles.alignmentOptionActive
-              )}
-              onClick={() =>
+              name="character-alignment"
+              header={option}
+              selected={resolvedAlignment === option}
+              onSelect={() =>
                 setValue("alignment", option, {
                   shouldDirty: true,
                   shouldValidate: true
                 })
               }
-            >
-              {option}
-            </button>
+            />
           ))}
         </div>
 
@@ -3655,43 +3685,23 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
 
   return (
     <div className={styles.page}>
-      <div className={styles.header}>
-        <p className={styles.eyebrow}>Character forge</p>
-        <h2 className={styles.title}>
-          {isEditing ? "Refine your character" : creationTitleByStep[wizardStep]}
-        </h2>
-        <p className={styles.description}>
-          {isEditing
-            ? "Update the essentials, starting stats, proficiencies, and notes in one place."
-            : creationDescriptionByStep[wizardStep]}
-        </p>
-
-        {!isEditing ? (
+      <section className={clsx(styles.sectionCard, styles.progressCard)}>
+        {isEditing ? (
+          <>
+            <p className={styles.sectionEyebrow}>Edit character</p>
+            <h2 className={styles.title}>Refine your character</h2>
+            <p className={styles.description}>
+              Update the essentials, starting stats, proficiencies, and notes in one place.
+            </p>
+          </>
+        ) : (
           <div className={styles.wizardProgress} aria-label="Character creation steps">
-            <span
-              className={clsx(
-                styles.stepBadge,
-                wizardStep === 1 && styles.stepBadgeActive,
-                wizardStep > 1 && styles.stepBadgeDone
-              )}
-            >
-              1. Core profile
-            </span>
-            <span
-              className={clsx(
-                styles.stepBadge,
-                wizardStep === 2 && styles.stepBadgeActive,
-                wizardStep > 2 && styles.stepBadgeDone
-              )}
-            >
-              2. Build setup
-            </span>
-            <span className={clsx(styles.stepBadge, wizardStep === 3 && styles.stepBadgeActive)}>
-              3. Notes
-            </span>
+            {renderWizardStepBadge(1, "1. Core profile")}
+            {renderWizardStepBadge(2, "2. Build setup")}
+            {renderWizardStepBadge(3, "3. Notes")}
           </div>
-        ) : null}
-      </div>
+        )}
+      </section>
 
       <form
         className={styles.form}
@@ -3733,100 +3743,112 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
 
         {!isEditing && wizardStep === 3 ? renderNotesSection() : null}
 
-        <div className={styles.actions}>
-          {isEditing ? (
-            <>
-              <ActionButton
-                type="submit"
-                fullWidth={false}
-                loading={pendingAction === "submit"}
-                disabled={hasPendingAction}
-              >
-                Update character
-              </ActionButton>
-              <ActionButton
-                type="button"
-                fullWidth={false}
-                onClick={onBack}
-                disabled={hasPendingAction}
-              >
-                Cancel
-              </ActionButton>
-            </>
-          ) : null}
+        <section className={clsx(styles.sectionCard, styles.actionsCard)}>
+          <div className={styles.actions}>
+            {isEditing ? (
+              <>
+                <ActionButton
+                  type="submit"
+                  fullWidth={false}
+                  loading={pendingAction === "submit"}
+                  disabled={hasPendingAction}
+                >
+                  Update character
+                </ActionButton>
+                <ActionButton
+                  type="button"
+                  fullWidth={false}
+                  onClick={onBack}
+                  disabled={hasPendingAction}
+                >
+                  Cancel
+                </ActionButton>
+              </>
+            ) : null}
 
-          {!isEditing && wizardStep === 1 ? (
-            <>
-              <ActionButton
-                type="button"
-                fullWidth={false}
-                loading={pendingAction === "recommended"}
-                disabled={hasPendingAction || !isCoreProfileReady}
-                onClick={() => {
-                  void runPendingAction("recommended", handleRecommendedCreate);
-                }}
-              >
-                Create with recommended build
-              </ActionButton>
-              <ActionButton
-                type="button"
-                fullWidth={false}
-                loading={pendingAction === "customize"}
-                disabled={hasPendingAction || !isCoreProfileReady}
-                onClick={() => {
-                  void runPendingAction("customize", handleStartCustomization);
-                }}
-              >
-                Customize based on your needs
-              </ActionButton>
-            </>
-          ) : null}
+            {!isEditing && wizardStep === 1 ? (
+              <>
+                <ActionButton
+                  type="button"
+                  fullWidth={false}
+                  iconOnly
+                  icon={<Dice6 size={20} />}
+                  onClick={handleRandomize}
+                  disabled={hasPendingAction}
+                  aria-label="Randomize character"
+                  title="Randomize character"
+                />
+                <ActionButton
+                  type="button"
+                  fullWidth={false}
+                  loading={pendingAction === "recommended"}
+                  disabled={hasPendingAction || !isCoreProfileReady}
+                  onClick={() => {
+                    void runPendingAction("recommended", handleRecommendedCreate);
+                  }}
+                >
+                  Create with recommended build
+                </ActionButton>
+                <ActionButton
+                  type="button"
+                  fullWidth={false}
+                  loading={pendingAction === "customize"}
+                  disabled={hasPendingAction || !isCoreProfileReady}
+                  onClick={() => {
+                    void runPendingAction("customize", handleStartCustomization);
+                  }}
+                >
+                  Customize based on your needs
+                </ActionButton>
+              </>
+            ) : null}
 
-          {!isEditing && wizardStep === 2 ? (
-            <>
-              <ActionButton
-                type="button"
-                fullWidth={false}
-                onClick={handleBackToStepOne}
-                disabled={hasPendingAction}
-              >
-                Back (reset changes)
-              </ActionButton>
-              <ActionButton
-                type="button"
-                fullWidth={false}
-                loading={pendingAction === "proceed"}
-                disabled={hasPendingAction || !isBuildSetupReady}
-                onClick={() => {
-                  void runPendingAction("proceed", handleProceedToNotes);
-                }}
-              >
-                Proceed
-              </ActionButton>
-            </>
-          ) : null}
+            {!isEditing && wizardStep === 2 ? (
+              <>
+                <ActionButton
+                  type="button"
+                  fullWidth={false}
+                  onClick={handleBackToStepOne}
+                  disabled={hasPendingAction}
+                >
+                  Back (reset changes)
+                </ActionButton>
+                <ActionButton
+                  type="button"
+                  fullWidth={false}
+                  loading={pendingAction === "proceed"}
+                  disabled={hasPendingAction || !isBuildSetupReady}
+                  onClick={() => {
+                    void runPendingAction("proceed", handleProceedToNotes);
+                  }}
+                >
+                  Proceed
+                </ActionButton>
+              </>
+            ) : null}
 
-          {!isEditing && wizardStep === 3 ? (
-            <>
-              <ActionButton
-                type="button"
-                fullWidth={false}
-                onClick={() => setWizardStep(2)}
-                disabled={hasPendingAction}
-              >
-                Back
-              </ActionButton>
-              <ActionButton
-                type="submit"
-                fullWidth={false}
-                loading={pendingAction === "submit"}
-                disabled={hasPendingAction}
-              >
-                Create Character
-              </ActionButton>
-            </>
-          ) : null}
-        </div>
+            {!isEditing && wizardStep === 3 ? (
+              <>
+                <ActionButton
+                  type="button"
+                  fullWidth={false}
+                  onClick={() => setWizardStep(2)}
+                  disabled={hasPendingAction}
+                >
+                  Back
+                </ActionButton>
+                <ActionButton
+                  type="submit"
+                  fullWidth={false}
+                  loading={pendingAction === "submit"}
+                  disabled={hasPendingAction}
+                >
+                  Create Character
+                </ActionButton>
+              </>
+            ) : null}
+          </div>
+        </section>
       </form>
     </div>
   );

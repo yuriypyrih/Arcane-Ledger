@@ -1,11 +1,12 @@
 import clsx from "clsx";
-import { Pencil, TriangleAlert, X } from "lucide-react";
+import { Pencil, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import ActionShape, { getActionShapeForCastingTime } from "../../../ActionShape";
 import CellContainer from "../../../CellContainer/CellContainer";
 import DivinityListRow from "../../../DivinityListRow/DivinityListRow";
 import SpellListRow from "../../../SpellListRow";
 import SpellDescriptionContent from "../../../SpellDescriptionContent";
+import InputRequiredBadge from "../../../InputRequiredBadge";
 import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
 import CharacterSpellDrawer, { type CharacterSpellDrawerMode } from "./CharacterSpellDrawer";
 import SpellManagementModal from "./SpellManagementModal";
@@ -2198,12 +2199,12 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     CharacterSpellDrawer,
     DURATION,
     DivinityListRow,
+    InputRequiredBadge,
     Pencil,
     SpellDescriptionContent,
     SpellListRow,
     SpellManagementModal,
     SpellSlotActionSheet,
-    TriangleAlert,
     X,
     activeSpellSlotSheetExpended,
     activeSpellSlotSheetLevel,

@@ -10,7 +10,7 @@ import type {
   MagicInitiateChoice,
   SkillName
 } from "../../types";
-import { ALL_SKILLS, TOOL_PROFICIENCY } from "../../types";
+import { TOOL_PROFICIENCY } from "../../types";
 import {
   createCharacterFeatEntry,
   getMagicInitiateCantripOptions,
@@ -19,7 +19,6 @@ import {
 import { abilityKeys } from "./constants";
 import { crafterFastCraftingToolProficiencies } from "./feats/crafter";
 import {
-  groupedToolProficiencyOptions,
   musicalInstrumentToolProficiencies,
   gamingSetToolProficiencies,
   type ToolProficiency
@@ -31,7 +30,6 @@ type BackgroundChoiceContext = {
 
 const backgroundEntriesByName = new Map(getBackgroundEntries().map((entry) => [entry.name, entry]));
 const backgroundEquipmentModes = new Set<CharacterBackgroundEquipmentMode>(["equipment", "gold"]);
-const backgroundSkillOptionSet = new Set<SkillName>(ALL_SKILLS);
 
 function sortBackgroundNames(left: string, right: string): number {
   if (left === "Acolyte") {
@@ -126,31 +124,28 @@ function normalizeToolProficiencyChoice(
 function getBackgroundToolSelectionOptions(entry: BackgroundEntry): ToolProficiency[] {
   return entry.toolProficiencyChoices?.length
     ? entry.toolProficiencyChoices
-    : groupedToolProficiencyOptions;
+    : entry.grantedToolProficiencies;
 }
 
 function normalizeBackgroundSkillProficiencies(
   entry: BackgroundEntry,
   value: unknown
 ): SkillName[] {
+  const backgroundSkillOptions = [...entry.grantedSkillProficiencies];
+  const backgroundSkillOptionSet = new Set<SkillName>(backgroundSkillOptions);
+  const selectionCount = Math.min(2, backgroundSkillOptions.length);
+
   if (Array.isArray(value)) {
     const skills = [...new Set(value)].filter((skill): skill is SkillName =>
       backgroundSkillOptionSet.has(skill as SkillName)
     );
 
-    if (skills.length === 2) {
+    if (skills.length === selectionCount) {
       return skills;
     }
   }
 
-  const fallbackSkills = entry.grantedSkillProficiencies.filter((skill): skill is SkillName =>
-    backgroundSkillOptionSet.has(skill as SkillName)
-  );
-
-  return [
-    ...fallbackSkills,
-    ...ALL_SKILLS.filter((skill) => !fallbackSkills.includes(skill))
-  ].slice(0, 2);
+  return backgroundSkillOptions.slice(0, selectionCount);
 }
 
 function normalizeBackgroundToolProficiencies(

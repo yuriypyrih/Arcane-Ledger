@@ -102,7 +102,7 @@ function FeatCodexList({ query, featCategoryFilter }: FeatCodexListProps) {
                 isExpanded={isExpanded}
                 onToggle={() => toggleFeatKey(featKey)}
                 bodyId={`${featKey}-content`}
-                bodyClassName={`${featureDisclosureStyles.descriptionList} ${styles.featBody}`}
+                bodyClassName={featureDisclosureStyles.descriptionList}
                 trackingButton={
                   <FeatureTrackingBadgeButton
                     trackingState={trackingState}

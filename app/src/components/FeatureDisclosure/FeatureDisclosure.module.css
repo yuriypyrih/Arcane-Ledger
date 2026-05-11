@@ -204,18 +204,6 @@
   opacity: 0.8;
 }
 
-.featureInputRequired {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  color: #b54545;
-  font-size: 0.74rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
 @media (max-width: 599px) {
   .sectionToggle {
     gap: 0.8rem;

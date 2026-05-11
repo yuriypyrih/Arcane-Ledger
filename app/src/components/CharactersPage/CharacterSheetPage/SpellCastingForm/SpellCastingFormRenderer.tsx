@@ -14,7 +14,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     SpellListRow,
     SpellManagementModal,
     SpellSlotActionSheet,
-    TriangleAlert,
+    InputRequiredBadge,
     X,
     activeSpellSlotSheetExpended,
     activeSpellSlotSheetLevel,
@@ -282,10 +282,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
         </div>
         <div className={shared.headerActions}>
           {hasSpellSelectionInputRequired ? (
-            <span className={styles.spellInputRequired}>
-              <TriangleAlert size={16} aria-hidden="true" />
-              INPUT REQUIRED
-            </span>
+            <InputRequiredBadge />
           ) : null}
           {hasSpellManagementOptions ? (
             <button

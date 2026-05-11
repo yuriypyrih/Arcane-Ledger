@@ -22,6 +22,7 @@ import {
   type ToolProficiency
 } from "../../../pages/CharactersPage/proficiencyOptions";
 import { formatCodexLabel } from "../../../utils/codex";
+import { getHitDieLabelForClass } from "../../../pages/CharactersPage/hitDice";
 
 const currencyKeyByCurrencyType = {
   CP: "copper",
@@ -68,7 +69,7 @@ export function getResolvedStarterPack(className: string): ResolvedStarterPack {
       primaryAbility:
         configuredStarterPack.primaryAbilityLabel ??
         formatAbilityKeyLabel(configuredStarterPack.primaryAbility),
-      hitPointDieLabel: configuredStarterPack.hitPointDieLabel,
+      hitPointDieLabel: getHitDieLabelForClass(className),
       savingThrowProficiencies: configuredStarterPack.savingThrowProficiencies.map((entry) =>
         formatCodexLabel(entry)
       ),
@@ -106,7 +107,7 @@ export function getResolvedStarterPack(className: string): ResolvedStarterPack {
 
   return {
     primaryAbility: formatAbilityKeyLabel(getPrimaryAbilityForClass(className)),
-    hitPointDieLabel: null,
+    hitPointDieLabel: getHitDieLabelForClass(className),
     savingThrowProficiencies: getSavingThrowAbilityKeysForClass(className).map((entry) =>
       formatCodexLabel(entry)
     ),
