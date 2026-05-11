@@ -1,0 +1,31 @@
+services:
+  tcm:
+    image: lausi95/arcane-ledger-backend
+    networks: [traefik]
+    env_file: [arcane-ledger-backend.env]
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.tcm.rule=Host(`arcane-ledger-backend.lausi95.net`)
+      - traefik.http.routers.tcm.entrypoints=websecure
+      - traefik.http.routers.tcm.tls.certresolver=letsencrypt
+
+  mongodb:
+    image: mongo
+    networks: [traefik]
+    env_file: [mongo.env]
+    volumes: [arcane-ledger-backend-mongodb:/etc/mongodb]
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.tcp.routers.mongodb.rule=HostSNI(`*`)
+      - traefik.tcp.routers.mongodb.entrypoints=mongodb
+      - traefik.tcp.routers.mongodb.tls=false
+
+networks:
+  traefik:
+    external: true
+    name: traefik
+
+volumes:
+  arcane-ledger-backend-mongodb:
