@@ -1,5 +1,13 @@
 import clsx from "clsx";
-import { ChevronsUp } from "lucide-react";
+import {
+  ChevronsUp,
+  Component,
+  Cross,
+  Puzzle,
+  Shield,
+  SportShoe,
+  type LucideIcon
+} from "lucide-react";
 import type { CSSProperties } from "react";
 import RollStatePill from "../../../RollStatePill/RollStatePill";
 import { resolveFeatureIndicators } from "../../../RollStatePill/rollState";
@@ -12,20 +20,34 @@ type CoreStatCardsProps = {
   rows?: CoreStatCard[][];
   compact?: boolean;
   wide?: boolean;
+  profileTexture?: boolean;
   className?: string;
   onOpenCard: (card: CoreStatCard) => void;
 };
+
+const profileStatTextureIconByKey: Partial<Record<string, LucideIcon>> = {
+  armorClass: Shield,
+  initiative: Puzzle,
+  speed: SportShoe,
+  hitDice: Cross
+};
+
+function getProfileStatTextureIcon(card: CoreStatCard): LucideIcon {
+  return profileStatTextureIconByKey[card.key] ?? Component;
+}
 
 function CoreStatCards({
   cards,
   rows,
   compact = false,
   wide = false,
+  profileTexture = false,
   className,
   onOpenCard
 }: CoreStatCardsProps) {
   function renderCard(card: CoreStatCard, floatingRollState = false) {
     const rollState = resolveFeatureIndicators(card.indicators);
+    const ProfileTextureIcon = profileTexture ? getProfileStatTextureIcon(card) : null;
 
     return (
       <SheetSurface
@@ -38,10 +60,19 @@ function CoreStatCards({
           styles.card,
           styles.button,
           compact && styles.compactCard,
+          profileTexture && styles.profileTextureCard,
           floatingRollState && styles.floatingStateCard
         )}
         onClick={() => onOpenCard(card)}
       >
+        {ProfileTextureIcon ? (
+          <ProfileTextureIcon
+            aria-hidden="true"
+            className={styles.profileTextureIcon}
+            focusable={false}
+            strokeWidth={1.45}
+          />
+        ) : null}
         <div className={styles.labelRow}>
           <span className={clsx(styles.label, compact && styles.compactLabel)}>{card.label}</span>
           {rollState && !floatingRollState ? (

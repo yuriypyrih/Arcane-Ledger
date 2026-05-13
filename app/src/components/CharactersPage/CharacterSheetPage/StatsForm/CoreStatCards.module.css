@@ -51,6 +51,39 @@
   text-align: center;
 }
 
+.profileTextureCard {
+  border-color: transparent;
+  box-shadow:
+    inset 0 0 0 1.5px rgba(99, 107, 117, 0.2),
+    inset 0 -4px 0 rgba(99, 107, 117, 0.16);
+  isolation: isolate;
+}
+
+.profileTextureCard.profileTextureCard:hover:not(:disabled),
+.profileTextureCard.profileTextureCard:focus-visible:not(:disabled),
+.profileTextureCard.profileTextureCard:focus-within:not(:disabled) {
+  box-shadow:
+    0 9px 10px -9px rgba(75, 47, 29, 0.22),
+    0 3px 4px -4px rgba(36, 21, 15, 0.16),
+    inset 0 0 0 1.5px rgba(99, 107, 117, 0.2),
+    inset 0 -4px 0 rgba(99, 107, 117, 0.16);
+}
+
+.profileTextureCard::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    circle at calc(100% + 10px) calc(100% + 10px),
+    rgba(81, 89, 99, 0.1) 0 36px,
+    rgba(81, 89, 99, 0.06) 48px,
+    transparent 82px
+  );
+  pointer-events: none;
+}
+
 .floatingStateCard {
   overflow: visible;
 }
@@ -74,6 +107,8 @@
   gap: 0.38rem;
   flex-wrap: wrap;
   min-width: 0;
+  position: relative;
+  z-index: 2;
 }
 
 .label {
@@ -97,6 +132,8 @@
   justify-content: center;
   gap: 0.42rem;
   min-width: 0;
+  position: relative;
+  z-index: 2;
 }
 
 .valueRow strong,
@@ -111,6 +148,19 @@
 .valueIcon {
   color: #2f7fd8;
   flex: 0 0 auto;
+}
+
+.profileTextureIcon {
+  position: absolute;
+  right: 0.42rem;
+  top: 50%;
+  z-index: 1;
+  width: auto;
+  height: calc(100% - 8px);
+  color: rgb(78, 86, 96);
+  opacity: 0.105;
+  pointer-events: none;
+  transform: translateY(-50%);
 }
 
 .floatingState {

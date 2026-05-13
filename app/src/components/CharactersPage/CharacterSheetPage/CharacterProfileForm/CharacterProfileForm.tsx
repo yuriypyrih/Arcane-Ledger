@@ -80,7 +80,11 @@ function CharacterProfileForm({
             className={clsx(styles.profileSummary, broadLayout && styles.profileSummaryBroad)}
             aria-label="Character quick stats"
           >
-            <CoreStatCards rows={profileCoreStatRows} onOpenCard={openCoreStatReference} />
+            <CoreStatCards
+              rows={profileCoreStatRows}
+              profileTexture
+              onOpenCard={openCoreStatReference}
+            />
           </aside>
         </div>
 
