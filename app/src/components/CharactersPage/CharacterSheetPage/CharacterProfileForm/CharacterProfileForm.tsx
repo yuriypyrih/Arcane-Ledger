@@ -9,6 +9,7 @@ import styles from "./CharacterProfileForm.module.css";
 import InlineToggleButton from "../InlineToggleButton";
 import {
   createBroadProfileCoreStatRows,
+  createProfileCoreStatColumns,
   createProfileCoreStatRows
 } from "../StatsForm/coreStatModel";
 import { useCoreStatReferenceDrawer } from "../StatsForm/useCoreStatReferenceDrawer";
@@ -33,6 +34,7 @@ function CharacterProfileForm({
   const profileCoreStatRows = broadLayout
     ? createBroadProfileCoreStatRows(character)
     : createProfileCoreStatRows(character);
+  const profileCoreStatColumns = createProfileCoreStatColumns(character);
   const { coreStatReferenceDrawer, openCoreStatReference } = useCoreStatReferenceDrawer(
     character,
     onPersistCharacter
@@ -82,7 +84,9 @@ function CharacterProfileForm({
           >
             <CoreStatCards
               rows={profileCoreStatRows}
+              condensedColumns={profileCoreStatColumns}
               profileTexture
+              rowFlow={broadLayout ? "condensed" : "responsive-condensed"}
               onOpenCard={openCoreStatReference}
             />
           </aside>

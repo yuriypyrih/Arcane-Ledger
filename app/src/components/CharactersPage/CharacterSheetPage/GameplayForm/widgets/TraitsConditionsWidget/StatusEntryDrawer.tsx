@@ -127,7 +127,7 @@ function StatusEntryDrawer({
             onClick: onDecreaseExhaustion ?? (() => undefined)
           },
           {
-            label: "Remove",
+            label: "End Duration",
             icon: Trash2,
             tone: "danger",
             onClick: onRemove
@@ -146,7 +146,7 @@ function StatusEntryDrawer({
           ...(canRemove
             ? [
                 {
-                  label: "Remove",
+                  label: "End Duration",
                   icon: Trash2,
                   tone: "danger",
                   onClick: onRemove

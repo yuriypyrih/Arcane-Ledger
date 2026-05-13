@@ -12,7 +12,7 @@ import {
 import {
   getHitDiceRemainingForCharacter,
   getHitDiceTotalForCharacter,
-  getHitDieFormulaForClass
+  getHitDieLabelForClass
 } from "../../../../pages/CharactersPage/hitDice";
 import {
   getArmorClassResolutionForCharacter,
@@ -235,7 +235,7 @@ export function createBaseCoreStatCards(
     speed: `${getSpeedForCharacter(character)} ft`,
     passivePerception: String(getPassivePerceptionForCharacter(character)),
     proficiencyBonus: formatAbilityModifier(proficiencyBonus),
-    hitDice: getHitDieFormulaForClass(character.className)
+    hitDice: getHitDieLabelForClass(character.className)
   };
   const coreStatIndicators = getCoreStatIndicatorsForCharacter(character);
   const speedBreakdown = getSpeedBreakdownForCharacter(character);
@@ -537,6 +537,21 @@ export function createProfileCoreStatRows(character: Character): CoreStatCard[][
   }
 
   return rows;
+}
+
+export function createProfileCoreStatColumns(character: Character): CoreStatCard[][] {
+  const { cards: baseCards } = createBaseCoreStatCards(character, profileCoreStatFields);
+  const [armorClass, initiative, speed, passivePerception, proficiencyBonus, hitDice] = baseCards;
+  const columns: CoreStatCard[][] = [
+    [armorClass, speed, passivePerception].filter((card): card is CoreStatCard => Boolean(card)),
+    [initiative, proficiencyBonus, hitDice].filter((card): card is CoreStatCard => Boolean(card))
+  ];
+
+  createAdditionalCoreStatCards(character).forEach((card, index) => {
+    columns[index % columns.length].push(card);
+  });
+
+  return columns;
 }
 
 function createChunkedCoreStatRows(cards: CoreStatCard[], cardsPerRow: number): CoreStatCard[][] {

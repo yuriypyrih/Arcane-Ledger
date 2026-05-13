@@ -39,6 +39,44 @@
   width: 100%;
 }
 
+.condensedRows {
+  column-count: 2;
+  column-gap: 0.62rem;
+  max-width: 100%;
+  width: 100%;
+}
+
+.condensedRows > * {
+  break-inside: avoid;
+  display: inline-grid;
+  margin-block-end: 0.62rem;
+  width: 100%;
+}
+
+.condensedColumns {
+  display: grid;
+  align-items: start;
+  gap: 0.62rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 100%;
+  width: 100%;
+}
+
+.condensedColumn {
+  display: grid;
+  align-content: start;
+  gap: 0.62rem;
+  min-width: 0;
+}
+
+.condensedColumn > * {
+  width: 100%;
+}
+
+.condensedRowsResponsive {
+  display: none;
+}
+
 .compactGrid {
   gap: 0.55rem;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -49,39 +87,6 @@
   gap: 0.35rem;
   padding: 0.75rem 0.85rem;
   text-align: center;
-}
-
-.profileTextureCard {
-  border-color: transparent;
-  box-shadow:
-    inset 0 0 0 1.5px rgba(99, 107, 117, 0.2),
-    inset 0 -4px 0 rgba(99, 107, 117, 0.16);
-  isolation: isolate;
-}
-
-.profileTextureCard.profileTextureCard:hover:not(:disabled),
-.profileTextureCard.profileTextureCard:focus-visible:not(:disabled),
-.profileTextureCard.profileTextureCard:focus-within:not(:disabled) {
-  box-shadow:
-    0 9px 10px -9px rgba(75, 47, 29, 0.22),
-    0 3px 4px -4px rgba(36, 21, 15, 0.16),
-    inset 0 0 0 1.5px rgba(99, 107, 117, 0.2),
-    inset 0 -4px 0 rgba(99, 107, 117, 0.16);
-}
-
-.profileTextureCard::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  border-radius: inherit;
-  background: radial-gradient(
-    circle at calc(100% + 10px) calc(100% + 10px),
-    rgba(81, 89, 99, 0.1) 0 36px,
-    rgba(81, 89, 99, 0.06) 48px,
-    transparent 82px
-  );
-  pointer-events: none;
 }
 
 .floatingStateCard {
@@ -150,19 +155,6 @@
   flex: 0 0 auto;
 }
 
-.profileTextureIcon {
-  position: absolute;
-  right: 0.42rem;
-  top: 50%;
-  z-index: 1;
-  width: auto;
-  height: calc(100% - 8px);
-  color: rgb(78, 86, 96);
-  opacity: 0.105;
-  pointer-events: none;
-  transform: translateY(-50%);
-}
-
 .floatingState {
   position: absolute;
   bottom: 0;
@@ -200,6 +192,18 @@
 }
 
 @media (max-width: 599px) {
+  .rowsResponsiveGrid {
+    display: none;
+  }
+
+  .condensedRowsResponsive {
+    display: block;
+  }
+
+  .condensedColumns.condensedRowsResponsive {
+    display: grid;
+  }
+
   .compactGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

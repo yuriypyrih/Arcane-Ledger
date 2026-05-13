@@ -59,6 +59,7 @@
 }
 
 .modifierCard {
+  position: relative;
   overflow: visible;
   display: grid;
   gap: 0.35rem;
@@ -81,44 +82,36 @@
 }
 
 .modifierLabel {
-  font-size: 0.82rem;
-  letter-spacing: 0.08em;
+  color: var(--color-ink);
+  font-size: 0.88rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
 .scoreBadge {
-  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.9rem;
-  height: 1.9rem;
   flex-shrink: 0;
-}
-
-.scoreBadgeIcon {
-  color: rgba(75, 47, 29, 0.24);
-  fill: none;
-  stroke-width: 1.35;
+  line-height: 1;
 }
 
 .scoreBadgeValue {
-  position: absolute;
-  inset: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: inline;
   color: var(--color-ink);
-  font-size: 0.72rem;
-  font-weight: 700;
+  font-size: 0.88rem;
+  font-weight: 900;
   line-height: 1;
   text-align: center;
-  transform: translateY(1px);
 }
 
-.scoreBadgePrimary .scoreBadgeIcon {
-  color: rgba(215, 131, 33, 0.6);
-  stroke-width: 1.6;
+.scoreBadgePrimary .scoreBadgeValue {
+  color: #235f9d;
+  text-decoration: underline;
+  text-decoration-color: rgba(47, 120, 255, 0.62);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.15rem;
 }
 
 .scoreBoostIcon {
@@ -162,13 +155,12 @@
   gap: 0.02rem;
   justify-items: center;
   min-width: 0;
-  padding-bottom: 0.72rem;
 }
 
 .combinedValueLabel {
-  color: rgba(102, 75, 56, 0.58);
-  font-size: 0.52rem;
-  font-weight: 700;
+  color: rgba(75, 47, 29, 0.78);
+  font-size: 0.58rem;
+  font-weight: 850;
   letter-spacing: 0.12em;
   line-height: 0.9;
   text-transform: uppercase;
@@ -193,19 +185,37 @@
   color: #6f2bc5;
 }
 
-.combinedRollState {
+.combinedRollStateRow {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  z-index: 2;
+  display: grid;
+  column-gap: 0.68rem;
+  grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr);
+  pointer-events: none;
+  transform: translate(-50%, 50%);
+  width: min(100%, 7.5rem);
+}
+
+.combinedRollStateSlot {
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+.combinedRollStateSingle {
   position: absolute;
   bottom: 0;
   left: 50%;
   z-index: 2;
   display: flex;
-  max-width: calc(100% + 1.4rem);
+  justify-content: center;
   pointer-events: none;
   transform: translate(-50%, 50%);
 }
 
 .combinedRollStatePill {
-  box-shadow: 0 0 0 3px var(--color-panel-strong);
   white-space: nowrap;
 }
 

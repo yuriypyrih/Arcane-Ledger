@@ -18,9 +18,11 @@ import styles from "./CoreStatCards.module.css";
 type CoreStatCardsProps = {
   cards?: CoreStatCard[];
   rows?: CoreStatCard[][];
+  condensedColumns?: CoreStatCard[][];
   compact?: boolean;
   wide?: boolean;
   profileTexture?: boolean;
+  rowFlow?: "grid" | "condensed" | "responsive-condensed";
   className?: string;
   onOpenCard: (card: CoreStatCard) => void;
 };
@@ -39,15 +41,16 @@ function getProfileStatTextureIcon(card: CoreStatCard): LucideIcon {
 function CoreStatCards({
   cards,
   rows,
+  condensedColumns,
   compact = false,
   wide = false,
   profileTexture = false,
+  rowFlow = "grid",
   className,
   onOpenCard
 }: CoreStatCardsProps) {
   function renderCard(card: CoreStatCard, floatingRollState = false) {
     const rollState = resolveFeatureIndicators(card.indicators);
-    const ProfileTextureIcon = profileTexture ? getProfileStatTextureIcon(card) : null;
 
     return (
       <SheetSurface
@@ -55,24 +58,17 @@ function CoreStatCards({
         key={card.key}
         type="button"
         borderSize={compact ? "lg" : "xl"}
+        hasBorder={profileTexture}
         hoverBorder
+        textureIcon={profileTexture ? getProfileStatTextureIcon(card) : undefined}
         className={clsx(
           styles.card,
           styles.button,
           compact && styles.compactCard,
-          profileTexture && styles.profileTextureCard,
           floatingRollState && styles.floatingStateCard
         )}
         onClick={() => onOpenCard(card)}
       >
-        {ProfileTextureIcon ? (
-          <ProfileTextureIcon
-            aria-hidden="true"
-            className={styles.profileTextureIcon}
-            focusable={false}
-            strokeWidth={1.45}
-          />
-        ) : null}
         <div className={styles.labelRow}>
           <span className={clsx(styles.label, compact && styles.compactLabel)}>{card.label}</span>
           {rollState && !floatingRollState ? (
@@ -100,7 +96,7 @@ function CoreStatCards({
   }
 
   if (rows) {
-    return (
+    const gridRows = (
       <div className={clsx(styles.rows, className)}>
         {rows.map((row, rowIndex) => (
           <div
@@ -113,6 +109,54 @@ function CoreStatCards({
           </div>
         ))}
       </div>
+    );
+
+    if (rowFlow === "grid") {
+      return gridRows;
+    }
+
+    const condensedRows =
+      condensedColumns && condensedColumns.length > 0 ? (
+        <div
+          className={clsx(
+            styles.condensedColumns,
+            rowFlow === "responsive-condensed" && styles.condensedRowsResponsive,
+            className
+          )}
+          aria-label="Profile stats"
+        >
+          {condensedColumns.map((column, columnIndex) => (
+            <div
+              key={column.map((card) => card.key).join("-")}
+              className={styles.condensedColumn}
+              aria-label={`Profile stats column ${columnIndex + 1}`}
+            >
+              {column.map((card) => renderCard(card, true))}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div
+          className={clsx(
+            styles.condensedRows,
+            rowFlow === "responsive-condensed" && styles.condensedRowsResponsive,
+            className
+          )}
+          aria-label="Profile stats"
+        >
+          {rows.flatMap((row) => row).map((card) => renderCard(card, true))}
+        </div>
+      );
+
+    if (rowFlow === "condensed") {
+      return condensedRows;
+    }
+
+    return (
+      <>
+        <div className={styles.rowsResponsiveGrid}>{gridRows}</div>
+        {condensedRows}
+      </>
     );
   }
 

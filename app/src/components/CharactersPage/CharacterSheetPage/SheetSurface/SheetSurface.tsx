@@ -1,14 +1,19 @@
 import clsx from "clsx";
 import type { ComponentPropsWithoutRef, ElementType, ReactNode } from "react";
+import type { LucideIcon } from "lucide-react";
 import styles from "./SheetSurface.module.css";
 
 export type SheetSurfaceBorderSize = "xm" | "sm" | "md" | "lg" | "xl";
+export type SheetSurfaceTexturePosition = "right" | "center";
+type SheetSurfaceTextureIcon = LucideIcon | string;
 
 type SheetSurfaceOwnProps<T extends ElementType = "div"> = {
   as?: T;
   borderSize?: SheetSurfaceBorderSize;
   hasBorder?: boolean;
   hoverBorder?: boolean;
+  textureIcon?: SheetSurfaceTextureIcon;
+  texturePosition?: SheetSurfaceTexturePosition;
   className?: string;
   children?: ReactNode;
 };
@@ -24,28 +29,53 @@ const borderSizeClassNames: Record<SheetSurfaceBorderSize, string> = {
   xl: styles.borderXl
 };
 
+const texturePositionClassNames: Record<SheetSurfaceTexturePosition, string> = {
+  right: styles.textureIconRight,
+  center: styles.textureIconCenter
+};
+
 function SheetSurface<T extends ElementType = "div">({
   as,
   borderSize = "md",
   hasBorder = false,
   hoverBorder = false,
+  textureIcon: TextureIcon,
+  texturePosition = "right",
   className,
   children,
   ...props
 }: SheetSurfaceProps<T>) {
   const Component = as ?? "div";
+  const isNativeButton = Component === "button";
 
   return (
     <Component
       className={clsx(
         styles.root,
+        isNativeButton && styles.buttonRoot,
         borderSizeClassNames[borderSize],
         hoverBorder && styles.hoverTint,
         hasBorder && styles.hasBorder,
+        TextureIcon && styles.hasTexture,
         className
       )}
       {...props}
     >
+      {typeof TextureIcon === "string" ? (
+        <img
+          src={TextureIcon}
+          alt=""
+          className={clsx(styles.textureIcon, texturePositionClassNames[texturePosition])}
+          aria-hidden="true"
+        />
+      ) : TextureIcon ? (
+        <TextureIcon
+          aria-hidden="true"
+          className={clsx(styles.textureIcon, texturePositionClassNames[texturePosition])}
+          focusable={false}
+          strokeWidth={1.45}
+        />
+      ) : null}
       {children}
     </Component>
   );

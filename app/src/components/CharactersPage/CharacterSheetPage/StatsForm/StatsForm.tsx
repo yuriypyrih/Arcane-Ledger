@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { ChevronsUp, Pencil, Pentagon } from "lucide-react";
+import { ChevronsUp, Hexagon, Pencil } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
@@ -369,6 +369,17 @@ function getRollStateValueClassName(rollState: ResolvedRollState | null): string
       return styles.rollStateValueNeutralized;
     default:
       return undefined;
+  }
+}
+
+function getRollStateAbbreviation(rollState: ResolvedRollState): string {
+  switch (rollState.tone) {
+    case "advantage":
+      return "ADV";
+    case "disadvantage":
+      return "DIS";
+    case "neutralized":
+      return "NEU";
   }
 }
 
@@ -856,89 +867,117 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
         </div>
 
         <div className={styles.abilitySavingThrowGrid}>
-          {abilitySavingThrowCards.map((card) => (
-            <SheetSurface
-              as="button"
-              key={card.ability}
-              type="button"
-              borderSize="xl"
-              hoverBorder
-              className={clsx(styles.modifierCard, styles.modifierCardButton)}
-              onClick={() => openAbilityReference(card.ability)}
-            >
-              <div className={styles.modifierLabelRow}>
-                <span className={styles.modifierLabel}>{card.ability}</span>
-                <span
-                  className={clsx(
-                    styles.scoreBadge,
-                    card.ability === mainAbility && styles.scoreBadgePrimary
-                  )}
-                  aria-label={`${card.ability} score ${card.score}`}
-                >
-                  <Pentagon size={28} className={styles.scoreBadgeIcon} aria-hidden="true" />
-                  <span className={styles.scoreBadgeValue}>{card.score}</span>
-                </span>
-                {card.showScoreBoostIcon ? (
-                  <ChevronsUp
-                    size={18}
-                    className={styles.scoreBoostIcon}
-                    aria-label={card.scoreBoostIconLabel ?? "Feature boost active"}
-                  />
-                ) : null}
-              </div>
-              <div className={styles.combinedValueRow}>
-                <div className={styles.combinedValueColumn}>
-                  <span className={styles.combinedValueLabel}>MOD</span>
-                  <strong className={getRollStateValueClassName(card.modifierRollState)}>
-                    {card.modifier}
-                  </strong>
-                  {card.modifierRollState ? (
-                    <span className={styles.combinedRollState}>
-                      <RollStatePill
-                        tone={card.modifierRollState.tone}
-                        label={card.modifierRollState.label}
-                        size="small"
-                        className={styles.combinedRollStatePill}
-                      />
-                    </span>
+          {abilitySavingThrowCards.map((card) => {
+            const hasBothRollStates =
+              card.modifierRollState !== null && card.savingThrowRollState !== null;
+            const hasMatchingRollStates =
+              hasBothRollStates &&
+              areResolvedRollStatesEquivalent(card.modifierRollState, card.savingThrowRollState);
+            const shouldUseAbbreviatedRollStates = hasBothRollStates && !hasMatchingRollStates;
+            const sharedRollState = hasMatchingRollStates
+              ? card.modifierRollState
+              : (card.modifierRollState ?? card.savingThrowRollState);
+
+            return (
+              <SheetSurface
+                as="button"
+                key={card.ability}
+                type="button"
+                borderSize="xl"
+                hasBorder
+                hoverBorder
+                textureIcon={Hexagon}
+                texturePosition="center"
+                className={clsx(styles.modifierCard, styles.modifierCardButton)}
+                onClick={() => openAbilityReference(card.ability)}
+              >
+                <div className={styles.modifierLabelRow}>
+                  <span className={styles.modifierLabel}>{card.ability}</span>
+                  <span
+                    className={clsx(
+                      styles.scoreBadge,
+                      card.ability === mainAbility && styles.scoreBadgePrimary
+                    )}
+                    aria-label={`${card.ability} score ${card.score}`}
+                  >
+                    <span className={styles.scoreBadgeValue}>{card.score}</span>
+                  </span>
+                  {card.showScoreBoostIcon ? (
+                    <ChevronsUp
+                      size={21}
+                      className={styles.scoreBoostIcon}
+                      aria-label={card.scoreBoostIconLabel ?? "Feature boost active"}
+                    />
                   ) : null}
                 </div>
-                <span className={styles.combinedValueDivider} aria-hidden="true" />
-                <span className={clsx(styles.savingThrowValueGroup, styles.combinedValueColumn)}>
-                  <span className={styles.combinedValueLabel}>SAVE</span>
-                  <span className={styles.savingThrowValueRow}>
-                    <strong
-                      className={clsx(
-                        getRollStateValueClassName(card.savingThrowRollState),
-                        card.isSavingThrowProficient && styles.savingThrowValueProficient
-                      )}
-                    >
-                      {card.totalSavingThrow}
+                <div className={styles.combinedValueRow}>
+                  <div className={styles.combinedValueColumn}>
+                    <span className={styles.combinedValueLabel}>MOD</span>
+                    <strong className={getRollStateValueClassName(card.modifierRollState)}>
+                      {card.modifier}
                     </strong>
-                    {card.showSavingThrowBoostIcon ? (
-                      <ChevronsUp
-                        size={16}
-                        className={styles.savingThrowBoostIcon}
-                        aria-label={
-                          card.savingThrowBoostIconLabel ?? "Saving throw feature boost active"
-                        }
-                      />
-                    ) : null}
-                  </span>
-                  {card.savingThrowRollState ? (
-                    <span className={styles.combinedRollState}>
-                      <RollStatePill
-                        tone={card.savingThrowRollState.tone}
-                        label={card.savingThrowRollState.label}
-                        size="small"
-                        className={styles.combinedRollStatePill}
-                      />
+                  </div>
+                  <span className={styles.combinedValueDivider} aria-hidden="true" />
+                  <span className={clsx(styles.savingThrowValueGroup, styles.combinedValueColumn)}>
+                    <span className={styles.combinedValueLabel}>SAVE</span>
+                    <span className={styles.savingThrowValueRow}>
+                      <strong
+                        className={clsx(
+                          getRollStateValueClassName(card.savingThrowRollState),
+                          card.isSavingThrowProficient && styles.savingThrowValueProficient
+                        )}
+                      >
+                        {card.totalSavingThrow}
+                      </strong>
+                      {card.showSavingThrowBoostIcon ? (
+                        <ChevronsUp
+                          size={19}
+                          className={styles.savingThrowBoostIcon}
+                          aria-label={
+                            card.savingThrowBoostIconLabel ?? "Saving throw feature boost active"
+                          }
+                        />
+                      ) : null}
                     </span>
-                  ) : null}
-                </span>
-              </div>
-            </SheetSurface>
-          ))}
+                  </span>
+                </div>
+                {shouldUseAbbreviatedRollStates ? (
+                  <div className={styles.combinedRollStateRow}>
+                    <span className={styles.combinedRollStateSlot}>
+                      {card.modifierRollState ? (
+                        <RollStatePill
+                          tone={card.modifierRollState.tone}
+                          label={getRollStateAbbreviation(card.modifierRollState)}
+                          size="small"
+                          className={styles.combinedRollStatePill}
+                        />
+                      ) : null}
+                    </span>
+                    <span aria-hidden="true" />
+                    <span className={styles.combinedRollStateSlot}>
+                      {card.savingThrowRollState ? (
+                        <RollStatePill
+                          tone={card.savingThrowRollState.tone}
+                          label={getRollStateAbbreviation(card.savingThrowRollState)}
+                          size="small"
+                          className={styles.combinedRollStatePill}
+                        />
+                      ) : null}
+                    </span>
+                  </div>
+                ) : sharedRollState ? (
+                  <div className={styles.combinedRollStateSingle}>
+                    <RollStatePill
+                      tone={sharedRollState.tone}
+                      label={sharedRollState.label}
+                      size="small"
+                      className={styles.combinedRollStatePill}
+                    />
+                  </div>
+                ) : null}
+              </SheetSurface>
+            );
+          })}
         </div>
       </section>
     );

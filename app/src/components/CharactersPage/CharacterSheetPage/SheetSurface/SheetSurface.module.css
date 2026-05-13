@@ -8,6 +8,15 @@
   background: rgba(68, 64, 60, 0.07);
 }
 
+.buttonRoot {
+  appearance: none;
+  -webkit-appearance: none;
+  color: inherit;
+  font: inherit;
+  margin: 0;
+  text-align: inherit;
+}
+
 .borderXm {
   --sheet-surface-radius: var(--sheet-surface-radius-xm);
 }
@@ -44,12 +53,47 @@
   transform: translateY(-1px);
 }
 
+.hasTexture {
+  isolation: isolate;
+}
+
+.textureIcon {
+  position: absolute;
+  top: 50%;
+  z-index: 0;
+  width: auto;
+  height: calc(100% - 8px);
+  color: rgb(78, 86, 96);
+  object-fit: contain;
+  opacity: 0.075;
+  pointer-events: none;
+}
+
+.textureIconRight {
+  /*top: auto;*/
+  /*bottom: 0;*/
+  /*right: 0;*/
+  /*height: 75%;*/
+  /*transform: none;*/
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.textureIconCenter {
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
 .hasBorder {
-  border-color: rgba(76, 82, 88, 0.24);
+  border-color: rgba(99, 107, 117, 0.24);
+  background: rgba(68, 64, 60, 0.04);
 }
 
 .hasBorder.hoverTint:hover:not(:disabled),
 .hasBorder.hoverTint:focus-visible:not(:disabled),
 .hasBorder.hoverTint:focus-within:not(:disabled) {
-  border-color: #2f78ff;
+  border-color: rgba(47, 120, 255, 0.54);
+  box-shadow:
+    0 6px 8px -8px rgba(75, 47, 29, 0.14),
+    0 2px 3px -4px rgba(36, 21, 15, 0.1);
 }
