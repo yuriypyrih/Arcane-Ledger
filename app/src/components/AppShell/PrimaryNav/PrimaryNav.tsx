@@ -1,4 +1,4 @@
-import { Home, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import type { NavigationLink } from "../navigationLinks";
 import styles from "./PrimaryNav.module.css";
@@ -27,7 +27,7 @@ function PrimaryNav({
           end
           aria-label="Arcane Ledger home"
         >
-          <Home size={16} aria-hidden="true" />
+          <img src="/icons/icon-192.png" alt="" className={styles.brandIcon} />
           <span>Arcane Ledger</span>
         </NavLink>
         <div className={styles.linkGroup}>
