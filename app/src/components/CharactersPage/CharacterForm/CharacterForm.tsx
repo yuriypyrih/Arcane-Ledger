@@ -39,6 +39,7 @@ import {
   getSkillProficiencyOptionsForClass,
   getSkillSelectionLimitForClass,
   getToolProficiencyChoicesForClass,
+  normalizeCharacterProficiencies,
   normalizeSkillSelectionsForClass,
   normalizeToolSelectionsForClass,
   resolveSkillProficienciesForCharacter
@@ -51,6 +52,7 @@ import {
   getBackgroundToolChoiceOptions,
   normalizeBackgroundChoices
 } from "../../../pages/CharactersPage/backgrounds";
+import { getFeatLabel } from "../../../pages/CharactersPage/feats";
 import { normalizeLevelAndXp } from "../../../pages/CharactersPage/experience";
 import { getAutomaticMaxHitPointsForCharacter } from "../../../pages/CharactersPage/gameplay";
 import { getEffectiveHitPointMaximumForCharacter } from "../../../pages/CharactersPage/traits";
@@ -94,6 +96,8 @@ import SelectInput from "../FormInputs/SelectInput";
 import TextAreaInput from "../FormInputs/TextAreaInput";
 import TextInput from "../FormInputs/TextInput";
 import RadioContainerOption from "../CharacterSheetPage/RadioContainerOption";
+import ProficiencySummaryPills from "../CharacterSheetPage/SkillsAndProficienciesForm/ProficiencySummaryPills";
+import { getProficiencySummarySections } from "../CharacterSheetPage/SkillsAndProficienciesForm/proficiencySummarySections";
 import AbilityScoresEditorContent from "../CharacterSheetPage/StatsForm/AbilityScoresEditorContent";
 import HitPointsEditorContent, {
   HIT_POINTS_MODAL_SUMMARY,
@@ -178,6 +182,10 @@ function areStringMapsEqual(left: Record<string, string>, right: Record<string, 
 
 function areJsonValuesEqual(left: unknown, right: unknown): boolean {
   return JSON.stringify(left ?? null) === JSON.stringify(right ?? null);
+}
+
+function formatChoiceCount(count: number): string {
+  return count === 1 ? "1 choice" : `${count} choices`;
 }
 
 function addCurrencies(
@@ -846,7 +854,8 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     selectedCurrencies,
     selectedStartingEquipmentChoiceIndex,
     selectedStarterPackSelectionValues,
-    selectedFeats
+    selectedFeats,
+    selectedClassFeatureState
   ] = useWatch({
     control,
     name: [
@@ -869,7 +878,8 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       "currencies",
       "startingEquipmentChoiceIndex",
       "starterPackSelectionValues",
-      "feats"
+      "feats",
+      "classFeatureState"
     ]
   });
   const resolvedName = selectedName ?? initialFormValues.name;
@@ -914,6 +924,10 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   const resolvedFeats = useMemo(
     () => selectedFeats ?? initialFormValues.feats ?? [],
     [initialFormValues.feats, selectedFeats]
+  );
+  const resolvedClassFeatureState = useMemo(
+    () => selectedClassFeatureState ?? initialFormValues.classFeatureState ?? {},
+    [initialFormValues.classFeatureState, selectedClassFeatureState]
   );
   const speciesBodySizeOptions = useMemo(
     () => getSpeciesBodySizeOptions(resolvedSpecies),
@@ -1030,6 +1044,64 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   const selectedHumanOriginFeatEntry = getHumanOriginFeatEntry(
     reconciledHumanOriginFeats,
     selectedHumanOriginFeat
+  );
+  const proficiencyPreviewFeats = useMemo(() => {
+    const backgroundFeat = getBackgroundFeatEntry(resolvedFeats, resolvedBackground);
+    const backgroundReconciledFeats = backgroundFeat
+      ? upsertBackgroundFeatEntry(resolvedFeats, resolvedBackground, backgroundFeat)
+      : resolvedFeats.filter((featEntry) => featEntry.source?.type !== "background");
+
+    return reconcileHumanOriginFeatEntries(
+      backgroundReconciledFeats,
+      resolvedSpecies,
+      normalizedSpeciesChoices,
+      resolvedLevel
+    );
+  }, [
+    normalizedSpeciesChoices,
+    resolvedBackground,
+    resolvedFeats,
+    resolvedLevel,
+    resolvedSpecies
+  ]);
+  const proficiencyPreviewCollections = useMemo(
+    () =>
+      normalizeCharacterProficiencies({
+        className: resolvedClassName,
+        level: resolvedLevel,
+        species: resolvedSpecies,
+        speciesChoices: normalizedSpeciesChoices,
+        background: resolvedBackground,
+        backgroundChoices: resolvedBackgroundChoices,
+        subclassId: resolvedSubclassId,
+        classFeatureState: resolvedClassFeatureState,
+        skillProficiencies: [],
+        savingThrowProficiencies: [],
+        weaponProficiencies: [],
+        armorProficiencies: [],
+        toolProficiencies: [],
+        languageProficiencies: [],
+        selectedClassSkills: resolvedSkills,
+        selectedClassToolProficiencies: resolvedToolSelections,
+        feats: proficiencyPreviewFeats
+      }),
+    [
+      normalizedSpeciesChoices,
+      proficiencyPreviewFeats,
+      resolvedBackground,
+      resolvedBackgroundChoices,
+      resolvedClassFeatureState,
+      resolvedClassName,
+      resolvedLevel,
+      resolvedSkills,
+      resolvedSpecies,
+      resolvedSubclassId,
+      resolvedToolSelections
+    ]
+  );
+  const proficiencyPreviewSections = useMemo(
+    () => getProficiencySummarySections(proficiencyPreviewCollections, resolvedClassName),
+    [proficiencyPreviewCollections, resolvedClassName]
   );
   const availableSkillOptions = starterPack.skillProficiencies;
   const skillSelectionLimit = starterPack.skillProficiencySelectionCount;
@@ -2527,8 +2599,12 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             }
           />
           <CellContainer
-            label="Weapon Masteries"
-            content={starterPack.weaponMasteryCount > 0 ? starterPack.weaponMasteryCount : "None"}
+            label="Weapon Mastery Choices"
+            content={
+              starterPack.weaponMasteryCount > 0
+                ? formatChoiceCount(starterPack.weaponMasteryCount)
+                : "None"
+            }
           />
         </div>
 
@@ -3033,7 +3109,9 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             </fieldset>
 
             <fieldset className={styles.choiceGroup}>
-              <legend>Origin Feat</legend>
+              <legend>
+                Origin Feat · {getFeatLabel(backgroundEntry.originFeat)}
+              </legend>
               {renderBackgroundOriginFeatControls()}
             </fieldset>
 
@@ -3647,6 +3725,24 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     );
   }
 
+  function renderProficiencyPreviewSection() {
+    return (
+      <section className={styles.sectionCard}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <p className={styles.sectionEyebrow}>PREVIEW</p>
+          </div>
+        </div>
+
+        <ProficiencySummaryPills
+          sections={proficiencyPreviewSections}
+          emptyClassName={styles.helperText}
+          emptyText="Choose a class, species, and background to preview proficiencies."
+        />
+      </section>
+    );
+  }
+
   function renderNotesSection() {
     return (
       <section className={styles.sectionCard}>
@@ -3752,6 +3848,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             {renderClassSetupSection()}
             {renderSpeciesSetupSection()}
             {renderBackgroundSetupSection()}
+            {renderProficiencyPreviewSection()}
           </>
         ) : null}
 

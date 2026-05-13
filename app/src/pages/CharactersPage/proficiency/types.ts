@@ -2,6 +2,7 @@ import type {
   ArmorProficiencyEntry,
   CharacterBackgroundChoices,
   CharacterClassFeatureState,
+  CharacterFeatEntry,
   CharacterSpeciesChoices,
   LanguageProficiencyEntry,
   SavingThrowProficiencyEntry,
@@ -79,4 +80,7 @@ export type NormalizeCharacterProficienciesOptions = {
   armorProficiencies?: unknown;
   toolProficiencies?: unknown;
   languageProficiencies?: unknown;
+  selectedClassSkills?: unknown;
+  selectedClassToolProficiencies?: unknown;
+  feats?: CharacterFeatEntry[];
 };

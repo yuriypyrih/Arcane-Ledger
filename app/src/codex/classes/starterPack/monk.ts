@@ -20,7 +20,7 @@ import type { ClassStarterPack } from "./type";
 
 export const monkStarterPack: ClassStarterPack = {
   primaryAbility: "DEX",
-  primaryAbilityLabel: "Dexterity and Wisdom",
+  primaryAbilityLabel: "DEX, WIS",
   hitPointDieLabel: "D8 per Monk level",
   savingThrowProficiencies: [
     SAVING_THROW_PROFICIENCY.STR,

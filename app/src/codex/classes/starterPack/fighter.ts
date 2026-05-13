@@ -15,7 +15,7 @@ import type { ClassStarterPack } from "./type";
 
 export const fighterStarterPack: ClassStarterPack = {
   primaryAbility: "STR",
-  primaryAbilityLabel: "Strength or Dexterity",
+  primaryAbilityLabel: "STR, DEX",
   hitPointDieLabel: "D10 per Fighter level",
   savingThrowProficiencies: [
     SAVING_THROW_PROFICIENCY.STR,

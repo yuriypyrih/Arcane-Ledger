@@ -3,11 +3,6 @@ import { User } from "lucide-react";
 import { useState } from "react";
 import type { Character } from "../../../../types";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
-import { getSelectedSubclassForCharacter } from "../../../../pages/CharactersPage/subclasses";
-import {
-  getBodySizeLabelForCharacter,
-  getSpeciesChoiceSummaryItemsForCharacter
-} from "../../../../pages/CharactersPage/species";
 import { getClassSignatureStyle } from "../../classSignature";
 import CharacterProgressModal from "./CharacterProgressModal";
 import styles from "./CharacterProfileForm.module.css";
@@ -35,7 +30,6 @@ function CharacterProfileForm({
   const [isNotesVisible, setIsNotesVisible] = useState(false);
   const [isProgressModalOpen, setIsProgressModalOpen] = useState(false);
 
-  const selectedSubclass = getSelectedSubclassForCharacter(character);
   const profileCoreStatRows = broadLayout
     ? createBroadProfileCoreStatRows(character)
     : createProfileCoreStatRows(character);
@@ -43,27 +37,7 @@ function CharacterProfileForm({
     character,
     onPersistCharacter
   );
-  const speciesChoiceSummaryItems = getSpeciesChoiceSummaryItemsForCharacter(character);
-  const lineageSummaryItem =
-    speciesChoiceSummaryItems.find(
-      (item) =>
-        item.value !== "Not selected" &&
-        (item.label === "Elven Lineage" ||
-          item.label === "Gnomish Lineage" ||
-          item.label === "Draconic Ancestry" ||
-          item.label === "Giant Ancestry" ||
-          item.label === "Fiendish Legacy")
-    ) ?? null;
-  const speciesWithLineage = lineageSummaryItem?.value
-    ? `${character.species} (${lineageSummaryItem.value})`
-    : character.species;
-  const speciesLine = [speciesWithLineage, getBodySizeLabelForCharacter(character)]
-    .filter(Boolean)
-    .join(" · ");
-  const classLine = selectedSubclass?.name
-    ? `${character.className} (${selectedSubclass.name})`
-    : character.className;
-  const originLine = [character.background, character.alignment].filter(Boolean).join(" · ");
+  const identityLine = [character.species, character.className].filter(Boolean).join(" ");
 
   function openProgressModal() {
     setIsProgressModalOpen(true);
@@ -92,9 +66,7 @@ function CharacterProfileForm({
               </button>
             </div>
             <div className={styles.identityRows}>
-              <p>{speciesLine}</p>
-              <p>{classLine}</p>
-              <p>{originLine}</p>
+              <p>{identityLine}</p>
             </div>
             <InlineToggleButton
               className={styles.notesToggle}

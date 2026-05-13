@@ -13,7 +13,7 @@ import {
   type FeatureMapEntry,
   type SpellEntry
 } from "../../../../codex/entries";
-import { getClassEntries } from "../../../../codex/selectors";
+import { getClassEntries, getSpeciesEntryByName } from "../../../../codex/selectors";
 import { getMonkDeflectAttacksDescription } from "../../../../codex/classes/monk";
 import {
   getBlessedWarriorCantripOptions,
@@ -67,6 +67,7 @@ import FeatList from "./FeatList";
 import FeatReferenceDrawer from "./FeatReferenceDrawer";
 import SpeciesBuildCard from "./SpeciesBuildCard";
 import SpeciesEditorModal from "./SpeciesEditorModal";
+import SpeciesReferenceDrawer from "./SpeciesReferenceDrawer";
 import SubclassEditorModal from "./SubclassEditorModal";
 import {
   createEmptyPendingFeatState,
@@ -198,6 +199,7 @@ function ClassFeaturesAndFeats({
   const [selectedFeatReference, setSelectedFeatReference] = useState<SelectedFeatReference | null>(
     null
   );
+  const [isSpeciesReferenceOpen, setIsSpeciesReferenceOpen] = useState(false);
   const [selectedInvocationReference, setSelectedInvocationReference] =
     useState<WarlockEldritchInvocationOption | null>(null);
   const [selectedSpellReference, setSelectedSpellReference] =
@@ -341,6 +343,8 @@ function ClassFeaturesAndFeats({
   const selectedFeatDefinition = selectedFeatReference
     ? getFeatDefinition(selectedFeatReference.feat)
     : null;
+  const speciesEntry = useMemo(() => getSpeciesEntryByName(character.species), [character.species]);
+  const selectedSpeciesEntry = isSpeciesReferenceOpen ? speciesEntry : null;
   const fightingStyleExtraFeatOptions = useMemo(() => {
     if (
       featEditorContext.mode === "class-feature" &&
@@ -593,6 +597,14 @@ function ClassFeaturesAndFeats({
       feat,
       entry
     });
+  }
+
+  function openSpeciesReference() {
+    if (!speciesEntry) {
+      return;
+    }
+
+    setIsSpeciesReferenceOpen(true);
   }
 
   function openSpellReference(spell: SpellEntry) {
@@ -1711,7 +1723,10 @@ function ClassFeaturesAndFeats({
                   Edit
                 </button>
               </div>
-              <SpeciesBuildCard character={character} />
+              <SpeciesBuildCard
+                character={character}
+                onOpenReference={speciesEntry ? openSpeciesReference : undefined}
+              />
             </section>
 
             <section className={styles.subsection} aria-labelledby="character-feats-title">
@@ -1928,6 +1943,18 @@ function ClassFeaturesAndFeats({
           onClose={closeEldritchInvocationEditor}
           onOpenInvocationReference={openInvocationReference}
           renderTrackingButton={renderTrackingButton}
+        />
+      ) : null}
+
+      {selectedSpeciesEntry ? (
+        <SpeciesReferenceDrawer
+          speciesEntry={selectedSpeciesEntry}
+          onClose={() => setIsSpeciesReferenceOpen(false)}
+          renderTrackingButton={renderTrackingButton}
+          onOpenKeyword={openKeyword}
+          onOpenFeatReference={openFeatReference}
+          onOpenSpellReference={openSpellReference}
+          onOpenDivinityReference={openDivinityReference}
         />
       ) : null}
 

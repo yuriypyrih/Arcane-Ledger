@@ -9,6 +9,7 @@ import type {
 } from "../../../types";
 import { PROFICIENCY_OVERRIDE_POLICY, PROF_LEVEL } from "../../../types";
 import { isLanguageProficiency } from "../proficiencyOptions";
+import { recomputeFeatGrantedProficiencies } from "../feats/proficiencyGrants";
 import { getAutomaticProficiencyCollectionsForCharacter } from "./automatic";
 import {
   createLanguageEntry,
@@ -94,6 +95,12 @@ function normalizeLanguageProficiencyEntries(value: unknown): LanguageProficienc
   );
 }
 
+function normalizeSelectedStringArray(value: unknown): string[] {
+  return Array.isArray(value)
+    ? [...new Set(value.filter((entry): entry is string => typeof entry === "string"))]
+    : [];
+}
+
 export function normalizeCharacterProficiencies(
   options: NormalizeCharacterProficienciesOptions
 ): CharacterProficiencyCollections {
@@ -122,16 +129,22 @@ export function normalizeCharacterProficiencies(
       skillProficiencies: normalizedStoredSkillEntries,
       savingThrowProficiencies: normalizedStoredSavingThrowEntries,
       selectedClassSkills: [
-        ...getSelectedClassSkillSelectionsFromEntries(
-          normalizedStoredSkillEntries,
-          options.className
-        )
+        ...new Set([
+          ...getSelectedClassSkillSelectionsFromEntries(
+            normalizedStoredSkillEntries,
+            options.className
+          ),
+          ...normalizeSelectedStringArray(options.selectedClassSkills)
+        ])
       ],
       selectedClassToolProficiencies: [
-        ...getSelectedClassToolSelectionsFromEntries(
-          normalizedStoredToolEntries,
-          options.className
-        )
+        ...new Set([
+          ...getSelectedClassToolSelectionsFromEntries(
+            normalizedStoredToolEntries,
+            options.className
+          ),
+          ...normalizeSelectedStringArray(options.selectedClassToolProficiencies)
+        ])
       ]
     }
   );
@@ -166,7 +179,7 @@ export function normalizeCharacterProficiencies(
     ...automaticCollections.languageProficiencies
   ]);
 
-  return {
+  const normalizedCollections = {
     skillProficiencies: normalizedSkillEntries,
     savingThrowProficiencies: normalizedSavingThrowEntries,
     weaponProficiencies: normalizedWeaponEntries,
@@ -174,4 +187,8 @@ export function normalizeCharacterProficiencies(
     toolProficiencies: normalizedToolEntries,
     languageProficiencies: normalizedLanguageEntries
   };
+
+  return options.feats
+    ? recomputeFeatGrantedProficiencies(normalizedCollections, options.feats)
+    : normalizedCollections;
 }

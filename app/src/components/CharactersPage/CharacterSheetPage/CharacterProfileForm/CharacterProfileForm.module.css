@@ -35,7 +35,9 @@
 
 .profileShell {
   display: grid;
-  grid-template-columns: clamp(96px, 8.8vw, 120px) minmax(0, 1fr) minmax(600px, 600px);
+  grid-template-columns:
+    clamp(96px, 8.8vw, 120px) minmax(0, 1fr)
+    minmax(320px, clamp(360px, 56vw, 600px));
   align-items: stretch;
   gap: 0.72rem;
   min-width: 0;
@@ -221,18 +223,6 @@
 .notesRow strong {
   font-weight: 500;
   white-space: pre-wrap;
-}
-
-@media (max-width: 1199px) {
-  .profileShell {
-    grid-template-columns: clamp(94px, 15vw, 118px) minmax(0, 1fr);
-    row-gap: 0.54rem;
-  }
-
-  .profileSummary {
-    grid-column: 1 / -1;
-    justify-self: stretch;
-  }
 }
 
 @media (max-width: 599px) {

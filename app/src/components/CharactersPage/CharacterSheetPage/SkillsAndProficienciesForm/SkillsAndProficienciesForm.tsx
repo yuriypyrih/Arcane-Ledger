@@ -6,41 +6,26 @@ import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import type { Character } from "../../../../types";
 import { getKeywordDescription } from "../../../../pages/CharactersPage/keywordDescriptions";
 import type { FeatureIndicator } from "../../../../pages/CharactersPage/classFeatures";
-import {
-  getDisplayArmorProficiencyEntries,
-  getDisplayLanguageProficiencyEntries,
-  getDisplaySavingThrowProficiencyEntries,
-  getDisplaySkillProficiencyEntries,
-  getDisplayToolProficiencyEntries,
-  getDisplayWeaponProficiencyEntries,
-  getProficiencyKeyword,
-  getProficiencyLabel,
-  isWeaponMasteryProficiency,
-  type ProficiencyDisplayEntry
-} from "../../../../pages/CharactersPage/proficiency";
+import { getProficiencyKeyword } from "../../../../pages/CharactersPage/proficiency";
 import { formatD20Formula } from "../../../../pages/CharactersPage/shared";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { getRollModeFromIndicators } from "../../../RollStatePill/rollState";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
-import SheetSurface from "../SheetSurface";
 import ProficiencyEditorModal, { type ProficiencyEditorTab } from "./ProficiencyEditorModal";
+import ProficiencySummaryPills from "./ProficiencySummaryPills";
 import SkillEditorModal from "./SkillEditorModal";
 import SkillRowsGrid from "./SkillRowsGrid";
 import SkillReferenceDrawer, {
   type SelectedSkillReference,
   type SkillReferenceDetailCard
 } from "./SkillReferenceDrawer";
+import { getProficiencySummarySections } from "./proficiencySummarySections";
 import styles from "./SkillsAndProficienciesForm.module.css";
 
 type SkillsAndProficienciesFormProps = {
   character: Character;
   className?: string;
   onPersistCharacter: PersistCharacterUpdater;
-};
-
-type ProficiencyCategorySection = {
-  title: string;
-  entries: ProficiencyDisplayEntry[];
 };
 
 function SkillsAndProficienciesForm({
@@ -64,51 +49,16 @@ function SkillsAndProficienciesForm({
       isSkillReferenceDiceRollerSettingsOpen
   );
 
-  const displayedWeaponProficiencyEntries = getDisplayWeaponProficiencyEntries(
-    character.weaponProficiencies,
+  const visibleProficiencySections = getProficiencySummarySections(
+    {
+      skillProficiencies: character.skillProficiencies,
+      savingThrowProficiencies: character.savingThrowProficiencies,
+      weaponProficiencies: character.weaponProficiencies,
+      armorProficiencies: character.armorProficiencies,
+      toolProficiencies: character.toolProficiencies,
+      languageProficiencies: character.languageProficiencies
+    },
     character.className
-  );
-  const displayedLanguageProficiencyEntries = getDisplayLanguageProficiencyEntries(
-    character.languageProficiencies
-  );
-
-  const proficiencyCategorySections: ProficiencyCategorySection[] = [
-    {
-      title: "Skill Proficiencies",
-      entries: getDisplaySkillProficiencyEntries(character.skillProficiencies)
-    },
-    {
-      title: "Saving Throws",
-      entries: getDisplaySavingThrowProficiencyEntries(character.savingThrowProficiencies)
-    },
-    {
-      title: "Weapon Proficiencies",
-      entries: displayedWeaponProficiencyEntries.filter(
-        (entry) => !isWeaponMasteryProficiency(entry.proficiency)
-      )
-    },
-    {
-      title: "Weapon Masteries",
-      entries: displayedWeaponProficiencyEntries.filter((entry) =>
-        isWeaponMasteryProficiency(entry.proficiency)
-      )
-    },
-    {
-      title: "Armor Training",
-      entries: getDisplayArmorProficiencyEntries(character.armorProficiencies)
-    },
-    {
-      title: "Tool Proficiencies",
-      entries: getDisplayToolProficiencyEntries(character.toolProficiencies)
-    },
-    {
-      title: "Languages",
-      entries: displayedLanguageProficiencyEntries
-    }
-  ];
-
-  const visibleProficiencySections = proficiencyCategorySections.filter(
-    (section) => section.entries.length > 0
   );
 
   function openProficiencyEditor(tab: ProficiencyEditorTab = "weapons") {
@@ -179,46 +129,6 @@ function SkillsAndProficienciesForm({
     });
   }
 
-  function renderProficiencyPills(section: ProficiencyCategorySection) {
-    return (
-      <div key={section.title} className={styles.proficiencySubsection}>
-        <p className={styles.skillGroupSubtitle}>{section.title}</p>
-        <ul className={styles.proficiencyPillGrid}>
-          {section.entries.map((entry) => {
-            const label = getProficiencyLabel(entry.proficiency);
-            const keyword = getProficiencyKeyword(entry.proficiency);
-
-            return (
-              <SheetSurface
-                as="li"
-                key={`${section.title}:${entry.proficiency}:${entry.sourceLabels.join("|")}:${entry.proficiencyLevel}`}
-                borderSize="md"
-                hoverBorder
-                className={styles.proficiencyPill}
-              >
-                <button
-                  type="button"
-                  className={styles.proficiencyPillButton}
-                  onClick={() =>
-                    openKeywordReference(keyword, undefined, [
-                      {
-                        label: "Source",
-                        value: formatReferenceSourceLabel(entry.sourceLabels, "Manual")
-                      }
-                    ])
-                  }
-                >
-                  <span>{label}</span>
-                  <small>{entry.sourceLabels.join(", ")}</small>
-                </button>
-              </SheetSurface>
-            );
-          })}
-        </ul>
-      </div>
-    );
-  }
-
   return (
     <article className={clsx(shared.sectionCard, className)}>
       <div className={shared.sectionHeader}>
@@ -263,11 +173,18 @@ function SkillsAndProficienciesForm({
               Edit
             </button>
           </div>
-          {visibleProficiencySections.length === 0 ? (
-            <p className={shared.emptyText}>No proficiencies assigned</p>
-          ) : (
-            visibleProficiencySections.map((section) => renderProficiencyPills(section))
-          )}
+          <ProficiencySummaryPills
+            sections={visibleProficiencySections}
+            emptyClassName={shared.emptyText}
+            onEntryClick={(entry) =>
+              openKeywordReference(getProficiencyKeyword(entry.proficiency), undefined, [
+                {
+                  label: "Source",
+                  value: formatReferenceSourceLabel(entry.sourceLabels, "Manual")
+                }
+              ])
+            }
+          />
         </div>
       </div>
 

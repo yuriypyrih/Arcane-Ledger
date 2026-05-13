@@ -249,7 +249,8 @@ function normalizeProficiencyRuntime(character: Character): Character {
     weaponProficiencies: character.weaponProficiencies,
     armorProficiencies: character.armorProficiencies,
     toolProficiencies: character.toolProficiencies,
-    languageProficiencies: character.languageProficiencies
+    languageProficiencies: character.languageProficiencies,
+    feats: character.feats ?? []
   });
 
   return {

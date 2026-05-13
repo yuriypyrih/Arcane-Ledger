@@ -15,7 +15,7 @@ import type { ClassStarterPack } from "./type";
 
 export const paladinStarterPack: ClassStarterPack = {
   primaryAbility: "STR",
-  primaryAbilityLabel: "Strength and Charisma",
+  primaryAbilityLabel: "STR, CHA",
   hitPointDieLabel: "D10 per Paladin level",
   savingThrowProficiencies: [
     SAVING_THROW_PROFICIENCY.WIS,

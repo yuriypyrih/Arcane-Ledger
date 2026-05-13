@@ -283,7 +283,8 @@ function ClassFeatureList({
         weaponProficiencies: nextCharacter.weaponProficiencies,
         armorProficiencies: nextCharacter.armorProficiencies,
         toolProficiencies: nextCharacter.toolProficiencies,
-        languageProficiencies: nextCharacter.languageProficiencies
+        languageProficiencies: nextCharacter.languageProficiencies,
+        feats: nextCharacter.feats ?? []
       })
     };
   }

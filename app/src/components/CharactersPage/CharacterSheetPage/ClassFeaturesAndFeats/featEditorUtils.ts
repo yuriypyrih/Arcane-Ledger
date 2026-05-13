@@ -2192,38 +2192,6 @@ export function getPendingSkilledChoiceSummary(choice: PendingSkilledChoice): st
   return getSkilledChoiceSummary(decodePendingSkilledChoice(choice) ?? undefined);
 }
 
-export function splitSkilledSelections(choice?: SkilledChoice): {
-  skills: SkillName[];
-  tools: ToolProficiency[];
-} {
-  return (choice?.selections ?? []).reduce<{
-    skills: SkillName[];
-    tools: ToolProficiency[];
-  }>(
-    (result, selection) => {
-      if (selection.kind === "skill") {
-        result.skills.push(selection.skill);
-      } else {
-        result.tools.push(selection.tool);
-      }
-
-      return result;
-    },
-    {
-      skills: [],
-      tools: []
-    }
-  );
-}
-
-export function getCrafterToolSelections(choice?: CrafterChoice): ToolProficiency[] {
-  return choice?.toolProficiencies ? [...choice.toolProficiencies] : [];
-}
-
-export function getMusicianToolSelections(choice?: MusicianChoice): ToolProficiency[] {
-  return choice?.toolProficiencies ? [...choice.toolProficiencies] : [];
-}
-
 export function groupFeatEntriesByFeat(feats: CharacterFeatEntry[]): Array<{
   feat: FEATS;
   entries: CharacterFeatEntry[];

@@ -15,7 +15,7 @@ import type { ClassStarterPack } from "./type";
 
 export const rangerStarterPack: ClassStarterPack = {
   primaryAbility: "DEX",
-  primaryAbilityLabel: "Dexterity and Wisdom",
+  primaryAbilityLabel: "DEX, WIS",
   hitPointDieLabel: "D10 per Ranger level",
   savingThrowProficiencies: [
     SAVING_THROW_PROFICIENCY.STR,

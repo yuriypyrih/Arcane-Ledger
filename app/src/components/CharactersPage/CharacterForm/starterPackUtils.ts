@@ -58,7 +58,7 @@ function mapArmorTrainingTypesToLabels(armorTypes: ArmorType[]): string[] {
 }
 
 function formatAbilityKeyLabel(value: string | null): string | null {
-  return value ? formatCodexLabel(value) : null;
+  return value;
 }
 
 export function getResolvedStarterPack(className: string): ResolvedStarterPack {
@@ -93,8 +93,7 @@ export function getResolvedStarterPack(className: string): ResolvedStarterPack {
         formatCodexLabel(entry)
       ),
       weaponMasteryCount:
-        configuredStarterPack.weaponMasteryCount ??
-        getLevelOneWeaponMasteryCountForClass(className),
+        configuredStarterPack.weaponMasteryCount ?? getLevelOneWeaponMasteryCountForClass(className),
       startingEquipment: configuredStarterPack.startingEquipment,
       startingEquipmentSelections: configuredStarterPack.startingEquipmentSelections ?? [],
       recommendedStartingEquipmentIndex: configuredStarterPack.recommendedStartingEquipmentIndex,

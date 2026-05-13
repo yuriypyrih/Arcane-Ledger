@@ -178,6 +178,7 @@ export function normalizeCharacter(value: unknown): Character | null {
     spellbookSpellIds?: unknown;
     cantripIds?: unknown;
     preparedSpellIds?: unknown;
+    skills?: unknown;
     skillProficiencies?: unknown;
     weaponProficiencies?: unknown;
     armorProficiencies?: unknown;
@@ -325,7 +326,10 @@ export function normalizeCharacter(value: unknown): Character | null {
     weaponProficiencies: record.weaponProficiencies,
     armorProficiencies: record.armorProficiencies,
     toolProficiencies: record.toolProficiencies,
-    languageProficiencies: record.languageProficiencies
+    languageProficiencies: record.languageProficiencies,
+    selectedClassSkills: record.skills,
+    selectedClassToolProficiencies: record.toolProficiencies,
+    feats: normalizedFeats
   });
   const normalizedStatusEntries = normalizeSpeciesStatusEntriesForCharacter({
     species: normalizedSpecies,
