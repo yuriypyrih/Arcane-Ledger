@@ -51,6 +51,7 @@ function CoreStatCards({
 }: CoreStatCardsProps) {
   function renderCard(card: CoreStatCard, floatingRollState = false) {
     const rollState = resolveFeatureIndicators(card.indicators);
+    const isArmorClassProfileCard = profileTexture && card.key === "armorClass";
 
     return (
       <SheetSurface
@@ -60,10 +61,13 @@ function CoreStatCards({
         borderSize={compact ? "lg" : "xl"}
         hasBorder={profileTexture}
         hoverBorder
-        textureIcon={profileTexture ? getProfileStatTextureIcon(card) : undefined}
+        textureIcon={
+          profileTexture && !isArmorClassProfileCard ? getProfileStatTextureIcon(card) : undefined
+        }
         className={clsx(
           styles.card,
           styles.button,
+          isArmorClassProfileCard && styles.armorClassCard,
           compact && styles.compactCard,
           floatingRollState && styles.floatingStateCard
         )}
@@ -75,8 +79,20 @@ function CoreStatCards({
             <RollStatePill tone={rollState.tone} label={rollState.label} />
           ) : null}
         </div>
-        <strong className={styles.valueRow}>
-          <span>{card.value}</span>
+        <strong
+          className={clsx(
+            styles.valueRow,
+            isArmorClassProfileCard && styles.armorClassValueRow
+          )}
+        >
+          {isArmorClassProfileCard ? (
+            <span className={styles.armorClassShieldBadge}>
+              <Shield className={styles.armorClassShield} strokeWidth={1.55} aria-hidden />
+              <span className={styles.armorClassShieldValue}>{card.value}</span>
+            </span>
+          ) : (
+            <span>{card.value}</span>
+          )}
           {card.showBoostIcon ? (
             <ChevronsUp size={compact ? 16 : 18} className={styles.valueIcon} aria-hidden />
           ) : null}
