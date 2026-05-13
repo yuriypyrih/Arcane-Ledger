@@ -431,3 +431,26 @@
   object-fit: contain;
   width: 14px;
 }
+
+@media (max-width: 599px) {
+  .button {
+    gap: 0.24rem;
+    padding: 0.58rem 0.62rem;
+  }
+
+  .button strong {
+    font-size: 0.9rem;
+  }
+
+  .button span {
+    font-size: 0.78rem;
+  }
+
+  .button small {
+    font-size: 0.73rem;
+  }
+
+  .actionCard {
+    padding-top: 0.84rem;
+  }
+}

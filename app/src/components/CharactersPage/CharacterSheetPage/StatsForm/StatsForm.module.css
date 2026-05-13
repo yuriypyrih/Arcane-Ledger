@@ -442,6 +442,10 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
+  .abilitySavingThrowGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .coreStatGridWide > * {
     grid-column: auto;
   }

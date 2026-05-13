@@ -225,6 +225,20 @@
   white-space: pre-wrap;
 }
 
+@media (max-width: 899px) {
+  .profileShell {
+    grid-template-columns: clamp(96px, 16vw, 120px) minmax(0, 1fr);
+  }
+
+  .profileSummary {
+    grid-column: 1 / -1;
+    border-top: 1px solid rgba(75, 47, 29, 0.12);
+    border-left: 0;
+    padding-top: 0.72rem;
+    padding-left: 0;
+  }
+}
+
 @media (max-width: 599px) {
   .profileCard {
     border-radius: var(--radius-control-lg);
@@ -232,14 +246,20 @@
   }
 
   .profileShell {
-    grid-template-columns: clamp(92px, 26vw, 112px) minmax(0, 1fr);
+    grid-template-columns: 1fr;
     gap: 0.62rem;
   }
 
   .portraitFrame {
+    width: 74px;
     margin-top: -0.76rem;
     margin-left: -0.88rem;
     border-radius: var(--radius-control);
+  }
+
+  .characterName,
+  .identityRows p {
+    white-space: normal;
   }
 
   .identityRows {
@@ -249,6 +269,8 @@
   .profileSummary {
     grid-column: 1 / -1;
     justify-self: stretch;
+    border-top: 0;
+    padding-top: 0;
     padding-left: 0;
     border-left: 0;
   }
@@ -256,25 +278,6 @@
   .notesPanel {
     margin-right: 0.58rem;
     margin-left: 0;
-  }
-}
-
-@media (max-width: 599px) {
-  .profileShell {
-    grid-template-columns: 1fr;
-  }
-
-  .portraitFrame {
-    width: 74px;
-  }
-
-  .characterName,
-  .identityRows p {
-    white-space: normal;
-  }
-
-  .profileSummary {
-    justify-self: stretch;
   }
 
   .nameStack {

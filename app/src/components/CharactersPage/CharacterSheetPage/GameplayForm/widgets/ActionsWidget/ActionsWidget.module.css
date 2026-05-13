@@ -32,6 +32,12 @@
   width: auto;
 }
 
+@media (max-width: 599px) {
+  .grid > * {
+    min-width: min(100%, 160px);
+  }
+}
+
 .weaponDrawerBody {
   display: grid;
   gap: 1rem;
