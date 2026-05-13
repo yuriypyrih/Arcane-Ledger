@@ -1,10 +1,12 @@
 import clsx from "clsx";
-import { User } from "lucide-react";
 import { useState } from "react";
 import type { Character } from "../../../../types";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { getClassSignatureStyle } from "../../classSignature";
+import CharacterNotesDrawer from "./CharacterNotesDrawer";
 import CharacterProgressModal from "./CharacterProgressModal";
+import CharacterPortraitButton from "./CharacterPortraitButton";
+import CharacterPortraitModal from "./CharacterPortraitModal";
 import styles from "./CharacterProfileForm.module.css";
 import InlineToggleButton from "../InlineToggleButton";
 import {
@@ -14,6 +16,7 @@ import {
 } from "../StatsForm/coreStatModel";
 import { useCoreStatReferenceDrawer } from "../StatsForm/useCoreStatReferenceDrawer";
 import CoreStatCards from "../StatsForm/CoreStatCards";
+import useCharacterPortrait from "./useCharacterPortrait";
 
 type CharacterProfileFormProps = {
   broadLayout?: boolean;
@@ -28,8 +31,10 @@ function CharacterProfileForm({
   className,
   onPersistCharacter
 }: CharacterProfileFormProps) {
-  const [isNotesVisible, setIsNotesVisible] = useState(false);
+  const [isNotesDrawerOpen, setIsNotesDrawerOpen] = useState(false);
   const [isProgressModalOpen, setIsProgressModalOpen] = useState(false);
+  const [isPortraitModalOpen, setIsPortraitModalOpen] = useState(false);
+  const characterPortrait = useCharacterPortrait(character.id);
 
   const profileCoreStatRows = broadLayout
     ? createBroadProfileCoreStatRows(character)
@@ -49,6 +54,23 @@ function CharacterProfileForm({
     setIsProgressModalOpen(false);
   }
 
+  function openNotesDrawer() {
+    setIsNotesDrawerOpen(true);
+  }
+
+  function closeNotesDrawer() {
+    setIsNotesDrawerOpen(false);
+  }
+
+  function openPortraitModal() {
+    setIsPortraitModalOpen(true);
+  }
+
+  function closePortraitModal() {
+    setIsPortraitModalOpen(false);
+    characterPortrait.clearError();
+  }
+
   return (
     <>
       <article
@@ -56,9 +78,12 @@ function CharacterProfileForm({
         style={getClassSignatureStyle(character.className)}
       >
         <div className={clsx(styles.profileShell, broadLayout && styles.profileShellBroad)}>
-          <div className={styles.portraitFrame} aria-label="Character portrait placeholder">
-            <User size={42} strokeWidth={1.8} aria-hidden="true" />
-          </div>
+          <CharacterPortraitButton
+            characterName={character.name}
+            isLoading={characterPortrait.isLoading}
+            onClick={openPortraitModal}
+            portraitUrl={characterPortrait.portraitUrl}
+          />
 
           <div className={styles.identityBlock}>
             <div className={styles.nameStack}>
@@ -69,12 +94,13 @@ function CharacterProfileForm({
             </div>
             <div className={styles.identityRows}>
               <p>{identityLine}</p>
+              <p>{character.alignment}</p>
             </div>
             <InlineToggleButton
               className={styles.notesToggle}
-              label={isNotesVisible ? "Hide Character Notes" : "Show Character Notes"}
-              expanded={isNotesVisible}
-              onClick={() => setIsNotesVisible((current) => !current)}
+              label="Show Character Notes"
+              expanded={isNotesDrawerOpen}
+              onClick={openNotesDrawer}
             />
           </div>
 
@@ -91,21 +117,32 @@ function CharacterProfileForm({
             />
           </aside>
         </div>
-
-        {isNotesVisible ? (
-          <div className={styles.notesPanel}>
-            <p className={styles.notesRow}>
-              <span>Character Notes</span>
-              <strong>{character.backgroundNotes || "-"}</strong>
-            </p>
-          </div>
-        ) : null}
       </article>
+      {isNotesDrawerOpen ? (
+        <CharacterNotesDrawer
+          character={character}
+          onClose={closeNotesDrawer}
+          onPersistCharacter={onPersistCharacter}
+        />
+      ) : null}
       {isProgressModalOpen ? (
         <CharacterProgressModal
           character={character}
           onClose={closeProgressModal}
           onPersistCharacter={onPersistCharacter}
+        />
+      ) : null}
+      {isPortraitModalOpen ? (
+        <CharacterPortraitModal
+          characterName={character.name}
+          errorMessage={characterPortrait.errorMessage}
+          hasCustomPortrait={characterPortrait.hasCustomPortrait}
+          isSaving={characterPortrait.isSaving}
+          onClearError={characterPortrait.clearError}
+          onClose={closePortraitModal}
+          onReset={characterPortrait.resetPortrait}
+          onUpload={characterPortrait.savePortraitFile}
+          portraitUrl={characterPortrait.portraitUrl}
         />
       ) : null}
       {coreStatReferenceDrawer}

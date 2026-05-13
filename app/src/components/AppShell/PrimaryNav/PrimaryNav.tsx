@@ -27,7 +27,6 @@ function PrimaryNav({
           end
           aria-label="Arcane Ledger home"
         >
-          <img src="/icons/icon-192.png" alt="" className={styles.brandIcon} />
           <span>Arcane Ledger</span>
         </NavLink>
         <div className={styles.linkGroup}>

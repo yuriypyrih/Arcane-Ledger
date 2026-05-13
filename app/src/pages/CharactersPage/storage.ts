@@ -64,6 +64,7 @@ import {
   getEffectiveHitPointMaximumForCharacter,
   reconcileCharacterStatusConsequences
 } from "./traits";
+import { deleteCharacterPortrait } from "./characterPortraits/storage";
 
 function normalizeCoreStatValue(value: unknown, fallback: string): string {
   if (typeof value !== "string") {
@@ -645,6 +646,7 @@ export function deleteCharacter(characterId: number): Character[] {
 
   if (nextCharacters.length !== characters.length) {
     saveStoredCharacterRecords(nextCharacters);
+    void deleteCharacterPortrait(characterId).catch(() => undefined);
   }
 
   return nextCharacters

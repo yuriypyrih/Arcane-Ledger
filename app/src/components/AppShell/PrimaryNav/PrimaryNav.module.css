@@ -39,12 +39,16 @@
   border-radius: var(--radius-pill);
   background: transparent;
   color: rgba(255, 244, 225, 0.82);
+  cursor: pointer;
   min-height: 34px;
   text-decoration: none;
   transition:
     border-color 140ms ease,
     background 140ms ease,
-    color 140ms ease;
+    box-shadow 140ms ease,
+    color 140ms ease,
+    filter 140ms ease,
+    text-shadow 140ms ease;
 }
 
 .brandLink {
@@ -57,21 +61,28 @@
   white-space: nowrap;
 }
 
-.brandIcon {
-  display: block;
-  flex: 0 0 auto;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
 .navLink {
   gap: 0.32rem;
   font-size: 0.86rem;
   line-height: 1;
   padding: 0 0.58rem;
   white-space: nowrap;
+}
+
+.brandLink > span,
+.navLink > span {
+  position: relative;
+  display: inline-block;
+  padding-bottom: 3px;
+  margin-bottom: -3px;
+}
+
+.broadLayoutLabel {
+  position: relative;
+}
+
+.navLink svg {
+  transition: filter 140ms ease;
 }
 
 .broadLayoutSwitch {
@@ -85,15 +96,25 @@
 
 .broadLayoutSwitch:hover,
 .broadLayoutSwitch:focus-visible {
-  background: rgba(255, 198, 112, 0.14);
-  border-color: rgba(255, 218, 164, 0.2);
-  color: #fff8ee;
+  background: transparent;
+  border-color: transparent;
+  color: #f6fbff;
+  box-shadow: none;
+  text-shadow:
+    0 0 2px rgba(255, 255, 246, 0.42),
+    0 0 8px rgba(93, 181, 255, 0.4),
+    0 0 16px rgba(0, 110, 255, 0.2);
 }
 
 .broadLayoutSwitchActive {
-  background: rgba(196, 81, 43, 0.34);
-  border-color: rgba(255, 205, 128, 0.32);
-  color: #fff8ee;
+  background: transparent;
+  border-color: transparent;
+  color: #f7fcff;
+  box-shadow: none;
+  text-shadow:
+    0 0 2px rgba(255, 255, 246, 0.5),
+    0 0 8px rgba(112, 197, 255, 0.56),
+    0 0 16px rgba(24, 123, 255, 0.34);
 }
 
 .broadLayoutLabel {
@@ -128,27 +149,99 @@
 }
 
 .broadLayoutSwitchActive .switchTrack {
-  border-color: rgba(255, 205, 128, 0.48);
-  background: rgba(162, 77, 45, 0.66);
+  border-color: rgba(139, 210, 255, 0.54);
+  background: rgba(13, 62, 118, 0.58);
+  box-shadow: 0 0 8px rgba(22, 119, 255, 0.26);
 }
 
 .broadLayoutSwitchActive .switchThumb {
-  background: #fff8ee;
+  background: #fafdff;
+  box-shadow:
+    0 0 3px rgba(255, 255, 255, 0.54),
+    0 0 8px rgba(64, 158, 255, 0.4);
   transform: translateX(14px);
 }
 
 .brandLink:hover,
 .navLink:hover {
-  background: rgba(255, 198, 112, 0.14);
-  border-color: rgba(255, 218, 164, 0.2);
-  color: #fff8ee;
+  background: transparent;
+  border-color: transparent;
+  color: #f6fbff;
+  box-shadow: none;
+  text-shadow:
+    0 0 2px rgba(255, 255, 246, 0.42),
+    0 0 8px rgba(93, 181, 255, 0.4),
+    0 0 16px rgba(0, 110, 255, 0.2);
+}
+
+.navLink:hover svg {
+  filter:
+    drop-shadow(0 0 3px rgba(255, 255, 246, 0.32))
+    drop-shadow(0 0 8px rgba(72, 162, 255, 0.36));
 }
 
 .navLinkActive {
-  background: rgba(196, 81, 43, 0.34);
-  border-color: rgba(255, 205, 128, 0.32);
-  color: #fff8ee;
-  box-shadow: 0 0 0 1px rgba(255, 244, 225, 0.04) inset;
+  background: transparent;
+  border-color: transparent;
+  color: #f8fcff;
+  box-shadow: none;
+  text-shadow:
+    0 0 2px rgba(255, 255, 246, 0.56),
+    0 0 8px rgba(118, 204, 255, 0.66),
+    0 0 16px rgba(30, 132, 255, 0.46),
+    0 0 24px rgba(0, 74, 255, 0.28);
+}
+
+.brandLink.navLinkActive:hover,
+.navLink.navLinkActive:hover {
+  color: #f8fcff;
+  text-shadow:
+    0 0 2px rgba(255, 255, 246, 0.56),
+    0 0 8px rgba(118, 204, 255, 0.66),
+    0 0 16px rgba(30, 132, 255, 0.46),
+    0 0 24px rgba(0, 74, 255, 0.28);
+}
+
+.navLinkActive > span::after {
+  content: "";
+  position: absolute;
+  right: 0.05rem;
+  bottom: 0;
+  left: 0.05rem;
+  height: 1px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(
+    90deg,
+    rgba(44, 145, 255, 0),
+    rgba(109, 206, 255, 0.76) 22%,
+    rgba(255, 255, 246, 0.96) 52%,
+    rgba(44, 145, 255, 0.82) 78%,
+    rgba(44, 145, 255, 0)
+  );
+  box-shadow:
+    0 0 4px rgba(255, 255, 246, 0.42),
+    0 0 8px rgba(55, 166, 255, 0.64),
+    0 0 12px rgba(0, 95, 255, 0.34);
+}
+
+.navLinkActive svg,
+.navLink.navLinkActive:hover svg {
+  filter:
+    drop-shadow(0 0 3px rgba(255, 255, 246, 0.4))
+    drop-shadow(0 0 8px rgba(88, 181, 255, 0.62))
+    drop-shadow(0 0 12px rgba(0, 96, 255, 0.32));
+}
+
+.broadLayoutSwitchActive:hover,
+.broadLayoutSwitchActive:focus-visible {
+  background: transparent;
+  border-color: transparent;
+  color: #f7fcff;
+  box-shadow: none;
+  text-shadow:
+    0 0 2px rgba(255, 255, 246, 0.5),
+    0 0 8px rgba(112, 197, 255, 0.56),
+    0 0 16px rgba(24, 123, 255, 0.34);
 }
 
 .menuButton {

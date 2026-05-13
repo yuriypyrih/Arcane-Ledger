@@ -1,6 +1,8 @@
 import { Download, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { Character } from "../../../types";
+import useCharacterPortraitUrl from "../../../pages/CharactersPage/characterPortraits/useCharacterPortraitUrl";
+import { DefaultCharacterPortraitIcon } from "../CharacterPortrait";
 import { getClassSignatureStyle } from "../classSignature";
 import styles from "./CharacterRow.module.css";
 
@@ -12,6 +14,7 @@ type CharacterRowProps = {
 
 function CharacterRow({ character, onDownload, onDelete }: CharacterRowProps) {
   const hasActions = Boolean(onDownload || onDelete);
+  const { isLoading, portraitUrl } = useCharacterPortraitUrl(character.id);
 
   return (
     <article className={styles.row} style={getClassSignatureStyle(character.className)}>
@@ -20,7 +23,13 @@ function CharacterRow({ character, onDownload, onDelete }: CharacterRowProps) {
         className={styles.rowLink}
         aria-label={`View ${character.name}`}
       />
-      <span className={styles.characterMark} aria-hidden="true" />
+      <span className={styles.characterPortrait} aria-busy={isLoading || undefined}>
+        {portraitUrl ? (
+          <img src={portraitUrl} alt="" className={styles.characterPortraitImage} />
+        ) : (
+          <DefaultCharacterPortraitIcon className={styles.characterPortraitDefaultIcon} />
+        )}
+      </span>
       <span className={styles.characterMain}>
         <strong>{character.name}</strong>
         <span>

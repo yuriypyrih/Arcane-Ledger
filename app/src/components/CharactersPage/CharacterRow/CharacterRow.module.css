@@ -4,7 +4,7 @@
   align-items: center;
   gap: 0.7rem;
   grid-template-columns: auto minmax(0, 1fr) auto;
-  min-height: 54px;
+  min-height: 64px;
   border: 1px solid rgba(75, 47, 29, 0.1);
   border-radius: var(--radius-card-large);
   background: var(--class-signature-gradient), rgba(255, 250, 241, 0.78);
@@ -38,24 +38,47 @@
   outline: none;
 }
 
-.characterMark,
+.characterPortrait,
 .characterMain,
 .characterSide {
   position: relative;
   z-index: 2;
 }
 
-.characterMark,
+.characterPortrait,
 .characterMain,
 .characterMeta {
   pointer-events: none;
 }
 
-.characterMark {
-  width: 0.42rem;
-  height: 2rem;
-  border-radius: var(--radius-pill);
-  background: var(--color-accent);
+.characterPortrait {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border: 1px solid rgba(75, 47, 29, 0.48);
+  border-radius: var(--radius-control);
+  background: linear-gradient(150deg, #6f4629 0%, #3c2518 48%, #160f0d 100%);
+  box-shadow:
+    0 0 0 1px rgba(255, 246, 226, 0.42),
+    inset 0 0 0 1px rgba(255, 246, 226, 0.12);
+}
+
+.characterPortraitImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.characterPortraitDefaultIcon {
+  display: block;
+  width: 72%;
+  aspect-ratio: 1;
+  background: rgba(255, 246, 226, 0.92);
+  mask: var(--character-portrait-default-image) center / contain no-repeat;
+  -webkit-mask: var(--character-portrait-default-image) center / contain no-repeat;
 }
 
 .characterMain {
@@ -127,6 +150,10 @@
   .row {
     align-items: start;
     grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .characterPortrait {
+    width: 40px;
   }
 
   .characterSide {
