@@ -70,7 +70,7 @@ const explicitActionCardThemeByKey: Record<string, ACTION_CARD_THEME> = {
   "druid-wild-shape": ACTION_CARD_THEME.FEATURE,
   "druid-wild-companion": ACTION_CARD_THEME.MAGIC,
   "druid-wild-resurgence": ACTION_CARD_THEME.UTIL,
-  "druid-nature-magician": ACTION_CARD_THEME.MAGIC,
+  "druid-nature-magician": ACTION_CARD_THEME.UTIL,
 
   "barbarian-rage": ACTION_CARD_THEME.ATTACK,
   "barbarian-brutal-strike": ACTION_CARD_THEME.ATTACK,
@@ -102,15 +102,15 @@ const explicitActionCardThemeByKey: Record<string, ACTION_CARD_THEME> = {
   "rogue-stroke-of-luck": ACTION_CARD_THEME.UTIL,
 
   "sorcerer-innate-sorcery": ACTION_CARD_THEME.MAGIC,
-  "sorcerer-font-of-magic": ACTION_CARD_THEME.MAGIC,
+  "sorcerer-font-of-magic": ACTION_CARD_THEME.UTIL,
   "sorcerer-metamagic": ACTION_CARD_THEME.MAGIC,
 
-  "wizard-arcane-recovery": ACTION_CARD_THEME.MAGIC
+  "wizard-arcane-recovery": ACTION_CARD_THEME.UTIL
 };
 
 const explicitActionCardThemeByName: Record<string, ACTION_CARD_THEME> = {
   "abjure foes": ACTION_CARD_THEME.MAGIC,
-  "arcane recovery": ACTION_CARD_THEME.MAGIC,
+  "arcane recovery": ACTION_CARD_THEME.UTIL,
   "arcane ward": ACTION_CARD_THEME.DEFENSE,
   "awakened mind": ACTION_CARD_THEME.UTIL,
   "bardic inspiration": ACTION_CARD_THEME.UTIL,
@@ -138,7 +138,7 @@ const explicitActionCardThemeByName: Record<string, ACTION_CARD_THEME> = {
   "faithful steed": ACTION_CARD_THEME.MAGIC,
   "favored enemy": ACTION_CARD_THEME.MAGIC,
   "flurry of blows": ACTION_CARD_THEME.ATTACK,
-  "font of magic": ACTION_CARD_THEME.MAGIC,
+  "font of magic": ACTION_CARD_THEME.UTIL,
   "fortifying soul": ACTION_CARD_THEME.HEAL,
   "gaze of two minds": ACTION_CARD_THEME.UTIL,
   "gift of the protectors": ACTION_CARD_THEME.MAGIC,
@@ -165,7 +165,7 @@ const explicitActionCardThemeByName: Record<string, ACTION_CARD_THEME> = {
   "moonlight step": ACTION_CARD_THEME.UTIL,
   "metamagic": ACTION_CARD_THEME.MAGIC,
   "mystic arcanum": ACTION_CARD_THEME.MAGIC,
-  "nature magician": ACTION_CARD_THEME.MAGIC,
+  "nature magician": ACTION_CARD_THEME.UTIL,
   "nature's sanctuary": ACTION_CARD_THEME.MAGIC,
   "nature's veil": ACTION_CARD_THEME.UTIL,
   "noble scion": ACTION_CARD_THEME.FEATURE,

@@ -43,9 +43,7 @@ function HeroicInspirationStar({ isActive, className }: HeroicInspirationStarPro
         styles.starIcon,
         isActive ? styles.starIconActive : styles.starIconInactive
       )}
-      color={isActive ? "rgba(110, 82, 0, 0.54)" : undefined}
-      fill={isActive ? "#ffe45c" : "none"}
-      strokeWidth={isActive ? 2.1 : undefined}
+      strokeWidth={isActive ? 2.2 : 1.9}
       aria-hidden="true"
     />
   );

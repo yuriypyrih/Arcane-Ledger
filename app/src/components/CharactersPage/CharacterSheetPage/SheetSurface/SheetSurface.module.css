@@ -65,7 +65,7 @@
   height: calc(100% - 8px);
   color: rgb(78, 86, 96);
   object-fit: contain;
-  opacity: 0.075;
+  opacity: 0.1;
   pointer-events: none;
 }
 

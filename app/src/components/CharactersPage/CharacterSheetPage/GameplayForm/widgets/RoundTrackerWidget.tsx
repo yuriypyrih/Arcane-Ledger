@@ -13,6 +13,7 @@ import {
   setRoundTrackerResourceAvailability,
   type RoundTrackerResource
 } from "../../../../../pages/CharactersPage/combat";
+import { showToast, useAppDispatch } from "../../../../../store";
 import {
   clearRoundScopedFeatureStateForCharacter,
   removeFeatureStatusEntryForCharacter
@@ -53,6 +54,7 @@ function getExpiredFeatureOverrideEntries(
 }
 
 function RoundTrackerWidget({ character, onPersistCharacter }: RoundTrackerWidgetProps) {
+  const dispatch = useAppDispatch();
   const [selectedResource, setSelectedResource] = useState<RoundTrackerResource | null>(null);
   const [isCombatManagementOpen, setIsCombatManagementOpen] = useState(false);
   const roundTracker = normalizeRoundTracker(character.roundTracker);
@@ -71,6 +73,14 @@ function RoundTrackerWidget({ character, onPersistCharacter }: RoundTrackerWidge
 
   function startTurn() {
     onPersistCharacter((currentCharacter) => startCharacterTurn(currentCharacter));
+    dispatch(
+      showToast({
+        text: "Your Turn Started",
+        type: "info",
+        position: "bottom-middle",
+        effect: "default"
+      })
+    );
   }
 
   function advanceTimedStatuses(
@@ -107,6 +117,13 @@ function RoundTrackerWidget({ character, onPersistCharacter }: RoundTrackerWidge
         roundTracker: finishRoundTrackerTurn(nextCharacter.roundTracker)
       };
     });
+    dispatch(
+      showToast({
+        text: "Your Turn Ended.",
+        type: "info",
+        position: "bottom-middle"
+      })
+    );
   }
 
   function consumeResource(resource: RoundTrackerResource) {
