@@ -167,7 +167,7 @@ function CodexEntryPage() {
   const [expandedSectionKeys, setExpandedSectionKeys] = useState<string[]>([]);
   const [expandedFeatureKeys, setExpandedFeatureKeys] = useState<string[]>([]);
   const codexSearch = searchParams.toString();
-  const backToCodexPath = codexSearch.length > 0 ? `/library?${codexSearch}` : "/library";
+  const backToCodexPath = codexSearch.length > 0 ? `/compendium?${codexSearch}` : "/compendium";
   const componentsTooltipEntry =
     entry && entry.category === ENTRY_CATEGORIES.SPELLS
       ? (KeywordTooltip.components ?? null)
@@ -264,29 +264,29 @@ function CodexEntryPage() {
   return (
     <section className={styles.page} style={pageStyle}>
       <button type="button" className={styles.backButton} onClick={() => navigate(backToCodexPath)}>
-        Back to library
+        Back to compendium
       </button>
 
       {status === "loading" ? (
         <article className={styles.card}>
           <h2>Loading entry...</h2>
-          <p>Loading library data.</p>
+          <p>Loading compendium data.</p>
         </article>
       ) : null}
 
       {status === "error" ? (
         <article className={styles.card}>
           <h2>Entry unavailable</h2>
-          <p>The library data could not be loaded.</p>
+          <p>The compendium data could not be loaded.</p>
         </article>
       ) : null}
 
       {status === "ready" && !entry ? (
         <article className={styles.card}>
           <h2>Entry not found</h2>
-          <p>The selected library entry does not exist.</p>
+          <p>The selected compendium entry does not exist.</p>
           <Link to={backToCodexPath} className={styles.linkButton}>
-            Back to library
+            Back to compendium
           </Link>
         </article>
       ) : null}

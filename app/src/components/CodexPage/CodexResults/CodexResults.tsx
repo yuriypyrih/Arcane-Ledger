@@ -78,7 +78,7 @@ function CodexResults({
 
   function openEntry(entryId: string) {
     navigate({
-      pathname: `/library/${entryId}`,
+      pathname: `/compendium/${entryId}`,
       search: search.length > 0 ? `?${search}` : ""
     });
   }
@@ -93,7 +93,7 @@ function CodexResults({
       {status === "loading" ? (
         <div className={styles.grid}>
           <article className={styles.card}>
-            <h4>Loading library...</h4>
+            <h4>Loading compendium...</h4>
             <p>Loading hardcoded starter entries.</p>
           </article>
         </div>
@@ -102,8 +102,8 @@ function CodexResults({
       {status === "error" ? (
         <div className={styles.grid}>
           <article className={styles.card}>
-            <h4>Library unavailable</h4>
-            <p>Library entries could not be loaded.</p>
+            <h4>Compendium unavailable</h4>
+            <p>Compendium entries could not be loaded.</p>
           </article>
         </div>
       ) : null}

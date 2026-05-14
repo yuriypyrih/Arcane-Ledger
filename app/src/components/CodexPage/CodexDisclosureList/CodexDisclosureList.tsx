@@ -167,7 +167,7 @@ function CodexDisclosureList({ entries, status, category }: CodexDisclosureListP
       {status === "loading" ? (
         <div className={resultStyles.grid}>
           <article className={resultStyles.card}>
-            <h4>Loading library...</h4>
+            <h4>Loading compendium...</h4>
             <p>Loading {statusLabel}.</p>
           </article>
         </div>
@@ -176,8 +176,8 @@ function CodexDisclosureList({ entries, status, category }: CodexDisclosureListP
       {status === "error" ? (
         <div className={resultStyles.grid}>
           <article className={resultStyles.card}>
-            <h4>Library unavailable</h4>
-            <p>Library entries could not be loaded.</p>
+            <h4>Compendium unavailable</h4>
+            <p>Compendium entries could not be loaded.</p>
           </article>
         </div>
       ) : null}

@@ -9,5 +9,5 @@ export type NavigationLink = {
 
 export const navigationLinks: NavigationLink[] = [
   { to: "/characters", label: "Characters", icon: ScrollText },
-  { to: "/library", label: "Library", icon: BookOpen }
+  { to: "/compendium", label: "Compendium", icon: BookOpen }
 ];

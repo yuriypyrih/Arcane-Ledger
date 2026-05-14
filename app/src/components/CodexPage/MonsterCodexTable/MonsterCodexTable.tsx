@@ -134,7 +134,7 @@ function MonsterCodexTable({
     }
 
     navigate({
-      pathname: `/library/monsters/${monster.slug}`,
+      pathname: `/compendium/monsters/${monster.slug}`,
       search: search.length > 0 ? `?${search}` : ""
     });
   }

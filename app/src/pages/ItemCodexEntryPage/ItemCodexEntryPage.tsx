@@ -9,12 +9,12 @@ function ItemCodexEntryPage() {
   const [searchParams] = useSearchParams();
   const { item, status } = useItemEntry(key);
   const backToCodexPath =
-    searchParams.toString().length > 0 ? `/library?${searchParams}` : "/library";
+    searchParams.toString().length > 0 ? `/compendium?${searchParams}` : "/compendium";
 
   return (
     <section className={styles.page}>
       <button type="button" className={styles.backButton} onClick={() => navigate(backToCodexPath)}>
-        Back to library
+        Back to compendium
       </button>
 
       {status === "loading" ? (
@@ -29,7 +29,7 @@ function ItemCodexEntryPage() {
           <h2>Item unavailable</h2>
           <p>The selected item could not be loaded.</p>
           <Link to={backToCodexPath} className={styles.linkButton}>
-            Back to library
+            Back to compendium
           </Link>
         </article>
       ) : null}
@@ -39,7 +39,7 @@ function ItemCodexEntryPage() {
           <h2>Server Unavailable</h2>
           <p>Item details are unavailable because the backend is not configured or cannot be reached.</p>
           <Link to={backToCodexPath} className={styles.linkButton}>
-            Back to library
+            Back to compendium
           </Link>
         </article>
       ) : null}
@@ -49,7 +49,7 @@ function ItemCodexEntryPage() {
           <h2>Item not found</h2>
           <p>The selected item could not be found.</p>
           <Link to={backToCodexPath} className={styles.linkButton}>
-            Back to library
+            Back to compendium
           </Link>
         </article>
       ) : null}

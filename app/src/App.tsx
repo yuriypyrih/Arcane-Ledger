@@ -25,9 +25,9 @@ function RouteFallback() {
   );
 }
 
-function LegacyCodexRedirect() {
+function LegacyCompendiumRedirect({ from }: { from: "/codex" | "/library" }) {
   const location = useLocation();
-  const pathname = location.pathname.replace(/^\/codex/, "/library");
+  const pathname = location.pathname.replace(from, "/compendium");
 
   return (
     <Navigate
@@ -51,11 +51,12 @@ function App() {
           <Route path="/characters/new" element={<CharacterBuilderPage />} />
           <Route path="/characters/:characterId/edit" element={<CharacterBuilderPage />} />
           <Route path="/characters/:characterId" element={<CharacterSheetPage />} />
-          <Route path="/library" element={<CodexPage />} />
-          <Route path="/library/items/:key" element={<ItemCodexEntryPage />} />
-          <Route path="/library/monsters/:slug" element={<MonsterCodexEntryPage />} />
-          <Route path="/library/:entryId" element={<CodexEntryPage />} />
-          <Route path="/codex/*" element={<LegacyCodexRedirect />} />
+          <Route path="/compendium" element={<CodexPage />} />
+          <Route path="/compendium/items/:key" element={<ItemCodexEntryPage />} />
+          <Route path="/compendium/monsters/:slug" element={<MonsterCodexEntryPage />} />
+          <Route path="/compendium/:entryId" element={<CodexEntryPage />} />
+          <Route path="/library/*" element={<LegacyCompendiumRedirect from="/library" />} />
+          <Route path="/codex/*" element={<LegacyCompendiumRedirect from="/codex" />} />
           <Route path="*" element={<Navigate replace to="/" />} />
         </Route>
       </Routes>

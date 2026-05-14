@@ -20,31 +20,16 @@
   align-items: flex-start;
 }
 
-.eyebrow {
-  margin: 0 0 0.35rem;
-  color: var(--color-accent);
-  font-size: 0.82rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
 .title,
 .resultsHeader h3,
 .card h4 {
   margin: 0;
 }
 
-.description,
 .resultsHeader span,
 .card small,
 .card p {
   color: var(--color-ink-soft);
-}
-
-.description {
-  margin: 0;
-  max-width: 30rem;
-  line-height: 1.6;
 }
 
 @media (max-width: 899px) {

@@ -27,9 +27,9 @@ function HomePage() {
           >
             New Character
           </ActionButton>
-          <Link to="/library" className={styles.secondaryAction}>
+          <Link to="/compendium" className={styles.secondaryAction}>
             <BookOpen size={16} aria-hidden="true" />
-            <span>Library</span>
+            <span>Compendium</span>
           </Link>
         </div>
       </div>

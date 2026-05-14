@@ -147,7 +147,7 @@ function ItemCodexTable({
     }
 
     navigate({
-      pathname: `/library/items/${item.key}`,
+      pathname: `/compendium/items/${item.key}`,
       search: search.length > 0 ? `?${search}` : ""
     });
   }

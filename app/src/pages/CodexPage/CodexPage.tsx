@@ -534,23 +534,12 @@ function CodexPage() {
   const isItemCategory = category === ENTRY_CATEGORIES.ITEMS;
   const isBackgroundCategory = category === ENTRY_CATEGORIES.BACKGROUNDS;
   const isSpeciesCategory = category === ENTRY_CATEGORIES.SPECIES;
-  const headerDescription = isMonsterCategory
-    ? "Bestiary entries are loaded from the configured backend and kept paginated at 50 per page."
-    : isFeatCategory
-      ? "Feat entries are loaded from the character feature registry and show implementation tracking."
-      : isItemCategory
-        ? "Equipment entries are loaded from the configured backend and exposed with backend-driven filters."
-        : "Starter entries are bundled with the app.";
 
   return (
     <section className={styles.page}>
       <div className={styles.panel}>
         <div className={styles.header}>
-          <div>
-            <p className={styles.eyebrow}>Encyclopedia</p>
-            <h2 className={styles.title}>Search the library.</h2>
-          </div>
-          <p className={styles.description}>{headerDescription}</p>
+          <h2 className={styles.title}>Compendium</h2>
         </div>
 
         <CodexFilters
