@@ -57,6 +57,7 @@ import {
   type CompanionDraft
 } from "./companionUtils";
 import MonsterBrowserModal from "./MonsterBrowserModal";
+import { sanitizeUserInput } from "../../../../utils/userInputSanitization";
 import styles from "./CompanionsSection.module.css";
 
 type CompanionEditorModalProps = {
@@ -357,8 +358,9 @@ function CompanionEditorModal({
   }
 
   function handleSave() {
-    const name = draft.name.trim();
-    const type = draft.type.trim();
+    const name = sanitizeUserInput(draft.name);
+    const type = sanitizeUserInput(draft.type);
+    const description = sanitizeUserInput(draft.description, { multiline: true });
 
     setShowValidation(true);
 
@@ -371,7 +373,7 @@ function CompanionEditorModal({
     onSaveCompanion({
       id: draft.id ?? createCharacterCompanionId(),
       name,
-      description: draft.description.trim(),
+      description,
       type,
       maxHitPoints: maxHitPoints!,
       currentHitPoints: currentHitPoints!,

@@ -55,6 +55,7 @@ import {
   SheetModal
 } from "../../../Overlay";
 import TextInput from "../../FormInputs/TextInput";
+import { sanitizeUserInput } from "../../../../utils/userInputSanitization";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import RadioContainerOption from "../RadioContainerOption";
 import styles from "./ProficiencyEditorModal.module.css";
@@ -245,7 +246,8 @@ function ProficiencyEditorModal({
   }
 
   function addCustomLanguage() {
-    const normalizedName = customLanguageNameDraft.trim();
+    const normalizedName = sanitizeUserInput(customLanguageNameDraft);
+    const normalizedDescription = sanitizeUserInput(customLanguageDescriptionDraft);
 
     if (!normalizedName) {
       return;
@@ -256,7 +258,7 @@ function ProficiencyEditorModal({
       languageProficiencies: addManualCustomLanguageEntry(
         currentDraft.languageProficiencies,
         normalizedName,
-        customLanguageDescriptionDraft.trim()
+        normalizedDescription
       )
     }));
     setCustomLanguageNameDraft("");

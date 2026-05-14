@@ -24,6 +24,7 @@ import type {
 import { createCustomEquipmentId } from "../../../../pages/CharactersPage/customEquipment";
 import { clampNumber } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import { formatCodexLabel } from "../../../../utils/codex";
+import { sanitizeUserInput } from "../../../../utils/userInputSanitization";
 import styles from "./CustomEquipmentEditor.module.css";
 
 type CustomEquipmentEditorProps = {
@@ -305,7 +306,9 @@ function CustomEquipmentEditor({
   }
 
   function saveWeapon() {
-    const normalizedName = weaponDraft.name.trim();
+    const normalizedName = sanitizeUserInput(weaponDraft.name);
+    const normalizedDescription = sanitizeUserInput(weaponDraft.description, { multiline: true });
+    const normalizedAmmunition = sanitizeUserInput(weaponDraft.ammunition);
     const normalizedDamage = normalizeDamageRows(weaponDraft.damage);
 
     if (!normalizedName) {
@@ -344,7 +347,7 @@ function CustomEquipmentEditor({
       kind: "weapon",
       onHand: weaponDraft.onHand,
       name: normalizedName,
-      description: weaponDraft.description.trim(),
+      description: normalizedDescription,
       baseWeapon: weaponDraft.baseWeapon,
       type: {
         training: weaponDraft.training,
@@ -362,7 +365,7 @@ function CustomEquipmentEditor({
         ? {
             normal: Math.floor(clampNumber(weaponDraft.rangeNormal, 1, 9999, 20)),
             long: Math.floor(clampNumber(weaponDraft.rangeLong, weaponDraft.rangeNormal, 9999, 60)),
-            ...(weaponDraft.ammunition.trim() ? { ammunition: weaponDraft.ammunition.trim() } : {})
+            ...(normalizedAmmunition ? { ammunition: normalizedAmmunition } : {})
           }
         : undefined,
       versatileDamage: showsVersatileFields
@@ -372,8 +375,8 @@ function CustomEquipmentEditor({
   }
 
   function saveItem() {
-    const normalizedName = itemDraft.name.trim();
-    const normalizedDescription = itemDraft.description.trim();
+    const normalizedName = sanitizeUserInput(itemDraft.name);
+    const normalizedDescription = sanitizeUserInput(itemDraft.description, { multiline: true });
 
     if (!normalizedName) {
       setFormError("A custom item needs a name.");

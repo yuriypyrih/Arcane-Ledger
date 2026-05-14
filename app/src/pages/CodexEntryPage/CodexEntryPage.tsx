@@ -5,6 +5,7 @@ import CodexFeatDrawer from "../../components/CodexPage/CodexFeatDrawer/CodexFea
 import CodexSpellDrawer from "../../components/CodexPage/CodexSpellDrawer/CodexSpellDrawer";
 import ClassProgressionTable from "../../components/CodexPage/ClassProgressionTable";
 import CellContainer from "../../components/CellContainer/CellContainer";
+import { getClassSignatureStyle } from "../../components/CharactersPage/classSignature";
 import {
   FeatureDisclosureRow,
   FeatureDisclosureSection,
@@ -209,6 +210,8 @@ function CodexEntryPage() {
       : 0;
   const classFeaturesSectionKey =
     entry?.category === ENTRY_CATEGORIES.CLASSES ? `class-features-${entry.id}` : null;
+  const pageStyle =
+    entry?.category === ENTRY_CATEGORIES.CLASSES ? getClassSignatureStyle(entry.name) : undefined;
 
   useEffect(() => {
     if (!entry || entry.category !== ENTRY_CATEGORIES.SPELLS) {
@@ -259,7 +262,7 @@ function CodexEntryPage() {
   }
 
   return (
-    <section className={styles.page}>
+    <section className={styles.page} style={pageStyle}>
       <button type="button" className={styles.backButton} onClick={() => navigate(backToCodexPath)}>
         Back to library
       </button>

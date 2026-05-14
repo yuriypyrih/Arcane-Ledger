@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Link, useOutletContext, useParams } from "react-router-dom";
 import { ThumbDiceButton } from "../../../components/CharactersPage/CharacterSheetPage";
+import { getClassSignatureStyle } from "../../../components/CharactersPage/classSignature";
 import type { AppShellOutletContext } from "../../../components/AppShell/outletContext";
 import { hasSpellcastingForCharacter } from "../spellcastingAvailability";
 import styles from "./CharacterSheetPage.module.css";
@@ -23,9 +24,7 @@ function CharacterSheetPage() {
   const { character, persistCharacter, queueHitPointCharacterSave } =
     useCharacterSheetPersistence(parsedCharacterId);
   const hasSpellcastingSection = character ? hasSpellcastingForCharacter(character) : false;
-  const pageClassName = isBroadLayoutActive
-    ? `${styles.page} ${styles.pageBroad}`
-    : styles.page;
+  const pageClassName = isBroadLayoutActive ? `${styles.page} ${styles.pageBroad}` : styles.page;
   const cascadeStackClassName = [
     styles.cascadeStack,
     isBroadLayoutActive ? styles.cascadeStackBroad : "",
@@ -50,7 +49,7 @@ function CharacterSheetPage() {
   }
 
   return (
-    <section className={pageClassName}>
+    <section className={pageClassName} style={getClassSignatureStyle(character.className)}>
       <div className={cascadeStackClassName}>
         <CharacterProfileSection
           className={styles.cascadeOne}

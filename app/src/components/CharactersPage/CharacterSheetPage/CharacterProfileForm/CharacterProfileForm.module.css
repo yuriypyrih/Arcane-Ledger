@@ -1,5 +1,6 @@
 .profileCard {
   position: relative;
+  isolation: isolate;
   display: grid;
   gap: 0.38rem;
   overflow: visible;
@@ -17,10 +18,10 @@
   content: "";
   position: absolute;
   inset: 0;
-  border-radius: inherit;
-  background: var(--class-signature-gradient);
-  pointer-events: none;
   z-index: 0;
+  border-radius: inherit;
+  background: var(--class-signature-profile-gradient, none);
+  pointer-events: none;
 }
 
 .profileCard > * {
@@ -230,7 +231,9 @@
   display: grid;
   align-self: stretch;
   align-content: start;
-  grid-template-rows: auto auto 1fr;
+  grid-template-rows: auto auto auto;
+  gap: 0.4rem;
+  justify-items: start;
   min-width: 0;
   padding-top: 0.06rem;
 }
@@ -258,7 +261,6 @@
 .identityRows {
   display: grid;
   gap: 0.14rem;
-  margin-top: 0.38rem;
   color: var(--color-ink-soft);
   font-size: 0.9rem;
   line-height: 1.18;
@@ -317,15 +319,9 @@
 }
 
 .notesToggle {
-  align-self: end;
   justify-self: start;
-  margin-top: 0.7rem;
   color: rgba(143, 91, 56, 0.88);
   font-size: 0.84rem;
-}
-
-.profileShellBroad .notesToggle {
-  align-self: start;
 }
 
 @media (max-width: 899px) {

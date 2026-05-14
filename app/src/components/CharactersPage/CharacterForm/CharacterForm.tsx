@@ -125,6 +125,7 @@ import {
 import { randomNamePrefixes, randomNameSuffixes } from "./characterRandomNames";
 import OriginFeatSetupControls from "./OriginFeatSetupControls";
 import { useCharacterFormPendingAction } from "./useCharacterFormPendingAction";
+import { sanitizeUserInput } from "../../../utils/userInputSanitization";
 import styles from "./CharacterForm.module.css";
 
 type CharacterFormProps = {
@@ -1953,7 +1954,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
 
     return {
       ...draftValues,
-      name: draftValues.name.trim(),
+      name: sanitizeUserInput(draftValues.name),
       species: normalizedSpecies,
       speciesChoices: normalizedSpeciesChoices,
       speciesFeatureState: normalizeCharacterSpeciesFeatureState(
@@ -1981,7 +1982,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       maxHitPointsMode: draftValues.maxHitPointsMode ?? "automatic",
       background: resolvedNormalizedBackground,
       backgroundChoices: normalizedBackgroundChoices,
-      backgroundNotes: draftValues.backgroundNotes.trim(),
+      backgroundNotes: sanitizeUserInput(draftValues.backgroundNotes, { multiline: true }),
       alignment: alignmentOptions.includes(draftValues.alignment)
         ? draftValues.alignment
         : "True Neutral",

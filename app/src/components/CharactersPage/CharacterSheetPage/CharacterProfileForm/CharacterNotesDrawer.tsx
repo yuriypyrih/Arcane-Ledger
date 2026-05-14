@@ -19,6 +19,7 @@ import TextInput from "../../FormInputs/TextInput";
 import { alignmentOptions } from "../../../../pages/CharactersPage/constants";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import type { Character } from "../../../../types";
+import { sanitizeUserInput } from "../../../../utils/userInputSanitization";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./CharacterNotesDrawer.module.css";
 
@@ -102,7 +103,10 @@ function CharacterNotesDrawer({
   }
 
   function saveChanges() {
-    if (isNameInvalid) {
+    const sanitizedName = sanitizeUserInput(draftName);
+    const sanitizedNotes = sanitizeUserInput(draftNotes, { multiline: true });
+
+    if (!sanitizedName) {
       setIsEditingName(true);
       window.requestAnimationFrame(() => nameInputRef.current?.focus());
       return;
@@ -111,9 +115,9 @@ function CharacterNotesDrawer({
     onPersistCharacter(
       (currentCharacter) => ({
         ...currentCharacter,
-        name: trimmedName,
+        name: sanitizedName,
         alignment: draftAlignment,
-        backgroundNotes: draftNotes
+        backgroundNotes: sanitizedNotes
       }),
       {
         domains: ["profile"],

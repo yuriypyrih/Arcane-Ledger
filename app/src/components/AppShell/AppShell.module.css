@@ -12,6 +12,8 @@
 }
 
 .header {
+  position: relative;
+  z-index: 1;
   display: block;
   min-height: 52px;
   max-height: 64px;

@@ -36,6 +36,7 @@ import {
   createManualStatusDuration,
   defaultManualStatusDurationDraft
 } from "./manualStatusDuration";
+import { sanitizeUserInput } from "../../../../../../utils/userInputSanitization";
 
 type UseTraitEditorStateOptions = {
   onPersistCharacter: PersistCharacterUpdater;
@@ -114,6 +115,15 @@ export function useTraitEditorState({ onPersistCharacter }: UseTraitEditorStateO
       return;
     }
 
+    const sanitizedName = sanitizeUserInput(customTraitDraft.name);
+    const sanitizedDescription = sanitizeUserInput(customTraitDraft.description, {
+      multiline: true
+    });
+
+    if (!sanitizedName || !sanitizedDescription) {
+      return;
+    }
+
     const customEffects = customTraitDraft.effects
       .map((effect) => parseCustomTraitEffectDraft(effect))
       .filter((effect): effect is CharacterCustomTraitEffect => effect !== null);
@@ -129,14 +139,14 @@ export function useTraitEditorState({ onPersistCharacter }: UseTraitEditorStateO
           ...resolveCharacterStatusEntries(currentCharacter.statusEntries),
           createCharacterStatusEntry({
             group: STATUS_ENTRY_GROUP.EFFECTS,
-            value: customTraitDraft.name.trim(),
+            value: sanitizedName,
             source: "Manual",
             sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
             duration: createManualStatusDuration(
               customTraitDraft.durationType,
               customTraitDraft.durationValue
             ),
-            description: customTraitDraft.description.trim(),
+            description: sanitizedDescription,
             customEffects
           })
         ]

@@ -1,9 +1,31 @@
 .page {
+  --class-signature-page-texture: none;
+  --class-signature-page-texture-opacity: 0;
+  position: relative;
+  isolation: isolate;
   display: grid;
   gap: var(--space-page-gap);
   max-width: 1200px;
   margin: 0 auto;
   padding-bottom: calc(env(safe-area-inset-bottom, 0px) + clamp(6.8rem, 12vw, 9.2rem));
+}
+
+.page::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 100dvh;
+  z-index: -1;
+  background-image: var(--class-signature-page-texture);
+  background-position: left top;
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  opacity: var(--class-signature-page-texture-opacity);
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(to right, #000 0%, #000 64%, rgba(0, 0, 0, 0) 100%);
+  mask-image: linear-gradient(to right, #000 0%, #000 64%, rgba(0, 0, 0, 0) 100%);
 }
 
 .pageBroad {
