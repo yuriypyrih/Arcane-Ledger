@@ -1,14 +1,29 @@
 .row {
+  --character-row-edge-start: rgba(22, 15, 13, 0.78);
+  --character-row-edge-mid: rgba(22, 15, 13, 0.3);
+  --character-row-border-rest: rgba(75, 47, 29, 0.16);
+  --character-row-base: #fbf2e6;
   position: relative;
   display: grid;
   align-items: center;
   gap: 0.7rem;
   grid-template-columns: auto minmax(0, 1fr) auto;
   min-height: 64px;
-  border: 1px solid rgba(75, 47, 29, 0.1);
+  border: 1px solid transparent;
   border-radius: var(--radius-card-large);
-  background: var(--class-signature-row-gradient, none), rgba(255, 250, 241, 0.86);
+  background:
+    var(--class-signature-row-gradient, none) padding-box,
+    linear-gradient(var(--character-row-base), var(--character-row-base)) padding-box,
+    linear-gradient(
+        140deg,
+        var(--character-row-edge-start) 0%,
+        var(--character-row-edge-mid) 9.6%,
+        var(--character-row-border-rest) 33.6%,
+        var(--character-row-border-rest) 100%
+      )
+      border-box;
   color: inherit;
+  box-shadow: 0 8px 18px rgba(54, 34, 21, 0.03);
   padding: 0.56rem 0.68rem;
   transition:
     border-color 160ms ease,
@@ -17,7 +32,9 @@
 }
 
 .row:hover {
-  border-color: rgba(143, 91, 56, 0.32);
+  --character-row-edge-start: rgba(22, 15, 13, 0.88);
+  --character-row-edge-mid: rgba(22, 15, 13, 0.38);
+  --character-row-border-rest: rgba(143, 91, 56, 0.32);
   box-shadow: 0 10px 24px rgba(54, 34, 21, 0.08);
 }
 

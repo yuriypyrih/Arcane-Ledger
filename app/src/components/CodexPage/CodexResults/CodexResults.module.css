@@ -44,7 +44,7 @@
   height: 100%;
   border: 1px solid rgba(75, 47, 29, 0.12);
   border-radius: var(--radius-panel);
-  background: rgba(255, 250, 241, 0.92);
+  background: var(--color-panel-strong);
   box-shadow: 0 18px 50px rgba(54, 34, 21, 0.06);
   padding: var(--space-card-padding);
 }
@@ -93,7 +93,7 @@
 .paginationButton {
   border: 1px solid rgba(75, 47, 29, 0.18);
   border-radius: var(--radius-pill);
-  background: rgba(255, 250, 241, 0.9);
+  background: var(--color-panel-strong);
   color: var(--color-accent);
   cursor: pointer;
   font: inherit;
@@ -115,7 +115,7 @@
   overflow-x: auto;
   border: 1px solid rgba(75, 47, 29, 0.12);
   border-radius: var(--radius-panel);
-  background: rgba(255, 250, 241, 0.94);
+  background: var(--color-panel-strong);
   box-shadow: 0 18px 50px rgba(54, 34, 21, 0.06);
 }
 

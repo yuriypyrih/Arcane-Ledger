@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import minotaurIcon from "../../../assets/svg/minotaur.svg";
+import UserIcon from "../../../assets/svg/theater-mask.svg";
 
 type DefaultCharacterPortraitIconProps = {
   className: string;
@@ -10,7 +10,7 @@ type DefaultCharacterPortraitStyle = CSSProperties & {
 };
 
 const defaultCharacterPortraitStyle: DefaultCharacterPortraitStyle = {
-  "--character-portrait-default-image": `url("${minotaurIcon}")`
+  "--character-portrait-default-image": `url("${UserIcon}")`
 };
 
 function DefaultCharacterPortraitIcon({ className }: DefaultCharacterPortraitIconProps) {

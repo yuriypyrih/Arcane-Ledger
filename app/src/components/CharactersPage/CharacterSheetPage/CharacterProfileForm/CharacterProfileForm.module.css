@@ -1,32 +1,28 @@
 .profileCard {
+  --character-profile-edge-start: rgba(22, 15, 13, 0.82);
+  --character-profile-edge-mid: rgba(22, 15, 13, 0.32);
+  --character-profile-border-rest: rgba(75, 47, 29, 0.18);
   position: relative;
   isolation: isolate;
   display: grid;
   gap: 0.38rem;
   overflow: visible;
-  border: 1px solid rgba(75, 47, 29, 0.14);
+  border: 1px solid transparent;
   border-radius: var(--radius-card);
-  background: var(--color-panel-strong);
+  background:
+    var(--class-signature-profile-gradient, none) padding-box,
+    linear-gradient(var(--color-panel-strong), var(--color-panel-strong)) padding-box,
+    linear-gradient(
+        140deg,
+        var(--character-profile-edge-start) 0%,
+        var(--character-profile-edge-mid) 9.6%,
+        var(--character-profile-border-rest) 33.6%,
+        var(--character-profile-border-rest) 100%
+      )
+      border-box;
   background-color: var(--color-panel-strong);
-  box-shadow:
-    inset 0 0 0 999px var(--color-panel-strong),
-    0 18px 50px rgba(54, 34, 21, 0.08);
+  box-shadow: 0 18px 50px rgba(54, 34, 21, 0.08);
   padding: 0.58rem 0.72rem 0.54rem 0.56rem;
-}
-
-.profileCard::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  border-radius: inherit;
-  background: var(--class-signature-profile-gradient, none);
-  pointer-events: none;
-}
-
-.profileCard > * {
-  position: relative;
-  z-index: 1;
 }
 
 .profileCardBroad {

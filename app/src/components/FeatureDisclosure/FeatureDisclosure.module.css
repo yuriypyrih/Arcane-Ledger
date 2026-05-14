@@ -124,7 +124,7 @@
   gap: 0.55rem;
   margin-left: 1.35rem;
   border-radius: var(--radius-compact);
-  background: rgba(255, 255, 255, 0.34);
+  background: var(--color-panel-surface);
   box-shadow:
     inset 3px 0 0 rgba(75, 47, 29, 0.12),
     inset 0 0 0 1px rgba(75, 47, 29, 0.07);

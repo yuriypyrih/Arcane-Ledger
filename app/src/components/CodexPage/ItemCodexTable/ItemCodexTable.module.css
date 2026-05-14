@@ -42,7 +42,7 @@
   overflow: auto;
   border: 1px solid rgba(75, 47, 29, 0.12);
   border-radius: var(--radius-field);
-  background: rgba(255, 250, 241, 0.95);
+  background: var(--color-panel-strong);
   box-shadow: 0 14px 38px rgba(54, 34, 21, 0.05);
 }
 
@@ -60,7 +60,7 @@
   position: sticky;
   top: 0;
   z-index: 1;
-  background: rgba(255, 246, 234, 0.98);
+  background: #fff6ea;
 }
 
 .table th,

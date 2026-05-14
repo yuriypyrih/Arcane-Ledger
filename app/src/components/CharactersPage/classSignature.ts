@@ -26,6 +26,11 @@ type ClassSignatureSpec = {
   profileGradient: string;
 };
 
+const signatureRowDarkLayer =
+  "linear-gradient(140deg, rgba(13, 10, 9, 0.62) 0%, rgba(13, 10, 9, 0.34) 2.8%, rgba(13, 10, 9, 0) 11.2%)";
+const signatureProfileDarkLayer =
+  "linear-gradient(140deg, rgba(13, 10, 9, 0.66) 0%, rgba(13, 10, 9, 0.36) 2.4%, rgba(13, 10, 9, 0) 9.6%)";
+
 function createClassSignature({
   texture,
   primary,
@@ -39,16 +44,14 @@ function createClassSignature({
 }): ClassSignatureSpec {
   return {
     texture,
-    rowGradient: `linear-gradient(to bottom right, ${primary} 0%, ${primary} 12%, ${secondary} 24%, ${transparent} 48%)`,
-    profileGradient: `linear-gradient(to bottom right, ${primary} 0%, ${primary} 10%, ${secondary} 20%, ${transparent} 44%)`
+    rowGradient: `${signatureRowDarkLayer}, linear-gradient(140deg, ${primary} 0%, ${primary} 7.2%, ${secondary} 16%, ${transparent} 38.4%)`,
+    profileGradient: `${signatureProfileDarkLayer}, linear-gradient(140deg, ${primary} 0%, ${primary} 5.6%, ${secondary} 12.8%, ${transparent} 35.2%)`
   };
 }
 
 const defaultClassSignatureStyle: ClassSignatureStyle = {
-  "--class-signature-row-gradient":
-    "linear-gradient(to bottom right, rgba(143, 91, 56, 0.26) 0%, rgba(143, 91, 56, 0.26) 12%, rgba(220, 178, 139, 0.14) 24%, rgba(220, 178, 139, 0) 48%)",
-  "--class-signature-profile-gradient":
-    "linear-gradient(to bottom right, rgba(143, 91, 56, 0.34) 0%, rgba(143, 91, 56, 0.34) 10%, rgba(220, 178, 139, 0.18) 20%, rgba(220, 178, 139, 0) 44%)",
+  "--class-signature-row-gradient": `${signatureRowDarkLayer}, linear-gradient(140deg, rgba(143, 91, 56, 0.26) 0%, rgba(143, 91, 56, 0.26) 7.2%, rgba(220, 178, 139, 0.14) 16%, rgba(220, 178, 139, 0) 38.4%)`,
+  "--class-signature-profile-gradient": `${signatureProfileDarkLayer}, linear-gradient(140deg, rgba(143, 91, 56, 0.34) 0%, rgba(143, 91, 56, 0.34) 5.6%, rgba(220, 178, 139, 0.18) 12.8%, rgba(220, 178, 139, 0) 35.2%)`,
   "--class-signature-page-texture": "none",
   "--class-signature-page-texture-opacity": "0"
 };

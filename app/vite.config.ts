@@ -19,6 +19,7 @@ export default defineConfig({
       injectRegister: "auto",
       registerType: "autoUpdate",
       includeAssets: [
+        "favicon.svg",
         "favicon.ico",
         "favicon-16x16.png",
         "favicon-32x32.png",
@@ -58,6 +59,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,svg,png,jpg,jpeg,ico,json}"],
+        ignoreURLParametersMatching: [/^utm_/, /^fbclid$/, /^v$/],
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [
