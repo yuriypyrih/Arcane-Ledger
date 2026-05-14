@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment, @typescript-eslint/no-explicit-any */
 // @ts-nocheck
+import { runWithActionConfirmationToast } from "../actionConfirmationToast";
 
 export function renderSpellCastingForm(context: Record<string, any>) {
   const {
@@ -1449,7 +1450,12 @@ export function renderSpellCastingForm(context: Record<string, any>) {
               </div>
               <ActionButton
                 className={styles.divinityDrawerActionButton}
-                onClick={channelSelectedDivinity}
+                onClick={() =>
+                  runWithActionConfirmationToast(
+                    selectedDivinityRow.option.economyType,
+                    channelSelectedDivinity
+                  )
+                }
                 disabled={
                   channelDivinityUsesRemaining <= 0 || selectedDivinityActionWarning !== null
                 }

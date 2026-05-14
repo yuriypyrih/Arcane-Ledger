@@ -279,6 +279,7 @@ import {
   getEconomyShapeState,
   getRoundTrackerActionWarning
 } from "../../gameplayWidgetUtils";
+import { runWithActionConfirmationToast } from "../../../actionConfirmationToast";
 import {
   formatResolvedRollStateDetailText,
   getRollModeFromIndicators
@@ -2365,7 +2366,12 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               ) : null}
               <ActionButton
                 className={clsx(styles.footerActionButton, styles.channelDivinityFooterButton)}
-                onClick={() => activateSelectedChannelDivinity(selectedChannelDivinityRow)}
+                onClick={() =>
+                  runWithActionConfirmationToast(
+                    selectedChannelDivinityRow.option.economyType,
+                    () => activateSelectedChannelDivinity(selectedChannelDivinityRow)
+                  )
+                }
                 disabled={selectedChannelDivinityWarning !== null}
                 trailingBadge={
                   selectedChannelDivinityActionShape ? (

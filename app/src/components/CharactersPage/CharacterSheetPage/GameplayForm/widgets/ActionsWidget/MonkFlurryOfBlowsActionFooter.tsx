@@ -3,6 +3,7 @@ import ActionShape from "../../../../../ActionShape";
 import FeatureOptInToggle from "../../../FeatureOptInToggle/FeatureOptInToggle";
 import type { EconomyType } from "../../../../../../pages/CharactersPage/actionEconomy";
 import { createChargesCardUsage } from "../../../../../../pages/CharactersPage/classFeatures/cardUsage";
+import { runWithActionConfirmationToast } from "../../../actionConfirmationToast";
 import { getActionShapeForEconomyType, getEconomyShapeState } from "../../gameplayWidgetUtils";
 import styles from "./ActionsWidget.module.css";
 
@@ -52,7 +53,7 @@ export function MonkFlurryOfBlowsActionFooter({
       <div className={styles.weaponFooterActions}>
         <ActionButton
           className={styles.weaponFooterButton}
-          onClick={onConfirm}
+          onClick={() => runWithActionConfirmationToast(economyType, onConfirm)}
           disabled={confirmDisabledReason !== null}
           title={confirmDisabledReason ?? undefined}
           trailingBadge={

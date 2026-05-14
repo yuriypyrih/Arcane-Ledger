@@ -20,6 +20,7 @@ export type ShowToastPayload = {
   type?: ToastType;
   position?: ToastPosition;
   effect?: ToastEffect;
+  dismissMs?: number;
 };
 
 export type ToastEntry = {
@@ -28,6 +29,7 @@ export type ToastEntry = {
   type: ToastType;
   position: ToastPosition;
   effect?: ToastEffect;
+  dismissMs?: number;
 };
 
 export const DEFAULT_TOAST_DISMISS_MS = 6_000;
@@ -58,16 +60,20 @@ const toastSlice = createSlice({
             text: payload.text,
             type: payload.type ?? DEFAULT_TOAST_TYPE,
             position: payload.position ?? DEFAULT_TOAST_POSITION,
-            effect: payload.effect
+            effect: payload.effect,
+            dismissMs: payload.dismissMs
           }
         };
       }
     },
     dismissToast(state, action: PayloadAction<string>) {
       return state.filter((toast) => toast.id !== action.payload);
+    },
+    dismissAllToasts() {
+      return [];
     }
   }
 });
 
-export const { dismissToast, showToast } = toastSlice.actions;
+export const { dismissAllToasts, dismissToast, showToast } = toastSlice.actions;
 export const toastReducer = toastSlice.reducer;

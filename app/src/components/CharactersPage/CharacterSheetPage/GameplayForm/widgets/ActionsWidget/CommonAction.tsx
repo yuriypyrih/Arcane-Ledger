@@ -6,6 +6,7 @@ import type { Character } from "../../../../../../types";
 import type { FeatureActionCard } from "../../../../../../pages/CharactersPage/classFeatures";
 import type { EconomyType } from "../../../../../../pages/CharactersPage/actionEconomy";
 import { resolveActionCardTheme } from "../../../../../../pages/CharactersPage/actionCardTheme";
+import { runWithActionConfirmationToast } from "../../../actionConfirmationToast";
 import { getActionShapeForEconomyType } from "../../gameplayWidgetUtils";
 import actionCardStyles from "./ActionCards.module.css";
 import actionStyles from "./ActionsWidget.module.css";
@@ -175,7 +176,11 @@ export function CommonActionFooter({
           <ActionButton
             key={`common-action-${path.id}`}
             className={actionStyles.weaponFooterButton}
-            onClick={() => onConfirmPath(path.economyType)}
+            onClick={() =>
+              runWithActionConfirmationToast(path.economyType, () =>
+                onConfirmPath(path.economyType)
+              )
+            }
             disabled={path.disabledReason !== null}
             title={path.disabledReason ?? undefined}
             trailingBadge={

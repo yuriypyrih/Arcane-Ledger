@@ -43,10 +43,10 @@ function ToastItem({ toast }: ToastItemProps) {
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
       dispatch(dismissToast(toast.id));
-    }, DEFAULT_TOAST_DISMISS_MS);
+    }, toast.dismissMs ?? DEFAULT_TOAST_DISMISS_MS);
 
     return () => window.clearTimeout(timeoutId);
-  }, [dispatch, toast.id]);
+  }, [dispatch, toast.dismissMs, toast.id]);
 
   function handleClose() {
     dispatch(dismissToast(toast.id));

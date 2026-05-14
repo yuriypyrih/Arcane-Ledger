@@ -25,6 +25,7 @@ import {
 import { advanceCharacterCompanionDurations } from "../../../../../pages/CharactersPage/companions";
 import { getRoundTrackerResourceMeta } from "../gameplayWidgetUtils";
 import RoundTrackerControl from "./RoundTrackerControl";
+import { runWithActionConfirmationToast } from "../../actionConfirmationToast";
 import { consumeRoundTrackerResourceForCharacter, startCharacterTurn } from "../gameplayStateUtils";
 import styles from "./RoundTrackerControl.module.css";
 
@@ -78,7 +79,8 @@ function RoundTrackerWidget({ character, onPersistCharacter }: RoundTrackerWidge
         text: "Your Turn Started",
         type: "info",
         position: "bottom-middle",
-        effect: "default"
+        effect: "default",
+        dismissMs: 4_000
       })
     );
   }
@@ -121,7 +123,8 @@ function RoundTrackerWidget({ character, onPersistCharacter }: RoundTrackerWidge
       showToast({
         text: "Your Turn Ended.",
         type: "info",
-        position: "bottom-middle"
+        position: "bottom-middle",
+        dismissMs: 4_000
       })
     );
   }
@@ -189,7 +192,10 @@ function RoundTrackerWidget({ character, onPersistCharacter }: RoundTrackerWidge
           actions={[
             {
               label: "Use",
-              onClick: () => consumeResource(selectedResource),
+              onClick: () =>
+                runWithActionConfirmationToast(selectedResource, () =>
+                  consumeResource(selectedResource)
+                ),
               disabled: !isSelectedResourceAvailable,
               ariaLabel: `Use ${selectedMeta.title.toLowerCase()}`
             },

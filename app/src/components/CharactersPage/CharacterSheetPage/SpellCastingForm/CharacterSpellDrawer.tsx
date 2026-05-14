@@ -63,6 +63,7 @@ import RadioContainerOption from "../RadioContainerOption";
 import FeatureActionFacts from "../GameplayForm/widgets/ActionsWidget/FeatureActionFacts";
 import FeatureActionHeaderTags from "../GameplayForm/widgets/ActionsWidget/FeatureActionHeaderTags";
 import DiceRollerSettingsButton from "../GameplayForm/widgets/DiceRollerSettingsButton";
+import { runWithActionConfirmationToast } from "../actionConfirmationToast";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import gameplayActionStyles from "../GameplayForm/widgets/ActionsWidget/GameplayActionDrawer.module.css";
 import d20Icon from "../../../../assets/svg/d20.svg";
@@ -958,10 +959,19 @@ function CharacterSpellDrawer({
                         isRitualCastingSelected || ritualCastingRequired ? "WARNING" : "INFO"
                       }
                       onClick={() =>
-                        onAction({
-                          ...baseActionOptions,
-                          roundTrackerResourceOverride: path.roundTrackerResourceOverride
-                        })
+                        showActionDiceControls
+                          ? onAction({
+                              ...baseActionOptions,
+                              roundTrackerResourceOverride: path.roundTrackerResourceOverride
+                            })
+                          : runWithActionConfirmationToast(
+                              path.roundTrackerResourceOverride ?? path.actionShape,
+                              () =>
+                                onAction({
+                                  ...baseActionOptions,
+                                  roundTrackerResourceOverride: path.roundTrackerResourceOverride
+                                })
+                            )
                       }
                       disabled={!isActionEnabled || path.disabledReason !== null}
                       title={path.disabledReason ?? undefined}

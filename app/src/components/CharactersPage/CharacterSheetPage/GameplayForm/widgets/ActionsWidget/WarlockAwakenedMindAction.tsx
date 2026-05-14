@@ -5,6 +5,7 @@ import {
   createChargesOrResourceCardUsage,
   createFeatureActionCardCost
 } from "../../../../../../pages/CharactersPage/classFeatures/cardUsage";
+import { runWithActionConfirmationToast } from "../../../actionConfirmationToast";
 import styles from "./WarlockAwakenedMindAction.module.css";
 
 type WarlockAwakenedMindActionFooterProps = {
@@ -56,7 +57,7 @@ export function WarlockAwakenedMindActionFooter({
       />
       <ActionButton
         className={styles.confirmButton}
-        onClick={onConfirm}
+        onClick={() => runWithActionConfirmationToast(actionShape, onConfirm)}
         disabled={disabled}
         trailingBadge={
           actionShape ? (

@@ -6,6 +6,7 @@ import type {
   FeatureActionFact,
   FeatureActionHeaderTag
 } from "../../../../../../pages/CharactersPage/classFeatures";
+import { runWithActionConfirmationToast } from "../../../actionConfirmationToast";
 import GameplayActionDrawer from "../ActionsWidget/GameplayActionDrawer";
 import styles from "./ReactionEntryDrawer.module.css";
 
@@ -59,7 +60,7 @@ function ReactionEntryDrawer({
           {footerContent ?? (
             <ActionButton
               className={styles.castActionButton}
-              onClick={onCast}
+              onClick={() => runWithActionConfirmationToast("reaction", onCast)}
               disabled={actionDisabled}
               trailingBadge={
                 <ActionShape

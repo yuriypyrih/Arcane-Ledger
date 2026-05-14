@@ -7,6 +7,7 @@ import {
   createFeatureActionCardCost,
   createNamedResourceCardUsage
 } from "../../../../../../pages/CharactersPage/classFeatures/cardUsage";
+import { runWithActionConfirmationToast } from "../../../actionConfirmationToast";
 import actionStyles from "./ActionsWidget.module.css";
 
 type BardicInspirationActionFooterProps = {
@@ -104,7 +105,7 @@ export function BardicInspirationActionFooter({
           className={clsx(
             shouldUseSplitRow ? actionStyles.weaponFooterButton : actionStyles.footerActionButton
           )}
-          onClick={onConfirm}
+          onClick={() => runWithActionConfirmationToast(actionShape, onConfirm)}
           disabled={disabled}
           title={disabledReason ?? undefined}
           trailingBadge={

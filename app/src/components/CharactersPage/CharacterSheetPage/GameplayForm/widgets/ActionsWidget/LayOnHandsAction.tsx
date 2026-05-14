@@ -3,6 +3,7 @@ import ActionButton from "../../../../../ActionButton";
 import ActionShape, { type ActionShapeType } from "../../../../../ActionShape";
 import type { LayOnHandsCondition } from "../../../../../../pages/CharactersPage/classFeatures/paladin/paladin";
 import RadioContainerOption from "../../../RadioContainerOption";
+import { runWithActionConfirmationToast } from "../../../actionConfirmationToast";
 import actionStyles from "./ActionsWidget.module.css";
 import styles from "./LayOnHandsAction.module.css";
 
@@ -115,7 +116,7 @@ export function LayOnHandsActionFooter({
   return (
     <ActionButton
       className={clsx(actionStyles.footerActionButton, styles.confirmButton)}
-      onClick={onConfirm}
+      onClick={() => runWithActionConfirmationToast(actionShape, onConfirm)}
       disabled={disabled}
       trailingBadge={
         actionShape ? (

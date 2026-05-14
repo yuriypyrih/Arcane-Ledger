@@ -19,6 +19,7 @@ export {
   TOAST_EFFECTS,
   TOAST_POSITIONS,
   TOAST_TYPES,
+  dismissAllToasts,
   dismissToast,
   showToast,
   type ToastEffect,

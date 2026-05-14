@@ -1,5 +1,6 @@
 import { useCallback, useEffect, type MouseEventHandler } from "react";
 import { useBodyScrollLock } from "../../lib/useBodyScrollLock";
+import { dismissAllToasts, useAppDispatch } from "../../store";
 
 type UseDismissableOverlayOptions = {
   isOpen: boolean;
@@ -17,7 +18,15 @@ export function useDismissableOverlay({
   onClose,
   onEscape
 }: UseDismissableOverlayOptions): DismissableOverlayHandlers {
+  const dispatch = useAppDispatch();
+
   useBodyScrollLock(isOpen);
+
+  useEffect(() => {
+    if (isOpen) {
+      dispatch(dismissAllToasts());
+    }
+  }, [dispatch, isOpen]);
 
   useEffect(() => {
     if (!isOpen) {

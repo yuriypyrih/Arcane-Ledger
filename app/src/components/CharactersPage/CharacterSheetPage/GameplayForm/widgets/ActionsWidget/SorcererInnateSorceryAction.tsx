@@ -5,6 +5,7 @@ import {
   createChargesOrResourceCardUsage,
   createFeatureActionCardCost
 } from "../../../../../../pages/CharactersPage/classFeatures/cardUsage";
+import { runWithActionConfirmationToast } from "../../../actionConfirmationToast";
 import styles from "./SorcererInnateSorceryAction.module.css";
 
 type SorcererInnateSorceryActionFooterProps = {
@@ -59,7 +60,7 @@ export function SorcererInnateSorceryActionFooter({
       ) : null}
       <ActionButton
         className={styles.confirmButton}
-        onClick={onConfirm}
+        onClick={() => runWithActionConfirmationToast(actionShape, onConfirm)}
         disabled={disabled}
         trailingBadge={
           actionShape ? (

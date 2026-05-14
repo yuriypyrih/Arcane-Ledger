@@ -286,6 +286,10 @@ import {
   getRoundTrackerActionWarning
 } from "../../gameplayWidgetUtils";
 import {
+  runWithActionConfirmationToast,
+  type ActionConfirmationToastTrigger
+} from "../../../actionConfirmationToast";
+import {
   formatResolvedRollStateDetailText,
   getRollModeFromIndicators
 } from "../../../../../RollStatePill/rollState";
@@ -424,6 +428,69 @@ import { useSelectedWeaponActionModel } from "./useSelectedWeaponActionModel";
 import ActionsGrid from "./ActionsGrid";
 import FeatureSpellDrawers from "./FeatureSpellDrawers";
 import WildShapePreviewDrawer from "./WildShapePreviewDrawer";
+
+const rollingFeatureEffectKinds = new Set([
+  "second-wind",
+  "speedy-recovery",
+  "tactical-mind",
+  "tireless"
+]);
+const rollingFeatureActionKeys = new Set([
+  boonOfFateImproveFateActionKey,
+  darkOnesOwnLuckActionKey,
+  durableSpeedyRecoveryActionKey,
+  fighterSecondWindActionKey,
+  fortifyingSoulActionKey,
+  hurlThroughHellActionKey,
+  monkElementalBurstActionKey,
+  monkPatientDefenseActionKey,
+  monkWholenessOfBodyActionKey,
+  rogueSoulknifePsychicTeleportationActionKey,
+  rogueSoulknifePsychicWhispersActionKey,
+  sorcererWarpingImplosionActionKey,
+  sorcererWildMagicSurgeActionKey,
+  tirelessActionKey
+]);
+const rollingFeatureFormKinds = new Set([
+  "aasimar-healing-hands",
+  "dragonborn-breath-weapon",
+  "goliath-stones-endurance",
+  "goliath-storms-thunder",
+  "healing-light",
+  "indomitable",
+  "recover-vitality",
+  "sneak-attack",
+  "spellfire-burst",
+  "warrior-of-the-gods"
+]);
+
+function getSelectedActionToastTrigger(
+  action: GameplayActionDefinition
+): ActionConfirmationToastTrigger {
+  if (action.kind !== "feature") {
+    return action.economyType;
+  }
+
+  if (action.execute.kind === "activate") {
+    const effectKind = action.execute.effectKind ?? "";
+
+    if (
+      rollingFeatureEffectKinds.has(effectKind) ||
+      rollingFeatureActionKeys.has(action.action.key)
+    ) {
+      return null;
+    }
+  }
+
+  if (
+    action.execute.kind === "custom-form" &&
+    rollingFeatureFormKinds.has(action.execute.formKind)
+  ) {
+    return null;
+  }
+
+  return action.economyType;
+}
 
 export function renderActionDrawerFooter(context: Record<string, any>) {
   const {
@@ -703,6 +770,11 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
   if (!selectedAction) {
     return null;
   }
+
+  const confirmSelectedActionToast = (callback: () => void) => () =>
+    runWithActionConfirmationToast(getSelectedActionToastTrigger(selectedAction), callback);
+  const confirmActionToast = (trigger: ActionConfirmationToastTrigger, callback: () => void) => () =>
+    runWithActionConfirmationToast(trigger, callback);
 
   if (selectedAction.kind === "weapon") {
     const showPsionicStrikeToggle =
@@ -1040,30 +1112,30 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
       <div className={styles.luckyFooterActions}>
         <ActionButton
           className={styles.footerActionButton}
-          onClick={() => {
+          onClick={confirmSelectedActionToast(() => {
             onPersistCharacter(spendLuckyPointForCharacter);
             closeActionDrawer();
-          }}
+          })}
           disabled={luckyPointsRemaining <= 0}
         >
           Use 1
         </ActionButton>
         <ActionButton
           className={styles.footerActionButton}
-          onClick={() => {
+          onClick={confirmSelectedActionToast(() => {
             onPersistCharacter(resetLuckyPointForCharacter);
             closeActionDrawer();
-          }}
+          })}
           disabled={luckyPointsAreFull}
         >
           Reset 1
         </ActionButton>
         <ActionButton
           className={styles.footerActionButton}
-          onClick={() => {
+          onClick={confirmSelectedActionToast(() => {
             onPersistCharacter(restoreLuckyPointsForCharacter);
             closeActionDrawer();
-          }}
+          })}
           disabled={luckyPointsAreFull}
         >
           Reset All
@@ -1213,7 +1285,7 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     return (
       <ActionButton
         className={styles.footerActionButton}
-        onClick={submitAasimarCelestialRevelation}
+        onClick={confirmSelectedActionToast(submitAasimarCelestialRevelation)}
         disabled={
           selectedFeatureActionPrimaryDisabledReason !== null ||
           selectedAasimarCelestialRevelationOptionKey === null
@@ -1244,7 +1316,7 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     return (
       <ActionButton
         className={styles.footerActionButton}
-        onClick={submitDragonbornDraconicFlight}
+        onClick={confirmSelectedActionToast(submitDragonbornDraconicFlight)}
         disabled={selectedFeatureActionPrimaryDisabledReason !== null}
         trailingBadge={
           actionShape ? (
@@ -1272,7 +1344,7 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     return (
       <ActionButton
         className={styles.footerActionButton}
-        onClick={submitDwarfStonecunning}
+        onClick={confirmSelectedActionToast(submitDwarfStonecunning)}
         disabled={selectedFeatureActionPrimaryDisabledReason !== null}
         trailingBadge={
           actionShape ? (
@@ -1300,7 +1372,7 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     return (
       <ActionButton
         className={styles.footerActionButton}
-        onClick={submitGoliathCloudsJaunt}
+        onClick={confirmSelectedActionToast(submitGoliathCloudsJaunt)}
         disabled={selectedFeatureActionPrimaryDisabledReason !== null}
         trailingBadge={
           actionShape ? (
@@ -1328,7 +1400,7 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     return (
       <ActionButton
         className={styles.footerActionButton}
-        onClick={submitGoliathLargeForm}
+        onClick={confirmSelectedActionToast(submitGoliathLargeForm)}
         disabled={selectedFeatureActionPrimaryDisabledReason !== null}
         trailingBadge={
           actionShape ? (
@@ -1597,7 +1669,7 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
       <div className={styles.weaponFooterActions}>
         <ActionButton
           className={styles.weaponFooterButton}
-          onClick={() => executeFeatureActivate(selectedAction.action)}
+          onClick={confirmSelectedActionToast(() => executeFeatureActivate(selectedAction.action))}
           disabled={selectedFeatureActionPrimaryDisabledReason !== null}
           icon={<img src={d20Icon} alt="" className={styles.weaponFooterIcon} />}
           trailingBadge={
@@ -1908,7 +1980,7 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
         ) : null}
         <ActionButton
           className={styles.footerActionButton}
-          onClick={() => executeFeatureActivate(selectedAction.action)}
+          onClick={confirmSelectedActionToast(() => executeFeatureActivate(selectedAction.action))}
           disabled={selectedFeatureActionPrimaryDisabledReason !== null}
           trailingBadge={
             actionShape ? (
@@ -1947,11 +2019,16 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     const selectedOptionShapeState = isMultiConfirm
       ? selectedActionEconomyShapeState
       : selectedOptionEconomyShapeState;
+    const selectedOptionToastTrigger = isMultiConfirm
+      ? selectedAction.economyType
+      : selectedOption?.rollFormula
+        ? null
+        : selectedOption?.economyType;
 
     return (
       <ActionButton
         className={styles.footerActionButton}
-        onClick={confirmSelectedFeatureOptions}
+        onClick={confirmActionToast(selectedOptionToastTrigger, confirmSelectedFeatureOptions)}
         disabled={
           (isMultiConfirm
             ? selectedActionOptionKeys.length <= 0 ||
@@ -1991,7 +2068,9 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     return (
       <ActionButton
         className={styles.footerActionButton}
-        onClick={() => submitArcaneRecovery(selectedArcaneRecoverySelection)}
+        onClick={confirmSelectedActionToast(() =>
+          submitArcaneRecovery(selectedArcaneRecoverySelection)
+        )}
         disabled={
           selectedFeatureActionPrimaryDisabledReason !== null ||
           selectedArcaneRecoveryLevelTotal <= 0
@@ -2050,7 +2129,7 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     return (
       <ActionButton
         className={styles.footerActionButton}
-        onClick={submitBlessingOfTheTrickster}
+        onClick={confirmSelectedActionToast(submitBlessingOfTheTrickster)}
         disabled={selectedFeatureActionPrimaryDisabledReason !== null}
         trailingBadge={
           actionShape ? (
@@ -2099,7 +2178,7 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     return (
       <ActionButton
         className={styles.footerActionButton}
-        onClick={submitThirdEye}
+        onClick={confirmSelectedActionToast(submitThirdEye)}
         disabled={
           selectedThirdEyeOptionKey === null || selectedFeatureActionPrimaryDisabledReason !== null
         }
@@ -2125,7 +2204,7 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     return (
       <ActionButton
         className={styles.footerActionButton}
-        onClick={submitWildShape}
+        onClick={confirmSelectedActionToast(submitWildShape)}
         disabled={!selectedWildShapeMonster || selectedFeatureActionPrimaryDisabledReason !== null}
         trailingBadge={
           <ActionShape
@@ -2148,7 +2227,7 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     return (
       <ActionButton
         className={styles.footerActionButton}
-        onClick={submitStarryForm}
+        onClick={confirmSelectedActionToast(submitStarryForm)}
         disabled={
           selectedFeatureActionPrimaryDisabledReason !== null ||
           selectedStarryFormConstellation === null
@@ -2174,7 +2253,7 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     return (
       <ActionButton
         className={styles.footerActionButton}
-        onClick={submitWildCompanion}
+        onClick={confirmSelectedActionToast(submitWildCompanion)}
         disabled={
           selectedFeatureActionPrimaryDisabledReason !== null ||
           !canUseSelectedWildCompanionResource
@@ -2201,7 +2280,7 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     return (
       <ActionButton
         className={styles.footerActionButton}
-        onClick={submitNatureMagician}
+        onClick={confirmSelectedActionToast(submitNatureMagician)}
         disabled={
           selectedFeatureActionPrimaryDisabledReason !== null || !selectedNatureMagicianOption
         }
@@ -2219,7 +2298,7 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     return (
       <ActionButton
         className={styles.footerActionButton}
-        onClick={submitWildResurgence}
+        onClick={confirmSelectedActionToast(submitWildResurgence)}
         disabled={
           !canUseSelectedWildResurgenceMode || selectedFeatureActionPrimaryDisabledReason !== null
         }
@@ -2237,7 +2316,7 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     return (
       <ActionButton
         className={styles.footerActionButton}
-        onClick={confirmFontOfMagicSelection}
+        onClick={confirmSelectedActionToast(confirmFontOfMagicSelection)}
         disabled={
           selectedFontOfMagicSelection === null ||
           selectedFeatureActionPrimaryDisabledReason !== null ||
@@ -2291,7 +2370,7 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     return (
       <ActionButton
         className={styles.footerActionButton}
-        onClick={submitBrutalStrike}
+        onClick={confirmSelectedActionToast(submitBrutalStrike)}
         disabled={selectedFeatureActionPrimaryDisabledReason !== null}
         trailingBadge={
           actionShape ? (
@@ -2313,7 +2392,7 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     return (
       <ActionButton
         className={styles.footerActionButton}
-        onClick={submitRage}
+        onClick={confirmSelectedActionToast(submitRage)}
         disabled={
           selectedRageSelectionWarning !== null ||
           selectedFeatureActionPrimaryDisabledReason !== null
@@ -2404,7 +2483,7 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     return (
       <ActionButton
         className={styles.footerActionButton}
-        onClick={() => confirmAction(selectedAction.action)}
+        onClick={confirmSelectedActionToast(() => confirmAction(selectedAction.action))}
         disabled={selectedFeatureActionPrimaryDisabledReason !== null}
         trailingBadge={
           actionShape ? (

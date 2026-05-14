@@ -2,6 +2,7 @@ import clsx from "clsx";
 import ActionButton from "../../../../../ActionButton";
 import ActionShape, { type ActionShapeType } from "../../../../../ActionShape";
 import SelectInput from "../../../../FormInputs/SelectInput";
+import { runWithActionConfirmationToast } from "../../../actionConfirmationToast";
 import actionStyles from "./ActionsWidget.module.css";
 
 type BeastMasterReviveSpellSlotOption = {
@@ -61,7 +62,7 @@ export function BeastMasterReviveActionFooter({
         </label>
         <ActionButton
           className={actionStyles.weaponFooterButton}
-          onClick={onConfirm}
+          onClick={() => runWithActionConfirmationToast(actionShape, onConfirm)}
           disabled={disabled}
           title={disabledReason ?? undefined}
           trailingBadge={
