@@ -76,7 +76,7 @@ function RoundTrackerWidget({ character, onPersistCharacter }: RoundTrackerWidge
     onPersistCharacter((currentCharacter) => startCharacterTurn(currentCharacter));
     dispatch(
       showToast({
-        text: "Your Turn Started",
+        text: "Your Turn Started.",
         type: "info",
         position: "bottom-middle",
         effect: "default",

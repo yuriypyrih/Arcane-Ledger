@@ -93,23 +93,23 @@
 }
 
 .turnButtonActive {
-  background: linear-gradient(145deg, #3569c8 0%, #244a99 58%, #18346f 100%);
+  background: linear-gradient(135deg, #2f6de0, #4a8eff);
   color: #f7fbff;
   box-shadow:
     inset 0 1px 0 rgba(215, 231, 255, 0.3),
-    inset 0 -1px 0 rgba(14, 35, 80, 0.46),
-    0 0 0 1px rgba(42, 82, 168, 0.46),
-    0 6px 14px rgba(31, 71, 148, 0.18);
+    inset 0 -1px 0 rgba(14, 44, 110, 0.34),
+    0 0 0 1px rgba(47, 109, 224, 0.46),
+    0 6px 14px rgba(47, 109, 224, 0.2);
 }
 
 .turnButtonActive:hover {
-  background: linear-gradient(145deg, #3e76da 0%, #2953a8 58%, #1b3a7b 100%);
+  background: linear-gradient(135deg, #3979ea, #5a99ff);
   color: #fff;
   box-shadow:
     inset 0 1px 0 rgba(224, 237, 255, 0.34),
-    inset 0 -1px 0 rgba(14, 35, 80, 0.48),
-    0 0 0 1px rgba(50, 94, 184, 0.52),
-    0 7px 16px rgba(31, 71, 148, 0.22);
+    inset 0 -1px 0 rgba(14, 44, 110, 0.36),
+    0 0 0 1px rgba(47, 109, 224, 0.52),
+    0 7px 16px rgba(47, 109, 224, 0.24);
 }
 
 .turnButtonStop {
