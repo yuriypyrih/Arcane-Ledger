@@ -226,17 +226,84 @@
 }
 
 @media (max-width: 899px) {
+  .modalPanel {
+    gap: 0.78rem;
+  }
+
+  .body {
+    gap: 0.7rem;
+  }
+
+  .selectionSection {
+    gap: 0.34rem;
+    padding-bottom: 0.68rem;
+  }
+
   .filters {
+    gap: 0.58rem;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .field {
+    gap: 0.26rem;
+  }
+
+  .field span {
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+  }
+
+  .input,
+  .select,
+  .checkboxLabel {
+    min-height: 38px;
+  }
+
+  .input,
+  .select {
+    padding: 0 0.65rem;
+    font-size: 0.9rem;
   }
 
   .checkboxField {
     grid-column: 1 / -1;
   }
+
+  .checkboxLabel {
+    gap: 0.38rem;
+  }
+
+  .tableSection {
+    gap: 0.58rem;
+  }
+
+  .tableAddButton {
+    min-height: 26px;
+    min-width: 26px;
+  }
+
+  .tableAddButton svg {
+    width: 13px;
+    height: 13px;
+  }
 }
 
 @media (max-width: 599px) {
+  .modalPanel {
+    gap: 0.58rem;
+  }
+
+  .body {
+    gap: 0.5rem;
+  }
+
+  .selectionSection {
+    gap: 0.28rem;
+    padding-bottom: 0.54rem;
+  }
+
   .filters {
+    gap: 0.42rem;
     grid-template-columns: 1fr;
   }
 
@@ -247,5 +314,70 @@
 
   .selectionMeta {
     justify-content: flex-start;
+  }
+
+  .selectionCount {
+    font-size: 0.76rem;
+    padding: 0.34rem 0.5rem;
+  }
+
+  .selectionCountValue {
+    font-size: 0.9rem;
+  }
+
+  .selectionCountLabel {
+    font-size: 0.64rem;
+  }
+
+  .selectionPills {
+    gap: 0.3rem;
+  }
+
+  .selectionPill {
+    gap: 0.24rem;
+    min-height: 26px;
+    padding: 0 0.48rem;
+    font-size: 0.76rem;
+  }
+
+  .emptySelectionText,
+  .helperText,
+  .noticeText,
+  .selectionLimit {
+    font-size: 0.78rem;
+  }
+
+  .field span {
+    font-size: 0.66rem;
+  }
+
+  .input,
+  .select,
+  .checkboxLabel {
+    min-height: 34px;
+  }
+
+  .input,
+  .select {
+    padding: 0 0.54rem;
+    font-size: 0.86rem;
+  }
+
+  .checkboxLabel {
+    gap: 0.32rem;
+  }
+
+  .tableSection {
+    gap: 0.42rem;
+  }
+
+  .tableAddButton {
+    min-height: 24px;
+    min-width: 24px;
+  }
+
+  .tableAddButton svg {
+    width: 12px;
+    height: 12px;
   }
 }

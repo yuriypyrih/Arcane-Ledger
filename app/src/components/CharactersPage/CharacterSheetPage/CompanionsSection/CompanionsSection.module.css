@@ -294,8 +294,38 @@
 }
 
 @media (max-width: 899px) {
+  .browserBody {
+    gap: 0.7rem;
+  }
+
   .browserControls {
+    gap: 0.58rem;
     grid-template-columns: 1fr;
+  }
+
+  .browserControls input,
+  .browserControls select {
+    min-height: 44px;
+    padding-left: 0.78rem;
+    font-size: 0.92rem;
+  }
+
+  .browserControls select {
+    padding-right: 2.6rem;
+  }
+
+  .monsterTable {
+    gap: 0.58rem;
+  }
+
+  .selectMonsterButton {
+    min-height: 26px;
+    min-width: 26px;
+  }
+
+  .selectMonsterButton svg {
+    width: 13px;
+    height: 13px;
   }
 
   .companionCard {
@@ -329,5 +359,38 @@
 
   .companionEditButton {
     min-height: 42px;
+  }
+
+  .browserBody {
+    gap: 0.5rem;
+  }
+
+  .browserControls {
+    gap: 0.42rem;
+  }
+
+  .browserControls input,
+  .browserControls select {
+    min-height: 38px;
+    padding-left: 0.62rem;
+    font-size: 0.86rem;
+  }
+
+  .browserControls select {
+    padding-right: 2.25rem;
+  }
+
+  .monsterTable {
+    gap: 0.42rem;
+  }
+
+  .selectMonsterButton {
+    min-height: 24px;
+    min-width: 24px;
+  }
+
+  .selectMonsterButton svg {
+    width: 12px;
+    height: 12px;
   }
 }

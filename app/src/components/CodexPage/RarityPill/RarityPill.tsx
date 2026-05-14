@@ -7,9 +7,10 @@ import styles from "./RarityPill.module.css";
 
 type RarityPillProps = {
   rarity: RarityPillValue;
+  className?: string;
 };
 
-function RarityPill({ rarity }: RarityPillProps) {
+function RarityPill({ rarity, className }: RarityPillProps) {
   if (!rarity) {
     return null;
   }
@@ -24,7 +25,7 @@ function RarityPill({ rarity }: RarityPillProps) {
 
   return (
     <span
-      className={styles.pill}
+      className={[styles.pill, className ?? ""].join(" ").trim()}
       style={{
         color: appearance.color,
         backgroundColor: appearance.background,

@@ -296,6 +296,9 @@ function EquipmentItemBrowserModal({
           }}
           onItemSelect={onItemSelect}
           heading="Browse Items"
+          className={styles.itemTable}
+          tableWrapperClassName={styles.itemTableWrapper}
+          paginationClassName={styles.itemTablePagination}
         />
       </OverlayBody>
     </SheetModal>

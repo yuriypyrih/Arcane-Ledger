@@ -183,18 +183,72 @@
   height: 0.88rem;
 }
 
-@media (max-width: 599px) {
-  .table th,
-  .table td {
-    padding: 0.4rem 0.5rem;
+@media (max-width: 899px) {
+  .layout {
+    gap: 0.58rem;
   }
 
-  .sortButton {
-    padding: 0.4rem 0.5rem;
+  .resultsHeader {
+    gap: 0.55rem;
+  }
+
+  .resultsHeader h3 {
+    font-size: 0.94rem;
+  }
+
+  .resultsMeta {
+    gap: 0.55rem;
+  }
+
+  .totalLabel {
+    font-size: 0.84rem;
+  }
+
+  .tableWrapper {
+    border-radius: var(--radius-control);
+  }
+
+  .table {
+    min-width: 34rem;
+  }
+
+  .table th,
+  .table td {
+    padding: 0.42rem 0.54rem;
+  }
+
+  .table th {
+    font-size: 0.69rem;
+    letter-spacing: 0.08em;
+  }
+
+  .typeHeader {
+    width: 7.4rem;
+  }
+
+  .crHeader,
+  .crCell {
+    width: 4.5rem;
   }
 
   .statusCell {
-    padding: 0.6rem 0.5rem;
+    padding: 0.6rem 0.54rem;
+  }
+
+  .statusContent {
+    gap: 0.16rem;
+  }
+
+  .statusContent strong {
+    font-size: 0.86rem;
+  }
+
+  .statusContent span {
+    font-size: 0.8rem;
+  }
+
+  .nameCellContent {
+    gap: 0.36rem;
   }
 
   .nameCell strong {
@@ -203,8 +257,108 @@
 
   .typeCell,
   .sourceCell,
+  .crCell {
+    font-size: 0.84rem;
+    line-height: 1.25;
+  }
+
+  .numericCell {
+    font-size: 0.78rem;
+  }
+
+  .sortButton {
+    gap: 0.34rem;
+    padding: 0.42rem 0.54rem;
+  }
+
+  .sortIcon {
+    width: 0.78rem;
+    height: 0.78rem;
+  }
+}
+
+@media (max-width: 599px) {
+  .layout {
+    gap: 0.45rem;
+  }
+
+  .resultsHeader h3 {
+    font-size: 0.9rem;
+  }
+
+  .resultsMeta {
+    gap: 0.42rem;
+  }
+
+  .totalLabel {
+    font-size: 0.78rem;
+  }
+
+  .table {
+    min-width: 29.5rem;
+  }
+
+  .table th,
+  .table td {
+    padding: 0.34rem 0.42rem;
+  }
+
+  .table th {
+    font-size: 0.64rem;
+    letter-spacing: 0.06em;
+  }
+
+  .typeHeader {
+    width: 6.6rem;
+  }
+
+  .crHeader,
+  .crCell {
+    width: 3.9rem;
+  }
+
+  .sortButton {
+    gap: 0.26rem;
+    padding: 0.34rem 0.42rem;
+  }
+
+  .sortIcon {
+    width: 0.7rem;
+    height: 0.7rem;
+  }
+
+  .statusCell {
+    padding: 0.52rem 0.42rem;
+  }
+
+  .statusContent strong {
+    font-size: 0.82rem;
+  }
+
+  .statusContent span {
+    font-size: 0.76rem;
+  }
+
+  .tableRowValid td:first-child {
+    box-shadow: inset 2px 0 0 #3f8b52;
+  }
+
+  .tableRowInvalid td:first-child {
+    box-shadow: inset 2px 0 0 #b24534;
+  }
+
+  .nameCellContent {
+    gap: 0.3rem;
+  }
+
+  .nameCell strong {
+    font-size: 0.85rem;
+  }
+
+  .typeCell,
+  .sourceCell,
   .crCell,
   .numericCell {
-    font-size: 0.82rem;
+    font-size: 0.76rem;
   }
 }

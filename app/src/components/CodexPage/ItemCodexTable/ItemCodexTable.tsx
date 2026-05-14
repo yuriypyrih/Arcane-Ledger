@@ -19,6 +19,9 @@ type ItemCodexTableProps = {
   onOrderingChange: (ordering: ItemOrdering) => void;
   onItemSelect?: (item: ItemListItem) => void;
   heading?: string;
+  className?: string;
+  tableWrapperClassName?: string;
+  paginationClassName?: string;
 };
 
 function getOrderingState(ordering: ItemOrdering) {
@@ -123,6 +126,10 @@ function renderSortableHeaderCell(
   );
 }
 
+function getContainerClassName(baseClassName: string, className?: string) {
+  return [baseClassName, className ?? ""].join(" ").trim();
+}
+
 function ItemCodexTable({
   items,
   totalEntries,
@@ -134,7 +141,10 @@ function ItemCodexTable({
   ordering,
   onOrderingChange,
   onItemSelect,
-  heading = "Item Entries"
+  heading = "Item Entries",
+  className,
+  tableWrapperClassName,
+  paginationClassName
 }: ItemCodexTableProps) {
   const navigate = useNavigate();
   const totalEntriesLabel = `${totalEntries} total ${totalEntries === 1 ? "item" : "items"}`;
@@ -225,7 +235,7 @@ function ItemCodexTable({
         </td>
         <td className={styles.rarityCell}>
           {hasDisplayableRarity(item.rarityName ?? item.rarityKey) ? (
-            <RarityPill rarity={item.rarityName ?? item.rarityKey} />
+            <RarityPill rarity={item.rarityName ?? item.rarityKey} className={styles.rarityPill} />
           ) : (
             item.rarityName ?? "No rarity"
           )}
@@ -239,7 +249,7 @@ function ItemCodexTable({
   }
 
   return (
-    <div className={styles.layout}>
+    <div className={getContainerClassName(styles.layout, className)}>
       <div className={styles.resultsHeader}>
         <h3>{heading}</h3>
         <div className={styles.resultsMeta}>
@@ -249,12 +259,13 @@ function ItemCodexTable({
               currentPage={currentPage}
               totalPages={totalPages}
               onPageChange={onPageChange}
+              className={paginationClassName}
             />
           ) : null}
         </div>
       </div>
 
-      <div className={styles.tableWrapper}>
+      <div className={getContainerClassName(styles.tableWrapper, tableWrapperClassName)}>
         <table className={styles.table}>
           <thead>
             <tr>

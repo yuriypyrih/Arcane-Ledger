@@ -165,6 +165,10 @@
   block-size: 0.95rem;
 }
 
+.rarityPill {
+  font-size: 0.66rem;
+}
+
 .sortButton {
   display: flex;
   width: 100%;
@@ -193,22 +197,73 @@
   height: 0.88rem;
 }
 
-@media (max-width: 599px) {
+@media (max-width: 899px) {
+  .layout {
+    gap: 0.58rem;
+  }
+
+  .resultsHeader {
+    gap: 0.55rem;
+  }
+
+  .resultsHeader h3 {
+    font-size: 0.94rem;
+  }
+
+  .resultsMeta {
+    gap: 0.55rem;
+  }
+
+  .totalLabel {
+    font-size: 0.84rem;
+  }
+
+  .tableWrapper {
+    border-radius: var(--radius-control);
+  }
+
   .table {
-    min-width: 44rem;
+    min-width: 45rem;
   }
 
   .table th,
   .table td {
-    padding: 0.4rem 0.5rem;
+    padding: 0.42rem 0.54rem;
   }
 
-  .sortButton {
-    padding: 0.4rem 0.5rem;
+  .table th {
+    font-size: 0.69rem;
+    letter-spacing: 0.08em;
+  }
+
+  .categoryHeader,
+  .sourceHeader {
+    width: 9rem;
+  }
+
+  .weightHeader,
+  .costHeader {
+    width: 6rem;
   }
 
   .statusCell {
-    padding: 0.6rem 0.5rem;
+    padding: 0.6rem 0.54rem;
+  }
+
+  .statusContent {
+    gap: 0.16rem;
+  }
+
+  .statusContent strong {
+    font-size: 0.86rem;
+  }
+
+  .statusContent span {
+    font-size: 0.8rem;
+  }
+
+  .nameCellContent {
+    gap: 0.36rem;
   }
 
   .nameCell strong {
@@ -219,8 +274,131 @@
   .categoryCell,
   .sourceCell,
   .weightCell,
+  .costCell {
+    font-size: 0.84rem;
+    line-height: 1.25;
+  }
+
+  .numericCell {
+    font-size: 0.78rem;
+  }
+
+  .costDisplay {
+    gap: 0.26rem;
+  }
+
+  .costDisplayIcon {
+    inline-size: 0.82rem;
+    block-size: 0.82rem;
+  }
+
+  .rarityPill {
+    font-size: 0.6rem;
+    padding: 0.2rem 0.44rem;
+  }
+
+  .sortButton {
+    gap: 0.34rem;
+    padding: 0.42rem 0.54rem;
+  }
+
+  .sortIcon {
+    width: 0.78rem;
+    height: 0.78rem;
+  }
+}
+
+@media (max-width: 599px) {
+  .layout {
+    gap: 0.45rem;
+  }
+
+  .resultsHeader h3 {
+    font-size: 0.9rem;
+  }
+
+  .resultsMeta {
+    gap: 0.42rem;
+  }
+
+  .totalLabel {
+    font-size: 0.78rem;
+  }
+
+  .table {
+    min-width: 37rem;
+  }
+
+  .table th,
+  .table td {
+    padding: 0.34rem 0.42rem;
+  }
+
+  .table th {
+    font-size: 0.64rem;
+    letter-spacing: 0.06em;
+  }
+
+  .categoryHeader,
+  .sourceHeader {
+    width: 7.4rem;
+  }
+
+  .weightHeader,
+  .costHeader {
+    width: 5.2rem;
+  }
+
+  .sortButton {
+    gap: 0.26rem;
+    padding: 0.34rem 0.42rem;
+  }
+
+  .sortIcon {
+    width: 0.7rem;
+    height: 0.7rem;
+  }
+
+  .statusCell {
+    padding: 0.52rem 0.42rem;
+  }
+
+  .statusContent strong {
+    font-size: 0.82rem;
+  }
+
+  .statusContent span {
+    font-size: 0.76rem;
+  }
+
+  .nameCellContent {
+    gap: 0.3rem;
+  }
+
+  .nameCell strong {
+    font-size: 0.85rem;
+  }
+
+  .rarityCell,
+  .categoryCell,
+  .sourceCell,
+  .weightCell,
   .costCell,
   .numericCell {
-    font-size: 0.82rem;
+    font-size: 0.76rem;
+  }
+
+  .costDisplay {
+    gap: 0.2rem;
+  }
+
+  .costDisplayIcon {
+    inline-size: 0.74rem;
+    block-size: 0.74rem;
+  }
+
+  .rarityPill {
+    font-size: 0.56rem;
+    padding: 0.17rem 0.34rem;
   }
 }

@@ -61,8 +61,58 @@
   min-height: 0;
 }
 
+.itemTable {
+  min-height: 0;
+}
+
+.itemTableWrapper {
+  min-height: 0;
+}
+
+@media (max-width: 899px) {
+  .headerActions {
+    gap: 0.58rem;
+  }
+
+  .currencyButton,
+  .customButton {
+    min-height: 36px;
+    padding: 0.38rem 0.68rem;
+  }
+
+  .body {
+    gap: 0.72rem;
+  }
+}
+
 @media (max-width: 599px) {
   .headerActions {
+    gap: 0.5rem;
     justify-content: stretch;
+  }
+
+  .eyebrow {
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+  }
+
+  .currencyButton,
+  .customButton {
+    gap: 0.34rem;
+    min-height: 34px;
+    padding: 0.34rem 0.58rem;
+    font-size: 0.86rem;
+  }
+
+  .body {
+    gap: 0.58rem;
+  }
+
+  .itemTable {
+    gap: 0.42rem;
+  }
+
+  .itemTablePagination {
+    justify-content: flex-start;
   }
 }

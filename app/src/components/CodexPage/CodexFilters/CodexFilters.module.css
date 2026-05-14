@@ -36,6 +36,41 @@
 
 @media (max-width: 899px) {
   .controls {
+    gap: 0.65rem;
     grid-template-columns: 1fr;
+  }
+
+  .field {
+    gap: 0.34rem;
+  }
+
+  .field span {
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+  }
+
+  .input {
+    min-height: 44px;
+    padding: 0 0.78rem;
+  }
+}
+
+@media (max-width: 599px) {
+  .controls {
+    gap: 0.5rem;
+  }
+
+  .field {
+    gap: 0.26rem;
+  }
+
+  .field span {
+    font-size: 0.7rem;
+  }
+
+  .input {
+    min-height: 38px;
+    padding: 0 0.65rem;
+    font-size: 0.9rem;
   }
 }
