@@ -171,3 +171,13 @@
     display: grid;
   }
 }
+
+@media (min-width: 1200px) and (max-width: 1535px) {
+  :global(html.broad-layout-lg-compact) .layoutXl {
+    display: none;
+  }
+
+  :global(html.broad-layout-lg-compact) .layoutMd {
+    display: grid;
+  }
+}

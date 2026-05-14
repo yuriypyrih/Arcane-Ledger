@@ -2,6 +2,7 @@ type SanitizeUserInputOptions = {
   multiline?: boolean;
 };
 
+// eslint-disable-next-line no-control-regex -- User input sanitization intentionally strips C0/C1 controls.
 const unsafeControlCharacterPattern = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g;
 const whitespacePattern = /\s+/g;
 

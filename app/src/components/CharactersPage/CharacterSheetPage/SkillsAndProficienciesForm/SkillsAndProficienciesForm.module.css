@@ -244,6 +244,12 @@
   }
 }
 
+@media (min-width: 1200px) and (max-width: 1535px) {
+  :global(html.broad-layout-lg-compact) .proficiencyPillGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 699px) {
   .proficiencyPillGrid {
     grid-template-columns: repeat(3, minmax(0, 1fr));

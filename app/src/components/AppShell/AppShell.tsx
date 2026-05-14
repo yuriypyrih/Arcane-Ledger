@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, useMatch } from "react-router-dom";
 import { useMediaQuery } from "../../lib/useMediaQuery";
 import {
@@ -12,15 +12,34 @@ import { navigationLinks } from "./navigationLinks";
 import type { AppShellOutletContext } from "./outletContext";
 import styles from "./AppShell.module.css";
 
+const BROAD_LAYOUT_LG_COMPACT_CLASS = "broad-layout-lg-compact";
+
 function AppShell() {
   const characterSheetMatch = useMatch({ path: "/characters/:characterId", end: true });
-  const isXlUp = useMediaQuery(MEDIA_QUERIES.xlUp);
+  const isLgUp = useMediaQuery(MEDIA_QUERIES.lgUp);
+  const isLgOnly = useMediaQuery(MEDIA_QUERIES.lgOnly);
   const [broadLayout, setBroadLayout] = useState(() => getBroadLayoutPreference());
-  const showBroadLayoutSwitch = Boolean(characterSheetMatch) && isXlUp;
+  const showBroadLayoutSwitch = Boolean(characterSheetMatch) && isLgUp;
   const isBroadLayoutActive = broadLayout && showBroadLayoutSwitch;
+  const useLgCompactScale = isBroadLayoutActive && isLgOnly;
   const outletContext: AppShellOutletContext = {
     isBroadLayoutActive
   };
+
+  useEffect(() => {
+    if (typeof document === "undefined") {
+      return undefined;
+    }
+
+    document.documentElement.classList.toggle(
+      BROAD_LAYOUT_LG_COMPACT_CLASS,
+      useLgCompactScale
+    );
+
+    return () => {
+      document.documentElement.classList.remove(BROAD_LAYOUT_LG_COMPACT_CLASS);
+    };
+  }, [useLgCompactScale]);
 
   function toggleBroadLayout() {
     const nextBroadLayout = !broadLayout;

@@ -14,5 +14,7 @@ export const MEDIA_QUERIES = {
   xsOnly: `(max-width: ${maxWidthBelow(BREAKPOINTS.sm)})`,
   mdDown: `(max-width: ${maxWidthBelow(BREAKPOINTS.md)})`,
   lgDown: `(max-width: ${maxWidthBelow(BREAKPOINTS.lg)})`,
+  lgUp: `(min-width: ${BREAKPOINTS.lg}px)`,
+  lgOnly: `(min-width: ${BREAKPOINTS.lg}px) and (max-width: ${maxWidthBelow(BREAKPOINTS.xl)})`,
   xlUp: `(min-width: ${BREAKPOINTS.xl}px)`
 } as const;

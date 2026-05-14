@@ -113,6 +113,23 @@ body {
   }
 }
 
+@media (min-width: 1200px) and (max-width: 1535px) {
+  html.broad-layout-lg-compact {
+    --space-shell-gutter: clamp(0.45rem, 1.9vw, 0.9rem);
+    --space-page-gap: clamp(0.52rem, 1.8vw, 0.92rem);
+    --space-section-gap: clamp(0.45rem, 1.6vw, 0.8rem);
+    --space-card-padding: clamp(0.65rem, 2.2vw, 0.98rem);
+    --space-card-padding-tight: clamp(0.58rem, 1.9vw, 0.9rem);
+    --sheet-surface-radius-xm: 4px;
+    --sheet-surface-radius-sm: 6px;
+    --sheet-surface-radius-md: 8px;
+    --sheet-surface-radius-lg: 10px;
+    --sheet-surface-radius-xl: 12px;
+    --radius-section: 10px;
+    font-size: 13.5px;
+  }
+}
+
 body::before {
   content: "";
   position: fixed;

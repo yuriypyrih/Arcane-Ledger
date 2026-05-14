@@ -251,7 +251,7 @@
   opacity: 0.45;
 }
 
-@media (min-width: 1536px) {
+@media (min-width: 1200px) {
   .broadLayoutSwitch {
     display: inline-flex;
   }
