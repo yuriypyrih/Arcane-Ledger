@@ -1,6 +1,5 @@
 import type { Character, CharacterDraft, CoreStats } from "../../types";
 import { currencyKeys } from "../../types";
-import { loadPreferences } from "../../storage/preferences";
 import {
   CHARACTERS_STORAGE_KEY,
   alignmentOptions,
@@ -455,7 +454,7 @@ export function normalizeCharacter(value: unknown): Character | null {
   const normalizedMaxHitPointsMode =
     record.maxHitPointsMode === "automatic" || record.maxHitPointsMode === "custom"
       ? record.maxHitPointsMode
-      : loadPreferences().defaultMaxHitPointsMode;
+      : "automatic";
   const normalizedRoundTracker = normalizeRoundTracker(record.roundTracker);
   const normalizedDeathSaves = normalizeDeathSaves(record.deathSaves);
   const normalizedCompanions = normalizeCharacterCompanions(record.companions);

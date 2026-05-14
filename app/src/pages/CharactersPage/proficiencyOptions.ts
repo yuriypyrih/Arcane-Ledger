@@ -4,7 +4,7 @@ import {
   CUSTOM_LANGUAGE_PREFIX,
   LANGUAGE_PROFICIENCY,
   TOOL_PROFICIENCY,
-  exoticLanguageEntries,
+  rareLanguageEntries,
   standardLanguageEntries
 } from "../../types";
 
@@ -52,7 +52,7 @@ export const artisanToolProficiencies: ToolProficiency[] = [
 ];
 export const languageProficiencyOptions: LANGUAGE_PROFICIENCY[] = [
   ...standardLanguageEntries.map((entry) => entry.proficiency),
-  ...exoticLanguageEntries.map((entry) => entry.proficiency)
+  ...rareLanguageEntries.map((entry) => entry.proficiency)
 ];
 
 export const toolProficiencyLabels: Record<TOOL_PROFICIENCY, string> = {
@@ -126,6 +126,7 @@ export const groupedToolProficiencyOptions: ToolProficiency[] = [
 
 export const languageProficiencyLabels: Record<LANGUAGE_PROFICIENCY, string> = {
   [LANGUAGE_PROFICIENCY.COMMON]: "Common",
+  [LANGUAGE_PROFICIENCY.COMMON_SIGN_LANGUAGE]: "Common Sign Language",
   [LANGUAGE_PROFICIENCY.ABYSSAL]: "Abyssal",
   [LANGUAGE_PROFICIENCY.CELESTIAL]: "Celestial",
   [LANGUAGE_PROFICIENCY.DEEP_SPEECH]: "Deep Speech",

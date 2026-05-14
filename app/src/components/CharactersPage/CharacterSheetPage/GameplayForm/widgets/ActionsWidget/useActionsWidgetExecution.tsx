@@ -29,6 +29,7 @@ import {
   applyInspiredEclipseStatusForCharacter,
   applyMantleOfMajestyStatusForCharacter,
   applyRangerWinterWalkerFrozenHauntStatusEntriesForCharacter,
+  applyRangerWinterWalkerFortifyingSoulSelfStatusForCharacter,
   applyLayOnHandsForCharacter,
   consumeBeguilingMagicOrBardicInspirationForCharacter,
   consumeMantleOfMajestyUseForCharacter,
@@ -481,6 +482,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     isDreadfulStrikeSelected,
     isEmpoweredStrikesSelected,
     isEldritchSmiteSelected,
+    isFortifyingSoulIncludingSelfSelected,
     isGoliathAncestryStrikeSelected,
     isLifedrinkerSelected,
     isFixedSpellDrawerOpen,
@@ -1107,6 +1109,31 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
       return roundTrackerResource
         ? consumeRoundTrackerResourceForCharacter(nextCharacterWithFleetStep, roundTrackerResource)
         : nextCharacterWithFleetStep;
+    });
+  }
+
+  function activateFortifyingSoulAction(action: FeatureActionCard) {
+    const shouldApplySelfTrait = isFortifyingSoulIncludingSelfSelected === true;
+
+    onPersistCharacter((currentCharacter) => {
+      const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
+      const preparedCharacter = prepareCharacterForResourceConsumption(
+        currentCharacter,
+        roundTrackerResource
+      );
+      const nextCharacter = activateFeatureActionForCharacter(preparedCharacter, action.key);
+
+      if (nextCharacter === preparedCharacter) {
+        return currentCharacter;
+      }
+
+      const nextCharacterWithSelfTrait = shouldApplySelfTrait
+        ? applyRangerWinterWalkerFortifyingSoulSelfStatusForCharacter(nextCharacter)
+        : nextCharacter;
+
+      return roundTrackerResource
+        ? consumeRoundTrackerResourceForCharacter(nextCharacterWithSelfTrait, roundTrackerResource)
+        : nextCharacterWithSelfTrait;
     });
   }
 
@@ -1751,8 +1778,10 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     }
 
     if (action.key === fortifyingSoulActionKey) {
-      activateFeatureAction(action);
-      rollFortifyingSoulHealing(action);
+      const shouldApplySelfResult = isFortifyingSoulIncludingSelfSelected === true;
+
+      activateFortifyingSoulAction(action);
+      rollFortifyingSoulHealing(action, { applySelfResult: shouldApplySelfResult });
       closeActionDrawer();
       return;
     }
@@ -2239,6 +2268,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     prepareCharacterForResourceConsumption,
     activateFeatureAction
   });
+  const { rollFortifyingSoulHealing } = submissions;
 
   return {
     closeActionDrawer,

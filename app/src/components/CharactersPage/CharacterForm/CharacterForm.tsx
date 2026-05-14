@@ -13,7 +13,12 @@ import type {
   MagicInitiateChoice,
   SkillName
 } from "../../../types";
-import { TOOL_PROFICIENCY } from "../../../types";
+import {
+  LANGUAGE_PROFICIENCY,
+  TOOL_PROFICIENCY,
+  rareLanguageEntries,
+  standardLanguageEntries
+} from "../../../types";
 import { FEATS } from "../../../codex/entries";
 import { getClassStarterPack } from "../../../codex/classes/starterPack";
 import {
@@ -44,7 +49,10 @@ import {
   normalizeToolSelectionsForClass,
   resolveSkillProficienciesForCharacter
 } from "../../../pages/CharactersPage/proficiency";
-import { getToolProficiencyLabel } from "../../../pages/CharactersPage/proficiencyOptions";
+import {
+  getToolProficiencyLabel,
+  languageProficiencyLabels
+} from "../../../pages/CharactersPage/proficiencyOptions";
 import {
   createDefaultBackgroundOriginFeatEntry,
   getBackgroundEntry,
@@ -1004,7 +1012,19 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   const backgroundSkillSelectionLimit = Math.min(2, backgroundSkillOptions.length);
   const hasBackgroundSkillChoice = backgroundSkillOptions.length > backgroundSkillSelectionLimit;
   const hasBackgroundToolChoice = backgroundToolOptions.length > 0;
+  const standardBackgroundLanguageOptions = standardLanguageEntries.map(
+    (entry) => entry.proficiency
+  );
+  const rareBackgroundLanguageOptions = rareLanguageEntries.map((entry) => entry.proficiency);
+  const backgroundLanguageOptions = [
+    ...standardBackgroundLanguageOptions,
+    ...rareBackgroundLanguageOptions
+  ];
   const selectedBackgroundSkillProficiencies = displayedBackgroundChoices?.skillProficiencies ?? [];
+  const selectedBackgroundLanguageProficiencies =
+    displayedBackgroundChoices?.languageProficiencies ??
+    resolvedBackgroundChoices?.languageProficiencies ??
+    [];
   const selectedBackgroundToolProficiencies =
     displayedBackgroundChoices?.toolProficiencies ??
     (displayedBackgroundChoices?.toolProficiency
@@ -1688,7 +1708,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   }
 
   function getBackgroundChoiceDraftBase(): CharacterBackgroundChoices {
-    return getValues("backgroundChoices") ?? {};
+    return getValues("backgroundChoices") ?? resolvedBackgroundChoices ?? {};
   }
 
   function toggleBackgroundSkillProficiency(skill: SkillName) {
@@ -1703,6 +1723,20 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     commitBackgroundChoices({
       ...currentChoices,
       skillProficiencies: normalizeSelection(nextSkills, backgroundSkillOptions)
+    });
+  }
+
+  function toggleBackgroundLanguageProficiency(language: LANGUAGE_PROFICIENCY) {
+    const currentChoices = getBackgroundChoiceDraftBase();
+    const currentLanguages =
+      currentChoices.languageProficiencies ?? resolvedBackgroundChoices?.languageProficiencies ?? [];
+    const nextLanguages = currentLanguages.includes(language)
+      ? currentLanguages.filter((selectedLanguage) => selectedLanguage !== language)
+      : [...currentLanguages, language];
+
+    commitBackgroundChoices({
+      ...currentChoices,
+      languageProficiencies: normalizeSelection(nextLanguages, backgroundLanguageOptions)
     });
   }
 
@@ -1951,6 +1985,25 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       statusEntries: draftValues.statusEntries ?? [],
       feats: normalizedFeats
     });
+    const normalizedProficiencies = normalizeCharacterProficiencies({
+      className: normalizedClassName,
+      level: normalizedProgress.level,
+      species: normalizedSpecies,
+      speciesChoices: normalizedSpeciesChoices,
+      background: resolvedNormalizedBackground,
+      backgroundChoices: normalizedBackgroundChoices,
+      subclassId: normalizedSubclassId,
+      classFeatureState: draftValues.classFeatureState ?? {},
+      skillProficiencies: [],
+      savingThrowProficiencies: [],
+      weaponProficiencies: [],
+      armorProficiencies: [],
+      toolProficiencies: [],
+      languageProficiencies: draftValues.languageProficiencies ?? [],
+      selectedClassSkills: normalizedSkills,
+      selectedClassToolProficiencies: normalizedTools,
+      feats: normalizedFeats
+    });
 
     return {
       ...draftValues,
@@ -1992,6 +2045,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         ...new Set((draftValues.equipment ?? []).map((item) => item.trim()).filter(Boolean))
       ],
       abilities: normalizedAbilities,
+      languageProficiencies: normalizedProficiencies.languageProficiencies,
       feats: normalizedFeats
     };
   }
@@ -3107,6 +3161,45 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                   Choose the background tool proficiency before continuing.
                 </p>
               ) : null}
+            </fieldset>
+
+            <fieldset className={styles.choiceGroup}>
+              <legend>Languages</legend>
+              <p className={styles.helperText}>
+                Choose up to 3 total languages (unless you want more)
+              </p>
+              <p className={styles.helperText}>Standard</p>
+              <div className={styles.choiceGrid}>
+                {standardBackgroundLanguageOptions.map((language) => {
+                  const isActive = selectedBackgroundLanguageProficiencies.includes(language);
+
+                  return (
+                    <RadioContainerOption
+                      key={language}
+                      header={languageProficiencyLabels[language]}
+                      selected={isActive}
+                      onSelect={() => toggleBackgroundLanguageProficiency(language)}
+                      indicatorType="checkbox"
+                    />
+                  );
+                })}
+              </div>
+              <p className={styles.helperText}>Rare</p>
+              <div className={styles.choiceGrid}>
+                {rareBackgroundLanguageOptions.map((language) => {
+                  const isActive = selectedBackgroundLanguageProficiencies.includes(language);
+
+                  return (
+                    <RadioContainerOption
+                      key={language}
+                      header={languageProficiencyLabels[language]}
+                      selected={isActive}
+                      onSelect={() => toggleBackgroundLanguageProficiency(language)}
+                      indicatorType="checkbox"
+                    />
+                  );
+                })}
+              </div>
             </fieldset>
 
             <fieldset className={styles.choiceGroup}>

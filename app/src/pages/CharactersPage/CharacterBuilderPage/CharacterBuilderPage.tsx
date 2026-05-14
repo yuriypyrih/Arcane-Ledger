@@ -60,6 +60,7 @@ function CharacterBuilderPage() {
           existingCharacter.toolProficiencies,
           existingCharacter.className
         ),
+        languageProficiencies: existingCharacter.languageProficiencies,
         savingThrowProficiencies: getSavingThrowSelectionsFromEntries(
           existingCharacter.savingThrowProficiencies
         ),

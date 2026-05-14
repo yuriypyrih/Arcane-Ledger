@@ -32,7 +32,21 @@ function AbilityScoresEditorContent({
           : null
       : null;
 
-  function handlePointBuyKeyDown(
+  function getAbilityScoreBounds(ability: AbilityKey) {
+    if (attributeMode === "pointBuy") {
+      return {
+        min: 8,
+        max: getMaxPointBuyScore?.(ability) ?? 15
+      };
+    }
+
+    return {
+      min: 1,
+      max: 99
+    };
+  }
+
+  function handleAbilityScoreKeyDown(
     event: ReactKeyboardEvent<HTMLInputElement>,
     ability: AbilityKey
   ) {
@@ -70,8 +84,8 @@ function AbilityScoresEditorContent({
     event.preventDefault();
   }
 
-  function adjustPointBuyAbility(ability: AbilityKey, delta: number) {
-    if (attributeMode !== "pointBuy" || delta === 0) {
+  function adjustAbilityScore(ability: AbilityKey, delta: number) {
+    if (delta === 0) {
       return;
     }
 
@@ -141,54 +155,50 @@ function AbilityScoresEditorContent({
       <div className={styles.abilityInputGrid}>
         {abilityKeys.map((ability) => {
           const currentValue = abilities[ability];
-          const maxPointBuyScore = getMaxPointBuyScore?.(ability) ?? 15;
+          const scoreBounds = getAbilityScoreBounds(ability);
+          const isPointBuy = attributeMode === "pointBuy";
 
           return (
             <label key={ability} className={styles.abilityInputCard}>
               <span className={styles.abilityInputLabel}>{ability}</span>
-              {attributeMode === "pointBuy" ? (
-                <div className={styles.pointBuyInputShell}>
-                  <NumberInput
-                    className={styles.pointBuyInput}
-                    min={8}
-                    max={15}
-                    readOnly
-                    value={currentValue}
-                    onBeforeInput={(event) => {
-                      event.preventDefault();
-                    }}
-                    onKeyDown={(event) => handlePointBuyKeyDown(event, ability)}
-                    onChange={(event) => onUpdateAbilityScore(ability, event.target.value)}
-                  />
-                  <div className={styles.pointBuyStepper}>
-                    <button
-                      type="button"
-                      className={styles.pointBuyStepperButton}
-                      onClick={() => adjustPointBuyAbility(ability, 1)}
-                      disabled={currentValue >= maxPointBuyScore}
-                      aria-label={`Increase ${ability}`}
-                    >
-                      <ChevronUp size={16} />
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.pointBuyStepperButton}
-                      onClick={() => adjustPointBuyAbility(ability, -1)}
-                      disabled={currentValue <= 8}
-                      aria-label={`Decrease ${ability}`}
-                    >
-                      <ChevronDown size={16} />
-                    </button>
-                  </div>
-                </div>
-              ) : (
+              <div className={styles.pointBuyInputShell}>
                 <NumberInput
-                  min={1}
-                  max={99}
+                  className={styles.pointBuyInput}
+                  min={scoreBounds.min}
+                  max={isPointBuy ? 15 : scoreBounds.max}
+                  readOnly={isPointBuy}
                   value={currentValue}
+                  onBeforeInput={
+                    isPointBuy
+                      ? (event) => {
+                          event.preventDefault();
+                        }
+                      : undefined
+                  }
+                  onKeyDown={(event) => handleAbilityScoreKeyDown(event, ability)}
                   onChange={(event) => onUpdateAbilityScore(ability, event.target.value)}
                 />
-              )}
+                <div className={styles.pointBuyStepper}>
+                  <button
+                    type="button"
+                    className={styles.pointBuyStepperButton}
+                    onClick={() => adjustAbilityScore(ability, 1)}
+                    disabled={currentValue >= scoreBounds.max}
+                    aria-label={`Increase ${ability}`}
+                  >
+                    <ChevronUp size={16} />
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.pointBuyStepperButton}
+                    onClick={() => adjustAbilityScore(ability, -1)}
+                    disabled={currentValue <= scoreBounds.min}
+                    aria-label={`Decrease ${ability}`}
+                  >
+                    <ChevronDown size={16} />
+                  </button>
+                </div>
+              </div>
             </label>
           );
         })}

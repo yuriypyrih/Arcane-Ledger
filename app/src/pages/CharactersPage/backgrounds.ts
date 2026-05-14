@@ -10,7 +10,7 @@ import type {
   MagicInitiateChoice,
   SkillName
 } from "../../types";
-import { TOOL_PROFICIENCY } from "../../types";
+import { LANGUAGE_PROFICIENCY, TOOL_PROFICIENCY } from "../../types";
 import {
   createCharacterFeatEntry,
   getMagicInitiateCantripOptions,
@@ -21,6 +21,7 @@ import { crafterFastCraftingToolProficiencies } from "./feats/crafter";
 import {
   musicalInstrumentToolProficiencies,
   gamingSetToolProficiencies,
+  languageProficiencyOptions,
   type ToolProficiency
 } from "./proficiencyOptions";
 
@@ -173,6 +174,19 @@ function normalizeBackgroundToolProficiencies(
   return fallbackTool ? [fallbackTool] : [];
 }
 
+function normalizeBackgroundLanguageProficiencies(value: unknown): LANGUAGE_PROFICIENCY[] {
+  if (!Array.isArray(value)) {
+    return [LANGUAGE_PROFICIENCY.COMMON];
+  }
+
+  const allowedLanguageSet = new Set<LANGUAGE_PROFICIENCY>(languageProficiencyOptions);
+
+  return [...new Set(value)].filter(
+    (language): language is LANGUAGE_PROFICIENCY =>
+      typeof language === "string" && allowedLanguageSet.has(language as LANGUAGE_PROFICIENCY)
+  );
+}
+
 function normalizeAbilityScoreIncrease(
   entry: BackgroundEntry,
   value: unknown,
@@ -312,6 +326,8 @@ export function normalizeBackgroundChoices(
 
   const record =
     value && typeof value === "object" ? (value as Partial<CharacterBackgroundChoices>) : {};
+  const hasLanguageChoices =
+    value !== null && typeof value === "object" && "languageProficiencies" in value;
   const toolProficiencies = normalizeBackgroundToolProficiencies(
     entry,
     record.toolProficiencies ?? (record.toolProficiency ? [record.toolProficiency] : undefined)
@@ -326,6 +342,9 @@ export function normalizeBackgroundChoices(
       entry,
       record.abilityScoreIncrease,
       context
+    ),
+    languageProficiencies: normalizeBackgroundLanguageProficiencies(
+      hasLanguageChoices ? record.languageProficiencies : undefined
     ),
     skillProficiencies: normalizeBackgroundSkillProficiencies(entry, record.skillProficiencies),
     toolProficiencies,
@@ -369,6 +388,19 @@ export function getBackgroundToolProficiencies(
         : [])
     ])
   ];
+}
+
+export function getBackgroundLanguageProficiencies(
+  background: string,
+  choices?: CharacterBackgroundChoices
+): LANGUAGE_PROFICIENCY[] {
+  const entry = getBackgroundEntry(background);
+
+  if (!entry) {
+    return [];
+  }
+
+  return normalizeBackgroundLanguageProficiencies(choices?.languageProficiencies);
 }
 
 export function getBackgroundEquipmentChoice(

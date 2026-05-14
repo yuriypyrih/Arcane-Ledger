@@ -3,9 +3,9 @@ import { useRef, useState } from "react";
 import type { Character, LanguageProficiency } from "../../../../types";
 import {
   ARMOR_PROFICIENCY,
-  exoticLanguageEntries,
   LANGUAGE_PROFICIENCY,
   PROF_LEVEL,
+  rareLanguageEntries,
   SAVING_THROW_PROFICIENCY,
   standardLanguageEntries,
   WEAPON_PROFICIENCY
@@ -381,7 +381,7 @@ function ProficiencyEditorModal({
 
   function renderLanguageEditor() {
     const standardLanguageOptions = standardLanguageEntries.map((entry) => entry.proficiency);
-    const exoticLanguageOptions = exoticLanguageEntries.map((entry) => entry.proficiency);
+    const rareLanguageOptions = rareLanguageEntries.map((entry) => entry.proficiency);
     const customLanguageEntries = displayedLanguageProficiencyEntries.filter((entry) =>
       isCustomLanguageProficiency(entry.proficiency)
     );
@@ -390,7 +390,7 @@ function ProficiencyEditorModal({
         !isCustomLanguageProficiency(entry.proficiency) &&
         entry.locked &&
         !standardLanguageOptions.includes(entry.proficiency as LANGUAGE_PROFICIENCY) &&
-        !exoticLanguageOptions.includes(entry.proficiency as LANGUAGE_PROFICIENCY)
+        !rareLanguageOptions.includes(entry.proficiency as LANGUAGE_PROFICIENCY)
     );
 
     return (
@@ -400,8 +400,8 @@ function ProficiencyEditorModal({
           {renderLanguageToggleEditor(standardLanguageOptions)}
         </div>
         <div className={styles.languageEditorGroup}>
-          <p className={styles.groupSubtitle}>Exotic Languages</p>
-          {renderLanguageToggleEditor(exoticLanguageOptions)}
+          <p className={styles.groupSubtitle}>Rare Languages</p>
+          {renderLanguageToggleEditor(rareLanguageOptions)}
         </div>
         {grantedLanguageEntries.length > 0 ? (
           <div className={styles.languageEditorGroup}>

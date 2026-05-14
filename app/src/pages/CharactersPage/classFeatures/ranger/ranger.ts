@@ -1420,6 +1420,10 @@ export function restoreRangerWinterWalkerFortifyingSoulOnLongRest(character: Cha
   return winterWalkerSubclass.restoreRangerWinterWalkerFortifyingSoulOnLongRest(character);
 }
 
+export function applyRangerWinterWalkerFortifyingSoulSelfStatus(character: Character): Character {
+  return winterWalkerSubclass.applyRangerWinterWalkerFortifyingSoulSelfStatus(character);
+}
+
 export function restoreRangerWinterWalkerChillingRetributionOnLongRest(
   character: Character
 ): Character {

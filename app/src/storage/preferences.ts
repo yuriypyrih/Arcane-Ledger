@@ -1,13 +1,8 @@
 import { isObjectRecord, normalizeBoolean } from "../utils/normalize";
 
-export type StatsViewMode = "tabs" | "full";
-export type MaxHitPointsModePreference = "automatic" | "custom";
 export type DiceRollerBehaviorPreference = "full_manual" | "manual_with_roller" | "full_auto";
 
 export type Preferences = {
-  statsViewMode: StatsViewMode;
-  skillsProficienciesVisible: boolean;
-  defaultMaxHitPointsMode: MaxHitPointsModePreference;
   diceRollerBehavior: DiceRollerBehaviorPreference;
   broadLayout: boolean;
 };
@@ -15,27 +10,16 @@ export type Preferences = {
 const PREFERENCES_STORAGE_KEY = "arcane-ledger.preferences";
 
 const defaultPreferences: Preferences = {
-  statsViewMode: "tabs",
-  skillsProficienciesVisible: true,
-  defaultMaxHitPointsMode: "automatic",
-  diceRollerBehavior: "manual_with_roller",
+  diceRollerBehavior: "full_auto",
   broadLayout: false
 };
 
-function normalizeStatsViewMode(value: unknown): StatsViewMode {
-  return value === "full" ? "full" : "tabs";
-}
-
-function normalizeMaxHitPointsModePreference(value: unknown): MaxHitPointsModePreference {
-  return value === "custom" ? "custom" : "automatic";
-}
-
 function normalizeDiceRollerBehaviorPreference(value: unknown): DiceRollerBehaviorPreference {
-  if (value === "full_manual" || value === "full_auto") {
+  if (value === "full_manual" || value === "manual_with_roller" || value === "full_auto") {
     return value;
   }
 
-  return "manual_with_roller";
+  return defaultPreferences.diceRollerBehavior;
 }
 
 function normalizePreferences(value: unknown): Preferences {
@@ -46,12 +30,6 @@ function normalizePreferences(value: unknown): Preferences {
   const record = value as Partial<Preferences>;
 
   return {
-    statsViewMode: normalizeStatsViewMode(record.statsViewMode),
-    skillsProficienciesVisible: normalizeBoolean(
-      record.skillsProficienciesVisible,
-      defaultPreferences.skillsProficienciesVisible
-    ),
-    defaultMaxHitPointsMode: normalizeMaxHitPointsModePreference(record.defaultMaxHitPointsMode),
     diceRollerBehavior: normalizeDiceRollerBehaviorPreference(record.diceRollerBehavior),
     broadLayout: normalizeBoolean(record.broadLayout, defaultPreferences.broadLayout)
   };

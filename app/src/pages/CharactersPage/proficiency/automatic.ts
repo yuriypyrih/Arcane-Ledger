@@ -5,6 +5,7 @@ import type {
   CharacterEquipmentItem,
   CharacterProficiencyCollections,
   CharacterSpeciesChoices,
+  LanguageProficiencyEntry,
   SavingThrowProficiencyEntry,
   SkillName,
   SkillProficiencyEntry,
@@ -55,6 +56,7 @@ import {
 } from "../proficiencyWeaponLabels";
 import { getSkillProficiencyForName } from "../proficiencyResolvers";
 import {
+  getBackgroundLanguageProficiencies,
   getBackgroundSkillProficiencies,
   getBackgroundToolProficiencies,
   normalizeBackgroundChoices
@@ -64,6 +66,7 @@ import { getHumanSkillProficiencyForCharacter } from "../speciesHuman";
 import {
   buildGrantedEntriesFromCollections,
   createArmorEntry,
+  createLanguageEntry,
   createSavingThrowEntry,
   createSkillEntry,
   createToolEntry,
@@ -171,6 +174,21 @@ function getBackgroundGrantedToolProficiencies(
   return getBackgroundToolProficiencies(background, normalizedChoices)
     .map((toolProficiency) => normalizeStoredToolProficiency(toolProficiency))
     .filter((toolProficiency): toolProficiency is ToolProficiency => toolProficiency !== null);
+}
+
+function getBackgroundGrantedLanguageProficiencies(
+  background: string,
+  backgroundChoices?: CharacterBackgroundChoices
+) {
+  const entry = getBackgroundEntryByName(background);
+
+  if (!entry) {
+    return [];
+  }
+
+  const normalizedChoices = normalizeBackgroundChoices(background, backgroundChoices);
+
+  return getBackgroundLanguageProficiencies(background, normalizedChoices);
 }
 
 function getSpeciesGrantedSkillProficiencies(
@@ -390,6 +408,24 @@ function getAutomaticToolEntries(
   ]);
 }
 
+function getAutomaticLanguageEntries(
+  background = "",
+  backgroundChoices?: CharacterBackgroundChoices
+): LanguageProficiencyEntry[] {
+  const backgroundSourceLabel = background.trim() || undefined;
+
+  return mergeProficiencyEntries(
+    getBackgroundGrantedLanguageProficiencies(background, backgroundChoices).map((language) =>
+      createLanguageEntry(
+        language,
+        PROFICIENCY_SOURCE.BACKGROUND,
+        backgroundSourceLabel,
+        PROF_LEVEL.PROFICIENT
+      )
+    )
+  );
+}
+
 function getFeatureProficiencyCollectionsForCharacter(
   className: string,
   options?: {
@@ -558,7 +594,10 @@ export function getAutomaticProficiencyCollectionsForCharacter(
       ),
       ...featureCollections.toolProficiencies
     ]),
-    languageProficiencies: featureCollections.languageProficiencies
+    languageProficiencies: mergeProficiencyEntries([
+      ...getAutomaticLanguageEntries(background, options?.backgroundChoices),
+      ...featureCollections.languageProficiencies
+    ])
   };
 }
 

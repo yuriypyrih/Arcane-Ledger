@@ -6,7 +6,6 @@ import type {
   CharacterDraft,
   CoreStats
 } from "../../types";
-import { loadPreferences } from "../../storage/preferences";
 import { createDefaultRoundTracker } from "./combat";
 
 export const abilityKeys: AbilityKey[] = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
@@ -79,8 +78,6 @@ export function createDefaultCurrencies(): CharacterCurrencies {
 }
 
 export function createEmptyCharacter(): CharacterDraft {
-  const preferences = loadPreferences();
-
   return {
     name: "",
     species: "",
@@ -97,7 +94,7 @@ export function createEmptyCharacter(): CharacterDraft {
     temporaryHitPoints: 0,
     temporaryHitPointsSource: undefined,
     hover: false,
-    maxHitPointsMode: preferences.defaultMaxHitPointsMode,
+    maxHitPointsMode: "automatic",
     hitDiceRemaining: 1,
     attributeMode: "custom",
     abilities: createDefaultAbilities(),

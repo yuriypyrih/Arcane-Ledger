@@ -11,6 +11,7 @@ import type {
 } from "../codex/entries";
 import type {
   ArmorProficiencyEntry,
+  LANGUAGE_PROFICIENCY,
   LanguageProficiencyEntry,
   SavingThrowProficiencyEntry,
   SkillProficiencyEntry,
@@ -46,6 +47,7 @@ export type CharacterBackgroundEquipmentMode = "equipment" | "gold";
 
 export type CharacterBackgroundChoices = {
   abilityScoreIncrease?: CharacterBackgroundAbilityScoreIncrease;
+  languageProficiencies?: LANGUAGE_PROFICIENCY[];
   skillProficiencies?: SkillName[];
   toolProficiencies?: TOOL_PROFICIENCY[];
   toolProficiency?: TOOL_PROFICIENCY;
@@ -351,6 +353,7 @@ export type CharacterDraft = {
   skills: SkillName[];
   skillExpertise?: SkillName[];
   toolProficiencies?: string[];
+  languageProficiencies?: LanguageProficiencyEntry[];
   savingThrowProficiencies?: AbilityKey[];
   hitDiceRemaining?: number;
   roundTracker?: CharacterRoundTracker;

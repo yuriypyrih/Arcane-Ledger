@@ -181,6 +181,7 @@ import {
 } from "./druid/druid";
 import {
   applyRangerWinterWalkerFrozenHauntStatusEntries,
+  applyRangerWinterWalkerFortifyingSoulSelfStatus,
   consumeRangerFavoredEnemyUse,
   consumeRangerGloomStalkerDreadAmbusherUse,
   consumeRangerWinterWalkerChillingRetributionUse,
@@ -1189,6 +1190,12 @@ export function consumeRangerWinterWalkerFrozenHauntUseForCharacter(
 
 export function applyRangerWinterWalkerFrozenHauntStatusEntriesForCharacter(value: unknown) {
   return applyRangerWinterWalkerFrozenHauntStatusEntries(value);
+}
+
+export function applyRangerWinterWalkerFortifyingSoulSelfStatusForCharacter(
+  character: Character
+): Character {
+  return applyRangerWinterWalkerFortifyingSoulSelfStatus(character);
 }
 
 export function consumeBarbarianWarriorOfTheGodsChargesForCharacter(

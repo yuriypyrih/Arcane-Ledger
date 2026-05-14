@@ -302,6 +302,7 @@ import { getSpellActionPathStates, getSpellActionPathWarning } from "../../../sp
 import SneakAttackActionBody, { type SneakAttackActionSelection } from "./SneakAttackModal";
 import GameplayActionDrawer from "./GameplayActionDrawer";
 import ActionDiceConfirmFooter from "./ActionDiceConfirmFooter";
+import FortifyingSoulActionFooter from "./FortifyingSoulActionFooter";
 import { ArcaneWardActionFooter } from "./ArcaneWardActionFooter";
 import { BardicInspirationActionFooter } from "./BardicInspirationActionFooter";
 import { BeastMasterReviveActionFooter } from "./BeastMasterReviveActionFooter";
@@ -521,6 +522,7 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     isDreadfulStrikeSelected,
     isEmpoweredStrikesSelected,
     isEldritchSmiteSelected,
+    isFortifyingSoulIncludingSelfSelected,
     isGoliathAncestryStrikeSelected,
     isLifedrinkerSelected,
     isFlurryOfHealingAndHarmSelected,
@@ -676,6 +678,7 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     setIsDiceRollerSettingsOpen,
     setIsDreadfulStrikeSelected,
     setIsEmpoweredStrikesSelected,
+    setIsFortifyingSoulIncludingSelfSelected,
     setIsFixedSpellDrawerOpen,
     setIsEldritchSmiteSelected,
     setIsGoliathAncestryStrikeSelected,
@@ -2460,16 +2463,18 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     selectedAction.execute.kind === "activate"
   ) {
     return (
-      <ActionDiceConfirmFooter
+      <FortifyingSoulActionFooter
         actionName={selectedAction.name}
         confirmLabel={selectedFeaturePrimaryLabel}
         actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
         actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
         actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
         disabled={selectedFeatureActionPrimaryDisabledReason !== null}
+        includingSelf={isFortifyingSoulIncludingSelfSelected}
         isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
         onConfirm={() => executeFeatureActivate(selectedAction.action)}
         onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
+        onIncludingSelfChange={setIsFortifyingSoulIncludingSelfSelected}
       />
     );
   }

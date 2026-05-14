@@ -1758,10 +1758,14 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     });
   }
 
-  function rollFortifyingSoulHealing(action: FeatureActionCard) {
+  function rollFortifyingSoulHealing(
+    action: FeatureActionCard,
+    options: { applySelfResult?: boolean } = {}
+  ) {
     const healingFormula = getRangerWinterWalkerFortifyingSoulHealingFormula(character);
     const healingFormulaDisplay =
       getRangerWinterWalkerFortifyingSoulHealingFormulaDisplay(character);
+    const shouldApplySelfResult = options.applySelfResult === true;
 
     if (!healingFormula) {
       return;
@@ -1771,7 +1775,14 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
       title: action.name,
       formula: healingFormula,
       formulaDisplay: healingFormulaDisplay ?? healingFormula,
-      description: action.detail
+      description: action.detail,
+      onResolvedResult: shouldApplySelfResult
+        ? ({ result }) => {
+            onPersistCharacter((currentCharacter) =>
+              applyRolledHealingToCharacter(currentCharacter, result.total)
+            );
+          }
+        : undefined
     });
   }
 

@@ -52,6 +52,8 @@ export const rangerWinterWalkerBitingColdStatusSourceId =
 export const rangerWinterWalkerColdResistanceSourceId =
   "feature-ranger-winter-walker-cold-resistance";
 export const fortifyingSoulActionKey = "ranger-winter-walker-fortifying-soul";
+export const rangerWinterWalkerFortifyingSoulStatusSourceId =
+  "feature-ranger-winter-walker-fortifying-soul";
 export const chillingRetributionReactionId = "reaction-ranger-chilling-retribution";
 export const rangerWinterWalkerFrozenHauntStatusSourceId =
   "feature-ranger-winter-walker-frozen-haunt";
@@ -582,6 +584,38 @@ export function applyRangerWinterWalkerFrozenHauntStatusEntries(
     nextEntries,
     nextEntries.filter((entry) => entry.group === STATUS_ENTRY_GROUP.IMMUNITIES)
   );
+}
+
+export function applyRangerWinterWalkerFortifyingSoulSelfStatus(
+  character: Character
+): Character {
+  if (!hasRangerWinterWalkerFortifyingSoulFeature(character)) {
+    return character;
+  }
+
+  const nextStatusEntries = normalizeCharacterStatusEntries(character.statusEntries).filter(
+    (entry) => entry.sourceId !== rangerWinterWalkerFortifyingSoulStatusSourceId
+  );
+
+  return {
+    ...character,
+    statusEntries: [
+      ...nextStatusEntries,
+      createCharacterStatusEntry({
+        group: STATUS_ENTRY_GROUP.EFFECTS,
+        value: fortifyingSoulActionName,
+        source: fortifyingSoulActionName,
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+        duration: {
+          kind: STATUS_DURATION_KIND.HOURS,
+          amount: 1
+        },
+        sourceId: rangerWinterWalkerFortifyingSoulStatusSourceId,
+        description:
+          fortifyingSoulDescription.length > 0 ? fortifyingSoulDescription.join("\n") : undefined
+      })
+    ]
+  };
 }
 
 export function consumeRangerWinterWalkerFortifyingSoulUse(character: Character): Character {

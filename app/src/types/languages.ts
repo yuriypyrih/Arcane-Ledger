@@ -2,7 +2,7 @@ import { LANGUAGE_PROFICIENCY } from "./proficiencies";
 
 export enum LANGUAGE_CATEGORY {
   STANDARD = "STANDARD",
-  EXOTIC = "EXOTIC"
+  RARE = "RARE"
 }
 
 export enum LANGUAGE_SCRIPT {
@@ -31,6 +31,20 @@ export const languageEntries: LanguageEntry[] = [
     category: LANGUAGE_CATEGORY.STANDARD,
     typicalSpeakers: ["Humans"],
     script: LANGUAGE_SCRIPT.COMMON
+  },
+  {
+    proficiency: LANGUAGE_PROFICIENCY.COMMON_SIGN_LANGUAGE,
+    name: "Common Sign Language",
+    category: LANGUAGE_CATEGORY.STANDARD,
+    typicalSpeakers: ["Signers"],
+    script: LANGUAGE_SCRIPT.NONE
+  },
+  {
+    proficiency: LANGUAGE_PROFICIENCY.DRACONIC,
+    name: "Draconic",
+    category: LANGUAGE_CATEGORY.STANDARD,
+    typicalSpeakers: ["Dragons", "Dragonborn"],
+    script: LANGUAGE_SCRIPT.DRACONIC
   },
   {
     proficiency: LANGUAGE_PROFICIENCY.DWARVISH,
@@ -84,63 +98,63 @@ export const languageEntries: LanguageEntry[] = [
   {
     proficiency: LANGUAGE_PROFICIENCY.ABYSSAL,
     name: "Abyssal",
-    category: LANGUAGE_CATEGORY.EXOTIC,
+    category: LANGUAGE_CATEGORY.RARE,
     typicalSpeakers: ["Demons"],
     script: LANGUAGE_SCRIPT.INFERNAL
   },
   {
     proficiency: LANGUAGE_PROFICIENCY.CELESTIAL,
     name: "Celestial",
-    category: LANGUAGE_CATEGORY.EXOTIC,
+    category: LANGUAGE_CATEGORY.RARE,
     typicalSpeakers: ["Celestials"],
     script: LANGUAGE_SCRIPT.CELESTIAL
   },
   {
-    proficiency: LANGUAGE_PROFICIENCY.DRACONIC,
-    name: "Draconic",
-    category: LANGUAGE_CATEGORY.EXOTIC,
-    typicalSpeakers: ["Dragons", "Dragonborn"],
-    script: LANGUAGE_SCRIPT.DRACONIC
-  },
-  {
-    proficiency: LANGUAGE_PROFICIENCY.DRUIDIC,
-    name: "Druidic",
-    category: LANGUAGE_CATEGORY.EXOTIC,
-    typicalSpeakers: ["Druids"],
-    script: LANGUAGE_SCRIPT.DRUIDIC
-  },
-  {
     proficiency: LANGUAGE_PROFICIENCY.DEEP_SPEECH,
     name: "Deep Speech",
-    category: LANGUAGE_CATEGORY.EXOTIC,
+    category: LANGUAGE_CATEGORY.RARE,
     typicalSpeakers: ["Aboleths", "Cloakers"],
     script: LANGUAGE_SCRIPT.NONE
   },
   {
+    proficiency: LANGUAGE_PROFICIENCY.DRUIDIC,
+    name: "Druidic",
+    category: LANGUAGE_CATEGORY.RARE,
+    typicalSpeakers: ["Druids"],
+    script: LANGUAGE_SCRIPT.DRUIDIC
+  },
+  {
     proficiency: LANGUAGE_PROFICIENCY.INFERNAL,
     name: "Infernal",
-    category: LANGUAGE_CATEGORY.EXOTIC,
+    category: LANGUAGE_CATEGORY.RARE,
     typicalSpeakers: ["Devils"],
     script: LANGUAGE_SCRIPT.INFERNAL
   },
   {
     proficiency: LANGUAGE_PROFICIENCY.PRIMORDIAL,
     name: "Primordial",
-    category: LANGUAGE_CATEGORY.EXOTIC,
+    category: LANGUAGE_CATEGORY.RARE,
     typicalSpeakers: ["Elementals"],
     script: LANGUAGE_SCRIPT.DWARVISH
   },
   {
     proficiency: LANGUAGE_PROFICIENCY.SYLVAN,
     name: "Sylvan",
-    category: LANGUAGE_CATEGORY.EXOTIC,
+    category: LANGUAGE_CATEGORY.RARE,
     typicalSpeakers: ["Fey creatures"],
     script: LANGUAGE_SCRIPT.ELVISH
   },
   {
+    proficiency: LANGUAGE_PROFICIENCY.THIEVES_CANT,
+    name: "Thieves' Cant",
+    category: LANGUAGE_CATEGORY.RARE,
+    typicalSpeakers: ["Rogues"],
+    script: LANGUAGE_SCRIPT.NONE
+  },
+  {
     proficiency: LANGUAGE_PROFICIENCY.UNDERCOMMON,
     name: "Undercommon",
-    category: LANGUAGE_CATEGORY.EXOTIC,
+    category: LANGUAGE_CATEGORY.RARE,
     typicalSpeakers: ["Underworld traders"],
     script: LANGUAGE_SCRIPT.ELVISH
   }
@@ -150,8 +164,8 @@ export const standardLanguageEntries = languageEntries.filter(
   (entry) => entry.category === LANGUAGE_CATEGORY.STANDARD
 );
 
-export const exoticLanguageEntries = languageEntries.filter(
-  (entry) => entry.category === LANGUAGE_CATEGORY.EXOTIC
+export const rareLanguageEntries = languageEntries.filter(
+  (entry) => entry.category === LANGUAGE_CATEGORY.RARE
 );
 
 export const languageEntriesByProficiency = new Map(

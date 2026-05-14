@@ -60,6 +60,7 @@ type ActionsWidgetUiState = {
   useFrozenHauntOnActionSpell: boolean;
   selectedFrozenHauntFallbackSlotLevel: number;
   isCrownOfSpellfireSelected: boolean;
+  isFortifyingSoulIncludingSelfSelected: boolean;
   isInspiredEclipseSelected: boolean;
   isGroupRecoverySelected: boolean;
   isClairvoyantCombatantSelected: boolean;
@@ -152,6 +153,7 @@ function createInitialState(
     useFrozenHauntOnActionSpell: false,
     selectedFrozenHauntFallbackSlotLevel: frozenHauntFallbackSpellSlotMinimumLevel,
     isCrownOfSpellfireSelected: false,
+    isFortifyingSoulIncludingSelfSelected: false,
     isInspiredEclipseSelected: false,
     isGroupRecoverySelected: false,
     isClairvoyantCombatantSelected: false,
@@ -212,6 +214,7 @@ function getActionDrawerResetState(): Partial<ActionsWidgetUiState> {
     selectedMysticArcanumSpell: null,
     selectedMysticArcanumSpellLevel: null,
     isCrownOfSpellfireSelected: false,
+    isFortifyingSoulIncludingSelfSelected: false,
     isInspiredEclipseSelected: false,
     isGroupRecoverySelected: false,
     isClairvoyantCombatantSelected: false,
@@ -262,6 +265,7 @@ function getActionSelectionResetState(): Partial<ActionsWidgetUiState> {
     isRageOfTheGodsSelected: false,
     selectedIndomitableAbility: null,
     isCrownOfSpellfireSelected: false,
+    isFortifyingSoulIncludingSelfSelected: false,
     isGroupRecoverySelected: false,
     isClairvoyantCombatantSelected: false,
     isEldritchSmiteSelected: false,
@@ -445,6 +449,10 @@ export function useActionsWidgetUiState(
         "selectedFrozenHauntFallbackSlotLevel"
       ),
       setIsCrownOfSpellfireSelected: createFieldSetter(dispatch, "isCrownOfSpellfireSelected"),
+      setIsFortifyingSoulIncludingSelfSelected: createFieldSetter(
+        dispatch,
+        "isFortifyingSoulIncludingSelfSelected"
+      ),
       setIsInspiredEclipseSelected: createFieldSetter(dispatch, "isInspiredEclipseSelected"),
       setIsGroupRecoverySelected: createFieldSetter(dispatch, "isGroupRecoverySelected"),
       setIsClairvoyantCombatantSelected: createFieldSetter(
