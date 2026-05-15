@@ -1,13 +1,5 @@
 import clsx from "clsx";
-import {
-  ChevronsUp,
-  Component,
-  Cross,
-  Puzzle,
-  Shield,
-  SportShoe,
-  type LucideIcon
-} from "lucide-react";
+import { ChevronsUp, Shield } from "lucide-react";
 import type { CSSProperties } from "react";
 import RollStatePill from "../../../RollStatePill/RollStatePill";
 import { resolveFeatureIndicators } from "../../../RollStatePill/rollState";
@@ -27,17 +19,6 @@ type CoreStatCardsProps = {
   onOpenCard: (card: CoreStatCard) => void;
 };
 
-const profileStatTextureIconByKey: Partial<Record<string, LucideIcon>> = {
-  armorClass: Shield,
-  initiative: Puzzle,
-  speed: SportShoe,
-  hitDice: Cross
-};
-
-function getProfileStatTextureIcon(card: CoreStatCard): LucideIcon {
-  return profileStatTextureIconByKey[card.key] ?? Component;
-}
-
 function CoreStatCards({
   cards,
   rows,
@@ -52,6 +33,7 @@ function CoreStatCards({
   function renderCard(card: CoreStatCard, floatingRollState = false) {
     const rollState = resolveFeatureIndicators(card.indicators);
     const isArmorClassProfileCard = profileTexture && card.key === "armorClass";
+    const isParchmentProfileCard = profileTexture && !isArmorClassProfileCard;
 
     return (
       <SheetSurface
@@ -61,12 +43,10 @@ function CoreStatCards({
         borderSize={compact ? "lg" : "xl"}
         hasBorder={profileTexture}
         hoverBorder
-        textureIcon={
-          profileTexture && !isArmorClassProfileCard ? getProfileStatTextureIcon(card) : undefined
-        }
         className={clsx(
           styles.card,
           styles.button,
+          isParchmentProfileCard && styles.profileStatCard,
           isArmorClassProfileCard && styles.armorClassCard,
           compact && styles.compactCard,
           floatingRollState && styles.floatingStateCard

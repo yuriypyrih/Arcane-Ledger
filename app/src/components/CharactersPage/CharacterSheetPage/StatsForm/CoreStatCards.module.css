@@ -105,6 +105,46 @@
   font: inherit;
 }
 
+.profileStatCard {
+  border-color: rgba(75, 47, 29, 0.16);
+  background:
+    linear-gradient(
+      140deg,
+      rgba(255, 253, 248, 0.82) 0%,
+      rgba(255, 250, 242, 0.62) 70%,
+      rgba(255, 248, 236, 0.3) 100%
+    ),
+    linear-gradient(135deg, rgba(145, 101, 54, 0.08), rgba(145, 101, 54, 0.02)),
+    url("../../../../assets/img/paper-background.jpg");
+  background-color: #fffdf8;
+  background-clip: padding-box;
+  background-position:
+    center,
+    center,
+    center;
+  background-repeat: no-repeat;
+  background-size:
+    auto,
+    auto,
+    155% auto;
+  box-shadow: none;
+  color: #21150f;
+}
+
+.profileStatCard .label {
+  color: rgba(47, 32, 22, 0.74);
+  font-weight: 760;
+}
+
+.profileStatCard .valueRow {
+  color: #21150f;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.76);
+}
+
+.profileStatCard .floatingStatePill {
+  box-shadow: 0 0 0 3px #fffaf2;
+}
+
 .card.armorClassCard {
   border-color: rgba(255, 246, 226, 0.38);
   background: linear-gradient(150deg, #6f4629 0%, #3c2518 48%, #160f0d 100%);
