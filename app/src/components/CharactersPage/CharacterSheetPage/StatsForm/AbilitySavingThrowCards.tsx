@@ -1,15 +1,5 @@
 import clsx from "clsx";
-import {
-  Brain,
-  ChevronsUp,
-  Dumbbell,
-  Eye,
-  HeartPulse,
-  Sparkles,
-  Zap,
-  type LucideIcon
-} from "lucide-react";
-import type { CSSProperties } from "react";
+import { ChevronsUp } from "lucide-react";
 import type { AbilityModifierBonusEntry } from "../../../../pages/CharactersPage/abilities";
 import type { FeatureIndicator } from "../../../../pages/CharactersPage/classFeatures";
 import type { AbilityKey } from "../../../../types";
@@ -57,68 +47,6 @@ type AbilitySavingThrowCardsProps = {
   onOpenAbilityReference: (ability: AbilityKey) => void;
 };
 
-type AbilityTheme = {
-  Icon: LucideIcon;
-  accent: string;
-  accentSoft: string;
-  wash: string;
-  glow: string;
-};
-
-const abilityThemes: Record<AbilityKey, AbilityTheme> = {
-  STR: {
-    Icon: Dumbbell,
-    accent: "#a8432e",
-    accentSoft: "rgba(168, 67, 46, 0.18)",
-    wash: "rgba(168, 67, 46, 0.1)",
-    glow: "rgba(168, 67, 46, 0.22)"
-  },
-  DEX: {
-    Icon: Zap,
-    accent: "#b87916",
-    accentSoft: "rgba(184, 121, 22, 0.2)",
-    wash: "rgba(184, 121, 22, 0.11)",
-    glow: "rgba(184, 121, 22, 0.24)"
-  },
-  CON: {
-    Icon: HeartPulse,
-    accent: "#427a3a",
-    accentSoft: "rgba(66, 122, 58, 0.18)",
-    wash: "rgba(66, 122, 58, 0.1)",
-    glow: "rgba(66, 122, 58, 0.2)"
-  },
-  INT: {
-    Icon: Brain,
-    accent: "#2e69a7",
-    accentSoft: "rgba(46, 105, 167, 0.18)",
-    wash: "rgba(46, 105, 167, 0.1)",
-    glow: "rgba(46, 105, 167, 0.22)"
-  },
-  WIS: {
-    Icon: Eye,
-    accent: "#247b75",
-    accentSoft: "rgba(36, 123, 117, 0.18)",
-    wash: "rgba(36, 123, 117, 0.1)",
-    glow: "rgba(36, 123, 117, 0.2)"
-  },
-  CHA: {
-    Icon: Sparkles,
-    accent: "#9b3f84",
-    accentSoft: "rgba(155, 63, 132, 0.18)",
-    wash: "rgba(155, 63, 132, 0.1)",
-    glow: "rgba(155, 63, 132, 0.22)"
-  }
-};
-
-function getAbilityThemeStyle(theme: AbilityTheme): CSSProperties {
-  return {
-    "--ability-accent": theme.accent,
-    "--ability-accent-soft": theme.accentSoft,
-    "--ability-wash": theme.wash,
-    "--ability-glow": theme.glow
-  } as CSSProperties;
-}
-
 function getRollStateValueClassName(rollState: ResolvedRollState | null): string | undefined {
   switch (rollState?.tone) {
     case "advantage":
@@ -143,17 +71,6 @@ function getRollStateAbbreviation(rollState: ResolvedRollState): string {
   }
 }
 
-function getCombinedRollStatePillClassName(rollState: ResolvedRollState): string {
-  return clsx(
-    styles.combinedRollStatePill,
-    rollState.tone === "advantage"
-      ? styles.combinedRollStatePillAdvantage
-      : rollState.tone === "disadvantage"
-        ? styles.combinedRollStatePillDisadvantage
-        : styles.combinedRollStatePillNeutralized
-  );
-}
-
 function AbilitySavingThrowCards({
   broadLayout = false,
   cards,
@@ -163,8 +80,6 @@ function AbilitySavingThrowCards({
   return (
     <div className={clsx(styles.grid, broadLayout && styles.gridBroad)}>
       {cards.map((card) => {
-        const theme = abilityThemes[card.ability];
-        const { Icon } = theme;
         const hasBothRollStates =
           card.modifierRollState !== null && card.savingThrowRollState !== null;
         const hasMatchingRollStates =
@@ -184,10 +99,8 @@ function AbilitySavingThrowCards({
             hasBorder
             hoverBorder
             className={styles.card}
-            style={getAbilityThemeStyle(theme)}
             onClick={() => onOpenAbilityReference(card.ability)}
           >
-            <Icon className={styles.textureIcon} strokeWidth={1.25} aria-hidden />
             <div className={styles.header}>
               <span className={styles.identity}>
                 <span className={styles.abilityLabel}>{card.ability}</span>
@@ -202,7 +115,7 @@ function AbilitySavingThrowCards({
                 </span>
                 {card.showScoreBoostIcon ? (
                   <ChevronsUp
-                    size={18}
+                    size={20}
                     className={styles.boostIcon}
                     aria-label={card.scoreBoostIconLabel ?? "Feature boost active"}
                   />
@@ -242,7 +155,7 @@ function AbilitySavingThrowCards({
                   </strong>
                   {card.showSavingThrowBoostIcon ? (
                     <ChevronsUp
-                      size={17}
+                      size={19}
                       className={styles.boostIcon}
                       aria-label={
                         card.savingThrowBoostIconLabel ?? "Saving throw feature boost active"
@@ -261,7 +174,7 @@ function AbilitySavingThrowCards({
                       tone={card.modifierRollState.tone}
                       label={getRollStateAbbreviation(card.modifierRollState)}
                       size="small"
-                      className={getCombinedRollStatePillClassName(card.modifierRollState)}
+                      className={styles.combinedRollStatePill}
                     />
                   ) : null}
                 </span>
@@ -271,7 +184,7 @@ function AbilitySavingThrowCards({
                       tone={card.savingThrowRollState.tone}
                       label={getRollStateAbbreviation(card.savingThrowRollState)}
                       size="small"
-                      className={getCombinedRollStatePillClassName(card.savingThrowRollState)}
+                      className={styles.combinedRollStatePill}
                     />
                   ) : null}
                 </span>
@@ -282,7 +195,7 @@ function AbilitySavingThrowCards({
                   tone={sharedRollState.tone}
                   label={sharedRollState.label}
                   size="small"
-                  className={getCombinedRollStatePillClassName(sharedRollState)}
+                  className={styles.combinedRollStatePill}
                 />
               </div>
             ) : null}

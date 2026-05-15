@@ -1,8 +1,14 @@
 .pill {
+  --roll-state-background: #e5e9ed;
+  --roll-state-border: #cfd6dc;
+  --roll-state-color: #4d6072;
   display: inline-flex;
   align-items: center;
   gap: 0.28rem;
+  border: 1px solid var(--roll-state-border);
   border-radius: var(--radius-pill);
+  background: var(--roll-state-background);
+  color: var(--roll-state-color);
   padding: 0.18rem 0.44rem;
 }
 
@@ -12,18 +18,25 @@
 }
 
 .advantage {
-  background: rgba(54, 140, 84, 0.14);
+  --roll-state-background: #e4ebdf;
+  --roll-state-border: #ccd8c5;
+  --roll-state-color: #4f6f46;
 }
 
 .disadvantage {
-  background: rgba(185, 71, 60, 0.14);
+  --roll-state-background: #efe1dd;
+  --roll-state-border: #dfc9c2;
+  --roll-state-color: #79493f;
 }
 
 .neutralized {
-  background: rgba(120, 144, 166, 0.16);
+  --roll-state-background: #e5e9ed;
+  --roll-state-border: #cfd6dc;
+  --roll-state-color: #4d6072;
 }
 
 .label {
+  color: inherit;
   font-size: 0.64rem;
   font-weight: 700;
   letter-spacing: 0.05em;
@@ -36,7 +49,7 @@
 }
 
 .detail {
-  color: var(--color-ink-soft);
+  color: inherit;
   font-size: 0.72rem;
   font-weight: 500;
   letter-spacing: 0;
@@ -45,16 +58,4 @@
 
 .small .detail {
   font-size: 0.69rem;
-}
-
-.advantage .label {
-  color: #2f7a4f;
-}
-
-.disadvantage .label {
-  color: #a33f34;
-}
-
-.neutralized .label {
-  color: #5f748c;
 }

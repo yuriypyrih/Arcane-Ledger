@@ -20,7 +20,7 @@
 
 .rows {
   display: grid;
-  gap: 0.85rem;
+  gap: 0.75rem;
   max-width: 100%;
   width: 100%;
 }
@@ -28,7 +28,7 @@
 .row {
   display: grid;
   align-items: start;
-  gap: 0.85rem;
+  gap: 0.75rem;
   grid-template-columns: repeat(var(--core-stat-row-count), minmax(0, 1fr));
   max-width: 100%;
   width: 100%;
@@ -41,7 +41,7 @@
 
 .condensedRows {
   column-count: 2;
-  column-gap: 0.62rem;
+  column-gap: 0.75rem;
   max-width: 100%;
   width: 100%;
 }
@@ -49,14 +49,14 @@
 .condensedRows > * {
   break-inside: avoid;
   display: inline-grid;
-  margin-block-end: 0.62rem;
+  margin-block-end: 0.75rem;
   width: 100%;
 }
 
 .condensedColumns {
   display: grid;
   align-items: start;
-  gap: 0.62rem;
+  gap: 0.75rem;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   max-width: 100%;
   width: 100%;
@@ -65,7 +65,7 @@
 .condensedColumn {
   display: grid;
   align-content: start;
-  gap: 0.62rem;
+  gap: 0.75rem;
   min-width: 0;
 }
 
@@ -141,8 +141,8 @@
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.76);
 }
 
-.profileStatCard .floatingStatePill {
-  box-shadow: 0 0 0 3px #fffaf2;
+.profileStatCard .valueIcon {
+  color: #2f7fd8;
 }
 
 .card.armorClassCard {
@@ -273,7 +273,6 @@
 }
 
 .floatingStatePill {
-  box-shadow: 0 0 0 3px var(--color-panel-strong);
   white-space: nowrap;
 }
 
@@ -299,6 +298,21 @@
 @media (max-width: 599px) {
   .rowsResponsiveGrid {
     display: none;
+  }
+
+  .rows,
+  .row,
+  .condensedColumns,
+  .condensedColumn {
+    gap: 0.5rem;
+  }
+
+  .condensedRows {
+    column-gap: 0.5rem;
+  }
+
+  .condensedRows > * {
+    margin-block-end: 0.5rem;
   }
 
   .condensedRowsResponsive {
