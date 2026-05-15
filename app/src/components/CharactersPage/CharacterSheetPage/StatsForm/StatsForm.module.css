@@ -44,6 +44,10 @@
   grid-template-columns: repeat(6, minmax(0, 1fr));
 }
 
+.abilitySavingThrowGridBroad {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .coreStatGridWide {
   grid-template-columns: repeat(12, minmax(0, 1fr));
 }
@@ -71,6 +75,10 @@
   color: var(--color-ink);
   cursor: pointer;
   font: inherit;
+}
+
+.modifierCard > svg {
+  height: calc(80%);
 }
 
 .modifierLabelRow {
@@ -107,9 +115,8 @@
 }
 
 .scoreBadgePrimary .scoreBadgeValue {
-  color: #235f9d;
   text-decoration: underline;
-  text-decoration-color: rgba(47, 120, 255, 0.62);
+  text-decoration-color: currentColor;
   text-decoration-thickness: 2px;
   text-underline-offset: 0.15rem;
 }
@@ -143,10 +150,11 @@
   display: grid;
   align-items: center;
   justify-content: center;
-  column-gap: 0.68rem;
-  grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr);
+  column-gap: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   margin: 0 auto;
-  width: min(100%, 7.5rem);
+  overflow: visible;
+  width: min(100%, 8.15rem);
 }
 
 .combinedValueColumn {
@@ -155,15 +163,48 @@
   gap: 0.02rem;
   justify-items: center;
   min-width: 0;
+  overflow: visible;
+}
+
+.modifierValueColumn {
+  align-items: center;
+}
+
+.modifierValueHexagon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 0;
+  width: 5.3rem;
+  height: 3.55rem;
+  color: rgba(108, 65, 35, 0.22);
+  fill: currentColor;
+  filter: drop-shadow(0 2px 4px rgba(10, 9, 8, 0.08));
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
+.combinedValueColumn strong {
+  position: relative;
+  z-index: 1;
+  font-size: 1.52rem;
+  font-weight: 950;
+  line-height: 1;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.72);
 }
 
 .combinedValueLabel {
-  color: rgba(75, 47, 29, 0.78);
-  font-size: 0.58rem;
-  font-weight: 850;
-  letter-spacing: 0.12em;
-  line-height: 0.9;
+  color: rgba(47, 32, 22, 0.88);
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  line-height: 1;
   text-transform: uppercase;
+}
+
+.modifierValueColumn .combinedValueLabel {
+  position: relative;
+  z-index: 1;
 }
 
 .savingThrowValueGroup {
@@ -191,11 +232,11 @@
   left: 50%;
   z-index: 2;
   display: grid;
-  column-gap: 0.68rem;
-  grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr);
+  column-gap: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   pointer-events: none;
   transform: translate(-50%, 50%);
-  width: min(100%, 7.5rem);
+  width: min(100%, 8.15rem);
 }
 
 .combinedRollStateSlot {
@@ -216,13 +257,20 @@
 }
 
 .combinedRollStatePill {
+  box-shadow: none;
   white-space: nowrap;
 }
 
-.combinedValueDivider {
-  width: 1px;
-  height: 1.2rem;
-  background: rgba(75, 47, 29, 0.3);
+.combinedRollStatePill.combinedRollStatePillAdvantage {
+  background: #e9f6ed;
+}
+
+.combinedRollStatePill.combinedRollStatePillDisadvantage {
+  background: #faebe9;
+}
+
+.combinedRollStatePill.combinedRollStatePillNeutralized {
+  background: #edf2f7;
 }
 
 .rollStateValueAdvantage {

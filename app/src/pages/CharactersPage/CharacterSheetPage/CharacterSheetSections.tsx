@@ -35,6 +35,10 @@ type CharacterProfileSectionProps = PersistSectionProps & {
   broadLayout?: boolean;
 };
 
+type StatsSectionProps = PersistSectionProps & {
+  broadLayout?: boolean;
+};
+
 const gameplayPersistOptions: PersistCharacterOptions = {
   domains: ["resources", "features", "statuses", "spells"],
   normalize: "targeted"
@@ -101,13 +105,15 @@ export const GameplaySection = memo(function GameplaySection({
 });
 
 export const StatsSection = memo(function StatsSection({
+  broadLayout = false,
   className,
   onPersistCharacter
-}: PersistSectionProps) {
+}: StatsSectionProps) {
   const character = useAppSelector(selectStatsCharacter);
 
   return character ? (
     <CharacterStatsForm
+      broadLayout={broadLayout}
       character={character}
       className={className}
       onPersistCharacter={onPersistCharacter}

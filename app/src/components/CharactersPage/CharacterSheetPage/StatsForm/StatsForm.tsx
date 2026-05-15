@@ -86,6 +86,7 @@ import { buildReferenceIndicatorSections } from "./coreStatModel";
 import styles from "./StatsForm.module.css";
 
 type CharacterStatsFormProps = {
+  broadLayout?: boolean;
   character: Character;
   className?: string;
   onPersistCharacter: PersistCharacterUpdater;
@@ -383,7 +384,23 @@ function getRollStateAbbreviation(rollState: ResolvedRollState): string {
   }
 }
 
-function CharacterStatsForm({ character, className, onPersistCharacter }: CharacterStatsFormProps) {
+function getCombinedRollStatePillClassName(rollState: ResolvedRollState): string {
+  return clsx(
+    styles.combinedRollStatePill,
+    rollState.tone === "advantage"
+      ? styles.combinedRollStatePillAdvantage
+      : rollState.tone === "disadvantage"
+        ? styles.combinedRollStatePillDisadvantage
+        : styles.combinedRollStatePillNeutralized
+  );
+}
+
+function CharacterStatsForm({
+  broadLayout = false,
+  character,
+  className,
+  onPersistCharacter
+}: CharacterStatsFormProps) {
   const [isAbilityModalOpen, setIsAbilityModalOpen] = useState(false);
   const [abilitiesDraft, setAbilitiesDraft] = useState<AbilitiesDraft>(() =>
     createAbilitiesDraft(character)
@@ -866,7 +883,12 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
           </button>
         </div>
 
-        <div className={styles.abilitySavingThrowGrid}>
+        <div
+          className={clsx(
+            styles.abilitySavingThrowGrid,
+            broadLayout && styles.abilitySavingThrowGridBroad
+          )}
+        >
           {abilitySavingThrowCards.map((card) => {
             const hasBothRollStates =
               card.modifierRollState !== null && card.savingThrowRollState !== null;
@@ -911,13 +933,17 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
                   ) : null}
                 </div>
                 <div className={styles.combinedValueRow}>
-                  <div className={styles.combinedValueColumn}>
+                  <div className={clsx(styles.combinedValueColumn, styles.modifierValueColumn)}>
+                    <Hexagon
+                      className={styles.modifierValueHexagon}
+                      strokeWidth={1.35}
+                      aria-hidden
+                    />
                     <span className={styles.combinedValueLabel}>MOD</span>
                     <strong className={getRollStateValueClassName(card.modifierRollState)}>
                       {card.modifier}
                     </strong>
                   </div>
-                  <span className={styles.combinedValueDivider} aria-hidden="true" />
                   <span className={clsx(styles.savingThrowValueGroup, styles.combinedValueColumn)}>
                     <span className={styles.combinedValueLabel}>SAVE</span>
                     <span className={styles.savingThrowValueRow}>
@@ -949,18 +975,19 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
                           tone={card.modifierRollState.tone}
                           label={getRollStateAbbreviation(card.modifierRollState)}
                           size="small"
-                          className={styles.combinedRollStatePill}
+                          className={getCombinedRollStatePillClassName(card.modifierRollState)}
                         />
                       ) : null}
                     </span>
-                    <span aria-hidden="true" />
                     <span className={styles.combinedRollStateSlot}>
                       {card.savingThrowRollState ? (
                         <RollStatePill
                           tone={card.savingThrowRollState.tone}
                           label={getRollStateAbbreviation(card.savingThrowRollState)}
                           size="small"
-                          className={styles.combinedRollStatePill}
+                          className={getCombinedRollStatePillClassName(
+                            card.savingThrowRollState
+                          )}
                         />
                       ) : null}
                     </span>
@@ -971,7 +998,7 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
                       tone={sharedRollState.tone}
                       label={sharedRollState.label}
                       size="small"
-                      className={styles.combinedRollStatePill}
+                      className={getCombinedRollStatePillClassName(sharedRollState)}
                     />
                   </div>
                 ) : null}

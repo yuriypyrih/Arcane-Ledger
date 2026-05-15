@@ -77,25 +77,16 @@
 
 .cascadeStackBroad {
   align-items: start;
-  grid-template-areas:
-    "profile gameplay spellcasting"
-    "profile stats spellcasting"
-    "profile skills spellcasting"
-    "profile companions spellcasting"
-    "profile equipment spellcasting"
-    "profile features spellcasting";
+  grid-template-areas: "profile main side";
   grid-template-columns: minmax(0, 1fr) minmax(0, 3fr) minmax(0, 2fr);
 }
 
-.cascadeStackBroadNoSpellcasting {
-  grid-template-areas:
-    "profile gameplay"
-    "profile stats"
-    "profile skills"
-    "profile companions"
-    "profile equipment"
-    "profile features";
-  grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
+.cascadeMainColumn,
+.cascadeSideColumn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-page-gap);
+  min-width: 0;
 }
 
 .cascadeOne,
@@ -113,32 +104,12 @@
   grid-area: profile;
 }
 
-.cascadeStackBroad .cascadeTwo {
-  grid-area: gameplay;
+.cascadeStackBroad .cascadeMainColumn {
+  grid-area: main;
 }
 
-.cascadeStackBroad .cascadeThree {
-  grid-area: stats;
-}
-
-.cascadeStackBroad .cascadeFour {
-  grid-area: features;
-}
-
-.cascadeStackBroad .cascadeFive {
-  grid-area: skills;
-}
-
-.cascadeStackBroad .cascadeSix {
-  grid-area: companions;
-}
-
-.cascadeStackBroad .cascadeSeven {
-  grid-area: equipment;
-}
-
-.cascadeStackBroad .cascadeEight {
-  grid-area: spellcasting;
+.cascadeStackBroad .cascadeSideColumn {
+  grid-area: side;
 }
 
 .eyebrow {
