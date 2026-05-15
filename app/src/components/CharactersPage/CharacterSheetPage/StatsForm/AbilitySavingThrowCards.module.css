@@ -1,0 +1,318 @@
+.grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.gridBroad {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.card {
+  position: relative;
+  isolation: isolate;
+  overflow: visible;
+  display: grid;
+  gap: 0.58rem;
+  min-width: 0;
+  border-color: rgba(75, 47, 29, 0.12);
+  background:
+    radial-gradient(circle at 92% 16%, var(--ability-glow), transparent 33%),
+    linear-gradient(
+      145deg,
+      rgba(255, 253, 248, 0.52) 0%,
+      rgba(255, 248, 236, 0.42) 58%,
+      rgba(255, 251, 242, 0.5) 100%
+    ),
+    url("../../../../assets/img/paper-background.jpg");
+  background-position:
+    center,
+    center,
+    center;
+  background-repeat: no-repeat;
+  background-size:
+    auto,
+    auto,
+    155% auto;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.62);
+  color: var(--color-ink);
+  cursor: pointer;
+  font: inherit;
+  padding: 0.68rem 0.72rem 0.78rem;
+  text-align: center;
+}
+
+.textureIcon {
+  position: absolute;
+  top: 0.4rem;
+  right: -0.28rem;
+  z-index: 0;
+  width: 3.7rem;
+  height: 3.7rem;
+  color: var(--ability-accent);
+  opacity: 0.13;
+  pointer-events: none;
+  transform: rotate(-8deg);
+}
+
+.header,
+.values {
+  position: relative;
+  z-index: 1;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.identity {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.36rem;
+  min-width: 0;
+}
+
+.abilityLabel {
+  color: var(--color-ink);
+  font-size: 0.9rem;
+  font-weight: 950;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.scoreChip {
+  display: inline-grid;
+  place-items: center;
+  min-width: 2rem;
+  height: 1.46rem;
+  border: 1px solid rgba(75, 47, 29, 0.14);
+  border-radius: var(--radius-pill);
+  background: #fffdf8;
+  color: rgba(36, 21, 15, 0.86);
+  font-size: 0.84rem;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.scoreChipPrimary {
+  position: relative;
+  border-color: rgba(36, 21, 15, 0.78);
+  background: #fffdf8;
+  box-shadow: 0 0 0 1px rgba(36, 21, 15, 0.18);
+  color: rgba(36, 21, 15, 0.86);
+}
+
+.scoreChipPrimary::after {
+  content: "";
+  position: absolute;
+  right: 0.48rem;
+  bottom: 0.24rem;
+  left: 0.48rem;
+  height: 1px;
+  border-radius: var(--radius-pill);
+  background: currentColor;
+}
+
+.boostIcon {
+  flex: 0 0 auto;
+  color: var(--ability-accent);
+}
+
+.values {
+  display: grid;
+  gap: 0.42rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.valueWell {
+  position: relative;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  min-width: 0;
+  min-height: 3.14rem;
+  overflow: hidden;
+  border: 1px solid rgba(75, 47, 29, 0.11);
+  border-radius: var(--radius-tiny);
+  background: rgba(255, 255, 255, 0.52);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.56);
+  padding: 0.42rem 0.24rem 0.4rem;
+}
+
+.modifierWell {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.46)),
+    rgba(255, 255, 255, 0.52);
+}
+
+.saveWell {
+  background: rgba(255, 255, 255, 0.48);
+}
+
+.saveWellProficient {
+  border-color: rgba(75, 47, 29, 0.14);
+  background: rgba(255, 255, 255, 0.56);
+}
+
+.valueLabel {
+  color: rgba(47, 32, 22, 0.72);
+  font-size: 0.58rem;
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.value {
+  position: relative;
+  z-index: 1;
+  color: #21150f;
+  font-size: 1.48rem;
+  font-weight: 950;
+  line-height: 1.05;
+  text-align: center;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.76);
+}
+
+.saveValueRow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.22rem;
+  min-width: 0;
+}
+
+.saveValueProficient {
+  color: #6f2bc5;
+}
+
+.combinedRollStateRow {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  z-index: 2;
+  display: grid;
+  column-gap: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  pointer-events: none;
+  transform: translate(-50%, 50%);
+  width: calc(100% - 1.2rem);
+}
+
+.combinedRollStateSlot {
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+.combinedRollStateSingle {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  max-width: calc(100% - 0.6rem);
+  pointer-events: none;
+  transform: translate(-50%, 50%);
+}
+
+.combinedRollStatePill {
+  box-shadow: 0 0 0 3px var(--color-panel-strong);
+  white-space: nowrap;
+}
+
+.combinedRollStatePill.combinedRollStatePillAdvantage {
+  background: #e9f6ed;
+}
+
+.combinedRollStatePill.combinedRollStatePillDisadvantage {
+  background: #faebe9;
+}
+
+.combinedRollStatePill.combinedRollStatePillNeutralized {
+  background: #edf2f7;
+}
+
+.rollStateValueAdvantage {
+  text-decoration: underline;
+  text-decoration-color: #2f7a4f;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.18rem;
+}
+
+.rollStateValueDisadvantage {
+  text-decoration: underline;
+  text-decoration-color: #a33f34;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.18rem;
+}
+
+.rollStateValueNeutralized {
+  text-decoration: underline;
+  text-decoration-color: #5f748c;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.18rem;
+}
+
+@media (max-width: 899px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 599px) {
+  .grid {
+    gap: 0.5rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .card {
+    gap: 0.46rem;
+    padding: 0.54rem 0.48rem 0.68rem;
+  }
+
+  .textureIcon {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .header {
+    gap: 0.34rem;
+  }
+
+  .identity {
+    gap: 0.28rem;
+  }
+
+  .abilityLabel {
+    font-size: 0.78rem;
+  }
+
+  .scoreChip {
+    min-width: 1.72rem;
+    height: 1.3rem;
+    font-size: 0.76rem;
+  }
+
+  .values {
+    gap: 0.3rem;
+  }
+
+  .valueWell {
+    min-height: 2.82rem;
+    padding: 0.36rem 0.18rem 0.34rem;
+  }
+
+  .valueLabel {
+    font-size: 0.52rem;
+  }
+
+  .value {
+    font-size: 1.24rem;
+  }
+}

@@ -38,16 +38,6 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.abilitySavingThrowGrid {
-  display: grid;
-  gap: 0.75rem;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-}
-
-.abilitySavingThrowGridBroad {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
 .coreStatGridWide {
   grid-template-columns: repeat(12, minmax(0, 1fr));
 }
@@ -69,12 +59,6 @@
   gap: 0.35rem;
   padding: 0.75rem 0.85rem;
   text-align: center;
-}
-
-.modifierCardButton {
-  color: var(--color-ink);
-  cursor: pointer;
-  font: inherit;
 }
 
 .modifierCard > svg {
@@ -114,17 +98,6 @@
   text-align: center;
 }
 
-.scoreBadgePrimary .scoreBadgeValue {
-  text-decoration: underline;
-  text-decoration-color: currentColor;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 0.15rem;
-}
-
-.scoreBoostIcon {
-  color: #2f7fd8;
-}
-
 .coreStatLabel {
   letter-spacing: 0.02em;
   text-transform: none;
@@ -155,143 +128,6 @@
   margin: 0 auto;
   overflow: visible;
   width: min(100%, 8.15rem);
-}
-
-.combinedValueColumn {
-  position: relative;
-  display: grid;
-  gap: 0.02rem;
-  justify-items: center;
-  min-width: 0;
-  overflow: visible;
-}
-
-.modifierValueColumn {
-  align-items: center;
-}
-
-.modifierValueHexagon {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  z-index: 0;
-  width: 5.3rem;
-  height: 3.55rem;
-  color: rgba(108, 65, 35, 0.22);
-  fill: currentColor;
-  filter: drop-shadow(0 2px 4px rgba(10, 9, 8, 0.08));
-  pointer-events: none;
-  transform: translate(-50%, -50%);
-}
-
-.combinedValueColumn strong {
-  position: relative;
-  z-index: 1;
-  font-size: 1.52rem;
-  font-weight: 950;
-  line-height: 1;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.72);
-}
-
-.combinedValueLabel {
-  color: rgba(47, 32, 22, 0.88);
-  font-size: 0.62rem;
-  font-weight: 900;
-  letter-spacing: 0.14em;
-  line-height: 1;
-  text-transform: uppercase;
-}
-
-.modifierValueColumn .combinedValueLabel {
-  position: relative;
-  z-index: 1;
-}
-
-.savingThrowValueGroup {
-  position: relative;
-  display: grid;
-}
-
-.savingThrowValueRow {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-}
-
-.savingThrowBoostIcon {
-  color: #2f7fd8;
-}
-
-.savingThrowValueProficient {
-  color: #6f2bc5;
-}
-
-.combinedRollStateRow {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  z-index: 2;
-  display: grid;
-  column-gap: 0;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  pointer-events: none;
-  transform: translate(-50%, 50%);
-  width: min(100%, 8.15rem);
-}
-
-.combinedRollStateSlot {
-  display: flex;
-  justify-content: center;
-  min-width: 0;
-}
-
-.combinedRollStateSingle {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  z-index: 2;
-  display: flex;
-  justify-content: center;
-  pointer-events: none;
-  transform: translate(-50%, 50%);
-}
-
-.combinedRollStatePill {
-  box-shadow: none;
-  white-space: nowrap;
-}
-
-.combinedRollStatePill.combinedRollStatePillAdvantage {
-  background: #e9f6ed;
-}
-
-.combinedRollStatePill.combinedRollStatePillDisadvantage {
-  background: #faebe9;
-}
-
-.combinedRollStatePill.combinedRollStatePillNeutralized {
-  background: #edf2f7;
-}
-
-.rollStateValueAdvantage {
-  text-decoration: underline;
-  text-decoration-color: #2f7a4f;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 0.18rem;
-}
-
-.rollStateValueDisadvantage {
-  text-decoration: underline;
-  text-decoration-color: #a33f34;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 0.18rem;
-}
-
-.rollStateValueNeutralized {
-  text-decoration: underline;
-  text-decoration-color: #5f748c;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 0.18rem;
 }
 
 .referenceDrawerHeader {
@@ -490,10 +326,6 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .abilitySavingThrowGrid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
   .coreStatGridWide > * {
     grid-column: auto;
   }
@@ -503,10 +335,6 @@
   .modifierGrid,
   .coreStatGridWide {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .abilitySavingThrowGrid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .statsGroupHeader {

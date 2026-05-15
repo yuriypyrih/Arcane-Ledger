@@ -214,56 +214,92 @@
 }
 
 .themeFeature {
-  --action-card-theme-panel-soft: rgba(172, 116, 56, 0.024);
-  --action-card-theme-panel-strong: rgba(172, 116, 56, 0.18);
-  --action-card-theme-panel-peak: rgba(172, 116, 56, 0.4);
-  --action-card-theme-edge: rgba(145, 101, 54, 0.6);
-  --action-card-theme-icon-color: rgb(145, 101, 54);
+  /* --action-card-theme-panel-soft: rgba(172, 116, 56, 0.024); */
+  /* --action-card-theme-panel-strong: rgba(172, 116, 56, 0.18); */
+  /* --action-card-theme-panel-peak: rgba(172, 116, 56, 0.4); */
+  /* --action-card-theme-edge: rgba(145, 101, 54, 0.6); */
+  /* --action-card-theme-icon-color: rgb(145, 101, 54); */
+  /* --action-card-theme-icon-opacity: 0.1; */
+  --action-card-theme-panel-soft: rgba(109, 122, 137, 0.016);
+  --action-card-theme-panel-strong: rgba(109, 122, 137, 0.18);
+  --action-card-theme-panel-peak: rgba(109, 122, 137, 0.4);
+  --action-card-theme-edge: rgba(91, 101, 114, 0.6);
+  --action-card-theme-icon-color: rgb(91, 101, 114);
   --action-card-theme-icon-opacity: 0.1;
 }
 
 .themeAttack {
-  --action-card-theme-panel-soft: rgba(204, 68, 54, 0.02);
-  --action-card-theme-panel-strong: rgba(204, 68, 54, 0.18);
-  --action-card-theme-panel-peak: rgba(204, 68, 54, 0.4);
-  --action-card-theme-edge: rgba(169, 55, 45, 0.6);
-  --action-card-theme-icon-color: rgb(169, 55, 45);
+  /* --action-card-theme-panel-soft: rgba(204, 68, 54, 0.02); */
+  /* --action-card-theme-panel-strong: rgba(204, 68, 54, 0.18); */
+  /* --action-card-theme-panel-peak: rgba(204, 68, 54, 0.4); */
+  /* --action-card-theme-edge: rgba(169, 55, 45, 0.6); */
+  /* --action-card-theme-icon-color: rgb(169, 55, 45); */
+  /* --action-card-theme-icon-opacity: 0.1; */
+  --action-card-theme-panel-soft: rgba(109, 122, 137, 0.016);
+  --action-card-theme-panel-strong: rgba(109, 122, 137, 0.18);
+  --action-card-theme-panel-peak: rgba(109, 122, 137, 0.4);
+  --action-card-theme-edge: rgba(91, 101, 114, 0.6);
+  --action-card-theme-icon-color: rgb(91, 101, 114);
   --action-card-theme-icon-opacity: 0.1;
 }
 
 .themeMagic {
-  --action-card-theme-panel-soft: rgba(64, 116, 210, 0.02);
-  --action-card-theme-panel-strong: rgba(64, 116, 210, 0.18);
-  --action-card-theme-panel-peak: rgba(64, 116, 210, 0.4);
-  --action-card-theme-edge: rgba(51, 93, 174, 0.6);
-  --action-card-theme-icon-color: rgb(51, 93, 174);
+  /* --action-card-theme-panel-soft: rgba(64, 116, 210, 0.02); */
+  /* --action-card-theme-panel-strong: rgba(64, 116, 210, 0.18); */
+  /* --action-card-theme-panel-peak: rgba(64, 116, 210, 0.4); */
+  /* --action-card-theme-edge: rgba(51, 93, 174, 0.6); */
+  /* --action-card-theme-icon-color: rgb(51, 93, 174); */
+  /* --action-card-theme-icon-opacity: 0.1; */
+  --action-card-theme-panel-soft: rgba(109, 122, 137, 0.016);
+  --action-card-theme-panel-strong: rgba(109, 122, 137, 0.18);
+  --action-card-theme-panel-peak: rgba(109, 122, 137, 0.4);
+  --action-card-theme-edge: rgba(91, 101, 114, 0.6);
+  --action-card-theme-icon-color: rgb(91, 101, 114);
   --action-card-theme-icon-opacity: 0.1;
 }
 
 .themeUtil {
-  --action-card-theme-panel-soft: rgba(126, 84, 190, 0.02);
-  --action-card-theme-panel-strong: rgba(126, 84, 190, 0.18);
-  --action-card-theme-panel-peak: rgba(126, 84, 190, 0.4);
-  --action-card-theme-edge: rgba(101, 68, 157, 0.6);
-  --action-card-theme-icon-color: rgb(101, 68, 157);
+  /* --action-card-theme-panel-soft: rgba(126, 84, 190, 0.02); */
+  /* --action-card-theme-panel-strong: rgba(126, 84, 190, 0.18); */
+  /* --action-card-theme-panel-peak: rgba(126, 84, 190, 0.4); */
+  /* --action-card-theme-edge: rgba(101, 68, 157, 0.6); */
+  /* --action-card-theme-icon-color: rgb(101, 68, 157); */
+  /* --action-card-theme-icon-opacity: 0.1; */
+  --action-card-theme-panel-soft: rgba(109, 122, 137, 0.016);
+  --action-card-theme-panel-strong: rgba(109, 122, 137, 0.18);
+  --action-card-theme-panel-peak: rgba(109, 122, 137, 0.4);
+  --action-card-theme-edge: rgba(91, 101, 114, 0.6);
+  --action-card-theme-icon-color: rgb(91, 101, 114);
   --action-card-theme-icon-opacity: 0.1;
 }
 
 .themeHeal {
-  --action-card-theme-panel-soft: rgba(77, 166, 112, 0.02);
-  --action-card-theme-panel-strong: rgba(77, 166, 112, 0.18);
-  --action-card-theme-panel-peak: rgba(77, 166, 112, 0.4);
-  --action-card-theme-edge: rgba(54, 139, 88, 0.6);
-  --action-card-theme-icon-color: rgb(54, 139, 88);
+  /* --action-card-theme-panel-soft: rgba(77, 166, 112, 0.02); */
+  /* --action-card-theme-panel-strong: rgba(77, 166, 112, 0.18); */
+  /* --action-card-theme-panel-peak: rgba(77, 166, 112, 0.4); */
+  /* --action-card-theme-edge: rgba(54, 139, 88, 0.6); */
+  /* --action-card-theme-icon-color: rgb(54, 139, 88); */
+  /* --action-card-theme-icon-opacity: 0.1; */
+  --action-card-theme-panel-soft: rgba(109, 122, 137, 0.016);
+  --action-card-theme-panel-strong: rgba(109, 122, 137, 0.18);
+  --action-card-theme-panel-peak: rgba(109, 122, 137, 0.4);
+  --action-card-theme-edge: rgba(91, 101, 114, 0.6);
+  --action-card-theme-icon-color: rgb(91, 101, 114);
   --action-card-theme-icon-opacity: 0.1;
 }
 
 .themeDefense {
-  --action-card-theme-panel-soft: rgba(218, 177, 43, 0.024);
-  --action-card-theme-panel-strong: rgba(218, 177, 43, 0.18);
-  --action-card-theme-panel-peak: rgba(218, 177, 43, 0.4);
-  --action-card-theme-edge: rgba(174, 137, 28, 0.6);
-  --action-card-theme-icon-color: rgb(174, 137, 28);
+  /* --action-card-theme-panel-soft: rgba(218, 177, 43, 0.024); */
+  /* --action-card-theme-panel-strong: rgba(218, 177, 43, 0.18); */
+  /* --action-card-theme-panel-peak: rgba(218, 177, 43, 0.4); */
+  /* --action-card-theme-edge: rgba(174, 137, 28, 0.6); */
+  /* --action-card-theme-icon-color: rgb(174, 137, 28); */
+  /* --action-card-theme-icon-opacity: 0.1; */
+  --action-card-theme-panel-soft: rgba(109, 122, 137, 0.016);
+  --action-card-theme-panel-strong: rgba(109, 122, 137, 0.18);
+  --action-card-theme-panel-peak: rgba(109, 122, 137, 0.4);
+  --action-card-theme-edge: rgba(91, 101, 114, 0.6);
+  --action-card-theme-icon-color: rgb(91, 101, 114);
   --action-card-theme-icon-opacity: 0.1;
 }
 

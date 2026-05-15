@@ -1,10 +1,11 @@
 import clsx from "clsx";
-import { ChevronsUp, Hexagon, Pencil } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import { createFeatureSourcedDescriptionEntries } from "../../../../pages/CharactersPage/actionModalDescriptions";
 import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../codex/entries";
+import { getClassEntryByName } from "../../../../codex/selectors";
 import type { AbilityKey, Character } from "../../../../types";
 import {
   getAbilityModifierBreakdownForCharacter,
@@ -20,7 +21,6 @@ import {
 } from "../../../../pages/CharactersPage/constants";
 import {
   formatAbilityModifier,
-  getMainAbilityForClass,
   getProficiencyBonus
 } from "../../../../pages/CharactersPage/gameplay";
 import {
@@ -49,14 +49,13 @@ import {
   getMonkDisciplinedSurvivorOptionState
 } from "../../../../pages/CharactersPage/classFeatures/monk/monkDisciplinedSurvivor";
 import { getMonkAbilityDescriptionAdditions } from "../../../../pages/CharactersPage/classFeatures/monk/monkDescriptionSections";
-import RollStatePill from "../../../RollStatePill/RollStatePill";
 import {
   getRollModeFromIndicators,
   areResolvedRollStatesEquivalent,
-  resolveFeatureIndicators,
-  type ResolvedRollState
+  resolveFeatureIndicators
 } from "../../../RollStatePill/rollState";
 import {
+  getPrimaryAbilityForClass,
   getSavingThrowLevelFromEntries,
   getSavingThrowProficiencyForAbilityKey
 } from "../../../../pages/CharactersPage/proficiency";
@@ -75,7 +74,10 @@ import {
   getProficiencyMultiplier
 } from "../../../../pages/CharactersPage/shared";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
-import SheetSurface from "../SheetSurface";
+import AbilitySavingThrowCards, {
+  type AbilitySavingThrowCard,
+  type SavingThrowBonusEntry
+} from "./AbilitySavingThrowCards";
 import AbilityReferenceFooter from "./AbilityReferenceFooter";
 import AbilityScoresModal from "./AbilityScoresModal";
 import StatReferenceDrawer, {
@@ -92,35 +94,6 @@ type CharacterStatsFormProps = {
   onPersistCharacter: PersistCharacterUpdater;
 };
 
-type AbilitySavingThrowCard = {
-  ability: AbilityKey;
-  score: number;
-  modifier: string;
-  modifierBaseValue: number;
-  modifierValue: number;
-  modifierBonusEntries: AbilityModifierBonusEntry[];
-  isSavingThrowProficient: boolean;
-  proficiencyContribution: number;
-  proficiencyLabel?: string;
-  savingThrowBonusEntries: SavingThrowBonusEntry[];
-  totalSavingThrowValue: number;
-  totalSavingThrow: string;
-  showScoreBoostIcon?: boolean;
-  scoreBoostIconLabel?: string;
-  showSavingThrowBoostIcon?: boolean;
-  savingThrowBoostIconLabel?: string;
-  modifierIndicators: FeatureIndicator[];
-  modifierRollState: ResolvedRollState | null;
-  savingThrowIndicators: FeatureIndicator[];
-  savingThrowRollState: ResolvedRollState | null;
-};
-
-type SavingThrowBonusEntry = {
-  label: string;
-  value: number;
-  formulaLabel?: string;
-};
-
 const abilityDisplayLabels: Record<AbilityKey, string> = {
   STR: "Strength",
   DEX: "Dexterity",
@@ -135,6 +108,37 @@ function createAbilitiesDraft(character: Character): AbilitiesDraft {
     attributeMode: "pointBuy",
     abilities: cloneAbilityScores(character.abilities)
   };
+}
+
+function getPrimaryAbilitiesFromLabel(label: string): AbilityKey[] {
+  const normalizedLabel = label.toUpperCase();
+
+  return abilityKeys.filter((ability) => {
+    const abilityName = abilityDisplayLabels[ability].toUpperCase();
+    return (
+      new RegExp(`\\b${ability}\\b`).test(normalizedLabel) ||
+      new RegExp(`\\b${abilityName}\\b`).test(normalizedLabel)
+    );
+  });
+}
+
+function getClassPrimaryAbilitiesForUi(className: string): AbilityKey[] {
+  const starterPack = getClassEntryByName(className)?.starterPack ?? null;
+
+  if (starterPack?.primaryAbilityLabel) {
+    const labeledAbilities = getPrimaryAbilitiesFromLabel(starterPack.primaryAbilityLabel);
+
+    if (labeledAbilities.length > 0) {
+      return labeledAbilities;
+    }
+  }
+
+  if (starterPack?.primaryAbility) {
+    return [starterPack.primaryAbility];
+  }
+
+  const fallbackPrimaryAbility = getPrimaryAbilityForClass(className);
+  return fallbackPrimaryAbility ? [fallbackPrimaryAbility] : [];
 }
 
 function formatAbilityModifierFormula(
@@ -360,41 +364,6 @@ function getAbilityReferenceIndicatorSections(
   ]);
 }
 
-function getRollStateValueClassName(rollState: ResolvedRollState | null): string | undefined {
-  switch (rollState?.tone) {
-    case "advantage":
-      return styles.rollStateValueAdvantage;
-    case "disadvantage":
-      return styles.rollStateValueDisadvantage;
-    case "neutralized":
-      return styles.rollStateValueNeutralized;
-    default:
-      return undefined;
-  }
-}
-
-function getRollStateAbbreviation(rollState: ResolvedRollState): string {
-  switch (rollState.tone) {
-    case "advantage":
-      return "ADV";
-    case "disadvantage":
-      return "DIS";
-    case "neutralized":
-      return "NEU";
-  }
-}
-
-function getCombinedRollStatePillClassName(rollState: ResolvedRollState): string {
-  return clsx(
-    styles.combinedRollStatePill,
-    rollState.tone === "advantage"
-      ? styles.combinedRollStatePillAdvantage
-      : rollState.tone === "disadvantage"
-        ? styles.combinedRollStatePillDisadvantage
-        : styles.combinedRollStatePillNeutralized
-  );
-}
-
 function CharacterStatsForm({
   broadLayout = false,
   character,
@@ -450,7 +419,7 @@ function CharacterStatsForm({
     };
   }, [character, isAbilityModalOpen, isDiceRollerSettingsOpen, selectedStatReference]);
 
-  const mainAbility = getMainAbilityForClass(character.className);
+  const primaryAbilities = getClassPrimaryAbilitiesForUi(character.className);
   const hasIndomitableMight =
     character.className === "Barbarian" &&
     getFeatureDescriptionForCharacter(character, CLASS_FEATURE.INDOMITABLE_MIGHT).length > 0;
@@ -883,129 +852,12 @@ function CharacterStatsForm({
           </button>
         </div>
 
-        <div
-          className={clsx(
-            styles.abilitySavingThrowGrid,
-            broadLayout && styles.abilitySavingThrowGridBroad
-          )}
-        >
-          {abilitySavingThrowCards.map((card) => {
-            const hasBothRollStates =
-              card.modifierRollState !== null && card.savingThrowRollState !== null;
-            const hasMatchingRollStates =
-              hasBothRollStates &&
-              areResolvedRollStatesEquivalent(card.modifierRollState, card.savingThrowRollState);
-            const shouldUseAbbreviatedRollStates = hasBothRollStates && !hasMatchingRollStates;
-            const sharedRollState = hasMatchingRollStates
-              ? card.modifierRollState
-              : (card.modifierRollState ?? card.savingThrowRollState);
-
-            return (
-              <SheetSurface
-                as="button"
-                key={card.ability}
-                type="button"
-                borderSize="xl"
-                hasBorder
-                hoverBorder
-                textureIcon={Hexagon}
-                texturePosition="center"
-                className={clsx(styles.modifierCard, styles.modifierCardButton)}
-                onClick={() => openAbilityReference(card.ability)}
-              >
-                <div className={styles.modifierLabelRow}>
-                  <span className={styles.modifierLabel}>{card.ability}</span>
-                  <span
-                    className={clsx(
-                      styles.scoreBadge,
-                      card.ability === mainAbility && styles.scoreBadgePrimary
-                    )}
-                    aria-label={`${card.ability} score ${card.score}`}
-                  >
-                    <span className={styles.scoreBadgeValue}>{card.score}</span>
-                  </span>
-                  {card.showScoreBoostIcon ? (
-                    <ChevronsUp
-                      size={21}
-                      className={styles.scoreBoostIcon}
-                      aria-label={card.scoreBoostIconLabel ?? "Feature boost active"}
-                    />
-                  ) : null}
-                </div>
-                <div className={styles.combinedValueRow}>
-                  <div className={clsx(styles.combinedValueColumn, styles.modifierValueColumn)}>
-                    <Hexagon
-                      className={styles.modifierValueHexagon}
-                      strokeWidth={1.35}
-                      aria-hidden
-                    />
-                    <span className={styles.combinedValueLabel}>MOD</span>
-                    <strong className={getRollStateValueClassName(card.modifierRollState)}>
-                      {card.modifier}
-                    </strong>
-                  </div>
-                  <span className={clsx(styles.savingThrowValueGroup, styles.combinedValueColumn)}>
-                    <span className={styles.combinedValueLabel}>SAVE</span>
-                    <span className={styles.savingThrowValueRow}>
-                      <strong
-                        className={clsx(
-                          getRollStateValueClassName(card.savingThrowRollState),
-                          card.isSavingThrowProficient && styles.savingThrowValueProficient
-                        )}
-                      >
-                        {card.totalSavingThrow}
-                      </strong>
-                      {card.showSavingThrowBoostIcon ? (
-                        <ChevronsUp
-                          size={19}
-                          className={styles.savingThrowBoostIcon}
-                          aria-label={
-                            card.savingThrowBoostIconLabel ?? "Saving throw feature boost active"
-                          }
-                        />
-                      ) : null}
-                    </span>
-                  </span>
-                </div>
-                {shouldUseAbbreviatedRollStates ? (
-                  <div className={styles.combinedRollStateRow}>
-                    <span className={styles.combinedRollStateSlot}>
-                      {card.modifierRollState ? (
-                        <RollStatePill
-                          tone={card.modifierRollState.tone}
-                          label={getRollStateAbbreviation(card.modifierRollState)}
-                          size="small"
-                          className={getCombinedRollStatePillClassName(card.modifierRollState)}
-                        />
-                      ) : null}
-                    </span>
-                    <span className={styles.combinedRollStateSlot}>
-                      {card.savingThrowRollState ? (
-                        <RollStatePill
-                          tone={card.savingThrowRollState.tone}
-                          label={getRollStateAbbreviation(card.savingThrowRollState)}
-                          size="small"
-                          className={getCombinedRollStatePillClassName(
-                            card.savingThrowRollState
-                          )}
-                        />
-                      ) : null}
-                    </span>
-                  </div>
-                ) : sharedRollState ? (
-                  <div className={styles.combinedRollStateSingle}>
-                    <RollStatePill
-                      tone={sharedRollState.tone}
-                      label={sharedRollState.label}
-                      size="small"
-                      className={getCombinedRollStatePillClassName(sharedRollState)}
-                    />
-                  </div>
-                ) : null}
-              </SheetSurface>
-            );
-          })}
-        </div>
+        <AbilitySavingThrowCards
+          broadLayout={broadLayout}
+          cards={abilitySavingThrowCards}
+          primaryAbilities={primaryAbilities}
+          onOpenAbilityReference={openAbilityReference}
+        />
       </section>
     );
   }
