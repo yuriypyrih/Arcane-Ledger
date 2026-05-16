@@ -277,11 +277,11 @@ export function renderSpellCastingForm(context: Record<string, any>) {
 
   return (
     <article className={clsx(shared.sectionCard, className)}>
-      <div className={shared.sectionHeader}>
+      <div className={clsx(shared.sectionHeader, styles.spellcastingSectionHeader)}>
         <div>
           <p className={shared.eyebrow}>Spellcasting</p>
         </div>
-        <div className={shared.headerActions}>
+        <div className={clsx(shared.headerActions, styles.spellcastingHeaderActions)}>
           {hasSpellSelectionInputRequired ? (
             <InputRequiredBadge />
           ) : null}

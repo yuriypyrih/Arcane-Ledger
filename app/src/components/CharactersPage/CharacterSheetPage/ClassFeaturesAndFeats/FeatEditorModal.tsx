@@ -194,95 +194,100 @@ function FeatEditorModal({
         <OverlayCloseButton label="Close feat editor" onClick={() => onClose()} />
       </OverlayHeader>
 
-      <OverlayBody className={styles.scrollArea}>
-        <div className={styles.tabRow} role="tablist" aria-label="Feat categories">
-          {visibleFeatCategories.map((category) => (
-            <button
-              key={category}
-              type="button"
-              role="tab"
-              aria-selected={activeFeatCategory === category}
-              className={clsx(
-                styles.tabButton,
-                activeFeatCategory === category && styles.tabButtonActive
-              )}
-              onClick={() => onSelectCategory(category)}
-            >
-              {getFeatCategoryLabel(category)}
-            </button>
-          ))}
+      <OverlayBody className={styles.body}>
+        <div className={styles.featTabScroller}>
+          <div className={styles.featTabRow} role="tablist" aria-label="Feat categories">
+            {visibleFeatCategories.map((category) => (
+              <button
+                key={category}
+                type="button"
+                role="tab"
+                aria-selected={activeFeatCategory === category}
+                className={clsx(
+                  styles.tabButton,
+                  styles.featTabButton,
+                  activeFeatCategory === category && styles.tabButtonActive
+                )}
+                onClick={() => onSelectCategory(category)}
+              >
+                {getFeatCategoryLabel(category)}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <div className={styles.optionList}>
-          {visibleFeatDefinitionsByCategory[activeFeatCategory].map((featDefinition) => (
-            <FeatEditorCard
-              key={featDefinition.feat}
-              featDefinition={featDefinition}
-              featEligibility={featEligibilityByFeat[featDefinition.feat]}
-              characterLevel={characterLevel}
-              skillProficiencies={skillProficiencies}
-              savingThrowProficiencies={savingThrowProficiencies}
-              weaponProficiencies={weaponProficiencies}
-              toolProficiencies={toolProficiencies}
-              selectedEntries={selectedFeats.filter((entry) => entry.feat === featDefinition.feat)}
-              editingFeatEntryId={editingFeatEntryId}
-              pendingFeatState={pendingFeatState}
-              blessedWarriorCantripOptions={blessedWarriorCantripOptions}
-              druidicWarriorCantripOptions={druidicWarriorCantripOptions}
-              renderTrackingButton={renderTrackingButton}
-              onOpenFeatReference={onOpenFeatReference}
-              onAddFeat={onAddFeat}
-              onEditFeat={onEditFeat}
-              onRemoveFeat={onRemoveFeat}
-              onPendingFeatStateChange={onPendingFeatStateChange}
-              onSavePendingAbilityScoreImprovement={onSavePendingAbilityScoreImprovement}
-              onSavePendingAthleteChoice={onSavePendingAthleteChoice}
-              onSavePendingChargerChoice={onSavePendingChargerChoice}
-              onSavePendingChefChoice={onSavePendingChefChoice}
-              onSavePendingCrusherChoice={onSavePendingCrusherChoice}
-              onSavePendingDualWielderChoice={onSavePendingDualWielderChoice}
-              onSavePendingElementalAdeptChoice={onSavePendingElementalAdeptChoice}
-              onSavePendingFeyTouchedChoice={onSavePendingFeyTouchedChoice}
-              onSavePendingHeavilyArmoredChoice={onSavePendingHeavilyArmoredChoice}
-              onSavePendingHeavyArmorMasterChoice={onSavePendingHeavyArmorMasterChoice}
-              onSavePendingInspiringLeaderChoice={onSavePendingInspiringLeaderChoice}
-              onSavePendingKeenMindChoice={onSavePendingKeenMindChoice}
-              onSavePendingLightlyArmoredChoice={onSavePendingLightlyArmoredChoice}
-              onSavePendingMageSlayerChoice={onSavePendingMageSlayerChoice}
-              onSavePendingMartialWeaponTrainingChoice={onSavePendingMartialWeaponTrainingChoice}
-              onSavePendingMediumArmorMasterChoice={onSavePendingMediumArmorMasterChoice}
-              onSavePendingModeratelyArmoredChoice={onSavePendingModeratelyArmoredChoice}
-              onSavePendingMountedCombatantChoice={onSavePendingMountedCombatantChoice}
-              onSavePendingObservantChoice={onSavePendingObservantChoice}
-              onSavePendingPiercerChoice={onSavePendingPiercerChoice}
-              onSavePendingPoisonerChoice={onSavePendingPoisonerChoice}
-              onSavePendingPolearmMasterChoice={onSavePendingPolearmMasterChoice}
-              onSavePendingRitualCasterChoice={onSavePendingRitualCasterChoice}
-              onSavePendingResilientChoice={onSavePendingResilientChoice}
-              onSavePendingSentinelChoice={onSavePendingSentinelChoice}
-              onSavePendingShadowTouchedChoice={onSavePendingShadowTouchedChoice}
-              onSavePendingSlasherChoice={onSavePendingSlasherChoice}
-              onSavePendingSpellSniperChoice={onSavePendingSpellSniperChoice}
-              onSavePendingTelekineticChoice={onSavePendingTelekineticChoice}
-              onSavePendingTelepathicChoice={onSavePendingTelepathicChoice}
-              onSavePendingWarCasterChoice={onSavePendingWarCasterChoice}
-              onSavePendingSkillExpertChoice={onSavePendingSkillExpertChoice}
-              onSavePendingSpeedyChoice={onSavePendingSpeedyChoice}
-              onSavePendingWeaponMasterChoice={onSavePendingWeaponMasterChoice}
-              onSavePendingBoonOfEnergyResistanceChoice={
-                onSavePendingBoonOfEnergyResistanceChoice
-              }
-              onSavePendingBoonOfIrresistibleOffense={onSavePendingBoonOfIrresistibleOffense}
-              onSavePendingBoonOfSkillChoice={onSavePendingBoonOfSkillChoice}
-              onSavePendingBlessedWarriorChoice={onSavePendingBlessedWarriorChoice}
-              onSavePendingCrafterChoice={onSavePendingCrafterChoice}
-              onSavePendingDruidicWarriorChoice={onSavePendingDruidicWarriorChoice}
-              onSavePendingEpicBoonAbilityChoice={onSavePendingEpicBoonAbilityChoice}
-              onSavePendingMagicInitiateChoice={onSavePendingMagicInitiateChoice}
-              onSavePendingMusicianChoice={onSavePendingMusicianChoice}
-              onSavePendingSkilledChoice={onSavePendingSkilledChoice}
-            />
-          ))}
+        <div className={styles.optionScrollArea}>
+          <div className={styles.optionList}>
+            {visibleFeatDefinitionsByCategory[activeFeatCategory].map((featDefinition) => (
+              <FeatEditorCard
+                key={featDefinition.feat}
+                featDefinition={featDefinition}
+                featEligibility={featEligibilityByFeat[featDefinition.feat]}
+                characterLevel={characterLevel}
+                skillProficiencies={skillProficiencies}
+                savingThrowProficiencies={savingThrowProficiencies}
+                weaponProficiencies={weaponProficiencies}
+                toolProficiencies={toolProficiencies}
+                selectedEntries={selectedFeats.filter((entry) => entry.feat === featDefinition.feat)}
+                editingFeatEntryId={editingFeatEntryId}
+                pendingFeatState={pendingFeatState}
+                blessedWarriorCantripOptions={blessedWarriorCantripOptions}
+                druidicWarriorCantripOptions={druidicWarriorCantripOptions}
+                renderTrackingButton={renderTrackingButton}
+                onOpenFeatReference={onOpenFeatReference}
+                onAddFeat={onAddFeat}
+                onEditFeat={onEditFeat}
+                onRemoveFeat={onRemoveFeat}
+                onPendingFeatStateChange={onPendingFeatStateChange}
+                onSavePendingAbilityScoreImprovement={onSavePendingAbilityScoreImprovement}
+                onSavePendingAthleteChoice={onSavePendingAthleteChoice}
+                onSavePendingChargerChoice={onSavePendingChargerChoice}
+                onSavePendingChefChoice={onSavePendingChefChoice}
+                onSavePendingCrusherChoice={onSavePendingCrusherChoice}
+                onSavePendingDualWielderChoice={onSavePendingDualWielderChoice}
+                onSavePendingElementalAdeptChoice={onSavePendingElementalAdeptChoice}
+                onSavePendingFeyTouchedChoice={onSavePendingFeyTouchedChoice}
+                onSavePendingHeavilyArmoredChoice={onSavePendingHeavilyArmoredChoice}
+                onSavePendingHeavyArmorMasterChoice={onSavePendingHeavyArmorMasterChoice}
+                onSavePendingInspiringLeaderChoice={onSavePendingInspiringLeaderChoice}
+                onSavePendingKeenMindChoice={onSavePendingKeenMindChoice}
+                onSavePendingLightlyArmoredChoice={onSavePendingLightlyArmoredChoice}
+                onSavePendingMageSlayerChoice={onSavePendingMageSlayerChoice}
+                onSavePendingMartialWeaponTrainingChoice={onSavePendingMartialWeaponTrainingChoice}
+                onSavePendingMediumArmorMasterChoice={onSavePendingMediumArmorMasterChoice}
+                onSavePendingModeratelyArmoredChoice={onSavePendingModeratelyArmoredChoice}
+                onSavePendingMountedCombatantChoice={onSavePendingMountedCombatantChoice}
+                onSavePendingObservantChoice={onSavePendingObservantChoice}
+                onSavePendingPiercerChoice={onSavePendingPiercerChoice}
+                onSavePendingPoisonerChoice={onSavePendingPoisonerChoice}
+                onSavePendingPolearmMasterChoice={onSavePendingPolearmMasterChoice}
+                onSavePendingRitualCasterChoice={onSavePendingRitualCasterChoice}
+                onSavePendingResilientChoice={onSavePendingResilientChoice}
+                onSavePendingSentinelChoice={onSavePendingSentinelChoice}
+                onSavePendingShadowTouchedChoice={onSavePendingShadowTouchedChoice}
+                onSavePendingSlasherChoice={onSavePendingSlasherChoice}
+                onSavePendingSpellSniperChoice={onSavePendingSpellSniperChoice}
+                onSavePendingTelekineticChoice={onSavePendingTelekineticChoice}
+                onSavePendingTelepathicChoice={onSavePendingTelepathicChoice}
+                onSavePendingWarCasterChoice={onSavePendingWarCasterChoice}
+                onSavePendingSkillExpertChoice={onSavePendingSkillExpertChoice}
+                onSavePendingSpeedyChoice={onSavePendingSpeedyChoice}
+                onSavePendingWeaponMasterChoice={onSavePendingWeaponMasterChoice}
+                onSavePendingBoonOfEnergyResistanceChoice={
+                  onSavePendingBoonOfEnergyResistanceChoice
+                }
+                onSavePendingBoonOfIrresistibleOffense={onSavePendingBoonOfIrresistibleOffense}
+                onSavePendingBoonOfSkillChoice={onSavePendingBoonOfSkillChoice}
+                onSavePendingBlessedWarriorChoice={onSavePendingBlessedWarriorChoice}
+                onSavePendingCrafterChoice={onSavePendingCrafterChoice}
+                onSavePendingDruidicWarriorChoice={onSavePendingDruidicWarriorChoice}
+                onSavePendingEpicBoonAbilityChoice={onSavePendingEpicBoonAbilityChoice}
+                onSavePendingMagicInitiateChoice={onSavePendingMagicInitiateChoice}
+                onSavePendingMusicianChoice={onSavePendingMusicianChoice}
+                onSavePendingSkilledChoice={onSavePendingSkilledChoice}
+              />
+            ))}
+          </div>
         </div>
       </OverlayBody>
     </SheetModal>

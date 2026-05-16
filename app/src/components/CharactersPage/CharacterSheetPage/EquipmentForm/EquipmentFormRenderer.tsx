@@ -19,33 +19,18 @@ export function renderEquipmentForm(context: Record<string, any>) {
   } = context;
 
   return (
-    <article className={clsx(shared.sectionCard, className)}>
-      <div className={shared.sectionHeader}>
-        <div>
+    <article className={clsx(shared.sectionCard, styles.equipmentSectionCard, className)}>
+      <div className={clsx(shared.sectionHeader, styles.loadoutSectionHeader)}>
+        <div className={styles.loadoutHeaderText}>
           <p className={shared.eyebrow}>Equipment</p>
           <h3 className={shared.subtitle}>Current loadout</h3>
         </div>
-        <div className={shared.headerActions}>
-          <div
-            className={styles.carryCapacityPill}
-            aria-label={`Carried weight ${formatWeightValue(carriedWeight)} out of ${formatWeightValue(
-              carryingCapacity
-            )} pounds`}
+        <div className={styles.loadoutHeaderActions}>
+          <button
+            type="button"
+            className={clsx(shared.currencyPill, styles.loadoutCurrencyPill)}
+            onClick={openCurrencyModal}
           >
-            <span
-              className={clsx(
-                styles.carryCapacityValue,
-                isOverCarryingCapacity && styles.carryCapacityValueOver
-              )}
-            >
-              {formatWeightValue(carriedWeight)}
-            </span>
-            <span className={styles.carryCapacityDivider}>/</span>
-            <span className={styles.carryCapacityLimit}>
-              {formatWeightValue(carryingCapacity)} lb
-            </span>
-          </div>
-          <button type="button" className={shared.currencyPill} onClick={openCurrencyModal}>
             <span className={styles.currencyPillSummary}>
               {currencyDefinitions.map((currency) => (
                 <span key={currency.key} className={styles.currencyPillToken}>
@@ -63,14 +48,35 @@ export function renderEquipmentForm(context: Record<string, any>) {
               ))}
             </span>
           </button>
-          <button
-            type="button"
-            className={shared.editButton}
-            onClick={openAddModal}
-          >
-            <Plus size={16} />
-            Add
-          </button>
+          <div className={styles.loadoutPinnedActions}>
+            <div
+              className={styles.carryCapacityPill}
+              aria-label={`Carried weight ${formatWeightValue(carriedWeight)} out of ${formatWeightValue(
+                carryingCapacity
+              )} pounds`}
+            >
+              <span
+                className={clsx(
+                  styles.carryCapacityValue,
+                  isOverCarryingCapacity && styles.carryCapacityValueOver
+                )}
+              >
+                {formatWeightValue(carriedWeight)}
+              </span>
+              <span className={styles.carryCapacityDivider}>/</span>
+              <span className={styles.carryCapacityLimit}>
+                {formatWeightValue(carryingCapacity)} lb
+              </span>
+            </div>
+            <button
+              type="button"
+              className={clsx(shared.editButton, styles.loadoutAddButton)}
+              onClick={openAddModal}
+            >
+              <Plus size={16} />
+              Add
+            </button>
+          </div>
         </div>
       </div>
 
@@ -247,45 +253,33 @@ export function renderEquipmentForm(context: Record<string, any>) {
       />
 
       {isCustomEquipmentModalOpen ? (
-        <div
-          className={clsx(sheetStyles.spellManagementBackdrop, styles.customEquipmentModalBackdrop)}
-          role="presentation"
-          onClick={closeCustomEquipmentModal}
+        <SheetModal
+          titleId="character-custom-equipment-title"
+          onClose={closeCustomEquipmentModal}
+          size="medium"
+          backdropClassName={styles.customEquipmentModalBackdrop}
+          panelClassName={styles.customEquipmentModal}
         >
-          <section
-            className={clsx(sheetStyles.spellManagementModal, styles.customEquipmentModal)}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="character-custom-equipment-title"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className={sheetStyles.spellManagementHeader}>
-              <div>
-                <p className={sheetStyles.eyebrow}>Equipment</p>
-                <h3 id="character-custom-equipment-title" className={sheetStyles.sheetPanelTitle}>
-                  {customEditorMode === "edit"
-                    ? "Edit custom equipment"
-                    : "Create custom equipment"}
-                </h3>
-              </div>
-              <button
-                type="button"
-                className={sheetStyles.spellManagementCloseButton}
-                onClick={closeCustomEquipmentModal}
-                aria-label="Close custom equipment modal"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <CustomEquipmentEditor
-              mode={customEditorMode}
-              initialEquipment={editingCustomEquipment}
-              onCancel={closeCustomEquipmentModal}
-              onSave={saveCustomEquipment}
+          <OverlayHeader>
+            <OverlayHeaderContent>
+              <OverlayEyebrow>Equipment</OverlayEyebrow>
+              <OverlayTitle id="character-custom-equipment-title">
+                {customEditorMode === "edit" ? "Edit custom equipment" : "Create custom equipment"}
+              </OverlayTitle>
+            </OverlayHeaderContent>
+            <OverlayCloseButton
+              label="Close custom equipment modal"
+              onClick={closeCustomEquipmentModal}
             />
-          </section>
-        </div>
+          </OverlayHeader>
+
+          <CustomEquipmentEditor
+            mode={customEditorMode}
+            initialEquipment={editingCustomEquipment}
+            onCancel={closeCustomEquipmentModal}
+            onSave={saveCustomEquipment}
+          />
+        </SheetModal>
       ) : null}
 
       {isCurrencyDrawerOpen ? (

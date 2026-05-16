@@ -270,6 +270,10 @@
   white-space: nowrap;
 }
 
+.identityClassLine {
+  font-weight: 850;
+}
+
 .profileSummary {
   display: grid;
   align-self: stretch;
@@ -341,11 +345,12 @@
   }
 
   .profileShell {
-    grid-template-columns: 1fr;
+    grid-template-columns: 74px minmax(0, 1fr);
     gap: 0.62rem;
   }
 
   .portraitFrame {
+    justify-self: start;
     width: 74px;
     margin-top: -0.76rem;
     margin-left: -0.88rem;
@@ -363,6 +368,10 @@
 
   .identityRows {
     font-size: 0.82rem;
+  }
+
+  .identityClassLine {
+    font-size: 0.9rem;
   }
 
   .profileSummary {

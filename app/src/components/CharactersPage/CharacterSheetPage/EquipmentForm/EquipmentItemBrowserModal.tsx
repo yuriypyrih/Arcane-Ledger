@@ -180,30 +180,33 @@ function EquipmentItemBrowserModal({
       size="large"
       panelClassName={styles.modal}
     >
-      <OverlayHeader>
+      <OverlayHeader className={styles.header}>
         <OverlayHeaderContent>
           <p className={styles.eyebrow}>Equipment</p>
           <OverlayTitle id="character-equipment-add-title">Add equipment</OverlayTitle>
         </OverlayHeaderContent>
-        <div className={styles.headerActions}>
-          <button
-            type="button"
-            className={styles.currencyButton}
-            onClick={onOpenCurrencyModal}
-            disabled={isClosing}
-          >
-            {currencySummary}
-          </button>
-          <button
-            type="button"
-            className={styles.customButton}
-            onClick={onOpenCustomEquipmentCreator}
-            disabled={isClosing}
-          >
-            <Plus size={14} aria-hidden="true" />
-            <span>Custom</span>
-          </button>
+        <div className={styles.headerControlCluster}>
+          <div className={styles.headerActions}>
+            <button
+              type="button"
+              className={styles.currencyButton}
+              onClick={onOpenCurrencyModal}
+              disabled={isClosing}
+            >
+              {currencySummary}
+            </button>
+            <button
+              type="button"
+              className={styles.customButton}
+              onClick={onOpenCustomEquipmentCreator}
+              disabled={isClosing}
+            >
+              <Plus size={14} aria-hidden="true" />
+              <span>Custom</span>
+            </button>
+          </div>
           <OverlayCloseButton
+            className={styles.headerCloseButton}
             label="Close add equipment popup"
             onClick={onClose}
             disabled={isClosing}

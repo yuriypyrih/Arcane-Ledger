@@ -5,6 +5,8 @@ import NumberInput from "../../FormInputs/NumberInput";
 import SelectInput from "../../FormInputs/SelectInput";
 import TextAreaInput from "../../FormInputs/TextAreaInput";
 import TextInput from "../../FormInputs/TextInput";
+import ActionButton from "../../../ActionButton";
+import { OverlayBody, OverlayFooter } from "../../../Overlay";
 import {
   CURRENCY_TYPE,
   DAMAGE_TYPE,
@@ -418,8 +420,8 @@ function CustomEquipmentEditor({
   }
 
   return (
-    <div className={styles.customEquipmentEditor}>
-      <div className={styles.customEquipmentEditorBody}>
+    <>
+      <OverlayBody className={styles.customEquipmentEditorBody}>
         <div
           className={styles.customEquipmentTabRow}
           role="tablist"
@@ -920,30 +922,29 @@ function CustomEquipmentEditor({
             </label>
           </div>
         ) : null}
-      </div>
+      </OverlayBody>
 
-      <div className={styles.customEquipmentEditorFooter}>
+      <OverlayFooter className={styles.customEquipmentEditorFooter}>
         {formError ? <p className={styles.customEquipmentError}>{formError}</p> : null}
 
         <div className={styles.customEquipmentActionRow}>
-          <button
-            type="button"
-            className={styles.customEquipmentSecondaryButton}
+          <ActionButton
+            variant="GHOST"
+            className={styles.customEquipmentFooterButton}
             onClick={onCancel}
           >
             Cancel
-          </button>
-          <button
-            type="button"
-            className={styles.customEquipmentPrimaryButton}
+          </ActionButton>
+          <ActionButton
+            className={styles.customEquipmentFooterButton}
             onClick={handleSave}
             disabled={activeTab === "armor"}
           >
             {mode === "edit" ? "Save changes" : "Create custom equipment"}
-          </button>
+          </ActionButton>
         </div>
-      </div>
-    </div>
+      </OverlayFooter>
+    </>
   );
 }
 

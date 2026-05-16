@@ -211,11 +211,10 @@
 
   .featureHeadingRow {
     align-items: flex-start;
-    flex-wrap: wrap;
   }
 
   .featureToggleButton {
-    width: 100%;
+    flex: 1 1 auto;
   }
 
   .featureBody {
@@ -223,6 +222,6 @@
   }
 
   .featureHeaderActions {
-    width: 100%;
+    flex: 0 0 auto;
   }
 }

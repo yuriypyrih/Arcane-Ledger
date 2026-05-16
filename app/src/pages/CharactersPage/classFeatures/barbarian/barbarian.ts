@@ -151,6 +151,11 @@ const primalKnowledgeSkillNames = [
 ] as const satisfies readonly SkillName[];
 const primalKnowledgeSkillSet = new Set<SkillName>(primalKnowledgeSkillNames);
 const barbarianPrimalKnowledgeSkillOptions = barbarianStarterPack.skillProficiencies;
+const primalKnowledgeRageAdvantageIndicator: FeatureIndicator = {
+  label: "Advantage",
+  tone: "advantage",
+  source: "Rage / Primal Knowledge"
+};
 
 const feralInstinctAdvantageIndicator: FeatureIndicator = {
   label: "Advantage",
@@ -1013,11 +1018,18 @@ export function getBarbarianSkillIndicators(
   const primalKnowledgeSkills = hasBarbarianFeature(character, CLASS_FEATURE.PRIMAL_KNOWLEDGE)
     ? [...primalKnowledgeSkillNames]
     : [];
-  const trackedSkills = Array.from(new Set([...strengthSkills, ...primalKnowledgeSkills]));
+  const strengthSkillEntries = strengthSkills.map((skill): [SkillName, FeatureIndicator[]] => [
+    skill,
+    [rageAdvantageIndicator]
+  ]);
+  const primalKnowledgeSkillEntries = primalKnowledgeSkills.map(
+    (skill): [SkillName, FeatureIndicator[]] => [skill, [primalKnowledgeRageAdvantageIndicator]]
+  );
 
-  return Object.fromEntries(
-    trackedSkills.map((skill) => [skill, [rageAdvantageIndicator]])
-  ) as SkillIndicatorMap;
+  return Object.fromEntries([
+    ...strengthSkillEntries,
+    ...primalKnowledgeSkillEntries
+  ]) as SkillIndicatorMap;
 }
 
 export function getBarbarianSkillBonuses(

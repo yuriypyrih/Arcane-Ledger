@@ -121,6 +121,14 @@
   font-weight: 600;
 }
 
+.spellcastingHeaderActions {
+  min-width: 0;
+}
+
+.spellcastingSectionHeader > :first-child {
+  min-width: 0;
+}
+
 .selectionCounterIncomplete {
   color: #a63729;
 }
@@ -389,6 +397,21 @@
 }
 
 @media (max-width: 599px) {
+  .spellcastingSectionHeader {
+    align-items: flex-start;
+    flex-direction: row;
+  }
+
+  .spellcastingSectionHeader > :first-child {
+    flex: 1 1 auto;
+  }
+
+  .spellcastingHeaderActions {
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+  }
+
   .preparedSpellStatusRow {
     align-items: start;
   }

@@ -15,6 +15,7 @@ type BarbarianDescriptionCharacter = Pick<Character, "className" | "level"> &
 const instinctivePounceSource = "Instinctive Pounce";
 const mindlessRageSource = "Mindless Rage";
 const persistentRageSource = "Persistent Rage";
+const primalKnowledgeSource = "Primal Knowledge";
 const vitalityOfTheTreeSource = "Vitality of the Tree";
 const travelAlongTheTreeSource = "Travel Along the Tree";
 const divineFurySource = "Divine Fury";
@@ -60,6 +61,10 @@ export function getBarbarianRageActionDescriptionAdditions(
     character,
     CLASS_FEATURE.INSTINCTIVE_POUNCE
   );
+  const primalKnowledgeRageDescription = getFeatureDescriptionForCharacter(
+    character,
+    CLASS_FEATURE.PRIMAL_KNOWLEDGE
+  ).slice(1, 2);
 
   if (persistentRageRageEntries.length > 0) {
     descriptionAdditions.push(
@@ -68,6 +73,17 @@ export function getBarbarianRageActionDescriptionAdditions(
         CLASS_FEATURE.PERSISTENT_RAGE,
         persistentRageRageEntries,
         persistentRageSource
+      )
+    );
+  }
+
+  if (primalKnowledgeRageDescription.length > 0) {
+    descriptionAdditions.push(
+      createFeatureSourcedDescriptionEntries(
+        character,
+        CLASS_FEATURE.PRIMAL_KNOWLEDGE,
+        primalKnowledgeRageDescription,
+        primalKnowledgeSource
       )
     );
   }

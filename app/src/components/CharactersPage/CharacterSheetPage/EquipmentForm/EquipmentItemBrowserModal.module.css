@@ -8,12 +8,36 @@
   overflow: hidden;
 }
 
+.header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  column-gap: 0.75rem;
+  row-gap: 0.58rem;
+  min-width: 0;
+}
+
+.headerControlCluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  justify-self: end;
+  min-width: 0;
+}
+
 .headerActions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
   gap: 0.75rem;
+  min-width: 0;
+}
+
+.headerCloseButton {
+  flex: 0 0 auto;
 }
 
 .eyebrow {
@@ -70,6 +94,7 @@
 }
 
 @media (max-width: 899px) {
+  .headerControlCluster,
   .headerActions {
     gap: 0.58rem;
   }
@@ -86,9 +111,25 @@
 }
 
 @media (max-width: 599px) {
+  .header {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .headerControlCluster {
+    display: contents;
+  }
+
   .headerActions {
+    grid-column: 1 / -1;
+    grid-row: 2;
     gap: 0.5rem;
-    justify-content: stretch;
+    justify-content: flex-end;
+  }
+
+  .headerCloseButton {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
   }
 
   .eyebrow {

@@ -93,7 +93,7 @@ function CharacterProfileForm({
               </button>
             </div>
             <div className={styles.identityRows}>
-              <p>{identityLine}</p>
+              <p className={styles.identityClassLine}>{identityLine}</p>
               <p>{character.alignment}</p>
             </div>
             <InlineToggleButton
