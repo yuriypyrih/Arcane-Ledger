@@ -6,12 +6,12 @@ export function renderEquipmentForm(context: Record<string, any>) {
     ActionButton, CellContainer, CurrencyInlineDisplay, CustomEquipmentEditor, ENTRY_CATEGORIES, EquipmentInventoryItemDrawer, EquipmentItemBrowserModal, Hand, InlineToggleButton, KeywordReferenceDrawer,
     Minus, NumberInput, OverlayBody, OverlayCloseButton, OverlayEyebrow, OverlayFooter, OverlayHeader, OverlayHeaderContent, OverlayTitle, Plus, RarityPill, SheetModal, Shield, Sparkles, WeaponMasteryStatusLabel, X, activeCurrencyDefinition, activeCurrencyKey,
     adjustCurrencyBalance, canSpendCurrency, carriedWeight, carryingCapacity, className, closeAddModal, closeCustomEquipmentModal, closeInventoryItemDrawer, closeLoadoutDrawer,
-    clsx, currencyAmountDraft, currencyDefinitions, customEditorMode, deleteCustomEquipment, editingCustomEquipment, equipmentGroupMeta, formatCodexLabel, formatCodexList,
+    clsx, currencyAmountDraft, currencyDefinitions, customEditorMode, deleteCustomEquipment, editingCustomEquipment, equipmentRenderGroups, formatCodexLabel, formatCodexList,
     formatEquipmentWeight, formatInventoryStackName, formatOnHandLabel, formatWeaponDamage, formatWeaponProperties, formatWeaponType, formatWeaponWeight, formatWeightValue, getArmorTypeSummary, getInventoryItemFeatureTagLabels,
-    getItemWeightValue, groupedInventoryItems, hasDisplayableRarity, inventoryDrawerFooter, inventoryDrawerHeaderContent, inventoryEquipmentGroups, isAddModalCommitting, isAddModalOpen, isCurrencyDrawerOpen,
+    getItemWeightValue, groupedInventoryItems, hasDisplayableRarity, inventoryDrawerFooter, inventoryDrawerHeaderContent, isAddModalCommitting, isAddModalOpen, isCurrencyDrawerOpen,
     isCustomEquipmentModalOpen, isGeneralEquipmentExpanded, isHandEquippableEntry, isOverCarryingCapacity, isSelectedArmorWorn, isSelectedCustomEntry, isSelectedEntryOnHand, isSelectedFeatureManagedEntry, isSelectedShield,
     normalizeCurrencyAmountInput, normalizedCurrencies, openAddModal, openCurrencyModal, openCustomEquipmentCreator, openCustomEquipmentEditor, openInventoryInspectionFromBrowser, openInventoryInspectionFromLoadout, openLoadoutEntryDetails,
-    openWeaponReference, pendingDeleteCustomEquipment, removeEquipmentItem, saveCustomEquipment, selectedAdditionalWeaponMasteries, selectedEquipmentGroups, selectedInventoryAdditionalDescription, selectedInventoryDescriptionAdditions,
+    openWeaponReference, pendingDeleteCustomEquipment, removeEquipmentItem, saveCustomEquipment, selectedAdditionalWeaponMasteries, selectedInventoryAdditionalDescription, selectedInventoryDescriptionAdditions,
     selectedInventoryInspection, selectedInventoryItemStatus, selectedInventoryRecord,
     selectedInventoryWeaponHasActiveMastery, selectedInventoryWeaponHasProficiency, selectedLoadoutEntry, selectedLoadoutEntryData, selectedLoadoutItems, selectedLoadoutSummary, selectedWeaponHasActiveMastery, selectedWeaponHasProficiency, selectedWeaponMasteryKeywords,
     selectedWeaponMasteryLabel, selectedWeaponReference, setActiveCurrencyKey, setCurrencyAmountDraft, setIsCurrencyDrawerOpen, setIsGeneralEquipmentExpanded, setPendingDeleteCustomEquipmentId, setSelectedWeaponReference, shared, SheetSurface,
@@ -84,25 +84,8 @@ export function renderEquipmentForm(context: Record<string, any>) {
         <p className={shared.emptyText}>No equipment selected.</p>
       ) : (
         <div className={styles.equipmentGroupStack}>
-          {equipmentGroupMeta.map((group) => {
-            const loadoutItems =
-              selectedEquipmentGroups.find((entry) => entry.key === group.key)?.items ?? [];
-            const inventoryItems =
-              inventoryEquipmentGroups.find((entry) => entry.key === group.key)?.items ?? [];
-            const combinedItems = [
-              ...loadoutItems.map((item) => ({
-                key: item.key,
-                name: item.name,
-                kind: "loadout" as const,
-                item
-              })),
-              ...inventoryItems.map((item) => ({
-                key: `inventory-${item.stack.id}`,
-                name: item.name,
-                kind: "inventory" as const,
-                item
-              }))
-            ].sort((left, right) => left.name.localeCompare(right.name));
+          {equipmentRenderGroups.map((group) => {
+            const combinedItems = group.items;
 
             if (combinedItems.length === 0) {
               return null;

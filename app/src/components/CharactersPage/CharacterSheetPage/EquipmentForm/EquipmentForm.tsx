@@ -22,6 +22,7 @@ import { deferModalCommit } from "../../../Overlay";
 import NumberInput from "../../FormInputs/NumberInput";
 import RarityPill, { hasDisplayableRarity } from "../../../CodexPage/RarityPill";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
+import { useRenderProfiler } from "../../../../lib/useRenderProfiler";
 import { fetchItemPackContents, isApiOfflineError } from "../../../../api";
 import { ENTRY_CATEGORIES } from "../../../../codex/entries";
 import { currencyKeys, type Character, type CurrencyKey } from "../../../../types";
@@ -133,8 +134,8 @@ import {
   createAddEquipmentDraftCharacter
 } from "./equipmentDrafts";
 import {
+  createEquipmentRenderGroups,
   createHeldDescriptorForEntry,
-  equipmentGroupMeta,
   formatInventoryStackName,
   formatOnHandLabel,
   formatWeightValue,
@@ -488,6 +489,10 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     () => groupInventoryEquipmentItems(groupedInventoryItems),
     [groupedInventoryItems]
   );
+  const equipmentRenderGroups = useMemo(
+    () => createEquipmentRenderGroups(selectedEquipmentGroups, inventoryEquipmentGroups),
+    [inventoryEquipmentGroups, selectedEquipmentGroups]
+  );
   const carriedWeight = useMemo(
     () =>
       Math.round(
@@ -502,6 +507,12 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   );
   const carryingCapacity = Math.max(0, getAbilityScoreForCharacter(equipmentCharacter, "STR") * 15);
   const isOverCarryingCapacity = carriedWeight > carryingCapacity;
+
+  useRenderProfiler("EquipmentForm", {
+    inventoryGroupCount: groupedInventoryItems.length,
+    loadoutItemCount: selectedLoadoutItems.length
+  });
+
   const editingCustomEquipment = editingCustomEquipmentId
     ? (findCustomEquipmentById(customEquipment, editingCustomEquipmentId) ?? null)
     : null;
@@ -1885,12 +1896,12 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     KeywordReferenceDrawer, Minus, NumberInput, OverlayBody, OverlayCloseButton, OverlayEyebrow, OverlayFooter, OverlayHeader, OverlayHeaderContent, OverlayTitle, Plus, RarityPill, SheetModal, Shield, Sparkles, WeaponMasteryStatusLabel, X,
     activeCurrencyDefinition, activeCurrencyKey, adjustCurrencyBalance, canSpendCurrency, carriedWeight, carryingCapacity, className, closeAddModal,
     closeCustomEquipmentModal, closeInventoryItemDrawer, closeLoadoutDrawer, clsx, currencyAmountDraft, currencyDefinitions, customEditorMode, deleteCustomEquipment,
-    editingCustomEquipment, equipmentGroupMeta, formatCodexLabel, formatCodexList, formatEquipmentWeight, formatInventoryStackName, formatOnHandLabel, formatWeaponDamage,
+    editingCustomEquipment, equipmentRenderGroups, formatCodexLabel, formatCodexList, formatEquipmentWeight, formatInventoryStackName, formatOnHandLabel, formatWeaponDamage,
     formatWeaponProperties, formatWeaponType, formatWeaponWeight, formatWeightValue, getArmorTypeSummary, getInventoryItemFeatureTagLabels, getItemWeightValue, groupedInventoryItems, hasDisplayableRarity,
-    inventoryDrawerFooter, inventoryDrawerHeaderContent, inventoryEquipmentGroups, isAddModalCommitting, isAddModalOpen, isCurrencyDrawerOpen, isCustomEquipmentModalOpen, isGeneralEquipmentExpanded,
+    inventoryDrawerFooter, inventoryDrawerHeaderContent, isAddModalCommitting, isAddModalOpen, isCurrencyDrawerOpen, isCustomEquipmentModalOpen, isGeneralEquipmentExpanded,
     isHandEquippableEntry, isOverCarryingCapacity, isSelectedArmorWorn, isSelectedCustomEntry, isSelectedEntryOnHand, isSelectedFeatureManagedEntry, isSelectedShield, normalizeCurrencyAmountInput,
     normalizedCurrencies, openAddModal, openCurrencyModal, openCustomEquipmentCreator, openCustomEquipmentEditor, openInventoryInspectionFromBrowser, openInventoryInspectionFromLoadout, openLoadoutEntryDetails,
-    openWeaponReference, pendingDeleteCustomEquipment, removeEquipmentItem, saveCustomEquipment, selectedAdditionalWeaponMasteries, selectedEquipmentGroups, selectedInventoryInspection, selectedInventoryItemStatus,
+    openWeaponReference, pendingDeleteCustomEquipment, removeEquipmentItem, saveCustomEquipment, selectedAdditionalWeaponMasteries, selectedInventoryInspection, selectedInventoryItemStatus,
     selectedInventoryAdditionalDescription, selectedInventoryDescriptionAdditions, selectedInventoryRecord, selectedInventoryWeaponHasActiveMastery, selectedInventoryWeaponHasProficiency, selectedLoadoutEntry, selectedLoadoutEntryData, selectedLoadoutItems, selectedLoadoutSummary, selectedWeaponHasActiveMastery,
     selectedWeaponHasProficiency, selectedWeaponMasteryKeywords, selectedWeaponMasteryLabel, selectedWeaponReference, setActiveCurrencyKey, setCurrencyAmountDraft, setIsCurrencyDrawerOpen, setIsGeneralEquipmentExpanded,
     setPendingDeleteCustomEquipmentId, setSelectedWeaponReference, shared, SheetSurface, sheetStyles, shouldOfferHandSwap, styles, swapEntryToHand, toggleArmorWorn,

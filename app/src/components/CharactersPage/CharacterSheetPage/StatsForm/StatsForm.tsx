@@ -3,6 +3,7 @@ import { Pencil } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
+import { useRenderProfiler } from "../../../../lib/useRenderProfiler";
 import { createFeatureSourcedDescriptionEntries } from "../../../../pages/CharactersPage/actionModalDescriptions";
 import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../codex/entries";
 import { getClassEntryByName } from "../../../../codex/selectors";
@@ -419,7 +420,10 @@ function CharacterStatsForm({
     };
   }, [character, isAbilityModalOpen, isDiceRollerSettingsOpen, selectedStatReference]);
 
-  const primaryAbilities = getClassPrimaryAbilitiesForUi(character.className);
+  const primaryAbilities = useMemo(
+    () => getClassPrimaryAbilitiesForUi(character.className),
+    [character.className]
+  );
   const hasIndomitableMight =
     character.className === "Barbarian" &&
     getFeatureDescriptionForCharacter(character, CLASS_FEATURE.INDOMITABLE_MIGHT).length > 0;
@@ -437,88 +441,123 @@ function CharacterStatsForm({
       ? getPointBuyRemaining(abilitiesDraft.abilities)
       : null;
   const proficiencyBonus = getProficiencyBonus(character.level);
-  const effectiveAbilities = getAbilityScoresForCharacter(character);
-  const paladinAuraOfProtectionBonus = hasActivePaladinAuraOfProtectionForCharacter(character)
-    ? Math.max(1, getAbilityModifierBreakdownForCharacter(character, "CHA").total)
-    : 0;
-  const abilityCheckIndicators = getAbilityCheckIndicatorsForCharacter(character);
-  const savingThrowIndicators = getSavingThrowIndicatorsForCharacter(character);
+  const effectiveAbilities = useMemo(() => getAbilityScoresForCharacter(character), [character]);
+  const paladinAuraOfProtectionBonus = useMemo(
+    () =>
+      hasActivePaladinAuraOfProtectionForCharacter(character)
+        ? Math.max(1, getAbilityModifierBreakdownForCharacter(character, "CHA").total)
+        : 0,
+    [character]
+  );
+  const abilityCheckIndicators = useMemo(
+    () => getAbilityCheckIndicatorsForCharacter(character),
+    [character]
+  );
+  const savingThrowIndicators = useMemo(
+    () => getSavingThrowIndicatorsForCharacter(character),
+    [character]
+  );
   const fighterIndomitableUsesTotal = getFighterIndomitableUsesTotalForCharacter(character);
   const fighterIndomitableUsesRemaining = getFighterIndomitableUsesRemainingForCharacter(character);
-  const abilitySavingThrowCards: AbilitySavingThrowCard[] = abilityKeys.map((ability) => {
-    const abilityScore = effectiveAbilities[ability];
-    const abilityModifierBreakdown = getAbilityModifierBreakdownForCharacter(character, ability);
-    const abilityModifierValue = abilityModifierBreakdown.total;
-    const savingThrowProficiency = getSavingThrowProficiencyForAbilityKey(ability);
-    const savingThrowLevel = getSavingThrowLevelFromEntries(
-      character.savingThrowProficiencies,
-      savingThrowProficiency
-    );
-    const proficiencyMultiplier = getProficiencyMultiplier(savingThrowLevel);
-    const proficiencyContribution = proficiencyBonus * proficiencyMultiplier;
-    const featureSavingThrowBonusEntries: SavingThrowBonusEntry[] =
-      getSavingThrowBonusesForCharacter(character, ability).map((bonus) => ({
-        label: bonus.label,
-        value: resolveFeatureSavingThrowBonusValue(bonus, character)
-      }));
-    const savingThrowBonusEntries: SavingThrowBonusEntry[] = [
-      ...(paladinAuraOfProtectionBonus > 0
-        ? [
-            {
-              label: "Aura of Protection",
-              value: paladinAuraOfProtectionBonus
-            }
-          ]
-        : []),
-      ...featureSavingThrowBonusEntries
-    ];
-    const totalSavingThrowValue =
-      abilityModifierValue +
-      proficiencyContribution +
-      savingThrowBonusEntries.reduce((sum, entry) => sum + entry.value, 0);
-    const proficiencyLabel =
-      proficiencyMultiplier === 2
-        ? "Proficiency Bonus x2"
-        : proficiencyMultiplier === 1
-          ? "Proficiency Bonus"
-          : undefined;
-    const modifierIndicators = abilityCheckIndicators[ability] ?? [];
-    const saveIndicators = savingThrowIndicators[ability] ?? [];
-    const modifierRollState = resolveFeatureIndicators(modifierIndicators);
-    const savingThrowRollState = resolveFeatureIndicators(saveIndicators);
+  const abilitySavingThrowCards = useMemo<AbilitySavingThrowCard[]>(
+    () =>
+      abilityKeys.map((ability) => {
+        const abilityScore = effectiveAbilities[ability];
+        const abilityModifierBreakdown = getAbilityModifierBreakdownForCharacter(
+          character,
+          ability
+        );
+        const abilityModifierValue = abilityModifierBreakdown.total;
+        const savingThrowProficiency = getSavingThrowProficiencyForAbilityKey(ability);
+        const savingThrowLevel = getSavingThrowLevelFromEntries(
+          character.savingThrowProficiencies,
+          savingThrowProficiency
+        );
+        const proficiencyMultiplier = getProficiencyMultiplier(savingThrowLevel);
+        const proficiencyContribution = proficiencyBonus * proficiencyMultiplier;
+        const featureSavingThrowBonusEntries: SavingThrowBonusEntry[] =
+          getSavingThrowBonusesForCharacter(character, ability).map((bonus) => ({
+            label: bonus.label,
+            value: resolveFeatureSavingThrowBonusValue(bonus, character)
+          }));
+        const savingThrowBonusEntries: SavingThrowBonusEntry[] = [
+          ...(paladinAuraOfProtectionBonus > 0
+            ? [
+                {
+                  label: "Aura of Protection",
+                  value: paladinAuraOfProtectionBonus
+                }
+              ]
+            : []),
+          ...featureSavingThrowBonusEntries
+        ];
+        const totalSavingThrowValue =
+          abilityModifierValue +
+          proficiencyContribution +
+          savingThrowBonusEntries.reduce((sum, entry) => sum + entry.value, 0);
+        const proficiencyLabel =
+          proficiencyMultiplier === 2
+            ? "Proficiency Bonus x2"
+            : proficiencyMultiplier === 1
+              ? "Proficiency Bonus"
+              : undefined;
+        const modifierIndicators = abilityCheckIndicators[ability] ?? [];
+        const saveIndicators = savingThrowIndicators[ability] ?? [];
+        const modifierRollState = resolveFeatureIndicators(modifierIndicators);
+        const savingThrowRollState = resolveFeatureIndicators(saveIndicators);
 
-    return {
-      ability,
-      score: abilityScore,
-      modifier: formatAbilityModifier(abilityModifierValue),
-      modifierBaseValue: abilityModifierBreakdown.baseValue,
-      modifierValue: abilityModifierValue,
-      modifierBonusEntries: abilityModifierBreakdown.bonusEntries,
-      isSavingThrowProficient: proficiencyMultiplier > 0,
-      proficiencyContribution,
-      proficiencyLabel,
-      savingThrowBonusEntries,
-      totalSavingThrowValue,
-      totalSavingThrow: formatAbilityModifier(totalSavingThrowValue),
-      showScoreBoostIcon:
-        (ability === "STR" && hasIndomitableMight) ||
-        isBarbarianRaging ||
-        (ability === "DEX" && hasLeadingEvasion),
-      scoreBoostIconLabel:
-        ability === "DEX" && hasLeadingEvasion
-          ? "Leading Evasion active"
-          : ability === "STR" && hasIndomitableMight
-            ? "Indomitable Might active"
-            : isBarbarianRaging
-              ? "Fanatical Focus active"
-              : undefined,
-      showSavingThrowBoostIcon: ability === "DEX" && hasEvasion,
-      savingThrowBoostIconLabel: ability === "DEX" && hasEvasion ? "Evasion active" : undefined,
-      modifierIndicators,
-      modifierRollState,
-      savingThrowIndicators: saveIndicators,
-      savingThrowRollState
-    };
+        return {
+          ability,
+          score: abilityScore,
+          modifier: formatAbilityModifier(abilityModifierValue),
+          modifierBaseValue: abilityModifierBreakdown.baseValue,
+          modifierValue: abilityModifierValue,
+          modifierBonusEntries: abilityModifierBreakdown.bonusEntries,
+          isSavingThrowProficient: proficiencyMultiplier > 0,
+          proficiencyContribution,
+          proficiencyLabel,
+          savingThrowBonusEntries,
+          totalSavingThrowValue,
+          totalSavingThrow: formatAbilityModifier(totalSavingThrowValue),
+          showScoreBoostIcon:
+            (ability === "STR" && hasIndomitableMight) ||
+            isBarbarianRaging ||
+            (ability === "DEX" && hasLeadingEvasion),
+          scoreBoostIconLabel:
+            ability === "DEX" && hasLeadingEvasion
+              ? "Leading Evasion active"
+              : ability === "STR" && hasIndomitableMight
+                ? "Indomitable Might active"
+                : isBarbarianRaging
+                  ? "Fanatical Focus active"
+                  : undefined,
+          showSavingThrowBoostIcon: ability === "DEX" && hasEvasion,
+          savingThrowBoostIconLabel:
+            ability === "DEX" && hasEvasion ? "Evasion active" : undefined,
+          modifierIndicators,
+          modifierRollState,
+          savingThrowIndicators: saveIndicators,
+          savingThrowRollState
+        };
+      }),
+    [
+      abilityCheckIndicators,
+      character,
+      effectiveAbilities,
+      hasEvasion,
+      hasIndomitableMight,
+      hasLeadingEvasion,
+      isBarbarianRaging,
+      paladinAuraOfProtectionBonus,
+      proficiencyBonus,
+      savingThrowIndicators
+    ]
+  );
+
+  useRenderProfiler("CharacterStatsForm", {
+    abilityCardCount: abilitySavingThrowCards.length,
+    characterClass: character.className,
+    level: character.level
   });
 
   const resolvedSelectedStatReference = selectedStatReference;

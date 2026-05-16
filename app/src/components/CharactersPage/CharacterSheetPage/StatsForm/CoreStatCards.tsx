@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { ChevronsUp, Shield } from "lucide-react";
 import type { CSSProperties } from "react";
+import { useRenderProfiler } from "../../../../lib/useRenderProfiler";
 import RollStatePill from "../../../RollStatePill/RollStatePill";
 import { resolveFeatureIndicators } from "../../../RollStatePill/rollState";
 import SheetSurface from "../SheetSurface";
@@ -30,6 +31,16 @@ function CoreStatCards({
   className,
   onOpenCard
 }: CoreStatCardsProps) {
+  const cardCount = rows ? rows.reduce((sum, row) => sum + row.length, 0) : (cards?.length ?? 0);
+
+  useRenderProfiler("CoreStatCards", {
+    cardCount,
+    compact,
+    profileTexture,
+    rowFlow,
+    wide
+  });
+
   function renderCard(card: CoreStatCard, floatingRollState = false) {
     const rollState = resolveFeatureIndicators(card.indicators);
     const isArmorClassProfileCard = profileTexture && card.key === "armorClass";

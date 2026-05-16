@@ -1,6 +1,7 @@
 import clsx from "clsx";
-import type { Dispatch, SetStateAction } from "react";
+import { useMemo, type Dispatch, type SetStateAction } from "react";
 import { FEAT_CATEGORY, FEATS, type SpellEntry } from "../../../../codex/entries";
+import { useRenderProfiler } from "../../../../lib/useRenderProfiler";
 import { getFeatCategoryLabel, type FeatDefinition } from "../../../../pages/CharactersPage/feats";
 import type {
   CharacterFeatEntry,
@@ -98,6 +99,27 @@ type FeatEditorModalProps = {
   onSavePendingSkilledChoice: () => void;
 };
 
+const emptySelectedFeatEntries: CharacterFeatEntry[] = [];
+
+function groupSelectedFeatsByFeat(
+  selectedFeats: CharacterFeatEntry[]
+): Map<FEATS, CharacterFeatEntry[]> {
+  const selectedFeatEntriesByFeat = new Map<FEATS, CharacterFeatEntry[]>();
+
+  selectedFeats.forEach((entry) => {
+    const entries = selectedFeatEntriesByFeat.get(entry.feat);
+
+    if (entries) {
+      entries.push(entry);
+      return;
+    }
+
+    selectedFeatEntriesByFeat.set(entry.feat, [entry]);
+  });
+
+  return selectedFeatEntriesByFeat;
+}
+
 function FeatEditorModal({
   context,
   activeFeatCategory,
@@ -167,6 +189,18 @@ function FeatEditorModal({
   onSavePendingMusicianChoice,
   onSavePendingSkilledChoice
 }: FeatEditorModalProps) {
+  const selectedFeatEntriesByFeat = useMemo(
+    () => groupSelectedFeatsByFeat(selectedFeats),
+    [selectedFeats]
+  );
+  const activeFeatDefinitions = visibleFeatDefinitionsByCategory[activeFeatCategory];
+
+  useRenderProfiler("FeatEditorModal", {
+    activeFeatCategory,
+    selectedFeatCount: selectedFeats.length,
+    visibleFeatCount: activeFeatDefinitions.length
+  });
+
   return (
     <SheetModal
       titleId="character-feat-editor-title"
@@ -218,7 +252,7 @@ function FeatEditorModal({
 
         <div className={styles.optionScrollArea}>
           <div className={styles.optionList}>
-            {visibleFeatDefinitionsByCategory[activeFeatCategory].map((featDefinition) => (
+            {activeFeatDefinitions.map((featDefinition) => (
               <FeatEditorCard
                 key={featDefinition.feat}
                 featDefinition={featDefinition}
@@ -228,7 +262,9 @@ function FeatEditorModal({
                 savingThrowProficiencies={savingThrowProficiencies}
                 weaponProficiencies={weaponProficiencies}
                 toolProficiencies={toolProficiencies}
-                selectedEntries={selectedFeats.filter((entry) => entry.feat === featDefinition.feat)}
+                selectedEntries={
+                  selectedFeatEntriesByFeat.get(featDefinition.feat) ?? emptySelectedFeatEntries
+                }
                 editingFeatEntryId={editingFeatEntryId}
                 pendingFeatState={pendingFeatState}
                 blessedWarriorCantripOptions={blessedWarriorCantripOptions}

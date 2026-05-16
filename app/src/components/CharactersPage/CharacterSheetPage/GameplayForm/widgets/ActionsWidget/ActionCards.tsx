@@ -87,7 +87,6 @@ export function WeaponActionCard({
       aria-disabled={isUnavailable}
       onClick={() => onClick(action)}
     >
-      <ActionCardThemeTexture theme={cardTheme} />
       {attackPaths.length > 0 ? (
         <span className={styles.shapeBadgeRow} aria-hidden="true">
           {attackPaths.map((path) => {
@@ -244,7 +243,6 @@ export function FeatureActionCardButton({
       aria-disabled={isUnavailable}
       onClick={() => onClick(action)}
     >
-      <ActionCardThemeTexture theme={cardTheme} />
       {actionShape ? (
         <span className={styles.shapeBadge} aria-hidden="true">
           <ActionShape

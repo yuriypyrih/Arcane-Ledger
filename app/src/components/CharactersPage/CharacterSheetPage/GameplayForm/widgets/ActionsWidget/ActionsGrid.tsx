@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { SportShoe } from "lucide-react";
+import { useRenderProfiler } from "../../../../../../lib/useRenderProfiler";
 import type { Character } from "../../../../../../types";
 import type { GameplayActionDefinition } from "../../../../../../pages/CharactersPage/combatActions";
 import { monkHandOfHealingActionKey } from "../../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfMercy";
@@ -27,6 +28,11 @@ function ActionsGrid({
   onCommonActionsOpen,
   onActionSelect
 }: ActionsGridProps) {
+  useRenderProfiler("ActionsGrid", {
+    actionCount: combatActions.length,
+    isInCombat: roundTracker.isInCombat ?? false
+  });
+
   return (
     <section className={clsx(widgetShellStyles.widgetCard, styles.root)}>
       <header className={widgetShellStyles.widgetHeader}>

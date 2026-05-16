@@ -45,6 +45,24 @@ export type InventoryEquipmentGroup = Omit<EquipmentGroup, "items"> & {
   items: GroupedInventoryItem[];
 };
 
+export type EquipmentRenderGroupItem =
+  | {
+      key: string;
+      name: string;
+      kind: "loadout";
+      item: LoadoutGroupItem;
+    }
+  | {
+      key: string;
+      name: string;
+      kind: "inventory";
+      item: GroupedInventoryItem;
+    };
+
+export type EquipmentRenderGroup = Omit<EquipmentGroup, "items"> & {
+  items: EquipmentRenderGroupItem[];
+};
+
 export const equipmentGroupMeta: Array<Omit<EquipmentGroup, "items">> = [
   {
     key: "weaponsAndStaff",
@@ -174,6 +192,42 @@ export function groupInventoryEquipmentItems(
     ...group,
     items: groupedItems[group.key]
   }));
+}
+
+export function createEquipmentRenderGroups(
+  selectedEquipmentGroups: EquipmentGroup[],
+  inventoryEquipmentGroups: InventoryEquipmentGroup[]
+): EquipmentRenderGroup[] {
+  const selectedGroupsByKey = new Map(
+    selectedEquipmentGroups.map((group) => [group.key, group.items])
+  );
+  const inventoryGroupsByKey = new Map(
+    inventoryEquipmentGroups.map((group) => [group.key, group.items])
+  );
+
+  return equipmentGroupMeta.map((group) => {
+    const loadoutItems = selectedGroupsByKey.get(group.key) ?? [];
+    const inventoryItems = inventoryGroupsByKey.get(group.key) ?? [];
+    const items: EquipmentRenderGroupItem[] = [
+      ...loadoutItems.map((item) => ({
+        key: item.key,
+        name: item.name,
+        kind: "loadout" as const,
+        item
+      })),
+      ...inventoryItems.map((item) => ({
+        key: `inventory-${item.stack.id}`,
+        name: item.name,
+        kind: "inventory" as const,
+        item
+      }))
+    ].sort((left, right) => left.name.localeCompare(right.name));
+
+    return {
+      ...group,
+      items
+    };
+  });
 }
 
 export function formatInventoryStackName(item: GroupedInventoryItem): string {
