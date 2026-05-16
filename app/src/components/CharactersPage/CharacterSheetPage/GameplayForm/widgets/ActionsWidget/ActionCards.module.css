@@ -164,7 +164,11 @@
   --action-card-theme-panel-peak: rgba(145, 101, 54, 0.26);
   --action-card-theme-edge: rgba(145, 101, 54, 0.48);
   --action-card-theme-border: rgba(58, 55, 51, 0.16);
-  --action-card-theme-background-image:
+  --action-card-theme-background-image: radial-gradient(
+      circle at 92% 16%,
+      var(--action-card-theme-glow),
+      transparent 33%
+    ),
     linear-gradient(
       60deg,
       rgba(255, 253, 248, 0.92) 0%,
@@ -177,9 +181,10 @@
       transparent 68%,
       var(--action-card-theme-panel-soft) 82%,
       var(--action-card-theme-panel-strong) 100%
-    );
-  --action-card-theme-background-position: center, center;
-  --action-card-theme-background-size: auto, auto;
+    ),
+    url("../../../../../../assets/img/paper-background.jpg");
+  --action-card-theme-background-position: center, center, center, center;
+  --action-card-theme-background-size: auto, auto, auto, 155% auto;
   --action-card-theme-glow: rgba(145, 101, 54, 0.18);
   --action-card-theme-icon-color: rgb(75, 47, 29);
   --action-card-theme-icon-opacity: 0.1;
@@ -196,16 +201,28 @@
   isolation: isolate;
   transition:
     border-color 140ms ease,
-    background-color 140ms ease;
+    background-color 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease;
 }
 
 .themedActionCard.themedActionCard:hover {
   border-color: rgba(47, 120, 255, 0.54);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.48),
+    0 6px 8px -8px rgba(75, 47, 29, 0.14),
+    0 2px 3px -4px rgba(36, 21, 15, 0.1);
+  transform: translateY(-1px);
 }
 
 .themedActionCard.themedActionCard:focus-visible,
 .themedActionCard.themedActionCard:focus-within {
   border-color: rgba(47, 120, 255, 0.54);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.48),
+    0 6px 8px -8px rgba(75, 47, 29, 0.14),
+    0 2px 3px -4px rgba(36, 21, 15, 0.1);
+  transform: translateY(-1px);
 }
 
 .themedActionCard.actionCardMulti {
@@ -221,7 +238,9 @@
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.48),
     0 0 0 1px rgba(220, 176, 42, 1),
-    0 0 4px rgba(220, 176, 42, 1);
+    0 0 4px rgba(220, 176, 42, 1),
+    0 6px 8px -8px rgba(75, 47, 29, 0.14),
+    0 2px 3px -4px rgba(36, 21, 15, 0.1);
 }
 
 .themedActionCard > :not(.themeTextureIcon) {
@@ -313,7 +332,11 @@
 
 .themedActionCard.actionCardUnavailable {
   --action-card-theme-base: rgba(68, 64, 60, 0.11);
-  --action-card-theme-background-image:
+  --action-card-theme-background-image: radial-gradient(
+      circle at 92% 16%,
+      rgba(58, 55, 51, 0.12),
+      transparent 33%
+    ),
     linear-gradient(
       60deg,
       rgba(228, 228, 226, 0.42) 0%,

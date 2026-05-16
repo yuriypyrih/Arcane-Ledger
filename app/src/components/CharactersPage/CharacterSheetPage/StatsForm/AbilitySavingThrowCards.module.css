@@ -23,10 +23,17 @@
       rgba(255, 250, 242, 0.62) 70%,
       rgba(255, 248, 236, 0.3) 100%
     ),
-    linear-gradient(135deg, rgba(145, 101, 54, 0.08), rgba(145, 101, 54, 0.02));
-  background-position: center, center;
+    linear-gradient(135deg, rgba(145, 101, 54, 0.08), rgba(145, 101, 54, 0.02)),
+    url("../../../../assets/img/paper-background.jpg");
+  background-position:
+    center,
+    center,
+    center;
   background-repeat: no-repeat;
-  background-size: auto, auto;
+  background-size:
+    auto,
+    auto,
+    155% auto;
   background-color: #fffdf8;
   background-clip: padding-box;
   box-shadow: none;

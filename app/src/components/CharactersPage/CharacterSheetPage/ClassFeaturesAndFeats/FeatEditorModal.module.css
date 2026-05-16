@@ -136,11 +136,21 @@
 
 .addButton,
 .removeActionButton {
+  background: var(--build-card-control-bg, #ede8e2);
   min-height: 34px;
+  box-shadow: inset 0 0 0 1px var(--build-card-control-border, rgba(75, 47, 29, 0.08));
 }
 
+.addButton:hover:not(:disabled),
+.addButton:focus-visible:not(:disabled),
+.removeActionButton:hover:not(:disabled),
+.removeActionButton:focus-visible:not(:disabled) {
+  background: var(--build-card-control-bg-active, #e8e0d8);
+}
+
+.addButton:disabled,
 .removeActionButton:disabled {
-  background: rgba(75, 47, 29, 0.055);
+  background: var(--build-card-control-bg-disabled, #f6f1eb);
   color: rgba(74, 63, 55, 0.52);
   opacity: 1;
 }
@@ -186,12 +196,18 @@
   justify-content: center;
   border: none;
   border-radius: var(--radius-compact);
-  background: rgba(75, 47, 29, 0.08);
+  background: var(--build-card-control-bg, #ede8e2);
   color: var(--color-ink-soft);
   cursor: pointer;
   min-height: 34px;
   min-width: 34px;
   padding: 0;
+  box-shadow: inset 0 0 0 1px var(--build-card-control-border, rgba(75, 47, 29, 0.08));
+}
+
+.removeButton:hover,
+.removeButton:focus-visible {
+  background: var(--build-card-control-bg-active, #e8e0d8);
 }
 
 .modeRow {
