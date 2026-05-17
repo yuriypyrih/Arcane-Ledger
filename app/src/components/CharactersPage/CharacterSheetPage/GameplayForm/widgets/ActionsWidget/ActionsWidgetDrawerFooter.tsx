@@ -302,6 +302,7 @@ import { getSpellActionPathStates, getSpellActionPathWarning } from "../../../sp
 import SneakAttackActionBody, { type SneakAttackActionSelection } from "./SneakAttackModal";
 import GameplayActionDrawer from "./GameplayActionDrawer";
 import ActionDiceConfirmFooter from "./ActionDiceConfirmFooter";
+import ActionFooterButtonRow from "./ActionFooterButtonRow";
 import FortifyingSoulActionFooter from "./FortifyingSoulActionFooter";
 import { ArcaneWardActionFooter } from "./ArcaneWardActionFooter";
 import { BardicInspirationActionFooter } from "./BardicInspirationActionFooter";
@@ -1669,7 +1670,17 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
 
     return (
-      <div className={styles.weaponFooterActions}>
+      <ActionFooterButtonRow
+        settings={
+          <DiceRollerSettingsButton
+            actionName={selectedAction.action.name}
+            className={styles.weaponFooterIconButton}
+            isOpen={isDiceRollerSettingsOpen}
+            ariaLabel="Open dice roller settings"
+            onOpenChange={setIsDiceRollerSettingsOpen}
+          />
+        }
+      >
         <ActionButton
           className={styles.weaponFooterButton}
           onClick={confirmSelectedActionToast(() => executeFeatureActivate(selectedAction.action))}
@@ -1688,14 +1699,7 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
         >
           {selectedFeaturePrimaryLabel}
         </ActionButton>
-        <DiceRollerSettingsButton
-          actionName={selectedAction.action.name}
-          className={styles.weaponFooterIconButton}
-          isOpen={isDiceRollerSettingsOpen}
-          aria-label="Open dice roller settings"
-          onOpenChange={setIsDiceRollerSettingsOpen}
-        />
-      </div>
+      </ActionFooterButtonRow>
     );
   }
 

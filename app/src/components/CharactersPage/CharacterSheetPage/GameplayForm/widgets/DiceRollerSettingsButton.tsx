@@ -46,6 +46,7 @@ function DiceRollerSettingsButton({
       <ActionButton
         className={clsx(
           styles.button,
+          !children && styles.iconButton,
           className,
           nextRollCriticalHitOverride && styles.overrideCritical,
           nextRollModeOverride === "advantage" && styles.overrideAdvantage,

@@ -19,6 +19,7 @@ import {
   type MonkHandOfHealingActionPathState
 } from "./monkHandOfHealingActionUtils";
 import DiceRollerSettingsButton from "../DiceRollerSettingsButton";
+import ActionFooterButtonRow from "./ActionFooterButtonRow";
 
 type RoundTrackerAvailability = {
   isInCombat?: boolean;
@@ -175,7 +176,17 @@ export function MonkHandOfHealingActionFooter({
   return (
     <div className={actionStyles.footerActionStack}>
       {helperText ? <p className={actionStyles.footerHelperText}>{helperText}</p> : null}
-      <div className={actionStyles.weaponFooterActions}>
+      <ActionFooterButtonRow
+        settings={
+          <DiceRollerSettingsButton
+            actionName={actionName}
+            className={actionStyles.weaponFooterIconButton}
+            isOpen={isDiceRollerSettingsOpen}
+            ariaLabel="Open dice roller settings"
+            onOpenChange={onDiceRollerSettingsOpenChange}
+          />
+        }
+      >
         {actionPaths.map((path) => {
           const actionShape = getActionShapeForEconomyType(path.economyType);
 
@@ -210,14 +221,7 @@ export function MonkHandOfHealingActionFooter({
             </ActionButton>
           );
         })}
-        <DiceRollerSettingsButton
-          actionName={actionName}
-          className={actionStyles.weaponFooterIconButton}
-          isOpen={isDiceRollerSettingsOpen}
-          aria-label="Open dice roller settings"
-          onOpenChange={onDiceRollerSettingsOpenChange}
-        />
-      </div>
+      </ActionFooterButtonRow>
     </div>
   );
 }

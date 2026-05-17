@@ -34,7 +34,7 @@
   display: flex;
   align-items: stretch;
   gap: 0.72rem;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   min-width: 0;
 }
 
@@ -44,8 +44,8 @@
 }
 
 .compactSlotSelectField {
-  flex: 1 1 0;
-  min-width: 0;
+  flex: 1 1 12rem;
+  min-width: min(100%, 12rem);
 }
 
 .compactSlotSelect {
@@ -103,7 +103,7 @@
 }
 
 .castActionButton {
-  flex: 1 1 0;
+  flex: 1 1 10rem;
   gap: 0.62rem;
   min-width: 0;
   padding: 0 1.55rem;
@@ -122,6 +122,22 @@
   flex: 0 0 44px;
   min-height: 44px;
   min-width: 44px;
+}
+
+.castActionEndGroup {
+  display: flex;
+  align-items: stretch;
+  flex: 1 1 calc(10rem + 44px + 0.72rem);
+  gap: 0.72rem;
+  min-width: min(100%, calc(10rem + 44px + 0.72rem));
+}
+
+.castActionEndGroup > .castActionButton {
+  flex: 1 1 10rem;
+}
+
+.castActionEndGroup > .castActionSettingsButton {
+  flex: 0 0 44px;
 }
 
 .footerActionShape {

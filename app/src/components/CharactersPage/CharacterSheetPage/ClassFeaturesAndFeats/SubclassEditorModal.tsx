@@ -49,7 +49,6 @@ function SubclassEditorModal({ character, onCancel, onSave }: SubclassEditorModa
       titleId="character-subclass-editor-title"
       onClose={onCancel}
       size="small"
-      panelClassName={styles.modalPanel}
     >
       <OverlayHeader>
         <OverlayHeaderContent>

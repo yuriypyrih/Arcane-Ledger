@@ -2,6 +2,7 @@ import ActionButton from "../../../../../ActionButton";
 import ActionShape, { type ActionShapeType } from "../../../../../ActionShape";
 import d20Icon from "../../../../../../assets/svg/d20.svg";
 import DiceRollerSettingsButton from "../DiceRollerSettingsButton";
+import ActionFooterButtonRow from "./ActionFooterButtonRow";
 import styles from "./ActionsWidget.module.css";
 
 type ActionDiceConfirmFooterProps = {
@@ -28,7 +29,17 @@ function ActionDiceConfirmFooter({
   onDiceRollerSettingsOpenChange
 }: ActionDiceConfirmFooterProps) {
   return (
-    <div className={styles.weaponFooterActions}>
+    <ActionFooterButtonRow
+      settings={
+        <DiceRollerSettingsButton
+          actionName={actionName}
+          className={styles.weaponFooterIconButton}
+          isOpen={isDiceRollerSettingsOpen}
+          ariaLabel="Open dice roller settings"
+          onOpenChange={onDiceRollerSettingsOpenChange}
+        />
+      }
+    >
       <ActionButton
         className={styles.weaponFooterButton}
         onClick={onConfirm}
@@ -47,14 +58,7 @@ function ActionDiceConfirmFooter({
       >
         {confirmLabel}
       </ActionButton>
-      <DiceRollerSettingsButton
-        actionName={actionName}
-        className={styles.weaponFooterIconButton}
-        isOpen={isDiceRollerSettingsOpen}
-        ariaLabel="Open dice roller settings"
-        onOpenChange={onDiceRollerSettingsOpenChange}
-      />
-    </div>
+    </ActionFooterButtonRow>
   );
 }
 

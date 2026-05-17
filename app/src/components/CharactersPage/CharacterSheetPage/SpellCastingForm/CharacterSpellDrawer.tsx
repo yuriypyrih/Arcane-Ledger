@@ -62,6 +62,7 @@ import { FeatureTrackingBadgeButton } from "../../../FeatureDisclosure";
 import RadioContainerOption from "../RadioContainerOption";
 import FeatureActionFacts from "../GameplayForm/widgets/ActionsWidget/FeatureActionFacts";
 import FeatureActionHeaderTags from "../GameplayForm/widgets/ActionsWidget/FeatureActionHeaderTags";
+import ActionFooterButtonRow from "../GameplayForm/widgets/ActionsWidget/ActionFooterButtonRow";
 import DiceRollerSettingsButton from "../GameplayForm/widgets/DiceRollerSettingsButton";
 import { runWithActionConfirmationToast } from "../actionConfirmationToast";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
@@ -917,11 +918,22 @@ function CharacterSpellDrawer({
                     </div>
                   </div>
                 ) : null}
-                <div
+                <ActionFooterButtonRow
                   className={clsx(
                     actionStyles.castActionBottomRow,
                     shouldStackFooterActions ? actionStyles.castActionBottomRowStacked : null
                   )}
+                  endGroupClassName={actionStyles.castActionEndGroup}
+                  settings={
+                    showActionDiceControls ? (
+                      <DiceRollerSettingsButton
+                        actionName={spell.name}
+                        className={actionStyles.castActionSettingsButton}
+                        isOpen={isDiceRollerSettingsOpen}
+                        onOpenChange={onDiceRollerSettingsOpenChange}
+                      />
+                    ) : null
+                  }
                 >
                   {shouldShowSlotControls ? (
                     <div className={actionStyles.compactSlotSelectField}>
@@ -993,15 +1005,7 @@ function CharacterSpellDrawer({
                       {path.actionLabel ?? actionLabel}
                     </ActionButton>
                   ))}
-                  {showActionDiceControls ? (
-                    <DiceRollerSettingsButton
-                      actionName={spell.name}
-                      className={actionStyles.castActionSettingsButton}
-                      isOpen={isDiceRollerSettingsOpen}
-                      onOpenChange={onDiceRollerSettingsOpenChange}
-                    />
-                  ) : null}
-                </div>
+                </ActionFooterButtonRow>
               </div>
             </div>
           ) : null}

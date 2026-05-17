@@ -8,6 +8,7 @@ import type { AbilityKey } from "../../../../../../types";
 import sheetStyles from "../../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import actionStyles from "./ActionsWidget.module.css";
 import DiceRollerSettingsButton from "../DiceRollerSettingsButton";
+import ActionFooterButtonRow from "./ActionFooterButtonRow";
 import styles from "./IndomitableAction.module.css";
 
 export type IndomitableOption = {
@@ -90,7 +91,17 @@ export function IndomitableActionFooter({
   onDiceRollerSettingsOpenChange
 }: IndomitableActionFooterProps) {
   return (
-    <div className={actionStyles.weaponFooterActions}>
+    <ActionFooterButtonRow
+      settings={
+        <DiceRollerSettingsButton
+          actionName={actionName}
+          className={actionStyles.weaponFooterIconButton}
+          isOpen={isDiceRollerSettingsOpen}
+          ariaLabel="Open dice roller settings"
+          onOpenChange={onDiceRollerSettingsOpenChange}
+        />
+      }
+    >
       <ActionButton
         className={actionStyles.weaponFooterButton}
         onClick={onConfirm}
@@ -109,13 +120,6 @@ export function IndomitableActionFooter({
       >
         {confirmLabel}
       </ActionButton>
-      <DiceRollerSettingsButton
-        actionName={actionName}
-        className={actionStyles.weaponFooterIconButton}
-        isOpen={isDiceRollerSettingsOpen}
-        ariaLabel="Open dice roller settings"
-        onOpenChange={onDiceRollerSettingsOpenChange}
-      />
-    </div>
+    </ActionFooterButtonRow>
   );
 }

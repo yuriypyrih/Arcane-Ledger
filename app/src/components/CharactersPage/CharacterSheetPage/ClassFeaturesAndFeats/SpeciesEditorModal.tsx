@@ -128,7 +128,6 @@ function SpeciesEditorModal({ character, onCancel, onSave }: SpeciesEditorModalP
       titleId="character-species-editor-title"
       onClose={onCancel}
       size="small"
-      panelClassName={styles.modalPanel}
     >
       <OverlayHeader>
         <OverlayHeaderContent>

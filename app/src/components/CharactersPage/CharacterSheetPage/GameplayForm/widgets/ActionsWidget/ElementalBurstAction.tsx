@@ -3,6 +3,7 @@ import ActionShape, { type ActionShapeType } from "../../../../../ActionShape";
 import d20Icon from "../../../../../../assets/svg/d20.svg";
 import styles from "./ActionsWidget.module.css";
 import DiceRollerSettingsButton from "../DiceRollerSettingsButton";
+import ActionFooterButtonRow from "./ActionFooterButtonRow";
 
 type ElementalBurstActionFooterProps = {
   actionName: string;
@@ -28,7 +29,17 @@ export function ElementalBurstActionFooter({
   onDiceRollerSettingsOpenChange
 }: ElementalBurstActionFooterProps) {
   return (
-    <div className={styles.weaponFooterActions}>
+    <ActionFooterButtonRow
+      settings={
+        <DiceRollerSettingsButton
+          actionName={actionName}
+          className={styles.weaponFooterIconButton}
+          isOpen={isDiceRollerSettingsOpen}
+          ariaLabel="Open dice roller settings"
+          onOpenChange={onDiceRollerSettingsOpenChange}
+        />
+      }
+    >
       <ActionButton
         className={styles.weaponFooterButton}
         onClick={onConfirm}
@@ -47,13 +58,6 @@ export function ElementalBurstActionFooter({
       >
         {confirmLabel}
       </ActionButton>
-      <DiceRollerSettingsButton
-        actionName={actionName}
-        className={styles.weaponFooterIconButton}
-        isOpen={isDiceRollerSettingsOpen}
-        aria-label="Open dice roller settings"
-        onOpenChange={onDiceRollerSettingsOpenChange}
-      />
-    </div>
+    </ActionFooterButtonRow>
   );
 }

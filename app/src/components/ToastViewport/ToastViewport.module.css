@@ -3,6 +3,7 @@
   display: flex;
   gap: 0.5rem;
   width: min(30rem, calc(100vw - 3rem));
+  max-width: calc(100vw - 3rem);
   pointer-events: none;
   z-index: 1400;
 }
@@ -211,29 +212,30 @@
 @media (max-width: 599px) {
   .viewport {
     gap: 0.5rem;
-    width: calc(100vw - 1rem);
+    width: min(30rem, calc(100vw - 2rem));
+    max-width: calc(100vw - 2rem);
   }
 
   .topLeft,
   .topMiddle,
   .topRight {
-    top: 0.5rem;
+    top: 1rem;
   }
 
   .topLeft,
   .bottomLeft {
-    left: 0.5rem;
+    left: 1rem;
   }
 
   .topRight,
   .bottomRight {
-    right: 0.5rem;
+    right: 1rem;
   }
 
   .bottomLeft,
   .bottomMiddle,
   .bottomRight {
-    bottom: 0.5rem;
+    bottom: 1rem;
   }
 
   .toast {

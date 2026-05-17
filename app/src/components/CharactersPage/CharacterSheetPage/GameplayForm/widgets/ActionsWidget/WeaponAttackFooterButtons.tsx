@@ -4,6 +4,7 @@ import d20Icon from "../../../../../../assets/svg/d20.svg";
 import { getActionShapeForEconomyType } from "../../gameplayWidgetUtils";
 import type { WeaponAttackPathState } from "./weaponActionEconomy";
 import DiceRollerSettingsButton from "../DiceRollerSettingsButton";
+import ActionFooterButtonRow from "./ActionFooterButtonRow";
 import styles from "./ActionsWidget.module.css";
 
 type WeaponAttackFooterButtonsProps = {
@@ -27,7 +28,17 @@ function WeaponAttackFooterButtons({
   onDiceRollerSettingsOpenChange
 }: WeaponAttackFooterButtonsProps) {
   return (
-    <div className={styles.weaponFooterActions}>
+    <ActionFooterButtonRow
+      settings={
+        <DiceRollerSettingsButton
+          actionName={actionName}
+          className={styles.weaponFooterIconButton}
+          isOpen={isDiceRollerSettingsOpen}
+          ariaLabel="Open dice roller settings"
+          onOpenChange={onDiceRollerSettingsOpenChange}
+        />
+      }
+    >
       {attackPaths.map(({ pathState, disabledReason }) => {
         const actionShape = getActionShapeForEconomyType(pathState.economyType);
 
@@ -71,14 +82,7 @@ function WeaponAttackFooterButtons({
       >
         Damage
       </ActionButton>
-      <DiceRollerSettingsButton
-        actionName={actionName}
-        className={styles.weaponFooterIconButton}
-        isOpen={isDiceRollerSettingsOpen}
-        aria-label="Open dice roller settings"
-        onOpenChange={onDiceRollerSettingsOpenChange}
-      />
-    </div>
+    </ActionFooterButtonRow>
   );
 }
 

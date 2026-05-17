@@ -2,6 +2,7 @@ import clsx from "clsx";
 import ActionButton from "../../../../../ActionButton";
 import d20Icon from "../../../../../../assets/svg/d20.svg";
 import DiceRollerSettingsButton from "../DiceRollerSettingsButton";
+import ActionFooterButtonRow from "./ActionFooterButtonRow";
 import actionStyles from "./ActionsWidget.module.css";
 import styles from "./SpellfireBurstAction.module.css";
 
@@ -58,7 +59,17 @@ export function SpellfireBurstActionFooter({
   onDiceRollerSettingsOpenChange
 }: SpellfireBurstActionFooterProps) {
   return (
-    <div className={actionStyles.weaponFooterActions}>
+    <ActionFooterButtonRow
+      settings={
+        <DiceRollerSettingsButton
+          actionName={actionName}
+          className={actionStyles.weaponFooterIconButton}
+          isOpen={isDiceRollerSettingsOpen}
+          ariaLabel="Open dice roller settings"
+          onOpenChange={onDiceRollerSettingsOpenChange}
+        />
+      }
+    >
       <ActionButton
         className={actionStyles.weaponFooterButton}
         onClick={() => onUseEffect("bolstering-flames")}
@@ -75,13 +86,6 @@ export function SpellfireBurstActionFooter({
       >
         Use Radiant Fire
       </ActionButton>
-      <DiceRollerSettingsButton
-        actionName={actionName}
-        className={actionStyles.weaponFooterIconButton}
-        isOpen={isDiceRollerSettingsOpen}
-        ariaLabel="Open dice roller settings"
-        onOpenChange={onDiceRollerSettingsOpenChange}
-      />
-    </div>
+    </ActionFooterButtonRow>
   );
 }

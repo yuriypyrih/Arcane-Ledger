@@ -3,6 +3,14 @@
   transition: box-shadow 140ms ease;
 }
 
+.button.iconButton {
+  flex-basis: 44px;
+  height: 44px;
+  min-height: 44px;
+  min-width: 44px;
+  width: 44px;
+}
+
 .overrideAdvantage::after,
 .overrideDisadvantage::after,
 .overrideNormal::after,

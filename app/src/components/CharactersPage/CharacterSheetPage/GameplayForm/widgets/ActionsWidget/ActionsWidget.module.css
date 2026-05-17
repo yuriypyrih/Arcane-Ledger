@@ -82,6 +82,14 @@
   width: 100%;
 }
 
+.footerActionEndGroup {
+  display: flex;
+  align-items: stretch;
+  flex: 1 1 calc(160px + 44px + 0.6rem);
+  gap: 0.6rem;
+  min-width: min(100%, calc(160px + 44px + 0.6rem));
+}
+
 .footerActionStack {
   display: grid;
   gap: 0.7rem;
@@ -166,8 +174,16 @@
 
 .weaponFooterIconButton {
   flex: 0 0 auto;
-  min-width: 48px;
+  min-width: 44px;
   padding: 0;
+}
+
+.footerActionEndGroup > .weaponFooterButton {
+  flex: 1 1 160px;
+}
+
+.footerActionEndGroup > .weaponFooterIconButton {
+  flex: 0 0 44px;
 }
 
 .weaponFooterIcon {
@@ -322,14 +338,7 @@
 
 @media (max-width: 599px) {
   .weaponFooterActions {
-    width: 100%;
-  }
-
-  .weaponFooterActions {
     flex-wrap: wrap;
-  }
-
-  .weaponFooterButton {
-    min-width: calc(50% - 0.3rem);
+    width: 100%;
   }
 }

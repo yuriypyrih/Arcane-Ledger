@@ -12,6 +12,7 @@ import {
 } from "../../../../../../pages/CharactersPage/shared/formulas";
 import actionStyles from "./ActionsWidget.module.css";
 import DiceRollerSettingsButton from "../DiceRollerSettingsButton";
+import ActionFooterButtonRow from "./ActionFooterButtonRow";
 import styles from "./FighterSecondWindAction.module.css";
 
 type FighterSecondWindActionBodyProps = {
@@ -100,7 +101,17 @@ export function FighterSecondWindActionFooter({
           usageKey="group-recovery"
         />
       ) : null}
-      <div className={actionStyles.weaponFooterActions}>
+      <ActionFooterButtonRow
+        settings={
+          <DiceRollerSettingsButton
+            actionName={actionName}
+            className={actionStyles.weaponFooterIconButton}
+            isOpen={isDiceRollerSettingsOpen}
+            ariaLabel="Open dice roller settings"
+            onOpenChange={onDiceRollerSettingsOpenChange}
+          />
+        }
+      >
         <ActionButton
           className={clsx(actionStyles.weaponFooterButton, styles.confirmButton)}
           onClick={onConfirm}
@@ -119,14 +130,7 @@ export function FighterSecondWindActionFooter({
         >
           {confirmLabel}
         </ActionButton>
-        <DiceRollerSettingsButton
-          actionName={actionName}
-          className={actionStyles.weaponFooterIconButton}
-          isOpen={isDiceRollerSettingsOpen}
-          ariaLabel="Open dice roller settings"
-          onOpenChange={onDiceRollerSettingsOpenChange}
-        />
-      </div>
+      </ActionFooterButtonRow>
     </div>
   );
 }
