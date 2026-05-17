@@ -76,14 +76,18 @@ function getBaseFeatureMetadata(
     )
     .sort((left, right) => right.level - left.level)[0];
 
+  if (!matchingRow) {
+    return null;
+  }
+
   const details =
-    matchingRow?.featureOverrides?.[feature] ??
+    matchingRow.featureOverrides?.[feature] ??
     classFeatureMapsByName[character.className]?.[feature];
 
   return details
     ? {
         description: cloneDescription(details.description),
-        level: matchingRow?.level ?? normalizedLevel,
+        level: matchingRow.level,
         name: formatClassFeatureName(feature)
       }
     : null;

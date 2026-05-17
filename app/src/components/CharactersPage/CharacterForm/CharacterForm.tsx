@@ -22,6 +22,7 @@ import {
 import { FEATS } from "../../../codex/entries";
 import { getClassStarterPack } from "../../../codex/classes/starterPack";
 import {
+  CUSTOM_ABILITY_SCORE_MAX,
   POINT_BUY_BUDGET,
   abilityKeys,
   alignmentOptions,
@@ -157,7 +158,7 @@ const randomizableClassOptions = classOptions.filter(
 
 function normalizeCustomAbilities(abilities: AbilityScores): AbilityScores {
   return abilityKeys.reduce((next, ability) => {
-    next[ability] = Math.max(1, Math.min(99, abilities[ability]));
+    next[ability] = Math.max(1, Math.min(CUSTOM_ABILITY_SCORE_MAX, abilities[ability]));
     return next;
   }, {} as AbilityScores);
 }
@@ -537,7 +538,7 @@ function createFallbackRecommendedAbilities(
 
   for (let index = 0; index < abilityIncreaseCount; index += 1) {
     const targetAbility = levelIncreaseOrder[index % levelIncreaseOrder.length];
-    abilities[targetAbility] = Math.min(99, abilities[targetAbility] + 1);
+    abilities[targetAbility] = Math.min(CUSTOM_ABILITY_SCORE_MAX, abilities[targetAbility] + 1);
   }
 
   return normalizeCustomAbilities(abilities);
@@ -1595,7 +1596,12 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   }
 
   function handleCustomAbilityChange(ability: AbilityKey, rawValue: string) {
-    const nextScore = clampNumber(rawValue, 1, 99, getValues(`abilities.${ability}`));
+    const nextScore = clampNumber(
+      rawValue,
+      1,
+      CUSTOM_ABILITY_SCORE_MAX,
+      getValues(`abilities.${ability}`)
+    );
     commitAbilities(
       {
         ...getValues("abilities"),

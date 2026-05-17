@@ -1,7 +1,12 @@
-import { type AbilityKey, type CharacterCustomTraitEffect } from "../../../../../../types";
+import {
+  type AbilityKey,
+  type CharacterCustomTraitEffect,
+  type CharacterStatusEntry
+} from "../../../../../../types";
 import { WEAPON_COMBAT_TYPE } from "../../../../../../codex/entries";
 import {
   defaultManualStatusDurationDraft,
+  getManualStatusDurationDraft,
   type ManualStatusDurationType
 } from "./manualStatusDuration";
 
@@ -72,6 +77,52 @@ export function createDefaultCustomTraitDraft(): CustomTraitDraft {
     durationType: defaultManualStatusDurationDraft.type,
     durationValue: defaultManualStatusDurationDraft.value,
     effects: [createCustomTraitEffectDraft()]
+  };
+}
+
+function createCustomTraitEffectDraftFromEntry(
+  effect: CharacterCustomTraitEffect
+): CustomTraitEffectDraft {
+  switch (effect.type) {
+    case "armorClass":
+    case "initiative":
+    case "passivePerception":
+      return {
+        id: createDraftId(),
+        target: effect.type,
+        value: String(effect.value)
+      };
+    case "abilityScore":
+    case "abilityModifier":
+    case "savingThrow":
+      return {
+        id: createDraftId(),
+        target: `${effect.type}:${effect.ability}`,
+        value: String(effect.value)
+      };
+    case "weaponDamage":
+      return {
+        id: createDraftId(),
+        target: `${effect.type}:${effect.attackKind}`,
+        value: String(effect.value)
+      };
+    default:
+      return createCustomTraitEffectDraft();
+  }
+}
+
+export function createCustomTraitDraftFromStatusEntry(
+  entry: CharacterStatusEntry & { customEffects: CharacterCustomTraitEffect[] }
+): CustomTraitDraft {
+  const durationDraft = getManualStatusDurationDraft(entry.duration);
+  const effectDrafts = entry.customEffects.map(createCustomTraitEffectDraftFromEntry);
+
+  return {
+    name: String(entry.value).trim(),
+    description: entry.description ?? "",
+    durationType: durationDraft.type,
+    durationValue: durationDraft.value,
+    effects: effectDrafts.length > 0 ? effectDrafts : [createCustomTraitEffectDraft()]
   };
 }
 

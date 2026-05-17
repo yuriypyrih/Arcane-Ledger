@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Check, Clock3, Minus, Plus, Trash2, X } from "lucide-react";
+import { Check, Clock3, Minus, Plus, Trash2, X, type LucideIcon } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import ActionButton from "../../../../../ActionButton";
 import type { DivinityEntry, SpellEntry } from "../../../../../../codex/entries";
@@ -54,6 +54,8 @@ type StatusEntryDrawerProps = {
   onDurationTypeChange: (value: ManualStatusDurationType) => void;
   onDurationValueChange: (value: number) => void;
   onStartEditDuration: () => void;
+  editActionIcon?: LucideIcon;
+  editActionLabel?: string;
   onCancelEditDuration: () => void;
   onApplyDuration: () => void;
   onRemove: () => void;
@@ -64,7 +66,7 @@ type StatusEntryDrawerProps = {
 
 type FooterAction = {
   label: string;
-  icon: typeof Clock3;
+  icon: LucideIcon;
   tone?: "accent" | "danger" | "neutral";
   onClick: () => void;
 };
@@ -81,6 +83,8 @@ function StatusEntryDrawer({
   onDurationTypeChange,
   onDurationValueChange,
   onStartEditDuration,
+  editActionIcon = Clock3,
+  editActionLabel = "Edit Duration",
   onCancelEditDuration,
   onApplyDuration,
   onRemove,
@@ -137,8 +141,8 @@ function StatusEntryDrawer({
           ...(canEditDuration
             ? [
                 {
-                  label: "Edit Duration",
-                  icon: Clock3,
+                  label: editActionLabel,
+                  icon: editActionIcon,
                   onClick: onStartEditDuration
                 } satisfies FooterAction
               ]

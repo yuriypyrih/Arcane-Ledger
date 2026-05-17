@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Plus } from "lucide-react";
+import { Check, Plus } from "lucide-react";
 import ActionButton from "../../../../../ActionButton";
 import SelectInput from "../../../../FormInputs/SelectInput";
 import shared from "../../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
@@ -28,6 +28,7 @@ import {
 
 type TraitEditorModalProps = {
   mode: CustomTraitMode;
+  isEditingCustomTrait: boolean;
   activeTab: TraitEditorTab;
   values: Record<TraitEditorTab, string>;
   durationType: ManualStatusDurationType;
@@ -53,6 +54,7 @@ type TraitEditorModalProps = {
 
 function TraitEditorModal({
   mode,
+  isEditingCustomTrait,
   activeTab,
   values,
   durationType,
@@ -77,7 +79,7 @@ function TraitEditorModal({
 }: TraitEditorModalProps) {
   const isExhaustionSelection =
     activeTab === "conditions" && isExhaustionConditionOptionValue(values[activeTab]);
-  const isCustomTraitMode = mode === "custom-trait";
+  const isCustomTraitMode = isEditingCustomTrait || mode === "custom-trait";
   const activeTabLabel = traitEditorTabs.find((tab) => tab.id === activeTab)?.label ?? "Conditions";
 
   return (
@@ -90,16 +92,20 @@ function TraitEditorModal({
       <OverlayHeader className={styles.header}>
         <OverlayHeaderContent className={styles.headerContent}>
           <OverlayTitleRow className={styles.titleRow}>
-            <OverlayTitle id="trait-modal-title">Edit Traits &amp; Conditions</OverlayTitle>
-            <button
-              type="button"
-              className={clsx(styles.modePill, isCustomTraitMode && styles.modePillActive)}
-              aria-pressed={isCustomTraitMode}
-              onClick={() => onModeChange(isCustomTraitMode ? "quick-add" : "custom-trait")}
-            >
-              <Plus size={14} aria-hidden="true" />
-              <span>Custom Feature Trait</span>
-            </button>
+            <OverlayTitle id="trait-modal-title">
+              {isEditingCustomTrait ? "Edit Trait" : "Edit Traits & Conditions"}
+            </OverlayTitle>
+            {!isEditingCustomTrait ? (
+              <button
+                type="button"
+                className={clsx(styles.modePill, isCustomTraitMode && styles.modePillActive)}
+                aria-pressed={isCustomTraitMode}
+                onClick={() => onModeChange(isCustomTraitMode ? "quick-add" : "custom-trait")}
+              >
+                <Plus size={14} aria-hidden="true" />
+                <span>Custom Feature Trait</span>
+              </button>
+            ) : null}
           </OverlayTitleRow>
         </OverlayHeaderContent>
         <OverlayCloseButton label="Close traits and conditions editor" onClick={onClose} />
@@ -167,9 +173,15 @@ function TraitEditorModal({
           className={styles.createButton}
           onClick={onCreate}
           disabled={createDisabled}
-          icon={<Plus size={18} aria-hidden="true" />}
+          icon={
+            isEditingCustomTrait ? (
+              <Check size={18} aria-hidden="true" />
+            ) : (
+              <Plus size={18} aria-hidden="true" />
+            )
+          }
         >
-          Create
+          {isEditingCustomTrait ? "Save Trait" : "Create"}
         </ActionButton>
       </OverlayFooter>
     </SheetModal>

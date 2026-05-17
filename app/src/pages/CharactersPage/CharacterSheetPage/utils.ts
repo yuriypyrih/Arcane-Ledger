@@ -1,5 +1,5 @@
 import type { AbilityKey, AbilityScores } from "../../../types";
-import { abilityKeys, alignmentOptions } from "../constants";
+import { abilityKeys, alignmentOptions, CUSTOM_ABILITY_SCORE_MAX } from "../constants";
 import { clampNumber } from "../shared";
 
 export { alignmentOptions, clampNumber };
@@ -18,7 +18,7 @@ export function cloneAbilityScores(abilities: AbilityScores): AbilityScores {
 
 export function normalizeCustomAbilityScores(abilities: AbilityScores): AbilityScores {
   return abilityKeys.reduce((next, ability) => {
-    next[ability] = clampNumber(abilities[ability], 1, 99, 8);
+    next[ability] = clampNumber(abilities[ability], 1, CUSTOM_ABILITY_SCORE_MAX, 8);
     return next;
   }, {} as AbilityScores);
 }

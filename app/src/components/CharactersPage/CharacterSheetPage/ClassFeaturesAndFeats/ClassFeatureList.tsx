@@ -547,7 +547,6 @@ function ClassFeatureList({
               : [];
           const isSpellcastingFeatureInputRequired =
             isUnlocked &&
-            featureRow.level === 1 &&
             (featureRow.feature === CLASS_FEATURE.SPELLCASTING ||
               featureRow.feature === CLASS_FEATURE.PACT_MAGIC) &&
             spellSelectionInputStatus.hasInputRequired;

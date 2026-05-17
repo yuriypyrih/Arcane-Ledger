@@ -226,6 +226,7 @@ export function normalizeBardFeatureState(
   const hasBardicInspiration = hasBardFeature(character, CLASS_FEATURE.BARDIC_INSPIRATION);
   const hasLevel2Expertise = hasBardLevel2Expertise(character);
   const hasLevel9Expertise = hasBardLevel9Expertise(character);
+  const hasSuperiorInspirationState = hasSuperiorInspiration(character);
   const hasGlamourSubclassState =
     glamourSubclass.hasBardCollegeOfGlamourBeguilingMagicFeature(character) ||
     glamourSubclass.hasBardCollegeOfGlamourMantleOfMajestyFeature(character) ||
@@ -270,7 +271,7 @@ export function normalizeBardFeatureState(
         : 0
       : undefined,
     bardicInspirationTemporaryTotal:
-      hasBardicInspiration && Number.isFinite(temporaryTotal)
+      hasBardicInspiration && hasSuperiorInspirationState && Number.isFinite(temporaryTotal)
         ? Math.max(0, Math.floor(temporaryTotal))
         : undefined,
     ...danceSubclass.normalizeBardCollegeOfDanceFeatureState(record, character),

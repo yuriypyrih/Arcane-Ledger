@@ -31,6 +31,7 @@ export const alignmentGrid: Alignment[][] = [
 export const alignmentOptions = alignmentGrid.flat();
 
 export const POINT_BUY_BUDGET = 27;
+export const CUSTOM_ABILITY_SCORE_MAX = 30;
 
 export const CHARACTERS_STORAGE_KEY = "arcane-ledger.characters";
 

@@ -3,6 +3,7 @@ import type { PersistCharacterUpdater } from "../../../../../../pages/Characters
 import type {
   CharacterCustomTraitEffect,
   CharacterStatusDuration,
+  CharacterStatusEntry,
   CharacterStatusValue
 } from "../../../../../../types";
 import {
@@ -12,6 +13,7 @@ import {
 } from "../../../../../../types";
 import {
   createCharacterStatusEntry,
+  normalizeCharacterStatusEntries,
   resolveCharacterStatusEntries,
   upsertManualStatusEntry
 } from "../../../../../../pages/CharactersPage/statusEntries";
@@ -22,9 +24,11 @@ import {
 } from "../../../../../../pages/CharactersPage/traits";
 import {
   createCustomTraitEffectDraft,
+  createCustomTraitDraftFromStatusEntry,
   createDefaultCustomTraitDraft,
   isCustomTraitDraftValid,
   parseCustomTraitEffectDraft,
+  type CustomTraitDraft,
   type CustomTraitMode
 } from "./customTraitDraft";
 import {
@@ -56,6 +60,7 @@ export function useTraitEditorState({ onPersistCharacter }: UseTraitEditorStateO
     defaultManualStatusDurationDraft.value
   );
   const [customTraitDraft, setCustomTraitDraft] = useState(createDefaultCustomTraitDraft);
+  const [editingCustomTraitEntryId, setEditingCustomTraitEntryId] = useState<string | null>(null);
 
   function resetTraitEditorState() {
     setTraitEditorMode("quick-add");
@@ -64,6 +69,7 @@ export function useTraitEditorState({ onPersistCharacter }: UseTraitEditorStateO
     setStatusDraftDurationType(defaultManualStatusDurationDraft.type);
     setStatusDraftDurationValue(defaultManualStatusDurationDraft.value);
     setCustomTraitDraft(createDefaultCustomTraitDraft());
+    setEditingCustomTraitEntryId(null);
   }
 
   function closeTraitEditor() {
@@ -74,6 +80,50 @@ export function useTraitEditorState({ onPersistCharacter }: UseTraitEditorStateO
   function openTraitEditor() {
     resetTraitEditorState();
     setIsTraitModalOpen(true);
+  }
+
+  function openCustomTraitEditor(
+    entry: CharacterStatusEntry & { customEffects: CharacterCustomTraitEffect[] }
+  ) {
+    setTraitEditorMode("custom-trait");
+    setActiveTraitEditorTab("conditions");
+    setStatusDraftValues(createDefaultStatusDraftValues());
+    setStatusDraftDurationType(defaultManualStatusDurationDraft.type);
+    setStatusDraftDurationValue(defaultManualStatusDurationDraft.value);
+    setCustomTraitDraft(createCustomTraitDraftFromStatusEntry(entry));
+    setEditingCustomTraitEntryId(entry.id);
+    setIsTraitModalOpen(true);
+  }
+
+  function getCustomTraitSavePayload(draft: CustomTraitDraft): {
+    name: string;
+    description: string;
+    customEffects: CharacterCustomTraitEffect[];
+  } | null {
+    if (!isCustomTraitDraftValid(draft)) {
+      return null;
+    }
+
+    const sanitizedName = sanitizeUserInput(draft.name);
+    const sanitizedDescription = sanitizeUserInput(draft.description, {
+      multiline: true
+    });
+
+    if (!sanitizedName || !sanitizedDescription) {
+      return null;
+    }
+
+    const customEffects = draft.effects
+      .map((effect) => parseCustomTraitEffectDraft(effect))
+      .filter((effect): effect is CharacterCustomTraitEffect => effect !== null);
+
+    return customEffects.length > 0
+      ? {
+          name: sanitizedName,
+          description: sanitizedDescription,
+          customEffects
+        }
+      : null;
   }
 
   function addStatusEntry() {
@@ -111,24 +161,9 @@ export function useTraitEditorState({ onPersistCharacter }: UseTraitEditorStateO
   }
 
   function addCustomTraitEntry() {
-    if (!isCustomTraitDraftValid(customTraitDraft)) {
-      return;
-    }
+    const payload = getCustomTraitSavePayload(customTraitDraft);
 
-    const sanitizedName = sanitizeUserInput(customTraitDraft.name);
-    const sanitizedDescription = sanitizeUserInput(customTraitDraft.description, {
-      multiline: true
-    });
-
-    if (!sanitizedName || !sanitizedDescription) {
-      return;
-    }
-
-    const customEffects = customTraitDraft.effects
-      .map((effect) => parseCustomTraitEffectDraft(effect))
-      .filter((effect): effect is CharacterCustomTraitEffect => effect !== null);
-
-    if (customEffects.length === 0) {
+    if (!payload) {
       return;
     }
 
@@ -139,15 +174,15 @@ export function useTraitEditorState({ onPersistCharacter }: UseTraitEditorStateO
           ...resolveCharacterStatusEntries(currentCharacter.statusEntries),
           createCharacterStatusEntry({
             group: STATUS_ENTRY_GROUP.EFFECTS,
-            value: sanitizedName,
+            value: payload.name,
             source: "Manual",
             sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
             duration: createManualStatusDuration(
               customTraitDraft.durationType,
               customTraitDraft.durationValue
             ),
-            description: sanitizedDescription,
-            customEffects
+            description: payload.description,
+            customEffects: payload.customEffects
           })
         ]
       })
@@ -156,8 +191,47 @@ export function useTraitEditorState({ onPersistCharacter }: UseTraitEditorStateO
     closeTraitEditor();
   }
 
+  function updateCustomTraitEntry() {
+    const payload = getCustomTraitSavePayload(customTraitDraft);
+
+    if (!payload || !editingCustomTraitEntryId) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) =>
+      reconcileCharacterStatusConsequences({
+        ...currentCharacter,
+        statusEntries: normalizeCharacterStatusEntries(currentCharacter.statusEntries).map(
+          (entry) =>
+            entry.id === editingCustomTraitEntryId
+              ? {
+                  ...entry,
+                  group: STATUS_ENTRY_GROUP.EFFECTS,
+                  value: payload.name,
+                  source: "Manual",
+                  sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+                  duration: createManualStatusDuration(
+                    customTraitDraft.durationType,
+                    customTraitDraft.durationValue
+                  ),
+                  description: payload.description,
+                  customEffects: payload.customEffects
+                }
+              : entry
+        )
+      })
+    );
+
+    closeTraitEditor();
+  }
+
   function createTraitEntry() {
     if (traitEditorMode === "custom-trait") {
+      if (editingCustomTraitEntryId) {
+        updateCustomTraitEntry();
+        return;
+      }
+
       addCustomTraitEntry();
       return;
     }
@@ -173,10 +247,12 @@ export function useTraitEditorState({ onPersistCharacter }: UseTraitEditorStateO
   return {
     closeTraitEditor,
     isTraitModalOpen,
+    openCustomTraitEditor,
     openTraitEditor,
     resetTraitEditorState,
     traitEditorModalProps: {
       mode: traitEditorMode,
+      isEditingCustomTrait: editingCustomTraitEntryId !== null,
       activeTab: activeTraitEditorTab,
       values: statusDraftValues,
       durationType: statusDraftDurationType,

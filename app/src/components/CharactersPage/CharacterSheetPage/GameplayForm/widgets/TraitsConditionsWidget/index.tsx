@@ -5,7 +5,7 @@ import { useBodyScrollLock } from "../../../../../../lib/useBodyScrollLock";
 import { normalizeRoundTracker } from "../../../../../../pages/CharactersPage/combat";
 import { getCompanionIdFromStatusEntry } from "../../../../../../pages/CharactersPage/companions";
 import type { PersistCharacterUpdater } from "../../../../../../pages/CharactersPage/CharacterSheetPage/types";
-import type { Character } from "../../../../../../types";
+import type { Character, CharacterStatusEntry } from "../../../../../../types";
 import { useDiceRollerPopup } from "../../../../../DicePage/DiceRollerPopup";
 import CompanionDrawer from "../../../CompanionsSection/CompanionDrawer";
 import CharacterSpellDrawer from "../../../SpellCastingForm/CharacterSpellDrawer";
@@ -26,6 +26,10 @@ type TraitsConditionsWidgetProps = {
   onPersistCharacter: PersistCharacterUpdater;
 };
 
+type EditableCustomTraitEntry = CharacterStatusEntry & {
+  customEffects: NonNullable<CharacterStatusEntry["customEffects"]>;
+};
+
 function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditionsWidgetProps) {
   const [selectedStatusEntryId, setSelectedStatusEntryId] = useState<string | null>(null);
   const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
@@ -41,10 +45,15 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     character,
     selectedStatusEntryId
   });
-  const { closeTraitEditor, isTraitModalOpen, openTraitEditor, traitEditorModalProps } =
-    useTraitEditorState({
-      onPersistCharacter
-    });
+  const {
+    closeTraitEditor,
+    isTraitModalOpen,
+    openCustomTraitEditor,
+    openTraitEditor,
+    traitEditorModalProps
+  } = useTraitEditorState({
+    onPersistCharacter
+  });
   const statusDrawerState = useStatusDrawerState({
     onPersistCharacter,
     selectedStatusEntry,
@@ -68,6 +77,11 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     ? (character.companions.find((companion) => companion.id === selectedCompanionId) ?? null)
     : null;
   const hasOverlayOpen = isTraitModalOpen || selectedStatusEntryId !== null;
+
+  function editCustomTrait(entry: EditableCustomTraitEntry) {
+    setSelectedStatusEntryId(null);
+    openCustomTraitEditor(entry);
+  }
 
   useBodyScrollLock(hasOverlayOpen);
 
@@ -173,6 +187,7 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
       <SelectedStatusEntryDrawer
         character={character}
         onPersistCharacter={onPersistCharacter}
+        onEditCustomTrait={editCustomTrait}
         openDiceRoller={openDiceRoller}
         roundTracker={roundTracker}
         selectedReactionEntry={selectedReactionEntry}

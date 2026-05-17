@@ -36,6 +36,8 @@ type ProgressDraft = {
   xp: number;
 };
 
+const STANDARD_LEVEL_UP_CAP = 20;
+
 type LevelValidationResult =
   | {
       isValid: true;
@@ -127,6 +129,8 @@ function CharacterProgressModal({
   const isLevelDecreased = draft.level < character.level;
   const isXpMode = activeMode === "add-xp" || activeMode === "edit-xp";
   const isLevelMode = activeMode === "edit-level";
+  const canLevelUp = !isXpMode && draft.level < MAX_CHARACTER_LEVEL;
+  const isBeyondStandardLevelUpAvailable = draft.level >= STANDARD_LEVEL_UP_CAP;
   const saveDisabled = isLevelDecreased || activeMode !== "idle" || !hasChanges;
 
   let modeFieldLabel = "";
@@ -384,11 +388,21 @@ function CharacterProgressModal({
                   </>
                 ) : (
                   <>
+                    {isBeyondStandardLevelUpAvailable ? (
+                      <button
+                        type="button"
+                        className={clsx(shared.editButton, styles.actionButton)}
+                        onClick={levelUp}
+                        disabled={!canLevelUp}
+                      >
+                        Level up beyond 20
+                      </button>
+                    ) : null}
                     <button
                       type="button"
                       className={clsx(shared.editButton, styles.actionButton)}
                       onClick={levelUp}
-                      disabled={isXpMode || draft.level >= MAX_CHARACTER_LEVEL}
+                      disabled={isXpMode || draft.level >= STANDARD_LEVEL_UP_CAP}
                     >
                       Level Up
                     </button>

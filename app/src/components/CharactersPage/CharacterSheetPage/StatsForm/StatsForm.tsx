@@ -17,6 +17,7 @@ import {
 import { getKeywordDescription } from "../../../../pages/CharactersPage/keywordDescriptions";
 import {
   abilityKeys,
+  CUSTOM_ABILITY_SCORE_MAX,
   getAffordablePointBuyMax,
   getPointBuyRemaining,
   normalizePointBuyAbilities
@@ -669,7 +670,7 @@ function CharacterStatsForm({
     const nextValue = clampNumber(
       value,
       isPointBuy ? 8 : 1,
-      isPointBuy ? maxPointBuyScore : 99,
+      isPointBuy ? maxPointBuyScore : CUSTOM_ABILITY_SCORE_MAX,
       current.abilities[ability]
     );
     const nextAbilities = {

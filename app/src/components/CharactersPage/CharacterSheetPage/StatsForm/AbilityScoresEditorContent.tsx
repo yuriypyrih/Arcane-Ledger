@@ -2,7 +2,10 @@ import clsx from "clsx";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import NumberInput from "../../FormInputs/NumberInput";
-import { abilityKeys } from "../../../../pages/CharactersPage/constants";
+import {
+  abilityKeys,
+  CUSTOM_ABILITY_SCORE_MAX
+} from "../../../../pages/CharactersPage/constants";
 import type { AbilityKey, AbilityScores, AttributeMode } from "../../../../types";
 import styles from "./AbilityScoresModal.module.css";
 
@@ -42,7 +45,7 @@ function AbilityScoresEditorContent({
 
     return {
       min: 1,
-      max: 99
+      max: CUSTOM_ABILITY_SCORE_MAX
     };
   }
 

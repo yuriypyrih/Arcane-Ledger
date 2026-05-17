@@ -63,14 +63,14 @@ const classSignatureByClass: Record<string, ClassSignatureSpec> = {
   artificer: createClassSignature({
     getTexture: classPageTextureByClass.artificer,
     primary: "rgba(0, 112, 232, 0.42)",
-    secondary: "rgba(188, 128, 52, 0.26)",
+    secondary: "rgba(246, 194, 60, 0.28)",
     transparent: "rgba(0, 112, 232, 0)"
   }),
   barbarian: createClassSignature({
     getTexture: classPageTextureByClass.barbarian,
-    primary: "rgba(218, 24, 12, 0.46)",
-    secondary: "rgba(76, 12, 8, 0.32)",
-    transparent: "rgba(218, 24, 12, 0)"
+    primary: "rgba(194, 42, 18, 0.48)",
+    secondary: "rgba(158, 82, 42, 0.3)",
+    transparent: "rgba(194, 42, 18, 0)"
   }),
   bard: createClassSignature({
     getTexture: classPageTextureByClass.bard,
@@ -92,26 +92,26 @@ const classSignatureByClass: Record<string, ClassSignatureSpec> = {
   }),
   fighter: createClassSignature({
     getTexture: classPageTextureByClass.fighter,
-    primary: "rgba(194, 42, 18, 0.48)",
-    secondary: "rgba(158, 82, 42, 0.3)",
-    transparent: "rgba(194, 42, 18, 0)"
+    primary: "rgba(218, 24, 12, 0.46)",
+    secondary: "rgba(76, 12, 8, 0.32)",
+    transparent: "rgba(218, 24, 12, 0)"
   }),
   monk: createClassSignature({
     getTexture: classPageTextureByClass.monk,
     primary: "rgba(224, 154, 0, 0.48)",
-    secondary: "rgba(105, 76, 18, 0.3)",
+    secondary: "rgba(136, 88, 44, 0.3)",
     transparent: "rgba(224, 154, 0, 0)"
   }),
   paladin: createClassSignature({
     getTexture: classPageTextureByClass.paladin,
-    primary: "rgba(226, 176, 38, 0.46)",
-    secondary: "rgba(58, 70, 76, 0.26)",
-    transparent: "rgba(226, 176, 38, 0)"
+    primary: "rgba(255, 203, 48, 0.5)",
+    secondary: "rgba(174, 184, 190, 0.3)",
+    transparent: "rgba(255, 203, 48, 0)"
   }),
   ranger: createClassSignature({
     getTexture: classPageTextureByClass.ranger,
     primary: "rgba(52, 124, 48, 0.48)",
-    secondary: "rgba(154, 168, 86, 0.28)",
+    secondary: "rgba(128, 82, 42, 0.3)",
     transparent: "rgba(52, 124, 48, 0)"
   }),
   rogue: createClassSignature({
@@ -123,7 +123,7 @@ const classSignatureByClass: Record<string, ClassSignatureSpec> = {
   sorcerer: createClassSignature({
     getTexture: classPageTextureByClass.sorcerer,
     primary: "rgba(126, 54, 204, 0.46)",
-    secondary: "rgba(214, 120, 74, 0.24)",
+    secondary: "rgba(214, 42, 174, 0.28)",
     transparent: "rgba(126, 54, 204, 0)"
   }),
   warlock: createClassSignature({

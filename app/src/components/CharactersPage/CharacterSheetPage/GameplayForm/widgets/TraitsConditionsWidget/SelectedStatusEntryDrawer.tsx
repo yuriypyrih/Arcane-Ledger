@@ -1,3 +1,4 @@
+import { Pencil } from "lucide-react";
 import ActionButton from "../../../../../ActionButton";
 import CellContainer from "../../../../../CellContainer/CellContainer";
 import type { DAMAGE_TYPE, ReactionEntry, SpellEntry } from "../../../../../../codex/entries";
@@ -61,12 +62,17 @@ import StatusEntryDrawer from "./StatusEntryDrawer";
 import styles from "./TraitsConditionsWidget.module.css";
 import type { ManualStatusDurationType } from "./manualStatusDuration";
 
+type EditableCustomTraitEntry = CharacterStatusEntry & {
+  customEffects: NonNullable<CharacterStatusEntry["customEffects"]>;
+};
+
 type SelectedStatusEntryDrawerProps = {
   applyStatusEntryDuration: () => void;
   cancelStatusDurationEdit: () => void;
   character: Character;
   isEditingStatusDuration: boolean;
   onPersistCharacter: PersistCharacterUpdater;
+  onEditCustomTrait: (entry: EditableCustomTraitEntry) => void;
   openDiceRoller: (request: DiceRollerRequest) => void;
   removeStatusEntry: (entry: CharacterStatusEntry) => void;
   roundTracker: ReturnType<typeof normalizeRoundTracker>;
@@ -141,6 +147,7 @@ function SelectedStatusEntryDrawer({
   character,
   isEditingStatusDuration,
   onPersistCharacter,
+  onEditCustomTrait,
   openDiceRoller,
   removeStatusEntry,
   roundTracker,
@@ -190,6 +197,7 @@ function SelectedStatusEntryDrawer({
       : null;
   const selectedAasimarCelestialRevelationFormula =
     getAasimarCelestialRevelationStatusFormula(character, selectedStatusEntry);
+  const isSelectedCustomFeatureTrait = isCustomFeatureTraitStatusEntry(selectedStatusEntry);
 
   function endSelectedWildShape() {
     removeStatusEntry(selectedStatusEntry!);
@@ -357,7 +365,16 @@ function SelectedStatusEntryDrawer({
       durationValue={statusDrawerDurationValue}
       onDurationTypeChange={setStatusDrawerDurationType}
       onDurationValueChange={setStatusDrawerDurationValue}
-      onStartEditDuration={() => setIsEditingStatusDuration(true)}
+      onStartEditDuration={() => {
+        if (isCustomFeatureTraitStatusEntry(selectedStatusEntry)) {
+          onEditCustomTrait(selectedStatusEntry);
+          return;
+        }
+
+        setIsEditingStatusDuration(true);
+      }}
+      editActionIcon={isSelectedCustomFeatureTrait ? Pencil : undefined}
+      editActionLabel={isSelectedCustomFeatureTrait ? "Edit Trait" : undefined}
       onCancelEditDuration={cancelStatusDurationEdit}
       onApplyDuration={applyStatusEntryDuration}
       onRemove={() => removeStatusEntry(selectedStatusEntry)}
