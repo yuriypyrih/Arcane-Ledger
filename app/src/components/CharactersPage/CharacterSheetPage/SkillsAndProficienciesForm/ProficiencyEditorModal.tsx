@@ -576,22 +576,24 @@ function ProficiencyEditorModal({
       </OverlayHeader>
 
       <OverlayBody className={styles.body}>
-        <div className={styles.tabRow} role="tablist" aria-label="Proficiency categories">
-          {proficiencyEditorTabs.map((tab) => (
-            <button
-              key={tab.id}
-              id={`character-proficiency-tab-${tab.id}`}
-              type="button"
-              role="tab"
-              aria-selected={activeTab === tab.id}
-              aria-controls={`character-proficiency-tab-panel-${tab.id}`}
-              tabIndex={activeTab === tab.id ? 0 : -1}
-              className={clsx(styles.tabButton, activeTab === tab.id && styles.tabButtonActive)}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              {tab.label}
-            </button>
-          ))}
+        <div className={styles.tabScroller}>
+          <div className={styles.tabRow} role="tablist" aria-label="Proficiency categories">
+            {proficiencyEditorTabs.map((tab) => (
+              <button
+                key={tab.id}
+                id={`character-proficiency-tab-${tab.id}`}
+                type="button"
+                role="tab"
+                aria-selected={activeTab === tab.id}
+                aria-controls={`character-proficiency-tab-panel-${tab.id}`}
+                tabIndex={activeTab === tab.id ? 0 : -1}
+                className={clsx(styles.tabButton, activeTab === tab.id && styles.tabButtonActive)}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div

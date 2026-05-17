@@ -76,18 +76,17 @@
 }
 
 .featTabRow {
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  justify-content: space-around;
   gap: 0.2rem;
   min-height: 36px;
   min-width: max-content;
-  width: max-content;
+  width: 100%;
 }
 
 .featTabButton {
-  flex: 0 0 8.75rem;
-  min-width: 8.75rem;
-  width: 8.75rem;
+  flex: 0 0 auto;
 }
 
 .optionScrollArea {

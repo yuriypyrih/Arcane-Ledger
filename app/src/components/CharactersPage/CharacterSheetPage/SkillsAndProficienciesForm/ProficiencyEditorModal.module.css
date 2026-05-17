@@ -11,16 +11,34 @@
   padding: 0 var(--overlay-panel-inline-padding);
 }
 
-.tabRow {
-  display: inline-grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 0.2rem;
+.tabScroller {
+  align-self: start;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-height: calc(36px + 0.48rem);
+  min-width: 0;
   border-radius: var(--radius-pill);
   background: rgba(75, 47, 29, 0.08);
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
   padding: 0.24rem;
+  scrollbar-width: thin;
+}
+
+.tabRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 0.2rem;
+  min-height: 36px;
+  min-width: max-content;
+  width: 100%;
 }
 
 .tabButton {
+  flex: 0 0 auto;
   border: none;
   border-radius: var(--radius-pill);
   background: transparent;
@@ -179,24 +197,6 @@
 .addLanguageButton:disabled {
   cursor: not-allowed;
   opacity: 0.56;
-}
-
-@media (max-width: 899px) {
-  .tabRow {
-    display: grid;
-    grid-auto-columns: 8.75rem;
-    grid-auto-flow: column;
-    grid-template-columns: none;
-    justify-content: start;
-    max-width: 100%;
-    overflow-x: auto;
-    overscroll-behavior-inline: contain;
-    scrollbar-width: thin;
-  }
-
-  .tabButton {
-    width: 100%;
-  }
 }
 
 @media (max-width: 599px) {
