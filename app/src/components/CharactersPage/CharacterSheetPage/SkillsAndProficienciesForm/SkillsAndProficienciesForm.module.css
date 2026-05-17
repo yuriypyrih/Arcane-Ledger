@@ -43,6 +43,7 @@
 }
 
 .skillColumns {
+  contain: layout style;
   display: grid;
   gap: 0.6rem;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -183,6 +184,7 @@
 }
 
 .proficiencyPillGrid {
+  contain: layout style;
   display: grid;
   gap: 0.35rem;
   grid-template-columns: repeat(5, minmax(0, 1fr));

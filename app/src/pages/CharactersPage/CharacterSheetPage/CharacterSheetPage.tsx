@@ -4,6 +4,7 @@ import { ThumbDiceButton } from "../../../components/CharactersPage/CharacterShe
 import { getClassSignatureStyle } from "../../../components/CharactersPage/classSignature";
 import type { AppShellOutletContext } from "../../../components/AppShell/outletContext";
 import { hasSpellcastingForCharacter } from "../spellcastingAvailability";
+import { CharacterSheetSectionProfiler } from "./CharacterSheetSectionProfiler";
 import styles from "./CharacterSheetPage.module.css";
 import { useCharacterSheetPersistence } from "./useCharacterSheetPersistence";
 import {
@@ -50,39 +51,55 @@ function CharacterSheetPage() {
   return (
     <section className={pageClassName} style={getClassSignatureStyle(character.className)}>
       <div className={cascadeStackClassName}>
-        <CharacterProfileSection
-          className={styles.cascadeOne}
-          broadLayout={isBroadLayoutActive}
-          onPersistCharacter={persistCharacter}
-        />
-        <div className={styles.cascadeMainColumn}>
-          <GameplaySection
-            className={styles.cascadeTwo}
-            onPersistCharacter={persistCharacter}
-            onQueueHitPointCharacter={queueHitPointCharacterSave}
-          />
-          <SkillsSection className={styles.cascadeFive} onPersistCharacter={persistCharacter} />
-          <CompanionsSheetSection
-            className={styles.cascadeSix}
-            onPersistCharacter={persistCharacter}
-          />
-          <EquipmentSheetSection
-            className={styles.cascadeSeven}
-            onPersistCharacter={persistCharacter}
-          />
-          <FeaturesSection className={styles.cascadeFour} onPersistCharacter={persistCharacter} />
-        </div>
-        <div className={styles.cascadeSideColumn}>
-          <StatsSection
+        <CharacterSheetSectionProfiler id="character-profile">
+          <CharacterProfileSection
+            className={styles.cascadeOne}
             broadLayout={isBroadLayoutActive}
-            className={styles.cascadeThree}
             onPersistCharacter={persistCharacter}
           />
-          {hasSpellcastingSection ? (
-            <SpellcastingSection
-              className={styles.cascadeEight}
+        </CharacterSheetSectionProfiler>
+        <div className={styles.cascadeMainColumn}>
+          <CharacterSheetSectionProfiler id="gameplay">
+            <GameplaySection
+              className={styles.cascadeTwo}
+              onPersistCharacter={persistCharacter}
+              onQueueHitPointCharacter={queueHitPointCharacterSave}
+            />
+          </CharacterSheetSectionProfiler>
+          <CharacterSheetSectionProfiler id="skills-proficiencies">
+            <SkillsSection className={styles.cascadeFive} onPersistCharacter={persistCharacter} />
+          </CharacterSheetSectionProfiler>
+          <CharacterSheetSectionProfiler id="companions">
+            <CompanionsSheetSection
+              className={styles.cascadeSix}
               onPersistCharacter={persistCharacter}
             />
+          </CharacterSheetSectionProfiler>
+          <CharacterSheetSectionProfiler id="equipment">
+            <EquipmentSheetSection
+              className={styles.cascadeSeven}
+              onPersistCharacter={persistCharacter}
+            />
+          </CharacterSheetSectionProfiler>
+          <CharacterSheetSectionProfiler id="class-features-feats">
+            <FeaturesSection className={styles.cascadeFour} onPersistCharacter={persistCharacter} />
+          </CharacterSheetSectionProfiler>
+        </div>
+        <div className={styles.cascadeSideColumn}>
+          <CharacterSheetSectionProfiler id="character-stats">
+            <StatsSection
+              broadLayout={isBroadLayoutActive}
+              className={styles.cascadeThree}
+              onPersistCharacter={persistCharacter}
+            />
+          </CharacterSheetSectionProfiler>
+          {hasSpellcastingSection ? (
+            <CharacterSheetSectionProfiler id="spellcasting">
+              <SpellcastingSection
+                className={styles.cascadeEight}
+                onPersistCharacter={persistCharacter}
+              />
+            </CharacterSheetSectionProfiler>
           ) : null}
         </div>
       </div>

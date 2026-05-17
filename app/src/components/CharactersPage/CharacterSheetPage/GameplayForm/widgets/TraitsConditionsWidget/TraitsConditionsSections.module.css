@@ -1,16 +1,13 @@
 .sectionStack {
+  contain: layout style;
   min-width: 0;
 }
 
 .layout {
-  display: none;
+  display: grid;
   align-items: start;
   gap: 0.55rem;
   grid-template-columns: repeat(var(--status-rendered-column-count, 1), minmax(0, 1fr));
-}
-
-.layoutXl {
-  display: grid;
 }
 
 .column {
@@ -35,6 +32,7 @@
 }
 
 .list {
+  contain: layout style;
   display: grid;
   gap: 0.44rem;
   grid-template-columns: 1fr;
@@ -130,54 +128,4 @@
   align-items: center;
   justify-content: center;
   min-width: 1rem;
-}
-
-@media (max-width: 1199px) {
-  .layoutXl {
-    display: none;
-  }
-
-  .layoutLg {
-    display: grid;
-  }
-}
-
-@media (max-width: 899px) {
-  .layoutLg {
-    display: none;
-  }
-
-  .layoutMd {
-    display: grid;
-  }
-}
-
-@media (max-width: 699px) {
-  .layoutMd {
-    display: none;
-  }
-
-  .layoutSm {
-    display: grid;
-  }
-}
-
-@media (max-width: 599px) {
-  .layoutSm {
-    display: none;
-  }
-
-  .layoutXs {
-    display: grid;
-  }
-}
-
-@media (min-width: 1200px) and (max-width: 1535px) {
-  :global(html.broad-layout-lg-compact) .layoutXl {
-    display: none;
-  }
-
-  :global(html.broad-layout-lg-compact) .layoutMd {
-    display: grid;
-  }
 }

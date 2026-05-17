@@ -1,28 +1,5 @@
 import { useEffect, useRef } from "react";
-
-const renderProfilerStorageKey = "arcane-ledger:render-profiler";
-const renderProfilerSearchParam = "renderProfiler";
-
-type RenderProfilerDetails = Record<string, unknown>;
-
-function roundTiming(value: number): number {
-  return Math.round(value * 10) / 10;
-}
-
-function isRenderProfilerEnabled(): boolean {
-  if (!import.meta.env.DEV || typeof window === "undefined") {
-    return false;
-  }
-
-  try {
-    return (
-      window.localStorage.getItem(renderProfilerStorageKey) === "1" ||
-      new URLSearchParams(window.location.search).has(renderProfilerSearchParam)
-    );
-  } catch {
-    return false;
-  }
-}
+import { isRenderProfilerEnabled, roundTiming, type RenderProfilerDetails } from "./renderProfiler";
 
 export function useRenderProfiler(label: string, details?: RenderProfilerDetails): void {
   const renderCountRef = useRef(0);

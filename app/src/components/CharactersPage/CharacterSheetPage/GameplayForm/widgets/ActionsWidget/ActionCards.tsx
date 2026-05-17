@@ -339,7 +339,6 @@ export function FeatureActionOptionButton({
         economyShapeState.multiCount > 0 && styles.actionCardMulti,
         modalStyles.featureActionOptionButton
       )}
-      backgroundTexture={<ActionCardThemeTexture theme={cardTheme} />}
       actionBadge={
         actionShape ? (
           <ActionShape
@@ -379,7 +378,6 @@ export function FeatureActionChoiceRow({
       name={groupName}
       disabled={isDisabled}
       className={clsx(getActionCardThemeClassNames(cardTheme))}
-      backgroundTexture={<ActionCardThemeTexture theme={cardTheme} />}
       aside={
         option.trackingState ? (
           <FeatureTrackingBadgeButton trackingState={option.trackingState} />

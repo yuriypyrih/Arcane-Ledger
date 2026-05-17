@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { ChevronsUp } from "lucide-react";
-import type { CSSProperties } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import ActionShape from "../../../../../ActionShape";
 import ConcentrationLabel from "../../../../../ConcentrationLabel";
 import {
@@ -85,38 +85,89 @@ function getTraitPillDurationLabel(durationLabel: string): string {
     : durationLabel;
 }
 
+function getResponsiveStatusColumnCap() {
+  if (typeof window === "undefined") {
+    return 5;
+  }
+
+  const viewportWidth = window.innerWidth;
+
+  if (viewportWidth <= 599) {
+    return 2;
+  }
+
+  if (viewportWidth <= 699) {
+    return 3;
+  }
+
+  if (viewportWidth <= 899) {
+    return 4;
+  }
+
+  if (
+    viewportWidth >= 1200 &&
+    viewportWidth <= 1535 &&
+    document.documentElement.classList.contains("broad-layout-lg-compact")
+  ) {
+    return 4;
+  }
+
+  return 5;
+}
+
+function useResponsiveStatusColumnCap() {
+  const [columnCap, setColumnCap] = useState(getResponsiveStatusColumnCap);
+
+  useEffect(() => {
+    let animationFrameId: number | null = null;
+
+    function queueColumnCapUpdate() {
+      if (animationFrameId !== null) {
+        window.cancelAnimationFrame(animationFrameId);
+      }
+
+      animationFrameId = window.requestAnimationFrame(() => {
+        animationFrameId = null;
+        setColumnCap((currentColumnCap) => {
+          const nextColumnCap = getResponsiveStatusColumnCap();
+
+          return currentColumnCap === nextColumnCap ? currentColumnCap : nextColumnCap;
+        });
+      });
+    }
+
+    const htmlClassObserver = new MutationObserver(queueColumnCapUpdate);
+
+    window.addEventListener("resize", queueColumnCapUpdate);
+    htmlClassObserver.observe(document.documentElement, {
+      attributeFilter: ["class"],
+      attributes: true
+    });
+    queueColumnCapUpdate();
+
+    return () => {
+      window.removeEventListener("resize", queueColumnCapUpdate);
+      htmlClassObserver.disconnect();
+
+      if (animationFrameId !== null) {
+        window.cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, []);
+
+  return columnCap;
+}
+
 function TraitsConditionsSections({
   sections,
   reactionAvailable,
   onSelectEntry
 }: TraitsConditionsSectionsProps) {
-  const sectionLayouts = [
-    {
-      key: "xl",
-      className: styles.layoutXl,
-      columns: splitStatusSectionsIntoColumns(sections, 5)
-    },
-    {
-      key: "lg",
-      className: styles.layoutLg,
-      columns: splitStatusSectionsIntoColumns(sections, 5)
-    },
-    {
-      key: "md",
-      className: styles.layoutMd,
-      columns: splitStatusSectionsIntoColumns(sections, 4)
-    },
-    {
-      key: "sm",
-      className: styles.layoutSm,
-      columns: splitStatusSectionsIntoColumns(sections, 3)
-    },
-    {
-      key: "xs",
-      className: styles.layoutXs,
-      columns: splitStatusSectionsIntoColumns(sections, 2)
-    }
-  ];
+  const columnCap = useResponsiveStatusColumnCap();
+  const columns = useMemo(
+    () => splitStatusSectionsIntoColumns(sections, columnCap),
+    [columnCap, sections]
+  );
 
   function renderSection(section: StatusSection) {
     return (
@@ -208,19 +259,16 @@ function TraitsConditionsSections({
 
   return (
     <div className={styles.sectionStack}>
-      {sectionLayouts.map((layout) => (
-        <div
-          key={layout.key}
-          className={clsx(styles.layout, layout.className)}
-          style={{ "--status-rendered-column-count": layout.columns.length } as StatusLayoutStyle}
-        >
-          {layout.columns.map((column, columnIndex) => (
-            <div key={`${layout.key}-${columnIndex}`} className={styles.column}>
-              {column.map(renderSection)}
-            </div>
-          ))}
-        </div>
-      ))}
+      <div
+        className={styles.layout}
+        style={{ "--status-rendered-column-count": columns.length } as StatusLayoutStyle}
+      >
+        {columns.map((column, columnIndex) => (
+          <div key={columnIndex} className={styles.column}>
+            {column.map(renderSection)}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

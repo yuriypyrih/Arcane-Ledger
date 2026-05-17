@@ -4,6 +4,7 @@
 }
 
 .spellSlotGrid {
+  contain: layout style;
   display: grid;
   gap: clamp(0.12rem, 1vw, 0.45rem);
   grid-template-columns: repeat(9, minmax(0, 1fr));
@@ -74,6 +75,7 @@
 }
 
 .spellListStack {
+  contain: layout style;
   display: grid;
   gap: 0.75rem;
 }
@@ -161,6 +163,7 @@
 }
 
 .spellList {
+  contain: layout style;
   display: grid;
   gap: 0.45rem;
   list-style: none;
@@ -295,6 +298,7 @@
 }
 
 .preparedSpellSelectionList {
+  contain: layout style;
   display: grid;
   gap: 0.45rem;
   list-style: none;
