@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { Pencil, Plus } from "lucide-react";
-import { useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   CLASS_FEATURE,
   DAMAGE_TYPE,
@@ -14,143 +14,45 @@ import {
   getBarbarianPrimalKnowledgeSkillOptionsForCharacter,
   getBarbarianPrimalKnowledgeSkillSelectionForCharacter,
   getBarbarianWildHeartAspectChoiceForCharacter,
-  getBardExpertiseSelectionsForCharacter,
-  getBardLoreBonusProficiencySelectionsForCharacter,
-  getBardMagicalDiscoveriesSpellIdsForCharacter,
-  getBardMagicalDiscoveriesSpellOptionsForCharacter,
-  getBardPrimalLoreCantripIdForCharacter,
-  getBardPrimalLoreCantripOptionsForCharacter,
   getBardPrimalLoreSkillOptionsForCharacter,
-  getBardPrimalLoreSkillSelectionForCharacter,
   getClericBlessedStrikesChoiceForCharacter,
-  getClericDivineOrderChoiceForCharacter,
   fighterBanneretKnightlyEnvoySkillOptions,
-  getKnowledgeDomainBlessingsSkillSelectionsForCharacter,
-  getKnowledgeDomainBlessingsToolSelectionForCharacter,
-  getKnowledgeDomainUnfetteredMindSavingThrowOptionsForCharacter,
-  getKnowledgeDomainUnfetteredMindSavingThrowSelectionForCharacter,
   getDruidCircleOfTheLandChoiceForCharacter,
   getDruidElementalFuryChoiceForCharacter,
   getDruidPrimalOrderChoiceForCharacter,
-  getDruidWildShapeKnownFormsForCharacter,
-  getDruidWildShapeRulesForCharacter,
-  getFighterBattleMasterManeuverSelectionCountForCharacter,
-  getFighterBattleMasterManeuverSelectionsForCharacter,
-  getFighterBanneretKnightlyEnvoyLanguageSelectionForCharacter,
-  getFighterBanneretKnightlyEnvoySkillSelectionForCharacter,
-  getPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelectionForCharacter,
-  getRangerDeftExplorerExpertiseSelectionForCharacter,
-  getRangerDeftExplorerLanguageSelectionsForCharacter,
-  getRangerFeyWandererGiftSelectionForCharacter,
-  getRangerHunterDefensiveTacticsChoiceForCharacter,
-  getRangerHunterPreyChoiceForCharacter,
-  getRangerGloomStalkerIronMindSavingThrowOptionsForCharacter,
-  getRangerGloomStalkerIronMindSavingThrowSelectionForCharacter,
-  getRangerLevel9ExpertiseSelectionsForCharacter,
-  getRangerOtherworldlyGlamourSkillSelectionForCharacter,
-  getRogueExpertiseSelectionsForCharacter,
-  getRogueScionOfTheThreeDreadAllegianceChoiceForCharacter,
-  getRogueThievesCantLanguageSelectionForCharacter,
-  isRangerGloomStalkerIronMindLockedToWisForCharacter,
-  isKnowledgeDomainUnfetteredMindLockedToIntForCharacter,
-  getSorcererDraconicElementalAffinityDamageTypeSelectionForCharacter,
-  getSorcererMetamagicDefinitionsForCharacter,
-  getSorcererMetamagicSelectionCountForCharacter,
-  getSorcererMetamagicSelectionsForCharacter,
   sorcererDraconicElementalAffinityDamageTypeOptions,
-  getWarlockFiendishResilienceDamageTypeSelectionForCharacter,
   warlockFiendPatronFiendishResilienceDamageTypeOptions,
-  getWarlockMysticArcanumSpellIdForCharacter,
-  getWarlockMysticArcanumSpellOptionsForCharacter,
-  getWizardSavantSpellIdsForCharacter,
-  getWizardScholarSelectionForCharacter,
-  getWizardSignatureSpellIdsForCharacter,
-  getWizardSpellMasterySelectionForCharacter,
-  getAlwaysSpellbookSpellIdsForCharacter,
   getWeaponMasteryOptionsForCharacter,
   getWeaponMasterySelectionCountForCharacter,
   getWeaponMasterySelectionsForCharacter,
   paladinOathOfTheNobleGeniesGeniesSplendorSkillOptions,
   rangerFeyWandererGiftOptions,
   rangerOtherworldlyGlamourSkillOptions,
-  setBardExpertiseSelectionsForCharacter,
-  setBardLoreBonusProficiencySelectionsForCharacter,
-  setBardMagicalDiscoveriesSpellIdsForCharacter,
-  setBardPrimalLoreCantripIdForCharacter,
-  setBardPrimalLoreSkillSelectionForCharacter,
   setBarbarianPrimalKnowledgeSkillSelectionForCharacter,
   setBarbarianWildHeartAspectChoiceForCharacter,
-  setClericBlessedStrikesChoiceForCharacter,
-  setClericDivineOrderChoiceForCharacter,
-  setKnowledgeDomainBlessingsSkillSelectionsForCharacter,
-  setKnowledgeDomainBlessingsToolSelectionForCharacter,
-  setKnowledgeDomainUnfetteredMindSavingThrowSelectionForCharacter,
-  setDruidCircleOfTheLandChoiceForCharacter,
-  setDruidElementalFuryChoiceForCharacter,
-  setDruidPrimalOrderChoiceForCharacter,
-  setDruidWildShapeKnownFormsForCharacter,
-  setFighterBanneretKnightlyEnvoyLanguageSelectionForCharacter,
-  setFighterBanneretKnightlyEnvoySkillSelectionForCharacter,
-  setPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelectionForCharacter,
-  setRangerDeftExplorerExpertiseSelectionForCharacter,
-  setRangerDeftExplorerLanguageSelectionsForCharacter,
-  setRangerFeyWandererGiftSelectionForCharacter,
-  setRangerHunterDefensiveTacticsChoiceForCharacter,
-  setRangerHunterPreyChoiceForCharacter,
-  setRangerGloomStalkerIronMindSavingThrowSelectionForCharacter,
-  setRangerLevel9ExpertiseSelectionsForCharacter,
-  setRangerOtherworldlyGlamourSkillSelectionForCharacter,
-  setRogueExpertiseSelectionsForCharacter,
-  setRogueScionOfTheThreeDreadAllegianceChoiceForCharacter,
-  setRogueThievesCantLanguageSelectionForCharacter,
-  setSorcererDraconicElementalAffinityDamageTypeSelectionForCharacter,
-  setSorcererMetamagicSelectionsForCharacter,
-  setWarlockFiendishResilienceDamageTypeSelectionForCharacter,
-  setWarlockMysticArcanumSpellIdForCharacter,
-  setWizardScholarSelectionForCharacter,
-  setWizardSignatureSpellIdsForCharacter,
-  setWizardSpellMasterySelectionForCharacter,
   setWeaponMasterySelectionsForCharacter
 } from "../../../../pages/CharactersPage/classFeatures";
 import {
   artisanToolProficiencies,
   getProficiencyLabel,
   getWeaponProficiencyLabel,
-  normalizeCharacterProficiencies,
   skillsOptions
 } from "../../../../pages/CharactersPage/proficiency";
 import { getSpellSelectionInputStatusForCharacter } from "../../../../pages/CharactersPage/spellSelection";
-import {
-  getCantripLimitForCharacter,
-  getCantripSelectionOptionsForCharacter,
-  getPreparedSpellSelectionOptionsForCharacter,
-  getSpellLevel,
-  normalizeSpellbookSpellIds
-} from "../../../../pages/CharactersPage/spellcasting";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
-import {
-  getWizardSavantSelectionCount,
-  isWizardSavantFeature
-} from "../../../../pages/CharactersPage/classFeatures/wizard/savant";
-import {
-  getWizardBladesingerTrainingInWarAndSongSkillSelection,
-  wizardBladesingerTrainingInWarAndSongSkillOptions
-} from "../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardBladesinger";
+import { isWizardSavantFeature } from "../../../../pages/CharactersPage/classFeatures/wizard/savant";
 import type {
   Character,
   CharacterFeatEntry,
-  LANGUAGE_PROFICIENCY,
   MonsterRecord,
-  RangerHunterDefensiveTacticsChoice,
-  RangerHunterPreyChoice,
-  RogueScionOfTheThreeDreadAllegianceChoice,
   SkillName,
   WEAPON_PROFICIENCY
 } from "../../../../types";
-import { SAVING_THROW_PROFICIENCY, SKILL } from "../../../../types";
+import { SKILL } from "../../../../types";
 import { formatCodexLabel } from "../../../../utils/codex";
 import { FeatureDisclosureRow, featureDisclosureStyles } from "../../../FeatureDisclosure";
 import { MonsterEntryDrawer } from "../../../MonsterEntryRenderer";
+import { CharacterSheetSectionProfiler } from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetSectionProfiler";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./ClassFeaturesAndFeats.module.css";
 import BattleMasterManeuverSelection from "./BattleMasterManeuverSelection";
@@ -162,19 +64,25 @@ import WizardSavantFeatureFields from "./WizardSavantFeatureFields";
 import {
   buildSkillSelectOptions,
   buildToolSelectOptions,
-  getBardExpertiseTierForLevel,
-  getRogueExpertiseTierForLevel,
-  getSelectableLanguageOptions,
-  getSelectableNonExpertSkillOptions,
-  getSelectableProficientSkillOptions,
-  getSelectableUnproficientToolOptions,
-  getSelectableUnproficientSavingThrowOptions,
   getSelectableUnproficientSkillOptions,
   isFeatChoiceFeature,
   renderDescriptionLine,
   updateSelectionAtIndex,
   wizardScholarSkillOptions
 } from "./helpers";
+import {
+  createBardFeatureChoiceModel,
+  createClericFeatureChoiceModel,
+  createDruidFeatureChoiceModel,
+  createFighterFeatureChoiceModel,
+  createPaladinFeatureChoiceModel,
+  createRangerFeatureChoiceModel,
+  createRogueFeatureChoiceModel,
+  createSorcererFeatureChoiceModel,
+  createWarlockFeatureChoiceModel,
+  createWizardFeatureChoiceModel,
+  recomputeCharacterFeatureProficiencies
+} from "./choiceModels";
 import type { FeatureRow, TrackingButtonRenderer } from "./types";
 import { renderClassFeatureContent } from "./ClassFeatureListFeatureContent";
 import type {
@@ -235,6 +143,91 @@ function FeatureDescriptionLines({
   );
 }
 
+type ClassFeatureRowProps = {
+  bodyClassName: string;
+  bodyId: string;
+  character: Character;
+  featureKey: string;
+  featureRow: FeatureRow;
+  headerMeta: ReactNode;
+  isExpanded: boolean;
+  isInputRequired: boolean;
+  linkedFeat: CharacterFeatEntry | null;
+  onToggleFeature: (featureKey: string) => void;
+  renderBody: () => ReactNode;
+  showDivider: boolean;
+  title: ReactNode;
+  trackingButton: ReactNode;
+};
+
+const ClassFeatureRow = memo(
+  function ClassFeatureRow({
+    bodyClassName,
+    bodyId,
+    featureKey,
+    headerMeta,
+    isExpanded,
+    onToggleFeature,
+    renderBody,
+    showDivider,
+    title,
+    trackingButton
+  }: ClassFeatureRowProps) {
+    const [isBodyRenderReady, setIsBodyRenderReady] = useState(false);
+    const handleToggle = useCallback(
+      () => onToggleFeature(featureKey),
+      [featureKey, onToggleFeature]
+    );
+
+    useEffect(() => {
+      if (!isExpanded) {
+        setIsBodyRenderReady(false);
+        return;
+      }
+
+      if (typeof window === "undefined" || typeof window.requestAnimationFrame !== "function") {
+        setIsBodyRenderReady(true);
+        return;
+      }
+
+      const frameId = window.requestAnimationFrame(() => {
+        setIsBodyRenderReady(true);
+      });
+
+      return () => window.cancelAnimationFrame(frameId);
+    }, [featureKey, isExpanded]);
+
+    return (
+      <FeatureDisclosureRow
+        as="li"
+        title={title}
+        isExpanded={isExpanded}
+        onToggle={handleToggle}
+        bodyId={bodyId}
+        bodyClassName={bodyClassName}
+        trackingButton={trackingButton}
+        headerMeta={headerMeta}
+        showDivider={showDivider}
+      >
+        {isBodyRenderReady ? (
+          <CharacterSheetSectionProfiler id={`class-feature-body:${featureKey}`}>
+            {renderBody()}
+          </CharacterSheetSectionProfiler>
+        ) : null}
+      </FeatureDisclosureRow>
+    );
+  },
+  (previous, next) =>
+    previous.character === next.character &&
+    previous.featureKey === next.featureKey &&
+    previous.featureRow === next.featureRow &&
+    previous.isExpanded === next.isExpanded &&
+    previous.isInputRequired === next.isInputRequired &&
+    previous.linkedFeat === next.linkedFeat &&
+    previous.onToggleFeature === next.onToggleFeature &&
+    previous.showDivider === next.showDivider
+);
+
 function getDamageTypeChoiceContent(damageType: DAMAGE_TYPE): string {
   const label = formatCodexLabel(damageType);
   return `<link:${label}>${label}</link>`;
@@ -264,896 +257,194 @@ function ClassFeatureList({
   const [selectedWildShapeMonster, setSelectedWildShapeMonster] = useState<MonsterRecord | null>(
     null
   );
-  const spellSelectionInputStatus = getSpellSelectionInputStatusForCharacter(character);
-
-  function recomputeCharacterFeatureProficiencies(nextCharacter: Character): Character {
-    return {
-      ...nextCharacter,
-      ...normalizeCharacterProficiencies({
-        className: nextCharacter.className,
-        level: nextCharacter.level,
-        species: nextCharacter.species,
-        speciesChoices: nextCharacter.speciesChoices,
-        background: nextCharacter.background,
-        backgroundChoices: nextCharacter.backgroundChoices,
-        subclassId: nextCharacter.subclassId,
-        classFeatureState: nextCharacter.classFeatureState,
-        skillProficiencies: nextCharacter.skillProficiencies,
-        savingThrowProficiencies: nextCharacter.savingThrowProficiencies,
-        weaponProficiencies: nextCharacter.weaponProficiencies,
-        armorProficiencies: nextCharacter.armorProficiencies,
-        toolProficiencies: nextCharacter.toolProficiencies,
-        languageProficiencies: nextCharacter.languageProficiencies,
-        feats: nextCharacter.feats ?? []
-      })
-    };
-  }
-
-  function getBardExpertiseSelections(level: number): SkillName[] {
-    const tier = getBardExpertiseTierForLevel(level);
-    return tier ? getBardExpertiseSelectionsForCharacter(character, tier) : [];
-  }
-
-  function getAvailableBardExpertiseSkills(level: number, slotIndex: number): SkillName[] {
-    const currentSelections = getBardExpertiseSelections(level);
-    const currentValue = currentSelections[slotIndex] ?? null;
-    const blockedSelections = currentSelections.filter((_, index) => index !== slotIndex);
-
-    return getSelectableProficientSkillOptions(
-      character,
-      skillsOptions,
-      currentValue,
-      blockedSelections
-    );
-  }
-
-  function updateBardExpertiseSelection(level: number, slotIndex: number, nextValue: string) {
-    const tier = getBardExpertiseTierForLevel(level);
-
-    if (!tier) {
-      return;
-    }
-
-    onPersistCharacter((currentCharacter) =>
-      setBardExpertiseSelectionsForCharacter(
-        currentCharacter,
-        tier,
-        updateSelectionAtIndex(
-          getBardExpertiseSelectionsForCharacter(currentCharacter, tier),
-          2,
-          slotIndex,
-          nextValue
-        ).filter((selection): selection is SkillName =>
-          skillsOptions.some((skillOption) => skillOption === selection)
-        )
-      )
-    );
-  }
-
-  function isBardExpertiseInputRequired(level: number): boolean {
-    return getBardExpertiseSelections(level).length < 2;
-  }
-
-  function getBardLoreBonusProficiencySelections(): SkillName[] {
-    return getBardLoreBonusProficiencySelectionsForCharacter(character);
-  }
-
-  function getAvailableBardLoreBonusProficiencySkills(slotIndex: number): SkillName[] {
-    const currentSelections = getBardLoreBonusProficiencySelections();
-    const currentValue = currentSelections[slotIndex] ?? null;
-    const blockedSelections = currentSelections.filter((_, index) => index !== slotIndex);
-
-    return getSelectableUnproficientSkillOptions(
-      character,
-      skillsOptions,
-      currentValue,
-      blockedSelections
-    );
-  }
-
-  function updateBardLoreBonusProficiencySelection(slotIndex: number, nextValue: string) {
-    onPersistCharacter((currentCharacter) =>
-      recomputeCharacterFeatureProficiencies(
-        setBardLoreBonusProficiencySelectionsForCharacter(
-          currentCharacter,
-          updateSelectionAtIndex(
-            getBardLoreBonusProficiencySelectionsForCharacter(currentCharacter),
-            3,
-            slotIndex,
-            nextValue
-          ).filter((selection): selection is SkillName =>
-            skillsOptions.some((skillOption) => skillOption === selection)
-          )
-        )
-      )
-    );
-  }
-
-  function isBardLoreBonusProficienciesInputRequired(): boolean {
-    return getBardLoreBonusProficiencySelections().length < 3;
-  }
-
-  function getBardMagicalDiscoveriesSpellSelections(): string[] {
-    return getBardMagicalDiscoveriesSpellIdsForCharacter(character);
-  }
-
-  function getAvailableBardMagicalDiscoveriesSpells(slotIndex: number): SpellEntry[] {
-    const currentSelections = getBardMagicalDiscoveriesSpellSelections();
-    const blockedSelections = new Set(
-      currentSelections.filter((selection, index) => index !== slotIndex)
-    );
-
-    return getBardMagicalDiscoveriesSpellOptionsForCharacter(character).filter(
-      (spell) => !blockedSelections.has(spell.id)
-    );
-  }
-
-  function updateBardMagicalDiscoveriesSpellSelection(slotIndex: number, nextValue: string) {
-    onPersistCharacter((currentCharacter) =>
-      setBardMagicalDiscoveriesSpellIdsForCharacter(
-        currentCharacter,
-        updateSelectionAtIndex(
-          getBardMagicalDiscoveriesSpellIdsForCharacter(currentCharacter),
-          2,
-          slotIndex,
-          nextValue
-        ).filter((selection): selection is string => selection.trim().length > 0)
-      )
-    );
-  }
-
-  function isBardMagicalDiscoveriesInputRequired(): boolean {
-    return getBardMagicalDiscoveriesSpellSelections().length < 2;
-  }
-
-  function getBardPrimalLoreCantripSelection(): string {
-    return getBardPrimalLoreCantripIdForCharacter(character) ?? "";
-  }
-
-  function getAvailableBardPrimalLoreCantrips(): SpellEntry[] {
-    return getBardPrimalLoreCantripOptionsForCharacter(character);
-  }
-
-  function updateBardPrimalLoreCantripSelection(nextValue: string) {
-    onPersistCharacter((currentCharacter) =>
-      setBardPrimalLoreCantripIdForCharacter(currentCharacter, nextValue || null)
-    );
-  }
-
-  function isBardPrimalLoreCantripInputRequired(): boolean {
-    return getBardPrimalLoreCantripSelection().length === 0;
-  }
-
-  function getBardPrimalLoreSkillSelection(): SkillName | null {
-    return getBardPrimalLoreSkillSelectionForCharacter(character);
-  }
-
-  function getAvailableBardPrimalLoreSkills(): SkillName[] {
-    return getSelectableUnproficientSkillOptions(
-      character,
-      getBardPrimalLoreSkillOptionsForCharacter(),
-      getBardPrimalLoreSkillSelection()
-    );
-  }
-
-  function updateBardPrimalLoreSkillSelection(nextValue: string) {
-    onPersistCharacter((currentCharacter) =>
-      recomputeCharacterFeatureProficiencies(
-        setBardPrimalLoreSkillSelectionForCharacter(
-          currentCharacter,
-          skillsOptions.some((skillOption) => skillOption === nextValue)
-            ? (nextValue as SkillName)
-            : null
-        )
-      )
-    );
-  }
-
-  function isBardPrimalLoreSkillInputRequired(): boolean {
-    return getBardPrimalLoreSkillSelection() === null;
-  }
-
-  function getKnowledgeDomainBlessingsSkillSelections(): SkillName[] {
-    return getKnowledgeDomainBlessingsSkillSelectionsForCharacter(character);
-  }
-
-  function getKnowledgeDomainBlessingsToolSelection() {
-    return getKnowledgeDomainBlessingsToolSelectionForCharacter(character);
-  }
-
-  function getAvailableKnowledgeDomainBlessingsSkills(slotIndex: number): SkillName[] {
-    const currentSelections = getKnowledgeDomainBlessingsSkillSelections();
-    const currentValue = currentSelections[slotIndex] ?? null;
-    const blockedSelections = currentSelections.filter((_, index) => index !== slotIndex);
-
-    return getSelectableNonExpertSkillOptions(
-      character,
-      [SKILL.ARCANA, SKILL.HISTORY, SKILL.NATURE, SKILL.RELIGION],
-      currentValue,
-      blockedSelections
-    );
-  }
-
-  function getAvailableKnowledgeDomainBlessingsTools() {
-    return getSelectableUnproficientToolOptions(
-      character,
-      artisanToolProficiencies,
-      getKnowledgeDomainBlessingsToolSelection()
-    );
-  }
-
-  function updateKnowledgeDomainBlessingsSkillSelection(slotIndex: number, nextValue: string) {
-    onPersistCharacter((currentCharacter) =>
-      recomputeCharacterFeatureProficiencies(
-        setKnowledgeDomainBlessingsSkillSelectionsForCharacter(
-          currentCharacter,
-          updateSelectionAtIndex(
-            getKnowledgeDomainBlessingsSkillSelectionsForCharacter(currentCharacter),
-            2,
-            slotIndex,
-            nextValue
-          ).filter((selection): selection is SkillName =>
-            [SKILL.ARCANA, SKILL.HISTORY, SKILL.NATURE, SKILL.RELIGION].some(
-              (option) => option === selection
-            )
-          )
-        )
-      )
-    );
-  }
-
-  function updateKnowledgeDomainBlessingsToolSelection(nextValue: string) {
-    onPersistCharacter((currentCharacter) =>
-      recomputeCharacterFeatureProficiencies(
-        setKnowledgeDomainBlessingsToolSelectionForCharacter(
-          currentCharacter,
-          artisanToolProficiencies.some((option) => option === nextValue)
-            ? (nextValue as (typeof artisanToolProficiencies)[number])
-            : null
-        )
-      )
-    );
-  }
-
-  function isKnowledgeDomainBlessingsInputRequired(): boolean {
-    return (
-      getKnowledgeDomainBlessingsToolSelection() === null ||
-      getKnowledgeDomainBlessingsSkillSelections().length < 2
-    );
-  }
-
-  function getKnowledgeDomainUnfetteredMindSavingThrowSelection(): SAVING_THROW_PROFICIENCY | null {
-    return getKnowledgeDomainUnfetteredMindSavingThrowSelectionForCharacter(character);
-  }
-
-  function getAvailableKnowledgeDomainUnfetteredMindSavingThrows(): SAVING_THROW_PROFICIENCY[] {
-    const currentValue = getKnowledgeDomainUnfetteredMindSavingThrowSelection();
-
-    return getSelectableUnproficientSavingThrowOptions(
-      character,
-      getKnowledgeDomainUnfetteredMindSavingThrowOptionsForCharacter(character),
-      currentValue
-    );
-  }
-
-  function isKnowledgeDomainUnfetteredMindLocked(): boolean {
-    return isKnowledgeDomainUnfetteredMindLockedToIntForCharacter(character);
-  }
-
-  function updateKnowledgeDomainUnfetteredMindSavingThrowSelection(nextValue: string) {
-    onPersistCharacter((currentCharacter) =>
-      recomputeCharacterFeatureProficiencies(
-        setKnowledgeDomainUnfetteredMindSavingThrowSelectionForCharacter(
-          currentCharacter,
-          Object.values(SAVING_THROW_PROFICIENCY).some((option) => option === nextValue)
-            ? (nextValue as SAVING_THROW_PROFICIENCY)
-            : null
-        )
-      )
-    );
-  }
-
-  function isKnowledgeDomainUnfetteredMindInputRequired(): boolean {
-    return getKnowledgeDomainUnfetteredMindSavingThrowSelection() === null;
-  }
-
-  function getRangerGloomStalkerIronMindSavingThrowSelection(): SAVING_THROW_PROFICIENCY | null {
-    return getRangerGloomStalkerIronMindSavingThrowSelectionForCharacter(character);
-  }
-
-  function getAvailableRangerGloomStalkerIronMindSavingThrows(): SAVING_THROW_PROFICIENCY[] {
-    const currentValue = getRangerGloomStalkerIronMindSavingThrowSelection();
-
-    return getSelectableUnproficientSavingThrowOptions(
-      character,
-      getRangerGloomStalkerIronMindSavingThrowOptionsForCharacter(character),
-      currentValue
-    );
-  }
-
-  function isRangerGloomStalkerIronMindLocked(): boolean {
-    return isRangerGloomStalkerIronMindLockedToWisForCharacter(character);
-  }
-
-  function updateRangerGloomStalkerIronMindSavingThrowSelection(nextValue: string) {
-    onPersistCharacter((currentCharacter) =>
-      recomputeCharacterFeatureProficiencies(
-        setRangerGloomStalkerIronMindSavingThrowSelectionForCharacter(
-          currentCharacter,
-          Object.values(SAVING_THROW_PROFICIENCY).some((option) => option === nextValue)
-            ? (nextValue as SAVING_THROW_PROFICIENCY)
-            : null
-        )
-      )
-    );
-  }
-
-  function isRangerGloomStalkerIronMindInputRequired(): boolean {
-    return (
-      getAvailableRangerGloomStalkerIronMindSavingThrows().length > 0 &&
-      getRangerGloomStalkerIronMindSavingThrowSelection() === null
-    );
-  }
-
-  function getRogueExpertiseSelections(level: number): SkillName[] {
-    const tier = getRogueExpertiseTierForLevel(level);
-    return tier ? getRogueExpertiseSelectionsForCharacter(character, tier) : [];
-  }
-
-  function getAvailableRogueExpertiseSkills(level: number, slotIndex: number): SkillName[] {
-    const currentSelections = getRogueExpertiseSelections(level);
-    const currentValue = currentSelections[slotIndex] ?? null;
-    const blockedSelections = currentSelections.filter((_, index) => index !== slotIndex);
-
-    return getSelectableProficientSkillOptions(
-      character,
-      skillsOptions,
-      currentValue,
-      blockedSelections
-    );
-  }
-
-  function updateRogueExpertiseSelection(level: number, slotIndex: number, nextValue: string) {
-    const tier = getRogueExpertiseTierForLevel(level);
-
-    if (!tier) {
-      return;
-    }
-
-    onPersistCharacter((currentCharacter) =>
-      recomputeCharacterFeatureProficiencies(
-        setRogueExpertiseSelectionsForCharacter(
-          currentCharacter,
-          tier,
-          updateSelectionAtIndex(
-            getRogueExpertiseSelectionsForCharacter(currentCharacter, tier),
-            2,
-            slotIndex,
-            nextValue
-          ).filter((selection): selection is SkillName =>
-            skillsOptions.some((skillOption) => skillOption === selection)
-          )
-        )
-      )
-    );
-  }
-
-  function isRogueExpertiseInputRequired(level: number): boolean {
-    return getRogueExpertiseSelections(level).length < 2;
-  }
-
-  function getRogueThievesCantLanguageSelection(): LANGUAGE_PROFICIENCY | null {
-    return getRogueThievesCantLanguageSelectionForCharacter(character);
-  }
-
-  function getAvailableRogueThievesCantLanguages(): LANGUAGE_PROFICIENCY[] {
-    return getSelectableLanguageOptions(character, getRogueThievesCantLanguageSelection());
-  }
-
-  function updateRogueThievesCantLanguageSelection(nextValue: string) {
-    onPersistCharacter((currentCharacter) =>
-      recomputeCharacterFeatureProficiencies(
-        setRogueThievesCantLanguageSelectionForCharacter(
-          currentCharacter,
-          getSelectableLanguageOptions(currentCharacter, null).includes(
-            nextValue as LANGUAGE_PROFICIENCY
-          )
-            ? (nextValue as LANGUAGE_PROFICIENCY)
-            : null
-        )
-      )
-    );
-  }
-
-  function isRogueThievesCantInputRequired(): boolean {
-    return getRogueThievesCantLanguageSelection() === null;
-  }
-
-  function getRogueScionOfTheThreeDreadAllegianceChoice(): RogueScionOfTheThreeDreadAllegianceChoice | null {
-    return getRogueScionOfTheThreeDreadAllegianceChoiceForCharacter(character);
-  }
-
-  function updateRogueScionOfTheThreeDreadAllegianceChoice(
-    choice: RogueScionOfTheThreeDreadAllegianceChoice
-  ) {
-    onPersistCharacter((currentCharacter) =>
-      setRogueScionOfTheThreeDreadAllegianceChoiceForCharacter(currentCharacter, choice)
-    );
-  }
-
-  function isRogueScionOfTheThreeDreadAllegianceInputRequired(): boolean {
-    return getRogueScionOfTheThreeDreadAllegianceChoice() === null;
-  }
-
-  function getRangerDeftExplorerExpertiseSelection(): SkillName | null {
-    return getRangerDeftExplorerExpertiseSelectionForCharacter(character);
-  }
-
-  function getAvailableRangerDeftExplorerSkills(): SkillName[] {
-    return getSelectableProficientSkillOptions(
-      character,
-      skillsOptions,
-      getRangerDeftExplorerExpertiseSelection()
-    );
-  }
-
-  function updateRangerDeftExplorerExpertiseSelection(nextValue: string) {
-    onPersistCharacter((currentCharacter) =>
-      recomputeCharacterFeatureProficiencies(
-        setRangerDeftExplorerExpertiseSelectionForCharacter(
-          currentCharacter,
-          skillsOptions.some((skillOption) => skillOption === nextValue)
-            ? (nextValue as SkillName)
-            : null
-        )
-      )
-    );
-  }
-
-  function getRangerDeftExplorerLanguageSelections(): LANGUAGE_PROFICIENCY[] {
-    return getRangerDeftExplorerLanguageSelectionsForCharacter(character);
-  }
-
-  function getAvailableRangerDeftExplorerLanguages(slotIndex: number): LANGUAGE_PROFICIENCY[] {
-    const currentSelections = getRangerDeftExplorerLanguageSelections();
-    const currentValue = currentSelections[slotIndex] ?? null;
-    const blockedSelections = currentSelections.filter((_, index) => index !== slotIndex);
-
-    return getSelectableLanguageOptions(character, currentValue, blockedSelections);
-  }
-
-  function updateRangerDeftExplorerLanguageSelection(slotIndex: number, nextValue: string) {
-    onPersistCharacter((currentCharacter) =>
-      recomputeCharacterFeatureProficiencies(
-        setRangerDeftExplorerLanguageSelectionsForCharacter(
-          currentCharacter,
-          updateSelectionAtIndex(
-            getRangerDeftExplorerLanguageSelectionsForCharacter(currentCharacter),
-            2,
-            slotIndex,
-            nextValue
-          ).filter((selection): selection is LANGUAGE_PROFICIENCY =>
-            getSelectableLanguageOptions(currentCharacter, null).includes(
-              selection as LANGUAGE_PROFICIENCY
-            )
-          )
-        )
-      )
-    );
-  }
-
-  function isRangerDeftExplorerInputRequired(): boolean {
-    return (
-      getRangerDeftExplorerExpertiseSelection() === null ||
-      getRangerDeftExplorerLanguageSelections().length < 2
-    );
-  }
-
-  function getRangerLevel9ExpertiseSelections(): SkillName[] {
-    return getRangerLevel9ExpertiseSelectionsForCharacter(character);
-  }
-
-  function getAvailableRangerLevel9ExpertiseSkills(slotIndex: number): SkillName[] {
-    const currentSelections = getRangerLevel9ExpertiseSelections();
-    const currentValue = currentSelections[slotIndex] ?? null;
-    const blockedSelections = currentSelections.filter((_, index) => index !== slotIndex);
-
-    return getSelectableProficientSkillOptions(
-      character,
-      skillsOptions,
-      currentValue,
-      blockedSelections
-    );
-  }
-
-  function updateRangerLevel9ExpertiseSelection(slotIndex: number, nextValue: string) {
-    onPersistCharacter((currentCharacter) =>
-      recomputeCharacterFeatureProficiencies(
-        setRangerLevel9ExpertiseSelectionsForCharacter(
-          currentCharacter,
-          updateSelectionAtIndex(
-            getRangerLevel9ExpertiseSelectionsForCharacter(currentCharacter),
-            2,
-            slotIndex,
-            nextValue
-          ).filter((selection): selection is SkillName =>
-            skillsOptions.some((skillOption) => skillOption === selection)
-          )
-        )
-      )
-    );
-  }
-
-  function isRangerLevel9ExpertiseInputRequired(): boolean {
-    return getRangerLevel9ExpertiseSelections().length < 2;
-  }
-
-  function getRangerFeyWandererGiftSelection() {
-    return getRangerFeyWandererGiftSelectionForCharacter(character);
-  }
-
-  function getRangerHunterPreyChoice(): RangerHunterPreyChoice | null {
-    return getRangerHunterPreyChoiceForCharacter(character);
-  }
-
-  function updateRangerHunterPreyChoice(choice: RangerHunterPreyChoice) {
-    onPersistCharacter((currentCharacter) =>
-      setRangerHunterPreyChoiceForCharacter(currentCharacter, choice)
-    );
-  }
-
-  function isRangerHunterPreyInputRequired(): boolean {
-    return getRangerHunterPreyChoice() === null;
-  }
-
-  function getRangerHunterDefensiveTacticsChoice(): RangerHunterDefensiveTacticsChoice | null {
-    return getRangerHunterDefensiveTacticsChoiceForCharacter(character);
-  }
-
-  function updateRangerHunterDefensiveTacticsChoice(choice: RangerHunterDefensiveTacticsChoice) {
-    onPersistCharacter((currentCharacter) =>
-      setRangerHunterDefensiveTacticsChoiceForCharacter(currentCharacter, choice)
-    );
-  }
-
-  function isRangerHunterDefensiveTacticsInputRequired(): boolean {
-    return getRangerHunterDefensiveTacticsChoice() === null;
-  }
-
-  function updateRangerFeyWandererGiftSelection(nextValue: string) {
-    onPersistCharacter((currentCharacter) =>
-      setRangerFeyWandererGiftSelectionForCharacter(
-        currentCharacter,
-        rangerFeyWandererGiftOptions.some((option) => option.value === nextValue)
-          ? (nextValue as (typeof rangerFeyWandererGiftOptions)[number]["value"])
-          : null
-      )
-    );
-  }
-
-  function isRangerFeyWandererGiftInputRequired(): boolean {
-    return getRangerFeyWandererGiftSelection() === null;
-  }
-
-  function getRangerOtherworldlyGlamourSkillSelection() {
-    return getRangerOtherworldlyGlamourSkillSelectionForCharacter(character);
-  }
-
-  function getAvailableRangerOtherworldlyGlamourSkills(): SkillName[] {
-    return getSelectableUnproficientSkillOptions(
-      character,
-      rangerOtherworldlyGlamourSkillOptions.map((option) => option.value),
-      getRangerOtherworldlyGlamourSkillSelection()
-    );
-  }
-
-  function updateRangerOtherworldlyGlamourSkillSelection(nextValue: string) {
-    onPersistCharacter((currentCharacter) =>
-      recomputeCharacterFeatureProficiencies(
-        setRangerOtherworldlyGlamourSkillSelectionForCharacter(
-          currentCharacter,
-          rangerOtherworldlyGlamourSkillOptions.some((option) => option.value === nextValue)
-            ? (nextValue as (typeof rangerOtherworldlyGlamourSkillOptions)[number]["value"])
-            : null
-        )
-      )
-    );
-  }
-
-  function isRangerOtherworldlyGlamourInputRequired(): boolean {
-    return (
-      getAvailableRangerOtherworldlyGlamourSkills().length > 0 &&
-      getRangerOtherworldlyGlamourSkillSelection() === null
-    );
-  }
-
-  function getWizardScholarSelection(): SkillName | null {
-    return getWizardScholarSelectionForCharacter(character);
-  }
-
-  function getAvailableWizardScholarSkills(): SkillName[] {
-    return getSelectableProficientSkillOptions(
-      character,
-      wizardScholarSkillOptions,
-      getWizardScholarSelection()
-    );
-  }
-
-  function updateWizardScholarSelection(nextValue: string) {
-    onPersistCharacter((currentCharacter) =>
-      recomputeCharacterFeatureProficiencies(
-        setWizardScholarSelectionForCharacter(
-          currentCharacter,
-          wizardScholarSkillOptions.some((skillOption) => skillOption === nextValue)
-            ? (nextValue as SkillName)
-            : null
-        )
-      )
-    );
-  }
-
-  function isWizardScholarInputRequired(): boolean {
-    return getWizardScholarSelection() === null;
-  }
-
-  function isWizardBladesingerTrainingInWarAndSongInputRequired(): boolean {
-    return (
-      getWizardBladesingerTrainingInWarAndSongSkillSelection(character) === null &&
-      getSelectableUnproficientSkillOptions(
-        character,
-        wizardBladesingerTrainingInWarAndSongSkillOptions,
-        null
-      ).length > 0
-    );
-  }
-
-  function isWizardSavantInputRequired(feature: CLASS_FEATURE): boolean {
-    if (!isWizardSavantFeature(feature)) {
-      return false;
-    }
-
-    return (
-      getWizardSavantSpellIdsForCharacter(character).length <
-      getWizardSavantSelectionCount(character.level)
-    );
-  }
-
-  function getWizardSpellMasterySelection(spellLevel: 1 | 2): string {
-    return getWizardSpellMasterySelectionForCharacter(character, spellLevel) ?? "";
-  }
-
-  function getAvailableWizardSpellMasterySpells(spellLevel: 1 | 2): SpellEntry[] {
-    const availablePreparedSpells = getPreparedSpellSelectionOptionsForCharacter(
-      character.className,
-      character.level
-    );
-    const spellbookSpellIdSet = new Set(
-      normalizeSpellbookSpellIds(
-        character.spellbookSpellIds,
-        availablePreparedSpells,
-        getAlwaysSpellbookSpellIdsForCharacter(character)
-      )
-    );
-
-    return availablePreparedSpells
-      .filter((spell) => getSpellLevel(spell) === spellLevel && spellbookSpellIdSet.has(spell.id))
-      .sort((left, right) => left.name.localeCompare(right.name));
-  }
-
-  function updateWizardSpellMasterySelection(spellLevel: 1 | 2, nextValue: string) {
-    onPersistCharacter((currentCharacter) =>
-      setWizardSpellMasterySelectionForCharacter(
-        currentCharacter,
-        spellLevel,
-        nextValue.trim().length > 0 ? nextValue : null
-      )
-    );
-  }
-
-  function isWizardSpellMasteryInputRequired(): boolean {
-    return (
-      getWizardSpellMasterySelectionForCharacter(character, 1) === null ||
-      getWizardSpellMasterySelectionForCharacter(character, 2) === null
-    );
-  }
-
-  function getWizardSignatureSpellSelections(): string[] {
-    return getWizardSignatureSpellIdsForCharacter(character);
-  }
-
-  function getAvailableWizardSignatureSpells(slotIndex: number): SpellEntry[] {
-    const currentSelections = getWizardSignatureSpellSelections();
-    const blockedSelections = new Set(
-      currentSelections.filter((selection, index) => index !== slotIndex)
-    );
-    const availablePreparedSpells = getPreparedSpellSelectionOptionsForCharacter(
-      character.className,
-      character.level
-    );
-    const spellbookSpellIdSet = new Set(
-      normalizeSpellbookSpellIds(
-        character.spellbookSpellIds,
-        availablePreparedSpells,
-        getAlwaysSpellbookSpellIdsForCharacter(character)
-      )
-    );
-
-    return availablePreparedSpells
-      .filter((spell) => {
-        if (getSpellLevel(spell) !== 3) {
-          return false;
-        }
-
-        if (!spellbookSpellIdSet.has(spell.id)) {
-          return false;
-        }
-
-        return !blockedSelections.has(spell.id);
-      })
-      .sort((left, right) => left.name.localeCompare(right.name));
-  }
-
-  function updateWizardSignatureSpellSelection(slotIndex: number, nextValue: string) {
-    onPersistCharacter((currentCharacter) =>
-      setWizardSignatureSpellIdsForCharacter(
-        currentCharacter,
-        updateSelectionAtIndex(
-          getWizardSignatureSpellIdsForCharacter(currentCharacter),
-          2,
-          slotIndex,
-          nextValue
-        ).filter((selection): selection is string => selection.trim().length > 0)
-      )
-    );
-  }
-
-  function isWizardSignatureSpellsInputRequired(): boolean {
-    return getWizardSignatureSpellSelections().length < 2;
-  }
-
-  function getSorcererMetamagicStartIndex(level: number): number {
-    if (level >= 17) {
-      return 4;
-    }
-
-    if (level >= 10) {
-      return 2;
-    }
-
-    return 0;
-  }
-
-  function getSorcererMetamagicSelections(): string[] {
-    return getSorcererMetamagicSelectionsForCharacter(character);
-  }
-
-  function getAvailableSorcererMetamagicOptions(level: number, slotIndex: number) {
-    const currentSelections = getSorcererMetamagicSelections();
-    const currentIndex = getSorcererMetamagicStartIndex(level) + slotIndex;
-    const currentValue = currentSelections[currentIndex] ?? "";
-    const blockedSelections = new Set(
-      currentSelections.filter((selection, index) => index !== currentIndex)
-    );
-
-    return getSorcererMetamagicDefinitionsForCharacter().filter((definition) => {
-      if (currentValue === definition.key) {
-        return true;
-      }
-
-      return !blockedSelections.has(definition.key);
-    });
-  }
-
-  function updateSorcererMetamagicSelection(level: number, slotIndex: number, nextValue: string) {
-    onPersistCharacter((currentCharacter) => {
-      const currentSelections = getSorcererMetamagicSelectionsForCharacter(currentCharacter);
-      const totalSelectionCount = getSorcererMetamagicSelectionCountForCharacter(currentCharacter);
-      const metamagicDefinitions = getSorcererMetamagicDefinitionsForCharacter();
-      const currentIndex = getSorcererMetamagicStartIndex(level) + slotIndex;
-      const nextSelections = updateSelectionAtIndex(
-        currentSelections,
-        totalSelectionCount,
-        currentIndex,
-        nextValue
-      );
-
-      return setSorcererMetamagicSelectionsForCharacter(
-        currentCharacter,
-        nextSelections.flatMap((selection) =>
-          metamagicDefinitions.some((definition) => definition.key === selection)
-            ? [selection as (typeof metamagicDefinitions)[number]["key"]]
-            : []
-        )
-      );
-    });
-  }
-
-  function isSorcererMetamagicInputRequired(level: number): boolean {
-    const currentSelections = getSorcererMetamagicSelections();
-    const startIndex = getSorcererMetamagicStartIndex(level);
-
-    return [0, 1].some((slotIndex) => !currentSelections[startIndex + slotIndex]);
-  }
-
-  function getSorcererDraconicElementalAffinityDamageTypeSelection(): DAMAGE_TYPE | null {
-    return getSorcererDraconicElementalAffinityDamageTypeSelectionForCharacter(character);
-  }
-
-  function updateSorcererDraconicElementalAffinityDamageTypeSelection(choice: DAMAGE_TYPE) {
-    onPersistCharacter((currentCharacter) =>
-      setSorcererDraconicElementalAffinityDamageTypeSelectionForCharacter(currentCharacter, choice)
-    );
-  }
-
-  function isSorcererDraconicElementalAffinityInputRequired(): boolean {
-    return getSorcererDraconicElementalAffinityDamageTypeSelection() === null;
-  }
-
-  function getWarlockFiendishResilienceDamageTypeSelection(): DAMAGE_TYPE | null {
-    return getWarlockFiendishResilienceDamageTypeSelectionForCharacter(character);
-  }
-
-  function updateWarlockFiendishResilienceDamageTypeSelection(choice: DAMAGE_TYPE) {
-    onPersistCharacter((currentCharacter) =>
-      setWarlockFiendishResilienceDamageTypeSelectionForCharacter(currentCharacter, choice)
-    );
-  }
-
-  function isWarlockFiendishResilienceInputRequired(): boolean {
-    return getWarlockFiendishResilienceDamageTypeSelection() === null;
-  }
-
-  function getWarlockMysticArcanumSpellLevel(level: number): 6 | 7 | 8 | 9 | null {
-    if (level === 11) {
-      return 6;
-    }
-
-    if (level === 13) {
-      return 7;
-    }
-
-    if (level === 15) {
-      return 8;
-    }
-
-    if (level === 17) {
-      return 9;
-    }
-
-    return null;
-  }
-
-  function getWarlockMysticArcanumSelection(level: number): string {
-    const spellLevel = getWarlockMysticArcanumSpellLevel(level);
-    return spellLevel
-      ? (getWarlockMysticArcanumSpellIdForCharacter(character, spellLevel) ?? "")
-      : "";
-  }
-
-  function getAvailableWarlockMysticArcanumSpells(level: number): SpellEntry[] {
-    const spellLevel = getWarlockMysticArcanumSpellLevel(level);
-    return spellLevel ? getWarlockMysticArcanumSpellOptionsForCharacter(character, spellLevel) : [];
-  }
-
-  function updateWarlockMysticArcanumSelection(level: number, nextValue: string) {
-    const spellLevel = getWarlockMysticArcanumSpellLevel(level);
-
-    if (!spellLevel) {
-      return;
-    }
-
-    onPersistCharacter((currentCharacter) =>
-      setWarlockMysticArcanumSpellIdForCharacter(
-        currentCharacter,
-        spellLevel,
-        nextValue.trim().length > 0 ? nextValue : null
-      )
-    );
-  }
-
-  function isWarlockMysticArcanumInputRequired(level: number): boolean {
-    return getWarlockMysticArcanumSelection(level).trim().length <= 0;
-  }
+  const spellSelectionInputStatus = useMemo(
+    () => getSpellSelectionInputStatusForCharacter(character),
+    [character]
+  );
+  const expandedFeatureKeySet = useMemo(() => new Set(expandedFeatureKeys), [expandedFeatureKeys]);
+  const bardChoices = useMemo(
+    () => createBardFeatureChoiceModel({ character, onPersistCharacter }),
+    [character, onPersistCharacter]
+  );
+  const clericChoices = useMemo(
+    () => createClericFeatureChoiceModel({ character, onPersistCharacter }),
+    [character, onPersistCharacter]
+  );
+  const druidChoices = useMemo(
+    () => createDruidFeatureChoiceModel({ character, onPersistCharacter }),
+    [character, onPersistCharacter]
+  );
+  const fighterChoices = useMemo(
+    () => createFighterFeatureChoiceModel({ character, onPersistCharacter }),
+    [character, onPersistCharacter]
+  );
+  const paladinChoices = useMemo(
+    () => createPaladinFeatureChoiceModel({ character, onPersistCharacter }),
+    [character, onPersistCharacter]
+  );
+  const rangerChoices = useMemo(
+    () => createRangerFeatureChoiceModel({ character, onPersistCharacter }),
+    [character, onPersistCharacter]
+  );
+  const rogueChoices = useMemo(
+    () => createRogueFeatureChoiceModel({ character, onPersistCharacter }),
+    [character, onPersistCharacter]
+  );
+  const sorcererChoices = useMemo(
+    () => createSorcererFeatureChoiceModel({ character, onPersistCharacter }),
+    [character, onPersistCharacter]
+  );
+  const warlockChoices = useMemo(
+    () => createWarlockFeatureChoiceModel({ character, onPersistCharacter }),
+    [character, onPersistCharacter]
+  );
+  const wizardChoices = useMemo(
+    () => createWizardFeatureChoiceModel({ character, onPersistCharacter }),
+    [character, onPersistCharacter]
+  );
+  const {
+    getAvailableBardExpertiseSkills,
+    getAvailableBardLoreBonusProficiencySkills,
+    getAvailableBardMagicalDiscoveriesSpells,
+    getAvailableBardPrimalLoreCantrips,
+    getAvailableBardPrimalLoreSkills,
+    getBardExpertiseSelections,
+    getBardLoreBonusProficiencySelections,
+    getBardMagicalDiscoveriesSpellSelections,
+    getBardPrimalLoreCantripSelection,
+    getBardPrimalLoreSkillSelection,
+    isBardExpertiseInputRequired,
+    isBardLoreBonusProficienciesInputRequired,
+    isBardMagicalDiscoveriesInputRequired,
+    isBardPrimalLoreCantripInputRequired,
+    isBardPrimalLoreSkillInputRequired,
+    updateBardExpertiseSelection,
+    updateBardLoreBonusProficiencySelection,
+    updateBardMagicalDiscoveriesSpellSelection,
+    updateBardPrimalLoreCantripSelection,
+    updateBardPrimalLoreSkillSelection
+  } = bardChoices;
+  const {
+    getAvailableKnowledgeDomainBlessingsSkills,
+    getAvailableKnowledgeDomainBlessingsTools,
+    getAvailableKnowledgeDomainUnfetteredMindSavingThrows,
+    getClericDivineOrderChoiceForCharacter,
+    getKnowledgeDomainBlessingsSkillSelections,
+    getKnowledgeDomainBlessingsToolSelection,
+    getKnowledgeDomainUnfetteredMindSavingThrowSelection,
+    isKnowledgeDomainBlessingsInputRequired,
+    isKnowledgeDomainUnfetteredMindInputRequired,
+    isKnowledgeDomainUnfetteredMindLocked,
+    updateClericBlessedStrikesChoice,
+    updateClericDivineOrderChoice,
+    updateKnowledgeDomainBlessingsSkillSelection,
+    updateKnowledgeDomainBlessingsToolSelection,
+    updateKnowledgeDomainUnfetteredMindSavingThrowSelection
+  } = clericChoices;
+  const {
+    getDruidWildShapeKnownForms,
+    getDruidWildShapeRules,
+    updateDruidCircleOfTheLandChoice,
+    updateDruidElementalFuryChoice,
+    updateDruidPrimalOrderChoice,
+    updateDruidWildShapeKnownForms
+  } = druidChoices;
+  const {
+    getAvailableFighterBanneretKnightlyEnvoyLanguages,
+    getAvailableFighterBanneretKnightlyEnvoySkills,
+    getFighterBanneretKnightlyEnvoyLanguageSelection,
+    getFighterBanneretKnightlyEnvoySkillSelection,
+    isFighterBanneretKnightlyEnvoyInputRequired,
+    isFighterBattleMasterManeuverOptionsInputRequired,
+    updateFighterBanneretKnightlyEnvoyLanguageSelection,
+    updateFighterBanneretKnightlyEnvoySkillSelection
+  } = fighterChoices;
+  const {
+    getAvailablePaladinOathOfTheNobleGeniesGeniesSplendorSkills,
+    getPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection,
+    isPaladinOathOfTheNobleGeniesGeniesSplendorInputRequired,
+    updatePaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection
+  } = paladinChoices;
+  const {
+    getAvailableRangerDeftExplorerLanguages,
+    getAvailableRangerDeftExplorerSkills,
+    getAvailableRangerGloomStalkerIronMindSavingThrows,
+    getAvailableRangerLevel9ExpertiseSkills,
+    getAvailableRangerOtherworldlyGlamourSkills,
+    getRangerDeftExplorerExpertiseSelection,
+    getRangerDeftExplorerLanguageSelections,
+    getRangerFeyWandererGiftSelection,
+    getRangerGloomStalkerIronMindSavingThrowSelection,
+    getRangerHunterDefensiveTacticsChoice,
+    getRangerHunterPreyChoice,
+    getRangerLevel9ExpertiseSelections,
+    getRangerOtherworldlyGlamourSkillSelection,
+    isRangerDeftExplorerInputRequired,
+    isRangerFeyWandererGiftInputRequired,
+    isRangerGloomStalkerIronMindInputRequired,
+    isRangerGloomStalkerIronMindLocked,
+    isRangerHunterDefensiveTacticsInputRequired,
+    isRangerHunterPreyInputRequired,
+    isRangerLevel9ExpertiseInputRequired,
+    isRangerOtherworldlyGlamourInputRequired,
+    updateRangerDeftExplorerExpertiseSelection,
+    updateRangerDeftExplorerLanguageSelection,
+    updateRangerFeyWandererGiftSelection,
+    updateRangerGloomStalkerIronMindSavingThrowSelection,
+    updateRangerHunterDefensiveTacticsChoice,
+    updateRangerHunterPreyChoice,
+    updateRangerLevel9ExpertiseSelection,
+    updateRangerOtherworldlyGlamourSkillSelection
+  } = rangerChoices;
+  const {
+    getAvailableRogueExpertiseSkills,
+    getAvailableRogueThievesCantLanguages,
+    getRogueExpertiseSelections,
+    getRogueScionOfTheThreeDreadAllegianceChoice,
+    getRogueThievesCantLanguageSelection,
+    isRogueExpertiseInputRequired,
+    isRogueScionOfTheThreeDreadAllegianceInputRequired,
+    isRogueThievesCantInputRequired,
+    updateRogueExpertiseSelection,
+    updateRogueScionOfTheThreeDreadAllegianceChoice,
+    updateRogueThievesCantLanguageSelection
+  } = rogueChoices;
+  const {
+    getAvailableSorcererMetamagicOptions,
+    getSorcererDraconicElementalAffinityDamageTypeSelection,
+    getSorcererMetamagicSelections,
+    getSorcererMetamagicStartIndex,
+    isSorcererDraconicElementalAffinityInputRequired,
+    isSorcererMetamagicInputRequired,
+    updateSorcererDraconicElementalAffinityDamageTypeSelection,
+    updateSorcererMetamagicSelection
+  } = sorcererChoices;
+  const {
+    getAvailableWarlockMysticArcanumSpells,
+    getWarlockFiendishResilienceDamageTypeSelection,
+    getWarlockMysticArcanumSelection,
+    getWarlockMysticArcanumSpellLevel,
+    isWarlockFiendishResilienceInputRequired,
+    isWarlockMysticArcanumInputRequired,
+    updateWarlockFiendishResilienceDamageTypeSelection,
+    updateWarlockMysticArcanumSelection
+  } = warlockChoices;
+  const {
+    getAvailableWizardScholarSkills,
+    getAvailableWizardSignatureSpells,
+    getAvailableWizardSpellMasterySpells,
+    getWizardScholarSelection,
+    getWizardSignatureSpellSelections,
+    getWizardSpellMasterySelection,
+    isWizardBladesingerTrainingInWarAndSongInputRequired,
+    isWizardSavantInputRequired,
+    isWizardScholarInputRequired,
+    isWizardSignatureSpellsInputRequired,
+    isWizardSpellMasteryInputRequired,
+    updateWizardScholarSelection,
+    updateWizardSignatureSpellSelection,
+    updateWizardSpellMasterySelection
+  } = wizardChoices;
 
   function getWeaponMasterySelections(): WEAPON_PROFICIENCY[] {
     return getWeaponMasterySelectionsForCharacter(character);
@@ -1193,181 +484,8 @@ function ClassFeatureList({
     return totalSelections > 0 && getWeaponMasterySelections().length < totalSelections;
   }
 
-  function isFighterBattleMasterManeuverOptionsInputRequired(): boolean {
-    const totalSelections = getFighterBattleMasterManeuverSelectionCountForCharacter(character);
-
-    return (
-      totalSelections > 0 &&
-      getFighterBattleMasterManeuverSelectionsForCharacter(character).length < totalSelections
-    );
-  }
-
-  function updateClericDivineOrderChoice(choice: "protector" | "thaumaturge") {
-    onPersistCharacter((currentCharacter) => {
-      const nextCharacter = setClericDivineOrderChoiceForCharacter(currentCharacter, choice);
-      const nextProficientCharacter = recomputeCharacterFeatureProficiencies(nextCharacter);
-      const cantripLimit = getCantripLimitForCharacter(
-        nextProficientCharacter.className,
-        nextProficientCharacter.level,
-        nextProficientCharacter.classFeatureState
-      );
-      const cantripSelectionOptionIds = new Set(
-        getCantripSelectionOptionsForCharacter(
-          nextProficientCharacter.className,
-          nextProficientCharacter.level
-        ).map((spell) => spell.id)
-      );
-
-      return {
-        ...nextProficientCharacter,
-        cantripIds: [...new Set(nextProficientCharacter.cantripIds ?? [])]
-          .filter((spellId) => cantripSelectionOptionIds.has(spellId))
-          .slice(0, cantripLimit ?? Number.POSITIVE_INFINITY)
-      };
-    });
-  }
-
-  function updateDruidPrimalOrderChoice(choice: "magician" | "warden") {
-    onPersistCharacter((currentCharacter) => {
-      const nextCharacter = setDruidPrimalOrderChoiceForCharacter(currentCharacter, choice);
-      const nextProficientCharacter = recomputeCharacterFeatureProficiencies(nextCharacter);
-      const cantripLimit = getCantripLimitForCharacter(
-        nextProficientCharacter.className,
-        nextProficientCharacter.level,
-        nextProficientCharacter.classFeatureState
-      );
-      const cantripSelectionOptionIds = new Set(
-        getCantripSelectionOptionsForCharacter(
-          nextProficientCharacter.className,
-          nextProficientCharacter.level
-        ).map((spell) => spell.id)
-      );
-
-      return {
-        ...nextProficientCharacter,
-        cantripIds: [...new Set(nextProficientCharacter.cantripIds ?? [])]
-          .filter((spellId) => cantripSelectionOptionIds.has(spellId))
-          .slice(0, cantripLimit ?? Number.POSITIVE_INFINITY)
-      };
-    });
-  }
-
-  function updateDruidCircleOfTheLandChoice(choice: "arid" | "polar" | "temperate" | "tropical") {
-    onPersistCharacter((currentCharacter) =>
-      setDruidCircleOfTheLandChoiceForCharacter(currentCharacter, choice)
-    );
-  }
-
-  function updateDruidElementalFuryChoice(choice: "potent-spellcasting" | "primal-strike") {
-    onPersistCharacter((currentCharacter) =>
-      setDruidElementalFuryChoiceForCharacter(currentCharacter, choice)
-    );
-  }
-
-  function getDruidWildShapeKnownForms(): MonsterRecord[] {
-    return getDruidWildShapeKnownFormsForCharacter(character);
-  }
-
-  function getDruidWildShapeRules() {
-    return getDruidWildShapeRulesForCharacter(character);
-  }
-
-  function updateDruidWildShapeKnownForms(monsters: MonsterRecord[]) {
-    onPersistCharacter((currentCharacter) =>
-      setDruidWildShapeKnownFormsForCharacter(currentCharacter, monsters)
-    );
-  }
-
-  function updateClericBlessedStrikesChoice(choice: "blessed-strike" | "potent-spellcasting") {
-    onPersistCharacter((currentCharacter) =>
-      setClericBlessedStrikesChoiceForCharacter(currentCharacter, choice)
-    );
-  }
-
   function getBarbarianPrimalKnowledgeSelection(): SkillName | null {
     return getBarbarianPrimalKnowledgeSkillSelectionForCharacter(character);
-  }
-
-  function getFighterBanneretKnightlyEnvoyLanguageSelection(): LANGUAGE_PROFICIENCY | null {
-    return getFighterBanneretKnightlyEnvoyLanguageSelectionForCharacter(character);
-  }
-
-  function getAvailableFighterBanneretKnightlyEnvoyLanguages(): LANGUAGE_PROFICIENCY[] {
-    return getSelectableLanguageOptions(
-      character,
-      getFighterBanneretKnightlyEnvoyLanguageSelection()
-    );
-  }
-
-  function updateFighterBanneretKnightlyEnvoyLanguageSelection(nextValue: string) {
-    onPersistCharacter((currentCharacter) =>
-      recomputeCharacterFeatureProficiencies(
-        setFighterBanneretKnightlyEnvoyLanguageSelectionForCharacter(
-          currentCharacter,
-          nextValue.trim().length > 0 ? (nextValue as LANGUAGE_PROFICIENCY) : null
-        )
-      )
-    );
-  }
-
-  function getFighterBanneretKnightlyEnvoySkillSelection(): SkillName | null {
-    return getFighterBanneretKnightlyEnvoySkillSelectionForCharacter(character);
-  }
-
-  function getAvailableFighterBanneretKnightlyEnvoySkills(): SkillName[] {
-    return getSelectableUnproficientSkillOptions(
-      character,
-      fighterBanneretKnightlyEnvoySkillOptions,
-      getFighterBanneretKnightlyEnvoySkillSelection()
-    );
-  }
-
-  function updateFighterBanneretKnightlyEnvoySkillSelection(nextValue: string) {
-    onPersistCharacter((currentCharacter) =>
-      recomputeCharacterFeatureProficiencies(
-        setFighterBanneretKnightlyEnvoySkillSelectionForCharacter(
-          currentCharacter,
-          nextValue.trim().length > 0 ? (nextValue as SkillName) : null
-        )
-      )
-    );
-  }
-
-  function isFighterBanneretKnightlyEnvoyInputRequired(): boolean {
-    return (
-      getFighterBanneretKnightlyEnvoyLanguageSelection() === null ||
-      getFighterBanneretKnightlyEnvoySkillSelection() === null
-    );
-  }
-
-  function getPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection(): SkillName | null {
-    return getPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelectionForCharacter(character);
-  }
-
-  function getAvailablePaladinOathOfTheNobleGeniesGeniesSplendorSkills(): SkillName[] {
-    return getSelectableUnproficientSkillOptions(
-      character,
-      paladinOathOfTheNobleGeniesGeniesSplendorSkillOptions,
-      getPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection()
-    );
-  }
-
-  function updatePaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection(nextValue: string) {
-    onPersistCharacter((currentCharacter) =>
-      recomputeCharacterFeatureProficiencies(
-        setPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelectionForCharacter(
-          currentCharacter,
-          nextValue.trim().length > 0 ? (nextValue as SkillName) : null
-        )
-      )
-    );
-  }
-
-  function isPaladinOathOfTheNobleGeniesGeniesSplendorInputRequired(): boolean {
-    return (
-      getPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection() === null &&
-      getAvailablePaladinOathOfTheNobleGeniesGeniesSplendorSkills().length > 0
-    );
   }
 
   function getBarbarianPrimalKnowledgeOptions() {
@@ -1404,7 +522,7 @@ function ClassFeatureList({
         {features.map((featureRow, index) => {
           const featureDetails = featureRow.details;
           const isUnlocked = featureRow.level <= character.level;
-          const isFeatureExpanded = expandedFeatureKeys.includes(featureRow.key);
+          const isFeatureExpanded = expandedFeatureKeySet.has(featureRow.key);
           const featurePanelId = `class-feature-panel-${featureRow.key}`;
           const linkedFeat = isFeatChoiceFeature(featureRow.feature)
             ? getLinkedFeatForFeature(featureRow.level, featureRow.feature)
@@ -1600,9 +718,11 @@ function ClassFeatureList({
               isWarlockFiendishResilienceInputRequired());
 
           return (
-            <FeatureDisclosureRow
+            <ClassFeatureRow
               key={featureRow.key}
-              as="li"
+              character={character}
+              featureKey={featureRow.key}
+              featureRow={featureRow}
               title={
                 <span className={styles.featureTitleContent}>
                   <span>{`Level ${featureRow.level}: ${formatCodexLabel(featureRow.feature)}`}</span>
@@ -1612,186 +732,185 @@ function ClassFeatureList({
                 </span>
               }
               isExpanded={isFeatureExpanded}
-              onToggle={() => onToggleFeature(featureRow.key)}
+              onToggleFeature={onToggleFeature}
               bodyId={featurePanelId}
               bodyClassName={clsx(
                 featureDisclosureStyles.descriptionList,
                 styles.featureDescriptionList
               )}
               trackingButton={renderTrackingButton(getFeatureTrackingState(featureDetails))}
-              headerMeta={
-                isInputRequired ? (
-                  <InputRequiredBadge />
-                ) : null
-              }
+              headerMeta={isInputRequired ? <InputRequiredBadge /> : null}
+              isInputRequired={isInputRequired}
+              linkedFeat={linkedFeat}
               showDivider={index > 0}
-            >
-              {renderClassFeatureContent({
-                BattleMasterManeuverSelection,
-                CLASS_FEATURE,
-                EldritchInvocationList,
-                FeatureChoiceOptions,
-                FeatureDescriptionLines,
-                Pencil,
-                Plus,
-                SKILL,
-                SelectInput,
-                WizardBladesingerTrainingInWarAndSongFields,
-                WizardSavantFeatureFields,
-                artisanToolProficiencies,
-                blessedStrikesChoice,
-                buildSkillSelectOptions,
-                buildToolSelectOptions,
-                character,
-                clsx,
-                druidElementalFuryChoice,
-                druidWildShapeKnownForms,
-                druidWildShapeRules,
-                featureDetails,
-                featureRow,
-                fighterBanneretKnightlyEnvoySkillOptions,
-                formatCodexLabel,
-                getAvailableBardExpertiseSkills,
-                getAvailableBardLoreBonusProficiencySkills,
-                getAvailableBardMagicalDiscoveriesSpells,
-                getAvailableBardPrimalLoreCantrips,
-                getAvailableBardPrimalLoreSkills,
-                getAvailableFighterBanneretKnightlyEnvoyLanguages,
-                getAvailableFighterBanneretKnightlyEnvoySkills,
-                getAvailableKnowledgeDomainBlessingsSkills,
-                getAvailableKnowledgeDomainBlessingsTools,
-                getAvailableKnowledgeDomainUnfetteredMindSavingThrows,
-                getAvailablePaladinOathOfTheNobleGeniesGeniesSplendorSkills,
-                getAvailableRangerDeftExplorerLanguages,
-                getAvailableRangerDeftExplorerSkills,
-                getAvailableRangerGloomStalkerIronMindSavingThrows,
-                getAvailableRangerLevel9ExpertiseSkills,
-                getAvailableRangerOtherworldlyGlamourSkills,
-                getAvailableRogueExpertiseSkills,
-                getAvailableRogueThievesCantLanguages,
-                getAvailableSorcererMetamagicOptions,
-                getAvailableWarlockMysticArcanumSpells,
-                getAvailableWeaponMasteryOptions,
-                getAvailableWizardScholarSkills,
-                getAvailableWizardSignatureSpells,
-                getAvailableWizardSpellMasterySpells,
-                getBarbarianPrimalKnowledgeOptions,
-                getBarbarianPrimalKnowledgeSelection,
-                getBarbarianWildHeartAspectChoiceForCharacter,
-                getBardExpertiseSelections,
-                getBardLoreBonusProficiencySelections,
-                getBardMagicalDiscoveriesSpellSelections,
-                getBardPrimalLoreCantripSelection,
-                getBardPrimalLoreSkillOptionsForCharacter,
-                getBardPrimalLoreSkillSelection,
-                getClericDivineOrderChoiceForCharacter,
-                getDamageTypeChoiceContent,
-                getDruidCircleOfTheLandChoiceForCharacter,
-                getDruidPrimalOrderChoiceForCharacter,
-                getFighterBanneretKnightlyEnvoyLanguageSelection,
-                getFighterBanneretKnightlyEnvoySkillSelection,
-                getKnowledgeDomainBlessingsSkillSelections,
-                getKnowledgeDomainBlessingsToolSelection,
-                getKnowledgeDomainUnfetteredMindSavingThrowSelection,
-                getPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection,
-                getProficiencyLabel,
-                getRangerDeftExplorerExpertiseSelection,
-                getRangerDeftExplorerLanguageSelections,
-                getRangerFeyWandererGiftSelection,
-                getRangerGloomStalkerIronMindSavingThrowSelection,
-                getRangerHunterDefensiveTacticsChoice,
-                getRangerHunterPreyChoice,
-                getRangerLevel9ExpertiseSelections,
-                getRangerOtherworldlyGlamourSkillSelection,
-                getRogueExpertiseSelections,
-                getRogueScionOfTheThreeDreadAllegianceChoice,
-                getRogueThievesCantLanguageSelection,
-                getSorcererDraconicElementalAffinityDamageTypeSelection,
-                getSorcererMetamagicSelections,
-                getSorcererMetamagicStartIndex,
-                getWarlockFiendishResilienceDamageTypeSelection,
-                getWarlockMysticArcanumSelection,
-                getWarlockMysticArcanumSpellLevel,
-                getWeaponMasterySelectionCountForCharacter,
-                getWeaponMasterySelections,
-                getWeaponProficiencyLabel,
-                getWizardScholarSelection,
-                getWizardSignatureSpellSelections,
-                getWizardSpellMasterySelection,
-                isEldritchInvocationInputRequired,
-                isFeatChoiceFeature,
-                isKnowledgeDomainUnfetteredMindLocked,
-                isRangerGloomStalkerIronMindLocked,
-                isSpellcastingFeatureInputRequired,
-                isUnlocked,
-                isWarlockFiendishResilienceInputRequired,
-                isWizardSavantFeature,
-                learnedInvocationOptions,
-                linkedFeat,
-                linkedFeatDefinition,
-                linkedFeatSummary,
-                eldritchInvocationInputStatus,
-                onOpenDivinityReference,
-                onOpenEldritchInvocationEditor,
-                onOpenFeatEditorForFeature,
-                onOpenFeatReference,
-                onOpenInvocationReference,
-                onOpenKeyword,
-                onOpenSpellReference,
-                onPersistCharacter,
-                paladinOathOfTheNobleGeniesGeniesSplendorSkillOptions,
-                rangerFeyWandererGiftOptions,
-                rangerOtherworldlyGlamourSkillOptions,
-                recomputeCharacterFeatureProficiencies,
-                renderTrackingButton,
-                setIsWildShapeModalOpen,
-                setSelectedWildShapeMonster,
-                shared,
-                skillsOptions,
-                sorcererDraconicElementalAffinityDamageTypeOptions,
-                spellSelectionInputStatus,
-                styles,
-                updateBarbarianPrimalKnowledgeSelection,
-                updateBarbarianWildHeartAspectChoice,
-                updateBardExpertiseSelection,
-                updateBardLoreBonusProficiencySelection,
-                updateBardMagicalDiscoveriesSpellSelection,
-                updateBardPrimalLoreCantripSelection,
-                updateBardPrimalLoreSkillSelection,
-                updateClericBlessedStrikesChoice,
-                updateClericDivineOrderChoice,
-                updateDruidCircleOfTheLandChoice,
-                updateDruidElementalFuryChoice,
-                updateDruidPrimalOrderChoice,
-                updateFighterBanneretKnightlyEnvoyLanguageSelection,
-                updateFighterBanneretKnightlyEnvoySkillSelection,
-                updateKnowledgeDomainBlessingsSkillSelection,
-                updateKnowledgeDomainBlessingsToolSelection,
-                updateKnowledgeDomainUnfetteredMindSavingThrowSelection,
-                updatePaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection,
-                updateRangerDeftExplorerExpertiseSelection,
-                updateRangerDeftExplorerLanguageSelection,
-                updateRangerFeyWandererGiftSelection,
-                updateRangerGloomStalkerIronMindSavingThrowSelection,
-                updateRangerHunterDefensiveTacticsChoice,
-                updateRangerHunterPreyChoice,
-                updateRangerLevel9ExpertiseSelection,
-                updateRangerOtherworldlyGlamourSkillSelection,
-                updateRogueExpertiseSelection,
-                updateRogueScionOfTheThreeDreadAllegianceChoice,
-                updateRogueThievesCantLanguageSelection,
-                updateSorcererDraconicElementalAffinityDamageTypeSelection,
-                updateSorcererMetamagicSelection,
-                updateWarlockFiendishResilienceDamageTypeSelection,
-                updateWarlockMysticArcanumSelection,
-                updateWeaponMasterySelection,
-                updateWizardScholarSelection,
-                updateWizardSignatureSpellSelection,
-                updateWizardSpellMasterySelection,
-                warlockFiendPatronFiendishResilienceDamageTypeOptions,
-                wizardScholarSkillOptions
-              })}
-            </FeatureDisclosureRow>
+              renderBody={() =>
+                renderClassFeatureContent({
+                  BattleMasterManeuverSelection,
+                  CLASS_FEATURE,
+                  EldritchInvocationList,
+                  FeatureChoiceOptions,
+                  FeatureDescriptionLines,
+                  Pencil,
+                  Plus,
+                  SKILL,
+                  SelectInput,
+                  WizardBladesingerTrainingInWarAndSongFields,
+                  WizardSavantFeatureFields,
+                  artisanToolProficiencies,
+                  blessedStrikesChoice,
+                  buildSkillSelectOptions,
+                  buildToolSelectOptions,
+                  character,
+                  clsx,
+                  druidElementalFuryChoice,
+                  druidWildShapeKnownForms,
+                  druidWildShapeRules,
+                  featureDetails,
+                  featureRow,
+                  fighterBanneretKnightlyEnvoySkillOptions,
+                  formatCodexLabel,
+                  getAvailableBardExpertiseSkills,
+                  getAvailableBardLoreBonusProficiencySkills,
+                  getAvailableBardMagicalDiscoveriesSpells,
+                  getAvailableBardPrimalLoreCantrips,
+                  getAvailableBardPrimalLoreSkills,
+                  getAvailableFighterBanneretKnightlyEnvoyLanguages,
+                  getAvailableFighterBanneretKnightlyEnvoySkills,
+                  getAvailableKnowledgeDomainBlessingsSkills,
+                  getAvailableKnowledgeDomainBlessingsTools,
+                  getAvailableKnowledgeDomainUnfetteredMindSavingThrows,
+                  getAvailablePaladinOathOfTheNobleGeniesGeniesSplendorSkills,
+                  getAvailableRangerDeftExplorerLanguages,
+                  getAvailableRangerDeftExplorerSkills,
+                  getAvailableRangerGloomStalkerIronMindSavingThrows,
+                  getAvailableRangerLevel9ExpertiseSkills,
+                  getAvailableRangerOtherworldlyGlamourSkills,
+                  getAvailableRogueExpertiseSkills,
+                  getAvailableRogueThievesCantLanguages,
+                  getAvailableSorcererMetamagicOptions,
+                  getAvailableWarlockMysticArcanumSpells,
+                  getAvailableWeaponMasteryOptions,
+                  getAvailableWizardScholarSkills,
+                  getAvailableWizardSignatureSpells,
+                  getAvailableWizardSpellMasterySpells,
+                  getBarbarianPrimalKnowledgeOptions,
+                  getBarbarianPrimalKnowledgeSelection,
+                  getBarbarianWildHeartAspectChoiceForCharacter,
+                  getBardExpertiseSelections,
+                  getBardLoreBonusProficiencySelections,
+                  getBardMagicalDiscoveriesSpellSelections,
+                  getBardPrimalLoreCantripSelection,
+                  getBardPrimalLoreSkillOptionsForCharacter,
+                  getBardPrimalLoreSkillSelection,
+                  getClericDivineOrderChoiceForCharacter,
+                  getDamageTypeChoiceContent,
+                  getDruidCircleOfTheLandChoiceForCharacter,
+                  getDruidPrimalOrderChoiceForCharacter,
+                  getFighterBanneretKnightlyEnvoyLanguageSelection,
+                  getFighterBanneretKnightlyEnvoySkillSelection,
+                  getKnowledgeDomainBlessingsSkillSelections,
+                  getKnowledgeDomainBlessingsToolSelection,
+                  getKnowledgeDomainUnfetteredMindSavingThrowSelection,
+                  getPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection,
+                  getProficiencyLabel,
+                  getRangerDeftExplorerExpertiseSelection,
+                  getRangerDeftExplorerLanguageSelections,
+                  getRangerFeyWandererGiftSelection,
+                  getRangerGloomStalkerIronMindSavingThrowSelection,
+                  getRangerHunterDefensiveTacticsChoice,
+                  getRangerHunterPreyChoice,
+                  getRangerLevel9ExpertiseSelections,
+                  getRangerOtherworldlyGlamourSkillSelection,
+                  getRogueExpertiseSelections,
+                  getRogueScionOfTheThreeDreadAllegianceChoice,
+                  getRogueThievesCantLanguageSelection,
+                  getSorcererDraconicElementalAffinityDamageTypeSelection,
+                  getSorcererMetamagicSelections,
+                  getSorcererMetamagicStartIndex,
+                  getWarlockFiendishResilienceDamageTypeSelection,
+                  getWarlockMysticArcanumSelection,
+                  getWarlockMysticArcanumSpellLevel,
+                  getWeaponMasterySelectionCountForCharacter,
+                  getWeaponMasterySelections,
+                  getWeaponProficiencyLabel,
+                  getWizardScholarSelection,
+                  getWizardSignatureSpellSelections,
+                  getWizardSpellMasterySelection,
+                  isEldritchInvocationInputRequired,
+                  isFeatChoiceFeature,
+                  isKnowledgeDomainUnfetteredMindLocked,
+                  isRangerGloomStalkerIronMindLocked,
+                  isSpellcastingFeatureInputRequired,
+                  isUnlocked,
+                  isWarlockFiendishResilienceInputRequired,
+                  isWizardSavantFeature,
+                  learnedInvocationOptions,
+                  linkedFeat,
+                  linkedFeatDefinition,
+                  linkedFeatSummary,
+                  eldritchInvocationInputStatus,
+                  onOpenDivinityReference,
+                  onOpenEldritchInvocationEditor,
+                  onOpenFeatEditorForFeature,
+                  onOpenFeatReference,
+                  onOpenInvocationReference,
+                  onOpenKeyword,
+                  onOpenSpellReference,
+                  onPersistCharacter,
+                  paladinOathOfTheNobleGeniesGeniesSplendorSkillOptions,
+                  rangerFeyWandererGiftOptions,
+                  rangerOtherworldlyGlamourSkillOptions,
+                  recomputeCharacterFeatureProficiencies,
+                  renderTrackingButton,
+                  setIsWildShapeModalOpen,
+                  setSelectedWildShapeMonster,
+                  shared,
+                  skillsOptions,
+                  sorcererDraconicElementalAffinityDamageTypeOptions,
+                  spellSelectionInputStatus,
+                  styles,
+                  updateBarbarianPrimalKnowledgeSelection,
+                  updateBarbarianWildHeartAspectChoice,
+                  updateBardExpertiseSelection,
+                  updateBardLoreBonusProficiencySelection,
+                  updateBardMagicalDiscoveriesSpellSelection,
+                  updateBardPrimalLoreCantripSelection,
+                  updateBardPrimalLoreSkillSelection,
+                  updateClericBlessedStrikesChoice,
+                  updateClericDivineOrderChoice,
+                  updateDruidCircleOfTheLandChoice,
+                  updateDruidElementalFuryChoice,
+                  updateDruidPrimalOrderChoice,
+                  updateFighterBanneretKnightlyEnvoyLanguageSelection,
+                  updateFighterBanneretKnightlyEnvoySkillSelection,
+                  updateKnowledgeDomainBlessingsSkillSelection,
+                  updateKnowledgeDomainBlessingsToolSelection,
+                  updateKnowledgeDomainUnfetteredMindSavingThrowSelection,
+                  updatePaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection,
+                  updateRangerDeftExplorerExpertiseSelection,
+                  updateRangerDeftExplorerLanguageSelection,
+                  updateRangerFeyWandererGiftSelection,
+                  updateRangerGloomStalkerIronMindSavingThrowSelection,
+                  updateRangerHunterDefensiveTacticsChoice,
+                  updateRangerHunterPreyChoice,
+                  updateRangerLevel9ExpertiseSelection,
+                  updateRangerOtherworldlyGlamourSkillSelection,
+                  updateRogueExpertiseSelection,
+                  updateRogueScionOfTheThreeDreadAllegianceChoice,
+                  updateRogueThievesCantLanguageSelection,
+                  updateSorcererDraconicElementalAffinityDamageTypeSelection,
+                  updateSorcererMetamagicSelection,
+                  updateWarlockFiendishResilienceDamageTypeSelection,
+                  updateWarlockMysticArcanumSelection,
+                  updateWeaponMasterySelection,
+                  updateWizardScholarSelection,
+                  updateWizardSignatureSpellSelection,
+                  updateWizardSpellMasterySelection,
+                  warlockFiendPatronFiendishResilienceDamageTypeOptions,
+                  wizardScholarSkillOptions
+                })
+              }
+            />
           );
         })}
       </ul>

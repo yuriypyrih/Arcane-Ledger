@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { Pencil, X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ComponentProps } from "react";
 import ActionShape, { getActionShapeForCastingTime } from "../../../ActionShape";
 import CellContainer from "../../../CellContainer/CellContainer";
 import DivinityListRow from "../../../DivinityListRow/DivinityListRow";
@@ -131,9 +131,7 @@ import {
   usesSpellbookForCharacter,
   usesPreparedSpellsForCharacter
 } from "../../../../pages/CharactersPage/spellcasting";
-import {
-  hasSpellcastingForCharacter
-} from "../../../../pages/CharactersPage/spellcastingAvailability";
+import { hasSpellcastingForCharacter } from "../../../../pages/CharactersPage/spellcastingAvailability";
 import { getSpellSelectionInputStatusForCharacter } from "../../../../pages/CharactersPage/spellSelection";
 import {
   consumeFeyTouchedFreeCastForCharacter,
@@ -236,6 +234,7 @@ type SpellGroup = {
 };
 
 type SelectedSpellViewMode = CharacterSpellDrawerMode;
+type SpellListRowActionShapes = ComponentProps<typeof SpellListRow>["actionShapes"];
 
 function grantMonkFleetStepFollowUpForSpellCastIfEligible(
   character: Character,
@@ -968,16 +967,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     [character]
   );
   const hasSpellSelectionInputRequired = spellSelectionInputStatus.hasInputRequired;
-  const spellOutcomeSummariesById = useMemo(
+  const visibleSpellOutcomeSummariesById = useMemo(
     () =>
       new Map(
-        [
-          ...classSpellEntries,
-          ...featGrantedCantripEntries,
-          ...speciesGrantedCantripEntries,
-          ...preparedSpellPoolEntries,
-          ...alwaysPreparedSpellEntries
-        ].map((spell) => [
+        visibleSpellEntries.map((spell) => [
           spell.id,
           getSpellOutcomeSummaryForCharacter(
             character,
@@ -986,16 +979,37 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           )
         ])
       ),
-    [
-      alwaysPreparedSpellEntries,
-      character,
-      classSpellEntries,
-      featGrantedCantripEntries,
-      getSpellcastingAbilityOverrideForSpell,
-      speciesGrantedCantripEntries,
-      preparedSpellPoolEntries
-    ]
+    [character, getSpellcastingAbilityOverrideForSpell, visibleSpellEntries]
   );
+  const spellManagementOutcomeSummariesById = useMemo(() => {
+    if (!isSpellManagementModalOpen) {
+      return new Map<string, string>();
+    }
+
+    const spellsById = new Map<string, SpellEntry>();
+
+    [...cantripOptions, ...spellPreparationOptions].forEach((spell) => {
+      spellsById.set(spell.id, spellbookSpellEntriesById.get(spell.id) ?? spell);
+    });
+
+    return new Map(
+      [...spellsById.values()].map((spell) => [
+        spell.id,
+        getSpellOutcomeSummaryForCharacter(
+          character,
+          spell,
+          getSpellcastingAbilityOverrideForSpell(spell.id)
+        )
+      ])
+    );
+  }, [
+    cantripOptions,
+    character,
+    getSpellcastingAbilityOverrideForSpell,
+    isSpellManagementModalOpen,
+    spellPreparationOptions,
+    spellbookSpellEntriesById
+  ]);
 
   const roundTracker = useMemo(
     () => normalizeRoundTracker(character.roundTracker),
@@ -1264,9 +1278,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         selectedSpellMagicInitiateAbility
       )
     : null;
-  const selectedSpellGoliathAncestryState = selectedSpell?.isAttackSpell === true
-    ? getGoliathAttackOptionStateForCharacter(character)
-    : null;
+  const selectedSpellGoliathAncestryState =
+    selectedSpell?.isAttackSpell === true
+      ? getGoliathAttackOptionStateForCharacter(character)
+      : null;
   const selectedSpellSupportsGoliathAncestry = selectedSpellGoliathAncestryState !== null;
   const selectedSpellGoliathAncestryDisabled = selectedSpellGoliathAncestryState?.disabled ?? false;
   const selectedSpellDamageDetailOverride = useMemo(() => {
@@ -1742,22 +1757,49 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     }
   }, [selectedSpellFrozenHauntFallbackSlotLevelIsValid, selectedSpellFrozenHauntOptionState]);
 
-  function getSpellRowActionShapes(spell: SpellEntry) {
-    return getSpellActionPathStates(character, spell, roundTracker)
-      .map((path) => {
-        const actionShape = getActionShapeForEconomyType(path.economyType);
+  const getSpellRowActionShapes = useCallback(
+    (spell: SpellEntry): SpellListRowActionShapes =>
+      getSpellActionPathStates(character, spell, roundTracker)
+        .map((path) => {
+          const actionShape = getActionShapeForEconomyType(path.economyType);
 
-        return actionShape
-          ? {
-              key: path.id,
-              shape: actionShape,
-              isSelected: path.shapeState.isAvailable,
-              multiCount: path.shapeState.multiCount
-            }
-          : null;
-      })
-      .filter((path): path is NonNullable<typeof path> => path !== null);
-  }
+          return actionShape
+            ? {
+                key: path.id,
+                shape: actionShape,
+                isSelected: path.shapeState.isAvailable,
+                multiCount: path.shapeState.multiCount
+              }
+            : null;
+        })
+        .filter((path): path is NonNullable<typeof path> => path !== null),
+    [character, roundTracker]
+  );
+  const spellActionShapesById = useMemo(
+    () => new Map(visibleSpellEntries.map((spell) => [spell.id, getSpellRowActionShapes(spell)])),
+    [getSpellRowActionShapes, visibleSpellEntries]
+  );
+  const spellManagementSpellActionShapesById = useMemo(() => {
+    if (!isSpellManagementModalOpen) {
+      return new Map<string, SpellListRowActionShapes>();
+    }
+
+    const spellsById = new Map<string, SpellEntry>();
+
+    [...cantripOptions, ...spellPreparationOptions].forEach((spell) => {
+      spellsById.set(spell.id, spellbookSpellEntriesById.get(spell.id) ?? spell);
+    });
+
+    return new Map(
+      [...spellsById.values()].map((spell) => [spell.id, getSpellRowActionShapes(spell)])
+    );
+  }, [
+    cantripOptions,
+    getSpellRowActionShapes,
+    isSpellManagementModalOpen,
+    spellPreparationOptions,
+    spellbookSpellEntriesById
+  ]);
 
   function getDivinityRowActionShapeState(row: ChannelDivinityOptionRow) {
     return getActionShapeStateForRoundTrackerResource(
@@ -2258,7 +2300,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     getActionShapeForEconomyType,
     getDivinityDrawerValueLabel,
     getDivinityRowActionShapeState,
-    getSpellRowActionShapes,
     hasSpellManagementOptions,
     hasSpellSelectionInputRequired,
     highestSpellSlotLevel,
@@ -2290,6 +2331,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedFrozenHauntFallbackSlotLevel,
     selectedManualSpellbookSpellIds,
     selectedPreparedSpellIds,
+    spellActionShapesById,
+    spellManagementOutcomeSummariesById,
+    spellManagementSpellActionShapesById,
     selectedSpell,
     selectedSpellActionPaths,
     selectedSpellAlwaysPrepared,
@@ -2414,7 +2458,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     sheetStyles,
     sorceryPointsRemaining,
     sorceryPointsTotal,
-    spellOutcomeSummariesById,
+    spellOutcomeSummariesById: visibleSpellOutcomeSummariesById,
     spellPreparationOptions,
     spellSlotLevels,
     spellSlotTotals,

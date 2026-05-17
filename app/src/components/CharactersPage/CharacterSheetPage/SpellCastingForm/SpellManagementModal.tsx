@@ -54,7 +54,6 @@ type SpellManagementModalProps = {
   alwaysSpellbookSpellIds: string[];
   cantripLimit: number | null;
   cantripOptions: SpellEntry[];
-  getSpellRowActionShapes: (spell: SpellEntry) => SpellListRowActionShapes;
   highestSpellSlotLevel: number;
   knownSpellEntriesById: Map<string, SpellEntry>;
   onClose: () => void;
@@ -64,6 +63,7 @@ type SpellManagementModalProps = {
   selectedCantripIds: string[];
   selectedManualSpellbookSpellIds: string[];
   selectedPreparedSpellIds: string[];
+  spellActionShapesById: Map<string, SpellListRowActionShapes>;
   spellbookSpellEntriesById: Map<string, SpellEntry>;
   spellOutcomeSummariesById: Map<string, string>;
   spellPreparationOptions: SpellEntry[];
@@ -130,7 +130,6 @@ function SpellManagementModal({
   alwaysSpellbookSpellIds,
   cantripLimit,
   cantripOptions,
-  getSpellRowActionShapes,
   highestSpellSlotLevel,
   knownSpellEntriesById,
   onClose,
@@ -140,6 +139,7 @@ function SpellManagementModal({
   selectedCantripIds,
   selectedManualSpellbookSpellIds,
   selectedPreparedSpellIds,
+  spellActionShapesById,
   spellbookSpellEntriesById,
   spellOutcomeSummariesById,
   spellPreparationOptions,
@@ -245,11 +245,7 @@ function SpellManagementModal({
   const isPreparedSpellLimitReached =
     preparedSpellLimit !== null && preparedSpellCount >= preparedSpellLimit;
   const modalTitle =
-    mode === "menu"
-      ? "Spell options"
-      : mode === "cantrips"
-        ? "Manage cantrips"
-        : "Prepare spells";
+    mode === "menu" ? "Spell options" : mode === "cantrips" ? "Manage cantrips" : "Prepare spells";
 
   const commitAndClose = useCallback(() => {
     if (isCommittingRef.current) {
@@ -453,9 +449,7 @@ function SpellManagementModal({
       onEscape={suspendEscapeClose ? ignoreModalEscapeClose : commitAndClose}
       isBusy={isCommitting}
       busyLabel="Saving spell choices"
-      panelClassName={
-        isSpellSelectionMode ? styles.spellManagementModalPanelFullHeight : undefined
-      }
+      panelClassName={isSpellSelectionMode ? styles.spellManagementModalPanelFullHeight : undefined}
       size="medium"
     >
       <OverlayHeader>
@@ -566,7 +560,7 @@ function SpellManagementModal({
                       {group.spells.map((spell) => {
                         const isChecked = cantripDraftSet.has(spell.id);
                         const isDisabled = !isChecked && isCantripLimitReached;
-                        const actionShapes = getSpellRowActionShapes(spell);
+                        const actionShapes = spellActionShapesById.get(spell.id) ?? [];
 
                         return (
                           <li key={spell.id}>
@@ -630,11 +624,7 @@ function SpellManagementModal({
 
             <div className={styles.preparedSpellTabRow}>
               <span className={styles.preparedSpellTabLabel}>Level</span>
-              <div
-                className={styles.preparedSpellTabList}
-                role="tablist"
-                aria-label="Spell levels"
-              >
+              <div className={styles.preparedSpellTabList} role="tablist" aria-label="Spell levels">
                 {spellSlotLevels.map((level) => {
                   const selectedCount = preparedSpellDraftCountsByLevel[level] ?? 0;
                   const isDisabled = level > highestSpellSlotLevel;
@@ -692,7 +682,7 @@ function SpellManagementModal({
                     const isDisabled =
                       !usesSpellbook &&
                       (isAlwaysPrepared || (!isChecked && isPreparedSpellLimitReached));
-                    const actionShapes = getSpellRowActionShapes(spell);
+                    const actionShapes = spellActionShapesById.get(spell.id) ?? [];
 
                     return (
                       <li key={spell.id}>

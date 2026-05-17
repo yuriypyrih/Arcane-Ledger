@@ -346,6 +346,10 @@ function ClassFeaturesAndFeats({
   const speciesEntry = useMemo(() => getSpeciesEntryByName(character.species), [character.species]);
   const selectedSpeciesEntry = isSpeciesReferenceOpen ? speciesEntry : null;
   const fightingStyleExtraFeatOptions = useMemo(() => {
+    if (!isFeatModalOpen) {
+      return [];
+    }
+
     if (
       featEditorContext.mode === "class-feature" &&
       featEditorContext.source.feature === CLASS_FEATURE.FIGHTING_STYLE &&
@@ -363,86 +367,102 @@ function ClassFeaturesAndFeats({
     }
 
     return [];
-  }, [character.className, featEditorContext]);
-  const visibleFeatDefinitionsByCategory = useMemo(
-    () =>
-      featCategoryTabs.reduce<
-        Record<FEAT_CATEGORY, (typeof featDefinitionsByCategory)[FEAT_CATEGORY.GENERAL]>
-      >(
-        (groups, category) => {
-          const additionalFightingStyleFeatSet = new Set(fightingStyleExtraFeatOptions);
+  }, [character.className, featEditorContext, isFeatModalOpen]);
+  const visibleFeatDefinitionsByCategory = useMemo(() => {
+    const emptyGroups: Record<
+      FEAT_CATEGORY,
+      (typeof featDefinitionsByCategory)[FEAT_CATEGORY.GENERAL]
+    > = {
+      [FEAT_CATEGORY.ORIGIN]: [],
+      [FEAT_CATEGORY.GENERAL]: [],
+      [FEAT_CATEGORY.FIGHTING_STYLE]: [],
+      [FEAT_CATEGORY.EPIC_BOON]: []
+    };
 
-          groups[category] = featDefinitionsByCategory[category]
-            .filter((definition) => {
-              const isFightingStyleContext =
-                featEditorContext.mode === "class-feature" &&
-                (featEditorContext.source.feature === CLASS_FEATURE.FIGHTING_STYLE ||
-                  featEditorContext.source.feature === CLASS_FEATURE.ADDITIONAL_FIGHTING_STYLE);
+    if (!isFeatModalOpen) {
+      return emptyGroups;
+    }
 
-              if (definition.feat === FEATS.BLESSED_WARRIOR) {
-                return (
-                  featEditorContext.mode === "class-feature" &&
-                  featEditorContext.source.feature === CLASS_FEATURE.FIGHTING_STYLE &&
-                  character.className === "Paladin"
-                );
-              }
+    return featCategoryTabs.reduce<
+      Record<FEAT_CATEGORY, (typeof featDefinitionsByCategory)[FEAT_CATEGORY.GENERAL]>
+    >((groups, category) => {
+      const additionalFightingStyleFeatSet = new Set(fightingStyleExtraFeatOptions);
 
-              if (definition.feat === FEATS.DRUIDIC_WARRIOR) {
-                return (
-                  featEditorContext.mode === "class-feature" &&
-                  featEditorContext.source.feature === CLASS_FEATURE.FIGHTING_STYLE &&
-                  character.className === "Ranger"
-                );
-              }
+      groups[category] = featDefinitionsByCategory[category]
+        .filter((definition) => {
+          const isFightingStyleContext =
+            featEditorContext.mode === "class-feature" &&
+            (featEditorContext.source.feature === CLASS_FEATURE.FIGHTING_STYLE ||
+              featEditorContext.source.feature === CLASS_FEATURE.ADDITIONAL_FIGHTING_STYLE);
 
-              if (isFightingStyleContext) {
-                return (
-                  definition.category === FEAT_CATEGORY.FIGHTING_STYLE ||
-                  additionalFightingStyleFeatSet.has(definition.feat)
-                );
-              }
+          if (definition.feat === FEATS.BLESSED_WARRIOR) {
+            return (
+              featEditorContext.mode === "class-feature" &&
+              featEditorContext.source.feature === CLASS_FEATURE.FIGHTING_STYLE &&
+              character.className === "Paladin"
+            );
+          }
 
-              return true;
-            })
-            .sort((left, right) => left.label.localeCompare(right.label));
+          if (definition.feat === FEATS.DRUIDIC_WARRIOR) {
+            return (
+              featEditorContext.mode === "class-feature" &&
+              featEditorContext.source.feature === CLASS_FEATURE.FIGHTING_STYLE &&
+              character.className === "Ranger"
+            );
+          }
 
-          return groups;
-        },
-        {
-          [FEAT_CATEGORY.ORIGIN]: [],
-          [FEAT_CATEGORY.GENERAL]: [],
-          [FEAT_CATEGORY.FIGHTING_STYLE]: [],
-          [FEAT_CATEGORY.EPIC_BOON]: []
-        }
-      ),
-    [
-      character.className,
-      featDefinitionsByCategory,
-      featEditorContext,
-      fightingStyleExtraFeatOptions
-    ]
-  );
+          if (isFightingStyleContext) {
+            return (
+              definition.category === FEAT_CATEGORY.FIGHTING_STYLE ||
+              additionalFightingStyleFeatSet.has(definition.feat)
+            );
+          }
+
+          return true;
+        })
+        .sort((left, right) => left.label.localeCompare(right.label));
+
+      return groups;
+    }, emptyGroups);
+  }, [
+    character.className,
+    featDefinitionsByCategory,
+    featEditorContext,
+    fightingStyleExtraFeatOptions,
+    isFeatModalOpen
+  ]);
   const visibleFeatCategories = useMemo(
     () =>
-      featCategoryTabs.filter((category) => visibleFeatDefinitionsByCategory[category].length > 0),
-    [visibleFeatDefinitionsByCategory]
+      isFeatModalOpen
+        ? featCategoryTabs.filter(
+            (category) => visibleFeatDefinitionsByCategory[category].length > 0
+          )
+        : [],
+    [isFeatModalOpen, visibleFeatDefinitionsByCategory]
   );
-  const featEligibilityCharacter = useMemo<Character>(
-    () => ({
-      ...character,
-      level:
-        featEditorContext.mode === "class-feature"
-          ? featEditorContext.source.level
-          : character.level,
-      feats: featEditorDraft.feats,
-      armorProficiencies: featEditorDraft.armorProficiencies,
-      skillProficiencies: featEditorDraft.skillProficiencies,
-      toolProficiencies: featEditorDraft.toolProficiencies,
-      weaponProficiencies: featEditorDraft.weaponProficiencies
-    }),
-    [character, featEditorContext, featEditorDraft]
+  const featEligibilityCharacter = useMemo<Character | null>(
+    () =>
+      isFeatModalOpen
+        ? {
+            ...character,
+            level:
+              featEditorContext.mode === "class-feature"
+                ? featEditorContext.source.level
+                : character.level,
+            feats: featEditorDraft.feats,
+            armorProficiencies: featEditorDraft.armorProficiencies,
+            skillProficiencies: featEditorDraft.skillProficiencies,
+            toolProficiencies: featEditorDraft.toolProficiencies,
+            weaponProficiencies: featEditorDraft.weaponProficiencies
+          }
+        : null,
+    [character, featEditorContext, featEditorDraft, isFeatModalOpen]
   );
   const featEligibilityByFeat = useMemo<FeatEligibilityByFeat>(() => {
+    if (!featEligibilityCharacter) {
+      return {};
+    }
+
     return featCategoryTabs.reduce<FeatEligibilityByFeat>((eligibilityByFeat, category) => {
       visibleFeatDefinitionsByCategory[category].forEach((definition) => {
         eligibilityByFeat[definition.feat] = getFeatEligibilityForCharacter(
@@ -473,12 +493,16 @@ function ClassFeaturesAndFeats({
   }, [isExpanded]);
 
   useEffect(() => {
+    if (!isFeatModalOpen) {
+      return;
+    }
+
     if (visibleFeatCategories.includes(activeFeatCategory)) {
       return;
     }
 
     setActiveFeatCategory(visibleFeatCategories[0] ?? FEAT_CATEGORY.GENERAL);
-  }, [activeFeatCategory, visibleFeatCategories]);
+  }, [activeFeatCategory, isFeatModalOpen, visibleFeatCategories]);
 
   function resetPendingFeatState() {
     setPendingFeatState(createEmptyPendingFeatState());
@@ -520,9 +544,11 @@ function ClassFeaturesAndFeats({
   function isFeatEligibleForCurrentEditor(feat: FEATS): boolean {
     const definition = getFeatDefinition(feat);
 
-    return definition
-      ? getFeatEligibilityForCharacter(featEligibilityCharacter, definition).isEligible
-      : false;
+    if (!definition || !featEligibilityCharacter) {
+      return false;
+    }
+
+    return getFeatEligibilityForCharacter(featEligibilityCharacter, definition).isEligible;
   }
 
   function getLinkedFeatForFeature(

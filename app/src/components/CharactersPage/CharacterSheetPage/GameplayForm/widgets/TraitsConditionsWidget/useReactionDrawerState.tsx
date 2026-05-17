@@ -126,45 +126,21 @@ export function useReactionDrawerState({
   const [useStepsOfTheFeyOnReactionSpell, setUseStepsOfTheFeyOnReactionSpell] = useState(false);
   const [spellThiefSearchQuery, setSpellThiefSearchQuery] = useState("");
   const [selectedSpellThiefSpellId, setSelectedSpellThiefSpellId] = useState("");
+  const selectedReactionEntryId = selectedReactionEntry?.id ?? null;
+  const isSpellThiefReactionSelected =
+    selectedReactionEntryId === rogueArcaneTricksterSpellThiefReactionId;
+  const isSongOfDefenseReactionSelected =
+    selectedReactionEntryId === wizardBladesingerSongOfDefenseReactionId;
 
-  const allSpellEntries = useMemo(
-    () =>
-      getSpellEntries()
-        .slice()
-        .sort((left, right) => left.name.localeCompare(right.name)),
-    []
-  );
-  const beguilingMagicUsesTotal = useMemo(
-    () => getBeguilingMagicUsesTotalForCharacter(character),
-    [character]
-  );
-  const beguilingMagicUsesRemaining = useMemo(
-    () => getBeguilingMagicUsesRemainingForCharacter(character),
-    [character]
-  );
-  const bardicInspirationUsesRemaining = useMemo(
-    () => getBardicInspirationUsesRemainingForCharacter(character),
-    [character]
-  );
-  const bardicInspirationUsesTotal = useMemo(
-    () => getBardicInspirationUsesTotalForCharacter(character),
-    [character]
-  );
-  const warlockStepsOfTheFeyUsesTotal = getWarlockStepsOfTheFeyUsesTotalForCharacter(character);
-  const warlockStepsOfTheFeyUsesRemaining =
-    getWarlockStepsOfTheFeyUsesRemainingForCharacter(character);
-  const warlockBeguilingDefenseUsesTotal =
-    getWarlockBeguilingDefenseUsesTotalForCharacter(character);
-  const warlockBeguilingDefenseUsesRemaining =
-    getWarlockBeguilingDefenseUsesRemainingForCharacter(character);
-  const warlockPactMagicSlotTotal = getWarlockPactMagicSlotTotalForCharacter(character);
-  const warlockPactMagicSlotsRemaining = getWarlockPactMagicSlotsRemainingForCharacter(character);
-  const wizardIllusionistIllusorySelfUsesTotal =
-    getWizardIllusionistIllusorySelfUsesTotalForCharacter(character);
-  const wizardIllusionistIllusorySelfUsesRemaining =
-    getWizardIllusionistIllusorySelfUsesRemainingForCharacter(character);
-  const wizardIllusionistIllusorySelfFallbackSlotSummary =
-    getWizardIllusionistIllusorySelfFallbackSlotSummaryForCharacter(character);
+  const allSpellEntries = useMemo(() => {
+    if (!isSpellThiefReactionSelected) {
+      return [];
+    }
+
+    return getSpellEntries()
+      .slice()
+      .sort((left, right) => left.name.localeCompare(right.name));
+  }, [isSpellThiefReactionSelected]);
   const selectedFeatureReactionSpellPreview = useMemo(() => {
     if (!selectedReactionEntry) {
       return null;
@@ -182,6 +158,22 @@ export function useReactionDrawerState({
       ? (classSpellEntriesById.get(selectedStatusEntry.sourceId.replace(/^reaction-spell-/, "")) ??
         null)
       : selectedFeatureReactionSpell;
+  const beguilingMagicUsesTotal =
+    selectedReactionSpell !== null ? getBeguilingMagicUsesTotalForCharacter(character) : 0;
+  const beguilingMagicUsesRemaining =
+    selectedReactionSpell !== null ? getBeguilingMagicUsesRemainingForCharacter(character) : 0;
+  const bardicInspirationUsesRemaining =
+    selectedReactionSpell !== null ? getBardicInspirationUsesRemainingForCharacter(character) : 0;
+  const bardicInspirationUsesTotal =
+    selectedReactionSpell !== null ? getBardicInspirationUsesTotalForCharacter(character) : 0;
+  const warlockStepsOfTheFeyUsesTotal =
+    selectedReactionSpell?.id === mistyStepSpellId
+      ? getWarlockStepsOfTheFeyUsesTotalForCharacter(character)
+      : 0;
+  const warlockStepsOfTheFeyUsesRemaining =
+    selectedReactionSpell?.id === mistyStepSpellId
+      ? getWarlockStepsOfTheFeyUsesRemainingForCharacter(character)
+      : 0;
   const selectedReactionSpellSupportsBeguilingMagic =
     selectedReactionSpell !== null &&
     beguilingMagicUsesTotal > 0 &&
@@ -191,41 +183,108 @@ export function useReactionDrawerState({
     selectedReactionSpell?.id === mistyStepSpellId && warlockStepsOfTheFeyUsesTotal > 0;
   const selectedReactionSpellStepsOfTheFeyDisabled =
     selectedReactionSpellSupportsStepsOfTheFey && warlockStepsOfTheFeyUsesRemaining <= 0;
-  const availableSongOfDefenseSpellSlotLevels = useMemo(
-    () =>
-      [1, 2, 3, 4, 5, 6, 7, 8, 9].filter(
-        (slotLevel) => (spellSlotsRemaining[slotLevel - 1] ?? 0) > 0
-      ),
-    [spellSlotsRemaining]
-  );
+  const availableSongOfDefenseSpellSlotLevels = useMemo(() => {
+    if (!isSongOfDefenseReactionSelected) {
+      return [];
+    }
+
+    return [1, 2, 3, 4, 5, 6, 7, 8, 9].filter(
+      (slotLevel) => (spellSlotsRemaining[slotLevel - 1] ?? 0) > 0
+    );
+  }, [isSongOfDefenseReactionSelected, spellSlotsRemaining]);
   const selectedSongOfDefenseDamageReduction =
     Math.max(1, Math.min(9, Math.floor(selectedSongOfDefenseSpellSlotLevel || 1))) * 5;
-  const cosmicOmenUsesRemaining = getDruidCosmicOmenUsesRemainingForCharacter(character);
-  const cosmicOmenUsesTotal = getDruidCosmicOmenUsesTotalForCharacter(character);
-  const selectedCosmicOmenSelection = getDruidCosmicOmenSelectionForCharacter(character) ?? "weal";
-  const spellThiefUsesRemaining = getRogueSpellThiefUsesRemainingForCharacter(character);
-  const spellThiefUsesTotal = getRogueSpellThiefUsesTotalForCharacter(character);
-  const gloriousDefenseUsesRemaining = getGloriousDefenseUsesRemainingForCharacter(character);
-  const gloriousDefenseUsesTotal = getGloriousDefenseUsesTotalForCharacter(character);
-  const elementalRebukeUsesRemaining = getElementalRebukeUsesRemainingForCharacter(character);
-  const elementalRebukeUsesTotal = getElementalRebukeUsesTotalForCharacter(character);
+  const cosmicOmenUsesRemaining = selectedReactionEntry
+    ? getDruidCosmicOmenUsesRemainingForCharacter(character)
+    : 0;
+  const cosmicOmenUsesTotal = selectedReactionEntry
+    ? getDruidCosmicOmenUsesTotalForCharacter(character)
+    : 0;
+  const selectedCosmicOmenSelection = selectedReactionEntry
+    ? (getDruidCosmicOmenSelectionForCharacter(character) ?? "weal")
+    : "weal";
+  const spellThiefUsesRemaining = isSpellThiefReactionSelected
+    ? getRogueSpellThiefUsesRemainingForCharacter(character)
+    : 0;
+  const spellThiefUsesTotal = isSpellThiefReactionSelected
+    ? getRogueSpellThiefUsesTotalForCharacter(character)
+    : 0;
+  const gloriousDefenseUsesRemaining = selectedReactionEntry
+    ? getGloriousDefenseUsesRemainingForCharacter(character)
+    : 0;
+  const gloriousDefenseUsesTotal = selectedReactionEntry
+    ? getGloriousDefenseUsesTotalForCharacter(character)
+    : 0;
+  const elementalRebukeUsesRemaining = selectedReactionEntry
+    ? getElementalRebukeUsesRemainingForCharacter(character)
+    : 0;
+  const elementalRebukeUsesTotal = selectedReactionEntry
+    ? getElementalRebukeUsesTotalForCharacter(character)
+    : 0;
   const chillingRetributionUsesRemaining =
-    getRangerWinterWalkerChillingRetributionUsesRemainingForCharacter(character);
+    selectedReactionEntry !== null
+      ? getRangerWinterWalkerChillingRetributionUsesRemainingForCharacter(character)
+      : 0;
   const chillingRetributionUsesTotal =
-    getRangerWinterWalkerChillingRetributionUsesTotalForCharacter(character);
-  const sorceryPointsRemaining = getSorceryPointsRemainingForCharacter(character);
-  const sorceryPointsTotal = getSorceryPointsTotalForCharacter(character);
-  const restoreBalanceUsesRemaining = getSorcererRestoreBalanceUsesRemainingForCharacter(character);
-  const restoreBalanceUsesTotal = getSorcererRestoreBalanceUsesTotalForCharacter(character);
-  const channelDivinityUsesRemaining = getChannelDivinityUsesRemainingForCharacter(character);
-  const channelDivinityUsesTotal = getChannelDivinityUsesTotalForCharacter(character);
-  const wardingFlareUsesRemaining = getClericWardingFlareUsesRemainingForCharacter(character);
-  const wardingFlareUsesTotal = getClericWardingFlareUsesTotalForCharacter(character);
+    selectedReactionEntry !== null
+      ? getRangerWinterWalkerChillingRetributionUsesTotalForCharacter(character)
+      : 0;
+  const sorceryPointsRemaining = selectedReactionEntry
+    ? getSorceryPointsRemainingForCharacter(character)
+    : 0;
+  const sorceryPointsTotal = selectedReactionEntry
+    ? getSorceryPointsTotalForCharacter(character)
+    : 0;
+  const restoreBalanceUsesRemaining = selectedReactionEntry
+    ? getSorcererRestoreBalanceUsesRemainingForCharacter(character)
+    : 0;
+  const restoreBalanceUsesTotal = selectedReactionEntry
+    ? getSorcererRestoreBalanceUsesTotalForCharacter(character)
+    : 0;
+  const channelDivinityUsesRemaining = selectedReactionEntry
+    ? getChannelDivinityUsesRemainingForCharacter(character)
+    : 0;
+  const channelDivinityUsesTotal = selectedReactionEntry
+    ? getChannelDivinityUsesTotalForCharacter(character)
+    : 0;
+  const wardingFlareUsesRemaining = selectedReactionEntry
+    ? getClericWardingFlareUsesRemainingForCharacter(character)
+    : 0;
+  const wardingFlareUsesTotal = selectedReactionEntry
+    ? getClericWardingFlareUsesTotalForCharacter(character)
+    : 0;
   const bloodthirstUsesRemaining =
-    getRogueScionOfTheThreeBloodthirstUsesRemainingForCharacter(character);
-  const bloodthirstUsesTotal = getRogueScionOfTheThreeBloodthirstUsesTotalForCharacter(character);
+    selectedReactionEntry !== null
+      ? getRogueScionOfTheThreeBloodthirstUsesRemainingForCharacter(character)
+      : 0;
+  const bloodthirstUsesTotal =
+    selectedReactionEntry !== null
+      ? getRogueScionOfTheThreeBloodthirstUsesTotalForCharacter(character)
+      : 0;
+  const warlockBeguilingDefenseUsesTotal =
+    selectedReactionEntry !== null ? getWarlockBeguilingDefenseUsesTotalForCharacter(character) : 0;
+  const warlockBeguilingDefenseUsesRemaining =
+    selectedReactionEntry !== null
+      ? getWarlockBeguilingDefenseUsesRemainingForCharacter(character)
+      : 0;
+  const warlockPactMagicSlotTotal =
+    selectedReactionEntry !== null ? getWarlockPactMagicSlotTotalForCharacter(character) : 0;
+  const warlockPactMagicSlotsRemaining =
+    selectedReactionEntry !== null ? getWarlockPactMagicSlotsRemainingForCharacter(character) : 0;
+  const wizardIllusionistIllusorySelfUsesTotal =
+    selectedReactionEntry !== null
+      ? getWizardIllusionistIllusorySelfUsesTotalForCharacter(character)
+      : 0;
+  const wizardIllusionistIllusorySelfUsesRemaining =
+    selectedReactionEntry !== null
+      ? getWizardIllusionistIllusorySelfUsesRemainingForCharacter(character)
+      : 0;
+  const wizardIllusionistIllusorySelfFallbackSlotSummary =
+    selectedReactionEntry !== null
+      ? getWizardIllusionistIllusorySelfFallbackSlotSummaryForCharacter(character)
+      : { remaining: 0, total: 0 };
   const selectedRangerHunterSuperiorHuntersDefenseDamageType =
-    selectedReactionEntry?.id === superiorHuntersDefenseReactionId
+    selectedReactionEntryId === superiorHuntersDefenseReactionId
       ? getRangerHunterSuperiorHuntersDefenseDamageTypeSelectionForCharacter(character)
       : null;
   const selectedBranchesOfTheTreeDcFormula = selectedReactionEntry
@@ -257,7 +316,9 @@ export function useReactionDrawerState({
 
     return [selectedSpellThiefSpell, ...limitedOptions].slice(0, spellThiefSearchResultLimit);
   }, [selectedSpellThiefSpell, spellThiefFilteredSpellOptions]);
-  const spellcastingState = getSpellcastingStateForCharacter(character);
+  const spellcastingState = selectedReactionSpell
+    ? getSpellcastingStateForCharacter(character)
+    : null;
 
   function closeSelectedReaction() {
     setOpenedFeatureReactionSpellEntryId(null);
@@ -285,7 +346,9 @@ export function useReactionDrawerState({
     );
   }
 
-  const selectedReactionDescriptor = getReactionDescriptor(selectedReactionEntry?.id);
+  const selectedReactionDescriptor = selectedReactionEntryId
+    ? getReactionDescriptor(selectedReactionEntryId)
+    : null;
   const reactionDescriptorContext: ReactionDescriptorContext | null = selectedReactionEntry
     ? {
         availableSongOfDefenseSpellSlotLevels,
@@ -350,8 +413,7 @@ export function useReactionDrawerState({
       ? (selectedReactionDescriptor.getSelectionWarning?.(reactionDescriptorContext) ?? null)
       : null;
   const selectedReactionInactiveBladesongWarning =
-    selectedReactionEntry?.id === wizardBladesingerSongOfDefenseReactionId &&
-    !hasActiveWizardBladesong(character)
+    isSongOfDefenseReactionSelected && !hasActiveWizardBladesong(character)
       ? "Bladesong is not active."
       : null;
   const selectedReactionActionWarning =
@@ -363,7 +425,9 @@ export function useReactionDrawerState({
     selectedReactionInactiveBladesongWarning !== null;
   const selectedReactionShapeAvailable =
     getRoundTrackerActionWarning("reaction", roundTracker) === null;
-  const selectedReactionBlockedReason = spellcastingState.blocked ? spellcastingState.reason : null;
+  const selectedReactionBlockedReason = spellcastingState?.blocked
+    ? spellcastingState.reason
+    : null;
   const selectedReactionHeaderTags: FeatureActionHeaderTag[] =
     selectedReactionDescriptor && reactionDescriptorContext
       ? (selectedReactionDescriptor.getHeaderTags?.(reactionDescriptorContext) ?? [])
@@ -398,20 +462,20 @@ export function useReactionDrawerState({
     setUseStepsOfTheFeyOnReactionSpell(false);
   }, [selectedReactionSpell?.id]);
   useEffect(() => {
-    if (selectedReactionEntry?.id === openedFeatureReactionSpellEntryId) {
+    if (selectedReactionEntryId === openedFeatureReactionSpellEntryId) {
       return;
     }
 
     setOpenedFeatureReactionSpellEntryId(null);
-  }, [openedFeatureReactionSpellEntryId, selectedReactionEntry?.id]);
+  }, [openedFeatureReactionSpellEntryId, selectedReactionEntryId]);
   useEffect(() => {
-    if (selectedReactionEntry?.id === rogueArcaneTricksterSpellThiefReactionId) {
+    if (isSpellThiefReactionSelected) {
       return;
     }
 
     setSpellThiefSearchQuery("");
     setSelectedSpellThiefSpellId("");
-  }, [selectedReactionEntry?.id]);
+  }, [isSpellThiefReactionSelected]);
   useEffect(() => {
     if (
       !selectedReactionSpellSupportsStepsOfTheFey ||
@@ -445,7 +509,7 @@ export function useReactionDrawerState({
     setSelectedReactionSpellSlotLevel(preferredSlotLevel);
   }, [selectedReactionSpell, spellSlotTotals, spellSlotsRemaining]);
   useEffect(() => {
-    if (selectedReactionEntry?.id !== wizardBladesingerSongOfDefenseReactionId) {
+    if (!isSongOfDefenseReactionSelected) {
       return;
     }
 
@@ -455,7 +519,7 @@ export function useReactionDrawerState({
       1;
 
     setSelectedSongOfDefenseSpellSlotLevel(preferredSlotLevel);
-  }, [availableSongOfDefenseSpellSlotLevels, selectedReactionEntry?.id, spellSlotTotals]);
+  }, [availableSongOfDefenseSpellSlotLevels, isSongOfDefenseReactionSelected, spellSlotTotals]);
 
   function castSelectedReactionSpell(options?: {
     castAsRitual?: boolean;

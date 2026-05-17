@@ -69,7 +69,6 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     getActionShapeForEconomyType,
     getDivinityDrawerValueLabel,
     getDivinityRowActionShapeState,
-    getSpellRowActionShapes,
     hasSpellManagementOptions,
     hasSpellSelectionInputRequired,
     highestSpellSlotLevel,
@@ -101,6 +100,9 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     selectedFrozenHauntFallbackSlotLevel,
     selectedManualSpellbookSpellIds,
     selectedPreparedSpellIds,
+    spellActionShapesById,
+    spellManagementOutcomeSummariesById,
+    spellManagementSpellActionShapesById,
     selectedSpell,
     selectedSpellActionPaths,
     selectedSpellAlwaysPrepared,
@@ -282,9 +284,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
           <p className={shared.eyebrow}>Spellcasting</p>
         </div>
         <div className={clsx(shared.headerActions, styles.spellcastingHeaderActions)}>
-          {hasSpellSelectionInputRequired ? (
-            <InputRequiredBadge />
-          ) : null}
+          {hasSpellSelectionInputRequired ? <InputRequiredBadge /> : null}
           {hasSpellManagementOptions ? (
             <button
               type="button"
@@ -419,7 +419,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
                 {group.spells.map((spell) => (
                   <li key={spell.id}>
                     {(() => {
-                      const actionShapes = getSpellRowActionShapes(spell);
+                      const actionShapes = spellActionShapesById.get(spell.id) ?? [];
 
                       return (
                         <SpellListRow
@@ -482,7 +482,6 @@ export function renderSpellCastingForm(context: Record<string, any>) {
           alwaysSpellbookSpellIds={alwaysSpellbookSpellIds}
           cantripLimit={cantripLimit}
           cantripOptions={cantripOptions}
-          getSpellRowActionShapes={getSpellRowActionShapes}
           highestSpellSlotLevel={highestSpellSlotLevel}
           knownSpellEntriesById={knownSpellEntriesById}
           onClose={() => setIsSpellManagementModalOpen(false)}
@@ -492,8 +491,9 @@ export function renderSpellCastingForm(context: Record<string, any>) {
           selectedCantripIds={selectedCantripIds}
           selectedManualSpellbookSpellIds={selectedManualSpellbookSpellIds}
           selectedPreparedSpellIds={selectedPreparedSpellIds}
+          spellActionShapesById={spellManagementSpellActionShapesById}
           spellbookSpellEntriesById={spellbookSpellEntriesById}
-          spellOutcomeSummariesById={spellOutcomeSummariesById}
+          spellOutcomeSummariesById={spellManagementOutcomeSummariesById}
           spellPreparationOptions={spellPreparationOptions}
           suspendEscapeClose={Boolean(
             activeSpellSlotSheetLevel !== null ||
@@ -868,8 +868,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
                     ? [
                         {
                           id: "goliath-giant-ancestry",
-                          label:
-                            selectedSpellGoliathAncestryState?.featureName ?? "Giant Ancestry",
+                          label: selectedSpellGoliathAncestryState?.featureName ?? "Giant Ancestry",
                           checked: useGoliathAncestryOnSelectedSpell,
                           onCheckedChange: setUseGoliathAncestryOnSelectedSpell,
                           disabled: selectedSpellGoliathAncestryDisabled,

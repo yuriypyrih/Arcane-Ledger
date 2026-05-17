@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { Character } from "../../../../types";
 import { getRestDescriptionInjectionsForCharacter } from "../../../../pages/CharactersPage/classFeatures/restDescriptionInjections";
 import { getHumanResourcefulDescriptionEntriesForCharacter } from "../../../../pages/CharactersPage/species";
+import { CharacterSheetSectionProfiler } from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetSectionProfiler";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { normalizeRoundTracker } from "../../../../pages/CharactersPage/combat";
 import { createSourcedDescriptionEntries } from "../../../../pages/CharactersPage/actionModalDescriptions";
@@ -194,36 +195,77 @@ function GameplayForm({
           </button>
         </div>
         <div className={styles.gameplayHeaderControls}>
-          <HeroicInspirationWidget character={character} onPersistCharacter={onPersistCharacter} />
-          <RagePointsWidget character={character} onPersistCharacter={onPersistCharacter} />
-          <FocusPointsWidget character={character} onPersistCharacter={onPersistCharacter} />
-          <FighterSecondWindWidget character={character} onPersistCharacter={onPersistCharacter} />
-          <PsiEnergyDiceWidget character={character} onPersistCharacter={onPersistCharacter} />
-          <SoulknifePsionicDiceWidget
-            character={character}
-            onPersistCharacter={onPersistCharacter}
-          />
-          <SuperiorityDiceWidget character={character} onPersistCharacter={onPersistCharacter} />
-          <WildShapeWidget character={character} onPersistCharacter={onPersistCharacter} />
-          <BardicInspirationWidget character={character} onPersistCharacter={onPersistCharacter} />
-          <SorceryPointsWidget character={character} onPersistCharacter={onPersistCharacter} />
-          <DivinityPointsWidget character={character} onPersistCharacter={onPersistCharacter} />
-          <RoundTrackerWidget character={character} onPersistCharacter={onPersistCharacter} />
-          <CampButton
-            character={character}
-            onPersistCharacter={onPersistCharacter}
-            shortRestAdditionalDescription={shortRestDescriptionInjections}
-            longRestAdditionalDescription={longRestDescriptionInjections}
-          />
+          <CharacterSheetSectionProfiler id="gameplay-header-heroic-inspiration">
+            <HeroicInspirationWidget
+              character={character}
+              onPersistCharacter={onPersistCharacter}
+            />
+          </CharacterSheetSectionProfiler>
+          <CharacterSheetSectionProfiler id="gameplay-rage">
+            <RagePointsWidget character={character} onPersistCharacter={onPersistCharacter} />
+          </CharacterSheetSectionProfiler>
+          <CharacterSheetSectionProfiler id="gameplay-focus">
+            <FocusPointsWidget character={character} onPersistCharacter={onPersistCharacter} />
+          </CharacterSheetSectionProfiler>
+          <CharacterSheetSectionProfiler id="gameplay-fighter-second-wind">
+            <FighterSecondWindWidget
+              character={character}
+              onPersistCharacter={onPersistCharacter}
+            />
+          </CharacterSheetSectionProfiler>
+          <CharacterSheetSectionProfiler id="gameplay-psi-energy">
+            <PsiEnergyDiceWidget character={character} onPersistCharacter={onPersistCharacter} />
+          </CharacterSheetSectionProfiler>
+          <CharacterSheetSectionProfiler id="gameplay-soulknife-psionic-dice">
+            <SoulknifePsionicDiceWidget
+              character={character}
+              onPersistCharacter={onPersistCharacter}
+            />
+          </CharacterSheetSectionProfiler>
+          <CharacterSheetSectionProfiler id="gameplay-superiority-dice">
+            <SuperiorityDiceWidget character={character} onPersistCharacter={onPersistCharacter} />
+          </CharacterSheetSectionProfiler>
+          <CharacterSheetSectionProfiler id="gameplay-wild-shape">
+            <WildShapeWidget character={character} onPersistCharacter={onPersistCharacter} />
+          </CharacterSheetSectionProfiler>
+          <CharacterSheetSectionProfiler id="gameplay-bardic-inspiration">
+            <BardicInspirationWidget
+              character={character}
+              onPersistCharacter={onPersistCharacter}
+            />
+          </CharacterSheetSectionProfiler>
+          <CharacterSheetSectionProfiler id="gameplay-sorcery">
+            <SorceryPointsWidget character={character} onPersistCharacter={onPersistCharacter} />
+          </CharacterSheetSectionProfiler>
+          <CharacterSheetSectionProfiler id="gameplay-divinity">
+            <DivinityPointsWidget character={character} onPersistCharacter={onPersistCharacter} />
+          </CharacterSheetSectionProfiler>
+          <CharacterSheetSectionProfiler id="gameplay-round-tracker">
+            <RoundTrackerWidget character={character} onPersistCharacter={onPersistCharacter} />
+          </CharacterSheetSectionProfiler>
+          <CharacterSheetSectionProfiler id="gameplay-camp">
+            <CampButton
+              character={character}
+              onPersistCharacter={onPersistCharacter}
+              shortRestAdditionalDescription={shortRestDescriptionInjections}
+              longRestAdditionalDescription={longRestDescriptionInjections}
+            />
+          </CharacterSheetSectionProfiler>
         </div>
       </div>
 
       <div className={styles.dashboardGrid}>
-        <HitPointsCluster character={character} onQueueCharacterSave={onQueueHitPointCharacter} />
+        <CharacterSheetSectionProfiler id="gameplay-hit-points">
+          <HitPointsCluster character={character} onQueueCharacterSave={onQueueHitPointCharacter} />
+        </CharacterSheetSectionProfiler>
 
-        <ActionsWidget character={character} onPersistCharacter={onPersistCharacter} />
+        <CharacterSheetSectionProfiler id="gameplay-actions">
+          <ActionsWidget character={character} onPersistCharacter={onPersistCharacter} />
+        </CharacterSheetSectionProfiler>
 
-        <TraitsConditionsWidget character={character} onPersistCharacter={onPersistCharacter} />
+        <CharacterSheetSectionProfiler id="gameplay-traits-conditions">
+          <TraitsConditionsWidget character={character} onPersistCharacter={onPersistCharacter} />
+        </CharacterSheetSectionProfiler>
       </div>
 
       {isGuideOpen ? <GameplayGuideModal onClose={() => setIsGuideOpen(false)} /> : null}
