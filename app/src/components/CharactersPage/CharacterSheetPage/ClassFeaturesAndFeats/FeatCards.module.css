@@ -11,45 +11,65 @@
   --build-card-control-bg-active: #e8e0d8;
   --build-card-control-bg-disabled: #f6f1eb;
   --build-card-control-border: rgba(75, 47, 29, 0.08);
+  --build-card-border: rgba(75, 47, 29, 0.16);
+  --build-card-glow: rgba(145, 101, 54, 0.14);
+  --build-card-panel-soft: rgba(145, 101, 54, 0.026);
+  --build-card-panel-strong: rgba(145, 101, 54, 0.12);
+  --build-card-surface: var(--color-panel-surface, #fffdf8);
   position: relative;
   isolation: isolate;
   display: grid;
   gap: 0.45rem;
   overflow: hidden;
-  border: 1px solid rgba(75, 47, 29, 0.1);
+  border: 1.5px solid var(--build-card-border);
   border-radius: var(--radius-field);
-  background: var(--color-panel-surface);
-  padding: 0.72rem 0.82rem;
-}
-
-.card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
+  background-color: var(--build-card-surface);
   background-image:
-    linear-gradient(90deg, rgba(255, 253, 248, 0.95) 0%, rgba(255, 253, 248, 0.84) 100%),
+    radial-gradient(circle at 92% 16%, var(--build-card-glow), transparent 34%),
+    linear-gradient(
+      60deg,
+      rgba(255, 253, 248, 0.94) 0%,
+      rgba(255, 250, 242, 0.84) 70%,
+      rgba(255, 248, 236, 0.42) 100%
+    ),
+    linear-gradient(
+      180deg,
+      transparent 0%,
+      transparent 68%,
+      var(--build-card-panel-soft) 82%,
+      var(--build-card-panel-strong) 100%
+    ),
     url("../../../../assets/img/paper-background.jpg");
-  background-position:
-    center,
-    center;
+  background-position: center, center, center, center;
   background-repeat: no-repeat;
-  background-size:
-    cover,
-    cover;
-  pointer-events: none;
-}
-
-.card > * {
-  position: relative;
-  z-index: 1;
+  background-size: auto, auto, auto, 155% auto;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.52),
+    0 6px 12px -12px rgba(54, 34, 21, 0.18);
+  padding: 0.72rem 0.82rem;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease,
+    opacity 160ms ease;
 }
 
 .interactiveCard {
   cursor: pointer;
-  transition:
-    background-color 160ms ease,
-    border-color 160ms ease;
+}
+
+.interactiveCard:hover,
+.interactiveCard:focus-within {
+  --build-card-glow: rgba(47, 120, 255, 0.12);
+  --build-card-panel-soft: rgba(47, 120, 255, 0.018);
+  --build-card-panel-strong: rgba(47, 120, 255, 0.08);
+  border-color: rgba(47, 120, 255, 0.46);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.54),
+    0 8px 16px -14px rgba(75, 47, 29, 0.18),
+    0 3px 6px -6px rgba(36, 21, 15, 0.16);
+  transform: translateY(-1px);
 }
 
 .interactiveCard:focus-visible {
@@ -58,27 +78,54 @@
 }
 
 .selectedCard {
-  border-color: rgba(47, 109, 224, 0.72);
-  background:
-    linear-gradient(90deg, rgba(47, 109, 224, 0.12), rgba(47, 109, 224, 0) 44%),
-    rgba(255, 255, 255, 0.78);
+  --build-card-border: rgba(47, 109, 224, 0.72);
+  --build-card-glow: rgba(47, 109, 224, 0.18);
+  --build-card-panel-soft: rgba(47, 109, 224, 0.03);
+  --build-card-panel-strong: rgba(47, 109, 224, 0.12);
+  --build-card-surface: rgba(248, 251, 255, 0.94);
   box-shadow:
-    inset 4px 0 0 rgba(47, 109, 224, 0.76),
-    0 10px 22px rgba(47, 109, 224, 0.08);
+    inset 4px 0 0 rgba(47, 109, 224, 0.82),
+    inset 0 1px 0 rgba(255, 255, 255, 0.58),
+    0 10px 22px -14px rgba(47, 109, 224, 0.36),
+    0 4px 8px -8px rgba(54, 34, 21, 0.14);
+}
+
+.interactiveCard.selectedCard:hover,
+.interactiveCard.selectedCard:focus-within {
+  border-color: var(--build-card-border);
+  box-shadow:
+    inset 4px 0 0 rgba(47, 109, 224, 0.82),
+    inset 0 1px 0 rgba(255, 255, 255, 0.58),
+    0 12px 24px -14px rgba(47, 109, 224, 0.38),
+    0 4px 8px -8px rgba(54, 34, 21, 0.14);
 }
 
 .unavailableCard {
-  border-color: rgba(75, 47, 29, 0.14);
-  background:
-    linear-gradient(90deg, rgba(75, 47, 29, 0.055), rgba(75, 47, 29, 0) 46%),
-    rgba(255, 255, 255, 0.58);
-  box-shadow: none;
+  --build-card-border: rgba(75, 47, 29, 0.13);
+  --build-card-glow: rgba(58, 55, 51, 0.1);
+  --build-card-panel-soft: rgba(58, 55, 51, 0.04);
+  --build-card-panel-strong: rgba(58, 55, 51, 0.11);
+  --build-card-surface: rgba(244, 240, 234, 0.72);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.36);
+  cursor: not-allowed;
+  opacity: 0.78;
+}
+
+.interactiveCard.unavailableCard:hover,
+.interactiveCard.unavailableCard:focus-within {
+  --build-card-border: rgba(75, 47, 29, 0.13);
+  --build-card-glow: rgba(58, 55, 51, 0.1);
+  --build-card-panel-soft: rgba(58, 55, 51, 0.04);
+  --build-card-panel-strong: rgba(58, 55, 51, 0.11);
+  border-color: var(--build-card-border);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.36);
+  transform: none;
 }
 
 .unavailableCard .title,
 .unavailableCard .summary,
 .unavailableCard .repeatable {
-  color: rgba(74, 63, 55, 0.7);
+  color: rgba(74, 63, 55, 0.62);
 }
 
 .headerRow {
@@ -156,7 +203,17 @@
 }
 
 .selectedText {
+  flex: 1 1 auto;
   min-width: 0;
+}
+
+.selectedItemActions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  flex: 0 0 auto;
+  margin-left: auto;
 }
 
 .selectedRemoveButton {
@@ -173,6 +230,18 @@
   min-width: 24px;
   padding: 0;
   box-shadow: inset 0 0 0 1px var(--build-card-control-border);
+}
+
+.selectedInlineActionButton {
+  gap: 0.28rem;
+  min-width: 0;
+  padding: 0 0.48rem;
+}
+
+.selectedActionLabel {
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .selectedRemoveButton:hover:not(:disabled),

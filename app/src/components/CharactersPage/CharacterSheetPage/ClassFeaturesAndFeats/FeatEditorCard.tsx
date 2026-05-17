@@ -3318,32 +3318,42 @@ function FeatEditorCard({
               <span className={cardStyles.selectedText}>
                 {getRepeatableFeatEntrySummary(entry)}
               </span>
-              {canEditFeat ? (
+              <div className={cardStyles.selectedItemActions}>
+                {canEditFeat ? (
+                  <button
+                    type="button"
+                    className={clsx(
+                      cardStyles.selectedRemoveButton,
+                      cardStyles.selectedInlineActionButton
+                    )}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onEditFeat(entry);
+                    }}
+                    aria-label={`Edit ${featDefinition.label}`}
+                  >
+                    <Pencil size={14} />
+                    <span className={cardStyles.selectedActionLabel}>Edit</span>
+                  </button>
+                ) : null}
                 <button
                   type="button"
-                  className={cardStyles.selectedRemoveButton}
+                  className={clsx(
+                    cardStyles.selectedRemoveButton,
+                    cardStyles.selectedInlineActionButton
+                  )}
+                  disabled={!isFeatEntryRemovable(entry)}
+                  title={!isFeatEntryRemovable(entry) ? lockedRemoveTitle : undefined}
                   onClick={(event) => {
                     event.stopPropagation();
-                    onEditFeat(entry);
+                    onRemoveFeat(entry);
                   }}
-                  aria-label={`Edit ${featDefinition.label}`}
+                  aria-label={`Remove ${featDefinition.label}`}
                 >
-                  <Pencil size={14} />
+                  <X size={14} />
+                  <span className={cardStyles.selectedActionLabel}>Remove</span>
                 </button>
-              ) : null}
-              <button
-                type="button"
-                className={cardStyles.selectedRemoveButton}
-                disabled={!isFeatEntryRemovable(entry)}
-                title={!isFeatEntryRemovable(entry) ? lockedRemoveTitle : undefined}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onRemoveFeat(entry);
-                }}
-                aria-label={`Remove ${featDefinition.label}`}
-              >
-                <X size={14} />
-              </button>
+              </div>
             </li>
           ))}
         </ul>
@@ -3421,7 +3431,7 @@ function FeatEditorCard({
               }}
             >
               <Plus size={16} />
-              {isRepeatable && isSelected ? "Add Another" : isAddDisabled ? "Added" : "Add"}
+              {isRepeatable && isSelected ? "Add Another" : isSelected ? "Added" : "Add"}
             </button>
           ) : selectedEntry ? (
             <>

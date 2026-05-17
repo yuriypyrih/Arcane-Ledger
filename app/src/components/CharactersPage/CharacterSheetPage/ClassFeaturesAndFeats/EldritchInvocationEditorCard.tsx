@@ -348,7 +348,7 @@ function EldritchInvocationEditorCard({
             <Plus size={16} />
             {isRepeatable && isSelected
               ? "Add Another"
-              : isAddButtonDisabled && isSelected
+              : isSelected
                 ? "Added"
                 : "Add"}
           </button>
