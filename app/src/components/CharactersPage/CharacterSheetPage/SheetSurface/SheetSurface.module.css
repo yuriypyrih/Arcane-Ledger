@@ -40,17 +40,13 @@
 .hoverTint {
   transition:
     border-color 140ms ease,
-    box-shadow 140ms ease,
-    transform 140ms ease;
+    box-shadow 140ms ease;
 }
 
 .hoverTint:hover:not(:disabled),
 .hoverTint:focus-visible:not(:disabled),
 .hoverTint:focus-within:not(:disabled) {
-  box-shadow:
-    0 9px 10px -9px rgba(75, 47, 29, 0.22),
-    0 3px 4px -4px rgba(36, 21, 15, 0.16);
-  transform: translateY(-1px);
+  box-shadow: 0 5px 8px -8px rgba(75, 47, 29, 0.2);
 }
 
 .hasTexture {
@@ -92,7 +88,5 @@
 .hasBorder.hoverTint:focus-visible:not(:disabled),
 .hasBorder.hoverTint:focus-within:not(:disabled) {
   border-color: rgba(47, 120, 255, 0.54);
-  box-shadow:
-    0 6px 8px -8px rgba(75, 47, 29, 0.14),
-    0 2px 3px -4px rgba(36, 21, 15, 0.1);
+  box-shadow: 0 4px 7px -8px rgba(75, 47, 29, 0.14);
 }

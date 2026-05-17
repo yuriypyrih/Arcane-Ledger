@@ -14,14 +14,13 @@
   transition:
     background-color 160ms ease,
     border-color 160ms ease,
-    box-shadow 160ms ease,
-    transform 160ms ease;
+    box-shadow 160ms ease;
   white-space: nowrap;
 }
 
 .pill:hover {
   background: linear-gradient(165deg, rgba(255, 252, 245, 1), rgba(248, 239, 225, 0.98));
-  box-shadow: 0 8px 20px rgba(54, 34, 21, 0.07);
+  box-shadow: 0 5px 12px rgba(54, 34, 21, 0.06);
 }
 
 .pill:focus-visible {
