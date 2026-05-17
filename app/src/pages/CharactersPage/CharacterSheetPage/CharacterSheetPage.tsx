@@ -47,76 +47,44 @@ function CharacterSheetPage() {
     );
   }
 
-  const profileSection = (
-    <CharacterProfileSection
-      className={styles.cascadeOne}
-      broadLayout={isBroadLayoutActive}
-      onPersistCharacter={persistCharacter}
-    />
-  );
-  const gameplaySection = (
-    <GameplaySection
-      className={styles.cascadeTwo}
-      onPersistCharacter={persistCharacter}
-      onQueueHitPointCharacter={queueHitPointCharacterSave}
-    />
-  );
-  const statsSection = (
-    <StatsSection
-      broadLayout={isBroadLayoutActive}
-      className={styles.cascadeThree}
-      onPersistCharacter={persistCharacter}
-    />
-  );
-  const skillsSection = (
-    <SkillsSection className={styles.cascadeFive} onPersistCharacter={persistCharacter} />
-  );
-  const companionsSection = (
-    <CompanionsSheetSection
-      className={styles.cascadeSix}
-      onPersistCharacter={persistCharacter}
-    />
-  );
-  const equipmentSection = (
-    <EquipmentSheetSection className={styles.cascadeSeven} onPersistCharacter={persistCharacter} />
-  );
-  const featuresSection = (
-    <FeaturesSection className={styles.cascadeFour} onPersistCharacter={persistCharacter} />
-  );
-  const spellcastingSection = hasSpellcastingSection ? (
-    <SpellcastingSection className={styles.cascadeEight} onPersistCharacter={persistCharacter} />
-  ) : null;
-
   return (
     <section className={pageClassName} style={getClassSignatureStyle(character.className)}>
       <div className={cascadeStackClassName}>
-        {isBroadLayoutActive ? (
-          <>
-            {profileSection}
-            <div className={styles.cascadeMainColumn}>
-              {gameplaySection}
-              {skillsSection}
-              {companionsSection}
-              {equipmentSection}
-              {featuresSection}
-            </div>
-            <div className={styles.cascadeSideColumn}>
-              {statsSection}
-              {spellcastingSection}
-            </div>
-          </>
-        ) : (
-          <>
-            {profileSection}
-            {gameplaySection}
-            {statsSection}
-            {skillsSection}
-            {companionsSection}
-            {equipmentSection}
-            {featuresSection}
-            {spellcastingSection}
-          </>
-        )}
+        <CharacterProfileSection
+          className={styles.cascadeOne}
+          broadLayout={isBroadLayoutActive}
+          onPersistCharacter={persistCharacter}
+        />
+        <div className={styles.cascadeMainColumn}>
+          <GameplaySection
+            className={styles.cascadeTwo}
+            onPersistCharacter={persistCharacter}
+            onQueueHitPointCharacter={queueHitPointCharacterSave}
+          />
+          <SkillsSection className={styles.cascadeFive} onPersistCharacter={persistCharacter} />
+          <CompanionsSheetSection
+            className={styles.cascadeSix}
+            onPersistCharacter={persistCharacter}
+          />
+          <EquipmentSheetSection
+            className={styles.cascadeSeven}
+            onPersistCharacter={persistCharacter}
+          />
+          <FeaturesSection className={styles.cascadeFour} onPersistCharacter={persistCharacter} />
+        </div>
+        <div className={styles.cascadeSideColumn}>
+          <StatsSection
+            broadLayout={isBroadLayoutActive}
+            className={styles.cascadeThree}
+            onPersistCharacter={persistCharacter}
+          />
+          {hasSpellcastingSection ? (
+            <SpellcastingSection
+              className={styles.cascadeEight}
+              onPersistCharacter={persistCharacter}
+            />
+          ) : null}
+        </div>
       </div>
       <ThumbDiceButton />
     </section>

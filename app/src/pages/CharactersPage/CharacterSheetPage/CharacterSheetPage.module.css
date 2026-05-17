@@ -83,6 +83,11 @@
 
 .cascadeMainColumn,
 .cascadeSideColumn {
+  display: contents;
+}
+
+.cascadeStackBroad .cascadeMainColumn,
+.cascadeStackBroad .cascadeSideColumn {
   display: flex;
   flex-direction: column;
   gap: var(--space-page-gap);
@@ -97,7 +102,40 @@
 .cascadeSix,
 .cascadeSeven,
 .cascadeEight {
+  order: 0;
   transform: none;
+}
+
+.cascadeOne {
+  order: 1;
+}
+
+.cascadeTwo {
+  order: 2;
+}
+
+.cascadeThree {
+  order: 3;
+}
+
+.cascadeFive {
+  order: 4;
+}
+
+.cascadeSix {
+  order: 5;
+}
+
+.cascadeSeven {
+  order: 6;
+}
+
+.cascadeFour {
+  order: 7;
+}
+
+.cascadeEight {
+  order: 8;
 }
 
 .cascadeStackBroad .cascadeOne {
