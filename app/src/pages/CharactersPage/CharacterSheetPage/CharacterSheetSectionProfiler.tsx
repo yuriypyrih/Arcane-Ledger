@@ -81,7 +81,7 @@ const profileEventName = "arcane-ledger:character-sheet-section-profile";
 const maxStoredSamples = 1000;
 
 function isCharacterSheetSectionProfilerEnabled(): boolean {
-  return isRenderProfilerEnabled({ defaultEnabled: true });
+  return isRenderProfilerEnabled();
 }
 
 function getSectionId(profilerId: string): CharacterSheetSectionProfileSample["id"] {

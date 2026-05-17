@@ -24,6 +24,7 @@ type AbilityScoresModalProps = {
   onSave: () => void;
   onSetAttributeMode: (attributeMode: AbilitiesDraft["attributeMode"]) => void;
   onUpdateAbilityScore: (ability: AbilityKey, value: string) => void;
+  getMaxPointBuyScore?: (ability: AbilityKey) => number;
 };
 
 function AbilityScoresModal({
@@ -33,7 +34,8 @@ function AbilityScoresModal({
   onClose,
   onSave,
   onSetAttributeMode,
-  onUpdateAbilityScore
+  onUpdateAbilityScore,
+  getMaxPointBuyScore
 }: AbilityScoresModalProps) {
   if (!isOpen) {
     return null;
@@ -63,6 +65,7 @@ function AbilityScoresModal({
           pointBuyRemaining={pointBuyRemaining}
           onSetAttributeMode={onSetAttributeMode}
           onUpdateAbilityScore={onUpdateAbilityScore}
+          getMaxPointBuyScore={getMaxPointBuyScore}
         />
       </OverlayBody>
 

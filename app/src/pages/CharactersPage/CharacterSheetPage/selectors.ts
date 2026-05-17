@@ -92,6 +92,7 @@ export const selectGameplayCharacter = createCharacterFieldsSelector(
     "abilities",
     "currentHitPoints",
     "hitPoints",
+    "maxHitPointsMode",
     "temporaryHitPoints",
     "temporaryHitPointsSource",
     "magicTemporaryHitPoints",

@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { Pencil } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import { useRenderProfiler } from "../../../../lib/useRenderProfiler";
@@ -17,6 +17,7 @@ import {
 import { getKeywordDescription } from "../../../../pages/CharactersPage/keywordDescriptions";
 import {
   abilityKeys,
+  getAffordablePointBuyMax,
   getPointBuyRemaining,
   normalizePointBuyAbilities
 } from "../../../../pages/CharactersPage/constants";
@@ -105,10 +106,23 @@ const abilityDisplayLabels: Record<AbilityKey, string> = {
 };
 
 function createAbilitiesDraft(character: Character): AbilitiesDraft {
+  const attributeMode = character.attributeMode;
+
   return {
-    attributeMode: "pointBuy",
-    abilities: cloneAbilityScores(character.abilities)
+    attributeMode,
+    abilities:
+      attributeMode === "pointBuy"
+        ? normalizePointBuyAbilities(cloneAbilityScores(character.abilities))
+        : normalizeCustomAbilityScores(cloneAbilityScores(character.abilities))
   };
+}
+
+function createCustomAbilitiesDraft(character: Character) {
+  return normalizeCustomAbilityScores(cloneAbilityScores(character.abilities));
+}
+
+function createPointBuyAbilitiesDraft(character: Character) {
+  return normalizePointBuyAbilities(cloneAbilityScores(character.abilities));
 }
 
 function getPrimaryAbilitiesFromLabel(label: string): AbilityKey[] {
@@ -375,6 +389,8 @@ function CharacterStatsForm({
   const [abilitiesDraft, setAbilitiesDraft] = useState<AbilitiesDraft>(() =>
     createAbilitiesDraft(character)
   );
+  const lastCustomAbilitiesRef = useRef(createCustomAbilitiesDraft(character));
+  const lastPointBuyAbilitiesRef = useRef(createPointBuyAbilitiesDraft(character));
   const [selectedStatReference, setSelectedStatReference] = useState<SelectedStatReference | null>(
     null
   );
@@ -408,6 +424,8 @@ function CharacterStatsForm({
       }
 
       if (isAbilityModalOpen) {
+        lastCustomAbilitiesRef.current = createCustomAbilitiesDraft(character);
+        lastPointBuyAbilitiesRef.current = createPointBuyAbilitiesDraft(character);
         setAbilitiesDraft(createAbilitiesDraft(character));
         setIsAbilityModalOpen(false);
       }
@@ -604,6 +622,8 @@ function CharacterStatsForm({
   }, [mageSlayerGuardedMindState]);
 
   function syncAbilityDraftFromCharacter() {
+    lastCustomAbilitiesRef.current = createCustomAbilitiesDraft(character);
+    lastPointBuyAbilitiesRef.current = createPointBuyAbilitiesDraft(character);
     setAbilitiesDraft(createAbilitiesDraft(character));
   }
 
@@ -633,21 +653,69 @@ function CharacterStatsForm({
   }
 
   function updateAbilityScore(ability: AbilityKey, value: string) {
-    const isPointBuy = abilitiesDraft.attributeMode === "pointBuy";
+    setAbilitiesDraft((current) => ({
+      ...current,
+      abilities: updateAbilityDraftScore(current, ability, value)
+    }));
+  }
+
+  function updateAbilityDraftScore(
+    current: AbilitiesDraft,
+    ability: AbilityKey,
+    value: string
+  ) {
+    const isPointBuy = current.attributeMode === "pointBuy";
+    const maxPointBuyScore = getAffordablePointBuyMax(ability, current.abilities);
     const nextValue = clampNumber(
       value,
       isPointBuy ? 8 : 1,
-      isPointBuy ? 15 : 99,
-      abilitiesDraft.abilities[ability]
+      isPointBuy ? maxPointBuyScore : 99,
+      current.abilities[ability]
     );
+    const nextAbilities = {
+      ...current.abilities,
+      [ability]: nextValue
+    };
 
-    setAbilitiesDraft((current) => ({
-      ...current,
-      abilities: {
-        ...current.abilities,
-        [ability]: nextValue
+    if (isPointBuy) {
+      lastPointBuyAbilitiesRef.current = normalizePointBuyAbilities(
+        cloneAbilityScores(nextAbilities)
+      );
+    } else {
+      lastCustomAbilitiesRef.current = normalizeCustomAbilityScores(
+        cloneAbilityScores(nextAbilities)
+      );
+    }
+
+    return nextAbilities;
+  }
+
+  function setAbilityDraftMode(attributeMode: AbilitiesDraft["attributeMode"]) {
+    setAbilitiesDraft((current) => {
+      if (attributeMode === current.attributeMode) {
+        return current;
       }
-    }));
+
+      if (current.attributeMode === "pointBuy") {
+        lastPointBuyAbilitiesRef.current = normalizePointBuyAbilities(
+          cloneAbilityScores(current.abilities)
+        );
+      } else {
+        lastCustomAbilitiesRef.current = normalizeCustomAbilityScores(
+          cloneAbilityScores(current.abilities)
+        );
+      }
+
+      const abilities =
+        attributeMode === "pointBuy"
+          ? cloneAbilityScores(lastPointBuyAbilitiesRef.current)
+          : cloneAbilityScores(lastCustomAbilitiesRef.current);
+
+      return {
+        attributeMode,
+        abilities
+      };
+    });
   }
 
   function closeSelectedStatReference() {
@@ -919,13 +987,11 @@ function CharacterStatsForm({
         pointBuyRemaining={pointBuyRemaining}
         onClose={cancelAbilityEditing}
         onSave={saveAbilities}
-        onSetAttributeMode={(attributeMode) =>
-          setAbilitiesDraft((current) => ({
-            ...current,
-            attributeMode
-          }))
-        }
+        onSetAttributeMode={setAbilityDraftMode}
         onUpdateAbilityScore={updateAbilityScore}
+        getMaxPointBuyScore={(ability) =>
+          getAffordablePointBuyMax(ability, abilitiesDraft.abilities)
+        }
       />
 
       {resolvedSelectedStatReference ? (
