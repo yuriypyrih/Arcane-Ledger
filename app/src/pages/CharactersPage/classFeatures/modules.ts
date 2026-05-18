@@ -1,6 +1,11 @@
 import type { Character, CharacterClassFeatureState, WEAPON_PROFICIENCY } from "../../../types";
 import { createDefaultAbilities } from "../constants";
 import {
+  getArtificerAlwaysPreparedSpellIds,
+  getArtificerAlwaysPreparedSpellSourceMap,
+  normalizeArtificerFeatureState
+} from "./artificer/artificer";
+import {
   activateBardicInspiration,
   activateBardCollegeOfTheMoonLunarVitality,
   advanceBardFeaturesForNewRound,
@@ -362,6 +367,17 @@ function createWeaponMasteryState(
 }
 
 const classFeatureModules = {
+  Artificer: {
+    className: "Artificer",
+    stateKey: "artificer",
+    normalizeState: normalizeArtificerFeatureState,
+    collectDerived(character) {
+      return {
+        alwaysPreparedSpellIds: getArtificerAlwaysPreparedSpellIds(character),
+        alwaysPreparedSpellSources: getArtificerAlwaysPreparedSpellSourceMap(character)
+      };
+    }
+  },
   Barbarian: {
     className: "Barbarian",
     stateKey: "rage",

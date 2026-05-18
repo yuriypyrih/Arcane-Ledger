@@ -282,6 +282,8 @@ export type CharacterFighterFeatureState = {
 export type ClericDivineOrderChoice = "protector" | "thaumaturge";
 export type ClericBlessedStrikesChoice = "blessed-strike" | "potent-spellcasting";
 
+export type CharacterArtificerFeatureState = Record<string, never>;
+
 export type CharacterClericFeatureState = {
   divineOrderChoice?: ClericDivineOrderChoice;
   blessedStrikesChoice?: ClericBlessedStrikesChoice;
@@ -299,6 +301,7 @@ export type CharacterClericFeatureState = {
 };
 
 export type CharacterClassFeatureState = {
+  artificer?: CharacterArtificerFeatureState;
   rage?: CharacterRageFeatureState;
   bard?: CharacterBardFeatureState;
   cleric?: CharacterClericFeatureState;

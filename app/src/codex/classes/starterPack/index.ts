@@ -1,4 +1,5 @@
 import type { ClassStarterPack } from "./type";
+import { artificerStarterPack } from "./artificer";
 import { barbarianStarterPack } from "./barbarian";
 import { bardStarterPack } from "./bard";
 import { clericStarterPack } from "./cleric";
@@ -13,6 +14,7 @@ import { warlockStarterPack } from "./warlock";
 import { wizardStarterPack } from "./wizard";
 
 const starterPacksByClassName: Partial<Record<string, ClassStarterPack>> = {
+  Artificer: artificerStarterPack,
   Barbarian: barbarianStarterPack,
   Bard: bardStarterPack,
   Cleric: clericStarterPack,
@@ -31,6 +33,7 @@ export function getClassStarterPack(className: string): ClassStarterPack | null 
   return starterPacksByClassName[className] ?? null;
 }
 
+export * from "./artificer";
 export * from "./barbarian";
 export * from "./bard";
 export * from "./cleric";

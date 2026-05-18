@@ -60,9 +60,16 @@ const progressionFieldLabels: Record<string, { label: string; title?: string }> 
     label: "Martial Arts",
     title: "Martial Arts Die"
   },
+  magicItems: {
+    label: "Magic Items"
+  },
   pactMagicSlots: {
     label: "Pact",
     title: "Pact Magic Slots"
+  },
+  plansKnown: {
+    label: "Plans",
+    title: "Plans Known"
   },
   preparedSpells: {
     label: "Prepared",

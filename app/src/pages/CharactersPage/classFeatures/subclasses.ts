@@ -1,4 +1,5 @@
 import { getSelectedSubclassForCharacter } from "../subclasses";
+import { getArtificerSubclassDerivedFeatureState } from "./artificer/subclasses";
 import { getBarbarianSubclassDerivedFeatureState } from "./barbarian/subclasses";
 import { getBardSubclassDerivedFeatureState } from "./bard/subclasses";
 import { getClericSubclassDerivedFeatureState } from "./cleric/subclasses";
@@ -36,6 +37,7 @@ const subclassRuntimeDispatchers: Record<
   string,
   (character: SubclassRuntimeCharacter) => SubclassDerivedFeatureState
 > = {
+  Artificer: getArtificerSubclassDerivedFeatureState,
   Barbarian: getBarbarianSubclassDerivedFeatureState,
   Bard: getBardSubclassDerivedFeatureState,
   Cleric: getClericSubclassDerivedFeatureState,

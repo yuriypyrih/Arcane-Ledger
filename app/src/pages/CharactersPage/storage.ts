@@ -19,7 +19,6 @@ import {
   getAlwaysPreparedSpellIds,
   getCantripLimitForCharacter,
   getCantripSelectionOptionsForCharacter,
-  getDefaultCantripIdsForCharacter,
   getPreparedSpellLimitForCharacter,
   getPreparedSpellSelectionOptionsForCharacter,
   getSpellSlotTotalsForCharacter,
@@ -280,14 +279,7 @@ export function normalizeCharacter(value: unknown): Character | null {
       feats: normalizedFeats
     }
   );
-  const rawCantripIds = Array.isArray(record.cantripIds)
-    ? rawPersistedCantripIds
-    : getDefaultCantripIdsForCharacter(
-        normalizedClassName,
-        normalizedLevel,
-        preliminaryClassFeatureState,
-        normalizedSubclassId
-      );
+  const rawCantripIds = rawPersistedCantripIds;
   const cantripLimit = getCantripLimitForCharacter(
     normalizedClassName,
     normalizedLevel,

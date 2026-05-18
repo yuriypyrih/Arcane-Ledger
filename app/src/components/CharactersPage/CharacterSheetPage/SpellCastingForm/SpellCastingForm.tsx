@@ -614,17 +614,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     () => classSpellEntries.filter((spell) => getSpellLevel(spell) === 0),
     [classSpellEntries]
   );
-  const allKnownCantripEntries = useMemo(() => {
-    const mergedCantrips = new Map<string, SpellEntry>();
-
-    [...cantripOptions, ...featGrantedCantripEntries, ...speciesGrantedCantripEntries].forEach(
-      (spell) => {
-        mergedCantrips.set(spell.id, spell);
-      }
-    );
-
-    return [...mergedCantrips.values()].sort((left, right) => left.name.localeCompare(right.name));
-  }, [cantripOptions, featGrantedCantripEntries, speciesGrantedCantripEntries]);
   const spellPreparationOptions = useMemo(
     () =>
       preparedSpellPoolEntries.filter((spell) => {
@@ -702,15 +691,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       speciesAlwaysPreparedSpellSourceMap
     ]
   );
-  const alwaysPreparedCantripIdSet = useMemo(
-    () =>
-      new Set(
-        [...featAlwaysPreparedCantripEntries, ...speciesAlwaysPreparedCantripEntries].map(
-          (spell) => spell.id
-        )
-      ),
-    [featAlwaysPreparedCantripEntries, speciesAlwaysPreparedCantripEntries]
-  );
   const alwaysPreparedSpellIds = useMemo(
     () => [
       ...new Set([
@@ -738,6 +718,51 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         .map((spell) => getSpellEntryForCharacter(character, spell)),
     [alwaysPreparedSpellIds, character]
   );
+  const alwaysPreparedCantripEntries = useMemo(
+    () => alwaysPreparedSpellEntries.filter((spell) => getSpellLevel(spell) === 0),
+    [alwaysPreparedSpellEntries]
+  );
+  const alwaysPreparedLeveledSpellIds = useMemo(
+    () =>
+      alwaysPreparedSpellEntries
+        .filter((spell) => getSpellLevel(spell) > 0)
+        .map((spell) => spell.id),
+    [alwaysPreparedSpellEntries]
+  );
+  const alwaysPreparedCantripIdSet = useMemo(
+    () =>
+      new Set(
+        [
+          ...alwaysPreparedCantripEntries,
+          ...featAlwaysPreparedCantripEntries,
+          ...speciesAlwaysPreparedCantripEntries
+        ].map((spell) => spell.id)
+      ),
+    [
+      alwaysPreparedCantripEntries,
+      featAlwaysPreparedCantripEntries,
+      speciesAlwaysPreparedCantripEntries
+    ]
+  );
+  const allKnownCantripEntries = useMemo(() => {
+    const mergedCantrips = new Map<string, SpellEntry>();
+
+    [
+      ...cantripOptions,
+      ...alwaysPreparedCantripEntries,
+      ...featGrantedCantripEntries,
+      ...speciesGrantedCantripEntries
+    ].forEach((spell) => {
+      mergedCantrips.set(spell.id, spell);
+    });
+
+    return [...mergedCantrips.values()].sort((left, right) => left.name.localeCompare(right.name));
+  }, [
+    alwaysPreparedCantripEntries,
+    cantripOptions,
+    featGrantedCantripEntries,
+    speciesGrantedCantripEntries
+  ]);
   const selectedCantripIds = useMemo(
     () => normalizeTrackedSpellIds(character.cantripIds, cantripOptions, cantripLimit),
     [cantripLimit, cantripOptions, character.cantripIds]
@@ -772,10 +797,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         character.preparedSpellIds,
         spellPreparationOptions,
         preparedSpellLimit,
-        alwaysPreparedSpellIds
+        alwaysPreparedLeveledSpellIds
       ).filter((spellId) => !usesSpellbook || selectedSpellbookSpellIdSet.has(spellId)),
     [
-      alwaysPreparedSpellIds,
+      alwaysPreparedLeveledSpellIds,
       character.preparedSpellIds,
       preparedSpellLimit,
       selectedSpellbookSpellIdSet,
@@ -838,10 +863,15 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       selectedCantripEntries.set(spell.id, spell);
     });
 
+    alwaysPreparedCantripEntries.forEach((spell) => {
+      selectedCantripEntries.set(spell.id, spell);
+    });
+
     return [...selectedCantripEntries.values()].sort((left, right) =>
       left.name.localeCompare(right.name)
     );
   }, [
+    alwaysPreparedCantripEntries,
     cantripOptionsById,
     featGrantedCantripEntries,
     selectedCantripIds,
@@ -849,7 +879,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   ]);
   const selectedPreparedSpells = useMemo(() => {
     const preparedSpells = usesPreparedSpells
-      ? [...alwaysPreparedSpellIds, ...selectedPreparedSpellIds]
+      ? [...alwaysPreparedLeveledSpellIds, ...selectedPreparedSpellIds]
           .map(
             (spellId) =>
               spellbookSpellEntriesById.get(spellId) ?? knownSpellEntriesById.get(spellId)
@@ -869,8 +899,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         )
       : preparedSpells;
   }, [
-    alwaysPreparedSpellIds,
     alwaysPreparedSpellEntries,
+    alwaysPreparedLeveledSpellIds,
     character,
     knownSpellEntriesById,
     selectedPreparedSpellIds,
@@ -888,8 +918,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     [knownSpellEntriesById, selectedSpellbookSpellIds, spellbookSpellEntriesById]
   );
   const wizardPreparedSpellIdSet = useMemo(
-    () => new Set([...alwaysPreparedSpellIds, ...selectedPreparedSpellIds]),
-    [alwaysPreparedSpellIds, selectedPreparedSpellIds]
+    () => new Set([...alwaysPreparedLeveledSpellIds, ...selectedPreparedSpellIds]),
+    [alwaysPreparedLeveledSpellIds, selectedPreparedSpellIds]
   );
   const wizardSpellbookOnlyIdSet = useMemo(
     () =>

@@ -331,20 +331,3 @@ export function getAlwaysPreparedSpellIds(
     statusEntries
   });
 }
-
-export function getDefaultCantripIdsForCharacter(
-  className: string,
-  level: number,
-  classFeatureState?: CharacterClassFeatureState,
-  subclassId?: string
-): string[] {
-  const cantripLimit = getCantripLimitForCharacter(className, level, classFeatureState, subclassId);
-
-  if (cantripLimit === null || cantripLimit <= 0) {
-    return [];
-  }
-
-  return getCantripSelectionOptionsForCharacter(className, level, subclassId)
-    .slice(0, cantripLimit)
-    .map((spell) => spell.id);
-}

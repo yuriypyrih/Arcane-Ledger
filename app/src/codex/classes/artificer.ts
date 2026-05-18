@@ -5,6 +5,8 @@ import { createUseSpellEntriesForSpellListClass } from "./spellAccess";
 export type ArtificerSpellSlotProgression = [number, number, number, number, number];
 
 export type ArtificerFeatureClassObj = FeatureClassObj & {
+  plansKnown: number | null;
+  magicItems: number | null;
   cantrips: number;
   preparedSpells: number;
   spellSlots: ArtificerSpellSlotProgression;
@@ -31,6 +33,8 @@ export const artificerFeatures: ArtificerFeatureClassObj[] = [
         trackingState: TRACKER.TRACKED
       }
     },
+    plansKnown: null,
+    magicItems: null,
     cantrips: 2,
     preparedSpells: 2,
     spellSlots: [2, 0, 0, 0, 0]
@@ -38,6 +42,8 @@ export const artificerFeatures: ArtificerFeatureClassObj[] = [
   {
     level: 2,
     classFeatures: [CLASS_FEATURE.REPLICATE_MAGIC_ITEM],
+    plansKnown: 4,
+    magicItems: 2,
     cantrips: 2,
     preparedSpells: 3,
     spellSlots: [2, 0, 0, 0, 0]
@@ -45,6 +51,8 @@ export const artificerFeatures: ArtificerFeatureClassObj[] = [
   {
     level: 3,
     classFeatures: [],
+    plansKnown: 4,
+    magicItems: 2,
     cantrips: 2,
     preparedSpells: 4,
     spellSlots: [3, 0, 0, 0, 0]
@@ -52,6 +60,8 @@ export const artificerFeatures: ArtificerFeatureClassObj[] = [
   {
     level: 4,
     classFeatures: [CLASS_FEATURE.ABILITY_SCORE_IMPROVEMENT],
+    plansKnown: 4,
+    magicItems: 2,
     cantrips: 2,
     preparedSpells: 5,
     spellSlots: [3, 0, 0, 0, 0]
@@ -59,6 +69,8 @@ export const artificerFeatures: ArtificerFeatureClassObj[] = [
   {
     level: 5,
     classFeatures: [],
+    plansKnown: 4,
+    magicItems: 2,
     cantrips: 2,
     preparedSpells: 6,
     spellSlots: [4, 2, 0, 0, 0]
@@ -66,6 +78,8 @@ export const artificerFeatures: ArtificerFeatureClassObj[] = [
   {
     level: 6,
     classFeatures: [CLASS_FEATURE.MAGIC_ITEM_TINKER],
+    plansKnown: 5,
+    magicItems: 3,
     cantrips: 2,
     preparedSpells: 6,
     spellSlots: [4, 2, 0, 0, 0]
@@ -73,6 +87,8 @@ export const artificerFeatures: ArtificerFeatureClassObj[] = [
   {
     level: 7,
     classFeatures: [CLASS_FEATURE.FLASH_OF_GENIUS],
+    plansKnown: 5,
+    magicItems: 3,
     cantrips: 2,
     preparedSpells: 7,
     spellSlots: [4, 3, 0, 0, 0]
@@ -80,6 +96,8 @@ export const artificerFeatures: ArtificerFeatureClassObj[] = [
   {
     level: 8,
     classFeatures: [CLASS_FEATURE.ABILITY_SCORE_IMPROVEMENT],
+    plansKnown: 5,
+    magicItems: 3,
     cantrips: 2,
     preparedSpells: 7,
     spellSlots: [4, 3, 0, 0, 0]
@@ -87,6 +105,8 @@ export const artificerFeatures: ArtificerFeatureClassObj[] = [
   {
     level: 9,
     classFeatures: [],
+    plansKnown: 5,
+    magicItems: 3,
     cantrips: 2,
     preparedSpells: 9,
     spellSlots: [4, 3, 2, 0, 0]
@@ -94,6 +114,8 @@ export const artificerFeatures: ArtificerFeatureClassObj[] = [
   {
     level: 10,
     classFeatures: [CLASS_FEATURE.MAGIC_ITEM_ADEPT],
+    plansKnown: 6,
+    magicItems: 4,
     cantrips: 3,
     preparedSpells: 9,
     spellSlots: [4, 3, 2, 0, 0]
@@ -101,6 +123,8 @@ export const artificerFeatures: ArtificerFeatureClassObj[] = [
   {
     level: 11,
     classFeatures: [CLASS_FEATURE.SPELL_STORING_ITEM],
+    plansKnown: 6,
+    magicItems: 4,
     cantrips: 3,
     preparedSpells: 10,
     spellSlots: [4, 3, 3, 0, 0]
@@ -108,6 +132,8 @@ export const artificerFeatures: ArtificerFeatureClassObj[] = [
   {
     level: 12,
     classFeatures: [CLASS_FEATURE.ABILITY_SCORE_IMPROVEMENT],
+    plansKnown: 6,
+    magicItems: 4,
     cantrips: 3,
     preparedSpells: 10,
     spellSlots: [4, 3, 3, 0, 0]
@@ -115,6 +141,8 @@ export const artificerFeatures: ArtificerFeatureClassObj[] = [
   {
     level: 13,
     classFeatures: [],
+    plansKnown: 6,
+    magicItems: 4,
     cantrips: 3,
     preparedSpells: 11,
     spellSlots: [4, 3, 3, 1, 0]
@@ -122,6 +150,8 @@ export const artificerFeatures: ArtificerFeatureClassObj[] = [
   {
     level: 14,
     classFeatures: [CLASS_FEATURE.ADVANCED_ARTIFICE],
+    plansKnown: 7,
+    magicItems: 5,
     cantrips: 4,
     preparedSpells: 11,
     spellSlots: [4, 3, 3, 1, 0]
@@ -129,6 +159,8 @@ export const artificerFeatures: ArtificerFeatureClassObj[] = [
   {
     level: 15,
     classFeatures: [],
+    plansKnown: 7,
+    magicItems: 5,
     cantrips: 4,
     preparedSpells: 12,
     spellSlots: [4, 3, 3, 2, 0]
@@ -136,6 +168,8 @@ export const artificerFeatures: ArtificerFeatureClassObj[] = [
   {
     level: 16,
     classFeatures: [CLASS_FEATURE.ABILITY_SCORE_IMPROVEMENT],
+    plansKnown: 7,
+    magicItems: 5,
     cantrips: 4,
     preparedSpells: 12,
     spellSlots: [4, 3, 3, 2, 0]
@@ -143,6 +177,8 @@ export const artificerFeatures: ArtificerFeatureClassObj[] = [
   {
     level: 17,
     classFeatures: [],
+    plansKnown: 7,
+    magicItems: 5,
     cantrips: 4,
     preparedSpells: 14,
     spellSlots: [4, 3, 3, 3, 1]
@@ -150,6 +186,8 @@ export const artificerFeatures: ArtificerFeatureClassObj[] = [
   {
     level: 18,
     classFeatures: [CLASS_FEATURE.MAGIC_ITEM_MASTER],
+    plansKnown: 8,
+    magicItems: 6,
     cantrips: 4,
     preparedSpells: 14,
     spellSlots: [4, 3, 3, 3, 1]
@@ -166,6 +204,8 @@ export const artificerFeatures: ArtificerFeatureClassObj[] = [
         trackingState: TRACKER.NOT_TRACKED
       }
     },
+    plansKnown: 8,
+    magicItems: 6,
     cantrips: 4,
     preparedSpells: 15,
     spellSlots: [4, 3, 3, 3, 2]
@@ -173,6 +213,8 @@ export const artificerFeatures: ArtificerFeatureClassObj[] = [
   {
     level: 20,
     classFeatures: [CLASS_FEATURE.SOUL_OF_ARTIFICE],
+    plansKnown: 8,
+    magicItems: 6,
     cantrips: 4,
     preparedSpells: 15,
     spellSlots: [4, 3, 3, 3, 2]
@@ -202,6 +244,13 @@ export const artificerFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>
       "<strong>Duration.</strong> A magic item created by this feature functions as the normal magic item, except its magic isn't permanent. When you die, the magic item vanishes after <strong>1d4</strong> days.",
       "If you replace a plan you know with a new plan, any magic item created with the replaced plan immediately vanishes. If a created item is a container, such as a Bag of Holding, and it vanishes, its contents harmlessly appear in and around its space.",
       "<strong>Spellcasting Focus.</strong> You can use any Wand or Weapon created by this feature as a Spellcasting Focus in place of Artisan's Tools.",
+      "<strong>Magic Item Plans (Artificer Level 2+).</strong> Alchemy Jug (No Attunement), Bag of Holding (No Attunement), Cap of Water Breathing (No Attunement), Common magic item that isn't a Potion, a Scroll, or cursed (Attunement varies), Goggles of Night (No Attunement), Manifold Tool (Attunement), Repeating Shot (Attunement), Returning Weapon (No Attunement), Rope of Climbing (No Attunement), Sending Stones (No Attunement), Shield +1 (No Attunement), Wand of Magic Detection (No Attunement), Wand of Secrets (No Attunement), Wand of the War Mage +1 (Attunement), Weapon +1 (No Attunement), and Wraps of Unarmed Power +1 (No Attunement).",
+      "You can learn the common magic item option multiple times, selecting a different item each time; each selected item counts as a different plan.",
+      "<strong>Magic Item Plans (Artificer Level 6+).</strong> Armor +1 (No Attunement), Boots of Elvenkind (No Attunement), Boots of the Winding Path (Attunement), Cloak of Elvenkind (Attunement), Cloak of the Manta Ray (Attunement), Dazzling Weapon (Attunement), Eyes of Charming (Attunement), Eyes of Minute Seeing (No Attunement), Gloves of Thievery (No Attunement), Helm of Awareness (No Attunement), Lantern of Revealing (No Attunement), Mind Sharpener (Attunement), Necklace of Adaptation (Attunement), Pipes of Haunting (No Attunement), Repulsion Shield (No Attunement), Ring of Swimming (No Attunement), Ring of Water Walking (No Attunement), Sentinel Shield (No Attunement), Spell-Refueling Ring (Attunement), Wand of Magic Missiles (No Attunement), Wand of Web (Attunement), and Weapon of Warning (Attunement).",
+      "<strong>Magic Item Plans (Artificer Level 10+).</strong> Armor of Resistance (Attunement), Dagger of Venom (No Attunement), Elven Chain (No Attunement), Ring of Feather Falling (Attunement), Ring of Jumping (Attunement), Ring of Mind Shielding (Attunement), Shield +2 (No Attunement), Uncommon Wondrous Item that isn't cursed (Attunement varies), Wand of the War Mage +2 (Attunement), Weapon +2 (No Attunement), and Wraps of Unarmed Power +2 (No Attunement).",
+      "You can learn the uncommon wondrous item option multiple times, selecting a different item each time; each selected item counts as a different plan.",
+      "<strong>Magic Item Plans (Artificer Level 14+).</strong> Armor +2 (No Attunement), Arrow-Catching Shield (Attunement), Flame Tongue (Attunement), Rare Wondrous Item that isn't cursed (Attunement varies), Ring of Free Action (Attunement), Ring of Protection (Attunement), and Ring of the Ram (Attunement).",
+      "You can learn the rare wondrous item option multiple times, selecting a different item each time; each selected item counts as a different plan.",
       "<strong>Crafting More Magic Items.</strong> The Dungeon Master's Guide provides rules for crafting magic items with the normal crafting system. Artificers can craft certain items faster through their subclasses, but those crafted items aren't treated as items created by this feature."
     ],
     trackingState: TRACKER.NOT_TRACKED

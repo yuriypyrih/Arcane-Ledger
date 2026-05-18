@@ -505,6 +505,7 @@ export type FeatureEquipmentEntry = {
 };
 
 export type ActiveClassFeatureName =
+  | "Artificer"
   | "Barbarian"
   | "Bard"
   | "Cleric"

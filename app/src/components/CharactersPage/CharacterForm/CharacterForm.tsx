@@ -150,7 +150,7 @@ type CharacterFormValues = CharacterDraft & {
   starterPackSelectionValues: Record<string, string>;
 };
 
-const disabledCreationClassNames = new Set<string>(["Artificer"]);
+const disabledCreationClassNames = new Set<string>();
 const randomizableClassOptions = classOptions.filter(
   (className) => !disabledCreationClassNames.has(className)
 );

@@ -141,7 +141,7 @@ export type FeatureClassObj = {
   spellSlots?: number[];
   featureOverrides?: Partial<Record<CLASS_FEATURE, FeatureMapEntry>>;
 };
-export type SubclassFeatureLevel = 3 | 6 | 7 | 9 | 10 | 11 | 13 | 14 | 15 | 17 | 18 | 20;
+export type SubclassFeatureLevel = 3 | 5 | 6 | 7 | 9 | 10 | 11 | 13 | 14 | 15 | 17 | 18 | 20;
 export type SubclassFeatureClassObj = Omit<FeatureClassObj, "level"> & {
   level: SubclassFeatureLevel;
 };

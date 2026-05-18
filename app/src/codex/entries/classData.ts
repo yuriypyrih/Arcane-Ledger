@@ -1,5 +1,6 @@
 import {
   artificerFeatures,
+  artificerStarterPack,
   barbarianFeatures,
   barbarianStarterPack,
   bardFeatures,
@@ -47,6 +48,7 @@ export const classEntries: ClassEntry[] = [
       GENERAL_PROFICIENCIES.SHIELDS
     ],
     features: artificerFeatures,
+    starterPack: artificerStarterPack,
     summary:
       "A magical inventor who fuses engineering and spellwork into adaptable battlefield tools."
   },

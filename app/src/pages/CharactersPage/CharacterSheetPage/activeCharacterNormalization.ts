@@ -18,7 +18,6 @@ import {
   getAlwaysPreparedSpellIds,
   getCantripLimitForCharacter,
   getCantripSelectionOptionsForCharacter,
-  getDefaultCantripIdsForCharacter,
   getPreparedSpellLimitForCharacter,
   getPreparedSpellSelectionOptionsForCharacter,
   getSpellSlotTotalsForCharacter,
@@ -120,14 +119,7 @@ function normalizeFeatureRuntime(character: Character): Character {
 
 function normalizeSpellRuntime(character: Character): Character {
   const rawPersistedCantripIds = normalizeRuntimeSpellIds(character.cantripIds);
-  const rawCantripIds = Array.isArray(character.cantripIds)
-    ? rawPersistedCantripIds
-    : getDefaultCantripIdsForCharacter(
-        character.className,
-        character.level,
-        character.classFeatureState,
-        character.subclassId
-      );
+  const rawCantripIds = rawPersistedCantripIds;
   const cantripSelectionOptionIds = new Set(
     getCantripSelectionOptionsForCharacter(
       character.className,

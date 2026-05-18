@@ -1,4 +1,5 @@
 import type { SubclassEntry } from "../entries/types";
+import { artificerSubclassEntries } from "./artificer";
 import { bardSubclassEntries } from "./bard";
 import { barbarianSubclassEntries } from "./barbarian";
 import { clericSubclassEntries } from "./cleric";
@@ -13,6 +14,7 @@ import { warlockSubclassEntries } from "./warlock";
 import { wizardSubclassEntries } from "./wizard";
 
 export const subclassEntries: SubclassEntry[] = [
+  ...artificerSubclassEntries,
   ...barbarianSubclassEntries,
   ...bardSubclassEntries,
   ...clericSubclassEntries,

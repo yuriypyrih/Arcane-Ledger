@@ -118,6 +118,7 @@ export function createEmptyCharacter(): CharacterDraft {
     inventoryItems: [],
     customEquipment: [],
     companions: [],
+    cantripIds: [],
     spellbookSpellIds: [],
     preparedSpellIds: [],
     spellSlotsExpended: Array.from({ length: 9 }, () => 0),

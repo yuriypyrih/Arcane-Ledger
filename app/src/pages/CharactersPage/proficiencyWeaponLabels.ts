@@ -67,6 +67,7 @@ const weaponProficiencyLabelsByCategory: Partial<Record<WEAPON_PROFICIENCY, stri
   [WEAPON_PROFICIENCY.SIMPLE]: "Simple weapons",
   [WEAPON_PROFICIENCY.SIMPLE_MELEE]: "Simple melee weapons",
   [WEAPON_PROFICIENCY.MARTIAL]: "Martial weapons",
+  [WEAPON_PROFICIENCY.MARTIAL_RANGED]: "Martial ranged weapons",
   [WEAPON_PROFICIENCY.MARTIAL_MELEE_LIGHT]: "Martial melee weapons with Light property",
   [WEAPON_PROFICIENCY.MARTIAL_MELEE_NO_HEAVY_OR_TWO_HANDED]:
     "Martial melee weapons without Heavy or Two-Handed"
@@ -98,6 +99,7 @@ export const weaponProficiencyOptions: WEAPON_PROFICIENCY[] = [
   WEAPON_PROFICIENCY.SIMPLE,
   WEAPON_PROFICIENCY.SIMPLE_MELEE,
   WEAPON_PROFICIENCY.MARTIAL,
+  WEAPON_PROFICIENCY.MARTIAL_RANGED,
   WEAPON_PROFICIENCY.MARTIAL_MELEE_LIGHT,
   WEAPON_PROFICIENCY.MARTIAL_MELEE_NO_HEAVY_OR_TWO_HANDED,
   ...weaponSpecificProficiencyOptions
@@ -147,6 +149,13 @@ export function doesWeaponProficiencyMatchWeapon(
     return isSimpleMeleeWeapon(weaponCandidate);
   }
 
+  if (proficiency === WEAPON_PROFICIENCY.MARTIAL_RANGED) {
+    return (
+      training === WEAPON_TRAINING.MARTIAL &&
+      options.combatType === WEAPON_COMBAT_TYPE.RANGED
+    );
+  }
+
   if (proficiency === WEAPON_PROFICIENCY.MARTIAL_MELEE_LIGHT) {
     return isMartialMeleeLightWeapon(weaponCandidate);
   }
@@ -192,6 +201,13 @@ export function getMatchingWeaponProficiencies(
       candidates.push(WEAPON_PROFICIENCY.MARTIAL_MELEE_LIGHT);
     }
 
+    if (
+      training === WEAPON_TRAINING.MARTIAL &&
+      options.combatType === WEAPON_COMBAT_TYPE.RANGED
+    ) {
+      candidates.push(WEAPON_PROFICIENCY.MARTIAL_RANGED);
+    }
+
     if (isMartialMeleeWeaponWithoutHeavyOrTwoHandedProperty(weaponCandidate)) {
       candidates.push(WEAPON_PROFICIENCY.MARTIAL_MELEE_NO_HEAVY_OR_TWO_HANDED);
     }
@@ -225,6 +241,7 @@ export function isWeaponMasteryProficiency(proficiency: WEAPON_PROFICIENCY): boo
     WEAPON_PROFICIENCY.SIMPLE,
     WEAPON_PROFICIENCY.SIMPLE_MELEE,
     WEAPON_PROFICIENCY.MARTIAL,
+    WEAPON_PROFICIENCY.MARTIAL_RANGED,
     WEAPON_PROFICIENCY.MARTIAL_MELEE_LIGHT,
     WEAPON_PROFICIENCY.MARTIAL_MELEE_NO_HEAVY_OR_TWO_HANDED
   ].includes(proficiency);
