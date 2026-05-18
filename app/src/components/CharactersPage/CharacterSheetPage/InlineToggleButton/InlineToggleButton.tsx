@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import type { ReactNode } from "react";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 
 type InlineToggleButtonProps = {
@@ -6,6 +7,7 @@ type InlineToggleButtonProps = {
   onClick: () => void;
   className?: string;
   expanded?: boolean;
+  icon?: ReactNode;
   disabled?: boolean;
 };
 
@@ -14,6 +16,7 @@ function InlineToggleButton({
   onClick,
   className,
   expanded,
+  icon,
   disabled = false
 }: InlineToggleButtonProps) {
   return (
@@ -24,7 +27,8 @@ function InlineToggleButton({
       aria-expanded={expanded}
       disabled={disabled}
     >
-      {label}
+      {icon ? <span className={shared.inlineToggleIcon}>{icon}</span> : null}
+      <span className={shared.inlineToggleLabel}>{label}</span>
     </button>
   );
 }

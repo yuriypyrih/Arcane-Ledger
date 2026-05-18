@@ -211,6 +211,9 @@
 }
 
 .inlineToggleButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.34rem;
   justify-self: start;
   border: none;
   background: none;
@@ -219,6 +222,20 @@
   font: inherit;
   font-size: 0.9rem;
   padding: 0;
+}
+
+.inlineToggleIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.inlineToggleIcon svg {
+  display: block;
+}
+
+.inlineToggleLabel {
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;

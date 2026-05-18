@@ -154,7 +154,7 @@ const commonActionCards = [
     name: "Dodge",
     summary: "Defend yourself until your next turn.",
     detail: "Attack rolls against you become harder, and Dexterity saves improve.",
-    breakdown: "Make attacks against you harder",
+    breakdown: "Make attacks against you harder to hit",
     cardTheme: ACTION_CARD_THEME.DEFENSE,
     economyType: ECONOMY_TYPE.ACTION,
     actionCategory: ACTION_CATEGORY.UTILITY,

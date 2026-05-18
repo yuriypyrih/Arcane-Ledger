@@ -274,6 +274,11 @@
   font-weight: 850;
 }
 
+.identitySubclassLine {
+  color: var(--color-ink-soft);
+  font-weight: 400;
+}
+
 .profileSummary {
   display: grid;
   align-self: stretch;

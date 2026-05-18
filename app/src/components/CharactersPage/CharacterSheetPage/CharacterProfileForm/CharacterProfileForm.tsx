@@ -1,7 +1,9 @@
 import clsx from "clsx";
+import { ScrollText } from "lucide-react";
 import { useState } from "react";
 import type { Character } from "../../../../types";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
+import { getSelectedSubclassForCharacter } from "../../../../pages/CharactersPage/subclasses";
 import { getClassSignatureStyle } from "../../classSignature";
 import CharacterNotesDrawer from "./CharacterNotesDrawer";
 import CharacterProgressModal from "./CharacterProgressModal";
@@ -44,6 +46,7 @@ function CharacterProfileForm({
     character,
     onPersistCharacter
   );
+  const selectedSubclass = getSelectedSubclassForCharacter(character);
   const identityLine = [character.species, character.className].filter(Boolean).join(" ");
 
   function openProgressModal() {
@@ -93,11 +96,17 @@ function CharacterProfileForm({
               </button>
             </div>
             <div className={styles.identityRows}>
-              <p className={styles.identityClassLine}>{identityLine}</p>
+              <p className={styles.identityClassLine}>
+                {identityLine}
+                {selectedSubclass ? (
+                  <span className={styles.identitySubclassLine}> ({selectedSubclass.name})</span>
+                ) : null}
+              </p>
               <p>{character.alignment}</p>
             </div>
             <InlineToggleButton
               className={styles.notesToggle}
+              icon={<ScrollText size={15} aria-hidden="true" />}
               label="Show Character Notes"
               expanded={isNotesDrawerOpen}
               onClick={openNotesDrawer}

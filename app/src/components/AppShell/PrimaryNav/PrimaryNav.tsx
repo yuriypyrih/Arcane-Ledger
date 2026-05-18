@@ -34,6 +34,7 @@ function PrimaryNav({
             <NavLink
               key={to}
               to={to}
+              aria-label={label}
               className={({ isActive }) =>
                 isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink
               }

@@ -265,13 +265,13 @@
     padding: 0 0.42rem;
   }
 
-  .brandLink span {
-    max-width: 7.5rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  .navLink {
+    min-width: 34px;
+    font-size: 0.8rem;
+    padding: 0;
   }
 
-  .navLink {
-    font-size: 0.8rem;
+  .navLink > span {
+    display: none;
   }
 }
