@@ -260,6 +260,7 @@ export type CharacterCompanion = {
   currentHitPoints: number;
   temporaryHitPoints: number;
   temporaryHitPointsSource?: string;
+  deathSaves?: CharacterDeathSaves;
   duration: CharacterStatusDuration;
   inheritedCreatureEntry?: MonsterRecord;
 };

@@ -115,15 +115,15 @@
 }
 
 .cascadeThree {
-  order: 3;
-}
-
-.cascadeFive {
   order: 4;
 }
 
-.cascadeSix {
+.cascadeFive {
   order: 5;
+}
+
+.cascadeSix {
+  order: 3;
 }
 
 .cascadeSeven {

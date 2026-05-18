@@ -15,7 +15,6 @@ import {
   getFeatGrantedCantripEntriesForCharacter,
   getFeatReactionEntriesForCharacter
 } from "../../../../../../pages/CharactersPage/feats/runtime";
-import { getCompanionStatusEntriesForCharacter } from "../../../../../../pages/CharactersPage/companions";
 import {
   getSpeciesAlwaysPreparedSpellIdsForCharacter,
   getSpeciesDerivedStatusEntriesForCharacter,
@@ -280,7 +279,6 @@ export function useTraitsConditionsSections({
     () =>
       resolveCharacterStatusEntries(character.statusEntries, [
         ...getDerivedFeatureStatusEntriesForCharacter(character),
-        ...getCompanionStatusEntriesForCharacter(character),
         ...getFeatDerivedStatusEntriesForCharacter(character),
         ...getSpeciesDerivedStatusEntriesForCharacter(character),
         ...reactionStatusEntries

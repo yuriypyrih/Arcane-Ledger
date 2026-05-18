@@ -3,10 +3,13 @@ import { Pencil, Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
+import { getCompanionStatusLabel } from "../../../../pages/CharactersPage/companions";
 import type { Character, CharacterCompanion } from "../../../../types";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import HitPointBar from "../HitPointControls/HitPointBar";
 import CompanionDrawer from "./CompanionDrawer";
 import CompanionEditorModal from "./CompanionEditorModal";
+import { removeCharacterCompanion, upsertCharacterCompanion } from "./companionPersistence";
 import { getCompanionSourceLabel } from "./companionUtils";
 import styles from "./CompanionsSection.module.css";
 
@@ -51,30 +54,15 @@ function CompanionsSection({ character, className, onPersistCharacter }: Compani
   }, [companions, editorCompanionId]);
 
   function handleSaveCompanion(nextCompanion: CharacterCompanion) {
-    onPersistCharacter((currentCharacter) => {
-      const currentCompanions = currentCharacter.companions ?? [];
-      const hasExistingCompanion = currentCompanions.some(
-        (companion) => companion.id === nextCompanion.id
-      );
-
-      return {
-        ...currentCharacter,
-        companions: hasExistingCompanion
-          ? currentCompanions.map((companion) =>
-              companion.id === nextCompanion.id ? nextCompanion : companion
-            )
-          : [...currentCompanions, nextCompanion]
-      };
-    });
+    onPersistCharacter((currentCharacter) =>
+      upsertCharacterCompanion(currentCharacter, nextCompanion)
+    );
   }
 
   function handleRemoveCompanion(companionId: string) {
-    onPersistCharacter((currentCharacter) => ({
-      ...currentCharacter,
-      companions: (currentCharacter.companions ?? []).filter(
-        (companion) => companion.id !== companionId
-      )
-    }));
+    onPersistCharacter((currentCharacter) =>
+      removeCharacterCompanion(currentCharacter, companionId)
+    );
   }
 
   return (
@@ -107,13 +95,31 @@ function CompanionsSection({ character, className, onPersistCharacter }: Compani
                   onClick={() => setSelectedCompanionId(companion.id)}
                 >
                   <div className={styles.cardBody}>
-                    <h4 className={styles.cardTitle}>{companion.name}</h4>
-                    <span className={styles.cardType}>
-                      {companion.type} · HP {companion.currentHitPoints}/{companion.maxHitPoints}
-                    </span>
-                  </div>
-                  <div className={styles.cardHeader}>
-                    <span className={styles.cardSource}>{getCompanionSourceLabel(companion)}</span>
+                    <div className={styles.cardTopRow}>
+                      <div className={styles.cardTitleRow}>
+                        <h4 className={styles.cardTitle}>{companion.name}</h4>
+                        <span className={styles.cardType}>· {companion.type}</span>
+                      </div>
+                      <span className={styles.cardSource}>
+                        {getCompanionSourceLabel(companion)}
+                      </span>
+                    </div>
+                    <div className={styles.cardVitalsRow}>
+                      <span className={styles.cardStatus}>
+                        {getCompanionStatusLabel(companion)}
+                      </span>
+                      <span className={styles.cardHitPointText}>
+                        <strong>
+                          {companion.currentHitPoints}/{companion.maxHitPoints} HP
+                        </strong>
+                      </span>
+                      <HitPointBar
+                        className={styles.cardHitPointBar}
+                        currentHitPoints={companion.currentHitPoints}
+                        maxHitPoints={companion.maxHitPoints}
+                        temporaryHitPoints={companion.temporaryHitPoints}
+                      />
+                    </div>
                   </div>
                 </button>
                 <button

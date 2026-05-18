@@ -147,7 +147,8 @@ function CompanionEditorModal({
   const [monsterCache, setMonsterCache] = useState<Record<string, MonsterRecord>>(() =>
     companions.reduce<Record<string, MonsterRecord>>((cache, currentCompanion) => {
       if (currentCompanion.inheritedCreatureEntry) {
-        cache[currentCompanion.inheritedCreatureEntry.slug] = currentCompanion.inheritedCreatureEntry;
+        cache[currentCompanion.inheritedCreatureEntry.slug] =
+          currentCompanion.inheritedCreatureEntry;
       }
 
       return cache;
@@ -382,6 +383,7 @@ function CompanionEditorModal({
       ...(companion?.temporaryHitPointsSource
         ? { temporaryHitPointsSource: companion.temporaryHitPointsSource }
         : {}),
+      ...(companion?.deathSaves ? { deathSaves: companion.deathSaves } : {}),
       ...(isBeastMasterPrimalBeast ? { role: beastMasterCompanionRole } : {}),
       ...(draft.primalBeastKind ? { primalBeastKind: draft.primalBeastKind } : {}),
       ...(draft.inheritedCreatureEntry
@@ -553,9 +555,7 @@ function CompanionEditorModal({
         <OverlayFooter className={styles.editorFooter}>
           {isEditingExisting ? (
             <div className={styles.editorFooterActions}>
-              <ActionButton onClick={handleSave}>
-                Save Changes
-              </ActionButton>
+              <ActionButton onClick={handleSave}>Save Changes</ActionButton>
               <ActionButton
                 actionType="ERROR"
                 variant="GHOST"
@@ -566,9 +566,7 @@ function CompanionEditorModal({
               </ActionButton>
             </div>
           ) : (
-            <ActionButton onClick={handleSave}>
-              Create Companion
-            </ActionButton>
+            <ActionButton onClick={handleSave}>Create Companion</ActionButton>
           )}
         </OverlayFooter>
       </SheetModal>
@@ -611,7 +609,9 @@ function CompanionEditorModal({
           monster={previewMonster}
           status={previewStatus}
           onClose={() => setPreviewSlug(null)}
-          badgeLabel={getPrimalBeastTemplateBySlug(previewSlug) ? "Primal Beast" : "Monster Preview"}
+          badgeLabel={
+            getPrimalBeastTemplateBySlug(previewSlug) ? "Primal Beast" : "Monster Preview"
+          }
           backdropClassName={styles.previewBackdrop}
           drawerClassName={styles.previewDrawer}
           footer={

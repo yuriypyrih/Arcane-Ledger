@@ -1,8 +1,14 @@
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Link, useOutletContext, useParams } from "react-router-dom";
 import { ThumbDiceButton } from "../../../components/CharactersPage/CharacterSheetPage";
+import CompanionEditorModal from "../../../components/CharactersPage/CharacterSheetPage/CompanionsSection/CompanionEditorModal";
+import {
+  removeCharacterCompanion,
+  upsertCharacterCompanion
+} from "../../../components/CharactersPage/CharacterSheetPage/CompanionsSection/companionPersistence";
 import { getClassSignatureStyle } from "../../../components/CharactersPage/classSignature";
 import type { AppShellOutletContext } from "../../../components/AppShell/outletContext";
+import type { CharacterCompanion } from "../../../types";
 import { hasSpellcastingForCharacter } from "../spellcastingAvailability";
 import { CharacterSheetSectionProfiler } from "./CharacterSheetSectionProfiler";
 import styles from "./CharacterSheetPage.module.css";
@@ -22,9 +28,11 @@ function CharacterSheetPage() {
   const { characterId } = useParams();
   const { isBroadLayoutActive } = useOutletContext<AppShellOutletContext>();
   const parsedCharacterId = useMemo(() => Number(characterId), [characterId]);
+  const [isCompanionCreatorOpen, setIsCompanionCreatorOpen] = useState(false);
   const { character, persistCharacter, queueHitPointCharacterSave } =
     useCharacterSheetPersistence(parsedCharacterId);
   const hasSpellcastingSection = character ? hasSpellcastingForCharacter(character) : false;
+  const companions = useMemo(() => character?.companions ?? [], [character?.companions]);
   const pageClassName = isBroadLayoutActive ? `${styles.page} ${styles.pageBroad}` : styles.page;
   const cascadeStackClassName = [
     styles.cascadeStack,
@@ -32,6 +40,28 @@ function CharacterSheetPage() {
   ]
     .filter(Boolean)
     .join(" ");
+  const openCompanionCreator = useCallback(() => {
+    setIsCompanionCreatorOpen(true);
+  }, []);
+  const closeCompanionCreator = useCallback(() => {
+    setIsCompanionCreatorOpen(false);
+  }, []);
+  const handleSaveCompanion = useCallback(
+    (nextCompanion: CharacterCompanion) => {
+      persistCharacter((currentCharacter) =>
+        upsertCharacterCompanion(currentCharacter, nextCompanion)
+      );
+    },
+    [persistCharacter]
+  );
+  const handleRemoveCompanion = useCallback(
+    (companionId: string) => {
+      persistCharacter((currentCharacter) =>
+        removeCharacterCompanion(currentCharacter, companionId)
+      );
+    },
+    [persistCharacter]
+  );
 
   if (!character) {
     return (
@@ -64,16 +94,17 @@ function CharacterSheetPage() {
               className={styles.cascadeTwo}
               onPersistCharacter={persistCharacter}
               onQueueHitPointCharacter={queueHitPointCharacterSave}
+              onRequestCreateCompanion={openCompanionCreator}
             />
-          </CharacterSheetSectionProfiler>
-          <CharacterSheetSectionProfiler id="skills-proficiencies">
-            <SkillsSection className={styles.cascadeFive} onPersistCharacter={persistCharacter} />
           </CharacterSheetSectionProfiler>
           <CharacterSheetSectionProfiler id="companions">
             <CompanionsSheetSection
               className={styles.cascadeSix}
               onPersistCharacter={persistCharacter}
             />
+          </CharacterSheetSectionProfiler>
+          <CharacterSheetSectionProfiler id="skills-proficiencies">
+            <SkillsSection className={styles.cascadeFive} onPersistCharacter={persistCharacter} />
           </CharacterSheetSectionProfiler>
           <CharacterSheetSectionProfiler id="equipment">
             <EquipmentSheetSection
@@ -103,6 +134,16 @@ function CharacterSheetPage() {
           ) : null}
         </div>
       </div>
+      {isCompanionCreatorOpen ? (
+        <CompanionEditorModal
+          character={character}
+          companion={null}
+          companions={companions}
+          onSaveCompanion={handleSaveCompanion}
+          onRemoveCompanion={handleRemoveCompanion}
+          onClose={closeCompanionCreator}
+        />
+      ) : null}
       <ThumbDiceButton />
     </section>
   );

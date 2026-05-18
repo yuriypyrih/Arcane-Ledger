@@ -51,6 +51,7 @@ export type DiceRollerRequestBase = {
   mode?: RollMode;
   entries?: DiceRollerRequestEntry[];
   enableNextCriticalHitOnNatural20?: boolean;
+  ignoreNextRollOverrides?: boolean;
   getFullManualToastText?: (resolvedResult: DiceRollerResolvedResult) => string;
 };
 

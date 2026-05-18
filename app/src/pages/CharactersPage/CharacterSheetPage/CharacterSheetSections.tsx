@@ -20,15 +20,16 @@ import {
   selectSpellcastingCharacter,
   selectStatsCharacter
 } from "./selectors";
-import type {
-  PersistCharacterOptions,
-  PersistCharacterUpdater,
-  QueueCharacterSave
-} from "./types";
+import type { PersistCharacterOptions, PersistCharacterUpdater, QueueCharacterSave } from "./types";
 
 type PersistSectionProps = {
   className?: string;
   onPersistCharacter: PersistCharacterUpdater;
+};
+
+type GameplaySectionProps = PersistSectionProps & {
+  onQueueHitPointCharacter: QueueCharacterSave;
+  onRequestCreateCompanion?: () => void;
 };
 
 type CharacterProfileSectionProps = PersistSectionProps & {
@@ -86,8 +87,9 @@ export const CharacterProfileSection = memo(function CharacterProfileSection({
 export const GameplaySection = memo(function GameplaySection({
   className,
   onPersistCharacter,
-  onQueueHitPointCharacter
-}: PersistSectionProps & { onQueueHitPointCharacter: QueueCharacterSave }) {
+  onQueueHitPointCharacter,
+  onRequestCreateCompanion
+}: GameplaySectionProps) {
   const character = useAppSelector(selectGameplayCharacter);
   const persistGameplayCharacter = useDefaultPersistOptions(
     onPersistCharacter,
@@ -100,6 +102,7 @@ export const GameplaySection = memo(function GameplaySection({
       className={className}
       onPersistCharacter={persistGameplayCharacter}
       onQueueHitPointCharacter={onQueueHitPointCharacter}
+      onRequestCreateCompanion={onRequestCreateCompanion}
     />
   ) : null;
 });
@@ -160,8 +163,9 @@ export const CompanionsSheetSection = memo(function CompanionsSheetSection({
   onPersistCharacter
 }: PersistSectionProps) {
   const character = useAppSelector(selectCompanionsCharacter);
+  const companions = character?.companions ?? [];
 
-  return character ? (
+  return character && companions.length > 0 ? (
     <CompanionsSection
       character={character}
       className={className}

@@ -72,8 +72,7 @@ function formatDerivedResultBreakdown(
   breakdownLabel?: string
 ): string {
   const label = breakdownLabel ?? source.label?.trim() ?? "Roll";
-  const offsetText =
-    totalOffset >= 0 ? `+ ${totalOffset}` : `- ${Math.abs(totalOffset)}`;
+  const offsetText = totalOffset >= 0 ? `+ ${totalOffset}` : `- ${Math.abs(totalOffset)}`;
 
   return `${source.result.total} ${label} ${offsetText}`;
 }
@@ -232,9 +231,16 @@ export function useDiceRollerPopup() {
       const rollToken = nextRollTokenRef.current;
       const behavior = getDiceRollerBehaviorPreference();
       const { nextRollCriticalHitOverride, nextRollModeOverride } = store.getState().diceRoller;
-      const effectiveMode = nextRollModeOverride ?? request.mode ?? "normal";
+      const shouldApplyNextRollOverrides = request.ignoreNextRollOverrides !== true;
+      const effectiveMode =
+        shouldApplyNextRollOverrides && nextRollModeOverride !== null
+          ? nextRollModeOverride
+          : (request.mode ?? "normal");
 
-      if (nextRollModeOverride !== null || nextRollCriticalHitOverride) {
+      if (
+        shouldApplyNextRollOverrides &&
+        (nextRollModeOverride !== null || nextRollCriticalHitOverride)
+      ) {
         dispatch(clearNextRollOverrides());
       }
 

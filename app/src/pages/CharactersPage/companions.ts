@@ -1,12 +1,8 @@
 import {
   STATUS_DURATION_KIND,
   STATUS_DURATION_ROUND_TICK,
-  STATUS_ENTRY_GROUP,
-  STATUS_ENTRY_SOURCE_TYPE,
-  type Character,
   type CharacterCompanion,
-  type CharacterStatusDuration,
-  type CharacterStatusEntry
+  type CharacterStatusDuration
 } from "../../types";
 import { normalizeMonsterRecord } from "../../utils/monsters";
 import { isObjectRecord, normalizeText } from "../../utils/normalize";
@@ -17,6 +13,12 @@ import {
   normalizeCompanionHitPoints
 } from "./beastMasterCompanions";
 import {
+  createDefaultDeathSaveTrack,
+  getDeathSaveStatusLabel,
+  isDeathSaveTrackResolved,
+  normalizeDeathSaveTrack
+} from "./deathSaves";
+import {
   normalizeCharacterStatusDuration,
   normalizeStatusDurationRoundTick
 } from "./statusEntries";
@@ -25,8 +27,6 @@ import {
   createTemporaryHitPointsAssignment,
   normalizeTemporaryHitPoints
 } from "./shared";
-
-export const companionStatusEntrySourceIdPrefix = "companion-status-";
 
 const defaultCompanionDuration: CharacterStatusDuration = {
   kind: STATUS_DURATION_KIND.INFINITE
@@ -50,8 +50,12 @@ function normalizeCompanionDuration(value: unknown): CharacterStatusDuration {
   };
 }
 
-function getCompanionStatusEntryId(companionId: string): string {
-  return `${companionStatusEntrySourceIdPrefix}${companionId}`;
+function createInstantDeathSaves() {
+  return {
+    successes: 0,
+    failures: 3,
+    resolution: "instant-death" as const
+  };
 }
 
 function normalizeCharacterCompanion(value: unknown, index: number): CharacterCompanion | null {
@@ -70,6 +74,7 @@ function normalizeCharacterCompanion(value: unknown, index: number): CharacterCo
   const primalBeastKind = getNormalizedPrimalBeastKind(value.primalBeastKind);
   const role = value.role === beastMasterCompanionRole ? beastMasterCompanionRole : undefined;
   const duration = normalizeCompanionDuration(value.duration);
+  const deathSaves = normalizeDeathSaveTrack(value.deathSaves);
   const temporaryHitPointsAssignment = createTemporaryHitPointsAssignment(
     value.temporaryHitPoints,
     value.temporaryHitPointsSource
@@ -82,6 +87,7 @@ function normalizeCharacterCompanion(value: unknown, index: number): CharacterCo
     maxHitPoints: 1,
     currentHitPoints: 1,
     ...temporaryHitPointsAssignment,
+    deathSaves,
     duration,
     ...(role ? { role } : {}),
     ...(primalBeastKind ? { primalBeastKind } : {}),
@@ -103,6 +109,14 @@ function normalizeCharacterCompanion(value: unknown, index: number): CharacterCo
     maxHitPoints,
     currentHitPoints
   };
+}
+
+export function getCompanionStatusLabel(companion: CharacterCompanion): string {
+  return getDeathSaveStatusLabel(
+    companion.currentHitPoints,
+    companion.maxHitPoints,
+    normalizeDeathSaveTrack(companion.deathSaves)
+  );
 }
 
 export function createCharacterCompanionId(): string {
@@ -146,6 +160,7 @@ export function applyDamageToCharacterCompanion(
   const absorbedByTemporaryHitPoints = Math.min(normalizedAmount, currentTemporaryHitPoints);
   const nextTemporaryHitPoints = currentTemporaryHitPoints - absorbedByTemporaryHitPoints;
   const remainingDamage = normalizedAmount - absorbedByTemporaryHitPoints;
+  const isInstantDeath = remainingDamage >= companion.currentHitPoints + companion.maxHitPoints;
   const nextCurrentHitPoints = Math.max(
     0,
     Math.min(companion.maxHitPoints, companion.currentHitPoints - remainingDamage)
@@ -164,7 +179,12 @@ export function applyDamageToCharacterCompanion(
       nextTemporaryHitPoints,
       nextTemporaryHitPoints > 0 ? companion.temporaryHitPointsSource : undefined
     ),
-    currentHitPoints: nextCurrentHitPoints
+    currentHitPoints: nextCurrentHitPoints,
+    deathSaves: isInstantDeath
+      ? createInstantDeathSaves()
+      : nextCurrentHitPoints > 0
+        ? createDefaultDeathSaveTrack()
+        : normalizeDeathSaveTrack(companion.deathSaves)
   };
 }
 
@@ -189,7 +209,75 @@ export function applyHealingToCharacterCompanion(
 
   return {
     ...companion,
-    currentHitPoints: nextCurrentHitPoints
+    currentHitPoints: nextCurrentHitPoints,
+    deathSaves:
+      nextCurrentHitPoints > 0
+        ? createDefaultDeathSaveTrack()
+        : normalizeDeathSaveTrack(companion.deathSaves)
+  };
+}
+
+export function updateCharacterCompanionDeathSaves(
+  companion: CharacterCompanion,
+  track: "success" | "failure"
+): CharacterCompanion {
+  if (companion.currentHitPoints > 0) {
+    return companion;
+  }
+
+  const deathSaves = normalizeDeathSaveTrack(companion.deathSaves);
+
+  if (isDeathSaveTrackResolved(deathSaves)) {
+    return companion;
+  }
+
+  if (track === "success") {
+    const nextSuccesses = Math.min(3, deathSaves.successes + 1);
+
+    if (nextSuccesses === deathSaves.successes) {
+      return companion;
+    }
+
+    return {
+      ...companion,
+      deathSaves: {
+        ...deathSaves,
+        successes: nextSuccesses
+      }
+    };
+  }
+
+  const nextFailures = Math.min(3, deathSaves.failures + 1);
+
+  if (nextFailures === deathSaves.failures) {
+    return companion;
+  }
+
+  return {
+    ...companion,
+    deathSaves: {
+      ...deathSaves,
+      failures: nextFailures
+    }
+  };
+}
+
+export function resetCharacterCompanionDeathSaves(
+  companion: CharacterCompanion
+): CharacterCompanion {
+  const deathSaves = normalizeDeathSaveTrack(companion.deathSaves);
+
+  if (
+    deathSaves.successes === 0 &&
+    deathSaves.failures === 0 &&
+    deathSaves.resolution !== "instant-death"
+  ) {
+    return companion;
+  }
+
+  return {
+    ...companion,
+    deathSaves: createDefaultDeathSaveTrack()
   };
 }
 
@@ -291,36 +379,4 @@ export function applyLongRestToCharacterCompanions(value: unknown): CharacterCom
 
 export function hasFiniteCompanionDuration(companions: readonly CharacterCompanion[]): boolean {
   return companions.some((companion) => companion.duration.kind !== STATUS_DURATION_KIND.INFINITE);
-}
-
-export function getCompanionIdFromStatusEntry(
-  entry: Pick<CharacterStatusEntry, "group" | "sourceId"> | null | undefined
-): string | null {
-  if (
-    entry?.group !== STATUS_ENTRY_GROUP.COMPANIONS ||
-    !entry.sourceId?.startsWith(companionStatusEntrySourceIdPrefix)
-  ) {
-    return null;
-  }
-
-  return entry.sourceId.slice(companionStatusEntrySourceIdPrefix.length) || null;
-}
-
-export function getCompanionStatusEntriesForCharacter(
-  character: Pick<Character, "companions">
-): CharacterStatusEntry[] {
-  return normalizeCharacterCompanions(character.companions)
-    .slice()
-    .sort((left, right) => left.name.localeCompare(right.name))
-    .map((companion) => ({
-      id: getCompanionStatusEntryId(companion.id),
-      group: STATUS_ENTRY_GROUP.COMPANIONS,
-      value: companion.name,
-      source: "Companion",
-      sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
-      duration: companion.duration,
-      sourceId: getCompanionStatusEntryId(companion.id),
-      rangeFeet: null,
-      description: companion.description.trim() || undefined
-    }));
 }

@@ -216,8 +216,8 @@ export const selectFeaturesCharacter = createCharacterFieldsSelector(
 );
 
 export const selectCompanionsCharacter = createCharacterFieldsSelector(
-  ["id", "companions"],
-  ["companions"]
+  ["id", "className", "subclassId", "level", "abilities", "companions"],
+  ["profile", "companions"]
 );
 
 export const selectEquipmentCharacter = createCharacterFieldsSelector(

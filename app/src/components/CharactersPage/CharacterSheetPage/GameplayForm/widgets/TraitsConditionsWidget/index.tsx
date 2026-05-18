@@ -3,11 +3,9 @@ import { Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useBodyScrollLock } from "../../../../../../lib/useBodyScrollLock";
 import { normalizeRoundTracker } from "../../../../../../pages/CharactersPage/combat";
-import { getCompanionIdFromStatusEntry } from "../../../../../../pages/CharactersPage/companions";
 import type { PersistCharacterUpdater } from "../../../../../../pages/CharactersPage/CharacterSheetPage/types";
 import type { Character, CharacterStatusEntry } from "../../../../../../types";
 import { useDiceRollerPopup } from "../../../../../DicePage/DiceRollerPopup";
-import CompanionDrawer from "../../../CompanionsSection/CompanionDrawer";
 import CharacterSpellDrawer from "../../../SpellCastingForm/CharacterSpellDrawer";
 import shared from "../../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import widgetShellStyles from "../../GameplayWidgetShared.module.css";
@@ -24,13 +22,18 @@ import { useTraitsConditionsSections } from "./useTraitsConditionsSections";
 type TraitsConditionsWidgetProps = {
   character: Character;
   onPersistCharacter: PersistCharacterUpdater;
+  onRequestCreateCompanion?: () => void;
 };
 
 type EditableCustomTraitEntry = CharacterStatusEntry & {
   customEffects: NonNullable<CharacterStatusEntry["customEffects"]>;
 };
 
-function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditionsWidgetProps) {
+function TraitsConditionsWidget({
+  character,
+  onPersistCharacter,
+  onRequestCreateCompanion
+}: TraitsConditionsWidgetProps) {
   const [selectedStatusEntryId, setSelectedStatusEntryId] = useState<string | null>(null);
   const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
   const roundTracker = normalizeRoundTracker(character.roundTracker);
@@ -72,15 +75,16 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     spellSlotTotals,
     spellSlotsRemaining
   });
-  const selectedCompanionId = getCompanionIdFromStatusEntry(selectedStatusEntry);
-  const selectedCompanion = selectedCompanionId
-    ? (character.companions.find((companion) => companion.id === selectedCompanionId) ?? null)
-    : null;
   const hasOverlayOpen = isTraitModalOpen || selectedStatusEntryId !== null;
 
   function editCustomTrait(entry: EditableCustomTraitEntry) {
     setSelectedStatusEntryId(null);
     openCustomTraitEditor(entry);
+  }
+
+  function handleRequestCreateCompanion() {
+    closeTraitEditor();
+    onRequestCreateCompanion?.();
   }
 
   useBodyScrollLock(hasOverlayOpen);
@@ -123,7 +127,12 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
         )}
       </section>
 
-      {isTraitModalOpen ? <TraitEditorModal {...traitEditorModalProps} /> : null}
+      {isTraitModalOpen ? (
+        <TraitEditorModal
+          {...traitEditorModalProps}
+          onCreateCompanion={onRequestCreateCompanion ? handleRequestCreateCompanion : undefined}
+        />
+      ) : null}
 
       {reactionDrawerState.selectedReactionSpell ? (
         <CharacterSpellDrawer
@@ -192,19 +201,10 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
         roundTracker={roundTracker}
         selectedReactionEntry={selectedReactionEntry}
         selectedReactionSpell={reactionDrawerState.selectedReactionSpell}
-        selectedStatusEntry={selectedCompanion ? null : selectedStatusEntry}
+        selectedStatusEntry={selectedStatusEntry}
         setSelectedStatusEntryId={setSelectedStatusEntryId}
         {...statusDrawerState}
       />
-
-      {selectedCompanion ? (
-        <CompanionDrawer
-          character={character}
-          companion={selectedCompanion}
-          onPersistCharacter={onPersistCharacter}
-          onClose={() => setSelectedStatusEntryId(null)}
-        />
-      ) : null}
 
       {diceRollerPopup}
     </>

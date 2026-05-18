@@ -4,11 +4,9 @@ import type { ChangeEvent, ReactNode } from "react";
 import { useState } from "react";
 import NumberInput from "../../FormInputs/NumberInput";
 import { clampNumber } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
-import {
-  normalizeMagicTemporaryHitPoints,
-  normalizeTemporaryHitPoints
-} from "../GameplayForm/gameplayStateUtils";
+import { normalizeTemporaryHitPoints } from "../GameplayForm/gameplayStateUtils";
 import TemporaryHitPoints from "../TemporaryHitPoints";
+import HitPointBar from "./HitPointBar";
 import styles from "./HitPointControls.module.css";
 
 type HitPointControlsProps = {
@@ -51,17 +49,6 @@ function HitPointControls({
     currentHitPoints
   );
   const normalizedTemporaryHitPoints = normalizeTemporaryHitPoints(temporaryHitPoints);
-  const normalizedMagicTemporaryHitPoints =
-    normalizeMagicTemporaryHitPoints(magicTemporaryHitPoints);
-  const totalDisplayedHitPoints =
-    normalizedCurrentHitPoints + normalizedTemporaryHitPoints + normalizedMagicTemporaryHitPoints;
-  const barMaximumHitPoints = Math.max(normalizedMaxHitPoints, totalDisplayedHitPoints);
-  const currentHitPointPercent =
-    barMaximumHitPoints > 0 ? (normalizedCurrentHitPoints / barMaximumHitPoints) * 100 : 0;
-  const visibleTemporaryHitPointPercent =
-    barMaximumHitPoints > 0 ? (normalizedTemporaryHitPoints / barMaximumHitPoints) * 100 : 0;
-  const visibleMagicTemporaryHitPointPercent =
-    barMaximumHitPoints > 0 ? (normalizedMagicTemporaryHitPoints / barMaximumHitPoints) * 100 : 0;
 
   function updateHitPointStep(event: ChangeEvent<HTMLInputElement>) {
     const normalizedValue = event.target.value.replace(/^0+(?=\d)/, "");
@@ -111,32 +98,12 @@ function HitPointControls({
       ) : null}
 
       <div className={styles.actionRow}>
-        <div className={styles.barTrack}>
-          <div className={styles.barMeter}>
-            <div
-              className={styles.barFill}
-              style={{ width: `${Math.max(0, currentHitPointPercent)}%` }}
-            />
-            {visibleTemporaryHitPointPercent > 0 ? (
-              <div
-                className={styles.barTempFill}
-                style={{
-                  left: `${Math.max(0, currentHitPointPercent)}%`,
-                  width: `${visibleTemporaryHitPointPercent}%`
-                }}
-              />
-            ) : null}
-            {visibleMagicTemporaryHitPointPercent > 0 ? (
-              <div
-                className={styles.barMagicTempFill}
-                style={{
-                  left: `${Math.max(0, currentHitPointPercent + visibleTemporaryHitPointPercent)}%`,
-                  width: `${visibleMagicTemporaryHitPointPercent}%`
-                }}
-              />
-            ) : null}
-          </div>
-        </div>
+        <HitPointBar
+          currentHitPoints={currentHitPoints}
+          maxHitPoints={maxHitPoints}
+          temporaryHitPoints={temporaryHitPoints}
+          magicTemporaryHitPoints={magicTemporaryHitPoints}
+        />
 
         <div className={styles.stepControl}>
           <NumberInput

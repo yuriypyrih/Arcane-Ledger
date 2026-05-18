@@ -17,10 +17,15 @@ import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/C
 import {
   applyDamageToCharacterCompanion,
   applyHealingToCharacterCompanion,
-  assignManualTemporaryHitPointsToCharacterCompanion
+  assignManualTemporaryHitPointsToCharacterCompanion,
+  getCompanionStatusLabel,
+  resetCharacterCompanionDeathSaves,
+  updateCharacterCompanionDeathSaves
 } from "../../../../pages/CharactersPage/companions";
+import { normalizeDeathSaveTrack } from "../../../../pages/CharactersPage/deathSaves";
 import type { Character, CharacterCompanion } from "../../../../types";
 import { getStatusDurationLabel } from "../../../../pages/CharactersPage/traits";
+import DeathSavesTracker from "../GameplayForm/widgets/DeathSavesTracker";
 import HitPointControls from "../HitPointControls/HitPointControls";
 import { getCompanionSourceLabel } from "./companionUtils";
 import styles from "./CompanionsSection.module.css";
@@ -40,8 +45,10 @@ function CompanionDrawer({
 }: CompanionDrawerProps) {
   const titleId = useId();
   const statBlock = getCompanionStatBlock(companion, character);
-  const hpLabel = `${companion.currentHitPoints}/${companion.maxHitPoints}`;
-  const statusLabel = companion.currentHitPoints <= 0 ? "Unconscious" : "Ready";
+  const deathSaves = normalizeDeathSaveTrack(companion.deathSaves);
+  const statusLabel = getCompanionStatusLabel(companion);
+  const shouldShowDeathSaves =
+    companion.currentHitPoints <= 0 && deathSaves.resolution !== "instant-death";
 
   function updateCompanion(update: (companion: CharacterCompanion) => CharacterCompanion) {
     onPersistCharacter((currentCharacter) => ({
@@ -58,9 +65,7 @@ function CompanionDrawer({
         <OverlayHeaderContent>
           <OverlayBadge>Companion</OverlayBadge>
           <OverlayTitle id={titleId}>{companion.name}</OverlayTitle>
-          <OverlaySummary>
-            {companion.type} · {statusLabel} · HP {hpLabel}
-          </OverlaySummary>
+          <OverlaySummary>{companion.type}</OverlaySummary>
         </OverlayHeaderContent>
         <OverlayCloseButton onClick={onClose} label="Close companion details" />
       </OverlayHeader>
@@ -78,6 +83,27 @@ function CompanionDrawer({
           temporaryHitPoints={companion.temporaryHitPoints}
           temporaryHitPointsSource={companion.temporaryHitPointsSource}
           statusText={statusLabel}
+          extraTemporaryHitPointControl={
+            shouldShowDeathSaves ? (
+              <DeathSavesTracker
+                deathSaves={deathSaves}
+                ignoreNextRollOverrides
+                modalEyebrow="Companion"
+                rollDescription="Roll a plain death saving throw for this companion."
+                showDiceSettings={false}
+                onReset={() =>
+                  updateCompanion((currentCompanion) =>
+                    resetCharacterCompanionDeathSaves(currentCompanion)
+                  )
+                }
+                onUpdate={(track) =>
+                  updateCompanion((currentCompanion) =>
+                    updateCharacterCompanionDeathSaves(currentCompanion, track)
+                  )
+                }
+              />
+            ) : null
+          }
           temporaryHitPointsDescription="When taking damage the temporary hit points are consumed first. They do not stack."
           onDamage={(amount) =>
             updateCompanion((currentCompanion) =>

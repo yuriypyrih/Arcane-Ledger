@@ -16,6 +16,13 @@
   justify-content: space-between;
 }
 
+.titleActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: flex-end;
+}
+
 .modePill {
   display: inline-flex;
   align-items: center;
@@ -101,6 +108,11 @@
   .titleRow {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .titleActions {
+    justify-content: flex-start;
+    width: 100%;
   }
 
   .modePill {

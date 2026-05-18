@@ -49,6 +49,7 @@ type TraitEditorModalProps = {
   onAddCustomTraitEffect: () => void;
   onRemoveCustomTraitEffect: (effectId: string) => void;
   onCreate: () => void;
+  onCreateCompanion?: () => void;
   onClose: () => void;
 };
 
@@ -75,6 +76,7 @@ function TraitEditorModal({
   onAddCustomTraitEffect,
   onRemoveCustomTraitEffect,
   onCreate,
+  onCreateCompanion,
   onClose
 }: TraitEditorModalProps) {
   const isExhaustionSelection =
@@ -96,15 +98,28 @@ function TraitEditorModal({
               {isEditingCustomTrait ? "Edit Trait" : "Edit Traits & Conditions"}
             </OverlayTitle>
             {!isEditingCustomTrait ? (
-              <button
-                type="button"
-                className={clsx(styles.modePill, isCustomTraitMode && styles.modePillActive)}
-                aria-pressed={isCustomTraitMode}
-                onClick={() => onModeChange(isCustomTraitMode ? "quick-add" : "custom-trait")}
-              >
-                <Plus size={14} aria-hidden="true" />
-                <span>Custom Feature Trait</span>
-              </button>
+              <div className={styles.titleActions}>
+                <button
+                  type="button"
+                  className={clsx(styles.modePill, isCustomTraitMode && styles.modePillActive)}
+                  aria-pressed={isCustomTraitMode}
+                  onClick={() => onModeChange(isCustomTraitMode ? "quick-add" : "custom-trait")}
+                >
+                  <Plus size={14} aria-hidden="true" />
+                  <span>Custom Feature Trait</span>
+                </button>
+                {onCreateCompanion ? (
+                  <button
+                    type="button"
+                    className={styles.modePill}
+                    onClick={onCreateCompanion}
+                    aria-label="Create companion"
+                  >
+                    <Plus size={14} aria-hidden="true" />
+                    <span>Companion</span>
+                  </button>
+                ) : null}
+              </div>
             ) : null}
           </OverlayTitleRow>
         </OverlayHeaderContent>
