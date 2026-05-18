@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { Dice6 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
+import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import type {
   AbilityKey,
@@ -30,7 +30,6 @@ import {
   createDefaultAbilities,
   createDefaultCurrencies,
   createEmptyCharacter,
-  getAffordablePointBuyMax,
   getPointBuyCost,
   getPointBuyRemaining,
   normalizePointBuyAbilities,
@@ -161,6 +160,16 @@ function normalizeCustomAbilities(abilities: AbilityScores): AbilityScores {
     next[ability] = Math.max(1, Math.min(CUSTOM_ABILITY_SCORE_MAX, abilities[ability]));
     return next;
   }, {} as AbilityScores);
+}
+
+function isPointBuyAbilityDistributionReady(
+  attributeMode: AttributeMode,
+  abilities: AbilityScores
+): boolean {
+  return (
+    attributeMode !== "pointBuy" ||
+    getPointBuyRemaining(normalizePointBuyAbilities(abilities)) === 0
+  );
 }
 
 function normalizeSelection<T extends string>(values: string[], validOptions: readonly T[]): T[] {
@@ -411,6 +420,10 @@ function createFormValues(
 ): CharacterFormValues {
   return {
     ...draft,
+    abilities:
+      draft.attributeMode === "pointBuy"
+        ? normalizePointBuyAbilities(draft.abilities)
+        : normalizeCustomAbilities(draft.abilities),
     maxHitPointsMode: draft.maxHitPointsMode ?? options?.defaultHitPointMode ?? "automatic",
     startingEquipmentChoiceIndex: options?.startingEquipmentChoiceIndex ?? "",
     starterPackSelectionValues: options?.starterPackSelectionValues ?? {}
@@ -1182,12 +1195,6 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     statusEntries: getValues("statusEntries") ?? [],
     subclassId: resolvedSubclassId
   };
-  const lastCustomAbilitiesRef = useRef(cloneAbilities(initialFormValues.abilities));
-  const lastPointBuyAbilitiesRef = useRef(
-    initialFormValues.attributeMode === "pointBuy"
-      ? normalizePointBuyAbilities(initialFormValues.abilities)
-      : createDefaultAbilities()
-  );
   const pointBuyRemaining = getPointBuyRemaining(resolvedAbilities);
   const resolvedSkillSelections = resolveSkillProficienciesForCharacter(
     resolvedClassName,
@@ -1324,14 +1331,6 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     });
 
     reset(nextInitialValues);
-    lastCustomAbilitiesRef.current =
-      nextInitialValues.attributeMode === "custom"
-        ? cloneAbilities(nextInitialValues.abilities)
-        : cloneAbilities(createDefaultAbilities());
-    lastPointBuyAbilitiesRef.current =
-      nextInitialValues.attributeMode === "pointBuy"
-        ? normalizePointBuyAbilities(nextInitialValues.abilities)
-        : createDefaultAbilities();
     setWizardStep(1);
     setStepOneSnapshot(null);
     setAttemptedBuildAdvance(false);
@@ -1559,18 +1558,11 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     }
   }, [automaticHitPoints, getValues, isEditing, resolvedMaxHitPointsMode, setValue]);
 
-  function commitAbilities(nextAbilities: AbilityScores, mode: AttributeMode) {
+  function commitAbilities(nextAbilities: AbilityScores) {
     setValue("abilities", nextAbilities, {
       shouldDirty: true,
       shouldValidate: true
     });
-
-    if (mode === "custom") {
-      lastCustomAbilitiesRef.current = cloneAbilities(nextAbilities);
-      return;
-    }
-
-    lastPointBuyAbilitiesRef.current = cloneAbilities(nextAbilities);
   }
 
   function handleAttributeModeChange(nextMode: AttributeMode) {
@@ -1580,18 +1572,11 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
 
     const currentAbilities = getValues("abilities");
 
-    if (resolvedAttributeMode === "custom") {
-      lastCustomAbilitiesRef.current = cloneAbilities(currentAbilities);
-    } else {
-      lastPointBuyAbilitiesRef.current = normalizePointBuyAbilities(currentAbilities);
-    }
-
     setValue("attributeMode", nextMode, { shouldDirty: true });
     commitAbilities(
-      cloneAbilities(
-        nextMode === "custom" ? lastCustomAbilitiesRef.current : lastPointBuyAbilitiesRef.current
-      ),
-      nextMode
+      nextMode === "custom"
+        ? normalizeCustomAbilities(currentAbilities)
+        : normalizePointBuyAbilities(currentAbilities)
     );
   }
 
@@ -1606,22 +1591,19 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       {
         ...getValues("abilities"),
         [ability]: nextScore
-      },
-      "custom"
+      }
     );
   }
 
   function handlePointBuyAbilityChange(ability: AbilityKey, rawValue: string) {
     const currentAbilities = getValues("abilities");
-    const maxScore = getAffordablePointBuyMax(ability, currentAbilities);
-    const nextScore = clampNumber(rawValue, 8, Math.min(15, maxScore), currentAbilities[ability]);
+    const nextScore = clampNumber(rawValue, 8, 15, currentAbilities[ability]);
 
     commitAbilities(
       {
         ...currentAbilities,
         [ability]: nextScore
-      },
-      "pointBuy"
+      }
     );
   }
 
@@ -2058,6 +2040,17 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
 
   async function submitResolvedDraft(values: CharacterFormValues) {
     const normalizedDraft = normalizeDraft(values);
+
+    if (!isPointBuyAbilityDistributionReady(normalizedDraft.attributeMode, normalizedDraft.abilities)) {
+      setAttemptedBuildAdvance(true);
+
+      if (!isEditing) {
+        setWizardStep(2);
+      }
+
+      return;
+    }
+
     const configuredStarterPack = getClassStarterPack(normalizedDraft.className);
     const selectedChoice =
       !isEditing && configuredStarterPack && values.startingEquipmentChoiceIndex.length > 0
@@ -2121,6 +2114,16 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   }
 
   async function submitForm(values: CharacterFormValues) {
+    if (!isPointBuyAbilityDistributionReady(values.attributeMode, values.abilities)) {
+      setAttemptedBuildAdvance(true);
+
+      if (!isEditing) {
+        setWizardStep(2);
+      }
+
+      return;
+    }
+
     const submittedSpeciesChoices = normalizeCharacterSpeciesChoices(
       values.species,
       values.speciesChoices
@@ -2297,10 +2300,6 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     const randomMode: AttributeMode = Math.random() < 0.5 ? "custom" : "pointBuy";
     const randomizedAbilities =
       randomMode === "custom" ? createRandomCustomAbilities() : createRandomPointBuyAbilities();
-    const randomizedPointBuyAbilities =
-      randomMode === "pointBuy" ? randomizedAbilities : createRandomPointBuyAbilities();
-    const randomizedCustomAbilities =
-      randomMode === "custom" ? randomizedAbilities : createRandomCustomAbilities();
     const randomizedDraft = createFormValues(
       {
         ...createEmptyCharacter(),
@@ -2337,8 +2336,6 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     randomizedDraft.currentHitPoints = randomizedDraft.hitPoints;
 
     reset(randomizedDraft);
-    lastPointBuyAbilitiesRef.current = cloneAbilities(randomizedPointBuyAbilities);
-    lastCustomAbilitiesRef.current = cloneAbilities(randomizedCustomAbilities);
   }
 
   function renderBasicProfileSection() {
@@ -2597,11 +2594,12 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
 
             handleCustomAbilityChange(ability, value);
           }}
-          getMaxPointBuyScore={(ability) => getAffordablePointBuyMax(ability, resolvedAbilities)}
         />
 
         {attemptedBuildAdvance && !isPointBuyReady ? (
-          <p className={styles.errorText}>Spend all 27 point-buy points before continuing.</p>
+          <p className={styles.errorText}>
+            Adjust point-buy scores until exactly 0 points remain before continuing.
+          </p>
         ) : null}
       </section>
     );
@@ -3962,7 +3960,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                   type="submit"
                   fullWidth={false}
                   loading={pendingAction === "submit"}
-                  disabled={hasPendingAction}
+                  disabled={hasPendingAction || !isPointBuyReady}
                 >
                   Update character
                 </ActionButton>

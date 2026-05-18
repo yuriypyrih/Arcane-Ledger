@@ -15,7 +15,6 @@ type AbilityScoresEditorContentProps = {
   pointBuyRemaining: number | null;
   onSetAttributeMode: (attributeMode: AttributeMode) => void;
   onUpdateAbilityScore: (ability: AbilityKey, value: string) => void;
-  getMaxPointBuyScore?: (ability: AbilityKey) => number;
 };
 
 function AbilityScoresEditorContent({
@@ -23,8 +22,7 @@ function AbilityScoresEditorContent({
   abilities,
   pointBuyRemaining,
   onSetAttributeMode,
-  onUpdateAbilityScore,
-  getMaxPointBuyScore
+  onUpdateAbilityScore
 }: AbilityScoresEditorContentProps) {
   const pointBuyStatus =
     attributeMode === "pointBuy" && pointBuyRemaining !== null
@@ -35,11 +33,11 @@ function AbilityScoresEditorContent({
           : null
       : null;
 
-  function getAbilityScoreBounds(ability: AbilityKey) {
+  function getAbilityScoreBounds() {
     if (attributeMode === "pointBuy") {
       return {
         min: 8,
-        max: getMaxPointBuyScore?.(ability) ?? 15
+        max: 15
       };
     }
 
@@ -158,7 +156,7 @@ function AbilityScoresEditorContent({
       <div className={styles.abilityInputGrid}>
         {abilityKeys.map((ability) => {
           const currentValue = abilities[ability];
-          const scoreBounds = getAbilityScoreBounds(ability);
+          const scoreBounds = getAbilityScoreBounds();
           const isPointBuy = attributeMode === "pointBuy";
 
           return (

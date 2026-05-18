@@ -20,22 +20,22 @@ type AbilityScoresModalProps = {
   isOpen: boolean;
   draft: AbilitiesDraft;
   pointBuyRemaining: number | null;
+  canSave: boolean;
   onClose: () => void;
   onSave: () => void;
   onSetAttributeMode: (attributeMode: AbilitiesDraft["attributeMode"]) => void;
   onUpdateAbilityScore: (ability: AbilityKey, value: string) => void;
-  getMaxPointBuyScore?: (ability: AbilityKey) => number;
 };
 
 function AbilityScoresModal({
   isOpen,
   draft,
   pointBuyRemaining,
+  canSave,
   onClose,
   onSave,
   onSetAttributeMode,
-  onUpdateAbilityScore,
-  getMaxPointBuyScore
+  onUpdateAbilityScore
 }: AbilityScoresModalProps) {
   if (!isOpen) {
     return null;
@@ -65,13 +65,12 @@ function AbilityScoresModal({
           pointBuyRemaining={pointBuyRemaining}
           onSetAttributeMode={onSetAttributeMode}
           onUpdateAbilityScore={onUpdateAbilityScore}
-          getMaxPointBuyScore={getMaxPointBuyScore}
         />
       </OverlayBody>
 
       <OverlayFooter>
         <div className={styles.footerActions}>
-          <ActionButton onClick={onSave} icon={<Save size={16} />}>
+          <ActionButton onClick={onSave} icon={<Save size={16} />} disabled={!canSave}>
             Save
           </ActionButton>
           <ActionButton variant="GHOST" onClick={onClose} icon={<X size={16} />}>

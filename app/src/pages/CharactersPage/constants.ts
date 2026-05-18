@@ -153,47 +153,9 @@ export function getPointBuyRemaining(abilities: AbilityScores): number {
   return POINT_BUY_BUDGET - getPointBuySpent(abilities);
 }
 
-export function getAffordablePointBuyMax(
-  targetAbility: AbilityKey,
-  abilities: AbilityScores
-): number {
-  const spentByOtherAbilities = abilityKeys.reduce((total, ability) => {
-    if (ability === targetAbility) {
-      return total;
-    }
-
-    return total + getPointBuyCost(abilities[ability]);
-  }, 0);
-
-  const affordableBudget = POINT_BUY_BUDGET - spentByOtherAbilities;
-  let maxScore = 8;
-
-  for (let score = 8; score <= 15; score += 1) {
-    if (getPointBuyCost(score) <= affordableBudget) {
-      maxScore = score;
-    }
-  }
-
-  return maxScore;
-}
-
 export function normalizePointBuyAbilities(abilities: AbilityScores): AbilityScores {
-  const normalized = abilityKeys.reduce((next, ability) => {
+  return abilityKeys.reduce((next, ability) => {
     next[ability] = Math.max(8, Math.min(15, abilities[ability]));
     return next;
   }, {} as AbilityScores);
-
-  while (getPointBuySpent(normalized) > POINT_BUY_BUDGET) {
-    const abilityToLower = [...abilityKeys]
-      .sort((left, right) => normalized[right] - normalized[left])
-      .find((ability) => normalized[ability] > 8);
-
-    if (!abilityToLower) {
-      break;
-    }
-
-    normalized[abilityToLower] -= 1;
-  }
-
-  return normalized;
 }
