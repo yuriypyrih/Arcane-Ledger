@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { ChevronDown, CircleHelp, Pencil } from "lucide-react";
+import { CircleHelp, Pencil } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   CLASS_FEATURE,
@@ -175,7 +175,6 @@ function ClassFeaturesAndFeats({
   className,
   onPersistCharacter
 }: ClassFeaturesAndFeatsProps) {
-  const [isExpanded, setIsExpanded] = useState(true);
   const [isFutureFeaturesVisible, setIsFutureFeaturesVisible] = useState(false);
   const [expandedFeatureKeys, setExpandedFeatureKeys] = useState<string[]>([]);
   const [isSpeciesModalOpen, setIsSpeciesModalOpen] = useState(false);
@@ -482,15 +481,6 @@ function ClassFeaturesAndFeats({
       current.filter((featureKey) => validFeatureKeys.has(featureKey))
     );
   }, [allFeatures]);
-
-  useEffect(() => {
-    if (isExpanded) {
-      return;
-    }
-
-    setExpandedFeatureKeys([]);
-    setIsFutureFeaturesVisible(false);
-  }, [isExpanded]);
 
   useEffect(() => {
     if (!isFeatModalOpen) {
@@ -1687,10 +1677,6 @@ function ClassFeaturesAndFeats({
     );
   }
 
-  function toggleSection() {
-    setIsExpanded((current) => !current);
-  }
-
   const renderTrackingButton: TrackingButtonRenderer = (trackingState) => {
     return <FeatureTrackingBadgeButton trackingState={trackingState} onClick={openKeyword} />;
   };
@@ -1713,163 +1699,144 @@ function ClassFeaturesAndFeats({
               </button>
             </div>
           </div>
-          <button
-            type="button"
-            className={styles.sectionCollapseButton}
-            onClick={toggleSection}
-            aria-expanded={isExpanded}
-            aria-controls="class-features-and-feats-content"
-            aria-label={isExpanded ? "Collapse build section" : "Expand build section"}
-          >
-            <ChevronDown
-              size={18}
-              aria-hidden="true"
-              className={clsx(
-                styles.sectionCollapseIcon,
-                !isExpanded && styles.sectionCollapseIconCollapsed
-              )}
-            />
-          </button>
         </div>
 
-        {isExpanded ? (
-          <div id="class-features-and-feats-content" className={styles.sectionStack}>
-            <section className={styles.subsection} aria-labelledby="character-species-title">
-              <div className={styles.subsectionHeader}>
-                <h3 id="character-species-title" className={styles.subsectionTitle}>
-                  Species
+        <div className={styles.sectionStack}>
+          <section className={styles.subsection} aria-labelledby="character-species-title">
+            <div className={styles.subsectionHeader}>
+              <h3 id="character-species-title" className={styles.subsectionTitle}>
+                Species
+              </h3>
+              <button
+                type="button"
+                className={shared.editButton}
+                onClick={() => setIsSpeciesModalOpen(true)}
+                disabled={isSpeciesModalOpen}
+              >
+                <Pencil size={16} />
+                Edit
+              </button>
+            </div>
+            <SpeciesBuildCard
+              character={character}
+              onOpenReference={speciesEntry ? openSpeciesReference : undefined}
+            />
+          </section>
+
+          <section className={styles.subsection} aria-labelledby="character-feats-title">
+            <div className={styles.subsectionHeader}>
+              <h3 id="character-feats-title" className={styles.subsectionTitle}>
+                Feats
+              </h3>
+              <button
+                type="button"
+                className={shared.editButton}
+                onClick={openFeatEditor}
+                disabled={isFeatModalOpen}
+              >
+                <Pencil size={16} />
+                Edit
+              </button>
+            </div>
+            <FeatList
+              feats={selectedFeats}
+              emptyText="No feats added yet."
+              onOpenFeatReference={openFeatReference}
+              renderTrackingButton={renderTrackingButton}
+            />
+          </section>
+
+          <section className={styles.subsection} aria-labelledby="character-class-features-title">
+            <div className={styles.subsectionHeader}>
+              <div className={styles.subsectionHeaderText}>
+                <h3 id="character-class-features-title" className={styles.subsectionTitle}>
+                  Class Features
                 </h3>
-                <button
-                  type="button"
-                  className={shared.editButton}
-                  onClick={() => setIsSpeciesModalOpen(true)}
-                  disabled={isSpeciesModalOpen}
-                >
-                  <Pencil size={16} />
-                  Edit
-                </button>
+                <p className={styles.subsectionMeta}>Subclass: {selectedSubclassLabel}</p>
               </div>
-              <SpeciesBuildCard
-                character={character}
-                onOpenReference={speciesEntry ? openSpeciesReference : undefined}
-              />
-            </section>
+              <button
+                type="button"
+                className={shared.editButton}
+                onClick={() => setIsSubclassModalOpen(true)}
+                disabled={isSubclassModalOpen || subclassOptions.length === 0}
+              >
+                <Pencil size={16} />
+                Edit
+              </button>
+            </div>
 
-            <section className={styles.subsection} aria-labelledby="character-feats-title">
-              <div className={styles.subsectionHeader}>
-                <h3 id="character-feats-title" className={styles.subsectionTitle}>
-                  Feats
-                </h3>
-                <button
-                  type="button"
-                  className={shared.editButton}
-                  onClick={openFeatEditor}
-                  disabled={isFeatModalOpen}
-                >
-                  <Pencil size={16} />
-                  Edit
-                </button>
-              </div>
-              <FeatList
-                feats={selectedFeats}
-                emptyText="No feats added yet."
-                onOpenFeatReference={openFeatReference}
-                renderTrackingButton={renderTrackingButton}
-              />
-            </section>
+            {unlockedFeatures.length > 0 ? (
+              <>
+                <ClassFeatureList
+                  character={character}
+                  features={unlockedFeatures}
+                  expandedFeatureKeys={expandedFeatureKeys}
+                  onToggleFeature={toggleFeature}
+                  getLinkedFeatForFeature={getLinkedFeatForFeature}
+                  onOpenFeatEditorForFeature={openFeatEditorForFeature}
+                  onOpenKeyword={openKeyword}
+                  onOpenFeatReference={openFeatReference}
+                  onOpenSpellReference={openSpellReference}
+                  onOpenDivinityReference={openDivinityReference}
+                  onOpenInvocationReference={openInvocationReference}
+                  onOpenEldritchInvocationEditor={openEldritchInvocationEditor}
+                  onPersistCharacter={onPersistCharacter}
+                  renderTrackingButton={renderTrackingButton}
+                  eldritchInvocationInputStatus={eldritchInvocationInputStatus}
+                  learnedInvocationOptions={learnedInvocationOptions}
+                  getCharacterFeatSummary={(entry) =>
+                    entry ? getCharacterFeatSummary(entry) : null
+                  }
+                  getFeatDefinition={getFeatDefinition}
+                />
 
-            <section className={styles.subsection} aria-labelledby="character-class-features-title">
-              <div className={styles.subsectionHeader}>
-                <div className={styles.subsectionHeaderText}>
-                  <h3 id="character-class-features-title" className={styles.subsectionTitle}>
-                    Class Features
-                  </h3>
-                  <p className={styles.subsectionMeta}>Subclass: {selectedSubclassLabel}</p>
-                </div>
-                <button
-                  type="button"
-                  className={shared.editButton}
-                  onClick={() => setIsSubclassModalOpen(true)}
-                  disabled={isSubclassModalOpen || subclassOptions.length === 0}
-                >
-                  <Pencil size={16} />
-                  Edit
-                </button>
-              </div>
-
-              {unlockedFeatures.length > 0 ? (
-                <>
-                  <ClassFeatureList
-                    character={character}
-                    features={unlockedFeatures}
-                    expandedFeatureKeys={expandedFeatureKeys}
-                    onToggleFeature={toggleFeature}
-                    getLinkedFeatForFeature={getLinkedFeatForFeature}
-                    onOpenFeatEditorForFeature={openFeatEditorForFeature}
-                    onOpenKeyword={openKeyword}
-                    onOpenFeatReference={openFeatReference}
-                    onOpenSpellReference={openSpellReference}
-                    onOpenDivinityReference={openDivinityReference}
-                    onOpenInvocationReference={openInvocationReference}
-                    onOpenEldritchInvocationEditor={openEldritchInvocationEditor}
-                    onPersistCharacter={onPersistCharacter}
-                    renderTrackingButton={renderTrackingButton}
-                    eldritchInvocationInputStatus={eldritchInvocationInputStatus}
-                    learnedInvocationOptions={learnedInvocationOptions}
-                    getCharacterFeatSummary={(entry) =>
-                      entry ? getCharacterFeatSummary(entry) : null
-                    }
-                    getFeatDefinition={getFeatDefinition}
-                  />
-
-                  {futureFeatures.length > 0 ? (
-                    <>
-                      <InlineToggleButton
-                        label={
-                          isFutureFeaturesVisible
-                            ? "Hide unlockable features"
-                            : "Show unlockable features"
+                {futureFeatures.length > 0 ? (
+                  <>
+                    <InlineToggleButton
+                      label={
+                        isFutureFeaturesVisible
+                          ? "Hide unlockable features"
+                          : "Show unlockable features"
+                      }
+                      expanded={isFutureFeaturesVisible}
+                      onClick={() => setIsFutureFeaturesVisible((current) => !current)}
+                    />
+                    {isFutureFeaturesVisible ? (
+                      <ClassFeatureList
+                        character={character}
+                        features={futureFeatures}
+                        expandedFeatureKeys={expandedFeatureKeys}
+                        onToggleFeature={toggleFeature}
+                        getLinkedFeatForFeature={getLinkedFeatForFeature}
+                        onOpenFeatEditorForFeature={openFeatEditorForFeature}
+                        onOpenKeyword={openKeyword}
+                        onOpenFeatReference={openFeatReference}
+                        onOpenSpellReference={openSpellReference}
+                        onOpenDivinityReference={openDivinityReference}
+                        onOpenInvocationReference={openInvocationReference}
+                        onOpenEldritchInvocationEditor={openEldritchInvocationEditor}
+                        onPersistCharacter={onPersistCharacter}
+                        renderTrackingButton={renderTrackingButton}
+                        eldritchInvocationInputStatus={eldritchInvocationInputStatus}
+                        learnedInvocationOptions={learnedInvocationOptions}
+                        getCharacterFeatSummary={(entry) =>
+                          entry ? getCharacterFeatSummary(entry) : null
                         }
-                        expanded={isFutureFeaturesVisible}
-                        onClick={() => setIsFutureFeaturesVisible((current) => !current)}
+                        getFeatDefinition={getFeatDefinition}
                       />
-                      {isFutureFeaturesVisible ? (
-                        <ClassFeatureList
-                          character={character}
-                          features={futureFeatures}
-                          expandedFeatureKeys={expandedFeatureKeys}
-                          onToggleFeature={toggleFeature}
-                          getLinkedFeatForFeature={getLinkedFeatForFeature}
-                          onOpenFeatEditorForFeature={openFeatEditorForFeature}
-                          onOpenKeyword={openKeyword}
-                          onOpenFeatReference={openFeatReference}
-                          onOpenSpellReference={openSpellReference}
-                          onOpenDivinityReference={openDivinityReference}
-                          onOpenInvocationReference={openInvocationReference}
-                          onOpenEldritchInvocationEditor={openEldritchInvocationEditor}
-                          onPersistCharacter={onPersistCharacter}
-                          renderTrackingButton={renderTrackingButton}
-                          eldritchInvocationInputStatus={eldritchInvocationInputStatus}
-                          learnedInvocationOptions={learnedInvocationOptions}
-                          getCharacterFeatSummary={(entry) =>
-                            entry ? getCharacterFeatSummary(entry) : null
-                          }
-                          getFeatDefinition={getFeatDefinition}
-                        />
-                      ) : null}
-                    </>
-                  ) : null}
-                </>
-              ) : (
-                <p className={shared.emptyText}>
-                  {classEntry
-                    ? "No class features are available for this level yet."
-                    : "No class feature progression is available for this class yet."}
-                </p>
-              )}
-            </section>
-          </div>
-        ) : null}
+                    ) : null}
+                  </>
+                ) : null}
+              </>
+            ) : (
+              <p className={shared.emptyText}>
+                {classEntry
+                  ? "No class features are available for this level yet."
+                  : "No class feature progression is available for this class yet."}
+              </p>
+            )}
+          </section>
+        </div>
       </article>
 
       {isGuideOpen ? <ClassFeaturesGuideModal onClose={() => setIsGuideOpen(false)} /> : null}

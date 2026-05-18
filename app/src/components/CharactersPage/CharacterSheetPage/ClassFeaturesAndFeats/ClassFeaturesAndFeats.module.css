@@ -46,27 +46,6 @@
   outline-offset: 2px;
 }
 
-.sectionCollapseButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  align-self: flex-start;
-  border: none;
-  background: none;
-  color: var(--color-ink-soft);
-  cursor: pointer;
-  flex-shrink: 0;
-  padding: 0.1rem;
-}
-
-.sectionCollapseIcon {
-  transition: transform 160ms ease;
-}
-
-.sectionCollapseIconCollapsed {
-  transform: rotate(-90deg);
-}
-
 .subsection {
   display: grid;
   gap: 0.9rem;
