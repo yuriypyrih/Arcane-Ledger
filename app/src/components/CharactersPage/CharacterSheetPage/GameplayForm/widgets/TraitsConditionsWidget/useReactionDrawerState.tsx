@@ -162,10 +162,14 @@ export function useReactionDrawerState({
     selectedReactionSpell !== null ? getBeguilingMagicUsesTotalForCharacter(character) : 0;
   const beguilingMagicUsesRemaining =
     selectedReactionSpell !== null ? getBeguilingMagicUsesRemainingForCharacter(character) : 0;
+  const shouldResolveBardicInspirationUses =
+    selectedReactionEntry !== null || selectedReactionSpell !== null;
   const bardicInspirationUsesRemaining =
-    selectedReactionSpell !== null ? getBardicInspirationUsesRemainingForCharacter(character) : 0;
+    shouldResolveBardicInspirationUses
+      ? getBardicInspirationUsesRemainingForCharacter(character)
+      : 0;
   const bardicInspirationUsesTotal =
-    selectedReactionSpell !== null ? getBardicInspirationUsesTotalForCharacter(character) : 0;
+    shouldResolveBardicInspirationUses ? getBardicInspirationUsesTotalForCharacter(character) : 0;
   const warlockStepsOfTheFeyUsesTotal =
     selectedReactionSpell?.id === mistyStepSpellId
       ? getWarlockStepsOfTheFeyUsesTotalForCharacter(character)
