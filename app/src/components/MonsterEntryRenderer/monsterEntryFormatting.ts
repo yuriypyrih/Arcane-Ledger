@@ -1,8 +1,4 @@
-import type {
-  MonsterFeatureRecord,
-  MonsterRecord,
-  MonsterSpeedValue
-} from "../../types";
+import type { MonsterFeatureRecord, MonsterRecord, MonsterSpeedValue } from "../../types";
 import { normalizeNullableText } from "../../utils/normalize";
 
 export type MonsterActionGroup = {
@@ -73,21 +69,6 @@ export function formatMonsterFeatureStat(value: number | null | undefined) {
   return `${value >= 0 ? "+" : ""}${value}`;
 }
 
-export function formatMonsterAbilityScore(value: number | null | undefined) {
-  if (value === null || value === undefined) {
-    return {
-      score: "—",
-      modifier: "—"
-    };
-  }
-
-  const modifier = Math.floor((value - 10) / 2);
-  return {
-    score: String(value),
-    modifier: formatMonsterFeatureStat(modifier)
-  };
-}
-
 function formatMovementValue(value: MonsterSpeedValue) {
   if (typeof value === "boolean") {
     return value ? "" : null;
@@ -149,7 +130,9 @@ export function formatMonsterFeatureMeta(feature: MonsterFeatureRecord) {
 
   if (feature.damage_dice) {
     const damageSuffix =
-      feature.damage_bonus !== undefined ? ` ${formatMonsterFeatureStat(feature.damage_bonus)}` : "";
+      feature.damage_bonus !== undefined
+        ? ` ${formatMonsterFeatureStat(feature.damage_bonus)}`
+        : "";
     details.push(`Damage ${feature.damage_dice}${damageSuffix}`);
   } else if (feature.damage_bonus !== undefined) {
     details.push(`Bonus ${formatMonsterFeatureStat(feature.damage_bonus)}`);
@@ -162,9 +145,7 @@ function formatMonsterSourceMeta(monster: MonsterRecord) {
   const sourceSlug = getKnownMonsterText(monster.document__slug);
   const sourceTitle = getKnownMonsterText(monster.document__title);
   const sourceLabel =
-    sourceSlug && sourceTitle
-      ? `${sourceSlug}: ${sourceTitle}`
-      : sourceSlug ?? sourceTitle;
+    sourceSlug && sourceTitle ? `${sourceSlug}: ${sourceTitle}` : (sourceSlug ?? sourceTitle);
 
   if (!sourceLabel) {
     return null;
@@ -182,7 +163,8 @@ export function formatMonsterTitleMeta(monster: MonsterRecord) {
   const alignment = getKnownMonsterText(monster.alignment);
   const sourceMeta = formatMonsterSourceMeta(monster);
   const creatureType = [size, type].filter(Boolean).join(" ");
-  const creatureLabel = subtype && creatureType ? `${creatureType} (${subtype})` : creatureType || subtype;
+  const creatureLabel =
+    subtype && creatureType ? `${creatureType} (${subtype})` : creatureType || subtype;
   const mainLabel = [creatureLabel || null, alignment].filter(Boolean).join(", ");
 
   if (sourceMeta && mainLabel) {

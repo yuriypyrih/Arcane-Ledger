@@ -26,10 +26,7 @@
     ),
     linear-gradient(135deg, rgba(145, 101, 54, 0.08), rgba(145, 101, 54, 0.02)),
     url("../../../../assets/img/paper-background.jpg");
-  background-position:
-    center,
-    center,
-    center;
+  background-position: center, center, center;
   background-repeat: no-repeat;
   background-size:
     auto,
@@ -43,6 +40,10 @@
   font: inherit;
   padding: 0.68rem 0.72rem 0.78rem;
   text-align: center;
+}
+
+.staticCard {
+  cursor: default;
 }
 
 .header,

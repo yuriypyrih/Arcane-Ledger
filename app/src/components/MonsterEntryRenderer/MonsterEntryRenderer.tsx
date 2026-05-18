@@ -1,14 +1,11 @@
-import { Pentagon } from "lucide-react";
 import type { MonsterRecord } from "../../types";
 import { renderCodexRichText } from "../../utils/codex/renderCodexRichText";
-import SheetSurface from "../CharactersPage/CharacterSheetPage/SheetSurface";
-import statsStyles from "../CharactersPage/CharacterSheetPage/StatsForm/StatsForm.module.css";
+import AbilitySavingThrowCards from "../CharactersPage/CharacterSheetPage/StatsForm/AbilitySavingThrowCards";
+import { buildMonsterAbilitySavingThrowCards } from "./monsterAbilitySavingThrowCards";
 import {
   buildMonsterActionGroups,
   buildMonsterDetailRows,
-  formatMonsterAbilityScore,
   formatMonsterFeatureMeta,
-  formatMonsterFeatureStat,
   formatMonsterSpeed,
   formatMonsterTitleMeta,
   formatMonsterValueWithNote,
@@ -75,47 +72,6 @@ function InlineRow({ label, value }: { label: string; value: string | null }) {
   );
 }
 
-function AbilityCell({
-  label,
-  value,
-  save
-}: {
-  label: string;
-  value: number | null | undefined;
-  save: number | null;
-}) {
-  const ability = formatMonsterAbilityScore(value);
-  const hasSavingThrowProficiency = save !== null && save !== undefined;
-  const resolvedSavingThrow = hasSavingThrowProficiency
-    ? formatMonsterFeatureStat(save)
-    : ability.modifier;
-
-  return (
-    <SheetSurface borderSize="xl" className={`${statsStyles.modifierCard} ${styles.abilityCard}`}>
-      <div className={statsStyles.modifierLabelRow}>
-        <span className={statsStyles.modifierLabel}>{label}</span>
-        <span className={statsStyles.scoreBadge} aria-label={`${label} score ${ability.score}`}>
-          <Pentagon size={28} className={statsStyles.scoreBadgeIcon} aria-hidden="true" />
-          <span className={statsStyles.scoreBadgeValue}>{ability.score}</span>
-        </span>
-      </div>
-      <div className={`${statsStyles.combinedValueRow} ${styles.abilityValuesRow}`}>
-        <div className={styles.abilityValueStack}>
-          <span className={styles.abilityValueLabel}>MOD</span>
-          <strong>{ability.modifier}</strong>
-        </div>
-        <span className={statsStyles.combinedValueDivider} aria-hidden="true" />
-        <div className={styles.abilityValueStack}>
-          <span className={styles.abilityValueLabel}>SAVE</span>
-          <strong className={hasSavingThrowProficiency ? styles.abilityValueProficient : undefined}>
-            {resolvedSavingThrow}
-          </strong>
-        </div>
-      </div>
-    </SheetSurface>
-  );
-}
-
 function MonsterEntryRenderer({
   monster,
   className,
@@ -127,6 +83,7 @@ function MonsterEntryRenderer({
   const description = getKnownMonsterText(monster.desc);
   const speed = formatMonsterSpeed(monster.speed);
   const detailRows = buildMonsterDetailRows(monster);
+  const abilitySavingThrowCards = buildMonsterAbilitySavingThrowCards(monster);
   const actionGroups = buildMonsterActionGroups(monster);
   const shouldRenderIntro = showHeading || description;
 
@@ -142,7 +99,9 @@ function MonsterEntryRenderer({
             <h2 id={headingId}>{getKnownMonsterText(monster.name) ?? "Unknown Monster"}</h2>
           ) : null}
           {showHeading && titleMeta ? <p className={styles.subtitle}>{titleMeta}</p> : null}
-          {description ? <p className={styles.description}>{renderCodexRichText(description)}</p> : null}
+          {description ? (
+            <p className={styles.description}>{renderCodexRichText(description)}</p>
+          ) : null}
         </section>
       ) : null}
 
@@ -161,14 +120,7 @@ function MonsterEntryRenderer({
       </section>
 
       <section className={styles.section}>
-        <div className={styles.abilityGrid}>
-          <AbilityCell label="STR" value={monster.strength} save={monster.strength_save} />
-          <AbilityCell label="DEX" value={monster.dexterity} save={monster.dexterity_save} />
-          <AbilityCell label="CON" value={monster.constitution} save={monster.constitution_save} />
-          <AbilityCell label="INT" value={monster.intelligence} save={monster.intelligence_save} />
-          <AbilityCell label="WIS" value={monster.wisdom} save={monster.wisdom_save} />
-          <AbilityCell label="CHA" value={monster.charisma} save={monster.charisma_save} />
-        </div>
+        <AbilitySavingThrowCards cards={abilitySavingThrowCards} />
       </section>
 
       {detailRows.length > 0 ? (

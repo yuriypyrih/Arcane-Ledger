@@ -44,7 +44,7 @@ type AbilitySavingThrowCardsProps = {
   broadLayout?: boolean;
   cards: AbilitySavingThrowCard[];
   primaryAbilities?: readonly AbilityKey[];
-  onOpenAbilityReference: (ability: AbilityKey) => void;
+  onOpenAbilityReference?: (ability: AbilityKey) => void;
 };
 
 function getRollStateValueClassName(rollState: ResolvedRollState | null): string | undefined {
@@ -80,6 +80,7 @@ function AbilitySavingThrowCards({
   return (
     <div className={clsx(styles.grid, broadLayout && styles.gridBroad)}>
       {cards.map((card) => {
+        const isInteractive = onOpenAbilityReference !== undefined;
         const hasBothRollStates =
           card.modifierRollState !== null && card.savingThrowRollState !== null;
         const hasMatchingRollStates =
@@ -90,17 +91,8 @@ function AbilitySavingThrowCards({
           ? card.modifierRollState
           : (card.modifierRollState ?? card.savingThrowRollState);
 
-        return (
-          <SheetSurface
-            as="button"
-            key={card.ability}
-            type="button"
-            borderSize="xl"
-            hasBorder
-            hoverBorder
-            className={styles.card}
-            onClick={() => onOpenAbilityReference(card.ability)}
-          >
+        const content = (
+          <>
             <div className={styles.header}>
               <span className={styles.identity}>
                 <span className={styles.abilityLabel}>{card.ability}</span>
@@ -127,10 +119,7 @@ function AbilitySavingThrowCards({
               <span className={clsx(styles.valueWell, styles.modifierWell)}>
                 <span className={styles.valueLabel}>MOD</span>
                 <strong
-                  className={clsx(
-                    styles.value,
-                    getRollStateValueClassName(card.modifierRollState)
-                  )}
+                  className={clsx(styles.value, getRollStateValueClassName(card.modifierRollState))}
                 >
                   {card.modifier}
                 </strong>
@@ -199,6 +188,30 @@ function AbilitySavingThrowCards({
                 />
               </div>
             ) : null}
+          </>
+        );
+
+        return isInteractive ? (
+          <SheetSurface
+            as="button"
+            key={card.ability}
+            type="button"
+            borderSize="xl"
+            hasBorder
+            hoverBorder
+            className={styles.card}
+            onClick={() => onOpenAbilityReference(card.ability)}
+          >
+            {content}
+          </SheetSurface>
+        ) : (
+          <SheetSurface
+            key={card.ability}
+            borderSize="xl"
+            hasBorder
+            className={clsx(styles.card, styles.staticCard)}
+          >
+            {content}
           </SheetSurface>
         );
       })}

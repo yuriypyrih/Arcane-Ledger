@@ -78,44 +78,6 @@
   font-weight: 700;
 }
 
-.abilityGrid {
-  display: grid;
-  gap: 0.42rem;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-}
-
-.abilityCard {
-  gap: 0.24rem;
-  padding: 0.56rem 0.62rem;
-}
-
-.abilityCard strong {
-  font-size: 1.14rem;
-}
-
-.abilityValuesRow {
-  gap: 0.52rem;
-}
-
-.abilityValueStack {
-  display: grid;
-  gap: 0.02rem;
-  justify-items: center;
-}
-
-.abilityValueLabel {
-  color: rgba(102, 75, 56, 0.58);
-  font-size: 0.52rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  line-height: 0.9;
-  text-transform: uppercase;
-}
-
-.abilityValueProficient {
-  color: #6f2bc5;
-}
-
 .featureGroups {
   display: grid;
   gap: 0.72rem;
@@ -182,17 +144,5 @@
 @media (max-width: 599px) {
   .inlineRow {
     font-size: 0.88rem;
-  }
-
-  .abilityGrid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .abilityCard {
-    padding: 0.5rem 0.48rem;
-  }
-
-  .abilityCard strong {
-    font-size: 1rem;
   }
 }
