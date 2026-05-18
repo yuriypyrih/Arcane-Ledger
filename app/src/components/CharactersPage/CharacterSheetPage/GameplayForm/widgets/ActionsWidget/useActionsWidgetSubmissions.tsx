@@ -751,7 +751,12 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
       title: selectedFeatureAction.name,
       formula: healingFormula,
       formulaDisplay: healingFormula,
-      description: `${selectedFeatureAction.detail} ${chargeCount} ${chargeLabel} expended.`
+      description: `${selectedFeatureAction.detail} ${chargeCount} ${chargeLabel} expended.`,
+      onResolvedResult: ({ result }) => {
+        onPersistCharacter((currentCharacter) =>
+          applyRolledHealingToCharacter(currentCharacter, result.total)
+        );
+      }
     });
 
     closeActionDrawer();

@@ -11,6 +11,7 @@ import type {
   AasimarHealingHandsTarget
 } from "../../../../../../pages/CharactersPage/species";
 import type { LayOnHandsTarget } from "./LayOnHandsAction";
+import type { MonkHandOfHealingTarget } from "./MonkHandOfHealingAction";
 import type {
   BlessingOfTheTricksterTarget,
   FontOfMagicSelection,
@@ -39,6 +40,7 @@ type ActionsWidgetUiState = {
   selectedAasimarHealingHandsTarget: AasimarHealingHandsTarget;
   selectedAasimarCelestialRevelationOptionKey: AasimarCelestialRevelationOptionKey | null;
   selectedBlessingOfTheTricksterTarget: BlessingOfTheTricksterTarget;
+  selectedHandOfHealingTarget: MonkHandOfHealingTarget;
   selectedThirdEyeOptionKey: WizardDivinerThirdEyeOptionKey | null;
   selectedStarryFormConstellation: DruidStarryFormConstellation | null;
   selectedWildShapePreviewSlug: string | null;
@@ -132,6 +134,7 @@ function createInitialState(
     selectedAasimarHealingHandsTarget: "other",
     selectedAasimarCelestialRevelationOptionKey: null,
     selectedBlessingOfTheTricksterTarget: "self",
+    selectedHandOfHealingTarget: "self",
     selectedThirdEyeOptionKey: null,
     selectedStarryFormConstellation: null,
     selectedWildShapePreviewSlug: null,
@@ -197,6 +200,7 @@ function getActionDrawerResetState(): Partial<ActionsWidgetUiState> {
     selectedAasimarHealingHandsTarget: "other",
     selectedAasimarCelestialRevelationOptionKey: null,
     selectedBlessingOfTheTricksterTarget: "self",
+    selectedHandOfHealingTarget: "self",
     selectedThirdEyeOptionKey: null,
     selectedStarryFormConstellation: null,
     selectedRageOptionKey: null,
@@ -258,6 +262,7 @@ function getActionSelectionResetState(): Partial<ActionsWidgetUiState> {
     selectedLayOnHandsConditions: [],
     selectedAasimarHealingHandsTarget: "other",
     selectedAasimarCelestialRevelationOptionKey: null,
+    selectedHandOfHealingTarget: "self",
     selectedThirdEyeOptionKey: null,
     selectedStarryFormConstellation: null,
     selectedRageOptionKey: null,
@@ -401,6 +406,7 @@ export function useActionsWidgetUiState(
         dispatch,
         "selectedBlessingOfTheTricksterTarget"
       ),
+      setSelectedHandOfHealingTarget: createFieldSetter(dispatch, "selectedHandOfHealingTarget"),
       setSelectedThirdEyeOptionKey: createFieldSetter(dispatch, "selectedThirdEyeOptionKey"),
       setSelectedStarryFormConstellation: createFieldSetter(
         dispatch,

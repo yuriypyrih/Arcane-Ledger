@@ -1,6 +1,35 @@
+.sneakAttackBody {
+  display: grid;
+  gap: 0.92rem;
+  min-width: 0;
+}
+
+.sneakAttackFormulaGrid {
+  grid-template-columns: 1fr;
+}
+
+.sneakAttackFormulaCell {
+  grid-column: 1 / -1;
+}
+
+.sneakAttackFormulaValue {
+  color: #2e2017;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.sneakAttackFormulaBreakdown {
+  color: rgba(102, 75, 56, 0.72);
+  font-size: 0.94rem;
+  font-weight: 600;
+}
+
 .sneakAttackEffectsSection {
   display: grid;
   gap: 0.72rem;
+  min-width: 0;
 }
 
 .sneakAttackEffectsHeader {
@@ -8,6 +37,10 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 0.75rem;
+}
+
+.sneakAttackEffectsHeader > div {
+  min-width: 0;
 }
 
 .sneakAttackEffectsTitle {
@@ -50,4 +83,16 @@
 
 .sneakAttackEffectDescriptionStrong {
   color: #2e2017;
+}
+
+@media (max-width: 599px) {
+  .sneakAttackEffectsHeader {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 0.58rem;
+  }
+
+  .sneakAttackEffectSpend {
+    align-self: flex-start;
+  }
 }

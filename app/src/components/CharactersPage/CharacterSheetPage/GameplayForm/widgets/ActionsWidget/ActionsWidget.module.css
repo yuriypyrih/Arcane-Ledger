@@ -239,6 +239,10 @@
   z-index: 48;
 }
 
+.actionDrawerFullHeight {
+  height: calc(100dvh - (var(--overlay-backdrop-padding) * 2));
+}
+
 .wildShapeBody {
   display: grid;
   gap: 0.55rem;

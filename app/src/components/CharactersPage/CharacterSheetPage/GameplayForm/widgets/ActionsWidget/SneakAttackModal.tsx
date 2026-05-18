@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import CellContainer from "../../../../../CellContainer/CellContainer";
 import DescriptionContent from "../../../../../DescriptionContent/DescriptionContent";
 import RadioContainerOption from "../../../RadioContainerOption";
@@ -15,6 +16,7 @@ import {
   type RogueSneakAttackEffectKey
 } from "../../../../../../pages/CharactersPage/classFeatures/rogue/rogue";
 import { formatFormulaCell } from "../../../../../../pages/CharactersPage/shared/formulas";
+import sheetStyles from "../../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./SneakAttackModal.module.css";
 
@@ -78,15 +80,20 @@ function SneakAttackActionBody({
   }
 
   return (
-    <>
-      <CellContainer
-        label="Sneak Attack Damage Formula"
-        content={previewFormulaCell.value}
-        breakdown={previewFormulaCell.breakdown}
-      />
+    <div className={styles.sneakAttackBody}>
+      <div className={clsx(sheetStyles.spellDrawerDetails, styles.sneakAttackFormulaGrid)}>
+        <CellContainer
+          className={styles.sneakAttackFormulaCell}
+          label="Sneak Attack Damage Formula"
+          content={previewFormulaCell.value}
+          breakdown={previewFormulaCell.breakdown}
+          contentClassName={styles.sneakAttackFormulaValue}
+          breakdownClassName={styles.sneakAttackFormulaBreakdown}
+        />
+      </div>
 
       {effectDefinitions.length > 0 ? (
-        <div className={styles.sneakAttackEffectsSection}>
+        <section className={styles.sneakAttackEffectsSection}>
           <div className={styles.sneakAttackEffectsHeader}>
             <div>
               <h4 className={styles.sneakAttackEffectsTitle}>Cunning Strike</h4>
@@ -129,10 +136,9 @@ function SneakAttackActionBody({
               );
             })}
           </div>
-        </div>
+        </section>
       ) : null}
-
-    </>
+    </div>
   );
 }
 

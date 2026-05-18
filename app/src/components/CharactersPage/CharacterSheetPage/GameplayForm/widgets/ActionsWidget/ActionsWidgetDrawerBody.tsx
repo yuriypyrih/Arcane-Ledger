@@ -377,7 +377,10 @@ import {
 import { CommonActionFooter } from "./CommonAction";
 import ElementalAttunementResistanceSelector from "../TraitsConditionsWidget/ElementalAttunementResistanceSelector";
 import { ElementalBurstActionFooter } from "./ElementalBurstAction";
-import { MonkHandOfHealingActionFooter } from "./MonkHandOfHealingAction";
+import {
+  MonkHandOfHealingActionBody,
+  MonkHandOfHealingActionFooter
+} from "./MonkHandOfHealingAction";
 import { MonkFlurryOfBlowsActionFooter } from "./MonkFlurryOfBlowsActionFooter";
 import {
   SpellfireBurstActionBody,
@@ -507,6 +510,7 @@ export function renderActionDrawerBody(context: Record<string, any>) {
     selectedFontOfMagicWarning,
     selectedHandOfHealingActionPathStates,
     selectedHandOfHealingFlurryOfHealingAndHarmHelperText,
+    selectedHandOfHealingTarget,
     selectedHealingLightDiceCount,
     selectedHealingLightDiceRemaining,
     selectedHealingLightMaxDicePerUse,
@@ -625,6 +629,7 @@ export function renderActionDrawerBody(context: Record<string, any>) {
     setSelectedFontOfMagicSelection,
     setSelectedHealingLightDiceCount,
     setSelectedHealingLightTarget,
+    setSelectedHandOfHealingTarget,
     setSelectedIndomitableAbility,
     setSelectedLayOnHandsConditions,
     setSelectedLayOnHandsPoolSpendInput,
@@ -783,6 +788,18 @@ export function renderActionDrawerBody(context: Record<string, any>) {
 
   if (selectedAction.kind === "feature" && selectedAction.action.key === preserveLifeActionKey) {
     return <ClericPreserveLifeActionBody clericLevel={character.level} />;
+  }
+
+  if (
+    selectedAction.kind === "feature" &&
+    selectedAction.action.key === monkHandOfHealingActionKey
+  ) {
+    return (
+      <MonkHandOfHealingActionBody
+        selectedTarget={selectedHandOfHealingTarget}
+        onSelectedTargetChange={setSelectedHandOfHealingTarget}
+      />
+    );
   }
 
   if (

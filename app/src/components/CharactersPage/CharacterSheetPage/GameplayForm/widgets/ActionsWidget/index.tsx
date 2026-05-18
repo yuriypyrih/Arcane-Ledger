@@ -104,6 +104,7 @@ import {
 import { mantleOfInspirationActionKey } from "../../../../../../pages/CharactersPage/classFeatures/bard/subclasses/bardCollegeOfGlamour";
 import {
   channelDivinityActionKey,
+  divineInterventionActionKey,
   preserveLifeActionKey
 } from "../../../../../../pages/CharactersPage/classFeatures/cleric/cleric";
 import {
@@ -489,6 +490,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setSelectedAasimarCelestialRevelationOptionKey,
     selectedBlessingOfTheTricksterTarget,
     setSelectedBlessingOfTheTricksterTarget,
+    selectedHandOfHealingTarget,
+    setSelectedHandOfHealingTarget,
     selectedThirdEyeOptionKey,
     setSelectedThirdEyeOptionKey,
     selectedStarryFormConstellation,
@@ -1849,6 +1852,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedActionSpellSupportsElementalSmite,
     selectedAasimarCelestialRevelationOptionKey,
     selectedAasimarHealingHandsTarget,
+    selectedHandOfHealingTarget,
     selectedArcaneWardSpellSlotLevel,
     selectedBardicInspirationFallbackSlotIsValid,
     selectedBardicInspirationSpellSlotLevel,
@@ -1937,6 +1941,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setIsVowOfEnmitySelected,
     setSelectedAasimarCelestialRevelationOptionKey,
     setSelectedAasimarHealingHandsTarget,
+    setSelectedHandOfHealingTarget,
     setSelectedArcaneRecoverySelection,
     setSelectedArcaneWardSpellSlotLevel,
     setSelectedBardicInspirationSpellSlotLevel,
@@ -2018,6 +2023,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedLayOnHandsConditions,
     selectedAasimarHealingHandsTarget,
     selectedAasimarCelestialRevelationOptionKey,
+    selectedHandOfHealingTarget,
     selectedHealingLightDiceRemaining,
     selectedHealingLightMaxDicePerUse,
     selectedHealingLightDiceCount,
@@ -2167,6 +2173,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setSelectedLayOnHandsConditions,
     setSelectedAasimarHealingHandsTarget,
     setSelectedAasimarCelestialRevelationOptionKey,
+    setSelectedHandOfHealingTarget,
     setSelectedHealingLightDiceCount,
     setSelectedHealingLightTarget,
     setSelectedRecoverVitalityDiceCount,
@@ -2338,6 +2345,11 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               ? (selectedActionBlockedReason ?? selectedAction.disabledReason ?? null)
               : (selectedAction.disabledReason ?? null)
           }
+          drawerClassName={clsx(
+            selectedAction.kind === "feature" &&
+              selectedAction.action.key === divineInterventionActionKey &&
+              styles.actionDrawerFullHeight
+          )}
           onClose={closeActionDrawer}
           footer={renderActionDrawerFooter(drawerRenderContext)}
         >

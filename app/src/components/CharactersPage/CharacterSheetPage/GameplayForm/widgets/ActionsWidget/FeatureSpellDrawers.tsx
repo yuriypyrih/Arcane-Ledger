@@ -103,9 +103,7 @@ type FeatureSpellDrawersProps = {
   selectedActionSpellGoliathAncestryState: GoliathAttackOptionState | null;
   useGoliathAncestryOnActionSpell: boolean;
   onUseGoliathAncestryOnActionSpellChange: (checked: boolean) => void;
-  selectedElementalSmiteOptionOnActionSpell:
-    | PaladinOathOfTheNobleGeniesElementalSmiteOptionKey
-    | null;
+  selectedElementalSmiteOptionOnActionSpell: PaladinOathOfTheNobleGeniesElementalSmiteOptionKey | null;
   onSelectedElementalSmiteOptionOnActionSpellChange: (
     value: PaladinOathOfTheNobleGeniesElementalSmiteOptionKey | null
   ) => void;
@@ -189,7 +187,9 @@ function createGoliathAncestryOption({
 }
 
 function getGoliathSpellDisplay(spell: SpellEntry, state: GoliathAttackOptionState | null) {
-  return spell.isAttackSpell === true ? appendGoliathAttackDescriptionAddition(spell, state) : spell;
+  return spell.isAttackSpell === true
+    ? appendGoliathAttackDescriptionAddition(spell, state)
+    : spell;
 }
 
 function getGoliathDamageDetailOverride(
@@ -288,7 +288,10 @@ function FeatureSpellDrawers({
   const mysticArcanumSpellDisplay = useMemo(
     () =>
       selectedMysticArcanumSpell
-        ? getGoliathSpellDisplay(selectedMysticArcanumSpell, selectedActionSpellGoliathAncestryState)
+        ? getGoliathSpellDisplay(
+            selectedMysticArcanumSpell,
+            selectedActionSpellGoliathAncestryState
+          )
         : null,
     [selectedActionSpellGoliathAncestryState, selectedMysticArcanumSpell]
   );
@@ -322,16 +325,15 @@ function FeatureSpellDrawers({
       useGoliathAncestryOnActionSpell
     ]
   );
-  const beguilingMagicOption =
-    selectedActionSpellSupportsBeguilingMagic
-      ? createBeguilingMagicOption({
-          checked: useBeguilingMagicOnActionSpell,
-          onCheckedChange: onUseBeguilingMagicOnActionSpellChange,
-          disabled: beguilingMagicUsesRemaining <= 0 && bardicInspirationUsesRemaining <= 0,
-          usesRemaining: beguilingMagicUsesRemaining,
-          usesTotal: beguilingMagicUsesTotal
-        })
-      : null;
+  const beguilingMagicOption = selectedActionSpellSupportsBeguilingMagic
+    ? createBeguilingMagicOption({
+        checked: useBeguilingMagicOnActionSpell,
+        onCheckedChange: onUseBeguilingMagicOnActionSpellChange,
+        disabled: beguilingMagicUsesRemaining <= 0 && bardicInspirationUsesRemaining <= 0,
+        usesRemaining: beguilingMagicUsesRemaining,
+        usesTotal: beguilingMagicUsesTotal
+      })
+    : null;
   const goliathAncestryOption = createGoliathAncestryOption({
     state: selectedActionSpellGoliathAncestryState,
     checked: useGoliathAncestryOnActionSpell,
@@ -497,7 +499,7 @@ function FeatureSpellDrawers({
           actionWarning={selectedFeatureActionPrimaryDisabledReason}
           actionDisabled={selectedFeatureActionPrimaryDisabledReason !== null}
           blockedReason={selectedDivineInterventionBlockedReason}
-          actionAvailabilityText={selectedFeatureAction.usesLabel ?? null}
+          actionContextText="Using Divine Intervention"
           actionOptions={
             beguilingMagicOption || goliathAncestryOption
               ? [

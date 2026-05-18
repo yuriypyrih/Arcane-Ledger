@@ -527,6 +527,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     selectedFixedSpellSlotLevel,
     selectedFlurryOfHealingAndHarmUsesRemaining,
     selectedFontOfMagicSelection,
+    selectedHandOfHealingTarget,
     selectedImprovedShadowStepState,
     selectedMonkPatientDefenseTemporaryHitPointsFormula,
     selectedMysticArcanumSpell,
@@ -1231,7 +1232,15 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
       title: selectedFeatureAction.name,
       formula: healingFormula,
       formulaDisplay: healingFormula,
-      description: selectedFeatureAction.detail
+      description: selectedFeatureAction.detail,
+      onResolvedResult:
+        selectedHandOfHealingTarget === "self"
+          ? ({ result }) => {
+              onPersistCharacter((currentCharacter) =>
+                applyRolledHealingToCharacter(currentCharacter, result.total)
+              );
+            }
+          : undefined
     });
 
     closeActionDrawer();

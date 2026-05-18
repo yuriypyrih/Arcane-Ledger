@@ -10,16 +10,14 @@ import { resolveActionCardTheme } from "../../../../../../pages/CharactersPage/a
 import { getActionShapeForEconomyType } from "../../gameplayWidgetUtils";
 import actionCardStyles from "./ActionCards.module.css";
 import actionStyles from "./ActionsWidget.module.css";
-import {
-  ActionCardThemeTexture,
-  getActionCardThemeClassNames
-} from "./actionCardThemeStyles";
+import { ActionCardThemeTexture, getActionCardThemeClassNames } from "./actionCardThemeStyles";
 import {
   getMonkHandOfHealingActionPathStates,
   type MonkHandOfHealingActionPathState
 } from "./monkHandOfHealingActionUtils";
 import DiceRollerSettingsButton from "../DiceRollerSettingsButton";
 import ActionFooterButtonRow from "./ActionFooterButtonRow";
+import targetStyles from "./HealingLightActionBody.module.css";
 
 type RoundTrackerAvailability = {
   isInCombat?: boolean;
@@ -28,11 +26,18 @@ type RoundTrackerAvailability = {
   reactionAvailable: boolean;
 };
 
+export type MonkHandOfHealingTarget = "self" | "other";
+
 type MonkHandOfHealingActionCardProps = {
   action: FeatureActionCard;
   character: Character;
   roundTracker: RoundTrackerAvailability;
   onClick: (action: FeatureActionCard) => void;
+};
+
+type MonkHandOfHealingActionBodyProps = {
+  selectedTarget: MonkHandOfHealingTarget;
+  onSelectedTargetChange: (target: MonkHandOfHealingTarget) => void;
 };
 
 type MonkHandOfHealingActionFooterProps = {
@@ -81,7 +86,9 @@ function renderFeatureActionSubheader(action: FeatureActionCard) {
           {action.usesSupplementaryLabel}
         </span>
       ) : null}
-      {action.valueLabel ? <span className={actionCardStyles.damageRow}>{action.valueLabel}</span> : null}
+      {action.valueLabel ? (
+        <span className={actionCardStyles.damageRow}>{action.valueLabel}</span>
+      ) : null}
     </span>
   );
 }
@@ -164,6 +171,40 @@ export function MonkHandOfHealingActionCard({
   );
 }
 
+export function MonkHandOfHealingActionBody({
+  selectedTarget,
+  onSelectedTargetChange
+}: MonkHandOfHealingActionBodyProps) {
+  return (
+    <div className={actionStyles.aasimarTargetBody}>
+      <div className={targetStyles.targetSwitch} role="tablist" aria-label="Hand of Healing target">
+        <button
+          type="button"
+          className={clsx(
+            targetStyles.targetButton,
+            selectedTarget === "self" && targetStyles.targetButtonActive
+          )}
+          aria-pressed={selectedTarget === "self"}
+          onClick={() => onSelectedTargetChange("self")}
+        >
+          Myself
+        </button>
+        <button
+          type="button"
+          className={clsx(
+            targetStyles.targetButton,
+            selectedTarget === "other" && targetStyles.targetButtonActive
+          )}
+          aria-pressed={selectedTarget === "other"}
+          onClick={() => onSelectedTargetChange("other")}
+        >
+          Another
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function MonkHandOfHealingActionFooter({
   actionName,
   confirmLabel,
@@ -212,7 +253,9 @@ export function MonkHandOfHealingActionFooter({
                     className={actionStyles.footerActionShape}
                   />
                   {path.additionalUseCount > 0 ? (
-                    <span className={actionStyles.footerActionCount}>{`x${path.totalUseCount}`}</span>
+                    <span
+                      className={actionStyles.footerActionCount}
+                    >{`x${path.totalUseCount}`}</span>
                   ) : null}
                 </span>
               }

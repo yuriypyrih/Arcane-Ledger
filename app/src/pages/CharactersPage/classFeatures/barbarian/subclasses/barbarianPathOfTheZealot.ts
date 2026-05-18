@@ -217,6 +217,7 @@ export function getBarbarianPathOfTheZealotWarriorOfTheGodsAction(
     summary: "Spend divine healing charges.",
     detail: "Spend divine healing charges.",
     breakdown: "Spend charges to heal",
+    sourceFeature: CLASS_FEATURE.WARRIOR_OF_THE_GODS,
     economyType: ECONOMY_TYPE.BONUS_ACTION,
     actionCategory: ACTION_CATEGORY.FEATURE,
     usesLabel: `${usesRemaining}/${totalUses} charges`,
