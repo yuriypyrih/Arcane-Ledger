@@ -1,9 +1,6 @@
 import { WEAPON_COMBAT_TYPE } from "../../codex/entries";
-import type {
-  AbilityKey,
-  CharacterCustomTraitEffect,
-  CharacterStatusEntry
-} from "../../types";
+import type { AbilityKey, CharacterCustomTraitEffect, CharacterStatusEntry } from "../../types";
+import { EFFECT_NAME, STATUS_ENTRY_GROUP, STATUS_ENTRY_SOURCE_TYPE } from "../../types";
 
 const abilityKeys: AbilityKey[] = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
 const customTraitEffectTypes = new Set<CharacterCustomTraitEffect["type"]>([
@@ -37,9 +34,7 @@ function isAbilityKey(value: unknown): value is AbilityKey {
   return typeof value === "string" && abilityKeys.includes(value as AbilityKey);
 }
 
-function normalizeCharacterCustomTraitEffect(
-  value: unknown
-): CharacterCustomTraitEffect | null {
+function normalizeCharacterCustomTraitEffect(value: unknown): CharacterCustomTraitEffect | null {
   if (!value || typeof value !== "object") {
     return null;
   }
@@ -76,7 +71,10 @@ function normalizeCharacterCustomTraitEffect(
         : null;
     case "weaponDamage":
       return customTraitWeaponDamageKinds.has(
-        record.attackKind as Extract<CharacterCustomTraitEffect, { type: "weaponDamage" }>["attackKind"]
+        record.attackKind as Extract<
+          CharacterCustomTraitEffect,
+          { type: "weaponDamage" }
+        >["attackKind"]
       )
         ? {
             type: "weaponDamage",
@@ -101,12 +99,10 @@ function mapCustomTraitBonuses(
       return [];
     }
 
-    return entry.customEffects
-      .filter(predicate)
-      .map((effect) => ({
-        label: String(entry.value).trim() || entry.source,
-        value: effect.value
-      }));
+    return entry.customEffects.filter(predicate).map((effect) => ({
+      label: String(entry.value).trim() || entry.source,
+      value: effect.value
+    }));
   });
 }
 
@@ -119,11 +115,16 @@ export function normalizeCharacterCustomTraitEffects(value: unknown): CharacterC
 }
 
 export function isCustomFeatureTraitStatusEntry(
-  entry: Pick<CharacterStatusEntry, "customEffects">
+  entry: Pick<CharacterStatusEntry, "customEffects" | "group" | "sourceType" | "value">
 ): entry is CharacterStatusEntry & {
   customEffects: CharacterCustomTraitEffect[];
 } {
-  return Array.isArray(entry.customEffects) && entry.customEffects.length > 0;
+  return (
+    entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
+    entry.sourceType === STATUS_ENTRY_SOURCE_TYPE.MANUAL &&
+    entry.value !== EFFECT_NAME.CONCENTRATION &&
+    Array.isArray(entry.customEffects)
+  );
 }
 
 export function getCustomTraitArmorClassBonuses(

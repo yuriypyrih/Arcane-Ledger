@@ -185,7 +185,7 @@ function StatusEntryDrawer({
       >
         <OverlayHeader>
           <OverlayHeaderContent>
-            <OverlayEyebrow>{getStatusDrawerBadgeLabel(entry.group)}</OverlayEyebrow>
+            <OverlayEyebrow>{getStatusDrawerBadgeLabel(entry)}</OverlayEyebrow>
             <OverlayTitleRow>
               <OverlayTitle id="status-drawer-title">
                 {entry.group === STATUS_ENTRY_GROUP.EFFECTS &&

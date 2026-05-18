@@ -9,6 +9,7 @@ import { useDiceRollerPopup } from "../../../../../DicePage/DiceRollerPopup";
 import CharacterSpellDrawer from "../../../SpellCastingForm/CharacterSpellDrawer";
 import shared from "../../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import widgetShellStyles from "../../GameplayWidgetShared.module.css";
+import CustomTraitEditorModal from "./CustomTraitEditorModal";
 import ReactionEntryDrawer from "./ReactionEntryDrawer";
 import SelectedStatusEntryDrawer from "./SelectedStatusEntryDrawer";
 import TraitEditorModal from "./TraitEditorModal";
@@ -49,7 +50,9 @@ function TraitsConditionsWidget({
     selectedStatusEntryId
   });
   const {
+    activeTraitEditorModal,
     closeTraitEditor,
+    customTraitEditorModalProps,
     isTraitModalOpen,
     openCustomTraitEditor,
     openTraitEditor,
@@ -127,11 +130,15 @@ function TraitsConditionsWidget({
         )}
       </section>
 
-      {isTraitModalOpen ? (
+      {activeTraitEditorModal === "quick-add" ? (
         <TraitEditorModal
           {...traitEditorModalProps}
           onCreateCompanion={onRequestCreateCompanion ? handleRequestCreateCompanion : undefined}
         />
+      ) : null}
+
+      {activeTraitEditorModal === "custom-trait" ? (
+        <CustomTraitEditorModal {...customTraitEditorModalProps} />
       ) : null}
 
       {reactionDrawerState.selectedReactionSpell ? (

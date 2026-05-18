@@ -4,7 +4,11 @@ import TextAreaInput from "../../../../FormInputs/TextAreaInput";
 import shared from "../../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import CustomTraitEffectEditorRow from "./CustomTraitEffectEditorRow";
 import ManualStatusDurationFields from "./ManualStatusDurationFields";
-import { customTraitTargetOptions, type CustomTraitDraft } from "./customTraitDraft";
+import {
+  customTraitTargetOptions,
+  isCustomTraitEffectDraftEmpty,
+  type CustomTraitDraft
+} from "./customTraitDraft";
 import type { ManualStatusDurationType } from "./manualStatusDuration";
 import styles from "./CustomTraitBuilder.module.css";
 
@@ -70,19 +74,25 @@ function CustomTraitBuilder({
         </div>
 
         <div className={styles.effectsList}>
-          {draft.effects.map((effect, index) => (
-            <div key={effect.id} className={styles.effectCard}>
-              <p className={styles.effectIndex}>{`Effect ${index + 1}`}</p>
-              <CustomTraitEffectEditorRow
-                effect={effect}
-                targetOptions={customTraitTargetOptions}
-                canRemove={draft.effects.length > 1}
-                onTargetChange={(value) => onEffectTargetChange(effect.id, value)}
-                onValueChange={(value) => onEffectValueChange(effect.id, value)}
-                onRemove={() => onRemoveEffect(effect.id)}
-              />
-            </div>
-          ))}
+          {draft.effects.map((effect, index) => {
+            const isOnlyEffect = draft.effects.length === 1;
+            const isRemoveDisabled = isOnlyEffect && isCustomTraitEffectDraftEmpty(effect);
+
+            return (
+              <div key={effect.id} className={styles.effectCard}>
+                <p className={styles.effectIndex}>{`Effect ${index + 1}`}</p>
+                <CustomTraitEffectEditorRow
+                  effect={effect}
+                  targetOptions={customTraitTargetOptions}
+                  removeDisabled={isRemoveDisabled}
+                  removeLabel={isOnlyEffect ? "Clear effect" : "Remove effect"}
+                  onTargetChange={(value) => onEffectTargetChange(effect.id, value)}
+                  onValueChange={(value) => onEffectValueChange(effect.id, value)}
+                  onRemove={() => onRemoveEffect(effect.id)}
+                />
+              </div>
+            );
+          })}
         </div>
       </section>
     </div>

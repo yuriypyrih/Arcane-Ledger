@@ -27,9 +27,9 @@ import {
   createCustomTraitDraftFromStatusEntry,
   createDefaultCustomTraitDraft,
   isCustomTraitDraftValid,
+  isCustomTraitEffectDraftEmpty,
   parseCustomTraitEffectDraft,
-  type CustomTraitDraft,
-  type CustomTraitMode
+  type CustomTraitDraft
 } from "./customTraitDraft";
 import {
   createDefaultStatusDraftValues,
@@ -46,9 +46,12 @@ type UseTraitEditorStateOptions = {
   onPersistCharacter: PersistCharacterUpdater;
 };
 
+type TraitEditorModalKind = "quick-add" | "custom-trait";
+
 export function useTraitEditorState({ onPersistCharacter }: UseTraitEditorStateOptions) {
-  const [isTraitModalOpen, setIsTraitModalOpen] = useState(false);
-  const [traitEditorMode, setTraitEditorMode] = useState<CustomTraitMode>("quick-add");
+  const [activeTraitEditorModal, setActiveTraitEditorModal] = useState<TraitEditorModalKind | null>(
+    null
+  );
   const [activeTraitEditorTab, setActiveTraitEditorTab] = useState<TraitEditorTab>("conditions");
   const [statusDraftValues, setStatusDraftValues] = useState<Record<TraitEditorTab, string>>(
     createDefaultStatusDraftValues
@@ -62,42 +65,51 @@ export function useTraitEditorState({ onPersistCharacter }: UseTraitEditorStateO
   const [customTraitDraft, setCustomTraitDraft] = useState(createDefaultCustomTraitDraft);
   const [editingCustomTraitEntryId, setEditingCustomTraitEntryId] = useState<string | null>(null);
 
-  function resetTraitEditorState() {
-    setTraitEditorMode("quick-add");
+  function resetStatusDraftState() {
     setActiveTraitEditorTab("conditions");
     setStatusDraftValues(createDefaultStatusDraftValues());
     setStatusDraftDurationType(defaultManualStatusDurationDraft.type);
     setStatusDraftDurationValue(defaultManualStatusDurationDraft.value);
+  }
+
+  function resetCustomTraitDraftState() {
     setCustomTraitDraft(createDefaultCustomTraitDraft());
     setEditingCustomTraitEntryId(null);
   }
 
+  function resetTraitEditorState() {
+    resetStatusDraftState();
+    resetCustomTraitDraftState();
+  }
+
   function closeTraitEditor() {
     resetTraitEditorState();
-    setIsTraitModalOpen(false);
+    setActiveTraitEditorModal(null);
   }
 
   function openTraitEditor() {
     resetTraitEditorState();
-    setIsTraitModalOpen(true);
+    setActiveTraitEditorModal("quick-add");
+  }
+
+  function openCustomTraitCreator() {
+    resetStatusDraftState();
+    resetCustomTraitDraftState();
+    setActiveTraitEditorModal("custom-trait");
   }
 
   function openCustomTraitEditor(
     entry: CharacterStatusEntry & { customEffects: CharacterCustomTraitEffect[] }
   ) {
-    setTraitEditorMode("custom-trait");
-    setActiveTraitEditorTab("conditions");
-    setStatusDraftValues(createDefaultStatusDraftValues());
-    setStatusDraftDurationType(defaultManualStatusDurationDraft.type);
-    setStatusDraftDurationValue(defaultManualStatusDurationDraft.value);
+    resetStatusDraftState();
     setCustomTraitDraft(createCustomTraitDraftFromStatusEntry(entry));
     setEditingCustomTraitEntryId(entry.id);
-    setIsTraitModalOpen(true);
+    setActiveTraitEditorModal("custom-trait");
   }
 
   function getCustomTraitSavePayload(draft: CustomTraitDraft): {
     name: string;
-    description: string;
+    description?: string;
     customEffects: CharacterCustomTraitEffect[];
   } | null {
     if (!isCustomTraitDraftValid(draft)) {
@@ -109,21 +121,20 @@ export function useTraitEditorState({ onPersistCharacter }: UseTraitEditorStateO
       multiline: true
     });
 
-    if (!sanitizedName || !sanitizedDescription) {
+    if (!sanitizedName) {
       return null;
     }
 
     const customEffects = draft.effects
+      .filter((effect) => !isCustomTraitEffectDraftEmpty(effect))
       .map((effect) => parseCustomTraitEffectDraft(effect))
       .filter((effect): effect is CharacterCustomTraitEffect => effect !== null);
 
-    return customEffects.length > 0
-      ? {
-          name: sanitizedName,
-          description: sanitizedDescription,
-          customEffects
-        }
-      : null;
+    return {
+      name: sanitizedName,
+      description: sanitizedDescription || undefined,
+      customEffects
+    };
   }
 
   function addStatusEntry() {
@@ -225,55 +236,30 @@ export function useTraitEditorState({ onPersistCharacter }: UseTraitEditorStateO
     closeTraitEditor();
   }
 
-  function createTraitEntry() {
-    if (traitEditorMode === "custom-trait") {
-      if (editingCustomTraitEntryId) {
-        updateCustomTraitEntry();
-        return;
-      }
-
-      addCustomTraitEntry();
+  function saveCustomTraitEntry() {
+    if (editingCustomTraitEntryId) {
+      updateCustomTraitEntry();
       return;
     }
 
-    addStatusEntry();
+    addCustomTraitEntry();
   }
 
-  const traitCreateDisabled =
-    traitEditorMode === "custom-trait"
-      ? !isCustomTraitDraftValid(customTraitDraft)
-      : !statusDraftValues[activeTraitEditorTab]?.trim();
+  const statusCreateDisabled = !statusDraftValues[activeTraitEditorTab]?.trim();
+  const customTraitCreateDisabled = !isCustomTraitDraftValid(customTraitDraft);
 
   return {
+    activeTraitEditorModal,
     closeTraitEditor,
-    isTraitModalOpen,
+    isTraitModalOpen: activeTraitEditorModal !== null,
+    openCustomTraitCreator,
     openCustomTraitEditor,
     openTraitEditor,
     resetTraitEditorState,
-    traitEditorModalProps: {
-      mode: traitEditorMode,
+    customTraitEditorModalProps: {
       isEditingCustomTrait: editingCustomTraitEntryId !== null,
-      activeTab: activeTraitEditorTab,
-      values: statusDraftValues,
-      durationType: statusDraftDurationType,
-      durationValue: statusDraftDurationValue,
       customTraitDraft,
-      createDisabled: traitCreateDisabled,
-      onModeChange: setTraitEditorMode,
-      onTabChange: setActiveTraitEditorTab,
-      onValueChange: (tab: TraitEditorTab, value: string) => {
-        setStatusDraftValues((current) => ({
-          ...current,
-          [tab]: value
-        }));
-
-        if (tab === "conditions" && isExhaustionConditionOptionValue(value)) {
-          setStatusDraftDurationType(defaultManualStatusDurationDraft.type);
-          setStatusDraftDurationValue(defaultManualStatusDurationDraft.value);
-        }
-      },
-      onDurationTypeChange: setStatusDraftDurationType,
-      onDurationValueChange: setStatusDraftDurationValue,
+      createDisabled: customTraitCreateDisabled,
       onCustomTraitNameChange: (value: string) =>
         setCustomTraitDraft((current) => ({
           ...current,
@@ -328,10 +314,42 @@ export function useTraitEditorState({ onPersistCharacter }: UseTraitEditorStateO
           ...current,
           effects:
             current.effects.length <= 1
-              ? current.effects
+              ? current.effects.map((effect) =>
+                  effect.id === effectId
+                    ? {
+                        ...effect,
+                        target: "",
+                        value: ""
+                      }
+                    : effect
+                )
               : current.effects.filter((effect) => effect.id !== effectId)
         })),
-      onCreate: createTraitEntry,
+      onCreate: saveCustomTraitEntry,
+      onClose: closeTraitEditor
+    },
+    traitEditorModalProps: {
+      activeTab: activeTraitEditorTab,
+      values: statusDraftValues,
+      durationType: statusDraftDurationType,
+      durationValue: statusDraftDurationValue,
+      createDisabled: statusCreateDisabled,
+      onCreateCustomTrait: openCustomTraitCreator,
+      onTabChange: setActiveTraitEditorTab,
+      onValueChange: (tab: TraitEditorTab, value: string) => {
+        setStatusDraftValues((current) => ({
+          ...current,
+          [tab]: value
+        }));
+
+        if (tab === "conditions" && isExhaustionConditionOptionValue(value)) {
+          setStatusDraftDurationType(defaultManualStatusDurationDraft.type);
+          setStatusDraftDurationValue(defaultManualStatusDurationDraft.value);
+        }
+      },
+      onDurationTypeChange: setStatusDraftDurationType,
+      onDurationValueChange: setStatusDraftDurationValue,
+      onCreate: addStatusEntry,
       onClose: closeTraitEditor
     }
   };

@@ -7,6 +7,7 @@ import {
   isExhaustionStatusEntry,
   getSenseOptions
 } from "../../../../../../pages/CharactersPage/traits";
+import { isCustomFeatureTraitStatusEntry } from "../../../../../../pages/CharactersPage/customTraitEffects";
 import type { CharacterStatusDuration, CharacterStatusEntry } from "../../../../../../types";
 import {
   CONDITION_NAME,
@@ -152,8 +153,12 @@ export function isStatusEntryDurationEditable(entry: CharacterStatusEntry): bool
   return isStatusEntryRemovable(entry) && !isExhaustionStatusEntry(entry);
 }
 
-export function getStatusDrawerBadgeLabel(group: STATUS_ENTRY_GROUP): string {
-  switch (group) {
+export function getStatusDrawerBadgeLabel(entry: CharacterStatusEntry): string {
+  if (isCustomFeatureTraitStatusEntry(entry)) {
+    return "Custom Feature Trait";
+  }
+
+  switch (entry.group) {
     case STATUS_ENTRY_GROUP.EFFECTS:
       return "Effect";
     case STATUS_ENTRY_GROUP.COMPANIONS:

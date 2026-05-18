@@ -12,8 +12,6 @@ import {
 
 const abilityKeys: AbilityKey[] = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
 
-export type CustomTraitMode = "quick-add" | "custom-trait";
-
 export type CustomTraitEffectDraft = {
   id: string;
   target: string;
@@ -191,11 +189,17 @@ export function parseCustomTraitEffectDraft(
   return null;
 }
 
+export function isCustomTraitEffectDraftEmpty(draft: CustomTraitEffectDraft): boolean {
+  return draft.target.trim().length === 0 && draft.value.trim().length === 0;
+}
+
 export function isCustomTraitDraftValid(draft: CustomTraitDraft): boolean {
   return (
     draft.name.trim().length > 0 &&
-    draft.description.trim().length > 0 &&
     draft.effects.length > 0 &&
-    draft.effects.every((effect) => parseCustomTraitEffectDraft(effect) !== null)
+    draft.effects.every(
+      (effect) =>
+        isCustomTraitEffectDraftEmpty(effect) || parseCustomTraitEffectDraft(effect) !== null
+    )
   );
 }

@@ -8,7 +8,8 @@ import styles from "./CustomTraitEffectEditorRow.module.css";
 type CustomTraitEffectEditorRowProps = {
   effect: CustomTraitEffectDraft;
   targetOptions: CustomTraitTargetOption[];
-  canRemove: boolean;
+  removeDisabled: boolean;
+  removeLabel: string;
   onTargetChange: (value: string) => void;
   onValueChange: (value: string) => void;
   onRemove: () => void;
@@ -17,7 +18,8 @@ type CustomTraitEffectEditorRowProps = {
 function CustomTraitEffectEditorRow({
   effect,
   targetOptions,
-  canRemove,
+  removeDisabled,
+  removeLabel,
   onTargetChange,
   onValueChange,
   onRemove
@@ -49,9 +51,9 @@ function CustomTraitEffectEditorRow({
         type="button"
         className={styles.removeButton}
         onClick={onRemove}
-        disabled={!canRemove}
-        aria-label="Remove effect"
-        title="Remove effect"
+        disabled={removeDisabled}
+        aria-label={removeLabel}
+        title={removeLabel}
       >
         <Trash2 size={16} aria-hidden="true" />
       </button>

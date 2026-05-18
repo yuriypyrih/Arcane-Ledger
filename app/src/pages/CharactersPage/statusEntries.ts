@@ -352,8 +352,8 @@ function normalizeStatusEntry(value: unknown): CharacterStatusEntry | null {
     ? (record.sourceType as STATUS_ENTRY_SOURCE_TYPE)
     : STATUS_ENTRY_SOURCE_TYPE.MANUAL;
   const duration = normalizeStatusDuration(record.duration) ?? {
-      kind: STATUS_DURATION_KIND.INFINITE
-    };
+    kind: STATUS_DURATION_KIND.INFINITE
+  };
   const descriptionAdditions = normalizeStatusDescriptionAdditions(record.descriptionAdditions);
 
   return {
@@ -394,7 +394,9 @@ function normalizeStatusEntry(value: unknown): CharacterStatusEntry | null {
         ? record.description.trim()
         : undefined,
     descriptionAdditions: descriptionAdditions.length > 0 ? descriptionAdditions : undefined,
-    customEffects: normalizeCharacterCustomTraitEffects(record.customEffects)
+    customEffects: Array.isArray(record.customEffects)
+      ? normalizeCharacterCustomTraitEffects(record.customEffects)
+      : undefined
   };
 }
 
@@ -551,7 +553,9 @@ export function createCharacterStatusEntry(options: {
     rangeFeet: options.rangeFeet ?? null,
     description: options.description?.trim() || undefined,
     descriptionAdditions: descriptionAdditions.length > 0 ? descriptionAdditions : undefined,
-    customEffects: normalizeCharacterCustomTraitEffects(options.customEffects)
+    customEffects: Array.isArray(options.customEffects)
+      ? normalizeCharacterCustomTraitEffects(options.customEffects)
+      : undefined
   };
 }
 
@@ -697,7 +701,9 @@ export function upsertManualStatusEntry(
             duration: nextEntry.duration,
             rangeFeet: nextEntry.rangeFeet ?? null,
             description: nextEntry.description?.trim() || undefined,
-            customEffects: normalizeCharacterCustomTraitEffects(nextEntry.customEffects)
+            customEffects: Array.isArray(nextEntry.customEffects)
+              ? normalizeCharacterCustomTraitEffects(nextEntry.customEffects)
+              : undefined
           }
         : entry
     )

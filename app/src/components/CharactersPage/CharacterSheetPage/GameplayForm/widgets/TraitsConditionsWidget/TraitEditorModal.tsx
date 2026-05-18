@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Check, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import ActionButton from "../../../../../ActionButton";
 import SelectInput from "../../../../FormInputs/SelectInput";
 import shared from "../../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
@@ -14,9 +14,7 @@ import {
   OverlayTitleRow,
   SheetModal
 } from "../../../../../Overlay";
-import CustomTraitBuilder from "./CustomTraitBuilder";
 import ManualStatusDurationFields from "./ManualStatusDurationFields";
-import type { CustomTraitDraft, CustomTraitMode } from "./customTraitDraft";
 import type { ManualStatusDurationType } from "./manualStatusDuration";
 import styles from "./TraitEditorModal.module.css";
 import {
@@ -27,160 +25,113 @@ import {
 } from "./traitsWidgetUtils";
 
 type TraitEditorModalProps = {
-  mode: CustomTraitMode;
-  isEditingCustomTrait: boolean;
   activeTab: TraitEditorTab;
   values: Record<TraitEditorTab, string>;
   durationType: ManualStatusDurationType;
   durationValue: number;
-  customTraitDraft: CustomTraitDraft;
   createDisabled: boolean;
-  onModeChange: (mode: CustomTraitMode) => void;
+  onCreateCustomTrait: () => void;
   onTabChange: (tab: TraitEditorTab) => void;
   onValueChange: (tab: TraitEditorTab, value: string) => void;
   onDurationTypeChange: (value: ManualStatusDurationType) => void;
   onDurationValueChange: (value: number) => void;
-  onCustomTraitNameChange: (value: string) => void;
-  onCustomTraitDescriptionChange: (value: string) => void;
-  onCustomTraitDurationTypeChange: (value: ManualStatusDurationType) => void;
-  onCustomTraitDurationValueChange: (value: number) => void;
-  onCustomTraitEffectTargetChange: (effectId: string, value: string) => void;
-  onCustomTraitEffectValueChange: (effectId: string, value: string) => void;
-  onAddCustomTraitEffect: () => void;
-  onRemoveCustomTraitEffect: (effectId: string) => void;
   onCreate: () => void;
   onCreateCompanion?: () => void;
   onClose: () => void;
 };
 
 function TraitEditorModal({
-  mode,
-  isEditingCustomTrait,
   activeTab,
   values,
   durationType,
   durationValue,
-  customTraitDraft,
   createDisabled,
-  onModeChange,
+  onCreateCustomTrait,
   onTabChange,
   onValueChange,
   onDurationTypeChange,
   onDurationValueChange,
-  onCustomTraitNameChange,
-  onCustomTraitDescriptionChange,
-  onCustomTraitDurationTypeChange,
-  onCustomTraitDurationValueChange,
-  onCustomTraitEffectTargetChange,
-  onCustomTraitEffectValueChange,
-  onAddCustomTraitEffect,
-  onRemoveCustomTraitEffect,
   onCreate,
   onCreateCompanion,
   onClose
 }: TraitEditorModalProps) {
   const isExhaustionSelection =
     activeTab === "conditions" && isExhaustionConditionOptionValue(values[activeTab]);
-  const isCustomTraitMode = isEditingCustomTrait || mode === "custom-trait";
   const activeTabLabel = traitEditorTabs.find((tab) => tab.id === activeTab)?.label ?? "Conditions";
 
   return (
-    <SheetModal
-      titleId="trait-modal-title"
-      onClose={onClose}
-      size="medium"
-      panelClassName={isCustomTraitMode ? styles.modalPanelExpanded : undefined}
-    >
+    <SheetModal titleId="trait-modal-title" onClose={onClose} size="medium">
       <OverlayHeader className={styles.header}>
         <OverlayHeaderContent className={styles.headerContent}>
           <OverlayTitleRow className={styles.titleRow}>
-            <OverlayTitle id="trait-modal-title">
-              {isEditingCustomTrait ? "Edit Trait" : "Edit Traits & Conditions"}
-            </OverlayTitle>
-            {!isEditingCustomTrait ? (
-              <div className={styles.titleActions}>
-                <button
-                  type="button"
-                  className={clsx(styles.modePill, isCustomTraitMode && styles.modePillActive)}
-                  aria-pressed={isCustomTraitMode}
-                  onClick={() => onModeChange(isCustomTraitMode ? "quick-add" : "custom-trait")}
-                >
-                  <Plus size={14} aria-hidden="true" />
-                  <span>Custom Feature Trait</span>
-                </button>
-                {onCreateCompanion ? (
-                  <button
-                    type="button"
-                    className={styles.modePill}
-                    onClick={onCreateCompanion}
-                    aria-label="Create companion"
-                  >
-                    <Plus size={14} aria-hidden="true" />
-                    <span>Companion</span>
-                  </button>
-                ) : null}
-              </div>
-            ) : null}
+            <OverlayTitle id="trait-modal-title">Edit Traits & Conditions</OverlayTitle>
           </OverlayTitleRow>
         </OverlayHeaderContent>
+        <div className={styles.titleActions}>
+          <button
+            type="button"
+            className={clsx(shared.editButton, styles.titleActionButton)}
+            onClick={onCreateCustomTrait}
+          >
+            <Plus size={16} aria-hidden="true" />
+            <span>Custom Trait</span>
+          </button>
+          {onCreateCompanion ? (
+            <button
+              type="button"
+              className={clsx(shared.editButton, styles.titleActionButton)}
+              onClick={onCreateCompanion}
+              aria-label="Create companion"
+            >
+              <Plus size={16} aria-hidden="true" />
+              <span>Companion</span>
+            </button>
+          ) : null}
+        </div>
         <OverlayCloseButton label="Close traits and conditions editor" onClick={onClose} />
       </OverlayHeader>
 
-      <OverlayBody className={clsx(styles.body, isCustomTraitMode && styles.bodyExpanded)}>
-        {isCustomTraitMode ? (
-          <CustomTraitBuilder
-            draft={customTraitDraft}
-            onNameChange={onCustomTraitNameChange}
-            onDescriptionChange={onCustomTraitDescriptionChange}
-            onDurationTypeChange={onCustomTraitDurationTypeChange}
-            onDurationValueChange={onCustomTraitDurationValueChange}
-            onEffectTargetChange={onCustomTraitEffectTargetChange}
-            onEffectValueChange={onCustomTraitEffectValueChange}
-            onAddEffect={onAddCustomTraitEffect}
-            onRemoveEffect={onRemoveCustomTraitEffect}
-          />
-        ) : (
-          <div className={styles.quickAddStack}>
-            <div className={styles.tabRow} role="tablist" aria-label="Trait categories">
-              {traitEditorTabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={activeTab === tab.id}
-                  className={clsx(styles.tabButton, activeTab === tab.id && styles.tabButtonActive)}
-                  onClick={() => onTabChange(tab.id)}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-
-            <div className={shared.formGrid}>
-              <label className={shared.field}>
-                <span className={shared.fieldLabel}>{activeTabLabel}</span>
-                <SelectInput
-                  value={values[activeTab]}
-                  onChange={(event) => onValueChange(activeTab, event.target.value)}
-                >
-                  {getTraitEditorOptions(activeTab).map((option) => (
-                    <option key={option} value={option}>
-                      {formatTraitEditorOptionLabel(activeTab, option)}
-                    </option>
-                  ))}
-                </SelectInput>
-              </label>
-
-              <ManualStatusDurationFields
-                durationType={durationType}
-                durationValue={durationValue}
-                disabled={isExhaustionSelection}
-                onDurationTypeChange={onDurationTypeChange}
-                onDurationValueChange={onDurationValueChange}
-              />
-            </div>
+      <OverlayBody className={styles.body}>
+        <div className={styles.quickAddStack}>
+          <div className={styles.tabRow} role="tablist" aria-label="Trait categories">
+            {traitEditorTabs.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                role="tab"
+                aria-selected={activeTab === tab.id}
+                className={clsx(styles.tabButton, activeTab === tab.id && styles.tabButtonActive)}
+                onClick={() => onTabChange(tab.id)}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
-        )}
+
+          <div className={shared.formGrid}>
+            <label className={shared.field}>
+              <span className={shared.fieldLabel}>{activeTabLabel}</span>
+              <SelectInput
+                value={values[activeTab]}
+                onChange={(event) => onValueChange(activeTab, event.target.value)}
+              >
+                {getTraitEditorOptions(activeTab).map((option) => (
+                  <option key={option} value={option}>
+                    {formatTraitEditorOptionLabel(activeTab, option)}
+                  </option>
+                ))}
+              </SelectInput>
+            </label>
+
+            <ManualStatusDurationFields
+              durationType={durationType}
+              durationValue={durationValue}
+              disabled={isExhaustionSelection}
+              onDurationTypeChange={onDurationTypeChange}
+              onDurationValueChange={onDurationValueChange}
+            />
+          </div>
+        </div>
       </OverlayBody>
 
       <OverlayFooter className={styles.footer}>
@@ -188,15 +139,9 @@ function TraitEditorModal({
           className={styles.createButton}
           onClick={onCreate}
           disabled={createDisabled}
-          icon={
-            isEditingCustomTrait ? (
-              <Check size={18} aria-hidden="true" />
-            ) : (
-              <Plus size={18} aria-hidden="true" />
-            )
-          }
+          icon={<Plus size={18} aria-hidden="true" />}
         >
-          {isEditingCustomTrait ? "Save Trait" : "Create"}
+          Create
         </ActionButton>
       </OverlayFooter>
     </SheetModal>
