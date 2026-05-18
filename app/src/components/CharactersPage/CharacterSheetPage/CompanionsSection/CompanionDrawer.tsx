@@ -47,6 +47,7 @@ function CompanionDrawer({
   const statBlock = getCompanionStatBlock(companion, character);
   const deathSaves = normalizeDeathSaveTrack(companion.deathSaves);
   const statusLabel = getCompanionStatusLabel(companion);
+  const companionDescription = companion.description.trim();
   const shouldShowDeathSaves =
     companion.currentHitPoints <= 0 && deathSaves.resolution !== "instant-death";
 
@@ -122,19 +123,18 @@ function CompanionDrawer({
           }
         />
 
-        <section className={styles.drawerSection}>
-          <h4 className={styles.drawerSectionTitle}>Description</h4>
-          <p className={styles.drawerDescription}>
-            {companion.description.trim() || "No description added for this companion."}
-          </p>
-        </section>
+        {companionDescription ? (
+          <section className={styles.drawerSection}>
+            <h4 className={styles.drawerSectionTitle}>Description</h4>
+            <p className={styles.drawerDescription}>{companionDescription}</p>
+          </section>
+        ) : null}
 
         {statBlock ? (
           <section className={styles.drawerSection}>
             <div className={styles.drawerSectionHeader}>
               <div>
-                <p className={styles.panelEyebrow}>Source reference</p>
-                <h4 className={styles.drawerSectionTitle}>Stat block</h4>
+                <p className={styles.panelEyebrow}>Chosen stat block</p>
               </div>
             </div>
             <MonsterEntryRenderer monster={statBlock} className={styles.inheritedMonsterEntry} />

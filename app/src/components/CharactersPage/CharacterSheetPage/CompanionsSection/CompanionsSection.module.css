@@ -74,8 +74,19 @@
 }
 
 .cardHitPointText {
-  font-size: 0.9rem;
   white-space: nowrap;
+}
+
+.cardTempHitPointText {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22rem;
+  white-space: nowrap;
+}
+
+.cardTempHitPointText svg {
+  flex: 0 0 auto;
+  stroke: currentColor;
 }
 
 .cardType,
@@ -89,20 +100,19 @@
 }
 
 .cardVitalsRow {
-  display: grid;
+  display: inline-flex;
   align-items: center;
-  gap: 0.48rem;
-  grid-template-columns: auto auto minmax(0, 1fr);
+  color: var(--color-ink-soft);
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+  font-weight: 400;
+  gap: 0.3rem;
   min-width: 0;
 }
 
-.cardHitPointText strong {
-  color: var(--color-ink);
-}
-
-.cardHitPointBar {
-  block-size: 10px;
-  inline-size: 100%;
+.cardVitalsDivider {
+  color: inherit;
+  line-height: 1;
 }
 
 .cardSource {

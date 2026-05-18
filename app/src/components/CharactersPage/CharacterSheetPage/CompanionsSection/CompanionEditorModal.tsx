@@ -185,12 +185,9 @@ function CompanionEditorModal({
     ? 1
     : Math.max(1, Math.ceil(totalEntries / COMPANION_MONSTERS_PER_PAGE));
   const maxHitPoints = parseHitPointDraftValue(draft.maxHitPoints);
-  const currentHitPoints = parseHitPointDraftValue(draft.currentHitPoints);
   const maxHitPointsInvalid = maxHitPoints === null || maxHitPoints < 1;
-  const currentHitPointsInvalid =
-    currentHitPoints === null ||
-    currentHitPoints < 0 ||
-    (maxHitPoints !== null && currentHitPoints > maxHitPoints);
+  const saveDisabled =
+    draft.name.trim().length === 0 || draft.type.trim().length === 0 || maxHitPointsInvalid;
 
   useEffect(() => {
     setDraft(companion ? createDraftFromCompanion(companion) : createEmptyCompanionDraft());
@@ -331,7 +328,6 @@ function CompanionEditorModal({
             ? resolvedMonster.type
             : currentDraft.type,
         maxHitPoints: String(hitPoints),
-        currentHitPoints: String(hitPoints),
         primalBeastKind,
         inheritedCreatureEntry: resolvedMonster
       }));
@@ -365,19 +361,23 @@ function CompanionEditorModal({
 
     setShowValidation(true);
 
-    if (!name || !type || maxHitPointsInvalid || currentHitPointsInvalid) {
+    if (!name || !type || maxHitPointsInvalid) {
       return;
     }
 
     const isBeastMasterPrimalBeast = isBeastMaster && draft.primalBeastKind !== null;
+    const resolvedMaxHitPoints = maxHitPoints!;
+    const resolvedCurrentHitPoints = companion
+      ? Math.min(Math.max(0, companion.currentHitPoints), resolvedMaxHitPoints)
+      : resolvedMaxHitPoints;
 
     onSaveCompanion({
       id: draft.id ?? createCharacterCompanionId(),
       name,
       description,
       type,
-      maxHitPoints: maxHitPoints!,
-      currentHitPoints: currentHitPoints!,
+      maxHitPoints: resolvedMaxHitPoints,
+      currentHitPoints: resolvedCurrentHitPoints,
       temporaryHitPoints: companion?.temporaryHitPoints ?? 0,
       duration: createManualStatusDuration(draft.durationType, draft.durationValue),
       ...(companion?.temporaryHitPointsSource
@@ -463,17 +463,6 @@ function CompanionEditorModal({
                 ) : null}
               </SelectInput>
             </label>
-
-            <label className={shared.field}>
-              <span className={shared.fieldLabel}>Current HP</span>
-              <TextInput
-                value={draft.currentHitPoints}
-                invalid={showValidation && currentHitPointsInvalid}
-                onChange={(event) => handleDraftChange("currentHitPoints", event.target.value)}
-                placeholder="20"
-              />
-            </label>
-
             <label className={shared.field}>
               <span className={shared.fieldLabel}>Max HP</span>
               <TextInput
@@ -483,7 +472,6 @@ function CompanionEditorModal({
                 placeholder="20"
               />
             </label>
-
             <ManualStatusDurationFields
               durationType={draft.durationType}
               durationValue={draft.durationValue}
@@ -555,7 +543,9 @@ function CompanionEditorModal({
         <OverlayFooter className={styles.editorFooter}>
           {isEditingExisting ? (
             <div className={styles.editorFooterActions}>
-              <ActionButton onClick={handleSave}>Save Changes</ActionButton>
+              <ActionButton onClick={handleSave} disabled={saveDisabled}>
+                Save Changes
+              </ActionButton>
               <ActionButton
                 actionType="ERROR"
                 variant="GHOST"
@@ -566,7 +556,9 @@ function CompanionEditorModal({
               </ActionButton>
             </div>
           ) : (
-            <ActionButton onClick={handleSave}>Create Companion</ActionButton>
+            <ActionButton onClick={handleSave} disabled={saveDisabled}>
+              Create Companion
+            </ActionButton>
           )}
         </OverlayFooter>
       </SheetModal>

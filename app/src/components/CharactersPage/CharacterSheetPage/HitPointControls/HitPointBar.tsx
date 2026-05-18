@@ -40,12 +40,13 @@ function HitPointBar({
     barMaximumHitPoints > 0 ? (normalizedTemporaryHitPoints / barMaximumHitPoints) * 100 : 0;
   const visibleMagicTemporaryHitPointPercent =
     barMaximumHitPoints > 0 ? (normalizedMagicTemporaryHitPoints / barMaximumHitPoints) * 100 : 0;
+  const isBlooded = normalizedCurrentHitPoints <= normalizedMaxHitPoints * 0.5;
 
   return (
     <div className={clsx(styles.barTrack, className)}>
       <div className={styles.barMeter}>
         <div
-          className={styles.barFill}
+          className={clsx(styles.barFill, isBlooded && styles.barFillBlooded)}
           style={{ width: `${Math.max(0, currentHitPointPercent)}%` }}
         />
         {visibleTemporaryHitPointPercent > 0 ? (

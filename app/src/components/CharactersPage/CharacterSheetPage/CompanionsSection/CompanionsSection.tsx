@@ -1,12 +1,12 @@
 import clsx from "clsx";
-import { Pencil, Plus } from "lucide-react";
+import { Pencil, Plus, Shield } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { getCompanionStatusLabel } from "../../../../pages/CharactersPage/companions";
 import type { Character, CharacterCompanion } from "../../../../types";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
-import HitPointBar from "../HitPointControls/HitPointBar";
+import { normalizeTemporaryHitPoints } from "../GameplayForm/gameplayStateUtils";
 import CompanionDrawer from "./CompanionDrawer";
 import CompanionEditorModal from "./CompanionEditorModal";
 import { removeCharacterCompanion, upsertCharacterCompanion } from "./companionPersistence";
@@ -87,52 +87,58 @@ function CompanionsSection({ character, className, onPersistCharacter }: Compani
 
         {companions.length > 0 ? (
           <div className={styles.companionGrid}>
-            {companions.map((companion) => (
-              <div key={companion.id} className={styles.companionCardShell}>
-                <button
-                  type="button"
-                  className={styles.companionCard}
-                  onClick={() => setSelectedCompanionId(companion.id)}
-                >
-                  <div className={styles.cardBody}>
-                    <div className={styles.cardTopRow}>
-                      <div className={styles.cardTitleRow}>
-                        <h4 className={styles.cardTitle}>{companion.name}</h4>
-                        <span className={styles.cardType}>· {companion.type}</span>
+            {companions.map((companion) => {
+              const temporaryHitPoints = normalizeTemporaryHitPoints(companion.temporaryHitPoints);
+
+              return (
+                <div key={companion.id} className={styles.companionCardShell}>
+                  <button
+                    type="button"
+                    className={styles.companionCard}
+                    onClick={() => setSelectedCompanionId(companion.id)}
+                  >
+                    <div className={styles.cardBody}>
+                      <div className={styles.cardTopRow}>
+                        <div className={styles.cardTitleRow}>
+                          <h4 className={styles.cardTitle}>{companion.name}</h4>
+                          <span className={styles.cardType}>· {companion.type}</span>
+                        </div>
+                        <span className={styles.cardSource}>
+                          {getCompanionSourceLabel(companion)}
+                        </span>
                       </div>
-                      <span className={styles.cardSource}>
-                        {getCompanionSourceLabel(companion)}
-                      </span>
-                    </div>
-                    <div className={styles.cardVitalsRow}>
-                      <span className={styles.cardStatus}>
-                        {getCompanionStatusLabel(companion)}
-                      </span>
-                      <span className={styles.cardHitPointText}>
-                        <strong>
+                      <span className={styles.cardVitalsRow}>
+                        <span className={styles.cardHitPointText}>
                           {companion.currentHitPoints}/{companion.maxHitPoints} HP
-                        </strong>
+                        </span>
+                        {temporaryHitPoints > 0 ? (
+                          <>
+                            <span className={styles.cardVitalsDivider}>·</span>
+                            <span className={styles.cardTempHitPointText}>
+                              <Shield size={14} aria-hidden="true" />
+                              {temporaryHitPoints}
+                            </span>
+                          </>
+                        ) : null}
+                        <span className={styles.cardVitalsDivider}>·</span>
+                        <span className={styles.cardStatus}>
+                          {getCompanionStatusLabel(companion)}
+                        </span>
                       </span>
-                      <HitPointBar
-                        className={styles.cardHitPointBar}
-                        currentHitPoints={companion.currentHitPoints}
-                        maxHitPoints={companion.maxHitPoints}
-                        temporaryHitPoints={companion.temporaryHitPoints}
-                      />
                     </div>
-                  </div>
-                </button>
-                <button
-                  type="button"
-                  className={styles.companionEditButton}
-                  onClick={() => setEditorCompanionId(companion.id)}
-                  aria-label={`Edit ${companion.name}`}
-                  title={`Edit ${companion.name}`}
-                >
-                  <Pencil size={16} aria-hidden="true" />
-                </button>
-              </div>
-            ))}
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.companionEditButton}
+                    onClick={() => setEditorCompanionId(companion.id)}
+                    aria-label={`Edit ${companion.name}`}
+                    title={`Edit ${companion.name}`}
+                  >
+                    <Pencil size={16} aria-hidden="true" />
+                  </button>
+                </div>
+              );
+            })}
           </div>
         ) : (
           <p className={shared.emptyText}>

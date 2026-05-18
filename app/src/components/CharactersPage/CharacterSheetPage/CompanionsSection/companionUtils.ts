@@ -17,7 +17,6 @@ export type CompanionDraft = {
   type: string;
   primalBeastKind: PrimalBeastKind | null;
   maxHitPoints: string;
-  currentHitPoints: string;
   durationType: ManualStatusDurationType;
   durationValue: number;
   inheritedCreatureEntry: MonsterRecord | null;
@@ -51,7 +50,6 @@ export function createEmptyCompanionDraft(): CompanionDraft {
     type: "",
     primalBeastKind: null,
     maxHitPoints: "",
-    currentHitPoints: "",
     durationType: defaultManualStatusDurationDraft.type,
     durationValue: defaultManualStatusDurationDraft.value,
     inheritedCreatureEntry: null
@@ -68,7 +66,6 @@ export function createDraftFromCompanion(companion: CharacterCompanion): Compani
     type: companion.type,
     primalBeastKind: companion.primalBeastKind ?? null,
     maxHitPoints: String(companion.maxHitPoints),
-    currentHitPoints: String(companion.currentHitPoints),
     durationType: durationDraft.type,
     durationValue: durationDraft.value,
     inheritedCreatureEntry: companion.inheritedCreatureEntry ?? null
