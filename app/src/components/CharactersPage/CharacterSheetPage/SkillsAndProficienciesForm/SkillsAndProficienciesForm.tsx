@@ -90,11 +90,7 @@ function SkillsAndProficienciesForm({
     rollFormula?: string,
     rollFormulaDisplay?: string
   ) {
-    const description = getKeywordDescription(keyword);
-
-    if (!description) {
-      return;
-    }
+    const description = getKeywordDescription(keyword) ?? `No description for - ${keyword}`;
 
     setIsSkillReferenceDiceRollerSettingsOpen(false);
     setSelectedKeyword({

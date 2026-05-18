@@ -56,7 +56,7 @@ import {
 import type { DruidStarryFormConstellation as DruidStarryFormConstellationType } from "./subclasses/druidCircleOfTheStars";
 
 const primalOrderWardenSource = "Primal Order";
-const druidicSource = "Druidic";
+const druidicSource = "Druid";
 const primalStrikeSource = "Primal Strike";
 const speakWithAnimalsSpellId = "spell-speak-with-animals";
 const druidWildShapeSource = "Wild Shape";
