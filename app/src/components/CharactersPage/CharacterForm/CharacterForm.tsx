@@ -2571,7 +2571,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       <section className={styles.sectionCard}>
         <div className={styles.sectionHeader}>
           <div>
-            <p className={styles.sectionEyebrow}>Ability scores</p>
+            <p className={styles.sectionEyebrow}>Base Stats</p>
             <h3>Ability Scores</h3>
           </div>
           {!isPointBuyReady ? <InputRequiredBadge /> : null}
