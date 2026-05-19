@@ -144,7 +144,10 @@ export function renderEquipmentForm(context: Record<string, any>) {
                           </span>
                         </SheetSurface>
                       </li>
-                    ) : (
+                    ) : (() => {
+                      const conjuredRowTagLabel = getInventoryItemConjuredRowTagLabel(entry.item.stack);
+
+                      return (
                       <li key={entry.key}>
                         <SheetSurface
                           as="button"
@@ -191,9 +194,9 @@ export function renderEquipmentForm(context: Record<string, any>) {
                                 <span>Modded</span>
                               </span>
                             ) : null}
-                            {getInventoryItemConjuredRowTagLabel(entry.item.stack) ? (
+                            {conjuredRowTagLabel ? (
                               <span className={styles.equipmentItemFeatureTag}>
-                                {getInventoryItemConjuredRowTagLabel(entry.item.stack)}
+                                {conjuredRowTagLabel}
                               </span>
                             ) : null}
                             {hasDisplayableRarity(entry.item.item.rarity) ? (
@@ -205,7 +208,8 @@ export function renderEquipmentForm(context: Record<string, any>) {
                           </span>
                         </SheetSurface>
                       </li>
-                    )
+                      );
+                    })()
                   )}
                 </ul>
                 {shouldCollapseGeneral ? (

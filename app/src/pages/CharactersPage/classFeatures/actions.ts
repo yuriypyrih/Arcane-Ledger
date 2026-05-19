@@ -29,9 +29,10 @@ import {
   getCustomTraitSkillRollIndicators,
   getCustomTraitSpeedBonuses,
   getCustomTraitWeaponAttackRollIndicators,
-  getCustomTraitWeaponDamageBonuses
+  getCustomTraitWeaponDamageBonuses,
+  type CustomTraitBonusInput
 } from "../customTraitEffects";
-import { getActiveItemModEffectSources } from "../itemMods";
+import { getCharacterCustomTraitEffectInput } from "../characterRuntime/customEffectRuntime";
 import {
   getFeatActionsForCharacter,
   transformFeatCommonActionForCharacter,
@@ -594,6 +595,10 @@ import { clearRoundScopedFeatureStateIfOutOfCombat, mergeIndicatorMaps } from ".
 
 const featureActionsByCharacter = new WeakMap<Character, FeatureActionCard[]>();
 
+type CustomTraitDerivationOptions = {
+  customTraitEffectInput?: CustomTraitBonusInput;
+};
+
 export function getFeatureActionsForCharacter(character: Character): FeatureActionCard[] {
   const cachedActions = featureActionsByCharacter.get(character);
 
@@ -738,10 +743,7 @@ export function getFeatureDamageBonusesForWeaponAction(
     ...(baseFeatureState.getWeaponDamageBonuses?.(context) ?? []),
     ...(subclassDerivedState.getWeaponDamageBonuses?.(context) ?? []),
     ...getCustomTraitWeaponDamageBonuses(
-      {
-        statusEntries: character.statusEntries,
-        effectSources: getActiveItemModEffectSources(character.inventoryItems)
-      },
+      getCharacterCustomTraitEffectInput(character),
       {
         attackKind: context.attackKind,
         combatType: context.combatType
@@ -794,10 +796,7 @@ export function getSavingThrowIndicatorsForCharacter(
 ): SavingThrowIndicatorMap {
   const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
-  const customEffectInput = {
-    statusEntries: character.statusEntries,
-    effectSources: getActiveItemModEffectSources(character.inventoryItems)
-  };
+  const customEffectInput = getCharacterCustomTraitEffectInput(character);
   const gnomeSavingThrowIndicators = character.species
     ? getGnomeSavingThrowIndicatorsForCharacter({
         species: character.species,
@@ -838,10 +837,7 @@ export function getAbilityCheckIndicatorsForCharacter(
 ): AbilityCheckIndicatorMap {
   const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
-  const customEffectInput = {
-    statusEntries: character.statusEntries,
-    effectSources: getActiveItemModEffectSources(character.inventoryItems)
-  };
+  const customEffectInput = getCharacterCustomTraitEffectInput(character);
   const goliathAbilityCheckIndicators = character.species
     ? getGoliathAbilityCheckIndicatorsForCharacter({
         species: character.species,
@@ -874,10 +870,7 @@ export function getCoreStatIndicatorsForCharacter(
     Partial<Pick<Character, "inventoryItems" | "statusEntries">>
 ): CoreStatIndicatorMap {
   const baseFeatureState = collectActiveClassFeatureState(character);
-  const customEffectInput = {
-    statusEntries: character.statusEntries,
-    effectSources: getActiveItemModEffectSources(character.inventoryItems)
-  };
+  const customEffectInput = getCharacterCustomTraitEffectInput(character);
   const customCoreStatIndicators: CoreStatIndicatorMap = {
     initiative: getCustomTraitInitiativeRollIndicators(customEffectInput),
     passivePerception: getCustomTraitPassivePerceptionRollIndicators(customEffectInput)
@@ -892,18 +885,18 @@ export function getCoreStatIndicatorsForCharacter(
 
 export function getInitiativeBonusesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "abilities"> &
-    Partial<Pick<Character, "statusEntries" | "subclassId" | "inventoryItems">>
+    Partial<Pick<Character, "statusEntries" | "subclassId" | "inventoryItems">>,
+  options?: CustomTraitDerivationOptions
 ): FeatureInitiativeBonus[] {
   const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
+  const customTraitEffectInput =
+    options?.customTraitEffectInput ?? getCharacterCustomTraitEffectInput(character);
 
   return [
     ...(baseFeatureState.getInitiativeBonuses?.() ?? []),
     ...(subclassDerivedState.getInitiativeBonuses?.() ?? []),
-    ...getCustomTraitInitiativeBonuses({
-      statusEntries: character.statusEntries,
-      effectSources: getActiveItemModEffectSources(character.inventoryItems)
-    })
+    ...getCustomTraitInitiativeBonuses(customTraitEffectInput)
   ];
 }
 
@@ -913,10 +906,7 @@ export function getSkillIndicatorsForCharacter(
 ): SkillIndicatorMap {
   const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
-  const customEffectInput = {
-    statusEntries: character.statusEntries,
-    effectSources: getActiveItemModEffectSources(character.inventoryItems)
-  };
+  const customEffectInput = getCharacterCustomTraitEffectInput(character);
   const goliathSkillIndicators = character.species
     ? getGoliathSkillIndicatorsForCharacter({
         species: character.species,
@@ -1004,17 +994,12 @@ export function getWeaponAttackIndicatorsForCharacter(
   }
 ): FeatureIndicator[] {
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
+  const customTraitEffectInput = getCharacterCustomTraitEffectInput(character);
 
   return [
     ...(subclassDerivedState.weaponAttackIndicators ?? []),
     ...(context
-      ? getCustomTraitWeaponAttackRollIndicators(
-          {
-            statusEntries: character.statusEntries,
-            effectSources: getActiveItemModEffectSources(character.inventoryItems)
-          },
-          context
-        )
+      ? getCustomTraitWeaponAttackRollIndicators(customTraitEffectInput, context)
       : [])
   ];
 }
@@ -1023,39 +1008,34 @@ export function getSkillBonusesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "abilities"> &
     Partial<Pick<Character, "inventoryItems" | "statusEntries">>,
   skill: SkillName,
-  proficiencyLevel: PROF_LEVEL
+  proficiencyLevel: PROF_LEVEL,
+  options?: CustomTraitDerivationOptions
 ): FeatureSkillBonus[] {
+  const customTraitEffectInput =
+    options?.customTraitEffectInput ?? getCharacterCustomTraitEffectInput(character);
+
   return [
     ...(collectActiveClassFeatureState(character).getSkillBonuses?.(skill, proficiencyLevel) ?? []),
-    ...getCustomTraitSkillBonuses(
-      {
-        statusEntries: character.statusEntries,
-        effectSources: getActiveItemModEffectSources(character.inventoryItems)
-      },
-      skill
-    )
+    ...getCustomTraitSkillBonuses(customTraitEffectInput, skill)
   ];
 }
 
 export function getSavingThrowBonusesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState"> &
     Partial<Pick<Character, "statusEntries" | "subclassId" | "inventoryItems">>,
-  ability: AbilityKey
+  ability: AbilityKey,
+  options?: CustomTraitDerivationOptions
 ): FeatureSavingThrowBonus[] {
   const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
   const exhaustionPenalty = getExhaustionD20TestPenalty(character.statusEntries);
+  const customTraitEffectInput =
+    options?.customTraitEffectInput ?? getCharacterCustomTraitEffectInput(character);
 
   return [
     ...(baseFeatureState.getSavingThrowBonuses?.(ability) ?? []),
     ...(subclassDerivedState.getSavingThrowBonuses?.(ability) ?? []),
-    ...getCustomTraitSavingThrowBonuses(
-      {
-        statusEntries: character.statusEntries,
-        effectSources: getActiveItemModEffectSources(character.inventoryItems)
-      },
-      ability
-    ),
+    ...getCustomTraitSavingThrowBonuses(customTraitEffectInput, ability),
     ...(exhaustionPenalty !== 0
       ? [
           {
@@ -1113,10 +1093,7 @@ export function getArmorClassBonusesForCharacter(
   return [
     ...(baseFeatureState.getArmorClassBonuses?.(context) ?? []),
     ...(subclassDerivedState.getArmorClassBonuses?.(context) ?? []),
-    ...getCustomTraitArmorClassBonuses({
-      statusEntries: character.statusEntries,
-      effectSources: getActiveItemModEffectSources(character.inventoryItems)
-    })
+    ...getCustomTraitArmorClassBonuses(getCharacterCustomTraitEffectInput(character))
   ];
 }
 
@@ -1139,10 +1116,7 @@ export function getSpeedBonusesForCharacter(
   return [
     ...(baseFeatureState.getSpeedBonuses?.(context) ?? []),
     ...(subclassDerivedState.speedBonuses ?? []),
-    ...getCustomTraitSpeedBonuses({
-      statusEntries: character.statusEntries,
-      effectSources: getActiveItemModEffectSources(character.inventoryItems)
-    }).map((bonus) => ({
+    ...getCustomTraitSpeedBonuses(getCharacterCustomTraitEffectInput(character)).map((bonus) => ({
       ...bonus,
       movementType: "walk" as const
     }))
@@ -1151,18 +1125,18 @@ export function getSpeedBonusesForCharacter(
 
 export function getAbilityScoreBonusesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState"> &
-    Partial<Pick<Character, "statusEntries" | "inventoryItems">>
+    Partial<Pick<Character, "statusEntries" | "inventoryItems">>,
+  options?: CustomTraitDerivationOptions
 ): FeatureAbilityScoreBonus[] {
   const baseFeatureState = collectActiveClassFeatureState(character);
+  const customTraitEffectInput =
+    options?.customTraitEffectInput ?? getCharacterCustomTraitEffectInput(character);
   return [
     ...(baseFeatureState.abilityScoreBonuses ?? []),
     ...(getSubclassDerivedFeatureState(character).abilityScoreBonuses ?? []),
     ...abilityKeys.flatMap((ability) =>
       getCustomTraitAbilityScoreBonuses(
-        {
-          statusEntries: character.statusEntries,
-          effectSources: getActiveItemModEffectSources(character.inventoryItems)
-        },
+        customTraitEffectInput,
         ability
       ).map((bonus) => ({
         ability,

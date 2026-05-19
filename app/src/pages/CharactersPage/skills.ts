@@ -10,6 +10,7 @@ import { getResolvedSkillProficiencyEntry, getSkillProficiencyForName } from "./
 import { skillGroupsByAbility } from "./skillDefinitions";
 import { getExhaustionD20TestPenalty } from "./statusEntries";
 import { formatCustomTraitBonusFormulaTerm } from "./customTraitEffects";
+import { getCharacterCustomTraitEffectInput } from "./characterRuntime/customEffectRuntime";
 
 export type SkillProficiencyMultiplier = 0 | 1 | 2;
 
@@ -52,6 +53,7 @@ export function getSkillRowsByAbility(
   skillProficiencies: SkillProficiencyEntry[]
 ): SkillRowsByAbility[] {
   const proficiencyBonus = getProficiencyBonus(character.level);
+  const customTraitEffectInput = getCharacterCustomTraitEffectInput(character);
 
   return skillGroupsByAbility.map((group) => {
     return {
@@ -70,14 +72,20 @@ export function getSkillRowsByAbility(
               ? 1
               : 0;
         const proficiencyContribution = proficiencyMultiplier * proficiencyBonus;
-        const featureBonuses = getSkillBonusesForCharacter(character, skill, proficiencyLevel);
+        const featureBonuses = getSkillBonusesForCharacter(
+          character,
+          skill,
+          proficiencyLevel,
+          { customTraitEffectInput }
+        );
         const replacementEntry = featureBonuses.find(
           (entry) => entry.replacesBaseAbility && entry.abilityModifierSource
         );
         const effectiveAbility = replacementEntry?.abilityModifierSource ?? group.ability;
         const effectiveAbilityModifierBreakdown = getAbilityModifierBreakdownForCharacter(
           character,
-          effectiveAbility
+          effectiveAbility,
+          { customTraitEffectInput }
         );
         const effectiveAbilityModifier = effectiveAbilityModifierBreakdown.total;
         const bonusEntries = featureBonuses.flatMap((entry) => {
@@ -86,7 +94,11 @@ export function getSkillRowsByAbility(
           }
 
           if (entry.abilityModifierSource) {
-            const sourceValue = getAbilityModifierForCharacter(character, entry.abilityModifierSource);
+            const sourceValue = getAbilityModifierForCharacter(
+              character,
+              entry.abilityModifierSource,
+              { customTraitEffectInput }
+            );
             const value =
               (typeof entry.minimumValue === "number"
                 ? Math.max(entry.minimumValue, sourceValue)

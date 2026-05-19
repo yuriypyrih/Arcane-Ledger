@@ -15,7 +15,11 @@ import {
   type AbilityModifierBonusEntry
 } from "../../../../pages/CharactersPage/abilities";
 import { getKeywordDescription } from "../../../../pages/CharactersPage/keywordDescriptions";
-import { formatCustomTraitBonusFormulaTerm } from "../../../../pages/CharactersPage/customTraitEffects";
+import {
+  formatCustomTraitBonusFormulaTerm,
+  type CustomTraitBonusInput
+} from "../../../../pages/CharactersPage/customTraitEffects";
+import { getCharacterCustomTraitEffectInput } from "../../../../pages/CharactersPage/characterRuntime/customEffectRuntime";
 import {
   abilityKeys,
   CUSTOM_ABILITY_SCORE_MAX,
@@ -223,12 +227,18 @@ function formatSavingThrowFormula(
 
 function resolveFeatureSavingThrowBonusValue(
   bonus: FeatureSavingThrowBonus,
-  character: Character
+  character: Character,
+  options?: {
+    customTraitEffectInput?: CustomTraitBonusInput;
+  }
 ): number {
   if (bonus.abilityModifierSource) {
     const sourceValue = getAbilityModifierBreakdownForCharacter(
       character,
-      bonus.abilityModifierSource
+      bonus.abilityModifierSource,
+      {
+        customTraitEffectInput: options?.customTraitEffectInput
+      }
     ).total;
     const clampedValue = typeof bonus.minimumValue === "number"
       ? Math.max(bonus.minimumValue, sourceValue)
@@ -477,13 +487,18 @@ function CharacterStatsForm({
   );
   const fighterIndomitableUsesTotal = getFighterIndomitableUsesTotalForCharacter(character);
   const fighterIndomitableUsesRemaining = getFighterIndomitableUsesRemainingForCharacter(character);
+  const customTraitEffectInput = useMemo(
+    () => getCharacterCustomTraitEffectInput(character),
+    [character]
+  );
   const abilitySavingThrowCards = useMemo<AbilitySavingThrowCard[]>(
     () =>
       abilityKeys.map((ability) => {
         const abilityScore = effectiveAbilities[ability];
         const abilityModifierBreakdown = getAbilityModifierBreakdownForCharacter(
           character,
-          ability
+          ability,
+          { customTraitEffectInput }
         );
         const abilityModifierValue = abilityModifierBreakdown.total;
         const savingThrowProficiency = getSavingThrowProficiencyForAbilityKey(ability);
@@ -494,8 +509,12 @@ function CharacterStatsForm({
         const proficiencyMultiplier = getProficiencyMultiplier(savingThrowLevel);
         const proficiencyContribution = proficiencyBonus * proficiencyMultiplier;
         const featureSavingThrowBonusEntries: SavingThrowBonusEntry[] =
-          getSavingThrowBonusesForCharacter(character, ability).map((bonus) => {
-            const value = resolveFeatureSavingThrowBonusValue(bonus, character);
+          getSavingThrowBonusesForCharacter(character, ability, {
+            customTraitEffectInput
+          }).map((bonus) => {
+            const value = resolveFeatureSavingThrowBonusValue(bonus, character, {
+              customTraitEffectInput
+            });
 
             return {
               label: bonus.label,
@@ -572,6 +591,7 @@ function CharacterStatsForm({
     [
       abilityCheckIndicators,
       character,
+      customTraitEffectInput,
       effectiveAbilities,
       hasEvasion,
       hasIndomitableMight,

@@ -50,10 +50,8 @@ export function getInventoryAttunementLimit(
 
 function createEquipmentRuntime(character: Character): EquipmentRuntime {
   const inventoryIndex = createInventoryRuntimeIndex(character.inventoryItems);
-  const heldInventoryCopies = character.inventoryItems.flatMap(createHeldInventoryItemCopyReferences);
-  const heldInventoryDescriptors = heldInventoryCopies
-    .map((copy) => createHeldDescriptorForInventoryItem(`inventory-${copy.id}`, copy.item))
-    .filter((descriptor): descriptor is HeldWeaponDescriptor => descriptor !== null);
+  let heldInventoryCopies: InventoryItemCopyReference[] | null = null;
+  let heldInventoryDescriptors: HeldWeaponDescriptor[] | null = null;
   const inventoryWeight = Math.round(
     inventoryIndex.groups.reduce(
       (totalWeight, item) => totalWeight + (getItemWeightValue(item.item) ?? 0) * item.count,
@@ -63,8 +61,26 @@ function createEquipmentRuntime(character: Character): EquipmentRuntime {
 
   return {
     inventoryIndex,
-    heldInventoryCopies,
-    heldInventoryDescriptors,
+    get heldInventoryCopies() {
+      if (!heldInventoryCopies) {
+        heldInventoryCopies = character.inventoryItems.flatMap(createHeldInventoryItemCopyReferences);
+      }
+
+      return heldInventoryCopies;
+    },
+    get heldInventoryDescriptors() {
+      if (!heldInventoryDescriptors) {
+        const copies =
+          heldInventoryCopies ??
+          character.inventoryItems.flatMap(createHeldInventoryItemCopyReferences);
+        heldInventoryCopies = copies;
+        heldInventoryDescriptors = copies
+          .map((copy) => createHeldDescriptorForInventoryItem(`inventory-${copy.id}`, copy.item))
+          .filter((descriptor): descriptor is HeldWeaponDescriptor => descriptor !== null);
+      }
+
+      return heldInventoryDescriptors;
+    },
     inventoryWeight
   };
 }

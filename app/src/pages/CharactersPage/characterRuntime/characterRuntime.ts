@@ -26,6 +26,10 @@ import {
   type EquipmentRuntime
 } from "./equipmentRuntime";
 import {
+  getCharacterCustomEffectRuntime,
+  type CharacterCustomEffectRuntime
+} from "./customEffectRuntime";
+import {
   getSpellcastingRuntimeForCharacter,
   type CharacterSpellcastingRuntime,
   type SpellcastingRuntimeOptions
@@ -45,6 +49,7 @@ export type CharacterRuntime = {
   readonly classFeatures: ClassFeatureDerivedState;
   readonly subclassFeatures: SubclassDerivedFeatureState;
   readonly feats: FeatDerivedState;
+  readonly customEffects: CharacterCustomEffectRuntime;
   readonly featureActions: FeatureActionCard[];
   readonly featureActionsByKey: Map<string, FeatureActionCard>;
   readonly spellcasting: CharacterSpellcastingRuntime;
@@ -68,6 +73,7 @@ class CharacterRuntimeSnapshot implements CharacterRuntime {
   private classFeaturesSnapshot: ClassFeatureDerivedState | null = null;
   private subclassFeaturesSnapshot: SubclassDerivedFeatureState | null = null;
   private featsSnapshot: FeatDerivedState | null = null;
+  private customEffectsSnapshot: CharacterCustomEffectRuntime | null = null;
   private featureActionsSnapshot: FeatureActionCard[] | null = null;
   private featureActionsByKeySnapshot: Map<string, FeatureActionCard> | null = null;
   private spellcastingSnapshot: CharacterSpellcastingRuntime | null = null;
@@ -105,6 +111,14 @@ class CharacterRuntimeSnapshot implements CharacterRuntime {
     }
 
     return this.featsSnapshot;
+  }
+
+  get customEffects(): CharacterCustomEffectRuntime {
+    if (!this.customEffectsSnapshot) {
+      this.customEffectsSnapshot = getCharacterCustomEffectRuntime(this.character);
+    }
+
+    return this.customEffectsSnapshot;
   }
 
   get featureActions(): FeatureActionCard[] {

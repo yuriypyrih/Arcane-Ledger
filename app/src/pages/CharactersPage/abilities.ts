@@ -6,11 +6,12 @@ import {
 } from "./classFeatures";
 import {
   formatCustomTraitBonusFormulaTerm,
-  getCustomTraitAbilityModifierBonuses
+  getCustomTraitAbilityModifierBonuses,
+  type CustomTraitBonusInput
 } from "./customTraitEffects";
 import { getFeatAbilityScoreBonusesForCharacter } from "./feats/runtime";
 import { getBackgroundAbilityScoreBonusesForCharacter } from "./backgrounds";
-import { getActiveItemModEffectSources } from "./itemMods";
+import { getCharacterCustomTraitEffectInput } from "./characterRuntime/customEffectRuntime";
 
 export type AbilityScoreBreakdownEntry = {
   label: string;
@@ -53,6 +54,10 @@ type AbilityCharacterContext = Partial<
     | "backgroundChoices"
   >
 >;
+
+type AbilityDerivationOptions = {
+  customTraitEffectInput?: CustomTraitBonusInput;
+};
 
 function normalizeAbilityScore(value: number): number {
   if (!Number.isFinite(value)) {
@@ -110,9 +115,12 @@ function sortAbilityScoreBonuses(
 
 export function getAbilityScoreBreakdownForCharacter(
   character: AbilityCharacterContext,
-  ability: AbilityKey
+  ability: AbilityKey,
+  options?: AbilityDerivationOptions
 ): AbilityScoreBreakdown {
   const baseScore = normalizeAbilityScore(character.abilities?.[ability] ?? 10);
+  const customTraitEffectInput =
+    options?.customTraitEffectInput ?? getCharacterCustomTraitEffectInput(character);
   const relevantBonuses: FeatureAbilityScoreBonus[] = [
     ...(typeof character.className === "string"
       ? getAbilityScoreBonusesForCharacter({
@@ -121,7 +129,7 @@ export function getAbilityScoreBreakdownForCharacter(
           classFeatureState: character.classFeatureState,
           statusEntries: character.statusEntries,
           inventoryItems: character.inventoryItems
-        })
+        }, { customTraitEffectInput })
       : []),
     ...getBackgroundAbilityScoreBonusesForCharacter(character),
     ...getFeatAbilityScoreBonusesForCharacter({
@@ -171,31 +179,34 @@ export function getAbilityScoreBreakdownForCharacter(
 
 export function getAbilityScoreForCharacter(
   character: AbilityCharacterContext,
-  ability: AbilityKey
+  ability: AbilityKey,
+  options?: AbilityDerivationOptions
 ): number {
-  return getAbilityScoreBreakdownForCharacter(character, ability).total;
+  return getAbilityScoreBreakdownForCharacter(character, ability, options).total;
 }
 
 export function getAbilityScoresForCharacter(
   character: AbilityCharacterContext
 ): AbilityScores {
+  const customTraitEffectInput = getCharacterCustomTraitEffectInput(character);
+
   return abilityKeys.reduce((scores, ability) => {
-    scores[ability] = getAbilityScoreForCharacter(character, ability);
+    scores[ability] = getAbilityScoreForCharacter(character, ability, { customTraitEffectInput });
     return scores;
   }, {} as AbilityScores);
 }
 
 export function getAbilityModifierBreakdownForCharacter(
   character: AbilityCharacterContext,
-  ability: AbilityKey
+  ability: AbilityKey,
+  options?: AbilityDerivationOptions
 ): AbilityModifierBreakdown {
-  const abilityScore = getAbilityScoreForCharacter(character, ability);
+  const customTraitEffectInput =
+    options?.customTraitEffectInput ?? getCharacterCustomTraitEffectInput(character);
+  const abilityScore = getAbilityScoreForCharacter(character, ability, { customTraitEffectInput });
   const baseValue = Math.floor((abilityScore - 10) / 2);
   const bonusEntries = getCustomTraitAbilityModifierBonuses(
-    {
-      statusEntries: character.statusEntries,
-      effectSources: getActiveItemModEffectSources(character.inventoryItems)
-    },
+    customTraitEffectInput,
     ability
   ).map((entry) => ({
     ...entry,
@@ -213,7 +224,8 @@ export function getAbilityModifierBreakdownForCharacter(
 
 export function getAbilityModifierForCharacter(
   character: AbilityCharacterContext,
-  ability: AbilityKey
+  ability: AbilityKey,
+  options?: AbilityDerivationOptions
 ): number {
-  return getAbilityModifierBreakdownForCharacter(character, ability).total;
+  return getAbilityModifierBreakdownForCharacter(character, ability, options).total;
 }

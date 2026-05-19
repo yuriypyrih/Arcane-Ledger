@@ -762,19 +762,6 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     inventoryIndex.firstCopyByStackId,
     selectedInventoryInspection
   ]);
-  const selectedHeldInventoryCopies = useMemo(() => {
-    if (!selectedInventoryInspection) {
-      return [];
-    }
-
-    return selectedInventoryInspection.stackId
-      ? (inventoryIndex.heldCopiesByStackId.get(selectedInventoryInspection.stackId) ?? [])
-      : (inventoryIndex.heldCopiesByKey.get(selectedInventoryInspection.itemKey) ?? []);
-  }, [
-    inventoryIndex.heldCopiesByKey,
-    inventoryIndex.heldCopiesByStackId,
-    selectedInventoryInspection
-  ]);
   const selectedAvailableInventoryCopy = useMemo(() => {
     if (!selectedInventoryInspection) {
       return null;
@@ -837,7 +824,9 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       : (inventoryCountsByKey[selectedInventoryInspection.itemKey] ?? 0)
     : 0;
   const selectedInventoryOnHandCount = selectedInventoryInspection
-    ? selectedHeldInventoryCopies.length
+    ? selectedInventoryInspection.stackId
+      ? (inventoryIndex.heldCountsByStackId[selectedInventoryInspection.stackId] ?? 0)
+      : (inventoryIndex.heldCountsByKey[selectedInventoryInspection.itemKey] ?? 0)
     : 0;
   const selectedInventoryStack = selectedInventoryGroup?.stack ?? null;
   const selectedModdedInventoryStackId =

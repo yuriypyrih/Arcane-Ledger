@@ -43,6 +43,11 @@ export type CharacterItemModEffectSource = {
   effects: CharacterModEffect[];
 };
 
+const emptyItemModEffectSources: CharacterItemModEffectSource[] = [];
+const activeItemModEffectSourcesByInventoryItems = new WeakMap<
+  CharacterInventoryItem[],
+  CharacterItemModEffectSource[]
+>();
 const currencyValues = new Set<CURRENCY_TYPE>(Object.values(CURRENCY_TYPE));
 const damageTypeValues = new Set<DAMAGE_TYPE>(Object.values(DAMAGE_TYPE));
 const diceValues = new Set<DICE>(Object.values(DICE));
@@ -570,10 +575,20 @@ function areItemModEffectsActive(stack: CharacterInventoryItem): boolean {
 export function getActiveItemModEffectSources(
   inventoryItems: CharacterInventoryItem[] | undefined
 ): CharacterItemModEffectSource[] {
-  return (inventoryItems ?? []).flatMap((stack) => {
-    const effects = normalizeCharacterCustomTraitEffects(stack.mods?.effects);
+  if (!inventoryItems?.length) {
+    return emptyItemModEffectSources;
+  }
 
-    if (effects.length === 0 || !areItemModEffectsActive(stack)) {
+  const cachedSources = activeItemModEffectSourcesByInventoryItems.get(inventoryItems);
+
+  if (cachedSources) {
+    return cachedSources;
+  }
+
+  const sources = inventoryItems.flatMap((stack) => {
+    const effects = stack.mods?.effects;
+
+    if (!effects?.length || !areItemModEffectsActive(stack)) {
       return [];
     }
 
@@ -586,4 +601,7 @@ export function getActiveItemModEffectSources(
       }
     ];
   });
+
+  activeItemModEffectSourcesByInventoryItems.set(inventoryItems, sources);
+  return sources;
 }

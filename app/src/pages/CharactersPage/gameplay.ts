@@ -70,9 +70,10 @@ import { isMonkWeapon } from "./monkWeapons";
 import { hasFeatForCharacter } from "./feats/runtime";
 import {
   formatCustomTraitBonusFormulaTerm,
-  getCustomTraitPassivePerceptionBonuses
+  getCustomTraitPassivePerceptionBonuses,
+  type CustomTraitBonusInput
 } from "./customTraitEffects";
-import { getActiveItemModEffectSources } from "./itemMods";
+import { getCharacterCustomTraitEffectInput } from "./characterRuntime/customEffectRuntime";
 import { formatFormulaTerms } from "./shared";
 import {
   createHeldDescriptorForInventoryItem,
@@ -558,13 +559,18 @@ function getAbilitySourcedFeatureBonusValue(
     abilityModifierSource?: AbilityKey;
     abilityModifierMultiplier?: 1 | -1;
     minimumValue?: number;
+  },
+  options?: {
+    customTraitEffectInput?: CustomTraitBonusInput;
   }
 ): number {
   if (!bonus.abilityModifierSource) {
     return bonus.value ?? 0;
   }
 
-  const sourceValue = getAbilityModifierForCharacter(character, bonus.abilityModifierSource);
+  const sourceValue = getAbilityModifierForCharacter(character, bonus.abilityModifierSource, {
+    customTraitEffectInput: options?.customTraitEffectInput
+  });
   const clampedValue =
     typeof bonus.minimumValue === "number"
       ? Math.max(bonus.minimumValue, sourceValue)
@@ -868,7 +874,10 @@ export function getSavingThrowProficienciesForClass(className: string): AbilityK
 }
 
 export function getInitiativeBreakdownForCharacter(character: Character): InitiativeBreakdown {
-  const dexterityModifierBreakdown = getAbilityModifierBreakdownForCharacter(character, "DEX");
+  const customTraitEffectInput = getCharacterCustomTraitEffectInput(character);
+  const dexterityModifierBreakdown = getAbilityModifierBreakdownForCharacter(character, "DEX", {
+    customTraitEffectInput
+  });
   const entries: InitiativeBreakdownEntry[] = [
     {
       label: "DEX",
@@ -876,10 +885,14 @@ export function getInitiativeBreakdownForCharacter(character: Character): Initia
     },
     ...dexterityModifierBreakdown.bonusEntries
   ];
-  const initiativeBonuses = getInitiativeBonusesForCharacter(character);
+  const initiativeBonuses = getInitiativeBonusesForCharacter(character, {
+    customTraitEffectInput
+  });
 
   initiativeBonuses.forEach((bonus) => {
-    const value = getAbilitySourcedFeatureBonusValue(character, bonus);
+    const value = getAbilitySourcedFeatureBonusValue(character, bonus, {
+      customTraitEffectInput
+    });
 
     if (value === 0) {
       return;
@@ -919,7 +932,13 @@ export function getInitiativeForCharacter(character: Character): number {
   return getInitiativeBreakdownForCharacter(character).total;
 }
 
-function getSkillModifierForCharacter(character: Character, skill: SkillName): number {
+function getSkillModifierForCharacter(
+  character: Character,
+  skill: SkillName,
+  options?: {
+    customTraitEffectInput?: CustomTraitBonusInput;
+  }
+): number {
   const proficiencyBonus = getProficiencyBonus(character.level);
   const skillProficiency = getSkillProficiencyForName(skill);
   const skillLevel = skillProficiency
@@ -929,13 +948,23 @@ function getSkillModifierForCharacter(character: Character, skill: SkillName): n
     skillLevel === PROF_LEVEL.EXPERT ? 2 : skillLevel === PROF_LEVEL.PROFICIENT ? 1 : 0;
   const defaultAbility =
     skillGroupsByAbility.find((group) => group.skills.includes(skill))?.ability ?? "WIS";
-  const skillBonuses = getSkillBonusesForCharacter(character, skill, skillLevel);
+  const skillBonuses = getSkillBonusesForCharacter(
+    character,
+    skill,
+    skillLevel,
+    {
+      customTraitEffectInput: options?.customTraitEffectInput
+    }
+  );
   const replacementEntry = skillBonuses.find(
     (entry) => entry.replacesBaseAbility && entry.abilityModifierSource
   );
   const abilityModifier = getAbilityModifierForCharacter(
     character,
-    replacementEntry?.abilityModifierSource ?? defaultAbility
+    replacementEntry?.abilityModifierSource ?? defaultAbility,
+    {
+      customTraitEffectInput: options?.customTraitEffectInput
+    }
   );
   const featureBonus = skillBonuses.reduce((total, bonus) => {
     if (bonus.replacesBaseAbility && bonus.abilityModifierSource) {
@@ -943,7 +972,9 @@ function getSkillModifierForCharacter(character: Character, skill: SkillName): n
     }
 
     if (bonus.abilityModifierSource) {
-      return total + getAbilitySourcedFeatureBonusValue(character, bonus);
+      return total + getAbilitySourcedFeatureBonusValue(character, bonus, {
+        customTraitEffectInput: options?.customTraitEffectInput
+      });
     }
 
     return total + (bonus.value ?? 0);
@@ -953,13 +984,19 @@ function getSkillModifierForCharacter(character: Character, skill: SkillName): n
 }
 
 export function getPassivePerceptionForCharacter(character: Character): number {
+  const customTraitEffectInput = getCharacterCustomTraitEffectInput(character);
+
   return (
     10 +
-    getSkillModifierForCharacter(character, SKILL.PERCEPTION) +
-    getCustomTraitPassivePerceptionBonuses({
-      statusEntries: character.statusEntries,
-      effectSources: getActiveItemModEffectSources(character.inventoryItems)
-    }).reduce((sum, entry) => sum + getAbilitySourcedFeatureBonusValue(character, entry), 0)
+    getSkillModifierForCharacter(character, SKILL.PERCEPTION, { customTraitEffectInput }) +
+    getCustomTraitPassivePerceptionBonuses(customTraitEffectInput).reduce(
+      (sum, entry) =>
+        sum +
+        getAbilitySourcedFeatureBonusValue(character, entry, {
+          customTraitEffectInput
+        }),
+      0
+    )
   );
 }
 

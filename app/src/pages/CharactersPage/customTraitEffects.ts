@@ -56,7 +56,7 @@ export type CustomTraitRollIndicator = {
   source: string;
 };
 
-type CustomTraitBonusInput =
+export type CustomTraitBonusInput =
   | CharacterStatusEntry[]
   | {
       statusEntries?: CharacterStatusEntry[];
