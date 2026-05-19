@@ -25,6 +25,11 @@ import {
   restoreTieflingFiendishLegacyOnLongRest
 } from "../../../../../pages/CharactersPage/species";
 import {
+  getArtificerTinkersMagicUsesRemaining,
+  getArtificerTinkersMagicUsesTotal,
+  restoreArtificerTinkersMagicOnLongRest
+} from "../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
+import {
   getBarbarianIntimidatingPresenceUsesTotal,
   getBarbarianZealousPresenceUsesTotal,
   getBarbarianPersistentRageUsesTotal,
@@ -360,6 +365,8 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const arcaneWardResetAvailable =
     restoreWizardAbjurerArcaneWardOnLongRest(character) !== character;
   const temporaryHitPoints = normalizeTemporaryHitPoints(character.temporaryHitPoints);
+  const artificerTinkersMagicUsesTotal = getArtificerTinkersMagicUsesTotal(character);
+  const artificerTinkersMagicUsesRemaining = getArtificerTinkersMagicUsesRemaining(character);
   const rageUsesTotal = getBarbarianRageUsesTotal(character);
   const hasBarbarianRelentlessRage = hasBarbarianRelentlessRageFeature(character);
   const barbarianIntimidatingPresenceUsesTotal =
@@ -859,6 +866,21 @@ export function createLongRestOptions(character: Character): RestOption[] {
               statusEntries: applyLongRestToCharacterStatusEntries(currentCharacter.statusEntries),
               companions: applyLongRestToCharacterCompanions(currentCharacter.companions)
             })
+          } satisfies RestOption
+        ]
+      : []),
+    ...(artificerTinkersMagicUsesTotal > 0
+      ? [
+          {
+            id: "restore-artificer-tinkers-magic",
+            label: "Restore Tinker's Magic",
+            charges: {
+              current: artificerTinkersMagicUsesRemaining,
+              total: artificerTinkersMagicUsesTotal
+            },
+            disabled: artificerTinkersMagicUsesRemaining >= artificerTinkersMagicUsesTotal,
+            apply: (currentCharacter: Character) =>
+              restoreArtificerTinkersMagicOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),

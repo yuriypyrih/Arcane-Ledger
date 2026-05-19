@@ -9,6 +9,7 @@ import ActionShape, { getActionShapeForCastingTime } from "../../../../../Action
 import RollStatePill from "../../../../../RollStatePill/RollStatePill";
 import FeatureOptInToggle from "../../../FeatureOptInToggle/FeatureOptInToggle";
 import type { Character, CharacterWizardPortentRoll, MonsterRecord } from "../../../../../../types";
+import { fetchItemByKey } from "../../../../../../api/items";
 import { abilityKeys } from "../../../../../../pages/CharactersPage/constants";
 import { getKeywordReferences } from "../../../../../../pages/CharactersPage/keywordDescriptions";
 import {
@@ -91,6 +92,12 @@ import {
   type FeatureActionHeaderTag,
   type FeatureActionOptionCard
 } from "../../../../../../pages/CharactersPage/classFeatures";
+import {
+  addArtificerTinkersMagicItemToInventory,
+  artificerTinkersMagicActionKey,
+  consumeArtificerTinkersMagicUse,
+  getArtificerTinkersMagicItemOptionByKey
+} from "../../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
 import { bardicInspirationActionKey } from "../../../../../../pages/CharactersPage/classFeatures/bard/bard";
 import {
   createChargesCardUsage,
@@ -445,6 +452,7 @@ import WildShapePreviewDrawer from "./WildShapePreviewDrawer";
 type ActionsWidgetSubmissionContext = Record<string, any>;
 
 export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionContext) {
+  const [isTinkersMagicSubmitting, setIsTinkersMagicSubmitting] = useState(false);
   const { ...values } = context;
   Object.assign(globalThis as Record<string, unknown>, {});
   const {
@@ -680,6 +688,64 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     }
 
     handleFeatureOptionExecute(selectedFeatureAction, selectedOption);
+  }
+
+  async function submitArtificerTinkersMagic() {
+    if (
+      !selectedFeatureAction ||
+      !selectedAction ||
+      selectedAction.kind !== "feature" ||
+      selectedFeatureAction.key !== artificerTinkersMagicActionKey
+    ) {
+      return;
+    }
+
+    const selectedOptionKey = selectedActionOptionKeys[0] ?? "";
+    const itemOption = getArtificerTinkersMagicItemOptionByKey(selectedOptionKey);
+
+    if (!itemOption) {
+      throw new Error("Choose an item for Tinker's Magic.");
+    }
+
+    setIsTinkersMagicSubmitting(true);
+
+    try {
+      const item = await fetchItemByKey(itemOption.itemKey);
+      let didApply = false;
+
+      onPersistCharacter((currentCharacter) => {
+        const roundTrackerResource = getRoundTrackerResourceForEconomyType(
+          selectedFeatureAction.economyType
+        );
+        const preparedCharacter = prepareCharacterForResourceConsumption(
+          currentCharacter,
+          roundTrackerResource
+        );
+        const chargedCharacter = consumeArtificerTinkersMagicUse(preparedCharacter);
+
+        if (chargedCharacter === preparedCharacter) {
+          return currentCharacter;
+        }
+
+        const nextCharacter = addArtificerTinkersMagicItemToInventory(chargedCharacter, item);
+        didApply = true;
+
+        return roundTrackerResource
+          ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
+          : nextCharacter;
+      });
+
+      if (!didApply) {
+        throw new Error("Tinker's Magic has no uses remaining.");
+      }
+
+      closeActionDrawer();
+    } catch (error) {
+      console.error("Failed to conjure Tinker's Magic item.", error);
+      throw error;
+    } finally {
+      setIsTinkersMagicSubmitting(false);
+    }
   }
 
   function submitLayOnHands(options: {
@@ -2180,6 +2246,8 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     handleFeatureOptionExecute,
     activateSelectedChannelDivinity,
     confirmSelectedFeatureOptions,
+    isTinkersMagicSubmitting,
+    submitArtificerTinkersMagic,
     submitLayOnHands,
     submitAasimarHealingHands,
     submitAasimarCelestialRevelation,

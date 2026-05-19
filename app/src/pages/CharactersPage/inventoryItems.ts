@@ -606,6 +606,26 @@ export function addConjuredPactOfTheBladeInventoryItem(
   ];
 }
 
+export function addConjuredInventoryItemCopies(
+  inventoryItems: CharacterInventoryItem[],
+  item: ItemRecord,
+  quantity = 1
+): CharacterInventoryItem[] {
+  const normalizedQuantity = normalizeStackNumber(quantity, 0);
+
+  if (!item.key || normalizedQuantity === 0) {
+    return inventoryItems;
+  }
+
+  return [
+    ...inventoryItems,
+    createCharacterInventoryItem(item, {
+      quantity: normalizedQuantity,
+      featureTags: [INVENTORY_FEATURE_TAG_CONJURED]
+    })
+  ];
+}
+
 export function findOwnedInventoryItemRecord(
   inventoryItems: CharacterInventoryItem[],
   itemKey: string

@@ -61,3 +61,18 @@ export function runWithActionConfirmationToast<T>(
 
   return result;
 }
+
+export async function runWithActionConfirmationToastAsync<T>(
+  trigger: ActionConfirmationToastTrigger,
+  callback: () => Promise<T>
+): Promise<T> {
+  const shouldConsiderToast =
+    isActionConfirmationTrigger(trigger) && store.getState().toasts.length === 0;
+  const result = await callback();
+
+  if (shouldConsiderToast && store.getState().toasts.length === 0) {
+    scheduleActionConfirmationToast();
+  }
+
+  return result;
+}

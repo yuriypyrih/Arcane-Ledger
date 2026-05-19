@@ -278,6 +278,7 @@ import {
   getEconomyShapeState,
   getRoundTrackerActionWarning
 } from "../../gameplayWidgetUtils";
+import { artificerTinkersMagicActionKey } from "../../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
 import {
   formatResolvedRollStateDetailText,
   getRollModeFromIndicators
@@ -400,6 +401,7 @@ import MetamagicOptionsActionBody from "./forms/MetamagicOptionsActionBody";
 import MysticArcanumActionBody from "./forms/MysticArcanumActionBody";
 import NatureMagicianActionBody from "./forms/NatureMagicianActionBody";
 import RageActionBody from "./forms/RageActionBody";
+import TinkersMagicActionBody from "./forms/TinkersMagicActionBody";
 import WildCompanionActionBody from "./forms/WildCompanionActionBody";
 import WildResurgenceActionBody from "./forms/WildResurgenceActionBody";
 import WildShapeActionBody from "./forms/WildShapeActionBody";
@@ -841,6 +843,16 @@ export function renderActionDrawerBody(context: Record<string, any>) {
   }
 
   if (selectedAction.drawer.kind === "options") {
+    if (selectedAction.action.key === artificerTinkersMagicActionKey) {
+      return (
+        <TinkersMagicActionBody
+          options={selectedAction.drawer.options}
+          selectedOptionKeys={selectedActionOptionKeys}
+          onSelectOption={toggleFeatureOptionSelection}
+        />
+      );
+    }
+
     if (selectedAction.action.key === metamagicActionKey) {
       return (
         <MetamagicOptionsActionBody

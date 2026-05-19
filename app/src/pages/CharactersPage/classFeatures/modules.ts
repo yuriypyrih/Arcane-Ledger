@@ -1,6 +1,9 @@
 import type { Character, CharacterClassFeatureState, WEAPON_PROFICIENCY } from "../../../types";
 import { createDefaultAbilities } from "../constants";
 import {
+  applyLongRestToArtificerFeatures,
+  getArtificerFeatureActionOptions,
+  getArtificerFeatureActions,
   getArtificerAlwaysPreparedSpellIds,
   getArtificerAlwaysPreparedSpellSourceMap,
   normalizeArtificerFeatureState
@@ -373,10 +376,13 @@ const classFeatureModules = {
     normalizeState: normalizeArtificerFeatureState,
     collectDerived(character) {
       return {
+        actions: getArtificerFeatureActions(character),
+        actionOptions: getArtificerFeatureActionOptions(character),
         alwaysPreparedSpellIds: getArtificerAlwaysPreparedSpellIds(character),
         alwaysPreparedSpellSources: getArtificerAlwaysPreparedSpellSourceMap(character)
       };
-    }
+    },
+    applyLongRest: applyLongRestToArtificerFeatures
   },
   Barbarian: {
     className: "Barbarian",

@@ -286,9 +286,11 @@ import {
   getRoundTrackerActionWarning
 } from "../../gameplayWidgetUtils";
 import {
+  runWithActionConfirmationToastAsync,
   runWithActionConfirmationToast,
   type ActionConfirmationToastTrigger
 } from "../../../actionConfirmationToast";
+import { artificerTinkersMagicActionKey } from "../../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
 import {
   formatResolvedRollStateDetailText,
   getRollModeFromIndicators
@@ -525,6 +527,7 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     isEldritchSmiteSelected,
     isFortifyingSoulIncludingSelfSelected,
     isGoliathAncestryStrikeSelected,
+    isTinkersMagicSubmitting,
     isLifedrinkerSelected,
     isFlurryOfHealingAndHarmSelected,
     isGroupRecoverySelected,
@@ -731,6 +734,7 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     showSelectedFlurryOfHealingAndHarmToggle,
     sneakAttackActionSelection,
     submitArcaneRecovery,
+    submitArtificerTinkersMagic,
     submitBlessingOfTheTrickster,
     submitBrutalStrike,
     submitAasimarCelestialRevelation,
@@ -2031,6 +2035,42 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
       : selectedOption?.rollFormula
         ? null
         : selectedOption?.economyType;
+    const isTinkersMagicAction =
+      selectedAction.kind === "feature" &&
+      selectedAction.action.key === artificerTinkersMagicActionKey;
+
+    if (isTinkersMagicAction) {
+      return (
+        <ActionButton
+          className={styles.footerActionButton}
+          onClick={() => {
+            void runWithActionConfirmationToastAsync(
+              selectedOptionToastTrigger,
+              submitArtificerTinkersMagic
+            ).catch(() => undefined);
+          }}
+          loading={isTinkersMagicSubmitting}
+          disabled={
+            !selectedOption ||
+            selectedOption.disabled === true ||
+            selectedOptionWarning !== null ||
+            selectedFeatureActionPrimaryDisabledReason !== null
+          }
+          trailingBadge={
+            selectedOptionShape && selectedOptionShapeState ? (
+              <ActionShape
+                shape={selectedOptionShape}
+                isSelected={selectedOptionShapeState.isAvailable}
+                multiCount={selectedOptionShapeState.multiCount}
+                className={styles.footerActionShape}
+              />
+            ) : null
+          }
+        >
+          {selectedFeaturePrimaryLabel}
+        </ActionButton>
+      );
+    }
 
     return (
       <ActionButton
