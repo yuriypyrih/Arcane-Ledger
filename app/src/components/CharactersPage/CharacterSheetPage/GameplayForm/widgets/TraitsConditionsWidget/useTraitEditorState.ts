@@ -2,6 +2,8 @@ import { useState } from "react";
 import type { PersistCharacterUpdater } from "../../../../../../pages/CharactersPage/CharacterSheetPage/types";
 import type {
   CharacterCustomTraitEffect,
+  CharacterCustomTraitRollMode,
+  CharacterCustomTraitValueMode,
   CharacterStatusDuration,
   CharacterStatusEntry,
   CharacterStatusValue
@@ -26,8 +28,11 @@ import {
   createCustomTraitEffectDraft,
   createCustomTraitDraftFromStatusEntry,
   createDefaultCustomTraitDraft,
+  doesCustomTraitTargetAllowAbilityValue,
+  isCustomTraitAbilityValue,
   isCustomTraitDraftValid,
   isCustomTraitEffectDraftEmpty,
+  isCustomTraitRollModeDisabledTarget,
   parseCustomTraitEffectDraft,
   type CustomTraitDraft
 } from "./customTraitDraft";
@@ -287,7 +292,15 @@ export function useTraitEditorState({ onPersistCharacter }: UseTraitEditorStateO
             effect.id === effectId
               ? {
                   ...effect,
-                  target: value
+                  target: value,
+                  value:
+                    isCustomTraitAbilityValue(effect.value) &&
+                    !doesCustomTraitTargetAllowAbilityValue(value)
+                      ? "0"
+                      : effect.value,
+                  rollMode: isCustomTraitRollModeDisabledTarget(value)
+                    ? "normal"
+                    : effect.rollMode
                 }
               : effect
           )
@@ -300,6 +313,36 @@ export function useTraitEditorState({ onPersistCharacter }: UseTraitEditorStateO
               ? {
                   ...effect,
                   value
+                }
+              : effect
+          )
+        })),
+      onCustomTraitEffectValueModeChange: (
+        effectId: string,
+        value: CharacterCustomTraitValueMode
+      ) =>
+        setCustomTraitDraft((current) => ({
+          ...current,
+          effects: current.effects.map((effect) =>
+            effect.id === effectId
+              ? {
+                  ...effect,
+                  valueMode: value
+                }
+              : effect
+          )
+        })),
+      onCustomTraitEffectRollModeChange: (
+        effectId: string,
+        value: CharacterCustomTraitRollMode
+      ) =>
+        setCustomTraitDraft((current) => ({
+          ...current,
+          effects: current.effects.map((effect) =>
+            effect.id === effectId
+              ? {
+                  ...effect,
+                  rollMode: isCustomTraitRollModeDisabledTarget(effect.target) ? "normal" : value
                 }
               : effect
           )
@@ -319,7 +362,9 @@ export function useTraitEditorState({ onPersistCharacter }: UseTraitEditorStateO
                     ? {
                         ...effect,
                         target: "",
-                        value: ""
+                        value: "0",
+                        valueMode: "buff",
+                        rollMode: "normal"
                       }
                     : effect
                 )

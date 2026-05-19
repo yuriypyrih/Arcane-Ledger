@@ -35,6 +35,7 @@ import {
 import { normalizeLevelAndXp } from "./experience";
 import { normalizeCustomEquipmentEntries } from "./customEquipment";
 import { normalizeCharacterCompanions } from "./companions";
+import { convertLegacyEquipmentToInventoryItems } from "./legacyEquipmentItems";
 import { normalizeCharacterFeats } from "./feats";
 import { normalizeBackgroundChoices, reconcileBackgroundOriginFeatEntries } from "./backgrounds";
 import {
@@ -246,12 +247,15 @@ export function normalizeCharacter(value: unknown): Character | null {
   );
   const rawEquipment = Array.isArray(record.equipment) ? record.equipment : defaults.equipment;
   const normalizedEquipment = normalizeCharacterEquipmentSelections(rawEquipment);
-  const normalizedInventoryItems = normalizeCharacterInventoryItems(record.inventoryItems);
   const normalizedCustomEquipment = normalizeCustomEquipmentEntries(record.customEquipment);
+  const normalizedInventoryItems = normalizeCharacterInventoryItems([
+    ...normalizeCharacterInventoryItems(record.inventoryItems),
+    ...convertLegacyEquipmentToInventoryItems(normalizedEquipment, normalizedCustomEquipment)
+  ]);
   const normalizedArmorWearState = normalizeCharacterArmorWearState(
-    normalizedEquipment,
+    [],
     normalizedInventoryItems,
-    normalizedCustomEquipment
+    []
   );
   const normalizedAbilities = {
     ...createDefaultAbilities(),
@@ -436,9 +440,9 @@ export function normalizeCharacter(value: unknown): Character | null {
       level: normalizedLevel,
       subclassId: normalizedSubclassId,
       classFeatureState: normalizedClassFeatureState,
-      equipment: normalizedArmorWearState.equipment,
+      equipment: [],
       inventoryItems: normalizedArmorWearState.inventoryItems,
-      customEquipment: normalizedArmorWearState.customEquipment,
+      customEquipment: [],
       statusEntries: normalizedStatusEntries
     }
   );
@@ -522,9 +526,9 @@ export function normalizeCharacter(value: unknown): Character | null {
     roundTracker: normalizedRoundTracker,
     statusEntries: normalizedStatusEntries,
     deathSaves: normalizedDeathSaves,
-    equipment: normalizedArmorWearState.equipment,
+    equipment: [],
     inventoryItems: normalizedArmorWearState.inventoryItems,
-    customEquipment: normalizedArmorWearState.customEquipment,
+    customEquipment: [],
     companions: normalizedCompanions,
     cantripIds: normalizedCantripIds,
     spellbookSpellIds: normalizedSpellbookSpellIds,

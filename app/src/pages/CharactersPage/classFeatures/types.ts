@@ -370,12 +370,16 @@ export type FeatureDamageBonus = {
   formula?: string;
   displayLabel?: string;
   abilityModifierSource?: AbilityKey;
+  abilityModifierMultiplier?: 1 | -1;
+  formulaSourceLabel?: string;
 };
 
 export type FeatureSkillBonus = {
   label: string;
   value?: number;
   abilityModifierSource?: AbilityKey;
+  abilityModifierMultiplier?: 1 | -1;
+  formulaSourceLabel?: string;
   minimumValue?: number;
   replacesBaseAbility?: boolean;
 };
@@ -384,6 +388,8 @@ export type FeatureSavingThrowBonus = {
   label: string;
   value?: number;
   abilityModifierSource?: AbilityKey;
+  abilityModifierMultiplier?: 1 | -1;
+  formulaSourceLabel?: string;
   minimumValue?: number;
 };
 
@@ -391,6 +397,8 @@ export type FeatureInitiativeBonus = {
   label: string;
   value?: number;
   abilityModifierSource?: AbilityKey;
+  abilityModifierMultiplier?: 1 | -1;
+  formulaSourceLabel?: string;
   minimumValue?: number;
 };
 
@@ -465,6 +473,9 @@ export type FeatureArmorClassMode = {
 export type FeatureArmorClassBonus = {
   label: string;
   value: number;
+  abilityModifierSource?: AbilityKey;
+  abilityModifierMultiplier?: 1 | -1;
+  formulaSourceLabel?: string;
 };
 
 export type SpeedFeatureContext = {
@@ -476,6 +487,9 @@ export type MovementSpeedType = "walk" | "climb" | "swim" | "fly" | "burrow";
 export type FeatureSpeedBonus = {
   label: string;
   value: number;
+  abilityModifierSource?: AbilityKey;
+  abilityModifierMultiplier?: 1 | -1;
+  formulaSourceLabel?: string;
   movementType?: MovementSpeedType;
   setTotal?: number | null;
   setBaseFromWalkMultiplier?: number | null;

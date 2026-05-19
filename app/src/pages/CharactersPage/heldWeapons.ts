@@ -15,6 +15,7 @@ import {
   getInventoryItemOnHandQuantity,
   isItemShieldRecord
 } from "./inventoryItems";
+import { getEffectiveInventoryItemRecord } from "./itemMods";
 import { getLoadoutCodexEntryByName } from "./proficiency";
 
 type HeldWeaponPropertyCharacter = Partial<
@@ -77,7 +78,9 @@ export function characterHasHeldShield(character: HeldWeaponPropertyCharacter): 
   }
 
   const hasInventoryShield = (character.inventoryItems ?? []).some(
-    (item) => getInventoryItemOnHandQuantity(item) > 0 && isItemShieldRecord(item.item)
+    (item) =>
+      getInventoryItemOnHandQuantity(item) > 0 &&
+      isItemShieldRecord(getEffectiveInventoryItemRecord(item))
   );
 
   if (hasInventoryShield) {

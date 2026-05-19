@@ -6,7 +6,8 @@ import { adaptItemWeapon } from "../../../../../../utils/items/adaptItemWeapon";
 import WeaponMasteryStatusLabel from "../../../../../WeaponMasteryStatusLabel/WeaponMasteryStatusLabel";
 import type { WeaponAction } from "../../../../../../pages/CharactersPage/gameplay";
 import type { AbilityModifierBonusEntry } from "../../../../../../pages/CharactersPage/abilities";
-import type { WeaponEntry } from "../../../../../../codex/entries";
+import { formatCustomTraitBonusFormulaTerm } from "../../../../../../pages/CharactersPage/customTraitEffects";
+import { DAMAGE_TYPE, type WeaponEntry } from "../../../../../../codex/entries";
 import {
   formatFormulaBreakdown,
   formatSignedFormulaTerm,
@@ -58,11 +59,15 @@ function stripAppendedWeaponBonusExpression(
       return expression;
     }
 
-    const normalizedSuffix = ` + ${suffix}`;
+    const trimmedSuffix = suffix.trim();
+    const normalizedSuffixes = trimmedSuffix.startsWith("-")
+      ? [` - ${trimmedSuffix.slice(1).trim()}`]
+      : trimmedSuffix.startsWith("+")
+        ? [` + ${trimmedSuffix.slice(1).trim()}`, ` + ${trimmedSuffix}`]
+        : [` + ${trimmedSuffix}`];
+    const matchingSuffix = normalizedSuffixes.find((candidate) => expression.endsWith(candidate));
 
-    return expression.endsWith(normalizedSuffix)
-      ? expression.slice(0, -normalizedSuffix.length)
-      : expression;
+    return matchingSuffix ? expression.slice(0, -matchingSuffix.length) : expression;
   }, baseExpression);
 }
 
@@ -98,13 +103,22 @@ type DamageDisplayGroup = {
   preferNumericFirst?: boolean;
 };
 
-function parseDamageDisplay(label: string): ParsedDamageDisplay {
-  const normalizedLabel = label.trim();
-  const match = normalizedLabel.match(/^(.*?)(?:\s+([A-Za-z]+(?:\/[A-Za-z]+)*))$/);
+const damageTypeLabels = new Set(Object.values(DAMAGE_TYPE).map((type) => formatCodexLabel(type)));
 
-  if (!match) {
+function isDamageTypeLabel(label: string) {
+  return label
+    .split("/")
+    .map((part) => part.trim())
+    .every((part) => damageTypeLabels.has(part));
+}
+
+function parseDamageTermDisplay(term: string): ParsedDamageDisplay {
+  const normalizedTerm = term.trim();
+  const match = normalizedTerm.match(/^(.*?)(?:\s+([A-Za-z]+(?:\/[A-Za-z]+)*))$/);
+
+  if (!match || !isDamageTypeLabel(match[2] ?? "")) {
     return {
-      expression: normalizedLabel,
+      expression: normalizedTerm,
       damageType: null
     };
   }
@@ -120,6 +134,33 @@ function splitFormulaTerms(expression: string): string[] {
     .split("+")
     .map((term) => term.trim())
     .filter(Boolean);
+}
+
+function parseDamageDisplayGroups(label: string): ParsedDamageDisplay[] {
+  const parsedEntries = new Map<string, ParsedDamageDisplay>();
+
+  splitFormulaTerms(label).forEach((term) => {
+    const parsedTerm = parseDamageTermDisplay(term);
+
+    if (!parsedTerm.expression) {
+      return;
+    }
+
+    const key = parsedTerm.damageType ?? "";
+    const existingEntry = parsedEntries.get(key);
+
+    parsedEntries.set(
+      key,
+      existingEntry
+        ? {
+            ...existingEntry,
+            expression: joinWeaponFormulaTerms([existingEntry.expression, parsedTerm.expression])
+          }
+        : parsedTerm
+    );
+  });
+
+  return [...parsedEntries.values()];
 }
 
 function addExpressionToDamageGroup(group: DamageDisplayGroup, expression: string) {
@@ -197,9 +238,9 @@ function formatMainDamageTerms(group: DamageDisplayGroup): {
   const leadingTerms: string[] = [];
 
   if (group.diceTerms.length > 0) {
-    const [firstDie, ...remainingDice] = group.diceTerms;
-    leadingTerms.push(group.damageType ? `${firstDie} ${group.damageType}` : firstDie);
-    leadingTerms.push(...remainingDice);
+    leadingTerms.push(
+      ...group.diceTerms.map((term) => (group.damageType ? `${term} ${group.damageType}` : term))
+    );
   }
 
   return {
@@ -210,6 +251,16 @@ function formatMainDamageTerms(group: DamageDisplayGroup): {
 }
 
 function formatWeaponDamageBonusEntry(entry: WeaponAction["damageBonusEntries"][number]) {
+  const customFormulaLabel = formatCustomTraitBonusFormulaTerm({
+    value: entry.value ?? 0,
+    abilityModifierSource: entry.abilityModifierSource,
+    formulaSourceLabel: entry.formulaSourceLabel
+  });
+
+  if (customFormulaLabel) {
+    return customFormulaLabel;
+  }
+
   if (typeof entry.value === "number") {
     return entry.value < 0
       ? `-${Math.abs(entry.value)} ${entry.label}`
@@ -228,7 +279,11 @@ function formatWeaponDamageBonusEntry(entry: WeaponAction["damageBonusEntries"][
 }
 
 function formatAbilityModifierBonusEntry(entry: AbilityModifierBonusEntry) {
-  return formatSignedFormulaTerm(entry.value, entry.label);
+  return (
+    entry.formulaLabel ??
+    formatCustomTraitBonusFormulaTerm(entry) ??
+    formatSignedFormulaTerm(entry.value, entry.label)
+  );
 }
 
 function formatWeaponRangePrefix(formula: string) {
@@ -295,11 +350,13 @@ export function getWeaponDamageFormulaPresentation(
   const baseDamageLabel = stripAppendedWeaponBonusExpression(
     action.damageLabel,
     action,
-    (entry) => entry.displayLabel ?? entry.formula ?? null
+    (entry) => formatWeaponDamageBonusEntry(entry)
   );
-  const parsedBaseDamage = parseDamageDisplay(baseDamageLabel);
+  const [primaryBaseDamage, ...additionalBaseDamageGroups] = parseDamageDisplayGroups(
+    baseDamageLabel
+  );
   const mainDamageGroup: DamageDisplayGroup = {
-    damageType: parsedBaseDamage.damageType,
+    damageType: primaryBaseDamage?.damageType ?? null,
     diceTerms: [],
     numericTotal: 0
   };
@@ -309,7 +366,37 @@ export function getWeaponDamageFormulaPresentation(
     damageAbilityModifierBaseValue +
     damageAbilityModifierBonusEntries.reduce((total, entry) => total + entry.value, 0);
 
-  addExpressionToDamageGroup(mainDamageGroup, parsedBaseDamage.expression);
+  function addParsedDamageDisplay(parsedDamage: ParsedDamageDisplay) {
+    if (!parsedDamage.damageType || parsedDamage.damageType === mainDamageGroup.damageType) {
+      addExpressionToDamageGroup(mainDamageGroup, parsedDamage.expression);
+      return;
+    }
+
+    if (
+      !mainDamageGroup.damageType &&
+      mainDamageGroup.diceTerms.length === 0 &&
+      mainDamageGroup.numericTotal === 0
+    ) {
+      mainDamageGroup.damageType = parsedDamage.damageType;
+      addExpressionToDamageGroup(mainDamageGroup, parsedDamage.expression);
+      return;
+    }
+
+    const existingGroup = typedBonusGroups.get(parsedDamage.damageType) ?? {
+      damageType: parsedDamage.damageType,
+      diceTerms: [],
+      numericTotal: 0
+    };
+
+    addExpressionToDamageGroup(existingGroup, parsedDamage.expression);
+    typedBonusGroups.set(parsedDamage.damageType, existingGroup);
+  }
+
+  if (primaryBaseDamage) {
+    addExpressionToDamageGroup(mainDamageGroup, primaryBaseDamage.expression);
+  }
+
+  additionalBaseDamageGroups.forEach(addParsedDamageDisplay);
   mainDamageGroup.preferNumericFirst =
     mainDamageGroup.diceTerms.length === 0 && mainDamageGroup.numericTotal !== 0;
 
@@ -346,31 +433,14 @@ export function getWeaponDamageFormulaPresentation(
       return;
     }
 
-    const parsedBonusDamage = parseDamageDisplay(entry.displayLabel ?? entry.formula ?? "");
+    const parsedBonusDamages = parseDamageDisplayGroups(entry.displayLabel ?? entry.formula ?? "");
 
-    if (!parsedBonusDamage.expression) {
+    if (parsedBonusDamages.length === 0) {
       return;
     }
 
-    if (
-      !parsedBonusDamage.damageType ||
-      parsedBonusDamage.damageType === mainDamageGroup.damageType
-    ) {
-      addExpressionToDamageGroup(mainDamageGroup, parsedBonusDamage.expression);
-      if (entry.label.trim().length > 0) {
-        breakdownEntries.push(entry.label);
-      }
-      return;
-    }
+    parsedBonusDamages.forEach(addParsedDamageDisplay);
 
-    const existingGroup = typedBonusGroups.get(parsedBonusDamage.damageType) ?? {
-      damageType: parsedBonusDamage.damageType,
-      diceTerms: [],
-      numericTotal: 0
-    };
-
-    addExpressionToDamageGroup(existingGroup, parsedBonusDamage.expression);
-    typedBonusGroups.set(parsedBonusDamage.damageType, existingGroup);
     if (entry.label.trim().length > 0) {
       breakdownEntries.push(entry.label);
     }

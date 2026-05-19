@@ -1,5 +1,5 @@
 import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../codex/entries";
-import type { Character, CoreStats } from "../../../../types";
+import type { AbilityKey, Character, CoreStats } from "../../../../types";
 import { createDefaultCoreStats } from "../../../../pages/CharactersPage/constants";
 import { createFeatureSourcedDescriptionEntries } from "../../../../pages/CharactersPage/actionModalDescriptions";
 import {
@@ -51,6 +51,7 @@ import {
   getMediumArmorMasterArmorClassDescriptionAdditionsForCharacter
 } from "../../../../pages/CharactersPage/feats/runtime";
 import { getKeywordDescription } from "../../../../pages/CharactersPage/keywordDescriptions";
+import { formatCustomTraitBonusFormulaTerm } from "../../../../pages/CharactersPage/customTraitEffects";
 import type { FeatureIndicator } from "../../../../pages/CharactersPage/classFeatures";
 import type {
   ReferenceDetailCard,
@@ -138,9 +139,11 @@ function formatMovementFormula(
 
   movement.entries.forEach((entry, index) => {
     const isFirstVisibleTerm = terms.length === 0 && index === 0;
+    const formulaLabel = entry.formulaLabel ?? formatCustomTraitBonusFormulaTerm(entry);
 
     terms.push(
-      `${!isFirstVisibleTerm && entry.value >= 0 ? "+" : ""}${entry.value} ${entry.label}`
+      formulaLabel ??
+        `${!isFirstVisibleTerm && entry.value >= 0 ? "+" : ""}${entry.value} ${entry.label}`
     );
   });
 
@@ -159,10 +162,17 @@ function formatJumpDistanceFormula(jump: JumpDistanceBreakdown): string {
 
 export function formatInitiativeFormula(
   total: number,
-  entries: Array<{ label: string; value: number }>
+  entries: Array<{
+    label: string;
+    value: number;
+    abilityModifierSource?: AbilityKey;
+    formulaSourceLabel?: string;
+  }>
 ): string {
   const terms = entries.map(
-    (entry) => `${entry.value >= 0 ? "+" : ""}${entry.value} ${entry.label}`
+    (entry) =>
+      formatCustomTraitBonusFormulaTerm(entry) ??
+      `${entry.value >= 0 ? "+" : ""}${entry.value} ${entry.label}`
   );
 
   return `${formatAbilityModifier(total)} Initiative = ${terms.join(" ")}`;

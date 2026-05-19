@@ -6,8 +6,10 @@ import type {
   WeaponRange,
   WeaponType,
   WEAPON_BASE,
+  WEAPON_COMBAT_TYPE,
   WEAPON_MASTERY,
-  WEAPON_PROPERTY
+  WEAPON_PROPERTY,
+  WEAPON_TRAINING
 } from "../codex/entries";
 import type {
   ArmorProficiencyEntry,
@@ -24,7 +26,11 @@ import type { CharacterFeatEntry } from "./feats";
 import type { ItemRecord } from "./items";
 import type { MonsterRecord } from "./monsters";
 import type { SkillName } from "./skills";
-import type { CharacterStatusDuration, CharacterStatusEntry } from "./traits";
+import type {
+  CharacterCustomTraitEffect,
+  CharacterStatusDuration,
+  CharacterStatusEntry
+} from "./traits";
 
 export type AbilityKey = "STR" | "DEX" | "CON" | "INT" | "WIS" | "CHA";
 
@@ -197,6 +203,40 @@ export type CharacterEquipmentItem = {
 
 export type CharacterInventoryFeatureTag = "pact-of-the-blade" | "conjured";
 
+export type CharacterItemModCategory = "weapon" | "armor" | "general";
+
+export type CharacterItemWeaponMods = {
+  baseWeapon?: WEAPON_BASE;
+  training?: WEAPON_TRAINING;
+  combat?: WEAPON_COMBAT_TYPE;
+  damage?: WeaponDamage;
+  properties?: WEAPON_PROPERTY[];
+  mastery?: WEAPON_MASTERY;
+  range?: WeaponRange;
+  versatileDamage?: WeaponDamage;
+};
+
+export type CharacterItemArmorMods = {
+  armorType?: CustomArmorType;
+  armorClass?: number;
+};
+
+export type CharacterModEffect = CharacterCustomTraitEffect;
+
+export type CharacterItemMods = {
+  baseCategory: CharacterItemModCategory;
+  isCustom?: boolean;
+  isMagicItem?: boolean;
+  requiresAttunement?: boolean;
+  name?: string;
+  description?: string;
+  cost?: EquipmentCost;
+  weight?: number | null;
+  weapon?: CharacterItemWeaponMods;
+  armor?: CharacterItemArmorMods;
+  effects?: CharacterModEffect[];
+};
+
 export type CharacterInventoryItem = {
   id: string;
   item: ItemRecord;
@@ -206,6 +246,7 @@ export type CharacterInventoryItem = {
   attuned?: boolean;
   usesRemaining?: number;
   featureTags?: CharacterInventoryFeatureTag[];
+  mods?: CharacterItemMods;
 };
 
 export type CustomArmorType = "light" | "medium" | "heavy" | "shield";

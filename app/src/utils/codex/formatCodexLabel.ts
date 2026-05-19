@@ -166,9 +166,20 @@ export function getSpellDurationDisplayParts(duration: SpellDurationPart[]): {
   };
 }
 
+function isAbilityDamageAmount(amount: WeaponDamageAmount): boolean {
+  return (
+    typeof amount === "string" &&
+    Object.values(ABILITY_TYPES).includes(amount as ABILITY_TYPES)
+  );
+}
+
 function formatGroupedWeaponDamageAmount(amount: WeaponDamageAmount, count: number): string {
   if (typeof amount === "number") {
     return `${amount * count}`;
+  }
+
+  if (isAbilityDamageAmount(amount)) {
+    return count === 1 ? amount : `${count} ${amount}`;
   }
 
   return `${count}${String(amount).toLowerCase()}`;
@@ -181,6 +192,10 @@ function normalizeWeaponDamageTypes(damageType: WeaponDamageType): DAMAGE_TYPE[]
 function formatGroupedAmount(amount: WeaponDamageAmount, count: number): string {
   if (typeof amount === "number") {
     return `${amount * count}`;
+  }
+
+  if (isAbilityDamageAmount(amount)) {
+    return count === 1 ? amount : `${count} ${amount}`;
   }
 
   return `${count}${String(amount).toLowerCase()}`;

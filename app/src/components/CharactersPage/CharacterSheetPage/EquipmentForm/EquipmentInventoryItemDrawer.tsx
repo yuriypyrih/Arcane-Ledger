@@ -4,7 +4,8 @@ import { createPortal } from "react-dom";
 import ItemInspectionContent, { ItemInspectionHeader } from "../../../ItemInspection";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import type { SpellDescriptionEntry } from "../../../../codex/entries";
-import type { CodexStatus, ItemRecord } from "../../../../types";
+import type { CharacterCustomTraitEffect, CodexStatus, ItemRecord } from "../../../../types";
+import CustomTraitEffectList from "../GameplayForm/widgets/TraitsConditionsWidget/CustomTraitEffectList";
 import styles from "./EquipmentInventoryItemDrawer.module.css";
 
 type EquipmentInventoryItemDrawerProps = {
@@ -13,8 +14,10 @@ type EquipmentInventoryItemDrawerProps = {
   onClose: () => void;
   footer?: ReactNode;
   headerContent?: ReactNode;
+  headerAction?: ReactNode;
   additionalDescription?: SpellDescriptionEntry[];
   descriptionAdditions?: SpellDescriptionEntry[][];
+  modEffects?: CharacterCustomTraitEffect[];
   costSuffix?: ReactNode;
   weaponMasteryActive?: boolean;
   weaponProficient?: boolean;
@@ -27,8 +30,10 @@ function EquipmentInventoryItemDrawer({
   onClose,
   footer,
   headerContent,
+  headerAction,
   additionalDescription,
   descriptionAdditions,
+  modEffects = [],
   costSuffix,
   weaponMasteryActive = false,
   weaponProficient = false,
@@ -68,14 +73,17 @@ function EquipmentInventoryItemDrawer({
               </div>
             </div>
           )}
-          <button
-            type="button"
-            className={sheetStyles.spellDrawerCloseButton}
-            onClick={onClose}
-            aria-label="Close item inspection"
-          >
-            <X size={18} />
-          </button>
+          <div className={styles.headerActions}>
+            {headerAction}
+            <button
+              type="button"
+              className={sheetStyles.spellDrawerCloseButton}
+              onClick={onClose}
+              aria-label="Close item inspection"
+            >
+              <X size={18} />
+            </button>
+          </div>
         </div>
 
         <div className={sheetStyles.spellDrawerBody}>
@@ -108,16 +116,19 @@ function EquipmentInventoryItemDrawer({
           ) : null}
 
           {status === "ready" && item ? (
-            <ItemInspectionContent
-              item={item}
-              showHeader={false}
-              additionalDescription={additionalDescription}
-              descriptionAdditions={descriptionAdditions}
-              costSuffix={costSuffix}
-              weaponMasteryActive={weaponMasteryActive}
-              weaponProficient={weaponProficient}
-              onOpenWeaponReference={onOpenWeaponReference}
-            />
+            <>
+              <ItemInspectionContent
+                item={item}
+                showHeader={false}
+                additionalDescription={additionalDescription}
+                descriptionAdditions={descriptionAdditions}
+                costSuffix={costSuffix}
+                weaponMasteryActive={weaponMasteryActive}
+                weaponProficient={weaponProficient}
+                onOpenWeaponReference={onOpenWeaponReference}
+              />
+              <CustomTraitEffectList effects={modEffects} />
+            </>
           ) : null}
         </div>
 

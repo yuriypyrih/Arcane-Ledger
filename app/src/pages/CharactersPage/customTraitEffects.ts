@@ -1,37 +1,114 @@
 import { WEAPON_COMBAT_TYPE } from "../../codex/entries";
-import type { AbilityKey, CharacterCustomTraitEffect, CharacterStatusEntry } from "../../types";
-import { EFFECT_NAME, STATUS_ENTRY_GROUP, STATUS_ENTRY_SOURCE_TYPE } from "../../types";
+import type {
+  AbilityKey,
+  CharacterCustomTraitEffect,
+  CharacterCustomTraitEffectValue,
+  CharacterCustomTraitRollMode,
+  CharacterCustomTraitValueMode,
+  CharacterStatusEntry
+} from "../../types";
+import {
+  EFFECT_NAME,
+  isSkillName,
+  STATUS_ENTRY_GROUP,
+  STATUS_ENTRY_SOURCE_TYPE,
+  type SkillName
+} from "../../types";
 
 const abilityKeys: AbilityKey[] = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
 const customTraitEffectTypes = new Set<CharacterCustomTraitEffect["type"]>([
   "armorClass",
   "initiative",
   "passivePerception",
+  "speed",
   "abilityScore",
   "abilityModifier",
   "savingThrow",
+  "skill",
   "weaponDamage"
 ]);
 const customTraitWeaponDamageKinds = new Set<
   Extract<CharacterCustomTraitEffect, { type: "weaponDamage" }>["attackKind"]
 >(["unarmed", WEAPON_COMBAT_TYPE.MELEE, WEAPON_COMBAT_TYPE.RANGED]);
+const customTraitRollModes = new Set<CharacterCustomTraitRollMode>([
+  "normal",
+  "advantage",
+  "disadvantage"
+]);
+const customTraitValueModes = new Set<CharacterCustomTraitValueMode>(["buff", "debuff"]);
 
 export type CustomTraitFlatBonus = {
   label: string;
   value: number;
+  abilityModifierSource?: AbilityKey;
+  abilityModifierMultiplier?: 1 | -1;
+  formulaSourceLabel?: string;
 };
 
-function normalizeCustomTraitEffectValue(value: unknown): number | null {
+export type CustomTraitEffectSource = {
+  label: string;
+  effects: CharacterCustomTraitEffect[];
+};
+
+export type CustomTraitRollIndicator = {
+  label: string;
+  tone: "advantage" | "disadvantage";
+  source: string;
+};
+
+type CustomTraitBonusInput =
+  | CharacterStatusEntry[]
+  | {
+      statusEntries?: CharacterStatusEntry[];
+      effectSources?: CustomTraitEffectSource[];
+    }
+  | undefined;
+
+function normalizeCustomTraitRollMode(value: unknown): CharacterCustomTraitRollMode {
+  return customTraitRollModes.has(value as CharacterCustomTraitRollMode)
+    ? (value as CharacterCustomTraitRollMode)
+    : "normal";
+}
+
+function normalizeCustomTraitValueMode(value: unknown): CharacterCustomTraitValueMode {
+  return customTraitValueModes.has(value as CharacterCustomTraitValueMode)
+    ? (value as CharacterCustomTraitValueMode)
+    : "buff";
+}
+
+function normalizeCustomTraitEffectValue(
+  value: unknown,
+  options: {
+    allowAbilityValue: boolean;
+    allowZero: boolean;
+  }
+): CharacterCustomTraitEffectValue | null {
+  if (options.allowAbilityValue && isAbilityKey(value)) {
+    return value;
+  }
+
   if (typeof value !== "number" || !Number.isFinite(value)) {
     return null;
   }
 
   const normalizedValue = Math.trunc(value);
-  return normalizedValue === 0 ? null : normalizedValue;
+  return normalizedValue === 0 && !options.allowZero ? null : normalizedValue;
 }
 
 function isAbilityKey(value: unknown): value is AbilityKey {
   return typeof value === "string" && abilityKeys.includes(value as AbilityKey);
+}
+
+function createValueModeFields(valueMode: CharacterCustomTraitValueMode) {
+  return valueMode === "debuff" ? { valueMode } : {};
+}
+
+function isRollModeDisabledEffectType(type: CharacterCustomTraitEffect["type"]): boolean {
+  return type === "armorClass" || type === "speed";
+}
+
+function isAbilityValueAllowedEffectType(type: CharacterCustomTraitEffect["type"]): boolean {
+  return type !== "abilityScore" && type !== "abilityModifier" && type !== "savingThrow";
 }
 
 function normalizeCharacterCustomTraitEffect(value: unknown): CharacterCustomTraitEffect | null {
@@ -45,19 +122,33 @@ function normalizeCharacterCustomTraitEffect(value: unknown): CharacterCustomTra
     return null;
   }
 
-  const normalizedValue = normalizeCustomTraitEffectValue(record.value);
+  const effectType = record.type as CharacterCustomTraitEffect["type"];
+  const rollMode = isRollModeDisabledEffectType(effectType)
+    ? "normal"
+    : normalizeCustomTraitRollMode(record.rollMode);
+  const valueMode = normalizeCustomTraitValueMode(record.valueMode);
+  const normalizedValue = normalizeCustomTraitEffectValue(record.value, {
+    allowAbilityValue: isAbilityValueAllowedEffectType(effectType),
+    allowZero: rollMode !== "normal"
+  });
 
   if (normalizedValue === null) {
     return null;
   }
 
+  const rollModeFields = rollMode === "normal" ? {} : { rollMode };
+  const valueModeFields = createValueModeFields(valueMode);
+
   switch (record.type) {
     case "armorClass":
     case "initiative":
     case "passivePerception":
+    case "speed":
       return {
         type: record.type,
-        value: normalizedValue
+        value: normalizedValue,
+        ...valueModeFields,
+        ...rollModeFields
       };
     case "abilityScore":
     case "abilityModifier":
@@ -66,7 +157,19 @@ function normalizeCharacterCustomTraitEffect(value: unknown): CharacterCustomTra
         ? {
             type: record.type,
             ability: record.ability,
-            value: normalizedValue
+            value: normalizedValue as number,
+            ...valueModeFields,
+            ...rollModeFields
+          }
+        : null;
+    case "skill":
+      return isSkillName(record.skill)
+        ? {
+            type: "skill",
+            skill: record.skill,
+            value: normalizedValue,
+            ...valueModeFields,
+            ...rollModeFields
           }
         : null;
     case "weaponDamage":
@@ -82,7 +185,9 @@ function normalizeCharacterCustomTraitEffect(value: unknown): CharacterCustomTra
               CharacterCustomTraitEffect,
               { type: "weaponDamage" }
             >["attackKind"],
-            value: normalizedValue
+            value: normalizedValue,
+            ...valueModeFields,
+            ...rollModeFields
           }
         : null;
     default:
@@ -91,19 +196,75 @@ function normalizeCharacterCustomTraitEffect(value: unknown): CharacterCustomTra
 }
 
 function mapCustomTraitBonuses(
-  statusEntries: CharacterStatusEntry[] | undefined,
+  input: CustomTraitBonusInput,
   predicate: (effect: CharacterCustomTraitEffect) => boolean
 ): CustomTraitFlatBonus[] {
-  return (statusEntries ?? []).flatMap((entry) => {
+  const statusEntries = Array.isArray(input) ? input : input?.statusEntries;
+  const effectSources = Array.isArray(input) ? [] : (input?.effectSources ?? []);
+  const statusBonuses = (statusEntries ?? []).flatMap((entry) => {
     if (entry.disabled || !isCustomFeatureTraitStatusEntry(entry)) {
       return [];
     }
 
-    return entry.customEffects.filter(predicate).map((effect) => ({
-      label: String(entry.value).trim() || entry.source,
-      value: effect.value
-    }));
+    const label = String(entry.value).trim() || entry.source;
+
+    return entry.customEffects
+      .filter(predicate)
+      .map((effect) => createCustomTraitFlatBonus(label, effect))
+      .filter((effect): effect is CustomTraitFlatBonus => effect !== null);
   });
+
+  return [
+    ...statusBonuses,
+    ...effectSources.flatMap((source) =>
+      source.effects
+        .filter(predicate)
+        .map((effect) => createCustomTraitFlatBonus(source.label, effect))
+        .filter((effect): effect is CustomTraitFlatBonus => effect !== null)
+    )
+  ];
+}
+
+function mapCustomTraitRollIndicators(
+  input: CustomTraitBonusInput,
+  predicate: (effect: CharacterCustomTraitEffect) => boolean
+): CustomTraitRollIndicator[] {
+  return mapCustomTraitEffectSources(input, predicate).flatMap(({ label, effect }) => {
+    if (effect.rollMode !== "advantage" && effect.rollMode !== "disadvantage") {
+      return [];
+    }
+
+    return [
+      {
+        label: effect.rollMode === "advantage" ? "Advantage" : "Disadvantage",
+        tone: effect.rollMode,
+        source: label
+      }
+    ];
+  });
+}
+
+function mapCustomTraitEffectSources(
+  input: CustomTraitBonusInput,
+  predicate: (effect: CharacterCustomTraitEffect) => boolean
+): Array<{ label: string; effect: CharacterCustomTraitEffect }> {
+  const statusEntries = Array.isArray(input) ? input : input?.statusEntries;
+  const effectSources = Array.isArray(input) ? [] : (input?.effectSources ?? []);
+  const statusEffects = (statusEntries ?? []).flatMap((entry) => {
+    if (entry.disabled || !isCustomFeatureTraitStatusEntry(entry)) {
+      return [];
+    }
+
+    const label = String(entry.value).trim() || entry.source;
+    return entry.customEffects.filter(predicate).map((effect) => ({ label, effect }));
+  });
+
+  return [
+    ...statusEffects,
+    ...effectSources.flatMap((source) =>
+      source.effects.filter(predicate).map((effect) => ({ label: source.label, effect }))
+    )
+  ];
 }
 
 export function normalizeCharacterCustomTraitEffects(value: unknown): CharacterCustomTraitEffect[] {
@@ -128,25 +289,31 @@ export function isCustomFeatureTraitStatusEntry(
 }
 
 export function getCustomTraitArmorClassBonuses(
-  statusEntries: CharacterStatusEntry[] | undefined
+  statusEntries: CustomTraitBonusInput
 ): CustomTraitFlatBonus[] {
   return mapCustomTraitBonuses(statusEntries, (effect) => effect.type === "armorClass");
 }
 
 export function getCustomTraitInitiativeBonuses(
-  statusEntries: CharacterStatusEntry[] | undefined
+  statusEntries: CustomTraitBonusInput
 ): CustomTraitFlatBonus[] {
   return mapCustomTraitBonuses(statusEntries, (effect) => effect.type === "initiative");
 }
 
 export function getCustomTraitPassivePerceptionBonuses(
-  statusEntries: CharacterStatusEntry[] | undefined
+  statusEntries: CustomTraitBonusInput
 ): CustomTraitFlatBonus[] {
   return mapCustomTraitBonuses(statusEntries, (effect) => effect.type === "passivePerception");
 }
 
+export function getCustomTraitSpeedBonuses(
+  statusEntries: CustomTraitBonusInput
+): CustomTraitFlatBonus[] {
+  return mapCustomTraitBonuses(statusEntries, (effect) => effect.type === "speed");
+}
+
 export function getCustomTraitAbilityScoreBonuses(
-  statusEntries: CharacterStatusEntry[] | undefined,
+  statusEntries: CustomTraitBonusInput,
   ability: AbilityKey
 ): CustomTraitFlatBonus[] {
   return mapCustomTraitBonuses(
@@ -156,7 +323,7 @@ export function getCustomTraitAbilityScoreBonuses(
 }
 
 export function getCustomTraitAbilityModifierBonuses(
-  statusEntries: CharacterStatusEntry[] | undefined,
+  statusEntries: CustomTraitBonusInput,
   ability: AbilityKey
 ): CustomTraitFlatBonus[] {
   return mapCustomTraitBonuses(
@@ -166,7 +333,7 @@ export function getCustomTraitAbilityModifierBonuses(
 }
 
 export function getCustomTraitSavingThrowBonuses(
-  statusEntries: CharacterStatusEntry[] | undefined,
+  statusEntries: CustomTraitBonusInput,
   ability: AbilityKey
 ): CustomTraitFlatBonus[] {
   return mapCustomTraitBonuses(
@@ -175,14 +342,91 @@ export function getCustomTraitSavingThrowBonuses(
   );
 }
 
+export function getCustomTraitSkillBonuses(
+  statusEntries: CustomTraitBonusInput,
+  skill: SkillName
+): CustomTraitFlatBonus[] {
+  return mapCustomTraitBonuses(
+    statusEntries,
+    (effect) => effect.type === "skill" && effect.skill === skill
+  );
+}
+
 export function getCustomTraitWeaponDamageBonuses(
-  statusEntries: CharacterStatusEntry[] | undefined,
+  statusEntries: CustomTraitBonusInput,
   context: {
     attackKind: "weapon" | "unarmed";
     combatType?: WEAPON_COMBAT_TYPE | null;
   }
 ): CustomTraitFlatBonus[] {
   return mapCustomTraitBonuses(statusEntries, (effect) => {
+    if (effect.type !== "weaponDamage") {
+      return false;
+    }
+
+    if (effect.attackKind === "unarmed") {
+      return context.attackKind === "unarmed";
+    }
+
+    return context.attackKind === "weapon" && context.combatType === effect.attackKind;
+  });
+}
+
+export function getCustomTraitInitiativeRollIndicators(
+  statusEntries: CustomTraitBonusInput
+): CustomTraitRollIndicator[] {
+  return mapCustomTraitRollIndicators(statusEntries, (effect) => effect.type === "initiative");
+}
+
+export function getCustomTraitPassivePerceptionRollIndicators(
+  statusEntries: CustomTraitBonusInput
+): CustomTraitRollIndicator[] {
+  return mapCustomTraitRollIndicators(
+    statusEntries,
+    (effect) => effect.type === "passivePerception"
+  );
+}
+
+export function getCustomTraitAbilityCheckRollIndicators(
+  statusEntries: CustomTraitBonusInput,
+  ability: AbilityKey
+): CustomTraitRollIndicator[] {
+  return mapCustomTraitRollIndicators(
+    statusEntries,
+    (effect) =>
+      (effect.type === "abilityScore" || effect.type === "abilityModifier") &&
+      effect.ability === ability
+  );
+}
+
+export function getCustomTraitSavingThrowRollIndicators(
+  statusEntries: CustomTraitBonusInput,
+  ability: AbilityKey
+): CustomTraitRollIndicator[] {
+  return mapCustomTraitRollIndicators(
+    statusEntries,
+    (effect) => effect.type === "savingThrow" && effect.ability === ability
+  );
+}
+
+export function getCustomTraitSkillRollIndicators(
+  statusEntries: CustomTraitBonusInput,
+  skill: SkillName
+): CustomTraitRollIndicator[] {
+  return mapCustomTraitRollIndicators(
+    statusEntries,
+    (effect) => effect.type === "skill" && effect.skill === skill
+  );
+}
+
+export function getCustomTraitWeaponAttackRollIndicators(
+  statusEntries: CustomTraitBonusInput,
+  context: {
+    attackKind: "weapon" | "unarmed";
+    combatType?: WEAPON_COMBAT_TYPE | null;
+  }
+): CustomTraitRollIndicator[] {
+  return mapCustomTraitRollIndicators(statusEntries, (effect) => {
     if (effect.type !== "weaponDamage") {
       return false;
     }
@@ -205,12 +449,16 @@ export function formatCharacterCustomTraitEffectTargetLabel(
       return "Initiative";
     case "passivePerception":
       return "Passive Perception";
+    case "speed":
+      return "Speed";
     case "abilityScore":
       return `${effect.ability} Ability Score`;
     case "abilityModifier":
       return `${effect.ability} Modifier`;
     case "savingThrow":
       return `${effect.ability} Saving Throw`;
+    case "skill":
+      return effect.skill;
     case "weaponDamage":
       return effect.attackKind === "unarmed"
         ? "Unarmed Strike"
@@ -222,12 +470,89 @@ export function formatCharacterCustomTraitEffectTargetLabel(
   }
 }
 
-export function formatCharacterCustomTraitEffectValue(value: number): string {
-  return value >= 0 ? `+${value}` : String(value);
+function getCustomTraitEffectValueMultiplier(
+  effect: Pick<CharacterCustomTraitEffect, "valueMode">
+): 1 | -1 {
+  return effect.valueMode === "debuff" ? -1 : 1;
+}
+
+function createCustomTraitFlatBonus(
+  label: string,
+  effect: CharacterCustomTraitEffect
+): CustomTraitFlatBonus | null {
+  const multiplier = getCustomTraitEffectValueMultiplier(effect);
+
+  if (typeof effect.value === "number") {
+    const value = Math.trunc(effect.value) * multiplier;
+    return value === 0 ? null : { label, value, formulaSourceLabel: label };
+  }
+
+  return {
+    label,
+    value: 0,
+    abilityModifierSource: effect.value,
+    abilityModifierMultiplier: multiplier,
+    formulaSourceLabel: label
+  };
+}
+
+export function formatCustomTraitBonusFormulaTerm(
+  bonus: Pick<
+    CustomTraitFlatBonus,
+    "abilityModifierSource" | "formulaSourceLabel" | "value"
+  >
+): string | null {
+  const sourceLabel = bonus.formulaSourceLabel?.trim();
+
+  if (!sourceLabel) {
+    return null;
+  }
+
+  const value = Math.trunc(bonus.value);
+  if (value === 0) {
+    return null;
+  }
+
+  const valueLabel = `${value >= 0 ? "+" : "-"}${Math.abs(value)}`;
+  const abilityLabel = bonus.abilityModifierSource ? ` ${bonus.abilityModifierSource}` : "";
+
+  return `${valueLabel}${abilityLabel} (${sourceLabel})`;
+}
+
+export function formatCharacterCustomTraitEffectValue(
+  effect: Pick<CharacterCustomTraitEffect, "value" | "valueMode">
+): string {
+  const multiplier = getCustomTraitEffectValueMultiplier(effect);
+
+  if (typeof effect.value === "number") {
+    const value = Math.trunc(effect.value) * multiplier;
+    return value >= 0 ? `+${value}` : String(value);
+  }
+
+  return multiplier === -1 ? `-${effect.value}` : `+${effect.value}`;
+}
+
+function formatCharacterCustomTraitRollMode(effect: CharacterCustomTraitEffect): string | null {
+  if (effect.rollMode === "advantage") {
+    return "Advantage";
+  }
+
+  if (effect.rollMode === "disadvantage") {
+    return "Disadvantage";
+  }
+
+  return null;
 }
 
 export function formatCharacterCustomTraitEffectSummary(
   effect: CharacterCustomTraitEffect
 ): string {
-  return `${formatCharacterCustomTraitEffectTargetLabel(effect)}: ${formatCharacterCustomTraitEffectValue(effect.value)}`;
+  const parts = [
+    typeof effect.value === "number" && effect.value === 0
+      ? null
+      : formatCharacterCustomTraitEffectValue(effect),
+    formatCharacterCustomTraitRollMode(effect)
+  ].filter((entry): entry is string => Boolean(entry));
+
+  return `${formatCharacterCustomTraitEffectTargetLabel(effect)}: ${parts.join(", ") || "+0"}`;
 }

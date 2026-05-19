@@ -1,8 +1,72 @@
 .row {
   display: grid;
-  grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr) auto;
-  gap: 0.75rem;
+  grid-template-columns: minmax(0, 1.8fr) minmax(0, 0.9fr) auto;
+  gap: 0.58rem;
   align-items: end;
+}
+
+.modeGroup,
+.rollModeGroup {
+  display: inline-grid;
+  border: 0;
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+}
+
+.modeOptions {
+  display: inline-flex;
+  gap: 0.18rem;
+}
+
+.modeOption {
+  align-items: center;
+  border: 1px solid rgba(37, 80, 141, 0.16);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--color-ink);
+  cursor: pointer;
+  display: inline-flex;
+  font-size: 0.72rem;
+  font-weight: 700;
+  justify-content: center;
+  line-height: 1;
+  min-height: 26px;
+  min-width: 40px;
+  padding: 0 0.42rem;
+}
+
+.modeOption:has(input:checked) {
+  border-color: rgba(37, 80, 141, 0.32);
+  background: rgba(37, 80, 141, 0.12);
+}
+
+.modeOption:has(input[value="buff"]:checked),
+.modeOption:has(input[value="advantage"]:checked) {
+  border-color: #ccd8c5;
+  background: #e4ebdf;
+  color: #4f6f46;
+}
+
+.modeOption:has(input[value="debuff"]:checked),
+.modeOption:has(input[value="disadvantage"]:checked) {
+  border-color: #dfc9c2;
+  background: #efe1dd;
+  color: #79493f;
+}
+
+.rollModeGroup:disabled .modeOption {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.modeOption input {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 .removeButton {

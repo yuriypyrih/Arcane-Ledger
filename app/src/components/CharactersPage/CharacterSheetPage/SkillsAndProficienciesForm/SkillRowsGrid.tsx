@@ -68,7 +68,7 @@ function getSkillFormulaDisplayTerms(row: SkillRow, d20Minimum: number | null = 
   const terms = [d20Term, formatSignedFormulaTerm(row.abilityModifierBase, row.abilityLabel)];
 
   row.abilityModifierBonusEntries.forEach((entry) => {
-    terms.push(formatSignedFormulaTerm(entry.value, entry.label));
+    terms.push(entry.formulaLabel ?? formatSignedFormulaTerm(entry.value, entry.label));
   });
 
   if (row.proficiencyMultiplier === 1) {
@@ -78,7 +78,7 @@ function getSkillFormulaDisplayTerms(row: SkillRow, d20Minimum: number | null = 
   }
 
   row.bonusEntries.forEach((entry) => {
-    terms.push(formatSignedFormulaTerm(entry.value, entry.label));
+    terms.push(entry.formulaLabel ?? formatSignedFormulaTerm(entry.value, entry.label));
   });
 
   return terms;

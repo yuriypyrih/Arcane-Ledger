@@ -8,7 +8,8 @@ import {
   type WeaponDamage,
   type WeaponType
 } from "../../codex/entries";
-import type { ItemDetailWeaponPropertyRecord, ItemRecord } from "../../types";
+import type { CharacterItemWeaponMods, ItemDetailWeaponPropertyRecord, ItemRecord } from "../../types";
+import { formatCodexLabel, formatWeaponDamage } from "../codex";
 
 export type AdaptedItemWeaponRecord = {
   type: WeaponType;
@@ -20,6 +21,10 @@ export type AdaptedItemWeaponRecord = {
   handSlots: number;
   propertyLabels: string[];
   masteryLabels: string[];
+};
+
+type ItemWeaponModsCarrier = {
+  itemModsWeapon?: CharacterItemWeaponMods;
 };
 
 const damageTypeByKey: Partial<Record<string, DAMAGE_TYPE>> = {
@@ -88,7 +93,16 @@ export function parseItemWeaponDamage(
   damageDice: string | null | undefined,
   damageTypeKey: string | null | undefined
 ): WeaponDamage | null {
-  const match = damageDice?.trim().match(/^(\d+)d(4|6|8|10|12|20)$/i);
+  const trimmedDamageDice = damageDice?.trim();
+  const flatValue = Number(trimmedDamageDice);
+
+  if (Number.isFinite(flatValue) && flatValue > 0 && damageTypeKey) {
+    const damageType = damageTypeByKey[damageTypeKey];
+
+    return damageType ? [[Math.floor(flatValue), damageType]] : null;
+  }
+
+  const match = trimmedDamageDice?.match(/^(\d+)d(4|6|8|10|12|20)$/i);
 
   if (!match || !damageTypeKey) {
     return null;
@@ -152,33 +166,48 @@ export function adaptItemWeapon(item: ItemRecord): AdaptedItemWeaponRecord | nul
     return null;
   }
 
+  const mods = (item as ItemWeaponModsCarrier).itemModsWeapon;
   const propertyEntries = weapon.properties.filter((entry) => entry.property.type !== "Mastery");
   const masteryEntries = weapon.properties.filter((entry) => entry.property.type === "Mastery");
-  const properties = propertyEntries
+  const parsedProperties = propertyEntries
     .map((entry) => weaponPropertyByName[entry.property.name])
     .filter((value): value is WEAPON_PROPERTY => value !== undefined);
+  const properties = mods?.properties ?? parsedProperties;
+  const mastery =
+    mods?.mastery ??
+    masteryEntries
+      .map((entry) => weaponMasteryByName[entry.property.name])
+      .find((value): value is WEAPON_MASTERY => value !== undefined) ??
+    null;
+  const propertyLabels =
+    mods?.properties?.map((property) => formatCodexLabel(property)) ??
+    propertyEntries
+      .map(formatItemWeaponPropertyLabel)
+      .filter((value): value is string => Boolean(value));
+  const masteryLabels =
+    mods?.mastery
+      ? [formatCodexLabel(mods.mastery)]
+      : masteryEntries
+          .map(formatItemWeaponPropertyLabel)
+          .filter((value): value is string => Boolean(value));
 
   return {
     type: {
-      training: weapon.is_martial ? WEAPON_TRAINING.MARTIAL : WEAPON_TRAINING.SIMPLE,
-      combat: inferItemWeaponCombatType(item) ?? WEAPON_COMBAT_TYPE.MELEE
+      training:
+        mods?.training ?? (weapon.is_martial ? WEAPON_TRAINING.MARTIAL : WEAPON_TRAINING.SIMPLE),
+      combat: mods?.combat ?? inferItemWeaponCombatType(item) ?? WEAPON_COMBAT_TYPE.MELEE
     },
-    damage: parseItemWeaponDamage(weapon.damage_dice, weapon.damage_type?.key),
-    damageLabel: weapon.damage_type?.name
-      ? `${weapon.damage_dice} ${weapon.damage_type.name}`
-      : weapon.damage_dice,
+    damage: mods?.damage ?? parseItemWeaponDamage(weapon.damage_dice, weapon.damage_type?.key),
+    damageLabel: mods?.damage
+      ? formatWeaponDamage(mods.damage)
+      : weapon.damage_type?.name
+        ? `${weapon.damage_dice} ${weapon.damage_type.name}`
+        : weapon.damage_dice,
     properties,
-    mastery:
-      masteryEntries
-        .map((entry) => weaponMasteryByName[entry.property.name])
-        .find((value): value is WEAPON_MASTERY => value !== undefined) ?? null,
-    versatileDamage: parseVersatileWeaponDamage(propertyEntries, weapon.damage_type?.key),
+    mastery,
+    versatileDamage: mods?.versatileDamage ?? parseVersatileWeaponDamage(propertyEntries, weapon.damage_type?.key),
     handSlots: properties.includes(WEAPON_PROPERTY.TWO_HANDED) ? 2 : 1,
-    propertyLabels: propertyEntries
-      .map(formatItemWeaponPropertyLabel)
-      .filter((value): value is string => Boolean(value)),
-    masteryLabels: masteryEntries
-      .map(formatItemWeaponPropertyLabel)
-      .filter((value): value is string => Boolean(value))
+    propertyLabels,
+    masteryLabels
   };
 }

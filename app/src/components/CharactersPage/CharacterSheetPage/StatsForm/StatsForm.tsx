@@ -15,6 +15,7 @@ import {
   type AbilityModifierBonusEntry
 } from "../../../../pages/CharactersPage/abilities";
 import { getKeywordDescription } from "../../../../pages/CharactersPage/keywordDescriptions";
+import { formatCustomTraitBonusFormulaTerm } from "../../../../pages/CharactersPage/customTraitEffects";
 import {
   abilityKeys,
   CUSTOM_ABILITY_SCORE_MAX,
@@ -157,7 +158,10 @@ function formatAbilityModifierFormula(
   const terms = [
     `floor((${score} ${ability} - 10) / 2)`,
     ...bonusEntries.map(
-      (entry) => `${entry.value >= 0 ? "+" : "-"} ${Math.abs(entry.value)} ${entry.label}`
+      (entry) =>
+        entry.formulaLabel ??
+        formatCustomTraitBonusFormulaTerm(entry) ??
+        `${entry.value >= 0 ? "+" : "-"} ${Math.abs(entry.value)} ${entry.label}`
     )
   ];
 
@@ -192,7 +196,11 @@ function formatSavingThrowFormula(
   ];
 
   abilityModifierBonusEntries.forEach((entry) => {
-    terms.push(`${entry.value >= 0 ? "+" : ""}${entry.value} ${entry.label}`);
+    terms.push(
+      entry.formulaLabel ??
+        formatCustomTraitBonusFormulaTerm(entry) ??
+        `${entry.value >= 0 ? "+" : ""}${entry.value} ${entry.label}`
+    );
   });
 
   if (proficiencyContribution !== 0 && proficiencyLabel) {
@@ -222,9 +230,11 @@ function resolveFeatureSavingThrowBonusValue(
       character,
       bonus.abilityModifierSource
     ).total;
-    return typeof bonus.minimumValue === "number"
+    const clampedValue = typeof bonus.minimumValue === "number"
       ? Math.max(bonus.minimumValue, sourceValue)
       : sourceValue;
+
+    return clampedValue * (bonus.abilityModifierMultiplier ?? 1);
   }
 
   return bonus.value ?? 0;
@@ -484,10 +494,21 @@ function CharacterStatsForm({
         const proficiencyMultiplier = getProficiencyMultiplier(savingThrowLevel);
         const proficiencyContribution = proficiencyBonus * proficiencyMultiplier;
         const featureSavingThrowBonusEntries: SavingThrowBonusEntry[] =
-          getSavingThrowBonusesForCharacter(character, ability).map((bonus) => ({
-            label: bonus.label,
-            value: resolveFeatureSavingThrowBonusValue(bonus, character)
-          }));
+          getSavingThrowBonusesForCharacter(character, ability).map((bonus) => {
+            const value = resolveFeatureSavingThrowBonusValue(bonus, character);
+
+            return {
+              label: bonus.label,
+              value,
+              abilityModifierSource: bonus.abilityModifierSource,
+              formulaSourceLabel: bonus.formulaSourceLabel,
+              formulaLabel:
+                formatCustomTraitBonusFormulaTerm({
+                  ...bonus,
+                  value
+                }) ?? undefined
+            };
+          });
         const savingThrowBonusEntries: SavingThrowBonusEntry[] = [
           ...(paladinAuraOfProtectionBonus > 0
             ? [

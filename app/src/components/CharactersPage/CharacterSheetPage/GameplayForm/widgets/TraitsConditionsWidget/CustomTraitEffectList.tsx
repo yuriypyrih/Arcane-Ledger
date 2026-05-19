@@ -15,7 +15,6 @@ function CustomTraitEffectList({ effects }: CustomTraitEffectListProps) {
     <section className={styles.section}>
       <div className={styles.header}>
         <p className={styles.eyebrow}>Effects</p>
-        <h4 className={styles.title}>Applied Bonuses</h4>
       </div>
 
       <ul className={styles.list}>

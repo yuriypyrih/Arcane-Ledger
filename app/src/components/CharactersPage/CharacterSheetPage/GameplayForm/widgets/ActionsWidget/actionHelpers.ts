@@ -148,7 +148,8 @@ export function resolveFeatureSavingThrowBonusTotal(
         total +
         (typeof bonus.minimumValue === "number"
           ? Math.max(bonus.minimumValue, sourceValue)
-          : sourceValue)
+          : sourceValue) *
+          (bonus.abilityModifierMultiplier ?? 1)
       );
     }
 

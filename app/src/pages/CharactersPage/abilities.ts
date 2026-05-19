@@ -4,9 +4,13 @@ import {
   getAbilityScoreBonusesForCharacter,
   type FeatureAbilityScoreBonus
 } from "./classFeatures";
-import { getCustomTraitAbilityModifierBonuses } from "./customTraitEffects";
+import {
+  formatCustomTraitBonusFormulaTerm,
+  getCustomTraitAbilityModifierBonuses
+} from "./customTraitEffects";
 import { getFeatAbilityScoreBonusesForCharacter } from "./feats/runtime";
 import { getBackgroundAbilityScoreBonusesForCharacter } from "./backgrounds";
+import { getActiveItemModEffectSources } from "./itemMods";
 
 export type AbilityScoreBreakdownEntry = {
   label: string;
@@ -22,6 +26,9 @@ export type AbilityScoreBreakdown = {
 export type AbilityModifierBonusEntry = {
   label: string;
   value: number;
+  abilityModifierSource?: AbilityKey;
+  formulaSourceLabel?: string;
+  formulaLabel?: string;
 };
 
 export type AbilityModifierBreakdown = {
@@ -41,6 +48,7 @@ type AbilityCharacterContext = Partial<
     | "classFeatureState"
     | "feats"
     | "statusEntries"
+    | "inventoryItems"
     | "background"
     | "backgroundChoices"
   >
@@ -111,7 +119,8 @@ export function getAbilityScoreBreakdownForCharacter(
           className: character.className,
           level: character.level ?? 1,
           classFeatureState: character.classFeatureState,
-          statusEntries: character.statusEntries
+          statusEntries: character.statusEntries,
+          inventoryItems: character.inventoryItems
         })
       : []),
     ...getBackgroundAbilityScoreBonusesForCharacter(character),
@@ -182,7 +191,16 @@ export function getAbilityModifierBreakdownForCharacter(
 ): AbilityModifierBreakdown {
   const abilityScore = getAbilityScoreForCharacter(character, ability);
   const baseValue = Math.floor((abilityScore - 10) / 2);
-  const bonusEntries = getCustomTraitAbilityModifierBonuses(character.statusEntries, ability);
+  const bonusEntries = getCustomTraitAbilityModifierBonuses(
+    {
+      statusEntries: character.statusEntries,
+      effectSources: getActiveItemModEffectSources(character.inventoryItems)
+    },
+    ability
+  ).map((entry) => ({
+    ...entry,
+    formulaLabel: formatCustomTraitBonusFormulaTerm(entry) ?? undefined
+  }));
 
   return {
     ability,

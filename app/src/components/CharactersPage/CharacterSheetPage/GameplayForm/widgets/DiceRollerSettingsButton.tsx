@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Cog } from "lucide-react";
+import { Settings } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import ActionButton from "../../../../ActionButton";
 import { useAppSelector } from "../../../../../store";
@@ -55,7 +55,7 @@ function DiceRollerSettingsButton({
         )}
         onClick={() => setModalOpen(true)}
         aria-label={ariaLabel}
-        icon={children ? undefined : <Cog size={iconSize} />}
+        icon={children ? undefined : <Settings size={iconSize} />}
         iconOnly={!children}
         fullWidth={Boolean(children)}
       >

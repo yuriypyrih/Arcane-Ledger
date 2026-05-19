@@ -7,6 +7,7 @@ import {
 import type {
   CharacterInventoryFeatureTag,
   CharacterInventoryItem,
+  CharacterItemMods,
   CurrencyKey,
   ItemRecord
 } from "../../types";
@@ -16,6 +17,10 @@ import {
   type AdaptedItemWeaponRecord
 } from "../../utils/items/adaptItemWeapon";
 import type { HeldWeaponDescriptor } from "./inventory";
+import {
+  getEffectiveInventoryItemRecord,
+  normalizeCharacterItemMods
+} from "./itemMods";
 
 export type InventoryItemCopyReference = {
   id: string;
@@ -228,17 +233,20 @@ function addInventoryItemFeatureTag(
 function normalizeInventoryStack(entry: CharacterInventoryItem): CharacterInventoryItem {
   const quantity = Math.max(1, Math.floor(entry.quantity));
   const onHandQuantity = Math.min(quantity, Math.max(0, Math.floor(entry.onHandQuantity)));
+  const mods = normalizeCharacterItemMods(entry.mods);
+  const effectiveItem = getEffectiveInventoryItemRecord({ ...entry, mods });
   const normalizedStack: CharacterInventoryItem = {
     id: entry.id,
     item: entry.item,
     quantity,
     onHandQuantity,
     worn: Boolean(entry.worn),
-    featureTags: normalizeInventoryFeatureTags(entry.featureTags)
+    featureTags: normalizeInventoryFeatureTags(entry.featureTags),
+    ...(mods ? { mods } : {})
   };
   const usesPerCopy = getInventoryItemUsesPerCopy(entry.item);
 
-  if (isInventoryItemAttunable(entry.item)) {
+  if (isInventoryItemAttunable(effectiveItem)) {
     normalizedStack.attuned = Boolean(entry.attuned);
   }
 
@@ -271,7 +279,7 @@ export function createInventoryItemCopyReferences(
     id: createInventoryCopyId(entry.id, index),
     stackId: entry.id,
     copyIndex: index,
-    item: entry.item,
+    item: getEffectiveInventoryItemRecord(entry),
     onHand: index < onHandQuantity,
     worn: entry.worn && index === 0,
     featureTags: normalizeInventoryFeatureTags(entry.featureTags)
@@ -304,6 +312,7 @@ export function createCharacterInventoryItem(
     attuned?: boolean;
     usesRemaining?: number;
     featureTags?: CharacterInventoryFeatureTag[];
+    mods?: CharacterItemMods;
   }
 ): CharacterInventoryItem {
   const quantity = normalizeStackNumber(options?.quantity, 1, 1);
@@ -322,7 +331,8 @@ export function createCharacterInventoryItem(
     worn: Boolean(options?.worn),
     attuned: Boolean(options?.attuned),
     usesRemaining: options?.usesRemaining,
-    featureTags: options?.featureTags
+    featureTags: options?.featureTags,
+    mods: options?.mods
   });
 }
 
@@ -358,6 +368,7 @@ export function normalizeCharacterInventoryItems(value: unknown): CharacterInven
       attuned?: unknown;
       usesRemaining?: unknown;
       featureTags?: unknown;
+      mods?: unknown;
     };
     const item = normalizeItemRecord(record.item);
 
@@ -384,7 +395,8 @@ export function normalizeCharacterInventoryItems(value: unknown): CharacterInven
         record.usesRemaining !== undefined
           ? normalizeStackNumber(record.usesRemaining, 0)
           : undefined,
-      featureTags: normalizeInventoryFeatureTags(record.featureTags)
+      featureTags: normalizeInventoryFeatureTags(record.featureTags),
+      mods: normalizeCharacterItemMods(record.mods)
     });
     const stackHasFeatureTags = (stack.featureTags?.length ?? 0) > 0;
     const mergeKey = stackHasFeatureTags ? `tagged:${stack.id}:${index}` : `item:${key}`;
@@ -403,7 +415,8 @@ export function normalizeCharacterInventoryItems(value: unknown): CharacterInven
         onHandQuantity: existingStack.onHandQuantity + stack.onHandQuantity,
         worn: existingStack.worn || stack.worn,
         attuned: existingStack.attuned || stack.attuned,
-        usesRemaining: getMergedInventoryStackUsesRemaining(existingStack, stack)
+        usesRemaining: getMergedInventoryStackUsesRemaining(existingStack, stack),
+        mods: existingStack.mods ?? stack.mods
       })
     );
   });
@@ -489,8 +502,9 @@ function getMergedInventoryStackUsesRemaining(
 }
 
 export function getInventoryAttunementCount(inventoryItems: CharacterInventoryItem[]): number {
-  return inventoryItems.filter((entry) => entry.attuned && isInventoryItemAttunable(entry.item))
-    .length;
+  return inventoryItems.filter(
+    (entry) => entry.attuned && isInventoryItemAttunable(getEffectiveInventoryItemRecord(entry))
+  ).length;
 }
 
 export function findInventoryItemStackByKey(
@@ -630,7 +644,9 @@ export function findOwnedInventoryItemRecord(
   inventoryItems: CharacterInventoryItem[],
   itemKey: string
 ): ItemRecord | null {
-  return findInventoryItemStackByKey(inventoryItems, itemKey)?.item ?? null;
+  const stack = findInventoryItemStackByKey(inventoryItems, itemKey);
+
+  return stack ? getEffectiveInventoryItemRecord(stack) : null;
 }
 
 export function getInventoryItemCountsByKey(
@@ -655,13 +671,14 @@ export function groupCharacterInventoryItems(
     .map((stack) => {
       const count = getInventoryItemQuantity(stack);
       const onHandCount = getInventoryItemOnHandQuantity(stack);
+      const effectiveItem = getEffectiveInventoryItemRecord(stack);
 
       return {
-        key: getItemRecordKey(stack.item),
+        key: getItemRecordKey(effectiveItem),
         itemKey: getItemRecordKey(stack.item),
         stackId: stack.id,
-        name: getItemRecordName(stack.item),
-        item: stack.item,
+        name: getItemRecordName(effectiveItem),
+        item: effectiveItem,
         stack,
         copies: createInventoryItemCopyReferences(stack),
         count,
@@ -889,7 +906,7 @@ export function setInventoryItemAttunedByKey(
     getItemRecordKey(entry.item) === itemKey
       ? normalizeInventoryStack({
           ...entry,
-          attuned: isInventoryItemAttunable(entry.item) ? attuned : false
+          attuned: isInventoryItemAttunable(getEffectiveInventoryItemRecord(entry)) ? attuned : false
         })
       : entry
   );
@@ -906,7 +923,7 @@ export function setInventoryItemAttunedById(
     entry.id === resolvedStackId
       ? normalizeInventoryStack({
           ...entry,
-          attuned: isInventoryItemAttunable(entry.item) ? attuned : false
+          attuned: isInventoryItemAttunable(getEffectiveInventoryItemRecord(entry)) ? attuned : false
         })
       : entry
   );

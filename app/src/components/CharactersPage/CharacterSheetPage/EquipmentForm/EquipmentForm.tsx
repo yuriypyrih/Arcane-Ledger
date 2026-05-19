@@ -4,6 +4,7 @@ import {
   Minus,
   Package,
   Plus,
+  Settings,
   Shield,
   Sparkles,
   TicketMinus,
@@ -25,7 +26,12 @@ import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import { useRenderProfiler } from "../../../../lib/useRenderProfiler";
 import { fetchItemPackContents, isApiOfflineError } from "../../../../api";
 import { ENTRY_CATEGORIES } from "../../../../codex/entries";
-import { currencyKeys, type Character, type CurrencyKey } from "../../../../types";
+import {
+  currencyKeys,
+  type Character,
+  type CharacterItemWeaponMods,
+  type CurrencyKey
+} from "../../../../types";
 import {
   formatEquipmentWeight,
   formatCodexLabel,
@@ -76,8 +82,8 @@ import { clampNumber } from "../../../../pages/CharactersPage/CharacterSheetPage
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import {
   addInventoryItemCopies,
+  createCharacterInventoryItem,
   createHeldDescriptorForInventoryItem,
-  createHeldInventoryItemCopyReferences,
   findInventoryItemStackById,
   findInventoryItemStackByKey,
   findOwnedInventoryItemRecord,
@@ -107,6 +113,7 @@ import {
   useInventoryItemChargeByKey as spendInventoryItemChargeByKey,
   type GroupedInventoryItem
 } from "../../../../pages/CharactersPage/inventoryItems";
+import { hasCharacterItemMods } from "../../../../pages/CharactersPage/itemMods";
 import {
   crafterDiscountRuleText,
   isCrafterDiscountEligibleItem
@@ -121,7 +128,9 @@ import type { ItemRecord } from "../../../../types";
 import ActionButton from "../../../ActionButton";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import SheetSurface from "../SheetSurface";
-import CustomEquipmentEditor from "../CustomEquipmentEditor";
+import CustomEquipmentEditor, {
+  type CustomEquipmentEditorSavePayload
+} from "../CustomEquipmentEditor";
 import EquipmentInventoryItemDrawer from "./EquipmentInventoryItemDrawer";
 import EquipmentInventoryItemDrawerHeader from "./EquipmentInventoryItemDrawerHeader";
 import EquipmentInventoryItemDrawerFooter, {
@@ -158,13 +167,12 @@ import {
   OverlayFooter,
   OverlayHeader,
   OverlayHeaderContent,
+  OverlaySummary,
   OverlayTitle,
   SheetModal
 } from "../../../Overlay";
 import { getCharacterRuntime } from "../../../../pages/CharactersPage/characterRuntime/characterRuntime";
-import {
-  getInventoryAttunementLimit
-} from "../../../../pages/CharactersPage/characterRuntime/equipmentRuntime";
+import { getInventoryAttunementLimit } from "../../../../pages/CharactersPage/characterRuntime/equipmentRuntime";
 
 type EquipmentFormProps = {
   character: Character;
@@ -223,12 +231,13 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   const [currencyAmountDraft, setCurrencyAmountDraft] = useState(0);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isAddModalCommitting, setIsAddModalCommitting] = useState(false);
-  const [addEquipmentDraftCharacter, setAddEquipmentDraftCharacter] =
-    useState<Character | null>(null);
+  const [addEquipmentDraftCharacter, setAddEquipmentDraftCharacter] = useState<Character | null>(
+    null
+  );
   const [isAddEquipmentDraftDirty, setIsAddEquipmentDraftDirty] = useState(false);
   const [isCustomEquipmentModalOpen, setIsCustomEquipmentModalOpen] = useState(false);
   const [customEditorMode, setCustomEditorMode] = useState<"create" | "edit">("create");
-  const [editingCustomEquipmentId, setEditingCustomEquipmentId] = useState<string | null>(null);
+  const [editingInventoryStackId, setEditingInventoryStackId] = useState<string | null>(null);
   const [isGeneralEquipmentExpanded, setIsGeneralEquipmentExpanded] = useState(false);
   const [extractingItemKey, setExtractingItemKey] = useState<string | null>(null);
   const [inventoryDrawerNotice, setInventoryDrawerNotice] = useState<string | null>(null);
@@ -513,8 +522,8 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     loadoutItemCount: selectedLoadoutItems.length
   });
 
-  const editingCustomEquipment = editingCustomEquipmentId
-    ? (findCustomEquipmentById(customEquipment, editingCustomEquipmentId) ?? null)
+  const editingInventoryStack = editingInventoryStackId
+    ? findInventoryItemStackById(equipmentCharacter.inventoryItems, editingInventoryStackId)
     : null;
   const pendingDeleteCustomEquipment = pendingDeleteCustomEquipmentId
     ? (findCustomEquipmentById(customEquipment, pendingDeleteCustomEquipmentId) ?? null)
@@ -550,7 +559,11 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
         )
         .map((entry) => createHeldWeaponDescriptor(`custom-${entry.customEquipmentId}`, entry))
     ],
-    [equipmentCharacter.equipment, equipmentRuntime.heldInventoryDescriptors, resolvedCustomEquipmentEntries]
+    [
+      equipmentCharacter.equipment,
+      equipmentRuntime.heldInventoryDescriptors,
+      resolvedCustomEquipmentEntries
+    ]
   );
   const selectedHandDescriptor = useMemo(() => {
     if (
@@ -587,7 +600,12 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     return Boolean(
       getCharacterEquipmentItem(equipmentCharacter.equipment, selectedLoadoutEntryData.name)?.onHand
     );
-  }, [equipmentCharacter.equipment, customEquipment, selectedLoadoutEntry, selectedLoadoutEntryData]);
+  }, [
+    equipmentCharacter.equipment,
+    customEquipment,
+    selectedLoadoutEntry,
+    selectedLoadoutEntryData
+  ]);
   const isSelectedArmorWorn = useMemo(() => {
     if (
       !selectedLoadoutEntryData ||
@@ -608,7 +626,12 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     return Boolean(
       getCharacterEquipmentItem(equipmentCharacter.equipment, selectedLoadoutEntryData.name)?.worn
     );
-  }, [equipmentCharacter.equipment, customEquipment, selectedLoadoutEntry, selectedLoadoutEntryData]);
+  }, [
+    equipmentCharacter.equipment,
+    customEquipment,
+    selectedLoadoutEntry,
+    selectedLoadoutEntryData
+  ]);
   const isSelectedShield =
     selectedLoadoutEntryData?.category === ENTRY_CATEGORIES.ARMOR &&
     isShieldArmorEntry(selectedLoadoutEntryData);
@@ -703,18 +726,15 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       : false;
   const shouldOfferHandSwap =
     Boolean(selectedHandDescriptor) && !isSelectedEntryOnHand && !canSelectedEntryBePutOnHand;
-  const selectedInventoryGroup = useMemo(
-    () => {
-      if (!selectedInventoryInspection) {
-        return null;
-      }
+  const selectedInventoryGroup = useMemo(() => {
+    if (!selectedInventoryInspection) {
+      return null;
+    }
 
-      return selectedInventoryInspection.stackId
-        ? (inventoryIndex.groupsByStackId.get(selectedInventoryInspection.stackId) ?? null)
-        : (inventoryIndex.groupsByKey.get(selectedInventoryInspection.itemKey) ?? null);
-    },
-    [inventoryIndex.groupsByKey, inventoryIndex.groupsByStackId, selectedInventoryInspection]
-  );
+    return selectedInventoryInspection.stackId
+      ? (inventoryIndex.groupsByStackId.get(selectedInventoryInspection.stackId) ?? null)
+      : (inventoryIndex.groupsByKey.get(selectedInventoryInspection.itemKey) ?? null);
+  }, [inventoryIndex.groupsByKey, inventoryIndex.groupsByStackId, selectedInventoryInspection]);
   const { item: selectedInventoryItem, status: selectedInventoryItemStatus } = useItemEntry(
     selectedInventoryInspection?.itemKey,
     {
@@ -722,65 +742,68 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       initialItem: selectedInventoryInspection?.initialItem ?? null
     }
   );
-  const selectedInventoryCopy = useMemo(
-    () => {
-      if (!selectedInventoryInspection) {
-        return null;
-      }
+  const selectedInventoryCopy = useMemo(() => {
+    if (!selectedInventoryInspection) {
+      return null;
+    }
 
-      return selectedInventoryInspection.stackId
-        ? (inventoryIndex.firstCopyByStackId.get(selectedInventoryInspection.stackId) ?? null)
-        : (inventoryIndex.firstCopyByKey.get(selectedInventoryInspection.itemKey) ?? null);
-    },
-    [inventoryIndex.firstCopyByKey, inventoryIndex.firstCopyByStackId, selectedInventoryInspection]
-  );
-  const selectedHeldInventoryCopies = useMemo(
-    () => {
-      if (!selectedInventoryInspection) {
-        return [];
-      }
+    return selectedInventoryInspection.stackId
+      ? (inventoryIndex.firstCopyByStackId.get(selectedInventoryInspection.stackId) ?? null)
+      : (inventoryIndex.firstCopyByKey.get(selectedInventoryInspection.itemKey) ?? null);
+  }, [
+    inventoryIndex.firstCopyByKey,
+    inventoryIndex.firstCopyByStackId,
+    selectedInventoryInspection
+  ]);
+  const selectedHeldInventoryCopies = useMemo(() => {
+    if (!selectedInventoryInspection) {
+      return [];
+    }
 
-      return selectedInventoryInspection.stackId
-        ? (inventoryIndex.heldCopiesByStackId.get(selectedInventoryInspection.stackId) ?? [])
-        : (inventoryIndex.heldCopiesByKey.get(selectedInventoryInspection.itemKey) ?? []);
-    },
-    [inventoryIndex.heldCopiesByKey, inventoryIndex.heldCopiesByStackId, selectedInventoryInspection]
-  );
-  const selectedAvailableInventoryCopy = useMemo(
-    () => {
-      if (!selectedInventoryInspection) {
-        return null;
-      }
+    return selectedInventoryInspection.stackId
+      ? (inventoryIndex.heldCopiesByStackId.get(selectedInventoryInspection.stackId) ?? [])
+      : (inventoryIndex.heldCopiesByKey.get(selectedInventoryInspection.itemKey) ?? []);
+  }, [
+    inventoryIndex.heldCopiesByKey,
+    inventoryIndex.heldCopiesByStackId,
+    selectedInventoryInspection
+  ]);
+  const selectedAvailableInventoryCopy = useMemo(() => {
+    if (!selectedInventoryInspection) {
+      return null;
+    }
 
-      return selectedInventoryInspection.stackId
-        ? (inventoryIndex.availableCopyByStackId.get(selectedInventoryInspection.stackId) ?? null)
-        : (inventoryIndex.availableCopyByKey.get(selectedInventoryInspection.itemKey) ?? null);
-    },
-    [
-      inventoryIndex.availableCopyByKey,
-      inventoryIndex.availableCopyByStackId,
-      selectedInventoryInspection
-    ]
-  );
-  const selectedWornInventoryCopy = useMemo(
-    () => {
-      if (!selectedInventoryInspection) {
-        return null;
-      }
+    return selectedInventoryInspection.stackId
+      ? (inventoryIndex.availableCopyByStackId.get(selectedInventoryInspection.stackId) ?? null)
+      : (inventoryIndex.availableCopyByKey.get(selectedInventoryInspection.itemKey) ?? null);
+  }, [
+    inventoryIndex.availableCopyByKey,
+    inventoryIndex.availableCopyByStackId,
+    selectedInventoryInspection
+  ]);
+  const selectedWornInventoryCopy = useMemo(() => {
+    if (!selectedInventoryInspection) {
+      return null;
+    }
 
-      return selectedInventoryInspection.stackId
-        ? (inventoryIndex.wornCopyByStackId.get(selectedInventoryInspection.stackId) ?? null)
-        : (inventoryIndex.wornCopyByKey.get(selectedInventoryInspection.itemKey) ?? null);
-    },
-    [inventoryIndex.wornCopyByKey, inventoryIndex.wornCopyByStackId, selectedInventoryInspection]
-  );
+    return selectedInventoryInspection.stackId
+      ? (inventoryIndex.wornCopyByStackId.get(selectedInventoryInspection.stackId) ?? null)
+      : (inventoryIndex.wornCopyByKey.get(selectedInventoryInspection.itemKey) ?? null);
+  }, [inventoryIndex.wornCopyByKey, inventoryIndex.wornCopyByStackId, selectedInventoryInspection]);
   const selectedInventoryRecord = selectedInventoryGroup?.item ?? selectedInventoryItem ?? null;
+  const selectedInventoryWeaponMods = (
+    selectedInventoryRecord as (ItemRecord & { itemModsWeapon?: CharacterItemWeaponMods }) | null
+  )?.itemModsWeapon;
   const selectedInventoryWeaponHasActiveMastery = useMemo(
     () =>
       selectedInventoryRecord?.weapon
-        ? hasActiveWeaponMastery(character.weaponProficiencies, selectedInventoryRecord.weapon)
+        ? hasActiveWeaponMastery(character.weaponProficiencies, {
+            baseWeapon: selectedInventoryWeaponMods?.baseWeapon,
+            name: selectedInventoryRecord.weapon.name,
+            key: selectedInventoryRecord.key
+          })
         : false,
-    [character.weaponProficiencies, selectedInventoryRecord]
+    [character.weaponProficiencies, selectedInventoryRecord, selectedInventoryWeaponMods]
   );
   const selectedInventoryWeaponHasProficiency = useMemo(() => {
     if (!selectedInventoryRecord) {
@@ -797,9 +820,10 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       training: adaptedWeapon.type.training,
       combatType: adaptedWeapon.type.combat,
       properties: adaptedWeapon.properties,
+      baseWeapon: selectedInventoryWeaponMods?.baseWeapon,
       name: selectedInventoryRecord.weapon?.name
     });
-  }, [character.weaponProficiencies, selectedInventoryRecord]);
+  }, [character.weaponProficiencies, selectedInventoryRecord, selectedInventoryWeaponMods]);
   const selectedInventoryCount = selectedInventoryInspection
     ? selectedInventoryInspection.stackId
       ? (inventoryCountsByStackId[selectedInventoryInspection.stackId] ?? 0)
@@ -809,7 +833,9 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     ? selectedHeldInventoryCopies.length
     : 0;
   const selectedInventoryStack = selectedInventoryGroup?.stack ?? null;
-  const selectedInventoryFeatureTagLabels = getInventoryItemFeatureTagLabels(selectedInventoryStack);
+  const selectedInventoryModEffects = selectedInventoryStack?.mods?.effects ?? [];
+  const selectedInventoryFeatureTagLabels =
+    getInventoryItemFeatureTagLabels(selectedInventoryStack);
   const selectedInventoryIsConjured = isConjuredInventoryItem(selectedInventoryStack);
   const selectedInventoryIsInventoryConjuredStack =
     selectedInventoryInspection?.source === "inventory" && selectedInventoryIsConjured;
@@ -829,7 +855,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     isSelectedInventoryOwnedDrawer && selectedInventoryStack?.attuned
   );
   const selectedInventoryAttunable = Boolean(
-    isSelectedInventoryOwnedDrawer && isInventoryItemAttunable(selectedInventoryStack?.item)
+    isSelectedInventoryOwnedDrawer && isInventoryItemAttunable(selectedInventoryRecord)
   );
   const isInventoryAttunementLimitReached = inventoryAttunementCount >= inventoryAttunementLimit;
   const selectedInventoryTransactionCost = selectedInventoryRecord
@@ -843,8 +869,8 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     : null;
   const selectedInventoryHasCrafterDiscount = Boolean(
     selectedInventoryRecord &&
-      hasCrafterDiscountFeat &&
-      isCrafterDiscountEligibleItem(selectedInventoryRecord)
+    hasCrafterDiscountFeat &&
+    isCrafterDiscountEligibleItem(selectedInventoryRecord)
   );
   const selectedInventoryDescriptionAdditions = useMemo(
     () =>
@@ -883,7 +909,8 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
               equipmentCharacter.inventoryItems,
               selectedInventoryGroup.itemKey,
               2
-            ))
+            )
+        )
           .map((copy) => createHeldDescriptorForInventoryItem(`inventory-${copy.id}`, copy.item))
           .filter((entry): entry is HeldWeaponDescriptor => entry !== null)
       : [];
@@ -950,88 +977,68 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       afterClose: () => {
         setIsCustomEquipmentModalOpen(true);
         setCustomEditorMode("create");
-        setEditingCustomEquipmentId(null);
+        setEditingInventoryStackId(null);
       }
     });
   }
 
-  function openCustomEquipmentEditor(customEquipmentId: string) {
+  function openCustomEquipmentEditor(_customEquipmentId: string) {
     setSelectedWeaponReference(null);
     setSelectedLoadoutEntry(null);
     setSelectedInventoryInspection(null);
     setIsCurrencyDrawerOpen(false);
     setIsCustomEquipmentModalOpen(true);
     setCustomEditorMode("edit");
-    setEditingCustomEquipmentId(customEquipmentId);
+    setEditingInventoryStackId(null);
+  }
+
+  function openInventoryItemModsEditor(stackId: string) {
+    setSelectedWeaponReference(null);
+    setSelectedLoadoutEntry(null);
+    setIsCurrencyDrawerOpen(false);
+    setIsCustomEquipmentModalOpen(true);
+    setCustomEditorMode("edit");
+    setEditingInventoryStackId(stackId);
   }
 
   function closeCustomEquipmentModal() {
     setIsCustomEquipmentModalOpen(false);
     setCustomEditorMode("create");
-    setEditingCustomEquipmentId(null);
+    setEditingInventoryStackId(null);
   }
 
-  function saveCustomEquipment(customEquipmentEntry: Character["customEquipment"][number]) {
+  function saveCustomEquipment(payload: CustomEquipmentEditorSavePayload) {
     onPersistCharacter((currentCharacter) => {
-      const normalizedCustomEquipmentEntry =
-        customEquipmentEntry.kind === "weapon" && customEquipmentEntry.onHand
-          ? (() => {
-              const otherHeldWeapons: HeldWeaponDescriptor[] = [
-                ...currentCharacter.equipment
-                  .filter((item) => item.onHand)
-                  .map((item) => {
-                    const entry = getLoadoutCodexEntryByName(item.name);
+      if (customEditorMode === "edit" && editingInventoryStackId) {
+        return {
+          ...currentCharacter,
+          inventoryItems: currentCharacter.inventoryItems.map((entry) => {
+            if (entry.id !== editingInventoryStackId) {
+              return entry;
+            }
 
-                    if (!entry) {
-                      return null;
-                    }
+            return createCharacterInventoryItem(payload.mods.isCustom ? payload.item : entry.item, {
+              id: entry.id,
+              quantity: entry.quantity,
+              onHandQuantity: entry.onHandQuantity,
+              worn: entry.worn,
+              attuned: payload.mods.requiresAttunement ? entry.attuned : false,
+              usesRemaining: entry.usesRemaining,
+              featureTags: entry.featureTags,
+              mods: payload.mods
+            });
+          })
+        };
+      }
 
-                    return createHeldDescriptorForEntry(`codex-${entry.id}`, entry);
-                  })
-                  .filter((entry): entry is HeldWeaponDescriptor => entry !== null),
-                ...currentCharacter.inventoryItems
-                  .flatMap(createHeldInventoryItemCopyReferences)
-                  .map((item) =>
-                    createHeldDescriptorForInventoryItem(`inventory-${item.id}`, item.item)
-                  )
-                  .filter((entry): entry is HeldWeaponDescriptor => entry !== null),
-                ...currentCharacter.customEquipment
-                  .filter(
-                    (
-                      entry
-                    ): entry is Extract<Character["customEquipment"][number], { kind: "weapon" }> =>
-                      entry.kind === "weapon" &&
-                      entry.onHand &&
-                      entry.id !== customEquipmentEntry.id
-                  )
-                  .map((entry) => createHeldWeaponDescriptor(`custom-${entry.id}`, entry))
-              ];
-              const nextDescriptor = createHeldWeaponDescriptor(
-                `custom-${customEquipmentEntry.id}`,
-                customEquipmentEntry
-              );
-
-              return canWeaponBePutOnHand(nextDescriptor, otherHeldWeapons)
-                ? customEquipmentEntry
-                : {
-                    ...customEquipmentEntry,
-                    onHand: false
-                  };
-            })()
-          : customEquipmentEntry;
-      const hasExistingEntry = currentCharacter.customEquipment.some(
-        (entry) => entry.id === normalizedCustomEquipmentEntry.id
-      );
+      const newStack = createCharacterInventoryItem(payload.item, {
+        quantity: 1,
+        mods: payload.mods
+      });
 
       return {
         ...currentCharacter,
-        customEquipment: hasExistingEntry
-          ? currentCharacter.customEquipment.map((entry) =>
-              entry.id === normalizedCustomEquipmentEntry.id
-                ? normalizedCustomEquipmentEntry
-                : entry
-            )
-          : [...currentCharacter.customEquipment, normalizedCustomEquipmentEntry]
+        inventoryItems: [...currentCharacter.inventoryItems, newStack]
       };
     }, equipmentPersistOptions);
 
@@ -1443,7 +1450,10 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
 
     updateEquipmentCharacter(
       (currentCharacter) => {
-        const setOnHandQuantity = (inventoryItems: Character["inventoryItems"], quantity: number) =>
+        const setOnHandQuantity = (
+          inventoryItems: Character["inventoryItems"],
+          quantity: number
+        ) =>
           selectedInventoryInspection.stackId
             ? setInventoryItemOnHandQuantityById(
                 inventoryItems,
@@ -1890,21 +1900,138 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       featureTags={selectedInventoryFeatureTagLabels}
     />
   ) : undefined;
+  const inventoryDrawerHeaderAction = selectedInventoryStack ? (
+    <button
+      type="button"
+      className={clsx(shared.editButton, styles.inventoryModsButton)}
+      onClick={() => openInventoryItemModsEditor(selectedInventoryStack.id)}
+    >
+      <Settings size={16} aria-hidden="true" />
+      <span>Mods</span>
+    </button>
+  ) : null;
 
   return renderEquipmentForm({
-    ActionButton, CellContainer, CurrencyInlineDisplay, CustomEquipmentEditor, ENTRY_CATEGORIES, EquipmentInventoryItemDrawer, EquipmentItemBrowserModal, Hand, InlineToggleButton,
-    KeywordReferenceDrawer, Minus, NumberInput, OverlayBody, OverlayCloseButton, OverlayEyebrow, OverlayFooter, OverlayHeader, OverlayHeaderContent, OverlayTitle, Plus, RarityPill, SheetModal, Shield, Sparkles, WeaponMasteryStatusLabel, X,
-    activeCurrencyDefinition, activeCurrencyKey, adjustCurrencyBalance, canSpendCurrency, carriedWeight, carryingCapacity, className, closeAddModal,
-    closeCustomEquipmentModal, closeInventoryItemDrawer, closeLoadoutDrawer, clsx, currencyAmountDraft, currencyDefinitions, customEditorMode, deleteCustomEquipment,
-    editingCustomEquipment, equipmentRenderGroups, formatCodexLabel, formatCodexList, formatEquipmentWeight, formatInventoryStackName, formatOnHandLabel, formatWeaponDamage,
-    formatWeaponProperties, formatWeaponType, formatWeaponWeight, formatWeightValue, getArmorTypeSummary, getInventoryItemFeatureTagLabels, getItemWeightValue, groupedInventoryItems, hasDisplayableRarity,
-    inventoryDrawerFooter, inventoryDrawerHeaderContent, isAddModalCommitting, isAddModalOpen, isCurrencyDrawerOpen, isCustomEquipmentModalOpen, isGeneralEquipmentExpanded,
-    isHandEquippableEntry, isOverCarryingCapacity, isSelectedArmorWorn, isSelectedCustomEntry, isSelectedEntryOnHand, isSelectedFeatureManagedEntry, isSelectedShield, normalizeCurrencyAmountInput,
-    normalizedCurrencies, openAddModal, openCurrencyModal, openCustomEquipmentCreator, openCustomEquipmentEditor, openInventoryInspectionFromBrowser, openInventoryInspectionFromLoadout, openLoadoutEntryDetails,
-    openWeaponReference, pendingDeleteCustomEquipment, removeEquipmentItem, saveCustomEquipment, selectedAdditionalWeaponMasteries, selectedInventoryInspection, selectedInventoryItemStatus,
-    selectedInventoryAdditionalDescription, selectedInventoryDescriptionAdditions, selectedInventoryRecord, selectedInventoryWeaponHasActiveMastery, selectedInventoryWeaponHasProficiency, selectedLoadoutEntry, selectedLoadoutEntryData, selectedLoadoutItems, selectedLoadoutSummary, selectedWeaponHasActiveMastery,
-    selectedWeaponHasProficiency, selectedWeaponMasteryKeywords, selectedWeaponMasteryLabel, selectedWeaponReference, setActiveCurrencyKey, setCurrencyAmountDraft, setIsCurrencyDrawerOpen, setIsGeneralEquipmentExpanded,
-    setPendingDeleteCustomEquipmentId, setSelectedWeaponReference, shared, SheetSurface, sheetStyles, shouldOfferHandSwap, styles, swapEntryToHand, toggleArmorWorn,
+    ActionButton,
+    CellContainer,
+    CurrencyInlineDisplay,
+    CustomEquipmentEditor,
+    ENTRY_CATEGORIES,
+    EquipmentInventoryItemDrawer,
+    EquipmentItemBrowserModal,
+    Hand,
+    InlineToggleButton,
+    KeywordReferenceDrawer,
+    Minus,
+    NumberInput,
+    OverlayBody,
+    OverlayCloseButton,
+    OverlayEyebrow,
+    OverlayFooter,
+    OverlayHeader,
+    OverlayHeaderContent,
+    OverlaySummary,
+    OverlayTitle,
+    Plus,
+    RarityPill,
+    SheetModal,
+    Shield,
+    Sparkles,
+    WeaponMasteryStatusLabel,
+    X,
+    activeCurrencyDefinition,
+    activeCurrencyKey,
+    adjustCurrencyBalance,
+    canSpendCurrency,
+    carriedWeight,
+    carryingCapacity,
+    className,
+    closeAddModal,
+    closeCustomEquipmentModal,
+    closeInventoryItemDrawer,
+    closeLoadoutDrawer,
+    clsx,
+    currencyAmountDraft,
+    currencyDefinitions,
+    customEditorMode,
+    deleteCustomEquipment,
+    editingInventoryStack,
+    equipmentRenderGroups,
+    formatCodexLabel,
+    formatCodexList,
+    formatEquipmentWeight,
+    formatInventoryStackName,
+    formatOnHandLabel,
+    formatWeaponDamage,
+    formatWeaponProperties,
+    formatWeaponType,
+    formatWeaponWeight,
+    formatWeightValue,
+    getArmorTypeSummary,
+    getInventoryItemFeatureTagLabels,
+    getItemWeightValue,
+    groupedInventoryItems,
+    hasCharacterItemMods,
+    hasDisplayableRarity,
+    inventoryDrawerFooter,
+    inventoryDrawerHeaderAction,
+    inventoryDrawerHeaderContent,
+    isAddModalCommitting,
+    isAddModalOpen,
+    isCurrencyDrawerOpen,
+    isCustomEquipmentModalOpen,
+    isGeneralEquipmentExpanded,
+    isHandEquippableEntry,
+    isOverCarryingCapacity,
+    isSelectedArmorWorn,
+    isSelectedCustomEntry,
+    isSelectedEntryOnHand,
+    isSelectedFeatureManagedEntry,
+    isSelectedShield,
+    normalizeCurrencyAmountInput,
+    normalizedCurrencies,
+    openAddModal,
+    openCurrencyModal,
+    openCustomEquipmentCreator,
+    openCustomEquipmentEditor,
+    openInventoryInspectionFromBrowser,
+    openInventoryInspectionFromLoadout,
+    openLoadoutEntryDetails,
+    openWeaponReference,
+    pendingDeleteCustomEquipment,
+    removeEquipmentItem,
+    saveCustomEquipment,
+    selectedAdditionalWeaponMasteries,
+    selectedInventoryInspection,
+    selectedInventoryItemStatus,
+    selectedInventoryAdditionalDescription,
+    selectedInventoryDescriptionAdditions,
+    selectedInventoryModEffects,
+    selectedInventoryRecord,
+    selectedInventoryWeaponHasActiveMastery,
+    selectedInventoryWeaponHasProficiency,
+    selectedLoadoutEntry,
+    selectedLoadoutEntryData,
+    selectedLoadoutItems,
+    selectedLoadoutSummary,
+    selectedWeaponHasActiveMastery,
+    selectedWeaponHasProficiency,
+    selectedWeaponMasteryKeywords,
+    selectedWeaponMasteryLabel,
+    selectedWeaponReference,
+    setActiveCurrencyKey,
+    setCurrencyAmountDraft,
+    setIsCurrencyDrawerOpen,
+    setIsGeneralEquipmentExpanded,
+    setPendingDeleteCustomEquipmentId,
+    setSelectedWeaponReference,
+    shared,
+    SheetSurface,
+    sheetStyles,
+    shouldOfferHandSwap,
+    styles,
+    swapEntryToHand,
+    toggleArmorWorn,
     toggleEntryOnHand
   });
 }

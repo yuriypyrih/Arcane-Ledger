@@ -52,7 +52,7 @@ type EntryWithRarity = {
   rarity: RARITY_TYPES;
 };
 
-export type WeaponDamageAmount = DICE | number;
+export type WeaponDamageAmount = DICE | number | AbilityKey;
 export type WeaponDamageType = DAMAGE_TYPE | DAMAGE_TYPE[];
 export type WeaponDamage = Array<[WeaponDamageAmount, WeaponDamageType]>;
 export type SpellHealingAmount = WeaponDamageAmount | "spellcastingAbility";

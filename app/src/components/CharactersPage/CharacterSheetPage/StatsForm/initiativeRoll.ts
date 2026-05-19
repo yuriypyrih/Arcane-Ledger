@@ -2,6 +2,7 @@ import type { DICE } from "../../../../codex/entries";
 import type { RollMode } from "../../../../types";
 import type { InitiativeBreakdown } from "../../../../pages/CharactersPage/gameplay";
 import { formatAbilityModifier } from "../../../../pages/CharactersPage/gameplay";
+import { formatCustomTraitBonusFormulaTerm } from "../../../../pages/CharactersPage/customTraitEffects";
 import { formatD20Formula } from "../../../../pages/CharactersPage/shared";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { applyRolledHealingToCharacter } from "../GameplayForm/gameplayStateUtils";
@@ -46,7 +47,9 @@ const uncannyMetabolishLabel = "Uncanny Metabolish:";
 
 function formatInitiativeFormula(initiativeBreakdown: InitiativeBreakdown): string {
   const terms = initiativeBreakdown.entries.map(
-    (entry) => `${entry.value >= 0 ? "+" : ""}${entry.value} ${entry.label}`
+    (entry) =>
+      formatCustomTraitBonusFormulaTerm(entry) ??
+      `${entry.value >= 0 ? "+" : ""}${entry.value} ${entry.label}`
   );
 
   return `${formatAbilityModifier(initiativeBreakdown.total)} Initiative = ${terms.join(" ")}`;

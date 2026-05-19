@@ -1,8 +1,11 @@
 import {
   type AbilityKey,
   type CharacterCustomTraitEffect,
+  type CharacterCustomTraitRollMode,
+  type CharacterCustomTraitValueMode,
   type CharacterStatusEntry
 } from "../../../../../../types";
+import { ALL_SKILLS, isSkillName } from "../../../../../../types";
 import { WEAPON_COMBAT_TYPE } from "../../../../../../codex/entries";
 import {
   defaultManualStatusDurationDraft,
@@ -16,6 +19,8 @@ export type CustomTraitEffectDraft = {
   id: string;
   target: string;
   value: string;
+  valueMode: CharacterCustomTraitValueMode;
+  rollMode: CharacterCustomTraitRollMode;
 };
 
 export type CustomTraitDraft = {
@@ -39,10 +44,46 @@ function createDraftId() {
   return `custom-trait-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
+function normalizeDraftRollMode(value: CharacterCustomTraitRollMode): CharacterCustomTraitRollMode {
+  return value === "advantage" || value === "disadvantage" ? value : "normal";
+}
+
+function normalizeDraftValueMode(value: CharacterCustomTraitValueMode): CharacterCustomTraitValueMode {
+  return value === "debuff" ? "debuff" : "buff";
+}
+
+export function isCustomTraitAbilityValue(value: string): boolean {
+  return abilityKeys.includes(value.trim() as AbilityKey);
+}
+
+export function isCustomTraitRollModeDisabledTarget(target: string): boolean {
+  const trimmedTarget = target.trim();
+  return trimmedTarget === "armorClass" || trimmedTarget === "speed";
+}
+
+export function doesCustomTraitTargetAllowAbilityValue(target: string): boolean {
+  const [type] = target.trim().split(":");
+  return type !== "abilityScore" && type !== "abilityModifier" && type !== "savingThrow";
+}
+
+function createRollModeFields(effect: CustomTraitEffectDraft) {
+  const rollMode = isCustomTraitRollModeDisabledTarget(effect.target)
+    ? "normal"
+    : normalizeDraftRollMode(effect.rollMode);
+
+  return rollMode === "normal" ? {} : { rollMode };
+}
+
+function createValueModeFields(effect: CustomTraitEffectDraft) {
+  const valueMode = normalizeDraftValueMode(effect.valueMode);
+  return valueMode === "debuff" ? { valueMode } : {};
+}
+
 export const customTraitTargetOptions: CustomTraitTargetOption[] = [
   { value: "armorClass", label: "Armor Class" },
   { value: "initiative", label: "Initiative" },
   { value: "passivePerception", label: "Passive Perception" },
+  { value: "speed", label: "Speed" },
   ...abilityKeys.map((ability) => ({
     value: `abilityScore:${ability}`,
     label: `${ability} Ability Score`
@@ -55,6 +96,10 @@ export const customTraitTargetOptions: CustomTraitTargetOption[] = [
     value: `savingThrow:${ability}`,
     label: `${ability} Saving Throw`
   })),
+  ...ALL_SKILLS.map((skill) => ({
+    value: `skill:${skill}`,
+    label: skill
+  })),
   { value: "weaponDamage:unarmed", label: "Unarmed Strike" },
   { value: `weaponDamage:${WEAPON_COMBAT_TYPE.MELEE}`, label: "Melee Weapons" },
   { value: `weaponDamage:${WEAPON_COMBAT_TYPE.RANGED}`, label: "Ranged Weapons" }
@@ -64,7 +109,9 @@ export function createCustomTraitEffectDraft(): CustomTraitEffectDraft {
   return {
     id: createDraftId(),
     target: "",
-    value: ""
+    value: "0",
+    valueMode: "buff",
+    rollMode: "normal"
   };
 }
 
@@ -78,17 +125,20 @@ export function createDefaultCustomTraitDraft(): CustomTraitDraft {
   };
 }
 
-function createCustomTraitEffectDraftFromEntry(
+export function createCustomTraitEffectDraftFromEntry(
   effect: CharacterCustomTraitEffect
 ): CustomTraitEffectDraft {
   switch (effect.type) {
     case "armorClass":
     case "initiative":
     case "passivePerception":
+    case "speed":
       return {
         id: createDraftId(),
         target: effect.type,
-        value: String(effect.value)
+        value: String(effect.value),
+        valueMode: effect.valueMode ?? "buff",
+        rollMode: effect.rollMode ?? "normal"
       };
     case "abilityScore":
     case "abilityModifier":
@@ -96,13 +146,25 @@ function createCustomTraitEffectDraftFromEntry(
       return {
         id: createDraftId(),
         target: `${effect.type}:${effect.ability}`,
-        value: String(effect.value)
+        value: String(effect.value),
+        valueMode: effect.valueMode ?? "buff",
+        rollMode: effect.rollMode ?? "normal"
+      };
+    case "skill":
+      return {
+        id: createDraftId(),
+        target: `${effect.type}:${effect.skill}`,
+        value: String(effect.value),
+        valueMode: effect.valueMode ?? "buff",
+        rollMode: effect.rollMode ?? "normal"
       };
     case "weaponDamage":
       return {
         id: createDraftId(),
         target: `${effect.type}:${effect.attackKind}`,
-        value: String(effect.value)
+        value: String(effect.value),
+        valueMode: effect.valueMode ?? "buff",
+        rollMode: effect.rollMode ?? "normal"
       };
     default:
       return createCustomTraitEffectDraft();
@@ -128,47 +190,99 @@ export function parseCustomTraitEffectDraft(
   draft: CustomTraitEffectDraft
 ): CharacterCustomTraitEffect | null {
   const trimmedTarget = draft.target.trim();
-  const numericValue = Number(draft.value);
+  const rollMode = isCustomTraitRollModeDisabledTarget(trimmedTarget)
+    ? "normal"
+    : normalizeDraftRollMode(draft.rollMode);
+  const trimmedValue = draft.value.trim();
+  const valueAsAbility = isCustomTraitAbilityValue(trimmedValue)
+    ? (trimmedValue as AbilityKey)
+    : null;
+  const numericValue = trimmedValue.length > 0 ? Number(trimmedValue) : 0;
+  const normalizedValue = valueAsAbility ?? Math.trunc(numericValue);
+  const rollModeFields = createRollModeFields(draft);
+  const valueModeFields = createValueModeFields(draft);
 
-  if (!trimmedTarget || !Number.isFinite(numericValue) || Math.trunc(numericValue) === 0) {
+  if (
+    !trimmedTarget ||
+    (valueAsAbility === null && !Number.isFinite(numericValue)) ||
+    (typeof normalizedValue === "number" && normalizedValue === 0 && rollMode === "normal") ||
+    (valueAsAbility !== null && !doesCustomTraitTargetAllowAbilityValue(trimmedTarget))
+  ) {
     return null;
   }
 
   if (trimmedTarget === "armorClass") {
-    return { type: "armorClass", value: Math.trunc(numericValue) };
+    return { type: "armorClass", value: normalizedValue, ...valueModeFields };
   }
 
   if (trimmedTarget === "initiative") {
-    return { type: "initiative", value: Math.trunc(numericValue) };
+    return { type: "initiative", value: normalizedValue, ...valueModeFields, ...rollModeFields };
   }
 
   if (trimmedTarget === "passivePerception") {
-    return { type: "passivePerception", value: Math.trunc(numericValue) };
+    return {
+      type: "passivePerception",
+      value: normalizedValue,
+      ...valueModeFields,
+      ...rollModeFields
+    };
+  }
+
+  if (trimmedTarget === "speed") {
+    return { type: "speed", value: normalizedValue, ...valueModeFields };
   }
 
   const [type, rawDetail] = trimmedTarget.split(":");
 
-  if (type === "abilityScore" && abilityKeys.includes(rawDetail as AbilityKey)) {
+  if (
+    type === "abilityScore" &&
+    abilityKeys.includes(rawDetail as AbilityKey) &&
+    typeof normalizedValue === "number"
+  ) {
     return {
       type: "abilityScore",
       ability: rawDetail as AbilityKey,
-      value: Math.trunc(numericValue)
+      value: normalizedValue,
+      ...valueModeFields,
+      ...rollModeFields
     };
   }
 
-  if (type === "abilityModifier" && abilityKeys.includes(rawDetail as AbilityKey)) {
+  if (
+    type === "abilityModifier" &&
+    abilityKeys.includes(rawDetail as AbilityKey) &&
+    typeof normalizedValue === "number"
+  ) {
     return {
       type: "abilityModifier",
       ability: rawDetail as AbilityKey,
-      value: Math.trunc(numericValue)
+      value: normalizedValue,
+      ...valueModeFields,
+      ...rollModeFields
     };
   }
 
-  if (type === "savingThrow" && abilityKeys.includes(rawDetail as AbilityKey)) {
+  if (
+    type === "savingThrow" &&
+    abilityKeys.includes(rawDetail as AbilityKey) &&
+    typeof normalizedValue === "number"
+  ) {
     return {
       type: "savingThrow",
       ability: rawDetail as AbilityKey,
-      value: Math.trunc(numericValue)
+      value: normalizedValue,
+      ...valueModeFields,
+      ...rollModeFields
+    };
+  }
+
+  if (type === "skill" && isSkillName(rawDetail)) {
+    return {
+      type: "skill",
+      skill: rawDetail,
+      value: normalizedValue,
+      ...valueModeFields,
+      ...rollModeFields
     };
   }
 
@@ -182,7 +296,9 @@ export function parseCustomTraitEffectDraft(
         CharacterCustomTraitEffect,
         { type: "weaponDamage" }
       >["attackKind"],
-      value: Math.trunc(numericValue)
+      value: normalizedValue,
+      ...valueModeFields,
+      ...rollModeFields
     };
   }
 
@@ -190,7 +306,17 @@ export function parseCustomTraitEffectDraft(
 }
 
 export function isCustomTraitEffectDraftEmpty(draft: CustomTraitEffectDraft): boolean {
-  return draft.target.trim().length === 0 && draft.value.trim().length === 0;
+  const numericValue = draft.value.trim().length > 0 ? Number(draft.value) : 0;
+  const rollMode = isCustomTraitRollModeDisabledTarget(draft.target)
+    ? "normal"
+    : normalizeDraftRollMode(draft.rollMode);
+
+  return (
+    !isCustomTraitAbilityValue(draft.value) &&
+    Number.isFinite(numericValue) &&
+    Math.trunc(numericValue) === 0 &&
+    rollMode === "normal"
+  );
 }
 
 export function isCustomTraitDraftValid(draft: CustomTraitDraft): boolean {

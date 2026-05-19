@@ -76,6 +76,7 @@
 .equipmentItemAttuned,
 .drawerAttunedBadge,
 .drawerChargesBadge,
+.equipmentItemModdedTag,
 .equipmentItemFeatureTag,
 .drawerFeatureTagBadge {
   display: inline-flex;
@@ -108,10 +109,20 @@
   color: #315c73;
 }
 
+.equipmentItemModdedTag {
+  background: #e5e7eb;
+  color: #4b5563;
+}
+
 .equipmentItemFeatureTag,
 .drawerFeatureTagBadge {
   background: #ede9fe;
   color: #6d28d9;
+}
+
+.inventoryModsButton {
+  min-height: 36px;
+  padding: 0 0.82rem;
 }
 
 .drawerSummaryRow {
@@ -772,12 +783,17 @@
 }
 
 .customEquipmentModalBackdrop {
-  z-index: 47;
+  z-index: 50;
 }
 
 .customEquipmentModal {
+  --overlay-panel-inline-padding: 0.78rem;
+  --overlay-panel-top-padding: 0.78rem;
+  --overlay-panel-bottom-padding: 0.78rem;
+  --overlay-panel-section-gap: 0.64rem;
   width: min(var(--overlay-size-medium), 100%);
-  min-height: 0;
+  height: calc(100dvh - (var(--overlay-backdrop-padding) * 2));
+  min-height: min(720px, calc(100dvh - (var(--overlay-backdrop-padding) * 2)));
   overflow: hidden;
 }
 
@@ -796,7 +812,7 @@
   place-items: center;
   background: rgba(34, 20, 13, 0.42);
   padding: 1rem;
-  z-index: 49;
+  z-index: 52;
 }
 
 .customEquipmentDeleteCard {

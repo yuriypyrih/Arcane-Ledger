@@ -10,6 +10,7 @@ import {
   type InventoryItemCopyReference,
   type GroupedInventoryItem
 } from "../inventoryItems";
+import { getEffectiveInventoryItemRecord } from "../itemMods";
 import { measureCharacterRuntime } from "./performance";
 
 export type InventoryRuntimeIndex = {
@@ -53,6 +54,7 @@ function createInventoryRuntimeIndexSnapshot(
   const wornCopyByStackId = new Map<string, CharacterInventoryItem>();
   const groups = inventoryItems
     .map((stack) => {
+      const effectiveItem = getEffectiveInventoryItemRecord(stack);
       const key = getItemRecordKey(stack.item);
       const count = getInventoryItemQuantity(stack);
       const onHandCount = getInventoryItemOnHandQuantity(stack);
@@ -61,8 +63,8 @@ function createInventoryRuntimeIndexSnapshot(
         key,
         itemKey: key,
         stackId: stack.id,
-        name: getItemRecordName(stack.item),
-        item: stack.item,
+        name: getItemRecordName(effectiveItem),
+        item: effectiveItem,
         stack,
         copies: createInventoryItemCopyReferences(stack),
         count,

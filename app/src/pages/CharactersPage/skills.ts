@@ -9,6 +9,7 @@ import { getSkillBonusesForCharacter } from "./classFeatures";
 import { getResolvedSkillProficiencyEntry, getSkillProficiencyForName } from "./proficiency";
 import { skillGroupsByAbility } from "./skillDefinitions";
 import { getExhaustionD20TestPenalty } from "./statusEntries";
+import { formatCustomTraitBonusFormulaTerm } from "./customTraitEffects";
 
 export type SkillProficiencyMultiplier = 0 | 1 | 2;
 
@@ -21,6 +22,9 @@ export type SkillRow = {
   abilityModifierBonusEntries: Array<{
     label: string;
     value: number;
+    abilityModifierSource?: AbilityKey;
+    formulaSourceLabel?: string;
+    formulaLabel?: string;
   }>;
   proficiencyBonus: number;
   proficiencyMultiplier: SkillProficiencyMultiplier;
@@ -30,6 +34,9 @@ export type SkillRow = {
   bonusEntries: Array<{
     label: string;
     value: number;
+    abilityModifierSource?: AbilityKey;
+    formulaSourceLabel?: string;
+    formulaLabel?: string;
   }>;
   totalModifier: number;
 };
@@ -80,14 +87,26 @@ export function getSkillRowsByAbility(
 
           if (entry.abilityModifierSource) {
             const sourceValue = getAbilityModifierForCharacter(character, entry.abilityModifierSource);
+            const value =
+              (typeof entry.minimumValue === "number"
+                ? Math.max(entry.minimumValue, sourceValue)
+                : sourceValue) * (entry.abilityModifierMultiplier ?? 1);
+
+            if (value === 0 && entry.formulaSourceLabel) {
+              return [];
+            }
 
             return [
               {
                 label: entry.label,
-                value:
-                  typeof entry.minimumValue === "number"
-                    ? Math.max(entry.minimumValue, sourceValue)
-                    : sourceValue
+                value,
+                abilityModifierSource: entry.abilityModifierSource,
+                formulaSourceLabel: entry.formulaSourceLabel,
+                formulaLabel:
+                  formatCustomTraitBonusFormulaTerm({
+                    ...entry,
+                    value
+                  }) ?? undefined
               }
             ];
           }
@@ -95,7 +114,13 @@ export function getSkillRowsByAbility(
           return [
             {
               label: entry.label,
-              value: entry.value ?? 0
+              value: entry.value ?? 0,
+              formulaSourceLabel: entry.formulaSourceLabel,
+              formulaLabel:
+                formatCustomTraitBonusFormulaTerm({
+                  value: entry.value ?? 0,
+                  formulaSourceLabel: entry.formulaSourceLabel
+                }) ?? undefined
             }
           ];
         });

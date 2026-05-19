@@ -11,7 +11,11 @@ import type {
   CharacterEquipmentItem,
   CharacterInventoryItem
 } from "../../types";
-import { getAbilityModifierBreakdownForCharacter } from "./abilities";
+import {
+  getAbilityModifierBreakdownForCharacter,
+  getAbilityModifierForCharacter
+} from "./abilities";
+import { formatCustomTraitBonusFormulaTerm } from "./customTraitEffects";
 import {
   getArmorClassBonusesForCharacter,
   getArmorClassModesForCharacter,
@@ -28,6 +32,7 @@ import {
   isItemBodyArmorRecord,
   isItemShieldRecord
 } from "./inventoryItems";
+import { getEffectiveInventoryItemRecord, getItemShieldBonus } from "./itemMods";
 import { getMageArmorArmorClassModes } from "./characterRuntime/spellImplementations";
 
 export type BodyArmorType = "light" | "medium" | "heavy";
@@ -54,6 +59,9 @@ type ArmorClassModeDefinition = {
 export type ArmorClassBreakdownEntry = {
   label: string;
   value: number;
+  abilityModifierSource?: AbilityKey;
+  formulaSourceLabel?: string;
+  formulaLabel?: string;
 };
 
 export type ArmorClassBreakdown = {
@@ -173,12 +181,14 @@ function getCustomBodyArmorCandidate(
 function getInventoryBodyArmorCandidate(
   inventoryItem: CharacterInventoryItem
 ): BodyArmorCandidate | null {
-  if (!isItemBodyArmorRecord(inventoryItem.item)) {
+  const item = getEffectiveInventoryItemRecord(inventoryItem);
+
+  if (!isItemBodyArmorRecord(item)) {
     return null;
   }
 
-  const armorType = getItemArmorType(inventoryItem.item);
-  const armorBase = inventoryItem.item.armor?.ac_base;
+  const armorType = getItemArmorType(item);
+  const armorBase = item.armor?.ac_base;
 
   if (!armorType || typeof armorBase !== "number") {
     return null;
@@ -186,7 +196,7 @@ function getInventoryBodyArmorCandidate(
 
   return {
     key: `inventory:${inventoryItem.id}`,
-    name: inventoryItem.item.name ?? inventoryItem.item.key ?? "Armor",
+    name: item.name ?? item.key ?? "Armor",
     armorBase,
     armorType,
     worn: Boolean(inventoryItem.worn)
@@ -234,7 +244,7 @@ export function normalizeCharacterArmorWearState(
     };
   });
   const normalizedInventoryItems = inventoryItems.map((entry) =>
-    isItemBodyArmorRecord(entry.item)
+    isItemBodyArmorRecord(getEffectiveInventoryItemRecord(entry))
       ? {
           ...entry,
           worn: Boolean(entry.worn)
@@ -309,7 +319,9 @@ function applyBodyArmorWearState(
         })()
       : target.kind === "inventory"
         ? character.inventoryItems.some(
-            (entry) => entry.id === inventoryTargetId && isItemBodyArmorRecord(entry.item)
+            (entry) =>
+              entry.id === inventoryTargetId &&
+              isItemBodyArmorRecord(getEffectiveInventoryItemRecord(entry))
           )
       : character.customEquipment.some(
           (entry) =>
@@ -382,11 +394,13 @@ function getHeldShieldBonus(character: Pick<Character, "equipment" | "inventoryI
     return Math.max(highestShieldBonus, armorEntry.shieldBonus);
   }, 0);
   const inventoryShieldBonus = character.inventoryItems.reduce((highestShieldBonus, item) => {
-    if (getInventoryItemOnHandQuantity(item) <= 0 || !isItemShieldRecord(item.item)) {
+    const effectiveItem = getEffectiveInventoryItemRecord(item);
+
+    if (getInventoryItemOnHandQuantity(item) <= 0 || !isItemShieldRecord(effectiveItem)) {
       return highestShieldBonus;
     }
 
-    return Math.max(highestShieldBonus, 2);
+    return Math.max(highestShieldBonus, getItemShieldBonus(effectiveItem));
   }, 0);
 
   return Math.max(codexShieldBonus, inventoryShieldBonus);
@@ -504,10 +518,22 @@ function buildArmorClassBreakdownEntries(
   }
 
   featureBonuses.forEach((bonus) => {
-    if (bonus.value !== 0) {
+    const value = bonus.abilityModifierSource
+      ? getAbilityModifierForCharacter(character, bonus.abilityModifierSource) *
+        (bonus.abilityModifierMultiplier ?? 1)
+      : bonus.value;
+
+    if (value !== 0) {
       entries.push({
         label: bonus.label,
-        value: bonus.value
+        value,
+        abilityModifierSource: bonus.abilityModifierSource,
+        formulaSourceLabel: bonus.formulaSourceLabel,
+        formulaLabel:
+          formatCustomTraitBonusFormulaTerm({
+            ...bonus,
+            value
+          }) ?? undefined
       });
     }
   });

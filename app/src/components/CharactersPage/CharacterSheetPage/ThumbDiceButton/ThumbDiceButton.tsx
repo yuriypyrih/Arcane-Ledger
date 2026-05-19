@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Cog, X } from "lucide-react";
+import { Settings, X } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
 import ActionButton from "../../../ActionButton";
@@ -174,7 +174,7 @@ function ThumbDiceButton() {
               onOpenChange={setIsDiceRollerSettingsOpen}
             >
               <span className={styles.settingsButtonContent}>
-                <Cog size={16} />
+                <Settings size={16} />
                 <span>Dice Settings</span>
               </span>
             </DiceRollerSettingsButton>

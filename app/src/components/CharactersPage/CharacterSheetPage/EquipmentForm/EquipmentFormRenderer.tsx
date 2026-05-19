@@ -4,15 +4,15 @@
 export function renderEquipmentForm(context: Record<string, any>) {
   const {
     ActionButton, CellContainer, CurrencyInlineDisplay, CustomEquipmentEditor, ENTRY_CATEGORIES, EquipmentInventoryItemDrawer, EquipmentItemBrowserModal, Hand, InlineToggleButton, KeywordReferenceDrawer,
-    Minus, NumberInput, OverlayBody, OverlayCloseButton, OverlayEyebrow, OverlayFooter, OverlayHeader, OverlayHeaderContent, OverlayTitle, Plus, RarityPill, SheetModal, Shield, Sparkles, WeaponMasteryStatusLabel, X, activeCurrencyDefinition, activeCurrencyKey,
+    Minus, NumberInput, OverlayBody, OverlayCloseButton, OverlayEyebrow, OverlayFooter, OverlayHeader, OverlayHeaderContent, OverlaySummary, OverlayTitle, Plus, RarityPill, SheetModal, Shield, Sparkles, WeaponMasteryStatusLabel, X, activeCurrencyDefinition, activeCurrencyKey,
     adjustCurrencyBalance, canSpendCurrency, carriedWeight, carryingCapacity, className, closeAddModal, closeCustomEquipmentModal, closeInventoryItemDrawer, closeLoadoutDrawer,
-    clsx, currencyAmountDraft, currencyDefinitions, customEditorMode, deleteCustomEquipment, editingCustomEquipment, equipmentRenderGroups, formatCodexLabel, formatCodexList,
+    clsx, currencyAmountDraft, currencyDefinitions, customEditorMode, deleteCustomEquipment, editingInventoryStack, equipmentRenderGroups, formatCodexLabel, formatCodexList,
     formatEquipmentWeight, formatInventoryStackName, formatOnHandLabel, formatWeaponDamage, formatWeaponProperties, formatWeaponType, formatWeaponWeight, formatWeightValue, getArmorTypeSummary, getInventoryItemFeatureTagLabels,
-    getItemWeightValue, groupedInventoryItems, hasDisplayableRarity, inventoryDrawerFooter, inventoryDrawerHeaderContent, isAddModalCommitting, isAddModalOpen, isCurrencyDrawerOpen,
+    getItemWeightValue, groupedInventoryItems, hasCharacterItemMods, hasDisplayableRarity, inventoryDrawerFooter, inventoryDrawerHeaderAction, inventoryDrawerHeaderContent, isAddModalCommitting, isAddModalOpen, isCurrencyDrawerOpen,
     isCustomEquipmentModalOpen, isGeneralEquipmentExpanded, isHandEquippableEntry, isOverCarryingCapacity, isSelectedArmorWorn, isSelectedCustomEntry, isSelectedEntryOnHand, isSelectedFeatureManagedEntry, isSelectedShield,
     normalizeCurrencyAmountInput, normalizedCurrencies, openAddModal, openCurrencyModal, openCustomEquipmentCreator, openCustomEquipmentEditor, openInventoryInspectionFromBrowser, openInventoryInspectionFromLoadout, openLoadoutEntryDetails,
     openWeaponReference, pendingDeleteCustomEquipment, removeEquipmentItem, saveCustomEquipment, selectedAdditionalWeaponMasteries, selectedInventoryAdditionalDescription, selectedInventoryDescriptionAdditions,
-    selectedInventoryInspection, selectedInventoryItemStatus, selectedInventoryRecord,
+    selectedInventoryInspection, selectedInventoryItemStatus, selectedInventoryModEffects, selectedInventoryRecord,
     selectedInventoryWeaponHasActiveMastery, selectedInventoryWeaponHasProficiency, selectedLoadoutEntry, selectedLoadoutEntryData, selectedLoadoutItems, selectedLoadoutSummary, selectedWeaponHasActiveMastery, selectedWeaponHasProficiency, selectedWeaponMasteryKeywords,
     selectedWeaponMasteryLabel, selectedWeaponReference, setActiveCurrencyKey, setCurrencyAmountDraft, setIsCurrencyDrawerOpen, setIsGeneralEquipmentExpanded, setPendingDeleteCustomEquipmentId, setSelectedWeaponReference, shared, SheetSurface,
     sheetStyles, shouldOfferHandSwap, styles, swapEntryToHand, toggleArmorWorn, toggleEntryOnHand
@@ -97,6 +97,9 @@ export function renderEquipmentForm(context: Record<string, any>) {
               shouldCollapseGeneral && !isGeneralEquipmentExpanded
                 ? combinedItems.slice(0, 4)
                 : combinedItems;
+            const hiddenGroupItemCount = shouldCollapseGeneral
+              ? Math.max(0, combinedItems.length - visibleGroupItems.length)
+              : 0;
 
             return (
               <section key={group.key} className={styles.equipmentGroup}>
@@ -131,13 +134,13 @@ export function renderEquipmentForm(context: Record<string, any>) {
                             ) : null}
                           </span>
                           <span className={styles.equipmentItemMeta}>
-                            <span className={styles.equipmentItemWeight}>
-                              {formatEquipmentWeight(entry.item.entry.weight)}
-                            </span>
                             {"rarity" in entry.item.entry &&
                             hasDisplayableRarity(entry.item.entry.rarity) ? (
                               <RarityPill rarity={entry.item.entry.rarity} />
                             ) : null}
+                            <span className={styles.equipmentItemWeight}>
+                              {formatEquipmentWeight(entry.item.entry.weight)}
+                            </span>
                           </span>
                         </SheetSurface>
                       </li>
@@ -183,12 +186,18 @@ export function renderEquipmentForm(context: Record<string, any>) {
                             ))}
                           </span>
                           <span className={styles.equipmentItemMeta}>
-                            <span className={styles.equipmentItemWeight}>
-                              {formatEquipmentWeight(getItemWeightValue(entry.item.item))}
-                            </span>
+                            {hasCharacterItemMods(entry.item.stack.mods) &&
+                            !entry.item.stack.mods?.isCustom ? (
+                              <span className={styles.equipmentItemModdedTag}>
+                                <span>Modded</span>
+                              </span>
+                            ) : null}
                             {hasDisplayableRarity(entry.item.item.rarity) ? (
                               <RarityPill rarity={entry.item.item.rarity} />
                             ) : null}
+                            <span className={styles.equipmentItemWeight}>
+                              {formatEquipmentWeight(getItemWeightValue(entry.item.item))}
+                            </span>
                           </span>
                         </SheetSurface>
                       </li>
@@ -197,7 +206,11 @@ export function renderEquipmentForm(context: Record<string, any>) {
                 </ul>
                 {shouldCollapseGeneral ? (
                   <InlineToggleButton
-                    label={isGeneralEquipmentExpanded ? "Show less items" : "Show more items"}
+                    label={
+                      isGeneralEquipmentExpanded
+                        ? "Show less items"
+                        : `Show ${hiddenGroupItemCount} more items`
+                    }
                     expanded={isGeneralEquipmentExpanded}
                     onClick={() => setIsGeneralEquipmentExpanded((currentState) => !currentState)}
                   />
@@ -245,10 +258,15 @@ export function renderEquipmentForm(context: Record<string, any>) {
         >
           <OverlayHeader>
             <OverlayHeaderContent>
-              <OverlayEyebrow>Equipment</OverlayEyebrow>
               <OverlayTitle id="character-custom-equipment-title">
-                {customEditorMode === "edit" ? "Edit custom equipment" : "Create custom equipment"}
+                {customEditorMode === "edit" ? "Modify item" : "Create custom equipment"}
               </OverlayTitle>
+              <OverlaySummary>
+                Create or modify an item with full control over its details, including special
+                effects. Non-general item effects are active only while the item is held or worn;
+                general item effects stay active while the stack remains in inventory. If the stack
+                is fully sold or removed, its mods are gone.
+              </OverlaySummary>
             </OverlayHeaderContent>
             <OverlayCloseButton
               label="Close custom equipment modal"
@@ -258,7 +276,7 @@ export function renderEquipmentForm(context: Record<string, any>) {
 
           <CustomEquipmentEditor
             mode={customEditorMode}
-            initialEquipment={editingCustomEquipment}
+            initialStack={editingInventoryStack}
             onCancel={closeCustomEquipmentModal}
             onSave={saveCustomEquipment}
           />
@@ -616,9 +634,11 @@ export function renderEquipmentForm(context: Record<string, any>) {
           status={selectedInventoryItemStatus}
           onClose={closeInventoryItemDrawer}
           headerContent={inventoryDrawerHeaderContent}
+          headerAction={inventoryDrawerHeaderAction}
           footer={inventoryDrawerFooter}
           additionalDescription={selectedInventoryAdditionalDescription}
           descriptionAdditions={selectedInventoryDescriptionAdditions}
+          modEffects={selectedInventoryModEffects}
           weaponMasteryActive={selectedInventoryWeaponHasActiveMastery}
           weaponProficient={selectedInventoryWeaponHasProficiency}
           onOpenWeaponReference={openWeaponReference}

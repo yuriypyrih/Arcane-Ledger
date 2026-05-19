@@ -1,12 +1,15 @@
 import clsx from "clsx";
-import { Plus, Trash2 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { Check, Plus, Trash2, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import NumberInput from "../../FormInputs/NumberInput";
 import SelectInput from "../../FormInputs/SelectInput";
 import TextAreaInput from "../../FormInputs/TextAreaInput";
 import TextInput from "../../FormInputs/TextInput";
 import ActionButton from "../../../ActionButton";
 import { OverlayBody, OverlayFooter } from "../../../Overlay";
+import ModEffectsEditor from "../ModEffectsEditor";
+import RadioContainerOption from "../RadioContainerOption";
+import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import {
   CURRENCY_TYPE,
   DAMAGE_TYPE,
@@ -16,27 +19,58 @@ import {
   WEAPON_MASTERY,
   WEAPON_PROPERTY,
   WEAPON_TRAINING,
+  type EquipmentCost,
+  type WeaponDamage,
   type WeaponDamageAmount
 } from "../../../../codex/entries";
 import type {
-  CharacterCustomEquipment,
-  CharacterCustomItem,
-  CharacterCustomWeapon
+  AbilityKey,
+  CharacterInventoryItem,
+  CharacterItemModCategory,
+  CharacterItemMods,
+  CharacterCustomTraitValueMode,
+  CustomArmorType,
+  ItemRecord
 } from "../../../../types";
-import { createCustomEquipmentId } from "../../../../pages/CharactersPage/customEquipment";
+import {
+  createCustomTraitEffectDraft,
+  createCustomTraitEffectDraftFromEntry,
+  doesCustomTraitTargetAllowAbilityValue,
+  isCustomTraitAbilityValue,
+  isCustomTraitRollModeDisabledTarget,
+  parseCustomTraitEffectDraft,
+  type CustomTraitEffectDraft
+} from "../GameplayForm/widgets/TraitsConditionsWidget/customTraitDraft";
+import {
+  createCustomItemRecordFromMods,
+  getEffectiveInventoryItemRecord,
+  getItemModsCategory,
+  inferItemModCategory,
+  normalizeCharacterItemMods
+} from "../../../../pages/CharactersPage/itemMods";
+import {
+  getAdaptedItemWeapon,
+  getItemArmorType,
+  getItemWeightValue,
+  isItemShieldRecord
+} from "../../../../pages/CharactersPage/inventoryItems";
 import { clampNumber } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import { formatCodexLabel } from "../../../../utils/codex";
+import { parseItemCost } from "../../../../utils/items/cost";
 import { sanitizeUserInput } from "../../../../utils/userInputSanitization";
 import styles from "./CustomEquipmentEditor.module.css";
 
-type CustomEquipmentEditorProps = {
-  mode: "create" | "edit";
-  initialEquipment?: CharacterCustomEquipment | null;
-  onCancel: () => void;
-  onSave: (equipment: CharacterCustomEquipment) => void;
+export type CustomEquipmentEditorSavePayload = {
+  item: ItemRecord;
+  mods: CharacterItemMods;
 };
 
-type CustomEquipmentTab = "weapon" | "armor" | "item";
+type CustomEquipmentEditorProps = {
+  mode: "create" | "edit";
+  initialStack?: CharacterInventoryItem | null;
+  onCancel: () => void;
+  onSave: (payload: CustomEquipmentEditorSavePayload) => void;
+};
 
 type DamageRowDraft = {
   id: string;
@@ -44,35 +78,36 @@ type DamageRowDraft = {
   damageType: DAMAGE_TYPE;
 };
 
-type WeaponDraft = {
-  id: string;
-  onHand: boolean;
+type EquipmentModsDraft = {
+  category: CharacterItemModCategory;
   name: string;
   description: string;
+  costAmount: number;
+  costCurrency: CURRENCY_TYPE;
+  weight: number;
+  isMagicItem: boolean;
+  requiresAttunement: boolean;
   baseWeapon: WEAPON_BASE;
   training: WEAPON_TRAINING;
   combat: WEAPON_COMBAT_TYPE;
   damage: DamageRowDraft[];
   properties: WEAPON_PROPERTY[];
   mastery: WEAPON_MASTERY | "";
-  costAmount: number;
-  costCurrency: CURRENCY_TYPE;
-  weight: number;
   rangeNormal: number;
   rangeLong: number;
   ammunition: string;
   versatileDamage: DamageRowDraft[];
+  armorType: CustomArmorType;
+  armorClass: number;
+  effects: CustomTraitEffectDraft[];
 };
 
-type ItemDraft = {
-  id: string;
-  name: string;
-  description: string;
-  costAmount: number;
-  costCurrency: CURRENCY_TYPE;
-  weight: number;
-};
-
+const categoryOptions: Array<{ value: CharacterItemModCategory; label: string }> = [
+  { value: "weapon", label: "Weapon" },
+  { value: "armor", label: "Armor" },
+  { value: "general", label: "General" }
+];
+const armorTypeOptions: CustomArmorType[] = ["light", "medium", "heavy", "shield"];
 const currencyOptions = Object.values(CURRENCY_TYPE);
 const weaponBaseOptions = Object.values(WEAPON_BASE);
 const weaponTrainingOptions = Object.values(WEAPON_TRAINING);
@@ -80,414 +115,475 @@ const weaponCombatOptions = Object.values(WEAPON_COMBAT_TYPE);
 const weaponMasteryOptions = Object.values(WEAPON_MASTERY);
 const weaponPropertyOptions = Object.values(WEAPON_PROPERTY);
 const damageTypeOptions = Object.values(DAMAGE_TYPE);
-const damageAmountOptions = Object.values(DICE);
+const abilityDamageAmountOptions: AbilityKey[] = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
+const flatDamageAmountOptions = Array.from({ length: 10 }, (_, index) => index + 1);
+const damageAmountOptions: Array<{ value: string; label: string }> = [
+  ...Object.values(DICE).map((die) => ({ value: die, label: die })),
+  ...abilityDamageAmountOptions.map((ability) => ({ value: ability, label: `${ability} mod` })),
+  ...flatDamageAmountOptions.map((amount) => ({
+    value: String(amount),
+    label: String(amount)
+  }))
+];
+const defaultCost: EquipmentCost = {
+  amount: 0,
+  currency: CURRENCY_TYPE.GP
+};
+
+function createDraftId() {
+  if (typeof globalThis.crypto?.randomUUID === "function") {
+    return globalThis.crypto.randomUUID();
+  }
+
+  return `custom-item-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
 
 function createDamageRowDraft(
   amount: WeaponDamageAmount | string = DICE.D6,
   damageType = DAMAGE_TYPE.SLASHING
 ): DamageRowDraft {
   return {
-    id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+    id: createDraftId(),
     amount: String(amount).toUpperCase(),
     damageType
   };
 }
 
-function createWeaponDraft(initialEquipment?: CharacterCustomEquipment | null): WeaponDraft {
-  if (initialEquipment?.kind === "weapon") {
-    return {
-      id: initialEquipment.id,
-      onHand: initialEquipment.onHand,
-      name: initialEquipment.name,
-      description: initialEquipment.description,
-      baseWeapon: initialEquipment.baseWeapon,
-      training: initialEquipment.type.training,
-      combat: initialEquipment.type.combat,
-      damage: initialEquipment.damage.map(([amount, damageType]) =>
-        createDamageRowDraft(amount, Array.isArray(damageType) ? damageType[0] : damageType)
-      ),
-      properties: [...initialEquipment.properties],
-      mastery: initialEquipment.mastery ?? "",
-      costAmount: initialEquipment.cost.amount,
-      costCurrency: initialEquipment.cost.currency,
-      weight: initialEquipment.weight ?? 1,
-      rangeNormal: initialEquipment.range?.normal ?? 20,
-      rangeLong: initialEquipment.range?.long ?? 60,
-      ammunition: initialEquipment.range?.ammunition ?? "",
-      versatileDamage: initialEquipment.versatileDamage?.map(([amount, damageType]) =>
-        createDamageRowDraft(amount, Array.isArray(damageType) ? damageType[0] : damageType)
-      ) ?? [createDamageRowDraft(DICE.D8, DAMAGE_TYPE.SLASHING)]
-    };
-  }
-
-  return {
-    id: createCustomEquipmentId(),
-    onHand: false,
-    name: "",
-    description: "",
-    baseWeapon: WEAPON_BASE.DAGGER,
-    training: WEAPON_TRAINING.SIMPLE,
-    combat: WEAPON_COMBAT_TYPE.MELEE,
-    damage: [createDamageRowDraft(DICE.D6, DAMAGE_TYPE.SLASHING)],
-    properties: [],
-    mastery: "",
-    costAmount: 0,
-    costCurrency: CURRENCY_TYPE.GP,
-    weight: 1,
-    rangeNormal: 20,
-    rangeLong: 60,
-    ammunition: "",
-    versatileDamage: [createDamageRowDraft(DICE.D8, DAMAGE_TYPE.SLASHING)]
-  };
-}
-
-function createItemDraft(initialEquipment?: CharacterCustomEquipment | null): ItemDraft {
-  if (initialEquipment?.kind === "item") {
-    return {
-      id: initialEquipment.id,
-      name: initialEquipment.name,
-      description: initialEquipment.description,
-      costAmount: initialEquipment.cost.amount,
-      costCurrency: initialEquipment.cost.currency,
-      weight: initialEquipment.weight ?? 1
-    };
-  }
-
-  return {
-    id: createCustomEquipmentId(),
-    name: "",
-    description: "",
-    costAmount: 0,
-    costCurrency: CURRENCY_TYPE.GP,
-    weight: 1
-  };
-}
-
-function getInitialTab(initialEquipment?: CharacterCustomEquipment | null): CustomEquipmentTab {
-  if (initialEquipment?.kind === "item") {
-    return "item";
-  }
-
-  if (initialEquipment?.kind === "armor") {
-    return "armor";
-  }
-
-  return "weapon";
-}
-
 function parseDamageAmount(value: string): WeaponDamageAmount | null {
   const normalizedValue = value.trim().toUpperCase();
 
-  if (normalizedValue.startsWith("D")) {
+  if (Object.values(DICE).includes(normalizedValue as DICE)) {
     return normalizedValue as DICE;
   }
 
-  const parsedValue = Number(normalizedValue);
-
-  if (!Number.isFinite(parsedValue) || parsedValue <= 0) {
-    return null;
-  }
-
-  return Math.floor(parsedValue);
-}
-
-function getDamageAmountOptions(currentValue: string): string[] {
-  const normalizedValue = currentValue.trim().toUpperCase();
-
-  if (!normalizedValue) {
-    return damageAmountOptions;
-  }
-
-  if (damageAmountOptions.includes(normalizedValue as DICE)) {
-    return damageAmountOptions;
+  if (abilityDamageAmountOptions.includes(normalizedValue as AbilityKey)) {
+    return normalizedValue as AbilityKey;
   }
 
   const parsedValue = Number(normalizedValue);
 
-  if (Number.isFinite(parsedValue) && parsedValue > 0) {
-    return [normalizedValue, ...damageAmountOptions];
+  return Number.isFinite(parsedValue) && parsedValue > 0 ? Math.floor(parsedValue) : null;
+}
+
+function normalizeDamageRows(rows: DamageRowDraft[]): WeaponDamage | null {
+  const damage = rows
+    .map((row) => {
+      const amount = parseDamageAmount(row.amount);
+
+      return amount ? ([amount, [row.damageType]] as WeaponDamage[number]) : null;
+    })
+    .filter((entry): entry is WeaponDamage[number] => entry !== null);
+
+  return damage.length > 0 ? damage : null;
+}
+
+function createDamageRowsFromDamage(damage: WeaponDamage | null | undefined): DamageRowDraft[] {
+  const rows =
+    damage?.map(([amount, damageType]) =>
+      createDamageRowDraft(amount, Array.isArray(damageType) ? damageType[0] : damageType)
+    ) ?? [];
+
+  return rows.length > 0 ? rows : [createDamageRowDraft()];
+}
+
+function normalizeNumericInput(value: number, fallback: number, max = 999999999): number {
+  return Math.round(clampNumber(value, 0, max, fallback) * 100) / 100;
+}
+
+function getWeightDraft(item: ItemRecord | null, mods: CharacterItemMods | undefined): number {
+  if (mods?.weight !== undefined && mods.weight !== null) {
+    return mods.weight;
   }
 
-  return damageAmountOptions;
+  return getItemWeightValue(item ?? { weight: "1" }) ?? 1;
 }
 
-function normalizeDamageRows(rows: DamageRowDraft[]): CharacterCustomWeapon["damage"] | null {
-  const normalizedDamage: CharacterCustomWeapon["damage"] = [];
-
-  rows.forEach((row) => {
-    const amount = parseDamageAmount(row.amount);
-
-    if (!amount) {
-      return;
-    }
-
-    normalizedDamage.push([amount, [row.damageType]]);
-  });
-
-  return normalizedDamage.length > 0 ? normalizedDamage : null;
+function getCostDraft(item: ItemRecord | null, mods: CharacterItemMods | undefined): EquipmentCost {
+  return mods?.cost ?? parseItemCost(item?.cost) ?? defaultCost;
 }
 
-function normalizeNumericInput(value: number, fallback: number): number {
-  return Math.round(clampNumber(value, 0, 999999999, fallback) * 100) / 100;
+function inferWeaponBase(item: ItemRecord | null, mods: CharacterItemMods | undefined): WEAPON_BASE {
+  if (mods?.weapon?.baseWeapon) {
+    return mods.weapon.baseWeapon;
+  }
+
+  const weaponName = item?.weapon?.name?.trim();
+
+  if (!weaponName) {
+    return WEAPON_BASE.DAGGER;
+  }
+
+  return (
+    weaponBaseOptions.find((baseWeapon) => formatCodexLabel(baseWeapon) === weaponName) ??
+    WEAPON_BASE.DAGGER
+  );
+}
+
+function getInitialCategory(
+  mode: "create" | "edit",
+  initialStack: CharacterInventoryItem | null | undefined
+): CharacterItemModCategory {
+  if (mode === "create") {
+    return "weapon";
+  }
+
+  return initialStack
+    ? getItemModsCategory(initialStack)
+    : inferItemModCategory({ id: "", name: "", key: "" });
+}
+
+function createDraft(
+  mode: "create" | "edit",
+  initialStack?: CharacterInventoryItem | null
+): EquipmentModsDraft {
+  const mods = normalizeCharacterItemMods(initialStack?.mods);
+  const item = initialStack ? getEffectiveInventoryItemRecord(initialStack) : null;
+  const category = mods?.baseCategory ?? getInitialCategory(mode, initialStack);
+  const cost = getCostDraft(item, mods);
+  const adaptedWeapon = item ? getAdaptedItemWeapon(item) : null;
+  const armorType = mods?.armor?.armorType ?? (item && isItemShieldRecord(item) ? "shield" : null);
+  const resolvedArmorType = armorType ?? (item ? getItemArmorType(item) : null) ?? "light";
+  const armorClass =
+    mods?.armor?.armorClass ??
+    (resolvedArmorType === "shield" ? 2 : item?.armor?.ac_base) ??
+    (resolvedArmorType === "shield" ? 2 : 11);
+  const effectDrafts = mods?.effects?.map(createCustomTraitEffectDraftFromEntry) ?? [];
+
+  return {
+    category,
+    name: mods?.name ?? item?.name ?? "",
+    description: mods?.description ?? item?.desc ?? "",
+    costAmount: cost.amount,
+    costCurrency: cost.currency,
+    weight: getWeightDraft(item, mods),
+    isMagicItem: mods?.isMagicItem ?? item?.is_magic_item === true,
+    requiresAttunement: mods?.requiresAttunement ?? item?.requires_attunement === true,
+    baseWeapon: inferWeaponBase(item, mods),
+    training: mods?.weapon?.training ?? adaptedWeapon?.type.training ?? WEAPON_TRAINING.SIMPLE,
+    combat: mods?.weapon?.combat ?? adaptedWeapon?.type.combat ?? WEAPON_COMBAT_TYPE.MELEE,
+    damage: createDamageRowsFromDamage(mods?.weapon?.damage ?? adaptedWeapon?.damage),
+    properties: mods?.weapon?.properties ?? adaptedWeapon?.properties ?? [],
+    mastery: mods?.weapon?.mastery ?? adaptedWeapon?.mastery ?? "",
+    rangeNormal: mods?.weapon?.range?.normal ?? 20,
+    rangeLong: mods?.weapon?.range?.long ?? 60,
+    ammunition: mods?.weapon?.range?.ammunition ?? "",
+    versatileDamage: createDamageRowsFromDamage(
+      mods?.weapon?.versatileDamage ?? adaptedWeapon?.versatileDamage ?? [[DICE.D8, DAMAGE_TYPE.SLASHING]]
+    ),
+    armorType: resolvedArmorType,
+    armorClass,
+    effects: effectDrafts.length > 0 ? effectDrafts : [createCustomTraitEffectDraft()]
+  };
+}
+
+function getCustomItemId(initialStack: CharacterInventoryItem | null | undefined) {
+  return initialStack?.item.id || initialStack?.id || `custom-item-${createDraftId()}`;
 }
 
 function CustomEquipmentEditor({
   mode,
-  initialEquipment,
+  initialStack,
   onCancel,
   onSave
 }: CustomEquipmentEditorProps) {
-  const [activeTab, setActiveTab] = useState<CustomEquipmentTab>(() =>
-    getInitialTab(initialEquipment)
-  );
-  const [weaponDraft, setWeaponDraft] = useState<WeaponDraft>(() =>
-    createWeaponDraft(initialEquipment)
-  );
-  const [itemDraft, setItemDraft] = useState<ItemDraft>(() => createItemDraft(initialEquipment));
-  const [formError, setFormError] = useState<string | null>(null);
+  const [draft, setDraft] = useState<EquipmentModsDraft>(() => createDraft(mode, initialStack));
+  const [formError, setFormError] = useState("");
+  const selectedCategory = draft.category;
+  const hasRangeFields =
+    draft.properties.includes(WEAPON_PROPERTY.RANGE) ||
+    draft.properties.includes(WEAPON_PROPERTY.THROWN) ||
+    draft.properties.includes(WEAPON_PROPERTY.AMMUNITION);
+  const hasVersatileFields = draft.properties.includes(WEAPON_PROPERTY.VERSATILE);
+  const showCategorySelector = mode === "create";
 
   useEffect(() => {
-    setActiveTab(getInitialTab(initialEquipment));
-    setWeaponDraft(createWeaponDraft(initialEquipment));
-    setItemDraft(createItemDraft(initialEquipment));
-    setFormError(null);
-  }, [initialEquipment, mode]);
+    setDraft(createDraft(mode, initialStack));
+    setFormError("");
+  }, [initialStack, mode]);
 
-  const showsRangeFields = useMemo(
-    () =>
-      weaponDraft.properties.some((property) =>
-        [WEAPON_PROPERTY.AMMUNITION, WEAPON_PROPERTY.THROWN, WEAPON_PROPERTY.RANGE].includes(
-          property
-        )
-      ),
-    [weaponDraft.properties]
-  );
-  const showsVersatileFields = weaponDraft.properties.includes(WEAPON_PROPERTY.VERSATILE);
-  const isArmorTabDisabled = true;
-
-  function toggleWeaponProperty(property: WEAPON_PROPERTY) {
-    setWeaponDraft((currentDraft) => ({
+  function patchDraft(patch: Partial<EquipmentModsDraft>) {
+    setDraft((currentDraft) => ({
       ...currentDraft,
-      properties: currentDraft.properties.includes(property)
-        ? currentDraft.properties.filter((currentProperty) => currentProperty !== property)
-        : [...currentDraft.properties, property]
+      ...patch
     }));
   }
 
-  function addDamageRow(target: "damage" | "versatileDamage") {
-    setWeaponDraft((currentDraft) => ({
-      ...currentDraft,
-      [target]: [...currentDraft[target], createDamageRowDraft()]
-    }));
-  }
-
-  function removeDamageRow(target: "damage" | "versatileDamage", rowId: string) {
-    setWeaponDraft((currentDraft) => ({
-      ...currentDraft,
-      [target]:
-        currentDraft[target].length > 1
-          ? currentDraft[target].filter((row) => row.id !== rowId)
-          : currentDraft[target]
-    }));
-  }
-
-  function updateDamageRow(
-    target: "damage" | "versatileDamage",
-    rowId: string,
-    field: "amount" | "damageType",
-    value: string
-  ) {
-    setWeaponDraft((currentDraft) => ({
-      ...currentDraft,
-      [target]: currentDraft[target].map((row) =>
-        row.id === rowId
-          ? { ...row, [field]: field === "amount" ? value.toUpperCase() : value }
-          : row
-      )
-    }));
-  }
-
-  function saveWeapon() {
-    const normalizedName = sanitizeUserInput(weaponDraft.name);
-    const normalizedDescription = sanitizeUserInput(weaponDraft.description, { multiline: true });
-    const normalizedAmmunition = sanitizeUserInput(weaponDraft.ammunition);
-    const normalizedDamage = normalizeDamageRows(weaponDraft.damage);
-
-    if (!normalizedName) {
-      setFormError("A custom weapon needs a name.");
-      return;
-    }
-
-    if (!normalizedDamage) {
-      setFormError("Add at least one valid damage entry.");
-      return;
-    }
-
-    if (showsRangeFields) {
-      const normalizedRangeNormal = Math.floor(clampNumber(weaponDraft.rangeNormal, 1, 9999, 20));
-      const normalizedRangeLong = Math.floor(
-        clampNumber(weaponDraft.rangeLong, normalizedRangeNormal, 9999, 60)
-      );
-
-      if (normalizedRangeLong < normalizedRangeNormal) {
-        setFormError("The long range must be greater than or equal to the normal range.");
-        return;
-      }
-    }
-
-    if (showsVersatileFields) {
-      const normalizedVersatileDamage = normalizeDamageRows(weaponDraft.versatileDamage);
-
-      if (!normalizedVersatileDamage) {
-        setFormError("Versatile weapons need at least one valid alternate damage entry.");
-        return;
-      }
-    }
-
-    onSave({
-      id: weaponDraft.id,
-      kind: "weapon",
-      onHand: weaponDraft.onHand,
-      name: normalizedName,
-      description: normalizedDescription,
-      baseWeapon: weaponDraft.baseWeapon,
-      type: {
-        training: weaponDraft.training,
-        combat: weaponDraft.combat
-      },
-      damage: normalizedDamage,
-      properties: [...weaponDraft.properties],
-      mastery: weaponDraft.mastery || undefined,
-      cost: {
-        amount: Math.floor(clampNumber(weaponDraft.costAmount, 0, 999999999, 0)),
-        currency: weaponDraft.costCurrency
-      },
-      weight: normalizeNumericInput(weaponDraft.weight, 1),
-      range: showsRangeFields
-        ? {
-            normal: Math.floor(clampNumber(weaponDraft.rangeNormal, 1, 9999, 20)),
-            long: Math.floor(clampNumber(weaponDraft.rangeLong, weaponDraft.rangeNormal, 9999, 60)),
-            ...(normalizedAmmunition ? { ammunition: normalizedAmmunition } : {})
-          }
-        : undefined,
-      versatileDamage: showsVersatileFields
-        ? (normalizeDamageRows(weaponDraft.versatileDamage) ?? undefined)
-        : undefined
+  function updateDamageRow(rowId: string, patch: Partial<DamageRowDraft>) {
+    patchDraft({
+      damage: draft.damage.map((row) => (row.id === rowId ? { ...row, ...patch } : row))
     });
   }
 
-  function saveItem() {
-    const normalizedName = sanitizeUserInput(itemDraft.name);
-    const normalizedDescription = sanitizeUserInput(itemDraft.description, { multiline: true });
+  function updateVersatileDamageRow(rowId: string, patch: Partial<DamageRowDraft>) {
+    patchDraft({
+      versatileDamage: draft.versatileDamage.map((row) =>
+        row.id === rowId ? { ...row, ...patch } : row
+      )
+    });
+  }
 
-    if (!normalizedName) {
-      setFormError("A custom item needs a name.");
+  function toggleProperty(property: WEAPON_PROPERTY) {
+    const propertySet = new Set(draft.properties);
+
+    if (propertySet.has(property)) {
+      propertySet.delete(property);
+    } else {
+      propertySet.add(property);
+    }
+
+    patchDraft({ properties: [...propertySet] });
+  }
+
+  function handleEffectTargetChange(effectId: string, value: string) {
+    patchDraft({
+      effects: draft.effects.map((effect) =>
+        effect.id === effectId
+          ? {
+              ...effect,
+              target: value,
+              value:
+                isCustomTraitAbilityValue(effect.value) &&
+                !doesCustomTraitTargetAllowAbilityValue(value)
+                  ? "0"
+                  : effect.value,
+              rollMode: isCustomTraitRollModeDisabledTarget(value) ? "normal" : effect.rollMode
+            }
+          : effect
+      )
+    });
+  }
+
+  function handleEffectValueChange(effectId: string, value: string) {
+    patchDraft({
+      effects: draft.effects.map((effect) =>
+        effect.id === effectId ? { ...effect, value } : effect
+      )
+    });
+  }
+
+  function handleEffectValueModeChange(effectId: string, value: CharacterCustomTraitValueMode) {
+    patchDraft({
+      effects: draft.effects.map((effect) =>
+        effect.id === effectId ? { ...effect, valueMode: value } : effect
+      )
+    });
+  }
+
+  function handleEffectRollModeChange(
+    effectId: string,
+    value: CustomTraitEffectDraft["rollMode"]
+  ) {
+    patchDraft({
+      effects: draft.effects.map((effect) =>
+        effect.id === effectId
+          ? {
+              ...effect,
+              rollMode: isCustomTraitRollModeDisabledTarget(effect.target) ? "normal" : value
+            }
+          : effect
+      )
+    });
+  }
+
+  function handleRemoveEffect(effectId: string) {
+    if (draft.effects.length === 1) {
+      patchDraft({ effects: [createCustomTraitEffectDraft()] });
       return;
     }
 
-    if (!normalizedDescription) {
-      setFormError("A custom item needs a description.");
+    patchDraft({ effects: draft.effects.filter((effect) => effect.id !== effectId) });
+  }
+
+  function buildMods(): CharacterItemMods | null {
+    const name = sanitizeUserInput(draft.name).trim();
+
+    if (!name) {
+      setFormError("Name is required.");
+      return null;
+    }
+
+    const damage = normalizeDamageRows(draft.damage);
+
+    if (selectedCategory === "weapon" && !damage) {
+      setFormError("At least one valid damage row is required.");
+      return null;
+    }
+
+    const effects = draft.effects
+      .map(parseCustomTraitEffectDraft)
+      .filter((effect): effect is NonNullable<typeof effect> => effect !== null);
+    const mods: CharacterItemMods = {
+      baseCategory: selectedCategory,
+      isCustom: mode === "create" || initialStack?.mods?.isCustom === true,
+      name,
+      description: sanitizeUserInput(draft.description),
+      cost: {
+        amount: Math.floor(clampNumber(draft.costAmount, 0, 999999999, 0)),
+        currency: draft.costCurrency
+      },
+      weight: normalizeNumericInput(draft.weight, 1),
+      isMagicItem: draft.isMagicItem,
+      requiresAttunement: draft.requiresAttunement,
+      effects
+    };
+
+    if (selectedCategory === "weapon") {
+      mods.weapon = {
+        baseWeapon: draft.baseWeapon,
+        training: draft.training,
+        combat: draft.combat,
+        damage: damage ?? [[DICE.D6, [DAMAGE_TYPE.SLASHING]]],
+        properties: draft.properties,
+        mastery: draft.mastery || undefined,
+        range: hasRangeFields
+          ? {
+              normal: Math.floor(clampNumber(draft.rangeNormal, 1, 9999, 20)),
+              long: Math.floor(clampNumber(draft.rangeLong, 1, 9999, 60)),
+              ...(sanitizeUserInput(draft.ammunition).trim()
+                ? { ammunition: sanitizeUserInput(draft.ammunition).trim() }
+                : {})
+            }
+          : undefined,
+        versatileDamage: hasVersatileFields
+          ? (normalizeDamageRows(draft.versatileDamage) ?? undefined)
+          : undefined
+      };
+    }
+
+    if (selectedCategory === "armor") {
+      mods.armor = {
+        armorType: draft.armorType,
+        armorClass: Math.floor(clampNumber(draft.armorClass, 0, 30, draft.armorType === "shield" ? 2 : 11))
+      };
+    }
+
+    return normalizeCharacterItemMods(mods) ?? null;
+  }
+
+  function handleSubmit() {
+    const mods = buildMods();
+
+    if (!mods) {
       return;
     }
 
     onSave({
-      id: itemDraft.id,
-      kind: "item",
-      name: normalizedName,
-      description: normalizedDescription,
-      cost: {
-        amount: Math.floor(clampNumber(itemDraft.costAmount, 0, 999999999, 0)),
-        currency: itemDraft.costCurrency
-      },
-      weight: normalizeNumericInput(itemDraft.weight, 1)
-    } satisfies CharacterCustomItem);
-  }
-
-  function handleSave() {
-    setFormError(null);
-
-    if (activeTab === "weapon") {
-      saveWeapon();
-      return;
-    }
-
-    if (activeTab === "item") {
-      saveItem();
-      return;
-    }
-
-    setFormError("Custom armor creation is not available yet.");
+      item: createCustomItemRecordFromMods(getCustomItemId(initialStack), mods),
+      mods
+    });
   }
 
   return (
     <>
       <OverlayBody className={styles.customEquipmentEditorBody}>
-        <div
-          className={styles.customEquipmentTabRow}
-          role="tablist"
-          aria-label="Custom equipment types"
-        >
-          {(["weapon", "armor", "item"] as const).map((tab) => {
-            const isDisabled = tab === "armor" && isArmorTabDisabled;
-
-            return (
-              <button
-                key={tab}
-                type="button"
-                role="tab"
-                aria-selected={activeTab === tab}
-                disabled={isDisabled}
-                className={clsx(
-                  styles.customEquipmentTabButton,
-                  activeTab === tab && styles.customEquipmentTabButtonActive,
-                  isDisabled && styles.customEquipmentTabButtonDisabled
-                )}
-                onClick={() => {
-                  if (!isDisabled) {
-                    setActiveTab(tab);
-                    setFormError(null);
-                  }
-                }}
-              >
-                {tab === "item" ? "Item" : tab === "weapon" ? "Weapon" : "Armor"}
-              </button>
-            );
-          })}
-        </div>
-
-        {activeTab === "armor" ? (
-          <div className={styles.customEquipmentDisabledState}>
-            <p>
-              Custom armor is temporarily disabled while the armor refactor is still in progress.
-            </p>
+        {showCategorySelector ? (
+          <div className={styles.customEquipmentCategoryGrid} aria-label="Equipment category">
+            {categoryOptions.map((option) => (
+              <RadioContainerOption
+                key={option.value}
+                name="custom-equipment-category"
+                header={option.label}
+                selected={selectedCategory === option.value}
+                onSelect={() => patchDraft({ category: option.value })}
+                className={styles.customEquipmentChoiceOption}
+              />
+            ))}
           </div>
         ) : null}
 
-        {activeTab === "weapon" ? (
-          <div className={styles.customEquipmentFormStack}>
+        <div className={styles.customEquipmentFormStack}>
+          <div className={styles.customEquipmentNameRow}>
             <label className={styles.customEquipmentField}>
               <span>Name</span>
               <TextInput
-                value={weaponDraft.name}
-                onChange={(event) =>
-                  setWeaponDraft((currentDraft) => ({
-                    ...currentDraft,
-                    name: event.target.value
-                  }))
-                }
+                value={draft.name}
+                onChange={(event) => patchDraft({ name: event.target.value })}
               />
             </label>
 
+            <div className={styles.customEquipmentCheckboxRow}>
+              <label className={styles.customEquipmentCheckbox}>
+                <input
+                  type="checkbox"
+                  checked={draft.isMagicItem}
+                  onChange={(event) => patchDraft({ isMagicItem: event.target.checked })}
+                />
+                <span>Magic</span>
+              </label>
+              <label className={styles.customEquipmentCheckbox}>
+                <input
+                  type="checkbox"
+                  checked={draft.requiresAttunement}
+                  onChange={(event) => patchDraft({ requiresAttunement: event.target.checked })}
+                />
+                <span>Attunement</span>
+              </label>
+            </div>
+          </div>
+
+          <div className={styles.customEquipmentCostRow}>
+            <label className={styles.customEquipmentField}>
+              <span>Cost</span>
+              <NumberInput
+                min={0}
+                value={draft.costAmount}
+                onChange={(event) =>
+                  patchDraft({
+                    costAmount: Math.floor(clampNumber(event.target.valueAsNumber, 0, 999999999, 0))
+                  })
+                }
+              />
+            </label>
+            <label className={styles.customEquipmentField}>
+              <span>Currency</span>
+              <SelectInput
+                value={draft.costCurrency}
+                onChange={(event) =>
+                  patchDraft({ costCurrency: event.target.value as CURRENCY_TYPE })
+                }
+              >
+                {currencyOptions.map((currency) => (
+                  <option key={currency} value={currency}>
+                    {currency}
+                  </option>
+                ))}
+              </SelectInput>
+            </label>
+            <label className={styles.customEquipmentField}>
+              <span>Weight (lb)</span>
+              <NumberInput
+                min={0}
+                step={0.1}
+                value={draft.weight}
+                onChange={(event) =>
+                  patchDraft({ weight: normalizeNumericInput(event.target.valueAsNumber, draft.weight) })
+                }
+              />
+            </label>
+          </div>
+
+          <label className={styles.customEquipmentField}>
+            <span>Description</span>
+            <TextAreaInput
+              rows={3}
+              className={styles.customEquipmentCompactTextarea}
+              value={draft.description}
+              onChange={(event) => patchDraft({ description: event.target.value })}
+            />
+          </label>
+        </div>
+
+        <div className={styles.customEquipmentDivider} />
+
+        {selectedCategory === "weapon" ? (
+          <div className={styles.customEquipmentFormStack}>
             <div className={styles.customEquipmentThreeColumnRow}>
               <label className={styles.customEquipmentField}>
-                <span>Base weapon</span>
+                <span>Base Weapon</span>
                 <SelectInput
-                  value={weaponDraft.baseWeapon}
+                  value={draft.baseWeapon}
                   onChange={(event) =>
-                    setWeaponDraft((currentDraft) => ({
-                      ...currentDraft,
-                      baseWeapon: event.target.value as WEAPON_BASE
-                    }))
+                    patchDraft({ baseWeapon: event.target.value as WEAPON_BASE })
                   }
                 >
                   {weaponBaseOptions.map((baseWeapon) => (
@@ -500,17 +596,14 @@ function CustomEquipmentEditor({
               <label className={styles.customEquipmentField}>
                 <span>Training</span>
                 <SelectInput
-                  value={weaponDraft.training}
+                  value={draft.training}
                   onChange={(event) =>
-                    setWeaponDraft((currentDraft) => ({
-                      ...currentDraft,
-                      training: event.target.value as WEAPON_TRAINING
-                    }))
+                    patchDraft({ training: event.target.value as WEAPON_TRAINING })
                   }
                 >
                   {weaponTrainingOptions.map((training) => (
                     <option key={training} value={training}>
-                      {training}
+                      {formatCodexLabel(training)}
                     </option>
                   ))}
                 </SelectInput>
@@ -518,17 +611,14 @@ function CustomEquipmentEditor({
               <label className={styles.customEquipmentField}>
                 <span>Combat</span>
                 <SelectInput
-                  value={weaponDraft.combat}
+                  value={draft.combat}
                   onChange={(event) =>
-                    setWeaponDraft((currentDraft) => ({
-                      ...currentDraft,
-                      combat: event.target.value as WEAPON_COMBAT_TYPE
-                    }))
+                    patchDraft({ combat: event.target.value as WEAPON_COMBAT_TYPE })
                   }
                 >
                   {weaponCombatOptions.map((combat) => (
                     <option key={combat} value={combat}>
-                      {combat}
+                      {formatCodexLabel(combat)}
                     </option>
                   ))}
                 </SelectInput>
@@ -536,18 +626,15 @@ function CustomEquipmentEditor({
               <label className={styles.customEquipmentField}>
                 <span>Mastery</span>
                 <SelectInput
-                  value={weaponDraft.mastery}
+                  value={draft.mastery}
                   onChange={(event) =>
-                    setWeaponDraft((currentDraft) => ({
-                      ...currentDraft,
-                      mastery: event.target.value as WEAPON_MASTERY | ""
-                    }))
+                    patchDraft({ mastery: event.target.value as WEAPON_MASTERY | "" })
                   }
                 >
                   <option value="">None</option>
                   {weaponMasteryOptions.map((mastery) => (
                     <option key={mastery} value={mastery}>
-                      {mastery}
+                      {formatCodexLabel(mastery)}
                     </option>
                   ))}
                 </SelectInput>
@@ -556,78 +643,72 @@ function CustomEquipmentEditor({
 
             <section className={styles.customEquipmentSection}>
               <div className={styles.customEquipmentSectionHeader}>
-                <div>
-                  <p className={styles.customEquipmentSectionTitle}>Properties</p>
-                  <p className={styles.customEquipmentSectionDescription}>
-                    Toggle any properties that apply to this weapon.
-                  </p>
-                </div>
+                <p className={styles.customEquipmentSectionTitle}>Properties</p>
               </div>
-
               <div className={styles.customPropertyGrid}>
-                {weaponPropertyOptions.map((property) => (
-                  <button
-                    key={property}
-                    type="button"
-                    className={clsx(
-                      styles.customPropertyButton,
-                      weaponDraft.properties.includes(property) && styles.customPropertyButtonActive
-                    )}
-                    onClick={() => toggleWeaponProperty(property)}
-                  >
-                    {property}
-                  </button>
-                ))}
+                {weaponPropertyOptions.map((property) => {
+                  const isActive = draft.properties.includes(property);
+
+                  return (
+                    <RadioContainerOption
+                      key={property}
+                      header={formatCodexLabel(property)}
+                      selected={isActive}
+                      onSelect={() => toggleProperty(property)}
+                      indicatorType="checkbox"
+                      className={clsx(
+                        styles.customEquipmentChoiceOption,
+                        styles.customPropertyOption
+                      )}
+                    />
+                  );
+                })}
               </div>
             </section>
 
             <section className={styles.customEquipmentSection}>
               <div className={styles.customEquipmentSectionHeader}>
-                <div>
-                  <p className={styles.customEquipmentSectionTitle}>Damage</p>
-                  <p className={styles.customEquipmentSectionDescription}>
-                    Add one row for each damage die or damage instance this weapon deals.
-                  </p>
-                </div>
+                <p className={styles.customEquipmentSectionTitle}>Damage</p>
                 <button
                   type="button"
-                  className={styles.customEquipmentInlineButton}
-                  onClick={() => addDamageRow("damage")}
+                  className={clsx(shared.editButton, styles.customEquipmentInlineButton)}
+                  onClick={() => patchDraft({ damage: [...draft.damage, createDamageRowDraft()] })}
                 >
-                  <Plus size={14} aria-hidden="true" />
-                  Add damage
+                  <Plus size={15} aria-hidden="true" />
+                  Add
                 </button>
               </div>
-
               <div className={styles.customDamageList}>
-                {weaponDraft.damage.map((damageRow) => (
-                  <div key={damageRow.id} className={styles.customDamageRow}>
+                {draft.damage.map((row) => (
+                  <div key={row.id} className={styles.customDamageRow}>
                     <label className={styles.customEquipmentField}>
                       <span>Amount</span>
                       <SelectInput
-                        value={damageRow.amount}
+                        value={row.amount}
                         onChange={(event) =>
-                          updateDamageRow("damage", damageRow.id, "amount", event.target.value)
+                          updateDamageRow(row.id, { amount: event.target.value })
                         }
                       >
-                        {getDamageAmountOptions(damageRow.amount).map((amount) => (
-                          <option key={amount} value={amount}>
-                            {amount}
+                        {damageAmountOptions.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
                           </option>
                         ))}
                       </SelectInput>
                     </label>
                     <label className={styles.customEquipmentField}>
-                      <span>Damage type</span>
+                      <span>Type</span>
                       <SelectInput
-                        value={damageRow.damageType}
+                        value={row.damageType}
                         onChange={(event) =>
-                          updateDamageRow("damage", damageRow.id, "damageType", event.target.value)
+                          updateDamageRow(row.id, {
+                            damageType: event.target.value as DAMAGE_TYPE
+                          })
                         }
                       >
                         {damageTypeOptions.map((damageType) => (
                           <option key={damageType} value={damageType}>
-                            {damageType}
+                            {formatCodexLabel(damageType)}
                           </option>
                         ))}
                       </SelectInput>
@@ -635,132 +716,106 @@ function CustomEquipmentEditor({
                     <button
                       type="button"
                       className={styles.customDamageRemoveButton}
-                      onClick={() => removeDamageRow("damage", damageRow.id)}
-                      disabled={weaponDraft.damage.length <= 1}
+                      disabled={draft.damage.length === 1}
+                      onClick={() =>
+                        patchDraft({ damage: draft.damage.filter((entry) => entry.id !== row.id) })
+                      }
                       aria-label="Remove damage row"
                     >
-                      <Trash2 size={14} aria-hidden="true" />
+                      <Trash2 size={15} aria-hidden="true" />
                     </button>
                   </div>
                 ))}
               </div>
             </section>
 
-            {showsRangeFields ? (
+            {hasRangeFields ? (
               <section className={styles.customEquipmentSection}>
-                <div className={styles.customEquipmentSectionHeader}>
-                  <div>
-                    <p className={styles.customEquipmentSectionTitle}>Range</p>
-                    <p className={styles.customEquipmentSectionDescription}>
-                      Required when the weapon uses `Range`, `Thrown`, or `Ammunition`.
-                    </p>
-                  </div>
-                </div>
-
+                <p className={styles.customEquipmentSectionTitle}>Range</p>
                 <div className={styles.customEquipmentFormGrid}>
                   <label className={styles.customEquipmentField}>
-                    <span>Normal range</span>
+                    <span>Normal</span>
                     <NumberInput
                       min={1}
-                      value={weaponDraft.rangeNormal}
+                      value={draft.rangeNormal}
                       onChange={(event) =>
-                        setWeaponDraft((currentDraft) => ({
-                          ...currentDraft,
-                          rangeNormal: Math.floor(clampNumber(event.target.value, 1, 9999, 20))
-                        }))
+                        patchDraft({
+                          rangeNormal: Math.floor(clampNumber(event.target.valueAsNumber, 1, 9999, 20))
+                        })
                       }
                     />
                   </label>
                   <label className={styles.customEquipmentField}>
-                    <span>Long range</span>
+                    <span>Long</span>
                     <NumberInput
-                      min={weaponDraft.rangeNormal}
-                      value={weaponDraft.rangeLong}
+                      min={1}
+                      value={draft.rangeLong}
                       onChange={(event) =>
-                        setWeaponDraft((currentDraft) => ({
-                          ...currentDraft,
-                          rangeLong: Math.floor(
-                            clampNumber(event.target.value, currentDraft.rangeNormal, 9999, 60)
-                          )
-                        }))
+                        patchDraft({
+                          rangeLong: Math.floor(clampNumber(event.target.valueAsNumber, 1, 9999, 60))
+                        })
                       }
                     />
                   </label>
                   <label className={styles.customEquipmentField}>
-                    <span>Ammunition label (Optional)</span>
+                    <span>Ammunition</span>
                     <TextInput
-                      value={weaponDraft.ammunition}
-                      onChange={(event) =>
-                        setWeaponDraft((currentDraft) => ({
-                          ...currentDraft,
-                          ammunition: event.target.value
-                        }))
-                      }
-                      placeholder="Arrow"
+                      value={draft.ammunition}
+                      onChange={(event) => patchDraft({ ammunition: event.target.value })}
                     />
                   </label>
                 </div>
               </section>
             ) : null}
 
-            {showsVersatileFields ? (
+            {hasVersatileFields ? (
               <section className={styles.customEquipmentSection}>
                 <div className={styles.customEquipmentSectionHeader}>
-                  <div>
-                    <p className={styles.customEquipmentSectionTitle}>Versatile damage</p>
-                    <p className={styles.customEquipmentSectionDescription}>
-                      Add the alternate damage used when the weapon is wielded differently.
-                    </p>
-                  </div>
+                  <p className={styles.customEquipmentSectionTitle}>Versatile Damage</p>
                   <button
                     type="button"
-                    className={styles.customEquipmentInlineButton}
-                    onClick={() => addDamageRow("versatileDamage")}
+                    className={clsx(shared.editButton, styles.customEquipmentInlineButton)}
+                    onClick={() =>
+                      patchDraft({
+                        versatileDamage: [...draft.versatileDamage, createDamageRowDraft()]
+                      })
+                    }
                   >
-                    <Plus size={14} aria-hidden="true" />
-                    Add row
+                    <Plus size={15} aria-hidden="true" />
+                    Add
                   </button>
                 </div>
-
                 <div className={styles.customDamageList}>
-                  {weaponDraft.versatileDamage.map((damageRow) => (
-                    <div key={damageRow.id} className={styles.customDamageRow}>
+                  {draft.versatileDamage.map((row) => (
+                    <div key={row.id} className={styles.customDamageRow}>
                       <label className={styles.customEquipmentField}>
                         <span>Amount</span>
                         <SelectInput
-                          value={damageRow.amount}
+                          value={row.amount}
                           onChange={(event) =>
-                            updateDamageRow(
-                              "versatileDamage",
-                              damageRow.id,
-                              "amount",
-                              event.target.value
-                            )
+                            updateVersatileDamageRow(row.id, { amount: event.target.value })
                           }
                         >
-                          {getDamageAmountOptions(damageRow.amount).map((amount) => (
-                            <option key={amount} value={amount}>
-                              {amount}
+                          {damageAmountOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
                             </option>
                           ))}
                         </SelectInput>
                       </label>
                       <label className={styles.customEquipmentField}>
-                        <span>Damage type</span>
+                        <span>Type</span>
                         <SelectInput
-                          value={damageRow.damageType}
+                          value={row.damageType}
                           onChange={(event) =>
-                            updateDamageRow(
-                              "versatileDamage",
-                              damageRow.id,
-                              "damageType",
-                              event.target.value
-                            )
+                            updateVersatileDamageRow(row.id, {
+                              damageType: event.target.value as DAMAGE_TYPE
+                            })
                           }
                         >
                           {damageTypeOptions.map((damageType) => (
                             <option key={damageType} value={damageType}>
-                              {damageType}
+                              {formatCodexLabel(damageType)}
                             </option>
                           ))}
                         </SelectInput>
@@ -768,179 +823,97 @@ function CustomEquipmentEditor({
                       <button
                         type="button"
                         className={styles.customDamageRemoveButton}
-                        onClick={() => removeDamageRow("versatileDamage", damageRow.id)}
-                        disabled={weaponDraft.versatileDamage.length <= 1}
+                        disabled={draft.versatileDamage.length === 1}
+                        onClick={() =>
+                          patchDraft({
+                            versatileDamage: draft.versatileDamage.filter(
+                              (entry) => entry.id !== row.id
+                            )
+                          })
+                        }
                         aria-label="Remove versatile damage row"
                       >
-                        <Trash2 size={14} aria-hidden="true" />
+                        <Trash2 size={15} aria-hidden="true" />
                       </button>
                     </div>
                   ))}
                 </div>
               </section>
             ) : null}
+          </div>
+        ) : null}
 
-            <div className={styles.customEquipmentFormGrid}>
-              <label className={styles.customEquipmentField}>
-                <span>Cost</span>
-                <div className={styles.customEquipmentInlineFieldRow}>
-                  <NumberInput
-                    min={0}
-                    value={weaponDraft.costAmount}
-                    onChange={(event) =>
-                      setWeaponDraft((currentDraft) => ({
-                        ...currentDraft,
-                        costAmount: Math.floor(clampNumber(event.target.value, 0, 999999999, 0))
-                      }))
-                    }
-                  />
-                  <SelectInput
-                    value={weaponDraft.costCurrency}
-                    onChange={(event) =>
-                      setWeaponDraft((currentDraft) => ({
-                        ...currentDraft,
-                        costCurrency: event.target.value as CURRENCY_TYPE
-                      }))
-                    }
-                  >
-                    {currencyOptions.map((currency) => (
-                      <option key={currency} value={currency}>
-                        {currency}
-                      </option>
-                    ))}
-                  </SelectInput>
-                </div>
-              </label>
-              <label className={styles.customEquipmentField}>
-                <span>Weight (lb.)</span>
-                <NumberInput
-                  min={0}
-                  step="0.25"
-                  value={weaponDraft.weight}
-                  onChange={(event) =>
-                    setWeaponDraft((currentDraft) => ({
-                      ...currentDraft,
-                      weight: normalizeNumericInput(Number(event.target.value), currentDraft.weight)
-                    }))
-                  }
-                />
-              </label>
-            </div>
-
+        {selectedCategory === "armor" ? (
+          <div className={styles.customEquipmentFormGrid}>
             <label className={styles.customEquipmentField}>
-              <span>Description (Optional)</span>
-              <TextAreaInput
-                rows={2}
-                className={styles.customEquipmentCompactTextarea}
-                value={weaponDraft.description}
+              <span>Type</span>
+              <SelectInput
+                value={draft.armorType}
                 onChange={(event) =>
-                  setWeaponDraft((currentDraft) => ({
-                    ...currentDraft,
-                    description: event.target.value
-                  }))
+                  patchDraft({
+                    armorType: event.target.value as CustomArmorType,
+                    armorClass: event.target.value === "shield" ? 2 : draft.armorClass
+                  })
+                }
+              >
+                {armorTypeOptions.map((armorType) => (
+                  <option key={armorType} value={armorType}>
+                    {formatCodexLabel(armorType)}
+                  </option>
+                ))}
+              </SelectInput>
+            </label>
+            <label className={styles.customEquipmentField}>
+              <span>{draft.armorType === "shield" ? "AC Bonus" : "Armor Class"}</span>
+              <NumberInput
+                min={0}
+                max={30}
+                value={draft.armorClass}
+                onChange={(event) =>
+                  patchDraft({
+                    armorClass: Math.floor(
+                      clampNumber(event.target.valueAsNumber, 0, 30, draft.armorType === "shield" ? 2 : 11)
+                    )
+                  })
                 }
               />
             </label>
           </div>
         ) : null}
 
-        {activeTab === "item" ? (
-          <div className={styles.customEquipmentFormStack}>
-            <div className={styles.customEquipmentFormGrid}>
-              <label className={styles.customEquipmentField}>
-                <span>Name</span>
-                <TextInput
-                  value={itemDraft.name}
-                  onChange={(event) =>
-                    setItemDraft((currentDraft) => ({
-                      ...currentDraft,
-                      name: event.target.value
-                    }))
-                  }
-                />
-              </label>
-              <label className={styles.customEquipmentField}>
-                <span>Weight (lb.)</span>
-                <NumberInput
-                  min={0}
-                  step="0.25"
-                  value={itemDraft.weight}
-                  onChange={(event) =>
-                    setItemDraft((currentDraft) => ({
-                      ...currentDraft,
-                      weight: normalizeNumericInput(Number(event.target.value), currentDraft.weight)
-                    }))
-                  }
-                />
-              </label>
-            </div>
+        {selectedCategory !== "general" ? <div className={styles.customEquipmentDivider} /> : null}
 
-            <label className={styles.customEquipmentField}>
-              <span>Cost</span>
-              <div className={styles.customEquipmentInlineFieldRow}>
-                <NumberInput
-                  min={0}
-                  value={itemDraft.costAmount}
-                  onChange={(event) =>
-                    setItemDraft((currentDraft) => ({
-                      ...currentDraft,
-                      costAmount: Math.floor(clampNumber(event.target.value, 0, 999999999, 0))
-                    }))
-                  }
-                />
-                <SelectInput
-                  value={itemDraft.costCurrency}
-                  onChange={(event) =>
-                    setItemDraft((currentDraft) => ({
-                      ...currentDraft,
-                      costCurrency: event.target.value as CURRENCY_TYPE
-                    }))
-                  }
-                >
-                  {currencyOptions.map((currency) => (
-                    <option key={currency} value={currency}>
-                      {currency}
-                    </option>
-                  ))}
-                </SelectInput>
-              </div>
-            </label>
-
-            <label className={styles.customEquipmentField}>
-              <span>Description</span>
-              <TextAreaInput
-                rows={3}
-                className={styles.customEquipmentCompactTextarea}
-                value={itemDraft.description}
-                onChange={(event) =>
-                  setItemDraft((currentDraft) => ({
-                    ...currentDraft,
-                    description: event.target.value
-                  }))
-                }
-              />
-            </label>
-          </div>
-        ) : null}
+        <ModEffectsEditor
+          effects={draft.effects}
+          onAddEffect={() =>
+            patchDraft({ effects: [...draft.effects, createCustomTraitEffectDraft()] })
+          }
+          onEffectTargetChange={handleEffectTargetChange}
+          onEffectValueChange={handleEffectValueChange}
+          onEffectValueModeChange={handleEffectValueModeChange}
+          onEffectRollModeChange={handleEffectRollModeChange}
+          onRemoveEffect={handleRemoveEffect}
+        />
       </OverlayBody>
 
       <OverlayFooter className={styles.customEquipmentEditorFooter}>
         {formError ? <p className={styles.customEquipmentError}>{formError}</p> : null}
-
         <div className={styles.customEquipmentActionRow}>
           <ActionButton
-            variant="GHOST"
+            actionType="INFO"
+            variant="OUTLINE"
             className={styles.customEquipmentFooterButton}
             onClick={onCancel}
+            icon={<X size={16} aria-hidden="true" />}
           >
             Cancel
           </ActionButton>
           <ActionButton
             className={styles.customEquipmentFooterButton}
-            onClick={handleSave}
-            disabled={activeTab === "armor"}
+            onClick={handleSubmit}
+            icon={<Check size={16} aria-hidden="true" />}
           >
-            {mode === "edit" ? "Save changes" : "Create custom equipment"}
+            Save
           </ActionButton>
         </div>
       </OverlayFooter>

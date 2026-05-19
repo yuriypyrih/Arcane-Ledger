@@ -2,6 +2,7 @@ import type { Character } from "../../../types";
 import { createDefaultCurrencies } from "../constants";
 import { normalizeArmorClassFormulaSelection, normalizeCharacterArmorWearState } from "../armor";
 import { normalizeCustomEquipmentEntries } from "../customEquipment";
+import { convertLegacyEquipmentToInventoryItems } from "../legacyEquipmentItems";
 import { normalizeCharacterInventoryItems } from "../inventoryItems";
 import {
   normalizeCharacterEquipmentSelections,
@@ -54,20 +55,23 @@ function normalizeRuntimeSpellIds(value: unknown): string[] {
 
 function normalizeEquipmentRuntime(character: Character): Character {
   const normalizedEquipment = normalizeCharacterEquipmentSelections(character.equipment);
-  const normalizedInventoryItems = normalizeCharacterInventoryItems(character.inventoryItems);
   const normalizedCustomEquipment = normalizeCustomEquipmentEntries(character.customEquipment);
+  const normalizedInventoryItems = normalizeCharacterInventoryItems([
+    ...normalizeCharacterInventoryItems(character.inventoryItems),
+    ...convertLegacyEquipmentToInventoryItems(normalizedEquipment, normalizedCustomEquipment)
+  ]);
   const normalizedArmorWearState = normalizeCharacterArmorWearState(
-    normalizedEquipment,
+    [],
     normalizedInventoryItems,
-    normalizedCustomEquipment
+    []
   );
 
   return {
     ...character,
     currencies: normalizeCharacterCurrencies(character.currencies, createDefaultCurrencies()),
-    equipment: normalizedArmorWearState.equipment,
+    equipment: [],
     inventoryItems: normalizedArmorWearState.inventoryItems,
-    customEquipment: normalizedArmorWearState.customEquipment,
+    customEquipment: [],
     armorClassFormulaSelection: normalizeArmorClassFormulaSelection(
       character.armorClassFormulaSelection,
       {
@@ -75,9 +79,9 @@ function normalizeEquipmentRuntime(character: Character): Character {
         level: character.level,
         subclassId: character.subclassId,
         classFeatureState: character.classFeatureState,
-        equipment: normalizedArmorWearState.equipment,
+        equipment: [],
         inventoryItems: normalizedArmorWearState.inventoryItems,
-        customEquipment: normalizedArmorWearState.customEquipment,
+        customEquipment: [],
         statusEntries: character.statusEntries
       }
     )

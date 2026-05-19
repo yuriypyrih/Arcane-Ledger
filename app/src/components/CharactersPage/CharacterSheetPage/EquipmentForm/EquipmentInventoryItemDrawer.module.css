@@ -7,6 +7,12 @@
   grid-template-rows: auto 1fr auto;
 }
 
+.headerActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
 .statusCard {
   display: grid;
   gap: 0.25rem;

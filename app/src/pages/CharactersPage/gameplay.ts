@@ -50,6 +50,7 @@ import {
 } from "./classFeatures";
 import type { FeatureIndicator } from "./classFeatures";
 import type { ACTION_CARD_THEME } from "./actionCardTheme";
+import { abilityKeys } from "./constants";
 import {
   ACTION_CATEGORY,
   ECONOMY_TYPE,
@@ -67,7 +68,12 @@ import {
 import { getWornBodyArmorTypeForCharacter } from "./armor";
 import { isMonkWeapon } from "./monkWeapons";
 import { hasFeatForCharacter } from "./feats/runtime";
-import { getCustomTraitPassivePerceptionBonuses } from "./customTraitEffects";
+import {
+  formatCustomTraitBonusFormulaTerm,
+  getCustomTraitPassivePerceptionBonuses
+} from "./customTraitEffects";
+import { getActiveItemModEffectSources } from "./itemMods";
+import { formatFormulaTerms } from "./shared";
 import {
   createHeldDescriptorForInventoryItem,
   getAdaptedItemWeapon,
@@ -168,6 +174,8 @@ const weaponActionsByCharacter = new WeakMap<Character, WeaponAction[]>();
 export type InitiativeBreakdownEntry = {
   label: string;
   value: number;
+  abilityModifierSource?: AbilityKey;
+  formulaSourceLabel?: string;
 };
 
 export type InitiativeBreakdown = {
@@ -236,6 +244,10 @@ function formatGroupedWeaponDamageAmount(amount: WeaponDamageAmount, count: numb
     return `${amount * count}`;
   }
 
+  if (abilityKeys.includes(amount as AbilityKey)) {
+    return count === 1 ? amount : `${count} ${amount}`;
+  }
+
   return `${count}${String(amount).toLowerCase()}`;
 }
 
@@ -283,7 +295,10 @@ function formatWeaponDamageWithMinimum(damage: WeaponDamage, minimumPerDie: numb
   return collapseWeaponDamage(damage)
     .map(({ amount, count, damageType }) => {
       const amountLabel = formatGroupedWeaponDamageAmount(amount, count);
-      const minimumLabel = typeof amount === "string" ? ` (min ${minimumPerDie})` : "";
+      const minimumLabel =
+        typeof amount === "string" && !abilityKeys.includes(amount as AbilityKey)
+          ? ` (min ${minimumPerDie})`
+          : "";
 
       return `${amountLabel}${minimumLabel} ${formatWeaponDamageType(damageType)}`;
     })
@@ -305,7 +320,7 @@ function formatWeaponDamageFormulaWithMinimum(
     .map(({ amount, count }) => {
       const amountLabel = formatGroupedWeaponDamageAmount(amount, count);
 
-      if (typeof amount !== "string") {
+      if (typeof amount !== "string" || abilityKeys.includes(amount as AbilityKey)) {
         return amountLabel;
       }
 
@@ -321,8 +336,24 @@ function getWeaponDamageFaceCount(amount: WeaponDamageAmount): number {
     return amount;
   }
 
+  if (abilityKeys.includes(amount as AbilityKey)) {
+    return 0;
+  }
+
   const parsedFaces = Number(String(amount).replace(/\D/g, ""));
   return Number.isFinite(parsedFaces) ? parsedFaces : 0;
+}
+
+function resolveAbilityDamageAmounts(
+  damage: WeaponDamage,
+  character: Pick<Character, "abilities" | "level" | "className" | "classFeatureState" | "feats"> &
+    Partial<Pick<Character, "inventoryItems" | "statusEntries" | "subclassId">>
+): WeaponDamage {
+  return damage.map(([amount, damageType]) =>
+    abilityKeys.includes(amount as AbilityKey)
+      ? [getAbilityModifierForCharacter(character, amount as AbilityKey), damageType]
+      : [amount, damageType]
+  );
 }
 
 function applyMartialArtsDamageDie(
@@ -390,10 +421,12 @@ function getWeaponReferenceFromEntry(
     useVersatileDamage?: boolean;
     applyGreatWeaponFighting?: boolean;
     damageOverride?: WeaponDamage;
+    formulaDamageOverride?: WeaponDamage;
     abilityRuleOverride?: WeaponAbilityRule;
   }
 ): WeaponReference | null {
   const damage = options?.damageOverride ?? getSelectedWeaponDamage(weapon, options);
+  const formulaDamage = options?.formulaDamageOverride ?? damage;
   const applyGreatWeaponFighting =
     Boolean(options?.applyGreatWeaponFighting) && canUseGreatWeaponFighting(weapon, options);
 
@@ -406,11 +439,11 @@ function getWeaponReferenceFromEntry(
       ? formatWeaponDamageWithMinimum(damage, 3)
       : formatWeaponDamage(damage),
     damageFormula: applyGreatWeaponFighting
-      ? formatWeaponDamageFormulaWithMinimum(damage, 3)
-      : formatWeaponDamageFormula(damage),
+      ? formatWeaponDamageFormulaWithMinimum(formulaDamage, 3)
+      : formatWeaponDamageFormula(formulaDamage),
     rollFormulaBase: applyGreatWeaponFighting
-      ? formatWeaponDamageFormulaWithMinimum(damage, 3, { internal: true })
-      : formatWeaponDamageFormula(damage),
+      ? formatWeaponDamageFormulaWithMinimum(formulaDamage, 3, { internal: true })
+      : formatWeaponDamageFormula(formulaDamage),
     abilityRule: options?.abilityRuleOverride ?? getWeaponAbilityRule(weapon),
     hasVersatileBonus: Boolean(options?.useVersatileDamage),
     hasGreatWeaponFighting: applyGreatWeaponFighting
@@ -423,6 +456,7 @@ function getWeaponReference(
     useVersatileDamage?: boolean;
     applyGreatWeaponFighting?: boolean;
     damageOverride?: WeaponDamage;
+    formulaDamageOverride?: WeaponDamage;
     abilityRuleOverride?: WeaponAbilityRule;
   }
 ): WeaponReference | null {
@@ -441,6 +475,7 @@ function getWeaponReferenceFromItemRecord(
     useVersatileDamage?: boolean;
     applyGreatWeaponFighting?: boolean;
     damageOverride?: WeaponDamage;
+    formulaDamageOverride?: WeaponDamage;
     abilityRuleOverride?: WeaponAbilityRule;
   }
 ): WeaponReference | null {
@@ -462,6 +497,7 @@ function getWeaponReferenceFromItemRecord(
       useVersatileDamage: options?.useVersatileDamage,
       applyGreatWeaponFighting: options?.applyGreatWeaponFighting,
       damageOverride: options?.damageOverride,
+      formulaDamageOverride: options?.formulaDamageOverride,
       abilityRuleOverride: options?.abilityRuleOverride
     }
   );
@@ -503,6 +539,62 @@ export function formatAbilityModifier(modifier: number): string {
   return modifier >= 0 ? `+${modifier}` : `${modifier}`;
 }
 
+function getAbilitySourcedFeatureBonusValue(
+  character: Partial<
+    Pick<
+      Character,
+      | "abilities"
+      | "level"
+      | "className"
+      | "classFeatureState"
+      | "feats"
+      | "inventoryItems"
+      | "statusEntries"
+      | "subclassId"
+    >
+  >,
+  bonus: {
+    value?: number;
+    abilityModifierSource?: AbilityKey;
+    abilityModifierMultiplier?: 1 | -1;
+    minimumValue?: number;
+  }
+): number {
+  if (!bonus.abilityModifierSource) {
+    return bonus.value ?? 0;
+  }
+
+  const sourceValue = getAbilityModifierForCharacter(character, bonus.abilityModifierSource);
+  const clampedValue =
+    typeof bonus.minimumValue === "number"
+      ? Math.max(bonus.minimumValue, sourceValue)
+      : sourceValue;
+
+  return clampedValue * (bonus.abilityModifierMultiplier ?? 1);
+}
+
+function resolveFeatureDamageBonusEntry(
+  character: Parameters<typeof getAbilitySourcedFeatureBonusValue>[0],
+  entry: FeatureDamageBonus
+): FeatureDamageBonus {
+  if (!entry.abilityModifierSource || (entry.value ?? 0) !== 0) {
+    return entry;
+  }
+
+  const value = getAbilitySourcedFeatureBonusValue(character, entry);
+
+  return {
+    ...entry,
+    value,
+    displayLabel: entry.formulaSourceLabel
+      ? (formatCustomTraitBonusFormulaTerm({
+          ...entry,
+          value
+        }) ?? entry.displayLabel)
+      : entry.displayLabel
+  };
+}
+
 function getDamageBonusTotal(damageBonusEntries: FeatureDamageBonus[]): number {
   return damageBonusEntries.reduce((total, entry) => total + (entry.value ?? 0), 0);
 }
@@ -520,10 +612,20 @@ function appendFeatureDamageBonuses(
     return baseExpression;
   }
 
-  return [baseExpression, ...formattedBonuses].join(" + ");
+  return formatFormulaTerms([baseExpression, ...formattedBonuses]);
 }
 
 function formatFeatureDamageBonusLabel(entry: FeatureDamageBonus): string | null {
+  const customFormulaLabel = formatCustomTraitBonusFormulaTerm({
+    value: entry.value ?? 0,
+    abilityModifierSource: entry.abilityModifierSource,
+    formulaSourceLabel: entry.formulaSourceLabel
+  });
+
+  if (customFormulaLabel) {
+    return customFormulaLabel;
+  }
+
   if (entry.displayLabel) {
     return entry.displayLabel;
   }
@@ -632,7 +734,7 @@ export function createWeaponAction(
           attackKind: options.attackKind,
           combatType: options.combatType ?? null
         }))
-  ];
+  ].map((entry) => resolveFeatureDamageBonusEntry(character, entry));
   const damageLabel = appendFeatureDamageBonuses(
     options.damageLabel,
     damageBonusEntries,
@@ -661,7 +763,10 @@ export function createWeaponAction(
   const totalModifier = damageAbilityModifier + getDamageBonusTotal(damageBonusEntries);
   const indicators = options.skipFeatureDerivedLookups
     ? []
-    : getWeaponAttackIndicatorsForCharacter(character);
+    : getWeaponAttackIndicatorsForCharacter(character, {
+        attackKind: options.attackKind,
+        combatType: options.combatType ?? null
+      });
   const hasBatteringRootsBonus = options.skipFeatureDerivedLookups
     ? false
     : hasBatteringRootsBonusForCharacter(character, {
@@ -774,17 +879,7 @@ export function getInitiativeBreakdownForCharacter(character: Character): Initia
   const initiativeBonuses = getInitiativeBonusesForCharacter(character);
 
   initiativeBonuses.forEach((bonus) => {
-    const value = bonus.abilityModifierSource
-      ? (() => {
-          const sourceValue = getAbilityModifierForCharacter(
-            character,
-            bonus.abilityModifierSource
-          );
-          return typeof bonus.minimumValue === "number"
-            ? Math.max(bonus.minimumValue, sourceValue)
-            : sourceValue;
-        })()
-      : (bonus.value ?? 0);
+    const value = getAbilitySourcedFeatureBonusValue(character, bonus);
 
     if (value === 0) {
       return;
@@ -792,7 +887,9 @@ export function getInitiativeBreakdownForCharacter(character: Character): Initia
 
     entries.push({
       label: bonus.label,
-      value
+      value,
+      abilityModifierSource: bonus.abilityModifierSource,
+      formulaSourceLabel: bonus.formulaSourceLabel
     });
   });
 
@@ -846,13 +943,7 @@ function getSkillModifierForCharacter(character: Character, skill: SkillName): n
     }
 
     if (bonus.abilityModifierSource) {
-      const sourceValue = getAbilityModifierForCharacter(character, bonus.abilityModifierSource);
-      return (
-        total +
-        (typeof bonus.minimumValue === "number"
-          ? Math.max(bonus.minimumValue, sourceValue)
-          : sourceValue)
-      );
+      return total + getAbilitySourcedFeatureBonusValue(character, bonus);
     }
 
     return total + (bonus.value ?? 0);
@@ -865,10 +956,10 @@ export function getPassivePerceptionForCharacter(character: Character): number {
   return (
     10 +
     getSkillModifierForCharacter(character, SKILL.PERCEPTION) +
-    getCustomTraitPassivePerceptionBonuses(character.statusEntries).reduce(
-      (sum, entry) => sum + entry.value,
-      0
-    )
+    getCustomTraitPassivePerceptionBonuses({
+      statusEntries: character.statusEntries,
+      effectSources: getActiveItemModEffectSources(character.inventoryItems)
+    }).reduce((sum, entry) => sum + getAbilitySourcedFeatureBonusValue(character, entry), 0)
   );
 }
 
@@ -1227,6 +1318,9 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
         useVersatileDamage,
         applyGreatWeaponFighting: hasGreatWeaponFighting,
         damageOverride: monkDamageAdjustment?.damage,
+        formulaDamageOverride: baseDamage
+          ? resolveAbilityDamageAmounts(monkDamageAdjustment?.damage ?? baseDamage, character)
+          : undefined,
         abilityRuleOverride: isEligibleMonkWeapon ? "finesse" : undefined
       });
 

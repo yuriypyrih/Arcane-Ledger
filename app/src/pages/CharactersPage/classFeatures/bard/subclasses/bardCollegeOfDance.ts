@@ -6,6 +6,7 @@ import {
   createFeatureSourcedDescriptionEntries
 } from "../../../actionModalDescriptions";
 import { getInventoryItemOnHandQuantity, isItemShieldRecord } from "../../../inventoryItems";
+import { getEffectiveInventoryItemRecord } from "../../../itemMods";
 import { getEquipmentByName } from "../../../proficiencyCodexData";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
@@ -74,7 +75,7 @@ function hasWornBodyArmor(
       return equipmentDefinition?.category === "armor" && equipmentDefinition.type !== "shield";
     }) ||
     (character.inventoryItems ?? []).some(
-      (entry) => entry.worn && !isItemShieldRecord(entry.item)
+      (entry) => entry.worn && !isItemShieldRecord(getEffectiveInventoryItemRecord(entry))
     ) ||
     (character.customEquipment ?? []).some(
       (entry) => entry.kind === "armor" && entry.armorType !== "shield" && entry.worn
@@ -98,7 +99,9 @@ function hasShieldEquipped(
       return equipmentDefinition?.category === "armor" && equipmentDefinition.type === "shield";
     }) ||
     (character.inventoryItems ?? []).some(
-      (entry) => getInventoryItemOnHandQuantity(entry) > 0 && isItemShieldRecord(entry.item)
+      (entry) =>
+        getInventoryItemOnHandQuantity(entry) > 0 &&
+        isItemShieldRecord(getEffectiveInventoryItemRecord(entry))
     ) ||
     (character.customEquipment ?? []).some(
       (entry) => entry.kind === "armor" && entry.armorType === "shield" && entry.worn

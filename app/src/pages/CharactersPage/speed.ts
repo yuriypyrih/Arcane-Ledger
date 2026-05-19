@@ -5,12 +5,16 @@ import type { FeatureSpeedBonus, MovementSpeedType } from "./classFeatures/types
 import { getFeatSpeedBonusesForCharacter } from "./feats/runtime";
 import { getAbilityModifierForCharacter, getAbilityScoreForCharacter } from "./abilities";
 import { getWornBodyArmorTypeForCharacter } from "./armor";
+import { formatCustomTraitBonusFormulaTerm } from "./customTraitEffects";
 import { getSpeciesSpeedBonusesForCharacter, getSpeciesSpeedDetailsForCharacter } from "./species";
 import { getExhaustionSpeedAdjustment } from "./traits";
 
 export type SpeedBreakdownEntry = {
   label: string;
   value: number;
+  abilityModifierSource?: AbilityKey;
+  formulaSourceLabel?: string;
+  formulaLabel?: string;
 };
 
 export type MovementSpeedBaseExpression =
@@ -89,7 +93,18 @@ function getMovementSpeedBonuses(
     }),
     ...getSpeciesSpeedBonusesForCharacter(character),
     ...getFeatSpeedBonusesForCharacter(character)
-  ].filter((bonus) => (bonus.movementType ?? "walk") === movementType);
+  ]
+    .filter((bonus) => (bonus.movementType ?? "walk") === movementType)
+    .map((bonus) =>
+      bonus.abilityModifierSource
+        ? {
+            ...bonus,
+            value:
+              getAbilityModifierForCharacter(character, bonus.abilityModifierSource) *
+              (bonus.abilityModifierMultiplier ?? 1)
+          }
+        : bonus
+    );
 }
 
 function getSetTotalOverride(bonuses: FeatureSpeedBonus[]): number | null {
@@ -113,7 +128,10 @@ function resolveTotalFromBaseAndBonuses(
     .filter((bonus) => bonus.value !== 0)
     .map((bonus) => ({
       label: bonus.label,
-      value: bonus.value
+      value: bonus.value,
+      abilityModifierSource: bonus.abilityModifierSource,
+      formulaSourceLabel: bonus.formulaSourceLabel,
+      formulaLabel: formatCustomTraitBonusFormulaTerm(bonus) ?? undefined
     }));
   const adjustedTotal = baseTotal + entries.reduce((total, entry) => total + entry.value, 0);
   const totalOverride = getSetTotalOverride(bonuses);

@@ -1,14 +1,49 @@
 .stack {
   display: grid;
   align-content: start;
-  gap: 1rem;
+  gap: 0.9rem;
+  font-size: 0.93rem;
   min-height: 0;
+}
+
+.stack input:not([type="checkbox"]):not([type="radio"]),
+.stack select {
+  font-size: 0.9rem;
+  min-height: 40px;
+  padding: 0 0.72rem;
+}
+
+.stack select {
+  background-position:
+    calc(100% - 18px) calc(50% - 2px),
+    calc(100% - 12px) calc(50% - 2px),
+    0 0;
+  padding-inline: 0.72rem 2.35rem;
+}
+
+.stack textarea {
+  font-size: 0.9rem;
+  min-height: 84px;
+  padding: 0.62rem 0.72rem;
+}
+
+.compactFormGrid {
+  gap: 0.52rem;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.95fr) minmax(96px, 0.7fr);
+}
+
+.compactFormGrid label {
+  gap: 0.26rem;
+}
+
+.compactFormGrid label > span {
+  font-size: 0.72rem;
 }
 
 .effectsSection {
   display: grid;
   align-content: start;
-  gap: 0.8rem;
+  gap: 0.7rem;
   min-height: 0;
 }
 
@@ -33,36 +68,39 @@
 }
 
 .addEffectButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.42rem;
-  border: 1px solid rgba(37, 80, 141, 0.16);
-  border-radius: var(--radius-pill);
-  background: rgba(37, 80, 141, 0.08);
-  color: #25508d;
-  cursor: pointer;
-  font: inherit;
-  font-weight: 700;
-  min-height: 40px;
-  padding: 0 0.86rem;
-  white-space: nowrap;
+  min-height: 34px;
+  padding: 0 0.72rem;
 }
 
 .effectsList {
   display: grid;
   align-content: start;
-  gap: 0.75rem;
+  gap: 0.58rem;
   min-height: 0;
   padding-right: 0.12rem;
 }
 
 .effectCard {
   display: grid;
-  gap: 0.65rem;
+  gap: 0.48rem;
   border: 1px solid rgba(75, 47, 29, 0.12);
   border-radius: var(--radius-field);
   background: rgba(255, 255, 255, 0.72);
-  padding: 0.9rem;
+  padding: 0.72rem;
+}
+
+.effectCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  justify-content: space-between;
+}
+
+.effectModeControls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.52rem;
+  justify-content: flex-end;
 }
 
 .effectIndex {
@@ -83,5 +121,17 @@
   .addEffectButton {
     justify-content: center;
     width: 100%;
+  }
+
+  .effectCardHeader {
+    align-items: flex-start;
+  }
+
+  .effectModeControls {
+    flex-wrap: wrap;
+  }
+
+  .compactFormGrid {
+    grid-template-columns: 1fr;
   }
 }

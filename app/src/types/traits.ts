@@ -1,5 +1,6 @@
 import type { DAMAGE_TYPE, SpellDescriptionEntry, WEAPON_COMBAT_TYPE } from "../codex/entries";
 import type { AbilityKey } from "./characters";
+import type { SkillName } from "./skills";
 
 export enum STATUS_ENTRY_GROUP {
   EFFECTS = "EFFECTS",
@@ -106,39 +107,66 @@ export type ImmunityValue = DAMAGE_TYPE | CONDITION_NAME;
 
 export type CharacterStatusValue = SENSE | EFFECT_NAME | CONDITION_NAME | DAMAGE_TYPE | string;
 
+export type CharacterCustomTraitRollMode = "normal" | "advantage" | "disadvantage";
+export type CharacterCustomTraitValueMode = "buff" | "debuff";
+export type CharacterCustomTraitEffectValue = number | AbilityKey;
+
+type CharacterCustomTraitEffectRoll = {
+  rollMode?: CharacterCustomTraitRollMode;
+};
+
+type CharacterCustomTraitNumericValue = {
+  value: number;
+  valueMode?: CharacterCustomTraitValueMode;
+};
+
+type CharacterCustomTraitFlexibleValue = {
+  value: CharacterCustomTraitEffectValue;
+  valueMode?: CharacterCustomTraitValueMode;
+};
+
 export type CharacterCustomTraitEffect =
   | {
       type: "armorClass";
-      value: number;
-    }
+    } & CharacterCustomTraitFlexibleValue &
+      CharacterCustomTraitEffectRoll
   | {
       type: "initiative";
-      value: number;
-    }
+    } & CharacterCustomTraitFlexibleValue &
+      CharacterCustomTraitEffectRoll
   | {
       type: "passivePerception";
-      value: number;
-    }
+    } & CharacterCustomTraitFlexibleValue &
+      CharacterCustomTraitEffectRoll
+  | {
+      type: "speed";
+    } & CharacterCustomTraitFlexibleValue &
+      CharacterCustomTraitEffectRoll
   | {
       type: "abilityScore";
       ability: AbilityKey;
-      value: number;
-    }
+    } & CharacterCustomTraitNumericValue &
+      CharacterCustomTraitEffectRoll
   | {
       type: "abilityModifier";
       ability: AbilityKey;
-      value: number;
-    }
+    } & CharacterCustomTraitNumericValue &
+      CharacterCustomTraitEffectRoll
   | {
       type: "savingThrow";
       ability: AbilityKey;
-      value: number;
-    }
+    } & CharacterCustomTraitNumericValue &
+      CharacterCustomTraitEffectRoll
+  | {
+      type: "skill";
+      skill: SkillName;
+    } & CharacterCustomTraitFlexibleValue &
+      CharacterCustomTraitEffectRoll
   | {
       type: "weaponDamage";
       attackKind: "unarmed" | WEAPON_COMBAT_TYPE.MELEE | WEAPON_COMBAT_TYPE.RANGED;
-      value: number;
-    };
+    } & CharacterCustomTraitFlexibleValue &
+      CharacterCustomTraitEffectRoll;
 
 export type CharacterStatusDuration =
   | {

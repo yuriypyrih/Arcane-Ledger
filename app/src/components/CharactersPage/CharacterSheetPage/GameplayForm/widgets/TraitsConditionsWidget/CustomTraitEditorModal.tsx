@@ -14,6 +14,10 @@ import {
 import CustomTraitBuilder from "./CustomTraitBuilder";
 import type { CustomTraitDraft } from "./customTraitDraft";
 import type { ManualStatusDurationType } from "./manualStatusDuration";
+import type {
+  CharacterCustomTraitRollMode,
+  CharacterCustomTraitValueMode
+} from "../../../../../../types";
 import styles from "./TraitEditorModal.module.css";
 
 type CustomTraitEditorModalProps = {
@@ -26,6 +30,14 @@ type CustomTraitEditorModalProps = {
   onCustomTraitDurationValueChange: (value: number) => void;
   onCustomTraitEffectTargetChange: (effectId: string, value: string) => void;
   onCustomTraitEffectValueChange: (effectId: string, value: string) => void;
+  onCustomTraitEffectValueModeChange: (
+    effectId: string,
+    value: CharacterCustomTraitValueMode
+  ) => void;
+  onCustomTraitEffectRollModeChange: (
+    effectId: string,
+    value: CharacterCustomTraitRollMode
+  ) => void;
   onAddCustomTraitEffect: () => void;
   onRemoveCustomTraitEffect: (effectId: string) => void;
   onCreate: () => void;
@@ -42,6 +54,8 @@ function CustomTraitEditorModal({
   onCustomTraitDurationValueChange,
   onCustomTraitEffectTargetChange,
   onCustomTraitEffectValueChange,
+  onCustomTraitEffectValueModeChange,
+  onCustomTraitEffectRollModeChange,
   onAddCustomTraitEffect,
   onRemoveCustomTraitEffect,
   onCreate,
@@ -72,6 +86,8 @@ function CustomTraitEditorModal({
           onDurationValueChange={onCustomTraitDurationValueChange}
           onEffectTargetChange={onCustomTraitEffectTargetChange}
           onEffectValueChange={onCustomTraitEffectValueChange}
+          onEffectValueModeChange={onCustomTraitEffectValueModeChange}
+          onEffectRollModeChange={onCustomTraitEffectRollModeChange}
           onAddEffect={onAddCustomTraitEffect}
           onRemoveEffect={onRemoveCustomTraitEffect}
         />

@@ -51,6 +51,7 @@ import {
   getItemWeaponType,
   isItemShieldRecord
 } from "../../inventoryItems";
+import { getEffectiveInventoryItemRecord } from "../../itemMods";
 import { isMonkWeapon } from "../../monkWeapons";
 import {
   createCharacterStatusEntry,
@@ -307,7 +308,9 @@ function getMonkCombatState(
       const armorEntry = codexArmorEntriesByName.get(item.name);
       return Boolean(armorEntry && !armorEntry.tags.includes(ARMOR_TYPES.SHIELD));
     }) ||
-    character.inventoryItems.some((entry) => entry.worn && !isItemShieldRecord(entry.item)) ||
+    character.inventoryItems.some(
+      (entry) => entry.worn && !isItemShieldRecord(getEffectiveInventoryItemRecord(entry))
+    ) ||
     wornCustomArmor.some((entry) => !entry.tags.includes(ARMOR_TYPES.SHIELD));
   const martialArtsContext = {
     hasWornBodyArmor,
