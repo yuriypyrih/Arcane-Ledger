@@ -15,6 +15,7 @@ type EquipmentInventoryItemDrawerHeaderProps = {
     total: number;
   } | null;
   featureTags?: string[];
+  modded?: boolean;
 };
 
 function getOnHandLabel(onHandCount: number) {
@@ -27,7 +28,8 @@ function EquipmentInventoryItemDrawerHeader({
   worn = false,
   attuned = false,
   charges = null,
-  featureTags = []
+  featureTags = [],
+  modded = false
 }: EquipmentInventoryItemDrawerHeaderProps) {
   const presentation = buildItemDetailPresentation(item);
 
@@ -59,6 +61,11 @@ function EquipmentInventoryItemDrawerHeader({
         {charges ? (
           <span className={styles.drawerChargesBadge}>
             <span>{`Charges ${charges.remaining}/${charges.total}`}</span>
+          </span>
+        ) : null}
+        {modded ? (
+          <span className={styles.drawerModdedTag}>
+            <span>Modded</span>
           </span>
         ) : null}
         {featureTags.map((tagLabel) => (

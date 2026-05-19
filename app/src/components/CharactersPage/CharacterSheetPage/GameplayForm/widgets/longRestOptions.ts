@@ -318,6 +318,10 @@ import {
   hasFiniteCompanionDuration
 } from "../../../../../pages/CharactersPage/companions";
 import {
+  hasLongRestConjuredInventoryItems,
+  removeLongRestConjuredInventoryItems
+} from "../../../../../pages/CharactersPage/inventoryItems";
+import {
   type ExhaustionLevel,
   getEffectiveHitPointMaximumForCharacter,
   reconcileCharacterStatusConsequences
@@ -500,6 +504,7 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const hasTimedStatuses =
     normalizeCharacterStatusEntries(character.statusEntries).length > 0 ||
     hasFiniteCompanionDuration(character.companions);
+  const hasLongRestConjuredItems = hasLongRestConjuredInventoryItems(character.inventoryItems);
   const exhaustionLevel = getExhaustionLevel(character.statusEntries);
 
   return [
@@ -865,6 +870,21 @@ export function createLongRestOptions(character: Character): RestOption[] {
               ...currentCharacter,
               statusEntries: applyLongRestToCharacterStatusEntries(currentCharacter.statusEntries),
               companions: applyLongRestToCharacterCompanions(currentCharacter.companions)
+            })
+          } satisfies RestOption
+        ]
+      : []),
+    ...(hasLongRestConjuredItems
+      ? [
+          {
+            id: "remove-long-rest-conjured-items",
+            label: "Remove Until Long Rest conjured items",
+            detail: "Conjured items with an Until Long Rest duration vanish.",
+            apply: (currentCharacter: Character) => ({
+              ...currentCharacter,
+              inventoryItems: removeLongRestConjuredInventoryItems(
+                currentCharacter.inventoryItems
+              )
             })
           } satisfies RestOption
         ]

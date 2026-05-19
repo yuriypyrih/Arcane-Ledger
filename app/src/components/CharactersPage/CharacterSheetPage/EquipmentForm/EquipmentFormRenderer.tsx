@@ -7,7 +7,7 @@ export function renderEquipmentForm(context: Record<string, any>) {
     Minus, NumberInput, OverlayBody, OverlayCloseButton, OverlayEyebrow, OverlayFooter, OverlayHeader, OverlayHeaderContent, OverlaySummary, OverlayTitle, Plus, RarityPill, SheetModal, Shield, Sparkles, WeaponMasteryStatusLabel, X, activeCurrencyDefinition, activeCurrencyKey,
     adjustCurrencyBalance, canSpendCurrency, carriedWeight, carryingCapacity, className, closeAddModal, closeCustomEquipmentModal, closeInventoryItemDrawer, closeLoadoutDrawer,
     clsx, currencyAmountDraft, currencyDefinitions, customEditorMode, deleteCustomEquipment, editingInventoryStack, equipmentRenderGroups, formatCodexLabel, formatCodexList,
-    formatEquipmentWeight, formatInventoryStackName, formatOnHandLabel, formatWeaponDamage, formatWeaponProperties, formatWeaponType, formatWeaponWeight, formatWeightValue, getArmorTypeSummary, getInventoryItemFeatureTagLabels,
+    formatEquipmentWeight, formatInventoryStackName, formatOnHandLabel, formatWeaponDamage, formatWeaponProperties, formatWeaponType, formatWeaponWeight, formatWeightValue, getArmorTypeSummary, getInventoryItemConjuredRowTagLabel, getInventoryItemFeatureTagLabels,
     getItemWeightValue, groupedInventoryItems, hasCharacterItemMods, hasDisplayableRarity, inventoryDrawerFooter, inventoryDrawerHeaderAction, inventoryDrawerHeaderContent, isAddModalCommitting, isAddModalOpen, isCurrencyDrawerOpen,
     isCustomEquipmentModalOpen, isGeneralEquipmentExpanded, isHandEquippableEntry, isOverCarryingCapacity, isSelectedArmorWorn, isSelectedCustomEntry, isSelectedEntryOnHand, isSelectedFeatureManagedEntry, isSelectedShield,
     normalizeCurrencyAmountInput, normalizedCurrencies, openAddModal, openCurrencyModal, openCustomEquipmentCreator, openCustomEquipmentEditor, openInventoryInspectionFromBrowser, openInventoryInspectionFromLoadout, openLoadoutEntryDetails,
@@ -176,11 +176,10 @@ export function renderEquipmentForm(context: Record<string, any>) {
                                 <span>Attuned</span>
                               </span>
                             ) : null}
-                            {getInventoryItemFeatureTagLabels(entry.item.stack).map((tagLabel) => (
-                              <span
-                                key={tagLabel}
-                                className={styles.equipmentItemFeatureTag}
-                              >
+                            {getInventoryItemFeatureTagLabels(entry.item.stack, {
+                              excludeConjured: true
+                            }).map((tagLabel) => (
+                              <span key={tagLabel} className={styles.equipmentItemFeatureTag}>
                                 {tagLabel}
                               </span>
                             ))}
@@ -190,6 +189,11 @@ export function renderEquipmentForm(context: Record<string, any>) {
                             !entry.item.stack.mods?.isCustom ? (
                               <span className={styles.equipmentItemModdedTag}>
                                 <span>Modded</span>
+                              </span>
+                            ) : null}
+                            {getInventoryItemConjuredRowTagLabel(entry.item.stack) ? (
+                              <span className={styles.equipmentItemFeatureTag}>
+                                {getInventoryItemConjuredRowTagLabel(entry.item.stack)}
                               </span>
                             ) : null}
                             {hasDisplayableRarity(entry.item.item.rarity) ? (

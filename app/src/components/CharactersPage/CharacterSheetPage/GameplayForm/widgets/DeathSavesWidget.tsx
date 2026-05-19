@@ -7,6 +7,7 @@ import {
 } from "../../../../../pages/CharactersPage/deathSaves";
 import { formatD20Formula } from "../../../../../pages/CharactersPage/shared";
 import { getExhaustionD20TestPenalty } from "../../../../../pages/CharactersPage/statusEntries";
+import { removeConjuredInventoryItemsForCharacterDeath } from "../../../../../pages/CharactersPage/inventoryItems";
 import { createDefaultDeathSaves, normalizeDeathSaves } from "../gameplayStateUtils";
 import DeathSavesTracker from "./DeathSavesTracker";
 import { resourcePersistOptions } from "./persistOptions";
@@ -56,13 +57,17 @@ function DeathSavesWidget({ character, onPersistCharacter }: DeathSavesWidgetPro
           return currentCharacter;
         }
 
-        return {
+        const nextCharacter = {
           ...currentCharacter,
           deathSaves: {
             ...currentDeathSaves,
             failures: nextFailures
           }
         };
+
+        return nextFailures >= 3
+          ? removeConjuredInventoryItemsForCharacterDeath(nextCharacter)
+          : nextCharacter;
       }, resourcePersistOptions);
     },
     [onPersistCharacter]

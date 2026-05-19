@@ -5,6 +5,8 @@ import {
   type WeaponType
 } from "../../codex/entries";
 import type {
+  Character,
+  CharacterInventoryConjuredDuration,
   CharacterInventoryFeatureTag,
   CharacterInventoryItem,
   CharacterItemMods,
@@ -65,6 +67,10 @@ export type InventoryItemModsSaveResult = {
   stackId: string | null;
 };
 
+type InventoryFeatureTagLabelOptions = {
+  excludeConjured?: boolean;
+};
+
 const currencyKeyByType: Record<CURRENCY_TYPE, CurrencyKey> = {
   [CURRENCY_TYPE.CP]: "copper",
   [CURRENCY_TYPE.SP]: "silver",
@@ -89,6 +95,7 @@ const moddedItemKeyMarker = "-modded-";
 
 export const INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE = "pact-of-the-blade";
 export const INVENTORY_FEATURE_TAG_CONJURED = "conjured";
+export const INVENTORY_CONJURED_DURATION_LONG_REST = "long-rest";
 
 const inventoryFeatureTagLabels: Record<CharacterInventoryFeatureTag, string> = {
   [INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE]: "Pact of the Blade",
@@ -245,6 +252,14 @@ function normalizeInventoryFeatureTags(value: unknown): CharacterInventoryFeatur
   return normalizedTags.length > 0 ? normalizedTags : undefined;
 }
 
+function normalizeInventoryConjuredDuration(
+  value: unknown
+): CharacterInventoryConjuredDuration | undefined {
+  return value === INVENTORY_CONJURED_DURATION_LONG_REST
+    ? INVENTORY_CONJURED_DURATION_LONG_REST
+    : undefined;
+}
+
 function addInventoryItemFeatureTag(
   entry: CharacterInventoryItem,
   tag: CharacterInventoryFeatureTag
@@ -263,13 +278,18 @@ function normalizeInventoryStack(entry: CharacterInventoryItem): CharacterInvent
   const onHandQuantity = Math.min(quantity, Math.max(0, Math.floor(entry.onHandQuantity)));
   const mods = normalizeCharacterItemMods(entry.mods);
   const effectiveItem = getEffectiveInventoryItemRecord({ ...entry, mods });
+  const featureTags = normalizeInventoryFeatureTags(entry.featureTags);
+  const conjuredDuration = featureTags?.includes(INVENTORY_FEATURE_TAG_CONJURED)
+    ? normalizeInventoryConjuredDuration(entry.conjuredDuration)
+    : undefined;
   const normalizedStack: CharacterInventoryItem = {
     id: entry.id,
     item: entry.item,
     quantity,
     onHandQuantity,
     worn: Boolean(entry.worn),
-    featureTags: normalizeInventoryFeatureTags(entry.featureTags),
+    featureTags,
+    ...(conjuredDuration ? { conjuredDuration } : {}),
     ...(mods ? { mods } : {})
   };
   const usesPerCopy = getInventoryItemUsesPerCopy(entry.item);
@@ -340,6 +360,7 @@ export function createCharacterInventoryItem(
     attuned?: boolean;
     usesRemaining?: number;
     featureTags?: CharacterInventoryFeatureTag[];
+    conjuredDuration?: CharacterInventoryConjuredDuration;
     mods?: CharacterItemMods;
   }
 ): CharacterInventoryItem {
@@ -360,6 +381,7 @@ export function createCharacterInventoryItem(
     attuned: Boolean(options?.attuned),
     usesRemaining: options?.usesRemaining,
     featureTags: options?.featureTags,
+    conjuredDuration: options?.conjuredDuration,
     mods: options?.mods
   });
 }
@@ -396,6 +418,7 @@ export function normalizeCharacterInventoryItems(value: unknown): CharacterInven
       attuned?: unknown;
       usesRemaining?: unknown;
       featureTags?: unknown;
+      conjuredDuration?: unknown;
       mods?: unknown;
     };
     const item = normalizeItemRecord(record.item);
@@ -424,6 +447,7 @@ export function normalizeCharacterInventoryItems(value: unknown): CharacterInven
           ? normalizeStackNumber(record.usesRemaining, 0)
           : undefined,
       featureTags: normalizeInventoryFeatureTags(record.featureTags),
+      conjuredDuration: normalizeInventoryConjuredDuration(record.conjuredDuration),
       mods: normalizeCharacterItemMods(record.mods)
     });
     const stackHasFeatureTags = (stack.featureTags?.length ?? 0) > 0;
@@ -585,12 +609,97 @@ export function isConjuredInventoryItem(
   return hasInventoryItemFeatureTag(entry, INVENTORY_FEATURE_TAG_CONJURED);
 }
 
-export function getInventoryItemFeatureTagLabels(
+export function getInventoryItemConjuredDuration(
+  entry: Pick<CharacterInventoryItem, "featureTags" | "conjuredDuration"> | null | undefined
+): CharacterInventoryConjuredDuration | undefined {
+  if (!isConjuredInventoryItem(entry)) {
+    return undefined;
+  }
+
+  return normalizeInventoryConjuredDuration(entry?.conjuredDuration);
+}
+
+export function isLongRestConjuredInventoryItem(
+  entry: Pick<CharacterInventoryItem, "featureTags" | "conjuredDuration"> | null | undefined
+): boolean {
+  return getInventoryItemConjuredDuration(entry) === INVENTORY_CONJURED_DURATION_LONG_REST;
+}
+
+export function getInventoryItemConjuredFeatureTagLabel(
+  entry: Pick<CharacterInventoryItem, "featureTags" | "conjuredDuration"> | null | undefined
+): string | null {
+  if (!isConjuredInventoryItem(entry)) {
+    return null;
+  }
+
+  return isLongRestConjuredInventoryItem(entry)
+    ? "Conjured: Until Long Rest"
+    : inventoryFeatureTagLabels[INVENTORY_FEATURE_TAG_CONJURED];
+}
+
+export function getInventoryItemConjuredRowTagLabel(
   entry: Pick<CharacterInventoryItem, "featureTags"> | null | undefined
+): string | null {
+  return isConjuredInventoryItem(entry)
+    ? inventoryFeatureTagLabels[INVENTORY_FEATURE_TAG_CONJURED]
+    : null;
+}
+
+export function getInventoryItemFeatureTagLabels(
+  entry: Pick<CharacterInventoryItem, "featureTags" | "conjuredDuration"> | null | undefined,
+  options?: InventoryFeatureTagLabelOptions
 ): string[] {
-  return (normalizeInventoryFeatureTags(entry?.featureTags) ?? []).map(
-    (tag) => inventoryFeatureTagLabels[tag]
+  return (normalizeInventoryFeatureTags(entry?.featureTags) ?? []).flatMap((tag) => {
+    if (tag === INVENTORY_FEATURE_TAG_CONJURED) {
+      if (options?.excludeConjured) {
+        return [];
+      }
+
+      const conjuredLabel = getInventoryItemConjuredFeatureTagLabel(entry);
+      return conjuredLabel ? [conjuredLabel] : [];
+    }
+
+    return [inventoryFeatureTagLabels[tag]];
+  });
+}
+
+export function hasLongRestConjuredInventoryItems(
+  inventoryItems: CharacterInventoryItem[]
+): boolean {
+  return inventoryItems.some(isLongRestConjuredInventoryItem);
+}
+
+export function removeConjuredInventoryItems(
+  inventoryItems: CharacterInventoryItem[]
+): CharacterInventoryItem[] {
+  const nextInventoryItems = inventoryItems.filter((entry) => !isConjuredInventoryItem(entry));
+
+  return nextInventoryItems.length === inventoryItems.length
+    ? inventoryItems
+    : nextInventoryItems;
+}
+
+export function removeLongRestConjuredInventoryItems(
+  inventoryItems: CharacterInventoryItem[]
+): CharacterInventoryItem[] {
+  const nextInventoryItems = inventoryItems.filter(
+    (entry) => !isLongRestConjuredInventoryItem(entry)
   );
+
+  return nextInventoryItems.length === inventoryItems.length
+    ? inventoryItems
+    : nextInventoryItems;
+}
+
+export function removeConjuredInventoryItemsForCharacterDeath(character: Character): Character {
+  const nextInventoryItems = removeConjuredInventoryItems(character.inventoryItems);
+
+  return nextInventoryItems === character.inventoryItems
+    ? character
+    : {
+        ...character,
+        inventoryItems: nextInventoryItems
+      };
 }
 
 function removeInventoryItemFeatureTag(
@@ -653,7 +762,10 @@ export function addConjuredPactOfTheBladeInventoryItem(
 export function addConjuredInventoryItemCopies(
   inventoryItems: CharacterInventoryItem[],
   item: ItemRecord,
-  quantity = 1
+  quantity = 1,
+  options?: {
+    conjuredDuration?: CharacterInventoryConjuredDuration;
+  }
 ): CharacterInventoryItem[] {
   const normalizedQuantity = normalizeStackNumber(quantity, 0);
 
@@ -665,7 +777,8 @@ export function addConjuredInventoryItemCopies(
     ...inventoryItems,
     createCharacterInventoryItem(item, {
       quantity: normalizedQuantity,
-      featureTags: [INVENTORY_FEATURE_TAG_CONJURED]
+      featureTags: [INVENTORY_FEATURE_TAG_CONJURED],
+      conjuredDuration: options?.conjuredDuration
     })
   ];
 }
@@ -711,6 +824,7 @@ function updateInventoryItemModsInPlace(
     attuned: mods.requiresAttunement ? entry.attuned : false,
     usesRemaining: entry.usesRemaining,
     featureTags: entry.featureTags,
+    conjuredDuration: entry.conjuredDuration,
     mods
   });
 }
@@ -737,6 +851,7 @@ function transformInventoryItemCopyWithMods(
       attuned: entry.attuned,
       usesRemaining: movedUsesRemaining,
       featureTags: entry.featureTags,
+      conjuredDuration: entry.conjuredDuration,
       mods
     }
   );
@@ -757,6 +872,7 @@ function transformInventoryItemCopyWithMods(
         ? Math.max(0, useState.remaining - (movedUsesRemaining ?? 0))
         : entry.usesRemaining,
       featureTags: getSourceFeatureTagsAfterModdedTransform(entry),
+      conjuredDuration: entry.conjuredDuration,
       mods: entry.mods
     }),
     moddedStack

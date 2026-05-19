@@ -6,6 +6,7 @@ import {
   getEffectiveHitPointMaximumForCharacter,
   reconcileCharacterStatusConsequences
 } from "../../../../pages/CharactersPage/traits";
+import { removeConjuredInventoryItemsForCharacterDeath } from "../../../../pages/CharactersPage/inventoryItems";
 import {
   MANUAL_TEMPORARY_HIT_POINTS_SOURCE,
   createDefaultDeathSaves,
@@ -144,7 +145,7 @@ export function applyDamageToCharacter(character: Character, amount: number): Ch
     return character;
   }
 
-  return reconcileCharacterStatusConsequences({
+  const nextCharacter = reconcileCharacterStatusConsequences({
     ...character,
     ...createMagicTemporaryHitPointsAssignment(
       nextMagicTemporaryHitPoints,
@@ -159,6 +160,10 @@ export function applyDamageToCharacter(character: Character, amount: number): Ch
       ? createInstantDeathSaves()
       : getResolvedDeathSaves(character, nextCurrentHitPoints)
   });
+
+  return isInstantDeath
+    ? removeConjuredInventoryItemsForCharacterDeath(nextCharacter)
+    : nextCharacter;
 }
 
 export function applyHitPointEditToCharacter(

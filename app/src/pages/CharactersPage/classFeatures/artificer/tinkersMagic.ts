@@ -2,7 +2,10 @@ import { CLASS_FEATURE } from "../../../../codex/entries";
 import type { Character, CharacterArtificerFeatureState, ItemRecord } from "../../../../types";
 import { getAbilityModifierForCharacter } from "../../abilities";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
-import { addConjuredInventoryItemCopies } from "../../inventoryItems";
+import {
+  INVENTORY_CONJURED_DURATION_LONG_REST,
+  addConjuredInventoryItemCopies
+} from "../../inventoryItems";
 import { ACTION_CARD_THEME } from "../../actionCardTheme";
 import { createChargesCardUsage } from "../cardUsage";
 import type { FeatureActionCard, FeatureActionOptionCard } from "../types";
@@ -233,7 +236,9 @@ export function addArtificerTinkersMagicItemToInventory(
 ): Character {
   return {
     ...character,
-    inventoryItems: addConjuredInventoryItemCopies(character.inventoryItems ?? [], item, 1)
+    inventoryItems: addConjuredInventoryItemCopies(character.inventoryItems ?? [], item, 1, {
+      conjuredDuration: INVENTORY_CONJURED_DURATION_LONG_REST
+    })
   };
 }
 

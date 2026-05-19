@@ -89,6 +89,7 @@ import {
   findInventoryItemStackById,
   findInventoryItemStackByKey,
   findOwnedInventoryItemRecord,
+  getInventoryItemConjuredRowTagLabel,
   getInventoryItemFeatureTagLabels,
   getInventoryAttunementCount,
   getInventoryItemUseState,
@@ -846,6 +847,10 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   const selectedInventoryModEffects = selectedInventoryStack?.mods?.effects ?? [];
   const selectedInventoryFeatureTagLabels =
     getInventoryItemFeatureTagLabels(selectedInventoryStack);
+  const selectedInventoryIsModded =
+    selectedInventoryStack &&
+    hasCharacterItemMods(selectedInventoryStack.mods) &&
+    !selectedInventoryStack.mods?.isCustom;
   const selectedInventoryIsConjured = isConjuredInventoryItem(selectedInventoryStack);
   const selectedInventoryIsInventoryConjuredStack =
     selectedInventoryInspection?.source === "inventory" && selectedInventoryIsConjured;
@@ -1943,6 +1948,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       attuned={selectedInventoryAttuned}
       charges={selectedInventoryUseState}
       featureTags={selectedInventoryFeatureTagLabels}
+      modded={Boolean(selectedInventoryIsModded)}
     />
   ) : undefined;
   const inventoryDrawerHeaderAction = selectedInventoryStack ? (
@@ -2013,6 +2019,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     formatWeaponWeight,
     formatWeightValue,
     getArmorTypeSummary,
+    getInventoryItemConjuredRowTagLabel,
     getInventoryItemFeatureTagLabels,
     getItemWeightValue,
     groupedInventoryItems,

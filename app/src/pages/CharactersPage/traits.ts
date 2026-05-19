@@ -111,6 +111,7 @@ import { getBarbarianPathOfTheWildHeartStatusDescriptionEntries } from "./classF
 import { getFeatHitPointMaximumBonusForCharacter } from "./feats/runtime";
 import { getKeywordDescriptionLines } from "./keywordDescriptions";
 import { getDwarvenToughnessHitPointMaximumBonus } from "./speciesDwarf";
+import { removeConjuredInventoryItems } from "./inventoryItems";
 import {
   getExhaustionLevel as getStoredExhaustionLevel,
   hasStatusCondition,
@@ -691,6 +692,10 @@ export function reconcileCharacterStatusConsequences(character: Character): Char
         failures: 3
       }
     : character.deathSaves;
+  const nextInventoryItems = isDeadFromExhaustion
+    ? removeConjuredInventoryItems(character.inventoryItems)
+    : character.inventoryItems;
+  const inventoryItemsChanged = nextInventoryItems !== character.inventoryItems;
   const deathSavesUnchanged = isDeadFromExhaustion
     ? character.deathSaves?.successes === 0 &&
       character.deathSaves?.failures === 3 &&
@@ -701,7 +706,8 @@ export function reconcileCharacterStatusConsequences(character: Character): Char
     nextCurrentHitPoints === character.currentHitPoints &&
     (!isDeadFromExhaustion || deathSavesUnchanged) &&
     !shouldEndRageFromIncapacitated &&
-    !statusEntriesChanged
+    !statusEntriesChanged &&
+    !inventoryItemsChanged
   ) {
     return character;
   }
@@ -711,6 +717,7 @@ export function reconcileCharacterStatusConsequences(character: Character): Char
     currentHitPoints: nextCurrentHitPoints,
     deathSaves: nextDeathSaves,
     statusEntries: nextStatusEntries,
+    inventoryItems: nextInventoryItems,
     classFeatureState:
       shouldEndRageFromIncapacitated && rageState
         ? {

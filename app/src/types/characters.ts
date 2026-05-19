@@ -202,6 +202,7 @@ export type CharacterEquipmentItem = {
 };
 
 export type CharacterInventoryFeatureTag = "pact-of-the-blade" | "conjured";
+export type CharacterInventoryConjuredDuration = "long-rest";
 
 export type CharacterItemModCategory = "weapon" | "armor" | "general";
 
@@ -246,6 +247,7 @@ export type CharacterInventoryItem = {
   attuned?: boolean;
   usesRemaining?: number;
   featureTags?: CharacterInventoryFeatureTag[];
+  conjuredDuration?: CharacterInventoryConjuredDuration;
   mods?: CharacterItemMods;
 };
 
