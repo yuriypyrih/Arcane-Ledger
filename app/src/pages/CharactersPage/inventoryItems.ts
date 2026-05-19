@@ -60,6 +60,11 @@ type InventoryTransactionCostOptions = {
   rounding?: "ceil" | "floor" | "round";
 };
 
+export type InventoryItemModsSaveResult = {
+  inventoryItems: CharacterInventoryItem[];
+  stackId: string | null;
+};
+
 const currencyKeyByType: Record<CURRENCY_TYPE, CurrencyKey> = {
   [CURRENCY_TYPE.CP]: "copper",
   [CURRENCY_TYPE.SP]: "silver",
@@ -80,6 +85,7 @@ const inventoryItemUsesPerCopyByKey: Record<string, number> = {
   "srd_healers-kit": 10,
   "srd-2024_healers-kit": 10
 };
+const moddedItemKeyMarker = "-modded-";
 
 export const INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE = "pact-of-the-blade";
 export const INVENTORY_FEATURE_TAG_CONJURED = "conjured";
@@ -163,6 +169,28 @@ function createInventoryItemId() {
   }
 
   return `inventory-item-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function createModdedInventoryItemKey(item: ItemRecord, stackId: string): string {
+  const baseKey = getItemRecordKey(item) || item.id || "item";
+  return `${baseKey}${moddedItemKeyMarker}${stackId}`;
+}
+
+function getUnmoddedInventoryItemKey(item: ItemRecord | null | undefined): string {
+  const key = getItemRecordKey(item);
+  const markerIndex = key.indexOf(moddedItemKeyMarker);
+
+  return markerIndex > 0 ? key.slice(0, markerIndex) : key;
+}
+
+function createModdedInventoryItemRecord(item: ItemRecord, stackId: string): ItemRecord {
+  const key = createModdedInventoryItemKey(item, stackId);
+
+  return {
+    ...item,
+    id: key,
+    key
+  };
 }
 
 function normalizeBoolean(value: unknown): boolean {
@@ -454,7 +482,9 @@ export function isInventoryItemAttunable(item: ItemRecord | null | undefined): b
 
 function getInventoryItemUsesPerCopy(item: ItemRecord | null | undefined): number | null {
   const key = getItemRecordKey(item);
-  const usesPerCopy = inventoryItemUsesPerCopyByKey[key];
+  const usesPerCopy =
+    inventoryItemUsesPerCopyByKey[key] ??
+    inventoryItemUsesPerCopyByKey[getUnmoddedInventoryItemKey(item)];
 
   return usesPerCopy ? usesPerCopy : null;
 }
@@ -638,6 +668,144 @@ export function addConjuredInventoryItemCopies(
       featureTags: [INVENTORY_FEATURE_TAG_CONJURED]
     })
   ];
+}
+
+export function isNonCustomModdedInventoryItem(
+  entry: Pick<CharacterInventoryItem, "mods"> | null | undefined
+): boolean {
+  const mods = normalizeCharacterItemMods(entry?.mods);
+  return Boolean(mods && !mods.isCustom);
+}
+
+function getSourceFeatureTagsAfterModdedTransform(
+  entry: CharacterInventoryItem
+): CharacterInventoryFeatureTag[] | undefined {
+  const nextTags = (normalizeInventoryFeatureTags(entry.featureTags) ?? []).filter(
+    (tag) => tag !== INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE
+  );
+
+  return nextTags.length > 0 ? nextTags : undefined;
+}
+
+function getMovedInventoryItemUsesRemaining(entry: CharacterInventoryItem): number | undefined {
+  const usesPerCopy = getInventoryItemUsesPerCopy(entry.item);
+  const useState = getInventoryItemUseState(entry);
+
+  if (usesPerCopy === null || !useState) {
+    return undefined;
+  }
+
+  return Math.min(usesPerCopy, useState.remaining);
+}
+
+function updateInventoryItemModsInPlace(
+  entry: CharacterInventoryItem,
+  item: ItemRecord,
+  mods: CharacterItemMods
+): CharacterInventoryItem {
+  return createCharacterInventoryItem(mods.isCustom ? item : entry.item, {
+    id: entry.id,
+    quantity: entry.quantity,
+    onHandQuantity: entry.onHandQuantity,
+    worn: entry.worn,
+    attuned: mods.requiresAttunement ? entry.attuned : false,
+    usesRemaining: entry.usesRemaining,
+    featureTags: entry.featureTags,
+    mods
+  });
+}
+
+function transformInventoryItemCopyWithMods(
+  entry: CharacterInventoryItem,
+  item: ItemRecord,
+  mods: CharacterItemMods
+): CharacterInventoryItem[] {
+  const moddedStackId = createInventoryItemId();
+  const quantity = getInventoryItemQuantity(entry);
+  const onHandQuantity = getInventoryItemOnHandQuantity(entry);
+  const movedOnHandQuantity = onHandQuantity > 0 ? 1 : 0;
+  const movedWorn = entry.worn;
+  const movedUsesRemaining = getMovedInventoryItemUsesRemaining(entry);
+  const useState = getInventoryItemUseState(entry);
+  const moddedStack = createCharacterInventoryItem(
+    createModdedInventoryItemRecord(item, moddedStackId),
+    {
+      id: moddedStackId,
+      quantity: 1,
+      onHandQuantity: movedOnHandQuantity,
+      worn: movedWorn,
+      attuned: entry.attuned,
+      usesRemaining: movedUsesRemaining,
+      featureTags: entry.featureTags,
+      mods
+    }
+  );
+  const nextSourceQuantity = quantity - 1;
+
+  if (nextSourceQuantity <= 0) {
+    return [moddedStack];
+  }
+
+  return [
+    createCharacterInventoryItem(entry.item, {
+      id: entry.id,
+      quantity: nextSourceQuantity,
+      onHandQuantity: Math.max(0, onHandQuantity - movedOnHandQuantity),
+      worn: false,
+      attuned: false,
+      usesRemaining: useState
+        ? Math.max(0, useState.remaining - (movedUsesRemaining ?? 0))
+        : entry.usesRemaining,
+      featureTags: getSourceFeatureTagsAfterModdedTransform(entry),
+      mods: entry.mods
+    }),
+    moddedStack
+  ];
+}
+
+export function saveInventoryItemModsById(
+  inventoryItems: CharacterInventoryItem[],
+  stackId: string,
+  item: ItemRecord,
+  mods: CharacterItemMods
+): InventoryItemModsSaveResult {
+  const resolvedStackId = getInventoryItemStackIdFromCopyId(stackId);
+  const targetStack = findInventoryItemStackById(inventoryItems, resolvedStackId);
+  const normalizedMods = normalizeCharacterItemMods(mods);
+
+  if (!targetStack || !normalizedMods) {
+    return {
+      inventoryItems,
+      stackId: targetStack?.id ?? null
+    };
+  }
+
+  if (targetStack.mods || normalizedMods.isCustom) {
+    return {
+      inventoryItems: inventoryItems.map((entry) =>
+        entry.id === targetStack.id
+          ? updateInventoryItemModsInPlace(entry, item, normalizedMods)
+          : entry
+      ),
+      stackId: targetStack.id
+    };
+  }
+
+  let transformedStackId: string | null = null;
+  const nextInventoryItems = inventoryItems.flatMap((entry) => {
+    if (entry.id !== targetStack.id) {
+      return [entry];
+    }
+
+    const transformedStacks = transformInventoryItemCopyWithMods(entry, entry.item, normalizedMods);
+    transformedStackId = transformedStacks[transformedStacks.length - 1]?.id ?? null;
+    return transformedStacks;
+  });
+
+  return {
+    inventoryItems: nextInventoryItems,
+    stackId: transformedStackId
+  };
 }
 
 export function findOwnedInventoryItemRecord(
@@ -863,6 +1031,25 @@ function addInventoryItemQuantityToStack(
         ? entry.usesRemaining
         : Math.min(nextQuantity * usesPerCopy, useState.remaining + quantity * usesPerCopy)
   });
+}
+
+export function addInventoryItemCopiesToStackById(
+  inventoryItems: CharacterInventoryItem[],
+  stackId: string,
+  quantity = 1
+): CharacterInventoryItem[] {
+  const normalizedQuantity = normalizeStackNumber(quantity, 0);
+  const resolvedStackId = getInventoryItemStackIdFromCopyId(stackId);
+
+  if (!resolvedStackId || normalizedQuantity === 0) {
+    return inventoryItems;
+  }
+
+  return inventoryItems.map((entry) =>
+    entry.id === resolvedStackId
+      ? addInventoryItemQuantityToStack(entry, normalizedQuantity)
+      : entry
+  );
 }
 
 export function setInventoryItemOnHandQuantityByKey(

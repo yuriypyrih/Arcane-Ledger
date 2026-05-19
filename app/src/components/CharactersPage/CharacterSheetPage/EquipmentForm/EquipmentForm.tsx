@@ -45,7 +45,8 @@ import { getLoadoutCodexEntryByName } from "../../../../pages/CharactersPage/pro
 import {
   clearWarlockPactOfTheBladeInvocationSelectionForCharacter,
   getAdditionalWeaponMasteriesForCharacter,
-  getFeatureEquipmentEntriesForCharacter
+  getFeatureEquipmentEntriesForCharacter,
+  replaceWarlockPactOfTheBladeOwnedStackSelectionForCharacter
 } from "../../../../pages/CharactersPage/classFeatures";
 import { getAbilityScoreForCharacter } from "../../../../pages/CharactersPage/abilities";
 import { hasActiveWeaponMastery } from "../../../../pages/CharactersPage/weaponMasteryStatus";
@@ -82,6 +83,7 @@ import { clampNumber } from "../../../../pages/CharactersPage/CharacterSheetPage
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import {
   addInventoryItemCopies,
+  addInventoryItemCopiesToStackById,
   createCharacterInventoryItem,
   createHeldDescriptorForInventoryItem,
   findInventoryItemStackById,
@@ -105,6 +107,7 @@ import {
   removeOneInventoryItemCopyByKey,
   resetInventoryItemChargeById,
   resetInventoryItemChargeByKey,
+  saveInventoryItemModsById,
   setInventoryItemAttunedById,
   setInventoryItemAttunedByKey,
   setInventoryItemOnHandQuantityById,
@@ -113,7 +116,10 @@ import {
   useInventoryItemChargeByKey as spendInventoryItemChargeByKey,
   type GroupedInventoryItem
 } from "../../../../pages/CharactersPage/inventoryItems";
-import { hasCharacterItemMods } from "../../../../pages/CharactersPage/itemMods";
+import {
+  getEffectiveInventoryItemRecord,
+  hasCharacterItemMods
+} from "../../../../pages/CharactersPage/itemMods";
 import {
   crafterDiscountRuleText,
   isCrafterDiscountEligibleItem
@@ -833,6 +839,10 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     ? selectedHeldInventoryCopies.length
     : 0;
   const selectedInventoryStack = selectedInventoryGroup?.stack ?? null;
+  const selectedModdedInventoryStackId =
+    selectedInventoryInspection?.source === "inventory" && selectedInventoryStack?.mods
+      ? selectedInventoryStack.id
+      : null;
   const selectedInventoryModEffects = selectedInventoryStack?.mods?.effects ?? [];
   const selectedInventoryFeatureTagLabels =
     getInventoryItemFeatureTagLabels(selectedInventoryStack);
@@ -1008,27 +1018,48 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   }
 
   function saveCustomEquipment(payload: CustomEquipmentEditorSavePayload) {
+    let nextInventorySelection: SelectedInventoryInspectionState | null = null;
+
     onPersistCharacter((currentCharacter) => {
       if (customEditorMode === "edit" && editingInventoryStackId) {
-        return {
-          ...currentCharacter,
-          inventoryItems: currentCharacter.inventoryItems.map((entry) => {
-            if (entry.id !== editingInventoryStackId) {
-              return entry;
-            }
+        const originalStack = findInventoryItemStackById(
+          currentCharacter.inventoryItems,
+          editingInventoryStackId
+        );
+        const result = saveInventoryItemModsById(
+          currentCharacter.inventoryItems,
+          editingInventoryStackId,
+          payload.item,
+          payload.mods
+        );
+        const savedStack = result.stackId
+          ? findInventoryItemStackById(result.inventoryItems, result.stackId)
+          : null;
 
-            return createCharacterInventoryItem(payload.mods.isCustom ? payload.item : entry.item, {
-              id: entry.id,
-              quantity: entry.quantity,
-              onHandQuantity: entry.onHandQuantity,
-              worn: entry.worn,
-              attuned: payload.mods.requiresAttunement ? entry.attuned : false,
-              usesRemaining: entry.usesRemaining,
-              featureTags: entry.featureTags,
-              mods: payload.mods
-            });
-          })
+        if (savedStack) {
+          nextInventorySelection = {
+            itemKey: savedStack.item.key || payload.item.key || "",
+            stackId: savedStack.id,
+            initialItem: getEffectiveInventoryItemRecord(savedStack),
+            source: "inventory"
+          };
+        }
+
+        const nextCharacter = {
+          ...currentCharacter,
+          inventoryItems: result.inventoryItems
         };
+
+        return originalStack &&
+          savedStack &&
+          originalStack.id !== savedStack.id &&
+          isPactOfTheBladeInventoryItem(originalStack)
+          ? replaceWarlockPactOfTheBladeOwnedStackSelectionForCharacter(
+              nextCharacter,
+              originalStack.id,
+              savedStack.id
+            )
+          : nextCharacter;
       }
 
       const newStack = createCharacterInventoryItem(payload.item, {
@@ -1041,6 +1072,10 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
         inventoryItems: [...currentCharacter.inventoryItems, newStack]
       };
     }, equipmentPersistOptions);
+
+    if (nextInventorySelection) {
+      setSelectedInventoryInspection(nextInventorySelection);
+    }
 
     closeLoadoutDrawer();
     closeCustomEquipmentModal();
@@ -1105,7 +1140,12 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     updateEquipmentCharacter(
       (currentCharacter) => ({
         ...currentCharacter,
-        inventoryItems: addInventoryItemCopies(currentCharacter.inventoryItems, item)
+        inventoryItems: selectedModdedInventoryStackId
+          ? addInventoryItemCopiesToStackById(
+              currentCharacter.inventoryItems,
+              selectedModdedInventoryStackId
+            )
+          : addInventoryItemCopies(currentCharacter.inventoryItems, item)
       }),
       { stage: selectedInventoryInspection?.source === "browser" }
     );
@@ -1141,7 +1181,12 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
             ...currentCharacter.currencies,
             [transactionCost.currencyKey]: currentCurrencyAmount - transactionCost.amount
           },
-          inventoryItems: addInventoryItemCopies(currentCharacter.inventoryItems, item)
+          inventoryItems: selectedModdedInventoryStackId
+            ? addInventoryItemCopiesToStackById(
+                currentCharacter.inventoryItems,
+                selectedModdedInventoryStackId
+              )
+            : addInventoryItemCopies(currentCharacter.inventoryItems, item)
         };
       },
       { stage: selectedInventoryInspection?.source === "browser" }

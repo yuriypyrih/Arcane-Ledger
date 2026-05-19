@@ -361,6 +361,7 @@ import {
   restoreWarlockMagicalCunningOnLongRest,
   consumeWarlockStepsOfTheFeyUse,
   clearWarlockPactOfTheBladeInvocationSelection,
+  replaceWarlockPactOfTheBladeOwnedStackSelection,
   spendWarlockHealingLightDice,
   setWarlockFiendishResilienceDamageTypeSelection,
   setWarlockMysticArcanumSpellId,
@@ -1461,6 +1462,14 @@ export function clearWarlockPactOfTheBladeInvocationSelectionForCharacter(
   character: Character
 ): Character {
   return clearWarlockPactOfTheBladeInvocationSelection(character);
+}
+
+export function replaceWarlockPactOfTheBladeOwnedStackSelectionForCharacter(
+  character: Character,
+  previousStackId: string,
+  nextStackId: string
+): Character {
+  return replaceWarlockPactOfTheBladeOwnedStackSelection(character, previousStackId, nextStackId);
 }
 
 export function getWarlockPactOfTheBladeConjuredItemKeyFromSelectionIdsForCharacter(

@@ -143,6 +143,8 @@ import {
 import { orderedWarlockEldritchInvocationIds } from "./invocations/editorTabs";
 import {
   appendWarlockPactBladeWeaponDescriptionAdditions,
+  getPactBladeOwnedSelectionValue,
+  getPactBladeOwnedStackIdFromChoice,
   getSelectedPactBladeSelection,
   getWarlockPactBladeAdditionalAttackCountFromInvocationIds,
   getWarlockPactBladeInvocationOptions,
@@ -1854,6 +1856,41 @@ export function clearWarlockPactOfTheBladeInvocationSelection(character: Charact
   );
 
   return setWarlockInvocationSelectionIds(character, nextSelectionIds);
+}
+
+export function replaceWarlockPactOfTheBladeOwnedStackSelection(
+  character: Character,
+  previousStackId: string,
+  nextStackId: string
+): Character {
+  if (character.className !== "Warlock" || previousStackId === nextStackId) {
+    return character;
+  }
+
+  let didReplaceSelection = false;
+  const nextSelectionIds = getWarlockInvocationSelectionIds(character).map((selectionId) => {
+    const { invocationId, choiceValue } = parseSelectionId(selectionId);
+
+    if (invocationId !== ELDRITCH_INVOCATION.PACT_OF_THE_BLADE) {
+      return selectionId;
+    }
+
+    const ownedStackId = getPactBladeOwnedStackIdFromChoice(choiceValue);
+
+    if (ownedStackId !== previousStackId) {
+      return selectionId;
+    }
+
+    didReplaceSelection = true;
+    return createSelectionId(
+      ELDRITCH_INVOCATION.PACT_OF_THE_BLADE,
+      getPactBladeOwnedSelectionValue(nextStackId)
+    );
+  });
+
+  return didReplaceSelection
+    ? setWarlockInvocationSelectionIds(character, nextSelectionIds)
+    : character;
 }
 
 export function getWarlockPactOfTheBladeConjuredItemKeyFromSelectionIds(

@@ -263,9 +263,9 @@ export function renderEquipmentForm(context: Record<string, any>) {
               </OverlayTitle>
               <OverlaySummary>
                 Create or modify an item with full control over its details, including special
-                effects. Non-general item effects are active only while the item is held or worn;
-                general item effects stay active while the stack remains in inventory. If the stack
-                is fully sold or removed, its mods are gone.
+                effects. Modifying an existing non-modded item transforms one copy into a separate
+                modded stack. Non-general item effects are active only while held or worn; general
+                item effects stay active while the modded stack remains in inventory.
               </OverlaySummary>
             </OverlayHeaderContent>
             <OverlayCloseButton
