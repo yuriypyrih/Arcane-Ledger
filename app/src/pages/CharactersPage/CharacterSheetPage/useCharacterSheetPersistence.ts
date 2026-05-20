@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import type { Character } from "../../../types";
+import { captureAppError } from "../../../lib/sentry";
 import {
   findCharacter,
   normalizeCharacter,
@@ -43,7 +44,18 @@ function loadCharacter(characterId: number): Character | null {
     return null;
   }
 
-  return findCharacter(characterId) ?? null;
+  try {
+    return findCharacter(characterId) ?? null;
+  } catch (error) {
+    captureAppError(error, {
+      area: "character-persistence",
+      action: "load",
+      extra: {
+        characterId
+      }
+    });
+    throw error;
+  }
 }
 
 export function useCharacterSheetPersistence(characterId: number) {
@@ -108,9 +120,23 @@ export function useCharacterSheetPersistence(characterId: number) {
     }
 
     pendingStorageCharacterRef.current = null;
-    const savedCharacter = measureCharacterRuntime("character-sheet:persistence-flush", () =>
-      upsertTrustedCharacter(pendingCharacter)
-    );
+    let savedCharacter: Character;
+
+    try {
+      savedCharacter = measureCharacterRuntime("character-sheet:persistence-flush", () =>
+        upsertTrustedCharacter(pendingCharacter)
+      );
+    } catch (error) {
+      captureAppError(error, {
+        area: "character-persistence",
+        action: "flush-save",
+        extra: {
+          characterId: pendingCharacter.id
+        }
+      });
+      throw error;
+    }
+
     dispatch(markActiveCharacterSheetPersisted({ characterId: savedCharacter.id }));
     return savedCharacter;
   }, [clearPendingStorageSchedule, dispatch]);
@@ -175,7 +201,22 @@ export function useCharacterSheetPersistence(characterId: number) {
 
   const persistCharacterSnapshot = useCallback(
     (nextCharacter: Character, options?: PersistCharacterOptions): Character => {
-      const savedCharacter = normalizeCharacterSnapshot(nextCharacter, options);
+      let savedCharacter: Character;
+
+      try {
+        savedCharacter = normalizeCharacterSnapshot(nextCharacter, options);
+      } catch (error) {
+        captureAppError(error, {
+          area: "character-persistence",
+          action: "normalize",
+          extra: {
+            characterId: nextCharacter.id,
+            normalizeMode: options?.normalize ?? "full"
+          }
+        });
+        throw error;
+      }
+
       const domains: CharacterSheetDomain[] = options?.domains
         ? normalizeCharacterSheetDomains(options.domains)
         : [...characterSheetDomains];

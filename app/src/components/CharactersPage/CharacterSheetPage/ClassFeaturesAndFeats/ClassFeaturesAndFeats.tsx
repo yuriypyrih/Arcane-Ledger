@@ -30,7 +30,8 @@ import {
   normalizeCharacterClassFeatureState,
   setWarlockInvocationSelectionIdsForCharacter
 } from "../../../../pages/CharactersPage/classFeatures";
-import { fetchItemByKey } from "../../../../api";
+import { ApiRequestFailedError, fetchItemByKey } from "../../../../api";
+import { captureAppError } from "../../../../lib/sentry";
 import { getFeatEligibilityForCharacter } from "../../../../pages/CharactersPage/feats/eligibility";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import {
@@ -716,7 +717,16 @@ function ClassFeaturesAndFeats({
       try {
         pactBladeConjuredItem = await fetchItemByKey(pactBladeConjuredItemKey);
       } catch (error) {
-        console.error("Failed to fetch Pact of the Blade conjured weapon.", error);
+        if (!(error instanceof ApiRequestFailedError && error.status !== undefined && error.status < 500)) {
+          console.error("Failed to fetch Pact of the Blade conjured weapon.", error);
+          captureAppError(error, {
+            area: "class-features",
+            action: "fetch-pact-blade-item",
+            extra: {
+              itemKey: pactBladeConjuredItemKey
+            }
+          });
+        }
       }
     }
 

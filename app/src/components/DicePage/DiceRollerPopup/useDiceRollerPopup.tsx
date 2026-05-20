@@ -3,6 +3,7 @@ import {
   getDiceRollerBehaviorPreference,
   type DiceRollerBehaviorPreference
 } from "../../../storage/preferences";
+import { captureAppError } from "../../../lib/sentry";
 import {
   clearNextRollOverrides,
   setNextRollCriticalHitOverride,
@@ -196,6 +197,15 @@ function createPopupState(
       resolvedCallbackHandled: false
     };
   } catch (rollError) {
+    captureAppError(rollError, {
+      area: "dice-roller",
+      action: "roll",
+      extra: {
+        title: request.title,
+        mode: modeOverride ?? request.mode ?? "normal"
+      }
+    });
+
     const fallbackRequest: DiceRollerResolvedRequest = {
       title: request.title,
       description: request.description,

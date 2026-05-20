@@ -3,9 +3,11 @@ import { pathToFileURL } from "node:url";
 import { createApp } from "./app.js";
 import { connectToDatabase } from "./config/database.js";
 import { getAppConfig } from "./config/env.js";
+import { captureServerError, flushSentry, initServerSentry } from "./sentry.js";
 
 export async function startServer() {
   const config = getAppConfig();
+  initServerSentry(config);
   await connectToDatabase();
 
   const app = createApp();
@@ -24,8 +26,13 @@ const isDirectRun =
   typeof process.argv[1] === "string" && import.meta.url === pathToFileURL(process.argv[1]).href;
 
 if (isDirectRun) {
-  void startServer().catch((error: unknown) => {
+  void startServer().catch(async (error: unknown) => {
     console.error("Failed to start the server.", error);
+    captureServerError(error, {
+      area: "server",
+      action: "startup"
+    });
+    await flushSentry();
     process.exitCode = 1;
   });
 }

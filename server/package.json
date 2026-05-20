@@ -23,6 +23,7 @@
     "db:spells:validate": "tsx src/scripts/validateOpen5eSpellMigration.ts"
   },
   "dependencies": {
+    "@sentry/node": "^10.53.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.21.1",

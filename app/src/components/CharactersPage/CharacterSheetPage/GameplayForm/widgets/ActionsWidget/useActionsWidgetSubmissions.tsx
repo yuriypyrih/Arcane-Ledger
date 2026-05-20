@@ -4,6 +4,7 @@ import clsx from "clsx";
 import { useEffect, useMemo, useState } from "react";
 import CellContainer from "../../../../../CellContainer/CellContainer";
 import { useDiceRollerPopup } from "../../../../../DicePage/DiceRollerPopup";
+import { captureAppError } from "../../../../../../lib/sentry";
 import KeywordReferenceDrawer from "../../../../../KeywordReferenceDrawer/KeywordReferenceDrawer";
 import ActionShape, { getActionShapeForCastingTime } from "../../../../../ActionShape";
 import RollStatePill from "../../../../../RollStatePill/RollStatePill";
@@ -741,6 +742,10 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
       closeActionDrawer();
     } catch (error) {
       console.error("Failed to conjure Tinker's Magic item.", error);
+      captureAppError(error, {
+        area: "gameplay-actions",
+        action: "tinkers-magic"
+      });
       throw error;
     } finally {
       setIsTinkersMagicSubmitting(false);

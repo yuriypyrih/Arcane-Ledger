@@ -7,6 +7,7 @@ import { errorHandler } from "./middleware/errorHandler.js";
 import { notFoundHandler } from "./middleware/notFoundHandler.js";
 import { requestLogger } from "./middleware/requestLogger.js";
 import { apiRouter } from "./routes/index.js";
+import { setupSentryExpressErrorHandler } from "./sentry.js";
 
 export function createApp() {
   const app = express();
@@ -18,6 +19,7 @@ export function createApp() {
   app.use(cors(createCorsOptions(config.corsAllowedOrigins, config.nodeEnv)));
   app.use(express.json());
   app.use("/api/v1", apiRouter);
+  setupSentryExpressErrorHandler(app);
   app.use(notFoundHandler);
   app.use(errorHandler);
 

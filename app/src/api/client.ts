@@ -1,4 +1,5 @@
 import { showToast, store } from "../store";
+import { addAppBreadcrumb, captureAppError } from "../lib/sentry";
 
 function getApiBaseUrl() {
   const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
@@ -66,6 +67,49 @@ function notifyApiRequestFailed(options?: ApiRequestOptions) {
   );
 }
 
+function getStatusLevel(status: number) {
+  return status >= 500 ? "error" : "warning";
+}
+
+function sanitizeApiPath(value: string) {
+  return value.split("?")[0]?.split("#")[0] ?? value;
+}
+
+function captureApiFailure(
+  error: unknown,
+  context: { path: string; requestUrl: string; status?: number }
+) {
+  const status = context.status;
+  const path = sanitizeApiPath(context.path);
+  const requestUrl = sanitizeApiPath(new URL(context.requestUrl).pathname);
+
+  if (status !== undefined && status < 500) {
+    return;
+  }
+
+  const level = status === undefined ? "error" : getStatusLevel(status);
+
+  addAppBreadcrumb({
+    category: "api",
+    message: "API request failed.",
+    level,
+    data: {
+      path,
+      status
+    }
+  });
+  captureAppError(error, {
+    area: "api",
+    action: "request",
+    level,
+    extra: {
+      path,
+      requestUrl,
+      status
+    }
+  });
+}
+
 async function apiRequest<T>(
   path: string,
   requestInit: RequestInit,
@@ -97,14 +141,21 @@ async function apiRequest<T>(
     }
 
     notifyApiRequestFailed(options);
-    throw new ApiRequestFailedError("API request failed.", { originalError: error });
+    const requestError = new ApiRequestFailedError("API request failed.", { originalError: error });
+    captureApiFailure(requestError, { path, requestUrl });
+    throw requestError;
   }
 
   if (!response.ok) {
     notifyApiRequestFailed(options);
-    throw new ApiRequestFailedError(`API request failed with status ${response.status}`, {
-      status: response.status
-    });
+    const requestError = new ApiRequestFailedError(
+      `API request failed with status ${response.status}`,
+      {
+        status: response.status
+      }
+    );
+    captureApiFailure(requestError, { path, requestUrl, status: response.status });
+    throw requestError;
   }
 
   return (await response.json()) as T;

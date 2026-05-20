@@ -67,6 +67,9 @@ export type AppConfig = {
   open5eMonstersRootDir: string;
   open5eItemsRootDir: string;
   open5eSpellsRootDir: string;
+  sentryDsn: string;
+  sentryEnvironment: string;
+  sentryRelease: string;
 };
 
 export function getAppConfig(): AppConfig {
@@ -104,7 +107,10 @@ export function getAppConfig(): AppConfig {
     open5eRequestDelayMs,
     open5eMonstersRootDir,
     open5eItemsRootDir,
-    open5eSpellsRootDir
+    open5eSpellsRootDir,
+    sentryDsn: process.env.SENTRY_DSN ?? "",
+    sentryEnvironment: process.env.SENTRY_ENVIRONMENT ?? nodeEnv,
+    sentryRelease: process.env.SENTRY_RELEASE ?? ""
   };
 }
 

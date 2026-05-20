@@ -23,9 +23,10 @@ import CurrencyInlineDisplay from "../../../CurrencyInlineDisplay";
 import { deferModalCommit } from "../../../Overlay";
 import NumberInput from "../../FormInputs/NumberInput";
 import RarityPill, { hasDisplayableRarity } from "../../../CodexPage/RarityPill";
+import { captureAppError } from "../../../../lib/sentry";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import { useRenderProfiler } from "../../../../lib/useRenderProfiler";
-import { fetchItemPackContents, isApiOfflineError } from "../../../../api";
+import { ApiRequestFailedError, fetchItemPackContents, isApiOfflineError } from "../../../../api";
 import { ENTRY_CATEGORIES } from "../../../../codex/entries";
 import {
   currencyKeys,
@@ -1839,7 +1840,19 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
         return;
       }
 
+      if (error instanceof ApiRequestFailedError && error.status !== undefined && error.status < 500) {
+        return;
+      }
+
       console.error("Failed to extract equipment pack contents.", error);
+      captureAppError(error, {
+        area: "equipment",
+        action: "extract-pack-contents",
+        extra: {
+          packKey,
+          source
+        }
+      });
     } finally {
       setExtractingItemKey((currentKey) => (currentKey === packKey ? null : currentKey));
     }
