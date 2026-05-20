@@ -1,0 +1,98 @@
+.body {
+  gap: 1rem;
+}
+
+.headerPill,
+.rulePill,
+.inlinePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.24rem;
+  min-height: 26px;
+  border-radius: var(--radius-pill);
+  background: rgba(75, 47, 29, 0.09);
+  color: var(--color-ink-soft);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  padding: 0 0.64rem;
+  white-space: nowrap;
+}
+
+.rulePill,
+.inlinePill {
+  min-height: 24px;
+  background: #eadccc;
+  color: var(--color-ink-soft);
+  font-size: 0.74rem;
+  padding: 0 0.56rem;
+}
+
+.rulePillInHand {
+  background: #eadccc;
+  color: var(--color-ink-soft);
+}
+
+.rulePillWorn {
+  background: #e5ead5;
+  color: #51631f;
+}
+
+.rulePillAttuned {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.rulePillConjured {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+
+.inlinePill {
+  vertical-align: text-bottom;
+}
+
+.section {
+  display: grid;
+  gap: 0.68rem;
+}
+
+.sectionTitle {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: 0.96rem;
+}
+
+.sectionText {
+  margin: 0;
+  color: var(--color-ink-soft);
+  line-height: 1.5;
+}
+
+.effectRuleList {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.effectRuleRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: var(--radius-control-lg);
+  background: rgba(75, 47, 29, 0.05);
+  padding: 0.62rem 0.7rem;
+  color: var(--color-ink-soft);
+  line-height: 1.45;
+}
+
+@media (max-width: 520px) {
+  .effectRuleRow {
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+  }
+
+  .rulePill {
+    justify-self: start;
+  }
+}

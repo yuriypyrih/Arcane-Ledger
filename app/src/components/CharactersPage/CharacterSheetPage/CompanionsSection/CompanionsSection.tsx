@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Pencil, Plus, Shield } from "lucide-react";
+import { CircleHelp, Pencil, Plus, Shield } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
@@ -9,6 +9,7 @@ import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.m
 import { normalizeTemporaryHitPoints } from "../GameplayForm/gameplayStateUtils";
 import CompanionDrawer from "./CompanionDrawer";
 import CompanionEditorModal from "./CompanionEditorModal";
+import CompanionsGuideModal from "./CompanionsGuideModal";
 import { removeCharacterCompanion, upsertCharacterCompanion } from "./companionPersistence";
 import { getCompanionSourceLabel } from "./companionUtils";
 import styles from "./CompanionsSection.module.css";
@@ -23,6 +24,7 @@ function CompanionsSection({ character, className, onPersistCharacter }: Compani
   const companions = useMemo(() => character.companions ?? [], [character.companions]);
   const [editorCompanionId, setEditorCompanionId] = useState<string | null>(null);
   const [selectedCompanionId, setSelectedCompanionId] = useState<string | null>(null);
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
   const isCreatingCompanion = editorCompanionId === "new";
   const editorCompanion = isCreatingCompanion
     ? null
@@ -31,7 +33,7 @@ function CompanionsSection({ character, className, onPersistCharacter }: Compani
     companions.find((companion) => companion.id === selectedCompanionId) ?? null;
   const isEditorOpen = isCreatingCompanion || editorCompanion !== null;
 
-  useBodyScrollLock(isEditorOpen || selectedCompanionId !== null);
+  useBodyScrollLock(isEditorOpen || selectedCompanionId !== null || isGuideOpen);
 
   useEffect(() => {
     if (!selectedCompanionId) {
@@ -70,7 +72,18 @@ function CompanionsSection({ character, className, onPersistCharacter }: Compani
       <article className={clsx(shared.sectionCard, className)}>
         <div className={shared.sectionHeader}>
           <div>
-            <p className={shared.eyebrow}>Companions</p>
+            <div className={shared.eyebrowHelpRow}>
+              <p className={clsx(shared.eyebrow, shared.eyebrowInHelpRow)}>Companions</p>
+              <button
+                type="button"
+                className={shared.helpButton}
+                onClick={() => setIsGuideOpen(true)}
+                aria-label="Open companions guide"
+                title="Open companions guide"
+              >
+                <CircleHelp size={16} />
+              </button>
+            </div>
           </div>
           <div className={shared.headerActions}>
             <button
@@ -159,6 +172,8 @@ function CompanionsSection({ character, className, onPersistCharacter }: Compani
           onClose={() => setEditorCompanionId(null)}
         />
       ) : null}
+
+      {isGuideOpen ? <CompanionsGuideModal onClose={() => setIsGuideOpen(false)} /> : null}
 
       {selectedCompanion ? (
         <CompanionDrawer

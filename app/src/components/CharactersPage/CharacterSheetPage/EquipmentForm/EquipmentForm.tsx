@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import {
+  CircleHelp,
   Hand,
   Minus,
   Package,
@@ -29,6 +30,8 @@ import { ENTRY_CATEGORIES } from "../../../../codex/entries";
 import {
   currencyKeys,
   type Character,
+  type CharacterContainerContentItem,
+  type CharacterInventoryItem,
   type CharacterItemWeaponMods,
   type CurrencyKey
 } from "../../../../types";
@@ -83,27 +86,37 @@ import { clampNumber } from "../../../../pages/CharactersPage/CharacterSheetPage
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import {
   addInventoryItemCopies,
-  addInventoryItemCopiesToStackById,
+  addOneContainerContentItemCopyByIndex,
+  canAddInventoryObject,
   createCharacterInventoryItem,
+  createGroupedInventoryItem,
   createHeldDescriptorForInventoryItem,
   findInventoryItemStackById,
   findInventoryItemStackByKey,
   findOwnedInventoryItemRecord,
+  getInventoryContainerContents,
+  getInventoryObjectCount,
   getInventoryItemConjuredRowTagLabel,
   getInventoryItemFeatureTagLabels,
   getInventoryAttunementCount,
+  getInventoryItemTotalWeightValue,
   getInventoryItemUseState,
   getPreferredInventoryCopiesById,
   getPreferredInventoryCopiesByKey,
   getItemTransactionCost,
-  getItemWeightValue,
   getAdaptedItemWeapon,
   isExtractableEquipmentPackRecord,
   isConjuredInventoryItem,
+  hasInventoryContainerContents,
+  INVENTORY_OBJECT_LIMIT,
+  isInventoryContainerItem,
+  isItemContainerRecord,
   isPactOfTheBladeInventoryItem,
   isItemBodyArmorRecord,
   isItemHandEquippableRecord,
   isInventoryItemAttunable,
+  moveOneContainerContentItemOutByIndexWithResult,
+  removeOneContainerContentItemByIndex,
   removeOneInventoryItemCopyById,
   removeOneInventoryItemCopyByKey,
   resetInventoryItemChargeById,
@@ -143,6 +156,9 @@ import EquipmentInventoryItemDrawerHeader from "./EquipmentInventoryItemDrawerHe
 import EquipmentInventoryItemDrawerFooter, {
   type EquipmentInventoryDrawerAction
 } from "./EquipmentInventoryItemDrawerFooter";
+import EquipmentContainerManageModal from "./EquipmentContainerManageModal";
+import EquipmentContainerContentsList from "./EquipmentContainerContentsList";
+import EquipmentGuideModal from "./EquipmentGuideModal";
 import EquipmentItemBrowserModal from "./EquipmentItemBrowserModal";
 import { renderEquipmentForm } from "./EquipmentFormRenderer";
 import {
@@ -170,6 +186,7 @@ import WeaponMasteryStatusLabel from "../../../WeaponMasteryStatusLabel/WeaponMa
 import {
   OverlayBody,
   OverlayCloseButton,
+  DestructiveConfirmationModal,
   OverlayEyebrow,
   OverlayFooter,
   OverlayHeader,
@@ -197,8 +214,16 @@ type SelectedLoadoutEntryState = {
 type SelectedInventoryInspectionState = {
   itemKey: string;
   stackId?: string;
+  containerStackId?: string;
+  contentIndex?: number;
   initialItem: ItemRecord | null;
-  source: "browser" | "inventory";
+  source: "browser" | "inventory" | "container";
+};
+type PendingContainerInventoryRemoval = {
+  action: "remove" | "sell";
+  item: ItemRecord;
+  itemKey: string;
+  stackId: string;
 };
 type SelectedWeaponReference = {
   name: string;
@@ -225,12 +250,56 @@ const equipmentPersistOptions: PersistCharacterOptions = {
   normalize: "targeted"
 };
 
+function getInventoryObjectLimitMessage(objectCount: number): string {
+  return `Inventory limit reached. This character has ${Math.max(
+    objectCount,
+    INVENTORY_OBJECT_LIMIT
+  )} inventory objects. Sell, remove, or consolidate items before adding more.`;
+}
+
+function createInventoryStackFromContainerContent(
+  containerStackId: string,
+  content: CharacterContainerContentItem,
+  contentIndex: number
+) {
+  return createCharacterInventoryItem(content.item, {
+    id: `${containerStackId}:content:${contentIndex}`,
+    quantity: content.quantity,
+    attuned: content.attuned,
+    usesRemaining: content.usesRemaining,
+    featureTags: content.featureTags,
+    conjuredDuration: content.conjuredDuration,
+    mods: content.mods
+  });
+}
+
+function getItemObjectTagLabel(item: ItemRecord | null | undefined): string | null {
+  return item && isExtractableEquipmentPackRecord(item) ? "Pack" : null;
+}
+
+function getInventoryRowObjectTagLabel(
+  stack: CharacterInventoryItem,
+  item: ItemRecord | null | undefined
+): string | null {
+  if (isInventoryContainerItem(stack)) {
+    const contentObjectCount = getInventoryContainerContents(stack).length;
+
+    return contentObjectCount > 0 ? String(contentObjectCount) : "empty";
+  }
+
+  return getItemObjectTagLabel(item);
+}
+
 function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFormProps) {
   const isAddModalCommittingRef = useRef(false);
   const [selectedLoadoutEntry, setSelectedLoadoutEntry] =
     useState<SelectedLoadoutEntryState | null>(null);
   const [selectedInventoryInspection, setSelectedInventoryInspection] =
     useState<SelectedInventoryInspectionState | null>(null);
+  const [parentInventoryInspection, setParentInventoryInspection] =
+    useState<SelectedInventoryInspectionState | null>(null);
+  const [restoreParentInventoryWithoutAnimation, setRestoreParentInventoryWithoutAnimation] =
+    useState(false);
   const [selectedWeaponReference, setSelectedWeaponReference] =
     useState<SelectedWeaponReference | null>(null);
   const [isCurrencyDrawerOpen, setIsCurrencyDrawerOpen] = useState(false);
@@ -245,17 +314,36 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   const [isCustomEquipmentModalOpen, setIsCustomEquipmentModalOpen] = useState(false);
   const [customEditorMode, setCustomEditorMode] = useState<"create" | "edit">("create");
   const [editingInventoryStackId, setEditingInventoryStackId] = useState<string | null>(null);
+  const [isEquipmentGuideOpen, setIsEquipmentGuideOpen] = useState(false);
   const [isGeneralEquipmentExpanded, setIsGeneralEquipmentExpanded] = useState(false);
   const [extractingItemKey, setExtractingItemKey] = useState<string | null>(null);
   const [inventoryDrawerNotice, setInventoryDrawerNotice] = useState<string | null>(null);
+  const [inventoryObjectLimitNotice, setInventoryObjectLimitNotice] = useState<string | null>(null);
   const [pendingDeleteCustomEquipmentId, setPendingDeleteCustomEquipmentId] = useState<
     string | null
   >(null);
+  const [managingContainerStackId, setManagingContainerStackId] = useState<string | null>(null);
+  const [pendingContainerInventoryRemoval, setPendingContainerInventoryRemoval] =
+    useState<PendingContainerInventoryRemoval | null>(null);
   const equipmentCharacter = addEquipmentDraftCharacter ?? character;
   const customEquipment = useMemo(
     () => equipmentCharacter.customEquipment ?? [],
     [equipmentCharacter.customEquipment]
   );
+  const inventoryObjectCount = useMemo(
+    () => getInventoryObjectCount(equipmentCharacter.inventoryItems),
+    [equipmentCharacter.inventoryItems]
+  );
+  const inventoryObjectLimitMessage =
+    inventoryObjectCount >= INVENTORY_OBJECT_LIMIT
+      ? getInventoryObjectLimitMessage(inventoryObjectCount)
+      : inventoryObjectLimitNotice;
+  function showInventoryObjectLimitNotice(count = inventoryObjectCount) {
+    setInventoryObjectLimitNotice(getInventoryObjectLimitMessage(count));
+  }
+  function clearInventoryObjectLimitNotice() {
+    setInventoryObjectLimitNotice(null);
+  }
   const closeAddModal = useCallback(
     (options?: { afterClose?: () => void }) => {
       if (isAddModalCommittingRef.current) {
@@ -278,6 +366,9 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
           setAddEquipmentDraftCharacter(null);
           setIsAddEquipmentDraftDirty(false);
           setIsAddModalOpen(false);
+          setParentInventoryInspection(null);
+          setRestoreParentInventoryWithoutAnimation(false);
+          setIsEquipmentGuideOpen(false);
           setSelectedInventoryInspection((currentSelection) =>
             currentSelection?.source === "browser" ? null : currentSelection
           );
@@ -301,6 +392,9 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     setIsAddModalCommitting(false);
     setSelectedWeaponReference(null);
     setSelectedLoadoutEntry(null);
+    setParentInventoryInspection(null);
+    setRestoreParentInventoryWithoutAnimation(false);
+    setIsEquipmentGuideOpen(false);
     setSelectedInventoryInspection(null);
     setIsCurrencyDrawerOpen(false);
     setAddEquipmentDraftCharacter(createAddEquipmentDraftCharacter(character));
@@ -333,12 +427,36 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     selectedWeaponReference ||
     selectedLoadoutEntry ||
     selectedInventoryInspection ||
+    parentInventoryInspection ||
     isCurrencyDrawerOpen ||
     isAddModalOpen ||
     isCustomEquipmentModalOpen ||
-    pendingDeleteCustomEquipmentId
+    isEquipmentGuideOpen ||
+    pendingDeleteCustomEquipmentId ||
+    managingContainerStackId ||
+    pendingContainerInventoryRemoval
   );
   useBodyScrollLock(hasBackdrop);
+
+  useEffect(() => {
+    if (inventoryObjectCount < INVENTORY_OBJECT_LIMIT) {
+      setInventoryObjectLimitNotice(null);
+    }
+  }, [inventoryObjectCount]);
+
+  const closeInventoryItemDrawer = useCallback(() => {
+    setInventoryDrawerNotice(null);
+    if (parentInventoryInspection && selectedInventoryInspection?.source === "container") {
+      setRestoreParentInventoryWithoutAnimation(true);
+      setSelectedInventoryInspection(parentInventoryInspection);
+      setParentInventoryInspection(null);
+      return;
+    }
+
+    setParentInventoryInspection(null);
+    setRestoreParentInventoryWithoutAnimation(false);
+    setSelectedInventoryInspection(null);
+  }, [parentInventoryInspection, selectedInventoryInspection]);
 
   useEffect(() => {
     if (!hasBackdrop) {
@@ -357,8 +475,23 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
           return;
         }
 
+        if (pendingContainerInventoryRemoval) {
+          setPendingContainerInventoryRemoval(null);
+          return;
+        }
+
+        if (managingContainerStackId) {
+          setManagingContainerStackId(null);
+          return;
+        }
+
         if (isCustomEquipmentModalOpen) {
           closeCustomEquipmentModal();
+          return;
+        }
+
+        if (isEquipmentGuideOpen) {
+          setIsEquipmentGuideOpen(false);
           return;
         }
 
@@ -390,11 +523,16 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     };
   }, [
     closeAddModal,
+    closeInventoryItemDrawer,
     hasBackdrop,
     isAddModalOpen,
     isCurrencyDrawerOpen,
     isCustomEquipmentModalOpen,
+    isEquipmentGuideOpen,
+    managingContainerStackId,
+    pendingContainerInventoryRemoval,
     pendingDeleteCustomEquipmentId,
+    parentInventoryInspection,
     selectedInventoryInspection,
     selectedLoadoutEntry,
     selectedWeaponReference
@@ -733,8 +871,8 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       : false;
   const shouldOfferHandSwap =
     Boolean(selectedHandDescriptor) && !isSelectedEntryOnHand && !canSelectedEntryBePutOnHand;
-  const selectedInventoryGroup = useMemo(() => {
-    if (!selectedInventoryInspection) {
+  const selectedRootInventoryGroup = useMemo(() => {
+    if (!selectedInventoryInspection || selectedInventoryInspection.source === "container") {
       return null;
     }
 
@@ -742,6 +880,43 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       ? (inventoryIndex.groupsByStackId.get(selectedInventoryInspection.stackId) ?? null)
       : (inventoryIndex.groupsByKey.get(selectedInventoryInspection.itemKey) ?? null);
   }, [inventoryIndex.groupsByKey, inventoryIndex.groupsByStackId, selectedInventoryInspection]);
+  const selectedContainerStack = useMemo(() => {
+    if (
+      selectedInventoryInspection?.source !== "container" ||
+      !selectedInventoryInspection.containerStackId
+    ) {
+      return null;
+    }
+
+    return findInventoryItemStackById(
+      equipmentCharacter.inventoryItems,
+      selectedInventoryInspection.containerStackId
+    );
+  }, [equipmentCharacter.inventoryItems, selectedInventoryInspection]);
+  const selectedContainerContents = useMemo(
+    () => getInventoryContainerContents(selectedContainerStack),
+    [selectedContainerStack]
+  );
+  const selectedContainerContent =
+    selectedInventoryInspection?.source === "container" &&
+    selectedInventoryInspection.contentIndex !== undefined
+      ? (selectedContainerContents[selectedInventoryInspection.contentIndex] ?? null)
+      : null;
+  const selectedContainerContentStack =
+    selectedInventoryInspection?.source === "container" &&
+    selectedInventoryInspection.containerStackId &&
+    selectedInventoryInspection.contentIndex !== undefined &&
+    selectedContainerContent
+      ? createInventoryStackFromContainerContent(
+          selectedInventoryInspection.containerStackId,
+          selectedContainerContent,
+          selectedInventoryInspection.contentIndex
+        )
+      : null;
+  const selectedContainerContentGroup = selectedContainerContentStack
+    ? createGroupedInventoryItem(selectedContainerContentStack)
+    : null;
+  const selectedInventoryGroup = selectedContainerContentGroup ?? selectedRootInventoryGroup;
   const { item: selectedInventoryItem, status: selectedInventoryItemStatus } = useItemEntry(
     selectedInventoryInspection?.itemKey,
     {
@@ -750,7 +925,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     }
   );
   const selectedInventoryCopy = useMemo(() => {
-    if (!selectedInventoryInspection) {
+    if (!selectedInventoryInspection || selectedInventoryInspection.source === "container") {
       return null;
     }
 
@@ -763,7 +938,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     selectedInventoryInspection
   ]);
   const selectedAvailableInventoryCopy = useMemo(() => {
-    if (!selectedInventoryInspection) {
+    if (!selectedInventoryInspection || selectedInventoryInspection.source === "container") {
       return null;
     }
 
@@ -776,7 +951,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     selectedInventoryInspection
   ]);
   const selectedWornInventoryCopy = useMemo(() => {
-    if (!selectedInventoryInspection) {
+    if (!selectedInventoryInspection || selectedInventoryInspection.source === "container") {
       return null;
     }
 
@@ -819,23 +994,39 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     });
   }, [character.weaponProficiencies, selectedInventoryRecord, selectedInventoryWeaponMods]);
   const selectedInventoryCount = selectedInventoryInspection
-    ? selectedInventoryInspection.stackId
-      ? (inventoryCountsByStackId[selectedInventoryInspection.stackId] ?? 0)
-      : (inventoryCountsByKey[selectedInventoryInspection.itemKey] ?? 0)
+    ? selectedInventoryInspection.source === "container"
+      ? (selectedContainerContent?.quantity ?? 0)
+      : selectedInventoryInspection.stackId
+        ? (inventoryCountsByStackId[selectedInventoryInspection.stackId] ?? 0)
+        : (inventoryCountsByKey[selectedInventoryInspection.itemKey] ?? 0)
     : 0;
   const selectedInventoryOnHandCount = selectedInventoryInspection
-    ? selectedInventoryInspection.stackId
-      ? (inventoryIndex.heldCountsByStackId[selectedInventoryInspection.stackId] ?? 0)
-      : (inventoryIndex.heldCountsByKey[selectedInventoryInspection.itemKey] ?? 0)
+    ? selectedInventoryInspection.source === "container"
+      ? 0
+      : selectedInventoryInspection.stackId
+        ? (inventoryIndex.heldCountsByStackId[selectedInventoryInspection.stackId] ?? 0)
+        : (inventoryIndex.heldCountsByKey[selectedInventoryInspection.itemKey] ?? 0)
     : 0;
   const selectedInventoryStack = selectedInventoryGroup?.stack ?? null;
-  const selectedModdedInventoryStackId =
-    selectedInventoryInspection?.source === "inventory" && selectedInventoryStack?.mods
-      ? selectedInventoryStack.id
-      : null;
+  const selectedInventoryIsContainer = Boolean(
+    selectedInventoryRecord && isItemContainerRecord(selectedInventoryRecord)
+  );
+  const selectedInventoryOwnedContainer = Boolean(
+    selectedInventoryInspection?.source === "inventory" &&
+      selectedInventoryStack &&
+      isInventoryContainerItem(selectedInventoryStack)
+  );
+  const selectedInventoryContainerHasContents =
+    selectedInventoryStack && selectedInventoryOwnedContainer
+      ? hasInventoryContainerContents(selectedInventoryStack)
+      : false;
+  const managedContainerStack = managingContainerStackId
+    ? findInventoryItemStackById(equipmentCharacter.inventoryItems, managingContainerStackId)
+    : null;
   const selectedInventoryModEffects = selectedInventoryStack?.mods?.effects ?? [];
   const selectedInventoryFeatureTagLabels =
     getInventoryItemFeatureTagLabels(selectedInventoryStack);
+  const selectedInventoryHasMods = Boolean(selectedInventoryStack?.mods);
   const selectedInventoryIsModded =
     selectedInventoryStack &&
     hasCharacterItemMods(selectedInventoryStack.mods) &&
@@ -852,14 +1043,21 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   const inventoryAttunementLimit = getInventoryAttunementLimit(equipmentCharacter);
   const inventoryAttunementLabel = `${inventoryAttunementCount}/${inventoryAttunementLimit}`;
   const selectedInventoryUseState =
-    isSelectedInventoryOwnedDrawer && selectedInventoryStack
+    selectedInventoryInspection?.source !== "container" &&
+    isSelectedInventoryOwnedDrawer &&
+    selectedInventoryStack &&
+    !selectedInventoryOwnedContainer
       ? getInventoryItemUseState(selectedInventoryStack)
       : null;
   const selectedInventoryAttuned = Boolean(
-    isSelectedInventoryOwnedDrawer && selectedInventoryStack?.attuned
+    selectedInventoryInspection?.source !== "container" &&
+      isSelectedInventoryOwnedDrawer &&
+      selectedInventoryStack?.attuned
   );
   const selectedInventoryAttunable = Boolean(
-    isSelectedInventoryOwnedDrawer && isInventoryItemAttunable(selectedInventoryRecord)
+    selectedInventoryInspection?.source !== "container" &&
+      isSelectedInventoryOwnedDrawer &&
+      isInventoryItemAttunable(selectedInventoryRecord)
   );
   const isInventoryAttunementLimitReached = inventoryAttunementCount >= inventoryAttunementLimit;
   const selectedInventoryTransactionCost = selectedInventoryRecord
@@ -871,6 +1069,9 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
         rounding: "floor"
       })
     : null;
+  const selectedInventoryAddBlockedByLimit = selectedInventoryRecord
+    ? !canAddItemToSelectedInventoryTarget(selectedInventoryRecord)
+    : false;
   const selectedInventoryHasCrafterDiscount = Boolean(
     selectedInventoryRecord &&
     hasCrafterDiscountFeat &&
@@ -895,14 +1096,19 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     [equipmentCharacter.feats, equipmentCharacter.level, selectedInventoryRecord]
   );
   const selectedInventoryHandDescriptor =
-    selectedInventoryGroup && selectedAvailableInventoryCopy
+    selectedInventoryGroup && selectedInventoryInspection?.source === "container"
       ? createHeldDescriptorForInventoryItem(
-          `inventory-${selectedAvailableInventoryCopy.id}`,
+          `container-${selectedInventoryInspection.containerStackId}-${selectedInventoryInspection.contentIndex}`,
           selectedInventoryGroup.item
         )
-      : null;
+      : selectedInventoryGroup && selectedAvailableInventoryCopy
+        ? createHeldDescriptorForInventoryItem(
+            `inventory-${selectedAvailableInventoryCopy.id}`,
+            selectedInventoryGroup.item
+          )
+        : null;
   const selectedInventoryDualDescriptors =
-    selectedInventoryGroup && selectedInventoryCount >= 2
+    selectedInventoryInspection?.source !== "container" && selectedInventoryGroup && selectedInventoryCount >= 2
       ? (selectedInventoryInspection?.stackId
           ? getPreferredInventoryCopiesById(
               equipmentCharacter.inventoryItems,
@@ -941,18 +1147,44 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
 
   useEffect(() => {
     if (
+      selectedInventoryInspection?.source === "container" &&
+      selectedContainerContent === null
+    ) {
+      if (parentInventoryInspection) {
+        setRestoreParentInventoryWithoutAnimation(true);
+        setSelectedInventoryInspection(parentInventoryInspection);
+        setParentInventoryInspection(null);
+        return;
+      }
+
+      setRestoreParentInventoryWithoutAnimation(false);
+      setSelectedInventoryInspection(null);
+      return;
+    }
+
+    if (
       selectedInventoryInspection?.source === "inventory" &&
       (selectedInventoryInspection.stackId
         ? (inventoryCountsByStackId[selectedInventoryInspection.stackId] ?? 0)
         : (inventoryCountsByKey[selectedInventoryInspection.itemKey] ?? 0)) === 0
     ) {
+      setRestoreParentInventoryWithoutAnimation(false);
       setSelectedInventoryInspection(null);
     }
-  }, [inventoryCountsByKey, inventoryCountsByStackId, selectedInventoryInspection]);
+  }, [
+    inventoryCountsByKey,
+    inventoryCountsByStackId,
+    parentInventoryInspection,
+    selectedContainerContent,
+    selectedInventoryInspection
+  ]);
 
   function openLoadoutEntryDetails(item: LoadoutGroupItem) {
     setIsCurrencyDrawerOpen(false);
     setSelectedWeaponReference(null);
+    setParentInventoryInspection(null);
+    setRestoreParentInventoryWithoutAnimation(false);
+    setIsEquipmentGuideOpen(false);
     setSelectedInventoryInspection(null);
     setSelectedLoadoutEntry({
       entry: item.entry,
@@ -1014,6 +1246,14 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   function saveCustomEquipment(payload: CustomEquipmentEditorSavePayload) {
     let nextInventorySelection: SelectedInventoryInspectionState | null = null;
 
+    if (
+      !(customEditorMode === "edit" && editingInventoryStackId) &&
+      !canAddInventoryObject(equipmentCharacter.inventoryItems, { kind: "new-root-stack" })
+    ) {
+      showInventoryObjectLimitNotice();
+      return;
+    }
+
     onPersistCharacter((currentCharacter) => {
       if (customEditorMode === "edit" && editingInventoryStackId) {
         const originalStack = findInventoryItemStackById(
@@ -1068,9 +1308,11 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     }, equipmentPersistOptions);
 
     if (nextInventorySelection) {
+      setParentInventoryInspection(null);
       setSelectedInventoryInspection(nextInventorySelection);
     }
 
+    clearInventoryObjectLimitNotice();
     closeLoadoutDrawer();
     closeCustomEquipmentModal();
   }
@@ -1101,6 +1343,9 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   function openInventoryInspectionFromBrowser(item: { key: string }) {
     setSelectedWeaponReference(null);
     setSelectedLoadoutEntry(null);
+    setParentInventoryInspection(null);
+    setRestoreParentInventoryWithoutAnimation(false);
+    setIsEquipmentGuideOpen(false);
     setInventoryDrawerNotice(null);
     setSelectedInventoryInspection({
       itemKey: item.key,
@@ -1112,6 +1357,9 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   function openInventoryInspectionFromLoadout(item: GroupedInventoryItem) {
     setSelectedWeaponReference(null);
     setSelectedLoadoutEntry(null);
+    setParentInventoryInspection(null);
+    setRestoreParentInventoryWithoutAnimation(false);
+    setIsEquipmentGuideOpen(false);
     setInventoryDrawerNotice(null);
     setSelectedInventoryInspection({
       itemKey: item.itemKey,
@@ -1121,9 +1369,93 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     });
   }
 
-  function closeInventoryItemDrawer() {
+  function openInventoryInspectionFromContainerContent(
+    containerStackId: string,
+    contentIndex: number
+  ) {
+    const containerStack = findInventoryItemStackById(
+      equipmentCharacter.inventoryItems,
+      containerStackId
+    );
+    const content = getInventoryContainerContents(containerStack)[contentIndex] ?? null;
+
+    if (!content || !content.item.key) {
+      return;
+    }
+
+    const contentStack = createInventoryStackFromContainerContent(
+      containerStackId,
+      content,
+      contentIndex
+    );
+
+    setSelectedWeaponReference(null);
+    setSelectedLoadoutEntry(null);
     setInventoryDrawerNotice(null);
-    setSelectedInventoryInspection(null);
+    setRestoreParentInventoryWithoutAnimation(false);
+    setIsEquipmentGuideOpen(false);
+    if (selectedInventoryInspection?.source === "inventory") {
+      setParentInventoryInspection(selectedInventoryInspection);
+    }
+    setSelectedInventoryInspection({
+      itemKey: content.item.key,
+      containerStackId,
+      contentIndex,
+      initialItem: getEffectiveInventoryItemRecord(contentStack),
+      source: "container"
+    });
+  }
+
+  function openSelectedContainerManagement() {
+    if (!selectedInventoryStack || !isInventoryContainerItem(selectedInventoryStack)) {
+      return;
+    }
+
+    setManagingContainerStackId(selectedInventoryStack.id);
+  }
+
+  function closeContainerManagement() {
+    setManagingContainerStackId(null);
+  }
+
+  function saveContainerManagement(inventoryItems: Character["inventoryItems"]) {
+    onPersistCharacter(
+      (currentCharacter) => ({
+        ...currentCharacter,
+        inventoryItems
+      }),
+      equipmentPersistOptions
+    );
+
+    setManagingContainerStackId(null);
+    closeInventoryItemDrawer();
+  }
+
+  function canAddItemToSelectedInventoryTarget(item: ItemRecord): boolean {
+    if (selectedInventoryHasMods) {
+      return false;
+    }
+
+    if (
+      selectedInventoryInspection?.source === "container" &&
+      selectedInventoryInspection.containerStackId &&
+      selectedInventoryInspection.contentIndex !== undefined
+    ) {
+      return canAddInventoryObject(equipmentCharacter.inventoryItems, {
+        kind: "container-content",
+        containerStackId: selectedInventoryInspection.containerStackId,
+        contentIndex: selectedInventoryInspection.contentIndex
+      });
+    }
+
+    return canAddInventoryObject(equipmentCharacter.inventoryItems, {
+      kind: "root",
+      item
+    });
+  }
+
+  function wouldExceedInventoryObjectLimit(inventoryItems: Character["inventoryItems"]): boolean {
+    return getInventoryObjectCount(inventoryItems) > INVENTORY_OBJECT_LIMIT;
   }
 
   function addInventoryItemCopy(item: ItemRecord) {
@@ -1131,18 +1463,32 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       return;
     }
 
+    if (!canAddItemToSelectedInventoryTarget(item)) {
+      showInventoryObjectLimitNotice();
+      return;
+    }
+
     updateEquipmentCharacter(
-      (currentCharacter) => ({
-        ...currentCharacter,
-        inventoryItems: selectedModdedInventoryStackId
-          ? addInventoryItemCopiesToStackById(
-              currentCharacter.inventoryItems,
-              selectedModdedInventoryStackId
-            )
-          : addInventoryItemCopies(currentCharacter.inventoryItems, item)
-      }),
+      (currentCharacter) => {
+        const nextInventoryItems =
+          selectedInventoryInspection?.source === "container" &&
+          selectedInventoryInspection.containerStackId &&
+          selectedInventoryInspection.contentIndex !== undefined
+            ? addOneContainerContentItemCopyByIndex(
+                currentCharacter.inventoryItems,
+                selectedInventoryInspection.containerStackId,
+                selectedInventoryInspection.contentIndex
+              )
+              : addInventoryItemCopies(currentCharacter.inventoryItems, item);
+
+        return {
+          ...currentCharacter,
+          inventoryItems: nextInventoryItems
+        };
+      },
       { stage: selectedInventoryInspection?.source === "browser" }
     );
+    clearInventoryObjectLimitNotice();
   }
 
   function buyInventoryItemCopy(item: ItemRecord) {
@@ -1153,6 +1499,11 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     const transactionCost = getItemTransactionCost(item);
 
     if (!transactionCost || transactionCost.amount <= 0) {
+      return;
+    }
+
+    if (!canAddItemToSelectedInventoryTarget(item)) {
+      showInventoryObjectLimitNotice();
       return;
     }
 
@@ -1169,22 +1520,33 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
           return currentCharacter;
         }
 
+        const nextInventoryItems =
+          selectedInventoryInspection?.source === "container" &&
+          selectedInventoryInspection.containerStackId &&
+          selectedInventoryInspection.contentIndex !== undefined
+            ? addOneContainerContentItemCopyByIndex(
+                currentCharacter.inventoryItems,
+                selectedInventoryInspection.containerStackId,
+                selectedInventoryInspection.contentIndex
+              )
+              : addInventoryItemCopies(currentCharacter.inventoryItems, item);
+
+        if (wouldExceedInventoryObjectLimit(nextInventoryItems)) {
+          return currentCharacter;
+        }
+
         return {
           ...currentCharacter,
           currencies: {
             ...currentCharacter.currencies,
             [transactionCost.currencyKey]: currentCurrencyAmount - transactionCost.amount
           },
-          inventoryItems: selectedModdedInventoryStackId
-            ? addInventoryItemCopiesToStackById(
-                currentCharacter.inventoryItems,
-                selectedModdedInventoryStackId
-              )
-            : addInventoryItemCopies(currentCharacter.inventoryItems, item)
+          inventoryItems: nextInventoryItems
         };
       },
       { stage: selectedInventoryInspection?.source === "browser" }
     );
+    clearInventoryObjectLimitNotice();
   }
 
   function getInventoryRemovalTargetStack(
@@ -1208,6 +1570,29 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
 
   function removeInventoryItemCopy(itemKey: string, options?: { closeDrawer?: boolean }) {
     if (!itemKey) {
+      return;
+    }
+
+    if (
+      selectedInventoryInspection?.source === "container" &&
+      selectedInventoryInspection.containerStackId &&
+      selectedInventoryInspection.contentIndex !== undefined
+    ) {
+      updateEquipmentCharacter((currentCharacter) => ({
+        ...currentCharacter,
+        inventoryItems: removeOneContainerContentItemByIndex(
+          currentCharacter.inventoryItems,
+          selectedInventoryInspection.containerStackId!,
+          selectedInventoryInspection.contentIndex!
+        )
+      }));
+
+      clearInventoryObjectLimitNotice();
+
+      if (options?.closeDrawer) {
+        closeInventoryItemDrawer();
+      }
+
       return;
     }
 
@@ -1236,6 +1621,8 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     if (options?.closeDrawer) {
       closeInventoryItemDrawer();
     }
+
+    clearInventoryObjectLimitNotice();
   }
 
   function sellInventoryItemCopy(item: ItemRecord, options?: { closeDrawer?: boolean }) {
@@ -1251,6 +1638,42 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     });
 
     if (!transactionCost || transactionCost.amount <= 0) {
+      return;
+    }
+
+    if (
+      selectedInventoryInspection?.source === "container" &&
+      selectedInventoryInspection.containerStackId &&
+      selectedInventoryInspection.contentIndex !== undefined
+    ) {
+      updateEquipmentCharacter((currentCharacter) => {
+        const currentCurrencyAmount = Math.max(
+          0,
+          Math.floor(
+            clampNumber(currentCharacter.currencies[transactionCost.currencyKey], 0, 999999999, 0)
+          )
+        );
+
+        return {
+          ...currentCharacter,
+          currencies: {
+            ...currentCharacter.currencies,
+            [transactionCost.currencyKey]: currentCurrencyAmount + transactionCost.amount
+          },
+          inventoryItems: removeOneContainerContentItemByIndex(
+            currentCharacter.inventoryItems,
+            selectedInventoryInspection.containerStackId!,
+            selectedInventoryInspection.contentIndex!
+          )
+        };
+      });
+
+      clearInventoryObjectLimitNotice();
+
+      if (options?.closeDrawer) {
+        closeInventoryItemDrawer();
+      }
+
       return;
     }
 
@@ -1290,6 +1713,48 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     if (options?.closeDrawer) {
       closeInventoryItemDrawer();
     }
+
+    clearInventoryObjectLimitNotice();
+  }
+
+  function queueContainerRemoval(action: "remove" | "sell", item: ItemRecord) {
+    const itemKey = item.key;
+    const stackId = selectedInventoryInspection?.stackId;
+
+    if (!itemKey || !stackId || !selectedInventoryStack) {
+      return;
+    }
+
+    if (!selectedInventoryContainerHasContents) {
+      if (action === "sell") {
+        sellInventoryItemCopy(item);
+        return;
+      }
+
+      removeInventoryItemCopy(itemKey);
+      return;
+    }
+
+    setPendingContainerInventoryRemoval({
+      action,
+      item,
+      itemKey,
+      stackId
+    });
+  }
+
+  function confirmContainerRemoval() {
+    if (!pendingContainerInventoryRemoval) {
+      return;
+    }
+
+    if (pendingContainerInventoryRemoval.action === "sell") {
+      sellInventoryItemCopy(pendingContainerInventoryRemoval.item, { closeDrawer: true });
+    } else {
+      removeInventoryItemCopy(pendingContainerInventoryRemoval.itemKey, { closeDrawer: true });
+    }
+
+    setPendingContainerInventoryRemoval(null);
   }
 
   async function extractInventoryPackContents() {
@@ -1311,6 +1776,26 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
 
     try {
       const payload = await fetchItemPackContents(packKey);
+      let projectedInventoryItems = equipmentCharacter.inventoryItems;
+
+      payload.contents.forEach((entry) => {
+        projectedInventoryItems = addInventoryItemCopies(
+          projectedInventoryItems,
+          entry.item,
+          entry.quantity
+        );
+      });
+
+      if (source === "inventory") {
+        projectedInventoryItems = selectedInventoryInspection?.stackId
+          ? removeOneInventoryItemCopyById(projectedInventoryItems, selectedInventoryInspection.stackId)
+          : removeOneInventoryItemCopyByKey(projectedInventoryItems, packKey);
+      }
+
+      if (wouldExceedInventoryObjectLimit(projectedInventoryItems)) {
+        showInventoryObjectLimitNotice(getInventoryObjectCount(projectedInventoryItems));
+        return;
+      }
 
       updateEquipmentCharacter(
         (currentCharacter) => {
@@ -1333,7 +1818,10 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
               : removeOneInventoryItemCopyByKey(nextInventoryItems, packKey);
           }
 
-          if (nextInventoryItems === currentCharacter.inventoryItems) {
+          if (
+            nextInventoryItems === currentCharacter.inventoryItems ||
+            wouldExceedInventoryObjectLimit(nextInventoryItems)
+          ) {
             return currentCharacter;
           }
 
@@ -1344,6 +1832,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
         },
         { stage: source === "browser" }
       );
+      clearInventoryObjectLimitNotice();
     } catch (error) {
       if (isApiOfflineError(error)) {
         setInventoryDrawerNotice("Server Unavailable");
@@ -1480,6 +1969,15 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       return;
     }
 
+    if (selectedInventoryInspection.source === "container") {
+      if (!selectedInventoryHandDescriptor || !canSelectedInventoryBePutOnHand) {
+        return;
+      }
+
+      moveSelectedContainerContentToRoot({ onHand: true });
+      return;
+    }
+
     if (
       !isSelectedInventoryOnHand &&
       (!selectedInventoryHandDescriptor || !canSelectedInventoryBePutOnHand)
@@ -1528,8 +2026,17 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     if (
       !selectedInventoryInspection?.itemKey ||
       !selectedInventoryGroup ||
-      isSelectedInventoryOnHand
+      (selectedInventoryInspection.source !== "container" && isSelectedInventoryOnHand)
     ) {
+      return;
+    }
+
+    if (selectedInventoryInspection.source === "container") {
+      if (!selectedInventoryHandDescriptor) {
+        return;
+      }
+
+      moveSelectedContainerContentToRoot({ clearHands: true, onHand: true });
       return;
     }
 
@@ -1626,12 +2133,21 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     if (
       !selectedInventoryGroup ||
       !selectedInventoryInspection?.itemKey ||
-      !selectedInventoryCopy
+      (selectedInventoryInspection.source !== "container" && !selectedInventoryCopy)
     ) {
       return;
     }
 
     if (!isItemBodyArmorRecord(selectedInventoryGroup.item)) {
+      return;
+    }
+
+    if (selectedInventoryInspection.source === "container") {
+      moveSelectedContainerContentToRoot({ worn: true });
+      return;
+    }
+
+    if (!selectedInventoryCopy) {
       return;
     }
 
@@ -1767,7 +2283,95 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     setCurrencyAmountDraft(0);
   }
 
-  const inventoryLeftFooterActions: EquipmentInventoryDrawerAction[] = selectedInventoryRecord
+  function moveSelectedContainerContentToRoot(options: {
+    clearHands?: boolean;
+    onHand?: boolean;
+    worn?: boolean;
+  }) {
+    if (
+      selectedInventoryInspection?.source !== "container" ||
+      !selectedInventoryInspection.containerStackId ||
+      selectedInventoryInspection.contentIndex === undefined
+    ) {
+      return;
+    }
+
+    const projectedBaseCharacter = options.clearHands
+      ? clearCharacterHandOccupants(equipmentCharacter)
+      : equipmentCharacter;
+    const projectedMoveResult = moveOneContainerContentItemOutByIndexWithResult(
+      projectedBaseCharacter.inventoryItems,
+      selectedInventoryInspection.containerStackId,
+      selectedInventoryInspection.contentIndex
+    );
+    let projectedInventoryItems = projectedMoveResult.inventoryItems;
+
+    if (!projectedMoveResult.stackId) {
+      return;
+    }
+
+    if (options.onHand) {
+      projectedInventoryItems = setInventoryItemOnHandQuantityById(
+        projectedInventoryItems,
+        projectedMoveResult.stackId,
+        1
+      );
+    }
+
+    if (wouldExceedInventoryObjectLimit(projectedInventoryItems)) {
+      showInventoryObjectLimitNotice(getInventoryObjectCount(projectedInventoryItems));
+      return;
+    }
+
+    let nextInventorySelection: SelectedInventoryInspectionState | null = null;
+
+    updateEquipmentCharacter((currentCharacter) => {
+      const baseCharacter = options.clearHands
+        ? clearCharacterHandOccupants(currentCharacter)
+        : currentCharacter;
+      const moveResult = moveOneContainerContentItemOutByIndexWithResult(
+        baseCharacter.inventoryItems,
+        selectedInventoryInspection.containerStackId!,
+        selectedInventoryInspection.contentIndex!
+      );
+
+      if (!moveResult.stackId || wouldExceedInventoryObjectLimit(moveResult.inventoryItems)) {
+        return currentCharacter;
+      }
+
+      let nextCharacter = {
+        ...baseCharacter,
+        inventoryItems: options.onHand
+          ? setInventoryItemOnHandQuantityById(moveResult.inventoryItems, moveResult.stackId, 1)
+          : moveResult.inventoryItems
+      };
+
+      if (options.worn) {
+        nextCharacter = setInventoryItemArmorWornState(nextCharacter, moveResult.stackId, true);
+      }
+
+      const movedStack = findInventoryItemStackById(nextCharacter.inventoryItems, moveResult.stackId);
+
+      if (movedStack) {
+        nextInventorySelection = {
+          itemKey: movedStack.item.key || selectedInventoryInspection.itemKey,
+          stackId: movedStack.id,
+          initialItem: getEffectiveInventoryItemRecord(movedStack),
+          source: "inventory"
+        };
+      }
+
+      return nextCharacter;
+    });
+
+    if (nextInventorySelection) {
+      setSelectedInventoryInspection(nextInventorySelection);
+    }
+
+    clearInventoryObjectLimitNotice();
+  }
+
+  const standardInventoryLeftFooterActions: EquipmentInventoryDrawerAction[] = selectedInventoryRecord
     ? [
         ...(selectedInventoryGroup && isItemHandEquippableRecord(selectedInventoryGroup.item)
           ? [
@@ -1843,7 +2447,8 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
               }
             ]
           : []),
-        ...(isExtractableEquipmentPackRecord(selectedInventoryRecord)
+        ...(selectedInventoryInspection?.source !== "container" &&
+        isExtractableEquipmentPackRecord(selectedInventoryRecord)
           ? [
               {
                 key: "extract-items",
@@ -1858,67 +2463,119 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
           : [])
       ]
     : [];
+  const containerInventoryLeftFooterActions: EquipmentInventoryDrawerAction[] =
+    selectedInventoryOwnedContainer && selectedInventoryStack
+      ? [
+          {
+            key: "manage-container",
+            label: "Manage",
+            icon: Package,
+            onClick: openSelectedContainerManagement
+          },
+          ...standardInventoryLeftFooterActions.filter((action) => action.key === "attune")
+        ]
+      : [];
+  const inventoryLeftFooterActions: EquipmentInventoryDrawerAction[] =
+    selectedInventoryOwnedContainer && selectedInventoryStack
+      ? containerInventoryLeftFooterActions
+      : selectedInventoryIsContainer
+        ? []
+        : standardInventoryLeftFooterActions;
   const inventoryRightFooterActions: EquipmentInventoryDrawerAction[] = selectedInventoryInspection
     ? [
-        {
-          key: "buy",
-          label: "Buy",
-          icon: TicketPlus,
-          tone: "positive",
-          disabled:
-            selectedInventoryIsInventoryConjuredStack ||
-            !selectedInventoryRecord ||
-            !selectedInventoryTransactionCost ||
-            selectedInventoryTransactionCost.amount <= 0 ||
-            normalizedCurrencies[selectedInventoryTransactionCost.currencyKey] <
-              selectedInventoryTransactionCost.amount,
-          onClick: () => {
-            if (selectedInventoryRecord) {
-              buyInventoryItemCopy(selectedInventoryRecord);
-            }
-          }
-        },
-        {
-          key: "sell",
-          label: "Sell",
-          icon: TicketMinus,
-          tone: "negative",
-          disabled:
-            selectedInventoryIsConjured ||
-            !selectedInventoryRecord ||
-            selectedInventoryCount <= 0 ||
-            !selectedInventorySaleCost ||
-            selectedInventorySaleCost.amount <= 0,
-          onClick: () => {
-            if (selectedInventoryRecord) {
-              sellInventoryItemCopy(selectedInventoryRecord);
-            }
-          }
-        },
-        {
-          key: "add",
-          label: "Add",
-          icon: Plus,
-          tone: "neutral",
-          disabled: selectedInventoryIsInventoryConjuredStack || !selectedInventoryRecord,
-          onClick: () => {
-            if (selectedInventoryRecord) {
-              addInventoryItemCopy(selectedInventoryRecord);
-            }
-          }
-        },
-        {
-          key: "remove",
-          label: "Remove",
-          icon: Minus,
-          tone: "neutral",
-          disabled: !selectedInventoryInspection.itemKey || selectedInventoryCount <= 0,
-          onClick: () => {
-            if (selectedInventoryInspection.itemKey) {
-              removeInventoryItemCopy(selectedInventoryInspection.itemKey);
-            }
-          }
-        }
+        ...(!selectedInventoryOwnedContainer && !selectedInventoryHasMods
+          ? [
+              {
+                key: "buy",
+                label: "Buy",
+                icon: TicketPlus,
+                tone: "positive" as const,
+                disabled:
+                  selectedInventoryIsInventoryConjuredStack ||
+                  selectedInventoryAddBlockedByLimit ||
+                  !selectedInventoryRecord ||
+                  !selectedInventoryTransactionCost ||
+                  selectedInventoryTransactionCost.amount <= 0 ||
+                  normalizedCurrencies[selectedInventoryTransactionCost.currencyKey] <
+                    selectedInventoryTransactionCost.amount,
+                onClick: () => {
+                  if (selectedInventoryRecord) {
+                    buyInventoryItemCopy(selectedInventoryRecord);
+                  }
+                }
+              }
+            ]
+          : []),
+        ...(!selectedInventoryIsContainer || selectedInventoryOwnedContainer
+          ? [
+              {
+                key: "sell",
+                label: "Sell",
+                icon: TicketMinus,
+                tone: "negative" as const,
+                disabled:
+                  selectedInventoryIsConjured ||
+                  !selectedInventoryRecord ||
+                  selectedInventoryCount <= 0 ||
+                  !selectedInventorySaleCost ||
+                  selectedInventorySaleCost.amount <= 0,
+                onClick: () => {
+                  if (!selectedInventoryRecord) {
+                    return;
+                  }
+
+                  if (selectedInventoryOwnedContainer) {
+                    queueContainerRemoval("sell", selectedInventoryRecord);
+                    return;
+                  }
+
+                  sellInventoryItemCopy(selectedInventoryRecord);
+                }
+              }
+            ]
+          : []),
+        ...(!selectedInventoryOwnedContainer && !selectedInventoryHasMods
+          ? [
+              {
+                key: "add",
+                label: "Add",
+                icon: Plus,
+                tone: "neutral" as const,
+                disabled:
+                  selectedInventoryIsInventoryConjuredStack ||
+                  selectedInventoryAddBlockedByLimit ||
+                  !selectedInventoryRecord,
+                onClick: () => {
+                  if (selectedInventoryRecord) {
+                    addInventoryItemCopy(selectedInventoryRecord);
+                  }
+                }
+              }
+            ]
+          : []),
+        ...(!selectedInventoryIsContainer || selectedInventoryOwnedContainer
+          ? [
+              {
+                key: "remove",
+                label: "Remove",
+                icon: Minus,
+                tone: "neutral" as const,
+                disabled: !selectedInventoryInspection.itemKey || selectedInventoryCount <= 0,
+                onClick: () => {
+                  if (!selectedInventoryInspection.itemKey) {
+                    return;
+                  }
+
+                  if (selectedInventoryOwnedContainer && selectedInventoryRecord) {
+                    queueContainerRemoval("remove", selectedInventoryRecord);
+                    return;
+                  }
+
+                  removeInventoryItemCopy(selectedInventoryInspection.itemKey);
+                }
+              }
+            ]
+          : [])
       ]
     : [];
   const inventoryDrawerFooter = selectedInventoryInspection ? (
@@ -1929,8 +2586,15 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       ownedCount={selectedInventoryCount}
     />
   ) : null;
+  const inventoryDrawerTitleId = parentInventoryInspection
+    ? "equipment-contained-item-drawer-title"
+    : "equipment-item-drawer-title";
+  const inventoryDrawerClassName = restoreParentInventoryWithoutAnimation
+    ? styles.equipmentParentInspectionDrawer
+    : undefined;
   const inventoryDrawerHeaderContent = selectedInventoryRecord ? (
     <EquipmentInventoryItemDrawerHeader
+      titleId={inventoryDrawerTitleId}
       item={selectedInventoryRecord}
       onHandCount={selectedInventoryOnHandCount}
       worn={isSelectedInventoryArmorWorn}
@@ -1940,7 +2604,9 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       modded={Boolean(selectedInventoryIsModded)}
     />
   ) : undefined;
-  const inventoryDrawerHeaderAction = selectedInventoryStack ? (
+  const inventoryDrawerHeaderAction =
+    selectedInventoryInspection?.source === "inventory" &&
+    selectedInventoryStack ? (
     <button
       type="button"
       className={clsx(shared.editButton, styles.inventoryModsButton)}
@@ -1949,14 +2615,60 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       <Settings size={16} aria-hidden="true" />
       <span>Mods</span>
     </button>
+    ) : null;
+  const parentInventoryStack =
+    parentInventoryInspection?.source === "inventory" && parentInventoryInspection.stackId
+      ? findInventoryItemStackById(
+          equipmentCharacter.inventoryItems,
+          parentInventoryInspection.stackId
+        )
+      : null;
+  const parentInventoryRecord = parentInventoryStack
+    ? getEffectiveInventoryItemRecord(parentInventoryStack)
+    : null;
+  const parentInventoryDrawerTitleId = "equipment-parent-container-drawer-title";
+  const parentInventoryDrawerHeaderContent = parentInventoryRecord ? (
+    <EquipmentInventoryItemDrawerHeader
+      titleId={parentInventoryDrawerTitleId}
+      item={parentInventoryRecord}
+      featureTags={getInventoryItemFeatureTagLabels(parentInventoryStack)}
+      modded={Boolean(
+        parentInventoryStack &&
+          hasCharacterItemMods(parentInventoryStack.mods) &&
+          !parentInventoryStack.mods?.isCustom
+      )}
+    />
+  ) : undefined;
+  const parentInventoryDrawerBodyAfterItem = parentInventoryStack ? (
+    <EquipmentContainerContentsList
+      containerStackId={parentInventoryStack.id}
+      contents={getInventoryContainerContents(parentInventoryStack)}
+      onSelectContent={(contentIndex) =>
+        openInventoryInspectionFromContainerContent(parentInventoryStack.id, contentIndex)
+      }
+    />
   ) : null;
+  const inventoryDrawerBodyAfterItem =
+    selectedInventoryOwnedContainer && selectedInventoryStack ? (
+      <EquipmentContainerContentsList
+        containerStackId={selectedInventoryStack.id}
+        contents={getInventoryContainerContents(selectedInventoryStack)}
+        onSelectContent={(contentIndex) =>
+          openInventoryInspectionFromContainerContent(selectedInventoryStack.id, contentIndex)
+        }
+      />
+    ) : null;
 
   return renderEquipmentForm({
     ActionButton,
     CellContainer,
+    CircleHelp,
     CurrencyInlineDisplay,
     CustomEquipmentEditor,
+    DestructiveConfirmationModal,
     ENTRY_CATEGORIES,
+    EquipmentContainerManageModal,
+    EquipmentGuideModal,
     EquipmentInventoryItemDrawer,
     EquipmentItemBrowserModal,
     Hand,
@@ -1972,6 +2684,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     OverlayHeaderContent,
     OverlaySummary,
     OverlayTitle,
+    Package,
     Plus,
     RarityPill,
     SheetModal,
@@ -1986,6 +2699,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     carriedWeight,
     carryingCapacity,
     className,
+    containerManagementInventoryItems: equipmentCharacter.inventoryItems,
     closeAddModal,
     closeCustomEquipmentModal,
     closeInventoryItemDrawer,
@@ -2008,19 +2722,26 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     formatWeaponWeight,
     formatWeightValue,
     getArmorTypeSummary,
+    getInventoryRowObjectTagLabel,
+    getItemObjectTagLabel,
     getInventoryItemConjuredRowTagLabel,
     getInventoryItemFeatureTagLabels,
-    getItemWeightValue,
+    getInventoryItemTotalWeightValue,
     groupedInventoryItems,
     hasCharacterItemMods,
     hasDisplayableRarity,
+    inventoryDrawerBodyAfterItem,
+    inventoryDrawerClassName,
     inventoryDrawerFooter,
     inventoryDrawerHeaderAction,
     inventoryDrawerHeaderContent,
+    inventoryObjectCount,
+    inventoryObjectLimitMessage,
     isAddModalCommitting,
     isAddModalOpen,
     isCurrencyDrawerOpen,
     isCustomEquipmentModalOpen,
+    isEquipmentGuideOpen,
     isGeneralEquipmentExpanded,
     isHandEquippableEntry,
     isOverCarryingCapacity,
@@ -2029,6 +2750,8 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     isSelectedEntryOnHand,
     isSelectedFeatureManagedEntry,
     isSelectedShield,
+    managedContainerStack,
+    managingContainerStackId,
     normalizeCurrencyAmountInput,
     normalizedCurrencies,
     openAddModal,
@@ -2039,11 +2762,21 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     openInventoryInspectionFromLoadout,
     openLoadoutEntryDetails,
     openWeaponReference,
+    parentInventoryDrawerBodyAfterItem,
+    parentInventoryDrawerHeaderContent,
+    parentInventoryDrawerTitleId,
+    parentInventoryInspection,
+    parentInventoryRecord,
     pendingDeleteCustomEquipment,
+    pendingContainerInventoryRemoval,
+    closeContainerManagement,
+    confirmContainerRemoval,
     removeEquipmentItem,
     saveCustomEquipment,
+    saveContainerManagement,
     selectedAdditionalWeaponMasteries,
     selectedInventoryInspection,
+    inventoryDrawerTitleId,
     selectedInventoryItemStatus,
     selectedInventoryAdditionalDescription,
     selectedInventoryDescriptionAdditions,
@@ -2062,8 +2795,10 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     selectedWeaponReference,
     setActiveCurrencyKey,
     setCurrencyAmountDraft,
+    setIsEquipmentGuideOpen,
     setIsCurrencyDrawerOpen,
     setIsGeneralEquipmentExpanded,
+    setPendingContainerInventoryRemoval,
     setPendingDeleteCustomEquipmentId,
     setSelectedWeaponReference,
     shared,

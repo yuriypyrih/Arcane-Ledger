@@ -15,6 +15,7 @@ type ItemInspectionContentProps = {
   showHeader?: boolean;
   additionalDescription?: SpellDescriptionEntry[];
   descriptionAdditions?: SpellDescriptionEntry[][];
+  afterStapleCells?: ReactNode;
   costSuffix?: ReactNode;
   weaponMasteryActive?: boolean;
   weaponProficient?: boolean;
@@ -31,6 +32,7 @@ function ItemInspectionContent({
   showHeader = true,
   additionalDescription = [],
   descriptionAdditions = [],
+  afterStapleCells,
   costSuffix,
   weaponMasteryActive = false,
   weaponProficient = false,
@@ -108,6 +110,8 @@ function ItemInspectionContent({
           })}
         </div>
       </section>
+
+      {afterStapleCells}
 
       {presentation.weapon && presentation.weaponCells.length > 0 ? (
         <section className={styles.section}>

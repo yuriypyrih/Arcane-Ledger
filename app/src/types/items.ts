@@ -84,6 +84,7 @@ export type ItemRecord = {
   requires_attunement?: boolean;
   attunement_detail?: string | null;
   document?: ItemDetailDocumentReference | null;
+  containerContents?: ItemPackContent[];
 };
 
 export type ItemFilterOption = {

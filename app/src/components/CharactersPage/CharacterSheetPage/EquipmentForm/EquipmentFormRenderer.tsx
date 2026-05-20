@@ -3,26 +3,37 @@
 
 export function renderEquipmentForm(context: Record<string, any>) {
   const {
-    ActionButton, CellContainer, CurrencyInlineDisplay, CustomEquipmentEditor, ENTRY_CATEGORIES, EquipmentInventoryItemDrawer, EquipmentItemBrowserModal, Hand, InlineToggleButton, KeywordReferenceDrawer,
-    Minus, NumberInput, OverlayBody, OverlayCloseButton, OverlayEyebrow, OverlayFooter, OverlayHeader, OverlayHeaderContent, OverlaySummary, OverlayTitle, Plus, RarityPill, SheetModal, Shield, Sparkles, WeaponMasteryStatusLabel, X, activeCurrencyDefinition, activeCurrencyKey,
-    adjustCurrencyBalance, canSpendCurrency, carriedWeight, carryingCapacity, className, closeAddModal, closeCustomEquipmentModal, closeInventoryItemDrawer, closeLoadoutDrawer,
+    ActionButton, CellContainer, CircleHelp, CurrencyInlineDisplay, CustomEquipmentEditor, DestructiveConfirmationModal, ENTRY_CATEGORIES, EquipmentContainerManageModal, EquipmentGuideModal, EquipmentInventoryItemDrawer, EquipmentItemBrowserModal, Hand, InlineToggleButton, KeywordReferenceDrawer,
+    Minus, NumberInput, OverlayBody, OverlayCloseButton, OverlayEyebrow, OverlayFooter, OverlayHeader, OverlayHeaderContent, OverlaySummary, OverlayTitle, Package, Plus, RarityPill, SheetModal, Shield, Sparkles, WeaponMasteryStatusLabel, X, activeCurrencyDefinition, activeCurrencyKey,
+    adjustCurrencyBalance, canSpendCurrency, carriedWeight, carryingCapacity, className, containerManagementInventoryItems, closeAddModal, closeContainerManagement, closeCustomEquipmentModal, closeInventoryItemDrawer, closeLoadoutDrawer,
     clsx, currencyAmountDraft, currencyDefinitions, customEditorMode, deleteCustomEquipment, editingInventoryStack, equipmentRenderGroups, formatCodexLabel, formatCodexList,
-    formatEquipmentWeight, formatInventoryStackName, formatOnHandLabel, formatWeaponDamage, formatWeaponProperties, formatWeaponType, formatWeaponWeight, formatWeightValue, getArmorTypeSummary, getInventoryItemConjuredRowTagLabel, getInventoryItemFeatureTagLabels,
-    getItemWeightValue, groupedInventoryItems, hasCharacterItemMods, hasDisplayableRarity, inventoryDrawerFooter, inventoryDrawerHeaderAction, inventoryDrawerHeaderContent, isAddModalCommitting, isAddModalOpen, isCurrencyDrawerOpen,
-    isCustomEquipmentModalOpen, isGeneralEquipmentExpanded, isHandEquippableEntry, isOverCarryingCapacity, isSelectedArmorWorn, isSelectedCustomEntry, isSelectedEntryOnHand, isSelectedFeatureManagedEntry, isSelectedShield,
+    formatEquipmentWeight, formatInventoryStackName, formatOnHandLabel, formatWeaponDamage, formatWeaponProperties, formatWeaponType, formatWeaponWeight, formatWeightValue, getArmorTypeSummary, getInventoryItemConjuredRowTagLabel, getInventoryItemFeatureTagLabels, getInventoryItemTotalWeightValue, getInventoryRowObjectTagLabel, getItemObjectTagLabel,
+    groupedInventoryItems, hasCharacterItemMods, hasDisplayableRarity, inventoryDrawerBodyAfterItem, inventoryDrawerClassName, inventoryDrawerFooter, inventoryDrawerHeaderAction, inventoryDrawerHeaderContent, inventoryObjectCount, inventoryObjectLimitMessage, isAddModalCommitting, isAddModalOpen, isCurrencyDrawerOpen,
+    isCustomEquipmentModalOpen, isEquipmentGuideOpen, isGeneralEquipmentExpanded, isHandEquippableEntry, isOverCarryingCapacity, isSelectedArmorWorn, isSelectedCustomEntry, isSelectedEntryOnHand, isSelectedFeatureManagedEntry, isSelectedShield, managedContainerStack, managingContainerStackId,
     normalizeCurrencyAmountInput, normalizedCurrencies, openAddModal, openCurrencyModal, openCustomEquipmentCreator, openCustomEquipmentEditor, openInventoryInspectionFromBrowser, openInventoryInspectionFromLoadout, openLoadoutEntryDetails,
-    openWeaponReference, pendingDeleteCustomEquipment, removeEquipmentItem, saveCustomEquipment, selectedAdditionalWeaponMasteries, selectedInventoryAdditionalDescription, selectedInventoryDescriptionAdditions,
-    selectedInventoryInspection, selectedInventoryItemStatus, selectedInventoryModEffects, selectedInventoryRecord,
+    openWeaponReference, parentInventoryDrawerBodyAfterItem, parentInventoryDrawerHeaderContent, parentInventoryDrawerTitleId, parentInventoryInspection, parentInventoryRecord, pendingContainerInventoryRemoval, pendingDeleteCustomEquipment, removeEquipmentItem, saveContainerManagement, saveCustomEquipment, selectedAdditionalWeaponMasteries, selectedInventoryAdditionalDescription, selectedInventoryDescriptionAdditions,
+    inventoryDrawerTitleId, selectedInventoryInspection, selectedInventoryItemStatus, selectedInventoryModEffects, selectedInventoryRecord,
     selectedInventoryWeaponHasActiveMastery, selectedInventoryWeaponHasProficiency, selectedLoadoutEntry, selectedLoadoutEntryData, selectedLoadoutItems, selectedLoadoutSummary, selectedWeaponHasActiveMastery, selectedWeaponHasProficiency, selectedWeaponMasteryKeywords,
-    selectedWeaponMasteryLabel, selectedWeaponReference, setActiveCurrencyKey, setCurrencyAmountDraft, setIsCurrencyDrawerOpen, setIsGeneralEquipmentExpanded, setPendingDeleteCustomEquipmentId, setSelectedWeaponReference, shared, SheetSurface,
-    sheetStyles, shouldOfferHandSwap, styles, swapEntryToHand, toggleArmorWorn, toggleEntryOnHand
+    selectedWeaponMasteryLabel, selectedWeaponReference, setActiveCurrencyKey, setCurrencyAmountDraft, setIsCurrencyDrawerOpen, setIsEquipmentGuideOpen, setIsGeneralEquipmentExpanded, setPendingContainerInventoryRemoval, setPendingDeleteCustomEquipmentId, setSelectedWeaponReference, shared, SheetSurface,
+    sheetStyles, shouldOfferHandSwap, styles, swapEntryToHand, toggleArmorWorn, toggleEntryOnHand, confirmContainerRemoval
   } = context;
 
   return (
     <article className={clsx(shared.sectionCard, styles.equipmentSectionCard, className)}>
       <div className={clsx(shared.sectionHeader, styles.loadoutSectionHeader)}>
         <div className={styles.loadoutHeaderText}>
-          <p className={shared.eyebrow}>Equipment</p>
+          <div className={shared.eyebrowHelpRow}>
+            <p className={clsx(shared.eyebrow, shared.eyebrowInHelpRow)}>Equipment</p>
+            <button
+              type="button"
+              className={shared.helpButton}
+              onClick={() => setIsEquipmentGuideOpen(true)}
+              aria-label="Open equipment guide"
+              title="Open equipment guide"
+            >
+              <CircleHelp size={16} />
+            </button>
+          </div>
           <h3 className={shared.subtitle}>Current loadout</h3>
         </div>
         <div className={styles.loadoutHeaderActions}>
@@ -80,6 +91,12 @@ export function renderEquipmentForm(context: Record<string, any>) {
         </div>
       </div>
 
+      {inventoryObjectLimitMessage ? (
+        <p className={styles.inventoryLimitNotice} role="alert">
+          {inventoryObjectLimitMessage}
+        </p>
+      ) : null}
+
       {selectedLoadoutItems.length === 0 && groupedInventoryItems.length === 0 ? (
         <p className={shared.emptyText}>No equipment selected.</p>
       ) : (
@@ -108,7 +125,10 @@ export function renderEquipmentForm(context: Record<string, any>) {
                 </header>
                 <ul className={styles.equipmentItemList}>
                   {visibleGroupItems.map((entry) =>
-                    entry.kind === "loadout" ? (
+                    entry.kind === "loadout" ? (() => {
+                      const objectTagLabel = getItemObjectTagLabel(entry.item.entry);
+
+                      return (
                       <li key={entry.key}>
                         <SheetSurface
                           as="button"
@@ -120,6 +140,12 @@ export function renderEquipmentForm(context: Record<string, any>) {
                         >
                           <span className={styles.equipmentItemLabel}>
                             <span className={styles.equipmentItemName}>{entry.item.name}</span>
+                            {objectTagLabel ? (
+                              <span className={styles.equipmentItemObjectTag}>
+                                <Package size={13} aria-hidden="true" />
+                                <span>{objectTagLabel}</span>
+                              </span>
+                            ) : null}
                             {entry.item.onHand ? (
                               <span className={styles.equipmentItemOnHand}>
                                 <Hand size={13} aria-hidden="true" />
@@ -144,8 +170,13 @@ export function renderEquipmentForm(context: Record<string, any>) {
                           </span>
                         </SheetSurface>
                       </li>
-                    ) : (() => {
+                      );
+                    })() : (() => {
                       const conjuredRowTagLabel = getInventoryItemConjuredRowTagLabel(entry.item.stack);
+                      const objectTagLabel = getInventoryRowObjectTagLabel(
+                        entry.item.stack,
+                        entry.item.item
+                      );
 
                       return (
                       <li key={entry.key}>
@@ -161,6 +192,12 @@ export function renderEquipmentForm(context: Record<string, any>) {
                             <span className={styles.equipmentItemName}>
                               {formatInventoryStackName(entry.item)}
                             </span>
+                            {objectTagLabel ? (
+                              <span className={styles.equipmentItemObjectTag}>
+                                <Package size={13} aria-hidden="true" />
+                                <span>{objectTagLabel}</span>
+                              </span>
+                            ) : null}
                             {entry.item.onHandCount > 0 ? (
                               <span className={styles.equipmentItemOnHand}>
                                 <Hand size={13} aria-hidden="true" />
@@ -203,7 +240,7 @@ export function renderEquipmentForm(context: Record<string, any>) {
                               <RarityPill rarity={entry.item.item.rarity} />
                             ) : null}
                             <span className={styles.equipmentItemWeight}>
-                              {formatEquipmentWeight(getItemWeightValue(entry.item.item))}
+                              {formatEquipmentWeight(getInventoryItemTotalWeightValue(entry.item.stack))}
                             </span>
                           </span>
                         </SheetSurface>
@@ -255,6 +292,13 @@ export function renderEquipmentForm(context: Record<string, any>) {
         onOpenCustomEquipmentCreator={openCustomEquipmentCreator}
         onItemSelect={openInventoryInspectionFromBrowser}
       />
+
+      {isEquipmentGuideOpen ? (
+        <EquipmentGuideModal
+          inventoryObjectCount={inventoryObjectCount}
+          onClose={() => setIsEquipmentGuideOpen(false)}
+        />
+      ) : null}
 
       {isCustomEquipmentModalOpen ? (
         <SheetModal
@@ -636,14 +680,31 @@ export function renderEquipmentForm(context: Record<string, any>) {
         </div>
       ) : null}
 
+      {parentInventoryInspection && parentInventoryRecord ? (
+        <EquipmentInventoryItemDrawer
+          titleId={parentInventoryDrawerTitleId}
+          item={parentInventoryRecord}
+          status="ready"
+          onClose={closeInventoryItemDrawer}
+          headerContent={parentInventoryDrawerHeaderContent}
+          bodyAfterItem={parentInventoryDrawerBodyAfterItem}
+          backdropClassName={styles.equipmentParentInspectionBackdrop}
+          drawerClassName={styles.equipmentParentInspectionDrawer}
+        />
+      ) : null}
+
       {selectedInventoryInspection ? (
         <EquipmentInventoryItemDrawer
+          key={`${selectedInventoryInspection.source}-${selectedInventoryInspection.stackId ?? selectedInventoryInspection.containerStackId ?? selectedInventoryInspection.itemKey}-${selectedInventoryInspection.contentIndex ?? "root"}`}
+          titleId={inventoryDrawerTitleId}
           item={selectedInventoryRecord}
           status={selectedInventoryItemStatus}
           onClose={closeInventoryItemDrawer}
           headerContent={inventoryDrawerHeaderContent}
           headerAction={inventoryDrawerHeaderAction}
           footer={inventoryDrawerFooter}
+          bodyAfterItem={inventoryDrawerBodyAfterItem}
+          drawerClassName={inventoryDrawerClassName}
           additionalDescription={selectedInventoryAdditionalDescription}
           descriptionAdditions={selectedInventoryDescriptionAdditions}
           modEffects={selectedInventoryModEffects}
@@ -653,12 +714,44 @@ export function renderEquipmentForm(context: Record<string, any>) {
         />
       ) : null}
 
+      {managingContainerStackId && managedContainerStack ? (
+        <EquipmentContainerManageModal
+          containerStackId={managingContainerStackId}
+          inventoryItems={containerManagementInventoryItems}
+          backdropClassName={styles.equipmentDrawerTopModalBackdrop}
+          onCancel={closeContainerManagement}
+          onSave={saveContainerManagement}
+        />
+      ) : null}
+
       {selectedWeaponReference ? (
         <KeywordReferenceDrawer
           title={selectedWeaponReference.name}
           entries={selectedWeaponReference.entries}
           onClose={() => setSelectedWeaponReference(null)}
           backdropClassName={styles.masteryReferenceBackdrop}
+        />
+      ) : null}
+
+      {pendingContainerInventoryRemoval ? (
+        <DestructiveConfirmationModal
+          titleId="container-removal-confirmation-title"
+          title={
+            pendingContainerInventoryRemoval.action === "sell"
+              ? "Sell container?"
+              : "Remove container?"
+          }
+          message={
+            <>
+              This will delete <strong>{pendingContainerInventoryRemoval.item.name}</strong> and
+              every item inside it.
+            </>
+          }
+          confirmLabel={pendingContainerInventoryRemoval.action === "sell" ? "Sell" : "Remove"}
+          closeLabel="Close container removal confirmation"
+          backdropClassName={styles.equipmentDrawerTopModalBackdrop}
+          onCancel={() => setPendingContainerInventoryRemoval(null)}
+          onConfirm={confirmContainerRemoval}
         />
       ) : null}
 

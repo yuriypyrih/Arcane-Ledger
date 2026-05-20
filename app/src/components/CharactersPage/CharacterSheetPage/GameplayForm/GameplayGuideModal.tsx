@@ -1,4 +1,4 @@
-import { FastForward, Play } from "lucide-react";
+import { CirclePlay, CircleStop, Swords } from "lucide-react";
 import ActionShape from "../../../ActionShape";
 import {
   OverlayBody,
@@ -31,10 +31,6 @@ function GameplayGuideModal({ onClose }: GameplayGuideModalProps) {
             The gameplay dashboard helps you track your available actions in and out of combat,
             your round tracker, HP and Temporary HP, Traits &amp; Conditions, and other
             session-facing tools.
-          </OverlaySummary>
-          <OverlaySummary className={shared.helperText}>
-            If your character can cast spells, scroll to the end of the page to reach the
-            Spellcasting section.
           </OverlaySummary>
         </OverlayHeaderContent>
         <OverlayCloseButton label="Close gameplay guide" onClick={onClose} />
@@ -81,38 +77,42 @@ function GameplayGuideModal({ onClose }: GameplayGuideModalProps) {
         </section>
 
         <section className={styles.section}>
-          <h4 className={styles.sectionTitle}>Non-Combat Action</h4>
-          <div className={styles.inlineExample}>
-            <span className={styles.inlineIcon} aria-hidden="true">
-              <ActionShape shape="nonCombat" isSelected size="small" />
-            </span>
-            <p className={styles.sectionText}>
-              The blue diamond is typically assigned to actions, very commonly spells, that usually
-              do not take place in combat and therefore are mostly visual and not tracked by the
-              Round Tracker.
-            </p>
-          </div>
-        </section>
-
-        <section className={styles.section}>
           <h4 className={styles.sectionTitle}>Turn Flow</h4>
           <div className={styles.turnFlowList}>
             <div className={styles.turnFlowItem}>
-              <span className={styles.turnFlowIcon} aria-hidden="true">
-                <Play size={16} />
+              <span
+                className={`${styles.turnFlowIcon} ${styles.turnFlowIconStart}`}
+                aria-hidden="true"
+              >
+                <CirclePlay size={18} strokeWidth={1.3} />
               </span>
               <p className={styles.sectionText}>
-                To begin your turn, press the start button. This resets your tracked actions and
-                counts down effects that depend on round start.
+                Start round resets your tracked action, bonus action, and reaction, then advances
+                effects that count down at the start of your turn.
               </p>
             </div>
             <div className={styles.turnFlowItem}>
-              <span className={styles.turnFlowIcon} aria-hidden="true">
-                <FastForward size={16} />
+              <span
+                className={`${styles.turnFlowIcon} ${styles.turnFlowIconEnd}`}
+                aria-hidden="true"
+              >
+                <CircleStop size={18} strokeWidth={1.3} />
               </span>
               <p className={styles.sectionText}>
-                To finish your turn, press the finish button. This only triggers the end-of-round
-                countdowns.
+                End round finishes your turn and advances effects that count down at the end of
+                your turn.
+              </p>
+            </div>
+            <div className={styles.turnFlowItem}>
+              <span
+                className={`${styles.turnFlowIcon} ${styles.turnFlowIconCombat}`}
+                aria-hidden="true"
+              >
+                <Swords size={17} />
+              </span>
+              <p className={styles.sectionText}>
+                Combat controls whether round resources are tracked. Open the combat button to
+                start or end combat manually.
               </p>
             </div>
           </div>

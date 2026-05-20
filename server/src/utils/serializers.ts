@@ -13,6 +13,7 @@ import type {
 } from "../types/item.js";
 import type { MonsterDetailRecord, MonsterListItem, MonsterRecord } from "../types/monster.js";
 import type { Open5eDocumentReference, Open5eKeyedReference } from "../types/open5e.js";
+import { isItemContainerKey } from "./itemContainers.js";
 
 type MongoInternals = {
   _id?: {
@@ -53,7 +54,7 @@ export function serializeMonsterListItem(
 export function serializeItemRecord(
   record: Open5eItemRecord & MongoInternals
 ): ItemDetailRecord {
-  return {
+  const item: ItemDetailRecord = {
     id: record._id?.toString() ?? "",
     key: record.key,
     name: record.name,
@@ -70,6 +71,13 @@ export function serializeItemRecord(
     attunement_detail: record.attunement_detail ?? null,
     document: serializeItemDocument(record.document)
   };
+
+  return isItemContainerKey(record.key)
+    ? {
+        ...item,
+        containerContents: []
+      }
+    : item;
 }
 
 function serializeItemReference(

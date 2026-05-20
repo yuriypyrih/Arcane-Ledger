@@ -1686,11 +1686,11 @@ function ClassFeaturesAndFeats({
       <article className={clsx(shared.sectionCard, className)}>
         <div className={clsx(shared.sectionHeader, styles.buildSectionHeader)}>
           <div className={styles.buildHeaderContent}>
-            <div className={styles.buildHeading}>
-              <p className={shared.eyebrow}>Build</p>
+            <div className={shared.eyebrowHelpRow}>
+              <p className={clsx(shared.eyebrow, shared.eyebrowInHelpRow)}>Build</p>
               <button
                 type="button"
-                className={styles.helpButton}
+                className={shared.helpButton}
                 onClick={() => setIsGuideOpen(true)}
                 aria-label="Open class features guide"
                 title="Open class features guide"

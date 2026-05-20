@@ -184,11 +184,11 @@ function GameplayForm({
       )}
     >
       <div className={clsx(shared.sectionHeader, styles.gameplaySectionHeader)}>
-        <div className={styles.gameplayHeading}>
-          <span className={clsx(shared.eyebrow, styles.gameplayEyebrow)}>Gameplay</span>
+        <div className={shared.eyebrowHelpRow}>
+          <span className={clsx(shared.eyebrow, shared.eyebrowInHelpRow)}>Gameplay</span>
           <button
             type="button"
-            className={styles.helpButton}
+            className={shared.helpButton}
             onClick={() => setIsGuideOpen(true)}
             aria-label="Open gameplay guide"
             title="Open gameplay guide"

@@ -12,12 +12,16 @@ type EquipmentInventoryItemDrawerProps = {
   item: ItemRecord | null;
   status: CodexStatus;
   onClose: () => void;
+  titleId?: string;
+  backdropClassName?: string;
+  drawerClassName?: string;
   footer?: ReactNode;
   headerContent?: ReactNode;
   headerAction?: ReactNode;
   additionalDescription?: SpellDescriptionEntry[];
   descriptionAdditions?: SpellDescriptionEntry[][];
   modEffects?: CharacterCustomTraitEffect[];
+  bodyAfterItem?: ReactNode;
   costSuffix?: ReactNode;
   weaponMasteryActive?: boolean;
   weaponProficient?: boolean;
@@ -28,12 +32,16 @@ function EquipmentInventoryItemDrawer({
   item,
   status,
   onClose,
+  titleId = "equipment-item-drawer-title",
+  backdropClassName,
+  drawerClassName,
   footer,
   headerContent,
   headerAction,
   additionalDescription,
   descriptionAdditions,
   modEffects = [],
+  bodyAfterItem,
   costSuffix,
   weaponMasteryActive = false,
   weaponProficient = false,
@@ -42,7 +50,7 @@ function EquipmentInventoryItemDrawer({
   const resolvedHeaderContent =
     headerContent ??
     (status === "ready" && item ? (
-      <ItemInspectionHeader item={item} titleId="equipment-item-drawer-title" headingLevel="h3" />
+      <ItemInspectionHeader item={item} titleId={titleId} headingLevel="h3" />
     ) : null);
 
   if (typeof document === "undefined") {
@@ -51,15 +59,15 @@ function EquipmentInventoryItemDrawer({
 
   return createPortal(
     <div
-      className={`${sheetStyles.spellDrawerBackdrop} ${styles.backdrop}`}
+      className={`${sheetStyles.spellDrawerBackdrop} ${styles.backdrop} ${backdropClassName ?? ""}`}
       role="presentation"
       onClick={onClose}
     >
       <section
-        className={`${sheetStyles.spellDrawer} ${styles.drawer}`}
+        className={`${sheetStyles.spellDrawer} ${styles.drawer} ${drawerClassName ?? ""}`}
         role="dialog"
         aria-modal="true"
-        aria-labelledby="equipment-item-drawer-title"
+        aria-labelledby={titleId}
         onClick={(event) => event.stopPropagation()}
       >
         <div className={sheetStyles.spellDrawerHeader}>
@@ -67,7 +75,7 @@ function EquipmentInventoryItemDrawer({
             <div className={sheetStyles.spellDrawerHeaderContent}>
               <p className={sheetStyles.spellDrawerBadge}>Item Inspection</p>
               <div className={sheetStyles.spellDrawerTitleRow}>
-                <h3 id="equipment-item-drawer-title" className={sheetStyles.spellDrawerTitle}>
+                <h3 id={titleId} className={sheetStyles.spellDrawerTitle}>
                   Item details
                 </h3>
               </div>
@@ -122,6 +130,7 @@ function EquipmentInventoryItemDrawer({
                 showHeader={false}
                 additionalDescription={additionalDescription}
                 descriptionAdditions={descriptionAdditions}
+                afterStapleCells={bodyAfterItem}
                 costSuffix={costSuffix}
                 weaponMasteryActive={weaponMasteryActive}
                 weaponProficient={weaponProficient}

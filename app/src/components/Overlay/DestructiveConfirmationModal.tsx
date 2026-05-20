@@ -19,6 +19,7 @@ type DestructiveConfirmationModalProps = {
   confirmLabel: string;
   cancelLabel?: string;
   closeLabel: string;
+  backdropClassName?: string;
   onCancel: () => void;
   onConfirm: () => void;
 };
@@ -30,11 +31,12 @@ function DestructiveConfirmationModal({
   confirmLabel,
   cancelLabel = "Cancel",
   closeLabel,
+  backdropClassName,
   onCancel,
   onConfirm
 }: DestructiveConfirmationModalProps) {
   return (
-    <SheetModal titleId={titleId} onClose={onCancel}>
+    <SheetModal titleId={titleId} onClose={onCancel} backdropClassName={backdropClassName}>
       <OverlayHeader>
         <OverlayHeaderContent>
           <OverlayTitle id={titleId}>{title}</OverlayTitle>

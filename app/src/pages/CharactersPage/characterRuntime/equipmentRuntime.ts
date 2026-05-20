@@ -2,7 +2,7 @@ import type { Character } from "../../../types";
 import {
   createHeldDescriptorForInventoryItem,
   createHeldInventoryItemCopyReferences,
-  getItemWeightValue,
+  getInventoryItemTotalWeightValue,
   type InventoryItemCopyReference
 } from "../inventoryItems";
 import type { HeldWeaponDescriptor } from "../inventory";
@@ -54,7 +54,7 @@ function createEquipmentRuntime(character: Character): EquipmentRuntime {
   let heldInventoryDescriptors: HeldWeaponDescriptor[] | null = null;
   const inventoryWeight = Math.round(
     inventoryIndex.groups.reduce(
-      (totalWeight, item) => totalWeight + (getItemWeightValue(item.item) ?? 0) * item.count,
+      (totalWeight, item) => totalWeight + getInventoryItemTotalWeightValue(item.stack),
       0
     ) * 100
   ) / 100;

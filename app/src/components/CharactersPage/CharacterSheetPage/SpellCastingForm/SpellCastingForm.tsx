@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Pencil, X } from "lucide-react";
+import { CircleHelp, Pencil, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState, type ComponentProps } from "react";
 import ActionShape, { getActionShapeForCastingTime } from "../../../ActionShape";
 import CellContainer from "../../../CellContainer/CellContainer";
@@ -9,6 +9,7 @@ import SpellDescriptionContent from "../../../SpellDescriptionContent";
 import InputRequiredBadge from "../../../InputRequiredBadge";
 import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
 import CharacterSpellDrawer, { type CharacterSpellDrawerMode } from "./CharacterSpellDrawer";
+import SpellCastingGuideModal from "./SpellCastingGuideModal";
 import SpellManagementModal from "./SpellManagementModal";
 import SpellSlotActionSheet from "./SpellSlotActionSheet";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
@@ -380,6 +381,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     useState(false);
   const [activeSpellSlotSheetLevel, setActiveSpellSlotSheetLevel] = useState<number | null>(null);
   const [isSpellManagementModalOpen, setIsSpellManagementModalOpen] = useState(false);
+  const [isSpellcastingGuideOpen, setIsSpellcastingGuideOpen] = useState(false);
   const [activeWizardSpellFilter, setActiveWizardSpellFilter] =
     useState<WizardSpellViewFilter>("prepared");
   const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
@@ -387,6 +389,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   useBodyScrollLock(
     Boolean(
       isSpellManagementModalOpen ||
+      isSpellcastingGuideOpen ||
       activeSpellSlotSheetLevel !== null ||
       selectedSpell ||
       selectedDivinityOptionKey
@@ -2269,11 +2272,13 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     ActionShape,
     CellContainer,
     CharacterSpellDrawer,
+    CircleHelp,
     DURATION,
     DivinityListRow,
     InputRequiredBadge,
     Pencil,
     SpellDescriptionContent,
+    SpellCastingGuideModal,
     SpellListRow,
     SpellManagementModal,
     SpellSlotActionSheet,
@@ -2335,6 +2340,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     highestSpellSlotLevel,
     isPreparedSpellPreview,
     isSelectedSpellDiceRollerSettingsOpen,
+    isSpellcastingGuideOpen,
     isSpellManagementModalOpen,
     knownSpellEntriesById,
     onPersistCharacter,
@@ -2451,6 +2457,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setActiveSpellSlotSheetLevel,
     setActiveWizardSpellFilter,
     setIsSelectedSpellDiceRollerSettingsOpen,
+    setIsSpellcastingGuideOpen,
     setIsSpellManagementModalOpen,
     setSelectedElementalSmiteOptionOnSelectedSpell,
     setSelectedFrozenHauntFallbackSlotLevel,

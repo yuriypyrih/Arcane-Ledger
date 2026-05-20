@@ -238,7 +238,7 @@ export type CharacterItemMods = {
   effects?: CharacterModEffect[];
 };
 
-export type CharacterInventoryItem = {
+export type CharacterInventoryItemBase = {
   id: string;
   item: ItemRecord;
   quantity: number;
@@ -249,6 +249,17 @@ export type CharacterInventoryItem = {
   featureTags?: CharacterInventoryFeatureTag[];
   conjuredDuration?: CharacterInventoryConjuredDuration;
   mods?: CharacterItemMods;
+};
+
+export type CharacterContainerContentItem = Omit<
+  CharacterInventoryItemBase,
+  "id" | "onHandQuantity" | "worn" | "attuned"
+> & {
+  attuned?: boolean;
+};
+
+export type CharacterInventoryItem = CharacterInventoryItemBase & {
+  containerContents?: CharacterContainerContentItem[];
 };
 
 export type CustomArmorType = "light" | "medium" | "heavy" | "shield";

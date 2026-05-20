@@ -1,0 +1,65 @@
+.body {
+  gap: 1rem;
+}
+
+.section {
+  display: grid;
+  gap: 0.68rem;
+}
+
+.sectionText {
+  margin: 0;
+  color: var(--color-ink-soft);
+  line-height: 1.5;
+}
+
+.spellSlotLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-ink-soft);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  width: fit-content;
+}
+
+.spellSlotSquares {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.18rem;
+}
+
+.spellSlotSquare {
+  block-size: 9px;
+  inline-size: 9px;
+  border: 1px solid #2f78ff;
+  border-radius: 2px;
+  background: #2f78ff;
+}
+
+.alwaysPreparedPill,
+.ritualPill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-pill);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  padding: 0.22rem 0.48rem;
+  text-transform: uppercase;
+  white-space: nowrap;
+  width: fit-content;
+}
+
+.alwaysPreparedPill {
+  background: rgba(222, 102, 158, 0.16);
+  color: #c04f86;
+}
+
+.ritualPill {
+  background: #d37f1e;
+  color: #fff8ef;
+}

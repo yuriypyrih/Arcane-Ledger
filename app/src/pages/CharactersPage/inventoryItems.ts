@@ -6,6 +6,7 @@ import {
 } from "../../codex/entries";
 import type {
   Character,
+  CharacterContainerContentItem,
   CharacterInventoryConjuredDuration,
   CharacterInventoryFeatureTag,
   CharacterInventoryItem,
@@ -62,6 +63,8 @@ type InventoryTransactionCostOptions = {
   rounding?: "ceil" | "floor" | "round";
 };
 
+export const CONTAINER_OBJECT_LIMIT = 100;
+
 export type InventoryItemModsSaveResult = {
   inventoryItems: CharacterInventoryItem[];
   stackId: string | null;
@@ -69,6 +72,33 @@ export type InventoryItemModsSaveResult = {
 
 type InventoryFeatureTagLabelOptions = {
   excludeConjured?: boolean;
+};
+
+export type InventoryAddObjectTarget =
+  | {
+      kind: "root";
+      item: ItemRecord;
+      quantity?: number;
+    }
+  | {
+      kind: "root-stack";
+      stackId: string;
+      quantity?: number;
+    }
+  | {
+      kind: "new-root-stack";
+      quantity?: number;
+    }
+  | {
+      kind: "container-content";
+      containerStackId: string;
+      contentIndex: number;
+      quantity?: number;
+    };
+
+export type ContainerContentMoveResult = {
+  inventoryItems: CharacterInventoryItem[];
+  stackId: string | null;
 };
 
 const currencyKeyByType: Record<CURRENCY_TYPE, CurrencyKey> = {
@@ -91,6 +121,16 @@ const inventoryItemUsesPerCopyByKey: Record<string, number> = {
   "srd_healers-kit": 10,
   "srd-2024_healers-kit": 10
 };
+export const ITEM_CONTAINER_KEYS = [
+  "srd-2024_backpack",
+  "srd_backpack",
+  "srd-2024_chest",
+  "srd_chest"
+] as const;
+
+export const INVENTORY_OBJECT_LIMIT = 200;
+
+const itemContainerKeySet = new Set<string>(ITEM_CONTAINER_KEYS);
 const moddedItemKeyMarker = "-modded-";
 
 export const INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE = "pact-of-the-blade";
@@ -260,6 +300,135 @@ function normalizeInventoryConjuredDuration(
     : undefined;
 }
 
+export function isItemContainerRecord(item: ItemRecord | null | undefined): boolean {
+  const key = getItemRecordKey(item);
+
+  return itemContainerKeySet.has(key) || Array.isArray(item?.containerContents);
+}
+
+export function isInventoryContainerItem(
+  entry: Pick<CharacterInventoryItem, "item"> | null | undefined
+): boolean {
+  return isItemContainerRecord(entry?.item);
+}
+
+function getContainerContentStackKey(entry: CharacterContainerContentItem, index: number): string {
+  const featureTags = normalizeInventoryFeatureTags(entry.featureTags);
+  const isSimpleStack =
+    !entry.attuned &&
+    !entry.mods &&
+    entry.usesRemaining === undefined &&
+    !entry.conjuredDuration &&
+    (featureTags?.length ?? 0) === 0;
+
+  return isSimpleStack ? `item:${getItemRecordKey(entry.item)}` : `unique:${index}`;
+}
+
+function normalizeContainerContentItem(
+  entry: CharacterContainerContentItem
+): CharacterContainerContentItem {
+  const quantity = normalizeStackNumber(entry.quantity, 1, 1);
+  const mods = normalizeCharacterItemMods(entry.mods);
+  const featureTags = normalizeInventoryFeatureTags(entry.featureTags);
+  const conjuredDuration = featureTags?.includes(INVENTORY_FEATURE_TAG_CONJURED)
+    ? normalizeInventoryConjuredDuration(entry.conjuredDuration)
+    : undefined;
+  const normalizedEntry: CharacterContainerContentItem = {
+    item: entry.item,
+    quantity,
+    featureTags,
+    ...(conjuredDuration ? { conjuredDuration } : {}),
+    ...(mods ? { mods } : {})
+  };
+  const effectiveItem = getEffectiveInventoryItemRecord({
+    id: "container-content",
+    item: entry.item,
+    quantity,
+    onHandQuantity: 0,
+    worn: false,
+    featureTags,
+    ...(conjuredDuration ? { conjuredDuration } : {}),
+    ...(mods ? { mods } : {})
+  });
+  const usesPerCopy = getInventoryItemUsesPerCopy(entry.item);
+
+  if (isInventoryItemAttunable(effectiveItem)) {
+    normalizedEntry.attuned = Boolean(entry.attuned);
+  }
+
+  if (usesPerCopy !== null) {
+    const total = quantity * usesPerCopy;
+    normalizedEntry.usesRemaining = Math.min(
+      total,
+      normalizeStackNumber(entry.usesRemaining, total)
+    );
+  }
+
+  return normalizedEntry;
+}
+
+function normalizeCharacterContainerContentItems(
+  value: unknown
+): CharacterContainerContentItem[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  const contentsByMergeKey = new Map<string, CharacterContainerContentItem>();
+
+  value.forEach((entry, index) => {
+    if (!entry || typeof entry !== "object") {
+      return;
+    }
+
+    const record = entry as Partial<CharacterContainerContentItem> & {
+      quantity?: unknown;
+      attuned?: unknown;
+      usesRemaining?: unknown;
+      featureTags?: unknown;
+      conjuredDuration?: unknown;
+      mods?: unknown;
+    };
+    const item = normalizeItemRecord(record.item);
+
+    if (!item || isItemContainerRecord(item)) {
+      return;
+    }
+
+    const contentItem = normalizeContainerContentItem({
+      item,
+      quantity:
+        record.quantity !== undefined ? normalizeStackNumber(record.quantity, 1, 1) : 1,
+      attuned: normalizeBoolean(record.attuned),
+      usesRemaining:
+        record.usesRemaining !== undefined
+          ? normalizeStackNumber(record.usesRemaining, 0)
+          : undefined,
+      featureTags: normalizeInventoryFeatureTags(record.featureTags),
+      conjuredDuration: normalizeInventoryConjuredDuration(record.conjuredDuration),
+      mods: normalizeCharacterItemMods(record.mods)
+    });
+    const mergeKey = getContainerContentStackKey(contentItem, index);
+    const existingContent = contentsByMergeKey.get(mergeKey);
+
+    if (!existingContent) {
+      contentsByMergeKey.set(mergeKey, contentItem);
+      return;
+    }
+
+    contentsByMergeKey.set(
+      mergeKey,
+      normalizeContainerContentItem({
+        ...existingContent,
+        quantity: existingContent.quantity + contentItem.quantity,
+        usesRemaining: getMergedContainerContentUsesRemaining(existingContent, contentItem)
+      })
+    );
+  });
+
+  return [...contentsByMergeKey.values()];
+}
+
 function addInventoryItemFeatureTag(
   entry: CharacterInventoryItem,
   tag: CharacterInventoryFeatureTag
@@ -274,23 +443,39 @@ function addInventoryItemFeatureTag(
 }
 
 function normalizeInventoryStack(entry: CharacterInventoryItem): CharacterInventoryItem {
-  const quantity = Math.max(1, Math.floor(entry.quantity));
-  const onHandQuantity = Math.min(quantity, Math.max(0, Math.floor(entry.onHandQuantity)));
+  const isContainer = isInventoryContainerItem(entry);
   const mods = normalizeCharacterItemMods(entry.mods);
+  const isUniqueStack = isContainer || Boolean(mods);
+  const quantity = isUniqueStack ? 1 : Math.max(1, Math.floor(entry.quantity));
+  const onHandQuantity = Math.min(quantity, Math.max(0, Math.floor(entry.onHandQuantity)));
   const effectiveItem = getEffectiveInventoryItemRecord({ ...entry, mods });
+  const item =
+    mods && !mods.isCustom && !isContainer
+      ? createModdedInventoryItemRecord(
+          {
+            ...entry.item,
+            key: getUnmoddedInventoryItemKey(entry.item)
+          },
+          entry.id
+        )
+      : entry.item;
   const featureTags = normalizeInventoryFeatureTags(entry.featureTags);
   const conjuredDuration = featureTags?.includes(INVENTORY_FEATURE_TAG_CONJURED)
     ? normalizeInventoryConjuredDuration(entry.conjuredDuration)
     : undefined;
+  const containerContents = isContainer
+    ? normalizeCharacterContainerContentItems(entry.containerContents)
+    : undefined;
   const normalizedStack: CharacterInventoryItem = {
     id: entry.id,
-    item: entry.item,
+    item,
     quantity,
     onHandQuantity,
     worn: Boolean(entry.worn),
     featureTags,
     ...(conjuredDuration ? { conjuredDuration } : {}),
-    ...(mods ? { mods } : {})
+    ...(mods ? { mods } : {}),
+    ...(isContainer ? { containerContents: containerContents ?? [] } : {})
   };
   const usesPerCopy = getInventoryItemUsesPerCopy(entry.item);
 
@@ -406,6 +591,7 @@ export function createCharacterInventoryItem(
     featureTags?: CharacterInventoryFeatureTag[];
     conjuredDuration?: CharacterInventoryConjuredDuration;
     mods?: CharacterItemMods;
+    containerContents?: CharacterContainerContentItem[];
   }
 ): CharacterInventoryItem {
   const quantity = normalizeStackNumber(options?.quantity, 1, 1);
@@ -422,6 +608,33 @@ export function createCharacterInventoryItem(
     quantity,
     onHandQuantity,
     worn: Boolean(options?.worn),
+    attuned: Boolean(options?.attuned),
+    usesRemaining: options?.usesRemaining,
+    featureTags: options?.featureTags,
+    conjuredDuration: options?.conjuredDuration,
+    mods: options?.mods,
+    containerContents: options?.containerContents
+  });
+}
+
+export function createCharacterContainerContentItem(
+  item: ItemRecord,
+  options?: {
+    quantity?: number;
+    attuned?: boolean;
+    usesRemaining?: number;
+    featureTags?: CharacterInventoryFeatureTag[];
+    conjuredDuration?: CharacterInventoryConjuredDuration;
+    mods?: CharacterItemMods;
+  }
+): CharacterContainerContentItem | null {
+  if (!item.key || isItemContainerRecord(item)) {
+    return null;
+  }
+
+  return normalizeContainerContentItem({
+    item,
+    quantity: normalizeStackNumber(options?.quantity, 1, 1),
     attuned: Boolean(options?.attuned),
     usesRemaining: options?.usesRemaining,
     featureTags: options?.featureTags,
@@ -464,6 +677,7 @@ export function normalizeCharacterInventoryItems(value: unknown): CharacterInven
       featureTags?: unknown;
       conjuredDuration?: unknown;
       mods?: unknown;
+      containerContents?: unknown;
     };
     const item = normalizeItemRecord(record.item);
 
@@ -472,6 +686,9 @@ export function normalizeCharacterInventoryItems(value: unknown): CharacterInven
     }
 
     const key = getItemRecordKey(item);
+    const isContainer = isItemContainerRecord(item);
+    const mods = normalizeCharacterItemMods(record.mods);
+    const isUniqueStack = isContainer || Boolean(mods);
     const quantity =
       record.quantity !== undefined ? normalizeStackNumber(record.quantity, 1, 1) : 1;
     const onHandQuantity =
@@ -480,41 +697,57 @@ export function normalizeCharacterInventoryItems(value: unknown): CharacterInven
         : normalizeBoolean(record.onHand)
           ? 1
           : 0;
-    const stack = createCharacterInventoryItem(item, {
-      id: typeof record.id === "string" ? record.id : undefined,
-      quantity,
-      onHandQuantity,
-      worn: normalizeBoolean(record.worn),
-      attuned: normalizeBoolean(record.attuned),
-      usesRemaining:
-        record.usesRemaining !== undefined
-          ? normalizeStackNumber(record.usesRemaining, 0)
-          : undefined,
-      featureTags: normalizeInventoryFeatureTags(record.featureTags),
-      conjuredDuration: normalizeInventoryConjuredDuration(record.conjuredDuration),
-      mods: normalizeCharacterItemMods(record.mods)
-    });
-    const stackHasFeatureTags = (stack.featureTags?.length ?? 0) > 0;
-    const mergeKey = stackHasFeatureTags ? `tagged:${stack.id}:${index}` : `item:${key}`;
-    const existingStack = stacksByMergeKey.get(mergeKey);
+    const splitCount = isUniqueStack ? quantity : 1;
 
-    if (!existingStack) {
-      stacksByMergeKey.set(mergeKey, stack);
-      return;
+    for (let copyIndex = 0; copyIndex < splitCount; copyIndex += 1) {
+      const stack = createCharacterInventoryItem(item, {
+        id: copyIndex === 0 && typeof record.id === "string" ? record.id : undefined,
+        quantity: isUniqueStack ? 1 : quantity,
+        onHandQuantity: isUniqueStack
+          ? copyIndex < onHandQuantity
+            ? 1
+            : 0
+          : onHandQuantity,
+        worn: !isUniqueStack || copyIndex === 0 ? normalizeBoolean(record.worn) : false,
+        attuned: !isUniqueStack || copyIndex === 0 ? normalizeBoolean(record.attuned) : false,
+        usesRemaining:
+          record.usesRemaining !== undefined
+            ? normalizeStackNumber(record.usesRemaining, 0)
+            : undefined,
+        featureTags: normalizeInventoryFeatureTags(record.featureTags),
+        conjuredDuration: normalizeInventoryConjuredDuration(record.conjuredDuration),
+        mods,
+        containerContents:
+          isContainer && copyIndex === 0
+            ? normalizeCharacterContainerContentItems(record.containerContents)
+            : undefined
+      });
+      const stackHasFeatureTags = (stack.featureTags?.length ?? 0) > 0;
+      const mergeKey = isUniqueStack
+        ? `unique:${stack.id}:${index}:${copyIndex}`
+        : stackHasFeatureTags
+          ? `tagged:${stack.id}:${index}`
+          : `item:${key}`;
+      const existingStack = stacksByMergeKey.get(mergeKey);
+
+      if (!existingStack) {
+        stacksByMergeKey.set(mergeKey, stack);
+        continue;
+      }
+
+      stacksByMergeKey.set(
+        mergeKey,
+        normalizeInventoryStack({
+          ...existingStack,
+          quantity: existingStack.quantity + stack.quantity,
+          onHandQuantity: existingStack.onHandQuantity + stack.onHandQuantity,
+          worn: existingStack.worn || stack.worn,
+          attuned: existingStack.attuned || stack.attuned,
+          usesRemaining: getMergedInventoryStackUsesRemaining(existingStack, stack),
+          mods: existingStack.mods ?? stack.mods
+        })
+      );
     }
-
-    stacksByMergeKey.set(
-      mergeKey,
-      normalizeInventoryStack({
-        ...existingStack,
-        quantity: existingStack.quantity + stack.quantity,
-        onHandQuantity: existingStack.onHandQuantity + stack.onHandQuantity,
-        worn: existingStack.worn || stack.worn,
-        attuned: existingStack.attuned || stack.attuned,
-        usesRemaining: getMergedInventoryStackUsesRemaining(existingStack, stack),
-        mods: existingStack.mods ?? stack.mods
-      })
-    );
   });
 
   return [...stacksByMergeKey.values()].map(normalizeInventoryStack);
@@ -582,6 +815,44 @@ export function getInventoryItemUseState(
   };
 }
 
+function getContainerContentUseState(
+  entry: CharacterContainerContentItem | null | undefined
+): InventoryItemUseState | null {
+  if (!entry) {
+    return null;
+  }
+
+  const usesPerCopy = getInventoryItemUsesPerCopy(entry.item);
+
+  if (usesPerCopy === null) {
+    return null;
+  }
+
+  const total = getInventoryItemQuantity(entry as CharacterInventoryItem) * usesPerCopy;
+
+  return {
+    remaining: Math.min(total, normalizeStackNumber(entry.usesRemaining, total)),
+    total
+  };
+}
+
+function getMergedContainerContentUsesRemaining(
+  firstStack: CharacterContainerContentItem,
+  secondStack: CharacterContainerContentItem
+): number | undefined {
+  const firstUseState = getContainerContentUseState(firstStack);
+  const secondUseState = getContainerContentUseState(secondStack);
+
+  if (!firstUseState || !secondUseState) {
+    return undefined;
+  }
+
+  return Math.min(
+    firstUseState.total + secondUseState.total,
+    firstUseState.remaining + secondUseState.remaining
+  );
+}
+
 function getMergedInventoryStackUsesRemaining(
   firstStack: CharacterInventoryItem,
   secondStack: CharacterInventoryItem
@@ -599,8 +870,126 @@ function getMergedInventoryStackUsesRemaining(
   );
 }
 
+export function getInventoryContainerContents(
+  entry: Pick<CharacterInventoryItem, "item" | "containerContents"> | null | undefined
+): CharacterContainerContentItem[] {
+  if (!entry || !isItemContainerRecord(entry.item)) {
+    return [];
+  }
+
+  return normalizeCharacterContainerContentItems(entry.containerContents);
+}
+
+export function getInventoryContainerContentCount(
+  entry: Pick<CharacterInventoryItem, "item" | "containerContents"> | null | undefined
+): number {
+  return getInventoryContainerContents(entry).reduce(
+    (totalCount, content) => totalCount + normalizeStackNumber(content.quantity, 0),
+    0
+  );
+}
+
+export function hasInventoryContainerContents(
+  entry: Pick<CharacterInventoryItem, "item" | "containerContents"> | null | undefined
+): boolean {
+  return getInventoryContainerContentCount(entry) > 0;
+}
+
+export function getInventoryObjectCount(inventoryItems: CharacterInventoryItem[]): number {
+  return inventoryItems.reduce(
+    (count, entry) => count + 1 + getInventoryContainerContents(entry).length,
+    0
+  );
+}
+
+function getInventoryAddObjectDelta(
+  inventoryItems: CharacterInventoryItem[],
+  target: InventoryAddObjectTarget
+): number {
+  const quantity = normalizeStackNumber(target.quantity, 1, 1);
+
+  if (target.kind === "root-stack") {
+    return findInventoryItemStackById(inventoryItems, target.stackId) ? 0 : 1;
+  }
+
+  if (target.kind === "new-root-stack") {
+    return 1;
+  }
+
+  if (target.kind === "container-content") {
+    return getInventoryContainerContentByIndex(
+      inventoryItems,
+      target.containerStackId,
+      target.contentIndex
+    )
+      ? 0
+      : 1;
+  }
+
+  if (isItemContainerRecord(target.item)) {
+    return quantity;
+  }
+
+  const itemKey = getItemRecordKey(target.item);
+
+  if (!itemKey) {
+    return 1;
+  }
+
+  return findUntaggedInventoryItemStackByKey(inventoryItems, itemKey) ? 0 : 1;
+}
+
+export function canAddInventoryObject(
+  inventoryItems: CharacterInventoryItem[],
+  target: InventoryAddObjectTarget
+): boolean {
+  return getInventoryObjectCount(inventoryItems) + getInventoryAddObjectDelta(inventoryItems, target) <=
+    INVENTORY_OBJECT_LIMIT;
+}
+
+export function getInventoryContainerContentByIndex(
+  inventoryItems: CharacterInventoryItem[],
+  containerStackId: string,
+  contentIndex: number
+): CharacterContainerContentItem | null {
+  const containerStack = findInventoryItemStackById(inventoryItems, containerStackId);
+
+  if (!containerStack || !isInventoryContainerItem(containerStack)) {
+    return null;
+  }
+
+  return getInventoryContainerContents(containerStack)[contentIndex] ?? null;
+}
+
+export function createInventoryItemFromContainerContent(
+  containerStackId: string,
+  content: CharacterContainerContentItem,
+  index: number
+): CharacterInventoryItem {
+  return createCharacterInventoryItem(content.item, {
+    id: `${containerStackId}:content:${index}`,
+    quantity: content.quantity,
+    attuned: content.attuned,
+    usesRemaining: content.usesRemaining,
+    featureTags: content.featureTags,
+    conjuredDuration: content.conjuredDuration,
+    mods: content.mods
+  });
+}
+
+export function createInventoryItemsWithContainerContents(
+  inventoryItems: CharacterInventoryItem[]
+): CharacterInventoryItem[] {
+  return inventoryItems.flatMap((entry) => [
+    entry,
+    ...getInventoryContainerContents(entry).map((content, index) =>
+      createInventoryItemFromContainerContent(entry.id, content, index)
+    )
+  ]);
+}
+
 export function getInventoryAttunementCount(inventoryItems: CharacterInventoryItem[]): number {
-  return inventoryItems.filter(
+  return createInventoryItemsWithContainerContents(inventoryItems).filter(
     (entry) => entry.attuned && isInventoryItemAttunable(getEffectiveInventoryItemRecord(entry))
   ).length;
 }
@@ -620,6 +1009,7 @@ function findUntaggedInventoryItemStackByKey(
     inventoryItems.find(
       (entry) =>
         getItemRecordKey(entry.item) === itemKey &&
+        !normalizeCharacterItemMods(entry.mods) &&
         (normalizeInventoryFeatureTags(entry.featureTags)?.length ?? 0) === 0
     ) ?? null
   );
@@ -710,15 +1100,29 @@ export function getInventoryItemFeatureTagLabels(
 export function hasLongRestConjuredInventoryItems(
   inventoryItems: CharacterInventoryItem[]
 ): boolean {
-  return inventoryItems.some(isLongRestConjuredInventoryItem);
+  return createInventoryItemsWithContainerContents(inventoryItems).some(
+    isLongRestConjuredInventoryItem
+  );
 }
 
 export function removeConjuredInventoryItems(
   inventoryItems: CharacterInventoryItem[]
 ): CharacterInventoryItem[] {
-  const nextInventoryItems = inventoryItems.filter((entry) => !isConjuredInventoryItem(entry));
+  const nextInventoryItems = inventoryItems
+    .filter((entry) => !isConjuredInventoryItem(entry))
+    .map((entry) =>
+      isInventoryContainerItem(entry)
+        ? normalizeInventoryStack({
+            ...entry,
+            containerContents: getInventoryContainerContents(entry).filter(
+              (content) => !isConjuredInventoryItem(content)
+            )
+          })
+        : entry
+    );
 
-  return nextInventoryItems.length === inventoryItems.length
+  return nextInventoryItems.length === inventoryItems.length &&
+    nextInventoryItems.every((entry, index) => entry === inventoryItems[index])
     ? inventoryItems
     : nextInventoryItems;
 }
@@ -726,11 +1130,21 @@ export function removeConjuredInventoryItems(
 export function removeLongRestConjuredInventoryItems(
   inventoryItems: CharacterInventoryItem[]
 ): CharacterInventoryItem[] {
-  const nextInventoryItems = inventoryItems.filter(
-    (entry) => !isLongRestConjuredInventoryItem(entry)
-  );
+  const nextInventoryItems = inventoryItems
+    .filter((entry) => !isLongRestConjuredInventoryItem(entry))
+    .map((entry) =>
+      isInventoryContainerItem(entry)
+        ? normalizeInventoryStack({
+            ...entry,
+            containerContents: getInventoryContainerContents(entry).filter(
+              (content) => !isLongRestConjuredInventoryItem(content)
+            )
+          })
+        : entry
+    );
 
-  return nextInventoryItems.length === inventoryItems.length
+  return nextInventoryItems.length === inventoryItems.length &&
+    nextInventoryItems.every((entry, index) => entry === inventoryItems[index])
     ? inventoryItems
     : nextInventoryItems;
 }
@@ -855,6 +1269,19 @@ function getMovedInventoryItemUsesRemaining(entry: CharacterInventoryItem): numb
   return Math.min(usesPerCopy, useState.remaining);
 }
 
+function createContainerContentItemFromInventoryStack(
+  entry: CharacterInventoryItem
+): CharacterContainerContentItem | null {
+  return createCharacterContainerContentItem(entry.item, {
+    quantity: 1,
+    attuned: entry.attuned,
+    usesRemaining: getMovedInventoryItemUsesRemaining(entry),
+    featureTags: entry.featureTags,
+    conjuredDuration: entry.conjuredDuration,
+    mods: entry.mods
+  });
+}
+
 function updateInventoryItemModsInPlace(
   entry: CharacterInventoryItem,
   item: ItemRecord,
@@ -869,7 +1296,8 @@ function updateInventoryItemModsInPlace(
     usesRemaining: entry.usesRemaining,
     featureTags: entry.featureTags,
     conjuredDuration: entry.conjuredDuration,
-    mods
+    mods,
+    containerContents: entry.containerContents
   });
 }
 
@@ -940,7 +1368,7 @@ export function saveInventoryItemModsById(
     };
   }
 
-  if (targetStack.mods || normalizedMods.isCustom) {
+  if (isInventoryContainerItem(targetStack) || targetStack.mods || normalizedMods.isCustom) {
     return {
       inventoryItems: inventoryItems.map((entry) =>
         entry.id === targetStack.id
@@ -1074,6 +1502,34 @@ export function getItemWeightValue(item: Pick<ItemRecord, "weight">): number | n
   return Number.isFinite(numericWeight) ? numericWeight : null;
 }
 
+export function getContainerContentsWeightValue(
+  contents: CharacterContainerContentItem[] | null | undefined
+): number {
+  return (contents ?? []).reduce((totalWeight, content) => {
+    const contentStack = createCharacterInventoryItem(content.item, {
+      quantity: content.quantity,
+      attuned: content.attuned,
+      usesRemaining: content.usesRemaining,
+      featureTags: content.featureTags,
+      conjuredDuration: content.conjuredDuration,
+      mods: content.mods
+    });
+    const item = getEffectiveInventoryItemRecord(contentStack);
+
+    return totalWeight + (getItemWeightValue(item) ?? 0) * getInventoryItemQuantity(contentStack);
+  }, 0);
+}
+
+export function getInventoryItemTotalWeightValue(entry: CharacterInventoryItem): number {
+  const item = getEffectiveInventoryItemRecord(entry);
+  const ownWeight = (getItemWeightValue(item) ?? 0) * getInventoryItemQuantity(entry);
+  const contentsWeight = isInventoryContainerItem(entry)
+    ? getContainerContentsWeightValue(getInventoryContainerContents(entry))
+    : 0;
+
+  return ownWeight + contentsWeight;
+}
+
 export function getItemArmorType(item: ItemRecord): "light" | "medium" | "heavy" | null {
   const armorCategory = item.armor?.category?.toLowerCase() ?? "";
 
@@ -1166,6 +1622,18 @@ export function addInventoryItemCopies(
     return inventoryItems;
   }
 
+  if (isItemContainerRecord(item)) {
+    return [
+      ...inventoryItems,
+      ...Array.from({ length: normalizedQuantity }, () =>
+        createCharacterInventoryItem(item, {
+          quantity: 1,
+          containerContents: []
+        })
+      )
+    ];
+  }
+
   const existingStack = findUntaggedInventoryItemStackByKey(inventoryItems, item.key);
 
   if (!existingStack) {
@@ -1202,6 +1670,186 @@ function addInventoryItemQuantityToStack(
   });
 }
 
+export function addContainerContentItemCopies(
+  contents: CharacterContainerContentItem[],
+  contentItem: CharacterContainerContentItem
+): CharacterContainerContentItem[] {
+  const normalizedContentItem = normalizeContainerContentItem(contentItem);
+  const mergeKey = getContainerContentStackKey(normalizedContentItem, contents.length);
+
+  if (mergeKey.startsWith("unique:")) {
+    return [...contents, normalizedContentItem];
+  }
+
+  let didMerge = false;
+  const nextContents = contents.map((entry, index) => {
+    if (didMerge || getContainerContentStackKey(entry, index) !== mergeKey) {
+      return entry;
+    }
+
+    didMerge = true;
+    return normalizeContainerContentItem({
+      ...entry,
+      quantity: entry.quantity + normalizedContentItem.quantity,
+      usesRemaining: getMergedContainerContentUsesRemaining(entry, normalizedContentItem)
+    });
+  });
+
+  return didMerge ? nextContents : [...nextContents, normalizedContentItem];
+}
+
+export function addOneContainerContentItemCopyByIndex(
+  inventoryItems: CharacterInventoryItem[],
+  containerStackId: string,
+  contentIndex: number
+): CharacterInventoryItem[] {
+  const resolvedContainerStackId = getInventoryItemStackIdFromCopyId(containerStackId);
+  const containerStack = findInventoryItemStackById(inventoryItems, resolvedContainerStackId);
+
+  if (!containerStack || !isInventoryContainerItem(containerStack)) {
+    return inventoryItems;
+  }
+
+  const containerContents = getInventoryContainerContents(containerStack);
+  const contentItem = containerContents[contentIndex] ?? null;
+
+  if (!contentItem) {
+    return inventoryItems;
+  }
+
+  const useState = getContainerContentUseState(contentItem);
+  const usesPerCopy = getInventoryItemUsesPerCopy(contentItem.item);
+  const nextContainerContents = containerContents.map((entry, index) =>
+    index === contentIndex
+      ? normalizeContainerContentItem({
+          ...entry,
+          quantity: entry.quantity + 1,
+          usesRemaining:
+            useState && usesPerCopy !== null
+              ? Math.min(useState.total + usesPerCopy, useState.remaining + usesPerCopy)
+              : entry.usesRemaining
+        })
+      : entry
+  );
+
+  return inventoryItems.map((entry) =>
+    entry.id === resolvedContainerStackId
+      ? normalizeInventoryStack({
+          ...entry,
+          containerContents: nextContainerContents
+        })
+      : entry
+  );
+}
+
+export function removeOneContainerContentItemByIndex(
+  inventoryItems: CharacterInventoryItem[],
+  containerStackId: string,
+  contentIndex: number
+): CharacterInventoryItem[] {
+  const resolvedContainerStackId = getInventoryItemStackIdFromCopyId(containerStackId);
+  const containerStack = findInventoryItemStackById(inventoryItems, resolvedContainerStackId);
+
+  if (!containerStack || !isInventoryContainerItem(containerStack)) {
+    return inventoryItems;
+  }
+
+  const containerContents = getInventoryContainerContents(containerStack);
+  const contentItem = containerContents[contentIndex] ?? null;
+
+  if (!contentItem) {
+    return inventoryItems;
+  }
+
+  const removedContentItem = normalizeContainerContentItem({
+    ...contentItem,
+    quantity: 1,
+    usesRemaining:
+      getContainerContentUseState(contentItem)?.remaining !== undefined
+        ? Math.min(
+            getInventoryItemUsesPerCopy(contentItem.item) ?? 0,
+            getContainerContentUseState(contentItem)?.remaining ?? 0
+          )
+        : undefined
+  });
+  const removedUseState = getContainerContentUseState(removedContentItem);
+  const currentUseState = getContainerContentUseState(contentItem);
+  const nextContainerContents = containerContents.flatMap((entry, index) => {
+    if (index !== contentIndex) {
+      return [entry];
+    }
+
+    const nextQuantity = entry.quantity - 1;
+
+    if (nextQuantity <= 0) {
+      return [];
+    }
+
+    return [
+      normalizeContainerContentItem({
+        ...entry,
+        quantity: nextQuantity,
+        usesRemaining: currentUseState
+          ? Math.max(0, currentUseState.remaining - (removedUseState?.remaining ?? 0))
+          : entry.usesRemaining
+      })
+    ];
+  });
+
+  return inventoryItems.map((entry) =>
+    entry.id === resolvedContainerStackId
+      ? normalizeInventoryStack({
+          ...entry,
+          containerContents: nextContainerContents
+        })
+      : entry
+  );
+}
+
+function addContainerContentItemToInventoryWithResult(
+  inventoryItems: CharacterInventoryItem[],
+  contentItem: CharacterContainerContentItem
+): ContainerContentMoveResult {
+  const normalizedContentItem = normalizeContainerContentItem(contentItem);
+  const shouldCreateSeparateStack =
+    normalizedContentItem.attuned ||
+    normalizedContentItem.mods ||
+    normalizedContentItem.usesRemaining !== undefined ||
+    (normalizedContentItem.featureTags?.length ?? 0) > 0;
+
+  if (!shouldCreateSeparateStack) {
+    const existingStack = normalizedContentItem.item.key
+      ? findUntaggedInventoryItemStackByKey(inventoryItems, normalizedContentItem.item.key)
+      : null;
+    const newStack =
+      existingStack ??
+      createCharacterInventoryItem(normalizedContentItem.item, {
+        quantity: 1
+      });
+
+    return {
+      inventoryItems: existingStack
+        ? addInventoryItemCopies(inventoryItems, normalizedContentItem.item, 1)
+        : [...inventoryItems, newStack],
+      stackId: newStack.id
+    };
+  }
+
+  const newStack = createCharacterInventoryItem(normalizedContentItem.item, {
+    quantity: 1,
+    attuned: normalizedContentItem.attuned,
+    usesRemaining: normalizedContentItem.usesRemaining,
+    featureTags: normalizedContentItem.featureTags,
+    conjuredDuration: normalizedContentItem.conjuredDuration,
+    mods: normalizedContentItem.mods
+  });
+
+  return {
+    inventoryItems: [...inventoryItems, newStack],
+    stackId: newStack.id
+  };
+}
+
 export function addInventoryItemCopiesToStackById(
   inventoryItems: CharacterInventoryItem[],
   stackId: string,
@@ -1215,7 +1863,7 @@ export function addInventoryItemCopiesToStackById(
   }
 
   return inventoryItems.map((entry) =>
-    entry.id === resolvedStackId
+    entry.id === resolvedStackId && !isInventoryContainerItem(entry) && !entry.mods
       ? addInventoryItemQuantityToStack(entry, normalizedQuantity)
       : entry
   );
@@ -1568,4 +2216,184 @@ export function removeOneInventoryItemCopyById(
         })
       : entry
   );
+}
+
+function removeOneInventoryItemCopyForContainerTransfer(
+  entry: CharacterInventoryItem
+): CharacterInventoryItem[] {
+  const nextQuantity = getInventoryItemQuantity(entry) - 1;
+
+  if (nextQuantity <= 0) {
+    return [];
+  }
+
+  const movedUsesRemaining = getMovedInventoryItemUsesRemaining(entry);
+  const useState = getInventoryItemUseState(entry);
+
+  return [
+    normalizeInventoryStack({
+      ...entry,
+      quantity: nextQuantity,
+      onHandQuantity: Math.min(
+        nextQuantity,
+        Math.max(0, getInventoryItemOnHandQuantity(entry) - 1)
+      ),
+      worn: false,
+      attuned: false,
+      usesRemaining: useState
+        ? Math.max(0, useState.remaining - (movedUsesRemaining ?? 0))
+        : entry.usesRemaining
+    })
+  ];
+}
+
+export function moveOneInventoryItemCopyIntoContainerById(
+  inventoryItems: CharacterInventoryItem[],
+  containerStackId: string,
+  sourceStackId: string
+): CharacterInventoryItem[] {
+  const resolvedContainerStackId = getInventoryItemStackIdFromCopyId(containerStackId);
+  const resolvedSourceStackId = getInventoryItemStackIdFromCopyId(sourceStackId);
+  const containerStack = findInventoryItemStackById(inventoryItems, resolvedContainerStackId);
+  const sourceStack = findInventoryItemStackById(inventoryItems, resolvedSourceStackId);
+  const contentItem = sourceStack ? createContainerContentItemFromInventoryStack(sourceStack) : null;
+
+  if (
+    !containerStack ||
+    !sourceStack ||
+    !contentItem ||
+    resolvedContainerStackId === resolvedSourceStackId ||
+    !isInventoryContainerItem(containerStack) ||
+    isInventoryContainerItem(sourceStack)
+  ) {
+    return inventoryItems;
+  }
+
+  return inventoryItems.flatMap((entry) => {
+    if (entry.id === resolvedSourceStackId) {
+      return removeOneInventoryItemCopyForContainerTransfer(entry);
+    }
+
+    if (entry.id === resolvedContainerStackId) {
+      return [
+        normalizeInventoryStack({
+          ...entry,
+          containerContents: addContainerContentItemCopies(
+            getInventoryContainerContents(entry),
+            contentItem
+          )
+        })
+      ];
+    }
+
+    return [entry];
+  });
+}
+
+export function getInventoryItemCopyIntoContainerObjectDelta(
+  inventoryItems: CharacterInventoryItem[],
+  containerStackId: string,
+  sourceStackId: string
+): number | null {
+  const resolvedContainerStackId = getInventoryItemStackIdFromCopyId(containerStackId);
+  const resolvedSourceStackId = getInventoryItemStackIdFromCopyId(sourceStackId);
+  const containerStack = findInventoryItemStackById(inventoryItems, resolvedContainerStackId);
+  const sourceStack = findInventoryItemStackById(inventoryItems, resolvedSourceStackId);
+  const contentItem = sourceStack ? createContainerContentItemFromInventoryStack(sourceStack) : null;
+
+  if (
+    !containerStack ||
+    !sourceStack ||
+    !contentItem ||
+    resolvedContainerStackId === resolvedSourceStackId ||
+    !isInventoryContainerItem(containerStack) ||
+    isInventoryContainerItem(sourceStack)
+  ) {
+    return null;
+  }
+
+  const currentContents = getInventoryContainerContents(containerStack);
+  const nextContents = addContainerContentItemCopies(currentContents, contentItem);
+
+  return nextContents.length - currentContents.length;
+}
+
+export function canMoveOneInventoryItemCopyIntoContainer(
+  inventoryItems: CharacterInventoryItem[],
+  containerStackId: string,
+  sourceStackId: string,
+  objectLimit = CONTAINER_OBJECT_LIMIT
+): boolean {
+  const containerStack = findInventoryItemStackById(inventoryItems, containerStackId);
+  const objectDelta = getInventoryItemCopyIntoContainerObjectDelta(
+    inventoryItems,
+    containerStackId,
+    sourceStackId
+  );
+
+  if (!containerStack || objectDelta === null) {
+    return false;
+  }
+
+  return getInventoryContainerContents(containerStack).length + objectDelta <= objectLimit;
+}
+
+export function moveOneContainerContentItemOutByIndexWithResult(
+  inventoryItems: CharacterInventoryItem[],
+  containerStackId: string,
+  contentIndex: number
+): ContainerContentMoveResult {
+  const resolvedContainerStackId = getInventoryItemStackIdFromCopyId(containerStackId);
+  const containerStack = findInventoryItemStackById(inventoryItems, resolvedContainerStackId);
+
+  if (!containerStack || !isInventoryContainerItem(containerStack)) {
+    return {
+      inventoryItems,
+      stackId: null
+    };
+  }
+
+  const containerContents = getInventoryContainerContents(containerStack);
+  const contentItem = containerContents[contentIndex] ?? null;
+
+  if (!contentItem) {
+    return {
+      inventoryItems,
+      stackId: null
+    };
+  }
+
+  const movedContentItem = normalizeContainerContentItem({
+    ...contentItem,
+    quantity: 1,
+    usesRemaining:
+      getContainerContentUseState(contentItem)?.remaining !== undefined
+        ? Math.min(
+            getInventoryItemUsesPerCopy(contentItem.item) ?? 0,
+            getContainerContentUseState(contentItem)?.remaining ?? 0
+          )
+        : undefined
+  });
+  const inventoryWithoutMovedContent = removeOneContainerContentItemByIndex(
+    inventoryItems,
+    resolvedContainerStackId,
+    contentIndex
+  );
+
+  return addContainerContentItemToInventoryWithResult(
+    inventoryWithoutMovedContent,
+    movedContentItem
+  );
+}
+
+export function moveOneContainerContentItemOutByIndex(
+  inventoryItems: CharacterInventoryItem[],
+  containerStackId: string,
+  contentIndex: number
+): CharacterInventoryItem[] {
+  return moveOneContainerContentItemOutByIndexWithResult(
+    inventoryItems,
+    containerStackId,
+    contentIndex
+  ).inventoryItems;
 }

@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Pencil } from "lucide-react";
+import { CircleHelp, Pencil } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
@@ -87,6 +87,7 @@ import AbilitySavingThrowCards, {
 } from "./AbilitySavingThrowCards";
 import AbilityReferenceFooter from "./AbilityReferenceFooter";
 import AbilityScoresModal from "./AbilityScoresModal";
+import CharacterStatsGuideModal from "./CharacterStatsGuideModal";
 import StatReferenceDrawer, {
   type ReferenceIndicatorSection,
   type SelectedStatReference
@@ -398,6 +399,7 @@ function CharacterStatsForm({
   onPersistCharacter
 }: CharacterStatsFormProps) {
   const [isAbilityModalOpen, setIsAbilityModalOpen] = useState(false);
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [abilitiesDraft, setAbilitiesDraft] = useState<AbilitiesDraft>(() =>
     createAbilitiesDraft(character)
   );
@@ -411,7 +413,7 @@ function CharacterStatsForm({
   const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
 
   useBodyScrollLock(
-    Boolean(selectedStatReference) || isAbilityModalOpen || isDiceRollerSettingsOpen
+    Boolean(selectedStatReference) || isAbilityModalOpen || isDiceRollerSettingsOpen || isGuideOpen
   );
 
   useEffect(() => {
@@ -988,7 +990,18 @@ function CharacterStatsForm({
     <article className={clsx(shared.sectionCard, className)}>
       <div className={shared.sectionHeader}>
         <div>
-          <p className={shared.eyebrow}>Character Stats</p>
+          <div className={shared.eyebrowHelpRow}>
+            <p className={clsx(shared.eyebrow, shared.eyebrowInHelpRow)}>Character Stats</p>
+            <button
+              type="button"
+              className={shared.helpButton}
+              onClick={() => setIsGuideOpen(true)}
+              aria-label="Open character stats guide"
+              title="Open character stats guide"
+            >
+              <CircleHelp size={16} />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1006,6 +1019,8 @@ function CharacterStatsForm({
         onSetAttributeMode={setAbilityDraftMode}
         onUpdateAbilityScore={updateAbilityScore}
       />
+
+      {isGuideOpen ? <CharacterStatsGuideModal onClose={() => setIsGuideOpen(false)} /> : null}
 
       {resolvedSelectedStatReference ? (
         <StatReferenceDrawer

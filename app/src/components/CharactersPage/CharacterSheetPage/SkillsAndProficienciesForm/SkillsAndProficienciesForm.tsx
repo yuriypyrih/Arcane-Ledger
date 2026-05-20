@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Pencil } from "lucide-react";
+import { CircleHelp, Pencil } from "lucide-react";
 import { useState } from "react";
 import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
@@ -15,6 +15,7 @@ import ProficiencyEditorModal, { type ProficiencyEditorTab } from "./Proficiency
 import ProficiencySummaryPills from "./ProficiencySummaryPills";
 import SkillEditorModal from "./SkillEditorModal";
 import SkillRowsGrid from "./SkillRowsGrid";
+import SkillsAndProficienciesGuideModal from "./SkillsAndProficienciesGuideModal";
 import SkillReferenceDrawer, {
   type SelectedSkillReference,
   type SkillReferenceDetailCard
@@ -35,6 +36,7 @@ function SkillsAndProficienciesForm({
 }: SkillsAndProficienciesFormProps) {
   const [isSkillEditorOpen, setIsSkillEditorOpen] = useState(false);
   const [isProficiencyModalOpen, setIsProficiencyModalOpen] = useState(false);
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [proficiencyEditorInitialTab, setProficiencyEditorInitialTab] =
     useState<ProficiencyEditorTab>("weapons");
   const [selectedKeyword, setSelectedKeyword] = useState<SelectedSkillReference | null>(null);
@@ -46,6 +48,7 @@ function SkillsAndProficienciesForm({
     Boolean(selectedKeyword) ||
       isSkillEditorOpen ||
       isProficiencyModalOpen ||
+      isGuideOpen ||
       isSkillReferenceDiceRollerSettingsOpen
   );
 
@@ -129,7 +132,20 @@ function SkillsAndProficienciesForm({
     <article className={clsx(shared.sectionCard, className)}>
       <div className={shared.sectionHeader}>
         <div>
-          <p className={shared.eyebrow}>SKILLS AND PROFICIENCIES</p>
+          <div className={shared.eyebrowHelpRow}>
+            <p className={clsx(shared.eyebrow, shared.eyebrowInHelpRow)}>
+              SKILLS AND PROFICIENCIES
+            </p>
+            <button
+              type="button"
+              className={shared.helpButton}
+              onClick={() => setIsGuideOpen(true)}
+              aria-label="Open skills and proficiencies guide"
+              title="Open skills and proficiencies guide"
+            >
+              <CircleHelp size={16} />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -200,6 +216,10 @@ function SkillsAndProficienciesForm({
           onClose={() => setIsProficiencyModalOpen(false)}
           onPersistCharacter={onPersistCharacter}
         />
+      ) : null}
+
+      {isGuideOpen ? (
+        <SkillsAndProficienciesGuideModal onClose={() => setIsGuideOpen(false)} />
       ) : null}
 
       {selectedKeyword ? (

@@ -561,6 +561,10 @@ function areItemModEffectsActive(stack: CharacterInventoryItem): boolean {
     return false;
   }
 
+  if (getEffectiveInventoryItemRecord(stack).requires_attunement === true && !stack.attuned) {
+    return false;
+  }
+
   if (mods.baseCategory === "weapon") {
     return getStackOnHandQuantity(stack) > 0;
   }

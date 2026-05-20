@@ -30,7 +30,7 @@ function bumpRevisions(
   });
 }
 
-export const activeCharacterSheetSlice = createSlice({
+const activeCharacterSheetSlice = createSlice({
   name: "activeCharacterSheet",
   initialState,
   reducers: {

@@ -13,39 +13,6 @@
   min-width: 0;
 }
 
-.buildHeading {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-}
-
-.helpButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: var(--radius-pill);
-  background: rgba(75, 47, 29, 0.08);
-  color: var(--color-accent);
-  cursor: pointer;
-  min-height: 30px;
-  min-width: 30px;
-  padding: 0;
-  transition:
-    background-color 160ms ease,
-    color 160ms ease;
-}
-
-.helpButton:hover {
-  background: rgba(75, 47, 29, 0.14);
-  color: var(--color-ink);
-}
-
-.helpButton:focus-visible {
-  outline: 2px solid rgba(179, 92, 28, 0.34);
-  outline-offset: 2px;
-}
-
 .subsection {
   display: grid;
   gap: 0.9rem;

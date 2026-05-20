@@ -8,9 +8,11 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     ActionShape,
     CellContainer,
     CharacterSpellDrawer,
+    CircleHelp,
     DURATION,
     DivinityListRow,
     Pencil,
+    SpellCastingGuideModal,
     SpellDescriptionContent,
     SpellListRow,
     SpellManagementModal,
@@ -74,6 +76,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     highestSpellSlotLevel,
     isPreparedSpellPreview,
     isSelectedSpellDiceRollerSettingsOpen,
+    isSpellcastingGuideOpen,
     isSpellManagementModalOpen,
     knownSpellEntriesById,
     onPersistCharacter,
@@ -190,6 +193,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     setActiveSpellSlotSheetLevel,
     setActiveWizardSpellFilter,
     setIsSelectedSpellDiceRollerSettingsOpen,
+    setIsSpellcastingGuideOpen,
     setIsSpellManagementModalOpen,
     setSelectedElementalSmiteOptionOnSelectedSpell,
     setSelectedFrozenHauntFallbackSlotLevel,
@@ -281,7 +285,18 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     <article className={clsx(shared.sectionCard, className)}>
       <div className={clsx(shared.sectionHeader, styles.spellcastingSectionHeader)}>
         <div>
-          <p className={shared.eyebrow}>Spellcasting</p>
+          <div className={shared.eyebrowHelpRow}>
+            <p className={clsx(shared.eyebrow, shared.eyebrowInHelpRow)}>Spellcasting</p>
+            <button
+              type="button"
+              className={shared.helpButton}
+              onClick={() => setIsSpellcastingGuideOpen(true)}
+              aria-label="Open spellcasting guide"
+              title="Open spellcasting guide"
+            >
+              <CircleHelp size={16} />
+            </button>
+          </div>
         </div>
         <div className={clsx(shared.headerActions, styles.spellcastingHeaderActions)}>
           {hasSpellSelectionInputRequired ? <InputRequiredBadge /> : null}
@@ -504,6 +519,10 @@ export function renderSpellCastingForm(context: Record<string, any>) {
           usesPreparedSpells={usesPreparedSpells}
           usesSpellbook={usesSpellbook}
         />
+      ) : null}
+
+      {isSpellcastingGuideOpen ? (
+        <SpellCastingGuideModal onClose={() => setIsSpellcastingGuideOpen(false)} />
       ) : null}
 
       {selectedSpell ? (

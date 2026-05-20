@@ -7,6 +7,7 @@ import styles from "./EquipmentForm.module.css";
 
 type EquipmentInventoryItemDrawerHeaderProps = {
   item: ItemRecord;
+  titleId?: string;
   onHandCount?: number;
   worn?: boolean;
   attuned?: boolean;
@@ -24,6 +25,7 @@ function getOnHandLabel(onHandCount: number) {
 
 function EquipmentInventoryItemDrawerHeader({
   item,
+  titleId = "equipment-item-drawer-title",
   onHandCount = 0,
   worn = false,
   attuned = false,
@@ -37,7 +39,7 @@ function EquipmentInventoryItemDrawerHeader({
     <div className={sheetStyles.spellDrawerHeaderContent}>
       <p className={sheetStyles.spellDrawerBadge}>Item Inspection</p>
       <div className={sheetStyles.spellDrawerTitleRow}>
-        <h3 id="equipment-item-drawer-title" className={sheetStyles.spellDrawerTitle}>
+        <h3 id={titleId} className={sheetStyles.spellDrawerTitle}>
           {presentation.name}
         </h3>
         {onHandCount > 0 ? (
