@@ -1,5 +1,6 @@
 import { Hand, Shield, Sparkles } from "lucide-react";
 import {
+  BAG_OF_HOLDING_WEIGHT_LIMIT_LB,
   CONTAINER_OBJECT_LIMIT,
   INVENTORY_OBJECT_LIMIT
 } from "../../../../pages/CharactersPage/inventoryItems";
@@ -38,7 +39,8 @@ function EquipmentGuideModal({ inventoryObjectCount, onClose }: EquipmentGuideMo
             Equipment tracks what your character carries, buys, sells, stores, and actively uses.
             The whole character sheet can hold up to {INVENTORY_OBJECT_LIMIT} unique inventory rows,
             including items inside containers; each container can hold up to{" "}
-            {CONTAINER_OBJECT_LIMIT} unique rows.
+            {CONTAINER_OBJECT_LIMIT} unique rows, and a Bag of Holding can hold up to{" "}
+            {BAG_OF_HOLDING_WEIGHT_LIMIT_LB} lb while only adding its own weight to what you carry.
           </OverlaySummary>
         </OverlayHeaderContent>
         <OverlayCloseButton label="Close equipment guide" onClick={onClose} />

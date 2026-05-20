@@ -9,6 +9,7 @@ const itemEntryCache = new LruCache<string, ItemRecord>(75);
 type UseItemEntryOptions = {
   enabled?: boolean;
   initialItem?: ItemRecord | null;
+  localOnly?: boolean;
 };
 
 export function primeItemEntryCache(item: ItemRecord | null | undefined) {
@@ -21,6 +22,7 @@ export function primeItemEntryCache(item: ItemRecord | null | undefined) {
 
 export function useItemEntry(key: string | undefined, options?: UseItemEntryOptions) {
   const enabled = options?.enabled ?? true;
+  const localOnly = options?.localOnly ?? false;
   const isOnline = useOnlineStatus();
   const [item, setItem] = useState<ItemRecord | null>(() => {
     if (options?.initialItem) {
@@ -35,7 +37,9 @@ export function useItemEntry(key: string | undefined, options?: UseItemEntryOpti
       return "ready";
     }
 
-    return options?.initialItem || (key && itemEntryCache.has(key)) ? "ready" : "loading";
+    return localOnly || options?.initialItem || (key && itemEntryCache.has(key))
+      ? "ready"
+      : "loading";
   });
 
   useEffect(() => {
@@ -45,6 +49,16 @@ export function useItemEntry(key: string | undefined, options?: UseItemEntryOpti
     async function loadItem() {
       if (!enabled || !key) {
         setItem(null);
+        setStatus("ready");
+        return;
+      }
+
+      if (localOnly) {
+        if (options?.initialItem) {
+          primeItemEntryCache(options.initialItem);
+        }
+
+        setItem(options?.initialItem ?? null);
         setStatus("ready");
         return;
       }
@@ -99,7 +113,7 @@ export function useItemEntry(key: string | undefined, options?: UseItemEntryOpti
       active = false;
       abortController.abort();
     };
-  }, [enabled, isOnline, key, options?.initialItem]);
+  }, [enabled, isOnline, key, localOnly, options?.initialItem]);
 
   return {
     item,

@@ -64,6 +64,7 @@ type InventoryTransactionCostOptions = {
 };
 
 export const CONTAINER_OBJECT_LIMIT = 100;
+export const BAG_OF_HOLDING_WEIGHT_LIMIT_LB = 500;
 
 export type InventoryItemModsSaveResult = {
   inventoryItems: CharacterInventoryItem[];
@@ -125,11 +126,17 @@ export const ITEM_CONTAINER_KEYS = [
   "srd-2024_backpack",
   "srd_backpack",
   "srd-2024_chest",
-  "srd_chest"
+  "srd_chest",
+  "srd-2024_bag-of-holding",
+  "srd_bag-of-holding"
 ] as const;
 
 export const INVENTORY_OBJECT_LIMIT = 200;
 
+const bagOfHoldingContainerKeys = new Set<string>([
+  "srd-2024_bag-of-holding",
+  "srd_bag-of-holding"
+]);
 const itemContainerKeySet = new Set<string>(ITEM_CONTAINER_KEYS);
 const moddedItemKeyMarker = "-modded-";
 
@@ -310,6 +317,16 @@ export function isInventoryContainerItem(
   entry: Pick<CharacterInventoryItem, "item"> | null | undefined
 ): boolean {
   return isItemContainerRecord(entry?.item);
+}
+
+export function isBagOfHoldingItemRecord(item: ItemRecord | null | undefined): boolean {
+  return bagOfHoldingContainerKeys.has(getItemRecordKey(item));
+}
+
+export function isBagOfHoldingInventoryItem(
+  entry: Pick<CharacterInventoryItem, "item"> | null | undefined
+): boolean {
+  return isBagOfHoldingItemRecord(entry?.item);
 }
 
 function getContainerContentStackKey(entry: CharacterContainerContentItem, index: number): string {
@@ -943,8 +960,23 @@ export function canAddInventoryObject(
   inventoryItems: CharacterInventoryItem[],
   target: InventoryAddObjectTarget
 ): boolean {
-  return getInventoryObjectCount(inventoryItems) + getInventoryAddObjectDelta(inventoryItems, target) <=
+  const isWithinObjectLimit =
+    getInventoryObjectCount(inventoryItems) + getInventoryAddObjectDelta(inventoryItems, target) <=
     INVENTORY_OBJECT_LIMIT;
+
+  if (!isWithinObjectLimit) {
+    return false;
+  }
+
+  if (target.kind === "container-content") {
+    return canAddOneContainerContentItemCopyByIndex(
+      inventoryItems,
+      target.containerStackId,
+      target.contentIndex
+    );
+  }
+
+  return true;
 }
 
 export function getInventoryContainerContentByIndex(
@@ -1520,14 +1552,43 @@ export function getContainerContentsWeightValue(
   }, 0);
 }
 
-export function getInventoryItemTotalWeightValue(entry: CharacterInventoryItem): number {
+function getContainerContentCopyWeightValue(content: CharacterContainerContentItem): number {
+  const contentStack = createCharacterInventoryItem(content.item, {
+    quantity: 1,
+    attuned: content.attuned,
+    usesRemaining: content.usesRemaining,
+    featureTags: content.featureTags,
+    conjuredDuration: content.conjuredDuration,
+    mods: content.mods
+  });
+  const item = getEffectiveInventoryItemRecord(contentStack);
+
+  return getItemWeightValue(item) ?? 0;
+}
+
+export function getInventoryContainerContentsWeightLimit(
+  entry: Pick<CharacterInventoryItem, "item"> | null | undefined
+): number | null {
+  return isBagOfHoldingInventoryItem(entry) ? BAG_OF_HOLDING_WEIGHT_LIMIT_LB : null;
+}
+
+export function getInventoryItemCopyWeightValue(entry: CharacterInventoryItem): number {
   const item = getEffectiveInventoryItemRecord(entry);
-  const ownWeight = (getItemWeightValue(item) ?? 0) * getInventoryItemQuantity(entry);
+  const ownWeight = getItemWeightValue(item) ?? 0;
+
+  if (isBagOfHoldingInventoryItem(entry)) {
+    return ownWeight;
+  }
+
   const contentsWeight = isInventoryContainerItem(entry)
     ? getContainerContentsWeightValue(getInventoryContainerContents(entry))
     : 0;
 
   return ownWeight + contentsWeight;
+}
+
+export function getInventoryItemTotalWeightValue(entry: CharacterInventoryItem): number {
+  return getInventoryItemCopyWeightValue(entry) * getInventoryItemQuantity(entry);
 }
 
 export function getItemArmorType(item: ItemRecord): "light" | "medium" | "heavy" | null {
@@ -1714,6 +1775,16 @@ export function addOneContainerContentItemCopyByIndex(
   const contentItem = containerContents[contentIndex] ?? null;
 
   if (!contentItem) {
+    return inventoryItems;
+  }
+
+  if (
+    getAddOneContainerContentItemCopyBlockReason(
+      inventoryItems,
+      resolvedContainerStackId,
+      contentIndex
+    ) !== null
+  ) {
     return inventoryItems;
   }
 
@@ -2264,7 +2335,12 @@ export function moveOneInventoryItemCopyIntoContainerById(
     !contentItem ||
     resolvedContainerStackId === resolvedSourceStackId ||
     !isInventoryContainerItem(containerStack) ||
-    isInventoryContainerItem(sourceStack)
+    isInventoryContainerItem(sourceStack) ||
+    getInventoryItemCopyIntoContainerBlockReason(
+      inventoryItems,
+      resolvedContainerStackId,
+      resolvedSourceStackId
+    ) !== null
   ) {
     return inventoryItems;
   }
@@ -2318,24 +2394,135 @@ export function getInventoryItemCopyIntoContainerObjectDelta(
   return nextContents.length - currentContents.length;
 }
 
+export type InventoryContainerAddBlockReason =
+  | "invalid"
+  | "container"
+  | "object-limit"
+  | "weight-limit";
+
+function wouldContainerContentsExceedWeightLimit(
+  containerStack: CharacterInventoryItem,
+  addedCopyWeight: number
+): boolean {
+  const weightLimit = getInventoryContainerContentsWeightLimit(containerStack);
+
+  if (weightLimit === null) {
+    return false;
+  }
+
+  return (
+    getContainerContentsWeightValue(getInventoryContainerContents(containerStack)) +
+      addedCopyWeight >
+    weightLimit
+  );
+}
+
+export function getInventoryItemCopyIntoContainerBlockReason(
+  inventoryItems: CharacterInventoryItem[],
+  containerStackId: string,
+  sourceStackId: string,
+  objectLimit = CONTAINER_OBJECT_LIMIT
+): InventoryContainerAddBlockReason | null {
+  const resolvedContainerStackId = getInventoryItemStackIdFromCopyId(containerStackId);
+  const resolvedSourceStackId = getInventoryItemStackIdFromCopyId(sourceStackId);
+  const containerStack = findInventoryItemStackById(inventoryItems, resolvedContainerStackId);
+  const sourceStack = findInventoryItemStackById(inventoryItems, resolvedSourceStackId);
+  const objectDelta = getInventoryItemCopyIntoContainerObjectDelta(
+    inventoryItems,
+    resolvedContainerStackId,
+    resolvedSourceStackId
+  );
+
+  if (
+    !containerStack ||
+    !sourceStack ||
+    resolvedContainerStackId === resolvedSourceStackId ||
+    !isInventoryContainerItem(containerStack)
+  ) {
+    return "invalid";
+  }
+
+  if (isInventoryContainerItem(sourceStack)) {
+    return "container";
+  }
+
+  if (objectDelta === null) {
+    return "invalid";
+  }
+
+  if (getInventoryContainerContents(containerStack).length + objectDelta > objectLimit) {
+    return "object-limit";
+  }
+
+  if (
+    wouldContainerContentsExceedWeightLimit(
+      containerStack,
+      getInventoryItemCopyWeightValue(sourceStack)
+    )
+  ) {
+    return "weight-limit";
+  }
+
+  return null;
+}
+
 export function canMoveOneInventoryItemCopyIntoContainer(
   inventoryItems: CharacterInventoryItem[],
   containerStackId: string,
   sourceStackId: string,
   objectLimit = CONTAINER_OBJECT_LIMIT
 ): boolean {
-  const containerStack = findInventoryItemStackById(inventoryItems, containerStackId);
-  const objectDelta = getInventoryItemCopyIntoContainerObjectDelta(
+  return (
+    getInventoryItemCopyIntoContainerBlockReason(
+      inventoryItems,
+      containerStackId,
+      sourceStackId,
+      objectLimit
+    ) === null
+  );
+}
+
+export function getAddOneContainerContentItemCopyBlockReason(
+  inventoryItems: CharacterInventoryItem[],
+  containerStackId: string,
+  contentIndex: number
+): InventoryContainerAddBlockReason | null {
+  const resolvedContainerStackId = getInventoryItemStackIdFromCopyId(containerStackId);
+  const containerStack = findInventoryItemStackById(inventoryItems, resolvedContainerStackId);
+  const contentItem = getInventoryContainerContentByIndex(
     inventoryItems,
-    containerStackId,
-    sourceStackId
+    resolvedContainerStackId,
+    contentIndex
   );
 
-  if (!containerStack || objectDelta === null) {
-    return false;
+  if (!containerStack || !contentItem || !isInventoryContainerItem(containerStack)) {
+    return "invalid";
   }
 
-  return getInventoryContainerContents(containerStack).length + objectDelta <= objectLimit;
+  if (
+    wouldContainerContentsExceedWeightLimit(
+      containerStack,
+      getContainerContentCopyWeightValue(contentItem)
+    )
+  ) {
+    return "weight-limit";
+  }
+
+  return null;
+}
+
+export function canAddOneContainerContentItemCopyByIndex(
+  inventoryItems: CharacterInventoryItem[],
+  containerStackId: string,
+  contentIndex: number
+): boolean {
+  return (
+    getAddOneContainerContentItemCopyBlockReason(
+      inventoryItems,
+      containerStackId,
+      contentIndex
+    ) === null
+  );
 }
 
 export function moveOneContainerContentItemOutByIndexWithResult(

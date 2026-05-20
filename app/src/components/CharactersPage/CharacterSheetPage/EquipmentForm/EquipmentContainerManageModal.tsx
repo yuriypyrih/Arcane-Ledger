@@ -15,16 +15,19 @@ import {
 } from "../../../Overlay";
 import type { CharacterContainerContentItem, CharacterInventoryItem } from "../../../../types";
 import {
-  canMoveOneInventoryItemCopyIntoContainer,
+  BAG_OF_HOLDING_WEIGHT_LIMIT_LB,
   CONTAINER_OBJECT_LIMIT,
   findInventoryItemStackById,
   getContainerContentsWeightValue,
+  getInventoryContainerContentsWeightLimit,
   getInventoryContainerContents,
+  getInventoryItemCopyIntoContainerBlockReason,
   getInventoryItemTotalWeightValue,
   groupCharacterInventoryItems,
   isInventoryContainerItem,
   moveOneContainerContentItemOutByIndex,
   moveOneInventoryItemCopyIntoContainerById,
+  type InventoryContainerAddBlockReason,
   type GroupedInventoryItem
 } from "../../../../pages/CharactersPage/inventoryItems";
 import { formatEquipmentWeight } from "../../../../utils/codex";
@@ -43,8 +46,28 @@ function formatWeight(weight: number): string {
   return formatEquipmentWeight(Math.round(weight * 100) / 100);
 }
 
+function formatWeightProgress(weight: number, weightLimit: number): string {
+  return `${Math.round(weight * 100) / 100}/${formatWeight(weightLimit)}`;
+}
+
 function getContentItemWeight(content: CharacterContainerContentItem): number {
   return getContainerContentsWeightValue([content]);
+}
+
+function getTransferBlockTitle(reason: InventoryContainerAddBlockReason | null): string | undefined {
+  if (reason === "container") {
+    return "Containers cannot be placed inside containers.";
+  }
+
+  if (reason === "object-limit") {
+    return `Container object limit reached (${CONTAINER_OBJECT_LIMIT}).`;
+  }
+
+  if (reason === "weight-limit") {
+    return `Bag of Holding capacity reached (${BAG_OF_HOLDING_WEIGHT_LIMIT_LB} lb).`;
+  }
+
+  return reason === "invalid" ? "This item cannot be moved into the container." : undefined;
 }
 
 function EquipmentContainerManageModal({
@@ -79,15 +102,18 @@ function EquipmentContainerManageModal({
     () => getContainerContentsWeightValue(containerContents),
     [containerContents]
   );
+  const containerWeightLimit = useMemo(
+    () => getInventoryContainerContentsWeightLimit(containerStack),
+    [containerStack]
+  );
 
   function moveIntoContainer(item: GroupedInventoryItem) {
     if (
-      isInventoryContainerItem(item.stack) ||
-      !canMoveOneInventoryItemCopyIntoContainer(
+      getInventoryItemCopyIntoContainerBlockReason(
         draftInventoryItems,
         containerStackId,
         item.stackId
-      )
+      ) !== null
     ) {
       return;
     }
@@ -130,15 +156,13 @@ function EquipmentContainerManageModal({
           emptyLabel="Inventory is empty."
         >
           {inventoryColumnItems.map((item) => {
-            const isContainer = isInventoryContainerItem(item.stack);
-            const isBlockedByContainerLimit =
-              !isContainer &&
-              !canMoveOneInventoryItemCopyIntoContainer(
-                draftInventoryItems,
-                containerStackId,
-                item.stackId
-              );
-            const isDisabled = isContainer || isBlockedByContainerLimit;
+            const blockReason = getInventoryItemCopyIntoContainerBlockReason(
+              draftInventoryItems,
+              containerStackId,
+              item.stackId
+            );
+            const isContainer = blockReason === "container" || isInventoryContainerItem(item.stack);
+            const isDisabled = blockReason !== null;
 
             return (
               <li key={item.stackId}>
@@ -147,15 +171,13 @@ function EquipmentContainerManageModal({
                   className={clsx(styles.itemButton, isDisabled && styles.itemButtonDisabled)}
                   onClick={() => moveIntoContainer(item)}
                   disabled={isDisabled}
-                  title={
-                    isBlockedByContainerLimit
-                      ? `Container object limit reached (${CONTAINER_OBJECT_LIMIT}).`
-                      : undefined
-                  }
+                  title={getTransferBlockTitle(blockReason)}
                 >
                   <span className={styles.itemText}>
                     <span className={styles.itemName}>{formatInventoryStackName(item)}</span>
-                    <span className={styles.itemMeta}>{formatWeight(getInventoryItemTotalWeightValue(item.stack))}</span>
+                    <span className={styles.itemMeta}>
+                      {formatWeight(getInventoryItemTotalWeightValue(item.stack))}
+                    </span>
                   </span>
                   <span className={styles.itemAction}>
                     {isContainer ? (
@@ -173,6 +195,7 @@ function EquipmentContainerManageModal({
         <ContainerColumn
           title="Container"
           weight={containerWeight}
+          weightLimit={containerWeightLimit}
           objectCount={containerContents.length}
           emptyLabel="Container is empty."
         >
@@ -189,7 +212,9 @@ function EquipmentContainerManageModal({
                       ? `${content.quantity}x ${content.item.name ?? "Item"}`
                       : content.item.name ?? "Item"}
                   </span>
-                  <span className={styles.itemMeta}>{formatWeight(getContentItemWeight(content))}</span>
+                  <span className={styles.itemMeta}>
+                    {formatWeight(getContentItemWeight(content))}
+                  </span>
                 </span>
                 <span className={styles.itemAction}>
                   <MoveLeft size={17} aria-hidden="true" />
@@ -222,13 +247,15 @@ function ContainerColumn({
   emptyLabel,
   objectCount,
   title,
-  weight
+  weight,
+  weightLimit
 }: {
   children: ReactNode;
   emptyLabel: string;
   objectCount?: number;
   title: string;
   weight: number;
+  weightLimit?: number | null;
 }) {
   const childArray = Array.isArray(children) ? children : [children];
   const hasItems = childArray.some(Boolean);
@@ -248,7 +275,19 @@ function ContainerColumn({
               {`${objectCount}/${CONTAINER_OBJECT_LIMIT}`}
             </span>
           ) : null}
-          <span className={styles.columnHeaderMetric}>{formatWeight(weight)}</span>
+          <span
+            className={clsx(
+              styles.columnHeaderMetric,
+              weightLimit !== null &&
+                weightLimit !== undefined &&
+                weight >= weightLimit &&
+                styles.columnHeaderMetricLimit
+            )}
+          >
+            {weightLimit !== null && weightLimit !== undefined
+              ? formatWeightProgress(weight, weightLimit)
+              : formatWeight(weight)}
+          </span>
         </div>
       </header>
       {hasItems ? <ul className={styles.itemList}>{children}</ul> : <p className={styles.emptyText}>{emptyLabel}</p>}

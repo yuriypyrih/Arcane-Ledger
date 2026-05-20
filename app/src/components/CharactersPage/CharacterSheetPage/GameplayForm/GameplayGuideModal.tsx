@@ -28,9 +28,9 @@ function GameplayGuideModal({ onClose }: GameplayGuideModalProps) {
             <OverlayTitle id="gameplay-guide-modal-title">Gameplay Guide</OverlayTitle>
           </OverlayTitleRow>
           <OverlaySummary className={shared.helperText}>
-            The gameplay dashboard helps you track your available actions in and out of combat,
-            your round tracker, HP and Temporary HP, Traits &amp; Conditions, and other
-            session-facing tools.
+            The gameplay dashboard helps you track your available actions in and out of combat, your
+            round tracker, HP and Temporary HP, Traits &amp; Conditions, and other session-facing
+            tools.
           </OverlaySummary>
         </OverlayHeaderContent>
         <OverlayCloseButton label="Close gameplay guide" onClick={onClose} />
@@ -52,12 +52,7 @@ function GameplayGuideModal({ onClose }: GameplayGuideModalProps) {
               <span className={styles.shapeLabel}>Bonus Action</span>
               <div className={styles.shapeExamples}>
                 <ActionShape shape="bonusAction" isSelected size="small" />
-                <ActionShape
-                  shape="bonusAction"
-                  isSelected={false}
-                  multiCount={1}
-                  size="small"
-                />
+                <ActionShape shape="bonusAction" isSelected={false} multiCount={1} size="small" />
                 <ActionShape shape="bonusAction" isSelected={false} size="small" />
               </div>
             </div>
@@ -71,8 +66,8 @@ function GameplayGuideModal({ onClose }: GameplayGuideModalProps) {
             </div>
           </div>
           <p className={styles.sectionText}>
-            A full shape means the action is available, a half shape means you still have extra
-            uses tied to that action, and an empty shape means it has been spent for this turn.
+            A full shape means the action is available, a half shape means you still have extra uses
+            tied to that action, and an empty shape means it has been spent for this turn.
           </p>
         </section>
 
@@ -99,8 +94,8 @@ function GameplayGuideModal({ onClose }: GameplayGuideModalProps) {
                 <CircleStop size={18} strokeWidth={1.3} />
               </span>
               <p className={styles.sectionText}>
-                End round finishes your turn and advances effects that count down at the end of
-                your turn.
+                End round finishes your turn and advances effects that count down at the end of your
+                turn.
               </p>
             </div>
             <div className={styles.turnFlowItem}>
@@ -111,8 +106,9 @@ function GameplayGuideModal({ onClose }: GameplayGuideModalProps) {
                 <Swords size={17} />
               </span>
               <p className={styles.sectionText}>
-                Combat controls whether round resources are tracked. Open the combat button to
-                start or end combat manually.
+                Combat controls whether round resources are tracked. To start combat you can do so
+                either by rolling initiative, pressing Round Start, or manually pressing the button.
+                To end combat you have to do always manually.
               </p>
             </div>
           </div>

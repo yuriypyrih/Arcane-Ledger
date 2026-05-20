@@ -19,6 +19,7 @@ import styles from "./EquipmentForm.module.css";
 type EquipmentContainerContentsListProps = {
   contents: CharacterContainerContentItem[];
   containerStackId: string;
+  contentsWeightLimit?: number | null;
   onSelectContent: (contentIndex: number) => void;
 };
 
@@ -47,12 +48,21 @@ function formatContentName(content: CharacterContainerContentItem, name: string)
   return content.quantity > 1 ? `${content.quantity}x ${name}` : name;
 }
 
+function formatContentWeightProgress(weight: number, weightLimit: number): string {
+  return `${Math.round(weight * 100) / 100}/${formatEquipmentWeight(weightLimit)}`;
+}
+
 function EquipmentContainerContentsList({
   contents,
   containerStackId,
+  contentsWeightLimit = null,
   onSelectContent
 }: EquipmentContainerContentsListProps) {
-  const contentsWeightLabel = formatEquipmentWeight(getContainerContentsWeightValue(contents));
+  const contentsWeight = getContainerContentsWeightValue(contents);
+  const contentsWeightLabel =
+    contentsWeightLimit !== null
+      ? formatContentWeightProgress(contentsWeight, contentsWeightLimit)
+      : formatEquipmentWeight(contentsWeight);
 
   return (
     <section className={styles.containerContentsSection}>
@@ -60,65 +70,67 @@ function EquipmentContainerContentsList({
         <h4>{`Contents (${contentsWeightLabel})`}</h4>
       </header>
       {contents.length === 0 ? null : (
-      <ul className={styles.equipmentItemList}>
-        {contents.map((content, index) => {
-          const { item, stack } = getContentRowItem(containerStackId, content, index);
-          const conjuredRowTagLabel = getInventoryItemConjuredRowTagLabel(stack);
-          const objectTagLabel = isExtractableEquipmentPackRecord(item) ? "Pack" : null;
+        <ul className={styles.equipmentItemList}>
+          {contents.map((content, index) => {
+            const { item, stack } = getContentRowItem(containerStackId, content, index);
+            const conjuredRowTagLabel = getInventoryItemConjuredRowTagLabel(stack);
+            const objectTagLabel = isExtractableEquipmentPackRecord(item) ? "Pack" : null;
 
-          return (
-            <li key={`${item.key ?? item.name ?? "item"}-${index}`}>
-              <SheetSurface
-                as="button"
-                type="button"
-                borderSize="sm"
-                hoverBorder
-                className={styles.equipmentItemButton}
-                onClick={() => onSelectContent(index)}
-              >
-                <span className={styles.equipmentItemLabel}>
-                  <span className={styles.equipmentItemName}>
-                    {formatContentName(content, item.name ?? "Item")}
+            return (
+              <li key={`${item.key ?? item.name ?? "item"}-${index}`}>
+                <SheetSurface
+                  as="button"
+                  type="button"
+                  borderSize="sm"
+                  hoverBorder
+                  className={styles.equipmentItemButton}
+                  onClick={() => onSelectContent(index)}
+                >
+                  <span className={styles.equipmentItemLabel}>
+                    <span className={styles.equipmentItemName}>
+                      {formatContentName(content, item.name ?? "Item")}
+                    </span>
+                    {objectTagLabel ? (
+                      <span className={styles.equipmentItemObjectTag}>
+                        <Package size={13} aria-hidden="true" />
+                        <span>{objectTagLabel}</span>
+                      </span>
+                    ) : null}
+                    {stack.attuned ? (
+                      <span className={styles.equipmentItemAttuned}>
+                        <Sparkles size={13} aria-hidden="true" />
+                        <span>Attuned</span>
+                      </span>
+                    ) : null}
+                    {getInventoryItemFeatureTagLabels(stack, {
+                      excludeConjured: true
+                    }).map((tagLabel) => (
+                      <span key={tagLabel} className={styles.equipmentItemFeatureTag}>
+                        {tagLabel}
+                      </span>
+                    ))}
                   </span>
-                  {objectTagLabel ? (
-                    <span className={styles.equipmentItemObjectTag}>
-                      <Package size={13} aria-hidden="true" />
-                      <span>{objectTagLabel}</span>
+                  <span className={styles.equipmentItemMeta}>
+                    {hasCharacterItemMods(stack.mods) && !stack.mods?.isCustom ? (
+                      <span className={styles.equipmentItemModdedTag}>
+                        <span>Modded</span>
+                      </span>
+                    ) : null}
+                    {conjuredRowTagLabel ? (
+                      <span className={styles.equipmentItemFeatureTag}>{conjuredRowTagLabel}</span>
+                    ) : null}
+                    {hasDisplayableRarity(item.rarity) ? (
+                      <RarityPill rarity={item.rarity} />
+                    ) : null}
+                    <span className={styles.equipmentItemWeight}>
+                      {formatEquipmentWeight(getContainerContentsWeightValue([content]))}
                     </span>
-                  ) : null}
-                  {stack.attuned ? (
-                    <span className={styles.equipmentItemAttuned}>
-                      <Sparkles size={13} aria-hidden="true" />
-                      <span>Attuned</span>
-                    </span>
-                  ) : null}
-                  {getInventoryItemFeatureTagLabels(stack, {
-                    excludeConjured: true
-                  }).map((tagLabel) => (
-                    <span key={tagLabel} className={styles.equipmentItemFeatureTag}>
-                      {tagLabel}
-                    </span>
-                  ))}
-                </span>
-                <span className={styles.equipmentItemMeta}>
-                  {hasCharacterItemMods(stack.mods) && !stack.mods?.isCustom ? (
-                    <span className={styles.equipmentItemModdedTag}>
-                      <span>Modded</span>
-                    </span>
-                  ) : null}
-                  {conjuredRowTagLabel ? (
-                    <span className={styles.equipmentItemFeatureTag}>{conjuredRowTagLabel}</span>
-                  ) : null}
-                  {hasDisplayableRarity(item.rarity) ? <RarityPill rarity={item.rarity} /> : null}
-                  <span className={styles.equipmentItemWeight}>
-                    {formatEquipmentWeight(getContainerContentsWeightValue([content]))}
                   </span>
-                </span>
-              </SheetSurface>
-            </li>
-          );
-        })}
-      </ul>
+                </SheetSurface>
+              </li>
+            );
+          })}
+        </ul>
       )}
     </section>
   );
