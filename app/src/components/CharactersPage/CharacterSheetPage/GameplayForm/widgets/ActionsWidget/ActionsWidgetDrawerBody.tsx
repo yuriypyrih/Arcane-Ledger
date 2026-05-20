@@ -278,7 +278,6 @@ import {
   getEconomyShapeState,
   getRoundTrackerActionWarning
 } from "../../gameplayWidgetUtils";
-import { artificerTinkersMagicActionKey } from "../../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
 import {
   formatResolvedRollStateDetailText,
   getRollModeFromIndicators
@@ -457,6 +456,7 @@ export function renderActionDrawerBody(context: Record<string, any>) {
     isDiceRollerSettingsOpen,
     isDreadfulStrikeSelected,
     isEmpoweredStrikesSelected,
+    isTinkersMagicSubmitting,
     isFlurryOfHealingAndHarmSelected,
     isGroupRecoverySelected,
     isHandOfHarmSelected,
@@ -673,6 +673,7 @@ export function renderActionDrawerBody(context: Record<string, any>) {
     submitSorcererWildMagicSurge,
     submitStarryForm,
     submitThirdEye,
+    submitArtificerTinkersMagic,
     submitWarriorOfTheGods,
     submitWildCompanion,
     submitWildResurgence,
@@ -843,16 +844,6 @@ export function renderActionDrawerBody(context: Record<string, any>) {
   }
 
   if (selectedAction.drawer.kind === "options") {
-    if (selectedAction.action.key === artificerTinkersMagicActionKey) {
-      return (
-        <TinkersMagicActionBody
-          options={selectedAction.drawer.options}
-          selectedOptionKeys={selectedActionOptionKeys}
-          onSelectOption={toggleFeatureOptionSelection}
-        />
-      );
-    }
-
     if (selectedAction.action.key === metamagicActionKey) {
       return (
         <MetamagicOptionsActionBody
@@ -878,6 +869,19 @@ export function renderActionDrawerBody(context: Record<string, any>) {
   }
 
   if (selectedAction.drawer.kind === "custom-form") {
+    if (selectedAction.drawer.formKind === "tinkers-magic") {
+      return (
+        <TinkersMagicActionBody
+          isSubmitting={isTinkersMagicSubmitting}
+          disabledReason={selectedFeatureActionPrimaryDisabledReason}
+          actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
+          actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+          actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+          onUseItem={submitArtificerTinkersMagic}
+        />
+      );
+    }
+
     if (selectedAction.drawer.formKind === "aasimar-healing-hands") {
       return (
         <AasimarHealingHandsActionBody

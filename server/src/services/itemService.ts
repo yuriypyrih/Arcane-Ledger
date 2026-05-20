@@ -11,9 +11,11 @@ import {
   type ItemListQuery,
   type ItemOrdering,
   type ItemProficiencyType,
+  type ItemSpecialFilter,
   type Open5eItemRecord
 } from "../types/item.js";
 import { serializeItemListItem, serializeItemRecord } from "../utils/serializers.js";
+import { getItemSpecialFilterKeys } from "./itemSpecialFilters.js";
 
 const WEAPON_TAB_CATEGORY_KEYS = ["weapon", "staff"] as const;
 const ARMOR_TAB_CATEGORY_KEYS = ["armor", "shield"] as const;
@@ -143,6 +145,22 @@ function buildTabFilter(tab: ItemBrowserTab | undefined): FilterQuery<Open5eItem
   return null;
 }
 
+function buildSpecialFilter(
+  specialFilter: ItemSpecialFilter | undefined
+): FilterQuery<Open5eItemRecord> | null {
+  const itemKeys = getItemSpecialFilterKeys(specialFilter);
+
+  if (itemKeys.length <= 0) {
+    return null;
+  }
+
+  return {
+    key: {
+      $in: [...itemKeys]
+    }
+  };
+}
+
 function buildWeaponRangeConditions(): FilterQuery<Open5eItemRecord>[] {
   return [
     {
@@ -236,7 +254,12 @@ function buildArmorTypeFilter(armorType: ItemArmorType): FilterQuery<Open5eItemR
 
 function buildItemFilter(query: ItemListQuery): FilterQuery<Open5eItemRecord> {
   const filters: FilterQuery<Open5eItemRecord>[] = [];
+  const specialFilter = buildSpecialFilter(query.specialFilter);
   const tabFilter = buildTabFilter(query.tab);
+
+  if (specialFilter) {
+    filters.push(specialFilter);
+  }
 
   if (query.search) {
     const searchPattern = new RegExp(escapeRegularExpression(query.search), "i");
@@ -426,12 +449,27 @@ function buildGroupedOptionsPipeline(fieldPath: string, labelPath: string): Pipe
   ];
 }
 
+function buildScopedOptionsPipeline(
+  baseFilter: FilterQuery<Open5eItemRecord>,
+  fieldPath: string,
+  labelPath: string
+): PipelineStage[] {
+  return [
+    {
+      $match: baseFilter
+    },
+    ...buildGroupedOptionsPipeline(fieldPath, labelPath)
+  ];
+}
+
 function buildWeaponPropertyOptionsPipeline(
-  match: FilterQuery<Open5eItemRecord>
+  match: FilterQuery<Open5eItemRecord>,
+  baseFilter: FilterQuery<Open5eItemRecord>
 ): PipelineStage[] {
   return [
     {
       $match: combineAndFilters([
+        baseFilter,
         buildTabFilter("weapons") ?? {},
         {
           weapon: {
@@ -606,7 +644,10 @@ export async function getItemsByKeys(keys: string[]): Promise<ItemBatchLookupRec
   };
 }
 
-export async function listItemFilterOptions(): Promise<ItemFilterOptions> {
+export async function listItemFilterOptions(
+  query: Pick<ItemListQuery, "specialFilter"> = {}
+): Promise<ItemFilterOptions> {
+  const baseFilter = buildSpecialFilter(query.specialFilter) ?? {};
   const [
     categories,
     rarities,
@@ -627,9 +668,12 @@ export async function listItemFilterOptions(): Promise<ItemFilterOptions> {
   ] =
     await Promise.all([
       ItemModel.aggregate<{ value: string; label: string; count: number }>(
-        buildGroupedOptionsPipeline("category.key", "category.name")
+        buildScopedOptionsPipeline(baseFilter, "category.key", "category.name")
       ).exec(),
       ItemModel.aggregate<{ value: string | null; label: string | null; count: number }>([
+        {
+          $match: baseFilter
+        },
         {
           $group: {
             _id: {
@@ -657,62 +701,81 @@ export async function listItemFilterOptions(): Promise<ItemFilterOptions> {
         }
       ]).exec(),
       ItemModel.aggregate<{ value: string; label: string; count: number }>(
-        buildGroupedOptionsPipeline("document.key", "document.display_name")
+        buildScopedOptionsPipeline(baseFilter, "document.key", "document.display_name")
       ).exec(),
-      ItemModel.countDocuments({}).exec(),
-      ItemModel.countDocuments(buildTabFilter("weapons") ?? {}).exec(),
-      ItemModel.countDocuments(buildTabFilter("armor") ?? {}).exec(),
-      ItemModel.countDocuments(buildTabFilter("gear") ?? {}).exec(),
+      ItemModel.countDocuments(baseFilter).exec(),
+      ItemModel.countDocuments(
+        combineAndFilters([baseFilter, buildTabFilter("weapons") ?? {}])
+      ).exec(),
+      ItemModel.countDocuments(
+        combineAndFilters([baseFilter, buildTabFilter("armor") ?? {}])
+      ).exec(),
+      ItemModel.countDocuments(
+        combineAndFilters([baseFilter, buildTabFilter("gear") ?? {}])
+      ).exec(),
       ItemModel.countDocuments(
         combineAndFilters([
+          baseFilter,
           buildTabFilter("weapons") ?? {},
           buildWeaponAttackTypeFilter("melee")
         ])
       ).exec(),
       ItemModel.countDocuments(
         combineAndFilters([
+          baseFilter,
           buildTabFilter("weapons") ?? {},
           buildWeaponAttackTypeFilter("range")
         ])
       ).exec(),
       ItemModel.countDocuments(
         combineAndFilters([
+          baseFilter,
           buildTabFilter("weapons") ?? {},
           buildWeaponProficiencyFilter("simple")
         ])
       ).exec(),
       ItemModel.countDocuments(
         combineAndFilters([
+          baseFilter,
           buildTabFilter("weapons") ?? {},
           buildWeaponProficiencyFilter("martial")
         ])
       ).exec(),
       ItemModel.aggregate<{ value: string | null; label: string | null; count: number }>(
-        buildWeaponPropertyOptionsPipeline({
-          "weapon.properties.property.type": createCaseInsensitiveExactMatch("Mastery")
-        })
+        buildWeaponPropertyOptionsPipeline(
+          {
+            "weapon.properties.property.type": createCaseInsensitiveExactMatch("Mastery")
+          },
+          baseFilter
+        )
       ).exec(),
       ItemModel.aggregate<{ value: string | null; label: string | null; count: number }>(
-        buildWeaponPropertyOptionsPipeline({
-          "weapon.properties.property.type": {
-            $not: createCaseInsensitiveExactMatch("Mastery")
-          }
-        })
+        buildWeaponPropertyOptionsPipeline(
+          {
+            "weapon.properties.property.type": {
+              $not: createCaseInsensitiveExactMatch("Mastery")
+            }
+          },
+          baseFilter
+        )
       ).exec(),
       ItemModel.countDocuments(
         combineAndFilters([
+          baseFilter,
           buildTabFilter("armor") ?? {},
           buildArmorTypeFilter("light")
         ])
       ).exec(),
       ItemModel.countDocuments(
         combineAndFilters([
+          baseFilter,
           buildTabFilter("armor") ?? {},
           buildArmorTypeFilter("medium")
         ])
       ).exec(),
       ItemModel.countDocuments(
         combineAndFilters([
+          baseFilter,
           buildTabFilter("armor") ?? {},
           buildArmorTypeFilter("heavy")
         ])

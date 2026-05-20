@@ -177,6 +177,7 @@ export type FeatureActionFormKind =
   | "starry-form"
   | "sneak-attack"
   | "spellfire-burst"
+  | "tinkers-magic"
   | "wild-companion"
   | "wild-resurgence"
   | "wild-shape"

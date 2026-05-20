@@ -10,6 +10,7 @@ import type {
   ItemOrdering,
   ItemProficiencyType,
   ItemRecord,
+  ItemSpecialFilter,
   PaginatedApiResponse
 } from "../types";
 import { apiGet, apiPost, type ApiRequestOptions } from "./client";
@@ -28,6 +29,7 @@ export type FetchItemListParams = {
   rarity?: string;
   source?: string;
   ordering?: ItemOrdering;
+  specialFilter?: ItemSpecialFilter;
 };
 
 export async function fetchItemList(
@@ -44,7 +46,8 @@ export async function fetchItemList(
     armorType,
     rarity,
     source,
-    ordering = "name"
+    ordering = "name",
+    specialFilter
   }: FetchItemListParams = {},
   options?: ApiRequestOptions
 ) {
@@ -90,6 +93,10 @@ export async function fetchItemList(
     searchParams.set("source", source);
   }
 
+  if (specialFilter) {
+    searchParams.set("specialFilter", specialFilter);
+  }
+
   return apiGet<PaginatedApiResponse<ItemListItem>>(
     `items?${searchParams.toString()}`,
     options
@@ -108,6 +115,17 @@ export async function fetchItemPackContents(key: string, options?: ApiRequestOpt
   return apiGet<ItemPackContentsRecord>(`items/${key}/pack-contents`, options);
 }
 
-export async function fetchItemFilterOptions(options?: ApiRequestOptions) {
-  return apiGet<ItemFilterOptions>("items/meta", options);
+export async function fetchItemFilterOptions(
+  params: { specialFilter?: ItemSpecialFilter } = {},
+  options?: ApiRequestOptions
+) {
+  const searchParams = new URLSearchParams();
+
+  if (params.specialFilter) {
+    searchParams.set("specialFilter", params.specialFilter);
+  }
+
+  const queryString = searchParams.toString();
+
+  return apiGet<ItemFilterOptions>(`items/meta${queryString ? `?${queryString}` : ""}`, options);
 }

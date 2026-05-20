@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { AppError } from "../errors/AppError.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
-import type { ItemListQueryLocals } from "../types/item.js";
+import type { ItemListQueryLocals, ItemSpecialFilter } from "../types/item.js";
 import { createPaginationEnvelope } from "../utils/pagination.js";
 import {
   getItemByKey,
@@ -10,6 +10,38 @@ import {
   listItems
 } from "../services/itemService.js";
 import { getItemPackContentsByKey } from "../services/itemPackService.js";
+import { ALLOWED_ITEM_SPECIAL_FILTERS } from "../services/itemSpecialFilters.js";
+
+function readSingleQueryValue(value: unknown, name: string): string | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (Array.isArray(value) || (typeof value === "object" && value !== null)) {
+    throw new AppError(`Query parameter "${name}" must be a single string value.`, 400, "INVALID_QUERY", {
+      parameter: name
+    });
+  }
+
+  return String(value);
+}
+
+function parseItemSpecialFilter(request: Request): ItemSpecialFilter | undefined {
+  const value = readSingleQueryValue(request.query.specialFilter, "specialFilter")?.trim();
+
+  if (!value) {
+    return undefined;
+  }
+
+  if (!ALLOWED_ITEM_SPECIAL_FILTERS.has(value as ItemSpecialFilter)) {
+    throw new AppError("Unsupported specialFilter value.", 400, "INVALID_QUERY", {
+      parameter: "specialFilter",
+      allowedValues: [...ALLOWED_ITEM_SPECIAL_FILTERS]
+    });
+  }
+
+  return value as ItemSpecialFilter;
+}
 
 export const getItems = asyncHandler(
   async (request: Request, response: Response<unknown, ItemListQueryLocals>) => {
@@ -62,8 +94,12 @@ export const getItemBatch = asyncHandler(async (request: Request, response: Resp
   });
 });
 
-export const getItemFilters = asyncHandler(async (_request: Request, response: Response) => {
-  response.json(await listItemFilterOptions());
+export const getItemFilters = asyncHandler(async (request: Request, response: Response) => {
+  response.json(
+    await listItemFilterOptions({
+      specialFilter: parseItemSpecialFilter(request)
+    })
+  );
 });
 
 export const getItemPackContents = asyncHandler(async (request: Request, response: Response) => {

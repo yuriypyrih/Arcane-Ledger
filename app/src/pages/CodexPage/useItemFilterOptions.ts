@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
 import { fetchItemFilterOptions, isApiOfflineError } from "../../api";
 import { useOnlineStatus } from "../../lib/useOnlineStatus";
-import type { CodexStatus, ItemFilterOptions } from "../../types";
+import type { CodexStatus, ItemFilterOptions, ItemSpecialFilter } from "../../types";
 
-export function useItemFilterOptions(enabled: boolean) {
+export function useItemFilterOptions(
+  enabled: boolean,
+  options: { specialFilter?: ItemSpecialFilter } = {}
+) {
+  const { specialFilter } = options;
   const isOnline = useOnlineStatus();
   const [payload, setPayload] = useState<ItemFilterOptions | null>(null);
   const [status, setStatus] = useState<CodexStatus>(enabled ? "loading" : "ready");
@@ -27,7 +31,10 @@ export function useItemFilterOptions(enabled: boolean) {
 
     async function loadItemFilterOptions() {
       try {
-        const nextPayload = await fetchItemFilterOptions({ signal: abortController.signal });
+        const nextPayload = await fetchItemFilterOptions(
+          { specialFilter },
+          { signal: abortController.signal }
+        );
 
         if (!active) {
           return;
@@ -50,7 +57,7 @@ export function useItemFilterOptions(enabled: boolean) {
       active = false;
       abortController.abort();
     };
-  }, [enabled, isOnline]);
+  }, [enabled, isOnline, specialFilter]);
 
   return {
     payload,

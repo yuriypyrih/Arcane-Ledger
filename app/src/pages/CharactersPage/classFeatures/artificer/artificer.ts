@@ -12,7 +12,6 @@ export {
   consumeArtificerTinkersMagicUse,
   getArtificerFeatureActionOptions,
   getArtificerFeatureActions,
-  getArtificerTinkersMagicItemOptionByKey,
   getArtificerTinkersMagicUsesRemaining,
   getArtificerTinkersMagicUsesTotal,
   restoreArtificerTinkersMagicOnLongRest

@@ -9,6 +9,7 @@ import type {
   ItemOrdering,
   ItemProficiencyType
 } from "../types/item.js";
+import { ALLOWED_ITEM_SPECIAL_FILTERS } from "../services/itemSpecialFilters.js";
 
 const ALLOWED_ORDERINGS = new Set<ItemOrdering>([
   "name",
@@ -127,7 +128,12 @@ function buildItemListQuery(request: Request): ItemListQuery {
       ALLOWED_ARMOR_TYPES
     ),
     rarity: normalizeOptionalString(readSingleQueryValue(request.query.rarity, "rarity")),
-    source: normalizeOptionalString(readSingleQueryValue(request.query.source, "source"))
+    source: normalizeOptionalString(readSingleQueryValue(request.query.source, "source")),
+    specialFilter: parseEnumValue(
+      readSingleQueryValue(request.query.specialFilter, "specialFilter"),
+      "specialFilter",
+      ALLOWED_ITEM_SPECIAL_FILTERS
+    )
   };
 }
 

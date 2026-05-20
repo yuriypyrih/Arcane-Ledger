@@ -8,8 +8,12 @@ import KeywordReferenceDrawer from "../../../../../KeywordReferenceDrawer/Keywor
 import ActionShape, { getActionShapeForCastingTime } from "../../../../../ActionShape";
 import RollStatePill from "../../../../../RollStatePill/RollStatePill";
 import FeatureOptInToggle from "../../../FeatureOptInToggle/FeatureOptInToggle";
-import type { Character, CharacterWizardPortentRoll, MonsterRecord } from "../../../../../../types";
-import { fetchItemByKey } from "../../../../../../api/items";
+import type {
+  Character,
+  CharacterWizardPortentRoll,
+  ItemRecord,
+  MonsterRecord
+} from "../../../../../../types";
 import { abilityKeys } from "../../../../../../pages/CharactersPage/constants";
 import { getKeywordReferences } from "../../../../../../pages/CharactersPage/keywordDescriptions";
 import {
@@ -95,8 +99,7 @@ import {
 import {
   addArtificerTinkersMagicItemToInventory,
   artificerTinkersMagicActionKey,
-  consumeArtificerTinkersMagicUse,
-  getArtificerTinkersMagicItemOptionByKey
+  consumeArtificerTinkersMagicUse
 } from "../../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
 import { bardicInspirationActionKey } from "../../../../../../pages/CharactersPage/classFeatures/bard/bard";
 import {
@@ -690,7 +693,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     handleFeatureOptionExecute(selectedFeatureAction, selectedOption);
   }
 
-  async function submitArtificerTinkersMagic() {
+  async function submitArtificerTinkersMagic(item: ItemRecord) {
     if (
       !selectedFeatureAction ||
       !selectedAction ||
@@ -700,17 +703,13 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
       return;
     }
 
-    const selectedOptionKey = selectedActionOptionKeys[0] ?? "";
-    const itemOption = getArtificerTinkersMagicItemOptionByKey(selectedOptionKey);
-
-    if (!itemOption) {
+    if (!item.key) {
       throw new Error("Choose an item for Tinker's Magic.");
     }
 
     setIsTinkersMagicSubmitting(true);
 
     try {
-      const item = await fetchItemByKey(itemOption.itemKey);
       let didApply = false;
 
       onPersistCharacter((currentCharacter) => {

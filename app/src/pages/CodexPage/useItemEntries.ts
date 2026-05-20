@@ -9,6 +9,7 @@ import type {
   ItemListItem,
   ItemOrdering,
   ItemProficiencyType,
+  ItemSpecialFilter,
   PaginatedApiResponse
 } from "../../types";
 
@@ -27,6 +28,7 @@ type UseItemEntriesOptions = {
   rarity: string | null;
   source: string | null;
   ordering: ItemOrdering;
+  specialFilter?: ItemSpecialFilter;
 };
 
 export function useItemEntries({
@@ -43,7 +45,8 @@ export function useItemEntries({
   armorType,
   rarity,
   source,
-  ordering
+  ordering,
+  specialFilter
 }: UseItemEntriesOptions) {
   const isOnline = useOnlineStatus();
   const [payload, setPayload] = useState<PaginatedApiResponse<ItemListItem> | null>(null);
@@ -82,7 +85,8 @@ export function useItemEntries({
             armorType: armorType ?? undefined,
             rarity: rarity ?? undefined,
             source: source ?? undefined,
-            ordering
+            ordering,
+            specialFilter
           },
           { signal: abortController.signal }
         );
@@ -122,6 +126,7 @@ export function useItemEntries({
     proficiencyType,
     rarity,
     search,
+    specialFilter,
     source,
     tab
   ]);

@@ -53,6 +53,7 @@ export type ItemBrowserTab = "all" | "weapons" | "armor" | "gear";
 export type ItemAttackType = "melee" | "range";
 export type ItemProficiencyType = "simple" | "martial";
 export type ItemArmorType = "light" | "medium" | "heavy";
+export type ItemSpecialFilter = "TinkersMagic";
 
 export const ITEM_NO_RARITY_FILTER_VALUE = "__none__";
 
@@ -140,6 +141,7 @@ export type ItemListQuery = {
   armorType?: ItemArmorType;
   rarity?: string;
   source?: string;
+  specialFilter?: ItemSpecialFilter;
 };
 
 export type ItemListQueryLocals = {
