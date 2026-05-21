@@ -60,6 +60,10 @@ export type FeatureActionCardUsage =
       mode: "free";
     }
   | {
+      mode: "text";
+      label: string;
+    }
+  | {
       mode: "named-resource";
       cost: FeatureActionCardUsageCost;
     }
@@ -178,6 +182,7 @@ export type FeatureActionFormKind =
   | "sneak-attack"
   | "spellfire-burst"
   | "tinkers-magic"
+  | "replicate-magic-item"
   | "wild-companion"
   | "wild-resurgence"
   | "wild-shape"

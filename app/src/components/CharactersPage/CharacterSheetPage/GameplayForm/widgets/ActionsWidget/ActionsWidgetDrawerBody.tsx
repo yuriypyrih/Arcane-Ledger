@@ -90,6 +90,7 @@ import {
   type FeatureActionHeaderTag,
   type FeatureActionOptionCard
 } from "../../../../../../pages/CharactersPage/classFeatures";
+import { getArtificerReplicateMagicItemPlanKeysForCharacter } from "../../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
 import { bardicInspirationActionKey } from "../../../../../../pages/CharactersPage/classFeatures/bard/bard";
 import {
   createChargesCardUsage,
@@ -400,6 +401,7 @@ import MetamagicOptionsActionBody from "./forms/MetamagicOptionsActionBody";
 import MysticArcanumActionBody from "./forms/MysticArcanumActionBody";
 import NatureMagicianActionBody from "./forms/NatureMagicianActionBody";
 import RageActionBody from "./forms/RageActionBody";
+import ReplicateMagicItemActionBody from "./forms/ReplicateMagicItemActionBody";
 import TinkersMagicActionBody from "./forms/TinkersMagicActionBody";
 import WildCompanionActionBody from "./forms/WildCompanionActionBody";
 import WildResurgenceActionBody from "./forms/WildResurgenceActionBody";
@@ -456,6 +458,7 @@ export function renderActionDrawerBody(context: Record<string, any>) {
     isDiceRollerSettingsOpen,
     isDreadfulStrikeSelected,
     isEmpoweredStrikesSelected,
+    isReplicateMagicItemSubmitting,
     isTinkersMagicSubmitting,
     isFlurryOfHealingAndHarmSelected,
     isGroupRecoverySelected,
@@ -673,6 +676,7 @@ export function renderActionDrawerBody(context: Record<string, any>) {
     submitSorcererWildMagicSurge,
     submitStarryForm,
     submitThirdEye,
+    submitArtificerReplicateMagicItem,
     submitArtificerTinkersMagic,
     submitWarriorOfTheGods,
     submitWildCompanion,
@@ -878,6 +882,20 @@ export function renderActionDrawerBody(context: Record<string, any>) {
           actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
           actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
           onUseItem={submitArtificerTinkersMagic}
+        />
+      );
+    }
+
+    if (selectedAction.drawer.formKind === "replicate-magic-item") {
+      return (
+        <ReplicateMagicItemActionBody
+          knownPlanKeys={getArtificerReplicateMagicItemPlanKeysForCharacter(character)}
+          isSubmitting={isReplicateMagicItemSubmitting}
+          disabledReason={selectedFeatureActionPrimaryDisabledReason}
+          actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
+          actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+          actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+          onUseItem={submitArtificerReplicateMagicItem}
         />
       );
     }

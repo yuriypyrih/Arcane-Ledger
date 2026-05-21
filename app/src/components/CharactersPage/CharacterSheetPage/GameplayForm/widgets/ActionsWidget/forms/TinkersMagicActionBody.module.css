@@ -9,6 +9,10 @@
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(240px, 2fr);
 }
 
+.replicateFilterRow {
+  grid-template-columns: minmax(180px, 1.2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(240px, 2fr);
+}
+
 .field {
   display: grid;
   gap: 0.35rem;

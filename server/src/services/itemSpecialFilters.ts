@@ -1,6 +1,13 @@
 import type { ItemSpecialFilter } from "../types/item.js";
+import {
+  ARTIFICER_REPLICATE_MAGIC_ITEM_SPECIAL_FILTER,
+  getArtificerReplicateMagicItemKeysForSelectedPlans
+} from "./artificerReplicateMagicItemPlans.js";
 
-export const ALLOWED_ITEM_SPECIAL_FILTERS = new Set<ItemSpecialFilter>(["TinkersMagic"]);
+export const ALLOWED_ITEM_SPECIAL_FILTERS = new Set<ItemSpecialFilter>([
+  "TinkersMagic",
+  ARTIFICER_REPLICATE_MAGIC_ITEM_SPECIAL_FILTER
+]);
 
 const tinkersMagicItemKeys = [
   "srd-2024_ball-bearings",
@@ -37,10 +44,16 @@ const tinkersMagicItemKeys = [
 ] as const;
 
 export function getItemSpecialFilterKeys(
-  specialFilter: ItemSpecialFilter | undefined
+  specialFilter: ItemSpecialFilter | undefined,
+  artificerPlan?: string,
+  artificerPlans?: readonly string[]
 ): readonly string[] {
   if (specialFilter === "TinkersMagic") {
     return tinkersMagicItemKeys;
+  }
+
+  if (specialFilter === ARTIFICER_REPLICATE_MAGIC_ITEM_SPECIAL_FILTER) {
+    return getArtificerReplicateMagicItemKeysForSelectedPlans(artificerPlans, artificerPlan);
   }
 
   return [];

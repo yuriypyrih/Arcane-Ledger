@@ -15,15 +15,9 @@ import type {
   ItemRecord
 } from "../../types";
 import { parseItemCost } from "../../utils/items/cost";
-import {
-  adaptItemWeapon,
-  type AdaptedItemWeaponRecord
-} from "../../utils/items/adaptItemWeapon";
+import { adaptItemWeapon, type AdaptedItemWeaponRecord } from "../../utils/items/adaptItemWeapon";
 import type { HeldWeaponDescriptor } from "./inventory";
-import {
-  getEffectiveInventoryItemRecord,
-  normalizeCharacterItemMods
-} from "./itemMods";
+import { getEffectiveInventoryItemRecord, normalizeCharacterItemMods } from "./itemMods";
 
 export type InventoryItemCopyReference = {
   id: string;
@@ -142,16 +136,19 @@ const moddedItemKeyMarker = "-modded-";
 
 export const INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE = "pact-of-the-blade";
 export const INVENTORY_FEATURE_TAG_CONJURED = "conjured";
+export const INVENTORY_FEATURE_TAG_REPLICATE_MAGIC_ITEM = "replicate-magic-item";
 export const INVENTORY_CONJURED_DURATION_LONG_REST = "long-rest";
 
 const inventoryFeatureTagLabels: Record<CharacterInventoryFeatureTag, string> = {
   [INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE]: "Pact of the Blade",
-  [INVENTORY_FEATURE_TAG_CONJURED]: "Conjured"
+  [INVENTORY_FEATURE_TAG_CONJURED]: "Conjured",
+  [INVENTORY_FEATURE_TAG_REPLICATE_MAGIC_ITEM]: "Replicate Magic Item"
 };
 
 const inventoryFeatureTagOrder: CharacterInventoryFeatureTag[] = [
   INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE,
-  INVENTORY_FEATURE_TAG_CONJURED
+  INVENTORY_FEATURE_TAG_CONJURED,
+  INVENTORY_FEATURE_TAG_REPLICATE_MAGIC_ITEM
 ];
 
 function getCopperValue(cost: EquipmentCost): number {
@@ -288,7 +285,8 @@ function normalizeInventoryFeatureTags(value: unknown): CharacterInventoryFeatur
   value.forEach((entry) => {
     if (
       entry === INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE ||
-      entry === INVENTORY_FEATURE_TAG_CONJURED
+      entry === INVENTORY_FEATURE_TAG_CONJURED ||
+      entry === INVENTORY_FEATURE_TAG_REPLICATE_MAGIC_ITEM
     ) {
       tagSet.add(entry);
     }
@@ -384,9 +382,7 @@ function normalizeContainerContentItem(
   return normalizedEntry;
 }
 
-function normalizeCharacterContainerContentItems(
-  value: unknown
-): CharacterContainerContentItem[] {
+function normalizeCharacterContainerContentItems(value: unknown): CharacterContainerContentItem[] {
   if (!Array.isArray(value)) {
     return [];
   }
@@ -414,8 +410,7 @@ function normalizeCharacterContainerContentItems(
 
     const contentItem = normalizeContainerContentItem({
       item,
-      quantity:
-        record.quantity !== undefined ? normalizeStackNumber(record.quantity, 1, 1) : 1,
+      quantity: record.quantity !== undefined ? normalizeStackNumber(record.quantity, 1, 1) : 1,
       attuned: normalizeBoolean(record.attuned),
       usesRemaining:
         record.usesRemaining !== undefined
@@ -583,7 +578,11 @@ export function createPreferredInventoryItemCopyReferences(
     copyIndexes.push(index);
   }
 
-  for (let index = onHandQuantity; index < quantity && copyIndexes.length < requestedCount; index += 1) {
+  for (
+    let index = onHandQuantity;
+    index < quantity && copyIndexes.length < requestedCount;
+    index += 1
+  ) {
     copyIndexes.push(index);
   }
 
@@ -720,11 +719,7 @@ export function normalizeCharacterInventoryItems(value: unknown): CharacterInven
       const stack = createCharacterInventoryItem(item, {
         id: copyIndex === 0 && typeof record.id === "string" ? record.id : undefined,
         quantity: isUniqueStack ? 1 : quantity,
-        onHandQuantity: isUniqueStack
-          ? copyIndex < onHandQuantity
-            ? 1
-            : 0
-          : onHandQuantity,
+        onHandQuantity: isUniqueStack ? (copyIndex < onHandQuantity ? 1 : 0) : onHandQuantity,
         worn: !isUniqueStack || copyIndex === 0 ? normalizeBoolean(record.worn) : false,
         attuned: !isUniqueStack || copyIndex === 0 ? normalizeBoolean(record.attuned) : false,
         usesRemaining:
@@ -1073,6 +1068,12 @@ export function isConjuredInventoryItem(
   entry: Pick<CharacterInventoryItem, "featureTags"> | null | undefined
 ): boolean {
   return hasInventoryItemFeatureTag(entry, INVENTORY_FEATURE_TAG_CONJURED);
+}
+
+export function isReplicateMagicItemInventoryItem(
+  entry: Pick<CharacterInventoryItem, "featureTags"> | null | undefined
+): boolean {
+  return hasInventoryItemFeatureTag(entry, INVENTORY_FEATURE_TAG_REPLICATE_MAGIC_ITEM);
 }
 
 export function getInventoryItemConjuredDuration(
@@ -1519,9 +1520,9 @@ export function isExtractableEquipmentPackRecord(item: ItemRecord): boolean {
 export function isItemHandEquippableRecord(item: ItemRecord): boolean {
   return Boolean(
     item.weapon ||
-      isItemShieldRecord(item) ||
-      isItemStaffRecord(item) ||
-      isItemSpellcastingFocusRecord(item)
+    isItemShieldRecord(item) ||
+    isItemStaffRecord(item) ||
+    isItemSpellcastingFocusRecord(item)
   );
 }
 
@@ -1981,7 +1982,9 @@ export function setInventoryItemAttunedByKey(
     getItemRecordKey(entry.item) === itemKey
       ? normalizeInventoryStack({
           ...entry,
-          attuned: isInventoryItemAttunable(getEffectiveInventoryItemRecord(entry)) ? attuned : false
+          attuned: isInventoryItemAttunable(getEffectiveInventoryItemRecord(entry))
+            ? attuned
+            : false
         })
       : entry
   );
@@ -1998,7 +2001,9 @@ export function setInventoryItemAttunedById(
     entry.id === resolvedStackId
       ? normalizeInventoryStack({
           ...entry,
-          attuned: isInventoryItemAttunable(getEffectiveInventoryItemRecord(entry)) ? attuned : false
+          attuned: isInventoryItemAttunable(getEffectiveInventoryItemRecord(entry))
+            ? attuned
+            : false
         })
       : entry
   );
@@ -2327,7 +2332,9 @@ export function moveOneInventoryItemCopyIntoContainerById(
   const resolvedSourceStackId = getInventoryItemStackIdFromCopyId(sourceStackId);
   const containerStack = findInventoryItemStackById(inventoryItems, resolvedContainerStackId);
   const sourceStack = findInventoryItemStackById(inventoryItems, resolvedSourceStackId);
-  const contentItem = sourceStack ? createContainerContentItemFromInventoryStack(sourceStack) : null;
+  const contentItem = sourceStack
+    ? createContainerContentItemFromInventoryStack(sourceStack)
+    : null;
 
   if (
     !containerStack ||
@@ -2375,7 +2382,9 @@ export function getInventoryItemCopyIntoContainerObjectDelta(
   const resolvedSourceStackId = getInventoryItemStackIdFromCopyId(sourceStackId);
   const containerStack = findInventoryItemStackById(inventoryItems, resolvedContainerStackId);
   const sourceStack = findInventoryItemStackById(inventoryItems, resolvedSourceStackId);
-  const contentItem = sourceStack ? createContainerContentItemFromInventoryStack(sourceStack) : null;
+  const contentItem = sourceStack
+    ? createContainerContentItemFromInventoryStack(sourceStack)
+    : null;
 
   if (
     !containerStack ||
@@ -2517,11 +2526,8 @@ export function canAddOneContainerContentItemCopyByIndex(
   contentIndex: number
 ): boolean {
   return (
-    getAddOneContainerContentItemCopyBlockReason(
-      inventoryItems,
-      containerStackId,
-      contentIndex
-    ) === null
+    getAddOneContainerContentItemCopyBlockReason(inventoryItems, containerStackId, contentIndex) ===
+    null
   );
 }
 

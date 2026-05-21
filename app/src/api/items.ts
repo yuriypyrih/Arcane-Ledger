@@ -30,7 +30,22 @@ export type FetchItemListParams = {
   source?: string;
   ordering?: ItemOrdering;
   specialFilter?: ItemSpecialFilter;
+  artificerPlan?: string;
+  artificerPlans?: string[];
 };
+
+function appendArtificerPlanScope(searchParams: URLSearchParams, artificerPlans?: string[]) {
+  if (artificerPlans === undefined) {
+    return;
+  }
+
+  if (artificerPlans.length === 0) {
+    searchParams.set("artificerPlans", "");
+    return;
+  }
+
+  artificerPlans.forEach((planKey) => searchParams.append("artificerPlans", planKey));
+}
 
 export async function fetchItemList(
   {
@@ -47,7 +62,9 @@ export async function fetchItemList(
     rarity,
     source,
     ordering = "name",
-    specialFilter
+    specialFilter,
+    artificerPlan,
+    artificerPlans
   }: FetchItemListParams = {},
   options?: ApiRequestOptions
 ) {
@@ -97,10 +114,13 @@ export async function fetchItemList(
     searchParams.set("specialFilter", specialFilter);
   }
 
-  return apiGet<PaginatedApiResponse<ItemListItem>>(
-    `items?${searchParams.toString()}`,
-    options
-  );
+  if (artificerPlan) {
+    searchParams.set("artificerPlan", artificerPlan);
+  }
+
+  appendArtificerPlanScope(searchParams, artificerPlans);
+
+  return apiGet<PaginatedApiResponse<ItemListItem>>(`items?${searchParams.toString()}`, options);
 }
 
 export async function fetchItemByKey(key: string, options?: ApiRequestOptions) {
@@ -116,7 +136,11 @@ export async function fetchItemPackContents(key: string, options?: ApiRequestOpt
 }
 
 export async function fetchItemFilterOptions(
-  params: { specialFilter?: ItemSpecialFilter } = {},
+  params: {
+    specialFilter?: ItemSpecialFilter;
+    artificerPlan?: string;
+    artificerPlans?: string[];
+  } = {},
   options?: ApiRequestOptions
 ) {
   const searchParams = new URLSearchParams();
@@ -124,6 +148,12 @@ export async function fetchItemFilterOptions(
   if (params.specialFilter) {
     searchParams.set("specialFilter", params.specialFilter);
   }
+
+  if (params.artificerPlan) {
+    searchParams.set("artificerPlan", params.artificerPlan);
+  }
+
+  appendArtificerPlanScope(searchParams, params.artificerPlans);
 
   const queryString = searchParams.toString();
 

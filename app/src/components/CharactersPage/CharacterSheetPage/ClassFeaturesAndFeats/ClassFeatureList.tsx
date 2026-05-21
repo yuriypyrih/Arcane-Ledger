@@ -56,6 +56,7 @@ import { CharacterSheetSectionProfiler } from "../../../../pages/CharactersPage/
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./ClassFeaturesAndFeats.module.css";
 import BattleMasterManeuverSelection from "./BattleMasterManeuverSelection";
+import ArtificerReplicateMagicItemPlanSelection from "./ArtificerReplicateMagicItemPlanSelection";
 import FeatureChoiceOptions from "./ClassFeatureChoiceOptions";
 import DruidWildShapeMonsterModal from "./DruidWildShapeMonsterModal";
 import EldritchInvocationList from "./EldritchInvocationList";
@@ -71,6 +72,7 @@ import {
   wizardScholarSkillOptions
 } from "./helpers";
 import {
+  createArtificerFeatureChoiceModel,
   createBardFeatureChoiceModel,
   createClericFeatureChoiceModel,
   createDruidFeatureChoiceModel,
@@ -262,6 +264,10 @@ function ClassFeatureList({
     [character]
   );
   const expandedFeatureKeySet = useMemo(() => new Set(expandedFeatureKeys), [expandedFeatureKeys]);
+  const artificerChoices = useMemo(
+    () => createArtificerFeatureChoiceModel({ character, onPersistCharacter }),
+    [character, onPersistCharacter]
+  );
   const bardChoices = useMemo(
     () => createBardFeatureChoiceModel({ character, onPersistCharacter }),
     [character, onPersistCharacter]
@@ -302,6 +308,13 @@ function ClassFeatureList({
     () => createWizardFeatureChoiceModel({ character, onPersistCharacter }),
     [character, onPersistCharacter]
   );
+  const {
+    getArtificerReplicateMagicItemAvailablePlanGroups,
+    getArtificerReplicateMagicItemPlanSelections,
+    getArtificerReplicateMagicItemPlansKnown,
+    isArtificerReplicateMagicItemPlanSelectionInputRequired,
+    updateArtificerReplicateMagicItemPlanSelection
+  } = artificerChoices;
   const {
     getAvailableBardExpertiseSkills,
     getAvailableBardLoreBonusProficiencySkills,
@@ -595,6 +608,11 @@ function ClassFeatureList({
             featureRow.feature === CLASS_FEATURE.IRON_MIND &&
             character.className === "Ranger" &&
             isRangerGloomStalkerIronMindInputRequired();
+          const isArtificerReplicateMagicItemPlanSelectionRequired =
+            isUnlocked &&
+            featureRow.feature === CLASS_FEATURE.REPLICATE_MAGIC_ITEM &&
+            character.className === "Artificer" &&
+            isArtificerReplicateMagicItemPlanSelectionInputRequired();
           const isInputRequired =
             (isUnlocked && isFeatChoiceFeature(featureRow.feature) && linkedFeat === null) ||
             isSpellcastingFeatureInputRequired ||
@@ -606,6 +624,7 @@ function ClassFeatureList({
             isKnowledgeDomainBlessingsRequired ||
             isKnowledgeDomainUnfetteredMindRequired ||
             isRangerGloomStalkerIronMindRequired ||
+            isArtificerReplicateMagicItemPlanSelectionRequired ||
             (isUnlocked &&
               featureRow.feature === CLASS_FEATURE.KNIGHTLY_ENVOY &&
               character.className === "Fighter" &&
@@ -744,6 +763,7 @@ function ClassFeatureList({
               showDivider={index > 0}
               renderBody={() =>
                 renderClassFeatureContent({
+                  ArtificerReplicateMagicItemPlanSelection,
                   BattleMasterManeuverSelection,
                   CLASS_FEATURE,
                   EldritchInvocationList,
@@ -768,6 +788,9 @@ function ClassFeatureList({
                   featureRow,
                   fighterBanneretKnightlyEnvoySkillOptions,
                   formatCodexLabel,
+                  getArtificerReplicateMagicItemAvailablePlanGroups,
+                  getArtificerReplicateMagicItemPlanSelections,
+                  getArtificerReplicateMagicItemPlansKnown,
                   getAvailableBardExpertiseSkills,
                   getAvailableBardLoreBonusProficiencySkills,
                   getAvailableBardMagicalDiscoveriesSpells,
@@ -870,6 +893,7 @@ function ClassFeatureList({
                   styles,
                   updateBarbarianPrimalKnowledgeSelection,
                   updateBarbarianWildHeartAspectChoice,
+                  updateArtificerReplicateMagicItemPlanSelection,
                   updateBardExpertiseSelection,
                   updateBardLoreBonusProficiencySelection,
                   updateBardMagicalDiscoveriesSpellSelection,

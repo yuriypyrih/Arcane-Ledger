@@ -48,7 +48,7 @@ export type ItemBrowserTab = "all" | "weapons" | "armor" | "gear";
 export type ItemAttackType = "melee" | "range";
 export type ItemProficiencyType = "simple" | "martial";
 export type ItemArmorType = "light" | "medium" | "heavy";
-export type ItemSpecialFilter = "TinkersMagic";
+export type ItemSpecialFilter = "TinkersMagic" | "ArtificerReplicateMagicItem";
 
 export const ITEM_NO_RARITY_FILTER_VALUE = "__none__";
 export const DEFAULT_ITEM_BROWSER_TAB: ItemBrowserTab = "all";
@@ -98,6 +98,12 @@ export type ItemFilterGroup = {
   categories: ItemFilterOption[];
 };
 
+export type ItemArtificerPlanFilterGroup = {
+  level: 2 | 6 | 10 | 14;
+  label: string;
+  options: ItemFilterOption[];
+};
+
 export type WeaponItemFilterGroup = ItemFilterGroup & {
   attackTypes: ItemFilterOption[];
   proficiencyTypes: ItemFilterOption[];
@@ -118,6 +124,9 @@ export type ItemFilterOptions = {
   };
   rarities: ItemFilterOption[];
   sources: ItemFilterOption[];
+  artificerPlans?: {
+    groups: ItemArtificerPlanFilterGroup[];
+  };
 };
 
 export type ItemPackContent = {

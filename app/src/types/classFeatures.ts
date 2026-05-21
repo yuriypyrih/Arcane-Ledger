@@ -284,6 +284,7 @@ export type ClericBlessedStrikesChoice = "blessed-strike" | "potent-spellcasting
 
 export type CharacterArtificerFeatureState = {
   tinkersMagicUsesExpended?: number;
+  replicateMagicItemPlanKeys?: string[];
 };
 
 export type CharacterClericFeatureState = {

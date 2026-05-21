@@ -29,6 +29,8 @@ type UseItemEntriesOptions = {
   source: string | null;
   ordering: ItemOrdering;
   specialFilter?: ItemSpecialFilter;
+  artificerPlan?: string;
+  artificerPlans?: string[];
 };
 
 export function useItemEntries({
@@ -46,11 +48,14 @@ export function useItemEntries({
   rarity,
   source,
   ordering,
-  specialFilter
+  specialFilter,
+  artificerPlan,
+  artificerPlans
 }: UseItemEntriesOptions) {
   const isOnline = useOnlineStatus();
   const [payload, setPayload] = useState<PaginatedApiResponse<ItemListItem> | null>(null);
   const [status, setStatus] = useState<CodexStatus>(enabled ? "loading" : "ready");
+  const artificerPlansKey = artificerPlans?.join("|") ?? null;
 
   useEffect(() => {
     if (!enabled) {
@@ -86,7 +91,9 @@ export function useItemEntries({
             rarity: rarity ?? undefined,
             source: source ?? undefined,
             ordering,
-            specialFilter
+            specialFilter,
+            artificerPlan,
+            artificerPlans
           },
           { signal: abortController.signal }
         );
@@ -114,6 +121,8 @@ export function useItemEntries({
     };
   }, [
     armorType,
+    artificerPlan,
+    artificerPlansKey,
     attackType,
     category,
     enabled,

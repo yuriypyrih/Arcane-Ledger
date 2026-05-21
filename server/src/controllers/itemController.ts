@@ -11,6 +11,10 @@ import {
 } from "../services/itemService.js";
 import { getItemPackContentsByKey } from "../services/itemPackService.js";
 import { ALLOWED_ITEM_SPECIAL_FILTERS } from "../services/itemSpecialFilters.js";
+import {
+  isArtificerReplicateMagicItemPlanKey,
+  isArtificerReplicateMagicItemSpecificPlanKey
+} from "../services/artificerReplicateMagicItemPlans.js";
 
 function readSingleQueryValue(value: unknown, name: string): string | undefined {
   if (value === undefined) {
@@ -18,12 +22,43 @@ function readSingleQueryValue(value: unknown, name: string): string | undefined 
   }
 
   if (Array.isArray(value) || (typeof value === "object" && value !== null)) {
-    throw new AppError(`Query parameter "${name}" must be a single string value.`, 400, "INVALID_QUERY", {
-      parameter: name
-    });
+    throw new AppError(
+      `Query parameter "${name}" must be a single string value.`,
+      400,
+      "INVALID_QUERY",
+      {
+        parameter: name
+      }
+    );
   }
 
   return String(value);
+}
+
+function readStringListQueryValue(value: unknown, name: string): string[] | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  const rawValues = Array.isArray(value) ? value : [value];
+
+  return rawValues.flatMap((entry) => {
+    if (typeof entry === "object" && entry !== null) {
+      throw new AppError(
+        `Query parameter "${name}" must be a string value or repeated string values.`,
+        400,
+        "INVALID_QUERY",
+        {
+          parameter: name
+        }
+      );
+    }
+
+    return String(entry)
+      .split(",")
+      .map((part) => part.trim())
+      .filter(Boolean);
+  });
 }
 
 function parseItemSpecialFilter(request: Request): ItemSpecialFilter | undefined {
@@ -41,6 +76,43 @@ function parseItemSpecialFilter(request: Request): ItemSpecialFilter | undefined
   }
 
   return value as ItemSpecialFilter;
+}
+
+function parseArtificerPlan(request: Request): string | undefined {
+  const value = readSingleQueryValue(request.query.artificerPlan, "artificerPlan")?.trim();
+
+  if (!value) {
+    return undefined;
+  }
+
+  if (!isArtificerReplicateMagicItemPlanKey(value)) {
+    throw new AppError("Unsupported artificerPlan value.", 400, "INVALID_QUERY", {
+      parameter: "artificerPlan"
+    });
+  }
+
+  return value;
+}
+
+function parseArtificerPlans(request: Request): string[] | undefined {
+  const values = readStringListQueryValue(request.query.artificerPlans, "artificerPlans");
+
+  if (values === undefined) {
+    return undefined;
+  }
+
+  const uniqueValues = [...new Set(values)];
+  const invalidValue = uniqueValues.find(
+    (value) => !isArtificerReplicateMagicItemSpecificPlanKey(value)
+  );
+
+  if (invalidValue) {
+    throw new AppError("Unsupported artificerPlans value.", 400, "INVALID_QUERY", {
+      parameter: "artificerPlans"
+    });
+  }
+
+  return uniqueValues;
 }
 
 export const getItems = asyncHandler(
@@ -97,7 +169,9 @@ export const getItemBatch = asyncHandler(async (request: Request, response: Resp
 export const getItemFilters = asyncHandler(async (request: Request, response: Response) => {
   response.json(
     await listItemFilterOptions({
-      specialFilter: parseItemSpecialFilter(request)
+      specialFilter: parseItemSpecialFilter(request),
+      artificerPlan: parseArtificerPlan(request),
+      artificerPlans: parseArtificerPlans(request)
     })
   );
 });

@@ -90,7 +90,10 @@ import {
   type FeatureActionHeaderTag,
   type FeatureActionOptionCard
 } from "../../../../../../pages/CharactersPage/classFeatures";
-import { artificerTinkersMagicActionKey } from "../../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
+import {
+  artificerReplicateMagicItemActionKey,
+  artificerTinkersMagicActionKey
+} from "../../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
 import { bardicInspirationActionKey } from "../../../../../../pages/CharactersPage/classFeatures/bard/bard";
 import {
   createChargesCardUsage,
@@ -1740,7 +1743,9 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     handleFeatureOptionExecute,
     activateSelectedChannelDivinity,
     confirmSelectedFeatureOptions,
+    isReplicateMagicItemSubmitting,
     isTinkersMagicSubmitting,
+    submitArtificerReplicateMagicItem,
     submitArtificerTinkersMagic,
     submitLayOnHands,
     submitAasimarHealingHands,
@@ -2120,7 +2125,9 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     toggleFeatureOptionSelection,
     handleFeatureOptionExecute,
     confirmSelectedFeatureOptions,
+    isReplicateMagicItemSubmitting,
     isTinkersMagicSubmitting,
+    submitArtificerReplicateMagicItem,
     submitArtificerTinkersMagic,
     submitLayOnHands,
     submitAasimarHealingHands,
@@ -2353,7 +2360,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           drawerClassName={clsx(
             selectedAction.kind === "feature" &&
               (selectedAction.action.key === divineInterventionActionKey ||
-                selectedAction.action.key === artificerTinkersMagicActionKey) &&
+                selectedAction.action.key === artificerTinkersMagicActionKey ||
+                selectedAction.action.key === artificerReplicateMagicItemActionKey) &&
               styles.actionDrawerFullHeight
           )}
           onClose={closeActionDrawer}

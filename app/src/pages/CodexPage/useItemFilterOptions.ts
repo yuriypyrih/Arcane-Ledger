@@ -5,12 +5,17 @@ import type { CodexStatus, ItemFilterOptions, ItemSpecialFilter } from "../../ty
 
 export function useItemFilterOptions(
   enabled: boolean,
-  options: { specialFilter?: ItemSpecialFilter } = {}
+  options: {
+    specialFilter?: ItemSpecialFilter;
+    artificerPlan?: string;
+    artificerPlans?: string[];
+  } = {}
 ) {
-  const { specialFilter } = options;
+  const { specialFilter, artificerPlan, artificerPlans } = options;
   const isOnline = useOnlineStatus();
   const [payload, setPayload] = useState<ItemFilterOptions | null>(null);
   const [status, setStatus] = useState<CodexStatus>(enabled ? "loading" : "ready");
+  const artificerPlansKey = artificerPlans?.join("|") ?? null;
 
   useEffect(() => {
     if (!enabled) {
@@ -32,7 +37,7 @@ export function useItemFilterOptions(
     async function loadItemFilterOptions() {
       try {
         const nextPayload = await fetchItemFilterOptions(
-          { specialFilter },
+          { specialFilter, artificerPlan, artificerPlans },
           { signal: abortController.signal }
         );
 
@@ -57,7 +62,7 @@ export function useItemFilterOptions(
       active = false;
       abortController.abort();
     };
-  }, [enabled, isOnline, specialFilter]);
+  }, [artificerPlan, artificerPlansKey, enabled, isOnline, specialFilter]);
 
   return {
     payload,

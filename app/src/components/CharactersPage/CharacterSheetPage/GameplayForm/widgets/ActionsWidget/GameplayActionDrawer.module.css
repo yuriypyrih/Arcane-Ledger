@@ -171,6 +171,7 @@
 
 .body {
   flex: 1 1 auto;
+  align-content: start;
   gap: 0.92rem;
   max-height: none;
   min-height: 0;

@@ -79,11 +79,15 @@ function FeatureUsageLabel(props: FeatureUsageLabelProps) {
           <span className={props.textClassName}>Free</span>
         </span>
       );
-    case "named-resource":
+    case "text":
       return (
         <span className={className}>
-          {renderFeatureUsageCost(usageKey, usage.cost, props)}
+          <span className={props.textClassName}>{usage.label}</span>
         </span>
+      );
+    case "named-resource":
+      return (
+        <span className={className}>{renderFeatureUsageCost(usageKey, usage.cost, props)}</span>
       );
     case "named-resource-or-resource":
       return (

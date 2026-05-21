@@ -98,7 +98,9 @@ import {
   type FeatureActionOptionCard
 } from "../../../../../../pages/CharactersPage/classFeatures";
 import {
+  addArtificerReplicateMagicItemToInventory,
   addArtificerTinkersMagicItemToInventory,
+  artificerReplicateMagicItemActionKey,
   artificerTinkersMagicActionKey,
   consumeArtificerTinkersMagicUse
 } from "../../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
@@ -457,6 +459,7 @@ type ActionsWidgetSubmissionContext = Record<string, any>;
 
 export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionContext) {
   const [isTinkersMagicSubmitting, setIsTinkersMagicSubmitting] = useState(false);
+  const [isReplicateMagicItemSubmitting, setIsReplicateMagicItemSubmitting] = useState(false);
   const { ...values } = context;
   Object.assign(globalThis as Record<string, unknown>, {});
   const {
@@ -749,6 +752,53 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
       throw error;
     } finally {
       setIsTinkersMagicSubmitting(false);
+    }
+  }
+
+  async function submitArtificerReplicateMagicItem(item: ItemRecord) {
+    if (
+      !selectedFeatureAction ||
+      !selectedAction ||
+      selectedAction.kind !== "feature" ||
+      selectedFeatureAction.key !== artificerReplicateMagicItemActionKey
+    ) {
+      return;
+    }
+
+    if (!item.key) {
+      throw new Error("Choose an item for Replicate Magic Item.");
+    }
+
+    setIsReplicateMagicItemSubmitting(true);
+
+    try {
+      let didApply = false;
+
+      onPersistCharacter((currentCharacter) => {
+        const nextCharacter = addArtificerReplicateMagicItemToInventory(currentCharacter, item);
+
+        if (nextCharacter === currentCharacter) {
+          return currentCharacter;
+        }
+
+        didApply = true;
+        return nextCharacter;
+      });
+
+      if (!didApply) {
+        throw new Error("Replicate Magic Item is at its maximum active creations.");
+      }
+
+      closeActionDrawer();
+    } catch (error) {
+      console.error("Failed to create Replicate Magic Item.", error);
+      captureAppError(error, {
+        area: "gameplay-actions",
+        action: "replicate-magic-item"
+      });
+      throw error;
+    } finally {
+      setIsReplicateMagicItemSubmitting(false);
     }
   }
 
@@ -2250,7 +2300,9 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     handleFeatureOptionExecute,
     activateSelectedChannelDivinity,
     confirmSelectedFeatureOptions,
+    isReplicateMagicItemSubmitting,
     isTinkersMagicSubmitting,
+    submitArtificerReplicateMagicItem,
     submitArtificerTinkersMagic,
     submitLayOnHands,
     submitAasimarHealingHands,

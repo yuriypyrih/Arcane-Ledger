@@ -201,7 +201,10 @@ export type CharacterEquipmentItem = {
   worn: boolean;
 };
 
-export type CharacterInventoryFeatureTag = "pact-of-the-blade" | "conjured";
+export type CharacterInventoryFeatureTag =
+  | "pact-of-the-blade"
+  | "conjured"
+  | "replicate-magic-item";
 export type CharacterInventoryConjuredDuration = "long-rest";
 
 export type CharacterItemModCategory = "weapon" | "armor" | "general";

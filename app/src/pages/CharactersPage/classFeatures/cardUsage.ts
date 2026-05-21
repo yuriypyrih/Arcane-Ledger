@@ -188,6 +188,13 @@ export function createFreeCardUsage(): FeatureActionCardUsage {
   };
 }
 
+export function createTextCardUsage(label: string): FeatureActionCardUsage {
+  return {
+    mode: "text",
+    label
+  };
+}
+
 export function createNamedResourceCardUsage(
   cost: FeatureActionCardUsageCost
 ): FeatureActionCardUsage {

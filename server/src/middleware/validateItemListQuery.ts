@@ -10,6 +10,10 @@ import type {
   ItemProficiencyType
 } from "../types/item.js";
 import { ALLOWED_ITEM_SPECIAL_FILTERS } from "../services/itemSpecialFilters.js";
+import {
+  isArtificerReplicateMagicItemPlanKey,
+  isArtificerReplicateMagicItemSpecificPlanKey
+} from "../services/artificerReplicateMagicItemPlans.js";
 
 const ALLOWED_ORDERINGS = new Set<ItemOrdering>([
   "name",
@@ -32,15 +36,51 @@ function readSingleQueryValue(value: unknown, name: string): string | undefined 
   }
 
   if (Array.isArray(value) || (typeof value === "object" && value !== null)) {
-    throw new AppError(`Query parameter "${name}" must be a single string value.`, 400, "INVALID_QUERY", {
-      parameter: name
-    });
+    throw new AppError(
+      `Query parameter "${name}" must be a single string value.`,
+      400,
+      "INVALID_QUERY",
+      {
+        parameter: name
+      }
+    );
   }
 
   return String(value);
 }
 
-function parsePositiveInteger(value: string | undefined, name: string, fallback: number, max?: number) {
+function readStringListQueryValue(value: unknown, name: string): string[] | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  const rawValues = Array.isArray(value) ? value : [value];
+
+  return rawValues.flatMap((entry) => {
+    if (typeof entry === "object" && entry !== null) {
+      throw new AppError(
+        `Query parameter "${name}" must be a string value or repeated string values.`,
+        400,
+        "INVALID_QUERY",
+        {
+          parameter: name
+        }
+      );
+    }
+
+    return String(entry)
+      .split(",")
+      .map((part) => part.trim())
+      .filter(Boolean);
+  });
+}
+
+function parsePositiveInteger(
+  value: string | undefined,
+  name: string,
+  fallback: number,
+  max?: number
+) {
   if (!value) {
     return fallback;
   }
@@ -48,9 +88,14 @@ function parsePositiveInteger(value: string | undefined, name: string, fallback:
   const parsedValue = Number(value);
 
   if (!Number.isInteger(parsedValue) || parsedValue < 1) {
-    throw new AppError(`Query parameter "${name}" must be a positive integer.`, 400, "INVALID_QUERY", {
-      parameter: name
-    });
+    throw new AppError(
+      `Query parameter "${name}" must be a positive integer.`,
+      400,
+      "INVALID_QUERY",
+      {
+        parameter: name
+      }
+    );
   }
 
   if (max !== undefined && parsedValue > max) {
@@ -102,11 +147,47 @@ function normalizeOptionalString(value: string | undefined): string | undefined 
   return normalizedValue ? normalizedValue : undefined;
 }
 
+function parseArtificerPlan(value: string | undefined): string | undefined {
+  const normalizedValue = normalizeOptionalString(value);
+
+  if (!isArtificerReplicateMagicItemPlanKey(normalizedValue)) {
+    throw new AppError("Unsupported artificerPlan value.", 400, "INVALID_QUERY", {
+      parameter: "artificerPlan"
+    });
+  }
+
+  return normalizedValue;
+}
+
+function parseArtificerPlans(values: string[] | undefined): string[] | undefined {
+  if (values === undefined) {
+    return undefined;
+  }
+
+  const uniqueValues = [...new Set(values)];
+  const invalidValue = uniqueValues.find(
+    (value) => !isArtificerReplicateMagicItemSpecificPlanKey(value)
+  );
+
+  if (invalidValue) {
+    throw new AppError("Unsupported artificerPlans value.", 400, "INVALID_QUERY", {
+      parameter: "artificerPlans"
+    });
+  }
+
+  return uniqueValues;
+}
+
 function buildItemListQuery(request: Request): ItemListQuery {
   return {
     search: normalizeOptionalString(readSingleQueryValue(request.query.search, "search")),
     page: parsePositiveInteger(readSingleQueryValue(request.query.page, "page"), "page", 1),
-    limit: parsePositiveInteger(readSingleQueryValue(request.query.limit, "limit"), "limit", 50, 100),
+    limit: parsePositiveInteger(
+      readSingleQueryValue(request.query.limit, "limit"),
+      "limit",
+      50,
+      100
+    ),
     ordering: parseOrdering(readSingleQueryValue(request.query.ordering, "ordering")),
     tab: parseEnumValue(readSingleQueryValue(request.query.tab, "tab"), "tab", ALLOWED_TABS),
     category: normalizeOptionalString(readSingleQueryValue(request.query.category, "category")),
@@ -133,6 +214,12 @@ function buildItemListQuery(request: Request): ItemListQuery {
       readSingleQueryValue(request.query.specialFilter, "specialFilter"),
       "specialFilter",
       ALLOWED_ITEM_SPECIAL_FILTERS
+    ),
+    artificerPlan: parseArtificerPlan(
+      readSingleQueryValue(request.query.artificerPlan, "artificerPlan")
+    ),
+    artificerPlans: parseArtificerPlans(
+      readStringListQueryValue(request.query.artificerPlans, "artificerPlans")
     )
   };
 }

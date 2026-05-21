@@ -130,7 +130,8 @@ function createFeatureActionHeaderTags(action: FeatureActionCard): FeatureAction
     if (
       !action.cardUsage ||
       action.cardUsage.mode === "charges" ||
-      action.cardUsage.mode === "free"
+      action.cardUsage.mode === "free" ||
+      action.cardUsage.mode === "text"
     ) {
       return;
     }

@@ -1,3 +1,4 @@
+export { createArtificerFeatureChoiceModel } from "./artificer";
 export { createBardFeatureChoiceModel } from "./bard";
 export { createClericFeatureChoiceModel } from "./cleric";
 export { createDruidFeatureChoiceModel } from "./druid";

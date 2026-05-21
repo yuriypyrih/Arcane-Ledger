@@ -15,6 +15,11 @@ import {
   type Open5eItemRecord
 } from "../types/item.js";
 import { serializeItemListItem, serializeItemRecord } from "../utils/serializers.js";
+import {
+  ARTIFICER_REPLICATE_MAGIC_ITEM_SPECIAL_FILTER,
+  getArtificerReplicateMagicItemKeysForSelectedPlans,
+  getArtificerReplicateMagicItemPlanGroupsForSelectedPlans
+} from "./artificerReplicateMagicItemPlans.js";
 import { getItemSpecialFilterKeys } from "./itemSpecialFilters.js";
 
 const WEAPON_TAB_CATEGORY_KEYS = ["weapon", "staff"] as const;
@@ -146,13 +151,15 @@ function buildTabFilter(tab: ItemBrowserTab | undefined): FilterQuery<Open5eItem
 }
 
 function buildSpecialFilter(
-  specialFilter: ItemSpecialFilter | undefined
+  specialFilter: ItemSpecialFilter | undefined,
+  artificerPlan?: string,
+  artificerPlans?: readonly string[]
 ): FilterQuery<Open5eItemRecord> | null {
-  const itemKeys = getItemSpecialFilterKeys(specialFilter);
-
-  if (itemKeys.length <= 0) {
+  if (!specialFilter) {
     return null;
   }
+
+  const itemKeys = getItemSpecialFilterKeys(specialFilter, artificerPlan, artificerPlans);
 
   return {
     key: {
@@ -174,9 +181,7 @@ function buildWeaponRangeConditions(): FilterQuery<Open5eItemRecord>[] {
   ];
 }
 
-function buildWeaponAttackTypeFilter(
-  attackType: ItemAttackType
-): FilterQuery<Open5eItemRecord> {
+function buildWeaponAttackTypeFilter(attackType: ItemAttackType): FilterQuery<Open5eItemRecord> {
   const rangedConditions = buildWeaponRangeConditions();
 
   if (attackType === "range") {
@@ -254,7 +259,11 @@ function buildArmorTypeFilter(armorType: ItemArmorType): FilterQuery<Open5eItemR
 
 function buildItemFilter(query: ItemListQuery): FilterQuery<Open5eItemRecord> {
   const filters: FilterQuery<Open5eItemRecord>[] = [];
-  const specialFilter = buildSpecialFilter(query.specialFilter);
+  const specialFilter = buildSpecialFilter(
+    query.specialFilter,
+    query.artificerPlan,
+    query.artificerPlans
+  );
   const tabFilter = buildTabFilter(query.tab);
 
   if (specialFilter) {
@@ -484,7 +493,10 @@ function buildWeaponPropertyOptionsPipeline(
     {
       $match: match
     },
-    ...buildGroupedOptionsPipeline("weapon.properties.property.name", "weapon.properties.property.name")
+    ...buildGroupedOptionsPipeline(
+      "weapon.properties.property.name",
+      "weapon.properties.property.name"
+    )
   ];
 }
 
@@ -565,6 +577,40 @@ function compareRarityFilterOptions(left: ItemFilterOption, right: ItemFilterOpt
   return left.label.localeCompare(right.label);
 }
 
+async function buildArtificerPlanFilterGroups(
+  specialFilter: ItemSpecialFilter | undefined,
+  artificerPlans?: readonly string[]
+): Promise<ItemFilterOptions["artificerPlans"]> {
+  if (specialFilter !== ARTIFICER_REPLICATE_MAGIC_ITEM_SPECIAL_FILTER) {
+    return undefined;
+  }
+
+  const planGroups = getArtificerReplicateMagicItemPlanGroupsForSelectedPlans(artificerPlans);
+  const scopedPlanKeys = getArtificerReplicateMagicItemKeysForSelectedPlans(
+    artificerPlans,
+    undefined
+  );
+  const existingKeys = new Set(
+    await ItemModel.distinct("key", {
+      key: {
+        $in: scopedPlanKeys
+      }
+    }).exec()
+  );
+
+  return {
+    groups: planGroups.map((group) => ({
+      level: group.level,
+      label: group.label,
+      options: group.options.map((plan) => ({
+        value: plan.key,
+        label: plan.label,
+        count: new Set(plan.itemKeys.filter((key) => existingKeys.has(key))).size
+      }))
+    }))
+  };
+}
+
 export async function listItems(query: ItemListQuery) {
   const filter = buildItemFilter(query);
   const sort = buildItemSort(query.ordering);
@@ -591,7 +637,12 @@ export async function listItems(query: ItemListQuery) {
             $limit: query.limit
           }
         ]).exec()
-      : ItemModel.find(filter).sort(sort).skip(skip).limit(query.limit).lean<Open5eItemRecord[]>().exec()
+      : ItemModel.find(filter)
+          .sort(sort)
+          .skip(skip)
+          .limit(query.limit)
+          .lean<Open5eItemRecord[]>()
+          .exec()
   ]);
 
   return {
@@ -645,9 +696,10 @@ export async function getItemsByKeys(keys: string[]): Promise<ItemBatchLookupRec
 }
 
 export async function listItemFilterOptions(
-  query: Pick<ItemListQuery, "specialFilter"> = {}
+  query: Pick<ItemListQuery, "specialFilter" | "artificerPlan" | "artificerPlans"> = {}
 ): Promise<ItemFilterOptions> {
-  const baseFilter = buildSpecialFilter(query.specialFilter) ?? {};
+  const baseFilter =
+    buildSpecialFilter(query.specialFilter, query.artificerPlan, query.artificerPlans) ?? {};
   const [
     categories,
     rarities,
@@ -664,123 +716,108 @@ export async function listItemFilterOptions(
     properties,
     lightCount,
     mediumCount,
-    heavyCount
-  ] =
-    await Promise.all([
-      ItemModel.aggregate<{ value: string; label: string; count: number }>(
-        buildScopedOptionsPipeline(baseFilter, "category.key", "category.name")
-      ).exec(),
-      ItemModel.aggregate<{ value: string | null; label: string | null; count: number }>([
-        {
-          $match: baseFilter
-        },
-        {
-          $group: {
-            _id: {
-              value: "$rarity.key",
-              label: "$rarity.name"
-            },
-            count: {
-              $sum: 1
-            }
-          }
-        },
-        {
-          $project: {
-            _id: 0,
-            value: "$_id.value",
-            label: "$_id.label",
-            count: 1
-          }
-        },
-        {
-          $sort: {
-            value: 1,
-            label: 1
+    heavyCount,
+    artificerPlans
+  ] = await Promise.all([
+    ItemModel.aggregate<{ value: string; label: string; count: number }>(
+      buildScopedOptionsPipeline(baseFilter, "category.key", "category.name")
+    ).exec(),
+    ItemModel.aggregate<{ value: string | null; label: string | null; count: number }>([
+      {
+        $match: baseFilter
+      },
+      {
+        $group: {
+          _id: {
+            value: "$rarity.key",
+            label: "$rarity.name"
+          },
+          count: {
+            $sum: 1
           }
         }
-      ]).exec(),
-      ItemModel.aggregate<{ value: string; label: string; count: number }>(
-        buildScopedOptionsPipeline(baseFilter, "document.key", "document.display_name")
-      ).exec(),
-      ItemModel.countDocuments(baseFilter).exec(),
-      ItemModel.countDocuments(
-        combineAndFilters([baseFilter, buildTabFilter("weapons") ?? {}])
-      ).exec(),
-      ItemModel.countDocuments(
-        combineAndFilters([baseFilter, buildTabFilter("armor") ?? {}])
-      ).exec(),
-      ItemModel.countDocuments(
-        combineAndFilters([baseFilter, buildTabFilter("gear") ?? {}])
-      ).exec(),
-      ItemModel.countDocuments(
-        combineAndFilters([
-          baseFilter,
-          buildTabFilter("weapons") ?? {},
-          buildWeaponAttackTypeFilter("melee")
-        ])
-      ).exec(),
-      ItemModel.countDocuments(
-        combineAndFilters([
-          baseFilter,
-          buildTabFilter("weapons") ?? {},
-          buildWeaponAttackTypeFilter("range")
-        ])
-      ).exec(),
-      ItemModel.countDocuments(
-        combineAndFilters([
-          baseFilter,
-          buildTabFilter("weapons") ?? {},
-          buildWeaponProficiencyFilter("simple")
-        ])
-      ).exec(),
-      ItemModel.countDocuments(
-        combineAndFilters([
-          baseFilter,
-          buildTabFilter("weapons") ?? {},
-          buildWeaponProficiencyFilter("martial")
-        ])
-      ).exec(),
-      ItemModel.aggregate<{ value: string | null; label: string | null; count: number }>(
-        buildWeaponPropertyOptionsPipeline(
-          {
-            "weapon.properties.property.type": createCaseInsensitiveExactMatch("Mastery")
-          },
-          baseFilter
-        )
-      ).exec(),
-      ItemModel.aggregate<{ value: string | null; label: string | null; count: number }>(
-        buildWeaponPropertyOptionsPipeline(
-          {
-            "weapon.properties.property.type": {
-              $not: createCaseInsensitiveExactMatch("Mastery")
-            }
-          },
-          baseFilter
-        )
-      ).exec(),
-      ItemModel.countDocuments(
-        combineAndFilters([
-          baseFilter,
-          buildTabFilter("armor") ?? {},
-          buildArmorTypeFilter("light")
-        ])
-      ).exec(),
-      ItemModel.countDocuments(
-        combineAndFilters([
-          baseFilter,
-          buildTabFilter("armor") ?? {},
-          buildArmorTypeFilter("medium")
-        ])
-      ).exec(),
-      ItemModel.countDocuments(
-        combineAndFilters([
-          baseFilter,
-          buildTabFilter("armor") ?? {},
-          buildArmorTypeFilter("heavy")
-        ])
-      ).exec()
-    ]);
+      },
+      {
+        $project: {
+          _id: 0,
+          value: "$_id.value",
+          label: "$_id.label",
+          count: 1
+        }
+      },
+      {
+        $sort: {
+          value: 1,
+          label: 1
+        }
+      }
+    ]).exec(),
+    ItemModel.aggregate<{ value: string; label: string; count: number }>(
+      buildScopedOptionsPipeline(baseFilter, "document.key", "document.display_name")
+    ).exec(),
+    ItemModel.countDocuments(baseFilter).exec(),
+    ItemModel.countDocuments(
+      combineAndFilters([baseFilter, buildTabFilter("weapons") ?? {}])
+    ).exec(),
+    ItemModel.countDocuments(combineAndFilters([baseFilter, buildTabFilter("armor") ?? {}])).exec(),
+    ItemModel.countDocuments(combineAndFilters([baseFilter, buildTabFilter("gear") ?? {}])).exec(),
+    ItemModel.countDocuments(
+      combineAndFilters([
+        baseFilter,
+        buildTabFilter("weapons") ?? {},
+        buildWeaponAttackTypeFilter("melee")
+      ])
+    ).exec(),
+    ItemModel.countDocuments(
+      combineAndFilters([
+        baseFilter,
+        buildTabFilter("weapons") ?? {},
+        buildWeaponAttackTypeFilter("range")
+      ])
+    ).exec(),
+    ItemModel.countDocuments(
+      combineAndFilters([
+        baseFilter,
+        buildTabFilter("weapons") ?? {},
+        buildWeaponProficiencyFilter("simple")
+      ])
+    ).exec(),
+    ItemModel.countDocuments(
+      combineAndFilters([
+        baseFilter,
+        buildTabFilter("weapons") ?? {},
+        buildWeaponProficiencyFilter("martial")
+      ])
+    ).exec(),
+    ItemModel.aggregate<{ value: string | null; label: string | null; count: number }>(
+      buildWeaponPropertyOptionsPipeline(
+        {
+          "weapon.properties.property.type": createCaseInsensitiveExactMatch("Mastery")
+        },
+        baseFilter
+      )
+    ).exec(),
+    ItemModel.aggregate<{ value: string | null; label: string | null; count: number }>(
+      buildWeaponPropertyOptionsPipeline(
+        {
+          "weapon.properties.property.type": {
+            $not: createCaseInsensitiveExactMatch("Mastery")
+          }
+        },
+        baseFilter
+      )
+    ).exec(),
+    ItemModel.countDocuments(
+      combineAndFilters([baseFilter, buildTabFilter("armor") ?? {}, buildArmorTypeFilter("light")])
+    ).exec(),
+    ItemModel.countDocuments(
+      combineAndFilters([baseFilter, buildTabFilter("armor") ?? {}, buildArmorTypeFilter("medium")])
+    ).exec(),
+    ItemModel.countDocuments(
+      combineAndFilters([baseFilter, buildTabFilter("armor") ?? {}, buildArmorTypeFilter("heavy")])
+    ).exec(),
+    buildArtificerPlanFilterGroups(query.specialFilter, query.artificerPlans)
+  ]);
 
   const normalizedCategories = normalizeFilterOptions(categories);
   const allCategories = filterCategoryOptionsByTab(normalizedCategories, "all");
@@ -830,6 +867,7 @@ export async function listItemFilterOptions(
       },
       compareRarityFilterOptions
     ),
-    sources: normalizeFilterOptions(sources)
+    sources: normalizeFilterOptions(sources),
+    artificerPlans
   };
 }
