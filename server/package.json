@@ -11,16 +11,7 @@
     "db:docker:down": "docker compose -f docker-compose.mongodb.yml down",
     "db:docker:stop": "docker compose -f docker-compose.mongodb.yml stop",
     "db:docker:logs": "docker compose -f docker-compose.mongodb.yml logs -f mongodb",
-    "db:docker:ps": "docker compose -f docker-compose.mongodb.yml ps",
-    "db:monsters:fetch": "tsx src/scripts/fetchOpen5eMonsters.ts",
-    "db:monsters:import": "tsx src/scripts/importOpen5eMonsters.ts",
-    "db:items:fetch": "tsx src/scripts/fetchOpen5eItems.ts",
-    "db:items:normalize-snapshot": "tsx src/scripts/normalizeOpen5eItemSnapshot.ts",
-    "db:items:inspect": "tsx src/scripts/inspectOpen5eItems.ts",
-    "db:items:import": "tsx src/scripts/importOpen5eItems.ts",
-    "db:spells:fetch": "tsx src/scripts/fetchOpen5eSpells.ts",
-    "db:spells:migrate": "tsx src/scripts/migrateOpen5eSpells.ts",
-    "db:spells:validate": "tsx src/scripts/validateOpen5eSpellMigration.ts"
+    "db:docker:ps": "docker compose -f docker-compose.mongodb.yml ps"
   },
   "dependencies": {
     "@sentry/node": "^10.53.1",

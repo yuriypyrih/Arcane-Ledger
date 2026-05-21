@@ -9,7 +9,7 @@ Lightweight Arcane Ledger app with three core features:
 The workspace is a monorepo shell with two independent npm projects:
 
 - `app`: Vite + React + TypeScript PWA.
-- `server`: Node.js + Express + TypeScript backend with MongoDB import/read tooling.
+- `server`: Node.js + Express + TypeScript backend with MongoDB-backed read APIs.
 
 ## Getting Started
 
@@ -39,17 +39,7 @@ cd server && npm run build
 
 - The backend exposes its API under `server` at `/api/v1`.
 - Set the frontend `VITE_API_BASE_URL` to the full backend API root, such as `http://localhost:3001/api/v1`. If it is omitted or blank, API-backed frontend features treat the backend as unavailable instead of guessing a same-origin API path.
-- Monster fetch snapshots are stored under `server/data/open5e/monsters/fetch-MM-DD-YYYY/`.
-- Item fetch snapshots are stored under `server/data/open5e/items/fetch-MM-DD-YYYY/`.
-- Spell fetch snapshots are stored under `server/data/open5e/spells/fetch-MM-DD-YYYY/`.
-- Fetch Open5e monsters with `npm --prefix server run db:monsters:fetch`.
-- Import the latest monster snapshot with `npm --prefix server run db:monsters:import`.
-- Fetch Open5e items with `npm --prefix server run db:items:fetch`.
-- Inspect the latest item snapshot schema with `npm --prefix server run db:items:inspect`.
-- Import the latest item snapshot with `npm --prefix server run db:items:import`.
-- Fetch Open5e spells with `npm --prefix server run db:spells:fetch`.
-- Migrate local spells from the latest Open5e spell snapshot with `npm --prefix server run db:spells:migrate`.
-- Validate the local spell migration with `npm --prefix server run db:spells:validate`.
+- Reference data fetching, snapshots, curated source-of-truth files, and MongoDB replacement imports now live in the separate private `arcane-ledger-data` repository. The ignored `server/data/` directory can remain locally for old snapshots or manual reference, but it is not part of this server's script surface.
 
 ## Frontend Notes
 
