@@ -8,6 +8,7 @@ import type {
   Character,
   CharacterContainerContentItem,
   CharacterInventoryConjuredDuration,
+  CharacterInventoryConjuredSource,
   CharacterInventoryFeatureTag,
   CharacterInventoryItem,
   CharacterItemMods,
@@ -136,19 +137,31 @@ const moddedItemKeyMarker = "-modded-";
 
 export const INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE = "pact-of-the-blade";
 export const INVENTORY_FEATURE_TAG_CONJURED = "conjured";
-export const INVENTORY_FEATURE_TAG_REPLICATE_MAGIC_ITEM = "replicate-magic-item";
+export const INVENTORY_CONJURED_SOURCE_TINKERS_MAGIC = "tinkers-magic";
+export const INVENTORY_CONJURED_SOURCE_REPLICATE_MAGIC_ITEM = "replicate-magic-item";
+export const INVENTORY_CONJURED_SOURCE_PACT_OF_THE_BLADE = "pact-of-the-blade";
 export const INVENTORY_CONJURED_DURATION_LONG_REST = "long-rest";
+
+const legacyInventoryFeatureTagReplicateMagicItem = "replicate-magic-item";
 
 const inventoryFeatureTagLabels: Record<CharacterInventoryFeatureTag, string> = {
   [INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE]: "Pact of the Blade",
-  [INVENTORY_FEATURE_TAG_CONJURED]: "Conjured",
-  [INVENTORY_FEATURE_TAG_REPLICATE_MAGIC_ITEM]: "Replicate Magic Item"
+  [INVENTORY_FEATURE_TAG_CONJURED]: "Conjured"
+};
+
+const inventoryConjuredSourceLabels: Record<CharacterInventoryConjuredSource, string> = {
+  [INVENTORY_CONJURED_SOURCE_TINKERS_MAGIC]: "Tinker's Magic",
+  [INVENTORY_CONJURED_SOURCE_REPLICATE_MAGIC_ITEM]: "Replicate Magic Item",
+  [INVENTORY_CONJURED_SOURCE_PACT_OF_THE_BLADE]: "Pact of the Blade"
+};
+
+const inventoryConjuredDurationLabels: Record<CharacterInventoryConjuredDuration, string> = {
+  [INVENTORY_CONJURED_DURATION_LONG_REST]: "Until Long Rest"
 };
 
 const inventoryFeatureTagOrder: CharacterInventoryFeatureTag[] = [
-  INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE,
   INVENTORY_FEATURE_TAG_CONJURED,
-  INVENTORY_FEATURE_TAG_REPLICATE_MAGIC_ITEM
+  INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE
 ];
 
 function getCopperValue(cost: EquipmentCost): number {
@@ -285,8 +298,7 @@ function normalizeInventoryFeatureTags(value: unknown): CharacterInventoryFeatur
   value.forEach((entry) => {
     if (
       entry === INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE ||
-      entry === INVENTORY_FEATURE_TAG_CONJURED ||
-      entry === INVENTORY_FEATURE_TAG_REPLICATE_MAGIC_ITEM
+      entry === INVENTORY_FEATURE_TAG_CONJURED
     ) {
       tagSet.add(entry);
     }
@@ -297,12 +309,44 @@ function normalizeInventoryFeatureTags(value: unknown): CharacterInventoryFeatur
   return normalizedTags.length > 0 ? normalizedTags : undefined;
 }
 
+function hasLegacyReplicateMagicItemFeatureTag(value: unknown): boolean {
+  return Array.isArray(value) && value.includes(legacyInventoryFeatureTagReplicateMagicItem);
+}
+
 function normalizeInventoryConjuredDuration(
   value: unknown
 ): CharacterInventoryConjuredDuration | undefined {
   return value === INVENTORY_CONJURED_DURATION_LONG_REST
     ? INVENTORY_CONJURED_DURATION_LONG_REST
     : undefined;
+}
+
+function normalizeInventoryConjuredSource(
+  value: unknown
+): CharacterInventoryConjuredSource | undefined {
+  return value === INVENTORY_CONJURED_SOURCE_TINKERS_MAGIC ||
+    value === INVENTORY_CONJURED_SOURCE_REPLICATE_MAGIC_ITEM ||
+    value === INVENTORY_CONJURED_SOURCE_PACT_OF_THE_BLADE
+    ? value
+    : undefined;
+}
+
+function normalizeInventoryConjuredSourceForFeatureTags(
+  value: unknown,
+  featureTags: unknown
+): CharacterInventoryConjuredSource | undefined {
+  const normalizedFeatureTags = normalizeInventoryFeatureTags(featureTags);
+
+  if (!normalizedFeatureTags?.includes(INVENTORY_FEATURE_TAG_CONJURED)) {
+    return undefined;
+  }
+
+  return (
+    normalizeInventoryConjuredSource(value) ??
+    (hasLegacyReplicateMagicItemFeatureTag(featureTags)
+      ? INVENTORY_CONJURED_SOURCE_REPLICATE_MAGIC_ITEM
+      : undefined)
+  );
 }
 
 export function isItemContainerRecord(item: ItemRecord | null | undefined): boolean {
@@ -333,6 +377,7 @@ function getContainerContentStackKey(entry: CharacterContainerContentItem, index
     !entry.attuned &&
     !entry.mods &&
     entry.usesRemaining === undefined &&
+    !entry.conjuredSource &&
     !entry.conjuredDuration &&
     (featureTags?.length ?? 0) === 0;
 
@@ -345,6 +390,10 @@ function normalizeContainerContentItem(
   const quantity = normalizeStackNumber(entry.quantity, 1, 1);
   const mods = normalizeCharacterItemMods(entry.mods);
   const featureTags = normalizeInventoryFeatureTags(entry.featureTags);
+  const conjuredSource = normalizeInventoryConjuredSourceForFeatureTags(
+    entry.conjuredSource,
+    entry.featureTags
+  );
   const conjuredDuration = featureTags?.includes(INVENTORY_FEATURE_TAG_CONJURED)
     ? normalizeInventoryConjuredDuration(entry.conjuredDuration)
     : undefined;
@@ -352,6 +401,7 @@ function normalizeContainerContentItem(
     item: entry.item,
     quantity,
     featureTags,
+    ...(conjuredSource ? { conjuredSource } : {}),
     ...(conjuredDuration ? { conjuredDuration } : {}),
     ...(mods ? { mods } : {})
   };
@@ -362,6 +412,7 @@ function normalizeContainerContentItem(
     onHandQuantity: 0,
     worn: false,
     featureTags,
+    ...(conjuredSource ? { conjuredSource } : {}),
     ...(conjuredDuration ? { conjuredDuration } : {}),
     ...(mods ? { mods } : {})
   });
@@ -399,6 +450,7 @@ function normalizeCharacterContainerContentItems(value: unknown): CharacterConta
       attuned?: unknown;
       usesRemaining?: unknown;
       featureTags?: unknown;
+      conjuredSource?: unknown;
       conjuredDuration?: unknown;
       mods?: unknown;
     };
@@ -408,6 +460,7 @@ function normalizeCharacterContainerContentItems(value: unknown): CharacterConta
       return;
     }
 
+    const featureTags = normalizeInventoryFeatureTags(record.featureTags);
     const contentItem = normalizeContainerContentItem({
       item,
       quantity: record.quantity !== undefined ? normalizeStackNumber(record.quantity, 1, 1) : 1,
@@ -416,7 +469,11 @@ function normalizeCharacterContainerContentItems(value: unknown): CharacterConta
         record.usesRemaining !== undefined
           ? normalizeStackNumber(record.usesRemaining, 0)
           : undefined,
-      featureTags: normalizeInventoryFeatureTags(record.featureTags),
+      featureTags,
+      conjuredSource: normalizeInventoryConjuredSourceForFeatureTags(
+        record.conjuredSource,
+        record.featureTags
+      ),
       conjuredDuration: normalizeInventoryConjuredDuration(record.conjuredDuration),
       mods: normalizeCharacterItemMods(record.mods)
     });
@@ -472,6 +529,10 @@ function normalizeInventoryStack(entry: CharacterInventoryItem): CharacterInvent
         )
       : entry.item;
   const featureTags = normalizeInventoryFeatureTags(entry.featureTags);
+  const conjuredSource = normalizeInventoryConjuredSourceForFeatureTags(
+    entry.conjuredSource,
+    entry.featureTags
+  );
   const conjuredDuration = featureTags?.includes(INVENTORY_FEATURE_TAG_CONJURED)
     ? normalizeInventoryConjuredDuration(entry.conjuredDuration)
     : undefined;
@@ -485,6 +546,7 @@ function normalizeInventoryStack(entry: CharacterInventoryItem): CharacterInvent
     onHandQuantity,
     worn: Boolean(entry.worn),
     featureTags,
+    ...(conjuredSource ? { conjuredSource } : {}),
     ...(conjuredDuration ? { conjuredDuration } : {}),
     ...(mods ? { mods } : {}),
     ...(isContainer ? { containerContents: containerContents ?? [] } : {})
@@ -605,6 +667,7 @@ export function createCharacterInventoryItem(
     attuned?: boolean;
     usesRemaining?: number;
     featureTags?: CharacterInventoryFeatureTag[];
+    conjuredSource?: CharacterInventoryConjuredSource;
     conjuredDuration?: CharacterInventoryConjuredDuration;
     mods?: CharacterItemMods;
     containerContents?: CharacterContainerContentItem[];
@@ -627,6 +690,7 @@ export function createCharacterInventoryItem(
     attuned: Boolean(options?.attuned),
     usesRemaining: options?.usesRemaining,
     featureTags: options?.featureTags,
+    conjuredSource: options?.conjuredSource,
     conjuredDuration: options?.conjuredDuration,
     mods: options?.mods,
     containerContents: options?.containerContents
@@ -640,6 +704,7 @@ export function createCharacterContainerContentItem(
     attuned?: boolean;
     usesRemaining?: number;
     featureTags?: CharacterInventoryFeatureTag[];
+    conjuredSource?: CharacterInventoryConjuredSource;
     conjuredDuration?: CharacterInventoryConjuredDuration;
     mods?: CharacterItemMods;
   }
@@ -654,6 +719,7 @@ export function createCharacterContainerContentItem(
     attuned: Boolean(options?.attuned),
     usesRemaining: options?.usesRemaining,
     featureTags: options?.featureTags,
+    conjuredSource: options?.conjuredSource,
     conjuredDuration: options?.conjuredDuration,
     mods: options?.mods
   });
@@ -691,6 +757,7 @@ export function normalizeCharacterInventoryItems(value: unknown): CharacterInven
       attuned?: unknown;
       usesRemaining?: unknown;
       featureTags?: unknown;
+      conjuredSource?: unknown;
       conjuredDuration?: unknown;
       mods?: unknown;
       containerContents?: unknown;
@@ -714,6 +781,11 @@ export function normalizeCharacterInventoryItems(value: unknown): CharacterInven
           ? 1
           : 0;
     const splitCount = isUniqueStack ? quantity : 1;
+    const featureTags = normalizeInventoryFeatureTags(record.featureTags);
+    const conjuredSource = normalizeInventoryConjuredSourceForFeatureTags(
+      record.conjuredSource,
+      record.featureTags
+    );
 
     for (let copyIndex = 0; copyIndex < splitCount; copyIndex += 1) {
       const stack = createCharacterInventoryItem(item, {
@@ -726,7 +798,8 @@ export function normalizeCharacterInventoryItems(value: unknown): CharacterInven
           record.usesRemaining !== undefined
             ? normalizeStackNumber(record.usesRemaining, 0)
             : undefined,
-        featureTags: normalizeInventoryFeatureTags(record.featureTags),
+        featureTags,
+        conjuredSource,
         conjuredDuration: normalizeInventoryConjuredDuration(record.conjuredDuration),
         mods,
         containerContents:
@@ -999,6 +1072,7 @@ export function createInventoryItemFromContainerContent(
     attuned: content.attuned,
     usesRemaining: content.usesRemaining,
     featureTags: content.featureTags,
+    conjuredSource: content.conjuredSource,
     conjuredDuration: content.conjuredDuration,
     mods: content.mods
   });
@@ -1071,9 +1145,12 @@ export function isConjuredInventoryItem(
 }
 
 export function isReplicateMagicItemInventoryItem(
-  entry: Pick<CharacterInventoryItem, "featureTags"> | null | undefined
+  entry: Pick<CharacterInventoryItem, "featureTags" | "conjuredSource"> | null | undefined
 ): boolean {
-  return hasInventoryItemFeatureTag(entry, INVENTORY_FEATURE_TAG_REPLICATE_MAGIC_ITEM);
+  return (
+    getInventoryItemConjuredSource(entry) === INVENTORY_CONJURED_SOURCE_REPLICATE_MAGIC_ITEM ||
+    (isConjuredInventoryItem(entry) && hasLegacyReplicateMagicItemFeatureTag(entry?.featureTags))
+  );
 }
 
 export function getInventoryItemConjuredDuration(
@@ -1086,6 +1163,16 @@ export function getInventoryItemConjuredDuration(
   return normalizeInventoryConjuredDuration(entry?.conjuredDuration);
 }
 
+export function getInventoryItemConjuredSource(
+  entry: Pick<CharacterInventoryItem, "featureTags" | "conjuredSource"> | null | undefined
+): CharacterInventoryConjuredSource | undefined {
+  if (!isConjuredInventoryItem(entry)) {
+    return undefined;
+  }
+
+  return normalizeInventoryConjuredSource(entry?.conjuredSource);
+}
+
 export function isLongRestConjuredInventoryItem(
   entry: Pick<CharacterInventoryItem, "featureTags" | "conjuredDuration"> | null | undefined
 ): boolean {
@@ -1093,14 +1180,24 @@ export function isLongRestConjuredInventoryItem(
 }
 
 export function getInventoryItemConjuredFeatureTagLabel(
-  entry: Pick<CharacterInventoryItem, "featureTags" | "conjuredDuration"> | null | undefined
+  entry:
+    | Pick<CharacterInventoryItem, "featureTags" | "conjuredSource" | "conjuredDuration">
+    | null
+    | undefined
 ): string | null {
   if (!isConjuredInventoryItem(entry)) {
     return null;
   }
 
-  return isLongRestConjuredInventoryItem(entry)
-    ? "Conjured: Until Long Rest"
+  const source = getInventoryItemConjuredSource(entry);
+  const duration = getInventoryItemConjuredDuration(entry);
+  const detailParts = [
+    source ? `from ${inventoryConjuredSourceLabels[source]}` : null,
+    duration ? inventoryConjuredDurationLabels[duration] : null
+  ].filter(Boolean);
+
+  return detailParts.length > 0
+    ? `Conjured: ${detailParts.join(" | ")}`
     : inventoryFeatureTagLabels[INVENTORY_FEATURE_TAG_CONJURED];
 }
 
@@ -1113,7 +1210,10 @@ export function getInventoryItemConjuredRowTagLabel(
 }
 
 export function getInventoryItemFeatureTagLabels(
-  entry: Pick<CharacterInventoryItem, "featureTags" | "conjuredDuration"> | null | undefined,
+  entry:
+    | Pick<CharacterInventoryItem, "featureTags" | "conjuredSource" | "conjuredDuration">
+    | null
+    | undefined,
   options?: InventoryFeatureTagLabelOptions
 ): string[] {
   return (normalizeInventoryFeatureTags(entry?.featureTags) ?? []).flatMap((tag) => {
@@ -1245,7 +1345,8 @@ export function addConjuredPactOfTheBladeInventoryItem(
     ...clearPactOfTheBladeInventoryTags(inventoryItems),
     createCharacterInventoryItem(item, {
       quantity: 1,
-      featureTags: [INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE, INVENTORY_FEATURE_TAG_CONJURED]
+      featureTags: [INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE, INVENTORY_FEATURE_TAG_CONJURED],
+      conjuredSource: INVENTORY_CONJURED_SOURCE_PACT_OF_THE_BLADE
     })
   ];
 }
@@ -1255,6 +1356,7 @@ export function addConjuredInventoryItemCopies(
   item: ItemRecord,
   quantity = 1,
   options?: {
+    conjuredSource?: CharacterInventoryConjuredSource;
     conjuredDuration?: CharacterInventoryConjuredDuration;
   }
 ): CharacterInventoryItem[] {
@@ -1269,6 +1371,7 @@ export function addConjuredInventoryItemCopies(
     createCharacterInventoryItem(item, {
       quantity: normalizedQuantity,
       featureTags: [INVENTORY_FEATURE_TAG_CONJURED],
+      conjuredSource: options?.conjuredSource,
       conjuredDuration: options?.conjuredDuration
     })
   ];
@@ -1310,6 +1413,7 @@ function createContainerContentItemFromInventoryStack(
     attuned: entry.attuned,
     usesRemaining: getMovedInventoryItemUsesRemaining(entry),
     featureTags: entry.featureTags,
+    conjuredSource: entry.conjuredSource,
     conjuredDuration: entry.conjuredDuration,
     mods: entry.mods
   });
@@ -1328,6 +1432,7 @@ function updateInventoryItemModsInPlace(
     attuned: mods.requiresAttunement ? entry.attuned : false,
     usesRemaining: entry.usesRemaining,
     featureTags: entry.featureTags,
+    conjuredSource: entry.conjuredSource,
     conjuredDuration: entry.conjuredDuration,
     mods,
     containerContents: entry.containerContents
@@ -1356,6 +1461,7 @@ function transformInventoryItemCopyWithMods(
       attuned: entry.attuned,
       usesRemaining: movedUsesRemaining,
       featureTags: entry.featureTags,
+      conjuredSource: entry.conjuredSource,
       conjuredDuration: entry.conjuredDuration,
       mods
     }
@@ -1377,6 +1483,7 @@ function transformInventoryItemCopyWithMods(
         ? Math.max(0, useState.remaining - (movedUsesRemaining ?? 0))
         : entry.usesRemaining,
       featureTags: getSourceFeatureTagsAfterModdedTransform(entry),
+      conjuredSource: entry.conjuredSource,
       conjuredDuration: entry.conjuredDuration,
       mods: entry.mods
     }),
@@ -1544,6 +1651,7 @@ export function getContainerContentsWeightValue(
       attuned: content.attuned,
       usesRemaining: content.usesRemaining,
       featureTags: content.featureTags,
+      conjuredSource: content.conjuredSource,
       conjuredDuration: content.conjuredDuration,
       mods: content.mods
     });
@@ -1559,6 +1667,7 @@ function getContainerContentCopyWeightValue(content: CharacterContainerContentIt
     attuned: content.attuned,
     usesRemaining: content.usesRemaining,
     featureTags: content.featureTags,
+    conjuredSource: content.conjuredSource,
     conjuredDuration: content.conjuredDuration,
     mods: content.mods
   });
@@ -1912,6 +2021,7 @@ function addContainerContentItemToInventoryWithResult(
     attuned: normalizedContentItem.attuned,
     usesRemaining: normalizedContentItem.usesRemaining,
     featureTags: normalizedContentItem.featureTags,
+    conjuredSource: normalizedContentItem.conjuredSource,
     conjuredDuration: normalizedContentItem.conjuredDuration,
     mods: normalizedContentItem.mods
   });

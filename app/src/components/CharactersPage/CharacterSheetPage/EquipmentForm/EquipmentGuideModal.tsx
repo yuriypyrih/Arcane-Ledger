@@ -98,8 +98,8 @@ function EquipmentGuideModal({ inventoryObjectCount, onClose }: EquipmentGuideMo
               <Sparkles size={13} aria-hidden="true" />
               Conjured
             </span>{" "}
-            items cannot be sold and vanish on death by default. Some conjured gear may also expire
-            on a rest if the feature that created it says so.
+            items cannot be sold and vanish on death by default. Their expanded item tag can show
+            the feature that created them and any explicit rest duration.
           </p>
         </section>
       </OverlayBody>

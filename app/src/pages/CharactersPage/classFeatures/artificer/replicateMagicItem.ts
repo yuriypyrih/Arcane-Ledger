@@ -9,8 +9,8 @@ import type {
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import { ACTION_CARD_THEME } from "../../actionCardTheme";
 import {
+  INVENTORY_CONJURED_SOURCE_REPLICATE_MAGIC_ITEM,
   INVENTORY_FEATURE_TAG_CONJURED,
-  INVENTORY_FEATURE_TAG_REPLICATE_MAGIC_ITEM,
   createCharacterInventoryItem,
   getInventoryItemQuantity,
   isReplicateMagicItemInventoryItem
@@ -240,7 +240,8 @@ export function addArtificerReplicateMagicItemToInventory(
       ...(character.inventoryItems ?? []),
       createCharacterInventoryItem(item, {
         quantity: 1,
-        featureTags: [INVENTORY_FEATURE_TAG_CONJURED, INVENTORY_FEATURE_TAG_REPLICATE_MAGIC_ITEM]
+        featureTags: [INVENTORY_FEATURE_TAG_CONJURED],
+        conjuredSource: INVENTORY_CONJURED_SOURCE_REPLICATE_MAGIC_ITEM
       })
     ]
   };

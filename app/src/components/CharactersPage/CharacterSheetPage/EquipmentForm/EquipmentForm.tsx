@@ -272,6 +272,7 @@ function createInventoryStackFromContainerContent(
     attuned: content.attuned,
     usesRemaining: content.usesRemaining,
     featureTags: content.featureTags,
+    conjuredSource: content.conjuredSource,
     conjuredDuration: content.conjuredDuration,
     mods: content.mods
   });

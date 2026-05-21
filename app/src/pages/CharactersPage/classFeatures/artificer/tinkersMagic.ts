@@ -3,6 +3,7 @@ import type { Character, CharacterArtificerFeatureState, ItemRecord } from "../.
 import { getAbilityModifierForCharacter } from "../../abilities";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import {
+  INVENTORY_CONJURED_SOURCE_TINKERS_MAGIC,
   INVENTORY_CONJURED_DURATION_LONG_REST,
   addConjuredInventoryItemCopies
 } from "../../inventoryItems";
@@ -47,9 +48,7 @@ export function getArtificerTinkersMagicUsesTotal(
     "INT"
   );
 
-  return hasArtificerTinkersMagicFeature(character)
-    ? Math.max(1, intelligenceModifier)
-    : 0;
+  return hasArtificerTinkersMagicFeature(character) ? Math.max(1, intelligenceModifier) : 0;
 }
 
 export function normalizeArtificerTinkersMagicState(
@@ -172,6 +171,7 @@ export function addArtificerTinkersMagicItemToInventory(
   return {
     ...character,
     inventoryItems: addConjuredInventoryItemCopies(character.inventoryItems ?? [], item, 1, {
+      conjuredSource: INVENTORY_CONJURED_SOURCE_TINKERS_MAGIC,
       conjuredDuration: INVENTORY_CONJURED_DURATION_LONG_REST
     })
   };

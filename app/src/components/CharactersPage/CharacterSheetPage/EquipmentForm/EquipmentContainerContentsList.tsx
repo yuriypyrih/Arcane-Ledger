@@ -34,6 +34,7 @@ function getContentRowItem(
     attuned: content.attuned,
     usesRemaining: content.usesRemaining,
     featureTags: content.featureTags,
+    conjuredSource: content.conjuredSource,
     conjuredDuration: content.conjuredDuration,
     mods: content.mods
   });
@@ -119,9 +120,7 @@ function EquipmentContainerContentsList({
                     {conjuredRowTagLabel ? (
                       <span className={styles.equipmentItemFeatureTag}>{conjuredRowTagLabel}</span>
                     ) : null}
-                    {hasDisplayableRarity(item.rarity) ? (
-                      <RarityPill rarity={item.rarity} />
-                    ) : null}
+                    {hasDisplayableRarity(item.rarity) ? <RarityPill rarity={item.rarity} /> : null}
                     <span className={styles.equipmentItemWeight}>
                       {formatEquipmentWeight(getContainerContentsWeightValue([content]))}
                     </span>

@@ -201,10 +201,11 @@ export type CharacterEquipmentItem = {
   worn: boolean;
 };
 
-export type CharacterInventoryFeatureTag =
-  | "pact-of-the-blade"
-  | "conjured"
-  | "replicate-magic-item";
+export type CharacterInventoryFeatureTag = "pact-of-the-blade" | "conjured";
+export type CharacterInventoryConjuredSource =
+  | "tinkers-magic"
+  | "replicate-magic-item"
+  | "pact-of-the-blade";
 export type CharacterInventoryConjuredDuration = "long-rest";
 
 export type CharacterItemModCategory = "weapon" | "armor" | "general";
@@ -250,6 +251,7 @@ export type CharacterInventoryItemBase = {
   attuned?: boolean;
   usesRemaining?: number;
   featureTags?: CharacterInventoryFeatureTag[];
+  conjuredSource?: CharacterInventoryConjuredSource;
   conjuredDuration?: CharacterInventoryConjuredDuration;
   mods?: CharacterItemMods;
 };
