@@ -48,15 +48,16 @@ function ReplicateMagicItemActionBody({
   const [selectedItemKey, setSelectedItemKey] = useState<string | null>(null);
   const knownPlanKeysKey = knownPlanKeys.join("|");
   const scopedPlanKeys = useMemo(() => [...new Set(knownPlanKeys)], [knownPlanKeysKey]);
+  const hasKnownPlans = scopedPlanKeys.length > 0;
   const selectedKnownPlanKeys = useMemo(() => new Set(scopedPlanKeys), [scopedPlanKeys]);
   const effectiveArtificerPlan = selectedArtificerPlan ?? undefined;
-  const { payload: filterOptions } = useItemFilterOptions(true, {
+  const { payload: filterOptions } = useItemFilterOptions(hasKnownPlans, {
     specialFilter: replicateMagicItemSpecialFilter,
     artificerPlan: effectiveArtificerPlan,
     artificerPlans: scopedPlanKeys
   });
   const { payload, status } = useItemEntries({
-    enabled: true,
+    enabled: hasKnownPlans,
     page,
     limit: replicateMagicItemPageSize,
     search: query,
@@ -112,6 +113,12 @@ function ReplicateMagicItemActionBody({
     }
   }, [selectedArtificerPlan, selectedKnownPlanKeys, unlockedPlanKeys]);
 
+  useEffect(() => {
+    if (!hasKnownPlans) {
+      setSelectedItemKey(null);
+    }
+  }, [hasKnownPlans]);
+
   function handleItemSelect(item: ItemListItem) {
     setSelectedItemKey(item.key);
   }
@@ -152,53 +159,59 @@ function ReplicateMagicItemActionBody({
 
   return (
     <div className={styles.layout}>
-      <div className={`${styles.filterRow} ${styles.replicateFilterRow}`}>
-        <ArtificerPlanSelect
-          value={selectedArtificerPlan}
-          groups={planGroups}
-          onChange={(value) => handleFilterChange(() => setSelectedArtificerPlan(value))}
-        />
-        <ReplicateMagicItemSelect
-          label="Category"
-          value={category}
-          options={categoryOptions}
-          onChange={(value) => handleFilterChange(() => setCategory(value))}
-        />
-        <ReplicateMagicItemSelect
-          label="Rarity"
-          value={rarity}
-          options={rarityOptions}
-          onChange={(value) => handleFilterChange(() => setRarity(value))}
-        />
-        <label className={`${styles.field} ${styles.searchField}`}>
-          <span>Search</span>
-          <SearchField
-            className={styles.input}
-            value={query}
-            onValueChange={(value) => handleFilterChange(() => setQuery(value))}
-            placeholder="Search item names..."
-          />
-        </label>
-      </div>
+      {hasKnownPlans ? (
+        <>
+          <div className={`${styles.filterRow} ${styles.replicateFilterRow}`}>
+            <ArtificerPlanSelect
+              value={selectedArtificerPlan}
+              groups={planGroups}
+              onChange={(value) => handleFilterChange(() => setSelectedArtificerPlan(value))}
+            />
+            <ReplicateMagicItemSelect
+              label="Category"
+              value={category}
+              options={categoryOptions}
+              onChange={(value) => handleFilterChange(() => setCategory(value))}
+            />
+            <ReplicateMagicItemSelect
+              label="Rarity"
+              value={rarity}
+              options={rarityOptions}
+              onChange={(value) => handleFilterChange(() => setRarity(value))}
+            />
+            <label className={`${styles.field} ${styles.searchField}`}>
+              <span>Search</span>
+              <SearchField
+                className={styles.input}
+                value={query}
+                onValueChange={(value) => handleFilterChange(() => setQuery(value))}
+                placeholder="Search item names..."
+              />
+            </label>
+          </div>
 
-      <ItemCodexTable
-        items={payload?.results ?? []}
-        totalEntries={payload?.count ?? 0}
-        status={status}
-        currentPage={safePage}
-        totalPages={totalPages}
-        onPageChange={setPage}
-        ordering={ordering}
-        onOrderingChange={(value) => {
-          setOrdering(value);
-          setPage(1);
-        }}
-        onItemSelect={handleItemSelect}
-        heading="Replicate Magic Item Plans"
-        className={styles.itemTable}
-        tableWrapperClassName={styles.itemTableWrapper}
-        paginationClassName={styles.itemTablePagination}
-      />
+          <ItemCodexTable
+            items={payload?.results ?? []}
+            totalEntries={payload?.count ?? 0}
+            status={status}
+            currentPage={safePage}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            ordering={ordering}
+            onOrderingChange={(value) => {
+              setOrdering(value);
+              setPage(1);
+            }}
+            onItemSelect={handleItemSelect}
+            heading="Replicate Magic Item Plans"
+            className={styles.itemTable}
+            tableWrapperClassName={styles.itemTableWrapper}
+            paginationClassName={styles.itemTablePagination}
+          />
+        </>
+      ) : (
+        <p className={styles.warningCard}>Go to Class Features and select available plans.</p>
+      )}
 
       {selectedItemKey ? (
         <EquipmentInventoryItemDrawer

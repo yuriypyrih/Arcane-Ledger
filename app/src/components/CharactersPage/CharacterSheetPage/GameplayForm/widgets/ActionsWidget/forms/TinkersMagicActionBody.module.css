@@ -42,6 +42,14 @@
   flex-shrink: 0;
 }
 
+.warningCard {
+  border-radius: var(--radius-control-lg);
+  background: rgba(139, 51, 33, 0.1);
+  color: #6d2417;
+  margin: 0;
+  padding: 0.8rem 0.9rem;
+}
+
 .useButton {
   gap: 0.55rem;
   margin-left: 0;

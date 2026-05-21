@@ -1,9 +1,10 @@
 import clsx from "clsx";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import ActionButton from "../../../ActionButton";
 import CellContainer from "../../../CellContainer/CellContainer";
 import NumberInput from "../../FormInputs/NumberInput";
 import {
+  DestructiveConfirmationModal,
   OverlayBody,
   OverlayCloseButton,
   OverlayEyebrow,
@@ -24,6 +25,7 @@ import {
   getXpProgressPercent
 } from "../../../../pages/CharactersPage/experience";
 import { restoreHeroicInspirationForCharacter } from "../../../../pages/CharactersPage/heroicInspiration";
+import { reconcileCharacterAfterLevelDecrease } from "../../../../pages/CharactersPage/levelReconciliation";
 import { clampNumber, formatCount } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
@@ -107,6 +109,7 @@ function CharacterProgressModal({
   onClose,
   onPersistCharacter
 }: CharacterProgressModalProps) {
+  const levelDecreaseConfirmationTitleId = useId();
   const [draft, setDraft] = useState<ProgressDraft>(() => createProgressDraft(character));
   const [activeModeBaseDraft, setActiveModeBaseDraft] = useState<ProgressDraft>(() =>
     createProgressDraft(character)
@@ -114,6 +117,7 @@ function CharacterProgressModal({
   const [activeMode, setActiveMode] = useState<ProgressEditMode>("idle");
   const [activeModeValue, setActiveModeValue] = useState("0");
   const [levelInputError, setLevelInputError] = useState<string | null>(null);
+  const [isLevelDecreaseConfirmationOpen, setIsLevelDecreaseConfirmationOpen] = useState(false);
 
   useEffect(() => {
     setDraft(createProgressDraft(character));
@@ -121,6 +125,7 @@ function CharacterProgressModal({
     setActiveMode("idle");
     setActiveModeValue("0");
     setLevelInputError(null);
+    setIsLevelDecreaseConfirmationOpen(false);
   }, [character]);
 
   const currentNextLevelThreshold = getNextLevelThreshold(character.level);
@@ -131,7 +136,7 @@ function CharacterProgressModal({
   const isLevelMode = activeMode === "edit-level";
   const canLevelUp = !isXpMode && draft.level < MAX_CHARACTER_LEVEL;
   const isBeyondStandardLevelUpAvailable = draft.level >= STANDARD_LEVEL_UP_CAP;
-  const saveDisabled = isLevelDecreased || activeMode !== "idle" || !hasChanges;
+  const saveDisabled = activeMode !== "idle" || !hasChanges;
 
   let modeFieldLabel = "";
 
@@ -239,7 +244,7 @@ function CharacterProgressModal({
     setDraft((current) => deriveDraftFromLevel(current.level + 1));
   }
 
-  function saveChanges() {
+  function persistDraftChanges(shouldPruneLevelDecrease: boolean) {
     if (saveDisabled) {
       return;
     }
@@ -251,212 +256,259 @@ function CharacterProgressModal({
         xp: draft.xp
       };
 
-      return draft.level > currentCharacter.level
-        ? restoreHeroicInspirationForCharacter(nextCharacter)
-        : nextCharacter;
+      if (draft.level > currentCharacter.level) {
+        return restoreHeroicInspirationForCharacter(nextCharacter);
+      }
+
+      if (shouldPruneLevelDecrease && draft.level < currentCharacter.level) {
+        return reconcileCharacterAfterLevelDecrease(nextCharacter);
+      }
+
+      return nextCharacter;
     });
 
     onClose();
   }
 
+  function saveChanges() {
+    if (saveDisabled) {
+      return;
+    }
+
+    if (isLevelDecreased) {
+      setIsLevelDecreaseConfirmationOpen(true);
+      return;
+    }
+
+    persistDraftChanges(false);
+  }
+
+  function confirmLevelDecrease() {
+    setIsLevelDecreaseConfirmationOpen(false);
+    persistDraftChanges(true);
+  }
+
   return (
-    <SheetModal titleId="character-progress-modal-title" onClose={closeModal}>
-      <OverlayHeader>
-        <OverlayHeaderContent>
-          <OverlayEyebrow>Character Progress</OverlayEyebrow>
-          <OverlayTitleRow>
-            <OverlayTitle id="character-progress-modal-title">Experience</OverlayTitle>
-          </OverlayTitleRow>
-          <OverlaySummary className={shared.helperText}>
-            Review XP and level changes before saving them to the sheet.
-          </OverlaySummary>
-        </OverlayHeaderContent>
-        <OverlayCloseButton label="Close character progress" onClick={closeModal} />
-      </OverlayHeader>
+    <>
+      <SheetModal titleId="character-progress-modal-title" onClose={closeModal}>
+        <OverlayHeader>
+          <OverlayHeaderContent>
+            <OverlayEyebrow>Character Progress</OverlayEyebrow>
+            <OverlayTitleRow>
+              <OverlayTitle id="character-progress-modal-title">Experience</OverlayTitle>
+            </OverlayTitleRow>
+            <OverlaySummary className={shared.helperText}>
+              Review XP and level changes before saving them to the sheet.
+            </OverlaySummary>
+          </OverlayHeaderContent>
+          <OverlayCloseButton label="Close character progress" onClick={closeModal} />
+        </OverlayHeader>
 
-      <OverlayBody className={styles.body}>
-        <div className={styles.progressMetaRow}>
-          <CellContainer
-            className={styles.progressMetaItem}
-            label="Current XP"
-            content={formatCount(character.xp)}
-          />
-          <CellContainer
-            className={clsx(styles.progressMetaItem, styles.progressMetaItemRight)}
-            labelClassName={styles.progressMetaLabelRight}
-            contentClassName={styles.progressMetaContentRight}
-            label="Next Level XP"
-            content={
-              currentNextLevelThreshold === null
-                ? "MAX"
-                : `${formatCount(currentNextLevelThreshold)} XP`
-            }
-          />
-        </div>
+        <OverlayBody className={styles.body}>
+          <div className={styles.progressMetaRow}>
+            <CellContainer
+              className={styles.progressMetaItem}
+              label="Current XP"
+              content={formatCount(character.xp)}
+            />
+            <CellContainer
+              className={clsx(styles.progressMetaItem, styles.progressMetaItemRight)}
+              labelClassName={styles.progressMetaLabelRight}
+              contentClassName={styles.progressMetaContentRight}
+              label="Next Level XP"
+              content={
+                currentNextLevelThreshold === null
+                  ? "MAX"
+                  : `${formatCount(currentNextLevelThreshold)} XP`
+              }
+            />
+          </div>
 
-        <div className={styles.progressTrack} aria-hidden="true">
-          <div className={styles.progressFill} style={{ width: `${currentXpProgressPercent}%` }} />
-        </div>
+          <div className={styles.progressTrack} aria-hidden="true">
+            <div
+              className={styles.progressFill}
+              style={{ width: `${currentXpProgressPercent}%` }}
+            />
+          </div>
 
-        <div className={styles.progressRows}>
-          <section className={styles.progressRowCard}>
-            <div className={styles.progressRow}>
-              <div className={styles.progressValueBlock}>
-                <span className={styles.progressLabel}>Current XP</span>
-                <strong className={styles.progressValue}>
-                  {`${formatCount(character.xp)} -> ${formatCount(draft.xp)}`}
-                </strong>
+          <div className={styles.progressRows}>
+            <section className={styles.progressRowCard}>
+              <div className={styles.progressRow}>
+                <div className={styles.progressValueBlock}>
+                  <span className={styles.progressLabel}>Current XP</span>
+                  <strong className={styles.progressValue}>
+                    {`${formatCount(character.xp)} -> ${formatCount(draft.xp)}`}
+                  </strong>
+                </div>
+                <div className={styles.progressActions}>
+                  {isXpMode ? (
+                    <>
+                      <button
+                        type="button"
+                        className={clsx(shared.editButton, styles.actionButton)}
+                        onClick={confirmActiveMode}
+                      >
+                        {activeMode === "add-xp" ? "Add" : "Confirm"}
+                      </button>
+                      <button
+                        type="button"
+                        className={clsx(shared.editButton, styles.actionButton)}
+                        onClick={cancelActiveMode}
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        className={clsx(shared.editButton, styles.actionButton)}
+                        onClick={startAddXp}
+                        disabled={isLevelMode}
+                      >
+                        Add XP
+                      </button>
+                      <button
+                        type="button"
+                        className={clsx(shared.editButton, styles.actionButton)}
+                        onClick={startEditXp}
+                        disabled={isLevelMode}
+                      >
+                        Edit
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
-              <div className={styles.progressActions}>
-                {isXpMode ? (
-                  <>
-                    <button
-                      type="button"
-                      className={clsx(shared.editButton, styles.actionButton)}
-                      onClick={confirmActiveMode}
-                    >
-                      {activeMode === "add-xp" ? "Add" : "Confirm"}
-                    </button>
-                    <button
-                      type="button"
-                      className={clsx(shared.editButton, styles.actionButton)}
-                      onClick={cancelActiveMode}
-                    >
-                      Cancel
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      type="button"
-                      className={clsx(shared.editButton, styles.actionButton)}
-                      onClick={startAddXp}
-                      disabled={isLevelMode}
-                    >
-                      Add XP
-                    </button>
-                    <button
-                      type="button"
-                      className={clsx(shared.editButton, styles.actionButton)}
-                      onClick={startEditXp}
-                      disabled={isLevelMode}
-                    >
-                      Edit
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
 
-            {isXpMode ? (
-              <label className={styles.inputField}>
-                <span className={styles.inputLabel}>{modeFieldLabel}</span>
-                <NumberInput
-                  min={0}
-                  value={activeModeValue}
-                  onChange={(event) => handleActiveModeValueChange(event.target.value)}
-                />
-              </label>
-            ) : null}
-          </section>
+              {isXpMode ? (
+                <label className={styles.inputField}>
+                  <span className={styles.inputLabel}>{modeFieldLabel}</span>
+                  <NumberInput
+                    min={0}
+                    value={activeModeValue}
+                    onChange={(event) => handleActiveModeValueChange(event.target.value)}
+                  />
+                </label>
+              ) : null}
+            </section>
 
-          <section className={styles.progressRowCard}>
-            <div className={styles.progressRow}>
-              <div className={styles.progressValueBlock}>
-                <span className={styles.progressLabel}>Current Level</span>
-                <strong className={styles.progressValue}>
-                  {`${character.level} -> ${draft.level}`}
-                </strong>
-              </div>
-              <div className={styles.progressActions}>
-                {isLevelMode ? (
-                  <>
-                    <button
-                      type="button"
-                      className={clsx(shared.editButton, styles.actionButton)}
-                      onClick={confirmActiveMode}
-                    >
-                      Confirm
-                    </button>
-                    <button
-                      type="button"
-                      className={clsx(shared.editButton, styles.actionButton)}
-                      onClick={cancelActiveMode}
-                    >
-                      Cancel
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    {isBeyondStandardLevelUpAvailable ? (
+            <section className={styles.progressRowCard}>
+              <div className={styles.progressRow}>
+                <div className={styles.progressValueBlock}>
+                  <span className={styles.progressLabel}>Current Level</span>
+                  <strong className={styles.progressValue}>
+                    {`${character.level} -> ${draft.level}`}
+                  </strong>
+                </div>
+                <div className={styles.progressActions}>
+                  {isLevelMode ? (
+                    <>
+                      <button
+                        type="button"
+                        className={clsx(shared.editButton, styles.actionButton)}
+                        onClick={confirmActiveMode}
+                      >
+                        Confirm
+                      </button>
+                      <button
+                        type="button"
+                        className={clsx(shared.editButton, styles.actionButton)}
+                        onClick={cancelActiveMode}
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      {isBeyondStandardLevelUpAvailable ? (
+                        <button
+                          type="button"
+                          className={clsx(shared.editButton, styles.actionButton)}
+                          onClick={levelUp}
+                          disabled={!canLevelUp}
+                        >
+                          Level up beyond 20
+                        </button>
+                      ) : null}
                       <button
                         type="button"
                         className={clsx(shared.editButton, styles.actionButton)}
                         onClick={levelUp}
-                        disabled={!canLevelUp}
+                        disabled={isXpMode || draft.level >= STANDARD_LEVEL_UP_CAP}
                       >
-                        Level up beyond 20
+                        Level Up
                       </button>
-                    ) : null}
-                    <button
-                      type="button"
-                      className={clsx(shared.editButton, styles.actionButton)}
-                      onClick={levelUp}
-                      disabled={isXpMode || draft.level >= STANDARD_LEVEL_UP_CAP}
-                    >
-                      Level Up
-                    </button>
-                    <button
-                      type="button"
-                      className={clsx(shared.editButton, styles.actionButton)}
-                      onClick={startEditLevel}
-                      disabled={isXpMode}
-                    >
-                      Edit
-                    </button>
-                  </>
-                )}
+                      <button
+                        type="button"
+                        className={clsx(shared.editButton, styles.actionButton)}
+                        onClick={startEditLevel}
+                        disabled={isXpMode}
+                      >
+                        Edit
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
 
-            {isLevelMode ? (
-              <label className={styles.inputField}>
-                <span className={styles.inputLabel}>{modeFieldLabel}</span>
-                <NumberInput
-                  step={1}
-                  value={activeModeValue}
-                  invalid={Boolean(levelInputError)}
-                  aria-describedby={
-                    levelInputError ? "character-progress-level-input-error" : undefined
-                  }
-                  onChange={(event) => handleActiveModeValueChange(event.target.value)}
-                />
-                {levelInputError ? (
-                  <span id="character-progress-level-input-error" className={styles.errorText}>
-                    {levelInputError}
-                  </span>
-                ) : null}
-              </label>
+              {isLevelMode ? (
+                <label className={styles.inputField}>
+                  <span className={styles.inputLabel}>{modeFieldLabel}</span>
+                  <NumberInput
+                    step={1}
+                    value={activeModeValue}
+                    invalid={Boolean(levelInputError)}
+                    aria-describedby={
+                      levelInputError ? "character-progress-level-input-error" : undefined
+                    }
+                    onChange={(event) => handleActiveModeValueChange(event.target.value)}
+                  />
+                  {levelInputError ? (
+                    <span id="character-progress-level-input-error" className={styles.errorText}>
+                      {levelInputError}
+                    </span>
+                  ) : null}
+                </label>
+              ) : null}
+            </section>
+
+            {isLevelDecreased ? (
+              <p className={styles.warningText}>
+                Saving a lower level will remove class-feature grants and active feature effects
+                that no longer belong to the character&apos;s current level.
+              </p>
             ) : null}
-          </section>
+          </div>
+        </OverlayBody>
 
-          {isLevelDecreased ? (
-            <p className={styles.errorText}>
-              You can&apos;t save a lower level than the character&apos;s current level.
-            </p>
-          ) : null}
-        </div>
-      </OverlayBody>
+        <OverlayFooter className={styles.footer}>
+          <ActionButton variant="GHOST" onClick={closeModal}>
+            Cancel
+          </ActionButton>
+          <ActionButton onClick={saveChanges} disabled={saveDisabled}>
+            Save
+          </ActionButton>
+        </OverlayFooter>
+      </SheetModal>
 
-      <OverlayFooter className={styles.footer}>
-        <ActionButton variant="GHOST" onClick={closeModal}>
-          Cancel
-        </ActionButton>
-        <ActionButton onClick={saveChanges} disabled={saveDisabled}>
-          Save
-        </ActionButton>
-      </OverlayFooter>
-    </SheetModal>
+      {isLevelDecreaseConfirmationOpen ? (
+        <DestructiveConfirmationModal
+          titleId={levelDecreaseConfirmationTitleId}
+          title="Save lower level?"
+          message={
+            <>
+              This will save <strong>level {draft.level}</strong> and prune class-feature feats,
+              active feature effects, and conjured feature items that no longer apply.
+            </>
+          }
+          confirmLabel="Save Lower Level"
+          closeLabel="Close lower level confirmation"
+          onCancel={() => setIsLevelDecreaseConfirmationOpen(false)}
+          onConfirm={confirmLevelDecrease}
+        />
+      ) : null}
+    </>
   );
 }
 
