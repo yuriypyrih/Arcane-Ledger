@@ -6,9 +6,9 @@ services:
     restart: unless-stopped
     labels:
       - traefik.enable=true
-      - traefik.http.routers.tcm.rule=Host(`backend.arcane-ledger.com`)
-      - traefik.http.routers.tcm.entrypoints=websecure
-      - traefik.http.routers.tcm.tls.certresolver=letsencrypt
+      - traefik.http.routers.alb.rule=Host(`backend.arcane-ledger.com`)
+      - traefik.http.routers.alb.entrypoints=websecure
+      - traefik.http.routers.alb.tls.certresolver=letsencrypt
 
   mongodb:
     image: mongo

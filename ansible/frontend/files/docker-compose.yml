@@ -5,9 +5,9 @@ services:
     restart: unless-stopped
     labels:
       - traefik.enable=true
-      - traefik.http.routers.tcm.rule=Host(`arcane-ledger.com`)
-      - traefik.http.routers.tcm.entrypoints=websecure
-      - traefik.http.routers.tcm.tls.certresolver=letsencrypt
+      - traefik.http.routers.alf.rule=Host(`arcane-ledger.com`)
+      - traefik.http.routers.alf.entrypoints=websecure
+      - traefik.http.routers.alf.tls.certresolver=letsencrypt
 
 networks:
   traefik:
