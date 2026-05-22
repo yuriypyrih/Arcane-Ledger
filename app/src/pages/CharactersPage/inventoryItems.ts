@@ -11,6 +11,8 @@ import type {
   CharacterInventoryConjuredSource,
   CharacterInventoryFeatureTag,
   CharacterInventoryItem,
+  CharacterInventoryStoredSpell,
+  CharacterInventoryStoredSpellMode,
   CharacterItemMods,
   CurrencyKey,
   ItemRecord
@@ -18,7 +20,24 @@ import type {
 import { parseItemCost } from "../../utils/items/cost";
 import { adaptItemWeapon, type AdaptedItemWeaponRecord } from "../../utils/items/adaptItemWeapon";
 import type { HeldWeaponDescriptor } from "./inventory";
-import { getEffectiveInventoryItemRecord, normalizeCharacterItemMods } from "./itemMods";
+import {
+  getEffectiveInventoryItemRecord,
+  getItemModsCategory,
+  normalizeCharacterItemMods
+} from "./itemMods";
+import {
+  CONTAINER_OBJECT_LIMIT,
+  INVENTORY_OBJECT_LIMIT,
+  INVENTORY_REFILLABLE_LIMIT,
+  INVENTORY_STACK_QUANTITY_LIMIT
+} from "./inventoryLimits";
+export {
+  CONTAINER_OBJECT_LIMIT,
+  INVENTORY_OBJECT_LIMIT,
+  INVENTORY_REFILLABLE_LIMIT,
+  INVENTORY_STACK_QUANTITY_LIMIT,
+  ITEM_MOD_EFFECT_LIMIT
+} from "./inventoryLimits";
 
 export type InventoryItemCopyReference = {
   id: string;
@@ -58,12 +77,19 @@ type InventoryTransactionCostOptions = {
   rounding?: "ceil" | "floor" | "round";
 };
 
-export const CONTAINER_OBJECT_LIMIT = 100;
 export const BAG_OF_HOLDING_WEIGHT_LIMIT_LB = 500;
 
 export type InventoryItemModsSaveResult = {
   inventoryItems: CharacterInventoryItem[];
   stackId: string | null;
+};
+
+export type InventoryItemSettingsSavePayload = {
+  chargesTotal?: number | null;
+  storedSpell?: CharacterInventoryStoredSpell;
+  featureTags?: CharacterInventoryFeatureTag[];
+  conjuredSource?: CharacterInventoryConjuredSource;
+  conjuredDuration?: CharacterInventoryConjuredDuration;
 };
 
 type InventoryFeatureTagLabelOptions = {
@@ -126,8 +152,6 @@ export const ITEM_CONTAINER_KEYS = [
   "srd_bag-of-holding"
 ] as const;
 
-export const INVENTORY_OBJECT_LIMIT = 200;
-
 const bagOfHoldingContainerKeys = new Set<string>([
   "srd-2024_bag-of-holding",
   "srd_bag-of-holding"
@@ -137,10 +161,17 @@ const moddedItemKeyMarker = "-modded-";
 
 export const INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE = "pact-of-the-blade";
 export const INVENTORY_FEATURE_TAG_CONJURED = "conjured";
+export const INVENTORY_CONJURED_SOURCE_MANUAL = "manual";
 export const INVENTORY_CONJURED_SOURCE_TINKERS_MAGIC = "tinkers-magic";
 export const INVENTORY_CONJURED_SOURCE_REPLICATE_MAGIC_ITEM = "replicate-magic-item";
 export const INVENTORY_CONJURED_SOURCE_PACT_OF_THE_BLADE = "pact-of-the-blade";
+export const INVENTORY_CONJURED_DURATION_DEATH = "death";
+export const INVENTORY_CONJURED_DURATION_SHORT_REST = "short-rest";
 export const INVENTORY_CONJURED_DURATION_LONG_REST = "long-rest";
+export const INVENTORY_STORED_SPELL_MODE_DEFAULT = "default";
+export const INVENTORY_STORED_SPELL_MODE_CONSUME_CHARGES = "consume-charges";
+export const INVENTORY_STORED_SPELL_MODE_CONSUME_CHARGES_DESTRUCTIBLE =
+  "consume-charges-destructible";
 
 const legacyInventoryFeatureTagReplicateMagicItem = "replicate-magic-item";
 
@@ -150,12 +181,15 @@ const inventoryFeatureTagLabels: Record<CharacterInventoryFeatureTag, string> = 
 };
 
 const inventoryConjuredSourceLabels: Record<CharacterInventoryConjuredSource, string> = {
+  [INVENTORY_CONJURED_SOURCE_MANUAL]: "Manual",
   [INVENTORY_CONJURED_SOURCE_TINKERS_MAGIC]: "Tinker's Magic",
   [INVENTORY_CONJURED_SOURCE_REPLICATE_MAGIC_ITEM]: "Replicate Magic Item",
   [INVENTORY_CONJURED_SOURCE_PACT_OF_THE_BLADE]: "Pact of the Blade"
 };
 
 const inventoryConjuredDurationLabels: Record<CharacterInventoryConjuredDuration, string> = {
+  [INVENTORY_CONJURED_DURATION_DEATH]: "On Death",
+  [INVENTORY_CONJURED_DURATION_SHORT_REST]: "Until Short Rest",
   [INVENTORY_CONJURED_DURATION_LONG_REST]: "Until Long Rest"
 };
 
@@ -261,11 +295,25 @@ function normalizeBoolean(value: unknown): boolean {
   return value === true;
 }
 
-function normalizeStackNumber(value: unknown, fallback: number, min = 0): number {
+function normalizeStackNumber(
+  value: unknown,
+  fallback: number,
+  min = 0,
+  max?: number
+): number {
   const parsedValue = Number(value);
   const safeValue = Number.isFinite(parsedValue) ? parsedValue : fallback;
+  const normalizedValue = Math.max(min, Math.floor(safeValue));
 
-  return Math.max(min, Math.floor(safeValue));
+  return max === undefined ? normalizedValue : Math.min(max, normalizedValue);
+}
+
+function normalizeInventoryStackQuantity(value: unknown, fallback: number, min = 0): number {
+  return normalizeStackNumber(value, fallback, min, INVENTORY_STACK_QUANTITY_LIMIT);
+}
+
+function normalizeInventoryRefillableNumber(value: unknown, fallback: number, min = 0): number {
+  return normalizeStackNumber(value, fallback, min, INVENTORY_REFILLABLE_LIMIT);
 }
 
 function normalizeItemRecord(value: unknown): ItemRecord | null {
@@ -313,18 +361,63 @@ function hasLegacyReplicateMagicItemFeatureTag(value: unknown): boolean {
   return Array.isArray(value) && value.includes(legacyInventoryFeatureTagReplicateMagicItem);
 }
 
+function normalizeInventoryChargesTotal(value: unknown): number | null | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (value === null) {
+    return null;
+  }
+
+  return normalizeInventoryRefillableNumber(value, 1, 1);
+}
+
+function normalizeInventoryStoredSpellMode(
+  value: unknown
+): CharacterInventoryStoredSpellMode | null {
+  return value === INVENTORY_STORED_SPELL_MODE_DEFAULT ||
+    value === INVENTORY_STORED_SPELL_MODE_CONSUME_CHARGES ||
+    value === INVENTORY_STORED_SPELL_MODE_CONSUME_CHARGES_DESTRUCTIBLE
+    ? value
+    : null;
+}
+
+function normalizeInventoryStoredSpell(value: unknown): CharacterInventoryStoredSpell | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const record = value as Partial<CharacterInventoryStoredSpell>;
+  const spellId = typeof record.spellId === "string" ? record.spellId.trim() : "";
+  const mode = normalizeInventoryStoredSpellMode(record.mode);
+
+  if (!spellId || !mode) {
+    return undefined;
+  }
+
+  return {
+    spellId,
+    mode,
+    chargeCost: normalizeInventoryRefillableNumber(record.chargeCost, 1, 1)
+  };
+}
+
 function normalizeInventoryConjuredDuration(
   value: unknown
 ): CharacterInventoryConjuredDuration | undefined {
-  return value === INVENTORY_CONJURED_DURATION_LONG_REST
-    ? INVENTORY_CONJURED_DURATION_LONG_REST
+  return value === INVENTORY_CONJURED_DURATION_DEATH ||
+    value === INVENTORY_CONJURED_DURATION_SHORT_REST ||
+    value === INVENTORY_CONJURED_DURATION_LONG_REST
+    ? value
     : undefined;
 }
 
 function normalizeInventoryConjuredSource(
   value: unknown
 ): CharacterInventoryConjuredSource | undefined {
-  return value === INVENTORY_CONJURED_SOURCE_TINKERS_MAGIC ||
+  return value === INVENTORY_CONJURED_SOURCE_MANUAL ||
+    value === INVENTORY_CONJURED_SOURCE_TINKERS_MAGIC ||
     value === INVENTORY_CONJURED_SOURCE_REPLICATE_MAGIC_ITEM ||
     value === INVENTORY_CONJURED_SOURCE_PACT_OF_THE_BLADE
     ? value
@@ -346,6 +439,15 @@ function normalizeInventoryConjuredSourceForFeatureTags(
     (hasLegacyReplicateMagicItemFeatureTag(featureTags)
       ? INVENTORY_CONJURED_SOURCE_REPLICATE_MAGIC_ITEM
       : undefined)
+  );
+}
+
+function hasInventoryItemExplicitSettings(
+  entry: Pick<CharacterInventoryItem, "chargesTotal" | "storedSpell"> | null | undefined
+): boolean {
+  return (
+    normalizeInventoryChargesTotal(entry?.chargesTotal) !== undefined ||
+    normalizeInventoryStoredSpell(entry?.storedSpell) !== undefined
   );
 }
 
@@ -373,10 +475,14 @@ export function isBagOfHoldingInventoryItem(
 
 function getContainerContentStackKey(entry: CharacterContainerContentItem, index: number): string {
   const featureTags = normalizeInventoryFeatureTags(entry.featureTags);
+  const chargesTotal = normalizeInventoryChargesTotal(entry.chargesTotal);
+  const storedSpell = normalizeInventoryStoredSpell(entry.storedSpell);
   const isSimpleStack =
     !entry.attuned &&
     !entry.mods &&
     entry.usesRemaining === undefined &&
+    chargesTotal === undefined &&
+    storedSpell === undefined &&
     !entry.conjuredSource &&
     !entry.conjuredDuration &&
     (featureTags?.length ?? 0) === 0;
@@ -387,12 +493,29 @@ function getContainerContentStackKey(entry: CharacterContainerContentItem, index
 function normalizeContainerContentItem(
   entry: CharacterContainerContentItem
 ): CharacterContainerContentItem {
-  const quantity = normalizeStackNumber(entry.quantity, 1, 1);
   const mods = normalizeCharacterItemMods(entry.mods);
-  const featureTags = normalizeInventoryFeatureTags(entry.featureTags);
+  const chargesTotal = normalizeInventoryChargesTotal(entry.chargesTotal);
+  const storedSpell = normalizeInventoryStoredSpell(entry.storedSpell);
+  const hasExplicitSettings = chargesTotal !== undefined || storedSpell !== undefined;
+  const quantity = hasExplicitSettings ? 1 : normalizeInventoryStackQuantity(entry.quantity, 1, 1);
+  const effectiveItem = getEffectiveInventoryItemRecord({
+    id: "container-content",
+    item: entry.item,
+    quantity,
+    onHandQuantity: 0,
+    worn: false,
+    ...(mods ? { mods } : {})
+  });
+  let featureTags = normalizeInventoryFeatureTags(entry.featureTags);
+
+  if (featureTags?.includes(INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE) && !effectiveItem.weapon) {
+    featureTags = featureTags.filter((tag) => tag !== INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE);
+    featureTags = featureTags.length > 0 ? featureTags : undefined;
+  }
+
   const conjuredSource = normalizeInventoryConjuredSourceForFeatureTags(
     entry.conjuredSource,
-    entry.featureTags
+    featureTags
   );
   const conjuredDuration = featureTags?.includes(INVENTORY_FEATURE_TAG_CONJURED)
     ? normalizeInventoryConjuredDuration(entry.conjuredDuration)
@@ -401,32 +524,22 @@ function normalizeContainerContentItem(
     item: entry.item,
     quantity,
     featureTags,
+    ...(chargesTotal !== undefined ? { chargesTotal } : {}),
+    ...(storedSpell ? { storedSpell } : {}),
     ...(conjuredSource ? { conjuredSource } : {}),
     ...(conjuredDuration ? { conjuredDuration } : {}),
     ...(mods ? { mods } : {})
   };
-  const effectiveItem = getEffectiveInventoryItemRecord({
-    id: "container-content",
-    item: entry.item,
-    quantity,
-    onHandQuantity: 0,
-    worn: false,
-    featureTags,
-    ...(conjuredSource ? { conjuredSource } : {}),
-    ...(conjuredDuration ? { conjuredDuration } : {}),
-    ...(mods ? { mods } : {})
-  });
-  const usesPerCopy = getInventoryItemUsesPerCopy(entry.item);
+  const useTotal = getInventoryItemUseTotalForValues(entry.item, quantity, chargesTotal);
 
   if (isInventoryItemAttunable(effectiveItem)) {
     normalizedEntry.attuned = Boolean(entry.attuned);
   }
 
-  if (usesPerCopy !== null) {
-    const total = quantity * usesPerCopy;
+  if (useTotal !== null) {
     normalizedEntry.usesRemaining = Math.min(
-      total,
-      normalizeStackNumber(entry.usesRemaining, total)
+      useTotal,
+      normalizeInventoryRefillableNumber(entry.usesRemaining, useTotal)
     );
   }
 
@@ -449,6 +562,8 @@ function normalizeCharacterContainerContentItems(value: unknown): CharacterConta
       quantity?: unknown;
       attuned?: unknown;
       usesRemaining?: unknown;
+      chargesTotal?: unknown;
+      storedSpell?: unknown;
       featureTags?: unknown;
       conjuredSource?: unknown;
       conjuredDuration?: unknown;
@@ -463,12 +578,14 @@ function normalizeCharacterContainerContentItems(value: unknown): CharacterConta
     const featureTags = normalizeInventoryFeatureTags(record.featureTags);
     const contentItem = normalizeContainerContentItem({
       item,
-      quantity: record.quantity !== undefined ? normalizeStackNumber(record.quantity, 1, 1) : 1,
+      quantity: record.quantity !== undefined ? normalizeInventoryStackQuantity(record.quantity, 1, 1) : 1,
       attuned: normalizeBoolean(record.attuned),
       usesRemaining:
         record.usesRemaining !== undefined
-          ? normalizeStackNumber(record.usesRemaining, 0)
+          ? normalizeInventoryRefillableNumber(record.usesRemaining, 0)
           : undefined,
+      chargesTotal: normalizeInventoryChargesTotal(record.chargesTotal),
+      storedSpell: normalizeInventoryStoredSpell(record.storedSpell),
       featureTags,
       conjuredSource: normalizeInventoryConjuredSourceForFeatureTags(
         record.conjuredSource,
@@ -495,7 +612,45 @@ function normalizeCharacterContainerContentItems(value: unknown): CharacterConta
     );
   });
 
-  return [...contentsByMergeKey.values()];
+  return [...contentsByMergeKey.values()].slice(0, CONTAINER_OBJECT_LIMIT);
+}
+
+function trimInventoryItemsToObjectLimit(
+  inventoryItems: CharacterInventoryItem[]
+): CharacterInventoryItem[] {
+  const trimmedInventoryItems: CharacterInventoryItem[] = [];
+  let objectCount = 0;
+
+  for (const entry of inventoryItems) {
+    if (objectCount >= INVENTORY_OBJECT_LIMIT) {
+      break;
+    }
+
+    const remainingContentSlots = INVENTORY_OBJECT_LIMIT - objectCount - 1;
+
+    if (remainingContentSlots < 0) {
+      break;
+    }
+
+    if (!isInventoryContainerItem(entry)) {
+      trimmedInventoryItems.push(entry);
+      objectCount += 1;
+      continue;
+    }
+
+    const containerContents = getInventoryContainerContents(entry).slice(
+      0,
+      Math.min(CONTAINER_OBJECT_LIMIT, remainingContentSlots)
+    );
+
+    trimmedInventoryItems.push({
+      ...entry,
+      containerContents
+    });
+    objectCount += 1 + containerContents.length;
+  }
+
+  return trimmedInventoryItems;
 }
 
 function addInventoryItemFeatureTag(
@@ -514,9 +669,15 @@ function addInventoryItemFeatureTag(
 function normalizeInventoryStack(entry: CharacterInventoryItem): CharacterInventoryItem {
   const isContainer = isInventoryContainerItem(entry);
   const mods = normalizeCharacterItemMods(entry.mods);
-  const isUniqueStack = isContainer || Boolean(mods);
-  const quantity = isUniqueStack ? 1 : Math.max(1, Math.floor(entry.quantity));
-  const onHandQuantity = Math.min(quantity, Math.max(0, Math.floor(entry.onHandQuantity)));
+  const chargesTotal = normalizeInventoryChargesTotal(entry.chargesTotal);
+  const storedSpell = normalizeInventoryStoredSpell(entry.storedSpell);
+  const hasExplicitSettings = chargesTotal !== undefined || storedSpell !== undefined;
+  const isUniqueStack = isContainer || Boolean(mods) || hasExplicitSettings;
+  const quantity = isUniqueStack ? 1 : normalizeInventoryStackQuantity(entry.quantity, 1, 1);
+  const onHandQuantity = Math.min(
+    quantity,
+    normalizeInventoryStackQuantity(entry.onHandQuantity, 0)
+  );
   const effectiveItem = getEffectiveInventoryItemRecord({ ...entry, mods });
   const item =
     mods && !mods.isCustom && !isContainer
@@ -528,10 +689,16 @@ function normalizeInventoryStack(entry: CharacterInventoryItem): CharacterInvent
           entry.id
         )
       : entry.item;
-  const featureTags = normalizeInventoryFeatureTags(entry.featureTags);
+  let featureTags = normalizeInventoryFeatureTags(entry.featureTags);
+
+  if (featureTags?.includes(INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE) && !effectiveItem.weapon) {
+    featureTags = featureTags.filter((tag) => tag !== INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE);
+    featureTags = featureTags.length > 0 ? featureTags : undefined;
+  }
+
   const conjuredSource = normalizeInventoryConjuredSourceForFeatureTags(
     entry.conjuredSource,
-    entry.featureTags
+    featureTags
   );
   const conjuredDuration = featureTags?.includes(INVENTORY_FEATURE_TAG_CONJURED)
     ? normalizeInventoryConjuredDuration(entry.conjuredDuration)
@@ -546,22 +713,23 @@ function normalizeInventoryStack(entry: CharacterInventoryItem): CharacterInvent
     onHandQuantity,
     worn: Boolean(entry.worn),
     featureTags,
+    ...(chargesTotal !== undefined ? { chargesTotal } : {}),
+    ...(storedSpell ? { storedSpell } : {}),
     ...(conjuredSource ? { conjuredSource } : {}),
     ...(conjuredDuration ? { conjuredDuration } : {}),
     ...(mods ? { mods } : {}),
     ...(isContainer ? { containerContents: containerContents ?? [] } : {})
   };
-  const usesPerCopy = getInventoryItemUsesPerCopy(entry.item);
+  const useTotal = getInventoryItemUseTotalForValues(entry.item, quantity, chargesTotal);
 
   if (isInventoryItemAttunable(effectiveItem)) {
     normalizedStack.attuned = Boolean(entry.attuned);
   }
 
-  if (usesPerCopy !== null) {
-    const total = quantity * usesPerCopy;
+  if (useTotal !== null) {
     normalizedStack.usesRemaining = Math.min(
-      total,
-      normalizeStackNumber(entry.usesRemaining, total)
+      useTotal,
+      normalizeInventoryRefillableNumber(entry.usesRemaining, useTotal)
     );
   }
 
@@ -666,6 +834,8 @@ export function createCharacterInventoryItem(
     worn?: boolean;
     attuned?: boolean;
     usesRemaining?: number;
+    chargesTotal?: number | null;
+    storedSpell?: CharacterInventoryStoredSpell;
     featureTags?: CharacterInventoryFeatureTag[];
     conjuredSource?: CharacterInventoryConjuredSource;
     conjuredDuration?: CharacterInventoryConjuredDuration;
@@ -673,10 +843,10 @@ export function createCharacterInventoryItem(
     containerContents?: CharacterContainerContentItem[];
   }
 ): CharacterInventoryItem {
-  const quantity = normalizeStackNumber(options?.quantity, 1, 1);
+  const quantity = normalizeInventoryStackQuantity(options?.quantity, 1, 1);
   const onHandQuantity =
     options?.onHandQuantity !== undefined
-      ? normalizeStackNumber(options.onHandQuantity, 0)
+      ? normalizeInventoryStackQuantity(options.onHandQuantity, 0)
       : options?.onHand
         ? 1
         : 0;
@@ -689,6 +859,8 @@ export function createCharacterInventoryItem(
     worn: Boolean(options?.worn),
     attuned: Boolean(options?.attuned),
     usesRemaining: options?.usesRemaining,
+    chargesTotal: options?.chargesTotal,
+    storedSpell: options?.storedSpell,
     featureTags: options?.featureTags,
     conjuredSource: options?.conjuredSource,
     conjuredDuration: options?.conjuredDuration,
@@ -703,6 +875,8 @@ export function createCharacterContainerContentItem(
     quantity?: number;
     attuned?: boolean;
     usesRemaining?: number;
+    chargesTotal?: number | null;
+    storedSpell?: CharacterInventoryStoredSpell;
     featureTags?: CharacterInventoryFeatureTag[];
     conjuredSource?: CharacterInventoryConjuredSource;
     conjuredDuration?: CharacterInventoryConjuredDuration;
@@ -715,9 +889,11 @@ export function createCharacterContainerContentItem(
 
   return normalizeContainerContentItem({
     item,
-    quantity: normalizeStackNumber(options?.quantity, 1, 1),
+    quantity: normalizeInventoryStackQuantity(options?.quantity, 1, 1),
     attuned: Boolean(options?.attuned),
     usesRemaining: options?.usesRemaining,
+    chargesTotal: options?.chargesTotal,
+    storedSpell: options?.storedSpell,
     featureTags: options?.featureTags,
     conjuredSource: options?.conjuredSource,
     conjuredDuration: options?.conjuredDuration,
@@ -756,6 +932,8 @@ export function normalizeCharacterInventoryItems(value: unknown): CharacterInven
       onHandQuantity?: unknown;
       attuned?: unknown;
       usesRemaining?: unknown;
+      chargesTotal?: unknown;
+      storedSpell?: unknown;
       featureTags?: unknown;
       conjuredSource?: unknown;
       conjuredDuration?: unknown;
@@ -771,12 +949,14 @@ export function normalizeCharacterInventoryItems(value: unknown): CharacterInven
     const key = getItemRecordKey(item);
     const isContainer = isItemContainerRecord(item);
     const mods = normalizeCharacterItemMods(record.mods);
-    const isUniqueStack = isContainer || Boolean(mods);
+    const chargesTotal = normalizeInventoryChargesTotal(record.chargesTotal);
+    const storedSpell = normalizeInventoryStoredSpell(record.storedSpell);
+    const isUniqueStack = isContainer || Boolean(mods) || chargesTotal !== undefined || storedSpell !== undefined;
     const quantity =
-      record.quantity !== undefined ? normalizeStackNumber(record.quantity, 1, 1) : 1;
+      record.quantity !== undefined ? normalizeInventoryStackQuantity(record.quantity, 1, 1) : 1;
     const onHandQuantity =
       record.onHandQuantity !== undefined
-        ? normalizeStackNumber(record.onHandQuantity, 0)
+        ? normalizeInventoryStackQuantity(record.onHandQuantity, 0)
         : normalizeBoolean(record.onHand)
           ? 1
           : 0;
@@ -796,8 +976,10 @@ export function normalizeCharacterInventoryItems(value: unknown): CharacterInven
         attuned: !isUniqueStack || copyIndex === 0 ? normalizeBoolean(record.attuned) : false,
         usesRemaining:
           record.usesRemaining !== undefined
-            ? normalizeStackNumber(record.usesRemaining, 0)
+            ? normalizeInventoryRefillableNumber(record.usesRemaining, 0)
             : undefined,
+        chargesTotal,
+        storedSpell,
         featureTags,
         conjuredSource,
         conjuredDuration: normalizeInventoryConjuredDuration(record.conjuredDuration),
@@ -835,7 +1017,9 @@ export function normalizeCharacterInventoryItems(value: unknown): CharacterInven
     }
   });
 
-  return [...stacksByMergeKey.values()].map(normalizeInventoryStack);
+  return trimInventoryItemsToObjectLimit(
+    [...stacksByMergeKey.values()].map(normalizeInventoryStack)
+  );
 }
 
 export function getItemRecordKey(item: ItemRecord | null | undefined): string {
@@ -847,11 +1031,14 @@ export function getItemRecordName(item: ItemRecord | null | undefined): string {
 }
 
 export function getInventoryItemQuantity(entry: CharacterInventoryItem): number {
-  return normalizeStackNumber(entry.quantity, 1, 1);
+  return normalizeInventoryStackQuantity(entry.quantity, 1, 1);
 }
 
 export function getInventoryItemOnHandQuantity(entry: CharacterInventoryItem): number {
-  return Math.min(getInventoryItemQuantity(entry), normalizeStackNumber(entry.onHandQuantity, 0));
+  return Math.min(
+    getInventoryItemQuantity(entry),
+    normalizeInventoryStackQuantity(entry.onHandQuantity, 0)
+  );
 }
 
 export function getInventoryItemAvailableQuantity(entry: CharacterInventoryItem): number {
@@ -872,13 +1059,45 @@ function getInventoryItemUsesPerCopy(item: ItemRecord | null | undefined): numbe
     inventoryItemUsesPerCopyByKey[key] ??
     inventoryItemUsesPerCopyByKey[getUnmoddedInventoryItemKey(item)];
 
-  return usesPerCopy ? usesPerCopy : null;
+  return usesPerCopy ? Math.min(INVENTORY_REFILLABLE_LIMIT, usesPerCopy) : null;
+}
+
+export function getDefaultInventoryItemChargesTotal(
+  item: ItemRecord | null | undefined
+): number | null {
+  return getInventoryItemUsesPerCopy(item);
+}
+
+export function getInventoryItemExplicitChargesTotal(
+  entry: Pick<CharacterInventoryItem, "chargesTotal"> | null | undefined
+): number | null | undefined {
+  return normalizeInventoryChargesTotal(entry?.chargesTotal);
+}
+
+function getInventoryItemUseTotalForValues(
+  item: ItemRecord | null | undefined,
+  quantity: number,
+  chargesTotal: number | null | undefined
+): number | null {
+  if (chargesTotal === null) {
+    return null;
+  }
+
+  if (chargesTotal !== undefined) {
+    return Math.min(INVENTORY_REFILLABLE_LIMIT, chargesTotal);
+  }
+
+  const usesPerCopy = getInventoryItemUsesPerCopy(item);
+
+  return usesPerCopy === null
+    ? null
+    : Math.min(INVENTORY_REFILLABLE_LIMIT, quantity * usesPerCopy);
 }
 
 function getInventoryItemUseTotal(entry: CharacterInventoryItem): number | null {
-  const usesPerCopy = getInventoryItemUsesPerCopy(entry.item);
+  const chargesTotal = normalizeInventoryChargesTotal(entry.chargesTotal);
 
-  return usesPerCopy === null ? null : getInventoryItemQuantity(entry) * usesPerCopy;
+  return getInventoryItemUseTotalForValues(entry.item, getInventoryItemQuantity(entry), chargesTotal);
 }
 
 export function getInventoryItemUseState(
@@ -895,9 +1114,15 @@ export function getInventoryItemUseState(
   }
 
   return {
-    remaining: Math.min(total, normalizeStackNumber(entry.usesRemaining, total)),
+    remaining: Math.min(total, normalizeInventoryRefillableNumber(entry.usesRemaining, total)),
     total
   };
+}
+
+export function getInventoryItemStoredSpell(
+  entry: Pick<CharacterInventoryItem, "storedSpell"> | null | undefined
+): CharacterInventoryStoredSpell | null {
+  return normalizeInventoryStoredSpell(entry?.storedSpell) ?? null;
 }
 
 function getContainerContentUseState(
@@ -907,16 +1132,18 @@ function getContainerContentUseState(
     return null;
   }
 
-  const usesPerCopy = getInventoryItemUsesPerCopy(entry.item);
+  const total = getInventoryItemUseTotalForValues(
+    entry.item,
+    getInventoryItemQuantity(entry as CharacterInventoryItem),
+    normalizeInventoryChargesTotal(entry.chargesTotal)
+  );
 
-  if (usesPerCopy === null) {
+  if (total === null) {
     return null;
   }
 
-  const total = getInventoryItemQuantity(entry as CharacterInventoryItem) * usesPerCopy;
-
   return {
-    remaining: Math.min(total, normalizeStackNumber(entry.usesRemaining, total)),
+    remaining: Math.min(total, normalizeInventoryRefillableNumber(entry.usesRemaining, total)),
     total
   };
 }
@@ -969,7 +1196,7 @@ export function getInventoryContainerContentCount(
   entry: Pick<CharacterInventoryItem, "item" | "containerContents"> | null | undefined
 ): number {
   return getInventoryContainerContents(entry).reduce(
-    (totalCount, content) => totalCount + normalizeStackNumber(content.quantity, 0),
+    (totalCount, content) => totalCount + normalizeInventoryStackQuantity(content.quantity, 0),
     0
   );
 }
@@ -991,7 +1218,7 @@ function getInventoryAddObjectDelta(
   inventoryItems: CharacterInventoryItem[],
   target: InventoryAddObjectTarget
 ): number {
-  const quantity = normalizeStackNumber(target.quantity, 1, 1);
+  const quantity = normalizeInventoryStackQuantity(target.quantity, 1, 1);
 
   if (target.kind === "root-stack") {
     return findInventoryItemStackById(inventoryItems, target.stackId) ? 0 : 1;
@@ -1002,16 +1229,24 @@ function getInventoryAddObjectDelta(
   }
 
   if (target.kind === "container-content") {
-    return getInventoryContainerContentByIndex(
+    const content = getInventoryContainerContentByIndex(
       inventoryItems,
       target.containerStackId,
       target.contentIndex
-    )
-      ? 0
-      : 1;
+    );
+
+    if (!content) {
+      return 1;
+    }
+
+    return getContainerContentStackKey(content, target.contentIndex).startsWith("unique:") ? 1 : 0;
   }
 
   if (isItemContainerRecord(target.item)) {
+    return quantity;
+  }
+
+  if (getDefaultInventoryItemChargesTotal(target.item) !== null) {
     return quantity;
   }
 
@@ -1071,6 +1306,8 @@ export function createInventoryItemFromContainerContent(
     quantity: content.quantity,
     attuned: content.attuned,
     usesRemaining: content.usesRemaining,
+    chargesTotal: content.chargesTotal,
+    storedSpell: content.storedSpell,
     featureTags: content.featureTags,
     conjuredSource: content.conjuredSource,
     conjuredDuration: content.conjuredDuration,
@@ -1111,6 +1348,7 @@ function findUntaggedInventoryItemStackByKey(
       (entry) =>
         getItemRecordKey(entry.item) === itemKey &&
         !normalizeCharacterItemMods(entry.mods) &&
+        !hasInventoryItemExplicitSettings(entry) &&
         (normalizeInventoryFeatureTags(entry.featureTags)?.length ?? 0) === 0
     ) ?? null
   );
@@ -1179,6 +1417,12 @@ export function isLongRestConjuredInventoryItem(
   return getInventoryItemConjuredDuration(entry) === INVENTORY_CONJURED_DURATION_LONG_REST;
 }
 
+export function isShortRestConjuredInventoryItem(
+  entry: Pick<CharacterInventoryItem, "featureTags" | "conjuredDuration"> | null | undefined
+): boolean {
+  return getInventoryItemConjuredDuration(entry) === INVENTORY_CONJURED_DURATION_SHORT_REST;
+}
+
 export function getInventoryItemConjuredFeatureTagLabel(
   entry:
     | Pick<CharacterInventoryItem, "featureTags" | "conjuredSource" | "conjuredDuration">
@@ -1238,6 +1482,14 @@ export function hasLongRestConjuredInventoryItems(
   );
 }
 
+export function hasShortRestConjuredInventoryItems(
+  inventoryItems: CharacterInventoryItem[]
+): boolean {
+  return createInventoryItemsWithContainerContents(inventoryItems).some(
+    isShortRestConjuredInventoryItem
+  );
+}
+
 export function removeConjuredInventoryItems(
   inventoryItems: CharacterInventoryItem[]
 ): CharacterInventoryItem[] {
@@ -1271,6 +1523,28 @@ export function removeLongRestConjuredInventoryItems(
             ...entry,
             containerContents: getInventoryContainerContents(entry).filter(
               (content) => !isLongRestConjuredInventoryItem(content)
+            )
+          })
+        : entry
+    );
+
+  return nextInventoryItems.length === inventoryItems.length &&
+    nextInventoryItems.every((entry, index) => entry === inventoryItems[index])
+    ? inventoryItems
+    : nextInventoryItems;
+}
+
+export function removeShortRestConjuredInventoryItems(
+  inventoryItems: CharacterInventoryItem[]
+): CharacterInventoryItem[] {
+  const nextInventoryItems = inventoryItems
+    .filter((entry) => !isShortRestConjuredInventoryItem(entry))
+    .map((entry) =>
+      isInventoryContainerItem(entry)
+        ? normalizeInventoryStack({
+            ...entry,
+            containerContents: getInventoryContainerContents(entry).filter(
+              (content) => !isShortRestConjuredInventoryItem(content)
             )
           })
         : entry
@@ -1331,7 +1605,7 @@ export function setPactOfTheBladeInventoryItemById(
   const clearedInventoryItems = clearPactOfTheBladeInventoryTags(inventoryItems);
 
   return clearedInventoryItems.map((entry) =>
-    entry.id === resolvedStackId
+    entry.id === resolvedStackId && getEffectiveInventoryItemRecord(entry).weapon
       ? addInventoryItemFeatureTag(entry, INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE)
       : entry
   );
@@ -1360,10 +1634,27 @@ export function addConjuredInventoryItemCopies(
     conjuredDuration?: CharacterInventoryConjuredDuration;
   }
 ): CharacterInventoryItem[] {
-  const normalizedQuantity = normalizeStackNumber(quantity, 0);
+  const normalizedQuantity = normalizeInventoryStackQuantity(quantity, 0);
 
   if (!item.key || normalizedQuantity === 0) {
     return inventoryItems;
+  }
+
+  const defaultChargesTotal = getDefaultInventoryItemChargesTotal(item);
+
+  if (defaultChargesTotal !== null) {
+    return [
+      ...inventoryItems,
+      ...Array.from({ length: normalizedQuantity }, () =>
+        createCharacterInventoryItem(item, {
+          quantity: 1,
+          chargesTotal: defaultChargesTotal,
+          featureTags: [INVENTORY_FEATURE_TAG_CONJURED],
+          conjuredSource: options?.conjuredSource,
+          conjuredDuration: options?.conjuredDuration
+        })
+      )
+    ];
   }
 
   return [
@@ -1394,11 +1685,71 @@ function getSourceFeatureTagsAfterModdedTransform(
   return nextTags.length > 0 ? nextTags : undefined;
 }
 
-function getMovedInventoryItemUsesRemaining(entry: CharacterInventoryItem): number | undefined {
-  const usesPerCopy = getInventoryItemUsesPerCopy(entry.item);
-  const useState = getInventoryItemUseState(entry);
+function getSavedInventoryItemFeatureTags(
+  entry: CharacterInventoryItem,
+  mods: CharacterItemMods
+): CharacterInventoryFeatureTag[] | undefined {
+  return getSavedInventoryFeatureTagsForMods(entry.featureTags, mods);
+}
 
-  if (usesPerCopy === null || !useState) {
+function getSavedInventoryFeatureTagsForMods(
+  featureTags: CharacterInventoryFeatureTag[] | undefined,
+  mods: CharacterItemMods
+): CharacterInventoryFeatureTag[] | undefined {
+  if (mods.baseCategory === "weapon") {
+    return normalizeInventoryFeatureTags(featureTags);
+  }
+
+  const nextTags = (normalizeInventoryFeatureTags(featureTags) ?? []).filter(
+    (tag) => tag !== INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE
+  );
+
+  return nextTags.length > 0 ? nextTags : undefined;
+}
+
+function getInventoryItemModsForSave(
+  entry: CharacterInventoryItem,
+  mods: CharacterItemMods
+): CharacterItemMods {
+  const currentCategory = getItemModsCategory(entry);
+  const locksArchetype =
+    isInventoryContainerItem(entry) ||
+    isPactOfTheBladeInventoryItem(entry) ||
+    isItemEquipmentPackRecord(entry.item) ||
+    isItemEquipmentPackRecord(getEffectiveInventoryItemRecord(entry));
+
+  if (!locksArchetype || mods.baseCategory === currentCategory) {
+    return mods;
+  }
+
+  return normalizeCharacterItemMods({
+    ...mods,
+    baseCategory: currentCategory
+  }) ?? mods;
+}
+
+function didInventoryItemBaseArchetypeChange(
+  entry: CharacterInventoryItem,
+  mods: CharacterItemMods
+): boolean {
+  return getItemModsCategory(entry) !== mods.baseCategory;
+}
+
+function getMovedInventoryItemUsesRemaining(entry: CharacterInventoryItem): number | undefined {
+  const useState = getInventoryItemUseState(entry);
+  const chargesTotal = normalizeInventoryChargesTotal(entry.chargesTotal);
+
+  if (!useState) {
+    return undefined;
+  }
+
+  if (chargesTotal !== undefined) {
+    return useState.remaining;
+  }
+
+  const usesPerCopy = getInventoryItemUsesPerCopy(entry.item);
+
+  if (usesPerCopy === null) {
     return undefined;
   }
 
@@ -1412,6 +1763,8 @@ function createContainerContentItemFromInventoryStack(
     quantity: 1,
     attuned: entry.attuned,
     usesRemaining: getMovedInventoryItemUsesRemaining(entry),
+    chargesTotal: entry.chargesTotal,
+    storedSpell: entry.storedSpell,
     featureTags: entry.featureTags,
     conjuredSource: entry.conjuredSource,
     conjuredDuration: entry.conjuredDuration,
@@ -1419,21 +1772,48 @@ function createContainerContentItemFromInventoryStack(
   });
 }
 
+function getInventoryItemSettingsForSave(
+  entry: CharacterInventoryItem,
+  mods: CharacterItemMods,
+  settings?: InventoryItemSettingsSavePayload
+): InventoryItemSettingsSavePayload {
+  const featureTags = settings
+    ? getSavedInventoryFeatureTagsForMods(settings.featureTags, mods)
+    : getSavedInventoryItemFeatureTags(entry, mods);
+  const isConjured = featureTags?.includes(INVENTORY_FEATURE_TAG_CONJURED) === true;
+
+  return {
+    chargesTotal: settings ? settings.chargesTotal : entry.chargesTotal,
+    storedSpell: settings ? settings.storedSpell : entry.storedSpell,
+    featureTags,
+    conjuredSource: isConjured ? (settings ? settings.conjuredSource : entry.conjuredSource) : undefined,
+    conjuredDuration: isConjured
+      ? (settings ? settings.conjuredDuration : entry.conjuredDuration)
+      : undefined
+  };
+}
+
 function updateInventoryItemModsInPlace(
   entry: CharacterInventoryItem,
   item: ItemRecord,
-  mods: CharacterItemMods
+  mods: CharacterItemMods,
+  didChangeBaseArchetype: boolean,
+  settings?: InventoryItemSettingsSavePayload
 ): CharacterInventoryItem {
+  const savedSettings = getInventoryItemSettingsForSave(entry, mods, settings);
+
   return createCharacterInventoryItem(mods.isCustom ? item : entry.item, {
     id: entry.id,
     quantity: entry.quantity,
-    onHandQuantity: entry.onHandQuantity,
-    worn: entry.worn,
+    onHandQuantity: didChangeBaseArchetype ? 0 : entry.onHandQuantity,
+    worn: didChangeBaseArchetype ? false : entry.worn,
     attuned: mods.requiresAttunement ? entry.attuned : false,
     usesRemaining: entry.usesRemaining,
-    featureTags: entry.featureTags,
-    conjuredSource: entry.conjuredSource,
-    conjuredDuration: entry.conjuredDuration,
+    chargesTotal: savedSettings.chargesTotal,
+    storedSpell: savedSettings.storedSpell,
+    featureTags: savedSettings.featureTags,
+    conjuredSource: savedSettings.conjuredSource,
+    conjuredDuration: savedSettings.conjuredDuration,
     mods,
     containerContents: entry.containerContents
   });
@@ -1442,15 +1822,19 @@ function updateInventoryItemModsInPlace(
 function transformInventoryItemCopyWithMods(
   entry: CharacterInventoryItem,
   item: ItemRecord,
-  mods: CharacterItemMods
+  mods: CharacterItemMods,
+  didChangeBaseArchetype: boolean,
+  settings?: InventoryItemSettingsSavePayload
 ): CharacterInventoryItem[] {
   const moddedStackId = createInventoryItemId();
   const quantity = getInventoryItemQuantity(entry);
   const onHandQuantity = getInventoryItemOnHandQuantity(entry);
-  const movedOnHandQuantity = onHandQuantity > 0 ? 1 : 0;
-  const movedWorn = entry.worn;
+  const sourceOnHandReduction = onHandQuantity > 0 ? 1 : 0;
+  const movedOnHandQuantity = didChangeBaseArchetype ? 0 : sourceOnHandReduction;
+  const movedWorn = didChangeBaseArchetype ? false : entry.worn;
   const movedUsesRemaining = getMovedInventoryItemUsesRemaining(entry);
   const useState = getInventoryItemUseState(entry);
+  const savedSettings = getInventoryItemSettingsForSave(entry, mods, settings);
   const moddedStack = createCharacterInventoryItem(
     createModdedInventoryItemRecord(item, moddedStackId),
     {
@@ -1460,9 +1844,11 @@ function transformInventoryItemCopyWithMods(
       worn: movedWorn,
       attuned: entry.attuned,
       usesRemaining: movedUsesRemaining,
-      featureTags: entry.featureTags,
-      conjuredSource: entry.conjuredSource,
-      conjuredDuration: entry.conjuredDuration,
+      chargesTotal: savedSettings.chargesTotal,
+      storedSpell: savedSettings.storedSpell,
+      featureTags: savedSettings.featureTags,
+      conjuredSource: savedSettings.conjuredSource,
+      conjuredDuration: savedSettings.conjuredDuration,
       mods
     }
   );
@@ -1476,12 +1862,14 @@ function transformInventoryItemCopyWithMods(
     createCharacterInventoryItem(entry.item, {
       id: entry.id,
       quantity: nextSourceQuantity,
-      onHandQuantity: Math.max(0, onHandQuantity - movedOnHandQuantity),
+      onHandQuantity: Math.max(0, onHandQuantity - sourceOnHandReduction),
       worn: false,
       attuned: false,
       usesRemaining: useState
         ? Math.max(0, useState.remaining - (movedUsesRemaining ?? 0))
         : entry.usesRemaining,
+      chargesTotal: entry.chargesTotal,
+      storedSpell: entry.storedSpell,
       featureTags: getSourceFeatureTagsAfterModdedTransform(entry),
       conjuredSource: entry.conjuredSource,
       conjuredDuration: entry.conjuredDuration,
@@ -1495,7 +1883,8 @@ export function saveInventoryItemModsById(
   inventoryItems: CharacterInventoryItem[],
   stackId: string,
   item: ItemRecord,
-  mods: CharacterItemMods
+  mods: CharacterItemMods,
+  settings?: InventoryItemSettingsSavePayload
 ): InventoryItemModsSaveResult {
   const resolvedStackId = getInventoryItemStackIdFromCopyId(stackId);
   const targetStack = findInventoryItemStackById(inventoryItems, resolvedStackId);
@@ -1508,11 +1897,20 @@ export function saveInventoryItemModsById(
     };
   }
 
-  if (isInventoryContainerItem(targetStack) || targetStack.mods || normalizedMods.isCustom) {
+  const modsForSave = getInventoryItemModsForSave(targetStack, normalizedMods);
+  const didChangeBaseArchetype = didInventoryItemBaseArchetypeChange(targetStack, modsForSave);
+
+  if (isInventoryContainerItem(targetStack) || targetStack.mods || modsForSave.isCustom) {
     return {
       inventoryItems: inventoryItems.map((entry) =>
         entry.id === targetStack.id
-          ? updateInventoryItemModsInPlace(entry, item, normalizedMods)
+          ? updateInventoryItemModsInPlace(
+              entry,
+              item,
+              modsForSave,
+              didChangeBaseArchetype,
+              settings
+            )
           : entry
       ),
       stackId: targetStack.id
@@ -1525,7 +1923,13 @@ export function saveInventoryItemModsById(
       return [entry];
     }
 
-    const transformedStacks = transformInventoryItemCopyWithMods(entry, entry.item, normalizedMods);
+    const transformedStacks = transformInventoryItemCopyWithMods(
+      entry,
+      entry.item,
+      modsForSave,
+      didChangeBaseArchetype,
+      settings
+    );
     transformedStackId = transformedStacks[transformedStacks.length - 1]?.id ?? null;
     return transformedStacks;
   });
@@ -1650,6 +2054,8 @@ export function getContainerContentsWeightValue(
       quantity: content.quantity,
       attuned: content.attuned,
       usesRemaining: content.usesRemaining,
+      chargesTotal: content.chargesTotal,
+      storedSpell: content.storedSpell,
       featureTags: content.featureTags,
       conjuredSource: content.conjuredSource,
       conjuredDuration: content.conjuredDuration,
@@ -1666,6 +2072,8 @@ function getContainerContentCopyWeightValue(content: CharacterContainerContentIt
     quantity: 1,
     attuned: content.attuned,
     usesRemaining: content.usesRemaining,
+    chargesTotal: content.chargesTotal,
+    storedSpell: content.storedSpell,
     featureTags: content.featureTags,
     conjuredSource: content.conjuredSource,
     conjuredDuration: content.conjuredDuration,
@@ -1787,7 +2195,7 @@ export function addInventoryItemCopies(
   item: ItemRecord,
   quantity = 1
 ): CharacterInventoryItem[] {
-  const normalizedQuantity = normalizeStackNumber(quantity, 0);
+  const normalizedQuantity = normalizeInventoryStackQuantity(quantity, 0);
 
   if (!item.key || normalizedQuantity === 0) {
     return inventoryItems;
@@ -1800,6 +2208,20 @@ export function addInventoryItemCopies(
         createCharacterInventoryItem(item, {
           quantity: 1,
           containerContents: []
+        })
+      )
+    ];
+  }
+
+  const defaultChargesTotal = getDefaultInventoryItemChargesTotal(item);
+
+  if (defaultChargesTotal !== null) {
+    return [
+      ...inventoryItems,
+      ...Array.from({ length: normalizedQuantity }, () =>
+        createCharacterInventoryItem(item, {
+          quantity: 1,
+          chargesTotal: defaultChargesTotal
         })
       )
     ];
@@ -1827,9 +2249,15 @@ function addInventoryItemQuantityToStack(
   entry: CharacterInventoryItem,
   quantity: number
 ): CharacterInventoryItem {
+  if (hasInventoryItemExplicitSettings(entry)) {
+    return entry;
+  }
+
   const usesPerCopy = getInventoryItemUsesPerCopy(entry.item);
-  const nextQuantity = getInventoryItemQuantity(entry) + quantity;
+  const currentQuantity = getInventoryItemQuantity(entry);
+  const nextQuantity = normalizeInventoryStackQuantity(currentQuantity + quantity, currentQuantity, 1);
   const useState = getInventoryItemUseState(entry);
+  const addedQuantity = Math.max(0, nextQuantity - currentQuantity);
 
   return normalizeInventoryStack({
     ...entry,
@@ -1837,7 +2265,11 @@ function addInventoryItemQuantityToStack(
     usesRemaining:
       usesPerCopy === null || !useState
         ? entry.usesRemaining
-        : Math.min(nextQuantity * usesPerCopy, useState.remaining + quantity * usesPerCopy)
+        : Math.min(
+            INVENTORY_REFILLABLE_LIMIT,
+            nextQuantity * usesPerCopy,
+            useState.remaining + addedQuantity * usesPerCopy
+          )
   });
 }
 
@@ -1896,6 +2328,26 @@ export function addOneContainerContentItemCopyByIndex(
     ) !== null
   ) {
     return inventoryItems;
+  }
+
+  if (getContainerContentStackKey(contentItem, contentIndex).startsWith("unique:")) {
+    const nextContainerContents = [
+      ...containerContents,
+      normalizeContainerContentItem({
+        ...contentItem,
+        quantity: 1,
+        usesRemaining: undefined
+      })
+    ];
+
+    return inventoryItems.map((entry) =>
+      entry.id === resolvedContainerStackId
+        ? normalizeInventoryStack({
+            ...entry,
+            containerContents: nextContainerContents
+          })
+        : entry
+    );
   }
 
   const useState = getContainerContentUseState(contentItem);
@@ -1996,6 +2448,8 @@ function addContainerContentItemToInventoryWithResult(
     normalizedContentItem.attuned ||
     normalizedContentItem.mods ||
     normalizedContentItem.usesRemaining !== undefined ||
+    normalizeInventoryChargesTotal(normalizedContentItem.chargesTotal) !== undefined ||
+    normalizeInventoryStoredSpell(normalizedContentItem.storedSpell) !== undefined ||
     (normalizedContentItem.featureTags?.length ?? 0) > 0;
 
   if (!shouldCreateSeparateStack) {
@@ -2020,6 +2474,8 @@ function addContainerContentItemToInventoryWithResult(
     quantity: 1,
     attuned: normalizedContentItem.attuned,
     usesRemaining: normalizedContentItem.usesRemaining,
+    chargesTotal: normalizedContentItem.chargesTotal,
+    storedSpell: normalizedContentItem.storedSpell,
     featureTags: normalizedContentItem.featureTags,
     conjuredSource: normalizedContentItem.conjuredSource,
     conjuredDuration: normalizedContentItem.conjuredDuration,
@@ -2037,7 +2493,7 @@ export function addInventoryItemCopiesToStackById(
   stackId: string,
   quantity = 1
 ): CharacterInventoryItem[] {
-  const normalizedQuantity = normalizeStackNumber(quantity, 0);
+  const normalizedQuantity = normalizeInventoryStackQuantity(quantity, 0);
   const resolvedStackId = getInventoryItemStackIdFromCopyId(stackId);
 
   if (!resolvedStackId || normalizedQuantity === 0) {
@@ -2045,7 +2501,10 @@ export function addInventoryItemCopiesToStackById(
   }
 
   return inventoryItems.map((entry) =>
-    entry.id === resolvedStackId && !isInventoryContainerItem(entry) && !entry.mods
+    entry.id === resolvedStackId &&
+    !isInventoryContainerItem(entry) &&
+    !entry.mods &&
+    !hasInventoryItemExplicitSettings(entry)
       ? addInventoryItemQuantityToStack(entry, normalizedQuantity)
       : entry
   );
@@ -2121,31 +2580,38 @@ export function setInventoryItemAttunedById(
 
 export function useInventoryItemChargeByKey(
   inventoryItems: CharacterInventoryItem[],
-  itemKey: string
+  itemKey: string,
+  amount = 1
 ): CharacterInventoryItem[] {
+  const spendAmount = normalizeInventoryRefillableNumber(amount, 1, 1);
+  let didSpend = false;
+
   return inventoryItems.map((entry) => {
-    if (getItemRecordKey(entry.item) !== itemKey) {
+    if (didSpend || getItemRecordKey(entry.item) !== itemKey) {
       return entry;
     }
 
     const useState = getInventoryItemUseState(entry);
 
-    if (!useState || useState.remaining <= 0) {
+    if (!useState || useState.remaining < spendAmount) {
       return entry;
     }
 
+    didSpend = true;
     return normalizeInventoryStack({
       ...entry,
-      usesRemaining: useState.remaining - 1
+      usesRemaining: useState.remaining - spendAmount
     });
   });
 }
 
 export function useInventoryItemChargeById(
   inventoryItems: CharacterInventoryItem[],
-  stackId: string
+  stackId: string,
+  amount = 1
 ): CharacterInventoryItem[] {
   const resolvedStackId = getInventoryItemStackIdFromCopyId(stackId);
+  const spendAmount = normalizeInventoryRefillableNumber(amount, 1, 1);
 
   return inventoryItems.map((entry) => {
     if (entry.id !== resolvedStackId) {
@@ -2154,23 +2620,27 @@ export function useInventoryItemChargeById(
 
     const useState = getInventoryItemUseState(entry);
 
-    if (!useState || useState.remaining <= 0) {
+    if (!useState || useState.remaining < spendAmount) {
       return entry;
     }
 
     return normalizeInventoryStack({
       ...entry,
-      usesRemaining: useState.remaining - 1
+      usesRemaining: useState.remaining - spendAmount
     });
   });
 }
 
 export function resetInventoryItemChargeByKey(
   inventoryItems: CharacterInventoryItem[],
-  itemKey: string
+  itemKey: string,
+  amount = 1
 ): CharacterInventoryItem[] {
+  const resetAmount = normalizeInventoryRefillableNumber(amount, 1, 1);
+  let didReset = false;
+
   return inventoryItems.map((entry) => {
-    if (getItemRecordKey(entry.item) !== itemKey) {
+    if (didReset || getItemRecordKey(entry.item) !== itemKey) {
       return entry;
     }
 
@@ -2180,18 +2650,21 @@ export function resetInventoryItemChargeByKey(
       return entry;
     }
 
+    didReset = true;
     return normalizeInventoryStack({
       ...entry,
-      usesRemaining: useState.remaining + 1
+      usesRemaining: Math.min(useState.total, useState.remaining + resetAmount)
     });
   });
 }
 
 export function resetInventoryItemChargeById(
   inventoryItems: CharacterInventoryItem[],
-  stackId: string
+  stackId: string,
+  amount = 1
 ): CharacterInventoryItem[] {
   const resolvedStackId = getInventoryItemStackIdFromCopyId(stackId);
+  const resetAmount = normalizeInventoryRefillableNumber(amount, 1, 1);
 
   return inventoryItems.map((entry) => {
     if (entry.id !== resolvedStackId) {
@@ -2206,9 +2679,50 @@ export function resetInventoryItemChargeById(
 
     return normalizeInventoryStack({
       ...entry,
-      usesRemaining: useState.remaining + 1
+      usesRemaining: Math.min(useState.total, useState.remaining + resetAmount)
     });
   });
+}
+
+export function useContainerContentItemChargeByIndex(
+  inventoryItems: CharacterInventoryItem[],
+  containerStackId: string,
+  contentIndex: number,
+  amount = 1
+): CharacterInventoryItem[] {
+  const resolvedContainerStackId = getInventoryItemStackIdFromCopyId(containerStackId);
+  const spendAmount = normalizeInventoryRefillableNumber(amount, 1, 1);
+  const containerStack = findInventoryItemStackById(inventoryItems, resolvedContainerStackId);
+
+  if (!containerStack || !isInventoryContainerItem(containerStack)) {
+    return inventoryItems;
+  }
+
+  const containerContents = getInventoryContainerContents(containerStack);
+  const contentItem = containerContents[contentIndex] ?? null;
+  const useState = getContainerContentUseState(contentItem);
+
+  if (!contentItem || !useState || useState.remaining < spendAmount) {
+    return inventoryItems;
+  }
+
+  const nextContainerContents = containerContents.map((entry, index) =>
+    index === contentIndex
+      ? normalizeContainerContentItem({
+          ...entry,
+          usesRemaining: useState.remaining - spendAmount
+        })
+      : entry
+  );
+
+  return inventoryItems.map((entry) =>
+    entry.id === resolvedContainerStackId
+      ? normalizeInventoryStack({
+          ...entry,
+          containerContents: nextContainerContents
+        })
+      : entry
+  );
 }
 
 export function setInventoryItemWornStateById(
@@ -2604,18 +3118,24 @@ export function canMoveOneInventoryItemCopyIntoContainer(
 export function getAddOneContainerContentItemCopyBlockReason(
   inventoryItems: CharacterInventoryItem[],
   containerStackId: string,
-  contentIndex: number
+  contentIndex: number,
+  objectLimit = CONTAINER_OBJECT_LIMIT
 ): InventoryContainerAddBlockReason | null {
   const resolvedContainerStackId = getInventoryItemStackIdFromCopyId(containerStackId);
   const containerStack = findInventoryItemStackById(inventoryItems, resolvedContainerStackId);
-  const contentItem = getInventoryContainerContentByIndex(
-    inventoryItems,
-    resolvedContainerStackId,
-    contentIndex
-  );
+  const containerContents = containerStack ? getInventoryContainerContents(containerStack) : [];
+  const contentItem = containerContents[contentIndex] ?? null;
 
   if (!containerStack || !contentItem || !isInventoryContainerItem(containerStack)) {
     return "invalid";
+  }
+
+  const objectDelta = getContainerContentStackKey(contentItem, contentIndex).startsWith("unique:")
+    ? 1
+    : 0;
+
+  if (containerContents.length + objectDelta > objectLimit) {
+    return "object-limit";
   }
 
   if (

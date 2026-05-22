@@ -15,6 +15,7 @@ type EquipmentInventoryItemDrawerHeaderProps = {
     remaining: number;
     total: number;
   } | null;
+  spellTag?: string | null;
   featureTags?: string[];
   modded?: boolean;
 };
@@ -30,6 +31,7 @@ function EquipmentInventoryItemDrawerHeader({
   worn = false,
   attuned = false,
   charges = null,
+  spellTag = null,
   featureTags = [],
   modded = false
 }: EquipmentInventoryItemDrawerHeaderProps) {
@@ -63,6 +65,12 @@ function EquipmentInventoryItemDrawerHeader({
         {charges ? (
           <span className={styles.drawerChargesBadge}>
             <span>{`Charges ${charges.remaining}/${charges.total}`}</span>
+          </span>
+        ) : null}
+        {spellTag ? (
+          <span className={styles.drawerSpellTagBadge}>
+            <Sparkles size={13} aria-hidden="true" />
+            <span>{spellTag}</span>
           </span>
         ) : null}
         {modded ? (

@@ -15,6 +15,7 @@ import {
   isConjuredInventoryItem,
   isPactOfTheBladeInventoryItem
 } from "../../../inventoryItems";
+import { getEffectiveInventoryItemRecord } from "../../../itemMods";
 import type { WeaponAttackConsumptionContext } from "../../types";
 import type { WarlockEldritchInvocationOption } from "../warlock";
 import { appendInvocationSourcedDescriptionAddition } from "./descriptions";
@@ -135,19 +136,25 @@ export function getWarlockPactBladeInvocationOptions({
   inventoryItems = []
 }: WarlockPactBladeInvocationOptionsParams): WarlockEldritchInvocationOption[] {
   const ownedWeaponOptions = inventoryItems
-    .filter((entry) => Boolean(entry.item.weapon) && !isConjuredInventoryItem(entry))
+    .map((entry) => ({
+      entry,
+      item: getEffectiveInventoryItemRecord(entry)
+    }))
+    .filter(({ entry, item }) => Boolean(item.weapon) && !isConjuredInventoryItem(entry))
     .slice()
     .sort((left, right) =>
-      (left.item.name ?? left.item.key ?? "").localeCompare(right.item.name ?? right.item.key ?? "")
+      (left.item.name ?? left.item.key ?? "").localeCompare(
+        right.item.name ?? right.item.key ?? ""
+      )
     )
-    .map((entry) => ({
+    .map(({ entry, item }) => ({
       selectionId: createWarlockInvocationSelectionId(
         invocation.id,
         getPactBladeOwnedSelectionValue(entry.id)
       ),
       invocation,
       displayName: invocation.name,
-      displaySubtitle: `Owned: ${entry.item.name ?? entry.item.key ?? "Weapon"}`,
+      displaySubtitle: `Owned: ${item.name ?? item.key ?? "Weapon"}`,
       selectionGroup: "Owned weapons",
       requirementLabel,
       isQualified,

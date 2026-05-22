@@ -14,6 +14,10 @@ import {
 } from "../../../../pages/CharactersPage/itemMods";
 import { formatEquipmentWeight } from "../../../../utils/codex";
 import SheetSurface from "../SheetSurface";
+import {
+  getInventoryItemChargesTagLabel,
+  getInventoryItemStoredSpellRowTagLabel
+} from "./equipmentItemUtilityTags";
 import styles from "./EquipmentForm.module.css";
 
 type EquipmentContainerContentsListProps = {
@@ -33,6 +37,8 @@ function getContentRowItem(
     quantity: content.quantity,
     attuned: content.attuned,
     usesRemaining: content.usesRemaining,
+    chargesTotal: content.chargesTotal,
+    storedSpell: content.storedSpell,
     featureTags: content.featureTags,
     conjuredSource: content.conjuredSource,
     conjuredDuration: content.conjuredDuration,
@@ -75,6 +81,8 @@ function EquipmentContainerContentsList({
           {contents.map((content, index) => {
             const { item, stack } = getContentRowItem(containerStackId, content, index);
             const conjuredRowTagLabel = getInventoryItemConjuredRowTagLabel(stack);
+            const chargesTagLabel = getInventoryItemChargesTagLabel(stack);
+            const storedSpellRowTagLabel = getInventoryItemStoredSpellRowTagLabel(stack);
             const objectTagLabel = isExtractableEquipmentPackRecord(item) ? "Pack" : null;
 
             return (
@@ -115,6 +123,17 @@ function EquipmentContainerContentsList({
                     {hasCharacterItemMods(stack.mods) && !stack.mods?.isCustom ? (
                       <span className={styles.equipmentItemModdedTag}>
                         <span>Modded</span>
+                      </span>
+                    ) : null}
+                    {chargesTagLabel ? (
+                      <span className={styles.equipmentItemChargesTag}>
+                        <span>{chargesTagLabel}</span>
+                      </span>
+                    ) : null}
+                    {storedSpellRowTagLabel ? (
+                      <span className={styles.equipmentItemSpellTag}>
+                        <Sparkles size={13} aria-hidden="true" />
+                        <span>{storedSpellRowTagLabel}</span>
                       </span>
                     ) : null}
                     {conjuredRowTagLabel ? (

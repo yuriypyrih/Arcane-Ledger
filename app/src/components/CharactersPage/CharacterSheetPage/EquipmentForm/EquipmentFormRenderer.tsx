@@ -7,7 +7,7 @@ export function renderEquipmentForm(context: Record<string, any>) {
     Minus, NumberInput, OverlayBody, OverlayCloseButton, OverlayEyebrow, OverlayFooter, OverlayHeader, OverlayHeaderContent, OverlaySummary, OverlayTitle, Package, Plus, RarityPill, SheetModal, Shield, Sparkles, WeaponMasteryStatusLabel, X, activeCurrencyDefinition, activeCurrencyKey,
     adjustCurrencyBalance, canSpendCurrency, carriedWeight, carryingCapacity, className, containerManagementInventoryItems, closeAddModal, closeContainerManagement, closeCustomEquipmentModal, closeInventoryItemDrawer, closeLoadoutDrawer,
     clsx, currencyAmountDraft, currencyDefinitions, customEditorMode, deleteCustomEquipment, editingInventoryStack, equipmentRenderGroups, formatCodexLabel, formatCodexList,
-    formatEquipmentWeight, formatInventoryStackName, formatOnHandLabel, formatWeaponDamage, formatWeaponProperties, formatWeaponType, formatWeaponWeight, formatWeightValue, getArmorTypeSummary, getInventoryItemConjuredRowTagLabel, getInventoryItemFeatureTagLabels, getInventoryItemTotalWeightValue, getInventoryRowObjectTagLabel, getItemObjectTagLabel,
+    formatEquipmentWeight, formatInventoryStackName, formatOnHandLabel, formatWeaponDamage, formatWeaponProperties, formatWeaponType, formatWeaponWeight, formatWeightValue, getArmorTypeSummary, getInventoryItemChargesTagLabel, getInventoryItemConjuredRowTagLabel, getInventoryItemFeatureTagLabels, getInventoryItemStoredSpellRowTagLabel, getInventoryItemTotalWeightValue, getInventoryRowObjectTagLabel, getItemObjectTagLabel,
     groupedInventoryItems, hasCharacterItemMods, hasDisplayableRarity, inventoryDrawerBodyAfterItem, inventoryDrawerClassName, inventoryDrawerFooter, inventoryDrawerHeaderAction, inventoryDrawerHeaderContent, inventoryObjectCount, inventoryObjectLimitMessage, isAddModalCommitting, isAddModalOpen, isCurrencyDrawerOpen,
     isCustomEquipmentModalOpen, isEquipmentGuideOpen, isGeneralEquipmentExpanded, isHandEquippableEntry, isOverCarryingCapacity, isSelectedArmorWorn, isSelectedCustomEntry, isSelectedEntryOnHand, isSelectedFeatureManagedEntry, isSelectedShield, managedContainerStack, managingContainerStackId,
     normalizeCurrencyAmountInput, normalizedCurrencies, openAddModal, openCurrencyModal, openCustomEquipmentCreator, openCustomEquipmentEditor, openInventoryInspectionFromBrowser, openInventoryInspectionFromLoadout, openLoadoutEntryDetails,
@@ -173,6 +173,10 @@ export function renderEquipmentForm(context: Record<string, any>) {
                       );
                     })() : (() => {
                       const conjuredRowTagLabel = getInventoryItemConjuredRowTagLabel(entry.item.stack);
+                      const chargesTagLabel = getInventoryItemChargesTagLabel(entry.item.stack);
+                      const storedSpellRowTagLabel = getInventoryItemStoredSpellRowTagLabel(
+                        entry.item.stack
+                      );
                       const objectTagLabel = getInventoryRowObjectTagLabel(
                         entry.item.stack,
                         entry.item.item
@@ -229,6 +233,17 @@ export function renderEquipmentForm(context: Record<string, any>) {
                             !entry.item.stack.mods?.isCustom ? (
                               <span className={styles.equipmentItemModdedTag}>
                                 <span>Modded</span>
+                              </span>
+                            ) : null}
+                            {chargesTagLabel ? (
+                              <span className={styles.equipmentItemChargesTag}>
+                                <span>{chargesTagLabel}</span>
+                              </span>
+                            ) : null}
+                            {storedSpellRowTagLabel ? (
+                              <span className={styles.equipmentItemSpellTag}>
+                                <Sparkles size={13} aria-hidden="true" />
+                                <span>{storedSpellRowTagLabel}</span>
                               </span>
                             ) : null}
                             {conjuredRowTagLabel ? (

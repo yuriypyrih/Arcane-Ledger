@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import {
+  BookOpen,
   CircleHelp,
   Hand,
   Minus,
@@ -28,6 +29,7 @@ import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import { useRenderProfiler } from "../../../../lib/useRenderProfiler";
 import { ApiRequestFailedError, fetchItemPackContents, isApiOfflineError } from "../../../../api";
 import { ENTRY_CATEGORIES } from "../../../../codex/entries";
+import { getSpellEntryById } from "../../../../codex/spells";
 import {
   currencyKeys,
   type Character,
@@ -104,6 +106,7 @@ import {
   getInventoryAttunementCount,
   getInventoryItemTotalWeightValue,
   getInventoryItemUseState,
+  getInventoryItemStoredSpell,
   getPreferredInventoryCopiesById,
   getPreferredInventoryCopiesByKey,
   getItemTransactionCost,
@@ -183,6 +186,11 @@ import {
   type LoadoutDrawerEntry,
   type LoadoutGroupItem
 } from "./equipmentLoadoutModel";
+import {
+  getInventoryItemChargesTagLabel,
+  getInventoryItemStoredSpellHeaderTagLabel,
+  getInventoryItemStoredSpellRowTagLabel
+} from "./equipmentItemUtilityTags";
 import InlineToggleButton from "../InlineToggleButton";
 import styles from "./EquipmentForm.module.css";
 import { useItemEntry } from "../../../../pages/ItemCodexEntryPage/useItemEntry";
@@ -201,6 +209,9 @@ import {
 } from "../../../Overlay";
 import { getCharacterRuntime } from "../../../../pages/CharactersPage/characterRuntime/characterRuntime";
 import { getInventoryAttunementLimit } from "../../../../pages/CharactersPage/characterRuntime/equipmentRuntime";
+import EquipmentStoredSpellDrawer, {
+  type SelectedInventoryStoredSpellState
+} from "./EquipmentStoredSpellDrawer";
 
 type EquipmentFormProps = {
   character: Character;
@@ -271,6 +282,8 @@ function createInventoryStackFromContainerContent(
     quantity: content.quantity,
     attuned: content.attuned,
     usesRemaining: content.usesRemaining,
+    chargesTotal: content.chargesTotal,
+    storedSpell: content.storedSpell,
     featureTags: content.featureTags,
     conjuredSource: content.conjuredSource,
     conjuredDuration: content.conjuredDuration,
@@ -301,6 +314,8 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     useState<SelectedLoadoutEntryState | null>(null);
   const [selectedInventoryInspection, setSelectedInventoryInspection] =
     useState<SelectedInventoryInspectionState | null>(null);
+  const [selectedInventoryStoredSpell, setSelectedInventoryStoredSpell] =
+    useState<SelectedInventoryStoredSpellState | null>(null);
   const [parentInventoryInspection, setParentInventoryInspection] =
     useState<SelectedInventoryInspectionState | null>(null);
   const [restoreParentInventoryWithoutAnimation, setRestoreParentInventoryWithoutAnimation] =
@@ -432,6 +447,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     selectedWeaponReference ||
     selectedLoadoutEntry ||
     selectedInventoryInspection ||
+    selectedInventoryStoredSpell ||
     parentInventoryInspection ||
     isCurrencyDrawerOpen ||
     isAddModalOpen ||
@@ -451,6 +467,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
 
   const closeInventoryItemDrawer = useCallback(() => {
     setInventoryDrawerNotice(null);
+    setSelectedInventoryStoredSpell(null);
     if (parentInventoryInspection && selectedInventoryInspection?.source === "container") {
       setRestoreParentInventoryWithoutAnimation(true);
       setSelectedInventoryInspection(parentInventoryInspection);
@@ -470,6 +487,11 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
 
     function handleKeyDown(event: globalThis.KeyboardEvent) {
       if (event.key === "Escape") {
+        if (selectedInventoryStoredSpell) {
+          setSelectedInventoryStoredSpell(null);
+          return;
+        }
+
         if (selectedWeaponReference) {
           setSelectedWeaponReference(null);
           return;
@@ -539,6 +561,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     pendingDeleteCustomEquipmentId,
     parentInventoryInspection,
     selectedInventoryInspection,
+    selectedInventoryStoredSpell,
     selectedLoadoutEntry,
     selectedWeaponReference
   ]);
@@ -1032,6 +1055,8 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   const selectedInventoryModEffects = selectedInventoryStack?.mods?.effects ?? [];
   const selectedInventoryFeatureTagLabels =
     getInventoryItemFeatureTagLabels(selectedInventoryStack);
+  const selectedInventoryStoredSpellHeaderTag =
+    getInventoryItemStoredSpellHeaderTagLabel(selectedInventoryStack);
   const selectedInventoryHasMods = Boolean(selectedInventoryStack?.mods);
   const selectedInventoryIsModded =
     selectedInventoryStack &&
@@ -1048,13 +1073,19 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   );
   const inventoryAttunementLimit = getInventoryAttunementLimit(equipmentCharacter);
   const inventoryAttunementLabel = `${inventoryAttunementCount}/${inventoryAttunementLimit}`;
-  const selectedInventoryUseState =
-    selectedInventoryInspection?.source !== "container" &&
-    isSelectedInventoryOwnedDrawer &&
-    selectedInventoryStack &&
-    !selectedInventoryOwnedContainer
+  const selectedInventoryHeaderUseState =
+    isSelectedInventoryOwnedDrawer && selectedInventoryStack && !selectedInventoryOwnedContainer
       ? getInventoryItemUseState(selectedInventoryStack)
       : null;
+  const selectedInventoryUseState =
+    selectedInventoryInspection?.source !== "container" ? selectedInventoryHeaderUseState : null;
+  const selectedInventoryItemStoredSpell =
+    isSelectedInventoryOwnedDrawer && !selectedInventoryOwnedContainer
+      ? getInventoryItemStoredSpell(selectedInventoryStack)
+      : null;
+  const selectedInventoryItemStoredSpellEntry = selectedInventoryItemStoredSpell
+    ? getSpellEntryById(selectedInventoryItemStoredSpell.spellId)
+    : null;
   const selectedInventoryAttuned = Boolean(
     selectedInventoryInspection?.source !== "container" &&
     isSelectedInventoryOwnedDrawer &&
@@ -1272,7 +1303,8 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
           currentCharacter.inventoryItems,
           editingInventoryStackId,
           payload.item,
-          payload.mods
+          payload.mods,
+          payload.settings
         );
         const savedStack = result.stackId
           ? findInventoryItemStackById(result.inventoryItems, result.stackId)
@@ -1292,21 +1324,31 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
           inventoryItems: result.inventoryItems
         };
 
-        return originalStack &&
-          savedStack &&
-          originalStack.id !== savedStack.id &&
-          isPactOfTheBladeInventoryItem(originalStack)
-          ? replaceWarlockPactOfTheBladeOwnedStackSelectionForCharacter(
+        if (originalStack && savedStack && isPactOfTheBladeInventoryItem(originalStack)) {
+          if (!getEffectiveInventoryItemRecord(savedStack).weapon) {
+            return clearWarlockPactOfTheBladeInvocationSelectionForCharacter(nextCharacter);
+          }
+
+          if (originalStack.id !== savedStack.id) {
+            return replaceWarlockPactOfTheBladeOwnedStackSelectionForCharacter(
               nextCharacter,
               originalStack.id,
               savedStack.id
-            )
-          : nextCharacter;
+            );
+          }
+        }
+
+        return nextCharacter;
       }
 
       const newStack = createCharacterInventoryItem(payload.item, {
         quantity: 1,
-        mods: payload.mods
+        mods: payload.mods,
+        chargesTotal: payload.settings.chargesTotal,
+        storedSpell: payload.settings.storedSpell,
+        featureTags: payload.settings.featureTags,
+        conjuredSource: payload.settings.conjuredSource,
+        conjuredDuration: payload.settings.conjuredDuration
       });
 
       return {
@@ -2252,6 +2294,39 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     );
   }
 
+  function openSelectedInventoryStoredSpell() {
+    if (
+      !selectedInventoryInspection ||
+      !selectedInventoryStack ||
+      !selectedInventoryItemStoredSpell ||
+      !selectedInventoryItemStoredSpellEntry
+    ) {
+      return;
+    }
+
+    if (selectedInventoryInspection.source === "container") {
+      if (
+        !selectedInventoryInspection.containerStackId ||
+        selectedInventoryInspection.contentIndex === undefined
+      ) {
+        return;
+      }
+
+      setSelectedInventoryStoredSpell({
+        spellId: selectedInventoryItemStoredSpell.spellId,
+        source: "container",
+        containerStackId: selectedInventoryInspection.containerStackId,
+        contentIndex: selectedInventoryInspection.contentIndex
+      });
+    } else {
+      setSelectedInventoryStoredSpell({
+        spellId: selectedInventoryItemStoredSpell.spellId,
+        source: "inventory",
+        stackId: selectedInventoryStack.id
+      });
+    }
+  }
+
   function useSelectedInventoryItemCharge() {
     if (
       !selectedInventoryInspection?.itemKey ||
@@ -2491,6 +2566,16 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
                 }
               ]
             : []),
+          ...(selectedInventoryItemStoredSpellEntry
+            ? [
+                {
+                  key: "open-spell",
+                  label: "Open Spell",
+                  icon: BookOpen,
+                  onClick: openSelectedInventoryStoredSpell
+                }
+              ]
+            : []),
           ...(selectedInventoryUseState
             ? [
                 {
@@ -2661,7 +2746,8 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       onHandCount={selectedInventoryOnHandCount}
       worn={isSelectedInventoryArmorWorn}
       attuned={selectedInventoryAttuned}
-      charges={selectedInventoryUseState}
+      charges={selectedInventoryHeaderUseState}
+      spellTag={selectedInventoryStoredSpellHeaderTag}
       featureTags={selectedInventoryFeatureTagLabels}
       modded={Boolean(selectedInventoryIsModded)}
     />
@@ -2692,6 +2778,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     <EquipmentInventoryItemDrawerHeader
       titleId={parentInventoryDrawerTitleId}
       item={parentInventoryRecord}
+      spellTag={getInventoryItemStoredSpellHeaderTagLabel(parentInventoryStack)}
       featureTags={getInventoryItemFeatureTagLabels(parentInventoryStack)}
       modded={Boolean(
         parentInventoryStack &&
@@ -2721,8 +2808,9 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
         }
       />
     ) : null;
-
-  return renderEquipmentForm({
+  return (
+    <>
+      {renderEquipmentForm({
     ActionButton,
     CellContainer,
     CircleHelp,
@@ -2788,7 +2876,9 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     getInventoryRowObjectTagLabel,
     getItemObjectTagLabel,
     getInventoryItemConjuredRowTagLabel,
+    getInventoryItemChargesTagLabel,
     getInventoryItemFeatureTagLabels,
+    getInventoryItemStoredSpellRowTagLabel,
     getInventoryItemTotalWeightValue,
     groupedInventoryItems,
     hasCharacterItemMods,
@@ -2872,7 +2962,17 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     swapEntryToHand,
     toggleArmorWorn,
     toggleEntryOnHand
-  });
+  })}
+
+      <EquipmentStoredSpellDrawer
+        character={equipmentCharacter}
+        selectedStoredSpell={selectedInventoryStoredSpell}
+        onClose={() => setSelectedInventoryStoredSpell(null)}
+        onPersistCharacter={onPersistCharacter}
+        persistOptions={equipmentPersistOptions}
+      />
+    </>
+  );
 }
 
 export default EquipmentForm;

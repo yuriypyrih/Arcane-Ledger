@@ -280,6 +280,10 @@ import {
   hasFiniteCompanionDuration
 } from "../../../../../pages/CharactersPage/companions";
 import {
+  hasShortRestConjuredInventoryItems,
+  removeShortRestConjuredInventoryItems
+} from "../../../../../pages/CharactersPage/inventoryItems";
+import {
   type ExhaustionLevel,
   getEffectiveHitPointMaximumForCharacter,
   reconcileCharacterStatusConsequences
@@ -329,6 +333,7 @@ export function createShortRestOptions(character: Character): RestOption[] {
   const hasTimedStatuses =
     normalizeCharacterStatusEntries(character.statusEntries).length > 0 ||
     hasFiniteCompanionDuration(character.companions);
+  const hasShortRestConjuredItems = hasShortRestConjuredInventoryItems(character.inventoryItems);
   const exhaustionLevel = getExhaustionLevel(character.statusEntries);
   const tirelessUsesTotal = getRangerTirelessUsesTotal(character);
   const hasRogueScionDreadIncarnate = hasRogueScionOfTheThreeDreadIncarnateFeature(character);
@@ -433,6 +438,21 @@ export function createShortRestOptions(character: Character): RestOption[] {
               ...currentCharacter,
               statusEntries: applyShortRestToCharacterStatusEntries(currentCharacter.statusEntries),
               companions: applyShortRestToCharacterCompanions(currentCharacter.companions)
+            })
+          } satisfies RestOption
+        ]
+      : []),
+    ...(hasShortRestConjuredItems
+      ? [
+          {
+            id: "remove-short-rest-conjured-items",
+            label: "Remove Until Short Rest conjured items",
+            detail: "Conjured items with an Until Short Rest duration vanish.",
+            apply: (currentCharacter: Character) => ({
+              ...currentCharacter,
+              inventoryItems: removeShortRestConjuredInventoryItems(
+                currentCharacter.inventoryItems
+              )
             })
           } satisfies RestOption
         ]

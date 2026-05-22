@@ -203,10 +203,21 @@ export type CharacterEquipmentItem = {
 
 export type CharacterInventoryFeatureTag = "pact-of-the-blade" | "conjured";
 export type CharacterInventoryConjuredSource =
+  | "manual"
   | "tinkers-magic"
   | "replicate-magic-item"
   | "pact-of-the-blade";
-export type CharacterInventoryConjuredDuration = "long-rest";
+export type CharacterInventoryConjuredDuration = "death" | "short-rest" | "long-rest";
+export type CharacterInventoryStoredSpellMode =
+  | "default"
+  | "consume-charges"
+  | "consume-charges-destructible";
+
+export type CharacterInventoryStoredSpell = {
+  spellId: string;
+  mode: CharacterInventoryStoredSpellMode;
+  chargeCost: number;
+};
 
 export type CharacterItemModCategory = "weapon" | "armor" | "general";
 
@@ -250,6 +261,8 @@ export type CharacterInventoryItemBase = {
   worn: boolean;
   attuned?: boolean;
   usesRemaining?: number;
+  chargesTotal?: number | null;
+  storedSpell?: CharacterInventoryStoredSpell;
   featureTags?: CharacterInventoryFeatureTag[];
   conjuredSource?: CharacterInventoryConjuredSource;
   conjuredDuration?: CharacterInventoryConjuredDuration;

@@ -64,6 +64,9 @@
 }
 
 .customButton {
+  border-color: transparent;
+  background: rgba(75, 47, 29, 0.1);
+  color: var(--color-ink);
   font-weight: 700;
 }
 

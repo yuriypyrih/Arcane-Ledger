@@ -87,10 +87,13 @@
 .drawerWornBadge,
 .equipmentItemAttuned,
 .drawerAttunedBadge,
+.equipmentItemChargesTag,
 .drawerChargesBadge,
 .equipmentItemModdedTag,
 .drawerModdedTag,
 .equipmentItemObjectTag,
+.equipmentItemSpellTag,
+.drawerSpellTagBadge,
 .equipmentItemFeatureTag,
 .drawerFeatureTagBadge {
   display: inline-flex;
@@ -118,6 +121,7 @@
   color: #1d4ed8;
 }
 
+.equipmentItemChargesTag,
 .drawerChargesBadge {
   background: #dce8ef;
   color: #315c73;
@@ -132,6 +136,12 @@
 .equipmentItemObjectTag {
   background: #e5ead5;
   color: #51631f;
+}
+
+.equipmentItemSpellTag,
+.drawerSpellTagBadge {
+  background: #dbeafe;
+  color: #1d4ed8;
 }
 
 .equipmentItemFeatureTag,
@@ -817,6 +827,10 @@
 
 .equipmentDrawerTopModalBackdrop {
   z-index: 54;
+}
+
+.equipmentStoredSpellBackdrop {
+  --sheet-drawer-z-index: 56;
 }
 
 .catalogCreateCustomButton {

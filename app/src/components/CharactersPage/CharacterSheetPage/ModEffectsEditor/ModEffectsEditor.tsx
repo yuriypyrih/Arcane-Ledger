@@ -15,6 +15,7 @@ import styles from "../GameplayForm/widgets/TraitsConditionsWidget/CustomTraitBu
 
 type ModEffectsEditorProps = {
   effects: CustomTraitEffectDraft[];
+  maxEffects?: number;
   onAddEffect: () => void;
   onEffectTargetChange: (effectId: string, value: string) => void;
   onEffectValueChange: (effectId: string, value: string) => void;
@@ -25,6 +26,7 @@ type ModEffectsEditorProps = {
 
 function ModEffectsEditor({
   effects,
+  maxEffects = Number.POSITIVE_INFINITY,
   onAddEffect,
   onEffectTargetChange,
   onEffectValueChange,
@@ -32,6 +34,8 @@ function ModEffectsEditor({
   onEffectRollModeChange,
   onRemoveEffect
 }: ModEffectsEditorProps) {
+  const isAtEffectLimit = effects.length >= maxEffects;
+
   return (
     <section className={styles.effectsSection}>
       <div className={styles.effectsHeader}>
@@ -43,10 +47,12 @@ function ModEffectsEditor({
         <button
           type="button"
           className={clsx(shared.editButton, styles.addEffectButton)}
+          disabled={isAtEffectLimit}
           onClick={onAddEffect}
+          title={isAtEffectLimit ? `Maximum ${maxEffects} effects per item.` : undefined}
         >
           <Plus size={16} aria-hidden="true" />
-          <span>Effect</span>
+          <span>{isAtEffectLimit ? `${maxEffects} max` : "Effect"}</span>
         </button>
       </div>
 

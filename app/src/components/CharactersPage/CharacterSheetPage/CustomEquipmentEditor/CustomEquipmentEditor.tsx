@@ -10,6 +10,12 @@ import { OverlayBody, OverlayFooter } from "../../../Overlay";
 import ModEffectsEditor from "../ModEffectsEditor";
 import RadioContainerOption from "../RadioContainerOption";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import CustomEquipmentItemSettings from "./CustomEquipmentItemSettings";
+import {
+  createCustomEquipmentItemSettingsDraft,
+  parseCustomEquipmentItemSettingsDraft,
+  type CustomEquipmentItemSettingsDraft
+} from "./customEquipmentItemSettingsModel";
 import {
   CURRENCY_TYPE,
   DAMAGE_TYPE,
@@ -52,7 +58,12 @@ import {
   getAdaptedItemWeapon,
   getItemArmorType,
   getItemWeightValue,
-  isItemShieldRecord
+  ITEM_MOD_EFFECT_LIMIT,
+  isInventoryContainerItem,
+  isItemEquipmentPackRecord,
+  isPactOfTheBladeInventoryItem,
+  isItemShieldRecord,
+  type InventoryItemSettingsSavePayload
 } from "../../../../pages/CharactersPage/inventoryItems";
 import { clampNumber } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import { formatCodexLabel } from "../../../../utils/codex";
@@ -63,6 +74,7 @@ import styles from "./CustomEquipmentEditor.module.css";
 export type CustomEquipmentEditorSavePayload = {
   item: ItemRecord;
   mods: CharacterItemMods;
+  settings: InventoryItemSettingsSavePayload;
 };
 
 type CustomEquipmentEditorProps = {
@@ -247,7 +259,8 @@ function createDraft(
     mods?.armor?.armorClass ??
     (resolvedArmorType === "shield" ? 2 : item?.armor?.ac_base) ??
     (resolvedArmorType === "shield" ? 2 : 11);
-  const effectDrafts = mods?.effects?.map(createCustomTraitEffectDraftFromEntry) ?? [];
+  const effectDrafts =
+    mods?.effects?.slice(0, ITEM_MOD_EFFECT_LIMIT).map(createCustomTraitEffectDraftFromEntry) ?? [];
 
   return {
     category,
@@ -287,6 +300,9 @@ function CustomEquipmentEditor({
   onSave
 }: CustomEquipmentEditorProps) {
   const [draft, setDraft] = useState<EquipmentModsDraft>(() => createDraft(mode, initialStack));
+  const [settingsDraft, setSettingsDraft] = useState<CustomEquipmentItemSettingsDraft>(() =>
+    createCustomEquipmentItemSettingsDraft(initialStack)
+  );
   const [formError, setFormError] = useState("");
   const selectedCategory = draft.category;
   const hasRangeFields =
@@ -295,14 +311,38 @@ function CustomEquipmentEditor({
     draft.properties.includes(WEAPON_PROPERTY.AMMUNITION);
   const hasVersatileFields = draft.properties.includes(WEAPON_PROPERTY.VERSATILE);
   const showCategorySelector = mode === "create";
+  const initialItem = initialStack ? getEffectiveInventoryItemRecord(initialStack) : null;
+  const isContainerOrPackEdit =
+    mode === "edit" &&
+    initialStack !== null &&
+    initialStack !== undefined &&
+    (isInventoryContainerItem(initialStack) ||
+      isItemEquipmentPackRecord(initialStack.item) ||
+      (initialItem !== null && isItemEquipmentPackRecord(initialItem)));
+  const canEditBaseArchetype =
+    mode === "edit" &&
+    initialStack !== null &&
+    initialStack !== undefined &&
+    !isContainerOrPackEdit &&
+    !isPactOfTheBladeInventoryItem(initialStack);
+  const [isBaseArchetypeEditingEnabled, setIsBaseArchetypeEditingEnabled] = useState(false);
 
   useEffect(() => {
     setDraft(createDraft(mode, initialStack));
+    setSettingsDraft(createCustomEquipmentItemSettingsDraft(initialStack));
     setFormError("");
+    setIsBaseArchetypeEditingEnabled(false);
   }, [initialStack, mode]);
 
   function patchDraft(patch: Partial<EquipmentModsDraft>) {
     setDraft((currentDraft) => ({
+      ...currentDraft,
+      ...patch
+    }));
+  }
+
+  function patchSettingsDraft(patch: Partial<CustomEquipmentItemSettingsDraft>) {
+    setSettingsDraft((currentDraft) => ({
       ...currentDraft,
       ...patch
     }));
@@ -411,7 +451,8 @@ function CustomEquipmentEditor({
 
     const effects = draft.effects
       .map(parseCustomTraitEffectDraft)
-      .filter((effect): effect is NonNullable<typeof effect> => effect !== null);
+      .filter((effect): effect is NonNullable<typeof effect> => effect !== null)
+      .slice(0, ITEM_MOD_EFFECT_LIMIT);
     const mods: CharacterItemMods = {
       baseCategory: selectedCategory,
       isCustom: mode === "create" || initialStack?.mods?.isCustom === true,
@@ -467,9 +508,28 @@ function CustomEquipmentEditor({
       return;
     }
 
+    const settingsResult = isContainerOrPackEdit
+      ? {
+          settings: {
+            chargesTotal: initialStack?.chargesTotal,
+            storedSpell: initialStack?.storedSpell,
+            featureTags: initialStack?.featureTags,
+            conjuredSource: initialStack?.conjuredSource,
+            conjuredDuration: initialStack?.conjuredDuration
+          },
+          error: null
+        }
+      : parseCustomEquipmentItemSettingsDraft(settingsDraft, initialStack);
+
+    if (settingsResult.settings === null) {
+      setFormError(settingsResult.error);
+      return;
+    }
+
     onSave({
       item: createCustomItemRecordFromMods(getCustomItemId(initialStack), mods),
-      mods
+      mods,
+      settings: settingsResult.settings
     });
   }
 
@@ -488,6 +548,36 @@ function CustomEquipmentEditor({
                 className={styles.customEquipmentChoiceOption}
               />
             ))}
+          </div>
+        ) : null}
+
+        {mode === "edit" ? (
+          <div className={styles.customEquipmentArchetypeRow}>
+            <label className={styles.customEquipmentField}>
+              <span>Base Archetype</span>
+              <SelectInput
+                value={selectedCategory}
+                disabled={!isBaseArchetypeEditingEnabled}
+                onChange={(event) =>
+                  patchDraft({ category: event.target.value as CharacterItemModCategory })
+                }
+              >
+                {categoryOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </SelectInput>
+            </label>
+            {canEditBaseArchetype && !isBaseArchetypeEditingEnabled ? (
+              <button
+                type="button"
+                className={styles.customEquipmentArchetypeEditButton}
+                onClick={() => setIsBaseArchetypeEditingEnabled(true)}
+              >
+                Edit base archetype
+              </button>
+            ) : null}
           </div>
         ) : null}
 
@@ -881,19 +971,39 @@ function CustomEquipmentEditor({
           </div>
         ) : null}
 
-        {selectedCategory !== "general" ? <div className={styles.customEquipmentDivider} /> : null}
+        {selectedCategory !== "general" && !isContainerOrPackEdit ? (
+          <div className={styles.customEquipmentDivider} />
+        ) : null}
 
-        <ModEffectsEditor
-          effects={draft.effects}
-          onAddEffect={() =>
-            patchDraft({ effects: [...draft.effects, createCustomTraitEffectDraft()] })
-          }
-          onEffectTargetChange={handleEffectTargetChange}
-          onEffectValueChange={handleEffectValueChange}
-          onEffectValueModeChange={handleEffectValueModeChange}
-          onEffectRollModeChange={handleEffectRollModeChange}
-          onRemoveEffect={handleRemoveEffect}
-        />
+        {!isContainerOrPackEdit ? (
+          <>
+            <CustomEquipmentItemSettings
+              initialStack={initialStack}
+              draft={settingsDraft}
+              onChange={patchSettingsDraft}
+            />
+
+            <div className={styles.customEquipmentDivider} />
+
+            <ModEffectsEditor
+              effects={draft.effects}
+              maxEffects={ITEM_MOD_EFFECT_LIMIT}
+              onAddEffect={() =>
+                patchDraft({
+                  effects:
+                    draft.effects.length >= ITEM_MOD_EFFECT_LIMIT
+                      ? draft.effects
+                      : [...draft.effects, createCustomTraitEffectDraft()]
+                })
+              }
+              onEffectTargetChange={handleEffectTargetChange}
+              onEffectValueChange={handleEffectValueChange}
+              onEffectValueModeChange={handleEffectValueModeChange}
+              onEffectRollModeChange={handleEffectRollModeChange}
+              onRemoveEffect={handleRemoveEffect}
+            />
+          </>
+        ) : null}
       </OverlayBody>
 
       <OverlayFooter className={styles.customEquipmentEditorFooter}>

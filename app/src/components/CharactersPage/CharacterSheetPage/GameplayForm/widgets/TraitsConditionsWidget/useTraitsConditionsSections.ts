@@ -11,6 +11,7 @@ import {
   getSpellEntryForCharacter
 } from "../../../../../../pages/CharactersPage/classFeatures";
 import {
+  getFeatAlwaysPreparedSpellEntriesForCharacter,
   getFeatDerivedStatusEntriesForCharacter,
   getFeatGrantedCantripEntriesForCharacter,
   getFeatReactionEntriesForCharacter
@@ -83,6 +84,13 @@ export function useTraitsConditionsSections({
       ),
     [character]
   );
+  const featAlwaysPreparedSpellEntries = useMemo(
+    () =>
+      getFeatAlwaysPreparedSpellEntriesForCharacter(character).map((spell) =>
+        getSpellEntryForCharacter(character, spell)
+      ),
+    [character]
+  );
   const basePreparedSpellPoolEntries = usePreparedSpellEntries(
     character.className,
     character.level,
@@ -137,6 +145,7 @@ export function useTraitsConditionsSections({
           character.subclassId,
           character.statusEntries
         ),
+        ...featAlwaysPreparedSpellEntries.map((spell) => spell.id),
         ...getSpeciesAlwaysPreparedSpellIdsForCharacter({
           species: character.species,
           level: character.level,
@@ -147,6 +156,7 @@ export function useTraitsConditionsSections({
     [
       character.classFeatureState,
       character.className,
+      featAlwaysPreparedSpellEntries,
       character.level,
       character.species,
       character.speciesChoices,

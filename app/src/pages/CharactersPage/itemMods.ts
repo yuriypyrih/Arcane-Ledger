@@ -30,6 +30,7 @@ import { parseItemCost } from "../../utils/items/cost";
 import { clampInteger, clampNumber } from "../../utils/numbers";
 import { isObjectRecord, normalizeText } from "../../utils/normalize";
 import { normalizeCharacterCustomTraitEffects } from "./customTraitEffects";
+import { ITEM_MOD_EFFECT_LIMIT } from "./inventoryLimits";
 
 export type EffectiveItemRecord = ItemRecord & {
   itemModsBaseCategory?: CharacterItemModCategory;
@@ -249,7 +250,7 @@ export function normalizeCharacterItemMods(value: unknown): CharacterItemMods | 
     description: normalizeText(value.description),
     cost: normalizeEquipmentCost(value.cost),
     weight: normalizeWeight(value.weight, 1),
-    effects: normalizeCharacterCustomTraitEffects(value.effects)
+    effects: normalizeCharacterCustomTraitEffects(value.effects).slice(0, ITEM_MOD_EFFECT_LIMIT)
   };
 
   if (baseCategory === "weapon") {

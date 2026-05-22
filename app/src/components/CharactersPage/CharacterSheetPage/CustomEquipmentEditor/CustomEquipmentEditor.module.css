@@ -38,6 +38,27 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.customEquipmentArchetypeRow {
+  display: grid;
+  gap: 0.52rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+}
+
+.customEquipmentArchetypeEditButton {
+  border: none;
+  background: transparent;
+  color: #2f5fb8;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 700;
+  min-height: 40px;
+  padding: 0 0.1rem;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
 .customEquipmentChoiceOption {
   border-radius: var(--radius-control);
   font-size: 0.86rem;
@@ -47,6 +68,34 @@
 .customEquipmentFormStack {
   display: grid;
   gap: 0.66rem;
+}
+
+.customEquipmentSettingsStack {
+  display: grid;
+  gap: 0;
+}
+
+.customEquipmentSettingsOption {
+  display: grid;
+  gap: 0.5rem;
+  padding-block: 0.1rem 0.66rem;
+}
+
+.customEquipmentSettingsOption + .customEquipmentSettingsOption {
+  border-top: 1px solid rgba(75, 47, 29, 0.14);
+  padding-top: 0.66rem;
+}
+
+.customEquipmentSettingsOption:last-child {
+  padding-bottom: 0.1rem;
+}
+
+.customEquipmentSettingsFields {
+  display: grid;
+  gap: 0.52rem;
+  margin-left: 1.1rem;
+  padding-left: 0.72rem;
+  border-left: 2px solid rgba(75, 47, 29, 0.14);
 }
 
 .customEquipmentThreeColumnRow {
@@ -239,6 +288,7 @@
   .customEquipmentFormGrid,
   .customEquipmentNameRow,
   .customEquipmentCostRow,
+  .customEquipmentArchetypeRow,
   .customDamageRow {
     grid-template-columns: 1fr;
   }
@@ -246,6 +296,11 @@
   .customEquipmentSectionHeader {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .customEquipmentSettingsFields {
+    margin-left: 0.42rem;
+    padding-left: 0.58rem;
   }
 
   .customEquipmentActionRow {
