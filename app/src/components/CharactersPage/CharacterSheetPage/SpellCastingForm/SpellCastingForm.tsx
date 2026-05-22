@@ -201,7 +201,8 @@ import {
   falseLifeSpellId,
   getFalseLifeTemporaryHitPointsFormula,
   getFalseLifeTemporaryHitPointsFormulaDisplay,
-  getFalseLifeTemporaryHitPointsFromRoll
+  getFalseLifeTemporaryHitPointsFromRoll,
+  type SpellImplementationOptionValues
 } from "../../../../pages/CharactersPage/characterRuntime/spellImplementations";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
@@ -2117,7 +2118,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     useRadiantSoul?: boolean;
     useOverchannel?: boolean;
     useBoonOfSpellRecall?: boolean;
-    castMageArmorOnSelf?: boolean;
+    spellImplementationOptions?: SpellImplementationOptionValues;
   }) {
     return castSelectedSpellWithContext(
       {

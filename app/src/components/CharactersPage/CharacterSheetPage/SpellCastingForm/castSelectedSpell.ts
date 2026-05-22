@@ -151,8 +151,7 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
     options?.useDetectThoughts === true && selectedSpellSupportsDetectThoughts;
   const useBoonOfSpellRecall =
     options?.useBoonOfSpellRecall === true && selectedSpellSupportsBoonOfSpellRecall;
-  const castMageArmorOnSelf = options?.castMageArmorOnSelf === true;
-  const spellImplementationOptions = { castMageArmorOnSelf };
+  const spellImplementationOptions = options?.spellImplementationOptions ?? {};
   const useBlessingOfMoonlight = options?.useBlessingOfMoonlight === true;
   const useElementalSmite =
     options?.useElementalSmite === true &&
@@ -266,6 +265,8 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
         const nextCharacterWithSpellImplementation = applySpellImplementationForCharacter({
           character: nextCharacterWithElementalSmite,
           spell: selectedSpell,
+          spellSlotLevel: null,
+          castSource: "standard",
           options: spellImplementationOptions
         });
         const nextCharacterWithGoliathAncestry = consumeGoliathAncestryIfSelected(
@@ -328,6 +329,8 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
         const nextCharacterWithSpellImplementation = applySpellImplementationForCharacter({
           character: nextCharacterWithConcentration,
           spell: selectedSpell,
+          spellSlotLevel: null,
+          castSource: "standard",
           options: spellImplementationOptions
         });
         const nextCharacterWithGoliathAncestry = consumeGoliathAncestryIfSelected(
@@ -382,6 +385,8 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
       const nextCharacterWithSpellImplementation = applySpellImplementationForCharacter({
         character: nextCharacterWithElementalSmite,
         spell: selectedSpell,
+        spellSlotLevel: null,
+        castSource: "standard",
         options: spellImplementationOptions
       });
       const nextCharacterWithGoliathAncestry = consumeGoliathAncestryIfSelected(
@@ -681,6 +686,8 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
     const nextCharacterWithSpellImplementation = applySpellImplementationForCharacter({
       character: nextCharacterWithSpellcast,
       spell: selectedSpell,
+      spellSlotLevel: slotLevel,
+      castSource: "standard",
       options: spellImplementationOptions
     });
     const nextCharacterWithTelekineticMaster = castsFreeViaTelekineticMaster

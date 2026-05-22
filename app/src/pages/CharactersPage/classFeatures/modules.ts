@@ -6,6 +6,7 @@ import {
   getArtificerFeatureActions,
   getArtificerAlwaysPreparedSpellIds,
   getArtificerAlwaysPreparedSpellSourceMap,
+  getArtificerReactionEntries,
   normalizeArtificerFeatureState
 } from "./artificer/artificer";
 import {
@@ -379,7 +380,8 @@ const classFeatureModules = {
         actions: getArtificerFeatureActions(character),
         actionOptions: getArtificerFeatureActionOptions(character),
         alwaysPreparedSpellIds: getArtificerAlwaysPreparedSpellIds(character),
-        alwaysPreparedSpellSources: getArtificerAlwaysPreparedSpellSourceMap(character)
+        alwaysPreparedSpellSources: getArtificerAlwaysPreparedSpellSourceMap(character),
+        reactionEntries: getArtificerReactionEntries(character)
       };
     },
     applyLongRest: applyLongRestToArtificerFeatures

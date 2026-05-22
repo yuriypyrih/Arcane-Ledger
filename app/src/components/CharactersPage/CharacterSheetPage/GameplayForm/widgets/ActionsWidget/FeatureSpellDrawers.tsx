@@ -21,6 +21,9 @@ import {
   appendGoliathAttackDescriptionAddition,
   getGoliathAttackDamageDetail
 } from "../../../../../../pages/CharactersPage/species";
+import {
+  mageArmorCastOnSelfOptionId
+} from "../../../../../../pages/CharactersPage/characterRuntime/spellImplementations";
 import type { GoliathAttackOptionState } from "../../../../../../pages/CharactersPage/speciesGoliath";
 import {
   paladinOathOfTheNobleGeniesElementalSmiteOptions,
@@ -128,6 +131,9 @@ type FeatureSpellDrawersProps = {
 };
 
 const emptySpellSlots = Array.from({ length: 9 }, () => 0);
+const armorOfShadowsSpellImplementationOptions = {
+  [mageArmorCastOnSelfOptionId]: true
+};
 
 function createBeguilingMagicOption({
   checked,
@@ -355,6 +361,12 @@ function FeatureSpellDrawers({
           selectedSpellSlotLevel={selectedFixedSpellSlotLevel}
           onSelectedSpellSlotLevelChange={onSelectedFixedSpellSlotLevelChange}
           onClose={onCloseFixedSpellDrawer}
+          spellImplementationCastSource="fixed-feature"
+          forcedSpellImplementationOptions={
+            fixedSpellExecute.effectKind === "armor-of-shadows"
+              ? armorOfShadowsSpellImplementationOptions
+              : undefined
+          }
           onAction={(options) =>
             onCastFixedSpellAction({
               ...options,
@@ -377,7 +389,6 @@ function FeatureSpellDrawers({
           showActionDiceControls={fixedSpellShowActionDiceControls}
           isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
           onDiceRollerSettingsOpenChange={onDiceRollerSettingsOpenChange}
-          forceMageArmorSelfCast={fixedSpellExecute.effectKind === "armor-of-shadows"}
           actionWarning={fixedSpellCastWarning}
           actionDisabled={spellcastingBlocked || fixedSpellSharedCastWarning !== null}
           blockedReason={spellcastingBlocked ? spellcastingBlockedReason : null}
@@ -488,6 +499,7 @@ function FeatureSpellDrawers({
           selectedSpellSlotLevel={1}
           onSelectedSpellSlotLevelChange={() => {}}
           onClose={onCloseDivineInterventionSpell}
+          spellImplementationCastSource="divine-intervention"
           onAction={(options) =>
             onCastDivineInterventionSpell({
               ...options,
@@ -527,6 +539,7 @@ function FeatureSpellDrawers({
           }
           onSelectedSpellSlotLevelChange={() => {}}
           onClose={onCloseMysticArcanumSpell}
+          spellImplementationCastSource="mystic-arcanum"
           onAction={(options) =>
             onCastMysticArcanumSpell({
               ...options,

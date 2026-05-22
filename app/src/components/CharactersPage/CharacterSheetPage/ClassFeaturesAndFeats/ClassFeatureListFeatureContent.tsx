@@ -4,6 +4,7 @@
 export function renderClassFeatureContent(context: Record<string, any>) {
   const {
     ArtificerReplicateMagicItemPlanSelection,
+    ArtificerToolsOfTheTradeSelection,
     BattleMasterManeuverSelection,
     CLASS_FEATURE,
     EldritchInvocationList,
@@ -31,6 +32,10 @@ export function renderClassFeatureContent(context: Record<string, any>) {
     getArtificerReplicateMagicItemAvailablePlanGroups,
     getArtificerReplicateMagicItemPlanSelections,
     getArtificerReplicateMagicItemPlansKnown,
+    getArtificerToolsOfTheTradeAvailableToolSelections,
+    getArtificerToolsOfTheTradeChoiceCount,
+    getArtificerToolsOfTheTradeChoiceSelections,
+    getArtificerToolsOfTheTradeLockedSelections,
     getAvailableBardExpertiseSkills,
     getAvailableBardLoreBonusProficiencySkills,
     getAvailableBardMagicalDiscoveriesSpells,
@@ -134,6 +139,7 @@ export function renderClassFeatureContent(context: Record<string, any>) {
     updateBarbarianPrimalKnowledgeSelection,
     updateBarbarianWildHeartAspectChoice,
     updateArtificerReplicateMagicItemPlanSelection,
+    updateArtificerToolsOfTheTradeToolSelection,
     updateBardExpertiseSelection,
     updateBardLoreBonusProficiencySelection,
     updateBardMagicalDiscoveriesSpellSelection,
@@ -192,6 +198,26 @@ export function renderClassFeatureContent(context: Record<string, any>) {
             plansKnown={getArtificerReplicateMagicItemPlansKnown()}
             selections={getArtificerReplicateMagicItemPlanSelections()}
             onChange={updateArtificerReplicateMagicItemPlanSelection}
+          />
+        </>
+      ) : featureRow.feature === CLASS_FEATURE.TOOLS_OF_THE_TRADE &&
+        character.className === "Artificer" ? (
+        <>
+          <FeatureDescriptionLines
+            featureKey={featureRow.key}
+            lines={featureDetails.description}
+            onOpenKeyword={onOpenKeyword}
+            onOpenFeatReference={onOpenFeatReference}
+            onOpenSpellReference={onOpenSpellReference}
+            onOpenDivinityReference={onOpenDivinityReference}
+          />
+          <ArtificerToolsOfTheTradeSelection
+            choiceCount={getArtificerToolsOfTheTradeChoiceCount()}
+            choiceSelections={getArtificerToolsOfTheTradeChoiceSelections()}
+            getAvailableTools={getArtificerToolsOfTheTradeAvailableToolSelections}
+            isUnlocked={isUnlocked}
+            lockedSelections={getArtificerToolsOfTheTradeLockedSelections()}
+            onChange={updateArtificerToolsOfTheTradeToolSelection}
           />
         </>
       ) : featureRow.feature === CLASS_FEATURE.DIVINE_ORDER ? (

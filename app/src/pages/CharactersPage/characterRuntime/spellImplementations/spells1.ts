@@ -12,11 +12,16 @@ import {
   normalizeCharacterStatusEntries,
   pruneLinkedStatusEntries
 } from "../../statusEntries";
-import type { SpellCastImplementationContext } from "./types";
+import type {
+  SpellImplementation,
+  SpellImplementationApplyContext,
+  SpellImplementationCastOptionsContext
+} from "./types";
 
 export const mageArmorSpellId = "spell-mage-armor";
 export const mageArmorStatusSourceId = "spell-mage-armor-self";
 export const mageArmorStatusValue = "Mage Armor";
+export const mageArmorCastOnSelfOptionId = "castOnSelf";
 
 export function isMageArmorSelfStatusEntry(
   entry: Pick<CharacterStatusEntry, "group" | "sourceId" | "value">
@@ -64,15 +69,34 @@ function applyMageArmorSelfCastForCharacter(
   };
 }
 
+function getMageArmorCastOptions(context: SpellImplementationCastOptionsContext) {
+  const forceSelfCast = context.forcedOptions?.[mageArmorCastOnSelfOptionId] === true;
+
+  return [
+    {
+      id: mageArmorCastOnSelfOptionId,
+      label: "Cast on myself",
+      defaultChecked: forceSelfCast,
+      disabled: forceSelfCast
+    }
+  ];
+}
+
 export function applyMageArmorSpellImplementation(
-  context: SpellCastImplementationContext
+  context: SpellImplementationApplyContext
 ): Character {
-  if (!context.options.castMageArmorOnSelf) {
+  if (context.options[mageArmorCastOnSelfOptionId] !== true) {
     return context.character;
   }
 
   return applyMageArmorSelfCastForCharacter(context.character, context.spell);
 }
+
+const mageArmorSpellImplementation: SpellImplementation = {
+  spellId: mageArmorSpellId,
+  getCastOptions: getMageArmorCastOptions,
+  applyOnCast: applyMageArmorSpellImplementation
+};
 
 export function getMageArmorArmorClassModes(
   character: Partial<Pick<Character, "statusEntries">>,
@@ -97,3 +121,5 @@ export function getMageArmorArmorClassModes(
     }
   ];
 }
+
+export const spellImplementations1: SpellImplementation[] = [mageArmorSpellImplementation];

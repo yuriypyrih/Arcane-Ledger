@@ -128,6 +128,7 @@ export function normalizeCharacterProficiencies(
       speciesChoices: options.speciesChoices,
       skillProficiencies: normalizedStoredSkillEntries,
       savingThrowProficiencies: normalizedStoredSavingThrowEntries,
+      toolProficiencies: stripAutomaticEntries(normalizedStoredToolEntries),
       selectedClassSkills: [
         ...new Set([
           ...getSelectedClassSkillSelectionsFromEntries(

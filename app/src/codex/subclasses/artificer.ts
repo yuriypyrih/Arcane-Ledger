@@ -43,15 +43,14 @@ export const artificerSubclassEntries: SubclassEntry[] = [
     summary:
       "An Alchemist is an expert at combining reagents to produce magical effects. Alchemists use their creations to give life and to leech it away.",
     features: [
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_3,
-        CLASS_FEATURE.TOOLS_OF_THE_TRADE,
-        createDescription([
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.TOOLS_OF_THE_TRADE, {
+        description: [
           "You gain the following benefits.",
           "<strong>Tool Proficiency.</strong> You gain proficiency with Alchemist's Supplies and the Herbalism Kit. If you already have one of these proficiencies, you gain proficiency with one other type of Artisan's Tools of your choice, or with two other types if you have both.",
           "<strong>Potion Crafting.</strong> When you brew a potion using the crafting rules in the Dungeon Master's Guide, the amount of time required to craft it is halved."
-        ])
-      ),
+        ],
+        trackingState: TRACKER.TRACKED
+      }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,
         CLASS_FEATURE.ALCHEMIST_SPELLS,

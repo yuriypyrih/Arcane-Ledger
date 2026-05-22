@@ -23,8 +23,10 @@ import {
   activateBarbarianBerserkerRetaliationForCharacter,
   activateBardCollegeOfDanceInspiringMovementForCharacter,
   activateRangerHunterSuperiorHuntersDefenseForCharacter,
+  artificerFlashOfGeniusReactionEntryId,
   clericWardingFlareReactionEntryId,
   clericGuidedStrikeReactionEntryId,
+  consumeArtificerFlashOfGeniusUseForCharacter,
   consumeClericGuidedStrikeReactionForCharacter,
   consumeClericWardingFlareUseForCharacter,
   consumeDruidCosmicOmenUseForCharacter,
@@ -136,6 +138,8 @@ export type ReactionDescriptorContext = {
   cosmicOmenUsesTotal: number;
   elementalRebukeUsesRemaining: number;
   elementalRebukeUsesTotal: number;
+  flashOfGeniusUsesRemaining: number;
+  flashOfGeniusUsesTotal: number;
   gloriousDefenseUsesRemaining: number;
   gloriousDefenseUsesTotal: number;
   hasActiveVowOfEnmity: boolean;
@@ -519,6 +523,17 @@ function createInterceptionReactionRollRequest(
 }
 
 const descriptors: ReactionDescriptor[] = [
+  {
+    id: artificerFlashOfGeniusReactionEntryId,
+    getResourceWarning: (context) =>
+      context.flashOfGeniusUsesRemaining <= 0 ? "No Flash of Genius uses remaining." : null,
+    getResourceSummary: () => null,
+    getHeaderTags: (context) => [
+      createChargesHeaderTag(context.flashOfGeniusUsesRemaining, context.flashOfGeniusUsesTotal)
+    ],
+    apply: consumeArtificerFlashOfGeniusUseForCharacter,
+    skipReactionWhenUnchanged: true
+  },
   {
     id: druidCosmicOmenReactionId,
     getResourceWarning: (context) =>

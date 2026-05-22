@@ -2,11 +2,17 @@ import {
   getArtificerReplicateMagicItemAvailablePlanGroups,
   getArtificerReplicateMagicItemPlanKeysForCharacter,
   getArtificerReplicateMagicItemPlansKnown,
+  getArtificerToolsOfTheTradeAvailableToolSelectionsForCharacter,
+  getArtificerToolsOfTheTradeChoiceCountForCharacter,
+  getArtificerToolsOfTheTradeChoiceSelectionsForCharacter,
+  getArtificerToolsOfTheTradeLockedSelectionsForCharacter,
+  isArtificerToolsOfTheTradeInputRequired,
   isArtificerReplicateMagicItemPlanSelectionInputRequired,
-  setArtificerReplicateMagicItemPlanKeysForCharacter
+  setArtificerReplicateMagicItemPlanKeysForCharacter,
+  setArtificerToolsOfTheTradeToolSelectionsForCharacter
 } from "../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
 import { updateSelectionAtIndex } from "../helpers";
-import type { ClassFeatureChoiceModelArgs } from "./shared";
+import { recomputeCharacterFeatureProficiencies, type ClassFeatureChoiceModelArgs } from "./shared";
 
 export function createArtificerFeatureChoiceModel({
   character,
@@ -30,14 +36,44 @@ export function createArtificerFeatureChoiceModel({
     );
   }
 
+  function getArtificerToolsOfTheTradeChoiceSelections() {
+    return getArtificerToolsOfTheTradeChoiceSelectionsForCharacter(character);
+  }
+
+  function updateArtificerToolsOfTheTradeToolSelection(slotIndex: number, nextTool: string) {
+    onPersistCharacter((currentCharacter) =>
+      recomputeCharacterFeatureProficiencies(
+        setArtificerToolsOfTheTradeToolSelectionsForCharacter(
+          currentCharacter,
+          updateSelectionAtIndex(
+            getArtificerToolsOfTheTradeChoiceSelectionsForCharacter(currentCharacter),
+            getArtificerToolsOfTheTradeChoiceCountForCharacter(currentCharacter),
+            slotIndex,
+            nextTool
+          )
+        )
+      )
+    );
+  }
+
   return {
     getArtificerReplicateMagicItemAvailablePlanGroups: () =>
       getArtificerReplicateMagicItemAvailablePlanGroups(character),
     getArtificerReplicateMagicItemPlanSelections,
     getArtificerReplicateMagicItemPlansKnown: () =>
       getArtificerReplicateMagicItemPlansKnown(character),
+    getArtificerToolsOfTheTradeAvailableToolSelections: (slotIndex: number) =>
+      getArtificerToolsOfTheTradeAvailableToolSelectionsForCharacter(character, slotIndex),
+    getArtificerToolsOfTheTradeChoiceCount: () =>
+      getArtificerToolsOfTheTradeChoiceCountForCharacter(character),
+    getArtificerToolsOfTheTradeChoiceSelections,
+    getArtificerToolsOfTheTradeLockedSelections: () =>
+      getArtificerToolsOfTheTradeLockedSelectionsForCharacter(character),
     isArtificerReplicateMagicItemPlanSelectionInputRequired: () =>
       isArtificerReplicateMagicItemPlanSelectionInputRequired(character),
-    updateArtificerReplicateMagicItemPlanSelection
+    isArtificerToolsOfTheTradeInputRequired: () =>
+      isArtificerToolsOfTheTradeInputRequired(character),
+    updateArtificerReplicateMagicItemPlanSelection,
+    updateArtificerToolsOfTheTradeToolSelection
   };
 }

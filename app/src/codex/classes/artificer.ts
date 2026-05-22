@@ -270,7 +270,7 @@ export const artificerFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>
       "The bonus equals your <link:Intelligence>Intelligence</link> modifier, minimum of +1.",
       "You can use this Reaction a number of times equal to your Intelligence modifier, minimum of once, and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.MAGIC_ITEM_ADEPT]: {
     description: ["You can now attune to up to four magic items at once."],

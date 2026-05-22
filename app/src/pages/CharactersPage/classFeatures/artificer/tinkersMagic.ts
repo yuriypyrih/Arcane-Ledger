@@ -147,16 +147,15 @@ export function consumeArtificerTinkersMagicUse(character: Character): Character
     return character;
   }
 
-  const artificerState = normalizeArtificerTinkersMagicState(
-    character.classFeatureState?.artificer,
-    character
-  );
+  const currentArtificerState = character.classFeatureState?.artificer ?? {};
+  const artificerState = normalizeArtificerTinkersMagicState(currentArtificerState, character);
 
   return {
     ...character,
     classFeatureState: {
       ...character.classFeatureState,
       artificer: {
+        ...currentArtificerState,
         ...artificerState,
         tinkersMagicUsesExpended: (artificerState.tinkersMagicUsesExpended ?? 0) + 1
       }
@@ -182,10 +181,8 @@ export function restoreArtificerTinkersMagicOnLongRest(character: Character): Ch
     return character;
   }
 
-  const artificerState = normalizeArtificerTinkersMagicState(
-    character.classFeatureState?.artificer,
-    character
-  );
+  const currentArtificerState = character.classFeatureState?.artificer ?? {};
+  const artificerState = normalizeArtificerTinkersMagicState(currentArtificerState, character);
 
   if ((artificerState.tinkersMagicUsesExpended ?? 0) <= 0) {
     return character;
@@ -196,6 +193,7 @@ export function restoreArtificerTinkersMagicOnLongRest(character: Character): Ch
     classFeatureState: {
       ...character.classFeatureState,
       artificer: {
+        ...currentArtificerState,
         ...artificerState,
         tinkersMagicUsesExpended: 0
       }

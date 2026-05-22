@@ -26,6 +26,12 @@ import {
   getCustomTraitWeaponDamageBonuses
 } from "../customTraitEffects";
 import {
+  artificerFlashOfGeniusReactionEntryId,
+  consumeArtificerFlashOfGeniusUse,
+  getArtificerFlashOfGeniusUsesRemaining,
+  getArtificerFlashOfGeniusUsesTotal
+} from "./artificer/artificer";
+import {
   activateBardicInspiration,
   activateBardCollegeOfDanceInspiringMovement,
   applyMantleOfMajestyStatus,
@@ -589,6 +595,26 @@ export {
   rangerOtherworldlyGlamourSkillOptions
 };
 export { fighterBanneretKnightlyEnvoySkillOptions };
+
+export { artificerFlashOfGeniusReactionEntryId };
+
+export function getArtificerFlashOfGeniusUsesTotalForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "level" | "statusEntries">>
+): number {
+  return getArtificerFlashOfGeniusUsesTotal(character);
+}
+
+export function getArtificerFlashOfGeniusUsesRemainingForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "classFeatureState" | "level" | "statusEntries">>
+): number {
+  return getArtificerFlashOfGeniusUsesRemaining(character);
+}
+
+export function consumeArtificerFlashOfGeniusUseForCharacter(character: Character): Character {
+  return consumeArtificerFlashOfGeniusUse(character);
+}
 
 export function getFighterBanneretKnightlyEnvoyLanguageSelectionForCharacter(
   character: Pick<Character, "className"> &

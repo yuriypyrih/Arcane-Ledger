@@ -435,6 +435,7 @@ function getFeatureProficiencyCollectionsForCharacter(
     speciesChoices?: CharacterSpeciesChoices;
     skillProficiencies?: SkillProficiencyEntry[];
     savingThrowProficiencies?: SavingThrowProficiencyEntry[];
+    toolProficiencies?: ToolProficiencyEntry[];
   }
 ): CharacterProficiencyCollections {
   const featureCharacter = {
@@ -443,7 +444,8 @@ function getFeatureProficiencyCollectionsForCharacter(
     subclassId: options?.subclassId,
     classFeatureState: options?.classFeatureState,
     skillProficiencies: options?.skillProficiencies ?? [],
-    savingThrowProficiencies: options?.savingThrowProficiencies ?? []
+    savingThrowProficiencies: options?.savingThrowProficiencies ?? [],
+    toolProficiencies: options?.toolProficiencies ?? []
   };
 
   return {
@@ -544,6 +546,7 @@ export function getAutomaticProficiencyCollectionsForCharacter(
     speciesChoices?: CharacterSpeciesChoices;
     skillProficiencies?: SkillProficiencyEntry[];
     savingThrowProficiencies?: SavingThrowProficiencyEntry[];
+    toolProficiencies?: ToolProficiencyEntry[];
     selectedClassSkills?: string[];
     selectedClassToolProficiencies?: string[];
   }
@@ -558,7 +561,20 @@ export function getAutomaticProficiencyCollectionsForCharacter(
     className,
     options?.selectedClassToolProficiencies ?? []
   );
-  const featureCollections = getFeatureProficiencyCollectionsForCharacter(className, options);
+  const automaticToolEntries = getAutomaticToolEntries(
+    className,
+    species,
+    background,
+    options?.backgroundChoices,
+    normalizedSelectedClassTools
+  );
+  const featureCollections = getFeatureProficiencyCollectionsForCharacter(className, {
+    ...options,
+    toolProficiencies: mergeProficiencyEntries([
+      ...(options?.toolProficiencies ?? []),
+      ...automaticToolEntries
+    ])
+  });
 
   return {
     skillProficiencies: mergeProficiencyEntries([
@@ -585,13 +601,7 @@ export function getAutomaticProficiencyCollectionsForCharacter(
       ...featureCollections.armorProficiencies
     ]),
     toolProficiencies: mergeProficiencyEntries([
-      ...getAutomaticToolEntries(
-        className,
-        species,
-        background,
-        options?.backgroundChoices,
-        normalizedSelectedClassTools
-      ),
+      ...automaticToolEntries,
       ...featureCollections.toolProficiencies
     ]),
     languageProficiencies: mergeProficiencyEntries([

@@ -48,7 +48,12 @@ import {
 } from "../../../../pages/CharactersPage/shared/spellFormulas";
 import { isInnateSorceryActiveForSpell } from "../../../../pages/CharactersPage/classFeatures/sorcerer/innateSorcerySpell";
 import { isRogueArcaneTricksterMagicalAmbushActiveForSpell } from "../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueArcaneTrickster";
-import { mageArmorSpellId } from "../../../../pages/CharactersPage/characterRuntime/spellImplementations";
+import {
+  createDefaultSpellImplementationOptionValues,
+  getSpellCastOptionsForCharacter,
+  type SpellImplementationCastSource,
+  type SpellImplementationOptionValues
+} from "../../../../pages/CharactersPage/characterRuntime/spellImplementations";
 import type {
   FeatureActionCardUsage,
   FeatureActionFact,
@@ -94,7 +99,7 @@ export type CharacterSpellDrawerActionOptions = {
   useShadowMagic?: boolean;
   useDetectThoughts?: boolean;
   useBoonOfSpellRecall?: boolean;
-  castMageArmorOnSelf?: boolean;
+  spellImplementationOptions?: SpellImplementationOptionValues;
 };
 
 export type CharacterSpellDrawerActionRadioOption = {
@@ -183,7 +188,8 @@ type CharacterSpellDrawerProps = {
   onDiceRollerSettingsOpenChange?: (isOpen: boolean) => void;
   damageDetailOverride?: string | null;
   spellcastingAbilityOverride?: AbilityKey | null;
-  forceMageArmorSelfCast?: boolean;
+  spellImplementationCastSource?: SpellImplementationCastSource;
+  forcedSpellImplementationOptions?: SpellImplementationOptionValues;
   backdropClassName?: string;
 };
 
@@ -256,38 +262,79 @@ function CharacterSpellDrawer({
   onDiceRollerSettingsOpenChange,
   damageDetailOverride = null,
   spellcastingAbilityOverride = null,
-  forceMageArmorSelfCast = false,
+  spellImplementationCastSource,
+  forcedSpellImplementationOptions,
   backdropClassName
 }: CharacterSpellDrawerProps) {
   const [isComponentsTooltipOpen, setIsComponentsTooltipOpen] = useState(false);
   const [selectedTrackingKeyword, setSelectedTrackingKeyword] =
     useState<ResolvedKeywordReference | null>(null);
   const [isRitualCastingSelected, setIsRitualCastingSelected] = useState(ritualCastingRequired);
-  const [isMageArmorSelfCastSelected, setIsMageArmorSelfCastSelected] =
-    useState(forceMageArmorSelfCast);
   const spellLevel = getSpellLevel(spell);
-  const shouldShowMageArmorSelfCast = mode === "standard" && spell.id === mageArmorSpellId;
+  const resolvedSpellImplementationCastSource =
+    spellImplementationCastSource ??
+    (mode === "divine-intervention" ? "divine-intervention" : "standard");
+  const spellImplementationCastOptions = useMemo(
+    () => {
+      if (mode === "prepare-preview") {
+        return [];
+      }
+
+      return getSpellCastOptionsForCharacter({
+        character,
+        spell,
+        castSource: resolvedSpellImplementationCastSource,
+        forcedOptions: forcedSpellImplementationOptions
+      });
+    },
+    [
+      character,
+      forcedSpellImplementationOptions,
+      mode,
+      resolvedSpellImplementationCastSource,
+      spell
+    ]
+  );
+  const defaultSpellImplementationOptionValues = useMemo(
+    () => createDefaultSpellImplementationOptionValues(spellImplementationCastOptions),
+    [spellImplementationCastOptions]
+  );
+  const [spellImplementationOptionValues, setSpellImplementationOptionValues] =
+    useState<SpellImplementationOptionValues>(() => defaultSpellImplementationOptionValues);
+  const activeSpellImplementationOptionValues = useMemo<SpellImplementationOptionValues>(
+    () =>
+      Object.fromEntries(
+        spellImplementationCastOptions.map((option) => [
+          option.id,
+          spellImplementationOptionValues[option.id] === true
+        ])
+      ),
+    [spellImplementationCastOptions, spellImplementationOptionValues]
+  );
+  const spellImplementationActionOptions = useMemo<CharacterSpellDrawerActionOption[]>(
+    () =>
+      spellImplementationCastOptions.map((option) => ({
+        id: `spell-implementation-${option.id}`,
+        label: option.label,
+        checked: activeSpellImplementationOptionValues[option.id] === true,
+        onCheckedChange: option.disabled
+          ? () => undefined
+          : (checked) =>
+              setSpellImplementationOptionValues((currentValues) => ({
+                ...currentValues,
+                [option.id]: checked
+              })),
+        disabled: option.disabled
+      })),
+    [activeSpellImplementationOptionValues, spellImplementationCastOptions]
+  );
   const allActionOptions = useMemo<CharacterSpellDrawerActionOption[]>(() => {
-    if (!shouldShowMageArmorSelfCast) {
+    if (spellImplementationActionOptions.length === 0) {
       return actionOptions;
     }
 
-    return [
-      {
-        id: "mage-armor-self",
-        label: "Cast on myself",
-        checked: isMageArmorSelfCastSelected,
-        onCheckedChange: forceMageArmorSelfCast ? () => undefined : setIsMageArmorSelfCastSelected,
-        disabled: forceMageArmorSelfCast
-      },
-      ...actionOptions
-    ];
-  }, [
-    actionOptions,
-    forceMageArmorSelfCast,
-    isMageArmorSelfCastSelected,
-    shouldShowMageArmorSelfCast
-  ]);
+    return [...spellImplementationActionOptions, ...actionOptions];
+  }, [actionOptions, spellImplementationActionOptions]);
   const minimumSelectedSlotLevel = Math.max(1, spellLevel, minimumActionSpellSlotLevel);
   const isQuickRitualSelected = allActionOptions.some(
     (option) => option.id === "quick-ritual" && option.checked
@@ -422,7 +469,7 @@ function CharacterSpellDrawer({
     useDetectThoughts: allActionOptions.some(
       (option) => option.id === "detect-thoughts" && option.checked
     ),
-    castMageArmorOnSelf: shouldShowMageArmorSelfCast && isMageArmorSelfCastSelected
+    spellImplementationOptions: activeSpellImplementationOptionValues
   };
   const resolvedActionPaths =
     actionPaths && actionPaths.length > 0
@@ -510,8 +557,8 @@ function CharacterSpellDrawer({
   }, [ritualCastingAvailable, spell.id]);
 
   useEffect(() => {
-    setIsMageArmorSelfCastSelected(forceMageArmorSelfCast);
-  }, [forceMageArmorSelfCast, spell.id]);
+    setSpellImplementationOptionValues(defaultSpellImplementationOptionValues);
+  }, [defaultSpellImplementationOptionValues, spell.id]);
 
   useEffect(() => {
     if (ritualCastingRequired) {

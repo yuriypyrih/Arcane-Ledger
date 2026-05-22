@@ -1387,7 +1387,7 @@ export function getFeatureArmorProficiencyEntriesForCharacter(
 
 export function getFeatureToolProficiencyEntriesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState"> &
-    Partial<Pick<Character, "subclassId">>
+    Partial<Pick<Character, "subclassId" | "toolProficiencies">>
 ): FeatureToolProficiencyEntry[] {
   const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);

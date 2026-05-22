@@ -25,8 +25,11 @@ import {
   restoreTieflingFiendishLegacyOnLongRest
 } from "../../../../../pages/CharactersPage/species";
 import {
+  getArtificerFlashOfGeniusUsesRemaining,
+  getArtificerFlashOfGeniusUsesTotal,
   getArtificerTinkersMagicUsesRemaining,
   getArtificerTinkersMagicUsesTotal,
+  restoreArtificerFlashOfGeniusOnLongRest,
   restoreArtificerTinkersMagicOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
 import {
@@ -371,6 +374,9 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const temporaryHitPoints = normalizeTemporaryHitPoints(character.temporaryHitPoints);
   const artificerTinkersMagicUsesTotal = getArtificerTinkersMagicUsesTotal(character);
   const artificerTinkersMagicUsesRemaining = getArtificerTinkersMagicUsesRemaining(character);
+  const artificerFlashOfGeniusUsesTotal = getArtificerFlashOfGeniusUsesTotal(character);
+  const artificerFlashOfGeniusUsesRemaining =
+    getArtificerFlashOfGeniusUsesRemaining(character);
   const rageUsesTotal = getBarbarianRageUsesTotal(character);
   const hasBarbarianRelentlessRage = hasBarbarianRelentlessRageFeature(character);
   const barbarianIntimidatingPresenceUsesTotal =
@@ -901,6 +907,21 @@ export function createLongRestOptions(character: Character): RestOption[] {
             disabled: artificerTinkersMagicUsesRemaining >= artificerTinkersMagicUsesTotal,
             apply: (currentCharacter: Character) =>
               restoreArtificerTinkersMagicOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(artificerFlashOfGeniusUsesTotal > 0
+      ? [
+          {
+            id: "restore-artificer-flash-of-genius",
+            label: "Restore Flash of Genius",
+            charges: {
+              current: artificerFlashOfGeniusUsesRemaining,
+              total: artificerFlashOfGeniusUsesTotal
+            },
+            disabled: artificerFlashOfGeniusUsesRemaining >= artificerFlashOfGeniusUsesTotal,
+            apply: (currentCharacter: Character) =>
+              restoreArtificerFlashOfGeniusOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),

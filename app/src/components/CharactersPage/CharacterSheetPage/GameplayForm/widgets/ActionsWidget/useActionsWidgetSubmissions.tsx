@@ -279,7 +279,9 @@ import {
   fiendishVigorTemporaryHitPointsSource,
   getFalseLifeTemporaryHitPointsFormula,
   getFalseLifeTemporaryHitPointsFormulaDisplay,
-  getFalseLifeTemporaryHitPointsFromRoll
+  getFalseLifeTemporaryHitPointsFromRoll,
+  mageArmorCastOnSelfOptionId,
+  type SpellImplementationOptionValues
 } from "../../../../../../pages/CharactersPage/characterRuntime/spellImplementations";
 import {
   applyRolledHealingToCharacter,
@@ -1920,7 +1922,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     useFrozenHaunt?: boolean;
     frozenHauntFallbackSlotLevel?: number;
     castAsRitual?: boolean;
-    castMageArmorOnSelf?: boolean;
+    spellImplementationOptions?: SpellImplementationOptionValues;
   }) {
     if (!fixedSpellExecute || !fixedSpellEntry || !selectedFeatureAction) {
       return;
@@ -1942,9 +1944,13 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
       ? (options?.frozenHauntFallbackSlotLevel ?? null)
       : null;
     const castAsRitual = options?.castAsRitual === true;
-    const castMageArmorOnSelf =
-      fixedSpellExecute.effectKind === "armor-of-shadows" || options?.castMageArmorOnSelf === true;
-    const spellImplementationOptions = { castMageArmorOnSelf };
+    const spellImplementationOptions =
+      fixedSpellExecute.effectKind === "armor-of-shadows"
+        ? {
+            ...(options?.spellImplementationOptions ?? {}),
+            [mageArmorCastOnSelfOptionId]: true
+          }
+        : (options?.spellImplementationOptions ?? {});
     const minimumSlotLevel = Math.max(
       getSpellLevel(fixedSpellEntry),
       fixedSpellMinimumActionSlotLevel ?? 1
@@ -2094,6 +2100,8 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
       const nextCharacterWithSpellImplementation = applySpellImplementationForCharacter({
         character: nextCharacterWithConcentration,
         spell: fixedSpellEntry,
+        spellSlotLevel: slotLevel,
+        castSource: "fixed-feature",
         options: spellImplementationOptions
       });
       const nextCharacterWithBeguilingMagic = useBeguilingMagic
@@ -2155,6 +2163,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
   function castDivineInterventionSpell(options?: {
     useBeguilingMagic?: boolean;
     useGoliathAncestry?: boolean;
+    spellImplementationOptions?: SpellImplementationOptionValues;
   }) {
     if (!selectedDivineInterventionSpell || !selectedFeatureAction) {
       return;
@@ -2165,6 +2174,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
       options?.useGoliathAncestry === true &&
       selectedActionSpellGoliathAncestryState !== null &&
       !selectedActionSpellGoliathAncestryState.disabled;
+    const spellImplementationOptions = options?.spellImplementationOptions ?? {};
 
     onPersistCharacter((currentCharacter) => {
       const roundTrackerResource = getRoundTrackerResourceForEconomyType(
@@ -2192,7 +2202,10 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
       };
       const nextCharacterWithSpellImplementation = applySpellImplementationForCharacter({
         character: nextCharacterWithConcentration,
-        spell: selectedDivineInterventionSpell
+        spell: selectedDivineInterventionSpell,
+        spellSlotLevel: null,
+        castSource: "divine-intervention",
+        options: spellImplementationOptions
       });
       const nextCharacterWithBeguilingMagic = useBeguilingMagic
         ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithSpellImplementation)
@@ -2228,6 +2241,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
   function castMysticArcanumSpell(options?: {
     useBeguilingMagic?: boolean;
     useGoliathAncestry?: boolean;
+    spellImplementationOptions?: SpellImplementationOptionValues;
   }) {
     if (!selectedMysticArcanumSpell || selectedMysticArcanumSpellLevel === null) {
       return;
@@ -2238,6 +2252,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
       options?.useGoliathAncestry === true &&
       selectedActionSpellGoliathAncestryState !== null &&
       !selectedActionSpellGoliathAncestryState.disabled;
+    const spellImplementationOptions = options?.spellImplementationOptions ?? {};
 
     onPersistCharacter((currentCharacter) => {
       const roundTrackerResource = getRoundTrackerResourceForSpell(selectedMysticArcanumSpell);
@@ -2262,7 +2277,10 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
       };
       const nextCharacterWithSpellImplementation = applySpellImplementationForCharacter({
         character: nextCharacterWithConcentration,
-        spell: selectedMysticArcanumSpell
+        spell: selectedMysticArcanumSpell,
+        spellSlotLevel: selectedMysticArcanumSpellLevel,
+        castSource: "mystic-arcanum",
+        options: spellImplementationOptions
       });
       const nextCharacterWithBeguilingMagic = useBeguilingMagic
         ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithSpellImplementation)

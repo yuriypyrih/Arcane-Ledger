@@ -151,6 +151,7 @@ function TraitsConditionsWidget({
           selectedSpellSlotLevel={reactionDrawerState.selectedReactionSpellSlotLevel}
           onSelectedSpellSlotLevelChange={reactionDrawerState.setSelectedReactionSpellSlotLevel}
           onClose={reactionDrawerState.closeSelectedReaction}
+          spellImplementationCastSource="reaction"
           onAction={(options) =>
             reactionDrawerState.castSelectedReactionSpell({
               ...options,

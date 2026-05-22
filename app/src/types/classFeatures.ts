@@ -283,8 +283,10 @@ export type ClericDivineOrderChoice = "protector" | "thaumaturge";
 export type ClericBlessedStrikesChoice = "blessed-strike" | "potent-spellcasting";
 
 export type CharacterArtificerFeatureState = {
+  flashOfGeniusUsesExpended?: number;
   tinkersMagicUsesExpended?: number;
   replicateMagicItemPlanKeys?: string[];
+  toolsOfTheTradeToolProficiencies?: TOOL_PROFICIENCY[];
 };
 
 export type CharacterClericFeatureState = {

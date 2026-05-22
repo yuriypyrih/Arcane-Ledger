@@ -1,19 +1,41 @@
 import type { SpellEntry } from "../../../../codex/entries";
 import type { Character } from "../../../../types";
 
-export type SpellCastImplementationOptions = {
-  castMageArmorOnSelf?: boolean;
+export type SpellImplementationCastSource =
+  | "standard"
+  | "fixed-feature"
+  | "divine-intervention"
+  | "mystic-arcanum"
+  | "reaction";
+
+export type SpellImplementationOptionValues = Record<string, boolean>;
+
+export type SpellImplementationCastOption = {
+  id: string;
+  label: string;
+  defaultChecked?: boolean;
+  disabled?: boolean;
 };
 
-export type SpellCastImplementationContext = {
+export type SpellImplementationCastOptionsContext = {
   character: Character;
   spell: SpellEntry;
-  options: SpellCastImplementationOptions;
+  castSource: SpellImplementationCastSource;
+  forcedOptions?: SpellImplementationOptionValues;
 };
 
-export type SpellCastImplementation = (context: SpellCastImplementationContext) => Character;
+export type SpellImplementationApplyContext = {
+  character: Character;
+  spell: SpellEntry;
+  spellSlotLevel: number | null;
+  castSource: SpellImplementationCastSource;
+  options: SpellImplementationOptionValues;
+};
 
-export type SpellCastImplementationModifier = (
-  implementation: SpellCastImplementation | null,
-  context: SpellCastImplementationContext
-) => SpellCastImplementation | null;
+export type SpellImplementation = {
+  spellId: string;
+  getCastOptions?: (
+    context: SpellImplementationCastOptionsContext
+  ) => SpellImplementationCastOption[];
+  applyOnCast?: (context: SpellImplementationApplyContext) => Character;
+};

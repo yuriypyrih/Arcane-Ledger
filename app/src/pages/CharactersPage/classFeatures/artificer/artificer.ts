@@ -7,9 +7,16 @@ import {
   restoreArtificerTinkersMagicOnLongRest
 } from "./tinkersMagic";
 import {
+  getArtificerFlashOfGeniusReactionEntries,
+  normalizeArtificerFlashOfGeniusState,
+  restoreArtificerFlashOfGeniusOnLongRest
+} from "./flashOfGenius";
+import {
   getArtificerReplicateMagicItemAction,
   normalizeArtificerReplicateMagicItemPlanState
 } from "./replicateMagicItem";
+import { normalizeArtificerToolsOfTheTradeState } from "./toolsOfTheTrade";
+import type { ReactionEntry } from "../../../../codex/entries";
 
 export {
   addArtificerTinkersMagicItemToInventory,
@@ -20,6 +27,14 @@ export {
   getArtificerTinkersMagicUsesTotal,
   restoreArtificerTinkersMagicOnLongRest
 } from "./tinkersMagic";
+
+export {
+  artificerFlashOfGeniusReactionEntryId,
+  consumeArtificerFlashOfGeniusUse,
+  getArtificerFlashOfGeniusUsesRemaining,
+  getArtificerFlashOfGeniusUsesTotal,
+  restoreArtificerFlashOfGeniusOnLongRest
+} from "./flashOfGenius";
 
 export {
   addArtificerReplicateMagicItemToInventory,
@@ -33,6 +48,15 @@ export {
   setArtificerReplicateMagicItemPlanKeysForCharacter
 } from "./replicateMagicItem";
 
+export {
+  getArtificerToolsOfTheTradeAvailableToolSelectionsForCharacter,
+  getArtificerToolsOfTheTradeChoiceCountForCharacter,
+  getArtificerToolsOfTheTradeChoiceSelectionsForCharacter,
+  getArtificerToolsOfTheTradeLockedSelectionsForCharacter,
+  isArtificerToolsOfTheTradeInputRequired,
+  setArtificerToolsOfTheTradeToolSelectionsForCharacter
+} from "./toolsOfTheTrade";
+
 const mendingSpellId = "spell-mending";
 const tinkersMagicSource = "Tinker's Magic";
 
@@ -45,7 +69,9 @@ export function normalizeArtificerFeatureState(
 ): CharacterArtificerFeatureState {
   return {
     ...normalizeArtificerTinkersMagicState(value, character),
-    ...normalizeArtificerReplicateMagicItemPlanState(value, character)
+    ...normalizeArtificerFlashOfGeniusState(value, character),
+    ...normalizeArtificerReplicateMagicItemPlanState(value, character),
+    ...normalizeArtificerToolsOfTheTradeState(value, character)
   };
 }
 
@@ -78,6 +104,14 @@ export function getArtificerFeatureActions(
   ].filter((action): action is FeatureActionCard => Boolean(action));
 }
 
+export function getArtificerReactionEntries(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): ReactionEntry[] {
+  return getArtificerFlashOfGeniusReactionEntries(character);
+}
+
 export function applyLongRestToArtificerFeatures(character: Character): Character {
-  return restoreArtificerTinkersMagicOnLongRest(character);
+  return restoreArtificerFlashOfGeniusOnLongRest(
+    restoreArtificerTinkersMagicOnLongRest(character)
+  );
 }

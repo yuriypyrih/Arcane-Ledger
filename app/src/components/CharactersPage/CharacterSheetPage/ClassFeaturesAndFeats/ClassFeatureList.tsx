@@ -57,6 +57,7 @@ import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.m
 import styles from "./ClassFeaturesAndFeats.module.css";
 import BattleMasterManeuverSelection from "./BattleMasterManeuverSelection";
 import ArtificerReplicateMagicItemPlanSelection from "./ArtificerReplicateMagicItemPlanSelection";
+import ArtificerToolsOfTheTradeSelection from "./ArtificerToolsOfTheTradeSelection";
 import FeatureChoiceOptions from "./ClassFeatureChoiceOptions";
 import DruidWildShapeMonsterModal from "./DruidWildShapeMonsterModal";
 import EldritchInvocationList from "./EldritchInvocationList";
@@ -312,8 +313,14 @@ function ClassFeatureList({
     getArtificerReplicateMagicItemAvailablePlanGroups,
     getArtificerReplicateMagicItemPlanSelections,
     getArtificerReplicateMagicItemPlansKnown,
+    getArtificerToolsOfTheTradeAvailableToolSelections,
+    getArtificerToolsOfTheTradeChoiceCount,
+    getArtificerToolsOfTheTradeChoiceSelections,
+    getArtificerToolsOfTheTradeLockedSelections,
     isArtificerReplicateMagicItemPlanSelectionInputRequired,
-    updateArtificerReplicateMagicItemPlanSelection
+    isArtificerToolsOfTheTradeInputRequired,
+    updateArtificerReplicateMagicItemPlanSelection,
+    updateArtificerToolsOfTheTradeToolSelection
   } = artificerChoices;
   const {
     getAvailableBardExpertiseSkills,
@@ -613,6 +620,11 @@ function ClassFeatureList({
             featureRow.feature === CLASS_FEATURE.REPLICATE_MAGIC_ITEM &&
             character.className === "Artificer" &&
             isArtificerReplicateMagicItemPlanSelectionInputRequired();
+          const isArtificerToolsOfTheTradeSelectionRequired =
+            isUnlocked &&
+            featureRow.feature === CLASS_FEATURE.TOOLS_OF_THE_TRADE &&
+            character.className === "Artificer" &&
+            isArtificerToolsOfTheTradeInputRequired();
           const isInputRequired =
             (isUnlocked && isFeatChoiceFeature(featureRow.feature) && linkedFeat === null) ||
             isSpellcastingFeatureInputRequired ||
@@ -625,6 +637,7 @@ function ClassFeatureList({
             isKnowledgeDomainUnfetteredMindRequired ||
             isRangerGloomStalkerIronMindRequired ||
             isArtificerReplicateMagicItemPlanSelectionRequired ||
+            isArtificerToolsOfTheTradeSelectionRequired ||
             (isUnlocked &&
               featureRow.feature === CLASS_FEATURE.KNIGHTLY_ENVOY &&
               character.className === "Fighter" &&
@@ -764,6 +777,7 @@ function ClassFeatureList({
               renderBody={() =>
                 renderClassFeatureContent({
                   ArtificerReplicateMagicItemPlanSelection,
+                  ArtificerToolsOfTheTradeSelection,
                   BattleMasterManeuverSelection,
                   CLASS_FEATURE,
                   EldritchInvocationList,
@@ -791,6 +805,10 @@ function ClassFeatureList({
                   getArtificerReplicateMagicItemAvailablePlanGroups,
                   getArtificerReplicateMagicItemPlanSelections,
                   getArtificerReplicateMagicItemPlansKnown,
+                  getArtificerToolsOfTheTradeAvailableToolSelections,
+                  getArtificerToolsOfTheTradeChoiceCount,
+                  getArtificerToolsOfTheTradeChoiceSelections,
+                  getArtificerToolsOfTheTradeLockedSelections,
                   getAvailableBardExpertiseSkills,
                   getAvailableBardLoreBonusProficiencySkills,
                   getAvailableBardMagicalDiscoveriesSpells,
@@ -894,6 +912,7 @@ function ClassFeatureList({
                   updateBarbarianPrimalKnowledgeSelection,
                   updateBarbarianWildHeartAspectChoice,
                   updateArtificerReplicateMagicItemPlanSelection,
+                  updateArtificerToolsOfTheTradeToolSelection,
                   updateBardExpertiseSelection,
                   updateBardLoreBonusProficiencySelection,
                   updateBardMagicalDiscoveriesSpellSelection,
