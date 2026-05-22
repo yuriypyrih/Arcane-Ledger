@@ -1,0 +1,16 @@
+services:
+  al:
+    image: lausi95/arcane-ledger-frontend
+    networks: [traefik]
+    env_file: [ arcane-ledger-backend.env ]
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.tcm.rule=Host(`arcane-ledger.com`)
+      - traefik.http.routers.tcm.entrypoints=websecure
+      - traefik.http.routers.tcm.tls.certresolver=letsencrypt
+
+networks:
+  traefik:
+    external: true
+    name: traefik
