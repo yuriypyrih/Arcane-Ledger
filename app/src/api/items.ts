@@ -1,4 +1,4 @@
-import { DEFAULT_ITEM_BROWSER_TAB } from "../types";
+import { DEFAULT_ITEM_BROWSER_TAB } from "../types/items";
 import type {
   ItemArmorType,
   ItemAttackType,
@@ -10,9 +10,9 @@ import type {
   ItemOrdering,
   ItemProficiencyType,
   ItemRecord,
-  ItemSpecialFilter,
-  PaginatedApiResponse
-} from "../types";
+  ItemSpecialFilter
+} from "../types/items";
+import type { PaginatedApiResponse } from "../types/monsters";
 import { apiGet, apiPost, type ApiRequestOptions } from "./client";
 
 export type FetchItemListParams = {

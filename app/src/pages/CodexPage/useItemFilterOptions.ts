@@ -1,7 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { fetchItemFilterOptions, isApiOfflineError } from "../../api";
 import { useOnlineStatus } from "../../lib/useOnlineStatus";
 import type { CodexStatus, ItemFilterOptions, ItemSpecialFilter } from "../../types";
+import {
+  createArtificerPlanScopeKey,
+  getArtificerPlansFromScopeKey
+} from "./artificerPlanScope";
 
 export function useItemFilterOptions(
   enabled: boolean,
@@ -15,7 +19,11 @@ export function useItemFilterOptions(
   const isOnline = useOnlineStatus();
   const [payload, setPayload] = useState<ItemFilterOptions | null>(null);
   const [status, setStatus] = useState<CodexStatus>(enabled ? "loading" : "ready");
-  const artificerPlansKey = artificerPlans?.join("|") ?? null;
+  const artificerPlansKey = createArtificerPlanScopeKey(artificerPlans);
+  const requestArtificerPlans = useMemo(
+    () => getArtificerPlansFromScopeKey(artificerPlansKey),
+    [artificerPlansKey]
+  );
 
   useEffect(() => {
     if (!enabled) {
@@ -37,7 +45,7 @@ export function useItemFilterOptions(
     async function loadItemFilterOptions() {
       try {
         const nextPayload = await fetchItemFilterOptions(
-          { specialFilter, artificerPlan, artificerPlans },
+          { specialFilter, artificerPlan, artificerPlans: requestArtificerPlans },
           { signal: abortController.signal }
         );
 
@@ -62,7 +70,7 @@ export function useItemFilterOptions(
       active = false;
       abortController.abort();
     };
-  }, [artificerPlan, artificerPlansKey, enabled, isOnline, specialFilter]);
+  }, [artificerPlan, enabled, isOnline, requestArtificerPlans, specialFilter]);
 
   return {
     payload,

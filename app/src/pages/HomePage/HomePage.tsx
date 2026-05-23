@@ -26,44 +26,46 @@ function HomePage() {
   return (
     <section className={styles.page}>
       <section className={styles.workbenchHero} aria-labelledby="home-dashboard-title">
-        <div className={styles.heroCopy}>
-          <p className={styles.heroEyebrow}>
-            <Construction size={16} aria-hidden="true" />
-            <span>Under construction</span>
-          </p>
-          <h2 id="home-dashboard-title" className={styles.title}>
-            Dashboard workbench
-          </h2>
-          <p className={styles.heroText}>Big dashboard upgrades are being prepared.</p>
-          <div className={styles.buildNotes} aria-label="Dashboard build notes">
-            <span>
-              <HardHat size={15} aria-hidden="true" />
-              Foundation set
-            </span>
-            <span>
-              <Hammer size={15} aria-hidden="true" />
-              New panels in progress
-            </span>
-            <span>
-              <Wrench size={15} aria-hidden="true" />
-              Tools being tuned
-            </span>
+        <div className={styles.heroContent}>
+          <div className={styles.heroCopy}>
+            <p className={styles.heroEyebrow}>
+              <Construction size={16} aria-hidden="true" />
+              <span>Under construction</span>
+            </p>
+            <h2 id="home-dashboard-title" className={styles.title}>
+              Dashboard under construction
+            </h2>
+            <p className={styles.heroText}>
+              This home dashboard is actively being rebuilt. Big dashboard upgrades are being
+              prepared.
+            </p>
+          </div>
+
+          <div className={styles.headerActions}>
+            <ActionButton
+              icon={<Plus size={16} aria-hidden="true" />}
+              fullWidth={false}
+              onClick={() => navigate("/characters/new")}
+            >
+              New Character
+            </ActionButton>
+            <Link to="/compendium" className={styles.secondaryAction}>
+              <BookOpen size={16} aria-hidden="true" />
+              <span>Compendium</span>
+            </Link>
           </div>
         </div>
 
-        <div className={styles.headerActions}>
-          <ActionButton
-            icon={<Plus size={16} aria-hidden="true" />}
-            fullWidth={false}
-            onClick={() => navigate("/characters/new")}
-          >
-            New Character
-          </ActionButton>
-          <Link to="/compendium" className={styles.secondaryAction}>
-            <BookOpen size={16} aria-hidden="true" />
-            <span>Compendium</span>
-          </Link>
-        </div>
+        <aside className={styles.constructionNotice} aria-label="Dashboard construction status">
+          <HardHat className={styles.noticeIcon} aria-hidden="true" />
+          <span className={styles.noticeKicker}>Work in progress</span>
+          <strong>Dashboard build zone</strong>
+          <span>Core tools, session panels, and table controls are still being assembled.</span>
+          <div className={styles.noticeTools} aria-hidden="true">
+            <Hammer size={18} />
+            <Wrench size={18} />
+          </div>
+        </aside>
       </section>
 
       <div className={styles.dashboardGrid}>

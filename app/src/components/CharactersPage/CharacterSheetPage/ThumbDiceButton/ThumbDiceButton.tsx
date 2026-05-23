@@ -1,7 +1,8 @@
 import clsx from "clsx";
 import { Settings, X } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
+import { preloadD20Viewport } from "../../../D20Viewport/lazy";
 import ActionButton from "../../../ActionButton";
 import TextInput from "../../FormInputs/TextInput";
 import DiceRollerSettingsButton from "../GameplayForm/widgets/DiceRollerSettingsButton";
@@ -45,6 +46,15 @@ const modeOptions: Array<{ mode: RollMode; label: string; ariaLabel: string }> =
   }
 ];
 
+const diceRendererPreloadFallbackDelayMs = 900;
+const diceRendererPreloadIdleTimeoutMs = 2000;
+
+type DiceRendererPreloadWindow = Window &
+  typeof globalThis & {
+    requestIdleCallback?: (callback: () => void, options?: { timeout?: number }) => number;
+    cancelIdleCallback?: (handle: number) => void;
+  };
+
 function buildDiceFormula(selection: DiceSelection, customDiceTerms: CustomDiceTerm[]): string {
   const standardTerms = selectableDice
     .map((sides) => {
@@ -86,6 +96,33 @@ function ThumbDiceButton() {
   const customDiceCount = getCustomDiceCount(customDiceText);
   const totalSelectedDice =
     selectableDice.reduce((sum, sides) => sum + selection[sides], 0) + customDiceCount;
+
+  useEffect(() => {
+    function preloadDiceRenderer() {
+      void preloadD20Viewport().catch(() => undefined);
+    }
+
+    const preloadWindow = window as DiceRendererPreloadWindow;
+
+    if (typeof preloadWindow.requestIdleCallback === "function") {
+      const idleHandle = preloadWindow.requestIdleCallback(preloadDiceRenderer, {
+        timeout: diceRendererPreloadIdleTimeoutMs
+      });
+
+      return () => {
+        preloadWindow.cancelIdleCallback?.(idleHandle);
+      };
+    }
+
+    const timeoutHandle = window.setTimeout(
+      preloadDiceRenderer,
+      diceRendererPreloadFallbackDelayMs
+    );
+
+    return () => {
+      window.clearTimeout(timeoutHandle);
+    };
+  }, []);
 
   function adjustSelection(sides: DiceSides, delta: 1 | -1) {
     setSelection((currentSelection) => {

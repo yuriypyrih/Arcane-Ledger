@@ -17,29 +17,24 @@
   align-items: start;
   justify-content: space-between;
   gap: var(--space-section-gap);
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 0.42fr);
   overflow: hidden;
   padding: var(--space-card-padding);
   background:
-    linear-gradient(135deg, rgba(255, 253, 248, 0.96), rgba(248, 236, 218, 0.9)),
     repeating-linear-gradient(
       135deg,
-      rgba(162, 77, 45, 0.08) 0,
-      rgba(162, 77, 45, 0.08) 8px,
-      transparent 8px,
-      transparent 18px
-    );
+      rgba(75, 47, 29, 0.055) 0,
+      rgba(75, 47, 29, 0.055) 10px,
+      transparent 10px,
+      transparent 22px
+    ),
+    rgba(255, 250, 241, 0.94);
 }
 
-.workbenchHero::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #a24d2d, #d99245 46%, #28693f);
-  opacity: 0.86;
+.heroContent {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
 }
 
 .heroCopy {
@@ -84,18 +79,31 @@
   font-size: clamp(1rem, 2.2vw, 1.12rem);
 }
 
-.buildNotes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-  margin-top: 0.15rem;
+.constructionNotice {
+  display: grid;
+  justify-items: center;
+  gap: 0.42rem;
+  min-height: 100%;
+  border: 1px dashed rgba(75, 47, 29, 0.34);
+  border-radius: var(--radius-card);
+  background: rgba(255, 253, 248, 0.78);
+  color: var(--color-ink);
+  padding: 1rem;
+  text-align: center;
 }
 
-.buildNotes span,
+.noticeIcon {
+  width: clamp(3.2rem, 8vw, 4.8rem);
+  height: clamp(3.2rem, 8vw, 4.8rem);
+  color: var(--color-accent);
+}
+
+.noticeKicker,
 .statusPill {
   display: inline-flex;
   align-items: center;
-  gap: 0.34rem;
+  justify-content: center;
+  gap: 0.32rem;
   border: 1px solid rgba(75, 47, 29, 0.12);
   border-radius: var(--radius-pill);
   background: rgba(255, 253, 248, 0.72);
@@ -104,6 +112,24 @@
   font-weight: 700;
   min-height: 30px;
   padding: 0 0.68rem;
+}
+
+.constructionNotice strong {
+  font-family: "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  font-size: clamp(1.18rem, 3vw, 1.55rem);
+  line-height: 1.05;
+}
+
+.constructionNotice > span:last-of-type {
+  color: var(--color-ink-soft);
+  font-size: 0.88rem;
+}
+
+.noticeTools {
+  display: inline-flex;
+  gap: 0.35rem;
+  margin-top: 0.1rem;
+  color: var(--color-ink-soft);
 }
 
 .headerActions,
@@ -175,8 +201,7 @@
 
 .statusPill {
   flex: 0 0 auto;
-  background: rgba(40, 105, 63, 0.08);
-  color: #28693f;
+  color: var(--color-ink-soft);
 }
 
 .characterList {
@@ -198,7 +223,7 @@
   grid-template-columns: auto minmax(0, 1fr);
   gap: 0.58rem;
   min-height: 58px;
-  background: linear-gradient(135deg, rgba(255, 253, 248, 0.86), rgba(241, 228, 213, 0.78));
+  background: rgba(241, 228, 213, 0.72);
   padding: 0.56rem 0.7rem;
   text-align: left;
 }
@@ -265,7 +290,8 @@
     justify-content: center;
   }
 
-  .buildNotes {
-    display: grid;
+  .constructionNotice {
+    justify-items: start;
+    text-align: left;
   }
 }

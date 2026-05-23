@@ -1,12 +1,14 @@
 import clsx from "clsx";
 import { X } from "lucide-react";
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { createPortal } from "react-dom";
-import D20Viewport from "../../D20Viewport";
+import { loadD20Viewport } from "../../D20Viewport/lazy";
 import { useBodyScrollLock } from "../../../lib/useBodyScrollLock";
 import type { NaturalOutcome } from "../../../types";
 import styles from "./DiceRollerPopup.module.css";
 import type { DiceRollerPopupState } from "./types";
+
+const D20Viewport = lazy(loadD20Viewport);
 
 type DiceRollerPopupProps = {
   state: DiceRollerPopupState | null;
@@ -92,11 +94,15 @@ function DiceRollerPopup({ state, onClose, onRollComplete }: DiceRollerPopupProp
 
         {state.dice.length > 0 ? (
           <div className={styles.viewportStage}>
-            <D20Viewport
-              dice={state.dice}
-              rollToken={state.rollToken}
-              onRollComplete={(_, completedToken) => onRollComplete(completedToken)}
-            />
+            <Suspense
+              fallback={<p className={styles.viewportFallback}>Loading dice renderer...</p>}
+            >
+              <D20Viewport
+                dice={state.dice}
+                rollToken={state.rollToken}
+                onRollComplete={(_, completedToken) => onRollComplete(completedToken)}
+              />
+            </Suspense>
           </div>
         ) : null}
 

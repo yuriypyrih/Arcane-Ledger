@@ -1,6 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { fetchItemList, isApiOfflineError } from "../../api";
 import { useOnlineStatus } from "../../lib/useOnlineStatus";
+import {
+  createArtificerPlanScopeKey,
+  getArtificerPlansFromScopeKey
+} from "./artificerPlanScope";
 import type {
   CodexStatus,
   ItemArmorType,
@@ -55,7 +59,11 @@ export function useItemEntries({
   const isOnline = useOnlineStatus();
   const [payload, setPayload] = useState<PaginatedApiResponse<ItemListItem> | null>(null);
   const [status, setStatus] = useState<CodexStatus>(enabled ? "loading" : "ready");
-  const artificerPlansKey = artificerPlans?.join("|") ?? null;
+  const artificerPlansKey = createArtificerPlanScopeKey(artificerPlans);
+  const requestArtificerPlans = useMemo(
+    () => getArtificerPlansFromScopeKey(artificerPlansKey),
+    [artificerPlansKey]
+  );
 
   useEffect(() => {
     if (!enabled) {
@@ -93,7 +101,7 @@ export function useItemEntries({
             ordering,
             specialFilter,
             artificerPlan,
-            artificerPlans
+            artificerPlans: requestArtificerPlans
           },
           { signal: abortController.signal }
         );
@@ -122,7 +130,6 @@ export function useItemEntries({
   }, [
     armorType,
     artificerPlan,
-    artificerPlansKey,
     attackType,
     category,
     enabled,
@@ -134,6 +141,7 @@ export function useItemEntries({
     property,
     proficiencyType,
     rarity,
+    requestArtificerPlans,
     search,
     specialFilter,
     source,
