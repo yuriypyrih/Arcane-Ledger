@@ -28,8 +28,15 @@
   gap: 0.45rem;
 }
 
+.accountMenuRoot {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
 .brandLink,
 .navLink,
+.navButton,
 .menuButton,
 .broadLayoutSwitch {
   display: inline-flex;
@@ -69,8 +76,18 @@
   white-space: nowrap;
 }
 
+.navButton {
+  gap: 0.32rem;
+  font: inherit;
+  font-size: 0.86rem;
+  line-height: 1;
+  padding: 0 0.58rem;
+  white-space: nowrap;
+}
+
 .brandLink > span,
-.navLink > span {
+.navLink > span,
+.navButton > span {
   position: relative;
   display: inline-block;
   padding-bottom: 3px;
@@ -81,7 +98,8 @@
   position: relative;
 }
 
-.navLink svg {
+.navLink svg,
+.navButton svg {
   transition: filter 140ms ease;
 }
 
@@ -163,7 +181,8 @@
 }
 
 .brandLink:hover,
-.navLink:hover {
+.navLink:hover,
+.navButton:hover {
   background: transparent;
   border-color: transparent;
   color: #f6fbff;
@@ -174,7 +193,8 @@
     0 0 10px rgba(0, 110, 255, 0.2);
 }
 
-.navLink:hover svg {
+.navLink:hover svg,
+.navButton:hover svg {
   filter:
     drop-shadow(0 0 2px rgba(255, 255, 246, 0.32))
     drop-shadow(0 0 5px rgba(72, 162, 255, 0.36));
@@ -249,6 +269,67 @@
   opacity: 0.45;
 }
 
+.accountMenu {
+  position: absolute;
+  top: calc(100% + 0.58rem);
+  right: 0;
+  z-index: 5;
+  display: grid;
+  min-width: 240px;
+  max-width: min(320px, calc(100vw - 1.5rem));
+  overflow: hidden;
+  border: 1px solid rgba(255, 221, 164, 0.22);
+  border-radius: var(--radius-control);
+  background: #fffaf1;
+  box-shadow: 0 16px 34px rgba(20, 12, 8, 0.32);
+  color: var(--color-ink);
+}
+
+.accountMenuHeader {
+  display: grid;
+  gap: 0.16rem;
+  padding: 0.78rem 0.86rem;
+  border-bottom: 1px solid rgba(94, 62, 39, 0.16);
+}
+
+.accountMenuHeader strong {
+  color: #2f1b12;
+  font-size: 0.86rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.accountMenuKicker {
+  color: rgba(47, 27, 18, 0.58);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.accountMenuItem {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  border: 0;
+  background: transparent;
+  color: #2f1b12;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 800;
+  min-height: 42px;
+  padding: 0 0.86rem;
+  text-align: left;
+}
+
+.accountMenuItem:hover,
+.accountMenuItem:focus-visible {
+  background: rgba(143, 91, 56, 0.1);
+  outline: none;
+}
+
 @media (min-width: 1200px) {
   .broadLayoutSwitch {
     display: inline-flex;
@@ -261,17 +342,20 @@
   }
 
   .brandLink,
-  .navLink {
+  .navLink,
+  .navButton {
     padding: 0 0.42rem;
   }
 
-  .navLink {
+  .navLink,
+  .navButton {
     min-width: 34px;
     font-size: 0.8rem;
     padding: 0;
   }
 
-  .navLink > span {
+  .navLink > span,
+  .navButton > span {
     display: none;
   }
 }

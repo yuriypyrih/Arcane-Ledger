@@ -1,11 +1,13 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { activeCharacterSheetReducer } from "./activeCharacterSheetSlice";
+import { authReducer } from "./authSlice";
 import { diceRollerReducer } from "./diceRollerSlice";
 import { toastReducer } from "./toastSlice";
 
 export const store = configureStore({
   reducer: {
     activeCharacterSheet: activeCharacterSheetReducer,
+    auth: authReducer,
     diceRoller: diceRollerReducer,
     toasts: toastReducer
   }

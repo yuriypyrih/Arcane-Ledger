@@ -37,6 +37,7 @@ export function createCorsOptions(configuredOrigins: string[], nodeEnv: string):
 
       callback(new AppError(`Origin ${origin} is not allowed by CORS.`, 403, "CORS_FORBIDDEN"));
     },
+    credentials: true,
     optionsSuccessStatus: 204
   };
 }

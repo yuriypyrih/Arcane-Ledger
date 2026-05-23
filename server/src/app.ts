@@ -1,4 +1,5 @@
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import express from "express";
 import helmet from "helmet";
 import { createCorsOptions } from "./config/cors.js";
@@ -13,10 +14,11 @@ export function createApp() {
   const app = express();
   const config = getAppConfig();
 
-  app.set("trust proxy", true);
+  app.set("trust proxy", config.trustProxyHops > 0 ? config.trustProxyHops : false);
   app.use(requestLogger);
   app.use(helmet());
   app.use(cors(createCorsOptions(config.corsAllowedOrigins, config.nodeEnv)));
+  app.use(cookieParser());
   app.use(express.json());
   app.use("/api/v1", apiRouter);
   setupSentryExpressErrorHandler(app);

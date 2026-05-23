@@ -18,6 +18,14 @@ export type ApiRequestOptions = {
   suppressFailureToast?: boolean;
 };
 
+export type ApiErrorBody = {
+  error?: {
+    code?: string;
+    message?: string;
+    details?: unknown;
+  };
+};
+
 export class ApiOfflineError extends Error {
   constructor() {
     super("Server Unavailable");
@@ -26,12 +34,19 @@ export class ApiOfflineError extends Error {
 }
 
 export class ApiRequestFailedError extends Error {
+  readonly code?: string;
+  readonly details?: unknown;
   readonly originalError?: unknown;
   readonly status?: number;
 
-  constructor(message: string, options?: { status?: number; originalError?: unknown }) {
+  constructor(
+    message: string,
+    options?: { code?: string; details?: unknown; status?: number; originalError?: unknown }
+  ) {
     super(message);
     this.name = "ApiRequestFailedError";
+    this.code = options?.code;
+    this.details = options?.details;
     this.originalError = options?.originalError;
     this.status = options?.status;
   }
@@ -110,6 +125,24 @@ function captureApiFailure(
   });
 }
 
+async function readResponseJson<T>(response: Response): Promise<T> {
+  const responseText = await response.text();
+
+  if (!responseText) {
+    return undefined as T;
+  }
+
+  return JSON.parse(responseText) as T;
+}
+
+async function readApiError(response: Response): Promise<ApiErrorBody | null> {
+  try {
+    return await readResponseJson<ApiErrorBody>(response);
+  } catch {
+    return null;
+  }
+}
+
 async function apiRequest<T>(
   path: string,
   requestInit: RequestInit,
@@ -129,6 +162,7 @@ async function apiRequest<T>(
   try {
     response = await fetch(requestUrl, {
       ...requestInit,
+      credentials: "include",
       signal: options?.signal
     });
   } catch (error) {
@@ -147,18 +181,21 @@ async function apiRequest<T>(
   }
 
   if (!response.ok) {
+    const apiError = await readApiError(response);
+    const errorMessage =
+      apiError?.error?.message ?? `API request failed with status ${response.status}`;
+
     notifyApiRequestFailed(options);
-    const requestError = new ApiRequestFailedError(
-      `API request failed with status ${response.status}`,
-      {
-        status: response.status
-      }
-    );
+    const requestError = new ApiRequestFailedError(errorMessage, {
+      code: apiError?.error?.code,
+      details: apiError?.error?.details,
+      status: response.status
+    });
     captureApiFailure(requestError, { path, requestUrl, status: response.status });
     throw requestError;
   }
 
-  return (await response.json()) as T;
+  return readResponseJson<T>(response);
 }
 
 export async function apiGet<T>(path: string, options?: ApiRequestOptions): Promise<T> {
@@ -174,6 +211,24 @@ export async function apiPost<T>(
     path,
     {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body)
+    },
+    options
+  );
+}
+
+export async function apiPatch<T>(
+  path: string,
+  body: unknown,
+  options?: ApiRequestOptions
+): Promise<T> {
+  return apiRequest<T>(
+    path,
+    {
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json"
       },
