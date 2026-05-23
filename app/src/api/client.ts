@@ -237,3 +237,21 @@ export async function apiPatch<T>(
     options
   );
 }
+
+export async function apiPutBlob<T>(
+  path: string,
+  blob: Blob,
+  options?: ApiRequestOptions
+): Promise<T> {
+  return apiRequest<T>(
+    path,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": blob.type || "application/octet-stream"
+      },
+      body: blob
+    },
+    options
+  );
+}

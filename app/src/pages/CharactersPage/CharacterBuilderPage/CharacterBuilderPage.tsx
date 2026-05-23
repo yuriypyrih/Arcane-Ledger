@@ -1,6 +1,12 @@
+import { useMemo } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import CharacterForm from "../../../components/CharactersPage/CharacterForm";
+import { useAppSelector } from "../../../store";
 import type { CharacterDraft } from "../../../types";
+import {
+  getCharacterLimitForAuth,
+  hasReachedCharacterLimit
+} from "../characterLimits";
 import { createEmptyCharacter } from "../constants";
 import { getCharacterEquipmentNames } from "../inventory";
 import {
@@ -9,18 +15,24 @@ import {
   getSelectedClassToolSelectionsFromEntries,
   getSavingThrowSelectionsFromEntries
 } from "../proficiency";
-import { findCharacter, upsertCharacter } from "../storage";
+import { loadCharacters, upsertCharacter } from "../storage";
 import styles from "./CharacterBuilderPage.module.css";
 
 function CharacterBuilderPage() {
   const navigate = useNavigate();
   const { characterId } = useParams();
+  const { status, user } = useAppSelector((state) => state.auth);
+  const characterLimit = getCharacterLimitForAuth(status, user?.role);
+  const characters = useMemo(() => loadCharacters(), []);
+  const characterCount = characters.length;
   const parsedCharacterId = characterId ? Number(characterId) : undefined;
   const existingCharacter =
     parsedCharacterId !== undefined && Number.isFinite(parsedCharacterId)
-      ? findCharacter(parsedCharacterId)
+      ? characters.find((character) => character.id === parsedCharacterId)
       : undefined;
   const isEditing = existingCharacter !== undefined;
+  const isCharacterLimitReached =
+    !isEditing && hasReachedCharacterLimit(characterCount, characterLimit);
   const emptyCharacter = createEmptyCharacter();
   const initialValues = existingCharacter
     ? {
@@ -84,6 +96,10 @@ function CharacterBuilderPage() {
     : emptyCharacter;
 
   async function handleSave(draft: CharacterDraft) {
+    if (isCharacterLimitReached) {
+      return;
+    }
+
     const savedCharacter = upsertCharacter(draft, existingCharacter?.id);
     navigate(existingCharacter ? "/characters" : `/characters/${savedCharacter.id}`);
   }
@@ -96,6 +112,38 @@ function CharacterBuilderPage() {
           <h2 className={styles.title}>Character not found</h2>
           <p className={styles.description}>
             That sheet is no longer in local storage, so there is nothing to edit.
+          </p>
+          <Link to="/characters" className={styles.primaryButton}>
+            Back to characters
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
+  if (!isEditing && status === "unknown") {
+    return (
+      <section className={styles.page}>
+        <div className={styles.noticeCard}>
+          <p className={styles.eyebrow}>Character forge</p>
+          <h2 className={styles.title}>Checking character limit</h2>
+          <p className={styles.description}>Your session is still loading.</p>
+          <Link to="/characters" className={styles.primaryButton}>
+            Back to characters
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
+  if (isCharacterLimitReached) {
+    return (
+      <section className={styles.page}>
+        <div className={styles.noticeCard}>
+          <p className={styles.eyebrow}>Character forge</p>
+          <h2 className={styles.title}>Character limit reached</h2>
+          <p className={styles.description}>
+            This roster already has {characterCount}/{characterLimit} characters.
           </p>
           <Link to="/characters" className={styles.primaryButton}>
             Back to characters

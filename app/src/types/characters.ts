@@ -161,6 +161,10 @@ export type CoreStats = {
   hitDice: string;
 };
 
+export type CharacterStorageMetadata = {
+  sheetSizeBytes?: number;
+};
+
 export type ArmorClassFormulaSelectionMode = "auto" | "manual";
 
 export type CharacterArmorClassFormulaSelection = {
@@ -406,6 +410,7 @@ export type Character = {
   armorClassFormulaSelection?: CharacterArmorClassFormulaSelection;
   classFeatureState?: CharacterClassFeatureState;
   feats?: CharacterFeatEntry[];
+  storageMetadata?: CharacterStorageMetadata;
 };
 
 export type CharacterDraft = {
@@ -456,4 +461,5 @@ export type CharacterDraft = {
   armorClassFormulaSelection?: CharacterArmorClassFormulaSelection;
   classFeatureState?: CharacterClassFeatureState;
   feats?: CharacterFeatEntry[];
+  storageMetadata?: CharacterStorageMetadata;
 };

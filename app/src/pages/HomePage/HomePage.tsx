@@ -15,12 +15,20 @@ import { Link, useNavigate } from "react-router-dom";
 import ActionButton from "../../components/ActionButton";
 import CharacterEmptyState from "../../components/CharactersPage/CharacterEmptyState";
 import CharacterRow from "../../components/CharactersPage/CharacterRow";
+import { useAppSelector } from "../../store";
+import {
+  getCharacterLimitForAuth,
+  hasReachedCharacterLimit
+} from "../CharactersPage/characterLimits";
 import { loadCharacters } from "../CharactersPage/storage";
 import styles from "./HomePage.module.css";
 
 function HomePage() {
   const navigate = useNavigate();
   const [characters] = useState(() => loadCharacters());
+  const { status, user } = useAppSelector((state) => state.auth);
+  const characterLimit = getCharacterLimitForAuth(status, user?.role);
+  const isCharacterLimitReached = hasReachedCharacterLimit(characters.length, characterLimit);
   const visibleCharacters = useMemo(() => characters.slice(0, 3), [characters]);
 
   return (
@@ -45,6 +53,12 @@ function HomePage() {
             <ActionButton
               icon={<Plus size={16} aria-hidden="true" />}
               fullWidth={false}
+              disabled={isCharacterLimitReached}
+              title={
+                isCharacterLimitReached
+                  ? `Character limit reached (${characterLimit}).`
+                  : "Create a new character"
+              }
               onClick={() => navigate("/characters/new")}
             >
               New Character

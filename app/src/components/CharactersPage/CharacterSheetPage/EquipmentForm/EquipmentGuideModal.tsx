@@ -4,6 +4,7 @@ import {
   CONTAINER_OBJECT_LIMIT,
   INVENTORY_OBJECT_LIMIT
 } from "../../../../pages/CharactersPage/inventoryItems";
+import { formatCharacterSheetSize } from "../../../../pages/CharactersPage/characterSheetSize";
 import {
   OverlayBody,
   OverlayCloseButton,
@@ -20,10 +21,17 @@ import styles from "./EquipmentGuideModal.module.css";
 
 type EquipmentGuideModalProps = {
   inventoryObjectCount: number;
+  sheetSizeBytes?: number;
   onClose: () => void;
 };
 
-function EquipmentGuideModal({ inventoryObjectCount, onClose }: EquipmentGuideModalProps) {
+function EquipmentGuideModal({
+  inventoryObjectCount,
+  sheetSizeBytes,
+  onClose
+}: EquipmentGuideModalProps) {
+  const sheetSizeLabel = formatCharacterSheetSize(sheetSizeBytes);
+
   return (
     <SheetModal titleId="equipment-guide-modal-title" onClose={onClose}>
       <OverlayHeader>
@@ -102,6 +110,10 @@ function EquipmentGuideModal({ inventoryObjectCount, onClose }: EquipmentGuideMo
             the feature that created them and any explicit rest duration.
           </p>
         </section>
+
+        {sheetSizeLabel ? (
+          <p className={styles.storageNote}>Sheet object size: {sheetSizeLabel}</p>
+        ) : null}
       </OverlayBody>
     </SheetModal>
   );

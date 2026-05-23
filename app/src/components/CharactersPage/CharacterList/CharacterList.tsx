@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import ActionButton from "../../ActionButton";
 import { DestructiveConfirmationModal } from "../../Overlay";
 import type { Character } from "../../../types";
+import { hasReachedCharacterLimit } from "../../../pages/CharactersPage/characterLimits";
 import CharacterEmptyState from "../CharacterEmptyState";
 import CharacterRow from "../CharacterRow";
 import { downloadCharacterExport } from "./characterExport";
@@ -11,13 +12,15 @@ import styles from "./CharacterList.module.css";
 
 type CharacterListProps = {
   characters: Character[];
+  characterLimit: number;
   onDeleteCharacter: (characterId: number) => void;
 };
 
-function CharacterList({ characters, onDeleteCharacter }: CharacterListProps) {
+function CharacterList({ characters, characterLimit, onDeleteCharacter }: CharacterListProps) {
   const deleteTitleId = useId();
   const navigate = useNavigate();
   const [pendingDeleteCharacter, setPendingDeleteCharacter] = useState<Character | null>(null);
+  const isCharacterLimitReached = hasReachedCharacterLimit(characters.length, characterLimit);
 
   function handleDeleteConfirm() {
     if (!pendingDeleteCharacter) {
@@ -36,10 +39,18 @@ function CharacterList({ characters, onDeleteCharacter }: CharacterListProps) {
           <h3 className={styles.title}>Your arsenal of Characters</h3>
         </div>
         <div className={styles.listHeaderActions}>
-          <span className={styles.listCount}>{characters.length} total</span>
+          <span className={styles.listCount}>
+            {characters.length}/{characterLimit} total
+          </span>
           <ActionButton
             icon={<Plus size={16} aria-hidden="true" />}
             fullWidth={false}
+            disabled={isCharacterLimitReached}
+            title={
+              isCharacterLimitReached
+                ? `Character limit reached (${characterLimit}).`
+                : "Create a new character"
+            }
             onClick={() => navigate("/characters/new")}
           >
             New Character

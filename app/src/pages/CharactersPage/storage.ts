@@ -63,8 +63,14 @@ import {
   getEffectiveHitPointMaximumForCharacter,
   reconcileCharacterStatusConsequences
 } from "./traits";
-import { deleteCharacterPortrait } from "./characterPortraits/storage";
 import { isCustomClassName, normalizeCustomClassConfig } from "./customClass";
+import {
+  createCharacterInputFromSheetRecordV2,
+  createCharacterSheetRecordV2,
+  getCharacterSheetRecordLocalId,
+  isCharacterSheetRecordV2
+} from "./characterSheetRecord";
+import { normalizeSheetSizeBytes } from "./characterSheetSize";
 
 function normalizeCoreStatValue(value: unknown, fallback: string): string {
   if (typeof value !== "string") {
@@ -173,7 +179,10 @@ export function normalizeCharacter(value: unknown): Character | null {
     return null;
   }
 
-  const record = value as Partial<Character> & {
+  const characterInput = isCharacterSheetRecordV2(value)
+    ? createCharacterInputFromSheetRecordV2(value)
+    : value;
+  const record = characterInput as Partial<Character> & {
     subclassId?: unknown;
     xp?: unknown;
     spellbookSpellIds?: unknown;
@@ -210,6 +219,7 @@ export function normalizeCharacter(value: unknown): Character | null {
     heroicInspiration?: unknown;
     speciesChoices?: unknown;
     speciesFeatureState?: unknown;
+    storageMetadata?: unknown;
   };
   const id = Number(record.id);
 
@@ -487,7 +497,7 @@ export function normalizeCharacter(value: unknown): Character | null {
     statusEntries: normalizedStatusEntries
   });
 
-  return reconcileCharacterStatusConsequences({
+  const normalizedCharacter = reconcileCharacterStatusConsequences({
     id,
     name: typeof record.name === "string" ? record.name : defaults.name,
     species: normalizedSpecies,
@@ -549,8 +559,25 @@ export function normalizeCharacter(value: unknown): Character | null {
     coreStats: normalizedCoreStats,
     armorClassFormulaSelection: normalizedArmorClassFormulaSelection,
     classFeatureState: normalizedClassFeatureState,
-    feats: normalizedFeats
+    feats: normalizedFeats,
+    storageMetadata:
+      record.storageMetadata && typeof record.storageMetadata === "object"
+        ? {
+            sheetSizeBytes: normalizeSheetSizeBytes(
+              (record.storageMetadata as { sheetSizeBytes?: unknown }).sheetSizeBytes
+            )
+          }
+        : undefined
   });
+
+  if (normalizedCharacter.storageMetadata?.sheetSizeBytes) {
+    return normalizedCharacter;
+  }
+
+  return {
+    ...normalizedCharacter,
+    storageMetadata: createCharacterSheetRecordV2(normalizedCharacter).metadata
+  };
 }
 
 let storedCharacterRecordsCache: unknown[] | null = null;
@@ -591,13 +618,7 @@ function saveStoredCharacterRecords(characters: unknown[]) {
 }
 
 function getStoredCharacterId(character: unknown): number | null {
-  if (!character || typeof character !== "object") {
-    return null;
-  }
-
-  const id = Number((character as { id?: unknown }).id);
-
-  return Number.isFinite(id) ? id : null;
+  return getCharacterSheetRecordLocalId(character);
 }
 
 export function loadCharacters(): Character[] {
@@ -607,7 +628,7 @@ export function loadCharacters(): Character[] {
 }
 
 export function saveCharacters(characters: Character[]) {
-  saveStoredCharacterRecords(characters);
+  saveStoredCharacterRecords(characters.map(createCharacterSheetRecordV2));
 }
 
 export function upsertTrustedCharacter(character: Character): Character {
@@ -616,6 +637,7 @@ export function upsertTrustedCharacter(character: Character): Character {
   }
 
   const characters = loadStoredCharacterRecords();
+  const characterRecord = createCharacterSheetRecordV2(character);
   let didReplaceCharacter = false;
   const nextCharacters = characters.map((entry) => {
     if (getStoredCharacterId(entry) !== character.id) {
@@ -623,11 +645,14 @@ export function upsertTrustedCharacter(character: Character): Character {
     }
 
     didReplaceCharacter = true;
-    return character;
+    return characterRecord;
   });
 
-  saveStoredCharacterRecords(didReplaceCharacter ? nextCharacters : [character, ...characters]);
-  return character;
+  saveStoredCharacterRecords(didReplaceCharacter ? nextCharacters : [characterRecord, ...characters]);
+  return {
+    ...character,
+    storageMetadata: characterRecord.metadata
+  };
 }
 
 export function findCharacter(characterId: number): Character | undefined {
@@ -650,7 +675,6 @@ export function deleteCharacter(characterId: number): Character[] {
 
   if (nextCharacters.length !== characters.length) {
     saveStoredCharacterRecords(nextCharacters);
-    void deleteCharacterPortrait(characterId).catch(() => undefined);
   }
 
   return nextCharacters
@@ -690,15 +714,19 @@ export function upsertCharacter(
     nextCharacter = restoreHeroicInspirationForCharacter(nextCharacter);
   }
 
+  const nextCharacterRecord = createCharacterSheetRecordV2(nextCharacter);
   const nextCharacters =
     characterId === undefined
-      ? [nextCharacter, ...characters]
+      ? [nextCharacterRecord, ...characters]
       : characters.some((character) => getStoredCharacterId(character) === characterId)
         ? characters.map((character) =>
-            getStoredCharacterId(character) === characterId ? nextCharacter : character
+            getStoredCharacterId(character) === characterId ? nextCharacterRecord : character
           )
-        : [nextCharacter, ...characters];
+        : [nextCharacterRecord, ...characters];
 
   saveStoredCharacterRecords(nextCharacters);
-  return nextCharacter;
+  return {
+    ...nextCharacter,
+    storageMetadata: nextCharacterRecord.metadata
+  };
 }

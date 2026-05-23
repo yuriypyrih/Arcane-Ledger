@@ -8,6 +8,21 @@ export function errorHandler(
   response: Response<ErrorResponse>,
   _next: NextFunction
 ) {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "type" in error &&
+    error.type === "entity.too.large"
+  ) {
+    response.status(413).json({
+      error: {
+        code: "REQUEST_BODY_TOO_LARGE",
+        message: "Request body is too large."
+      }
+    });
+    return;
+  }
+
   if (error instanceof AppError) {
     response.status(error.statusCode).json({
       error: {

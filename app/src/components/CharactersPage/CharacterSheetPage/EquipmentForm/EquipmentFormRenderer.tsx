@@ -8,7 +8,7 @@ export function renderEquipmentForm(context: Record<string, any>) {
     adjustCurrencyBalance, canSpendCurrency, carriedWeight, carryingCapacity, className, containerManagementInventoryItems, closeAddModal, closeContainerManagement, closeCustomEquipmentModal, closeInventoryItemDrawer, closeLoadoutDrawer,
     clsx, currencyAmountDraft, currencyDefinitions, customEditorMode, deleteCustomEquipment, editingInventoryStack, equipmentRenderGroups, formatCodexLabel, formatCodexList,
     formatEquipmentWeight, formatInventoryStackName, formatOnHandLabel, formatWeaponDamage, formatWeaponProperties, formatWeaponType, formatWeaponWeight, formatWeightValue, getArmorTypeSummary, getInventoryItemChargesTagLabel, getInventoryItemConjuredRowTagLabel, getInventoryItemFeatureTagLabels, getInventoryItemStoredSpellRowTagLabel, getInventoryItemTotalWeightValue, getInventoryRowObjectTagLabel, getItemObjectTagLabel,
-    groupedInventoryItems, hasCharacterItemMods, hasDisplayableRarity, inventoryDrawerBodyAfterItem, inventoryDrawerClassName, inventoryDrawerFooter, inventoryDrawerHeaderAction, inventoryDrawerHeaderContent, inventoryObjectCount, inventoryObjectLimitMessage, isAddModalCommitting, isAddModalOpen, isCurrencyDrawerOpen,
+    groupedInventoryItems, hasCharacterItemMods, hasDisplayableRarity, inventoryDrawerBodyAfterItem, inventoryDrawerClassName, inventoryDrawerFooter, inventoryDrawerHeaderAction, inventoryDrawerHeaderContent, inventoryObjectCount, inventoryObjectLimitMessage, isAddModalCommitting, isAddModalOpen, isCurrencyDrawerOpen, characterSheetSizeBytes,
     isCustomEquipmentModalOpen, isEquipmentGuideOpen, isGeneralEquipmentExpanded, isHandEquippableEntry, isOverCarryingCapacity, isSelectedArmorWorn, isSelectedCustomEntry, isSelectedEntryOnHand, isSelectedFeatureManagedEntry, isSelectedShield, managedContainerStack, managingContainerStackId,
     normalizeCurrencyAmountInput, normalizedCurrencies, openAddModal, openCurrencyModal, openCustomEquipmentCreator, openCustomEquipmentEditor, openInventoryInspectionFromBrowser, openInventoryInspectionFromLoadout, openLoadoutEntryDetails,
     openWeaponReference, parentInventoryDrawerBodyAfterItem, parentInventoryDrawerHeaderContent, parentInventoryDrawerTitleId, parentInventoryInspection, parentInventoryRecord, pendingContainerInventoryRemoval, pendingDeleteCustomEquipment, removeEquipmentItem, saveContainerManagement, saveCustomEquipment, selectedAdditionalWeaponMasteries, selectedInventoryAdditionalDescription, selectedInventoryDescriptionAdditions,
@@ -311,6 +311,7 @@ export function renderEquipmentForm(context: Record<string, any>) {
       {isEquipmentGuideOpen ? (
         <EquipmentGuideModal
           inventoryObjectCount={inventoryObjectCount}
+          sheetSizeBytes={characterSheetSizeBytes}
           onClose={() => setIsEquipmentGuideOpen(false)}
         />
       ) : null}

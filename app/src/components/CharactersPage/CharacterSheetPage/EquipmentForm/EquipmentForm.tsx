@@ -2845,6 +2845,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     canSpendCurrency,
     carriedWeight,
     carryingCapacity,
+    characterSheetSizeBytes: character.storageMetadata?.sheetSizeBytes,
     className,
     containerManagementInventoryItems: equipmentCharacter.inventoryItems,
     closeAddModal,

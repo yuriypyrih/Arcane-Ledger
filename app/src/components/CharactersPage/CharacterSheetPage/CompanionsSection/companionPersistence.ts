@@ -1,4 +1,5 @@
 import type { Character, CharacterCompanion } from "../../../../types";
+import { CHARACTER_COMPANION_LIMIT } from "../../../../pages/CharactersPage/companions";
 
 export function upsertCharacterCompanion(
   character: Character,
@@ -8,6 +9,10 @@ export function upsertCharacterCompanion(
   const hasExistingCompanion = currentCompanions.some(
     (companion) => companion.id === nextCompanion.id
   );
+
+  if (!hasExistingCompanion && currentCompanions.length >= CHARACTER_COMPANION_LIMIT) {
+    return character;
+  }
 
   return {
     ...character,

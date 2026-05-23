@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { uploadCharacterPortrait } from "../../../../api/characterPortraits";
 import {
   type CharacterPortraitCropSettings,
-  cropAndScaleImageFile,
-  deleteCharacterPortrait,
-  loadCharacterPortrait,
-  saveCharacterPortrait
+  cropAndScaleImageFile
 } from "../../../../pages/CharactersPage/characterPortraits";
 
 function getPortraitErrorMessage(error: unknown): string {
@@ -13,14 +11,19 @@ function getPortraitErrorMessage(error: unknown): string {
     : "Unable to update the portrait.";
 }
 
-function useCharacterPortrait(characterId: number) {
+type UseCharacterPortraitOptions = {
+  isUploadEnabled: boolean;
+};
+
+function useCharacterPortrait(
+  characterId: number,
+  { isUploadEnabled }: UseCharacterPortraitOptions
+) {
   const [portraitUrl, setPortraitUrl] = useState<string | null>(null);
   const [hasCustomPortrait, setHasCustomPortrait] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const objectUrlRef = useRef<string | null>(null);
-  const latestLoadIdRef = useRef(0);
   const portraitMutationIdRef = useRef(0);
 
   const setPortraitBlob = useCallback((blob: Blob | null) => {
@@ -50,43 +53,14 @@ function useCharacterPortrait(characterId: number) {
     []
   );
 
-  useEffect(() => {
-    const loadId = latestLoadIdRef.current + 1;
-    const mutationIdAtLoadStart = portraitMutationIdRef.current;
-
-    latestLoadIdRef.current = loadId;
-    setIsLoading(true);
-    setErrorMessage(null);
-    setHasCustomPortrait(false);
-    setPortraitBlob(null);
-
-    loadCharacterPortrait(characterId)
-      .then((record) => {
-        if (
-          loadId !== latestLoadIdRef.current ||
-          mutationIdAtLoadStart !== portraitMutationIdRef.current
-        ) {
-          return;
-        }
-
-        setPortraitBlob(record?.blob ?? null);
-        setHasCustomPortrait(Boolean(record));
-      })
-      .catch((error: unknown) => {
-        if (loadId === latestLoadIdRef.current) {
-          setErrorMessage(getPortraitErrorMessage(error));
-        }
-      })
-      .finally(() => {
-        if (loadId === latestLoadIdRef.current) {
-          setIsLoading(false);
-        }
-      });
-  }, [characterId, setPortraitBlob]);
-
   const savePortraitFile = useCallback(
     async (file: File, crop?: Partial<CharacterPortraitCropSettings>) => {
       const mutationId = portraitMutationIdRef.current + 1;
+
+      if (!isUploadEnabled) {
+        setErrorMessage("Avatar uploads are temporarily unavailable.");
+        return false;
+      }
 
       portraitMutationIdRef.current = mutationId;
       setIsSaving(true);
@@ -95,7 +69,7 @@ function useCharacterPortrait(characterId: number) {
       try {
         const portrait = await cropAndScaleImageFile(file, { crop });
 
-        await saveCharacterPortrait(characterId, portrait.blob, portrait.mimeType);
+        await uploadCharacterPortrait(characterId, portrait.blob);
 
         if (mutationId !== portraitMutationIdRef.current) {
           return false;
@@ -115,35 +89,18 @@ function useCharacterPortrait(characterId: number) {
         }
       }
     },
-    [characterId, setPortraitBlob]
+    [characterId, isUploadEnabled, setPortraitBlob]
   );
 
-  const resetPortrait = useCallback(async () => {
+  const resetPortrait = useCallback(() => {
     const mutationId = portraitMutationIdRef.current + 1;
 
     portraitMutationIdRef.current = mutationId;
-    setIsSaving(true);
     setErrorMessage(null);
 
-    try {
-      await deleteCharacterPortrait(characterId);
-
-      if (mutationId !== portraitMutationIdRef.current) {
-        return;
-      }
-
-      setPortraitBlob(null);
-      setHasCustomPortrait(false);
-    } catch (error: unknown) {
-      if (mutationId === portraitMutationIdRef.current) {
-        setErrorMessage(getPortraitErrorMessage(error));
-      }
-    } finally {
-      if (mutationId === portraitMutationIdRef.current) {
-        setIsSaving(false);
-      }
-    }
-  }, [characterId, setPortraitBlob]);
+    setPortraitBlob(null);
+    setHasCustomPortrait(false);
+  }, [setPortraitBlob]);
 
   const clearError = useCallback(() => {
     setErrorMessage(null);
@@ -153,7 +110,7 @@ function useCharacterPortrait(characterId: number) {
     clearError,
     errorMessage,
     hasCustomPortrait,
-    isLoading,
+    isLoading: false,
     isSaving,
     portraitUrl,
     resetPortrait,

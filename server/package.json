@@ -14,6 +14,7 @@
     "db:docker:ps": "docker compose -f docker-compose.mongodb.yml ps"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1053.0",
     "@sentry/node": "^10.53.1",
     "argon2": "^0.44.0",
     "cookie-parser": "^1.4.7",

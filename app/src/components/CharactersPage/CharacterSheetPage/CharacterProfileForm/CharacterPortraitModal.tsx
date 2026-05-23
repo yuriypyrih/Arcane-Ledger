@@ -33,10 +33,12 @@ type CharacterPortraitModalProps = {
   characterName: string;
   errorMessage: string | null;
   hasCustomPortrait: boolean;
+  isAuthenticated: boolean;
+  isUploadEnabled: boolean;
   isSaving: boolean;
   onClearError: () => void;
   onClose: () => void;
-  onReset: () => Promise<void>;
+  onReset: () => void;
   onUpload: (file: File, crop?: Partial<CharacterPortraitCropSettings>) => Promise<boolean>;
   portraitUrl: string | null;
 };
@@ -45,6 +47,8 @@ function CharacterPortraitModal({
   characterName,
   errorMessage,
   hasCustomPortrait,
+  isAuthenticated,
+  isUploadEnabled,
   isSaving,
   onClearError,
   onClose,
@@ -68,6 +72,11 @@ function CharacterPortraitModal({
       }%) rotate(${cropSettings.rotationDegrees}deg) scale(${previewScale})`
     };
   }, [cropSettings]);
+  const portraitNotice = !isAuthenticated
+    ? "Avatar editing is reserved for logged in users only."
+    : !isUploadEnabled
+      ? "Avatar uploads are temporarily unavailable while storage is being prepared."
+      : null;
 
   useEffect(
     () => () => {
@@ -238,11 +247,13 @@ function CharacterPortraitModal({
             {errorMessage}
           </p>
         ) : null}
+        {portraitNotice ? <p className={styles.portraitNotice}>{portraitNotice}</p> : null}
         <input
           ref={fileInputRef}
           className={styles.portraitFileInput}
           type="file"
           accept="image/*"
+          disabled={!isAuthenticated || !isUploadEnabled}
           onChange={handleFileChange}
         />
       </OverlayBody>
@@ -261,6 +272,7 @@ function CharacterPortraitModal({
               fullWidth={false}
               icon={<Save size={16} />}
               loading={isSaving}
+              disabled={!isUploadEnabled}
               onClick={() => void savePendingCrop()}
             >
               Save image
@@ -274,29 +286,30 @@ function CharacterPortraitModal({
               Reset crop
             </ActionButton>
           </>
-        ) : (
+        ) : isAuthenticated ? (
           <>
             <ActionButton
               fullWidth={false}
               icon={<Upload size={16} />}
               loading={isSaving}
+              disabled={!isUploadEnabled}
               onClick={openFilePicker}
             >
               Upload image
             </ActionButton>
-            {hasCustomPortrait ? (
+            {isUploadEnabled && hasCustomPortrait ? (
               <ActionButton
                 actionType="ERROR"
                 fullWidth={false}
                 icon={<RotateCcw size={16} />}
                 variant="GHOST"
-                onClick={() => void onReset()}
+                onClick={onReset}
               >
                 Reset to default
               </ActionButton>
             ) : null}
           </>
-        )}
+        ) : null}
       </OverlayFooter>
     </SheetModal>
   );

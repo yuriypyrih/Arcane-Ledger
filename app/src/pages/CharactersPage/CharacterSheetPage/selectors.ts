@@ -237,7 +237,8 @@ export const selectEquipmentCharacter = createCharacterFieldsSelector(
     "inventoryItems",
     "customEquipment",
     "classFeatureState",
-    "weaponProficiencies"
+    "weaponProficiencies",
+    "storageMetadata"
   ],
   ["profile", "equipment", "inventory", "features", "proficiencies"]
 );

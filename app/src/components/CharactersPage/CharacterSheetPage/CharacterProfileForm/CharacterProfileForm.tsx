@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { ScrollText } from "lucide-react";
 import { useState } from "react";
 import type { Character } from "../../../../types";
+import { useAppSelector } from "../../../../store";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { getSelectedSubclassForCharacter } from "../../../../pages/CharactersPage/subclasses";
 import { getClassSignatureStyle } from "../../classSignature";
@@ -20,6 +21,10 @@ import { useCoreStatReferenceDrawer } from "../StatsForm/useCoreStatReferenceDra
 import CoreStatCards from "../StatsForm/CoreStatCards";
 import useCharacterPortrait from "./useCharacterPortrait";
 
+function isAvatarUploadFeatureEnabled() {
+  return import.meta.env.VITE_CHARACTER_AVATAR_UPLOAD_ENABLED?.trim().toLowerCase() === "true";
+}
+
 type CharacterProfileFormProps = {
   broadLayout?: boolean;
   character: Character;
@@ -36,7 +41,10 @@ function CharacterProfileForm({
   const [isNotesDrawerOpen, setIsNotesDrawerOpen] = useState(false);
   const [isProgressModalOpen, setIsProgressModalOpen] = useState(false);
   const [isPortraitModalOpen, setIsPortraitModalOpen] = useState(false);
-  const characterPortrait = useCharacterPortrait(character.id);
+  const authStatus = useAppSelector((state) => state.auth.status);
+  const isAuthenticated = authStatus === "authenticated";
+  const isUploadEnabled = isAuthenticated && isAvatarUploadFeatureEnabled();
+  const characterPortrait = useCharacterPortrait(character.id, { isUploadEnabled });
 
   const profileCoreStatRows = broadLayout
     ? createBroadProfileCoreStatRows(character)
@@ -146,6 +154,8 @@ function CharacterProfileForm({
           characterName={character.name}
           errorMessage={characterPortrait.errorMessage}
           hasCustomPortrait={characterPortrait.hasCustomPortrait}
+          isAuthenticated={isAuthenticated}
+          isUploadEnabled={isUploadEnabled}
           isSaving={characterPortrait.isSaving}
           onClearError={characterPortrait.clearError}
           onClose={closePortraitModal}

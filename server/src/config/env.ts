@@ -80,6 +80,10 @@ export type AppConfig = {
   resendApiKey: string;
   resendFromEmail: string;
   resendReplyTo: string;
+  characterAvatarS3Bucket: string;
+  characterAvatarS3Region: string;
+  characterAvatarS3PublicBaseUrl: string;
+  characterAvatarUploadMaxBytes: number;
   sentryDsn: string;
   sentryEnvironment: string;
   sentryRelease: string;
@@ -121,6 +125,14 @@ export function getAppConfig(): AppConfig {
     resendApiKey: process.env.RESEND_API_KEY ?? "",
     resendFromEmail: process.env.RESEND_FROM_EMAIL ?? "",
     resendReplyTo: process.env.RESEND_REPLY_TO ?? "",
+    characterAvatarS3Bucket: process.env.CHARACTER_AVATAR_S3_BUCKET ?? "",
+    characterAvatarS3Region:
+      process.env.CHARACTER_AVATAR_S3_REGION ?? process.env.AWS_REGION ?? "",
+    characterAvatarS3PublicBaseUrl: process.env.CHARACTER_AVATAR_S3_PUBLIC_BASE_URL ?? "",
+    characterAvatarUploadMaxBytes: parsePositiveInteger(
+      process.env.CHARACTER_AVATAR_UPLOAD_MAX_BYTES,
+      512 * 1024
+    ),
     sentryDsn: process.env.SENTRY_DSN ?? "",
     sentryEnvironment: process.env.SENTRY_ENVIRONMENT ?? nodeEnv,
     sentryRelease: process.env.SENTRY_RELEASE ?? ""

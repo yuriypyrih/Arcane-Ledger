@@ -1,4 +1,5 @@
 import type { Character } from "../../../types";
+import { createCharacterSheetRecordV2 } from "../../../pages/CharactersPage/characterSheetRecord";
 
 const invalidFilenameCharacterPattern = /[<>:"/\\|?*]/g;
 const leadingOrTrailingDotsPattern = /^\.+|\.+$/g;
@@ -31,7 +32,7 @@ export function downloadCharacterExport(character: Character) {
   }
 
   const objectUrl = URL.createObjectURL(
-    new Blob([JSON.stringify(character, null, 2)], {
+    new Blob([JSON.stringify(createCharacterSheetRecordV2(character), null, 2)], {
       type: "application/json"
     })
   );

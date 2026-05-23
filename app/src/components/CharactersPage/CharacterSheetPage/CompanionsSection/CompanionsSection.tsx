@@ -3,7 +3,10 @@ import { CircleHelp, Pencil, Plus, Shield } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
-import { getCompanionStatusLabel } from "../../../../pages/CharactersPage/companions";
+import {
+  CHARACTER_COMPANION_LIMIT,
+  getCompanionStatusLabel
+} from "../../../../pages/CharactersPage/companions";
 import type { Character, CharacterCompanion } from "../../../../types";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import { normalizeTemporaryHitPoints } from "../GameplayForm/gameplayStateUtils";
@@ -32,6 +35,7 @@ function CompanionsSection({ character, className, onPersistCharacter }: Compani
   const selectedCompanion =
     companions.find((companion) => companion.id === selectedCompanionId) ?? null;
   const isEditorOpen = isCreatingCompanion || editorCompanion !== null;
+  const isCompanionLimitReached = companions.length >= CHARACTER_COMPANION_LIMIT;
 
   useBodyScrollLock(isEditorOpen || selectedCompanionId !== null || isGuideOpen);
 
@@ -89,6 +93,12 @@ function CompanionsSection({ character, className, onPersistCharacter }: Compani
             <button
               type="button"
               className={shared.editButton}
+              disabled={isCompanionLimitReached}
+              title={
+                isCompanionLimitReached
+                  ? `Companion limit reached (${CHARACTER_COMPANION_LIMIT}).`
+                  : "Create companion"
+              }
               onClick={() => setEditorCompanionId("new")}
               aria-label="Create companion"
             >

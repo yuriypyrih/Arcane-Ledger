@@ -9,6 +9,7 @@ import {
 import { getClassSignatureStyle } from "../../../components/CharactersPage/classSignature";
 import type { AppShellOutletContext } from "../../../components/AppShell/outletContext";
 import type { CharacterCompanion } from "../../../types";
+import { CHARACTER_COMPANION_LIMIT } from "../companions";
 import { hasSpellcastingForCharacter } from "../spellcastingAvailability";
 import { CharacterSheetSectionProfiler } from "./CharacterSheetSectionProfiler";
 import styles from "./CharacterSheetPage.module.css";
@@ -33,6 +34,7 @@ function CharacterSheetPage() {
     useCharacterSheetPersistence(parsedCharacterId);
   const hasSpellcastingSection = character ? hasSpellcastingForCharacter(character) : false;
   const companions = useMemo(() => character?.companions ?? [], [character?.companions]);
+  const isCompanionLimitReached = companions.length >= CHARACTER_COMPANION_LIMIT;
   const pageClassName = isBroadLayoutActive ? `${styles.page} ${styles.pageBroad}` : styles.page;
   const cascadeStackClassName = [
     styles.cascadeStack,
@@ -41,8 +43,12 @@ function CharacterSheetPage() {
     .filter(Boolean)
     .join(" ");
   const openCompanionCreator = useCallback(() => {
+    if (isCompanionLimitReached) {
+      return;
+    }
+
     setIsCompanionCreatorOpen(true);
-  }, []);
+  }, [isCompanionLimitReached]);
   const closeCompanionCreator = useCallback(() => {
     setIsCompanionCreatorOpen(false);
   }, []);

@@ -27,6 +27,9 @@ import {
   createTemporaryHitPointsAssignment,
   normalizeTemporaryHitPoints
 } from "./shared";
+import { CHARACTER_COMPANION_LIMIT } from "./characterLimits";
+
+export { CHARACTER_COMPANION_LIMIT };
 
 const defaultCompanionDuration: CharacterStatusDuration = {
   kind: STATUS_DURATION_KIND.INFINITE
@@ -143,7 +146,8 @@ export function normalizeCharacterCompanions(value: unknown): CharacterCompanion
 
       seenIds.add(companion.id);
       return true;
-    });
+    })
+    .slice(0, CHARACTER_COMPANION_LIMIT);
 }
 
 export function applyDamageToCharacterCompanion(
