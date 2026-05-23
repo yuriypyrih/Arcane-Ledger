@@ -1,4 +1,5 @@
 import { getSelectedSubclassForCharacter } from "../subclasses";
+import { createDefaultAbilities } from "../constants";
 import { getArtificerSubclassDerivedFeatureState } from "./artificer/subclasses";
 import { getBarbarianSubclassDerivedFeatureState } from "./barbarian/subclasses";
 import { getBardSubclassDerivedFeatureState } from "./bard/subclasses";
@@ -53,6 +54,29 @@ const subclassRuntimeDispatchers: Record<
 };
 const subclassDerivedFeatureStateCache = new WeakMap<object, SubclassDerivedFeatureState>();
 
+function withSubclassRuntimeDefaults(
+  character: SubclassRuntimeCharacter,
+  subclassId: string
+): SubclassRuntimeCharacter {
+  return {
+    ...character,
+    level: character.level ?? 1,
+    subclassId,
+    equipment: character.equipment ?? [],
+    inventoryItems: character.inventoryItems ?? [],
+    customEquipment: character.customEquipment ?? [],
+    abilities: character.abilities ?? createDefaultAbilities(),
+    classFeatureState: character.classFeatureState ?? {},
+    skillProficiencies: character.skillProficiencies ?? [],
+    toolProficiencies: character.toolProficiencies ?? [],
+    savingThrowProficiencies: character.savingThrowProficiencies ?? [],
+    feats: character.feats ?? [],
+    statusEntries: character.statusEntries ?? [],
+    spellSlotsExpended: character.spellSlotsExpended ?? [],
+    companions: character.companions ?? []
+  };
+}
+
 export function getSubclassDerivedFeatureState(
   character: SubclassRuntimeCharacter
 ): SubclassDerivedFeatureState {
@@ -70,7 +94,9 @@ export function getSubclassDerivedFeatureState(
 
   const dispatcher = subclassRuntimeDispatchers[subclass.className];
 
-  const derivedState = dispatcher ? dispatcher({ ...character, subclassId: subclass.id }) : {};
+  const derivedState = dispatcher
+    ? dispatcher(withSubclassRuntimeDefaults(character, subclass.id))
+    : {};
 
   subclassDerivedFeatureStateCache.set(character, derivedState);
   return derivedState;

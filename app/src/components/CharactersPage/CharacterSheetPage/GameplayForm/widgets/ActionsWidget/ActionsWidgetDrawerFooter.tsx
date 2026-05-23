@@ -325,6 +325,10 @@ import {
   type IndomitableOption
 } from "./IndomitableAction";
 import PortentActionBody, { portentActionFormId } from "./PortentActionBody";
+import {
+  chargeMagicItemActionFormId,
+  drainMagicItemActionFormId
+} from "./forms/MagicItemTinkerActionBody";
 import { LayOnHandsActionBody, LayOnHandsActionFooter } from "./LayOnHandsAction";
 import { SorcererInnateSorceryActionFooter } from "./SorcererInnateSorceryAction";
 import ThirdEyeActionBody from "./ThirdEyeActionBody";
@@ -533,6 +537,7 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     isHuntersMarkTargetSelected,
     isImprovedShadowStepSelected,
     isInspiredEclipseSelected,
+    isArtificerMagicItemTinkerSubmitting,
     isPolarStrikesSelected,
     isPsionicStrikeSelected,
     isQuiveringPalmSelected,
@@ -777,8 +782,9 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
 
   const confirmSelectedActionToast = (callback: () => void) => () =>
     runWithActionConfirmationToast(getSelectedActionToastTrigger(selectedAction), callback);
-  const confirmActionToast = (trigger: ActionConfirmationToastTrigger, callback: () => void) => () =>
-    runWithActionConfirmationToast(trigger, callback);
+  const confirmActionToast =
+    (trigger: ActionConfirmationToastTrigger, callback: () => void) => () =>
+      runWithActionConfirmationToast(trigger, callback);
 
   if (selectedAction.kind === "weapon") {
     const showPsionicStrikeToggle =
@@ -1177,6 +1183,41 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     return (
       <ActionButton className={styles.footerActionButton} type="submit" form={portentActionFormId}>
         Save Portent
+      </ActionButton>
+    );
+  }
+
+  if (
+    selectedAction.kind === "feature" &&
+    selectedAction.drawer.kind === "custom-form" &&
+    (selectedAction.drawer.formKind === "artificer-charge-magic-item" ||
+      selectedAction.drawer.formKind === "artificer-drain-magic-item")
+  ) {
+    const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
+    const formId =
+      selectedAction.drawer.formKind === "artificer-charge-magic-item"
+        ? chargeMagicItemActionFormId
+        : drainMagicItemActionFormId;
+
+    return (
+      <ActionButton
+        className={styles.footerActionButton}
+        type="submit"
+        form={formId}
+        loading={isArtificerMagicItemTinkerSubmitting}
+        disabled={selectedFeatureActionPrimaryDisabledReason !== null}
+        trailingBadge={
+          actionShape ? (
+            <ActionShape
+              shape={actionShape}
+              isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
+              multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+              className={styles.footerActionShape}
+            />
+          ) : null
+        }
+      >
+        {selectedFeaturePrimaryLabel}
       </ActionButton>
     );
   }

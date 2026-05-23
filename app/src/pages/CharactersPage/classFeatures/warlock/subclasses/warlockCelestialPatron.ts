@@ -31,7 +31,6 @@ export const celestialPatronSubclassId = "warlock-celestial-patron";
 
 const magicalCunningActionKey = "warlock-magical-cunning";
 const healingLightActionKey = "warlock-celestial-patron-healing-light";
-export const searingVengeanceActionKey = "warlock-celestial-patron-searing-vengeance";
 const radiantSoulName = "Radiant Soul";
 const radiantSoulDamageDescription = [
   "Once per turn, when a spell you cast deals Radiant or Fire damage, you can add your Charisma modifier to that spell's damage against one of the spell's targets."
@@ -39,7 +38,6 @@ const radiantSoulDamageDescription = [
 const radiantSoulResistanceSourceId = "feature-warlock-celestial-patron-radiant-soul-resistance";
 const celestialResilienceName = "Celestial Resilience";
 const celestialResilienceFormulaLabel = "Celestial Resiliance Temporary HP Formula";
-const searingVengeanceName = "Searing Vengeance";
 const celestialPatronSubclassEntry = getSubclassEntryById(celestialPatronSubclassId);
 const celestialPatronSpellIdsByLevel = {
   3: resolveSpellIdsByName([
@@ -70,9 +68,6 @@ function getCelestialPatronFeatureDescriptionEntries(feature: CLASS_FEATURE): st
 
 const healingLightDescription = getCelestialPatronFeatureDescriptionEntries(
   CLASS_FEATURE.HEALING_LIGHT
-);
-const searingVengeanceDescription = getCelestialPatronFeatureDescriptionEntries(
-  CLASS_FEATURE.SEARING_VENGEANCE
 );
 const celestialResilienceDescription = getCelestialPatronFeatureDescriptionEntries(
   CLASS_FEATURE.CELESTIAL_RESILIENCE
@@ -626,37 +621,6 @@ function transformWarlockCelestialPatronFeatureAction(
   };
 }
 
-function getWarlockCelestialPatronSearingVengeanceAction(
-  character: WarlockCelestialPatronCharacter
-): FeatureActionCard | null {
-  if (!hasWarlockCelestialPatronSearingVengeance(character)) {
-    return null;
-  }
-
-  const usesRemaining = getWarlockCelestialPatronSearingVengeanceUsesRemaining(character);
-  const usesTotal = getWarlockCelestialPatronSearingVengeanceUsesTotal(character);
-
-  return {
-    key: searingVengeanceActionKey,
-    name: searingVengeanceName,
-    summary: "Use your once-per-Long Rest Searing Vengeance.",
-    detail: "Track your Searing Vengeance use.",
-    breakdown: "1 charge per Long Rest",
-    economyType: ECONOMY_TYPE.FREE,
-    actionCategory: ACTION_CATEGORY.FEATURE,
-    usesRemaining,
-    usesTotal,
-    description: [...searingVengeanceDescription],
-    drawer: {
-      kind: "confirm",
-      eyebrow: "Celestial Patron",
-      description: [...searingVengeanceDescription]
-    },
-    disabled: usesRemaining <= 0,
-    disabledReason: usesRemaining <= 0 ? "Searing Vengeance recharges on a Long Rest." : undefined
-  };
-}
-
 function getWarlockCelestialPatronHealingLightAction(
   character: WarlockCelestialPatronCharacter
 ): FeatureActionCard | null {
@@ -717,11 +681,8 @@ export const getWarlockCelestialPatronDerivedFeatureState: SubclassRuntimeResolv
     return {};
   }
 
-  const healingLightAction = getWarlockCelestialPatronHealingLightAction(character);
-  const searingVengeanceAction = getWarlockCelestialPatronSearingVengeanceAction(character);
-
   return {
-    featureActions: [healingLightAction, searingVengeanceAction].filter(
+    featureActions: [getWarlockCelestialPatronHealingLightAction(character)].filter(
       (action): action is FeatureActionCard => action !== null
     ),
     derivedStatusEntries: getWarlockCelestialPatronDerivedStatusEntries(character),

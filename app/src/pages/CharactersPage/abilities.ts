@@ -59,6 +59,14 @@ type AbilityDerivationOptions = {
   customTraitEffectInput?: CustomTraitBonusInput;
 };
 
+type AbilityClassFeatureContext = AbilityCharacterContext & Pick<Character, "className" | "level">;
+
+function hasAbilityClassFeatureContext(
+  character: AbilityCharacterContext
+): character is AbilityClassFeatureContext {
+  return typeof character.className === "string" && typeof character.level === "number";
+}
+
 function normalizeAbilityScore(value: number): number {
   if (!Number.isFinite(value)) {
     return 1;
@@ -123,13 +131,16 @@ export function getAbilityScoreBreakdownForCharacter(
     options?.customTraitEffectInput ?? getCharacterCustomTraitEffectInput(character);
   const relevantBonuses: FeatureAbilityScoreBonus[] = [
     ...(typeof character.className === "string"
-      ? getAbilityScoreBonusesForCharacter({
-          className: character.className,
-          level: character.level ?? 1,
-          classFeatureState: character.classFeatureState,
-          statusEntries: character.statusEntries,
-          inventoryItems: character.inventoryItems
-        }, { customTraitEffectInput })
+      ? getAbilityScoreBonusesForCharacter(
+          hasAbilityClassFeatureContext(character)
+            ? character
+            : {
+                ...character,
+                className: character.className,
+                level: 1
+              },
+          { customTraitEffectInput }
+        )
       : []),
     ...getBackgroundAbilityScoreBonusesForCharacter(character),
     ...getFeatAbilityScoreBonusesForCharacter({

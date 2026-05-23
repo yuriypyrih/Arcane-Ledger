@@ -1,14 +1,29 @@
-import type { LucideIcon } from "lucide-react";
+import { Minus, Plus, type LucideIcon } from "lucide-react";
 import styles from "./EquipmentInventoryItemDrawer.module.css";
 
-export type EquipmentInventoryDrawerAction = {
+type EquipmentInventoryDrawerButtonAction = {
   key: string;
+  kind?: "button";
   label: string;
   icon: LucideIcon;
   onClick: () => void;
   disabled?: boolean;
   tone?: "neutral" | "positive" | "negative";
 };
+
+type EquipmentInventoryDrawerChargeAction = {
+  key: string;
+  kind: "charges";
+  label: string;
+  onUse: () => void;
+  onReset: () => void;
+  useDisabled?: boolean;
+  resetDisabled?: boolean;
+};
+
+export type EquipmentInventoryDrawerAction =
+  | EquipmentInventoryDrawerButtonAction
+  | EquipmentInventoryDrawerChargeAction;
 
 type EquipmentInventoryItemDrawerFooterProps = {
   leftActions?: EquipmentInventoryDrawerAction[];
@@ -54,6 +69,10 @@ function EquipmentInventoryItemDrawerFooter({
 }
 
 function FooterActionButton({ action }: { action: EquipmentInventoryDrawerAction }) {
+  if (action.kind === "charges") {
+    return <FooterChargeControl action={action} />;
+  }
+
   const Icon = action.icon;
   const toneClassName =
     action.tone === "positive"
@@ -74,6 +93,34 @@ function FooterActionButton({ action }: { action: EquipmentInventoryDrawerAction
       <Icon size={18} aria-hidden="true" />
       <span>{action.label}</span>
     </button>
+  );
+}
+
+function FooterChargeControl({ action }: { action: EquipmentInventoryDrawerChargeAction }) {
+  return (
+    <div className={styles.footerChargeControl} role="group" aria-label={action.label}>
+      <span className={styles.footerChargeLabel}>{action.label}</span>
+      <button
+        type="button"
+        className={`${styles.footerChargeIconButton} ${styles.footerChargeIconButtonPositive}`}
+        onClick={action.onReset}
+        disabled={action.resetDisabled}
+        aria-label="Recover 1 charge"
+        title="Recover 1 charge"
+      >
+        <Plus size={17} aria-hidden="true" />
+      </button>
+      <button
+        type="button"
+        className={`${styles.footerChargeIconButton} ${styles.footerChargeIconButtonNegative}`}
+        onClick={action.onUse}
+        disabled={action.useDisabled}
+        aria-label="Use 1 charge"
+        title="Use 1 charge"
+      >
+        <Minus size={17} aria-hidden="true" />
+      </button>
+    </div>
   );
 }
 

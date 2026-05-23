@@ -1,9 +1,13 @@
 import clsx from "clsx";
-import { Pencil } from "lucide-react";
+import { BookHeart, Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { Character } from "../../../../../types";
 import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { getMagicTemporaryHitPointsFeatureForCharacter } from "../../../../../pages/CharactersPage/classFeatures/magicTemporaryHitPoints";
+import {
+  hasActiveLifeAndDeathLedgerFeature,
+  hasLifeAndDeathLedgerDescriptionAdditions
+} from "../../../../../pages/CharactersPage/classFeatures/lifeAndDeathLedger";
 import { clampNumber } from "../../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import { getDeathSaveStatusLabel } from "../../../../../pages/CharactersPage/deathSaves";
 import { getEffectiveHitPointMaximumForCharacter } from "../../../../../pages/CharactersPage/traits";
@@ -26,6 +30,7 @@ import {
 } from "../hitPointState";
 import DeathSavesWidget from "./DeathSavesWidget";
 import HitPointsEditModal from "./HitPointsEditModal";
+import LifeAndDeathLedgerModal from "./LifeAndDeathLedgerModal";
 import styles from "./HitPointsWidget.module.css";
 
 type HitPointsWidgetProps = {
@@ -35,6 +40,7 @@ type HitPointsWidgetProps = {
 
 function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isLedgerModalOpen, setIsLedgerModalOpen] = useState(false);
   const effectiveHitPoints = getEffectiveHitPointMaximumForCharacter(character);
 
   useEffect(() => {
@@ -79,6 +85,8 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
   );
   const temporaryHitPointsDescription =
     "When taking damage the temporary hit points are consumed first. They do not stack and they vanish after resting at a camp.";
+  const hasLedgerContent = hasLifeAndDeathLedgerDescriptionAdditions(character);
+  const isLedgerActive = hasLedgerContent && hasActiveLifeAndDeathLedgerFeature(character);
 
   return (
     <section className={clsx(widgetShellStyles.widgetCard, styles.root)}>
@@ -111,14 +119,32 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
           </div>
           <span className={styles.statusLabel}>{statusLabel}</span>
         </div>
-        <button
-          type="button"
-          className={clsx(shared.editButton, styles.editButton)}
-          onClick={() => setIsEditModalOpen(true)}
-        >
-          <Pencil size={16} />
-          Edit
-        </button>
+        <div className={shared.headerActions}>
+          {hasLedgerContent ? (
+            <button
+              type="button"
+              className={clsx(
+                shared.editButton,
+                styles.editButton,
+                styles.ledgerButton,
+                isLedgerActive && styles.ledgerButtonActive
+              )}
+              onClick={() => setIsLedgerModalOpen(true)}
+              aria-label="Open life and death ledger"
+            >
+              <BookHeart size={16} />
+              Life & Death
+            </button>
+          ) : null}
+          <button
+            type="button"
+            className={clsx(shared.editButton, styles.editButton)}
+            onClick={() => setIsEditModalOpen(true)}
+          >
+            <Pencil size={16} />
+            Edit
+          </button>
+        </div>
       </header>
 
       <HitPointControls
@@ -148,6 +174,13 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
         <HitPointsEditModal
           character={character}
           onClose={() => setIsEditModalOpen(false)}
+          onPersistCharacter={onPersistCharacter}
+        />
+      ) : null}
+      {isLedgerModalOpen && hasLedgerContent ? (
+        <LifeAndDeathLedgerModal
+          character={character}
+          onClose={() => setIsLedgerModalOpen(false)}
           onPersistCharacter={onPersistCharacter}
         />
       ) : null}

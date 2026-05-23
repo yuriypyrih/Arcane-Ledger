@@ -13,6 +13,12 @@
   grid-template-columns: minmax(180px, 1.2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(240px, 2fr);
 }
 
+.magicItemTinkerControlGrid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(0, 1fr) minmax(160px, 0.45fr);
+}
+
 .field {
   display: grid;
   gap: 0.35rem;
@@ -32,6 +38,11 @@
 
 .itemTable {
   min-width: 0;
+}
+
+.disabledTable {
+  opacity: 0.58;
+  pointer-events: none;
 }
 
 .itemTableWrapper {
@@ -70,6 +81,11 @@
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   }
 
+  .magicItemTinkerControlGrid {
+    gap: 0.58rem;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  }
+
   .field {
     gap: 0.28rem;
     font-size: 0.8rem;
@@ -87,6 +103,11 @@
 
 @media (max-width: 599px) {
   .filterRow {
+    gap: 0.42rem;
+    grid-template-columns: 1fr;
+  }
+
+  .magicItemTinkerControlGrid {
     gap: 0.42rem;
     grid-template-columns: 1fr;
   }

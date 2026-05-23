@@ -12,11 +12,9 @@ import {
 } from "./warlockArchfeyPatron";
 import {
   celestialPatronSubclassId,
-  consumeWarlockCelestialPatronSearingVengeanceUse,
   getWarlockCelestialPatronDerivedFeatureState,
   normalizeWarlockCelestialPatronFeatureState,
-  restoreWarlockCelestialPatronFeaturesOnLongRest,
-  searingVengeanceActionKey
+  restoreWarlockCelestialPatronFeaturesOnLongRest
 } from "./warlockCelestialPatron";
 import {
   applyWarlockFiendPatronDarkOnesBlessing,
@@ -109,13 +107,6 @@ export function activateWarlockSubclassFeatureAction(
 
   if (character.subclassId === fiendPatronSubclassId && actionKey === hurlThroughHellActionKey) {
     return consumeWarlockFiendPatronHurlThroughHellUse(character);
-  }
-
-  if (
-    character.subclassId === celestialPatronSubclassId &&
-    actionKey === searingVengeanceActionKey
-  ) {
-    return consumeWarlockCelestialPatronSearingVengeanceUse(character);
   }
 
   if (

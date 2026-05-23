@@ -1,0 +1,104 @@
+.body {
+  gap: 1rem;
+}
+
+.descriptionStack,
+.descriptionSection {
+  display: grid;
+  gap: 0.62rem;
+}
+
+.descriptionDivider {
+  width: 100%;
+  margin: 0;
+  border: none;
+  border-top: 1px solid rgba(75, 47, 29, 0.12);
+}
+
+.emptyText {
+  margin: 0;
+  color: var(--color-ink-soft);
+}
+
+.headerMeta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.42rem;
+}
+
+.headerMetaChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+  min-height: 38px;
+  border-radius: var(--radius-pill);
+  background: rgba(75, 47, 29, 0.08);
+  color: var(--color-ink);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  padding: 0.28rem 0.62rem;
+}
+
+.cheatDeathSection {
+  display: grid;
+  gap: 0.72rem;
+  border-top: 1px solid rgba(75, 47, 29, 0.12);
+  padding-top: 0.95rem;
+}
+
+.cheatDeathHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.cheatDeathHeader h4 {
+  margin: 0;
+}
+
+.cheatDeathHeader span {
+  border: 1px solid rgba(47, 109, 224, 0.34);
+  border-radius: var(--radius-pill);
+  background: rgba(47, 109, 224, 0.1);
+  color: #2558b8;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 0.18rem 0.48rem;
+  white-space: nowrap;
+}
+
+.itemGrid {
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.itemOption {
+  min-height: 5.1rem;
+}
+
+.footer {
+  display: grid;
+  gap: 0.58rem;
+}
+
+.footerActions {
+  display: grid;
+  gap: 0.58rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.footerActions > :last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 599px) {
+  .footerActions,
+  .itemGrid {
+    grid-template-columns: 1fr;
+  }
+}

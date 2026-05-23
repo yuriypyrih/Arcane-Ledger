@@ -70,7 +70,7 @@ function SubclassEditorModal({ character, onCancel, onSave }: SubclassEditorModa
           <label className={styles.field}>
             Subclass
             <SelectInput
-              className={styles.select}
+              compact
               value={draftSubclassId}
               disabled={subclassOptions.length === 0}
               onChange={(event) => setDraftSubclassId(event.target.value)}

@@ -43,15 +43,18 @@
 }
 
 .gameplaySectionHeader {
-  align-items: center;
+  align-items: flex-start;
   gap: 0.75rem;
 }
 
 .gameplayHeaderControls {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.55rem;
+  justify-content: flex-end;
   margin-left: auto;
+  min-width: 0;
 }
 
 @keyframes gameplayTurnStartFlash {
@@ -74,11 +77,6 @@
 @media (max-width: 899px) {
   .dashboardGrid {
     grid-template-columns: 1fr;
-  }
-
-  .gameplayHeaderControls {
-    flex-wrap: wrap;
-    justify-content: flex-end;
   }
 }
 

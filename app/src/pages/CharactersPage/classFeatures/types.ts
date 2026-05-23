@@ -160,6 +160,9 @@ export type FeatureActionExecuteEffectKind =
 export type FeatureActionFormKind =
   | "aasimar-celestial-revelation"
   | "aasimar-healing-hands"
+  | "artificer-charge-magic-item"
+  | "artificer-drain-magic-item"
+  | "artificer-transmute-magic-item"
   | "arcane-recovery"
   | "blessing-of-the-trickster"
   | "brutal-strike"

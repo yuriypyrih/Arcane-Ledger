@@ -1,0 +1,67 @@
+.root {
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  padding: clamp(1.25rem, 4vw, 3rem);
+  color: var(--color-ink);
+}
+
+.message {
+  display: grid;
+  justify-items: center;
+  gap: 0.7rem;
+  width: min(100%, 32rem);
+  text-align: center;
+}
+
+.icon {
+  width: 2.7rem;
+  height: 2.7rem;
+  color: var(--color-accent);
+  filter: drop-shadow(0 0 8px rgba(162, 77, 45, 0.24));
+}
+
+.title {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: clamp(1.65rem, 5vw, 2.45rem);
+  line-height: 1.05;
+}
+
+.copy {
+  max-width: 24rem;
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: 1rem;
+}
+
+.reloadButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 2.55rem;
+  margin-top: 0.3rem;
+  border: 1px solid rgba(90, 47, 29, 0.28);
+  border-radius: var(--radius-control);
+  background: #7b351f;
+  color: #fff8ec;
+  cursor: pointer;
+  padding: 0 1rem;
+  box-shadow: 0 9px 18px rgba(63, 31, 18, 0.15);
+}
+
+.reloadButton:hover {
+  background: #8d3f25;
+}
+
+.reloadButton:focus-visible {
+  outline: 3px solid rgba(162, 77, 45, 0.3);
+  outline-offset: 3px;
+}
+
+.buttonIcon {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
+}

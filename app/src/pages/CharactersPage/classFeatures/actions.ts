@@ -1133,7 +1133,6 @@ export function getAbilityScoreBonusesForCharacter(
     options?.customTraitEffectInput ?? getCharacterCustomTraitEffectInput(character);
   return [
     ...(baseFeatureState.abilityScoreBonuses ?? []),
-    ...(getSubclassDerivedFeatureState(character).abilityScoreBonuses ?? []),
     ...abilityKeys.flatMap((ability) =>
       getCustomTraitAbilityScoreBonuses(
         customTraitEffectInput,

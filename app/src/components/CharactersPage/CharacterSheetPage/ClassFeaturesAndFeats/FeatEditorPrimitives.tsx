@@ -85,7 +85,7 @@ export function SelectField({ label, value, disabled, options, onChange }: Selec
     <label className={modalStyles.field}>
       <span>{label}</span>
       <SelectInput
-        className={modalStyles.select}
+        compact
         value={value}
         disabled={disabled}
         onChange={(event) => onChange(event.target.value)}

@@ -30,15 +30,26 @@ type ReplicateMagicItemActionBodyProps = {
   onUseItem: (item: ItemRecord) => Promise<void>;
 };
 
-function ReplicateMagicItemActionBody({
+type ReplicateMagicItemPlanBrowserProps = ReplicateMagicItemActionBodyProps & {
+  heading?: string;
+  useButtonLabel?: string;
+  tableDisabled?: boolean;
+  tableDisabledReason?: string | null;
+};
+
+export function ReplicateMagicItemPlanBrowser({
   knownPlanKeys,
   isSubmitting,
   disabledReason,
   actionShape,
   actionShapeAvailable,
   actionShapeMultiCount,
-  onUseItem
-}: ReplicateMagicItemActionBodyProps) {
+  onUseItem,
+  heading = "Replicate Magic Item Plans",
+  useButtonLabel = "Use Replicate Magic Item",
+  tableDisabled = false,
+  tableDisabledReason = null
+}: ReplicateMagicItemPlanBrowserProps) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | null>(null);
   const [rarity, setRarity] = useState<string | null>(null);
@@ -46,8 +57,7 @@ function ReplicateMagicItemActionBody({
   const [ordering, setOrdering] = useState<ItemOrdering>("name");
   const [selectedArtificerPlan, setSelectedArtificerPlan] = useState<string | null>(null);
   const [selectedItemKey, setSelectedItemKey] = useState<string | null>(null);
-  const knownPlanKeysKey = knownPlanKeys.join("|");
-  const scopedPlanKeys = useMemo(() => [...new Set(knownPlanKeys)], [knownPlanKeysKey]);
+  const scopedPlanKeys = useMemo(() => [...new Set(knownPlanKeys)], [knownPlanKeys]);
   const hasKnownPlans = scopedPlanKeys.length > 0;
   const selectedKnownPlanKeys = useMemo(() => new Set(scopedPlanKeys), [scopedPlanKeys]);
   const effectiveArtificerPlan = selectedArtificerPlan ?? undefined;
@@ -114,12 +124,16 @@ function ReplicateMagicItemActionBody({
   }, [selectedArtificerPlan, selectedKnownPlanKeys, unlockedPlanKeys]);
 
   useEffect(() => {
-    if (!hasKnownPlans) {
+    if (!hasKnownPlans || tableDisabled) {
       setSelectedItemKey(null);
     }
-  }, [hasKnownPlans]);
+  }, [hasKnownPlans, tableDisabled]);
 
   function handleItemSelect(item: ItemListItem) {
+    if (tableDisabled) {
+      return;
+    }
+
     setSelectedItemKey(item.key);
   }
 
@@ -141,7 +155,9 @@ function ReplicateMagicItemActionBody({
         );
       }}
       loading={isSubmitting}
-      disabled={selectedItemStatus !== "ready" || !selectedItem || disabledReason !== null}
+      disabled={
+        tableDisabled || selectedItemStatus !== "ready" || !selectedItem || disabledReason !== null
+      }
       trailingBadge={
         actionShape ? (
           <ActionShape
@@ -153,7 +169,7 @@ function ReplicateMagicItemActionBody({
         ) : null
       }
     >
-      Use Replicate Magic Item
+      {useButtonLabel}
     </ActionButton>
   ) : null;
 
@@ -190,6 +206,10 @@ function ReplicateMagicItemActionBody({
             </label>
           </div>
 
+          {tableDisabled && tableDisabledReason ? (
+            <p className={styles.warningCard}>{tableDisabledReason}</p>
+          ) : null}
+
           <ItemCodexTable
             items={payload?.results ?? []}
             totalEntries={payload?.count ?? 0}
@@ -203,8 +223,8 @@ function ReplicateMagicItemActionBody({
               setPage(1);
             }}
             onItemSelect={handleItemSelect}
-            heading="Replicate Magic Item Plans"
-            className={styles.itemTable}
+            heading={heading}
+            className={`${styles.itemTable} ${tableDisabled ? styles.disabledTable : ""}`}
             tableWrapperClassName={styles.itemTableWrapper}
             paginationClassName={styles.itemTablePagination}
           />
@@ -223,6 +243,10 @@ function ReplicateMagicItemActionBody({
       ) : null}
     </div>
   );
+}
+
+function ReplicateMagicItemActionBody(props: ReplicateMagicItemActionBodyProps) {
+  return <ReplicateMagicItemPlanBrowser {...props} />;
 }
 
 type ArtificerPlanSelectProps = {

@@ -284,6 +284,8 @@ export type ClericBlessedStrikesChoice = "blessed-strike" | "potent-spellcasting
 
 export type CharacterArtificerFeatureState = {
   flashOfGeniusUsesExpended?: number;
+  magicItemTinkerDrainUsesExpended?: number;
+  magicItemTinkerTransmuteUsesExpended?: number;
   tinkersMagicUsesExpended?: number;
   replicateMagicItemPlanKeys?: string[];
   toolsOfTheTradeToolProficiencies?: TOOL_PROFICIENCY[];

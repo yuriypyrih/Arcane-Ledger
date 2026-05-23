@@ -27,10 +27,13 @@ function createSubclassFeatureRow(
   };
 }
 
-function createDescription(description: string[]): FeatureMapEntry {
+function createDescription(
+  description: string[],
+  trackingState: TRACKER = TRACKER.NOT_TRACKED
+): FeatureMapEntry {
   return {
     description,
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState
   };
 }
 
@@ -54,14 +57,17 @@ export const artificerSubclassEntries: SubclassEntry[] = [
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,
         CLASS_FEATURE.ALCHEMIST_SPELLS,
-        createDescription([
-          "When you reach an Artificer level specified in the Alchemist Spells table, you thereafter always have the listed spells prepared.",
-          "<strong>Level 3.</strong> <spell:Healing Word>Healing Word</spell>, <spell:Ray of Sickness>Ray of Sickness</spell>",
-          "<strong>Level 5.</strong> <spell:Flaming Sphere>Flaming Sphere</spell>, <spell:Acid Arrow>Melf's Acid Arrow</spell>",
-          "<strong>Level 9.</strong> <spell:Gaseous Form>Gaseous Form</spell>, <spell:Mass Healing Word>Mass Healing Word</spell>",
-          "<strong>Level 13.</strong> <spell:Death Ward>Death Ward</spell>, <spell:Vitriolic Sphere>Vitriolic Sphere</spell>",
-          "<strong>Level 17.</strong> <spell:Cloudkill>Cloudkill</spell>, <spell:Raise Dead>Raise Dead</spell>"
-        ])
+        createDescription(
+          [
+            "When you reach an Artificer level specified in the Alchemist Spells table, you thereafter always have the listed spells prepared.",
+            "<strong>Level 3.</strong> <spell:Healing Word>Healing Word</spell>, <spell:Ray of Sickness>Ray of Sickness</spell>",
+            "<strong>Level 5.</strong> <spell:Flaming Sphere>Flaming Sphere</spell>, <spell:Acid Arrow>Melf's Acid Arrow</spell>",
+            "<strong>Level 9.</strong> <spell:Gaseous Form>Gaseous Form</spell>, <spell:Mass Healing Word>Mass Healing Word</spell>",
+            "<strong>Level 13.</strong> <spell:Death Ward>Death Ward</spell>, <spell:Vitriolic Sphere>Vitriolic Sphere</spell>",
+            "<strong>Level 17.</strong> <spell:Cloudkill>Cloudkill</spell>, <spell:Raise Dead>Raise Dead</spell>"
+          ],
+          TRACKER.TRACKED
+        )
       ),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,
@@ -130,14 +136,17 @@ export const artificerSubclassEntries: SubclassEntry[] = [
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,
         CLASS_FEATURE.ARMORER_SPELLS,
-        createDescription([
-          "When you reach an Artificer level specified in the Armorer Spells table, you thereafter always have the listed spells prepared.",
-          "<strong>Level 3.</strong> <spell:Magic Missile>Magic Missile</spell>, <spell:Thunderwave>Thunderwave</spell>",
-          "<strong>Level 5.</strong> <spell:Mirror Image>Mirror Image</spell>, <spell:Shatter>Shatter</spell>",
-          "<strong>Level 9.</strong> <spell:Hypnotic Pattern>Hypnotic Pattern</spell>, <spell:Lightning Bolt>Lightning Bolt</spell>",
-          "<strong>Level 13.</strong> <spell:Fire Shield>Fire Shield</spell>, <spell:Greater Invisibility>Greater Invisibility</spell>",
-          "<strong>Level 17.</strong> <spell:Passwall>Passwall</spell>, <spell:Wall of Force>Wall of Force</spell>"
-        ])
+        createDescription(
+          [
+            "When you reach an Artificer level specified in the Armorer Spells table, you thereafter always have the listed spells prepared.",
+            "<strong>Level 3.</strong> <spell:Magic Missile>Magic Missile</spell>, <spell:Thunderwave>Thunderwave</spell>",
+            "<strong>Level 5.</strong> <spell:Mirror Image>Mirror Image</spell>, <spell:Shatter>Shatter</spell>",
+            "<strong>Level 9.</strong> <spell:Hypnotic Pattern>Hypnotic Pattern</spell>, <spell:Lightning Bolt>Lightning Bolt</spell>",
+            "<strong>Level 13.</strong> <spell:Fire Shield>Fire Shield</spell>, <spell:Greater Invisibility>Greater Invisibility</spell>",
+            "<strong>Level 17.</strong> <spell:Passwall>Passwall</spell>, <spell:Wall of Force>Wall of Force</spell>"
+          ],
+          TRACKER.TRACKED
+        )
       ),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,
@@ -217,14 +226,17 @@ export const artificerSubclassEntries: SubclassEntry[] = [
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,
         CLASS_FEATURE.ARTILLERIST_SPELLS,
-        createDescription([
-          "When you reach an Artificer level specified in the Artillerist Spells table, you thereafter always have the listed spells prepared.",
-          "<strong>Level 3.</strong> <spell:Shield>Shield</spell>, <spell:Thunderwave>Thunderwave</spell>",
-          "<strong>Level 5.</strong> <spell:Scorching Ray>Scorching Ray</spell>, <spell:Shatter>Shatter</spell>",
-          "<strong>Level 9.</strong> <spell:Fireball>Fireball</spell>, <spell:Wind Wall>Wind Wall</spell>",
-          "<strong>Level 13.</strong> <spell:Ice Storm>Ice Storm</spell>, <spell:Wall of Fire>Wall of Fire</spell>",
-          "<strong>Level 17.</strong> <spell:Cone of Cold>Cone of Cold</spell>, <spell:Wall of Force>Wall of Force</spell>"
-        ])
+        createDescription(
+          [
+            "When you reach an Artificer level specified in the Artillerist Spells table, you thereafter always have the listed spells prepared.",
+            "<strong>Level 3.</strong> <spell:Shield>Shield</spell>, <spell:Thunderwave>Thunderwave</spell>",
+            "<strong>Level 5.</strong> <spell:Scorching Ray>Scorching Ray</spell>, <spell:Shatter>Shatter</spell>",
+            "<strong>Level 9.</strong> <spell:Fireball>Fireball</spell>, <spell:Wind Wall>Wind Wall</spell>",
+            "<strong>Level 13.</strong> <spell:Ice Storm>Ice Storm</spell>, <spell:Wall of Fire>Wall of Fire</spell>",
+            "<strong>Level 17.</strong> <spell:Cone of Cold>Cone of Cold</spell>, <spell:Wall of Force>Wall of Force</spell>"
+          ],
+          TRACKER.TRACKED
+        )
       ),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,
@@ -287,14 +299,17 @@ export const artificerSubclassEntries: SubclassEntry[] = [
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,
         CLASS_FEATURE.BATTLE_SMITH_SPELLS,
-        createDescription([
-          "When you reach an Artificer level specified in the Battle Smith Spells table, you thereafter always have the listed spells prepared.",
-          "<strong>Level 3.</strong> <spell:Heroism>Heroism</spell>, <spell:Shield>Shield</spell>",
-          "<strong>Level 5.</strong> <spell:Shining Smite>Shining Smite</spell>, <spell:Warding Bond>Warding Bond</spell>",
-          "<strong>Level 9.</strong> <spell:Aura of Vitality>Aura of Vitality</spell>, <spell:Conjure Barrage>Conjure Barrage</spell>",
-          "<strong>Level 13.</strong> <spell:Aura of Purity>Aura of Purity</spell>, <spell:Fire Shield>Fire Shield</spell>",
-          "<strong>Level 17.</strong> <spell:Banishing Smite>Banishing Smite</spell>, <spell:Mass Cure Wounds>Mass Cure Wounds</spell>"
-        ])
+        createDescription(
+          [
+            "When you reach an Artificer level specified in the Battle Smith Spells table, you thereafter always have the listed spells prepared.",
+            "<strong>Level 3.</strong> <spell:Heroism>Heroism</spell>, <spell:Shield>Shield</spell>",
+            "<strong>Level 5.</strong> <spell:Shining Smite>Shining Smite</spell>, <spell:Warding Bond>Warding Bond</spell>",
+            "<strong>Level 9.</strong> <spell:Aura of Vitality>Aura of Vitality</spell>, <spell:Conjure Barrage>Conjure Barrage</spell>",
+            "<strong>Level 13.</strong> <spell:Aura of Purity>Aura of Purity</spell>, <spell:Fire Shield>Fire Shield</spell>",
+            "<strong>Level 17.</strong> <spell:Banishing Smite>Banishing Smite</spell>, <spell:Mass Cure Wounds>Mass Cure Wounds</spell>"
+          ],
+          TRACKER.TRACKED
+        )
       ),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,
@@ -366,14 +381,17 @@ export const artificerSubclassEntries: SubclassEntry[] = [
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,
         CLASS_FEATURE.CARTOGRAPHER_SPELLS,
-        createDescription([
-          "When you reach an Artificer level specified in the Cartographer Spells table, you thereafter always have the listed spells prepared.",
-          "<strong>Level 3.</strong> <spell:Faerie Fire>Faerie Fire</spell>, <spell:Guiding Bolt>Guiding Bolt</spell>, <spell:Healing Word>Healing Word</spell>",
-          "<strong>Level 5.</strong> <spell:Locate Object>Locate Object</spell>, <spell:Mind Spike>Mind Spike</spell>",
-          "<strong>Level 9.</strong> <spell:Call Lightning>Call Lightning</spell>, <spell:Clairvoyance>Clairvoyance</spell>",
-          "<strong>Level 13.</strong> <spell:Banishment>Banishment</spell>, <spell:Locate Creature>Locate Creature</spell>",
-          "<strong>Level 17.</strong> <spell:Scrying>Scrying</spell>, <spell:Teleportation Circle>Teleportation Circle</spell>"
-        ])
+        createDescription(
+          [
+            "When you reach an Artificer level specified in the Cartographer Spells table, you thereafter always have the listed spells prepared.",
+            "<strong>Level 3.</strong> <spell:Faerie Fire>Faerie Fire</spell>, <spell:Guiding Bolt>Guiding Bolt</spell>, <spell:Healing Word>Healing Word</spell>",
+            "<strong>Level 5.</strong> <spell:Locate Object>Locate Object</spell>, <spell:Mind Spike>Mind Spike</spell>",
+            "<strong>Level 9.</strong> <spell:Call Lightning>Call Lightning</spell>, <spell:Clairvoyance>Clairvoyance</spell>",
+            "<strong>Level 13.</strong> <spell:Banishment>Banishment</spell>, <spell:Locate Creature>Locate Creature</spell>",
+            "<strong>Level 17.</strong> <spell:Scrying>Scrying</spell>, <spell:Teleportation Circle>Teleportation Circle</spell>"
+          ],
+          TRACKER.TRACKED
+        )
       ),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,

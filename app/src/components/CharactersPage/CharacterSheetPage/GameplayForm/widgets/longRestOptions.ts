@@ -27,9 +27,15 @@ import {
 import {
   getArtificerFlashOfGeniusUsesRemaining,
   getArtificerFlashOfGeniusUsesTotal,
+  getArtificerMagicItemTinkerDrainUsesRemaining,
+  getArtificerMagicItemTinkerDrainUsesTotal,
+  getArtificerMagicItemTinkerTransmuteUsesRemaining,
+  getArtificerMagicItemTinkerTransmuteUsesTotal,
   getArtificerTinkersMagicUsesRemaining,
   getArtificerTinkersMagicUsesTotal,
   restoreArtificerFlashOfGeniusOnLongRest,
+  restoreArtificerMagicItemTinkerDrainOnLongRest,
+  restoreArtificerMagicItemTinkerTransmuteOnLongRest,
   restoreArtificerTinkersMagicOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
 import {
@@ -375,8 +381,15 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const artificerTinkersMagicUsesTotal = getArtificerTinkersMagicUsesTotal(character);
   const artificerTinkersMagicUsesRemaining = getArtificerTinkersMagicUsesRemaining(character);
   const artificerFlashOfGeniusUsesTotal = getArtificerFlashOfGeniusUsesTotal(character);
-  const artificerFlashOfGeniusUsesRemaining =
-    getArtificerFlashOfGeniusUsesRemaining(character);
+  const artificerFlashOfGeniusUsesRemaining = getArtificerFlashOfGeniusUsesRemaining(character);
+  const artificerMagicItemTinkerDrainUsesTotal =
+    getArtificerMagicItemTinkerDrainUsesTotal(character);
+  const artificerMagicItemTinkerDrainUsesRemaining =
+    getArtificerMagicItemTinkerDrainUsesRemaining(character);
+  const artificerMagicItemTinkerTransmuteUsesTotal =
+    getArtificerMagicItemTinkerTransmuteUsesTotal(character);
+  const artificerMagicItemTinkerTransmuteUsesRemaining =
+    getArtificerMagicItemTinkerTransmuteUsesRemaining(character);
   const rageUsesTotal = getBarbarianRageUsesTotal(character);
   const hasBarbarianRelentlessRage = hasBarbarianRelentlessRageFeature(character);
   const barbarianIntimidatingPresenceUsesTotal =
@@ -888,9 +901,7 @@ export function createLongRestOptions(character: Character): RestOption[] {
             detail: "Conjured items with an Until Long Rest duration vanish.",
             apply: (currentCharacter: Character) => ({
               ...currentCharacter,
-              inventoryItems: removeLongRestConjuredInventoryItems(
-                currentCharacter.inventoryItems
-              )
+              inventoryItems: removeLongRestConjuredInventoryItems(currentCharacter.inventoryItems)
             })
           } satisfies RestOption
         ]
@@ -922,6 +933,39 @@ export function createLongRestOptions(character: Character): RestOption[] {
             disabled: artificerFlashOfGeniusUsesRemaining >= artificerFlashOfGeniusUsesTotal,
             apply: (currentCharacter: Character) =>
               restoreArtificerFlashOfGeniusOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(artificerMagicItemTinkerDrainUsesTotal > 0
+      ? [
+          {
+            id: "restore-artificer-drain-magic-item",
+            label: "Restore Drain Magic Item",
+            charges: {
+              current: artificerMagicItemTinkerDrainUsesRemaining,
+              total: artificerMagicItemTinkerDrainUsesTotal
+            },
+            disabled:
+              artificerMagicItemTinkerDrainUsesRemaining >= artificerMagicItemTinkerDrainUsesTotal,
+            apply: (currentCharacter: Character) =>
+              restoreArtificerMagicItemTinkerDrainOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(artificerMagicItemTinkerTransmuteUsesTotal > 0
+      ? [
+          {
+            id: "restore-artificer-transmute-magic-item",
+            label: "Restore Transmute Magic Item",
+            charges: {
+              current: artificerMagicItemTinkerTransmuteUsesRemaining,
+              total: artificerMagicItemTinkerTransmuteUsesTotal
+            },
+            disabled:
+              artificerMagicItemTinkerTransmuteUsesRemaining >=
+              artificerMagicItemTinkerTransmuteUsesTotal,
+            apply: (currentCharacter: Character) =>
+              restoreArtificerMagicItemTinkerTransmuteOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),
@@ -1823,7 +1867,7 @@ export function createLongRestOptions(character: Character): RestOption[] {
       ? [
           {
             id: "restore-hand-of-ultimate-justice",
-            label: "Restore Hand of Ultimate Justice",
+            label: "Restore Hand of Ultimate Mercy",
             apply: (currentCharacter: Character) =>
               restoreMonkHandOfUltimateJusticeOnLongRest(currentCharacter)
           } satisfies RestOption

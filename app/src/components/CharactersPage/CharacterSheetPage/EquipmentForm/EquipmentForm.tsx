@@ -2579,18 +2579,14 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
           ...(selectedInventoryUseState
             ? [
                 {
-                  key: "use-charge",
-                  label: "Use 1",
-                  icon: Minus,
-                  disabled: selectedInventoryUseState.remaining <= 0,
-                  onClick: useSelectedInventoryItemCharge
-                },
-                {
-                  key: "reset-charge",
-                  label: "Reset 1",
-                  icon: Plus,
-                  disabled: selectedInventoryUseState.remaining >= selectedInventoryUseState.total,
-                  onClick: resetSelectedInventoryItemCharge
+                  key: "charges",
+                  kind: "charges" as const,
+                  label: "Charges",
+                  useDisabled: selectedInventoryUseState.remaining <= 0,
+                  resetDisabled:
+                    selectedInventoryUseState.remaining >= selectedInventoryUseState.total,
+                  onUse: useSelectedInventoryItemCharge,
+                  onReset: resetSelectedInventoryItemCharge
                 }
               ]
             : []),

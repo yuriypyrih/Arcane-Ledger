@@ -36,7 +36,7 @@ const implementsOfMercySource = "Implements of Mercy";
 const handOfHealingSource = "Hand of Healing";
 const flurryOfHealingAndHarmSource = "Flurry of Healing and Harm";
 const warriorOfMercySubclassEntry = getSubclassEntryById(warriorOfMercySubclassId);
-const handOfUltimateJusticeActionName = "Hand of Ultimate Justice";
+const handOfUltimateJusticeActionName = "Hand of Ultimate Mercy";
 const handOfUltimateMercyUsesTotal = 1;
 const handOfUltimateMercyFocusCost = 5;
 

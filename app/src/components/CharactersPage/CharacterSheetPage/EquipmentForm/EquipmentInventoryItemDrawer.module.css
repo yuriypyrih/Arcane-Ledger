@@ -97,6 +97,55 @@
   opacity: 0.45;
 }
 
+.footerChargeControl {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.38rem;
+  min-height: 42px;
+  border: 1px solid rgba(75, 47, 29, 0.14);
+  border-radius: var(--radius-compact);
+  background: rgba(255, 250, 241, 0.95);
+  color: var(--color-ink-soft);
+  font: inherit;
+  font-weight: 600;
+  padding: 0.36rem 0.5rem 0.36rem 0.85rem;
+}
+
+.footerChargeLabel {
+  margin-right: 0.08rem;
+}
+
+.footerChargeIconButton {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: var(--radius-compact);
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+}
+
+.footerChargeIconButton:hover:not(:disabled),
+.footerChargeIconButton:focus-visible {
+  background: rgba(75, 47, 29, 0.1);
+}
+
+.footerChargeIconButton:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+
+.footerChargeIconButtonPositive {
+  color: #2e7d32;
+}
+
+.footerChargeIconButtonNegative {
+  color: #c62828;
+}
+
 .toneNeutral {
   color: var(--color-ink-soft);
 }

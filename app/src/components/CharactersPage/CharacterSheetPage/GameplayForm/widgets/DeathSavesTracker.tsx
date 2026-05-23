@@ -123,7 +123,7 @@ function DeathSavesTracker({
       </button>
 
       {isModalOpen ? (
-        <SheetModal titleId={titleId} onClose={() => setIsModalOpen(false)} size="medium">
+        <SheetModal titleId={titleId} onClose={() => setIsModalOpen(false)} size="small">
           <OverlayHeader>
             <OverlayHeaderContent>
               <OverlayEyebrow>{modalEyebrow}</OverlayEyebrow>

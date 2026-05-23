@@ -37,7 +37,6 @@ import {
   activateBarbarianIntimidatingPresence,
   activateBarbarianBrutalStrike,
   activateBarbarianRecklessAttack,
-  activateBarbarianRelentlessRage,
   activateBarbarianRage,
   activateBarbarianRageOfTheWildsOption,
   activateBarbarianTravelAlongTheTree,
@@ -47,7 +46,6 @@ import {
   applyShortRestToBarbarianFeatures,
   barbarianBrutalStrikeActionKey,
   barbarianIntimidatingPresenceActionKey,
-  barbarianRelentlessRageActionKey,
   barbarianRageActionKey,
   barbarianRecklessAttackActionKey,
   barbarianWarriorOfTheGodsActionKey,
@@ -214,7 +212,6 @@ import {
   activateNobleScion,
   activateAvengingAngel,
   activateNaturesWrath,
-  activateUndyingSentinel,
   activatePeerlessAthlete,
   activatePaladinFeatureActionOption,
   advancePaladinFeaturesForNewRound,
@@ -241,7 +238,6 @@ import {
   paladinLayOnHandsActionKey,
   paladinsSmiteActionKey,
   peerlessAthleteActionKey,
-  undyingSentinelActionKey,
   setPaladinWeaponMasterySelections
 } from "./paladin/paladin";
 import {
@@ -356,6 +352,53 @@ import type {
 const emptyFeatureDerivedState: ClassFeatureDerivedState = {};
 const activeClassFeatureStateCache = new WeakMap<object, ClassFeatureDerivedState>();
 
+type ClassFeatureDerivationCharacter = Pick<Character, "className"> &
+  Partial<
+    Pick<
+      Character,
+      | "level"
+      | "subclassId"
+      | "classFeatureState"
+      | "spellSlotsExpended"
+      | "abilities"
+      | "statusEntries"
+      | "roundTracker"
+      | "equipment"
+      | "inventoryItems"
+      | "customEquipment"
+      | "spellbookSpellIds"
+      | "cantripIds"
+      | "feats"
+      | "skillProficiencies"
+      | "toolProficiencies"
+      | "savingThrowProficiencies"
+    >
+  >;
+
+function withClassFeatureDerivationDefaults(
+  character: ClassFeatureDerivationCharacter
+): CollectedClassFeatureCharacter {
+  return {
+    ...character,
+    level: character.level ?? 1,
+    abilities: character.abilities ?? createDefaultAbilities(),
+    subclassId: character.subclassId,
+    classFeatureState: character.classFeatureState ?? {},
+    skillProficiencies: character.skillProficiencies ?? [],
+    toolProficiencies: character.toolProficiencies ?? [],
+    savingThrowProficiencies: character.savingThrowProficiencies ?? [],
+    spellSlotsExpended: character.spellSlotsExpended ?? [],
+    statusEntries: character.statusEntries ?? [],
+    roundTracker: character.roundTracker,
+    equipment: character.equipment ?? [],
+    inventoryItems: character.inventoryItems ?? [],
+    customEquipment: character.customEquipment ?? [],
+    spellbookSpellIds: character.spellbookSpellIds ?? [],
+    cantripIds: character.cantripIds ?? [],
+    feats: character.feats ?? []
+  };
+}
+
 function createWeaponMasteryState(
   selectionCount: number,
   options: WEAPON_PROFICIENCY[],
@@ -432,10 +475,6 @@ const classFeatureModules = {
 
       if (actionKey === barbarianBrutalStrikeActionKey) {
         return activateBarbarianBrutalStrike(character);
-      }
-
-      if (actionKey === barbarianRelentlessRageActionKey) {
-        return activateBarbarianRelentlessRage(character);
       }
 
       if (actionKey === barbarianWarriorOfTheGodsActionKey) {
@@ -784,10 +823,6 @@ const classFeatureModules = {
         return activateNaturesWrath(character);
       }
 
-      if (actionKey === undyingSentinelActionKey) {
-        return activateUndyingSentinel(character);
-      }
-
       if (actionKey === livingLegendActionKey) {
         return activateLivingLegend(character);
       }
@@ -1003,24 +1038,7 @@ export function getActiveClassFeatureModule(className: string) {
 }
 
 export function collectActiveClassFeatureState(
-  character: Pick<Character, "className" | "level"> &
-    Partial<
-      Pick<
-        Character,
-        | "subclassId"
-        | "classFeatureState"
-        | "spellSlotsExpended"
-        | "abilities"
-        | "statusEntries"
-        | "roundTracker"
-        | "equipment"
-        | "inventoryItems"
-        | "customEquipment"
-        | "spellbookSpellIds"
-        | "cantripIds"
-        | "feats"
-      >
-    >
+  character: ClassFeatureDerivationCharacter
 ): ClassFeatureDerivedState {
   const cachedState = activeClassFeatureStateCache.get(character);
 
@@ -1034,24 +1052,7 @@ export function collectActiveClassFeatureState(
     return emptyFeatureDerivedState;
   }
 
-  const safeCharacter: CollectedClassFeatureCharacter = {
-    abilities: createDefaultAbilities(),
-    subclassId: undefined,
-    classFeatureState: {},
-    skillProficiencies: [],
-    toolProficiencies: [],
-    savingThrowProficiencies: [],
-    spellSlotsExpended: [],
-    statusEntries: [],
-    roundTracker: undefined,
-    equipment: [],
-    inventoryItems: [],
-    customEquipment: [],
-    spellbookSpellIds: [],
-    cantripIds: [],
-    feats: [],
-    ...character
-  };
+  const safeCharacter = withClassFeatureDerivationDefaults(character);
 
   const derivedState = activeModule.collectDerived(safeCharacter);
 

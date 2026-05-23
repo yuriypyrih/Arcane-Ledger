@@ -6,12 +6,18 @@ import {
 } from "../../../../codex/entries";
 import type { Character, CharacterArtificerFeatureState } from "../../../../types";
 import { getAbilityModifierForCharacter } from "../../abilities";
+import { getInventoryAttunementCount } from "../../inventoryItems";
 import { getFeatureDescriptionForCharacter } from "../featureDescriptions";
 
 export const artificerFlashOfGeniusReactionEntryId = "reaction-artificer-flash-of-genius";
 
 type ArtificerFlashOfGeniusCharacter = Pick<Character, "className"> &
-  Partial<Pick<Character, "abilities" | "classFeatureState" | "level" | "statusEntries">>;
+  Partial<
+    Pick<
+      Character,
+      "abilities" | "classFeatureState" | "inventoryItems" | "level" | "statusEntries"
+    >
+  >;
 
 function normalizeUsesExpended(value: unknown, total: number): number {
   const parsedValue = Number(value);
@@ -24,6 +30,22 @@ export function hasArtificerFlashOfGeniusFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level">>
 ): boolean {
   return character.className === "Artificer" && (character.level ?? 0) >= 7;
+}
+
+export function hasArtificerFlashOfGeniusShortRestRecoveryFeature(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level">>
+): boolean {
+  return character.className === "Artificer" && (character.level ?? 0) >= 14;
+}
+
+export function hasArtificerFlashOfGeniusFullShortRestRecovery(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "inventoryItems" | "level">>
+): boolean {
+  return (
+    character.className === "Artificer" &&
+    (character.level ?? 0) >= 20 &&
+    getInventoryAttunementCount(character.inventoryItems ?? []) > 0
+  );
 }
 
 export function getArtificerFlashOfGeniusUsesTotal(
@@ -55,10 +77,7 @@ export function normalizeArtificerFlashOfGeniusState(
   const usesTotal = getArtificerFlashOfGeniusUsesTotal(character);
 
   return {
-    flashOfGeniusUsesExpended: normalizeUsesExpended(
-      record.flashOfGeniusUsesExpended,
-      usesTotal
-    )
+    flashOfGeniusUsesExpended: normalizeUsesExpended(record.flashOfGeniusUsesExpended, usesTotal)
   };
 }
 
@@ -123,10 +142,7 @@ export function consumeArtificerFlashOfGeniusUse(character: Character): Characte
   }
 
   const currentArtificerState = character.classFeatureState?.artificer ?? {};
-  const flashOfGeniusState = normalizeArtificerFlashOfGeniusState(
-    currentArtificerState,
-    character
-  );
+  const flashOfGeniusState = normalizeArtificerFlashOfGeniusState(currentArtificerState, character);
 
   return {
     ...character,
@@ -135,8 +151,7 @@ export function consumeArtificerFlashOfGeniusUse(character: Character): Characte
       artificer: {
         ...currentArtificerState,
         ...flashOfGeniusState,
-        flashOfGeniusUsesExpended:
-          (flashOfGeniusState.flashOfGeniusUsesExpended ?? 0) + 1
+        flashOfGeniusUsesExpended: (flashOfGeniusState.flashOfGeniusUsesExpended ?? 0) + 1
       }
     }
   };
@@ -148,10 +163,7 @@ export function restoreArtificerFlashOfGeniusOnLongRest(character: Character): C
   }
 
   const currentArtificerState = character.classFeatureState?.artificer ?? {};
-  const flashOfGeniusState = normalizeArtificerFlashOfGeniusState(
-    currentArtificerState,
-    character
-  );
+  const flashOfGeniusState = normalizeArtificerFlashOfGeniusState(currentArtificerState, character);
 
   if ((flashOfGeniusState.flashOfGeniusUsesExpended ?? 0) <= 0) {
     return character;
@@ -165,6 +177,34 @@ export function restoreArtificerFlashOfGeniusOnLongRest(character: Character): C
         ...currentArtificerState,
         ...flashOfGeniusState,
         flashOfGeniusUsesExpended: 0
+      }
+    }
+  };
+}
+
+export function restoreArtificerFlashOfGeniusOnShortRest(character: Character): Character {
+  if (!hasArtificerFlashOfGeniusShortRestRecoveryFeature(character)) {
+    return character;
+  }
+
+  const currentArtificerState = character.classFeatureState?.artificer ?? {};
+  const flashOfGeniusState = normalizeArtificerFlashOfGeniusState(currentArtificerState, character);
+  const usesExpended = flashOfGeniusState.flashOfGeniusUsesExpended ?? 0;
+
+  if (usesExpended <= 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      artificer: {
+        ...currentArtificerState,
+        ...flashOfGeniusState,
+        flashOfGeniusUsesExpended: hasArtificerFlashOfGeniusFullShortRestRecovery(character)
+          ? 0
+          : Math.max(0, usesExpended - 1)
       }
     }
   };

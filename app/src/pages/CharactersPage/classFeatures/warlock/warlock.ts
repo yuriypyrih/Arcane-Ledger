@@ -92,7 +92,6 @@ import {
   restoreWarlockCelestialPatronHealingLightDie,
   restoreWarlockCelestialPatronHealingLightOnLongRest,
   restoreWarlockCelestialPatronSearingVengeanceOnLongRest,
-  searingVengeanceActionKey,
   spendWarlockCelestialPatronHealingLightDice
 } from "./subclasses/warlockCelestialPatron";
 import {
@@ -136,9 +135,7 @@ import {
 import {
   activateWarlockGazeOfTwoMindsStatus,
   gazeOfTwoMindsActionKey,
-  getWarlockGazeOfTwoMindsAction,
-  getWarlockGiftOfTheProtectorsAction,
-  giftOfTheProtectorsActionKey
+  getWarlockGazeOfTwoMindsAction
 } from "./invocations/actions";
 import { orderedWarlockEldritchInvocationIds } from "./invocations/editorTabs";
 import {
@@ -195,7 +192,7 @@ const pactOfTheChainFamiliarAttackDescription =
 export const magicalCunningActionKey = "warlock-magical-cunning";
 export const contactPatronActionKey = "warlock-contact-patron";
 export const mysticArcanumActionKey = "warlock-mystic-arcanum";
-export { gazeOfTwoMindsActionKey, giftOfTheProtectorsActionKey };
+export { gazeOfTwoMindsActionKey };
 export { warlockEldritchInvocationEditorTabs } from "./invocations/editorTabs";
 export type { WarlockEldritchInvocationEditorTabKey } from "./invocations/editorTabs";
 export type { WarlockPactTomeSpellSelection } from "./invocations/pactTome";
@@ -218,8 +215,7 @@ export {
 export {
   darkOnesBlessingActionKey,
   darkOnesOwnLuckActionKey,
-  hurlThroughHellActionKey,
-  searingVengeanceActionKey
+  hurlThroughHellActionKey
 };
 export { warlockFiendPatronFiendishResilienceDamageTypeOptions };
 
@@ -2100,15 +2096,6 @@ export function getWarlockFeatureActions(
     )
   );
 
-  if (selectedInvocationIds.has(ELDRITCH_INVOCATION.GIFT_OF_THE_PROTECTORS)) {
-    actions.push(
-      getWarlockGiftOfTheProtectorsAction(
-        getWarlockGiftOfTheProtectorsUsesRemaining(character),
-        getWarlockGiftOfTheProtectorsUsesTotal(character)
-      )
-    );
-  }
-
   if (selectedInvocationIds.has(ELDRITCH_INVOCATION.GAZE_OF_TWO_MINDS)) {
     actions.push(getWarlockGazeOfTwoMindsAction(character));
   }
@@ -2206,10 +2193,6 @@ export function activateWarlockFeatureAction(
 
   if (actionKey === gazeOfTwoMindsActionKey) {
     return activateWarlockGazeOfTwoMinds(character);
-  }
-
-  if (actionKey === giftOfTheProtectorsActionKey) {
-    return consumeWarlockGiftOfTheProtectorsUse(character);
   }
 
   if (

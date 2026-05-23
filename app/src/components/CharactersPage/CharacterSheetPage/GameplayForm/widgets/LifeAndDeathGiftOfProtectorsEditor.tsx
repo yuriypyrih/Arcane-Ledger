@@ -3,20 +3,22 @@ import { useEffect, useState } from "react";
 import {
   getWarlockGiftOfTheProtectorsBookOfShadowsTextForCharacter,
   setWarlockGiftOfTheProtectorsBookOfShadowsTextForCharacter
-} from "../../../../../../pages/CharactersPage/classFeatures";
-import type { Character } from "../../../../../../types";
-import ActionButton from "../../../../../ActionButton";
-import styles from "./BookOfShadowsActionBody.module.css";
+} from "../../../../../pages/CharactersPage/classFeatures";
+import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPage/CharacterSheetPage/types";
+import type { Character } from "../../../../../types";
+import ActionButton from "../../../../ActionButton";
+import { classResourcePersistOptions } from "./persistOptions";
+import styles from "./LifeAndDeathGiftOfProtectorsEditor.module.css";
 
-type BookOfShadowsActionBodyProps = {
+type LifeAndDeathGiftOfProtectorsEditorProps = {
   character: Character;
-  onPersistCharacter: (updater: (currentCharacter: Character) => Character) => void;
+  onPersistCharacter: PersistCharacterUpdater;
 };
 
-function BookOfShadowsActionBody({
+function LifeAndDeathGiftOfProtectorsEditor({
   character,
   onPersistCharacter
-}: BookOfShadowsActionBodyProps) {
+}: LifeAndDeathGiftOfProtectorsEditorProps) {
   const savedText = getWarlockGiftOfTheProtectorsBookOfShadowsTextForCharacter(character);
   const [isEditing, setIsEditing] = useState(false);
   const [draftText, setDraftText] = useState(savedText);
@@ -28,7 +30,7 @@ function BookOfShadowsActionBody({
   }, [isEditing, savedText]);
 
   return (
-    <div className={styles.body}>
+    <section className={styles.section} aria-label="Gift of the Protectors Book of Shadows">
       <label className={styles.field}>
         <span className={styles.label}>Book of Shadows</span>
         <textarea
@@ -47,11 +49,13 @@ function BookOfShadowsActionBody({
               icon={<Save size={16} />}
               fullWidth={false}
               onClick={() => {
-                onPersistCharacter((currentCharacter) =>
-                  setWarlockGiftOfTheProtectorsBookOfShadowsTextForCharacter(
-                    currentCharacter,
-                    draftText
-                  )
+                onPersistCharacter(
+                  (currentCharacter) =>
+                    setWarlockGiftOfTheProtectorsBookOfShadowsTextForCharacter(
+                      currentCharacter,
+                      draftText
+                    ),
+                  classResourcePersistOptions
                 );
                 setIsEditing(false);
               }}
@@ -79,8 +83,8 @@ function BookOfShadowsActionBody({
           </ActionButton>
         )}
       </div>
-    </div>
+    </section>
   );
 }
 
-export default BookOfShadowsActionBody;
+export default LifeAndDeathGiftOfProtectorsEditor;

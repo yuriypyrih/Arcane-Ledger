@@ -44,7 +44,6 @@ import {
 
 export const oathOfTheAncientsSubclassId = "paladin-oath-of-the-ancients";
 export const naturesWrathActionKey = "paladin-natures-wrath";
-export const undyingSentinelActionKey = "paladin-undying-sentinel";
 export const elderChampionActionKey = "paladin-elder-champion";
 export const paladinOathOfTheAncientsAuraOfWardingStatusSourceId =
   "feature-paladin-oath-of-the-ancients-aura-of-warding";
@@ -102,9 +101,6 @@ function getOathOfTheAncientsFeatureDescriptionEntries(feature: CLASS_FEATURE): 
 
 const naturesWrathDescription = getOathOfTheAncientsFeatureDescriptionEntries(
   CLASS_FEATURE.NATURES_WRATH
-);
-const undyingSentinelDescription = getOathOfTheAncientsFeatureDescriptionEntries(
-  CLASS_FEATURE.UNDYING_SENTINEL
 );
 const elderChampionDescription = getOathOfTheAncientsFeatureDescriptionEntries(
   CLASS_FEATURE.ELDER_CHAMPION
@@ -291,45 +287,6 @@ function getPaladinOathOfTheAncientsFeatureActions(
         channelDivinityUsesRemaining <= 0 ? "No Channel Divinity uses remaining." : undefined
     }
   ];
-
-  if (hasPaladinOathOfTheAncientsUndyingSentinelFeature(character)) {
-    const usesRemaining = getPaladinOathOfTheAncientsUndyingSentinelUsesRemaining(character);
-
-    actions.push({
-      key: undyingSentinelActionKey,
-      name: "Undying Sentinel",
-      summary: "Rise with ancient vitality when you are at death's door.",
-      detail: "When you are at 0 Hit Points, restore yourself with life-preserving magic.",
-      breakdown: "Rise at death's door",
-      economyType: ECONOMY_TYPE.FREE,
-      actionCategory: ACTION_CATEGORY.FEATURE,
-      usesRemaining,
-      usesTotal: undyingSentinelUsesTotal,
-      description: [...undyingSentinelDescription],
-      headerTags: createHeaderTagsFromResources([
-        {
-          kind: "tracker",
-          label: "Uses",
-          current: usesRemaining,
-          total: undyingSentinelUsesTotal,
-          cost: 1
-        }
-      ]),
-      drawer: {
-        kind: "confirm",
-        eyebrow: "Oath of the Ancients",
-        blockedReason:
-          character.currentHitPoints === 0
-            ? undefined
-            : "Undying Sentinel can only activate while you are at 0 Hit Points."
-      },
-      execute: {
-        kind: "activate"
-      },
-      disabled: usesRemaining <= 0,
-      disabledReason: usesRemaining <= 0 ? "Undying Sentinel recharges on a Long Rest." : undefined
-    });
-  }
 
   if (hasPaladinOathOfTheAncientsElderChampionFeature(character)) {
     const usesRemaining = getPaladinOathOfTheAncientsElderChampionUsesRemaining(character);
@@ -525,6 +482,10 @@ export function activatePaladinOathOfTheAncientsUndyingSentinel(character: Chara
   return reconcileCharacterStatusConsequences({
     ...character,
     currentHitPoints: nextCurrentHitPoints,
+    deathSaves: {
+      successes: 0,
+      failures: 0
+    },
     classFeatureState: {
       ...character.classFeatureState,
       paladin: {

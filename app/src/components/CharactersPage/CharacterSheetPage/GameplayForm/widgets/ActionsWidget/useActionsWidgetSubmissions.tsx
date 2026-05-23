@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
 // @ts-nocheck
 import clsx from "clsx";
-import { useEffect, useMemo, useState } from "react";
 import CellContainer from "../../../../../CellContainer/CellContainer";
 import { useDiceRollerPopup } from "../../../../../DicePage/DiceRollerPopup";
 import { captureAppError } from "../../../../../../lib/sentry";
@@ -9,12 +8,7 @@ import KeywordReferenceDrawer from "../../../../../KeywordReferenceDrawer/Keywor
 import ActionShape, { getActionShapeForCastingTime } from "../../../../../ActionShape";
 import RollStatePill from "../../../../../RollStatePill/RollStatePill";
 import FeatureOptInToggle from "../../../FeatureOptInToggle/FeatureOptInToggle";
-import type {
-  Character,
-  CharacterWizardPortentRoll,
-  ItemRecord,
-  MonsterRecord
-} from "../../../../../../types";
+import type { Character, CharacterWizardPortentRoll, MonsterRecord } from "../../../../../../types";
 import { abilityKeys } from "../../../../../../pages/CharactersPage/constants";
 import { getKeywordReferences } from "../../../../../../pages/CharactersPage/keywordDescriptions";
 import {
@@ -97,13 +91,6 @@ import {
   type FeatureActionHeaderTag,
   type FeatureActionOptionCard
 } from "../../../../../../pages/CharactersPage/classFeatures";
-import {
-  addArtificerReplicateMagicItemToInventory,
-  addArtificerTinkersMagicItemToInventory,
-  artificerReplicateMagicItemActionKey,
-  artificerTinkersMagicActionKey,
-  consumeArtificerTinkersMagicUse
-} from "../../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
 import { bardicInspirationActionKey } from "../../../../../../pages/CharactersPage/classFeatures/bard/bard";
 import {
   createChargesCardUsage,
@@ -456,12 +443,11 @@ import { useSelectedWeaponActionModel } from "./useSelectedWeaponActionModel";
 import ActionsGrid from "./ActionsGrid";
 import FeatureSpellDrawers from "./FeatureSpellDrawers";
 import WildShapePreviewDrawer from "./WildShapePreviewDrawer";
+import { useArtificerActionSubmissions } from "./useArtificerActionSubmissions";
 
 type ActionsWidgetSubmissionContext = Record<string, any>;
 
 export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionContext) {
-  const [isTinkersMagicSubmitting, setIsTinkersMagicSubmitting] = useState(false);
-  const [isReplicateMagicItemSubmitting, setIsReplicateMagicItemSubmitting] = useState(false);
   const { ...values } = context;
   Object.assign(globalThis as Record<string, unknown>, {});
   const {
@@ -542,6 +528,23 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     selectedFrozenHauntFallbackSlotLevel,
     frozenHauntFallbackSpellSlotMinimumLevel
   } = context;
+
+  const {
+    isArtificerMagicItemTinkerSubmitting,
+    isReplicateMagicItemSubmitting,
+    isTinkersMagicSubmitting,
+    submitArtificerChargeMagicItem,
+    submitArtificerDrainMagicItem,
+    submitArtificerReplicateMagicItem,
+    submitArtificerTinkersMagic,
+    submitArtificerTransmuteMagicItem
+  } = useArtificerActionSubmissions({
+    selectedAction,
+    selectedFeatureAction,
+    onPersistCharacter,
+    closeActionDrawer,
+    prepareCharacterForResourceConsumption
+  });
 
   function toggleFeatureOptionSelection(option: FeatureActionOptionCard) {
     if (
@@ -697,111 +700,6 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     }
 
     handleFeatureOptionExecute(selectedFeatureAction, selectedOption);
-  }
-
-  async function submitArtificerTinkersMagic(item: ItemRecord) {
-    if (
-      !selectedFeatureAction ||
-      !selectedAction ||
-      selectedAction.kind !== "feature" ||
-      selectedFeatureAction.key !== artificerTinkersMagicActionKey
-    ) {
-      return;
-    }
-
-    if (!item.key) {
-      throw new Error("Choose an item for Tinker's Magic.");
-    }
-
-    setIsTinkersMagicSubmitting(true);
-
-    try {
-      let didApply = false;
-
-      onPersistCharacter((currentCharacter) => {
-        const roundTrackerResource = getRoundTrackerResourceForEconomyType(
-          selectedFeatureAction.economyType
-        );
-        const preparedCharacter = prepareCharacterForResourceConsumption(
-          currentCharacter,
-          roundTrackerResource
-        );
-        const chargedCharacter = consumeArtificerTinkersMagicUse(preparedCharacter);
-
-        if (chargedCharacter === preparedCharacter) {
-          return currentCharacter;
-        }
-
-        const nextCharacter = addArtificerTinkersMagicItemToInventory(chargedCharacter, item);
-        didApply = true;
-
-        return roundTrackerResource
-          ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
-          : nextCharacter;
-      });
-
-      if (!didApply) {
-        throw new Error("Tinker's Magic has no uses remaining.");
-      }
-
-      closeActionDrawer();
-    } catch (error) {
-      console.error("Failed to conjure Tinker's Magic item.", error);
-      captureAppError(error, {
-        area: "gameplay-actions",
-        action: "tinkers-magic"
-      });
-      throw error;
-    } finally {
-      setIsTinkersMagicSubmitting(false);
-    }
-  }
-
-  async function submitArtificerReplicateMagicItem(item: ItemRecord) {
-    if (
-      !selectedFeatureAction ||
-      !selectedAction ||
-      selectedAction.kind !== "feature" ||
-      selectedFeatureAction.key !== artificerReplicateMagicItemActionKey
-    ) {
-      return;
-    }
-
-    if (!item.key) {
-      throw new Error("Choose an item for Replicate Magic Item.");
-    }
-
-    setIsReplicateMagicItemSubmitting(true);
-
-    try {
-      let didApply = false;
-
-      onPersistCharacter((currentCharacter) => {
-        const nextCharacter = addArtificerReplicateMagicItemToInventory(currentCharacter, item);
-
-        if (nextCharacter === currentCharacter) {
-          return currentCharacter;
-        }
-
-        didApply = true;
-        return nextCharacter;
-      });
-
-      if (!didApply) {
-        throw new Error("Replicate Magic Item is at its maximum active creations.");
-      }
-
-      closeActionDrawer();
-    } catch (error) {
-      console.error("Failed to create Replicate Magic Item.", error);
-      captureAppError(error, {
-        area: "gameplay-actions",
-        action: "replicate-magic-item"
-      });
-      throw error;
-    } finally {
-      setIsReplicateMagicItemSubmitting(false);
-    }
   }
 
   function submitLayOnHands(options: {
@@ -2318,10 +2216,14 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     handleFeatureOptionExecute,
     activateSelectedChannelDivinity,
     confirmSelectedFeatureOptions,
+    isArtificerMagicItemTinkerSubmitting,
     isReplicateMagicItemSubmitting,
     isTinkersMagicSubmitting,
+    submitArtificerChargeMagicItem,
+    submitArtificerDrainMagicItem,
     submitArtificerReplicateMagicItem,
     submitArtificerTinkersMagic,
+    submitArtificerTransmuteMagicItem,
     submitLayOnHands,
     submitAasimarHealingHands,
     submitAasimarCelestialRevelation,

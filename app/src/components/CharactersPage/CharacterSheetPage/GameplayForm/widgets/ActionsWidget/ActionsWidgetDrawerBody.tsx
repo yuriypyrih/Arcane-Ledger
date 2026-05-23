@@ -185,7 +185,6 @@ import {
 import {
   activateWarlockAwakenedMind,
   darkOnesOwnLuckActionKey,
-  giftOfTheProtectorsActionKey,
   getWarlockClairvoyantCombatantUsesRemaining,
   getWarlockClairvoyantCombatantUsesTotal,
   hurlThroughHellActionKey
@@ -299,7 +298,6 @@ import {
 import { ArcaneWardActionFooter } from "./ArcaneWardActionFooter";
 import { BardicInspirationActionFooter } from "./BardicInspirationActionFooter";
 import { BeastMasterReviveActionFooter } from "./BeastMasterReviveActionFooter";
-import BookOfShadowsActionBody from "./BookOfShadowsActionBody";
 import CodexDivinityDrawer from "../../../../../CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
 import BlessingOfTheTricksterActionBody from "./BlessingOfTheTricksterActionBody";
 import { ClericPreserveLifeActionBody } from "./ClericPreserveLifeAction";
@@ -398,6 +396,7 @@ import DivineInterventionActionBody from "./forms/DivineInterventionActionBody";
 import FeatureOptionsActionBody from "./forms/FeatureOptionsActionBody";
 import FontOfMagicActionBody from "./forms/FontOfMagicActionBody";
 import MetamagicOptionsActionBody from "./forms/MetamagicOptionsActionBody";
+import MagicItemTinkerActionBody from "./forms/MagicItemTinkerActionBody";
 import MysticArcanumActionBody from "./forms/MysticArcanumActionBody";
 import NatureMagicianActionBody from "./forms/NatureMagicianActionBody";
 import RageActionBody from "./forms/RageActionBody";
@@ -458,6 +457,7 @@ export function renderActionDrawerBody(context: Record<string, any>) {
     isDiceRollerSettingsOpen,
     isDreadfulStrikeSelected,
     isEmpoweredStrikesSelected,
+    isArtificerMagicItemTinkerSubmitting,
     isReplicateMagicItemSubmitting,
     isTinkersMagicSubmitting,
     isFlurryOfHealingAndHarmSelected,
@@ -676,8 +676,11 @@ export function renderActionDrawerBody(context: Record<string, any>) {
     submitSorcererWildMagicSurge,
     submitStarryForm,
     submitThirdEye,
+    submitArtificerChargeMagicItem,
+    submitArtificerDrainMagicItem,
     submitArtificerReplicateMagicItem,
     submitArtificerTinkersMagic,
+    submitArtificerTransmuteMagicItem,
     submitWarriorOfTheGods,
     submitWildCompanion,
     submitWildResurgence,
@@ -811,15 +814,6 @@ export function renderActionDrawerBody(context: Record<string, any>) {
 
   if (
     selectedAction.kind === "feature" &&
-    selectedAction.action.key === giftOfTheProtectorsActionKey
-  ) {
-    return (
-      <BookOfShadowsActionBody character={character} onPersistCharacter={onPersistCharacter} />
-    );
-  }
-
-  if (
-    selectedAction.kind === "feature" &&
     selectedAction.action.key === monkElementalAttunementActionKey &&
     hasMonkWarriorOfTheElementsElementalEpitome(character)
   ) {
@@ -896,6 +890,29 @@ export function renderActionDrawerBody(context: Record<string, any>) {
           actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
           actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
           onUseItem={submitArtificerReplicateMagicItem}
+        />
+      );
+    }
+
+    if (
+      selectedAction.drawer.formKind === "artificer-charge-magic-item" ||
+      selectedAction.drawer.formKind === "artificer-drain-magic-item" ||
+      selectedAction.drawer.formKind === "artificer-transmute-magic-item"
+    ) {
+      return (
+        <MagicItemTinkerActionBody
+          actionKey={selectedAction.action.key}
+          character={character}
+          knownPlanKeys={getArtificerReplicateMagicItemPlanKeysForCharacter(character)}
+          isSubmitting={isArtificerMagicItemTinkerSubmitting}
+          disabledReason={selectedFeatureActionPrimaryDisabledReason}
+          actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
+          actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+          actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+          confirmationTrigger={selectedAction.economyType}
+          onChargeMagicItem={submitArtificerChargeMagicItem}
+          onDrainMagicItem={submitArtificerDrainMagicItem}
+          onTransmuteMagicItem={submitArtificerTransmuteMagicItem}
         />
       );
     }

@@ -90,7 +90,19 @@ const restDescriptionRules: RestDescriptionRule[] = [
     className: "Artificer",
     feature: CLASS_FEATURE.SPELL_STORING_ITEM,
     restKeys: ["longRest"],
-    slices: [{ entryIndex: 0 }]
+    slices: [{ entryIndex: 0, start: "Whenever you finish" }]
+  },
+  {
+    className: "Artificer",
+    feature: CLASS_FEATURE.ADVANCED_ARTIFICE,
+    restKeys: ["shortRest"],
+    slices: [{ entryIndex: 2 }]
+  },
+  {
+    className: "Artificer",
+    feature: CLASS_FEATURE.SOUL_OF_ARTIFICE,
+    restKeys: ["shortRest"],
+    slices: [{ entryIndex: 2 }]
   },
   {
     className: "Barbarian",

@@ -1,4 +1,4 @@
-import { barbarianFeatureMap, barbarianFeatures } from "../../../../codex/classes";
+import { barbarianFeatures } from "../../../../codex/classes";
 import { barbarianStarterPack } from "../../../../codex/classes/starterPack";
 import { CLASS_FEATURE, DAMAGE_TYPE, WEAPON_MASTERY } from "../../../../codex/entries";
 import type { BarbarianFeatureClassObj } from "../../../../types";
@@ -27,7 +27,7 @@ import {
   createCharacterStatusEntry,
   normalizeCharacterStatusEntries
 } from "../../statusEntries";
-import { createHeaderTagsFromResources, createTextHeaderTag } from "../cardUsage";
+import { createHeaderTagsFromResources } from "../cardUsage";
 import { skillGroupsByAbility } from "../../skillDefinitions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../combat";
@@ -77,16 +77,11 @@ const primalKnowledgeSource = "Primal Knowledge";
 const instinctivePounceSource = "Instinctive Pounce";
 const instinctivePounceStatusSourceId = "feature-barbarian-instinctive-pounce";
 const brutalStrikeActionSummary = "Your weapons do more damage";
-const relentlessRageActionSummary = "While in Rage you can keep fighting";
-const relentlessRageDescription = barbarianFeatureMap[CLASS_FEATURE.RELENTLESS_RAGE]
-  ?.description ?? [relentlessRageActionSummary];
-const relentlessRageBaseDc = 10;
 const relentlessRageDcIncrement = 5;
 const persistentRageUsesTotal = 1;
 export const barbarianRageActionKey = "barbarian-rage";
 export const barbarianRecklessAttackActionKey = "barbarian-reckless-attack";
 export const barbarianBrutalStrikeActionKey = "barbarian-brutal-strike";
-export const barbarianRelentlessRageActionKey = "barbarian-relentless-rage";
 export const barbarianIntimidatingPresenceActionKey =
   berserkerSubclass.barbarianIntimidatingPresenceActionKey;
 export const barbarianZealousPresenceActionKey =
@@ -822,37 +817,6 @@ function getBarbarianBrutalStrikeAction(
   };
 }
 
-function getBarbarianRelentlessRageAction(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
-): FeatureActionCard | null {
-  if (!hasBarbarianRelentlessRage(character)) {
-    return null;
-  }
-
-  const rageState = getBarbarianRageState(character);
-  const currentDc = relentlessRageBaseDc + (rageState.relentlessRageDcBonus ?? 0);
-  const isRaging = rageState.active === true;
-
-  return {
-    key: barbarianRelentlessRageActionKey,
-    name: "Relentless Rage",
-    summary: relentlessRageActionSummary,
-    detail: relentlessRageActionSummary,
-    description: [...relentlessRageDescription],
-    valueLabel: `Current DC ${currentDc}`,
-    breakdown: "Keep fighting in Rage",
-    economyType: ECONOMY_TYPE.FREE,
-    actionCategory: ACTION_CATEGORY.FEATURE,
-    drawer: {
-      kind: "confirm",
-      headerTags: [createTextHeaderTag("Current DC", String(currentDc))],
-      facts: []
-    },
-    disabled: !isRaging,
-    disabledReason: !isRaging ? "Relentless Rage requires Rage to be active." : undefined
-  };
-}
-
 export function getBarbarianFeatureActions(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "statusEntries"> &
     Partial<Pick<Character, "subclassId">>
@@ -865,7 +829,6 @@ export function getBarbarianFeatureActions(
     getBarbarianFeatureAction(character),
     zealotSubclass.getBarbarianPathOfTheZealotWarriorOfTheGodsAction(character, rageState),
     getBarbarianBrutalStrikeAction(character),
-    getBarbarianRelentlessRageAction(character),
     berserkerSubclass.getBarbarianPathOfTheBerserkerFeatureAction(
       character,
       rageState,

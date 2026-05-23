@@ -77,6 +77,7 @@ import {
 import type { FeatEligibilityResult } from "../../../../pages/CharactersPage/feats/eligibility";
 import { formatCodexLabel } from "../../../../utils/codex";
 import ActionButton from "../../../ActionButton";
+import SelectInput from "../../FormInputs/SelectInput";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import cardStyles from "./FeatCards.module.css";
 import modalStyles from "./FeatEditorModal.module.css";
@@ -3156,8 +3157,8 @@ function renderInlineEditor({
               className={modalStyles.field}
             >
               <span>{`Choice ${selectionIndex + 1}`}</span>
-              <select
-                className={modalStyles.select}
+              <SelectInput
+                compact
                 value={skilledChoice.selections[selectionIndex]}
                 onChange={(event) =>
                   onPendingFeatStateChange((current) => ({
@@ -3190,7 +3191,7 @@ function renderInlineEditor({
                     </option>
                   ))}
                 </optgroup>
-              </select>
+              </SelectInput>
             </label>
           ))}
         </div>

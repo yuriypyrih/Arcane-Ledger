@@ -149,7 +149,7 @@ function SpeciesEditorModal({ character, onCancel, onSave }: SpeciesEditorModalP
           <label className={styles.field}>
             Species
             <SelectInput
-              className={styles.select}
+              compact
               value={draftSpecies}
               onChange={(event) => {
                 setDraftSpecies(event.target.value);
@@ -169,7 +169,7 @@ function SpeciesEditorModal({ character, onCancel, onSave }: SpeciesEditorModalP
             <label className={styles.field}>
               Size
               <SelectInput
-                className={styles.select}
+                compact
                 value={normalizedChoices?.bodySize ?? ""}
                 disabled={bodySizeOptions.length === 1}
                 onChange={(event) =>
@@ -193,7 +193,7 @@ function SpeciesEditorModal({ character, onCancel, onSave }: SpeciesEditorModalP
             <label className={styles.field}>
               Draconic Ancestry
               <SelectInput
-                className={styles.select}
+                compact
                 value={normalizedChoices?.draconicAncestry ?? ""}
                 onChange={(event) =>
                   updateChoices({
@@ -218,7 +218,7 @@ function SpeciesEditorModal({ character, onCancel, onSave }: SpeciesEditorModalP
             <label className={styles.field}>
               Elven Lineage
               <SelectInput
-                className={styles.select}
+                compact
                 value={normalizedChoices?.elvenLineage ?? ""}
                 onChange={(event) =>
                   updateChoices({
@@ -242,7 +242,7 @@ function SpeciesEditorModal({ character, onCancel, onSave }: SpeciesEditorModalP
             <label className={styles.field}>
               Keen Senses Proficiency
               <SelectInput
-                className={styles.select}
+                compact
                 value={normalizedChoices?.elvenSkillProficiency ?? ""}
                 onChange={(event) =>
                   updateChoices({
@@ -267,7 +267,7 @@ function SpeciesEditorModal({ character, onCancel, onSave }: SpeciesEditorModalP
             <label className={styles.field}>
               Elven Spellcasting Ability
               <SelectInput
-                className={styles.select}
+                compact
                 value={normalizedChoices?.elvenSpellcastingAbility ?? ""}
                 onChange={(event) =>
                   updateChoices({
@@ -292,7 +292,7 @@ function SpeciesEditorModal({ character, onCancel, onSave }: SpeciesEditorModalP
             <label className={styles.field}>
               Gnomish Lineage
               <SelectInput
-                className={styles.select}
+                compact
                 value={normalizedChoices?.gnomeLineage ?? ""}
                 onChange={(event) =>
                   updateChoices({
@@ -316,7 +316,7 @@ function SpeciesEditorModal({ character, onCancel, onSave }: SpeciesEditorModalP
             <label className={styles.field}>
               Gnome Spellcasting Ability
               <SelectInput
-                className={styles.select}
+                compact
                 value={normalizedChoices?.gnomeSpellcastingAbility ?? ""}
                 onChange={(event) =>
                   updateChoices({
@@ -341,7 +341,7 @@ function SpeciesEditorModal({ character, onCancel, onSave }: SpeciesEditorModalP
             <label className={styles.field}>
               Giant Ancestry
               <SelectInput
-                className={styles.select}
+                compact
                 value={normalizedChoices?.giantAncestry ?? ""}
                 onChange={(event) =>
                   updateChoices({
@@ -365,7 +365,7 @@ function SpeciesEditorModal({ character, onCancel, onSave }: SpeciesEditorModalP
             <label className={styles.field}>
               Skillful Proficiency
               <SelectInput
-                className={styles.select}
+                compact
                 value={normalizedChoices?.humanSkillProficiency ?? ""}
                 onChange={(event) =>
                   updateChoices({
@@ -390,7 +390,7 @@ function SpeciesEditorModal({ character, onCancel, onSave }: SpeciesEditorModalP
             <label className={styles.field}>
               Origin Feat
               <SelectInput
-                className={styles.select}
+                compact
                 value={normalizedChoices?.humanOriginFeat ?? ""}
                 onChange={(event) =>
                   updateChoices({
@@ -415,7 +415,7 @@ function SpeciesEditorModal({ character, onCancel, onSave }: SpeciesEditorModalP
             <label className={styles.field}>
               Fiendish Legacy
               <SelectInput
-                className={styles.select}
+                compact
                 value={normalizedChoices?.tieflingLegacy ?? ""}
                 onChange={(event) =>
                   updateChoices({
@@ -439,7 +439,7 @@ function SpeciesEditorModal({ character, onCancel, onSave }: SpeciesEditorModalP
             <label className={styles.field}>
               Tiefling Spellcasting Ability
               <SelectInput
-                className={styles.select}
+                compact
                 value={normalizedChoices?.tieflingSpellcastingAbility ?? ""}
                 onChange={(event) =>
                   updateChoices({

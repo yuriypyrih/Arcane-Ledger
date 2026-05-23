@@ -92,7 +92,8 @@ import {
 } from "../../../../../../pages/CharactersPage/classFeatures";
 import {
   artificerReplicateMagicItemActionKey,
-  artificerTinkersMagicActionKey
+  artificerTinkersMagicActionKey,
+  artificerTransmuteMagicItemActionKey
 } from "../../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
 import { bardicInspirationActionKey } from "../../../../../../pages/CharactersPage/classFeatures/bard/bard";
 import {
@@ -1743,10 +1744,14 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     handleFeatureOptionExecute,
     activateSelectedChannelDivinity,
     confirmSelectedFeatureOptions,
+    isArtificerMagicItemTinkerSubmitting,
     isReplicateMagicItemSubmitting,
     isTinkersMagicSubmitting,
+    submitArtificerChargeMagicItem,
+    submitArtificerDrainMagicItem,
     submitArtificerReplicateMagicItem,
     submitArtificerTinkersMagic,
+    submitArtificerTransmuteMagicItem,
     submitLayOnHands,
     submitAasimarHealingHands,
     submitAasimarCelestialRevelation,
@@ -2125,10 +2130,14 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     toggleFeatureOptionSelection,
     handleFeatureOptionExecute,
     confirmSelectedFeatureOptions,
+    isArtificerMagicItemTinkerSubmitting,
     isReplicateMagicItemSubmitting,
     isTinkersMagicSubmitting,
+    submitArtificerChargeMagicItem,
+    submitArtificerDrainMagicItem,
     submitArtificerReplicateMagicItem,
     submitArtificerTinkersMagic,
+    submitArtificerTransmuteMagicItem,
     submitLayOnHands,
     submitAasimarHealingHands,
     submitAasimarCelestialRevelation,
@@ -2361,7 +2370,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
             selectedAction.kind === "feature" &&
               (selectedAction.action.key === divineInterventionActionKey ||
                 selectedAction.action.key === artificerTinkersMagicActionKey ||
-                selectedAction.action.key === artificerReplicateMagicItemActionKey) &&
+                selectedAction.action.key === artificerReplicateMagicItemActionKey ||
+                selectedAction.action.key === artificerTransmuteMagicItemActionKey) &&
               styles.actionDrawerFullHeight
           )}
           onClose={closeActionDrawer}

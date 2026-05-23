@@ -1,6 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type { Character } from "../../../../../types";
 import {
+  getArtificerFlashOfGeniusUsesRemaining,
+  getArtificerFlashOfGeniusUsesTotal,
+  hasArtificerFlashOfGeniusFullShortRestRecovery,
+  hasArtificerFlashOfGeniusShortRestRecoveryFeature,
+  restoreArtificerFlashOfGeniusOnShortRest
+} from "../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
+import {
   getBarbarianIntimidatingPresenceUsesTotal,
   getBarbarianZealousPresenceUsesTotal,
   getBarbarianPersistentRageUsesTotal,
@@ -350,6 +357,19 @@ export function createShortRestOptions(character: Character): RestOption[] {
   const clairvoyantCombatantUsesTotal = getWarlockClairvoyantCombatantUsesTotal(character);
   const boonOfFateImproveFateState = getBoonOfFateImproveFateStateForCharacter(character);
   const mageSlayerGuardedMindState = getMageSlayerGuardedMindStateForCharacter(character);
+  const artificerFlashOfGeniusUsesTotal = getArtificerFlashOfGeniusUsesTotal(character);
+  const artificerFlashOfGeniusUsesRemaining = getArtificerFlashOfGeniusUsesRemaining(character);
+  const hasArtificerFlashOfGeniusShortRestRecovery =
+    hasArtificerFlashOfGeniusShortRestRecoveryFeature(character);
+  const artificerFlashOfGeniusFullShortRestRecovery =
+    hasArtificerFlashOfGeniusFullShortRestRecovery(character);
+  const artificerFlashOfGeniusShortRestRecoveryAvailable =
+    restoreArtificerFlashOfGeniusOnShortRest(character) !== character;
+  const artificerFlashOfGeniusShortRestDetail = artificerFlashOfGeniusFullShortRestRecovery
+    ? "Soul of Artifice restores all expended Flash of Genius uses because you have at least one attuned item."
+    : character.className === "Artificer" && character.level >= 20
+      ? "Refreshed Genius restores one expended use. Soul of Artifice restores all instead while you have at least one attuned item."
+      : "Refreshed Genius restores one expended Flash of Genius use.";
 
   return [
     {
@@ -450,10 +470,25 @@ export function createShortRestOptions(character: Character): RestOption[] {
             detail: "Conjured items with an Until Short Rest duration vanish.",
             apply: (currentCharacter: Character) => ({
               ...currentCharacter,
-              inventoryItems: removeShortRestConjuredInventoryItems(
-                currentCharacter.inventoryItems
-              )
+              inventoryItems: removeShortRestConjuredInventoryItems(currentCharacter.inventoryItems)
             })
+          } satisfies RestOption
+        ]
+      : []),
+    ...(hasArtificerFlashOfGeniusShortRestRecovery && artificerFlashOfGeniusUsesTotal > 0
+      ? [
+          {
+            id: "restore-artificer-flash-of-genius",
+            label: "Restore Flash of Genius",
+            detail: artificerFlashOfGeniusShortRestDetail,
+            charges: {
+              current: artificerFlashOfGeniusUsesRemaining,
+              total: artificerFlashOfGeniusUsesTotal
+            },
+            disabled: !artificerFlashOfGeniusShortRestRecoveryAvailable,
+            emphasis: "feature",
+            apply: (currentCharacter: Character) =>
+              restoreArtificerFlashOfGeniusOnShortRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),

@@ -15,6 +15,12 @@ import {
   getArtificerReplicateMagicItemAction,
   normalizeArtificerReplicateMagicItemPlanState
 } from "./replicateMagicItem";
+import {
+  getArtificerMagicItemTinkerActions,
+  normalizeArtificerMagicItemTinkerState,
+  restoreArtificerMagicItemTinkerDrainOnLongRest,
+  restoreArtificerMagicItemTinkerTransmuteOnLongRest
+} from "./magicItemTinker";
 import { normalizeArtificerToolsOfTheTradeState } from "./toolsOfTheTrade";
 import type { ReactionEntry } from "../../../../codex/entries";
 
@@ -31,9 +37,12 @@ export {
 export {
   artificerFlashOfGeniusReactionEntryId,
   consumeArtificerFlashOfGeniusUse,
+  hasArtificerFlashOfGeniusFullShortRestRecovery,
+  hasArtificerFlashOfGeniusShortRestRecoveryFeature,
   getArtificerFlashOfGeniusUsesRemaining,
   getArtificerFlashOfGeniusUsesTotal,
-  restoreArtificerFlashOfGeniusOnLongRest
+  restoreArtificerFlashOfGeniusOnLongRest,
+  restoreArtificerFlashOfGeniusOnShortRest
 } from "./flashOfGenius";
 
 export {
@@ -47,6 +56,36 @@ export {
   isArtificerReplicateMagicItemPlanSelectionInputRequired,
   setArtificerReplicateMagicItemPlanKeysForCharacter
 } from "./replicateMagicItem";
+
+export {
+  artificerChargeMagicItemActionKey,
+  artificerDrainMagicItemActionKey,
+  artificerTransmuteMagicItemActionKey,
+  chargeArtificerMagicItemForCharacter,
+  drainArtificerMagicItemForCharacter,
+  getArtificerMagicItemTinkerAvailableSpellSlotOptions,
+  getArtificerMagicItemTinkerChargeItemOptions,
+  getArtificerMagicItemTinkerDrainItemOptions,
+  getArtificerMagicItemTinkerDrainUsesRemaining,
+  getArtificerMagicItemTinkerDrainUsesTotal,
+  getArtificerMagicItemTinkerTransmuteItemOptions,
+  getArtificerMagicItemTinkerTransmuteUsesRemaining,
+  getArtificerMagicItemTinkerTransmuteUsesTotal,
+  restoreArtificerMagicItemTinkerDrainOnLongRest,
+  restoreArtificerMagicItemTinkerTransmuteOnLongRest,
+  transmuteArtificerMagicItemForCharacter,
+  type MagicItemTinkerInventoryOption,
+  type MagicItemTinkerSpellSlotOption
+} from "./magicItemTinker";
+
+export {
+  applySoulOfArtificeCheatDeathForCharacter,
+  getSoulOfArtificeCheatDeathItemOptions,
+  getSoulOfArtificeLifeAndDeathDescriptionAdditions,
+  hasArtificerSoulOfArtificeFeature,
+  isArtificerSoulOfArtificeCheatDeathAvailable,
+  type SoulOfArtificeCheatDeathItemOption
+} from "./soulOfArtifice";
 
 export {
   getArtificerToolsOfTheTradeAvailableToolSelectionsForCharacter,
@@ -71,6 +110,7 @@ export function normalizeArtificerFeatureState(
     ...normalizeArtificerTinkersMagicState(value, character),
     ...normalizeArtificerFlashOfGeniusState(value, character),
     ...normalizeArtificerReplicateMagicItemPlanState(value, character),
+    ...normalizeArtificerMagicItemTinkerState(value, character),
     ...normalizeArtificerToolsOfTheTradeState(value, character)
   };
 }
@@ -100,7 +140,8 @@ export function getArtificerFeatureActions(
 ): FeatureActionCard[] {
   return [
     getArtificerTinkersMagicAction(character),
-    getArtificerReplicateMagicItemAction(character)
+    getArtificerReplicateMagicItemAction(character),
+    ...getArtificerMagicItemTinkerActions(character)
   ].filter((action): action is FeatureActionCard => Boolean(action));
 }
 
@@ -111,7 +152,9 @@ export function getArtificerReactionEntries(
 }
 
 export function applyLongRestToArtificerFeatures(character: Character): Character {
-  return restoreArtificerFlashOfGeniusOnLongRest(
-    restoreArtificerTinkersMagicOnLongRest(character)
+  return restoreArtificerMagicItemTinkerTransmuteOnLongRest(
+    restoreArtificerMagicItemTinkerDrainOnLongRest(
+      restoreArtificerFlashOfGeniusOnLongRest(restoreArtificerTinkersMagicOnLongRest(character))
+    )
   );
 }

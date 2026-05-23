@@ -220,7 +220,7 @@ function EldritchInvocationPactTomeEditor({
         <label className={modalStyles.field}>
           <span>Search spells</span>
           <input
-            className={modalStyles.select}
+            className={modalStyles.searchInput}
             type="search"
             value={searchText}
             placeholder="Filter by spell or class"

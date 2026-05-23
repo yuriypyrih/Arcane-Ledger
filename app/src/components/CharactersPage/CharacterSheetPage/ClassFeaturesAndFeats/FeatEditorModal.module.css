@@ -251,7 +251,7 @@
   font-size: 0.84rem;
 }
 
-.select {
+.searchInput {
   min-height: 38px;
   border-radius: var(--radius-tiny);
   border: 1px solid rgba(75, 47, 29, 0.14);

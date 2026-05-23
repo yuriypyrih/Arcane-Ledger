@@ -54,7 +54,6 @@ export const livingLegendActionKey = "paladin-living-legend";
 export const nobleScionActionKey = "paladin-noble-scion";
 export const avengingAngelActionKey = "paladin-avenging-angel";
 export const naturesWrathActionKey = "paladin-natures-wrath";
-export const undyingSentinelActionKey = "paladin-undying-sentinel";
 export const elderChampionActionKey = "paladin-elder-champion";
 export const gloriousDefenseReactionId = "reaction-paladin-glorious-defense";
 export const elementalRebukeReactionId = "reaction-paladin-elemental-rebuke";
