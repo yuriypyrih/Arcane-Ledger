@@ -855,9 +855,9 @@ export function getMainAbilityForClass(className: string): AbilityKey | null {
 
 export function getAutomaticMaxHitPointsForCharacter(
   character: Pick<Character, "className" | "level" | "abilities" | "classFeatureState"> &
-    Partial<Pick<Character, "background" | "backgroundChoices">>
+    Partial<Pick<Character, "background" | "backgroundChoices" | "customClass">>
 ): number {
-  const hitDieMaximum = getHitDieMaximumForClass(character.className);
+  const hitDieMaximum = getHitDieMaximumForClass(character.className, character.customClass);
   const hitDieAverage = Math.floor(hitDieMaximum / 2) + 1;
   const constitutionModifier = getAbilityModifierForCharacter(character, "CON");
   const normalizedLevel = Math.max(1, Math.floor(character.level));

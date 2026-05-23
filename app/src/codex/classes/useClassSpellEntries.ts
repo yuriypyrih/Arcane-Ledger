@@ -1,6 +1,9 @@
 import { useMemo } from "react";
 import type { SpellEntry } from "../entries/types";
-import { getSpellEntriesForSpellListClasses } from "./spellAccess";
+import {
+  getSpellEntriesForAllSpellListClasses,
+  getSpellEntriesForSpellListClasses
+} from "./spellAccess";
 import {
   getClassSpellListClassesForCharacter,
   getPreparedSpellListClassesForCharacter
@@ -10,6 +13,10 @@ const emptySpellEntries: SpellEntry[] = [];
 
 export function useClassSpellEntries(className: string, subclassId?: string): SpellEntry[] {
   return useMemo(() => {
+    if (className.trim() === "Custom") {
+      return getSpellEntriesForAllSpellListClasses();
+    }
+
     const spellListClasses = getClassSpellListClassesForCharacter(className, subclassId);
     return spellListClasses.length > 0
       ? getSpellEntriesForSpellListClasses(spellListClasses)
@@ -23,6 +30,10 @@ export function usePreparedSpellEntries(
   subclassId?: string
 ): SpellEntry[] {
   return useMemo(() => {
+    if (className.trim() === "Custom") {
+      return getSpellEntriesForAllSpellListClasses();
+    }
+
     const spellListClasses = getPreparedSpellListClassesForCharacter(className, level, subclassId);
     return spellListClasses.length > 0
       ? getSpellEntriesForSpellListClasses(spellListClasses)

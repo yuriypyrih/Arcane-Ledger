@@ -31,6 +31,7 @@ function CharacterBuilderPage() {
         speciesFeatureState: existingCharacter.speciesFeatureState,
         className: existingCharacter.className,
         subclassId: existingCharacter.subclassId ?? "",
+        customClass: existingCharacter.customClass,
         level: existingCharacter.level,
         xp: existingCharacter.xp,
         hitPoints: existingCharacter.hitPoints,

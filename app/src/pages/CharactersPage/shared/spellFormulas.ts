@@ -5,6 +5,7 @@ import { isInnateSorceryActiveForSpell } from "../classFeatures/sorcerer/innateS
 import { getAbilityModifierForCharacter } from "../abilities";
 import { getProficiencyBonus } from "../gameplay";
 import { getExhaustionD20TestPenalty } from "../statusEntries";
+import { isCustomClassName, normalizeCustomClassConfig } from "../customClass";
 import {
   formatD20Formula,
   formatFormulaCell,
@@ -60,6 +61,10 @@ function getSavingThrowDcLabel(ability: ABILITY_TYPES | null | undefined): strin
 }
 
 export function getSpellcastingAbilityForCharacter(character: Character): AbilityKey | null {
+  if (isCustomClassName(character.className)) {
+    return normalizeCustomClassConfig(character.customClass).spellcastingAbility;
+  }
+
   if (character.subclassId) {
     const subclassAbility = spellcastingAbilityBySubclassId[character.subclassId];
 

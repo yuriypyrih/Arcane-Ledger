@@ -7,6 +7,7 @@ import type {
   CoreStats
 } from "../../types";
 import { createDefaultRoundTracker } from "./combat";
+import { defaultCustomClassConfig } from "./customClass";
 
 export const abilityKeys: AbilityKey[] = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
 
@@ -86,6 +87,10 @@ export function createEmptyCharacter(): CharacterDraft {
     speciesFeatureState: {},
     className: "",
     subclassId: "",
+    customClass: {
+      ...defaultCustomClassConfig,
+      spellSlotMaximums: [...defaultCustomClassConfig.spellSlotMaximums]
+    },
     level: 1,
     xp: 0,
     hitPoints: 8,

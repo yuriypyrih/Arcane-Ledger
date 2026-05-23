@@ -309,7 +309,8 @@ export function createShortRestOptions(character: Character): RestOption[] {
   const spellSlotTotal = getSpellSlotTotalsForCharacter(
     character.className,
     character.level,
-    character.subclassId
+    character.subclassId,
+    character.customClass
   ).reduce((sum, value) => sum + value, 0);
   const hasWarlockPactMagic = hasWarlockFeature(character, CLASS_FEATURE.PACT_MAGIC);
   const temporaryHitPoints = normalizeTemporaryHitPoints(character.temporaryHitPoints);

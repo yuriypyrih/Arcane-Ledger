@@ -21,6 +21,7 @@ export type FeatRuntimeCharacter = Pick<Character, "level"> &
       | "backgroundChoices"
       | "classFeatureState"
       | "className"
+      | "customClass"
       | "hitDiceRemaining"
       | "statusEntries"
     >

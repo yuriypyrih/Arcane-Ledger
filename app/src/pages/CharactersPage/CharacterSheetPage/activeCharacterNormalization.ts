@@ -33,6 +33,7 @@ import {
   normalizeCharacterClassFeatureState
 } from "../classFeatures";
 import { shouldTrackRoundScopedResources } from "../combat";
+import { isCustomClassName, normalizeCustomClassConfig } from "../customClass";
 import { reconcileCharacterStatusConsequences } from "../traits";
 import { characterSheetDomains, type CharacterSheetDomain } from "./domains";
 
@@ -100,8 +101,12 @@ function normalizeStatusRuntime(character: Character): Character {
 }
 
 function normalizeFeatureRuntime(character: Character): Character {
+  const normalizedCustomClass = isCustomClassName(character.className)
+    ? normalizeCustomClassConfig(character.customClass)
+    : undefined;
   const normalizedCharacter = {
     ...character,
+    customClass: normalizedCustomClass,
     speciesFeatureState: normalizeCharacterSpeciesFeatureState(
       character.species,
       character.speciesFeatureState
@@ -122,6 +127,9 @@ function normalizeFeatureRuntime(character: Character): Character {
 }
 
 function normalizeSpellRuntime(character: Character): Character {
+  const normalizedCustomClass = isCustomClassName(character.className)
+    ? normalizeCustomClassConfig(character.customClass)
+    : undefined;
   const rawPersistedCantripIds = normalizeRuntimeSpellIds(character.cantripIds);
   const rawCantripIds = rawPersistedCantripIds;
   const cantripSelectionOptionIds = new Set(
@@ -213,11 +221,13 @@ function normalizeSpellRuntime(character: Character): Character {
   const spellSlotTotals = getSpellSlotTotalsForCharacter(
     character.className,
     character.level,
-    character.subclassId
+    character.subclassId,
+    normalizedCustomClass
   );
 
   return {
     ...character,
+    customClass: normalizedCustomClass,
     speciesFeatureState: normalizeCharacterSpeciesFeatureState(
       character.species,
       character.speciesFeatureState

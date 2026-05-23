@@ -153,6 +153,34 @@
   grid-template-columns: minmax(0, 1fr) 124px;
 }
 
+.multiclassHelpRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--color-ink-soft);
+  font-size: 0.9rem;
+  font-weight: 700;
+  width: fit-content;
+}
+
+.multiclassHelpButton {
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid rgba(75, 47, 29, 0.16);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 250, 241, 0.82);
+  color: var(--color-accent);
+  cursor: pointer;
+  inline-size: 30px;
+  block-size: 30px;
+  padding: 0;
+}
+
+.multiclassHelpButton:hover {
+  border-color: rgba(47, 120, 255, 0.32);
+  background: rgba(47, 120, 255, 0.1);
+}
+
 .field {
   display: grid;
   gap: 0.45rem;

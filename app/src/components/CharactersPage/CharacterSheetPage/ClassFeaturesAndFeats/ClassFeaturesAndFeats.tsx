@@ -52,6 +52,7 @@ import {
   normalizeSpeciesStatusEntriesForCharacter,
   reconcileHumanOriginFeatEntries
 } from "../../../../pages/CharactersPage/species";
+import { isCustomClassName } from "../../../../pages/CharactersPage/customClass";
 import { resolveKeywordReference } from "../../../../utils/codex/renderCodexRichText";
 import CodexDivinityDrawer from "../../../CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
 import CodexSpellDrawer from "../../../CodexPage/CodexSpellDrawer";
@@ -210,6 +211,7 @@ function ClassFeaturesAndFeats({
   const [isGuideOpen, setIsGuideOpen] = useState(false);
 
   const classEntry = classEntriesByName.get(character.className) ?? null;
+  const isCustomClass = isCustomClassName(character.className);
   const selectedSubclass = useMemo(
     () =>
       getSelectedSubclassForCharacter({
@@ -1756,96 +1758,98 @@ function ClassFeaturesAndFeats({
             />
           </section>
 
-          <section className={styles.subsection} aria-labelledby="character-class-features-title">
-            <div className={styles.subsectionHeader}>
-              <div className={styles.subsectionHeaderText}>
-                <h3 id="character-class-features-title" className={styles.subsectionTitle}>
-                  Class Features
-                </h3>
-                <p className={styles.subsectionMeta}>Subclass: {selectedSubclassLabel}</p>
+          {!isCustomClass ? (
+            <section className={styles.subsection} aria-labelledby="character-class-features-title">
+              <div className={styles.subsectionHeader}>
+                <div className={styles.subsectionHeaderText}>
+                  <h3 id="character-class-features-title" className={styles.subsectionTitle}>
+                    Class Features
+                  </h3>
+                  <p className={styles.subsectionMeta}>Subclass: {selectedSubclassLabel}</p>
+                </div>
+                <button
+                  type="button"
+                  className={shared.editButton}
+                  onClick={() => setIsSubclassModalOpen(true)}
+                  disabled={isSubclassModalOpen || subclassOptions.length === 0}
+                >
+                  <Pencil size={16} />
+                  Edit
+                </button>
               </div>
-              <button
-                type="button"
-                className={shared.editButton}
-                onClick={() => setIsSubclassModalOpen(true)}
-                disabled={isSubclassModalOpen || subclassOptions.length === 0}
-              >
-                <Pencil size={16} />
-                Edit
-              </button>
-            </div>
 
-            {unlockedFeatures.length > 0 ? (
-              <>
-                <ClassFeatureList
-                  character={character}
-                  features={unlockedFeatures}
-                  expandedFeatureKeys={expandedFeatureKeys}
-                  onToggleFeature={toggleFeature}
-                  getLinkedFeatForFeature={getLinkedFeatForFeature}
-                  onOpenFeatEditorForFeature={openFeatEditorForFeature}
-                  onOpenKeyword={openKeyword}
-                  onOpenFeatReference={openFeatReference}
-                  onOpenSpellReference={openSpellReference}
-                  onOpenDivinityReference={openDivinityReference}
-                  onOpenInvocationReference={openInvocationReference}
-                  onOpenEldritchInvocationEditor={openEldritchInvocationEditor}
-                  onPersistCharacter={onPersistCharacter}
-                  renderTrackingButton={renderTrackingButton}
-                  eldritchInvocationInputStatus={eldritchInvocationInputStatus}
-                  learnedInvocationOptions={learnedInvocationOptions}
-                  getCharacterFeatSummary={(entry) =>
-                    entry ? getCharacterFeatSummary(entry) : null
-                  }
-                  getFeatDefinition={getFeatDefinition}
-                />
+              {unlockedFeatures.length > 0 ? (
+                <>
+                  <ClassFeatureList
+                    character={character}
+                    features={unlockedFeatures}
+                    expandedFeatureKeys={expandedFeatureKeys}
+                    onToggleFeature={toggleFeature}
+                    getLinkedFeatForFeature={getLinkedFeatForFeature}
+                    onOpenFeatEditorForFeature={openFeatEditorForFeature}
+                    onOpenKeyword={openKeyword}
+                    onOpenFeatReference={openFeatReference}
+                    onOpenSpellReference={openSpellReference}
+                    onOpenDivinityReference={openDivinityReference}
+                    onOpenInvocationReference={openInvocationReference}
+                    onOpenEldritchInvocationEditor={openEldritchInvocationEditor}
+                    onPersistCharacter={onPersistCharacter}
+                    renderTrackingButton={renderTrackingButton}
+                    eldritchInvocationInputStatus={eldritchInvocationInputStatus}
+                    learnedInvocationOptions={learnedInvocationOptions}
+                    getCharacterFeatSummary={(entry) =>
+                      entry ? getCharacterFeatSummary(entry) : null
+                    }
+                    getFeatDefinition={getFeatDefinition}
+                  />
 
-                {futureFeatures.length > 0 ? (
-                  <>
-                    <InlineToggleButton
-                      label={
-                        isFutureFeaturesVisible
-                          ? "Hide unlockable features"
-                          : "Show unlockable features"
-                      }
-                      expanded={isFutureFeaturesVisible}
-                      onClick={() => setIsFutureFeaturesVisible((current) => !current)}
-                    />
-                    {isFutureFeaturesVisible ? (
-                      <ClassFeatureList
-                        character={character}
-                        features={futureFeatures}
-                        expandedFeatureKeys={expandedFeatureKeys}
-                        onToggleFeature={toggleFeature}
-                        getLinkedFeatForFeature={getLinkedFeatForFeature}
-                        onOpenFeatEditorForFeature={openFeatEditorForFeature}
-                        onOpenKeyword={openKeyword}
-                        onOpenFeatReference={openFeatReference}
-                        onOpenSpellReference={openSpellReference}
-                        onOpenDivinityReference={openDivinityReference}
-                        onOpenInvocationReference={openInvocationReference}
-                        onOpenEldritchInvocationEditor={openEldritchInvocationEditor}
-                        onPersistCharacter={onPersistCharacter}
-                        renderTrackingButton={renderTrackingButton}
-                        eldritchInvocationInputStatus={eldritchInvocationInputStatus}
-                        learnedInvocationOptions={learnedInvocationOptions}
-                        getCharacterFeatSummary={(entry) =>
-                          entry ? getCharacterFeatSummary(entry) : null
+                  {futureFeatures.length > 0 ? (
+                    <>
+                      <InlineToggleButton
+                        label={
+                          isFutureFeaturesVisible
+                            ? "Hide unlockable features"
+                            : "Show unlockable features"
                         }
-                        getFeatDefinition={getFeatDefinition}
+                        expanded={isFutureFeaturesVisible}
+                        onClick={() => setIsFutureFeaturesVisible((current) => !current)}
                       />
-                    ) : null}
-                  </>
-                ) : null}
-              </>
-            ) : (
-              <p className={shared.emptyText}>
-                {classEntry
-                  ? "No class features are available for this level yet."
-                  : "No class feature progression is available for this class yet."}
-              </p>
-            )}
-          </section>
+                      {isFutureFeaturesVisible ? (
+                        <ClassFeatureList
+                          character={character}
+                          features={futureFeatures}
+                          expandedFeatureKeys={expandedFeatureKeys}
+                          onToggleFeature={toggleFeature}
+                          getLinkedFeatForFeature={getLinkedFeatForFeature}
+                          onOpenFeatEditorForFeature={openFeatEditorForFeature}
+                          onOpenKeyword={openKeyword}
+                          onOpenFeatReference={openFeatReference}
+                          onOpenSpellReference={openSpellReference}
+                          onOpenDivinityReference={openDivinityReference}
+                          onOpenInvocationReference={openInvocationReference}
+                          onOpenEldritchInvocationEditor={openEldritchInvocationEditor}
+                          onPersistCharacter={onPersistCharacter}
+                          renderTrackingButton={renderTrackingButton}
+                          eldritchInvocationInputStatus={eldritchInvocationInputStatus}
+                          learnedInvocationOptions={learnedInvocationOptions}
+                          getCharacterFeatSummary={(entry) =>
+                            entry ? getCharacterFeatSummary(entry) : null
+                          }
+                          getFeatDefinition={getFeatDefinition}
+                        />
+                      ) : null}
+                    </>
+                  ) : null}
+                </>
+              ) : (
+                <p className={shared.emptyText}>
+                  {classEntry
+                    ? "No class features are available for this level yet."
+                    : "No class feature progression is available for this class yet."}
+                </p>
+              )}
+            </section>
+          ) : null}
         </div>
       </article>
 

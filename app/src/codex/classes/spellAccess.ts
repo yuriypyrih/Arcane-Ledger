@@ -54,6 +54,10 @@ export function getSpellEntriesForSpellListClasses(
   });
 }
 
+export function getSpellEntriesForAllSpellListClasses(): SpellEntry[] {
+  return getSpellEntriesForSpellListClasses(Object.values(SPELL_LIST_CLASS));
+}
+
 export function getSpellEntriesForClassName(className: string): SpellEntry[] {
   const spellListClass = spellListClassByClassName[className];
   return spellListClass ? getSpellEntriesForSpellListClass(spellListClass) : [];

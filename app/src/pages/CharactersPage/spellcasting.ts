@@ -5,7 +5,10 @@ import {
   type SpellEntry
 } from "../../codex/entries";
 import type { CharacterClassFeatureState, CharacterStatusEntry } from "../../types";
-import { getSpellEntriesForSpellListClasses } from "../../codex/classes/spellAccess";
+import {
+  getSpellEntriesForAllSpellListClasses,
+  getSpellEntriesForSpellListClasses
+} from "../../codex/classes/spellAccess";
 import { getClassEntryByName } from "../../codex/selectors";
 import {
   getClassSpellListClassesForCharacter,
@@ -18,6 +21,7 @@ import {
   getCantripLimitBonusForCharacter
 } from "./classFeatures";
 import { getSpellSlotTotalsForCharacter } from "./spellSlots";
+import { isCustomClassName } from "./customClass";
 
 const arcaneTricksterRequiredCantripId = "spell-mage-hand";
 
@@ -106,6 +110,10 @@ function getCantripCountForFeatureRow(featureRow?: SpellcastingFeatureClassObj):
 }
 
 export function isSpellcastingClass(className: string, level = 20, subclassId?: string): boolean {
+  if (isCustomClassName(className)) {
+    return true;
+  }
+
   if (getSubclassSpellcastingProgressionRow(className, level, subclassId)) {
     return true;
   }
@@ -126,6 +134,10 @@ export function getPreparedSpellLimitForCharacter(
   level: number,
   subclassId?: string
 ): number | null {
+  if (isCustomClassName(className)) {
+    return null;
+  }
+
   const subclassFeatureRow = getSubclassSpellcastingProgressionRow(className, level, subclassId);
 
   if (subclassFeatureRow) {
@@ -143,6 +155,10 @@ export function getCantripLimitForCharacter(
   classFeatureState?: CharacterClassFeatureState,
   subclassId?: string
 ): number | null {
+  if (isCustomClassName(className)) {
+    return null;
+  }
+
   const subclassFeatureRow = getSubclassSpellcastingProgressionRow(className, level, subclassId);
   const cantripCount =
     subclassFeatureRow !== null
@@ -170,7 +186,10 @@ export function usesPreparedSpellsForCharacter(
   level: number,
   subclassId?: string
 ): boolean {
-  return getPreparedSpellLimitForCharacter(className, level, subclassId) !== null;
+  return (
+    isCustomClassName(className) ||
+    getPreparedSpellLimitForCharacter(className, level, subclassId) !== null
+  );
 }
 
 export function usesSpellbookForCharacter(className: string, subclassId?: string): boolean {
@@ -192,6 +211,10 @@ export function getCantripSelectionOptionsForCharacter(
   level: number,
   subclassId?: string
 ): SpellEntry[] {
+  if (isCustomClassName(className)) {
+    return getSpellEntriesForAllSpellListClasses().filter((spell) => getSpellLevel(spell) === 0);
+  }
+
   const cantripLimit = getCantripLimitForCharacter(className, level, undefined, subclassId);
 
   if (
@@ -218,6 +241,10 @@ export function getPreparedSpellSelectionOptionsForCharacter(
   level: number,
   subclassId?: string
 ): SpellEntry[] {
+  if (isCustomClassName(className)) {
+    return getSpellEntriesForAllSpellListClasses().filter((spell) => getSpellLevel(spell) > 0);
+  }
+
   if (!usesPreparedSpellsForCharacter(className, level, subclassId)) {
     return [];
   }

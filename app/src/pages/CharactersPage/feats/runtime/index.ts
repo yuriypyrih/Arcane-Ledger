@@ -2505,7 +2505,7 @@ export function characterHasCrafterDiscount(character: FeatRuntimeCharacter): bo
 export function getDurableSpeedyRecoveryHealingFormulaForCharacter(
   character: FeatRuntimeCharacter
 ): string {
-  return getHitDieFormulaForClass(character.className);
+  return getHitDieFormulaForClass(character.className, character.customClass);
 }
 
 export function spendDurableSpeedyRecoveryHitDieForCharacter(character: Character): Character {

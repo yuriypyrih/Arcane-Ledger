@@ -211,7 +211,8 @@ function spendSongOfDefenseSpellSlot(
   const spellSlotTotalsForCurrentCharacter = getSpellSlotTotalsForCharacter(
     currentCharacter.className,
     currentCharacter.level,
-    currentCharacter.subclassId
+    currentCharacter.subclassId,
+    currentCharacter.customClass
   );
   const nextSpellSlotsExpended = normalizeSpellSlotsExpended(
     currentCharacter.spellSlotsExpended,

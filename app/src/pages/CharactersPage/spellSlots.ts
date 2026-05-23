@@ -1,6 +1,8 @@
 import type { ClassEntry, FeatureClassObj } from "../../codex/entries/types";
+import type { CharacterCustomClassConfig } from "../../types";
 import { getClassEntryByName } from "../../codex/selectors";
 import { getSubclassSpellcastingProgressionRow } from "../../codex/classes/subclassSpellcasting";
+import { isCustomClassName, normalizeCustomClassSpellSlotMaximums } from "./customClass";
 
 const spellSlotLevels = [1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
 
@@ -49,8 +51,13 @@ function getClassFeatureRowForLevel(
 export function getSpellSlotTotalsForCharacter(
   className: string,
   level: number,
-  subclassId?: string
+  subclassId?: string,
+  customClass?: CharacterCustomClassConfig
 ): number[] {
+  if (isCustomClassName(className)) {
+    return normalizeCustomClassSpellSlotMaximums(customClass?.spellSlotMaximums);
+  }
+
   const subclassFeatureRow = getSubclassSpellcastingProgressionRow(className, level, subclassId);
 
   if (subclassFeatureRow) {

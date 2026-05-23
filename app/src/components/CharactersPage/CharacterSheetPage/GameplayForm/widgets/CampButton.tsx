@@ -80,7 +80,7 @@ function isRestOptionDisabled(option: RestOption) {
 }
 
 function getHitDiceBaseFormulaForCount(character: Character, count: number): string {
-  const hitDieFormula = getHitDieFormulaForClass(character.className);
+  const hitDieFormula = getHitDieFormulaForClass(character.className, character.customClass);
   const die = hitDieFormula.replace(/^1/i, "");
 
   return `${count}${die}`;
@@ -117,7 +117,9 @@ function getHitDiceFormulaDisplayTermsForCount(character: Character, count: numb
 }
 
 function getHitDieLabel(character: Character): string {
-  return getHitDieFormulaForClass(character.className).replace(/^1/i, "").toUpperCase();
+  return getHitDieFormulaForClass(character.className, character.customClass)
+    .replace(/^1/i, "")
+    .toUpperCase();
 }
 
 function getHitDiceHealingFormulaCell(character: Character, count: number) {

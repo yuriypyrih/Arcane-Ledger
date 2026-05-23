@@ -45,6 +45,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     closeSelectedSpell,
     closeSpellSlotActionSheet,
     clsx,
+    customClassSpellSlotMaximumLimit,
     createChargesAndUsageHeaderTags,
     createChargesCardUsage,
     createChargesHeaderTag,
@@ -75,6 +76,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     hasSpellSelectionInputRequired,
     highestSpellSlotLevel,
     isPreparedSpellPreview,
+    isCustomClass,
     isSelectedSpellDiceRollerSettingsOpen,
     isSpellcastingGuideOpen,
     isSpellManagementModalOpen,
@@ -242,6 +244,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     styles,
     tamedSurgeUsesRemaining,
     tamedSurgeUsesTotal,
+    updateCustomSpellSlotMaximum,
     updateSpellSlotsExpended,
     useBeguilingMagicOnSelectedSpell,
     useBewitchingMagicOnSelectedSpell,
@@ -488,11 +491,23 @@ export function renderSpellCastingForm(context: Record<string, any>) {
           onResetSlot={() => updateSpellSlotsExpended(activeSpellSlotSheetLevel, -1)}
           onUseSlot={() => updateSpellSlotsExpended(activeSpellSlotSheetLevel, 1)}
           onResetAll={() => resetAllSpellSlotsAtLevel(activeSpellSlotSheetLevel)}
+          maximumSlotLimit={isCustomClass ? customClassSpellSlotMaximumLimit : undefined}
+          onIncreaseMaximum={
+            isCustomClass
+              ? () => updateCustomSpellSlotMaximum(activeSpellSlotSheetLevel, 1)
+              : undefined
+          }
+          onDecreaseMaximum={
+            isCustomClass
+              ? () => updateCustomSpellSlotMaximum(activeSpellSlotSheetLevel, -1)
+              : undefined
+          }
         />
       ) : null}
 
       {isSpellManagementModalOpen ? (
         <SpellManagementModal
+          allowAllSpellLevels={isCustomClass}
           alwaysPreparedSpellIds={alwaysPreparedSpellIds}
           alwaysSpellbookSpellIds={alwaysSpellbookSpellIds}
           cantripLimit={cantripLimit}

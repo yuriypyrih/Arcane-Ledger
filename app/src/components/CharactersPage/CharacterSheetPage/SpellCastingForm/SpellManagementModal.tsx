@@ -50,6 +50,7 @@ function ignoreModalEscapeClose() {
 }
 
 type SpellManagementModalProps = {
+  allowAllSpellLevels?: boolean;
   alwaysPreparedSpellIds: string[];
   alwaysSpellbookSpellIds: string[];
   cantripLimit: number | null;
@@ -72,11 +73,11 @@ type SpellManagementModalProps = {
   usesSpellbook: boolean;
 };
 
-function SelectionCounter({ current, total }: { current: number; total: number }) {
+function SelectionCounter({ current, total }: { current: number; total: number | null }) {
   return (
     <span
-      className={clsx(current < total && styles.selectionCounterIncomplete)}
-    >{`${current}/${total}`}</span>
+      className={clsx(total !== null && current < total && styles.selectionCounterIncomplete)}
+    >{`${current}/${total === null ? "Unlimited" : total}`}</span>
   );
 }
 
@@ -126,6 +127,7 @@ function countTrackedSpellsByLevel(
 }
 
 function SpellManagementModal({
+  allowAllSpellLevels = false,
   alwaysPreparedSpellIds,
   alwaysSpellbookSpellIds,
   cantripLimit,
@@ -234,7 +236,8 @@ function SpellManagementModal({
       ),
     [alwaysPreparedSpellIds, knownSpellEntriesById, preparedSpellDraftIds]
   );
-  const hasCantripManagement = cantripLimit !== null && cantripLimit > 0;
+  const hasCantripManagement =
+    cantripOptions.length > 0 && (cantripLimit === null || cantripLimit > 0);
   const cantripCount = cantripDraftIds.length;
   const spellbookSpellCount = spellbookDraftIds.length;
   const alwaysSpellbookCount = alwaysSpellbookSpellIds.length;
@@ -294,12 +297,21 @@ function SpellManagementModal({
   ]);
 
   useEffect(() => {
+    if (allowAllSpellLevels) {
+      return;
+    }
+
     if (activePreparedSpellLevel <= highestSpellSlotLevel) {
       return;
     }
 
     setActivePreparedSpellLevel(firstAvailablePreparedSpellLevel);
-  }, [activePreparedSpellLevel, firstAvailablePreparedSpellLevel, highestSpellSlotLevel]);
+  }, [
+    activePreparedSpellLevel,
+    allowAllSpellLevels,
+    firstAvailablePreparedSpellLevel,
+    highestSpellSlotLevel
+  ]);
 
   const beginCantripManagement = useCallback(() => {
     setMode("cantrips");
@@ -480,7 +492,7 @@ function SpellManagementModal({
               >
                 <strong>
                   Manage cantrips{" "}
-                  <SelectionCounter current={selectedCantripIds.length} total={cantripLimit ?? 0} />
+                  <SelectionCounter current={selectedCantripIds.length} total={cantripLimit} />
                 </strong>
                 <small>Choose from the list of cantrips for your class.</small>
               </button>
@@ -497,7 +509,7 @@ function SpellManagementModal({
                       Manage spellbook &amp; prepare spells{" "}
                       <SelectionCounter
                         current={selectedPreparedSpellIds.length}
-                        total={preparedSpellLimit ?? 0}
+                        total={preparedSpellLimit}
                       />
                     </>
                   ) : (
@@ -505,7 +517,7 @@ function SpellManagementModal({
                       Prepare spells{" "}
                       <SelectionCounter
                         current={selectedPreparedSpellIds.length}
-                        total={preparedSpellLimit ?? 0}
+                        total={preparedSpellLimit}
                       />
                     </>
                   )}
@@ -523,11 +535,9 @@ function SpellManagementModal({
             <div className={styles.preparedSpellStatusRow}>
               <div>
                 <p className={styles.preparedSpellStatusLabel}>Cantrips</p>
-                {cantripLimit !== null ? (
-                  <p className={styles.preparedSpellLimitText}>
-                    <SelectionCounter current={cantripCount} total={cantripLimit} /> selected
-                  </p>
-                ) : null}
+                <p className={styles.preparedSpellLimitText}>
+                  <SelectionCounter current={cantripCount} total={cantripLimit} /> selected
+                </p>
               </div>
             </div>
 
@@ -606,19 +616,17 @@ function SpellManagementModal({
                         {alwaysSpellbookCount} always in spellbook
                       </p>
                     ) : null}
-                    {preparedSpellLimit !== null ? (
-                      <p className={styles.preparedSpellLimitText}>
-                        <SelectionCounter current={preparedSpellCount} total={preparedSpellLimit} />{" "}
-                        prepared
-                      </p>
-                    ) : null}
+                    <p className={styles.preparedSpellLimitText}>
+                      <SelectionCounter current={preparedSpellCount} total={preparedSpellLimit} />{" "}
+                      prepared
+                    </p>
                   </>
-                ) : preparedSpellLimit !== null ? (
+                ) : (
                   <p className={styles.preparedSpellLimitText}>
                     <SelectionCounter current={preparedSpellCount} total={preparedSpellLimit} />{" "}
                     prepared
                   </p>
-                ) : null}
+                )}
               </div>
             </div>
 
@@ -627,7 +635,7 @@ function SpellManagementModal({
               <div className={styles.preparedSpellTabList} role="tablist" aria-label="Spell levels">
                 {spellSlotLevels.map((level) => {
                   const selectedCount = preparedSpellDraftCountsByLevel[level] ?? 0;
-                  const isDisabled = level > highestSpellSlotLevel;
+                  const isDisabled = !allowAllSpellLevels && level > highestSpellSlotLevel;
 
                   return (
                     <button

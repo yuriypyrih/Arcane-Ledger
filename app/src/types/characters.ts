@@ -38,6 +38,14 @@ export type AttributeMode = "custom" | "pointBuy";
 
 export type AbilityScores = Record<AbilityKey, number>;
 
+export type CharacterCustomHitDie = "d6" | "d8" | "d10" | "d12";
+
+export type CharacterCustomClassConfig = {
+  hitDie: CharacterCustomHitDie;
+  spellcastingAbility: AbilityKey;
+  spellSlotMaximums: number[];
+};
+
 export type CharacterBackgroundAbilityScoreIncrease =
   | {
       mode: "two-one";
@@ -356,6 +364,7 @@ export type Character = {
   speciesFeatureState?: CharacterSpeciesFeatureState;
   className: string;
   subclassId?: string;
+  customClass?: CharacterCustomClassConfig;
   level: number;
   xp: number;
   hitPoints: number;
@@ -406,6 +415,7 @@ export type CharacterDraft = {
   speciesFeatureState?: CharacterSpeciesFeatureState;
   className: string;
   subclassId?: string;
+  customClass?: CharacterCustomClassConfig;
   level: number;
   xp: number;
   hitPoints: number;

@@ -117,8 +117,13 @@ export function useTraitsConditionsSections({
   );
   const spellSlotTotals = useMemo(
     () =>
-      getSpellSlotTotalsForCharacter(character.className, character.level, character.subclassId),
-    [character.className, character.level, character.subclassId]
+      getSpellSlotTotalsForCharacter(
+        character.className,
+        character.level,
+        character.subclassId,
+        character.customClass
+      ),
+    [character.className, character.customClass, character.level, character.subclassId]
   );
   const spellSlotsExpended = useMemo(
     () => normalizeSpellSlotsExpended(character.spellSlotsExpended, spellSlotTotals),

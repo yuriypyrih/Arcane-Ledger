@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import ActionButton from "../../ActionButton";
 import {
   OverlayBody,
@@ -16,11 +16,14 @@ import styles from "./ResourceManagementModal.module.css";
 const RESOURCE_MANAGEMENT_DESCRIPTION =
   "Here you can manually adjust your resources outside of the app internal logic.";
 
+const resourceManagementColumnProperty = "--resource-management-columns";
+
 export type ResourceManagementModalAction = {
   label: string;
   onClick: () => void;
   disabled?: boolean;
   ariaLabel?: string;
+  keepOpen?: boolean;
 };
 
 type ResourceManagementModalProps = {
@@ -32,6 +35,7 @@ type ResourceManagementModalProps = {
   eyebrow?: string;
   description?: string;
   titleAccessory?: ReactNode;
+  columnCount?: number;
 };
 
 function ResourceManagementModal({
@@ -40,14 +44,22 @@ function ResourceManagementModal({
   closeLabel,
   onClose,
   actions,
+  columnCount,
   eyebrow = "RESOURCE MANAGEMENT",
   description = RESOURCE_MANAGEMENT_DESCRIPTION,
   titleAccessory
 }: ResourceManagementModalProps) {
   function handleActionClick(action: ResourceManagementModalAction) {
     action.onClick();
-    onClose();
+
+    if (!action.keepOpen) {
+      onClose();
+    }
   }
+
+  const footerActionStyle = {
+    [resourceManagementColumnProperty]: String(Math.max(1, columnCount ?? actions.length))
+  } as CSSProperties;
 
   return (
     <SheetModal titleId={titleId} onClose={onClose}>
@@ -69,10 +81,7 @@ function ResourceManagementModal({
       </OverlayBody>
 
       <OverlayFooter className={styles.footer}>
-        <div
-          className={styles.footerActions}
-          style={{ gridTemplateColumns: `repeat(${Math.max(1, actions.length)}, minmax(0, 1fr))` }}
-        >
+        <div className={styles.footerActions} style={footerActionStyle}>
           {actions.map((action) => (
             <ActionButton
               key={action.label}

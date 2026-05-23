@@ -64,6 +64,7 @@ import {
   reconcileCharacterStatusConsequences
 } from "./traits";
 import { deleteCharacterPortrait } from "./characterPortraits/storage";
+import { isCustomClassName, normalizeCustomClassConfig } from "./customClass";
 
 function normalizeCoreStatValue(value: unknown, fallback: string): string {
   if (typeof value !== "string") {
@@ -204,6 +205,7 @@ export function normalizeCharacter(value: unknown): Character | null {
     customEquipment?: unknown;
     companions?: unknown;
     classFeatureState?: unknown;
+    customClass?: unknown;
     feats?: unknown;
     heroicInspiration?: unknown;
     speciesChoices?: unknown;
@@ -233,13 +235,18 @@ export function normalizeCharacter(value: unknown): Character | null {
   );
   const normalizedClassName =
     typeof record.className === "string" ? record.className.trim() : defaults.className;
+  const normalizedCustomClass = isCustomClassName(normalizedClassName)
+    ? normalizeCustomClassConfig(record.customClass)
+    : undefined;
   const normalizedBackground =
     typeof record.background === "string" ? record.background.trim() : defaults.background;
   const normalizedBackgroundNotes =
     typeof record.backgroundNotes === "string"
       ? record.backgroundNotes.trim()
       : defaults.backgroundNotes;
-  const normalizedSubclassId = normalizeSubclassId(record.subclassId, normalizedClassName);
+  const normalizedSubclassId = isCustomClassName(normalizedClassName)
+    ? undefined
+    : normalizeSubclassId(record.subclassId, normalizedClassName);
   const resolvedBackground = normalizedBackground || defaults.background;
   const normalizedBackgroundChoices = normalizeBackgroundChoices(
     isBackgroundName(resolvedBackground) ? resolvedBackground : "",
@@ -403,7 +410,8 @@ export function normalizeCharacter(value: unknown): Character | null {
   const spellSlotTotals = getSpellSlotTotalsForCharacter(
     normalizedClassName,
     normalizedLevel,
-    normalizedSubclassId
+    normalizedSubclassId,
+    normalizedCustomClass
   );
   const normalizedSpellSlotsExpended = normalizeSpellSlotsExpended(
     record.spellSlotsExpended,
@@ -487,6 +495,7 @@ export function normalizeCharacter(value: unknown): Character | null {
     speciesFeatureState: normalizedSpeciesFeatureState,
     className: normalizedClassName,
     subclassId: normalizedSubclassId,
+    customClass: normalizedCustomClass,
     level: normalizedLevel,
     xp: normalizedXp,
     hitPoints: normalizedHitPoints,

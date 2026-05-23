@@ -6,6 +6,7 @@ import {
   getSpellDamageFormulaOverrideForCharacter
 } from "./classFeatures";
 import { getWizardEvokerEmpoweredEvocationDamageDetail } from "./classFeatures/wizard/subclasses/wizardEvoker";
+import { isCustomClassName, normalizeCustomClassConfig } from "./customClass";
 import { getMainAbilityForClass } from "./gameplay";
 import { formatFormulaRangeLabel, parseFormulaRange } from "./shared/formulas";
 import {
@@ -72,22 +73,30 @@ function formatSpellDamageBonusDetail(entry: {
 }
 
 function getSpellcastingAbilityModifier(
-  character: Pick<Character, "className" | "abilities">,
+  character: Pick<Character, "className" | "abilities"> & Partial<Pick<Character, "customClass">>,
   spellcastingAbilityOverride?: AbilityKey | null
 ): number {
-  const mainAbility = spellcastingAbilityOverride ?? getMainAbilityForClass(character.className);
+  const mainAbility =
+    spellcastingAbilityOverride ??
+    (isCustomClassName(character.className)
+      ? normalizeCustomClassConfig(character.customClass).spellcastingAbility
+      : getMainAbilityForClass(character.className));
 
   return mainAbility ? getAbilityModifierForCharacter(character, mainAbility) : 0;
 }
 
 function getSpellHealingFormatOptions(
-  character: Pick<Character, "className" | "abilities">,
+  character: Pick<Character, "className" | "abilities"> & Partial<Pick<Character, "customClass">>,
   spellcastingAbilityOverride?: AbilityKey | null
 ): {
   spellcastingAbilityLabel: string;
   spellcastingAbilityModifier: number | null;
 } {
-  const mainAbility = spellcastingAbilityOverride ?? getMainAbilityForClass(character.className);
+  const mainAbility =
+    spellcastingAbilityOverride ??
+    (isCustomClassName(character.className)
+      ? normalizeCustomClassConfig(character.customClass).spellcastingAbility
+      : getMainAbilityForClass(character.className));
 
   return {
     spellcastingAbilityLabel: mainAbility ?? "Spell MOD",
@@ -101,7 +110,8 @@ export function getSpellOutcomeSummaryForCharacter(
   character: Pick<
     Character,
     "className" | "abilities" | "level" | "classFeatureState" | "feats" | "cantripIds"
-  >,
+  > &
+    Partial<Pick<Character, "customClass">>,
   spell: SpellEntry,
   spellcastingAbilityOverride?: AbilityKey | null
 ): string {
@@ -158,7 +168,7 @@ export function getSpellDamageDetailForCharacter(
     Character,
     "className" | "abilities" | "level" | "classFeatureState" | "feats" | "cantripIds"
   > &
-    Partial<Pick<Character, "subclassId">>,
+    Partial<Pick<Character, "customClass" | "subclassId">>,
   spell: SpellEntry,
   spellcastingAbilityOverride?: AbilityKey | null
 ): string {

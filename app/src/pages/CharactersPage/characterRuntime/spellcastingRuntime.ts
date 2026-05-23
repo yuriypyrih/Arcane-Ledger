@@ -143,7 +143,8 @@ function createSpellcastingRuntime(
   const spellSlotTotals = getSpellSlotTotalsForCharacter(
     character.className,
     character.level,
-    includeSubclassSlots ? character.subclassId : undefined
+    includeSubclassSlots ? character.subclassId : undefined,
+    character.customClass
   );
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,

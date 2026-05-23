@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Dice6 } from "lucide-react";
+import { CircleHelp, Dice6 } from "lucide-react";
 import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import type {
@@ -7,6 +7,7 @@ import type {
   AbilityScores,
   AttributeMode,
   CharacterBackgroundChoices,
+  CharacterCustomClassConfig,
   CharacterDraft,
   CharacterFeatEntry,
   CharacterSpeciesChoices,
@@ -62,6 +63,12 @@ import {
 } from "../../../pages/CharactersPage/backgrounds";
 import { getFeatLabel } from "../../../pages/CharactersPage/feats";
 import { normalizeLevelAndXp } from "../../../pages/CharactersPage/experience";
+import {
+  CUSTOM_CLASS_NAME,
+  customClassHitDice,
+  isCustomClassName,
+  normalizeCustomClassConfig
+} from "../../../pages/CharactersPage/customClass";
 import { getAutomaticMaxHitPointsForCharacter } from "../../../pages/CharactersPage/gameplay";
 import { getEffectiveHitPointMaximumForCharacter } from "../../../pages/CharactersPage/traits";
 import {
@@ -134,6 +141,7 @@ import { randomNamePrefixes, randomNameSuffixes } from "./characterRandomNames";
 import OriginFeatSetupControls from "./OriginFeatSetupControls";
 import { useCharacterFormPendingAction } from "./useCharacterFormPendingAction";
 import { sanitizeUserInput } from "../../../utils/userInputSanitization";
+import MulticlassGuideModal from "./MulticlassGuideModal";
 import styles from "./CharacterForm.module.css";
 
 type CharacterFormProps = {
@@ -420,6 +428,7 @@ function createFormValues(
 ): CharacterFormValues {
   return {
     ...draft,
+    customClass: normalizeCustomClassConfig(draft.customClass),
     abilities:
       draft.attributeMode === "pointBuy"
         ? normalizePointBuyAbilities(draft.abilities)
@@ -432,7 +441,12 @@ function createFormValues(
 
 function getEffectiveHitPointMaximumForDraft(
   draft: Pick<CharacterDraft, "className" | "hitPoints"> &
-    Partial<Pick<CharacterDraft, "level" | "species" | "subclassId" | "statusEntries" | "feats">>
+    Partial<
+      Pick<
+        CharacterDraft,
+        "customClass" | "level" | "species" | "subclassId" | "statusEntries" | "feats"
+      >
+    >
 ): number {
   return getEffectiveHitPointMaximumForCharacter({
     className: draft.className,
@@ -468,7 +482,8 @@ function createBasicProfileSnapshot(
       speciesChoices: undefined,
       speciesFeatureState: normalizeCharacterSpeciesFeatureState(values.species, undefined),
       className: values.className,
-      subclassId: values.subclassId,
+      subclassId: isCustomClassName(values.className) ? "" : values.subclassId,
+      customClass: normalizeCustomClassConfig(values.customClass),
       background: values.background,
       backgroundChoices: includeBackgroundDefaults
         ? backgroundDefaults
@@ -831,6 +846,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   const [wizardStep, setWizardStep] = useState<CreationStep>(1);
   const [stepOneSnapshot, setStepOneSnapshot] = useState<CharacterFormValues | null>(null);
   const [attemptedBuildAdvance, setAttemptedBuildAdvance] = useState(false);
+  const [isMulticlassGuideOpen, setIsMulticlassGuideOpen] = useState(false);
   const [starterPackWarnings, setStarterPackWarnings] = useState<string[]>([]);
   const { hasPendingAction, pendingAction, runPendingAction } = useCharacterFormPendingAction();
   const initialFormValues = useMemo(
@@ -861,6 +877,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     selectedName,
     selectedClassName,
     selectedSubclassId,
+    selectedCustomClass,
     selectedSpecies,
     selectedSpeciesChoices,
     selectedBackground,
@@ -885,6 +902,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       "name",
       "className",
       "subclassId",
+      "customClass",
       "species",
       "speciesChoices",
       "background",
@@ -908,6 +926,11 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   const resolvedName = selectedName ?? initialFormValues.name;
   const resolvedClassName = selectedClassName ?? initialFormValues.className;
   const resolvedSubclassId = selectedSubclassId ?? initialFormValues.subclassId ?? "";
+  const resolvedCustomClass = useMemo(
+    () => normalizeCustomClassConfig(selectedCustomClass ?? initialFormValues.customClass),
+    [initialFormValues.customClass, selectedCustomClass]
+  );
+  const isCustomClassSelected = isCustomClassName(resolvedClassName);
   const resolvedSpecies = selectedSpecies ?? initialFormValues.species;
   const resolvedSpeciesChoices = selectedSpeciesChoices ?? initialFormValues.speciesChoices;
   const resolvedBackground = selectedBackground ?? initialFormValues.background;
@@ -1017,9 +1040,11 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   const selectedTieflingLegacy = normalizedSpeciesChoices?.tieflingLegacy ?? "";
   const selectedTieflingSpellcastingAbility =
     normalizedSpeciesChoices?.tieflingSpellcastingAbility ?? "";
-  const availableSubclassOptions = getSubclassOptionsForClassName(resolvedClassName);
+  const availableSubclassOptions = isCustomClassSelected
+    ? []
+    : getSubclassOptionsForClassName(resolvedClassName);
   const starterPack = getResolvedStarterPack(resolvedClassName);
-  const configuredStarterPack = getClassStarterPack(resolvedClassName);
+  const configuredStarterPack = isCustomClassSelected ? null : getClassStarterPack(resolvedClassName);
   const backgroundEntry = getBackgroundEntry(resolvedBackground);
   const backgroundToolOptions = getBackgroundToolChoiceOptions(resolvedBackground);
   const backgroundSkillOptions = backgroundEntry?.grantedSkillProficiencies ?? [];
@@ -1175,6 +1200,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   );
   const automaticHitPoints = getAutomaticMaxHitPointsForCharacter({
     className: resolvedClassName,
+    customClass: resolvedCustomClass,
     level: resolvedLevel,
     abilities: resolvedAbilities,
     classFeatureState: getValues("classFeatureState") ?? {},
@@ -1188,6 +1214,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     classFeatureState: getValues("classFeatureState") ?? {},
     className: resolvedClassName,
     currentHitPoints: resolvedCurrentHitPoints,
+    customClass: resolvedCustomClass,
     feats: resolvedFeats,
     hitPoints: resolvedHitPoints,
     level: resolvedLevel,
@@ -1426,6 +1453,17 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   }, [getValues, resolvedBackground, setValue]);
 
   useEffect(() => {
+    if (isCustomClassSelected) {
+      if (resolvedSubclassId.length > 0) {
+        setValue("subclassId", "", {
+          shouldDirty: true,
+          shouldValidate: true
+        });
+      }
+
+      return;
+    }
+
     const normalizedSubclassId =
       normalizeSubclassId(resolvedSubclassId, resolvedClassName) ??
       getDefaultSubclassIdForClass(resolvedClassName);
@@ -1436,7 +1474,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         shouldValidate: true
       });
     }
-  }, [resolvedClassName, resolvedSubclassId, setValue]);
+  }, [isCustomClassSelected, resolvedClassName, resolvedSubclassId, setValue]);
 
   useEffect(() => {
     if (
@@ -1915,6 +1953,9 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     } = values;
     const normalizedProgress = normalizeLevelAndXp(draftValues.level, draftValues.xp);
     const normalizedClassName = draftValues.className.trim();
+    const normalizedCustomClass = isCustomClassName(normalizedClassName)
+      ? normalizeCustomClassConfig(draftValues.customClass)
+      : undefined;
     const normalizedSpecies = draftValues.species.trim();
     const normalizedSpeciesChoices = normalizeCharacterSpeciesChoices(
       normalizedSpecies,
@@ -1936,6 +1977,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       draftValues.maxHitPointsMode === "automatic"
         ? getAutomaticMaxHitPointsForCharacter({
             className: normalizedClassName,
+            customClass: normalizedCustomClass,
             level: normalizedProgress.level,
             abilities: normalizedAbilities,
             classFeatureState: draftValues.classFeatureState ?? {},
@@ -1954,7 +1996,9 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       draftValues.toolProficiencies ?? []
     );
     const normalizedSubclassId =
-      normalizeSubclassId(draftValues.subclassId, normalizedClassName) ?? "";
+      isCustomClassName(normalizedClassName)
+        ? ""
+        : (normalizeSubclassId(draftValues.subclassId, normalizedClassName) ?? "");
     const backgroundFeat = getBackgroundFeatEntry(draftValues.feats, resolvedNormalizedBackground);
     const backgroundReconciledFeats = backgroundFeat
       ? upsertBackgroundFeatEntry(draftValues.feats, resolvedNormalizedBackground, backgroundFeat)
@@ -1967,6 +2011,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     );
     const normalizedCurrentHitPointMaximum = getEffectiveHitPointMaximumForDraft({
       className: normalizedClassName,
+      customClass: normalizedCustomClass,
       subclassId: normalizedSubclassId,
       level: normalizedProgress.level,
       hitPoints: normalizedHitPoints,
@@ -2004,6 +2049,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       ),
       className: normalizedClassName,
       subclassId: normalizedSubclassId,
+      customClass: normalizedCustomClass,
       level: normalizedProgress.level,
       xp: normalizedProgress.xp,
       hitPoints: normalizedHitPoints,
@@ -2051,7 +2097,9 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       return;
     }
 
-    const configuredStarterPack = getClassStarterPack(normalizedDraft.className);
+    const configuredStarterPack = isCustomClassName(normalizedDraft.className)
+      ? null
+      : getClassStarterPack(normalizedDraft.className);
     const selectedChoice =
       !isEditing && configuredStarterPack && values.startingEquipmentChoiceIndex.length > 0
         ? (configuredStarterPack.startingEquipment[Number(values.startingEquipmentChoiceIndex)] ??
@@ -2184,6 +2232,10 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   }
 
   async function handleRecommendedCreate() {
+    if (isCustomClassSelected) {
+      return;
+    }
+
     const isValid = await validateWizardStepOne();
 
     if (!isValid) {
@@ -2416,10 +2468,19 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                 {...classRegistration}
                 onChange={(event) => {
                   void classRegistration.onChange(event);
-                  setValue("subclassId", getDefaultSubclassIdForClass(event.target.value), {
+                  const nextClassName = event.target.value;
+
+                  setValue("subclassId", isCustomClassName(nextClassName) ? "" : getDefaultSubclassIdForClass(nextClassName), {
                     shouldDirty: true,
                     shouldValidate: true
                   });
+
+                  if (isCustomClassName(nextClassName)) {
+                    setValue("customClass", normalizeCustomClassConfig(getValues("customClass")), {
+                      shouldDirty: true,
+                      shouldValidate: true
+                    });
+                  }
                 }}
               >
                 <option value="">Select a class</option>
@@ -2432,6 +2493,10 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                     {characterClass}
                   </option>
                 ))}
+                <option disabled value="__custom-class-divider">
+                  ──────────
+                </option>
+                <option value={CUSTOM_CLASS_NAME}>{CUSTOM_CLASS_NAME}</option>
               </SelectInput>
               {errors.className ? (
                 <small className={styles.errorText}>{errors.className.message}</small>
@@ -2523,6 +2588,21 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             </label>
           </div>
         </div>
+
+        {!isEditing ? (
+          <div className={styles.multiclassHelpRow}>
+            <span>Want to multiclass?</span>
+            <button
+              type="button"
+              className={styles.multiclassHelpButton}
+              onClick={() => setIsMulticlassGuideOpen(true)}
+              aria-label="Open multiclass guide"
+              title="Open multiclass guide"
+            >
+              <CircleHelp size={16} />
+            </button>
+          </div>
+        ) : null}
       </section>
     );
   }
@@ -2605,7 +2685,83 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     );
   }
 
+  function updateCustomClassConfig(nextConfig: CharacterCustomClassConfig) {
+    setValue("customClass", normalizeCustomClassConfig(nextConfig), {
+      shouldDirty: true,
+      shouldValidate: true
+    });
+  }
+
+  function renderCustomClassSetupSection() {
+    if (!isCustomClassSelected) {
+      return null;
+    }
+
+    return (
+      <section className={styles.sectionCard}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <p className={styles.sectionEyebrow}>Custom Class</p>
+            <h3 className={styles.sectionValueHeading}>Class foundations</h3>
+          </div>
+        </div>
+
+        <p className={styles.helperText}>
+          Custom classes skip predefined class setup and use these saved foundations for HP, Hit
+          Dice, and spell formulas.
+        </p>
+
+        <div className={styles.classSetupGrid}>
+          <label className={styles.field}>
+            <span>Hit Die</span>
+            <SelectInput
+              className={styles.fieldInput}
+              value={resolvedCustomClass.hitDie}
+              onChange={(event) =>
+                updateCustomClassConfig({
+                  ...resolvedCustomClass,
+                  hitDie: event.target.value as CharacterCustomClassConfig["hitDie"]
+                })
+              }
+            >
+              {customClassHitDice.map((hitDie) => (
+                <option key={hitDie} value={hitDie}>
+                  {hitDie.toUpperCase()}
+                </option>
+              ))}
+            </SelectInput>
+          </label>
+
+          <label className={styles.field}>
+            <span>Spellcasting Ability</span>
+            <SelectInput
+              className={styles.fieldInput}
+              value={resolvedCustomClass.spellcastingAbility}
+              onChange={(event) =>
+                updateCustomClassConfig({
+                  ...resolvedCustomClass,
+                  spellcastingAbility: event.target
+                    .value as CharacterCustomClassConfig["spellcastingAbility"]
+                })
+              }
+            >
+              {abilityKeys.map((ability) => (
+                <option key={ability} value={ability}>
+                  {ability}
+                </option>
+              ))}
+            </SelectInput>
+          </label>
+        </div>
+      </section>
+    );
+  }
+
   function renderClassSetupSection(options?: { showStartingEquipmentChoice?: boolean }) {
+    if (isCustomClassSelected) {
+      return null;
+    }
+
     const showStartingEquipmentChoice = options?.showStartingEquipmentChoice ?? true;
     const isRenderedClassSetupReady =
       isSkillSelectionReady &&
@@ -3931,6 +4087,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             {renderBasicProfileSection()}
             {renderStartingHitPointsSection()}
             {renderAbilityDistributionSection()}
+            {renderCustomClassSetupSection()}
             {renderClassSetupSection({ showStartingEquipmentChoice: false })}
             {renderSpeciesSetupSection()}
             {renderNotesSection()}
@@ -3943,6 +4100,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
           <>
             {renderStartingHitPointsSection()}
             {renderAbilityDistributionSection()}
+            {renderCustomClassSetupSection()}
             {renderClassSetupSection()}
             {renderSpeciesSetupSection()}
             {renderBackgroundSetupSection()}
@@ -3977,17 +4135,19 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
 
             {!isEditing && wizardStep === 1 ? (
               <>
-                <ActionButton
-                  type="button"
-                  fullWidth={false}
-                  loading={pendingAction === "recommended"}
-                  disabled={hasPendingAction || !isCoreProfileReady}
-                  onClick={() => {
-                    void runPendingAction("recommended", handleRecommendedCreate);
-                  }}
-                >
-                  Create with recommended build
-                </ActionButton>
+                {!isCustomClassSelected ? (
+                  <ActionButton
+                    type="button"
+                    fullWidth={false}
+                    loading={pendingAction === "recommended"}
+                    disabled={hasPendingAction || !isCoreProfileReady}
+                    onClick={() => {
+                      void runPendingAction("recommended", handleRecommendedCreate);
+                    }}
+                  >
+                    Create with recommended build
+                  </ActionButton>
+                ) : null}
                 <ActionButton
                   type="button"
                   fullWidth={false}
@@ -4049,6 +4209,9 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
           </div>
         </section>
       </form>
+      {isMulticlassGuideOpen ? (
+        <MulticlassGuideModal onClose={() => setIsMulticlassGuideOpen(false)} />
+      ) : null}
     </div>
   );
 }
