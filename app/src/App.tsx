@@ -20,6 +20,7 @@ const LoginPage = lazy(() => import("./pages/AuthPages/LoginPage"));
 const MonsterCodexEntryPage = lazy(() => import("./pages/MonsterCodexEntryPage"));
 const RegisterPage = lazy(() => import("./pages/AuthPages/RegisterPage"));
 const ResetPasswordPage = lazy(() => import("./pages/AuthPages/ResetPasswordPage"));
+const SupportPage = lazy(() => import("./pages/AuthPages/SupportPage"));
 const VerifyEmailPage = lazy(() => import("./pages/AuthPages/VerifyEmailPage"));
 
 function LegacyCompendiumRedirect({ from }: { from: "/codex" | "/library" }) {
@@ -50,6 +51,7 @@ function App() {
           <Route element={<AppShell />}>
             <Route index element={<HomePage />} />
             <Route path="/account" element={<AccountPage />} />
+            <Route path="/support" element={<SupportPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/forgot-password" element={<ForgotPasswordPage />} />

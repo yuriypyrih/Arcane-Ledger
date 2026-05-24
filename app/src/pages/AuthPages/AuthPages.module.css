@@ -22,6 +22,11 @@
   width: min(100%, 760px);
 }
 
+.supportPanel {
+  width: min(100%, 720px);
+  background: var(--color-panel-strong);
+}
+
 .header {
   display: grid;
   gap: 0.35rem;
@@ -91,6 +96,12 @@
   border: 1px solid rgba(42, 126, 78, 0.25);
   background: rgba(42, 126, 78, 0.08);
   color: #215f3a;
+}
+
+.info {
+  border: 1px solid rgba(37, 88, 184, 0.22);
+  background: rgba(37, 88, 184, 0.08);
+  color: #244f9d;
 }
 
 .actions {
@@ -173,6 +184,22 @@
   font-weight: 800;
   padding: 0.2rem 0.55rem;
   text-transform: capitalize;
+}
+
+.supportTextarea {
+  width: 100%;
+  min-height: 220px;
+  background: var(--color-panel-surface);
+}
+
+.supportMetaRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.55rem;
+  color: rgba(47, 27, 18, 0.62);
+  font-size: 0.78rem;
+  font-weight: 800;
 }
 
 @media (max-width: 760px) {

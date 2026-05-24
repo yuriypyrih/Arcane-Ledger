@@ -3,6 +3,7 @@ import {
   CheckCircle2,
   Cloud,
   CloudOff,
+  LifeBuoy,
   LogIn,
   RefreshCw,
   Settings,
@@ -157,6 +158,11 @@ function PrimaryNav({
     navigate("/account");
   }
 
+  function handleSupport() {
+    setAccountMenuOpen(false);
+    navigate("/support");
+  }
+
   return (
     <nav className={styles.nav} aria-label="Primary">
       <div className={styles.leftCluster}>
@@ -256,6 +262,15 @@ function PrimaryNav({
                 >
                   <Settings size={15} aria-hidden="true" />
                   <span>Account Settings</span>
+                </button>
+                <button
+                  type="button"
+                  className={styles.accountMenuItem}
+                  role="menuitem"
+                  onClick={handleSupport}
+                >
+                  <LifeBuoy size={15} aria-hidden="true" />
+                  <span>Support</span>
                 </button>
               </div>
             ) : null}

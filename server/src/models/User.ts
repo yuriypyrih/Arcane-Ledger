@@ -13,6 +13,7 @@ export type UserRecord = {
   passwordResetTokenHash?: string;
   passwordResetExpiresAt?: Date;
   passwordChangedAt?: Date | null;
+  lastFeedback?: Date | null;
   preferences?: UserPreferences;
   active: boolean;
   createdAt?: Date;
@@ -90,6 +91,10 @@ const userSchema = new Schema<UserRecord>(
       select: false
     },
     passwordChangedAt: {
+      type: Date,
+      default: null
+    },
+    lastFeedback: {
       type: Date,
       default: null
     },

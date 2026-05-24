@@ -10,6 +10,7 @@ export type AuthUser = {
   role: UserRole;
   emailVerifiedAt: string | null;
   createdAt: string | null;
+  lastFeedback: string | null;
 };
 
 export type AuthUserEnvelope = {

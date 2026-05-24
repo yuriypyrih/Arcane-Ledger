@@ -9,7 +9,8 @@ export function serializeAuthUser(user: UserDocument): AuthUserResponse {
     email: user.email,
     role: user.role,
     emailVerifiedAt: user.emailVerifiedAt ? user.emailVerifiedAt.toISOString() : null,
-    createdAt: user.createdAt ? user.createdAt.toISOString() : null
+    createdAt: user.createdAt ? user.createdAt.toISOString() : null,
+    lastFeedback: user.lastFeedback ? user.lastFeedback.toISOString() : null
   };
 }
 
