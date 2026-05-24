@@ -19,7 +19,7 @@ export function createApp() {
   app.use(helmet());
   app.use(cors(createCorsOptions(config.corsAllowedOrigins, config.nodeEnv)));
   app.use(cookieParser());
-  app.use(express.json());
+  app.use(express.json({ limit: "5mb" }));
   app.use("/api/v1", apiRouter);
   setupSentryExpressErrorHandler(app);
   app.use(notFoundHandler);

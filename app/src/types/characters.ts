@@ -161,8 +161,30 @@ export type CoreStats = {
   hitDice: string;
 };
 
+export type CharacterSheetSyncStatus =
+  | "local-only"
+  | "dirty"
+  | "syncing"
+  | "synced"
+  | "deleting"
+  | "conflict"
+  | "error";
+
+export type CharacterSyncMetadata = {
+  clientId: string;
+  ownerId?: string;
+  remoteId?: string;
+  localRevision: number;
+  remoteRevision?: number;
+  syncStatus: CharacterSheetSyncStatus;
+  lastLocalChangeAt?: string;
+  lastSyncedAt?: string;
+  lastSyncError?: string;
+};
+
 export type CharacterStorageMetadata = {
   sheetSizeBytes?: number;
+  sync?: CharacterSyncMetadata;
 };
 
 export type ArmorClassFormulaSelectionMode = "auto" | "manual";
@@ -412,6 +434,9 @@ export type Character = {
   feats?: CharacterFeatEntry[];
   storageMetadata?: CharacterStorageMetadata;
 };
+
+export type HydratedCharacter = Character;
+export type ActiveCharacter = HydratedCharacter;
 
 export type CharacterDraft = {
   name: string;

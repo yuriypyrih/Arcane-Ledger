@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { changePassword, logout } from "../../api/auth";
 import ActionButton from "../../components/ActionButton";
 import TextInput from "../../components/CharactersPage/FormInputs/TextInput";
+import { clearStoredCharacters } from "../CharactersPage/storage";
 import {
   clearAuthSession,
   setAuthError,
@@ -30,6 +31,7 @@ function AccountPage() {
     try {
       await logout({ suppressFailureToast: true });
     } finally {
+      clearStoredCharacters();
       dispatch(clearAuthSession());
       setLoggingOut(false);
       navigate("/");
@@ -55,6 +57,7 @@ function AccountPage() {
         },
         { suppressFailureToast: true }
       );
+      clearStoredCharacters();
       dispatch(clearAuthSession());
       dispatch(
         showToast({

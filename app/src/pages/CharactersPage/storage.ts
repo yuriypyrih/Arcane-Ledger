@@ -1,7 +1,6 @@
-import type { Character, CharacterDraft, CoreStats } from "../../types";
+import type { Character, CharacterDraft, PortableCharacterSheet, CoreStats } from "../../types";
 import { currencyKeys } from "../../types";
 import {
-  CHARACTERS_STORAGE_KEY,
   alignmentOptions,
   createDefaultCoreStats,
   createDefaultAbilities,
@@ -65,12 +64,28 @@ import {
 } from "./traits";
 import { isCustomClassName, normalizeCustomClassConfig } from "./customClass";
 import {
-  createCharacterInputFromSheetRecordV2,
-  createCharacterSheetRecordV2,
-  getCharacterSheetRecordLocalId,
-  isCharacterSheetRecordV2
-} from "./characterSheetRecord";
+  createHydratedCharacterInputFromPortableSheet,
+  createPortableCharacterSheet,
+  ensurePortableCharacterSheetSyncMetadata,
+  isPortableCharacterSheet,
+  markPortableCharacterSheetDirty,
+  normalizeCharacterSyncMetadata
+} from "./portableCharacterSheet";
+import {
+  clearRawStoredCharacters,
+  getRawStoredCharacterId,
+  loadRawStoredCharacterRecords,
+  replaceRawStoredCharacterRecords,
+  CHARACTER_STORAGE_CHANGED_EVENT
+} from "./portableCharacterSheetStorage";
+import { clearCharacterRosterCache } from "./characterRoster";
 import { normalizeSheetSizeBytes } from "./characterSheetSize";
+
+export { CHARACTER_STORAGE_CHANGED_EVENT };
+
+export type CharacterSaveOptions = {
+  ownerId?: string | null;
+};
 
 function normalizeCoreStatValue(value: unknown, fallback: string): string {
   if (typeof value !== "string") {
@@ -179,8 +194,8 @@ export function normalizeCharacter(value: unknown): Character | null {
     return null;
   }
 
-  const characterInput = isCharacterSheetRecordV2(value)
-    ? createCharacterInputFromSheetRecordV2(value)
+  const characterInput = isPortableCharacterSheet(value)
+    ? createHydratedCharacterInputFromPortableSheet(value)
     : value;
   const record = characterInput as Partial<Character> & {
     subclassId?: unknown;
@@ -565,7 +580,16 @@ export function normalizeCharacter(value: unknown): Character | null {
         ? {
             sheetSizeBytes: normalizeSheetSizeBytes(
               (record.storageMetadata as { sheetSizeBytes?: unknown }).sheetSizeBytes
+            ),
+            ...(normalizeCharacterSyncMetadata(
+              (record.storageMetadata as { sync?: unknown }).sync
             )
+              ? {
+                  sync: normalizeCharacterSyncMetadata(
+                    (record.storageMetadata as { sync?: unknown }).sync
+                  )
+                }
+              : {})
           }
         : undefined
   });
@@ -576,49 +600,47 @@ export function normalizeCharacter(value: unknown): Character | null {
 
   return {
     ...normalizedCharacter,
-    storageMetadata: createCharacterSheetRecordV2(normalizedCharacter).metadata
+    storageMetadata: createPortableCharacterSheet(normalizedCharacter).metadata
   };
 }
 
-let storedCharacterRecordsCache: unknown[] | null = null;
-
 function loadStoredCharacterRecords(): unknown[] {
-  if (storedCharacterRecordsCache) {
-    return storedCharacterRecordsCache;
-  }
-
-  if (typeof window === "undefined") {
-    return [];
-  }
-
-  const serializedCharacters = window.localStorage.getItem(CHARACTERS_STORAGE_KEY);
-  if (!serializedCharacters) {
-    storedCharacterRecordsCache = [];
-    return storedCharacterRecordsCache;
-  }
-
-  try {
-    const parsedCharacters = JSON.parse(serializedCharacters) as unknown;
-    storedCharacterRecordsCache = Array.isArray(parsedCharacters) ? parsedCharacters : [];
-
-    return storedCharacterRecordsCache;
-  } catch {
-    storedCharacterRecordsCache = [];
-    return storedCharacterRecordsCache;
-  }
+  return loadRawStoredCharacterRecords();
 }
 
 function saveStoredCharacterRecords(characters: unknown[]) {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  storedCharacterRecordsCache = characters;
-  window.localStorage.setItem(CHARACTERS_STORAGE_KEY, JSON.stringify(characters));
+  replaceRawStoredCharacterRecords(characters);
 }
 
 function getStoredCharacterId(character: unknown): number | null {
-  return getCharacterSheetRecordLocalId(character);
+  return getRawStoredCharacterId(character);
+}
+
+function createStoredPortableCharacterSheet(value: unknown): PortableCharacterSheet | null {
+  if (isPortableCharacterSheet(value)) {
+    return ensurePortableCharacterSheetSyncMetadata(value);
+  }
+
+  const character = normalizeCharacter(value);
+
+  return character
+    ? ensurePortableCharacterSheetSyncMetadata(createPortableCharacterSheet(character))
+    : null;
+}
+
+export function loadStoredPortableCharacterSheets() {
+  return loadStoredCharacterRecords()
+    .map((record) => createStoredPortableCharacterSheet(record))
+    .filter((record): record is PortableCharacterSheet => record !== null);
+}
+
+export function replaceStoredPortableCharacterSheets(characters: PortableCharacterSheet[]) {
+  saveStoredCharacterRecords(characters);
+}
+
+export function clearStoredCharacters() {
+  clearRawStoredCharacters();
+  clearCharacterRosterCache();
 }
 
 export function loadCharacters(): Character[] {
@@ -628,7 +650,9 @@ export function loadCharacters(): Character[] {
 }
 
 export function saveCharacters(characters: Character[]) {
-  saveStoredCharacterRecords(characters.map(createCharacterSheetRecordV2));
+  saveStoredCharacterRecords(
+    characters.map((character) => ensurePortableCharacterSheetSyncMetadata(createPortableCharacterSheet(character)))
+  );
 }
 
 export function upsertTrustedCharacter(character: Character): Character {
@@ -637,7 +661,22 @@ export function upsertTrustedCharacter(character: Character): Character {
   }
 
   const characters = loadStoredCharacterRecords();
-  const characterRecord = createCharacterSheetRecordV2(character);
+  const existingCharacterRecord = characters.find(
+    (entry) => getStoredCharacterId(entry) === character.id
+  );
+  const existingCharacter =
+    existingCharacterRecord === undefined ? null : normalizeCharacter(existingCharacterRecord);
+  const characterInput =
+    existingCharacter?.storageMetadata?.sync
+      ? {
+          ...character,
+          storageMetadata: {
+            ...(character.storageMetadata ?? {}),
+            sync: existingCharacter.storageMetadata.sync
+          }
+        }
+      : character;
+  const characterRecord = markPortableCharacterSheetDirty(createPortableCharacterSheet(characterInput));
   let didReplaceCharacter = false;
   const nextCharacters = characters.map((entry) => {
     if (getStoredCharacterId(entry) !== character.id) {
@@ -684,7 +723,8 @@ export function deleteCharacter(characterId: number): Character[] {
 
 export function upsertCharacter(
   draft: CharacterDraft | Omit<Character, "id">,
-  characterId?: number
+  characterId?: number,
+  options?: CharacterSaveOptions
 ): Character {
   const characters = loadStoredCharacterRecords();
   const nextId = characterId ?? Date.now();
@@ -714,7 +754,28 @@ export function upsertCharacter(
     nextCharacter = restoreHeroicInspirationForCharacter(nextCharacter);
   }
 
-  const nextCharacterRecord = createCharacterSheetRecordV2(nextCharacter);
+  if (previousCharacter?.storageMetadata) {
+    nextCharacter = {
+      ...nextCharacter,
+      storageMetadata: {
+        ...(nextCharacter.storageMetadata ?? {}),
+        ...(previousCharacter.storageMetadata.sync
+          ? { sync: previousCharacter.storageMetadata.sync }
+          : {})
+      }
+    };
+  }
+
+  const baseCharacterRecord = ensurePortableCharacterSheetSyncMetadata(
+    createPortableCharacterSheet(nextCharacter),
+    {
+      ownerId: options?.ownerId ?? nextCharacter.storageMetadata?.sync?.ownerId
+    }
+  );
+  const nextCharacterRecord =
+    characterId === undefined
+      ? baseCharacterRecord
+      : markPortableCharacterSheetDirty(baseCharacterRecord, options?.ownerId);
   const nextCharacters =
     characterId === undefined
       ? [nextCharacterRecord, ...characters]

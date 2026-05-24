@@ -11,7 +11,8 @@ import type {
   CharacterInventoryItem,
   CharacterRoundTracker,
   CharacterSpeciesChoices,
-  CharacterSpeciesFeatureState
+  CharacterSpeciesFeatureState,
+  CharacterSyncMetadata
 } from "./characters";
 import type { CharacterClassFeatureState } from "./classFeatures";
 import type { CharacterFeatEntry } from "./feats";
@@ -25,15 +26,15 @@ import type {
 } from "./proficiencies";
 import type { CharacterStatusEntry } from "./traits";
 
-export const CHARACTER_SHEET_RECORD_SCHEMA_VERSION = 2;
+export const PORTABLE_CHARACTER_SHEET_SCHEMA_VERSION = 2;
 
-export type CharacterSheetRecordV2Identity = {
+export type PortableCharacterSheetIdentity = {
   localId: number;
   name: string;
   alignment: Alignment;
 };
 
-export type CharacterSheetRecordV2Origin = {
+export type PortableCharacterSheetOrigin = {
   species: string;
   speciesChoices?: CharacterSpeciesChoices;
   background: string;
@@ -41,7 +42,7 @@ export type CharacterSheetRecordV2Origin = {
   backgroundNotes: string;
 };
 
-export type CharacterSheetRecordV2Progression = {
+export type PortableCharacterSheetProgression = {
   className: string;
   subclassId?: string;
   customClass?: CharacterCustomClassConfig;
@@ -49,12 +50,12 @@ export type CharacterSheetRecordV2Progression = {
   xp: number;
 };
 
-export type CharacterSheetRecordV2Abilities = {
+export type PortableCharacterSheetAbilities = {
   attributeMode: AttributeMode;
   scores: AbilityScores;
 };
 
-export type CharacterSheetRecordV2Vitals = {
+export type PortableCharacterSheetVitals = {
   maxHitPointsMode?: "automatic" | "custom";
   hitPoints: number;
   currentHitPoints: number;
@@ -66,25 +67,25 @@ export type CharacterSheetRecordV2Vitals = {
   deathSaves?: CharacterDeathSaves;
 };
 
-export type CharacterSheetRecordV2Resources = {
+export type PortableCharacterSheetResources = {
   heroicInspiration: boolean;
   shortRestsUsedToday?: number;
 };
 
-export type CharacterSheetRecordV2Spellcasting = {
+export type PortableCharacterSheetSpellcasting = {
   cantripIds?: string[];
   spellbookSpellIds?: string[];
   preparedSpellIds?: string[];
   spellSlotsExpended?: number[];
 };
 
-export type CharacterSheetRecordV2Features = {
+export type PortableCharacterSheetFeatures = {
   speciesFeatureState?: CharacterSpeciesFeatureState;
   classFeatureState?: CharacterClassFeatureState;
   feats?: CharacterFeatEntry[];
 };
 
-export type CharacterSheetRecordV2Proficiencies = {
+export type PortableCharacterSheetProficiencies = {
   skillProficiencies?: SkillProficiencyEntry[];
   savingThrowProficiencies?: SavingThrowProficiencyEntry[];
   weaponProficiencies?: WeaponProficiencyEntry[];
@@ -93,55 +94,56 @@ export type CharacterSheetRecordV2Proficiencies = {
   languageProficiencies?: LanguageProficiencyEntry[];
 };
 
-export type CharacterSheetRecordV2Inventory = {
+export type PortableCharacterSheetInventory = {
   currencies: CharacterCurrencies;
   items: CharacterInventoryItem[];
 };
 
-export type CharacterSheetRecordV2Companions = {
+export type PortableCharacterSheetCompanions = {
   entries: CharacterCompanion[];
 };
 
-export type CharacterSheetRecordV2Session = {
+export type PortableCharacterSheetSession = {
   roundTracker?: CharacterRoundTracker;
   statusEntries?: CharacterStatusEntry[];
 };
 
-export type CharacterSheetRecordV2Preferences = {
+export type PortableCharacterSheetPreferences = {
   armorClassFormulaSelection?: CharacterArmorClassFormulaSelection;
   hover?: boolean;
 };
 
-export type CharacterSheetRecordV2Metadata = {
+export type PortableCharacterSheetMetadata = {
   sheetSizeBytes: number;
+  sync?: CharacterSyncMetadata;
 };
 
-export type CharacterSheetRecordV2Summary = {
+export type PortableCharacterSheetSummary = {
   localId: number;
   name: string;
   species: string;
   className: string;
-  subclassId?: string;
+  subclassId?: string | null;
   level: number;
   background: string;
   sheetSizeBytes?: number;
 };
 
-export type CharacterSheetRecordV2 = {
-  schemaVersion: typeof CHARACTER_SHEET_RECORD_SCHEMA_VERSION;
-  identity: CharacterSheetRecordV2Identity;
-  origin: CharacterSheetRecordV2Origin;
-  progression: CharacterSheetRecordV2Progression;
-  abilities: CharacterSheetRecordV2Abilities;
-  vitals: CharacterSheetRecordV2Vitals;
-  resources: CharacterSheetRecordV2Resources;
-  spellcasting: CharacterSheetRecordV2Spellcasting;
-  features: CharacterSheetRecordV2Features;
-  proficiencies: CharacterSheetRecordV2Proficiencies;
-  inventory: CharacterSheetRecordV2Inventory;
-  companions: CharacterSheetRecordV2Companions;
-  session: CharacterSheetRecordV2Session;
-  preferences: CharacterSheetRecordV2Preferences;
-  summary: CharacterSheetRecordV2Summary;
-  metadata?: CharacterSheetRecordV2Metadata;
+export type PortableCharacterSheet = {
+  schemaVersion: typeof PORTABLE_CHARACTER_SHEET_SCHEMA_VERSION;
+  identity: PortableCharacterSheetIdentity;
+  origin: PortableCharacterSheetOrigin;
+  progression: PortableCharacterSheetProgression;
+  abilities: PortableCharacterSheetAbilities;
+  vitals: PortableCharacterSheetVitals;
+  resources: PortableCharacterSheetResources;
+  spellcasting: PortableCharacterSheetSpellcasting;
+  features: PortableCharacterSheetFeatures;
+  proficiencies: PortableCharacterSheetProficiencies;
+  inventory: PortableCharacterSheetInventory;
+  companions: PortableCharacterSheetCompanions;
+  session: PortableCharacterSheetSession;
+  preferences: PortableCharacterSheetPreferences;
+  summary: PortableCharacterSheetSummary;
+  metadata?: PortableCharacterSheetMetadata;
 };

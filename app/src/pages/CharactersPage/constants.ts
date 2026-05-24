@@ -34,7 +34,7 @@ export const alignmentOptions = alignmentGrid.flat();
 export const POINT_BUY_BUDGET = 27;
 export const CUSTOM_ABILITY_SCORE_MAX = 30;
 
-export const CHARACTERS_STORAGE_KEY = "arcane-ledger.characters";
+export { CHARACTERS_STORAGE_KEY } from "./storageKeys";
 
 const pointBuyCostByScore: Record<number, number> = {
   8: 0,

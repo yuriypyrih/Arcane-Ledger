@@ -10,7 +10,7 @@ import {
   Shield,
   Wrench
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import ActionButton from "../../components/ActionButton";
 import CharacterEmptyState from "../../components/CharactersPage/CharacterEmptyState";
@@ -20,13 +20,14 @@ import {
   getCharacterLimitForAuth,
   hasReachedCharacterLimit
 } from "../CharactersPage/characterLimits";
-import { loadCharacters } from "../CharactersPage/storage";
+import { useCharacterRosterEntries } from "../CharactersPage/useCharacterRosterEntries";
 import styles from "./HomePage.module.css";
 
 function HomePage() {
   const navigate = useNavigate();
-  const [characters] = useState(() => loadCharacters());
   const { status, user } = useAppSelector((state) => state.auth);
+  const ownerId = status === "authenticated" && user ? user.id : null;
+  const characters = useCharacterRosterEntries(ownerId);
   const characterLimit = getCharacterLimitForAuth(status, user?.role);
   const isCharacterLimitReached = hasReachedCharacterLimit(characters.length, characterLimit);
   const visibleCharacters = useMemo(() => characters.slice(0, 3), [characters]);

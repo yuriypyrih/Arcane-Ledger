@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { Character } from "../../../types";
 import { captureAppError } from "../../../lib/sentry";
 import {
@@ -6,6 +6,7 @@ import {
   normalizeCharacter,
   upsertTrustedCharacter
 } from "../storage";
+import { resolvePortableCharacterSheetForOpen } from "../resolvePortableCharacterSheet";
 import {
   commitActiveCharacterSheet,
   markActiveCharacterSheetPersisted,
@@ -27,7 +28,7 @@ import {
 import { measureCharacterRuntime } from "../characterRuntime/performance";
 
 const hitPointSaveDebounceMs = 150;
-const storageSaveDebounceMs = 300;
+const storageSaveDebounceMs = 1000;
 const storageIdleFlushTimeoutMs = 1000;
 
 type StorageIdleWindow = Window &
@@ -61,10 +62,15 @@ function loadCharacter(characterId: number): Character | null {
 export function useCharacterSheetPersistence(characterId: number) {
   const dispatch = useAppDispatch();
   const activeCharacter = useAppSelector((state) => state.activeCharacterSheet.activeCharacter);
+  const { status, user } = useAppSelector((state) => state.auth);
+  const ownerId = status === "authenticated" && user ? user.id : null;
   const initialCharacterRef = useRef<{ characterId: number; character: Character | null }>({
     characterId,
     character: loadCharacter(characterId)
   });
+  const [isLoadingCharacter, setIsLoadingCharacter] = useState(
+    () => initialCharacterRef.current.character === null
+  );
   const fallbackCharacter =
     initialCharacterRef.current.characterId === characterId
       ? initialCharacterRef.current.character
@@ -309,35 +315,125 @@ export function useCharacterSheetPersistence(characterId: number) {
       flushPendingSaves();
     }
 
+    function handleVisibilityChange() {
+      if (document.visibilityState === "hidden") {
+        flushPendingSaves();
+      }
+    }
+
     window.addEventListener("pagehide", handlePageHide);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       window.removeEventListener("pagehide", handlePageHide);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [flushPendingSaves]);
 
   useEffect(() => {
     flushPendingSaves();
 
-    const nextCharacter = loadCharacter(characterId);
+    if (!Number.isFinite(characterId) || characterId <= 0) {
+      initialCharacterRef.current = {
+        characterId,
+        character: null
+      };
+      characterRef.current = null;
+      pendingHitPointCharacterRef.current = null;
+      pendingStorageCharacterRef.current = null;
+      setIsLoadingCharacter(false);
+      dispatch(
+        setActiveCharacterSheet({
+          character: null,
+          characterId: null
+        })
+      );
+      return;
+    }
 
-    initialCharacterRef.current = {
-      characterId,
-      character: nextCharacter
-    };
-    characterRef.current = nextCharacter;
-    pendingHitPointCharacterRef.current = null;
-    pendingStorageCharacterRef.current = null;
-    dispatch(
-      setActiveCharacterSheet({
-        character: nextCharacter,
-        characterId: Number.isFinite(characterId) ? characterId : null
+    const localCharacter = loadCharacter(characterId);
+
+    if (status === "unknown") {
+      initialCharacterRef.current = {
+        characterId,
+        character: localCharacter
+      };
+      characterRef.current = localCharacter;
+      pendingHitPointCharacterRef.current = null;
+      pendingStorageCharacterRef.current = null;
+      setIsLoadingCharacter(localCharacter === null);
+      dispatch(
+        setActiveCharacterSheet({
+          character: localCharacter,
+          characterId
+        })
+      );
+      return;
+    }
+
+    let didCancel = false;
+
+    setIsLoadingCharacter(localCharacter === null);
+    void resolvePortableCharacterSheetForOpen(characterId, { ownerId })
+      .then((record) => {
+        if (didCancel) {
+          return;
+        }
+
+        const nextCharacter = record ? normalizeCharacter(record) : localCharacter;
+
+        initialCharacterRef.current = {
+          characterId,
+          character: nextCharacter
+        };
+        characterRef.current = nextCharacter;
+        pendingHitPointCharacterRef.current = null;
+        pendingStorageCharacterRef.current = null;
+        dispatch(
+          setActiveCharacterSheet({
+            character: nextCharacter,
+            characterId
+          })
+        );
       })
-    );
-  }, [characterId, dispatch, flushPendingSaves]);
+      .catch((error) => {
+        if (didCancel) {
+          return;
+        }
+
+        captureAppError(error, {
+          area: "character-persistence",
+          action: "resolve-open",
+          extra: {
+            characterId
+          }
+        });
+        initialCharacterRef.current = {
+          characterId,
+          character: localCharacter
+        };
+        characterRef.current = localCharacter;
+        dispatch(
+          setActiveCharacterSheet({
+            character: localCharacter,
+            characterId
+          })
+        );
+      })
+      .finally(() => {
+        if (!didCancel) {
+          setIsLoadingCharacter(false);
+        }
+      });
+
+    return () => {
+      didCancel = true;
+    };
+  }, [characterId, dispatch, flushPendingSaves, ownerId, status]);
 
   return {
     character,
+    isLoadingCharacter,
     persistCharacter,
     queueHitPointCharacterSave
   };

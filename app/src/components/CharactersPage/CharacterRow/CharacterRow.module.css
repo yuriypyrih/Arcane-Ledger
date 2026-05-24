@@ -121,6 +121,18 @@
   white-space: nowrap;
 }
 
+.syncPill {
+  border: 1px solid rgba(75, 47, 29, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.44);
+  color: var(--color-ink-soft);
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0.28rem 0.42rem;
+  white-space: nowrap;
+}
+
 .characterSide {
   display: inline-flex;
   align-items: center;

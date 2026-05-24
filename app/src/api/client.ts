@@ -238,6 +238,34 @@ export async function apiPatch<T>(
   );
 }
 
+export async function apiPut<T>(
+  path: string,
+  body: unknown,
+  options?: ApiRequestOptions
+): Promise<T> {
+  return apiRequest<T>(
+    path,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body)
+    },
+    options
+  );
+}
+
+export async function apiDelete<T>(path: string, options?: ApiRequestOptions): Promise<T> {
+  return apiRequest<T>(
+    path,
+    {
+      method: "DELETE"
+    },
+    options
+  );
+}
+
 export async function apiPutBlob<T>(
   path: string,
   blob: Blob,

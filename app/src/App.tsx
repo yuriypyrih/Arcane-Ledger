@@ -2,6 +2,8 @@ import { Suspense, lazy } from "react";
 import { LoaderCircle } from "lucide-react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import AuthSessionBootstrap from "./auth/AuthSessionBootstrap";
+import SentryUserBridge from "./auth/SentryUserBridge";
+import CharacterSyncBootstrap from "./characterSync/CharacterSyncBootstrap";
 import AppShell from "./components/AppShell";
 import styles from "./App.module.css";
 
@@ -52,6 +54,8 @@ function App() {
   return (
     <>
       <AuthSessionBootstrap />
+      <SentryUserBridge />
+      <CharacterSyncBootstrap />
       <Suspense fallback={<RouteFallback />}>
         <Routes>
           <Route element={<AppShell />}>

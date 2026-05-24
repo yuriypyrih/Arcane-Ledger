@@ -30,7 +30,7 @@ function CharacterSheetPage() {
   const { isBroadLayoutActive } = useOutletContext<AppShellOutletContext>();
   const parsedCharacterId = useMemo(() => Number(characterId), [characterId]);
   const [isCompanionCreatorOpen, setIsCompanionCreatorOpen] = useState(false);
-  const { character, persistCharacter, queueHitPointCharacterSave } =
+  const { character, isLoadingCharacter, persistCharacter, queueHitPointCharacterSave } =
     useCharacterSheetPersistence(parsedCharacterId);
   const hasSpellcastingSection = character ? hasSpellcastingForCharacter(character) : false;
   const companions = useMemo(() => character?.companions ?? [], [character?.companions]);
@@ -68,6 +68,21 @@ function CharacterSheetPage() {
     },
     [persistCharacter]
   );
+
+  if (!character && isLoadingCharacter) {
+    return (
+      <section className={pageClassName}>
+        <article className={styles.notFoundCard}>
+          <p className={styles.eyebrow}>Character sheet</p>
+          <h2>Loading character</h2>
+          <p>Preparing the selected sheet.</p>
+          <Link to="/characters" className={styles.primaryLink}>
+            Back to roster
+          </Link>
+        </article>
+      </section>
+    );
+  }
 
   if (!character) {
     return (

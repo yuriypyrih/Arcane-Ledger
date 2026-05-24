@@ -59,7 +59,7 @@ const characterSheetSummarySchema = new Schema<CharacterSheetSummaryRecord>(
       type: Number,
       required: true,
       min: 1,
-      max: 20,
+      max: 100,
       index: true
     },
     background: {

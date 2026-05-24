@@ -3,23 +3,29 @@ import { useId, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ActionButton from "../../ActionButton";
 import { DestructiveConfirmationModal } from "../../Overlay";
-import type { Character } from "../../../types";
+import type { CharacterRosterEntry } from "../../../pages/CharactersPage/characterRoster";
 import { hasReachedCharacterLimit } from "../../../pages/CharactersPage/characterLimits";
 import CharacterEmptyState from "../CharacterEmptyState";
 import CharacterRow from "../CharacterRow";
-import { downloadCharacterExport } from "./characterExport";
 import styles from "./CharacterList.module.css";
 
 type CharacterListProps = {
-  characters: Character[];
+  characters: CharacterRosterEntry[];
   characterLimit: number;
+  onDownloadCharacter: (character: CharacterRosterEntry) => void;
   onDeleteCharacter: (characterId: number) => void;
 };
 
-function CharacterList({ characters, characterLimit, onDeleteCharacter }: CharacterListProps) {
+function CharacterList({
+  characters,
+  characterLimit,
+  onDownloadCharacter,
+  onDeleteCharacter
+}: CharacterListProps) {
   const deleteTitleId = useId();
   const navigate = useNavigate();
-  const [pendingDeleteCharacter, setPendingDeleteCharacter] = useState<Character | null>(null);
+  const [pendingDeleteCharacter, setPendingDeleteCharacter] =
+    useState<CharacterRosterEntry | null>(null);
   const isCharacterLimitReached = hasReachedCharacterLimit(characters.length, characterLimit);
 
   function handleDeleteConfirm() {
@@ -66,7 +72,7 @@ function CharacterList({ characters, characterLimit, onDeleteCharacter }: Charac
             <li key={character.id}>
               <CharacterRow
                 character={character}
-                onDownload={downloadCharacterExport}
+                onDownload={onDownloadCharacter}
                 onDelete={setPendingDeleteCharacter}
               />
             </li>

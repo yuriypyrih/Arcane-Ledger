@@ -1,20 +1,40 @@
 import { Download, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
-import type { Character } from "../../../types";
+import type { CharacterRosterEntry } from "../../../pages/CharactersPage/characterRoster";
 import useCharacterPortraitUrl from "../../../pages/CharactersPage/characterPortraits/useCharacterPortraitUrl";
 import { DefaultCharacterPortraitIcon } from "../CharacterPortrait";
 import { getClassSignatureStyle } from "../classSignature";
 import styles from "./CharacterRow.module.css";
 
 type CharacterRowProps = {
-  character: Character;
-  onDownload?: (character: Character) => void;
-  onDelete?: (character: Character) => void;
+  character: CharacterRosterEntry;
+  onDownload?: (character: CharacterRosterEntry) => void;
+  onDelete?: (character: CharacterRosterEntry) => void;
 };
+
+function getSyncStatusLabel(character: CharacterRosterEntry) {
+  switch (character.syncStatus) {
+    case "local-only":
+      return "Local";
+    case "dirty":
+      return "Unsynced";
+    case "syncing":
+      return "Syncing";
+    case "deleting":
+      return "Deleting";
+    case "conflict":
+      return "Conflict";
+    case "error":
+      return "Sync error";
+    default:
+      return null;
+  }
+}
 
 function CharacterRow({ character, onDownload, onDelete }: CharacterRowProps) {
   const hasActions = Boolean(onDownload || onDelete);
   const { isLoading, portraitUrl } = useCharacterPortraitUrl(character.id);
+  const syncStatusLabel = getSyncStatusLabel(character);
 
   return (
     <article className={styles.row} style={getClassSignatureStyle(character.className)}>
@@ -38,6 +58,7 @@ function CharacterRow({ character, onDownload, onDelete }: CharacterRowProps) {
       </span>
       <span className={styles.characterSide}>
         <span className={styles.characterMeta}>Lv {character.level}</span>
+        {syncStatusLabel ? <span className={styles.syncPill}>{syncStatusLabel}</span> : null}
         {hasActions ? (
           <span className={styles.characterActions}>
             {onDownload ? (

@@ -1,0 +1,48 @@
+.modalPanel {
+  max-width: min(760px, calc(100vw - 32px));
+}
+
+.body {
+  gap: 18px;
+}
+
+.capacityBar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  color: var(--color-ink-soft);
+  font-size: 0.9rem;
+}
+
+.capacityPill {
+  border: 1px solid rgba(95, 63, 44, 0.24);
+  border-radius: 999px;
+  color: var(--color-ink);
+  padding: 4px 10px;
+}
+
+.recordList {
+  display: grid;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.warning {
+  border-left: 3px solid #b97025;
+  color: var(--color-ink-soft);
+  margin: 0;
+  padding-left: 12px;
+}
+
+.error {
+  color: #8d2f22;
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.footer {
+  display: block;
+}

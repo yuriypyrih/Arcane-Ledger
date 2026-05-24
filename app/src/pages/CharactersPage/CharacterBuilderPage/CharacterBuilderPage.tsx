@@ -1,8 +1,9 @@
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import CharacterForm from "../../../components/CharactersPage/CharacterForm";
+import { captureAppError } from "../../../lib/sentry";
 import { useAppSelector } from "../../../store";
-import type { CharacterDraft } from "../../../types";
+import type { Character, CharacterDraft } from "../../../types";
 import {
   getCharacterLimitForAuth,
   hasReachedCharacterLimit
@@ -15,22 +16,25 @@ import {
   getSelectedClassToolSelectionsFromEntries,
   getSavingThrowSelectionsFromEntries
 } from "../proficiency";
-import { loadCharacters, upsertCharacter } from "../storage";
+import { resolvePortableCharacterSheetForOpen } from "../resolvePortableCharacterSheet";
+import { normalizeCharacter, upsertCharacter } from "../storage";
+import { useCharacterRosterEntries } from "../useCharacterRosterEntries";
 import styles from "./CharacterBuilderPage.module.css";
 
 function CharacterBuilderPage() {
   const navigate = useNavigate();
   const { characterId } = useParams();
   const { status, user } = useAppSelector((state) => state.auth);
+  const ownerId = status === "authenticated" && user ? user.id : null;
   const characterLimit = getCharacterLimitForAuth(status, user?.role);
-  const characters = useMemo(() => loadCharacters(), []);
+  const characters = useCharacterRosterEntries(ownerId);
   const characterCount = characters.length;
   const parsedCharacterId = characterId ? Number(characterId) : undefined;
-  const existingCharacter =
-    parsedCharacterId !== undefined && Number.isFinite(parsedCharacterId)
-      ? characters.find((character) => character.id === parsedCharacterId)
-      : undefined;
-  const isEditing = existingCharacter !== undefined;
+  const [existingCharacter, setExistingCharacter] = useState<Character | null>(null);
+  const [existingCharacterLoadError, setExistingCharacterLoadError] = useState<string | null>(null);
+  const [isLoadingExistingCharacter, setIsLoadingExistingCharacter] =
+    useState(Boolean(parsedCharacterId));
+  const isEditing = existingCharacter !== null;
   const isCharacterLimitReached =
     !isEditing && hasReachedCharacterLimit(characterCount, characterLimit);
   const emptyCharacter = createEmptyCharacter();
@@ -91,17 +95,102 @@ function CharacterBuilderPage() {
         coreStats: existingCharacter.coreStats,
         armorClassFormulaSelection: existingCharacter.armorClassFormulaSelection,
         classFeatureState: existingCharacter.classFeatureState,
-        feats: existingCharacter.feats
+        feats: existingCharacter.feats,
+        storageMetadata: existingCharacter.storageMetadata
       }
     : emptyCharacter;
+
+  useEffect(() => {
+    if (parsedCharacterId === undefined || !Number.isFinite(parsedCharacterId)) {
+      setExistingCharacter(null);
+      setExistingCharacterLoadError(null);
+      setIsLoadingExistingCharacter(false);
+      return;
+    }
+
+    if (status === "unknown") {
+      setIsLoadingExistingCharacter(true);
+      return;
+    }
+
+    let didCancel = false;
+
+    setIsLoadingExistingCharacter(true);
+    setExistingCharacterLoadError(null);
+    void resolvePortableCharacterSheetForOpen(parsedCharacterId, { ownerId })
+      .then((record) => {
+        if (didCancel) {
+          return;
+        }
+
+        setExistingCharacter(record ? normalizeCharacter(record) : null);
+      })
+      .catch((error) => {
+        if (!didCancel) {
+          captureAppError(error, {
+            area: "characters",
+            action: "builder-load",
+            extra: {
+              localId: parsedCharacterId,
+              ownerId
+            }
+          });
+          setExistingCharacter(null);
+          setExistingCharacterLoadError("Unable to load character.");
+        }
+      })
+      .finally(() => {
+        if (!didCancel) {
+          setIsLoadingExistingCharacter(false);
+        }
+      });
+
+    return () => {
+      didCancel = true;
+    };
+  }, [ownerId, parsedCharacterId, status]);
 
   async function handleSave(draft: CharacterDraft) {
     if (isCharacterLimitReached) {
       return;
     }
 
-    const savedCharacter = upsertCharacter(draft, existingCharacter?.id);
+    const savedCharacter = upsertCharacter(draft, existingCharacter?.id, {
+      ownerId: status === "authenticated" ? user?.id : null
+    });
     navigate(existingCharacter ? "/characters" : `/characters/${savedCharacter.id}`);
+  }
+
+  if (characterId && isLoadingExistingCharacter) {
+    return (
+      <section className={styles.page}>
+        <div className={styles.noticeCard}>
+          <p className={styles.eyebrow}>Character forge</p>
+          <h2 className={styles.title}>Loading character</h2>
+          <p className={styles.description}>Preparing the selected sheet.</p>
+          <Link to="/characters" className={styles.primaryButton}>
+            Back to characters
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
+  if (characterId && existingCharacterLoadError) {
+    return (
+      <section className={styles.page}>
+        <div className={styles.noticeCard}>
+          <p className={styles.eyebrow}>Character forge</p>
+          <h2 className={styles.title}>Unable to load character</h2>
+          <p className={styles.description}>
+            The selected sheet could not be loaded. Your local and cloud copies were left unchanged.
+          </p>
+          <Link to="/characters" className={styles.primaryButton}>
+            Back to characters
+          </Link>
+        </div>
+      </section>
+    );
   }
 
   if (characterId && !existingCharacter) {

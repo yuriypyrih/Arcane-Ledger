@@ -1,5 +1,5 @@
-import type { Character } from "../../../types";
-import { createCharacterSheetRecordV2 } from "../../../pages/CharactersPage/characterSheetRecord";
+import type { Character, PortableCharacterSheet } from "../../../types";
+import { createPortableCharacterSheet } from "../../../pages/CharactersPage/portableCharacterSheet";
 
 const invalidFilenameCharacterPattern = /[<>:"/\\|?*]/g;
 const leadingOrTrailingDotsPattern = /^\.+|\.+$/g;
@@ -26,13 +26,33 @@ export function createCharacterExportFilename(
   return `${characterName}-${className}-${character.level}.json`;
 }
 
+export function downloadPortableCharacterSheetExport(record: PortableCharacterSheet) {
+  if (typeof document === "undefined" || typeof URL === "undefined") {
+    return;
+  }
+
+  const objectUrl = URL.createObjectURL(
+    new Blob([JSON.stringify(record, null, 2)], {
+      type: "application/json"
+    })
+  );
+  const downloadLink = document.createElement("a");
+
+  downloadLink.href = objectUrl;
+  downloadLink.download = createCharacterExportFilename(record.summary);
+  document.body.append(downloadLink);
+  downloadLink.click();
+  downloadLink.remove();
+  URL.revokeObjectURL(objectUrl);
+}
+
 export function downloadCharacterExport(character: Character) {
   if (typeof document === "undefined" || typeof URL === "undefined") {
     return;
   }
 
   const objectUrl = URL.createObjectURL(
-    new Blob([JSON.stringify(createCharacterSheetRecordV2(character), null, 2)], {
+    new Blob([JSON.stringify(createPortableCharacterSheet(character), null, 2)], {
       type: "application/json"
     })
   );
