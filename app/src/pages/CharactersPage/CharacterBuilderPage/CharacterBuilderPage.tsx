@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import CharacterForm from "../../../components/CharactersPage/CharacterForm";
+import { trackAnalyticsEvent } from "../../../lib/analytics";
 import { captureAppError } from "../../../lib/sentry";
 import { useAppSelector } from "../../../store";
 import type { Character, CharacterDraft } from "../../../types";
@@ -158,6 +159,17 @@ function CharacterBuilderPage() {
     const savedCharacter = upsertCharacter(draft, existingCharacter?.id, {
       ownerId: status === "authenticated" ? user?.id : null
     });
+
+    if (!existingCharacter) {
+      trackAnalyticsEvent("character_created", {
+        props: {
+          className: savedCharacter.className,
+          level: savedCharacter.level,
+          species: savedCharacter.species
+        }
+      });
+    }
+
     navigate(existingCharacter ? "/characters" : `/characters/${savedCharacter.id}`);
   }
 

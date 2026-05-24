@@ -1,17 +1,7 @@
 import { showToast, store } from "../store";
+import { getApiBaseUrl } from "./baseUrl";
 import { addAppBreadcrumb, captureAppError } from "../lib/sentry";
-
-function getApiBaseUrl() {
-  const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
-  if (!configuredBaseUrl) {
-    return null;
-  }
-
-  const baseUrl = configuredBaseUrl;
-  const normalizedBaseUrl = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
-
-  return new URL(normalizedBaseUrl, globalThis.location.origin);
-}
+import { trackApiClientFailure } from "../lib/analytics";
 
 export type ApiRequestOptions = {
   signal?: AbortSignal;
@@ -122,6 +112,10 @@ function captureApiFailure(
       requestUrl,
       status
     }
+  });
+  trackApiClientFailure({
+    path,
+    status
   });
 }
 

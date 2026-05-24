@@ -28,3 +28,21 @@ export const requireAuth: RequestHandler = (
     })
     .catch(next);
 };
+
+export const requireAdmin: RequestHandler = (
+  _request: Request,
+  response: Response<unknown, Partial<AuthenticatedLocals>>,
+  next: NextFunction
+) => {
+  if (!response.locals.authUser) {
+    next(new AppError("Authentication is required.", 401, "AUTH_REQUIRED"));
+    return;
+  }
+
+  if (response.locals.authUser.role !== "admin") {
+    next(new AppError("Admin access is required.", 403, "ADMIN_REQUIRED"));
+    return;
+  }
+
+  next();
+};

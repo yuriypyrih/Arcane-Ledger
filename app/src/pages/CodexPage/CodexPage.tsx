@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import CodexFilters from "../../components/CodexPage/CodexFilters";
 import CodexDisclosureList from "../../components/CodexPage/CodexDisclosureList";
@@ -8,6 +8,7 @@ import ItemCodexTable from "../../components/CodexPage/ItemCodexTable";
 import { sanitizeItemBrowserScopedFilters } from "../../components/ItemBrowser/itemBrowser";
 import MonsterCodexTable from "../../components/CodexPage/MonsterCodexTable";
 import CodexSpellDrawer from "../../components/CodexPage/CodexSpellDrawer";
+import { trackAnalyticsEvent } from "../../lib/analytics";
 import { MONSTER_SOURCE_OPTIONS, MONSTER_TYPE_OPTIONS } from "../../constants/monsters";
 import {
   CODEX_FEATS_CATEGORY,
@@ -73,6 +74,7 @@ function CodexPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedSpell, setSelectedSpell] = useState<SpellEntry | null>(null);
   const [searchResetSignal, setSearchResetSignal] = useState(0);
+  const trackedSearchKeys = useRef(new Set<string>());
   const categories = getCodexCategories();
   const {
     category,
@@ -224,6 +226,34 @@ function CodexPage() {
     searchParams,
     setSearchParams
   ]);
+
+  useEffect(() => {
+    const trimmedQuery = query.trim();
+
+    if (trimmedQuery.length < 2 || trackedSearchKeys.current.size >= 50) {
+      return undefined;
+    }
+
+    const trackingKey = `${category}:${trimmedQuery.toLowerCase()}`;
+
+    if (trackedSearchKeys.current.has(trackingKey)) {
+      return undefined;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      trackedSearchKeys.current.add(trackingKey);
+      trackAnalyticsEvent("codex_search_submitted", {
+        props: {
+          category,
+          queryLength: trimmedQuery.length
+        }
+      });
+    }, 1500);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+    };
+  }, [category, query]);
 
   useEffect(() => {
     if (category === ENTRY_CATEGORIES.SPELLS) {

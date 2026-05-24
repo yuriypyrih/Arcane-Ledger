@@ -5,6 +5,7 @@ import { submitSupportFeedback } from "../../api/support";
 import { ApiRequestFailedError } from "../../api/client";
 import ActionButton from "../../components/ActionButton";
 import TextAreaInput from "../../components/CharactersPage/FormInputs/TextAreaInput";
+import { trackAnalyticsEvent } from "../../lib/analytics";
 import { setAuthenticatedUser, showToast, useAppDispatch, useAppSelector } from "../../store";
 import { getApiErrorMessage } from "./authPageUtils";
 import styles from "./AuthPages.module.css";
@@ -110,6 +111,7 @@ function SupportPage() {
           type: "success"
         })
       );
+      trackAnalyticsEvent("support_feedback_submitted");
       setContent("");
       setMessage(response.message);
       setNow(Date.now());

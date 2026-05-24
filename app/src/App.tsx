@@ -5,9 +5,11 @@ import PreferencesSyncBootstrap from "./auth/PreferencesSyncBootstrap";
 import SentryUserBridge from "./auth/SentryUserBridge";
 import CharacterSyncBootstrap from "./characterSync/CharacterSyncBootstrap";
 import AppShell from "./components/AppShell";
+import AnalyticsBootstrap from "./lib/AnalyticsBootstrap";
 import PageLoadingFallback from "./components/PageLoadingFallback";
 
 const AccountPage = lazy(() => import("./pages/AuthPages/AccountPage"));
+const AnalyticsPage = lazy(() => import("./pages/AuthPages/AnalyticsPage"));
 const CharacterBuilderPage = lazy(() => import("./pages/CharactersPage/CharacterBuilderPage"));
 const CharacterSheetPage = lazy(() => import("./pages/CharactersPage/CharacterSheetPage"));
 const CharactersPage = lazy(() => import("./pages/CharactersPage"));
@@ -46,11 +48,13 @@ function App() {
       <PreferencesSyncBootstrap />
       <SentryUserBridge />
       <CharacterSyncBootstrap />
+      <AnalyticsBootstrap />
       <Suspense fallback={<PageLoadingFallback />}>
         <Routes>
           <Route element={<AppShell />}>
             <Route index element={<HomePage />} />
             <Route path="/account" element={<AccountPage />} />
+            <Route path="/analytics" element={<AnalyticsPage />} />
             <Route path="/support" element={<SupportPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />

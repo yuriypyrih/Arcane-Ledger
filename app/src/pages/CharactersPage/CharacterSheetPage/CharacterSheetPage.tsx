@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useOutletContext, useParams } from "react-router-dom";
 import { ThumbDiceButton } from "../../../components/CharactersPage/CharacterSheetPage";
 import CompanionEditorModal from "../../../components/CharactersPage/CharacterSheetPage/CompanionsSection/CompanionEditorModal";
@@ -8,6 +8,7 @@ import {
 } from "../../../components/CharactersPage/CharacterSheetPage/CompanionsSection/companionPersistence";
 import { getClassSignatureStyle } from "../../../components/CharactersPage/classSignature";
 import type { AppShellOutletContext } from "../../../components/AppShell/outletContext";
+import { trackAnalyticsEvent } from "../../../lib/analytics";
 import PageLoadingFallback from "../../../components/PageLoadingFallback";
 import type { CharacterCompanion } from "../../../types";
 import { CHARACTER_COMPANION_LIMIT } from "../companions";
@@ -33,6 +34,7 @@ function CharacterSheetPage() {
   const [isCompanionCreatorOpen, setIsCompanionCreatorOpen] = useState(false);
   const { character, isLoadingCharacter, persistCharacter, queueHitPointCharacterSave } =
     useCharacterSheetPersistence(parsedCharacterId);
+  const trackedCharacterOpenId = useRef<number | null>(null);
   const hasSpellcastingSection = character ? hasSpellcastingForCharacter(character) : false;
   const companions = useMemo(() => character?.companions ?? [], [character?.companions]);
   const isCompanionLimitReached = companions.length >= CHARACTER_COMPANION_LIMIT;
@@ -69,6 +71,21 @@ function CharacterSheetPage() {
     },
     [persistCharacter]
   );
+
+  useEffect(() => {
+    if (!character || trackedCharacterOpenId.current === character.id) {
+      return;
+    }
+
+    trackedCharacterOpenId.current = character.id;
+    trackAnalyticsEvent("character_sheet_opened", {
+      props: {
+        className: character.className,
+        level: character.level,
+        species: character.species
+      }
+    });
+  }, [character]);
 
   if (!character && isLoadingCharacter) {
     return <PageLoadingFallback />;

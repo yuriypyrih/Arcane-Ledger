@@ -1,5 +1,6 @@
 import {
   AlertCircle,
+  BarChart3,
   CheckCircle2,
   Cloud,
   CloudOff,
@@ -163,6 +164,11 @@ function PrimaryNav({
     navigate("/support");
   }
 
+  function handleAnalytics() {
+    setAccountMenuOpen(false);
+    navigate("/analytics");
+  }
+
   return (
     <nav className={styles.nav} aria-label="Primary">
       <div className={styles.leftCluster}>
@@ -272,6 +278,17 @@ function PrimaryNav({
                   <LifeBuoy size={15} aria-hidden="true" />
                   <span>Support</span>
                 </button>
+                {user?.role === "admin" ? (
+                  <button
+                    type="button"
+                    className={styles.accountMenuItem}
+                    role="menuitem"
+                    onClick={handleAnalytics}
+                  >
+                    <BarChart3 size={15} aria-hidden="true" />
+                    <span>Analytics</span>
+                  </button>
+                ) : null}
               </div>
             ) : null}
           </div>

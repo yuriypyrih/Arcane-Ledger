@@ -16,9 +16,12 @@ function readBlobDataUrl(blob: Blob): Promise<string> {
     const reader = new FileReader();
 
     reader.onload = () => {
-      typeof reader.result === "string"
-        ? resolve(reader.result)
-        : reject(new Error("Unable to read portrait image."));
+      if (typeof reader.result === "string") {
+        resolve(reader.result);
+        return;
+      }
+
+      reject(new Error("Unable to read portrait image."));
     };
     reader.onerror = () => {
       reject(reader.error ?? new Error("Unable to read portrait image."));
