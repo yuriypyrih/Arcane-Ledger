@@ -1,6 +1,7 @@
 import { Suspense, lazy } from "react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import AuthSessionBootstrap from "./auth/AuthSessionBootstrap";
+import PreferencesSyncBootstrap from "./auth/PreferencesSyncBootstrap";
 import SentryUserBridge from "./auth/SentryUserBridge";
 import CharacterSyncBootstrap from "./characterSync/CharacterSyncBootstrap";
 import AppShell from "./components/AppShell";
@@ -41,6 +42,7 @@ function App() {
   return (
     <>
       <AuthSessionBootstrap />
+      <PreferencesSyncBootstrap />
       <SentryUserBridge />
       <CharacterSyncBootstrap />
       <Suspense fallback={<PageLoadingFallback />}>

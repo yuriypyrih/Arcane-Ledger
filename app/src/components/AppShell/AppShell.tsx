@@ -3,6 +3,7 @@ import { Outlet, useMatch } from "react-router-dom";
 import { useMediaQuery } from "../../lib/useMediaQuery";
 import {
   getBroadLayoutPreference,
+  PREFERENCES_CHANGED_EVENT,
   updateBroadLayoutPreference
 } from "../../storage/preferences";
 import { MEDIA_QUERIES } from "../../styles/breakpoints";
@@ -43,6 +44,22 @@ function AppShell() {
       document.documentElement.classList.remove(BROAD_LAYOUT_LG_COMPACT_CLASS);
     };
   }, [useLgCompactScale]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+
+    function syncBroadLayoutPreference() {
+      setBroadLayout(getBroadLayoutPreference());
+    }
+
+    window.addEventListener(PREFERENCES_CHANGED_EVENT, syncBroadLayoutPreference);
+
+    return () => {
+      window.removeEventListener(PREFERENCES_CHANGED_EVENT, syncBroadLayoutPreference);
+    };
+  }, []);
 
   function toggleBroadLayout() {
     const nextBroadLayout = !broadLayout;

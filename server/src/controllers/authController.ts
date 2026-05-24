@@ -9,7 +9,14 @@ import { clearAuthCookie, setAuthCookie } from "../services/authCookieService.js
 import { sendAuthEmail } from "../services/authEmailService.js";
 import { createExpiringToken, hashToken, signAuthToken } from "../services/authTokenService.js";
 import { serializeAuthUser } from "../services/authUserService.js";
+import {
+  defaultUserPreferences,
+  ensureUserPreferences,
+  mergeUserPreferences,
+  normalizeUserPreferences
+} from "../services/userPreferencesService.js";
 import type { AuthMessageEnvelope, AuthUserEnvelope } from "../types/auth.js";
+import type { UserPreferencesEnvelope } from "../types/preferences.js";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_MIN_LENGTH = 8;
@@ -181,6 +188,7 @@ export const register = asyncHandler(async (request: Request, response: Response
     email,
     role: "user",
     passwordHash: await createPasswordHash(password),
+    preferences: { ...defaultUserPreferences },
     emailVerificationTokenHash: verificationToken.tokenHash,
     emailVerificationTokenExpiresAt: verificationToken.expiresAt
   });
@@ -240,6 +248,32 @@ export const getCurrentUser = asyncHandler(
   async (_request: Request, response: Response<AuthUserEnvelope, AuthenticatedLocals>) => {
     response.json({
       user: serializeAuthUser(response.locals.authUser)
+    });
+  }
+);
+
+export const getUserPreferences = asyncHandler(
+  async (_request: Request, response: Response<UserPreferencesEnvelope, AuthenticatedLocals>) => {
+    response.json({
+      preferences: await ensureUserPreferences(response.locals.authUser)
+    });
+  }
+);
+
+export const updateUserPreferences = asyncHandler(
+  async (request: Request, response: Response<UserPreferencesEnvelope, AuthenticatedLocals>) => {
+    if (!isObjectRecord(request.body)) {
+      throw new AppError("Request body must be a JSON object.", 400, "INVALID_PREFERENCES_INPUT");
+    }
+
+    const user = response.locals.authUser;
+    const preferences = mergeUserPreferences(user.preferences, request.body);
+
+    user.preferences = preferences;
+    await user.save({ validateModifiedOnly: true });
+
+    response.json({
+      preferences: normalizeUserPreferences(user.preferences)
     });
   }
 );

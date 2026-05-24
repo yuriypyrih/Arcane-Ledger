@@ -1,6 +1,7 @@
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import {
   getDiceRollerBehaviorPreference,
+  PREFERENCES_CHANGED_EVENT,
   updateDiceRollerBehaviorPreference,
   type DiceRollerBehaviorPreference
 } from "../../../../../storage/preferences";
@@ -96,6 +97,22 @@ function DiceRollerSettingsModal({ onClose }: DiceRollerSettingsModalProps) {
     getDiceRollerBehaviorPreference()
   );
   const selectedOverrideValue = nextRollCriticalHitOverride ? "critical_hit" : nextRollModeOverride;
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined;
+    }
+
+    function syncBehaviorPreference() {
+      setBehavior(getDiceRollerBehaviorPreference());
+    }
+
+    window.addEventListener(PREFERENCES_CHANGED_EVENT, syncBehaviorPreference);
+
+    return () => {
+      window.removeEventListener(PREFERENCES_CHANGED_EVENT, syncBehaviorPreference);
+    };
+  }, []);
 
   function selectBehavior(nextBehavior: DiceRollerBehaviorPreference) {
     setBehavior(nextBehavior);

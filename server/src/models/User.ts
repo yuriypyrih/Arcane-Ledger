@@ -1,5 +1,7 @@
 import { Schema, model, type HydratedDocument } from "mongoose";
 import { USER_ROLES, type UserRole } from "../types/auth.js";
+import type { UserPreferences } from "../types/preferences.js";
+import { defaultUserPreferences } from "../services/userPreferencesService.js";
 
 export type UserRecord = {
   email: string;
@@ -11,6 +13,7 @@ export type UserRecord = {
   passwordResetTokenHash?: string;
   passwordResetExpiresAt?: Date;
   passwordChangedAt?: Date | null;
+  preferences?: UserPreferences;
   active: boolean;
   createdAt?: Date;
   updatedAt?: Date;
@@ -19,6 +22,25 @@ export type UserRecord = {
 export type UserDocument = HydratedDocument<UserRecord>;
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const userPreferencesSchema = new Schema<UserPreferences>(
+  {
+    diceRollerBehavior: {
+      type: String,
+      enum: ["full_manual", "manual_with_roller", "full_auto"],
+      default: defaultUserPreferences.diceRollerBehavior,
+      required: true
+    },
+    broadLayout: {
+      type: Boolean,
+      default: defaultUserPreferences.broadLayout,
+      required: true
+    }
+  },
+  {
+    _id: false
+  }
+);
 
 const userSchema = new Schema<UserRecord>(
   {
@@ -70,6 +92,11 @@ const userSchema = new Schema<UserRecord>(
     passwordChangedAt: {
       type: Date,
       default: null
+    },
+    preferences: {
+      type: userPreferencesSchema,
+      default: () => ({ ...defaultUserPreferences }),
+      required: true
     },
     active: {
       type: Boolean,

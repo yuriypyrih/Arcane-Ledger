@@ -1,5 +1,6 @@
 import { apiGet, apiPatch, apiPost, type ApiRequestOptions } from "./client";
 import type { AuthMessageEnvelope, AuthUserEnvelope } from "../types/auth";
+import type { Preferences, PreferencesEnvelope } from "../types/preferences";
 
 export type AuthCredentials = {
   email: string;
@@ -25,6 +26,17 @@ export function logout(options?: ApiRequestOptions) {
 
 export function getCurrentUser(options?: ApiRequestOptions) {
   return apiGet<AuthUserEnvelope>("/auth/me", options);
+}
+
+export function getUserPreferences(options?: ApiRequestOptions) {
+  return apiGet<PreferencesEnvelope>("/auth/preferences", options);
+}
+
+export function saveUserPreferences(
+  preferences: Partial<Preferences>,
+  options?: ApiRequestOptions
+) {
+  return apiPatch<PreferencesEnvelope>("/auth/preferences", preferences, options);
 }
 
 export function verifyEmail(token: string, options?: ApiRequestOptions) {

@@ -1,18 +1,80 @@
 import { isObjectRecord, normalizeBoolean } from "../utils/normalize";
+import type { DiceRollerBehaviorPreference, Preferences } from "../types/preferences";
 
-export type DiceRollerBehaviorPreference = "full_manual" | "manual_with_roller" | "full_auto";
-
-export type Preferences = {
-  diceRollerBehavior: DiceRollerBehaviorPreference;
-  broadLayout: boolean;
-};
+export type { DiceRollerBehaviorPreference, Preferences } from "../types/preferences";
 
 const PREFERENCES_STORAGE_KEY = "arcane-ledger.preferences";
+export const PREFERENCES_CHANGED_EVENT = "arcane-ledger:preferences-changed";
 
 const defaultPreferences: Preferences = {
   diceRollerBehavior: "full_auto",
   broadLayout: false
 };
+
+type PreferenceRemoteSave = (preferences: Preferences) => Promise<void> | void;
+type PreferenceRemoteSaveErrorHandler = (error: unknown) => void;
+
+let remotePreferenceSave: PreferenceRemoteSave | null = null;
+let remotePreferenceSaveErrorHandler: PreferenceRemoteSaveErrorHandler | null = null;
+let remoteSaveInFlight = false;
+let queuedRemotePreferences: Preferences | null = null;
+
+function dispatchPreferencesChanged(preferences: Preferences) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.dispatchEvent(
+    new CustomEvent(PREFERENCES_CHANGED_EVENT, {
+      detail: {
+        preferences
+      }
+    })
+  );
+}
+
+async function flushQueuedRemotePreferences() {
+  if (!remotePreferenceSave || remoteSaveInFlight || !queuedRemotePreferences) {
+    return;
+  }
+
+  const preferences = queuedRemotePreferences;
+  queuedRemotePreferences = null;
+  remoteSaveInFlight = true;
+
+  try {
+    await remotePreferenceSave(preferences);
+  } catch (error) {
+    remotePreferenceSaveErrorHandler?.(error);
+  } finally {
+    remoteSaveInFlight = false;
+  }
+
+  if (queuedRemotePreferences) {
+    void flushQueuedRemotePreferences();
+  }
+}
+
+function queueRemotePreferencesSave(preferences: Preferences) {
+  if (!remotePreferenceSave) {
+    return;
+  }
+
+  queuedRemotePreferences = preferences;
+  void flushQueuedRemotePreferences();
+}
+
+export function configureRemotePreferencesSave(
+  save: PreferenceRemoteSave | null,
+  onError?: PreferenceRemoteSaveErrorHandler
+) {
+  remotePreferenceSave = save;
+  remotePreferenceSaveErrorHandler = onError ?? null;
+
+  if (!save) {
+    queuedRemotePreferences = null;
+  }
+}
 
 function normalizeDiceRollerBehaviorPreference(value: unknown): DiceRollerBehaviorPreference {
   if (value === "full_manual" || value === "manual_with_roller" || value === "full_auto") {
@@ -22,7 +84,7 @@ function normalizeDiceRollerBehaviorPreference(value: unknown): DiceRollerBehavi
   return defaultPreferences.diceRollerBehavior;
 }
 
-function normalizePreferences(value: unknown): Preferences {
+export function normalizePreferences(value: unknown): Preferences {
   if (!isObjectRecord(value)) {
     return defaultPreferences;
   }
@@ -63,15 +125,32 @@ export function loadPreferences(): Preferences {
   }
 }
 
-export function savePreferences(preferences: Preferences) {
+export function savePreferences(preferences: Preferences, options?: { syncRemote?: boolean }) {
+  const normalizedPreferences = normalizePreferences(preferences);
+
   if (typeof window === "undefined") {
+    if (options?.syncRemote !== false) {
+      queueRemotePreferencesSave(normalizedPreferences);
+    }
     return;
   }
 
   window.localStorage.setItem(
     PREFERENCES_STORAGE_KEY,
-    JSON.stringify(normalizePreferences(preferences))
+    JSON.stringify(normalizedPreferences)
   );
+  dispatchPreferencesChanged(normalizedPreferences);
+
+  if (options?.syncRemote !== false) {
+    queueRemotePreferencesSave(normalizedPreferences);
+  }
+}
+
+export function replaceLocalPreferences(preferences: Preferences): Preferences {
+  const normalizedPreferences = normalizePreferences(preferences);
+
+  savePreferences(normalizedPreferences, { syncRemote: false });
+  return normalizedPreferences;
 }
 
 export function updatePreferences(partialPreferences: Partial<Preferences>): Preferences {

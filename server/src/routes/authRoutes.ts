@@ -4,11 +4,13 @@ import {
   changePassword,
   forgotPassword,
   getCurrentUser,
+  getUserPreferences,
   login,
   logout,
   register,
   resendEmailVerification,
   resetPassword,
+  updateUserPreferences,
   verifyEmail
 } from "../controllers/authController.js";
 import { requireAuth } from "../middleware/authMiddleware.js";
@@ -31,6 +33,8 @@ const authWriteRateLimit = rateLimit({
 const authRoutes = Router();
 
 authRoutes.get("/me", requireAuth, getCurrentUser);
+authRoutes.get("/preferences", requireAuth, getUserPreferences);
+authRoutes.patch("/preferences", requireAuth, updateUserPreferences);
 authRoutes.post("/register", authWriteRateLimit, register);
 authRoutes.post("/login", authWriteRateLimit, login);
 authRoutes.post("/logout", logout);
