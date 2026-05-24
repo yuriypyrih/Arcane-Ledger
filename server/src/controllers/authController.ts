@@ -22,7 +22,7 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_MIN_LENGTH = 8;
 const PASSWORD_MAX_LENGTH = 128;
 const REGISTER_ACCEPTED_MESSAGE =
-  "If this email can be registered, a verification email will be sent.";
+  "If this email can be registered, a verification email will be sent. Please check your inbox and your junk mail just to be sure.";
 const RESEND_VERIFICATION_ACCEPTED_MESSAGE =
   "If this email belongs to an unverified account, a verification email will be sent.";
 const FORGOT_PASSWORD_ACCEPTED_MESSAGE =
