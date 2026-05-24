@@ -1,9 +1,14 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { uploadCharacterPortrait } from "../../../../api/characterPortraits";
+import { useCallback, useEffect, useState } from "react";
+import {
+  deleteCharacterPortrait,
+  uploadCharacterPortrait,
+  type CharacterPortraitMutationResponse
+} from "../../../../api/characterPortraits";
 import {
   type CharacterPortraitCropSettings,
   cropAndScaleImageFile
 } from "../../../../pages/CharactersPage/characterPortraits";
+import type { CharacterSheetSyncPayload } from "../../../../api/characters";
 
 function getPortraitErrorMessage(error: unknown): string {
   return error instanceof Error && error.message.length > 0
@@ -12,95 +17,83 @@ function getPortraitErrorMessage(error: unknown): string {
 }
 
 type UseCharacterPortraitOptions = {
+  characterSheetId: string | null;
+  createSyncPayload?: () => CharacterSheetSyncPayload | null;
+  initialPortraitUrl: string | null;
   isUploadEnabled: boolean;
+  onMutationComplete: (response: CharacterPortraitMutationResponse) => void;
 };
 
-function useCharacterPortrait(
-  characterId: number,
-  { isUploadEnabled }: UseCharacterPortraitOptions
-) {
-  const [portraitUrl, setPortraitUrl] = useState<string | null>(null);
-  const [hasCustomPortrait, setHasCustomPortrait] = useState(false);
+function useCharacterPortrait({
+  characterSheetId,
+  createSyncPayload,
+  initialPortraitUrl,
+  isUploadEnabled,
+  onMutationComplete
+}: UseCharacterPortraitOptions) {
+  const [portraitUrl, setPortraitUrl] = useState<string | null>(initialPortraitUrl);
+  const [hasCustomPortrait, setHasCustomPortrait] = useState(Boolean(initialPortraitUrl));
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const objectUrlRef = useRef<string | null>(null);
-  const portraitMutationIdRef = useRef(0);
 
-  const setPortraitBlob = useCallback((blob: Blob | null) => {
-    if (objectUrlRef.current) {
-      URL.revokeObjectURL(objectUrlRef.current);
-      objectUrlRef.current = null;
-    }
-
-    if (!blob) {
-      setPortraitUrl(null);
-      return;
-    }
-
-    const nextPortraitUrl = URL.createObjectURL(blob);
-
-    objectUrlRef.current = nextPortraitUrl;
-    setPortraitUrl(nextPortraitUrl);
-  }, []);
-
-  useEffect(
-    () => () => {
-      if (objectUrlRef.current) {
-        URL.revokeObjectURL(objectUrlRef.current);
-        objectUrlRef.current = null;
-      }
-    },
-    []
-  );
+  useEffect(() => {
+    setPortraitUrl(initialPortraitUrl);
+    setHasCustomPortrait(Boolean(initialPortraitUrl));
+  }, [initialPortraitUrl]);
 
   const savePortraitFile = useCallback(
     async (file: File, crop?: Partial<CharacterPortraitCropSettings>) => {
-      const mutationId = portraitMutationIdRef.current + 1;
-
-      if (!isUploadEnabled) {
+      if (!isUploadEnabled || !characterSheetId) {
         setErrorMessage("Avatar uploads are temporarily unavailable.");
         return false;
       }
 
-      portraitMutationIdRef.current = mutationId;
       setIsSaving(true);
       setErrorMessage(null);
 
       try {
         const portrait = await cropAndScaleImageFile(file, { crop });
+        const response = await uploadCharacterPortrait(characterSheetId, portrait.blob, {
+          syncPayload: createSyncPayload?.() ?? null
+        });
+        const nextPortraitUrl = response.avatar?.imageUrl ?? null;
 
-        await uploadCharacterPortrait(characterId, portrait.blob);
-
-        if (mutationId !== portraitMutationIdRef.current) {
-          return false;
-        }
-
-        setPortraitBlob(portrait.blob);
-        setHasCustomPortrait(true);
+        onMutationComplete(response);
+        setPortraitUrl(nextPortraitUrl);
+        setHasCustomPortrait(Boolean(nextPortraitUrl));
         return true;
       } catch (error: unknown) {
-        if (mutationId === portraitMutationIdRef.current) {
-          setErrorMessage(getPortraitErrorMessage(error));
-        }
+        setErrorMessage(getPortraitErrorMessage(error));
         return false;
       } finally {
-        if (mutationId === portraitMutationIdRef.current) {
-          setIsSaving(false);
-        }
+        setIsSaving(false);
       }
     },
-    [characterId, isUploadEnabled, setPortraitBlob]
+    [characterSheetId, createSyncPayload, isUploadEnabled, onMutationComplete]
   );
 
-  const resetPortrait = useCallback(() => {
-    const mutationId = portraitMutationIdRef.current + 1;
+  const resetPortrait = useCallback(async () => {
+    if (!characterSheetId) {
+      return;
+    }
 
-    portraitMutationIdRef.current = mutationId;
+    setIsSaving(true);
     setErrorMessage(null);
 
-    setPortraitBlob(null);
-    setHasCustomPortrait(false);
-  }, [setPortraitBlob]);
+    try {
+      const response = await deleteCharacterPortrait(characterSheetId, {
+        syncPayload: createSyncPayload?.() ?? null
+      });
+
+      onMutationComplete(response);
+      setPortraitUrl(null);
+      setHasCustomPortrait(false);
+    } catch (error: unknown) {
+      setErrorMessage(getPortraitErrorMessage(error));
+    } finally {
+      setIsSaving(false);
+    }
+  }, [characterSheetId, createSyncPayload, onMutationComplete]);
 
   const clearError = useCallback(() => {
     setErrorMessage(null);

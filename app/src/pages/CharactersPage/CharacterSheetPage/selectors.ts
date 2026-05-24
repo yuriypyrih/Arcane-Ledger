@@ -73,7 +73,8 @@ export const selectProfileCharacter = createCharacterFieldsSelector(
     "savingThrowProficiencies",
     "skillProficiencies",
     "feats",
-    "hitDiceRemaining"
+    "hitDiceRemaining",
+    "storageMetadata"
   ],
   ["profile", "resources", "equipment", "inventory", "features", "statuses", "proficiencies"]
 );

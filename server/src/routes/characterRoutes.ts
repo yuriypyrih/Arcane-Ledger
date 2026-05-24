@@ -2,6 +2,7 @@ import express, { Router } from "express";
 import { getAppConfig } from "../config/env.js";
 import {
   deleteCharacterSheet,
+  deleteCharacterPortrait,
   getCharacterSheet,
   importCharacterSheets,
   listFullCharacterSheets,
@@ -21,7 +22,7 @@ characterRoutes.put("/:characterSheetId", requireAuth, saveCharacterSheet);
 characterRoutes.delete("/:characterSheetId", requireAuth, deleteCharacterSheet);
 
 characterRoutes.put(
-  "/:characterId/portrait",
+  "/:characterSheetId/portrait",
   requireAuth,
   express.raw({
     limit: getAppConfig().characterAvatarUploadMaxBytes,
@@ -29,5 +30,6 @@ characterRoutes.put(
   }),
   uploadCharacterPortrait
 );
+characterRoutes.delete("/:characterSheetId/portrait", requireAuth, deleteCharacterPortrait);
 
 export { characterRoutes };

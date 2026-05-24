@@ -2,6 +2,7 @@ import type { CharacterSheetCloudDocument, CharacterSheetSyncPayload } from "../
 import {
   applyCloudSyncMetadataToPortableCharacterSheet,
   ensurePortableCharacterSheetSyncMetadata,
+  normalizeCharacterAvatarMetadata,
   normalizeCharacterSyncMetadata,
   stripPortableCharacterSheetLocalSyncMetadata
 } from "../pages/CharactersPage/portableCharacterSheet";
@@ -76,13 +77,26 @@ export function mergeCurrentUserPortableCharacterSheets(options: {
 }
 
 export function applyCloudDocumentToPortableCharacterSheet(record: CharacterSheetCloudDocument) {
-  return applyCloudSyncMetadataToPortableCharacterSheet(record.sheet, {
+  const syncedRecord = applyCloudSyncMetadataToPortableCharacterSheet(record.sheet, {
     ownerId: record.ownerId,
     remoteId: record.id,
     remoteRevision: record.revision,
     clientId: record.clientId,
     syncedAt: record.updatedAt ?? undefined
   });
+  const avatar = normalizeCharacterAvatarMetadata(record.avatar);
+  const { avatar: _avatar, ...metadataWithoutAvatar } = syncedRecord.metadata ?? {
+    sheetSizeBytes: 0
+  };
+
+  return {
+    ...syncedRecord,
+    metadata: {
+      ...metadataWithoutAvatar,
+      sheetSizeBytes: metadataWithoutAvatar.sheetSizeBytes ?? 0,
+      ...(avatar ? { avatar } : {})
+    }
+  };
 }
 
 export function createPortableCharacterSheetSyncPayload(

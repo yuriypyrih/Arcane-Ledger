@@ -139,6 +139,55 @@
   line-height: 1;
 }
 
+.syncStatusBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  min-height: 34px;
+  border: 0;
+  background: transparent;
+  cursor: default;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 750;
+  letter-spacing: 0;
+  line-height: 1;
+  padding: 0 0.24rem;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    color 140ms ease,
+    text-shadow 140ms ease;
+}
+
+button.syncStatusBadge {
+  cursor: pointer;
+}
+
+button.syncStatusBadge:hover,
+button.syncStatusBadge:focus-visible {
+  color: #fff4df;
+  outline: none;
+  text-decoration: underline;
+  text-underline-offset: 0.16rem;
+}
+
+.syncStatusBadgeGreen {
+  color: #c6e8c4;
+  text-shadow: 0 0 5px rgba(109, 206, 125, 0.12);
+}
+
+.syncStatusBadgeOrange {
+  color: #e9c18a;
+  text-shadow: 0 0 5px rgba(255, 176, 72, 0.12);
+}
+
+.syncStatusBadgeRed {
+  color: #e7a59c;
+  text-shadow: 0 0 5px rgba(255, 88, 74, 0.14);
+}
+
 .switchTrack {
   position: relative;
   display: inline-flex;
@@ -355,7 +404,13 @@
   }
 
   .navLink > span,
-  .navButton > span {
+  .navButton > span,
+  .syncStatusBadge > span {
     display: none;
+  }
+
+  .syncStatusBadge {
+    min-width: 34px;
+    padding: 0;
   }
 }

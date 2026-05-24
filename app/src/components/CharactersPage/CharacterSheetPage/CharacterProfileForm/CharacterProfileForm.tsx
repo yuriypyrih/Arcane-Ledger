@@ -1,8 +1,18 @@
 import clsx from "clsx";
 import { ScrollText } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import type { CharacterPortraitMutationResponse } from "../../../../api/characterPortraits";
 import type { Character } from "../../../../types";
-import { useAppSelector } from "../../../../store";
+import {
+  setActiveCharacterSheet,
+  useAppDispatch,
+  useAppSelector
+} from "../../../../store";
+import { createPortableCharacterSheetSyncPayload } from "../../../../characterSync/characterSyncRecords";
+import { upsertCharacterRosterCacheDocument } from "../../../../pages/CharactersPage/characterRoster";
+import { createPortableCharacterSheet } from "../../../../pages/CharactersPage/portableCharacterSheet";
+import { storeCloudCharacterSheetDocument } from "../../../../pages/CharactersPage/resolvePortableCharacterSheet";
+import { normalizeCharacter } from "../../../../pages/CharactersPage/storage";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { getSelectedSubclassForCharacter } from "../../../../pages/CharactersPage/subclasses";
 import { getClassSignatureStyle } from "../../classSignature";
@@ -21,10 +31,6 @@ import { useCoreStatReferenceDrawer } from "../StatsForm/useCoreStatReferenceDra
 import CoreStatCards from "../StatsForm/CoreStatCards";
 import useCharacterPortrait from "./useCharacterPortrait";
 
-function isAvatarUploadFeatureEnabled() {
-  return import.meta.env.VITE_CHARACTER_AVATAR_UPLOAD_ENABLED?.trim().toLowerCase() === "true";
-}
-
 type CharacterProfileFormProps = {
   broadLayout?: boolean;
   character: Character;
@@ -38,13 +44,61 @@ function CharacterProfileForm({
   className,
   onPersistCharacter
 }: CharacterProfileFormProps) {
+  const dispatch = useAppDispatch();
   const [isNotesDrawerOpen, setIsNotesDrawerOpen] = useState(false);
   const [isProgressModalOpen, setIsProgressModalOpen] = useState(false);
   const [isPortraitModalOpen, setIsPortraitModalOpen] = useState(false);
   const authStatus = useAppSelector((state) => state.auth.status);
   const isAuthenticated = authStatus === "authenticated";
-  const isUploadEnabled = isAuthenticated && isAvatarUploadFeatureEnabled();
-  const characterPortrait = useCharacterPortrait(character.id, { isUploadEnabled });
+  const remoteCharacterId = character.storageMetadata?.sync?.remoteId ?? null;
+  const isUploadEnabled = isAuthenticated && Boolean(remoteCharacterId);
+  const activePortraitUrl =
+    isAuthenticated && remoteCharacterId
+      ? (character.storageMetadata?.avatar?.imageUrl ?? null)
+      : null;
+  const portraitUnavailableMessage = !isAuthenticated
+    ? "Avatar editing is reserved for logged in users only."
+    : !remoteCharacterId
+      ? "Save this character to your account before editing its avatar."
+      : null;
+  const handlePortraitMutationComplete = useCallback(
+    (response: CharacterPortraitMutationResponse) => {
+      upsertCharacterRosterCacheDocument(response.character.ownerId, response.character);
+      const record = storeCloudCharacterSheetDocument(response.character, {
+        localId: character.id
+      });
+      const nextCharacter = normalizeCharacter(record);
+
+      if (nextCharacter) {
+        dispatch(
+          setActiveCharacterSheet({
+            character: nextCharacter,
+            characterId: record.identity.localId
+          })
+        );
+      }
+    },
+    [character.id, dispatch]
+  );
+  const createPortraitSyncPayload = useCallback(() => {
+    const sync = character.storageMetadata?.sync;
+
+    if (!sync?.ownerId || !sync.remoteId || !sync.remoteRevision) {
+      return null;
+    }
+
+    return createPortableCharacterSheetSyncPayload(createPortableCharacterSheet(character), {
+      includeBaseRevision: true,
+      ownerId: sync.ownerId
+    });
+  }, [character]);
+  const characterPortrait = useCharacterPortrait({
+    characterSheetId: remoteCharacterId,
+    createSyncPayload: createPortraitSyncPayload,
+    initialPortraitUrl: activePortraitUrl,
+    isUploadEnabled,
+    onMutationComplete: handlePortraitMutationComplete
+  });
 
   const profileCoreStatRows = broadLayout
     ? createBroadProfileCoreStatRows(character)
@@ -157,6 +211,7 @@ function CharacterProfileForm({
           isAuthenticated={isAuthenticated}
           isUploadEnabled={isUploadEnabled}
           isSaving={characterPortrait.isSaving}
+          unavailableMessage={portraitUnavailableMessage}
           onClearError={characterPortrait.clearError}
           onClose={closePortraitModal}
           onReset={characterPortrait.resetPortrait}

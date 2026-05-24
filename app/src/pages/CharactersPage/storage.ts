@@ -69,6 +69,7 @@ import {
   ensurePortableCharacterSheetSyncMetadata,
   isPortableCharacterSheet,
   markPortableCharacterSheetDirty,
+  normalizeCharacterAvatarMetadata,
   normalizeCharacterSyncMetadata
 } from "./portableCharacterSheet";
 import {
@@ -587,6 +588,15 @@ export function normalizeCharacter(value: unknown): Character | null {
               ? {
                   sync: normalizeCharacterSyncMetadata(
                     (record.storageMetadata as { sync?: unknown }).sync
+                  )
+                }
+              : {}),
+            ...(normalizeCharacterAvatarMetadata(
+              (record.storageMetadata as { avatar?: unknown }).avatar
+            )
+              ? {
+                  avatar: normalizeCharacterAvatarMetadata(
+                    (record.storageMetadata as { avatar?: unknown }).avatar
                   )
                 }
               : {})

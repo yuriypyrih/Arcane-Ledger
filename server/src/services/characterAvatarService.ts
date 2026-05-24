@@ -1,4 +1,4 @@
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getAppConfig } from "../config/env.js";
 import { AppError } from "../errors/AppError.js";
 
@@ -42,26 +42,35 @@ function createPublicImageUrl(objectKey: string) {
     .toString();
 }
 
+function createAvatarObjectKey(characterSheetId: string, mimeType: string, timestamp: number) {
+  const { characterAvatarS3KeyPrefix } = getAppConfig();
+  const prefix = characterAvatarS3KeyPrefix.trim().replace(/^\/+|\/+$/g, "") || "avatars";
+  const extension = getCharacterAvatarExtension(mimeType);
+
+  return `${prefix}/${characterSheetId}-${timestamp}.${extension}`;
+}
+
 export function isAllowedCharacterAvatarMimeType(mimeType: string) {
   return allowedAvatarMimeTypes.has(mimeType);
 }
 
 export type SaveCharacterAvatarInput = {
-  characterId: number;
+  characterSheetId: string;
   imageBuffer: Buffer;
   mimeType: string;
-  userId: string;
 };
 
 export async function saveCharacterAvatarToS3({
-  characterId,
+  characterSheetId,
   imageBuffer,
-  mimeType,
-  userId
+  mimeType
 }: SaveCharacterAvatarInput) {
   const { characterAvatarS3Bucket, characterAvatarS3Region } = getAppConfig();
   const bucket = characterAvatarS3Bucket.trim();
   const region = characterAvatarS3Region.trim();
+  const updatedAt = new Date();
+  const objectKey = createAvatarObjectKey(characterSheetId, mimeType, updatedAt.getTime());
+  const imageUrl = createPublicImageUrl(objectKey);
 
   if (!bucket) {
     throw new AppError(
@@ -73,15 +82,19 @@ export async function saveCharacterAvatarToS3({
 
   if (!region) {
     throw new AppError(
-      "Missing CHARACTER_AVATAR_S3_REGION or AWS_REGION environment variable.",
+      "Missing CHARACTER_AVATAR_S3_REGION environment variable.",
       500,
       "MISSING_CHARACTER_AVATAR_S3_REGION"
     );
   }
 
-  const extension = getCharacterAvatarExtension(mimeType);
-  const objectKey = `users/${userId}/characters/${characterId}/portrait.${extension}`;
-  const updatedAt = new Date();
+  if (!imageUrl) {
+    throw new AppError(
+      "Missing CHARACTER_AVATAR_S3_PUBLIC_BASE_URL environment variable.",
+      500,
+      "MISSING_CHARACTER_AVATAR_S3_PUBLIC_BASE_URL"
+    );
+  }
 
   await getS3Client(region).send(
     new PutObjectCommand({
@@ -95,9 +108,30 @@ export async function saveCharacterAvatarToS3({
 
   return {
     objectKey,
-    imageUrl: createPublicImageUrl(objectKey),
+    imageUrl,
     mimeType,
     sizeBytes: imageBuffer.byteLength,
-    updatedAt: updatedAt.toISOString()
+    updatedAt
   };
+}
+
+export async function deleteCharacterAvatarFromS3(objectKey: string) {
+  const { characterAvatarS3Bucket, characterAvatarS3Region } = getAppConfig();
+  const bucket = characterAvatarS3Bucket.trim();
+  const region = characterAvatarS3Region.trim();
+
+  if (!objectKey.trim()) {
+    return;
+  }
+
+  if (!bucket || !region) {
+    return;
+  }
+
+  await getS3Client(region).send(
+    new DeleteObjectCommand({
+      Bucket: bucket,
+      Key: objectKey
+    })
+  );
 }

@@ -1,13 +1,100 @@
-import { LogIn, Settings, UserCircle } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  Cloud,
+  CloudOff,
+  LogIn,
+  RefreshCw,
+  Settings,
+  UserCircle
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+import { requestImmediateCharacterSync } from "../../../characterSync/characterSyncRequests";
+import { useOnlineStatus } from "../../../lib/useOnlineStatus";
 import { useAppSelector } from "../../../store";
+import type { CharacterSheetSyncStatus } from "../../../types";
 import type { NavigationLink } from "../navigationLinks";
 import styles from "./PrimaryNav.module.css";
+
+type NavSyncBadgeModel = {
+  icon: typeof CheckCircle2;
+  isActionable: boolean;
+  label: string;
+  tone: "green" | "orange" | "red";
+};
+
+const syncBadgeToneClasses = {
+  green: styles.syncStatusBadgeGreen,
+  orange: styles.syncStatusBadgeOrange,
+  red: styles.syncStatusBadgeRed
+} satisfies Record<NavSyncBadgeModel["tone"], string>;
+
+function getNavSyncBadgeModel(
+  syncStatus: CharacterSheetSyncStatus | undefined,
+  isOnline: boolean
+): NavSyncBadgeModel {
+  if (!isOnline) {
+    return {
+      icon: CloudOff,
+      isActionable: false,
+      label: "Offline",
+      tone: "red"
+    };
+  }
+
+  switch (syncStatus) {
+    case "synced":
+      return {
+        icon: CheckCircle2,
+        isActionable: false,
+        label: "Synced",
+        tone: "green"
+      };
+    case "dirty":
+      return {
+        icon: Cloud,
+        isActionable: true,
+        label: "Pending",
+        tone: "orange"
+      };
+    case "syncing":
+    case "deleting":
+      return {
+        icon: RefreshCw,
+        isActionable: false,
+        label: syncStatus === "deleting" ? "Deleting" : "Syncing",
+        tone: "orange"
+      };
+    case "conflict":
+      return {
+        icon: AlertCircle,
+        isActionable: true,
+        label: "Conflict",
+        tone: "red"
+      };
+    case "error":
+      return {
+        icon: AlertCircle,
+        isActionable: true,
+        label: "Error",
+        tone: "red"
+      };
+    case "local-only":
+    default:
+      return {
+        icon: Cloud,
+        isActionable: false,
+        label: "Local only",
+        tone: "orange"
+      };
+  }
+}
 
 type PrimaryNavProps = {
   links: NavigationLink[];
   broadLayout: boolean;
+  characterSheetId: number | null;
   showBroadLayoutSwitch: boolean;
   onToggleBroadLayout: () => void;
 };
@@ -15,14 +102,29 @@ type PrimaryNavProps = {
 function PrimaryNav({
   links,
   broadLayout,
+  characterSheetId,
   showBroadLayoutSwitch,
   onToggleBroadLayout
 }: PrimaryNavProps) {
   const navigate = useNavigate();
   const { status, user } = useAppSelector((state) => state.auth);
+  const activeCharacter = useAppSelector((state) => state.activeCharacterSheet.activeCharacter);
+  const isActiveSheetDirty = useAppSelector((state) => state.activeCharacterSheet.dirty);
+  const isOnline = useOnlineStatus();
   const accountMenuRef = useRef<HTMLDivElement | null>(null);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const isAuthenticated = status === "authenticated" && Boolean(user);
+  const storedSyncStatus = activeCharacter?.storageMetadata?.sync?.syncStatus;
+  const shouldShowActiveDirty =
+    isActiveSheetDirty && Boolean(storedSyncStatus) && storedSyncStatus !== "local-only";
+  const effectiveSyncStatus = shouldShowActiveDirty ? "dirty" : storedSyncStatus;
+  const isViewingActiveCharacter =
+    characterSheetId !== null && activeCharacter?.id === characterSheetId;
+  const syncBadge =
+    isViewingActiveCharacter && isAuthenticated && activeCharacter
+      ? getNavSyncBadgeModel(effectiveSyncStatus, isOnline)
+      : null;
+  const SyncBadgeIcon = syncBadge?.icon;
 
   useEffect(() => {
     if (!accountMenuOpen) {
@@ -85,6 +187,26 @@ function PrimaryNav({
         </div>
       </div>
       <div className={styles.rightCluster}>
+        {syncBadge && SyncBadgeIcon ? (
+          syncBadge.isActionable ? (
+            <button
+              type="button"
+              className={`${styles.syncStatusBadge} ${syncBadgeToneClasses[syncBadge.tone]}`}
+              aria-label={`Retry character sync. Current status: ${syncBadge.label}`}
+              onClick={requestImmediateCharacterSync}
+            >
+              <SyncBadgeIcon size={14} aria-hidden="true" />
+              <span>{syncBadge.label}</span>
+            </button>
+          ) : (
+            <span
+              className={`${styles.syncStatusBadge} ${syncBadgeToneClasses[syncBadge.tone]}`}
+            >
+              <SyncBadgeIcon size={14} aria-hidden="true" />
+              <span>{syncBadge.label}</span>
+            </span>
+          )
+        ) : null}
         {showBroadLayoutSwitch ? (
           <button
             type="button"

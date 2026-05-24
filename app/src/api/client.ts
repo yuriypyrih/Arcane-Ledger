@@ -266,6 +266,24 @@ export async function apiDelete<T>(path: string, options?: ApiRequestOptions): P
   );
 }
 
+export async function apiDeleteJson<T>(
+  path: string,
+  body: unknown,
+  options?: ApiRequestOptions
+): Promise<T> {
+  return apiRequest<T>(
+    path,
+    {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(body)
+    },
+    options
+  );
+}
+
 export async function apiPutBlob<T>(
   path: string,
   blob: Blob,

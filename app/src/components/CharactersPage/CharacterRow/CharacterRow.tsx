@@ -1,7 +1,6 @@
 import { Download, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { CharacterRosterEntry } from "../../../pages/CharactersPage/characterRoster";
-import useCharacterPortraitUrl from "../../../pages/CharactersPage/characterPortraits/useCharacterPortraitUrl";
 import { DefaultCharacterPortraitIcon } from "../CharacterPortrait";
 import { getClassSignatureStyle } from "../classSignature";
 import styles from "./CharacterRow.module.css";
@@ -33,7 +32,6 @@ function getSyncStatusLabel(character: CharacterRosterEntry) {
 
 function CharacterRow({ character, onDownload, onDelete }: CharacterRowProps) {
   const hasActions = Boolean(onDownload || onDelete);
-  const { isLoading, portraitUrl } = useCharacterPortraitUrl(character.id);
   const syncStatusLabel = getSyncStatusLabel(character);
 
   return (
@@ -43,9 +41,9 @@ function CharacterRow({ character, onDownload, onDelete }: CharacterRowProps) {
         className={styles.rowLink}
         aria-label={`View ${character.name}`}
       />
-      <span className={styles.characterPortrait} aria-busy={isLoading || undefined}>
-        {portraitUrl ? (
-          <img src={portraitUrl} alt="" className={styles.characterPortraitImage} />
+      <span className={styles.characterPortrait}>
+        {character.avatarUrl ? (
+          <img src={character.avatarUrl} alt="" className={styles.characterPortraitImage} />
         ) : (
           <DefaultCharacterPortraitIcon className={styles.characterPortraitDefaultIcon} />
         )}

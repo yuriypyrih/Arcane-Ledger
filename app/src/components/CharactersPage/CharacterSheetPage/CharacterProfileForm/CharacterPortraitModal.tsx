@@ -38,9 +38,10 @@ type CharacterPortraitModalProps = {
   isSaving: boolean;
   onClearError: () => void;
   onClose: () => void;
-  onReset: () => void;
+  onReset: () => Promise<void>;
   onUpload: (file: File, crop?: Partial<CharacterPortraitCropSettings>) => Promise<boolean>;
   portraitUrl: string | null;
+  unavailableMessage: string | null;
 };
 
 function CharacterPortraitModal({
@@ -54,7 +55,8 @@ function CharacterPortraitModal({
   onClose,
   onReset,
   onUpload,
-  portraitUrl
+  portraitUrl,
+  unavailableMessage
 }: CharacterPortraitModalProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
@@ -72,11 +74,7 @@ function CharacterPortraitModal({
       }%) rotate(${cropSettings.rotationDegrees}deg) scale(${previewScale})`
     };
   }, [cropSettings]);
-  const portraitNotice = !isAuthenticated
-    ? "Avatar editing is reserved for logged in users only."
-    : !isUploadEnabled
-      ? "Avatar uploads are temporarily unavailable while storage is being prepared."
-      : null;
+  const portraitNotice = !isUploadEnabled ? unavailableMessage : null;
 
   useEffect(
     () => () => {
@@ -303,7 +301,7 @@ function CharacterPortraitModal({
                 fullWidth={false}
                 icon={<RotateCcw size={16} />}
                 variant="GHOST"
-                onClick={onReset}
+                onClick={() => void onReset()}
               >
                 Reset to default
               </ActionButton>

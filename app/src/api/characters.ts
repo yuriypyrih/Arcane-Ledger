@@ -1,4 +1,8 @@
-import type { PortableCharacterSheet, PortableCharacterSheetSummary } from "../types";
+import type {
+  CharacterAvatarMetadata,
+  PortableCharacterSheet,
+  PortableCharacterSheetSummary
+} from "../types";
 import { apiDelete, apiGet, apiPost, apiPut, type ApiRequestOptions } from "./client";
 
 export type CharacterSheetCloudDocument = {
@@ -9,6 +13,7 @@ export type CharacterSheetCloudDocument = {
   schemaVersion: 2;
   revision: number;
   summary: PortableCharacterSheetSummary;
+  avatar: CharacterAvatarMetadata | null;
   sheet: PortableCharacterSheet;
   createdAt: string | null;
   updatedAt: string | null;

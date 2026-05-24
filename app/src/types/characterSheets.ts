@@ -7,6 +7,7 @@ import type {
   CharacterCompanion,
   CharacterCurrencies,
   CharacterCustomClassConfig,
+  CharacterAvatarMetadata,
   CharacterDeathSaves,
   CharacterInventoryItem,
   CharacterRoundTracker,
@@ -116,6 +117,7 @@ export type PortableCharacterSheetPreferences = {
 export type PortableCharacterSheetMetadata = {
   sheetSizeBytes: number;
   sync?: CharacterSyncMetadata;
+  avatar?: CharacterAvatarMetadata;
 };
 
 export type PortableCharacterSheetSummary = {

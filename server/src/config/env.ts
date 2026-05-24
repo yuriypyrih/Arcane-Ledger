@@ -3,6 +3,16 @@ import { AppError } from "../errors/AppError.js";
 
 let envLoaded = false;
 
+const DATABASE_NAME = "arcane_ledger";
+const DEFAULT_FRONTEND_URL = "http://localhost:5174";
+const DEFAULT_PORT = 3001;
+const DEFAULT_TRUST_PROXY_HOPS = 0;
+const AUTH_TOKEN_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
+const EMAIL_VERIFICATION_EXPIRES_MINUTES = 24 * 60;
+const PASSWORD_RESET_EXPIRES_MINUTES = 10;
+const AVATAR_OBJECT_KEY_PREFIX = "avatars";
+const AVATAR_UPLOAD_MAX_BYTES = 512 * 1024;
+
 function loadEnv() {
   if (envLoaded) {
     return;
@@ -24,12 +34,6 @@ function parseInteger(value: string | undefined, fallback: number): number {
   }
 
   return parsedValue;
-}
-
-function parsePositiveInteger(value: string | undefined, fallback: number): number {
-  const parsedValue = parseInteger(value, fallback);
-
-  return parsedValue > 0 ? parsedValue : fallback;
 }
 
 function parseBoolean(value: string | undefined, fallback: boolean): boolean {
@@ -83,6 +87,7 @@ export type AppConfig = {
   characterAvatarS3Bucket: string;
   characterAvatarS3Region: string;
   characterAvatarS3PublicBaseUrl: string;
+  characterAvatarS3KeyPrefix: string;
   characterAvatarUploadMaxBytes: number;
   sentryDsn: string;
   sentryEnvironment: string;
@@ -93,7 +98,7 @@ export function getAppConfig(): AppConfig {
   loadEnv();
 
   const nodeEnv = process.env.NODE_ENV ?? "development";
-  const port = parseInteger(process.env.PORT, 3001);
+  const port = parseInteger(process.env.PORT, DEFAULT_PORT);
   const authCookieSecure = parseBoolean(process.env.AUTH_COOKIE_SECURE, nodeEnv === "production");
   const configuredAuthCookieName = process.env.AUTH_COOKIE_NAME?.trim();
   const authCookieName =
@@ -103,36 +108,27 @@ export function getAppConfig(): AppConfig {
   return {
     nodeEnv,
     port,
-    trustProxyHops: parseInteger(process.env.TRUST_PROXY_HOPS, 0),
+    trustProxyHops: parseInteger(process.env.TRUST_PROXY_HOPS, DEFAULT_TRUST_PROXY_HOPS),
     mongodbUri: process.env.MONGODB_URI ?? "",
     mongoUsername: process.env.MONGO_INITDB_ROOT_USERNAME ?? "",
     mongoPassword: process.env.MONGO_INITDB_ROOT_PASSWORD ?? "",
-    dbName: process.env.DB_NAME ?? process.env.MONGO_DB_NAME ?? "arcane_ledger",
+    dbName: DATABASE_NAME,
     corsAllowedOrigins: parseCommaSeparatedList(process.env.CORS_ALLOWED_ORIGINS),
-    frontendUrl: process.env.FRONTEND_URL ?? "http://localhost:5174",
+    frontendUrl: process.env.FRONTEND_URL ?? DEFAULT_FRONTEND_URL,
     jwtSecret: process.env.JWT_SECRET ?? "",
-    jwtExpiresInSeconds: parsePositiveInteger(process.env.JWT_EXPIRES_IN_SECONDS, 7 * 24 * 60 * 60),
+    jwtExpiresInSeconds: AUTH_TOKEN_MAX_AGE_SECONDS,
     authCookieName,
     authCookieSecure,
-    emailVerificationTokenExpiresMinutes: parsePositiveInteger(
-      process.env.EMAIL_VERIFICATION_TOKEN_EXPIRES_MINUTES,
-      24 * 60
-    ),
-    passwordResetTokenExpiresMinutes: parsePositiveInteger(
-      process.env.PASSWORD_RESET_TOKEN_EXPIRES_MINUTES,
-      10
-    ),
+    emailVerificationTokenExpiresMinutes: EMAIL_VERIFICATION_EXPIRES_MINUTES,
+    passwordResetTokenExpiresMinutes: PASSWORD_RESET_EXPIRES_MINUTES,
     resendApiKey: process.env.RESEND_API_KEY ?? "",
     resendFromEmail: process.env.RESEND_FROM_EMAIL ?? "",
     resendReplyTo: process.env.RESEND_REPLY_TO ?? "",
     characterAvatarS3Bucket: process.env.CHARACTER_AVATAR_S3_BUCKET ?? "",
-    characterAvatarS3Region:
-      process.env.CHARACTER_AVATAR_S3_REGION ?? process.env.AWS_REGION ?? "",
+    characterAvatarS3Region: process.env.CHARACTER_AVATAR_S3_REGION ?? "",
     characterAvatarS3PublicBaseUrl: process.env.CHARACTER_AVATAR_S3_PUBLIC_BASE_URL ?? "",
-    characterAvatarUploadMaxBytes: parsePositiveInteger(
-      process.env.CHARACTER_AVATAR_UPLOAD_MAX_BYTES,
-      512 * 1024
-    ),
+    characterAvatarS3KeyPrefix: AVATAR_OBJECT_KEY_PREFIX,
+    characterAvatarUploadMaxBytes: AVATAR_UPLOAD_MAX_BYTES,
     sentryDsn: process.env.SENTRY_DSN ?? "",
     sentryEnvironment: process.env.SENTRY_ENVIRONMENT ?? nodeEnv,
     sentryRelease: process.env.SENTRY_RELEASE ?? ""

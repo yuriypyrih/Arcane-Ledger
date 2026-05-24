@@ -182,9 +182,18 @@ export type CharacterSyncMetadata = {
   lastSyncError?: string;
 };
 
+export type CharacterAvatarMetadata = {
+  objectKey: string;
+  imageUrl: string;
+  mimeType: string;
+  sizeBytes: number;
+  updatedAt: string;
+};
+
 export type CharacterStorageMetadata = {
   sheetSizeBytes?: number;
   sync?: CharacterSyncMetadata;
+  avatar?: CharacterAvatarMetadata;
 };
 
 export type ArmorClassFormulaSelectionMode = "auto" | "manual";

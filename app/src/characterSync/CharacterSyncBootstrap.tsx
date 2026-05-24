@@ -38,6 +38,7 @@ import {
   type CharacterSyncConflictEventDetail,
   dispatchCharacterSyncConflict
 } from "./characterSyncConflicts";
+import { CHARACTER_SYNC_REQUEST_EVENT } from "./characterSyncRequests";
 import {
   applyCloudDocumentToPortableCharacterSheet,
   createPortableCharacterSheetSyncPayload,
@@ -281,6 +282,25 @@ function CharacterSyncBootstrap() {
     syncTimerRef.current = null;
   }, []);
 
+  const updateActiveCharacterIfOpen = useCallback(
+    async (record: PortableCharacterSheet) => {
+      if (activeCharacterId !== record.identity.localId) {
+        return;
+      }
+
+      const { normalizeCharacter } = await import("../pages/CharactersPage/storage");
+      const character = normalizeCharacter(record);
+
+      dispatch(
+        setActiveCharacterSheet({
+          character,
+          characterId: record.identity.localId
+        })
+      );
+    },
+    [activeCharacterId, dispatch]
+  );
+
   const syncDirtyCharacterRecords = useCallback(async () => {
     if (status !== "authenticated" || !user || syncInFlightRef.current) {
       return;
@@ -365,6 +385,14 @@ function CharacterSyncBootstrap() {
               ownerId
             });
             replaceRawStoredCharacterRecords(records);
+
+            const activeRecord = records.find(
+              (candidateRecord) => candidateRecord.identity.localId === activeCharacterId
+            );
+
+            if (activeRecord) {
+              await updateActiveCharacterIfOpen(activeRecord);
+            }
           }
 
           continue;
@@ -438,6 +466,14 @@ function CharacterSyncBootstrap() {
           ownerId
         });
         replaceRawStoredCharacterRecords(records);
+
+        const activeRecord = records.find(
+          (candidateRecord) => candidateRecord.identity.localId === activeCharacterId
+        );
+
+        if (activeRecord) {
+          await updateActiveCharacterIfOpen(activeRecord);
+        }
       }
     } catch (error) {
       captureCharacterSyncError(error, {
@@ -446,7 +482,7 @@ function CharacterSyncBootstrap() {
     } finally {
       syncInFlightRef.current = false;
     }
-  }, [status, user]);
+  }, [activeCharacterId, status, updateActiveCharacterIfOpen, user]);
 
   const queueCloudSync = useCallback(
     (delayMs = cloudSyncDebounceMs) => {
@@ -588,6 +624,7 @@ function CharacterSyncBootstrap() {
             schemaVersion: 2,
             revision: sync.remoteRevision ?? 1,
             summary: record.summary,
+            avatar: record.metadata?.avatar ?? null,
             createdAt: sync.lastSyncedAt ?? null,
             updatedAt: sync.lastSyncedAt ?? null
           });
@@ -646,25 +683,6 @@ function CharacterSyncBootstrap() {
       error: detail.message ?? null
     });
   }, []);
-
-  const updateActiveCharacterIfOpen = useCallback(
-    async (record: PortableCharacterSheet) => {
-      if (activeCharacterId !== record.identity.localId) {
-        return;
-      }
-
-      const { normalizeCharacter } = await import("../pages/CharactersPage/storage");
-      const character = normalizeCharacter(record);
-
-      dispatch(
-        setActiveCharacterSheet({
-          character,
-          characterId: record.identity.localId
-        })
-      );
-    },
-    [activeCharacterId, dispatch]
-  );
 
   const keepLocalConflictVersion = useCallback(async () => {
     if (status !== "authenticated" || !user || !conflictPrompt) {
@@ -780,6 +798,21 @@ function CharacterSyncBootstrap() {
 
     void initializeAuthenticatedCharacterCache();
   }, [clearSyncTimer, initializeAuthenticatedCharacterCache, status]);
+
+  useEffect(() => {
+    function handleCharacterSyncRequest() {
+      clearSyncTimer();
+      window.setTimeout(() => {
+        void syncDirtyCharacterRecords();
+      }, 0);
+    }
+
+    window.addEventListener(CHARACTER_SYNC_REQUEST_EVENT, handleCharacterSyncRequest);
+
+    return () => {
+      window.removeEventListener(CHARACTER_SYNC_REQUEST_EVENT, handleCharacterSyncRequest);
+    };
+  }, [clearSyncTimer, syncDirtyCharacterRecords]);
 
   useEffect(() => {
     function handleCharacterSyncConflict(event: Event) {

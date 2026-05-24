@@ -1,4 +1,5 @@
 import type {
+  CharacterAvatarMetadata,
   HydratedCharacter,
   PortableCharacterSheet,
   CharacterSheetSyncStatus,
@@ -97,6 +98,32 @@ export function normalizeCharacterSyncMetadata(
     ...(lastLocalChangeAt ? { lastLocalChangeAt } : {}),
     ...(lastSyncedAt ? { lastSyncedAt } : {}),
     ...(lastSyncError ? { lastSyncError } : {})
+  };
+}
+
+export function normalizeCharacterAvatarMetadata(
+  value: unknown
+): CharacterAvatarMetadata | undefined {
+  if (!isObjectRecord(value)) {
+    return undefined;
+  }
+
+  const objectKey = readString(value.objectKey);
+  const imageUrl = readString(value.imageUrl);
+  const mimeType = readString(value.mimeType);
+  const sizeBytes = readPositiveInteger(value.sizeBytes);
+  const updatedAt = normalizeIsoTimestamp(value.updatedAt);
+
+  if (!objectKey || !imageUrl || !mimeType || !sizeBytes || !updatedAt) {
+    return undefined;
+  }
+
+  return {
+    objectKey,
+    imageUrl,
+    mimeType,
+    sizeBytes,
+    updatedAt
   };
 }
 
@@ -297,16 +324,18 @@ export function markPortableCharacterSheetSyncError(
 export function stripPortableCharacterSheetLocalSyncMetadata(
   record: PortableCharacterSheet
 ): PortableCharacterSheet {
-  if (!record.metadata?.sync) {
+  if (!record.metadata?.sync && !record.metadata?.avatar) {
     return record;
   }
+  const { avatar: _avatar, sync: _sync, ...storedMetadata } = record.metadata ?? {
+    sheetSizeBytes: 0
+  };
 
   return {
     ...record,
     metadata: {
-      ...record.metadata,
-      sheetSizeBytes: getRecordSheetSizeBytes(record) ?? 0,
-      sync: undefined
+      ...storedMetadata,
+      sheetSizeBytes: getRecordSheetSizeBytes(record) ?? 0
     }
   };
 }
@@ -500,6 +529,9 @@ export function createPortableCharacterSheet(character: HydratedCharacter): Port
       sheetSizeBytes: normalizeSheetSizeBytes(character.storageMetadata?.sheetSizeBytes) ?? 0,
       ...(normalizeCharacterSyncMetadata(character.storageMetadata?.sync)
         ? { sync: normalizeCharacterSyncMetadata(character.storageMetadata?.sync) }
+        : {}),
+      ...(normalizeCharacterAvatarMetadata(character.storageMetadata?.avatar)
+        ? { avatar: normalizeCharacterAvatarMetadata(character.storageMetadata?.avatar) }
         : {})
     }
   });
@@ -567,6 +599,9 @@ export function createHydratedCharacterInputFromPortableSheet(
       sheetSizeBytes,
       ...(normalizeCharacterSyncMetadata(record.metadata?.sync)
         ? { sync: normalizeCharacterSyncMetadata(record.metadata?.sync) }
+        : {}),
+      ...(normalizeCharacterAvatarMetadata(record.metadata?.avatar)
+        ? { avatar: normalizeCharacterAvatarMetadata(record.metadata?.avatar) }
         : {})
     }
   };

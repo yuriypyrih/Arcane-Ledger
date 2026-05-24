@@ -17,11 +17,12 @@ const BROAD_LAYOUT_LG_COMPACT_CLASS = "broad-layout-lg-compact";
 function AppShell() {
   const characterSheetMatch = useMatch({ path: "/characters/:characterId", end: true });
   const characterSheetId = characterSheetMatch?.params.characterId;
+  const characterSheetLocalId =
+    characterSheetId && /^\d+$/.test(characterSheetId) ? Number(characterSheetId) : null;
   const isLgUp = useMediaQuery(MEDIA_QUERIES.lgUp);
   const isLgOnly = useMediaQuery(MEDIA_QUERIES.lgOnly);
   const [broadLayout, setBroadLayout] = useState(() => getBroadLayoutPreference());
-  const showBroadLayoutSwitch =
-    Boolean(characterSheetId && /^\d+$/.test(characterSheetId)) && isLgUp;
+  const showBroadLayoutSwitch = characterSheetLocalId !== null && isLgUp;
   const isBroadLayoutActive = broadLayout && showBroadLayoutSwitch;
   const useLgCompactScale = isBroadLayoutActive && isLgOnly;
   const outletContext: AppShellOutletContext = {
@@ -56,6 +57,7 @@ function AppShell() {
           <PrimaryNav
             links={navigationLinks}
             broadLayout={broadLayout}
+            characterSheetId={characterSheetLocalId}
             showBroadLayoutSwitch={showBroadLayoutSwitch}
             onToggleBroadLayout={toggleBroadLayout}
           />

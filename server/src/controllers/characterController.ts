@@ -6,16 +6,34 @@ import { asyncHandler } from "../middleware/asyncHandler.js";
 import type { AuthenticatedLocals } from "../middleware/authMiddleware.js";
 import {
   CharacterSheet,
+  type CharacterAvatarRecord,
   type CharacterSheetDocument,
   type CharacterSheetSummaryRecord
 } from "../models/CharacterSheet.js";
 import {
+  deleteCharacterAvatarFromS3,
   isAllowedCharacterAvatarMimeType,
   saveCharacterAvatarToS3
 } from "../services/characterAvatarService.js";
 import { getCharacterLimitForRole } from "../services/characterLimits.js";
 
 type ObjectRecord = Record<string, unknown>;
+
+type CharacterAvatarSource = {
+  objectKey: string;
+  imageUrl: string;
+  mimeType: string;
+  sizeBytes: number;
+  updatedAt: Date | string;
+};
+
+type CharacterAvatarResponse = {
+  objectKey: string;
+  imageUrl: string;
+  mimeType: string;
+  sizeBytes: number;
+  updatedAt: string;
+};
 
 type CharacterSheetCloudDocument = {
   id: string;
@@ -26,6 +44,7 @@ type CharacterSheetCloudDocument = {
   revision: number;
   summary: CharacterSheetDocument["summary"];
   sheet: Record<string, unknown>;
+  avatar: CharacterAvatarResponse | null;
   createdAt: string | null;
   updatedAt: string | null;
 };
@@ -42,6 +61,7 @@ type CharacterSheetCloudSource = {
   revision: number;
   summary: CharacterSheetSummaryRecord;
   sheet: Record<string, unknown>;
+  avatar?: CharacterAvatarRecord | null;
   createdAt?: Date | string | null;
   updatedAt?: Date | string | null;
 };
@@ -76,20 +96,6 @@ function readCharacterSheetId(value: string | undefined) {
   }
 
   return value;
-}
-
-function readLocalCharacterId(value: string | undefined) {
-  const characterId = Number(value);
-
-  if (!Number.isInteger(characterId) || characterId <= 0) {
-    throw new AppError(
-      "Character id must be a positive numeric local id.",
-      400,
-      "INVALID_CHARACTER_ID"
-    );
-  }
-
-  return characterId;
 }
 
 function readPortableCharacterSheet(value: unknown): Record<string, unknown> {
@@ -183,7 +189,7 @@ function buildCharacterSheetSummary(sheet: Record<string, unknown>) {
 
 function stripLocalSyncMetadata(sheet: Record<string, unknown>) {
   const metadata = getSheetGroup(sheet, "metadata");
-  const { sync: _sync, ...storedMetadata } = metadata;
+  const { avatar: _avatar, sync: _sync, ...storedMetadata } = metadata;
 
   return {
     ...sheet,
@@ -197,6 +203,22 @@ function toIsoTimestamp(value: Date | string | null | undefined) {
   }
 
   return value instanceof Date ? value.toISOString() : value;
+}
+
+function toAvatarResponse(
+  avatar: CharacterAvatarSource | null | undefined
+): CharacterAvatarResponse | null {
+  if (!avatar) {
+    return null;
+  }
+
+  return {
+    objectKey: avatar.objectKey,
+    imageUrl: avatar.imageUrl,
+    mimeType: avatar.mimeType,
+    sizeBytes: avatar.sizeBytes,
+    updatedAt: toIsoTimestamp(avatar.updatedAt) ?? new Date().toISOString()
+  };
 }
 
 function getDocumentId(document: Pick<CharacterSheetCloudSource, "_id" | "id">) {
@@ -213,6 +235,7 @@ function toCloudRecord(document: CharacterSheetCloudSource): CharacterSheetCloud
     revision: document.revision,
     summary: document.summary,
     sheet: document.sheet,
+    avatar: toAvatarResponse(document.avatar),
     createdAt: toIsoTimestamp(document.createdAt),
     updatedAt: toIsoTimestamp(document.updatedAt)
   };
@@ -227,6 +250,7 @@ function toCloudRosterRecord(document: CharacterSheetRosterSource): CharacterShe
     schemaVersion: document.schemaVersion,
     revision: document.revision,
     summary: document.summary,
+    avatar: toAvatarResponse(document.avatar),
     createdAt: toIsoTimestamp(document.createdAt),
     updatedAt: toIsoTimestamp(document.updatedAt)
   };
@@ -250,6 +274,40 @@ function readSheetPayload(value: unknown) {
   };
 }
 
+type CharacterSheetPayload = ReturnType<typeof readSheetPayload>;
+
+function assertCanApplyCharacterSheetPayload(
+  character: CharacterSheetDocument,
+  payload: CharacterSheetPayload
+) {
+  if (payload.clientId !== character.clientId) {
+    throw new AppError("Character sheet clientId cannot change.", 400, "CLIENT_ID_MISMATCH");
+  }
+
+  if (!payload.force && (!payload.baseRevision || payload.baseRevision !== character.revision)) {
+    throw new AppError("Character sheet has changed on the server.", 409, "REVISION_CONFLICT", {
+      serverRevision: character.revision
+    });
+  }
+}
+
+function applyCharacterSheetPayload(
+  character: CharacterSheetDocument,
+  payload: CharacterSheetPayload
+) {
+  character.localId = payload.localId;
+  character.summary = payload.summary;
+  character.sheet = payload.sheet;
+}
+
+function readOptionalPortraitCharacterPayload(value: unknown) {
+  if (!isObjectRecord(value) || !("character" in value)) {
+    return null;
+  }
+
+  return readSheetPayload(value.character);
+}
+
 export const listCharacterSheets = asyncHandler(
   async (_request: Request, response: Response<unknown, AuthenticatedLocals>) => {
     const ownerId = response.locals.authUser._id;
@@ -257,7 +315,7 @@ export const listCharacterSheets = asyncHandler(
       ownerId,
       deletedAt: null
     })
-      .select("_id ownerId clientId localId schemaVersion revision summary createdAt updatedAt")
+      .select("_id ownerId clientId localId schemaVersion revision summary avatar createdAt updatedAt")
       .sort({ updatedAt: -1 })
       .lean()
       .exec()) as CharacterSheetRosterSource[];
@@ -404,19 +462,8 @@ export const saveCharacterSheet = asyncHandler(
       throw new AppError("Character sheet was not found.", 404, "CHARACTER_SHEET_NOT_FOUND");
     }
 
-    if (payload.clientId !== character.clientId) {
-      throw new AppError("Character sheet clientId cannot change.", 400, "CLIENT_ID_MISMATCH");
-    }
-
-    if (!payload.force && (!payload.baseRevision || payload.baseRevision !== character.revision)) {
-      throw new AppError("Character sheet has changed on the server.", 409, "REVISION_CONFLICT", {
-        serverRevision: character.revision
-      });
-    }
-
-    character.localId = payload.localId;
-    character.summary = payload.summary;
-    character.sheet = payload.sheet;
+    assertCanApplyCharacterSheetPayload(character, payload);
+    applyCharacterSheetPayload(character, payload);
     character.revision += 1;
 
     response.json({ character: toCloudRecord(await character.save()) });
@@ -442,6 +489,15 @@ export const deleteCharacterSheet = asyncHandler(
   }
 );
 
+function warnAvatarDeleteFailure(objectKey: string, error: unknown) {
+  if (process.env.NODE_ENV !== "test") {
+    console.warn("Unable to delete previous character avatar from S3.", {
+      objectKey,
+      error
+    });
+  }
+}
+
 function readImageContentType(request: Request) {
   const mimeType = String(request.headers["content-type"] ?? "")
     .split(";")[0]
@@ -462,11 +518,56 @@ function readImageContentType(request: Request) {
   return mimeType;
 }
 
+function readPortraitJsonBody(value: unknown) {
+  if (!isObjectRecord(value) || !isObjectRecord(value.portrait)) {
+    throw new AppError("Character portrait image body is required.", 400, "EMPTY_AVATAR_BODY");
+  }
+
+  const mimeType = readString(value.portrait.mimeType)?.toLowerCase() ?? "";
+  const dataBase64 = readString(value.portrait.dataBase64);
+
+  if (!mimeType || !isAllowedCharacterAvatarMimeType(mimeType)) {
+    throw new AppError(
+      "Character portrait must be a WebP or JPEG image.",
+      415,
+      "UNSUPPORTED_AVATAR_TYPE",
+      {
+        allowedMimeTypes: ["image/webp", "image/jpeg"]
+      }
+    );
+  }
+
+  if (!dataBase64) {
+    throw new AppError("Character portrait image body is required.", 400, "EMPTY_AVATAR_BODY");
+  }
+
+  return {
+    imageBuffer: Buffer.from(dataBase64, "base64"),
+    mimeType
+  };
+}
+
+function readPortraitUploadBody(request: Request) {
+  if (Buffer.isBuffer(request.body)) {
+    return {
+      imageBuffer: request.body,
+      mimeType: readImageContentType(request),
+      sheetPayload: null
+    };
+  }
+
+  const portrait = readPortraitJsonBody(request.body);
+
+  return {
+    ...portrait,
+    sheetPayload: readOptionalPortraitCharacterPayload(request.body)
+  };
+}
+
 export const uploadCharacterPortrait = asyncHandler(
   async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
-    const characterId = readLocalCharacterId(request.params.characterId);
-    const mimeType = readImageContentType(request);
-    const imageBuffer = Buffer.isBuffer(request.body) ? request.body : null;
+    const characterSheetId = readCharacterSheetId(request.params.characterSheetId);
+    const { imageBuffer, mimeType, sheetPayload } = readPortraitUploadBody(request);
 
     if (!imageBuffer || imageBuffer.byteLength === 0) {
       throw new AppError("Character portrait image body is required.", 400, "EMPTY_AVATAR_BODY");
@@ -478,13 +579,91 @@ export const uploadCharacterPortrait = asyncHandler(
       });
     }
 
-    response.json(
-      await saveCharacterAvatarToS3({
-        characterId,
-        imageBuffer,
-        mimeType,
-        userId: response.locals.authUser.id
-      })
-    );
+    const character = await CharacterSheet.findOne({
+      _id: characterSheetId,
+      ownerId: response.locals.authUser._id,
+      deletedAt: null
+    }).exec();
+
+    if (!character) {
+      throw new AppError("Character sheet was not found.", 404, "CHARACTER_SHEET_NOT_FOUND");
+    }
+
+    if (sheetPayload) {
+      assertCanApplyCharacterSheetPayload(character, sheetPayload);
+    }
+
+    const previousObjectKey = character.avatar?.objectKey;
+    const nextAvatar = await saveCharacterAvatarToS3({
+      characterSheetId,
+      imageBuffer,
+      mimeType
+    });
+
+    let savedCharacter: CharacterSheetDocument;
+
+    try {
+      if (sheetPayload) {
+        applyCharacterSheetPayload(character, sheetPayload);
+      }
+
+      character.avatar = nextAvatar;
+      character.revision += 1;
+      savedCharacter = await character.save();
+    } catch (error) {
+      await deleteCharacterAvatarFromS3(nextAvatar.objectKey).catch((deleteError: unknown) => {
+        warnAvatarDeleteFailure(nextAvatar.objectKey, deleteError);
+      });
+      throw error;
+    }
+
+    if (previousObjectKey && previousObjectKey !== nextAvatar.objectKey) {
+      deleteCharacterAvatarFromS3(previousObjectKey).catch((error: unknown) => {
+        warnAvatarDeleteFailure(previousObjectKey, error);
+      });
+    }
+
+    response.json({
+      avatar: toAvatarResponse(savedCharacter.avatar),
+      character: toCloudRecord(savedCharacter)
+    });
+  }
+);
+
+export const deleteCharacterPortrait = asyncHandler(
+  async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
+    const characterSheetId = readCharacterSheetId(request.params.characterSheetId);
+    const sheetPayload = readOptionalPortraitCharacterPayload(request.body);
+    const character = await CharacterSheet.findOne({
+      _id: characterSheetId,
+      ownerId: response.locals.authUser._id,
+      deletedAt: null
+    }).exec();
+
+    if (!character) {
+      throw new AppError("Character sheet was not found.", 404, "CHARACTER_SHEET_NOT_FOUND");
+    }
+
+    if (sheetPayload) {
+      assertCanApplyCharacterSheetPayload(character, sheetPayload);
+      applyCharacterSheetPayload(character, sheetPayload);
+    }
+
+    const previousObjectKey = character.avatar?.objectKey;
+
+    character.avatar = null;
+    character.revision += 1;
+    const savedCharacter = await character.save();
+
+    if (previousObjectKey) {
+      deleteCharacterAvatarFromS3(previousObjectKey).catch((error: unknown) => {
+        warnAvatarDeleteFailure(previousObjectKey, error);
+      });
+    }
+
+    response.json({
+      avatar: null,
+      character: toCloudRecord(savedCharacter)
+    });
   }
 );

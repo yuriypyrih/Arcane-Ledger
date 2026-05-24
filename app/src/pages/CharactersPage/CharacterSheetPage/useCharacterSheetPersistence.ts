@@ -9,7 +9,6 @@ import {
 import { resolvePortableCharacterSheetForOpen } from "../resolvePortableCharacterSheet";
 import {
   commitActiveCharacterSheet,
-  markActiveCharacterSheetPersisted,
   setActiveCharacterSheet,
   useAppDispatch,
   useAppSelector
@@ -26,6 +25,7 @@ import {
   type CharacterSheetDomain
 } from "./domains";
 import { measureCharacterRuntime } from "../characterRuntime/performance";
+import { CHARACTER_SYNC_REQUEST_EVENT } from "../../../characterSync/characterSyncRequests";
 
 const hitPointSaveDebounceMs = 150;
 const storageSaveDebounceMs = 1000;
@@ -141,7 +141,14 @@ export function useCharacterSheetPersistence(characterId: number) {
       throw error;
     }
 
-    dispatch(markActiveCharacterSheetPersisted({ characterId: savedCharacter.id }));
+    characterRef.current = savedCharacter;
+    dispatch(
+      commitActiveCharacterSheet({
+        character: savedCharacter,
+        domains: ["profile"],
+        dirty: false
+      })
+    );
     return savedCharacter;
   }, [clearPendingStorageSchedule, dispatch]);
 
@@ -305,6 +312,18 @@ export function useCharacterSheetPersistence(characterId: number) {
     return () => {
       isMountedRef.current = false;
       flushPendingSaves();
+    };
+  }, [flushPendingSaves]);
+
+  useEffect(() => {
+    function handleCharacterSyncRequest() {
+      flushPendingSaves();
+    }
+
+    window.addEventListener(CHARACTER_SYNC_REQUEST_EVENT, handleCharacterSyncRequest);
+
+    return () => {
+      window.removeEventListener(CHARACTER_SYNC_REQUEST_EVENT, handleCharacterSyncRequest);
     };
   }, [flushPendingSaves]);
 

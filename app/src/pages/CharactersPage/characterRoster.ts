@@ -24,6 +24,7 @@ export type CharacterRosterEntry = {
   ownerId?: string;
   remoteId?: string;
   remoteRevision?: number;
+  avatarUrl?: string;
   sheetSizeBytes?: number;
   source: "local" | "cloud";
   species: string;
@@ -143,6 +144,7 @@ function createRosterEntryFromPortableSheet(record: PortableCharacterSheet): Cha
     ...(sync?.ownerId ? { ownerId: sync.ownerId } : {}),
     ...(sync?.remoteId ? { remoteId: sync.remoteId } : {}),
     ...(sync?.remoteRevision ? { remoteRevision: sync.remoteRevision } : {}),
+    ...(record.metadata?.avatar?.imageUrl ? { avatarUrl: record.metadata.avatar.imageUrl } : {}),
     ...(record.summary.sheetSizeBytes ? { sheetSizeBytes: record.summary.sheetSizeBytes } : {}),
     source: "local",
     species: normalizeString(record.summary.species, "Unknown"),
@@ -209,6 +211,7 @@ function createRosterEntryFromCloudDocument(
     ownerId: document.ownerId,
     remoteId: document.id,
     remoteRevision: document.revision,
+    ...(document.avatar?.imageUrl ? { avatarUrl: document.avatar.imageUrl } : {}),
     ...(document.summary.sheetSizeBytes ? { sheetSizeBytes: document.summary.sheetSizeBytes } : {}),
     source: matchingLocalEntry ? "local" : "cloud",
     species: normalizeString(document.summary.species, "Unknown"),

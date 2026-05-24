@@ -1,14 +1,14 @@
 services:
   mongodb:
-    image: ${MONGO_IMAGE:-mongo:7.0}
-    container_name: ${MONGO_CONTAINER_NAME:-arcane-ledger-mongo}
+    image: mongo:7.0
+    container_name: arcane-ledger-mongo
     restart: unless-stopped
     ports:
-      - "${MONGO_PORT:-27017}:27017"
+      - "27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
-      MONGO_INITDB_DATABASE: ${MONGO_DB_NAME:-arcane_ledger}
+      MONGO_INITDB_DATABASE: arcane_ledger
     command: ["--bind_ip_all"]
     healthcheck:
       test:

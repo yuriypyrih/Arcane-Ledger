@@ -11,6 +11,14 @@ export type CharacterSheetSummaryRecord = {
   sheetSizeBytes?: number;
 };
 
+export type CharacterAvatarRecord = {
+  objectKey: string;
+  imageUrl: string;
+  mimeType: string;
+  sizeBytes: number;
+  updatedAt: Date;
+};
+
 export type CharacterSheetRecord = {
   ownerId: Types.ObjectId;
   clientId: string;
@@ -19,6 +27,7 @@ export type CharacterSheetRecord = {
   revision: number;
   summary: CharacterSheetSummaryRecord;
   sheet: Record<string, unknown>;
+  avatar?: CharacterAvatarRecord | null;
   deletedAt?: Date | null;
   createdAt?: Date;
   updatedAt?: Date;
@@ -77,6 +86,38 @@ const characterSheetSummarySchema = new Schema<CharacterSheetSummaryRecord>(
   }
 );
 
+const characterAvatarSchema = new Schema<CharacterAvatarRecord>(
+  {
+    objectKey: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    imageUrl: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    mimeType: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    sizeBytes: {
+      type: Number,
+      required: true,
+      min: 0
+    },
+    updatedAt: {
+      type: Date,
+      required: true
+    }
+  },
+  {
+    _id: false
+  }
+);
+
 const characterSheetSchema = new Schema<CharacterSheetRecord>(
   {
     ownerId: {
@@ -113,6 +154,10 @@ const characterSheetSchema = new Schema<CharacterSheetRecord>(
     sheet: {
       type: Schema.Types.Mixed,
       required: true
+    },
+    avatar: {
+      type: characterAvatarSchema,
+      default: null
     },
     deletedAt: {
       type: Date,
