@@ -4,7 +4,8 @@
 }
 
 .workbenchHero,
-.panel {
+.panel,
+.guestBanner {
   border: 1px solid rgba(75, 47, 29, 0.12);
   border-radius: var(--radius-section);
   background: rgba(255, 250, 241, 0.92);
@@ -45,13 +46,16 @@
 
 .eyebrow,
 .heroEyebrow,
+.guestBannerEyebrow,
 .title,
-.panelTitle {
+.panelTitle,
+.guestBannerTitle {
   margin: 0;
 }
 
 .eyebrow,
-.heroEyebrow {
+.heroEyebrow,
+.guestBannerEyebrow {
   color: var(--color-accent);
   font-size: 0.7rem;
   font-weight: 700;
@@ -60,7 +64,8 @@
   text-transform: uppercase;
 }
 
-.heroEyebrow {
+.heroEyebrow,
+.guestBannerEyebrow {
   display: inline-flex;
   align-items: center;
   gap: 0.38rem;
@@ -181,6 +186,12 @@
   grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
 }
 
+.dashboardSide {
+  display: grid;
+  gap: var(--space-section-gap);
+  min-width: 0;
+}
+
 .panel {
   display: grid;
   gap: 0.82rem;
@@ -261,6 +272,50 @@
   opacity: 0.76;
 }
 
+.guestBanner {
+  display: grid;
+  gap: 0.78rem;
+  padding: var(--space-card-padding);
+  background:
+    linear-gradient(180deg, rgba(255, 253, 248, 0.88), rgba(255, 250, 241, 0.92)),
+    rgba(255, 250, 241, 0.92);
+}
+
+.guestBannerHeader {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.guestBannerTitle {
+  font-size: 1.12rem;
+  line-height: 1.1;
+}
+
+.guestBenefitList {
+  display: grid;
+  gap: 0.56rem;
+  grid-template-columns: 1fr;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.guestBenefitList li {
+  display: grid;
+  align-items: start;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.48rem;
+  color: var(--color-ink);
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
+.guestBenefitList svg {
+  color: var(--color-accent);
+  margin-top: 0.05rem;
+}
+
 @media (max-width: 599px) {
   .workbenchHero,
   .panelHeader {
@@ -293,5 +348,9 @@
   .constructionNotice {
     justify-items: start;
     text-align: left;
+  }
+
+  .guestBenefitList {
+    grid-template-columns: 1fr;
   }
 }

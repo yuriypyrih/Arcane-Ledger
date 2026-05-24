@@ -1,4 +1,5 @@
 import { Suspense, lazy } from "react";
+import { Compass } from "lucide-react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import AuthSessionBootstrap from "./auth/AuthSessionBootstrap";
 import PreferencesSyncBootstrap from "./auth/PreferencesSyncBootstrap";
@@ -7,6 +8,10 @@ import CharacterSyncBootstrap from "./characterSync/CharacterSyncBootstrap";
 import AppShell from "./components/AppShell";
 import AnalyticsBootstrap from "./lib/AnalyticsBootstrap";
 import PageLoadingFallback from "./components/PageLoadingFallback";
+import styles from "./App.module.css";
+
+const LEGACY_NETLIFY_HOSTNAME = "arcane-ledger.netlify.app";
+const ARCANE_LEDGER_HOME_URL = "https://arcane-ledger.com";
 
 const AccountPage = lazy(() => import("./pages/AuthPages/AccountPage"));
 const AnalyticsPage = lazy(() => import("./pages/AuthPages/AnalyticsPage"));
@@ -25,6 +30,28 @@ const ResetPasswordPage = lazy(() => import("./pages/AuthPages/ResetPasswordPage
 const SupportPage = lazy(() => import("./pages/AuthPages/SupportPage"));
 const VerifyEmailPage = lazy(() => import("./pages/AuthPages/VerifyEmailPage"));
 
+function isLegacyNetlifyHost() {
+  return typeof window !== "undefined" && window.location.hostname === LEGACY_NETLIFY_HOSTNAME;
+}
+
+function LegacyDomainNotice() {
+  return (
+    <main className={styles.legacyPage}>
+      <section className={styles.legacyNotice} aria-labelledby="legacy-domain-title">
+        <div className={styles.legacyIcon} aria-hidden="true">
+          <Compass size={30} strokeWidth={1.8} />
+        </div>
+        <h1 id="legacy-domain-title">Arcane Ledger Has Moved</h1>
+        <p>
+          Thank you for helping alpha test Arcane Ledger. We have moved to a new home:
+          {" "}
+          <a href={ARCANE_LEDGER_HOME_URL}>{ARCANE_LEDGER_HOME_URL}</a>. Come join us there.
+        </p>
+      </section>
+    </main>
+  );
+}
+
 function LegacyCompendiumRedirect({ from }: { from: "/codex" | "/library" }) {
   const location = useLocation();
   const pathname = location.pathname.replace(from, "/compendium");
@@ -42,6 +69,10 @@ function LegacyCompendiumRedirect({ from }: { from: "/codex" | "/library" }) {
 }
 
 function App() {
+  if (isLegacyNetlifyHost()) {
+    return <LegacyDomainNotice />;
+  }
+
   return (
     <>
       <AuthSessionBootstrap />
