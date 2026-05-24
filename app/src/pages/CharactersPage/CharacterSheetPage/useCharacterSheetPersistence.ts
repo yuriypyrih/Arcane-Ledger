@@ -66,11 +66,9 @@ export function useCharacterSheetPersistence(characterId: number) {
   const ownerId = status === "authenticated" && user ? user.id : null;
   const initialCharacterRef = useRef<{ characterId: number; character: Character | null }>({
     characterId,
-    character: loadCharacter(characterId)
+    character: null
   });
-  const [isLoadingCharacter, setIsLoadingCharacter] = useState(
-    () => initialCharacterRef.current.character === null
-  );
+  const [isLoadingCharacter, setIsLoadingCharacter] = useState(true);
   const fallbackCharacter =
     initialCharacterRef.current.characterId === characterId
       ? initialCharacterRef.current.character
@@ -351,83 +349,117 @@ export function useCharacterSheetPersistence(characterId: number) {
       return;
     }
 
-    const localCharacter = loadCharacter(characterId);
+    let didCancel = false;
+    let openTaskId: number | null = null;
+
+    setIsLoadingCharacter(true);
+    initialCharacterRef.current = {
+      characterId,
+      character: null
+    };
+    characterRef.current = null;
+    pendingHitPointCharacterRef.current = null;
+    pendingStorageCharacterRef.current = null;
+    dispatch(
+      setActiveCharacterSheet({
+        character: null,
+        characterId
+      })
+    );
 
     if (status === "unknown") {
-      initialCharacterRef.current = {
-        characterId,
-        character: localCharacter
+      return () => {
+        didCancel = true;
       };
-      characterRef.current = localCharacter;
-      pendingHitPointCharacterRef.current = null;
-      pendingStorageCharacterRef.current = null;
-      setIsLoadingCharacter(localCharacter === null);
-      dispatch(
-        setActiveCharacterSheet({
-          character: localCharacter,
-          characterId
-        })
-      );
-      return;
     }
 
-    let didCancel = false;
+    openTaskId = window.setTimeout(() => {
+      let localCharacter: Character | null = null;
 
-    setIsLoadingCharacter(localCharacter === null);
-    void resolvePortableCharacterSheetForOpen(characterId, { ownerId })
-      .then((record) => {
-        if (didCancel) {
-          return;
-        }
-
-        const nextCharacter = record ? normalizeCharacter(record) : localCharacter;
-
-        initialCharacterRef.current = {
-          characterId,
-          character: nextCharacter
-        };
-        characterRef.current = nextCharacter;
-        pendingHitPointCharacterRef.current = null;
-        pendingStorageCharacterRef.current = null;
-        dispatch(
-          setActiveCharacterSheet({
-            character: nextCharacter,
-            characterId
-          })
-        );
-      })
-      .catch((error) => {
-        if (didCancel) {
-          return;
-        }
-
-        captureAppError(error, {
-          area: "character-persistence",
-          action: "resolve-open",
-          extra: {
-            characterId
-          }
-        });
-        initialCharacterRef.current = {
-          characterId,
-          character: localCharacter
-        };
-        characterRef.current = localCharacter;
-        dispatch(
-          setActiveCharacterSheet({
-            character: localCharacter,
-            characterId
-          })
-        );
-      })
-      .finally(() => {
+      try {
+        localCharacter = loadCharacter(characterId);
+      } catch {
         if (!didCancel) {
+          initialCharacterRef.current = {
+            characterId,
+            character: null
+          };
+          characterRef.current = null;
+          dispatch(
+            setActiveCharacterSheet({
+              character: null,
+              characterId
+            })
+          );
           setIsLoadingCharacter(false);
         }
-      });
+
+        return;
+      }
+
+      if (didCancel) {
+        return;
+      }
+
+      void resolvePortableCharacterSheetForOpen(characterId, { ownerId })
+        .then((record) => {
+          if (didCancel) {
+            return;
+          }
+
+          const nextCharacter = record ? normalizeCharacter(record) : localCharacter;
+
+          initialCharacterRef.current = {
+            characterId,
+            character: nextCharacter
+          };
+          characterRef.current = nextCharacter;
+          pendingHitPointCharacterRef.current = null;
+          pendingStorageCharacterRef.current = null;
+          dispatch(
+            setActiveCharacterSheet({
+              character: nextCharacter,
+              characterId
+            })
+          );
+        })
+        .catch((error) => {
+          if (didCancel) {
+            return;
+          }
+
+          captureAppError(error, {
+            area: "character-persistence",
+            action: "resolve-open",
+            extra: {
+              characterId
+            }
+          });
+          initialCharacterRef.current = {
+            characterId,
+            character: localCharacter
+          };
+          characterRef.current = localCharacter;
+          dispatch(
+            setActiveCharacterSheet({
+              character: localCharacter,
+              characterId
+            })
+          );
+        })
+        .finally(() => {
+          if (!didCancel) {
+            setIsLoadingCharacter(false);
+          }
+        });
+    }, 0);
 
     return () => {
       didCancel = true;
+
+      if (openTaskId !== null) {
+        window.clearTimeout(openTaskId);
+      }
     };
   }, [characterId, dispatch, flushPendingSaves, ownerId, status]);
 

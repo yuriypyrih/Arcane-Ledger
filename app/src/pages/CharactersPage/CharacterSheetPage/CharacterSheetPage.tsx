@@ -8,6 +8,7 @@ import {
 } from "../../../components/CharactersPage/CharacterSheetPage/CompanionsSection/companionPersistence";
 import { getClassSignatureStyle } from "../../../components/CharactersPage/classSignature";
 import type { AppShellOutletContext } from "../../../components/AppShell/outletContext";
+import PageLoadingFallback from "../../../components/PageLoadingFallback";
 import type { CharacterCompanion } from "../../../types";
 import { CHARACTER_COMPANION_LIMIT } from "../companions";
 import { hasSpellcastingForCharacter } from "../spellcastingAvailability";
@@ -70,18 +71,7 @@ function CharacterSheetPage() {
   );
 
   if (!character && isLoadingCharacter) {
-    return (
-      <section className={pageClassName}>
-        <article className={styles.notFoundCard}>
-          <p className={styles.eyebrow}>Character sheet</p>
-          <h2>Loading character</h2>
-          <p>Preparing the selected sheet.</p>
-          <Link to="/characters" className={styles.primaryLink}>
-            Back to roster
-          </Link>
-        </article>
-      </section>
-    );
+    return <PageLoadingFallback />;
   }
 
   if (!character) {

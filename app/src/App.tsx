@@ -1,11 +1,10 @@
 import { Suspense, lazy } from "react";
-import { LoaderCircle } from "lucide-react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import AuthSessionBootstrap from "./auth/AuthSessionBootstrap";
 import SentryUserBridge from "./auth/SentryUserBridge";
 import CharacterSyncBootstrap from "./characterSync/CharacterSyncBootstrap";
 import AppShell from "./components/AppShell";
-import styles from "./App.module.css";
+import PageLoadingFallback from "./components/PageLoadingFallback";
 
 const AccountPage = lazy(() => import("./pages/AuthPages/AccountPage"));
 const CharacterBuilderPage = lazy(() => import("./pages/CharactersPage/CharacterBuilderPage"));
@@ -21,18 +20,6 @@ const MonsterCodexEntryPage = lazy(() => import("./pages/MonsterCodexEntryPage")
 const RegisterPage = lazy(() => import("./pages/AuthPages/RegisterPage"));
 const ResetPasswordPage = lazy(() => import("./pages/AuthPages/ResetPasswordPage"));
 const VerifyEmailPage = lazy(() => import("./pages/AuthPages/VerifyEmailPage"));
-
-function RouteFallback() {
-  return (
-    <section className={styles.routeFallback} aria-live="polite" aria-busy="true">
-      <h2 className={styles.loadingTitle}>
-        <span>Loading</span>
-        <LoaderCircle className={styles.loadingIcon} aria-hidden="true" />
-      </h2>
-      <p className={styles.loadingText}>Next page is loading.</p>
-    </section>
-  );
-}
 
 function LegacyCompendiumRedirect({ from }: { from: "/codex" | "/library" }) {
   const location = useLocation();
@@ -56,7 +43,7 @@ function App() {
       <AuthSessionBootstrap />
       <SentryUserBridge />
       <CharacterSyncBootstrap />
-      <Suspense fallback={<RouteFallback />}>
+      <Suspense fallback={<PageLoadingFallback />}>
         <Routes>
           <Route element={<AppShell />}>
             <Route index element={<HomePage />} />
