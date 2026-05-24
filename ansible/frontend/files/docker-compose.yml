@@ -1,0 +1,15 @@
+services:
+  al-frontend:
+    image: lausi95/arcane-ledger-frontend
+    networks: [traefik]
+    restart: unless-stopped
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.alf.rule=Host(`arcane-ledger.com`)
+      - traefik.http.routers.alf.entrypoints=websecure
+      - traefik.http.routers.alf.tls.certresolver=letsencrypt
+
+networks:
+  traefik:
+    external: true
+    name: traefik

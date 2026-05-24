@@ -1,4 +1,4 @@
-name: Build and Deploy Backend
+name: Build and Deploy Frontend
 on:
   workflow_dispatch:
 
@@ -9,12 +9,12 @@ jobs:
     env:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-      DOCKER_IMAGE: lausi95/arcane-ledger-backend:latest
+      DOCKER_IMAGE: lausi95/arcane-ledger-frontend:latest
     steps:
       - uses: actions/checkout@v6
       - run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
       - run: docker build -t $DOCKER_IMAGE .
-        working-directory: server
+        working-directory: app
       - run: docker push $DOCKER_IMAGE
 
   deploy:
@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: production
-      url: https://backend.arcane-ledger.com
+      url: https://arcane-ledger.com
     steps:
       - uses: actions/checkout@v6
       - name: Setup SSH
@@ -40,7 +40,7 @@ jobs:
         run: |
           sudo service ssh start
           sudo service ssh status
-          cd ansible/backend
+          cd ansible/frontend
           echo "${{ secrets.ANSIBLE_VAULT_PASSWORD }}" > vault_password.yml
           cat deploy-prod.yml
           ansible-playbook -vvv -e "ansible_user=tom" --vault-password-file=vault_password.yml --private-key /home/runner/.ssh/id_rsa -i hosts.yml deploy-prod.yml
