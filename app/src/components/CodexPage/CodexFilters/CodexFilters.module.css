@@ -70,6 +70,11 @@
   color: currentColor;
 }
 
+.categoryTabIcon svg {
+  width: 1.625rem;
+  height: 1.625rem;
+}
+
 .categoryTabLabel {
   font-weight: 700;
   line-height: 1.2;
@@ -98,6 +103,29 @@
     grid-template-columns: 1fr;
   }
 
+  .categoryTabs {
+    gap: 0.42rem;
+  }
+
+  .categoryTab {
+    min-height: 4.35rem;
+    min-width: 5.45rem;
+    padding: 0.58rem 0.68rem;
+  }
+
+  .categoryTabContent {
+    gap: 0.34rem;
+  }
+
+  .categoryTabIcon svg {
+    width: 1.42rem;
+    height: 1.42rem;
+  }
+
+  .categoryTabLabel {
+    font-size: 0.88rem;
+  }
+
   .field {
     gap: 0.34rem;
   }
@@ -116,6 +144,29 @@
 @media (max-width: 599px) {
   .controls {
     gap: 0.5rem;
+  }
+
+  .categoryTabs {
+    gap: 0.34rem;
+  }
+
+  .categoryTab {
+    min-height: 3.75rem;
+    min-width: 4.65rem;
+    padding: 0.46rem 0.54rem;
+  }
+
+  .categoryTabContent {
+    gap: 0.26rem;
+  }
+
+  .categoryTabIcon svg {
+    width: 1.18rem;
+    height: 1.18rem;
+  }
+
+  .categoryTabLabel {
+    font-size: 0.76rem;
   }
 
   .field {
