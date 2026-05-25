@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 
 type ClassSignatureStyle = CSSProperties & {
+  "--class-signature-card-gradient": string;
   "--class-signature-row-gradient": string;
   "--class-signature-profile-gradient": string;
   "--class-signature-page-texture": string;
@@ -9,6 +10,7 @@ type ClassSignatureStyle = CSSProperties & {
 
 type ClassSignatureSpec = {
   getTexture: () => string;
+  cardGradient: string;
   rowGradient: string;
   profileGradient: string;
 };
@@ -17,6 +19,10 @@ const signatureRowDarkLayer =
   "linear-gradient(140deg, rgba(13, 10, 9, 0.62) 0%, rgba(13, 10, 9, 0.34) 2.8%, rgba(13, 10, 9, 0) 11.2%)";
 const signatureProfileDarkLayer =
   "linear-gradient(140deg, rgba(13, 10, 9, 0.66) 0%, rgba(13, 10, 9, 0.36) 2.4%, rgba(13, 10, 9, 0) 9.6%)";
+
+function setRgbaAlpha(color: string, alpha: number): string {
+  return color.replace(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*[\d.]+\)/, `rgba($1, $2, $3, ${alpha})`);
+}
 
 function createClassSignature({
   getTexture,
@@ -29,14 +35,20 @@ function createClassSignature({
   secondary: string;
   transparent: string;
 }): ClassSignatureSpec {
+  const cardPrimary = setRgbaAlpha(primary, 0.64);
+  const cardSecondary = setRgbaAlpha(secondary, 0.2);
+
   return {
     getTexture,
+    cardGradient: `linear-gradient(to bottom right, ${cardPrimary} 0%, ${cardPrimary} 8%, ${cardSecondary} 18%, ${transparent} 38%)`,
     rowGradient: `${signatureRowDarkLayer}, linear-gradient(140deg, ${primary} 0%, ${primary} 7.2%, ${secondary} 16%, ${transparent} 38.4%)`,
     profileGradient: `${signatureProfileDarkLayer}, linear-gradient(140deg, ${primary} 0%, ${primary} 5.6%, ${secondary} 12.8%, ${transparent} 35.2%)`
   };
 }
 
 const defaultClassSignatureStyle: ClassSignatureStyle = {
+  "--class-signature-card-gradient":
+    "linear-gradient(to bottom right, rgba(143, 91, 56, 0.64) 0%, rgba(143, 91, 56, 0.64) 8%, rgba(220, 178, 139, 0.2) 18%, rgba(220, 178, 139, 0) 38%)",
   "--class-signature-row-gradient": `${signatureRowDarkLayer}, linear-gradient(140deg, rgba(143, 91, 56, 0.26) 0%, rgba(143, 91, 56, 0.26) 7.2%, rgba(220, 178, 139, 0.14) 16%, rgba(220, 178, 139, 0) 38.4%)`,
   "--class-signature-profile-gradient": `${signatureProfileDarkLayer}, linear-gradient(140deg, rgba(143, 91, 56, 0.34) 0%, rgba(143, 91, 56, 0.34) 5.6%, rgba(220, 178, 139, 0.18) 12.8%, rgba(220, 178, 139, 0) 35.2%)`,
   "--class-signature-page-texture": "none",
@@ -151,6 +163,8 @@ export function getClassSignatureStyle(className: string): ClassSignatureStyle {
   }
 
   return {
+    "--class-signature-card-gradient":
+      signature?.cardGradient ?? defaultClassSignatureStyle["--class-signature-card-gradient"],
     "--class-signature-row-gradient":
       signature?.rowGradient ?? defaultClassSignatureStyle["--class-signature-row-gradient"],
     "--class-signature-profile-gradient":

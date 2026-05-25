@@ -17,6 +17,64 @@
   grid-column: 1 / -1;
 }
 
+.categoryTabs {
+  display: flex;
+  flex-wrap: wrap;
+  grid-column: 1 / -1;
+  gap: 0.52rem;
+}
+
+.categoryTab {
+  appearance: none;
+  border: 1px solid rgba(75, 47, 29, 0.12);
+  border-radius: var(--radius-control);
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--color-ink);
+  cursor: pointer;
+  font: inherit;
+  min-height: 4.95rem;
+  min-width: 6.25rem;
+  padding: 0.72rem 0.82rem;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease,
+    color 160ms ease;
+}
+
+.categoryTab:hover {
+  background: rgba(240, 247, 255, 0.78);
+}
+
+.categoryTab:focus-visible {
+  outline: 2px solid rgba(47, 120, 255, 0.38);
+  outline-offset: 3px;
+}
+
+.categoryTabActive {
+  border-color: #2f78ff;
+  color: #2f78ff;
+}
+
+.categoryTabContent {
+  align-items: center;
+  display: grid;
+  gap: 0.42rem;
+  justify-items: center;
+  min-width: 0;
+  text-align: center;
+}
+
+.categoryTabIcon {
+  display: inline-flex;
+  color: currentColor;
+}
+
+.categoryTabLabel {
+  font-weight: 700;
+  line-height: 1.2;
+}
+
 .field span {
   color: var(--color-ink-soft);
   font-size: 0.88rem;

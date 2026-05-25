@@ -1,5 +1,8 @@
+import clsx from "clsx";
+import { BookOpen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ARMOR_TYPES, ENTRY_CATEGORIES, type SpellEntry } from "../../../codex/entries";
+import { getClassSignatureStyle } from "../../CharactersPage/classSignature";
 import SpellListRow from "../../SpellListRow";
 import type { CodexEntry, CodexStatus } from "../../../types";
 import {
@@ -11,6 +14,7 @@ import {
 } from "../../../utils/codex";
 import type { CodexFilterCategory } from "../../../utils/codex";
 import RarityPill from "../RarityPill";
+import TablePagination from "../TablePagination";
 import styles from "./CodexResults.module.css";
 
 type CodexResultsProps = {
@@ -87,7 +91,16 @@ function CodexResults({
     <>
       <div className={styles.resultsHeader}>
         <h3>{entriesTitle}</h3>
-        <span>{totalEntriesLabel}</span>
+        <div className={styles.resultsMeta}>
+          <span>{totalEntriesLabel}</span>
+          {status === "ready" && entries.length > 0 && isSpellCategory ? (
+            <TablePagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={onPageChange}
+            />
+          ) : null}
+        </div>
       </div>
 
       {status === "loading" ? (
@@ -134,30 +147,6 @@ function CodexResults({
               );
             })}
           </div>
-
-          {totalPages > 1 ? (
-            <div className={styles.pagination}>
-              <button
-                type="button"
-                className={styles.paginationButton}
-                onClick={() => onPageChange(currentPage - 1)}
-                disabled={currentPage <= 1}
-              >
-                Previous
-              </button>
-              <span className={styles.paginationStatus}>
-                Page {currentPage} of {totalPages}
-              </span>
-              <button
-                type="button"
-                className={styles.paginationButton}
-                onClick={() => onPageChange(currentPage + 1)}
-                disabled={currentPage >= totalPages}
-              >
-                Next
-              </button>
-            </div>
-          ) : null}
         </>
       ) : null}
 
@@ -165,6 +154,7 @@ function CodexResults({
         <div className={styles.grid}>
           {entries.map((entry) => {
             const itemTypeSubtitle = getItemTypeSubtitle(entry);
+            const isClassEntry = entry.category === ENTRY_CATEGORIES.CLASSES;
 
             return (
               <button
@@ -173,8 +163,16 @@ function CodexResults({
                 className={styles.cardButton}
                 onClick={() => openEntry(entry.id)}
               >
-                <article className={styles.card}>
-                  <div className={styles.cardHeader}>
+                <article
+                  className={clsx(styles.card, isClassEntry && styles.classCard)}
+                  style={isClassEntry ? getClassSignatureStyle(entry.name) : undefined}
+                >
+                  <div className={clsx(styles.cardHeader, isClassEntry && styles.classCardHeader)}>
+                    {isClassEntry ? (
+                      <span className={styles.classCardIcon} aria-hidden="true">
+                        <BookOpen size={18} strokeWidth={2.2} />
+                      </span>
+                    ) : null}
                     <div className={styles.titleBlock}>
                       <h4>{entry.name}</h4>
                       {itemTypeSubtitle ? (

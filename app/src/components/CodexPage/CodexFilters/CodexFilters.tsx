@@ -1,4 +1,14 @@
 import {
+  Award,
+  Backpack,
+  BookOpen,
+  PawPrint,
+  ScrollText,
+  Sparkles,
+  UserRound,
+  type LucideIcon
+} from "lucide-react";
+import {
   CODEX_FEATS_CATEGORY,
   CODEX_SPELL_SPECIAL_FILTERS,
   getCodexSpellSpecialFilterLabel,
@@ -107,6 +117,16 @@ const featCategoryOptions = [
   FEAT_CATEGORY.EPIC_BOON
 ];
 
+const categoryIcons: Partial<Record<CodexFilterCategory, LucideIcon>> = {
+  [ENTRY_CATEGORIES.BACKGROUNDS]: ScrollText,
+  [ENTRY_CATEGORIES.MONSTERS]: PawPrint,
+  [ENTRY_CATEGORIES.CLASSES]: BookOpen,
+  [ENTRY_CATEGORIES.ITEMS]: Backpack,
+  [CODEX_FEATS_CATEGORY]: Award,
+  [ENTRY_CATEGORIES.SPECIES]: UserRound,
+  [ENTRY_CATEGORIES.SPELLS]: Sparkles
+};
+
 function formatFeatCategoryOptionLabel(category: FEAT_CATEGORY): string {
   return category === FEAT_CATEGORY.EPIC_BOON ? "Boon" : formatEnumLabel(category);
 }
@@ -167,20 +187,34 @@ function CodexFilters({
 
   return (
     <div className={styles.controls}>
-      <label className={styles.field}>
-        <span>Category</span>
-        <select
-          className={styles.input}
-          value={category}
-          onChange={(event) => onCategoryChange(event.target.value as CodexFilterCategory)}
-        >
-          {categories.map((item) => (
-            <option key={item} value={item}>
-              {formatCategoryOptionLabel(item)}
-            </option>
-          ))}
-        </select>
-      </label>
+      <div className={styles.categoryTabs} role="radiogroup" aria-label="Compendium category">
+        {categories.map((item) => {
+          const CategoryIcon = categoryIcons[item] ?? BookOpen;
+          const selected = item === category;
+
+          return (
+            <button
+              key={item}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              className={`${styles.categoryTab} ${selected ? styles.categoryTabActive : ""}`}
+              onClick={() => {
+                if (!selected) {
+                  onCategoryChange(item);
+                }
+              }}
+            >
+              <span className={styles.categoryTabContent}>
+                <span className={styles.categoryTabIcon} aria-hidden="true">
+                  <CategoryIcon size={26} strokeWidth={2.1} />
+                </span>
+                <span className={styles.categoryTabLabel}>{formatCategoryOptionLabel(item)}</span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
 
       {category === ENTRY_CATEGORIES.SPELLS ? (
         <>
