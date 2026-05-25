@@ -8,6 +8,7 @@ import type {
   AnalyticsGeoRecord,
   AnalyticsRollupRecord
 } from "../models/Analytics.js";
+import { getAnalyticsGeo } from "./analyticsGeoService.js";
 import { captureServerError } from "../sentry.js";
 
 export const frontendAnalyticsEventNames = [
@@ -100,21 +101,6 @@ const analyticsDeviceKeys = new Set([
 
 function startOfUtcDay(value: Date) {
   return new Date(Date.UTC(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate()));
-}
-
-function normalizeHeaderValue(value: string | string[] | undefined): string | null {
-  const rawValue = Array.isArray(value) ? value[0] : value;
-  const trimmedValue = rawValue?.trim();
-
-  if (!trimmedValue) {
-    return null;
-  }
-
-  try {
-    return decodeURIComponent(trimmedValue).slice(0, MAX_STRING_LENGTH);
-  } catch {
-    return trimmedValue.slice(0, MAX_STRING_LENGTH);
-  }
 }
 
 function normalizeAnalyticsString(value: unknown, maxLength = MAX_STRING_LENGTH): string | null {
@@ -231,31 +217,6 @@ function normalizeDevice(value: unknown): AnalyticsDeviceRecord | undefined {
   }
 
   return device as AnalyticsDeviceRecord;
-}
-
-function getHeaderGeo(request: Request): AnalyticsGeoRecord {
-  const country =
-    normalizeHeaderValue(request.headers["cf-ipcountry"]) ??
-    normalizeHeaderValue(request.headers["x-vercel-ip-country"]) ??
-    normalizeHeaderValue(request.headers["x-country-code"]) ??
-    normalizeHeaderValue(request.headers["cloudfront-viewer-country"]) ??
-    "unknown";
-  const region =
-    normalizeHeaderValue(request.headers["x-vercel-ip-country-region"]) ??
-    normalizeHeaderValue(request.headers["x-region"]) ??
-    normalizeHeaderValue(request.headers["cf-region"]) ??
-    "unknown";
-  const city =
-    normalizeHeaderValue(request.headers["x-vercel-ip-city"]) ??
-    normalizeHeaderValue(request.headers["x-city"]) ??
-    normalizeHeaderValue(request.headers["cf-ipcity"]) ??
-    "unknown";
-
-  return {
-    country,
-    region,
-    city
-  };
 }
 
 function hashUniqueKey(_date: Date, value: string) {
@@ -521,7 +482,7 @@ export async function captureFrontendAnalyticsBatch(options: {
   request: Request;
   userId?: Types.ObjectId | null;
 }): Promise<AnalyticsBatchResult> {
-  const geo = getHeaderGeo(options.request);
+  const geo = await getAnalyticsGeo(options.request);
   const records = options.events
     .map((event) => normalizeAnalyticsEvent(event, { geo, userId: options.userId }))
     .filter((event): event is AnalyticsEventRecord => Boolean(event));

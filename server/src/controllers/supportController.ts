@@ -101,6 +101,7 @@ export const submitSupportFeedback = asyncHandler(
     await user.save({ validateModifiedOnly: true });
 
     await sendAuthEmail({
+      kind: "support_ticket",
       to: SUPPORT_EMAIL_TO,
       subject: "New Arcane Ledger support ticket",
       text: createSupportEmailText({

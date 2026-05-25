@@ -1,5 +1,13 @@
 import { apiGet, type ApiRequestOptions } from "./client";
 
+export type AnalyticsSummaryRangeKey = "last30" | "all" | "custom";
+
+export type AnalyticsSummaryQuery = {
+  end?: string;
+  range?: AnalyticsSummaryRangeKey;
+  start?: string;
+};
+
 export type AnalyticsCountBucket = {
   count: number;
   label: string;
@@ -23,17 +31,27 @@ export type AnalyticsCountryBucket = {
 export type AnalyticsSummary = {
   range: {
     end: string;
-    start: string;
+    start: string | null;
+    type: AnalyticsSummaryRangeKey;
   };
-  visitors: {
-    authenticatedVisitors: number;
-    pageViews: number;
-    uniqueSessions: number;
-    uniqueVisitors: number;
-    unknownVisitors: number;
+  overview: {
+    anonymousVisitors: number;
+    createdCharacters: number;
+    createdUsers: number;
+    emailsSent: number;
+    totalActiveCharacters: number;
+    totalActiveUsers: number;
   };
   demographics: {
-    countries: AnalyticsCountryBucket[];
+    all: {
+      countries: AnalyticsCountryBucket[];
+    };
+    anonymous: {
+      countries: AnalyticsCountryBucket[];
+    };
+    authenticated: {
+      countries: AnalyticsCountryBucket[];
+    };
   };
   health: {
     analyticsEvents: number;
@@ -41,28 +59,38 @@ export type AnalyticsSummary = {
     latencyBuckets: AnalyticsCountBucket[];
     statusFamilies: AnalyticsCountBucket[];
   };
-  usage: {
-    characterCreated: number;
-    characterSheetOpened: number;
-    codexSearches: number;
-    supportFeedbackSubmitted: number;
+  routes: {
     topRoutes: AnalyticsRouteBucket[];
   };
   characters: {
-    activeSaved: number;
-    averageLevel: number;
-    createdThisYear: number;
-    deleted: number;
     topClasses: AnalyticsNamedBucket[];
     topSpecies: AnalyticsNamedBucket[];
   };
-  users: {
-    active: number;
-    createdThisYear: number;
-    verified: number;
-  };
 };
 
-export function fetchAnalyticsSummary(options?: ApiRequestOptions) {
-  return apiGet<AnalyticsSummary>("/analytics/summary", options);
+function createSummaryPath(query: AnalyticsSummaryQuery = {}) {
+  const searchParams = new URLSearchParams();
+
+  if (query.range) {
+    searchParams.set("range", query.range);
+  }
+
+  if (query.start !== undefined) {
+    searchParams.set("start", query.start);
+  }
+
+  if (query.end !== undefined) {
+    searchParams.set("end", query.end);
+  }
+
+  const queryString = searchParams.toString();
+
+  return `/analytics/summary${queryString ? `?${queryString}` : ""}`;
+}
+
+export function fetchAnalyticsSummary(
+  query?: AnalyticsSummaryQuery,
+  options?: ApiRequestOptions
+) {
+  return apiGet<AnalyticsSummary>(createSummaryPath(query), options);
 }

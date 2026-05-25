@@ -3,7 +3,12 @@ import { getAppConfig } from "../config/env.js";
 import { AppError } from "../errors/AppError.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
 import { captureFrontendAnalyticsBatch, readAnalyticsBatch } from "../services/analyticsService.js";
-import { getAnalyticsSummary, type AnalyticsSummary } from "../services/analyticsSummaryService.js";
+import {
+  getAnalyticsSummary,
+  type AnalyticsSummary,
+  type AnalyticsSummaryOptions,
+  type AnalyticsSummaryRangeKey
+} from "../services/analyticsSummaryService.js";
 import { getUserFromAuthToken } from "../services/authUserService.js";
 import { captureServerError } from "../sentry.js";
 
@@ -11,6 +16,51 @@ export type AnalyticsBatchEnvelope = {
   accepted: number;
   dropped: number;
 };
+
+const analyticsSummaryRangeKeys = new Set<AnalyticsSummaryRangeKey>(["last30", "all", "custom"]);
+
+function createAnalyticsRangeError(message: string) {
+  return new AppError(message, 400, "INVALID_ANALYTICS_RANGE");
+}
+
+function readOptionalQueryString(value: unknown, fieldName: string): string | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (Array.isArray(value)) {
+    if (value.length === 0) {
+      return undefined;
+    }
+
+    if (value.length > 1) {
+      throw createAnalyticsRangeError(`Analytics query "${fieldName}" must be provided once.`);
+    }
+
+    return readOptionalQueryString(value[0], fieldName);
+  }
+
+  if (typeof value !== "string") {
+    throw createAnalyticsRangeError(`Analytics query "${fieldName}" must be a string.`);
+  }
+
+  return value;
+}
+
+function readAnalyticsSummaryOptions(request: Request): AnalyticsSummaryOptions {
+  const query = request.query as Record<string, unknown>;
+  const rangeValue = readOptionalQueryString(query.range, "range")?.trim() || "last30";
+
+  if (!analyticsSummaryRangeKeys.has(rangeValue as AnalyticsSummaryRangeKey)) {
+    throw createAnalyticsRangeError("Analytics range must be last30, all, or custom.");
+  }
+
+  return {
+    range: rangeValue as AnalyticsSummaryRangeKey,
+    start: readOptionalQueryString(query.start, "start") ?? null,
+    end: readOptionalQueryString(query.end, "end") ?? null
+  };
+}
 
 async function getOptionalAnalyticsUserId(request: Request) {
   const { authCookieName } = getAppConfig();
@@ -58,7 +108,7 @@ export const collectAnalyticsEvents = asyncHandler(
 );
 
 export const getAnalyticsSummaryController = asyncHandler(
-  async (_request: Request, response: Response<AnalyticsSummary>) => {
-    response.json(await getAnalyticsSummary());
+  async (request: Request, response: Response<AnalyticsSummary>) => {
+    response.json(await getAnalyticsSummary(readAnalyticsSummaryOptions(request)));
   }
 );

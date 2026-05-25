@@ -1,5 +1,8 @@
+import type { PipelineStage } from "mongoose";
+import { AppError } from "../errors/AppError.js";
 import { AnalyticsDailyRollup, type AnalyticsRollupRecord } from "../models/Analytics.js";
 import { CharacterSheet } from "../models/CharacterSheet.js";
+import { EmailDelivery } from "../models/EmailDelivery.js";
 import { User } from "../models/User.js";
 
 type RollupSummaryRecord = Pick<
@@ -43,20 +46,36 @@ type AnalyticsCountryBucket = {
   country: string;
 };
 
+type AnalyticsDemographicsBucket = {
+  countries: AnalyticsCountryBucket[];
+};
+
+export type AnalyticsSummaryRangeKey = "last30" | "all" | "custom";
+
+export type AnalyticsSummaryOptions = {
+  end?: string | null;
+  range?: AnalyticsSummaryRangeKey;
+  start?: string | null;
+};
+
 export type AnalyticsSummary = {
   range: {
     end: string;
-    start: string;
+    start: string | null;
+    type: AnalyticsSummaryRangeKey;
   };
-  visitors: {
-    authenticatedVisitors: number;
-    pageViews: number;
-    uniqueSessions: number;
-    uniqueVisitors: number;
-    unknownVisitors: number;
+  overview: {
+    anonymousVisitors: number;
+    createdCharacters: number;
+    createdUsers: number;
+    emailsSent: number;
+    totalActiveCharacters: number;
+    totalActiveUsers: number;
   };
   demographics: {
-    countries: AnalyticsCountryBucket[];
+    all: AnalyticsDemographicsBucket;
+    anonymous: AnalyticsDemographicsBucket;
+    authenticated: AnalyticsDemographicsBucket;
   };
   health: {
     analyticsEvents: number;
@@ -64,41 +83,122 @@ export type AnalyticsSummary = {
     latencyBuckets: AnalyticsCountBucket[];
     statusFamilies: AnalyticsCountBucket[];
   };
-  usage: {
-    characterCreated: number;
-    characterSheetOpened: number;
-    codexSearches: number;
-    supportFeedbackSubmitted: number;
+  routes: {
     topRoutes: AnalyticsRouteBucket[];
   };
   characters: {
-    activeSaved: number;
-    averageLevel: number;
-    createdThisYear: number;
-    deleted: number;
     topClasses: AnalyticsNamedBucket[];
     topSpecies: AnalyticsNamedBucket[];
   };
-  users: {
-    active: number;
-    createdThisYear: number;
-    verified: number;
-  };
 };
 
-const SUMMARY_RANGE_DAYS = 30;
+const LAST_30_DAY_COUNT = 30;
 const TOP_LIMIT = 10;
 const DEMOGRAPHICS_OTHER_LABEL = "Other / Unknown";
+const DATE_ONLY_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
+const STATUS_FAMILIES = ["2xx", "3xx", "4xx", "429", "5xx", "other"] as const;
+const statusFamilySet = new Set<string>(STATUS_FAMILIES);
 
-function getSummaryRange(now = new Date()) {
+type ResolvedSummaryRange = {
+  end: Date;
+  start: Date | null;
+  type: AnalyticsSummaryRangeKey;
+};
+
+function startOfUtcDay(value: Date) {
+  return new Date(Date.UTC(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate()));
+}
+
+function endOfUtcDay(value: Date) {
+  return new Date(
+    Date.UTC(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate(), 23, 59, 59, 999)
+  );
+}
+
+function addUtcDays(value: Date, days: number) {
+  const nextDate = new Date(value);
+  nextDate.setUTCDate(nextDate.getUTCDate() + days);
+  return nextDate;
+}
+
+function createAnalyticsRangeError(message: string) {
+  return new AppError(message, 400, "INVALID_ANALYTICS_RANGE");
+}
+
+function parseDateOnly(value: string, fieldName: "end" | "start") {
+  const match = DATE_ONLY_PATTERN.exec(value);
+
+  if (!match) {
+    throw createAnalyticsRangeError(`Analytics ${fieldName} date must use YYYY-MM-DD.`);
+  }
+
+  const [, yearText, monthText, dayText] = match;
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const day = Number(dayText);
+  const parsedDate = new Date(Date.UTC(year, month - 1, day));
+
+  if (
+    parsedDate.getUTCFullYear() !== year ||
+    parsedDate.getUTCMonth() !== month - 1 ||
+    parsedDate.getUTCDate() !== day
+  ) {
+    throw createAnalyticsRangeError(`Analytics ${fieldName} date is invalid.`);
+  }
+
+  return parsedDate;
+}
+
+function normalizeDateInput(value: string | null | undefined) {
+  const trimmedValue = value?.trim();
+
+  return trimmedValue ? trimmedValue : null;
+}
+
+function resolveSummaryRange(options: AnalyticsSummaryOptions = {}, now = new Date()): ResolvedSummaryRange {
+  const type = options.range ?? "last30";
+  const endDate = endOfUtcDay(options.end ? parseDateOnly(options.end, "end") : now);
+
+  if (type === "all") {
+    return {
+      end: endDate,
+      start: null,
+      type
+    };
+  }
+
+  if (type === "last30") {
+    return {
+      end: endDate,
+      start: startOfUtcDay(addUtcDays(endDate, -(LAST_30_DAY_COUNT - 1))),
+      type
+    };
+  }
+
+  const normalizedStart = normalizeDateInput(options.start);
+  const startDate = normalizedStart ? startOfUtcDay(parseDateOnly(normalizedStart, "start")) : null;
+
+  if (startDate && startDate.getTime() > endDate.getTime()) {
+    throw createAnalyticsRangeError("Analytics start date must be before or equal to end date.");
+  }
+
   return {
-    end: now,
-    start: new Date(now.getTime() - SUMMARY_RANGE_DAYS * 24 * 60 * 60 * 1000)
+    end: endDate,
+    start: startDate,
+    type
   };
 }
 
-function getYearStart(now = new Date()) {
-  return new Date(Date.UTC(now.getUTCFullYear(), 0, 1));
+function createDateRangeFilter(range: ResolvedSummaryRange) {
+  const filter: { $gte?: Date; $lte: Date } = {
+    $lte: range.end
+  };
+
+  if (range.start) {
+    filter.$gte = range.start;
+  }
+
+  return filter;
 }
 
 function sumCount(records: RollupSummaryRecord[]) {
@@ -126,21 +226,6 @@ function countUniqueVisitors(records: RollupSummaryRecord[]) {
   return keys.size + fallbackCount;
 }
 
-function countUniqueSessions(records: RollupSummaryRecord[]) {
-  const keys = new Set<string>();
-  let fallbackCount = 0;
-
-  records.forEach((record) => {
-    addUniqueKeys(keys, record.uniqueSessionKeys);
-
-    if (record.uniqueSessionKeys.length === 0) {
-      fallbackCount += record.uniqueSessions;
-    }
-  });
-
-  return keys.size + fallbackCount;
-}
-
 function getTopCountBuckets(
   records: RollupSummaryRecord[],
   labelSelector: (record: RollupSummaryRecord) => string,
@@ -159,13 +244,41 @@ function getTopCountBuckets(
     .slice(0, limit);
 }
 
+function normalizeTopRoute(route: string) {
+  return route.replace(/^\/characters\/\d+(?=\/|$)/, "/characters/:id");
+}
+
 function getTopRoutes(records: RollupSummaryRecord[]): AnalyticsRouteBucket[] {
-  return getTopCountBuckets(records, (record) => record.route)
-    .filter((bucket) => bucket.label !== "unknown")
-    .map((bucket) => ({
-      route: bucket.label,
-      count: bucket.count
-    }));
+  const counts = new Map<string, number>();
+
+  records.forEach((record) => {
+    const route = normalizeTopRoute(record.route);
+
+    if (route === "unknown") {
+      return;
+    }
+
+    counts.set(route, (counts.get(route) ?? 0) + record.count);
+  });
+
+  return [...counts.entries()]
+    .map(([route, count]) => ({ route, count }))
+    .sort((left, right) => right.count - left.count || left.route.localeCompare(right.route))
+    .slice(0, TOP_LIMIT);
+}
+
+function getStatusFamilyBuckets(records: RollupSummaryRecord[]): AnalyticsCountBucket[] {
+  const counts = new Map<string, number>();
+
+  records.forEach((record) => {
+    const label = statusFamilySet.has(record.statusFamily) ? record.statusFamily : "other";
+    counts.set(label, (counts.get(label) ?? 0) + record.count);
+  });
+
+  return STATUS_FAMILIES.map((label) => ({
+    label,
+    count: counts.get(label) ?? 0
+  }));
 }
 
 function getDemographics(records: RollupSummaryRecord[]): AnalyticsCountryBucket[] {
@@ -197,12 +310,9 @@ function getDemographics(records: RollupSummaryRecord[]): AnalyticsCountryBucket
     : topCountries;
 }
 
-async function getRollups(range: { end: Date; start: Date }) {
+async function getRollups(range: ResolvedSummaryRange) {
   return AnalyticsDailyRollup.find({
-    date: {
-      $gte: range.start,
-      $lte: range.end
-    }
+    date: createDateRangeFilter(range)
   })
     .select(
       "approximateUniques city count country date eventName latencyBucket method region route source statusFamily uniqueSessionKeys uniqueSessions uniqueVisitorKeys uniqueVisitors visitorType"
@@ -211,13 +321,36 @@ async function getRollups(range: { end: Date; start: Date }) {
     .exec();
 }
 
-async function getTopCharacterSummaryField(fieldName: "summary.className" | "summary.species") {
-  const rows = await CharacterSheet.aggregate<{ _id: string; count: number }>([
+function getActiveCharacterOwnerStages(): PipelineStage[] {
+  return [
     {
       $match: {
         deletedAt: null
       }
     },
+    {
+      $lookup: {
+        as: "owner",
+        foreignField: "_id",
+        from: User.collection.name,
+        localField: "ownerId"
+      }
+    },
+    {
+      $unwind: "$owner"
+    },
+    {
+      $match: {
+        "owner.active": true,
+        "owner.emailVerifiedAt": { $ne: null }
+      }
+    }
+  ];
+}
+
+async function getTopCharacterSummaryField(fieldName: "summary.className" | "summary.species") {
+  const rows = await CharacterSheet.aggregate<{ _id: string; count: number }>([
+    ...getActiveCharacterOwnerStages(),
     {
       $group: {
         _id: `$${fieldName}`,
@@ -234,63 +367,63 @@ async function getTopCharacterSummaryField(fieldName: "summary.className" | "sum
   }));
 }
 
-async function getCharacterSummary(yearStart: Date) {
-  const [activeSaved, deleted, createdThisYear, averageLevelRows, topClasses, topSpecies] =
-    await Promise.all([
-      CharacterSheet.countDocuments({ deletedAt: null }),
-      CharacterSheet.countDocuments({ deletedAt: { $exists: true, $ne: null } }),
-      CharacterSheet.countDocuments({ createdAt: { $gte: yearStart }, deletedAt: null }),
-      CharacterSheet.aggregate<{ averageLevel: number }>([
-        {
-          $match: {
-            deletedAt: null
-          }
-        },
-        {
-          $group: {
-            _id: null,
-            averageLevel: { $avg: "$summary.level" }
-          }
-        }
-      ]),
-      getTopCharacterSummaryField("summary.className"),
-      getTopCharacterSummaryField("summary.species")
-    ]);
-  const averageLevel = averageLevelRows[0]?.averageLevel ?? 0;
+async function countTotalActiveCharacters() {
+  const rows = await CharacterSheet.aggregate<{ count: number }>([
+    ...getActiveCharacterOwnerStages(),
+    {
+      $count: "count"
+    }
+  ]);
+
+  return rows[0]?.count ?? 0;
+}
+
+async function getCharacterSummary() {
+  const [topClasses, topSpecies] = await Promise.all([
+    getTopCharacterSummaryField("summary.className"),
+    getTopCharacterSummaryField("summary.species")
+  ]);
 
   return {
-    activeSaved,
-    deleted,
-    createdThisYear,
-    averageLevel: Math.round(averageLevel * 10) / 10,
     topClasses,
     topSpecies
   };
 }
 
-async function getUserSummary(yearStart: Date) {
-  const [active, verified, createdThisYear] = await Promise.all([
-    User.countDocuments({ active: true }),
+async function getOverviewSummary(
+  range: ResolvedSummaryRange,
+  anonymousVisitorRollups: RollupSummaryRecord[]
+) {
+  const dateFilter = createDateRangeFilter(range);
+  const [
+    totalActiveUsers,
+    totalActiveCharacters,
+    createdUsers,
+    createdCharacters,
+    emailsSent
+  ] = await Promise.all([
     User.countDocuments({ active: true, emailVerifiedAt: { $ne: null } }),
-    User.countDocuments({ active: true, createdAt: { $gte: yearStart } })
+    countTotalActiveCharacters(),
+    User.countDocuments({ createdAt: dateFilter }),
+    CharacterSheet.countDocuments({ createdAt: dateFilter }),
+    EmailDelivery.countDocuments({ sentAt: dateFilter })
   ]);
 
   return {
-    active,
-    verified,
-    createdThisYear
+    totalActiveUsers,
+    totalActiveCharacters,
+    createdUsers,
+    createdCharacters,
+    anonymousVisitors: countUniqueVisitors(anonymousVisitorRollups),
+    emailsSent
   };
 }
 
-export async function getAnalyticsSummary(): Promise<AnalyticsSummary> {
-  const now = new Date();
-  const range = getSummaryRange(now);
-  const yearStart = getYearStart(now);
-  const [rollups, characters, users] = await Promise.all([
-    getRollups(range),
-    getCharacterSummary(yearStart),
-    getUserSummary(yearStart)
-  ]);
+export async function getAnalyticsSummary(
+  options: AnalyticsSummaryOptions = {}
+): Promise<AnalyticsSummary> {
+  const range = resolveSummaryRange(options);
+  const rollups = await getRollups(range);
   const frontendRollups = rollups.filter((record) => record.source === "frontend");
   const visitorRollups = frontendRollups.filter((record) =>
     ["app_boot", "session_start", "page_view"].includes(record.eventName)
@@ -301,40 +434,38 @@ export async function getAnalyticsSummary(): Promise<AnalyticsSummary> {
   const anonymousVisitorRollups = visitorRollups.filter((record) => record.visitorType === "anonymous");
   const pageViewRollups = frontendRollups.filter((record) => record.eventName === "page_view");
   const serverRequestRollups = rollups.filter((record) => record.eventName === "server_request");
+  const [overview, characters] = await Promise.all([
+    getOverviewSummary(range, anonymousVisitorRollups),
+    getCharacterSummary()
+  ]);
 
   return {
     range: {
-      start: range.start.toISOString(),
+      type: range.type,
+      start: range.start?.toISOString() ?? null,
       end: range.end.toISOString()
     },
-    visitors: {
-      uniqueVisitors: countUniqueVisitors(visitorRollups),
-      uniqueSessions: countUniqueSessions(visitorRollups),
-      authenticatedVisitors: countUniqueVisitors(authenticatedVisitorRollups),
-      unknownVisitors: countUniqueVisitors(anonymousVisitorRollups),
-      pageViews: sumCount(pageViewRollups)
-    },
+    overview,
     demographics: {
-      countries: getDemographics(visitorRollups)
+      all: {
+        countries: getDemographics(visitorRollups)
+      },
+      authenticated: {
+        countries: getDemographics(authenticatedVisitorRollups)
+      },
+      anonymous: {
+        countries: getDemographics(anonymousVisitorRollups)
+      }
     },
     health: {
       analyticsEvents: sumCount(frontendRollups),
       apiRequests: sumCount(serverRequestRollups),
-      statusFamilies: getTopCountBuckets(serverRequestRollups, (record) => record.statusFamily, 8),
+      statusFamilies: getStatusFamilyBuckets(serverRequestRollups),
       latencyBuckets: getTopCountBuckets(serverRequestRollups, (record) => record.latencyBucket, 8)
     },
-    usage: {
-      characterCreated: sumCount(frontendRollups.filter((record) => record.eventName === "character_created")),
-      characterSheetOpened: sumCount(
-        frontendRollups.filter((record) => record.eventName === "character_sheet_opened")
-      ),
-      codexSearches: sumCount(frontendRollups.filter((record) => record.eventName === "codex_search_submitted")),
-      supportFeedbackSubmitted: sumCount(
-        frontendRollups.filter((record) => record.eventName === "support_feedback_submitted")
-      ),
+    routes: {
       topRoutes: getTopRoutes(pageViewRollups)
     },
-    characters,
-    users
+    characters
   };
 }

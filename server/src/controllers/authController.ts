@@ -102,6 +102,7 @@ async function sendVerificationEmail(email: string, token: string) {
   const verificationUrl = createFrontendUrl(`/verify-email/${token}`);
 
   await sendAuthEmail({
+    kind: "email_verification",
     to: email,
     subject: "Verify your Arcane Ledger account",
     text: [
@@ -118,6 +119,7 @@ async function sendPasswordResetEmail(email: string, token: string) {
   const resetUrl = createFrontendUrl(`/reset-password/${token}`);
 
   await sendAuthEmail({
+    kind: "password_reset",
     to: email,
     subject: "Reset your Arcane Ledger password",
     text: [

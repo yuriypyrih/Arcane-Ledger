@@ -4,6 +4,7 @@ import {
   collectAnalyticsEvents,
   getAnalyticsSummaryController
 } from "../controllers/analyticsController.js";
+import { filterAnalyticsBotRequest } from "../middleware/analyticsBotFilter.js";
 import { requireAdmin, requireAuth } from "../middleware/authMiddleware.js";
 
 const ANALYTICS_WINDOW_MS = 60 * 1000;
@@ -23,7 +24,7 @@ const analyticsRateLimit = rateLimit({
 
 const analyticsRoutes = Router();
 
-analyticsRoutes.post("/events", analyticsRateLimit, collectAnalyticsEvents);
+analyticsRoutes.post("/events", analyticsRateLimit, filterAnalyticsBotRequest, collectAnalyticsEvents);
 analyticsRoutes.get("/summary", requireAuth, requireAdmin, getAnalyticsSummaryController);
 
 export { analyticsRoutes };

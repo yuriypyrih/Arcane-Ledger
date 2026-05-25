@@ -1,24 +1,48 @@
 import { RefreshCw } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import { fetchAnalyticsSummary, type AnalyticsSummary } from "../../api/analytics";
+import {
+  fetchAnalyticsSummary,
+  type AnalyticsNamedBucket,
+  type AnalyticsSummary,
+  type AnalyticsSummaryQuery,
+  type AnalyticsSummaryRangeKey
+} from "../../api/analytics";
 import ActionButton from "../../components/ActionButton";
 import { useAppSelector } from "../../store";
 import styles from "./AnalyticsPage.module.css";
 
-const donutColors = [
-  "#2558b8",
-  "#2a7e4e",
-  "#9b5a1e",
-  "#8a3ffc",
-  "#c2410c",
-  "#0f766e",
-  "#be185d",
-  "#4f46e5",
-  "#6d6a00",
-  "#64748b",
-  "#8b5e3c"
+type DemographicFilter = keyof AnalyticsSummary["demographics"];
+
+type ChartRow = {
+  count: number;
+  label: string;
+};
+
+type DonutLegendValue = "count" | "percent";
+
+const DONUT_BASE_BLUE = "37, 88, 184";
+const DONUT_MIN_OPACITY = 0.32;
+
+const rangeOptions: Array<{ label: string; value: AnalyticsSummaryRangeKey }> = [
+  { label: "Last 30 days", value: "last30" },
+  { label: "All time", value: "all" },
+  { label: "Custom", value: "custom" }
 ];
+
+const demographicOptions: Array<{ label: string; value: DemographicFilter }> = [
+  { label: "All", value: "all" },
+  { label: "Authenticated", value: "authenticated" },
+  { label: "Anonymous", value: "anonymous" }
+];
+
+const latencyLabels: Record<string, string> = {
+  lt_100ms: "< 100ms",
+  "100_299ms": "100-299ms",
+  "300_999ms": "300-999ms",
+  "1_3s": "1-3s",
+  gt_3s: "> 3s"
+};
 
 function formatNumber(value: number) {
   return new Intl.NumberFormat(undefined, {
@@ -26,14 +50,37 @@ function formatNumber(value: number) {
   }).format(value);
 }
 
-function formatDateRange(summary: AnalyticsSummary) {
+function getDateInputValue(value: Date) {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function getDefaultCustomStart() {
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - 29);
+
+  return getDateInputValue(startDate);
+}
+
+function formatIsoDateLabel(value: string) {
+  const [yearText, monthText, dayText] = value.slice(0, 10).split("-");
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const day = Number(dayText);
   const formatter = new Intl.DateTimeFormat(undefined, {
     dateStyle: "medium"
   });
 
-  return `${formatter.format(new Date(summary.range.start))} - ${formatter.format(
-    new Date(summary.range.end)
-  )}`;
+  return formatter.format(new Date(year, month - 1, day));
+}
+
+function formatDateRange(summary: AnalyticsSummary) {
+  const startLabel = summary.range.start ? formatIsoDateLabel(summary.range.start) : "Beginning";
+
+  return `${startLabel} - ${formatIsoDateLabel(summary.range.end)}`;
 }
 
 function getPercent(count: number, total: number) {
@@ -44,6 +91,41 @@ function getPercent(count: number, total: number) {
   return `${Math.round((count / total) * 100)}%`;
 }
 
+function getSummaryQuery(
+  rangeMode: AnalyticsSummaryRangeKey,
+  customStart: string,
+  customEnd: string
+): AnalyticsSummaryQuery {
+  if (rangeMode !== "custom") {
+    return {
+      range: rangeMode
+    };
+  }
+
+  return {
+    range: rangeMode,
+    start: customStart,
+    end: customEnd
+  };
+}
+
+function toChartRows(rows: AnalyticsNamedBucket[]): ChartRow[] {
+  return rows.map((row) => ({
+    count: row.count,
+    label: row.name
+  }));
+}
+
+function getDonutSegmentColor(index: number, segmentCount: number) {
+  if (segmentCount <= 1) {
+    return `rgba(${DONUT_BASE_BLUE}, 1)`;
+  }
+
+  const opacity = 1 - (index / (segmentCount - 1)) * (1 - DONUT_MIN_OPACITY);
+
+  return `rgba(${DONUT_BASE_BLUE}, ${opacity.toFixed(3)})`;
+}
+
 function EmptyState({ label }: { label: string }) {
   return <p className={styles.emptyState}>{label}</p>;
 }
@@ -52,41 +134,77 @@ function KpiCard({ label, value }: { label: string; value: number | string }) {
   return (
     <article className={styles.kpiCard}>
       <span className={styles.kpiLabel}>{label}</span>
-      <strong className={styles.kpiValue}>{typeof value === "number" ? formatNumber(value) : value}</strong>
+      <strong className={styles.kpiValue}>
+        {typeof value === "number" ? formatNumber(value) : value}
+      </strong>
     </article>
   );
 }
 
-function CountryDonut({ countries }: { countries: AnalyticsSummary["demographics"]["countries"] }) {
-  const total = countries.reduce((nextTotal, country) => nextTotal + country.count, 0);
+function SegmentButton<TValue extends string>({
+  active,
+  children,
+  onSelect,
+  value
+}: {
+  active: boolean;
+  children: string;
+  onSelect: (value: TValue) => void;
+  value: TValue;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      className={active ? styles.segmentButtonActive : styles.segmentButton}
+      onClick={() => onSelect(value)}
+    >
+      {children}
+    </button>
+  );
+}
+
+function DonutChart({
+  ariaLabel,
+  emptyLabel,
+  legendValue = "percent",
+  rows
+}: {
+  ariaLabel: string;
+  emptyLabel: string;
+  legendValue?: DonutLegendValue;
+  rows: ChartRow[];
+}) {
+  const total = rows.reduce((nextTotal, row) => nextTotal + row.count, 0);
   const circumference = 2 * Math.PI * 34;
   let offset = 0;
 
   if (total <= 0) {
     return (
       <div className={styles.chartEmpty}>
-        <EmptyState label="No demographics yet." />
+        <EmptyState label={emptyLabel} />
       </div>
     );
   }
 
   return (
     <div className={styles.chartGrid}>
-      <svg className={styles.donut} viewBox="0 0 100 100" role="img" aria-label="Visitor countries">
+      <svg className={styles.donut} viewBox="0 0 100 100" role="img" aria-label={ariaLabel}>
         <circle className={styles.donutTrack} cx="50" cy="50" r="34" />
-        {countries.map((country, index) => {
-          const segmentLength = (country.count / total) * circumference;
+        {rows.map((row, index) => {
+          const segmentLength = (row.count / total) * circumference;
           const segmentOffset = offset;
+          const segmentColor = getDonutSegmentColor(index, rows.length);
           offset += segmentLength;
 
           return (
             <circle
-              key={country.country}
+              key={row.label}
               className={styles.donutSegment}
               cx="50"
               cy="50"
               r="34"
-              stroke={donutColors[index % donutColors.length]}
+              stroke={segmentColor}
               strokeDasharray={`${segmentLength} ${circumference - segmentLength}`}
               strokeDashoffset={-segmentOffset}
             />
@@ -94,14 +212,16 @@ function CountryDonut({ countries }: { countries: AnalyticsSummary["demographics
         })}
       </svg>
       <ul className={styles.legend}>
-        {countries.map((country, index) => (
-          <li key={country.country} className={styles.legendItem}>
+        {rows.map((row, index) => (
+          <li key={row.label} className={styles.legendItem}>
             <span
               className={styles.legendSwatch}
-              style={{ backgroundColor: donutColors[index % donutColors.length] }}
+              style={{ backgroundColor: getDonutSegmentColor(index, rows.length) }}
             />
-            <span>{country.country}</span>
-            <strong>{getPercent(country.count, total)}</strong>
+            <span>{row.label}</span>
+            <strong>
+              {legendValue === "count" ? formatNumber(row.count) : getPercent(row.count, total)}
+            </strong>
           </li>
         ))}
       </ul>
@@ -149,32 +269,49 @@ function AnalyticsPage() {
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
   const [refreshSignal, setRefreshSignal] = useState(0);
+  const [rangeMode, setRangeMode] = useState<AnalyticsSummaryRangeKey>("last30");
+  const [customStart, setCustomStart] = useState(getDefaultCustomStart);
+  const [customEnd, setCustomEnd] = useState(() => getDateInputValue(new Date()));
+  const [demographicFilter, setDemographicFilter] = useState<DemographicFilter>("all");
   const isAdmin = user?.role === "admin";
 
-  const topClassRows = useMemo(
-    () =>
-      summary?.characters.topClasses.map((row) => ({
-        label: row.name,
-        count: row.count
-      })) ?? [],
-    [summary?.characters.topClasses]
-  );
-  const topSpeciesRows = useMemo(
-    () =>
-      summary?.characters.topSpecies.map((row) => ({
-        label: row.name,
-        count: row.count
-      })) ?? [],
-    [summary?.characters.topSpecies]
+  const summaryQuery = useMemo(
+    () => getSummaryQuery(rangeMode, customStart, customEnd),
+    [customEnd, customStart, rangeMode]
   );
   const topRouteRows = useMemo(
     () =>
-      summary?.usage.topRoutes.map((row) => ({
+      summary?.routes.topRoutes.map((row) => ({
         label: row.route,
         count: row.count
       })) ?? [],
-    [summary?.usage.topRoutes]
+    [summary?.routes.topRoutes]
   );
+  const latencyRows = useMemo(
+    () =>
+      summary?.health.latencyBuckets.map((row) => ({
+        label: latencyLabels[row.label] ?? row.label,
+        count: row.count
+      })) ?? [],
+    [summary?.health.latencyBuckets]
+  );
+  const classRows = useMemo(
+    () => (summary ? toChartRows(summary.characters.topClasses) : []),
+    [summary]
+  );
+  const speciesRows = useMemo(
+    () => (summary ? toChartRows(summary.characters.topSpecies) : []),
+    [summary]
+  );
+  const countryRows = useMemo(
+    () =>
+      summary?.demographics[demographicFilter].countries.map((country) => ({
+        label: country.country,
+        count: country.count
+      })) ?? [],
+    [demographicFilter, summary]
+  );
+  const demographicTotal = countryRows.reduce((total, row) => total + row.count, 0);
 
   useEffect(() => {
     if (!isAdmin) {
@@ -187,7 +324,7 @@ function AnalyticsPage() {
     setStatus("loading");
     setError(null);
 
-    void fetchAnalyticsSummary({
+    void fetchAnalyticsSummary(summaryQuery, {
       signal: abortController.signal,
       suppressFailureToast: true
     })
@@ -209,7 +346,7 @@ function AnalyticsPage() {
       cancelled = true;
       abortController.abort();
     };
-  }, [isAdmin, refreshSignal]);
+  }, [isAdmin, refreshSignal, summaryQuery]);
 
   if (authStatus === "unknown") {
     return (
@@ -251,15 +388,61 @@ function AnalyticsPage() {
             <p className={styles.eyebrow}>Analytics</p>
             <h2 className={styles.title}>Admin Overview</h2>
             {summary ? <p className={styles.text}>{formatDateRange(summary)}</p> : null}
+            {summary ? (
+              <dl className={styles.overviewRows}>
+                <div>
+                  <dt>Active users</dt>
+                  <dd>{formatNumber(summary.overview.totalActiveUsers)}</dd>
+                </div>
+                <div>
+                  <dt>Active characters</dt>
+                  <dd>{formatNumber(summary.overview.totalActiveCharacters)}</dd>
+                </div>
+              </dl>
+            ) : null}
           </div>
-          <ActionButton
-            icon={<RefreshCw size={16} aria-hidden="true" />}
-            fullWidth={false}
-            loading={status === "loading"}
-            onClick={() => setRefreshSignal((currentSignal) => currentSignal + 1)}
-          >
-            Refresh
-          </ActionButton>
+          <div className={styles.headerControls}>
+            <div className={styles.segmentedControl} aria-label="Analytics range">
+              {rangeOptions.map((option) => (
+                <SegmentButton
+                  key={option.value}
+                  active={rangeMode === option.value}
+                  value={option.value}
+                  onSelect={setRangeMode}
+                >
+                  {option.label}
+                </SegmentButton>
+              ))}
+            </div>
+            {rangeMode === "custom" ? (
+              <div className={styles.dateControls}>
+                <label className={styles.dateField}>
+                  <span>Start</span>
+                  <input
+                    type="date"
+                    value={customStart}
+                    onChange={(event) => setCustomStart(event.target.value)}
+                  />
+                </label>
+                <label className={styles.dateField}>
+                  <span>End</span>
+                  <input
+                    type="date"
+                    value={customEnd}
+                    onChange={(event) => setCustomEnd(event.target.value)}
+                  />
+                </label>
+              </div>
+            ) : null}
+            <ActionButton
+              icon={<RefreshCw size={16} aria-hidden="true" />}
+              fullWidth={false}
+              loading={status === "loading"}
+              onClick={() => setRefreshSignal((currentSignal) => currentSignal + 1)}
+            >
+              Refresh
+            </ActionButton>
+          </div>
         </header>
 
         {error ? <div className={styles.error}>{error}</div> : null}
@@ -267,93 +450,95 @@ function AnalyticsPage() {
         {summary ? (
           <>
             <div className={styles.kpiGrid}>
-              <KpiCard label="Unique Visitors" value={summary.visitors.uniqueVisitors} />
-              <KpiCard label="Sessions" value={summary.visitors.uniqueSessions} />
-              <KpiCard label="Page Views" value={summary.visitors.pageViews} />
-              <KpiCard label="Active Characters" value={summary.characters.activeSaved} />
+              <KpiCard label="Created Users" value={summary.overview.createdUsers} />
+              <KpiCard label="Created Characters" value={summary.overview.createdCharacters} />
+              <KpiCard label="Anonymous Visitors" value={summary.overview.anonymousVisitors} />
+              <KpiCard label="Emails Sent" value={summary.overview.emailsSent} />
             </div>
 
             <div className={styles.sectionGrid}>
               <section className={styles.section}>
                 <div className={styles.sectionHeader}>
-                  <h3>Demographics</h3>
-                  <span>{formatNumber(summary.visitors.authenticatedVisitors)} authenticated</span>
+                  <div>
+                    <h3>Demographics</h3>
+                    <span>{formatNumber(demographicTotal)} visitors</span>
+                  </div>
+                  <div className={styles.segmentedControlCompact} aria-label="Demographics filter">
+                    {demographicOptions.map((option) => (
+                      <SegmentButton
+                        key={option.value}
+                        active={demographicFilter === option.value}
+                        value={option.value}
+                        onSelect={setDemographicFilter}
+                      >
+                        {option.label}
+                      </SegmentButton>
+                    ))}
+                  </div>
                 </div>
-                <CountryDonut countries={summary.demographics.countries} />
+                <DonutChart
+                  ariaLabel="Visitor countries"
+                  emptyLabel="No demographics yet."
+                  rows={countryRows}
+                />
               </section>
 
-              <section className={styles.section}>
-                <div className={styles.sectionHeader}>
-                  <h3>Usage</h3>
-                  <span>{formatNumber(summary.health.analyticsEvents)} events</span>
-                </div>
-                <div className={styles.metricList}>
-                  <KpiCard label="Characters Created" value={summary.usage.characterCreated} />
-                  <KpiCard label="Sheets Opened" value={summary.usage.characterSheetOpened} />
-                  <KpiCard label="Codex Searches" value={summary.usage.codexSearches} />
-                  <KpiCard label="Support Tickets" value={summary.usage.supportFeedbackSubmitted} />
-                </div>
-              </section>
-            </div>
-
-            <div className={styles.sectionGrid}>
               <section className={styles.section}>
                 <div className={styles.sectionHeader}>
                   <h3>Top Routes</h3>
-                  <span>{formatNumber(summary.health.apiRequests)} API requests</span>
+                  <span>{formatNumber(summary.routes.topRoutes.length)} routes</span>
                 </div>
-                <CountTable emptyLabel="No route data yet." rows={topRouteRows} valueLabel="Views" />
-              </section>
-
-              <section className={styles.section}>
-                <div className={styles.sectionHeader}>
-                  <h3>Server Health</h3>
-                  <span>Status and latency</span>
-                </div>
-                <div className={styles.splitTables}>
-                  <CountTable
-                    emptyLabel="No status data yet."
-                    rows={summary.health.statusFamilies}
-                    valueLabel="Requests"
-                  />
-                  <CountTable
-                    emptyLabel="No latency data yet."
-                    rows={summary.health.latencyBuckets}
-                    valueLabel="Requests"
-                  />
-                </div>
+                <CountTable
+                  emptyLabel="No route data yet."
+                  rows={topRouteRows}
+                  valueLabel="Views"
+                />
               </section>
             </div>
-
-            <div className={styles.sectionGrid}>
-              <section className={styles.section}>
-                <div className={styles.sectionHeader}>
-                  <h3>Characters</h3>
-                  <span>Average level {formatNumber(summary.characters.averageLevel)}</span>
+            <section className={styles.section}>
+              <div className={styles.sectionHeader}>
+                <h3>Characters</h3>
+                <span>{formatNumber(summary.overview.totalActiveCharacters)} active</span>
+              </div>
+              <div className={styles.characterCharts}>
+                <div className={styles.chartPanel}>
+                  <h4>Classes</h4>
+                  <DonutChart
+                    ariaLabel="Character classes"
+                    emptyLabel="No class data yet."
+                    legendValue="count"
+                    rows={classRows}
+                  />
                 </div>
-                <div className={styles.compactStats}>
-                  <span>Created this year: {formatNumber(summary.characters.createdThisYear)}</span>
-                  <span>Deleted: {formatNumber(summary.characters.deleted)}</span>
+                <div className={styles.chartPanel}>
+                  <h4>Species</h4>
+                  <DonutChart
+                    ariaLabel="Character species"
+                    emptyLabel="No species data yet."
+                    legendValue="count"
+                    rows={speciesRows}
+                  />
                 </div>
-                <div className={styles.splitTables}>
-                  <CountTable emptyLabel="No class data yet." rows={topClassRows} valueLabel="Sheets" />
-                  <CountTable emptyLabel="No species data yet." rows={topSpeciesRows} valueLabel="Sheets" />
-                </div>
-              </section>
-
-              <section className={styles.section}>
-                <div className={styles.sectionHeader}>
-                  <h3>Users</h3>
-                  <span>{formatNumber(summary.users.verified)} verified</span>
-                </div>
-                <div className={styles.metricList}>
-                  <KpiCard label="Active Users" value={summary.users.active} />
-                  <KpiCard label="Verified Users" value={summary.users.verified} />
-                  <KpiCard label="Created This Year" value={summary.users.createdThisYear} />
-                  <KpiCard label="Anonymous Visitors" value={summary.visitors.unknownVisitors} />
-                </div>
-              </section>
-            </div>
+              </div>
+            </section>
+            <section className={styles.section}>
+              <div className={styles.sectionHeader}>
+                <h3>Server Health</h3>
+                <span>{formatNumber(summary.health.apiRequests)} API requests</span>
+              </div>
+              <div className={styles.splitTables}>
+                <CountTable
+                  emptyLabel="No status data yet."
+                  rows={summary.health.statusFamilies}
+                  valueLabel="Requests"
+                />
+                <CountTable
+                  emptyLabel="No latency data yet."
+                  rows={latencyRows}
+                  valueLabel="Requests"
+                />
+              </div>
+            </section>
           </>
         ) : (
           <div className={styles.panel}>
