@@ -85,7 +85,12 @@ function CharacterShareModal({ character, onClose, onGenerateLink }: CharacterSh
   }
 
   return (
-    <SheetModal titleId={titleId} onClose={onClose} isBusy={isGenerating} busyLabel="Generating link">
+    <SheetModal
+      titleId={titleId}
+      onClose={onClose}
+      isBusy={isGenerating}
+      busyLabel="Generating link"
+    >
       <OverlayHeader>
         <OverlayHeaderContent>
           <OverlayTitle id={titleId}>Share character</OverlayTitle>
@@ -96,8 +101,8 @@ function CharacterShareModal({ character, onClose, onGenerateLink }: CharacterSh
 
       <OverlayBody>
         <p className={styles.copy}>
-          Sharing creates a 24-hour snapshot of this character. Anyone with the link can import a
-          separate copy into their own roster.
+          Sharing creates a snapshot link of this character at this point in time. Anyone with the
+          link can import a separate copy into their own roster. The link expires after 3 days.
         </p>
         {link ? (
           <div className={styles.linkResult}>
@@ -111,7 +116,11 @@ function CharacterShareModal({ character, onClose, onGenerateLink }: CharacterSh
                 title="Copy share link"
                 onClick={handleCopyLink}
               >
-                {didCopy ? <Check size={18} aria-hidden="true" /> : <Copy size={18} aria-hidden="true" />}
+                {didCopy ? (
+                  <Check size={18} aria-hidden="true" />
+                ) : (
+                  <Copy size={18} aria-hidden="true" />
+                )}
               </button>
             </div>
           </div>
