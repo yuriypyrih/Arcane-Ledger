@@ -169,6 +169,15 @@
   background: rgba(75, 47, 29, 0.14);
 }
 
+.iconButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.iconButton:disabled:hover {
+  background: rgba(75, 47, 29, 0.08);
+}
+
 .iconButton:focus-visible {
   outline: 2px solid rgba(47, 120, 255, 0.4);
   outline-offset: 2px;

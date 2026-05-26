@@ -43,6 +43,22 @@ export type CharacterSheetImportEnvelope = {
   limit: number;
 };
 
+export type SharedCharacterLinkEnvelope = {
+  link: string;
+};
+
+export type SharedCharacterImportEnvelope =
+  | {
+      mode: "local";
+      sheet: PortableCharacterSheet;
+    }
+  | {
+      mode: "cloud";
+      character: CharacterSheetCloudDocument;
+      count: number;
+      limit: number;
+    };
+
 export type CharacterSheetSyncPayload = {
   clientId: string;
   force?: boolean;
@@ -68,6 +84,22 @@ export function importCharacterSheets(
   options?: ApiRequestOptions
 ) {
   return apiPost<CharacterSheetImportEnvelope>("/characters/import", { records }, options);
+}
+
+export function shareCharacterSheet(characterSheetId: string, options?: ApiRequestOptions) {
+  return apiPost<SharedCharacterLinkEnvelope>(`/characters/${characterSheetId}/share`, {}, options);
+}
+
+export function importSharedCharacter(
+  link: string,
+  localId: number,
+  options?: ApiRequestOptions
+) {
+  return apiPost<SharedCharacterImportEnvelope>(
+    "/characters/shared/import",
+    { link, localId },
+    options
+  );
 }
 
 export function saveCharacterSheet(

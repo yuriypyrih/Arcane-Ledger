@@ -5,18 +5,22 @@ import {
   deleteCharacterPortrait,
   getCharacterSheet,
   importCharacterSheets,
+  importSharedCharacter,
   listFullCharacterSheets,
   listCharacterSheets,
   saveCharacterSheet,
+  shareCharacterSheet,
   uploadCharacterPortrait
 } from "../controllers/characterController.js";
-import { requireAuth } from "../middleware/authMiddleware.js";
+import { optionalAuth, requireAuth } from "../middleware/authMiddleware.js";
 
 const characterRoutes = Router();
 
 characterRoutes.get("/", requireAuth, listCharacterSheets);
 characterRoutes.get("/full", requireAuth, listFullCharacterSheets);
 characterRoutes.post("/import", requireAuth, importCharacterSheets);
+characterRoutes.post("/shared/import", optionalAuth, importSharedCharacter);
+characterRoutes.post("/:characterSheetId/share", requireAuth, shareCharacterSheet);
 characterRoutes.get("/:characterSheetId", requireAuth, getCharacterSheet);
 characterRoutes.put("/:characterSheetId", requireAuth, saveCharacterSheet);
 characterRoutes.delete("/:characterSheetId", requireAuth, deleteCharacterSheet);

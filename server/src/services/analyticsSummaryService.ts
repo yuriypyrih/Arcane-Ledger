@@ -2,7 +2,6 @@ import type { PipelineStage } from "mongoose";
 import { AppError } from "../errors/AppError.js";
 import { AnalyticsDailyRollup, type AnalyticsRollupRecord } from "../models/Analytics.js";
 import { CharacterSheet } from "../models/CharacterSheet.js";
-import { EmailDelivery } from "../models/EmailDelivery.js";
 import { User } from "../models/User.js";
 
 type RollupSummaryRecord = Pick<
@@ -392,21 +391,20 @@ async function getCharacterSummary() {
 
 async function getOverviewSummary(
   range: ResolvedSummaryRange,
-  anonymousVisitorRollups: RollupSummaryRecord[]
+  anonymousVisitorRollups: RollupSummaryRecord[],
+  emailSentRollups: RollupSummaryRecord[]
 ) {
   const dateFilter = createDateRangeFilter(range);
   const [
     totalActiveUsers,
     totalActiveCharacters,
     createdUsers,
-    createdCharacters,
-    emailsSent
+    createdCharacters
   ] = await Promise.all([
     User.countDocuments({ active: true, emailVerifiedAt: { $ne: null } }),
     countTotalActiveCharacters(),
     User.countDocuments({ createdAt: dateFilter }),
-    CharacterSheet.countDocuments({ createdAt: dateFilter }),
-    EmailDelivery.countDocuments({ sentAt: dateFilter })
+    CharacterSheet.countDocuments({ createdAt: dateFilter })
   ]);
 
   return {
@@ -415,7 +413,7 @@ async function getOverviewSummary(
     createdUsers,
     createdCharacters,
     anonymousVisitors: countUniqueVisitors(anonymousVisitorRollups),
-    emailsSent
+    emailsSent: sumCount(emailSentRollups)
   };
 }
 
@@ -434,8 +432,11 @@ export async function getAnalyticsSummary(
   const anonymousVisitorRollups = visitorRollups.filter((record) => record.visitorType === "anonymous");
   const pageViewRollups = frontendRollups.filter((record) => record.eventName === "page_view");
   const serverRequestRollups = rollups.filter((record) => record.eventName === "server_request");
+  const emailSentRollups = rollups.filter(
+    (record) => record.source === "backend" && record.eventName === "email_sent"
+  );
   const [overview, characters] = await Promise.all([
-    getOverviewSummary(range, anonymousVisitorRollups),
+    getOverviewSummary(range, anonymousVisitorRollups, emailSentRollups),
     getCharacterSummary()
   ]);
 

@@ -8,6 +8,10 @@ export type AuthenticatedLocals = {
   authUser: UserDocument;
 };
 
+export type OptionalAuthenticatedLocals = {
+  authUser?: UserDocument;
+};
+
 export const requireAuth: RequestHandler = (
   request: Request,
   response: Response<unknown, Partial<AuthenticatedLocals>>,
@@ -27,6 +31,29 @@ export const requireAuth: RequestHandler = (
       next();
     })
     .catch(next);
+};
+
+export const optionalAuth: RequestHandler = (
+  request: Request,
+  response: Response<unknown, OptionalAuthenticatedLocals>,
+  next: NextFunction
+) => {
+  const { authCookieName } = getAppConfig();
+  const token = request.cookies?.[authCookieName];
+
+  if (typeof token !== "string" || !token) {
+    next();
+    return;
+  }
+
+  void getUserFromAuthToken(token)
+    .then((user) => {
+      response.locals.authUser = user;
+      next();
+    })
+    .catch(() => {
+      next();
+    });
 };
 
 export const requireAdmin: RequestHandler = (

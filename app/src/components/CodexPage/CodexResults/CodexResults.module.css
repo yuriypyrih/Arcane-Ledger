@@ -79,9 +79,14 @@
 .classCard::before {
   content: "";
   position: absolute;
-  inset: 0;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 16px;
   background: var(--class-signature-card-gradient, none);
-  opacity: 0.86;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0.78) 28%, rgba(0, 0, 0, 0) 100%);
+  mask-image: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0.78) 28%, rgba(0, 0, 0, 0) 100%);
+  opacity: 1;
   pointer-events: none;
   z-index: 0;
 }
@@ -90,18 +95,20 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: url("../../../assets/img/paper-background.jpg") center top / 430px auto;
+  background: url("../../../assets/img/paper-background.jpg") right bottom / 360px auto no-repeat;
   -webkit-mask-image: radial-gradient(
     circle at 100% 100%,
-    rgba(0, 0, 0, 0.75) 0%,
-    rgba(0, 0, 0, 0) 30%
+    rgba(0, 0, 0, 0.56) 0%,
+    rgba(0, 0, 0, 0.24) 22%,
+    rgba(0, 0, 0, 0) 46%
   );
   mask-image: radial-gradient(
     circle at 100% 100%,
-    rgba(0, 0, 0, 0.75) 0%,
-    rgba(0, 0, 0, 0) 30%
+    rgba(0, 0, 0, 0.56) 0%,
+    rgba(0, 0, 0, 0.24) 22%,
+    rgba(0, 0, 0, 0) 46%
   );
-  opacity: 0.8;
+  opacity: 0.12;
   pointer-events: none;
   z-index: 0;
 }

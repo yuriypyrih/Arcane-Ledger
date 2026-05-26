@@ -1,11 +1,10 @@
 import { Resend } from "resend";
 import { getAppConfig } from "../config/env.js";
 import { AppError } from "../errors/AppError.js";
-import { EmailDelivery, type EmailDeliveryKind } from "../models/EmailDelivery.js";
-import { captureServerError } from "../sentry.js";
+import { recordEmailSentMetric, type AnalyticsEmailKind } from "./analyticsService.js";
 
 export type AuthEmailOptions = {
-  kind?: EmailDeliveryKind;
+  kind?: AnalyticsEmailKind;
   to: string;
   subject: string;
   text: string;
@@ -22,28 +21,6 @@ function createHtmlEmail(text: string): string {
     .replace(/>/g, "&gt;");
 
   return `<p>${escapedText.replace(/\n/g, "<br />")}</p>`;
-}
-
-async function recordEmailDelivery(options: {
-  kind: EmailDeliveryKind;
-  providerMessageId?: string;
-}) {
-  try {
-    await EmailDelivery.create({
-      kind: options.kind,
-      provider: "resend",
-      providerMessageId: options.providerMessageId,
-      sentAt: new Date()
-    });
-  } catch (error) {
-    captureServerError(error, {
-      area: "email",
-      action: "record-delivery",
-      extra: {
-        kind: options.kind
-      }
-    });
-  }
 }
 
 export async function sendAuthEmail({ kind = "transactional", to, subject, text }: AuthEmailOptions) {
@@ -66,7 +43,7 @@ export async function sendAuthEmail({ kind = "transactional", to, subject, text 
   }
 
   const resend = new Resend(config.resendApiKey);
-  const { data, error } = await resend.emails.send({
+  const { error } = await resend.emails.send({
     from: config.resendFromEmail,
     to,
     subject,
@@ -79,8 +56,5 @@ export async function sendAuthEmail({ kind = "transactional", to, subject, text 
     throw new AppError("Email could not be sent.", 502, "EMAIL_SEND_FAILED", error);
   }
 
-  await recordEmailDelivery({
-    kind,
-    providerMessageId: data?.id
-  });
+  await recordEmailSentMetric(kind);
 }

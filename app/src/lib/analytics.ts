@@ -35,8 +35,8 @@ type TrackAnalyticsOptions = {
 
 const ANALYTICS_VISITOR_STORAGE_KEY = "arcane-ledger.analytics.visitorId";
 const ANALYTICS_SESSION_STORAGE_KEY = "arcane-ledger.analytics.sessionId";
-const ANALYTICS_FLUSH_DELAY_MS = 5000;
-const ANALYTICS_BATCH_LIMIT = 10;
+const ANALYTICS_FLUSH_DELAY_MS = 10_000;
+const ANALYTICS_BATCH_LIMIT = 20;
 const analyticsQueue: AnalyticsEvent[] = [];
 
 let flushTimerId: number | null = null;

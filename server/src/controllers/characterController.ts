@@ -3,7 +3,7 @@ import { Types } from "mongoose";
 import { getAppConfig } from "../config/env.js";
 import { AppError } from "../errors/AppError.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
-import type { AuthenticatedLocals } from "../middleware/authMiddleware.js";
+import type { AuthenticatedLocals, OptionalAuthenticatedLocals } from "../middleware/authMiddleware.js";
 import {
   CharacterSheet,
   type CharacterAvatarRecord,
@@ -16,6 +16,11 @@ import {
   saveCharacterAvatarToS3
 } from "../services/characterAvatarService.js";
 import { getCharacterLimitForRole } from "../services/characterLimits.js";
+import {
+  createSharedCharacterSnapshot,
+  importSharedCharacter as importSharedCharacterFromLink,
+  normalizeSharedCharacterLink
+} from "../services/sharedCharacterService.js";
 
 type ObjectRecord = Record<string, unknown>;
 
@@ -365,6 +370,50 @@ export const getCharacterSheet = asyncHandler(
     }
 
     response.json({ character: toCloudRecord(character) });
+  }
+);
+
+export const shareCharacterSheet = asyncHandler(
+  async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
+    const characterSheetId = readCharacterSheetId(request.params.characterSheetId);
+    const { link } = await createSharedCharacterSnapshot({
+      characterSheetId,
+      ownerId: response.locals.authUser._id
+    });
+
+    response.status(201).json({ link });
+  }
+);
+
+export const importSharedCharacter = asyncHandler(
+  async (request: Request, response: Response<unknown, OptionalAuthenticatedLocals>) => {
+    if (!isObjectRecord(request.body)) {
+      throw new AppError("Request body must be a JSON object.", 400, "INVALID_SHARED_IMPORT_INPUT");
+    }
+
+    const localId = readPositiveInteger(request.body.localId);
+
+    if (!localId) {
+      throw new AppError("Import localId is required.", 400, "INVALID_IMPORT_LOCAL_ID");
+    }
+
+    const result = await importSharedCharacterFromLink({
+      authUser: response.locals.authUser,
+      link: normalizeSharedCharacterLink(request.body.link),
+      localId
+    });
+
+    if (result.mode === "local") {
+      response.status(201).json(result);
+      return;
+    }
+
+    response.status(201).json({
+      mode: result.mode,
+      character: toCloudRecord(result.character),
+      count: result.count,
+      limit: result.limit
+    });
   }
 );
 

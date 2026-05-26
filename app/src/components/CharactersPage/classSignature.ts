@@ -36,11 +36,12 @@ function createClassSignature({
   transparent: string;
 }): ClassSignatureSpec {
   const cardPrimary = setRgbaAlpha(primary, 0.64);
-  const cardSecondary = setRgbaAlpha(secondary, 0.2);
+  const cardSecondary = setRgbaAlpha(secondary, 0.46);
+  const cardTransparent = setRgbaAlpha(secondary, 0);
 
   return {
     getTexture,
-    cardGradient: `linear-gradient(to bottom right, ${cardPrimary} 0%, ${cardPrimary} 8%, ${cardSecondary} 18%, ${transparent} 38%)`,
+    cardGradient: `linear-gradient(to right, ${cardPrimary} 0%, ${cardPrimary} 28%, ${cardSecondary} 58%, ${cardSecondary} 82%, ${cardTransparent} 100%)`,
     rowGradient: `${signatureRowDarkLayer}, linear-gradient(140deg, ${primary} 0%, ${primary} 7.2%, ${secondary} 16%, ${transparent} 38.4%)`,
     profileGradient: `${signatureProfileDarkLayer}, linear-gradient(140deg, ${primary} 0%, ${primary} 5.6%, ${secondary} 12.8%, ${transparent} 35.2%)`
   };
@@ -48,7 +49,7 @@ function createClassSignature({
 
 const defaultClassSignatureStyle: ClassSignatureStyle = {
   "--class-signature-card-gradient":
-    "linear-gradient(to bottom right, rgba(143, 91, 56, 0.64) 0%, rgba(143, 91, 56, 0.64) 8%, rgba(220, 178, 139, 0.2) 18%, rgba(220, 178, 139, 0) 38%)",
+    "linear-gradient(to right, rgba(143, 91, 56, 0.64) 0%, rgba(143, 91, 56, 0.64) 28%, rgba(220, 178, 139, 0.46) 58%, rgba(220, 178, 139, 0.46) 82%, rgba(220, 178, 139, 0) 100%)",
   "--class-signature-row-gradient": `${signatureRowDarkLayer}, linear-gradient(140deg, rgba(143, 91, 56, 0.26) 0%, rgba(143, 91, 56, 0.26) 7.2%, rgba(220, 178, 139, 0.14) 16%, rgba(220, 178, 139, 0) 38.4%)`,
   "--class-signature-profile-gradient": `${signatureProfileDarkLayer}, linear-gradient(140deg, rgba(143, 91, 56, 0.34) 0%, rgba(143, 91, 56, 0.34) 5.6%, rgba(220, 178, 139, 0.18) 12.8%, rgba(220, 178, 139, 0) 35.2%)`,
   "--class-signature-page-texture": "none",

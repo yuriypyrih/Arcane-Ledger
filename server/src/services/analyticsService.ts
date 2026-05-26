@@ -1,13 +1,8 @@
 import { createHash } from "node:crypto";
 import type { Request } from "express";
 import type { Types } from "mongoose";
-import { AnalyticsDailyRollup, AnalyticsEvent } from "../models/Analytics.js";
-import type {
-  AnalyticsDeviceRecord,
-  AnalyticsEventRecord,
-  AnalyticsGeoRecord,
-  AnalyticsRollupRecord
-} from "../models/Analytics.js";
+import { AnalyticsDailyRollup } from "../models/Analytics.js";
+import type { AnalyticsGeoRecord, AnalyticsRollupRecord } from "../models/Analytics.js";
 import { getAnalyticsGeo } from "./analyticsGeoService.js";
 import { captureServerError } from "../sentry.js";
 
@@ -43,6 +38,12 @@ export type AnalyticsBatchResult = {
   dropped: number;
 };
 
+export type AnalyticsEmailKind =
+  | "email_verification"
+  | "password_reset"
+  | "support_ticket"
+  | "transactional";
+
 type VisitorType = AnalyticsRollupRecord["visitorType"];
 
 type RollupIncrement = {
@@ -61,13 +62,23 @@ type RollupIncrement = {
   visitorType: VisitorType;
 };
 
+type FrontendRollupEvent = {
+  country: string;
+  eventName: FrontendAnalyticsEventName;
+  region: string;
+  city: string;
+  route: string;
+  sessionId: string;
+  visitorId: string;
+  visitorType: Extract<VisitorType, "anonymous" | "authenticated">;
+};
+
 type RollupFilter = ReturnType<typeof getRollupFilter>;
 
 const ANALYTICS_BATCH_LIMIT = 20;
 const ANALYTICS_PAYLOAD_LIMIT_BYTES = 30_000;
 const MAX_STRING_LENGTH = 160;
 const MAX_ROUTE_LENGTH = 180;
-const MAX_OBJECT_KEYS = 12;
 const UNIQUE_KEY_CAP = 1000;
 const BACKEND_ROLLUP_FLUSH_DELAY_MS = 15_000;
 const BACKEND_ROLLUP_FLUSH_BUCKET_LIMIT = 50;
@@ -75,29 +86,6 @@ const frontendEventNameSet = new Set<string>(frontendAnalyticsEventNames);
 const pendingBackendRollups = new Map<string, { count: number; filter: RollupFilter }>();
 
 let backendRollupFlushTimer: NodeJS.Timeout | null = null;
-
-const eventPropAllowlist: Record<FrontendAnalyticsEventName, Set<string>> = {
-  app_boot: new Set(["pwaMode"]),
-  session_start: new Set([]),
-  page_view: new Set(["referrerOrigin"]),
-  offline_seen: new Set([]),
-  online_restored: new Set([]),
-  api_client_failure: new Set(["path", "status"]),
-  character_created: new Set(["className", "level", "species"]),
-  character_sheet_opened: new Set(["className", "level", "species"]),
-  codex_search_submitted: new Set(["category", "queryLength"]),
-  support_feedback_submitted: new Set([])
-};
-
-const analyticsDeviceKeys = new Set([
-  "locale",
-  "platform",
-  "pwaMode",
-  "timezone",
-  "userAgentFamily",
-  "viewportHeight",
-  "viewportWidth"
-]);
 
 function startOfUtcDay(value: Date) {
   return new Date(Date.UTC(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate()));
@@ -148,75 +136,6 @@ function normalizeOccurredAt(value: unknown) {
   }
 
   return occurredAt;
-}
-
-function normalizePrimitiveRecord(value: unknown, allowedKeys: Set<string>) {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return undefined;
-  }
-
-  const entries = Object.entries(value as Record<string, unknown>)
-    .filter(([key]) => allowedKeys.has(key))
-    .slice(0, MAX_OBJECT_KEYS);
-  const normalizedEntries = entries.reduce<Record<string, string | number | boolean>>(
-    (nextValue, [key, entryValue]) => {
-      if (typeof entryValue === "boolean") {
-        nextValue[key] = entryValue;
-        return nextValue;
-      }
-
-      if (typeof entryValue === "number" && Number.isFinite(entryValue)) {
-        nextValue[key] = entryValue;
-        return nextValue;
-      }
-
-      const stringValue = normalizeAnalyticsString(entryValue);
-
-      if (stringValue) {
-        nextValue[key] = stringValue;
-      }
-
-      return nextValue;
-    },
-    {}
-  );
-
-  return Object.keys(normalizedEntries).length > 0 ? normalizedEntries : undefined;
-}
-
-function normalizeMetrics(value: unknown) {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return undefined;
-  }
-
-  const normalizedMetrics = Object.entries(value as Record<string, unknown>)
-    .slice(0, MAX_OBJECT_KEYS)
-    .reduce<Record<string, number>>((nextValue, [key, entryValue]) => {
-      const normalizedKey = normalizeAnalyticsString(key, 60);
-
-      if (
-        normalizedKey &&
-        typeof entryValue === "number" &&
-        Number.isFinite(entryValue) &&
-        entryValue >= 0
-      ) {
-        nextValue[normalizedKey] = entryValue;
-      }
-
-      return nextValue;
-    }, {});
-
-  return Object.keys(normalizedMetrics).length > 0 ? normalizedMetrics : undefined;
-}
-
-function normalizeDevice(value: unknown): AnalyticsDeviceRecord | undefined {
-  const device = normalizePrimitiveRecord(value, analyticsDeviceKeys);
-
-  if (!device) {
-    return undefined;
-  }
-
-  return device as AnalyticsDeviceRecord;
 }
 
 function hashUniqueKey(_date: Date, value: string) {
@@ -409,13 +328,13 @@ async function flushBackendRollups() {
   }
 }
 
-function normalizeAnalyticsEvent(
+function normalizeFrontendRollupEvent(
   event: unknown,
   options: {
     geo: AnalyticsGeoRecord;
     userId?: Types.ObjectId | null;
   }
-): AnalyticsEventRecord | null {
+): FrontendRollupEvent | null {
   if (!event || typeof event !== "object" || Array.isArray(event)) {
     return null;
   }
@@ -440,20 +359,14 @@ function normalizeAnalyticsEvent(
   const userId = options.userId ?? null;
 
   return {
-    eventId,
-    name: typedEventName,
-    occurredAt,
-    receivedAt: new Date(),
+    eventName: typedEventName,
     sessionId,
     visitorId,
-    userId,
     route: normalizeRoute(eventRecord.route),
-    source: "frontend",
     visitorType: userId ? "authenticated" : "anonymous",
-    geo: options.geo,
-    device: normalizeDevice(eventRecord.device),
-    props: normalizePrimitiveRecord(eventRecord.props, eventPropAllowlist[typedEventName]),
-    metrics: normalizeMetrics(eventRecord.metrics)
+    country: options.geo.country,
+    region: options.geo.region,
+    city: options.geo.city
   };
 }
 
@@ -484,22 +397,19 @@ export async function captureFrontendAnalyticsBatch(options: {
 }): Promise<AnalyticsBatchResult> {
   const geo = await getAnalyticsGeo(options.request);
   const records = options.events
-    .map((event) => normalizeAnalyticsEvent(event, { geo, userId: options.userId }))
-    .filter((event): event is AnalyticsEventRecord => Boolean(event));
+    .map((event) => normalizeFrontendRollupEvent(event, { geo, userId: options.userId }))
+    .filter((event): event is FrontendRollupEvent => Boolean(event));
 
   if (records.length > 0) {
-    await AnalyticsEvent.insertMany(records, {
-      ordered: false
-    });
     await Promise.all(
       records.map((record) =>
         incrementRollup({
-          eventName: record.name,
+          eventName: record.eventName,
           source: "frontend",
           route: record.route,
-          country: record.geo.country,
-          region: record.geo.region,
-          city: record.geo.city,
+          country: record.country,
+          region: record.region,
+          city: record.city,
           sessionId: record.sessionId,
           visitorId: record.visitorId,
           visitorType: record.visitorType
@@ -585,4 +495,23 @@ export function recordBackendLifecycleMetric(eventName: "database_connection_hea
     route: "server",
     visitorType: "server"
   });
+}
+
+export async function recordEmailSentMetric(kind: AnalyticsEmailKind) {
+  try {
+    await incrementRollup({
+      eventName: "email_sent",
+      source: "backend",
+      route: `email/${kind}`,
+      visitorType: "server"
+    });
+  } catch (error) {
+    captureServerError(error, {
+      area: "analytics",
+      action: "record-email-sent",
+      extra: {
+        kind
+      }
+    });
+  }
 }

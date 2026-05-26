@@ -1,4 +1,4 @@
-import { Download, Trash2 } from "lucide-react";
+import { Copy, Share2, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { CharacterRosterEntry } from "../../../pages/CharactersPage/characterRoster";
 import { DefaultCharacterPortraitIcon } from "../CharacterPortrait";
@@ -7,8 +7,10 @@ import styles from "./CharacterRow.module.css";
 
 type CharacterRowProps = {
   character: CharacterRosterEntry;
-  onDownload?: (character: CharacterRosterEntry) => void;
+  isDuplicateDisabled?: boolean;
   onDelete?: (character: CharacterRosterEntry) => void;
+  onDuplicate?: (character: CharacterRosterEntry) => void | Promise<void>;
+  onShare?: (character: CharacterRosterEntry) => void;
 };
 
 function getSyncStatusLabel(character: CharacterRosterEntry) {
@@ -30,9 +32,18 @@ function getSyncStatusLabel(character: CharacterRosterEntry) {
   }
 }
 
-function CharacterRow({ character, onDownload, onDelete }: CharacterRowProps) {
-  const hasActions = Boolean(onDownload || onDelete);
+function CharacterRow({
+  character,
+  isDuplicateDisabled = false,
+  onDelete,
+  onDuplicate,
+  onShare
+}: CharacterRowProps) {
+  const hasActions = Boolean(onDuplicate || onShare || onDelete);
   const syncStatusLabel = getSyncStatusLabel(character);
+  const duplicateLabel = isDuplicateDisabled
+    ? "Character limit reached. Delete a character before duplicating."
+    : `Duplicate ${character.name}`;
 
   return (
     <article className={styles.row} style={getClassSignatureStyle(character.className)}>
@@ -59,15 +70,29 @@ function CharacterRow({ character, onDownload, onDelete }: CharacterRowProps) {
         {syncStatusLabel ? <span className={styles.syncPill}>{syncStatusLabel}</span> : null}
         {hasActions ? (
           <span className={styles.characterActions}>
-            {onDownload ? (
+            {onDuplicate ? (
               <button
                 type="button"
                 className={styles.iconButton}
-                aria-label={`Export ${character.name}`}
-                title={`Export ${character.name}`}
-                onClick={() => onDownload(character)}
+                aria-label={duplicateLabel}
+                title={duplicateLabel}
+                disabled={isDuplicateDisabled}
+                onClick={() => {
+                  void onDuplicate(character);
+                }}
               >
-                <Download size={16} aria-hidden="true" />
+                <Copy size={16} aria-hidden="true" />
+              </button>
+            ) : null}
+            {onShare ? (
+              <button
+                type="button"
+                className={styles.iconButton}
+                aria-label={`Share ${character.name}`}
+                title={`Share ${character.name}`}
+                onClick={() => onShare(character)}
+              >
+                <Share2 size={16} aria-hidden="true" />
               </button>
             ) : null}
             {onDelete ? (

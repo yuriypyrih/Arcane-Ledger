@@ -1,4 +1,4 @@
-import { Plus } from "lucide-react";
+import { Plus, Upload } from "lucide-react";
 import { useId, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ActionButton from "../../ActionButton";
@@ -7,24 +7,35 @@ import type { CharacterRosterEntry } from "../../../pages/CharactersPage/charact
 import { hasReachedCharacterLimit } from "../../../pages/CharactersPage/characterLimits";
 import CharacterEmptyState from "../CharacterEmptyState";
 import CharacterRow from "../CharacterRow";
+import CharacterImportModal from "./CharacterImportModal";
 import styles from "./CharacterList.module.css";
+import CharacterShareModal from "./CharacterShareModal";
 
 type CharacterListProps = {
+  canShareCharacters: boolean;
   characters: CharacterRosterEntry[];
   characterLimit: number;
-  onDownloadCharacter: (character: CharacterRosterEntry) => void;
   onDeleteCharacter: (characterId: number) => void;
+  onDuplicateCharacter: (character: CharacterRosterEntry) => Promise<number>;
+  onImportCharacter: (link: string) => Promise<number>;
+  onShareCharacter: (character: CharacterRosterEntry) => Promise<string>;
 };
 
 function CharacterList({
+  canShareCharacters,
   characters,
   characterLimit,
-  onDownloadCharacter,
-  onDeleteCharacter
+  onDeleteCharacter,
+  onDuplicateCharacter,
+  onImportCharacter,
+  onShareCharacter
 }: CharacterListProps) {
   const deleteTitleId = useId();
   const navigate = useNavigate();
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [pendingDeleteCharacter, setPendingDeleteCharacter] =
+    useState<CharacterRosterEntry | null>(null);
+  const [pendingShareCharacter, setPendingShareCharacter] =
     useState<CharacterRosterEntry | null>(null);
   const isCharacterLimitReached = hasReachedCharacterLimit(characters.length, characterLimit);
 
@@ -35,6 +46,20 @@ function CharacterList({
 
     onDeleteCharacter(pendingDeleteCharacter.id);
     setPendingDeleteCharacter(null);
+  }
+
+  async function handleImportLink(link: string) {
+    await onImportCharacter(link);
+
+    setIsImportModalOpen(false);
+  }
+
+  async function handleDuplicateCharacter(character: CharacterRosterEntry) {
+    if (isCharacterLimitReached) {
+      return;
+    }
+
+    await onDuplicateCharacter(character);
   }
 
   return (
@@ -61,6 +86,20 @@ function CharacterList({
           >
             New Character
           </ActionButton>
+          <ActionButton
+            icon={<Upload size={16} aria-hidden="true" />}
+            variant="OUTLINE"
+            fullWidth={false}
+            disabled={isCharacterLimitReached}
+            title={
+              isCharacterLimitReached
+                ? `Character limit reached (${characterLimit}).`
+                : "Import a shared character"
+            }
+            onClick={() => setIsImportModalOpen(true)}
+          >
+            Import Character
+          </ActionButton>
         </div>
       </div>
 
@@ -72,8 +111,10 @@ function CharacterList({
             <li key={character.id}>
               <CharacterRow
                 character={character}
-                onDownload={onDownloadCharacter}
+                isDuplicateDisabled={isCharacterLimitReached}
                 onDelete={setPendingDeleteCharacter}
+                onDuplicate={handleDuplicateCharacter}
+                onShare={canShareCharacters ? setPendingShareCharacter : undefined}
               />
             </li>
           ))}
@@ -94,6 +135,19 @@ function CharacterList({
           closeLabel="Close delete character confirmation"
           onCancel={() => setPendingDeleteCharacter(null)}
           onConfirm={handleDeleteConfirm}
+        />
+      ) : null}
+      {pendingShareCharacter ? (
+        <CharacterShareModal
+          character={pendingShareCharacter}
+          onClose={() => setPendingShareCharacter(null)}
+          onGenerateLink={onShareCharacter}
+        />
+      ) : null}
+      {isImportModalOpen ? (
+        <CharacterImportModal
+          onClose={() => setIsImportModalOpen(false)}
+          onImportLink={handleImportLink}
         />
       ) : null}
     </div>

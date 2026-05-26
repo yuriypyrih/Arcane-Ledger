@@ -1,8 +1,6 @@
 import CharacterList from "../../components/CharactersPage/CharacterList";
-import { downloadPortableCharacterSheetExport } from "../../components/CharactersPage/CharacterList/characterExport";
 import { captureAppError } from "../../lib/sentry";
 import { showToast, useAppDispatch, useAppSelector } from "../../store";
-import type { CharacterRosterEntry } from "./characterRoster";
 import { removeCharacterRosterEntry } from "./characterRoster";
 import { getCharacterLimitForAuth } from "./characterLimits";
 import { markPortableCharacterSheetDeleting } from "./portableCharacterSheet";
@@ -11,6 +9,7 @@ import {
   upsertStoredPortableCharacterSheet
 } from "./portableCharacterSheetStorage";
 import { resolvePortableCharacterSheetForRosterEntry } from "./resolvePortableCharacterSheet";
+import { useCharacterSharing } from "./useCharacterSharing";
 import { useCharacterRosterEntries } from "./useCharacterRosterEntries";
 import styles from "./CharactersPage.module.css";
 
@@ -20,6 +19,16 @@ function CharactersPage() {
   const ownerId = status === "authenticated" && user ? user.id : null;
   const characters = useCharacterRosterEntries(ownerId);
   const characterLimit = getCharacterLimitForAuth(status, user?.role);
+  const {
+    duplicateCharacter: handleDuplicateCharacter,
+    importCharacter: handleImportCharacter,
+    shareCharacter: handleShareCharacter
+  } = useCharacterSharing({
+    characters,
+    ownerId,
+    status,
+    user
+  });
 
   async function handleDeleteCharacter(characterId: number) {
     const deletedCharacter = characters.find((character) => character.id === characterId);
@@ -94,49 +103,16 @@ function CharactersPage() {
     });
   }
 
-  async function handleDownloadCharacter(character: CharacterRosterEntry) {
-    try {
-      const portableRecord = await resolvePortableCharacterSheetForRosterEntry(character, {
-        ownerId
-      });
-
-      if (!portableRecord) {
-        dispatch(
-          showToast({
-            text: "Character sheet is not available on this device.",
-            type: "error"
-          })
-        );
-        return;
-      }
-
-      downloadPortableCharacterSheetExport(portableRecord);
-    } catch (error) {
-      captureAppError(error, {
-        area: "characters",
-        action: "export",
-        extra: {
-          clientId: character.clientId,
-          localId: character.id,
-          remoteId: character.remoteId
-        }
-      });
-      dispatch(
-        showToast({
-          text: "Unable to export character sheet.",
-          type: "error"
-        })
-      );
-    }
-  }
-
   return (
     <section className={styles.page}>
       <CharacterList
+        canShareCharacters={Boolean(ownerId)}
         characters={characters}
         characterLimit={characterLimit}
-        onDownloadCharacter={handleDownloadCharacter}
         onDeleteCharacter={handleDeleteCharacter}
+        onDuplicateCharacter={handleDuplicateCharacter}
+        onImportCharacter={handleImportCharacter}
+        onShareCharacter={handleShareCharacter}
       />
     </section>
   );
