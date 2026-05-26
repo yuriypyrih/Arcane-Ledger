@@ -5,6 +5,12 @@ import { registerAccount, resendEmailVerification } from "../../api/auth";
 import ActionButton from "../../components/ActionButton";
 import TextInput from "../../components/CharactersPage/FormInputs/TextInput";
 import { setAuthError, setAuthLoading, useAppDispatch, useAppSelector } from "../../store";
+import {
+  getNicknameValidationMessage,
+  normalizeNicknameInput,
+  USER_NICKNAME_MAX_LENGTH,
+  USER_NICKNAME_MIN_LENGTH
+} from "./authNickname";
 import { getApiErrorMessage } from "./authPageUtils";
 import styles from "./AuthPages.module.css";
 
@@ -14,6 +20,7 @@ function RegisterPage() {
   const dispatch = useAppDispatch();
   const { error, loading } = useAppSelector((state) => state.auth);
   const [email, setEmail] = useState("");
+  const [nickname, setNickname] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
@@ -50,14 +57,34 @@ function RegisterPage() {
     resetVerificationResendState();
   }
 
+  function handleNicknameChange(event: ChangeEvent<HTMLInputElement>) {
+    setNickname(event.target.value);
+    resetVerificationResendState();
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     resetVerificationResendState();
     dispatch(setAuthError(null));
+
+    const nicknameError = getNicknameValidationMessage(nickname);
+
+    if (nicknameError) {
+      dispatch(setAuthError(nicknameError));
+      return;
+    }
+
     dispatch(setAuthLoading(true));
 
     try {
-      const response = await registerAccount({ email, password }, { suppressFailureToast: true });
+      const response = await registerAccount(
+        {
+          email,
+          nickname: normalizeNicknameInput(nickname),
+          password
+        },
+        { suppressFailureToast: true }
+      );
       setMessage(response.message);
       setRegisteredEmail(email.trim().toLowerCase());
       setResendCooldownSeconds(RESEND_VERIFICATION_DELAY_SECONDS);
@@ -111,6 +138,18 @@ function RegisterPage() {
               inputMode="email"
               value={email}
               onChange={handleEmailChange}
+            />
+          </label>
+
+          <label className={styles.field}>
+            <span className={styles.label}>Nickname</span>
+            <TextInput
+              className={styles.input}
+              autoComplete="nickname"
+              minLength={USER_NICKNAME_MIN_LENGTH}
+              maxLength={USER_NICKNAME_MAX_LENGTH}
+              value={nickname}
+              onChange={handleNicknameChange}
             />
           </label>
 

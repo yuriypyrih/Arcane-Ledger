@@ -7,6 +7,7 @@ export type AuthStatus = "unknown" | "guest" | "authenticated";
 export type AuthUser = {
   id: string;
   email: string;
+  nickname: string;
   role: UserRole;
   emailVerifiedAt: string | null;
   createdAt: string | null;

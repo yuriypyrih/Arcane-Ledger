@@ -1,17 +1,19 @@
-import { BadgeCheck, CalendarDays, KeyRound, LogOut, Mail, UserCircle } from "lucide-react";
+import { BadgeCheck, CalendarDays, KeyRound, LogOut, Mail, Pencil, UserCircle } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { changePassword, logout } from "../../api/auth";
+import { changeNickname, changePassword, logout } from "../../api/auth";
 import ActionButton from "../../components/ActionButton";
 import { clearStoredCharacters } from "../CharactersPage/storage";
 import {
   clearAuthSession,
   setAuthError,
+  setAuthenticatedUser,
   showToast,
   useAppDispatch,
   useAppSelector
 } from "../../store";
 import { formatAuthDate, getApiErrorMessage } from "./authPageUtils";
+import AccountNicknameModal from "./AccountNicknameModal";
 import AccountPasswordModal from "./AccountPasswordModal";
 import AccountPrivilegesSection from "./AccountPrivilegesSection";
 import styles from "./AuthPages.module.css";
@@ -38,7 +40,9 @@ function AccountPage() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { error, status, user } = useAppSelector((state) => state.auth);
+  const [changingNickname, setChangingNickname] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
+  const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
@@ -60,6 +64,11 @@ function AccountPage() {
     setIsPasswordModalOpen(true);
   }
 
+  function openNicknameModal() {
+    dispatch(setAuthError(null));
+    setIsNicknameModalOpen(true);
+  }
+
   function closePasswordModal() {
     if (changingPassword) {
       return;
@@ -67,6 +76,15 @@ function AccountPage() {
 
     dispatch(setAuthError(null));
     setIsPasswordModalOpen(false);
+  }
+
+  function closeNicknameModal() {
+    if (changingNickname) {
+      return;
+    }
+
+    dispatch(setAuthError(null));
+    setIsNicknameModalOpen(false);
   }
 
   async function handleChangePassword(currentPassword: string, password: string) {
@@ -93,6 +111,26 @@ function AccountPage() {
       dispatch(setAuthError(getApiErrorMessage(error, "Unable to change password.")));
     } finally {
       setChangingPassword(false);
+    }
+  }
+
+  async function handleChangeNickname(nickname: string) {
+    setChangingNickname(true);
+
+    try {
+      const response = await changeNickname({ nickname }, { suppressFailureToast: true });
+      dispatch(setAuthenticatedUser(response.user));
+      setIsNicknameModalOpen(false);
+      dispatch(
+        showToast({
+          text: "Nickname changed.",
+          type: "success"
+        })
+      );
+    } catch (error) {
+      dispatch(setAuthError(getApiErrorMessage(error, "Unable to change nickname.")));
+    } finally {
+      setChangingNickname(false);
     }
   }
 
@@ -201,14 +239,6 @@ function AccountPage() {
                 </h2>
               </div>
             </div>
-            <ActionButton
-              icon={<KeyRound size={16} aria-hidden="true" />}
-              type="button"
-              fullWidth={false}
-              onClick={openPasswordModal}
-            >
-              Change Password
-            </ActionButton>
           </div>
 
           <div className={styles.accountDetailGrid}>
@@ -216,6 +246,11 @@ function AccountPage() {
               icon={<Mail size={18} aria-hidden="true" />}
               label="Email"
               value={user.email}
+            />
+            <AccountDetailCard
+              icon={<UserCircle size={18} aria-hidden="true" />}
+              label="Nickname"
+              value={user.nickname}
             />
             <AccountDetailCard
               icon={<BadgeCheck size={18} aria-hidden="true" />}
@@ -227,6 +262,24 @@ function AccountPage() {
               label="Created"
               value={formatAuthDate(user.createdAt)}
             />
+          </div>
+
+          <div className={styles.accountActionRows}>
+            <ActionButton
+              icon={<KeyRound size={16} aria-hidden="true" />}
+              type="button"
+              onClick={openPasswordModal}
+            >
+              Change Password
+            </ActionButton>
+            <ActionButton
+              icon={<Pencil size={16} aria-hidden="true" />}
+              variant="OUTLINE"
+              type="button"
+              onClick={openNicknameModal}
+            >
+              Change Nickname
+            </ActionButton>
           </div>
         </section>
 
@@ -240,6 +293,16 @@ function AccountPage() {
           onChangePassword={handleChangePassword}
           onClearError={() => dispatch(setAuthError(null))}
           onClose={closePasswordModal}
+        />
+      ) : null}
+      {isNicknameModalOpen ? (
+        <AccountNicknameModal
+          error={error}
+          initialNickname={user.nickname}
+          isBusy={changingNickname}
+          onChangeNickname={handleChangeNickname}
+          onClearError={() => dispatch(setAuthError(null))}
+          onClose={closeNicknameModal}
         />
       ) : null}
     </section>

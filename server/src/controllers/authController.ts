@@ -7,6 +7,7 @@ import type { AuthenticatedLocals } from "../middleware/authMiddleware.js";
 import { User, type UserDocument } from "../models/User.js";
 import { clearAuthCookie, setAuthCookie } from "../services/authCookieService.js";
 import { sendAuthEmail } from "../services/authEmailService.js";
+import { normalizeUserNickname } from "../services/authNicknameService.js";
 import { createExpiringToken, hashToken, signAuthToken } from "../services/authTokenService.js";
 import { serializeAuthUser } from "../services/authUserService.js";
 import {
@@ -56,6 +57,16 @@ function readEmail(request: Request): string {
   }
 
   return email;
+}
+
+function readNickname(request: Request): string {
+  if (!isObjectRecord(request.body)) {
+    throw new AppError("Request body must be a JSON object.", 400, "INVALID_NICKNAME", {
+      field: "nickname"
+    });
+  }
+
+  return normalizeUserNickname(request.body.nickname);
 }
 
 function readNewPassword(request: Request, fieldName = "password"): string {
@@ -167,6 +178,7 @@ function sendSessionResponse(response: Response<AuthUserEnvelope>, user: UserDoc
 
 export const register = asyncHandler(async (request: Request, response: Response<AuthMessageEnvelope>) => {
   const email = readEmail(request);
+  const nickname = readNickname(request);
   const password = readNewPassword(request);
   const existingUser = await User.findOne({
     email,
@@ -188,6 +200,7 @@ export const register = asyncHandler(async (request: Request, response: Response
   const verificationToken = createExpiringToken(getAppConfig().emailVerificationTokenExpiresMinutes);
   const user = new User({
     email,
+    nickname,
     role: "user",
     passwordHash: await createPasswordHash(password),
     preferences: { ...defaultUserPreferences },
@@ -276,6 +289,19 @@ export const updateUserPreferences = asyncHandler(
 
     response.json({
       preferences: normalizeUserPreferences(user.preferences)
+    });
+  }
+);
+
+export const updateNickname = asyncHandler(
+  async (request: Request, response: Response<AuthUserEnvelope, AuthenticatedLocals>) => {
+    const user = response.locals.authUser;
+
+    user.nickname = readNickname(request);
+    await user.save({ validateModifiedOnly: true });
+
+    response.json({
+      user: serializeAuthUser(user)
     });
   }
 );

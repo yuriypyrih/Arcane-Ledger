@@ -342,6 +342,11 @@
   color: #65449d;
 }
 
+.accountDetailCard:nth-child(4) .accountDetailIcon {
+  background: rgba(40, 116, 72, 0.1);
+  color: #28693f;
+}
+
 .accountDetailContent {
   display: grid;
   gap: 0.14rem;
@@ -403,6 +408,11 @@
 .accountButtonRow {
   display: flex;
   flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.accountActionRows {
+  display: grid;
   gap: 0.7rem;
 }
 

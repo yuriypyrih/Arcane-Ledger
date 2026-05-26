@@ -10,6 +10,7 @@ import {
   register,
   resendEmailVerification,
   resetPassword,
+  updateNickname,
   updateUserPreferences,
   verifyEmail
 } from "../controllers/authController.js";
@@ -34,6 +35,7 @@ const authRoutes = Router();
 
 authRoutes.get("/me", requireAuth, getCurrentUser);
 authRoutes.get("/preferences", requireAuth, getUserPreferences);
+authRoutes.patch("/nickname", authWriteRateLimit, requireAuth, updateNickname);
 authRoutes.patch("/preferences", requireAuth, updateUserPreferences);
 authRoutes.post("/register", authWriteRateLimit, register);
 authRoutes.post("/login", authWriteRateLimit, login);

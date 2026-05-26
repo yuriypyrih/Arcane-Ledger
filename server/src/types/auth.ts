@@ -5,6 +5,7 @@ export type UserRole = (typeof USER_ROLES)[number];
 export type AuthUserResponse = {
   id: string;
   email: string;
+  nickname: string;
   role: UserRole;
   emailVerifiedAt: string | null;
   createdAt: string | null;

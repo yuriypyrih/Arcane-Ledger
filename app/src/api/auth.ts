@@ -7,13 +7,21 @@ export type AuthCredentials = {
   password: string;
 };
 
+export type RegisterAccountRequest = AuthCredentials & {
+  nickname: string;
+};
+
 export type ChangePasswordRequest = {
   currentPassword: string;
   password: string;
 };
 
-export function registerAccount(credentials: AuthCredentials, options?: ApiRequestOptions) {
-  return apiPost<AuthMessageEnvelope>("/auth/register", credentials, options);
+export type ChangeNicknameRequest = {
+  nickname: string;
+};
+
+export function registerAccount(request: RegisterAccountRequest, options?: ApiRequestOptions) {
+  return apiPost<AuthMessageEnvelope>("/auth/register", request, options);
 }
 
 export function login(credentials: AuthCredentials, options?: ApiRequestOptions) {
@@ -57,4 +65,8 @@ export function resetPassword(token: string, password: string, options?: ApiRequ
 
 export function changePassword(request: ChangePasswordRequest, options?: ApiRequestOptions) {
   return apiPatch<AuthMessageEnvelope>("/auth/password/change", request, options);
+}
+
+export function changeNickname(request: ChangeNicknameRequest, options?: ApiRequestOptions) {
+  return apiPatch<AuthUserEnvelope>("/auth/nickname", request, options);
 }

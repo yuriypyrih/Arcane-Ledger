@@ -1,12 +1,14 @@
 import { User, type UserDocument } from "../models/User.js";
 import { verifyAuthToken } from "./authTokenService.js";
 import { AppError } from "../errors/AppError.js";
+import { DEFAULT_USER_NICKNAME } from "./authNicknameService.js";
 import type { AuthUserResponse } from "../types/auth.js";
 
 export function serializeAuthUser(user: UserDocument): AuthUserResponse {
   return {
     id: user.id,
     email: user.email,
+    nickname: user.nickname ?? DEFAULT_USER_NICKNAME,
     role: user.role,
     emailVerifiedAt: user.emailVerifiedAt ? user.emailVerifiedAt.toISOString() : null,
     createdAt: user.createdAt ? user.createdAt.toISOString() : null,

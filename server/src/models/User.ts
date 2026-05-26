@@ -1,10 +1,16 @@
 import { Schema, model, type HydratedDocument } from "mongoose";
 import { USER_ROLES, type UserRole } from "../types/auth.js";
 import type { UserPreferences } from "../types/preferences.js";
+import {
+  DEFAULT_USER_NICKNAME,
+  USER_NICKNAME_MAX_LENGTH,
+  USER_NICKNAME_MIN_LENGTH
+} from "../services/authNicknameService.js";
 import { defaultUserPreferences } from "../services/userPreferencesService.js";
 
 export type UserRecord = {
   email: string;
+  nickname: string;
   role: UserRole;
   passwordHash: string;
   emailVerifiedAt?: Date | null;
@@ -58,6 +64,14 @@ const userSchema = new Schema<UserRecord>(
         },
         message: "Please provide a valid email address."
       }
+    },
+    nickname: {
+      type: String,
+      required: true,
+      trim: true,
+      minlength: USER_NICKNAME_MIN_LENGTH,
+      maxlength: USER_NICKNAME_MAX_LENGTH,
+      default: DEFAULT_USER_NICKNAME
     },
     role: {
       type: String,
