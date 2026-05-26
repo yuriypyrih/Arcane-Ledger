@@ -18,10 +18,6 @@
   padding: clamp(1.1rem, 4vw, 1.6rem);
 }
 
-.widePanel {
-  width: min(100%, 760px);
-}
-
 .supportPanel {
   width: min(100%, 720px);
   background: var(--color-panel-strong);
@@ -135,41 +131,230 @@
   text-decoration: underline;
 }
 
-.accountGrid {
+.accountPage {
   display: grid;
-  gap: 1rem;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 0.82fr);
+  align-content: start;
+  gap: var(--space-page-gap);
+  width: 100%;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--space-page-gap));
 }
 
+.accountGuestGrid {
+  display: grid;
+  align-items: stretch;
+  gap: var(--space-page-gap);
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+}
+
+.accountHeaderCard,
 .accountSection {
-  border: 1px solid rgba(94, 62, 39, 0.14);
-  border-radius: var(--radius-card);
-  background: rgba(255, 255, 255, 0.52);
-  padding: 1rem;
+  border: 1px solid rgba(75, 47, 29, 0.12);
+  border-radius: var(--radius-section);
+  background: var(--color-panel-strong);
+  box-shadow: 0 18px 50px rgba(54, 34, 21, 0.08);
+  color: var(--color-ink);
+  padding: var(--space-card-padding);
 }
 
-.detailList {
+.accountHeaderCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-section-gap);
+  background:
+    linear-gradient(135deg, rgba(47, 109, 224, 0.07), rgba(42, 126, 78, 0.045) 48%, transparent),
+    var(--color-panel-strong);
+}
+
+.accountHeaderCopy {
   display: grid;
-  gap: 0.85rem;
-  margin: 1rem 0 0;
+  gap: 0.5rem;
+  min-width: 0;
 }
 
-.detailItem {
+.accountTitle {
+  color: #2f1b12;
+  font-size: clamp(1.9rem, 4vw, 2.8rem);
+  line-height: 1.02;
+  margin: 0;
+}
+
+.accountIntro {
+  max-width: 62ch;
+  color: var(--color-ink-soft);
+  font-size: clamp(0.95rem, 1.5vw, 1.05rem);
+  line-height: 1.55;
+  margin: 0;
+}
+
+.accountIdentityCard {
   display: grid;
-  gap: 0.16rem;
+  align-items: center;
+  flex: 0 1 460px;
+  gap: 0.75rem;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  min-width: min(100%, 390px);
+  border-left: 1px solid rgba(75, 47, 29, 0.14);
+  padding-left: var(--space-section-gap);
 }
 
-.detailLabel {
+.accountAvatar,
+.accountSectionIcon,
+.accountDetailIcon {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+
+.accountAvatar {
+  width: 52px;
+  aspect-ratio: 1;
+  border-radius: var(--radius-field);
+  background: linear-gradient(150deg, #6f4629 0%, #3c2518 48%, #160f0d 100%);
+  color: #fff8ee;
+  box-shadow:
+    0 0 0 1px rgba(255, 246, 226, 0.42),
+    inset 0 0 0 1px rgba(255, 246, 226, 0.14),
+    0 10px 22px rgba(54, 34, 21, 0.12);
+}
+
+.accountIdentityText {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.accountIdentityLabel {
   color: rgba(47, 27, 18, 0.58);
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
 }
 
-.detailValue {
+.accountIdentityText strong {
   color: #2f1b12;
-  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.accountLayout {
+  display: grid;
+  align-items: start;
+  gap: var(--space-page-gap);
+  grid-template-columns: minmax(0, 0.95fr) minmax(380px, 1.05fr);
+}
+
+.accountSection {
+  display: grid;
+  gap: var(--space-section-gap);
+}
+
+.accountSectionHeader {
+  display: grid;
+  align-items: start;
+  gap: 0.72rem;
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.accountSectionHeader > div {
+  min-width: 0;
+}
+
+.accountSectionIcon {
+  width: 42px;
+  aspect-ratio: 1;
+  border-radius: var(--radius-control-lg);
+  background: rgba(47, 109, 224, 0.1);
+  color: #2558b8;
+}
+
+.accountSectionTitle {
+  color: #2f1b12;
+  font-size: clamp(1.32rem, 2.5vw, 1.72rem);
+  line-height: 1.08;
+  margin: 0;
+}
+
+.accountSectionText {
+  color: var(--color-ink-soft);
+  line-height: 1.5;
+  margin: 0.35rem 0 0;
+}
+
+.accountDetailGrid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 1fr;
+  margin: 0;
+}
+
+.accountDetailCard {
+  display: grid;
+  align-items: start;
+  gap: 0.68rem;
+  grid-template-columns: auto minmax(0, 1fr);
+  min-width: 0;
+  border: 1px solid rgba(75, 47, 29, 0.14);
+  border-radius: var(--radius-card);
+  background:
+    linear-gradient(
+      140deg,
+      rgba(255, 253, 248, 0.86) 0%,
+      rgba(255, 250, 242, 0.68) 72%,
+      rgba(255, 248, 236, 0.36) 100%
+    ),
+    linear-gradient(135deg, rgba(145, 101, 54, 0.08), rgba(145, 101, 54, 0.02)),
+    url("../../assets/img/paper-background.jpg");
+  background-color: var(--color-panel-surface);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size:
+    auto,
+    auto,
+    155% auto;
+  padding: 0.88rem;
+}
+
+.accountDetailIcon {
+  width: 38px;
+  aspect-ratio: 1;
+  border-radius: var(--radius-control);
+  background: rgba(47, 109, 224, 0.1);
+  color: #2558b8;
+}
+
+.accountDetailCard:nth-child(2) .accountDetailIcon {
+  background: rgba(183, 93, 20, 0.1);
+  color: #8c4d14;
+}
+
+.accountDetailCard:nth-child(3) .accountDetailIcon {
+  background: rgba(126, 84, 190, 0.1);
+  color: #65449d;
+}
+
+.accountDetailContent {
+  display: grid;
+  gap: 0.14rem;
+  min-width: 0;
+}
+
+.accountDetailLabel {
+  color: rgba(47, 27, 18, 0.58);
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.accountDetailValue {
+  color: #2f1b12;
+  font-size: 0.98rem;
+  font-weight: 850;
+  line-height: 1.25;
   overflow-wrap: anywhere;
 }
 
@@ -184,6 +369,46 @@
   font-weight: 800;
   padding: 0.2rem 0.55rem;
   text-transform: capitalize;
+}
+
+.accountPasswordSection {
+  min-width: 0;
+}
+
+.accountPasswordForm {
+  display: grid;
+  gap: 0.95rem;
+}
+
+.accountPasswordFields {
+  display: grid;
+  gap: 0.82rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.accountFieldWide {
+  grid-column: 1 / -1;
+}
+
+.accountPasswordFooter {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.85rem;
+  border-top: 1px solid rgba(75, 47, 29, 0.12);
+  padding-top: 0.95rem;
+}
+
+.accountButtonRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.accountButtonRow > *,
+.accountPasswordButton {
+  flex: 0 1 auto;
+  min-width: 160px;
 }
 
 .supportTextarea {
@@ -202,13 +427,50 @@
   font-weight: 800;
 }
 
+@media (max-width: 960px) {
+  .accountGuestGrid,
+  .accountLayout {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 760px) {
   .page {
     min-height: auto;
     place-items: start stretch;
   }
 
-  .accountGrid {
+  .accountHeaderCard {
+    align-items: stretch;
+    display: grid;
+  }
+
+  .accountIdentityCard {
+    grid-template-columns: auto minmax(0, 1fr);
+    min-width: 0;
+    border-left: none;
+    border-top: 1px solid rgba(75, 47, 29, 0.14);
+    padding-left: 0;
+    padding-top: var(--space-section-gap);
+  }
+
+  .accountIdentityCard :global(button) {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .accountDetailGrid,
+  .accountPasswordFields {
     grid-template-columns: 1fr;
+  }
+
+  .accountPasswordFooter {
+    display: grid;
+  }
+
+  .accountButtonRow > *,
+  .accountPasswordButton {
+    flex-basis: 100%;
+    width: 100%;
   }
 }

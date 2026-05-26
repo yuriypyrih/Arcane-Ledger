@@ -1,5 +1,5 @@
-import { KeyRound, LogOut, UserCircle } from "lucide-react";
-import { FormEvent, useState } from "react";
+import { BadgeCheck, CalendarDays, KeyRound, LogOut, Mail, UserCircle } from "lucide-react";
+import { type FormEvent, type ReactNode, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { changePassword, logout } from "../../api/auth";
 import ActionButton from "../../components/ActionButton";
@@ -14,6 +14,24 @@ import {
 } from "../../store";
 import { formatAuthDate, getApiErrorMessage } from "./authPageUtils";
 import styles from "./AuthPages.module.css";
+
+type AccountDetailCardProps = {
+  icon: ReactNode;
+  label: string;
+  value: ReactNode;
+};
+
+function AccountDetailCard({ icon, label, value }: AccountDetailCardProps) {
+  return (
+    <div className={styles.accountDetailCard}>
+      <span className={styles.accountDetailIcon}>{icon}</span>
+      <div className={styles.accountDetailContent}>
+        <span className={styles.accountDetailLabel}>{label}</span>
+        <span className={styles.accountDetailValue}>{value}</span>
+      </div>
+    </div>
+  );
+}
 
 function AccountPage() {
   const dispatch = useAppDispatch();
@@ -75,11 +93,11 @@ function AccountPage() {
 
   if (status === "unknown") {
     return (
-      <section className={styles.page}>
-        <div className={styles.panel}>
-          <div className={styles.header}>
+      <section className={styles.accountPage}>
+        <div className={styles.accountHeaderCard}>
+          <div className={styles.accountHeaderCopy}>
             <p className={styles.eyebrow}>Account</p>
-            <h2 className={styles.title}>Loading</h2>
+            <h1 className={styles.accountTitle}>Loading Account</h1>
           </div>
         </div>
       </section>
@@ -88,81 +106,135 @@ function AccountPage() {
 
   if (!user) {
     return (
-      <section className={styles.page}>
-        <div className={styles.panel}>
-          <div className={styles.header}>
-            <p className={styles.eyebrow}>Account</p>
-            <h2 className={styles.title}>Guest Session</h2>
-          </div>
-          <div className={styles.actions}>
-            <ActionButton
-              icon={<UserCircle size={16} aria-hidden="true" />}
-              type="button"
-              onClick={() => navigate("/login")}
-            >
-              Log In
-            </ActionButton>
-            <ActionButton variant="OUTLINE" type="button" onClick={() => navigate("/register")}>
-              Register
-            </ActionButton>
-          </div>
+      <section className={styles.accountPage}>
+        <div className={styles.accountGuestGrid}>
+          <section className={styles.accountHeaderCard}>
+            <div className={styles.accountHeaderCopy}>
+              <p className={styles.eyebrow}>Account</p>
+              <h1 className={styles.accountTitle}>Guest Session</h1>
+              <p className={styles.accountIntro}>Sign in to manage account settings.</p>
+            </div>
+          </section>
+
+          <section className={styles.accountSection} aria-labelledby="guest-account-title">
+            <div className={styles.accountSectionHeader}>
+              <span className={styles.accountSectionIcon}>
+                <UserCircle size={20} aria-hidden="true" />
+              </span>
+              <div>
+                <p className={styles.eyebrow}>Session</p>
+                <h2 id="guest-account-title" className={styles.accountSectionTitle}>
+                  Account Access
+                </h2>
+              </div>
+            </div>
+
+            <div className={styles.accountButtonRow}>
+              <ActionButton
+                icon={<UserCircle size={16} aria-hidden="true" />}
+                type="button"
+                fullWidth={false}
+                onClick={() => navigate("/login")}
+              >
+                Log In
+              </ActionButton>
+              <ActionButton
+                variant="OUTLINE"
+                type="button"
+                fullWidth={false}
+                onClick={() => navigate("/register")}
+              >
+                Register
+              </ActionButton>
+            </div>
+          </section>
         </div>
       </section>
     );
   }
 
   return (
-    <section className={styles.page}>
-      <div className={`${styles.panel} ${styles.widePanel}`}>
-        <div className={styles.header}>
+    <section className={styles.accountPage}>
+      <div className={styles.accountHeaderCard}>
+        <div className={styles.accountHeaderCopy}>
           <p className={styles.eyebrow}>Account</p>
-          <h2 className={styles.title}>Your Account</h2>
+          <h1 className={styles.accountTitle}>Your Account</h1>
         </div>
 
-        <div className={styles.accountGrid}>
-          <section className={styles.accountSection} aria-labelledby="account-details-title">
-            <h3 id="account-details-title" className={styles.eyebrow}>
-              Details
-            </h3>
-            <dl className={styles.detailList}>
-              <div className={styles.detailItem}>
-                <dt className={styles.detailLabel}>Email</dt>
-                <dd className={styles.detailValue}>{user.email}</dd>
-              </div>
-              <div className={styles.detailItem}>
-                <dt className={styles.detailLabel}>Role</dt>
-                <dd className={styles.detailValue}>
-                  <span className={styles.rolePill}>{user.role}</span>
-                </dd>
-              </div>
-              <div className={styles.detailItem}>
-                <dt className={styles.detailLabel}>Verified</dt>
-                <dd className={styles.detailValue}>{formatAuthDate(user.emailVerifiedAt)}</dd>
-              </div>
-              <div className={styles.detailItem}>
-                <dt className={styles.detailLabel}>Created</dt>
-                <dd className={styles.detailValue}>{formatAuthDate(user.createdAt)}</dd>
-              </div>
-            </dl>
-            <div className={styles.actions}>
-              <ActionButton
-                actionType="WARNING"
-                icon={<LogOut size={16} aria-hidden="true" />}
-                loading={loggingOut}
-                type="button"
-                onClick={handleLogout}
-              >
-                Log Out
-              </ActionButton>
-            </div>
-          </section>
+        <aside className={styles.accountIdentityCard} aria-label="Signed in account">
+          <span className={styles.accountAvatar}>
+            <UserCircle size={30} aria-hidden="true" />
+          </span>
+          <div className={styles.accountIdentityText}>
+            <span className={styles.accountIdentityLabel}>Signed in as</span>
+            <strong>{user.email}</strong>
+          </div>
+          <ActionButton
+            actionType="WARNING"
+            icon={<LogOut size={16} aria-hidden="true" />}
+            loading={loggingOut}
+            type="button"
+            fullWidth={false}
+            onClick={handleLogout}
+          >
+            Log Out
+          </ActionButton>
+        </aside>
+      </div>
 
-          <section className={styles.accountSection} aria-labelledby="password-title">
-            <h3 id="password-title" className={styles.eyebrow}>
-              Password
-            </h3>
-            <form className={styles.form} onSubmit={handleChangePassword}>
-              <label className={styles.field}>
+      <div className={styles.accountLayout}>
+        <section className={styles.accountSection} aria-labelledby="account-details-title">
+          <div className={styles.accountSectionHeader}>
+            <span className={styles.accountSectionIcon}>
+              <BadgeCheck size={20} aria-hidden="true" />
+            </span>
+            <div>
+              <p className={styles.eyebrow}>Profile</p>
+              <h2 id="account-details-title" className={styles.accountSectionTitle}>
+                Account Details
+              </h2>
+            </div>
+          </div>
+
+          <div className={styles.accountDetailGrid}>
+            <AccountDetailCard
+              icon={<Mail size={18} aria-hidden="true" />}
+              label="Email"
+              value={user.email}
+            />
+            <AccountDetailCard
+              icon={<BadgeCheck size={18} aria-hidden="true" />}
+              label="Role"
+              value={<span className={styles.rolePill}>{user.role}</span>}
+            />
+            <AccountDetailCard
+              icon={<CalendarDays size={18} aria-hidden="true" />}
+              label="Created"
+              value={formatAuthDate(user.createdAt)}
+            />
+          </div>
+        </section>
+
+        <section
+          className={`${styles.accountSection} ${styles.accountPasswordSection}`}
+          aria-labelledby="password-title"
+        >
+          <div className={styles.accountSectionHeader}>
+            <span className={styles.accountSectionIcon}>
+              <KeyRound size={20} aria-hidden="true" />
+            </span>
+            <div>
+              <p className={styles.eyebrow}>Security</p>
+              <h2 id="password-title" className={styles.accountSectionTitle}>
+                Change Password
+              </h2>
+              <p className={styles.accountSectionText}>You will log in again after it changes.</p>
+            </div>
+          </div>
+
+          <form className={styles.accountPasswordForm} onSubmit={handleChangePassword}>
+            <div className={styles.accountPasswordFields}>
+              <label className={`${styles.field} ${styles.accountFieldWide}`}>
                 <span className={styles.label}>Current Password</span>
                 <TextInput
                   className={styles.input}
@@ -192,21 +264,23 @@ function AccountPage() {
                   onChange={(event) => setConfirmPassword(event.target.value)}
                 />
               </label>
+            </div>
 
-              {error ? <div className={`${styles.message} ${styles.error}`}>{error}</div> : null}
+            {error ? <div className={`${styles.message} ${styles.error}`}>{error}</div> : null}
 
-              <div className={styles.actions}>
-                <ActionButton
-                  icon={<KeyRound size={16} aria-hidden="true" />}
-                  loading={changingPassword}
-                  type="submit"
-                >
-                  Change Password
-                </ActionButton>
-              </div>
-            </form>
-          </section>
-        </div>
+            <div className={styles.accountPasswordFooter}>
+              <ActionButton
+                className={styles.accountPasswordButton}
+                icon={<KeyRound size={16} aria-hidden="true" />}
+                loading={changingPassword}
+                type="submit"
+                fullWidth={false}
+              >
+                Change Password
+              </ActionButton>
+            </div>
+          </form>
+        </section>
       </div>
     </section>
   );

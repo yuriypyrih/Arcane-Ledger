@@ -22,7 +22,6 @@ export function formatAuthDate(value: string | null): string {
   }
 
   return new Intl.DateTimeFormat(undefined, {
-    dateStyle: "medium",
-    timeStyle: "short"
+    dateStyle: "medium"
   }).format(new Date(value));
 }
