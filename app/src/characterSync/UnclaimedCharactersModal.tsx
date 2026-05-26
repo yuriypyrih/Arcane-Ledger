@@ -63,6 +63,10 @@ function UnclaimedCharactersModal({
   const selectedCount = selectedRecords.length;
   const isSelectionFull = selectedCount >= availableSlots;
 
+  function unselectAllRecords() {
+    setSelectedIds(new Set());
+  }
+
   function toggleRecord(record: PortableCharacterSheet) {
     const selectionId = getRecordSelectionId(record);
     const isSelected = selectedIds.has(selectionId);
@@ -109,6 +113,14 @@ function UnclaimedCharactersModal({
             {currentCount}/{limit} account slots used
           </span>
           <span>{selectedCount} selected</span>
+          <button
+            type="button"
+            className={styles.linkButton}
+            disabled={selectedCount === 0 || isBusy}
+            onClick={unselectAllRecords}
+          >
+            Unselect All
+          </button>
         </div>
 
         <ul className={styles.recordList}>

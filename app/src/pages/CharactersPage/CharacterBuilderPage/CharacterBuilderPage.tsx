@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { importCharacterSheets } from "../../../api/characters";
+import { createPortableCharacterSheetSyncPayload } from "../../../characterSync/characterSyncRecords";
 import CharacterForm from "../../../components/CharactersPage/CharacterForm";
 import { trackAnalyticsEvent } from "../../../lib/analytics";
 import { captureAppError } from "../../../lib/sentry";
@@ -17,7 +19,11 @@ import {
   getSelectedClassToolSelectionsFromEntries,
   getSavingThrowSelectionsFromEntries
 } from "../proficiency";
-import { resolvePortableCharacterSheetForOpen } from "../resolvePortableCharacterSheet";
+import { createPortableCharacterSheet } from "../portableCharacterSheet";
+import {
+  resolvePortableCharacterSheetForOpen,
+  storeCloudCharacterSheetDocument
+} from "../resolvePortableCharacterSheet";
 import { normalizeCharacter, upsertCharacter } from "../storage";
 import { useCharacterRosterEntries } from "../useCharacterRosterEntries";
 import styles from "./CharacterBuilderPage.module.css";
@@ -168,6 +174,34 @@ function CharacterBuilderPage() {
           species: savedCharacter.species
         }
       });
+
+      if (ownerId) {
+        try {
+          const { characters: syncedCharacters } = await importCharacterSheets(
+            [
+              createPortableCharacterSheetSyncPayload(
+                createPortableCharacterSheet(savedCharacter),
+                { ownerId }
+              )
+            ],
+            { suppressFailureToast: true }
+          );
+          const syncedCharacter = syncedCharacters[0];
+
+          if (syncedCharacter) {
+            storeCloudCharacterSheetDocument(syncedCharacter, { localId: savedCharacter.id });
+          }
+        } catch (error) {
+          captureAppError(error, {
+            area: "characters",
+            action: "create-sync",
+            extra: {
+              localId: savedCharacter.id,
+              ownerId
+            }
+          });
+        }
+      }
     }
 
     navigate(existingCharacter ? "/characters" : `/characters/${savedCharacter.id}`);

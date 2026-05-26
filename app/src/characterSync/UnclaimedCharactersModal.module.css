@@ -22,6 +22,30 @@
   padding: 4px 10px;
 }
 
+.linkButton {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  color: #2563eb;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  margin-left: auto;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.linkButton:hover,
+.linkButton:focus-visible {
+  color: #1d4ed8;
+}
+
+.linkButton:disabled {
+  color: #93a8cf;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
 .recordList {
   display: grid;
   gap: 10px;
