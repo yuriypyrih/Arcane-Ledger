@@ -3,6 +3,10 @@ import { AppError } from "../errors/AppError.js";
 import { AnalyticsDailyRollup, type AnalyticsRollupRecord } from "../models/Analytics.js";
 import { CharacterSheet } from "../models/CharacterSheet.js";
 import { User } from "../models/User.js";
+import {
+  ANALYTICS_STATUS_BUCKETS,
+  normalizeAnalyticsStatusBucket
+} from "./analyticsStatusBuckets.js";
 
 type RollupSummaryRecord = Pick<
   AnalyticsRollupRecord,
@@ -95,8 +99,6 @@ const LAST_30_DAY_COUNT = 30;
 const TOP_LIMIT = 10;
 const DEMOGRAPHICS_OTHER_LABEL = "Other / Unknown";
 const DATE_ONLY_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
-const STATUS_FAMILIES = ["2xx", "3xx", "4xx", "429", "5xx", "other"] as const;
-const statusFamilySet = new Set<string>(STATUS_FAMILIES);
 
 type ResolvedSummaryRange = {
   end: Date;
@@ -244,7 +246,39 @@ function getTopCountBuckets(
 }
 
 function normalizeTopRoute(route: string) {
-  return route.replace(/^\/characters\/\d+(?=\/|$)/, "/characters/:id");
+  if (/^\/characters\/\d+\/edit$/.test(route)) {
+    return "/characters/:id/edit";
+  }
+
+  if (/^\/characters\/\d+$/.test(route)) {
+    return "/characters/:id";
+  }
+
+  if (/^\/compendium\/items\/[^/]+$/.test(route)) {
+    return "/compendium/items/:item";
+  }
+
+  if (/^\/compendium\/monsters\/[^/]+$/.test(route)) {
+    return "/compendium/monsters/:monster";
+  }
+
+  if (/^\/reset-password\/[^/]+$/.test(route)) {
+    return "/reset-password/:token";
+  }
+
+  if (/^\/verify-email\/[^/]+$/.test(route)) {
+    return "/verify-email/:token";
+  }
+
+  const compendiumEntryMatch = /^\/compendium\/(armor|background|class|item|rule|species|spell|weapon)-[^/]+$/.exec(
+    route
+  );
+
+  if (compendiumEntryMatch?.[1]) {
+    return `/compendium/:${compendiumEntryMatch[1]}`;
+  }
+
+  return route;
 }
 
 function getTopRoutes(records: RollupSummaryRecord[]): AnalyticsRouteBucket[] {
@@ -270,11 +304,11 @@ function getStatusFamilyBuckets(records: RollupSummaryRecord[]): AnalyticsCountB
   const counts = new Map<string, number>();
 
   records.forEach((record) => {
-    const label = statusFamilySet.has(record.statusFamily) ? record.statusFamily : "other";
+    const label = normalizeAnalyticsStatusBucket(record.statusFamily);
     counts.set(label, (counts.get(label) ?? 0) + record.count);
   });
 
-  return STATUS_FAMILIES.map((label) => ({
+  return ANALYTICS_STATUS_BUCKETS.map((label) => ({
     label,
     count: counts.get(label) ?? 0
   }));

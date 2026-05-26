@@ -262,7 +262,7 @@
 
 .chartGrid {
   display: grid;
-  align-items: center;
+  align-items: start;
   gap: 1rem;
   grid-template-columns: 180px minmax(0, 1fr);
 }
@@ -293,23 +293,30 @@
 
 .legend {
   display: grid;
-  gap: 0.46rem;
+  align-items: center;
+  column-gap: 0.5rem;
+  grid-template-columns: 0.8rem minmax(0, max-content) max-content;
+  row-gap: 0.46rem;
+  justify-content: start;
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
 .legendItem {
-  display: grid;
-  align-items: center;
-  gap: 0.5rem;
-  grid-template-columns: 0.8rem minmax(0, 1fr) auto;
+  display: contents;
   color: #2f1b12;
   font-size: 0.86rem;
 }
 
+.legendItem span:not(.legendSwatch) {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .legendItem strong {
   color: rgba(47, 27, 18, 0.72);
+  justify-self: end;
 }
 
 .legendSwatch {

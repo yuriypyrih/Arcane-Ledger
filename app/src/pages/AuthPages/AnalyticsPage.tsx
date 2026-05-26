@@ -21,8 +21,15 @@ type ChartRow = {
 
 type DonutLegendValue = "count" | "percent";
 
-const DONUT_BASE_BLUE = "37, 88, 184";
-const DONUT_MIN_OPACITY = 0.32;
+const DONUT_HUES = [
+  "37, 88, 184",
+  "202, 107, 36",
+  "45, 129, 95",
+  "190, 70, 75",
+  "122, 82, 184"
+] as const;
+const DONUT_OPACITIES = [1, 0.66, 0.32] as const;
+const DONUT_SEGMENT_LIMIT = DONUT_HUES.length * DONUT_OPACITIES.length;
 
 const rangeOptions: Array<{ label: string; value: AnalyticsSummaryRangeKey }> = [
   { label: "Last 30 days", value: "last30" },
@@ -116,14 +123,11 @@ function toChartRows(rows: AnalyticsNamedBucket[]): ChartRow[] {
   }));
 }
 
-function getDonutSegmentColor(index: number, segmentCount: number) {
-  if (segmentCount <= 1) {
-    return `rgba(${DONUT_BASE_BLUE}, 1)`;
-  }
+function getDonutSegmentColor(index: number) {
+  const hue = DONUT_HUES[Math.floor(index / DONUT_OPACITIES.length)] ?? DONUT_HUES[0];
+  const opacity = DONUT_OPACITIES[index % DONUT_OPACITIES.length] ?? DONUT_OPACITIES[0];
 
-  const opacity = 1 - (index / (segmentCount - 1)) * (1 - DONUT_MIN_OPACITY);
-
-  return `rgba(${DONUT_BASE_BLUE}, ${opacity.toFixed(3)})`;
+  return `rgba(${hue}, ${opacity})`;
 }
 
 function EmptyState({ label }: { label: string }) {
@@ -175,7 +179,8 @@ function DonutChart({
   legendValue?: DonutLegendValue;
   rows: ChartRow[];
 }) {
-  const total = rows.reduce((nextTotal, row) => nextTotal + row.count, 0);
+  const chartRows = rows.slice(0, DONUT_SEGMENT_LIMIT);
+  const total = chartRows.reduce((nextTotal, row) => nextTotal + row.count, 0);
   const circumference = 2 * Math.PI * 34;
   let offset = 0;
 
@@ -191,10 +196,10 @@ function DonutChart({
     <div className={styles.chartGrid}>
       <svg className={styles.donut} viewBox="0 0 100 100" role="img" aria-label={ariaLabel}>
         <circle className={styles.donutTrack} cx="50" cy="50" r="34" />
-        {rows.map((row, index) => {
+        {chartRows.map((row, index) => {
           const segmentLength = (row.count / total) * circumference;
           const segmentOffset = offset;
-          const segmentColor = getDonutSegmentColor(index, rows.length);
+          const segmentColor = getDonutSegmentColor(index);
           offset += segmentLength;
 
           return (
@@ -212,11 +217,11 @@ function DonutChart({
         })}
       </svg>
       <ul className={styles.legend}>
-        {rows.map((row, index) => (
+        {chartRows.map((row, index) => (
           <li key={row.label} className={styles.legendItem}>
             <span
               className={styles.legendSwatch}
-              style={{ backgroundColor: getDonutSegmentColor(index, rows.length) }}
+              style={{ backgroundColor: getDonutSegmentColor(index) }}
             />
             <span>{row.label}</span>
             <strong>

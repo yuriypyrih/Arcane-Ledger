@@ -4,6 +4,7 @@ import type { Types } from "mongoose";
 import { AnalyticsDailyRollup } from "../models/Analytics.js";
 import type { AnalyticsGeoRecord, AnalyticsRollupRecord } from "../models/Analytics.js";
 import { getAnalyticsGeo } from "./analyticsGeoService.js";
+import { getRequestStatusBucket } from "./analyticsStatusBuckets.js";
 import { captureServerError } from "../sentry.js";
 
 export const frontendAnalyticsEventNames = [
@@ -424,26 +425,6 @@ export async function captureFrontendAnalyticsBatch(options: {
   };
 }
 
-function getStatusFamily(statusCode: number) {
-  if (statusCode >= 500) {
-    return "5xx";
-  }
-
-  if (statusCode >= 400) {
-    return statusCode === 429 ? "429" : "4xx";
-  }
-
-  if (statusCode >= 300) {
-    return "3xx";
-  }
-
-  if (statusCode >= 200) {
-    return "2xx";
-  }
-
-  return "other";
-}
-
 function getLatencyBucket(durationMs: number) {
   if (durationMs < 100) {
     return "lt_100ms";
@@ -482,7 +463,7 @@ export function recordBackendRequestMetric(options: {
     source: "backend",
     route: sanitizeRequestRoute(options.route),
     method: options.method.toUpperCase(),
-    statusFamily: getStatusFamily(options.statusCode),
+    statusFamily: getRequestStatusBucket(options.statusCode),
     latencyBucket: getLatencyBucket(options.durationMs),
     visitorType: "server"
   });
