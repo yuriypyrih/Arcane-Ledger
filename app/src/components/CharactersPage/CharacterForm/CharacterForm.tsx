@@ -2407,18 +2407,6 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
           </div>
           <div className={styles.sectionHeaderActions}>
             {!isCoreProfileReady ? <InputRequiredBadge /> : null}
-            {!isEditing ? (
-              <ActionButton
-                type="button"
-                fullWidth={false}
-                iconOnly
-                icon={<Dice6 size={20} />}
-                onClick={handleRandomize}
-                disabled={hasPendingAction}
-                aria-label="Randomize character"
-                title="Randomize character"
-              />
-            ) : null}
           </div>
         </div>
 
@@ -4111,7 +4099,9 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         {!isEditing && wizardStep === 3 ? renderNotesSection() : null}
 
         <section className={clsx(styles.sectionCard, styles.actionsCard)}>
-          <div className={styles.actions}>
+          <div
+            className={clsx(styles.actions, !isEditing && wizardStep === 1 && styles.actionsSplit)}
+          >
             {isEditing ? (
               <>
                 <ActionButton
@@ -4135,30 +4125,43 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
 
             {!isEditing && wizardStep === 1 ? (
               <>
-                {!isCustomClassSelected ? (
+                <div className={clsx(styles.actionsGroup, styles.actionsLeft)}>
                   <ActionButton
                     type="button"
                     fullWidth={false}
-                    loading={pendingAction === "recommended"}
+                    icon={<Dice6 size={16} aria-hidden="true" />}
+                    onClick={handleRandomize}
+                    disabled={hasPendingAction}
+                  >
+                    Randomize
+                  </ActionButton>
+                </div>
+                <div className={clsx(styles.actionsGroup, styles.actionsRight)}>
+                  {!isCustomClassSelected ? (
+                    <ActionButton
+                      type="button"
+                      fullWidth={false}
+                      loading={pendingAction === "recommended"}
+                      disabled={hasPendingAction || !isCoreProfileReady}
+                      onClick={() => {
+                        void runPendingAction("recommended", handleRecommendedCreate);
+                      }}
+                    >
+                      Create with recommended build
+                    </ActionButton>
+                  ) : null}
+                  <ActionButton
+                    type="button"
+                    fullWidth={false}
+                    loading={pendingAction === "customize"}
                     disabled={hasPendingAction || !isCoreProfileReady}
                     onClick={() => {
-                      void runPendingAction("recommended", handleRecommendedCreate);
+                      void runPendingAction("customize", handleStartCustomization);
                     }}
                   >
-                    Create with recommended build
+                    Customize based on your needs
                   </ActionButton>
-                ) : null}
-                <ActionButton
-                  type="button"
-                  fullWidth={false}
-                  loading={pendingAction === "customize"}
-                  disabled={hasPendingAction || !isCoreProfileReady}
-                  onClick={() => {
-                    void runPendingAction("customize", handleStartCustomization);
-                  }}
-                >
-                  Customize based on your needs
-                </ActionButton>
+                </div>
               </>
             ) : null}
 
