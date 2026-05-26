@@ -170,9 +170,21 @@
 }
 
 .secondaryAction:hover,
-.panelLink:hover {
+.secondaryAction:focus-visible,
+.panelLink:hover,
+.panelLink:focus-visible {
   background: #fff8ed;
   border-color: rgba(75, 47, 29, 0.2);
+}
+
+.secondaryAction {
+  cursor: pointer;
+}
+
+.secondaryAction:focus-visible,
+.panelLink:focus-visible {
+  outline: 2px solid rgba(47, 120, 255, 0.34);
+  outline-offset: 2px;
 }
 
 .panelLink {
@@ -235,6 +247,8 @@
   gap: 0.58rem;
   min-height: 58px;
   background: rgba(241, 228, 213, 0.72);
+  cursor: pointer;
+  font: inherit;
   padding: 0.56rem 0.7rem;
   text-align: left;
   transition:
@@ -244,15 +258,21 @@
     transform 120ms ease;
 }
 
-.toolButton:hover,
-.toolButton:focus-visible {
+.toolButton:not(:disabled):hover,
+.toolButton:not(:disabled):focus-visible {
   border-color: rgba(75, 47, 29, 0.2);
   background: #fff8ed;
   box-shadow: 0 8px 18px rgba(54, 34, 21, 0.07);
   transform: translateY(-1px);
 }
 
-.toolButton:focus-visible {
+.toolButton:disabled {
+  cursor: not-allowed;
+  filter: saturate(0.45);
+  opacity: 0.56;
+}
+
+.toolButton:not(:disabled):focus-visible {
   outline: 2px solid rgba(47, 120, 255, 0.34);
   outline-offset: 2px;
 }

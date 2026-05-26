@@ -1,6 +1,7 @@
 import CharacterList from "../../components/CharactersPage/CharacterList";
 import { captureAppError } from "../../lib/sentry";
 import { showToast, useAppDispatch, useAppSelector } from "../../store";
+import { usePartyMemberships } from "../DmToolsPage/usePartyMemberships";
 import { removeCharacterRosterEntry } from "./characterRoster";
 import { getCharacterLimitForAuth } from "./characterLimits";
 import { markPortableCharacterSheetDeleting } from "./portableCharacterSheet";
@@ -16,6 +17,9 @@ import styles from "./CharactersPage.module.css";
 function CharactersPage() {
   const dispatch = useAppDispatch();
   const { status, user } = useAppSelector((state) => state.auth);
+  const membershipsByCharacterId = useAppSelector(
+    (state) => state.dmTools.membershipsByCharacterId
+  );
   const ownerId = status === "authenticated" && user ? user.id : null;
   const characters = useCharacterRosterEntries(ownerId);
   const characterLimit = getCharacterLimitForAuth(status, user?.role);
@@ -29,6 +33,7 @@ function CharactersPage() {
     status,
     user
   });
+  usePartyMemberships();
 
   async function handleDeleteCharacter(characterId: number) {
     const deletedCharacter = characters.find((character) => character.id === characterId);
@@ -109,6 +114,7 @@ function CharactersPage() {
         canShareCharacters={Boolean(ownerId)}
         characters={characters}
         characterLimit={characterLimit}
+        partyMembershipsByCharacterId={membershipsByCharacterId}
         onDeleteCharacter={handleDeleteCharacter}
         onDuplicateCharacter={handleDuplicateCharacter}
         onImportCharacter={handleImportCharacter}

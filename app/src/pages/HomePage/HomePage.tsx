@@ -14,12 +14,12 @@ import {
   Users,
   Wrench
 } from "lucide-react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import ActionButton from "../../components/ActionButton";
 import CharacterEmptyState from "../../components/CharactersPage/CharacterEmptyState";
 import CharacterRow from "../../components/CharactersPage/CharacterRow";
-import { useAppSelector } from "../../store";
+import { showToast, useAppDispatch, useAppSelector } from "../../store";
 import {
   GUEST_CHARACTER_LIMIT,
   USER_CHARACTER_LIMIT,
@@ -27,11 +27,14 @@ import {
   hasReachedCharacterLimit
 } from "../CharactersPage/characterLimits";
 import { useCharacterRosterEntries } from "../CharactersPage/useCharacterRosterEntries";
-import { DM_TOOLS_TABS, createDmToolsPath } from "../DmToolsPage/dmToolsTabs";
+import JoinPartyGroupModal from "../DmToolsPage/JoinPartyGroupModal";
+import { DM_TOOLS_TABS } from "../DmToolsPage/dmToolsTabs";
+import { usePartyMemberships } from "../DmToolsPage/usePartyMemberships";
 import styles from "./HomePage.module.css";
 
 function HomePage() {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const { status, user } = useAppSelector((state) => state.auth);
   const ownerId = status === "authenticated" && user ? user.id : null;
   const characters = useCharacterRosterEntries(ownerId);
@@ -40,6 +43,22 @@ function HomePage() {
   const visibleCharacters = useMemo(() => characters.slice(0, 3), [characters]);
   const accountCapacityMultiplier = Math.floor(USER_CHARACTER_LIMIT / GUEST_CHARACTER_LIMIT);
   const shouldShowGuestBanner = status === "guest";
+  const [joinPartyModalOpen, setJoinPartyModalOpen] = useState(false);
+  usePartyMemberships();
+
+  function handleJoinPartyGroup() {
+    if (status !== "authenticated") {
+      dispatch(
+        showToast({
+          text: "Sign in to join a party group.",
+          type: "warning"
+        })
+      );
+      return;
+    }
+
+    setJoinPartyModalOpen(true);
+  }
 
   return (
     <section className={styles.page}>
@@ -77,6 +96,10 @@ function HomePage() {
               <BookOpen size={16} aria-hidden="true" />
               <span>Compendium</span>
             </Link>
+            <button type="button" className={styles.secondaryAction} onClick={handleJoinPartyGroup}>
+              <Users size={16} aria-hidden="true" />
+              <span>Join Party Group</span>
+            </button>
           </div>
         </div>
 
@@ -136,12 +159,18 @@ function HomePage() {
             </div>
             <div className={styles.toolGrid}>
               {DM_TOOLS_TABS.map(({ homeLabel, icon: ToolIcon, id }) => (
-                <Link key={id} to={createDmToolsPath(id)} className={styles.toolButton}>
+                <button
+                  key={id}
+                  type="button"
+                  className={styles.toolButton}
+                  disabled
+                  title="DM tools are temporarily disabled"
+                >
                   <ToolIcon size={16} aria-hidden="true" />
                   <span className={styles.toolText}>
                     <strong>{homeLabel}</strong>
                   </span>
-                </Link>
+                </button>
               ))}
             </div>
           </section>
@@ -162,8 +191,8 @@ function HomePage() {
                 <li>
                   <Users size={18} aria-hidden="true" />
                   <span>
-                    Create up to {USER_CHARACTER_LIMIT} characters, {accountCapacityMultiplier}x
-                    the guest limit
+                    Create up to {USER_CHARACTER_LIMIT} characters, {accountCapacityMultiplier}x the
+                    guest limit
                   </span>
                 </li>
                 <li>
@@ -191,6 +220,10 @@ function HomePage() {
           ) : null}
         </div>
       </div>
+
+      {joinPartyModalOpen ? (
+        <JoinPartyGroupModal characters={characters} onClose={() => setJoinPartyModalOpen(false)} />
+      ) : null}
     </section>
   );
 }

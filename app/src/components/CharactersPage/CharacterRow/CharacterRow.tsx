@@ -1,12 +1,11 @@
 import { Copy, Share2, Trash2 } from "lucide-react";
-import { Link } from "react-router-dom";
 import type { CharacterRosterEntry } from "../../../pages/CharactersPage/characterRoster";
-import { DefaultCharacterPortraitIcon } from "../CharacterPortrait";
-import { getClassSignatureStyle } from "../classSignature";
+import { CharacterRowBase, CharacterRowIconButton } from "./CharacterRowBase";
 import styles from "./CharacterRow.module.css";
 
 type CharacterRowProps = {
   character: CharacterRosterEntry;
+  inParty?: boolean;
   isDuplicateDisabled?: boolean;
   onDelete?: (character: CharacterRosterEntry) => void;
   onDuplicate?: (character: CharacterRosterEntry) => void | Promise<void>;
@@ -34,6 +33,7 @@ function getSyncStatusLabel(character: CharacterRosterEntry) {
 
 function CharacterRow({
   character,
+  inParty = false,
   isDuplicateDisabled = false,
   onDelete,
   onDuplicate,
@@ -46,34 +46,26 @@ function CharacterRow({
     : `Duplicate ${character.name}`;
 
   return (
-    <article className={styles.row} style={getClassSignatureStyle(character.className)}>
-      <Link
-        to={`/characters/${character.id}`}
-        className={styles.rowLink}
-        aria-label={`View ${character.name}`}
-      />
-      <span className={styles.characterPortrait}>
-        {character.avatarUrl ? (
-          <img src={character.avatarUrl} alt="" className={styles.characterPortraitImage} />
-        ) : (
-          <DefaultCharacterPortraitIcon className={styles.characterPortraitDefaultIcon} />
-        )}
-      </span>
-      <span className={styles.characterMain}>
-        <strong>{character.name}</strong>
-        <span>
-          {character.species} {character.className}
-        </span>
-      </span>
-      <span className={styles.characterSide}>
-        <span className={styles.characterMeta}>Lv {character.level}</span>
-        {syncStatusLabel ? <span className={styles.syncPill}>{syncStatusLabel}</span> : null}
-        {hasActions ? (
-          <span className={styles.characterActions}>
+    <CharacterRowBase
+      avatarUrl={character.avatarUrl}
+      className={character.className}
+      level={character.level}
+      linkAriaLabel={`View ${character.name}`}
+      linkTo={`/characters/${character.id}`}
+      name={character.name}
+      subtitle={`${character.species} ${character.className}`}
+      badges={
+        <>
+          {inParty ? <span className={styles.partyPill}>In Party</span> : null}
+          {syncStatusLabel ? <span className={styles.syncPill}>{syncStatusLabel}</span> : null}
+        </>
+      }
+      actions={
+        hasActions ? (
+          <>
             {onDuplicate ? (
-              <button
+              <CharacterRowIconButton
                 type="button"
-                className={styles.iconButton}
                 aria-label={duplicateLabel}
                 title={duplicateLabel}
                 disabled={isDuplicateDisabled}
@@ -82,34 +74,31 @@ function CharacterRow({
                 }}
               >
                 <Copy size={16} aria-hidden="true" />
-              </button>
+              </CharacterRowIconButton>
             ) : null}
             {onShare ? (
-              <button
+              <CharacterRowIconButton
                 type="button"
-                className={styles.iconButton}
                 aria-label={`Share ${character.name}`}
                 title={`Share ${character.name}`}
                 onClick={() => onShare(character)}
               >
                 <Share2 size={16} aria-hidden="true" />
-              </button>
+              </CharacterRowIconButton>
             ) : null}
             {onDelete ? (
-              <button
+              <CharacterRowIconButton
                 type="button"
-                className={styles.iconButton}
                 aria-label={`Delete ${character.name}`}
                 title={`Delete ${character.name}`}
                 onClick={() => onDelete(character)}
               >
                 <Trash2 size={16} aria-hidden="true" />
-              </button>
+              </CharacterRowIconButton>
             ) : null}
-          </span>
+          </>
         ) : null}
-      </span>
-    </article>
+    />
   );
 }
 

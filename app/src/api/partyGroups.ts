@@ -1,0 +1,128 @@
+import type { CharacterAvatarMetadata } from "../types";
+import { apiDelete, apiGet, apiPatch, apiPost, type ApiRequestOptions } from "./client";
+
+export type PartyGroupCharacterSummary = {
+  localId?: number;
+  name: string;
+  species: string;
+  className: string;
+  subclassId?: string | null;
+  level: number;
+  background: string;
+  sheetSizeBytes?: number;
+};
+
+export type PartyGroupRecord = {
+  id: string;
+  name: string;
+  ownerId: string;
+  adminUserIds: string[];
+  inviteToken: string;
+  inviteUrl: string;
+  characterIds: string[];
+  memberCount: number;
+  maxMembers: number;
+  createdAt: string | null;
+  updatedAt: string | null;
+};
+
+export type PartyGroupMemberRecord = {
+  characterId: string;
+  ownerId: string;
+  user: {
+    id: string;
+    nickname: string;
+  };
+  summary: PartyGroupCharacterSummary;
+  avatar: CharacterAvatarMetadata | null;
+  updatedAt: string | null;
+};
+
+export type PartyGroupDetailRecord = PartyGroupRecord & {
+  members: PartyGroupMemberRecord[];
+};
+
+export type PartyMembershipRecord = {
+  characterId: string;
+  partyGroupId: string;
+  partyGroupName: string;
+};
+
+export type PartyGroupListEnvelope = {
+  partyGroups: PartyGroupRecord[];
+};
+
+export type PartyGroupEnvelope = {
+  partyGroup: PartyGroupRecord;
+};
+
+export type PartyGroupDetailEnvelope = {
+  partyGroup: PartyGroupDetailRecord;
+};
+
+export type PartyGroupJoinEnvelope = {
+  partyGroup: PartyGroupRecord;
+  membership: PartyMembershipRecord;
+};
+
+export type PartyMembershipEnvelope = {
+  memberships: PartyMembershipRecord[];
+};
+
+export function listPartyGroups(options?: ApiRequestOptions) {
+  return apiGet<PartyGroupListEnvelope>("/party-groups", options);
+}
+
+export function createPartyGroup(name: string, options?: ApiRequestOptions) {
+  return apiPost<PartyGroupEnvelope>("/party-groups", { name }, options);
+}
+
+export function getPartyGroup(partyGroupId: string, options?: ApiRequestOptions) {
+  return apiGet<PartyGroupDetailEnvelope>(`/party-groups/${partyGroupId}`, options);
+}
+
+export function updatePartyGroup(
+  partyGroupId: string,
+  name: string,
+  options?: ApiRequestOptions
+) {
+  return apiPatch<PartyGroupDetailEnvelope>(`/party-groups/${partyGroupId}`, { name }, options);
+}
+
+export function resetPartyGroupInviteToken(partyGroupId: string, options?: ApiRequestOptions) {
+  return apiPost<PartyGroupDetailEnvelope>(
+    `/party-groups/${partyGroupId}/invite-token/reset`,
+    {},
+    options
+  );
+}
+
+export function removePartyGroupCharacter(
+  partyGroupId: string,
+  characterSheetId: string,
+  options?: ApiRequestOptions
+) {
+  return apiDelete<PartyGroupDetailEnvelope>(
+    `/party-groups/${partyGroupId}/characters/${characterSheetId}`,
+    options
+  );
+}
+
+export function joinPartyGroup(
+  invite: string,
+  characterSheetId: string,
+  options?: ApiRequestOptions
+) {
+  return apiPost<PartyGroupJoinEnvelope>(
+    "/party-groups/join",
+    {
+      invite,
+      characterSheetId
+    },
+    options
+  );
+}
+
+export function listMyPartyMemberships(options?: ApiRequestOptions) {
+  return apiGet<PartyMembershipEnvelope>("/party-groups/my-memberships", options);
+}

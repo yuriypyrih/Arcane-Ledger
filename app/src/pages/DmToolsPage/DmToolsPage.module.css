@@ -23,6 +23,14 @@
   gap: 1rem;
 }
 
+.headerActions {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.55rem;
+}
+
 .eyebrow,
 .bodyEyebrow,
 .title,
@@ -148,10 +156,214 @@
   color: var(--color-accent);
 }
 
+.modalCopy {
+  margin: 0;
+  color: var(--color-ink-soft);
+  line-height: 1.55;
+}
+
+.modalField {
+  display: grid;
+  gap: 0.42rem;
+}
+
+.modalFieldLabel {
+  color: var(--color-ink);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.modalError {
+  border: 1px solid rgba(150, 47, 47, 0.22);
+  border-radius: var(--radius-card);
+  background: rgba(150, 47, 47, 0.08);
+  color: #8d2e2e;
+  margin: 0;
+  padding: 0.7rem 0.78rem;
+}
+
+.modalFooterActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+}
+
+.partyList,
+.memberList {
+  display: grid;
+  gap: 0.68rem;
+}
+
+.partyListRow {
+  display: grid;
+  align-items: center;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.7rem;
+  min-height: 64px;
+  border: 1px solid rgba(75, 47, 29, 0.14);
+  border-radius: var(--radius-card-large);
+  background: rgba(251, 242, 230, 0.9);
+  color: var(--color-ink);
+  padding: 0.7rem 0.8rem;
+  text-decoration: none;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    transform 120ms ease;
+}
+
+.partyListRow:hover,
+.partyListRow:focus-visible {
+  border-color: rgba(143, 91, 56, 0.32);
+  box-shadow: 0 10px 24px rgba(54, 34, 21, 0.08);
+  transform: translateY(-1px);
+}
+
+.partyListRow:focus-visible {
+  outline: 2px solid rgba(47, 120, 255, 0.34);
+  outline-offset: 2px;
+}
+
+.partyListIcon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  aspect-ratio: 1;
+  border-radius: var(--radius-control);
+  background: rgba(162, 77, 45, 0.1);
+  color: var(--color-accent);
+}
+
+.partyListMain {
+  display: grid;
+  min-width: 0;
+}
+
+.partyListMain strong,
+.partyListMain small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.partyListMain small {
+  color: var(--color-ink-soft);
+  font-size: 0.82rem;
+}
+
+.invitePanel,
+.membersPanel {
+  display: grid;
+  gap: 0.82rem;
+  border-top: 1px solid rgba(75, 47, 29, 0.1);
+  padding-top: var(--space-section-gap);
+}
+
+.linkResult {
+  display: grid;
+  gap: 0.52rem;
+}
+
+.linkRow {
+  display: grid;
+  align-items: center;
+  gap: 0.5rem;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}
+
+.linkValue {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(75, 47, 29, 0.2);
+  border-radius: var(--radius-control);
+  background: rgba(255, 255, 255, 0.58);
+  color: var(--color-ink);
+  font: inherit;
+  font-weight: 800;
+  padding: 0 0.76rem;
+  white-space: nowrap;
+}
+
+.linkValue > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
+  border: none;
+  border-radius: var(--radius-control);
+  background: rgba(75, 47, 29, 0.1);
+  color: var(--color-ink);
+  cursor: pointer;
+  padding: 0;
+}
+
+.iconButton:hover,
+.iconButton:focus-visible {
+  background: rgba(75, 47, 29, 0.16);
+}
+
+.iconButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.iconButton:disabled:hover {
+  background: rgba(75, 47, 29, 0.1);
+}
+
+.iconButton:focus-visible {
+  outline: 2px solid rgba(47, 120, 255, 0.4);
+  outline-offset: 2px;
+}
+
+.memberPanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.memberCount {
+  border: 1px solid rgba(75, 47, 29, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.44);
+  color: var(--color-ink-soft);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1;
+  padding: 0.36rem 0.52rem;
+  white-space: nowrap;
+}
+
+.kickButton {
+  color: #8a2519;
+}
+
 @media (max-width: 599px) {
   .header,
-  .bodyHeader {
+  .bodyHeader,
+  .memberPanelHeader {
     flex-direction: column;
+  }
+
+  .headerActions {
+    justify-content: flex-start;
+  }
+
+  .modalFooterActions {
+    flex-direction: column-reverse;
   }
 
   .tabButton {
@@ -161,5 +373,9 @@
 
   .emptyState {
     min-height: 140px;
+  }
+
+  .linkRow {
+    grid-template-columns: minmax(0, 1fr) auto auto;
   }
 }

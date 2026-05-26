@@ -5,6 +5,7 @@ import { characterRoutes } from "./characterRoutes.js";
 import { healthRoutes } from "./healthRoutes.js";
 import { itemRoutes } from "./itemRoutes.js";
 import { monsterRoutes } from "./monsterRoutes.js";
+import { partyGroupRoutes } from "./partyGroupRoutes.js";
 import { supportRoutes } from "./supportRoutes.js";
 
 const apiRouter = Router();
@@ -15,6 +16,7 @@ apiRouter.use("/characters", characterRoutes);
 apiRouter.use("/health", healthRoutes);
 apiRouter.use("/items", itemRoutes);
 apiRouter.use("/monsters", monsterRoutes);
+apiRouter.use("/party-groups", partyGroupRoutes);
 apiRouter.use("/support", supportRoutes);
 
 export { apiRouter };

@@ -23,6 +23,7 @@ export type CharacterSheetRecord = {
   ownerId: Types.ObjectId;
   clientId: string;
   localId?: number;
+  partyGroupId?: Types.ObjectId | null;
   schemaVersion: 2;
   revision: number;
   summary: CharacterSheetSummaryRecord;
@@ -133,6 +134,12 @@ const characterSheetSchema = new Schema<CharacterSheetRecord>(
     },
     localId: {
       type: Number,
+      index: true
+    },
+    partyGroupId: {
+      type: Schema.Types.ObjectId,
+      ref: "PartyGroup",
+      default: null,
       index: true
     },
     schemaVersion: {

@@ -118,10 +118,14 @@
 
 .characterMeta {
   font-weight: 700;
+  max-width: 11rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.syncPill {
+.syncPill,
+.partyPill {
   border: 1px solid rgba(75, 47, 29, 0.16);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.44);
@@ -133,10 +137,17 @@
   white-space: nowrap;
 }
 
+.partyPill {
+  border-color: rgba(40, 116, 72, 0.24);
+  background: rgba(40, 116, 72, 0.1);
+  color: #28693f;
+}
+
 .characterSide {
   display: inline-flex;
   align-items: center;
   gap: 0.58rem;
+  min-width: 0;
   pointer-events: none;
 }
 
@@ -198,6 +209,10 @@
   .characterSide {
     gap: 0.36rem;
     justify-self: end;
+  }
+
+  .characterMeta {
+    max-width: 7rem;
   }
 
   .characterActions {

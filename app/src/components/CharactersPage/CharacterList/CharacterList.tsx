@@ -1,6 +1,7 @@
 import { Plus, Upload } from "lucide-react";
 import { useId, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import type { PartyMembershipRecord } from "../../../api/partyGroups";
 import ActionButton from "../../ActionButton";
 import { DestructiveConfirmationModal } from "../../Overlay";
 import type { CharacterRosterEntry } from "../../../pages/CharactersPage/characterRoster";
@@ -15,6 +16,7 @@ type CharacterListProps = {
   canShareCharacters: boolean;
   characters: CharacterRosterEntry[];
   characterLimit: number;
+  partyMembershipsByCharacterId?: Record<string, PartyMembershipRecord>;
   onDeleteCharacter: (characterId: number) => void;
   onDuplicateCharacter: (character: CharacterRosterEntry) => Promise<number>;
   onImportCharacter: (link: string) => Promise<number>;
@@ -25,6 +27,7 @@ function CharacterList({
   canShareCharacters,
   characters,
   characterLimit,
+  partyMembershipsByCharacterId = {},
   onDeleteCharacter,
   onDuplicateCharacter,
   onImportCharacter,
@@ -112,6 +115,9 @@ function CharacterList({
               <CharacterRow
                 character={character}
                 isDuplicateDisabled={isCharacterLimitReached}
+                inParty={Boolean(
+                  character.remoteId && partyMembershipsByCharacterId[character.remoteId]
+                )}
                 onDelete={setPendingDeleteCharacter}
                 onDuplicate={handleDuplicateCharacter}
                 onShare={canShareCharacters ? setPendingShareCharacter : undefined}
