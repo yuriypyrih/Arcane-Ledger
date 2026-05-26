@@ -1,6 +1,5 @@
 import {
   BookOpen,
-  Clock3,
   Construction,
   Cloud,
   Hammer,
@@ -10,7 +9,6 @@ import {
   LifeBuoy,
   Plus,
   ScrollText,
-  Shield,
   Sparkles,
   Swords,
   Users,
@@ -29,6 +27,7 @@ import {
   hasReachedCharacterLimit
 } from "../CharactersPage/characterLimits";
 import { useCharacterRosterEntries } from "../CharactersPage/useCharacterRosterEntries";
+import { DM_TOOLS_TABS, createDmToolsPath } from "../DmToolsPage/dmToolsTabs";
 import styles from "./HomePage.module.css";
 
 function HomePage() {
@@ -136,27 +135,14 @@ function HomePage() {
               </span>
             </div>
             <div className={styles.toolGrid}>
-              <button type="button" className={styles.toolButton} disabled>
-                <Shield size={16} aria-hidden="true" />
-                <span className={styles.toolText}>
-                  <strong>Encounter Forge</strong>
-                  <small>Coming soon</small>
-                </span>
-              </button>
-              <button type="button" className={styles.toolButton} disabled>
-                <Clock3 size={16} aria-hidden="true" />
-                <span className={styles.toolText}>
-                  <strong>Session Table</strong>
-                  <small>In progress</small>
-                </span>
-              </button>
-              <button type="button" className={styles.toolButton} disabled>
-                <BookOpen size={16} aria-hidden="true" />
-                <span className={styles.toolText}>
-                  <strong>Campaign Notes</strong>
-                  <small>Queued</small>
-                </span>
-              </button>
+              {DM_TOOLS_TABS.map(({ homeLabel, icon: ToolIcon, id }) => (
+                <Link key={id} to={createDmToolsPath(id)} className={styles.toolButton}>
+                  <ToolIcon size={16} aria-hidden="true" />
+                  <span className={styles.toolText}>
+                    <strong>{homeLabel}</strong>
+                  </span>
+                </Link>
+              ))}
             </div>
           </section>
 
