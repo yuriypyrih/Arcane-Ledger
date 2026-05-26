@@ -1,9 +1,8 @@
 import { BadgeCheck, CalendarDays, KeyRound, LogOut, Mail, UserCircle } from "lucide-react";
-import { type FormEvent, type ReactNode, useState } from "react";
+import { type ReactNode, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { changePassword, logout } from "../../api/auth";
 import ActionButton from "../../components/ActionButton";
-import TextInput from "../../components/CharactersPage/FormInputs/TextInput";
 import { clearStoredCharacters } from "../CharactersPage/storage";
 import {
   clearAuthSession,
@@ -13,6 +12,8 @@ import {
   useAppSelector
 } from "../../store";
 import { formatAuthDate, getApiErrorMessage } from "./authPageUtils";
+import AccountPasswordModal from "./AccountPasswordModal";
+import AccountPrivilegesSection from "./AccountPrivilegesSection";
 import styles from "./AuthPages.module.css";
 
 type AccountDetailCardProps = {
@@ -37,10 +38,8 @@ function AccountPage() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { error, status, user } = useAppSelector((state) => state.auth);
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [changingPassword, setChangingPassword] = useState(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
 
   async function handleLogout() {
@@ -56,15 +55,21 @@ function AccountPage() {
     }
   }
 
-  async function handleChangePassword(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  function openPasswordModal() {
     dispatch(setAuthError(null));
+    setIsPasswordModalOpen(true);
+  }
 
-    if (password !== confirmPassword) {
-      dispatch(setAuthError("Passwords do not match."));
+  function closePasswordModal() {
+    if (changingPassword) {
       return;
     }
 
+    dispatch(setAuthError(null));
+    setIsPasswordModalOpen(false);
+  }
+
+  async function handleChangePassword(currentPassword: string, password: string) {
     setChangingPassword(true);
 
     try {
@@ -184,16 +189,26 @@ function AccountPage() {
 
       <div className={styles.accountLayout}>
         <section className={styles.accountSection} aria-labelledby="account-details-title">
-          <div className={styles.accountSectionHeader}>
-            <span className={styles.accountSectionIcon}>
-              <BadgeCheck size={20} aria-hidden="true" />
-            </span>
-            <div>
-              <p className={styles.eyebrow}>Profile</p>
-              <h2 id="account-details-title" className={styles.accountSectionTitle}>
-                Account Details
-              </h2>
+          <div className={styles.accountSectionTopline}>
+            <div className={styles.accountSectionHeader}>
+              <span className={styles.accountSectionIcon}>
+                <BadgeCheck size={20} aria-hidden="true" />
+              </span>
+              <div>
+                <p className={styles.eyebrow}>Profile</p>
+                <h2 id="account-details-title" className={styles.accountSectionTitle}>
+                  Account Details
+                </h2>
+              </div>
             </div>
+            <ActionButton
+              icon={<KeyRound size={16} aria-hidden="true" />}
+              type="button"
+              fullWidth={false}
+              onClick={openPasswordModal}
+            >
+              Change Password
+            </ActionButton>
           </div>
 
           <div className={styles.accountDetailGrid}>
@@ -215,73 +230,18 @@ function AccountPage() {
           </div>
         </section>
 
-        <section
-          className={`${styles.accountSection} ${styles.accountPasswordSection}`}
-          aria-labelledby="password-title"
-        >
-          <div className={styles.accountSectionHeader}>
-            <span className={styles.accountSectionIcon}>
-              <KeyRound size={20} aria-hidden="true" />
-            </span>
-            <div>
-              <p className={styles.eyebrow}>Security</p>
-              <h2 id="password-title" className={styles.accountSectionTitle}>
-                Change Password
-              </h2>
-              <p className={styles.accountSectionText}>You will log in again after it changes.</p>
-            </div>
-          </div>
-
-          <form className={styles.accountPasswordForm} onSubmit={handleChangePassword}>
-            <div className={styles.accountPasswordFields}>
-              <label className={`${styles.field} ${styles.accountFieldWide}`}>
-                <span className={styles.label}>Current Password</span>
-                <TextInput
-                  className={styles.input}
-                  autoComplete="current-password"
-                  type="password"
-                  value={currentPassword}
-                  onChange={(event) => setCurrentPassword(event.target.value)}
-                />
-              </label>
-              <label className={styles.field}>
-                <span className={styles.label}>New Password</span>
-                <TextInput
-                  className={styles.input}
-                  autoComplete="new-password"
-                  type="password"
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                />
-              </label>
-              <label className={styles.field}>
-                <span className={styles.label}>Confirm Password</span>
-                <TextInput
-                  className={styles.input}
-                  autoComplete="new-password"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(event) => setConfirmPassword(event.target.value)}
-                />
-              </label>
-            </div>
-
-            {error ? <div className={`${styles.message} ${styles.error}`}>{error}</div> : null}
-
-            <div className={styles.accountPasswordFooter}>
-              <ActionButton
-                className={styles.accountPasswordButton}
-                icon={<KeyRound size={16} aria-hidden="true" />}
-                loading={changingPassword}
-                type="submit"
-                fullWidth={false}
-              >
-                Change Password
-              </ActionButton>
-            </div>
-          </form>
-        </section>
+        <AccountPrivilegesSection role={user.role} />
       </div>
+
+      {isPasswordModalOpen ? (
+        <AccountPasswordModal
+          error={error}
+          isBusy={changingPassword}
+          onChangePassword={handleChangePassword}
+          onClearError={() => dispatch(setAuthError(null))}
+          onClose={closePasswordModal}
+        />
+      ) : null}
     </section>
   );
 }

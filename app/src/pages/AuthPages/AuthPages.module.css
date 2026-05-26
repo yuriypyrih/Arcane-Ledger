@@ -243,7 +243,7 @@
   display: grid;
   align-items: start;
   gap: var(--space-page-gap);
-  grid-template-columns: minmax(0, 0.95fr) minmax(380px, 1.05fr);
+  grid-template-columns: minmax(260px, 1fr) minmax(0, 2fr);
 }
 
 .accountSection {
@@ -256,6 +256,13 @@
   align-items: start;
   gap: 0.72rem;
   grid-template-columns: auto minmax(0, 1fr);
+}
+
+.accountSectionTopline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
 .accountSectionHeader > div {
@@ -371,13 +378,9 @@
   text-transform: capitalize;
 }
 
-.accountPasswordSection {
-  min-width: 0;
-}
-
 .accountPasswordForm {
   display: grid;
-  gap: 0.95rem;
+  gap: 0;
 }
 
 .accountPasswordFields {
@@ -395,8 +398,6 @@
   align-items: center;
   justify-content: flex-end;
   gap: 0.85rem;
-  border-top: 1px solid rgba(75, 47, 29, 0.12);
-  padding-top: 0.95rem;
 }
 
 .accountButtonRow {
@@ -409,6 +410,112 @@
 .accountPasswordButton {
   flex: 0 1 auto;
   min-width: 160px;
+}
+
+.accountPrivilegesTableWrap {
+  min-width: 0;
+  overflow-x: auto;
+  border: 1px solid rgba(75, 47, 29, 0.12);
+  border-radius: var(--radius-card);
+  background:
+    linear-gradient(180deg, rgba(255, 253, 248, 0.82), rgba(255, 249, 240, 0.56)),
+    var(--color-panel-surface);
+}
+
+.accountPrivilegesTable {
+  width: 100%;
+  min-width: 540px;
+  border-collapse: collapse;
+  color: #2f1b12;
+}
+
+.accountPrivilegesTable th,
+.accountPrivilegesTable td {
+  border-bottom: 1px solid rgba(75, 47, 29, 0.11);
+  padding: 0.62rem 0.72rem;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.accountPrivilegesTable thead th {
+  background: rgba(47, 109, 224, 0.07);
+  color: rgba(47, 27, 18, 0.7);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.accountPrivilegesTable th:first-child,
+.accountPrivilegesTable td:first-child {
+  text-align: left;
+}
+
+.accountPrivilegesTable tbody th {
+  color: #2f1b12;
+  font-size: 0.84rem;
+  font-weight: 850;
+}
+
+.accountPrivilegesTable tbody td {
+  color: rgba(47, 27, 18, 0.72);
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.accountPrivilegesTable tbody tr:last-child th,
+.accountPrivilegesTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.accountPrivilegesTable tbody tr:hover {
+  background: rgba(47, 109, 224, 0.045);
+}
+
+.privilegeIncluded {
+  display: inline-grid;
+  place-items: center;
+  color: #1d7f4b;
+}
+
+.privilegeIncluded svg {
+  stroke-width: 3;
+}
+
+.privilegeUnavailable {
+  color: rgba(47, 27, 18, 0.72);
+  font-weight: 950;
+}
+
+.accountPrivilegesUpgradeText {
+  margin: -0.25rem 0 0;
+  color: var(--color-ink-soft);
+  font-size: 0.86rem;
+  font-weight: 750;
+  line-height: 1.45;
+}
+
+.accountPrivilegesUpgradeText a {
+  color: #2558b8;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.accountPrivilegesUpgradeText a:hover,
+.accountPrivilegesUpgradeText a:focus-visible {
+  text-decoration: underline;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .supportTextarea {
@@ -462,6 +569,14 @@
   .accountDetailGrid,
   .accountPasswordFields {
     grid-template-columns: 1fr;
+  }
+
+  .accountSectionTopline {
+    display: grid;
+  }
+
+  .accountSectionTopline :global(button) {
+    width: 100%;
   }
 
   .accountPasswordFooter {
