@@ -3,6 +3,7 @@ import { AppError } from "../errors/AppError.js";
 import { AnalyticsDailyRollup, type AnalyticsRollupRecord } from "../models/Analytics.js";
 import { CharacterSheet } from "../models/CharacterSheet.js";
 import { User } from "../models/User.js";
+import { getDemographics, type AnalyticsCountryBucket } from "./analyticsDemographics.js";
 import {
   ANALYTICS_STATUS_BUCKETS,
   normalizeAnalyticsStatusBucket
@@ -42,11 +43,6 @@ type AnalyticsRouteBucket = {
 type AnalyticsNamedBucket = {
   count: number;
   name: string;
-};
-
-type AnalyticsCountryBucket = {
-  count: number;
-  country: string;
 };
 
 type AnalyticsDemographicsBucket = {
@@ -97,7 +93,6 @@ export type AnalyticsSummary = {
 
 const LAST_30_DAY_COUNT = 30;
 const TOP_LIMIT = 10;
-const DEMOGRAPHICS_OTHER_LABEL = "Other / Unknown";
 const DATE_ONLY_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
 
 type ResolvedSummaryRange = {
@@ -312,35 +307,6 @@ function getStatusFamilyBuckets(records: RollupSummaryRecord[]): AnalyticsCountB
     label,
     count: counts.get(label) ?? 0
   }));
-}
-
-function getDemographics(records: RollupSummaryRecord[]): AnalyticsCountryBucket[] {
-  const grouped = new Map<string, { count: number; keys: Set<string> }>();
-
-  records.forEach((record) => {
-    const country = record.country && record.country !== "unknown" ? record.country : DEMOGRAPHICS_OTHER_LABEL;
-    const current = grouped.get(country) ?? { count: 0, keys: new Set<string>() };
-
-    current.count += record.count;
-    addUniqueKeys(current.keys, record.uniqueVisitorKeys);
-    grouped.set(country, current);
-  });
-
-  const buckets = [...grouped.entries()]
-    .map(([country, value]) => ({
-      country,
-      count: value.keys.size || value.count
-    }))
-    .sort((left, right) => right.count - left.count || left.country.localeCompare(right.country));
-  const topCountries = buckets.filter((bucket) => bucket.country !== DEMOGRAPHICS_OTHER_LABEL).slice(0, TOP_LIMIT);
-  const topCountrySet = new Set(topCountries.map((bucket) => bucket.country));
-  const otherCount = buckets
-    .filter((bucket) => bucket.country === DEMOGRAPHICS_OTHER_LABEL || !topCountrySet.has(bucket.country))
-    .reduce((total, bucket) => total + bucket.count, 0);
-
-  return otherCount > 0
-    ? [...topCountries, { country: DEMOGRAPHICS_OTHER_LABEL, count: otherCount }]
-    : topCountries;
 }
 
 async function getRollups(range: ResolvedSummaryRange) {

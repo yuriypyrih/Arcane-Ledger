@@ -26,6 +26,7 @@ export type AnalyticsNamedBucket = {
 export type AnalyticsCountryBucket = {
   count: number;
   country: string;
+  label: string;
 };
 
 export type AnalyticsSummary = {

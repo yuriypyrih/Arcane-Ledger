@@ -271,8 +271,32 @@
   outline-offset: 2px;
 }
 
+.toolButton:disabled,
+.toolButtonDisabled {
+  border-color: rgba(75, 47, 29, 0.1);
+  background: rgba(231, 222, 210, 0.56);
+  box-shadow: none;
+  color: rgba(75, 47, 29, 0.48);
+  cursor: not-allowed;
+  transform: none;
+}
+
+.toolButton:disabled:hover,
+.toolButtonDisabled:hover {
+  border-color: rgba(75, 47, 29, 0.1);
+  background: rgba(231, 222, 210, 0.56);
+  box-shadow: none;
+  transform: none;
+}
+
 .toolButton svg {
   color: var(--color-accent);
+}
+
+.toolButton:disabled svg,
+.toolButtonDisabled svg,
+.toolButtonDisabled .toolText strong {
+  color: rgba(75, 47, 29, 0.46);
 }
 
 .toolText {

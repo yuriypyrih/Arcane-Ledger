@@ -317,6 +317,7 @@
 .legendItem strong {
   color: rgba(47, 27, 18, 0.72);
   justify-self: end;
+  margin-left: 0.85rem;
 }
 
 .legendSwatch {
@@ -377,6 +378,64 @@
   color: #2f1b12;
   font-weight: 700;
   overflow-wrap: anywhere;
+}
+
+.statusGroupRow td {
+  transition: background-color 140ms ease;
+}
+
+.statusGroupRowInteractive {
+  cursor: pointer;
+}
+
+.statusGroupRowInteractive:hover td {
+  background: rgba(47, 109, 224, 0.06);
+}
+
+.statusRowToggle,
+.statusRowLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 1.35rem;
+}
+
+.statusRowToggle {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 850;
+  padding: 0;
+  text-align: left;
+}
+
+.statusRowToggle:focus-visible {
+  border-radius: 0.25rem;
+  outline: 2px solid rgba(37, 88, 184, 0.34);
+  outline-offset: 3px;
+}
+
+.statusRowLabel {
+  font-weight: 850;
+}
+
+.statusToggleIcon {
+  flex: 0 0 auto;
+  color: rgba(47, 27, 18, 0.56);
+}
+
+.statusDetailRow td {
+  background: rgba(94, 62, 39, 0.04);
+  color: rgba(47, 27, 18, 0.74);
+  font-weight: 750;
+}
+
+.statusDetailLabel {
+  display: inline-flex;
+  padding-left: 1.6rem;
 }
 
 .emptyState {

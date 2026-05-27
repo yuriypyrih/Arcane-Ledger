@@ -43,6 +43,7 @@ function HomePage() {
   const visibleCharacters = useMemo(() => characters.slice(0, 3), [characters]);
   const accountCapacityMultiplier = Math.floor(USER_CHARACTER_LIMIT / GUEST_CHARACTER_LIMIT);
   const shouldShowGuestBanner = status === "guest";
+  const canUseDmTools = user?.role === "admin" || user?.role === "keeper";
   const [joinPartyModalOpen, setJoinPartyModalOpen] = useState(false);
   usePartyMemberships();
 
@@ -158,14 +159,29 @@ function HomePage() {
               </span>
             </div>
             <div className={styles.toolGrid}>
-              {DM_TOOLS_TABS.map(({ homeLabel, icon: ToolIcon, id }) => (
-                <Link key={id} to={createDmToolsPath(id)} className={styles.toolButton}>
-                  <ToolIcon size={16} aria-hidden="true" />
-                  <span className={styles.toolText}>
-                    <strong>{homeLabel}</strong>
-                  </span>
-                </Link>
-              ))}
+              {DM_TOOLS_TABS.map(({ homeLabel, icon: ToolIcon, id }) =>
+                canUseDmTools ? (
+                  <Link key={id} to={createDmToolsPath(id)} className={styles.toolButton}>
+                    <ToolIcon size={16} aria-hidden="true" />
+                    <span className={styles.toolText}>
+                      <strong>{homeLabel}</strong>
+                    </span>
+                  </Link>
+                ) : (
+                  <button
+                    key={id}
+                    type="button"
+                    className={`${styles.toolButton} ${styles.toolButtonDisabled}`}
+                    disabled
+                    title="DM tools require Keeper or Admin access."
+                  >
+                    <ToolIcon size={16} aria-hidden="true" />
+                    <span className={styles.toolText}>
+                      <strong>{homeLabel}</strong>
+                    </span>
+                  </button>
+                )
+              )}
             </div>
           </section>
 

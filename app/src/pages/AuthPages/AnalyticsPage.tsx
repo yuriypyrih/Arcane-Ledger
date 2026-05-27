@@ -11,6 +11,7 @@ import {
 import ActionButton from "../../components/ActionButton";
 import { useAppSelector } from "../../store";
 import styles from "./AnalyticsPage.module.css";
+import { ServerHealthStatusTable } from "./ServerHealthStatusTable";
 
 type DemographicFilter = keyof AnalyticsSummary["demographics"];
 
@@ -311,7 +312,7 @@ function AnalyticsPage() {
   const countryRows = useMemo(
     () =>
       summary?.demographics[demographicFilter].countries.map((country) => ({
-        label: country.country,
+        label: country.label,
         count: country.count
       })) ?? [],
     [demographicFilter, summary]
@@ -532,7 +533,7 @@ function AnalyticsPage() {
                 <span>{formatNumber(summary.health.apiRequests)} API requests</span>
               </div>
               <div className={styles.splitTables}>
-                <CountTable
+                <ServerHealthStatusTable
                   emptyLabel="No status data yet."
                   rows={summary.health.statusFamilies}
                   valueLabel="Requests"
