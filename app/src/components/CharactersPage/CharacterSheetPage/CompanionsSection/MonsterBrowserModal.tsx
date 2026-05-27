@@ -30,8 +30,11 @@ type MonsterBrowserModalProps = {
   selectedMonsterSlug: string | null;
   monsterTypeFilter: string;
   monsterSourceFilter: string;
+  monsterTypeOptions?: string[];
   ordering: MonsterOrdering;
   pendingSelectSlug: string | null;
+  summary?: string;
+  title?: string;
   onClose: () => void;
   onQueryChange: (value: string) => void;
   onMonsterTypeFilterChange: (value: string) => void;
@@ -53,8 +56,11 @@ function MonsterBrowserModal({
   selectedMonsterSlug,
   monsterTypeFilter,
   monsterSourceFilter,
+  monsterTypeOptions = companionMonsterTypeOptions,
   ordering,
   pendingSelectSlug,
+  summary = "Choose a stat block to inherit for this companion.",
+  title = "Browse monsters",
   onClose,
   onQueryChange,
   onMonsterTypeFilterChange,
@@ -76,8 +82,8 @@ function MonsterBrowserModal({
     >
       <OverlayHeader>
         <OverlayHeaderContent>
-          <OverlayTitle id={titleId}>Browse monsters</OverlayTitle>
-          <OverlaySummary>Choose a stat block to inherit for this companion.</OverlaySummary>
+          <OverlayTitle id={titleId}>{title}</OverlayTitle>
+          <OverlaySummary>{summary}</OverlaySummary>
         </OverlayHeaderContent>
         <OverlayCloseButton label="Close monster browser" onClick={onClose} />
       </OverlayHeader>
@@ -101,7 +107,7 @@ function MonsterBrowserModal({
               onChange={(event) => onMonsterTypeFilterChange(event.target.value)}
             >
               <option value="all">All monster types</option>
-              {companionMonsterTypeOptions.map((typeOption) => (
+              {monsterTypeOptions.map((typeOption) => (
                 <option key={typeOption} value={typeOption}>
                   {typeOption}
                 </option>

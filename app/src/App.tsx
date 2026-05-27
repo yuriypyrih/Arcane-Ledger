@@ -21,6 +21,9 @@ const CharactersPage = lazy(() => import("./pages/CharactersPage"));
 const CodexEntryPage = lazy(() => import("./pages/CodexEntryPage"));
 const CodexPage = lazy(() => import("./pages/CodexPage"));
 const DmToolsPage = lazy(() => import("./pages/DmToolsPage"));
+const EncounterTemplateDetailPage = lazy(
+  () => import("./pages/DmToolsPage/EncounterTemplateDetailPage")
+);
 const ForgotPasswordPage = lazy(() => import("./pages/AuthPages/ForgotPasswordPage"));
 const HomePage = lazy(() => import("./pages/HomePage"));
 const ItemCodexEntryPage = lazy(() => import("./pages/ItemCodexEntryPage"));
@@ -100,6 +103,10 @@ function App() {
             <Route path="/characters/:characterId" element={<CharacterSheetPage />} />
             <Route path="/compendium" element={<CodexPage />} />
             <Route path="/dm-tools" element={<DmToolsPage />} />
+            <Route
+              path="/dm-tools/encounter-templates/:encounterTemplateId"
+              element={<EncounterTemplateDetailPage />}
+            />
             <Route path="/dm-tools/party-manager/:partyGroupId" element={<PartyGroupDetailPage />} />
             <Route path="/compendium/items/:key" element={<ItemCodexEntryPage />} />
             <Route path="/compendium/monsters/:slug" element={<MonsterCodexEntryPage />} />

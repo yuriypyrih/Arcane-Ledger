@@ -258,21 +258,15 @@
     transform 120ms ease;
 }
 
-.toolButton:not(:disabled):hover,
-.toolButton:not(:disabled):focus-visible {
+.toolButton:hover,
+.toolButton:focus-visible {
   border-color: rgba(75, 47, 29, 0.2);
   background: #fff8ed;
   box-shadow: 0 8px 18px rgba(54, 34, 21, 0.07);
   transform: translateY(-1px);
 }
 
-.toolButton:disabled {
-  cursor: not-allowed;
-  filter: saturate(0.45);
-  opacity: 0.56;
-}
-
-.toolButton:not(:disabled):focus-visible {
+.toolButton:focus-visible {
   outline: 2px solid rgba(47, 120, 255, 0.34);
   outline-offset: 2px;
 }

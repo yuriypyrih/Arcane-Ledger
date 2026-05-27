@@ -28,7 +28,7 @@ import {
 } from "../CharactersPage/characterLimits";
 import { useCharacterRosterEntries } from "../CharactersPage/useCharacterRosterEntries";
 import JoinPartyGroupModal from "../DmToolsPage/JoinPartyGroupModal";
-import { DM_TOOLS_TABS } from "../DmToolsPage/dmToolsTabs";
+import { DM_TOOLS_TABS, createDmToolsPath } from "../DmToolsPage/dmToolsTabs";
 import { usePartyMemberships } from "../DmToolsPage/usePartyMemberships";
 import styles from "./HomePage.module.css";
 
@@ -159,18 +159,12 @@ function HomePage() {
             </div>
             <div className={styles.toolGrid}>
               {DM_TOOLS_TABS.map(({ homeLabel, icon: ToolIcon, id }) => (
-                <button
-                  key={id}
-                  type="button"
-                  className={styles.toolButton}
-                  disabled
-                  title="DM tools are temporarily disabled"
-                >
+                <Link key={id} to={createDmToolsPath(id)} className={styles.toolButton}>
                   <ToolIcon size={16} aria-hidden="true" />
                   <span className={styles.toolText}>
                     <strong>{homeLabel}</strong>
                   </span>
-                </button>
+                </Link>
               ))}
             </div>
           </section>
