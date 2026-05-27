@@ -10,7 +10,6 @@
   border: 1px solid transparent;
   border-radius: var(--radius-card);
   background:
-    var(--class-signature-profile-gradient, none) padding-box,
     linear-gradient(var(--color-panel-strong), var(--color-panel-strong)) padding-box,
     linear-gradient(
         140deg,
@@ -25,12 +24,45 @@
   padding: 0.58rem 0.72rem 0.54rem 0.56rem;
 }
 
+.profileCard::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background-image: var(--class-signature-corner-image, none);
+  background-position: left top;
+  background-repeat: no-repeat;
+  background-size: var(--class-signature-corner-size, 250px)
+    var(--class-signature-corner-size, 250px);
+  opacity: var(--class-signature-corner-opacity, 0);
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(
+    ellipse 250px 220px at left top,
+    #000 0%,
+    #000 52%,
+    rgba(0, 0, 0, 0.72) 72%,
+    rgba(0, 0, 0, 0.26) 88%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  mask-image: radial-gradient(
+    ellipse 250px 220px at left top,
+    #000 0%,
+    #000 52%,
+    rgba(0, 0, 0, 0.72) 72%,
+    rgba(0, 0, 0, 0.26) 88%,
+    rgba(0, 0, 0, 0) 100%
+  );
+}
+
 .profileCardBroad {
   align-self: start;
   padding: 0.72rem;
 }
 
 .profileShell {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-columns:
     clamp(96px, 8.8vw, 120px) minmax(0, 1fr)
@@ -255,14 +287,19 @@
 }
 
 .characterName {
+  box-sizing: border-box;
+  max-width: 100%;
   min-width: 0;
   margin: 0;
   overflow: hidden;
+  border-radius: var(--radius-tiny);
+  background: linear-gradient(90deg, rgba(251, 242, 230, 1) 0, rgba(251, 242, 230, 0) 300px);
   color: var(--color-ink);
   font-size: clamp(1.34rem, 2.02vw, 1.76rem);
   font-weight: 850;
   letter-spacing: 0;
   line-height: 1.02;
+  padding: 0.08rem 0.82rem 0.12rem 0.34rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

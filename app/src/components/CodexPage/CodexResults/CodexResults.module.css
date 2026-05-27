@@ -60,6 +60,7 @@
 }
 
 .classCard {
+  --class-card-text-backdrop: linear-gradient(90deg, rgba(251, 242, 230, 1) 0,rgba(251, 242, 230, 1) 100px, rgba(251, 242, 230, 0) 200px);
   overflow: hidden;
   border: 2px solid rgba(75, 47, 29, 0.42);
   background:
@@ -79,16 +80,31 @@
 .classCard::before {
   content: "";
   position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  height: 16px;
-  background: var(--class-signature-card-gradient, none);
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0.78) 28%, rgba(0, 0, 0, 0) 100%);
-  mask-image: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0.78) 28%, rgba(0, 0, 0, 0) 100%);
-  opacity: 1;
+  inset: 0;
+  background-image: var(--class-signature-corner-image, none);
+  background-position: left top;
+  background-repeat: no-repeat;
+  background-size: var(--class-signature-corner-size, 250px)
+    var(--class-signature-corner-size, 250px);
+  opacity: var(--class-signature-corner-opacity, 0);
   pointer-events: none;
   z-index: 0;
+  -webkit-mask-image: radial-gradient(
+    ellipse 250px 220px at left top,
+    #000 0%,
+    #000 52%,
+    rgba(0, 0, 0, 0.72) 72%,
+    rgba(0, 0, 0, 0.26) 88%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  mask-image: radial-gradient(
+    ellipse 250px 220px at left top,
+    #000 0%,
+    #000 52%,
+    rgba(0, 0, 0, 0.72) 72%,
+    rgba(0, 0, 0, 0.26) 88%,
+    rgba(0, 0, 0, 0) 100%
+  );
 }
 
 .classCard::after {
@@ -192,6 +208,15 @@
 
 .card p {
   line-height: 1.55;
+}
+
+.classCard h4,
+.classCard > p {
+  box-sizing: border-box;
+  max-width: 100%;
+  border-radius: var(--radius-tiny);
+  background: var(--class-card-text-backdrop);
+  padding: 0.16rem 0.82rem 0.18rem 0.36rem;
 }
 
 .tableWrapper {

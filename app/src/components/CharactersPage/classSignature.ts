@@ -1,57 +1,21 @@
 import type { CSSProperties } from "react";
 
 type ClassSignatureStyle = CSSProperties & {
-  "--class-signature-card-gradient": string;
-  "--class-signature-row-gradient": string;
-  "--class-signature-profile-gradient": string;
+  "--class-signature-corner-image": string;
+  "--class-signature-corner-opacity": string;
+  "--class-signature-corner-size": string;
   "--class-signature-page-texture": string;
   "--class-signature-page-texture-opacity": string;
 };
 
-type ClassSignatureSpec = {
-  getTexture: () => string;
-  cardGradient: string;
-  rowGradient: string;
-  profileGradient: string;
+type ClassCornerArtSpec = {
+  getCornerImage: () => string;
 };
 
-const signatureRowDarkLayer =
-  "linear-gradient(140deg, rgba(13, 10, 9, 0.62) 0%, rgba(13, 10, 9, 0.34) 2.8%, rgba(13, 10, 9, 0) 11.2%)";
-const signatureProfileDarkLayer =
-  "linear-gradient(140deg, rgba(13, 10, 9, 0.66) 0%, rgba(13, 10, 9, 0.36) 2.4%, rgba(13, 10, 9, 0) 9.6%)";
-
-function setRgbaAlpha(color: string, alpha: number): string {
-  return color.replace(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*[\d.]+\)/, `rgba($1, $2, $3, ${alpha})`);
-}
-
-function createClassSignature({
-  getTexture,
-  primary,
-  secondary,
-  transparent
-}: {
-  getTexture: () => string;
-  primary: string;
-  secondary: string;
-  transparent: string;
-}): ClassSignatureSpec {
-  const cardPrimary = setRgbaAlpha(primary, 0.64);
-  const cardSecondary = setRgbaAlpha(secondary, 0.46);
-  const cardTransparent = setRgbaAlpha(secondary, 0);
-
-  return {
-    getTexture,
-    cardGradient: `linear-gradient(to right, ${cardPrimary} 0%, ${cardPrimary} 28%, ${cardSecondary} 58%, ${cardSecondary} 82%, ${cardTransparent} 100%)`,
-    rowGradient: `${signatureRowDarkLayer}, linear-gradient(140deg, ${primary} 0%, ${primary} 7.2%, ${secondary} 16%, ${transparent} 38.4%)`,
-    profileGradient: `${signatureProfileDarkLayer}, linear-gradient(140deg, ${primary} 0%, ${primary} 5.6%, ${secondary} 12.8%, ${transparent} 35.2%)`
-  };
-}
-
 const defaultClassSignatureStyle: ClassSignatureStyle = {
-  "--class-signature-card-gradient":
-    "linear-gradient(to right, rgba(143, 91, 56, 0.64) 0%, rgba(143, 91, 56, 0.64) 28%, rgba(220, 178, 139, 0.46) 58%, rgba(220, 178, 139, 0.46) 82%, rgba(220, 178, 139, 0) 100%)",
-  "--class-signature-row-gradient": `${signatureRowDarkLayer}, linear-gradient(140deg, rgba(143, 91, 56, 0.26) 0%, rgba(143, 91, 56, 0.26) 7.2%, rgba(220, 178, 139, 0.14) 16%, rgba(220, 178, 139, 0) 38.4%)`,
-  "--class-signature-profile-gradient": `${signatureProfileDarkLayer}, linear-gradient(140deg, rgba(143, 91, 56, 0.34) 0%, rgba(143, 91, 56, 0.34) 5.6%, rgba(220, 178, 139, 0.18) 12.8%, rgba(220, 178, 139, 0) 35.2%)`,
+  "--class-signature-corner-image": "none",
+  "--class-signature-corner-opacity": "0",
+  "--class-signature-corner-size": "250px",
   "--class-signature-page-texture": "none",
   "--class-signature-page-texture-opacity": "0"
 };
@@ -72,106 +36,75 @@ const classPageTextureByClass: Record<string, () => string> = {
   wizard: () => new URL("../../assets/img/wizard.jpg", import.meta.url).href
 };
 
-const classSignatureByClass: Record<string, ClassSignatureSpec> = {
-  artificer: createClassSignature({
-    getTexture: classPageTextureByClass.artificer,
-    primary: "rgba(0, 112, 232, 0.42)",
-    secondary: "rgba(246, 194, 60, 0.28)",
-    transparent: "rgba(0, 112, 232, 0)"
-  }),
-  barbarian: createClassSignature({
-    getTexture: classPageTextureByClass.barbarian,
-    primary: "rgba(194, 42, 18, 0.48)",
-    secondary: "rgba(158, 82, 42, 0.3)",
-    transparent: "rgba(194, 42, 18, 0)"
-  }),
-  bard: createClassSignature({
-    getTexture: classPageTextureByClass.bard,
-    primary: "rgba(175, 28, 122, 0.44)",
-    secondary: "rgba(212, 126, 72, 0.24)",
-    transparent: "rgba(175, 28, 122, 0)"
-  }),
-  cleric: createClassSignature({
-    getTexture: classPageTextureByClass.cleric,
-    primary: "rgba(238, 190, 56, 0.48)",
-    secondary: "rgba(255, 250, 224, 0.34)",
-    transparent: "rgba(238, 190, 56, 0)"
-  }),
-  druid: createClassSignature({
-    getTexture: classPageTextureByClass.druid,
-    primary: "rgba(36, 118, 48, 0.48)",
-    secondary: "rgba(148, 172, 66, 0.28)",
-    transparent: "rgba(36, 118, 48, 0)"
-  }),
-  fighter: createClassSignature({
-    getTexture: classPageTextureByClass.fighter,
-    primary: "rgba(218, 24, 12, 0.46)",
-    secondary: "rgba(76, 12, 8, 0.32)",
-    transparent: "rgba(218, 24, 12, 0)"
-  }),
-  monk: createClassSignature({
-    getTexture: classPageTextureByClass.monk,
-    primary: "rgba(224, 154, 0, 0.48)",
-    secondary: "rgba(136, 88, 44, 0.3)",
-    transparent: "rgba(224, 154, 0, 0)"
-  }),
-  paladin: createClassSignature({
-    getTexture: classPageTextureByClass.paladin,
-    primary: "rgba(255, 203, 48, 0.5)",
-    secondary: "rgba(174, 184, 190, 0.3)",
-    transparent: "rgba(255, 203, 48, 0)"
-  }),
-  ranger: createClassSignature({
-    getTexture: classPageTextureByClass.ranger,
-    primary: "rgba(52, 124, 48, 0.48)",
-    secondary: "rgba(128, 82, 42, 0.3)",
-    transparent: "rgba(52, 124, 48, 0)"
-  }),
-  rogue: createClassSignature({
-    getTexture: classPageTextureByClass.rogue,
-    primary: "rgba(68, 58, 76, 0.46)",
-    secondary: "rgba(18, 18, 24, 0.34)",
-    transparent: "rgba(68, 58, 76, 0)"
-  }),
-  sorcerer: createClassSignature({
-    getTexture: classPageTextureByClass.sorcerer,
-    primary: "rgba(126, 54, 204, 0.46)",
-    secondary: "rgba(214, 42, 174, 0.28)",
-    transparent: "rgba(126, 54, 204, 0)"
-  }),
-  warlock: createClassSignature({
-    getTexture: classPageTextureByClass.warlock,
-    primary: "rgba(112, 48, 182, 0.5)",
-    secondary: "rgba(104, 156, 58, 0.26)",
-    transparent: "rgba(112, 48, 182, 0)"
-  }),
-  wizard: createClassSignature({
-    getTexture: classPageTextureByClass.wizard,
-    primary: "rgba(28, 106, 220, 0.48)",
-    secondary: "rgba(72, 156, 244, 0.26)",
-    transparent: "rgba(28, 106, 220, 0)"
-  })
+const classCornerArtByClass: Record<string, ClassCornerArtSpec> = {
+  artificer: {
+    getCornerImage: () =>
+      new URL("../../assets/img/class-corners/artificer-corner.png", import.meta.url).href
+  },
+  barbarian: {
+    getCornerImage: () =>
+      new URL("../../assets/img/class-corners/barbarian-corner.png", import.meta.url).href
+  },
+  bard: {
+    getCornerImage: () =>
+      new URL("../../assets/img/class-corners/bard-corner.png", import.meta.url).href
+  },
+  cleric: {
+    getCornerImage: () =>
+      new URL("../../assets/img/class-corners/cleric-corner.png", import.meta.url).href
+  },
+  druid: {
+    getCornerImage: () =>
+      new URL("../../assets/img/class-corners/druid-corner.png", import.meta.url).href
+  },
+  fighter: {
+    getCornerImage: () =>
+      new URL("../../assets/img/class-corners/fighter-corner.png", import.meta.url).href
+  },
+  monk: {
+    getCornerImage: () =>
+      new URL("../../assets/img/class-corners/monk-corner.png", import.meta.url).href
+  },
+  paladin: {
+    getCornerImage: () =>
+      new URL("../../assets/img/class-corners/paladin-corner.png", import.meta.url).href
+  },
+  ranger: {
+    getCornerImage: () =>
+      new URL("../../assets/img/class-corners/ranger-corner.png", import.meta.url).href
+  },
+  rogue: {
+    getCornerImage: () =>
+      new URL("../../assets/img/class-corners/rogue-corner.png", import.meta.url).href
+  },
+  sorcerer: {
+    getCornerImage: () =>
+      new URL("../../assets/img/class-corners/sorcerer-corner.png", import.meta.url).href
+  },
+  warlock: {
+    getCornerImage: () =>
+      new URL("../../assets/img/class-corners/warlock-corner.png", import.meta.url).href
+  },
+  wizard: {
+    getCornerImage: () =>
+      new URL("../../assets/img/class-corners/wizard-corner.png", import.meta.url).href
+  }
 };
 
 export function getClassSignatureStyle(className: string): ClassSignatureStyle {
   const normalizedClassName = className.trim().toLowerCase();
-  const signature = classSignatureByClass[normalizedClassName];
-  const classPageTexture =
-    signature?.getTexture() ?? classPageTextureByClass[normalizedClassName]?.();
+  const cornerImage = classCornerArtByClass[normalizedClassName]?.getCornerImage();
+  const classPageTexture = classPageTextureByClass[normalizedClassName]?.();
 
-  if (!signature && !classPageTexture) {
+  if (!cornerImage && !classPageTexture) {
     return defaultClassSignatureStyle;
   }
 
   return {
-    "--class-signature-card-gradient":
-      signature?.cardGradient ?? defaultClassSignatureStyle["--class-signature-card-gradient"],
-    "--class-signature-row-gradient":
-      signature?.rowGradient ?? defaultClassSignatureStyle["--class-signature-row-gradient"],
-    "--class-signature-profile-gradient":
-      signature?.profileGradient ??
-      defaultClassSignatureStyle["--class-signature-profile-gradient"],
-    "--class-signature-page-texture": `url("${classPageTexture}")`,
-    "--class-signature-page-texture-opacity": "0.9"
+    "--class-signature-corner-image": cornerImage ? `url("${cornerImage}")` : "none",
+    "--class-signature-corner-opacity": cornerImage ? "1" : "0",
+    "--class-signature-corner-size": defaultClassSignatureStyle["--class-signature-corner-size"],
+    "--class-signature-page-texture": classPageTexture ? `url("${classPageTexture}")` : "none",
+    "--class-signature-page-texture-opacity": classPageTexture ? "0.9" : "0"
   };
 }
