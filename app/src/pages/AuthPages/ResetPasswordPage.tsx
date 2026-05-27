@@ -2,6 +2,7 @@ import { KeyRound } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { resetPassword } from "../../api/auth";
+import { clearAuthSessionMarker } from "../../auth/authSessionLifecycle";
 import ActionButton from "../../components/ActionButton";
 import TextInput from "../../components/CharactersPage/FormInputs/TextInput";
 import {
@@ -48,6 +49,7 @@ function ResetPasswordPage() {
       setMessage(response.message);
       setPassword("");
       setConfirmPassword("");
+      clearAuthSessionMarker();
       dispatch(clearAuthSession());
     } catch (error) {
       dispatch(setAuthError(getApiErrorMessage(error, "Unable to reset password.")));

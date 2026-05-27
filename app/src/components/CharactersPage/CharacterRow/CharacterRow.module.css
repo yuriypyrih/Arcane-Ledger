@@ -39,24 +39,21 @@
   background-image: var(--class-signature-corner-image, none);
   background-position: left top;
   background-repeat: no-repeat;
-  background-size: var(--class-signature-corner-size, 250px)
-    var(--class-signature-corner-size, 250px);
+  background-size: min(300px, 50%);
   opacity: var(--class-signature-corner-opacity, 0);
   pointer-events: none;
   -webkit-mask-image: radial-gradient(
-    ellipse 240px 180px at left top,
-    #000 0%,
-    #000 52%,
-    rgba(0, 0, 0, 0.72) 72%,
-    rgba(0, 0, 0, 0.28) 88%,
+    ellipse 30% 100% at left top,
+    rgba(0, 0, 0, 0.8) 0%,
+    rgba(0, 0, 0, 0.8) 52%,
+    rgba(0, 0, 0, 0.2) 88%,
     rgba(0, 0, 0, 0) 100%
   );
   mask-image: radial-gradient(
-    ellipse 240px 180px at left top,
-    #000 0%,
-    #000 52%,
-    rgba(0, 0, 0, 0.72) 72%,
-    rgba(0, 0, 0, 0.28) 88%,
+    ellipse 28% 100% at left top,
+    rgba(0, 0, 0, 0.8) 0%,
+    rgba(0, 0, 0, 0.8) 52%,
+    rgba(0, 0, 0, 0.2) 88%,
     rgba(0, 0, 0, 0) 100%
   );
 }
@@ -134,7 +131,7 @@
   max-width: 100%;
   min-width: 0;
   border-radius: var(--radius-tiny);
-  background: linear-gradient(90deg, rgba(251, 242, 230, 1) 0,rgba(251, 242, 230, 1) 100px, rgba(251, 242, 230, 0) 200px);
+  background: linear-gradient(90deg, rgba(251, 242, 230, 1) 0,rgba(251, 242, 230, 0.6) 200px, rgba(251, 242, 230, 0) 300px);
   padding: 0.16rem 0.68rem 0.16rem 0.34rem;
 }
 

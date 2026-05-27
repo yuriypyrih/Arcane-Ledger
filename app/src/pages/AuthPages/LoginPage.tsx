@@ -2,6 +2,7 @@ import { LogIn, MailCheck } from "lucide-react";
 import { FormEvent, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { login, resendEmailVerification } from "../../api/auth";
+import { markAuthSessionActive } from "../../auth/authSessionLifecycle";
 import ActionButton from "../../components/ActionButton";
 import TextInput from "../../components/CharactersPage/FormInputs/TextInput";
 import {
@@ -37,6 +38,7 @@ function LoginPage() {
 
     try {
       const { user } = await login({ email, password }, { suppressFailureToast: true });
+      markAuthSessionActive();
       dispatch(setAuthenticatedUser(user));
       navigate("/");
     } catch (error) {

@@ -2,10 +2,9 @@ import { BadgeCheck, CalendarDays, KeyRound, LogOut, Mail, Pencil, UserCircle } 
 import { type ReactNode, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { changeNickname, changePassword, logout } from "../../api/auth";
+import { clearLocalAuthSession } from "../../auth/authSessionLifecycle";
 import ActionButton from "../../components/ActionButton";
-import { clearStoredCharacters } from "../CharactersPage/storage";
 import {
-  clearAuthSession,
   setAuthError,
   setAuthenticatedUser,
   showToast,
@@ -52,8 +51,7 @@ function AccountPage() {
     try {
       await logout({ suppressFailureToast: true });
     } finally {
-      clearStoredCharacters();
-      dispatch(clearAuthSession());
+      clearLocalAuthSession();
       setLoggingOut(false);
       navigate("/");
     }
@@ -98,8 +96,7 @@ function AccountPage() {
         },
         { suppressFailureToast: true }
       );
-      clearStoredCharacters();
-      dispatch(clearAuthSession());
+      clearLocalAuthSession();
       dispatch(
         showToast({
           text: "Password changed. Please log in again.",

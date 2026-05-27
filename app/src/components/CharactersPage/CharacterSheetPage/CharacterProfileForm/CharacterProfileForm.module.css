@@ -35,7 +35,7 @@
   background-repeat: no-repeat;
   background-size: var(--class-signature-corner-size, 250px)
     var(--class-signature-corner-size, 250px);
-  opacity: var(--class-signature-corner-opacity, 0);
+  opacity: 0.9;
   pointer-events: none;
   -webkit-mask-image: radial-gradient(
     ellipse 250px 220px at left top,

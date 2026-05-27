@@ -2,6 +2,7 @@ import { showToast, store } from "../store";
 import { getApiBaseUrl } from "./baseUrl";
 import { addAppBreadcrumb, captureAppError } from "../lib/sentry";
 import { trackApiClientFailure } from "../lib/analytics";
+import { handleExpiredAuthSession } from "../auth/authSessionLifecycle";
 
 export type ApiRequestOptions = {
   signal?: AbortSignal;
@@ -70,6 +71,14 @@ function notifyApiRequestFailed(options?: ApiRequestOptions) {
       type: "error"
     })
   );
+}
+
+function shouldHandleAuthSessionFailure(errorCode: string | undefined) {
+  if (errorCode === "AUTH_SESSION_EXPIRED" || errorCode === "AUTH_SESSION_INVALID") {
+    return true;
+  }
+
+  return errorCode === "AUTH_REQUIRED" && store.getState().auth.status === "authenticated";
 }
 
 function getStatusLevel(status: number) {
@@ -176,12 +185,18 @@ async function apiRequest<T>(
 
   if (!response.ok) {
     const apiError = await readApiError(response);
+    const errorCode = apiError?.error?.code;
     const errorMessage =
       apiError?.error?.message ?? `API request failed with status ${response.status}`;
 
-    notifyApiRequestFailed(options);
+    if (shouldHandleAuthSessionFailure(errorCode)) {
+      handleExpiredAuthSession();
+    } else {
+      notifyApiRequestFailed(options);
+    }
+
     const requestError = new ApiRequestFailedError(errorMessage, {
-      code: apiError?.error?.code,
+      code: errorCode,
       details: apiError?.error?.details,
       status: response.status
     });

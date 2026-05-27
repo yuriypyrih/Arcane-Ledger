@@ -86,11 +86,11 @@
   background-repeat: no-repeat;
   background-size: var(--class-signature-corner-size, 250px)
     var(--class-signature-corner-size, 250px);
-  opacity: var(--class-signature-corner-opacity, 0);
+  opacity: 0.9;
   pointer-events: none;
   z-index: 0;
   -webkit-mask-image: radial-gradient(
-    ellipse 250px 220px at left top,
+    ellipse 250px 320px at left top,
     #000 0%,
     #000 52%,
     rgba(0, 0, 0, 0.72) 72%,
@@ -98,7 +98,7 @@
     rgba(0, 0, 0, 0) 100%
   );
   mask-image: radial-gradient(
-    ellipse 250px 220px at left top,
+    ellipse 250px 320px at left top,
     #000 0%,
     #000 52%,
     rgba(0, 0, 0, 0.72) 72%,
