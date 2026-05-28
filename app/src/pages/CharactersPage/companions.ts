@@ -69,7 +69,7 @@ function normalizeCharacterCompanion(value: unknown, index: number): CharacterCo
   const name = normalizeText(value.name);
   const type = normalizeText(value.type);
 
-  if (!name || !type) {
+  if (!name) {
     return null;
   }
 
@@ -94,7 +94,10 @@ function normalizeCharacterCompanion(value: unknown, index: number): CharacterCo
     duration,
     ...(role ? { role } : {}),
     ...(primalBeastKind ? { primalBeastKind } : {}),
-    ...(inheritedCreatureEntry ? { inheritedCreatureEntry } : {})
+    ...(inheritedCreatureEntry ? { inheritedCreatureEntry } : {}),
+    ...(inheritedCreatureEntry && value.inheritedCreatureEntryModified === true
+      ? { inheritedCreatureEntryModified: true }
+      : {})
   };
   const defaultMaxHitPoints = getDefaultCompanionMaxHitPoints(baselineCompanion);
   const maxHitPoints = Math.max(

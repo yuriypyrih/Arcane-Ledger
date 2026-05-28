@@ -20,6 +20,7 @@ export type CompanionDraft = {
   durationType: ManualStatusDurationType;
   durationValue: number;
   inheritedCreatureEntry: MonsterRecord | null;
+  inheritedCreatureEntryModified: boolean;
 };
 
 export const COMPANION_MONSTERS_PER_PAGE = 20;
@@ -49,10 +50,11 @@ export function createEmptyCompanionDraft(): CompanionDraft {
     description: "",
     type: "",
     primalBeastKind: null,
-    maxHitPoints: "",
+    maxHitPoints: "10",
     durationType: defaultManualStatusDurationDraft.type,
     durationValue: defaultManualStatusDurationDraft.value,
-    inheritedCreatureEntry: null
+    inheritedCreatureEntry: null,
+    inheritedCreatureEntryModified: false
   };
 }
 
@@ -68,7 +70,10 @@ export function createDraftFromCompanion(companion: CharacterCompanion): Compani
     maxHitPoints: String(companion.maxHitPoints),
     durationType: durationDraft.type,
     durationValue: durationDraft.value,
-    inheritedCreatureEntry: companion.inheritedCreatureEntry ?? null
+    inheritedCreatureEntry: companion.inheritedCreatureEntry ?? null,
+    inheritedCreatureEntryModified: Boolean(
+      companion.inheritedCreatureEntry && companion.inheritedCreatureEntryModified === true
+    )
   };
 }
 
@@ -81,7 +86,7 @@ export function getCompanionSourceLabel(companion: CharacterCompanion) {
 }
 
 export function getInheritedEntryLabel(
-  companion: Pick<CharacterCompanion, "inheritedCreatureEntry">
+  companion: Pick<CharacterCompanion, "inheritedCreatureEntry" | "inheritedCreatureEntryModified">
 ) {
   if (!companion.inheritedCreatureEntry) {
     return "Manual";
@@ -95,7 +100,9 @@ export function getInheritedEntryLabel(
     .filter(Boolean)
     .join(" - ");
 
-  return sourceLabel.length > 0 ? sourceLabel : "Monster";
+  const baseLabel = sourceLabel.length > 0 ? sourceLabel : "Monster";
+
+  return baseLabel;
 }
 
 export function getMonsterSourceLabel(monster: MonsterRecord) {

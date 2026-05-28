@@ -13,6 +13,7 @@ export type EncounterTemplateCreatureRecord = {
   deathSaves?: Record<string, unknown>;
   duration: Record<string, unknown>;
   inheritedCreatureEntry?: Record<string, unknown>;
+  inheritedCreatureEntryModified?: boolean;
 };
 
 export type EncounterTemplateRecord = {
@@ -44,7 +45,7 @@ const encounterTemplateCreatureSchema = new Schema<EncounterTemplateCreatureReco
     },
     type: {
       type: String,
-      required: true,
+      default: "",
       trim: true
     },
     primalBeastKind: {
@@ -79,6 +80,9 @@ const encounterTemplateCreatureSchema = new Schema<EncounterTemplateCreatureReco
     },
     inheritedCreatureEntry: {
       type: Schema.Types.Mixed
+    },
+    inheritedCreatureEntryModified: {
+      type: Boolean
     }
   },
   {

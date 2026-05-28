@@ -1,0 +1,240 @@
+.card {
+  display: grid;
+  align-items: start;
+  gap: 0.78rem;
+  grid-template-columns: auto minmax(0, 1fr);
+  min-width: 0;
+  border: 1px solid rgba(75, 47, 29, 0.14);
+  border-radius: var(--radius-card);
+  background: var(--color-panel-surface);
+  color: var(--color-ink);
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+  padding: 0.82rem;
+}
+
+.card:hover {
+  border-color: rgba(143, 91, 56, 0.4);
+  box-shadow: 0 8px 18px rgba(75, 47, 29, 0.06);
+}
+
+.portraitButton,
+.inspectButton {
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-align: left;
+}
+
+.portraitButton {
+  display: grid;
+  place-items: center;
+}
+
+.inspectButton {
+  display: grid;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.portraitButton:focus-visible,
+.inspectButton:focus-visible {
+  outline: 2px solid rgba(47, 120, 255, 0.34);
+  outline-offset: 2px;
+}
+
+.portrait {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 1px solid rgba(75, 47, 29, 0.48);
+  border-radius: var(--radius-control);
+  background: linear-gradient(150deg, #6f4629 0%, #3c2518 48%, #160f0d 100%);
+  box-shadow:
+    0 0 0 1px rgba(255, 246, 226, 0.42),
+    inset 0 0 0 1px rgba(255, 246, 226, 0.12);
+}
+
+.portraitIcon {
+  display: block;
+  width: 72%;
+  aspect-ratio: 1;
+  background: rgba(255, 246, 226, 0.92);
+  mask: var(--creature-card-icon-image) center / contain no-repeat;
+  -webkit-mask: var(--creature-card-icon-image) center / contain no-repeat;
+}
+
+.main {
+  display: grid;
+  align-items: start;
+  gap: 0.75rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-width: 0;
+}
+
+.metaColumn {
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.62rem;
+  min-width: 0;
+}
+
+.titleRow {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.34rem;
+  min-width: 0;
+}
+
+.title {
+  color: var(--color-ink);
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.type,
+.status {
+  color: var(--color-ink-soft);
+  font-size: 0.9rem;
+}
+
+.tagRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.34rem;
+  max-width: 16rem;
+}
+
+.sourceTag,
+.moddedTag {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-pill);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  line-height: 1.2;
+  padding: 0.2rem 0.52rem;
+  white-space: nowrap;
+}
+
+.sourceTag {
+  background: rgba(75, 47, 29, 0.08);
+  color: var(--color-ink-soft);
+}
+
+.moddedTag {
+  background: #e5e7eb;
+  color: #4b5563;
+}
+
+.vitalsRow {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-ink-soft);
+  flex-wrap: wrap;
+  font-size: 0.9rem;
+  font-weight: 400;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.armorClassText,
+.hitPointText,
+.tempHitPointText,
+.status {
+  white-space: nowrap;
+}
+
+.tempHitPointText {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22rem;
+}
+
+.tempHitPointText svg {
+  flex: 0 0 auto;
+  stroke: currentColor;
+}
+
+.vitalsDivider {
+  color: inherit;
+  line-height: 1;
+}
+
+.actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.44rem;
+}
+
+.actionButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  min-width: 38px;
+  border: 1px solid rgba(75, 47, 29, 0.14);
+  border-radius: var(--radius-control);
+  background: rgba(75, 47, 29, 0.08);
+  color: var(--color-ink);
+  cursor: pointer;
+  padding: 0;
+}
+
+.actionButton:hover,
+.actionButton:focus-visible {
+  background: rgba(75, 47, 29, 0.14);
+}
+
+.actionButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.actionButton:disabled:hover {
+  background: rgba(75, 47, 29, 0.08);
+}
+
+.actionButton:focus-visible {
+  outline: 2px solid rgba(47, 120, 255, 0.34);
+  outline-offset: 2px;
+}
+
+.removeButton {
+  color: #8a2519;
+}
+
+@media (max-width: 599px) {
+  .card {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .metaColumn,
+  .tagRow {
+    align-items: flex-start;
+    justify-content: flex-start;
+    max-width: none;
+  }
+
+  .actions {
+    justify-content: flex-start;
+  }
+}

@@ -1,16 +1,18 @@
 import clsx from "clsx";
-import { CircleHelp, Pencil, Plus, Shield } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { CircleHelp, Plus } from "lucide-react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import {
   CHARACTER_COMPANION_LIMIT,
+  createCharacterCompanionId,
   getCompanionStatusLabel
 } from "../../../../pages/CharactersPage/companions";
 import type { Character, CharacterCompanion } from "../../../../types";
+import { DestructiveConfirmationModal } from "../../../Overlay";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
-import { normalizeTemporaryHitPoints } from "../GameplayForm/gameplayStateUtils";
-import CompanionDrawer from "./CompanionDrawer";
+import CreatureCard from "./CreatureCard";
+import CreatureDrawer from "./CreatureDrawer";
 import CompanionEditorModal from "./CompanionEditorModal";
 import CompanionsGuideModal from "./CompanionsGuideModal";
 import { removeCharacterCompanion, upsertCharacterCompanion } from "./companionPersistence";
@@ -24,9 +26,12 @@ type CompanionsSectionProps = {
 };
 
 function CompanionsSection({ character, className, onPersistCharacter }: CompanionsSectionProps) {
+  const deleteTitleId = useId();
   const companions = useMemo(() => character.companions ?? [], [character.companions]);
   const [editorCompanionId, setEditorCompanionId] = useState<string | null>(null);
   const [selectedCompanionId, setSelectedCompanionId] = useState<string | null>(null);
+  const [pendingRemoveCompanion, setPendingRemoveCompanion] =
+    useState<CharacterCompanion | null>(null);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
   const isCreatingCompanion = editorCompanionId === "new";
   const editorCompanion = isCreatingCompanion
@@ -37,7 +42,9 @@ function CompanionsSection({ character, className, onPersistCharacter }: Compani
   const isEditorOpen = isCreatingCompanion || editorCompanion !== null;
   const isCompanionLimitReached = companions.length >= CHARACTER_COMPANION_LIMIT;
 
-  useBodyScrollLock(isEditorOpen || selectedCompanionId !== null || isGuideOpen);
+  useBodyScrollLock(
+    isEditorOpen || selectedCompanionId !== null || pendingRemoveCompanion !== null || isGuideOpen
+  );
 
   useEffect(() => {
     if (!selectedCompanionId) {
@@ -69,6 +76,40 @@ function CompanionsSection({ character, className, onPersistCharacter }: Compani
     onPersistCharacter((currentCharacter) =>
       removeCharacterCompanion(currentCharacter, companionId)
     );
+  }
+
+  function handleConfirmRemoveCompanion() {
+    if (!pendingRemoveCompanion) {
+      return;
+    }
+
+    handleRemoveCompanion(pendingRemoveCompanion.id);
+    setPendingRemoveCompanion(null);
+  }
+
+  function handleDuplicateCompanion(companion: CharacterCompanion) {
+    if (isCompanionLimitReached) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      const currentCompanions = currentCharacter.companions ?? [];
+
+      if (currentCompanions.length >= CHARACTER_COMPANION_LIMIT) {
+        return currentCharacter;
+      }
+
+      return {
+        ...currentCharacter,
+        companions: [
+          ...currentCompanions,
+          {
+            ...companion,
+            id: createCharacterCompanionId()
+          }
+        ]
+      };
+    });
   }
 
   return (
@@ -110,58 +151,25 @@ function CompanionsSection({ character, className, onPersistCharacter }: Compani
 
         {companions.length > 0 ? (
           <div className={styles.companionGrid}>
-            {companions.map((companion) => {
-              const temporaryHitPoints = normalizeTemporaryHitPoints(companion.temporaryHitPoints);
-
-              return (
-                <div key={companion.id} className={styles.companionCardShell}>
-                  <button
-                    type="button"
-                    className={styles.companionCard}
-                    onClick={() => setSelectedCompanionId(companion.id)}
-                  >
-                    <div className={styles.cardBody}>
-                      <div className={styles.cardTopRow}>
-                        <div className={styles.cardTitleRow}>
-                          <h4 className={styles.cardTitle}>{companion.name}</h4>
-                          <span className={styles.cardType}>· {companion.type}</span>
-                        </div>
-                        <span className={styles.cardSource}>
-                          {getCompanionSourceLabel(companion)}
-                        </span>
-                      </div>
-                      <span className={styles.cardVitalsRow}>
-                        <span className={styles.cardHitPointText}>
-                          {companion.currentHitPoints}/{companion.maxHitPoints} HP
-                        </span>
-                        {temporaryHitPoints > 0 ? (
-                          <>
-                            <span className={styles.cardVitalsDivider}>·</span>
-                            <span className={styles.cardTempHitPointText}>
-                              <Shield size={14} aria-hidden="true" />
-                              {temporaryHitPoints}
-                            </span>
-                          </>
-                        ) : null}
-                        <span className={styles.cardVitalsDivider}>·</span>
-                        <span className={styles.cardStatus}>
-                          {getCompanionStatusLabel(companion)}
-                        </span>
-                      </span>
-                    </div>
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.companionEditButton}
-                    onClick={() => setEditorCompanionId(companion.id)}
-                    aria-label={`Edit ${companion.name}`}
-                    title={`Edit ${companion.name}`}
-                  >
-                    <Pencil size={16} aria-hidden="true" />
-                  </button>
-                </div>
-              );
-            })}
+            {companions.map((companion) => (
+              <CreatureCard
+                key={companion.id}
+                creature={companion}
+                duplicateDisabled={isCompanionLimitReached}
+                duplicateTitle={
+                  isCompanionLimitReached
+                    ? `Companion limit reached (${CHARACTER_COMPANION_LIMIT}).`
+                    : `Duplicate ${companion.name}`
+                }
+                predisposition="friendly"
+                sourceLabel={getCompanionSourceLabel(companion)}
+                statusLabel={getCompanionStatusLabel(companion)}
+                onDuplicate={() => handleDuplicateCompanion(companion)}
+                onEdit={() => setEditorCompanionId(companion.id)}
+                onInspect={() => setSelectedCompanionId(companion.id)}
+                onRemove={() => setPendingRemoveCompanion(companion)}
+              />
+            ))}
           </div>
         ) : (
           <p className={shared.emptyText}>
@@ -186,11 +194,28 @@ function CompanionsSection({ character, className, onPersistCharacter }: Compani
       {isGuideOpen ? <CompanionsGuideModal onClose={() => setIsGuideOpen(false)} /> : null}
 
       {selectedCompanion ? (
-        <CompanionDrawer
+        <CreatureDrawer
           character={character}
-          companion={selectedCompanion}
-          onPersistCharacter={onPersistCharacter}
+          creature={selectedCompanion}
           onClose={() => setSelectedCompanionId(null)}
+          onUpdateCreature={(nextCompanion) => handleSaveCompanion(nextCompanion)}
+        />
+      ) : null}
+
+      {pendingRemoveCompanion ? (
+        <DestructiveConfirmationModal
+          titleId={deleteTitleId}
+          title="Delete companion?"
+          message={
+            <>
+              This will permanently remove <strong>{pendingRemoveCompanion.name}</strong> from this
+              character.
+            </>
+          }
+          confirmLabel="Delete"
+          closeLabel="Close delete companion confirmation"
+          onCancel={() => setPendingRemoveCompanion(null)}
+          onConfirm={handleConfirmRemoveCompanion}
         />
       ) : null}
     </>

@@ -160,7 +160,7 @@ export function normalizeEncounterTemplateCreature(
   }
 
   const name = normalizeText(value.name, "name", { required: true });
-  const type = normalizeText(value.type, "type", { required: true });
+  const type = normalizeText(value.type, "type");
   const maxHitPoints = normalizeInteger(value.maxHitPoints, "maxHitPoints", { min: 1 });
   const currentHitPoints = normalizeInteger(value.currentHitPoints, "currentHitPoints", {
     max: maxHitPoints,
@@ -196,7 +196,10 @@ export function normalizeEncounterTemplateCreature(
     ...(temporaryHitPointsSource ? { temporaryHitPointsSource } : {}),
     ...(deathSaves ? { deathSaves } : {}),
     ...(primalBeastKind ? { primalBeastKind } : {}),
-    ...(inheritedCreatureEntry ? { inheritedCreatureEntry } : {})
+    ...(inheritedCreatureEntry ? { inheritedCreatureEntry } : {}),
+    ...(inheritedCreatureEntry && value.inheritedCreatureEntryModified === true
+      ? { inheritedCreatureEntryModified: true }
+      : {})
   };
 }
 

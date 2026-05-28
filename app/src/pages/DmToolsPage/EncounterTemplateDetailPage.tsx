@@ -1,5 +1,5 @@
-import { ArrowLeft, Pencil, Plus, Shield, Swords, Trash2 } from "lucide-react";
-import { type ReactNode, useEffect, useId, useState } from "react";
+import { ArrowLeft, Pencil, Plus, Swords } from "lucide-react";
+import { type ReactNode, useEffect, useId, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   getEncounterTemplate,
@@ -8,10 +8,13 @@ import {
   type EncounterTemplateCreatureRecord
 } from "../../api/encounterTemplates";
 import ActionButton from "../../components/ActionButton";
+import CreatureCard from "../../components/CharactersPage/CharacterSheetPage/CompanionsSection/CreatureCard";
+import CreatureDrawer from "../../components/CharactersPage/CharacterSheetPage/CompanionsSection/CreatureDrawer";
 import CreatureEditorModal from "../../components/CharactersPage/CharacterSheetPage/CompanionsSection/CreatureEditorModal";
-import { getInheritedEntryLabel } from "../../components/CharactersPage/CharacterSheetPage/CompanionsSection/companionUtils";
+import { getCompanionSourceLabel } from "../../components/CharactersPage/CharacterSheetPage/CompanionsSection/companionUtils";
 import { DestructiveConfirmationModal } from "../../components/Overlay";
-import { getCompanionStatusLabel } from "../CharactersPage/companions";
+import { useBodyScrollLock } from "../../lib/useBodyScrollLock";
+import { createCharacterCompanionId, getCompanionStatusLabel } from "../CharactersPage/companions";
 import type { CharacterCompanion } from "../../types";
 import {
   setSelectedEncounterTemplate,
@@ -25,7 +28,7 @@ import EditEncounterTemplateModal from "./EditEncounterTemplateModal";
 import styles from "./DmToolsPage.module.css";
 
 function toEncounterTemplateCreature(
-  creature: CharacterCompanion
+  creature: CharacterCompanion | EncounterTemplateCreatureRecord
 ): EncounterTemplateCreatureRecord {
   return {
     id: creature.id,
@@ -43,6 +46,9 @@ function toEncounterTemplateCreature(
     ...(creature.primalBeastKind ? { primalBeastKind: creature.primalBeastKind } : {}),
     ...(creature.inheritedCreatureEntry
       ? { inheritedCreatureEntry: creature.inheritedCreatureEntry }
+      : {}),
+    ...(creature.inheritedCreatureEntryModified
+      ? { inheritedCreatureEntryModified: true }
       : {})
   };
 }
@@ -73,19 +79,36 @@ function EncounterTemplateDetailPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isCreatingCreature, setIsCreatingCreature] = useState(false);
   const [editingCreatureId, setEditingCreatureId] = useState<string | null>(null);
+  const [selectedCreatureId, setSelectedCreatureId] = useState<string | null>(null);
   const [pendingDeleteCreature, setPendingDeleteCreature] =
     useState<EncounterTemplateCreatureRecord | null>(null);
   const [isDeletingCreature, setIsDeletingCreature] = useState(false);
+  const [duplicatingCreatureId, setDuplicatingCreatureId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-  const creatures = encounterTemplate?.creatures ?? [];
+  const creatures = useMemo(
+    () => encounterTemplate?.creatures ?? [],
+    [encounterTemplate?.creatures]
+  );
   const editorCreature =
     editingCreatureId && encounterTemplate
       ? (encounterTemplate.creatures.find((creature) => creature.id === editingCreatureId) ?? null)
+      : null;
+  const selectedCreature =
+    selectedCreatureId && encounterTemplate
+      ? (encounterTemplate.creatures.find((creature) => creature.id === selectedCreatureId) ??
+        null)
       : null;
   const isCreatureEditorOpen = isCreatingCreature || editorCreature !== null;
   const isAtCreatureLimit = encounterTemplate
     ? encounterTemplate.creatures.length >= encounterTemplate.maxCreatures
     : false;
+
+  useBodyScrollLock(
+    isEditModalOpen ||
+      isCreatureEditorOpen ||
+      selectedCreature !== null ||
+      pendingDeleteCreature !== null
+  );
 
   useEffect(() => {
     let didCancel = false;
@@ -121,6 +144,16 @@ function EncounterTemplateDetailPage() {
     };
   }, [authStatus, dispatch, encounterTemplateId]);
 
+  useEffect(() => {
+    if (!selectedCreatureId) {
+      return;
+    }
+
+    if (!creatures.some((creature) => creature.id === selectedCreatureId)) {
+      setSelectedCreatureId(null);
+    }
+  }, [creatures, selectedCreatureId]);
+
   function closeCreatureEditor() {
     setIsCreatingCreature(false);
     setEditingCreatureId(null);
@@ -152,6 +185,10 @@ function EncounterTemplateDetailPage() {
     setActionError(null);
   }
 
+  async function handleUpdateSelectedCreature(creature: CharacterCompanion) {
+    await handleSaveCreature(creature);
+  }
+
   async function handleRemoveCreature(creatureId: string) {
     if (!encounterTemplate) {
       return;
@@ -165,6 +202,38 @@ function EncounterTemplateDetailPage() {
 
     dispatch(setSelectedEncounterTemplate(nextEncounterTemplate));
     setActionError(null);
+  }
+
+  async function handleDuplicateCreature(creature: EncounterTemplateCreatureRecord) {
+    if (!encounterTemplate || duplicatingCreatureId) {
+      return;
+    }
+
+    if (isAtCreatureLimit) {
+      setActionError("Encounter templates can hold up to 20 creatures.");
+      return;
+    }
+
+    setActionError(null);
+    setDuplicatingCreatureId(creature.id);
+
+    try {
+      const duplicateCreature = toEncounterTemplateCreature({
+        ...creature,
+        id: createCharacterCompanionId()
+      });
+      const { encounterTemplate: nextEncounterTemplate } = await upsertEncounterTemplateCreature(
+        encounterTemplate.id,
+        duplicateCreature,
+        { suppressFailureToast: true }
+      );
+
+      dispatch(setSelectedEncounterTemplate(nextEncounterTemplate));
+    } catch (duplicateError) {
+      setActionError(getDmToolsApiErrorMessage(duplicateError, "Unable to duplicate creature."));
+    } finally {
+      setDuplicatingCreatureId(null);
+    }
   }
 
   async function handleConfirmDeleteCreature() {
@@ -267,54 +336,31 @@ function EncounterTemplateDetailPage() {
               {creatures.length > 0 ? (
                 <div className={styles.creatureList}>
                   {creatures.map((creature) => (
-                    <article key={creature.id} className={styles.creatureCard}>
-                      <span className={styles.creatureIcon}>
-                        <Shield size={18} aria-hidden="true" />
-                      </span>
-                      <div className={styles.creatureMain}>
-                        <div className={styles.creatureTitleRow}>
-                          <div>
-                            <h4 className={styles.creatureName}>{creature.name}</h4>
-                            <p className={styles.creatureMeta}>
-                              {creature.type} - {getInheritedEntryLabel(creature)}
-                            </p>
-                          </div>
-                          <span className={styles.memberCount}>
-                            {creature.currentHitPoints}/{creature.maxHitPoints} HP
-                          </span>
-                        </div>
-                        {creature.description ? (
-                          <p className={styles.creatureDescription}>{creature.description}</p>
-                        ) : null}
-                        <p className={styles.creatureStatus}>
-                          {getCompanionStatusLabel(creature)}
-                        </p>
-                      </div>
-                      <div className={styles.creatureActions}>
-                        <button
-                          type="button"
-                          className={styles.iconButton}
-                          aria-label={`Edit ${creature.name}`}
-                          title={`Edit ${creature.name}`}
-                          onClick={() => {
-                            setActionError(null);
-                            setIsCreatingCreature(false);
-                            setEditingCreatureId(creature.id);
-                          }}
-                        >
-                          <Pencil size={17} aria-hidden="true" />
-                        </button>
-                        <button
-                          type="button"
-                          className={`${styles.iconButton} ${styles.kickButton}`}
-                          aria-label={`Delete ${creature.name}`}
-                          title={`Delete ${creature.name}`}
-                          onClick={() => setPendingDeleteCreature(creature)}
-                        >
-                          <Trash2 size={17} aria-hidden="true" />
-                        </button>
-                      </div>
-                    </article>
+                    <CreatureCard
+                      key={creature.id}
+                      creature={creature}
+                      duplicateDisabled={
+                        isAtCreatureLimit || duplicatingCreatureId !== null || isDeletingCreature
+                      }
+                      duplicateTitle={
+                        isAtCreatureLimit
+                          ? "Encounter templates can hold up to 20 creatures."
+                          : `Duplicate ${creature.name}`
+                      }
+                      predisposition="hostile"
+                      sourceLabel={getCompanionSourceLabel(creature)}
+                      statusLabel={getCompanionStatusLabel(creature)}
+                      onDuplicate={() => {
+                        void handleDuplicateCreature(creature);
+                      }}
+                      onEdit={() => {
+                        setActionError(null);
+                        setIsCreatingCreature(false);
+                        setEditingCreatureId(creature.id);
+                      }}
+                      onInspect={() => setSelectedCreatureId(creature.id)}
+                      onRemove={() => setPendingDeleteCreature(creature)}
+                    />
                   ))}
                 </div>
               ) : (
@@ -360,6 +406,17 @@ function EncounterTemplateDetailPage() {
                 onClose={closeCreatureEditor}
                 onRemoveCreature={handleRemoveCreature}
                 onSaveCreature={handleSaveCreature}
+                showDurationFields={false}
+              />
+            ) : null}
+            {selectedCreature ? (
+              <CreatureDrawer
+                creature={selectedCreature}
+                getErrorMessage={getDmToolsApiErrorMessage}
+                showDuration={false}
+                showSource={false}
+                onClose={() => setSelectedCreatureId(null)}
+                onUpdateCreature={handleUpdateSelectedCreature}
               />
             ) : null}
             {pendingDeleteCreature ? (

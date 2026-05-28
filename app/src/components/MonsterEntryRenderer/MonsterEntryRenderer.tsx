@@ -17,6 +17,7 @@ import styles from "./MonsterEntryRenderer.module.css";
 type MonsterEntryRendererProps = {
   monster: MonsterRecord;
   className?: string;
+  headingTag?: string;
   headingId?: string;
   showHeading?: boolean;
   surface?: "card" | "plain";
@@ -75,6 +76,7 @@ function InlineRow({ label, value }: { label: string; value: string | null }) {
 function MonsterEntryRenderer({
   monster,
   className,
+  headingTag,
   headingId,
   showHeading = true,
   surface = "card"
@@ -96,7 +98,14 @@ function MonsterEntryRenderer({
       {shouldRenderIntro ? (
         <section className={styles.section}>
           {showHeading ? (
-            <h2 id={headingId}>{getKnownMonsterText(monster.name) ?? "Unknown Monster"}</h2>
+            headingTag ? (
+              <div className={styles.headingRow}>
+                <h2 id={headingId}>{getKnownMonsterText(monster.name) ?? "Unknown Monster"}</h2>
+                <span className={styles.headingTag}>{headingTag}</span>
+              </div>
+            ) : (
+              <h2 id={headingId}>{getKnownMonsterText(monster.name) ?? "Unknown Monster"}</h2>
+            )
           ) : null}
           {showHeading && titleMeta ? <p className={styles.subtitle}>{titleMeta}</p> : null}
           {description ? (

@@ -41,6 +41,29 @@
   line-height: 1.04;
 }
 
+.headingRow {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 0.42rem;
+  text-align: left;
+}
+
+.headingTag {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-pill);
+  background: #e5e7eb;
+  color: #4b5563;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  line-height: 1.2;
+  padding: 0.2rem 0.52rem;
+  white-space: nowrap;
+}
+
 .subtitle,
 .description,
 .inlineRow span,

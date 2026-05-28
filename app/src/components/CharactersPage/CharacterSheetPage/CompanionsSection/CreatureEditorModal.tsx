@@ -1,4 +1,4 @@
-import { Search, Trash2 } from "lucide-react";
+import { Pencil, RotateCcw, Search, Trash2 } from "lucide-react";
 import { type ReactNode, useEffect, useId, useMemo, useState } from "react";
 import { fetchMonsterBySlug, isApiOfflineError } from "../../../../api";
 import ActionButton from "../../../ActionButton";
@@ -46,6 +46,7 @@ import {
   companionDurationTypeOptions,
   createManualStatusDuration
 } from "../GameplayForm/widgets/TraitsConditionsWidget/manualStatusDuration";
+import CreatureStatBlockEditorModal from "./CreatureStatBlockEditorModal";
 import {
   companionMonsterTypeOptions,
   companionSpeciesTypeOptions,
@@ -91,6 +92,7 @@ type CreatureEditorModalProps = {
   onClose: () => void;
   onRemoveCreature?: (creatureId: string) => void | Promise<void>;
   onSaveCreature: (creature: CharacterCompanion) => void | Promise<void>;
+  showDurationFields?: boolean;
 };
 
 function parseHitPointDraftValue(value: string): number | null {
@@ -150,7 +152,8 @@ function CreatureEditorModal({
   labels,
   onClose,
   onRemoveCreature,
-  onSaveCreature
+  onSaveCreature,
+  showDurationFields = true
 }: CreatureEditorModalProps) {
   const isOnline = useOnlineStatus();
   const titleId = useId();
@@ -182,6 +185,8 @@ function CreatureEditorModal({
   const [previewStatus, setPreviewStatus] = useState<CodexStatus>("ready");
   const [pendingSelectSlug, setPendingSelectSlug] = useState<string | null>(null);
   const [monsterNotice, setMonsterNotice] = useState<string | null>(null);
+  const [isStatBlockEditorOpen, setIsStatBlockEditorOpen] = useState(false);
+  const [isResettingStatBlock, setIsResettingStatBlock] = useState(false);
   const [editorError, setEditorError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -230,15 +235,19 @@ function CreatureEditorModal({
   const maxHitPointsInvalid = maxHitPoints === null || maxHitPoints < 1;
   const saveDisabled =
     draft.name.trim().length === 0 ||
-    draft.type.trim().length === 0 ||
     maxHitPointsInvalid ||
     isSaving ||
-    isDeleting;
+    isDeleting ||
+    isResettingStatBlock;
+  const selectedStatBlockIsPrimalBeast = draft.primalBeastKind !== null;
+  const canModifySelectedStatBlock =
+    draft.inheritedCreatureEntry !== null && !selectedStatBlockIsPrimalBeast;
 
   useEffect(() => {
     setDraft(creature ? createDraftFromCompanion(creature) : createEmptyCompanionDraft());
     setShowValidation(false);
     setMonsterNotice(null);
+    setIsStatBlockEditorOpen(false);
     setEditorError(null);
   }, [creature]);
 
@@ -387,7 +396,8 @@ function CreatureEditorModal({
             : currentDraft.type,
         maxHitPoints: String(hitPoints),
         primalBeastKind,
-        inheritedCreatureEntry: resolvedMonster
+        inheritedCreatureEntry: resolvedMonster,
+        inheritedCreatureEntryModified: false
       }));
       setIsMonsterBrowserOpen(false);
       setPreviewSlug(null);
@@ -408,10 +418,66 @@ function CreatureEditorModal({
     setDraft((currentDraft) => ({
       ...currentDraft,
       inheritedCreatureEntry: null,
-      primalBeastKind: null
+      primalBeastKind: null,
+      inheritedCreatureEntryModified: false
     }));
     setMonsterNotice(null);
     setEditorError(null);
+  }
+
+  function handleSaveStatBlock(monster: MonsterRecord) {
+    setDraft((currentDraft) => ({
+      ...currentDraft,
+      inheritedCreatureEntry: monster,
+      inheritedCreatureEntryModified: true
+    }));
+    setMonsterCache((currentCache) => ({
+      ...currentCache,
+      [monster.slug]: monster
+    }));
+    primeMonsterEntryCache(monster);
+    setIsStatBlockEditorOpen(false);
+    setMonsterNotice(null);
+    setEditorError(null);
+  }
+
+  async function handleResetStatBlock() {
+    const slug = draft.inheritedCreatureEntry?.slug;
+
+    if (!slug || isResettingStatBlock) {
+      return;
+    }
+
+    if (!isOnline) {
+      setMonsterNotice("Server Unavailable");
+      return;
+    }
+
+    setIsResettingStatBlock(true);
+    setMonsterNotice(null);
+
+    try {
+      const monster = await fetchMonsterBySlug(slug);
+
+      setDraft((currentDraft) => ({
+        ...currentDraft,
+        inheritedCreatureEntry: monster,
+        inheritedCreatureEntryModified: false
+      }));
+      setMonsterCache((currentCache) => ({
+        ...currentCache,
+        [monster.slug]: monster
+      }));
+      primeMonsterEntryCache(monster);
+    } catch (error) {
+      setMonsterNotice(
+        isApiOfflineError(error)
+          ? "Server Unavailable"
+          : "The original stat block could not be reloaded."
+      );
+    } finally {
+      setIsResettingStatBlock(false);
+    }
   }
 
   async function handleSave() {
@@ -421,7 +487,7 @@ function CreatureEditorModal({
 
     setShowValidation(true);
 
-    if (!name || !type || maxHitPointsInvalid || isSaving || isDeleting) {
+    if (!name || maxHitPointsInvalid || isSaving || isDeleting || isResettingStatBlock) {
       return;
     }
 
@@ -438,7 +504,9 @@ function CreatureEditorModal({
       maxHitPoints: resolvedMaxHitPoints,
       currentHitPoints: resolvedCurrentHitPoints,
       temporaryHitPoints: creature?.temporaryHitPoints ?? 0,
-      duration: createManualStatusDuration(draft.durationType, draft.durationValue),
+      duration: showDurationFields
+        ? createManualStatusDuration(draft.durationType, draft.durationValue)
+        : createManualStatusDuration("INFINITE", 1),
       ...(creature?.temporaryHitPointsSource
         ? { temporaryHitPointsSource: creature.temporaryHitPointsSource }
         : {}),
@@ -447,6 +515,9 @@ function CreatureEditorModal({
       ...(draft.primalBeastKind ? { primalBeastKind: draft.primalBeastKind } : {}),
       ...(draft.inheritedCreatureEntry
         ? { inheritedCreatureEntry: draft.inheritedCreatureEntry }
+        : {}),
+      ...(draft.inheritedCreatureEntry && draft.inheritedCreatureEntryModified
+        ? { inheritedCreatureEntryModified: true }
         : {})
     };
 
@@ -489,8 +560,14 @@ function CreatureEditorModal({
         titleId={titleId}
         onClose={onClose}
         size="medium"
-        isBusy={isSaving || isDeleting}
-        busyLabel={isDeleting ? "Deleting creature" : "Saving creature"}
+        isBusy={isSaving || isDeleting || isResettingStatBlock}
+        busyLabel={
+          isResettingStatBlock
+            ? "Resetting stat block"
+            : isDeleting
+              ? "Deleting creature"
+              : "Saving creature"
+        }
       >
         <OverlayHeader>
           <OverlayHeaderContent>
@@ -499,10 +576,98 @@ function CreatureEditorModal({
             </OverlayTitle>
             <OverlaySummary>{labels.summary}</OverlaySummary>
           </OverlayHeaderContent>
-          <OverlayCloseButton label={labels.closeLabel} onClick={onClose} disabled={isSaving || isDeleting} />
+          <OverlayCloseButton
+            label={labels.closeLabel}
+            onClick={onClose}
+            disabled={isSaving || isDeleting || isResettingStatBlock}
+          />
         </OverlayHeader>
 
         <OverlayBody className={styles.editorBody}>
+          <section className={styles.monsterSection}>
+            <div className={styles.panelHeader}>
+              <h4 className={styles.panelTitle}>{labels.inheritedStatBlockTitle}</h4>
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                disabled={isSaving || isDeleting || isResettingStatBlock}
+                onClick={() => setIsMonsterBrowserOpen(true)}
+              >
+                <Search size={16} />
+                {labels.browseButton}
+              </button>
+            </div>
+
+            {draft.inheritedCreatureEntry ? (
+              <div className={styles.selectedMonsterCard}>
+                <div>
+                  <h5 className={styles.selectedMonsterTitle}>
+                    {draft.inheritedCreatureEntry.name}
+                  </h5>
+                  <p className={styles.selectedMonsterMeta}>
+                    {draft.inheritedCreatureEntry.type || "Unknown type"} ·{" "}
+                    {getMonsterSourceLabel(draft.inheritedCreatureEntry)}
+                    {draft.inheritedCreatureEntryModified ? " - Modified" : ""}
+                  </p>
+                </div>
+                <div className={styles.selectedMonsterActions}>
+                  <button
+                    type="button"
+                    className={styles.secondaryButton}
+                    disabled={isSaving || isDeleting || isResettingStatBlock}
+                    onClick={() => setPreviewSlug(draft.inheritedCreatureEntry?.slug ?? null)}
+                  >
+                    Preview
+                  </button>
+                  {canModifySelectedStatBlock ? (
+                    <button
+                      type="button"
+                      className={styles.secondaryButton}
+                      disabled={isSaving || isDeleting || isResettingStatBlock}
+                      onClick={() => setIsStatBlockEditorOpen(true)}
+                    >
+                      <Pencil size={16} aria-hidden="true" />
+                      Modify
+                    </button>
+                  ) : selectedStatBlockIsPrimalBeast ? (
+                    <button
+                      type="button"
+                      className={styles.secondaryButton}
+                      disabled
+                      title="Primal Beast stat blocks are dynamic and cannot be modified yet."
+                    >
+                      <Pencil size={16} aria-hidden="true" />
+                      Modify
+                    </button>
+                  ) : null}
+                  {draft.inheritedCreatureEntryModified && canModifySelectedStatBlock ? (
+                    <button
+                      type="button"
+                      className={styles.secondaryButton}
+                      disabled={isSaving || isDeleting || isResettingStatBlock}
+                      onClick={() => void handleResetStatBlock()}
+                    >
+                      <RotateCcw size={16} aria-hidden="true" />
+                      {isResettingStatBlock ? "Resetting..." : "Reset"}
+                    </button>
+                  ) : null}
+                  <button
+                    type="button"
+                    className={styles.removeButtonText}
+                    disabled={isSaving || isDeleting || isResettingStatBlock}
+                    onClick={handleClearMonsterSelection}
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <p className={shared.emptyText}>{labels.noStatBlockText}</p>
+            )}
+
+            {monsterNotice ? <p className={styles.notice}>{monsterNotice}</p> : null}
+          </section>
+
           <div className={shared.formGrid}>
             <label className={shared.field}>
               <span className={shared.fieldLabel}>Name</span>
@@ -519,11 +684,10 @@ function CreatureEditorModal({
               <span className={shared.fieldLabel}>Type</span>
               <SelectInput
                 value={draft.type}
-                invalid={showValidation && draft.type.trim().length === 0}
                 disabled={isSaving || isDeleting}
                 onChange={(event) => handleDraftChange("type", event.target.value)}
               >
-                <option value="">Choose a type</option>
+                <option value="">No type</option>
                 <optgroup label="Monster Types">
                   {monsterTypeOptions.map((typeOption) => (
                     <option key={typeOption} value={typeOption}>
@@ -559,13 +723,15 @@ function CreatureEditorModal({
                 placeholder="20"
               />
             </label>
-            <ManualStatusDurationFields
-              durationType={draft.durationType}
-              durationValue={draft.durationValue}
-              durationTypeOptions={companionDurationTypeOptions}
-              onDurationTypeChange={(value) => handleDraftChange("durationType", value)}
-              onDurationValueChange={(value) => handleDraftChange("durationValue", value)}
-            />
+            {showDurationFields ? (
+              <ManualStatusDurationFields
+                durationType={draft.durationType}
+                durationValue={draft.durationValue}
+                durationTypeOptions={companionDurationTypeOptions}
+                onDurationTypeChange={(value) => handleDraftChange("durationType", value)}
+                onDurationValueChange={(value) => handleDraftChange("durationValue", value)}
+              />
+            ) : null}
 
             <label className={shared.fieldWide}>
               <span className={shared.fieldLabel}>Description</span>
@@ -578,57 +744,6 @@ function CreatureEditorModal({
               />
             </label>
           </div>
-
-          <section className={styles.monsterSection}>
-            <div className={styles.panelHeader}>
-              <h4 className={styles.panelTitle}>{labels.inheritedStatBlockTitle}</h4>
-              <button
-                type="button"
-                className={styles.secondaryButton}
-                disabled={isSaving || isDeleting}
-                onClick={() => setIsMonsterBrowserOpen(true)}
-              >
-                <Search size={16} />
-                {labels.browseButton}
-              </button>
-            </div>
-
-            {draft.inheritedCreatureEntry ? (
-              <div className={styles.selectedMonsterCard}>
-                <div>
-                  <h5 className={styles.selectedMonsterTitle}>
-                    {draft.inheritedCreatureEntry.name}
-                  </h5>
-                  <p className={styles.selectedMonsterMeta}>
-                    {draft.inheritedCreatureEntry.type || "Unknown type"} ·{" "}
-                    {getMonsterSourceLabel(draft.inheritedCreatureEntry)}
-                  </p>
-                </div>
-                <div className={styles.selectedMonsterActions}>
-                  <button
-                    type="button"
-                    className={styles.secondaryButton}
-                    disabled={isSaving || isDeleting}
-                    onClick={() => setPreviewSlug(draft.inheritedCreatureEntry?.slug ?? null)}
-                  >
-                    Preview
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.removeButtonText}
-                    disabled={isSaving || isDeleting}
-                    onClick={handleClearMonsterSelection}
-                  >
-                    Clear
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <p className={shared.emptyText}>{labels.noStatBlockText}</p>
-            )}
-
-            {monsterNotice ? <p className={styles.notice}>{monsterNotice}</p> : null}
-          </section>
 
           {editorError ? <p className={styles.notice}>{editorError}</p> : null}
         </OverlayBody>
@@ -713,6 +828,14 @@ function CreatureEditorModal({
               </ActionButton>
             ) : null
           }
+        />
+      ) : null}
+
+      {isStatBlockEditorOpen && draft.inheritedCreatureEntry && canModifySelectedStatBlock ? (
+        <CreatureStatBlockEditorModal
+          monster={draft.inheritedCreatureEntry}
+          onClose={() => setIsStatBlockEditorOpen(false)}
+          onSave={handleSaveStatBlock}
         />
       ) : null}
 

@@ -378,6 +378,7 @@ export type CharacterCompanion = {
   deathSaves?: CharacterDeathSaves;
   duration: CharacterStatusDuration;
   inheritedCreatureEntry?: MonsterRecord;
+  inheritedCreatureEntryModified?: boolean;
 };
 
 export type Alignment =
