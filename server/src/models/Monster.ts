@@ -38,7 +38,11 @@ function isMonsterFeatureRecord(value: unknown): value is MonsterFeatureRecord {
     return false;
   }
 
-  if (typeof value.name !== "string" || typeof value.desc !== "string") {
+  if (typeof value.name !== "string") {
+    return false;
+  }
+
+  if ("desc" in value && value.desc !== undefined && value.desc !== null && typeof value.desc !== "string") {
     return false;
   }
 
@@ -61,6 +65,17 @@ function isNullableMonsterFeatureList(value: unknown) {
   return value === null || (Array.isArray(value) && value.every(isMonsterFeatureRecord));
 }
 
+function defaultObjectField<T>(validator: (value: unknown) => value is T, message: string) {
+  return {
+    type: Schema.Types.Mixed,
+    default: () => ({}),
+    validate: {
+      validator: (value: unknown) => value === null || value === undefined || validator(value),
+      message
+    }
+  } as const;
+}
+
 function nullableStringField(index = false) {
   return {
     type: String,
@@ -73,6 +88,14 @@ function blankableStringField(index = false) {
   return {
     type: String,
     default: "",
+    index
+  } as const;
+}
+
+function defaultNumberField(defaultValue: number, index = false) {
+  return {
+    type: Number,
+    default: defaultValue,
     index
   } as const;
 }
@@ -97,70 +120,26 @@ const monsterSchema = new Schema<MonsterRecord>(
       type: String,
       required: true
     },
-    desc: {
-      type: String,
-      required: true
-    },
-    size: {
-      type: String,
-      required: true
-    },
-    type: {
-      type: String,
-      required: true,
-      index: true
-    },
+    desc: blankableStringField(),
+    size: blankableStringField(),
+    type: blankableStringField(true),
     subtype: blankableStringField(),
     group: nullableStringField(),
-    alignment: {
-      type: String,
-      required: true
-    },
-    armor_class: {
-      type: Number,
-      required: true
-    },
+    alignment: blankableStringField(),
+    armor_class: defaultNumberField(0),
     armor_desc: nullableStringField(),
-    hit_points: {
-      type: Number,
-      required: true
-    },
-    hit_dice: {
-      type: String,
-      required: true
-    },
-    speed: {
-      type: Schema.Types.Mixed,
-      required: true,
-      validate: {
-        validator: isMonsterSpeedMap,
-        message: "speed must be an object whose values are booleans, numbers, or strings."
-      }
-    },
-    strength: {
-      type: Number,
-      required: true
-    },
-    dexterity: {
-      type: Number,
-      required: true
-    },
-    constitution: {
-      type: Number,
-      required: true
-    },
-    intelligence: {
-      type: Number,
-      required: true
-    },
-    wisdom: {
-      type: Number,
-      required: true
-    },
-    charisma: {
-      type: Number,
-      required: true
-    },
+    hit_points: defaultNumberField(0),
+    hit_dice: blankableStringField(),
+    speed: defaultObjectField(
+      isMonsterSpeedMap,
+      "speed must be an object whose values are booleans, numbers, or strings."
+    ),
+    strength: defaultNumberField(10),
+    dexterity: defaultNumberField(10),
+    constitution: defaultNumberField(10),
+    intelligence: defaultNumberField(10),
+    wisdom: defaultNumberField(10),
+    charisma: defaultNumberField(10),
     strength_save: nullableNumberField(),
     dexterity_save: nullableNumberField(),
     constitution_save: nullableNumberField(),
@@ -168,36 +147,15 @@ const monsterSchema = new Schema<MonsterRecord>(
     wisdom_save: nullableNumberField(),
     charisma_save: nullableNumberField(),
     perception: nullableNumberField(),
-    skills: {
-      type: Schema.Types.Mixed,
-      required: true,
-      validate: {
-        validator: isMonsterSkillsMap,
-        message: "skills must be an object whose values are numbers."
-      }
-    },
+    skills: defaultObjectField(isMonsterSkillsMap, "skills must be an object whose values are numbers."),
     damage_vulnerabilities: blankableStringField(),
     damage_resistances: blankableStringField(),
     damage_immunities: blankableStringField(),
     condition_immunities: blankableStringField(),
-    senses: {
-      type: String,
-      required: true
-    },
-    languages: {
-      type: String,
-      required: true
-    },
-    cr: {
-      type: Number,
-      required: true,
-      index: true
-    },
-    challenge_rating: {
-      type: String,
-      required: true,
-      index: true
-    },
+    senses: blankableStringField(),
+    languages: blankableStringField(),
+    cr: defaultNumberField(0, true),
+    challenge_rating: blankableStringField(true),
     actions: {
       type: Schema.Types.Mixed,
       default: null,
@@ -241,35 +199,19 @@ const monsterSchema = new Schema<MonsterRecord>(
     },
     spell_list: {
       type: [String],
-      required: true
+      default: []
     },
     page_no: nullableNumberField(),
     environments: {
       type: [String],
-      required: true
+      default: []
     },
     img_main: nullableStringField(),
-    document__slug: {
-      type: String,
-      required: true,
-      index: true
-    },
-    document__title: {
-      type: String,
-      required: true
-    },
-    document__license_url: {
-      type: String,
-      required: true
-    },
-    document__url: {
-      type: String,
-      required: true
-    },
-    v2_converted_path: {
-      type: String,
-      required: true
-    }
+    document__slug: blankableStringField(true),
+    document__title: blankableStringField(),
+    document__license_url: blankableStringField(),
+    document__url: blankableStringField(),
+    v2_converted_path: blankableStringField()
   },
   {
     collection: "monsters",

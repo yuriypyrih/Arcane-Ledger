@@ -67,7 +67,7 @@ function normalizeMonsterFeatureRecord(value: unknown): MonsterFeatureRecord | n
   const name = normalizeText(value.name);
   const desc = normalizeText(value.desc);
 
-  if (!name || !desc) {
+  if (!name) {
     return null;
   }
 
