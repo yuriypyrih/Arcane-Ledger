@@ -32,7 +32,8 @@ export const createEncounterTemplate = asyncHandler(
 
     const encounterTemplate = await createOwnedEncounterTemplate({
       name: normalizeEncounterTemplateName(request.body.name),
-      ownerId: response.locals.authUser._id
+      ownerId: response.locals.authUser._id,
+      ownerRole: response.locals.authUser.role
     });
 
     response.status(201).json({ encounterTemplate });

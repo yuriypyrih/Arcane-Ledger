@@ -1,5 +1,8 @@
 import { LayoutDashboard } from "lucide-react";
+import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import CampaignManagerGuideButton from "./CampaignManagerGuideButton";
+import CampaignManagerGuideModal from "./CampaignManagerGuideModal";
 import CampaignManagerBody from "./CampaignManagerBody";
 import EncounterTemplatesBody from "./EncounterTemplatesBody";
 import PartyManagerBody from "./PartyManagerBody";
@@ -36,6 +39,7 @@ function renderTabBody(activeTab: DmToolsTabId) {
 
 function DmToolsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
   const activeTab = parseDmToolsTabId(searchParams.get(DM_TOOLS_TAB_PARAM));
 
   function handleTabChange(nextTab: DmToolsTabId) {
@@ -53,10 +57,13 @@ function DmToolsPage() {
       <section className={styles.panel} aria-labelledby="dm-tools-title">
         <div className={styles.header}>
           <div>
-            <p className={styles.eyebrow}>
-              <LayoutDashboard size={15} aria-hidden="true" />
-              <span>DM tools</span>
-            </p>
+            <div className={styles.eyebrowHelpRow}>
+              <p className={styles.eyebrow}>
+                <LayoutDashboard size={15} aria-hidden="true" />
+                <span>DM tools</span>
+              </p>
+              <CampaignManagerGuideButton onClick={() => setIsGuideOpen(true)} />
+            </div>
             <h2 id="dm-tools-title" className={styles.title}>
               Prep Tray
             </h2>
@@ -86,6 +93,8 @@ function DmToolsPage() {
         </div>
 
         {renderTabBody(activeTab)}
+
+        {isGuideOpen ? <CampaignManagerGuideModal onClose={() => setIsGuideOpen(false)} /> : null}
       </section>
     </section>
   );

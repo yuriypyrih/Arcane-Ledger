@@ -16,12 +16,7 @@ export type PartyGroupRecord = {
   id: string;
   name: string;
   ownerId: string;
-  adminUserIds: string[];
-  inviteToken: string;
-  inviteUrl: string;
-  characterIds: string[];
   memberCount: number;
-  maxMembers: number;
   createdAt: string | null;
   updatedAt: string | null;
 };
@@ -39,6 +34,11 @@ export type PartyGroupMemberRecord = {
 };
 
 export type PartyGroupDetailRecord = PartyGroupRecord & {
+  adminUserIds: string[];
+  inviteToken: string;
+  inviteUrl: string;
+  characterIds: string[];
+  maxMembers: number;
   members: PartyGroupMemberRecord[];
 };
 

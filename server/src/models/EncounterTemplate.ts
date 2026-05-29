@@ -26,7 +26,7 @@ export type EncounterTemplateRecord = {
 
 export type EncounterTemplateDocument = HydratedDocument<EncounterTemplateRecord>;
 
-const encounterTemplateCreatureSchema = new Schema<EncounterTemplateCreatureRecord>(
+export const encounterTemplateCreatureSchema = new Schema<EncounterTemplateCreatureRecord>(
   {
     id: {
       type: String,

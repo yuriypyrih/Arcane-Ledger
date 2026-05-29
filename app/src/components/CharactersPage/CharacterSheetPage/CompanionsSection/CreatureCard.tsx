@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { Copy, Pencil, Shield, Trash2 } from "lucide-react";
+import { Copy, Eye, Pencil, Shield, Trash2 } from "lucide-react";
 import CollaborationIcon from "../../../../assets/svg/collaboration.svg";
 import EnemyIcon from "../../../../assets/svg/enemy.svg";
 import type { CharacterCompanion } from "../../../../types";
@@ -19,8 +19,10 @@ type CreatureCardProps = {
   predisposition: CreatureCardPredisposition;
   sourceLabel: string;
   statusLabel: string;
+  isVisibilityActive?: boolean;
   onDuplicate: () => void;
   onEdit: () => void;
+  onEditVisibility?: () => void;
   onInspect: () => void;
   onRemove: () => void;
 };
@@ -41,11 +43,13 @@ function CreatureCard({
   creature,
   duplicateDisabled = false,
   duplicateTitle,
+  isVisibilityActive = false,
   predisposition,
   sourceLabel,
   statusLabel,
   onDuplicate,
   onEdit,
+  onEditVisibility,
   onInspect,
   onRemove
 }: CreatureCardProps) {
@@ -120,6 +124,21 @@ function CreatureCard({
           </span>
 
           <span className={styles.actions}>
+            {onEditVisibility ? (
+              <button
+                type="button"
+                className={styles.actionButton}
+                onClick={onEditVisibility}
+                aria-label={`Edit ${creature.name} player visibility settings`}
+                title={`Edit ${creature.name} player visibility settings`}
+              >
+                <Eye
+                  className={isVisibilityActive ? styles.visibilityActiveIcon : undefined}
+                  size={17}
+                  aria-hidden="true"
+                />
+              </button>
+            ) : null}
             <button
               type="button"
               className={styles.actionButton}

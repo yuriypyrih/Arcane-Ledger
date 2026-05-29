@@ -1,6 +1,6 @@
 import { Plus, Swords } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { listEncounterTemplates } from "../../api/encounterTemplates";
 import ActionButton from "../../components/ActionButton";
 import {
@@ -13,6 +13,9 @@ import {
 } from "../../store";
 import CreateEncounterTemplateModal from "./CreateEncounterTemplateModal";
 import { getDmToolsApiErrorMessage } from "./dmToolsApiErrors";
+import { getDmToolsQuotaForRole } from "./dmToolsQuotas";
+import DmToolsEmptyState from "./DmToolsEmptyState";
+import DmToolsListCard from "./DmToolsListCard";
 import styles from "./DmToolsPage.module.css";
 
 type EncounterTemplatesBodyProps = {
@@ -25,6 +28,7 @@ function EncounterTemplatesBody({ panelId, tabId }: EncounterTemplatesBodyProps)
   const dispatch = useAppDispatch();
   const authStatus = useAppSelector((state) => state.auth.status);
   const authUserId = useAppSelector((state) => state.auth.user?.id ?? null);
+  const authUserRole = useAppSelector((state) => state.auth.user?.role ?? null);
   const encounterTemplates = useAppSelector((state) => state.dmTools.encounterTemplates);
   const encounterTemplatesStatus = useAppSelector(
     (state) => state.dmTools.encounterTemplatesStatus
@@ -33,6 +37,9 @@ function EncounterTemplatesBody({ panelId, tabId }: EncounterTemplatesBodyProps)
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const loadedEncounterTemplatesForAuthRef = useRef<string | null>(null);
   const isAuthenticated = authStatus === "authenticated";
+  const encounterTemplateLimit = getDmToolsQuotaForRole("encounterTemplates", authUserRole);
+  const isAtEncounterTemplateLimit =
+    isAuthenticated && encounterTemplates.length >= encounterTemplateLimit;
 
   useEffect(() => {
     let didCancel = false;
@@ -87,6 +94,16 @@ function EncounterTemplatesBody({ panelId, tabId }: EncounterTemplatesBodyProps)
       return;
     }
 
+    if (isAtEncounterTemplateLimit) {
+      dispatch(
+        showToast({
+          text: `You can create up to ${encounterTemplateLimit} encounter templates.`,
+          type: "warning"
+        })
+      );
+      return;
+    }
+
     setCreateModalOpen(true);
   }
 
@@ -105,7 +122,13 @@ function EncounterTemplatesBody({ panelId, tabId }: EncounterTemplatesBodyProps)
         </div>
         <ActionButton
           icon={<Plus size={16} aria-hidden="true" />}
+          disabled={isAtEncounterTemplateLimit}
           fullWidth={false}
+          title={
+            isAtEncounterTemplateLimit
+              ? `You can create up to ${encounterTemplateLimit} encounter templates.`
+              : undefined
+          }
           onClick={handleCreateClick}
         >
           Create Encounter Template
@@ -113,43 +136,33 @@ function EncounterTemplatesBody({ panelId, tabId }: EncounterTemplatesBodyProps)
       </div>
 
       {encounterTemplatesStatus === "loading" ? (
-        <div className={styles.emptyState}>
-          <Swords size={28} aria-hidden="true" />
-          <span>Loading encounter templates...</span>
-        </div>
+        <DmToolsEmptyState icon={<Swords size={18} aria-hidden="true" />}>
+          Loading encounter templates...
+        </DmToolsEmptyState>
       ) : encounterTemplatesError ? (
         <p className={styles.modalError}>{encounterTemplatesError}</p>
       ) : !isAuthenticated ? (
-        <div className={styles.emptyState}>
-          <Swords size={28} aria-hidden="true" />
-          <span>Sign in to manage encounter templates.</span>
-        </div>
+        <DmToolsEmptyState icon={<Swords size={18} aria-hidden="true" />}>
+          Sign in to manage encounter templates.
+        </DmToolsEmptyState>
       ) : encounterTemplates.length > 0 ? (
-        <div className={styles.partyList}>
+        <div className={styles.dmToolsList}>
           {encounterTemplates.map((encounterTemplate) => (
-            <Link
+            <DmToolsListCard
               key={encounterTemplate.id}
+              icon={<Swords size={18} aria-hidden="true" />}
+              title={encounterTemplate.name}
+              meta={`${encounterTemplate.creatureCount} ${
+                encounterTemplate.creatureCount === 1 ? "creature" : "creatures"
+              }`}
               to={`/dm-tools/encounter-templates/${encounterTemplate.id}`}
-              className={styles.partyListRow}
-            >
-              <span className={styles.partyListIcon}>
-                <Swords size={18} aria-hidden="true" />
-              </span>
-              <span className={styles.partyListMain}>
-                <strong>{encounterTemplate.name}</strong>
-                <small>
-                  {encounterTemplate.creatureCount}{" "}
-                  {encounterTemplate.creatureCount === 1 ? "creature" : "creatures"}
-                </small>
-              </span>
-            </Link>
+            />
           ))}
         </div>
       ) : (
-        <div className={styles.emptyState}>
-          <Swords size={28} aria-hidden="true" />
-          <span>No encounter templates yet.</span>
-        </div>
+        <DmToolsEmptyState icon={<Swords size={18} aria-hidden="true" />}>
+          No encounter templates yet.
+        </DmToolsEmptyState>
       )}
 
       {createModalOpen ? (

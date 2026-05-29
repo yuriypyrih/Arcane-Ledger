@@ -15,6 +15,35 @@
   padding: var(--space-card-padding);
 }
 
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  border: 1px solid rgba(75, 47, 29, 0.1);
+  border-radius: var(--radius-pill);
+  background: var(--color-panel-strong);
+  color: var(--color-ink-soft);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  min-height: 28px;
+  padding: 0 0.62rem;
+  text-decoration: none;
+}
+
+.backButton:hover,
+.backButton:focus-visible {
+  border-color: rgba(75, 47, 29, 0.18);
+  background: var(--color-panel-surface);
+  color: var(--color-ink);
+}
+
+.backButton:focus-visible {
+  outline: 2px solid rgba(47, 120, 255, 0.34);
+  outline-offset: 2px;
+}
+
 .header,
 .bodyHeader {
   display: flex;
@@ -53,6 +82,51 @@
   align-items: center;
   gap: 0.38rem;
   margin-bottom: 0.36rem;
+}
+
+.eyebrowHelpRow,
+.bodyEyebrowHelpRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+}
+
+.eyebrowHelpRow {
+  margin-bottom: 0.36rem;
+}
+
+.bodyEyebrowHelpRow {
+  margin-bottom: 0.28rem;
+}
+
+.eyebrowHelpRow .eyebrow,
+.bodyEyebrowHelpRow .bodyEyebrow {
+  margin-bottom: 0;
+}
+
+.helpButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  min-width: 28px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: rgba(75, 47, 29, 0.08);
+  color: var(--color-accent);
+  cursor: pointer;
+  padding: 0;
+}
+
+.helpButton:hover,
+.helpButton:focus-visible {
+  background: rgba(75, 47, 29, 0.14);
+  color: var(--color-ink);
+}
+
+.helpButton:focus-visible {
+  outline: 2px solid rgba(47, 120, 255, 0.34);
+  outline-offset: 2px;
 }
 
 .title {
@@ -131,29 +205,30 @@
 }
 
 .emptyState {
-  display: grid;
-  place-items: center;
-  gap: 0.5rem;
-  min-height: 180px;
-  border: 1px dashed rgba(75, 47, 29, 0.22);
-  border-radius: var(--radius-control-lg);
-  background:
-    repeating-linear-gradient(
-      135deg,
-      rgba(75, 47, 29, 0.035) 0,
-      rgba(75, 47, 29, 0.035) 8px,
-      transparent 8px,
-      transparent 18px
-    ),
-    rgba(255, 253, 248, 0.7);
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.45rem;
   color: var(--color-ink-soft);
-  font-weight: 700;
-  padding: 1.2rem;
-  text-align: center;
+  font-size: 0.92rem;
+  font-weight: 650;
+  line-height: 1.35;
+  min-height: 24px;
+  padding: 0.12rem 0;
+  text-align: left;
 }
 
-.emptyState svg {
+.emptyStateIcon {
+  display: inline-grid;
+  place-items: center;
   color: var(--color-accent);
+  flex: 0 0 auto;
+  opacity: 0.78;
+}
+
+.emptyStateIcon svg {
+  block-size: 18px;
+  inline-size: 18px;
 }
 
 .modalCopy {
@@ -184,50 +259,112 @@
   padding: 0.7rem 0.78rem;
 }
 
+.guideBody {
+  display: grid;
+  gap: 0.78rem;
+}
+
+.guideText {
+  color: var(--color-ink-soft);
+  line-height: 1.55;
+  margin: 0;
+}
+
+.characterCounter {
+  color: var(--color-ink-soft);
+  font-size: 0.78rem;
+  font-weight: 700;
+  margin: -0.12rem 0 0;
+  text-align: right;
+}
+
 .modalFooterActions {
   display: flex;
   justify-content: flex-end;
   gap: 0.65rem;
 }
 
-.partyList,
+.visibilityModalFooterActions {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
+}
+
 .memberList,
-.creatureList {
+.creatureList,
+.noteList,
+.dmToolsList {
   display: grid;
   gap: 0.68rem;
 }
 
-.partyListRow {
+.dmToolsListCard {
   display: grid;
   align-items: center;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 0.7rem;
   min-height: 64px;
   border: 1px solid rgba(75, 47, 29, 0.14);
   border-radius: var(--radius-card-large);
-  background: rgba(251, 242, 230, 0.9);
+  background: rgba(251, 242, 230, 0.82);
   color: var(--color-ink);
   padding: 0.7rem 0.8rem;
-  text-decoration: none;
   transition:
     border-color 140ms ease,
     box-shadow 140ms ease,
     transform 120ms ease;
 }
 
-.partyListRow:hover,
-.partyListRow:focus-visible {
+.dmToolsListCard:hover,
+.dmToolsListCard:focus-within {
   border-color: rgba(143, 91, 56, 0.32);
   box-shadow: 0 10px 24px rgba(54, 34, 21, 0.08);
   transform: translateY(-1px);
 }
 
-.partyListRow:focus-visible {
+.dmToolsListCardDisabled {
+  opacity: 0.62;
+}
+
+.dmToolsListCardDisabled:hover,
+.dmToolsListCardDisabled:focus-within {
+  border-color: rgba(75, 47, 29, 0.14);
+  box-shadow: none;
+  transform: none;
+}
+
+.dmToolsListCardMain {
+  display: grid;
+  align-items: center;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.7rem;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: default;
+  font: inherit;
+  padding: 0;
+  text-align: left;
+  text-decoration: none;
+}
+
+a.dmToolsListCardMain,
+button.dmToolsListCardMain {
+  cursor: pointer;
+}
+
+button.dmToolsListCardMain:disabled {
+  cursor: not-allowed;
+}
+
+.dmToolsListCardMain:focus-visible {
   outline: 2px solid rgba(47, 120, 255, 0.34);
   outline-offset: 2px;
 }
 
-.partyListIcon {
+.dmToolsListCardIcon {
   display: grid;
   place-items: center;
   width: 40px;
@@ -237,21 +374,42 @@
   color: var(--color-accent);
 }
 
-.partyListMain {
+.dmToolsListCardMainText {
   display: grid;
   min-width: 0;
 }
 
-.partyListMain strong,
-.partyListMain small {
+.dmToolsListCardMainText strong,
+.dmToolsListCardMainText small {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.partyListMain small {
+.dmToolsListCardMainText strong {
+  color: var(--color-ink);
+  font-size: 0.98rem;
+  line-height: 1.2;
+}
+
+.dmToolsListCardMainText small {
   color: var(--color-ink-soft);
-  font-size: 0.82rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.dmToolsListCardActions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.55rem;
+}
+
+.selectedPartyEmptyRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
 .invitePanel,
@@ -348,6 +506,217 @@
   white-space: nowrap;
 }
 
+.emptyActionState {
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-align: left;
+}
+
+.emptyActionState:focus-visible {
+  outline: 2px solid rgba(47, 120, 255, 0.34);
+  outline-offset: 2px;
+}
+
+.emptyActionState {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.45rem;
+  color: var(--color-ink-soft);
+  font-weight: 750;
+  min-height: 28px;
+  padding: 0.12rem 0;
+  text-align: left;
+}
+
+.emptyActionState:hover,
+.emptyActionState:focus-visible {
+  color: var(--color-ink);
+}
+
+.emptyActionState:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.visibilityModalBody {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.visibilityEyeActive {
+  color: #2f78ff;
+}
+
+.visibilityToggleList {
+  display: grid;
+  gap: 0.68rem;
+}
+
+.visibilityToggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+  border: 1px solid rgba(75, 47, 29, 0.14);
+  border-radius: var(--radius-card-large);
+  background: rgba(251, 242, 230, 0.82);
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0.78rem 0.86rem;
+  text-align: left;
+  width: 100%;
+}
+
+.visibilityToggleRow:hover,
+.visibilityToggleRow:focus-visible {
+  border-color: rgba(47, 120, 255, 0.24);
+}
+
+.visibilityToggleRow:disabled {
+  cursor: not-allowed;
+}
+
+.visibilityToggleRowDisabled {
+  opacity: 0.62;
+}
+
+.visibilityGroup {
+  display: grid;
+  gap: 0.42rem;
+}
+
+.visibilityGroupTitle {
+  color: var(--color-accent);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  line-height: 1.1;
+  margin: 0.1rem 0 0;
+  text-transform: uppercase;
+}
+
+.visibilityGroupedToggleList {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid rgba(75, 47, 29, 0.14);
+  border-radius: var(--radius-card-large);
+  background: rgba(251, 242, 230, 0.82);
+}
+
+.visibilityGroupedToggleRow {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  padding-block: 0.64rem;
+}
+
+.visibilityGroupedToggleRow:hover,
+.visibilityGroupedToggleRow:focus-visible {
+  border-color: transparent;
+}
+
+.visibilityGroupedToggleRow + .visibilityGroupedToggleRow {
+  border-top: 1px solid rgba(75, 47, 29, 0.1);
+}
+
+.visibilitySelectAllButton {
+  justify-self: start;
+  border: none;
+  background: transparent;
+  color: #2563eb;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 800;
+  padding: 0.04rem 0;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+.visibilitySelectAllButton:hover,
+.visibilitySelectAllButton:focus-visible {
+  color: #1d4ed8;
+}
+
+.visibilitySelectAllButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
+.visibilitySelectAllButton:focus-visible {
+  outline: 2px solid rgba(47, 120, 255, 0.34);
+  outline-offset: 3px;
+}
+
+.visibilityToggleMain {
+  display: grid;
+  gap: 0.16rem;
+  min-width: 0;
+}
+
+.visibilityToggleMain strong {
+  color: var(--color-ink);
+  line-height: 1.2;
+}
+
+.visibilityToggleMain small {
+  color: var(--color-ink-soft);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.visibilitySwitch {
+  display: inline-flex;
+  align-items: center;
+  border: none;
+  background: transparent;
+  flex: 0 0 auto;
+  padding: 0;
+}
+
+.visibilitySwitchTrack {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 34px;
+  height: 18px;
+  border: 1px solid rgba(75, 47, 29, 0.22);
+  border-radius: var(--radius-pill);
+  background: rgba(75, 47, 29, 0.12);
+  transition:
+    background 140ms ease,
+    border-color 140ms ease;
+}
+
+.visibilitySwitchThumb {
+  position: absolute;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 253, 248, 0.92);
+  box-shadow: 0 1px 2px rgba(25, 15, 12, 0.22);
+  transition:
+    background 140ms ease,
+    transform 140ms ease;
+}
+
+.visibilitySwitchActive .visibilitySwitchTrack {
+  border-color: rgba(47, 120, 255, 0.58);
+  background: #2f78ff;
+}
+
+.visibilitySwitchActive .visibilitySwitchThumb {
+  background: #fffaf0;
+  transform: translateX(16px);
+}
+
 .kickButton {
   color: #8a2519;
 }
@@ -357,6 +726,14 @@
   .bodyHeader,
   .memberPanelHeader {
     flex-direction: column;
+  }
+
+  .dmToolsListCard {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dmToolsListCardActions {
+    justify-content: flex-start;
   }
 
   .headerActions {
@@ -370,10 +747,6 @@
   .tabButton {
     flex: 1 1 100%;
     justify-content: center;
-  }
-
-  .emptyState {
-    min-height: 140px;
   }
 
   .linkRow {

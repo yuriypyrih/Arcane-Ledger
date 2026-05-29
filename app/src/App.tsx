@@ -21,6 +21,10 @@ const CharactersPage = lazy(() => import("./pages/CharactersPage"));
 const CodexEntryPage = lazy(() => import("./pages/CodexEntryPage"));
 const CodexPage = lazy(() => import("./pages/CodexPage"));
 const DmToolsPage = lazy(() => import("./pages/DmToolsPage"));
+const CampaignDetailPage = lazy(() => import("./pages/DmToolsPage/CampaignDetailPage"));
+const CampaignEncounterBuilderPage = lazy(
+  () => import("./pages/DmToolsPage/CampaignEncounterBuilderPage")
+);
 const EncounterTemplateDetailPage = lazy(
   () => import("./pages/DmToolsPage/EncounterTemplateDetailPage")
 );
@@ -103,6 +107,11 @@ function App() {
             <Route path="/characters/:characterId" element={<CharacterSheetPage />} />
             <Route path="/compendium" element={<CodexPage />} />
             <Route path="/dm-tools" element={<DmToolsPage />} />
+            <Route path="/dm-tools/campaign-manager/:campaignId" element={<CampaignDetailPage />} />
+            <Route
+              path="/dm-tools/campaign-manager/:campaignId/encounters/:preparedEncounterId"
+              element={<CampaignEncounterBuilderPage />}
+            />
             <Route
               path="/dm-tools/encounter-templates/:encounterTemplateId"
               element={<EncounterTemplateDetailPage />}

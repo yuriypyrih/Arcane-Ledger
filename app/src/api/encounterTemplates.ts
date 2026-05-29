@@ -8,12 +8,12 @@ export type EncounterTemplateRecord = {
   name: string;
   ownerId: string;
   creatureCount: number;
-  maxCreatures: number;
   createdAt: string | null;
   updatedAt: string | null;
 };
 
 export type EncounterTemplateDetailRecord = EncounterTemplateRecord & {
+  maxCreatures: number;
   creatures: EncounterTemplateCreatureRecord[];
 };
 

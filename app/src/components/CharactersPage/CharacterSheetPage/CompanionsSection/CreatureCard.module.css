@@ -217,6 +217,10 @@
   color: #8a2519;
 }
 
+.visibilityActiveIcon {
+  color: #2f78ff;
+}
+
 @media (max-width: 599px) {
   .card {
     grid-template-columns: auto minmax(0, 1fr);

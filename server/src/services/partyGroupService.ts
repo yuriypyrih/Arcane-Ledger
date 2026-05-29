@@ -9,6 +9,8 @@ import {
 } from "../models/CharacterSheet.js";
 import { PartyGroup, type PartyGroupDocument, type PartyGroupRecord } from "../models/PartyGroup.js";
 import { User } from "../models/User.js";
+import type { UserRole } from "../types/auth.js";
+import { assertDmToolCreationLimit } from "./dmToolLimits.js";
 
 const PARTY_GROUP_INVITE_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 const PARTY_GROUP_INVITE_TOKEN_LENGTH = 12;
@@ -20,6 +22,17 @@ export const PARTY_GROUP_MAX_MEMBERS = 10;
 type PartyGroupSource = PartyGroupRecord & {
   _id?: Types.ObjectId | { toString(): string };
   id?: string;
+};
+
+type PartyGroupListSource = {
+  _id?: Types.ObjectId | { toString(): string };
+  id?: string;
+  name: string;
+  ownerId: Types.ObjectId | { toString(): string } | string;
+  characterIds?: Types.ObjectId[];
+  memberCount?: number;
+  createdAt?: Date | string | null;
+  updatedAt?: Date | string | null;
 };
 
 type CharacterSheetMemberSource = {
@@ -151,22 +164,28 @@ export function normalizePartyInviteToken(value: unknown) {
   return normalizedToken;
 }
 
-export function toPartyGroupListRecord(partyGroup: PartyGroupSource) {
-  const inviteToken = partyGroup.inviteToken;
-  const characterIds = partyGroup.characterIds.map((characterId) => characterId.toString());
-
+export function toPartyGroupListRecord(partyGroup: PartyGroupListSource) {
   return {
     id: getDocumentId(partyGroup),
     name: partyGroup.name,
     ownerId: partyGroup.ownerId.toString(),
+    memberCount: partyGroup.memberCount ?? partyGroup.characterIds?.length ?? 0,
+    createdAt: toIsoTimestamp(partyGroup.createdAt),
+    updatedAt: toIsoTimestamp(partyGroup.updatedAt)
+  };
+}
+
+function toPartyGroupDetailRecord(partyGroup: PartyGroupSource) {
+  const inviteToken = partyGroup.inviteToken;
+  const characterIds = partyGroup.characterIds.map((characterId) => characterId.toString());
+
+  return {
+    ...toPartyGroupListRecord(partyGroup),
     adminUserIds: partyGroup.adminUserIds.map((adminUserId) => adminUserId.toString()),
     inviteToken,
     inviteUrl: createPartyInviteUrl(inviteToken),
     characterIds,
-    memberCount: characterIds.length,
-    maxMembers: PARTY_GROUP_MAX_MEMBERS,
-    createdAt: toIsoTimestamp(partyGroup.createdAt),
-    updatedAt: toIsoTimestamp(partyGroup.updatedAt)
+    maxMembers: PARTY_GROUP_MAX_MEMBERS
   };
 }
 
@@ -204,16 +223,36 @@ function toPartyGroupMemberRecord(
 }
 
 export async function listOwnedPartyGroups(ownerId: Types.ObjectId) {
-  const partyGroups = (await PartyGroup.find({ ownerId })
-    .sort({ updatedAt: -1 })
-    .lean()
-    .exec()) as PartyGroupSource[];
+  const partyGroups = (await PartyGroup.aggregate<PartyGroupListSource>([
+    { $match: { ownerId } },
+    { $sort: { updatedAt: -1 } },
+    {
+      $project: {
+        name: 1,
+        ownerId: 1,
+        memberCount: { $size: { $ifNull: ["$characterIds", []] } },
+        createdAt: 1,
+        updatedAt: 1
+      }
+    }
+  ]).exec()) as PartyGroupListSource[];
 
   return partyGroups.map(toPartyGroupListRecord);
 }
 
-export async function createOwnedPartyGroup(options: { name: string; ownerId: Types.ObjectId }) {
+export async function createOwnedPartyGroup(options: {
+  name: string;
+  ownerId: Types.ObjectId;
+  ownerRole: UserRole;
+}) {
   const name = normalizePartyGroupName(options.name);
+  const currentCount = await PartyGroup.countDocuments({ ownerId: options.ownerId }).exec();
+
+  assertDmToolCreationLimit({
+    currentCount,
+    kind: "partyGroups",
+    role: options.ownerRole
+  });
 
   for (let attempt = 0; attempt < PARTY_GROUP_INVITE_CREATE_ATTEMPTS; attempt += 1) {
     const inviteToken = createPartyGroupInviteToken();
@@ -284,7 +323,7 @@ export async function getOwnedPartyGroupDetail(options: {
   );
 
   return {
-    ...toPartyGroupListRecord(partyGroup),
+    ...toPartyGroupDetailRecord(partyGroup),
     members: characters.map((character) => toPartyGroupMemberRecord(character, userById))
   };
 }

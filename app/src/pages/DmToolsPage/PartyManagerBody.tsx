@@ -1,6 +1,6 @@
 import { Plus, Users } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { listPartyGroups } from "../../api/partyGroups";
 import ActionButton from "../../components/ActionButton";
 import {
@@ -13,6 +13,9 @@ import {
 } from "../../store";
 import CreatePartyGroupModal from "./CreatePartyGroupModal";
 import { getDmToolsApiErrorMessage } from "./dmToolsApiErrors";
+import { getDmToolsQuotaForRole } from "./dmToolsQuotas";
+import DmToolsEmptyState from "./DmToolsEmptyState";
+import DmToolsListCard from "./DmToolsListCard";
 import styles from "./DmToolsPage.module.css";
 
 type PartyManagerBodyProps = {
@@ -25,12 +28,15 @@ function PartyManagerBody({ panelId, tabId }: PartyManagerBodyProps) {
   const dispatch = useAppDispatch();
   const authStatus = useAppSelector((state) => state.auth.status);
   const authUserId = useAppSelector((state) => state.auth.user?.id ?? null);
+  const authUserRole = useAppSelector((state) => state.auth.user?.role ?? null);
   const partyGroups = useAppSelector((state) => state.dmTools.partyGroups);
   const partyGroupsStatus = useAppSelector((state) => state.dmTools.partyGroupsStatus);
   const partyGroupsError = useAppSelector((state) => state.dmTools.partyGroupsError);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const loadedPartyGroupsForAuthRef = useRef<string | null>(null);
   const isAuthenticated = authStatus === "authenticated";
+  const partyGroupLimit = getDmToolsQuotaForRole("partyGroups", authUserRole);
+  const isAtPartyGroupLimit = isAuthenticated && partyGroups.length >= partyGroupLimit;
 
   useEffect(() => {
     let didCancel = false;
@@ -83,6 +89,16 @@ function PartyManagerBody({ panelId, tabId }: PartyManagerBodyProps) {
       return;
     }
 
+    if (isAtPartyGroupLimit) {
+      dispatch(
+        showToast({
+          text: `You can create up to ${partyGroupLimit} party groups.`,
+          type: "warning"
+        })
+      );
+      return;
+    }
+
     setCreateModalOpen(true);
   }
 
@@ -101,7 +117,13 @@ function PartyManagerBody({ panelId, tabId }: PartyManagerBodyProps) {
         </div>
         <ActionButton
           icon={<Plus size={16} aria-hidden="true" />}
+          disabled={isAtPartyGroupLimit}
           fullWidth={false}
+          title={
+            isAtPartyGroupLimit
+              ? `You can create up to ${partyGroupLimit} party groups.`
+              : undefined
+          }
           onClick={handleCreateClick}
         >
           Create Party Group
@@ -109,42 +131,33 @@ function PartyManagerBody({ panelId, tabId }: PartyManagerBodyProps) {
       </div>
 
       {partyGroupsStatus === "loading" ? (
-        <div className={styles.emptyState}>
-          <Users size={28} aria-hidden="true" />
-          <span>Loading party groups...</span>
-        </div>
+        <DmToolsEmptyState icon={<Users size={18} aria-hidden="true" />}>
+          Loading party groups...
+        </DmToolsEmptyState>
       ) : partyGroupsError ? (
         <p className={styles.modalError}>{partyGroupsError}</p>
       ) : !isAuthenticated ? (
-        <div className={styles.emptyState}>
-          <Users size={28} aria-hidden="true" />
-          <span>Sign in to manage party groups.</span>
-        </div>
+        <DmToolsEmptyState icon={<Users size={18} aria-hidden="true" />}>
+          Sign in to manage party groups.
+        </DmToolsEmptyState>
       ) : partyGroups.length > 0 ? (
-        <div className={styles.partyList}>
+        <div className={styles.dmToolsList}>
           {partyGroups.map((partyGroup) => (
-            <Link
+            <DmToolsListCard
               key={partyGroup.id}
+              icon={<Users size={18} aria-hidden="true" />}
+              title={partyGroup.name}
+              meta={`${partyGroup.memberCount} ${
+                partyGroup.memberCount === 1 ? "member" : "members"
+              }`}
               to={`/dm-tools/party-manager/${partyGroup.id}`}
-              className={styles.partyListRow}
-            >
-              <span className={styles.partyListIcon}>
-                <Users size={18} aria-hidden="true" />
-              </span>
-              <span className={styles.partyListMain}>
-                <strong>{partyGroup.name}</strong>
-                <small>
-                  {partyGroup.memberCount} {partyGroup.memberCount === 1 ? "member" : "members"}
-                </small>
-              </span>
-            </Link>
+            />
           ))}
         </div>
       ) : (
-        <div className={styles.emptyState}>
-          <Users size={28} aria-hidden="true" />
-          <span>No party groups yet.</span>
-        </div>
+        <DmToolsEmptyState icon={<Users size={18} aria-hidden="true" />}>
+          No party groups yet.
+        </DmToolsEmptyState>
       )}
 
       {createModalOpen ? (

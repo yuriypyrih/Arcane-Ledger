@@ -1,4 +1,5 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import type { CampaignDetailRecord, CampaignPatchRecord, CampaignRecord } from "../api/campaigns";
 import type {
   EncounterTemplateDetailRecord,
   EncounterTemplateRecord
@@ -22,6 +23,12 @@ export type DmToolsState = {
   membershipsOwnerId: string | null;
   membershipsStatus: DmToolsLoadStatus;
   membershipsError: string | null;
+  campaigns: CampaignRecord[];
+  campaignsStatus: DmToolsLoadStatus;
+  campaignsError: string | null;
+  selectedCampaignsById: Record<string, CampaignDetailRecord>;
+  selectedCampaignStatusById: Record<string, DmToolsLoadStatus>;
+  selectedCampaignErrorById: Record<string, string | null>;
   encounterTemplates: EncounterTemplateRecord[];
   encounterTemplatesStatus: DmToolsLoadStatus;
   encounterTemplatesError: string | null;
@@ -41,6 +48,12 @@ const initialState: DmToolsState = {
   membershipsOwnerId: null,
   membershipsStatus: "idle",
   membershipsError: null,
+  campaigns: [],
+  campaignsStatus: "idle",
+  campaignsError: null,
+  selectedCampaignsById: {},
+  selectedCampaignStatusById: {},
+  selectedCampaignErrorById: {},
   encounterTemplates: [],
   encounterTemplatesStatus: "idle",
   encounterTemplatesError: null,
@@ -72,6 +85,49 @@ function upsertEncounterTemplate(
   }
 
   encounterTemplates.unshift(encounterTemplate);
+}
+
+function upsertCampaign(campaigns: CampaignRecord[], campaign: CampaignRecord) {
+  const existingIndex = campaigns.findIndex((entry) => entry.id === campaign.id);
+
+  if (existingIndex >= 0) {
+    campaigns[existingIndex] = campaign;
+    return;
+  }
+
+  campaigns.unshift(campaign);
+}
+
+function patchCampaignSummary(
+  campaigns: CampaignRecord[],
+  campaignId: string,
+  patch: CampaignPatchRecord
+) {
+  const campaign = campaigns.find((entry) => entry.id === campaignId);
+
+  if (!campaign) {
+    return;
+  }
+
+  if (patch.name !== undefined) {
+    campaign.name = patch.name;
+  }
+
+  if (patch.sessionNoteCount !== undefined) {
+    campaign.sessionNoteCount = patch.sessionNoteCount;
+  }
+
+  if (patch.selectedPartyId !== undefined) {
+    campaign.selectedPartyId = patch.selectedPartyId;
+  }
+
+  if (patch.preparedEncounterCount !== undefined) {
+    campaign.preparedEncounterCount = patch.preparedEncounterCount;
+  }
+
+  if (patch.updatedAt !== undefined) {
+    campaign.updatedAt = patch.updatedAt;
+  }
 }
 
 const dmToolsSlice = createSlice({
@@ -140,6 +196,58 @@ const dmToolsSlice = createSlice({
     removePartyMembership(state, action: PayloadAction<string>) {
       delete state.membershipsByCharacterId[action.payload];
     },
+    setCampaignsLoading(state) {
+      state.campaignsStatus = "loading";
+      state.campaignsError = null;
+    },
+    setCampaigns(state, action: PayloadAction<CampaignRecord[]>) {
+      state.campaigns = action.payload;
+      state.campaignsStatus = "ready";
+      state.campaignsError = null;
+    },
+    setCampaignsError(state, action: PayloadAction<string>) {
+      state.campaignsStatus = "error";
+      state.campaignsError = action.payload;
+    },
+    upsertCampaignRecord(state, action: PayloadAction<CampaignRecord>) {
+      upsertCampaign(state.campaigns, action.payload);
+      state.campaignsStatus = "ready";
+      state.campaignsError = null;
+    },
+    setSelectedCampaignLoading(state, action: PayloadAction<string>) {
+      state.selectedCampaignStatusById[action.payload] = "loading";
+      state.selectedCampaignErrorById[action.payload] = null;
+    },
+    setSelectedCampaign(state, action: PayloadAction<CampaignDetailRecord>) {
+      state.selectedCampaignsById[action.payload.id] = action.payload;
+      state.selectedCampaignStatusById[action.payload.id] = "ready";
+      state.selectedCampaignErrorById[action.payload.id] = null;
+      upsertCampaign(state.campaigns, action.payload);
+    },
+    patchSelectedCampaign(
+      state,
+      action: PayloadAction<{ campaignId: string; patch: CampaignPatchRecord }>
+    ) {
+      const selectedCampaign = state.selectedCampaignsById[action.payload.campaignId];
+
+      if (selectedCampaign) {
+        state.selectedCampaignsById[action.payload.campaignId] = {
+          ...selectedCampaign,
+          ...action.payload.patch
+        };
+        state.selectedCampaignStatusById[action.payload.campaignId] = "ready";
+        state.selectedCampaignErrorById[action.payload.campaignId] = null;
+      }
+
+      patchCampaignSummary(state.campaigns, action.payload.campaignId, action.payload.patch);
+    },
+    setSelectedCampaignError(
+      state,
+      action: PayloadAction<{ campaignId: string; error: string }>
+    ) {
+      state.selectedCampaignStatusById[action.payload.campaignId] = "error";
+      state.selectedCampaignErrorById[action.payload.campaignId] = action.payload.error;
+    },
     setEncounterTemplatesLoading(state) {
       state.encounterTemplatesStatus = "loading";
       state.encounterTemplatesError = null;
@@ -194,6 +302,13 @@ export const {
   setSelectedPartyGroupError,
   setSelectedPartyGroupLoading,
   removePartyMembership,
+  setCampaigns,
+  setCampaignsError,
+  setCampaignsLoading,
+  setSelectedCampaign,
+  setSelectedCampaignError,
+  setSelectedCampaignLoading,
+  patchSelectedCampaign,
   setEncounterTemplates,
   setEncounterTemplatesError,
   setEncounterTemplatesLoading,
@@ -201,6 +316,7 @@ export const {
   setSelectedEncounterTemplateError,
   setSelectedEncounterTemplateLoading,
   upsertPartyGroupRecord,
+  upsertCampaignRecord,
   upsertEncounterTemplateRecord,
   upsertPartyMembership
 } = dmToolsSlice.actions;

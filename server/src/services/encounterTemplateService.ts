@@ -5,6 +5,8 @@ import {
   type EncounterTemplateCreatureRecord,
   type EncounterTemplateRecord
 } from "../models/EncounterTemplate.js";
+import type { UserRole } from "../types/auth.js";
+import { assertDmToolCreationLimit } from "./dmToolLimits.js";
 
 const ENCOUNTER_TEMPLATE_NAME_MIN_LENGTH = 2;
 const ENCOUNTER_TEMPLATE_NAME_MAX_LENGTH = 40;
@@ -13,6 +15,17 @@ export const ENCOUNTER_TEMPLATE_MAX_CREATURES = 20;
 type EncounterTemplateSource = EncounterTemplateRecord & {
   _id?: Types.ObjectId | { toString(): string };
   id?: string;
+};
+
+type EncounterTemplateListSource = {
+  _id?: Types.ObjectId | { toString(): string };
+  id?: string;
+  name: string;
+  ownerId: Types.ObjectId | { toString(): string } | string;
+  creatureCount?: number;
+  creatures?: EncounterTemplateCreatureRecord[];
+  createdAt?: Date | string | null;
+  updatedAt?: Date | string | null;
 };
 
 function isObjectRecord(value: unknown): value is Record<string, unknown> {
@@ -203,15 +216,12 @@ export function normalizeEncounterTemplateCreature(
   };
 }
 
-export function toEncounterTemplateListRecord(encounterTemplate: EncounterTemplateSource) {
-  const creatures = encounterTemplate.creatures ?? [];
-
+export function toEncounterTemplateListRecord(encounterTemplate: EncounterTemplateListSource) {
   return {
     id: getDocumentId(encounterTemplate),
     name: encounterTemplate.name,
     ownerId: encounterTemplate.ownerId.toString(),
-    creatureCount: creatures.length,
-    maxCreatures: ENCOUNTER_TEMPLATE_MAX_CREATURES,
+    creatureCount: encounterTemplate.creatureCount ?? encounterTemplate.creatures?.length ?? 0,
     createdAt: toIsoTimestamp(encounterTemplate.createdAt),
     updatedAt: toIsoTimestamp(encounterTemplate.updatedAt)
   };
@@ -220,15 +230,25 @@ export function toEncounterTemplateListRecord(encounterTemplate: EncounterTempla
 export function toEncounterTemplateDetailRecord(encounterTemplate: EncounterTemplateSource) {
   return {
     ...toEncounterTemplateListRecord(encounterTemplate),
+    maxCreatures: ENCOUNTER_TEMPLATE_MAX_CREATURES,
     creatures: encounterTemplate.creatures ?? []
   };
 }
 
 export async function listOwnedEncounterTemplates(ownerId: Types.ObjectId) {
-  const encounterTemplates = (await EncounterTemplate.find({ ownerId })
-    .sort({ updatedAt: -1 })
-    .lean()
-    .exec()) as EncounterTemplateSource[];
+  const encounterTemplates = (await EncounterTemplate.aggregate<EncounterTemplateListSource>([
+    { $match: { ownerId } },
+    { $sort: { updatedAt: -1 } },
+    {
+      $project: {
+        name: 1,
+        ownerId: 1,
+        creatureCount: { $size: { $ifNull: ["$creatures", []] } },
+        createdAt: 1,
+        updatedAt: 1
+      }
+    }
+  ]).exec()) as EncounterTemplateListSource[];
 
   return encounterTemplates.map(toEncounterTemplateListRecord);
 }
@@ -236,7 +256,16 @@ export async function listOwnedEncounterTemplates(ownerId: Types.ObjectId) {
 export async function createOwnedEncounterTemplate(options: {
   name: string;
   ownerId: Types.ObjectId;
+  ownerRole: UserRole;
 }) {
+  const currentCount = await EncounterTemplate.countDocuments({ ownerId: options.ownerId }).exec();
+
+  assertDmToolCreationLimit({
+    currentCount,
+    kind: "encounterTemplates",
+    role: options.ownerRole
+  });
+
   const encounterTemplate = await EncounterTemplate.create({
     name: normalizeEncounterTemplateName(options.name),
     ownerId: options.ownerId,

@@ -1,13 +1,12 @@
-import { ArrowLeft, Check, Copy, Link as LinkIcon, Pencil, RefreshCcw, Users, X } from "lucide-react";
+import { Check, Copy, Link as LinkIcon, RefreshCcw, Users, X } from "lucide-react";
 import { useEffect, useId, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   getPartyGroup,
   removePartyGroupCharacter,
   resetPartyGroupInviteToken,
   type PartyGroupMemberRecord
 } from "../../api/partyGroups";
-import ActionButton from "../../components/ActionButton";
 import { CharacterRowBase, CharacterRowIconButton } from "../../components/CharactersPage/CharacterRow";
 import { DestructiveConfirmationModal } from "../../components/Overlay";
 import {
@@ -19,6 +18,9 @@ import {
   useAppSelector
 } from "../../store";
 import { getDmToolsApiErrorMessage } from "./dmToolsApiErrors";
+import DmToolsBackButton from "./DmToolsBackButton";
+import DmToolsEditButton from "./DmToolsEditButton";
+import DmToolsEmptyState from "./DmToolsEmptyState";
 import EditPartyGroupModal from "./EditPartyGroupModal";
 import styles from "./DmToolsPage.module.css";
 
@@ -46,6 +48,7 @@ async function copyTextToClipboard(value: string) {
 
 function PartyGroupDetailPage() {
   const { partyGroupId = "" } = useParams();
+  const [searchParams] = useSearchParams();
   const kickTitleId = useId();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
@@ -63,6 +66,7 @@ function PartyGroupDetailPage() {
   const [isKickingMember, setIsKickingMember] = useState(false);
   const [pendingKickMember, setPendingKickMember] = useState<PartyGroupMemberRecord | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const returnToCampaignId = searchParams.get("returnToCampaign");
 
   useEffect(() => {
     let didCancel = false;
@@ -157,6 +161,18 @@ function PartyGroupDetailPage() {
 
   return (
     <section className={styles.page}>
+      <DmToolsBackButton
+        onClick={() =>
+          navigate(
+            returnToCampaignId
+              ? `/dm-tools/campaign-manager/${returnToCampaignId}`
+              : "/dm-tools?tab=party-manager"
+          )
+        }
+      >
+        {returnToCampaignId ? "Back to the Campaign Manager" : "Back to DM Tools"}
+      </DmToolsBackButton>
+
       <section className={styles.panel} aria-labelledby="party-group-title">
         <div className={styles.header}>
           <div>
@@ -168,38 +184,23 @@ function PartyGroupDetailPage() {
               {partyGroup?.name ?? "Party Group"}
             </h2>
           </div>
-          <div className={styles.headerActions}>
-            <ActionButton
-              icon={<ArrowLeft size={16} aria-hidden="true" />}
-              variant="OUTLINE"
-              fullWidth={false}
-              onClick={() => navigate("/dm-tools?tab=party-manager")}
-            >
-              Back
-            </ActionButton>
-            {partyGroup ? (
-              <ActionButton
-                icon={<Pencil size={16} aria-hidden="true" />}
-                variant="GHOST"
-                fullWidth={false}
-                onClick={() => setIsEditModalOpen(true)}
-              >
+          {partyGroup ? (
+            <div className={styles.headerActions}>
+              <DmToolsEditButton onClick={() => setIsEditModalOpen(true)}>
                 Edit
-              </ActionButton>
-            ) : null}
-          </div>
+              </DmToolsEditButton>
+            </div>
+          ) : null}
         </div>
 
         {authStatus !== "authenticated" ? (
-          <div className={styles.emptyState}>
-            <Users size={28} aria-hidden="true" />
-            <span>Sign in to view this party group.</span>
-          </div>
+          <DmToolsEmptyState icon={<Users size={18} aria-hidden="true" />}>
+            Sign in to view this party group.
+          </DmToolsEmptyState>
         ) : status === "loading" ? (
-          <div className={styles.emptyState}>
-            <Users size={28} aria-hidden="true" />
-            <span>Loading party group...</span>
-          </div>
+          <DmToolsEmptyState icon={<Users size={18} aria-hidden="true" />}>
+            Loading party group...
+          </DmToolsEmptyState>
         ) : error ? (
           <p className={styles.modalError}>{error}</p>
         ) : partyGroup ? (
@@ -287,10 +288,9 @@ function PartyGroupDetailPage() {
                   ))}
                 </div>
               ) : (
-                <div className={styles.emptyState}>
-                  <Users size={28} aria-hidden="true" />
-                  <span>No characters have joined yet.</span>
-                </div>
+                <DmToolsEmptyState icon={<Users size={18} aria-hidden="true" />}>
+                  No characters have joined yet.
+                </DmToolsEmptyState>
               )}
             </section>
 
