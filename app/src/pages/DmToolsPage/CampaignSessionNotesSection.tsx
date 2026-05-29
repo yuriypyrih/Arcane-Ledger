@@ -10,6 +10,7 @@ import {
 } from "../../api/campaigns";
 import ActionButton from "../../components/ActionButton";
 import { DestructiveConfirmationModal } from "../../components/Overlay";
+import { CAMPAIGN_MAX_SESSION_NOTES } from "../../constants/QUOTAS";
 import { patchSelectedCampaign, useAppDispatch } from "../../store";
 import CampaignSessionNoteDrawer from "./CampaignSessionNoteDrawer";
 import { getDmToolsApiErrorMessage } from "./dmToolsApiErrors";
@@ -37,7 +38,7 @@ function CampaignSessionNotesSection({ campaign }: CampaignSessionNotesSectionPr
   const [pendingDeleteNote, setPendingDeleteNote] = useState<CampaignSessionNoteRecord | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
-  const isAtSessionNoteLimit = campaign.sessionNotes.length >= campaign.maxSessionNotes;
+  const isAtSessionNoteLimit = campaign.sessionNotes.length >= CAMPAIGN_MAX_SESSION_NOTES;
   const selectedNoteIndex = selectedNoteId
     ? campaign.sessionNotes.findIndex((note) => note.id === selectedNoteId)
     : -1;
@@ -104,13 +105,17 @@ function CampaignSessionNotesSection({ campaign }: CampaignSessionNotesSectionPr
         </div>
         <div className={styles.headerActions}>
           <span className={styles.memberCount}>
-            {campaign.sessionNotes.length}/{campaign.maxSessionNotes} notes
+            {campaign.sessionNotes.length}/{CAMPAIGN_MAX_SESSION_NOTES} notes
           </span>
           <ActionButton
             icon={<Plus size={16} aria-hidden="true" />}
             disabled={isAtSessionNoteLimit}
             fullWidth={false}
-            title={isAtSessionNoteLimit ? "Campaigns can hold up to 100 session notes." : undefined}
+            title={
+              isAtSessionNoteLimit
+                ? `Campaigns can hold up to ${CAMPAIGN_MAX_SESSION_NOTES} session notes.`
+                : undefined
+            }
             onClick={() => {
               setActionError(null);
               setIsCreatingNote(true);
@@ -124,7 +129,7 @@ function CampaignSessionNotesSection({ campaign }: CampaignSessionNotesSectionPr
       {actionError ? <p className={styles.modalError}>{actionError}</p> : null}
 
       {campaign.sessionNotes.length > 0 ? (
-        <div className={styles.dmToolsList}>
+        <div className={`${styles.dmToolsList} ${styles.sessionNotesList}`}>
           {campaign.sessionNotes.map((note, index) => (
             <DmToolsListCard
               key={note.id}

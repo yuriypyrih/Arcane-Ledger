@@ -8,7 +8,7 @@ import { serializeAuthUser } from "../services/authUserService.js";
 import type { SupportFeedbackEnvelope } from "../types/support.js";
 
 const FEEDBACK_COOLDOWN_MS = 60 * 60 * 1000;
-const FEEDBACK_MAX_LENGTH = 4000;
+const FEEDBACK_MAX_LENGTH = 10000;
 const SUPPORT_EMAIL_TO = "arcane-ledger@hotmail.com";
 
 function isObjectRecord(value: unknown): value is Record<string, unknown> {

@@ -98,7 +98,7 @@ const encounterTemplateSchema = new Schema<EncounterTemplateRecord>(
       required: true,
       trim: true,
       minlength: 2,
-      maxlength: 40
+      maxlength: 128
     },
     ownerId: {
       type: Schema.Types.ObjectId,

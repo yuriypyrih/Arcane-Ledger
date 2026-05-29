@@ -12,18 +12,25 @@ import {
 import { EncounterTemplate, type EncounterTemplateCreatureRecord } from "../models/EncounterTemplate.js";
 import { PartyGroup, type PartyGroupRecord } from "../models/PartyGroup.js";
 import type { UserRole } from "../types/auth.js";
-import { assertDmToolCreationLimit } from "./dmToolLimits.js";
+import {
+  CAMPAIGN_MAX_PREPARED_ENCOUNTERS as CAMPAIGN_MAX_PREPARED_ENCOUNTERS_QUOTA,
+  CAMPAIGN_MAX_SESSION_NOTES as CAMPAIGN_MAX_SESSION_NOTES_QUOTA
+} from "../constants/QUOTAS.js";
+import { assertCreatedDmToolWithinLimit, assertDmToolCreationLimit } from "./dmToolLimits.js";
 import {
   ENCOUNTER_TEMPLATE_MAX_CREATURES,
+  assertEncounterCreatureListSize,
+  assertEncounterCreatureRecordSize,
+  assertEncounterInheritedCreatureEntrySize,
   normalizeEncounterTemplateCreature,
   normalizeEncounterTemplateName
 } from "./encounterTemplateService.js";
 
 const CAMPAIGN_NAME_MIN_LENGTH = 2;
-const CAMPAIGN_NAME_MAX_LENGTH = 40;
-export const CAMPAIGN_MAX_SESSION_NOTES = 100;
+const CAMPAIGN_NAME_MAX_LENGTH = 128;
+export const CAMPAIGN_MAX_SESSION_NOTES = CAMPAIGN_MAX_SESSION_NOTES_QUOTA;
 export const CAMPAIGN_SESSION_NOTE_DESCRIPTION_MAX_LENGTH = 10000;
-export const CAMPAIGN_MAX_PREPARED_ENCOUNTERS = 5;
+export const CAMPAIGN_MAX_PREPARED_ENCOUNTERS = CAMPAIGN_MAX_PREPARED_ENCOUNTERS_QUOTA;
 
 const DEFAULT_PLAYER_VISIBILITY_SETTINGS: PlayerVisibilitySettingsRecord = {
   showVitalityStatus: true,
@@ -260,10 +267,18 @@ function normalizeSelectedPartyId(value: unknown): Types.ObjectId | null {
 }
 
 function cloneEncounterCreature(creature: EncounterTemplateCreatureRecord) {
-  return {
+  const clonedCreature = {
     ...(JSON.parse(JSON.stringify(creature)) as EncounterTemplateCreatureRecord),
     visibilitySettings: null
   } satisfies CampaignPreparedEncounterCreatureRecord;
+
+  if (clonedCreature.inheritedCreatureEntry) {
+    assertEncounterInheritedCreatureEntrySize(clonedCreature.inheritedCreatureEntry);
+  }
+
+  assertEncounterCreatureRecordSize(clonedCreature);
+
+  return clonedCreature;
 }
 
 function normalizePreparedEncounterVisibilitySettings(value: unknown) {
@@ -460,7 +475,8 @@ export async function createOwnedCampaign(options: {
   ownerId: Types.ObjectId;
   ownerRole: UserRole;
 }) {
-  const currentCount = await Campaign.countDocuments({ ownerId: options.ownerId }).exec();
+  const countOwnedCampaigns = () => Campaign.countDocuments({ ownerId: options.ownerId }).exec();
+  const currentCount = await countOwnedCampaigns();
 
   assertDmToolCreationLimit({
     currentCount,
@@ -475,6 +491,29 @@ export async function createOwnedCampaign(options: {
     visibilitySettings: { ...DEFAULT_PLAYER_VISIBILITY_SETTINGS },
     selectedPartyId: null,
     preparedEncounters: []
+  });
+
+  await assertCreatedDmToolWithinLimit({
+    countDocuments: countOwnedCampaigns,
+    isCreatedWithinLimit: async (limit) => {
+      const retainedCampaigns = await Campaign.find({ ownerId: options.ownerId })
+        .sort({ createdAt: 1, _id: 1 })
+        .limit(limit)
+        .select("_id")
+        .lean()
+        .exec();
+
+      return retainedCampaigns.some(
+        (retainedCampaign) => retainedCampaign._id.toString() === campaign._id.toString()
+      );
+    },
+    kind: "campaigns",
+    removeCreated: () =>
+      Campaign.deleteOne({
+        _id: campaign._id,
+        ownerId: options.ownerId
+      }).exec(),
+    role: options.ownerRole
   });
 
   return toCampaignListRecord(campaign);
@@ -557,19 +596,44 @@ export async function createCampaignSessionNote(options: {
   ownerId: Types.ObjectId;
   sessionNote: unknown;
 }) {
-  const campaign = await findOwnedCampaignDocument(options);
-
-  if (campaign.sessionNotes.length >= CAMPAIGN_MAX_SESSION_NOTES) {
-    throw new AppError("Campaign session note limit reached.", 409, "CAMPAIGN_SESSION_NOTES_FULL", {
-      maxSessionNotes: CAMPAIGN_MAX_SESSION_NOTES
-    });
-  }
-
-  campaign.sessionNotes.push({
+  const campaignId = createCampaignOwnedObjectId(
+    options.campaignId,
+    "Campaign id is invalid.",
+    "INVALID_CAMPAIGN_ID"
+  );
+  const sessionNote = {
     id: createCampaignEntryId(),
     ...normalizeCampaignSessionNote(options.sessionNote)
-  });
-  await campaign.save();
+  };
+
+  const campaign = await Campaign.findOneAndUpdate(
+    {
+      _id: campaignId,
+      ownerId: options.ownerId,
+      [`sessionNotes.${CAMPAIGN_MAX_SESSION_NOTES - 1}`]: { $exists: false }
+    },
+    {
+      $push: {
+        sessionNotes: sessionNote
+      }
+    },
+    {
+      new: true,
+      runValidators: true
+    }
+  ).exec();
+
+  if (!campaign) {
+    const existingCampaign = await findOwnedCampaignDocument(options);
+
+    if (existingCampaign.sessionNotes.length >= CAMPAIGN_MAX_SESSION_NOTES) {
+      throw new AppError("Campaign session note limit reached.", 409, "CAMPAIGN_SESSION_NOTES_FULL", {
+        maxSessionNotes: CAMPAIGN_MAX_SESSION_NOTES
+      });
+    }
+
+    throw new AppError("Unable to create session note.", 409, "CAMPAIGN_UPDATE_CONFLICT");
+  }
 
   return toCampaignPatchEnvelope(campaign, {
     sessionNotes: toSessionNoteRecords(campaign.sessionNotes),
@@ -634,26 +698,51 @@ export async function createCampaignPreparedEncounter(options: {
   name: unknown;
   ownerId: Types.ObjectId;
 }) {
-  const campaign = await findOwnedCampaignDocument(options);
-
-  if (campaign.preparedEncounters.length >= CAMPAIGN_MAX_PREPARED_ENCOUNTERS) {
-    throw new AppError(
-      "Campaign prepared encounter limit reached.",
-      409,
-      "CAMPAIGN_PREPARED_ENCOUNTERS_FULL",
-      {
-        maxPreparedEncounters: CAMPAIGN_MAX_PREPARED_ENCOUNTERS
-      }
-    );
-  }
-
-  campaign.preparedEncounters.push({
+  const campaignId = createCampaignOwnedObjectId(
+    options.campaignId,
+    "Campaign id is invalid.",
+    "INVALID_CAMPAIGN_ID"
+  );
+  const preparedEncounter = {
     id: createCampaignEntryId(),
     name: normalizeEncounterTemplateName(options.name),
     visibilitySettings: null,
     creatures: []
-  });
-  await campaign.save();
+  };
+
+  const campaign = await Campaign.findOneAndUpdate(
+    {
+      _id: campaignId,
+      ownerId: options.ownerId,
+      [`preparedEncounters.${CAMPAIGN_MAX_PREPARED_ENCOUNTERS - 1}`]: { $exists: false }
+    },
+    {
+      $push: {
+        preparedEncounters: preparedEncounter
+      }
+    },
+    {
+      new: true,
+      runValidators: true
+    }
+  ).exec();
+
+  if (!campaign) {
+    const existingCampaign = await findOwnedCampaignDocument(options);
+
+    if (existingCampaign.preparedEncounters.length >= CAMPAIGN_MAX_PREPARED_ENCOUNTERS) {
+      throw new AppError(
+        "Campaign prepared encounter limit reached.",
+        409,
+        "CAMPAIGN_PREPARED_ENCOUNTERS_FULL",
+        {
+          maxPreparedEncounters: CAMPAIGN_MAX_PREPARED_ENCOUNTERS
+        }
+      );
+    }
+
+    throw new AppError("Unable to create prepared encounter.", 409, "CAMPAIGN_UPDATE_CONFLICT");
+  }
 
   return toCampaignPatchEnvelope(campaign, {
     preparedEncounters: campaign.preparedEncounters.map(toPreparedEncounterRecord),
@@ -666,19 +755,11 @@ export async function copyEncounterTemplateToCampaign(options: {
   encounterTemplateId: string;
   ownerId: Types.ObjectId;
 }) {
-  const campaign = await findOwnedCampaignDocument(options);
-
-  if (campaign.preparedEncounters.length >= CAMPAIGN_MAX_PREPARED_ENCOUNTERS) {
-    throw new AppError(
-      "Campaign prepared encounter limit reached.",
-      409,
-      "CAMPAIGN_PREPARED_ENCOUNTERS_FULL",
-      {
-        maxPreparedEncounters: CAMPAIGN_MAX_PREPARED_ENCOUNTERS
-      }
-    );
-  }
-
+  const campaignId = createCampaignOwnedObjectId(
+    options.campaignId,
+    "Campaign id is invalid.",
+    "INVALID_CAMPAIGN_ID"
+  );
   const encounterTemplateId = createCampaignOwnedObjectId(
     options.encounterTemplateId,
     "Encounter template id is invalid.",
@@ -695,13 +776,48 @@ export async function copyEncounterTemplateToCampaign(options: {
     throw new AppError("Encounter template was not found.", 404, "ENCOUNTER_TEMPLATE_NOT_FOUND");
   }
 
-  campaign.preparedEncounters.push({
+  const preparedEncounter = {
     id: createCampaignEntryId(),
     name: encounterTemplate.name,
     visibilitySettings: null,
     creatures: (encounterTemplate.creatures ?? []).map(cloneEncounterCreature)
-  });
-  await campaign.save();
+  };
+
+  assertEncounterCreatureListSize(preparedEncounter.creatures);
+
+  const campaign = await Campaign.findOneAndUpdate(
+    {
+      _id: campaignId,
+      ownerId: options.ownerId,
+      [`preparedEncounters.${CAMPAIGN_MAX_PREPARED_ENCOUNTERS - 1}`]: { $exists: false }
+    },
+    {
+      $push: {
+        preparedEncounters: preparedEncounter
+      }
+    },
+    {
+      new: true,
+      runValidators: true
+    }
+  ).exec();
+
+  if (!campaign) {
+    const existingCampaign = await findOwnedCampaignDocument(options);
+
+    if (existingCampaign.preparedEncounters.length >= CAMPAIGN_MAX_PREPARED_ENCOUNTERS) {
+      throw new AppError(
+        "Campaign prepared encounter limit reached.",
+        409,
+        "CAMPAIGN_PREPARED_ENCOUNTERS_FULL",
+        {
+          maxPreparedEncounters: CAMPAIGN_MAX_PREPARED_ENCOUNTERS
+        }
+      );
+    }
+
+    throw new AppError("Unable to import encounter template.", 409, "CAMPAIGN_UPDATE_CONFLICT");
+  }
 
   return toCampaignPatchEnvelope(campaign, {
     preparedEncounters: campaign.preparedEncounters.map(toPreparedEncounterRecord),
@@ -859,6 +975,12 @@ export async function upsertCampaignPreparedEncounterCreature(options: {
       visibilitySettings: null
     });
   }
+
+  const nextCreatureIndex = existingCreatureIndex >= 0 ? existingCreatureIndex : nextCreatures.length - 1;
+  const nextCreature = nextCreatures[nextCreatureIndex]!;
+
+  assertEncounterCreatureRecordSize(nextCreature);
+  assertEncounterCreatureListSize(nextCreatures);
 
   campaign.preparedEncounters[index] = {
     id: preparedEncounter.id,

@@ -11,6 +11,7 @@ import {
   type PlayerVisibilitySettings
 } from "../../api/campaigns";
 import type { EncounterTemplateCreatureRecord } from "../../api/encounterTemplates";
+import { ENCOUNTER_MAX_CREATURES } from "../../constants/QUOTAS";
 import {
   patchSelectedCampaign,
   setSelectedCampaign,
@@ -24,8 +25,6 @@ import { getDmToolsApiErrorMessage } from "./dmToolsApiErrors";
 import EncounterCreatureBuilder from "./EncounterCreatureBuilder";
 import PlayerVisibilitySettingsModal from "./PlayerVisibilitySettingsModal";
 
-const PREPARED_ENCOUNTER_MAX_CREATURES = 20;
-
 function toBuilderResource(preparedEncounter: CampaignPreparedEncounterRecord | null) {
   if (!preparedEncounter) {
     return null;
@@ -35,7 +34,7 @@ function toBuilderResource(preparedEncounter: CampaignPreparedEncounterRecord | 
     id: preparedEncounter.id,
     name: preparedEncounter.name,
     creatures: preparedEncounter.creatures,
-    maxCreatures: PREPARED_ENCOUNTER_MAX_CREATURES
+    maxCreatures: ENCOUNTER_MAX_CREATURES
   };
 }
 

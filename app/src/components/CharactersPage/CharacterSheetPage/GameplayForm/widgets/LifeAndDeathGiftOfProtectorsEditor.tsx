@@ -1,5 +1,6 @@
 import { Edit3, Save, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { DEFAULT_TEXTAREA_MAX_LENGTH } from "../../../../../constants/inputLimits";
 import {
   getWarlockGiftOfTheProtectorsBookOfShadowsTextForCharacter,
   setWarlockGiftOfTheProtectorsBookOfShadowsTextForCharacter
@@ -37,6 +38,7 @@ function LifeAndDeathGiftOfProtectorsEditor({
           className={styles.textarea}
           value={draftText}
           disabled={!isEditing}
+          maxLength={DEFAULT_TEXTAREA_MAX_LENGTH}
           placeholder="Names which Death cannot claim"
           onChange={(event) => setDraftText(event.target.value)}
         />

@@ -1,6 +1,7 @@
 import { Plus } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { SpellEntry } from "../../../../codex/entries";
+import { DEFAULT_TEXT_INPUT_MAX_LENGTH } from "../../../../constants/inputLimits";
 import {
   createWarlockPactTomeSelectionId,
   getWarlockPactTomeCantripOptions,
@@ -223,6 +224,7 @@ function EldritchInvocationPactTomeEditor({
             className={modalStyles.searchInput}
             type="search"
             value={searchText}
+            maxLength={DEFAULT_TEXT_INPUT_MAX_LENGTH}
             placeholder="Filter by spell or class"
             onChange={(event) => setSearchText(event.target.value)}
           />

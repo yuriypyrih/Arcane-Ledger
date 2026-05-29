@@ -1,4 +1,13 @@
 import type { UserRole } from "../../types/auth";
+import {
+  ADMIN_MAX_CAMPAIGNS,
+  ADMIN_MAX_CHARACTERS,
+  GUEST_MAX_CHARACTERS,
+  KEEPER_MAX_CAMPAIGNS,
+  KEEPER_MAX_CHARACTERS,
+  USER_MAX_CAMPAIGNS,
+  USER_MAX_CHARACTERS
+} from "../../constants/QUOTAS";
 
 export type AccountPrivilegeRole = "guest" | UserRole;
 
@@ -20,14 +29,18 @@ export type AccountPrivilegeRow = {
 
 export const accountPrivilegeRoles: AccountPrivilegeRole[] = ["guest", "user", "keeper", "admin"];
 
+function formatQuotaMultiplier(limit: number, baseLimit: number) {
+  return `${Math.floor(limit / baseLimit)}x`;
+}
+
 export const accountPrivilegeRows: AccountPrivilegeRow[] = [
   {
     feature: "Max Characters",
     values: {
-      guest: { kind: "text", value: "5" },
-      user: { kind: "text", value: "20" },
-      keeper: { kind: "text", value: "40" },
-      admin: { kind: "text", value: "40" }
+      guest: { kind: "text", value: String(GUEST_MAX_CHARACTERS) },
+      user: { kind: "text", value: String(USER_MAX_CHARACTERS) },
+      keeper: { kind: "text", value: String(KEEPER_MAX_CHARACTERS) },
+      admin: { kind: "text", value: String(ADMIN_MAX_CHARACTERS) }
     }
   },
   {
@@ -37,6 +50,21 @@ export const accountPrivilegeRows: AccountPrivilegeRow[] = [
       user: { kind: "text", value: "Cloud" },
       keeper: { kind: "text", value: "Cloud" },
       admin: { kind: "text", value: "Cloud" }
+    }
+  },
+  {
+    feature: "DM-Tools",
+    values: {
+      guest: { kind: "boolean", included: false },
+      user: { kind: "boolean", included: true },
+      keeper: {
+        kind: "text",
+        value: formatQuotaMultiplier(KEEPER_MAX_CAMPAIGNS, USER_MAX_CAMPAIGNS)
+      },
+      admin: {
+        kind: "text",
+        value: formatQuotaMultiplier(ADMIN_MAX_CAMPAIGNS, USER_MAX_CAMPAIGNS)
+      }
     }
   },
   {

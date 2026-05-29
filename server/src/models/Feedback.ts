@@ -28,7 +28,7 @@ const feedbackSchema = new Schema<FeedbackRecord>(
       type: String,
       required: true,
       trim: true,
-      maxlength: 4000
+      maxlength: 10000
     }
   },
   {

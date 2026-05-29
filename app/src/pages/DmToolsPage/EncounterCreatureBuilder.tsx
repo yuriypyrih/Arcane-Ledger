@@ -102,6 +102,9 @@ function EncounterCreatureBuilder({
       : null;
   const isCreatureEditorOpen = isCreatingCreature || editorCreature !== null;
   const isAtCreatureLimit = resource ? resource.creatures.length >= resource.maxCreatures : false;
+  const creatureLimitMessage = resource
+    ? `Encounters can hold up to ${resource.maxCreatures} creatures.`
+    : "Encounter creature limit reached.";
 
   useBodyScrollLock(
     isCreatureEditorOpen || selectedCreature !== null || pendingDeleteCreature !== null
@@ -124,7 +127,7 @@ function EncounterCreatureBuilder({
 
   function handleAddCreatureClick() {
     if (isAtCreatureLimit) {
-      setActionError("Encounters can hold up to 20 creatures.");
+      setActionError(creatureLimitMessage);
       return;
     }
 
@@ -153,7 +156,7 @@ function EncounterCreatureBuilder({
     }
 
     if (isAtCreatureLimit) {
-      setActionError("Encounters can hold up to 20 creatures.");
+      setActionError(creatureLimitMessage);
       return;
     }
 
@@ -255,7 +258,7 @@ function EncounterCreatureBuilder({
                     icon={<Plus size={16} aria-hidden="true" />}
                     disabled={isAtCreatureLimit}
                     fullWidth={false}
-                    title={isAtCreatureLimit ? "Encounters can hold up to 20 creatures." : undefined}
+                    title={isAtCreatureLimit ? creatureLimitMessage : undefined}
                     onClick={handleAddCreatureClick}
                   >
                     Add Creature
@@ -276,7 +279,7 @@ function EncounterCreatureBuilder({
                       }
                       duplicateTitle={
                         isAtCreatureLimit
-                          ? "Encounters can hold up to 20 creatures."
+                          ? creatureLimitMessage
                           : `Duplicate ${creature.name}`
                       }
                       predisposition="hostile"

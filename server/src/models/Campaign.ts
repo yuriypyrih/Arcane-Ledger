@@ -191,7 +191,7 @@ const campaignPreparedEncounterSchema = new Schema<CampaignPreparedEncounterReco
       required: true,
       trim: true,
       minlength: 2,
-      maxlength: 40
+      maxlength: 128
     },
     visibilitySettings: {
       type: campaignVisibilitySettingsSchema,
@@ -215,7 +215,7 @@ const campaignSchema = new Schema<CampaignRecord>(
       required: true,
       trim: true,
       minlength: 2,
-      maxlength: 40
+      maxlength: 128
     },
     ownerId: {
       type: Schema.Types.ObjectId,

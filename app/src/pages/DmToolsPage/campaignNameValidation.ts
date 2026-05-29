@@ -1,5 +1,7 @@
+import { DEFAULT_TEXT_INPUT_MAX_LENGTH } from "../../constants/inputLimits";
+
 export const CAMPAIGN_NAME_MIN_LENGTH = 2;
-export const CAMPAIGN_NAME_MAX_LENGTH = 40;
+export const CAMPAIGN_NAME_MAX_LENGTH = DEFAULT_TEXT_INPUT_MAX_LENGTH;
 
 export function getCampaignNameValidationMessage(value: string) {
   const name = value.trim();

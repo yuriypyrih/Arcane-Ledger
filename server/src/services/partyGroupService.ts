@@ -10,14 +10,15 @@ import {
 import { PartyGroup, type PartyGroupDocument, type PartyGroupRecord } from "../models/PartyGroup.js";
 import { User } from "../models/User.js";
 import type { UserRole } from "../types/auth.js";
-import { assertDmToolCreationLimit } from "./dmToolLimits.js";
+import { PARTY_GROUP_MAX_MEMBERS as PARTY_GROUP_MAX_MEMBERS_QUOTA } from "../constants/QUOTAS.js";
+import { assertCreatedDmToolWithinLimit, assertDmToolCreationLimit } from "./dmToolLimits.js";
 
 const PARTY_GROUP_INVITE_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 const PARTY_GROUP_INVITE_TOKEN_LENGTH = 12;
 const PARTY_GROUP_INVITE_CREATE_ATTEMPTS = 5;
 const PARTY_GROUP_NAME_MIN_LENGTH = 2;
-const PARTY_GROUP_NAME_MAX_LENGTH = 40;
-export const PARTY_GROUP_MAX_MEMBERS = 10;
+const PARTY_GROUP_NAME_MAX_LENGTH = 128;
+export const PARTY_GROUP_MAX_MEMBERS = PARTY_GROUP_MAX_MEMBERS_QUOTA;
 
 type PartyGroupSource = PartyGroupRecord & {
   _id?: Types.ObjectId | { toString(): string };
@@ -153,7 +154,10 @@ export function normalizePartyInviteToken(value: unknown) {
 
   const normalizedToken = token.trim().toUpperCase();
 
-  if (!/^[A-Z0-9]+$/.test(normalizedToken)) {
+  if (
+    normalizedToken.length !== PARTY_GROUP_INVITE_TOKEN_LENGTH ||
+    !/^[A-Z0-9]+$/.test(normalizedToken)
+  ) {
     throw new AppError(
       "Party invite link must use capital letters and numbers.",
       400,
@@ -246,7 +250,8 @@ export async function createOwnedPartyGroup(options: {
   ownerRole: UserRole;
 }) {
   const name = normalizePartyGroupName(options.name);
-  const currentCount = await PartyGroup.countDocuments({ ownerId: options.ownerId }).exec();
+  const countOwnedPartyGroups = () => PartyGroup.countDocuments({ ownerId: options.ownerId }).exec();
+  const currentCount = await countOwnedPartyGroups();
 
   assertDmToolCreationLimit({
     currentCount,
@@ -264,6 +269,29 @@ export async function createOwnedPartyGroup(options: {
         adminUserIds: [options.ownerId],
         inviteToken,
         characterIds: []
+      });
+
+      await assertCreatedDmToolWithinLimit({
+        countDocuments: countOwnedPartyGroups,
+        isCreatedWithinLimit: async (limit) => {
+          const retainedPartyGroups = await PartyGroup.find({ ownerId: options.ownerId })
+            .sort({ createdAt: 1, _id: 1 })
+            .limit(limit)
+            .select("_id")
+            .lean()
+            .exec();
+
+          return retainedPartyGroups.some(
+            (retainedPartyGroup) => retainedPartyGroup._id.toString() === partyGroup._id.toString()
+          );
+        },
+        kind: "partyGroups",
+        removeCreated: () =>
+          PartyGroup.deleteOne({
+            _id: partyGroup._id,
+            ownerId: options.ownerId
+          }).exec(),
+        role: options.ownerRole
       });
 
       return toPartyGroupListRecord(partyGroup);
@@ -464,27 +492,87 @@ export async function joinPartyGroup(options: {
     );
   }
 
-  if (partyGroup.characterIds.length >= PARTY_GROUP_MAX_MEMBERS) {
-    throw new AppError("Party group is full.", 409, "PARTY_GROUP_FULL", {
-      maxMembers: PARTY_GROUP_MAX_MEMBERS
-    });
+  const claimedCharacter = await CharacterSheet.findOneAndUpdate(
+    {
+      _id: character._id,
+      ownerId: options.ownerId,
+      deletedAt: null,
+      $or: [{ partyGroupId: null }, { partyGroupId: { $exists: false } }]
+    },
+    {
+      $set: {
+        partyGroupId: partyGroup._id
+      }
+    },
+    {
+      new: true
+    }
+  ).exec();
+
+  if (!claimedCharacter) {
+    const currentCharacter = await CharacterSheet.findOne({
+      _id: character._id,
+      ownerId: options.ownerId,
+      deletedAt: null
+    }).exec();
+
+    if (currentCharacter?.partyGroupId?.toString() === partyGroup.id) {
+      throw new AppError("Character is already in this party.", 409, "CHARACTER_ALREADY_IN_PARTY");
+    }
+
+    throw new AppError(
+      "Character already belongs to another party.",
+      409,
+      "CHARACTER_ALREADY_IN_PARTY"
+    );
   }
 
-  character.partyGroupId = partyGroup._id;
+  const updatedPartyGroup = await PartyGroup.findOneAndUpdate(
+    {
+      _id: partyGroup._id,
+      [`characterIds.${PARTY_GROUP_MAX_MEMBERS - 1}`]: { $exists: false },
+      characterIds: { $ne: character._id }
+    },
+    {
+      $addToSet: {
+        characterIds: character._id
+      }
+    },
+    {
+      new: true
+    }
+  ).exec();
 
-  if (!partyGroup.characterIds.some((characterId) => characterId.equals(character._id))) {
-    partyGroup.characterIds.push(character._id);
+  if (!updatedPartyGroup) {
+    await CharacterSheet.updateOne(
+      {
+        _id: character._id,
+        partyGroupId: partyGroup._id
+      },
+      {
+        $set: {
+          partyGroupId: null
+        }
+      }
+    ).exec();
+
+    const currentPartyGroup = await PartyGroup.findById(partyGroup._id).lean().exec();
+
+    if ((currentPartyGroup?.characterIds?.length ?? 0) >= PARTY_GROUP_MAX_MEMBERS) {
+      throw new AppError("Party group is full.", 409, "PARTY_GROUP_FULL", {
+        maxMembers: PARTY_GROUP_MAX_MEMBERS
+      });
+    }
+
+    throw new AppError("Unable to join party group.", 409, "PARTY_GROUP_JOIN_CONFLICT");
   }
-
-  await character.save();
-  await partyGroup.save();
 
   return {
-    partyGroup: toPartyGroupListRecord(partyGroup as PartyGroupDocument),
+    partyGroup: toPartyGroupListRecord(updatedPartyGroup as PartyGroupDocument),
     membership: {
-      characterId: character.id,
-      partyGroupId: partyGroup.id,
-      partyGroupName: partyGroup.name
+      characterId: claimedCharacter.id,
+      partyGroupId: updatedPartyGroup.id,
+      partyGroupName: updatedPartyGroup.name
     }
   };
 }

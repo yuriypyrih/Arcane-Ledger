@@ -5,13 +5,14 @@ import { submitSupportFeedback } from "../../api/support";
 import { ApiRequestFailedError } from "../../api/client";
 import ActionButton from "../../components/ActionButton";
 import TextAreaInput from "../../components/CharactersPage/FormInputs/TextAreaInput";
+import { DEFAULT_TEXTAREA_MAX_LENGTH } from "../../constants/inputLimits";
 import { trackAnalyticsEvent } from "../../lib/analytics";
 import { setAuthenticatedUser, showToast, useAppDispatch, useAppSelector } from "../../store";
 import { getApiErrorMessage } from "./authPageUtils";
 import styles from "./AuthPages.module.css";
 
 const FEEDBACK_COOLDOWN_MS = 60 * 60 * 1000;
-const FEEDBACK_MAX_LENGTH = 4000;
+const FEEDBACK_MAX_LENGTH = DEFAULT_TEXTAREA_MAX_LENGTH;
 
 function getRetryAt(lastFeedback: string | null): Date | null {
   if (!lastFeedback) {

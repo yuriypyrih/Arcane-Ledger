@@ -1,6 +1,7 @@
 import { Upload } from "lucide-react";
 import { useId, useState } from "react";
 import type { FormEvent } from "react";
+import { DEFAULT_TEXT_INPUT_MAX_LENGTH } from "../../../constants/inputLimits";
 import ActionButton from "../../ActionButton";
 import {
   OverlayBody,
@@ -67,6 +68,7 @@ function CharacterImportModal({ onClose, onImportLink }: CharacterImportModalPro
             <input
               className={styles.linkInput}
               value={link}
+              maxLength={DEFAULT_TEXT_INPUT_MAX_LENGTH}
               autoCapitalize="characters"
               autoComplete="off"
               spellCheck={false}

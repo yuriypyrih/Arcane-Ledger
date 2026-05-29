@@ -9,6 +9,7 @@ import {
 } from "../../api/partyGroups";
 import { CharacterRowBase, CharacterRowIconButton } from "../../components/CharactersPage/CharacterRow";
 import { DestructiveConfirmationModal } from "../../components/Overlay";
+import { PARTY_GROUP_MAX_MEMBERS } from "../../constants/QUOTAS";
 import {
   removePartyMembership,
   setSelectedPartyGroup,
@@ -259,7 +260,7 @@ function PartyGroupDetailPage() {
                   </h3>
                 </div>
                 <span className={styles.memberCount}>
-                  {partyGroup.memberCount}/{partyGroup.maxMembers} members
+                  {partyGroup.memberCount}/{PARTY_GROUP_MAX_MEMBERS} members
                 </span>
               </div>
 

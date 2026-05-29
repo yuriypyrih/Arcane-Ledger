@@ -9,6 +9,10 @@ import {
 } from "../../api/campaigns";
 import ActionButton from "../../components/ActionButton";
 import { DestructiveConfirmationModal } from "../../components/Overlay";
+import {
+  CAMPAIGN_MAX_PREPARED_ENCOUNTERS,
+  ENCOUNTER_MAX_CREATURES
+} from "../../constants/QUOTAS";
 import { patchSelectedCampaign, useAppDispatch } from "../../store";
 import CampaignCopyEncounterTemplateModal from "./CampaignCopyEncounterTemplateModal";
 import CampaignPreparedEncounterModal from "./CampaignPreparedEncounterModal";
@@ -16,8 +20,6 @@ import { getDmToolsApiErrorMessage } from "./dmToolsApiErrors";
 import DmToolsEmptyState from "./DmToolsEmptyState";
 import DmToolsListCard from "./DmToolsListCard";
 import styles from "./DmToolsPage.module.css";
-
-const PREPARED_ENCOUNTER_MAX_CREATURES = 20;
 
 type CampaignPreparedEncountersSectionProps = {
   campaign: CampaignDetailRecord;
@@ -42,7 +44,8 @@ function CampaignPreparedEncountersSection({ campaign }: CampaignPreparedEncount
   const [isDeletingEncounter, setIsDeletingEncounter] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const isAtPreparedEncounterLimit =
-    campaign.preparedEncounters.length >= campaign.maxPreparedEncounters;
+    campaign.preparedEncounters.length >= CAMPAIGN_MAX_PREPARED_ENCOUNTERS;
+  const preparedEncounterLimitMessage = `Campaigns can hold up to ${CAMPAIGN_MAX_PREPARED_ENCOUNTERS} prepared encounters.`;
 
   async function handleCreatePreparedEncounter(name: string) {
     const campaignPatch = await createCampaignPreparedEncounter(campaign.id, name, {
@@ -89,16 +92,14 @@ function CampaignPreparedEncountersSection({ campaign }: CampaignPreparedEncount
         </div>
         <div className={styles.headerActions}>
           <span className={styles.memberCount}>
-            {campaign.preparedEncounters.length}/{campaign.maxPreparedEncounters} encounters
+            {campaign.preparedEncounters.length}/{CAMPAIGN_MAX_PREPARED_ENCOUNTERS} encounters
           </span>
           <ActionButton
             icon={<Plus size={16} aria-hidden="true" />}
             disabled={isAtPreparedEncounterLimit}
             fullWidth={false}
             title={
-              isAtPreparedEncounterLimit
-                ? "Campaigns can hold up to 5 prepared encounters."
-                : undefined
+              isAtPreparedEncounterLimit ? preparedEncounterLimitMessage : undefined
             }
             onClick={() => {
               setActionError(null);
@@ -113,9 +114,7 @@ function CampaignPreparedEncountersSection({ campaign }: CampaignPreparedEncount
             disabled={isAtPreparedEncounterLimit}
             fullWidth={false}
             title={
-              isAtPreparedEncounterLimit
-                ? "Campaigns can hold up to 5 prepared encounters."
-                : undefined
+              isAtPreparedEncounterLimit ? preparedEncounterLimitMessage : undefined
             }
             onClick={() => {
               setActionError(null);
@@ -136,7 +135,7 @@ function CampaignPreparedEncountersSection({ campaign }: CampaignPreparedEncount
               key={encounter.id}
               icon={<Swords size={18} aria-hidden="true" />}
               title={encounter.name}
-              meta={`${encounter.creatures.length}/${PREPARED_ENCOUNTER_MAX_CREATURES} creatures`}
+              meta={`${encounter.creatures.length}/${ENCOUNTER_MAX_CREATURES} creatures`}
               onClick={() =>
                 navigate(`/dm-tools/campaign-manager/${campaign.id}/encounters/${encounter.id}`)
               }

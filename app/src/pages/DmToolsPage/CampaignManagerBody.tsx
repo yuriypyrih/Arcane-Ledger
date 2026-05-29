@@ -119,15 +119,22 @@ function CampaignManagerBody({ panelId, tabId }: CampaignManagerBodyProps) {
           </div>
           <h3 className={styles.bodyTitle}>Campaigns</h3>
         </div>
-        <ActionButton
-          icon={<Plus size={16} aria-hidden="true" />}
-          disabled={isAtCampaignLimit}
-          fullWidth={false}
-          title={isAtCampaignLimit ? `You can create up to ${campaignLimit} campaigns.` : undefined}
-          onClick={handleCreateClick}
-        >
-          Create Campaign
-        </ActionButton>
+        <div className={styles.headerActions}>
+          {isAuthenticated ? (
+            <span className={styles.memberCount}>
+              {campaigns.length}/{campaignLimit} campaigns
+            </span>
+          ) : null}
+          <ActionButton
+            icon={<Plus size={16} aria-hidden="true" />}
+            disabled={isAtCampaignLimit}
+            fullWidth={false}
+            title={isAtCampaignLimit ? `You can create up to ${campaignLimit} campaigns.` : undefined}
+            onClick={handleCreateClick}
+          >
+            Create Campaign
+          </ActionButton>
+        </div>
       </div>
 
       {campaignsStatus === "loading" ? (

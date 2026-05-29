@@ -120,19 +120,26 @@ function EncounterTemplatesBody({ panelId, tabId }: EncounterTemplatesBodyProps)
           <p className={styles.bodyEyebrow}>Encounter Templates</p>
           <h3 className={styles.bodyTitle}>Templates</h3>
         </div>
-        <ActionButton
-          icon={<Plus size={16} aria-hidden="true" />}
-          disabled={isAtEncounterTemplateLimit}
-          fullWidth={false}
-          title={
-            isAtEncounterTemplateLimit
-              ? `You can create up to ${encounterTemplateLimit} encounter templates.`
-              : undefined
-          }
-          onClick={handleCreateClick}
-        >
-          Create Encounter Template
-        </ActionButton>
+        <div className={styles.headerActions}>
+          {isAuthenticated ? (
+            <span className={styles.memberCount}>
+              {encounterTemplates.length}/{encounterTemplateLimit} templates
+            </span>
+          ) : null}
+          <ActionButton
+            icon={<Plus size={16} aria-hidden="true" />}
+            disabled={isAtEncounterTemplateLimit}
+            fullWidth={false}
+            title={
+              isAtEncounterTemplateLimit
+                ? `You can create up to ${encounterTemplateLimit} encounter templates.`
+                : undefined
+            }
+            onClick={handleCreateClick}
+          >
+            Create Encounter Template
+          </ActionButton>
+        </div>
       </div>
 
       {encounterTemplatesStatus === "loading" ? (

@@ -6,11 +6,17 @@ import {
   type EncounterTemplateRecord
 } from "../models/EncounterTemplate.js";
 import type { UserRole } from "../types/auth.js";
-import { assertDmToolCreationLimit } from "./dmToolLimits.js";
+import {
+  ENCOUNTER_CREATURE_LIST_MAX_BYTES,
+  ENCOUNTER_CREATURE_RECORD_MAX_BYTES,
+  ENCOUNTER_INHERITED_CREATURE_ENTRY_MAX_BYTES,
+  ENCOUNTER_MAX_CREATURES
+} from "../constants/QUOTAS.js";
+import { assertCreatedDmToolWithinLimit, assertDmToolCreationLimit } from "./dmToolLimits.js";
 
 const ENCOUNTER_TEMPLATE_NAME_MIN_LENGTH = 2;
-const ENCOUNTER_TEMPLATE_NAME_MAX_LENGTH = 40;
-export const ENCOUNTER_TEMPLATE_MAX_CREATURES = 20;
+const ENCOUNTER_TEMPLATE_NAME_MAX_LENGTH = 128;
+export const ENCOUNTER_TEMPLATE_MAX_CREATURES = ENCOUNTER_MAX_CREATURES;
 
 type EncounterTemplateSource = EncounterTemplateRecord & {
   _id?: Types.ObjectId | { toString(): string };
@@ -103,7 +109,56 @@ function normalizeOptionalObject(value: unknown, fieldName: string) {
   return value;
 }
 
-function normalizePrimalBeastKind(value: unknown) {
+function getSerializedSizeBytes(value: unknown) {
+  return Buffer.byteLength(JSON.stringify(value), "utf8");
+}
+
+function assertSerializedSize(options: {
+  code: string;
+  maxBytes: number;
+  message: string;
+  value: unknown;
+}) {
+  const sizeBytes = getSerializedSizeBytes(options.value);
+
+  if (sizeBytes <= options.maxBytes) {
+    return;
+  }
+
+  throw new AppError(options.message, 413, options.code, {
+    maxBytes: options.maxBytes,
+    sizeBytes
+  });
+}
+
+export function assertEncounterCreatureRecordSize(creature: unknown) {
+  assertSerializedSize({
+    code: "ENCOUNTER_CREATURE_TOO_LARGE",
+    maxBytes: ENCOUNTER_CREATURE_RECORD_MAX_BYTES,
+    message: "Encounter creature is too large. Keep each creature under 60 KB.",
+    value: creature
+  });
+}
+
+export function assertEncounterInheritedCreatureEntrySize(inheritedCreatureEntry: unknown) {
+  assertSerializedSize({
+    code: "INHERITED_CREATURE_ENTRY_TOO_LARGE",
+    maxBytes: ENCOUNTER_INHERITED_CREATURE_ENTRY_MAX_BYTES,
+    message: "Inherited creature entry is too large. Keep imported stat blocks under 40 KB.",
+    value: inheritedCreatureEntry
+  });
+}
+
+export function assertEncounterCreatureListSize(creatures: readonly unknown[]) {
+  assertSerializedSize({
+    code: "ENCOUNTER_CREATURE_LIST_TOO_LARGE",
+    maxBytes: ENCOUNTER_CREATURE_LIST_MAX_BYTES,
+    message: "Encounter creature list is too large. Keep each encounter under 1 MB.",
+    value: creatures
+  });
+}
+
+function normalizePrimalBeastKind(value: unknown): EncounterTemplateCreatureRecord["primalBeastKind"] {
   if (value === undefined || value === null || value === "") {
     return undefined;
   }
@@ -197,7 +252,11 @@ export function normalizeEncounterTemplateCreature(
     });
   }
 
-  return {
+  if (inheritedCreatureEntry) {
+    assertEncounterInheritedCreatureEntrySize(inheritedCreatureEntry);
+  }
+
+  const creature = {
     id,
     name,
     description: normalizeText(value.description, "description"),
@@ -214,6 +273,10 @@ export function normalizeEncounterTemplateCreature(
       ? { inheritedCreatureEntryModified: true }
       : {})
   };
+
+  assertEncounterCreatureRecordSize(creature);
+
+  return creature;
 }
 
 export function toEncounterTemplateListRecord(encounterTemplate: EncounterTemplateListSource) {
@@ -258,7 +321,9 @@ export async function createOwnedEncounterTemplate(options: {
   ownerId: Types.ObjectId;
   ownerRole: UserRole;
 }) {
-  const currentCount = await EncounterTemplate.countDocuments({ ownerId: options.ownerId }).exec();
+  const countOwnedEncounterTemplates = () =>
+    EncounterTemplate.countDocuments({ ownerId: options.ownerId }).exec();
+  const currentCount = await countOwnedEncounterTemplates();
 
   assertDmToolCreationLimit({
     currentCount,
@@ -270,6 +335,30 @@ export async function createOwnedEncounterTemplate(options: {
     name: normalizeEncounterTemplateName(options.name),
     ownerId: options.ownerId,
     creatures: []
+  });
+
+  await assertCreatedDmToolWithinLimit({
+    countDocuments: countOwnedEncounterTemplates,
+    isCreatedWithinLimit: async (limit) => {
+      const retainedEncounterTemplates = await EncounterTemplate.find({ ownerId: options.ownerId })
+        .sort({ createdAt: 1, _id: 1 })
+        .limit(limit)
+        .select("_id")
+        .lean()
+        .exec();
+
+      return retainedEncounterTemplates.some(
+        (retainedEncounterTemplate) =>
+          retainedEncounterTemplate._id.toString() === encounterTemplate._id.toString()
+      );
+    },
+    kind: "encounterTemplates",
+    removeCreated: () =>
+      EncounterTemplate.deleteOne({
+        _id: encounterTemplate._id,
+        ownerId: options.ownerId
+      }).exec(),
+    role: options.ownerRole
   });
 
   return toEncounterTemplateListRecord(encounterTemplate);
@@ -323,6 +412,8 @@ export async function upsertEncounterTemplateCreature(options: {
   } else {
     encounterTemplate.creatures.push(creature);
   }
+
+  assertEncounterCreatureListSize(encounterTemplate.creatures);
 
   await encounterTemplate.save();
 

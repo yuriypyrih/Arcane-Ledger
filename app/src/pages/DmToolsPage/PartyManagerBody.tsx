@@ -115,19 +115,26 @@ function PartyManagerBody({ panelId, tabId }: PartyManagerBodyProps) {
           <p className={styles.bodyEyebrow}>Party Manager</p>
           <h3 className={styles.bodyTitle}>Party Groups</h3>
         </div>
-        <ActionButton
-          icon={<Plus size={16} aria-hidden="true" />}
-          disabled={isAtPartyGroupLimit}
-          fullWidth={false}
-          title={
-            isAtPartyGroupLimit
-              ? `You can create up to ${partyGroupLimit} party groups.`
-              : undefined
-          }
-          onClick={handleCreateClick}
-        >
-          Create Party Group
-        </ActionButton>
+        <div className={styles.headerActions}>
+          {isAuthenticated ? (
+            <span className={styles.memberCount}>
+              {partyGroups.length}/{partyGroupLimit} party groups
+            </span>
+          ) : null}
+          <ActionButton
+            icon={<Plus size={16} aria-hidden="true" />}
+            disabled={isAtPartyGroupLimit}
+            fullWidth={false}
+            title={
+              isAtPartyGroupLimit
+                ? `You can create up to ${partyGroupLimit} party groups.`
+                : undefined
+            }
+            onClick={handleCreateClick}
+          >
+            Create Party Group
+          </ActionButton>
+        </div>
       </div>
 
       {partyGroupsStatus === "loading" ? (

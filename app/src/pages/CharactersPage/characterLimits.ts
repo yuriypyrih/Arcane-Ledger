@@ -1,16 +1,26 @@
 import type { AuthStatus, UserRole } from "../../types/auth";
+import {
+  ADMIN_MAX_CHARACTERS,
+  GUEST_MAX_CHARACTERS,
+  KEEPER_MAX_CHARACTERS,
+  USER_MAX_CHARACTERS
+} from "../../constants/QUOTAS";
 
-export const GUEST_CHARACTER_LIMIT = 5;
-export const USER_CHARACTER_LIMIT = 20;
-export const ELEVATED_CHARACTER_LIMIT = 40;
+export const GUEST_CHARACTER_LIMIT = GUEST_MAX_CHARACTERS;
+export const USER_CHARACTER_LIMIT = USER_MAX_CHARACTERS;
+export const ELEVATED_CHARACTER_LIMIT = KEEPER_MAX_CHARACTERS;
 export const CHARACTER_COMPANION_LIMIT = 10;
 
 export function getCharacterLimitForRole(role: UserRole | null | undefined): number {
-  if (role === "keeper" || role === "admin") {
-    return ELEVATED_CHARACTER_LIMIT;
+  if (role === "keeper") {
+    return KEEPER_MAX_CHARACTERS;
   }
 
-  return role === "user" ? USER_CHARACTER_LIMIT : GUEST_CHARACTER_LIMIT;
+  if (role === "admin") {
+    return ADMIN_MAX_CHARACTERS;
+  }
+
+  return role === "user" ? USER_MAX_CHARACTERS : GUEST_MAX_CHARACTERS;
 }
 
 export function getCharacterLimitForAuth(
