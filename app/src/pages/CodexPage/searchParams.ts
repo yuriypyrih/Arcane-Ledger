@@ -282,6 +282,14 @@ export function clearCategoryScopedSearchParams(
   return searchParams;
 }
 
+export function clearAllCategoryScopedSearchParams(searchParams: URLSearchParams): URLSearchParams {
+  clearSpellSearchParams(searchParams);
+  clearMonsterSearchParams(searchParams);
+  clearItemSearchParams(searchParams);
+  clearFeatSearchParams(searchParams);
+  return searchParams;
+}
+
 export function hasCategoryScopedSearchParams(searchParams: URLSearchParams): boolean {
   return (
     searchParams.has(SPELL_LEVEL_PARAM) ||

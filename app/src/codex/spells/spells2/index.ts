@@ -87,7 +87,7 @@ export const aid: SpellEntry = {
   ],
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.PALADIN, SPELL_LIST_CLASS.RANGER],
+  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.PALADIN, SPELL_LIST_CLASS.RANGER],
   spellLevel: 2
 };
 
@@ -132,7 +132,7 @@ export const alterSelf: SpellEntry = {
     [1, [DAMAGE_TYPE.BLUDGEONING, DAMAGE_TYPE.PIERCING, DAMAGE_TYPE.SLASHING]]
   ],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 2
 };
 
@@ -198,7 +198,29 @@ export const arcaneLock: SpellEntry = {
   ],
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.WIZARD],
+  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.WIZARD],
+  spellLevel: 2
+};
+
+export const arcaneVigor: SpellEntry = {
+  id: "spell-arcane-vigor",
+  name: "Arcane Vigor",
+  category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "phb-2024", documentName: "Player's Handbook", ruleset: "5e-2024", publisherKey: "wizards-of-the-coast" },
+  trackingState: TRACKER.NOT_TRACKED,
+  magicSchool: MAGIC_SCHOOL.ABJURATION,
+  castingTime: [ACTION_TYPE.BONUS_ACTION],
+  range: "Self",
+  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
+  duration: ["Instantaneous"],
+  description: [
+    "You tap into your life force to heal yourself. Roll one or two of your unexpended Hit Point Dice, and regain a number of Hit Points equal to the roll's total plus your spellcasting ability modifier. Those dice are then expended.",
+    "<strong>Using a Higher-Level Spell Slot.</strong> The number of unexpended Hit Dice you can roll increases by one for each spell slot level above 2."
+  ],
+  isHealingSpell: true,
+  damage: [],
+  healing: { label: "1-2 Hit Dice + MOD" },
+  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 2
 };
 
@@ -324,7 +346,7 @@ export const blur: SpellEntry = {
   isAttackSpell: true,
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 2
 };
 
@@ -413,7 +435,7 @@ export const continualFlame: SpellEntry = {
   ],
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 2
 };
 
@@ -504,7 +526,7 @@ export const darkvision: SpellEntry = {
   ],
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.RANGER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.RANGER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 2
 };
 
@@ -577,7 +599,7 @@ export const dragonsBreath: SpellEntry = {
     [DICE.D6, [DAMAGE_TYPE.ACID, DAMAGE_TYPE.COLD, DAMAGE_TYPE.FIRE, DAMAGE_TYPE.LIGHTNING, DAMAGE_TYPE.POISON]]
   ],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 2
 };
 
@@ -648,7 +670,7 @@ export const enhanceAbility: SpellEntry = {
   ],
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.RANGER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.RANGER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 2
 };
 
@@ -675,7 +697,7 @@ export const enlargeReduce: SpellEntry = {
     [DICE.D4, [DAMAGE_TYPE.BLUDGEONING, DAMAGE_TYPE.PIERCING, DAMAGE_TYPE.SLASHING]]
   ],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 2
 };
 
@@ -975,7 +997,7 @@ export const heatMetal: SpellEntry = {
     [DICE.D8, DAMAGE_TYPE.FIRE]
   ],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.DRUID],
+  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.DRUID],
   spellLevel: 2
 };
 
@@ -1000,6 +1022,47 @@ export const holdPerson: SpellEntry = {
   healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 2
+};
+
+export const homunculusServant: SpellEntry = {
+  id: "spell-homunculus-servant",
+  name: "Homunculus Servant",
+  category: ENTRY_CATEGORIES.SPELLS,
+  source: { documentKey: "eberron-forge-of-the-artificer", documentName: "Eberron - Forge of the Artificer", ruleset: "5e-2024", publisherKey: "wizards-of-the-coast" },
+  trackingState: TRACKER.NOT_TRACKED,
+  magicSchool: MAGIC_SCHOOL.CONJURATION,
+  castingTime: [ACTION_TYPE.HOUR],
+  range: "10 feet",
+  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  duration: ["Instantaneous"],
+  description: [
+    "You summon a special homunculus in an unoccupied space within range. This creature uses the Homunculus Servant stat block. If you already have a homunculus from this spell, the homunculus is replaced by the new one. You determine the homunculus's appearance, such as a mechanical-looking bird, winged vials, or miniature animate cauldrons.",
+    "<strong>Material Component.</strong> A gem worth 100+ GP.",
+    "<strong>Combat.</strong> The homunculus is an ally to you and your allies. In combat, it shares your Initiative count, but it takes its turn immediately after yours. It obeys your commands, no action required by you. If you don't issue any, it takes the Dodge action and uses its movement to avoid danger.",
+    "<strong>Using a Higher-Level Spell Slot.</strong> Use the spell slot's level for the spell's level in the stat block.",
+    "<strong>Homunculus Servant.</strong> Tiny Construct, Neutral.",
+    "<strong>Armor Class.</strong> 13.",
+    "<strong>Hit Points.</strong> 5 + 5 per spell level. The homunculus has a number of Hit Dice, d4s, equal to the spell's level.",
+    "<strong>Speed.</strong> 20 ft., Fly 30 ft.",
+    "<strong>Abilities.</strong> STR 4 (-3), DEX 15 (+2), CON 12 (+1), INT 10 (+0), WIS 10 (+0), CHA 7 (-2).",
+    "<strong>Immunities.</strong> Poison; Exhaustion, Poisoned.",
+    "<strong>Senses.</strong> Darkvision 60 ft.; Passive Perception 10.",
+    "<strong>Languages.</strong> Telepathy 1 mile, works only with you.",
+    "<strong>Challenge Rating.</strong> None (XP 0; PB equals your Proficiency Bonus).",
+    "<strong>Evasion.</strong> If the homunculus is subjected to an effect that allows it to make a Dexterity saving throw to take only half damage, the homunculus instead takes no damage if it succeeds on the save and only half damage if it fails. It can't use this trait if it has the Incapacitated condition.",
+    "<strong>Magic Bond.</strong> Add the spell level to any ability check or saving throw the homunculus makes.",
+    "<strong>Force Strike.</strong> Melee or Ranged Attack Roll: Bonus equals your spell attack modifier, reach 5 ft. or range 30 ft. Hit: <strong>1d6</strong> plus the spell's level of Force damage.",
+    "<strong>Channel Magic.</strong> Trigger: You cast a spell that has a range of touch while the homunculus is within 120 feet of you. Response: The homunculus delivers the spell through its touch."
+  ],
+  isAttackSpell: true,
+  isDamagingSpell: true,
+  damage: [
+    [DICE.D6, DAMAGE_TYPE.FORCE]
+  ],
+  healing: [],
+  spellLists: [SPELL_LIST_CLASS.ARTIFICER],
+  spellLevel: 2,
+  ritual: true
 };
 
 export const icingdeathsFrost: SpellEntry = {
@@ -1070,7 +1133,7 @@ export const invisibility: SpellEntry = {
   isAttackSpell: true,
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 2
 };
 
@@ -1158,7 +1221,7 @@ export const lesserRestoration: SpellEntry = {
   ],
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.PALADIN, SPELL_LIST_CLASS.RANGER],
+  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.PALADIN, SPELL_LIST_CLASS.RANGER],
   spellLevel: 2
 };
 
@@ -1180,7 +1243,7 @@ export const levitate: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.CON,
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 2
 };
 
@@ -1241,7 +1304,7 @@ export const magicMouth: SpellEntry = {
   ],
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 2,
   ritual: true
 };
@@ -1264,7 +1327,7 @@ export const magicWeapon: SpellEntry = {
   isAttackSpell: true,
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.PALADIN, SPELL_LIST_CLASS.RANGER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.PALADIN, SPELL_LIST_CLASS.RANGER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 2
 };
 
@@ -1545,7 +1608,7 @@ export const protectionFromPoison: SpellEntry = {
   ],
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.PALADIN, SPELL_LIST_CLASS.RANGER],
+  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.PALADIN, SPELL_LIST_CLASS.RANGER],
   spellLevel: 2
 };
 
@@ -1640,7 +1703,7 @@ export const ropeTrick: SpellEntry = {
   ],
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.WIZARD],
+  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 2
 };
 
@@ -1686,7 +1749,7 @@ export const seeInvisibility: SpellEntry = {
   ],
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 2
 };
 
@@ -1857,7 +1920,7 @@ export const spiderClimb: SpellEntry = {
   ],
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 2
 };
 
@@ -2152,7 +2215,7 @@ export const web: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.DEX,
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 2
 };
 
@@ -2238,6 +2301,7 @@ export const spellEntries2: SpellEntry[] = [
   animalMessenger,
   arcaneHacking,
   arcaneLock,
+  arcaneVigor,
   arcanistsMagicAura,
   augury,
   barkskin,
@@ -2273,6 +2337,7 @@ export const spellEntries2: SpellEntry[] = [
   healingSpirit,
   heatMetal,
   holdPerson,
+  homunculusServant,
   icingdeathsFrost,
   immovableObject,
   invisibility,

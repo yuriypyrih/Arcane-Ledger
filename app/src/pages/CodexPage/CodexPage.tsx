@@ -26,6 +26,7 @@ import {
 } from "../../codex/entries";
 import { useCodexEntries } from "./useCodexEntries";
 import {
+  clearAllCategoryScopedSearchParams,
   clearCategoryScopedSearchParams,
   hasCategoryScopedSearchParams,
   ITEMS_PER_PAGE,
@@ -161,8 +162,8 @@ function CodexPage() {
       const nextSearchParams = new URLSearchParams(searchParams);
       nextSearchParams.set("category", nextCategory);
       clearSearchForSelectionChange(nextSearchParams);
+      clearAllCategoryScopedSearchParams(nextSearchParams);
       resetPageSearchParam(nextSearchParams);
-      clearCategoryScopedSearchParams(nextSearchParams, nextCategory);
 
       setSearchParams(nextSearchParams, { replace: true });
     },
