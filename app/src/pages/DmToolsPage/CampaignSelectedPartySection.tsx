@@ -81,7 +81,7 @@ function CampaignSelectedPartySection({ campaign }: CampaignSelectedPartySection
       ) : (
         <div className={styles.selectedPartyEmptyRow}>
           <DmToolsEmptyState icon={<Users size={18} aria-hidden="true" />}>
-            No selected Party yet
+            No selected party yet
           </DmToolsEmptyState>
           <ActionButton
             icon={<Users size={18} aria-hidden="true" />}

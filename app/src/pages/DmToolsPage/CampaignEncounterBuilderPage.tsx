@@ -214,8 +214,7 @@ function CampaignEncounterBuilderPage() {
         loadingLabel="Loading campaign encounter..."
         resource={toBuilderResource(preparedEncounter)}
         resourceFallbackName="Campaign Encounter"
-        sectionEyebrow="Creatures"
-        sectionTitle="Enemy Bundle"
+        sectionTitle="Creatures"
         setActionError={setActionError}
         status={status}
         titleId="campaign-encounter-title"

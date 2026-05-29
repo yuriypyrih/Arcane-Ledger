@@ -61,14 +61,12 @@
 }
 
 .eyebrow,
-.bodyEyebrow,
 .title,
 .bodyTitle {
   margin: 0;
 }
 
-.eyebrow,
-.bodyEyebrow {
+.eyebrow {
   color: var(--color-accent);
   font-size: 0.72rem;
   font-weight: 700;
@@ -84,8 +82,7 @@
   margin-bottom: 0.36rem;
 }
 
-.eyebrowHelpRow,
-.bodyEyebrowHelpRow {
+.eyebrowHelpRow {
   display: inline-flex;
   align-items: center;
   gap: 0.42rem;
@@ -95,12 +92,7 @@
   margin-bottom: 0.36rem;
 }
 
-.bodyEyebrowHelpRow {
-  margin-bottom: 0.28rem;
-}
-
-.eyebrowHelpRow .eyebrow,
-.bodyEyebrowHelpRow .bodyEyebrow {
+.eyebrowHelpRow .eyebrow {
   margin-bottom: 0;
 }
 
@@ -193,10 +185,6 @@
 
 .bodyHeader {
   align-items: center;
-}
-
-.bodyEyebrow {
-  margin-bottom: 0.28rem;
 }
 
 .bodyTitle {
@@ -408,6 +396,8 @@ button.dmToolsListCardMain:disabled {
 .dmToolsListCardActions {
   display: inline-flex;
   align-items: center;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
   justify-content: flex-end;
   gap: 0.55rem;
 }
@@ -415,7 +405,7 @@ button.dmToolsListCardMain:disabled {
 .selectedPartyEmptyRow {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 1rem;
 }
 
@@ -465,6 +455,7 @@ button.dmToolsListCardMain:disabled {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex: 0 0 auto;
   min-height: 44px;
   min-width: 44px;
   border: none;
@@ -736,11 +727,11 @@ button.dmToolsListCardMain:disabled {
   }
 
   .dmToolsListCard {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) auto;
   }
 
   .dmToolsListCardActions {
-    justify-content: flex-start;
+    justify-content: flex-end;
   }
 
   .headerActions {

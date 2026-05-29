@@ -108,8 +108,7 @@ function EncounterTemplateDetailPage() {
         loadingLabel="Loading encounter template..."
         resource={encounterTemplate}
         resourceFallbackName="Encounter Template"
-        sectionEyebrow="Creatures"
-        sectionTitle="Enemy Bundle"
+        sectionTitle="Creatures"
         setActionError={setActionError}
         status={status}
         titleId="encounter-template-title"

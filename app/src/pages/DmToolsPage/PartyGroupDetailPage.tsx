@@ -254,9 +254,8 @@ function PartyGroupDetailPage() {
             <section className={styles.membersPanel} aria-labelledby="party-members-title">
               <div className={styles.memberPanelHeader}>
                 <div>
-                  <p className={styles.bodyEyebrow}>Members</p>
                   <h3 id="party-members-title" className={styles.bodyTitle}>
-                    Party Characters
+                    Members
                   </h3>
                 </div>
                 <span className={styles.memberCount}>

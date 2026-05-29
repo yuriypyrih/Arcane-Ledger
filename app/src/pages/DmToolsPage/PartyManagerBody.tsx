@@ -112,7 +112,6 @@ function PartyManagerBody({ panelId, tabId }: PartyManagerBodyProps) {
     >
       <div className={styles.bodyHeader}>
         <div>
-          <p className={styles.bodyEyebrow}>Party Manager</p>
           <h3 className={styles.bodyTitle}>Party Groups</h3>
         </div>
         <div className={styles.headerActions}>

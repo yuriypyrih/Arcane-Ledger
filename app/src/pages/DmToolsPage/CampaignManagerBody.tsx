@@ -11,8 +11,6 @@ import {
   useAppDispatch,
   useAppSelector
 } from "../../store";
-import CampaignManagerGuideButton from "./CampaignManagerGuideButton";
-import CampaignManagerGuideModal from "./CampaignManagerGuideModal";
 import CreateCampaignModal from "./CreateCampaignModal";
 import { getDmToolsApiErrorMessage } from "./dmToolsApiErrors";
 import { getDmToolsQuotaForRole } from "./dmToolsQuotas";
@@ -35,7 +33,6 @@ function CampaignManagerBody({ panelId, tabId }: CampaignManagerBodyProps) {
   const campaignsStatus = useAppSelector((state) => state.dmTools.campaignsStatus);
   const campaignsError = useAppSelector((state) => state.dmTools.campaignsError);
   const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [isGuideOpen, setIsGuideOpen] = useState(false);
   const loadedCampaignsForAuthRef = useRef<string | null>(null);
   const isAuthenticated = authStatus === "authenticated";
   const campaignLimit = getDmToolsQuotaForRole("campaigns", authUserRole);
@@ -113,10 +110,6 @@ function CampaignManagerBody({ panelId, tabId }: CampaignManagerBodyProps) {
     >
       <div className={styles.bodyHeader}>
         <div>
-          <div className={styles.bodyEyebrowHelpRow}>
-            <p className={styles.bodyEyebrow}>Campaign Manager</p>
-            <CampaignManagerGuideButton onClick={() => setIsGuideOpen(true)} />
-          </div>
           <h3 className={styles.bodyTitle}>Campaigns</h3>
         </div>
         <div className={styles.headerActions}>
@@ -178,7 +171,6 @@ function CampaignManagerBody({ panelId, tabId }: CampaignManagerBodyProps) {
           }}
         />
       ) : null}
-      {isGuideOpen ? <CampaignManagerGuideModal onClose={() => setIsGuideOpen(false)} /> : null}
     </section>
   );
 }

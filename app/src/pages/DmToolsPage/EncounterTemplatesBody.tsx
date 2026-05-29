@@ -117,7 +117,6 @@ function EncounterTemplatesBody({ panelId, tabId }: EncounterTemplatesBodyProps)
     >
       <div className={styles.bodyHeader}>
         <div>
-          <p className={styles.bodyEyebrow}>Encounter Templates</p>
           <h3 className={styles.bodyTitle}>Templates</h3>
         </div>
         <div className={styles.headerActions}>

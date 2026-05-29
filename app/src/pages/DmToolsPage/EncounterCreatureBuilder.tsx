@@ -43,7 +43,6 @@ type EncounterCreatureBuilderProps = {
   onSaveCreature: (creature: EncounterTemplateCreatureRecord) => Promise<void>;
   resource: EncounterCreatureBuilderResource | null | undefined;
   resourceFallbackName: string;
-  sectionEyebrow: string;
   sectionTitle: string;
   setActionError: (error: string | null) => void;
   status: DmToolsLoadStatus;
@@ -76,7 +75,6 @@ function EncounterCreatureBuilder({
   onSaveCreature,
   resource,
   resourceFallbackName,
-  sectionEyebrow,
   sectionTitle,
   setActionError,
   status,
@@ -245,7 +243,6 @@ function EncounterCreatureBuilder({
             <section className={styles.membersPanel} aria-labelledby={`${titleId}-creatures`}>
               <div className={styles.memberPanelHeader}>
                 <div>
-                  <p className={styles.bodyEyebrow}>{sectionEyebrow}</p>
                   <h3 id={`${titleId}-creatures`} className={styles.bodyTitle}>
                     {sectionTitle}
                   </h3>

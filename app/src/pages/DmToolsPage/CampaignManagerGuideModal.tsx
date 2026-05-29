@@ -3,10 +3,12 @@ import {
   OverlayCloseButton,
   OverlayHeader,
   OverlayHeaderContent,
+  OverlaySummary,
   OverlayTitle,
   SheetModal
 } from "../../components/Overlay";
 import styles from "./DmToolsPage.module.css";
+import shared from "../../components/CharactersPage/CharacterSheetPage/CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 
 type CampaignManagerGuideModalProps = {
   onClose: () => void;
@@ -17,31 +19,29 @@ function CampaignManagerGuideModal({ onClose }: CampaignManagerGuideModalProps) 
     <SheetModal titleId="campaign-manager-guide-title" onClose={onClose} size="small">
       <OverlayHeader>
         <OverlayHeaderContent>
-          <OverlayTitle id="campaign-manager-guide-title">
+          <OverlayTitle id="campaign-manager-guide-title">DM Tools Guide</OverlayTitle>
+          <OverlaySummary className={shared.helperText}>
             Welcome to the Campaign Manager!
-          </OverlayTitle>
+          </OverlaySummary>
         </OverlayHeaderContent>
         <OverlayCloseButton label="Close campaign manager guide" onClick={onClose} />
       </OverlayHeader>
 
       <OverlayBody className={styles.guideBody}>
         <p className={styles.guideText}>
-          Start with a party group. It gives your campaign a table of characters to point at, and it
-          keeps roster work in one tidy place when players join, leave, or swap characters.
+          Start with a party group. Invide other players to join with their chosen characters.
         </p>
         <p className={styles.guideText}>
-          Once the party is ready, create a campaign. Use session notes for the story as it unfolds,
-          prepare encounters before game night, and set player visibility so Encounter Tracking
-          Module gameplay reveals only what you want at the table.
+          Once the party is ready, create a campaign. There you can prepare upcoming encounters and
+          document everything using session notes. In the Campaign Manager you can also find the
+          Encounter Tracker where players can see their initiative order and other useful
+          information during turn based events.
         </p>
         <p className={styles.guideText}>
-          Encounter templates are your reusable prep shelf. Build an encounter once, then import it
-          into any campaign whenever that setup deserves an encore.
-        </p>
-        <p className={styles.guideText}>
-          Imported encounters become campaign snapshots, so you can tune them for this adventure
-          without changing the original template. Keep the prep light, keep the useful bits close,
-          and let the manager hold the fiddly pieces while you run the fun part.
+          Encounter templates are your reusable prep shelf. Imported encounters are baked inot the
+          campaign, so you can tune them for this adventure without changing the original template.
+          Keep the prep light, keep the useful bits close, and let the manager hold the fiddly
+          pieces while you run the fun part.
         </p>
       </OverlayBody>
     </SheetModal>
