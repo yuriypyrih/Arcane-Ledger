@@ -152,7 +152,7 @@ function CampaignManagerBody({ panelId, tabId }: CampaignManagerBodyProps) {
               } · ${campaign.preparedEncounterCount} ${
                 campaign.preparedEncounterCount === 1 ? "encounter" : "encounters"
               }`}
-              to={`/dm-tools/campaign-manager/${campaign.id}`}
+              to={`/gm-tools/campaign-manager/${campaign.id}`}
             />
           ))}
         </div>
@@ -167,7 +167,7 @@ function CampaignManagerBody({ panelId, tabId }: CampaignManagerBodyProps) {
           onClose={() => setCreateModalOpen(false)}
           onCreated={(campaignId) => {
             setCreateModalOpen(false);
-            navigate(`/dm-tools/campaign-manager/${campaignId}`);
+            navigate(`/gm-tools/campaign-manager/${campaignId}`);
           }}
         />
       ) : null}

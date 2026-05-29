@@ -148,7 +148,7 @@ function HomePage() {
           <section className={styles.panel} aria-labelledby="home-tools-title">
             <div className={styles.panelHeader}>
               <div>
-                <p className={styles.eyebrow}>DM tools</p>
+                <p className={styles.eyebrow}>GM tools</p>
                 <h3 id="home-tools-title" className={styles.panelTitle}>
                   Prep Tray
                 </h3>
@@ -173,7 +173,7 @@ function HomePage() {
                     type="button"
                     className={`${styles.toolButton} ${styles.toolButtonDisabled}`}
                     disabled
-                    title="DM tools require Keeper or Admin access."
+                    title="GM tools require Keeper or Admin access."
                   >
                     <ToolIcon size={16} aria-hidden="true" />
                     <span className={styles.toolText}>

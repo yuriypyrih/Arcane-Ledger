@@ -219,7 +219,7 @@ function CampaignEncounterBuilderPage() {
         status={status}
         titleId="campaign-encounter-title"
         toolLabel="Campaign Encounter"
-        onBack={() => navigate(`/dm-tools/campaign-manager/${campaignId}`)}
+        onBack={() => navigate(`/gm-tools/campaign-manager/${campaignId}`)}
         onEditCreatureVisibilitySettings={
           preparedEncounter ? (creatureId) => setVisibilityCreatureId(creatureId) : undefined
         }

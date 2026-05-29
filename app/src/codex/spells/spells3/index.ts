@@ -1643,7 +1643,7 @@ export const summonLesserDemons: SpellEntry = {
     "<strong>1-2.</strong> Two demons of Challenge Rating 1 or lower.",
     "<strong>3-4.</strong> Four demons of Challenge Rating 1/2 or lower.",
     "<strong>5-6.</strong> Eight demons of Challenge Rating 1/4 or lower.",
-    "The DM chooses the demons, such as manes or dretches, and you choose the unoccupied spaces you can see within range where they appear. A summoned demon disappears when it drops to 0 Hit Points or when the spell ends.",
+    "The GM chooses the demons, such as manes or dretches, and you choose the unoccupied spaces you can see within range where they appear. A summoned demon disappears when it drops to 0 Hit Points or when the spell ends.",
     "The demons are hostile to all creatures, including you. Roll Initiative for the summoned demons as a group, which has its own turns. The demons pursue and attack the nearest non-demons to the best of their ability.",
     "As part of casting the spell, you can form a circle on the ground with the blood used as a material component. The circle is large enough to encompass your space. While the spell lasts, the summoned demons can't cross the circle or harm it, and they can't target anyone within it. Using the material component in this manner consumes it when the spell ends.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 6th or 7th level, you summon twice as many demons. If you cast it using a spell slot of 8th or 9th level, you summon three times as many demons."

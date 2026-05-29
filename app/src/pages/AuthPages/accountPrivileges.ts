@@ -53,7 +53,7 @@ export const accountPrivilegeRows: AccountPrivilegeRow[] = [
     }
   },
   {
-    feature: "DM-Tools",
+    feature: "GM Tools",
     values: {
       guest: { kind: "boolean", included: false },
       user: { kind: "boolean", included: true },

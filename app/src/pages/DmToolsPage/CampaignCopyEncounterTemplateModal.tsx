@@ -93,7 +93,7 @@ function CampaignCopyEncounterTemplateModal({
       onClose={onClose}
       isBusy={isCopying}
       busyLabel="Importing encounter template"
-      size="medium"
+      size="small"
     >
       <OverlayHeader>
         <OverlayHeaderContent>

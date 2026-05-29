@@ -309,7 +309,7 @@ export const friends: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "For the duration, you have Advantage on all Charisma checks directed at one creature of your choice that isn't hostile toward you. When the spell ends, the creature realizes that you used magic to influence its mood and becomes hostile toward you.",
-    "A creature prone to violence might attack you. Another creature might seek retribution in other ways, at the DM's discretion, depending on the nature of your interaction with it."
+    "A creature prone to violence might attack you. Another creature might seek retribution in other ways, at the GM's discretion, depending on the nature of your interaction with it."
   ],
   damage: [],
   healing: [],

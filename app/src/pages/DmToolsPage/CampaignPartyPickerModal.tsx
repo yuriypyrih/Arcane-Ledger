@@ -86,7 +86,7 @@ function CampaignPartyPickerModal({
       onClose={onClose}
       isBusy={isSaving || selectingPartyId !== null}
       busyLabel="Selecting party"
-      size="medium"
+      size="small"
     >
       <OverlayHeader>
         <OverlayHeaderContent>

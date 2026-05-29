@@ -166,12 +166,12 @@ function PartyGroupDetailPage() {
         onClick={() =>
           navigate(
             returnToCampaignId
-              ? `/dm-tools/campaign-manager/${returnToCampaignId}`
-              : "/dm-tools?tab=party-manager"
+              ? `/gm-tools/campaign-manager/${returnToCampaignId}`
+              : "/gm-tools?tab=party-manager"
           )
         }
       >
-        {returnToCampaignId ? "Back to the Campaign Manager" : "Back to DM Tools"}
+        {returnToCampaignId ? "Back to the Campaign Manager" : "Back to GM Tools"}
       </DmToolsBackButton>
 
       <section className={styles.panel} aria-labelledby="party-group-title">

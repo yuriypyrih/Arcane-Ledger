@@ -74,7 +74,7 @@ function EditEncounterTemplateModal({
       onClose={onClose}
       isBusy={isSaving}
       busyLabel="Saving encounter template"
-      size="medium"
+      size="small"
     >
       <OverlayHeader>
         <OverlayHeaderContent>
@@ -114,7 +114,7 @@ function EditEncounterTemplateModal({
               type="button"
               variant="GHOST"
               disabled={isSaving}
-              fullWidth={false}
+              fullWidth
               onClick={onClose}
             >
               Cancel
@@ -125,7 +125,7 @@ function EditEncounterTemplateModal({
               disabled={!canSubmit}
               loading={isSaving}
               loadingLabel="Saving encounter template"
-              fullWidth={false}
+              fullWidth
             >
               Save Changes
             </ActionButton>

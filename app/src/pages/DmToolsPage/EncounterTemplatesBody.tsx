@@ -161,7 +161,7 @@ function EncounterTemplatesBody({ panelId, tabId }: EncounterTemplatesBodyProps)
               meta={`${encounterTemplate.creatureCount} ${
                 encounterTemplate.creatureCount === 1 ? "creature" : "creatures"
               }`}
-              to={`/dm-tools/encounter-templates/${encounterTemplate.id}`}
+              to={`/gm-tools/encounter-templates/${encounterTemplate.id}`}
             />
           ))}
         </div>
@@ -176,7 +176,7 @@ function EncounterTemplatesBody({ panelId, tabId }: EncounterTemplatesBodyProps)
           onClose={() => setCreateModalOpen(false)}
           onCreated={(encounterTemplateId) => {
             setCreateModalOpen(false);
-            navigate(`/dm-tools/encounter-templates/${encounterTemplateId}`);
+            navigate(`/gm-tools/encounter-templates/${encounterTemplateId}`);
           }}
         />
       ) : null}

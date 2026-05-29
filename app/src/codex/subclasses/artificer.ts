@@ -50,7 +50,7 @@ export const artificerSubclassEntries: SubclassEntry[] = [
         description: [
           "You gain the following benefits.",
           "<strong>Tool Proficiency.</strong> You gain proficiency with Alchemist's Supplies and the Herbalism Kit. If you already have one of these proficiencies, you gain proficiency with one other type of Artisan's Tools of your choice, or with two other types if you have both.",
-          "<strong>Potion Crafting.</strong> When you brew a potion using the crafting rules in the Dungeon Master's Guide, the amount of time required to craft it is halved."
+          "<strong>Potion Crafting.</strong> When you brew a potion using the crafting rules in the Game Master's Guide, the amount of time required to craft it is halved."
         ],
         trackingState: TRACKER.TRACKED
       }),

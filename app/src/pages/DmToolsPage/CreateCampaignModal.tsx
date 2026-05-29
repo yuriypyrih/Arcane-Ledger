@@ -65,7 +65,7 @@ function CreateCampaignModal({ onClose, onCreated }: CreateCampaignModalProps) {
       onClose={onClose}
       isBusy={isCreating}
       busyLabel="Creating campaign"
-      size="medium"
+      size="small"
     >
       <OverlayHeader>
         <OverlayHeaderContent>
@@ -107,7 +107,7 @@ function CreateCampaignModal({ onClose, onCreated }: CreateCampaignModalProps) {
               disabled={!canSubmit}
               loading={isCreating}
               loadingLabel="Creating campaign"
-              fullWidth={false}
+              fullWidth
             >
               Create Campaign
             </ActionButton>

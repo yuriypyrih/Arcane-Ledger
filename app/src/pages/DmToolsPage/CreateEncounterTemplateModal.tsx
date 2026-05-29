@@ -70,7 +70,7 @@ function CreateEncounterTemplateModal({
       onClose={onClose}
       isBusy={isCreating}
       busyLabel="Creating encounter template"
-      size="medium"
+      size="small"
     >
       <OverlayHeader>
         <OverlayHeaderContent>
@@ -112,7 +112,7 @@ function CreateEncounterTemplateModal({
               disabled={!canSubmit}
               loading={isCreating}
               loadingLabel="Creating encounter template"
-              fullWidth={false}
+              fullWidth
             >
               Create Encounter Template
             </ActionButton>

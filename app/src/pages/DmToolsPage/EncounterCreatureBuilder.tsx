@@ -61,7 +61,7 @@ function getDeleteCreatureMessage(creature: CharacterCompanion): ReactNode {
 function EncounterCreatureBuilder({
   actionError,
   authRequiredLabel,
-  backLabel = "Back to DM Tools",
+  backLabel = "Back to GM Tools",
   error,
   isAuthenticated,
   isCreatureVisibilitySettingsActive,

@@ -69,12 +69,12 @@ function EditCampaignModal({ campaign, onClose }: EditCampaignModalProps) {
       onClose={onClose}
       isBusy={isSaving}
       busyLabel="Saving campaign"
-      size="medium"
+      size="small"
     >
       <OverlayHeader>
         <OverlayHeaderContent>
           <OverlayTitle id={titleId}>Edit Campaign</OverlayTitle>
-          <OverlaySummary>Update this campaign&apos;s DM-facing name.</OverlaySummary>
+          <OverlaySummary>Update this campaign&apos;s GM-facing name.</OverlaySummary>
         </OverlayHeaderContent>
         <OverlayCloseButton label="Close edit campaign modal" disabled={isSaving} onClick={onClose} />
       </OverlayHeader>
@@ -105,7 +105,7 @@ function EditCampaignModal({ campaign, onClose }: EditCampaignModalProps) {
               type="button"
               variant="GHOST"
               disabled={isSaving}
-              fullWidth={false}
+              fullWidth
               onClick={onClose}
             >
               Cancel
@@ -116,7 +116,7 @@ function EditCampaignModal({ campaign, onClose }: EditCampaignModalProps) {
               disabled={!canSubmit}
               loading={isSaving}
               loadingLabel="Saving campaign"
-              fullWidth={false}
+              fullWidth
             >
               Save Changes
             </ActionButton>

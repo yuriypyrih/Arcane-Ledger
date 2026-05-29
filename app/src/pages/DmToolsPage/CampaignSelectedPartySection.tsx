@@ -63,7 +63,7 @@ function CampaignSelectedPartySection({ campaign }: CampaignSelectedPartySection
           }`}
           onClick={() =>
             navigate(
-              `/dm-tools/party-manager/${campaign.selectedParty?.id}?returnToCampaign=${campaign.id}`
+              `/gm-tools/party-manager/${campaign.selectedParty?.id}?returnToCampaign=${campaign.id}`
             )
           }
           actions={[

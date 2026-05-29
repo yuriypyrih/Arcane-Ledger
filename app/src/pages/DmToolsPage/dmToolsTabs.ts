@@ -44,5 +44,5 @@ export function parseDmToolsTabId(value: string | null): DmToolsTabId {
 }
 
 export function createDmToolsPath(tabId: DmToolsTabId) {
-  return `/dm-tools?${DM_TOOLS_TAB_PARAM}=${tabId}`;
+  return `/gm-tools?${DM_TOOLS_TAB_PARAM}=${tabId}`;
 }

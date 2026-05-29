@@ -68,7 +68,7 @@ function CampaignPreparedEncounterModal({
       onClose={onClose}
       isBusy={isSaving}
       busyLabel={isEditing ? "Saving encounter" : "Creating encounter"}
-      size="medium"
+      size="small"
     >
       <OverlayHeader>
         <OverlayHeaderContent>
@@ -110,7 +110,7 @@ function CampaignPreparedEncounterModal({
               type="button"
               variant="GHOST"
               disabled={isSaving}
-              fullWidth={false}
+              fullWidth
               onClick={onClose}
             >
               Cancel
@@ -127,7 +127,7 @@ function CampaignPreparedEncounterModal({
               disabled={!canSubmit}
               loading={isSaving}
               loadingLabel={isEditing ? "Saving encounter" : "Creating encounter"}
-              fullWidth={false}
+              fullWidth
             >
               {isEditing ? "Save Changes" : "Create Encounter"}
             </ActionButton>

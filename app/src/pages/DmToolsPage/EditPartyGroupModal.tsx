@@ -69,12 +69,12 @@ function EditPartyGroupModal({ partyGroup, onClose }: EditPartyGroupModalProps) 
       onClose={onClose}
       isBusy={isSaving}
       busyLabel="Saving party group"
-      size="medium"
+      size="small"
     >
       <OverlayHeader>
         <OverlayHeaderContent>
           <OverlayTitle id={titleId}>Edit Party Group</OverlayTitle>
-          <OverlaySummary>Update this party group&apos;s shared DM-facing details.</OverlaySummary>
+          <OverlaySummary>Update this party group&apos;s shared GM-facing details.</OverlaySummary>
         </OverlayHeaderContent>
         <OverlayCloseButton label="Close edit party group modal" disabled={isSaving} onClick={onClose} />
       </OverlayHeader>
@@ -101,7 +101,7 @@ function EditPartyGroupModal({ partyGroup, onClose }: EditPartyGroupModalProps) 
 
         <OverlayFooter>
           <div className={styles.modalFooterActions}>
-            <ActionButton type="button" variant="GHOST" disabled={isSaving} fullWidth={false} onClick={onClose}>
+            <ActionButton type="button" variant="GHOST" disabled={isSaving} fullWidth onClick={onClose}>
               Cancel
             </ActionButton>
             <ActionButton
@@ -110,7 +110,7 @@ function EditPartyGroupModal({ partyGroup, onClose }: EditPartyGroupModalProps) 
               disabled={!canSubmit}
               loading={isSaving}
               loadingLabel="Saving party group"
-              fullWidth={false}
+              fullWidth
             >
               Save Changes
             </ActionButton>

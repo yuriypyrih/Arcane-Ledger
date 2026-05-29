@@ -77,6 +77,22 @@ function LegacyCompendiumRedirect({ from }: { from: "/codex" | "/library" }) {
   );
 }
 
+function LegacyGmToolsRedirect() {
+  const location = useLocation();
+  const pathname = location.pathname.replace(/^\/dm-tools/, "/gm-tools");
+
+  return (
+    <Navigate
+      replace
+      to={{
+        pathname,
+        search: location.search,
+        hash: location.hash
+      }}
+    />
+  );
+}
+
 function App() {
   if (isLegacyNetlifyHost()) {
     return <LegacyDomainNotice />;
@@ -106,20 +122,21 @@ function App() {
             <Route path="/characters/:characterId/edit" element={<CharacterBuilderPage />} />
             <Route path="/characters/:characterId" element={<CharacterSheetPage />} />
             <Route path="/compendium" element={<CodexPage />} />
-            <Route path="/dm-tools" element={<DmToolsPage />} />
-            <Route path="/dm-tools/campaign-manager/:campaignId" element={<CampaignDetailPage />} />
+            <Route path="/gm-tools" element={<DmToolsPage />} />
+            <Route path="/gm-tools/campaign-manager/:campaignId" element={<CampaignDetailPage />} />
             <Route
-              path="/dm-tools/campaign-manager/:campaignId/encounters/:preparedEncounterId"
+              path="/gm-tools/campaign-manager/:campaignId/encounters/:preparedEncounterId"
               element={<CampaignEncounterBuilderPage />}
             />
             <Route
-              path="/dm-tools/encounter-templates/:encounterTemplateId"
+              path="/gm-tools/encounter-templates/:encounterTemplateId"
               element={<EncounterTemplateDetailPage />}
             />
-            <Route path="/dm-tools/party-manager/:partyGroupId" element={<PartyGroupDetailPage />} />
+            <Route path="/gm-tools/party-manager/:partyGroupId" element={<PartyGroupDetailPage />} />
             <Route path="/compendium/items/:key" element={<ItemCodexEntryPage />} />
             <Route path="/compendium/monsters/:slug" element={<MonsterCodexEntryPage />} />
             <Route path="/compendium/:entryId" element={<CodexEntryPage />} />
+            <Route path="/dm-tools/*" element={<LegacyGmToolsRedirect />} />
             <Route path="/library/*" element={<LegacyCompendiumRedirect from="/library" />} />
             <Route path="/codex/*" element={<LegacyCompendiumRedirect from="/codex" />} />
             <Route path="*" element={<Navigate replace to="/" />} />

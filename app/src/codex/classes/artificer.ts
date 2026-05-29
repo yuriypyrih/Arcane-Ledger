@@ -251,7 +251,7 @@ export const artificerFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>
       "You can learn the uncommon wondrous item option multiple times, selecting a different item each time; each selected item counts as a different plan.",
       "<strong>Magic Item Plans (Artificer Level 14+).</strong> Armor +2, Arrow-Catching Shield, Flame Tongue, Rare Wondrous Item that isn't cursed, Ring of Free Action, Ring of Protection, and Ring of the Ram.",
       "You can learn the rare wondrous item option multiple times, selecting a different item each time; each selected item counts as a different plan.",
-      "<strong>Crafting More Magic Items.</strong> The Dungeon Master's Guide provides rules for crafting magic items with the normal crafting system. Artificers can craft certain items faster through their subclasses, but those crafted items aren't treated as items created by this feature."
+      "<strong>Crafting More Magic Items.</strong> The Game Master's Guide provides rules for crafting magic items with the normal crafting system. Artificers can craft certain items faster through their subclasses, but those crafted items aren't treated as items created by this feature."
     ],
     trackingState: TRACKER.TRACKED
   },

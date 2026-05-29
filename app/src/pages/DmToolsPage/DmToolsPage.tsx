@@ -60,7 +60,7 @@ function DmToolsPage() {
             <div className={styles.eyebrowHelpRow}>
               <p className={styles.eyebrow}>
                 <LayoutDashboard size={15} aria-hidden="true" />
-                <span>DM tools</span>
+                <span>GM tools</span>
               </p>
               <CampaignManagerGuideButton onClick={() => setIsGuideOpen(true)} />
             </div>
@@ -70,7 +70,7 @@ function DmToolsPage() {
           </div>
         </div>
 
-        <div className={styles.tabRow} role="tablist" aria-label="DM tool sections">
+        <div className={styles.tabRow} role="tablist" aria-label="GM tool sections">
           {DM_TOOLS_TABS.map(({ icon: TabIcon, id, label }) => {
             const selected = id === activeTab;
 

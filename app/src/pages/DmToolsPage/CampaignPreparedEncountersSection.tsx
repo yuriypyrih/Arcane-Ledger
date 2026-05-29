@@ -137,7 +137,7 @@ function CampaignPreparedEncountersSection({ campaign }: CampaignPreparedEncount
               title={encounter.name}
               meta={`${encounter.creatures.length}/${ENCOUNTER_MAX_CREATURES} creatures`}
               onClick={() =>
-                navigate(`/dm-tools/campaign-manager/${campaign.id}/encounters/${encounter.id}`)
+                navigate(`/gm-tools/campaign-manager/${campaign.id}/encounters/${encounter.id}`)
               }
               actions={[
                 {

@@ -113,7 +113,7 @@ function EncounterTemplateDetailPage() {
         status={status}
         titleId="encounter-template-title"
         toolLabel="Encounter Templates"
-        onBack={() => navigate("/dm-tools?tab=encounter-templates")}
+        onBack={() => navigate("/gm-tools?tab=encounter-templates")}
         onEditResource={() => setIsEditModalOpen(true)}
         onRemoveCreature={handleRemoveCreature}
         onSaveCreature={handleSaveCreature}

@@ -39,7 +39,7 @@ export const PLAYER_VISIBILITY_SETTING_GROUPS: PlayerVisibilitySettingGroup[] = 
     settings: [
       { key: "showMonsterType", label: "Show monster type" },
       { key: "showBaseStatBlockDescription", label: "Show base stat block description" },
-      { key: "showDmDescription", label: "Show DM's description" }
+      { key: "showDmDescription", label: "Show GM's description" }
     ]
   },
   {

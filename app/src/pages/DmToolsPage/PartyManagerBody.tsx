@@ -156,7 +156,7 @@ function PartyManagerBody({ panelId, tabId }: PartyManagerBodyProps) {
               meta={`${partyGroup.memberCount} ${
                 partyGroup.memberCount === 1 ? "member" : "members"
               }`}
-              to={`/dm-tools/party-manager/${partyGroup.id}`}
+              to={`/gm-tools/party-manager/${partyGroup.id}`}
             />
           ))}
         </div>
@@ -171,7 +171,7 @@ function PartyManagerBody({ panelId, tabId }: PartyManagerBodyProps) {
           onClose={() => setCreateModalOpen(false)}
           onCreated={(partyGroupId) => {
             setCreateModalOpen(false);
-            navigate(`/dm-tools/party-manager/${partyGroupId}`);
+            navigate(`/gm-tools/party-manager/${partyGroupId}`);
           }}
         />
       ) : null}

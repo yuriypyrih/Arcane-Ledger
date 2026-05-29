@@ -65,7 +65,7 @@ function CreatePartyGroupModal({ onClose, onCreated }: CreatePartyGroupModalProp
       onClose={onClose}
       isBusy={isCreating}
       busyLabel="Creating party group"
-      size="medium"
+      size="small"
     >
       <OverlayHeader>
         <OverlayHeaderContent>
@@ -82,7 +82,7 @@ function CreatePartyGroupModal({ onClose, onCreated }: CreatePartyGroupModalProp
       <form onSubmit={handleSubmit}>
         <OverlayBody>
           <p className={styles.modalCopy}>
-            Only the DM should create the Party Group. The creator becomes the owner and admin for
+            Only the GM should create the Party Group. The creator becomes the owner and admin for
             that party group.
           </p>
           <label className={styles.modalField}>
@@ -111,7 +111,7 @@ function CreatePartyGroupModal({ onClose, onCreated }: CreatePartyGroupModalProp
               disabled={!canSubmit}
               loading={isCreating}
               loadingLabel="Creating party group"
-              fullWidth={false}
+              fullWidth
             >
               Create Party Group
             </ActionButton>

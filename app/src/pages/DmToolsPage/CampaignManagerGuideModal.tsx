@@ -19,7 +19,7 @@ function CampaignManagerGuideModal({ onClose }: CampaignManagerGuideModalProps) 
     <SheetModal titleId="campaign-manager-guide-title" onClose={onClose} size="small">
       <OverlayHeader>
         <OverlayHeaderContent>
-          <OverlayTitle id="campaign-manager-guide-title">DM Tools Guide</OverlayTitle>
+          <OverlayTitle id="campaign-manager-guide-title">GM Tools Guide</OverlayTitle>
           <OverlaySummary className={shared.helperText}>
             Welcome to the Campaign Manager!
           </OverlaySummary>

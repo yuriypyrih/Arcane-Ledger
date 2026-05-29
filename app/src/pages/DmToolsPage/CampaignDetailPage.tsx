@@ -72,8 +72,8 @@ function CampaignDetailPage() {
 
   return (
     <section className={styles.page}>
-      <DmToolsBackButton onClick={() => navigate("/dm-tools?tab=campaign-manager")}>
-        Back to DM Tools
+      <DmToolsBackButton onClick={() => navigate("/gm-tools?tab=campaign-manager")}>
+        Back to GM Tools
       </DmToolsBackButton>
 
       <section className={styles.panel} aria-labelledby="campaign-title">

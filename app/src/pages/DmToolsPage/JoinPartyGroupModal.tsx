@@ -99,7 +99,7 @@ function JoinPartyGroupModal({ characters, onClose }: JoinPartyGroupModalProps) 
       onClose={onClose}
       isBusy={isJoining}
       busyLabel="Joining party group"
-      size="medium"
+      size="small"
     >
       <OverlayHeader>
         <OverlayHeaderContent>
@@ -163,7 +163,7 @@ function JoinPartyGroupModal({ characters, onClose }: JoinPartyGroupModalProps) 
               disabled={!canSubmit}
               loading={isJoining}
               loadingLabel="Joining party group"
-              fullWidth={false}
+              fullWidth
             >
               Join Party Group
             </ActionButton>
