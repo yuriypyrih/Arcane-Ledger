@@ -43,6 +43,8 @@ import {
   createSpellSlotFromSorceryPointsForCharacter,
   consumeFaithfulSteedUseForCharacter,
   consumePaladinsSmiteUseForCharacter,
+  consumeArtificerConjuredCauldronUseForCharacter,
+  consumeArtificerRestorativeReagentsUseForCharacter,
   hasDruidTwinklingConstellationsFeatureForCharacter,
   getDruidWildResurgenceSpellSlotRecoveryUsesRemainingForCharacter,
   getDruidWildShapeKnownFormsForCharacter,
@@ -531,10 +533,12 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
 
   const {
     isArtificerMagicItemTinkerSubmitting,
+    isExperimentalElixirSubmitting,
     isReplicateMagicItemSubmitting,
     isTinkersMagicSubmitting,
     submitArtificerChargeMagicItem,
     submitArtificerDrainMagicItem,
+    submitArtificerExperimentalElixir,
     submitArtificerReplicateMagicItem,
     submitArtificerTinkersMagic,
     submitArtificerTransmuteMagicItem
@@ -1908,6 +1912,10 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
           getMantleOfMajestyUsesRemainingForCharacter(preparedCharacter) > 0
             ? consumeMantleOfMajestyUseForCharacter(preparedCharacter)
             : preparedCharacter;
+      } else if (fixedSpellExecute.effectKind === "restorative-reagents") {
+        nextCharacter = consumeArtificerRestorativeReagentsUseForCharacter(preparedCharacter);
+      } else if (fixedSpellExecute.effectKind === "conjured-cauldron") {
+        nextCharacter = consumeArtificerConjuredCauldronUseForCharacter(preparedCharacter);
       }
 
       if (
@@ -2217,10 +2225,12 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     activateSelectedChannelDivinity,
     confirmSelectedFeatureOptions,
     isArtificerMagicItemTinkerSubmitting,
+    isExperimentalElixirSubmitting,
     isReplicateMagicItemSubmitting,
     isTinkersMagicSubmitting,
     submitArtificerChargeMagicItem,
     submitArtificerDrainMagicItem,
+    submitArtificerExperimentalElixir,
     submitArtificerReplicateMagicItem,
     submitArtificerTinkersMagic,
     submitArtificerTransmuteMagicItem,

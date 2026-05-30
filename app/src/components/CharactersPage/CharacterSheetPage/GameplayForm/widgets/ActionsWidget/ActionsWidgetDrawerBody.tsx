@@ -393,6 +393,7 @@ import { getMonkHandOfHealingActionPathStates } from "./monkHandOfHealingActionU
 import ArcaneRecoveryActionBody from "./forms/ArcaneRecoveryActionBody";
 import BrutalStrikeActionBody from "./forms/BrutalStrikeActionBody";
 import DivineInterventionActionBody from "./forms/DivineInterventionActionBody";
+import ExperimentalElixirActionBody from "./forms/ExperimentalElixirActionBody";
 import FeatureOptionsActionBody from "./forms/FeatureOptionsActionBody";
 import FontOfMagicActionBody from "./forms/FontOfMagicActionBody";
 import MetamagicOptionsActionBody from "./forms/MetamagicOptionsActionBody";
@@ -505,6 +506,7 @@ export function renderActionDrawerBody(context: Record<string, any>) {
     selectedCrownOfSpellfireUsesRemaining,
     selectedCrownOfSpellfireUsesTotal,
     selectedDrawerOption,
+    selectedExperimentalElixirOptionKey,
     selectedFeatureAction,
     selectedFeatureActionPrimaryDisabledReason,
     selectedFlurryOfBlowsPrimaryDisabledReason,
@@ -631,6 +633,7 @@ export function renderActionDrawerBody(context: Record<string, any>) {
     setSelectedBlessingOfTheTricksterTarget,
     setSelectedChannelDivinityOptionKey,
     setSelectedDivineInterventionSpell,
+    setSelectedExperimentalElixirOptionKey,
     setSelectedFontOfMagicSelection,
     setSelectedHealingLightDiceCount,
     setSelectedHealingLightTarget,
@@ -890,6 +893,16 @@ export function renderActionDrawerBody(context: Record<string, any>) {
           actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
           actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
           onUseItem={submitArtificerReplicateMagicItem}
+        />
+      );
+    }
+
+    if (selectedAction.drawer.formKind === "artificer-experimental-elixir") {
+      return (
+        <ExperimentalElixirActionBody
+          character={character}
+          selectedOptionKey={selectedExperimentalElixirOptionKey}
+          onSelectedOptionKeyChange={setSelectedExperimentalElixirOptionKey}
         />
       );
     }

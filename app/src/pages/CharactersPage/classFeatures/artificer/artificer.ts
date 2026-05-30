@@ -22,6 +22,14 @@ import {
   restoreArtificerMagicItemTinkerTransmuteOnLongRest
 } from "./magicItemTinker";
 import { normalizeArtificerToolsOfTheTradeState } from "./toolsOfTheTrade";
+import {
+  normalizeArtificerRestorativeReagentsState,
+  restoreArtificerRestorativeReagentsOnLongRest
+} from "./subclasses/artificerAlchemistRestorativeReagents";
+import {
+  normalizeArtificerConjuredCauldronState,
+  restoreArtificerConjuredCauldronOnLongRest
+} from "./subclasses/artificerAlchemistChemicalMastery";
 import type { ReactionEntry } from "../../../../codex/entries";
 
 export {
@@ -44,6 +52,32 @@ export {
   restoreArtificerFlashOfGeniusOnLongRest,
   restoreArtificerFlashOfGeniusOnShortRest
 } from "./flashOfGenius";
+
+export {
+  addArtificerExperimentalElixirToInventory,
+  artificerExperimentalElixirActionKey,
+  getArtificerExperimentalElixirOptionsForCharacter,
+  getArtificerExperimentalElixirSpellSlotOptions,
+  type ArtificerExperimentalElixirOption,
+  type ArtificerExperimentalElixirOptionKey,
+  type ArtificerExperimentalElixirSpellSlotOption
+} from "./subclasses/artificerAlchemistExperimentalElixir";
+
+export {
+  artificerConjuredCauldronActionKey,
+  consumeArtificerConjuredCauldronUse,
+  getArtificerConjuredCauldronUsesRemaining,
+  getArtificerConjuredCauldronUsesTotal,
+  restoreArtificerConjuredCauldronOnLongRest
+} from "./subclasses/artificerAlchemistChemicalMastery";
+
+export {
+  artificerRestorativeReagentsActionKey,
+  consumeArtificerRestorativeReagentsUse,
+  getArtificerRestorativeReagentsUsesRemaining,
+  getArtificerRestorativeReagentsUsesTotal,
+  restoreArtificerRestorativeReagentsOnLongRest
+} from "./subclasses/artificerAlchemistRestorativeReagents";
 
 export {
   addArtificerReplicateMagicItemToInventory,
@@ -104,14 +138,16 @@ type ArtificerRuntimeCharacter = Pick<Character, "className"> & Partial<Pick<Cha
 export function normalizeArtificerFeatureState(
   value: unknown,
   character: Pick<Character, "className" | "level"> &
-    Partial<Pick<Character, "abilities" | "statusEntries">>
+    Partial<Pick<Character, "abilities" | "statusEntries" | "subclassId">>
 ): CharacterArtificerFeatureState {
   return {
     ...normalizeArtificerTinkersMagicState(value, character),
     ...normalizeArtificerFlashOfGeniusState(value, character),
     ...normalizeArtificerReplicateMagicItemPlanState(value, character),
     ...normalizeArtificerMagicItemTinkerState(value, character),
-    ...normalizeArtificerToolsOfTheTradeState(value, character)
+    ...normalizeArtificerToolsOfTheTradeState(value, character),
+    ...normalizeArtificerRestorativeReagentsState(value, character),
+    ...normalizeArtificerConjuredCauldronState(value, character)
   };
 }
 
@@ -152,9 +188,13 @@ export function getArtificerReactionEntries(
 }
 
 export function applyLongRestToArtificerFeatures(character: Character): Character {
-  return restoreArtificerMagicItemTinkerTransmuteOnLongRest(
-    restoreArtificerMagicItemTinkerDrainOnLongRest(
-      restoreArtificerFlashOfGeniusOnLongRest(restoreArtificerTinkersMagicOnLongRest(character))
+  return restoreArtificerConjuredCauldronOnLongRest(
+    restoreArtificerRestorativeReagentsOnLongRest(
+      restoreArtificerMagicItemTinkerTransmuteOnLongRest(
+        restoreArtificerMagicItemTinkerDrainOnLongRest(
+          restoreArtificerFlashOfGeniusOnLongRest(restoreArtificerTinkersMagicOnLongRest(character))
+        )
+      )
     )
   );
 }

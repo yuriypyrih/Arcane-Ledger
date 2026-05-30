@@ -27,7 +27,9 @@ import {
 } from "../customTraitEffects";
 import {
   artificerFlashOfGeniusReactionEntryId,
+  consumeArtificerConjuredCauldronUse,
   consumeArtificerFlashOfGeniusUse,
+  consumeArtificerRestorativeReagentsUse,
   getArtificerFlashOfGeniusUsesRemaining,
   getArtificerFlashOfGeniusUsesTotal
 } from "./artificer/artificer";
@@ -614,6 +616,16 @@ export function getArtificerFlashOfGeniusUsesRemainingForCharacter(
 
 export function consumeArtificerFlashOfGeniusUseForCharacter(character: Character): Character {
   return consumeArtificerFlashOfGeniusUse(character);
+}
+
+export function consumeArtificerRestorativeReagentsUseForCharacter(
+  character: Character
+): Character {
+  return consumeArtificerRestorativeReagentsUse(character);
+}
+
+export function consumeArtificerConjuredCauldronUseForCharacter(character: Character): Character {
+  return consumeArtificerConjuredCauldronUse(character);
 }
 
 export function getFighterBanneretKnightlyEnvoyLanguageSelectionForCharacter(

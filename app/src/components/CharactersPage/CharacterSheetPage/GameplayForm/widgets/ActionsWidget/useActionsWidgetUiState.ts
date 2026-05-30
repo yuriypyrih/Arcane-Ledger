@@ -5,6 +5,7 @@ import type { MysticArcanumLevel } from "../../../../../../pages/CharactersPage/
 import type { DruidStarryFormConstellation } from "../../../../../../pages/CharactersPage/classFeatures/druid/druid";
 import type { LayOnHandsCondition } from "../../../../../../pages/CharactersPage/classFeatures/paladin/paladin";
 import type { PaladinOathOfTheNobleGeniesElementalSmiteOptionKey } from "../../../../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfTheNobleGenies";
+import type { ArtificerExperimentalElixirOptionKey } from "../../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
 import type { WizardDivinerThirdEyeOptionKey } from "../../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardDivinerThirdEyeConfig";
 import type {
   AasimarCelestialRevelationOptionKey,
@@ -29,6 +30,8 @@ type ActionsWidgetUiState = {
   selectedWildCompanionResource: WildCompanionResourceKind;
   selectedBardicInspirationSpellSlotLevel: number | null;
   selectedArcaneWardSpellSlotLevel: number | null;
+  selectedExperimentalElixirOptionKey: ArtificerExperimentalElixirOptionKey | null;
+  selectedExperimentalElixirSpellSlotLevel: number | null;
   selectedBeastMasterReviveSpellSlotLevel: number | null;
   selectedWildCompanionSpellSlotLevel: number;
   selectedWildResurgenceMode: WildResurgenceMode | null;
@@ -123,6 +126,8 @@ function createInitialState(
     selectedWildCompanionResource: "wild-shape",
     selectedBardicInspirationSpellSlotLevel: null,
     selectedArcaneWardSpellSlotLevel: null,
+    selectedExperimentalElixirOptionKey: null,
+    selectedExperimentalElixirSpellSlotLevel: null,
     selectedBeastMasterReviveSpellSlotLevel: null,
     selectedWildCompanionSpellSlotLevel: 1,
     selectedWildResurgenceMode: null,
@@ -190,6 +195,8 @@ function getActionDrawerResetState(): Partial<ActionsWidgetUiState> {
     selectedWildCompanionResource: "wild-shape",
     selectedBardicInspirationSpellSlotLevel: null,
     selectedArcaneWardSpellSlotLevel: null,
+    selectedExperimentalElixirOptionKey: null,
+    selectedExperimentalElixirSpellSlotLevel: null,
     selectedWildCompanionSpellSlotLevel: 1,
     selectedWildResurgenceMode: null,
     selectedWildResurgenceSpellSlotLevel: 1,
@@ -253,6 +260,8 @@ function getActionSelectionResetState(): Partial<ActionsWidgetUiState> {
     selectedWildCompanionResource: "wild-shape",
     selectedBeastMasterReviveSpellSlotLevel: null,
     selectedArcaneWardSpellSlotLevel: null,
+    selectedExperimentalElixirOptionKey: null,
+    selectedExperimentalElixirSpellSlotLevel: null,
     selectedWildCompanionSpellSlotLevel: 1,
     selectedWildResurgenceMode: null,
     selectedWildResurgenceSpellSlotLevel: 1,
@@ -370,6 +379,14 @@ export function useActionsWidgetUiState(
       setSelectedArcaneWardSpellSlotLevel: createFieldSetter(
         dispatch,
         "selectedArcaneWardSpellSlotLevel"
+      ),
+      setSelectedExperimentalElixirOptionKey: createFieldSetter(
+        dispatch,
+        "selectedExperimentalElixirOptionKey"
+      ),
+      setSelectedExperimentalElixirSpellSlotLevel: createFieldSetter(
+        dispatch,
+        "selectedExperimentalElixirSpellSlotLevel"
       ),
       setSelectedBeastMasterReviveSpellSlotLevel: createFieldSetter(
         dispatch,

@@ -2,6 +2,7 @@ import type { Character, AbilityKey } from "../../../../../../types";
 import {
   ACTION_TYPE,
   CLASS_FEATURE,
+  SPELL_COMPONENT,
   type SpellEntry,
   type WeaponEntry
 } from "../../../../../../codex/entries";
@@ -184,6 +185,21 @@ function createShadowArtsDarknessSpellEntry(character: Character, spell: SpellEn
   );
 }
 
+function createConjuredCauldronSpellEntry(character: Character, spell: SpellEntry): SpellEntry {
+  return appendFeatureSourcedDescriptionAddition(
+    {
+      ...spell,
+      components: spell.components.filter((component) => component !== SPELL_COMPONENT.M)
+    },
+    character,
+    CLASS_FEATURE.CHEMICAL_MASTERY,
+    [
+      "This casting doesn't expend a spell slot or require Material components, provided you use Alchemist's Supplies as the Spellcasting Focus."
+    ],
+    "Conjured Cauldron"
+  );
+}
+
 export function getFixedSpellEntryForExecute(
   character: Character,
   execute: Extract<FeatureActionExecuteConfig, { kind: "spell" }>
@@ -206,6 +222,10 @@ export function getFixedSpellEntryForExecute(
 
   if (execute.effectKind === "shadow-arts-darkness") {
     return createShadowArtsDarknessSpellEntry(character, transformedSpell);
+  }
+
+  if (execute.effectKind === "conjured-cauldron") {
+    return createConjuredCauldronSpellEntry(character, transformedSpell);
   }
 
   if (execute.effectKind === "mantle-of-majesty") {

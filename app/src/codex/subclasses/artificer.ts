@@ -72,46 +72,58 @@ export const artificerSubclassEntries: SubclassEntry[] = [
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,
         CLASS_FEATURE.EXPERIMENTAL_ELIXIR,
-        createDescription([
-          "Whenever you finish a <link:long-rest>Long Rest</link> while holding Alchemist's Supplies, you can use that tool to magically produce two elixirs. For each elixir, roll on the Experimental Elixir table for the elixir's effect, which is triggered when someone drinks the elixir.",
-          "The elixir appears in a vial, and the vial vanishes when the elixir is drunk or poured out. If any elixir remains when you finish a Long Rest, the elixir and its vial vanish.",
-          "<strong>Drinking an Elixir.</strong> As a Bonus Action, a creature can drink the elixir or administer it to another creature within 5 feet of itself.",
-          "<strong>Creating Additional Elixirs.</strong> As a Magic action while holding Alchemist's Supplies, you can expend one spell slot to create another elixir. When you do so, you choose its effect from the Experimental Elixir table rather than rolling.",
-          "When you reach certain Artificer levels, you can make an additional elixir at the end of each Long Rest: a total of three at level 5, four at level 9, and five at level 15.",
-          "<strong>Healing.</strong> The drinker regains <strong>2d8</strong> plus your <link:Intelligence>Intelligence</link> modifier Hit Points. The healing increases to <strong>3d8</strong> at Artificer level 9 and <strong>4d8</strong> at Artificer level 15.",
-          "<strong>Swiftness.</strong> The drinker's <link:Speed>Speed</link> increases by 10 feet for 1 hour. This bonus increases to 15 feet at Artificer level 9 and 20 feet at Artificer level 15.",
-          "<strong>Resilience.</strong> The drinker gains a +1 bonus to <link:Armor Class>AC</link> for 10 minutes. The duration increases to 1 hour at Artificer level 9 and 8 hours at Artificer level 15.",
-          "<strong>Boldness.</strong> The drinker can roll <strong>1d4</strong> and add the number rolled to every attack roll and saving throw they make for the next minute. The duration increases to 10 minutes at Artificer level 9 and 1 hour at Artificer level 15.",
-          "<strong>Flight.</strong> The drinker gains a Fly Speed of 10 feet for 10 minutes. The Fly Speed increases to 20 feet at Artificer level 9 and 30 feet at Artificer level 15.",
-          "<strong>Choice.</strong> On a roll of 6, you determine the elixir's effect by choosing one of the other rows in the table."
-        ])
+        createDescription(
+          [
+            "Whenever you finish a <link:long-rest>Long Rest</link> while holding Alchemist's Supplies, you can use that tool to magically produce two elixirs. For each elixir, roll on the Experimental Elixir table for the elixir's effect, which is triggered when someone drinks the elixir.",
+            "The elixir appears in a vial, and the vial vanishes when the elixir is drunk or poured out. If any elixir remains when you finish a Long Rest, the elixir and its vial vanish.",
+            "<strong>Drinking an Elixir.</strong> As a Bonus Action, a creature can drink the elixir or administer it to another creature within 5 feet of itself.",
+            "<strong>Creating Additional Elixirs.</strong> As a Magic action while holding Alchemist's Supplies, you can expend one spell slot to create another elixir. When you do so, you choose its effect from the Experimental Elixir table rather than rolling.",
+            "When you reach certain Artificer levels, you can make an additional elixir at the end of each Long Rest: a total of three at level 5, four at level 9, and five at level 15.",
+            "<strong>Healing.</strong> The drinker regains <strong>2d8</strong> plus your <link:Intelligence>Intelligence</link> modifier Hit Points. The healing increases to <strong>3d8</strong> at Artificer level 9 and <strong>4d8</strong> at Artificer level 15.",
+            "<strong>Swiftness.</strong> The drinker's <link:Speed>Speed</link> increases by 10 feet for 1 hour. This bonus increases to 15 feet at Artificer level 9 and 20 feet at Artificer level 15.",
+            "<strong>Resilience.</strong> The drinker gains a +1 bonus to <link:Armor Class>AC</link> for 10 minutes. The duration increases to 1 hour at Artificer level 9 and 8 hours at Artificer level 15.",
+            "<strong>Boldness.</strong> The drinker can roll <strong>1d4</strong> and add the number rolled to every attack roll and saving throw they make for the next minute. The duration increases to 10 minutes at Artificer level 9 and 1 hour at Artificer level 15.",
+            "<strong>Flight.</strong> The drinker gains a Fly Speed of 10 feet for 10 minutes. The Fly Speed increases to 20 feet at Artificer level 9 and 30 feet at Artificer level 15.",
+            "<strong>Choice.</strong> On a roll of 6, you determine the elixir's effect by choosing one of the other rows in the table."
+          ],
+          TRACKER.TRACKED
+        )
       ),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_5,
         CLASS_FEATURE.ALCHEMICAL_SAVANT,
-        createDescription([
-          "Whenever you cast a spell using your Alchemist's Supplies as the Spellcasting Focus, you gain a bonus to one roll of the spell.",
-          "That roll must restore Hit Points or be a damage roll that deals <link:Acid>Acid</link>, <link:Fire>Fire</link>, or <link:Poison>Poison</link> damage.",
-          "The bonus equals your <link:Intelligence>Intelligence</link> modifier, minimum bonus of +1."
-        ])
+        createDescription(
+          [
+            "Whenever you cast a spell using your Alchemist's Supplies as the Spellcasting Focus, you gain a bonus to one roll of the spell.",
+            "That roll must restore Hit Points or be a damage roll that deals <link:Acid>Acid</link>, <link:Fire>Fire</link>, or <link:Poison>Poison</link> damage.",
+            "The bonus equals your <link:Intelligence>Intelligence</link> modifier, minimum bonus of +1."
+          ],
+          TRACKER.TRACKED
+        )
       ),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_9,
         CLASS_FEATURE.RESTORATIVE_REAGENTS,
-        createDescription([
-          "You can cast <spell:Lesser Restoration>Lesser Restoration</spell> without expending a spell slot and without preparing the spell, provided you use Alchemist's Supplies as the Spellcasting Focus.",
-          "You can do so a number of times equal to your <link:Intelligence>Intelligence</link> modifier, minimum of once, and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>."
-        ])
+        createDescription(
+          [
+            "You can cast <spell:Lesser Restoration>Lesser Restoration</spell> without expending a spell slot and without preparing the spell, provided you use Alchemist's Supplies as the Spellcasting Focus.",
+            "You can do so a number of times equal to your <link:Intelligence>Intelligence</link> modifier, minimum of once, and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>."
+          ],
+          TRACKER.TRACKED
+        )
       ),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_15,
         CLASS_FEATURE.CHEMICAL_MASTERY,
-        createDescription([
-          "You gain the following benefits.",
-          "<strong>Alchemical Eruption.</strong> When you cast an Artificer spell that deals <link:Acid>Acid</link>, <link:Fire>Fire</link>, or <link:Poison>Poison</link> damage to a target, you can also deal <strong>2d8</strong> <link:Force>Force</link> damage to that target. You can use this benefit only once on each of your turns.",
-          "<strong>Chemical Resistance.</strong> You gain <link:Resistance>Resistance</link> to Acid damage and Poison damage. You also gain <link:Immunity>Immunity</link> to the <link:Poisoned>Poisoned</link> condition.",
-          "<strong>Conjured Cauldron.</strong> You can cast Tasha's Bubbling Cauldron without expending a spell slot, without preparing the spell, and without Material components, provided you use Alchemist's Supplies as the Spellcasting Focus. Once you use this feature, you can't use it again until you finish a <link:long-rest>Long Rest</link>."
-        ])
+        createDescription(
+          [
+            "You gain the following benefits.",
+            "<strong>Alchemical Eruption.</strong> When you cast an Artificer spell that deals <link:Acid>Acid</link>, <link:Fire>Fire</link>, or <link:Poison>Poison</link> damage to a target, you can also deal <strong>2d8</strong> <link:Force>Force</link> damage to that target. You can use this benefit only once on each of your turns.",
+            "<strong>Chemical Resistance.</strong> You gain <link:Resistance>Resistance</link> to Acid damage and Poison damage. You also gain <link:Immunity>Immunity</link> to the <link:Poisoned>Poisoned</link> condition.",
+            "<strong>Conjured Cauldron.</strong> You can cast Tasha's Bubbling Cauldron without expending a spell slot, without preparing the spell, and without Material components, provided you use Alchemist's Supplies as the Spellcasting Focus. Once you use this feature, you can't use it again until you finish a <link:long-rest>Long Rest</link>."
+          ],
+          TRACKER.TRACKED
+        )
       )
     ]
   },

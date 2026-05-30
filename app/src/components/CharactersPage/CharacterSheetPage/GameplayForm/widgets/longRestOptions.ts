@@ -25,17 +25,23 @@ import {
   restoreTieflingFiendishLegacyOnLongRest
 } from "../../../../../pages/CharactersPage/species";
 import {
+  getArtificerConjuredCauldronUsesRemaining,
+  getArtificerConjuredCauldronUsesTotal,
   getArtificerFlashOfGeniusUsesRemaining,
   getArtificerFlashOfGeniusUsesTotal,
   getArtificerMagicItemTinkerDrainUsesRemaining,
   getArtificerMagicItemTinkerDrainUsesTotal,
   getArtificerMagicItemTinkerTransmuteUsesRemaining,
   getArtificerMagicItemTinkerTransmuteUsesTotal,
+  getArtificerRestorativeReagentsUsesRemaining,
+  getArtificerRestorativeReagentsUsesTotal,
   getArtificerTinkersMagicUsesRemaining,
   getArtificerTinkersMagicUsesTotal,
   restoreArtificerFlashOfGeniusOnLongRest,
+  restoreArtificerConjuredCauldronOnLongRest,
   restoreArtificerMagicItemTinkerDrainOnLongRest,
   restoreArtificerMagicItemTinkerTransmuteOnLongRest,
+  restoreArtificerRestorativeReagentsOnLongRest,
   restoreArtificerTinkersMagicOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
 import {
@@ -383,6 +389,13 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const artificerTinkersMagicUsesRemaining = getArtificerTinkersMagicUsesRemaining(character);
   const artificerFlashOfGeniusUsesTotal = getArtificerFlashOfGeniusUsesTotal(character);
   const artificerFlashOfGeniusUsesRemaining = getArtificerFlashOfGeniusUsesRemaining(character);
+  const artificerRestorativeReagentsUsesTotal =
+    getArtificerRestorativeReagentsUsesTotal(character);
+  const artificerRestorativeReagentsUsesRemaining =
+    getArtificerRestorativeReagentsUsesRemaining(character);
+  const artificerConjuredCauldronUsesTotal = getArtificerConjuredCauldronUsesTotal(character);
+  const artificerConjuredCauldronUsesRemaining =
+    getArtificerConjuredCauldronUsesRemaining(character);
   const artificerMagicItemTinkerDrainUsesTotal =
     getArtificerMagicItemTinkerDrainUsesTotal(character);
   const artificerMagicItemTinkerDrainUsesRemaining =
@@ -934,6 +947,39 @@ export function createLongRestOptions(character: Character): RestOption[] {
             disabled: artificerFlashOfGeniusUsesRemaining >= artificerFlashOfGeniusUsesTotal,
             apply: (currentCharacter: Character) =>
               restoreArtificerFlashOfGeniusOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(artificerRestorativeReagentsUsesTotal > 0
+      ? [
+          {
+            id: "restore-artificer-restorative-reagents",
+            label: "Restore Restorative Reagents",
+            charges: {
+              current: artificerRestorativeReagentsUsesRemaining,
+              total: artificerRestorativeReagentsUsesTotal
+            },
+            disabled:
+              artificerRestorativeReagentsUsesRemaining >=
+              artificerRestorativeReagentsUsesTotal,
+            apply: (currentCharacter: Character) =>
+              restoreArtificerRestorativeReagentsOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(artificerConjuredCauldronUsesTotal > 0
+      ? [
+          {
+            id: "restore-artificer-conjured-cauldron",
+            label: "Restore Conjured Cauldron",
+            charges: {
+              current: artificerConjuredCauldronUsesRemaining,
+              total: artificerConjuredCauldronUsesTotal
+            },
+            disabled:
+              artificerConjuredCauldronUsesRemaining >= artificerConjuredCauldronUsesTotal,
+            apply: (currentCharacter: Character) =>
+              restoreArtificerConjuredCauldronOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),

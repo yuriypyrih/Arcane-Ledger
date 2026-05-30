@@ -4,17 +4,20 @@ import type { Character, ItemRecord } from "../../../../../../types";
 import type { PersistCharacterUpdater } from "../../../../../../pages/CharactersPage/CharacterSheetPage/types";
 import type { GameplayActionDefinition } from "../../../../../../pages/CharactersPage/combatActions";
 import {
+  addArtificerExperimentalElixirToInventory,
   addArtificerReplicateMagicItemToInventory,
   addArtificerTinkersMagicItemToInventory,
   artificerChargeMagicItemActionKey,
   artificerDrainMagicItemActionKey,
+  artificerExperimentalElixirActionKey,
   artificerReplicateMagicItemActionKey,
   artificerTinkersMagicActionKey,
   artificerTransmuteMagicItemActionKey,
   chargeArtificerMagicItemForCharacter,
   consumeArtificerTinkersMagicUse,
   drainArtificerMagicItemForCharacter,
-  transmuteArtificerMagicItemForCharacter
+  transmuteArtificerMagicItemForCharacter,
+  type ArtificerExperimentalElixirOptionKey
 } from "../../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
 import type { FeatureActionCard } from "../../../../../../pages/CharactersPage/classFeatures";
 import { getRoundTrackerResourceForEconomyType } from "../../../../../../pages/CharactersPage/actionEconomy";
@@ -53,6 +56,7 @@ export function useArtificerActionSubmissions({
 }: UseArtificerActionSubmissionsArgs) {
   const [isTinkersMagicSubmitting, setIsTinkersMagicSubmitting] = useState(false);
   const [isReplicateMagicItemSubmitting, setIsReplicateMagicItemSubmitting] = useState(false);
+  const [isExperimentalElixirSubmitting, setIsExperimentalElixirSubmitting] = useState(false);
   const [isArtificerMagicItemTinkerSubmitting, setIsArtificerMagicItemTinkerSubmitting] =
     useState(false);
 
@@ -180,6 +184,44 @@ export function useArtificerActionSubmissions({
     }
   }
 
+  async function submitArtificerExperimentalElixir(
+    optionKey: ArtificerExperimentalElixirOptionKey,
+    spellSlotLevel: number | null
+  ) {
+    if (
+      !isSelectedFeatureAction(
+        selectedAction,
+        selectedFeatureAction,
+        artificerExperimentalElixirActionKey
+      )
+    ) {
+      return;
+    }
+
+    setIsExperimentalElixirSubmitting(true);
+
+    try {
+      const didApply = applySelectedFeatureAction((preparedCharacter) =>
+        addArtificerExperimentalElixirToInventory(preparedCharacter, optionKey, spellSlotLevel)
+      );
+
+      if (!didApply) {
+        throw new Error("Experimental Elixir could not be created.");
+      }
+
+      closeActionDrawer();
+    } catch (error) {
+      console.error("Failed to create Experimental Elixir.", error);
+      captureAppError(error, {
+        area: "gameplay-actions",
+        action: "experimental-elixir"
+      });
+      throw error;
+    } finally {
+      setIsExperimentalElixirSubmitting(false);
+    }
+  }
+
   async function submitArtificerChargeMagicItem(stackId: string, spellSlotLevel: number) {
     if (
       !isSelectedFeatureAction(
@@ -291,10 +333,12 @@ export function useArtificerActionSubmissions({
 
   return {
     isArtificerMagicItemTinkerSubmitting,
+    isExperimentalElixirSubmitting,
     isReplicateMagicItemSubmitting,
     isTinkersMagicSubmitting,
     submitArtificerChargeMagicItem,
     submitArtificerDrainMagicItem,
+    submitArtificerExperimentalElixir,
     submitArtificerReplicateMagicItem,
     submitArtificerTinkersMagic,
     submitArtificerTransmuteMagicItem

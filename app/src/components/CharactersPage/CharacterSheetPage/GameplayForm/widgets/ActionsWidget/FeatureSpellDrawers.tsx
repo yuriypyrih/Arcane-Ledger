@@ -10,6 +10,11 @@ import type {
   FeatureActionFact
 } from "../../../../../../pages/CharactersPage/classFeatures";
 import {
+  getAlwaysPreparedSpellIdsForCharacter,
+  getAlwaysPreparedSpellSourceMapForCharacter,
+  getSpellSourceLabels
+} from "../../../../../../pages/CharactersPage/classFeatures";
+import {
   createChargesCardUsage,
   createChargesHeaderTag,
   createChargesOrResourceCardUsage,
@@ -273,13 +278,22 @@ function FeatureSpellDrawers({
   onCloseMysticArcanumSpell,
   onCastMysticArcanumSpell
 }: FeatureSpellDrawersProps) {
-  const selectedFeatureActionSource = selectedFeatureAction ? [selectedFeatureAction.name] : [];
+  const alwaysPreparedSpellIds = getAlwaysPreparedSpellIdsForCharacter(character);
+  const alwaysPreparedSpellIdSet = new Set(alwaysPreparedSpellIds);
+  const alwaysPreparedSpellSourceMap = getAlwaysPreparedSpellSourceMapForCharacter(character);
   const fixedSpellDisplay = useMemo(
     () =>
       fixedSpellEntry
         ? getGoliathSpellDisplay(fixedSpellEntry, selectedActionSpellGoliathAncestryState)
         : null,
     [fixedSpellEntry, selectedActionSpellGoliathAncestryState]
+  );
+  const fixedSpellAlwaysPrepared = fixedSpellDisplay
+    ? alwaysPreparedSpellIdSet.has(fixedSpellDisplay.id)
+    : false;
+  const fixedSpellAlwaysPreparedSources = getSpellSourceLabels(
+    alwaysPreparedSpellSourceMap,
+    fixedSpellDisplay?.id
   );
   const divineInterventionSpellDisplay = useMemo(
     () =>
@@ -353,8 +367,8 @@ function FeatureSpellDrawers({
           character={character}
           spell={fixedSpellDisplay}
           damageDetailOverride={fixedSpellDamageDetailOverride}
-          alwaysPrepared
-          alwaysPreparedSources={selectedFeatureActionSource}
+          alwaysPrepared={fixedSpellAlwaysPrepared}
+          alwaysPreparedSources={fixedSpellAlwaysPreparedSources}
           mode="standard"
           spellSlotTotals={fixedSpellSlotTotals}
           spellSlotsRemaining={fixedSpellSlotsRemaining}
@@ -529,8 +543,6 @@ function FeatureSpellDrawers({
           character={character}
           spell={mysticArcanumSpellDisplay}
           damageDetailOverride={mysticArcanumDamageDetailOverride}
-          alwaysPrepared
-          alwaysPreparedSources={selectedFeatureActionSource}
           mode="standard"
           spellSlotTotals={emptySpellSlots}
           spellSlotsRemaining={emptySpellSlots}

@@ -116,12 +116,8 @@ export function getSoulOfArtificeCheatDeathDescription(
 
 export function getSoulOfArtificeLifeAndDeathDescriptionAdditions(
   character: Pick<Character, "className"> &
-    Partial<Pick<Character, "inventoryItems" | "level" | "subclassId">>
+    Partial<Pick<Character, "level" | "subclassId">>
 ): SpellDescriptionEntry[][] {
-  if (getSoulOfArtificeCheatDeathItemOptions(character).length <= 0) {
-    return [];
-  }
-
   const cheatDeathDescription = getSoulOfArtificeCheatDeathDescription(character);
 
   return cheatDeathDescription.length > 0

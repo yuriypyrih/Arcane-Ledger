@@ -247,6 +247,7 @@ export type CharacterEquipmentItem = {
 export type CharacterInventoryFeatureTag = "pact-of-the-blade" | "conjured";
 export type CharacterInventoryConjuredSource =
   | "manual"
+  | "experimental-elixir"
   | "tinkers-magic"
   | "replicate-magic-item"
   | "pact-of-the-blade";

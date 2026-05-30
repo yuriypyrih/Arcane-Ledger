@@ -329,6 +329,7 @@ import {
   chargeMagicItemActionFormId,
   drainMagicItemActionFormId
 } from "./forms/MagicItemTinkerActionBody";
+import ExperimentalElixirActionFooter from "./forms/ExperimentalElixirActionFooter";
 import { LayOnHandsActionBody, LayOnHandsActionFooter } from "./LayOnHandsAction";
 import { SorcererInnateSorceryActionFooter } from "./SorcererInnateSorceryAction";
 import ThirdEyeActionBody from "./ThirdEyeActionBody";
@@ -538,6 +539,7 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     isImprovedShadowStepSelected,
     isInspiredEclipseSelected,
     isArtificerMagicItemTinkerSubmitting,
+    isExperimentalElixirSubmitting,
     isPolarStrikesSelected,
     isPsionicStrikeSelected,
     isQuiveringPalmSelected,
@@ -577,6 +579,8 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     selectedCrownOfSpellfireUsesRemaining,
     selectedCrownOfSpellfireUsesTotal,
     selectedDrawerOption,
+    selectedExperimentalElixirOptionKey,
+    selectedExperimentalElixirSpellSlotLevel,
     selectedFeatureAction,
     selectedFeatureActionPrimaryDisabledReason,
     selectedFlurryOfBlowsPrimaryDisabledReason,
@@ -711,6 +715,7 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     setSelectedBlessingOfTheTricksterTarget,
     setSelectedChannelDivinityOptionKey,
     setSelectedDivineInterventionSpell,
+    setSelectedExperimentalElixirSpellSlotLevel,
     setSelectedFontOfMagicSelection,
     setSelectedHealingLightDiceCount,
     setSelectedHealingLightTarget,
@@ -738,6 +743,7 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     submitArcaneRecovery,
     submitBlessingOfTheTrickster,
     submitBrutalStrike,
+    submitArtificerExperimentalElixir,
     submitAasimarCelestialRevelation,
     submitAasimarHealingHands,
     submitDragonbornBreathWeapon,
@@ -1219,6 +1225,27 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
       >
         {selectedFeaturePrimaryLabel}
       </ActionButton>
+    );
+  }
+
+  if (
+    selectedAction.kind === "feature" &&
+    selectedAction.drawer.kind === "custom-form" &&
+    selectedAction.drawer.formKind === "artificer-experimental-elixir"
+  ) {
+    return (
+      <ExperimentalElixirActionFooter
+        character={character}
+        selectedOptionKey={selectedExperimentalElixirOptionKey}
+        selectedSpellSlotLevel={selectedExperimentalElixirSpellSlotLevel}
+        isSubmitting={isExperimentalElixirSubmitting}
+        disabledReason={selectedFeatureActionPrimaryDisabledReason}
+        actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
+        actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+        actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+        onSelectedSpellSlotLevelChange={setSelectedExperimentalElixirSpellSlotLevel}
+        onUseElixir={submitArtificerExperimentalElixir}
+      />
     );
   }
 

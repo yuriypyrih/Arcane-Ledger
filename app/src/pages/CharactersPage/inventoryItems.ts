@@ -162,6 +162,7 @@ const moddedItemKeyMarker = "-modded-";
 export const INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE = "pact-of-the-blade";
 export const INVENTORY_FEATURE_TAG_CONJURED = "conjured";
 export const INVENTORY_CONJURED_SOURCE_MANUAL = "manual";
+export const INVENTORY_CONJURED_SOURCE_EXPERIMENTAL_ELIXIR = "experimental-elixir";
 export const INVENTORY_CONJURED_SOURCE_TINKERS_MAGIC = "tinkers-magic";
 export const INVENTORY_CONJURED_SOURCE_REPLICATE_MAGIC_ITEM = "replicate-magic-item";
 export const INVENTORY_CONJURED_SOURCE_PACT_OF_THE_BLADE = "pact-of-the-blade";
@@ -182,6 +183,7 @@ const inventoryFeatureTagLabels: Record<CharacterInventoryFeatureTag, string> = 
 
 const inventoryConjuredSourceLabels: Record<CharacterInventoryConjuredSource, string> = {
   [INVENTORY_CONJURED_SOURCE_MANUAL]: "Manual",
+  [INVENTORY_CONJURED_SOURCE_EXPERIMENTAL_ELIXIR]: "Experimental Elixir",
   [INVENTORY_CONJURED_SOURCE_TINKERS_MAGIC]: "Tinker's Magic",
   [INVENTORY_CONJURED_SOURCE_REPLICATE_MAGIC_ITEM]: "Replicate Magic Item",
   [INVENTORY_CONJURED_SOURCE_PACT_OF_THE_BLADE]: "Pact of the Blade"
@@ -417,6 +419,7 @@ function normalizeInventoryConjuredSource(
   value: unknown
 ): CharacterInventoryConjuredSource | undefined {
   return value === INVENTORY_CONJURED_SOURCE_MANUAL ||
+    value === INVENTORY_CONJURED_SOURCE_EXPERIMENTAL_ELIXIR ||
     value === INVENTORY_CONJURED_SOURCE_TINKERS_MAGIC ||
     value === INVENTORY_CONJURED_SOURCE_REPLICATE_MAGIC_ITEM ||
     value === INVENTORY_CONJURED_SOURCE_PACT_OF_THE_BLADE

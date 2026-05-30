@@ -162,6 +162,7 @@ export type FeatureActionFormKind =
   | "aasimar-healing-hands"
   | "artificer-charge-magic-item"
   | "artificer-drain-magic-item"
+  | "artificer-experimental-elixir"
   | "artificer-transmute-magic-item"
   | "arcane-recovery"
   | "blessing-of-the-trickster"
@@ -199,6 +200,7 @@ export type FeatureActionSpellSource = "fixed" | "divine-intervention" | "mystic
 export type FeatureActionSpellEffectKind =
   | "ascendant-step"
   | "armor-of-shadows"
+  | "conjured-cauldron"
   | "contact-patron"
   | "divine-intervention"
   | "faithful-steed"
@@ -214,6 +216,7 @@ export type FeatureActionSpellEffectKind =
   | "otherworldly-leap"
   | "pact-of-the-chain"
   | "paladins-smite"
+  | "restorative-reagents"
   | "shadow-arts-darkness"
   | "visions-of-distant-realms"
   | "whispers-of-the-grave";
