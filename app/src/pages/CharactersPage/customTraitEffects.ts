@@ -21,6 +21,8 @@ const customTraitEffectTypes = new Set<CharacterCustomTraitEffect["type"]>([
   "initiative",
   "passivePerception",
   "speed",
+  "spellAttack",
+  "spellDc",
   "abilityScore",
   "abilityModifier",
   "savingThrow",
@@ -104,7 +106,7 @@ function createValueModeFields(valueMode: CharacterCustomTraitValueMode) {
 }
 
 function isRollModeDisabledEffectType(type: CharacterCustomTraitEffect["type"]): boolean {
-  return type === "armorClass" || type === "speed";
+  return type === "armorClass" || type === "speed" || type === "spellDc";
 }
 
 function isAbilityValueAllowedEffectType(type: CharacterCustomTraitEffect["type"]): boolean {
@@ -144,6 +146,8 @@ function normalizeCharacterCustomTraitEffect(value: unknown): CharacterCustomTra
     case "initiative":
     case "passivePerception":
     case "speed":
+    case "spellAttack":
+    case "spellDc":
       return {
         type: record.type,
         value: normalizedValue,
@@ -312,6 +316,18 @@ export function getCustomTraitSpeedBonuses(
   return mapCustomTraitBonuses(statusEntries, (effect) => effect.type === "speed");
 }
 
+export function getCustomTraitSpellAttackBonuses(
+  statusEntries: CustomTraitBonusInput
+): CustomTraitFlatBonus[] {
+  return mapCustomTraitBonuses(statusEntries, (effect) => effect.type === "spellAttack");
+}
+
+export function getCustomTraitSpellDcBonuses(
+  statusEntries: CustomTraitBonusInput
+): CustomTraitFlatBonus[] {
+  return mapCustomTraitBonuses(statusEntries, (effect) => effect.type === "spellDc");
+}
+
 export function getCustomTraitAbilityScoreBonuses(
   statusEntries: CustomTraitBonusInput,
   ability: AbilityKey
@@ -439,6 +455,12 @@ export function getCustomTraitWeaponAttackRollIndicators(
   });
 }
 
+export function getCustomTraitSpellAttackRollIndicators(
+  statusEntries: CustomTraitBonusInput
+): CustomTraitRollIndicator[] {
+  return mapCustomTraitRollIndicators(statusEntries, (effect) => effect.type === "spellAttack");
+}
+
 export function formatCharacterCustomTraitEffectTargetLabel(
   effect: CharacterCustomTraitEffect
 ): string {
@@ -451,6 +473,10 @@ export function formatCharacterCustomTraitEffectTargetLabel(
       return "Passive Perception";
     case "speed":
       return "Speed";
+    case "spellAttack":
+      return "Spell Attack";
+    case "spellDc":
+      return "Spell DC";
     case "abilityScore":
       return `${effect.ability} Ability Score`;
     case "abilityModifier":

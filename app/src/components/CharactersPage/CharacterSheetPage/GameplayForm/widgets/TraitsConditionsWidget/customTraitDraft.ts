@@ -58,7 +58,11 @@ export function isCustomTraitAbilityValue(value: string): boolean {
 
 export function isCustomTraitRollModeDisabledTarget(target: string): boolean {
   const trimmedTarget = target.trim();
-  return trimmedTarget === "armorClass" || trimmedTarget === "speed";
+  return (
+    trimmedTarget === "armorClass" ||
+    trimmedTarget === "speed" ||
+    trimmedTarget === "spellDc"
+  );
 }
 
 export function doesCustomTraitTargetAllowAbilityValue(target: string): boolean {
@@ -102,7 +106,9 @@ export const customTraitTargetOptions: CustomTraitTargetOption[] = [
   })),
   { value: "weaponDamage:unarmed", label: "Unarmed Strike" },
   { value: `weaponDamage:${WEAPON_COMBAT_TYPE.MELEE}`, label: "Melee Weapons" },
-  { value: `weaponDamage:${WEAPON_COMBAT_TYPE.RANGED}`, label: "Ranged Weapons" }
+  { value: `weaponDamage:${WEAPON_COMBAT_TYPE.RANGED}`, label: "Ranged Weapons" },
+  { value: "spellAttack", label: "Spell Attack" },
+  { value: "spellDc", label: "Spell DC" }
 ];
 
 export function createCustomTraitEffectDraft(): CustomTraitEffectDraft {
@@ -133,6 +139,8 @@ export function createCustomTraitEffectDraftFromEntry(
     case "initiative":
     case "passivePerception":
     case "speed":
+    case "spellAttack":
+    case "spellDc":
       return {
         id: createDraftId(),
         target: effect.type,
@@ -230,6 +238,14 @@ export function parseCustomTraitEffectDraft(
 
   if (trimmedTarget === "speed") {
     return { type: "speed", value: normalizedValue, ...valueModeFields };
+  }
+
+  if (trimmedTarget === "spellAttack") {
+    return { type: "spellAttack", value: normalizedValue, ...valueModeFields, ...rollModeFields };
+  }
+
+  if (trimmedTarget === "spellDc") {
+    return { type: "spellDc", value: normalizedValue, ...valueModeFields };
   }
 
   const [type, rawDetail] = trimmedTarget.split(":");

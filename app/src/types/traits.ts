@@ -143,6 +143,14 @@ export type CharacterCustomTraitEffect =
     } & CharacterCustomTraitFlexibleValue &
       CharacterCustomTraitEffectRoll
   | {
+      type: "spellAttack";
+    } & CharacterCustomTraitFlexibleValue &
+      CharacterCustomTraitEffectRoll
+  | {
+      type: "spellDc";
+    } & CharacterCustomTraitFlexibleValue &
+      CharacterCustomTraitEffectRoll
+  | {
       type: "abilityScore";
       ability: AbilityKey;
     } & CharacterCustomTraitNumericValue &

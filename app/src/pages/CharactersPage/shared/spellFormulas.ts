@@ -6,6 +6,15 @@ import { getAbilityModifierForCharacter } from "../abilities";
 import { getProficiencyBonus } from "../gameplay";
 import { getExhaustionD20TestPenalty } from "../statusEntries";
 import { isCustomClassName, normalizeCustomClassConfig } from "../customClass";
+import { getCharacterCustomTraitEffectInput } from "../characterRuntime/customEffectRuntime";
+import {
+  formatCustomTraitBonusFormulaTerm,
+  getCustomTraitSpellAttackBonuses,
+  getCustomTraitSpellAttackRollIndicators,
+  getCustomTraitSpellDcBonuses,
+  type CustomTraitFlatBonus,
+  type CustomTraitRollIndicator
+} from "../customTraitEffects";
 import {
   formatD20Formula,
   formatFormulaCell,
@@ -27,6 +36,7 @@ export type SpellAttackRollFormula = {
   attackBonus: number;
   rollMode?: RollMode;
   hasInnateSorceryAdvantage?: boolean;
+  rollModeBreakdownTerms?: string[];
 };
 
 const spellcastingAbilityByClassName: Record<string, AbilityKey> = {
@@ -58,6 +68,101 @@ const abilityNameByAbilityType: Record<ABILITY_TYPES, string> = {
 
 function getSavingThrowDcLabel(ability: ABILITY_TYPES | null | undefined): string {
   return ability ? `${abilityNameByAbilityType[ability]} DC` : "Spell Save DC";
+}
+
+function dedupeLabels(labels: string[]): string[] {
+  return [...new Set(labels.map((label) => label.trim()).filter(Boolean))];
+}
+
+function formatRollModeSourceSuffix(sources: string[]): string {
+  const dedupedSources = dedupeLabels(sources);
+  return dedupedSources.length > 0 ? ` (${dedupedSources.join(", ")})` : "";
+}
+
+function getSpellAttackRollModeState(
+  innateSorceryActive: boolean,
+  customIndicators: CustomTraitRollIndicator[]
+): Pick<SpellAttackRollFormula, "rollMode" | "rollModeBreakdownTerms"> {
+  const advantageSources = [
+    innateSorceryActive ? "Innate Sorcery" : null,
+    ...customIndicators
+      .filter((indicator) => indicator.tone === "advantage")
+      .map((indicator) => indicator.source)
+  ].filter((source): source is string => source !== null);
+  const disadvantageSources = customIndicators
+    .filter((indicator) => indicator.tone === "disadvantage")
+    .map((indicator) => indicator.source);
+  const hasAdvantage = advantageSources.length > 0;
+  const hasDisadvantage = disadvantageSources.length > 0;
+
+  if (hasAdvantage && hasDisadvantage) {
+    return {
+      rollMode: "normal",
+      rollModeBreakdownTerms: [
+        `Advantage/Disadvantage neutralized${formatRollModeSourceSuffix([
+          ...advantageSources,
+          ...disadvantageSources
+        ])}`
+      ]
+    };
+  }
+
+  if (hasAdvantage) {
+    return {
+      rollMode: "advantage",
+      rollModeBreakdownTerms: [
+        `+Advantage${formatRollModeSourceSuffix(advantageSources)}`
+      ]
+    };
+  }
+
+  if (hasDisadvantage) {
+    return {
+      rollMode: "disadvantage",
+      rollModeBreakdownTerms: [
+        `+Disadvantage${formatRollModeSourceSuffix(disadvantageSources)}`
+      ]
+    };
+  }
+
+  return {};
+}
+
+function getResolvedCustomTraitBonusValue(
+  character: Character,
+  bonus: CustomTraitFlatBonus
+): number {
+  if (!bonus.abilityModifierSource) {
+    return bonus.value;
+  }
+
+  return (
+    getAbilityModifierForCharacter(character, bonus.abilityModifierSource) *
+    (bonus.abilityModifierMultiplier ?? 1)
+  );
+}
+
+function getResolvedCustomTraitFormulaEntries(
+  character: Character,
+  bonuses: CustomTraitFlatBonus[]
+): Array<{ value: number; formulaTerm: string | null }> {
+  return bonuses.flatMap((bonus) => {
+    const value = getResolvedCustomTraitBonusValue(character, bonus);
+
+    if (value === 0) {
+      return [];
+    }
+
+    return [
+      {
+        value,
+        formulaTerm: formatCustomTraitBonusFormulaTerm({
+          ...bonus,
+          value
+        })
+      }
+    ];
+  });
 }
 
 export function getSpellcastingAbilityForCharacter(character: Character): AbilityKey | null {
@@ -108,14 +213,21 @@ export function getSpellSaveFormulaCell(
   const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
   const abilityModifier = getAbilityModifierForCharacter(character, spellcastingAbility);
   const innateSorceryBonus = isInnateSorceryActiveForSpell(character, spell) ? 1 : 0;
-  const dc = 8 + proficiencyBonus + abilityModifier + innateSorceryBonus;
+  const customTraitEffectInput = getCharacterCustomTraitEffectInput(character);
+  const customDcEntries = getResolvedCustomTraitFormulaEntries(
+    character,
+    getCustomTraitSpellDcBonuses(customTraitEffectInput)
+  );
+  const customDcBonus = customDcEntries.reduce((total, entry) => total + entry.value, 0);
+  const dc = 8 + proficiencyBonus + abilityModifier + innateSorceryBonus + customDcBonus;
   const formulaCell = formatFormulaCell({
     formula: String(dc),
     displayTerms: [
       "DC 8 (Base)",
       formatSignedFormulaTerm(proficiencyBonus, "Prof. Bonus"),
       formatSignedFormulaTerm(abilityModifier, spellcastingAbility),
-      innateSorceryBonus > 0 ? formatSignedFormulaTerm(innateSorceryBonus, "Innate Sorcery") : null
+      innateSorceryBonus > 0 ? formatSignedFormulaTerm(innateSorceryBonus, "Innate Sorcery") : null,
+      ...customDcEntries.map((entry) => entry.formulaTerm)
     ]
   });
 
@@ -145,21 +257,33 @@ export function getSpellAttackRollFormulaForCharacter(
   const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
   const abilityModifier = getAbilityModifierForCharacter(character, spellcastingAbility);
   const exhaustionPenalty = getExhaustionD20TestPenalty(character.statusEntries);
-  const attackBonus = proficiencyBonus + abilityModifier + exhaustionPenalty;
+  const customTraitEffectInput = getCharacterCustomTraitEffectInput(character);
+  const customAttackEntries = getResolvedCustomTraitFormulaEntries(
+    character,
+    getCustomTraitSpellAttackBonuses(customTraitEffectInput)
+  );
+  const customAttackBonus = customAttackEntries.reduce((total, entry) => total + entry.value, 0);
+  const attackBonus = proficiencyBonus + abilityModifier + exhaustionPenalty + customAttackBonus;
   const innateSorceryActive = isInnateSorceryActiveForSpell(character, spell);
+  const rollModeState = getSpellAttackRollModeState(
+    innateSorceryActive,
+    getCustomTraitSpellAttackRollIndicators(customTraitEffectInput)
+  );
   const displayTerms = [
     "1d20",
     formatSignedFormulaTerm(proficiencyBonus, "Prof. Bonus"),
     formatSignedFormulaTerm(abilityModifier, spellcastingAbility),
-    exhaustionPenalty !== 0 ? formatSignedFormulaTerm(exhaustionPenalty, "Exhaustion") : null
+    exhaustionPenalty !== 0 ? formatSignedFormulaTerm(exhaustionPenalty, "Exhaustion") : null,
+    ...customAttackEntries.map((entry) => entry.formulaTerm)
   ];
 
   return {
     formula: formatD20Formula(attackBonus),
     formulaDisplay: formatFormulaTerms(displayTerms),
     attackBonus,
-    rollMode: innateSorceryActive ? "advantage" : undefined,
-    hasInnateSorceryAdvantage: innateSorceryActive
+    rollMode: rollModeState.rollMode,
+    hasInnateSorceryAdvantage: innateSorceryActive,
+    rollModeBreakdownTerms: rollModeState.rollModeBreakdownTerms
   };
 }
 
@@ -192,7 +316,7 @@ export function getSpellAttackFormulaCell(
   const formulaCell = formatFormulaCell({
     formula: attackRollFormula.formula,
     displayTerms: [attackRollFormula.formulaDisplay],
-    breakdownTerms: attackRollFormula.hasInnateSorceryAdvantage ? ["+Advantage"] : undefined
+    breakdownTerms: attackRollFormula.rollModeBreakdownTerms
   });
   const attackRange = parseFormulaRange(attackRollFormula.formula);
 
