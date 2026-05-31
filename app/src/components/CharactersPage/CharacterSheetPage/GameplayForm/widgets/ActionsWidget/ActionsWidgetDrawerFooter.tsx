@@ -2086,14 +2086,6 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
     const selectedOption = selectedDrawerOption;
     const isMultiConfirm = selectedAction.drawer.selection === "multi-confirm";
-    const selectedOptionShape = isMultiConfirm
-      ? actionShape
-      : selectedOption
-        ? getActionShapeForEconomyType(selectedOption.economyType)
-        : null;
-    const selectedOptionShapeState = isMultiConfirm
-      ? selectedActionEconomyShapeState
-      : selectedOptionEconomyShapeState;
     const selectedOptionToastTrigger = isMultiConfirm
       ? selectedAction.economyType
       : selectedOption?.rollFormula
@@ -2115,11 +2107,11 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
             selectedMetamagicCost > getSorceryPointsRemainingForCharacter(character))
         }
         trailingBadge={
-          selectedOptionShape && selectedOptionShapeState ? (
+          actionShape ? (
             <ActionShape
-              shape={selectedOptionShape}
-              isSelected={selectedOptionShapeState.isAvailable}
-              multiCount={selectedOptionShapeState.multiCount}
+              shape={actionShape}
+              isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
+              multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
               className={styles.footerActionShape}
             />
           ) : null

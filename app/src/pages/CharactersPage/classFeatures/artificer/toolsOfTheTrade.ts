@@ -19,19 +19,42 @@ const alchemistToolsOfTheTradeDefaults = [
   TOOL_PROFICIENCY.ALCHEMISTS_SUPPLIES,
   TOOL_PROFICIENCY.HERBALISM_KIT
 ] as const;
-const toolsOfTheTradeSelectionCount = alchemistToolsOfTheTradeDefaults.length;
+const armorerSubclassId = "artificer-armorer";
+const armorerToolsOfTheTradeSource = "Armorer: Tools of the Trade";
+const armorerToolsOfTheTradeDefaults = [TOOL_PROFICIENCY.SMITHS_TOOLKIT] as const;
 const toolsOfTheTradeArtisanToolOptions = [...artisanToolProficiencies] as const;
 
 type ArtificerToolsOfTheTradeCharacter = Pick<Character, "className"> &
   Partial<Pick<Character, "classFeatureState" | "level" | "subclassId" | "toolProficiencies">>;
 
-function hasArtificerAlchemistToolsOfTheTradeFeature(
+type ArtificerToolsOfTheTradeConfig = {
+  subclassId: string;
+  source: string;
+  defaultTools: readonly TOOL_PROFICIENCY[];
+};
+
+const toolsOfTheTradeConfigs: ArtificerToolsOfTheTradeConfig[] = [
+  {
+    subclassId: alchemistSubclassId,
+    source: alchemistToolsOfTheTradeSource,
+    defaultTools: alchemistToolsOfTheTradeDefaults
+  },
+  {
+    subclassId: armorerSubclassId,
+    source: armorerToolsOfTheTradeSource,
+    defaultTools: armorerToolsOfTheTradeDefaults
+  }
+];
+
+function getArtificerToolsOfTheTradeConfig(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
-): boolean {
+): ArtificerToolsOfTheTradeConfig | null {
+  if (character.className !== "Artificer" || (character.level ?? 0) < 3) {
+    return null;
+  }
+
   return (
-    character.className === "Artificer" &&
-    character.subclassId === alchemistSubclassId &&
-    (character.level ?? 0) >= 3
+    toolsOfTheTradeConfigs.find((config) => config.subclassId === character.subclassId) ?? null
   );
 }
 
@@ -42,8 +65,10 @@ function isArtificerToolsOfTheTradeChoice(value: string): value is ToolProficien
 function getPriorToolProficiencyEntries(
   character: ArtificerToolsOfTheTradeCharacter
 ): ToolProficiencyEntry[] {
+  const activeConfig = getArtificerToolsOfTheTradeConfig(character);
+
   return (character.toolProficiencies ?? []).filter(
-    (entry) => entry.sourceStr !== alchemistToolsOfTheTradeSource
+    (entry) => entry.sourceStr !== activeConfig?.source
   );
 }
 
@@ -83,11 +108,12 @@ function isAvailableArtificerToolsOfTheTradeChoice(
 }
 
 function createArtificerToolsOfTheTradeToolEntry(
+  config: ArtificerToolsOfTheTradeConfig,
   proficiency: TOOL_PROFICIENCY
 ): FeatureToolProficiencyEntry {
   return {
     source: PROFICIENCY_SOURCE.CLASS,
-    sourceStr: alchemistToolsOfTheTradeSource,
+    sourceStr: config.source,
     proficiency,
     proficiencyLevel: PROF_LEVEL.PROFICIENT,
     overridePolicy: PROFICIENCY_OVERRIDE_POLICY.LOCKED
@@ -98,13 +124,15 @@ export function normalizeArtificerToolsOfTheTradeState(
   value: unknown,
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): Pick<CharacterArtificerFeatureState, "toolsOfTheTradeToolProficiencies"> {
-  if (!hasArtificerAlchemistToolsOfTheTradeFeature(character)) {
+  const activeConfig = getArtificerToolsOfTheTradeConfig(character);
+
+  if (!activeConfig) {
     return {};
   }
 
   const choices = getStoredArtificerToolsOfTheTradeChoices(value).slice(
     0,
-    toolsOfTheTradeSelectionCount
+    activeConfig.defaultTools.length
   );
 
   return choices.length > 0 ? { toolsOfTheTradeToolProficiencies: choices } : {};
@@ -113,11 +141,13 @@ export function normalizeArtificerToolsOfTheTradeState(
 export function getArtificerToolsOfTheTradeLockedSelectionsForCharacter(
   character: ArtificerToolsOfTheTradeCharacter
 ): TOOL_PROFICIENCY[] {
-  if (!hasArtificerAlchemistToolsOfTheTradeFeature(character)) {
+  const activeConfig = getArtificerToolsOfTheTradeConfig(character);
+
+  if (!activeConfig) {
     return [];
   }
 
-  return alchemistToolsOfTheTradeDefaults.filter(
+  return activeConfig.defaultTools.filter(
     (proficiency) => !hasPriorToolProficiency(character, proficiency)
   );
 }
@@ -125,13 +155,15 @@ export function getArtificerToolsOfTheTradeLockedSelectionsForCharacter(
 export function getArtificerToolsOfTheTradeChoiceCountForCharacter(
   character: ArtificerToolsOfTheTradeCharacter
 ): number {
-  if (!hasArtificerAlchemistToolsOfTheTradeFeature(character)) {
+  const activeConfig = getArtificerToolsOfTheTradeConfig(character);
+
+  if (!activeConfig) {
     return 0;
   }
 
   return Math.max(
     0,
-    toolsOfTheTradeSelectionCount -
+    activeConfig.defaultTools.length -
       getArtificerToolsOfTheTradeLockedSelectionsForCharacter(character).length
   );
 }
@@ -174,10 +206,16 @@ export function getArtificerToolsOfTheTradeAvailableToolSelectionsForCharacter(
 export function getArtificerToolsOfTheTradeSelectionsForCharacter(
   character: ArtificerToolsOfTheTradeCharacter
 ): TOOL_PROFICIENCY[] {
+  const activeConfig = getArtificerToolsOfTheTradeConfig(character);
+
+  if (!activeConfig) {
+    return [];
+  }
+
   return [
     ...getArtificerToolsOfTheTradeLockedSelectionsForCharacter(character),
     ...getArtificerToolsOfTheTradeChoiceSelectionsForCharacter(character)
-  ].slice(0, toolsOfTheTradeSelectionCount);
+  ].slice(0, activeConfig.defaultTools.length);
 }
 
 export function setArtificerToolsOfTheTradeToolSelectionsForCharacter(
@@ -212,12 +250,14 @@ export function setArtificerToolsOfTheTradeToolSelectionsForCharacter(
 export function getArtificerToolsOfTheTradeToolProficiencyEntries(
   character: ArtificerToolsOfTheTradeCharacter
 ): FeatureToolProficiencyEntry[] {
-  if (!hasArtificerAlchemistToolsOfTheTradeFeature(character)) {
+  const activeConfig = getArtificerToolsOfTheTradeConfig(character);
+
+  if (!activeConfig) {
     return [];
   }
 
-  return getArtificerToolsOfTheTradeSelectionsForCharacter(character).map(
-    createArtificerToolsOfTheTradeToolEntry
+  return getArtificerToolsOfTheTradeSelectionsForCharacter(character).map((selection) =>
+    createArtificerToolsOfTheTradeToolEntry(activeConfig, selection)
   );
 }
 

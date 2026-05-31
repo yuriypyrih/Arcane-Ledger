@@ -308,6 +308,7 @@ export type FeatureActionCard = {
 export type FeatureActionOptionCard = {
   key: string;
   name: string;
+  presentation?: "default" | "plain";
   cardTheme?: ACTION_CARD_THEME;
   summary: string;
   detail: string;

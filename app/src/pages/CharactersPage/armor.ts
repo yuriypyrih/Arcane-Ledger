@@ -1,7 +1,4 @@
-import {
-  ARMOR_TYPES,
-  type ArmorEntry
-} from "../../codex/entries";
+import { ARMOR_TYPES, type ArmorEntry } from "../../codex/entries";
 import { getArmorEntries } from "../../codex/selectors";
 import type {
   AbilityKey,
@@ -37,7 +34,7 @@ import { getMageArmorArmorClassModes } from "./characterRuntime/spellImplementat
 
 export type BodyArmorType = "light" | "medium" | "heavy";
 
-type BodyArmorCandidate = {
+export type BodyArmorCandidate = {
   key: string;
   name: string;
   armorBase: number;
@@ -140,6 +137,18 @@ export function getArmorDexModifierCap(entry: Pick<ArmorEntry, "tags">): number 
   return null;
 }
 
+export function getCodexBodyArmorKey(itemName: string): string {
+  return `codex:${itemName}`;
+}
+
+export function getCustomBodyArmorKey(customEquipmentId: string): string {
+  return `custom:${customEquipmentId}`;
+}
+
+export function getInventoryBodyArmorKey(inventoryItemId: string): string {
+  return `inventory:${inventoryItemId}`;
+}
+
 function getCodexBodyArmorCandidate(item: CharacterEquipmentItem): BodyArmorCandidate | null {
   const armorEntry = codexArmorEntriesByName.get(item.name);
 
@@ -154,7 +163,7 @@ function getCodexBodyArmorCandidate(item: CharacterEquipmentItem): BodyArmorCand
   }
 
   return {
-    key: `codex:${item.name}`,
+    key: getCodexBodyArmorKey(item.name),
     name: item.name,
     armorBase: armorEntry.armorBase,
     armorType,
@@ -170,7 +179,7 @@ function getCustomBodyArmorCandidate(
   }
 
   return {
-    key: `custom:${customEquipment.id}`,
+    key: getCustomBodyArmorKey(customEquipment.id),
     name: customEquipment.name,
     armorBase: customEquipment.armorBase,
     armorType: customEquipment.armorType,
@@ -195,7 +204,7 @@ function getInventoryBodyArmorCandidate(
   }
 
   return {
-    key: `inventory:${inventoryItem.id}`,
+    key: getInventoryBodyArmorKey(inventoryItem.id),
     name: item.name ?? item.key ?? "Armor",
     armorBase,
     armorType,
@@ -223,6 +232,19 @@ export function getWornBodyArmorTypeForCharacter(
   character: Pick<Character, "equipment" | "inventoryItems" | "customEquipment">
 ): BodyArmorType | null {
   return getBodyArmorCandidates(character).find((candidate) => candidate.worn)?.armorType ?? null;
+}
+
+export function getWornBodyArmorCandidateForCharacter(
+  character: Pick<Character, "equipment" | "inventoryItems" | "customEquipment">
+): BodyArmorCandidate | null {
+  return getBodyArmorCandidates(character).find((candidate) => candidate.worn) ?? null;
+}
+
+export function getBodyArmorCandidateByKeyForCharacter(
+  character: Pick<Character, "equipment" | "inventoryItems" | "customEquipment">,
+  armorKey: string
+): BodyArmorCandidate | null {
+  return getBodyArmorCandidates(character).find((candidate) => candidate.key === armorKey) ?? null;
 }
 
 export function normalizeCharacterArmorWearState(
@@ -278,23 +300,22 @@ export function normalizeCharacterArmorWearState(
       .map((entry) => getCustomBodyArmorCandidate(entry))
       .filter((candidate): candidate is BodyArmorCandidate => candidate !== null)
   ];
-  const selectedBodyArmorKey =
-    candidates.find((candidate) => candidate.worn)?.key ?? null;
+  const selectedBodyArmorKey = candidates.find((candidate) => candidate.worn)?.key ?? null;
 
   return {
     equipment: normalizedEquipment.map((item) => ({
       ...item,
-      worn: selectedBodyArmorKey === `codex:${item.name}`
+      worn: selectedBodyArmorKey === getCodexBodyArmorKey(item.name)
     })),
     inventoryItems: normalizedInventoryItems.map((entry) => ({
       ...entry,
-      worn: selectedBodyArmorKey === `inventory:${entry.id}`
+      worn: selectedBodyArmorKey === getInventoryBodyArmorKey(entry.id)
     })),
     customEquipment: normalizedCustomEquipment.map((entry) =>
       entry.kind === "armor" && entry.armorType !== "shield"
         ? {
             ...entry,
-            worn: selectedBodyArmorKey === `custom:${entry.id}`
+            worn: selectedBodyArmorKey === getCustomBodyArmorKey(entry.id)
           }
         : entry
     )
@@ -323,12 +344,12 @@ function applyBodyArmorWearState(
               entry.id === inventoryTargetId &&
               isItemBodyArmorRecord(getEffectiveInventoryItemRecord(entry))
           )
-      : character.customEquipment.some(
-          (entry) =>
-            entry.kind === "armor" &&
-            entry.id === target.customEquipmentId &&
-            entry.armorType !== "shield"
-        );
+        : character.customEquipment.some(
+            (entry) =>
+              entry.kind === "armor" &&
+              entry.id === target.customEquipmentId &&
+              entry.armorType !== "shield"
+          );
 
   if (!isValidBodyArmorTarget) {
     return character;
@@ -348,7 +369,8 @@ function applyBodyArmorWearState(
       entry.kind === "armor" && entry.armorType !== "shield"
         ? {
             ...entry,
-            worn: shouldWear && target.kind === "custom" ? entry.id === target.customEquipmentId : false
+            worn:
+              shouldWear && target.kind === "custom" ? entry.id === target.customEquipmentId : false
           }
         : entry
     )
@@ -415,7 +437,8 @@ type ArmorClassModeState = ArmorClassModeDefinition & {
 function getDefaultArmorClassMode(
   character: ArmorClassFormulaSelectionCharacter
 ): ArmorClassModeState {
-  const wornBodyArmor = getBodyArmorCandidates(character).find((candidate) => candidate.worn) ?? null;
+  const wornBodyArmor =
+    getBodyArmorCandidates(character).find((candidate) => candidate.worn) ?? null;
 
   if (!wornBodyArmor) {
     return {
@@ -450,7 +473,9 @@ function getDefaultArmorClassMode(
   };
 }
 
-function getArmorClassModeStates(character: ArmorClassFormulaSelectionCharacter): ArmorClassModeState[] {
+function getArmorClassModeStates(
+  character: ArmorClassFormulaSelectionCharacter
+): ArmorClassModeState[] {
   const defaultMode = getDefaultArmorClassMode(character);
   const shieldBonus = getHeldShieldBonus(character);
   const featureContext = {
@@ -496,7 +521,8 @@ function buildArmorClassBreakdownEntries(
     ...mode.abilityModifiers.flatMap((ability) => {
       const breakdown = getAbilityModifierBreakdownForCharacter(character, ability);
       const cappedBaseValue =
-        mode.abilityModifierCaps?.[ability] === null || mode.abilityModifierCaps?.[ability] === undefined
+        mode.abilityModifierCaps?.[ability] === null ||
+        mode.abilityModifierCaps?.[ability] === undefined
           ? breakdown.baseValue
           : Math.min(breakdown.baseValue, mode.abilityModifierCaps[ability] ?? 0);
 

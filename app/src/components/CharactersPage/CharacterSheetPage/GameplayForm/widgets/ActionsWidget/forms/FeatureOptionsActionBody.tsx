@@ -5,6 +5,7 @@ import type {
 } from "../../../../../../../pages/CharactersPage/classFeatures";
 import type { GameplayActionDefinition } from "../../../../../../../pages/CharactersPage/combatActions";
 import { formatFeatureActionOptionValueLabel } from "../../../../../../../pages/CharactersPage/actionOutcome";
+import RadioContainerOption from "../../../../RadioContainerOption";
 import { FeatureActionOptionButton } from "../ActionCards";
 import type { RoundTrackerAvailability } from "../types";
 import sharedModalStyles from "../FeatureActionModal.module.css";
@@ -38,6 +39,22 @@ function FeatureOptionsActionBody({
           !isSelected &&
           (option.disabled === true || selectedOptionKeys.length >= selectionLimit);
         const resolvedOption = isDisabled ? { ...option, disabled: true } : option;
+        const selectionIndicatorType = selection === "multi-confirm" ? "checkbox" : "radio";
+        const selectionName = selection === "multi-confirm" ? undefined : action.action.key;
+
+        if (resolvedOption.presentation === "plain") {
+          return (
+            <RadioContainerOption
+              key={option.key}
+              header={option.name}
+              selected={isSelected}
+              onSelect={() => onToggleOption(option)}
+              name={selectionName}
+              disabled={resolvedOption.disabled === true}
+              indicatorType={selectionIndicatorType}
+            />
+          );
+        }
 
         return (
           <FeatureActionOptionButton
@@ -46,8 +63,8 @@ function FeatureOptionsActionBody({
             character={character}
             roundTracker={roundTracker}
             selected={isSelected}
-            selectionIndicatorType={selection === "multi-confirm" ? "checkbox" : "radio"}
-            selectionName={selection === "multi-confirm" ? undefined : action.action.key}
+            selectionIndicatorType={selectionIndicatorType}
+            selectionName={selectionName}
             onClick={() => onToggleOption(option)}
             formatValueLabel={formatFeatureActionOptionValueLabel}
           />

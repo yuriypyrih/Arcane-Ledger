@@ -282,7 +282,10 @@ export type CharacterFighterFeatureState = {
 export type ClericDivineOrderChoice = "protector" | "thaumaturge";
 export type ClericBlessedStrikesChoice = "blessed-strike" | "potent-spellcasting";
 
+export type ArtificerArmorerArmorModel = "dreadnaught" | "guardian" | "infiltrator";
+
 export type CharacterArtificerFeatureState = {
+  extraAttacksRemainingThisTurn?: number;
   conjuredCauldronUsesExpended?: number;
   flashOfGeniusUsesExpended?: number;
   magicItemTinkerDrainUsesExpended?: number;
@@ -291,6 +294,9 @@ export type CharacterArtificerFeatureState = {
   tinkersMagicUsesExpended?: number;
   replicateMagicItemPlanKeys?: string[];
   toolsOfTheTradeToolProficiencies?: TOOL_PROFICIENCY[];
+  armorerArcaneArmorTargetKey?: string;
+  armorerArmorModel?: ArtificerArmorerArmorModel;
+  armorerGiantStatureUsesExpended?: number;
 };
 
 export type CharacterClericFeatureState = {

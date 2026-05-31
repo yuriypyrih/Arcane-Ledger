@@ -30,6 +30,11 @@ import {
   normalizeArtificerConjuredCauldronState,
   restoreArtificerConjuredCauldronOnLongRest
 } from "./subclasses/artificerAlchemistChemicalMastery";
+import {
+  advanceArtificerArmorerFeaturesForNewRound,
+  normalizeArtificerArmorerState,
+  restoreArtificerArmorerGiantStatureOnLongRest
+} from "./subclasses/artificerArmorer";
 import type { ReactionEntry } from "../../../../codex/entries";
 
 export {
@@ -62,6 +67,21 @@ export {
   type ArtificerExperimentalElixirOptionKey,
   type ArtificerExperimentalElixirSpellSlotOption
 } from "./subclasses/artificerAlchemistExperimentalElixir";
+
+export {
+  activateArtificerArmorerArcaneArmor,
+  activateArtificerArmorerArcaneArmorOption,
+  activateArtificerArmorerGiantStature,
+  artificerArmorerArcaneArmorActionKey,
+  artificerArmorerGiantStatureActionKey,
+  consumeArtificerArmorerWeaponAttack,
+  getArtificerArmorerArcaneArmorTagLabelsForArmorKey,
+  getArtificerArmorerGiantStatureUsesRemaining,
+  getArtificerArmorerGiantStatureUsesTotal,
+  getArtificerArmorerWeaponAttackMultiCount,
+  hasArtificerArmorerExtraAttackFeature,
+  restoreArtificerArmorerGiantStatureOnLongRest
+} from "./subclasses/artificerArmorer";
 
 export {
   artificerConjuredCauldronActionKey,
@@ -147,7 +167,8 @@ export function normalizeArtificerFeatureState(
     ...normalizeArtificerMagicItemTinkerState(value, character),
     ...normalizeArtificerToolsOfTheTradeState(value, character),
     ...normalizeArtificerRestorativeReagentsState(value, character),
-    ...normalizeArtificerConjuredCauldronState(value, character)
+    ...normalizeArtificerConjuredCauldronState(value, character),
+    ...normalizeArtificerArmorerState(value, character)
   };
 }
 
@@ -188,13 +209,23 @@ export function getArtificerReactionEntries(
 }
 
 export function applyLongRestToArtificerFeatures(character: Character): Character {
-  return restoreArtificerConjuredCauldronOnLongRest(
-    restoreArtificerRestorativeReagentsOnLongRest(
-      restoreArtificerMagicItemTinkerTransmuteOnLongRest(
-        restoreArtificerMagicItemTinkerDrainOnLongRest(
-          restoreArtificerFlashOfGeniusOnLongRest(restoreArtificerTinkersMagicOnLongRest(character))
+  return advanceArtificerArmorerFeaturesForNewRound(
+    restoreArtificerArmorerGiantStatureOnLongRest(
+      restoreArtificerConjuredCauldronOnLongRest(
+        restoreArtificerRestorativeReagentsOnLongRest(
+          restoreArtificerMagicItemTinkerTransmuteOnLongRest(
+            restoreArtificerMagicItemTinkerDrainOnLongRest(
+              restoreArtificerFlashOfGeniusOnLongRest(
+                restoreArtificerTinkersMagicOnLongRest(character)
+              )
+            )
+          )
         )
       )
     )
   );
+}
+
+export function advanceArtificerFeaturesForNewRound(character: Character): Character {
+  return advanceArtificerArmorerFeaturesForNewRound(character);
 }

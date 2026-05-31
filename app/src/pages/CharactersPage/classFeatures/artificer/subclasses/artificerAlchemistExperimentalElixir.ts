@@ -10,7 +10,6 @@ import {
 } from "../../../inventoryItems";
 import { createCustomItemRecordFromMods } from "../../../itemMods";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
-import { createTextCardUsage } from "../../cardUsage";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import type { SubclassRuntimeCharacter } from "../../subclassRuntime";
 import type { FeatureActionCard } from "../../types";
@@ -230,7 +229,6 @@ export function getArtificerExperimentalElixirAction(
     breakdown: "Create elixir vial",
     economyType: ECONOMY_TYPE.ACTION,
     actionCategory: ACTION_CATEGORY.MAGIC,
-    cardUsage: createTextCardUsage("Optional Spell Slot"),
     description,
     drawer: {
       kind: "custom-form",

@@ -7,7 +7,7 @@ export function renderEquipmentForm(context: Record<string, any>) {
     Minus, NumberInput, OverlayBody, OverlayCloseButton, OverlayEyebrow, OverlayFooter, OverlayHeader, OverlayHeaderContent, OverlaySummary, OverlayTitle, Package, Plus, RarityPill, SheetModal, Shield, Sparkles, WeaponMasteryStatusLabel, X, activeCurrencyDefinition, activeCurrencyKey,
     adjustCurrencyBalance, canSpendCurrency, carriedWeight, carryingCapacity, className, containerManagementInventoryItems, closeAddModal, closeContainerManagement, closeCustomEquipmentModal, closeInventoryItemDrawer, closeLoadoutDrawer,
     clsx, currencyAmountDraft, currencyDefinitions, customEditorMode, deleteCustomEquipment, editingInventoryStack, equipmentRenderGroups, formatCodexLabel, formatCodexList,
-    formatEquipmentWeight, formatInventoryStackName, formatOnHandLabel, formatWeaponDamage, formatWeaponProperties, formatWeaponType, formatWeaponWeight, formatWeightValue, getArmorTypeSummary, getInventoryItemChargesTagLabel, getInventoryItemConjuredRowTagLabel, getInventoryItemFeatureTagLabels, getInventoryItemStoredSpellRowTagLabel, getInventoryItemTotalWeightValue, getInventoryRowObjectTagLabel, getItemObjectTagLabel,
+    formatEquipmentWeight, formatInventoryStackName, formatOnHandLabel, formatWeaponDamage, formatWeaponProperties, formatWeaponType, formatWeaponWeight, formatWeightValue, getArcaneArmorFeatureTagsForInventoryStack, getArmorTypeSummary, getInventoryItemChargesTagLabel, getInventoryItemConjuredRowTagLabel, getInventoryItemFeatureTagLabels, getInventoryItemStoredSpellRowTagLabel, getInventoryItemTotalWeightValue, getInventoryRowObjectTagLabel, getItemObjectTagLabel,
     groupedInventoryItems, hasCharacterItemMods, hasDisplayableRarity, inventoryDrawerBodyAfterItem, inventoryDrawerClassName, inventoryDrawerFooter, inventoryDrawerHeaderAction, inventoryDrawerHeaderContent, inventoryObjectCount, inventoryObjectLimitMessage, isAddModalCommitting, isAddModalOpen, isCurrencyDrawerOpen, characterSheetSizeBytes,
     isCustomEquipmentModalOpen, isEquipmentGuideOpen, isGeneralEquipmentExpanded, isHandEquippableEntry, isOverCarryingCapacity, isSelectedArmorWorn, isSelectedCustomEntry, isSelectedEntryOnHand, isSelectedFeatureManagedEntry, isSelectedShield, managedContainerStack, managingContainerStackId,
     normalizeCurrencyAmountInput, normalizedCurrencies, openAddModal, openCurrencyModal, openCustomEquipmentCreator, openCustomEquipmentEditor, openInventoryInspectionFromBrowser, openInventoryInspectionFromLoadout, openLoadoutEntryDetails,
@@ -158,6 +158,11 @@ export function renderEquipmentForm(context: Record<string, any>) {
                                 <span>Worn</span>
                               </span>
                             ) : null}
+                            {entry.item.featureTags?.map((tagLabel) => (
+                              <span key={tagLabel} className={styles.equipmentItemFeatureTag}>
+                                {tagLabel}
+                              </span>
+                            ))}
                           </span>
                           <span className={styles.equipmentItemMeta}>
                             {"rarity" in entry.item.entry &&
@@ -220,9 +225,15 @@ export function renderEquipmentForm(context: Record<string, any>) {
                                 <span>Attuned</span>
                               </span>
                             ) : null}
-                            {getInventoryItemFeatureTagLabels(entry.item.stack, {
-                              excludeConjured: true
-                            }).map((tagLabel) => (
+                            {[
+                              ...getInventoryItemFeatureTagLabels(entry.item.stack, {
+                                excludeConjured: true
+                              }),
+                              ...getArcaneArmorFeatureTagsForInventoryStack(
+                                entry.item.stack,
+                                entry.item.item
+                              )
+                            ].map((tagLabel) => (
                               <span key={tagLabel} className={styles.equipmentItemFeatureTag}>
                                 {tagLabel}
                               </span>
@@ -474,6 +485,11 @@ export function renderEquipmentForm(context: Record<string, any>) {
                       <span>Worn</span>
                     </span>
                   ) : null}
+                  {selectedLoadoutEntry.featureTags?.map((tagLabel) => (
+                    <span key={tagLabel} className={styles.drawerFeatureTagBadge}>
+                      {tagLabel}
+                    </span>
+                  ))}
                   {"rarity" in selectedLoadoutEntryData ? (
                     <RarityPill rarity={selectedLoadoutEntryData.rarity} />
                   ) : null}

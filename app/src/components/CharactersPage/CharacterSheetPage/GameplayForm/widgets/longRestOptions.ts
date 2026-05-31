@@ -29,6 +29,8 @@ import {
   getArtificerConjuredCauldronUsesTotal,
   getArtificerFlashOfGeniusUsesRemaining,
   getArtificerFlashOfGeniusUsesTotal,
+  getArtificerArmorerGiantStatureUsesRemaining,
+  getArtificerArmorerGiantStatureUsesTotal,
   getArtificerMagicItemTinkerDrainUsesRemaining,
   getArtificerMagicItemTinkerDrainUsesTotal,
   getArtificerMagicItemTinkerTransmuteUsesRemaining,
@@ -38,6 +40,7 @@ import {
   getArtificerTinkersMagicUsesRemaining,
   getArtificerTinkersMagicUsesTotal,
   restoreArtificerFlashOfGeniusOnLongRest,
+  restoreArtificerArmorerGiantStatureOnLongRest,
   restoreArtificerConjuredCauldronOnLongRest,
   restoreArtificerMagicItemTinkerDrainOnLongRest,
   restoreArtificerMagicItemTinkerTransmuteOnLongRest,
@@ -396,6 +399,10 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const artificerConjuredCauldronUsesTotal = getArtificerConjuredCauldronUsesTotal(character);
   const artificerConjuredCauldronUsesRemaining =
     getArtificerConjuredCauldronUsesRemaining(character);
+  const artificerArmorerGiantStatureUsesTotal =
+    getArtificerArmorerGiantStatureUsesTotal(character);
+  const artificerArmorerGiantStatureUsesRemaining =
+    getArtificerArmorerGiantStatureUsesRemaining(character);
   const artificerMagicItemTinkerDrainUsesTotal =
     getArtificerMagicItemTinkerDrainUsesTotal(character);
   const artificerMagicItemTinkerDrainUsesRemaining =
@@ -980,6 +987,23 @@ export function createLongRestOptions(character: Character): RestOption[] {
               artificerConjuredCauldronUsesRemaining >= artificerConjuredCauldronUsesTotal,
             apply: (currentCharacter: Character) =>
               restoreArtificerConjuredCauldronOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(artificerArmorerGiantStatureUsesTotal > 0
+      ? [
+          {
+            id: "restore-artificer-giant-stature",
+            label: "Restore Giant Stature",
+            charges: {
+              current: artificerArmorerGiantStatureUsesRemaining,
+              total: artificerArmorerGiantStatureUsesTotal
+            },
+            disabled:
+              artificerArmorerGiantStatureUsesRemaining >=
+              artificerArmorerGiantStatureUsesTotal,
+            apply: (currentCharacter: Character) =>
+              restoreArtificerArmorerGiantStatureOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),

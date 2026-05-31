@@ -29,6 +29,7 @@ export type LoadoutGroupItem = {
   entry: LoadoutDrawerEntry;
   customEquipmentId?: string;
   featureManagedSource?: string;
+  featureTags?: string[];
   summaryText?: string;
   onHand: boolean;
   worn: boolean;

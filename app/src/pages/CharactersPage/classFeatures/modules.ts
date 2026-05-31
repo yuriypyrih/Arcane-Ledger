@@ -1,7 +1,13 @@
 import type { Character, CharacterClassFeatureState, WEAPON_PROFICIENCY } from "../../../types";
 import { createDefaultAbilities } from "../constants";
 import {
+  activateArtificerArmorerArcaneArmorOption,
+  activateArtificerArmorerGiantStature,
+  advanceArtificerFeaturesForNewRound,
+  activateArtificerArmorerArcaneArmor,
   applyLongRestToArtificerFeatures,
+  artificerArmorerArcaneArmorActionKey,
+  artificerArmorerGiantStatureActionKey,
   getArtificerFeatureActionOptions,
   getArtificerFeatureActions,
   getArtificerAlwaysPreparedSpellIds,
@@ -427,6 +433,23 @@ const classFeatureModules = {
         reactionEntries: getArtificerReactionEntries(character)
       };
     },
+    handleAction(character, actionKey) {
+      if (actionKey === artificerArmorerArcaneArmorActionKey) {
+        return activateArtificerArmorerArcaneArmor(character);
+      }
+
+      if (actionKey === artificerArmorerGiantStatureActionKey) {
+        return activateArtificerArmorerGiantStature(character);
+      }
+
+      return null;
+    },
+    handleActionOption(character, actionKey, optionKey) {
+      return actionKey === artificerArmorerArcaneArmorActionKey
+        ? activateArtificerArmorerArcaneArmorOption(character, optionKey)
+        : null;
+    },
+    advanceRound: advanceArtificerFeaturesForNewRound,
     applyLongRest: applyLongRestToArtificerFeatures
   },
   Barbarian: {

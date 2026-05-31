@@ -76,6 +76,9 @@ import {
 } from "../../../../pages/CharactersPage/inventory";
 import { clearCharacterHandOccupants } from "../../../../pages/CharactersPage/handStateMutations";
 import {
+  getCodexBodyArmorKey,
+  getCustomBodyArmorKey,
+  getInventoryBodyArmorKey,
   isShieldArmorEntry,
   setCodexArmorWornState,
   setCustomArmorWornState,
@@ -195,6 +198,7 @@ import InlineToggleButton from "../InlineToggleButton";
 import styles from "./EquipmentForm.module.css";
 import { useItemEntry } from "../../../../pages/ItemCodexEntryPage/useItemEntry";
 import WeaponMasteryStatusLabel from "../../../WeaponMasteryStatusLabel/WeaponMasteryStatusLabel";
+import { getArtificerArmorerArcaneArmorTagLabelsForArmorKey } from "../../../../pages/CharactersPage/classFeatures/artificer/artificer";
 import {
   OverlayBody,
   OverlayCloseButton,
@@ -223,6 +227,7 @@ type SelectedLoadoutEntryState = {
   entry: LoadoutDrawerEntry;
   customEquipmentId?: string;
   featureManagedSource?: string;
+  featureTags?: string[];
   summaryText?: string;
   origin: "loadout";
 };
@@ -609,6 +614,44 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     () => getFeatureEquipmentEntriesForCharacter(equipmentCharacter),
     [equipmentCharacter]
   );
+  const getArcaneArmorFeatureTagsForArmorKey = useCallback(
+    (armorKey: string | null | undefined, options?: { includeModel?: boolean }) =>
+      getArtificerArmorerArcaneArmorTagLabelsForArmorKey(equipmentCharacter, armorKey, options),
+    [equipmentCharacter]
+  );
+  const getArcaneArmorFeatureTagsForLoadoutEntry = useCallback(
+    (
+      entry: LoadoutDrawerEntry,
+      customEquipmentId?: string,
+      options?: { includeModel?: boolean }
+    ) => {
+      if (entry.category !== ENTRY_CATEGORIES.ARMOR || isShieldArmorEntry(entry)) {
+        return [];
+      }
+
+      return getArcaneArmorFeatureTagsForArmorKey(
+        customEquipmentId
+          ? getCustomBodyArmorKey(customEquipmentId)
+          : getCodexBodyArmorKey(entry.name),
+        options
+      );
+    },
+    [getArcaneArmorFeatureTagsForArmorKey]
+  );
+  const getArcaneArmorFeatureTagsForInventoryStack = useCallback(
+    (
+      stack: CharacterInventoryItem | null | undefined,
+      item: ItemRecord | null | undefined,
+      options?: { includeModel?: boolean }
+    ) => {
+      if (!stack || !item || !isItemBodyArmorRecord(item)) {
+        return [];
+      }
+
+      return getArcaneArmorFeatureTagsForArmorKey(getInventoryBodyArmorKey(stack.id), options);
+    },
+    [getArcaneArmorFeatureTagsForArmorKey]
+  );
   const selectedLoadoutItems = useMemo(
     () => [
       ...equipmentCharacter.equipment.flatMap<LoadoutGroupItem>((item) => {
@@ -623,6 +666,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
             key: `codex-${entry.id}`,
             name: entry.name,
             entry,
+            featureTags: getArcaneArmorFeatureTagsForLoadoutEntry(entry),
             onHand: item.onHand,
             worn: item.worn
           }
@@ -635,6 +679,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
             name: entry.name,
             entry,
             customEquipmentId: entry.customEquipmentId,
+            featureTags: getArcaneArmorFeatureTagsForLoadoutEntry(entry, entry.customEquipmentId),
             onHand: entry.category === ENTRY_CATEGORIES.WEAPONS ? entry.onHand : false,
             worn: entry.category === ENTRY_CATEGORIES.ARMOR ? entry.worn : false
           }) satisfies LoadoutGroupItem
@@ -652,7 +697,12 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
           }) satisfies LoadoutGroupItem
       )
     ],
-    [equipmentCharacter.equipment, featureEquipmentEntries, resolvedCustomEquipmentEntries]
+    [
+      equipmentCharacter.equipment,
+      featureEquipmentEntries,
+      getArcaneArmorFeatureTagsForLoadoutEntry,
+      resolvedCustomEquipmentEntries
+    ]
   );
   const selectedEquipmentGroups = useMemo(
     () => groupEquipmentItems(selectedLoadoutItems),
@@ -1053,8 +1103,12 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     ? findInventoryItemStackById(equipmentCharacter.inventoryItems, managingContainerStackId)
     : null;
   const selectedInventoryModEffects = selectedInventoryStack?.mods?.effects ?? [];
-  const selectedInventoryFeatureTagLabels =
-    getInventoryItemFeatureTagLabels(selectedInventoryStack);
+  const selectedInventoryFeatureTagLabels = [
+    ...getInventoryItemFeatureTagLabels(selectedInventoryStack),
+    ...getArcaneArmorFeatureTagsForInventoryStack(selectedInventoryStack, selectedInventoryRecord, {
+      includeModel: true
+    })
+  ];
   const selectedInventoryStoredSpellHeaderTag =
     getInventoryItemStoredSpellHeaderTagLabel(selectedInventoryStack);
   const selectedInventoryHasMods = Boolean(selectedInventoryStack?.mods);
@@ -1229,6 +1283,9 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       entry: item.entry,
       customEquipmentId: item.customEquipmentId,
       featureManagedSource: item.featureManagedSource,
+      featureTags: getArcaneArmorFeatureTagsForLoadoutEntry(item.entry, item.customEquipmentId, {
+        includeModel: true
+      }),
       summaryText: item.summaryText,
       origin: "loadout"
     });
@@ -2775,7 +2832,12 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       titleId={parentInventoryDrawerTitleId}
       item={parentInventoryRecord}
       spellTag={getInventoryItemStoredSpellHeaderTagLabel(parentInventoryStack)}
-      featureTags={getInventoryItemFeatureTagLabels(parentInventoryStack)}
+      featureTags={[
+        ...getInventoryItemFeatureTagLabels(parentInventoryStack),
+        ...getArcaneArmorFeatureTagsForInventoryStack(parentInventoryStack, parentInventoryRecord, {
+          includeModel: true
+        })
+      ]}
       modded={Boolean(
         parentInventoryStack &&
         hasCharacterItemMods(parentInventoryStack.mods) &&
@@ -2869,6 +2931,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     formatWeaponType,
     formatWeaponWeight,
     formatWeightValue,
+    getArcaneArmorFeatureTagsForInventoryStack,
     getArmorTypeSummary,
     getInventoryRowObjectTagLabel,
     getItemObjectTagLabel,
