@@ -182,7 +182,7 @@
       var(--action-card-theme-panel-soft) 82%,
       var(--action-card-theme-panel-strong) 100%
     ),
-    url("../../../../../../assets/img/paper-background.jpg");
+    url("../../../../../../assets/img/paper-background.webp");
   --action-card-theme-background-position: center, center, center, center;
   --action-card-theme-background-size: auto, auto, auto, 155% auto;
   --action-card-theme-glow: rgba(145, 101, 54, 0.18);

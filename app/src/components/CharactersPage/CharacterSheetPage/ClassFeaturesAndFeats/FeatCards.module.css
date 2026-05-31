@@ -40,7 +40,7 @@
       var(--build-card-panel-soft) 82%,
       var(--build-card-panel-strong) 100%
     ),
-    url("../../../../assets/img/paper-background.jpg");
+    url("../../../../assets/img/paper-background.webp");
   background-position: center, center, center, center;
   background-repeat: no-repeat;
   background-size: auto, auto, auto, 155% auto;

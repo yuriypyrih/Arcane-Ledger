@@ -111,7 +111,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: url("../../../assets/img/paper-background.jpg") right bottom / 360px auto no-repeat;
+  background: url("../../../assets/img/paper-background.webp") right bottom / 360px auto no-repeat;
   -webkit-mask-image: radial-gradient(
     circle at 100% 100%,
     rgba(0, 0, 0, 0.56) 0%,
@@ -159,7 +159,7 @@
   border-radius: var(--radius-control);
   background:
     linear-gradient(145deg, rgba(255, 252, 245, 0.72), rgba(239, 222, 199, 0.62)),
-    url("../../../assets/img/paper-background.jpg") center / 220px auto;
+    url("../../../assets/img/paper-background.webp") center / 220px auto;
   box-shadow:
     inset 0 0 0 1px rgba(255, 246, 226, 0.28),
     0 4px 10px rgba(54, 34, 21, 0.08);

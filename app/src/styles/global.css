@@ -142,7 +142,7 @@ body::before {
       rgba(244, 239, 230, 0.66) 50%,
       rgba(231, 220, 200, 0.04) 100%
     ),
-    url("../assets/img/paper-background.jpg");
+    url("../assets/img/paper-background.webp");
   background-color: #efe4d3;
   background-position:
     top center,

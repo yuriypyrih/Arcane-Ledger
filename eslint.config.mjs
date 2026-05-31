@@ -15,6 +15,7 @@ export default tseslint.config(
       "**/*.css",
       "**/*.svg",
       "**/*.png",
+      "**/*.webp",
       "**/*.json",
       "**/*.d.ts",
       ".idea/**",
