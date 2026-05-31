@@ -100,6 +100,11 @@
   white-space: normal;
 }
 
+.profileShellBroad .characterName {
+  flex: 0 1 auto;
+  width: 100%;
+}
+
 .portraitFrame {
   position: relative;
   display: grid;
@@ -282,16 +287,18 @@
 .nameStack {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.52rem;
   min-width: 0;
+  width: 100%;
 }
 
 .characterName {
   box-sizing: border-box;
+  flex: 1 1 14rem;
   max-width: 100%;
   min-width: 0;
   margin: 0;
-  overflow: hidden;
   border-radius: var(--radius-tiny);
   background: linear-gradient(90deg, rgba(251, 242, 230, 1) 0, rgba(251, 242, 230, 0) 300px);
   color: var(--color-ink);
@@ -299,9 +306,9 @@
   font-weight: 850;
   letter-spacing: 0;
   line-height: 1.02;
+  overflow-wrap: anywhere;
   padding: 0.08rem 0.82rem 0.12rem 0.34rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .identityRows {

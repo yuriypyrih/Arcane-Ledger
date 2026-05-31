@@ -74,6 +74,15 @@
   border-color: #2f78ff;
 }
 
+:global(html.broad-layout-lg-compact) .spellSlotSquares {
+  gap: clamp(0.035rem, 0.34vw, 0.16rem);
+}
+
+:global(html.broad-layout-lg-compact) .spellSlotSquare {
+  block-size: clamp(3px, 1.25vw, 7px);
+  inline-size: clamp(3px, 1.25vw, 7px);
+}
+
 .spellListStack {
   contain: layout style;
   display: grid;
