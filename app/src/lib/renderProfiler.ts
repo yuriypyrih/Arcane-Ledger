@@ -1,4 +1,4 @@
-export const ENABLE_RENDER_PROFILER_BY_DEFAULT_IN_DEV = true;
+export const ENABLE_RENDER_PROFILER_BY_DEFAULT_IN_DEV = false;
 
 export type RenderProfilerDetails = Record<string, unknown>;
 
