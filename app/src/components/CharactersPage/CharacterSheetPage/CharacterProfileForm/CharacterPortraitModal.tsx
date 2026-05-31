@@ -278,7 +278,7 @@ function CharacterPortraitModal({
             <ActionButton
               fullWidth={false}
               icon={<RotateCcw size={16} />}
-              variant="GHOST"
+              variant="OUTLINE"
               onClick={resetCropSettings}
             >
               Reset crop
@@ -300,7 +300,7 @@ function CharacterPortraitModal({
                 actionType="ERROR"
                 fullWidth={false}
                 icon={<RotateCcw size={16} />}
-                variant="GHOST"
+                variant="OUTLINE"
                 onClick={() => void onReset()}
               >
                 Reset to default

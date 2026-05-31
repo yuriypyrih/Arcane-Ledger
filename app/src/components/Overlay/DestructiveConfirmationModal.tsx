@@ -51,7 +51,7 @@ function DestructiveConfirmationModal({
 
       <OverlayFooter>
         <div className={styles.footerActions}>
-          <ActionButton variant="GHOST" onClick={onCancel}>
+          <ActionButton variant="OUTLINE" onClick={onCancel}>
             {cancelLabel}
           </ActionButton>
           <ActionButton actionType="ERROR" onClick={onConfirm}>

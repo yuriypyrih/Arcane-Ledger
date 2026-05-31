@@ -91,7 +91,7 @@ function SubclassEditorModal({ character, onCancel, onSave }: SubclassEditorModa
       </OverlayBody>
 
       <OverlayFooter className={styles.footer}>
-        <ActionButton variant="GHOST" fullWidth={false} onClick={onCancel}>
+        <ActionButton variant="OUTLINE" fullWidth={false} onClick={onCancel}>
           Cancel
         </ActionButton>
         <ActionButton fullWidth={false} onClick={saveSubclass} disabled={!isReady}>

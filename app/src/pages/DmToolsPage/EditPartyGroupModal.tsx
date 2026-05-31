@@ -101,7 +101,7 @@ function EditPartyGroupModal({ partyGroup, onClose }: EditPartyGroupModalProps) 
 
         <OverlayFooter>
           <div className={styles.modalFooterActions}>
-            <ActionButton type="button" variant="GHOST" disabled={isSaving} fullWidth onClick={onClose}>
+            <ActionButton type="button" variant="OUTLINE" disabled={isSaving} fullWidth onClick={onClose}>
               Cancel
             </ActionButton>
             <ActionButton

@@ -265,7 +265,7 @@ function SelectedStatusEntryDrawer({
         contentSurface="plain"
         showHeaderDivider
         footer={
-          <ActionButton actionType="ERROR" variant="GHOST" onClick={endSelectedWildShape}>
+          <ActionButton actionType="ERROR" variant="OUTLINE" onClick={endSelectedWildShape}>
             End Wild Shape
           </ActionButton>
         }

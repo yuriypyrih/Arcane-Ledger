@@ -103,7 +103,7 @@ function EditCampaignModal({ campaign, onClose }: EditCampaignModalProps) {
           <div className={styles.modalFooterActions}>
             <ActionButton
               type="button"
-              variant="GHOST"
+              variant="OUTLINE"
               disabled={isSaving}
               fullWidth
               onClick={onClose}

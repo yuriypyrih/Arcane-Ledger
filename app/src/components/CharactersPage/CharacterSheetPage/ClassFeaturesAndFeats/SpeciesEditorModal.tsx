@@ -468,7 +468,7 @@ function SpeciesEditorModal({ character, onCancel, onSave }: SpeciesEditorModalP
       </OverlayBody>
 
       <OverlayFooter className={styles.footer}>
-        <ActionButton variant="GHOST" fullWidth={false} onClick={onCancel}>
+        <ActionButton variant="OUTLINE" fullWidth={false} onClick={onCancel}>
           Cancel
         </ActionButton>
         <ActionButton fullWidth={false} onClick={saveSpecies} disabled={!isReady}>

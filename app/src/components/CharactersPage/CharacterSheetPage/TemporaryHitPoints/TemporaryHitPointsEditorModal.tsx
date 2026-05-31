@@ -117,7 +117,7 @@ function TemporaryHitPointsEditorModal({
           {onClear ? (
             <ActionButton
               actionType="ERROR"
-              variant="GHOST"
+              variant="OUTLINE"
               className={styles.footerButton}
               onClick={onClear}
             >

@@ -73,7 +73,7 @@ function AbilityScoresModal({
           <ActionButton onClick={onSave} icon={<Save size={16} />} disabled={!canSave}>
             Save
           </ActionButton>
-          <ActionButton variant="GHOST" onClick={onClose} icon={<X size={16} />}>
+          <ActionButton variant="OUTLINE" onClick={onClose} icon={<X size={16} />}>
             Cancel
           </ActionButton>
         </div>

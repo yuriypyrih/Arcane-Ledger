@@ -483,7 +483,7 @@ function CharacterProgressModal({
         </OverlayBody>
 
         <OverlayFooter className={styles.footer}>
-          <ActionButton variant="GHOST" onClick={closeModal}>
+          <ActionButton variant="OUTLINE" onClick={closeModal}>
             Cancel
           </ActionButton>
           <ActionButton onClick={saveChanges} disabled={saveDisabled}>

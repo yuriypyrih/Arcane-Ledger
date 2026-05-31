@@ -112,7 +112,7 @@ function EditEncounterTemplateModal({
           <div className={styles.modalFooterActions}>
             <ActionButton
               type="button"
-              variant="GHOST"
+              variant="OUTLINE"
               disabled={isSaving}
               fullWidth
               onClick={onClose}

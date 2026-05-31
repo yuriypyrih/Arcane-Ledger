@@ -162,7 +162,7 @@ function HitPointsEditModal({ character, onClose, onPersistCharacter }: HitPoint
       </OverlayBody>
 
       <OverlayFooter className={styles.footer}>
-        <ActionButton variant="GHOST" onClick={onClose}>
+        <ActionButton variant="OUTLINE" onClick={onClose}>
           Cancel
         </ActionButton>
         <ActionButton onClick={saveHitPoints}>Save</ActionButton>

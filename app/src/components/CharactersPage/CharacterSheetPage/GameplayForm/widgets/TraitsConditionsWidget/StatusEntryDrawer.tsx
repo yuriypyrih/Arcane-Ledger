@@ -287,7 +287,7 @@ function StatusEntryDrawer({
                       className={styles.footerActionButton}
                       actionType={action.tone === "danger" ? "ERROR" : "INFO"}
                       variant={
-                        action.tone === "neutral" || action.tone === "danger" ? "GHOST" : "FILL"
+                        action.tone === "neutral" || action.tone === "danger" ? "OUTLINE" : "FILL"
                       }
                       onClick={action.onClick}
                       icon={<Icon size={16} aria-hidden="true" />}

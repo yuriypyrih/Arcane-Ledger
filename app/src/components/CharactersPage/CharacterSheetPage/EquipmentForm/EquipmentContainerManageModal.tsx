@@ -227,7 +227,7 @@ function EquipmentContainerManageModal({
 
       <OverlayFooter>
         <div className={styles.footerActions}>
-          <ActionButton variant="GHOST" onClick={onCancel}>
+          <ActionButton variant="OUTLINE" onClick={onCancel}>
             Cancel
           </ActionButton>
           <ActionButton

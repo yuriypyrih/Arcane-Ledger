@@ -192,7 +192,7 @@ function DeathSavesTracker({
                   + Failure
                 </ActionButton>
                 <ActionButton
-                  variant="GHOST"
+                  variant="OUTLINE"
                   className={styles.incrementButton}
                   onClick={onReset}
                   disabled={!hasMarkedDeathSaves}

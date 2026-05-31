@@ -988,7 +988,7 @@ function CreatureStatBlockEditorModal({
       </OverlayBody>
 
       <OverlayFooter className={styles.statBlockEditorFooter}>
-        <ActionButton variant="GHOST" onClick={onClose}>
+        <ActionButton variant="OUTLINE" onClick={onClose}>
           Cancel
         </ActionButton>
         <ActionButton onClick={handleSave}>Save stat block</ActionButton>

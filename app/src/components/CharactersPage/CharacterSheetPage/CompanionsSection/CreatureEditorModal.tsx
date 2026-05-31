@@ -756,7 +756,7 @@ function CreatureEditorModal({
               </ActionButton>
               <ActionButton
                 actionType="ERROR"
-                variant="GHOST"
+                variant="OUTLINE"
                 disabled={isSaving || isDeleting}
                 loading={isDeleting}
                 onClick={() => setIsDeleteConfirmationOpen(true)}
