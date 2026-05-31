@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import type { ReactNode } from "react";
+import { memo, type ReactNode } from "react";
 import { DURATION, type SpellEntry } from "../../codex/entries";
 import ActionShape, { getActionShapeForCastingTime, type ActionShapeType } from "../ActionShape";
 import ConcentrationLabel from "../ConcentrationLabel";
@@ -274,10 +274,7 @@ function SpellListRow({
       disabled={disabled}
     >
       <div
-        className={clsx(
-          styles.contentRow,
-          contentLayout === "natural" && styles.contentRowNatural
-        )}
+        className={clsx(styles.contentRow, contentLayout === "natural" && styles.contentRowNatural)}
       >
         <div className={styles.primaryBlock}>
           <div className={styles.nameRow}>
@@ -317,4 +314,4 @@ function SpellListRow({
   );
 }
 
-export default SpellListRow;
+export default memo(SpellListRow);

@@ -14,7 +14,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     Pencil,
     SpellCastingGuideModal,
     SpellDescriptionContent,
-    SpellListRow,
+    SpellMainListRow,
     SpellManagementModal,
     SpellSlotActionSheet,
     InputRequiredBadge,
@@ -23,9 +23,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     activeSpellSlotSheetLevel,
     activeSpellSlotSheetTotal,
     activeWizardSpellFilter,
-    alwaysPreparedSpellIdSet,
     alwaysPreparedSpellIds,
-    alwaysSpellbookSpellIdSet,
     alwaysSpellbookSpellIds,
     bardicInspirationUsesRemaining,
     bardicInspirationUsesTotal,
@@ -66,12 +64,13 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     formatFeatureActionOptionRangeLabel,
     formatSpellCastingTime,
     formatSpellGroupTitle,
-    alwaysPreparedCantripIdSet,
     frozenHauntFallbackSpellSlotMinimumLevel,
     gameplayActionStyles,
     getActionShapeForEconomyType,
     getDivinityDrawerValueLabel,
     getDivinityRowActionShapeState,
+    getSpellOutcomeSummary,
+    getSpellRowActionShapes,
     hasSpellManagementOptions,
     hasSpellSelectionInputRequired,
     highestSpellSlotLevel,
@@ -87,7 +86,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     openSpellManagementMenu,
     orderDescriptionAdditionSections,
     paladinOathOfTheNobleGeniesElementalSmiteOptions,
-    preparedSpellGroups,
+    preparedSpellRowGroups,
     preparedSpellLimit,
     rangerFeyReinforcementsUsesRemaining,
     rangerFeyReinforcementsUsesTotal,
@@ -105,9 +104,6 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     selectedFrozenHauntFallbackSlotLevel,
     selectedManualSpellbookSpellIds,
     selectedPreparedSpellIds,
-    spellActionShapesById,
-    spellManagementOutcomeSummariesById,
-    spellManagementSpellActionShapesById,
     selectedSpell,
     selectedSpellActionPaths,
     selectedSpellAlwaysPrepared,
@@ -233,7 +229,6 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     sheetStyles,
     sorceryPointsRemaining,
     sorceryPointsTotal,
-    spellOutcomeSummariesById,
     spellPreparationOptions,
     spellSlotLevels,
     spellSlotTotals,
@@ -277,11 +272,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     usesPreparedSpells,
     usesSpellbook,
     warlockStepsOfTheFeyUsesRemaining,
-    warlockStepsOfTheFeyUsesTotal,
-    wizardSignatureSpellIdSet,
-    wizardSpellMasterySpellIdSet,
-    wizardSpellbookOnlyIdSet,
-    wizardSpellbookOnlyRitualIdSet
+    warlockStepsOfTheFeyUsesTotal
   } = context;
 
   return (
@@ -427,53 +418,16 @@ export function renderSpellCastingForm(context: Record<string, any>) {
           </div>
         ) : null}
 
-        {preparedSpellGroups.length === 0 && spellcastingChannelDivinityRows.length === 0 ? (
+        {preparedSpellRowGroups.length === 0 && spellcastingChannelDivinityRows.length === 0 ? (
           <p className={shared.emptyText}>No spells or cantrips have been selected yet.</p>
         ) : (
-          preparedSpellGroups.map((group) => (
+          preparedSpellRowGroups.map((group) => (
             <div key={group.level} className={styles.spellGroup}>
               <p className={styles.spellGroupTitle}>{formatSpellGroupTitle(group.level)}</p>
               <ul className={styles.spellList}>
-                {group.spells.map((spell) => (
-                  <li key={spell.id}>
-                    {(() => {
-                      const actionShapes = spellActionShapesById.get(spell.id) ?? [];
-
-                      return (
-                        <SpellListRow
-                          spell={spell}
-                          onClick={() => openSpellDetails(spell)}
-                          valueSummary={
-                            wizardSpellbookOnlyIdSet.has(spell.id)
-                              ? ""
-                              : (spellOutcomeSummariesById.get(spell.id) ?? "")
-                          }
-                          detailNote={
-                            wizardSpellbookOnlyRitualIdSet.has(spell.id)
-                              ? "Ritual from spellbook"
-                              : wizardSpellbookOnlyIdSet.has(spell.id)
-                                ? "In Spellbook but not prepared"
-                                : undefined
-                          }
-                          detailNoteTone={
-                            wizardSpellbookOnlyIdSet.has(spell.id) ? "accent" : "default"
-                          }
-                          alwaysPrepared={
-                            alwaysPreparedSpellIdSet.has(spell.id) ||
-                            alwaysPreparedCantripIdSet.has(spell.id)
-                          }
-                          alwaysSpellbook={alwaysSpellbookSpellIdSet.has(spell.id)}
-                          highlightTone={
-                            wizardSpellMasterySpellIdSet.has(spell.id) ||
-                            wizardSignatureSpellIdSet.has(spell.id)
-                              ? "spell-mastery"
-                              : "default"
-                          }
-                          compactConcentrationDuration
-                          actionShapes={actionShapes}
-                        />
-                      );
-                    })()}
+                {group.spells.map((row) => (
+                  <li key={row.spell.id}>
+                    <SpellMainListRow row={row} onOpenSpellDetails={openSpellDetails} />
                   </li>
                 ))}
               </ul>
@@ -514,6 +468,8 @@ export function renderSpellCastingForm(context: Record<string, any>) {
           cantripOptions={cantripOptions}
           highestSpellSlotLevel={highestSpellSlotLevel}
           knownSpellEntriesById={knownSpellEntriesById}
+          getSpellActionShapes={getSpellRowActionShapes}
+          getSpellOutcomeSummary={getSpellOutcomeSummary}
           onClose={() => setIsSpellManagementModalOpen(false)}
           onOpenSpellDetails={openSpellDetails}
           onPersistCharacter={onPersistCharacter}
@@ -521,9 +477,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
           selectedCantripIds={selectedCantripIds}
           selectedManualSpellbookSpellIds={selectedManualSpellbookSpellIds}
           selectedPreparedSpellIds={selectedPreparedSpellIds}
-          spellActionShapesById={spellManagementSpellActionShapesById}
           spellbookSpellEntriesById={spellbookSpellEntriesById}
-          spellOutcomeSummariesById={spellManagementOutcomeSummariesById}
           spellPreparationOptions={spellPreparationOptions}
           suspendEscapeClose={Boolean(
             activeSpellSlotSheetLevel !== null ||

@@ -1369,7 +1369,14 @@ export function transformFeatSpellEntryForCharacter(
   character: FeatRuntimeCharacter,
   spell: SpellEntry
 ): SpellEntry {
-  return collectFeatDerivedState(character).normalizedFeats.reduce<SpellEntry>(
+  return transformFeatSpellEntry(collectFeatDerivedState(character), spell);
+}
+
+export function transformFeatSpellEntry(
+  derivedState: FeatDerivedState,
+  spell: SpellEntry
+): SpellEntry {
+  return derivedState.normalizedFeats.reduce<SpellEntry>(
     (currentSpell, entry) => {
       if (entry.feat === FEATS.BOON_OF_DIMENSIONAL_TRAVEL) {
         const description = getFeatDescriptionSlice(

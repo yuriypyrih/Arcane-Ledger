@@ -57,6 +57,8 @@ type SpellManagementModalProps = {
   cantripOptions: SpellEntry[];
   highestSpellSlotLevel: number;
   knownSpellEntriesById: Map<string, SpellEntry>;
+  getSpellActionShapes: (spell: SpellEntry) => SpellListRowActionShapes;
+  getSpellOutcomeSummary: (spell: SpellEntry) => string;
   onClose: () => void;
   onOpenSpellDetails: (spell: SpellEntry, viewMode: "prepare-preview") => void;
   onPersistCharacter: PersistCharacterUpdater;
@@ -64,9 +66,7 @@ type SpellManagementModalProps = {
   selectedCantripIds: string[];
   selectedManualSpellbookSpellIds: string[];
   selectedPreparedSpellIds: string[];
-  spellActionShapesById: Map<string, SpellListRowActionShapes>;
   spellbookSpellEntriesById: Map<string, SpellEntry>;
-  spellOutcomeSummariesById: Map<string, string>;
   spellPreparationOptions: SpellEntry[];
   suspendEscapeClose: boolean;
   usesPreparedSpells: boolean;
@@ -134,6 +134,8 @@ function SpellManagementModal({
   cantripOptions,
   highestSpellSlotLevel,
   knownSpellEntriesById,
+  getSpellActionShapes,
+  getSpellOutcomeSummary,
   onClose,
   onOpenSpellDetails,
   onPersistCharacter,
@@ -141,9 +143,7 @@ function SpellManagementModal({
   selectedCantripIds,
   selectedManualSpellbookSpellIds,
   selectedPreparedSpellIds,
-  spellActionShapesById,
   spellbookSpellEntriesById,
-  spellOutcomeSummariesById,
   spellPreparationOptions,
   suspendEscapeClose,
   usesPreparedSpells,
@@ -224,9 +224,35 @@ function SpellManagementModal({
     () => groupSpellsByLevel(filteredCantripOptions),
     [filteredCantripOptions]
   );
+  const filteredCantripRowDetailsById = useMemo(
+    () =>
+      new Map(
+        filteredCantripOptions.map((spell) => [
+          spell.id,
+          {
+            actionShapes: getSpellActionShapes(spell),
+            valueSummary: getSpellOutcomeSummary(spell)
+          }
+        ])
+      ),
+    [filteredCantripOptions, getSpellActionShapes, getSpellOutcomeSummary]
+  );
   const filteredActivePreparedSpellDisplayOptions = useMemo(
     () => filterSpellManagementSpells(activePreparedSpellDisplayOptions, preparedSpellFilters),
     [activePreparedSpellDisplayOptions, preparedSpellFilters]
+  );
+  const filteredActivePreparedSpellRowDetailsById = useMemo(
+    () =>
+      new Map(
+        filteredActivePreparedSpellDisplayOptions.map((spell) => [
+          spell.id,
+          {
+            actionShapes: getSpellActionShapes(spell),
+            valueSummary: getSpellOutcomeSummary(spell)
+          }
+        ])
+      ),
+    [filteredActivePreparedSpellDisplayOptions, getSpellActionShapes, getSpellOutcomeSummary]
   );
   const preparedSpellDraftCountsByLevel = useMemo(
     () =>
@@ -570,21 +596,21 @@ function SpellManagementModal({
                       {group.spells.map((spell) => {
                         const isChecked = cantripDraftSet.has(spell.id);
                         const isDisabled = !isChecked && isCantripLimitReached;
-                        const actionShapes = spellActionShapesById.get(spell.id) ?? [];
+                        const rowDetails = filteredCantripRowDetailsById.get(spell.id);
 
                         return (
                           <li key={spell.id}>
                             <SpellListRow
                               spell={spell}
                               onClick={() => onOpenSpellDetails(spell, "prepare-preview")}
-                              valueSummary={spellOutcomeSummariesById.get(spell.id) ?? ""}
+                              valueSummary={rowDetails?.valueSummary ?? ""}
                               alwaysPrepared={alwaysPreparedSpellIdSet.has(spell.id)}
                               compactConcentrationDuration
                               selectable
                               isSelected={isChecked}
                               onSelect={() => toggleCantripDraft(spell.id)}
                               disabled={isDisabled}
-                              actionShapes={actionShapes}
+                              actionShapes={rowDetails?.actionShapes ?? []}
                               contentLayout="natural"
                               className={
                                 isDisabled ? styles.spellManagementChoiceDisabled : undefined
@@ -690,14 +716,14 @@ function SpellManagementModal({
                     const isDisabled =
                       !usesSpellbook &&
                       (isAlwaysPrepared || (!isChecked && isPreparedSpellLimitReached));
-                    const actionShapes = spellActionShapesById.get(spell.id) ?? [];
+                    const rowDetails = filteredActivePreparedSpellRowDetailsById.get(spell.id);
 
                     return (
                       <li key={spell.id}>
                         <SpellListRow
                           spell={spell}
                           onClick={() => onOpenSpellDetails(spell, "prepare-preview")}
-                          valueSummary={spellOutcomeSummariesById.get(spell.id) ?? ""}
+                          valueSummary={rowDetails?.valueSummary ?? ""}
                           alwaysPrepared={isAlwaysPrepared}
                           alwaysSpellbook={isAlwaysSpellbook}
                           compactConcentrationDuration
@@ -714,7 +740,7 @@ function SpellManagementModal({
                             usesSpellbook ? renderWizardSpellManagementControls(spell) : undefined
                           }
                           disabled={isDisabled}
-                          actionShapes={actionShapes}
+                          actionShapes={rowDetails?.actionShapes ?? []}
                           contentLayout="natural"
                           className={
                             isAlwaysPrepared ? styles.spellManagementChoiceDisabled : undefined

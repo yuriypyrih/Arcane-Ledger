@@ -34,6 +34,10 @@ import {
   type CharacterSpellcastingRuntime,
   type SpellcastingRuntimeOptions
 } from "./spellcastingRuntime";
+import {
+  createCharacterSpellEntryTransformer,
+  type CharacterSpellEntryTransformer
+} from "./spellEntryTransformer";
 
 export type FeatureGameplayActionDefinition = Extract<
   GameplayActionDefinition,
@@ -52,6 +56,7 @@ export type CharacterRuntime = {
   readonly customEffects: CharacterCustomEffectRuntime;
   readonly featureActions: FeatureActionCard[];
   readonly featureActionsByKey: Map<string, FeatureActionCard>;
+  readonly spellEntryTransformer: CharacterSpellEntryTransformer;
   readonly spellcasting: CharacterSpellcastingRuntime;
   readonly spellcastingWithoutSubclassSlots: CharacterSpellcastingRuntime;
   readonly equipment: EquipmentRuntime;
@@ -76,6 +81,7 @@ class CharacterRuntimeSnapshot implements CharacterRuntime {
   private customEffectsSnapshot: CharacterCustomEffectRuntime | null = null;
   private featureActionsSnapshot: FeatureActionCard[] | null = null;
   private featureActionsByKeySnapshot: Map<string, FeatureActionCard> | null = null;
+  private spellEntryTransformerSnapshot: CharacterSpellEntryTransformer | null = null;
   private spellcastingSnapshot: CharacterSpellcastingRuntime | null = null;
   private spellcastingWithoutSubclassSlotsSnapshot: CharacterSpellcastingRuntime | null = null;
   private equipmentSnapshot: EquipmentRuntime | null = null;
@@ -137,6 +143,19 @@ class CharacterRuntimeSnapshot implements CharacterRuntime {
     }
 
     return this.featureActionsByKeySnapshot;
+  }
+
+  get spellEntryTransformer(): CharacterSpellEntryTransformer {
+    if (!this.spellEntryTransformerSnapshot) {
+      this.spellEntryTransformerSnapshot = createCharacterSpellEntryTransformer({
+        character: this.character,
+        classFeatures: this.classFeatures,
+        subclassFeatures: this.subclassFeatures,
+        feats: this.feats
+      });
+    }
+
+    return this.spellEntryTransformerSnapshot;
   }
 
   get spellcasting(): CharacterSpellcastingRuntime {
