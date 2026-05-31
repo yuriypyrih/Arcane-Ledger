@@ -29,6 +29,10 @@ export type EncounterTemplateDetailEnvelope = {
   encounterTemplate: EncounterTemplateDetailRecord;
 };
 
+export type EncounterTemplateDeleteEnvelope = {
+  encounterTemplateId: string;
+};
+
 export function listEncounterTemplates(options?: ApiRequestOptions) {
   return apiGet<EncounterTemplateListEnvelope>("/encounter-templates", options);
 }
@@ -52,6 +56,13 @@ export function updateEncounterTemplate(
   return apiPatch<EncounterTemplateDetailEnvelope>(
     `/encounter-templates/${encounterTemplateId}`,
     { name },
+    options
+  );
+}
+
+export function deleteEncounterTemplate(encounterTemplateId: string, options?: ApiRequestOptions) {
+  return apiDelete<EncounterTemplateDeleteEnvelope>(
+    `/encounter-templates/${encounterTemplateId}`,
     options
   );
 }

@@ -130,6 +130,21 @@ function patchCampaignSummary(
   }
 }
 
+function clearPartyFromCampaign(
+  campaign: CampaignRecord | CampaignDetailRecord,
+  partyGroupId: string
+) {
+  if (campaign.selectedPartyId !== partyGroupId) {
+    return;
+  }
+
+  campaign.selectedPartyId = null;
+
+  if ("selectedParty" in campaign) {
+    campaign.selectedParty = null;
+  }
+}
+
 const dmToolsSlice = createSlice({
   name: "dmTools",
   initialState,
@@ -151,6 +166,25 @@ const dmToolsSlice = createSlice({
       upsertPartyGroup(state.partyGroups, action.payload);
       state.partyGroupsStatus = "ready";
       state.partyGroupsError = null;
+    },
+    removePartyGroupRecord(state, action: PayloadAction<string>) {
+      const partyGroupId = action.payload;
+
+      state.partyGroups = state.partyGroups.filter((partyGroup) => partyGroup.id !== partyGroupId);
+      delete state.selectedPartyGroupsById[partyGroupId];
+      delete state.selectedPartyGroupStatusById[partyGroupId];
+      delete state.selectedPartyGroupErrorById[partyGroupId];
+
+      Object.entries(state.membershipsByCharacterId).forEach(([characterId, membership]) => {
+        if (membership.partyGroupId === partyGroupId) {
+          delete state.membershipsByCharacterId[characterId];
+        }
+      });
+
+      state.campaigns.forEach((campaign) => clearPartyFromCampaign(campaign, partyGroupId));
+      Object.values(state.selectedCampaignsById).forEach((campaign) =>
+        clearPartyFromCampaign(campaign, partyGroupId)
+      );
     },
     setSelectedPartyGroupLoading(state, action: PayloadAction<string>) {
       state.selectedPartyGroupStatusById[action.payload] = "loading";
@@ -214,6 +248,14 @@ const dmToolsSlice = createSlice({
       state.campaignsStatus = "ready";
       state.campaignsError = null;
     },
+    removeCampaignRecord(state, action: PayloadAction<string>) {
+      const campaignId = action.payload;
+
+      state.campaigns = state.campaigns.filter((campaign) => campaign.id !== campaignId);
+      delete state.selectedCampaignsById[campaignId];
+      delete state.selectedCampaignStatusById[campaignId];
+      delete state.selectedCampaignErrorById[campaignId];
+    },
     setSelectedCampaignLoading(state, action: PayloadAction<string>) {
       state.selectedCampaignStatusById[action.payload] = "loading";
       state.selectedCampaignErrorById[action.payload] = null;
@@ -241,10 +283,7 @@ const dmToolsSlice = createSlice({
 
       patchCampaignSummary(state.campaigns, action.payload.campaignId, action.payload.patch);
     },
-    setSelectedCampaignError(
-      state,
-      action: PayloadAction<{ campaignId: string; error: string }>
-    ) {
+    setSelectedCampaignError(state, action: PayloadAction<{ campaignId: string; error: string }>) {
       state.selectedCampaignStatusById[action.payload.campaignId] = "error";
       state.selectedCampaignErrorById[action.payload.campaignId] = action.payload.error;
     },
@@ -265,6 +304,16 @@ const dmToolsSlice = createSlice({
       upsertEncounterTemplate(state.encounterTemplates, action.payload);
       state.encounterTemplatesStatus = "ready";
       state.encounterTemplatesError = null;
+    },
+    removeEncounterTemplateRecord(state, action: PayloadAction<string>) {
+      const encounterTemplateId = action.payload;
+
+      state.encounterTemplates = state.encounterTemplates.filter(
+        (encounterTemplate) => encounterTemplate.id !== encounterTemplateId
+      );
+      delete state.selectedEncounterTemplatesById[encounterTemplateId];
+      delete state.selectedEncounterTemplateStatusById[encounterTemplateId];
+      delete state.selectedEncounterTemplateErrorById[encounterTemplateId];
     },
     setSelectedEncounterTemplateLoading(state, action: PayloadAction<string>) {
       state.selectedEncounterTemplateStatusById[action.payload] = "loading";
@@ -298,10 +347,13 @@ export const {
   setPartyMemberships,
   setPartyMembershipsError,
   setPartyMembershipsLoading,
+  removeCampaignRecord,
+  removeEncounterTemplateRecord,
   setSelectedPartyGroup,
   setSelectedPartyGroupError,
   setSelectedPartyGroupLoading,
   removePartyMembership,
+  removePartyGroupRecord,
   setCampaigns,
   setCampaignsError,
   setCampaignsLoading,

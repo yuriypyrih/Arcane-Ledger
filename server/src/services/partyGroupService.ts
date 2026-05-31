@@ -7,6 +7,7 @@ import {
   type CharacterAvatarRecord,
   type CharacterSheetSummaryRecord
 } from "../models/CharacterSheet.js";
+import { Campaign } from "../models/Campaign.js";
 import { PartyGroup, type PartyGroupDocument, type PartyGroupRecord } from "../models/PartyGroup.js";
 import { User } from "../models/User.js";
 import type { UserRole } from "../types/auth.js";
@@ -353,6 +354,42 @@ export async function getOwnedPartyGroupDetail(options: {
   return {
     ...toPartyGroupDetailRecord(partyGroup),
     members: characters.map((character) => toPartyGroupMemberRecord(character, userById))
+  };
+}
+
+export async function deleteOwnedPartyGroup(options: {
+  ownerId: Types.ObjectId;
+  partyGroupId: string;
+}) {
+  const partyGroup = await findOwnedPartyGroupDocument(options);
+  const partyGroupObjectId = partyGroup._id;
+  const partyGroupId = partyGroup.id;
+
+  await CharacterSheet.updateMany(
+    {
+      partyGroupId: partyGroupObjectId
+    },
+    {
+      $set: {
+        partyGroupId: null
+      }
+    }
+  ).exec();
+  await Campaign.updateMany(
+    {
+      ownerId: options.ownerId,
+      selectedPartyId: partyGroupObjectId
+    },
+    {
+      $set: {
+        selectedPartyId: null
+      }
+    }
+  ).exec();
+  await partyGroup.deleteOne();
+
+  return {
+    partyGroupId
   };
 }
 

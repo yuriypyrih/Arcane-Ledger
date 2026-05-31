@@ -496,3 +496,28 @@ export async function recordEmailSentMetric(kind: AnalyticsEmailKind) {
     });
   }
 }
+
+export async function recordCharacterCreatedMetric(count: number, route: string) {
+  if (count <= 0) {
+    return;
+  }
+
+  try {
+    await incrementRollup({
+      eventName: "character_created",
+      source: "backend",
+      route,
+      visitorType: "server",
+      count
+    });
+  } catch (error) {
+    captureServerError(error, {
+      area: "analytics",
+      action: "record-character-created",
+      extra: {
+        count,
+        route
+      }
+    });
+  }
+}

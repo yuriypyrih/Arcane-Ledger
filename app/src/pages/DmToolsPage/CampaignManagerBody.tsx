@@ -1,9 +1,11 @@
-import { Plus, ScrollText } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Plus, ScrollText, Trash2 } from "lucide-react";
+import { type ReactNode, useEffect, useId, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { listCampaigns } from "../../api/campaigns";
+import { deleteCampaign, listCampaigns, type CampaignRecord } from "../../api/campaigns";
 import ActionButton from "../../components/ActionButton";
+import { DestructiveConfirmationModal } from "../../components/Overlay";
 import {
+  removeCampaignRecord,
   setCampaigns,
   setCampaignsError,
   setCampaignsLoading,
@@ -23,7 +25,16 @@ type CampaignManagerBodyProps = {
   tabId: string;
 };
 
+function getDeleteCampaignMessage(campaign: CampaignRecord): ReactNode {
+  return (
+    <>
+      Delete <strong>{campaign.name}</strong>, including its session notes and prepared encounters.
+    </>
+  );
+}
+
 function CampaignManagerBody({ panelId, tabId }: CampaignManagerBodyProps) {
+  const deleteTitleId = useId();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const authStatus = useAppSelector((state) => state.auth.status);
@@ -33,6 +44,9 @@ function CampaignManagerBody({ panelId, tabId }: CampaignManagerBodyProps) {
   const campaignsStatus = useAppSelector((state) => state.dmTools.campaignsStatus);
   const campaignsError = useAppSelector((state) => state.dmTools.campaignsError);
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [pendingDeleteCampaign, setPendingDeleteCampaign] = useState<CampaignRecord | null>(null);
+  const [isDeletingCampaign, setIsDeletingCampaign] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const loadedCampaignsForAuthRef = useRef<string | null>(null);
   const isAuthenticated = authStatus === "authenticated";
   const campaignLimit = getDmToolsQuotaForRole("campaigns", authUserRole);
@@ -100,6 +114,34 @@ function CampaignManagerBody({ panelId, tabId }: CampaignManagerBodyProps) {
     setCreateModalOpen(true);
   }
 
+  async function handleConfirmDeleteCampaign() {
+    if (!pendingDeleteCampaign || isDeletingCampaign) {
+      return;
+    }
+
+    setActionError(null);
+    setIsDeletingCampaign(true);
+
+    try {
+      const { campaignId } = await deleteCampaign(pendingDeleteCampaign.id, {
+        suppressFailureToast: true
+      });
+
+      dispatch(removeCampaignRecord(campaignId));
+      dispatch(
+        showToast({
+          text: "Campaign deleted.",
+          type: "success"
+        })
+      );
+      setPendingDeleteCampaign(null);
+    } catch (deleteError) {
+      setActionError(getDmToolsApiErrorMessage(deleteError, "Unable to delete campaign."));
+    } finally {
+      setIsDeletingCampaign(false);
+    }
+  }
+
   return (
     <section
       className={styles.toolBody}
@@ -130,6 +172,8 @@ function CampaignManagerBody({ panelId, tabId }: CampaignManagerBodyProps) {
         </div>
       </div>
 
+      {actionError ? <p className={styles.modalError}>{actionError}</p> : null}
+
       {campaignsStatus === "loading" ? (
         <DmToolsEmptyState icon={<ScrollText size={18} aria-hidden="true" />}>
           Loading campaigns...
@@ -153,6 +197,17 @@ function CampaignManagerBody({ panelId, tabId }: CampaignManagerBodyProps) {
                 campaign.preparedEncounterCount === 1 ? "encounter" : "encounters"
               }`}
               to={`/gm-tools/campaign-manager/${campaign.id}`}
+              actions={[
+                {
+                  disabled: isDeletingCampaign,
+                  icon: <Trash2 size={18} aria-hidden="true" />,
+                  label: `Delete ${campaign.name}`,
+                  onClick: () => {
+                    setActionError(null);
+                    setPendingDeleteCampaign(campaign);
+                  }
+                }
+              ]}
             />
           ))}
         </div>
@@ -168,6 +223,19 @@ function CampaignManagerBody({ panelId, tabId }: CampaignManagerBodyProps) {
           onCreated={(campaignId) => {
             setCreateModalOpen(false);
             navigate(`/gm-tools/campaign-manager/${campaignId}`);
+          }}
+        />
+      ) : null}
+      {pendingDeleteCampaign ? (
+        <DestructiveConfirmationModal
+          titleId={deleteTitleId}
+          title="Delete campaign?"
+          message={getDeleteCampaignMessage(pendingDeleteCampaign)}
+          confirmLabel={isDeletingCampaign ? "Deleting..." : "Delete"}
+          closeLabel="Close delete campaign confirmation"
+          onCancel={() => setPendingDeleteCampaign(null)}
+          onConfirm={() => {
+            void handleConfirmDeleteCampaign();
           }}
         />
       ) : null}

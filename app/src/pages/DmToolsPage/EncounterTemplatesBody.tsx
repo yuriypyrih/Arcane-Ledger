@@ -1,9 +1,15 @@
-import { Plus, Swords } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Plus, Swords, Trash2 } from "lucide-react";
+import { type ReactNode, useEffect, useId, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { listEncounterTemplates } from "../../api/encounterTemplates";
-import ActionButton from "../../components/ActionButton";
 import {
+  deleteEncounterTemplate,
+  listEncounterTemplates,
+  type EncounterTemplateRecord
+} from "../../api/encounterTemplates";
+import ActionButton from "../../components/ActionButton";
+import { DestructiveConfirmationModal } from "../../components/Overlay";
+import {
+  removeEncounterTemplateRecord,
   setEncounterTemplates,
   setEncounterTemplatesError,
   setEncounterTemplatesLoading,
@@ -23,7 +29,16 @@ type EncounterTemplatesBodyProps = {
   tabId: string;
 };
 
+function getDeleteEncounterTemplateMessage(encounterTemplate: EncounterTemplateRecord): ReactNode {
+  return (
+    <>
+      Delete <strong>{encounterTemplate.name}</strong> and all creatures saved in this template.
+    </>
+  );
+}
+
 function EncounterTemplatesBody({ panelId, tabId }: EncounterTemplatesBodyProps) {
+  const deleteTitleId = useId();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const authStatus = useAppSelector((state) => state.auth.status);
@@ -35,6 +50,10 @@ function EncounterTemplatesBody({ panelId, tabId }: EncounterTemplatesBodyProps)
   );
   const encounterTemplatesError = useAppSelector((state) => state.dmTools.encounterTemplatesError);
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [pendingDeleteEncounterTemplate, setPendingDeleteEncounterTemplate] =
+    useState<EncounterTemplateRecord | null>(null);
+  const [isDeletingEncounterTemplate, setIsDeletingEncounterTemplate] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const loadedEncounterTemplatesForAuthRef = useRef<string | null>(null);
   const isAuthenticated = authStatus === "authenticated";
   const encounterTemplateLimit = getDmToolsQuotaForRole("encounterTemplates", authUserRole);
@@ -107,6 +126,37 @@ function EncounterTemplatesBody({ panelId, tabId }: EncounterTemplatesBodyProps)
     setCreateModalOpen(true);
   }
 
+  async function handleConfirmDeleteEncounterTemplate() {
+    if (!pendingDeleteEncounterTemplate || isDeletingEncounterTemplate) {
+      return;
+    }
+
+    setActionError(null);
+    setIsDeletingEncounterTemplate(true);
+
+    try {
+      const { encounterTemplateId } = await deleteEncounterTemplate(
+        pendingDeleteEncounterTemplate.id,
+        { suppressFailureToast: true }
+      );
+
+      dispatch(removeEncounterTemplateRecord(encounterTemplateId));
+      dispatch(
+        showToast({
+          text: "Encounter template deleted.",
+          type: "success"
+        })
+      );
+      setPendingDeleteEncounterTemplate(null);
+    } catch (deleteError) {
+      setActionError(
+        getDmToolsApiErrorMessage(deleteError, "Unable to delete encounter template.")
+      );
+    } finally {
+      setIsDeletingEncounterTemplate(false);
+    }
+  }
+
   return (
     <section
       className={styles.toolBody}
@@ -141,6 +191,8 @@ function EncounterTemplatesBody({ panelId, tabId }: EncounterTemplatesBodyProps)
         </div>
       </div>
 
+      {actionError ? <p className={styles.modalError}>{actionError}</p> : null}
+
       {encounterTemplatesStatus === "loading" ? (
         <DmToolsEmptyState icon={<Swords size={18} aria-hidden="true" />}>
           Loading encounter templates...
@@ -162,6 +214,17 @@ function EncounterTemplatesBody({ panelId, tabId }: EncounterTemplatesBodyProps)
                 encounterTemplate.creatureCount === 1 ? "creature" : "creatures"
               }`}
               to={`/gm-tools/encounter-templates/${encounterTemplate.id}`}
+              actions={[
+                {
+                  disabled: isDeletingEncounterTemplate,
+                  icon: <Trash2 size={18} aria-hidden="true" />,
+                  label: `Delete ${encounterTemplate.name}`,
+                  onClick: () => {
+                    setActionError(null);
+                    setPendingDeleteEncounterTemplate(encounterTemplate);
+                  }
+                }
+              ]}
             />
           ))}
         </div>
@@ -177,6 +240,19 @@ function EncounterTemplatesBody({ panelId, tabId }: EncounterTemplatesBodyProps)
           onCreated={(encounterTemplateId) => {
             setCreateModalOpen(false);
             navigate(`/gm-tools/encounter-templates/${encounterTemplateId}`);
+          }}
+        />
+      ) : null}
+      {pendingDeleteEncounterTemplate ? (
+        <DestructiveConfirmationModal
+          titleId={deleteTitleId}
+          title="Delete encounter template?"
+          message={getDeleteEncounterTemplateMessage(pendingDeleteEncounterTemplate)}
+          confirmLabel={isDeletingEncounterTemplate ? "Deleting..." : "Delete"}
+          closeLabel="Close delete encounter template confirmation"
+          onCancel={() => setPendingDeleteEncounterTemplate(null)}
+          onConfirm={() => {
+            void handleConfirmDeleteEncounterTemplate();
           }}
         />
       ) : null}

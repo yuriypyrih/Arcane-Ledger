@@ -3,6 +3,7 @@ import { asyncHandler } from "../middleware/asyncHandler.js";
 import type { AuthenticatedLocals } from "../middleware/authMiddleware.js";
 import {
   createOwnedPartyGroup,
+  deleteOwnedPartyGroup,
   getOwnedPartyGroupDetail,
   joinPartyGroup,
   listCharacterPartyMemberships,
@@ -60,6 +61,17 @@ export const getPartyGroup = asyncHandler(
         partyGroupId: request.params.partyGroupId ?? ""
       })
     });
+  }
+);
+
+export const deletePartyGroup = asyncHandler(
+  async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
+    response.json(
+      await deleteOwnedPartyGroup({
+        ownerId: response.locals.authUser._id,
+        partyGroupId: request.params.partyGroupId ?? ""
+      })
+    );
   }
 );
 

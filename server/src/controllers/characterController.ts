@@ -10,11 +10,13 @@ import {
   type CharacterSheetDocument,
   type CharacterSheetSummaryRecord
 } from "../models/CharacterSheet.js";
+import { PartyGroup } from "../models/PartyGroup.js";
 import {
   deleteCharacterAvatarFromS3,
   isAllowedCharacterAvatarMimeType,
   saveCharacterAvatarToS3
 } from "../services/characterAvatarService.js";
+import { recordCharacterCreatedMetric } from "../services/analyticsService.js";
 import { getCharacterLimitForRole } from "../services/characterLimits.js";
 import {
   createSharedCharacterSnapshot,
@@ -478,12 +480,16 @@ export const importCharacterSheets = asyncHandler(
     const existingByClientId = new Map(
       existingCharacters.map((character) => [character.clientId, character])
     );
-    const activeCount = await CharacterSheet.countDocuments({ ownerId, deletedAt: null });
-    const newCharacterCount = payloads.filter((payload) => {
-      const existingCharacter = existingByClientId.get(payload.clientId);
+    const deletedExistingCharacter = existingCharacters.find((character) => character.deletedAt);
 
-      return !existingCharacter || existingCharacter.deletedAt;
-    }).length;
+    if (deletedExistingCharacter) {
+      throw new AppError("Character sheet was deleted.", 410, "CHARACTER_SHEET_DELETED");
+    }
+
+    const activeCount = await CharacterSheet.countDocuments({ ownerId, deletedAt: null });
+    const newCharacterCount = payloads.filter(
+      (payload) => !existingByClientId.has(payload.clientId)
+    ).length;
     const availableSlots = Math.max(0, limit - activeCount);
 
     if (newCharacterCount > availableSlots) {
@@ -495,23 +501,13 @@ export const importCharacterSheets = asyncHandler(
     }
 
     const importedCharacters: CharacterSheetDocument[] = [];
+    let createdCharacterCount = 0;
 
     for (const payload of payloads) {
       const existingCharacter = existingByClientId.get(payload.clientId);
 
-      if (existingCharacter && !existingCharacter.deletedAt) {
-        importedCharacters.push(existingCharacter);
-        continue;
-      }
-
       if (existingCharacter) {
-        existingCharacter.localId = payload.localId;
-        existingCharacter.schemaVersion = 2;
-        existingCharacter.revision += 1;
-        existingCharacter.summary = payload.summary;
-        existingCharacter.sheet = payload.sheet;
-        existingCharacter.deletedAt = null;
-        importedCharacters.push(await existingCharacter.save());
+        importedCharacters.push(existingCharacter);
         continue;
       }
 
@@ -526,11 +522,14 @@ export const importCharacterSheets = asyncHandler(
           sheet: payload.sheet
         })
       );
+      createdCharacterCount += 1;
     }
+
+    await recordCharacterCreatedMetric(createdCharacterCount, "characters/import");
 
     response.status(201).json({
       characters: importedCharacters.map(toCloudRecord),
-      count: activeCount + newCharacterCount,
+      count: activeCount + createdCharacterCount,
       limit
     });
   }
@@ -561,9 +560,29 @@ export const deleteCharacterSheet = asyncHandler(
       response.locals.authUser._id
     );
 
-    character.deletedAt = new Date();
-    await character.save();
-    response.json({ character: toCloudRecord(character) });
+    const characterRecord = toCloudRecord(character);
+    const previousObjectKey = character.avatar?.objectKey;
+
+    await PartyGroup.updateMany(
+      {
+        characterIds: character._id
+      },
+      {
+        $pull: {
+          characterIds: character._id
+        }
+      }
+    ).exec();
+
+    await character.deleteOne();
+
+    if (previousObjectKey) {
+      deleteCharacterAvatarFromS3(previousObjectKey).catch((error: unknown) => {
+        warnAvatarDeleteFailure(previousObjectKey, error);
+      });
+    }
+
+    response.json({ character: characterRecord });
   }
 );
 

@@ -4,6 +4,7 @@ import {
   createCampaign,
   createCampaignPreparedEncounterById,
   createCampaignSessionNoteById,
+  deleteCampaign,
   getCampaign,
   listCampaigns,
   removeCampaignPreparedEncounterById,
@@ -24,6 +25,7 @@ const campaignRoutes = Router();
 
 campaignRoutes.get("/", requireAuth, listCampaigns);
 campaignRoutes.post("/", requireAuth, createCampaign);
+campaignRoutes.delete("/:campaignId", requireAuth, deleteCampaign);
 campaignRoutes.patch("/:campaignId", requireAuth, updateCampaign);
 campaignRoutes.patch("/:campaignId/visibility-settings", requireAuth, updateCampaignVisibility);
 campaignRoutes.patch("/:campaignId/selected-party", requireAuth, updateCampaignParty);

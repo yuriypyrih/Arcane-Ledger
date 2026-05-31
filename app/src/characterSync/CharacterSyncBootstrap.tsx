@@ -374,20 +374,25 @@ function CharacterSyncBootstrap() {
 
             if (isCharacterSheetUnavailableError(error)) {
               await refreshCharacterCloudRosterBestEffort(ownerId);
-              nextRecord = detachUnavailableCloudSync(record, error);
-            } else {
-              captureCharacterSyncError(error, {
-                action: "delete",
+              removeCharacterRosterEntry({
                 clientId: sync.clientId,
                 localId: record.identity.localId,
-                remoteId: sync.remoteId,
-                syncStatus: sync.syncStatus
+                remoteId: sync.remoteId
               });
-              nextRecord = markPortableCharacterSheetDeletingError(
-                record,
-                getSyncErrorMessage(error)
-              );
+              continue;
             }
+
+            captureCharacterSyncError(error, {
+              action: "delete",
+              clientId: sync.clientId,
+              localId: record.identity.localId,
+              remoteId: sync.remoteId,
+              syncStatus: sync.syncStatus
+            });
+            nextRecord = markPortableCharacterSheetDeletingError(
+              record,
+              getSyncErrorMessage(error)
+            );
 
             records = replaceSyncedRecord({
               records: await loadSyncableStoredPortableCharacterSheets(),

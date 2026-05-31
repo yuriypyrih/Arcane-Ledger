@@ -528,6 +528,20 @@ export async function getOwnedCampaignDetail(options: {
   return toCampaignDetailRecord(campaign);
 }
 
+export async function deleteOwnedCampaign(options: {
+  campaignId: string;
+  ownerId: Types.ObjectId;
+}) {
+  const campaign = await findOwnedCampaignDocument(options);
+  const campaignId = campaign.id;
+
+  await campaign.deleteOne();
+
+  return {
+    campaignId
+  };
+}
+
 export async function updateOwnedCampaignName(options: {
   campaignId: string;
   name: string;

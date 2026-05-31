@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   createEncounterTemplate,
+  deleteEncounterTemplate,
   getEncounterTemplate,
   listEncounterTemplates,
   removeEncounterTemplateCreatureById,
@@ -13,6 +14,7 @@ const encounterTemplateRoutes = Router();
 
 encounterTemplateRoutes.get("/", requireAuth, listEncounterTemplates);
 encounterTemplateRoutes.post("/", requireAuth, createEncounterTemplate);
+encounterTemplateRoutes.delete("/:encounterTemplateId", requireAuth, deleteEncounterTemplate);
 encounterTemplateRoutes.put(
   "/:encounterTemplateId/creatures/:creatureId",
   requireAuth,

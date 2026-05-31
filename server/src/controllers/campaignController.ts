@@ -7,6 +7,7 @@ import {
   createCampaignPreparedEncounter,
   createCampaignSessionNote,
   createOwnedCampaign,
+  deleteOwnedCampaign,
   getOwnedCampaignDetail,
   listOwnedCampaigns,
   normalizeCampaignName,
@@ -64,6 +65,17 @@ export const getCampaign = asyncHandler(
         ownerId: response.locals.authUser._id
       })
     });
+  }
+);
+
+export const deleteCampaign = asyncHandler(
+  async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
+    response.json(
+      await deleteOwnedCampaign({
+        campaignId: request.params.campaignId ?? "",
+        ownerId: response.locals.authUser._id
+      })
+    );
   }
 );
 

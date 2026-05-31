@@ -4,6 +4,7 @@ import { AppError } from "../errors/AppError.js";
 import { CharacterSheet, type CharacterSheetDocument } from "../models/CharacterSheet.js";
 import { SharedCharacter } from "../models/SharedCharacter.js";
 import type { UserDocument } from "../models/User.js";
+import { recordCharacterCreatedMetric } from "./analyticsService.js";
 import { getCharacterLimitForRole } from "./characterLimits.js";
 
 const SHARED_CHARACTER_LINK_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -243,6 +244,8 @@ export async function importSharedCharacter(options: {
     summary,
     sheet
   });
+
+  await recordCharacterCreatedMetric(1, "characters/shared/import");
 
   return {
     mode: "cloud" as const,

@@ -4,6 +4,7 @@ import { asyncHandler } from "../middleware/asyncHandler.js";
 import type { AuthenticatedLocals } from "../middleware/authMiddleware.js";
 import {
   createOwnedEncounterTemplate,
+  deleteOwnedEncounterTemplate,
   getOwnedEncounterTemplateDetail,
   listOwnedEncounterTemplates,
   normalizeEncounterTemplateName,
@@ -48,6 +49,17 @@ export const getEncounterTemplate = asyncHandler(
         ownerId: response.locals.authUser._id
       })
     });
+  }
+);
+
+export const deleteEncounterTemplate = asyncHandler(
+  async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
+    response.json(
+      await deleteOwnedEncounterTemplate({
+        encounterTemplateId: request.params.encounterTemplateId ?? "",
+        ownerId: response.locals.authUser._id
+      })
+    );
   }
 );
 

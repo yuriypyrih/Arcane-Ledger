@@ -373,6 +373,20 @@ export async function getOwnedEncounterTemplateDetail(options: {
   return toEncounterTemplateDetailRecord(encounterTemplate);
 }
 
+export async function deleteOwnedEncounterTemplate(options: {
+  encounterTemplateId: string;
+  ownerId: Types.ObjectId;
+}) {
+  const encounterTemplate = await findOwnedEncounterTemplateDocument(options);
+  const encounterTemplateId = encounterTemplate.id;
+
+  await encounterTemplate.deleteOne();
+
+  return {
+    encounterTemplateId
+  };
+}
+
 export async function updateOwnedEncounterTemplateName(options: {
   encounterTemplateId: string;
   name: string;

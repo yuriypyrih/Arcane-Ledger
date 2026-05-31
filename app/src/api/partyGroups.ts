@@ -60,6 +60,10 @@ export type PartyGroupDetailEnvelope = {
   partyGroup: PartyGroupDetailRecord;
 };
 
+export type PartyGroupDeleteEnvelope = {
+  partyGroupId: string;
+};
+
 export type PartyGroupJoinEnvelope = {
   partyGroup: PartyGroupRecord;
   membership: PartyMembershipRecord;
@@ -87,6 +91,10 @@ export function updatePartyGroup(
   options?: ApiRequestOptions
 ) {
   return apiPatch<PartyGroupDetailEnvelope>(`/party-groups/${partyGroupId}`, { name }, options);
+}
+
+export function deletePartyGroup(partyGroupId: string, options?: ApiRequestOptions) {
+  return apiDelete<PartyGroupDeleteEnvelope>(`/party-groups/${partyGroupId}`, options);
 }
 
 export function resetPartyGroupInviteToken(partyGroupId: string, options?: ApiRequestOptions) {

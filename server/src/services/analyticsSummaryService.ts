@@ -392,26 +392,21 @@ async function getCharacterSummary() {
 async function getOverviewSummary(
   range: ResolvedSummaryRange,
   anonymousVisitorRollups: RollupSummaryRecord[],
+  characterCreatedRollups: RollupSummaryRecord[],
   emailSentRollups: RollupSummaryRecord[]
 ) {
   const dateFilter = createDateRangeFilter(range);
-  const [
-    totalActiveUsers,
-    totalActiveCharacters,
-    createdUsers,
-    createdCharacters
-  ] = await Promise.all([
+  const [totalActiveUsers, totalActiveCharacters, createdUsers] = await Promise.all([
     User.countDocuments({ active: true, emailVerifiedAt: { $ne: null } }),
     countTotalActiveCharacters(),
-    User.countDocuments({ createdAt: dateFilter }),
-    CharacterSheet.countDocuments({ createdAt: dateFilter })
+    User.countDocuments({ createdAt: dateFilter })
   ]);
 
   return {
     totalActiveUsers,
     totalActiveCharacters,
     createdUsers,
-    createdCharacters,
+    createdCharacters: sumCount(characterCreatedRollups),
     anonymousVisitors: countUniqueVisitors(anonymousVisitorRollups),
     emailsSent: sumCount(emailSentRollups)
   };
@@ -432,11 +427,14 @@ export async function getAnalyticsSummary(
   const anonymousVisitorRollups = visitorRollups.filter((record) => record.visitorType === "anonymous");
   const pageViewRollups = frontendRollups.filter((record) => record.eventName === "page_view");
   const serverRequestRollups = rollups.filter((record) => record.eventName === "server_request");
+  const characterCreatedRollups = rollups.filter(
+    (record) => record.source === "backend" && record.eventName === "character_created"
+  );
   const emailSentRollups = rollups.filter(
     (record) => record.source === "backend" && record.eventName === "email_sent"
   );
   const [overview, characters] = await Promise.all([
-    getOverviewSummary(range, anonymousVisitorRollups, emailSentRollups),
+    getOverviewSummary(range, anonymousVisitorRollups, characterCreatedRollups, emailSentRollups),
     getCharacterSummary()
   ]);
 

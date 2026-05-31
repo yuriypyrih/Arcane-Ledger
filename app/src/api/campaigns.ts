@@ -74,6 +74,10 @@ export type CampaignDetailEnvelope = {
   campaign: CampaignDetailRecord;
 };
 
+export type CampaignDeleteEnvelope = {
+  campaignId: string;
+};
+
 export type CampaignPatchRecord = Partial<
   Pick<
     CampaignDetailRecord,
@@ -113,6 +117,10 @@ export function getCampaign(campaignId: string, options?: ApiRequestOptions) {
 
 export function updateCampaign(campaignId: string, name: string, options?: ApiRequestOptions) {
   return apiPatch<CampaignPatchEnvelope>(`/campaigns/${campaignId}`, { name }, options);
+}
+
+export function deleteCampaign(campaignId: string, options?: ApiRequestOptions) {
+  return apiDelete<CampaignDeleteEnvelope>(`/campaigns/${campaignId}`, options);
 }
 
 export function updateCampaignVisibilitySettings(

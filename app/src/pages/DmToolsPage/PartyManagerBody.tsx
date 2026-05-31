@@ -1,9 +1,11 @@
-import { Plus, Users } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Plus, Trash2, Users } from "lucide-react";
+import { type ReactNode, useEffect, useId, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { listPartyGroups } from "../../api/partyGroups";
+import { deletePartyGroup, listPartyGroups, type PartyGroupRecord } from "../../api/partyGroups";
 import ActionButton from "../../components/ActionButton";
+import { DestructiveConfirmationModal } from "../../components/Overlay";
 import {
+  removePartyGroupRecord,
   setPartyGroups,
   setPartyGroupsError,
   setPartyGroupsLoading,
@@ -23,7 +25,17 @@ type PartyManagerBodyProps = {
   tabId: string;
 };
 
+function getDeletePartyGroupMessage(partyGroup: PartyGroupRecord): ReactNode {
+  return (
+    <>
+      Delete <strong>{partyGroup.name}</strong>, remove its members from the party, and clear it
+      from any campaign using it.
+    </>
+  );
+}
+
 function PartyManagerBody({ panelId, tabId }: PartyManagerBodyProps) {
+  const deleteTitleId = useId();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const authStatus = useAppSelector((state) => state.auth.status);
@@ -33,6 +45,11 @@ function PartyManagerBody({ panelId, tabId }: PartyManagerBodyProps) {
   const partyGroupsStatus = useAppSelector((state) => state.dmTools.partyGroupsStatus);
   const partyGroupsError = useAppSelector((state) => state.dmTools.partyGroupsError);
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [pendingDeletePartyGroup, setPendingDeletePartyGroup] = useState<PartyGroupRecord | null>(
+    null
+  );
+  const [isDeletingPartyGroup, setIsDeletingPartyGroup] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const loadedPartyGroupsForAuthRef = useRef<string | null>(null);
   const isAuthenticated = authStatus === "authenticated";
   const partyGroupLimit = getDmToolsQuotaForRole("partyGroups", authUserRole);
@@ -102,6 +119,34 @@ function PartyManagerBody({ panelId, tabId }: PartyManagerBodyProps) {
     setCreateModalOpen(true);
   }
 
+  async function handleConfirmDeletePartyGroup() {
+    if (!pendingDeletePartyGroup || isDeletingPartyGroup) {
+      return;
+    }
+
+    setActionError(null);
+    setIsDeletingPartyGroup(true);
+
+    try {
+      const { partyGroupId } = await deletePartyGroup(pendingDeletePartyGroup.id, {
+        suppressFailureToast: true
+      });
+
+      dispatch(removePartyGroupRecord(partyGroupId));
+      dispatch(
+        showToast({
+          text: "Party group deleted.",
+          type: "success"
+        })
+      );
+      setPendingDeletePartyGroup(null);
+    } catch (deleteError) {
+      setActionError(getDmToolsApiErrorMessage(deleteError, "Unable to delete party group."));
+    } finally {
+      setIsDeletingPartyGroup(false);
+    }
+  }
+
   return (
     <section
       className={styles.toolBody}
@@ -136,6 +181,8 @@ function PartyManagerBody({ panelId, tabId }: PartyManagerBodyProps) {
         </div>
       </div>
 
+      {actionError ? <p className={styles.modalError}>{actionError}</p> : null}
+
       {partyGroupsStatus === "loading" ? (
         <DmToolsEmptyState icon={<Users size={18} aria-hidden="true" />}>
           Loading party groups...
@@ -157,6 +204,17 @@ function PartyManagerBody({ panelId, tabId }: PartyManagerBodyProps) {
                 partyGroup.memberCount === 1 ? "member" : "members"
               }`}
               to={`/gm-tools/party-manager/${partyGroup.id}`}
+              actions={[
+                {
+                  disabled: isDeletingPartyGroup,
+                  icon: <Trash2 size={18} aria-hidden="true" />,
+                  label: `Delete ${partyGroup.name}`,
+                  onClick: () => {
+                    setActionError(null);
+                    setPendingDeletePartyGroup(partyGroup);
+                  }
+                }
+              ]}
             />
           ))}
         </div>
@@ -172,6 +230,19 @@ function PartyManagerBody({ panelId, tabId }: PartyManagerBodyProps) {
           onCreated={(partyGroupId) => {
             setCreateModalOpen(false);
             navigate(`/gm-tools/party-manager/${partyGroupId}`);
+          }}
+        />
+      ) : null}
+      {pendingDeletePartyGroup ? (
+        <DestructiveConfirmationModal
+          titleId={deleteTitleId}
+          title="Delete party group?"
+          message={getDeletePartyGroupMessage(pendingDeletePartyGroup)}
+          confirmLabel={isDeletingPartyGroup ? "Deleting..." : "Delete"}
+          closeLabel="Close delete party group confirmation"
+          onCancel={() => setPendingDeletePartyGroup(null)}
+          onConfirm={() => {
+            void handleConfirmDeletePartyGroup();
           }}
         />
       ) : null}
