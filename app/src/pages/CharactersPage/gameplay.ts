@@ -165,6 +165,8 @@ export type WeaponAction = {
   details?: Array<{
     label: string;
     value: string;
+    referenceTitle?: string;
+    referenceKeywords?: string[];
   }>;
   inventoryStackId?: string;
   inventoryFeatureTags?: CharacterInventoryFeatureTag[];

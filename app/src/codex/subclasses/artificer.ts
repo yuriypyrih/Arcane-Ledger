@@ -138,12 +138,15 @@ export const artificerSubclassEntries: SubclassEntry[] = [
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,
         CLASS_FEATURE.TOOLS_OF_THE_TRADE,
-        createDescription([
-          "You gain the following benefits.",
-          "<strong>Armor Training.</strong> You gain training with Heavy armor.",
-          "<strong>Tool Proficiency.</strong> You gain proficiency with Smith's Tools. If you already have this tool proficiency, you gain proficiency with one other type of Artisan's Tools of your choice.",
-          "<strong>Armor Crafting.</strong> When you craft nonmagical or magic armor, the amount of time required to craft it is halved."
-        ])
+        createDescription(
+          [
+            "You gain the following benefits.",
+            "<strong>Armor Training.</strong> You gain training with Heavy armor.",
+            "<strong>Tool Proficiency.</strong> You gain proficiency with Smith's Tools. If you already have this tool proficiency, you gain proficiency with one other type of Artisan's Tools of your choice.",
+            "<strong>Armor Crafting.</strong> When you craft nonmagical or magic armor, the amount of time required to craft it is halved."
+          ],
+          TRACKER.TRACKED
+        )
       ),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,
@@ -163,36 +166,45 @@ export const artificerSubclassEntries: SubclassEntry[] = [
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,
         CLASS_FEATURE.ARCANE_ARMOR,
-        createDescription([
-          "As a Magic action while you have Smith's Tools in hand, you can turn a suit of armor you are wearing into Arcane Armor. The armor continues to be Arcane Armor until you don another suit of armor or you die.",
-          "You gain the following benefits while wearing your Arcane Armor.",
-          "<strong>No Strength Requirement.</strong> If the armor normally has a Strength requirement, the Arcane Armor lacks this requirement for you.",
-          "<strong>Quick Don and Doff.</strong> You can don or doff the armor as a Utilize action. The armor can't be removed against your will.",
-          "<strong>Spellcasting Focus.</strong> You can use the Arcane Armor as a Spellcasting Focus for your Artificer spells."
-        ])
+        createDescription(
+          [
+            "As a Magic action while you have Smith's Tools in hand, you can turn a suit of armor you are wearing into Arcane Armor. The armor continues to be Arcane Armor until you don another suit of armor or you die.",
+            "You gain the following benefits while wearing your Arcane Armor.",
+            "<strong>No Strength Requirement.</strong> If the armor normally has a Strength requirement, the Arcane Armor lacks this requirement for you.",
+            "<strong>Quick Don and Doff.</strong> You can don or doff the armor as a Utilize action. The armor can't be removed against your will.",
+            "<strong>Spellcasting Focus.</strong> You can use the Arcane Armor as a Spellcasting Focus for your Artificer spells."
+          ],
+          TRACKER.TRACKED
+        )
       ),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,
         CLASS_FEATURE.ARMOR_MODEL,
-        createDescription([
-          "You can customize your Arcane Armor. When you do so, choose one of the following armor models: Dreadnaught, Guardian, or Infiltrator. The model you choose gives you special benefits while you wear it.",
-          "Each model includes a special weapon. When you attack with that weapon, you can add your <link:Intelligence>Intelligence</link> modifier, instead of your <link:Strength>Strength</link> or <link:Dexterity>Dexterity</link> modifier, to the attack and damage rolls.",
-          "You can change the armor's model whenever you finish a <link:short-rest>Short</link> or <link:long-rest>Long Rest</link> if you have Smith's Tools in hand.",
-          "<strong>Dreadnaught: Force Demolisher.</strong> An arcane wrecking ball or sledgehammer projects from your armor. The demolisher counts as a Simple Melee weapon with the Reach property, and it deals <strong>1d10</strong> <link:Force>Force</link> damage on a hit. If you hit a creature that is at least one size smaller than you with the demolisher, you can push the creature up to 10 feet straight away from yourself or pull the creature up to 10 feet toward yourself.",
-          "<strong>Dreadnaught: Giant Stature.</strong> As a Bonus Action, you transform and enlarge your armor for 1 minute. For the duration, your reach increases by 5 feet, and if you are smaller than Large, you become Large, along with anything you are wearing. If there isn't enough room for you to increase your size, your size doesn't change. You can use this Bonus Action a number of times equal to your Intelligence modifier, minimum of once, and you regain all expended uses when you finish a Long Rest.",
-          "<strong>Guardian: Thunder Pulse.</strong> You can discharge concussive blasts with strikes from your armor. The pulse counts as a Simple Melee weapon and deals <strong>1d8</strong> <link:Thunder>Thunder</link> damage on a hit. A creature hit by the pulse has <link:Disadvantage>Disadvantage</link> on attack rolls against targets other than you until the start of your next turn.",
-          "<strong>Guardian: Defensive Field.</strong> While Bloodied, you can take a Bonus Action to gain <link:Temporary Hit Points>Temporary Hit Points</link> equal to your Artificer level. You lose these Temporary Hit Points if you doff the armor.",
-          "<strong>Infiltrator: Lightning Launcher.</strong> A gemlike node appears on your armor, from which you can shoot bolts of lightning. The launcher counts as a Simple Ranged weapon with a normal range of 90 feet and a long range of 300 feet, and it deals <strong>1d6</strong> <link:Lightning>Lightning</link> damage on a hit. Once on each of your turns when you hit a creature with the launcher, you can deal an extra <strong>1d6</strong> Lightning damage to that target.",
-          "<strong>Infiltrator: Powered Steps.</strong> Your <link:Speed>Speed</link> increases by 5 feet.",
-          "<strong>Infiltrator: Dampening Field.</strong> You have <link:Advantage>Advantage</link> on <link:Dexterity>Dexterity</link> (<link:Stealth>Stealth</link>) checks. If the armor imposes Disadvantage on such checks, the Advantage and Disadvantage cancel each other, as normal."
-        ])
+        createDescription(
+          [
+            "You can customize your Arcane Armor. When you do so, choose one of the following armor models: Dreadnaught, Guardian, or Infiltrator. The model you choose gives you special benefits while you wear it.",
+            "Each model includes a special weapon. When you attack with that weapon, you can add your <link:Intelligence>Intelligence</link> modifier, instead of your <link:Strength>Strength</link> or <link:Dexterity>Dexterity</link> modifier, to the attack and damage rolls.",
+            "You can change the armor's model whenever you finish a <link:short-rest>Short</link> or <link:long-rest>Long Rest</link> if you have Smith's Tools in hand.",
+            "<strong>Dreadnaught: Force Demolisher.</strong> An arcane wrecking ball or sledgehammer projects from your armor. The demolisher counts as a Simple Melee weapon with the Reach property, and it deals <strong>1d10</strong> <link:Force>Force</link> damage on a hit. If you hit a creature that is at least one size smaller than you with the demolisher, you can push the creature up to 10 feet straight away from yourself or pull the creature up to 10 feet toward yourself.",
+            "<strong>Dreadnaught: Giant Stature.</strong> As a Bonus Action, you transform and enlarge your armor for 1 minute. For the duration, your reach increases by 5 feet, and if you are smaller than Large, you become Large, along with anything you are wearing. If there isn't enough room for you to increase your size, your size doesn't change. You can use this Bonus Action a number of times equal to your Intelligence modifier, minimum of once, and you regain all expended uses when you finish a Long Rest.",
+            "<strong>Guardian: Thunder Pulse.</strong> You can discharge concussive blasts with strikes from your armor. The pulse counts as a Simple Melee weapon and deals <strong>1d8</strong> <link:Thunder>Thunder</link> damage on a hit. A creature hit by the pulse has <link:Disadvantage>Disadvantage</link> on attack rolls against targets other than you until the start of your next turn.",
+            "<strong>Guardian: Defensive Field.</strong> While Bloodied, you can take a Bonus Action to gain <link:Temporary Hit Points>Temporary Hit Points</link> equal to your Artificer level. You lose these Temporary Hit Points if you doff the armor.",
+            "<strong>Infiltrator: Lightning Launcher.</strong> A gemlike node appears on your armor, from which you can shoot bolts of lightning. The launcher counts as a Simple Ranged weapon with a normal range of 90 feet and a long range of 300 feet, and it deals <strong>1d6</strong> <link:Lightning>Lightning</link> damage on a hit. Once on each of your turns when you hit a creature with the launcher, you can deal an extra <strong>1d6</strong> Lightning damage to that target.",
+            "<strong>Infiltrator: Powered Steps.</strong> Your <link:Speed>Speed</link> increases by 5 feet.",
+            "<strong>Infiltrator: Dampening Field.</strong> You have <link:Advantage>Advantage</link> on <link:Dexterity>Dexterity</link> (<link:Stealth>Stealth</link>) checks. If the armor imposes Disadvantage on such checks, the Advantage and Disadvantage cancel each other, as normal."
+          ],
+          TRACKER.TRACKED
+        )
       ),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_5,
         CLASS_FEATURE.EXTRA_ATTACK,
-        createDescription([
-          "You can attack twice instead of once whenever you take the Attack action on your turn."
-        ])
+        createDescription(
+          [
+            "You can attack twice instead of once whenever you take the Attack action on your turn."
+          ],
+          TRACKER.TRACKED
+        )
       ),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_9,

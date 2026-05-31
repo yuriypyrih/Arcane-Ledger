@@ -212,51 +212,33 @@
   text-transform: uppercase;
 }
 
-.equipmentSectionCard {
-  container: equipment-loadout / inline-size;
-}
-
 .loadoutSectionHeader {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  column-gap: 0.45rem;
-  row-gap: 0.45rem;
+  gap: 0.32rem;
+  width: 100%;
 }
 
-.loadoutHeaderText {
-  min-width: 0;
-}
-
-.loadoutHeaderActions {
+.loadoutHeaderTop {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  justify-self: end;
+  justify-content: space-between;
   gap: 0.45rem;
-  min-width: 0;
 }
 
 .loadoutPinnedActions {
   display: inline-flex;
   align-items: center;
-  flex: 0 0 auto;
   gap: 0.45rem;
-  min-width: 0;
 }
 
 .loadoutCurrencyPill {
-  flex: 0 0 auto;
-}
-
-.loadoutAddButton {
   justify-self: end;
+  max-width: 100%;
 }
 
 .carryCapacityPill {
   display: inline-flex;
   align-items: center;
-  justify-self: end;
   gap: 0.16rem;
   border-radius: var(--radius-pill);
   background: var(--color-panel-muted);
@@ -267,21 +249,96 @@
   white-space: nowrap;
 }
 
-@container equipment-loadout (max-width: 680px) {
-  .loadoutHeaderActions {
-    display: grid;
-    grid-template-areas:
-      "pinned"
-      "currency";
-    justify-items: end;
+@media (max-width: 899px) {
+  .loadoutSectionHeader {
+    gap: 0.28rem;
   }
 
-  .loadoutCurrencyPill {
-    grid-area: currency;
+  .loadoutHeaderTop {
+    gap: 0.38rem;
   }
 
   .loadoutPinnedActions {
-    grid-area: pinned;
+    gap: 0.38rem;
+  }
+
+  .loadoutHelpButton {
+    min-height: 29px;
+    min-width: 29px;
+  }
+
+  .loadoutCurrencyPill,
+  .carryCapacityPill {
+    min-height: 40px;
+    padding-inline: 0.78rem;
+  }
+
+  .carryCapacityPill {
+    font-size: 0.9rem;
+  }
+
+  .loadoutAddButton {
+    min-height: 36px;
+    padding-inline: 0.82rem;
+  }
+}
+
+@media (max-width: 599px) {
+  .loadoutSectionHeader {
+    gap: 0.24rem;
+  }
+
+  .loadoutHeaderTop,
+  .loadoutPinnedActions {
+    gap: 0.32rem;
+  }
+
+  .loadoutHelpButton {
+    min-height: 28px;
+    min-width: 28px;
+  }
+
+  .carryCapacityPill {
+    min-height: 38px;
+    padding-inline: 0.72rem;
+  }
+
+  .loadoutCurrencyPill {
+    min-height: 36px;
+    padding-inline: 0.62rem;
+  }
+
+  .loadoutCurrencyPill .currencyPillSummary {
+    gap: 0.5rem;
+  }
+
+  .loadoutCurrencyPill .currencyPillToken {
+    gap: 0.24rem;
+    font-size: 0.88rem;
+  }
+
+  .loadoutCurrencyPill .currencyPillTokenCode {
+    font-size: 0.7rem;
+  }
+
+  .loadoutCurrencyPill .currencyPillTokenIcon {
+    block-size: 16px;
+    inline-size: 16px;
+  }
+
+  .carryCapacityPill {
+    font-size: 0.88rem;
+  }
+
+  .loadoutAddButton {
+    gap: 0.34rem;
+    min-height: 34px;
+    padding-inline: 0.76rem;
+  }
+
+  .loadoutAddButton svg {
+    height: 15px;
+    width: 15px;
   }
 }
 

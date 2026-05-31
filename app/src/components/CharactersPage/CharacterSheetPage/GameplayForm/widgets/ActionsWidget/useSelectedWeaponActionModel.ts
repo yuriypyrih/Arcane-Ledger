@@ -208,6 +208,14 @@ export function useSelectedWeaponActionModel({
       });
     }
 
+    if (selectedWeaponAction.weaponTraining) {
+      return hasAppliedWeaponProficiency(character.weaponProficiencies, {
+        training: selectedWeaponAction.weaponTraining,
+        combatType: selectedWeaponAction.combatType,
+        properties: selectedWeaponAction.properties
+      });
+    }
+
     return false;
   }, [
     character.weaponProficiencies,

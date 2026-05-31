@@ -2,11 +2,13 @@ import type { Character, CharacterClassFeatureState, WEAPON_PROFICIENCY } from "
 import { createDefaultAbilities } from "../constants";
 import {
   activateArtificerArmorerArcaneArmorOption,
+  activateArtificerArmorerDefensiveField,
   activateArtificerArmorerGiantStature,
   advanceArtificerFeaturesForNewRound,
   activateArtificerArmorerArcaneArmor,
   applyLongRestToArtificerFeatures,
   artificerArmorerArcaneArmorActionKey,
+  artificerArmorerDefensiveFieldActionKey,
   artificerArmorerGiantStatureActionKey,
   getArtificerFeatureActionOptions,
   getArtificerFeatureActions,
@@ -440,6 +442,10 @@ const classFeatureModules = {
 
       if (actionKey === artificerArmorerGiantStatureActionKey) {
         return activateArtificerArmorerGiantStature(character);
+      }
+
+      if (actionKey === artificerArmorerDefensiveFieldActionKey) {
+        return activateArtificerArmorerDefensiveField(character);
       }
 
       return null;

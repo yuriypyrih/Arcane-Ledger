@@ -19,14 +19,14 @@ export function renderEquipmentForm(context: Record<string, any>) {
   } = context;
 
   return (
-    <article className={clsx(shared.sectionCard, styles.equipmentSectionCard, className)}>
-      <div className={clsx(shared.sectionHeader, styles.loadoutSectionHeader)}>
-        <div className={styles.loadoutHeaderText}>
+    <article className={clsx(shared.sectionCard, className)}>
+      <div className={styles.loadoutSectionHeader}>
+        <div className={styles.loadoutHeaderTop}>
           <div className={shared.eyebrowHelpRow}>
             <p className={clsx(shared.eyebrow, shared.eyebrowInHelpRow)}>Equipment</p>
             <button
               type="button"
-              className={shared.helpButton}
+              className={clsx(shared.helpButton, styles.loadoutHelpButton)}
               onClick={() => setIsEquipmentGuideOpen(true)}
               aria-label="Open equipment guide"
               title="Open equipment guide"
@@ -34,31 +34,6 @@ export function renderEquipmentForm(context: Record<string, any>) {
               <CircleHelp size={16} />
             </button>
           </div>
-          <h3 className={shared.subtitle}>Current loadout</h3>
-        </div>
-        <div className={styles.loadoutHeaderActions}>
-          <button
-            type="button"
-            className={clsx(shared.currencyPill, styles.loadoutCurrencyPill)}
-            onClick={openCurrencyModal}
-          >
-            <span className={styles.currencyPillSummary}>
-              {currencyDefinitions.map((currency) => (
-                <span key={currency.key} className={styles.currencyPillToken}>
-                  <img
-                    src={currency.icon}
-                    alt=""
-                    className={styles.currencyPillTokenIcon}
-                    aria-hidden="true"
-                  />
-                  <span className={styles.currencyPillTokenValue}>
-                    {normalizedCurrencies[currency.key]}
-                  </span>
-                  <span className={styles.currencyPillTokenCode}>{currency.code}</span>
-                </span>
-              ))}
-            </span>
-          </button>
           <div className={styles.loadoutPinnedActions}>
             <div
               className={styles.carryCapacityPill}
@@ -89,6 +64,29 @@ export function renderEquipmentForm(context: Record<string, any>) {
             </button>
           </div>
         </div>
+        <button
+          type="button"
+          className={clsx(shared.currencyPill, styles.loadoutCurrencyPill)}
+          onClick={openCurrencyModal}
+        >
+          <span className={styles.currencyPillSummary}>
+            {currencyDefinitions.map((currency) => (
+              <span key={currency.key} className={styles.currencyPillToken}>
+                <img
+                  src={currency.icon}
+                  alt=""
+                  className={styles.currencyPillTokenIcon}
+                  aria-hidden="true"
+                />
+                <span className={styles.currencyPillTokenValue}>
+                  {normalizedCurrencies[currency.key]}
+                </span>
+                <span className={styles.currencyPillTokenCode}>{currency.code}</span>
+              </span>
+            ))}
+          </span>
+        </button>
+        <h3 className={shared.subtitle}>Current loadout</h3>
       </div>
 
       {inventoryObjectLimitMessage ? (

@@ -10,9 +10,11 @@ import {
 } from "../../../../../codex/entries";
 import {
   ARMOR_PROFICIENCY,
+  SKILL,
   STATUS_DURATION_KIND,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE,
+  type AbilityKey,
   type ArtificerArmorerArmorModel,
   type Character,
   type CharacterArtificerFeatureState
@@ -28,11 +30,20 @@ import {
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../../combat";
 import { ACTION_CARD_THEME } from "../../../actionCardTheme";
 import { createWeaponAction, getProficiencyBonus, type WeaponAction } from "../../../gameplay";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
+import { swapTemporaryHitPointsAssignment } from "../../../shared/temporaryHitPoints";
+import {
+  createCharacterStatusEntry,
+  normalizeCharacterStatusEntries
+} from "../../../statusEntries";
 import { createChargesCardUsage } from "../../cardUsage";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import { getPreparedSpellIdsByLevel, type SubclassRuntimeResolver } from "../../subclassRuntime";
-import type { FeatureActionCard, FeatureActionOptionCard } from "../../types";
+import type {
+  FeatureActionCard,
+  FeatureActionOptionCard,
+  FeatureSpeedBonus,
+  SkillIndicatorMap
+} from "../../types";
 import { getArtificerToolsOfTheTradeToolProficiencyEntries } from "../toolsOfTheTrade";
 import {
   createArtificerArmorProficiencyEntries,
@@ -42,6 +53,7 @@ import {
 export const armorerSubclassId = "artificer-armorer";
 export const artificerArmorerArcaneArmorActionKey = "artificer-armorer-arcane-armor";
 export const artificerArmorerGiantStatureActionKey = "artificer-armorer-giant-stature";
+export const artificerArmorerDefensiveFieldActionKey = "artificer-armorer-defensive-field";
 
 const armorerSpellIdsByLevel = {
   3: ["spell-magic-missile", "spell-thunderwave"],
@@ -55,10 +67,19 @@ const armorerToolsSource = "Armorer: Tools of the Trade";
 const arcaneArmorName = "Arcane Armor";
 const arcaneArmorTagLabel = "Arcane Armor";
 const forceDemolisherName = "Force Demolisher";
+const thunderPulseName = "Thunder Pulse";
+const lightningLauncherName = "Lightning Launcher";
+const defensiveFieldName = "Defensive Field";
 const giantStatureName = "Giant Stature";
 const giantStatureStatusSourceId = "artificer-armorer-giant-stature";
+const infiltratorPoweredStepsSource = "(Arcane Armor / Infiltrator / Powered Steps)";
+const infiltratorDampeningFieldSource = "Arcane Armor / Infiltrator / Dampening Field";
 const forceDemolisherWeaponActionKey = "artificer-armorer-force-demolisher";
+const thunderPulseWeaponActionKey = "artificer-armorer-thunder-pulse";
+const lightningLauncherWeaponActionKey = "artificer-armorer-lightning-launcher";
 const forceDemolisherDamage: WeaponDamage = [[DICE.D10, DAMAGE_TYPE.FORCE]];
+const thunderPulseDamage: WeaponDamage = [[DICE.D8, DAMAGE_TYPE.THUNDER]];
+const lightningLauncherDamage: WeaponDamage = [[DICE.D6, DAMAGE_TYPE.LIGHTNING]];
 const armorModelLabels: Record<ArtificerArmorerArmorModel, string> = {
   dreadnaught: "Dreadnaught",
   guardian: "Guardian",
@@ -245,9 +266,9 @@ function hasActiveArtificerArmorerArmorModel(
 
   return Boolean(
     wornArmor &&
-      getArtificerArmorerArcaneArmorTargetKey({
-        classFeatureState: character.classFeatureState ?? {}
-      }) === wornArmor.key
+    getArtificerArmorerArcaneArmorTargetKey({
+      classFeatureState: character.classFeatureState ?? {}
+    }) === wornArmor.key
   );
 }
 
@@ -459,6 +480,24 @@ function getForceDemolisherDescription(
   return getArmorModelDescriptionSection(character, "Dreadnaught: Force Demolisher.");
 }
 
+function getThunderPulseDescription(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): SpellDescriptionEntry[] {
+  return getArmorModelDescriptionSection(character, "Guardian: Thunder Pulse.");
+}
+
+function getLightningLauncherDescription(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): SpellDescriptionEntry[] {
+  return getArmorModelDescriptionSection(character, "Infiltrator: Lightning Launcher.");
+}
+
+function getDefensiveFieldDescription(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): SpellDescriptionEntry[] {
+  return getArmorModelDescriptionSection(character, "Guardian: Defensive Field.");
+}
+
 function getGiantStatureDescription(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): SpellDescriptionEntry[] {
@@ -522,20 +561,56 @@ export function getArtificerArmorerGiantStatureUsesRemaining(
   return Math.max(0, total - expended);
 }
 
-function getArtificerArmorerForceDemolisherWeaponAction(
-  character: ArmorerArcaneArmorCharacter
+type ArmorerArmorModelWeaponConfig = {
+  model: ArtificerArmorerArmorModel;
+  key: string;
+  name: string;
+  normalAbility: AbilityKey;
+  combatType: WEAPON_COMBAT_TYPE;
+  damage: WeaponDamage;
+  properties: WEAPON_PROPERTY[];
+  drawerEyebrow: string;
+  description: (
+    character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+  ) => SpellDescriptionEntry[];
+  details: Array<{
+    label: string;
+    value: string;
+    referenceTitle?: string;
+    referenceKeywords?: string[];
+  }>;
+};
+
+function getArtificerArmorerArmorModelWeaponAbility(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "abilities">>,
+  normalAbility: AbilityKey
+): { ability: AbilityKey; abilityModifier: number } {
+  const normalModifier = getAbilityModifierForCharacter(character, normalAbility);
+  const intelligenceModifier = getAbilityModifierForCharacter(character, "INT");
+
+  return intelligenceModifier > normalModifier
+    ? { ability: "INT", abilityModifier: intelligenceModifier }
+    : { ability: normalAbility, abilityModifier: normalModifier };
+}
+
+function getArtificerArmorerArmorModelWeaponAction(
+  character: ArmorerArcaneArmorCharacter,
+  config: ArmorerArmorModelWeaponConfig
 ): WeaponAction | null {
-  if (!hasActiveArtificerArmorerArmorModel(character, "dreadnaught")) {
+  if (!hasActiveArtificerArmorerArmorModel(character, config.model)) {
     return null;
   }
 
-  const damageFormula = formatWeaponDamageFormula(forceDemolisherDamage);
+  const damageFormula = formatWeaponDamageFormula(config.damage);
 
   if (!damageFormula) {
     return null;
   }
 
-  const abilityModifier = getAbilityModifierForCharacter(character, "STR");
+  const { ability, abilityModifier } = getArtificerArmorerArmorModelWeaponAbility(
+    character,
+    config.normalAbility
+  );
   const baseAction = createWeaponAction(
     {
       abilities: character.abilities,
@@ -547,19 +622,19 @@ function getArtificerArmorerForceDemolisherWeaponAction(
       subclassId: character.subclassId
     },
     {
-      key: forceDemolisherWeaponActionKey,
-      name: forceDemolisherName,
+      key: config.key,
+      name: config.name,
       attackKind: "weapon",
-      combatType: WEAPON_COMBAT_TYPE.MELEE,
+      combatType: config.combatType,
       weaponTraining: WEAPON_TRAINING.SIMPLE,
-      properties: [WEAPON_PROPERTY.REACH],
+      properties: config.properties,
       mastery: null,
-      damageLabel: formatWeaponDamage(forceDemolisherDamage),
+      damageLabel: formatWeaponDamage(config.damage),
       damageFormula,
       rollFormulaBase: damageFormula,
-      ability: "STR",
+      ability,
       abilityModifier,
-      damageAbility: "STR",
+      damageAbility: ability,
       damageAbilityModifier: abilityModifier,
       proficiencyLabel: "Simple weapon",
       proficiencyBonus: getProficiencyBonus(character.level ?? 1),
@@ -573,17 +648,133 @@ function getArtificerArmorerForceDemolisherWeaponAction(
 
   return {
     ...baseAction,
-    drawerEyebrow: "Dreadnaught",
-    description: getForceDemolisherDescription(character)
+    drawerEyebrow: config.drawerEyebrow,
+    description: config.description(character),
+    details: config.details
   };
 }
 
-export function getArtificerArmorerDreadnaughtWeaponActions(
+const armorerArmorModelWeaponConfigs: ArmorerArmorModelWeaponConfig[] = [
+  {
+    model: "dreadnaught",
+    key: forceDemolisherWeaponActionKey,
+    name: forceDemolisherName,
+    normalAbility: "STR",
+    combatType: WEAPON_COMBAT_TYPE.MELEE,
+    damage: forceDemolisherDamage,
+    properties: [WEAPON_PROPERTY.REACH],
+    drawerEyebrow: armorModelLabels.dreadnaught,
+    description: getForceDemolisherDescription,
+    details: [
+      { label: "Type", value: "Simple melee weapon" },
+      { label: "Damage", value: formatWeaponDamage(forceDemolisherDamage) },
+      {
+        label: "Properties",
+        value: "Reach",
+        referenceTitle: "Properties",
+        referenceKeywords: ["Reach"]
+      },
+      { label: "Mastery", value: "None" }
+    ]
+  },
+  {
+    model: "guardian",
+    key: thunderPulseWeaponActionKey,
+    name: thunderPulseName,
+    normalAbility: "STR",
+    combatType: WEAPON_COMBAT_TYPE.MELEE,
+    damage: thunderPulseDamage,
+    properties: [],
+    drawerEyebrow: armorModelLabels.guardian,
+    description: getThunderPulseDescription,
+    details: [
+      { label: "Type", value: "Simple melee weapon" },
+      { label: "Damage", value: formatWeaponDamage(thunderPulseDamage) },
+      { label: "Properties", value: "None" },
+      { label: "Mastery", value: "None" }
+    ]
+  },
+  {
+    model: "infiltrator",
+    key: lightningLauncherWeaponActionKey,
+    name: lightningLauncherName,
+    normalAbility: "DEX",
+    combatType: WEAPON_COMBAT_TYPE.RANGED,
+    damage: lightningLauncherDamage,
+    properties: [WEAPON_PROPERTY.RANGE],
+    drawerEyebrow: armorModelLabels.infiltrator,
+    description: getLightningLauncherDescription,
+    details: [
+      { label: "Type", value: "Simple ranged weapon" },
+      { label: "Damage", value: formatWeaponDamage(lightningLauncherDamage) },
+      { label: "Range", value: "90/300 feet" },
+      {
+        label: "Properties",
+        value: "Range",
+        referenceTitle: "Properties",
+        referenceKeywords: ["Range"]
+      },
+      { label: "Mastery", value: "None" }
+    ]
+  }
+];
+
+export function getArtificerArmorerArmorModelWeaponActions(
   character: ArmorerArcaneArmorCharacter
 ): WeaponAction[] {
-  return [getArtificerArmorerForceDemolisherWeaponAction(character)].filter(
-    (action): action is WeaponAction => action !== null
-  );
+  return armorerArmorModelWeaponConfigs
+    .map((config) => getArtificerArmorerArmorModelWeaponAction(character, config))
+    .filter((action): action is WeaponAction => action !== null);
+}
+
+function getArtificerArmorerDefensiveFieldAction(
+  character: ArmorerArcaneArmorCharacter
+): FeatureActionCard | null {
+  if (!hasActiveArtificerArmorerArmorModel(character, "guardian")) {
+    return null;
+  }
+
+  const description = getDefensiveFieldDescription(character);
+  const temporaryHitPoints = Math.max(1, Math.floor(character.level ?? 1));
+
+  return {
+    key: artificerArmorerDefensiveFieldActionKey,
+    name: defensiveFieldName,
+    sourceFeature: CLASS_FEATURE.ARMOR_MODEL,
+    cardTheme: ACTION_CARD_THEME.DEFENSE,
+    summary: "Gain Temporary Hit Points equal to your level.",
+    detail: `Gain ${temporaryHitPoints} Temporary Hit Points.`,
+    breakdown: "Gain temporary HP",
+    economyType: ECONOMY_TYPE.BONUS_ACTION,
+    actionCategory: ACTION_CATEGORY.FEATURE,
+    description,
+    drawer: {
+      kind: "confirm",
+      eyebrow: "Guardian",
+      description
+    },
+    execute: {
+      kind: "activate"
+    }
+  };
+}
+
+export function activateArtificerArmorerDefensiveField(character: Character): Character {
+  if (!hasActiveArtificerArmorerArmorModel(character, "guardian")) {
+    return character;
+  }
+
+  const temporaryHitPoints = Math.max(1, Math.floor(character.level ?? 1));
+
+  return {
+    ...character,
+    ...swapTemporaryHitPointsAssignment(
+      character.temporaryHitPoints,
+      character.temporaryHitPointsSource,
+      temporaryHitPoints,
+      defensiveFieldName
+    )
+  };
 }
 
 function getArtificerArmorerGiantStatureAction(
@@ -788,6 +979,36 @@ export function advanceArtificerArmorerFeaturesForNewRound(character: Character)
   };
 }
 
+function getArtificerArmorerInfiltratorSpeedBonuses(
+  character: ArmorerArcaneArmorCharacter
+): FeatureSpeedBonus[] {
+  return hasActiveArtificerArmorerArmorModel(character, "infiltrator")
+    ? [
+        {
+          label: infiltratorPoweredStepsSource,
+          value: 5,
+          movementType: "walk"
+        }
+      ]
+    : [];
+}
+
+function getArtificerArmorerInfiltratorSkillIndicators(
+  character: ArmorerArcaneArmorCharacter
+): SkillIndicatorMap {
+  return hasActiveArtificerArmorerArmorModel(character, "infiltrator")
+    ? {
+        [SKILL.STEALTH]: [
+          {
+            label: "Advantage",
+            tone: "advantage",
+            source: infiltratorDampeningFieldSource
+          }
+        ]
+      }
+    : {};
+}
+
 export const getArtificerArmorerDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   hasArtificerSubclassFeature(character, armorerSubclassId, 3)
     ? {
@@ -802,11 +1023,12 @@ export const getArtificerArmorerDerivedFeatureState: SubclassRuntimeResolver = (
         toolProficiencyEntries: getArtificerToolsOfTheTradeToolProficiencyEntries(character),
         featureActions: [
           getArtificerArmorerArcaneArmorAction(character),
+          getArtificerArmorerDefensiveFieldAction(character),
           getArtificerArmorerGiantStatureAction(character)
-        ].filter(
-          (action): action is FeatureActionCard => action !== null
-        ),
-        weaponActions: getArtificerArmorerDreadnaughtWeaponActions(character),
+        ].filter((action): action is FeatureActionCard => action !== null),
+        weaponActions: getArtificerArmorerArmorModelWeaponActions(character),
+        speedBonuses: getArtificerArmorerInfiltratorSpeedBonuses(character),
+        skillIndicators: getArtificerArmorerInfiltratorSkillIndicators(character),
         featureActionOptions: {
           [artificerArmorerArcaneArmorActionKey]: getArtificerArmorerArcaneArmorOptions(character)
         }

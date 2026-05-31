@@ -71,8 +71,10 @@ export {
 export {
   activateArtificerArmorerArcaneArmor,
   activateArtificerArmorerArcaneArmorOption,
+  activateArtificerArmorerDefensiveField,
   activateArtificerArmorerGiantStature,
   artificerArmorerArcaneArmorActionKey,
+  artificerArmorerDefensiveFieldActionKey,
   artificerArmorerGiantStatureActionKey,
   consumeArtificerArmorerWeaponAttack,
   getArtificerArmorerArcaneArmorTagLabelsForArmorKey,
