@@ -5,7 +5,7 @@ import { createPortableCharacterSheetSyncPayload } from "../../../characterSync/
 import CharacterForm from "../../../components/CharactersPage/CharacterForm";
 import { trackAnalyticsEvent } from "../../../lib/analytics";
 import { captureAppError } from "../../../lib/sentry";
-import { useAppSelector } from "../../../store";
+import { showToast, useAppDispatch, useAppSelector } from "../../../store";
 import type { Character, CharacterDraft } from "../../../types";
 import {
   getCharacterLimitForAuth,
@@ -21,6 +21,7 @@ import {
 } from "../proficiency";
 import { createPortableCharacterSheet } from "../portableCharacterSheet";
 import {
+  isCharacterSheetCloudUnavailableError,
   resolvePortableCharacterSheetForOpen,
   storeCloudCharacterSheetDocument
 } from "../resolvePortableCharacterSheet";
@@ -29,6 +30,7 @@ import { useCharacterRosterEntries } from "../useCharacterRosterEntries";
 import styles from "./CharacterBuilderPage.module.css";
 
 function CharacterBuilderPage() {
+  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { characterId } = useParams();
   const { status, user } = useAppSelector((state) => state.auth);
@@ -134,6 +136,17 @@ function CharacterBuilderPage() {
       })
       .catch((error) => {
         if (!didCancel) {
+          if (isCharacterSheetCloudUnavailableError(error)) {
+            dispatch(
+              showToast({
+                text: error.message,
+                type: "warning"
+              })
+            );
+            navigate("/characters", { replace: true });
+            return;
+          }
+
           captureAppError(error, {
             area: "characters",
             action: "builder-load",
@@ -155,7 +168,7 @@ function CharacterBuilderPage() {
     return () => {
       didCancel = true;
     };
-  }, [ownerId, parsedCharacterId, status]);
+  }, [dispatch, navigate, ownerId, parsedCharacterId, status]);
 
   async function handleSave(draft: CharacterDraft) {
     if (isCharacterLimitReached) {

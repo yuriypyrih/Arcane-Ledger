@@ -67,6 +67,7 @@ type CharacterSheetCloudSource = {
   summary: CharacterSheetSummaryRecord;
   sheet: Record<string, unknown>;
   avatar?: CharacterAvatarRecord | null;
+  deletedAt?: Date | string | null;
   createdAt?: Date | string | null;
   updatedAt?: Date | string | null;
 };
@@ -101,6 +102,48 @@ function readCharacterSheetId(value: string | undefined) {
   }
 
   return value;
+}
+
+function assertCharacterSheetIsAvailable<T extends { deletedAt?: Date | string | null }>(
+  character: T | null
+): asserts character is T {
+  if (!character) {
+    throw new AppError("Character sheet was not found.", 404, "CHARACTER_SHEET_NOT_FOUND");
+  }
+
+  if (character.deletedAt) {
+    throw new AppError("Character sheet was deleted.", 410, "CHARACTER_SHEET_DELETED");
+  }
+}
+
+async function findOwnedCharacterSheet(
+  characterSheetId: string,
+  ownerId: Types.ObjectId
+) {
+  const character = await CharacterSheet.findOne({
+    _id: characterSheetId,
+    ownerId
+  }).exec();
+
+  assertCharacterSheetIsAvailable(character);
+
+  return character;
+}
+
+async function findOwnedCharacterSheetLean(
+  characterSheetId: string,
+  ownerId: Types.ObjectId
+) {
+  const character = (await CharacterSheet.findOne({
+    _id: characterSheetId,
+    ownerId
+  })
+    .lean()
+    .exec()) as CharacterSheetCloudSource | null;
+
+  assertCharacterSheetIsAvailable(character);
+
+  return character;
 }
 
 function readPortableCharacterSheet(value: unknown): Record<string, unknown> {
@@ -357,17 +400,10 @@ export const listFullCharacterSheets = asyncHandler(
 export const getCharacterSheet = asyncHandler(
   async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
     const characterSheetId = readCharacterSheetId(request.params.characterSheetId);
-    const character = (await CharacterSheet.findOne({
-      _id: characterSheetId,
-      ownerId: response.locals.authUser._id,
-      deletedAt: null
-    })
-      .lean()
-      .exec()) as CharacterSheetCloudSource | null;
-
-    if (!character) {
-      throw new AppError("Character sheet was not found.", 404, "CHARACTER_SHEET_NOT_FOUND");
-    }
+    const character = await findOwnedCharacterSheetLean(
+      characterSheetId,
+      response.locals.authUser._id
+    );
 
     response.json({ character: toCloudRecord(character) });
   }
@@ -376,6 +412,9 @@ export const getCharacterSheet = asyncHandler(
 export const shareCharacterSheet = asyncHandler(
   async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
     const characterSheetId = readCharacterSheetId(request.params.characterSheetId);
+
+    await findOwnedCharacterSheetLean(characterSheetId, response.locals.authUser._id);
+
     const { link } = await createSharedCharacterSnapshot({
       characterSheetId,
       ownerId: response.locals.authUser._id
@@ -501,15 +540,10 @@ export const saveCharacterSheet = asyncHandler(
   async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
     const characterSheetId = readCharacterSheetId(request.params.characterSheetId);
     const payload = readSheetPayload(request.body);
-    const character = await CharacterSheet.findOne({
-      _id: characterSheetId,
-      ownerId: response.locals.authUser._id,
-      deletedAt: null
-    }).exec();
-
-    if (!character) {
-      throw new AppError("Character sheet was not found.", 404, "CHARACTER_SHEET_NOT_FOUND");
-    }
+    const character = await findOwnedCharacterSheet(
+      characterSheetId,
+      response.locals.authUser._id
+    );
 
     assertCanApplyCharacterSheetPayload(character, payload);
     applyCharacterSheetPayload(character, payload);
@@ -522,15 +556,10 @@ export const saveCharacterSheet = asyncHandler(
 export const deleteCharacterSheet = asyncHandler(
   async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
     const characterSheetId = readCharacterSheetId(request.params.characterSheetId);
-    const character = await CharacterSheet.findOne({
-      _id: characterSheetId,
-      ownerId: response.locals.authUser._id,
-      deletedAt: null
-    }).exec();
-
-    if (!character) {
-      throw new AppError("Character sheet was not found.", 404, "CHARACTER_SHEET_NOT_FOUND");
-    }
+    const character = await findOwnedCharacterSheet(
+      characterSheetId,
+      response.locals.authUser._id
+    );
 
     character.deletedAt = new Date();
     await character.save();
@@ -628,15 +657,10 @@ export const uploadCharacterPortrait = asyncHandler(
       });
     }
 
-    const character = await CharacterSheet.findOne({
-      _id: characterSheetId,
-      ownerId: response.locals.authUser._id,
-      deletedAt: null
-    }).exec();
-
-    if (!character) {
-      throw new AppError("Character sheet was not found.", 404, "CHARACTER_SHEET_NOT_FOUND");
-    }
+    const character = await findOwnedCharacterSheet(
+      characterSheetId,
+      response.locals.authUser._id
+    );
 
     if (sheetPayload) {
       assertCanApplyCharacterSheetPayload(character, sheetPayload);
@@ -683,15 +707,10 @@ export const deleteCharacterPortrait = asyncHandler(
   async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
     const characterSheetId = readCharacterSheetId(request.params.characterSheetId);
     const sheetPayload = readOptionalPortraitCharacterPayload(request.body);
-    const character = await CharacterSheet.findOne({
-      _id: characterSheetId,
-      ownerId: response.locals.authUser._id,
-      deletedAt: null
-    }).exec();
-
-    if (!character) {
-      throw new AppError("Character sheet was not found.", 404, "CHARACTER_SHEET_NOT_FOUND");
-    }
+    const character = await findOwnedCharacterSheet(
+      characterSheetId,
+      response.locals.authUser._id
+    );
 
     if (sheetPayload) {
       assertCanApplyCharacterSheetPayload(character, sheetPayload);

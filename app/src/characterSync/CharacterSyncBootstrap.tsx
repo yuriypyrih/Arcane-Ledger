@@ -8,8 +8,13 @@ import {
 } from "../api/characters";
 import type { CharacterSheetCloudDocument, CharacterSheetRosterDocument } from "../api/characters";
 import { ApiOfflineError, ApiRequestFailedError } from "../api/client";
+import {
+  getCharacterSheetUnavailableMessage,
+  isCharacterSheetUnavailableError
+} from "../api/characterSheetErrors";
 import { captureAppError } from "../lib/sentry";
 import {
+  detachPortableCharacterSheetCloudSync,
   ensurePortableCharacterSheetSyncMetadata,
   markPortableCharacterSheetDeletingError,
   markPortableCharacterSheetSyncError
@@ -24,7 +29,10 @@ import {
   loadStoredPortableCharacterSheetSnapshot,
   replaceRawStoredCharacterRecords
 } from "../pages/CharactersPage/portableCharacterSheetStorage";
-import { storeCloudCharacterSheetDocument } from "../pages/CharactersPage/resolvePortableCharacterSheet";
+import {
+  refreshCharacterCloudRoster,
+  storeCloudCharacterSheetDocument
+} from "../pages/CharactersPage/resolvePortableCharacterSheet";
 import {
   setActiveCharacterSheet,
   showToast,
@@ -213,14 +221,6 @@ function getRevisionConflictServerRevision(error: unknown) {
   return Number.isFinite(serverRevision) && serverRevision > 0 ? serverRevision : undefined;
 }
 
-function isCharacterSheetAlreadyDeleted(error: unknown) {
-  return (
-    error instanceof ApiRequestFailedError &&
-    error.status === 404 &&
-    error.code === "CHARACTER_SHEET_NOT_FOUND"
-  );
-}
-
 function getHandledSyncErrorLevel(error: unknown) {
   return error instanceof ApiRequestFailedError &&
     error.status !== undefined &&
@@ -256,6 +256,21 @@ function captureCharacterSyncError(
       remoteId: options.remoteId
     }
   });
+}
+
+async function refreshCharacterCloudRosterBestEffort(ownerId: string) {
+  try {
+    await refreshCharacterCloudRoster(ownerId);
+  } catch {
+    // The stale remote id is still handled locally even if roster refresh is unavailable.
+  }
+}
+
+function detachUnavailableCloudSync(record: PortableCharacterSheet, error: unknown) {
+  return detachPortableCharacterSheetCloudSync(
+    record,
+    getCharacterSheetUnavailableMessage(error)
+  );
 }
 
 function CharacterSyncBootstrap() {
@@ -357,26 +372,23 @@ function CharacterSyncBootstrap() {
               return;
             }
 
-            if (isCharacterSheetAlreadyDeleted(error)) {
-              removeCharacterRosterEntry({
+            if (isCharacterSheetUnavailableError(error)) {
+              await refreshCharacterCloudRosterBestEffort(ownerId);
+              nextRecord = detachUnavailableCloudSync(record, error);
+            } else {
+              captureCharacterSyncError(error, {
+                action: "delete",
                 clientId: sync.clientId,
                 localId: record.identity.localId,
-                remoteId: sync.remoteId
+                remoteId: sync.remoteId,
+                syncStatus: sync.syncStatus
               });
-              continue;
+              nextRecord = markPortableCharacterSheetDeletingError(
+                record,
+                getSyncErrorMessage(error)
+              );
             }
 
-            captureCharacterSyncError(error, {
-              action: "delete",
-              clientId: sync.clientId,
-              localId: record.identity.localId,
-              remoteId: sync.remoteId,
-              syncStatus: sync.syncStatus
-            });
-            nextRecord = markPortableCharacterSheetDeletingError(
-              record,
-              getSyncErrorMessage(error)
-            );
             records = replaceSyncedRecord({
               records: await loadSyncableStoredPortableCharacterSheets(),
               targetKey,
@@ -431,30 +443,35 @@ function CharacterSyncBootstrap() {
             return;
           }
 
-          const syncStatus =
-            error instanceof ApiRequestFailedError && error.status === 409 ? "conflict" : "error";
-          if (syncStatus !== "conflict") {
-            captureCharacterSyncError(error, {
-              action: sync.remoteId ? "save" : "import",
-              clientId: sync.clientId,
-              localId: record.identity.localId,
-              remoteId: sync.remoteId,
-              syncStatus: sync.syncStatus
-            });
-          }
-          nextRecord = markPortableCharacterSheetSyncError(
-            record,
-            getSyncErrorMessage(error),
-            syncStatus
-          );
+          if (isCharacterSheetUnavailableError(error)) {
+            await refreshCharacterCloudRosterBestEffort(ownerId);
+            nextRecord = detachUnavailableCloudSync(record, error);
+          } else {
+            const syncStatus =
+              error instanceof ApiRequestFailedError && error.status === 409 ? "conflict" : "error";
+            if (syncStatus !== "conflict") {
+              captureCharacterSyncError(error, {
+                action: sync.remoteId ? "save" : "import",
+                clientId: sync.clientId,
+                localId: record.identity.localId,
+                remoteId: sync.remoteId,
+                syncStatus: sync.syncStatus
+              });
+            }
+            nextRecord = markPortableCharacterSheetSyncError(
+              record,
+              getSyncErrorMessage(error),
+              syncStatus
+            );
 
-          if (syncStatus === "conflict") {
-            dispatchCharacterSyncConflict({
-              clientId: sync.clientId,
-              localId: record.identity.localId,
-              remoteId: sync.remoteId,
-              serverRevision: getRevisionConflictServerRevision(error)
-            });
+            if (syncStatus === "conflict") {
+              dispatchCharacterSyncConflict({
+                clientId: sync.clientId,
+                localId: record.identity.localId,
+                remoteId: sync.remoteId,
+                serverRevision: getRevisionConflictServerRevision(error)
+              });
+            }
           }
         }
 

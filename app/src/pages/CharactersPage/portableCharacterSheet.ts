@@ -321,6 +321,34 @@ export function markPortableCharacterSheetSyncError(
   };
 }
 
+export function detachPortableCharacterSheetCloudSync(
+  record: PortableCharacterSheet,
+  message: string
+): PortableCharacterSheet {
+  const syncedRecord = ensurePortableCharacterSheetSyncMetadata(record);
+  const sync = syncedRecord.metadata?.sync;
+
+  if (!sync) {
+    return syncedRecord;
+  }
+
+  return {
+    ...syncedRecord,
+    metadata: {
+      ...(syncedRecord.metadata ?? {}),
+      sheetSizeBytes: getRecordSheetSizeBytes(syncedRecord) ?? 0,
+      sync: {
+        clientId: sync.clientId,
+        ...(sync.ownerId ? { ownerId: sync.ownerId } : {}),
+        localRevision: sync.localRevision,
+        syncStatus: "local-only",
+        ...(sync.lastLocalChangeAt ? { lastLocalChangeAt: sync.lastLocalChangeAt } : {}),
+        lastSyncError: message
+      }
+    }
+  };
+}
+
 export function stripPortableCharacterSheetLocalSyncMetadata(
   record: PortableCharacterSheet
 ): PortableCharacterSheet {

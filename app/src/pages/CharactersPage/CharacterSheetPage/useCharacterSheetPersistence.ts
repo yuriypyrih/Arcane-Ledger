@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import type { Character } from "../../../types";
 import { captureAppError } from "../../../lib/sentry";
 import {
@@ -6,10 +7,14 @@ import {
   normalizeCharacter,
   upsertTrustedCharacter
 } from "../storage";
-import { resolvePortableCharacterSheetForOpen } from "../resolvePortableCharacterSheet";
+import {
+  isCharacterSheetCloudUnavailableError,
+  resolvePortableCharacterSheetForOpen
+} from "../resolvePortableCharacterSheet";
 import {
   commitActiveCharacterSheet,
   setActiveCharacterSheet,
+  showToast,
   useAppDispatch,
   useAppSelector
 } from "../../../store";
@@ -61,6 +66,7 @@ function loadCharacter(characterId: number): Character | null {
 
 export function useCharacterSheetPersistence(characterId: number) {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const activeCharacter = useAppSelector((state) => state.activeCharacterSheet.activeCharacter);
   const { status, user } = useAppSelector((state) => state.auth);
   const ownerId = status === "authenticated" && user ? user.id : null;
@@ -489,6 +495,30 @@ export function useCharacterSheetPersistence(characterId: number) {
             return;
           }
 
+          if (isCharacterSheetCloudUnavailableError(error)) {
+            initialCharacterRef.current = {
+              characterId,
+              character: null
+            };
+            characterRef.current = null;
+            pendingHitPointCharacterRef.current = null;
+            pendingStorageCharacterRef.current = null;
+            dispatch(
+              setActiveCharacterSheet({
+                character: null,
+                characterId: null
+              })
+            );
+            dispatch(
+              showToast({
+                text: error.message,
+                type: "warning"
+              })
+            );
+            navigate("/characters", { replace: true });
+            return;
+          }
+
           captureAppError(error, {
             area: "character-persistence",
             action: "resolve-open",
@@ -522,7 +552,7 @@ export function useCharacterSheetPersistence(characterId: number) {
         window.clearTimeout(openTaskId);
       }
     };
-  }, [characterId, dispatch, flushPendingSaves, ownerId, status]);
+  }, [characterId, dispatch, flushPendingSaves, navigate, ownerId, status]);
 
   return {
     character,

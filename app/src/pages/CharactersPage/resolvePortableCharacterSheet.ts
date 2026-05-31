@@ -5,6 +5,12 @@ import {
   type CharacterSheetRosterDocument
 } from "../../api/characters";
 import { ApiOfflineError } from "../../api/client";
+import {
+  getCharacterSheetUnavailableCode,
+  getCharacterSheetUnavailableMessageForCode,
+  isCharacterSheetUnavailableError,
+  type CharacterSheetUnavailableCode
+} from "../../api/characterSheetErrors";
 import { dispatchCharacterSyncConflict } from "../../characterSync/characterSyncConflicts";
 import {
   applyCloudDocumentToPortableCharacterSheet,
@@ -12,6 +18,7 @@ import {
 } from "../../characterSync/characterSyncRecords";
 import type { PortableCharacterSheet } from "../../types";
 import {
+  detachPortableCharacterSheetCloudSync,
   markPortableCharacterSheetSyncError,
   withPortableCharacterSheetLocalId
 } from "./portableCharacterSheet";
@@ -33,6 +40,24 @@ const locallyPreferredSyncStatuses = new Set([
   "syncing",
   "deleting"
 ]);
+
+export class CharacterSheetCloudUnavailableError extends Error {
+  readonly code: CharacterSheetUnavailableCode;
+  readonly localId: number;
+
+  constructor(code: CharacterSheetUnavailableCode, localId: number) {
+    super(getCharacterSheetUnavailableMessageForCode(code));
+    this.name = "CharacterSheetCloudUnavailableError";
+    this.code = code;
+    this.localId = localId;
+  }
+}
+
+export function isCharacterSheetCloudUnavailableError(
+  error: unknown
+): error is CharacterSheetCloudUnavailableError {
+  return error instanceof CharacterSheetCloudUnavailableError;
+}
 
 function getRosterDocumentLocalId(document: CharacterSheetRosterDocument) {
   return document.localId ?? document.summary.localId;
@@ -83,6 +108,14 @@ export async function refreshCharacterCloudRoster(ownerId: string) {
   return roster.characters;
 }
 
+async function refreshCharacterCloudRosterBestEffort(ownerId: string) {
+  try {
+    return await refreshCharacterCloudRoster(ownerId);
+  } catch {
+    return [];
+  }
+}
+
 export function storeCloudCharacterSheetDocument(
   document: CharacterSheetCloudDocument,
   options: { localId?: number | null } = {}
@@ -115,6 +148,44 @@ function markLocalRecordConflict(
     ...(options.serverRevision ? { serverRevision: options.serverRevision } : {})
   });
   return conflictRecord;
+}
+
+function detachUnavailableCloudRecord(
+  record: PortableCharacterSheet,
+  code: CharacterSheetUnavailableCode
+) {
+  return upsertStoredPortableCharacterSheet(
+    detachPortableCharacterSheetCloudSync(
+      record,
+      getCharacterSheetUnavailableMessageForCode(code)
+    )
+  );
+}
+
+async function recoverCloudCharacterSheetForOpen(options: {
+  characterId: number;
+  clientId?: string | null;
+  ownerId: string;
+}) {
+  const rosterDocuments = await refreshCharacterCloudRosterBestEffort(options.ownerId);
+  const rosterDocument = findRosterDocument(rosterDocuments, {
+    clientId: options.clientId,
+    localId: options.characterId
+  });
+
+  if (!rosterDocument) {
+    return null;
+  }
+
+  try {
+    return (await getCharacterSheet(rosterDocument.id, { suppressFailureToast: true })).character;
+  } catch (error) {
+    if (isCharacterSheetUnavailableError(error)) {
+      return null;
+    }
+
+    throw error;
+  }
 }
 
 async function fetchCloudCharacterSheetForOpen(options: {
@@ -177,6 +248,26 @@ export async function resolvePortableCharacterSheetForOpen(
   } catch (error) {
     if (error instanceof ApiOfflineError) {
       return localRecord;
+    }
+
+    const unavailableCode = getCharacterSheetUnavailableCode(error);
+
+    if (unavailableCode) {
+      const recoveredCloudDocument = await recoverCloudCharacterSheetForOpen({
+        characterId,
+        clientId: localSync?.clientId ?? cachedRosterEntry?.clientId,
+        ownerId: options.ownerId
+      });
+
+      if (recoveredCloudDocument) {
+        return storeCloudCharacterSheetDocument(recoveredCloudDocument, { localId: characterId });
+      }
+
+      if (localRecord) {
+        detachUnavailableCloudRecord(localRecord, unavailableCode);
+      }
+
+      throw new CharacterSheetCloudUnavailableError(unavailableCode, characterId);
     }
 
     throw error;

@@ -148,12 +148,15 @@ export async function createSharedCharacterSnapshot(options: {
 }) {
   const character = await CharacterSheet.findOne({
     _id: options.characterSheetId,
-    ownerId: options.ownerId,
-    deletedAt: null
+    ownerId: options.ownerId
   }).exec();
 
   if (!character) {
     throw new AppError("Character sheet was not found.", 404, "CHARACTER_SHEET_NOT_FOUND");
+  }
+
+  if (character.deletedAt) {
+    throw new AppError("Character sheet was deleted.", 410, "CHARACTER_SHEET_DELETED");
   }
 
   const expiresAt = new Date(Date.now() + SHARED_CHARACTER_EXPIRES_MS);
