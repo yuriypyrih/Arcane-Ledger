@@ -293,10 +293,13 @@ export type CharacterArtificerFeatureState = {
   restorativeReagentsUsesExpended?: number;
   tinkersMagicUsesExpended?: number;
   replicateMagicItemPlanKeys?: string[];
+  armorerImprovedArmorReplicationPlanKey?: string;
   toolsOfTheTradeToolProficiencies?: TOOL_PROFICIENCY[];
   armorerArcaneArmorTargetKey?: string;
   armorerArmorModel?: ArtificerArmorerArmorModel;
   armorerGiantStatureUsesExpended?: number;
+  armorerPerfectedArmorGuardianUsesExpended?: number;
+  armorerInfiltratorsFlightUsesExpended?: number;
 };
 
 export type CharacterClericFeatureState = {

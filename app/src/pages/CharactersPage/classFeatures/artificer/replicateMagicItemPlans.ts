@@ -115,3 +115,19 @@ export const artificerReplicateMagicItemPlanOptionsByKey: ReadonlyMap<
   string,
   ArtificerReplicateMagicItemPlanOption
 > = new Map(artificerReplicateMagicItemPlanOptions.map((option) => [option.key, option]));
+
+export const artificerReplicateMagicItemArmorPlanKeys = [
+  "shield-plus-1",
+  "armor-plus-1",
+  "repulsion-shield",
+  "sentinel-shield",
+  "armor-of-resistance",
+  "elven-chain",
+  "shield-plus-2",
+  "armor-plus-2",
+  "arrow-catching-shield"
+] as const;
+
+export const artificerReplicateMagicItemArmorPlanKeySet = new Set<string>(
+  artificerReplicateMagicItemArmorPlanKeys
+);

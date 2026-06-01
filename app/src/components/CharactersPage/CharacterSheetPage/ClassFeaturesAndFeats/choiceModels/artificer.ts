@@ -1,4 +1,6 @@
 import {
+  getArtificerImprovedArmorerArmorReplicationPlanGroups,
+  getArtificerImprovedArmorerArmorReplicationPlanKeyForCharacter,
   getArtificerReplicateMagicItemAvailablePlanGroups,
   getArtificerReplicateMagicItemPlanKeysForCharacter,
   getArtificerReplicateMagicItemPlansKnown,
@@ -8,6 +10,7 @@ import {
   getArtificerToolsOfTheTradeLockedSelectionsForCharacter,
   isArtificerToolsOfTheTradeInputRequired,
   isArtificerReplicateMagicItemPlanSelectionInputRequired,
+  setArtificerImprovedArmorerArmorReplicationPlanKeyForCharacter,
   setArtificerReplicateMagicItemPlanKeysForCharacter,
   setArtificerToolsOfTheTradeToolSelectionsForCharacter
 } from "../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
@@ -36,6 +39,19 @@ export function createArtificerFeatureChoiceModel({
     );
   }
 
+  function getArtificerImprovedArmorerArmorReplicationPlanSelection(): string {
+    return getArtificerImprovedArmorerArmorReplicationPlanKeyForCharacter(character) ?? "";
+  }
+
+  function updateArtificerImprovedArmorerArmorReplicationPlanSelection(nextPlanKey: string) {
+    onPersistCharacter((currentCharacter) =>
+      setArtificerImprovedArmorerArmorReplicationPlanKeyForCharacter(
+        currentCharacter,
+        nextPlanKey
+      )
+    );
+  }
+
   function getArtificerToolsOfTheTradeChoiceSelections() {
     return getArtificerToolsOfTheTradeChoiceSelectionsForCharacter(character);
   }
@@ -57,6 +73,9 @@ export function createArtificerFeatureChoiceModel({
   }
 
   return {
+    getArtificerImprovedArmorerArmorReplicationPlanGroups: () =>
+      getArtificerImprovedArmorerArmorReplicationPlanGroups(character),
+    getArtificerImprovedArmorerArmorReplicationPlanSelection,
     getArtificerReplicateMagicItemAvailablePlanGroups: () =>
       getArtificerReplicateMagicItemAvailablePlanGroups(character),
     getArtificerReplicateMagicItemPlanSelections,
@@ -73,6 +92,7 @@ export function createArtificerFeatureChoiceModel({
       isArtificerReplicateMagicItemPlanSelectionInputRequired(character),
     isArtificerToolsOfTheTradeInputRequired: () =>
       isArtificerToolsOfTheTradeInputRequired(character),
+    updateArtificerImprovedArmorerArmorReplicationPlanSelection,
     updateArtificerReplicateMagicItemPlanSelection,
     updateArtificerToolsOfTheTradeToolSelection
   };

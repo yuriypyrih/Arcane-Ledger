@@ -23,9 +23,11 @@ import {
   activateBarbarianBerserkerRetaliationForCharacter,
   activateBardCollegeOfDanceInspiringMovementForCharacter,
   activateRangerHunterSuperiorHuntersDefenseForCharacter,
+  artificerArmorerPerfectedArmorGuardianReactionEntryId,
   artificerFlashOfGeniusReactionEntryId,
   clericWardingFlareReactionEntryId,
   clericGuidedStrikeReactionEntryId,
+  consumeArtificerArmorerPerfectedArmorGuardianUseForCharacter,
   consumeArtificerFlashOfGeniusUseForCharacter,
   consumeClericGuidedStrikeReactionForCharacter,
   consumeClericWardingFlareUseForCharacter,
@@ -143,6 +145,8 @@ export type ReactionDescriptorContext = {
   gloriousDefenseUsesRemaining: number;
   gloriousDefenseUsesTotal: number;
   hasActiveVowOfEnmity: boolean;
+  perfectedArmorGuardianUsesRemaining: number;
+  perfectedArmorGuardianUsesTotal: number;
   restoreBalanceUsesRemaining: number;
   restoreBalanceUsesTotal: number;
   selectedBranchesOfTheTreeDcFormula: string | null;
@@ -359,6 +363,32 @@ function renderBeguilingDefenseDcFormula(context: ReactionDescriptorContext): Re
   );
 }
 
+function renderPerfectedArmorGuardianDcFormula(context: ReactionDescriptorContext): ReactNode {
+  const formulaCell = getSpellSaveFormulaCell(
+    {
+      isAttackSpell: false,
+      isSavingThrowSpell: true,
+      savingThrowAbility: ABILITY_TYPES.STR,
+      spellLists: []
+    },
+    context.character
+  );
+
+  if (!formulaCell) {
+    return null;
+  }
+
+  return (
+    <div className={styles.reactionCustomContent}>
+      <CellContainer
+        label={formulaCell.label}
+        content={formulaCell.content}
+        breakdown={formulaCell.breakdown}
+      />
+    </div>
+  );
+}
+
 function renderSpellThiefSelector(context: ReactionDescriptorContext): ReactNode {
   return (
     <div className={styles.spellThiefFieldGroup}>
@@ -533,6 +563,23 @@ const descriptors: ReactionDescriptor[] = [
       createChargesHeaderTag(context.flashOfGeniusUsesRemaining, context.flashOfGeniusUsesTotal)
     ],
     apply: consumeArtificerFlashOfGeniusUseForCharacter,
+    skipReactionWhenUnchanged: true
+  },
+  {
+    id: artificerArmorerPerfectedArmorGuardianReactionEntryId,
+    getResourceWarning: (context) =>
+      context.perfectedArmorGuardianUsesRemaining <= 0
+        ? "No Perfected Armor Guardian uses remaining."
+        : null,
+    getResourceSummary: () => null,
+    getHeaderTags: (context) => [
+      createChargesHeaderTag(
+        context.perfectedArmorGuardianUsesRemaining,
+        context.perfectedArmorGuardianUsesTotal
+      )
+    ],
+    renderCustomContent: renderPerfectedArmorGuardianDcFormula,
+    apply: consumeArtificerArmorerPerfectedArmorGuardianUseForCharacter,
     skipReactionWhenUnchanged: true
   },
   {

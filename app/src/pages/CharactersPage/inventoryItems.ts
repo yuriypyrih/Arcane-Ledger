@@ -13,6 +13,7 @@ import type {
   CharacterInventoryItem,
   CharacterInventoryStoredSpell,
   CharacterInventoryStoredSpellMode,
+  CharacterReplicateMagicItemSlot,
   CharacterItemMods,
   CurrencyKey,
   ItemRecord
@@ -90,6 +91,8 @@ export type InventoryItemSettingsSavePayload = {
   featureTags?: CharacterInventoryFeatureTag[];
   conjuredSource?: CharacterInventoryConjuredSource;
   conjuredDuration?: CharacterInventoryConjuredDuration;
+  replicateMagicItemPlanKey?: string;
+  replicateMagicItemSlot?: CharacterReplicateMagicItemSlot;
 };
 
 type InventoryFeatureTagLabelOptions = {
@@ -169,6 +172,8 @@ export const INVENTORY_CONJURED_SOURCE_PACT_OF_THE_BLADE = "pact-of-the-blade";
 export const INVENTORY_CONJURED_DURATION_DEATH = "death";
 export const INVENTORY_CONJURED_DURATION_SHORT_REST = "short-rest";
 export const INVENTORY_CONJURED_DURATION_LONG_REST = "long-rest";
+export const INVENTORY_REPLICATE_MAGIC_ITEM_SLOT_BASE = "base";
+export const INVENTORY_REPLICATE_MAGIC_ITEM_SLOT_ARMOR_REPLICATION = "armor-replication";
 export const INVENTORY_STORED_SPELL_MODE_DEFAULT = "default";
 export const INVENTORY_STORED_SPELL_MODE_CONSUME_CHARGES = "consume-charges";
 export const INVENTORY_STORED_SPELL_MODE_CONSUME_CHARGES_DESTRUCTIBLE =
@@ -445,6 +450,18 @@ function normalizeInventoryConjuredSourceForFeatureTags(
   );
 }
 
+function normalizeReplicateMagicItemPlanKey(value: unknown): string | undefined {
+  const planKey = typeof value === "string" ? value.trim() : "";
+
+  return planKey.length > 0 ? planKey : undefined;
+}
+
+function normalizeReplicateMagicItemSlot(value: unknown): CharacterReplicateMagicItemSlot {
+  return value === INVENTORY_REPLICATE_MAGIC_ITEM_SLOT_ARMOR_REPLICATION
+    ? INVENTORY_REPLICATE_MAGIC_ITEM_SLOT_ARMOR_REPLICATION
+    : INVENTORY_REPLICATE_MAGIC_ITEM_SLOT_BASE;
+}
+
 function hasInventoryItemExplicitSettings(
   entry: Pick<CharacterInventoryItem, "chargesTotal" | "storedSpell"> | null | undefined
 ): boolean {
@@ -523,6 +540,14 @@ function normalizeContainerContentItem(
   const conjuredDuration = featureTags?.includes(INVENTORY_FEATURE_TAG_CONJURED)
     ? normalizeInventoryConjuredDuration(entry.conjuredDuration)
     : undefined;
+  const replicateMagicItemPlanKey =
+    conjuredSource === INVENTORY_CONJURED_SOURCE_REPLICATE_MAGIC_ITEM
+      ? normalizeReplicateMagicItemPlanKey(entry.replicateMagicItemPlanKey)
+      : undefined;
+  const replicateMagicItemSlot =
+    conjuredSource === INVENTORY_CONJURED_SOURCE_REPLICATE_MAGIC_ITEM
+      ? normalizeReplicateMagicItemSlot(entry.replicateMagicItemSlot)
+      : undefined;
   const normalizedEntry: CharacterContainerContentItem = {
     item: entry.item,
     quantity,
@@ -531,6 +556,8 @@ function normalizeContainerContentItem(
     ...(storedSpell ? { storedSpell } : {}),
     ...(conjuredSource ? { conjuredSource } : {}),
     ...(conjuredDuration ? { conjuredDuration } : {}),
+    ...(replicateMagicItemPlanKey ? { replicateMagicItemPlanKey } : {}),
+    ...(replicateMagicItemSlot ? { replicateMagicItemSlot } : {}),
     ...(mods ? { mods } : {})
   };
   const useTotal = getInventoryItemUseTotalForValues(entry.item, quantity, chargesTotal);
@@ -570,6 +597,8 @@ function normalizeCharacterContainerContentItems(value: unknown): CharacterConta
       featureTags?: unknown;
       conjuredSource?: unknown;
       conjuredDuration?: unknown;
+      replicateMagicItemPlanKey?: unknown;
+      replicateMagicItemSlot?: unknown;
       mods?: unknown;
     };
     const item = normalizeItemRecord(record.item);
@@ -595,6 +624,10 @@ function normalizeCharacterContainerContentItems(value: unknown): CharacterConta
         record.featureTags
       ),
       conjuredDuration: normalizeInventoryConjuredDuration(record.conjuredDuration),
+      replicateMagicItemPlanKey: normalizeReplicateMagicItemPlanKey(
+        record.replicateMagicItemPlanKey
+      ),
+      replicateMagicItemSlot: normalizeReplicateMagicItemSlot(record.replicateMagicItemSlot),
       mods: normalizeCharacterItemMods(record.mods)
     });
     const mergeKey = getContainerContentStackKey(contentItem, index);
@@ -706,6 +739,14 @@ function normalizeInventoryStack(entry: CharacterInventoryItem): CharacterInvent
   const conjuredDuration = featureTags?.includes(INVENTORY_FEATURE_TAG_CONJURED)
     ? normalizeInventoryConjuredDuration(entry.conjuredDuration)
     : undefined;
+  const replicateMagicItemPlanKey =
+    conjuredSource === INVENTORY_CONJURED_SOURCE_REPLICATE_MAGIC_ITEM
+      ? normalizeReplicateMagicItemPlanKey(entry.replicateMagicItemPlanKey)
+      : undefined;
+  const replicateMagicItemSlot =
+    conjuredSource === INVENTORY_CONJURED_SOURCE_REPLICATE_MAGIC_ITEM
+      ? normalizeReplicateMagicItemSlot(entry.replicateMagicItemSlot)
+      : undefined;
   const containerContents = isContainer
     ? normalizeCharacterContainerContentItems(entry.containerContents)
     : undefined;
@@ -720,6 +761,8 @@ function normalizeInventoryStack(entry: CharacterInventoryItem): CharacterInvent
     ...(storedSpell ? { storedSpell } : {}),
     ...(conjuredSource ? { conjuredSource } : {}),
     ...(conjuredDuration ? { conjuredDuration } : {}),
+    ...(replicateMagicItemPlanKey ? { replicateMagicItemPlanKey } : {}),
+    ...(replicateMagicItemSlot ? { replicateMagicItemSlot } : {}),
     ...(mods ? { mods } : {}),
     ...(isContainer ? { containerContents: containerContents ?? [] } : {})
   };
@@ -842,6 +885,8 @@ export function createCharacterInventoryItem(
     featureTags?: CharacterInventoryFeatureTag[];
     conjuredSource?: CharacterInventoryConjuredSource;
     conjuredDuration?: CharacterInventoryConjuredDuration;
+    replicateMagicItemPlanKey?: string;
+    replicateMagicItemSlot?: CharacterReplicateMagicItemSlot;
     mods?: CharacterItemMods;
     containerContents?: CharacterContainerContentItem[];
   }
@@ -867,6 +912,8 @@ export function createCharacterInventoryItem(
     featureTags: options?.featureTags,
     conjuredSource: options?.conjuredSource,
     conjuredDuration: options?.conjuredDuration,
+    replicateMagicItemPlanKey: options?.replicateMagicItemPlanKey,
+    replicateMagicItemSlot: options?.replicateMagicItemSlot,
     mods: options?.mods,
     containerContents: options?.containerContents
   });
@@ -883,6 +930,8 @@ export function createCharacterContainerContentItem(
     featureTags?: CharacterInventoryFeatureTag[];
     conjuredSource?: CharacterInventoryConjuredSource;
     conjuredDuration?: CharacterInventoryConjuredDuration;
+    replicateMagicItemPlanKey?: string;
+    replicateMagicItemSlot?: CharacterReplicateMagicItemSlot;
     mods?: CharacterItemMods;
   }
 ): CharacterContainerContentItem | null {
@@ -900,6 +949,8 @@ export function createCharacterContainerContentItem(
     featureTags: options?.featureTags,
     conjuredSource: options?.conjuredSource,
     conjuredDuration: options?.conjuredDuration,
+    replicateMagicItemPlanKey: options?.replicateMagicItemPlanKey,
+    replicateMagicItemSlot: options?.replicateMagicItemSlot,
     mods: options?.mods
   });
 }
@@ -940,6 +991,8 @@ export function normalizeCharacterInventoryItems(value: unknown): CharacterInven
       featureTags?: unknown;
       conjuredSource?: unknown;
       conjuredDuration?: unknown;
+      replicateMagicItemPlanKey?: unknown;
+      replicateMagicItemSlot?: unknown;
       mods?: unknown;
       containerContents?: unknown;
     };
@@ -986,6 +1039,10 @@ export function normalizeCharacterInventoryItems(value: unknown): CharacterInven
         featureTags,
         conjuredSource,
         conjuredDuration: normalizeInventoryConjuredDuration(record.conjuredDuration),
+        replicateMagicItemPlanKey: normalizeReplicateMagicItemPlanKey(
+          record.replicateMagicItemPlanKey
+        ),
+        replicateMagicItemSlot: normalizeReplicateMagicItemSlot(record.replicateMagicItemSlot),
         mods,
         containerContents:
           isContainer && copyIndex === 0
@@ -1314,6 +1371,8 @@ export function createInventoryItemFromContainerContent(
     featureTags: content.featureTags,
     conjuredSource: content.conjuredSource,
     conjuredDuration: content.conjuredDuration,
+    replicateMagicItemPlanKey: content.replicateMagicItemPlanKey,
+    replicateMagicItemSlot: content.replicateMagicItemSlot,
     mods: content.mods
   });
 }
@@ -1771,6 +1830,8 @@ function createContainerContentItemFromInventoryStack(
     featureTags: entry.featureTags,
     conjuredSource: entry.conjuredSource,
     conjuredDuration: entry.conjuredDuration,
+    replicateMagicItemPlanKey: entry.replicateMagicItemPlanKey,
+    replicateMagicItemSlot: entry.replicateMagicItemSlot,
     mods: entry.mods
   });
 }
@@ -1792,7 +1853,15 @@ function getInventoryItemSettingsForSave(
     conjuredSource: isConjured ? (settings ? settings.conjuredSource : entry.conjuredSource) : undefined,
     conjuredDuration: isConjured
       ? (settings ? settings.conjuredDuration : entry.conjuredDuration)
-      : undefined
+      : undefined,
+    replicateMagicItemPlanKey:
+      isConjured && entry.conjuredSource === INVENTORY_CONJURED_SOURCE_REPLICATE_MAGIC_ITEM
+        ? entry.replicateMagicItemPlanKey
+        : undefined,
+    replicateMagicItemSlot:
+      isConjured && entry.conjuredSource === INVENTORY_CONJURED_SOURCE_REPLICATE_MAGIC_ITEM
+        ? entry.replicateMagicItemSlot
+        : undefined
   };
 }
 
@@ -1817,6 +1886,8 @@ function updateInventoryItemModsInPlace(
     featureTags: savedSettings.featureTags,
     conjuredSource: savedSettings.conjuredSource,
     conjuredDuration: savedSettings.conjuredDuration,
+    replicateMagicItemPlanKey: savedSettings.replicateMagicItemPlanKey,
+    replicateMagicItemSlot: savedSettings.replicateMagicItemSlot,
     mods,
     containerContents: entry.containerContents
   });
@@ -1852,6 +1923,8 @@ function transformInventoryItemCopyWithMods(
       featureTags: savedSettings.featureTags,
       conjuredSource: savedSettings.conjuredSource,
       conjuredDuration: savedSettings.conjuredDuration,
+      replicateMagicItemPlanKey: savedSettings.replicateMagicItemPlanKey,
+      replicateMagicItemSlot: savedSettings.replicateMagicItemSlot,
       mods
     }
   );
@@ -1876,6 +1949,8 @@ function transformInventoryItemCopyWithMods(
       featureTags: getSourceFeatureTagsAfterModdedTransform(entry),
       conjuredSource: entry.conjuredSource,
       conjuredDuration: entry.conjuredDuration,
+      replicateMagicItemPlanKey: entry.replicateMagicItemPlanKey,
+      replicateMagicItemSlot: entry.replicateMagicItemSlot,
       mods: entry.mods
     }),
     moddedStack
@@ -2062,6 +2137,8 @@ export function getContainerContentsWeightValue(
       featureTags: content.featureTags,
       conjuredSource: content.conjuredSource,
       conjuredDuration: content.conjuredDuration,
+      replicateMagicItemPlanKey: content.replicateMagicItemPlanKey,
+      replicateMagicItemSlot: content.replicateMagicItemSlot,
       mods: content.mods
     });
     const item = getEffectiveInventoryItemRecord(contentStack);
@@ -2080,6 +2157,8 @@ function getContainerContentCopyWeightValue(content: CharacterContainerContentIt
     featureTags: content.featureTags,
     conjuredSource: content.conjuredSource,
     conjuredDuration: content.conjuredDuration,
+    replicateMagicItemPlanKey: content.replicateMagicItemPlanKey,
+    replicateMagicItemSlot: content.replicateMagicItemSlot,
     mods: content.mods
   });
   const item = getEffectiveInventoryItemRecord(contentStack);
@@ -2482,6 +2561,8 @@ function addContainerContentItemToInventoryWithResult(
     featureTags: normalizedContentItem.featureTags,
     conjuredSource: normalizedContentItem.conjuredSource,
     conjuredDuration: normalizedContentItem.conjuredDuration,
+    replicateMagicItemPlanKey: normalizedContentItem.replicateMagicItemPlanKey,
+    replicateMagicItemSlot: normalizedContentItem.replicateMagicItemSlot,
     mods: normalizedContentItem.mods
   });
 

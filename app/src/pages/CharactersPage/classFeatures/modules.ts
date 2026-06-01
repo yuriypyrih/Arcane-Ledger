@@ -4,12 +4,14 @@ import {
   activateArtificerArmorerArcaneArmorOption,
   activateArtificerArmorerDefensiveField,
   activateArtificerArmorerGiantStature,
+  activateArtificerArmorerInfiltratorsFlight,
   advanceArtificerFeaturesForNewRound,
   activateArtificerArmorerArcaneArmor,
   applyLongRestToArtificerFeatures,
   artificerArmorerArcaneArmorActionKey,
   artificerArmorerDefensiveFieldActionKey,
   artificerArmorerGiantStatureActionKey,
+  artificerArmorerInfiltratorsFlightActionKey,
   getArtificerFeatureActionOptions,
   getArtificerFeatureActions,
   getArtificerAlwaysPreparedSpellIds,
@@ -446,6 +448,10 @@ const classFeatureModules = {
 
       if (actionKey === artificerArmorerDefensiveFieldActionKey) {
         return activateArtificerArmorerDefensiveField(character);
+      }
+
+      if (actionKey === artificerArmorerInfiltratorsFlightActionKey) {
+        return activateArtificerArmorerInfiltratorsFlight(character);
       }
 
       return null;

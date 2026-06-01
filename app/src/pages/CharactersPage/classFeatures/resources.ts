@@ -27,9 +27,13 @@ import {
 } from "../customTraitEffects";
 import {
   artificerFlashOfGeniusReactionEntryId,
+  artificerArmorerPerfectedArmorGuardianReactionEntryId,
+  consumeArtificerArmorerPerfectedArmorGuardianUse,
   consumeArtificerConjuredCauldronUse,
   consumeArtificerFlashOfGeniusUse,
   consumeArtificerRestorativeReagentsUse,
+  getArtificerArmorerPerfectedArmorGuardianUsesRemaining,
+  getArtificerArmorerPerfectedArmorGuardianUsesTotal,
   getArtificerFlashOfGeniusUsesRemaining,
   getArtificerFlashOfGeniusUsesTotal
 } from "./artificer/artificer";
@@ -598,7 +602,10 @@ export {
 };
 export { fighterBanneretKnightlyEnvoySkillOptions };
 
-export { artificerFlashOfGeniusReactionEntryId };
+export {
+  artificerFlashOfGeniusReactionEntryId,
+  artificerArmorerPerfectedArmorGuardianReactionEntryId
+};
 
 export function getArtificerFlashOfGeniusUsesTotalForCharacter(
   character: Pick<Character, "className"> &
@@ -616,6 +623,30 @@ export function getArtificerFlashOfGeniusUsesRemainingForCharacter(
 
 export function consumeArtificerFlashOfGeniusUseForCharacter(character: Character): Character {
   return consumeArtificerFlashOfGeniusUse(character);
+}
+
+export function getArtificerArmorerPerfectedArmorGuardianUsesTotalForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<
+      Pick<Character, "abilities" | "classFeatureState" | "level" | "statusEntries" | "subclassId">
+    >
+): number {
+  return getArtificerArmorerPerfectedArmorGuardianUsesTotal(character);
+}
+
+export function getArtificerArmorerPerfectedArmorGuardianUsesRemainingForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<
+      Pick<Character, "abilities" | "classFeatureState" | "level" | "statusEntries" | "subclassId">
+    >
+): number {
+  return getArtificerArmorerPerfectedArmorGuardianUsesRemaining(character);
+}
+
+export function consumeArtificerArmorerPerfectedArmorGuardianUseForCharacter(
+  character: Character
+): Character {
+  return consumeArtificerArmorerPerfectedArmorGuardianUse(character);
 }
 
 export function consumeArtificerRestorativeReagentsUseForCharacter(

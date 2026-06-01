@@ -29,6 +29,8 @@ export function renderClassFeatureContent(context: Record<string, any>) {
     featureRow,
     fighterBanneretKnightlyEnvoySkillOptions,
     formatCodexLabel,
+    getArtificerImprovedArmorerArmorReplicationPlanGroups,
+    getArtificerImprovedArmorerArmorReplicationPlanSelection,
     getArtificerReplicateMagicItemAvailablePlanGroups,
     getArtificerReplicateMagicItemPlanSelections,
     getArtificerReplicateMagicItemPlansKnown,
@@ -136,6 +138,7 @@ export function renderClassFeatureContent(context: Record<string, any>) {
     sorcererDraconicElementalAffinityDamageTypeOptions,
     spellSelectionInputStatus,
     styles,
+    updateArtificerImprovedArmorerArmorReplicationPlanSelection,
     updateBarbarianPrimalKnowledgeSelection,
     updateBarbarianWildHeartAspectChoice,
     updateArtificerReplicateMagicItemPlanSelection,
@@ -198,6 +201,11 @@ export function renderClassFeatureContent(context: Record<string, any>) {
             plansKnown={getArtificerReplicateMagicItemPlansKnown()}
             selections={getArtificerReplicateMagicItemPlanSelections()}
             onChange={updateArtificerReplicateMagicItemPlanSelection}
+            armorReplicationGroups={getArtificerImprovedArmorerArmorReplicationPlanGroups()}
+            armorReplicationSelection={getArtificerImprovedArmorerArmorReplicationPlanSelection()}
+            onArmorReplicationChange={
+              updateArtificerImprovedArmorerArmorReplicationPlanSelection
+            }
           />
         </>
       ) : featureRow.feature === CLASS_FEATURE.TOOLS_OF_THE_TRADE &&

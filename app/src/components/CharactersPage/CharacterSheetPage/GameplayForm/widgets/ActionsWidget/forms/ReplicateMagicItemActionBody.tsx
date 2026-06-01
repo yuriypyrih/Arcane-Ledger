@@ -27,7 +27,7 @@ type ReplicateMagicItemActionBodyProps = {
   actionShape: ActionShapeType | null;
   actionShapeAvailable: boolean;
   actionShapeMultiCount: number;
-  onUseItem: (item: ItemRecord) => Promise<void>;
+  onUseItem: (item: ItemRecord, planKey: string | null) => Promise<void>;
 };
 
 type ReplicateMagicItemPlanBrowserProps = ReplicateMagicItemActionBodyProps & {
@@ -124,6 +124,12 @@ export function ReplicateMagicItemPlanBrowser({
   }, [selectedArtificerPlan, selectedKnownPlanKeys, unlockedPlanKeys]);
 
   useEffect(() => {
+    if (!selectedArtificerPlan && scopedPlanKeys.length === 1) {
+      setSelectedArtificerPlan(scopedPlanKeys[0] ?? null);
+    }
+  }, [scopedPlanKeys, selectedArtificerPlan]);
+
+  useEffect(() => {
     if (!hasKnownPlans || tableDisabled) {
       setSelectedItemKey(null);
     }
@@ -150,9 +156,9 @@ export function ReplicateMagicItemPlanBrowser({
           return;
         }
 
-        void runWithActionConfirmationToastAsync("action", () => onUseItem(selectedItem)).catch(
-          () => undefined
-        );
+        void runWithActionConfirmationToastAsync("action", () =>
+          onUseItem(selectedItem, selectedArtificerPlan)
+        ).catch(() => undefined);
       }}
       loading={isSubmitting}
       disabled={

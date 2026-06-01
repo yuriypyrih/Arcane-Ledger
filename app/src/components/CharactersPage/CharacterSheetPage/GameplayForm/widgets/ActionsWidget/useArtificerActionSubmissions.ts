@@ -136,7 +136,7 @@ export function useArtificerActionSubmissions({
     }
   }
 
-  async function submitArtificerReplicateMagicItem(item: ItemRecord) {
+  async function submitArtificerReplicateMagicItem(item: ItemRecord, planKey: string | null) {
     if (
       !isSelectedFeatureAction(
         selectedAction,
@@ -157,7 +157,9 @@ export function useArtificerActionSubmissions({
       let didApply = false;
 
       onPersistCharacter((currentCharacter) => {
-        const nextCharacter = addArtificerReplicateMagicItemToInventory(currentCharacter, item);
+        const nextCharacter = addArtificerReplicateMagicItemToInventory(currentCharacter, item, {
+          planKey
+        });
 
         if (nextCharacter === currentCharacter) {
           return currentCharacter;

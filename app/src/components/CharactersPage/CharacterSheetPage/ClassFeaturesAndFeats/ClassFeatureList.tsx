@@ -310,6 +310,8 @@ function ClassFeatureList({
     [character, onPersistCharacter]
   );
   const {
+    getArtificerImprovedArmorerArmorReplicationPlanGroups,
+    getArtificerImprovedArmorerArmorReplicationPlanSelection,
     getArtificerReplicateMagicItemAvailablePlanGroups,
     getArtificerReplicateMagicItemPlanSelections,
     getArtificerReplicateMagicItemPlansKnown,
@@ -319,6 +321,7 @@ function ClassFeatureList({
     getArtificerToolsOfTheTradeLockedSelections,
     isArtificerReplicateMagicItemPlanSelectionInputRequired,
     isArtificerToolsOfTheTradeInputRequired,
+    updateArtificerImprovedArmorerArmorReplicationPlanSelection,
     updateArtificerReplicateMagicItemPlanSelection,
     updateArtificerToolsOfTheTradeToolSelection
   } = artificerChoices;
@@ -802,6 +805,8 @@ function ClassFeatureList({
                   featureRow,
                   fighterBanneretKnightlyEnvoySkillOptions,
                   formatCodexLabel,
+                  getArtificerImprovedArmorerArmorReplicationPlanGroups,
+                  getArtificerImprovedArmorerArmorReplicationPlanSelection,
                   getArtificerReplicateMagicItemAvailablePlanGroups,
                   getArtificerReplicateMagicItemPlanSelections,
                   getArtificerReplicateMagicItemPlansKnown,
@@ -911,6 +916,7 @@ function ClassFeatureList({
                   styles,
                   updateBarbarianPrimalKnowledgeSelection,
                   updateBarbarianWildHeartAspectChoice,
+                  updateArtificerImprovedArmorerArmorReplicationPlanSelection,
                   updateArtificerReplicateMagicItemPlanSelection,
                   updateArtificerToolsOfTheTradeToolSelection,
                   updateBardExpertiseSelection,

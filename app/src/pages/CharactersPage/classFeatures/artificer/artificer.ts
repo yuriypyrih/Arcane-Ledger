@@ -33,7 +33,9 @@ import {
 import {
   advanceArtificerArmorerFeaturesForNewRound,
   normalizeArtificerArmorerState,
-  restoreArtificerArmorerGiantStatureOnLongRest
+  restoreArtificerArmorerGiantStatureOnLongRest,
+  restoreArtificerArmorerInfiltratorsFlightOnLongRest,
+  restoreArtificerArmorerPerfectedArmorGuardianOnLongRest
 } from "./subclasses/artificerArmorer";
 import type { ReactionEntry } from "../../../../codex/entries";
 
@@ -73,16 +75,28 @@ export {
   activateArtificerArmorerArcaneArmorOption,
   activateArtificerArmorerDefensiveField,
   activateArtificerArmorerGiantStature,
+  activateArtificerArmorerInfiltratorsFlight,
   artificerArmorerArcaneArmorActionKey,
   artificerArmorerDefensiveFieldActionKey,
   artificerArmorerGiantStatureActionKey,
+  artificerArmorerInfiltratorsFlightActionKey,
+  artificerArmorerPerfectedArmorGuardianReactionEntryId,
+  consumeArtificerArmorerPerfectedArmorGuardianUse,
   consumeArtificerArmorerWeaponAttack,
   getArtificerArmorerArcaneArmorTagLabelsForArmorKey,
   getArtificerArmorerGiantStatureUsesRemaining,
   getArtificerArmorerGiantStatureUsesTotal,
+  getArtificerArmorerInfiltratorsFlightUsesRemaining,
+  getArtificerArmorerInfiltratorsFlightUsesTotal,
+  getArtificerArmorerPerfectedArmorGuardianUsesRemaining,
+  getArtificerArmorerPerfectedArmorGuardianUsesTotal,
   getArtificerArmorerWeaponAttackMultiCount,
   hasArtificerArmorerExtraAttackFeature,
-  restoreArtificerArmorerGiantStatureOnLongRest
+  hasArtificerArmorerImprovedArmorerFeature,
+  hasArtificerArmorerPerfectedArmorFeature,
+  restoreArtificerArmorerGiantStatureOnLongRest,
+  restoreArtificerArmorerInfiltratorsFlightOnLongRest,
+  restoreArtificerArmorerPerfectedArmorGuardianOnLongRest
 } from "./subclasses/artificerArmorer";
 
 export {
@@ -104,12 +118,16 @@ export {
 export {
   addArtificerReplicateMagicItemToInventory,
   artificerReplicateMagicItemActionKey,
+  getArtificerImprovedArmorerArmorReplicationPlanGroups,
+  getArtificerImprovedArmorerArmorReplicationPlanKeyForCharacter,
+  getArtificerReplicateMagicItemCreatablePlanKeysForCharacter,
   getArtificerReplicateMagicItemCount,
   getArtificerReplicateMagicItemLimit,
   getArtificerReplicateMagicItemPlansKnown,
   getArtificerReplicateMagicItemAvailablePlanGroups,
   getArtificerReplicateMagicItemPlanKeysForCharacter,
   isArtificerReplicateMagicItemPlanSelectionInputRequired,
+  setArtificerImprovedArmorerArmorReplicationPlanKeyForCharacter,
   setArtificerReplicateMagicItemPlanKeysForCharacter
 } from "./replicateMagicItem";
 
@@ -212,13 +230,17 @@ export function getArtificerReactionEntries(
 
 export function applyLongRestToArtificerFeatures(character: Character): Character {
   return advanceArtificerArmorerFeaturesForNewRound(
-    restoreArtificerArmorerGiantStatureOnLongRest(
-      restoreArtificerConjuredCauldronOnLongRest(
-        restoreArtificerRestorativeReagentsOnLongRest(
-          restoreArtificerMagicItemTinkerTransmuteOnLongRest(
-            restoreArtificerMagicItemTinkerDrainOnLongRest(
-              restoreArtificerFlashOfGeniusOnLongRest(
-                restoreArtificerTinkersMagicOnLongRest(character)
+    restoreArtificerArmorerInfiltratorsFlightOnLongRest(
+      restoreArtificerArmorerPerfectedArmorGuardianOnLongRest(
+        restoreArtificerArmorerGiantStatureOnLongRest(
+          restoreArtificerConjuredCauldronOnLongRest(
+            restoreArtificerRestorativeReagentsOnLongRest(
+              restoreArtificerMagicItemTinkerTransmuteOnLongRest(
+                restoreArtificerMagicItemTinkerDrainOnLongRest(
+                  restoreArtificerFlashOfGeniusOnLongRest(
+                    restoreArtificerTinkersMagicOnLongRest(character)
+                  )
+                )
               )
             )
           )

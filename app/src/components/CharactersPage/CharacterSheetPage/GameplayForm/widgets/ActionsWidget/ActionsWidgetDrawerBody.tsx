@@ -90,7 +90,10 @@ import {
   type FeatureActionHeaderTag,
   type FeatureActionOptionCard
 } from "../../../../../../pages/CharactersPage/classFeatures";
-import { getArtificerReplicateMagicItemPlanKeysForCharacter } from "../../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
+import {
+  getArtificerReplicateMagicItemCreatablePlanKeysForCharacter,
+  getArtificerReplicateMagicItemPlanKeysForCharacter
+} from "../../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
 import { bardicInspirationActionKey } from "../../../../../../pages/CharactersPage/classFeatures/bard/bard";
 import {
   createChargesCardUsage,
@@ -886,7 +889,7 @@ export function renderActionDrawerBody(context: Record<string, any>) {
     if (selectedAction.drawer.formKind === "replicate-magic-item") {
       return (
         <ReplicateMagicItemActionBody
-          knownPlanKeys={getArtificerReplicateMagicItemPlanKeysForCharacter(character)}
+          knownPlanKeys={getArtificerReplicateMagicItemCreatablePlanKeysForCharacter(character)}
           isSubmitting={isReplicateMagicItemSubmitting}
           disabledReason={selectedFeatureActionPrimaryDisabledReason}
           actionShape={getActionShapeForEconomyType(selectedAction.economyType)}

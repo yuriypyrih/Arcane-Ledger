@@ -14,6 +14,8 @@ import {
   getBardicInspirationUsesTotalForCharacter,
   getBeguilingMagicUsesRemainingForCharacter,
   getBeguilingMagicUsesTotalForCharacter,
+  getArtificerArmorerPerfectedArmorGuardianUsesRemainingForCharacter,
+  getArtificerArmorerPerfectedArmorGuardianUsesTotalForCharacter,
   getArtificerFlashOfGeniusUsesRemainingForCharacter,
   getArtificerFlashOfGeniusUsesTotalForCharacter,
   getChannelDivinityUsesRemainingForCharacter,
@@ -237,6 +239,12 @@ export function useReactionDrawerState({
   const flashOfGeniusUsesTotal = selectedReactionEntry
     ? getArtificerFlashOfGeniusUsesTotalForCharacter(character)
     : 0;
+  const perfectedArmorGuardianUsesRemaining = selectedReactionEntry
+    ? getArtificerArmorerPerfectedArmorGuardianUsesRemainingForCharacter(character)
+    : 0;
+  const perfectedArmorGuardianUsesTotal = selectedReactionEntry
+    ? getArtificerArmorerPerfectedArmorGuardianUsesTotalForCharacter(character)
+    : 0;
   const chillingRetributionUsesRemaining =
     selectedReactionEntry !== null
       ? getRangerWinterWalkerChillingRetributionUsesRemainingForCharacter(character)
@@ -386,6 +394,8 @@ export function useReactionDrawerState({
         gloriousDefenseUsesRemaining,
         gloriousDefenseUsesTotal,
         hasActiveVowOfEnmity: hasActivePaladinOathOfVengeanceVowOfEnmityForCharacter(character),
+        perfectedArmorGuardianUsesRemaining,
+        perfectedArmorGuardianUsesTotal,
         restoreBalanceUsesRemaining,
         restoreBalanceUsesTotal,
         selectedBranchesOfTheTreeDcFormula,

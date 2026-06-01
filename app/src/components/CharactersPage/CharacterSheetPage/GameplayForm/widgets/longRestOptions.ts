@@ -31,6 +31,10 @@ import {
   getArtificerFlashOfGeniusUsesTotal,
   getArtificerArmorerGiantStatureUsesRemaining,
   getArtificerArmorerGiantStatureUsesTotal,
+  getArtificerArmorerInfiltratorsFlightUsesRemaining,
+  getArtificerArmorerInfiltratorsFlightUsesTotal,
+  getArtificerArmorerPerfectedArmorGuardianUsesRemaining,
+  getArtificerArmorerPerfectedArmorGuardianUsesTotal,
   getArtificerMagicItemTinkerDrainUsesRemaining,
   getArtificerMagicItemTinkerDrainUsesTotal,
   getArtificerMagicItemTinkerTransmuteUsesRemaining,
@@ -41,6 +45,8 @@ import {
   getArtificerTinkersMagicUsesTotal,
   restoreArtificerFlashOfGeniusOnLongRest,
   restoreArtificerArmorerGiantStatureOnLongRest,
+  restoreArtificerArmorerInfiltratorsFlightOnLongRest,
+  restoreArtificerArmorerPerfectedArmorGuardianOnLongRest,
   restoreArtificerConjuredCauldronOnLongRest,
   restoreArtificerMagicItemTinkerDrainOnLongRest,
   restoreArtificerMagicItemTinkerTransmuteOnLongRest,
@@ -403,6 +409,14 @@ export function createLongRestOptions(character: Character): RestOption[] {
     getArtificerArmorerGiantStatureUsesTotal(character);
   const artificerArmorerGiantStatureUsesRemaining =
     getArtificerArmorerGiantStatureUsesRemaining(character);
+  const artificerArmorerPerfectedArmorGuardianUsesTotal =
+    getArtificerArmorerPerfectedArmorGuardianUsesTotal(character);
+  const artificerArmorerPerfectedArmorGuardianUsesRemaining =
+    getArtificerArmorerPerfectedArmorGuardianUsesRemaining(character);
+  const artificerArmorerInfiltratorsFlightUsesTotal =
+    getArtificerArmorerInfiltratorsFlightUsesTotal(character);
+  const artificerArmorerInfiltratorsFlightUsesRemaining =
+    getArtificerArmorerInfiltratorsFlightUsesRemaining(character);
   const artificerMagicItemTinkerDrainUsesTotal =
     getArtificerMagicItemTinkerDrainUsesTotal(character);
   const artificerMagicItemTinkerDrainUsesRemaining =
@@ -1004,6 +1018,40 @@ export function createLongRestOptions(character: Character): RestOption[] {
               artificerArmorerGiantStatureUsesTotal,
             apply: (currentCharacter: Character) =>
               restoreArtificerArmorerGiantStatureOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(artificerArmorerPerfectedArmorGuardianUsesTotal > 0
+      ? [
+          {
+            id: "restore-artificer-perfected-armor-guardian",
+            label: "Restore Perfected Armor Guardian",
+            charges: {
+              current: artificerArmorerPerfectedArmorGuardianUsesRemaining,
+              total: artificerArmorerPerfectedArmorGuardianUsesTotal
+            },
+            disabled:
+              artificerArmorerPerfectedArmorGuardianUsesRemaining >=
+              artificerArmorerPerfectedArmorGuardianUsesTotal,
+            apply: (currentCharacter: Character) =>
+              restoreArtificerArmorerPerfectedArmorGuardianOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(artificerArmorerInfiltratorsFlightUsesTotal > 0
+      ? [
+          {
+            id: "restore-artificer-infiltrators-flight",
+            label: "Restore Infiltrator's Flight",
+            charges: {
+              current: artificerArmorerInfiltratorsFlightUsesRemaining,
+              total: artificerArmorerInfiltratorsFlightUsesTotal
+            },
+            disabled:
+              artificerArmorerInfiltratorsFlightUsesRemaining >=
+              artificerArmorerInfiltratorsFlightUsesTotal,
+            apply: (currentCharacter: Character) =>
+              restoreArtificerArmorerInfiltratorsFlightOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),

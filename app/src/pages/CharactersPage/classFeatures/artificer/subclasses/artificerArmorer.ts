@@ -2,9 +2,11 @@ import {
   CLASS_FEATURE,
   DICE,
   DAMAGE_TYPE,
+  REACTION,
   WEAPON_COMBAT_TYPE,
   WEAPON_PROPERTY,
   WEAPON_TRAINING,
+  type ReactionEntry,
   type SpellDescriptionEntry,
   type WeaponDamage
 } from "../../../../../codex/entries";
@@ -12,12 +14,14 @@ import {
   ARMOR_PROFICIENCY,
   SKILL,
   STATUS_DURATION_KIND,
+  STATUS_DURATION_ROUND_TICK,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE,
   type AbilityKey,
   type ArtificerArmorerArmorModel,
   type Character,
-  type CharacterArtificerFeatureState
+  type CharacterArtificerFeatureState,
+  type SkillName
 } from "../../../../../types";
 import { formatWeaponDamage, formatWeaponDamageFormula } from "../../../../../utils/codex";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
@@ -30,6 +34,7 @@ import {
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../../combat";
 import { ACTION_CARD_THEME } from "../../../actionCardTheme";
 import { createWeaponAction, getProficiencyBonus, type WeaponAction } from "../../../gameplay";
+import { skillGroupsByAbility } from "../../../skillDefinitions";
 import { swapTemporaryHitPointsAssignment } from "../../../shared/temporaryHitPoints";
 import {
   createCharacterStatusEntry,
@@ -39,9 +44,11 @@ import { createChargesCardUsage } from "../../cardUsage";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import { getPreparedSpellIdsByLevel, type SubclassRuntimeResolver } from "../../subclassRuntime";
 import type {
+  AbilityCheckIndicatorMap,
   FeatureActionCard,
   FeatureActionOptionCard,
   FeatureSpeedBonus,
+  SavingThrowIndicatorMap,
   SkillIndicatorMap
 } from "../../types";
 import { getArtificerToolsOfTheTradeToolProficiencyEntries } from "../toolsOfTheTrade";
@@ -54,6 +61,10 @@ export const armorerSubclassId = "artificer-armorer";
 export const artificerArmorerArcaneArmorActionKey = "artificer-armorer-arcane-armor";
 export const artificerArmorerGiantStatureActionKey = "artificer-armorer-giant-stature";
 export const artificerArmorerDefensiveFieldActionKey = "artificer-armorer-defensive-field";
+export const artificerArmorerInfiltratorsFlightActionKey =
+  "artificer-armorer-infiltrators-flight";
+export const artificerArmorerPerfectedArmorGuardianReactionEntryId =
+  "reaction-artificer-armorer-perfected-armor-guardian";
 
 const armorerSpellIdsByLevel = {
   3: ["spell-magic-missile", "spell-thunderwave"],
@@ -71,15 +82,33 @@ const thunderPulseName = "Thunder Pulse";
 const lightningLauncherName = "Lightning Launcher";
 const defensiveFieldName = "Defensive Field";
 const giantStatureName = "Giant Stature";
+const infiltratorsFlightName = "Infiltrator's Flight";
+const perfectedArmorGuardianName = "Perfected Armor Guardian";
 const giantStatureStatusSourceId = "artificer-armorer-giant-stature";
+const infiltratorsFlightStatusSourceId = "artificer-armorer-infiltrators-flight";
 const infiltratorPoweredStepsSource = "(Arcane Armor / Infiltrator / Powered Steps)";
 const infiltratorDampeningFieldSource = "Arcane Armor / Infiltrator / Dampening Field";
+const perfectedArmorDreadnaughtSource = "Perfected Armor / Dreadnaught";
 const forceDemolisherWeaponActionKey = "artificer-armorer-force-demolisher";
 const thunderPulseWeaponActionKey = "artificer-armorer-thunder-pulse";
 const lightningLauncherWeaponActionKey = "artificer-armorer-lightning-launcher";
 const forceDemolisherDamage: WeaponDamage = [[DICE.D10, DAMAGE_TYPE.FORCE]];
 const thunderPulseDamage: WeaponDamage = [[DICE.D8, DAMAGE_TYPE.THUNDER]];
 const lightningLauncherDamage: WeaponDamage = [[DICE.D6, DAMAGE_TYPE.LIGHTNING]];
+const forceDemolisherPerfectedDamage: WeaponDamage = [
+  [DICE.D6, DAMAGE_TYPE.FORCE],
+  [DICE.D6, DAMAGE_TYPE.FORCE]
+];
+const thunderPulsePerfectedDamage: WeaponDamage = [[DICE.D10, DAMAGE_TYPE.THUNDER]];
+const lightningLauncherPerfectedDamage: WeaponDamage = [
+  [DICE.D6, DAMAGE_TYPE.LIGHTNING],
+  [DICE.D6, DAMAGE_TYPE.LIGHTNING]
+];
+const perfectedArmorDreadnaughtAdvantageIndicator = {
+  label: "Advantage",
+  tone: "advantage" as const,
+  source: perfectedArmorDreadnaughtSource
+};
 const armorModelLabels: Record<ArtificerArmorerArmorModel, string> = {
   dreadnaught: "Dreadnaught",
   guardian: "Guardian",
@@ -125,6 +154,18 @@ export function hasArtificerArmorerExtraAttackFeature(
   return hasArtificerSubclassFeature(character, armorerSubclassId, 5);
 }
 
+export function hasArtificerArmorerImprovedArmorerFeature(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): boolean {
+  return hasArtificerSubclassFeature(character, armorerSubclassId, 9);
+}
+
+export function hasArtificerArmorerPerfectedArmorFeature(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): boolean {
+  return hasArtificerSubclassFeature(character, armorerSubclassId, 15);
+}
+
 function isArtificerArmorerArmorModel(value: string): value is ArtificerArmorerArmorModel {
   return value in armorModelLabels;
 }
@@ -148,12 +189,11 @@ function getArmorModelDescription(
   return getFeatureDescriptionForCharacter(character, CLASS_FEATURE.ARMOR_MODEL);
 }
 
-function getArmorModelDescriptionSection(
-  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
+function getDescriptionSection(
+  description: SpellDescriptionEntry[],
   heading: string
 ): SpellDescriptionEntry[] {
   const marker = `<strong>${heading}</strong>`;
-  const description = getArmorModelDescription(character);
   const startIndex = description.findIndex(
     (entry) => typeof entry === "string" && entry.includes(marker)
   );
@@ -175,6 +215,83 @@ function getArmorModelDescriptionSection(
   }
 
   return section;
+}
+
+function getArmorModelDescriptionSection(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
+  heading: string
+): SpellDescriptionEntry[] {
+  return getDescriptionSection(getArmorModelDescription(character), heading);
+}
+
+function getImprovedArmorerDescription(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): SpellDescriptionEntry[] {
+  return getFeatureDescriptionForCharacter(character, CLASS_FEATURE.IMPROVED_ARMORER);
+}
+
+export function getArtificerArmorerImprovedArmorerDescriptionSection(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
+  heading: string
+): SpellDescriptionEntry[] {
+  return getDescriptionSection(getImprovedArmorerDescription(character), heading);
+}
+
+function getPerfectedArmorDescription(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): SpellDescriptionEntry[] {
+  return getFeatureDescriptionForCharacter(character, CLASS_FEATURE.PERFECTED_ARMOR);
+}
+
+export function getArtificerArmorerPerfectedArmorDescriptionSection(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
+  heading: string
+): SpellDescriptionEntry[] {
+  return getDescriptionSection(getPerfectedArmorDescription(character), heading);
+}
+
+function getPerfectedArmorDescriptionEntries(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
+  heading: string,
+  dreadnaughtPart?: "force-demolisher" | "giant-stature"
+): SpellDescriptionEntry[] {
+  const section = getArtificerArmorerPerfectedArmorDescriptionSection(character, heading);
+  let description = section;
+
+  if (heading === "Dreadnaught." && dreadnaughtPart) {
+    const entry = section.find(
+      (sectionEntry): sectionEntry is string => typeof sectionEntry === "string"
+    );
+    const splitMarker = " In addition,";
+    const splitIndex = entry?.indexOf(splitMarker) ?? -1;
+
+    if (entry && splitIndex >= 0) {
+      description =
+        dreadnaughtPart === "force-demolisher"
+          ? [entry.slice(0, splitIndex).trim()]
+          : [`<strong>Dreadnaught.</strong> ${entry.slice(splitIndex + 1).trim()}`];
+    }
+  }
+
+  if (heading === "Infiltrator.") {
+    description = description.filter(
+      (entry) => !(typeof entry === "string" && entry.startsWith("Additionally,"))
+    );
+  }
+
+  return description;
+}
+
+function createPerfectedArmorDescriptionAddition(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
+  heading: string,
+  dreadnaughtPart?: "force-demolisher" | "giant-stature"
+): SpellDescriptionEntry[] {
+  const description = getPerfectedArmorDescriptionEntries(character, heading, dreadnaughtPart);
+
+  return description.length > 0
+    ? createFeatureSourcedDescriptionEntries(character, CLASS_FEATURE.PERFECTED_ARMOR, description)
+    : [];
 }
 
 function stripDescriptionMarkup(value: string): string {
@@ -303,12 +420,14 @@ export function getArtificerArmorerArcaneArmorTagLabelsForArmorKey(
 export function normalizeArtificerArmorerState(
   value: unknown,
   character: Pick<Character, "className" | "level"> &
-    Partial<Pick<Character, "abilities" | "subclassId">>
+    Partial<Pick<Character, "abilities" | "statusEntries" | "subclassId">>
 ): Pick<
   CharacterArtificerFeatureState,
   | "armorerArcaneArmorTargetKey"
   | "armorerArmorModel"
   | "armorerGiantStatureUsesExpended"
+  | "armorerInfiltratorsFlightUsesExpended"
+  | "armorerPerfectedArmorGuardianUsesExpended"
   | "extraAttacksRemainingThisTurn"
 > {
   if (!hasArtificerArmorerArcaneArmorFeature(character)) {
@@ -330,6 +449,21 @@ export function normalizeArtificerArmorerState(
     giantStatureUsesTotal > 0
       ? normalizeArmorerUsesExpended(record.armorerGiantStatureUsesExpended, giantStatureUsesTotal)
       : undefined;
+  const perfectedArmorUsesTotal = getArtificerArmorerPerfectedArmorMaximumUses(character);
+  const armorerPerfectedArmorGuardianUsesExpended =
+    perfectedArmorUsesTotal > 0
+      ? normalizeArmorerUsesExpended(
+          record.armorerPerfectedArmorGuardianUsesExpended,
+          perfectedArmorUsesTotal
+        )
+      : undefined;
+  const armorerInfiltratorsFlightUsesExpended =
+    perfectedArmorUsesTotal > 0
+      ? normalizeArmorerUsesExpended(
+          record.armorerInfiltratorsFlightUsesExpended,
+          perfectedArmorUsesTotal
+        )
+      : undefined;
 
   return {
     armorerArcaneArmorTargetKey: targetKey || undefined,
@@ -341,7 +475,9 @@ export function normalizeArtificerArmorerState(
         ? Number.isFinite(extraAttacksRemainingThisTurn)
           ? Math.max(0, Math.min(additionalAttackCount, Math.floor(extraAttacksRemainingThisTurn)))
           : 0
-        : undefined
+        : undefined,
+    armorerPerfectedArmorGuardianUsesExpended,
+    armorerInfiltratorsFlightUsesExpended
   };
 }
 
@@ -504,15 +640,55 @@ function getGiantStatureDescription(
   return getArmorModelDescriptionSection(character, "Dreadnaught: Giant Stature.");
 }
 
+function getInfiltratorsFlightDescription(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): SpellDescriptionEntry[] {
+  return getPerfectedArmorDescription(character).filter(
+    (entry) =>
+      typeof entry === "string" &&
+      entry.startsWith("Additionally, as a Bonus Action, you can gain a Fly Speed")
+  );
+}
+
 function getGiantStatureStatusDescription(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): string {
-  const description = getPlainTextDescription(
-    getGiantStatureDescription(character),
-    "Dreadnaught: Giant Stature."
-  );
+  const descriptionParts = [
+    getPlainTextDescription(
+      getGiantStatureDescription(character),
+      "Dreadnaught: Giant Stature."
+    ),
+    hasArtificerArmorerPerfectedArmorFeature(character)
+      ? getPlainTextDescription(
+          getPerfectedArmorDescriptionEntries(character, "Dreadnaught.", "giant-stature"),
+          "Dreadnaught."
+        )
+      : ""
+  ].filter(Boolean);
+
+  const description = descriptionParts.join("\n\n");
 
   return description || "You transform and enlarge your Arcane Armor for 1 minute.";
+}
+
+function getInfiltratorsFlightStatusDescription(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): string {
+  const description = getPlainTextDescription(getInfiltratorsFlightDescription(character));
+
+  return description || "You gain a Fly Speed equal to twice your Speed until the end of the turn.";
+}
+
+function isInfiltratorsFlightStatusEntry(entry: { sourceId?: string }) {
+  return entry.sourceId === infiltratorsFlightStatusSourceId;
+}
+
+export function hasActiveArtificerArmorerInfiltratorsFlight(
+  character: Partial<Pick<Character, "statusEntries">>
+): boolean {
+  return normalizeCharacterStatusEntries(character.statusEntries).some(
+    isInfiltratorsFlightStatusEntry
+  );
 }
 
 function isGiantStatureStatusEntry(entry: { sourceId?: string }) {
@@ -527,7 +703,7 @@ export function hasActiveArtificerArmorerGiantStature(
 
 function getArtificerArmorerGiantStatureMaximumUses(
   character: Pick<Character, "className"> &
-    Partial<Pick<Character, "abilities" | "level" | "subclassId">>
+    Partial<Pick<Character, "abilities" | "level" | "statusEntries" | "subclassId">>
 ): number {
   return hasArtificerArmorerArmorModelFeature(character)
     ? Math.max(1, getAbilityModifierForCharacter(character, "INT"))
@@ -536,7 +712,9 @@ function getArtificerArmorerGiantStatureMaximumUses(
 
 export function getArtificerArmorerGiantStatureUsesTotal(
   character: Pick<Character, "className"> &
-    Partial<Pick<Character, "abilities" | "classFeatureState" | "level" | "subclassId">>
+    Partial<
+      Pick<Character, "abilities" | "classFeatureState" | "level" | "statusEntries" | "subclassId">
+    >
 ): number {
   return hasSelectedArtificerArmorerArmorModel(character, "dreadnaught")
     ? getArtificerArmorerGiantStatureMaximumUses(character)
@@ -545,7 +723,9 @@ export function getArtificerArmorerGiantStatureUsesTotal(
 
 export function getArtificerArmorerGiantStatureUsesRemaining(
   character: Pick<Character, "className"> &
-    Partial<Pick<Character, "abilities" | "classFeatureState" | "level" | "subclassId">>
+    Partial<
+      Pick<Character, "abilities" | "classFeatureState" | "level" | "statusEntries" | "subclassId">
+    >
 ): number {
   const total = getArtificerArmorerGiantStatureUsesTotal(character);
 
@@ -561,6 +741,77 @@ export function getArtificerArmorerGiantStatureUsesRemaining(
   return Math.max(0, total - expended);
 }
 
+function getArtificerArmorerPerfectedArmorMaximumUses(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "level" | "statusEntries" | "subclassId">>
+): number {
+  return hasArtificerArmorerPerfectedArmorFeature(character)
+    ? Math.max(1, getAbilityModifierForCharacter(character, "INT"))
+    : 0;
+}
+
+export function getArtificerArmorerPerfectedArmorGuardianUsesTotal(
+  character: Pick<Character, "className"> &
+    Partial<
+      Pick<Character, "abilities" | "classFeatureState" | "level" | "statusEntries" | "subclassId">
+    >
+): number {
+  return hasSelectedArtificerArmorerArmorModel(character, "guardian")
+    ? getArtificerArmorerPerfectedArmorMaximumUses(character)
+    : 0;
+}
+
+export function getArtificerArmorerPerfectedArmorGuardianUsesRemaining(
+  character: Pick<Character, "className"> &
+    Partial<
+      Pick<Character, "abilities" | "classFeatureState" | "level" | "statusEntries" | "subclassId">
+    >
+): number {
+  const total = getArtificerArmorerPerfectedArmorGuardianUsesTotal(character);
+
+  if (total <= 0) {
+    return 0;
+  }
+
+  const expended = normalizeArmorerUsesExpended(
+    character.classFeatureState?.artificer?.armorerPerfectedArmorGuardianUsesExpended,
+    total
+  );
+
+  return Math.max(0, total - expended);
+}
+
+export function getArtificerArmorerInfiltratorsFlightUsesTotal(
+  character: Pick<Character, "className"> &
+    Partial<
+      Pick<Character, "abilities" | "classFeatureState" | "level" | "statusEntries" | "subclassId">
+    >
+): number {
+  return hasSelectedArtificerArmorerArmorModel(character, "infiltrator")
+    ? getArtificerArmorerPerfectedArmorMaximumUses(character)
+    : 0;
+}
+
+export function getArtificerArmorerInfiltratorsFlightUsesRemaining(
+  character: Pick<Character, "className"> &
+    Partial<
+      Pick<Character, "abilities" | "classFeatureState" | "level" | "statusEntries" | "subclassId">
+    >
+): number {
+  const total = getArtificerArmorerInfiltratorsFlightUsesTotal(character);
+
+  if (total <= 0) {
+    return 0;
+  }
+
+  const expended = normalizeArmorerUsesExpended(
+    character.classFeatureState?.artificer?.armorerInfiltratorsFlightUsesExpended,
+    total
+  );
+
+  return Math.max(0, total - expended);
+}
+
 type ArmorerArmorModelWeaponConfig = {
   model: ArtificerArmorerArmorModel;
   key: string;
@@ -568,12 +819,15 @@ type ArmorerArmorModelWeaponConfig = {
   normalAbility: AbilityKey;
   combatType: WEAPON_COMBAT_TYPE;
   damage: WeaponDamage;
+  perfectedDamage: WeaponDamage;
+  perfectedArmorHeading: string;
+  perfectedArmorDreadnaughtPart?: "force-demolisher" | "giant-stature";
   properties: WEAPON_PROPERTY[];
   drawerEyebrow: string;
   description: (
     character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
   ) => SpellDescriptionEntry[];
-  details: Array<{
+  createDetails: (damage: WeaponDamage) => Array<{
     label: string;
     value: string;
     referenceTitle?: string;
@@ -601,7 +855,9 @@ function getArtificerArmorerArmorModelWeaponAction(
     return null;
   }
 
-  const damageFormula = formatWeaponDamageFormula(config.damage);
+  const hasPerfectedArmor = hasArtificerArmorerPerfectedArmorFeature(character);
+  const weaponDamage = hasPerfectedArmor ? config.perfectedDamage : config.damage;
+  const damageFormula = formatWeaponDamageFormula(weaponDamage);
 
   if (!damageFormula) {
     return null;
@@ -611,6 +867,29 @@ function getArtificerArmorerArmorModelWeaponAction(
     character,
     config.normalAbility
   );
+  const hasImprovedArsenal = hasArtificerArmorerImprovedArmorerFeature(character);
+  const improvedArsenalDescription = hasImprovedArsenal
+    ? getArtificerArmorerImprovedArmorerDescriptionSection(character, "Improved Arsenal.")
+    : [];
+  const improvedArsenalDescriptionAddition =
+    improvedArsenalDescription.length > 0
+      ? createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.IMPROVED_ARMORER,
+          improvedArsenalDescription
+        )
+      : [];
+  const perfectedArmorDescriptionAddition = hasPerfectedArmor
+    ? createPerfectedArmorDescriptionAddition(
+        character,
+        config.perfectedArmorHeading,
+        config.perfectedArmorDreadnaughtPart
+      )
+    : [];
+  const descriptionAdditions = [
+    improvedArsenalDescriptionAddition,
+    perfectedArmorDescriptionAddition
+  ].filter((section) => section.length > 0);
   const baseAction = createWeaponAction(
     {
       abilities: character.abilities,
@@ -629,7 +908,7 @@ function getArtificerArmorerArmorModelWeaponAction(
       weaponTraining: WEAPON_TRAINING.SIMPLE,
       properties: config.properties,
       mastery: null,
-      damageLabel: formatWeaponDamage(config.damage),
+      damageLabel: formatWeaponDamage(weaponDamage),
       damageFormula,
       rollFormulaBase: damageFormula,
       ability,
@@ -638,6 +917,16 @@ function getArtificerArmorerArmorModelWeaponAction(
       damageAbilityModifier: abilityModifier,
       proficiencyLabel: "Simple weapon",
       proficiencyBonus: getProficiencyBonus(character.level ?? 1),
+      damageBonusEntries: hasImprovedArsenal
+        ? [
+            {
+              label: "Improved Arsenal",
+              value: 1,
+              formula: "1",
+              displayLabel: "1 Improved Arsenal"
+            }
+          ]
+        : [],
       economyType: ECONOMY_TYPE.ACTION,
       hasVersatileBonus: false,
       hasGreatWeaponFighting: false,
@@ -648,9 +937,19 @@ function getArtificerArmorerArmorModelWeaponAction(
 
   return {
     ...baseAction,
+    attackBonusEntries: hasImprovedArsenal
+      ? [
+          ...(baseAction.attackBonusEntries ?? []),
+          {
+            label: "Improved Arsenal",
+            value: 1
+          }
+        ]
+      : baseAction.attackBonusEntries,
     drawerEyebrow: config.drawerEyebrow,
     description: config.description(character),
-    details: config.details
+    descriptionAdditions,
+    details: config.createDetails(weaponDamage)
   };
 }
 
@@ -662,12 +961,15 @@ const armorerArmorModelWeaponConfigs: ArmorerArmorModelWeaponConfig[] = [
     normalAbility: "STR",
     combatType: WEAPON_COMBAT_TYPE.MELEE,
     damage: forceDemolisherDamage,
+    perfectedDamage: forceDemolisherPerfectedDamage,
+    perfectedArmorHeading: "Dreadnaught.",
+    perfectedArmorDreadnaughtPart: "force-demolisher",
     properties: [WEAPON_PROPERTY.REACH],
     drawerEyebrow: armorModelLabels.dreadnaught,
     description: getForceDemolisherDescription,
-    details: [
+    createDetails: (damage) => [
       { label: "Type", value: "Simple melee weapon" },
-      { label: "Damage", value: formatWeaponDamage(forceDemolisherDamage) },
+      { label: "Damage", value: formatWeaponDamage(damage) },
       {
         label: "Properties",
         value: "Reach",
@@ -684,12 +986,14 @@ const armorerArmorModelWeaponConfigs: ArmorerArmorModelWeaponConfig[] = [
     normalAbility: "STR",
     combatType: WEAPON_COMBAT_TYPE.MELEE,
     damage: thunderPulseDamage,
+    perfectedDamage: thunderPulsePerfectedDamage,
+    perfectedArmorHeading: "Guardian.",
     properties: [],
     drawerEyebrow: armorModelLabels.guardian,
     description: getThunderPulseDescription,
-    details: [
+    createDetails: (damage) => [
       { label: "Type", value: "Simple melee weapon" },
-      { label: "Damage", value: formatWeaponDamage(thunderPulseDamage) },
+      { label: "Damage", value: formatWeaponDamage(damage) },
       { label: "Properties", value: "None" },
       { label: "Mastery", value: "None" }
     ]
@@ -701,12 +1005,14 @@ const armorerArmorModelWeaponConfigs: ArmorerArmorModelWeaponConfig[] = [
     normalAbility: "DEX",
     combatType: WEAPON_COMBAT_TYPE.RANGED,
     damage: lightningLauncherDamage,
+    perfectedDamage: lightningLauncherPerfectedDamage,
+    perfectedArmorHeading: "Infiltrator.",
     properties: [WEAPON_PROPERTY.RANGE],
     drawerEyebrow: armorModelLabels.infiltrator,
     description: getLightningLauncherDescription,
-    details: [
+    createDetails: (damage) => [
       { label: "Type", value: "Simple ranged weapon" },
-      { label: "Damage", value: formatWeaponDamage(lightningLauncherDamage) },
+      { label: "Damage", value: formatWeaponDamage(damage) },
       { label: "Range", value: "90/300 feet" },
       {
         label: "Properties",
@@ -795,6 +1101,11 @@ function getArtificerArmorerGiantStatureAction(
     statusEntries: character.statusEntries ?? []
   });
   const description = getGiantStatureDescription(character);
+  const perfectedArmorDescriptionAddition = hasArtificerArmorerPerfectedArmorFeature(character)
+    ? createPerfectedArmorDescriptionAddition(character, "Dreadnaught.", "giant-stature")
+    : [];
+  const descriptionAdditions =
+    perfectedArmorDescriptionAddition.length > 0 ? [perfectedArmorDescriptionAddition] : [];
   const disabledReason = isActive
     ? `${giantStatureName} is already active.`
     : usesRemaining <= 0
@@ -818,10 +1129,12 @@ function getArtificerArmorerGiantStatureAction(
     disabled: Boolean(disabledReason),
     disabledReason,
     description,
+    descriptionAdditions,
     drawer: {
       kind: "confirm",
       eyebrow: "Dreadnaught",
-      description
+      description,
+      descriptionAdditions
     },
     execute: {
       kind: "activate"
@@ -898,6 +1211,189 @@ export function restoreArtificerArmorerGiantStatureOnLongRest(character: Charact
       artificer: {
         ...artificerState,
         armorerGiantStatureUsesExpended: 0
+      }
+    }
+  };
+}
+
+export function consumeArtificerArmorerPerfectedArmorGuardianUse(
+  character: Character
+): Character {
+  if (
+    !hasActiveArtificerArmorerArmorModel(character, "guardian") ||
+    getArtificerArmorerPerfectedArmorGuardianUsesRemaining(character) <= 0
+  ) {
+    return character;
+  }
+
+  const artificerState = character.classFeatureState?.artificer ?? {};
+  const usesTotal = getArtificerArmorerPerfectedArmorMaximumUses(character);
+  const usesExpended = normalizeArmorerUsesExpended(
+    artificerState.armorerPerfectedArmorGuardianUsesExpended,
+    usesTotal
+  );
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      artificer: {
+        ...artificerState,
+        armorerPerfectedArmorGuardianUsesExpended: usesExpended + 1
+      }
+    }
+  };
+}
+
+export function restoreArtificerArmorerPerfectedArmorGuardianOnLongRest(
+  character: Character
+): Character {
+  const usesTotal = getArtificerArmorerPerfectedArmorMaximumUses(character);
+
+  if (usesTotal <= 0) {
+    return character;
+  }
+
+  const artificerState = character.classFeatureState?.artificer ?? {};
+  const usesExpended = normalizeArmorerUsesExpended(
+    artificerState.armorerPerfectedArmorGuardianUsesExpended,
+    usesTotal
+  );
+
+  if (usesExpended <= 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      artificer: {
+        ...artificerState,
+        armorerPerfectedArmorGuardianUsesExpended: 0
+      }
+    }
+  };
+}
+
+function getArtificerArmorerInfiltratorsFlightAction(
+  character: ArmorerArcaneArmorCharacter
+): FeatureActionCard | null {
+  if (!hasActiveArtificerArmorerArmorModel(character, "infiltrator")) {
+    return null;
+  }
+
+  const usesTotal = getArtificerArmorerInfiltratorsFlightUsesTotal(character);
+
+  if (usesTotal <= 0) {
+    return null;
+  }
+
+  const usesRemaining = getArtificerArmorerInfiltratorsFlightUsesRemaining(character);
+  const description = getInfiltratorsFlightDescription(character);
+  const disabledReason =
+    usesRemaining <= 0
+      ? `${infiltratorsFlightName} recharges when you finish a Long Rest.`
+      : undefined;
+
+  return {
+    key: artificerArmorerInfiltratorsFlightActionKey,
+    name: infiltratorsFlightName,
+    sourceFeature: CLASS_FEATURE.PERFECTED_ARMOR,
+    cardTheme: ACTION_CARD_THEME.FEATURE,
+    summary: "Gain a Fly Speed equal to twice your Speed.",
+    detail: "Fly until the end of the current turn.",
+    breakdown: "Fly speed x2",
+    economyType: ECONOMY_TYPE.BONUS_ACTION,
+    actionCategory: ACTION_CATEGORY.FEATURE,
+    usesRemaining,
+    usesTotal,
+    cardUsage: createChargesCardUsage(usesRemaining, usesTotal),
+    disabled: Boolean(disabledReason),
+    disabledReason,
+    description,
+    drawer: {
+      kind: "confirm",
+      eyebrow: "Infiltrator",
+      description
+    },
+    execute: {
+      kind: "activate"
+    }
+  };
+}
+
+export function activateArtificerArmorerInfiltratorsFlight(character: Character): Character {
+  if (
+    !hasActiveArtificerArmorerArmorModel(character, "infiltrator") ||
+    getArtificerArmorerInfiltratorsFlightUsesRemaining(character) <= 0
+  ) {
+    return character;
+  }
+
+  const artificerState = character.classFeatureState?.artificer ?? {};
+  const usesTotal = getArtificerArmorerPerfectedArmorMaximumUses(character);
+  const usesExpended = normalizeArmorerUsesExpended(
+    artificerState.armorerInfiltratorsFlightUsesExpended,
+    usesTotal
+  );
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      artificer: {
+        ...artificerState,
+        armorerInfiltratorsFlightUsesExpended: usesExpended + 1
+      }
+    },
+    statusEntries: [
+      ...normalizeCharacterStatusEntries(character.statusEntries).filter(
+        (entry) => !isInfiltratorsFlightStatusEntry(entry)
+      ),
+      createCharacterStatusEntry({
+        group: STATUS_ENTRY_GROUP.EFFECTS,
+        value: infiltratorsFlightName,
+        source: infiltratorsFlightName,
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+        duration: {
+          kind: STATUS_DURATION_KIND.ROUNDS,
+          amount: 1,
+          tickOn: STATUS_DURATION_ROUND_TICK.ROUND_END
+        },
+        sourceId: infiltratorsFlightStatusSourceId,
+        description: getInfiltratorsFlightStatusDescription(character)
+      })
+    ]
+  };
+}
+
+export function restoreArtificerArmorerInfiltratorsFlightOnLongRest(
+  character: Character
+): Character {
+  const usesTotal = getArtificerArmorerPerfectedArmorMaximumUses(character);
+
+  if (usesTotal <= 0) {
+    return character;
+  }
+
+  const artificerState = character.classFeatureState?.artificer ?? {};
+  const usesExpended = normalizeArmorerUsesExpended(
+    artificerState.armorerInfiltratorsFlightUsesExpended,
+    usesTotal
+  );
+
+  if (usesExpended <= 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      artificer: {
+        ...artificerState,
+        armorerInfiltratorsFlightUsesExpended: 0
       }
     }
   };
@@ -982,15 +1478,29 @@ export function advanceArtificerArmorerFeaturesForNewRound(character: Character)
 function getArtificerArmorerInfiltratorSpeedBonuses(
   character: ArmorerArcaneArmorCharacter
 ): FeatureSpeedBonus[] {
-  return hasActiveArtificerArmorerArmorModel(character, "infiltrator")
-    ? [
-        {
-          label: infiltratorPoweredStepsSource,
-          value: 5,
-          movementType: "walk"
-        }
-      ]
-    : [];
+  const speedBonuses: FeatureSpeedBonus[] = [];
+
+  if (hasActiveArtificerArmorerArmorModel(character, "infiltrator")) {
+    speedBonuses.push({
+      label: infiltratorPoweredStepsSource,
+      value: 5,
+      movementType: "walk"
+    });
+  }
+
+  if (
+    hasActiveArtificerArmorerArmorModel(character, "infiltrator") &&
+    hasActiveArtificerArmorerInfiltratorsFlight(character)
+  ) {
+    speedBonuses.push({
+      label: infiltratorsFlightName,
+      value: 0,
+      movementType: "fly",
+      setBaseFromWalkMultiplier: 2
+    });
+  }
+
+  return speedBonuses;
 }
 
 function getArtificerArmorerInfiltratorSkillIndicators(
@@ -1009,6 +1519,99 @@ function getArtificerArmorerInfiltratorSkillIndicators(
     : {};
 }
 
+function getArtificerArmorerDreadnaughtSavingThrowIndicators(
+  character: ArmorerArcaneArmorCharacter
+): SavingThrowIndicatorMap {
+  return hasArtificerArmorerPerfectedArmorFeature(character) &&
+    hasActiveArtificerArmorerArmorModel(character, "dreadnaught") &&
+    hasActiveArtificerArmorerGiantStature(character)
+    ? {
+        STR: [perfectedArmorDreadnaughtAdvantageIndicator]
+      }
+    : {};
+}
+
+function getArtificerArmorerDreadnaughtAbilityCheckIndicators(
+  character: ArmorerArcaneArmorCharacter
+): AbilityCheckIndicatorMap {
+  return hasArtificerArmorerPerfectedArmorFeature(character) &&
+    hasActiveArtificerArmorerArmorModel(character, "dreadnaught") &&
+    hasActiveArtificerArmorerGiantStature(character)
+    ? {
+        STR: [perfectedArmorDreadnaughtAdvantageIndicator]
+      }
+    : {};
+}
+
+function getArtificerArmorerDreadnaughtSkillIndicators(
+  character: ArmorerArcaneArmorCharacter
+): SkillIndicatorMap {
+  if (
+    !hasArtificerArmorerPerfectedArmorFeature(character) ||
+    !hasActiveArtificerArmorerArmorModel(character, "dreadnaught") ||
+    !hasActiveArtificerArmorerGiantStature(character)
+  ) {
+    return {};
+  }
+
+  const strengthSkills =
+    skillGroupsByAbility.find((group) => group.ability === "STR")?.skills ?? [];
+
+  return Object.fromEntries(
+    strengthSkills.map(
+      (skill): [SkillName, Array<typeof perfectedArmorDreadnaughtAdvantageIndicator>] => [
+        skill,
+        [perfectedArmorDreadnaughtAdvantageIndicator]
+      ]
+    )
+  ) as SkillIndicatorMap;
+}
+
+function mergeSkillIndicatorMaps(...maps: SkillIndicatorMap[]): SkillIndicatorMap {
+  const merged: SkillIndicatorMap = {};
+
+  maps.forEach((map) => {
+    Object.entries(map).forEach(([skill, indicators]) => {
+      if (!indicators || indicators.length === 0) {
+        return;
+      }
+
+      const skillName = skill as SkillName;
+      merged[skillName] = [...(merged[skillName] ?? []), ...indicators];
+    });
+  });
+
+  return merged;
+}
+
+function getArtificerArmorerPerfectedArmorGuardianReactionEntries(
+  character: ArmorerArcaneArmorCharacter
+): ReactionEntry[] {
+  if (
+    !hasArtificerArmorerPerfectedArmorFeature(character) ||
+    !hasActiveArtificerArmorerArmorModel(character, "guardian")
+  ) {
+    return [];
+  }
+
+  const description = getArtificerArmorerPerfectedArmorDescriptionSection(
+    character,
+    "Guardian."
+  );
+
+  return [
+    {
+      id: artificerArmorerPerfectedArmorGuardianReactionEntryId,
+      reaction: REACTION.PERFECTED_ARMOR_GUARDIAN,
+      name: perfectedArmorGuardianName,
+      sourceType: "feature",
+      sourceFeature: CLASS_FEATURE.PERFECTED_ARMOR,
+      sourceLabel: "Armorer",
+      description
+    }
+  ];
+}
+
 export const getArtificerArmorerDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   hasArtificerSubclassFeature(character, armorerSubclassId, 3)
     ? {
@@ -1024,11 +1627,18 @@ export const getArtificerArmorerDerivedFeatureState: SubclassRuntimeResolver = (
         featureActions: [
           getArtificerArmorerArcaneArmorAction(character),
           getArtificerArmorerDefensiveFieldAction(character),
-          getArtificerArmorerGiantStatureAction(character)
+          getArtificerArmorerGiantStatureAction(character),
+          getArtificerArmorerInfiltratorsFlightAction(character)
         ].filter((action): action is FeatureActionCard => action !== null),
         weaponActions: getArtificerArmorerArmorModelWeaponActions(character),
         speedBonuses: getArtificerArmorerInfiltratorSpeedBonuses(character),
-        skillIndicators: getArtificerArmorerInfiltratorSkillIndicators(character),
+        savingThrowIndicators: getArtificerArmorerDreadnaughtSavingThrowIndicators(character),
+        abilityCheckIndicators: getArtificerArmorerDreadnaughtAbilityCheckIndicators(character),
+        skillIndicators: mergeSkillIndicatorMaps(
+          getArtificerArmorerInfiltratorSkillIndicators(character),
+          getArtificerArmorerDreadnaughtSkillIndicators(character)
+        ),
+        reactionEntries: getArtificerArmorerPerfectedArmorGuardianReactionEntries(character),
         featureActionOptions: {
           [artificerArmorerArcaneArmorActionKey]: getArtificerArmorerArcaneArmorOptions(character)
         }

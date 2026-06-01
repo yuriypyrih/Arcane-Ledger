@@ -252,6 +252,7 @@ export type CharacterInventoryConjuredSource =
   | "replicate-magic-item"
   | "pact-of-the-blade";
 export type CharacterInventoryConjuredDuration = "death" | "short-rest" | "long-rest";
+export type CharacterReplicateMagicItemSlot = "base" | "armor-replication";
 export type CharacterInventoryStoredSpellMode =
   | "default"
   | "consume-charges"
@@ -310,6 +311,8 @@ export type CharacterInventoryItemBase = {
   featureTags?: CharacterInventoryFeatureTag[];
   conjuredSource?: CharacterInventoryConjuredSource;
   conjuredDuration?: CharacterInventoryConjuredDuration;
+  replicateMagicItemPlanKey?: string;
+  replicateMagicItemSlot?: CharacterReplicateMagicItemSlot;
   mods?: CharacterItemMods;
 };
 

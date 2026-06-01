@@ -9,6 +9,9 @@ type ArtificerReplicateMagicItemPlanSelectionProps = {
   plansKnown: number;
   selections: string[];
   onChange: (slotIndex: number, planKey: string) => void;
+  armorReplicationGroups?: ArtificerReplicateMagicItemPlanGroup[];
+  armorReplicationSelection?: string;
+  onArmorReplicationChange?: (planKey: string) => void;
 };
 
 function ArtificerReplicateMagicItemPlanSelection({
@@ -16,11 +19,18 @@ function ArtificerReplicateMagicItemPlanSelection({
   isUnlocked,
   plansKnown,
   selections,
-  onChange
+  onChange,
+  armorReplicationGroups = [],
+  armorReplicationSelection = "",
+  onArmorReplicationChange
 }: ArtificerReplicateMagicItemPlanSelectionProps) {
   if (plansKnown <= 0) {
     return null;
   }
+
+  const selectedBasePlanKeys = new Set(selections.filter((selection) => selection.length > 0));
+  const hasArmorReplicationSelection =
+    armorReplicationGroups.length > 0 && onArmorReplicationChange !== undefined;
 
   return (
     <div className={styles.featureSelectionGrid}>
@@ -28,6 +38,10 @@ function ArtificerReplicateMagicItemPlanSelection({
         const selectedElsewhere = new Set(
           selections.filter((selection, index) => index !== slotIndex && selection.length > 0)
         );
+
+        if (armorReplicationSelection) {
+          selectedElsewhere.add(armorReplicationSelection);
+        }
 
         return (
           <label
@@ -62,6 +76,37 @@ function ArtificerReplicateMagicItemPlanSelection({
           </label>
         );
       })}
+      {hasArmorReplicationSelection ? (
+        <label
+          className={clsx(
+            styles.featureSelectionField,
+            !isUnlocked && styles.featureOptionRowDisabled
+          )}
+        >
+          <span className={styles.featureSelectionLabel}>Armor Replication Plan</span>
+          <SelectInput
+            value={armorReplicationSelection}
+            disabled={!isUnlocked}
+            invalid={isUnlocked && !armorReplicationSelection}
+            onChange={(event) => onArmorReplicationChange(event.target.value)}
+          >
+            <option value="">-</option>
+            {armorReplicationGroups.map((group) => (
+              <optgroup key={group.level} label={group.label}>
+                {group.options.map((option) => (
+                  <option
+                    key={`armor-replication-${option.key}`}
+                    value={option.key}
+                    disabled={selectedBasePlanKeys.has(option.key)}
+                  >
+                    {option.label}
+                  </option>
+                ))}
+              </optgroup>
+            ))}
+          </SelectInput>
+        </label>
+      ) : null}
     </div>
   );
 }
