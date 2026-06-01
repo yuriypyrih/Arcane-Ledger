@@ -12,9 +12,9 @@ type RarityAppearance = {
 
 const appearanceByRarity: Record<RARITY_TYPES, RarityAppearance> = {
   [RARITY_TYPES.CUSTOM]: {
-    color: "#14685d",
-    background: "#dff5f0",
-    border: "#8acfc1"
+    color: "#4b5563",
+    background: "#e5e7eb",
+    border: "#c8ccd3"
   },
   [RARITY_TYPES.NO_RARITY]: {
     color: "#5b524b",

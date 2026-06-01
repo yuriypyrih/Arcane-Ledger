@@ -164,6 +164,7 @@ const moddedItemKeyMarker = "-modded-";
 
 export const INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE = "pact-of-the-blade";
 export const INVENTORY_FEATURE_TAG_CONJURED = "conjured";
+export const INVENTORY_FEATURE_TAG_SPELLCASTING_FOCUS = "spellcasting-focus";
 export const INVENTORY_CONJURED_SOURCE_MANUAL = "manual";
 export const INVENTORY_CONJURED_SOURCE_EXPERIMENTAL_ELIXIR = "experimental-elixir";
 export const INVENTORY_CONJURED_SOURCE_TINKERS_MAGIC = "tinkers-magic";
@@ -183,7 +184,8 @@ const legacyInventoryFeatureTagReplicateMagicItem = "replicate-magic-item";
 
 const inventoryFeatureTagLabels: Record<CharacterInventoryFeatureTag, string> = {
   [INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE]: "Pact of the Blade",
-  [INVENTORY_FEATURE_TAG_CONJURED]: "Conjured"
+  [INVENTORY_FEATURE_TAG_CONJURED]: "Conjured",
+  [INVENTORY_FEATURE_TAG_SPELLCASTING_FOCUS]: "Spellcasting Focus"
 };
 
 const inventoryConjuredSourceLabels: Record<CharacterInventoryConjuredSource, string> = {
@@ -202,6 +204,7 @@ const inventoryConjuredDurationLabels: Record<CharacterInventoryConjuredDuration
 
 const inventoryFeatureTagOrder: CharacterInventoryFeatureTag[] = [
   INVENTORY_FEATURE_TAG_CONJURED,
+  INVENTORY_FEATURE_TAG_SPELLCASTING_FOCUS,
   INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE
 ];
 
@@ -353,7 +356,8 @@ function normalizeInventoryFeatureTags(value: unknown): CharacterInventoryFeatur
   value.forEach((entry) => {
     if (
       entry === INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE ||
-      entry === INVENTORY_FEATURE_TAG_CONJURED
+      entry === INVENTORY_FEATURE_TAG_CONJURED ||
+      entry === INVENTORY_FEATURE_TAG_SPELLCASTING_FOCUS
     ) {
       tagSet.add(entry);
     }

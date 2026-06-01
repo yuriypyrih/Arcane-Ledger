@@ -209,23 +209,29 @@ export const artificerSubclassEntries: SubclassEntry[] = [
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_9,
         CLASS_FEATURE.IMPROVED_ARMORER,
-        createDescription([
-          "You gain the following benefits.",
-          "<strong>Armor Replication.</strong> You learn an additional plan for your Replicate Magic Item feature, and it must be in the Armor category. If you replace that plan, you must replace it with another Armor plan.",
-          "In addition, you can create an additional item with that feature, and the item must also be in the Armor category.",
-          "<strong>Improved Arsenal.</strong> You gain a +1 bonus to attack and damage rolls made with the special weapon of your Arcane Armor model."
-        ])
+        createDescription(
+          [
+            "You gain the following benefits.",
+            "<strong>Armor Replication.</strong> You learn an additional plan for your Replicate Magic Item feature, and it must be in the Armor category. If you replace that plan, you must replace it with another Armor plan.",
+            "In addition, you can create an additional item with that feature, and the item must also be in the Armor category.",
+            "<strong>Improved Arsenal.</strong> You gain a +1 bonus to attack and damage rolls made with the special weapon of your Arcane Armor model."
+          ],
+          TRACKER.TRACKED
+        )
       ),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_15,
         CLASS_FEATURE.PERFECTED_ARMOR,
-        createDescription([
-          "Your Arcane Armor gains additional benefits based on its model.",
-          "<strong>Dreadnaught.</strong> The damage die of your Force Demolisher increases to <strong>2d6</strong> <link:Force>Force</link> damage. In addition, when you use your Giant Stature, your reach increases by 10 feet, your size can increase to Large or Huge, your choice, and you have <link:Advantage>Advantage</link> on <link:Strength>Strength</link> checks and Strength saving throws for the duration.",
-          "<strong>Guardian.</strong> The damage die of your Thunder Pulse increases to <strong>1d10</strong> <link:Thunder>Thunder</link> damage. In addition, when a Huge or smaller creature you can see ends its turn within 30 feet of you, you can take a Reaction to magically force that creature to make a <link:Strength Saving Throw>Strength saving throw</link> against your spell save DC. On a failed save, you pull the creature up to 25 feet directly toward you to an unoccupied space. If you pull the target to a space within 5 feet of yourself, you can make a melee weapon attack against it as part of this Reaction. You can take this Reaction a number of times equal to your Intelligence modifier, minimum of once, and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>.",
-          "<strong>Infiltrator.</strong> The damage die of your Lightning Launcher increases to <strong>2d6</strong> <link:Lightning>Lightning</link> damage. Any creature that takes Lightning damage from your Lightning Launcher glimmers with magical light until the start of your next turn. The glimmering creature sheds Dim Light in a 5-foot radius, and it has <link:Disadvantage>Disadvantage</link> on attack rolls against you, as the light jolts it if it attacks you.",
-          "Additionally, as a Bonus Action, you can gain a Fly Speed equal to twice your Speed until the end of the current turn. You can take this Bonus Action a number of times equal to your Intelligence modifier, minimum of once, and you regain all expended uses when you finish a Long Rest."
-        ])
+        createDescription(
+          [
+            "Your Arcane Armor gains additional benefits based on its model.",
+            "<strong>Dreadnaught.</strong> The damage die of your Force Demolisher increases to <strong>2d6</strong> <link:Force>Force</link> damage. In addition, when you use your Giant Stature, your reach increases by 10 feet, your size can increase to Large or Huge, your choice, and you have <link:Advantage>Advantage</link> on <link:Strength>Strength</link> checks and Strength saving throws for the duration.",
+            "<strong>Guardian.</strong> The damage die of your Thunder Pulse increases to <strong>1d10</strong> <link:Thunder>Thunder</link> damage. In addition, when a Huge or smaller creature you can see ends its turn within 30 feet of you, you can take a Reaction to magically force that creature to make a <link:Strength Saving Throw>Strength saving throw</link> against your spell save DC. On a failed save, you pull the creature up to 25 feet directly toward you to an unoccupied space. If you pull the target to a space within 5 feet of yourself, you can make a melee weapon attack against it as part of this Reaction. You can take this Reaction a number of times equal to your Intelligence modifier, minimum of once, and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>.",
+            "<strong>Infiltrator.</strong> The damage die of your Lightning Launcher increases to <strong>2d6</strong> <link:Lightning>Lightning</link> damage. Any creature that takes Lightning damage from your Lightning Launcher glimmers with magical light until the start of your next turn. The glimmering creature sheds Dim Light in a 5-foot radius, and it has <link:Disadvantage>Disadvantage</link> on attack rolls against you, as the light jolts it if it attacks you.",
+            "Additionally, as a Bonus Action, you can gain a Fly Speed equal to twice your Speed until the end of the current turn. You can take this Bonus Action a number of times equal to your Intelligence modifier, minimum of once, and you regain all expended uses when you finish a Long Rest."
+          ],
+          TRACKER.TRACKED
+        )
       )
     ]
   },

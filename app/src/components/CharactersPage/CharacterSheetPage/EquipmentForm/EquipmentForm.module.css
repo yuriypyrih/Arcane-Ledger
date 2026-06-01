@@ -54,48 +54,52 @@
 }
 
 .equipmentItemButton {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 0.7rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.34rem 0.7rem;
   width: 100%;
   color: var(--color-ink);
   cursor: pointer;
   font: inherit;
   min-height: 34px;
-  padding: 0 0.72rem;
+  padding: 0.34rem 0.72rem;
   text-align: left;
 }
 
 .equipmentItemName {
+  flex: 0 0 auto;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  white-space: normal;
 }
 
-.equipmentItemLabel {
-  display: inline-flex;
+.equipmentItemTagRow {
+  display: flex;
+  flex: 1 1 24rem;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 0.4rem;
+  justify-content: space-between;
+  gap: 0.34rem 0.7rem;
+  min-width: min(100%, 18rem);
+}
+
+.equipmentItemTagsLeft,
+.equipmentItemTagsRight {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.34rem;
   min-width: 0;
 }
 
-.equipmentItemOnHand,
-.drawerOnHandBadge,
-.equipmentItemWorn,
-.drawerWornBadge,
-.equipmentItemAttuned,
-.drawerAttunedBadge,
-.equipmentItemChargesTag,
-.drawerChargesBadge,
-.equipmentItemModdedTag,
-.drawerModdedTag,
-.equipmentItemObjectTag,
-.equipmentItemSpellTag,
-.drawerSpellTagBadge,
-.equipmentItemFeatureTag,
-.drawerFeatureTagBadge {
+.equipmentItemTagsRight {
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
+.inventoryTagPill {
   display: inline-flex;
   align-items: center;
   gap: 0.24rem;
@@ -109,43 +113,34 @@
   white-space: nowrap;
 }
 
-.equipmentItemWorn,
-.drawerWornBadge {
+.inventoryTagPillInline {
+  vertical-align: text-bottom;
+}
+
+.inventoryTagPillWorn,
+.inventoryTagPillPack {
   background: #e5ead5;
   color: #51631f;
 }
 
-.equipmentItemAttuned,
-.drawerAttunedBadge {
+.inventoryTagPillAttuned,
+.inventoryTagPillSpell,
+.inventoryTagPillSpellcastingFocus {
   background: #dbeafe;
   color: #1d4ed8;
 }
 
-.equipmentItemChargesTag,
-.drawerChargesBadge {
+.inventoryTagPillCharges {
   background: #dce8ef;
   color: #315c73;
 }
 
-.equipmentItemModdedTag,
-.drawerModdedTag {
+.inventoryTagPillModded {
   background: #e5e7eb;
   color: #4b5563;
 }
 
-.equipmentItemObjectTag {
-  background: #e5ead5;
-  color: #51631f;
-}
-
-.equipmentItemSpellTag,
-.drawerSpellTagBadge {
-  background: #dbeafe;
-  color: #1d4ed8;
-}
-
-.equipmentItemFeatureTag,
-.drawerFeatureTagBadge {
+.inventoryTagPillFeature {
   background: #ede9fe;
   color: #6d28d9;
 }
@@ -169,14 +164,6 @@
 .drawerSummaryRarity {
   display: inline-flex;
   align-items: center;
-}
-
-.equipmentItemMeta {
-  display: inline-flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.45rem;
-  min-width: 0;
 }
 
 .equipmentItemWeight {
@@ -972,20 +959,6 @@
 
   .catalogCurrencyPill {
     min-width: 0;
-  }
-
-  .equipmentItemButton {
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-  }
-
-  .equipmentItemMeta {
-    justify-content: flex-end;
-    flex-wrap: nowrap;
-  }
-
-  .equipmentItemLabel {
-    flex-wrap: nowrap;
   }
 
   .catalogItemRow {

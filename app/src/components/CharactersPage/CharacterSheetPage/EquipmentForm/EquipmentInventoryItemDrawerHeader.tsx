@@ -1,8 +1,9 @@
-import { Hand, Shield, Sparkles } from "lucide-react";
 import RarityPill, { hasDisplayableRarity } from "../../../CodexPage/RarityPill";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import { buildItemDetailPresentation } from "../../../../pages/ItemCodexEntryPage/itemPresentation";
 import type { ItemRecord } from "../../../../types";
+import InventoryTagPill from "./InventoryTagPill";
+import { getInventoryTagPillProps } from "./inventoryTagPillModel";
 import styles from "./EquipmentForm.module.css";
 
 type EquipmentInventoryItemDrawerHeaderProps = {
@@ -45,43 +46,19 @@ function EquipmentInventoryItemDrawerHeader({
           {presentation.name}
         </h3>
         {onHandCount > 0 ? (
-          <span className={styles.drawerOnHandBadge}>
-            <Hand size={13} aria-hidden="true" />
-            <span>{getOnHandLabel(onHandCount)}</span>
-          </span>
+          <InventoryTagPill type="onHand" label={getOnHandLabel(onHandCount)} />
         ) : null}
-        {worn ? (
-          <span className={styles.drawerWornBadge}>
-            <Shield size={13} aria-hidden="true" />
-            <span>Worn</span>
-          </span>
-        ) : null}
-        {attuned ? (
-          <span className={styles.drawerAttunedBadge}>
-            <Sparkles size={13} aria-hidden="true" />
-            <span>Attuned</span>
-          </span>
-        ) : null}
+        {worn ? <InventoryTagPill type="worn" /> : null}
+        {attuned ? <InventoryTagPill type="attuned" /> : null}
         {charges ? (
-          <span className={styles.drawerChargesBadge}>
-            <span>{`Charges ${charges.remaining}/${charges.total}`}</span>
-          </span>
+          <InventoryTagPill type="charges" label={`Charges ${charges.remaining}/${charges.total}`} />
         ) : null}
         {spellTag ? (
-          <span className={styles.drawerSpellTagBadge}>
-            <Sparkles size={13} aria-hidden="true" />
-            <span>{spellTag}</span>
-          </span>
+          <InventoryTagPill {...getInventoryTagPillProps(spellTag)} />
         ) : null}
-        {modded ? (
-          <span className={styles.drawerModdedTag}>
-            <span>Modded</span>
-          </span>
-        ) : null}
+        {modded ? <InventoryTagPill type="modded" /> : null}
         {featureTags.map((tagLabel) => (
-          <span key={tagLabel} className={styles.drawerFeatureTagBadge}>
-            <span>{tagLabel}</span>
-          </span>
+          <InventoryTagPill key={tagLabel} {...getInventoryTagPillProps(tagLabel)} />
         ))}
       </div>
       <p className={`${sheetStyles.spellDrawerSummary} ${styles.drawerSummaryRow}`}>

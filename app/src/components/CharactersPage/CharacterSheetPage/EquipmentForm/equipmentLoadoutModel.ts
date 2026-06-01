@@ -4,7 +4,6 @@ import {
   type ItemEntry,
   type WeaponEntry
 } from "../../../../codex/entries";
-import type { ItemRecord } from "../../../../types";
 import { clampNumber } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import type { ResolvedCustomLoadoutEntry } from "../../../../pages/CharactersPage/customEquipment";
 import {
@@ -14,6 +13,8 @@ import {
 } from "../../../../pages/CharactersPage/inventory";
 import { isShieldArmorEntry } from "../../../../pages/CharactersPage/armor";
 import {
+  hasInventoryItemFeatureTag,
+  INVENTORY_FEATURE_TAG_SPELLCASTING_FOCUS,
   isItemBodyArmorRecord,
   isItemShieldRecord,
   type GroupedInventoryItem
@@ -67,8 +68,8 @@ export type EquipmentRenderGroup = Omit<EquipmentGroup, "items"> & {
 export const equipmentGroupMeta: Array<Omit<EquipmentGroup, "items">> = [
   {
     key: "weaponsAndStaff",
-    title: "Weapons & Staff",
-    description: "Anything the user holds in their arm while fighting."
+    title: "Weapons & Spellcasting Focus",
+    description: "Weapons, staves, and items marked as a spellcasting focus."
   },
   {
     key: "armorAndShield",
@@ -143,17 +144,18 @@ function getEquipmentGroupKeyForEntry(entry: LoadoutDrawerEntry): EquipmentGroup
   return "generalEquipment";
 }
 
-function getEquipmentGroupKeyForInventoryItem(item: ItemRecord): EquipmentGroupKey {
-  if (
-    item.weapon ||
-    item.category?.key === "staff" ||
-    item.category?.key === "spellcasting-focus"
-  ) {
-    return "weaponsAndStaff";
+function getEquipmentGroupKeyForInventoryItem(item: GroupedInventoryItem): EquipmentGroupKey {
+  if (isItemShieldRecord(item.item) || isItemBodyArmorRecord(item.item)) {
+    return "armorAndShield";
   }
 
-  if (isItemShieldRecord(item) || isItemBodyArmorRecord(item)) {
-    return "armorAndShield";
+  if (
+    item.item.weapon ||
+    item.item.category?.key === "staff" ||
+    item.item.category?.key === "spellcasting-focus" ||
+    hasInventoryItemFeatureTag(item.stack, INVENTORY_FEATURE_TAG_SPELLCASTING_FOCUS)
+  ) {
+    return "weaponsAndStaff";
   }
 
   return "generalEquipment";
@@ -186,7 +188,7 @@ export function groupInventoryEquipmentItems(
   };
 
   items.forEach((item) => {
-    groupedItems[getEquipmentGroupKeyForInventoryItem(item.item)].push(item);
+    groupedItems[getEquipmentGroupKeyForInventoryItem(item)].push(item);
   });
 
   return equipmentGroupMeta.map((group) => ({

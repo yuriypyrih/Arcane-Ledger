@@ -15,6 +15,7 @@ import {
   INVENTORY_REFILLABLE_LIMIT,
   INVENTORY_FEATURE_TAG_CONJURED,
   INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE,
+  INVENTORY_FEATURE_TAG_SPELLCASTING_FOCUS,
   INVENTORY_STORED_SPELL_MODE_CONSUME_CHARGES,
   INVENTORY_STORED_SPELL_MODE_CONSUME_CHARGES_DESTRUCTIBLE,
   INVENTORY_STORED_SPELL_MODE_DEFAULT,
@@ -29,6 +30,7 @@ export type CustomEquipmentItemSettingsDraft = {
   chargesTotal: number;
   conjuredEnabled: boolean;
   conjuredDuration: CharacterInventoryConjuredDuration;
+  spellcastingFocusEnabled: boolean;
   storedSpellEnabled: boolean;
   storedSpellId: string;
   storedSpellSearch: string;
@@ -67,6 +69,7 @@ export function normalizeItemSettingPositiveInteger(value: unknown, fallback = 1
 
 const featureTagOrder: CharacterInventoryFeatureTag[] = [
   INVENTORY_FEATURE_TAG_CONJURED,
+  INVENTORY_FEATURE_TAG_SPELLCASTING_FOCUS,
   INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE
 ];
 
@@ -90,6 +93,7 @@ export function createCustomEquipmentItemSettingsDraft(
   const defaultChargesTotal = getDefaultInventoryItemChargesTotal(item);
   const explicitChargesTotal = getInventoryItemExplicitChargesTotal(initialStack);
   const storedSpell = getInventoryItemStoredSpell(initialStack);
+  const featureTags = new Set(initialStack?.featureTags ?? []);
   const storedSpellRequiresCharges =
     storedSpell !== null && isChargeConsumingStoredSpellMode(storedSpell.mode);
   const chargesEnabled =
@@ -108,6 +112,7 @@ export function createCustomEquipmentItemSettingsDraft(
         : (defaultChargesTotal ?? 1),
     conjuredEnabled: isConjuredInventoryItem(initialStack),
     conjuredDuration,
+    spellcastingFocusEnabled: featureTags.has(INVENTORY_FEATURE_TAG_SPELLCASTING_FOCUS),
     storedSpellEnabled: storedSpell !== null,
     storedSpellId: storedSpell?.spellId ?? "",
     storedSpellSearch: "",
@@ -146,6 +151,12 @@ export function parseCustomEquipmentItemSettingsDraft(
       conjuredSource = undefined;
       conjuredDuration = undefined;
     }
+  }
+
+  if (draft.spellcastingFocusEnabled) {
+    nextTags.add(INVENTORY_FEATURE_TAG_SPELLCASTING_FOCUS);
+  } else {
+    nextTags.delete(INVENTORY_FEATURE_TAG_SPELLCASTING_FOCUS);
   }
 
   if (draft.storedSpellEnabled && !draft.storedSpellId) {

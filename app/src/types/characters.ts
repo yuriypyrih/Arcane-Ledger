@@ -244,7 +244,10 @@ export type CharacterEquipmentItem = {
   worn: boolean;
 };
 
-export type CharacterInventoryFeatureTag = "pact-of-the-blade" | "conjured";
+export type CharacterInventoryFeatureTag =
+  | "pact-of-the-blade"
+  | "conjured"
+  | "spellcasting-focus";
 export type CharacterInventoryConjuredSource =
   | "manual"
   | "experimental-elixir"

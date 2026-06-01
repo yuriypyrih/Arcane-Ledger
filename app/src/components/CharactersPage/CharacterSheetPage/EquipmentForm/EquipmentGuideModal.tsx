@@ -1,6 +1,4 @@
-import { Hand, Shield, Sparkles } from "lucide-react";
 import {
-  BAG_OF_HOLDING_WEIGHT_LIMIT_LB,
   CONTAINER_OBJECT_LIMIT,
   INVENTORY_OBJECT_LIMIT
 } from "../../../../pages/CharactersPage/inventoryItems";
@@ -17,6 +15,7 @@ import {
   SheetModal
 } from "../../../Overlay";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import InventoryTagPill from "./InventoryTagPill";
 import styles from "./EquipmentGuideModal.module.css";
 
 type EquipmentGuideModalProps = {
@@ -46,9 +45,8 @@ function EquipmentGuideModal({
           <OverlaySummary className={shared.helperText}>
             Equipment tracks what your character carries, buys, sells, stores, and actively uses.
             The whole character sheet can hold up to {INVENTORY_OBJECT_LIMIT} unique inventory rows,
-            including items inside containers; each container can hold up to{" "}
-            {CONTAINER_OBJECT_LIMIT} unique rows, and a Bag of Holding can hold up to{" "}
-            {BAG_OF_HOLDING_WEIGHT_LIMIT_LB} lb while only adding its own weight to what you carry.
+            including items inside containers. Each container can hold up to{" "}
+            {CONTAINER_OBJECT_LIMIT} unique rows.
           </OverlaySummary>
         </OverlayHeaderContent>
         <OverlayCloseButton label="Close equipment guide" onClick={onClose} />
@@ -67,47 +65,43 @@ function EquipmentGuideModal({
         <section className={styles.section}>
           <h4 className={styles.sectionTitle}>Item Effects</h4>
           <p className={styles.sectionText}>
-            Descriptions are reference text. The app applies only effects explicitly added through
-            item mods. Modified items are always separate rows and can only be sold or removed, not
-            added as extra copies.
+            Descriptions are just a reference text. The app applies only effects explicitly added
+            through item mods. Modified items are always separate rows and can only be sold or
+            removed, not added as extra copies.
           </p>
           <div className={styles.effectRuleList}>
             <div className={styles.effectRuleRow}>
-              <span>The item must be in root inventory, not inside a container.</span>
+              <span>
+                For the effects to take place the item must be in root inventory, not inside a
+                container.
+              </span>
             </div>
             <div className={styles.effectRuleRow}>
               <span>Weapons and shields apply their effects only while held.</span>
-              <span className={`${styles.rulePill} ${styles.rulePillInHand}`}>
-                <Hand size={13} aria-hidden="true" />
-                In hand
-              </span>
+              <InventoryTagPill type="onHand" label="In hand" />
             </div>
             <div className={styles.effectRuleRow}>
               <span>Armor applies its effects only while worn.</span>
-              <span className={`${styles.rulePill} ${styles.rulePillWorn}`}>
-                <Shield size={13} aria-hidden="true" />
-                Worn
-              </span>
+              <InventoryTagPill type="worn" />
             </div>
             <div className={styles.effectRuleRow}>
               <span>Attunable items apply their effects only after attunement.</span>
-              <span className={`${styles.rulePill} ${styles.rulePillAttuned}`}>
-                <Sparkles size={13} aria-hidden="true" />
-                Attuned
-              </span>
+              <InventoryTagPill type="attuned" />
             </div>
           </div>
         </section>
 
         <section className={styles.section}>
-          <h4 className={styles.sectionTitle}>Conjured Items</h4>
+          <h4 className={styles.sectionTitle}>Tags</h4>
           <p className={styles.sectionText}>
-            <span className={`${styles.inlinePill} ${styles.rulePillConjured}`}>
-              <Sparkles size={13} aria-hidden="true" />
-              Conjured
-            </span>{" "}
-            items cannot be sold and vanish on death by default. Their expanded item tag can show
-            the feature that created them and any explicit rest duration.
+            <InventoryTagPill type="conjured" inline /> items cannot be sold and vanish on death by
+            default. Their expanded item tag can show the feature that created them and any explicit
+            rest duration.
+          </p>
+          <p className={styles.sectionText}>
+            <InventoryTagPill type="spellcastingFocus" inline /> is available in item mods for
+            marking an item as a spellcasting focus. This tag is cosmetic and changes equipment
+            display only.
           </p>
         </section>
 

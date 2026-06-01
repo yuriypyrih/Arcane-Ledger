@@ -226,6 +226,19 @@ function CustomEquipmentItemSettings({
 
         <div className={styles.customEquipmentSettingsOption}>
           <RadioContainerOption
+            header="Spellcasting Focus"
+            subheader="Display this item with spellcasting focus equipment."
+            selected={draft.spellcastingFocusEnabled}
+            onSelect={() =>
+              onChange({ spellcastingFocusEnabled: !draft.spellcastingFocusEnabled })
+            }
+            indicatorType="checkbox"
+            className={styles.customEquipmentChoiceOption}
+          />
+        </div>
+
+        <div className={styles.customEquipmentSettingsOption}>
+          <RadioContainerOption
             header="Spell"
             subheader="Open and cast a stored spell from this item."
             selected={draft.storedSpellEnabled}

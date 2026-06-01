@@ -2,9 +2,7 @@
   gap: 1rem;
 }
 
-.headerPill,
-.rulePill,
-.inlinePill {
+.headerPill {
   display: inline-flex;
   align-items: center;
   gap: 0.24rem;
@@ -17,39 +15,6 @@
   letter-spacing: 0.02em;
   padding: 0 0.64rem;
   white-space: nowrap;
-}
-
-.rulePill,
-.inlinePill {
-  min-height: 24px;
-  background: #eadccc;
-  color: var(--color-ink-soft);
-  font-size: 0.74rem;
-  padding: 0 0.56rem;
-}
-
-.rulePillInHand {
-  background: #eadccc;
-  color: var(--color-ink-soft);
-}
-
-.rulePillWorn {
-  background: #e5ead5;
-  color: #51631f;
-}
-
-.rulePillAttuned {
-  background: #dbeafe;
-  color: #1d4ed8;
-}
-
-.rulePillConjured {
-  background: #ede9fe;
-  color: #6d28d9;
-}
-
-.inlinePill {
-  vertical-align: text-bottom;
 }
 
 .section {
@@ -100,7 +65,4 @@
     gap: 0.45rem;
   }
 
-  .rulePill {
-    justify-self: start;
-  }
 }

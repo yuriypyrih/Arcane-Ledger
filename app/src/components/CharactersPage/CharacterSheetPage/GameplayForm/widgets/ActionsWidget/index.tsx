@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import clsx from "clsx";
-import { Sparkles } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import CellContainer from "../../../../../CellContainer/CellContainer";
 import { useDiceRollerPopup } from "../../../../../DicePage/DiceRollerPopup";
@@ -295,7 +294,8 @@ import d20Icon from "../../../../../../assets/svg/d20.svg";
 import { setNextRollModeOverride, useAppDispatch, useAppSelector } from "../../../../../../store";
 import ActionButton from "../../../../../ActionButton";
 import styles from "./ActionsWidget.module.css";
-import equipmentStyles from "../../../EquipmentForm/EquipmentForm.module.css";
+import InventoryTagPill from "../../../EquipmentForm/InventoryTagPill";
+import { getInventoryTagPillProps } from "../../../EquipmentForm/inventoryTagPillModel";
 import { getSpellActionPathStates, getSpellActionPathWarning } from "../../../spellActionPaths";
 import SneakAttackActionBody, { type SneakAttackActionSelection } from "./SneakAttackModal";
 import GameplayActionDrawer from "./GameplayActionDrawer";
@@ -2339,15 +2339,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
             selectedAction.kind === "weapon" ? (
               <>
                 {selectedWeaponIsAttuned ? (
-                  <span className={equipmentStyles.drawerAttunedBadge}>
-                    <Sparkles size={13} aria-hidden="true" />
-                    <span>Attuned</span>
-                  </span>
+                  <InventoryTagPill type="attuned" />
                 ) : null}
                 {selectedWeaponFeatureTagLabels.map((tagLabel) => (
-                  <span key={tagLabel} className={equipmentStyles.drawerFeatureTagBadge}>
-                    <span>{tagLabel}</span>
-                  </span>
+                  <InventoryTagPill key={tagLabel} {...getInventoryTagPillProps(tagLabel)} />
                 ))}
               </>
             ) : null

@@ -1,4 +1,3 @@
-import { Package, Sparkles } from "lucide-react";
 import RarityPill, { hasDisplayableRarity } from "../../../CodexPage/RarityPill";
 import type { CharacterContainerContentItem } from "../../../../types";
 import {
@@ -18,6 +17,8 @@ import {
   getInventoryItemChargesTagLabel,
   getInventoryItemStoredSpellRowTagLabel
 } from "./equipmentItemUtilityTags";
+import InventoryTagPill from "./InventoryTagPill";
+import { getInventoryTagPillProps } from "./inventoryTagPillModel";
 import styles from "./EquipmentForm.module.css";
 
 type EquipmentContainerContentsListProps = {
@@ -84,6 +85,15 @@ function EquipmentContainerContentsList({
             const chargesTagLabel = getInventoryItemChargesTagLabel(stack);
             const storedSpellRowTagLabel = getInventoryItemStoredSpellRowTagLabel(stack);
             const objectTagLabel = isExtractableEquipmentPackRecord(item) ? "Pack" : null;
+            const featureTagLabels = getInventoryItemFeatureTagLabels(stack, {
+              excludeConjured: true
+            });
+            const spellcastingFocusTagLabels = featureTagLabels.filter(
+              (tagLabel) => tagLabel === "Spellcasting Focus"
+            );
+            const otherFeatureTagLabels = featureTagLabels.filter(
+              (tagLabel) => tagLabel !== "Spellcasting Focus"
+            );
 
             return (
               <li key={`${item.key ?? item.name ?? "item"}-${index}`}>
@@ -95,53 +105,41 @@ function EquipmentContainerContentsList({
                   className={styles.equipmentItemButton}
                   onClick={() => onSelectContent(index)}
                 >
-                  <span className={styles.equipmentItemLabel}>
-                    <span className={styles.equipmentItemName}>
-                      {formatContentName(content, item.name ?? "Item")}
-                    </span>
-                    {objectTagLabel ? (
-                      <span className={styles.equipmentItemObjectTag}>
-                        <Package size={13} aria-hidden="true" />
-                        <span>{objectTagLabel}</span>
-                      </span>
-                    ) : null}
-                    {stack.attuned ? (
-                      <span className={styles.equipmentItemAttuned}>
-                        <Sparkles size={13} aria-hidden="true" />
-                        <span>Attuned</span>
-                      </span>
-                    ) : null}
-                    {getInventoryItemFeatureTagLabels(stack, {
-                      excludeConjured: true
-                    }).map((tagLabel) => (
-                      <span key={tagLabel} className={styles.equipmentItemFeatureTag}>
-                        {tagLabel}
-                      </span>
-                    ))}
+                  <span className={styles.equipmentItemName}>
+                    {formatContentName(content, item.name ?? "Item")}
                   </span>
-                  <span className={styles.equipmentItemMeta}>
-                    {hasCharacterItemMods(stack.mods) && !stack.mods?.isCustom ? (
-                      <span className={styles.equipmentItemModdedTag}>
-                        <span>Modded</span>
+                  <span className={styles.equipmentItemTagRow}>
+                    <span className={styles.equipmentItemTagsLeft}>
+                      {objectTagLabel ? (
+                        <InventoryTagPill type="pack" />
+                      ) : null}
+                      {chargesTagLabel ? (
+                        <InventoryTagPill type="charges" label={chargesTagLabel} />
+                      ) : null}
+                      {stack.attuned ? (
+                        <InventoryTagPill type="attuned" />
+                      ) : null}
+                      {spellcastingFocusTagLabels.map((tagLabel) => (
+                        <InventoryTagPill key={tagLabel} {...getInventoryTagPillProps(tagLabel)} />
+                      ))}
+                      {otherFeatureTagLabels.map((tagLabel) => (
+                        <InventoryTagPill key={tagLabel} {...getInventoryTagPillProps(tagLabel)} />
+                      ))}
+                    </span>
+                    <span className={styles.equipmentItemTagsRight}>
+                      {storedSpellRowTagLabel ? (
+                        <InventoryTagPill type="spell" />
+                      ) : null}
+                      {conjuredRowTagLabel ? (
+                        <InventoryTagPill {...getInventoryTagPillProps(conjuredRowTagLabel)} />
+                      ) : null}
+                      {hasCharacterItemMods(stack.mods) && !stack.mods?.isCustom ? (
+                        <InventoryTagPill type="modded" />
+                      ) : null}
+                      {hasDisplayableRarity(item.rarity) ? <RarityPill rarity={item.rarity} /> : null}
+                      <span className={styles.equipmentItemWeight}>
+                        {formatEquipmentWeight(getContainerContentsWeightValue([content]))}
                       </span>
-                    ) : null}
-                    {chargesTagLabel ? (
-                      <span className={styles.equipmentItemChargesTag}>
-                        <span>{chargesTagLabel}</span>
-                      </span>
-                    ) : null}
-                    {storedSpellRowTagLabel ? (
-                      <span className={styles.equipmentItemSpellTag}>
-                        <Sparkles size={13} aria-hidden="true" />
-                        <span>{storedSpellRowTagLabel}</span>
-                      </span>
-                    ) : null}
-                    {conjuredRowTagLabel ? (
-                      <span className={styles.equipmentItemFeatureTag}>{conjuredRowTagLabel}</span>
-                    ) : null}
-                    {hasDisplayableRarity(item.rarity) ? <RarityPill rarity={item.rarity} /> : null}
-                    <span className={styles.equipmentItemWeight}>
-                      {formatEquipmentWeight(getContainerContentsWeightValue([content]))}
                     </span>
                   </span>
                 </SheetSurface>

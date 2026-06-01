@@ -170,6 +170,8 @@ import EquipmentContainerManageModal from "./EquipmentContainerManageModal";
 import EquipmentContainerContentsList from "./EquipmentContainerContentsList";
 import EquipmentGuideModal from "./EquipmentGuideModal";
 import EquipmentItemBrowserModal from "./EquipmentItemBrowserModal";
+import InventoryTagPill from "./InventoryTagPill";
+import { getInventoryTagPillProps } from "./inventoryTagPillModel";
 import { renderEquipmentForm } from "./EquipmentFormRenderer";
 import {
   applyAddEquipmentDraftToCharacter,
@@ -2882,6 +2884,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     EquipmentItemBrowserModal,
     Hand,
     InlineToggleButton,
+    InventoryTagPill,
     KeywordReferenceDrawer,
     Minus,
     NumberInput,
@@ -2893,12 +2896,10 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     OverlayHeaderContent,
     OverlaySummary,
     OverlayTitle,
-    Package,
     Plus,
     RarityPill,
     SheetModal,
     Shield,
-    Sparkles,
     WeaponMasteryStatusLabel,
     X,
     activeCurrencyDefinition,
@@ -2940,6 +2941,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     getInventoryItemFeatureTagLabels,
     getInventoryItemStoredSpellRowTagLabel,
     getInventoryItemTotalWeightValue,
+    getInventoryTagPillProps,
     groupedInventoryItems,
     hasCharacterItemMods,
     hasDisplayableRarity,
