@@ -498,7 +498,18 @@
 @media (max-width: 599px) {
   .button {
     gap: 0.24rem;
+    min-width: 0;
+    overflow: hidden;
     padding: 0.58rem 0.62rem;
+  }
+
+  .button.actionCard {
+    overflow: visible;
+  }
+
+  .button > * {
+    max-width: 100%;
+    min-width: 0;
   }
 
   .button strong {
@@ -515,5 +526,53 @@
 
   .actionCard {
     padding-top: 0.84rem;
+  }
+
+  .button strong,
+  .button small,
+  .damageRow,
+  .featureUsesSupplementary,
+  .featureUsageText span,
+  .featureUsageOperator,
+  .optionChoiceValue,
+  .optionChoiceBreakdown {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .button strong,
+  .button small,
+  .damageRow,
+  .featureUsesSupplementary,
+  .optionChoiceBreakdown {
+    display: block;
+  }
+
+  .cardHeaderRow,
+  .subheaderSlot,
+  .subheaderStack,
+  .featureUsage,
+  .featureUsageCharges,
+  .featureUsageText,
+  .optionChoiceDetails,
+  .optionChoiceValue {
+    min-width: 0;
+  }
+
+  .featureUsage {
+    flex-wrap: nowrap;
+    overflow: hidden;
+  }
+
+  .featureUsageCharges,
+  .featureUsageText {
+    flex: 0 1 auto;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .featureUsageText span {
+    min-width: 0;
   }
 }

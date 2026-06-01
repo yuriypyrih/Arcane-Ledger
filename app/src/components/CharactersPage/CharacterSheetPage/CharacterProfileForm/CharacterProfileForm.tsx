@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { ScrollText } from "lucide-react";
+import { ScrollText, UsersRound } from "lucide-react";
 import { useCallback, useState } from "react";
 import type { CharacterPortraitMutationResponse } from "../../../../api/characterPortraits";
 import type { Character } from "../../../../types";
@@ -35,14 +35,18 @@ type CharacterProfileFormProps = {
   broadLayout?: boolean;
   character: Character;
   className?: string;
+  isCompanionLimitReached?: boolean;
   onPersistCharacter: PersistCharacterUpdater;
+  onRequestCreateCompanion?: () => void;
 };
 
 function CharacterProfileForm({
   broadLayout = false,
   character,
   className,
-  onPersistCharacter
+  isCompanionLimitReached = false,
+  onPersistCharacter,
+  onRequestCreateCompanion
 }: CharacterProfileFormProps) {
   const dispatch = useAppDispatch();
   const [isNotesDrawerOpen, setIsNotesDrawerOpen] = useState(false);
@@ -166,13 +170,24 @@ function CharacterProfileForm({
               </p>
               <p>{character.alignment}</p>
             </div>
-            <InlineToggleButton
-              className={styles.notesToggle}
-              icon={<ScrollText size={15} aria-hidden="true" />}
-              label="Show Character Notes"
-              expanded={isNotesDrawerOpen}
-              onClick={openNotesDrawer}
-            />
+            <div className={styles.profileActionLinks}>
+              <InlineToggleButton
+                className={styles.notesToggle}
+                icon={<ScrollText size={15} aria-hidden="true" />}
+                label="Show Character Notes"
+                expanded={isNotesDrawerOpen}
+                onClick={openNotesDrawer}
+              />
+              {onRequestCreateCompanion ? (
+                <InlineToggleButton
+                  className={styles.companionToggle}
+                  icon={<UsersRound size={15} aria-hidden="true" />}
+                  label="Add Companion"
+                  disabled={isCompanionLimitReached}
+                  onClick={onRequestCreateCompanion}
+                />
+              ) : null}
+            </div>
           </div>
 
           <aside
@@ -183,7 +198,7 @@ function CharacterProfileForm({
               rows={profileCoreStatRows}
               condensedColumns={profileCoreStatColumns}
               profileTexture
-              rowFlow={broadLayout ? "condensed" : "responsive-condensed"}
+              rowFlow={broadLayout ? "condensed" : "grid"}
               onOpenCard={openCoreStatReference}
             />
           </aside>

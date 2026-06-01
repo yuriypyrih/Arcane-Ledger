@@ -29,11 +29,12 @@ type PersistSectionProps = {
 
 type GameplaySectionProps = PersistSectionProps & {
   onQueueHitPointCharacter: QueueCharacterSave;
-  onRequestCreateCompanion?: () => void;
 };
 
 type CharacterProfileSectionProps = PersistSectionProps & {
   broadLayout?: boolean;
+  isCompanionLimitReached?: boolean;
+  onRequestCreateCompanion?: () => void;
 };
 
 type StatsSectionProps = PersistSectionProps & {
@@ -70,7 +71,9 @@ function useDefaultPersistOptions(
 export const CharacterProfileSection = memo(function CharacterProfileSection({
   broadLayout = false,
   className,
-  onPersistCharacter
+  isCompanionLimitReached = false,
+  onPersistCharacter,
+  onRequestCreateCompanion
 }: CharacterProfileSectionProps) {
   const character = useAppSelector(selectProfileCharacter);
 
@@ -79,7 +82,9 @@ export const CharacterProfileSection = memo(function CharacterProfileSection({
       broadLayout={broadLayout}
       character={character}
       className={className}
+      isCompanionLimitReached={isCompanionLimitReached}
       onPersistCharacter={onPersistCharacter}
+      onRequestCreateCompanion={onRequestCreateCompanion}
     />
   ) : null;
 });
@@ -87,8 +92,7 @@ export const CharacterProfileSection = memo(function CharacterProfileSection({
 export const GameplaySection = memo(function GameplaySection({
   className,
   onPersistCharacter,
-  onQueueHitPointCharacter,
-  onRequestCreateCompanion
+  onQueueHitPointCharacter
 }: GameplaySectionProps) {
   const character = useAppSelector(selectGameplayCharacter);
   const persistGameplayCharacter = useDefaultPersistOptions(
@@ -102,7 +106,6 @@ export const GameplaySection = memo(function GameplaySection({
       className={className}
       onPersistCharacter={persistGameplayCharacter}
       onQueueHitPointCharacter={onQueueHitPointCharacter}
-      onRequestCreateCompanion={onRequestCreateCompanion}
     />
   ) : null;
 });

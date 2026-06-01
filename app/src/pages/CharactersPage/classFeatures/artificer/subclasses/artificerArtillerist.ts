@@ -1,15 +1,58 @@
-import { TOOL_PROFICIENCY, WEAPON_PROFICIENCY } from "../../../../../types";
+import { WEAPON_PROFICIENCY } from "../../../../../types";
 import {
   getPreparedSpellIdsByLevel,
   type SubclassRuntimeResolver
 } from "../../subclassRuntime";
+import type { FeatureActionCard } from "../../types";
 import {
-  createArtificerToolProficiencyEntries,
+  artificerEldritchCannonActionKey,
+  artilleristSubclassId,
+  getArtificerEldritchCannonAction,
+  getArtificerEldritchCannonOptions,
+  getArtificerExplosiveCannonReactionEntries
+} from "./artificerArtilleristEldritchCannon";
+import {
+  getArtificerArcaneFirearmAction,
+  getArtificerArcaneFirearmSpellDamageBonuses
+} from "./artificerArtilleristArcaneFirearm";
+import {
   createArtificerWeaponProficiencyEntries,
   hasArtificerSubclassFeature
 } from "./artificerSubclassHelpers";
+import { getArtificerToolsOfTheTradeToolProficiencyEntries } from "../toolsOfTheTrade";
 
-export const artilleristSubclassId = "artificer-artillerist";
+export {
+  artificerArcaneFirearmActionKey,
+  getArtificerArcaneFirearmItemOptions,
+  hasActiveArtificerArcaneFirearm,
+  hasArtificerArcaneFirearmFeature,
+  setArtificerArcaneFirearmForCharacter,
+  type ArtificerArcaneFirearmItemOption
+} from "./artificerArtilleristArcaneFirearm";
+
+export {
+  artificerEldritchCannonActionKey,
+  artificerExplosiveCannonDetonateReactionEntryId,
+  artilleristSubclassId,
+  createArtificerEldritchCannonForCharacter,
+  detonateArtificerEldritchCannon,
+  getArtificerEldritchCannonCompanions,
+  getArtificerExplosiveCannonReactionEntries,
+  getArtificerEldritchCannonOptions,
+  getArtificerEldritchCannonSpellSlotOptions,
+  getArtificerEldritchCannonUsesRemaining,
+  getArtificerEldritchCannonUsesTotal,
+  hasActiveArtificerEldritchCannon,
+  hasArtificerEldritchCannonFeature,
+  hasArtificerExplosiveCannonFeature,
+  hasArtificerFortifiedPositionFeature,
+  isArtificerEldritchCannonCompanion,
+  isArtificerEldritchCannonOptionKey,
+  normalizeArtificerArtilleristState,
+  restoreArtificerEldritchCannonOnLongRest,
+  type ArtificerEldritchCannonOptionKey,
+  type ArtificerEldritchCannonSpellSlotOption
+} from "./artificerArtilleristEldritchCannon";
 
 const artilleristSpellIdsByLevel = {
   3: ["spell-shield", "spell-thunderwave"],
@@ -21,20 +64,33 @@ const artilleristSpellIdsByLevel = {
 
 const artilleristToolsSource = "Artillerist: Tools of the Trade";
 
-export const getArtificerArtilleristDerivedFeatureState: SubclassRuntimeResolver = (character) =>
-  hasArtificerSubclassFeature(character, artilleristSubclassId, 3)
-    ? {
-        alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-          character.level ?? 0,
-          artilleristSpellIdsByLevel
-        ),
-        weaponProficiencyEntries: createArtificerWeaponProficiencyEntries(
-          [WEAPON_PROFICIENCY.MARTIAL_RANGED],
-          artilleristToolsSource
-        ),
-        toolProficiencyEntries: createArtificerToolProficiencyEntries(
-          [TOOL_PROFICIENCY.WOODCARVERS_TOOLS],
-          artilleristToolsSource
-        )
-      }
-    : {};
+export const getArtificerArtilleristDerivedFeatureState: SubclassRuntimeResolver = (character) => {
+  if (!hasArtificerSubclassFeature(character, artilleristSubclassId, 3)) {
+    return {};
+  }
+
+  const eldritchCannonAction = getArtificerEldritchCannonAction(character);
+  const arcaneFirearmAction = getArtificerArcaneFirearmAction(character);
+  const artilleristSpellIds = getPreparedSpellIdsByLevel(
+    character.level ?? 0,
+    artilleristSpellIdsByLevel
+  );
+
+  return {
+    alwaysPreparedSpellIds: artilleristSpellIds,
+    weaponProficiencyEntries: createArtificerWeaponProficiencyEntries(
+      [WEAPON_PROFICIENCY.MARTIAL_RANGED],
+      artilleristToolsSource
+    ),
+    toolProficiencyEntries: getArtificerToolsOfTheTradeToolProficiencyEntries(character),
+    featureActions: [eldritchCannonAction, arcaneFirearmAction].filter(
+      (action): action is FeatureActionCard => action !== null
+    ),
+    featureActionOptions: {
+      [artificerEldritchCannonActionKey]: getArtificerEldritchCannonOptions()
+    },
+    reactionEntries: getArtificerExplosiveCannonReactionEntries(character),
+    getSpellDamageBonuses: (context) =>
+      getArtificerArcaneFirearmSpellDamageBonuses(character, context, artilleristSpellIds)
+  };
+};

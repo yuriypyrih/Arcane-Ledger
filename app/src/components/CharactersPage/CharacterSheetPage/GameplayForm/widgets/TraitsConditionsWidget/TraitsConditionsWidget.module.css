@@ -7,6 +7,12 @@
   gap: 0.8rem;
 }
 
+.eldritchCannonSelectorGrid {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
 .spellThiefSearchInput {
   border: 1px solid rgba(75, 47, 29, 0.18);
   border-radius: var(--radius-field);

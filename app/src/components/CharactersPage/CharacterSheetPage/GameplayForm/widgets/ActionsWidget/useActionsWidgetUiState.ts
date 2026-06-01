@@ -32,6 +32,8 @@ type ActionsWidgetUiState = {
   selectedArcaneWardSpellSlotLevel: number | null;
   selectedExperimentalElixirOptionKey: ArtificerExperimentalElixirOptionKey | null;
   selectedExperimentalElixirSpellSlotLevel: number | null;
+  selectedArtificerEldritchCannonSpellSlotLevel: number | null;
+  selectedArtificerSteelDefenderSpellSlotLevel: number | null;
   selectedBeastMasterReviveSpellSlotLevel: number | null;
   selectedWildCompanionSpellSlotLevel: number;
   selectedWildResurgenceMode: WildResurgenceMode | null;
@@ -128,6 +130,8 @@ function createInitialState(
     selectedArcaneWardSpellSlotLevel: null,
     selectedExperimentalElixirOptionKey: null,
     selectedExperimentalElixirSpellSlotLevel: null,
+    selectedArtificerEldritchCannonSpellSlotLevel: null,
+    selectedArtificerSteelDefenderSpellSlotLevel: null,
     selectedBeastMasterReviveSpellSlotLevel: null,
     selectedWildCompanionSpellSlotLevel: 1,
     selectedWildResurgenceMode: null,
@@ -197,6 +201,8 @@ function getActionDrawerResetState(): Partial<ActionsWidgetUiState> {
     selectedArcaneWardSpellSlotLevel: null,
     selectedExperimentalElixirOptionKey: null,
     selectedExperimentalElixirSpellSlotLevel: null,
+    selectedArtificerEldritchCannonSpellSlotLevel: null,
+    selectedArtificerSteelDefenderSpellSlotLevel: null,
     selectedWildCompanionSpellSlotLevel: 1,
     selectedWildResurgenceMode: null,
     selectedWildResurgenceSpellSlotLevel: 1,
@@ -262,6 +268,8 @@ function getActionSelectionResetState(): Partial<ActionsWidgetUiState> {
     selectedArcaneWardSpellSlotLevel: null,
     selectedExperimentalElixirOptionKey: null,
     selectedExperimentalElixirSpellSlotLevel: null,
+    selectedArtificerEldritchCannonSpellSlotLevel: null,
+    selectedArtificerSteelDefenderSpellSlotLevel: null,
     selectedWildCompanionSpellSlotLevel: 1,
     selectedWildResurgenceMode: null,
     selectedWildResurgenceSpellSlotLevel: 1,
@@ -387,6 +395,14 @@ export function useActionsWidgetUiState(
       setSelectedExperimentalElixirSpellSlotLevel: createFieldSetter(
         dispatch,
         "selectedExperimentalElixirSpellSlotLevel"
+      ),
+      setSelectedArtificerEldritchCannonSpellSlotLevel: createFieldSetter(
+        dispatch,
+        "selectedArtificerEldritchCannonSpellSlotLevel"
+      ),
+      setSelectedArtificerSteelDefenderSpellSlotLevel: createFieldSetter(
+        dispatch,
+        "selectedArtificerSteelDefenderSpellSlotLevel"
       ),
       setSelectedBeastMasterReviveSpellSlotLevel: createFieldSetter(
         dispatch,

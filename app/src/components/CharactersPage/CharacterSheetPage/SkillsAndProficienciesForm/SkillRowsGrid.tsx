@@ -17,8 +17,10 @@ import { getSkillRowsByAbility, type SkillRow } from "../../../../pages/Characte
 import {
   formatFormulaCell,
   formatFormulaDieDisplayTerm,
+  formatFormulaTerms,
   formatSignedFormulaTerm
 } from "../../../../pages/CharactersPage/shared";
+import { formatCustomTraitBonusRollFormulaTerm } from "../../../../pages/CharactersPage/customTraitEffects";
 import { skillColumnLayout } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import RollStatePill from "../../../RollStatePill/RollStatePill";
 import { resolveFeatureIndicators } from "../../../RollStatePill/rollState";
@@ -50,14 +52,22 @@ type SkillRowsGridProps = {
   onSkillLevelChange?: (skillName: string, nextLevel: PROF_LEVEL) => void;
 };
 
-function formatSkillRollFormula(modifier: number, d20Minimum: number | null): string {
+function formatSkillRollFormula(
+  modifier: number,
+  d20Minimum: number | null,
+  formulaTerms: string[] = []
+): string {
   const d20Term = d20Minimum ? `1d20m${d20Minimum}` : "1d20";
+  const d20Formula =
+    modifier === 0 ? d20Term : `${d20Term} ${modifier > 0 ? "+" : "-"} ${Math.abs(modifier)}`;
 
-  if (modifier === 0) {
-    return d20Term;
-  }
+  return formatFormulaTerms([d20Formula, ...formulaTerms]);
+}
 
-  return `${d20Term} ${modifier > 0 ? "+" : "-"} ${Math.abs(modifier)}`;
+function getSkillRollFormulaTerms(row: SkillRow): string[] {
+  return row.bonusEntries
+    .map(formatCustomTraitBonusRollFormulaTerm)
+    .filter((entry): entry is string => Boolean(entry));
 }
 
 function getSkillFormulaDisplayTerms(row: SkillRow, d20Minimum: number | null = null): string[] {
@@ -154,9 +164,11 @@ function SkillRowsGrid({
                     );
                     const skillDescriptionAdditions =
                       getSkillReferenceDescriptionAdditionsForCharacter(character, row.name);
+                    const skillFormulaTerms = getSkillRollFormulaTerms(row);
                     const skillRollFormula = formatSkillRollFormula(
                       row.totalModifier,
-                      reliableTalentD20Minimum
+                      reliableTalentD20Minimum,
+                      skillFormulaTerms
                     );
                     const skillDetailCards = getSkillReferenceDetailCards({
                       row,

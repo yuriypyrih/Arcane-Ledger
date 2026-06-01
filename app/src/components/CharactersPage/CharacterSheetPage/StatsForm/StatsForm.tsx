@@ -17,6 +17,7 @@ import {
 import { getKeywordDescription } from "../../../../pages/CharactersPage/keywordDescriptions";
 import {
   formatCustomTraitBonusFormulaTerm,
+  formatCustomTraitBonusRollFormulaTerm,
   type CustomTraitBonusInput
 } from "../../../../pages/CharactersPage/customTraitEffects";
 import { getCharacterCustomTraitEffectInput } from "../../../../pages/CharactersPage/characterRuntime/customEffectRuntime";
@@ -78,6 +79,7 @@ import {
 } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import {
   formatD20Formula,
+  formatFormulaTerms,
   getProficiencyMultiplier
 } from "../../../../pages/CharactersPage/shared";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
@@ -521,6 +523,8 @@ function CharacterStatsForm({
             return {
               label: bonus.label,
               value,
+              formula: bonus.formula,
+              formulaMultiplier: bonus.formulaMultiplier,
               abilityModifierSource: bonus.abilityModifierSource,
               formulaSourceLabel: bonus.formulaSourceLabel,
               formulaLabel:
@@ -806,7 +810,14 @@ function CharacterStatsForm({
       canUseMageSlayerGuardedMindOnSelectedSave &&
       mageSlayerGuardedMindState !== null;
     const totalModifier = saveRoll.modifier + (usesIndomitable ? indomitableSaveBonus : 0);
-    const rollFormula = formatD20Formula(totalModifier);
+    const rollFormula = formatFormulaTerms([
+      formatD20Formula(totalModifier),
+      ...(saveRoll.formulaTerms ?? [])
+    ]);
+    const rollFormulaDisplay = formatFormulaTerms([
+      formatD20Formula(totalModifier),
+      ...(saveRoll.formulaDisplayTerms ?? saveRoll.formulaTerms ?? [])
+    ]);
     const titleSuffixes = [
       ...(usesIndomitable ? ["Indomitable"] : []),
       ...(usesDisciplinedSurvivor ? ["Discipline Survivor"] : []),
@@ -858,7 +869,7 @@ function CharacterStatsForm({
     openDiceRoller({
       title,
       formula: rollFormula,
-      formulaDisplay: rollFormula,
+      formulaDisplay: rollFormulaDisplay,
       description: descriptionParts.join(" "),
       mode: getRollModeFromIndicators(saveRoll.indicators)
     });
@@ -897,6 +908,12 @@ function CharacterStatsForm({
       selectedCard.proficiencyLabel,
       selectedCard.savingThrowBonusEntries
     );
+    const savingThrowFormulaTerms = selectedCard.savingThrowBonusEntries
+      .map(formatCustomTraitBonusRollFormulaTerm)
+      .filter((entry): entry is string => Boolean(entry));
+    const savingThrowFormulaDisplayTerms = selectedCard.savingThrowBonusEntries.flatMap((entry) =>
+      formatCustomTraitBonusRollFormulaTerm(entry) ? [entry.formulaLabel ?? entry.formula ?? ""] : []
+    );
     const abilityLabel = abilityDisplayLabels[ability];
 
     const descriptionItems = [
@@ -932,7 +949,9 @@ function CharacterStatsForm({
           title: `${abilityLabel} Saving Throw`,
           modifier: selectedCard.totalSavingThrowValue,
           description: savingThrowFormula,
-          indicators: selectedCard.savingThrowIndicators
+          indicators: selectedCard.savingThrowIndicators,
+          formulaTerms: savingThrowFormulaTerms,
+          formulaDisplayTerms: savingThrowFormulaDisplayTerms
         }
       },
       descriptionAdditions: getAbilityDescriptionAdditions(character, ability),

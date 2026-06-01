@@ -286,6 +286,8 @@ export type ArtificerArmorerArmorModel = "dreadnaught" | "guardian" | "infiltrat
 
 export type CharacterArtificerFeatureState = {
   extraAttacksRemainingThisTurn?: number;
+  battleSmithArcaneJoltUsesExpended?: number;
+  battleSmithArcaneJoltUsedThisTurn?: boolean;
   conjuredCauldronUsesExpended?: number;
   flashOfGeniusUsesExpended?: number;
   magicItemTinkerDrainUsesExpended?: number;
@@ -295,6 +297,7 @@ export type CharacterArtificerFeatureState = {
   replicateMagicItemPlanKeys?: string[];
   armorerImprovedArmorReplicationPlanKey?: string;
   toolsOfTheTradeToolProficiencies?: TOOL_PROFICIENCY[];
+  artilleristEldritchCannonUsesExpended?: number;
   armorerArcaneArmorTargetKey?: string;
   armorerArmorModel?: ArtificerArmorerArmorModel;
   armorerGiantStatureUsesExpended?: number;

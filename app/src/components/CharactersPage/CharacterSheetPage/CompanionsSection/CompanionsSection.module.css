@@ -4,6 +4,15 @@
   grid-template-columns: 1fr;
 }
 
+.companionsSectionHeader {
+  align-items: center;
+}
+
+.companionsHeaderActions {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
 .browserBackdrop {
   z-index: 47;
 }
@@ -221,6 +230,18 @@
 
 .statBlockEditorBody {
   gap: 1rem;
+}
+
+@media (max-width: 599px) {
+  .companionsSectionHeader {
+    align-items: center;
+    flex-direction: row;
+    gap: 0.65rem;
+  }
+
+  .companionsHeaderActions {
+    justify-content: flex-end;
+  }
 }
 
 .statBlockEditorSection {

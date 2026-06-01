@@ -1,11 +1,16 @@
 import {
   type AbilityKey,
+  type CharacterCustomTraitDiceValue,
   type CharacterCustomTraitEffect,
   type CharacterCustomTraitRollMode,
   type CharacterCustomTraitValueMode,
   type CharacterStatusEntry
 } from "../../../../../../types";
-import { ALL_SKILLS, isSkillName } from "../../../../../../types";
+import {
+  ALL_SKILLS,
+  characterCustomTraitDiceValues,
+  isSkillName
+} from "../../../../../../types";
 import { WEAPON_COMBAT_TYPE } from "../../../../../../codex/entries";
 import {
   defaultManualStatusDurationDraft,
@@ -56,6 +61,10 @@ export function isCustomTraitAbilityValue(value: string): boolean {
   return abilityKeys.includes(value.trim() as AbilityKey);
 }
 
+function isCustomTraitDiceValue(value: string): value is CharacterCustomTraitDiceValue {
+  return characterCustomTraitDiceValues.includes(value.trim() as CharacterCustomTraitDiceValue);
+}
+
 export function isCustomTraitRollModeDisabledTarget(target: string): boolean {
   const trimmedTarget = target.trim();
   return (
@@ -69,6 +78,23 @@ export function doesCustomTraitTargetAllowAbilityValue(target: string): boolean 
   const [type] = target.trim().split(":");
   return type !== "abilityScore" && type !== "abilityModifier" && type !== "savingThrow";
 }
+
+export function doesCustomTraitTargetAllowDiceValue(target: string): boolean {
+  const [type] = target.trim().split(":");
+
+  return (
+    type === "initiative" ||
+    type === "savingThrow" ||
+    type === "skill" ||
+    type === "spellAttack" ||
+    type === "weaponDamage"
+  );
+}
+
+export const customTraitDiceValueOptions = characterCustomTraitDiceValues.map((value) => ({
+  value,
+  label: value.replace(/^1d/i, "D")
+}));
 
 function createRollModeFields(effect: CustomTraitEffectDraft) {
   const rollMode = isCustomTraitRollModeDisabledTarget(effect.target)
@@ -205,16 +231,18 @@ export function parseCustomTraitEffectDraft(
   const valueAsAbility = isCustomTraitAbilityValue(trimmedValue)
     ? (trimmedValue as AbilityKey)
     : null;
+  const valueAsDice = isCustomTraitDiceValue(trimmedValue) ? trimmedValue : null;
   const numericValue = trimmedValue.length > 0 ? Number(trimmedValue) : 0;
-  const normalizedValue = valueAsAbility ?? Math.trunc(numericValue);
+  const normalizedValue = valueAsAbility ?? valueAsDice ?? Math.trunc(numericValue);
   const rollModeFields = createRollModeFields(draft);
   const valueModeFields = createValueModeFields(draft);
 
   if (
     !trimmedTarget ||
-    (valueAsAbility === null && !Number.isFinite(numericValue)) ||
+    (valueAsAbility === null && valueAsDice === null && !Number.isFinite(numericValue)) ||
     (typeof normalizedValue === "number" && normalizedValue === 0 && rollMode === "normal") ||
-    (valueAsAbility !== null && !doesCustomTraitTargetAllowAbilityValue(trimmedTarget))
+    (valueAsAbility !== null && !doesCustomTraitTargetAllowAbilityValue(trimmedTarget)) ||
+    (valueAsDice !== null && !doesCustomTraitTargetAllowDiceValue(trimmedTarget))
   ) {
     return null;
   }
@@ -280,8 +308,7 @@ export function parseCustomTraitEffectDraft(
 
   if (
     type === "savingThrow" &&
-    abilityKeys.includes(rawDetail as AbilityKey) &&
-    typeof normalizedValue === "number"
+    abilityKeys.includes(rawDetail as AbilityKey)
   ) {
     return {
       type: "savingThrow",

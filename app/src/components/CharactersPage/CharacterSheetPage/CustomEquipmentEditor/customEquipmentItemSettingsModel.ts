@@ -2,6 +2,7 @@ import type {
   CharacterInventoryConjuredDuration,
   CharacterInventoryFeatureTag,
   CharacterInventoryItem,
+  CharacterInventorySpellcastingFocusSource,
   CharacterInventoryStoredSpellMode
 } from "../../../../types";
 import {
@@ -16,6 +17,9 @@ import {
   INVENTORY_FEATURE_TAG_CONJURED,
   INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE,
   INVENTORY_FEATURE_TAG_SPELLCASTING_FOCUS,
+  INVENTORY_SPELLCASTING_FOCUS_SOURCE_ARCANE_FIREARM,
+  INVENTORY_SPELLCASTING_FOCUS_SOURCE_MANUAL,
+  getInventoryItemSpellcastingFocusSources,
   INVENTORY_STORED_SPELL_MODE_CONSUME_CHARGES,
   INVENTORY_STORED_SPELL_MODE_CONSUME_CHARGES_DESTRUCTIBLE,
   INVENTORY_STORED_SPELL_MODE_DEFAULT,
@@ -77,6 +81,17 @@ function getOrderedFeatureTags(tagSet: Set<CharacterInventoryFeatureTag>) {
   return featureTagOrder.filter((tag) => tagSet.has(tag));
 }
 
+function getOrderedSpellcastingFocusSources(
+  sourceSet: Set<CharacterInventorySpellcastingFocusSource>
+): CharacterInventorySpellcastingFocusSource[] {
+  const sourceOrder: CharacterInventorySpellcastingFocusSource[] = [
+    INVENTORY_SPELLCASTING_FOCUS_SOURCE_MANUAL,
+    INVENTORY_SPELLCASTING_FOCUS_SOURCE_ARCANE_FIREARM
+  ];
+
+  return sourceOrder.filter((source) => sourceSet.has(source));
+}
+
 export function isCustomEquipmentItemSettingsConjuredLocked(
   initialStack?: CharacterInventoryItem | null
 ): boolean {
@@ -93,7 +108,9 @@ export function createCustomEquipmentItemSettingsDraft(
   const defaultChargesTotal = getDefaultInventoryItemChargesTotal(item);
   const explicitChargesTotal = getInventoryItemExplicitChargesTotal(initialStack);
   const storedSpell = getInventoryItemStoredSpell(initialStack);
-  const featureTags = new Set(initialStack?.featureTags ?? []);
+  const spellcastingFocusSources = new Set(
+    getInventoryItemSpellcastingFocusSources(initialStack)
+  );
   const storedSpellRequiresCharges =
     storedSpell !== null && isChargeConsumingStoredSpellMode(storedSpell.mode);
   const chargesEnabled =
@@ -112,7 +129,9 @@ export function createCustomEquipmentItemSettingsDraft(
         : (defaultChargesTotal ?? 1),
     conjuredEnabled: isConjuredInventoryItem(initialStack),
     conjuredDuration,
-    spellcastingFocusEnabled: featureTags.has(INVENTORY_FEATURE_TAG_SPELLCASTING_FOCUS),
+    spellcastingFocusEnabled: spellcastingFocusSources.has(
+      INVENTORY_SPELLCASTING_FOCUS_SOURCE_MANUAL
+    ),
     storedSpellEnabled: storedSpell !== null,
     storedSpellId: storedSpell?.spellId ?? "",
     storedSpellSearch: "",
@@ -138,6 +157,9 @@ export function parseCustomEquipmentItemSettingsDraft(
   const lockedConjured = isCustomEquipmentItemSettingsConjuredLocked(initialStack);
   const currentTags = new Set<CharacterInventoryFeatureTag>(initialStack?.featureTags ?? []);
   const nextTags = new Set(currentTags);
+  const nextSpellcastingFocusSources = new Set(
+    getInventoryItemSpellcastingFocusSources(initialStack)
+  );
   let conjuredSource = initialStack?.conjuredSource;
   let conjuredDuration = initialStack?.conjuredDuration;
 
@@ -155,8 +177,13 @@ export function parseCustomEquipmentItemSettingsDraft(
 
   if (draft.spellcastingFocusEnabled) {
     nextTags.add(INVENTORY_FEATURE_TAG_SPELLCASTING_FOCUS);
+    nextSpellcastingFocusSources.add(INVENTORY_SPELLCASTING_FOCUS_SOURCE_MANUAL);
   } else {
-    nextTags.delete(INVENTORY_FEATURE_TAG_SPELLCASTING_FOCUS);
+    nextSpellcastingFocusSources.delete(INVENTORY_SPELLCASTING_FOCUS_SOURCE_MANUAL);
+
+    if (nextSpellcastingFocusSources.size === 0) {
+      nextTags.delete(INVENTORY_FEATURE_TAG_SPELLCASTING_FOCUS);
+    }
   }
 
   if (draft.storedSpellEnabled && !draft.storedSpellId) {
@@ -177,6 +204,9 @@ export function parseCustomEquipmentItemSettingsDraft(
           }
         : undefined,
       featureTags: getOrderedFeatureTags(nextTags),
+      spellcastingFocusSources: getOrderedSpellcastingFocusSources(
+        nextSpellcastingFocusSources
+      ),
       conjuredSource,
       conjuredDuration
     },

@@ -11,6 +11,7 @@ import type {
   CharacterInventoryConjuredSource,
   CharacterInventoryFeatureTag,
   CharacterInventoryItem,
+  CharacterInventorySpellcastingFocusSource,
   CharacterInventoryStoredSpell,
   CharacterInventoryStoredSpellMode,
   CharacterReplicateMagicItemSlot,
@@ -89,6 +90,7 @@ export type InventoryItemSettingsSavePayload = {
   chargesTotal?: number | null;
   storedSpell?: CharacterInventoryStoredSpell;
   featureTags?: CharacterInventoryFeatureTag[];
+  spellcastingFocusSources?: CharacterInventorySpellcastingFocusSource[];
   conjuredSource?: CharacterInventoryConjuredSource;
   conjuredDuration?: CharacterInventoryConjuredDuration;
   replicateMagicItemPlanKey?: string;
@@ -97,6 +99,7 @@ export type InventoryItemSettingsSavePayload = {
 
 type InventoryFeatureTagLabelOptions = {
   excludeConjured?: boolean;
+  includeSpellcastingFocusSource?: boolean;
 };
 
 export type InventoryAddObjectTarget =
@@ -165,7 +168,10 @@ const moddedItemKeyMarker = "-modded-";
 export const INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE = "pact-of-the-blade";
 export const INVENTORY_FEATURE_TAG_CONJURED = "conjured";
 export const INVENTORY_FEATURE_TAG_SPELLCASTING_FOCUS = "spellcasting-focus";
+export const INVENTORY_SPELLCASTING_FOCUS_SOURCE_MANUAL = "manual";
+export const INVENTORY_SPELLCASTING_FOCUS_SOURCE_ARCANE_FIREARM = "arcane-firearm";
 export const INVENTORY_CONJURED_SOURCE_MANUAL = "manual";
+export const INVENTORY_CONJURED_SOURCE_ADVENTURERS_ATLAS = "adventurers-atlas";
 export const INVENTORY_CONJURED_SOURCE_EXPERIMENTAL_ELIXIR = "experimental-elixir";
 export const INVENTORY_CONJURED_SOURCE_TINKERS_MAGIC = "tinkers-magic";
 export const INVENTORY_CONJURED_SOURCE_REPLICATE_MAGIC_ITEM = "replicate-magic-item";
@@ -188,8 +194,17 @@ const inventoryFeatureTagLabels: Record<CharacterInventoryFeatureTag, string> = 
   [INVENTORY_FEATURE_TAG_SPELLCASTING_FOCUS]: "Spellcasting Focus"
 };
 
+const inventorySpellcastingFocusSourceLabels: Record<
+  CharacterInventorySpellcastingFocusSource,
+  string
+> = {
+  [INVENTORY_SPELLCASTING_FOCUS_SOURCE_MANUAL]: "Manual",
+  [INVENTORY_SPELLCASTING_FOCUS_SOURCE_ARCANE_FIREARM]: "Arcane Firearm"
+};
+
 const inventoryConjuredSourceLabels: Record<CharacterInventoryConjuredSource, string> = {
   [INVENTORY_CONJURED_SOURCE_MANUAL]: "Manual",
+  [INVENTORY_CONJURED_SOURCE_ADVENTURERS_ATLAS]: "Cartographer: Adventurer's Atlas",
   [INVENTORY_CONJURED_SOURCE_EXPERIMENTAL_ELIXIR]: "Experimental Elixir",
   [INVENTORY_CONJURED_SOURCE_TINKERS_MAGIC]: "Tinker's Magic",
   [INVENTORY_CONJURED_SOURCE_REPLICATE_MAGIC_ITEM]: "Replicate Magic Item",
@@ -206,6 +221,10 @@ const inventoryFeatureTagOrder: CharacterInventoryFeatureTag[] = [
   INVENTORY_FEATURE_TAG_CONJURED,
   INVENTORY_FEATURE_TAG_SPELLCASTING_FOCUS,
   INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE
+];
+const inventorySpellcastingFocusSourceOrder: CharacterInventorySpellcastingFocusSource[] = [
+  INVENTORY_SPELLCASTING_FOCUS_SOURCE_MANUAL,
+  INVENTORY_SPELLCASTING_FOCUS_SOURCE_ARCANE_FIREARM
 ];
 
 function getCopperValue(cost: EquipmentCost): number {
@@ -368,6 +387,66 @@ function normalizeInventoryFeatureTags(value: unknown): CharacterInventoryFeatur
   return normalizedTags.length > 0 ? normalizedTags : undefined;
 }
 
+function normalizeInventorySpellcastingFocusSourceValues(
+  value: unknown
+): CharacterInventorySpellcastingFocusSource[] | undefined {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+
+  const sourceSet = new Set<CharacterInventorySpellcastingFocusSource>();
+
+  value.forEach((entry) => {
+    if (
+      entry === INVENTORY_SPELLCASTING_FOCUS_SOURCE_MANUAL ||
+      entry === INVENTORY_SPELLCASTING_FOCUS_SOURCE_ARCANE_FIREARM
+    ) {
+      sourceSet.add(entry);
+    }
+  });
+
+  const normalizedSources = inventorySpellcastingFocusSourceOrder.filter((source) =>
+    sourceSet.has(source)
+  );
+
+  return normalizedSources.length > 0 ? normalizedSources : undefined;
+}
+
+function normalizeInventoryFeatureTagsWithSpellcastingFocusSources(
+  featureTags: unknown,
+  spellcastingFocusSources: unknown
+): CharacterInventoryFeatureTag[] | undefined {
+  const normalizedTags = normalizeInventoryFeatureTags(featureTags);
+  const normalizedSpellcastingFocusSources =
+    normalizeInventorySpellcastingFocusSourceValues(spellcastingFocusSources);
+
+  if (!normalizedSpellcastingFocusSources) {
+    return normalizedTags;
+  }
+
+  const tagSet = new Set(normalizedTags ?? []);
+  tagSet.add(INVENTORY_FEATURE_TAG_SPELLCASTING_FOCUS);
+
+  const nextTags = inventoryFeatureTagOrder.filter((tag) => tagSet.has(tag));
+
+  return nextTags.length > 0 ? nextTags : undefined;
+}
+
+function normalizeInventorySpellcastingFocusSourcesForFeatureTags(
+  value: unknown,
+  featureTags: CharacterInventoryFeatureTag[] | undefined
+): CharacterInventorySpellcastingFocusSource[] | undefined {
+  if (!featureTags?.includes(INVENTORY_FEATURE_TAG_SPELLCASTING_FOCUS)) {
+    return undefined;
+  }
+
+  return (
+    normalizeInventorySpellcastingFocusSourceValues(value) ?? [
+      INVENTORY_SPELLCASTING_FOCUS_SOURCE_MANUAL
+    ]
+  );
+}
+
 function hasLegacyReplicateMagicItemFeatureTag(value: unknown): boolean {
   return Array.isArray(value) && value.includes(legacyInventoryFeatureTagReplicateMagicItem);
 }
@@ -428,6 +507,7 @@ function normalizeInventoryConjuredSource(
   value: unknown
 ): CharacterInventoryConjuredSource | undefined {
   return value === INVENTORY_CONJURED_SOURCE_MANUAL ||
+    value === INVENTORY_CONJURED_SOURCE_ADVENTURERS_ATLAS ||
     value === INVENTORY_CONJURED_SOURCE_EXPERIMENTAL_ELIXIR ||
     value === INVENTORY_CONJURED_SOURCE_TINKERS_MAGIC ||
     value === INVENTORY_CONJURED_SOURCE_REPLICATE_MAGIC_ITEM ||
@@ -530,13 +610,20 @@ function normalizeContainerContentItem(
     worn: false,
     ...(mods ? { mods } : {})
   });
-  let featureTags = normalizeInventoryFeatureTags(entry.featureTags);
+  let featureTags = normalizeInventoryFeatureTagsWithSpellcastingFocusSources(
+    entry.featureTags,
+    entry.spellcastingFocusSources
+  );
 
   if (featureTags?.includes(INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE) && !effectiveItem.weapon) {
     featureTags = featureTags.filter((tag) => tag !== INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE);
     featureTags = featureTags.length > 0 ? featureTags : undefined;
   }
 
+  const spellcastingFocusSources = normalizeInventorySpellcastingFocusSourcesForFeatureTags(
+    entry.spellcastingFocusSources,
+    featureTags
+  );
   const conjuredSource = normalizeInventoryConjuredSourceForFeatureTags(
     entry.conjuredSource,
     featureTags
@@ -556,6 +643,7 @@ function normalizeContainerContentItem(
     item: entry.item,
     quantity,
     featureTags,
+    ...(spellcastingFocusSources ? { spellcastingFocusSources } : {}),
     ...(chargesTotal !== undefined ? { chargesTotal } : {}),
     ...(storedSpell ? { storedSpell } : {}),
     ...(conjuredSource ? { conjuredSource } : {}),
@@ -599,6 +687,7 @@ function normalizeCharacterContainerContentItems(value: unknown): CharacterConta
       chargesTotal?: unknown;
       storedSpell?: unknown;
       featureTags?: unknown;
+      spellcastingFocusSources?: unknown;
       conjuredSource?: unknown;
       conjuredDuration?: unknown;
       replicateMagicItemPlanKey?: unknown;
@@ -611,7 +700,14 @@ function normalizeCharacterContainerContentItems(value: unknown): CharacterConta
       return;
     }
 
-    const featureTags = normalizeInventoryFeatureTags(record.featureTags);
+    const featureTags = normalizeInventoryFeatureTagsWithSpellcastingFocusSources(
+      record.featureTags,
+      record.spellcastingFocusSources
+    );
+    const spellcastingFocusSources = normalizeInventorySpellcastingFocusSourcesForFeatureTags(
+      record.spellcastingFocusSources,
+      featureTags
+    );
     const contentItem = normalizeContainerContentItem({
       item,
       quantity: record.quantity !== undefined ? normalizeInventoryStackQuantity(record.quantity, 1, 1) : 1,
@@ -623,9 +719,10 @@ function normalizeCharacterContainerContentItems(value: unknown): CharacterConta
       chargesTotal: normalizeInventoryChargesTotal(record.chargesTotal),
       storedSpell: normalizeInventoryStoredSpell(record.storedSpell),
       featureTags,
+      spellcastingFocusSources,
       conjuredSource: normalizeInventoryConjuredSourceForFeatureTags(
         record.conjuredSource,
-        record.featureTags
+        featureTags
       ),
       conjuredDuration: normalizeInventoryConjuredDuration(record.conjuredDuration),
       replicateMagicItemPlanKey: normalizeReplicateMagicItemPlanKey(
@@ -729,13 +826,20 @@ function normalizeInventoryStack(entry: CharacterInventoryItem): CharacterInvent
           entry.id
         )
       : entry.item;
-  let featureTags = normalizeInventoryFeatureTags(entry.featureTags);
+  let featureTags = normalizeInventoryFeatureTagsWithSpellcastingFocusSources(
+    entry.featureTags,
+    entry.spellcastingFocusSources
+  );
 
   if (featureTags?.includes(INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE) && !effectiveItem.weapon) {
     featureTags = featureTags.filter((tag) => tag !== INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE);
     featureTags = featureTags.length > 0 ? featureTags : undefined;
   }
 
+  const spellcastingFocusSources = normalizeInventorySpellcastingFocusSourcesForFeatureTags(
+    entry.spellcastingFocusSources,
+    featureTags
+  );
   const conjuredSource = normalizeInventoryConjuredSourceForFeatureTags(
     entry.conjuredSource,
     featureTags
@@ -761,6 +865,7 @@ function normalizeInventoryStack(entry: CharacterInventoryItem): CharacterInvent
     onHandQuantity,
     worn: Boolean(entry.worn),
     featureTags,
+    ...(spellcastingFocusSources ? { spellcastingFocusSources } : {}),
     ...(chargesTotal !== undefined ? { chargesTotal } : {}),
     ...(storedSpell ? { storedSpell } : {}),
     ...(conjuredSource ? { conjuredSource } : {}),
@@ -887,6 +992,7 @@ export function createCharacterInventoryItem(
     chargesTotal?: number | null;
     storedSpell?: CharacterInventoryStoredSpell;
     featureTags?: CharacterInventoryFeatureTag[];
+    spellcastingFocusSources?: CharacterInventorySpellcastingFocusSource[];
     conjuredSource?: CharacterInventoryConjuredSource;
     conjuredDuration?: CharacterInventoryConjuredDuration;
     replicateMagicItemPlanKey?: string;
@@ -914,6 +1020,7 @@ export function createCharacterInventoryItem(
     chargesTotal: options?.chargesTotal,
     storedSpell: options?.storedSpell,
     featureTags: options?.featureTags,
+    spellcastingFocusSources: options?.spellcastingFocusSources,
     conjuredSource: options?.conjuredSource,
     conjuredDuration: options?.conjuredDuration,
     replicateMagicItemPlanKey: options?.replicateMagicItemPlanKey,
@@ -932,6 +1039,7 @@ export function createCharacterContainerContentItem(
     chargesTotal?: number | null;
     storedSpell?: CharacterInventoryStoredSpell;
     featureTags?: CharacterInventoryFeatureTag[];
+    spellcastingFocusSources?: CharacterInventorySpellcastingFocusSource[];
     conjuredSource?: CharacterInventoryConjuredSource;
     conjuredDuration?: CharacterInventoryConjuredDuration;
     replicateMagicItemPlanKey?: string;
@@ -951,6 +1059,7 @@ export function createCharacterContainerContentItem(
     chargesTotal: options?.chargesTotal,
     storedSpell: options?.storedSpell,
     featureTags: options?.featureTags,
+    spellcastingFocusSources: options?.spellcastingFocusSources,
     conjuredSource: options?.conjuredSource,
     conjuredDuration: options?.conjuredDuration,
     replicateMagicItemPlanKey: options?.replicateMagicItemPlanKey,
@@ -993,6 +1102,7 @@ export function normalizeCharacterInventoryItems(value: unknown): CharacterInven
       chargesTotal?: unknown;
       storedSpell?: unknown;
       featureTags?: unknown;
+      spellcastingFocusSources?: unknown;
       conjuredSource?: unknown;
       conjuredDuration?: unknown;
       replicateMagicItemPlanKey?: unknown;
@@ -1021,10 +1131,17 @@ export function normalizeCharacterInventoryItems(value: unknown): CharacterInven
           ? 1
           : 0;
     const splitCount = isUniqueStack ? quantity : 1;
-    const featureTags = normalizeInventoryFeatureTags(record.featureTags);
+    const featureTags = normalizeInventoryFeatureTagsWithSpellcastingFocusSources(
+      record.featureTags,
+      record.spellcastingFocusSources
+    );
+    const spellcastingFocusSources = normalizeInventorySpellcastingFocusSourcesForFeatureTags(
+      record.spellcastingFocusSources,
+      featureTags
+    );
     const conjuredSource = normalizeInventoryConjuredSourceForFeatureTags(
       record.conjuredSource,
-      record.featureTags
+      featureTags
     );
 
     for (let copyIndex = 0; copyIndex < splitCount; copyIndex += 1) {
@@ -1041,6 +1158,7 @@ export function normalizeCharacterInventoryItems(value: unknown): CharacterInven
         chargesTotal,
         storedSpell,
         featureTags,
+        spellcastingFocusSources,
         conjuredSource,
         conjuredDuration: normalizeInventoryConjuredDuration(record.conjuredDuration),
         replicateMagicItemPlanKey: normalizeReplicateMagicItemPlanKey(
@@ -1373,6 +1491,7 @@ export function createInventoryItemFromContainerContent(
     chargesTotal: content.chargesTotal,
     storedSpell: content.storedSpell,
     featureTags: content.featureTags,
+    spellcastingFocusSources: content.spellcastingFocusSources,
     conjuredSource: content.conjuredSource,
     conjuredDuration: content.conjuredDuration,
     replicateMagicItemPlanKey: content.replicateMagicItemPlanKey,
@@ -1434,6 +1553,30 @@ export function hasInventoryItemFeatureTag(
   tag: CharacterInventoryFeatureTag
 ): boolean {
   return Boolean(normalizeInventoryFeatureTags(entry?.featureTags)?.includes(tag));
+}
+
+export function getInventoryItemSpellcastingFocusSources(
+  entry:
+    | Pick<CharacterInventoryItem, "featureTags" | "spellcastingFocusSources">
+    | null
+    | undefined
+): CharacterInventorySpellcastingFocusSource[] {
+  return (
+    normalizeInventorySpellcastingFocusSourcesForFeatureTags(
+      entry?.spellcastingFocusSources,
+      normalizeInventoryFeatureTags(entry?.featureTags)
+    ) ?? []
+  );
+}
+
+export function hasInventoryItemSpellcastingFocusSource(
+  entry:
+    | Pick<CharacterInventoryItem, "featureTags" | "spellcastingFocusSources">
+    | null
+    | undefined,
+  source: CharacterInventorySpellcastingFocusSource
+): boolean {
+  return getInventoryItemSpellcastingFocusSources(entry).includes(source);
 }
 
 export function isPactOfTheBladeInventoryItem(
@@ -1521,7 +1664,10 @@ export function getInventoryItemConjuredRowTagLabel(
 
 export function getInventoryItemFeatureTagLabels(
   entry:
-    | Pick<CharacterInventoryItem, "featureTags" | "conjuredSource" | "conjuredDuration">
+    | Pick<
+        CharacterInventoryItem,
+        "featureTags" | "spellcastingFocusSources" | "conjuredSource" | "conjuredDuration"
+      >
     | null
     | undefined,
   options?: InventoryFeatureTagLabelOptions
@@ -1534,6 +1680,25 @@ export function getInventoryItemFeatureTagLabels(
 
       const conjuredLabel = getInventoryItemConjuredFeatureTagLabel(entry);
       return conjuredLabel ? [conjuredLabel] : [];
+    }
+
+    if (tag === INVENTORY_FEATURE_TAG_SPELLCASTING_FOCUS) {
+      const spellcastingFocusSources = getInventoryItemSpellcastingFocusSources(entry);
+
+      if (
+        options?.includeSpellcastingFocusSource &&
+        spellcastingFocusSources.includes(INVENTORY_SPELLCASTING_FOCUS_SOURCE_ARCANE_FIREARM)
+      ) {
+        return [
+          `${inventoryFeatureTagLabels[tag]}: ${
+            inventorySpellcastingFocusSourceLabels[
+              INVENTORY_SPELLCASTING_FOCUS_SOURCE_ARCANE_FIREARM
+            ]
+          }`
+        ];
+      }
+
+      return spellcastingFocusSources.length > 0 ? [inventoryFeatureTagLabels[tag]] : [];
     }
 
     return [inventoryFeatureTagLabels[tag]];
@@ -1647,6 +1812,47 @@ function removeInventoryItemFeatureTag(
   });
 }
 
+function setInventoryItemSpellcastingFocusSources(
+  entry: CharacterInventoryItem,
+  sources: CharacterInventorySpellcastingFocusSource[]
+): CharacterInventoryItem {
+  const normalizedSources = normalizeInventorySpellcastingFocusSourceValues(sources);
+  const tagSet = new Set(normalizeInventoryFeatureTags(entry.featureTags) ?? []);
+
+  if (normalizedSources) {
+    tagSet.add(INVENTORY_FEATURE_TAG_SPELLCASTING_FOCUS);
+  } else {
+    tagSet.delete(INVENTORY_FEATURE_TAG_SPELLCASTING_FOCUS);
+  }
+
+  return normalizeInventoryStack({
+    ...entry,
+    featureTags: inventoryFeatureTagOrder.filter((tag) => tagSet.has(tag)),
+    spellcastingFocusSources: normalizedSources
+  });
+}
+
+function addInventoryItemSpellcastingFocusSource(
+  entry: CharacterInventoryItem,
+  source: CharacterInventorySpellcastingFocusSource
+): CharacterInventoryItem {
+  const sourceSet = new Set(getInventoryItemSpellcastingFocusSources(entry));
+  sourceSet.add(source);
+
+  return setInventoryItemSpellcastingFocusSources(entry, [...sourceSet]);
+}
+
+function removeInventoryItemSpellcastingFocusSource(
+  entry: CharacterInventoryItem,
+  source: CharacterInventorySpellcastingFocusSource
+): CharacterInventoryItem {
+  const nextSources = getInventoryItemSpellcastingFocusSources(entry).filter(
+    (currentSource) => currentSource !== source
+  );
+
+  return setInventoryItemSpellcastingFocusSources(entry, nextSources);
+}
+
 export function clearPactOfTheBladeInventoryTags(
   inventoryItems: CharacterInventoryItem[]
 ): CharacterInventoryItem[] {
@@ -1675,6 +1881,27 @@ export function setPactOfTheBladeInventoryItemById(
       ? addInventoryItemFeatureTag(entry, INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE)
       : entry
   );
+}
+
+export function setArcaneFirearmInventoryItemById(
+  inventoryItems: CharacterInventoryItem[],
+  stackId: string
+): CharacterInventoryItem[] {
+  const resolvedStackId = getInventoryItemStackIdFromCopyId(stackId);
+
+  return inventoryItems.map((entry) => {
+    const entryWithoutArcaneFirearm = removeInventoryItemSpellcastingFocusSource(
+      entry,
+      INVENTORY_SPELLCASTING_FOCUS_SOURCE_ARCANE_FIREARM
+    );
+
+    return entry.id === resolvedStackId
+      ? addInventoryItemSpellcastingFocusSource(
+          entryWithoutArcaneFirearm,
+          INVENTORY_SPELLCASTING_FOCUS_SOURCE_ARCANE_FIREARM
+        )
+      : entryWithoutArcaneFirearm;
+  });
 }
 
 export function addConjuredPactOfTheBladeInventoryItem(
@@ -1744,11 +1971,26 @@ export function isNonCustomModdedInventoryItem(
 function getSourceFeatureTagsAfterModdedTransform(
   entry: CharacterInventoryItem
 ): CharacterInventoryFeatureTag[] | undefined {
+  const sourceSpellcastingFocusSources =
+    getSourceSpellcastingFocusSourcesAfterModdedTransform(entry);
   const nextTags = (normalizeInventoryFeatureTags(entry.featureTags) ?? []).filter(
-    (tag) => tag !== INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE
+    (tag) =>
+      tag !== INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE &&
+      (tag !== INVENTORY_FEATURE_TAG_SPELLCASTING_FOCUS ||
+        Boolean(sourceSpellcastingFocusSources))
   );
 
   return nextTags.length > 0 ? nextTags : undefined;
+}
+
+function getSourceSpellcastingFocusSourcesAfterModdedTransform(
+  entry: CharacterInventoryItem
+): CharacterInventorySpellcastingFocusSource[] | undefined {
+  const nextSources = getInventoryItemSpellcastingFocusSources(entry).filter(
+    (source) => source !== INVENTORY_SPELLCASTING_FOCUS_SOURCE_ARCANE_FIREARM
+  );
+
+  return nextSources.length > 0 ? nextSources : undefined;
 }
 
 function getSavedInventoryItemFeatureTags(
@@ -1832,6 +2074,7 @@ function createContainerContentItemFromInventoryStack(
     chargesTotal: entry.chargesTotal,
     storedSpell: entry.storedSpell,
     featureTags: entry.featureTags,
+    spellcastingFocusSources: entry.spellcastingFocusSources,
     conjuredSource: entry.conjuredSource,
     conjuredDuration: entry.conjuredDuration,
     replicateMagicItemPlanKey: entry.replicateMagicItemPlanKey,
@@ -1848,12 +2091,17 @@ function getInventoryItemSettingsForSave(
   const featureTags = settings
     ? getSavedInventoryFeatureTagsForMods(settings.featureTags, mods)
     : getSavedInventoryItemFeatureTags(entry, mods);
+  const spellcastingFocusSources = normalizeInventorySpellcastingFocusSourcesForFeatureTags(
+    settings ? settings.spellcastingFocusSources : entry.spellcastingFocusSources,
+    featureTags
+  );
   const isConjured = featureTags?.includes(INVENTORY_FEATURE_TAG_CONJURED) === true;
 
   return {
     chargesTotal: settings ? settings.chargesTotal : entry.chargesTotal,
     storedSpell: settings ? settings.storedSpell : entry.storedSpell,
     featureTags,
+    spellcastingFocusSources,
     conjuredSource: isConjured ? (settings ? settings.conjuredSource : entry.conjuredSource) : undefined,
     conjuredDuration: isConjured
       ? (settings ? settings.conjuredDuration : entry.conjuredDuration)
@@ -1888,6 +2136,7 @@ function updateInventoryItemModsInPlace(
     chargesTotal: savedSettings.chargesTotal,
     storedSpell: savedSettings.storedSpell,
     featureTags: savedSettings.featureTags,
+    spellcastingFocusSources: savedSettings.spellcastingFocusSources,
     conjuredSource: savedSettings.conjuredSource,
     conjuredDuration: savedSettings.conjuredDuration,
     replicateMagicItemPlanKey: savedSettings.replicateMagicItemPlanKey,
@@ -1925,6 +2174,7 @@ function transformInventoryItemCopyWithMods(
       chargesTotal: savedSettings.chargesTotal,
       storedSpell: savedSettings.storedSpell,
       featureTags: savedSettings.featureTags,
+      spellcastingFocusSources: savedSettings.spellcastingFocusSources,
       conjuredSource: savedSettings.conjuredSource,
       conjuredDuration: savedSettings.conjuredDuration,
       replicateMagicItemPlanKey: savedSettings.replicateMagicItemPlanKey,
@@ -1951,6 +2201,7 @@ function transformInventoryItemCopyWithMods(
       chargesTotal: entry.chargesTotal,
       storedSpell: entry.storedSpell,
       featureTags: getSourceFeatureTagsAfterModdedTransform(entry),
+      spellcastingFocusSources: getSourceSpellcastingFocusSourcesAfterModdedTransform(entry),
       conjuredSource: entry.conjuredSource,
       conjuredDuration: entry.conjuredDuration,
       replicateMagicItemPlanKey: entry.replicateMagicItemPlanKey,
@@ -2139,6 +2390,7 @@ export function getContainerContentsWeightValue(
       chargesTotal: content.chargesTotal,
       storedSpell: content.storedSpell,
       featureTags: content.featureTags,
+      spellcastingFocusSources: content.spellcastingFocusSources,
       conjuredSource: content.conjuredSource,
       conjuredDuration: content.conjuredDuration,
       replicateMagicItemPlanKey: content.replicateMagicItemPlanKey,
@@ -2159,6 +2411,7 @@ function getContainerContentCopyWeightValue(content: CharacterContainerContentIt
     chargesTotal: content.chargesTotal,
     storedSpell: content.storedSpell,
     featureTags: content.featureTags,
+    spellcastingFocusSources: content.spellcastingFocusSources,
     conjuredSource: content.conjuredSource,
     conjuredDuration: content.conjuredDuration,
     replicateMagicItemPlanKey: content.replicateMagicItemPlanKey,

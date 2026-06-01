@@ -113,7 +113,9 @@ function CharacterSheetPage() {
           <CharacterProfileSection
             className={styles.cascadeOne}
             broadLayout={isBroadLayoutActive}
+            isCompanionLimitReached={isCompanionLimitReached}
             onPersistCharacter={persistCharacter}
+            onRequestCreateCompanion={openCompanionCreator}
           />
         </CharacterSheetSectionProfiler>
         <div className={styles.cascadeMainColumn}>
@@ -122,7 +124,6 @@ function CharacterSheetPage() {
               className={styles.cascadeTwo}
               onPersistCharacter={persistCharacter}
               onQueueHitPointCharacter={queueHitPointCharacterSave}
-              onRequestCreateCompanion={openCompanionCreator}
             />
           </CharacterSheetSectionProfiler>
           <CharacterSheetSectionProfiler id="companions">

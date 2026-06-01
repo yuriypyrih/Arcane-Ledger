@@ -28,6 +28,7 @@ function splitExpandedLabel(label: string, prefix: string) {
 export function getInventoryTagPillProps(label: string): InventoryTagPillProps {
   const conjuredExpandedText = splitExpandedLabel(label, "Conjured:");
   const spellExpandedText = splitExpandedLabel(label, "Spell:");
+  const spellcastingFocusExpandedText = splitExpandedLabel(label, "Spellcasting Focus:");
 
   if (conjuredExpandedText) {
     return {
@@ -40,6 +41,13 @@ export function getInventoryTagPillProps(label: string): InventoryTagPillProps {
     return {
       type: "spell",
       expandedText: spellExpandedText
+    };
+  }
+
+  if (spellcastingFocusExpandedText) {
+    return {
+      type: "spellcastingFocus",
+      expandedText: spellcastingFocusExpandedText
     };
   }
 

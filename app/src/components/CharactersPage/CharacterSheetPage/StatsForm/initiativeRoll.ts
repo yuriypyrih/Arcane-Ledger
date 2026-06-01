@@ -2,8 +2,11 @@ import type { DICE } from "../../../../codex/entries";
 import type { RollMode } from "../../../../types";
 import type { InitiativeBreakdown } from "../../../../pages/CharactersPage/gameplay";
 import { formatAbilityModifier } from "../../../../pages/CharactersPage/gameplay";
-import { formatCustomTraitBonusFormulaTerm } from "../../../../pages/CharactersPage/customTraitEffects";
-import { formatD20Formula } from "../../../../pages/CharactersPage/shared";
+import {
+  formatCustomTraitBonusFormulaTerm,
+  formatCustomTraitBonusRollFormulaTerm
+} from "../../../../pages/CharactersPage/customTraitEffects";
+import { formatD20Formula, formatFormulaTerms } from "../../../../pages/CharactersPage/shared";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { applyRolledHealingToCharacter } from "../GameplayForm/gameplayStateUtils";
 import type {
@@ -116,9 +119,16 @@ export function createInitiativeRollRequest(
     options.useTandemFootworkOnInitiative && options.bardicInspirationDie
       ? formatDieFormula(options.bardicInspirationDie)
       : null;
+  const initiativeBonusFormulaTerms = options.initiativeBreakdown.entries
+    .map(formatCustomTraitBonusRollFormulaTerm)
+    .filter((entry): entry is string => Boolean(entry));
+  const baseInitiativeRollFormula = formatFormulaTerms([
+    formatD20Formula(options.initiativeBreakdown.total),
+    ...initiativeBonusFormulaTerms
+  ]);
   const initiativeRollFormula = tandemFootworkFormula
-    ? `${formatD20Formula(options.initiativeBreakdown.total)} + ${tandemFootworkFormula}`
-    : formatD20Formula(options.initiativeBreakdown.total);
+    ? formatFormulaTerms([baseInitiativeRollFormula, tandemFootworkFormula])
+    : baseInitiativeRollFormula;
   const initiativeDescription = tandemFootworkFormula
     ? `${initiativeFormulaDescription}. Tandem Footwork adds ${tandemFootworkFormula}.`
     : initiativeFormulaDescription;

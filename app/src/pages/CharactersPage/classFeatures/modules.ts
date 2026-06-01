@@ -8,10 +8,14 @@ import {
   advanceArtificerFeaturesForNewRound,
   activateArtificerArmorerArcaneArmor,
   applyLongRestToArtificerFeatures,
+  artificerAdventurersAtlasActionKey,
+  artificerArcaneJoltActionKey,
   artificerArmorerArcaneArmorActionKey,
   artificerArmorerDefensiveFieldActionKey,
   artificerArmorerGiantStatureActionKey,
   artificerArmorerInfiltratorsFlightActionKey,
+  consumeArtificerArcaneJoltUse,
+  createArtificerAdventurersAtlasMapsForCharacter,
   getArtificerFeatureActionOptions,
   getArtificerFeatureActions,
   getArtificerAlwaysPreparedSpellIds,
@@ -452,6 +456,14 @@ const classFeatureModules = {
 
       if (actionKey === artificerArmorerInfiltratorsFlightActionKey) {
         return activateArtificerArmorerInfiltratorsFlight(character);
+      }
+
+      if (actionKey === artificerArcaneJoltActionKey) {
+        return consumeArtificerArcaneJoltUse(character);
+      }
+
+      if (actionKey === artificerAdventurersAtlasActionKey) {
+        return createArtificerAdventurersAtlasMapsForCharacter(character);
       }
 
       return null;

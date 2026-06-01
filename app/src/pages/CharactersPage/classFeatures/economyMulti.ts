@@ -8,9 +8,9 @@ import {
 import { isRoundTrackerResourceAvailable, shouldTrackRoundScopedResources } from "../combat";
 import type { WeaponAction } from "../gameplay";
 import {
-  consumeArtificerArmorerWeaponAttack,
-  getArtificerArmorerWeaponAttackMultiCount,
-  hasArtificerArmorerExtraAttackFeature
+  consumeArtificerWeaponAttack,
+  getArtificerWeaponAttackMultiCount,
+  hasArtificerExtraAttackFeature
 } from "./artificer/artificer";
 import {
   consumeBarbarianWeaponAttack,
@@ -340,19 +340,19 @@ function createPaladinExtraAttackPool(
   };
 }
 
-function createArtificerArmorerExtraAttackPool(
+function createArtificerExtraAttackPool(
   character: SharedEconomyMultiCharacter
 ): SharedEconomyMultiPool | null {
-  if (!hasArtificerArmorerExtraAttackFeature(character)) {
+  if (!hasArtificerExtraAttackFeature(character)) {
     return null;
   }
 
   return {
-    id: "artificer-armorer-extra-attack",
-    remaining: clampRemaining(getArtificerArmorerWeaponAttackMultiCount(character)),
+    id: "artificer-extra-attack",
+    remaining: clampRemaining(getArtificerWeaponAttackMultiCount(character)),
     priority: 10,
     accessRules: [createAttackAccessRule()],
-    consume: (nextCharacter) => consumeArtificerArmorerWeaponAttack(nextCharacter)
+    consume: (nextCharacter) => consumeArtificerWeaponAttack(nextCharacter)
   };
 }
 
@@ -435,7 +435,7 @@ function getSharedEconomyMultiPools(
     createBarbarianExtraAttackPool(character),
     createRangerExtraAttackPool(character),
     createPaladinExtraAttackPool(character),
-    createArtificerArmorerExtraAttackPool(character),
+    createArtificerExtraAttackPool(character),
     createMonkExtraAttackPool(character),
     createWarlockPactBladeExtraAttackPool(character),
     createWizardBladesingerExtraAttackPool(character)

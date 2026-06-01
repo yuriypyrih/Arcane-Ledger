@@ -752,6 +752,8 @@ export function getFeatureDamageBonusesForWeaponAction(
       return {
         label: bonus.label,
         value: bonus.value,
+        formula: bonus.formula,
+        formulaMultiplier: bonus.formulaMultiplier,
         abilityModifierSource: bonus.abilityModifierSource,
         abilityModifierMultiplier: bonus.abilityModifierMultiplier,
         formulaSourceLabel: bonus.formulaSourceLabel
@@ -1323,7 +1325,8 @@ export function getSpellDamageBonusesForCharacter(
   character: Pick<
     Character,
     "className" | "level" | "classFeatureState" | "abilities" | "feats" | "cantripIds"
-  >,
+  > &
+    Partial<Pick<Character, "inventoryItems" | "subclassId">>,
   spell: SpellFeatureContext["spell"]
 ): FeatureDamageBonus[] {
   const baseFeatureState = collectActiveClassFeatureState(character);

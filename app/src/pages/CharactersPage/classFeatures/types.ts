@@ -160,9 +160,12 @@ export type FeatureActionExecuteEffectKind =
 export type FeatureActionFormKind =
   | "aasimar-celestial-revelation"
   | "aasimar-healing-hands"
+  | "artificer-arcane-firearm"
   | "artificer-charge-magic-item"
   | "artificer-drain-magic-item"
+  | "artificer-eldritch-cannon"
   | "artificer-experimental-elixir"
+  | "artificer-steel-defender"
   | "artificer-transmute-magic-item"
   | "arcane-recovery"
   | "blessing-of-the-trickster"
@@ -381,6 +384,7 @@ export type FeatureDamageBonus = {
   label: string;
   value?: number;
   formula?: string;
+  formulaMultiplier?: 1 | -1;
   displayLabel?: string;
   abilityModifierSource?: AbilityKey;
   abilityModifierMultiplier?: 1 | -1;
@@ -390,6 +394,8 @@ export type FeatureDamageBonus = {
 export type FeatureSkillBonus = {
   label: string;
   value?: number;
+  formula?: string;
+  formulaMultiplier?: 1 | -1;
   abilityModifierSource?: AbilityKey;
   abilityModifierMultiplier?: 1 | -1;
   formulaSourceLabel?: string;
@@ -400,6 +406,8 @@ export type FeatureSkillBonus = {
 export type FeatureSavingThrowBonus = {
   label: string;
   value?: number;
+  formula?: string;
+  formulaMultiplier?: 1 | -1;
   abilityModifierSource?: AbilityKey;
   abilityModifierMultiplier?: 1 | -1;
   formulaSourceLabel?: string;
@@ -409,6 +417,8 @@ export type FeatureSavingThrowBonus = {
 export type FeatureInitiativeBonus = {
   label: string;
   value?: number;
+  formula?: string;
+  formulaMultiplier?: 1 | -1;
   abilityModifierSource?: AbilityKey;
   abilityModifierMultiplier?: 1 | -1;
   formulaSourceLabel?: string;
@@ -423,7 +433,7 @@ export type WeaponFeatureContext = {
 };
 
 export type SpellFeatureContext = {
-  spell: Pick<SpellEntry, "id" | "spellLevel" | "damage">;
+  spell: Pick<SpellEntry, "id" | "spellLevel" | "damage" | "spellLists">;
 };
 
 export type FeatureUnarmedStrikeConfig = {

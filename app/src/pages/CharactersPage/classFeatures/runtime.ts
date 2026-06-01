@@ -33,7 +33,7 @@ import {
   getCustomTraitSavingThrowBonuses,
   getCustomTraitWeaponDamageBonuses
 } from "../customTraitEffects";
-import { consumeArtificerArmorerWeaponAttack } from "./artificer/artificer";
+import { consumeArtificerWeaponAttack } from "./artificer/artificer";
 import {
   activateBardicInspiration,
   activateBardCollegeOfDanceInspiringMovement,
@@ -1729,7 +1729,7 @@ export function consumeWeaponAttackActionForCharacter(
   }
 
   if (character.className === "Artificer") {
-    return finalize(consumeArtificerArmorerWeaponAttack(character));
+    return finalize(consumeArtificerWeaponAttack(character));
   }
 
   if (character.className === "Cleric") {

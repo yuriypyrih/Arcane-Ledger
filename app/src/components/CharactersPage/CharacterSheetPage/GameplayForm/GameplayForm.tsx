@@ -43,15 +43,13 @@ type GameplayFormProps = {
   className?: string;
   onPersistCharacter: PersistCharacterUpdater;
   onQueueHitPointCharacter: QueueCharacterSave;
-  onRequestCreateCompanion?: () => void;
 };
 
 function GameplayForm({
   character,
   className,
   onPersistCharacter,
-  onQueueHitPointCharacter,
-  onRequestCreateCompanion
+  onQueueHitPointCharacter
 }: GameplayFormProps) {
   const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [isRoundStartFlashActive, setIsRoundStartFlashActive] = useState(false);
@@ -269,7 +267,6 @@ function GameplayForm({
           <TraitsConditionsWidget
             character={character}
             onPersistCharacter={onPersistCharacter}
-            onRequestCreateCompanion={onRequestCreateCompanion}
           />
         </CharacterSheetSectionProfiler>
       </div>

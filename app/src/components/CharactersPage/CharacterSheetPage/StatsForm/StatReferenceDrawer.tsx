@@ -56,6 +56,8 @@ export type SelectedStatReference = {
       modifier: number;
       description: string;
       indicators?: FeatureIndicator[];
+      formulaTerms?: string[];
+      formulaDisplayTerms?: string[];
     };
   };
   descriptionAdditions?: SpellDescriptionEntry[][];

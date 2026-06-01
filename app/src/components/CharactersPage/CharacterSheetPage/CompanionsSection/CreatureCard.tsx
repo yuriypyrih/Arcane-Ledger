@@ -4,6 +4,7 @@ import CollaborationIcon from "../../../../assets/svg/collaboration.svg";
 import EnemyIcon from "../../../../assets/svg/enemy.svg";
 import type { CharacterCompanion } from "../../../../types";
 import { normalizeTemporaryHitPoints } from "../GameplayForm/gameplayStateUtils";
+import { getCompanionDisplayType } from "./companionUtils";
 import styles from "./CreatureCard.module.css";
 
 export type CreatureCardPredisposition = "friendly" | "neutral" | "hostile";
@@ -54,12 +55,11 @@ function CreatureCard({
   onRemove
 }: CreatureCardProps) {
   const temporaryHitPoints = normalizeTemporaryHitPoints(creature.temporaryHitPoints);
-  const creatureType = creature.type.trim();
+  const creatureType = getCompanionDisplayType(creature);
   const inheritedCreatureEntry = creature.inheritedCreatureEntry;
   const armorClass = inheritedCreatureEntry?.armor_class;
-  const shouldShowArmorClass = typeof armorClass === "number" && Number.isFinite(armorClass) && armorClass > 0;
-  const challengeRating =
-    inheritedCreatureEntry?.challenge_rating.trim() || inheritedCreatureEntry?.cr.toString() || "";
+  const shouldShowArmorClass =
+    typeof armorClass === "number" && Number.isFinite(armorClass) && armorClass > 0;
   const isModified = creature.inheritedCreatureEntryModified === true;
 
   return (
@@ -88,9 +88,6 @@ function CreatureCard({
           <span className={styles.titleRow}>
             <span className={styles.title}>{creature.name}</span>
             {creatureType ? <span className={styles.type}>· {creatureType}</span> : null}
-            {challengeRating ? (
-              <span className={styles.type}>· CR {challengeRating}</span>
-            ) : null}
           </span>
 
           <span className={styles.vitalsRow}>

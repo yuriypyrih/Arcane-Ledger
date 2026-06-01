@@ -41,6 +41,7 @@ function getContentRowItem(
     chargesTotal: content.chargesTotal,
     storedSpell: content.storedSpell,
     featureTags: content.featureTags,
+    spellcastingFocusSources: content.spellcastingFocusSources,
     conjuredSource: content.conjuredSource,
     conjuredDuration: content.conjuredDuration,
     mods: content.mods
@@ -89,10 +90,10 @@ function EquipmentContainerContentsList({
               excludeConjured: true
             });
             const spellcastingFocusTagLabels = featureTagLabels.filter(
-              (tagLabel) => tagLabel === "Spellcasting Focus"
+              (tagLabel) => tagLabel.startsWith("Spellcasting Focus")
             );
             const otherFeatureTagLabels = featureTagLabels.filter(
-              (tagLabel) => tagLabel !== "Spellcasting Focus"
+              (tagLabel) => !tagLabel.startsWith("Spellcasting Focus")
             );
 
             return (

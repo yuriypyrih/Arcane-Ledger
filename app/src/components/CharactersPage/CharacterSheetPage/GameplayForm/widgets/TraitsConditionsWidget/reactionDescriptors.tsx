@@ -11,7 +11,11 @@ import shared from "../../../CharacterSheetSectionShared/CharacterSheetSectionSh
 import { createCharacterStatusEntry } from "../../../../../../pages/CharactersPage/statusEntries";
 import { consumeRoundTrackerResource } from "../../../../../../pages/CharactersPage/combat";
 import type { DiceRollerRequest } from "../../../../../DicePage/DiceRollerPopup";
-import type { Character, DruidCosmicOmenSelection } from "../../../../../../types";
+import type {
+  Character,
+  CharacterCompanion,
+  DruidCosmicOmenSelection
+} from "../../../../../../types";
 import {
   STATUS_DURATION_KIND,
   STATUS_ENTRY_GROUP,
@@ -24,6 +28,7 @@ import {
   activateBardCollegeOfDanceInspiringMovementForCharacter,
   activateRangerHunterSuperiorHuntersDefenseForCharacter,
   artificerArmorerPerfectedArmorGuardianReactionEntryId,
+  artificerExplosiveCannonDetonateReactionEntryId,
   artificerFlashOfGeniusReactionEntryId,
   clericWardingFlareReactionEntryId,
   clericGuidedStrikeReactionEntryId,
@@ -41,6 +46,7 @@ import {
   consumeSorcererRestoreBalanceUseForCharacter,
   consumeWarlockBeguilingDefenseUseForCharacter,
   consumeWizardIllusionistIllusorySelfUseForCharacter,
+  detonateArtificerEldritchCannonForCharacter,
   expendBardicInspirationUseForCharacter,
   expendFighterPsiWarriorEnergyDieForCharacter,
   expendSorceryPointForCharacter,
@@ -48,6 +54,7 @@ import {
   getFighterPsiWarriorEnergyDiceRemainingForCharacter,
   getFighterPsiWarriorEnergyDiceTotalForCharacter,
   getRogueScionOfTheThreeAuraOfMalevolenceFactsForCharacter,
+  hasActiveArtificerEldritchCannonForCharacter,
   paladinElementalRebukeReactionEntryId,
   paladinGloriousDefenseReactionEntryId,
   paladinSoulOfVengeanceReactionEntryId,
@@ -108,6 +115,7 @@ import {
 } from "../../../../../../pages/CharactersPage/shared/formulas";
 import { getSpellSaveFormulaCell } from "../../../../../../pages/CharactersPage/shared/spellFormulas";
 import DruidCosmicOmenReactionBody from "./DruidCosmicOmenReactionBody";
+import RadioContainerOption from "../../../RadioContainerOption";
 import {
   createDeflectAttacksReactionRollRequest,
   getDeflectAttacksReactionFacts,
@@ -140,6 +148,7 @@ export type ReactionDescriptorContext = {
   cosmicOmenUsesTotal: number;
   elementalRebukeUsesRemaining: number;
   elementalRebukeUsesTotal: number;
+  eldritchCannonCompanions: CharacterCompanion[];
   flashOfGeniusUsesRemaining: number;
   flashOfGeniusUsesTotal: number;
   gloriousDefenseUsesRemaining: number;
@@ -151,12 +160,14 @@ export type ReactionDescriptorContext = {
   restoreBalanceUsesTotal: number;
   selectedBranchesOfTheTreeDcFormula: string | null;
   selectedCosmicOmenSelection: DruidCosmicOmenSelection;
+  selectedEldritchCannonCompanionId: string;
   selectedRangerHunterSuperiorHuntersDefenseDamageType: string | null;
   selectedReactionEntry: ReactionEntry;
   selectedSongOfDefenseDamageReduction: number;
   selectedSongOfDefenseSpellSlotLevel: number;
   selectedSpellThiefSpell: SpellEntry | null;
   selectedSpellThiefSpellId: string;
+  setSelectedEldritchCannonCompanionId: Dispatch<SetStateAction<string>>;
   setSelectedSongOfDefenseSpellSlotLevel: Dispatch<SetStateAction<number>>;
   setSelectedSpellThiefSpellId: Dispatch<SetStateAction<string>>;
   setSpellThiefSearchQuery: Dispatch<SetStateAction<string>>;
@@ -275,6 +286,16 @@ function applySpellThief(
   };
 }
 
+function applyEldritchCannonDetonate(
+  currentCharacter: Character,
+  context: ReactionDescriptorContext
+): Character {
+  return detonateArtificerEldritchCannonForCharacter(
+    currentCharacter,
+    context.selectedEldritchCannonCompanionId
+  );
+}
+
 function renderSongOfDefenseSlotSelector(context: ReactionDescriptorContext): ReactNode {
   return (
     <label className={shared.field}>
@@ -385,6 +406,26 @@ function renderPerfectedArmorGuardianDcFormula(context: ReactionDescriptorContex
         content={formulaCell.content}
         breakdown={formulaCell.breakdown}
       />
+    </div>
+  );
+}
+
+function renderEldritchCannonDetonateSelector(context: ReactionDescriptorContext): ReactNode {
+  if (context.eldritchCannonCompanions.length <= 0) {
+    return null;
+  }
+
+  return (
+    <div className={styles.eldritchCannonSelectorGrid}>
+      {context.eldritchCannonCompanions.map((companion) => (
+        <RadioContainerOption
+          key={companion.id}
+          name="detonate-eldritch-cannon"
+          header={companion.name}
+          selected={context.selectedEldritchCannonCompanionId === companion.id}
+          onSelect={() => context.setSelectedEldritchCannonCompanionId(companion.id)}
+        />
+      ))}
     </div>
   );
 }
@@ -580,6 +621,26 @@ const descriptors: ReactionDescriptor[] = [
     ],
     renderCustomContent: renderPerfectedArmorGuardianDcFormula,
     apply: consumeArtificerArmorerPerfectedArmorGuardianUseForCharacter,
+    skipReactionWhenUnchanged: true
+  },
+  {
+    id: artificerExplosiveCannonDetonateReactionEntryId,
+    getSelectionWarning: (context) => {
+      if (
+        !hasActiveArtificerEldritchCannonForCharacter(context.character) ||
+        context.eldritchCannonCompanions.length <= 0
+      ) {
+        return "You must have an Eldritch Cannon present to detonate it.";
+      }
+
+      return context.eldritchCannonCompanions.some(
+        (companion) => companion.id === context.selectedEldritchCannonCompanionId
+      )
+        ? null
+        : "Choose an Eldritch Cannon to detonate.";
+    },
+    renderCustomContent: renderEldritchCannonDetonateSelector,
+    apply: applyEldritchCannonDetonate,
     skipReactionWhenUnchanged: true
   },
   {

@@ -115,7 +115,7 @@ function CompanionsSection({ character, className, onPersistCharacter }: Compani
   return (
     <>
       <article className={clsx(shared.sectionCard, className)}>
-        <div className={shared.sectionHeader}>
+        <div className={clsx(shared.sectionHeader, styles.companionsSectionHeader)}>
           <div>
             <div className={shared.eyebrowHelpRow}>
               <p className={clsx(shared.eyebrow, shared.eyebrowInHelpRow)}>Companions</p>
@@ -130,7 +130,7 @@ function CompanionsSection({ character, className, onPersistCharacter }: Compani
               </button>
             </div>
           </div>
-          <div className={shared.headerActions}>
+          <div className={clsx(shared.headerActions, styles.companionsHeaderActions)}>
             <button
               type="button"
               className={shared.editButton}

@@ -109,7 +109,16 @@ export type CharacterStatusValue = SENSE | EFFECT_NAME | CONDITION_NAME | DAMAGE
 
 export type CharacterCustomTraitRollMode = "normal" | "advantage" | "disadvantage";
 export type CharacterCustomTraitValueMode = "buff" | "debuff";
-export type CharacterCustomTraitEffectValue = number | AbilityKey;
+export const characterCustomTraitDiceValues = [
+  "1d4",
+  "1d6",
+  "1d8",
+  "1d10",
+  "1d12",
+  "1d20"
+] as const;
+export type CharacterCustomTraitDiceValue = (typeof characterCustomTraitDiceValues)[number];
+export type CharacterCustomTraitEffectValue = number | AbilityKey | CharacterCustomTraitDiceValue;
 
 type CharacterCustomTraitEffectRoll = {
   rollMode?: CharacterCustomTraitRollMode;
@@ -163,7 +172,7 @@ export type CharacterCustomTraitEffect =
   | {
       type: "savingThrow";
       ability: AbilityKey;
-    } & CharacterCustomTraitNumericValue &
+    } & CharacterCustomTraitFlexibleValue &
       CharacterCustomTraitEffectRoll
   | {
       type: "skill";

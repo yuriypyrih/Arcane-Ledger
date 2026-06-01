@@ -184,10 +184,10 @@ export function renderEquipmentForm(context: Record<string, any>) {
                         entry.item.item
                       );
                       const spellcastingFocusTagLabels = featureTagLabels.filter(
-                        (tagLabel) => tagLabel === "Spellcasting Focus"
+                        (tagLabel) => tagLabel.startsWith("Spellcasting Focus")
                       );
                       const otherFeatureTagLabels = featureTagLabels.filter(
-                        (tagLabel) => tagLabel !== "Spellcasting Focus"
+                        (tagLabel) => !tagLabel.startsWith("Spellcasting Focus")
                       );
                       const isContainerObjectTag = objectTagLabel !== null && objectTagLabel !== "Pack";
 

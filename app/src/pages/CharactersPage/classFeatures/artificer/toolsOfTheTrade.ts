@@ -22,6 +22,18 @@ const alchemistToolsOfTheTradeDefaults = [
 const armorerSubclassId = "artificer-armorer";
 const armorerToolsOfTheTradeSource = "Armorer: Tools of the Trade";
 const armorerToolsOfTheTradeDefaults = [TOOL_PROFICIENCY.SMITHS_TOOLKIT] as const;
+const artilleristSubclassId = "artificer-artillerist";
+const artilleristToolsOfTheTradeSource = "Artillerist: Tools of the Trade";
+const artilleristToolsOfTheTradeDefaults = [TOOL_PROFICIENCY.WOODCARVERS_TOOLS] as const;
+const battleSmithSubclassId = "artificer-battle-smith";
+const battleSmithToolsOfTheTradeSource = "Battle Smith: Tools of the Trade";
+const battleSmithToolsOfTheTradeDefaults = [TOOL_PROFICIENCY.SMITHS_TOOLKIT] as const;
+const cartographerSubclassId = "artificer-cartographer";
+const cartographerToolsOfTheTradeSource = "Cartographer: Tools of the Trade";
+const cartographerToolsOfTheTradeDefaults = [
+  TOOL_PROFICIENCY.CALLIGRAPHERS_SUPPLIES,
+  TOOL_PROFICIENCY.CARTOGRAPHERS_TOOLS
+] as const;
 const toolsOfTheTradeArtisanToolOptions = [...artisanToolProficiencies] as const;
 
 type ArtificerToolsOfTheTradeCharacter = Pick<Character, "className"> &
@@ -43,6 +55,21 @@ const toolsOfTheTradeConfigs: ArtificerToolsOfTheTradeConfig[] = [
     subclassId: armorerSubclassId,
     source: armorerToolsOfTheTradeSource,
     defaultTools: armorerToolsOfTheTradeDefaults
+  },
+  {
+    subclassId: artilleristSubclassId,
+    source: artilleristToolsOfTheTradeSource,
+    defaultTools: artilleristToolsOfTheTradeDefaults
+  },
+  {
+    subclassId: battleSmithSubclassId,
+    source: battleSmithToolsOfTheTradeSource,
+    defaultTools: battleSmithToolsOfTheTradeDefaults
+  },
+  {
+    subclassId: cartographerSubclassId,
+    source: cartographerToolsOfTheTradeSource,
+    defaultTools: cartographerToolsOfTheTradeDefaults
   }
 ];
 

@@ -25,6 +25,8 @@ export type CompanionDraft = {
 
 export const COMPANION_MONSTERS_PER_PAGE = 20;
 
+const steelDefenderMonsterId = "artificer-battle-smith-steel-defender";
+
 export const companionMonsterTypeOptions = Array.from(
   new Set([...MONSTER_TYPE_OPTIONS, PRIMAL_BEAST_MONSTER_TYPE, "Undead"])
 ).sort((left, right) => left.localeCompare(right));
@@ -83,6 +85,18 @@ export function getCompanionSourceLabel(companion: CharacterCompanion) {
   }
 
   return getInheritedEntryLabel(companion);
+}
+
+export function getCompanionDisplayType(
+  companion: Pick<CharacterCompanion, "type" | "inheritedCreatureEntry">
+) {
+  const inheritedType = companion.inheritedCreatureEntry?.type.trim() ?? "";
+
+  if (companion.inheritedCreatureEntry?.id === steelDefenderMonsterId && inheritedType) {
+    return inheritedType;
+  }
+
+  return companion.type.trim();
 }
 
 export function getInheritedEntryLabel(

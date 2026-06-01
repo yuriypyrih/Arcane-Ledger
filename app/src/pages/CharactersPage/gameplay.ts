@@ -70,6 +70,7 @@ import { isMonkWeapon } from "./monkWeapons";
 import { hasFeatForCharacter } from "./feats/runtime";
 import {
   formatCustomTraitBonusFormulaTerm,
+  formatCustomTraitBonusRollFormulaTerm,
   getCustomTraitPassivePerceptionBonuses,
   type CustomTraitBonusInput
 } from "./customTraitEffects";
@@ -158,6 +159,7 @@ export type WeaponAction = {
   hasBatteringRootsBonus: boolean;
   hasActiveMastery?: boolean;
   isBatteringRootsEligible?: boolean;
+  isMagicWeapon?: boolean;
   drawerEyebrow?: string;
   description?: SpellDescriptionEntry[];
   descriptionAdditions?: SpellDescriptionEntry[][];
@@ -177,6 +179,8 @@ const weaponActionsByCharacter = new WeakMap<Character, WeaponAction[]>();
 export type InitiativeBreakdownEntry = {
   label: string;
   value: number;
+  formula?: string;
+  formulaMultiplier?: 1 | -1;
   abilityModifierSource?: AbilityKey;
   formulaSourceLabel?: string;
 };
@@ -626,6 +630,8 @@ function appendFeatureDamageBonuses(
 function formatFeatureDamageBonusLabel(entry: FeatureDamageBonus): string | null {
   const customFormulaLabel = formatCustomTraitBonusFormulaTerm({
     value: entry.value ?? 0,
+    formula: entry.formula,
+    formulaMultiplier: entry.formulaMultiplier,
     abilityModifierSource: entry.abilityModifierSource,
     formulaSourceLabel: entry.formulaSourceLabel
   });
@@ -646,7 +652,7 @@ function formatFeatureDamageBonusLabel(entry: FeatureDamageBonus): string | null
 }
 
 function formatFeatureDamageBonusFormula(entry: FeatureDamageBonus): string | null {
-  return entry.formula ?? null;
+  return formatCustomTraitBonusRollFormulaTerm(entry) ?? entry.formula ?? null;
 }
 
 function isDuelingDamageBonusHandState(
@@ -719,6 +725,7 @@ export function createWeaponAction(
     hasGreatWeaponFighting: boolean;
     hasMartialArtsDamageDie?: boolean;
     hasActiveMastery?: boolean;
+    isMagicWeapon?: boolean;
     skipFeatureDerivedLookups?: boolean;
     inventoryStackId?: string;
     inventoryFeatureTags?: CharacterInventoryFeatureTag[];
@@ -841,6 +848,7 @@ export function createWeaponAction(
     hasBatteringRootsBonus,
     hasActiveMastery: options.hasActiveMastery,
     isBatteringRootsEligible,
+    isMagicWeapon: options.isMagicWeapon,
     inventoryStackId: options.inventoryStackId,
     inventoryFeatureTags: options.inventoryFeatureTags
   };
@@ -895,14 +903,17 @@ export function getInitiativeBreakdownForCharacter(character: Character): Initia
     const value = getAbilitySourcedFeatureBonusValue(character, bonus, {
       customTraitEffectInput
     });
+    const formula = bonus.formula?.trim();
 
-    if (value === 0) {
+    if (value === 0 && !formula) {
       return;
     }
 
     entries.push({
       label: bonus.label,
       value,
+      formula: bonus.formula,
+      formulaMultiplier: bonus.formulaMultiplier,
       abilityModifierSource: bonus.abilityModifierSource,
       formulaSourceLabel: bonus.formulaSourceLabel
     });
@@ -1416,6 +1427,7 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
           hasVersatileBonus: weaponReference.hasVersatileBonus,
           hasGreatWeaponFighting: weaponReference.hasGreatWeaponFighting,
           hasMartialArtsDamageDie: Boolean(monkDamageAdjustment?.applied),
+          isMagicWeapon: inventoryItem.item.is_magic_item === true,
           inventoryStackId: inventoryItem.stackId,
           inventoryFeatureTags: inventoryItem.featureTags
         })

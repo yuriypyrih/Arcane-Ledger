@@ -14,6 +14,16 @@ import { getCharacterCustomTraitEffectInput } from "./characterRuntime/customEff
 
 export type SkillProficiencyMultiplier = 0 | 1 | 2;
 
+export type SkillBonusEntry = {
+  label: string;
+  value: number;
+  formula?: string;
+  formulaMultiplier?: 1 | -1;
+  abilityModifierSource?: AbilityKey;
+  formulaSourceLabel?: string;
+  formulaLabel?: string;
+};
+
 export type SkillRow = {
   name: SkillName;
   ability: AbilityKey;
@@ -32,13 +42,7 @@ export type SkillRow = {
   proficiencyContribution: number;
   proficiencySourceLabels: string[];
   proficiencyLocked: boolean;
-  bonusEntries: Array<{
-    label: string;
-    value: number;
-    abilityModifierSource?: AbilityKey;
-    formulaSourceLabel?: string;
-    formulaLabel?: string;
-  }>;
+  bonusEntries: SkillBonusEntry[];
   totalModifier: number;
 };
 
@@ -88,7 +92,7 @@ export function getSkillRowsByAbility(
           { customTraitEffectInput }
         );
         const effectiveAbilityModifier = effectiveAbilityModifierBreakdown.total;
-        const bonusEntries = featureBonuses.flatMap((entry) => {
+        const bonusEntries = featureBonuses.flatMap<SkillBonusEntry>((entry) => {
           if (entry.replacesBaseAbility && entry.abilityModifierSource) {
             return [];
           }
@@ -127,10 +131,14 @@ export function getSkillRowsByAbility(
             {
               label: entry.label,
               value: entry.value ?? 0,
+              formula: entry.formula,
+              formulaMultiplier: entry.formulaMultiplier,
               formulaSourceLabel: entry.formulaSourceLabel,
               formulaLabel:
                 formatCustomTraitBonusFormulaTerm({
                   value: entry.value ?? 0,
+                  formula: entry.formula,
+                  formulaMultiplier: entry.formulaMultiplier,
                   formulaSourceLabel: entry.formulaSourceLabel
                 }) ?? undefined
             }

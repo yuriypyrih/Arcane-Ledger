@@ -14,6 +14,8 @@ import styles from "./AbilitySavingThrowCards.module.css";
 export type SavingThrowBonusEntry = {
   label: string;
   value: number;
+  formula?: string;
+  formulaMultiplier?: 1 | -1;
   abilityModifierSource?: AbilityKey;
   formulaSourceLabel?: string;
   formulaLabel?: string;

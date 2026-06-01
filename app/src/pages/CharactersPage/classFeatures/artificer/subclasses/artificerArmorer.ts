@@ -40,6 +40,7 @@ import {
   createCharacterStatusEntry,
   normalizeCharacterStatusEntries
 } from "../../../statusEntries";
+import { getEffectiveHitPointMaximumForCharacter } from "../../../traits";
 import { createChargesCardUsage } from "../../cardUsage";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import { getPreparedSpellIdsByLevel, type SubclassRuntimeResolver } from "../../subclassRuntime";
@@ -128,9 +129,13 @@ type ArmorerArcaneArmorCharacter = Pick<Character, "className"> &
       | "classFeatureState"
       | "customEquipment"
       | "equipment"
+      | "currentHitPoints"
+      | "feats"
+      | "hitPoints"
       | "inventoryItems"
       | "level"
       | "roundTracker"
+      | "species"
       | "statusEntries"
       | "subclassId"
     >
@@ -1033,6 +1038,30 @@ export function getArtificerArmorerArmorModelWeaponActions(
     .filter((action): action is WeaponAction => action !== null);
 }
 
+function isArtificerArmorerDefensiveFieldBloodied(
+  character: ArmorerArcaneArmorCharacter
+): boolean {
+  if (
+    typeof character.currentHitPoints !== "number" ||
+    typeof character.hitPoints !== "number" ||
+    character.currentHitPoints <= 0
+  ) {
+    return false;
+  }
+
+  const effectiveHitPointMaximum = getEffectiveHitPointMaximumForCharacter({
+    className: character.className,
+    feats: character.feats,
+    hitPoints: character.hitPoints,
+    level: character.level,
+    species: character.species,
+    statusEntries: character.statusEntries ?? [],
+    subclassId: character.subclassId
+  });
+
+  return character.currentHitPoints <= effectiveHitPointMaximum * 0.5;
+}
+
 function getArtificerArmorerDefensiveFieldAction(
   character: ArmorerArcaneArmorCharacter
 ): FeatureActionCard | null {
@@ -1042,6 +1071,8 @@ function getArtificerArmorerDefensiveFieldAction(
 
   const description = getDefensiveFieldDescription(character);
   const temporaryHitPoints = Math.max(1, Math.floor(character.level ?? 1));
+  const isBloodied = isArtificerArmorerDefensiveFieldBloodied(character);
+  const disabledReason = isBloodied ? undefined : "You must be Bloodied to use Defensive Field.";
 
   return {
     key: artificerArmorerDefensiveFieldActionKey,
@@ -1057,16 +1088,22 @@ function getArtificerArmorerDefensiveFieldAction(
     drawer: {
       kind: "confirm",
       eyebrow: "Guardian",
-      description
+      description,
+      blockedReason: disabledReason
     },
     execute: {
       kind: "activate"
-    }
+    },
+    disabled: Boolean(disabledReason),
+    disabledReason
   };
 }
 
 export function activateArtificerArmorerDefensiveField(character: Character): Character {
-  if (!hasActiveArtificerArmorerArmorModel(character, "guardian")) {
+  if (
+    !hasActiveArtificerArmorerArmorModel(character, "guardian") ||
+    !isArtificerArmorerDefensiveFieldBloodied(character)
+  ) {
     return character;
   }
 

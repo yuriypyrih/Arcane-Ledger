@@ -292,6 +292,7 @@ function createInventoryStackFromContainerContent(
     chargesTotal: content.chargesTotal,
     storedSpell: content.storedSpell,
     featureTags: content.featureTags,
+    spellcastingFocusSources: content.spellcastingFocusSources,
     conjuredSource: content.conjuredSource,
     conjuredDuration: content.conjuredDuration,
     mods: content.mods
@@ -1106,7 +1107,9 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     : null;
   const selectedInventoryModEffects = selectedInventoryStack?.mods?.effects ?? [];
   const selectedInventoryFeatureTagLabels = [
-    ...getInventoryItemFeatureTagLabels(selectedInventoryStack),
+    ...getInventoryItemFeatureTagLabels(selectedInventoryStack, {
+      includeSpellcastingFocusSource: true
+    }),
     ...getArcaneArmorFeatureTagsForInventoryStack(selectedInventoryStack, selectedInventoryRecord, {
       includeModel: true
     })
@@ -2835,7 +2838,9 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       item={parentInventoryRecord}
       spellTag={getInventoryItemStoredSpellHeaderTagLabel(parentInventoryStack)}
       featureTags={[
-        ...getInventoryItemFeatureTagLabels(parentInventoryStack),
+        ...getInventoryItemFeatureTagLabels(parentInventoryStack, {
+          includeSpellcastingFocusSource: true
+        }),
         ...getArcaneArmorFeatureTagsForInventoryStack(parentInventoryStack, parentInventoryRecord, {
           includeModel: true
         })

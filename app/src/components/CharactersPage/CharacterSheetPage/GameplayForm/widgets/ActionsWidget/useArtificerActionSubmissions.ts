@@ -7,16 +7,23 @@ import {
   addArtificerExperimentalElixirToInventory,
   addArtificerReplicateMagicItemToInventory,
   addArtificerTinkersMagicItemToInventory,
+  artificerArcaneFirearmActionKey,
   artificerChargeMagicItemActionKey,
   artificerDrainMagicItemActionKey,
+  artificerEldritchCannonActionKey,
   artificerExperimentalElixirActionKey,
   artificerReplicateMagicItemActionKey,
+  artificerSteelDefenderActionKey,
   artificerTinkersMagicActionKey,
   artificerTransmuteMagicItemActionKey,
   chargeArtificerMagicItemForCharacter,
   consumeArtificerTinkersMagicUse,
+  createArtificerEldritchCannonForCharacter,
+  createArtificerSteelDefenderForCharacter,
   drainArtificerMagicItemForCharacter,
+  setArtificerArcaneFirearmForCharacter,
   transmuteArtificerMagicItemForCharacter,
+  type ArtificerEldritchCannonOptionKey,
   type ArtificerExperimentalElixirOptionKey
 } from "../../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
 import type { FeatureActionCard } from "../../../../../../pages/CharactersPage/classFeatures";
@@ -56,6 +63,9 @@ export function useArtificerActionSubmissions({
 }: UseArtificerActionSubmissionsArgs) {
   const [isTinkersMagicSubmitting, setIsTinkersMagicSubmitting] = useState(false);
   const [isReplicateMagicItemSubmitting, setIsReplicateMagicItemSubmitting] = useState(false);
+  const [isArcaneFirearmSubmitting, setIsArcaneFirearmSubmitting] = useState(false);
+  const [isEldritchCannonSubmitting, setIsEldritchCannonSubmitting] = useState(false);
+  const [isSteelDefenderSubmitting, setIsSteelDefenderSubmitting] = useState(false);
   const [isExperimentalElixirSubmitting, setIsExperimentalElixirSubmitting] = useState(false);
   const [isArtificerMagicItemTinkerSubmitting, setIsArtificerMagicItemTinkerSubmitting] =
     useState(false);
@@ -224,6 +234,118 @@ export function useArtificerActionSubmissions({
     }
   }
 
+  async function submitArtificerEldritchCannon(
+    optionKey: ArtificerEldritchCannonOptionKey,
+    spellSlotLevel: number | null
+  ) {
+    if (
+      !isSelectedFeatureAction(
+        selectedAction,
+        selectedFeatureAction,
+        artificerEldritchCannonActionKey
+      )
+    ) {
+      return;
+    }
+
+    setIsEldritchCannonSubmitting(true);
+
+    try {
+      const didApply = applySelectedFeatureAction((preparedCharacter) =>
+        createArtificerEldritchCannonForCharacter(preparedCharacter, optionKey, spellSlotLevel)
+      );
+
+      if (!didApply) {
+        throw new Error("Eldritch Cannon could not be created.");
+      }
+
+      closeActionDrawer();
+    } catch (error) {
+      console.error("Failed to create Eldritch Cannon.", error);
+      captureAppError(error, {
+        area: "gameplay-actions",
+        action: "eldritch-cannon"
+      });
+      throw error;
+    } finally {
+      setIsEldritchCannonSubmitting(false);
+    }
+  }
+
+  async function submitArtificerSteelDefender(spellSlotLevel: number | null) {
+    if (
+      !isSelectedFeatureAction(
+        selectedAction,
+        selectedFeatureAction,
+        artificerSteelDefenderActionKey
+      )
+    ) {
+      return;
+    }
+
+    setIsSteelDefenderSubmitting(true);
+
+    try {
+      const didApply = applySelectedFeatureAction((preparedCharacter) =>
+        createArtificerSteelDefenderForCharacter(preparedCharacter, spellSlotLevel)
+      );
+
+      if (!didApply) {
+        throw new Error("Steel Defender could not be created.");
+      }
+
+      closeActionDrawer();
+    } catch (error) {
+      console.error("Failed to create Steel Defender.", error);
+      captureAppError(error, {
+        area: "gameplay-actions",
+        action: "steel-defender"
+      });
+      throw error;
+    } finally {
+      setIsSteelDefenderSubmitting(false);
+    }
+  }
+
+  async function submitArtificerArcaneFirearm(stackId: string) {
+    if (
+      !isSelectedFeatureAction(
+        selectedAction,
+        selectedFeatureAction,
+        artificerArcaneFirearmActionKey
+      )
+    ) {
+      return;
+    }
+
+    if (!stackId) {
+      throw new Error("Choose an item for Arcane Firearm.");
+    }
+
+    setIsArcaneFirearmSubmitting(true);
+
+    try {
+      const didApply = applySelectedFeatureAction((preparedCharacter) =>
+        setArtificerArcaneFirearmForCharacter(preparedCharacter, stackId)
+      );
+
+      if (!didApply) {
+        throw new Error("Arcane Firearm could not be applied.");
+      }
+
+      closeActionDrawer();
+    } catch (error) {
+      console.error("Failed to apply Arcane Firearm.", error);
+      captureAppError(error, {
+        area: "gameplay-actions",
+        action: "arcane-firearm"
+      });
+      throw error;
+    } finally {
+      setIsArcaneFirearmSubmitting(false);
+    }
+  }
+
   async function submitArtificerChargeMagicItem(stackId: string, spellSlotLevel: number) {
     if (
       !isSelectedFeatureAction(
@@ -334,14 +456,20 @@ export function useArtificerActionSubmissions({
   }
 
   return {
+    isArcaneFirearmSubmitting,
     isArtificerMagicItemTinkerSubmitting,
+    isEldritchCannonSubmitting,
     isExperimentalElixirSubmitting,
     isReplicateMagicItemSubmitting,
+    isSteelDefenderSubmitting,
     isTinkersMagicSubmitting,
+    submitArtificerArcaneFirearm,
     submitArtificerChargeMagicItem,
     submitArtificerDrainMagicItem,
+    submitArtificerEldritchCannon,
     submitArtificerExperimentalElixir,
     submitArtificerReplicateMagicItem,
+    submitArtificerSteelDefender,
     submitArtificerTinkersMagic,
     submitArtificerTransmuteMagicItem
   };

@@ -32,11 +32,28 @@ import {
 } from "./subclasses/artificerAlchemistChemicalMastery";
 import {
   advanceArtificerArmorerFeaturesForNewRound,
+  consumeArtificerArmorerWeaponAttack,
+  getArtificerArmorerWeaponAttackMultiCount,
+  hasArtificerArmorerExtraAttackFeature,
   normalizeArtificerArmorerState,
   restoreArtificerArmorerGiantStatureOnLongRest,
   restoreArtificerArmorerInfiltratorsFlightOnLongRest,
   restoreArtificerArmorerPerfectedArmorGuardianOnLongRest
 } from "./subclasses/artificerArmorer";
+import {
+  normalizeArtificerArtilleristState,
+  restoreArtificerEldritchCannonOnLongRest
+} from "./subclasses/artificerArtillerist";
+import {
+  advanceArtificerBattleSmithFeaturesForNewRound,
+  clearArtificerArcaneJoltForNewRound,
+  consumeArtificerBattleSmithWeaponAttack,
+  getArtificerBattleSmithWeaponAttackMultiCount,
+  hasArtificerBattleSmithExtraAttackFeature,
+  normalizeArtificerBattleSmithArcaneJoltState,
+  normalizeArtificerBattleSmithState,
+  restoreArtificerArcaneJoltOnLongRest
+} from "./subclasses/artificerBattleSmith";
 import type { ReactionEntry } from "../../../../codex/entries";
 
 export {
@@ -98,6 +115,59 @@ export {
   restoreArtificerArmorerInfiltratorsFlightOnLongRest,
   restoreArtificerArmorerPerfectedArmorGuardianOnLongRest
 } from "./subclasses/artificerArmorer";
+
+export {
+  artificerArcaneFirearmActionKey,
+  artificerEldritchCannonActionKey,
+  artificerExplosiveCannonDetonateReactionEntryId,
+  createArtificerEldritchCannonForCharacter,
+  detonateArtificerEldritchCannon,
+  getArtificerArcaneFirearmItemOptions,
+  getArtificerEldritchCannonCompanions,
+  getArtificerEldritchCannonOptions,
+  getArtificerEldritchCannonSpellSlotOptions,
+  getArtificerEldritchCannonUsesRemaining,
+  getArtificerEldritchCannonUsesTotal,
+  hasActiveArtificerEldritchCannon,
+  hasArtificerFortifiedPositionFeature,
+  isArtificerEldritchCannonOptionKey,
+  restoreArtificerEldritchCannonOnLongRest,
+  setArtificerArcaneFirearmForCharacter,
+  type ArtificerArcaneFirearmItemOption,
+  type ArtificerEldritchCannonOptionKey,
+  type ArtificerEldritchCannonSpellSlotOption
+} from "./subclasses/artificerArtillerist";
+
+export {
+  artificerArcaneJoltActionKey,
+  artificerSteelDefenderActionKey,
+  advanceArtificerBattleSmithFeaturesForNewRound,
+  clearArtificerArcaneJoltForNewRound,
+  consumeArtificerArcaneJoltUse,
+  consumeArtificerBattleSmithWeaponAttack,
+  createArtificerSteelDefenderForCharacter,
+  getArtificerArcaneJoltUsesRemaining,
+  getArtificerArcaneJoltUsesTotal,
+  getArtificerBattleSmithWeaponAttackMultiCount,
+  getArtificerSteelDefenderSpellSlotOptions,
+  hasActiveArtificerSteelDefender,
+  hasArtificerBattleSmithArcaneJoltFeature,
+  hasArtificerBattleSmithExtraAttackFeature,
+  hasArtificerSteelDefenderFeature,
+  isArtificerSteelDefenderCompanion,
+  normalizeArtificerBattleSmithArcaneJoltState,
+  normalizeArtificerBattleSmithState,
+  restoreArtificerArcaneJoltOnLongRest,
+  type ArtificerSteelDefenderSpellSlotOption
+} from "./subclasses/artificerBattleSmith";
+
+export {
+  artificerAdventurersAtlasActionKey,
+  createArtificerAdventurersAtlasMapsForCharacter,
+  getArtificerAdventurersAtlasAction,
+  getArtificerAdventurersAtlasMapCount,
+  hasArtificerAdventurersAtlasFeature
+} from "./subclasses/artificerCartographer";
 
 export {
   artificerConjuredCauldronActionKey,
@@ -188,8 +258,39 @@ export function normalizeArtificerFeatureState(
     ...normalizeArtificerToolsOfTheTradeState(value, character),
     ...normalizeArtificerRestorativeReagentsState(value, character),
     ...normalizeArtificerConjuredCauldronState(value, character),
-    ...normalizeArtificerArmorerState(value, character)
+    ...normalizeArtificerArtilleristState(value, character),
+    ...normalizeArtificerArmorerState(value, character),
+    ...normalizeArtificerBattleSmithState(value, character),
+    ...normalizeArtificerBattleSmithArcaneJoltState(value, character)
   };
+}
+
+export function hasArtificerExtraAttackFeature(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): boolean {
+  return (
+    hasArtificerArmorerExtraAttackFeature(character) ||
+    hasArtificerBattleSmithExtraAttackFeature(character)
+  );
+}
+
+export function getArtificerWeaponAttackMultiCount(
+  character: Pick<Character, "className" | "classFeatureState" | "level"> &
+    Partial<Pick<Character, "subclassId">>
+): number {
+  if (hasArtificerBattleSmithExtraAttackFeature(character)) {
+    return getArtificerBattleSmithWeaponAttackMultiCount(character);
+  }
+
+  return getArtificerArmorerWeaponAttackMultiCount(character);
+}
+
+export function consumeArtificerWeaponAttack(character: Character): Character {
+  if (hasArtificerBattleSmithExtraAttackFeature(character)) {
+    return consumeArtificerBattleSmithWeaponAttack(character);
+  }
+
+  return consumeArtificerArmorerWeaponAttack(character);
 }
 
 export function getArtificerAlwaysPreparedSpellIds(character: ArtificerRuntimeCharacter): string[] {
@@ -229,27 +330,28 @@ export function getArtificerReactionEntries(
 }
 
 export function applyLongRestToArtificerFeatures(character: Character): Character {
-  return advanceArtificerArmorerFeaturesForNewRound(
-    restoreArtificerArmorerInfiltratorsFlightOnLongRest(
-      restoreArtificerArmorerPerfectedArmorGuardianOnLongRest(
-        restoreArtificerArmorerGiantStatureOnLongRest(
-          restoreArtificerConjuredCauldronOnLongRest(
-            restoreArtificerRestorativeReagentsOnLongRest(
-              restoreArtificerMagicItemTinkerTransmuteOnLongRest(
-                restoreArtificerMagicItemTinkerDrainOnLongRest(
-                  restoreArtificerFlashOfGeniusOnLongRest(
-                    restoreArtificerTinkersMagicOnLongRest(character)
-                  )
-                )
-              )
-            )
-          )
-        )
-      )
-    )
-  );
+  let nextCharacter = restoreArtificerTinkersMagicOnLongRest(character);
+  nextCharacter = restoreArtificerEldritchCannonOnLongRest(nextCharacter);
+  nextCharacter = restoreArtificerFlashOfGeniusOnLongRest(nextCharacter);
+  nextCharacter = restoreArtificerMagicItemTinkerDrainOnLongRest(nextCharacter);
+  nextCharacter = restoreArtificerMagicItemTinkerTransmuteOnLongRest(nextCharacter);
+  nextCharacter = restoreArtificerArcaneJoltOnLongRest(nextCharacter);
+  nextCharacter = restoreArtificerRestorativeReagentsOnLongRest(nextCharacter);
+  nextCharacter = restoreArtificerConjuredCauldronOnLongRest(nextCharacter);
+  nextCharacter = restoreArtificerArmorerGiantStatureOnLongRest(nextCharacter);
+  nextCharacter = restoreArtificerArmorerPerfectedArmorGuardianOnLongRest(nextCharacter);
+  nextCharacter = restoreArtificerArmorerInfiltratorsFlightOnLongRest(nextCharacter);
+  nextCharacter = advanceArtificerArmorerFeaturesForNewRound(nextCharacter);
+  nextCharacter = advanceArtificerBattleSmithFeaturesForNewRound(nextCharacter);
+  nextCharacter = clearArtificerArcaneJoltForNewRound(nextCharacter);
+
+  return nextCharacter;
 }
 
 export function advanceArtificerFeaturesForNewRound(character: Character): Character {
-  return advanceArtificerArmorerFeaturesForNewRound(character);
+  return clearArtificerArcaneJoltForNewRound(
+    advanceArtificerBattleSmithFeaturesForNewRound(
+      advanceArtificerArmorerFeaturesForNewRound(character)
+    )
+  );
 }

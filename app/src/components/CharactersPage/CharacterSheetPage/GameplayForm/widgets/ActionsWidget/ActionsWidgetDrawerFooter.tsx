@@ -329,6 +329,9 @@ import {
   chargeMagicItemActionFormId,
   drainMagicItemActionFormId
 } from "./forms/MagicItemTinkerActionBody";
+import ArtificerArcaneFirearmActionFooter from "./forms/ArtificerArcaneFirearmActionFooter";
+import ArtificerEldritchCannonActionFooter from "./forms/ArtificerEldritchCannonActionFooter";
+import ArtificerSteelDefenderActionFooter from "./forms/ArtificerSteelDefenderActionFooter";
 import ExperimentalElixirActionFooter from "./forms/ExperimentalElixirActionFooter";
 import { LayOnHandsActionBody, LayOnHandsActionFooter } from "./LayOnHandsAction";
 import { SorcererInnateSorceryActionFooter } from "./SorcererInnateSorceryAction";
@@ -538,8 +541,11 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     isHuntersMarkTargetSelected,
     isImprovedShadowStepSelected,
     isInspiredEclipseSelected,
+    isArcaneFirearmSubmitting,
     isArtificerMagicItemTinkerSubmitting,
+    isEldritchCannonSubmitting,
     isExperimentalElixirSubmitting,
+    isSteelDefenderSubmitting,
     isPolarStrikesSelected,
     isPsionicStrikeSelected,
     isQuiveringPalmSelected,
@@ -579,6 +585,8 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     selectedCrownOfSpellfireUsesRemaining,
     selectedCrownOfSpellfireUsesTotal,
     selectedDrawerOption,
+    selectedArtificerEldritchCannonSpellSlotLevel,
+    selectedArtificerSteelDefenderSpellSlotLevel,
     selectedExperimentalElixirOptionKey,
     selectedExperimentalElixirSpellSlotLevel,
     selectedFeatureAction,
@@ -715,6 +723,8 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     setSelectedBlessingOfTheTricksterTarget,
     setSelectedChannelDivinityOptionKey,
     setSelectedDivineInterventionSpell,
+    setSelectedArtificerEldritchCannonSpellSlotLevel,
+    setSelectedArtificerSteelDefenderSpellSlotLevel,
     setSelectedExperimentalElixirSpellSlotLevel,
     setSelectedFontOfMagicSelection,
     setSelectedHealingLightDiceCount,
@@ -743,6 +753,9 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     submitArcaneRecovery,
     submitBlessingOfTheTrickster,
     submitBrutalStrike,
+    submitArtificerArcaneFirearm,
+    submitArtificerEldritchCannon,
+    submitArtificerSteelDefender,
     submitArtificerExperimentalElixir,
     submitAasimarCelestialRevelation,
     submitAasimarHealingHands,
@@ -1245,6 +1258,68 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
         actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
         onSelectedSpellSlotLevelChange={setSelectedExperimentalElixirSpellSlotLevel}
         onUseElixir={submitArtificerExperimentalElixir}
+      />
+    );
+  }
+
+  if (
+    selectedAction.kind === "feature" &&
+    selectedAction.drawer.kind === "custom-form" &&
+    selectedAction.drawer.formKind === "artificer-eldritch-cannon"
+  ) {
+    return (
+      <ArtificerEldritchCannonActionFooter
+        character={character}
+        selectedOptionKey={selectedActionOptionKeys[0] ?? null}
+        selectedSpellSlotLevel={selectedArtificerEldritchCannonSpellSlotLevel}
+        isSubmitting={isEldritchCannonSubmitting}
+        disabledReason={selectedFeatureActionPrimaryDisabledReason}
+        actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
+        actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+        actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+        confirmLabel={selectedFeaturePrimaryLabel}
+        onSelectedSpellSlotLevelChange={setSelectedArtificerEldritchCannonSpellSlotLevel}
+        onUseCannon={submitArtificerEldritchCannon}
+      />
+    );
+  }
+
+  if (
+    selectedAction.kind === "feature" &&
+    selectedAction.drawer.kind === "custom-form" &&
+    selectedAction.drawer.formKind === "artificer-steel-defender"
+  ) {
+    return (
+      <ArtificerSteelDefenderActionFooter
+        character={character}
+        selectedSpellSlotLevel={selectedArtificerSteelDefenderSpellSlotLevel}
+        isSubmitting={isSteelDefenderSubmitting}
+        disabledReason={selectedFeatureActionPrimaryDisabledReason}
+        actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
+        actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+        actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+        confirmLabel={selectedFeaturePrimaryLabel}
+        onSelectedSpellSlotLevelChange={setSelectedArtificerSteelDefenderSpellSlotLevel}
+        onUseSteelDefender={submitArtificerSteelDefender}
+      />
+    );
+  }
+
+  if (
+    selectedAction.kind === "feature" &&
+    selectedAction.drawer.kind === "custom-form" &&
+    selectedAction.drawer.formKind === "artificer-arcane-firearm"
+  ) {
+    return (
+      <ArtificerArcaneFirearmActionFooter
+        selectedStackId={selectedActionOptionKeys[0] ?? null}
+        isSubmitting={isArcaneFirearmSubmitting}
+        disabledReason={selectedFeatureActionPrimaryDisabledReason}
+        actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
+        actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+        actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+        confirmLabel={selectedFeaturePrimaryLabel}
+        onUseArcaneFirearm={submitArtificerArcaneFirearm}
       />
     );
   }

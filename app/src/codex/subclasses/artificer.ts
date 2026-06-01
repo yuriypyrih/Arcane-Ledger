@@ -246,12 +246,15 @@ export const artificerSubclassEntries: SubclassEntry[] = [
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,
         CLASS_FEATURE.TOOLS_OF_THE_TRADE,
-        createDescription([
-          "You gain the following benefits.",
-          "<strong>Ranged Weaponry.</strong> You gain proficiency with Martial Ranged weapons.",
-          "<strong>Tool Proficiency.</strong> You gain proficiency with Woodcarver's Tools. If you already have this proficiency, you gain proficiency with one other type of Artisan's Tools of your choice.",
-          "<strong>Wand Crafting.</strong> When you craft a magic Wand, the amount of time required to craft it is halved."
-        ])
+        createDescription(
+          [
+            "You gain the following benefits.",
+            "<strong>Ranged Weaponry.</strong> You gain proficiency with Martial Ranged weapons.",
+            "<strong>Tool Proficiency.</strong> You gain proficiency with Woodcarver's Tools. If you already have this proficiency, you gain proficiency with one other type of Artisan's Tools of your choice.",
+            "<strong>Wand Crafting.</strong> When you craft a magic Wand, the amount of time required to craft it is halved."
+          ],
+          TRACKER.TRACKED
+        )
       ),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,
@@ -272,10 +275,12 @@ export const artificerSubclassEntries: SubclassEntry[] = [
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,
         CLASS_FEATURE.ELDRITCH_CANNON,
         createDescription([
-          "Using Smith's Tools or Woodcarver's Tools, you can take a Magic action to create a Small or Tiny Eldritch Cannon in an unoccupied space on a horizontal surface within 5 feet of yourself.",
-          "You determine its appearance, including whether you carry it or not, and your choice of legs or wheels if it moves on its own. It disappears if it is reduced to 0 Hit Points or after 1 hour. You can dismiss it early as a Magic action.",
-          "Once you create a cannon, you can't do so again until you finish a <link:long-rest>Long Rest</link> or expend a spell slot to create one.",
-          "You can have only one cannon at a time and can't create one while you already have one."
+          "Using Woodcarver's Tools or Smith's Tools, you can take an action to magically create a Small or Tiny Eldritch Cannon in an unoccupied space on a horizontal surface within 5 feet of you. A Small Eldritch Cannon occupies its space, and a Tiny one can be held in one hand. Once you create a cannon, you can't do so again until you finish a <link:long-rest>Long Rest</link> or until you expend a spell slot to create one. You can have only one cannon at a time and can't create one while your cannon is present.",
+          "The cannon is a magical object. Regardless of size, the cannon has an AC of <strong>18</strong> and a number of Hit Points equal to five times your Artificer level. It is immune to Poison damage and Psychic damage. If it is forced to make an ability check or a saving throw, treat all its ability scores as 10 (+0). If the <spell:Mending>Mending</spell> spell is cast on it, it regains <strong>2d6</strong> Hit Points. It disappears if it is reduced to 0 Hit Points or after 1 hour. You can dismiss it early as an action.",
+          "When you create the cannon, you determine its appearance and whether it has legs. You also decide which type it is, choosing from the options on the Eldritch Cannons table. On each of your turns, you can take a Bonus Action to cause the cannon to activate if you are within 60 feet of it. As part of the same Bonus Action, you can direct the cannon to walk or climb up to 15 feet to an unoccupied space, provided it has legs.",
+          "<strong>Flamethrower.</strong> The cannon exhales fire in an adjacent 15-foot cone that you designate. Each creature in that area must make a <link:Dexterity Saving Throw>Dexterity saving throw</link> against your spell save DC, taking <strong>2d8</strong> Fire damage on a failed save or half as much damage on a successful one. The fire ignites any flammable objects in the area that aren't being worn or carried.",
+          "<strong>Force Ballista.</strong> Make a ranged spell attack, originating from the cannon, at one creature or object within 120 feet of it. On a hit, the target takes <strong>2d8</strong> Force damage, and if the target is a creature, it is pushed up to 5 feet away from the cannon.",
+          "<strong>Protector.</strong> The cannon emits a burst of positive energy that grants itself and each creature of your choice within 10 feet of it a number of <link:Temporary Hit Points>Temporary Hit Points</link> equal to <strong>1d8</strong> + your Intelligence modifier (minimum of +1)."
         ])
       ),
       createSubclassFeatureRow(
@@ -320,11 +325,14 @@ export const artificerSubclassEntries: SubclassEntry[] = [
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,
         CLASS_FEATURE.TOOLS_OF_THE_TRADE,
-        createDescription([
-          "You gain the following benefits.",
-          "<strong>Tool Proficiency.</strong> You gain proficiency with Smith's Tools. If you already have this proficiency, you gain proficiency with one other type of Artisan's Tools of your choice.",
-          "<strong>Weapon Crafting.</strong> When you craft a nonmagical or magic weapon, the amount of time required to craft it is halved."
-        ])
+        createDescription(
+          [
+            "You gain the following benefits.",
+            "<strong>Tool Proficiency.</strong> You gain proficiency with Smith's Tools. If you already have this proficiency, you gain proficiency with one other type of Artisan's Tools of your choice.",
+            "<strong>Weapon Crafting.</strong> When you craft a nonmagical or magic weapon, the amount of time required to craft it is halved."
+          ],
+          TRACKER.TRACKED
+        )
       ),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,
@@ -402,11 +410,14 @@ export const artificerSubclassEntries: SubclassEntry[] = [
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,
         CLASS_FEATURE.TOOLS_OF_THE_TRADE,
-        createDescription([
-          "You gain the following benefits.",
-          "<strong>Tool Proficiency.</strong> You gain proficiency with Calligrapher's Supplies and Cartographer's Tools. If you already have one of these proficiencies, you gain proficiency with one other type of Artisan's Tools of your choice, or with two other types if you have both.",
-          "<strong>Scroll Crafting.</strong> When you scribe a Spell Scroll using the crafting rules in the Player's Handbook, the amount of time required to craft it is halved."
-        ])
+        createDescription(
+          [
+            "You gain the following benefits.",
+            "<strong>Tool Proficiency.</strong> You gain proficiency with Calligrapher's Supplies and Cartographer's Tools. If you already have one of these proficiencies, you gain proficiency with one other type of Artisan's Tools of your choice, or with two other types if you have both.",
+            "<strong>Scroll Crafting.</strong> When you scribe a Spell Scroll using the crafting rules in the Player's Handbook, the amount of time required to craft it is halved."
+          ],
+          TRACKER.TRACKED
+        )
       ),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,

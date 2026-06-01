@@ -25,8 +25,12 @@ import {
   restoreTieflingFiendishLegacyOnLongRest
 } from "../../../../../pages/CharactersPage/species";
 import {
+  getArtificerArcaneJoltUsesRemaining,
+  getArtificerArcaneJoltUsesTotal,
   getArtificerConjuredCauldronUsesRemaining,
   getArtificerConjuredCauldronUsesTotal,
+  getArtificerEldritchCannonUsesRemaining,
+  getArtificerEldritchCannonUsesTotal,
   getArtificerFlashOfGeniusUsesRemaining,
   getArtificerFlashOfGeniusUsesTotal,
   getArtificerArmorerGiantStatureUsesRemaining,
@@ -48,8 +52,10 @@ import {
   restoreArtificerArmorerInfiltratorsFlightOnLongRest,
   restoreArtificerArmorerPerfectedArmorGuardianOnLongRest,
   restoreArtificerConjuredCauldronOnLongRest,
+  restoreArtificerEldritchCannonOnLongRest,
   restoreArtificerMagicItemTinkerDrainOnLongRest,
   restoreArtificerMagicItemTinkerTransmuteOnLongRest,
+  restoreArtificerArcaneJoltOnLongRest,
   restoreArtificerRestorativeReagentsOnLongRest,
   restoreArtificerTinkersMagicOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
@@ -396,8 +402,13 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const temporaryHitPoints = normalizeTemporaryHitPoints(character.temporaryHitPoints);
   const artificerTinkersMagicUsesTotal = getArtificerTinkersMagicUsesTotal(character);
   const artificerTinkersMagicUsesRemaining = getArtificerTinkersMagicUsesRemaining(character);
+  const artificerEldritchCannonUsesTotal = getArtificerEldritchCannonUsesTotal(character);
+  const artificerEldritchCannonUsesRemaining =
+    getArtificerEldritchCannonUsesRemaining(character);
   const artificerFlashOfGeniusUsesTotal = getArtificerFlashOfGeniusUsesTotal(character);
   const artificerFlashOfGeniusUsesRemaining = getArtificerFlashOfGeniusUsesRemaining(character);
+  const artificerArcaneJoltUsesTotal = getArtificerArcaneJoltUsesTotal(character);
+  const artificerArcaneJoltUsesRemaining = getArtificerArcaneJoltUsesRemaining(character);
   const artificerRestorativeReagentsUsesTotal =
     getArtificerRestorativeReagentsUsesTotal(character);
   const artificerRestorativeReagentsUsesRemaining =
@@ -956,6 +967,21 @@ export function createLongRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
+    ...(artificerEldritchCannonUsesTotal > 0
+      ? [
+          {
+            id: "restore-artificer-eldritch-cannon",
+            label: "Restore Eldritch Cannon",
+            charges: {
+              current: artificerEldritchCannonUsesRemaining,
+              total: artificerEldritchCannonUsesTotal
+            },
+            disabled: artificerEldritchCannonUsesRemaining >= artificerEldritchCannonUsesTotal,
+            apply: (currentCharacter: Character) =>
+              restoreArtificerEldritchCannonOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
     ...(artificerFlashOfGeniusUsesTotal > 0
       ? [
           {
@@ -968,6 +994,21 @@ export function createLongRestOptions(character: Character): RestOption[] {
             disabled: artificerFlashOfGeniusUsesRemaining >= artificerFlashOfGeniusUsesTotal,
             apply: (currentCharacter: Character) =>
               restoreArtificerFlashOfGeniusOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(artificerArcaneJoltUsesTotal > 0
+      ? [
+          {
+            id: "restore-artificer-arcane-jolt",
+            label: "Restore Arcane Jolt",
+            charges: {
+              current: artificerArcaneJoltUsesRemaining,
+              total: artificerArcaneJoltUsesTotal
+            },
+            disabled: artificerArcaneJoltUsesRemaining >= artificerArcaneJoltUsesTotal,
+            apply: (currentCharacter: Character) =>
+              restoreArtificerArcaneJoltOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),

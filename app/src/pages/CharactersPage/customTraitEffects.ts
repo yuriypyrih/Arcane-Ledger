@@ -1,6 +1,7 @@
 import { WEAPON_COMBAT_TYPE } from "../../codex/entries";
 import type {
   AbilityKey,
+  CharacterCustomTraitDiceValue,
   CharacterCustomTraitEffect,
   CharacterCustomTraitEffectValue,
   CharacterCustomTraitRollMode,
@@ -9,6 +10,7 @@ import type {
 } from "../../types";
 import {
   EFFECT_NAME,
+  characterCustomTraitDiceValues,
   isSkillName,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE,
@@ -42,6 +44,8 @@ const customTraitValueModes = new Set<CharacterCustomTraitValueMode>(["buff", "d
 export type CustomTraitFlatBonus = {
   label: string;
   value: number;
+  formula?: string;
+  formulaMultiplier?: 1 | -1;
   abilityModifierSource?: AbilityKey;
   abilityModifierMultiplier?: 1 | -1;
   formulaSourceLabel?: string;
@@ -82,10 +86,15 @@ function normalizeCustomTraitEffectValue(
   value: unknown,
   options: {
     allowAbilityValue: boolean;
+    allowDiceValue: boolean;
     allowZero: boolean;
   }
 ): CharacterCustomTraitEffectValue | null {
   if (options.allowAbilityValue && isAbilityKey(value)) {
+    return value;
+  }
+
+  if (options.allowDiceValue && isCharacterCustomTraitDiceValue(value)) {
     return value;
   }
 
@@ -101,6 +110,15 @@ function isAbilityKey(value: unknown): value is AbilityKey {
   return typeof value === "string" && abilityKeys.includes(value as AbilityKey);
 }
 
+export function isCharacterCustomTraitDiceValue(
+  value: unknown
+): value is CharacterCustomTraitDiceValue {
+  return (
+    typeof value === "string" &&
+    characterCustomTraitDiceValues.includes(value as CharacterCustomTraitDiceValue)
+  );
+}
+
 function createValueModeFields(valueMode: CharacterCustomTraitValueMode) {
   return valueMode === "debuff" ? { valueMode } : {};
 }
@@ -111,6 +129,16 @@ function isRollModeDisabledEffectType(type: CharacterCustomTraitEffect["type"]):
 
 function isAbilityValueAllowedEffectType(type: CharacterCustomTraitEffect["type"]): boolean {
   return type !== "abilityScore" && type !== "abilityModifier" && type !== "savingThrow";
+}
+
+function isDiceValueAllowedEffectType(type: CharacterCustomTraitEffect["type"]): boolean {
+  return (
+    type === "initiative" ||
+    type === "savingThrow" ||
+    type === "skill" ||
+    type === "spellAttack" ||
+    type === "weaponDamage"
+  );
 }
 
 function normalizeCharacterCustomTraitEffect(value: unknown): CharacterCustomTraitEffect | null {
@@ -131,6 +159,7 @@ function normalizeCharacterCustomTraitEffect(value: unknown): CharacterCustomTra
   const valueMode = normalizeCustomTraitValueMode(record.valueMode);
   const normalizedValue = normalizeCustomTraitEffectValue(record.value, {
     allowAbilityValue: isAbilityValueAllowedEffectType(effectType),
+    allowDiceValue: isDiceValueAllowedEffectType(effectType),
     allowZero: rollMode !== "normal"
   });
 
@@ -156,12 +185,21 @@ function normalizeCharacterCustomTraitEffect(value: unknown): CharacterCustomTra
       };
     case "abilityScore":
     case "abilityModifier":
-    case "savingThrow":
       return isAbilityKey(record.ability)
         ? {
             type: record.type,
             ability: record.ability,
             value: normalizedValue as number,
+            ...valueModeFields,
+            ...rollModeFields
+          }
+        : null;
+    case "savingThrow":
+      return isAbilityKey(record.ability)
+        ? {
+            type: record.type,
+            ability: record.ability,
+            value: normalizedValue,
             ...valueModeFields,
             ...rollModeFields
           }
@@ -513,6 +551,16 @@ function createCustomTraitFlatBonus(
     return value === 0 ? null : { label, value, formulaSourceLabel: label };
   }
 
+  if (isCharacterCustomTraitDiceValue(effect.value)) {
+    return {
+      label,
+      value: 0,
+      formula: effect.value,
+      formulaMultiplier: multiplier,
+      formulaSourceLabel: label
+    };
+  }
+
   return {
     label,
     value: 0,
@@ -525,13 +573,24 @@ function createCustomTraitFlatBonus(
 export function formatCustomTraitBonusFormulaTerm(
   bonus: Pick<
     CustomTraitFlatBonus,
-    "abilityModifierSource" | "formulaSourceLabel" | "value"
+    | "abilityModifierSource"
+    | "formula"
+    | "formulaMultiplier"
+    | "formulaSourceLabel"
+    | "value"
   >
 ): string | null {
   const sourceLabel = bonus.formulaSourceLabel?.trim();
 
   if (!sourceLabel) {
     return null;
+  }
+
+  const formula = bonus.formula?.trim();
+
+  if (formula) {
+    const formulaSign = bonus.formulaMultiplier === -1 ? "-" : "+";
+    return `${formulaSign}${formula} (${sourceLabel})`;
   }
 
   const value = Math.trunc(bonus.value);
@@ -545,6 +604,18 @@ export function formatCustomTraitBonusFormulaTerm(
   return `${valueLabel}${abilityLabel} (${sourceLabel})`;
 }
 
+export function formatCustomTraitBonusRollFormulaTerm(
+  bonus: Pick<CustomTraitFlatBonus, "formula" | "formulaMultiplier">
+): string | null {
+  const formula = bonus.formula?.trim();
+
+  if (!formula) {
+    return null;
+  }
+
+  return `${bonus.formulaMultiplier === -1 ? "-" : "+"}${formula}`;
+}
+
 export function formatCharacterCustomTraitEffectValue(
   effect: Pick<CharacterCustomTraitEffect, "value" | "valueMode">
 ): string {
@@ -553,6 +624,10 @@ export function formatCharacterCustomTraitEffectValue(
   if (typeof effect.value === "number") {
     const value = Math.trunc(effect.value) * multiplier;
     return value >= 0 ? `+${value}` : String(value);
+  }
+
+  if (isCharacterCustomTraitDiceValue(effect.value)) {
+    return multiplier === -1 ? `-${effect.value}` : `+${effect.value}`;
   }
 
   return multiplier === -1 ? `-${effect.value}` : `+${effect.value}`;

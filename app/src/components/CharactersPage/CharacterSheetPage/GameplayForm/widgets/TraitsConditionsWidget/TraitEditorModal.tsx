@@ -36,7 +36,6 @@ type TraitEditorModalProps = {
   onDurationTypeChange: (value: ManualStatusDurationType) => void;
   onDurationValueChange: (value: number) => void;
   onCreate: () => void;
-  onCreateCompanion?: () => void;
   onClose: () => void;
 };
 
@@ -52,7 +51,6 @@ function TraitEditorModal({
   onDurationTypeChange,
   onDurationValueChange,
   onCreate,
-  onCreateCompanion,
   onClose
 }: TraitEditorModalProps) {
   const isExhaustionSelection =
@@ -76,17 +74,6 @@ function TraitEditorModal({
             <Plus size={16} aria-hidden="true" />
             <span>Custom Trait</span>
           </button>
-          {onCreateCompanion ? (
-            <button
-              type="button"
-              className={clsx(shared.editButton, styles.titleActionButton)}
-              onClick={onCreateCompanion}
-              aria-label="Create companion"
-            >
-              <Plus size={16} aria-hidden="true" />
-              <span>Companion</span>
-            </button>
-          ) : null}
         </div>
         <OverlayCloseButton label="Close traits and conditions editor" onClick={onClose} />
       </OverlayHeader>

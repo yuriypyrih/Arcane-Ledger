@@ -9,6 +9,7 @@ import { isCustomClassName, normalizeCustomClassConfig } from "../customClass";
 import { getCharacterCustomTraitEffectInput } from "../characterRuntime/customEffectRuntime";
 import {
   formatCustomTraitBonusFormulaTerm,
+  formatCustomTraitBonusRollFormulaTerm,
   getCustomTraitSpellAttackBonuses,
   getCustomTraitSpellAttackRollIndicators,
   getCustomTraitSpellDcBonuses,
@@ -145,11 +146,12 @@ function getResolvedCustomTraitBonusValue(
 function getResolvedCustomTraitFormulaEntries(
   character: Character,
   bonuses: CustomTraitFlatBonus[]
-): Array<{ value: number; formulaTerm: string | null }> {
+): Array<{ value: number; formulaTerm: string | null; rollFormulaTerm: string | null }> {
   return bonuses.flatMap((bonus) => {
     const value = getResolvedCustomTraitBonusValue(character, bonus);
+    const rollFormulaTerm = formatCustomTraitBonusRollFormulaTerm(bonus);
 
-    if (value === 0) {
+    if (value === 0 && !rollFormulaTerm) {
       return [];
     }
 
@@ -159,7 +161,8 @@ function getResolvedCustomTraitFormulaEntries(
         formulaTerm: formatCustomTraitBonusFormulaTerm({
           ...bonus,
           value
-        })
+        }),
+        rollFormulaTerm
       }
     ];
   });
@@ -278,7 +281,10 @@ export function getSpellAttackRollFormulaForCharacter(
   ];
 
   return {
-    formula: formatD20Formula(attackBonus),
+    formula: formatFormulaTerms([
+      formatD20Formula(attackBonus),
+      ...customAttackEntries.map((entry) => entry.rollFormulaTerm)
+    ]),
     formulaDisplay: formatFormulaTerms(displayTerms),
     attackBonus,
     rollMode: rollModeState.rollMode,

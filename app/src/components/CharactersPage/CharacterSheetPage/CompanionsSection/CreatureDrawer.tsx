@@ -26,7 +26,7 @@ import { getStatusDurationLabel } from "../../../../pages/CharactersPage/traits"
 import type { Character, CharacterCompanion } from "../../../../types";
 import DeathSavesTracker from "../GameplayForm/widgets/DeathSavesTracker";
 import HitPointControls from "../HitPointControls/HitPointControls";
-import { getCompanionSourceLabel } from "./companionUtils";
+import { getCompanionDisplayType, getCompanionSourceLabel } from "./companionUtils";
 import styles from "./CompanionsSection.module.css";
 
 type CreatureDrawerProps = {
@@ -58,7 +58,7 @@ function CreatureDrawer({
   const deathSaves = normalizeDeathSaveTrack(creature.deathSaves);
   const statusLabel = getCompanionStatusLabel(creature);
   const creatureDescription = creature.description.trim();
-  const creatureType = creature.type.trim();
+  const creatureType = getCompanionDisplayType(creature);
   const isStatBlockModified = creature.inheritedCreatureEntryModified === true;
   const shouldShowDeathSaves =
     creature.currentHitPoints <= 0 && deathSaves.resolution !== "instant-death";

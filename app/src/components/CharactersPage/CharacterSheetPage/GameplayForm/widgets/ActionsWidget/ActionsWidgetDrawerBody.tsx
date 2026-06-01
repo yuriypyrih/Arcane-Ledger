@@ -396,6 +396,8 @@ import { getMonkHandOfHealingActionPathStates } from "./monkHandOfHealingActionU
 import ArcaneRecoveryActionBody from "./forms/ArcaneRecoveryActionBody";
 import BrutalStrikeActionBody from "./forms/BrutalStrikeActionBody";
 import DivineInterventionActionBody from "./forms/DivineInterventionActionBody";
+import ArtificerArcaneFirearmActionBody from "./forms/ArtificerArcaneFirearmActionBody";
+import ArtificerEldritchCannonActionBody from "./forms/ArtificerEldritchCannonActionBody";
 import ExperimentalElixirActionBody from "./forms/ExperimentalElixirActionBody";
 import FeatureOptionsActionBody from "./forms/FeatureOptionsActionBody";
 import FontOfMagicActionBody from "./forms/FontOfMagicActionBody";
@@ -906,6 +908,29 @@ export function renderActionDrawerBody(context: Record<string, any>) {
           character={character}
           selectedOptionKey={selectedExperimentalElixirOptionKey}
           onSelectedOptionKeyChange={setSelectedExperimentalElixirOptionKey}
+        />
+      );
+    }
+
+    if (selectedAction.drawer.formKind === "artificer-eldritch-cannon") {
+      return (
+        <ArtificerEldritchCannonActionBody
+          selectedOptionKey={selectedActionOptionKeys[0] ?? null}
+          onSelectedOptionKeyChange={(optionKey) =>
+            setSelectedActionOptionKeys(optionKey ? [optionKey] : [])
+          }
+        />
+      );
+    }
+
+    if (selectedAction.drawer.formKind === "artificer-arcane-firearm") {
+      return (
+        <ArtificerArcaneFirearmActionBody
+          character={character}
+          selectedStackId={selectedActionOptionKeys[0] ?? null}
+          onSelectedStackIdChange={(stackId) =>
+            setSelectedActionOptionKeys(stackId ? [stackId] : [])
+          }
         />
       );
     }

@@ -205,6 +205,10 @@ function formatMonsterSenses(monster: MonsterRecord) {
 function formatMonsterChallengeRating(monster: MonsterRecord) {
   const challengeRating = getKnownMonsterText(monster.challenge_rating) ?? String(monster.cr);
 
+  if (challengeRating === "—" || challengeRating === "-") {
+    return challengeRating;
+  }
+
   if (/\bxp\b/i.test(challengeRating)) {
     return challengeRating;
   }

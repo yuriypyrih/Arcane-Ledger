@@ -23,7 +23,6 @@ import { useTraitsConditionsSections } from "./useTraitsConditionsSections";
 type TraitsConditionsWidgetProps = {
   character: Character;
   onPersistCharacter: PersistCharacterUpdater;
-  onRequestCreateCompanion?: () => void;
 };
 
 type EditableCustomTraitEntry = CharacterStatusEntry & {
@@ -32,8 +31,7 @@ type EditableCustomTraitEntry = CharacterStatusEntry & {
 
 function TraitsConditionsWidget({
   character,
-  onPersistCharacter,
-  onRequestCreateCompanion
+  onPersistCharacter
 }: TraitsConditionsWidgetProps) {
   const [selectedStatusEntryId, setSelectedStatusEntryId] = useState<string | null>(null);
   const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
@@ -85,11 +83,6 @@ function TraitsConditionsWidget({
     openCustomTraitEditor(entry);
   }
 
-  function handleRequestCreateCompanion() {
-    closeTraitEditor();
-    onRequestCreateCompanion?.();
-  }
-
   useBodyScrollLock(hasOverlayOpen);
 
   useEffect(() => {
@@ -131,10 +124,7 @@ function TraitsConditionsWidget({
       </section>
 
       {activeTraitEditorModal === "quick-add" ? (
-        <TraitEditorModal
-          {...traitEditorModalProps}
-          onCreateCompanion={onRequestCreateCompanion ? handleRequestCreateCompanion : undefined}
-        />
+        <TraitEditorModal {...traitEditorModalProps} />
       ) : null}
 
       {activeTraitEditorModal === "custom-trait" ? (

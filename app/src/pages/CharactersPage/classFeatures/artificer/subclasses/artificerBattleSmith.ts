@@ -1,15 +1,52 @@
-import { TOOL_PROFICIENCY, WEAPON_PROFICIENCY } from "../../../../../types";
+import { WEAPON_PROFICIENCY } from "../../../../../types";
 import {
   getPreparedSpellIdsByLevel,
   type SubclassRuntimeResolver
 } from "../../subclassRuntime";
+import type { FeatureActionCard } from "../../types";
 import {
-  createArtificerToolProficiencyEntries,
   createArtificerWeaponProficiencyEntries,
   hasArtificerSubclassFeature
 } from "./artificerSubclassHelpers";
+import {
+  getArtificerArcaneJoltAction,
+  transformArtificerBattleSmithArcaneJoltWeaponAction
+} from "./artificerBattleSmithArcaneJolt";
+import { transformArtificerBattleSmithBattleReadyWeaponAction } from "./artificerBattleSmithBattleReady";
+import { getArtificerSteelDefenderAction } from "./artificerBattleSmithSteelDefender";
+import { getArtificerToolsOfTheTradeToolProficiencyEntries } from "../toolsOfTheTrade";
 
 export const battleSmithSubclassId = "artificer-battle-smith";
+
+export {
+  artificerArcaneJoltActionKey,
+  clearArtificerArcaneJoltForNewRound,
+  consumeArtificerArcaneJoltUse,
+  getArtificerArcaneJoltUsesRemaining,
+  getArtificerArcaneJoltUsesTotal,
+  getArtificerBattleSmithArcaneJoltSpecialAbility,
+  hasArtificerBattleSmithArcaneJoltFeature,
+  normalizeArtificerBattleSmithArcaneJoltState,
+  restoreArtificerArcaneJoltOnLongRest
+} from "./artificerBattleSmithArcaneJolt";
+
+export {
+  artificerSteelDefenderActionKey,
+  createArtificerSteelDefenderForCharacter,
+  getArtificerSteelDefenderSpellSlotOptions,
+  hasActiveArtificerSteelDefender,
+  hasArtificerSteelDefenderFeature,
+  isArtificerSteelDefenderCompanion,
+  type ArtificerSteelDefenderSpellSlotOption
+} from "./artificerBattleSmithSteelDefender";
+
+export {
+  advanceArtificerBattleSmithFeaturesForNewRound,
+  consumeArtificerBattleSmithWeaponAttack,
+  getArtificerBattleSmithWeaponAttackMultiCount,
+  hasArtificerBattleSmithExtraAttackFeature,
+  normalizeArtificerBattleSmithState
+} from "./artificerBattleSmithExtraAttack";
 
 const battleSmithSpellIdsByLevel = {
   3: ["spell-heroism", "spell-shield"],
@@ -19,22 +56,36 @@ const battleSmithSpellIdsByLevel = {
   17: ["spell-banishing-smite", "spell-mass-cure-wounds"]
 } as const;
 
-const battleSmithToolsSource = "Battle Smith: Tools of the Trade";
+const battleSmithBattleReadySource = "Battle Smith: Battle Ready";
 
-export const getArtificerBattleSmithDerivedFeatureState: SubclassRuntimeResolver = (character) =>
-  hasArtificerSubclassFeature(character, battleSmithSubclassId, 3)
-    ? {
-        alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-          character.level ?? 0,
-          battleSmithSpellIdsByLevel
-        ),
-        weaponProficiencyEntries: createArtificerWeaponProficiencyEntries(
-          [WEAPON_PROFICIENCY.MARTIAL],
-          battleSmithToolsSource
-        ),
-        toolProficiencyEntries: createArtificerToolProficiencyEntries(
-          [TOOL_PROFICIENCY.SMITHS_TOOLKIT],
-          battleSmithToolsSource
-        )
-      }
-    : {};
+export const getArtificerBattleSmithDerivedFeatureState: SubclassRuntimeResolver = (character) => {
+  if (!hasArtificerSubclassFeature(character, battleSmithSubclassId, 3)) {
+    return {};
+  }
+
+  const steelDefenderAction = getArtificerSteelDefenderAction(character);
+  const arcaneJoltAction = getArtificerArcaneJoltAction(character);
+
+  return {
+    alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
+      character.level ?? 0,
+      battleSmithSpellIdsByLevel
+    ),
+    weaponProficiencyEntries: createArtificerWeaponProficiencyEntries(
+      [WEAPON_PROFICIENCY.MARTIAL],
+      battleSmithBattleReadySource
+    ),
+    toolProficiencyEntries: getArtificerToolsOfTheTradeToolProficiencyEntries(character),
+    featureActions: [steelDefenderAction, arcaneJoltAction].filter(
+      (action): action is FeatureActionCard => action !== null
+    ),
+    transformWeaponAction: (action) => {
+      const battleReadyAction = transformArtificerBattleSmithBattleReadyWeaponAction(
+        character,
+        action
+      );
+
+      return transformArtificerBattleSmithArcaneJoltWeaponAction(character, battleReadyAction);
+    }
+  };
+};

@@ -7,7 +7,9 @@ import type {
 } from "../../../../../../types";
 import type { CustomTraitEffectDraft, CustomTraitTargetOption } from "./customTraitDraft";
 import {
+  customTraitDiceValueOptions,
   doesCustomTraitTargetAllowAbilityValue,
+  doesCustomTraitTargetAllowDiceValue,
   isCustomTraitRollModeDisabledTarget
 } from "./customTraitDraft";
 import styles from "./CustomTraitEffectEditorRow.module.css";
@@ -48,6 +50,10 @@ const valueOptions = [
     value: String(value),
     label: String(value),
     kind: "flat" as const
+  })),
+  ...customTraitDiceValueOptions.map((option) => ({
+    ...option,
+    kind: "dice" as const
   })),
   ...(["STR", "DEX", "CON", "INT", "WIS", "CHA"] as const).map((ability) => ({
     value: ability,
@@ -121,6 +127,7 @@ function CustomTraitEffectEditorRow({
   onRemove
 }: CustomTraitEffectEditorRowProps) {
   const allowAbilityValues = doesCustomTraitTargetAllowAbilityValue(effect.target);
+  const allowDiceValues = doesCustomTraitTargetAllowDiceValue(effect.target);
 
   return (
     <div className={styles.row}>
@@ -143,7 +150,10 @@ function CustomTraitEffectEditorRow({
             <option
               key={option.value}
               value={option.value}
-              disabled={option.kind === "ability" && !allowAbilityValues}
+              disabled={
+                (option.kind === "ability" && !allowAbilityValues) ||
+                (option.kind === "dice" && !allowDiceValues)
+              }
             >
               {option.label}
             </option>

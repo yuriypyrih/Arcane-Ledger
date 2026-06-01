@@ -380,7 +380,14 @@
   box-shadow: 0 8px 18px rgba(54, 34, 21, 0.1);
 }
 
-.notesToggle {
+.profileActionLinks {
+  display: grid;
+  gap: 0.26rem;
+  justify-items: start;
+}
+
+.notesToggle,
+.companionToggle {
   justify-self: start;
   color: rgba(143, 91, 56, 0.88);
   font-size: 0.84rem;

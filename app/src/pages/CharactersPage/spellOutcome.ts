@@ -8,7 +8,11 @@ import {
 import { getWizardEvokerEmpoweredEvocationDamageDetail } from "./classFeatures/wizard/subclasses/wizardEvoker";
 import { isCustomClassName, normalizeCustomClassConfig } from "./customClass";
 import { getMainAbilityForClass } from "./gameplay";
-import { formatFormulaRangeLabel, parseFormulaRange } from "./shared/formulas";
+import {
+  formatFormulaRangeLabel,
+  formatFormulaTerms,
+  parseFormulaRange
+} from "./shared/formulas";
 import {
   formatCodexLabel,
   formatSpellHealing,
@@ -35,17 +39,39 @@ function getSpellDamageTypeLabel(damage: WeaponDamage): string {
   return labels.join("/");
 }
 
-function getSpellDamageBonusTotalForCharacter(
-  character: Pick<
-    Character,
-    "className" | "abilities" | "level" | "classFeatureState" | "feats" | "cantripIds"
-  >,
+type SpellOutcomeCharacter = Pick<
+  Character,
+  "className" | "abilities" | "level" | "classFeatureState" | "feats" | "cantripIds"
+> &
+  Partial<Pick<Character, "customClass" | "inventoryItems" | "subclassId">>;
+
+function formatSpellDamageBonusFormulaTerm(entry: {
+  value?: number;
+  formula?: string;
+  formulaMultiplier?: 1 | -1;
+}): string | null {
+  const formula = entry.formula?.trim();
+
+  if (formula) {
+    return `${entry.formulaMultiplier === -1 ? "-" : "+"}${formula}`;
+  }
+
+  if (entry.value === undefined || entry.value === 0) {
+    return null;
+  }
+
+  return entry.value > 0 ? `+${entry.value}` : `${entry.value}`;
+}
+
+function getSpellDamageFormulaForCharacter(
+  character: SpellOutcomeCharacter,
   spell: SpellEntry
-): number {
-  return getSpellDamageBonusesForCharacter(character, spell).reduce(
-    (total, entry) => total + (entry.value ?? 0),
-    0
-  );
+): string {
+  const damageBonusTerms = getSpellDamageBonusesForCharacter(character, spell)
+    .map(formatSpellDamageBonusFormulaTerm)
+    .filter((entry): entry is string => entry !== null && entry.trim().length > 0);
+
+  return formatFormulaTerms([formatWeaponDamageFormula(spell.damage), ...damageBonusTerms]);
 }
 
 function formatSignedModifier(value: number): string {
@@ -56,6 +82,7 @@ function formatSpellDamageBonusDetail(entry: {
   label: string;
   value?: number;
   formula?: string;
+  formulaMultiplier?: 1 | -1;
   displayLabel?: string;
   abilityModifierSource?: AbilityKey;
 }): string | null {
@@ -69,7 +96,11 @@ function formatSpellDamageBonusDetail(entry: {
     return `${formatSignedModifier(entry.value)}${abilityLabel} (${entry.label})`;
   }
 
-  return entry.formula ? `+ ${entry.formula} (${entry.label})` : null;
+  if (!entry.formula) {
+    return null;
+  }
+
+  return `${entry.formulaMultiplier === -1 ? "-" : "+"} ${entry.formula} (${entry.label})`;
 }
 
 function getSpellcastingAbilityModifier(
@@ -107,11 +138,7 @@ function getSpellHealingFormatOptions(
 }
 
 export function getSpellOutcomeSummaryForCharacter(
-  character: Pick<
-    Character,
-    "className" | "abilities" | "level" | "classFeatureState" | "feats" | "cantripIds"
-  > &
-    Partial<Pick<Character, "customClass">>,
+  character: SpellOutcomeCharacter,
   spell: SpellEntry,
   spellcastingAbilityOverride?: AbilityKey | null
 ): string {
@@ -128,10 +155,7 @@ export function getSpellOutcomeSummaryForCharacter(
   }
 
   if (spell.damage.length > 0) {
-    const damageBonus = getSpellDamageBonusTotalForCharacter(character, spell);
-    const damageFormula = `${formatWeaponDamageFormula(spell.damage)}${
-      damageBonus === 0 ? "" : damageBonus > 0 ? `+${damageBonus}` : `${damageBonus}`
-    }`;
+    const damageFormula = getSpellDamageFormulaForCharacter(character, spell);
     const range = parseFormulaRange(damageFormula);
     const damageTypeLabel = getSpellDamageTypeLabel(spell.damage);
 
@@ -164,11 +188,7 @@ export function getSpellOutcomeSummaryForCharacter(
 }
 
 export function getSpellDamageDetailForCharacter(
-  character: Pick<
-    Character,
-    "className" | "abilities" | "level" | "classFeatureState" | "feats" | "cantripIds"
-  > &
-    Partial<Pick<Character, "customClass" | "subclassId">>,
+  character: SpellOutcomeCharacter,
   spell: SpellEntry,
   spellcastingAbilityOverride?: AbilityKey | null
 ): string {

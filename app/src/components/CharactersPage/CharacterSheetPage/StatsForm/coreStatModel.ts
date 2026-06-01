@@ -5,10 +5,10 @@ import { createFeatureSourcedDescriptionEntries } from "../../../../pages/Charac
 import {
   formatAbilityModifier,
   getInitiativeBreakdownForCharacter,
-  getInitiativeForCharacter,
   getPassivePerceptionForCharacter,
   getProficiencyBonus
 } from "../../../../pages/CharactersPage/gameplay";
+import { parseFormulaRange } from "../../../../pages/CharactersPage/shared/formulas";
 import {
   getHitDiceRemainingForCharacter,
   getHitDiceTotalForCharacter,
@@ -160,14 +160,81 @@ function formatJumpDistanceFormula(jump: JumpDistanceBreakdown): string {
   return `${jump.total} ft = ${jump.abilityValue} ${jump.ability} Score${sourceSuffix}`;
 }
 
+type InitiativeFormulaEntry = {
+  label: string;
+  value: number;
+  formula?: string;
+  formulaMultiplier?: 1 | -1;
+  abilityModifierSource?: AbilityKey;
+  formulaSourceLabel?: string;
+};
+
+function getInitiativeFormulaRange(
+  entry: InitiativeFormulaEntry
+): ReturnType<typeof parseFormulaRange> {
+  const formula = entry.formula?.trim();
+
+  if (!formula) {
+    return null;
+  }
+
+  const range = parseFormulaRange(formula);
+
+  if (!range || entry.formulaMultiplier !== -1) {
+    return range;
+  }
+
+  return {
+    minimum: -range.maximum,
+    maximum: -range.minimum,
+    hasDice: range.hasDice
+  };
+}
+
+function formatInitiativeRangeValue(minimum: number, maximum: number): string {
+  if (minimum === maximum) {
+    return formatAbilityModifier(minimum);
+  }
+
+  return `${formatAbilityModifier(minimum)}~${maximum}`;
+}
+
+export function formatInitiativeDisplayValue(
+  total: number,
+  entries: InitiativeFormulaEntry[]
+): string {
+  let minimum = total;
+  let maximum = total;
+  let hasFormulaRange = false;
+  let hasDice = false;
+
+  entries.forEach((entry) => {
+    const range = getInitiativeFormulaRange(entry);
+
+    if (!range) {
+      return;
+    }
+
+    minimum += range.minimum;
+    maximum += range.maximum;
+    hasFormulaRange = true;
+    hasDice = hasDice || range.hasDice;
+  });
+
+  if (hasDice) {
+    return formatInitiativeRangeValue(minimum, maximum);
+  }
+
+  if (hasFormulaRange && minimum === maximum) {
+    return formatAbilityModifier(minimum);
+  }
+
+  return formatAbilityModifier(total);
+}
+
 export function formatInitiativeFormula(
   total: number,
-  entries: Array<{
-    label: string;
-    value: number;
-    abilityModifierSource?: AbilityKey;
-    formulaSourceLabel?: string;
-  }>
+  entries: InitiativeFormulaEntry[]
 ): string {
   const terms = entries.map(
     (entry) =>
@@ -175,7 +242,7 @@ export function formatInitiativeFormula(
       `${entry.value >= 0 ? "+" : ""}${entry.value} ${entry.label}`
   );
 
-  return `${formatAbilityModifier(total)} Initiative = ${terms.join(" ")}`;
+  return `${formatInitiativeDisplayValue(total, entries)} Initiative = ${terms.join(" ")}`;
 }
 
 export function buildReferenceIndicatorSections(
@@ -238,10 +305,14 @@ export function createBaseCoreStatCards(
   const proficiencyBonus = getProficiencyBonus(character.level);
   const hitDiceRemaining = getHitDiceRemainingForCharacter(character);
   const hitDiceTotal = getHitDiceTotalForCharacter(character);
+  const initiativeBreakdown = getInitiativeBreakdownForCharacter(character);
   const displayedCoreStats: CoreStats = {
     ...(character.coreStats ?? createDefaultCoreStats()),
     armorClass: String(armorClassBreakdown.total),
-    initiative: formatAbilityModifier(getInitiativeForCharacter(character)),
+    initiative: formatInitiativeDisplayValue(
+      initiativeBreakdown.total,
+      initiativeBreakdown.entries
+    ),
     speed: `${getSpeedForCharacter(character)} ft`,
     passivePerception: String(getPassivePerceptionForCharacter(character)),
     proficiencyBonus: formatAbilityModifier(proficiencyBonus),
@@ -253,7 +324,6 @@ export function createBaseCoreStatCards(
   const jumpDistanceBreakdowns = getJumpDistanceBreakdownsForCharacter(character);
   const hasModifiedSpecialMovement = hasModifiedSpecialMovementForCharacter(character);
   const characterCanHover = canCharacterHover(character);
-  const initiativeBreakdown = getInitiativeBreakdownForCharacter(character);
   const hasAcrobaticMovement =
     getFeatureDescriptionForCharacter(character, CLASS_FEATURE.ACROBATIC_MOVEMENT).length > 0;
   const cards = fields.map((field) => {

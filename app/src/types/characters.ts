@@ -248,8 +248,10 @@ export type CharacterInventoryFeatureTag =
   | "pact-of-the-blade"
   | "conjured"
   | "spellcasting-focus";
+export type CharacterInventorySpellcastingFocusSource = "manual" | "arcane-firearm";
 export type CharacterInventoryConjuredSource =
   | "manual"
+  | "adventurers-atlas"
   | "experimental-elixir"
   | "tinkers-magic"
   | "replicate-magic-item"
@@ -312,6 +314,7 @@ export type CharacterInventoryItemBase = {
   chargesTotal?: number | null;
   storedSpell?: CharacterInventoryStoredSpell;
   featureTags?: CharacterInventoryFeatureTag[];
+  spellcastingFocusSources?: CharacterInventorySpellcastingFocusSource[];
   conjuredSource?: CharacterInventoryConjuredSource;
   conjuredDuration?: CharacterInventoryConjuredDuration;
   replicateMagicItemPlanKey?: string;

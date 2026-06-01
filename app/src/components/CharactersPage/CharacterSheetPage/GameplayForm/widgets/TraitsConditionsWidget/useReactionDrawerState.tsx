@@ -14,8 +14,10 @@ import {
   getBardicInspirationUsesTotalForCharacter,
   getBeguilingMagicUsesRemainingForCharacter,
   getBeguilingMagicUsesTotalForCharacter,
+  artificerExplosiveCannonDetonateReactionEntryId,
   getArtificerArmorerPerfectedArmorGuardianUsesRemainingForCharacter,
   getArtificerArmorerPerfectedArmorGuardianUsesTotalForCharacter,
+  getArtificerEldritchCannonCompanionsForCharacter,
   getArtificerFlashOfGeniusUsesRemainingForCharacter,
   getArtificerFlashOfGeniusUsesTotalForCharacter,
   getChannelDivinityUsesRemainingForCharacter,
@@ -134,11 +136,14 @@ export function useReactionDrawerState({
   const [useStepsOfTheFeyOnReactionSpell, setUseStepsOfTheFeyOnReactionSpell] = useState(false);
   const [spellThiefSearchQuery, setSpellThiefSearchQuery] = useState("");
   const [selectedSpellThiefSpellId, setSelectedSpellThiefSpellId] = useState("");
+  const [selectedEldritchCannonCompanionId, setSelectedEldritchCannonCompanionId] = useState("");
   const selectedReactionEntryId = selectedReactionEntry?.id ?? null;
   const isSpellThiefReactionSelected =
     selectedReactionEntryId === rogueArcaneTricksterSpellThiefReactionId;
   const isSongOfDefenseReactionSelected =
     selectedReactionEntryId === wizardBladesingerSongOfDefenseReactionId;
+  const isEldritchCannonDetonateReactionSelected =
+    selectedReactionEntryId === artificerExplosiveCannonDetonateReactionEntryId;
 
   const allSpellEntries = useMemo(() => {
     if (!isSpellThiefReactionSelected) {
@@ -149,6 +154,13 @@ export function useReactionDrawerState({
       .slice()
       .sort((left, right) => left.name.localeCompare(right.name));
   }, [isSpellThiefReactionSelected]);
+  const eldritchCannonCompanions = useMemo(
+    () =>
+      isEldritchCannonDetonateReactionSelected
+        ? getArtificerEldritchCannonCompanionsForCharacter(character)
+        : [],
+    [character, isEldritchCannonDetonateReactionSelected]
+  );
   const selectedFeatureReactionSpellPreview = useMemo(() => {
     if (!selectedReactionEntry) {
       return null;
@@ -350,6 +362,7 @@ export function useReactionDrawerState({
     setUseStepsOfTheFeyOnReactionSpell(false);
     setSpellThiefSearchQuery("");
     setSelectedSpellThiefSpellId("");
+    setSelectedEldritchCannonCompanionId("");
     setSelectedStatusEntryId(null);
   }
 
@@ -389,6 +402,7 @@ export function useReactionDrawerState({
         cosmicOmenUsesTotal,
         elementalRebukeUsesRemaining,
         elementalRebukeUsesTotal,
+        eldritchCannonCompanions,
         flashOfGeniusUsesRemaining,
         flashOfGeniusUsesTotal,
         gloriousDefenseUsesRemaining,
@@ -400,12 +414,14 @@ export function useReactionDrawerState({
         restoreBalanceUsesTotal,
         selectedBranchesOfTheTreeDcFormula,
         selectedCosmicOmenSelection,
+        selectedEldritchCannonCompanionId,
         selectedRangerHunterSuperiorHuntersDefenseDamageType,
         selectedReactionEntry,
         selectedSongOfDefenseDamageReduction,
         selectedSongOfDefenseSpellSlotLevel,
         selectedSpellThiefSpell,
         selectedSpellThiefSpellId,
+        setSelectedEldritchCannonCompanionId,
         setSelectedSongOfDefenseSpellSlotLevel,
         setSelectedSpellThiefSpellId,
         setSpellThiefSearchQuery,
@@ -504,6 +520,31 @@ export function useReactionDrawerState({
     setSpellThiefSearchQuery("");
     setSelectedSpellThiefSpellId("");
   }, [isSpellThiefReactionSelected]);
+  useEffect(() => {
+    if (!isEldritchCannonDetonateReactionSelected) {
+      setSelectedEldritchCannonCompanionId("");
+      return;
+    }
+
+    if (eldritchCannonCompanions.length <= 0) {
+      setSelectedEldritchCannonCompanionId("");
+      return;
+    }
+
+    if (
+      eldritchCannonCompanions.some(
+        (companion) => companion.id === selectedEldritchCannonCompanionId
+      )
+    ) {
+      return;
+    }
+
+    setSelectedEldritchCannonCompanionId(eldritchCannonCompanions[0]?.id ?? "");
+  }, [
+    eldritchCannonCompanions,
+    isEldritchCannonDetonateReactionSelected,
+    selectedEldritchCannonCompanionId
+  ]);
   useEffect(() => {
     if (
       !selectedReactionSpellSupportsStepsOfTheFey ||

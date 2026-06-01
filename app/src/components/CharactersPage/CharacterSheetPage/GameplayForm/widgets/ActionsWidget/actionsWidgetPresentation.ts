@@ -6,7 +6,10 @@ import { adaptItemWeapon } from "../../../../../../utils/items/adaptItemWeapon";
 import WeaponMasteryStatusLabel from "../../../../../WeaponMasteryStatusLabel/WeaponMasteryStatusLabel";
 import type { WeaponAction } from "../../../../../../pages/CharactersPage/gameplay";
 import type { AbilityModifierBonusEntry } from "../../../../../../pages/CharactersPage/abilities";
-import { formatCustomTraitBonusFormulaTerm } from "../../../../../../pages/CharactersPage/customTraitEffects";
+import {
+  formatCustomTraitBonusFormulaTerm,
+  formatCustomTraitBonusRollFormulaTerm
+} from "../../../../../../pages/CharactersPage/customTraitEffects";
 import { DAMAGE_TYPE, type WeaponEntry } from "../../../../../../codex/entries";
 import {
   formatFormulaBreakdown,
@@ -253,6 +256,8 @@ function formatMainDamageTerms(group: DamageDisplayGroup): {
 function formatWeaponDamageBonusEntry(entry: WeaponAction["damageBonusEntries"][number]) {
   const customFormulaLabel = formatCustomTraitBonusFormulaTerm({
     value: entry.value ?? 0,
+    formula: entry.formula,
+    formulaMultiplier: entry.formulaMultiplier,
     abilityModifierSource: entry.abilityModifierSource,
     formulaSourceLabel: entry.formulaSourceLabel
   });
@@ -423,6 +428,16 @@ export function getWeaponDamageFormulaPresentation(
   });
 
   action.damageBonusEntries.forEach((entry) => {
+    if (entry.formula) {
+      const parsedBonusDamages = parseDamageDisplayGroups(
+        entry.displayLabel ?? formatCustomTraitBonusRollFormulaTerm(entry) ?? entry.formula
+      );
+
+      parsedBonusDamages.forEach(addParsedDamageDisplay);
+      breakdownEntries.push(formatWeaponDamageBonusEntry(entry));
+      return;
+    }
+
     if (entry.value !== undefined) {
       mainDamageGroup.numericTotal += entry.value;
 

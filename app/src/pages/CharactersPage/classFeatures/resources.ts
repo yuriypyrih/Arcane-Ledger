@@ -1,5 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import type { AbilityKey, Character, CharacterClassFeatureState } from "../../../types";
+import type {
+  AbilityKey,
+  Character,
+  CharacterClassFeatureState,
+  CharacterCompanion
+} from "../../../types";
 import { ALL_SKILLS } from "../../../types";
 import type {
   RangerHunterDefensiveTacticsChoice,
@@ -27,15 +32,19 @@ import {
 } from "../customTraitEffects";
 import {
   artificerFlashOfGeniusReactionEntryId,
+  artificerExplosiveCannonDetonateReactionEntryId,
   artificerArmorerPerfectedArmorGuardianReactionEntryId,
   consumeArtificerArmorerPerfectedArmorGuardianUse,
   consumeArtificerConjuredCauldronUse,
   consumeArtificerFlashOfGeniusUse,
+  detonateArtificerEldritchCannon,
   consumeArtificerRestorativeReagentsUse,
+  getArtificerEldritchCannonCompanions,
   getArtificerArmorerPerfectedArmorGuardianUsesRemaining,
   getArtificerArmorerPerfectedArmorGuardianUsesTotal,
   getArtificerFlashOfGeniusUsesRemaining,
-  getArtificerFlashOfGeniusUsesTotal
+  getArtificerFlashOfGeniusUsesTotal,
+  hasActiveArtificerEldritchCannon
 } from "./artificer/artificer";
 import {
   activateBardicInspiration,
@@ -604,6 +613,7 @@ export { fighterBanneretKnightlyEnvoySkillOptions };
 
 export {
   artificerFlashOfGeniusReactionEntryId,
+  artificerExplosiveCannonDetonateReactionEntryId,
   artificerArmorerPerfectedArmorGuardianReactionEntryId
 };
 
@@ -623,6 +633,25 @@ export function getArtificerFlashOfGeniusUsesRemainingForCharacter(
 
 export function consumeArtificerFlashOfGeniusUseForCharacter(character: Character): Character {
   return consumeArtificerFlashOfGeniusUse(character);
+}
+
+export function hasActiveArtificerEldritchCannonForCharacter(
+  character: Partial<Pick<Character, "companions">>
+): boolean {
+  return hasActiveArtificerEldritchCannon(character);
+}
+
+export function getArtificerEldritchCannonCompanionsForCharacter(
+  character: Partial<Pick<Character, "companions">>
+): CharacterCompanion[] {
+  return getArtificerEldritchCannonCompanions(character);
+}
+
+export function detonateArtificerEldritchCannonForCharacter(
+  character: Character,
+  companionId?: string | null
+): Character {
+  return detonateArtificerEldritchCannon(character, companionId);
 }
 
 export function getArtificerArmorerPerfectedArmorGuardianUsesTotalForCharacter(
