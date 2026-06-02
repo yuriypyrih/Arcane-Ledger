@@ -326,6 +326,17 @@ function ClassFeaturesAndFeats({
     () => allFeatures.filter((featureRow) => featureRow.level > character.level),
     [allFeatures, character.level]
   );
+  const visibleClassFeatureKeys = useMemo(
+    () => [
+      ...unlockedFeatures.map((featureRow) => featureRow.key),
+      ...(isFutureFeaturesVisible ? futureFeatures.map((featureRow) => featureRow.key) : [])
+    ],
+    [futureFeatures, isFutureFeaturesVisible, unlockedFeatures]
+  );
+  const hasExpandedVisibleClassFeature = useMemo(() => {
+    const visibleFeatureKeySet = new Set(visibleClassFeatureKeys);
+    return expandedFeatureKeys.some((featureKey) => visibleFeatureKeySet.has(featureKey));
+  }, [expandedFeatureKeys, visibleClassFeatureKeys]);
   const featDefinitionsByCategory = useMemo(() => getFeatDefinitionsByCategory(), []);
   const blessedWarriorCantripOptions = useMemo(() => getBlessedWarriorCantripOptions(), []);
   const druidicWarriorCantripOptions = useMemo(() => getDruidicWarriorCantripOptions(), []);
@@ -1689,6 +1700,10 @@ function ClassFeaturesAndFeats({
     );
   }
 
+  function closeExpandedClassFeatures() {
+    setExpandedFeatureKeys([]);
+  }
+
   const renderTrackingButton: TrackingButtonRenderer = (trackingState) => {
     return <FeatureTrackingBadgeButton trackingState={trackingState} onClick={openKeyword} />;
   };
@@ -1762,9 +1777,17 @@ function ClassFeaturesAndFeats({
             <section className={styles.subsection} aria-labelledby="character-class-features-title">
               <div className={styles.subsectionHeader}>
                 <div className={styles.subsectionHeaderText}>
-                  <h3 id="character-class-features-title" className={styles.subsectionTitle}>
-                    Class Features
-                  </h3>
+                  <div className={styles.subsectionTitleRow}>
+                    <h3 id="character-class-features-title" className={styles.subsectionTitle}>
+                      Class Features
+                    </h3>
+                    {hasExpandedVisibleClassFeature ? (
+                      <InlineToggleButton
+                        label="Close Expanded Items"
+                        onClick={closeExpandedClassFeatures}
+                      />
+                    ) : null}
+                  </div>
                   <p className={styles.subsectionMeta}>Subclass: {selectedSubclassLabel}</p>
                 </div>
                 <button

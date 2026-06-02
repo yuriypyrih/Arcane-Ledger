@@ -12,6 +12,7 @@ import {
 import {
   applyLifeAndDeathGiftOfTheProtectorsForCharacter,
   applyLifeAndDeathRelentlessRageForCharacter,
+  applyLifeAndDeathSafeHavenForCharacter,
   applyLifeAndDeathSearingVengeanceForCharacter,
   applyLifeAndDeathUndyingSentinelForCharacter,
   getLifeAndDeathLedgerDescriptionAdditions,
@@ -20,6 +21,8 @@ import {
   hasLifeAndDeathSearingVengeanceFeature,
   isLifeAndDeathGiftOfTheProtectorsAvailable,
   isLifeAndDeathRelentlessRageAvailable,
+  isLifeAndDeathSafeHavenAvailable,
+  isLifeAndDeathSafeHavenRelevant,
   isLifeAndDeathSearingVengeanceAvailable,
   isLifeAndDeathUndyingSentinelAvailable,
   type LifeAndDeathLedgerHeaderItem
@@ -100,6 +103,8 @@ function LifeAndDeathLedgerModal({
   const searingVengeanceAvailable = isLifeAndDeathSearingVengeanceAvailable(character);
   const hasGiftOfTheProtectors = hasLifeAndDeathGiftOfTheProtectorsFeature(character);
   const giftOfTheProtectorsAvailable = isLifeAndDeathGiftOfTheProtectorsAvailable(character);
+  const safeHavenRelevant = isLifeAndDeathSafeHavenRelevant(character);
+  const safeHavenAvailable = isLifeAndDeathSafeHavenAvailable(character);
   const descriptionSections = useMemo(
     () => orderDescriptionAdditionSections(getLifeAndDeathLedgerDescriptionAdditions(character)),
     [character]
@@ -178,6 +183,14 @@ function LifeAndDeathLedgerModal({
     onClose();
   }
 
+  function useSafeHaven() {
+    onPersistCharacter(
+      (currentCharacter) => applyLifeAndDeathSafeHavenForCharacter(currentCharacter),
+      cheatDeathPersistOptions
+    );
+    onClose();
+  }
+
   const footerActions = [
     ...(relentlessRageAvailable
       ? [
@@ -214,6 +227,16 @@ function LifeAndDeathLedgerModal({
             label: "Use Gift of the Protectors",
             onClick: useGiftOfTheProtectors,
             disabled: !giftOfTheProtectorsAvailable
+          }
+        ]
+      : []),
+    ...(safeHavenRelevant
+      ? [
+          {
+            key: "safe-haven",
+            label: "Use Safe Haven",
+            onClick: useSafeHaven,
+            disabled: !safeHavenAvailable
           }
         ]
       : []),

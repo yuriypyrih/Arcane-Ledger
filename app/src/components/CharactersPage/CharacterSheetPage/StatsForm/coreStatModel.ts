@@ -45,6 +45,7 @@ import {
   getRogueSoulknifePsionicDieForCharacter
 } from "../../../../pages/CharactersPage/classFeatures";
 import { getFeatureDescriptionForCharacter } from "../../../../pages/CharactersPage/classFeatures/featureDescriptions";
+import { getArtificerCartographerPortalJumpSpeedDescriptionAdditions } from "../../../../pages/CharactersPage/classFeatures/artificer/artificer";
 import { getInitiativeReferenceDescriptionAdditions } from "../../../../pages/CharactersPage/classFeatures/initiativeDescriptionSections";
 import {
   getAthleteSpeedDescriptionAdditionsForCharacter,
@@ -292,6 +293,9 @@ function getSpeedDescriptionAdditions(character: Character): SpellDescriptionEnt
   }
 
   descriptionAdditions.push(...getAthleteSpeedDescriptionAdditionsForCharacter(character));
+  descriptionAdditions.push(
+    ...getArtificerCartographerPortalJumpSpeedDescriptionAdditions(character)
+  );
 
   return descriptionAdditions;
 }
@@ -324,6 +328,8 @@ export function createBaseCoreStatCards(
   const jumpDistanceBreakdowns = getJumpDistanceBreakdownsForCharacter(character);
   const hasModifiedSpecialMovement = hasModifiedSpecialMovementForCharacter(character);
   const characterCanHover = canCharacterHover(character);
+  const hasPortalJumpSpeedDescription =
+    getArtificerCartographerPortalJumpSpeedDescriptionAdditions(character).length > 0;
   const hasAcrobaticMovement =
     getFeatureDescriptionForCharacter(character, CLASS_FEATURE.ACROBATIC_MOVEMENT).length > 0;
   const cards = fields.map((field) => {
@@ -343,7 +349,8 @@ export function createBaseCoreStatCards(
           : field.label,
       value: displayedCoreStats[field.key],
       showBoostIcon:
-        field.label === "Speed" && (hasModifiedSpecialMovement || hasAcrobaticMovement),
+        field.label === "Speed" &&
+        (hasModifiedSpecialMovement || hasAcrobaticMovement || hasPortalJumpSpeedDescription),
       indicators: coreStatIndicators[field.key],
       summaryText: getKeywordDescription(field.label) ?? undefined,
       detailCards:

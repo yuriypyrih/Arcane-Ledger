@@ -95,13 +95,13 @@ function EquipmentGuideModal({
           <h4 className={styles.sectionTitle}>Tags</h4>
           <p className={styles.sectionText}>
             <InventoryTagPill type="conjured" inline /> items cannot be sold and vanish on death by
-            default. Their expanded item tag can show the feature that created them and any explicit
-            rest duration.
+            default. Their expanded item tag can show the source that created them and any explicit
+            vanishing conditions.
           </p>
           <p className={styles.sectionText}>
             <InventoryTagPill type="spellcastingFocus" inline /> is available in item mods for
-            marking an item as a spellcasting focus. This tag is cosmetic and changes equipment
-            display only.
+            marking an item as a spellcasting focus. This tag is mostly cosmetic (unless it has a
+            specific source) but it helps you remember it during role-playing.
           </p>
         </section>
 

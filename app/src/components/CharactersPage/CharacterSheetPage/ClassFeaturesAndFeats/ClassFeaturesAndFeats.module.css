@@ -46,6 +46,13 @@
   text-transform: none;
 }
 
+.subsectionTitleRow {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
 .subsectionMeta {
   margin: 0;
   color: var(--color-ink);

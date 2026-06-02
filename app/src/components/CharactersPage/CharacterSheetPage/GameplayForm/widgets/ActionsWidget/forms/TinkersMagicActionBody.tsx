@@ -121,7 +121,7 @@ function TinkersMagicActionBody({
   ) : null;
 
   return (
-    <div className={styles.layout}>
+    <div className={styles.browserLayout}>
       <div className={styles.filterRow}>
         <TinkersMagicSelect
           label="Category"
@@ -146,24 +146,26 @@ function TinkersMagicActionBody({
         </label>
       </div>
 
-      <ItemCodexTable
-        items={payload?.results ?? []}
-        totalEntries={payload?.count ?? 0}
-        status={status}
-        currentPage={safePage}
-        totalPages={totalPages}
-        onPageChange={setPage}
-        ordering={ordering}
-        onOrderingChange={(value) => {
-          setOrdering(value);
-          setPage(1);
-        }}
-        onItemSelect={handleItemSelect}
-        heading="Tinker's Magic Items"
-        className={styles.itemTable}
-        tableWrapperClassName={styles.itemTableWrapper}
-        paginationClassName={styles.itemTablePagination}
-      />
+      <div className={styles.tableRegion}>
+        <ItemCodexTable
+          items={payload?.results ?? []}
+          totalEntries={payload?.count ?? 0}
+          status={status}
+          currentPage={safePage}
+          totalPages={totalPages}
+          onPageChange={setPage}
+          ordering={ordering}
+          onOrderingChange={(value) => {
+            setOrdering(value);
+            setPage(1);
+          }}
+          onItemSelect={handleItemSelect}
+          heading="Tinker's Magic Items"
+          className={styles.itemTable}
+          tableWrapperClassName={styles.itemTableWrapper}
+          paginationClassName={styles.itemTablePagination}
+        />
+      </div>
 
       {selectedItemKey ? (
         <EquipmentInventoryItemDrawer

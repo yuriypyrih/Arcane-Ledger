@@ -251,6 +251,18 @@
   height: calc(100dvh - (var(--overlay-backdrop-padding) * 2));
 }
 
+.actionDrawerItemBrowserBody.actionDrawerItemBrowserBody {
+  align-content: stretch;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.actionDrawerItemBrowserBody.actionDrawerItemBrowserBody > :last-child {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
 .wildShapeBody {
   display: grid;
   gap: 0.55rem;

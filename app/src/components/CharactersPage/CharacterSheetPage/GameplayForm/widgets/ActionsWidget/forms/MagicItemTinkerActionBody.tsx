@@ -324,7 +324,7 @@ function TransmuteMagicItemActionBody({
   }, [itemOptions, selectedStackId]);
 
   return (
-    <div className={styles.layout}>
+    <div className={styles.transmuteLayout}>
       <MagicItemTinkerSelect
         label="Choose an existing conjured item"
         value={selectedStackId}

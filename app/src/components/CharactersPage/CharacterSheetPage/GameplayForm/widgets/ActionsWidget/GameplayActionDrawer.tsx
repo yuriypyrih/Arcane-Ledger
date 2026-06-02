@@ -46,6 +46,7 @@ type GameplayActionDrawerProps = {
   blockedReason?: string | null;
   footer?: ReactNode;
   children?: ReactNode;
+  bodyClassName?: string;
   onClose: () => void;
   backdropClassName?: string;
   drawerClassName?: string;
@@ -66,6 +67,7 @@ function GameplayActionDrawer({
   blockedReason = null,
   footer,
   children,
+  bodyClassName,
   onClose,
   backdropClassName,
   drawerClassName
@@ -142,7 +144,7 @@ function GameplayActionDrawer({
             </div>
           </OverlayHeader>
 
-          <OverlayBody className={styles.body}>
+          <OverlayBody className={[styles.body, bodyClassName ?? ""].join(" ").trim()}>
             {hasBaseDescription || descriptionSections.length > 0 ? (
               <div className={styles.descriptionStack}>
                 {hasBaseDescription ? (

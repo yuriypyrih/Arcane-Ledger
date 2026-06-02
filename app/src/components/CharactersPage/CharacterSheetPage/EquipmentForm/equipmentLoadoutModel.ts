@@ -121,6 +121,17 @@ export function formatWeightValue(weight: number): string {
   return `${weight}`.replace(/\.0+$/, "").replace(/(\.\d*?)0+$/, "$1");
 }
 
+export function formatCurrencyPillAmount(amount: number): string {
+  const normalizedAmount = Math.max(0, Math.floor(Number.isFinite(amount) ? amount : 0));
+
+  if (normalizedAmount < 1000) {
+    return `${normalizedAmount}`;
+  }
+
+  const compactAmount = Math.floor(normalizedAmount / 100) / 10;
+  return `${compactAmount.toFixed(1)}K`;
+}
+
 export function normalizeCurrencyAmountInput(value: string, fallback: number): number {
   const numericOnly = value.replace(/[^\d]/g, "");
 

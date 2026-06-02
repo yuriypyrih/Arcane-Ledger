@@ -37,6 +37,8 @@ import {
   consumeArtificerArmorerPerfectedArmorGuardianUse,
   consumeArtificerConjuredCauldronUse,
   consumeArtificerFlashOfGeniusUse,
+  consumeArtificerIlluminatedCartographyUse,
+  consumeArtificerUnerringPathUse,
   detonateArtificerEldritchCannon,
   consumeArtificerRestorativeReagentsUse,
   getArtificerEldritchCannonCompanions,
@@ -682,6 +684,16 @@ export function consumeArtificerRestorativeReagentsUseForCharacter(
   character: Character
 ): Character {
   return consumeArtificerRestorativeReagentsUse(character);
+}
+
+export function consumeArtificerIlluminatedCartographyUseForCharacter(
+  character: Character
+): Character {
+  return consumeArtificerIlluminatedCartographyUse(character);
+}
+
+export function consumeArtificerUnerringPathUseForCharacter(character: Character): Character {
+  return consumeArtificerUnerringPathUse(character);
 }
 
 export function consumeArtificerConjuredCauldronUseForCharacter(character: Character): Character {

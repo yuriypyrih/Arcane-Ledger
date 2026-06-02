@@ -19,6 +19,12 @@ import {
   isArtificerSoulOfArtificeCheatDeathAvailable
 } from "./artificer/soulOfArtifice";
 import {
+  consumeArtificerAdventurersAtlasMapForCharacter,
+  getArtificerAdventurersAtlasInventoryMapCount,
+  getArtificerCartographerSafeHavenDescriptionAdditions,
+  hasArtificerSuperiorAtlasFeature
+} from "./artificer/artificer";
+import {
   activateBarbarianRelentlessRage,
   getBarbarianRageState,
   hasBarbarianRelentlessRageFeature
@@ -110,13 +116,34 @@ export function isLifeAndDeathGiftOfTheProtectorsAvailable(character: Character)
   );
 }
 
+export function hasLifeAndDeathSafeHavenFeature(character: Character): boolean {
+  return hasArtificerSuperiorAtlasFeature(character);
+}
+
+export function getLifeAndDeathSafeHavenMapCount(character: Character): number {
+  return getArtificerAdventurersAtlasInventoryMapCount(character);
+}
+
+export function isLifeAndDeathSafeHavenRelevant(character: Character): boolean {
+  return hasLifeAndDeathSafeHavenFeature(character) && isLifeAndDeathUnconscious(character);
+}
+
+export function isLifeAndDeathSafeHavenAvailable(character: Character): boolean {
+  return (
+    isLifeAndDeathSafeHavenRelevant(character) &&
+    getLifeAndDeathSafeHavenMapCount(character) > 0
+  );
+}
+
 export function hasActiveLifeAndDeathLedgerFeature(character: Character): boolean {
   return (
     isArtificerSoulOfArtificeCheatDeathAvailable(character) ||
     isLifeAndDeathRelentlessRageAvailable(character) ||
     isLifeAndDeathUndyingSentinelAvailable(character) ||
     (isLifeAndDeathUnconscious(character) && isLifeAndDeathSearingVengeanceAvailable(character)) ||
-    (isLifeAndDeathUnconscious(character) && isLifeAndDeathGiftOfTheProtectorsAvailable(character))
+    (isLifeAndDeathUnconscious(character) &&
+      isLifeAndDeathGiftOfTheProtectorsAvailable(character)) ||
+    isLifeAndDeathSafeHavenRelevant(character)
   );
 }
 
@@ -124,7 +151,8 @@ export function getLifeAndDeathLedgerDescriptionAdditions(
   character: Character
 ): SpellDescriptionEntry[][] {
   const descriptionAdditions: SpellDescriptionEntry[][] = [
-    ...getSoulOfArtificeLifeAndDeathDescriptionAdditions(character)
+    ...getSoulOfArtificeLifeAndDeathDescriptionAdditions(character),
+    ...getArtificerCartographerSafeHavenDescriptionAdditions(character)
   ];
 
   if (hasBarbarianRelentlessRageFeature(character)) {
@@ -323,6 +351,27 @@ export function applyLifeAndDeathGiftOfTheProtectorsForCharacter(character: Char
   return reconcileCharacterStatusConsequences({
     ...characterWithSpentUse,
     currentHitPoints: 1,
+    deathSaves: {
+      successes: 0,
+      failures: 0
+    }
+  });
+}
+
+export function applyLifeAndDeathSafeHavenForCharacter(character: Character): Character {
+  if (!isLifeAndDeathSafeHavenAvailable(character)) {
+    return character;
+  }
+
+  const characterWithDestroyedMap = consumeArtificerAdventurersAtlasMapForCharacter(character);
+
+  if (characterWithDestroyedMap === character) {
+    return character;
+  }
+
+  return reconcileCharacterStatusConsequences({
+    ...characterWithDestroyedMap,
+    currentHitPoints: Math.max(1, 2 * (characterWithDestroyedMap.level ?? 0)),
     deathSaves: {
       successes: 0,
       failures: 0

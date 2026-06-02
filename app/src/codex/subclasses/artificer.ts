@@ -274,43 +274,55 @@ export const artificerSubclassEntries: SubclassEntry[] = [
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,
         CLASS_FEATURE.ELDRITCH_CANNON,
-        createDescription([
-          "Using Woodcarver's Tools or Smith's Tools, you can take an action to magically create a Small or Tiny Eldritch Cannon in an unoccupied space on a horizontal surface within 5 feet of you. A Small Eldritch Cannon occupies its space, and a Tiny one can be held in one hand. Once you create a cannon, you can't do so again until you finish a <link:long-rest>Long Rest</link> or until you expend a spell slot to create one. You can have only one cannon at a time and can't create one while your cannon is present.",
-          "The cannon is a magical object. Regardless of size, the cannon has an AC of <strong>18</strong> and a number of Hit Points equal to five times your Artificer level. It is immune to Poison damage and Psychic damage. If it is forced to make an ability check or a saving throw, treat all its ability scores as 10 (+0). If the <spell:Mending>Mending</spell> spell is cast on it, it regains <strong>2d6</strong> Hit Points. It disappears if it is reduced to 0 Hit Points or after 1 hour. You can dismiss it early as an action.",
-          "When you create the cannon, you determine its appearance and whether it has legs. You also decide which type it is, choosing from the options on the Eldritch Cannons table. On each of your turns, you can take a Bonus Action to cause the cannon to activate if you are within 60 feet of it. As part of the same Bonus Action, you can direct the cannon to walk or climb up to 15 feet to an unoccupied space, provided it has legs.",
-          "<strong>Flamethrower.</strong> The cannon exhales fire in an adjacent 15-foot cone that you designate. Each creature in that area must make a <link:Dexterity Saving Throw>Dexterity saving throw</link> against your spell save DC, taking <strong>2d8</strong> Fire damage on a failed save or half as much damage on a successful one. The fire ignites any flammable objects in the area that aren't being worn or carried.",
-          "<strong>Force Ballista.</strong> Make a ranged spell attack, originating from the cannon, at one creature or object within 120 feet of it. On a hit, the target takes <strong>2d8</strong> Force damage, and if the target is a creature, it is pushed up to 5 feet away from the cannon.",
-          "<strong>Protector.</strong> The cannon emits a burst of positive energy that grants itself and each creature of your choice within 10 feet of it a number of <link:Temporary Hit Points>Temporary Hit Points</link> equal to <strong>1d8</strong> + your Intelligence modifier (minimum of +1)."
-        ])
+        createDescription(
+          [
+            "Using Woodcarver's Tools or Smith's Tools, you can take an action to magically create a Small or Tiny Eldritch Cannon in an unoccupied space on a horizontal surface within 5 feet of you. A Small Eldritch Cannon occupies its space, and a Tiny one can be held in one hand. Once you create a cannon, you can't do so again until you finish a <link:long-rest>Long Rest</link> or until you expend a spell slot to create one. You can have only one cannon at a time and can't create one while your cannon is present.",
+            "The cannon is a magical object. Regardless of size, the cannon has an AC of <strong>18</strong> and a number of Hit Points equal to five times your Artificer level. It is immune to Poison damage and Psychic damage. If it is forced to make an ability check or a saving throw, treat all its ability scores as 10 (+0). If the <spell:Mending>Mending</spell> spell is cast on it, it regains <strong>2d6</strong> Hit Points. It disappears if it is reduced to 0 Hit Points or after 1 hour. You can dismiss it early as an action.",
+            "When you create the cannon, you determine its appearance and whether it has legs. You also decide which type it is, choosing from the options on the Eldritch Cannons table. On each of your turns, you can take a Bonus Action to cause the cannon to activate if you are within 60 feet of it. As part of the same Bonus Action, you can direct the cannon to walk or climb up to 15 feet to an unoccupied space, provided it has legs.",
+            "<strong>Flamethrower.</strong> The cannon exhales fire in an adjacent 15-foot cone that you designate. Each creature in that area must make a <link:Dexterity Saving Throw>Dexterity saving throw</link> against your spell save DC, taking <strong>2d8</strong> Fire damage on a failed save or half as much damage on a successful one. The fire ignites any flammable objects in the area that aren't being worn or carried.",
+            "<strong>Force Ballista.</strong> Make a ranged spell attack, originating from the cannon, at one creature or object within 120 feet of it. On a hit, the target takes <strong>2d8</strong> Force damage, and if the target is a creature, it is pushed up to 5 feet away from the cannon.",
+            "<strong>Protector.</strong> The cannon emits a burst of positive energy that grants itself and each creature of your choice within 10 feet of it a number of <link:Temporary Hit Points>Temporary Hit Points</link> equal to <strong>1d8</strong> + your Intelligence modifier (minimum of +1)."
+          ],
+          TRACKER.TRACKED
+        )
       ),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_5,
         CLASS_FEATURE.ARCANE_FIREARM,
-        createDescription([
-          "When you finish a <link:long-rest>Long Rest</link>, you can use Woodcarver's Tools to carve special sigils into a Rod, Staff, Wand, or Martial Ranged weapon and thereby turn it into your Arcane Firearm.",
-          "The sigils disappear from the object if you later carve them on a different item. The sigils otherwise last indefinitely.",
-          "You can use your Arcane Firearm as a Spellcasting Focus for your Artificer spells.",
-          "When you cast an Artificer spell through the firearm, roll <strong>1d8</strong>, and you gain a bonus to one of the spell's damage rolls equal to the number rolled."
-        ])
+        createDescription(
+          [
+            "When you finish a <link:long-rest>Long Rest</link>, you can use Woodcarver's Tools to carve special sigils into a Rod, Staff, Wand, or Martial Ranged weapon and thereby turn it into your Arcane Firearm.",
+            "The sigils disappear from the object if you later carve them on a different item. The sigils otherwise last indefinitely.",
+            "You can use your Arcane Firearm as a Spellcasting Focus for your Artificer spells.",
+            "When you cast an Artificer spell through the firearm, roll <strong>1d8</strong>, and you gain a bonus to one of the spell's damage rolls equal to the number rolled."
+          ],
+          TRACKER.TRACKED
+        )
       ),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_9,
         CLASS_FEATURE.EXPLOSIVE_CANNON,
-        createDescription([
-          "Every Eldritch Cannon you create is now more destructive. You gain the following benefits.",
-          "<strong>Detonate.</strong> When your cannon takes damage, you can take a Reaction to command the cannon to detonate if you are within 60 feet of it. Doing so destroys the cannon and forces each creature within 20 feet of it to make a <link:Dexterity Saving Throw>Dexterity saving throw</link> against your spell save DC, taking <strong>3d10</strong> <link:Force>Force</link> damage on a failed save or half as much damage on a successful one.",
-          "<strong>Firepower.</strong> The cannon's damage rolls and the number of Temporary Hit Points granted by Protector increase by <strong>1d8</strong>."
-        ])
+        createDescription(
+          [
+            "Every Eldritch Cannon you create is now more destructive. You gain the following benefits.",
+            "<strong>Detonate.</strong> When your cannon takes damage, you can take a Reaction to command the cannon to detonate if you are within 60 feet of it. Doing so destroys the cannon and forces each creature within 20 feet of it to make a <link:Dexterity Saving Throw>Dexterity saving throw</link> against your spell save DC, taking <strong>3d10</strong> <link:Force>Force</link> damage on a failed save or half as much damage on a successful one.",
+            "<strong>Firepower.</strong> The cannon's damage rolls and the number of Temporary Hit Points granted by Protector increase by <strong>1d8</strong>."
+          ],
+          TRACKER.TRACKED
+        )
       ),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_15,
         CLASS_FEATURE.FORTIFIED_POSITION,
-        createDescription([
-          "You're a master at forming well-defended emplacements using your Eldritch Cannon. You gain the following benefits.",
-          "<strong>Double Firepower.</strong> You can now have two cannons at the same time, and you can create two with the same Magic action. If you expend a spell slot to create the first cannon, you must expend another spell slot to create the second.",
-          "You can activate both of them with the same Bonus Action, ordering them to use the same activation option or different ones. You can't create a third cannon while you have two.",
-          "<strong>Shimmering Field Projection.</strong> You and your allies have Half Cover while within 10 feet of your Eldritch Cannon."
-        ])
+        createDescription(
+          [
+            "You're a master at forming well-defended emplacements using your Eldritch Cannon. You gain the following benefits.",
+            "<strong>Double Firepower.</strong> You can now have two cannons at the same time, and you can create two with the same Magic action. If you expend a spell slot to create the first cannon, you must expend another spell slot to create the second.",
+            "You can activate both of them with the same Bonus Action, ordering them to use the same activation option or different ones. You can't create a third cannon while you have two.",
+            "<strong>Shimmering Field Projection.</strong> You and your allies have Half Cover while within 10 feet of your Eldritch Cannon."
+          ],
+          TRACKER.TRACKED
+        )
       )
     ]
   },
@@ -352,50 +364,65 @@ export const artificerSubclassEntries: SubclassEntry[] = [
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,
         CLASS_FEATURE.BATTLE_READY,
-        createDescription([
-          "Your combat training and your experiments with magic have paid off in two ways.",
-          "<strong>Arcane Empowerment.</strong> When you attack with a magic weapon, you can use your <link:Intelligence>Intelligence</link> modifier, instead of your <link:Strength>Strength</link> or <link:Dexterity>Dexterity</link> modifier, for the attack and damage rolls.",
-          "<strong>Weapon Knowledge.</strong> You gain proficiency with Martial weapons. You can use a weapon with which you have proficiency as a Spellcasting Focus for your Artificer spells."
-        ])
+        createDescription(
+          [
+            "Your combat training and your experiments with magic have paid off in two ways.",
+            "<strong>Arcane Empowerment.</strong> When you attack with a magic weapon, you can use your <link:Intelligence>Intelligence</link> modifier, instead of your <link:Strength>Strength</link> or <link:Dexterity>Dexterity</link> modifier, for the attack and damage rolls.",
+            "<strong>Weapon Knowledge.</strong> You gain proficiency with Martial weapons. You can use a weapon with which you have proficiency as a Spellcasting Focus for your Artificer spells."
+          ],
+          TRACKER.TRACKED
+        )
       ),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,
         CLASS_FEATURE.STEEL_DEFENDER,
-        createDescription([
-          "Your tinkering has borne you a companion, a Steel Defender. You determine the defender's appearance and whether it has two legs or four; your choices don't affect the defender's game statistics.",
-          "The defender is Friendly to you and your allies and obeys you. It vanishes if you die.",
-          "<strong>The Defender in Combat.</strong> In combat, the defender acts during your turn. It can move and take its Reaction on its own, but the only action it takes is the Dodge action unless you take a Bonus Action to command it to take an action.",
-          "If you have the <link:Incapacitated>Incapacitated</link> condition, the defender acts on its own and isn't limited to the Dodge action.",
-          "<strong>Restoring or Replacing the Defender.</strong> If the defender has died within the last hour, you can take a Magic action to touch it and expend a spell slot. The defender returns to life after 1 minute with all its Hit Points restored.",
-          "Whenever you finish a <link:long-rest>Long Rest</link>, you can create a new defender if you have Smith's Tools in hand. If you already have a defender from this feature, the first one vanishes."
-        ])
+        createDescription(
+          [
+            "Your tinkering has borne you a companion, a Steel Defender. You determine the defender's appearance and whether it has two legs or four; your choices don't affect the defender's game statistics.",
+            "The defender is Friendly to you and your allies and obeys you. It vanishes if you die.",
+            "<strong>The Defender in Combat.</strong> In combat, the defender acts during your turn. It can move and take its Reaction on its own, but the only action it takes is the Dodge action unless you take a Bonus Action to command it to take an action.",
+            "If you have the <link:Incapacitated>Incapacitated</link> condition, the defender acts on its own and isn't limited to the Dodge action.",
+            "<strong>Restoring or Replacing the Defender.</strong> If the defender has died within the last hour, you can take a Magic action to touch it and expend a spell slot. The defender returns to life after 1 minute with all its Hit Points restored.",
+            "Whenever you finish a <link:long-rest>Long Rest</link>, you can create a new defender if you have Smith's Tools in hand. If you already have a defender from this feature, the first one vanishes."
+          ],
+          TRACKER.TRACKED
+        )
       ),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_5,
         CLASS_FEATURE.EXTRA_ATTACK,
-        createDescription([
-          "You can attack twice instead of once whenever you take the Attack action on your turn.",
-          "You can forgo one of your attacks when you take the Attack action to command your Steel Defender to take the Force-Empowered Rend action."
-        ])
+        createDescription(
+          [
+            "You can attack twice instead of once whenever you take the Attack action on your turn.",
+            "You can forgo one of your attacks when you take the Attack action to command your Steel Defender to take the Force-Empowered Rend action."
+          ],
+          TRACKER.TRACKED
+        )
       ),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_9,
         CLASS_FEATURE.ARCANE_JOLT,
-        createDescription([
-          "When either you hit a target with an attack roll using a magic weapon or your Steel Defender hits a target, you can channel magical energy through the strike to create one of the following effects.",
-          "<strong>Destructive Energy.</strong> The target takes an extra <strong>2d6</strong> <link:Force>Force</link> damage.",
-          "<strong>Restorative Energy.</strong> Choose one creature or object you can see within 30 feet of the target. Healing energy flows into the chosen recipient, restoring <strong>2d6</strong> Hit Points to it.",
-          "You can use this energy a number of times equal to your <link:Intelligence>Intelligence</link> modifier, minimum of once, but you can do so no more than once per turn. You regain all expended uses when you finish a <link:long-rest>Long Rest</link>."
-        ])
+        createDescription(
+          [
+            "When either you hit a target with an attack roll using a magic weapon or your Steel Defender hits a target, you can channel magical energy through the strike to create one of the following effects.",
+            "<strong>Destructive Energy.</strong> The target takes an extra <strong>2d6</strong> <link:Force>Force</link> damage.",
+            "<strong>Restorative Energy.</strong> Choose one creature or object you can see within 30 feet of the target. Healing energy flows into the chosen recipient, restoring <strong>2d6</strong> Hit Points to it.",
+            "You can use this energy a number of times equal to your <link:Intelligence>Intelligence</link> modifier, minimum of once, but you can do so no more than once per turn. You regain all expended uses when you finish a <link:long-rest>Long Rest</link>."
+          ],
+          TRACKER.TRACKED
+        )
       ),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_15,
         CLASS_FEATURE.IMPROVED_DEFENDER,
-        createDescription([
-          "Your Arcane Jolt and Steel Defender have become more powerful, granting these benefits.",
-          "<strong>Improved Jolt.</strong> The extra damage and healing of your Arcane Jolt both increase to <strong>4d6</strong>.",
-          "<strong>Improved Deflection.</strong> Whenever your Steel Defender uses its Deflect Attack, the attacker takes <link:Force>Force</link> damage equal to <strong>1d4</strong> plus your <link:Intelligence>Intelligence</link> modifier."
-        ])
+        createDescription(
+          [
+            "Your Arcane Jolt and Steel Defender have become more powerful, granting these benefits.",
+            "<strong>Improved Jolt.</strong> The extra damage and healing of your Arcane Jolt both increase to <strong>4d6</strong>.",
+            "<strong>Improved Deflection.</strong> Whenever your Steel Defender uses its Deflect Attack, the attacker takes <link:Force>Force</link> damage equal to <strong>1d4</strong> plus your <link:Intelligence>Intelligence</link> modifier."
+          ],
+          TRACKER.TRACKED
+        )
       )
     ]
   },
@@ -437,47 +464,62 @@ export const artificerSubclassEntries: SubclassEntry[] = [
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,
         CLASS_FEATURE.ADVENTURERS_ATLAS,
-        createDescription([
-          "Whenever you finish a <link:long-rest>Long Rest</link> while holding Cartographer's Tools, you can use that tool to create a set of magical maps by touching at least two creatures, one of whom can be yourself, up to a maximum number of creatures equal to 1 plus your <link:Intelligence>Intelligence</link> modifier, minimum of two creatures.",
-          "Each target receives a magical map, which constantly updates to show the relative position of all the map holders but is illegible to all others.",
-          "The maps last until you die or until you use this feature again, at which point any existing maps created by this feature immediately vanish.",
-          "While carrying the map, a target gains the following benefits.",
-          "<strong>Awareness.</strong> The target adds <strong>1d4</strong> to its <link:Initiative>Initiative</link> rolls.",
-          "<strong>Positioning.</strong> The target knows the location of all other map holders that are on the same plane of existence as itself. When casting a spell or creating another effect that requires being able to see the effect's target, a map holder can target another map holder regardless of sight or cover, so long as the other map holder is still within the effect's range."
-        ])
+        createDescription(
+          [
+            "Whenever you finish a <link:long-rest>Long Rest</link> while holding Cartographer's Tools, you can use that tool to create a set of magical maps by touching at least two creatures, one of whom can be yourself, up to a maximum number of creatures equal to 1 plus your <link:Intelligence>Intelligence</link> modifier, minimum of two creatures.",
+            "Each target receives a magical map, which constantly updates to show the relative position of all the map holders but is illegible to all others.",
+            "The maps last until you die or until you use this feature again, at which point any existing maps created by this feature immediately vanish.",
+            "While carrying the map, a target gains the following benefits.",
+            "<strong>Awareness.</strong> The target adds <strong>1d4</strong> to its <link:Initiative>Initiative</link> rolls.",
+            "<strong>Positioning.</strong> The target knows the location of all other map holders that are on the same plane of existence as itself. When casting a spell or creating another effect that requires being able to see the effect's target, a map holder can target another map holder regardless of sight or cover, so long as the other map holder is still within the effect's range."
+          ],
+          TRACKER.TRACKED
+        )
       ),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,
         CLASS_FEATURE.MAPPING_MAGIC,
-        createDescription([
-          "You gain the following benefits.",
-          "<strong>Illuminated Cartography.</strong> You can cast <spell:Faerie Fire>Faerie Fire</spell> without expending a spell slot, outlining the affected creatures as if in ink. You can do so a number of times equal to your <link:Intelligence>Intelligence</link> modifier, minimum of once, and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>.",
-          "<strong>Portal Jump.</strong> On your turn, you can spend an amount of movement equal to half your <link:Speed>Speed</link>, round down, to teleport to an unoccupied space you can see within 10 feet of yourself or within 5 feet of a creature that is within 30 feet of you and holding one of your Adventurer's Atlas maps. You can't use this benefit if your Speed is 0."
-        ])
+        createDescription(
+          [
+            "You gain the following benefits.",
+            "<strong>Illuminated Cartography.</strong> You can cast <spell:Faerie Fire>Faerie Fire</spell> without expending a spell slot, outlining the affected creatures as if in ink. You can do so a number of times equal to your <link:Intelligence>Intelligence</link> modifier, minimum of once, and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>.",
+            "<strong>Portal Jump.</strong> On your turn, you can spend an amount of movement equal to half your <link:Speed>Speed</link>, round down, to teleport to an unoccupied space you can see within 10 feet of yourself or within 5 feet of a creature that is within 30 feet of you and holding one of your Adventurer's Atlas maps. You can't use this benefit if your Speed is 0."
+          ],
+          TRACKER.TRACKED
+        )
       ),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_5,
         CLASS_FEATURE.GUIDED_PRECISION,
-        createDescription([
-          "Once per turn, whenever you cast a spell from your Cartographer Spells list or hit a creature affected by your <spell:Faerie Fire>Faerie Fire</spell> with an attack roll, you can add your <link:Intelligence>Intelligence</link> modifier to one damage roll of the spell or attack.",
-          "In addition, taking damage can't cause you to lose <link:Concentration>Concentration</link> on <spell:Faerie Fire>Faerie Fire</spell>."
-        ])
+        createDescription(
+          [
+            "Once per turn, whenever you cast a spell from your Cartographer Spells list or hit a creature affected by your <spell:Faerie Fire>Faerie Fire</spell> with an attack roll, you can add your <link:Intelligence>Intelligence</link> modifier to one damage roll of the spell or attack.",
+            "In addition, taking damage can't cause you to lose <link:Concentration>Concentration</link> on <spell:Faerie Fire>Faerie Fire</spell>."
+          ],
+          TRACKER.TRACKED
+        )
       ),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_9,
         CLASS_FEATURE.INGENIOUS_MOVEMENT,
-        createDescription([
-          "When you use your Flash of Genius, you or a willing creature of your choice that you can see within 30 feet of yourself can teleport up to 30 feet to an unoccupied space you can see as part of that same Reaction."
-        ])
+        createDescription(
+          [
+            "When you use your Flash of Genius, you or a willing creature of your choice that you can see within 30 feet of yourself can teleport up to 30 feet to an unoccupied space you can see as part of that same Reaction."
+          ],
+          TRACKER.TRACKED
+        )
       ),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_15,
         CLASS_FEATURE.SUPERIOR_ATLAS,
-        createDescription([
-          "Your Adventurer's Atlas improves, gaining the following benefits.",
-          "<strong>Safe Haven.</strong> When a map holder would be reduced to 0 Hit Points but not killed outright, that creature can destroy its map. The creature's Hit Points instead change to a number equal to twice your Artificer level, and the creature is teleported to an unoccupied space within 5 feet of you or another map holder of its choice.",
-          "<strong>Unerring Path.</strong> If you are one of the map holders for your Adventurer's Atlas, you can cast <spell:Find the Path>Find the Path</spell> without expending a spell slot, without preparing the spell, and without needing spell components. Once you use this benefit, you can't use it again until you finish a <link:long-rest>Long Rest</link>."
-        ])
+        createDescription(
+          [
+            "Your Adventurer's Atlas improves, gaining the following benefits.",
+            "<strong>Safe Haven.</strong> When a map holder would be reduced to 0 Hit Points but not killed outright, that creature can destroy its map. The creature's Hit Points instead change to a number equal to twice your Artificer level, and the creature is teleported to an unoccupied space within 5 feet of you or another map holder of its choice.",
+            "<strong>Unerring Path.</strong> If you are one of the map holders for your Adventurer's Atlas, you can cast <spell:Find the Path>Find the Path</spell> without expending a spell slot, without preparing the spell, and without needing spell components. Once you use this benefit, you can't use it again until you finish a <link:long-rest>Long Rest</link>."
+          ],
+          TRACKER.TRACKED
+        )
       )
     ]
   }

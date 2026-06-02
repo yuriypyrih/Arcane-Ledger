@@ -180,7 +180,7 @@ export function ReplicateMagicItemPlanBrowser({
   ) : null;
 
   return (
-    <div className={styles.layout}>
+    <div className={hasKnownPlans ? styles.browserLayout : styles.layout}>
       {hasKnownPlans ? (
         <>
           <div className={`${styles.filterRow} ${styles.replicateFilterRow}`}>
@@ -212,28 +212,30 @@ export function ReplicateMagicItemPlanBrowser({
             </label>
           </div>
 
-          {tableDisabled && tableDisabledReason ? (
-            <p className={styles.warningCard}>{tableDisabledReason}</p>
-          ) : null}
+          <div className={styles.tableRegion}>
+            {tableDisabled && tableDisabledReason ? (
+              <p className={styles.warningCard}>{tableDisabledReason}</p>
+            ) : null}
 
-          <ItemCodexTable
-            items={payload?.results ?? []}
-            totalEntries={payload?.count ?? 0}
-            status={status}
-            currentPage={safePage}
-            totalPages={totalPages}
-            onPageChange={setPage}
-            ordering={ordering}
-            onOrderingChange={(value) => {
-              setOrdering(value);
-              setPage(1);
-            }}
-            onItemSelect={handleItemSelect}
-            heading={heading}
-            className={`${styles.itemTable} ${tableDisabled ? styles.disabledTable : ""}`}
-            tableWrapperClassName={styles.itemTableWrapper}
-            paginationClassName={styles.itemTablePagination}
-          />
+            <ItemCodexTable
+              items={payload?.results ?? []}
+              totalEntries={payload?.count ?? 0}
+              status={status}
+              currentPage={safePage}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              ordering={ordering}
+              onOrderingChange={(value) => {
+                setOrdering(value);
+                setPage(1);
+              }}
+              onItemSelect={handleItemSelect}
+              heading={heading}
+              className={`${styles.itemTable} ${tableDisabled ? styles.disabledTable : ""}`}
+              tableWrapperClassName={styles.itemTableWrapper}
+              paginationClassName={styles.itemTablePagination}
+            />
+          </div>
         </>
       ) : (
         <p className={styles.warningCard}>Go to Class Features and select available plans.</p>

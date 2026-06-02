@@ -44,7 +44,9 @@ import {
   consumeFaithfulSteedUseForCharacter,
   consumePaladinsSmiteUseForCharacter,
   consumeArtificerConjuredCauldronUseForCharacter,
+  consumeArtificerIlluminatedCartographyUseForCharacter,
   consumeArtificerRestorativeReagentsUseForCharacter,
+  consumeArtificerUnerringPathUseForCharacter,
   hasDruidTwinklingConstellationsFeatureForCharacter,
   getDruidWildResurgenceSpellSlotRecoveryUsesRemainingForCharacter,
   getDruidWildShapeKnownFormsForCharacter,
@@ -1920,6 +1922,10 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
             : preparedCharacter;
       } else if (fixedSpellExecute.effectKind === "restorative-reagents") {
         nextCharacter = consumeArtificerRestorativeReagentsUseForCharacter(preparedCharacter);
+      } else if (fixedSpellExecute.effectKind === "illuminated-cartography") {
+        nextCharacter = consumeArtificerIlluminatedCartographyUseForCharacter(preparedCharacter);
+      } else if (fixedSpellExecute.effectKind === "unerring-path") {
+        nextCharacter = consumeArtificerUnerringPathUseForCharacter(preparedCharacter);
       } else if (fixedSpellExecute.effectKind === "conjured-cauldron") {
         nextCharacter = consumeArtificerConjuredCauldronUseForCharacter(preparedCharacter);
       }

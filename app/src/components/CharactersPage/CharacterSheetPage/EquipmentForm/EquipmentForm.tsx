@@ -180,6 +180,7 @@ import {
 import {
   createEquipmentRenderGroups,
   createHeldDescriptorForEntry,
+  formatCurrencyPillAmount,
   formatInventoryStackName,
   formatOnHandLabel,
   formatWeightValue,
@@ -2873,6 +2874,24 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
         }
       />
     ) : null;
+  const currencyPillSummary = (
+    <span className={styles.currencyPillSummary}>
+      {currencyDefinitions.map((currency) => (
+        <span key={currency.key} className={styles.currencyPillToken}>
+          <img
+            src={currency.icon}
+            alt=""
+            className={styles.currencyPillTokenIcon}
+            aria-hidden="true"
+          />
+          <span className={styles.currencyPillTokenValue}>
+            {formatCurrencyPillAmount(normalizedCurrencies[currency.key])}
+          </span>
+          <span className={styles.currencyPillTokenCode}>{currency.code}</span>
+        </span>
+      ))}
+    </span>
+  );
   return (
     <>
       {renderEquipmentForm({
@@ -2923,6 +2942,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     clsx,
     currencyAmountDraft,
     currencyDefinitions,
+    currencyPillSummary,
     customEditorMode,
     deleteCustomEquipment,
     editingInventoryStack,

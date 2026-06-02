@@ -2401,6 +2401,13 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
                 selectedAction.action.key === artificerTransmuteMagicItemActionKey) &&
               styles.actionDrawerFullHeight
           )}
+          bodyClassName={clsx(
+            selectedAction.kind === "feature" &&
+              (selectedAction.action.key === artificerTinkersMagicActionKey ||
+                selectedAction.action.key === artificerReplicateMagicItemActionKey ||
+                selectedAction.action.key === artificerTransmuteMagicItemActionKey) &&
+              styles.actionDrawerItemBrowserBody
+          )}
           onClose={closeActionDrawer}
           footer={renderActionDrawerFooter(drawerRenderContext)}
         >

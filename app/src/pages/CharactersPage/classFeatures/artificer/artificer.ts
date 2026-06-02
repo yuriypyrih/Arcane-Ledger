@@ -27,6 +27,12 @@ import {
   restoreArtificerRestorativeReagentsOnLongRest
 } from "./subclasses/artificerAlchemistRestorativeReagents";
 import {
+  normalizeArtificerIlluminatedCartographyState,
+  normalizeArtificerUnerringPathState,
+  restoreArtificerIlluminatedCartographyOnLongRest,
+  restoreArtificerUnerringPathOnLongRest
+} from "./subclasses/artificerCartographer";
+import {
   normalizeArtificerConjuredCauldronState,
   restoreArtificerConjuredCauldronOnLongRest
 } from "./subclasses/artificerAlchemistChemicalMastery";
@@ -163,10 +169,30 @@ export {
 
 export {
   artificerAdventurersAtlasActionKey,
+  artificerIlluminatedCartographyActionKey,
+  artificerUnerringPathActionKey,
+  consumeArtificerAdventurersAtlasMapForCharacter,
+  consumeArtificerIlluminatedCartographyUse,
+  consumeArtificerUnerringPathUse,
   createArtificerAdventurersAtlasMapsForCharacter,
   getArtificerAdventurersAtlasAction,
+  getArtificerAdventurersAtlasInventoryMapCount,
   getArtificerAdventurersAtlasMapCount,
-  hasArtificerAdventurersAtlasFeature
+  getArtificerCartographerSafeHavenDescriptionAdditions,
+  getArtificerCartographerPortalJumpSpeedDescriptionAdditions,
+  getArtificerIlluminatedCartographyAction,
+  getArtificerIlluminatedCartographyUsesRemaining,
+  getArtificerIlluminatedCartographyUsesTotal,
+  getArtificerUnerringPathAction,
+  getArtificerUnerringPathUsesRemaining,
+  getArtificerUnerringPathUsesTotal,
+  hasArtificerAdventurersAtlasFeature,
+  hasArtificerMappingMagicFeature,
+  hasArtificerSuperiorAtlasFeature,
+  normalizeArtificerIlluminatedCartographyState,
+  normalizeArtificerUnerringPathState,
+  restoreArtificerIlluminatedCartographyOnLongRest,
+  restoreArtificerUnerringPathOnLongRest
 } from "./subclasses/artificerCartographer";
 
 export {
@@ -256,6 +282,8 @@ export function normalizeArtificerFeatureState(
     ...normalizeArtificerReplicateMagicItemPlanState(value, character),
     ...normalizeArtificerMagicItemTinkerState(value, character),
     ...normalizeArtificerToolsOfTheTradeState(value, character),
+    ...normalizeArtificerIlluminatedCartographyState(value, character),
+    ...normalizeArtificerUnerringPathState(value, character),
     ...normalizeArtificerRestorativeReagentsState(value, character),
     ...normalizeArtificerConjuredCauldronState(value, character),
     ...normalizeArtificerArtilleristState(value, character),
@@ -336,6 +364,8 @@ export function applyLongRestToArtificerFeatures(character: Character): Characte
   nextCharacter = restoreArtificerMagicItemTinkerDrainOnLongRest(nextCharacter);
   nextCharacter = restoreArtificerMagicItemTinkerTransmuteOnLongRest(nextCharacter);
   nextCharacter = restoreArtificerArcaneJoltOnLongRest(nextCharacter);
+  nextCharacter = restoreArtificerIlluminatedCartographyOnLongRest(nextCharacter);
+  nextCharacter = restoreArtificerUnerringPathOnLongRest(nextCharacter);
   nextCharacter = restoreArtificerRestorativeReagentsOnLongRest(nextCharacter);
   nextCharacter = restoreArtificerConjuredCauldronOnLongRest(nextCharacter);
   nextCharacter = restoreArtificerArmorerGiantStatureOnLongRest(nextCharacter);

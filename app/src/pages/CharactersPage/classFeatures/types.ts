@@ -210,6 +210,7 @@ export type FeatureActionSpellEffectKind =
   | "favored-enemy"
   | "fiendish-vigor"
   | "gift-of-the-depths"
+  | "illuminated-cartography"
   | "mask-of-many-faces"
   | "mantle-of-majesty"
   | "master-of-myriad-forms"
@@ -221,6 +222,7 @@ export type FeatureActionSpellEffectKind =
   | "paladins-smite"
   | "restorative-reagents"
   | "shadow-arts-darkness"
+  | "unerring-path"
   | "visions-of-distant-realms"
   | "whispers-of-the-grave";
 

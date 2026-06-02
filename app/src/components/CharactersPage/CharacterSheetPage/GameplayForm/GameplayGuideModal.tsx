@@ -69,6 +69,19 @@ function GameplayGuideModal({ onClose }: GameplayGuideModalProps) {
             A full shape means the action is available, a half shape means you still have extra uses
             tied to that action, and an empty shape means it has been spent for this turn.
           </p>
+          <p className={`${styles.sectionText} ${styles.inlineShapeText}`}>
+            <ActionShape
+              shape="nonCombat"
+              isSelected
+              size="small"
+              aria-label="Blue diamond outside-turn action"
+              className={styles.inlineShapeIcon}
+            />
+            <span>
+              A blue diamond marks an action, commonly a spell, that takes longer to resolve and
+              therefore typically happens outside of turn-based events.
+            </span>
+          </p>
         </section>
 
         <section className={styles.section}>

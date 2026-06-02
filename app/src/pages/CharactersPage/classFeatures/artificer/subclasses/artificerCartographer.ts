@@ -1,6 +1,12 @@
-import { CLASS_FEATURE, CURRENCY_TYPE } from "../../../../../codex/entries";
+import {
+  CLASS_FEATURE,
+  CURRENCY_TYPE,
+  type SpellDescriptionEntry,
+  type SpellEntry
+} from "../../../../../codex/entries";
 import type {
   Character,
+  CharacterArtificerFeatureState,
   CharacterInventoryItem,
   CharacterItemMods
 } from "../../../../../types";
@@ -8,13 +14,23 @@ import { ACTION_CARD_THEME } from "../../../actionCardTheme";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import {
+  appendFeatureSourcedDescriptionAddition,
+  createFeatureSourcedDescriptionEntries
+} from "../../../actionModalDescriptions";
+import {
   createCharacterInventoryItem,
+  getInventoryContainerContents,
+  getInventoryItemQuantity,
   getInventoryItemConjuredSource,
   INVENTORY_CONJURED_DURATION_DEATH,
   INVENTORY_CONJURED_SOURCE_ADVENTURERS_ATLAS,
-  INVENTORY_FEATURE_TAG_CONJURED
+  INVENTORY_FEATURE_TAG_CONJURED,
+  removeOneContainerContentItemByIndex,
+  removeOneInventoryItemCopyById
 } from "../../../inventoryItems";
 import { createCustomItemRecordFromMods } from "../../../itemMods";
+import { createChargesCardUsage } from "../../cardUsage";
+import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import {
   getPreparedSpellIdsByLevel,
   type SubclassRuntimeResolver
@@ -25,9 +41,20 @@ import { getArtificerToolsOfTheTradeToolProficiencyEntries } from "../toolsOfThe
 
 export const cartographerSubclassId = "artificer-cartographer";
 export const artificerAdventurersAtlasActionKey = "artificer-adventurers-atlas";
+export const artificerIlluminatedCartographyActionKey =
+  "artificer-illuminated-cartography";
+export const artificerUnerringPathActionKey = "artificer-unerring-path";
 
 const adventurersAtlasName = "Adventurer's Atlas";
 const adventurersAtlasBaseItemId = "custom-item-artificer-adventurers-atlas";
+const illuminatedCartographyName = "Illuminated Cartography";
+const unerringPathName = "Unerring Path";
+const faerieFireSpellId = "spell-faerie-fire";
+const findThePathSpellId = "spell-find-the-path";
+const illuminatedCartographyHeading = "<strong>Illuminated Cartography.</strong>";
+const portalJumpHeading = "<strong>Portal Jump.</strong>";
+const safeHavenHeading = "<strong>Safe Haven.</strong>";
+const unerringPathHeading = "<strong>Unerring Path.</strong>";
 const adventurersAtlasMapDescription = [
   "Each target receives a magical map, which constantly updates to show the relative position of all the map holders but is illegible to all others.",
   "The maps last until you die or until you use this feature again, at which point any existing maps created by this feature immediately vanish.",
@@ -45,18 +72,32 @@ const cartographerSpellIdsByLevel = {
 } as const;
 
 type ArtificerAdventurersAtlasCharacter = Pick<Character, "className"> &
-  Partial<Pick<Character, "abilities" | "inventoryItems" | "level" | "statusEntries" | "subclassId">>;
+  Partial<
+    Pick<Character, "abilities" | "inventoryItems" | "level" | "statusEntries" | "subclassId">
+  >;
+
+type ArtificerMappingMagicCharacter = Pick<Character, "className"> &
+  Partial<
+    Pick<
+      Character,
+      "abilities" | "classFeatureState" | "level" | "statusEntries" | "subclassId"
+    >
+  >;
+
+type ArtificerSuperiorAtlasCharacter = Pick<Character, "className"> &
+  Partial<
+    Pick<Character, "classFeatureState" | "inventoryItems" | "level" | "subclassId">
+  >;
 
 type AdventurersAtlasInventoryEntry = Pick<
   CharacterInventoryItem,
   "conjuredSource" | "featureTags"
 >;
 
-const adventurersAtlasItemMods: CharacterItemMods = {
+const adventurersAtlasBaseItemMods: CharacterItemMods = {
   baseCategory: "general",
   isMagicItem: true,
   name: adventurersAtlasName,
-  description: adventurersAtlasMapDescription.join("\n\n"),
   cost: {
     amount: 0,
     currency: CURRENCY_TYPE.GP
@@ -70,15 +111,38 @@ const adventurersAtlasItemMods: CharacterItemMods = {
   ]
 };
 
-const adventurersAtlasItem = createCustomItemRecordFromMods(
-  adventurersAtlasBaseItemId,
-  adventurersAtlasItemMods
-);
-
 function isArtificerAdventurersAtlasInventoryEntry(
   entry: AdventurersAtlasInventoryEntry
 ): boolean {
   return getInventoryItemConjuredSource(entry) === INVENTORY_CONJURED_SOURCE_ADVENTURERS_ATLAS;
+}
+
+function formatDescriptionEntriesForInventoryItem(
+  entries: SpellDescriptionEntry[]
+): string[] {
+  return entries.flatMap((entry) => (typeof entry === "string" ? [entry] : entry.items));
+}
+
+function getArtificerAdventurersAtlasMapDescription(
+  character: ArtificerSuperiorAtlasCharacter
+): string {
+  const description = [...adventurersAtlasMapDescription];
+  const safeHavenDescription = getSafeHavenDescriptionSection(character);
+
+  if (safeHavenDescription.length > 0) {
+    description.push(...formatDescriptionEntriesForInventoryItem(safeHavenDescription));
+  }
+
+  return description.join("\n\n");
+}
+
+function getArtificerAdventurersAtlasItemMods(
+  character: ArtificerSuperiorAtlasCharacter
+): CharacterItemMods {
+  return {
+    ...adventurersAtlasBaseItemMods,
+    description: getArtificerAdventurersAtlasMapDescription(character)
+  };
 }
 
 function removeArtificerAdventurersAtlasInventoryItems(
@@ -115,20 +179,142 @@ function removeArtificerAdventurersAtlasInventoryItems(
   return didRemoveAtlasItem ? nextInventoryItems : inventoryItems;
 }
 
-function createArtificerAdventurersAtlasInventoryItem(): CharacterInventoryItem {
-  return createCharacterInventoryItem(adventurersAtlasItem, {
+export function getArtificerAdventurersAtlasInventoryMapCount(
+  character: Partial<Pick<Character, "inventoryItems">>
+): number {
+  return (character.inventoryItems ?? []).reduce((total, entry) => {
+    const entryCount = isArtificerAdventurersAtlasInventoryEntry(entry)
+      ? getInventoryItemQuantity(entry)
+      : 0;
+    const containerCount = getInventoryContainerContents(entry).reduce(
+      (contentTotal, content) =>
+        isArtificerAdventurersAtlasInventoryEntry(content)
+          ? contentTotal + getInventoryItemQuantity(content as CharacterInventoryItem)
+          : contentTotal,
+      0
+    );
+
+    return total + entryCount + containerCount;
+  }, 0);
+}
+
+export function consumeArtificerAdventurersAtlasMapForCharacter(
+  character: Character
+): Character {
+  const inventoryItems = character.inventoryItems ?? [];
+  const inventoryMap = inventoryItems.find((entry) =>
+    isArtificerAdventurersAtlasInventoryEntry(entry)
+  );
+
+  if (inventoryMap) {
+    return {
+      ...character,
+      inventoryItems: removeOneInventoryItemCopyById(inventoryItems, inventoryMap.id)
+    };
+  }
+
+  for (const entry of inventoryItems) {
+    const contentIndex = getInventoryContainerContents(entry).findIndex((content) =>
+      isArtificerAdventurersAtlasInventoryEntry(content)
+    );
+
+    if (contentIndex >= 0) {
+      return {
+        ...character,
+        inventoryItems: removeOneContainerContentItemByIndex(
+          inventoryItems,
+          entry.id,
+          contentIndex
+        )
+      };
+    }
+  }
+
+  return character;
+}
+
+function createArtificerAdventurersAtlasInventoryItem(
+  character: ArtificerSuperiorAtlasCharacter
+): CharacterInventoryItem {
+  const mods = getArtificerAdventurersAtlasItemMods(character);
+  const item = createCustomItemRecordFromMods(adventurersAtlasBaseItemId, mods);
+
+  return createCharacterInventoryItem(item, {
     quantity: 1,
     featureTags: [INVENTORY_FEATURE_TAG_CONJURED],
     conjuredSource: INVENTORY_CONJURED_SOURCE_ADVENTURERS_ATLAS,
     conjuredDuration: INVENTORY_CONJURED_DURATION_DEATH,
-    mods: adventurersAtlasItemMods
+    mods
   });
+}
+
+function normalizeUsesExpended(value: unknown, total: number): number {
+  const parsedValue = Number(value);
+  const normalizedValue = Number.isFinite(parsedValue) ? Math.floor(parsedValue) : 0;
+
+  return Math.max(0, Math.min(total, normalizedValue));
+}
+
+function descriptionEntryIncludesText(entry: SpellDescriptionEntry, text: string): boolean {
+  return typeof entry === "string"
+    ? entry.includes(text)
+    : entry.items.some((item) => item.includes(text));
+}
+
+function getMappingMagicDescriptionSection(
+  character: ArtificerMappingMagicCharacter,
+  heading: string
+): SpellDescriptionEntry[] {
+  return getFeatureDescriptionForCharacter(character, CLASS_FEATURE.MAPPING_MAGIC).filter(
+    (entry) => descriptionEntryIncludesText(entry, heading)
+  );
+}
+
+function getSuperiorAtlasDescriptionSection(
+  character: ArtificerSuperiorAtlasCharacter,
+  heading: string
+): SpellDescriptionEntry[] {
+  return getFeatureDescriptionForCharacter(character, CLASS_FEATURE.SUPERIOR_ATLAS).filter(
+    (entry) => descriptionEntryIncludesText(entry, heading)
+  );
+}
+
+function getSafeHavenDescriptionSection(
+  character: ArtificerSuperiorAtlasCharacter
+): SpellDescriptionEntry[] {
+  return hasArtificerSuperiorAtlasFeature(character)
+    ? getSuperiorAtlasDescriptionSection(character, safeHavenHeading)
+    : [];
 }
 
 export function hasArtificerAdventurersAtlasFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return hasArtificerSubclassFeature(character, cartographerSubclassId, 3);
+}
+
+export function hasArtificerMappingMagicFeature(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): boolean {
+  return hasArtificerSubclassFeature(character, cartographerSubclassId, 3);
+}
+
+export function hasArtificerGuidedPrecisionFeature(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): boolean {
+  return hasArtificerSubclassFeature(character, cartographerSubclassId, 5);
+}
+
+export function hasArtificerIngeniousMovementFeature(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): boolean {
+  return hasArtificerSubclassFeature(character, cartographerSubclassId, 9);
+}
+
+export function hasArtificerSuperiorAtlasFeature(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): boolean {
+  return hasArtificerSubclassFeature(character, cartographerSubclassId, 15);
 }
 
 export function getArtificerAdventurersAtlasMapCount(
@@ -155,6 +341,8 @@ export function getArtificerAdventurersAtlasAction(
   }
 
   const mapCount = getArtificerAdventurersAtlasMapCount(character);
+  const safeHavenDescriptionAdditions =
+    getArtificerCartographerSafeHavenDescriptionAdditions(character);
 
   return {
     key: artificerAdventurersAtlasActionKey,
@@ -165,7 +353,197 @@ export function getArtificerAdventurersAtlasAction(
     detail: "Replace existing Atlas maps with magical maps for the chosen holders.",
     breakdown: "Create magical maps",
     economyType: ECONOMY_TYPE.ACTION,
-    actionCategory: ACTION_CATEGORY.MAGIC
+    actionCategory: ACTION_CATEGORY.MAGIC,
+    descriptionAdditions: safeHavenDescriptionAdditions
+  };
+}
+
+export function getArtificerIlluminatedCartographyUsesTotal(
+  character: ArtificerMappingMagicCharacter
+): number {
+  const intelligenceModifier = getAbilityModifierForCharacter(
+    {
+      abilities: character.abilities,
+      statusEntries: character.statusEntries
+    },
+    "INT"
+  );
+
+  return hasArtificerMappingMagicFeature(character)
+    ? Math.max(1, intelligenceModifier)
+    : 0;
+}
+
+export function normalizeArtificerIlluminatedCartographyState(
+  value: unknown,
+  character: ArtificerMappingMagicCharacter
+): Pick<CharacterArtificerFeatureState, "illuminatedCartographyUsesExpended"> {
+  if (!hasArtificerMappingMagicFeature(character)) {
+    return {};
+  }
+
+  const record =
+    value && typeof value === "object" ? (value as Partial<CharacterArtificerFeatureState>) : {};
+  const usesTotal = getArtificerIlluminatedCartographyUsesTotal(character);
+
+  return {
+    illuminatedCartographyUsesExpended: normalizeUsesExpended(
+      record.illuminatedCartographyUsesExpended,
+      usesTotal
+    )
+  };
+}
+
+export function getArtificerIlluminatedCartographyUsesRemaining(
+  character: ArtificerMappingMagicCharacter
+): number {
+  const usesTotal = getArtificerIlluminatedCartographyUsesTotal(character);
+
+  if (usesTotal <= 0) {
+    return 0;
+  }
+
+  const usesExpended = normalizeUsesExpended(
+    character.classFeatureState?.artificer?.illuminatedCartographyUsesExpended,
+    usesTotal
+  );
+
+  return Math.max(0, usesTotal - usesExpended);
+}
+
+export function getArtificerIlluminatedCartographyAction(
+  character: ArtificerMappingMagicCharacter
+): FeatureActionCard | null {
+  if (!hasArtificerMappingMagicFeature(character)) {
+    return null;
+  }
+
+  const usesTotal = getArtificerIlluminatedCartographyUsesTotal(character);
+  const usesRemaining = getArtificerIlluminatedCartographyUsesRemaining(character);
+  const description = getMappingMagicDescriptionSection(character, illuminatedCartographyHeading);
+
+  return {
+    key: artificerIlluminatedCartographyActionKey,
+    name: illuminatedCartographyName,
+    sourceFeature: CLASS_FEATURE.MAPPING_MAGIC,
+    cardTheme: ACTION_CARD_THEME.MAGIC,
+    summary: "Cast Faerie Fire without a spell slot.",
+    detail: "Open Faerie Fire and cast it using an Illuminated Cartography charge.",
+    breakdown: "Free Faerie Fire",
+    economyType: ECONOMY_TYPE.ACTION,
+    actionCategory: ACTION_CATEGORY.MAGIC,
+    usesRemaining,
+    usesTotal,
+    cardUsage: createChargesCardUsage(usesRemaining, usesTotal),
+    description,
+    drawer: {
+      kind: "confirm",
+      description,
+      confirmLabel: "Open Faerie Fire"
+    },
+    execute: {
+      kind: "spell",
+      spellSource: "fixed",
+      effectKind: "illuminated-cartography",
+      spellId: faerieFireSpellId,
+      spellLevel: 1,
+      label: "Open Faerie Fire",
+      actionContextText: "Using Illuminated Cartography",
+      actionAvailabilityText: "Cast without expending a spell slot.",
+      actionConsumesSpellSlot: false
+    },
+    disabled: usesRemaining <= 0,
+    disabledReason:
+      usesRemaining <= 0
+        ? "Illuminated Cartography recharges when you finish a Long Rest."
+        : undefined
+  };
+}
+
+export function getArtificerUnerringPathUsesTotal(
+  character: ArtificerSuperiorAtlasCharacter
+): number {
+  return hasArtificerSuperiorAtlasFeature(character) ? 1 : 0;
+}
+
+export function normalizeArtificerUnerringPathState(
+  value: unknown,
+  character: ArtificerSuperiorAtlasCharacter
+): Pick<CharacterArtificerFeatureState, "unerringPathUsesExpended"> {
+  if (!hasArtificerSuperiorAtlasFeature(character)) {
+    return {};
+  }
+
+  const record =
+    value && typeof value === "object" ? (value as Partial<CharacterArtificerFeatureState>) : {};
+  const usesTotal = getArtificerUnerringPathUsesTotal(character);
+
+  return {
+    unerringPathUsesExpended: normalizeUsesExpended(record.unerringPathUsesExpended, usesTotal)
+  };
+}
+
+export function getArtificerUnerringPathUsesRemaining(
+  character: ArtificerSuperiorAtlasCharacter
+): number {
+  const usesTotal = getArtificerUnerringPathUsesTotal(character);
+
+  if (usesTotal <= 0) {
+    return 0;
+  }
+
+  const usesExpended = normalizeUsesExpended(
+    character.classFeatureState?.artificer?.unerringPathUsesExpended,
+    usesTotal
+  );
+
+  return Math.max(0, usesTotal - usesExpended);
+}
+
+export function getArtificerUnerringPathAction(
+  character: ArtificerSuperiorAtlasCharacter
+): FeatureActionCard | null {
+  if (!hasArtificerSuperiorAtlasFeature(character)) {
+    return null;
+  }
+
+  const usesTotal = getArtificerUnerringPathUsesTotal(character);
+  const usesRemaining = getArtificerUnerringPathUsesRemaining(character);
+  const description = getSuperiorAtlasDescriptionSection(character, unerringPathHeading);
+
+  return {
+    key: artificerUnerringPathActionKey,
+    name: unerringPathName,
+    sourceFeature: CLASS_FEATURE.SUPERIOR_ATLAS,
+    cardTheme: ACTION_CARD_THEME.MAGIC,
+    summary: "Cast Find the Path without a spell slot.",
+    detail: "Open Find the Path and cast it using Superior Atlas.",
+    breakdown: "Free Find the Path",
+    economyType: ECONOMY_TYPE.NON_COMBAT,
+    actionCategory: ACTION_CATEGORY.MAGIC,
+    usesRemaining,
+    usesTotal,
+    cardUsage: createChargesCardUsage(usesRemaining, usesTotal),
+    description,
+    drawer: {
+      kind: "confirm",
+      description,
+      confirmLabel: "Open Find the Path"
+    },
+    execute: {
+      kind: "spell",
+      spellSource: "fixed",
+      effectKind: "unerring-path",
+      spellId: findThePathSpellId,
+      spellLevel: 6,
+      label: "Open Find the Path",
+      actionContextText: "Using Unerring Path",
+      actionAvailabilityText: "Cast without expending a spell slot or spell components.",
+      actionConsumesSpellSlot: false
+    },
+    disabled: usesRemaining <= 0,
+    disabledReason:
+      usesRemaining <= 0 ? "Unerring Path recharges when you finish a Long Rest." : undefined
   };
 }
 
@@ -186,9 +564,200 @@ export function createArtificerAdventurersAtlasMapsForCharacter(
     ...character,
     inventoryItems: [
       ...removeArtificerAdventurersAtlasInventoryItems(character.inventoryItems ?? []),
-      ...Array.from({ length: mapCount }, createArtificerAdventurersAtlasInventoryItem)
+      ...Array.from({ length: mapCount }, () =>
+        createArtificerAdventurersAtlasInventoryItem(character)
+      )
     ]
   };
+}
+
+export function consumeArtificerIlluminatedCartographyUse(character: Character): Character {
+  const usesTotal = getArtificerIlluminatedCartographyUsesTotal(character);
+  const usesRemaining = getArtificerIlluminatedCartographyUsesRemaining(character);
+
+  if (usesTotal <= 0 || usesRemaining <= 0) {
+    return character;
+  }
+
+  const currentArtificerState = character.classFeatureState?.artificer ?? {};
+  const illuminatedCartographyState = normalizeArtificerIlluminatedCartographyState(
+    currentArtificerState,
+    character
+  );
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      artificer: {
+        ...currentArtificerState,
+        ...illuminatedCartographyState,
+        illuminatedCartographyUsesExpended:
+          (illuminatedCartographyState.illuminatedCartographyUsesExpended ?? 0) + 1
+      }
+    }
+  };
+}
+
+export function restoreArtificerIlluminatedCartographyOnLongRest(character: Character): Character {
+  if (!hasArtificerMappingMagicFeature(character)) {
+    return character;
+  }
+
+  const currentArtificerState = character.classFeatureState?.artificer ?? {};
+  const illuminatedCartographyState = normalizeArtificerIlluminatedCartographyState(
+    currentArtificerState,
+    character
+  );
+
+  if ((illuminatedCartographyState.illuminatedCartographyUsesExpended ?? 0) <= 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      artificer: {
+        ...currentArtificerState,
+        ...illuminatedCartographyState,
+        illuminatedCartographyUsesExpended: 0
+      }
+    }
+  };
+}
+
+export function consumeArtificerUnerringPathUse(character: Character): Character {
+  const usesTotal = getArtificerUnerringPathUsesTotal(character);
+  const usesRemaining = getArtificerUnerringPathUsesRemaining(character);
+
+  if (usesTotal <= 0 || usesRemaining <= 0) {
+    return character;
+  }
+
+  const currentArtificerState = character.classFeatureState?.artificer ?? {};
+  const unerringPathState = normalizeArtificerUnerringPathState(currentArtificerState, character);
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      artificer: {
+        ...currentArtificerState,
+        ...unerringPathState,
+        unerringPathUsesExpended: (unerringPathState.unerringPathUsesExpended ?? 0) + 1
+      }
+    }
+  };
+}
+
+export function restoreArtificerUnerringPathOnLongRest(character: Character): Character {
+  if (!hasArtificerSuperiorAtlasFeature(character)) {
+    return character;
+  }
+
+  const currentArtificerState = character.classFeatureState?.artificer ?? {};
+  const unerringPathState = normalizeArtificerUnerringPathState(currentArtificerState, character);
+
+  if ((unerringPathState.unerringPathUsesExpended ?? 0) <= 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      artificer: {
+        ...currentArtificerState,
+        ...unerringPathState,
+        unerringPathUsesExpended: 0
+      }
+    }
+  };
+}
+
+export function getArtificerCartographerSafeHavenDescriptionAdditions(
+  character: ArtificerSuperiorAtlasCharacter
+): SpellDescriptionEntry[][] {
+  const safeHavenDescription = getSafeHavenDescriptionSection(character);
+
+  return safeHavenDescription.length > 0
+    ? [
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.SUPERIOR_ATLAS,
+          safeHavenDescription,
+          "Safe Haven"
+        )
+      ]
+    : [];
+}
+
+export function getArtificerCartographerPortalJumpSpeedDescriptionAdditions(
+  character: ArtificerMappingMagicCharacter
+): SpellDescriptionEntry[][] {
+  if (!hasArtificerMappingMagicFeature(character)) {
+    return [];
+  }
+
+  const portalJumpDescription = getMappingMagicDescriptionSection(character, portalJumpHeading);
+
+  return portalJumpDescription.length > 0
+    ? [
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.MAPPING_MAGIC,
+          portalJumpDescription,
+          "Mapping Magic"
+        )
+      ]
+    : [];
+}
+
+export function transformArtificerCartographerGuidedPrecisionSpellEntry(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
+  spell: SpellEntry
+): SpellEntry {
+  if (!hasArtificerGuidedPrecisionFeature(character) || spell.id !== faerieFireSpellId) {
+    return spell;
+  }
+
+  const guidedPrecisionDescription = getFeatureDescriptionForCharacter(
+    character,
+    CLASS_FEATURE.GUIDED_PRECISION
+  );
+
+  return appendFeatureSourcedDescriptionAddition(
+    spell,
+    character,
+    CLASS_FEATURE.GUIDED_PRECISION,
+    guidedPrecisionDescription,
+    "Guided Precision"
+  );
+}
+
+export function getArtificerCartographerIngeniousMovementFlashOfGeniusDescriptionAdditions(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): SpellDescriptionEntry[][] {
+  if (!hasArtificerIngeniousMovementFeature(character)) {
+    return [];
+  }
+
+  const ingeniousMovementDescription = getFeatureDescriptionForCharacter(
+    character,
+    CLASS_FEATURE.INGENIOUS_MOVEMENT
+  );
+
+  return ingeniousMovementDescription.length > 0
+    ? [
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.INGENIOUS_MOVEMENT,
+          ingeniousMovementDescription,
+          "Ingenious Movement"
+        )
+      ]
+    : [];
 }
 
 export const getArtificerCartographerDerivedFeatureState: SubclassRuntimeResolver = (character) =>
@@ -198,9 +767,15 @@ export const getArtificerCartographerDerivedFeatureState: SubclassRuntimeResolve
           character.level ?? 0,
           cartographerSpellIdsByLevel
         ),
-        featureActions: [getArtificerAdventurersAtlasAction(character)].filter(
+        featureActions: [
+          getArtificerAdventurersAtlasAction(character),
+          getArtificerIlluminatedCartographyAction(character),
+          getArtificerUnerringPathAction(character)
+        ].filter(
           (action): action is FeatureActionCard => Boolean(action)
         ),
+        transformSpellEntry: (spell) =>
+          transformArtificerCartographerGuidedPrecisionSpellEntry(character, spell),
         toolProficiencyEntries: getArtificerToolsOfTheTradeToolProficiencyEntries(character)
       }
     : {};

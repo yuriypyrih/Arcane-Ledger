@@ -200,6 +200,21 @@ function createConjuredCauldronSpellEntry(character: Character, spell: SpellEntr
   );
 }
 
+function createUnerringPathSpellEntry(character: Character, spell: SpellEntry): SpellEntry {
+  return appendFeatureSourcedDescriptionAddition(
+    {
+      ...spell,
+      components: []
+    },
+    character,
+    CLASS_FEATURE.SUPERIOR_ATLAS,
+    [
+      "This casting doesn't expend a spell slot, doesn't require spell components, and doesn't require Find the Path to be prepared."
+    ],
+    "Unerring Path"
+  );
+}
+
 export function getFixedSpellEntryForExecute(
   character: Character,
   execute: Extract<FeatureActionExecuteConfig, { kind: "spell" }>
@@ -226,6 +241,10 @@ export function getFixedSpellEntryForExecute(
 
   if (execute.effectKind === "conjured-cauldron") {
     return createConjuredCauldronSpellEntry(character, transformedSpell);
+  }
+
+  if (execute.effectKind === "unerring-path") {
+    return createUnerringPathSpellEntry(character, transformedSpell);
   }
 
   if (execute.effectKind === "mantle-of-majesty") {

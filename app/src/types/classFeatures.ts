@@ -290,6 +290,8 @@ export type CharacterArtificerFeatureState = {
   battleSmithArcaneJoltUsedThisTurn?: boolean;
   conjuredCauldronUsesExpended?: number;
   flashOfGeniusUsesExpended?: number;
+  illuminatedCartographyUsesExpended?: number;
+  unerringPathUsesExpended?: number;
   magicItemTinkerDrainUsesExpended?: number;
   magicItemTinkerTransmuteUsesExpended?: number;
   restorativeReagentsUsesExpended?: number;

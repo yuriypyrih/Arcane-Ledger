@@ -43,10 +43,14 @@ import {
   getArtificerMagicItemTinkerDrainUsesTotal,
   getArtificerMagicItemTinkerTransmuteUsesRemaining,
   getArtificerMagicItemTinkerTransmuteUsesTotal,
+  getArtificerIlluminatedCartographyUsesRemaining,
+  getArtificerIlluminatedCartographyUsesTotal,
   getArtificerRestorativeReagentsUsesRemaining,
   getArtificerRestorativeReagentsUsesTotal,
   getArtificerTinkersMagicUsesRemaining,
   getArtificerTinkersMagicUsesTotal,
+  getArtificerUnerringPathUsesRemaining,
+  getArtificerUnerringPathUsesTotal,
   restoreArtificerFlashOfGeniusOnLongRest,
   restoreArtificerArmorerGiantStatureOnLongRest,
   restoreArtificerArmorerInfiltratorsFlightOnLongRest,
@@ -56,8 +60,10 @@ import {
   restoreArtificerMagicItemTinkerDrainOnLongRest,
   restoreArtificerMagicItemTinkerTransmuteOnLongRest,
   restoreArtificerArcaneJoltOnLongRest,
+  restoreArtificerIlluminatedCartographyOnLongRest,
   restoreArtificerRestorativeReagentsOnLongRest,
-  restoreArtificerTinkersMagicOnLongRest
+  restoreArtificerTinkersMagicOnLongRest,
+  restoreArtificerUnerringPathOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
 import {
   getBarbarianIntimidatingPresenceUsesTotal,
@@ -409,6 +415,12 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const artificerFlashOfGeniusUsesRemaining = getArtificerFlashOfGeniusUsesRemaining(character);
   const artificerArcaneJoltUsesTotal = getArtificerArcaneJoltUsesTotal(character);
   const artificerArcaneJoltUsesRemaining = getArtificerArcaneJoltUsesRemaining(character);
+  const artificerIlluminatedCartographyUsesTotal =
+    getArtificerIlluminatedCartographyUsesTotal(character);
+  const artificerIlluminatedCartographyUsesRemaining =
+    getArtificerIlluminatedCartographyUsesRemaining(character);
+  const artificerUnerringPathUsesTotal = getArtificerUnerringPathUsesTotal(character);
+  const artificerUnerringPathUsesRemaining = getArtificerUnerringPathUsesRemaining(character);
   const artificerRestorativeReagentsUsesTotal =
     getArtificerRestorativeReagentsUsesTotal(character);
   const artificerRestorativeReagentsUsesRemaining =
@@ -1009,6 +1021,38 @@ export function createLongRestOptions(character: Character): RestOption[] {
             disabled: artificerArcaneJoltUsesRemaining >= artificerArcaneJoltUsesTotal,
             apply: (currentCharacter: Character) =>
               restoreArtificerArcaneJoltOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(artificerIlluminatedCartographyUsesTotal > 0
+      ? [
+          {
+            id: "restore-artificer-illuminated-cartography",
+            label: "Restore Illuminated Cartography",
+            charges: {
+              current: artificerIlluminatedCartographyUsesRemaining,
+              total: artificerIlluminatedCartographyUsesTotal
+            },
+            disabled:
+              artificerIlluminatedCartographyUsesRemaining >=
+              artificerIlluminatedCartographyUsesTotal,
+            apply: (currentCharacter: Character) =>
+              restoreArtificerIlluminatedCartographyOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(artificerUnerringPathUsesTotal > 0
+      ? [
+          {
+            id: "restore-artificer-unerring-path",
+            label: "Restore Unerring Path",
+            charges: {
+              current: artificerUnerringPathUsesRemaining,
+              total: artificerUnerringPathUsesTotal
+            },
+            disabled: artificerUnerringPathUsesRemaining >= artificerUnerringPathUsesTotal,
+            apply: (currentCharacter: Character) =>
+              restoreArtificerUnerringPathOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),

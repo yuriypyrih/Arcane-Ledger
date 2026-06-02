@@ -8,6 +8,9 @@ import type { Character, CharacterArtificerFeatureState } from "../../../../type
 import { getAbilityModifierForCharacter } from "../../abilities";
 import { getInventoryAttunementCount } from "../../inventoryItems";
 import { getFeatureDescriptionForCharacter } from "../featureDescriptions";
+import {
+  getArtificerCartographerIngeniousMovementFlashOfGeniusDescriptionAdditions
+} from "./subclasses/artificerCartographer";
 
 export const artificerFlashOfGeniusReactionEntryId = "reaction-artificer-flash-of-genius";
 
@@ -114,6 +117,9 @@ function getArtificerFlashOfGeniusDescription(
 function getArtificerFlashOfGeniusReactionEntry(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): ReactionEntry {
+  const descriptionAdditions =
+    getArtificerCartographerIngeniousMovementFlashOfGeniusDescriptionAdditions(character);
+
   return {
     id: artificerFlashOfGeniusReactionEntryId,
     reaction: REACTION.FLASH_OF_GENIUS,
@@ -121,7 +127,8 @@ function getArtificerFlashOfGeniusReactionEntry(
     sourceType: "feature",
     sourceFeature: CLASS_FEATURE.FLASH_OF_GENIUS,
     sourceLabel: "Artificer",
-    description: getArtificerFlashOfGeniusDescription(character)
+    description: getArtificerFlashOfGeniusDescription(character),
+    descriptionAdditions: descriptionAdditions.length > 0 ? descriptionAdditions : undefined
   };
 }
 
