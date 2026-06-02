@@ -1,7 +1,7 @@
 import { ScrollText } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getCampaign } from "../../api/campaigns";
+import { getCampaign, type CampaignPreparedEncounterRecord } from "../../api/campaigns";
 import {
   setSelectedCampaign,
   setSelectedCampaignError,
@@ -14,6 +14,7 @@ import DmToolsEditButton from "./DmToolsEditButton";
 import DmToolsEmptyState from "./DmToolsEmptyState";
 import CampaignManagerGuideButton from "./CampaignManagerGuideButton";
 import CampaignManagerGuideModal from "./CampaignManagerGuideModal";
+import CampaignEncounterTrackerSection from "./CampaignEncounterTrackerSection";
 import CampaignPreparedEncountersSection from "./CampaignPreparedEncountersSection";
 import CampaignSelectedPartySection from "./CampaignSelectedPartySection";
 import CampaignSessionNotesSection from "./CampaignSessionNotesSection";
@@ -36,6 +37,9 @@ function CampaignDetailPage() {
   );
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [activeEncounter, setActiveEncounter] = useState<
+    Pick<CampaignPreparedEncounterRecord, "id" | "name"> | null
+  >(null);
 
   useEffect(() => {
     let didCancel = false;
@@ -69,6 +73,20 @@ function CampaignDetailPage() {
       didCancel = true;
     };
   }, [authStatus, campaignId, dispatch]);
+
+  useEffect(() => {
+    if (!activeEncounter || !campaign) {
+      return;
+    }
+
+    const encounterStillPrepared = campaign.preparedEncounters.some(
+      (encounter) => encounter.id === activeEncounter.id
+    );
+
+    if (!encounterStillPrepared) {
+      setActiveEncounter(null);
+    }
+  }, [activeEncounter, campaign]);
 
   return (
     <section className={styles.page}>
@@ -112,9 +130,24 @@ function CampaignDetailPage() {
           <p className={styles.modalError}>{error}</p>
         ) : campaign ? (
           <>
-            <CampaignSelectedPartySection campaign={campaign} />
-            <CampaignSessionNotesSection campaign={campaign} />
-            <CampaignPreparedEncountersSection campaign={campaign} />
+            <div className={styles.campaignDetailLayout}>
+              <div className={styles.campaignDetailColumn}>
+                <CampaignSelectedPartySection campaign={campaign} />
+                <CampaignSessionNotesSection campaign={campaign} />
+              </div>
+              <div className={styles.campaignDetailColumn}>
+                <CampaignEncounterTrackerSection
+                  activeEncounter={activeEncounter}
+                  onClearActiveEncounter={() => setActiveEncounter(null)}
+                />
+                <CampaignPreparedEncountersSection
+                  campaign={campaign}
+                  onStartEncounter={(encounter) =>
+                    setActiveEncounter({ id: encounter.id, name: encounter.name })
+                  }
+                />
+              </div>
+            </div>
 
             {isEditModalOpen ? (
               <EditCampaignModal campaign={campaign} onClose={() => setIsEditModalOpen(false)} />

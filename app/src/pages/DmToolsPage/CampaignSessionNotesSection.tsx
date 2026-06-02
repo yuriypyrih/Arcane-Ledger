@@ -39,6 +39,7 @@ function CampaignSessionNotesSection({ campaign }: CampaignSessionNotesSectionPr
   const [isDeleting, setIsDeleting] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const isAtSessionNoteLimit = campaign.sessionNotes.length >= CAMPAIGN_MAX_SESSION_NOTES;
+  const sessionNoteLimitMessage = `Campaigns can hold up to ${CAMPAIGN_MAX_SESSION_NOTES} session notes.`;
   const selectedNoteIndex = selectedNoteId
     ? campaign.sessionNotes.findIndex((note) => note.id === selectedNoteId)
     : -1;
@@ -103,27 +104,24 @@ function CampaignSessionNotesSection({ campaign }: CampaignSessionNotesSectionPr
             Session Notes
           </h3>
         </div>
-        <div className={styles.headerActions}>
-          <span className={styles.memberCount}>
-            {campaign.sessionNotes.length}/{CAMPAIGN_MAX_SESSION_NOTES} notes
-          </span>
-          <ActionButton
-            icon={<Plus size={16} aria-hidden="true" />}
-            disabled={isAtSessionNoteLimit}
-            fullWidth={false}
-            title={
-              isAtSessionNoteLimit
-                ? `Campaigns can hold up to ${CAMPAIGN_MAX_SESSION_NOTES} session notes.`
-                : undefined
-            }
-            onClick={() => {
-              setActionError(null);
-              setIsCreatingNote(true);
-            }}
-          >
-            Add Note
-          </ActionButton>
-        </div>
+        <span className={styles.memberCount}>
+          {campaign.sessionNotes.length}/{CAMPAIGN_MAX_SESSION_NOTES} notes
+        </span>
+      </div>
+
+      <div className={styles.panelActionsRow}>
+        <ActionButton
+          icon={<Plus size={16} aria-hidden="true" />}
+          disabled={isAtSessionNoteLimit}
+          fullWidth={false}
+          title={isAtSessionNoteLimit ? sessionNoteLimitMessage : undefined}
+          onClick={() => {
+            setActionError(null);
+            setIsCreatingNote(true);
+          }}
+        >
+          Add Note
+        </ActionButton>
       </div>
 
       {actionError ? <p className={styles.modalError}>{actionError}</p> : null}

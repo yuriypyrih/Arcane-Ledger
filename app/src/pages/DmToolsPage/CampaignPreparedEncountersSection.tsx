@@ -1,4 +1,4 @@
-import { Download, Plus, Swords, Trash2 } from "lucide-react";
+import { Download, Play, Plus, Swords, Trash2 } from "lucide-react";
 import { type ReactNode, useId, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -23,6 +23,7 @@ import styles from "./DmToolsPage.module.css";
 
 type CampaignPreparedEncountersSectionProps = {
   campaign: CampaignDetailRecord;
+  onStartEncounter: (encounter: CampaignPreparedEncounterRecord) => void;
 };
 
 function getDeletePreparedEncounterMessage(encounter: CampaignPreparedEncounterRecord): ReactNode {
@@ -33,7 +34,10 @@ function getDeletePreparedEncounterMessage(encounter: CampaignPreparedEncounterR
   );
 }
 
-function CampaignPreparedEncountersSection({ campaign }: CampaignPreparedEncountersSectionProps) {
+function CampaignPreparedEncountersSection({
+  campaign,
+  onStartEncounter
+}: CampaignPreparedEncountersSectionProps) {
   const deleteEncounterTitleId = useId();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
@@ -46,6 +50,7 @@ function CampaignPreparedEncountersSection({ campaign }: CampaignPreparedEncount
   const isAtPreparedEncounterLimit =
     campaign.preparedEncounters.length >= CAMPAIGN_MAX_PREPARED_ENCOUNTERS;
   const preparedEncounterLimitMessage = `Campaigns can hold up to ${CAMPAIGN_MAX_PREPARED_ENCOUNTERS} prepared encounters.`;
+  const hasSelectedParty = Boolean(campaign.selectedParty);
 
   async function handleCreatePreparedEncounter(name: string) {
     const campaignPatch = await createCampaignPreparedEncounter(campaign.id, name, {
@@ -90,40 +95,37 @@ function CampaignPreparedEncountersSection({ campaign }: CampaignPreparedEncount
             Prepared Encounters
           </h3>
         </div>
-        <div className={styles.headerActions}>
-          <span className={styles.memberCount}>
-            {campaign.preparedEncounters.length}/{CAMPAIGN_MAX_PREPARED_ENCOUNTERS} encounters
-          </span>
-          <ActionButton
-            icon={<Plus size={16} aria-hidden="true" />}
-            disabled={isAtPreparedEncounterLimit}
-            fullWidth={false}
-            title={
-              isAtPreparedEncounterLimit ? preparedEncounterLimitMessage : undefined
-            }
-            onClick={() => {
-              setActionError(null);
-              setIsCreateModalOpen(true);
-            }}
-          >
-            Create Encounter
-          </ActionButton>
-          <ActionButton
-            icon={<Download size={16} aria-hidden="true" />}
-            variant="OUTLINE"
-            disabled={isAtPreparedEncounterLimit}
-            fullWidth={false}
-            title={
-              isAtPreparedEncounterLimit ? preparedEncounterLimitMessage : undefined
-            }
-            onClick={() => {
-              setActionError(null);
-              setIsCopyModalOpen(true);
-            }}
-          >
-            Import Template
-          </ActionButton>
-        </div>
+        <span className={styles.memberCount}>
+          {campaign.preparedEncounters.length}/{CAMPAIGN_MAX_PREPARED_ENCOUNTERS} encounters
+        </span>
+      </div>
+
+      <div className={styles.panelActionsRow}>
+        <ActionButton
+          icon={<Plus size={16} aria-hidden="true" />}
+          disabled={isAtPreparedEncounterLimit}
+          fullWidth={false}
+          title={isAtPreparedEncounterLimit ? preparedEncounterLimitMessage : undefined}
+          onClick={() => {
+            setActionError(null);
+            setIsCreateModalOpen(true);
+          }}
+        >
+          Create Encounter
+        </ActionButton>
+        <ActionButton
+          icon={<Download size={16} aria-hidden="true" />}
+          variant="OUTLINE"
+          disabled={isAtPreparedEncounterLimit}
+          fullWidth={false}
+          title={isAtPreparedEncounterLimit ? preparedEncounterLimitMessage : undefined}
+          onClick={() => {
+            setActionError(null);
+            setIsCopyModalOpen(true);
+          }}
+        >
+          Import Template
+        </ActionButton>
       </div>
 
       {actionError ? <p className={styles.modalError}>{actionError}</p> : null}
@@ -140,6 +142,15 @@ function CampaignPreparedEncountersSection({ campaign }: CampaignPreparedEncount
                 navigate(`/gm-tools/campaign-manager/${campaign.id}/encounters/${encounter.id}`)
               }
               actions={[
+                {
+                  disabled: !hasSelectedParty,
+                  icon: <Play size={18} aria-hidden="true" />,
+                  label: `Start ${encounter.name}`,
+                  onClick: () => onStartEncounter(encounter),
+                  title: hasSelectedParty
+                    ? `Start ${encounter.name}`
+                    : "Select a party before starting an encounter."
+                },
                 {
                   icon: <Trash2 size={18} aria-hidden="true" />,
                   label: `Delete ${encounter.name}`,
