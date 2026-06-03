@@ -24,6 +24,7 @@ type MonsterEntryRendererProps = {
   headingId?: string;
   showHeading?: boolean;
   surface?: "card" | "plain";
+  vitalRows?: MonsterDetailRow[];
 };
 
 function FeatureGroup({ title, description, features }: MonsterActionGroup) {
@@ -105,7 +106,8 @@ function MonsterEntryRenderer({
   headingTag,
   headingId,
   showHeading = true,
-  surface = "card"
+  surface = "card",
+  vitalRows = []
 }: MonsterEntryRendererProps) {
   const titleMeta = formatMonsterTitleMeta(monster);
   const description = getKnownMonsterText(monster.desc);
@@ -149,6 +151,9 @@ function MonsterEntryRenderer({
             value={formatMonsterValueWithNote(monster.hit_points, monster.hit_dice)}
           />
           <InlineRow label="Speed" value={speed} />
+          {vitalRows.map((row) => (
+            <InlineRow key={row.label} label={row.label} value={row.value} />
+          ))}
         </div>
       </section>
 

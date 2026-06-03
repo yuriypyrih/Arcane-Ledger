@@ -123,6 +123,7 @@ export type CharacterCombatSummaryCoreStats = CombatSummaryCoreStatCardsResult &
   speed: number;
   speedBreakdown: ReturnType<typeof getSpeedBreakdownForCharacter>;
   movementSpeedBreakdowns: ReturnType<typeof getMovementSpeedBreakdownsForCharacter>;
+  canHover: boolean;
   jumpDistanceBreakdowns: ReturnType<typeof getJumpDistanceBreakdownsForCharacter>;
   hitDiceSummary: {
     remaining: number;
@@ -627,6 +628,7 @@ export function createCombatSummaryCoreStats(character: Character): CharacterCom
     speed: getSpeedForCharacter(character),
     speedBreakdown,
     movementSpeedBreakdowns,
+    canHover: canCharacterHover(character),
     jumpDistanceBreakdowns,
     hitDiceSummary: {
       remaining: getHitDiceRemainingForCharacter(character),

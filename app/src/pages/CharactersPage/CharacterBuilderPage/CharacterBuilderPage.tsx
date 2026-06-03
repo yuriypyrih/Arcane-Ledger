@@ -192,7 +192,7 @@ function CharacterBuilderPage() {
         try {
           const { characters: syncedCharacters } = await importCharacterSheets(
             [
-              createPortableCharacterSheetSyncPayload(
+              await createPortableCharacterSheetSyncPayload(
                 createPortableCharacterSheet(savedCharacter),
                 { ownerId }
               )

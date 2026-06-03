@@ -18,7 +18,10 @@ function getPortraitErrorMessage(error: unknown): string {
 
 type UseCharacterPortraitOptions = {
   characterSheetId: string | null;
-  createSyncPayload?: () => CharacterSheetSyncPayload | null;
+  createSyncPayload?: () =>
+    | Promise<CharacterSheetSyncPayload | null>
+    | CharacterSheetSyncPayload
+    | null;
   initialPortraitUrl: string | null;
   isUploadEnabled: boolean;
   onMutationComplete: (response: CharacterPortraitMutationResponse) => void;
@@ -54,7 +57,7 @@ function useCharacterPortrait({
       try {
         const portrait = await cropAndScaleImageFile(file, { crop });
         const response = await uploadCharacterPortrait(characterSheetId, portrait.blob, {
-          syncPayload: createSyncPayload?.() ?? null
+          syncPayload: createSyncPayload ? await createSyncPayload() : null
         });
         const nextPortraitUrl = response.avatar?.imageUrl ?? null;
 
@@ -82,7 +85,7 @@ function useCharacterPortrait({
 
     try {
       const response = await deleteCharacterPortrait(characterSheetId, {
-        syncPayload: createSyncPayload?.() ?? null
+        syncPayload: createSyncPayload ? await createSyncPayload() : null
       });
 
       onMutationComplete(response);

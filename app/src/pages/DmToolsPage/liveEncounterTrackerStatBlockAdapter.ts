@@ -2,12 +2,19 @@ import type {
   MonsterActionGroup,
   MonsterDetailRow
 } from "../../components/MonsterEntryRenderer/monsterEntryFormatting";
-import type { AbilityKey, MonsterFeatureRecord, MonsterRecord, PortableEncounterStatBlock } from "../../types";
+import type {
+  AbilityKey,
+  MonsterFeatureRecord,
+  MonsterRecord,
+  PortableEncounterStatBlock
+} from "../../types";
+import { skillGroupsByAbility } from "../CharactersPage/skillDefinitions";
 
 type EncounterStatBlockRendererModel = {
   actionGroups: MonsterActionGroup[];
   detailRows: MonsterDetailRow[];
   monster: MonsterRecord;
+  vitalRows: MonsterDetailRow[];
 };
 
 const abilityFieldByKey: Record<
@@ -36,6 +43,10 @@ const abilityFieldByKey: Record<
   CHA: { score: "charisma", save: "charisma_save" }
 };
 
+const skillAbilityByName: Map<string, AbilityKey> = new Map(
+  skillGroupsByAbility.flatMap((group) => group.skills.map((skill) => [skill, group.ability]))
+);
+
 function formatSigned(value: number | string | null | undefined) {
   if (typeof value === "string") {
     return value.trim() || "-";
@@ -48,8 +59,8 @@ function formatSigned(value: number | string | null | undefined) {
   return value >= 0 ? `+${value}` : value.toString();
 }
 
-function formatList(values: string[]) {
-  return values.length > 0 ? values.join(", ") : "";
+function formatList(values: readonly string[] | null | undefined) {
+  return values && values.length > 0 ? values.join(", ") : "";
 }
 
 function formatOptionalHitPoints(
@@ -65,6 +76,28 @@ function formatOptionalHitPoints(
     label,
     value: source ? `${value} (${source})` : value.toString()
   };
+}
+
+function formatMemberSkills(statBlock: PortableEncounterStatBlock) {
+  const skills = statBlock.skills ?? {};
+  const displayedSkills = Object.entries(skills)
+    .flatMap(([skillName, total]) => {
+      const ability = skillAbilityByName.get(skillName);
+      const abilityModifier = ability ? statBlock.abilities[ability]?.modifier : null;
+
+      if (
+        !Number.isFinite(total) ||
+        typeof abilityModifier !== "number" ||
+        total <= abilityModifier
+      ) {
+        return [];
+      }
+
+      return [`${skillName} ${formatSigned(total)}`];
+    })
+    .sort((left, right) => left.localeCompare(right));
+
+  return displayedSkills.join(", ");
 }
 
 function toSlug(value: string) {
@@ -89,11 +122,6 @@ function toFeatureRecords(labels: string[]): MonsterFeatureRecord[] | null {
 }
 
 function buildDetailRows(statBlock: PortableEncounterStatBlock): MonsterDetailRow[] {
-  const passivePerception =
-    Number.isFinite(statBlock.passivePerception) && statBlock.passivePerception > 0
-      ? `passive Perception ${statBlock.passivePerception}`
-      : "";
-  const senses = [formatList(statBlock.senses), passivePerception].filter(Boolean).join(", ");
   const temporaryHitPoints = formatOptionalHitPoints(
     statBlock.temporaryHitPoints,
     statBlock.temporaryHitPointsSource,
@@ -106,17 +134,36 @@ function buildDetailRows(statBlock: PortableEncounterStatBlock): MonsterDetailRo
   );
 
   return [
-    { label: "Level", value: statBlock.level.toString() },
-    { label: "Initiative", value: formatSigned(statBlock.initiative) },
-    { label: "Proficiency Bonus", value: formatSigned(statBlock.proficiencyBonus) },
+    { label: "Skills", value: formatMemberSkills(statBlock) },
     temporaryHitPoints,
     magicTemporaryHitPoints,
     { label: "Damage Vulnerabilities", value: formatList(statBlock.vulnerabilities) },
     { label: "Damage Resistances", value: formatList(statBlock.resistances) },
     { label: "Damage Immunities", value: formatList(statBlock.immunities) },
-    { label: "Senses", value: senses },
+    { label: "Condition Immunities", value: formatList(statBlock.conditionImmunities) },
+    { label: "Senses", value: formatList(statBlock.senses) },
     { label: "Languages", value: formatList(statBlock.languages) || "None" }
   ].filter((row): row is MonsterDetailRow => Boolean(row?.value));
+}
+
+function buildVitalRows(statBlock: PortableEncounterStatBlock): MonsterDetailRow[] {
+  return [
+    { label: "Initiative", value: formatSigned(statBlock.initiative) },
+    {
+      label: "Passive Perception",
+      value:
+        Number.isFinite(statBlock.passivePerception) && statBlock.passivePerception > 0
+          ? statBlock.passivePerception.toString()
+          : ""
+    }
+  ].filter((row) => row.value.length > 0);
+}
+
+function formatAlignmentWithLevel(statBlock: PortableEncounterStatBlock): string {
+  return [statBlock.alignment, `Level ${statBlock.level}`]
+    .map((value) => String(value).trim())
+    .filter((value) => value.length > 0)
+    .join(", ");
 }
 
 function buildActionGroups(statBlock: PortableEncounterStatBlock): MonsterActionGroup[] {
@@ -144,11 +191,11 @@ export function createEncounterStatBlockRendererModel(
     slug: `encounter-stat-block-${toSlug(statBlock.name)}`,
     desc: "",
     name: statBlock.name,
-    size: "Player Character",
+    size: "",
     type: typeLabel,
     subtype: "",
     group: null,
-    alignment: statBlock.alignment,
+    alignment: formatAlignmentWithLevel(statBlock),
     armor_class: statBlock.armorClass,
     armor_desc: null,
     hit_points: statBlock.hitPoints,
@@ -166,12 +213,12 @@ export function createEncounterStatBlockRendererModel(
     intelligence_save: null,
     wisdom_save: null,
     charisma_save: null,
-    perception: null,
-    skills: {},
+    perception: statBlock.skills?.Perception ?? null,
+    skills: statBlock.skills ?? {},
     damage_vulnerabilities: formatList(statBlock.vulnerabilities),
     damage_resistances: formatList(statBlock.resistances),
     damage_immunities: formatList(statBlock.immunities),
-    condition_immunities: "",
+    condition_immunities: formatList(statBlock.conditionImmunities),
     senses: formatList(statBlock.senses),
     languages: formatList(statBlock.languages),
     challenge_rating: "Character",
@@ -203,6 +250,7 @@ export function createEncounterStatBlockRendererModel(
   return {
     actionGroups: buildActionGroups(statBlock),
     detailRows: buildDetailRows(statBlock),
-    monster
+    monster,
+    vitalRows: buildVitalRows(statBlock)
   };
 }

@@ -39,6 +39,10 @@ import {
   type CharacterStatusRuntime
 } from "./statusRuntime";
 import {
+  getProficiencyRuntimeForCharacter,
+  type CharacterProficiencyRuntime
+} from "../proficiency/runtime";
+import {
   getCombatSummaryRuntimeForCharacter,
   type CharacterCombatSummaryRuntime
 } from "./combatSummaryRuntime";
@@ -68,6 +72,7 @@ export type CharacterRuntime = {
   readonly spellcasting: CharacterSpellcastingRuntime;
   readonly spellcastingWithoutSubclassSlots: CharacterSpellcastingRuntime;
   readonly status: CharacterStatusRuntime;
+  readonly proficiency: CharacterProficiencyRuntime;
   readonly combatSummary: CharacterCombatSummaryRuntime;
   readonly equipment: EquipmentRuntime;
   readonly weaponActions: WeaponAction[];
@@ -95,6 +100,7 @@ class CharacterRuntimeSnapshot implements CharacterRuntime {
   private spellcastingSnapshot: CharacterSpellcastingRuntime | null = null;
   private spellcastingWithoutSubclassSlotsSnapshot: CharacterSpellcastingRuntime | null = null;
   private statusSnapshot: CharacterStatusRuntime | null = null;
+  private proficiencySnapshot: CharacterProficiencyRuntime | null = null;
   private combatSummarySnapshot: CharacterCombatSummaryRuntime | null = null;
   private equipmentSnapshot: EquipmentRuntime | null = null;
   private weaponActionsSnapshot: WeaponAction[] | null = null;
@@ -195,6 +201,14 @@ class CharacterRuntimeSnapshot implements CharacterRuntime {
     }
 
     return this.statusSnapshot;
+  }
+
+  get proficiency(): CharacterProficiencyRuntime {
+    if (!this.proficiencySnapshot) {
+      this.proficiencySnapshot = getProficiencyRuntimeForCharacter(this.character);
+    }
+
+    return this.proficiencySnapshot;
   }
 
   get combatSummary(): CharacterCombatSummaryRuntime {

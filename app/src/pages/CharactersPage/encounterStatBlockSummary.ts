@@ -1,31 +1,28 @@
+import { DAMAGE_TYPE } from "../../codex/entries";
 import {
   CONDITION_NAME,
   CUSTOM_LANGUAGE_PREFIX,
   EFFECT_NAME,
   PROF_LEVEL,
-  SAVING_THROW_PROFICIENCY,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE,
-  type AbilityKey,
   type CharacterStatusEntry,
   type HydratedCharacter,
   type PortableEncounterStatBlock
 } from "../../types";
 import { formatCodexLabel } from "../../utils/codex";
-import { getSavingThrowLevelFromEntries } from "./proficiencyResolvers";
-import { getProficiencyMultiplier } from "./shared";
+import { abilityKeys } from "./constants";
+import {
+  getCharacterRuntime,
+  type CharacterRuntime
+} from "./characterRuntime/characterRuntime";
+import type { CharacterCombatSummaryCoreStats } from "./characterRuntime/combatSummaryCoreStats";
+import type { SkillRow } from "./skills";
 
 export const ENCOUNTER_STAT_BLOCK_VERSION = 1;
 
-const abilityKeys: AbilityKey[] = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
-const savingThrowProficiencyByAbility: Record<AbilityKey, SAVING_THROW_PROFICIENCY> = {
-  STR: SAVING_THROW_PROFICIENCY.STR,
-  DEX: SAVING_THROW_PROFICIENCY.DEX,
-  CON: SAVING_THROW_PROFICIENCY.CON,
-  INT: SAVING_THROW_PROFICIENCY.INT,
-  WIS: SAVING_THROW_PROFICIENCY.WIS,
-  CHA: SAVING_THROW_PROFICIENCY.CHA
-};
+const conditionValues = new Set<string>(Object.values(CONDITION_NAME));
+const damageTypeValues = new Set<string>(Object.values(DAMAGE_TYPE));
 
 function compactLabels(values: Array<string | null | undefined>): string[] {
   return [
@@ -37,49 +34,16 @@ function compactLabels(values: Array<string | null | undefined>): string[] {
   ].sort((left, right) => left.localeCompare(right));
 }
 
-function formatSignedNumber(value: number): string {
-  return value >= 0 ? `+${value}` : `${value}`;
-}
-
 function getAbilityModifier(score: number): number {
   return Math.floor((score - 10) / 2);
 }
 
-function getProficiencyBonus(level: number): number {
-  const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-  return Math.floor((normalizedLevel - 1) / 4) + 2;
-}
-
-function readDisplayInteger(value: unknown): number | null {
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return Math.floor(value);
+function formatLanguageLabel(proficiency: string): string {
+  if (proficiency.startsWith(CUSTOM_LANGUAGE_PREFIX)) {
+    return proficiency.slice(CUSTOM_LANGUAGE_PREFIX.length).trim() || "Custom language";
   }
 
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const match = value.trim().match(/[+-]?\d+/);
-
-  return match ? Number.parseInt(match[0] ?? "", 10) : null;
-}
-
-function readDisplayString(value: unknown): string | null {
-  return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
-}
-
-function getSavingThrowTotal(
-  character: HydratedCharacter,
-  ability: AbilityKey,
-  proficiencyBonus: number
-): number {
-  const abilityModifier = getAbilityModifier(character.abilities[ability] ?? 10);
-  const savingThrowLevel = getSavingThrowLevelFromEntries(
-    character.savingThrowProficiencies,
-    savingThrowProficiencyByAbility[ability]
-  );
-
-  return abilityModifier + proficiencyBonus * getProficiencyMultiplier(savingThrowLevel);
+  return formatCodexLabel(proficiency);
 }
 
 function getStatusEntryLabel(entry: CharacterStatusEntry): string {
@@ -99,38 +63,23 @@ function getStatusEntryLabel(entry: CharacterStatusEntry): string {
 }
 
 function getStatusLabels(
-  statusEntries: CharacterStatusEntry[] | undefined,
-  groups: STATUS_ENTRY_GROUP[],
+  statusEntries: CharacterStatusEntry[],
   predicate?: (entry: CharacterStatusEntry) => boolean
 ): string[] {
-  const groupSet = new Set(groups);
-
   return compactLabels(
-    (statusEntries ?? [])
-      .filter((entry) => !entry.disabled && groupSet.has(entry.group))
+    statusEntries
+      .filter((entry) => !entry.disabled)
       .filter((entry) => (predicate ? predicate(entry) : true))
       .map(getStatusEntryLabel)
   );
 }
 
-function formatLanguageLabel(proficiency: string): string {
-  if (proficiency.startsWith(CUSTOM_LANGUAGE_PREFIX)) {
-    return proficiency.slice(CUSTOM_LANGUAGE_PREFIX.length).trim() || "Custom language";
-  }
-
-  return formatCodexLabel(proficiency);
+function isDamageStatusEntry(entry: CharacterStatusEntry): boolean {
+  return damageTypeValues.has(String(entry.value));
 }
 
-function getLanguageLabels(character: HydratedCharacter): string[] {
-  return compactLabels(
-    character.languageProficiencies
-      .filter((entry) => entry.proficiencyLevel !== PROF_LEVEL.NONE)
-      .map((entry) => formatLanguageLabel(String(entry.proficiency)))
-  );
-}
-
-function getEncounterStatusEntries(character: HydratedCharacter): CharacterStatusEntry[] {
-  return character.statusEntries ?? [];
+function isConditionStatusEntry(entry: CharacterStatusEntry): boolean {
+  return conditionValues.has(String(entry.value));
 }
 
 function isEncounterFeatureTraitEntry(entry: CharacterStatusEntry): boolean {
@@ -141,53 +90,103 @@ function isEncounterFeatureTraitEntry(entry: CharacterStatusEntry): boolean {
   );
 }
 
-function getFeatureReactionLabels(character: HydratedCharacter): string[] {
-  const labels: string[] = [];
-  const className = character.className.trim().toLowerCase();
-
-  if (className === "artificer" && character.level >= 7) {
-    labels.push("Flash of Genius");
-  }
-
-  if (className === "bard" && character.level >= 7) {
-    labels.push("Countercharm");
-  }
-
-  if (className === "monk") {
-    if (character.level >= 3) {
-      labels.push("Deflect Attacks");
-    }
-
-    if (character.level >= 4) {
-      labels.push("Slow Fall");
-    }
-  }
-
-  if (className === "rogue" && character.level >= 5) {
-    labels.push("Uncanny Dodge");
-  }
-
-  return labels;
+function getEncounterLanguageLabels(runtime: CharacterRuntime): string[] {
+  return compactLabels(
+    runtime.proficiency.collections.languageProficiencies
+      .filter((entry) => entry.proficiencyLevel !== PROF_LEVEL.NONE)
+      .map((entry) => formatLanguageLabel(String(entry.proficiency)))
+  );
 }
 
-function getReactionLabels(character: HydratedCharacter, statusEntries: CharacterStatusEntry[]) {
-  return compactLabels([
-    ...getStatusLabels(statusEntries, [STATUS_ENTRY_GROUP.REACTIONS]),
-    ...getFeatureReactionLabels(character)
-  ]);
+function hasSnapshotWorthySkillBonus(row: SkillRow): boolean {
+  return row.bonusEntries.some((entry) => entry.label !== "Exhaustion");
+}
+
+function getEncounterSkills(runtime: CharacterRuntime): Record<string, number> {
+  const combatSummary = runtime.combatSummary;
+  const skills: Record<string, number> = {};
+
+  combatSummary.skills.rowsByAbility.forEach((group) => {
+    group.rows.forEach((row) => {
+      if (row.proficiencyMultiplier <= 0 && !hasSnapshotWorthySkillBonus(row)) {
+        return;
+      }
+
+      skills[row.name] = row.totalModifier;
+    });
+  });
+
+  return skills;
+}
+
+function getCoreStatCardValue(
+  cards: ReturnType<typeof getCharacterRuntime>["combatSummary"]["coreStats"]["cards"],
+  key: string,
+  fallback: string
+): string {
+  return cards.find((card) => card.key === key)?.value ?? fallback;
+}
+
+function formatSpeedValue(value: number | null): string | null {
+  return typeof value === "number" && Number.isFinite(value) && value > 0 ? `${value} ft` : null;
+}
+
+function formatEncounterSpeed(coreStats: CharacterCombatSummaryCoreStats): string {
+  const movement = coreStats.movementSpeedBreakdowns;
+  const walkSpeed = formatSpeedValue(movement.walk.total) ?? `${coreStats.speed} ft`;
+  const specialMovement = (["climb", "swim", "fly", "burrow"] as const).flatMap((type) => {
+    const breakdown = movement[type];
+    const speed = formatSpeedValue(breakdown.total);
+
+    return breakdown.isModified && speed ? [`${type} ${speed}`] : [];
+  });
+
+  return [
+    walkSpeed,
+    ...specialMovement,
+    ...(coreStats.canHover ? ["can hover"] : [])
+  ].join(", ");
+}
+
+function createEncounterAbilities(
+  character: HydratedCharacter,
+  runtime: CharacterRuntime
+): PortableEncounterStatBlock["abilities"] {
+  const abilityCards = new Map(
+    runtime.combatSummary.abilities.abilitySavingThrowCards.map((card) => [
+      card.ability,
+      card
+    ])
+  );
+
+  return abilityKeys.reduce(
+    (abilities, ability) => {
+      const card = abilityCards.get(ability);
+      const score = card?.score ?? character.abilities[ability] ?? 10;
+      const modifier = card?.modifierValue ?? getAbilityModifier(score);
+
+      return {
+        ...abilities,
+        [ability]: {
+          score,
+          modifier,
+          save: card?.totalSavingThrowValue ?? modifier
+        }
+      };
+    },
+    {} as PortableEncounterStatBlock["abilities"]
+  );
 }
 
 export function createEncounterStatBlockSummary(
   character: HydratedCharacter
 ): PortableEncounterStatBlock {
-  const proficiencyBonus = getProficiencyBonus(character.level);
-  const dexterityModifier = getAbilityModifier(character.abilities.DEX ?? 10);
-  const wisdomModifier = getAbilityModifier(character.abilities.WIS ?? 10);
-  const armorClass = readDisplayInteger(character.coreStats?.armorClass) ?? 10 + dexterityModifier;
-  const passivePerception =
-    readDisplayInteger(character.coreStats?.passivePerception) ?? 10 + wisdomModifier;
+  const runtime = getCharacterRuntime(character);
+  const { combatSummary } = runtime;
+  const coreStats = combatSummary.coreStats;
+  const hitPoints = combatSummary.hitPoints;
+  const defenses = combatSummary.defenses;
   const sync = character.storageMetadata?.sync;
-  const encounterStatusEntries = getEncounterStatusEntries(character);
 
   return {
     version: ENCOUNTER_STAT_BLOCK_VERSION,
@@ -200,47 +199,31 @@ export function createEncounterStatBlockSummary(
     level: character.level,
     className: character.className,
     species: character.species,
-    armorClass,
-    initiative: readDisplayString(character.coreStats?.initiative) ?? formatSignedNumber(dexterityModifier),
-    speed: readDisplayString(character.coreStats?.speed) ?? "30 ft",
-    proficiencyBonus,
-    hitPoints: character.hitPoints,
-    currentHitPoints: character.currentHitPoints,
-    temporaryHitPoints: character.temporaryHitPoints,
+    armorClass: coreStats.armorClassResolution.activeFormula.breakdown.total,
+    initiative: getCoreStatCardValue(coreStats.cards, "initiative", "+0"),
+    speed: formatEncounterSpeed(coreStats),
+    proficiencyBonus: coreStats.proficiencyBonus,
+    hitPoints: hitPoints.effectiveMaxHitPoints,
+    currentHitPoints: hitPoints.normalizedCurrentHitPoints,
+    temporaryHitPoints: hitPoints.temporaryHitPoints,
     ...(character.temporaryHitPointsSource
       ? { temporaryHitPointsSource: character.temporaryHitPointsSource }
       : {}),
-    magicTemporaryHitPoints: character.magicTemporaryHitPoints,
+    magicTemporaryHitPoints: hitPoints.magicTemporaryHitPoints,
     ...(character.magicTemporaryHitPointsSource
       ? { magicTemporaryHitPointsSource: character.magicTemporaryHitPointsSource }
       : {}),
-    immunities: getStatusLabels(encounterStatusEntries, [STATUS_ENTRY_GROUP.IMMUNITIES]),
-    resistances: getStatusLabels(encounterStatusEntries, [STATUS_ENTRY_GROUP.RESISTANCES]),
-    vulnerabilities: getStatusLabels(encounterStatusEntries, [STATUS_ENTRY_GROUP.VULNERABILITIES]),
-    senses: getStatusLabels(encounterStatusEntries, [STATUS_ENTRY_GROUP.SENSES]),
-    passivePerception,
-    languages: getLanguageLabels(character),
-    abilities: abilityKeys.reduce(
-      (abilities, ability) => {
-        const score = character.abilities[ability] ?? 10;
-
-        return {
-          ...abilities,
-          [ability]: {
-            score,
-            modifier: getAbilityModifier(score),
-            save: getSavingThrowTotal(character, ability, proficiencyBonus)
-          }
-        };
-      },
-      {} as PortableEncounterStatBlock["abilities"]
-    ),
-    featureTraits: getStatusLabels(
-      encounterStatusEntries,
-      [STATUS_ENTRY_GROUP.EFFECTS],
-      isEncounterFeatureTraitEntry
-    ),
-    reactions: getReactionLabels(character, encounterStatusEntries),
+    immunities: getStatusLabels(defenses.immunities, isDamageStatusEntry),
+    conditionImmunities: getStatusLabels(defenses.immunities, isConditionStatusEntry),
+    resistances: getStatusLabels(defenses.resistances),
+    vulnerabilities: getStatusLabels(defenses.vulnerabilities),
+    senses: getStatusLabels(defenses.senses),
+    passivePerception: coreStats.passivePerception,
+    languages: getEncounterLanguageLabels(runtime),
+    skills: getEncounterSkills(runtime),
+    abilities: createEncounterAbilities(character, runtime),
+    featureTraits: getStatusLabels(defenses.effects, isEncounterFeatureTraitEntry),
+    reactions: getStatusLabels(defenses.reactions),
     generatedAt: new Date().toISOString(),
     ...(sync?.localRevision ? { sourceLocalRevision: sync.localRevision } : {}),
     ...(sync?.remoteRevision ? { sourceRemoteRevision: sync.remoteRevision } : {})

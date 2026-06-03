@@ -25,12 +25,17 @@ export type CharacterEncounterStatBlockRecord = {
   magicTemporaryHitPoints: number;
   magicTemporaryHitPointsSource?: string;
   immunities: string[];
+  conditionImmunities?: string[];
   resistances: string[];
   vulnerabilities: string[];
   senses: string[];
   passivePerception: number;
   languages: string[];
-  abilities: Record<"STR" | "DEX" | "CON" | "INT" | "WIS" | "CHA", CharacterEncounterStatBlockAbilityRecord>;
+  skills?: Record<string, number>;
+  abilities: Record<
+    "STR" | "DEX" | "CON" | "INT" | "WIS" | "CHA",
+    CharacterEncounterStatBlockAbilityRecord
+  >;
   featureTraits: string[];
   reactions: string[];
   generatedAt: string;
@@ -78,6 +83,8 @@ export type CharacterSheetDocument = HydratedDocument<CharacterSheetRecord>;
 const encounterStatBlockLabelMaxLength = 160;
 const encounterStatBlockListMaxLength = 100;
 const encounterStatBlockStringMaxLength = 240;
+const encounterStatBlockSkillValueMin = -100;
+const encounterStatBlockSkillValueMax = 100;
 
 function validateEncounterStatBlockLabelList(values: unknown[]) {
   return (
@@ -128,6 +135,34 @@ function createEncounterStatBlockLabelListField() {
       message: "Encounter stat block labels are too large."
     }
   };
+}
+
+function validateEncounterStatBlockSkillRecord(value: unknown) {
+  if (value === undefined || value === null) {
+    return true;
+  }
+
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return false;
+  }
+
+  const entries = Object.entries(value as Record<string, unknown>);
+
+  return (
+    entries.length <= encounterStatBlockListMaxLength &&
+    entries.every(([key, skillValue]) => {
+      const trimmedKey = key.trim();
+
+      return (
+        trimmedKey.length > 0 &&
+        trimmedKey.length <= encounterStatBlockLabelMaxLength &&
+        typeof skillValue === "number" &&
+        Number.isInteger(skillValue) &&
+        skillValue >= encounterStatBlockSkillValueMin &&
+        skillValue <= encounterStatBlockSkillValueMax
+      );
+    })
+  );
 }
 
 export const characterEncounterStatBlockSchema = new Schema<CharacterEncounterStatBlockRecord>(
@@ -189,7 +224,7 @@ export const characterEncounterStatBlockSchema = new Schema<CharacterEncounterSt
       type: String,
       required: true,
       trim: true,
-      maxlength: 64
+      maxlength: encounterStatBlockStringMaxLength
     },
     proficiencyBonus: {
       type: Number,
@@ -232,6 +267,7 @@ export const characterEncounterStatBlockSchema = new Schema<CharacterEncounterSt
       maxlength: encounterStatBlockStringMaxLength
     },
     immunities: createEncounterStatBlockLabelListField(),
+    conditionImmunities: createEncounterStatBlockLabelListField(),
     resistances: createEncounterStatBlockLabelListField(),
     vulnerabilities: createEncounterStatBlockLabelListField(),
     senses: createEncounterStatBlockLabelListField(),
@@ -242,6 +278,14 @@ export const characterEncounterStatBlockSchema = new Schema<CharacterEncounterSt
       max: 100
     },
     languages: createEncounterStatBlockLabelListField(),
+    skills: {
+      type: Schema.Types.Mixed,
+      default: undefined,
+      validate: {
+        validator: validateEncounterStatBlockSkillRecord,
+        message: "Encounter stat block skills are invalid."
+      }
+    },
     abilities: {
       STR: {
         type: characterEncounterStatBlockAbilitySchema,

@@ -146,11 +146,13 @@ export type PortableEncounterStatBlock = {
   magicTemporaryHitPoints: number;
   magicTemporaryHitPointsSource?: string;
   immunities: string[];
+  conditionImmunities?: string[];
   resistances: string[];
   vulnerabilities: string[];
   senses: string[];
   passivePerception: number;
   languages: string[];
+  skills?: Record<string, number>;
   abilities: Record<AbilityKey, PortableEncounterStatBlockAbility>;
   featureTraits: string[];
   reactions: string[];

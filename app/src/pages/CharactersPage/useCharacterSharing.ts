@@ -115,7 +115,7 @@ export function useCharacterSharing({
       if (remoteId) {
         const { character: savedCharacter } = await saveCharacterSheet(
           remoteId,
-          createPortableCharacterSheetSyncPayload(portableRecord, {
+          await createPortableCharacterSheetSyncPayload(portableRecord, {
             includeBaseRevision: true,
             ownerId
           }),
@@ -129,7 +129,7 @@ export function useCharacterSharing({
 
       const { characters: importedCharacters } = await importCharacterSheets(
         [
-          createPortableCharacterSheetSyncPayload(portableRecord, {
+          await createPortableCharacterSheetSyncPayload(portableRecord, {
             ownerId
           })
         ],
@@ -272,7 +272,7 @@ export function useCharacterSharing({
         });
         const { characters: importedCharacters } = await importCharacterSheets(
           [
-            createPortableCharacterSheetSyncPayload(syncedDuplicateRecord, {
+            await createPortableCharacterSheetSyncPayload(syncedDuplicateRecord, {
               ownerId
             })
           ],

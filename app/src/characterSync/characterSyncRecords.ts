@@ -1,6 +1,8 @@
 import type { CharacterSheetCloudDocument, CharacterSheetSyncPayload } from "../api/characters";
+import { captureAppError } from "../lib/sentry";
 import {
   applyCloudSyncMetadataToPortableCharacterSheet,
+  createHydratedCharacterInputFromPortableSheet,
   ensurePortableCharacterSheetSyncMetadata,
   normalizeCharacterAvatarMetadata,
   normalizeCharacterSyncMetadata,
@@ -99,10 +101,46 @@ export function applyCloudDocumentToPortableCharacterSheet(record: CharacterShee
   };
 }
 
-export function createPortableCharacterSheetSyncPayload(
+async function withEncounterStatBlockSummary(
+  record: PortableCharacterSheet
+): Promise<PortableCharacterSheet> {
+  try {
+    const [{ normalizeCharacter }, { createEncounterStatBlockSummary }] = await Promise.all([
+      import("../pages/CharactersPage/storage"),
+      import("../pages/CharactersPage/encounterStatBlockSummary")
+    ]);
+    const character = normalizeCharacter(createHydratedCharacterInputFromPortableSheet(record));
+
+    if (!character) {
+      throw new Error("Unable to generate encounter stat block summary for sync.");
+    }
+
+    return {
+      ...record,
+      summary: {
+        ...record.summary,
+        encounterStatBlock: createEncounterStatBlockSummary(character)
+      }
+    };
+  } catch (error) {
+    captureAppError(error, {
+      area: "character-sync",
+      action: "encounter-stat-block-summary",
+      level: "warning",
+      extra: {
+        localId: record.identity.localId,
+        clientId: normalizeCharacterSyncMetadata(record.metadata?.sync)?.clientId
+      }
+    });
+
+    return record;
+  }
+}
+
+export async function createPortableCharacterSheetSyncPayload(
   record: PortableCharacterSheet,
   options: { force?: boolean; ownerId?: string; includeBaseRevision?: boolean } = {}
-): CharacterSheetSyncPayload {
+): Promise<CharacterSheetSyncPayload> {
   const syncedRecord = ensurePortableCharacterSheetSyncMetadata(record, {
     ownerId: options.ownerId
   });
@@ -119,6 +157,8 @@ export function createPortableCharacterSheetSyncPayload(
     ...(options.includeBaseRevision && sync.remoteRevision
       ? { baseRevision: sync.remoteRevision }
       : {}),
-    sheet: stripPortableCharacterSheetLocalSyncMetadata(syncedRecord)
+    sheet: stripPortableCharacterSheetLocalSyncMetadata(
+      await withEncounterStatBlockSummary(syncedRecord)
+    )
   };
 }

@@ -228,6 +228,8 @@ const encounterStatBlockAbilityKeys = ["STR", "DEX", "CON", "INT", "WIS", "CHA"]
 const encounterStatBlockLabelMaxLength = 160;
 const encounterStatBlockListMaxLength = 100;
 const encounterStatBlockStringMaxLength = 240;
+const encounterStatBlockSkillValueMin = -100;
+const encounterStatBlockSkillValueMax = 100;
 
 function createEncounterStatBlockError(message: string) {
   return new AppError(message, 400, "INVALID_ENCOUNTER_STAT_BLOCK");
@@ -318,6 +320,40 @@ function readEncounterOptionalLabelList(value: unknown, field: string) {
   return value === undefined || value === null ? [] : readEncounterLabelList(value, field);
 }
 
+function readEncounterOptionalSkillRecord(value: unknown, field: string): Record<string, number> {
+  if (value === undefined || value === null) {
+    return {};
+  }
+
+  if (!isObjectRecord(value)) {
+    throw createEncounterStatBlockError(`Encounter stat block ${field} is invalid.`);
+  }
+
+  const entries = Object.entries(value);
+
+  if (entries.length > encounterStatBlockListMaxLength) {
+    throw createEncounterStatBlockError(`Encounter stat block ${field} is invalid.`);
+  }
+
+  return entries.reduce<Record<string, number>>((skills, [key, skillValue]) => {
+    const label = key.trim();
+    const value = readIntegerInRange(
+      skillValue,
+      encounterStatBlockSkillValueMin,
+      encounterStatBlockSkillValueMax
+    );
+
+    if (!label || label.length > encounterStatBlockLabelMaxLength || value === null) {
+      throw createEncounterStatBlockError(`Encounter stat block ${field} is invalid.`);
+    }
+
+    return {
+      ...skills,
+      [label]: value
+    };
+  }, {});
+}
+
 function readEncounterAbility(value: unknown, field: string) {
   if (!isObjectRecord(value)) {
     throw createEncounterStatBlockError(`Encounter stat block ${field} is invalid.`);
@@ -386,7 +422,7 @@ function readOptionalEncounterStatBlock(
     species: readEncounterRequiredString(value.species, "species"),
     armorClass: readEncounterInteger(value.armorClass, "armorClass", 0, 100),
     initiative: readEncounterRequiredString(value.initiative, "initiative", 32),
-    speed: readEncounterRequiredString(value.speed, "speed", 64),
+    speed: readEncounterRequiredString(value.speed, "speed"),
     proficiencyBonus: readEncounterInteger(value.proficiencyBonus, "proficiencyBonus", 0, 20),
     hitPoints: readEncounterInteger(value.hitPoints, "hitPoints", 0, 10000),
     currentHitPoints: readEncounterInteger(value.currentHitPoints, "currentHitPoints", 0, 10000),
@@ -405,11 +441,16 @@ function readOptionalEncounterStatBlock(
     ),
     ...(magicTemporaryHitPointsSource ? { magicTemporaryHitPointsSource } : {}),
     immunities: readEncounterLabelList(value.immunities, "immunities"),
+    conditionImmunities: readEncounterOptionalLabelList(
+      value.conditionImmunities,
+      "conditionImmunities"
+    ),
     resistances: readEncounterLabelList(value.resistances, "resistances"),
     vulnerabilities: readEncounterLabelList(value.vulnerabilities, "vulnerabilities"),
     senses: readEncounterLabelList(value.senses, "senses"),
     passivePerception: readEncounterInteger(value.passivePerception, "passivePerception", 0, 100),
     languages: readEncounterLabelList(value.languages, "languages"),
+    skills: readEncounterOptionalSkillRecord(value.skills, "skills"),
     abilities: readEncounterAbilities(value.abilities),
     featureTraits: readEncounterOptionalLabelList(value.featureTraits, "featureTraits"),
     reactions: readEncounterLabelList(value.reactions, "reactions"),

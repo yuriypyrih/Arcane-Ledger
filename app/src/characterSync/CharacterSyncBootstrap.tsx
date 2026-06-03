@@ -419,7 +419,7 @@ function CharacterSyncBootstrap() {
           if (sync.remoteId) {
             const { character } = await saveCharacterSheet(
               sync.remoteId,
-              createPortableCharacterSheetSyncPayload(record, {
+              await createPortableCharacterSheetSyncPayload(record, {
                 includeBaseRevision: true,
                 ownerId
               }),
@@ -429,7 +429,7 @@ function CharacterSyncBootstrap() {
           } else {
             const { characters } = await importCharacterSheets(
               [
-                createPortableCharacterSheetSyncPayload(record, {
+                await createPortableCharacterSheetSyncPayload(record, {
                   ownerId
                 })
               ],
@@ -615,10 +615,12 @@ function CharacterSyncBootstrap() {
           ownedSelectedRecords.length > 0
             ? (
                 await importCharacterSheets(
-                  ownedSelectedRecords.map((record) =>
-                    createPortableCharacterSheetSyncPayload(record, {
-                      ownerId: claimPrompt.ownerId
-                    })
+                  await Promise.all(
+                    ownedSelectedRecords.map((record) =>
+                      createPortableCharacterSheetSyncPayload(record, {
+                        ownerId: claimPrompt.ownerId
+                      })
+                    )
                   ),
                   { suppressFailureToast: true }
                 )
@@ -725,7 +727,7 @@ function CharacterSyncBootstrap() {
     try {
       const { character } = await saveCharacterSheet(
         sync.remoteId,
-        createPortableCharacterSheetSyncPayload(conflictPrompt.record, {
+        await createPortableCharacterSheetSyncPayload(conflictPrompt.record, {
           force: true,
           ownerId: user.id
         }),

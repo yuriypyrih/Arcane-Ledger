@@ -27,7 +27,10 @@ import {
   getSpellcastingRuntimeForCharacter,
   type CharacterSpellcastingRuntime
 } from "./spellcastingRuntime";
-import { getStatusRuntimeForCharacter } from "./statusRuntime";
+import {
+  getStatusRuntimeForCharacter,
+  type CharacterStatusRuntime
+} from "./statusRuntime";
 import { measureCharacterRuntime } from "./performance";
 
 export type CharacterCombatSummaryResources = {
@@ -46,21 +49,113 @@ export type CharacterCombatSummaryRuntime = {
 
 const combatSummaryRuntimeByCharacter = new WeakMap<Character, CharacterCombatSummaryRuntime>();
 
-function createCombatSummaryRuntime(character: Character): CharacterCombatSummaryRuntime {
-  const statusRuntime = getStatusRuntimeForCharacter(character);
-  const spellcastingRuntime = getSpellcastingRuntimeForCharacter(character);
+class CharacterCombatSummaryRuntimeSnapshot implements CharacterCombatSummaryRuntime {
+  private coreStatsSnapshot: CharacterCombatSummaryCoreStats | null = null;
+  private abilitiesSnapshot: CharacterCombatSummaryAbilities | null = null;
+  private skillsSnapshot: CharacterCombatSummarySkills | null = null;
+  private hitPointsSnapshot: CharacterCombatSummaryHitPoints | null = null;
+  private actionsSnapshot: CharacterCombatSummaryActions | null = null;
+  private defensesSnapshot: CharacterCombatSummaryDefenses | null = null;
+  private resourcesSnapshot: CharacterCombatSummaryResources | null = null;
+  private statusRuntimeSnapshot: CharacterStatusRuntime | null = null;
+  private spellcastingRuntimeSnapshot: CharacterSpellcastingRuntime | null = null;
 
-  return {
-    coreStats: createCombatSummaryCoreStats(character),
-    abilities: createCombatSummaryAbilities(character),
-    skills: createCombatSummarySkills(character),
-    hitPoints: createCombatSummaryHitPoints(character),
-    actions: createCombatSummaryActions(character),
-    defenses: createCombatSummaryDefenses(statusRuntime),
-    resources: {
-      spellcasting: spellcastingRuntime
+  constructor(private readonly character: Character) {}
+
+  private get statusRuntime(): CharacterStatusRuntime {
+    if (!this.statusRuntimeSnapshot) {
+      this.statusRuntimeSnapshot = getStatusRuntimeForCharacter(this.character);
     }
-  };
+
+    return this.statusRuntimeSnapshot;
+  }
+
+  private get spellcastingRuntime(): CharacterSpellcastingRuntime {
+    if (!this.spellcastingRuntimeSnapshot) {
+      this.spellcastingRuntimeSnapshot = getSpellcastingRuntimeForCharacter(this.character);
+    }
+
+    return this.spellcastingRuntimeSnapshot;
+  }
+
+  get coreStats(): CharacterCombatSummaryCoreStats {
+    if (!this.coreStatsSnapshot) {
+      this.coreStatsSnapshot = measureCharacterRuntime(
+        "character-sheet:combat-summary-core-stats",
+        () => createCombatSummaryCoreStats(this.character)
+      );
+    }
+
+    return this.coreStatsSnapshot;
+  }
+
+  get abilities(): CharacterCombatSummaryAbilities {
+    if (!this.abilitiesSnapshot) {
+      this.abilitiesSnapshot = measureCharacterRuntime(
+        "character-sheet:combat-summary-abilities",
+        () => createCombatSummaryAbilities(this.character)
+      );
+    }
+
+    return this.abilitiesSnapshot;
+  }
+
+  get skills(): CharacterCombatSummarySkills {
+    if (!this.skillsSnapshot) {
+      this.skillsSnapshot = measureCharacterRuntime(
+        "character-sheet:combat-summary-skills",
+        () => createCombatSummarySkills(this.character)
+      );
+    }
+
+    return this.skillsSnapshot;
+  }
+
+  get hitPoints(): CharacterCombatSummaryHitPoints {
+    if (!this.hitPointsSnapshot) {
+      this.hitPointsSnapshot = measureCharacterRuntime(
+        "character-sheet:combat-summary-hit-points",
+        () => createCombatSummaryHitPoints(this.character)
+      );
+    }
+
+    return this.hitPointsSnapshot;
+  }
+
+  get actions(): CharacterCombatSummaryActions {
+    if (!this.actionsSnapshot) {
+      this.actionsSnapshot = measureCharacterRuntime(
+        "character-sheet:combat-summary-actions",
+        () => createCombatSummaryActions(this.character)
+      );
+    }
+
+    return this.actionsSnapshot;
+  }
+
+  get defenses(): CharacterCombatSummaryDefenses {
+    if (!this.defensesSnapshot) {
+      this.defensesSnapshot = measureCharacterRuntime(
+        "character-sheet:combat-summary-defenses",
+        () => createCombatSummaryDefenses(this.statusRuntime)
+      );
+    }
+
+    return this.defensesSnapshot;
+  }
+
+  get resources(): CharacterCombatSummaryResources {
+    if (!this.resourcesSnapshot) {
+      this.resourcesSnapshot = measureCharacterRuntime(
+        "character-sheet:combat-summary-resources",
+        () => ({
+          spellcasting: this.spellcastingRuntime
+        })
+      );
+    }
+
+    return this.resourcesSnapshot;
+  }
 }
 
 export function getCombatSummaryRuntimeForCharacter(
@@ -72,9 +167,7 @@ export function getCombatSummaryRuntimeForCharacter(
     return cachedRuntime;
   }
 
-  const runtime = measureCharacterRuntime("character-sheet:combat-summary-runtime", () =>
-    createCombatSummaryRuntime(character)
-  );
+  const runtime = new CharacterCombatSummaryRuntimeSnapshot(character);
 
   combatSummaryRuntimeByCharacter.set(character, runtime);
   return runtime;

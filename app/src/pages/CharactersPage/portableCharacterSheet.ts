@@ -7,7 +7,6 @@ import type {
 } from "../../types";
 import { PORTABLE_CHARACTER_SHEET_SCHEMA_VERSION } from "../../types";
 import { getSerializedJsonSizeBytes, normalizeSheetSizeBytes } from "./characterSheetSize";
-import { createEncounterStatBlockSummary } from "./encounterStatBlockSummary";
 
 function isObjectRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -552,8 +551,7 @@ export function createPortableCharacterSheet(character: HydratedCharacter): Port
       subclassId: character.subclassId,
       level: character.level,
       background: character.background,
-      sheetSizeBytes: normalizeSheetSizeBytes(character.storageMetadata?.sheetSizeBytes),
-      encounterStatBlock: createEncounterStatBlockSummary(character)
+      sheetSizeBytes: normalizeSheetSizeBytes(character.storageMetadata?.sheetSizeBytes)
     },
     metadata: {
       sheetSizeBytes: normalizeSheetSizeBytes(character.storageMetadata?.sheetSizeBytes) ?? 0,

@@ -146,6 +146,7 @@ function MemberStatBlock({
         className={styles.liveTrackerMonsterEntry}
         detailRows={rendererModel.detailRows}
         monster={rendererModel.monster}
+        vitalRows={rendererModel.vitalRows}
       />
     </section>
   );
