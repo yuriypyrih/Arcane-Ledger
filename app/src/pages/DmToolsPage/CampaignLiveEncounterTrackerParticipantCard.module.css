@@ -1,0 +1,258 @@
+.card {
+  --live-tracker-card-action-size: 2.125rem;
+  --live-tracker-card-drag-width: 2.125rem;
+  --live-tracker-card-portrait-size: 2.75rem;
+  display: grid;
+  align-items: start;
+  grid-template-columns:
+    var(--live-tracker-card-portrait-size)
+    minmax(0, 1fr)
+    var(--live-tracker-card-action-size);
+  gap: calc(var(--space-card-padding-tight) * 0.56);
+  min-height: 76px;
+  border: 1px solid rgba(75, 47, 29, 0.14);
+  border-radius: var(--radius-card);
+  background: rgba(251, 242, 230, 0.86);
+  color: var(--color-ink);
+  padding: var(--space-card-padding-tight);
+  box-shadow: 0 8px 18px rgba(54, 34, 21, 0.04);
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.cardInInitiative {
+  align-items: stretch;
+  grid-template-columns:
+    var(--live-tracker-card-drag-width)
+    var(--live-tracker-card-portrait-size)
+    minmax(0, 1fr)
+    var(--live-tracker-card-action-size);
+}
+
+.cardActive {
+  border-color: rgba(47, 120, 255, 0.76);
+  box-shadow:
+    0 0 0 1px rgba(47, 120, 255, 0.24),
+    0 10px 22px rgba(47, 120, 255, 0.1);
+}
+
+.cardDragging {
+  opacity: 0.72;
+}
+
+.dragHandle {
+  display: inline-grid;
+  place-items: center;
+  align-self: stretch;
+  width: var(--live-tracker-card-drag-width);
+  min-height: 100%;
+  border: none;
+  border-radius: var(--radius-control);
+  background: rgba(75, 47, 29, 0.09);
+  color: var(--color-ink-soft);
+  cursor: grab;
+  padding: 0;
+  touch-action: none;
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+}
+
+.dragHandle:hover,
+.dragHandle:focus-visible {
+  background: rgba(75, 47, 29, 0.15);
+  color: var(--color-ink);
+}
+
+.dragHandle:focus-visible,
+.moveButton:focus-visible,
+.contentButton:focus-visible {
+  outline: 2px solid rgba(47, 120, 255, 0.34);
+  outline-offset: 2px;
+}
+
+.turnRadio {
+  width: 18px;
+  height: 18px;
+  accent-color: #2f78ff;
+  margin: 0;
+}
+
+.portraitControl {
+  display: grid;
+  align-self: start;
+  justify-items: center;
+  gap: 0.36rem;
+  width: var(--live-tracker-card-portrait-size);
+  min-width: 0;
+}
+
+label.portraitControl {
+  cursor: pointer;
+}
+
+.portrait {
+  display: grid;
+  place-items: center;
+  width: var(--live-tracker-card-portrait-size);
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 1px solid rgba(75, 47, 29, 0.34);
+  border-radius: var(--radius-control);
+  background: linear-gradient(150deg, #6f4629 0%, #3c2518 48%, #160f0d 100%);
+  box-shadow:
+    0 0 0 1px rgba(255, 246, 226, 0.38),
+    inset 0 0 0 1px rgba(255, 246, 226, 0.12);
+}
+
+.portraitImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.portraitDefaultIcon {
+  display: block;
+  width: 72%;
+  aspect-ratio: 1;
+  background: rgba(255, 246, 226, 0.92);
+  mask: var(--character-portrait-default-image) center / contain no-repeat;
+  -webkit-mask: var(--character-portrait-default-image) center / contain no-repeat;
+}
+
+.creaturePortraitIcon {
+  display: block;
+  width: 70%;
+  aspect-ratio: 1;
+  background: rgba(255, 246, 226, 0.92);
+  mask: var(--live-tracker-creature-icon-image) center / contain no-repeat;
+  -webkit-mask: var(--live-tracker-creature-icon-image) center / contain no-repeat;
+}
+
+.contentButton {
+  display: grid;
+  align-content: center;
+  gap: 0.4rem;
+  min-width: 0;
+  min-height: 100%;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-align: left;
+}
+
+.moveButton {
+  display: inline-grid;
+  place-items: center;
+  align-self: start;
+  justify-self: end;
+  width: var(--live-tracker-card-action-size);
+  aspect-ratio: 1;
+  border: 1px solid rgba(75, 47, 29, 0.12);
+  border-radius: var(--radius-control);
+  background: rgba(255, 255, 255, 0.48);
+  color: var(--color-ink-soft);
+  cursor: pointer;
+  padding: 0;
+}
+
+.moveButton:hover,
+.moveButton:focus-visible {
+  border-color: rgba(162, 77, 45, 0.28);
+  background: rgba(162, 77, 45, 0.1);
+  color: var(--color-accent);
+}
+
+.titleRow {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.34rem;
+  min-width: 0;
+}
+
+.title,
+.type {
+  overflow-wrap: anywhere;
+}
+
+.title {
+  color: var(--color-ink);
+  font-size: 0.96rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.type,
+.status {
+  color: var(--color-ink-soft);
+  font-size: 0.84rem;
+}
+
+.vitalsRow {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-ink-soft);
+  flex-wrap: wrap;
+  font-size: 0.84rem;
+  gap: 0.28rem;
+  min-width: 0;
+}
+
+.armorClassText,
+.hitPointText,
+.tempHitPointText,
+.magicTempHitPointText,
+.status {
+  white-space: nowrap;
+}
+
+.tempHitPointText {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.tempHitPointText svg {
+  flex: 0 0 auto;
+  stroke: currentColor;
+}
+
+.vitalsDivider {
+  color: inherit;
+  line-height: 1;
+}
+
+.hitPointBarRow {
+  display: flex;
+  min-width: 0;
+  width: 100%;
+}
+
+.hitPointBar {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 599px) {
+  .card {
+    --live-tracker-card-action-size: 2rem;
+    --live-tracker-card-drag-width: 2rem;
+    --live-tracker-card-portrait-size: 2.5rem;
+    gap: 0.48rem;
+  }
+
+  .cardInInitiative {
+    grid-template-columns:
+      var(--live-tracker-card-drag-width)
+      var(--live-tracker-card-portrait-size)
+      minmax(0, 1fr)
+      var(--live-tracker-card-action-size);
+  }
+}

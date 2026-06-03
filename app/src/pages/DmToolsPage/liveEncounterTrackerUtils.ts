@@ -30,6 +30,7 @@ export function toLiveEncounterTrackerUpdateInput(
 ): CampaignLiveEncounterTrackerUpdateInput {
   return {
     activeParticipantId: tracker.activeParticipantId,
+    roundNumber: tracker.roundNumber,
     partyMembers: tracker.partyMembers.map(toLiveEncounterParticipantRef),
     creatures: tracker.creatures.map(toLiveEncounterParticipantRef),
     initiativeOrder: tracker.initiativeOrder.map(toLiveEncounterParticipantRef),

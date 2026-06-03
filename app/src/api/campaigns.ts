@@ -104,6 +104,7 @@ export type CampaignLiveEncounterTrackerRecord = {
   preparedEncounterName: string;
   partyGroupId: string;
   activeParticipantId: string | null;
+  roundNumber: number;
   status: CampaignLiveEncounterTrackerStatusRecord;
   partyMembers: CampaignLiveEncounterTrackerPartyMemberRecord[];
   creatures: CampaignLiveEncounterTrackerCreatureRecord[];
@@ -178,6 +179,7 @@ export type CampaignSessionNoteInput = {
 
 export type CampaignLiveEncounterTrackerUpdateInput = {
   activeParticipantId: string | null;
+  roundNumber: number;
   partyMembers: CampaignLiveEncounterTrackerParticipantRefRecord[];
   creatures: CampaignLiveEncounterTrackerParticipantRefRecord[];
   initiativeOrder: CampaignLiveEncounterTrackerParticipantRefRecord[];

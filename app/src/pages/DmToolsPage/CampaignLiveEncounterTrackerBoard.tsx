@@ -155,7 +155,6 @@ function TrackerList({
           {icon}
           <span>{title}</span>
         </h3>
-        <span>{participants.length}</span>
       </div>
 
       <div className={styles.liveTrackerParticipantList}>

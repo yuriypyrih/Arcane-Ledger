@@ -54,6 +54,7 @@ export type CampaignLiveEncounterTrackerRecord = {
   preparedEncounterId: string;
   partyGroupId: Types.ObjectId;
   activeParticipantId?: string | null;
+  roundNumber?: number;
   partyMembers: CampaignLiveEncounterParticipantRefRecord[];
   creatures: CampaignLiveEncounterParticipantRefRecord[];
   initiativeOrder: CampaignLiveEncounterParticipantRefRecord[];
@@ -278,6 +279,11 @@ const campaignLiveEncounterTrackerSchema = new Schema<CampaignLiveEncounterTrack
       trim: true,
       maxlength: 128,
       default: null
+    },
+    roundNumber: {
+      type: Number,
+      default: 1,
+      min: 1
     },
     partyMembers: {
       type: [campaignLiveEncounterParticipantRefSchema],

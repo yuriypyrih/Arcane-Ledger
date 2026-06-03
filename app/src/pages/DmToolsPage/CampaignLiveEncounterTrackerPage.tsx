@@ -7,7 +7,6 @@ import {
   type CampaignLiveEncounterTrackerParticipantRecord,
   type CampaignLiveEncounterTrackerRecord
 } from "../../api/campaigns";
-import ActionButton from "../../components/ActionButton";
 import {
   clearLiveEncounterTrackerSaveStatus,
   patchSelectedCampaign,
@@ -20,6 +19,8 @@ import {
 } from "../../store";
 import CampaignLiveEncounterTrackerBoard from "./CampaignLiveEncounterTrackerBoard";
 import CampaignLiveEncounterTrackerInspectionDrawer from "./CampaignLiveEncounterTrackerInspectionDrawer";
+import CampaignLiveEncounterRoundTracker from "./CampaignLiveEncounterRoundTracker";
+import liveEncounterStyles from "./CampaignLiveEncounterTrackerPage.module.css";
 import DmToolsBackButton from "./DmToolsBackButton";
 import DmToolsEmptyState from "./DmToolsEmptyState";
 import DmToolsListCard from "./DmToolsListCard";
@@ -163,7 +164,7 @@ function CampaignLiveEncounterTrackerPage() {
   }
 
   return (
-    <section className={styles.page}>
+    <section className={`${styles.page} ${liveEncounterStyles.page}`}>
       <DmToolsBackButton onClick={() => navigate(`/gm-tools/campaign-manager/${campaignId}`)}>
         Back to Campaign
       </DmToolsBackButton>
@@ -179,21 +180,6 @@ function CampaignLiveEncounterTrackerPage() {
               {tracker?.preparedEncounterName ?? "Encounter Tracker"}
             </h2>
           </div>
-          {tracker ? (
-            <div className={styles.headerActions}>
-              <ActionButton
-                icon={<X size={16} aria-hidden="true" />}
-                variant="OUTLINE"
-                disabled={isRemovingTracker}
-                fullWidth={false}
-                onClick={() => {
-                  void handleRemoveTracker();
-                }}
-              >
-                {isRemovingTracker ? "Removing..." : "Remove Encounter"}
-              </ActionButton>
-            </div>
-          ) : null}
         </div>
 
         {actionError ? <p className={styles.modalError}>{actionError}</p> : null}
@@ -239,6 +225,10 @@ function CampaignLiveEncounterTrackerPage() {
               tracker={tracker}
               onChange={handleTrackerChange}
               onInspectParticipant={setInspectedParticipant}
+            />
+            <CampaignLiveEncounterRoundTracker
+              tracker={tracker}
+              onChange={handleTrackerChange}
             />
             {inspectedParticipant ? (
               <CampaignLiveEncounterTrackerInspectionDrawer

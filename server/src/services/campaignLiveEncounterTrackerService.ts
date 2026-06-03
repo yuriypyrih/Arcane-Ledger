@@ -86,6 +86,7 @@ export type CampaignLiveEncounterTrackerDetailRecord = {
   preparedEncounterName: string;
   partyGroupId: string;
   activeParticipantId: string | null;
+  roundNumber: number;
   status: LiveEncounterTrackerStatusRecord;
   partyMembers: CampaignLiveEncounterTrackerPartyMemberRecord[];
   creatures: CampaignLiveEncounterTrackerCreatureRecord[];
@@ -195,6 +196,7 @@ function createInvalidLiveEncounterTrackerRecord(
     preparedEncounterName: preparedEncounter?.name ?? "Missing encounter",
     partyGroupId: toStringId(tracker.partyGroupId),
     activeParticipantId: tracker.activeParticipantId ?? null,
+    roundNumber: normalizeRoundNumber(tracker.roundNumber),
     status,
     partyMembers: [],
     creatures: [],
@@ -486,6 +488,7 @@ function toCampaignLiveEncounterTrackerDetailRecordFromContext(options: {
     preparedEncounterName: options.sourceContext.preparedEncounter.name,
     partyGroupId: toStringId(options.tracker.partyGroupId),
     activeParticipantId: reconciledLists.activeParticipantId,
+    roundNumber: normalizeRoundNumber(options.tracker.roundNumber),
     status: {
       state: "valid"
     },
@@ -585,6 +588,14 @@ function normalizeRevision(value: unknown) {
   return value;
 }
 
+function normalizeRoundNumber(value: unknown) {
+  if (typeof value !== "number" || !Number.isInteger(value) || value < 1) {
+    return 1;
+  }
+
+  return value;
+}
+
 function normalizeParticipantRef(value: unknown): CampaignLiveEncounterParticipantRefRecord {
   if (!isObjectRecord(value)) {
     throw new AppError("Encounter participant is invalid.", 400, "INVALID_LIVE_ENCOUNTER_INPUT");
@@ -638,6 +649,7 @@ function normalizeTrackerUpdatePayload(value: unknown) {
     creatures: normalizeParticipantRefList(value.creatures, "creatures"),
     initiativeOrder: normalizeParticipantRefList(value.initiativeOrder, "initiativeOrder"),
     partyMembers: normalizeParticipantRefList(value.partyMembers, "partyMembers"),
+    roundNumber: normalizeRoundNumber(value.roundNumber),
     revision: normalizeRevision(value.revision)
   };
 }
@@ -677,6 +689,7 @@ export async function startCampaignLiveEncounterTracker(options: {
     preparedEncounterId: preparedEncounter.id,
     partyGroupId: campaign.selectedPartyId,
     activeParticipantId: null,
+    roundNumber: 1,
     partyMembers: [],
     creatures: [],
     initiativeOrder: [],
@@ -742,6 +755,7 @@ export async function updateCampaignLiveEncounterTracker(options: {
   campaign.liveEncounterTracker = {
     ...tracker,
     ...reconciledLists,
+    roundNumber: payload.roundNumber,
     revision: tracker.revision + 1,
     updatedAt: new Date()
   };
