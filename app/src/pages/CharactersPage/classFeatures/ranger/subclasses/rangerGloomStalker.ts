@@ -14,7 +14,7 @@ import {
 } from "../../../../../types";
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import type { WeaponAction } from "../../../gameplay";
-import { getSavingThrowLevelFromEntries } from "../../../proficiencyResolvers";
+import { getRuntimeSavingThrowLevel } from "../../../proficiency/runtime";
 import {
   getPreparedSpellIdsByLevel,
   resolveSpellIdsByName,
@@ -276,7 +276,10 @@ function getIronMindAvailableSavingThrows(
 
   const baseSavingThrowEntries = getSavingThrowEntriesExcludingIronMind(character);
   const hasExistingWisdomSavingThrow =
-    getSavingThrowLevelFromEntries(baseSavingThrowEntries, SAVING_THROW_PROFICIENCY.WIS) !==
+    getRuntimeSavingThrowLevel(
+      { savingThrowProficiencies: baseSavingThrowEntries },
+      SAVING_THROW_PROFICIENCY.WIS
+    ) !==
     PROF_LEVEL.NONE;
 
   if (!hasExistingWisdomSavingThrow) {
@@ -285,7 +288,10 @@ function getIronMindAvailableSavingThrows(
 
   return [SAVING_THROW_PROFICIENCY.INT, SAVING_THROW_PROFICIENCY.CHA].filter(
     (proficiency) =>
-      getSavingThrowLevelFromEntries(baseSavingThrowEntries, proficiency) === PROF_LEVEL.NONE
+      getRuntimeSavingThrowLevel(
+        { savingThrowProficiencies: baseSavingThrowEntries },
+        proficiency
+      ) === PROF_LEVEL.NONE
   );
 }
 

@@ -4,7 +4,7 @@ import {
   setPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelectionForCharacter
 } from "../../../../../pages/CharactersPage/classFeatures";
 import type { SkillName } from "../../../../../types";
-import { getSelectableUnproficientSkillOptions } from "../helpers";
+import { getSourceChoiceSkillOptions } from "../helpers";
 import { recomputeCharacterFeatureProficiencies, type ClassFeatureChoiceModelArgs } from "./shared";
 
 export function createPaladinFeatureChoiceModel({
@@ -16,7 +16,7 @@ export function createPaladinFeatureChoiceModel({
   }
 
   function getAvailablePaladinOathOfTheNobleGeniesGeniesSplendorSkills(): SkillName[] {
-    return getSelectableUnproficientSkillOptions(
+    return getSourceChoiceSkillOptions(
       character,
       paladinOathOfTheNobleGeniesGeniesSplendorSkillOptions,
       getPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection()

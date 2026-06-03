@@ -35,6 +35,14 @@ import {
   type SpellcastingRuntimeOptions
 } from "./spellcastingRuntime";
 import {
+  getStatusRuntimeForCharacter,
+  type CharacterStatusRuntime
+} from "./statusRuntime";
+import {
+  getCombatSummaryRuntimeForCharacter,
+  type CharacterCombatSummaryRuntime
+} from "./combatSummaryRuntime";
+import {
   createCharacterSpellEntryTransformer,
   type CharacterSpellEntryTransformer
 } from "./spellEntryTransformer";
@@ -59,6 +67,8 @@ export type CharacterRuntime = {
   readonly spellEntryTransformer: CharacterSpellEntryTransformer;
   readonly spellcasting: CharacterSpellcastingRuntime;
   readonly spellcastingWithoutSubclassSlots: CharacterSpellcastingRuntime;
+  readonly status: CharacterStatusRuntime;
+  readonly combatSummary: CharacterCombatSummaryRuntime;
   readonly equipment: EquipmentRuntime;
   readonly weaponActions: WeaponAction[];
   readonly combatActions: GameplayActionDefinition[];
@@ -84,6 +94,8 @@ class CharacterRuntimeSnapshot implements CharacterRuntime {
   private spellEntryTransformerSnapshot: CharacterSpellEntryTransformer | null = null;
   private spellcastingSnapshot: CharacterSpellcastingRuntime | null = null;
   private spellcastingWithoutSubclassSlotsSnapshot: CharacterSpellcastingRuntime | null = null;
+  private statusSnapshot: CharacterStatusRuntime | null = null;
+  private combatSummarySnapshot: CharacterCombatSummaryRuntime | null = null;
   private equipmentSnapshot: EquipmentRuntime | null = null;
   private weaponActionsSnapshot: WeaponAction[] | null = null;
   private combatActionsSnapshot: GameplayActionDefinition[] | null = null;
@@ -175,6 +187,22 @@ class CharacterRuntimeSnapshot implements CharacterRuntime {
     }
 
     return this.spellcastingWithoutSubclassSlotsSnapshot;
+  }
+
+  get status(): CharacterStatusRuntime {
+    if (!this.statusSnapshot) {
+      this.statusSnapshot = getStatusRuntimeForCharacter(this.character);
+    }
+
+    return this.statusSnapshot;
+  }
+
+  get combatSummary(): CharacterCombatSummaryRuntime {
+    if (!this.combatSummarySnapshot) {
+      this.combatSummarySnapshot = getCombatSummaryRuntimeForCharacter(this.character);
+    }
+
+    return this.combatSummarySnapshot;
   }
 
   get equipment(): EquipmentRuntime {

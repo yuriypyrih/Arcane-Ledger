@@ -1,16 +1,12 @@
 import clsx from "clsx";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
-import {
-  getSkillLevelFromEntries,
-  getSkillProficiencyForName
-} from "../../../../pages/CharactersPage/proficiency";
+import { getSourceChoiceSkillOptions } from "../../../../pages/CharactersPage/proficiency";
 import {
   getWizardBladesingerTrainingInWarAndSongSkillSelection,
   setWizardBladesingerTrainingInWarAndSongSkillSelection,
   wizardBladesingerTrainingInWarAndSongSkillOptions
 } from "../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardBladesinger";
 import type { Character, WizardBladesingerTrainingInWarAndSongSkill } from "../../../../types";
-import { PROF_LEVEL } from "../../../../types";
 import SelectInput from "../../FormInputs/SelectInput";
 import styles from "./ClassFeaturesAndFeats.module.css";
 
@@ -28,17 +24,18 @@ function getTrainingInWarAndSongOptions(character: Character): Array<{
   label: string;
 }> {
   const currentSelection = getWizardBladesingerTrainingInWarAndSongSkillSelection(character);
+  const availableSkillSet = new Set(
+    getSourceChoiceSkillOptions(
+      character,
+      wizardBladesingerTrainingInWarAndSongSkillOptions,
+      currentSelection
+    )
+  );
 
   return wizardBladesingerTrainingInWarAndSongSkillOptions.map((skillName) => {
-    const proficiency = getSkillProficiencyForName(skillName);
-    const isAlreadyProficient =
-      proficiency !== null &&
-      currentSelection !== skillName &&
-      getSkillLevelFromEntries(character.skillProficiencies ?? [], proficiency) !== PROF_LEVEL.NONE;
-
     return {
       skill: skillName,
-      disabled: isAlreadyProficient,
+      disabled: currentSelection !== skillName && !availableSkillSet.has(skillName),
       label: skillName
     };
   });

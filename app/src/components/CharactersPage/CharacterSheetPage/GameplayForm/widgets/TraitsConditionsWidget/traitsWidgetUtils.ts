@@ -1,4 +1,3 @@
-import { ACTION_TYPE, type ReactionEntry, type SpellEntry } from "../../../../../../codex/entries";
 import {
   formatConditionOptionLabel,
   getConditionOptions,
@@ -8,7 +7,7 @@ import {
   getSenseOptions
 } from "../../../../../../pages/CharactersPage/traits";
 import { isCustomFeatureTraitStatusEntry } from "../../../../../../pages/CharactersPage/customTraitEffects";
-import type { CharacterStatusDuration, CharacterStatusEntry } from "../../../../../../types";
+import type { CharacterStatusEntry } from "../../../../../../types";
 import {
   CONDITION_NAME,
   STATUS_DURATION_KIND,
@@ -44,44 +43,6 @@ export function createDefaultStatusDraftValues(): Record<TraitEditorTab, string>
     vulnerabilities: damageTypeOptions[0] ?? "FIRE",
     immunities: immunityOptions[0] ?? "FIRE"
   };
-}
-
-export function createDerivedReactionStatusDuration(): CharacterStatusDuration {
-  return { kind: STATUS_DURATION_KIND.INFINITE };
-}
-
-export function getDerivedReactionStatusEntries(
-  spells: SpellEntry[],
-  reactions: ReactionEntry[]
-): CharacterStatusEntry[] {
-  return [...new Map(spells.map((spell) => [spell.id, spell])).values()]
-    .filter((spell) => spell.castingTime.includes(ACTION_TYPE.REACTION))
-    .sort((left, right) => left.name.localeCompare(right.name))
-    .map((spell) => ({
-      id: `reaction-spell-${spell.id}`,
-      group: STATUS_ENTRY_GROUP.REACTIONS,
-      value: spell.name,
-      source: "Spellcasting",
-      sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
-      duration: createDerivedReactionStatusDuration(),
-      sourceId: `reaction-spell-${spell.id}`,
-      rangeFeet: null
-    }))
-    .concat(
-      reactions
-        .slice()
-        .sort((left, right) => left.name.localeCompare(right.name))
-        .map((reaction) => ({
-          id: `reaction-entry-${reaction.id}`,
-          group: STATUS_ENTRY_GROUP.REACTIONS,
-          value: reaction.name,
-          source: reaction.sourceLabel,
-          sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
-          duration: createDerivedReactionStatusDuration(),
-          sourceId: `reaction-entry-${reaction.id}`,
-          rangeFeet: null
-        }))
-    );
 }
 
 export function getTraitEditorGroup(tab: TraitEditorTab): STATUS_ENTRY_GROUP {

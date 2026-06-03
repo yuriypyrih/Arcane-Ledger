@@ -20,10 +20,8 @@ import {
 import { artisanToolProficiencies, type ToolProficiency } from "../../../proficiencyOptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
-import {
-  getSavingThrowLevelFromEntries,
-  getSkillProficiencyForName
-} from "../../../proficiencyResolvers";
+import { getSkillProficiencyForName } from "../../../proficiencyResolvers";
+import { getRuntimeSavingThrowLevel } from "../../../proficiency/runtime";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellSlots";
 import {
   createCharacterStatusEntry,
@@ -208,7 +206,10 @@ function getUnfetteredMindAvailableSavingThrows(
 
   const baseSavingThrowEntries = getSavingThrowEntriesExcludingUnfetteredMind(character);
   const hasExistingIntSavingThrow =
-    getSavingThrowLevelFromEntries(baseSavingThrowEntries, SAVING_THROW_PROFICIENCY.INT) !==
+    getRuntimeSavingThrowLevel(
+      { savingThrowProficiencies: baseSavingThrowEntries },
+      SAVING_THROW_PROFICIENCY.INT
+    ) !==
     PROF_LEVEL.NONE;
 
   if (!hasExistingIntSavingThrow) {
@@ -217,7 +218,10 @@ function getUnfetteredMindAvailableSavingThrows(
 
   return abilitySavingThrowProficiencies.filter(
     (proficiency) =>
-      getSavingThrowLevelFromEntries(baseSavingThrowEntries, proficiency) === PROF_LEVEL.NONE
+      getRuntimeSavingThrowLevel(
+        { savingThrowProficiencies: baseSavingThrowEntries },
+        proficiency
+      ) === PROF_LEVEL.NONE
   );
 }
 

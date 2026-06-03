@@ -18,9 +18,9 @@ import {
 import { artisanToolProficiencies } from "../../../../../pages/CharactersPage/proficiency";
 import { SAVING_THROW_PROFICIENCY, SKILL, type SkillName } from "../../../../../types";
 import {
-  getSelectableNonExpertSkillOptions,
-  getSelectableUnproficientSavingThrowOptions,
-  getSelectableUnproficientToolOptions,
+  getEffectiveNonExpertSkillOptions,
+  getEffectiveUnproficientSavingThrowOptions,
+  getSourceChoiceToolOptions,
   updateSelectionAtIndex
 } from "../helpers";
 import { recomputeCharacterFeatureProficiencies, type ClassFeatureChoiceModelArgs } from "./shared";
@@ -42,7 +42,7 @@ export function createClericFeatureChoiceModel({
     const currentValue = currentSelections[slotIndex] ?? null;
     const blockedSelections = currentSelections.filter((_, index) => index !== slotIndex);
 
-    return getSelectableNonExpertSkillOptions(
+    return getEffectiveNonExpertSkillOptions(
       character,
       [SKILL.ARCANA, SKILL.HISTORY, SKILL.NATURE, SKILL.RELIGION],
       currentValue,
@@ -51,7 +51,7 @@ export function createClericFeatureChoiceModel({
   }
 
   function getAvailableKnowledgeDomainBlessingsTools() {
-    return getSelectableUnproficientToolOptions(
+    return getSourceChoiceToolOptions(
       character,
       artisanToolProficiencies,
       getKnowledgeDomainBlessingsToolSelection()
@@ -105,7 +105,7 @@ export function createClericFeatureChoiceModel({
   function getAvailableKnowledgeDomainUnfetteredMindSavingThrows(): SAVING_THROW_PROFICIENCY[] {
     const currentValue = getKnowledgeDomainUnfetteredMindSavingThrowSelection();
 
-    return getSelectableUnproficientSavingThrowOptions(
+    return getEffectiveUnproficientSavingThrowOptions(
       character,
       getKnowledgeDomainUnfetteredMindSavingThrowOptionsForCharacter(character),
       currentValue

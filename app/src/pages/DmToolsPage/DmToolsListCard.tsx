@@ -17,6 +17,7 @@ type DmToolsListCardProps = {
   icon: ReactNode;
   meta?: ReactNode;
   onClick?: () => void;
+  tone?: "default" | "danger";
   title: ReactNode;
   to?: string;
 };
@@ -37,10 +38,18 @@ function DmToolsListCardContent({
   );
 }
 
-function getCardClassName(disabled?: boolean) {
-  return disabled
-    ? `${styles.dmToolsListCard} ${styles.dmToolsListCardDisabled}`
-    : styles.dmToolsListCard;
+function getCardClassName(disabled?: boolean, tone: DmToolsListCardProps["tone"] = "default") {
+  const classNames = [styles.dmToolsListCard];
+
+  if (tone === "danger") {
+    classNames.push(styles.dmToolsListCardDanger);
+  }
+
+  if (disabled) {
+    classNames.push(styles.dmToolsListCardDisabled);
+  }
+
+  return classNames.filter(Boolean).join(" ");
 }
 
 function DmToolsListCard({
@@ -50,13 +59,14 @@ function DmToolsListCard({
   icon,
   meta,
   onClick,
+  tone = "default",
   title,
   to
 }: DmToolsListCardProps) {
   const content = <DmToolsListCardContent icon={icon} meta={meta} title={title} />;
 
   return (
-    <article className={getCardClassName(disabled)}>
+    <article className={getCardClassName(disabled, tone)}>
       {to ? (
         <Link to={to} className={styles.dmToolsListCardMain} aria-label={ariaLabel}>
           {content}

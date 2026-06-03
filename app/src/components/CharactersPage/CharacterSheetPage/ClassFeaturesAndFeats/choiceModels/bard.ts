@@ -18,8 +18,8 @@ import { skillsOptions } from "../../../../../pages/CharactersPage/proficiency";
 import type { SkillName } from "../../../../../types";
 import {
   getBardExpertiseTierForLevel,
-  getSelectableProficientSkillOptions,
-  getSelectableUnproficientSkillOptions,
+  getEffectiveProficientSkillOptions,
+  getSourceChoiceSkillOptions,
   updateSelectionAtIndex
 } from "../helpers";
 import { recomputeCharacterFeatureProficiencies, type ClassFeatureChoiceModelArgs } from "./shared";
@@ -38,7 +38,7 @@ export function createBardFeatureChoiceModel({
     const currentValue = currentSelections[slotIndex] ?? null;
     const blockedSelections = currentSelections.filter((_, index) => index !== slotIndex);
 
-    return getSelectableProficientSkillOptions(
+    return getEffectiveProficientSkillOptions(
       character,
       skillsOptions,
       currentValue,
@@ -82,7 +82,7 @@ export function createBardFeatureChoiceModel({
     const currentValue = currentSelections[slotIndex] ?? null;
     const blockedSelections = currentSelections.filter((_, index) => index !== slotIndex);
 
-    return getSelectableUnproficientSkillOptions(
+    return getSourceChoiceSkillOptions(
       character,
       skillsOptions,
       currentValue,
@@ -168,7 +168,7 @@ export function createBardFeatureChoiceModel({
   }
 
   function getAvailableBardPrimalLoreSkills(): SkillName[] {
-    return getSelectableUnproficientSkillOptions(
+    return getSourceChoiceSkillOptions(
       character,
       getBardPrimalLoreSkillOptionsForCharacter(),
       getBardPrimalLoreSkillSelection()

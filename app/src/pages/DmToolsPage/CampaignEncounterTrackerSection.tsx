@@ -1,18 +1,51 @@
-import { Play, Swords, X } from "lucide-react";
-import type { CampaignPreparedEncounterRecord } from "../../api/campaigns";
+import { AlertTriangle, Play, Swords, X } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  removeCampaignLiveEncounterTracker,
+  type CampaignDetailRecord
+} from "../../api/campaigns";
+import { patchSelectedCampaign, useAppDispatch } from "../../store";
+import { getDmToolsApiErrorMessage } from "./dmToolsApiErrors";
 import DmToolsEmptyState from "./DmToolsEmptyState";
 import DmToolsListCard from "./DmToolsListCard";
 import styles from "./DmToolsPage.module.css";
 
 type CampaignEncounterTrackerSectionProps = {
-  activeEncounter: Pick<CampaignPreparedEncounterRecord, "id" | "name"> | null;
-  onClearActiveEncounter: () => void;
+  campaign: CampaignDetailRecord;
 };
 
-function CampaignEncounterTrackerSection({
-  activeEncounter,
-  onClearActiveEncounter
-}: CampaignEncounterTrackerSectionProps) {
+function CampaignEncounterTrackerSection({ campaign }: CampaignEncounterTrackerSectionProps) {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const [isRemovingTracker, setIsRemovingTracker] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const tracker = campaign.liveEncounterTracker;
+  const isTrackerInvalid = tracker?.status.state === "invalid";
+
+  async function handleRemoveTracker() {
+    if (isRemovingTracker) {
+      return;
+    }
+
+    setActionError(null);
+    setIsRemovingTracker(true);
+
+    try {
+      const campaignPatch = await removeCampaignLiveEncounterTracker(campaign.id, {
+        suppressFailureToast: true
+      });
+
+      dispatch(patchSelectedCampaign(campaignPatch));
+    } catch (removeError) {
+      setActionError(
+        getDmToolsApiErrorMessage(removeError, "Unable to remove active encounter.")
+      );
+    } finally {
+      setIsRemovingTracker(false);
+    }
+  }
+
   return (
     <section className={styles.membersPanel} aria-labelledby="campaign-encounter-tracker-title">
       <div className={styles.memberPanelHeader}>
@@ -23,17 +56,38 @@ function CampaignEncounterTrackerSection({
         </div>
       </div>
 
-      {activeEncounter ? (
+      {actionError ? <p className={styles.modalError}>{actionError}</p> : null}
+
+      {tracker ? (
         <DmToolsListCard
-          icon={<Swords size={18} aria-hidden="true" />}
-          title="ENCOUNTER IN PROGRESS"
-          meta={activeEncounter.name}
+          icon={
+            isTrackerInvalid ? (
+              <AlertTriangle size={18} aria-hidden="true" />
+            ) : (
+              <Swords size={18} aria-hidden="true" />
+            )
+          }
+          title={isTrackerInvalid ? "ENCOUNTER TRACKER INVALID" : "ENCOUNTER IN PROGRESS"}
+          meta={
+            tracker.status.state === "invalid"
+              ? tracker.status.message
+              : tracker.preparedEncounterName
+          }
+          tone={isTrackerInvalid ? "danger" : "default"}
+          onClick={
+            isTrackerInvalid
+              ? undefined
+              : () => navigate(`/gm-tools/campaign-manager/${campaign.id}/live-encounter`)
+          }
           actions={[
             {
               icon: <X size={18} aria-hidden="true" />,
-              label: `Remove ${activeEncounter.name}`,
-              onClick: onClearActiveEncounter,
-              title: `Remove ${activeEncounter.name}`
+              label: "Remove active encounter",
+              onClick: () => {
+                void handleRemoveTracker();
+              },
+              title: isRemovingTracker ? "Removing..." : "Remove active encounter",
+              disabled: isRemovingTracker
             }
           ]}
         />

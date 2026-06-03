@@ -25,6 +25,9 @@ const CampaignDetailPage = lazy(() => import("./pages/DmToolsPage/CampaignDetail
 const CampaignEncounterBuilderPage = lazy(
   () => import("./pages/DmToolsPage/CampaignEncounterBuilderPage")
 );
+const CampaignLiveEncounterTrackerPage = lazy(
+  () => import("./pages/DmToolsPage/CampaignLiveEncounterTrackerPage")
+);
 const EncounterTemplateDetailPage = lazy(
   () => import("./pages/DmToolsPage/EncounterTemplateDetailPage")
 );
@@ -124,6 +127,10 @@ function App() {
             <Route path="/compendium" element={<CodexPage />} />
             <Route path="/gm-tools" element={<DmToolsPage />} />
             <Route path="/gm-tools/campaign-manager/:campaignId" element={<CampaignDetailPage />} />
+            <Route
+              path="/gm-tools/campaign-manager/:campaignId/live-encounter"
+              element={<CampaignLiveEncounterTrackerPage />}
+            />
             <Route
               path="/gm-tools/campaign-manager/:campaignId/encounters/:preparedEncounterId"
               element={<CampaignEncounterBuilderPage />}

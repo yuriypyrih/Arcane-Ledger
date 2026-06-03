@@ -1,15 +1,8 @@
-import type { CharacterAvatarMetadata } from "../types";
+import type { CharacterAvatarMetadata, PortableCharacterSheetSummary } from "../types";
 import { apiDelete, apiGet, apiPatch, apiPost, type ApiRequestOptions } from "./client";
 
-export type PartyGroupCharacterSummary = {
+export type PartyGroupCharacterSummary = Omit<PortableCharacterSheetSummary, "localId"> & {
   localId?: number;
-  name: string;
-  species: string;
-  className: string;
-  subclassId?: string | null;
-  level: number;
-  background: string;
-  sheetSizeBytes?: number;
 };
 
 export type PartyGroupRecord = {

@@ -8,23 +8,24 @@ import {
 } from "../../../../codex/entries";
 import { createCharacterFeatEntry } from "../../../../pages/CharactersPage/feats";
 import {
-  getSavingThrowLevelFromEntries,
-  getLanguageLevelFromEntries,
-  getSkillLevelFromEntries,
-  getSkillProficiencyForName,
-  getToolLevelFromEntries
+  getEffectiveNonExpertSkillOptions,
+  getEffectiveProficientSkillOptions,
+  getEffectiveUnproficientSavingThrowOptions,
+  getEffectiveUnproficientSkillOptions,
+  getEffectiveUnproficientToolOptions,
+  getSourceChoiceLanguageOptions,
+  getSourceChoiceSavingThrowOptions,
+  getSourceChoiceSkillOptions,
+  getSourceChoiceToolOptions
 } from "../../../../pages/CharactersPage/proficiency";
 import {
   getToolProficiencyLabel,
-  languageProficiencyOptions,
   type ToolProficiency
 } from "../../../../pages/CharactersPage/proficiencyOptions";
-import { PROF_LEVEL, SAVING_THROW_PROFICIENCY, SKILL } from "../../../../types";
+import { SKILL } from "../../../../types";
 import type {
-  Character,
   CharacterFeatEntry,
   CharacterFeatSource,
-  LANGUAGE_PROFICIENCY,
   SkillName
 } from "../../../../types";
 import { featureDisclosureStyles } from "../../../FeatureDisclosure";
@@ -202,119 +203,17 @@ export function buildToolSelectOptions<TTool extends ToolProficiency>(
   }));
 }
 
-export function getSelectableProficientSkillOptions(
-  character: Pick<Character, "skillProficiencies">,
-  options: readonly SkillName[],
-  currentValue: SkillName | null | undefined,
-  blockedSelections: readonly SkillName[] = []
-): SkillName[] {
-  return filterAvailableChoices(options, currentValue, blockedSelections).filter((skillName) => {
-    if (currentValue === skillName) {
-      return true;
-    }
-
-    const proficiency = getSkillProficiencyForName(skillName);
-
-    return (
-      proficiency !== null &&
-      getSkillLevelFromEntries(character.skillProficiencies ?? [], proficiency) ===
-        PROF_LEVEL.PROFICIENT
-    );
-  });
-}
-
-export function getSelectableUnproficientSkillOptions(
-  character: Pick<Character, "skillProficiencies">,
-  options: readonly SkillName[],
-  currentValue: SkillName | null | undefined,
-  blockedSelections: readonly SkillName[] = []
-): SkillName[] {
-  return filterAvailableChoices(options, currentValue, blockedSelections).filter((skillName) => {
-    if (currentValue === skillName) {
-      return true;
-    }
-
-    const proficiency = getSkillProficiencyForName(skillName);
-
-    return (
-      proficiency !== null &&
-      getSkillLevelFromEntries(character.skillProficiencies ?? [], proficiency) === PROF_LEVEL.NONE
-    );
-  });
-}
-
-export function getSelectableNonExpertSkillOptions(
-  character: Pick<Character, "skillProficiencies">,
-  options: readonly SkillName[],
-  currentValue: SkillName | null | undefined,
-  blockedSelections: readonly SkillName[] = []
-): SkillName[] {
-  return filterAvailableChoices(options, currentValue, blockedSelections).filter((skillName) => {
-    if (currentValue === skillName) {
-      return true;
-    }
-
-    const proficiency = getSkillProficiencyForName(skillName);
-
-    return (
-      proficiency !== null &&
-      getSkillLevelFromEntries(character.skillProficiencies ?? [], proficiency) !==
-        PROF_LEVEL.EXPERT
-    );
-  });
-}
-
-export function getSelectableLanguageOptions(
-  character: Pick<Character, "languageProficiencies">,
-  currentValue: LANGUAGE_PROFICIENCY | null | undefined,
-  blockedSelections: readonly LANGUAGE_PROFICIENCY[] = []
-): LANGUAGE_PROFICIENCY[] {
-  return filterAvailableChoices(languageProficiencyOptions, currentValue, blockedSelections).filter(
-    (proficiency) => {
-      if (currentValue === proficiency) {
-        return true;
-      }
-
-      return (
-        getLanguageLevelFromEntries(character.languageProficiencies ?? [], proficiency) ===
-        PROF_LEVEL.NONE
-      );
-    }
-  );
-}
-
-export function getSelectableUnproficientToolOptions(
-  character: Pick<Character, "toolProficiencies">,
-  options: readonly ToolProficiency[],
-  currentValue: ToolProficiency | null | undefined,
-  blockedSelections: readonly ToolProficiency[] = []
-): ToolProficiency[] {
-  return filterAvailableChoices(options, currentValue, blockedSelections).filter((tool) => {
-    if (currentValue === tool) {
-      return true;
-    }
-
-    return getToolLevelFromEntries(character.toolProficiencies ?? [], tool) === PROF_LEVEL.NONE;
-  });
-}
-
-export function getSelectableUnproficientSavingThrowOptions(
-  character: Pick<Character, "savingThrowProficiencies">,
-  options: readonly SAVING_THROW_PROFICIENCY[],
-  currentValue: SAVING_THROW_PROFICIENCY | null | undefined,
-  blockedSelections: readonly SAVING_THROW_PROFICIENCY[] = []
-): SAVING_THROW_PROFICIENCY[] {
-  return filterAvailableChoices(options, currentValue, blockedSelections).filter((proficiency) => {
-    if (currentValue === proficiency) {
-      return true;
-    }
-
-    return (
-      getSavingThrowLevelFromEntries(character.savingThrowProficiencies ?? [], proficiency) ===
-      PROF_LEVEL.NONE
-    );
-  });
-}
+export {
+  getEffectiveNonExpertSkillOptions,
+  getEffectiveProficientSkillOptions,
+  getEffectiveUnproficientSavingThrowOptions,
+  getEffectiveUnproficientSkillOptions,
+  getEffectiveUnproficientToolOptions,
+  getSourceChoiceLanguageOptions,
+  getSourceChoiceSavingThrowOptions,
+  getSourceChoiceSkillOptions,
+  getSourceChoiceToolOptions
+};
 
 export function createFeatEntryForContext(
   feat: FEATS,

@@ -7,6 +7,7 @@ import type { AuthenticatedLocals, OptionalAuthenticatedLocals } from "../middle
 import {
   CharacterSheet,
   type CharacterAvatarRecord,
+  type CharacterEncounterStatBlockRecord,
   type CharacterSheetDocument,
   type CharacterSheetSummaryRecord
 } from "../models/CharacterSheet.js";
@@ -96,6 +97,14 @@ function readPositiveInteger(value: unknown): number | null {
   const numberValue = Math.floor(Number(value));
 
   return Number.isFinite(numberValue) && numberValue > 0 ? numberValue : null;
+}
+
+function readIntegerInRange(value: unknown, min: number, max: number): number | null {
+  const numberValue = Math.floor(Number(value));
+
+  return Number.isFinite(numberValue) && numberValue >= min && numberValue <= max
+    ? numberValue
+    : null;
 }
 
 function readCharacterSheetId(value: string | undefined) {
@@ -215,12 +224,208 @@ function readSheetLevel(value: unknown) {
   return Math.min(level, 100);
 }
 
+const encounterStatBlockAbilityKeys = ["STR", "DEX", "CON", "INT", "WIS", "CHA"] as const;
+const encounterStatBlockLabelMaxLength = 160;
+const encounterStatBlockListMaxLength = 100;
+const encounterStatBlockStringMaxLength = 240;
+
+function createEncounterStatBlockError(message: string) {
+  return new AppError(message, 400, "INVALID_ENCOUNTER_STAT_BLOCK");
+}
+
+function readEncounterRequiredString(
+  value: unknown,
+  field: string,
+  maxLength = encounterStatBlockStringMaxLength
+) {
+  const stringValue = readString(value);
+
+  if (!stringValue || stringValue.length > maxLength) {
+    throw createEncounterStatBlockError(`Encounter stat block ${field} is invalid.`);
+  }
+
+  return stringValue;
+}
+
+function readEncounterOptionalString(value: unknown, field: string) {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+
+  return readEncounterRequiredString(value, field);
+}
+
+function readEncounterInteger(
+  value: unknown,
+  field: string,
+  min: number,
+  max: number
+) {
+  const integerValue = readIntegerInRange(value, min, max);
+
+  if (integerValue === null) {
+    throw createEncounterStatBlockError(`Encounter stat block ${field} is invalid.`);
+  }
+
+  return integerValue;
+}
+
+function readEncounterOptionalPositiveInteger(value: unknown, field: string) {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+
+  const integerValue = readPositiveInteger(value);
+
+  if (integerValue === null) {
+    throw createEncounterStatBlockError(`Encounter stat block ${field} is invalid.`);
+  }
+
+  return integerValue;
+}
+
+function readEncounterGeneratedAt(value: unknown) {
+  const generatedAt = readEncounterRequiredString(value, "generatedAt", 64);
+
+  if (Number.isNaN(Date.parse(generatedAt))) {
+    throw createEncounterStatBlockError("Encounter stat block generatedAt is invalid.");
+  }
+
+  return generatedAt;
+}
+
+function readEncounterLabelList(value: unknown, field: string) {
+  if (!Array.isArray(value) || value.length > encounterStatBlockListMaxLength) {
+    throw createEncounterStatBlockError(`Encounter stat block ${field} is invalid.`);
+  }
+
+  return [
+    ...new Set(
+      value.map((entry) => {
+        const label = readString(entry);
+
+        if (!label || label.length > encounterStatBlockLabelMaxLength) {
+          throw createEncounterStatBlockError(`Encounter stat block ${field} is invalid.`);
+        }
+
+        return label;
+      })
+    )
+  ];
+}
+
+function readEncounterOptionalLabelList(value: unknown, field: string) {
+  return value === undefined || value === null ? [] : readEncounterLabelList(value, field);
+}
+
+function readEncounterAbility(value: unknown, field: string) {
+  if (!isObjectRecord(value)) {
+    throw createEncounterStatBlockError(`Encounter stat block ${field} is invalid.`);
+  }
+
+  return {
+    score: readEncounterInteger(value.score, `${field}.score`, 0, 100),
+    modifier: readEncounterInteger(value.modifier, `${field}.modifier`, -100, 100),
+    save: readEncounterInteger(value.save, `${field}.save`, -100, 100)
+  };
+}
+
+function readEncounterAbilities(value: unknown): CharacterEncounterStatBlockRecord["abilities"] {
+  if (!isObjectRecord(value)) {
+    throw createEncounterStatBlockError("Encounter stat block abilities are invalid.");
+  }
+
+  return encounterStatBlockAbilityKeys.reduce<CharacterEncounterStatBlockRecord["abilities"]>(
+    (abilities, ability) => ({
+      ...abilities,
+      [ability]: readEncounterAbility(value[ability], `abilities.${ability}`)
+    }),
+    {} as CharacterEncounterStatBlockRecord["abilities"]
+  );
+}
+
+function readOptionalEncounterStatBlock(
+  value: unknown
+): CharacterEncounterStatBlockRecord | undefined {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+
+  if (!isObjectRecord(value)) {
+    throw createEncounterStatBlockError("Encounter stat block must be an object.");
+  }
+
+  if (value.version !== 1) {
+    throw createEncounterStatBlockError("Encounter stat block version is unsupported.");
+  }
+
+  const temporaryHitPointsSource = readEncounterOptionalString(
+    value.temporaryHitPointsSource,
+    "temporaryHitPointsSource"
+  );
+  const magicTemporaryHitPointsSource = readEncounterOptionalString(
+    value.magicTemporaryHitPointsSource,
+    "magicTemporaryHitPointsSource"
+  );
+  const sourceLocalRevision = readEncounterOptionalPositiveInteger(
+    value.sourceLocalRevision,
+    "sourceLocalRevision"
+  );
+  const sourceRemoteRevision = readEncounterOptionalPositiveInteger(
+    value.sourceRemoteRevision,
+    "sourceRemoteRevision"
+  );
+
+  return {
+    version: 1,
+    name: readEncounterRequiredString(value.name, "name"),
+    typeLabel: readEncounterRequiredString(value.typeLabel, "typeLabel"),
+    alignment: readEncounterRequiredString(value.alignment, "alignment"),
+    level: readEncounterInteger(value.level, "level", 1, 100),
+    className: readEncounterRequiredString(value.className, "className"),
+    species: readEncounterRequiredString(value.species, "species"),
+    armorClass: readEncounterInteger(value.armorClass, "armorClass", 0, 100),
+    initiative: readEncounterRequiredString(value.initiative, "initiative", 32),
+    speed: readEncounterRequiredString(value.speed, "speed", 64),
+    proficiencyBonus: readEncounterInteger(value.proficiencyBonus, "proficiencyBonus", 0, 20),
+    hitPoints: readEncounterInteger(value.hitPoints, "hitPoints", 0, 10000),
+    currentHitPoints: readEncounterInteger(value.currentHitPoints, "currentHitPoints", 0, 10000),
+    temporaryHitPoints: readEncounterInteger(
+      value.temporaryHitPoints,
+      "temporaryHitPoints",
+      0,
+      10000
+    ),
+    ...(temporaryHitPointsSource ? { temporaryHitPointsSource } : {}),
+    magicTemporaryHitPoints: readEncounterInteger(
+      value.magicTemporaryHitPoints,
+      "magicTemporaryHitPoints",
+      0,
+      10000
+    ),
+    ...(magicTemporaryHitPointsSource ? { magicTemporaryHitPointsSource } : {}),
+    immunities: readEncounterLabelList(value.immunities, "immunities"),
+    resistances: readEncounterLabelList(value.resistances, "resistances"),
+    vulnerabilities: readEncounterLabelList(value.vulnerabilities, "vulnerabilities"),
+    senses: readEncounterLabelList(value.senses, "senses"),
+    passivePerception: readEncounterInteger(value.passivePerception, "passivePerception", 0, 100),
+    languages: readEncounterLabelList(value.languages, "languages"),
+    abilities: readEncounterAbilities(value.abilities),
+    featureTraits: readEncounterOptionalLabelList(value.featureTraits, "featureTraits"),
+    reactions: readEncounterLabelList(value.reactions, "reactions"),
+    generatedAt: readEncounterGeneratedAt(value.generatedAt),
+    ...(sourceLocalRevision ? { sourceLocalRevision } : {}),
+    ...(sourceRemoteRevision ? { sourceRemoteRevision } : {})
+  };
+}
+
 function buildCharacterSheetSummary(sheet: Record<string, unknown>) {
   const identity = getSheetGroup(sheet, "identity");
   const origin = getSheetGroup(sheet, "origin");
   const progression = getSheetGroup(sheet, "progression");
   const summary = getSheetGroup(sheet, "summary");
   const subclassId = readString(summary.subclassId) ?? readString(progression.subclassId);
+  const encounterStatBlock = readOptionalEncounterStatBlock(summary.encounterStatBlock);
 
   return {
     localId:
@@ -233,7 +438,8 @@ function buildCharacterSheetSummary(sheet: Record<string, unknown>) {
     ...(subclassId ? { subclassId } : { subclassId: null }),
     level: readSheetLevel(summary.level ?? progression.level),
     background: readString(summary.background) ?? readString(origin.background) ?? "Unknown",
-    sheetSizeBytes: readPositiveInteger(summary.sheetSizeBytes) ?? undefined
+    sheetSizeBytes: readPositiveInteger(summary.sheetSizeBytes) ?? undefined,
+    ...(encounterStatBlock ? { encounterStatBlock } : {})
   };
 }
 

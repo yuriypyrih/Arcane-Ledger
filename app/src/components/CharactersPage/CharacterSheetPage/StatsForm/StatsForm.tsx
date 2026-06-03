@@ -6,45 +6,33 @@ import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import { useRenderProfiler } from "../../../../lib/useRenderProfiler";
 import { createFeatureSourcedDescriptionEntries } from "../../../../pages/CharactersPage/actionModalDescriptions";
 import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../codex/entries";
-import { getClassEntryByName } from "../../../../codex/selectors";
 import type { AbilityKey, Character } from "../../../../types";
 import {
-  getAbilityModifierBreakdownForCharacter,
   getAbilityScoreBreakdownForCharacter,
-  getAbilityScoresForCharacter,
   type AbilityModifierBonusEntry
 } from "../../../../pages/CharactersPage/abilities";
 import { getKeywordDescription } from "../../../../pages/CharactersPage/keywordDescriptions";
 import {
   formatCustomTraitBonusFormulaTerm,
-  formatCustomTraitBonusRollFormulaTerm,
-  type CustomTraitBonusInput
+  formatCustomTraitBonusRollFormulaTerm
 } from "../../../../pages/CharactersPage/customTraitEffects";
-import { getCharacterCustomTraitEffectInput } from "../../../../pages/CharactersPage/characterRuntime/customEffectRuntime";
+import { getCharacterRuntime } from "../../../../pages/CharactersPage/characterRuntime/characterRuntime";
+import { abilityDisplayLabels } from "../../../../pages/CharactersPage/characterRuntime/combatSummaryAbilities";
 import {
   abilityKeys,
   CUSTOM_ABILITY_SCORE_MAX,
   getPointBuyRemaining,
   normalizePointBuyAbilities
 } from "../../../../pages/CharactersPage/constants";
-import {
-  formatAbilityModifier,
-  getProficiencyBonus
-} from "../../../../pages/CharactersPage/gameplay";
+import { formatAbilityModifier } from "../../../../pages/CharactersPage/gameplay";
 import {
   consumeFighterIndomitableUseForCharacter,
-  getAbilityCheckIndicatorsForCharacter,
   getFighterIndomitableUsesRemainingForCharacter,
   getFighterIndomitableUsesTotalForCharacter,
   getSavingThrowReferenceDescriptionAdditionsForCharacter,
-  getSavingThrowBonusesForCharacter,
-  hasActivePaladinAuraOfProtectionForCharacter,
-  getSavingThrowIndicatorsForCharacter,
-  type FeatureIndicator,
-  type FeatureSavingThrowBonus
+  type FeatureIndicator
 } from "../../../../pages/CharactersPage/classFeatures";
 import { getFeatureDescriptionForCharacter } from "../../../../pages/CharactersPage/classFeatures/featureDescriptions";
-import { getBarbarianRageState } from "../../../../pages/CharactersPage/classFeatures/barbarian/barbarian";
 import {
   getMageSlayerGuardedMindDescriptionAdditionsForCharacter,
   getMageSlayerGuardedMindStateForCharacter,
@@ -62,11 +50,6 @@ import {
   areResolvedRollStatesEquivalent,
   resolveFeatureIndicators
 } from "../../../RollStatePill/rollState";
-import {
-  getPrimaryAbilityForClass,
-  getSavingThrowLevelFromEntries,
-  getSavingThrowProficiencyForAbilityKey
-} from "../../../../pages/CharactersPage/proficiency";
 import { getExhaustionD20TestPenalty } from "../../../../pages/CharactersPage/statusEntries";
 import type {
   AbilitiesDraft,
@@ -79,14 +62,10 @@ import {
 } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import {
   formatD20Formula,
-  formatFormulaTerms,
-  getProficiencyMultiplier
+  formatFormulaTerms
 } from "../../../../pages/CharactersPage/shared";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
-import AbilitySavingThrowCards, {
-  type AbilitySavingThrowCard,
-  type SavingThrowBonusEntry
-} from "./AbilitySavingThrowCards";
+import AbilitySavingThrowCards, { type SavingThrowBonusEntry } from "./AbilitySavingThrowCards";
 import AbilityReferenceFooter from "./AbilityReferenceFooter";
 import AbilityScoresModal from "./AbilityScoresModal";
 import CharacterStatsGuideModal from "./CharacterStatsGuideModal";
@@ -104,15 +83,6 @@ type CharacterStatsFormProps = {
   onPersistCharacter: PersistCharacterUpdater;
 };
 
-const abilityDisplayLabels: Record<AbilityKey, string> = {
-  STR: "Strength",
-  DEX: "Dexterity",
-  CON: "Constitution",
-  INT: "Intelligence",
-  WIS: "Wisdom",
-  CHA: "Charisma"
-};
-
 function createAbilitiesDraft(character: Character): AbilitiesDraft {
   const attributeMode = character.attributeMode;
 
@@ -123,37 +93,6 @@ function createAbilitiesDraft(character: Character): AbilitiesDraft {
         ? normalizePointBuyAbilities(cloneAbilityScores(character.abilities))
         : normalizeCustomAbilityScores(cloneAbilityScores(character.abilities))
   };
-}
-
-function getPrimaryAbilitiesFromLabel(label: string): AbilityKey[] {
-  const normalizedLabel = label.toUpperCase();
-
-  return abilityKeys.filter((ability) => {
-    const abilityName = abilityDisplayLabels[ability].toUpperCase();
-    return (
-      new RegExp(`\\b${ability}\\b`).test(normalizedLabel) ||
-      new RegExp(`\\b${abilityName}\\b`).test(normalizedLabel)
-    );
-  });
-}
-
-function getClassPrimaryAbilitiesForUi(className: string): AbilityKey[] {
-  const starterPack = getClassEntryByName(className)?.starterPack ?? null;
-
-  if (starterPack?.primaryAbilityLabel) {
-    const labeledAbilities = getPrimaryAbilitiesFromLabel(starterPack.primaryAbilityLabel);
-
-    if (labeledAbilities.length > 0) {
-      return labeledAbilities;
-    }
-  }
-
-  if (starterPack?.primaryAbility) {
-    return [starterPack.primaryAbility];
-  }
-
-  const fallbackPrimaryAbility = getPrimaryAbilityForClass(className);
-  return fallbackPrimaryAbility ? [fallbackPrimaryAbility] : [];
 }
 
 function formatAbilityModifierFormula(
@@ -226,31 +165,6 @@ function formatSavingThrowFormula(
   });
 
   return `${formatAbilityModifier(total)} ${ability} Save = ${terms.join(" ")}`;
-}
-
-function resolveFeatureSavingThrowBonusValue(
-  bonus: FeatureSavingThrowBonus,
-  character: Character,
-  options?: {
-    customTraitEffectInput?: CustomTraitBonusInput;
-  }
-): number {
-  if (bonus.abilityModifierSource) {
-    const sourceValue = getAbilityModifierBreakdownForCharacter(
-      character,
-      bonus.abilityModifierSource,
-      {
-        customTraitEffectInput: options?.customTraitEffectInput
-      }
-    ).total;
-    const clampedValue = typeof bonus.minimumValue === "number"
-      ? Math.max(bonus.minimumValue, sourceValue)
-      : sourceValue;
-
-    return clampedValue * (bonus.abilityModifierMultiplier ?? 1);
-  }
-
-  return bonus.value ?? 0;
 }
 
 function stripLeadingLabel(description: string, label: string): string {
@@ -450,164 +364,16 @@ function CharacterStatsForm({
     };
   }, [character, isAbilityModalOpen, isDiceRollerSettingsOpen, selectedStatReference]);
 
-  const primaryAbilities = useMemo(
-    () => getClassPrimaryAbilitiesForUi(character.className),
-    [character.className]
-  );
-  const hasIndomitableMight =
-    character.className === "Barbarian" &&
-    getFeatureDescriptionForCharacter(character, CLASS_FEATURE.INDOMITABLE_MIGHT).length > 0;
-  const hasFanaticalFocus =
-    character.className === "Barbarian" &&
-    getFeatureDescriptionForCharacter(character, CLASS_FEATURE.FANATICAL_FOCUS).length > 0;
-  const isBarbarianRaging = hasFanaticalFocus && getBarbarianRageState(character).active === true;
-  const hasLeadingEvasion =
-    character.className === "Bard" &&
-    character.subclassId === "bard-college-of-dance" &&
-    character.level >= 14;
-  const hasEvasion = getFeatureDescriptionForCharacter(character, CLASS_FEATURE.EVASION).length > 0;
+  const combatSummary = useMemo(() => getCharacterRuntime(character).combatSummary, [character]);
+  const { abilitySavingThrowCards, primaryAbilities } = combatSummary.abilities;
   const pointBuyRemaining =
     abilitiesDraft.attributeMode === "pointBuy"
       ? getPointBuyRemaining(abilitiesDraft.abilities)
       : null;
   const canSaveAbilityDraft =
     abilitiesDraft.attributeMode !== "pointBuy" || pointBuyRemaining === 0;
-  const proficiencyBonus = getProficiencyBonus(character.level);
-  const effectiveAbilities = useMemo(() => getAbilityScoresForCharacter(character), [character]);
-  const paladinAuraOfProtectionBonus = useMemo(
-    () =>
-      hasActivePaladinAuraOfProtectionForCharacter(character)
-        ? Math.max(1, getAbilityModifierBreakdownForCharacter(character, "CHA").total)
-        : 0,
-    [character]
-  );
-  const abilityCheckIndicators = useMemo(
-    () => getAbilityCheckIndicatorsForCharacter(character),
-    [character]
-  );
-  const savingThrowIndicators = useMemo(
-    () => getSavingThrowIndicatorsForCharacter(character),
-    [character]
-  );
   const fighterIndomitableUsesTotal = getFighterIndomitableUsesTotalForCharacter(character);
   const fighterIndomitableUsesRemaining = getFighterIndomitableUsesRemainingForCharacter(character);
-  const customTraitEffectInput = useMemo(
-    () => getCharacterCustomTraitEffectInput(character),
-    [character]
-  );
-  const abilitySavingThrowCards = useMemo<AbilitySavingThrowCard[]>(
-    () =>
-      abilityKeys.map((ability) => {
-        const abilityScore = effectiveAbilities[ability];
-        const abilityModifierBreakdown = getAbilityModifierBreakdownForCharacter(
-          character,
-          ability,
-          { customTraitEffectInput }
-        );
-        const abilityModifierValue = abilityModifierBreakdown.total;
-        const savingThrowProficiency = getSavingThrowProficiencyForAbilityKey(ability);
-        const savingThrowLevel = getSavingThrowLevelFromEntries(
-          character.savingThrowProficiencies,
-          savingThrowProficiency
-        );
-        const proficiencyMultiplier = getProficiencyMultiplier(savingThrowLevel);
-        const proficiencyContribution = proficiencyBonus * proficiencyMultiplier;
-        const featureSavingThrowBonusEntries: SavingThrowBonusEntry[] =
-          getSavingThrowBonusesForCharacter(character, ability, {
-            customTraitEffectInput
-          }).map((bonus) => {
-            const value = resolveFeatureSavingThrowBonusValue(bonus, character, {
-              customTraitEffectInput
-            });
-
-            return {
-              label: bonus.label,
-              value,
-              formula: bonus.formula,
-              formulaMultiplier: bonus.formulaMultiplier,
-              abilityModifierSource: bonus.abilityModifierSource,
-              formulaSourceLabel: bonus.formulaSourceLabel,
-              formulaLabel:
-                formatCustomTraitBonusFormulaTerm({
-                  ...bonus,
-                  value
-                }) ?? undefined
-            };
-          });
-        const savingThrowBonusEntries: SavingThrowBonusEntry[] = [
-          ...(paladinAuraOfProtectionBonus > 0
-            ? [
-                {
-                  label: "Aura of Protection",
-                  value: paladinAuraOfProtectionBonus
-                }
-              ]
-            : []),
-          ...featureSavingThrowBonusEntries
-        ];
-        const totalSavingThrowValue =
-          abilityModifierValue +
-          proficiencyContribution +
-          savingThrowBonusEntries.reduce((sum, entry) => sum + entry.value, 0);
-        const proficiencyLabel =
-          proficiencyMultiplier === 2
-            ? "Proficiency Bonus x2"
-            : proficiencyMultiplier === 1
-              ? "Proficiency Bonus"
-              : undefined;
-        const modifierIndicators = abilityCheckIndicators[ability] ?? [];
-        const saveIndicators = savingThrowIndicators[ability] ?? [];
-        const modifierRollState = resolveFeatureIndicators(modifierIndicators);
-        const savingThrowRollState = resolveFeatureIndicators(saveIndicators);
-
-        return {
-          ability,
-          score: abilityScore,
-          modifier: formatAbilityModifier(abilityModifierValue),
-          modifierBaseValue: abilityModifierBreakdown.baseValue,
-          modifierValue: abilityModifierValue,
-          modifierBonusEntries: abilityModifierBreakdown.bonusEntries,
-          isSavingThrowProficient: proficiencyMultiplier > 0,
-          proficiencyContribution,
-          proficiencyLabel,
-          savingThrowBonusEntries,
-          totalSavingThrowValue,
-          totalSavingThrow: formatAbilityModifier(totalSavingThrowValue),
-          showScoreBoostIcon:
-            (ability === "STR" && hasIndomitableMight) ||
-            isBarbarianRaging ||
-            (ability === "DEX" && hasLeadingEvasion),
-          scoreBoostIconLabel:
-            ability === "DEX" && hasLeadingEvasion
-              ? "Leading Evasion active"
-              : ability === "STR" && hasIndomitableMight
-                ? "Indomitable Might active"
-                : isBarbarianRaging
-                  ? "Fanatical Focus active"
-                  : undefined,
-          showSavingThrowBoostIcon: ability === "DEX" && hasEvasion,
-          savingThrowBoostIconLabel:
-            ability === "DEX" && hasEvasion ? "Evasion active" : undefined,
-          modifierIndicators,
-          modifierRollState,
-          savingThrowIndicators: saveIndicators,
-          savingThrowRollState
-        };
-      }),
-    [
-      abilityCheckIndicators,
-      character,
-      customTraitEffectInput,
-      effectiveAbilities,
-      hasEvasion,
-      hasIndomitableMight,
-      hasLeadingEvasion,
-      isBarbarianRaging,
-      paladinAuraOfProtectionBonus,
-      proficiencyBonus,
-      savingThrowIndicators
-    ]
-  );
 
   useRenderProfiler("CharacterStatsForm", {
     abilityCardCount: abilitySavingThrowCards.length,

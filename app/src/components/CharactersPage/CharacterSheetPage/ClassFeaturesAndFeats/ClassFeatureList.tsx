@@ -66,7 +66,7 @@ import WizardSavantFeatureFields from "./WizardSavantFeatureFields";
 import {
   buildSkillSelectOptions,
   buildToolSelectOptions,
-  getSelectableUnproficientSkillOptions,
+  getSourceChoiceSkillOptions,
   isFeatChoiceFeature,
   renderDescriptionLine,
   updateSelectionAtIndex,
@@ -517,7 +517,7 @@ function ClassFeatureList({
 
     return buildSkillSelectOptions(
       allOptions,
-      getSelectableUnproficientSkillOptions(character, allOptions, currentSelection),
+      getSourceChoiceSkillOptions(character, allOptions, currentSelection),
       currentSelection
     );
   }

@@ -29,10 +29,10 @@ import {
   type SkillName
 } from "../../../../../types";
 import {
-  getSelectableLanguageOptions,
-  getSelectableProficientSkillOptions,
-  getSelectableUnproficientSavingThrowOptions,
-  getSelectableUnproficientSkillOptions,
+  getEffectiveProficientSkillOptions,
+  getEffectiveUnproficientSavingThrowOptions,
+  getSourceChoiceLanguageOptions,
+  getSourceChoiceSkillOptions,
   updateSelectionAtIndex
 } from "../helpers";
 import { recomputeCharacterFeatureProficiencies, type ClassFeatureChoiceModelArgs } from "./shared";
@@ -48,7 +48,7 @@ export function createRangerFeatureChoiceModel({
   function getAvailableRangerGloomStalkerIronMindSavingThrows(): SAVING_THROW_PROFICIENCY[] {
     const currentValue = getRangerGloomStalkerIronMindSavingThrowSelection();
 
-    return getSelectableUnproficientSavingThrowOptions(
+    return getEffectiveUnproficientSavingThrowOptions(
       character,
       getRangerGloomStalkerIronMindSavingThrowOptionsForCharacter(character),
       currentValue
@@ -84,7 +84,7 @@ export function createRangerFeatureChoiceModel({
   }
 
   function getAvailableRangerDeftExplorerSkills(): SkillName[] {
-    return getSelectableProficientSkillOptions(
+    return getEffectiveProficientSkillOptions(
       character,
       skillsOptions,
       getRangerDeftExplorerExpertiseSelection()
@@ -113,7 +113,7 @@ export function createRangerFeatureChoiceModel({
     const currentValue = currentSelections[slotIndex] ?? null;
     const blockedSelections = currentSelections.filter((_, index) => index !== slotIndex);
 
-    return getSelectableLanguageOptions(character, currentValue, blockedSelections);
+    return getSourceChoiceLanguageOptions(character, currentValue, blockedSelections);
   }
 
   function updateRangerDeftExplorerLanguageSelection(slotIndex: number, nextValue: string) {
@@ -127,7 +127,7 @@ export function createRangerFeatureChoiceModel({
             slotIndex,
             nextValue
           ).filter((selection): selection is LANGUAGE_PROFICIENCY =>
-            getSelectableLanguageOptions(currentCharacter, null).includes(
+            getSourceChoiceLanguageOptions(currentCharacter, null).includes(
               selection as LANGUAGE_PROFICIENCY
             )
           )
@@ -152,7 +152,7 @@ export function createRangerFeatureChoiceModel({
     const currentValue = currentSelections[slotIndex] ?? null;
     const blockedSelections = currentSelections.filter((_, index) => index !== slotIndex);
 
-    return getSelectableProficientSkillOptions(
+    return getEffectiveProficientSkillOptions(
       character,
       skillsOptions,
       currentValue,
@@ -234,7 +234,7 @@ export function createRangerFeatureChoiceModel({
   }
 
   function getAvailableRangerOtherworldlyGlamourSkills(): SkillName[] {
-    return getSelectableUnproficientSkillOptions(
+    return getSourceChoiceSkillOptions(
       character,
       rangerOtherworldlyGlamourSkillOptions.map((option) => option.value),
       getRangerOtherworldlyGlamourSkillSelection()

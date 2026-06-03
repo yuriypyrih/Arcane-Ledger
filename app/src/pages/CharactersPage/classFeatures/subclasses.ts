@@ -53,6 +53,7 @@ const subclassRuntimeDispatchers: Record<
   Wizard: getWizardSubclassDerivedFeatureState
 };
 const subclassDerivedFeatureStateCache = new WeakMap<object, SubclassDerivedFeatureState>();
+const activeSubclassFeatureDerivations = new Set<string>();
 
 function withSubclassRuntimeDefaults(
   character: SubclassRuntimeCharacter,
@@ -93,11 +94,22 @@ export function getSubclassDerivedFeatureState(
   }
 
   const dispatcher = subclassRuntimeDispatchers[subclass.className];
+  const derivationKey = `${subclass.className}:${subclass.id}`;
 
-  const derivedState = dispatcher
-    ? dispatcher(withSubclassRuntimeDefaults(character, subclass.id))
-    : {};
+  if (activeSubclassFeatureDerivations.has(derivationKey)) {
+    return {};
+  }
 
-  subclassDerivedFeatureStateCache.set(character, derivedState);
-  return derivedState;
+  activeSubclassFeatureDerivations.add(derivationKey);
+
+  try {
+    const safeCharacter = withSubclassRuntimeDefaults(character, subclass.id);
+    const derivedState = dispatcher ? dispatcher(safeCharacter) : {};
+
+    subclassDerivedFeatureStateCache.set(character, derivedState);
+    subclassDerivedFeatureStateCache.set(safeCharacter, derivedState);
+    return derivedState;
+  } finally {
+    activeSubclassFeatureDerivations.delete(derivationKey);
+  }
 }

@@ -365,6 +365,7 @@ import type {
 
 const emptyFeatureDerivedState: ClassFeatureDerivedState = {};
 const activeClassFeatureStateCache = new WeakMap<object, ClassFeatureDerivedState>();
+const activeClassFeatureDerivations = new Set<ActiveClassFeatureName>();
 
 type ClassFeatureDerivationCharacter = Pick<Character, "className"> &
   Partial<
@@ -1099,10 +1100,21 @@ export function collectActiveClassFeatureState(
     return emptyFeatureDerivedState;
   }
 
+  if (activeClassFeatureDerivations.has(activeModule.className)) {
+    return emptyFeatureDerivedState;
+  }
+
   const safeCharacter = withClassFeatureDerivationDefaults(character);
 
-  const derivedState = activeModule.collectDerived(safeCharacter);
+  activeClassFeatureDerivations.add(activeModule.className);
 
-  activeClassFeatureStateCache.set(character, derivedState);
-  return derivedState;
+  try {
+    const derivedState = activeModule.collectDerived(safeCharacter);
+
+    activeClassFeatureStateCache.set(character, derivedState);
+    activeClassFeatureStateCache.set(safeCharacter, derivedState);
+    return derivedState;
+  } finally {
+    activeClassFeatureDerivations.delete(activeModule.className);
+  }
 }

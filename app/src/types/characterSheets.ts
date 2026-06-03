@@ -1,4 +1,5 @@
 import type {
+  AbilityKey,
   AbilityScores,
   Alignment,
   AttributeMode,
@@ -120,6 +121,44 @@ export type PortableCharacterSheetMetadata = {
   avatar?: CharacterAvatarMetadata;
 };
 
+export type PortableEncounterStatBlockAbility = {
+  score: number;
+  modifier: number;
+  save: number;
+};
+
+export type PortableEncounterStatBlock = {
+  version: 1;
+  name: string;
+  typeLabel: string;
+  alignment: Alignment;
+  level: number;
+  className: string;
+  species: string;
+  armorClass: number;
+  initiative: string;
+  speed: string;
+  proficiencyBonus: number;
+  hitPoints: number;
+  currentHitPoints: number;
+  temporaryHitPoints: number;
+  temporaryHitPointsSource?: string;
+  magicTemporaryHitPoints: number;
+  magicTemporaryHitPointsSource?: string;
+  immunities: string[];
+  resistances: string[];
+  vulnerabilities: string[];
+  senses: string[];
+  passivePerception: number;
+  languages: string[];
+  abilities: Record<AbilityKey, PortableEncounterStatBlockAbility>;
+  featureTraits: string[];
+  reactions: string[];
+  generatedAt: string;
+  sourceLocalRevision?: number;
+  sourceRemoteRevision?: number;
+};
+
 export type PortableCharacterSheetSummary = {
   localId: number;
   name: string;
@@ -129,6 +168,7 @@ export type PortableCharacterSheetSummary = {
   level: number;
   background: string;
   sheetSizeBytes?: number;
+  encounterStatBlock?: PortableEncounterStatBlock;
 };
 
 export type PortableCharacterSheet = {

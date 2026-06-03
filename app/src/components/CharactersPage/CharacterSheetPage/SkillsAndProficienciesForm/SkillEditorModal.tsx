@@ -1,7 +1,8 @@
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { Character, SkillProficiencyEntry } from "../../../../types";
 import { PROF_LEVEL } from "../../../../types";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
+import { createCombatSummarySkills } from "../../../../pages/CharactersPage/characterRuntime/combatSummarySkills";
 import {
   getSkillProficiencyForName,
   upsertManualSkillEntry
@@ -37,6 +38,10 @@ function SkillEditorModal({
     SkillProficiencyEntry[]
   >(() => character.skillProficiencies);
   const skillProficienciesDraftRef = useRef(skillProficienciesDraft);
+  const skillSummary = useMemo(
+    () => createCombatSummarySkills(character, skillProficienciesDraft),
+    [character, skillProficienciesDraft]
+  );
 
   function setSkillProficienciesDraft(
     draftOrUpdater:
@@ -94,7 +99,7 @@ function SkillEditorModal({
       <OverlayBody className={styles.skillEditorBody}>
         <div className={styles.skillEditorScrollArea}>
           <SkillRowsGrid
-            character={character}
+            skillSummary={skillSummary}
             skillProficiencies={skillProficienciesDraft}
             editable
             onOpenSkillReference={onOpenSkillReference}

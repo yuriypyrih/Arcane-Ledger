@@ -1,26 +1,16 @@
 import clsx from "clsx";
 import { BookHeart, Pencil } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Character } from "../../../../../types";
 import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPage/CharacterSheetPage/types";
-import { getMagicTemporaryHitPointsFeatureForCharacter } from "../../../../../pages/CharactersPage/classFeatures/magicTemporaryHitPoints";
-import {
-  hasActiveLifeAndDeathLedgerFeature,
-  hasLifeAndDeathLedgerDescriptionAdditions
-} from "../../../../../pages/CharactersPage/classFeatures/lifeAndDeathLedger";
-import { clampNumber } from "../../../../../pages/CharactersPage/CharacterSheetPage/utils";
-import { getDeathSaveStatusLabel } from "../../../../../pages/CharactersPage/deathSaves";
-import { getEffectiveHitPointMaximumForCharacter } from "../../../../../pages/CharactersPage/traits";
+import { getCharacterRuntime } from "../../../../../pages/CharactersPage/characterRuntime/characterRuntime";
 import HitPointControls from "../../HitPointControls/HitPointControls";
 import MagicTemporaryHitPoints from "../../MagicTemporaryHitPoints";
 import TemporaryHitPoints from "../../TemporaryHitPoints";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import widgetShellStyles from "../GameplayWidgetShared.module.css";
 import {
-  normalizeDeathSaves,
-  normalizeMagicTemporaryHitPoints,
-  normalizeMaxHitPointsMode,
-  normalizeTemporaryHitPoints
+  normalizeMaxHitPointsMode
 } from "../gameplayStateUtils";
 import {
   applyDamageToCharacter,
@@ -41,7 +31,8 @@ type HitPointsWidgetProps = {
 function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isLedgerModalOpen, setIsLedgerModalOpen] = useState(false);
-  const effectiveHitPoints = getEffectiveHitPointMaximumForCharacter(character);
+  const combatSummary = useMemo(() => getCharacterRuntime(character).combatSummary, [character]);
+  const hitPoints = combatSummary.hitPoints;
 
   useEffect(() => {
     if (normalizeMaxHitPointsMode(character.maxHitPointsMode) !== "automatic") {
@@ -66,28 +57,6 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
     onPersistCharacter
   ]);
 
-  const normalizedCurrentHitPoints = clampNumber(
-    character.currentHitPoints,
-    0,
-    effectiveHitPoints,
-    character.currentHitPoints
-  );
-  const temporaryHitPoints = normalizeTemporaryHitPoints(character.temporaryHitPoints);
-  const magicTemporaryHitPoints = normalizeMagicTemporaryHitPoints(
-    character.magicTemporaryHitPoints
-  );
-  const magicTemporaryHitPointsFeature = getMagicTemporaryHitPointsFeatureForCharacter(character);
-  const deathSaves = normalizeDeathSaves(character.deathSaves);
-  const statusLabel = getDeathSaveStatusLabel(
-    normalizedCurrentHitPoints,
-    effectiveHitPoints,
-    deathSaves
-  );
-  const temporaryHitPointsDescription =
-    "When taking damage the temporary hit points are consumed first. They do not stack and they vanish after resting at a camp.";
-  const hasLedgerContent = hasLifeAndDeathLedgerDescriptionAdditions(character);
-  const isLedgerActive = hasLedgerContent && hasActiveLifeAndDeathLedgerFeature(character);
-
   return (
     <section className={clsx(widgetShellStyles.widgetCard, styles.root)}>
       <header className={clsx(widgetShellStyles.widgetHeader, styles.header)}>
@@ -95,39 +64,39 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
           <p className={widgetShellStyles.widgetTitle}>Hit Points</p>
           <div className={styles.headerValueRow}>
             <strong className={styles.headerHitPoints}>
-              {normalizedCurrentHitPoints}/{effectiveHitPoints} HP
+              {hitPoints.normalizedCurrentHitPoints}/{hitPoints.effectiveMaxHitPoints} HP
             </strong>
             <TemporaryHitPoints
-              temporaryHitPoints={temporaryHitPoints}
+              temporaryHitPoints={hitPoints.temporaryHitPoints}
               temporaryHitPointsSource={character.temporaryHitPointsSource}
-              description={temporaryHitPointsDescription}
+              description={hitPoints.temporaryHitPointsDescription}
               onSaveTemporaryHitPoints={(value) =>
                 onPersistCharacter((currentCharacter) =>
                   assignManualTemporaryHitPointsForCharacter(currentCharacter, value)
                 )
               }
             />
-            {magicTemporaryHitPointsFeature ? (
+            {hitPoints.magicTemporaryHitPointsFeature ? (
               <MagicTemporaryHitPoints
-                feature={magicTemporaryHitPointsFeature}
-                magicTemporaryHitPoints={magicTemporaryHitPoints}
+                feature={hitPoints.magicTemporaryHitPointsFeature}
+                magicTemporaryHitPoints={hitPoints.magicTemporaryHitPoints}
                 magicTemporaryHitPointsSource={character.magicTemporaryHitPointsSource}
                 onPersistCharacter={onPersistCharacter}
               />
             ) : null}
             <DeathSavesWidget character={character} onPersistCharacter={onPersistCharacter} />
           </div>
-          <span className={styles.statusLabel}>{statusLabel}</span>
+          <span className={styles.statusLabel}>{hitPoints.statusLabel}</span>
         </div>
         <div className={shared.headerActions}>
-          {hasLedgerContent ? (
+          {hitPoints.hasLedgerContent ? (
             <button
               type="button"
               className={clsx(
                 shared.editButton,
                 styles.editButton,
                 styles.ledgerButton,
-                isLedgerActive && styles.ledgerButtonActive
+                hitPoints.isLedgerActive && styles.ledgerButtonActive
               )}
               onClick={() => setIsLedgerModalOpen(true)}
               aria-label="Open life and death ledger"
@@ -149,13 +118,13 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
 
       <HitPointControls
         currentHitPoints={character.currentHitPoints}
-        maxHitPoints={effectiveHitPoints}
-        temporaryHitPoints={temporaryHitPoints}
+        maxHitPoints={hitPoints.effectiveMaxHitPoints}
+        temporaryHitPoints={hitPoints.temporaryHitPoints}
         temporaryHitPointsSource={character.temporaryHitPointsSource}
-        magicTemporaryHitPoints={magicTemporaryHitPoints}
-        statusText={statusLabel}
+        magicTemporaryHitPoints={hitPoints.magicTemporaryHitPoints}
+        statusText={hitPoints.statusLabel}
         showSummary={false}
-        temporaryHitPointsDescription={temporaryHitPointsDescription}
+        temporaryHitPointsDescription={hitPoints.temporaryHitPointsDescription}
         onDamage={(amount) =>
           onPersistCharacter((currentCharacter) => applyDamageToCharacter(currentCharacter, amount))
         }
@@ -177,7 +146,7 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
           onPersistCharacter={onPersistCharacter}
         />
       ) : null}
-      {isLedgerModalOpen && hasLedgerContent ? (
+      {isLedgerModalOpen && hitPoints.hasLedgerContent ? (
         <LifeAndDeathLedgerModal
           character={character}
           onClose={() => setIsLedgerModalOpen(false)}

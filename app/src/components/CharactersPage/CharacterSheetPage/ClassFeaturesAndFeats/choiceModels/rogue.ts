@@ -14,8 +14,8 @@ import type {
 } from "../../../../../types";
 import {
   getRogueExpertiseTierForLevel,
-  getSelectableLanguageOptions,
-  getSelectableProficientSkillOptions,
+  getEffectiveProficientSkillOptions,
+  getSourceChoiceLanguageOptions,
   updateSelectionAtIndex
 } from "../helpers";
 import { recomputeCharacterFeatureProficiencies, type ClassFeatureChoiceModelArgs } from "./shared";
@@ -34,7 +34,7 @@ export function createRogueFeatureChoiceModel({
     const currentValue = currentSelections[slotIndex] ?? null;
     const blockedSelections = currentSelections.filter((_, index) => index !== slotIndex);
 
-    return getSelectableProficientSkillOptions(
+    return getEffectiveProficientSkillOptions(
       character,
       skillsOptions,
       currentValue,
@@ -76,7 +76,7 @@ export function createRogueFeatureChoiceModel({
   }
 
   function getAvailableRogueThievesCantLanguages(): LANGUAGE_PROFICIENCY[] {
-    return getSelectableLanguageOptions(character, getRogueThievesCantLanguageSelection());
+    return getSourceChoiceLanguageOptions(character, getRogueThievesCantLanguageSelection());
   }
 
   function updateRogueThievesCantLanguageSelection(nextValue: string) {
@@ -84,7 +84,7 @@ export function createRogueFeatureChoiceModel({
       recomputeCharacterFeatureProficiencies(
         setRogueThievesCantLanguageSelectionForCharacter(
           currentCharacter,
-          getSelectableLanguageOptions(currentCharacter, null).includes(
+          getSourceChoiceLanguageOptions(currentCharacter, null).includes(
             nextValue as LANGUAGE_PROFICIENCY
           )
             ? (nextValue as LANGUAGE_PROFICIENCY)

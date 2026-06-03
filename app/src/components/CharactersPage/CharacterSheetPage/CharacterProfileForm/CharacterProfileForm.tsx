@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { ScrollText, UsersRound } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { CharacterPortraitMutationResponse } from "../../../../api/characterPortraits";
 import type { Character } from "../../../../types";
 import {
@@ -13,6 +13,7 @@ import { upsertCharacterRosterCacheDocument } from "../../../../pages/Characters
 import { createPortableCharacterSheet } from "../../../../pages/CharactersPage/portableCharacterSheet";
 import { storeCloudCharacterSheetDocument } from "../../../../pages/CharactersPage/resolvePortableCharacterSheet";
 import { normalizeCharacter } from "../../../../pages/CharactersPage/storage";
+import { getCharacterRuntime } from "../../../../pages/CharactersPage/characterRuntime/characterRuntime";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { getSelectedSubclassForCharacter } from "../../../../pages/CharactersPage/subclasses";
 import { getClassSignatureStyle } from "../../classSignature";
@@ -22,11 +23,6 @@ import CharacterPortraitButton from "./CharacterPortraitButton";
 import CharacterPortraitModal from "./CharacterPortraitModal";
 import styles from "./CharacterProfileForm.module.css";
 import InlineToggleButton from "../InlineToggleButton";
-import {
-  createBroadProfileCoreStatRows,
-  createProfileCoreStatColumns,
-  createProfileCoreStatRows
-} from "../StatsForm/coreStatModel";
 import { useCoreStatReferenceDrawer } from "../StatsForm/useCoreStatReferenceDrawer";
 import CoreStatCards from "../StatsForm/CoreStatCards";
 import useCharacterPortrait from "./useCharacterPortrait";
@@ -104,10 +100,11 @@ function CharacterProfileForm({
     onMutationComplete: handlePortraitMutationComplete
   });
 
+  const combatSummary = useMemo(() => getCharacterRuntime(character).combatSummary, [character]);
   const profileCoreStatRows = broadLayout
-    ? createBroadProfileCoreStatRows(character)
-    : createProfileCoreStatRows(character);
-  const profileCoreStatColumns = createProfileCoreStatColumns(character);
+    ? combatSummary.coreStats.broadProfileRows
+    : combatSummary.coreStats.profileRows;
+  const profileCoreStatColumns = combatSummary.coreStats.profileColumns;
   const { coreStatReferenceDrawer, openCoreStatReference } = useCoreStatReferenceDrawer(
     character,
     onPersistCharacter

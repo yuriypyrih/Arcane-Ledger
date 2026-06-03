@@ -1,11 +1,12 @@
 import clsx from "clsx";
 import { CircleHelp, Pencil } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import type { Character } from "../../../../types";
 import { getKeywordDescription } from "../../../../pages/CharactersPage/keywordDescriptions";
 import type { FeatureIndicator } from "../../../../pages/CharactersPage/classFeatures";
+import { getCharacterRuntime } from "../../../../pages/CharactersPage/characterRuntime/characterRuntime";
 import { getProficiencyKeyword } from "../../../../pages/CharactersPage/proficiency";
 import { formatD20Formula } from "../../../../pages/CharactersPage/shared";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
@@ -20,7 +21,6 @@ import SkillReferenceDrawer, {
   type SelectedSkillReference,
   type SkillReferenceDetailCard
 } from "./SkillReferenceDrawer";
-import { getProficiencySummarySections } from "./proficiencySummarySections";
 import styles from "./SkillsAndProficienciesForm.module.css";
 
 type SkillsAndProficienciesFormProps = {
@@ -43,6 +43,7 @@ function SkillsAndProficienciesForm({
   const [isSkillReferenceDiceRollerSettingsOpen, setIsSkillReferenceDiceRollerSettingsOpen] =
     useState(false);
   const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
+  const combatSummary = useMemo(() => getCharacterRuntime(character).combatSummary, [character]);
 
   useBodyScrollLock(
     Boolean(selectedKeyword) ||
@@ -52,17 +53,7 @@ function SkillsAndProficienciesForm({
       isSkillReferenceDiceRollerSettingsOpen
   );
 
-  const visibleProficiencySections = getProficiencySummarySections(
-    {
-      skillProficiencies: character.skillProficiencies,
-      savingThrowProficiencies: character.savingThrowProficiencies,
-      weaponProficiencies: character.weaponProficiencies,
-      armorProficiencies: character.armorProficiencies,
-      toolProficiencies: character.toolProficiencies,
-      languageProficiencies: character.languageProficiencies
-    },
-    character.className
-  );
+  const visibleProficiencySections = combatSummary.skills.proficiencySections;
 
   function openProficiencyEditor(tab: ProficiencyEditorTab = "weapons") {
     setProficiencyEditorInitialTab(tab);
@@ -165,7 +156,7 @@ function SkillsAndProficienciesForm({
             </button>
           </div>
           <SkillRowsGrid
-            character={character}
+            skillSummary={combatSummary.skills}
             skillProficiencies={character.skillProficiencies}
             onOpenSkillReference={openKeywordReference}
           />

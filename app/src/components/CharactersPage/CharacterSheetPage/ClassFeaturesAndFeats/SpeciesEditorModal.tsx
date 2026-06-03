@@ -37,7 +37,7 @@ import ActionButton from "../../../ActionButton";
 import SelectInput from "../../FormInputs/SelectInput";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./FeatEditorModal.module.css";
-import { buildSkillSelectOptions, getSelectableUnproficientSkillOptions } from "./helpers";
+import { buildSkillSelectOptions, getSourceChoiceSkillOptions } from "./helpers";
 
 type SpeciesEditorModalProps = {
   character: Character;
@@ -69,7 +69,7 @@ function SpeciesEditorModal({ character, onCancel, onSave }: SpeciesEditorModalP
   const tieflingSpellcastingAbilityOptions =
     getTieflingSpellcastingAbilityOptionsForSpecies(draftSpecies);
   const selectedElfSkillProficiency = normalizedChoices?.elvenSkillProficiency ?? null;
-  const availableElfSkillProficiencyOptions = getSelectableUnproficientSkillOptions(
+  const availableElfSkillProficiencyOptions = getSourceChoiceSkillOptions(
     character,
     elfSkillProficiencyOptions,
     selectedElfSkillProficiency
@@ -80,7 +80,7 @@ function SpeciesEditorModal({ character, onCancel, onSave }: SpeciesEditorModalP
     selectedElfSkillProficiency
   );
   const selectedHumanSkillProficiency = normalizedChoices?.humanSkillProficiency ?? null;
-  const availableHumanSkillProficiencyOptions = getSelectableUnproficientSkillOptions(
+  const availableHumanSkillProficiencyOptions = getSourceChoiceSkillOptions(
     character,
     humanSkillProficiencyOptions,
     selectedHumanSkillProficiency

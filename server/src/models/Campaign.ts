@@ -41,6 +41,27 @@ export type CampaignPreparedEncounterRecord = {
   creatures: CampaignPreparedEncounterCreatureRecord[];
 };
 
+export type CampaignLiveEncounterParticipantKindRecord = "party-member" | "creature";
+
+export type CampaignLiveEncounterParticipantRefRecord = {
+  participantId: string;
+  kind: CampaignLiveEncounterParticipantKindRecord;
+  characterId?: string;
+  creatureId?: string;
+};
+
+export type CampaignLiveEncounterTrackerRecord = {
+  preparedEncounterId: string;
+  partyGroupId: Types.ObjectId;
+  activeParticipantId?: string | null;
+  partyMembers: CampaignLiveEncounterParticipantRefRecord[];
+  creatures: CampaignLiveEncounterParticipantRefRecord[];
+  initiativeOrder: CampaignLiveEncounterParticipantRefRecord[];
+  revision: number;
+  createdAt?: Date;
+  updatedAt?: Date;
+};
+
 export type CampaignRecord = {
   name: string;
   ownerId: Types.ObjectId;
@@ -48,6 +69,7 @@ export type CampaignRecord = {
   visibilitySettings: CampaignVisibilitySettingsRecord;
   selectedPartyId?: Types.ObjectId | null;
   preparedEncounters: CampaignPreparedEncounterRecord[];
+  liveEncounterTracker?: CampaignLiveEncounterTrackerRecord | null;
   createdAt?: Date;
   updatedAt?: Date;
 };
@@ -208,6 +230,88 @@ const campaignPreparedEncounterSchema = new Schema<CampaignPreparedEncounterReco
   }
 );
 
+const campaignLiveEncounterParticipantRefSchema =
+  new Schema<CampaignLiveEncounterParticipantRefRecord>(
+    {
+      participantId: {
+        type: String,
+        required: true,
+        trim: true,
+        maxlength: 128
+      },
+      kind: {
+        type: String,
+        enum: ["party-member", "creature"],
+        required: true
+      },
+      characterId: {
+        type: String,
+        trim: true,
+        maxlength: 128
+      },
+      creatureId: {
+        type: String,
+        trim: true,
+        maxlength: 128
+      }
+    },
+    {
+      _id: false
+    }
+  );
+
+const campaignLiveEncounterTrackerSchema = new Schema<CampaignLiveEncounterTrackerRecord>(
+  {
+    preparedEncounterId: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 128
+    },
+    partyGroupId: {
+      type: Schema.Types.ObjectId,
+      ref: "PartyGroup",
+      required: true
+    },
+    activeParticipantId: {
+      type: String,
+      trim: true,
+      maxlength: 128,
+      default: null
+    },
+    partyMembers: {
+      type: [campaignLiveEncounterParticipantRefSchema],
+      default: []
+    },
+    creatures: {
+      type: [campaignLiveEncounterParticipantRefSchema],
+      default: []
+    },
+    initiativeOrder: {
+      type: [campaignLiveEncounterParticipantRefSchema],
+      default: []
+    },
+    revision: {
+      type: Number,
+      default: 1,
+      required: true,
+      min: 1
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now
+    },
+    updatedAt: {
+      type: Date,
+      default: Date.now
+    }
+  },
+  {
+    _id: false,
+    minimize: false
+  }
+);
+
 const campaignSchema = new Schema<CampaignRecord>(
   {
     name: {
@@ -240,6 +344,10 @@ const campaignSchema = new Schema<CampaignRecord>(
     preparedEncounters: {
       type: [campaignPreparedEncounterSchema],
       default: []
+    },
+    liveEncounterTracker: {
+      type: campaignLiveEncounterTrackerSchema,
+      default: null
     }
   },
   {

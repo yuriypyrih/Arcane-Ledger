@@ -11,10 +11,12 @@ import {
   UserCircle
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useMatch, useNavigate } from "react-router-dom";
 import { requestImmediateCharacterSync } from "../../../characterSync/characterSyncRequests";
+import { requestImmediateLiveEncounterTrackerSync } from "../../../liveEncounterTracker/liveEncounterTrackerSyncRequests";
 import { useOnlineStatus } from "../../../lib/useOnlineStatus";
 import { useAppSelector } from "../../../store";
+import type { LiveEncounterTrackerSaveStatus } from "../../../store";
 import type { CharacterSheetSyncStatus } from "../../../types";
 import type { NavigationLink } from "../navigationLinks";
 import styles from "./PrimaryNav.module.css";
@@ -46,6 +48,7 @@ function getNavSyncBadgeModel(
   }
 
   switch (syncStatus) {
+    case undefined:
     case "synced":
       return {
         icon: CheckCircle2,
@@ -93,6 +96,58 @@ function getNavSyncBadgeModel(
   }
 }
 
+function getLiveEncounterTrackerSyncBadgeModel(
+  syncStatus: LiveEncounterTrackerSaveStatus | undefined,
+  isOnline: boolean
+): NavSyncBadgeModel {
+  if (!isOnline) {
+    return {
+      icon: CloudOff,
+      isActionable: false,
+      label: "Offline",
+      tone: "red"
+    };
+  }
+
+  switch (syncStatus) {
+    case "synced":
+      return {
+        icon: CheckCircle2,
+        isActionable: false,
+        label: "Synced",
+        tone: "green"
+      };
+    case "saving":
+      return {
+        icon: RefreshCw,
+        isActionable: false,
+        label: "Saving",
+        tone: "orange"
+      };
+    case "error":
+      return {
+        icon: AlertCircle,
+        isActionable: true,
+        label: "Error",
+        tone: "red"
+      };
+    case "dirty":
+      return {
+        icon: Cloud,
+        isActionable: true,
+        label: "Pending",
+        tone: "orange"
+      };
+    default:
+      return {
+        icon: CheckCircle2,
+        isActionable: false,
+        label: "Synced",
+        tone: "green"
+      };
+  }
+}
+
 type PrimaryNavProps = {
   links: NavigationLink[];
   broadLayout: boolean;
@@ -109,9 +164,19 @@ function PrimaryNav({
   onToggleBroadLayout
 }: PrimaryNavProps) {
   const navigate = useNavigate();
+  const liveEncounterTrackerMatch = useMatch({
+    path: "/gm-tools/campaign-manager/:campaignId/live-encounter",
+    end: true
+  });
+  const liveEncounterTrackerCampaignId = liveEncounterTrackerMatch?.params.campaignId ?? null;
   const { status, user } = useAppSelector((state) => state.auth);
   const activeCharacter = useAppSelector((state) => state.activeCharacterSheet.activeCharacter);
   const isActiveSheetDirty = useAppSelector((state) => state.activeCharacterSheet.dirty);
+  const liveEncounterTrackerSaveStatus = useAppSelector((state) =>
+    liveEncounterTrackerCampaignId
+      ? state.dmTools.liveEncounterTrackerSaveStatusByCampaignId[liveEncounterTrackerCampaignId]
+      : undefined
+  );
   const isOnline = useOnlineStatus();
   const accountMenuRef = useRef<HTMLDivElement | null>(null);
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
@@ -123,10 +188,20 @@ function PrimaryNav({
   const isViewingActiveCharacter =
     characterSheetId !== null && activeCharacter?.id === characterSheetId;
   const syncBadge =
-    isViewingActiveCharacter && isAuthenticated && activeCharacter
-      ? getNavSyncBadgeModel(effectiveSyncStatus, isOnline)
-      : null;
+    liveEncounterTrackerCampaignId && isAuthenticated
+      ? getLiveEncounterTrackerSyncBadgeModel(liveEncounterTrackerSaveStatus, isOnline)
+      : isViewingActiveCharacter && isAuthenticated && activeCharacter
+        ? getNavSyncBadgeModel(effectiveSyncStatus, isOnline)
+        : null;
   const SyncBadgeIcon = syncBadge?.icon;
+  const syncBadgeAction =
+    liveEncounterTrackerCampaignId && isAuthenticated
+      ? requestImmediateLiveEncounterTrackerSync
+      : requestImmediateCharacterSync;
+  const syncBadgeActionLabel =
+    liveEncounterTrackerCampaignId && isAuthenticated
+      ? "Retry encounter tracker sync"
+      : "Retry character sync";
 
   useEffect(() => {
     if (!accountMenuOpen) {
@@ -204,8 +279,8 @@ function PrimaryNav({
             <button
               type="button"
               className={`${styles.syncStatusBadge} ${syncBadgeToneClasses[syncBadge.tone]}`}
-              aria-label={`Retry character sync. Current status: ${syncBadge.label}`}
-              onClick={requestImmediateCharacterSync}
+              aria-label={`${syncBadgeActionLabel}. Current status: ${syncBadge.label}`}
+              onClick={syncBadgeAction}
             >
               <SyncBadgeIcon size={14} aria-hidden="true" />
               <span>{syncBadge.label}</span>

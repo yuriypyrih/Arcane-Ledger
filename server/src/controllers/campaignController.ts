@@ -23,6 +23,11 @@ import {
   updateOwnedCampaignName,
   upsertCampaignPreparedEncounterCreature
 } from "../services/campaignService.js";
+import {
+  removeCampaignLiveEncounterTracker,
+  startCampaignLiveEncounterTracker,
+  updateCampaignLiveEncounterTracker
+} from "../services/campaignLiveEncounterTrackerService.js";
 
 function isObjectRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -116,6 +121,45 @@ export const updateCampaignParty = asyncHandler(
         campaignId: request.params.campaignId ?? "",
         ownerId: response.locals.authUser._id,
         partyGroupId: body.partyGroupId
+      })
+    );
+  }
+);
+
+export const startCampaignLiveEncounterById = asyncHandler(
+  async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
+    assertObjectBody(request.body);
+
+    response.status(201).json(
+      await startCampaignLiveEncounterTracker({
+        campaignId: request.params.campaignId ?? "",
+        ownerId: response.locals.authUser._id,
+        payload: request.body
+      })
+    );
+  }
+);
+
+export const updateCampaignLiveEncounterById = asyncHandler(
+  async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
+    assertObjectBody(request.body);
+
+    response.json(
+      await updateCampaignLiveEncounterTracker({
+        campaignId: request.params.campaignId ?? "",
+        ownerId: response.locals.authUser._id,
+        payload: request.body
+      })
+    );
+  }
+);
+
+export const removeCampaignLiveEncounterById = asyncHandler(
+  async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
+    response.json(
+      await removeCampaignLiveEncounterTracker({
+        campaignId: request.params.campaignId ?? "",
+        ownerId: response.locals.authUser._id
       })
     );
   }

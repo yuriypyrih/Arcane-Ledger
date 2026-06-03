@@ -8,7 +8,7 @@ import {
   setFighterBanneretKnightlyEnvoySkillSelectionForCharacter
 } from "../../../../../pages/CharactersPage/classFeatures";
 import type { LANGUAGE_PROFICIENCY, SkillName } from "../../../../../types";
-import { getSelectableLanguageOptions, getSelectableUnproficientSkillOptions } from "../helpers";
+import { getSourceChoiceLanguageOptions, getSourceChoiceSkillOptions } from "../helpers";
 import { recomputeCharacterFeatureProficiencies, type ClassFeatureChoiceModelArgs } from "./shared";
 
 export function createFighterFeatureChoiceModel({
@@ -29,7 +29,7 @@ export function createFighterFeatureChoiceModel({
   }
 
   function getAvailableFighterBanneretKnightlyEnvoyLanguages(): LANGUAGE_PROFICIENCY[] {
-    return getSelectableLanguageOptions(
+    return getSourceChoiceLanguageOptions(
       character,
       getFighterBanneretKnightlyEnvoyLanguageSelection()
     );
@@ -51,7 +51,7 @@ export function createFighterFeatureChoiceModel({
   }
 
   function getAvailableFighterBanneretKnightlyEnvoySkills(): SkillName[] {
-    return getSelectableUnproficientSkillOptions(
+    return getSourceChoiceSkillOptions(
       character,
       fighterBanneretKnightlyEnvoySkillOptions,
       getFighterBanneretKnightlyEnvoySkillSelection()

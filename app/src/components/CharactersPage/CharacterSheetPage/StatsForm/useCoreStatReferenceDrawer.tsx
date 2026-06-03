@@ -11,25 +11,20 @@ import {
   getMonkUncannyMetabolismUsesTotalForCharacter,
   hasRogueThiefThiefsReflexesForCharacter
 } from "../../../../pages/CharactersPage/classFeatures";
-import { getInitiativeBreakdownForCharacter } from "../../../../pages/CharactersPage/gameplay";
-import {
-  getArmorClassResolutionForCharacter,
-  setArmorClassFormulaSelectionForCharacter
-} from "../../../../pages/CharactersPage/armor";
+import { setArmorClassFormulaSelectionForCharacter } from "../../../../pages/CharactersPage/armor";
 import {
   getHitDiceRemainingForCharacter,
-  getHitDiceTotalForCharacter,
-  getHitDieLabelForCharacter
+  getHitDiceTotalForCharacter
 } from "../../../../pages/CharactersPage/hitDice";
+import { getCharacterRuntime } from "../../../../pages/CharactersPage/characterRuntime/characterRuntime";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { getRollModeFromIndicators } from "../../../RollStatePill/rollState";
 import ResourceManagementModal from "../ResourceManagementModal";
 import ArmorClassFormulaFooter from "./ArmorClassFormulaFooter";
 import InitiativeReferenceFooter from "./InitiativeReferenceFooter";
 import StatReferenceDrawer, { type SelectedStatReference } from "./StatReferenceDrawer";
-import { getArmorClassReferenceDetailCards } from "./armorClassReference";
 import { applyInitiativeRollCharacterEffects, createInitiativeRollRequest } from "./initiativeRoll";
-import { createCoreStatReference, type CoreStatCard } from "./coreStatModel";
+import type { CoreStatCard } from "./coreStatModel";
 
 type CoreStatReferenceDrawerResult = {
   coreStatReferenceDrawer: JSX.Element | null;
@@ -50,7 +45,9 @@ export function useCoreStatReferenceDrawer(
   const [isDiceRollerSettingsOpen, setIsDiceRollerSettingsOpen] = useState(false);
   const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
 
-  const armorClassResolution = getArmorClassResolutionForCharacter(character);
+  const combatSummary = getCharacterRuntime(character).combatSummary;
+  const { coreStats } = combatSummary;
+  const armorClassResolution = coreStats.armorClassResolution;
   const persistentRageUsesTotal = getBarbarianPersistentRageUsesTotalForCharacter(character);
   const persistentRageUsesRemaining =
     getBarbarianPersistentRageUsesRemainingForCharacter(character);
@@ -67,17 +64,17 @@ export function useCoreStatReferenceDrawer(
   const bardicInspirationUsesRemaining = getBardicInspirationUsesRemainingForCharacter(character);
   const tandemFootworkAvailable =
     hasTandemFootwork && bardicInspirationDie !== null && bardicInspirationUsesRemaining > 0;
-  const initiativeBreakdown = getInitiativeBreakdownForCharacter(character);
+  const initiativeBreakdown = coreStats.initiativeBreakdown;
   const monkMartialArtsDie = getMonkMartialArtsDieForCharacter(character);
   const hasThiefsReflexes = hasRogueThiefThiefsReflexesForCharacter(character);
-  const hitDiceRemaining = getHitDiceRemainingForCharacter(character);
-  const hitDiceTotal = getHitDiceTotalForCharacter(character);
-  const hitDieLabel = getHitDieLabelForCharacter(character);
+  const hitDiceRemaining = coreStats.hitDiceSummary.remaining;
+  const hitDiceTotal = coreStats.hitDiceSummary.total;
+  const hitDieLabel = coreStats.hitDiceSummary.label;
   const resolvedSelectedStatReference =
     selectedStatReference?.keyword === "Armor Class"
       ? {
           ...selectedStatReference,
-          detailCards: getArmorClassReferenceDetailCards(armorClassResolution),
+          detailCards: coreStats.armorClassDetailCards,
           warning: armorClassResolution.warning
         }
       : selectedStatReference;
@@ -110,7 +107,7 @@ export function useCoreStatReferenceDrawer(
     }
 
     setIsDiceRollerSettingsOpen(false);
-    setSelectedStatReference(createCoreStatReference(character, card));
+    setSelectedStatReference(coreStats.getReferenceForCard(card));
   }
 
   function updateHitDiceRemaining(getNextRemaining: (remaining: number, total: number) => number) {

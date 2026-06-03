@@ -10,7 +10,7 @@ import {
   TOOL_PROFICIENCY
 } from "../../../../types";
 import { artisanToolProficiencies, type ToolProficiency } from "../../proficiencyOptions";
-import { getToolLevelFromEntries } from "../../proficiency/manual";
+import { getRuntimeToolLevel } from "../../proficiency/runtime";
 import type { FeatureToolProficiencyEntry } from "../types";
 
 const alchemistSubclassId = "artificer-alchemist";
@@ -104,7 +104,10 @@ function hasPriorToolProficiency(
   proficiency: TOOL_PROFICIENCY
 ): boolean {
   return (
-    getToolLevelFromEntries(getPriorToolProficiencyEntries(character), proficiency) !==
+    getRuntimeToolLevel(
+      { toolProficiencies: getPriorToolProficiencyEntries(character) },
+      proficiency
+    ) !==
     PROF_LEVEL.NONE
   );
 }

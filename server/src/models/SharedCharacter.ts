@@ -1,5 +1,8 @@
 import mongoose, { Schema, model, type HydratedDocument, type Model, type Types } from "mongoose";
-import type { CharacterSheetSummaryRecord } from "./CharacterSheet.js";
+import {
+  characterEncounterStatBlockSchema,
+  type CharacterSheetSummaryRecord
+} from "./CharacterSheet.js";
 
 export type SharedCharacterRecord = {
   link: string;
@@ -53,6 +56,10 @@ const sharedCharacterSummarySchema = new Schema<CharacterSheetSummaryRecord>(
     sheetSizeBytes: {
       type: Number,
       min: 0
+    },
+    encounterStatBlock: {
+      type: characterEncounterStatBlockSchema,
+      default: undefined
     }
   },
   {

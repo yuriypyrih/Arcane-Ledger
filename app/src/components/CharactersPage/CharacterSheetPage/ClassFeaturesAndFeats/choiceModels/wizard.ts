@@ -24,8 +24,8 @@ import {
 } from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardBladesinger";
 import type { SkillName } from "../../../../../types";
 import {
-  getSelectableProficientSkillOptions,
-  getSelectableUnproficientSkillOptions,
+  getEffectiveProficientSkillOptions,
+  getSourceChoiceSkillOptions,
   updateSelectionAtIndex,
   wizardScholarSkillOptions
 } from "../helpers";
@@ -40,7 +40,7 @@ export function createWizardFeatureChoiceModel({
   }
 
   function getAvailableWizardScholarSkills(): SkillName[] {
-    return getSelectableProficientSkillOptions(
+    return getEffectiveProficientSkillOptions(
       character,
       wizardScholarSkillOptions,
       getWizardScholarSelection()
@@ -67,7 +67,7 @@ export function createWizardFeatureChoiceModel({
   function isWizardBladesingerTrainingInWarAndSongInputRequired(): boolean {
     return (
       getWizardBladesingerTrainingInWarAndSongSkillSelection(character) === null &&
-      getSelectableUnproficientSkillOptions(
+      getSourceChoiceSkillOptions(
         character,
         wizardBladesingerTrainingInWarAndSongSkillOptions,
         null

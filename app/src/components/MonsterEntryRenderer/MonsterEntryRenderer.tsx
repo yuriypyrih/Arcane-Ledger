@@ -10,13 +10,16 @@ import {
   formatMonsterTitleMeta,
   formatMonsterValueWithNote,
   getKnownMonsterText,
-  type MonsterActionGroup
+  type MonsterActionGroup,
+  type MonsterDetailRow
 } from "./monsterEntryFormatting";
 import styles from "./MonsterEntryRenderer.module.css";
 
 type MonsterEntryRendererProps = {
+  actionGroups?: MonsterActionGroup[];
   monster: MonsterRecord;
   className?: string;
+  detailRows?: MonsterDetailRow[];
   headingTag?: string;
   headingId?: string;
   showHeading?: boolean;
@@ -95,8 +98,10 @@ function DescriptionBlock({ description }: { description: string }) {
 }
 
 function MonsterEntryRenderer({
+  actionGroups: providedActionGroups,
   monster,
   className,
+  detailRows: providedDetailRows,
   headingTag,
   headingId,
   showHeading = true,
@@ -105,9 +110,9 @@ function MonsterEntryRenderer({
   const titleMeta = formatMonsterTitleMeta(monster);
   const description = getKnownMonsterText(monster.desc);
   const speed = formatMonsterSpeed(monster.speed);
-  const detailRows = buildMonsterDetailRows(monster);
+  const detailRows = providedDetailRows ?? buildMonsterDetailRows(monster);
   const abilitySavingThrowCards = buildMonsterAbilitySavingThrowCards(monster);
-  const actionGroups = buildMonsterActionGroups(monster);
+  const actionGroups = providedActionGroups ?? buildMonsterActionGroups(monster);
   const shouldRenderIntro = showHeading || description;
 
   return (

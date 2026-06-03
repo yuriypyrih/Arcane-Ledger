@@ -170,10 +170,10 @@ import {
 import {
   buildSkillSelectOptions,
   buildToolSelectOptions,
-  getSelectableNonExpertSkillOptions,
-  getSelectableProficientSkillOptions,
-  getSelectableUnproficientSkillOptions,
-  getSelectableUnproficientToolOptions,
+  getEffectiveNonExpertSkillOptions,
+  getEffectiveProficientSkillOptions,
+  getSourceChoiceSkillOptions,
+  getSourceChoiceToolOptions,
   updateSelectionAtIndex
 } from "./helpers";
 import type {
@@ -826,7 +826,7 @@ function BoonOfSkillChoiceEditor({
     choice.skillExpertise === boonOfSkillNoneOptionValue
       ? null
       : (choice.skillExpertise as SkillName);
-  const availableSkills = getSelectableNonExpertSkillOptions(
+  const availableSkills = getEffectiveNonExpertSkillOptions(
     { skillProficiencies },
     skillsOptions,
     currentSkill
@@ -914,14 +914,14 @@ function SkillExpertChoiceEditor({
     choice.skillExpertise === skillExpertNoneOptionValue
       ? null
       : (choice.skillExpertise as SkillName);
-  const availableProficiencySkills = getSelectableUnproficientSkillOptions(
+  const availableProficiencySkills = getSourceChoiceSkillOptions(
     { skillProficiencies },
     skillsOptions,
     currentSkillProficiency
   );
   const availableExpertiseSkills = [
     ...new Set([
-      ...getSelectableProficientSkillOptions(
+      ...getEffectiveProficientSkillOptions(
         { skillProficiencies },
         skillsOptions,
         currentSkillExpertise
@@ -1039,7 +1039,7 @@ function KeenMindChoiceEditor({
 }: KeenMindChoiceEditorProps) {
   const currentSkill =
     choice.skill === keenMindNoneOptionValue ? null : (choice.skill as SkillName);
-  const availableSkills = getSelectableNonExpertSkillOptions(
+  const availableSkills = getEffectiveNonExpertSkillOptions(
     { skillProficiencies },
     keenMindSkillOptions,
     currentSkill
@@ -1108,7 +1108,7 @@ function ObservantChoiceEditor({
 }: ObservantChoiceEditorProps) {
   const currentSkill =
     choice.skill === observantNoneOptionValue ? null : (choice.skill as SkillName);
-  const availableSkills = getSelectableNonExpertSkillOptions(
+  const availableSkills = getEffectiveNonExpertSkillOptions(
     { skillProficiencies },
     observantSkillOptions,
     currentSkill
@@ -1352,7 +1352,7 @@ function CrafterChoiceEditor({
           const blockedSelections = choice.toolProficiencies.filter(
             (tool, index) => index !== selectionIndex && tool !== crafterNoneOptionValue
           ) as ToolProficiency[];
-          const availableTools = getSelectableUnproficientToolOptions(
+          const availableTools = getSourceChoiceToolOptions(
             { toolProficiencies },
             crafterFastCraftingToolProficiencies,
             currentTool,
@@ -1429,7 +1429,7 @@ function MusicianChoiceEditor({
           const blockedSelections = choice.toolProficiencies.filter(
             (tool, index) => index !== selectionIndex && tool !== musicianNoneOptionValue
           ) as ToolProficiency[];
-          const availableTools = getSelectableUnproficientToolOptions(
+          const availableTools = getSourceChoiceToolOptions(
             { toolProficiencies },
             musicalInstrumentToolProficiencies,
             currentTool,

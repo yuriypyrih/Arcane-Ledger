@@ -11,6 +11,7 @@ import type {
 } from "../api/partyGroups";
 
 export type DmToolsLoadStatus = "idle" | "loading" | "ready" | "error";
+export type LiveEncounterTrackerSaveStatus = "synced" | "dirty" | "saving" | "error";
 
 export type DmToolsState = {
   partyGroups: PartyGroupRecord[];
@@ -29,6 +30,8 @@ export type DmToolsState = {
   selectedCampaignsById: Record<string, CampaignDetailRecord>;
   selectedCampaignStatusById: Record<string, DmToolsLoadStatus>;
   selectedCampaignErrorById: Record<string, string | null>;
+  liveEncounterTrackerSaveStatusByCampaignId: Record<string, LiveEncounterTrackerSaveStatus>;
+  liveEncounterTrackerSaveErrorByCampaignId: Record<string, string | null>;
   encounterTemplates: EncounterTemplateRecord[];
   encounterTemplatesStatus: DmToolsLoadStatus;
   encounterTemplatesError: string | null;
@@ -54,6 +57,8 @@ const initialState: DmToolsState = {
   selectedCampaignsById: {},
   selectedCampaignStatusById: {},
   selectedCampaignErrorById: {},
+  liveEncounterTrackerSaveStatusByCampaignId: {},
+  liveEncounterTrackerSaveErrorByCampaignId: {},
   encounterTemplates: [],
   encounterTemplatesStatus: "idle",
   encounterTemplatesError: null,
@@ -255,6 +260,8 @@ const dmToolsSlice = createSlice({
       delete state.selectedCampaignsById[campaignId];
       delete state.selectedCampaignStatusById[campaignId];
       delete state.selectedCampaignErrorById[campaignId];
+      delete state.liveEncounterTrackerSaveStatusByCampaignId[campaignId];
+      delete state.liveEncounterTrackerSaveErrorByCampaignId[campaignId];
     },
     setSelectedCampaignLoading(state, action: PayloadAction<string>) {
       state.selectedCampaignStatusById[action.payload] = "loading";
@@ -286,6 +293,23 @@ const dmToolsSlice = createSlice({
     setSelectedCampaignError(state, action: PayloadAction<{ campaignId: string; error: string }>) {
       state.selectedCampaignStatusById[action.payload.campaignId] = "error";
       state.selectedCampaignErrorById[action.payload.campaignId] = action.payload.error;
+    },
+    setLiveEncounterTrackerSaveStatus(
+      state,
+      action: PayloadAction<{
+        campaignId: string;
+        error?: string | null;
+        status: LiveEncounterTrackerSaveStatus;
+      }>
+    ) {
+      state.liveEncounterTrackerSaveStatusByCampaignId[action.payload.campaignId] =
+        action.payload.status;
+      state.liveEncounterTrackerSaveErrorByCampaignId[action.payload.campaignId] =
+        action.payload.error ?? null;
+    },
+    clearLiveEncounterTrackerSaveStatus(state, action: PayloadAction<string>) {
+      delete state.liveEncounterTrackerSaveStatusByCampaignId[action.payload];
+      delete state.liveEncounterTrackerSaveErrorByCampaignId[action.payload];
     },
     setEncounterTemplatesLoading(state) {
       state.encounterTemplatesStatus = "loading";
@@ -360,7 +384,9 @@ export const {
   setSelectedCampaign,
   setSelectedCampaignError,
   setSelectedCampaignLoading,
+  clearLiveEncounterTrackerSaveStatus,
   patchSelectedCampaign,
+  setLiveEncounterTrackerSaveStatus,
   setEncounterTemplates,
   setEncounterTemplatesError,
   setEncounterTemplatesLoading,

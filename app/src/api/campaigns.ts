@@ -1,4 +1,9 @@
 import type { EncounterTemplateCreatureRecord } from "./encounterTemplates";
+import type {
+  CharacterAvatarMetadata,
+  PortableCharacterSheetSummary,
+  PortableEncounterStatBlock
+} from "../types";
 import { apiDelete, apiGet, apiPatch, apiPost, apiPut, type ApiRequestOptions } from "./client";
 
 export type CampaignVisibilitySettings = {
@@ -42,6 +47,72 @@ export type CampaignPreparedEncounterCreatureRecord = EncounterTemplateCreatureR
   visibilitySettings?: PlayerVisibilitySettings | null;
 };
 
+export type CampaignLiveEncounterTrackerParticipantKind = "party-member" | "creature";
+
+export type CampaignLiveEncounterTrackerParticipantRefRecord = {
+  participantId: string;
+  kind: CampaignLiveEncounterTrackerParticipantKind;
+  characterId?: string;
+  creatureId?: string;
+};
+
+export type CampaignLiveEncounterTrackerStatusRecord =
+  | {
+      state: "valid";
+    }
+  | {
+      state: "invalid";
+      code: string;
+      message: string;
+    };
+
+export type CampaignLiveEncounterTrackerCharacterSummary = Omit<
+  PortableCharacterSheetSummary,
+  "localId"
+> & {
+  localId?: number;
+};
+
+export type CampaignLiveEncounterTrackerPartyMemberRecord =
+  CampaignLiveEncounterTrackerParticipantRefRecord & {
+    kind: "party-member";
+    characterId: string;
+    ownerId: string;
+    user: {
+      id: string;
+      nickname: string;
+    };
+    summary: CampaignLiveEncounterTrackerCharacterSummary;
+    statBlock?: PortableEncounterStatBlock;
+    avatar: CharacterAvatarMetadata | null;
+    updatedAt: string | null;
+  };
+
+export type CampaignLiveEncounterTrackerCreatureRecord =
+  CampaignLiveEncounterTrackerParticipantRefRecord & {
+    kind: "creature";
+    creatureId: string;
+    creature: CampaignPreparedEncounterCreatureRecord;
+  };
+
+export type CampaignLiveEncounterTrackerParticipantRecord =
+  | CampaignLiveEncounterTrackerPartyMemberRecord
+  | CampaignLiveEncounterTrackerCreatureRecord;
+
+export type CampaignLiveEncounterTrackerRecord = {
+  preparedEncounterId: string;
+  preparedEncounterName: string;
+  partyGroupId: string;
+  activeParticipantId: string | null;
+  status: CampaignLiveEncounterTrackerStatusRecord;
+  partyMembers: CampaignLiveEncounterTrackerPartyMemberRecord[];
+  creatures: CampaignLiveEncounterTrackerCreatureRecord[];
+  initiativeOrder: CampaignLiveEncounterTrackerParticipantRecord[];
+  revision: number;
+  createdAt: string | null;
+  updatedAt: string | null;
+};
+
 export type CampaignRecord = {
   id: string;
   name: string;
@@ -60,6 +131,7 @@ export type CampaignDetailRecord = CampaignRecord & {
   maxPreparedEncounters: number;
   sessionNotes: CampaignSessionNoteRecord[];
   preparedEncounters: CampaignPreparedEncounterRecord[];
+  liveEncounterTracker: CampaignLiveEncounterTrackerRecord | null;
 };
 
 export type CampaignListEnvelope = {
@@ -85,6 +157,7 @@ export type CampaignPatchRecord = Partial<
     | "selectedPartyId"
     | "visibilitySettings"
     | "selectedParty"
+    | "liveEncounterTracker"
     | "sessionNotes"
     | "sessionNoteCount"
     | "preparedEncounters"
@@ -101,6 +174,14 @@ export type CampaignPatchEnvelope = {
 export type CampaignSessionNoteInput = {
   name?: string;
   description: string;
+};
+
+export type CampaignLiveEncounterTrackerUpdateInput = {
+  activeParticipantId: string | null;
+  partyMembers: CampaignLiveEncounterTrackerParticipantRefRecord[];
+  creatures: CampaignLiveEncounterTrackerParticipantRefRecord[];
+  initiativeOrder: CampaignLiveEncounterTrackerParticipantRefRecord[];
+  revision: number;
 };
 
 export function listCampaigns(options?: ApiRequestOptions) {
@@ -143,6 +224,40 @@ export function updateCampaignSelectedParty(
   return apiPatch<CampaignPatchEnvelope>(
     `/campaigns/${campaignId}/selected-party`,
     { partyGroupId },
+    options
+  );
+}
+
+export function startCampaignLiveEncounterTracker(
+  campaignId: string,
+  preparedEncounterId: string,
+  options?: ApiRequestOptions
+) {
+  return apiPost<CampaignPatchEnvelope>(
+    `/campaigns/${campaignId}/live-encounter`,
+    { preparedEncounterId },
+    options
+  );
+}
+
+export function updateCampaignLiveEncounterTracker(
+  campaignId: string,
+  tracker: CampaignLiveEncounterTrackerUpdateInput,
+  options?: ApiRequestOptions
+) {
+  return apiPatch<CampaignPatchEnvelope>(
+    `/campaigns/${campaignId}/live-encounter`,
+    tracker,
+    options
+  );
+}
+
+export function removeCampaignLiveEncounterTracker(
+  campaignId: string,
+  options?: ApiRequestOptions
+) {
+  return apiDelete<CampaignPatchEnvelope>(
+    `/campaigns/${campaignId}/live-encounter`,
     options
   );
 }

@@ -23,7 +23,7 @@ import styles from "./DmToolsPage.module.css";
 
 type CampaignPreparedEncountersSectionProps = {
   campaign: CampaignDetailRecord;
-  onStartEncounter: (encounter: CampaignPreparedEncounterRecord) => void;
+  onStartEncounter: (encounter: CampaignPreparedEncounterRecord) => Promise<void>;
 };
 
 function getDeletePreparedEncounterMessage(encounter: CampaignPreparedEncounterRecord): ReactNode {
@@ -46,11 +46,13 @@ function CampaignPreparedEncountersSection({
   const [pendingDeleteEncounter, setPendingDeleteEncounter] =
     useState<CampaignPreparedEncounterRecord | null>(null);
   const [isDeletingEncounter, setIsDeletingEncounter] = useState(false);
+  const [startingEncounterId, setStartingEncounterId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const isAtPreparedEncounterLimit =
     campaign.preparedEncounters.length >= CAMPAIGN_MAX_PREPARED_ENCOUNTERS;
   const preparedEncounterLimitMessage = `Campaigns can hold up to ${CAMPAIGN_MAX_PREPARED_ENCOUNTERS} prepared encounters.`;
   const hasSelectedParty = Boolean(campaign.selectedParty);
+  const hasLiveEncounter = Boolean(campaign.liveEncounterTracker);
 
   async function handleCreatePreparedEncounter(name: string) {
     const campaignPatch = await createCampaignPreparedEncounter(campaign.id, name, {
@@ -84,6 +86,25 @@ function CampaignPreparedEncountersSection({
       );
     } finally {
       setIsDeletingEncounter(false);
+    }
+  }
+
+  async function handleStartEncounter(encounter: CampaignPreparedEncounterRecord) {
+    if (startingEncounterId) {
+      return;
+    }
+
+    setActionError(null);
+    setStartingEncounterId(encounter.id);
+
+    try {
+      await onStartEncounter(encounter);
+    } catch (startError) {
+      setActionError(
+        getDmToolsApiErrorMessage(startError, "Unable to start live encounter.")
+      );
+    } finally {
+      setStartingEncounterId(null);
     }
   }
 
@@ -143,13 +164,19 @@ function CampaignPreparedEncountersSection({
               }
               actions={[
                 {
-                  disabled: !hasSelectedParty,
+                  disabled: !hasSelectedParty || hasLiveEncounter || startingEncounterId !== null,
                   icon: <Play size={18} aria-hidden="true" />,
                   label: `Start ${encounter.name}`,
-                  onClick: () => onStartEncounter(encounter),
-                  title: hasSelectedParty
-                    ? `Start ${encounter.name}`
-                    : "Select a party before starting an encounter."
+                  onClick: () => {
+                    void handleStartEncounter(encounter);
+                  },
+                  title: !hasSelectedParty
+                    ? "Select a party before starting an encounter."
+                    : hasLiveEncounter
+                      ? "Remove the active encounter before starting another one."
+                      : startingEncounterId === encounter.id
+                        ? `Starting ${encounter.name}...`
+                        : `Start ${encounter.name}`
                 },
                 {
                   icon: <Trash2 size={18} aria-hidden="true" />,

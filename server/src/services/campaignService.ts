@@ -25,6 +25,10 @@ import {
   normalizeEncounterTemplateCreature,
   normalizeEncounterTemplateName
 } from "./encounterTemplateService.js";
+import {
+  toCampaignLiveEncounterTrackerDetailRecord,
+  type CampaignLiveEncounterTrackerDetailRecord
+} from "./campaignLiveEncounterTrackerService.js";
 
 const CAMPAIGN_NAME_MIN_LENGTH = 2;
 const CAMPAIGN_NAME_MAX_LENGTH = 128;
@@ -82,6 +86,7 @@ type CampaignPatchRecord = Partial<{
   selectedPartyId: string | null;
   visibilitySettings: PlayerVisibilitySettingsRecord;
   selectedParty: CampaignSelectedPartySummary;
+  liveEncounterTracker: CampaignLiveEncounterTrackerDetailRecord | null;
   sessionNotes: CampaignSessionNoteRecord[];
   sessionNoteCount: number;
   preparedEncounters: CampaignPreparedEncounterRecord[];
@@ -436,7 +441,8 @@ async function toCampaignDetailRecord(campaign: CampaignSource) {
     }),
     maxPreparedEncounters: CAMPAIGN_MAX_PREPARED_ENCOUNTERS,
     sessionNotes: toSessionNoteRecords(campaign.sessionNotes),
-    preparedEncounters: (campaign.preparedEncounters ?? []).map(toPreparedEncounterRecord)
+    preparedEncounters: (campaign.preparedEncounters ?? []).map(toPreparedEncounterRecord),
+    liveEncounterTracker: await toCampaignLiveEncounterTrackerDetailRecord(campaign)
   };
 }
 
@@ -601,7 +607,8 @@ export async function updateCampaignSelectedParty(options: {
     selectedParty: await getOwnedPartySummary({
       ownerId: options.ownerId,
       partyGroupId: campaign.selectedPartyId
-    })
+    }),
+    liveEncounterTracker: await toCampaignLiveEncounterTrackerDetailRecord(campaign)
   });
 }
 
@@ -760,7 +767,8 @@ export async function createCampaignPreparedEncounter(options: {
 
   return toCampaignPatchEnvelope(campaign, {
     preparedEncounters: campaign.preparedEncounters.map(toPreparedEncounterRecord),
-    preparedEncounterCount: campaign.preparedEncounters.length
+    preparedEncounterCount: campaign.preparedEncounters.length,
+    liveEncounterTracker: await toCampaignLiveEncounterTrackerDetailRecord(campaign)
   });
 }
 
@@ -835,7 +843,8 @@ export async function copyEncounterTemplateToCampaign(options: {
 
   return toCampaignPatchEnvelope(campaign, {
     preparedEncounters: campaign.preparedEncounters.map(toPreparedEncounterRecord),
-    preparedEncounterCount: campaign.preparedEncounters.length
+    preparedEncounterCount: campaign.preparedEncounters.length,
+    liveEncounterTracker: await toCampaignLiveEncounterTrackerDetailRecord(campaign)
   });
 }
 
@@ -859,7 +868,8 @@ export async function updateCampaignPreparedEncounterName(options: {
 
   return toCampaignPatchEnvelope(campaign, {
     preparedEncounters: campaign.preparedEncounters.map(toPreparedEncounterRecord),
-    preparedEncounterCount: campaign.preparedEncounters.length
+    preparedEncounterCount: campaign.preparedEncounters.length,
+    liveEncounterTracker: await toCampaignLiveEncounterTrackerDetailRecord(campaign)
   });
 }
 
@@ -883,7 +893,8 @@ export async function updateCampaignPreparedEncounterVisibilitySettings(options:
 
   return toCampaignPatchEnvelope(campaign, {
     preparedEncounters: campaign.preparedEncounters.map(toPreparedEncounterRecord),
-    preparedEncounterCount: campaign.preparedEncounters.length
+    preparedEncounterCount: campaign.preparedEncounters.length,
+    liveEncounterTracker: await toCampaignLiveEncounterTrackerDetailRecord(campaign)
   });
 }
 
@@ -907,7 +918,8 @@ export async function removeCampaignPreparedEncounter(options: {
 
   return toCampaignPatchEnvelope(campaign, {
     preparedEncounters: campaign.preparedEncounters.map(toPreparedEncounterRecord),
-    preparedEncounterCount: campaign.preparedEncounters.length
+    preparedEncounterCount: campaign.preparedEncounters.length,
+    liveEncounterTracker: await toCampaignLiveEncounterTrackerDetailRecord(campaign)
   });
 }
 
@@ -949,7 +961,8 @@ export async function updateCampaignPreparedEncounterCreatureVisibilitySettings(
 
   return toCampaignPatchEnvelope(campaign, {
     preparedEncounters: campaign.preparedEncounters.map(toPreparedEncounterRecord),
-    preparedEncounterCount: campaign.preparedEncounters.length
+    preparedEncounterCount: campaign.preparedEncounters.length,
+    liveEncounterTracker: await toCampaignLiveEncounterTrackerDetailRecord(campaign)
   });
 }
 
@@ -1007,7 +1020,8 @@ export async function upsertCampaignPreparedEncounterCreature(options: {
 
   return toCampaignPatchEnvelope(campaign, {
     preparedEncounters: campaign.preparedEncounters.map(toPreparedEncounterRecord),
-    preparedEncounterCount: campaign.preparedEncounters.length
+    preparedEncounterCount: campaign.preparedEncounters.length,
+    liveEncounterTracker: await toCampaignLiveEncounterTrackerDetailRecord(campaign)
   });
 }
 
@@ -1037,6 +1051,7 @@ export async function removeCampaignPreparedEncounterCreature(options: {
 
   return toCampaignPatchEnvelope(campaign, {
     preparedEncounters: campaign.preparedEncounters.map(toPreparedEncounterRecord),
-    preparedEncounterCount: campaign.preparedEncounters.length
+    preparedEncounterCount: campaign.preparedEncounters.length,
+    liveEncounterTracker: await toCampaignLiveEncounterTrackerDetailRecord(campaign)
   });
 }

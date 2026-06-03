@@ -1,8 +1,13 @@
 import { ScrollText } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { getCampaign, type CampaignPreparedEncounterRecord } from "../../api/campaigns";
 import {
+  getCampaign,
+  startCampaignLiveEncounterTracker,
+  type CampaignPreparedEncounterRecord
+} from "../../api/campaigns";
+import {
+  patchSelectedCampaign,
   setSelectedCampaign,
   setSelectedCampaignError,
   setSelectedCampaignLoading,
@@ -37,9 +42,6 @@ function CampaignDetailPage() {
   );
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
-  const [activeEncounter, setActiveEncounter] = useState<
-    Pick<CampaignPreparedEncounterRecord, "id" | "name"> | null
-  >(null);
 
   useEffect(() => {
     let didCancel = false;
@@ -74,19 +76,14 @@ function CampaignDetailPage() {
     };
   }, [authStatus, campaignId, dispatch]);
 
-  useEffect(() => {
-    if (!activeEncounter || !campaign) {
-      return;
-    }
+  async function handleStartEncounter(encounter: CampaignPreparedEncounterRecord) {
+    const campaignPatch = await startCampaignLiveEncounterTracker(campaignId, encounter.id, {
+      suppressFailureToast: true
+    });
 
-    const encounterStillPrepared = campaign.preparedEncounters.some(
-      (encounter) => encounter.id === activeEncounter.id
-    );
-
-    if (!encounterStillPrepared) {
-      setActiveEncounter(null);
-    }
-  }, [activeEncounter, campaign]);
+    dispatch(patchSelectedCampaign(campaignPatch));
+    navigate(`/gm-tools/campaign-manager/${campaignId}/live-encounter`);
+  }
 
   return (
     <section className={styles.page}>
@@ -136,15 +133,10 @@ function CampaignDetailPage() {
                 <CampaignSessionNotesSection campaign={campaign} />
               </div>
               <div className={styles.campaignDetailColumn}>
-                <CampaignEncounterTrackerSection
-                  activeEncounter={activeEncounter}
-                  onClearActiveEncounter={() => setActiveEncounter(null)}
-                />
+                <CampaignEncounterTrackerSection campaign={campaign} />
                 <CampaignPreparedEncountersSection
                   campaign={campaign}
-                  onStartEncounter={(encounter) =>
-                    setActiveEncounter({ id: encounter.id, name: encounter.name })
-                  }
+                  onStartEncounter={handleStartEncounter}
                 />
               </div>
             </div>
