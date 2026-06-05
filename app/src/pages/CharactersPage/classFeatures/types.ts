@@ -200,6 +200,24 @@ export type FeatureActionOptionSelection = "single-immediate" | "single-confirm"
 
 export type FeatureActionSpellSource = "fixed" | "divine-intervention" | "mystic-arcanum";
 
+export type FeatureActionSource =
+  | {
+      type: "class";
+      name: string;
+    }
+  | {
+      type: "subclass";
+      name: string;
+    }
+  | {
+      type: "species";
+      name: string;
+    }
+  | {
+      type: "feat";
+      name: string;
+    };
+
 export type FeatureActionSpellEffectKind =
   | "ascendant-step"
   | "armor-of-shadows"
@@ -276,6 +294,7 @@ export type FeatureActionExecuteConfig =
 export type FeatureActionCard = {
   key: string;
   name: string;
+  actionSource?: FeatureActionSource;
   sourceFeature?: CLASS_FEATURE;
   cardTheme?: ACTION_CARD_THEME;
   summary: string;

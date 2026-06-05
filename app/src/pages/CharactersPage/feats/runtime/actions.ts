@@ -36,6 +36,10 @@ export function createLuckyAction(
   return {
     key: luckyFeatActionKey,
     name: "Lucky",
+    actionSource: {
+      type: "feat",
+      name: "Lucky"
+    },
     summary: usageLabel,
     detail: "Spend Luck Points on d20 rolls.",
     breakdown: "Origin Feat",
@@ -77,6 +81,10 @@ export function createBoonOfFateImproveFateAction(
   return {
     key: boonOfFateImproveFateActionKey,
     name: "Improve Fate",
+    actionSource: {
+      type: "feat",
+      name: "Boon of Fate"
+    },
     summary: `Charge ${remaining}/${total}`,
     detail: "Roll 2d4 to alter a D20 Test.",
     breakdown: "Boon of Fate",
@@ -119,6 +127,10 @@ export function createBoonOfRecoveryRecoverVitalityAction(
   return {
     key: boonOfRecoveryRecoverVitalityActionKey,
     name: "Recover Vitality",
+    actionSource: {
+      type: "feat",
+      name: "Boon of Recovery"
+    },
     summary: `Pool of ${remaining}/${total} d10`,
     detail: "Heal yourself with d10s",
     breakdown: "Heal yourself with d10s",
@@ -195,6 +207,10 @@ export function createTelekineticShoveAction(
   return {
     key: telekineticShoveActionKey,
     name: "Telekinetic Shove",
+    actionSource: {
+      type: "feat",
+      name: "Telekinetic"
+    },
     summary: "Telekinetic Shove",
     detail: "Shove a creature from afar",
     breakdown: "Shove a creature from afar",
@@ -238,6 +254,10 @@ export function createDurableSpeedyRecoveryAction(
   return {
     key: durableSpeedyRecoveryActionKey,
     name: "Speedy Recovery",
+    actionSource: {
+      type: "feat",
+      name: "Durable"
+    },
     summary: `Use 1 ${hitDieLabel} Hit Point Die`,
     detail: "Recover healthpoints",
     breakdown: "Recover healthpoints",

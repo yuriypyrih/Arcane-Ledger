@@ -423,6 +423,7 @@ import {
   hasActivePaladinOathOfVengeanceVowOfEnmity,
   soulOfVengeanceReactionId
 } from "./paladin/subclasses/paladinOathOfVengeance";
+import { getSelectedSubclassForCharacter } from "../subclasses";
 import { getSubclassDerivedFeatureState } from "./subclasses";
 import {
   applyLayOnHands,
@@ -550,6 +551,7 @@ import type {
   FeatureActionOptionCard,
   FeatureActionOptionSelection,
   FeatureActionResource,
+  FeatureActionSource,
   FeatureActionTone,
   FeatureAbilityScoreBonus,
   FeatureArmorProficiencyEntry,
@@ -595,6 +597,13 @@ import { clearRoundScopedFeatureStateIfOutOfCombat, mergeIndicatorMaps } from ".
 
 const featureActionsByCharacter = new WeakMap<Character, FeatureActionCard[]>();
 
+function withDefaultFeatureActionSource(
+  action: FeatureActionCard,
+  actionSource: FeatureActionSource
+): FeatureActionCard {
+  return action.actionSource ? action : { ...action, actionSource };
+}
+
 type CustomTraitDerivationOptions = {
   customTraitEffectInput?: CustomTraitBonusInput;
 };
@@ -609,16 +618,32 @@ export function getFeatureActionsForCharacter(character: Character): FeatureActi
   const featureActions = measureCharacterRuntime("character-sheet:feature-actions", () => {
     const baseFeatureState = collectActiveClassFeatureState(character);
     const subclassDerivedState = getSubclassDerivedFeatureState(character);
+    const subclass = getSelectedSubclassForCharacter(character);
     const actions = [
-      ...(baseFeatureState.actions ?? []),
-      ...(subclassDerivedState.featureActions ?? [])
+      ...(baseFeatureState.actions ?? []).map((action) =>
+        withDefaultFeatureActionSource(action, {
+          type: "class",
+          name: character.className
+        })
+      ),
+      ...(subclassDerivedState.featureActions ?? []).map((action) =>
+        withDefaultFeatureActionSource(action, {
+          type: "subclass",
+          name: subclass?.name ?? character.subclassId ?? "Subclass"
+        })
+      )
     ];
     const transformedActions = subclassDerivedState.transformFeatureAction
       ? actions.map(subclassDerivedState.transformFeatureAction)
       : actions;
 
     return [
-      ...getSpeciesActionsForCharacter(character),
+      ...getSpeciesActionsForCharacter(character).map((action) =>
+        withDefaultFeatureActionSource(action, {
+          type: "species",
+          name: character.species
+        })
+      ),
       ...getFeatActionsForCharacter(character),
       ...transformedActions
     ].map(normalizeFeatureActionCardUsage);

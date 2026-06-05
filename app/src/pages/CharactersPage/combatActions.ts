@@ -266,6 +266,33 @@ function createFeatureActionExecute(
   };
 }
 
+function formatFeatureActionSourceEyebrow(action: FeatureActionCard): string | undefined {
+  const actionSource = action.actionSource;
+
+  if (!actionSource) {
+    return undefined;
+  }
+
+  const sourceName = actionSource.name.trim();
+
+  if (!sourceName) {
+    return undefined;
+  }
+
+  switch (actionSource.type) {
+    case "class":
+      return `CLASS: ${sourceName.toUpperCase()}`;
+    case "subclass":
+      return `SUBCLASS: ${sourceName.toUpperCase()}`;
+    case "species":
+      return `SPECIES: ${sourceName.toUpperCase()}`;
+    case "feat":
+      return `FEAT: ${sourceName.toUpperCase()}`;
+    default:
+      return undefined;
+  }
+}
+
 function mergeUniqueDescriptionAdditions(
   sections: Array<readonly SpellDescriptionEntry[] | undefined>
 ): SpellDescriptionEntry[][] {
@@ -323,7 +350,7 @@ function createFeatureActionDrawer(
   const facts = action.drawer?.facts ?? createFeatureActionFacts(action);
   const factsSectionTitle = action.drawer?.factsSectionTitle;
   const headerTags = createFeatureActionHeaderTags(action);
-  const eyebrow = action.drawer?.eyebrow;
+  const eyebrow = formatFeatureActionSourceEyebrow(action) ?? action.drawer?.eyebrow;
   const confirmLabel = action.drawer?.confirmLabel ?? execute.label;
 
   if (drawerKind === "options") {
