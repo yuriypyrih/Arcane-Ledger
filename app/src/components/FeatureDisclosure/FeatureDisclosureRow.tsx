@@ -13,6 +13,8 @@ type FeatureDisclosureRowProps<TElement extends ElementType = "div"> = {
   bodyClassName?: string;
   trackingButton?: ReactNode;
   headerMeta?: ReactNode;
+  endMeta?: ReactNode;
+  toggleIconPlacement?: "inline" | "end";
   showDivider?: boolean;
   children?: ReactNode;
 } & Omit<ComponentPropsWithoutRef<TElement>, "as" | "children" | "title" | "onToggle">;
@@ -27,11 +29,23 @@ function FeatureDisclosureRow<TElement extends ElementType = "div">({
   bodyClassName,
   trackingButton,
   headerMeta,
+  endMeta,
+  toggleIconPlacement = "inline",
   showDivider = false,
   children,
   ...rest
 }: FeatureDisclosureRowProps<TElement>) {
   const Component = (as ?? "div") as ElementType;
+  const toggleIcon = (
+    <ChevronDown
+      size={16}
+      aria-hidden="true"
+      className={clsx(
+        styles.featureToggleIcon,
+        !isExpanded && styles.featureToggleIconCollapsed
+      )}
+    />
+  );
 
   return (
     <Component
@@ -45,18 +59,30 @@ function FeatureDisclosureRow<TElement extends ElementType = "div">({
       <div className={styles.featureHeadingRow}>
         <button
           type="button"
-          className={styles.featureToggleButton}
+          className={clsx(
+            styles.featureToggleButton,
+            toggleIconPlacement === "end" && styles.featureToggleButtonIconEnd
+          )}
           onClick={onToggle}
           aria-expanded={isExpanded}
           aria-controls={bodyId}
         >
-          <span className={styles.featureHeading}>{title}</span>
-          <ChevronDown
-            size={16}
-            aria-hidden="true"
-            className={clsx(styles.featureToggleIcon, !isExpanded && styles.featureToggleIconCollapsed)}
-          />
-          {headerMeta}
+          {toggleIconPlacement === "end" ? (
+            <>
+              <span className={styles.featureToggleContent}>
+                <span className={styles.featureHeading}>{title}</span>
+                {toggleIcon}
+                {headerMeta}
+              </span>
+              {endMeta}
+            </>
+          ) : (
+            <>
+              <span className={styles.featureHeading}>{title}</span>
+              {toggleIcon}
+              {headerMeta}
+            </>
+          )}
         </button>
         {trackingButton ? <div className={styles.featureHeaderActions}>{trackingButton}</div> : null}
       </div>

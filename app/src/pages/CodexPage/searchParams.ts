@@ -1,8 +1,10 @@
 import {
+  BACKGROUND_SOURCE_VALUES,
   ENTRY_CATEGORIES,
   FEAT_CATEGORY,
   MAGIC_SCHOOL,
-  SPELL_LIST_CLASS
+  SPELL_LIST_CLASS,
+  type BackgroundSource
 } from "../../codex/entries";
 import { MONSTER_SOURCE_OPTIONS, MONSTER_TYPE_OPTIONS } from "../../constants/monsters";
 import {
@@ -42,6 +44,7 @@ export const ITEM_RARITY_PARAM = "itemRarity";
 export const ITEM_SOURCE_PARAM = "itemSource";
 export const ITEM_ORDER_PARAM = "itemOrder";
 export const FEAT_CATEGORY_PARAM = "featCategory";
+export const BACKGROUND_SOURCE_PARAM = "backgroundSource";
 export const PAGE_PARAM = "page";
 export const QUERY_PARAM = "q";
 
@@ -68,6 +71,7 @@ const ITEM_ATTACK_TYPES = new Set<ItemAttackType>(["melee", "range"]);
 const ITEM_PROFICIENCY_TYPES = new Set<ItemProficiencyType>(["simple", "martial"]);
 const ITEM_ARMOR_TYPES = new Set<ItemArmorType>(["light", "medium", "heavy"]);
 const FEAT_CATEGORIES = new Set<FEAT_CATEGORY>(Object.values(FEAT_CATEGORY));
+const BACKGROUND_SOURCES = new Set<BackgroundSource>(BACKGROUND_SOURCE_VALUES);
 const SPELL_MAGIC_SCHOOLS = new Set<MAGIC_SCHOOL>(Object.values(MAGIC_SCHOOL));
 const SPELL_SPECIAL_FILTERS = new Set<CodexSpellSpecialFilter>(CODEX_SPELL_SPECIAL_FILTERS);
 
@@ -92,6 +96,7 @@ export type ParsedCodexSearchState = {
   itemSourceFilter: string | null;
   itemOrdering: ItemOrdering;
   featCategoryFilter: FEAT_CATEGORY | null;
+  backgroundSourceFilter: BackgroundSource | null;
   currentPage: number;
 };
 
@@ -221,6 +226,10 @@ export function parseCodexSearchState(
     itemSourceFilter: parseOptionalFilter(searchParams.get(ITEM_SOURCE_PARAM)),
     itemOrdering: parseItemOrdering(searchParams.get(ITEM_ORDER_PARAM)),
     featCategoryFilter: parseEnumFilter(searchParams.get(FEAT_CATEGORY_PARAM), FEAT_CATEGORIES),
+    backgroundSourceFilter: parseEnumFilter(
+      searchParams.get(BACKGROUND_SOURCE_PARAM),
+      BACKGROUND_SOURCES
+    ),
     currentPage: parsePageValue(searchParams.get(PAGE_PARAM))
   };
 }
@@ -259,6 +268,11 @@ export function clearFeatSearchParams(searchParams: URLSearchParams): URLSearchP
   return searchParams;
 }
 
+export function clearBackgroundSearchParams(searchParams: URLSearchParams): URLSearchParams {
+  searchParams.delete(BACKGROUND_SOURCE_PARAM);
+  return searchParams;
+}
+
 export function clearCategoryScopedSearchParams(
   searchParams: URLSearchParams,
   category: CodexFilterCategory
@@ -279,6 +293,10 @@ export function clearCategoryScopedSearchParams(
     clearFeatSearchParams(searchParams);
   }
 
+  if (category !== ENTRY_CATEGORIES.BACKGROUNDS) {
+    clearBackgroundSearchParams(searchParams);
+  }
+
   return searchParams;
 }
 
@@ -287,6 +305,7 @@ export function clearAllCategoryScopedSearchParams(searchParams: URLSearchParams
   clearMonsterSearchParams(searchParams);
   clearItemSearchParams(searchParams);
   clearFeatSearchParams(searchParams);
+  clearBackgroundSearchParams(searchParams);
   return searchParams;
 }
 
@@ -310,6 +329,7 @@ export function hasCategoryScopedSearchParams(searchParams: URLSearchParams): bo
     searchParams.has(ITEM_SOURCE_PARAM) ||
     searchParams.has(ITEM_ORDER_PARAM) ||
     searchParams.has(FEAT_CATEGORY_PARAM) ||
+    searchParams.has(BACKGROUND_SOURCE_PARAM) ||
     searchParams.has(PAGE_PARAM)
   );
 }

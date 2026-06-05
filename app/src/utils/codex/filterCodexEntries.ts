@@ -4,6 +4,7 @@ import {
   ENTRY_CATEGORIES,
   type CodexCategory,
   type CodexEntry,
+  type BackgroundSource,
   type MAGIC_SCHOOL,
   type SPELL_LIST_CLASS
 } from "../../codex/entries";
@@ -88,7 +89,8 @@ export function filterCodexEntries(
   spellLevelFilter: number | null = null,
   spellClassFilter: SPELL_LIST_CLASS | null = null,
   spellSchoolFilter: MAGIC_SCHOOL | null = null,
-  spellSpecialFilter: CodexSpellSpecialFilter | null = null
+  spellSpecialFilter: CodexSpellSpecialFilter | null = null,
+  backgroundSourceFilter: BackgroundSource | null = null
 ): CodexEntry[] {
   const normalizedQuery = query.trim().toLowerCase();
 
@@ -111,6 +113,10 @@ export function filterCodexEntries(
       spellSchoolFilter === null ||
       entry.magicSchool === spellSchoolFilter;
     const matchesSpellSpecial = matchesCodexSpellSpecialFilter(entry, spellSpecialFilter);
+    const matchesBackgroundSource =
+      entry.category !== ENTRY_CATEGORIES.BACKGROUNDS ||
+      backgroundSourceFilter === null ||
+      entry.source === backgroundSourceFilter;
     const matchesQuery =
       normalizedQuery.length === 0 || entry.name.toLowerCase().includes(normalizedQuery);
 
@@ -120,6 +126,7 @@ export function filterCodexEntries(
       matchesSpellClass &&
       matchesSpellSchool &&
       matchesSpellSpecial &&
+      matchesBackgroundSource &&
       matchesQuery
     );
   });

@@ -113,6 +113,10 @@ export const featRuntimeCapabilityMatrix = {
     feat: FEATS.CRUSHER,
     capabilities: ["abilityBonus", "choice", "weaponActionTransform"]
   },
+  [FEATS.CULT_OF_THE_DRAGON_INITIATE]: {
+    feat: FEATS.CULT_OF_THE_DRAGON_INITIATE,
+    capabilities: []
+  },
   [FEATS.DEFENSE]: { feat: FEATS.DEFENSE, capabilities: ["armorClass"] },
   [FEATS.DEFENSIVE_DUELIST]: {
     feat: FEATS.DEFENSIVE_DUELIST,
@@ -138,6 +142,10 @@ export const featRuntimeCapabilityMatrix = {
     feat: FEATS.ELEMENTAL_ADEPT,
     capabilities: ["abilityBonus", "choice", "spellTransform"]
   },
+  [FEATS.EMERALD_ENCLAVE_FLEDGLING]: {
+    feat: FEATS.EMERALD_ENCLAVE_FLEDGLING,
+    capabilities: []
+  },
   [FEATS.FEY_TOUCHED]: {
     feat: FEATS.FEY_TOUCHED,
     capabilities: ["abilityBonus", "choice", "freeCast", "restRecovery", "spellGrant", "spellTransform"]
@@ -151,6 +159,7 @@ export const featRuntimeCapabilityMatrix = {
     feat: FEATS.GREAT_WEAPON_MASTER,
     capabilities: ["abilityBonus", "weaponActionTransform"]
   },
+  [FEATS.HARPER_AGENT]: { feat: FEATS.HARPER_AGENT, capabilities: [] },
   [FEATS.HEALER]: {
     feat: FEATS.HEALER,
     capabilities: ["itemDescription"]
@@ -175,6 +184,10 @@ export const featRuntimeCapabilityMatrix = {
   [FEATS.LIGHTLY_ARMORED]: {
     feat: FEATS.LIGHTLY_ARMORED,
     capabilities: ["abilityBonus", "choice", "proficiency"]
+  },
+  [FEATS.LORDS_ALLIANCE_AGENT]: {
+    feat: FEATS.LORDS_ALLIANCE_AGENT,
+    capabilities: []
   },
   [FEATS.LUCKY]: {
     feat: FEATS.LUCKY,
@@ -225,6 +238,7 @@ export const featRuntimeCapabilityMatrix = {
     capabilities: ["abilityBonus", "choice", "reaction", "weaponActionTransform"]
   },
   [FEATS.PROTECTION]: { feat: FEATS.PROTECTION, capabilities: ["reaction"] },
+  [FEATS.PURPLE_DRAGON_ROOK]: { feat: FEATS.PURPLE_DRAGON_ROOK, capabilities: [] },
   [FEATS.RESILIENT]: {
     feat: FEATS.RESILIENT,
     capabilities: ["abilityBonus", "choice", "proficiency"]
@@ -273,6 +287,7 @@ export const featRuntimeCapabilityMatrix = {
     feat: FEATS.SPEEDY,
     capabilities: ["abilityBonus", "choice", "commonActionTransform", "speed", "status"]
   },
+  [FEATS.SPELLFIRE_SPARK]: { feat: FEATS.SPELLFIRE_SPARK, capabilities: [] },
   [FEATS.SPELL_SNIPER]: {
     feat: FEATS.SPELL_SNIPER,
     capabilities: ["abilityBonus", "choice", "spellTransform"]
@@ -294,6 +309,7 @@ export const featRuntimeCapabilityMatrix = {
     capabilities: ["weaponActionTransform"]
   },
   [FEATS.TOUGH]: { feat: FEATS.TOUGH, capabilities: ["hitPoints"] },
+  [FEATS.TYRO_OF_THE_GAUNTLET]: { feat: FEATS.TYRO_OF_THE_GAUNTLET, capabilities: [] },
   [FEATS.TWO_WEAPON_FIGHTING]: {
     feat: FEATS.TWO_WEAPON_FIGHTING,
     capabilities: ["weaponActionTransform"]
@@ -309,5 +325,6 @@ export const featRuntimeCapabilityMatrix = {
   [FEATS.WEAPON_MASTER]: {
     feat: FEATS.WEAPON_MASTER,
     capabilities: ["abilityBonus", "choice", "proficiency", "weaponActionTransform"]
-  }
+  },
+  [FEATS.ZHENTARIM_RUFFIAN]: { feat: FEATS.ZHENTARIM_RUFFIAN, capabilities: [] }
 } as const satisfies Record<FEATS, FeatRuntimeCapabilityDescriptor>;

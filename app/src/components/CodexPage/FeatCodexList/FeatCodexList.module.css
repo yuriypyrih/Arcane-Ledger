@@ -20,6 +20,19 @@
   padding-bottom: 0;
 }
 
+.entrySource {
+  border: 1px solid rgba(75, 47, 29, 0.14);
+  border-radius: var(--radius-tiny);
+  background: rgba(75, 47, 29, 0.06);
+  color: var(--color-ink-soft);
+  flex-shrink: 0;
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1.35;
+  padding: 0.05rem 0.38rem;
+  white-space: nowrap;
+}
+
 .featMeta {
   color: var(--color-ink-soft);
   font-size: 0.82rem;

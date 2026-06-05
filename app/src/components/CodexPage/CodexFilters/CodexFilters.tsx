@@ -16,10 +16,12 @@ import {
   type CodexSpellSpecialFilter
 } from "../../../utils/codex";
 import {
+  BACKGROUND_SOURCE_VALUES,
   ENTRY_CATEGORIES,
   FEAT_CATEGORY,
   MAGIC_SCHOOL,
-  SPELL_LIST_CLASS
+  SPELL_LIST_CLASS,
+  type BackgroundSource
 } from "../../../codex/entries";
 import ItemBrowserFilters from "../../ItemBrowser";
 import type {
@@ -54,6 +56,7 @@ type CodexFiltersProps = {
   itemArmorTypeFilter: ItemArmorType | null;
   itemRarityFilter: string | null;
   itemSourceFilter: string | null;
+  backgroundSourceFilter: BackgroundSource | null;
   featCategoryFilter: FEAT_CATEGORY | null;
   itemFilterOptions: ItemFilterOptions | null;
   onQueryChange: (value: string) => void;
@@ -73,6 +76,7 @@ type CodexFiltersProps = {
   onItemArmorTypeFilterChange: (value: ItemArmorType | null) => void;
   onItemRarityFilterChange: (value: string | null) => void;
   onItemSourceFilterChange: (value: string | null) => void;
+  onBackgroundSourceFilterChange: (value: BackgroundSource | null) => void;
   onFeatCategoryFilterChange: (value: FEAT_CATEGORY | null) => void;
 };
 
@@ -153,6 +157,7 @@ function CodexFilters({
   itemArmorTypeFilter,
   itemRarityFilter,
   itemSourceFilter,
+  backgroundSourceFilter,
   featCategoryFilter,
   itemFilterOptions,
   onQueryChange,
@@ -172,6 +177,7 @@ function CodexFilters({
   onItemArmorTypeFilterChange,
   onItemRarityFilterChange,
   onItemSourceFilterChange,
+  onBackgroundSourceFilterChange,
   onFeatCategoryFilterChange
 }: CodexFiltersProps) {
   const searchPlaceholder =
@@ -357,6 +363,28 @@ function CodexFilters({
             {featCategoryOptions.map((featCategory) => (
               <option key={featCategory} value={featCategory}>
                 {formatFeatCategoryOptionLabel(featCategory)}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : null}
+
+      {category === ENTRY_CATEGORIES.BACKGROUNDS ? (
+        <label className={styles.field}>
+          <span>Source</span>
+          <select
+            className={styles.input}
+            value={backgroundSourceFilter ?? "ALL"}
+            onChange={(event) =>
+              onBackgroundSourceFilterChange(
+                event.target.value === "ALL" ? null : (event.target.value as BackgroundSource)
+              )
+            }
+          >
+            <option value="ALL">All</option>
+            {BACKGROUND_SOURCE_VALUES.map((backgroundSource) => (
+              <option key={backgroundSource} value={backgroundSource}>
+                {backgroundSource}
               </option>
             ))}
           </select>

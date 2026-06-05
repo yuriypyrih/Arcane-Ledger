@@ -76,6 +76,22 @@ function getStatusLabel(category: CodexDisclosureCategory): string {
   return category === ENTRY_CATEGORIES.BACKGROUNDS ? "backgrounds" : "species";
 }
 
+function renderEntryTitle(entry: BackgroundEntry | SpeciesEntry): ReactNode {
+  return entry.name;
+}
+
+function renderBackgroundSource(entry: BackgroundEntry | SpeciesEntry): ReactNode {
+  if (entry.category !== ENTRY_CATEGORIES.BACKGROUNDS) {
+    return null;
+  }
+
+  return (
+    <span className={styles.entrySource} aria-label={`Source: ${entry.source}`}>
+      {entry.source}
+    </span>
+  );
+}
+
 function CodexDisclosureList({ entries, status, category }: CodexDisclosureListProps) {
   const [expandedKeys, setExpandedKeys] = useState<string[]>([]);
   const [selectedSpellReference, setSelectedSpellReference] = useState<SpellEntry | null>(null);
@@ -202,7 +218,7 @@ function CodexDisclosureList({ entries, status, category }: CodexDisclosureListP
                 key={entry.id}
                 as="article"
                 className={styles.featRow}
-                title={entry.name}
+                title={renderEntryTitle(entry)}
                 isExpanded={isExpanded}
                 onToggle={() => toggleEntryKey(entryKey)}
                 bodyId={`${entryKey}-content`}
@@ -212,6 +228,10 @@ function CodexDisclosureList({ entries, status, category }: CodexDisclosureListP
                     trackingState={getEntryTrackingState(entry)}
                     onClick={openTrackingReference}
                   />
+                }
+                endMeta={renderBackgroundSource(entry)}
+                toggleIconPlacement={
+                  entry.category === ENTRY_CATEGORIES.BACKGROUNDS ? "end" : "inline"
                 }
                 showDivider={index > 0}
               >

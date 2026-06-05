@@ -236,8 +236,11 @@ export type ItemEntry = BaseCodexEntry<ENTRY_CATEGORIES.ITEMS, ITEM_TYPES> & {
   weight: number | null;
   cost: EquipmentCost;
 };
+export const BACKGROUND_SOURCE_VALUES = ["PHB'24", "FRHoF", "EFA"] as const;
+export type BackgroundSource = (typeof BACKGROUND_SOURCE_VALUES)[number];
+
 export type BackgroundEntry = BaseCodexEntry<ENTRY_CATEGORIES.BACKGROUNDS, BACKGROUND_TYPES> & {
-  source: "PHB'24";
+  source: BackgroundSource;
   page: number;
   abilityScoreOptions: [AbilityKey, AbilityKey, AbilityKey];
   originFeat: FEATS;

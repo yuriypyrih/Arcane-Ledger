@@ -137,14 +137,6 @@ const speciesEntriesByName = new Map<string, SpeciesEntry>(
 );
 
 function sortBackgroundOptions(left: string, right: string): number {
-  if (left === "Acolyte") {
-    return -1;
-  }
-
-  if (right === "Acolyte") {
-    return 1;
-  }
-
   return left.localeCompare(right);
 }
 

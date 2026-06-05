@@ -13,6 +13,8 @@ import {
   FEATS,
   SPELL_LIST_CLASS
 } from "./enums";
+import { efaBackgroundEntries } from "./efaBackgroundData";
+import { frhofBackgroundEntries } from "./frhofBackgroundData";
 import type { BackgroundEntry } from "./types";
 
 export const backgroundEntries: BackgroundEntry[] = [
@@ -510,5 +512,7 @@ export const backgroundEntries: BackgroundEntry[] = [
       ]
     },
     summary: ""
-  }
+  },
+  ...frhofBackgroundEntries,
+  ...efaBackgroundEntries
 ];

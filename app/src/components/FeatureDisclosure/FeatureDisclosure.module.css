@@ -95,6 +95,18 @@
     color 160ms ease;
 }
 
+.featureToggleButtonIconEnd {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.featureToggleContent {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
 .featureToggleButton:hover,
 .featureToggleButton:focus-visible {
   background: rgba(75, 47, 29, 0.08);

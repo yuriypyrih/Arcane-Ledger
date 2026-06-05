@@ -102,7 +102,9 @@ export function getLoadoutEntries(): LoadoutCodexEntry[] {
 }
 
 export function getBackgroundEntries(): BackgroundEntry[] {
-  return getEntriesByCategory(ENTRY_CATEGORIES.BACKGROUNDS);
+  return [...getEntriesByCategory(ENTRY_CATEGORIES.BACKGROUNDS)].sort((left, right) =>
+    left.name.localeCompare(right.name)
+  );
 }
 
 export function getBackgroundEntryByName(name: string): BackgroundEntry | null {

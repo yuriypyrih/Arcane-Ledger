@@ -41,6 +41,7 @@ import {
   ITEM_SOURCE_PARAM,
   ITEM_TAB_PARAM,
   FEAT_CATEGORY_PARAM,
+  BACKGROUND_SOURCE_PARAM,
   MONSTERS_PER_PAGE,
   MONSTER_ORDER_PARAM,
   MONSTER_SOURCE_PARAM,
@@ -93,6 +94,7 @@ function CodexPage() {
     itemRarityFilter,
     itemSourceFilter,
     itemTab,
+    backgroundSourceFilter,
     featCategoryFilter,
     query,
     spellClassFilter,
@@ -273,7 +275,8 @@ function CodexPage() {
         spellLevelFilter,
         spellClassFilter,
         spellSchoolFilter,
-        spellSpecialFilter
+        spellSpecialFilter,
+        backgroundSourceFilter
       ),
     [
       category,
@@ -282,12 +285,13 @@ function CodexPage() {
       spellClassFilter,
       spellLevelFilter,
       spellSchoolFilter,
-      spellSpecialFilter
+      spellSpecialFilter,
+      backgroundSourceFilter
     ]
   );
   const sortedEntries = useMemo(() => {
     if (category !== ENTRY_CATEGORIES.SPELLS) {
-      return filteredEntries;
+      return [...filteredEntries].sort((left, right) => left.name.localeCompare(right.name));
     }
 
     return [...filteredEntries].sort((left, right) => {
@@ -546,6 +550,16 @@ function CodexPage() {
     },
     [clearSearchForSelectionChange, searchParams, setSearchParams]
   );
+  const handleBackgroundSourceFilterChange = useCallback(
+    (value: typeof backgroundSourceFilter) => {
+      const nextSearchParams = new URLSearchParams(searchParams);
+      setSearchParamValue(nextSearchParams, BACKGROUND_SOURCE_PARAM, value);
+      clearSearchForSelectionChange(nextSearchParams);
+      resetPageSearchParam(nextSearchParams);
+      setSearchParams(nextSearchParams, { replace: true });
+    },
+    [clearSearchForSelectionChange, searchParams, setSearchParams]
+  );
   const handlePageChange = useCallback(
     (page: number) => {
       const nextPage = Math.max(1, Math.min(totalPages, page));
@@ -595,6 +609,7 @@ function CodexPage() {
           itemArmorTypeFilter={sanitizedItemFilters.armorType}
           itemRarityFilter={itemRarityFilter}
           itemSourceFilter={itemSourceFilter}
+          backgroundSourceFilter={backgroundSourceFilter}
           featCategoryFilter={featCategoryFilter}
           itemFilterOptions={itemFilterOptionsPayload}
           onQueryChange={handleQueryChange}
@@ -614,6 +629,7 @@ function CodexPage() {
           onItemArmorTypeFilterChange={handleItemArmorTypeFilterChange}
           onItemRarityFilterChange={handleItemRarityFilterChange}
           onItemSourceFilterChange={handleItemSourceFilterChange}
+          onBackgroundSourceFilterChange={handleBackgroundSourceFilterChange}
           onFeatCategoryFilterChange={handleFeatCategoryFilterChange}
         />
       </div>

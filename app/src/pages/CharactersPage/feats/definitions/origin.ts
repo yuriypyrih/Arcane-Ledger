@@ -2,6 +2,19 @@ import { FEAT_CATEGORY, FEATS, TRACKER } from "../../../../codex/entries";
 import type { FeatDefinition } from "../types";
 import { crafterDiscountDescription, crafterFastCraftingDescription } from "../crafter";
 
+function createPendingFrhofOriginFeatDefinition(
+  feat: FEATS,
+  label: string
+): FeatDefinition {
+  return {
+    feat,
+    label,
+    category: FEAT_CATEGORY.ORIGIN,
+    description: [],
+    trackingState: TRACKER.NOT_TRACKED
+  };
+}
+
 export const originFeatDefinitions: FeatDefinition[] = [
   {
     feat: FEATS.ALERT,
@@ -116,5 +129,19 @@ export const originFeatDefinitions: FeatDefinition[] = [
       "Your Hit Point maximum increases by an amount equal to twice your character level when you gain this feat. Whenever you gain a character level thereafter, your Hit Point maximum increases by an additional 2 Hit Points."
     ],
     trackingState: TRACKER.TRACKED
-  }
+  },
+  createPendingFrhofOriginFeatDefinition(
+    FEATS.CULT_OF_THE_DRAGON_INITIATE,
+    "Cult of the Dragon Initiate"
+  ),
+  createPendingFrhofOriginFeatDefinition(
+    FEATS.EMERALD_ENCLAVE_FLEDGLING,
+    "Emerald Enclave Fledgling"
+  ),
+  createPendingFrhofOriginFeatDefinition(FEATS.HARPER_AGENT, "Harper Agent"),
+  createPendingFrhofOriginFeatDefinition(FEATS.TYRO_OF_THE_GAUNTLET, "Tyro of the Gauntlet"),
+  createPendingFrhofOriginFeatDefinition(FEATS.LORDS_ALLIANCE_AGENT, "Lords' Alliance Agent"),
+  createPendingFrhofOriginFeatDefinition(FEATS.PURPLE_DRAGON_ROOK, "Purple Dragon Rook"),
+  createPendingFrhofOriginFeatDefinition(FEATS.SPELLFIRE_SPARK, "Spellfire Spark"),
+  createPendingFrhofOriginFeatDefinition(FEATS.ZHENTARIM_RUFFIAN, "Zhentarim Ruffian")
 ];

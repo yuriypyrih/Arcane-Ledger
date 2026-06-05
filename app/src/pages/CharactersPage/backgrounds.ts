@@ -33,14 +33,6 @@ const backgroundEntriesByName = new Map(getBackgroundEntries().map((entry) => [e
 const backgroundEquipmentModes = new Set<CharacterBackgroundEquipmentMode>(["equipment", "gold"]);
 
 function sortBackgroundNames(left: string, right: string): number {
-  if (left === "Acolyte") {
-    return -1;
-  }
-
-  if (right === "Acolyte") {
-    return 1;
-  }
-
   return left.localeCompare(right);
 }
 
