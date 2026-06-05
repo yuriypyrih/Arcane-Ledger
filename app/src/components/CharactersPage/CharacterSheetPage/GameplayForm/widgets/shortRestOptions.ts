@@ -304,6 +304,7 @@ import {
 } from "../gameplayStateUtils";
 
 import type { RestOption } from "./restOptionTypes";
+import { createInventoryRestRechargeOptions } from "./inventoryRestRechargeOptions";
 
 export function createShortRestOptions(character: Character): RestOption[] {
   const spellSlotTotal = getSpellSlotTotalsForCharacter(
@@ -476,6 +477,7 @@ export function createShortRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
+    ...createInventoryRestRechargeOptions(character, "short"),
     ...(hasArtificerFlashOfGeniusShortRestRecovery && artificerFlashOfGeniusUsesTotal > 0
       ? [
           {

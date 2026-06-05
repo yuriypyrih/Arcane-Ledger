@@ -1,6 +1,7 @@
 import { getSpellEntryById } from "../../../../codex/spells";
 import type { CharacterInventoryItem } from "../../../../types";
 import {
+  getInventoryItemChargesRecharge,
   getInventoryItemStoredSpell,
   getInventoryItemUseState,
   INVENTORY_STORED_SPELL_MODE_CONSUME_CHARGES,
@@ -9,11 +10,22 @@ import {
 } from "../../../../pages/CharactersPage/inventoryItems";
 
 export function getInventoryItemChargesTagLabel(
-  stack: CharacterInventoryItem | null | undefined
+  stack: CharacterInventoryItem | null | undefined,
+  options?: {
+    includeRecharge?: boolean;
+  }
 ): string | null {
   const useState = getInventoryItemUseState(stack);
 
-  return useState ? `Charges ${useState.remaining}/${useState.total}` : null;
+  if (!useState) {
+    return null;
+  }
+
+  const chargesRecharge = getInventoryItemChargesRecharge(stack);
+
+  return options?.includeRecharge && chargesRecharge
+    ? `charges ${useState.remaining}/${useState.total}, SR: ${chargesRecharge.shortRest} | LR: ${chargesRecharge.longRest}`
+    : `Charges ${useState.remaining}/${useState.total}`;
 }
 
 function formatStoredSpellModeLabel(mode: string): string {

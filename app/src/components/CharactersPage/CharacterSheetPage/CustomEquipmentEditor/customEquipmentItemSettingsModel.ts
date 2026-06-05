@@ -9,6 +9,7 @@ import {
   getDefaultInventoryItemChargesTotal,
   getInventoryItemConjuredDuration,
   getInventoryItemConjuredSource,
+  getInventoryItemChargesRecharge,
   getInventoryItemExplicitChargesTotal,
   getInventoryItemStoredSpell,
   INVENTORY_CONJURED_DURATION_DEATH,
@@ -32,6 +33,9 @@ import { clampNumber } from "../../../../pages/CharactersPage/CharacterSheetPage
 export type CustomEquipmentItemSettingsDraft = {
   chargesEnabled: boolean;
   chargesTotal: number;
+  chargesRechargeEnabled: boolean;
+  chargesRechargeShortRest: number;
+  chargesRechargeLongRest: number;
   conjuredEnabled: boolean;
   conjuredDuration: CharacterInventoryConjuredDuration;
   spellcastingFocusEnabled: boolean;
@@ -56,6 +60,10 @@ function normalizePositiveInteger(value: unknown, fallback = 1): number {
   return Math.floor(clampNumber(value, 1, INVENTORY_REFILLABLE_LIMIT, fallback));
 }
 
+function normalizeRestRechargeAmount(value: unknown, fallback = 0): number {
+  return Math.floor(clampNumber(value, 0, INVENTORY_REFILLABLE_LIMIT, fallback));
+}
+
 function getItemForSettings(initialStack?: CharacterInventoryItem | null) {
   return initialStack ? getEffectiveInventoryItemRecord(initialStack) : null;
 }
@@ -69,6 +77,10 @@ export function isChargeConsumingStoredSpellMode(mode: CharacterInventoryStoredS
 
 export function normalizeItemSettingPositiveInteger(value: unknown, fallback = 1): number {
   return normalizePositiveInteger(value, fallback);
+}
+
+export function normalizeItemSettingRestRechargeAmount(value: unknown, fallback = 0): number {
+  return normalizeRestRechargeAmount(value, fallback);
 }
 
 const featureTagOrder: CharacterInventoryFeatureTag[] = [
@@ -107,6 +119,7 @@ export function createCustomEquipmentItemSettingsDraft(
   const item = getItemForSettings(initialStack);
   const defaultChargesTotal = getDefaultInventoryItemChargesTotal(item);
   const explicitChargesTotal = getInventoryItemExplicitChargesTotal(initialStack);
+  const chargesRecharge = getInventoryItemChargesRecharge(initialStack);
   const storedSpell = getInventoryItemStoredSpell(initialStack);
   const spellcastingFocusSources = new Set(
     getInventoryItemSpellcastingFocusSources(initialStack)
@@ -127,6 +140,9 @@ export function createCustomEquipmentItemSettingsDraft(
       typeof explicitChargesTotal === "number"
         ? explicitChargesTotal
         : (defaultChargesTotal ?? 1),
+    chargesRechargeEnabled: chargesRecharge !== null,
+    chargesRechargeShortRest: chargesRecharge?.shortRest ?? 0,
+    chargesRechargeLongRest: chargesRecharge?.longRest ?? 0,
     conjuredEnabled: isConjuredInventoryItem(initialStack),
     conjuredDuration,
     spellcastingFocusEnabled: spellcastingFocusSources.has(
@@ -153,6 +169,13 @@ export function parseCustomEquipmentItemSettingsDraft(
     ? normalizePositiveInteger(draft.chargesTotal, defaultChargesTotal ?? 1)
     : defaultChargesTotal !== null
       ? null
+      : undefined;
+  const chargesRecharge =
+    chargesEnabled && draft.chargesRechargeEnabled
+      ? {
+          shortRest: normalizeRestRechargeAmount(draft.chargesRechargeShortRest, 0),
+          longRest: normalizeRestRechargeAmount(draft.chargesRechargeLongRest, 0)
+        }
       : undefined;
   const lockedConjured = isCustomEquipmentItemSettingsConjuredLocked(initialStack);
   const currentTags = new Set<CharacterInventoryFeatureTag>(initialStack?.featureTags ?? []);
@@ -196,6 +219,7 @@ export function parseCustomEquipmentItemSettingsDraft(
   return {
     settings: {
       chargesTotal,
+      chargesRecharge,
       storedSpell: draft.storedSpellEnabled
         ? {
             spellId: draft.storedSpellId,

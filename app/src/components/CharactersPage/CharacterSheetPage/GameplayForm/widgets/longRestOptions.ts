@@ -371,6 +371,7 @@ import {
 } from "../gameplayStateUtils";
 
 import type { RestOption } from "./restOptionTypes";
+import { createInventoryRestRechargeOptions } from "./inventoryRestRechargeOptions";
 
 export function createLongRestOptions(character: Character): RestOption[] {
   const spellSlotTotal = getSpellSlotTotalsForCharacter(
@@ -964,6 +965,7 @@ export function createLongRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
+    ...createInventoryRestRechargeOptions(character, "long"),
     ...(artificerTinkersMagicUsesTotal > 0
       ? [
           {

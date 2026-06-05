@@ -269,6 +269,11 @@ export type CharacterInventoryStoredSpell = {
   chargeCost: number;
 };
 
+export type CharacterInventoryChargesRecharge = {
+  shortRest: number;
+  longRest: number;
+};
+
 export type CharacterItemModCategory = "weapon" | "armor" | "general";
 
 export type CharacterItemWeaponMods = {
@@ -312,6 +317,7 @@ export type CharacterInventoryItemBase = {
   attuned?: boolean;
   usesRemaining?: number;
   chargesTotal?: number | null;
+  chargesRecharge?: CharacterInventoryChargesRecharge;
   storedSpell?: CharacterInventoryStoredSpell;
   featureTags?: CharacterInventoryFeatureTag[];
   spellcastingFocusSources?: CharacterInventorySpellcastingFocusSource[];

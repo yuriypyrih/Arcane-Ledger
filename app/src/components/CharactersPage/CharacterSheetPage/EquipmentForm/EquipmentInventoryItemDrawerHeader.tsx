@@ -12,10 +12,7 @@ type EquipmentInventoryItemDrawerHeaderProps = {
   onHandCount?: number;
   worn?: boolean;
   attuned?: boolean;
-  charges?: {
-    remaining: number;
-    total: number;
-  } | null;
+  chargesLabel?: string | null;
   spellTag?: string | null;
   featureTags?: string[];
   modded?: boolean;
@@ -31,7 +28,7 @@ function EquipmentInventoryItemDrawerHeader({
   onHandCount = 0,
   worn = false,
   attuned = false,
-  charges = null,
+  chargesLabel = null,
   spellTag = null,
   featureTags = [],
   modded = false
@@ -50,8 +47,8 @@ function EquipmentInventoryItemDrawerHeader({
         ) : null}
         {worn ? <InventoryTagPill type="worn" /> : null}
         {attuned ? <InventoryTagPill type="attuned" /> : null}
-        {charges ? (
-          <InventoryTagPill type="charges" label={`Charges ${charges.remaining}/${charges.total}`} />
+        {chargesLabel ? (
+          <InventoryTagPill type="charges" label={chargesLabel} />
         ) : null}
         {spellTag ? (
           <InventoryTagPill {...getInventoryTagPillProps(spellTag)} />

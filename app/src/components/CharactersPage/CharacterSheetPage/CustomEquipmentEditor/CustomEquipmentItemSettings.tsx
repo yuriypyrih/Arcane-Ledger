@@ -32,6 +32,7 @@ import {
   isChargeConsumingStoredSpellMode,
   isCustomEquipmentItemSettingsConjuredLocked,
   normalizeItemSettingPositiveInteger,
+  normalizeItemSettingRestRechargeAmount,
   type CustomEquipmentItemSettingsDraft
 } from "./customEquipmentItemSettingsModel";
 import styles from "./CustomEquipmentEditor.module.css";
@@ -174,6 +175,52 @@ function CustomEquipmentItemSettings({
                   }
                 />
               </label>
+              <div className={styles.customEquipmentRechargeRow}>
+                <label className={styles.customEquipmentCheckbox}>
+                  <input
+                    type="checkbox"
+                    checked={draft.chargesRechargeEnabled}
+                    onChange={(event) =>
+                      onChange({ chargesRechargeEnabled: event.target.checked })
+                    }
+                  />
+                  <span>AUTO-RECHARGE-ABLE</span>
+                </label>
+                <label className={styles.customEquipmentField}>
+                  <span>Short Rest</span>
+                  <NumberInput
+                    min={0}
+                    max={INVENTORY_REFILLABLE_LIMIT}
+                    value={draft.chargesRechargeShortRest}
+                    disabled={!draft.chargesRechargeEnabled}
+                    onChange={(event) =>
+                      onChange({
+                        chargesRechargeShortRest: normalizeItemSettingRestRechargeAmount(
+                          event.target.valueAsNumber,
+                          draft.chargesRechargeShortRest
+                        )
+                      })
+                    }
+                  />
+                </label>
+                <label className={styles.customEquipmentField}>
+                  <span>Long Rest</span>
+                  <NumberInput
+                    min={0}
+                    max={INVENTORY_REFILLABLE_LIMIT}
+                    value={draft.chargesRechargeLongRest}
+                    disabled={!draft.chargesRechargeEnabled}
+                    onChange={(event) =>
+                      onChange({
+                        chargesRechargeLongRest: normalizeItemSettingRestRechargeAmount(
+                          event.target.valueAsNumber,
+                          draft.chargesRechargeLongRest
+                        )
+                      })
+                    }
+                  />
+                </label>
+              </div>
             </div>
           ) : null}
         </div>

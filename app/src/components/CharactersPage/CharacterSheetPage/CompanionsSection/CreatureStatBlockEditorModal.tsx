@@ -177,9 +177,7 @@ function CreatureStatBlockEditorModal({
       <OverlayHeader>
         <OverlayHeaderContent>
           <OverlayTitle id={titleId}>Modify stat block</OverlayTitle>
-          <OverlaySummary>
-            Edit this V2 creature snapshot. Raw fields outside this form are preserved when saved.
-          </OverlaySummary>
+          <OverlaySummary>Edit creature stat block at your own discretion.</OverlaySummary>
         </OverlayHeaderContent>
         <OverlayCloseButton label="Close stat block editor" onClick={onClose} />
       </OverlayHeader>

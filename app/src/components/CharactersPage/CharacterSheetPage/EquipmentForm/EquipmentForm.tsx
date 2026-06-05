@@ -291,6 +291,7 @@ function createInventoryStackFromContainerContent(
     attuned: content.attuned,
     usesRemaining: content.usesRemaining,
     chargesTotal: content.chargesTotal,
+    chargesRecharge: content.chargesRecharge,
     storedSpell: content.storedSpell,
     featureTags: content.featureTags,
     spellcastingFocusSources: content.spellcastingFocusSources,
@@ -1137,6 +1138,10 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     isSelectedInventoryOwnedDrawer && selectedInventoryStack && !selectedInventoryOwnedContainer
       ? getInventoryItemUseState(selectedInventoryStack)
       : null;
+  const selectedInventoryChargesTagLabel =
+    isSelectedInventoryOwnedDrawer && selectedInventoryStack && !selectedInventoryOwnedContainer
+      ? getInventoryItemChargesTagLabel(selectedInventoryStack, { includeRecharge: true })
+      : null;
   const selectedInventoryUseState =
     selectedInventoryInspection?.source !== "container" ? selectedInventoryHeaderUseState : null;
   const selectedInventoryItemStoredSpell =
@@ -1408,6 +1413,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
         quantity: 1,
         mods: payload.mods,
         chargesTotal: payload.settings.chargesTotal,
+        chargesRecharge: payload.settings.chargesRecharge,
         storedSpell: payload.settings.storedSpell,
         featureTags: payload.settings.featureTags,
         conjuredSource: payload.settings.conjuredSource,
@@ -2805,7 +2811,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       onHandCount={selectedInventoryOnHandCount}
       worn={isSelectedInventoryArmorWorn}
       attuned={selectedInventoryAttuned}
-      charges={selectedInventoryHeaderUseState}
+      chargesLabel={selectedInventoryChargesTagLabel}
       spellTag={selectedInventoryStoredSpellHeaderTag}
       featureTags={selectedInventoryFeatureTagLabels}
       modded={Boolean(selectedInventoryIsModded)}

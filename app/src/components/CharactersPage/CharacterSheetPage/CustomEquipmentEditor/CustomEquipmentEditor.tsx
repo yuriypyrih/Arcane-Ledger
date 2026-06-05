@@ -512,6 +512,7 @@ function CustomEquipmentEditor({
       ? {
           settings: {
             chargesTotal: initialStack?.chargesTotal,
+            chargesRecharge: initialStack?.chargesRecharge,
             storedSpell: initialStack?.storedSpell,
             featureTags: initialStack?.featureTags,
             conjuredSource: initialStack?.conjuredSource,
