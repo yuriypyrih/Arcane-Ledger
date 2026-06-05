@@ -45,7 +45,7 @@ export const monkStarterPack: ClassStarterPack = {
   toolProficiencyChoiceCount: 1,
   recommendedToolProficiencies: [TOOL_PROFICIENCY.CARPENTERS_TOOLS],
   weaponProficiencies: [
-    WEAPON_PROFICIENCY.SIMPLE,
+    WEAPON_PROFICIENCY.SIMPLE_MELEE,
     WEAPON_PROFICIENCY.MARTIAL_MELEE_LIGHT
   ],
   armorTrainingProficiencies: [],

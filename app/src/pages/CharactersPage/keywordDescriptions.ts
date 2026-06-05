@@ -202,7 +202,13 @@ export const keywordDescriptions = {
   proficiencies: {
     "Simple weapons":
       "Training with basic, accessible weapons. You can use them effectively without penalties.",
+    "Simple Melee Weapons":
+      "Training with basic, accessible weapons. You can use them effectively without penalties.",
+    "Simple Range Weapons":
+      "Training with basic, accessible weapons. You can use them effectively without penalties.",
     "Martial weapons": "Training with advanced weapons designed for dedicated combatants.",
+    "Martial Melee Weapons": "Training with advanced weapons designed for dedicated combatants.",
+    "Martial Range Weapons": "Training with advanced weapons designed for dedicated combatants.",
     "Light armor":
       "Armor training with minimal mobility penalty; allows full Dexterity contribution to defense.",
     "Medium armor":

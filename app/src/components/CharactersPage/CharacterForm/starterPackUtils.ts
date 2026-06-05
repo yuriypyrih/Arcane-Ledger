@@ -21,6 +21,7 @@ import {
   getToolProficiencyLabel,
   type ToolProficiency
 } from "../../../pages/CharactersPage/proficiencyOptions";
+import { getExpandedWeaponProficiencyLabels } from "../../../pages/CharactersPage/proficiencyWeaponLabels";
 import { formatCodexLabel } from "../../../utils/codex";
 import { getHitDieLabelForClass } from "../../../pages/CharactersPage/hitDice";
 
@@ -86,8 +87,8 @@ export function getResolvedStarterPack(className: string): ResolvedStarterPack {
       recommendedToolProficiencies: (configuredStarterPack.recommendedToolProficiencies ?? []).map(
         (entry) => getToolProficiencyLabel(entry as ToolProficiency)
       ),
-      weaponProficiencies: configuredStarterPack.weaponProficiencies.map((entry) =>
-        formatCodexLabel(entry)
+      weaponProficiencies: getExpandedWeaponProficiencyLabels(
+        configuredStarterPack.weaponProficiencies
       ),
       armorTrainingProficiencies: configuredStarterPack.armorTrainingProficiencies.map((entry) =>
         formatCodexLabel(entry)
@@ -117,8 +118,8 @@ export function getResolvedStarterPack(className: string): ResolvedStarterPack {
     toolProficiencyChoices: [],
     toolProficiencyChoiceCount: 0,
     recommendedToolProficiencies: [],
-    weaponProficiencies: (classProfile?.weaponProficiencies ?? []).map((entry) =>
-      formatCodexLabel(entry)
+    weaponProficiencies: getExpandedWeaponProficiencyLabels(
+      classProfile?.weaponProficiencies ?? []
     ),
     armorTrainingProficiencies: classProfile
       ? mapArmorTrainingTypesToLabels(classProfile.armorProficiencies)

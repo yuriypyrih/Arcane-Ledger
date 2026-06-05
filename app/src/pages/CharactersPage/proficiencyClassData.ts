@@ -8,7 +8,7 @@ import {
 } from "../../types";
 import { getClassStarterPack } from "../../codex/classes/starterPack";
 import type { ToolProficiency } from "./proficiencyOptions";
-import { getWeaponProficiencyLabel } from "./proficiencyWeaponLabels";
+import { getExpandedWeaponProficiencyLabels } from "./proficiencyWeaponLabels";
 
 export type ArmorType = "light" | "medium" | "heavy" | "shield";
 
@@ -460,7 +460,7 @@ export function getEquipmentProficiencyLabelsForClass(
   }
 
   return {
-    weapons: profile.weaponProficiencies.map((proficiency) => getWeaponProficiencyLabel(proficiency)),
+    weapons: getExpandedWeaponProficiencyLabels(profile.weaponProficiencies),
     armor: profile.armorProficiencies.map((type) => armorProficiencyLabelsByType[type])
   };
 }

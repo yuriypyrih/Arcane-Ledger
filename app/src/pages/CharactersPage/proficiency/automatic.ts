@@ -52,6 +52,7 @@ import {
 import type { ToolProficiency } from "../proficiencyOptions";
 import {
   doesWeaponProficiencyMatchWeapon,
+  expandWeaponProficiencyEntries,
   isMonkOnlyWeaponProficiency
 } from "../proficiencyWeaponLabels";
 import { getSkillProficiencyForName } from "../proficiencyResolvers";
@@ -327,15 +328,17 @@ function getAutomaticWeaponEntries(className: string) {
   }
 
   return mergeProficiencyEntries(
-    profile.weaponProficiencies.map((proficiency) =>
-      createWeaponEntry(
-        proficiency,
-        PROFICIENCY_SOURCE.CLASS,
-        sourceStr,
-        PROF_LEVEL.PROFICIENT,
-        isMonkOnlyWeaponProficiency(proficiency)
-          ? PROFICIENCY_OVERRIDE_POLICY.LOCKED
-          : PROFICIENCY_OVERRIDE_POLICY.OVERRIDABLE
+    expandWeaponProficiencyEntries(
+      profile.weaponProficiencies.map((proficiency) =>
+        createWeaponEntry(
+          proficiency,
+          PROFICIENCY_SOURCE.CLASS,
+          sourceStr,
+          PROF_LEVEL.PROFICIENT,
+          isMonkOnlyWeaponProficiency(proficiency)
+            ? PROFICIENCY_OVERRIDE_POLICY.LOCKED
+            : PROFICIENCY_OVERRIDE_POLICY.OVERRIDABLE
+        )
       )
     )
   );
@@ -456,7 +459,9 @@ function getFeatureProficiencyCollectionsForCharacter(
       getFeatureSavingThrowProficiencyEntriesForCharacter(featureCharacter)
     ),
     weaponProficiencies: mergeProficiencyEntries(
-      getFeatureWeaponProficiencyEntriesForCharacter(featureCharacter)
+      expandWeaponProficiencyEntries(
+        getFeatureWeaponProficiencyEntriesForCharacter(featureCharacter)
+      )
     ),
     armorProficiencies: mergeProficiencyEntries(
       getFeatureArmorProficiencyEntriesForCharacter(featureCharacter)

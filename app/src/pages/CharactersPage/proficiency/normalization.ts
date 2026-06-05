@@ -10,6 +10,7 @@ import type {
 import { PROFICIENCY_OVERRIDE_POLICY, PROF_LEVEL } from "../../../types";
 import { isLanguageProficiency } from "../proficiencyOptions";
 import { recomputeFeatGrantedProficiencies } from "../feats/proficiencyGrants";
+import { expandWeaponProficiencyEntries } from "../proficiencyWeaponLabels";
 import { getAutomaticProficiencyCollectionsForCharacter } from "./automatic";
 import {
   createLanguageEntry,
@@ -40,7 +41,11 @@ function normalizeSavingThrowProficiencyEntries(value: unknown): SavingThrowProf
 }
 
 function normalizeWeaponProficiencyEntries(value: unknown): WeaponProficiencyEntry[] {
-  return normalizeProficiencyEntries<WeaponProficiencyEntry>(value, isWeaponProficiency);
+  return mergeProficiencyEntries(
+    expandWeaponProficiencyEntries(
+      normalizeProficiencyEntries<WeaponProficiencyEntry>(value, isWeaponProficiency)
+    )
+  );
 }
 
 function normalizeArmorProficiencyEntries(value: unknown): ArmorProficiencyEntry[] {

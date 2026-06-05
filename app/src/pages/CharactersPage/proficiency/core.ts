@@ -27,7 +27,10 @@ import {
   skillsOptions,
   toolProficiencyLabels
 } from "../proficiencyOptions";
-import { getWeaponProficiencyLabel } from "../proficiencyWeaponLabels";
+import {
+  expandWeaponProficiency,
+  getWeaponProficiencyLabel
+} from "../proficiencyWeaponLabels";
 import { getSkillProficiencyForName } from "../proficiencyResolvers";
 import type { ToolProficiency } from "../proficiencyOptions";
 import type {
@@ -491,12 +494,13 @@ export function addFeatGrantedWeaponEntries(
           entry.source === PROFICIENCY_SOURCE.MANUAL &&
           hasPositiveProficiencyLevel(entry.proficiencyLevel)
       )
-      .map((entry) => entry.proficiency)
+      .flatMap((entry) => expandWeaponProficiency(entry.proficiency))
   );
 
   return mergeProficiencyEntries([
     ...entries,
     ...weaponProficiencies
+      .flatMap((weaponProficiency) => expandWeaponProficiency(weaponProficiency))
       .filter((weaponProficiency) => !manualProficiencies.has(weaponProficiency))
       .map((weaponProficiency) =>
         createWeaponEntry(
@@ -516,7 +520,12 @@ export function removeFeatGrantedWeaponEntries(
   featEntryId: string
 ): WeaponProficiencyEntry[] {
   const sourceStr = createFeatProficiencySourceStr(featLabel, featEntryId);
-  const weaponProficienciesToRemove = new Set<WEAPON_PROFICIENCY>(weaponProficiencies);
+  const weaponProficienciesToRemove = new Set<WEAPON_PROFICIENCY>(
+    weaponProficiencies.flatMap((proficiency) => [
+      proficiency,
+      ...expandWeaponProficiency(proficiency)
+    ])
+  );
 
   return mergeProficiencyEntries(
     entries.filter(

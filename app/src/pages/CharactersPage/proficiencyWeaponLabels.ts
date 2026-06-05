@@ -11,8 +11,7 @@ import { getWeaponEntries } from "../../codex/selectors";
 import { formatCodexLabel } from "../../utils/codex";
 import {
   isMartialMeleeLightWeapon,
-  isMartialMeleeWeaponWithoutHeavyOrTwoHandedProperty,
-  isSimpleMeleeWeapon
+  isMartialMeleeWeaponWithoutHeavyOrTwoHandedProperty
 } from "./monkWeapons";
 
 export type WeaponType = WEAPON_TRAINING;
@@ -21,6 +20,23 @@ const weaponProficiencyByTraining: Record<WeaponType, WEAPON_PROFICIENCY> = {
   [WEAPON_TRAINING.SIMPLE]: WEAPON_PROFICIENCY.SIMPLE,
   [WEAPON_TRAINING.MARTIAL]: WEAPON_PROFICIENCY.MARTIAL
 };
+
+const splitWeaponProficienciesByLegacyGroup: Partial<
+  Record<WEAPON_PROFICIENCY, WEAPON_PROFICIENCY[]>
+> = {
+  [WEAPON_PROFICIENCY.SIMPLE]: [
+    WEAPON_PROFICIENCY.SIMPLE_MELEE,
+    WEAPON_PROFICIENCY.SIMPLE_RANGED
+  ],
+  [WEAPON_PROFICIENCY.MARTIAL]: [
+    WEAPON_PROFICIENCY.MARTIAL_MELEE,
+    WEAPON_PROFICIENCY.MARTIAL_RANGED
+  ]
+};
+
+const legacyGroupedWeaponProficiencyOptions = Object.keys(
+  splitWeaponProficienciesByLegacyGroup
+) as WEAPON_PROFICIENCY[];
 
 const weaponProficiencyByBaseWeapon: Record<WEAPON_BASE, WEAPON_PROFICIENCY> = {
   [WEAPON_BASE.CLUB]: WEAPON_PROFICIENCY.CLUB,
@@ -65,9 +81,11 @@ const weaponProficiencyByBaseWeapon: Record<WEAPON_BASE, WEAPON_PROFICIENCY> = {
 
 const weaponProficiencyLabelsByCategory: Partial<Record<WEAPON_PROFICIENCY, string>> = {
   [WEAPON_PROFICIENCY.SIMPLE]: "Simple weapons",
-  [WEAPON_PROFICIENCY.SIMPLE_MELEE]: "Simple melee weapons",
+  [WEAPON_PROFICIENCY.SIMPLE_MELEE]: "Simple Melee Weapons",
+  [WEAPON_PROFICIENCY.SIMPLE_RANGED]: "Simple Range Weapons",
   [WEAPON_PROFICIENCY.MARTIAL]: "Martial weapons",
-  [WEAPON_PROFICIENCY.MARTIAL_RANGED]: "Martial ranged weapons",
+  [WEAPON_PROFICIENCY.MARTIAL_MELEE]: "Martial Melee Weapons",
+  [WEAPON_PROFICIENCY.MARTIAL_RANGED]: "Martial Range Weapons",
   [WEAPON_PROFICIENCY.MARTIAL_MELEE_LIGHT]: "Martial melee weapons with Light property",
   [WEAPON_PROFICIENCY.MARTIAL_MELEE_NO_HEAVY_OR_TWO_HANDED]:
     "Martial melee weapons without Heavy or Two-Handed"
@@ -91,19 +109,62 @@ const weaponSpecificProficiencyOptions = Object.values(WEAPON_BASE)
   .sort((left, right) => getWeaponProficiencyLabel(left).localeCompare(getWeaponProficiencyLabel(right)));
 
 const monkOnlyWeaponProficiencyOptions: WEAPON_PROFICIENCY[] = [
-  WEAPON_PROFICIENCY.SIMPLE_MELEE,
   WEAPON_PROFICIENCY.MARTIAL_MELEE_LIGHT
 ];
 
 export const weaponProficiencyOptions: WEAPON_PROFICIENCY[] = [
-  WEAPON_PROFICIENCY.SIMPLE,
   WEAPON_PROFICIENCY.SIMPLE_MELEE,
-  WEAPON_PROFICIENCY.MARTIAL,
+  WEAPON_PROFICIENCY.SIMPLE_RANGED,
+  WEAPON_PROFICIENCY.MARTIAL_MELEE,
   WEAPON_PROFICIENCY.MARTIAL_RANGED,
   WEAPON_PROFICIENCY.MARTIAL_MELEE_LIGHT,
   WEAPON_PROFICIENCY.MARTIAL_MELEE_NO_HEAVY_OR_TWO_HANDED,
   ...weaponSpecificProficiencyOptions
 ];
+
+export function isLegacyGroupedWeaponProficiency(
+  proficiency: WEAPON_PROFICIENCY
+): boolean {
+  return legacyGroupedWeaponProficiencyOptions.includes(proficiency);
+}
+
+export function expandWeaponProficiency(
+  proficiency: WEAPON_PROFICIENCY
+): WEAPON_PROFICIENCY[] {
+  return splitWeaponProficienciesByLegacyGroup[proficiency] ?? [proficiency];
+}
+
+export function expandWeaponProficiencyEntries<
+  TEntry extends { proficiency: WEAPON_PROFICIENCY }
+>(entries: readonly TEntry[]): TEntry[] {
+  return entries.flatMap((entry) =>
+    expandWeaponProficiency(entry.proficiency).map(
+      (proficiency) =>
+        ({
+          ...entry,
+          proficiency
+        }) as TEntry
+    )
+  );
+}
+
+export function expandWeaponProficiencies(
+  proficiencies: readonly WEAPON_PROFICIENCY[]
+): WEAPON_PROFICIENCY[] {
+  return [
+    ...new Set(
+      proficiencies.flatMap((proficiency) => expandWeaponProficiency(proficiency))
+    )
+  ];
+}
+
+export function getExpandedWeaponProficiencyLabels(
+  proficiencies: readonly WEAPON_PROFICIENCY[]
+): string[] {
+  return expandWeaponProficiencies(proficiencies).map((proficiency) =>
+    getWeaponProficiencyLabel(proficiency)
+  );
+}
 
 export function getWeaponProficiencyForTraining(training: WeaponType): WEAPON_PROFICIENCY {
   return weaponProficiencyByTraining[training];
@@ -130,10 +191,39 @@ export function doesWeaponProficiencyMatchWeapon(
     return true;
   }
 
-  if (
-    options?.combatType === undefined ||
-    options?.properties === undefined
-  ) {
+  if (options?.combatType === undefined) {
+    return false;
+  }
+
+  if (proficiency === WEAPON_PROFICIENCY.SIMPLE_MELEE) {
+    return (
+      training === WEAPON_TRAINING.SIMPLE &&
+      options.combatType === WEAPON_COMBAT_TYPE.MELEE
+    );
+  }
+
+  if (proficiency === WEAPON_PROFICIENCY.SIMPLE_RANGED) {
+    return (
+      training === WEAPON_TRAINING.SIMPLE &&
+      options.combatType === WEAPON_COMBAT_TYPE.RANGED
+    );
+  }
+
+  if (proficiency === WEAPON_PROFICIENCY.MARTIAL_MELEE) {
+    return (
+      training === WEAPON_TRAINING.MARTIAL &&
+      options.combatType === WEAPON_COMBAT_TYPE.MELEE
+    );
+  }
+
+  if (proficiency === WEAPON_PROFICIENCY.MARTIAL_RANGED) {
+    return (
+      training === WEAPON_TRAINING.MARTIAL &&
+      options.combatType === WEAPON_COMBAT_TYPE.RANGED
+    );
+  }
+
+  if (options.properties === undefined) {
     return false;
   }
 
@@ -144,17 +234,6 @@ export function doesWeaponProficiencyMatchWeapon(
     },
     properties: options.properties
   };
-
-  if (proficiency === WEAPON_PROFICIENCY.SIMPLE_MELEE) {
-    return isSimpleMeleeWeapon(weaponCandidate);
-  }
-
-  if (proficiency === WEAPON_PROFICIENCY.MARTIAL_RANGED) {
-    return (
-      training === WEAPON_TRAINING.MARTIAL &&
-      options.combatType === WEAPON_COMBAT_TYPE.RANGED
-    );
-  }
 
   if (proficiency === WEAPON_PROFICIENCY.MARTIAL_MELEE_LIGHT) {
     return isMartialMeleeLightWeapon(weaponCandidate);
@@ -181,24 +260,52 @@ export function getMatchingWeaponProficiencies(
     candidates.push(getWeaponProficiencyForBaseWeapon(options.baseWeapon));
   }
 
-  if (
-    options?.combatType !== undefined &&
-    options?.properties !== undefined
-  ) {
-    const weaponCandidate = {
-      type: {
-        training,
-        combat: options.combatType
-      },
-      properties: options.properties
-    };
-
-    if (isSimpleMeleeWeapon(weaponCandidate)) {
+  if (options?.combatType !== undefined) {
+    if (
+      training === WEAPON_TRAINING.SIMPLE &&
+      options.combatType === WEAPON_COMBAT_TYPE.MELEE
+    ) {
       candidates.push(WEAPON_PROFICIENCY.SIMPLE_MELEE);
     }
 
-    if (isMartialMeleeLightWeapon(weaponCandidate)) {
-      candidates.push(WEAPON_PROFICIENCY.MARTIAL_MELEE_LIGHT);
+    if (
+      training === WEAPON_TRAINING.SIMPLE &&
+      options.combatType === WEAPON_COMBAT_TYPE.RANGED
+    ) {
+      candidates.push(WEAPON_PROFICIENCY.SIMPLE_RANGED);
+    }
+
+    if (options.properties !== undefined) {
+      const weaponCandidate = {
+        type: {
+          training,
+          combat: options.combatType
+        },
+        properties: options.properties
+      };
+
+      if (
+        training === WEAPON_TRAINING.MARTIAL &&
+        options.combatType === WEAPON_COMBAT_TYPE.MELEE &&
+        isMartialMeleeLightWeapon(weaponCandidate)
+      ) {
+        candidates.push(WEAPON_PROFICIENCY.MARTIAL_MELEE_LIGHT);
+      }
+
+      if (
+        training === WEAPON_TRAINING.MARTIAL &&
+        options.combatType === WEAPON_COMBAT_TYPE.MELEE &&
+        isMartialMeleeWeaponWithoutHeavyOrTwoHandedProperty(weaponCandidate)
+      ) {
+        candidates.push(WEAPON_PROFICIENCY.MARTIAL_MELEE_NO_HEAVY_OR_TWO_HANDED);
+      }
+    }
+
+    if (
+      training === WEAPON_TRAINING.MARTIAL &&
+      options.combatType === WEAPON_COMBAT_TYPE.MELEE
+    ) {
+      candidates.push(WEAPON_PROFICIENCY.MARTIAL_MELEE);
     }
 
     if (
@@ -206,10 +313,6 @@ export function getMatchingWeaponProficiencies(
       options.combatType === WEAPON_COMBAT_TYPE.RANGED
     ) {
       candidates.push(WEAPON_PROFICIENCY.MARTIAL_RANGED);
-    }
-
-    if (isMartialMeleeWeaponWithoutHeavyOrTwoHandedProperty(weaponCandidate)) {
-      candidates.push(WEAPON_PROFICIENCY.MARTIAL_MELEE_NO_HEAVY_OR_TWO_HANDED);
     }
   }
 
@@ -240,7 +343,9 @@ export function isWeaponMasteryProficiency(proficiency: WEAPON_PROFICIENCY): boo
   return ![
     WEAPON_PROFICIENCY.SIMPLE,
     WEAPON_PROFICIENCY.SIMPLE_MELEE,
+    WEAPON_PROFICIENCY.SIMPLE_RANGED,
     WEAPON_PROFICIENCY.MARTIAL,
+    WEAPON_PROFICIENCY.MARTIAL_MELEE,
     WEAPON_PROFICIENCY.MARTIAL_RANGED,
     WEAPON_PROFICIENCY.MARTIAL_MELEE_LIGHT,
     WEAPON_PROFICIENCY.MARTIAL_MELEE_NO_HEAVY_OR_TWO_HANDED
