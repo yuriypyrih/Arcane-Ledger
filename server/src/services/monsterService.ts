@@ -11,6 +11,25 @@ function createCaseInsensitiveExactMatch(value: string) {
   return new RegExp(`^${escapeRegularExpression(value)}$`, "i");
 }
 
+const v2ToLegacySourceKeyMap: Record<string, string> = {
+  "srd-2014": "wotc-srd",
+  bfrd: "blackflag",
+  ccdx: "cc",
+  "a5e-mm": "menagerie",
+  tdcs: "taldorei"
+};
+
+function getSourceAliases(source: string) {
+  return Array.from(new Set([source, v2ToLegacySourceKeyMap[source] ?? source]));
+}
+
+function appendFilterClause(
+  filter: FilterQuery<MonsterRecord>,
+  clause: FilterQuery<MonsterRecord>
+) {
+  filter.$and = [...(filter.$and ?? []), clause];
+}
+
 function buildMonsterFilter(query: MonsterListQuery): FilterQuery<MonsterRecord> {
   const filter: FilterQuery<MonsterRecord> = {};
 
@@ -20,24 +39,41 @@ function buildMonsterFilter(query: MonsterListQuery): FilterQuery<MonsterRecord>
   }
 
   if (query.type) {
-    filter.type = createCaseInsensitiveExactMatch(query.type);
+    const typeMatch = createCaseInsensitiveExactMatch(query.type);
+    appendFilterClause(filter, {
+      $or: [{ "type.key": typeMatch }, { type: typeMatch }]
+    });
   }
 
-  if (query.cr !== undefined && query.maxCr !== undefined) {
-    filter.cr = {
-      $eq: query.cr,
-      $lte: query.maxCr
+  if (query.challengeRating !== undefined && query.maxChallengeRating !== undefined) {
+    const challengeRatingFilter = {
+      $eq: query.challengeRating,
+      $lte: query.maxChallengeRating
     };
-  } else if (query.cr !== undefined) {
-    filter.cr = query.cr;
-  } else if (query.maxCr !== undefined) {
-    filter.cr = {
-      $lte: query.maxCr
+    appendFilterClause(filter, {
+      $or: [{ challenge_rating: challengeRatingFilter }, { cr: challengeRatingFilter }]
+    });
+  } else if (query.challengeRating !== undefined) {
+    appendFilterClause(filter, {
+      $or: [{ challenge_rating: query.challengeRating }, { cr: query.challengeRating }]
+    });
+  } else if (query.maxChallengeRating !== undefined) {
+    const challengeRatingFilter = {
+      $lte: query.maxChallengeRating
     };
+    appendFilterClause(filter, {
+      $or: [{ challenge_rating: challengeRatingFilter }, { cr: challengeRatingFilter }]
+    });
   }
 
   if (query.source) {
-    filter.document__slug = createCaseInsensitiveExactMatch(query.source);
+    const sourceAliases = getSourceAliases(query.source).map(createCaseInsensitiveExactMatch);
+    appendFilterClause(filter, {
+      $or: [
+        ...sourceAliases.map((sourceAlias) => ({ "document.key": sourceAlias })),
+        ...sourceAliases.map((sourceAlias) => ({ document__slug: sourceAlias }))
+      ]
+    });
   }
 
   return filter;
@@ -47,36 +83,48 @@ function buildMonsterSort(ordering: MonsterOrdering | undefined) {
   switch (ordering) {
     case "type":
       return [
-        ["type", 1],
+        ["type.name", 1],
         ["name", 1]
       ] as [string, SortOrder][];
     case "-type":
       return [
-        ["type", -1],
+        ["type.name", -1],
+        ["name", 1]
+      ] as [string, SortOrder][];
+    case "document":
+      return [
+        ["document.display_name", 1],
+        ["document.name", 1],
+        ["name", 1]
+      ] as [string, SortOrder][];
+    case "-document":
+      return [
+        ["document.display_name", -1],
+        ["document.name", -1],
         ["name", 1]
       ] as [string, SortOrder][];
     case "challenge_rating":
     case "cr":
       return [
-        ["cr", 1],
+        ["challenge_rating", 1],
         ["name", 1]
       ] as [string, SortOrder][];
     case "-challenge_rating":
     case "-cr":
       return [
-        ["cr", -1],
+        ["challenge_rating", -1],
         ["name", 1]
       ] as [string, SortOrder][];
     case "-name":
       return [
         ["name", -1],
-        ["slug", -1]
+        ["key", -1]
       ] as [string, SortOrder][];
     case "name":
     default:
       return [
         ["name", 1],
-        ["slug", 1]
+        ["key", 1]
       ] as [string, SortOrder][];
   }
 }
@@ -99,8 +147,29 @@ export async function listMonsters(query: MonsterListQuery) {
   };
 }
 
-export async function getMonsterBySlug(slug: string) {
-  const record = await MonsterModel.findOne({ slug }).lean<MonsterRecord | null>().exec();
+export async function getMonsterByKey(key: string) {
+  const record = await MonsterModel.findOne({ key }).lean<MonsterRecord | null>().exec();
 
-  return record ? serializeMonsterRecord(record) : null;
+  if (record) {
+    return serializeMonsterRecord(record);
+  }
+
+  const separatorIndex = key.indexOf("_");
+  const legacySourceKey = separatorIndex > 0 ? key.slice(0, separatorIndex) : null;
+  const legacySlug = separatorIndex > 0 ? key.slice(separatorIndex + 1) : key;
+  const sourceAliases = legacySourceKey ? getSourceAliases(legacySourceKey) : [];
+  const legacyRecord = await MonsterModel.findOne({
+    $or: [
+      { slug: key },
+      { slug: legacySlug },
+      ...sourceAliases.map((sourceAlias) => ({
+        slug: legacySlug,
+        document__slug: createCaseInsensitiveExactMatch(sourceAlias)
+      }))
+    ]
+  })
+    .lean<MonsterRecord | null>()
+    .exec();
+
+  return legacyRecord ? serializeMonsterRecord(legacyRecord) : null;
 }

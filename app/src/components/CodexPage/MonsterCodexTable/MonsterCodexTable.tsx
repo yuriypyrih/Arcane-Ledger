@@ -27,7 +27,7 @@ type MonsterCodexTableProps = {
 };
 
 function formatChallengeRating(monster: MonsterListItem) {
-  return monster.challengeRating || String(monster.cr);
+  return monster.challengeRating ?? "-";
 }
 
 function getOrderingState(ordering: MonsterOrdering) {
@@ -35,8 +35,10 @@ function getOrderingState(ordering: MonsterOrdering) {
     case "-name":
       return { field: "name", direction: "desc" } as const;
     case "cr":
+    case "challenge_rating":
       return { field: "cr", direction: "asc" } as const;
     case "-cr":
+    case "-challenge_rating":
       return { field: "cr", direction: "desc" } as const;
     case "name":
       return { field: "name", direction: "asc" } as const;
@@ -53,6 +55,10 @@ function getNextOrdering(
 ) {
   const isCurrentField = orderingState.field === field;
   const nextDirection = isCurrentField && orderingState.direction === "asc" ? "desc" : "asc";
+
+  if (field === "cr") {
+    return nextDirection === "asc" ? "challenge_rating" : "-challenge_rating";
+  }
 
   return nextDirection === "asc" ? field : (`-${field}` as MonsterOrdering);
 }
@@ -134,7 +140,7 @@ function MonsterCodexTable({
     }
 
     navigate({
-      pathname: `/compendium/monsters/${monster.slug}`,
+      pathname: `/compendium/monsters/${monster.key}`,
       search: search.length > 0 ? `?${search}` : ""
     });
   }
@@ -197,7 +203,7 @@ function MonsterCodexTable({
 
       return (
         <tr
-          key={monster.id || monster.slug}
+          key={monster.id || monster.key}
           className={`${styles.tableRow} ${getRowToneClassName(rowTone)}`.trim()}
           onClick={() => openMonster(monster)}
           onKeyDown={(event) => {
@@ -214,9 +220,11 @@ function MonsterCodexTable({
               <strong>{monster.name}</strong>
             </div>
           </td>
-          <td className={styles.typeCell}>{monster.type || "Unknown"}</td>
+          <td className={styles.typeCell}>{monster.typeName || "Unknown"}</td>
           <td className={`${styles.crCell} ${styles.numericCell}`}>{formatChallengeRating(monster)}</td>
-          <td className={styles.sourceCell}>{monster.sourceSlug || "Unknown Source"}</td>
+          <td className={styles.sourceCell}>
+            {monster.sourceKey || monster.sourceTitle || "Unknown Source"}
+          </td>
         </tr>
       );
     });

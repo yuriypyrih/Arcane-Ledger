@@ -5,6 +5,11 @@ import { PRIMAL_BEAST_MONSTER_TYPE } from "../../../../pages/CharactersPage/comp
 import { speciesOptions } from "../../../../pages/CharactersPage/constants";
 import type { CharacterCompanion, MonsterRecord } from "../../../../types";
 import {
+  getMonsterSourceKey,
+  getMonsterSourceTitle,
+  getMonsterTypeName
+} from "../../../../utils/monsters";
+import {
   defaultManualStatusDurationDraft,
   getManualStatusDurationDraft,
   type ManualStatusDurationType
@@ -90,9 +95,11 @@ export function getCompanionSourceLabel(companion: CharacterCompanion) {
 export function getCompanionDisplayType(
   companion: Pick<CharacterCompanion, "type" | "inheritedCreatureEntry">
 ) {
-  const inheritedType = companion.inheritedCreatureEntry?.type.trim() ?? "";
+  const inheritedType = companion.inheritedCreatureEntry
+    ? (getMonsterTypeName(companion.inheritedCreatureEntry) ?? "")
+    : "";
 
-  if (companion.inheritedCreatureEntry?.id === steelDefenderMonsterId && inheritedType) {
+  if (companion.inheritedCreatureEntry?.key === steelDefenderMonsterId && inheritedType) {
     return inheritedType;
   }
 
@@ -107,10 +114,10 @@ export function getInheritedEntryLabel(
   }
 
   const sourceLabel = [
-    companion.inheritedCreatureEntry.document__slug,
-    companion.inheritedCreatureEntry.document__title
+    getMonsterSourceKey(companion.inheritedCreatureEntry),
+    getMonsterSourceTitle(companion.inheritedCreatureEntry)
   ]
-    .map((entry) => entry.trim())
+    .map((entry) => entry?.trim() ?? "")
     .filter(Boolean)
     .join(" - ");
 
@@ -120,8 +127,8 @@ export function getInheritedEntryLabel(
 }
 
 export function getMonsterSourceLabel(monster: MonsterRecord) {
-  const slugLabel = monster.document__slug.trim();
-  const titleLabel = monster.document__title.trim();
+  const slugLabel = getMonsterSourceKey(monster)?.trim() ?? "";
+  const titleLabel = getMonsterSourceTitle(monster)?.trim() ?? "";
 
   if (slugLabel && titleLabel) {
     return `${slugLabel} - ${titleLabel}`;

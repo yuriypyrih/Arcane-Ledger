@@ -1,9 +1,19 @@
-import type { MonsterFeatureRecord, MonsterRecord, MonsterSpeedValue } from "../../types";
+import type { MonsterActionRecord, MonsterRecord, MonsterTraitRecord } from "../../types";
+import {
+  getMonsterChallengeRatingNumber,
+  getMonsterSizeName,
+  getMonsterSourceKey,
+  getMonsterSourceTitle,
+  getMonsterSpeed,
+  getMonsterTypeName
+} from "../../utils/monsters";
 import { normalizeNullableText } from "../../utils/normalize";
+
+export type MonsterFeatureDisplayRecord = MonsterActionRecord | MonsterTraitRecord;
 
 export type MonsterActionGroup = {
   title: string;
-  features: MonsterFeatureRecord[] | null;
+  features: MonsterFeatureDisplayRecord[] | null;
   description?: string | null;
 };
 
@@ -63,39 +73,54 @@ export function getKnownMonsterText(value: string | null | undefined) {
 
 export function formatMonsterFeatureStat(value: number | null | undefined) {
   if (value === null || value === undefined) {
-    return "—";
+    return "-";
   }
 
   return `${value >= 0 ? "+" : ""}${value}`;
 }
 
-function formatMovementValue(value: MonsterSpeedValue) {
-  if (typeof value === "boolean") {
-    return value ? "" : null;
+function formatMovementValue(
+  value: boolean | number | string | null | undefined,
+  unit: string | null
+) {
+  if (value === null || value === undefined || value === false || value === 0) {
+    return null;
+  }
+
+  if (value === true) {
+    return "";
   }
 
   if (typeof value === "number") {
-    return `${value} ft.`;
+    return unit === "feet" || !unit ? `${value} ft.` : `${value} ${unit}`;
   }
 
   const normalizedValue = value.trim();
   return normalizedValue.length > 0 ? normalizedValue : null;
 }
 
-export function formatMonsterSpeed(speed: MonsterRecord["speed"] | null | undefined) {
+export function formatMonsterSpeed(monster: Pick<MonsterRecord, "speed" | "speed_all">) {
+  const speed = getMonsterSpeed(monster);
+
   if (!speed || Object.keys(speed).length === 0) {
     return null;
   }
 
+  const unit = typeof speed.unit === "string" ? speed.unit : "feet";
+
   return Object.entries(speed)
     .flatMap(([key, value]) => {
-      const formattedValue = formatMovementValue(value);
+      const normalizedKey = key.trim().toLowerCase();
+
+      if (normalizedKey === "unit" || normalizedKey === "hover") {
+        return [];
+      }
+
+      const formattedValue = formatMovementValue(value, unit);
 
       if (formattedValue === null) {
         return [];
       }
-
-      const normalizedKey = key.trim().toLowerCase();
 
       if (normalizedKey === "walk" || normalizedKey === "speed") {
         return [formattedValue];
@@ -110,56 +135,94 @@ export function formatMonsterSpeed(speed: MonsterRecord["speed"] | null | undefi
     .join(", ");
 }
 
-function formatMonsterSkillMap(skills: MonsterRecord["skills"] | null | undefined) {
-  if (!skills || Object.keys(skills).length === 0) {
+function formatMonsterNumberMap(map: Record<string, number | null | undefined> | null | undefined) {
+  if (!map || Object.keys(map).length === 0) {
     return null;
   }
 
-  return Object.entries(skills)
+  return Object.entries(map)
+    .filter((entry): entry is [string, number] => typeof entry[1] === "number" && Number.isFinite(entry[1]))
     .sort(([left], [right]) => left.localeCompare(right))
-    .map(([key, value]) => `${key} ${value >= 0 ? "+" : ""}${value}`)
+    .map(([key, value]) => `${key} ${formatMonsterFeatureStat(value)}`)
     .join(", ");
 }
 
-export function formatMonsterFeatureMeta(feature: MonsterFeatureRecord) {
+function formatUsageLimit(action: MonsterActionRecord) {
+  const usageLimits = action.usage_limits;
+
+  if (!usageLimits) {
+    return null;
+  }
+
+  const type = normalizeNullableText(usageLimits.type)?.replace(/_/g, " ").toLowerCase();
+  const param = usageLimits.param;
+  const paramText =
+    typeof param === "number" || typeof param === "string" ? String(param).trim() : "";
+
+  return [paramText, type].filter(Boolean).join(" ");
+}
+
+function formatAttackMeta(action: MonsterActionRecord) {
+  const firstAttack = action.attacks?.find((attack) => typeof attack.to_hit_mod === "number");
+
+  if (!firstAttack) {
+    return null;
+  }
+
+  return `Hit ${formatMonsterFeatureStat(firstAttack.to_hit_mod)}`;
+}
+
+export function formatMonsterFeatureMeta(feature: MonsterFeatureDisplayRecord) {
   const details: string[] = [];
 
-  if (feature.attack_bonus !== undefined) {
-    details.push(`Hit ${formatMonsterFeatureStat(feature.attack_bonus)}`);
+  if ("legendary_action_cost" in feature && typeof feature.legendary_action_cost === "number") {
+    details.push(`${feature.legendary_action_cost} legendary`);
   }
 
-  if (feature.damage_dice) {
-    const damageSuffix =
-      feature.damage_bonus !== undefined
-        ? ` ${formatMonsterFeatureStat(feature.damage_bonus)}`
-        : "";
-    details.push(`Damage ${feature.damage_dice}${damageSuffix}`);
-  } else if (feature.damage_bonus !== undefined) {
-    details.push(`Bonus ${formatMonsterFeatureStat(feature.damage_bonus)}`);
+  if ("usage_limits" in feature) {
+    const usageLimit = formatUsageLimit(feature);
+
+    if (usageLimit) {
+      details.push(usageLimit);
+    }
+
+    const attackMeta = formatAttackMeta(feature);
+
+    if (attackMeta) {
+      details.push(attackMeta);
+    }
+
+    if (typeof feature.attack_bonus === "number") {
+      details.push(`Hit ${formatMonsterFeatureStat(feature.attack_bonus)}`);
+    }
+
+    if (typeof feature.damage_dice === "string" && feature.damage_dice.trim()) {
+      details.push(`Damage ${feature.damage_dice.trim()}`);
+    }
   }
 
-  return details.join(" · ");
+  return details.join(" - ");
 }
 
 function formatMonsterSourceMeta(monster: MonsterRecord) {
-  const sourceSlug = getKnownMonsterText(monster.document__slug);
-  const sourceTitle = getKnownMonsterText(monster.document__title);
+  const sourceKey = getMonsterSourceKey(monster);
+  const sourceTitle = getMonsterSourceTitle(monster);
   const sourceLabel =
-    sourceSlug && sourceTitle ? `${sourceSlug}: ${sourceTitle}` : (sourceSlug ?? sourceTitle);
+    sourceKey && sourceTitle ? `${sourceKey}: ${sourceTitle}` : (sourceKey ?? sourceTitle);
 
   if (!sourceLabel) {
     return null;
   }
 
-  return monster.page_no !== null && monster.page_no !== undefined
+  return typeof monster.page_no === "number" && Number.isFinite(monster.page_no)
     ? `${sourceLabel}, page: ${monster.page_no}`
     : sourceLabel;
 }
 
 export function formatMonsterTitleMeta(monster: MonsterRecord) {
-  const size = getKnownMonsterText(monster.size);
-  const type = getKnownMonsterText(monster.type);
-  const subtype = getKnownMonsterText(monster.subtype);
+  const size = getKnownMonsterText(getMonsterSizeName(monster));
+  const type = getKnownMonsterText(getMonsterTypeName(monster));
+  const subtype = getKnownMonsterText(monster.subcategory);
   const alignment = getKnownMonsterText(monster.alignment);
   const sourceMeta = formatMonsterSourceMeta(monster);
   const creatureType = [size, type].filter(Boolean).join(" ");
@@ -188,57 +251,117 @@ export function formatMonsterValueWithNote(
   return formattedNote ? `${formattedValue} (${formattedNote})` : formattedValue;
 }
 
-function formatMonsterSenses(monster: MonsterRecord) {
-  const senses = getKnownMonsterText(monster.senses);
-  const passivePerception =
-    monster.perception !== null && monster.perception !== undefined
-      ? `passive Perception ${10 + monster.perception}`
-      : null;
-
-  if (senses && passivePerception && senses.toLowerCase().includes("passive perception")) {
-    return senses;
+function formatSenseRange(label: string, value: unknown) {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+    return null;
   }
 
-  return [senses, passivePerception].filter(Boolean).join(", ");
+  return `${label} ${value} ft.`;
+}
+
+function formatMonsterSenses(monster: MonsterRecord) {
+  const legacySenses = getKnownMonsterText(monster.senses_display);
+
+  if (legacySenses) {
+    return legacySenses;
+  }
+
+  return [
+    formatSenseRange("blindsight", monster.blindsight_range),
+    formatSenseRange("darkvision", monster.darkvision_range),
+    formatSenseRange("tremorsense", monster.tremorsense_range),
+    formatSenseRange("truesight", monster.truesight_range),
+    typeof monster.passive_perception === "number" && Number.isFinite(monster.passive_perception)
+      ? `passive Perception ${monster.passive_perception}`
+      : null
+  ]
+    .filter(Boolean)
+    .join(", ");
 }
 
 function formatMonsterChallengeRating(monster: MonsterRecord) {
-  const challengeRating = getKnownMonsterText(monster.challenge_rating) ?? String(monster.cr);
+  const challengeRating =
+    monster.challenge_rating !== null && monster.challenge_rating !== undefined
+      ? String(monster.challenge_rating)
+      : null;
+  const normalizedChallengeRating = getKnownMonsterText(challengeRating) ?? "-";
 
-  if (challengeRating === "—" || challengeRating === "-") {
-    return challengeRating;
+  if (/\bxp\b/i.test(normalizedChallengeRating)) {
+    return normalizedChallengeRating;
   }
 
-  if (/\bxp\b/i.test(challengeRating)) {
-    return challengeRating;
+  if (typeof monster.experience_points === "number" && Number.isFinite(monster.experience_points)) {
+    return `${normalizedChallengeRating} (${xpFormatter.format(monster.experience_points)} XP)`;
   }
 
-  const xp = CR_XP_BY_VALUE.get(monster.cr);
+  const xp = CR_XP_BY_VALUE.get(getMonsterChallengeRatingNumber(monster) ?? -1);
 
-  return xp ? `${challengeRating} (${xpFormatter.format(xp)} XP)` : challengeRating;
+  return xp ? `${normalizedChallengeRating} (${xpFormatter.format(xp)} XP)` : normalizedChallengeRating;
+}
+
+function formatResistanceDisplay(
+  monster: MonsterRecord,
+  key: keyof NonNullable<MonsterRecord["resistances_and_immunities"]>
+) {
+  const value = monster.resistances_and_immunities?.[key];
+
+  return typeof value === "string" ? getKnownMonsterText(value) : null;
+}
+
+function getActionGroupFeatures(monster: MonsterRecord, actionType: MonsterActionRecord["action_type"]) {
+  const actions = monster.actions ?? [];
+
+  return actions
+    .filter((action) => action.action_type === actionType)
+    .sort((left, right) => {
+      const leftOrder =
+        typeof left.order_in_statblock === "number" && Number.isFinite(left.order_in_statblock)
+          ? left.order_in_statblock
+          : 999;
+      const rightOrder =
+        typeof right.order_in_statblock === "number" && Number.isFinite(right.order_in_statblock)
+          ? right.order_in_statblock
+          : 999;
+
+      return leftOrder - rightOrder || String(left.name ?? "").localeCompare(String(right.name ?? ""));
+    });
 }
 
 export function buildMonsterDetailRows(monster: MonsterRecord): MonsterDetailRow[] {
   return [
     {
+      label: "Initiative",
+      value:
+        typeof monster.initiative_bonus === "number" && Number.isFinite(monster.initiative_bonus)
+          ? formatMonsterFeatureStat(monster.initiative_bonus)
+          : ""
+    },
+    {
+      label: "Proficiency Bonus",
+      value:
+        typeof monster.proficiency_bonus === "number" && Number.isFinite(monster.proficiency_bonus)
+          ? formatMonsterFeatureStat(monster.proficiency_bonus)
+          : ""
+    },
+    {
       label: "Skills",
-      value: formatMonsterSkillMap(monster.skills) ?? ""
+      value: formatMonsterNumberMap(monster.skill_bonuses) ?? ""
     },
     {
       label: "Damage Vulnerabilities",
-      value: getKnownMonsterText(monster.damage_vulnerabilities) ?? ""
+      value: formatResistanceDisplay(monster, "damage_vulnerabilities_display") ?? ""
     },
     {
       label: "Damage Resistances",
-      value: getKnownMonsterText(monster.damage_resistances) ?? ""
+      value: formatResistanceDisplay(monster, "damage_resistances_display") ?? ""
     },
     {
       label: "Damage Immunities",
-      value: getKnownMonsterText(monster.damage_immunities) ?? ""
+      value: formatResistanceDisplay(monster, "damage_immunities_display") ?? ""
     },
     {
       label: "Condition Immunities",
-      value: getKnownMonsterText(monster.condition_immunities) ?? ""
+      value: formatResistanceDisplay(monster, "condition_immunities_display") ?? ""
     },
     {
       label: "Senses",
@@ -246,7 +369,7 @@ export function buildMonsterDetailRows(monster: MonsterRecord): MonsterDetailRow
     },
     {
       label: "Languages",
-      value: getKnownMonsterText(monster.languages) ?? "None"
+      value: getKnownMonsterText(monster.languages?.as_string) ?? "None"
     },
     {
       label: "CR",
@@ -258,29 +381,24 @@ export function buildMonsterDetailRows(monster: MonsterRecord): MonsterDetailRow
 export function buildMonsterActionGroups(monster: MonsterRecord): MonsterActionGroup[] {
   return [
     {
-      title: "Special Abilities",
-      features: monster.special_abilities
+      title: "Traits",
+      features: monster.traits?.length ? monster.traits : null
     },
     {
       title: "Actions",
-      features: monster.actions
-    },
-    {
-      title: "Legendary Actions",
-      features: monster.legendary_actions,
-      description: monster.legendary_desc
+      features: getActionGroupFeatures(monster, "ACTION")
     },
     {
       title: "Bonus Actions",
-      features: monster.bonus_actions
+      features: getActionGroupFeatures(monster, "BONUS_ACTION")
     },
     {
       title: "Reactions",
-      features: monster.reactions
+      features: getActionGroupFeatures(monster, "REACTION")
+    },
+    {
+      title: "Legendary Actions",
+      features: getActionGroupFeatures(monster, "LEGENDARY_ACTION")
     }
-  ].filter(
-    (group) =>
-      Boolean(group.features && group.features.length > 0) ||
-      Boolean(getKnownMonsterText(group.description))
-  );
+  ].filter((group) => Boolean(group.features && group.features.length > 0));
 }

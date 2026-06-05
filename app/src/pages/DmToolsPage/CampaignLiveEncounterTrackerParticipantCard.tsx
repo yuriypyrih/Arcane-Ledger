@@ -7,6 +7,7 @@ import EnemyIcon from "../../assets/svg/enemy.svg";
 import { DefaultCharacterPortraitIcon } from "../../components/CharactersPage/CharacterPortrait";
 import HitPointBar from "../../components/CharactersPage/CharacterSheetPage/HitPointControls/HitPointBar";
 import { getCompanionDisplayType } from "../../components/CharactersPage/CharacterSheetPage/CompanionsSection/companionUtils";
+import { getMonsterArmorClass, getMonsterImageUrl } from "../../utils/monsters";
 import type {
   CampaignLiveEncounterTrackerCreatureRecord,
   CampaignLiveEncounterTrackerParticipantRecord,
@@ -124,7 +125,9 @@ function getCreatureViewModel(
   const creature = participant.creature;
 
   return {
-    armorClass: normalizeDisplayNumber(creature.inheritedCreatureEntry?.armor_class),
+    armorClass: normalizeDisplayNumber(
+      creature.inheritedCreatureEntry ? getMonsterArmorClass(creature.inheritedCreatureEntry) : null
+    ),
     currentHitPoints: normalizeDisplayNumber(creature.currentHitPoints),
     magicTemporaryHitPoints: 0,
     maxHitPoints: normalizePositiveDisplayNumber(creature.maxHitPoints),
@@ -152,7 +155,9 @@ function renderParticipantPortrait(participant: CampaignLiveEncounterTrackerPart
     );
   }
 
-  const monsterImage = participant.creature.inheritedCreatureEntry?.img_main;
+  const monsterImage = participant.creature.inheritedCreatureEntry
+    ? getMonsterImageUrl(participant.creature.inheritedCreatureEntry)
+    : null;
 
   return monsterImage ? (
     <img src={monsterImage} alt="" className={styles.portraitImage} />

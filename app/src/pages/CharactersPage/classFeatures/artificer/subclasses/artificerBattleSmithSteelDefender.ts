@@ -5,6 +5,7 @@ import {
   type CharacterCompanion,
   type MonsterRecord
 } from "../../../../../types";
+import { mapLegacyMonsterToDeprecatedMonster } from "../../../../../utils/monsters";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import { ACTION_CARD_THEME } from "../../../actionCardTheme";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
@@ -145,76 +146,80 @@ function createSteelDefenderTemplate(character: BattleSmithSteelDefenderCharacte
   ].filter((entry): entry is { name: string; desc: string } => entry !== null);
 
   return {
-    id: steelDefenderMonsterId,
-    slug: steelDefenderMonsterId,
-    desc: getSteelDefenderDescriptionText(character),
-    name: steelDefenderName,
-    size: "Medium",
-    type: "Construct",
-    subtype: "",
-    group: steelDefenderName,
-    alignment: "Unaligned",
-    armor_class: 15,
-    armor_desc: "natural armor",
-    hit_points: getSteelDefenderMaximumHitPoints(character),
-    hit_dice: `${level}d8`,
-    speed: { walk: 40 },
-    strength: 14,
-    dexterity: 12,
-    constitution: 14,
-    intelligence: 4,
-    wisdom: 10,
-    charisma: 6,
-    strength_save: null,
-    dexterity_save: 1 + proficiencyBonus,
-    constitution_save: 2 + proficiencyBonus,
-    intelligence_save: null,
-    wisdom_save: null,
-    charisma_save: null,
-    perception: proficiencyBonus * 2,
-    skills: {
-      athletics: 2 + proficiencyBonus,
-      perception: proficiencyBonus * 2
-    },
-    damage_vulnerabilities: "",
-    damage_resistances: "",
-    damage_immunities: "Poison",
-    condition_immunities: "Charmed, Exhaustion, Poisoned",
-    senses: `Darkvision 60 ft., passive Perception ${passivePerception}`,
-    languages: "Understands the languages you speak",
-    challenge_rating: "—",
-    cr: 0,
-    actions: [
-      {
-        name: "Force-Empowered Rend",
-        desc: `Melee Weapon Attack: ${formatSignedNumber(
-          spellAttackModifier
-        )} to hit, reach 5 ft., one target you can see. Hit: 1d8 + ${proficiencyBonus} force damage.`
+    ...mapLegacyMonsterToDeprecatedMonster({
+      id: steelDefenderMonsterId,
+      slug: steelDefenderMonsterId,
+      desc: getSteelDefenderDescriptionText(character),
+      name: steelDefenderName,
+      size: "Medium",
+      type: "Construct",
+      subtype: "",
+      group: steelDefenderName,
+      alignment: "Unaligned",
+      armor_class: 15,
+      armor_desc: "natural armor",
+      hit_points: getSteelDefenderMaximumHitPoints(character),
+      hit_dice: `${level}d8`,
+      speed: { walk: 40 },
+      strength: 14,
+      dexterity: 12,
+      constitution: 14,
+      intelligence: 4,
+      wisdom: 10,
+      charisma: 6,
+      strength_save: null,
+      dexterity_save: 1 + proficiencyBonus,
+      constitution_save: 2 + proficiencyBonus,
+      intelligence_save: null,
+      wisdom_save: null,
+      charisma_save: null,
+      perception: proficiencyBonus * 2,
+      skills: {
+        athletics: 2 + proficiencyBonus,
+        perception: proficiencyBonus * 2
       },
-      {
-        name: "Repair (3/Day)",
-        desc: `The magical mechanisms inside the defender restore 2d8 + ${proficiencyBonus} hit points to itself or to one construct or object within 5 feet of it.`
-      }
-    ],
-    bonus_actions: null,
-    reactions: [
-      {
-        name: "Deflect Attack",
-        desc: getSteelDefenderDeflectAttackDescription(character)
-      }
-    ],
-    legendary_desc: null,
-    legendary_actions: null,
-    special_abilities: specialAbilities,
-    spell_list: [],
-    page_no: null,
-    environments: [],
-    img_main: null,
-    document__slug: "",
-    document__title: steelDefenderDocumentTitle,
-    document__license_url: "",
-    document__url: "",
-    v2_converted_path: ""
+      damage_vulnerabilities: "",
+      damage_resistances: "",
+      damage_immunities: "Poison",
+      condition_immunities: "Charmed, Exhaustion, Poisoned",
+      senses: `Darkvision 60 ft., passive Perception ${passivePerception}`,
+      languages: "Understands the languages you speak",
+      challenge_rating: "-",
+      cr: 0,
+      actions: [
+        {
+          name: "Force-Empowered Rend",
+          desc: `Melee Weapon Attack: ${formatSignedNumber(
+            spellAttackModifier
+          )} to hit, reach 5 ft., one target you can see. Hit: 1d8 + ${proficiencyBonus} force damage.`
+        },
+        {
+          name: "Repair (3/Day)",
+          desc: `The magical mechanisms inside the defender restore 2d8 + ${proficiencyBonus} hit points to itself or to one construct or object within 5 feet of it.`
+        }
+      ],
+      bonus_actions: null,
+      reactions: [
+        {
+          name: "Deflect Attack",
+          desc: getSteelDefenderDeflectAttackDescription(character)
+        }
+      ],
+      legendary_desc: null,
+      legendary_actions: null,
+      special_abilities: specialAbilities,
+      spell_list: [],
+      page_no: null,
+      environments: [],
+      img_main: null,
+      document__slug: "arcane-ledger",
+      document__title: steelDefenderDocumentTitle,
+      document__license_url: "",
+      document__url: "",
+      v2_converted_path: ""
+    }),
+    key: steelDefenderMonsterId,
+    deprecated: false
   };
 }
 

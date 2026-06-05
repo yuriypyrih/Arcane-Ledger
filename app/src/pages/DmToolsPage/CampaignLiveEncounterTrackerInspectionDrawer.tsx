@@ -16,6 +16,7 @@ import type {
   CampaignLiveEncounterTrackerParticipantRecord,
   CampaignLiveEncounterTrackerPartyMemberRecord
 } from "../../api/campaigns";
+import { getMonsterArmorClass } from "../../utils/monsters";
 import styles from "./DmToolsPage.module.css";
 import { createEncounterStatBlockRendererModel } from "./liveEncounterTrackerStatBlockAdapter";
 
@@ -195,7 +196,9 @@ function CampaignLiveEncounterTrackerInspectionDrawer({
   const armorClass =
     participant.kind === "party-member"
       ? statBlock?.armorClass
-      : participant.creature.inheritedCreatureEntry?.armor_class;
+      : participant.creature.inheritedCreatureEntry
+        ? getMonsterArmorClass(participant.creature.inheritedCreatureEntry)
+        : null;
   const currentHitPoints =
     participant.kind === "party-member"
       ? statBlock?.currentHitPoints

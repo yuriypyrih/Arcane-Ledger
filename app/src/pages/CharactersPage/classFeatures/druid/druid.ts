@@ -54,6 +54,13 @@ import {
   getDruidWildShapeActionDescriptionAdditions
 } from "./druidWildShapeDescriptions";
 import type { DruidStarryFormConstellation as DruidStarryFormConstellationType } from "./subclasses/druidCircleOfTheStars";
+import {
+  getMonsterChallengeRatingNumber,
+  getMonsterKey,
+  getMonsterTypeName,
+  hasMonsterFlySpeed,
+  normalizeMonsterRecord
+} from "../../../../utils/monsters";
 
 const primalOrderWardenSource = "Primal Order";
 const druidicSource = "Druid";
@@ -216,48 +223,12 @@ export function hasDruidTwinklingConstellationsFeature(
   return starsSubclass.hasDruidTwinklingConstellationsFeature(character);
 }
 
-function hasFlySpeed(speed: MonsterRecord["speed"] | null | undefined): boolean {
-  if (!speed || typeof speed !== "object") {
-    return false;
-  }
-
-  return Object.entries(speed).some(([key, value]) => {
-    if (key.trim().toLowerCase() !== "fly") {
-      return false;
-    }
-
-    if (typeof value === "boolean") {
-      return value;
-    }
-
-    if (typeof value === "number") {
-      return value > 0;
-    }
-
-    return value.trim().length > 0;
-  });
-}
-
-function isMonsterRecordCandidate(value: unknown): value is MonsterRecord {
-  if (!value || typeof value !== "object") {
-    return false;
-  }
-
-  const record = value as Partial<MonsterRecord>;
-  return (
-    typeof record.slug === "string" &&
-    record.slug.trim().length > 0 &&
-    typeof record.name === "string" &&
-    record.name.trim().length > 0
-  );
-}
-
 function getMonsterType(value: MonsterRecord): string {
-  return typeof value.type === "string" ? value.type.trim().toLowerCase() : "";
+  return getMonsterTypeName(value)?.trim().toLowerCase() ?? "";
 }
 
-function createDruidWildShapeStatusSourceId(monsterSlug: string): string {
-  return `${druidWildShapeStatusSourceIdPrefix}${monsterSlug}`;
+function createDruidWildShapeStatusSourceId(monsterKey: string): string {
+  return `${druidWildShapeStatusSourceIdPrefix}${monsterKey}`;
 }
 
 function pruneDruidWildShapeStatusOverrides(
@@ -307,10 +278,11 @@ function getWildShapeKnownFormsForState(
 ): MonsterRecord[] | undefined {
   return Array.isArray(record.wildShapeKnownForms)
     ? record.wildShapeKnownForms
-        .filter(isMonsterRecordCandidate)
+        .map((monster) => normalizeMonsterRecord(monster))
+        .filter((monster): monster is MonsterRecord => monster !== null)
         .filter(
           (monster, index, monsters) =>
-            monsters.findIndex(({ slug }) => slug === monster.slug) === index
+            monsters.findIndex((currentMonster) => getMonsterKey(currentMonster) === getMonsterKey(monster)) === index
         )
         .slice(0, knownFormLimit)
     : undefined;
@@ -319,9 +291,7 @@ function getWildShapeKnownFormsForState(
 function getWildShapeActiveFormForState(
   record: Partial<CharacterDruidFeatureState>
 ): MonsterRecord | undefined {
-  return isMonsterRecordCandidate(record.wildShapeActiveForm)
-    ? record.wildShapeActiveForm
-    : undefined;
+  return normalizeMonsterRecord(record.wildShapeActiveForm) ?? undefined;
 }
 
 export function normalizeDruidFeatureState(
@@ -702,7 +672,7 @@ export function setDruidWildShapeKnownForms(
   const normalizedKnownForms = wildShapeKnownForms
     .filter(
       (monster, index, monsters) =>
-        monsters.findIndex(({ slug }) => slug === monster.slug) === index
+        monsters.findIndex((currentMonster) => getMonsterKey(currentMonster) === getMonsterKey(monster)) === index
     )
     .slice(0, wildShapeRules.knownForms);
 
@@ -1133,11 +1103,12 @@ export function activateDruidStarryForm(
   return starsSubclass.activateDruidStarryForm(character, constellation);
 }
 
-export function activateDruidWildShape(character: Character, monsterSlug: string): Character {
+export function activateDruidWildShape(character: Character, monsterKey: string): Character {
   const wildShapeState = getDruidWildShapeState(character);
   const selectedMonster =
-    wildShapeState.wildShapeKnownForms?.find((monster) => monster.slug === monsterSlug) ??
-    (wildShapeState.wildShapeActiveForm?.slug === monsterSlug
+    wildShapeState.wildShapeKnownForms?.find((monster) => getMonsterKey(monster) === monsterKey) ??
+    (wildShapeState.wildShapeActiveForm &&
+    getMonsterKey(wildShapeState.wildShapeActiveForm) === monsterKey
       ? wildShapeState.wildShapeActiveForm
       : null);
   const totalUses = getDruidWildShapeUsesTotal(character);
@@ -1207,7 +1178,7 @@ export function getDruidDerivedStatusEntries(
     return [];
   }
 
-  const sourceId = createDruidWildShapeStatusSourceId(activeForm.slug);
+  const sourceId = createDruidWildShapeStatusSourceId(getMonsterKey(activeForm));
 
   return [
     {
@@ -1598,11 +1569,13 @@ export function getDruidWildShapeIneligibilityReason(
     return "Wild Shape forms must be Beasts.";
   }
 
-  if (monster.cr > rules.maxCr) {
+  const challengeRating = getMonsterChallengeRatingNumber(monster);
+
+  if (challengeRating !== null && challengeRating > rules.maxCr) {
     return `This form exceeds the current CR ${rules.maxCrLabel} limit.`;
   }
 
-  if (!rules.allowFlySpeed && hasFlySpeed(monster.speed)) {
+  if (!rules.allowFlySpeed && hasMonsterFlySpeed(monster)) {
     return "Fly Speed forms are not available yet.";
   }
 

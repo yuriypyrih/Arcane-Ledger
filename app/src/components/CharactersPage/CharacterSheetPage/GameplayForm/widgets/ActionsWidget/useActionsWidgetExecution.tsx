@@ -9,6 +9,7 @@ import ActionShape, { getActionShapeForCastingTime } from "../../../../../Action
 import RollStatePill from "../../../../../RollStatePill/RollStatePill";
 import FeatureOptInToggle from "../../../FeatureOptInToggle/FeatureOptInToggle";
 import type { Character, CharacterWizardPortentRoll, MonsterRecord } from "../../../../../../types";
+import { getMonsterKey } from "../../../../../../utils/monsters";
 import { abilityKeys } from "../../../../../../pages/CharactersPage/constants";
 import { getKeywordReferences } from "../../../../../../pages/CharactersPage/keywordDescriptions";
 import {
@@ -754,7 +755,10 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     }
 
     setSelectedWildShapeMonsterSlug((currentValue) => {
-      if (currentValue && wildShapeKnownForms.some((monster) => monster.slug === currentValue)) {
+      if (
+        currentValue &&
+        wildShapeKnownForms.some((monster) => getMonsterKey(monster) === currentValue)
+      ) {
         return currentValue;
       }
 

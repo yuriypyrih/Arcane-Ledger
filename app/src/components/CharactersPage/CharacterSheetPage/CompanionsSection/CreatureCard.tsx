@@ -3,6 +3,7 @@ import { Copy, Eye, Pencil, Shield, Trash2 } from "lucide-react";
 import CollaborationIcon from "../../../../assets/svg/collaboration.svg";
 import EnemyIcon from "../../../../assets/svg/enemy.svg";
 import type { CharacterCompanion } from "../../../../types";
+import { getMonsterArmorClass } from "../../../../utils/monsters";
 import { normalizeTemporaryHitPoints } from "../GameplayForm/gameplayStateUtils";
 import { getCompanionDisplayType } from "./companionUtils";
 import styles from "./CreatureCard.module.css";
@@ -57,7 +58,7 @@ function CreatureCard({
   const temporaryHitPoints = normalizeTemporaryHitPoints(creature.temporaryHitPoints);
   const creatureType = getCompanionDisplayType(creature);
   const inheritedCreatureEntry = creature.inheritedCreatureEntry;
-  const armorClass = inheritedCreatureEntry?.armor_class;
+  const armorClass = inheritedCreatureEntry ? getMonsterArmorClass(inheritedCreatureEntry) : null;
   const shouldShowArmorClass =
     typeof armorClass === "number" && Number.isFinite(armorClass) && armorClass > 0;
   const isModified = creature.inheritedCreatureEntryModified === true;

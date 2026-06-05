@@ -9,6 +9,8 @@ const ALLOWED_ORDERINGS = new Set<MonsterOrdering>([
   "-type",
   "challenge_rating",
   "-challenge_rating",
+  "document",
+  "-document",
   "cr",
   "-cr"
 ]);
@@ -64,7 +66,7 @@ function parseOrdering(value: string | undefined): MonsterOrdering | undefined {
   return value as MonsterOrdering;
 }
 
-function parseCrValue(value: string | undefined): number | undefined {
+function parseChallengeRatingValue(value: string | undefined, parameter = "challenge_rating"): number | undefined {
   if (!value) {
     return undefined;
   }
@@ -72,8 +74,8 @@ function parseCrValue(value: string | undefined): number | undefined {
   const parsedValue = Number(value);
 
   if (!Number.isFinite(parsedValue) || parsedValue < 0) {
-    throw new AppError('Query parameter "cr" must be a non-negative number.', 400, "INVALID_QUERY", {
-      parameter: "cr"
+    throw new AppError(`Query parameter "${parameter}" must be a non-negative number.`, 400, "INVALID_QUERY", {
+      parameter
     });
   }
 
@@ -90,7 +92,13 @@ function buildMonsterListQuery(request: Request): MonsterListQuery {
   const sourceValue =
     normalizeOptionalString(readSingleQueryValue(request.query.source, "source")) ??
     normalizeOptionalString(readSingleQueryValue(request.query.document__slug, "document__slug"));
-  const maxCrValue =
+  const challengeRatingValue =
+    readSingleQueryValue(request.query.challenge_rating, "challenge_rating") ??
+    readSingleQueryValue(request.query.challengeRating, "challengeRating") ??
+    readSingleQueryValue(request.query.cr, "cr");
+  const maxChallengeRatingValue =
+    readSingleQueryValue(request.query.max_challenge_rating, "max_challenge_rating") ??
+    readSingleQueryValue(request.query.maxChallengeRating, "maxChallengeRating") ??
     readSingleQueryValue(request.query.max_cr, "max_cr") ??
     readSingleQueryValue(request.query.maxCr, "maxCr");
 
@@ -99,8 +107,8 @@ function buildMonsterListQuery(request: Request): MonsterListQuery {
     page: parsePositiveInteger(readSingleQueryValue(request.query.page, "page"), "page", 1),
     limit: parsePositiveInteger(readSingleQueryValue(request.query.limit, "limit"), "limit", 20, 100),
     ordering: parseOrdering(readSingleQueryValue(request.query.ordering, "ordering")),
-    cr: parseCrValue(readSingleQueryValue(request.query.cr, "cr")),
-    maxCr: parseCrValue(maxCrValue),
+    challengeRating: parseChallengeRatingValue(challengeRatingValue),
+    maxChallengeRating: parseChallengeRatingValue(maxChallengeRatingValue, "max_challenge_rating"),
     type: normalizeOptionalString(readSingleQueryValue(request.query.type, "type")),
     source: sourceValue
   };

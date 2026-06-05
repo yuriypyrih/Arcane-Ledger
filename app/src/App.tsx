@@ -141,7 +141,7 @@ function App() {
             />
             <Route path="/gm-tools/party-manager/:partyGroupId" element={<PartyGroupDetailPage />} />
             <Route path="/compendium/items/:key" element={<ItemCodexEntryPage />} />
-            <Route path="/compendium/monsters/:slug" element={<MonsterCodexEntryPage />} />
+            <Route path="/compendium/monsters/:key" element={<MonsterCodexEntryPage />} />
             <Route path="/compendium/:entryId" element={<CodexEntryPage />} />
             <Route path="/dm-tools/*" element={<LegacyGmToolsRedirect />} />
             <Route path="/library/*" element={<LegacyCompendiumRedirect from="/library" />} />

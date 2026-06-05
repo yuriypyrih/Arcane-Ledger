@@ -431,6 +431,7 @@ import { useSelectedWeaponActionModel } from "./useSelectedWeaponActionModel";
 import ActionsGrid from "./ActionsGrid";
 import FeatureSpellDrawers from "./FeatureSpellDrawers";
 import WildShapePreviewDrawer from "./WildShapePreviewDrawer";
+import { getMonsterKey } from "../../../../../../utils/monsters";
 
 const frozenHauntFallbackSpellSlotMinimumLevel = 4;
 const initialSneakAttackActionSelection: SneakAttackActionSelection = {
@@ -679,7 +680,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const wildShapeMonsterCache = useMemo(
     () =>
       wildShapeKnownForms.reduce<Record<string, MonsterRecord>>((cache, monster) => {
-        cache[monster.slug] = monster;
+        cache[getMonsterKey(monster)] = monster;
         return cache;
       }, {}),
     [wildShapeKnownForms]
@@ -804,8 +805,9 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const selectedWildShapeMonster = useMemo(
     () =>
       selectedFeatureAction?.key === druidWildShapeActionKey
-        ? (wildShapeKnownForms.find((monster) => monster.slug === selectedWildShapeMonsterSlug) ??
-          null)
+        ? (wildShapeKnownForms.find(
+            (monster) => getMonsterKey(monster) === selectedWildShapeMonsterSlug
+          ) ?? null)
         : null,
     [selectedFeatureAction?.key, selectedWildShapeMonsterSlug, wildShapeKnownForms]
   );
@@ -2556,7 +2558,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
       <WildShapePreviewDrawer
         monsterCache={wildShapeMonsterCache}
-        monsterSlug={selectedWildShapePreviewSlug}
+        monsterKey={selectedWildShapePreviewSlug}
         onClose={() => setSelectedWildShapePreviewSlug(null)}
       />
 

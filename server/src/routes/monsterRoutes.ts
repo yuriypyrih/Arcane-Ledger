@@ -5,6 +5,6 @@ import { validateMonsterListQuery } from "../middleware/validateMonsterListQuery
 const monsterRoutes = Router();
 
 monsterRoutes.get("/", validateMonsterListQuery, getMonsters);
-monsterRoutes.get("/:slug", getMonster);
+monsterRoutes.get("/:key", getMonster);
 
 export { monsterRoutes };

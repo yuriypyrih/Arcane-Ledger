@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import { AppError } from "../errors/AppError.js";
 import type { MonsterListQueryLocals } from "../types/monster.js";
 import { createPaginationEnvelope } from "../utils/pagination.js";
-import { getMonsterBySlug, listMonsters } from "../services/monsterService.js";
+import { getMonsterByKey, listMonsters } from "../services/monsterService.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
 
 export const getMonsters = asyncHandler(
@@ -22,11 +22,11 @@ export const getMonsters = asyncHandler(
 );
 
 export const getMonster = asyncHandler(async (request: Request, response: Response) => {
-  const slug = request.params.slug ?? "";
-  const monster = await getMonsterBySlug(slug);
+  const key = request.params.key ?? "";
+  const monster = await getMonsterByKey(key);
 
   if (!monster) {
-    throw new AppError(`Monster with slug "${slug}" was not found.`, 404, "MONSTER_NOT_FOUND");
+    throw new AppError(`Monster with key "${key}" was not found.`, 404, "MONSTER_NOT_FOUND");
   }
 
   response.json(monster);

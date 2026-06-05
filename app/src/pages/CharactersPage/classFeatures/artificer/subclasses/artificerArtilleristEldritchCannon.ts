@@ -11,6 +11,7 @@ import {
   type CharacterCompanion,
   type MonsterRecord
 } from "../../../../../types";
+import { mapLegacyMonsterToDeprecatedMonster } from "../../../../../utils/monsters";
 import { ACTION_CARD_THEME } from "../../../actionCardTheme";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { createFeatureSourcedDescriptionEntries } from "../../../actionModalDescriptions";
@@ -328,68 +329,74 @@ function createEldritchCannonTemplate(
   character: ArtilleristEldritchCannonCharacter,
   option: EldritchCannonOptionConfig
 ): MonsterRecord {
+  const monsterId = `${eldritchCannonMonsterIdPrefix}-${option.key}`;
+
   return {
-    id: `${eldritchCannonMonsterIdPrefix}-${option.key}`,
-    slug: `${eldritchCannonMonsterIdPrefix}-${option.key}`,
-    desc: getEldritchCannonDescriptionText(character),
-    name: option.name,
-    size: "Small or Tiny",
-    type: "Magical Object",
-    subtype: "",
-    group: eldritchCannonCompanionType,
-    alignment: "Unaligned",
-    armor_class: 18,
-    armor_desc: null,
-    hit_points: 10,
-    hit_dice: "5 times your Artificer level",
-    speed: { walk: 15, climb: 15 },
-    strength: 10,
-    dexterity: 10,
-    constitution: 10,
-    intelligence: 10,
-    wisdom: 10,
-    charisma: 10,
-    strength_save: null,
-    dexterity_save: null,
-    constitution_save: null,
-    intelligence_save: null,
-    wisdom_save: null,
-    charisma_save: null,
-    perception: null,
-    skills: {},
-    damage_vulnerabilities: "",
-    damage_resistances: "",
-    damage_immunities: "Poison, Psychic",
-    condition_immunities: "",
-    senses: "",
-    languages: "",
-    challenge_rating: "None (XP 0)",
-    cr: 0,
-    actions: [
-      {
-        name: "Activation",
-        desc: getEldritchCannonActivationDescription(character, option)
-      }
-    ],
-    bonus_actions: null,
-    reactions: null,
-    legendary_desc: null,
-    legendary_actions: null,
-    special_abilities: [
-      {
-        name: "Magical Object",
-        desc: "If the cannon is forced to make an ability check or a saving throw, treat all its ability scores as 10 (+0). If the Mending spell is cast on it, it regains 2d6 hit points."
-      }
-    ],
-    spell_list: [],
-    page_no: null,
-    environments: [],
-    img_main: null,
-    document__slug: "",
-    document__title: eldritchCannonDocumentTitle,
-    document__license_url: "",
-    document__url: "",
-    v2_converted_path: ""
+    ...mapLegacyMonsterToDeprecatedMonster({
+      id: monsterId,
+      slug: monsterId,
+      desc: getEldritchCannonDescriptionText(character),
+      name: option.name,
+      size: "Small or Tiny",
+      type: "Magical Object",
+      subtype: "",
+      group: eldritchCannonCompanionType,
+      alignment: "Unaligned",
+      armor_class: 18,
+      armor_desc: null,
+      hit_points: 10,
+      hit_dice: "5 times your Artificer level",
+      speed: { walk: 15, climb: 15 },
+      strength: 10,
+      dexterity: 10,
+      constitution: 10,
+      intelligence: 10,
+      wisdom: 10,
+      charisma: 10,
+      strength_save: null,
+      dexterity_save: null,
+      constitution_save: null,
+      intelligence_save: null,
+      wisdom_save: null,
+      charisma_save: null,
+      perception: null,
+      skills: {},
+      damage_vulnerabilities: "",
+      damage_resistances: "",
+      damage_immunities: "Poison, Psychic",
+      condition_immunities: "",
+      senses: "",
+      languages: "",
+      challenge_rating: "None (XP 0)",
+      cr: 0,
+      actions: [
+        {
+          name: "Activation",
+          desc: getEldritchCannonActivationDescription(character, option)
+        }
+      ],
+      bonus_actions: null,
+      reactions: null,
+      legendary_desc: null,
+      legendary_actions: null,
+      special_abilities: [
+        {
+          name: "Magical Object",
+          desc: "If the cannon is forced to make an ability check or a saving throw, treat all its ability scores as 10 (+0). If the Mending spell is cast on it, it regains 2d6 hit points."
+        }
+      ],
+      spell_list: [],
+      page_no: null,
+      environments: [],
+      img_main: null,
+      document__slug: "arcane-ledger",
+      document__title: eldritchCannonDocumentTitle,
+      document__license_url: "",
+      document__url: "",
+      v2_converted_path: ""
+    }),
+    key: monsterId,
+    deprecated: false
   };
 }
 
@@ -473,10 +480,13 @@ export function isArtificerEldritchCannonOptionKey(
 export function isArtificerEldritchCannonCompanion(
   companion: Pick<CharacterCompanion, "type" | "inheritedCreatureEntry">
 ): boolean {
+  const inheritedCreatureKey =
+    companion.inheritedCreatureEntry?.key ?? companion.inheritedCreatureEntry?.id ?? null;
+
   return (
     companion.type === eldritchCannonCompanionType ||
     companion.type === legacyEldritchCannonCompanionType ||
-    companion.inheritedCreatureEntry?.id.startsWith(`${eldritchCannonMonsterIdPrefix}-`) === true
+    inheritedCreatureKey?.startsWith(`${eldritchCannonMonsterIdPrefix}-`) === true
   );
 }
 

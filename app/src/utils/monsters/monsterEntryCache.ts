@@ -1,20 +1,21 @@
 import type { MonsterRecord } from "../../types";
+import { getMonsterKey } from "./normalizeMonsterRecord";
 import { LruCache } from "../lruCache";
 
 const monsterEntryCache = new LruCache<string, MonsterRecord>(75);
 
-export function getCachedMonsterEntry(slug: string): MonsterRecord | undefined {
-  return monsterEntryCache.get(slug);
+export function getCachedMonsterEntry(key: string): MonsterRecord | undefined {
+  return monsterEntryCache.get(key);
 }
 
-export function hasCachedMonsterEntry(slug: string): boolean {
-  return monsterEntryCache.has(slug);
+export function hasCachedMonsterEntry(key: string): boolean {
+  return monsterEntryCache.has(key);
 }
 
 export function primeMonsterEntryCache(monster: MonsterRecord | null | undefined) {
-  if (!monster?.slug) {
+  if (!monster?.key) {
     return;
   }
 
-  monsterEntryCache.set(monster.slug, monster);
+  monsterEntryCache.set(getMonsterKey(monster), monster);
 }

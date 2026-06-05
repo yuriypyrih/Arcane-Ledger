@@ -1089,7 +1089,7 @@ export function renderActionDrawerBody(context: Record<string, any>) {
       return (
         <WildShapeActionBody
           monsters={wildShapeKnownForms}
-          selectedMonsterSlug={selectedWildShapeMonsterSlug}
+          selectedMonsterKey={selectedWildShapeMonsterSlug}
           onSelectMonster={setSelectedWildShapeMonsterSlug}
           onPreviewMonster={setSelectedWildShapePreviewSlug}
         />

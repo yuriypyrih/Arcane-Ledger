@@ -1,4 +1,13 @@
 import type { Character, MonsterListItem, MonsterRecord } from "../../types";
+import {
+  getMonsterImageUrl,
+  getMonsterKey,
+  getMonsterSourceKey,
+  getMonsterSourceTitle,
+  getMonsterTypeKey,
+  getMonsterTypeName,
+  mapLegacyMonsterToDeprecatedMonster
+} from "../../utils/monsters";
 import { getAbilityModifierForCharacter } from "./abilities";
 
 export type PrimalBeastKind = "land" | "sea" | "sky";
@@ -14,26 +23,16 @@ export const primalBeastKindOptions: Array<{ value: PrimalBeastKind; label: stri
 
 function createPrimalBeastTemplate(
   kind: PrimalBeastKind,
-  record: Omit<
-    MonsterRecord,
-    | "id"
-    | "slug"
-    | "document__slug"
-    | "document__title"
-    | "document__license_url"
-    | "document__url"
-    | "v2_converted_path"
-  >
+  record: Record<string, unknown>
 ): MonsterRecord {
   return {
-    ...record,
-    id: `primal-beast-${kind}`,
-    slug: `primal-beast-${kind}`,
-    document__slug: "arcane-ledger",
-    document__title: "Primal Beast",
-    document__license_url: "",
-    document__url: "",
-    v2_converted_path: ""
+    ...mapLegacyMonsterToDeprecatedMonster({
+      ...record,
+      slug: `primal-beast-${kind}`,
+      document__slug: "arcane-ledger",
+      document__title: "Primal Beast"
+    }),
+    deprecated: false
   };
 }
 
@@ -261,20 +260,20 @@ export function isPrimalBeastKind(value: unknown): value is PrimalBeastKind {
   return value === "land" || value === "sea" || value === "sky";
 }
 
-export function getPrimalBeastKindFromSlug(slug: string): PrimalBeastKind | null {
-  const normalizedSlug = slug.trim();
+export function getPrimalBeastKindFromKey(key: string): PrimalBeastKind | null {
+  const normalizedKey = key.trim();
 
   return (
-    primalBeastKindOptions.find((option) => `primal-beast-${option.value}` === normalizedSlug)
+    primalBeastKindOptions.find((option) => `arcane-ledger_primal-beast-${option.value}` === normalizedKey)
       ?.value ?? null
   );
 }
 
-export function getPrimalBeastTemplateBySlug(
-  slug: string,
+export function getPrimalBeastTemplateByKey(
+  key: string,
   character?: Pick<Character, "abilities" | "level">
 ): MonsterRecord | null {
-  const kind = getPrimalBeastKindFromSlug(slug);
+  const kind = getPrimalBeastKindFromKey(key);
 
   return kind ? getPrimalBeastTemplate(kind, character) : null;
 }
@@ -288,15 +287,15 @@ export const primalBeastMonsterListItems: MonsterListItem[] = primalBeastKindOpt
     const template = primalBeastTemplates[value];
 
     return {
-      id: template.id,
-      slug: template.slug,
+      id: template.id ?? template.key,
+      key: getMonsterKey(template),
       name: template.name,
-      type: PRIMAL_BEAST_MONSTER_TYPE,
-      cr: template.cr,
-      challengeRating: template.challenge_rating,
-      sourceTitle: template.document__title,
-      sourceSlug: template.document__slug,
-      imageUrl: template.img_main
+      challengeRating: template.challenge_rating ?? null,
+      typeKey: getMonsterTypeKey(template),
+      typeName: getMonsterTypeName(template) ?? PRIMAL_BEAST_MONSTER_TYPE,
+      sourceKey: getMonsterSourceKey(template),
+      sourceTitle: getMonsterSourceTitle(template),
+      imageUrl: getMonsterImageUrl(template)
     };
   }
 );

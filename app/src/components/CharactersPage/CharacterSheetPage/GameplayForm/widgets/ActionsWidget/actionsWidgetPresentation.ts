@@ -23,6 +23,12 @@ import {
   formatWeaponTypeWithBaseWeapon
 } from "../../../../../../utils/codex";
 import { resolveWeaponBaseReference } from "../../../../../../utils/items/resolveWeaponBaseReference";
+import {
+  getMonsterChallengeRatingNumber,
+  getMonsterSizeName,
+  getMonsterSourceKey,
+  getMonsterTypeName
+} from "../../../../../../utils/monsters";
 
 type WeaponFormulaPresentation = {
   label: string;
@@ -672,11 +678,16 @@ export function getWeaponDrawerDescription(
 }
 
 export function formatWildShapeMonsterMeta(monster: MonsterRecord): string {
+  const challengeRating =
+    typeof monster.challenge_rating === "string" && monster.challenge_rating.trim()
+      ? monster.challenge_rating.trim()
+      : getMonsterChallengeRatingNumber(monster);
+
   return [
-    monster.size?.trim(),
-    monster.type?.trim() ? formatCodexLabel(monster.type) : null,
-    monster.document__slug?.trim() || null,
-    monster.challenge_rating?.trim() ? `CR ${monster.challenge_rating.trim()}` : null
+    getMonsterSizeName(monster),
+    getMonsterTypeName(monster),
+    getMonsterSourceKey(monster),
+    challengeRating !== null ? `CR ${challengeRating}` : null
   ]
     .filter((value): value is string => Boolean(value))
     .join(", ");

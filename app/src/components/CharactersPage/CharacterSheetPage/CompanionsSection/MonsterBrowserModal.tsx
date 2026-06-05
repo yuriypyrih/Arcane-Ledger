@@ -15,6 +15,7 @@ import {
 import SearchField from "../../../SearchField";
 import SelectInput from "../../FormInputs/SelectInput";
 import type { CodexStatus, MonsterListItem, MonsterOrdering } from "../../../../types";
+import { getMonsterListItemKey } from "../../../../utils/monsters";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import { companionMonsterTypeOptions } from "./companionUtils";
 import styles from "./CompanionsSection.module.css";
@@ -27,12 +28,12 @@ type MonsterBrowserModalProps = {
   totalPages: number;
   query: string;
   searchResetSignal?: unknown;
-  selectedMonsterSlug: string | null;
+  selectedMonsterKey: string | null;
   monsterTypeFilter: string;
   monsterSourceFilter: string;
   monsterTypeOptions?: string[];
   ordering: MonsterOrdering;
-  pendingSelectSlug: string | null;
+  pendingSelectKey: string | null;
   summary?: string;
   title?: string;
   onClose: () => void;
@@ -53,12 +54,12 @@ function MonsterBrowserModal({
   totalPages,
   query,
   searchResetSignal,
-  selectedMonsterSlug,
+  selectedMonsterKey,
   monsterTypeFilter,
   monsterSourceFilter,
   monsterTypeOptions = companionMonsterTypeOptions,
   ordering,
-  pendingSelectSlug,
+  pendingSelectKey,
   summary = "Choose a stat block to inherit for this companion.",
   title = "Browse monsters",
   onClose,
@@ -142,11 +143,12 @@ function MonsterBrowserModal({
           onOrderingChange={onOrderingChange}
           onMonsterClick={onOpenMonsterPreview}
           getRowTone={(monster) =>
-            selectedMonsterSlug && monster.slug === selectedMonsterSlug ? "valid" : null
+            selectedMonsterKey && getMonsterListItemKey(monster) === selectedMonsterKey ? "valid" : null
           }
           renderNamePrefix={(monster) => {
-            const isSelected = monster.slug === selectedMonsterSlug;
-            const isPending = pendingSelectSlug === monster.slug;
+            const monsterKey = getMonsterListItemKey(monster);
+            const isSelected = monsterKey === selectedMonsterKey;
+            const isPending = pendingSelectKey === monsterKey;
 
             return (
               <button

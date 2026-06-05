@@ -53,7 +53,7 @@ export function useMonsterEntries({
             limit,
             search: search.trim() || undefined,
             type: type ?? undefined,
-            maxCr: maxCr ?? undefined,
+            maxChallengeRating: maxCr ?? undefined,
             source: source ?? undefined,
             ordering
           },

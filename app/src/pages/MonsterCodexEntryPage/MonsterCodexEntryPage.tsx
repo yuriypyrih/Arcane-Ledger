@@ -5,9 +5,9 @@ import { useMonsterEntry } from "./useMonsterEntry";
 
 function MonsterCodexEntryPage() {
   const navigate = useNavigate();
-  const { slug } = useParams();
+  const { key } = useParams();
   const [searchParams] = useSearchParams();
-  const { monster, status } = useMonsterEntry(slug);
+  const { monster, status } = useMonsterEntry(key);
   const backToCodexPath =
     searchParams.toString().length > 0 ? `/compendium?${searchParams}` : "/compendium";
 

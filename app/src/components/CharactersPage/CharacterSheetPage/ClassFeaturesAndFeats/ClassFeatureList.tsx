@@ -50,6 +50,7 @@ import type {
 } from "../../../../types";
 import { SKILL } from "../../../../types";
 import { formatCodexLabel } from "../../../../utils/codex";
+import { getMonsterKey, getMonsterSourceKey, getMonsterTypeName } from "../../../../utils/monsters";
 import { FeatureDisclosureRow, featureDisclosureStyles } from "../../../FeatureDisclosure";
 import { MonsterEntryDrawer } from "../../../MonsterEntryRenderer";
 import { CharacterSheetSectionProfiler } from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetSectionProfiler";
@@ -856,6 +857,9 @@ function ClassFeatureList({
                   getKnowledgeDomainBlessingsSkillSelections,
                   getKnowledgeDomainBlessingsToolSelection,
                   getKnowledgeDomainUnfetteredMindSavingThrowSelection,
+                  getMonsterKey,
+                  getMonsterSourceKey,
+                  getMonsterTypeName,
                   getPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection,
                   getProficiencyLabel,
                   getRangerDeftExplorerExpertiseSelection,

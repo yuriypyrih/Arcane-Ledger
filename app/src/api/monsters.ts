@@ -6,8 +6,8 @@ export type FetchMonsterListParams = {
   limit?: number;
   search?: string;
   type?: string;
-  cr?: number;
-  maxCr?: number;
+  challengeRating?: number;
+  maxChallengeRating?: number;
   source?: string;
   ordering?: MonsterOrdering;
 };
@@ -18,8 +18,8 @@ export async function fetchMonsterList(
     limit = 50,
     search,
     type,
-    cr,
-    maxCr,
+    challengeRating,
+    maxChallengeRating,
     source,
     ordering = "name"
   }: FetchMonsterListParams = {},
@@ -42,12 +42,12 @@ export async function fetchMonsterList(
     searchParams.set("source", source);
   }
 
-  if (cr !== undefined) {
-    searchParams.set("cr", String(cr));
+  if (challengeRating !== undefined) {
+    searchParams.set("challenge_rating", String(challengeRating));
   }
 
-  if (maxCr !== undefined) {
-    searchParams.set("max_cr", String(maxCr));
+  if (maxChallengeRating !== undefined) {
+    searchParams.set("max_challenge_rating", String(maxChallengeRating));
   }
 
   return apiGet<PaginatedApiResponse<MonsterListItem>>(
@@ -56,6 +56,6 @@ export async function fetchMonsterList(
   );
 }
 
-export async function fetchMonsterBySlug(slug: string, options?: ApiRequestOptions) {
-  return apiGet<MonsterRecord>(`monsters/${slug}`, options);
+export async function fetchMonsterByKey(key: string, options?: ApiRequestOptions) {
+  return apiGet<MonsterRecord>(`monsters/${key}`, options);
 }

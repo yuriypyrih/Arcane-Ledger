@@ -1,28 +1,52 @@
 import type { EncounterTemplateCreatureRecord } from "../../api/encounterTemplates";
 import type { CharacterCompanion } from "../../types";
+import { normalizeMonsterRecord } from "../../utils/monsters";
 import { createCharacterCompanionId } from "../CharactersPage/companions";
+
+export function normalizeEncounterCreatureRecord(
+  creature: CharacterCompanion | EncounterTemplateCreatureRecord
+): EncounterTemplateCreatureRecord {
+  const inheritedCreatureEntry = normalizeMonsterRecord(creature.inheritedCreatureEntry);
+  const {
+    inheritedCreatureEntry: _unusedInheritedCreatureEntry,
+    inheritedCreatureEntryModified: _unusedInheritedCreatureEntryModified,
+    ...baseCreature
+  } = creature;
+
+  return {
+    ...baseCreature,
+    ...(inheritedCreatureEntry ? { inheritedCreatureEntry } : {}),
+    ...(inheritedCreatureEntry && creature.inheritedCreatureEntryModified === true
+      ? { inheritedCreatureEntryModified: true }
+      : {})
+  };
+}
 
 export function toEncounterCreatureRecord(
   creature: CharacterCompanion | EncounterTemplateCreatureRecord
 ): EncounterTemplateCreatureRecord {
+  const normalizedCreature = normalizeEncounterCreatureRecord(creature);
+
   return {
-    id: creature.id,
-    name: creature.name,
-    description: creature.description,
-    type: creature.type,
-    maxHitPoints: creature.maxHitPoints,
-    currentHitPoints: creature.currentHitPoints,
-    temporaryHitPoints: creature.temporaryHitPoints,
-    duration: creature.duration,
-    ...(creature.temporaryHitPointsSource
-      ? { temporaryHitPointsSource: creature.temporaryHitPointsSource }
+    id: normalizedCreature.id,
+    name: normalizedCreature.name,
+    description: normalizedCreature.description,
+    type: normalizedCreature.type,
+    maxHitPoints: normalizedCreature.maxHitPoints,
+    currentHitPoints: normalizedCreature.currentHitPoints,
+    temporaryHitPoints: normalizedCreature.temporaryHitPoints,
+    duration: normalizedCreature.duration,
+    ...(normalizedCreature.temporaryHitPointsSource
+      ? { temporaryHitPointsSource: normalizedCreature.temporaryHitPointsSource }
       : {}),
-    ...(creature.deathSaves ? { deathSaves: creature.deathSaves } : {}),
-    ...(creature.primalBeastKind ? { primalBeastKind: creature.primalBeastKind } : {}),
-    ...(creature.inheritedCreatureEntry
-      ? { inheritedCreatureEntry: creature.inheritedCreatureEntry }
+    ...(normalizedCreature.deathSaves ? { deathSaves: normalizedCreature.deathSaves } : {}),
+    ...(normalizedCreature.primalBeastKind
+      ? { primalBeastKind: normalizedCreature.primalBeastKind }
       : {}),
-    ...(creature.inheritedCreatureEntryModified
+    ...(normalizedCreature.inheritedCreatureEntry
+      ? { inheritedCreatureEntry: normalizedCreature.inheritedCreatureEntry }
+      : {}),
+    ...(normalizedCreature.inheritedCreatureEntryModified
       ? { inheritedCreatureEntryModified: true }
       : {})
   };

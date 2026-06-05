@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchMonsterBySlug, isApiOfflineError } from "../../../../../../api";
+import { fetchMonsterByKey, isApiOfflineError } from "../../../../../../api";
 import { MonsterEntryDrawer } from "../../../../../MonsterEntryRenderer";
 import { useOnlineStatus } from "../../../../../../lib/useOnlineStatus";
 import type { CodexStatus, MonsterRecord } from "../../../../../../types";
@@ -8,13 +8,13 @@ import styles from "./ActionsWidget.module.css";
 
 type WildShapePreviewDrawerProps = {
   monsterCache: Record<string, MonsterRecord>;
-  monsterSlug: string | null;
+  monsterKey: string | null;
   onClose: () => void;
 };
 
 function WildShapePreviewDrawer({
   monsterCache,
-  monsterSlug,
+  monsterKey,
   onClose
 }: WildShapePreviewDrawerProps) {
   const isOnline = useOnlineStatus();
@@ -26,15 +26,15 @@ function WildShapePreviewDrawer({
     const abortController = new AbortController();
 
     async function loadWildShapePreview() {
-      if (!monsterSlug) {
+      if (!monsterKey) {
         setMonster(null);
         setStatus("ready");
         return;
       }
 
-      const cachedMonster = monsterCache[monsterSlug] ?? getCachedMonsterEntry(monsterSlug);
+      const cachedMonster = monsterCache[monsterKey] ?? getCachedMonsterEntry(monsterKey);
 
-      if (cachedMonster?.document__slug?.trim()) {
+      if (cachedMonster) {
         primeMonsterEntryCache(cachedMonster);
         setMonster(cachedMonster);
         setStatus("ready");
@@ -50,7 +50,7 @@ function WildShapePreviewDrawer({
       setStatus("loading");
 
       try {
-        const nextMonster = await fetchMonsterBySlug(monsterSlug, {
+        const nextMonster = await fetchMonsterByKey(monsterKey, {
           signal: abortController.signal
         });
 
@@ -77,9 +77,9 @@ function WildShapePreviewDrawer({
       active = false;
       abortController.abort();
     };
-  }, [isOnline, monsterCache, monsterSlug]);
+  }, [isOnline, monsterCache, monsterKey]);
 
-  if (!monsterSlug) {
+  if (!monsterKey) {
     return null;
   }
 

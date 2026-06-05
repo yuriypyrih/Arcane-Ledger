@@ -15,13 +15,14 @@ export const MONSTER_TYPE_OPTIONS = [
 ] as const;
 
 export const MONSTER_SOURCE_OPTIONS = [
-  "blackflag",
-  "cc",
-  "menagerie",
-  "taldorei",
+  "srd-2014",
+  "srd-2024",
+  "bfrd",
+  "ccdx",
+  "a5e-mm",
+  "tdcs",
   "tob",
   "tob-2023",
   "tob2",
-  "tob3",
-  "wotc-srd"
+  "tob3"
 ] as const;

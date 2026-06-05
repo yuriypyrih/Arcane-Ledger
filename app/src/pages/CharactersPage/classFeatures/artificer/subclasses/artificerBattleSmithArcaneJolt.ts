@@ -2,7 +2,7 @@ import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../../codex/
 import type {
   Character,
   CharacterArtificerFeatureState,
-  MonsterFeatureRecord
+  MonsterTraitRecord
 } from "../../../../../types";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import { ACTION_CARD_THEME } from "../../../actionCardTheme";
@@ -318,7 +318,7 @@ export function transformArtificerBattleSmithArcaneJoltWeaponAction(
 
 export function getArtificerBattleSmithArcaneJoltSpecialAbility(
   character: BattleSmithArcaneJoltCharacter
-): MonsterFeatureRecord | null {
+): MonsterTraitRecord | null {
   return hasArtificerBattleSmithArcaneJoltFeature(character)
     ? {
         name: arcaneJoltName,

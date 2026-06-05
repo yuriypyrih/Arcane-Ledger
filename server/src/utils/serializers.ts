@@ -13,10 +13,8 @@ import type {
 } from "../types/item.js";
 import type {
   MonsterDetailRecord,
-  MonsterFeatureRecord,
   MonsterListItem,
-  MonsterRecord,
-  MonsterSpeedValue
+  MonsterRecord
 } from "../types/monster.js";
 import type { Open5eDocumentReference, Open5eKeyedReference } from "../types/open5e.js";
 import { isItemContainerKey } from "./itemContainers.js";
@@ -54,119 +52,276 @@ function normalizeStringArray(value: unknown) {
     : [];
 }
 
-function normalizeMonsterSpeed(value: unknown): Record<string, MonsterSpeedValue> {
+const legacySourceKeyMap: Record<string, string> = {
+  blackflag: "bfrd",
+  cc: "ccdx",
+  menagerie: "a5e-mm",
+  taldorei: "tdcs",
+  "wotc-srd": "srd-2014"
+};
+
+const monsterAbilityKeys = [
+  "strength",
+  "dexterity",
+  "constitution",
+  "intelligence",
+  "wisdom",
+  "charisma"
+] as const;
+
+function normalizeLegacySourceKey(value: unknown) {
+  const sourceKey = normalizeText(value);
+  return legacySourceKeyMap[sourceKey] ?? sourceKey;
+}
+
+function getDisplayText(value: unknown, fallback = "") {
+  const text = normalizeText(value);
+  return text || fallback;
+}
+
+function toReference(value: unknown, fallbackName = "") {
+  if (isObjectRecord(value)) {
+    const key = normalizeNullableText(value.key);
+    const name = normalizeNullableText(value.display_name) ?? normalizeNullableText(value.name);
+
+    return key || name
+      ? {
+          ...value,
+          ...(key ? { key } : {}),
+          ...(name ? { name } : {})
+        }
+      : null;
+  }
+
+  const name = normalizeNullableText(value) ?? fallbackName;
+  const key = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+  return name
+    ? {
+        key,
+        name
+      }
+    : null;
+}
+
+function normalizeNumberMap(value: unknown) {
   if (!isObjectRecord(value)) {
     return {};
   }
 
-  return Object.entries(value).reduce<Record<string, MonsterSpeedValue>>((speed, [key, speedValue]) => {
-    if (
-      typeof speedValue !== "boolean" &&
-      typeof speedValue !== "number" &&
-      typeof speedValue !== "string"
-    ) {
+  return Object.entries(value).reduce<Record<string, number>>((map, [key, entry]) => {
+    const normalizedKey = normalizeText(key);
+
+    if (!normalizedKey || typeof entry !== "number" || !Number.isFinite(entry)) {
+      return map;
+    }
+
+    map[normalizedKey] = entry;
+    return map;
+  }, {});
+}
+
+function normalizeSpeedMap(value: unknown) {
+  if (!isObjectRecord(value)) {
+    return {};
+  }
+
+  return Object.entries(value).reduce<Record<string, boolean | number | string>>(
+    (speed, [key, entry]) => {
+      const normalizedKey = normalizeText(key);
+
+      if (
+        !normalizedKey ||
+        (typeof entry !== "boolean" && typeof entry !== "number" && typeof entry !== "string")
+      ) {
+        return speed;
+      }
+
+      speed[normalizedKey] = entry;
       return speed;
-    }
-
-    speed[key] = speedValue;
-    return speed;
-  }, {});
+    },
+    {}
+  );
 }
 
-function normalizeMonsterSkills(value: unknown) {
+function normalizeLegacyTrait(value: unknown) {
   if (!isObjectRecord(value)) {
-    return {};
+    return null;
   }
 
-  return Object.entries(value).reduce<Record<string, number>>((skills, [key, skillValue]) => {
-    if (typeof skillValue !== "number" || !Number.isFinite(skillValue)) {
-      return skills;
-    }
+  const name = normalizeText(value.name);
 
-    skills[key] = skillValue;
-    return skills;
-  }, {});
-}
-
-function normalizeMonsterFeature(value: unknown): MonsterFeatureRecord | null {
-  if (!isObjectRecord(value) || typeof value.name !== "string" || value.name.length === 0) {
+  if (!name) {
     return null;
   }
 
   return {
-    name: value.name,
-    desc: normalizeText(value.desc),
-    attack_bonus: normalizeNullableNumber(value.attack_bonus) ?? undefined,
-    damage_dice: typeof value.damage_dice === "string" ? value.damage_dice : undefined,
-    damage_bonus: normalizeNullableNumber(value.damage_bonus) ?? undefined
+    ...value,
+    name,
+    desc: normalizeText(value.desc)
   };
 }
 
-function normalizeMonsterFeatures(value: unknown) {
+function normalizeLegacyTraits(value: unknown) {
   if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((entry) => normalizeLegacyTrait(entry))
+    .filter((entry): entry is NonNullable<ReturnType<typeof normalizeLegacyTrait>> => entry !== null);
+}
+
+function normalizeLegacyAction(value: unknown, actionType: string, order: number) {
+  if (!isObjectRecord(value)) {
     return null;
   }
 
-  const features = value
-    .map((entry) => normalizeMonsterFeature(entry))
-    .filter((entry): entry is MonsterFeatureRecord => entry !== null);
+  const name = normalizeText(value.name);
 
-  return features.length > 0 ? features : null;
+  if (!name) {
+    return null;
+  }
+
+  return {
+    ...value,
+    name,
+    desc: normalizeText(value.desc),
+    attacks: [],
+    action_type: actionType,
+    order_in_statblock: order,
+    legendary_action_cost:
+      actionType === "LEGENDARY_ACTION" ? (normalizeNullableNumber(value.legendary_action_cost) ?? 1) : null,
+    limited_to_form: null,
+    usage_limits: null
+  };
 }
 
-function normalizeMonsterRecord(record: MonsterRecord): MonsterRecord {
+function normalizeLegacyActions(value: unknown, actionType: string) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((entry, index) => normalizeLegacyAction(entry, actionType, index))
+    .filter((entry): entry is NonNullable<ReturnType<typeof normalizeLegacyAction>> => entry !== null);
+}
+
+function isV2MonsterRecord(record: Record<string, unknown>): record is MonsterRecord {
+  return typeof record.key === "string" && record.key.trim().length > 0;
+}
+
+function mapLegacyMonsterToV2(record: Record<string, unknown>): MonsterRecord {
+  const legacySlug = normalizeText(record.slug);
+  const sourceKey = normalizeLegacySourceKey(record.document__slug);
+  const key = sourceKey && legacySlug ? `${sourceKey}_${legacySlug}` : legacySlug || "legacy-monster";
+  const abilityScores = Object.fromEntries(
+    monsterAbilityKeys.map((ability) => [ability, normalizeNumber(record[ability], 10)])
+  );
+  const savingThrows = Object.fromEntries(
+    monsterAbilityKeys.flatMap((ability) => {
+      const value = normalizeNullableNumber(record[`${ability}_save`]);
+      return value === null ? [] : [[ability, value]];
+    })
+  );
+  const perception = normalizeNullableNumber(record.perception);
+  const skills = normalizeNumberMap(record.skills);
+  const actions = [
+    ...normalizeLegacyActions(record.actions, "ACTION"),
+    ...normalizeLegacyActions(record.bonus_actions, "BONUS_ACTION"),
+    ...normalizeLegacyActions(record.reactions, "REACTION"),
+    ...normalizeLegacyActions(record.legendary_actions, "LEGENDARY_ACTION")
+  ];
+  const imageUrl = normalizeNullableText(record.img_main);
+
   return {
-    slug: normalizeText(record.slug),
+    key,
+    name: getDisplayText(record.name, "Legacy Monster"),
+    deprecated: true,
     desc: normalizeText(record.desc),
-    name: normalizeText(record.name),
-    size: normalizeText(record.size),
-    type: normalizeText(record.type),
-    subtype: normalizeText(record.subtype),
-    group: normalizeNullableText(record.group),
-    alignment: normalizeText(record.alignment),
-    armor_class: normalizeNumber(record.armor_class, 0),
-    armor_desc: normalizeNullableText(record.armor_desc),
-    hit_points: normalizeNumber(record.hit_points, 0),
-    hit_dice: normalizeText(record.hit_dice),
-    speed: normalizeMonsterSpeed(record.speed),
-    strength: normalizeNumber(record.strength, 10),
-    dexterity: normalizeNumber(record.dexterity, 10),
-    constitution: normalizeNumber(record.constitution, 10),
-    intelligence: normalizeNumber(record.intelligence, 10),
-    wisdom: normalizeNumber(record.wisdom, 10),
-    charisma: normalizeNumber(record.charisma, 10),
-    strength_save: normalizeNullableNumber(record.strength_save),
-    dexterity_save: normalizeNullableNumber(record.dexterity_save),
-    constitution_save: normalizeNullableNumber(record.constitution_save),
-    intelligence_save: normalizeNullableNumber(record.intelligence_save),
-    wisdom_save: normalizeNullableNumber(record.wisdom_save),
-    charisma_save: normalizeNullableNumber(record.charisma_save),
-    perception: normalizeNullableNumber(record.perception),
-    skills: normalizeMonsterSkills(record.skills),
-    damage_vulnerabilities: normalizeText(record.damage_vulnerabilities),
-    damage_resistances: normalizeText(record.damage_resistances),
-    damage_immunities: normalizeText(record.damage_immunities),
-    condition_immunities: normalizeText(record.condition_immunities),
-    senses: normalizeText(record.senses),
-    languages: normalizeText(record.languages),
-    challenge_rating: normalizeText(record.challenge_rating),
+    size: toReference(record.size),
+    type: toReference(record.type),
+    subcategory: normalizeNullableText(record.subtype),
+    category: normalizeNullableText(record.group) ?? "Monsters",
+    alignment: normalizeNullableText(record.alignment),
+    armor_class: normalizeNullableNumber(record.armor_class),
+    armor_detail: normalizeNullableText(record.armor_desc),
+    hit_points: normalizeNullableNumber(record.hit_points),
+    hit_dice: normalizeNullableText(record.hit_dice),
+    speed: normalizeSpeedMap(record.speed),
+    speed_all: normalizeSpeedMap(record.speed),
+    ability_scores: abilityScores,
+    saving_throws: savingThrows,
+    saving_throws_all: {
+      ...abilityScores,
+      ...savingThrows
+    },
+    skill_bonuses: skills,
+    skill_bonuses_all: {
+      ...skills,
+      ...(perception !== null ? { perception } : {})
+    },
+    passive_perception: perception !== null ? 10 + perception : null,
+    senses_display: normalizeText(record.senses),
+    languages: {
+      as_string: normalizeText(record.languages)
+    },
+    challenge_rating: record.challenge_rating as number | string | null | undefined,
     cr: normalizeNumber(record.cr, 0),
-    actions: normalizeMonsterFeatures(record.actions),
-    bonus_actions: normalizeMonsterFeatures(record.bonus_actions),
-    reactions: normalizeMonsterFeatures(record.reactions),
-    legendary_desc: normalizeNullableText(record.legendary_desc),
-    legendary_actions: normalizeMonsterFeatures(record.legendary_actions),
-    special_abilities: normalizeMonsterFeatures(record.special_abilities),
+    resistances_and_immunities: {
+      damage_vulnerabilities_display: normalizeText(record.damage_vulnerabilities),
+      damage_vulnerabilities: [],
+      damage_resistances_display: normalizeText(record.damage_resistances),
+      damage_resistances: [],
+      damage_immunities_display: normalizeText(record.damage_immunities),
+      damage_immunities: [],
+      condition_immunities_display: normalizeText(record.condition_immunities),
+      condition_immunities: []
+    },
+    traits: normalizeLegacyTraits(record.special_abilities),
+    actions,
     spell_list: normalizeStringArray(record.spell_list),
     page_no: normalizeNullableNumber(record.page_no),
-    environments: normalizeStringArray(record.environments),
-    img_main: normalizeNullableText(record.img_main),
-    document__slug: normalizeText(record.document__slug),
-    document__title: normalizeText(record.document__title),
-    document__license_url: normalizeText(record.document__license_url),
-    document__url: normalizeText(record.document__url),
+    environments: normalizeStringArray(record.environments).map((name) => ({ name, key: name })),
+    illustration: imageUrl ? { file_url: imageUrl } : null,
+    document: {
+      key: sourceKey,
+      name: normalizeText(record.document__title),
+      display_name: normalizeText(record.document__title)
+    },
+    document_url: normalizeText(record.document__url),
+    document_license_url: normalizeText(record.document__license_url),
     v2_converted_path: normalizeText(record.v2_converted_path)
   };
+}
+
+function normalizeMonsterRecord(record: MonsterRecord | Record<string, unknown>): MonsterRecord {
+  if (!isV2MonsterRecord(record)) {
+    return mapLegacyMonsterToV2(record);
+  }
+
+  return {
+    ...record,
+    key: normalizeText(record.key),
+    name: getDisplayText(record.name, "Unknown Monster")
+  };
+}
+
+function getMonsterImageUrl(monster: MonsterRecord) {
+  const illustration = monster.illustration;
+  return isObjectRecord(illustration) ? normalizeNullableText(illustration.file_url) : null;
+}
+
+function getMonsterReferenceKey(reference: unknown) {
+  return isObjectRecord(reference) ? normalizeNullableText(reference.key) : null;
+}
+
+function getMonsterReferenceName(reference: unknown) {
+  if (!isObjectRecord(reference)) {
+    return null;
+  }
+
+  return normalizeNullableText(reference.display_name) ?? normalizeNullableText(reference.name);
 }
 
 export function serializeMonsterRecord(
@@ -188,14 +343,15 @@ export function serializeMonsterListItem(
 
   return {
     id: _id?.toString() ?? "",
-    slug: monster.slug,
+    key: monster.key,
     name: monster.name,
-    type: monster.type,
-    cr: monster.cr,
-    challengeRating: monster.challenge_rating,
-    sourceTitle: monster.document__title,
-    sourceSlug: monster.document__slug,
-    imageUrl: monster.img_main
+    challengeRating: monster.challenge_rating ?? null,
+    typeKey: getMonsterReferenceKey(monster.type),
+    typeName: getMonsterReferenceName(monster.type),
+    sourceKey: getMonsterReferenceKey(monster.document),
+    sourceTitle: getMonsterReferenceName(monster.document),
+    imageUrl: getMonsterImageUrl(monster),
+    ...(monster.deprecated ? { deprecated: true } : {})
   };
 }
 

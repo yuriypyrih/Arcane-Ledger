@@ -11,81 +11,27 @@ import {
   OverlayTitle,
   SheetModal
 } from "../../../Overlay";
+import SelectInput from "../../FormInputs/SelectInput";
 import TextAreaInput from "../../FormInputs/TextAreaInput";
 import TextInput from "../../FormInputs/TextInput";
-import type { MonsterFeatureRecord, MonsterRecord, MonsterSpeedValue } from "../../../../types";
+import type { MonsterAbilityKey, MonsterRecord } from "../../../../types";
+import {
+  createDraftFromMonster,
+  createDraftRowId,
+  createEmptyActionRow,
+  createEmptyKeyValueRow,
+  createEmptyTraitRow,
+  monsterAbilityFieldLabels,
+  monsterActionTypeOptions,
+  validateAndCreateMonster,
+  type ActionRow,
+  type KeyValueRow,
+  type StatBlockDraft,
+  type StatBlockValidation,
+  type TraitRow
+} from "./CreatureStatBlockEditorModel";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./CompanionsSection.module.css";
-
-type KeyValueRow = {
-  id: string;
-  key: string;
-  value: string;
-};
-
-type FeatureRow = {
-  id: string;
-  name: string;
-  desc: string;
-  attackBonus: string;
-  damageDice: string;
-  damageBonus: string;
-};
-
-type FeatureListKey =
-  | "specialAbilities"
-  | "actions"
-  | "bonusActions"
-  | "reactions"
-  | "legendaryActions";
-
-type StatBlockDraft = {
-  name: string;
-  desc: string;
-  size: string;
-  type: string;
-  subtype: string;
-  group: string;
-  alignment: string;
-  armorClass: string;
-  armorDesc: string;
-  hitPoints: string;
-  hitDice: string;
-  speedRows: KeyValueRow[];
-  strength: string;
-  dexterity: string;
-  constitution: string;
-  intelligence: string;
-  wisdom: string;
-  charisma: string;
-  strengthSave: string;
-  dexteritySave: string;
-  constitutionSave: string;
-  intelligenceSave: string;
-  wisdomSave: string;
-  charismaSave: string;
-  perception: string;
-  skillRows: KeyValueRow[];
-  damageVulnerabilities: string;
-  damageResistances: string;
-  damageImmunities: string;
-  conditionImmunities: string;
-  senses: string;
-  languages: string;
-  challengeRating: string;
-  cr: string;
-  legendaryDesc: string;
-  specialAbilities: FeatureRow[];
-  actions: FeatureRow[];
-  bonusActions: FeatureRow[];
-  reactions: FeatureRow[];
-  legendaryActions: FeatureRow[];
-};
-
-type StatBlockValidation = {
-  invalidFields: Set<string>;
-  message: string | null;
-};
 
 type CreatureStatBlockEditorModalProps = {
   monster: MonsterRecord;
@@ -93,382 +39,7 @@ type CreatureStatBlockEditorModalProps = {
   onSave: (monster: MonsterRecord) => void;
 };
 
-const featureListLabels: Record<FeatureListKey, string> = {
-  specialAbilities: "Special abilities",
-  actions: "Actions",
-  bonusActions: "Bonus actions",
-  reactions: "Reactions",
-  legendaryActions: "Legendary actions"
-};
-
-const abilityFields = [
-  ["strength", "STR"],
-  ["dexterity", "DEX"],
-  ["constitution", "CON"],
-  ["intelligence", "INT"],
-  ["wisdom", "WIS"],
-  ["charisma", "CHA"]
-] as const;
-
-const saveFields = [
-  ["strengthSave", "STR Save"],
-  ["dexteritySave", "DEX Save"],
-  ["constitutionSave", "CON Save"],
-  ["intelligenceSave", "INT Save"],
-  ["wisdomSave", "WIS Save"],
-  ["charismaSave", "CHA Save"]
-] as const;
-
-let draftRowId = 0;
-
-function createDraftRowId() {
-  draftRowId += 1;
-  return `stat-block-row-${draftRowId}`;
-}
-
-function numericDraftValue(value: number | null | undefined) {
-  return value === null || value === undefined ? "" : String(value);
-}
-
-function createKeyValueRows(entries: [string, MonsterSpeedValue | number][]) {
-  if (entries.length === 0) {
-    return [createEmptyKeyValueRow()];
-  }
-
-  return entries.map(([key, value]) => ({
-    id: createDraftRowId(),
-    key,
-    value: String(value)
-  }));
-}
-
-function createFeatureRows(features: MonsterFeatureRecord[] | null) {
-  if (!features || features.length === 0) {
-    return [];
-  }
-
-  return features.map((feature) => ({
-    id: createDraftRowId(),
-    name: feature.name,
-    desc: feature.desc,
-    attackBonus: numericDraftValue(feature.attack_bonus),
-    damageDice: feature.damage_dice ?? "",
-    damageBonus: numericDraftValue(feature.damage_bonus)
-  }));
-}
-
-function createEmptyKeyValueRow(): KeyValueRow {
-  return {
-    id: createDraftRowId(),
-    key: "",
-    value: ""
-  };
-}
-
-function createEmptyFeatureRow(): FeatureRow {
-  return {
-    id: createDraftRowId(),
-    name: "",
-    desc: "",
-    attackBonus: "",
-    damageDice: "",
-    damageBonus: ""
-  };
-}
-
-function createDraftFromMonster(monster: MonsterRecord): StatBlockDraft {
-  return {
-    name: monster.name,
-    desc: monster.desc,
-    size: monster.size,
-    type: monster.type,
-    subtype: monster.subtype,
-    group: monster.group ?? "",
-    alignment: monster.alignment,
-    armorClass: String(monster.armor_class),
-    armorDesc: monster.armor_desc ?? "",
-    hitPoints: String(monster.hit_points),
-    hitDice: monster.hit_dice,
-    speedRows: createKeyValueRows(Object.entries(monster.speed)),
-    strength: String(monster.strength),
-    dexterity: String(monster.dexterity),
-    constitution: String(monster.constitution),
-    intelligence: String(monster.intelligence),
-    wisdom: String(monster.wisdom),
-    charisma: String(monster.charisma),
-    strengthSave: numericDraftValue(monster.strength_save),
-    dexteritySave: numericDraftValue(monster.dexterity_save),
-    constitutionSave: numericDraftValue(monster.constitution_save),
-    intelligenceSave: numericDraftValue(monster.intelligence_save),
-    wisdomSave: numericDraftValue(monster.wisdom_save),
-    charismaSave: numericDraftValue(monster.charisma_save),
-    perception: numericDraftValue(monster.perception),
-    skillRows: createKeyValueRows(Object.entries(monster.skills)),
-    damageVulnerabilities: monster.damage_vulnerabilities,
-    damageResistances: monster.damage_resistances,
-    damageImmunities: monster.damage_immunities,
-    conditionImmunities: monster.condition_immunities,
-    senses: monster.senses,
-    languages: monster.languages,
-    challengeRating: monster.challenge_rating,
-    cr: String(monster.cr),
-    legendaryDesc: monster.legendary_desc ?? "",
-    specialAbilities: createFeatureRows(monster.special_abilities),
-    actions: createFeatureRows(monster.actions),
-    bonusActions: createFeatureRows(monster.bonus_actions),
-    reactions: createFeatureRows(monster.reactions),
-    legendaryActions: createFeatureRows(monster.legendary_actions)
-  };
-}
-
-function parseRequiredInteger(
-  value: string,
-  fieldName: string,
-  invalidFields: Set<string>,
-  min = 0,
-  max = 999
-) {
-  const trimmedValue = value.trim();
-  const parsedValue = Number(trimmedValue);
-
-  if (
-    trimmedValue.length === 0 ||
-    !Number.isInteger(parsedValue) ||
-    parsedValue < min ||
-    parsedValue > max
-  ) {
-    invalidFields.add(fieldName);
-    return 0;
-  }
-
-  return parsedValue;
-}
-
-function parseNullableInteger(
-  value: string,
-  fieldName: string,
-  invalidFields: Set<string>,
-  min = -999,
-  max = 999
-) {
-  const trimmedValue = value.trim();
-
-  if (!trimmedValue) {
-    return null;
-  }
-
-  const parsedValue = Number(trimmedValue);
-
-  if (!Number.isInteger(parsedValue) || parsedValue < min || parsedValue > max) {
-    invalidFields.add(fieldName);
-    return null;
-  }
-
-  return parsedValue;
-}
-
-function parseRequiredNumber(
-  value: string,
-  fieldName: string,
-  invalidFields: Set<string>,
-  min = 0,
-  max = 999
-) {
-  const trimmedValue = value.trim();
-  const parsedValue = Number(trimmedValue);
-
-  if (
-    trimmedValue.length === 0 ||
-    !Number.isFinite(parsedValue) ||
-    parsedValue < min ||
-    parsedValue > max
-  ) {
-    invalidFields.add(fieldName);
-    return 0;
-  }
-
-  return parsedValue;
-}
-
-function parseSpeedValue(value: string): MonsterSpeedValue {
-  const trimmedValue = value.trim();
-  const normalizedValue = trimmedValue.toLowerCase();
-
-  if (!trimmedValue || normalizedValue === "true") {
-    return true;
-  }
-
-  if (normalizedValue === "false") {
-    return false;
-  }
-
-  const parsedValue = Number(trimmedValue);
-  return Number.isFinite(parsedValue) ? parsedValue : trimmedValue;
-}
-
-function parseSpeedRows(rows: KeyValueRow[], invalidFields: Set<string>) {
-  return rows.reduce<Record<string, MonsterSpeedValue>>((speed, row) => {
-    const key = row.key.trim();
-    const value = row.value.trim();
-
-    if (!key && !value) {
-      return speed;
-    }
-
-    if (!key) {
-      invalidFields.add(`speed-${row.id}-key`);
-      return speed;
-    }
-
-    speed[key] = parseSpeedValue(value);
-    return speed;
-  }, {});
-}
-
-function parseSkillRows(rows: KeyValueRow[], invalidFields: Set<string>) {
-  return rows.reduce<Record<string, number>>((skills, row) => {
-    const key = row.key.trim();
-    const value = row.value.trim();
-
-    if (!key && !value) {
-      return skills;
-    }
-
-    if (!key) {
-      invalidFields.add(`skill-${row.id}-key`);
-      return skills;
-    }
-
-    const parsedValue = Number(value);
-
-    if (!value || !Number.isInteger(parsedValue)) {
-      invalidFields.add(`skill-${row.id}-value`);
-      return skills;
-    }
-
-    skills[key] = parsedValue;
-    return skills;
-  }, {});
-}
-
-function parseFeatureRows(rows: FeatureRow[], listKey: FeatureListKey, invalidFields: Set<string>) {
-  const parsedRows = rows.reduce<MonsterFeatureRecord[]>((features, row) => {
-    const name = row.name.trim();
-    const desc = row.desc.trim();
-    const attackBonus = row.attackBonus.trim();
-    const damageDice = row.damageDice.trim();
-    const damageBonus = row.damageBonus.trim();
-    const hasContent = Boolean(name || desc || attackBonus || damageDice || damageBonus);
-
-    if (!hasContent) {
-      return features;
-    }
-
-    if (!name) {
-      invalidFields.add(`${listKey}-${row.id}-name`);
-    }
-
-    const parsedAttackBonus = parseNullableInteger(
-      attackBonus,
-      `${listKey}-${row.id}-attackBonus`,
-      invalidFields
-    );
-    const parsedDamageBonus = parseNullableInteger(
-      damageBonus,
-      `${listKey}-${row.id}-damageBonus`,
-      invalidFields
-    );
-
-    features.push({
-      name,
-      desc,
-      ...(parsedAttackBonus !== null ? { attack_bonus: parsedAttackBonus } : {}),
-      ...(damageDice ? { damage_dice: damageDice } : {}),
-      ...(parsedDamageBonus !== null ? { damage_bonus: parsedDamageBonus } : {})
-    });
-
-    return features;
-  }, []);
-
-  return parsedRows.length > 0 ? parsedRows : null;
-}
-
-function optionalText(value: string) {
-  const trimmedValue = value.trim();
-  return trimmedValue.length > 0 ? trimmedValue : null;
-}
-
-function validateAndCreateMonster(
-  monster: MonsterRecord,
-  draft: StatBlockDraft
-): { monster: MonsterRecord | null; validation: StatBlockValidation } {
-  const invalidFields = new Set<string>();
-  const name = draft.name.trim();
-
-  if (!name) {
-    invalidFields.add("name");
-  }
-
-  const nextMonster: MonsterRecord = {
-    ...monster,
-    name,
-    desc: draft.desc.trim(),
-    size: draft.size.trim(),
-    type: draft.type.trim(),
-    subtype: draft.subtype.trim(),
-    group: optionalText(draft.group),
-    alignment: draft.alignment.trim(),
-    armor_class: parseRequiredInteger(draft.armorClass, "armorClass", invalidFields, 0, 999),
-    armor_desc: optionalText(draft.armorDesc),
-    hit_points: parseRequiredInteger(draft.hitPoints, "hitPoints", invalidFields, 1, 9999),
-    hit_dice: draft.hitDice.trim(),
-    speed: parseSpeedRows(draft.speedRows, invalidFields),
-    strength: parseRequiredInteger(draft.strength, "strength", invalidFields, 0, 99),
-    dexterity: parseRequiredInteger(draft.dexterity, "dexterity", invalidFields, 0, 99),
-    constitution: parseRequiredInteger(draft.constitution, "constitution", invalidFields, 0, 99),
-    intelligence: parseRequiredInteger(draft.intelligence, "intelligence", invalidFields, 0, 99),
-    wisdom: parseRequiredInteger(draft.wisdom, "wisdom", invalidFields, 0, 99),
-    charisma: parseRequiredInteger(draft.charisma, "charisma", invalidFields, 0, 99),
-    strength_save: parseNullableInteger(draft.strengthSave, "strengthSave", invalidFields),
-    dexterity_save: parseNullableInteger(draft.dexteritySave, "dexteritySave", invalidFields),
-    constitution_save: parseNullableInteger(
-      draft.constitutionSave,
-      "constitutionSave",
-      invalidFields
-    ),
-    intelligence_save: parseNullableInteger(
-      draft.intelligenceSave,
-      "intelligenceSave",
-      invalidFields
-    ),
-    wisdom_save: parseNullableInteger(draft.wisdomSave, "wisdomSave", invalidFields),
-    charisma_save: parseNullableInteger(draft.charismaSave, "charismaSave", invalidFields),
-    perception: parseNullableInteger(draft.perception, "perception", invalidFields),
-    skills: parseSkillRows(draft.skillRows, invalidFields),
-    damage_vulnerabilities: draft.damageVulnerabilities.trim(),
-    damage_resistances: draft.damageResistances.trim(),
-    damage_immunities: draft.damageImmunities.trim(),
-    condition_immunities: draft.conditionImmunities.trim(),
-    senses: draft.senses.trim(),
-    languages: draft.languages.trim(),
-    challenge_rating: draft.challengeRating.trim(),
-    cr: parseRequiredNumber(draft.cr, "cr", invalidFields, 0, 999),
-    legendary_desc: optionalText(draft.legendaryDesc),
-    special_abilities: parseFeatureRows(draft.specialAbilities, "specialAbilities", invalidFields),
-    actions: parseFeatureRows(draft.actions, "actions", invalidFields),
-    bonus_actions: parseFeatureRows(draft.bonusActions, "bonusActions", invalidFields),
-    reactions: parseFeatureRows(draft.reactions, "reactions", invalidFields),
-    legendary_actions: parseFeatureRows(draft.legendaryActions, "legendaryActions", invalidFields)
-  };
-
-  return {
-    monster: invalidFields.size > 0 ? null : nextMonster,
-    validation: {
-      invalidFields,
-      message: invalidFields.size > 0 ? "Fix highlighted stat block fields." : null
-    }
-  };
-}
+const abilityEntries = Object.entries(monsterAbilityFieldLabels) as [MonsterAbilityKey, string][];
 
 function CreatureStatBlockEditorModal({
   monster,
@@ -481,23 +52,49 @@ function CreatureStatBlockEditorModal({
     invalidFields: new Set<string>(),
     message: null
   }));
-  const featureListEntries = useMemo(
-    () => Object.entries(featureListLabels) as [FeatureListKey, string][],
-    []
-  );
+  const actionTypeOptions = useMemo(() => {
+    const knownValues = new Set<string>(monsterActionTypeOptions.map(([value]) => value));
+    const customValues = draft.actions
+      .map((row) => row.actionType)
+      .filter((value) => value && !knownValues.has(value));
+
+    return [
+      ...monsterActionTypeOptions,
+      ...Array.from(new Set(customValues)).map((value) => [value, value] as const)
+    ];
+  }, [draft.actions]);
+
+  function clearValidation() {
+    setValidation({ invalidFields: new Set<string>(), message: null });
+  }
 
   function updateDraft<Key extends keyof StatBlockDraft>(key: Key, value: StatBlockDraft[Key]) {
     setDraft((currentDraft) => ({
       ...currentDraft,
       [key]: value
     }));
-    setValidation({ invalidFields: new Set<string>(), message: null });
+    clearValidation();
+  }
+
+  function updateAbilityField(
+    group: "abilityScores" | "savingThrows",
+    ability: MonsterAbilityKey,
+    value: string
+  ) {
+    setDraft((currentDraft) => ({
+      ...currentDraft,
+      [group]: {
+        ...currentDraft[group],
+        [ability]: value
+      }
+    }));
+    clearValidation();
   }
 
   function updateKeyValueRow(
     listKey: "speedRows" | "skillRows",
     rowId: string,
-    field: "key" | "value",
+    field: keyof Omit<KeyValueRow, "id">,
     value: string
   ) {
     updateDraft(
@@ -515,36 +112,51 @@ function CreatureStatBlockEditorModal({
     updateDraft(listKey, nextRows.length > 0 ? nextRows : [createEmptyKeyValueRow()]);
   }
 
-  function updateFeatureRow(
-    listKey: FeatureListKey,
-    rowId: string,
-    field: keyof Omit<FeatureRow, "id">,
-    value: string
-  ) {
+  function updateTraitRow(rowId: string, field: keyof Omit<TraitRow, "id" | "raw">, value: string) {
     updateDraft(
-      listKey,
-      draft[listKey].map((row) => (row.id === rowId ? { ...row, [field]: value } : row))
+      "traits",
+      draft.traits.map((row) => (row.id === rowId ? { ...row, [field]: value } : row))
     );
   }
 
-  function addFeatureRow(listKey: FeatureListKey) {
-    updateDraft(listKey, [...draft[listKey], createEmptyFeatureRow()]);
+  function addTraitRow() {
+    updateDraft("traits", [...draft.traits, createEmptyTraitRow()]);
   }
 
-  function duplicateFeatureRow(listKey: FeatureListKey, row: FeatureRow) {
-    updateDraft(listKey, [
-      ...draft[listKey],
-      {
-        ...row,
-        id: createDraftRowId()
-      }
-    ]);
+  function duplicateTraitRow(row: TraitRow) {
+    updateDraft("traits", [...draft.traits, { ...row, id: createDraftRowId() }]);
   }
 
-  function removeFeatureRow(listKey: FeatureListKey, rowId: string) {
+  function removeTraitRow(rowId: string) {
     updateDraft(
-      listKey,
-      draft[listKey].filter((row) => row.id !== rowId)
+      "traits",
+      draft.traits.filter((row) => row.id !== rowId)
+    );
+  }
+
+  function updateActionRow(
+    rowId: string,
+    field: keyof Omit<ActionRow, "id" | "raw">,
+    value: string
+  ) {
+    updateDraft(
+      "actions",
+      draft.actions.map((row) => (row.id === rowId ? { ...row, [field]: value } : row))
+    );
+  }
+
+  function addActionRow() {
+    updateDraft("actions", [...draft.actions, createEmptyActionRow()]);
+  }
+
+  function duplicateActionRow(row: ActionRow) {
+    updateDraft("actions", [...draft.actions, { ...row, id: createDraftRowId() }]);
+  }
+
+  function removeActionRow(rowId: string) {
+    updateDraft(
+      "actions",
+      draft.actions.filter((row) => row.id !== rowId)
     );
   }
 
@@ -566,8 +178,7 @@ function CreatureStatBlockEditorModal({
         <OverlayHeaderContent>
           <OverlayTitle id={titleId}>Modify stat block</OverlayTitle>
           <OverlaySummary>
-            Edit this saved creature snapshot only. Edit with caution as invalid values will be
-            ignored during save.
+            Edit this V2 creature snapshot. Raw fields outside this form are preserved when saved.
           </OverlaySummary>
         </OverlayHeaderContent>
         <OverlayCloseButton label="Close stat block editor" onClick={onClose} />
@@ -586,31 +197,31 @@ function CreatureStatBlockEditorModal({
               />
             </label>
             <label className={shared.field}>
-              <span className={shared.fieldLabel}>Size</span>
+              <span className={shared.fieldLabel}>Size Key</span>
               <TextInput
-                value={draft.size}
-                onChange={(event) => updateDraft("size", event.target.value)}
+                value={draft.sizeKey}
+                onChange={(event) => updateDraft("sizeKey", event.target.value)}
               />
             </label>
             <label className={shared.field}>
-              <span className={shared.fieldLabel}>Type</span>
+              <span className={shared.fieldLabel}>Size Name</span>
               <TextInput
-                value={draft.type}
-                onChange={(event) => updateDraft("type", event.target.value)}
+                value={draft.sizeName}
+                onChange={(event) => updateDraft("sizeName", event.target.value)}
               />
             </label>
             <label className={shared.field}>
-              <span className={shared.fieldLabel}>Subtype</span>
+              <span className={shared.fieldLabel}>Type Key</span>
               <TextInput
-                value={draft.subtype}
-                onChange={(event) => updateDraft("subtype", event.target.value)}
+                value={draft.typeKey}
+                onChange={(event) => updateDraft("typeKey", event.target.value)}
               />
             </label>
             <label className={shared.field}>
-              <span className={shared.fieldLabel}>Group</span>
+              <span className={shared.fieldLabel}>Type Name</span>
               <TextInput
-                value={draft.group}
-                onChange={(event) => updateDraft("group", event.target.value)}
+                value={draft.typeName}
+                onChange={(event) => updateDraft("typeName", event.target.value)}
               />
             </label>
             <label className={shared.field}>
@@ -644,10 +255,10 @@ function CreatureStatBlockEditorModal({
               />
             </label>
             <label className={shared.field}>
-              <span className={shared.fieldLabel}>Armor Description</span>
+              <span className={shared.fieldLabel}>Armor Detail</span>
               <TextInput
-                value={draft.armorDesc}
-                onChange={(event) => updateDraft("armorDesc", event.target.value)}
+                value={draft.armorDetail}
+                onChange={(event) => updateDraft("armorDetail", event.target.value)}
               />
             </label>
             <label className={shared.field}>
@@ -666,66 +277,118 @@ function CreatureStatBlockEditorModal({
                 onChange={(event) => updateDraft("hitDice", event.target.value)}
               />
             </label>
+            <label className={shared.field}>
+              <span className={shared.fieldLabel}>Initiative</span>
+              <TextInput
+                value={draft.initiativeBonus}
+                invalid={validation.invalidFields.has("initiativeBonus")}
+                inputMode="numeric"
+                onChange={(event) => updateDraft("initiativeBonus", event.target.value)}
+              />
+            </label>
+            <label className={shared.field}>
+              <span className={shared.fieldLabel}>Proficiency</span>
+              <TextInput
+                value={draft.proficiencyBonus}
+                invalid={validation.invalidFields.has("proficiencyBonus")}
+                inputMode="numeric"
+                onChange={(event) => updateDraft("proficiencyBonus", event.target.value)}
+              />
+            </label>
+            <label className={shared.field}>
+              <span className={shared.fieldLabel}>Passive Perception</span>
+              <TextInput
+                value={draft.passivePerception}
+                invalid={validation.invalidFields.has("passivePerception")}
+                inputMode="numeric"
+                onChange={(event) => updateDraft("passivePerception", event.target.value)}
+              />
+            </label>
+            <label className={shared.field}>
+              <span className={shared.fieldLabel}>Challenge</span>
+              <TextInput
+                value={draft.challengeRating}
+                onChange={(event) => updateDraft("challengeRating", event.target.value)}
+              />
+            </label>
+            <label className={shared.field}>
+              <span className={shared.fieldLabel}>XP</span>
+              <TextInput
+                value={draft.experiencePoints}
+                invalid={validation.invalidFields.has("experiencePoints")}
+                inputMode="numeric"
+                onChange={(event) => updateDraft("experiencePoints", event.target.value)}
+              />
+            </label>
           </div>
+        </section>
 
-          <div className={styles.dynamicRows}>
-            <div className={styles.dynamicRowsHeader}>
-              <h5 className={styles.dynamicRowsTitle}>Speed</h5>
+        <section className={styles.statBlockEditorSection}>
+          <div className={styles.dynamicRowsHeader}>
+            <h4 className={styles.statBlockEditorSectionTitle}>Speed</h4>
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={() => addKeyValueRow("speedRows")}
+            >
+              <Plus size={15} aria-hidden="true" />
+              Add
+            </button>
+          </div>
+          <label className={shared.field}>
+            <span className={shared.fieldLabel}>Unit</span>
+            <TextInput
+              value={draft.speedUnit}
+              onChange={(event) => updateDraft("speedUnit", event.target.value)}
+            />
+          </label>
+          {draft.speedRows.map((row) => (
+            <div key={row.id} className={styles.dynamicRow}>
+              <label className={shared.field}>
+                <span className={shared.fieldLabel}>Movement</span>
+                <TextInput
+                  value={row.key}
+                  invalid={validation.invalidFields.has(`speed-${row.id}-key`)}
+                  onChange={(event) =>
+                    updateKeyValueRow("speedRows", row.id, "key", event.target.value)
+                  }
+                />
+              </label>
+              <label className={shared.field}>
+                <span className={shared.fieldLabel}>Value</span>
+                <TextInput
+                  value={row.value}
+                  onChange={(event) =>
+                    updateKeyValueRow("speedRows", row.id, "value", event.target.value)
+                  }
+                />
+              </label>
               <button
                 type="button"
-                className={styles.secondaryButton}
-                onClick={() => addKeyValueRow("speedRows")}
+                className={styles.secondaryIconButton}
+                aria-label="Remove speed row"
+                title="Remove speed row"
+                onClick={() => removeKeyValueRow("speedRows", row.id)}
               >
-                <Plus size={15} aria-hidden="true" />
-                Add
+                <Trash2 size={16} aria-hidden="true" />
               </button>
             </div>
-            {draft.speedRows.map((row) => (
-              <div key={row.id} className={styles.dynamicRow}>
-                <label className={shared.field}>
-                  <span className={shared.fieldLabel}>Key</span>
-                  <TextInput
-                    value={row.key}
-                    invalid={validation.invalidFields.has(`speed-${row.id}-key`)}
-                    onChange={(event) =>
-                      updateKeyValueRow("speedRows", row.id, "key", event.target.value)
-                    }
-                  />
-                </label>
-                <label className={shared.field}>
-                  <span className={shared.fieldLabel}>Value</span>
-                  <TextInput
-                    value={row.value}
-                    onChange={(event) =>
-                      updateKeyValueRow("speedRows", row.id, "value", event.target.value)
-                    }
-                  />
-                </label>
-                <button
-                  type="button"
-                  className={styles.secondaryIconButton}
-                  aria-label="Remove speed row"
-                  title="Remove speed row"
-                  onClick={() => removeKeyValueRow("speedRows", row.id)}
-                >
-                  <Trash2 size={16} aria-hidden="true" />
-                </button>
-              </div>
-            ))}
-          </div>
+          ))}
         </section>
 
         <section className={styles.statBlockEditorSection}>
           <h4 className={styles.statBlockEditorSectionTitle}>Abilities</h4>
           <div className={styles.statBlockEditorGrid}>
-            {abilityFields.map(([field, label]) => (
-              <label key={field} className={shared.field}>
+            {abilityEntries.map(([ability, label]) => (
+              <label key={ability} className={shared.field}>
                 <span className={shared.fieldLabel}>{label}</span>
                 <TextInput
-                  value={draft[field]}
-                  invalid={validation.invalidFields.has(field)}
+                  value={draft.abilityScores[ability]}
+                  invalid={validation.invalidFields.has(`ability-${ability}`)}
                   inputMode="numeric"
-                  onChange={(event) => updateDraft(field, event.target.value)}
+                  onChange={(event) =>
+                    updateAbilityField("abilityScores", ability, event.target.value)
+                  }
                 />
               </label>
             ))}
@@ -733,83 +396,137 @@ function CreatureStatBlockEditorModal({
         </section>
 
         <section className={styles.statBlockEditorSection}>
-          <h4 className={styles.statBlockEditorSectionTitle}>Saves and skills</h4>
+          <h4 className={styles.statBlockEditorSectionTitle}>Saves And Skills</h4>
           <div className={styles.statBlockEditorGrid}>
-            {saveFields.map(([field, label]) => (
-              <label key={field} className={shared.field}>
-                <span className={shared.fieldLabel}>{label}</span>
+            {abilityEntries.map(([ability, label]) => (
+              <label key={ability} className={shared.field}>
+                <span className={shared.fieldLabel}>{label} Save</span>
                 <TextInput
-                  value={draft[field]}
-                  invalid={validation.invalidFields.has(field)}
+                  value={draft.savingThrows[ability]}
+                  invalid={validation.invalidFields.has(`save-${ability}`)}
                   inputMode="numeric"
                   placeholder="-"
-                  onChange={(event) => updateDraft(field, event.target.value)}
+                  onChange={(event) =>
+                    updateAbilityField("savingThrows", ability, event.target.value)
+                  }
                 />
               </label>
             ))}
+          </div>
+          <div className={styles.dynamicRowsHeader}>
+            <h5 className={styles.dynamicRowsTitle}>Skills</h5>
+            <button
+              type="button"
+              className={styles.secondaryButton}
+              onClick={() => addKeyValueRow("skillRows")}
+            >
+              <Plus size={15} aria-hidden="true" />
+              Add
+            </button>
+          </div>
+          {draft.skillRows.map((row) => (
+            <div key={row.id} className={styles.dynamicRow}>
+              <label className={shared.field}>
+                <span className={shared.fieldLabel}>Skill</span>
+                <TextInput
+                  value={row.key}
+                  invalid={validation.invalidFields.has(`skill-${row.id}-key`)}
+                  onChange={(event) =>
+                    updateKeyValueRow("skillRows", row.id, "key", event.target.value)
+                  }
+                />
+              </label>
+              <label className={shared.field}>
+                <span className={shared.fieldLabel}>Bonus</span>
+                <TextInput
+                  value={row.value}
+                  invalid={validation.invalidFields.has(`skill-${row.id}-value`)}
+                  inputMode="numeric"
+                  onChange={(event) =>
+                    updateKeyValueRow("skillRows", row.id, "value", event.target.value)
+                  }
+                />
+              </label>
+              <button
+                type="button"
+                className={styles.secondaryIconButton}
+                aria-label="Remove skill row"
+                title="Remove skill row"
+                onClick={() => removeKeyValueRow("skillRows", row.id)}
+              >
+                <Trash2 size={16} aria-hidden="true" />
+              </button>
+            </div>
+          ))}
+        </section>
+
+        <section className={styles.statBlockEditorSection}>
+          <h4 className={styles.statBlockEditorSectionTitle}>Senses And Languages</h4>
+          <div className={styles.statBlockEditorGrid}>
             <label className={shared.field}>
-              <span className={shared.fieldLabel}>Perception</span>
+              <span className={shared.fieldLabel}>Normal Sight</span>
               <TextInput
-                value={draft.perception}
-                invalid={validation.invalidFields.has("perception")}
+                value={draft.normalSightRange}
+                invalid={validation.invalidFields.has("normalSightRange")}
                 inputMode="numeric"
-                placeholder="-"
-                onChange={(event) => updateDraft("perception", event.target.value)}
+                onChange={(event) => updateDraft("normalSightRange", event.target.value)}
+              />
+            </label>
+            <label className={shared.field}>
+              <span className={shared.fieldLabel}>Darkvision</span>
+              <TextInput
+                value={draft.darkvisionRange}
+                invalid={validation.invalidFields.has("darkvisionRange")}
+                inputMode="numeric"
+                onChange={(event) => updateDraft("darkvisionRange", event.target.value)}
+              />
+            </label>
+            <label className={shared.field}>
+              <span className={shared.fieldLabel}>Blindsight</span>
+              <TextInput
+                value={draft.blindsightRange}
+                invalid={validation.invalidFields.has("blindsightRange")}
+                inputMode="numeric"
+                onChange={(event) => updateDraft("blindsightRange", event.target.value)}
+              />
+            </label>
+            <label className={shared.field}>
+              <span className={shared.fieldLabel}>Tremorsense</span>
+              <TextInput
+                value={draft.tremorsenseRange}
+                invalid={validation.invalidFields.has("tremorsenseRange")}
+                inputMode="numeric"
+                onChange={(event) => updateDraft("tremorsenseRange", event.target.value)}
+              />
+            </label>
+            <label className={shared.field}>
+              <span className={shared.fieldLabel}>Truesight</span>
+              <TextInput
+                value={draft.truesightRange}
+                invalid={validation.invalidFields.has("truesightRange")}
+                inputMode="numeric"
+                onChange={(event) => updateDraft("truesightRange", event.target.value)}
+              />
+            </label>
+            <label className={shared.field}>
+              <span className={shared.fieldLabel}>Languages</span>
+              <TextInput
+                value={draft.languages}
+                onChange={(event) => updateDraft("languages", event.target.value)}
+              />
+            </label>
+            <label className={styles.statBlockEditorWide}>
+              <span className={shared.fieldLabel}>Senses Display</span>
+              <TextInput
+                value={draft.sensesDisplay}
+                onChange={(event) => updateDraft("sensesDisplay", event.target.value)}
               />
             </label>
           </div>
-
-          <div className={styles.dynamicRows}>
-            <div className={styles.dynamicRowsHeader}>
-              <h5 className={styles.dynamicRowsTitle}>Skills</h5>
-              <button
-                type="button"
-                className={styles.secondaryButton}
-                onClick={() => addKeyValueRow("skillRows")}
-              >
-                <Plus size={15} aria-hidden="true" />
-                Add
-              </button>
-            </div>
-            {draft.skillRows.map((row) => (
-              <div key={row.id} className={styles.dynamicRow}>
-                <label className={shared.field}>
-                  <span className={shared.fieldLabel}>Skill</span>
-                  <TextInput
-                    value={row.key}
-                    invalid={validation.invalidFields.has(`skill-${row.id}-key`)}
-                    onChange={(event) =>
-                      updateKeyValueRow("skillRows", row.id, "key", event.target.value)
-                    }
-                  />
-                </label>
-                <label className={shared.field}>
-                  <span className={shared.fieldLabel}>Bonus</span>
-                  <TextInput
-                    value={row.value}
-                    invalid={validation.invalidFields.has(`skill-${row.id}-value`)}
-                    inputMode="numeric"
-                    onChange={(event) =>
-                      updateKeyValueRow("skillRows", row.id, "value", event.target.value)
-                    }
-                  />
-                </label>
-                <button
-                  type="button"
-                  className={styles.secondaryIconButton}
-                  aria-label="Remove skill row"
-                  title="Remove skill row"
-                  onClick={() => removeKeyValueRow("skillRows", row.id)}
-                >
-                  <Trash2 size={16} aria-hidden="true" />
-                </button>
-              </div>
-            ))}
-          </div>
         </section>
 
         <section className={styles.statBlockEditorSection}>
-          <h4 className={styles.statBlockEditorSectionTitle}>Text details</h4>
+          <h4 className={styles.statBlockEditorSectionTitle}>Resistances And Immunities</h4>
           <div className={styles.statBlockEditorGrid}>
             <label className={shared.field}>
               <span className={shared.fieldLabel}>Vulnerabilities</span>
@@ -826,7 +543,7 @@ function CreatureStatBlockEditorModal({
               />
             </label>
             <label className={shared.field}>
-              <span className={shared.fieldLabel}>Immunities</span>
+              <span className={shared.fieldLabel}>Damage Immunities</span>
               <TextInput
                 value={draft.damageImmunities}
                 onChange={(event) => updateDraft("damageImmunities", event.target.value)}
@@ -839,150 +556,179 @@ function CreatureStatBlockEditorModal({
                 onChange={(event) => updateDraft("conditionImmunities", event.target.value)}
               />
             </label>
-            <label className={shared.field}>
-              <span className={shared.fieldLabel}>Senses</span>
-              <TextInput
-                value={draft.senses}
-                onChange={(event) => updateDraft("senses", event.target.value)}
-              />
-            </label>
-            <label className={shared.field}>
-              <span className={shared.fieldLabel}>Languages</span>
-              <TextInput
-                value={draft.languages}
-                onChange={(event) => updateDraft("languages", event.target.value)}
-              />
-            </label>
-            <label className={shared.field}>
-              <span className={shared.fieldLabel}>Challenge Label</span>
-              <TextInput
-                value={draft.challengeRating}
-                onChange={(event) => updateDraft("challengeRating", event.target.value)}
-              />
-            </label>
-            <label className={shared.field}>
-              <span className={shared.fieldLabel}>CR Number</span>
-              <TextInput
-                value={draft.cr}
-                invalid={validation.invalidFields.has("cr")}
-                inputMode="decimal"
-                onChange={(event) => updateDraft("cr", event.target.value)}
-              />
-            </label>
-            <label className={styles.statBlockEditorWide}>
-              <span className={shared.fieldLabel}>Legendary Description</span>
-              <TextAreaInput
-                value={draft.legendaryDesc}
-                rows={3}
-                onChange={(event) => updateDraft("legendaryDesc", event.target.value)}
-              />
-            </label>
           </div>
         </section>
 
-        {featureListEntries.map(([listKey, label]) => (
-          <section key={listKey} className={styles.statBlockEditorSection}>
-            <div className={styles.dynamicRowsHeader}>
-              <h4 className={styles.statBlockEditorSectionTitle}>{label}</h4>
-              <button
-                type="button"
-                className={styles.secondaryButton}
-                onClick={() => addFeatureRow(listKey)}
-              >
-                <Plus size={15} aria-hidden="true" />
-                Add
-              </button>
-            </div>
-            <div className={styles.featureRows}>
-              {draft[listKey].length > 0 ? (
-                draft[listKey].map((row) => (
-                  <div key={row.id} className={styles.featureRow}>
-                    <div className={styles.featureRowHeader}>
-                      <label className={shared.field}>
-                        <span className={shared.fieldLabel}>Name</span>
-                        <TextInput
-                          value={row.name}
-                          invalid={validation.invalidFields.has(`${listKey}-${row.id}-name`)}
-                          onChange={(event) =>
-                            updateFeatureRow(listKey, row.id, "name", event.target.value)
-                          }
-                        />
-                      </label>
-                      <div className={styles.featureRowActions}>
-                        <button
-                          type="button"
-                          className={styles.secondaryIconButton}
-                          aria-label={`Duplicate ${row.name || label} row`}
-                          title="Duplicate row"
-                          onClick={() => duplicateFeatureRow(listKey, row)}
-                        >
-                          <Copy size={16} aria-hidden="true" />
-                        </button>
-                        <button
-                          type="button"
-                          className={styles.secondaryIconButton}
-                          aria-label={`Remove ${row.name || label} row`}
-                          title="Remove row"
-                          onClick={() => removeFeatureRow(listKey, row.id)}
-                        >
-                          <Trash2 size={16} aria-hidden="true" />
-                        </button>
-                      </div>
-                    </div>
+        <section className={styles.statBlockEditorSection}>
+          <div className={styles.dynamicRowsHeader}>
+            <h4 className={styles.statBlockEditorSectionTitle}>Traits</h4>
+            <button type="button" className={styles.secondaryButton} onClick={addTraitRow}>
+              <Plus size={15} aria-hidden="true" />
+              Add
+            </button>
+          </div>
+          <div className={styles.featureRows}>
+            {draft.traits.length > 0 ? (
+              draft.traits.map((row) => (
+                <div key={row.id} className={styles.featureRow}>
+                  <div className={styles.featureRowHeader}>
                     <label className={shared.field}>
-                      <span className={shared.fieldLabel}>Description</span>
-                      <TextAreaInput
-                        value={row.desc}
-                        rows={3}
+                      <span className={shared.fieldLabel}>Name</span>
+                      <TextInput
+                        value={row.name}
+                        invalid={validation.invalidFields.has(`trait-${row.id}-name`)}
+                        onChange={(event) => updateTraitRow(row.id, "name", event.target.value)}
+                      />
+                    </label>
+                    <div className={styles.featureRowActions}>
+                      <button
+                        type="button"
+                        className={styles.secondaryIconButton}
+                        aria-label={`Duplicate ${row.name || "trait"} row`}
+                        title="Duplicate row"
+                        onClick={() => duplicateTraitRow(row)}
+                      >
+                        <Copy size={16} aria-hidden="true" />
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.secondaryIconButton}
+                        aria-label={`Remove ${row.name || "trait"} row`}
+                        title="Remove row"
+                        onClick={() => removeTraitRow(row.id)}
+                      >
+                        <Trash2 size={16} aria-hidden="true" />
+                      </button>
+                    </div>
+                  </div>
+                  <label className={shared.field}>
+                    <span className={shared.fieldLabel}>Description</span>
+                    <TextAreaInput
+                      value={row.desc}
+                      rows={3}
+                      onChange={(event) => updateTraitRow(row.id, "desc", event.target.value)}
+                    />
+                  </label>
+                </div>
+              ))
+            ) : (
+              <p className={shared.emptyText}>No traits.</p>
+            )}
+          </div>
+        </section>
+
+        <section className={styles.statBlockEditorSection}>
+          <div className={styles.dynamicRowsHeader}>
+            <h4 className={styles.statBlockEditorSectionTitle}>Actions</h4>
+            <button type="button" className={styles.secondaryButton} onClick={addActionRow}>
+              <Plus size={15} aria-hidden="true" />
+              Add
+            </button>
+          </div>
+          <div className={styles.featureRows}>
+            {draft.actions.length > 0 ? (
+              draft.actions.map((row) => (
+                <div key={row.id} className={styles.featureRow}>
+                  <div className={styles.featureRowHeader}>
+                    <label className={shared.field}>
+                      <span className={shared.fieldLabel}>Name</span>
+                      <TextInput
+                        value={row.name}
+                        invalid={validation.invalidFields.has(`action-${row.id}-name`)}
+                        onChange={(event) => updateActionRow(row.id, "name", event.target.value)}
+                      />
+                    </label>
+                    <div className={styles.featureRowActions}>
+                      <button
+                        type="button"
+                        className={styles.secondaryIconButton}
+                        aria-label={`Duplicate ${row.name || "action"} row`}
+                        title="Duplicate row"
+                        onClick={() => duplicateActionRow(row)}
+                      >
+                        <Copy size={16} aria-hidden="true" />
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.secondaryIconButton}
+                        aria-label={`Remove ${row.name || "action"} row`}
+                        title="Remove row"
+                        onClick={() => removeActionRow(row.id)}
+                      >
+                        <Trash2 size={16} aria-hidden="true" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className={styles.featureNumberGrid}>
+                    <label className={shared.field}>
+                      <span className={shared.fieldLabel}>Type</span>
+                      <SelectInput
+                        value={row.actionType}
                         onChange={(event) =>
-                          updateFeatureRow(listKey, row.id, "desc", event.target.value)
+                          updateActionRow(row.id, "actionType", event.target.value)
+                        }
+                      >
+                        {actionTypeOptions.map(([value, label]) => (
+                          <option key={value} value={value}>
+                            {label}
+                          </option>
+                        ))}
+                      </SelectInput>
+                    </label>
+                    <label className={shared.field}>
+                      <span className={shared.fieldLabel}>Order</span>
+                      <TextInput
+                        value={row.order}
+                        invalid={validation.invalidFields.has(`action-${row.id}-order`)}
+                        inputMode="numeric"
+                        onChange={(event) => updateActionRow(row.id, "order", event.target.value)}
+                      />
+                    </label>
+                    <label className={shared.field}>
+                      <span className={shared.fieldLabel}>Legendary Cost</span>
+                      <TextInput
+                        value={row.legendaryCost}
+                        invalid={validation.invalidFields.has(`action-${row.id}-legendaryCost`)}
+                        inputMode="numeric"
+                        onChange={(event) =>
+                          updateActionRow(row.id, "legendaryCost", event.target.value)
                         }
                       />
                     </label>
-                    <div className={styles.featureNumberGrid}>
-                      <label className={shared.field}>
-                        <span className={shared.fieldLabel}>Attack Bonus</span>
-                        <TextInput
-                          value={row.attackBonus}
-                          invalid={validation.invalidFields.has(`${listKey}-${row.id}-attackBonus`)}
-                          inputMode="numeric"
-                          placeholder="-"
-                          onChange={(event) =>
-                            updateFeatureRow(listKey, row.id, "attackBonus", event.target.value)
-                          }
-                        />
-                      </label>
-                      <label className={shared.field}>
-                        <span className={shared.fieldLabel}>Damage Dice</span>
-                        <TextInput
-                          value={row.damageDice}
-                          placeholder="1d6 + 2"
-                          onChange={(event) =>
-                            updateFeatureRow(listKey, row.id, "damageDice", event.target.value)
-                          }
-                        />
-                      </label>
-                      <label className={shared.field}>
-                        <span className={shared.fieldLabel}>Damage Bonus</span>
-                        <TextInput
-                          value={row.damageBonus}
-                          invalid={validation.invalidFields.has(`${listKey}-${row.id}-damageBonus`)}
-                          inputMode="numeric"
-                          placeholder="-"
-                          onChange={(event) =>
-                            updateFeatureRow(listKey, row.id, "damageBonus", event.target.value)
-                          }
-                        />
-                      </label>
-                    </div>
+                    <label className={shared.field}>
+                      <span className={shared.fieldLabel}>Usage Type</span>
+                      <TextInput
+                        value={row.usageType}
+                        onChange={(event) =>
+                          updateActionRow(row.id, "usageType", event.target.value)
+                        }
+                      />
+                    </label>
+                    <label className={shared.field}>
+                      <span className={shared.fieldLabel}>Usage Param</span>
+                      <TextInput
+                        value={row.usageParam}
+                        onChange={(event) =>
+                          updateActionRow(row.id, "usageParam", event.target.value)
+                        }
+                      />
+                    </label>
                   </div>
-                ))
-              ) : (
-                <p className={shared.emptyText}>No {label.toLowerCase()}.</p>
-              )}
-            </div>
-          </section>
-        ))}
+                  <label className={shared.field}>
+                    <span className={shared.fieldLabel}>Description</span>
+                    <TextAreaInput
+                      value={row.desc}
+                      rows={4}
+                      onChange={(event) => updateActionRow(row.id, "desc", event.target.value)}
+                    />
+                  </label>
+                </div>
+              ))
+            ) : (
+              <p className={shared.emptyText}>No actions.</p>
+            )}
+          </div>
+        </section>
 
         {validation.message ? <p className={styles.notice}>{validation.message}</p> : null}
       </OverlayBody>

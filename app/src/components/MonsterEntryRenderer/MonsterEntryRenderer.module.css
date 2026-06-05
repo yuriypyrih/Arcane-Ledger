@@ -30,6 +30,7 @@
 .subtitle,
 .description,
 .inlineRow,
+.deprecatedNotice,
 .groupHeader h3,
 .groupDescription,
 .featureCard p {
@@ -85,6 +86,13 @@
 .description {
   font-size: 0.92rem;
   line-height: 1.52;
+}
+
+.deprecatedNotice {
+  color: #b42318;
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.45;
 }
 
 .inlineRows {

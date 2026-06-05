@@ -1,5 +1,6 @@
 import type { MonsterRecord } from "../../types";
 import { renderCodexRichText } from "../../utils/codex/renderCodexRichText";
+import { isDeprecatedMonsterRecord } from "../../utils/monsters";
 import AbilitySavingThrowCards from "../CharactersPage/CharacterSheetPage/StatsForm/AbilitySavingThrowCards";
 import { buildMonsterAbilitySavingThrowCards } from "./monsterAbilitySavingThrowCards";
 import {
@@ -111,11 +112,12 @@ function MonsterEntryRenderer({
 }: MonsterEntryRendererProps) {
   const titleMeta = formatMonsterTitleMeta(monster);
   const description = getKnownMonsterText(monster.desc);
-  const speed = formatMonsterSpeed(monster.speed);
+  const speed = formatMonsterSpeed(monster);
   const detailRows = providedDetailRows ?? buildMonsterDetailRows(monster);
   const abilitySavingThrowCards = buildMonsterAbilitySavingThrowCards(monster);
   const actionGroups = providedActionGroups ?? buildMonsterActionGroups(monster);
   const shouldRenderIntro = showHeading || description;
+  const isDeprecated = isDeprecatedMonsterRecord(monster);
 
   return (
     <article
@@ -140,11 +142,18 @@ function MonsterEntryRenderer({
         </section>
       ) : null}
 
+      {isDeprecated ? (
+        <p className={styles.deprecatedNotice}>
+          This stat block uses a deprecated monster schema. Delete and recreate this creature to
+          refresh the stat block.
+        </p>
+      ) : null}
+
       <section className={styles.section}>
         <div className={styles.inlineRows}>
           <InlineRow
             label="Armor Class"
-            value={formatMonsterValueWithNote(monster.armor_class, monster.armor_desc)}
+            value={formatMonsterValueWithNote(monster.armor_class, monster.armor_detail)}
           />
           <InlineRow
             label="Hit Points"

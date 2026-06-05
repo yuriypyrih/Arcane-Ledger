@@ -16,7 +16,11 @@ import { getDmToolsApiErrorMessage } from "./dmToolsApiErrors";
 import DmToolsBackButton from "./DmToolsBackButton";
 import DmToolsEditButton from "./DmToolsEditButton";
 import DmToolsEmptyState from "./DmToolsEmptyState";
-import { duplicateEncounterCreature, toEncounterCreatureRecord } from "./encounterCreatureUtils";
+import {
+  duplicateEncounterCreature,
+  normalizeEncounterCreatureRecord,
+  toEncounterCreatureRecord
+} from "./encounterCreatureUtils";
 import styles from "./DmToolsPage.module.css";
 
 export type EncounterCreatureBuilderResource = {
@@ -89,17 +93,20 @@ function EncounterCreatureBuilder({
     useState<EncounterTemplateCreatureRecord | null>(null);
   const [isDeletingCreature, setIsDeletingCreature] = useState(false);
   const [duplicatingCreatureId, setDuplicatingCreatureId] = useState<string | null>(null);
-  const creatures = useMemo(() => resource?.creatures ?? [], [resource?.creatures]);
+  const creatures = useMemo(
+    () => resource?.creatures.map(normalizeEncounterCreatureRecord) ?? [],
+    [resource?.creatures]
+  );
   const editorCreature =
     editingCreatureId && resource
-      ? (resource.creatures.find((creature) => creature.id === editingCreatureId) ?? null)
+      ? (creatures.find((creature) => creature.id === editingCreatureId) ?? null)
       : null;
   const selectedCreature =
     selectedCreatureId && resource
-      ? (resource.creatures.find((creature) => creature.id === selectedCreatureId) ?? null)
+      ? (creatures.find((creature) => creature.id === selectedCreatureId) ?? null)
       : null;
   const isCreatureEditorOpen = isCreatingCreature || editorCreature !== null;
-  const isAtCreatureLimit = resource ? resource.creatures.length >= resource.maxCreatures : false;
+  const isAtCreatureLimit = resource ? creatures.length >= resource.maxCreatures : false;
   const creatureLimitMessage = resource
     ? `Encounters can hold up to ${resource.maxCreatures} creatures.`
     : "Encounter creature limit reached.";

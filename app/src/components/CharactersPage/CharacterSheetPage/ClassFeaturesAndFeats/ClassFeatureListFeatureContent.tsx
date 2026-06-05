@@ -80,6 +80,9 @@ export function renderClassFeatureContent(context: Record<string, any>) {
     getKnowledgeDomainBlessingsSkillSelections,
     getKnowledgeDomainBlessingsToolSelection,
     getKnowledgeDomainUnfetteredMindSavingThrowSelection,
+    getMonsterKey,
+    getMonsterSourceKey,
+    getMonsterTypeName,
     getPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection,
     getProficiencyLabel,
     getRangerDeftExplorerExpertiseSelection,
@@ -561,14 +564,16 @@ export function renderClassFeatureContent(context: Record<string, any>) {
             <div className={styles.wildShapeMonsterList}>
               {druidWildShapeKnownForms.map((monster) => (
                 <button
-                  key={`${featureRow.key}-${monster.slug}`}
+                  key={`${featureRow.key}-${getMonsterKey(monster)}`}
                   type="button"
                   className={styles.wildShapeMonsterRow}
                   onClick={() => setSelectedWildShapeMonster(monster)}
                 >
                   <span className={styles.wildShapeMonsterName}>{monster.name}</span>
                   <span className={styles.wildShapeMonsterMeta}>
-                    {[monster.type, monster.document__slug].filter(Boolean).join(", ")}
+                    {[getMonsterTypeName(monster), getMonsterSourceKey(monster)]
+                      .filter(Boolean)
+                      .join(", ")}
                   </span>
                 </button>
               ))}

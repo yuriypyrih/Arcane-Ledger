@@ -1,5 +1,5 @@
 import { AlertTriangle, ScrollText, Swords, X } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   getCampaign,
@@ -26,7 +26,10 @@ import DmToolsEmptyState from "./DmToolsEmptyState";
 import DmToolsListCard from "./DmToolsListCard";
 import { getDmToolsApiErrorMessage } from "./dmToolsApiErrors";
 import styles from "./DmToolsPage.module.css";
-import { withLiveEncounterTrackerRevision } from "./liveEncounterTrackerUtils";
+import {
+  normalizeLiveEncounterTracker,
+  withLiveEncounterTrackerRevision
+} from "./liveEncounterTrackerUtils";
 import { useLiveEncounterTrackerPersistence } from "./useLiveEncounterTrackerPersistence";
 
 function CampaignLiveEncounterTrackerPage() {
@@ -93,12 +96,14 @@ function CampaignLiveEncounterTrackerPage() {
       savedTracker: CampaignLiveEncounterTrackerRecord,
       options: { hasPendingChanges: boolean }
     ) => {
+      const normalizedSavedTracker = normalizeLiveEncounterTracker(savedTracker);
+
       setDraftTracker((currentTracker) => {
         if (!options.hasPendingChanges || !currentTracker) {
-          return savedTracker;
+          return normalizedSavedTracker;
         }
 
-        return withLiveEncounterTrackerRevision(currentTracker, savedTracker);
+        return withLiveEncounterTrackerRevision(currentTracker, normalizedSavedTracker);
       });
     },
     []
@@ -109,7 +114,13 @@ function CampaignLiveEncounterTrackerPage() {
     onSavedTracker: handleSavedTracker
   });
 
-  const serverTracker = campaign?.liveEncounterTracker ?? null;
+  const serverTracker = useMemo(
+    () =>
+      campaign?.liveEncounterTracker
+        ? normalizeLiveEncounterTracker(campaign.liveEncounterTracker)
+        : null,
+    [campaign?.liveEncounterTracker]
+  );
   const tracker = draftTracker ?? serverTracker;
   const isTrackerValid = tracker?.status.state === "valid";
 

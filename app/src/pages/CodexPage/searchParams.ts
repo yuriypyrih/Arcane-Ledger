@@ -135,11 +135,11 @@ function parseMonsterOrdering(value: string | null): MonsterOrdering {
   }
 
   if (value === "challenge_rating") {
-    return "cr";
+    return "challenge_rating";
   }
 
   if (value === "-challenge_rating") {
-    return "-cr";
+    return "-challenge_rating";
   }
 
   return value as MonsterOrdering;

@@ -1,6 +1,6 @@
 import { Pencil, RotateCcw, Search, Trash2 } from "lucide-react";
 import { type ReactNode, useEffect, useId, useMemo, useState } from "react";
-import { fetchMonsterBySlug, isApiOfflineError } from "../../../../api";
+import { fetchMonsterByKey, isApiOfflineError } from "../../../../api";
 import ActionButton from "../../../ActionButton";
 import { useOnlineStatus } from "../../../../lib/useOnlineStatus";
 import {
@@ -24,14 +24,23 @@ import {
 } from "../../../../pages/CharactersPage/beastMasterCompanions";
 import { createCharacterCompanionId } from "../../../../pages/CharactersPage/companions";
 import {
-  getPrimalBeastKindFromSlug,
-  getPrimalBeastTemplateBySlug,
+  getPrimalBeastKindFromKey,
+  getPrimalBeastTemplateByKey,
   isPrimalBeastMonsterType,
   primalBeastMonsterListItems,
   PRIMAL_BEAST_MONSTER_TYPE
 } from "../../../../pages/CharactersPage/companionPrimalBeasts";
 import { useMonsterEntries } from "../../../../pages/CodexPage/useMonsterEntries";
-import { getCachedMonsterEntry, primeMonsterEntryCache } from "../../../../utils/monsters";
+import {
+  getCachedMonsterEntry,
+  getMonsterChallengeRatingNumber,
+  getMonsterHitPoints,
+  getMonsterKey,
+  getMonsterListItemKey,
+  getMonsterTypeName,
+  isDeprecatedMonsterRecord,
+  primeMonsterEntryCache
+} from "../../../../utils/monsters";
 import type {
   Character,
   CharacterCompanion,
@@ -117,10 +126,20 @@ function sortMonsterListItems(
     switch (ordering) {
       case "-name":
         return right.name.localeCompare(left.name);
+      case "challenge_rating":
       case "cr":
-        return left.cr - right.cr || left.name.localeCompare(right.name);
+        return (
+          (getMonsterChallengeRatingNumber(left) ?? 0) -
+            (getMonsterChallengeRatingNumber(right) ?? 0) ||
+          left.name.localeCompare(right.name)
+        );
+      case "-challenge_rating":
       case "-cr":
-        return right.cr - left.cr || left.name.localeCompare(right.name);
+        return (
+          (getMonsterChallengeRatingNumber(right) ?? 0) -
+            (getMonsterChallengeRatingNumber(left) ?? 0) ||
+          left.name.localeCompare(right.name)
+        );
       case "name":
       default:
         return left.name.localeCompare(right.name);
@@ -141,6 +160,10 @@ function getPrimalBeastBrowserItems(query: string, ordering: MonsterOrdering): M
 
 function getDefaultErrorMessage(_error: unknown, fallback: string) {
   return fallback;
+}
+
+function isMonsterRecord(value: MonsterListItem | MonsterRecord): value is MonsterRecord {
+  return "document" in value || "actions" in value || "traits" in value;
 }
 
 function CreatureEditorModal({
@@ -180,10 +203,10 @@ function CreatureEditorModal({
   const [monsterSourceFilter, setMonsterSourceFilter] = useState<string>("all");
   const [monsterOrdering, setMonsterOrdering] = useState<MonsterOrdering>("name");
   const [currentPage, setCurrentPage] = useState(1);
-  const [previewSlug, setPreviewSlug] = useState<string | null>(null);
+  const [previewKey, setPreviewKey] = useState<string | null>(null);
   const [previewMonster, setPreviewMonster] = useState<MonsterRecord | null>(null);
   const [previewStatus, setPreviewStatus] = useState<CodexStatus>("ready");
-  const [pendingSelectSlug, setPendingSelectSlug] = useState<string | null>(null);
+  const [pendingSelectKey, setPendingSelectKey] = useState<string | null>(null);
   const [monsterNotice, setMonsterNotice] = useState<string | null>(null);
   const [isStatBlockEditorOpen, setIsStatBlockEditorOpen] = useState(false);
   const [isResettingStatBlock, setIsResettingStatBlock] = useState(false);
@@ -193,14 +216,16 @@ function CreatureEditorModal({
   const [monsterCache, setMonsterCache] = useState<Record<string, MonsterRecord>>(() =>
     creatures.reduce<Record<string, MonsterRecord>>((cache, currentCreature) => {
       if (currentCreature.inheritedCreatureEntry) {
-        cache[currentCreature.inheritedCreatureEntry.slug] =
+        cache[getMonsterKey(currentCreature.inheritedCreatureEntry)] =
           currentCreature.inheritedCreatureEntry;
       }
 
       return cache;
     }, {})
   );
-  const selectedMonsterSlug = draft.inheritedCreatureEntry?.slug ?? null;
+  const selectedMonsterKey = draft.inheritedCreatureEntry
+    ? getMonsterKey(draft.inheritedCreatureEntry)
+    : null;
   const isPrimalBeastFilter =
     allowPrimalBeasts && isPrimalBeastMonsterType(monsterTypeFilter);
   const extraTypeOptions = useMemo(
@@ -208,9 +233,9 @@ function CreatureEditorModal({
       getExtraTypeOptions([
         draft.type,
         ...creatures.map((currentCreature) => currentCreature.type),
-        draft.inheritedCreatureEntry?.type ?? ""
+        draft.inheritedCreatureEntry ? (getMonsterTypeName(draft.inheritedCreatureEntry) ?? "") : ""
       ]),
-    [creatures, draft.inheritedCreatureEntry?.type, draft.type]
+    [creatures, draft.inheritedCreatureEntry, draft.type]
   );
   const { payload, status } = useMonsterEntries({
     enabled: isMonsterBrowserOpen && !isPrimalBeastFilter,
@@ -241,7 +266,9 @@ function CreatureEditorModal({
     isResettingStatBlock;
   const selectedStatBlockIsPrimalBeast = draft.primalBeastKind !== null;
   const canModifySelectedStatBlock =
-    draft.inheritedCreatureEntry !== null && !selectedStatBlockIsPrimalBeast;
+    draft.inheritedCreatureEntry !== null &&
+    !selectedStatBlockIsPrimalBeast &&
+    !isDeprecatedMonsterRecord(draft.inheritedCreatureEntry);
 
   useEffect(() => {
     setDraft(creature ? createDraftFromCompanion(creature) : createEmptyCompanionDraft());
@@ -261,13 +288,13 @@ function CreatureEditorModal({
 
       creatures.forEach((currentCreature) => {
         if (currentCreature.inheritedCreatureEntry) {
-          nextCache[currentCreature.inheritedCreatureEntry.slug] =
+          nextCache[getMonsterKey(currentCreature.inheritedCreatureEntry)] =
             currentCreature.inheritedCreatureEntry;
         }
       });
 
       if (draft.inheritedCreatureEntry) {
-        nextCache[draft.inheritedCreatureEntry.slug] = draft.inheritedCreatureEntry;
+        nextCache[getMonsterKey(draft.inheritedCreatureEntry)] = draft.inheritedCreatureEntry;
       }
 
       return nextCache;
@@ -291,17 +318,17 @@ function CreatureEditorModal({
     const abortController = new AbortController();
 
     async function loadPreviewMonster() {
-      if (!previewSlug) {
+      if (!previewKey) {
         setPreviewMonster(null);
         setPreviewStatus("ready");
         return;
       }
 
       const primalBeast = allowPrimalBeasts
-        ? getPrimalBeastTemplateBySlug(previewSlug, character)
+        ? getPrimalBeastTemplateByKey(previewKey, character)
         : null;
       const cachedMonster =
-        primalBeast ?? monsterCache[previewSlug] ?? getCachedMonsterEntry(previewSlug);
+        primalBeast ?? monsterCache[previewKey] ?? getCachedMonsterEntry(previewKey);
 
       if (cachedMonster) {
         primeMonsterEntryCache(cachedMonster);
@@ -319,7 +346,7 @@ function CreatureEditorModal({
       setPreviewStatus("loading");
 
       try {
-        const monster = await fetchMonsterBySlug(previewSlug, {
+        const monster = await fetchMonsterByKey(previewKey, {
           signal: abortController.signal
         });
 
@@ -330,7 +357,7 @@ function CreatureEditorModal({
         primeMonsterEntryCache(monster);
         setMonsterCache((currentCache) => ({
           ...currentCache,
-          [monster.slug]: monster
+          [getMonsterKey(monster)]: monster
         }));
         setPreviewMonster(monster);
         setPreviewStatus("ready");
@@ -350,7 +377,7 @@ function CreatureEditorModal({
       active = false;
       abortController.abort();
     };
-  }, [allowPrimalBeasts, character, isOnline, monsterCache, previewSlug]);
+  }, [allowPrimalBeasts, character, isOnline, monsterCache, previewKey]);
 
   function handleDraftChange<Key extends keyof CompanionDraft>(
     key: Key,
@@ -364,35 +391,36 @@ function CreatureEditorModal({
   }
 
   async function handleSelectMonster(monster: MonsterListItem | MonsterRecord) {
-    const slug = monster.slug;
-    setPendingSelectSlug(slug);
+    const key = isMonsterRecord(monster) ? getMonsterKey(monster) : getMonsterListItemKey(monster);
+    setPendingSelectKey(key);
     setMonsterNotice(null);
 
     try {
       const primalBeast = allowPrimalBeasts
-        ? getPrimalBeastTemplateBySlug(slug, character)
+        ? getPrimalBeastTemplateByKey(key, character)
         : null;
       const resolvedMonster =
         primalBeast ??
-        ("document__slug" in monster
+        (isMonsterRecord(monster)
           ? monster
-          : (monsterCache[slug] ?? (await fetchMonsterBySlug(slug))));
+          : (monsterCache[key] ?? (await fetchMonsterByKey(key))));
       const primalBeastKind = allowPrimalBeasts
-        ? getPrimalBeastKindFromSlug(resolvedMonster.slug)
+        ? getPrimalBeastKindFromKey(getMonsterKey(resolvedMonster))
         : null;
-      const hitPoints = Math.max(1, resolvedMonster.hit_points);
+      const hitPoints = Math.max(1, getMonsterHitPoints(resolvedMonster) ?? 1);
+      const typeName = getMonsterTypeName(resolvedMonster);
 
       setMonsterCache((currentCache) => ({
         ...currentCache,
-        [resolvedMonster.slug]: resolvedMonster
+        [getMonsterKey(resolvedMonster)]: resolvedMonster
       }));
       setDraft((currentDraft) => ({
         ...currentDraft,
         name: resolvedMonster.name,
         type: primalBeastKind
           ? PRIMAL_BEAST_MONSTER_TYPE
-          : resolvedMonster.type.trim()
-            ? resolvedMonster.type
+          : typeName
+            ? typeName
             : currentDraft.type,
         maxHitPoints: String(hitPoints),
         primalBeastKind,
@@ -400,7 +428,7 @@ function CreatureEditorModal({
         inheritedCreatureEntryModified: false
       }));
       setIsMonsterBrowserOpen(false);
-      setPreviewSlug(null);
+      setPreviewKey(null);
       setMonsterNotice(null);
       setEditorError(null);
     } catch (error) {
@@ -410,7 +438,7 @@ function CreatureEditorModal({
           : "The full monster entry could not be loaded."
       );
     } finally {
-      setPendingSelectSlug(null);
+      setPendingSelectKey(null);
     }
   }
 
@@ -433,7 +461,7 @@ function CreatureEditorModal({
     }));
     setMonsterCache((currentCache) => ({
       ...currentCache,
-      [monster.slug]: monster
+      [getMonsterKey(monster)]: monster
     }));
     primeMonsterEntryCache(monster);
     setIsStatBlockEditorOpen(false);
@@ -442,9 +470,9 @@ function CreatureEditorModal({
   }
 
   async function handleResetStatBlock() {
-    const slug = draft.inheritedCreatureEntry?.slug;
+    const key = draft.inheritedCreatureEntry ? getMonsterKey(draft.inheritedCreatureEntry) : null;
 
-    if (!slug || isResettingStatBlock) {
+    if (!key || isResettingStatBlock) {
       return;
     }
 
@@ -457,7 +485,7 @@ function CreatureEditorModal({
     setMonsterNotice(null);
 
     try {
-      const monster = await fetchMonsterBySlug(slug);
+      const monster = await fetchMonsterByKey(key);
 
       setDraft((currentDraft) => ({
         ...currentDraft,
@@ -466,7 +494,7 @@ function CreatureEditorModal({
       }));
       setMonsterCache((currentCache) => ({
         ...currentCache,
-        [monster.slug]: monster
+        [getMonsterKey(monster)]: monster
       }));
       primeMonsterEntryCache(monster);
     } catch (error) {
@@ -605,7 +633,7 @@ function CreatureEditorModal({
                     {draft.inheritedCreatureEntry.name}
                   </h5>
                   <p className={styles.selectedMonsterMeta}>
-                    {draft.inheritedCreatureEntry.type || "Unknown type"} ·{" "}
+                    {getMonsterTypeName(draft.inheritedCreatureEntry) || "Unknown type"} ·{" "}
                     {getMonsterSourceLabel(draft.inheritedCreatureEntry)}
                     {draft.inheritedCreatureEntryModified ? " - Modified" : ""}
                   </p>
@@ -615,7 +643,13 @@ function CreatureEditorModal({
                     type="button"
                     className={styles.secondaryButton}
                     disabled={isSaving || isDeleting || isResettingStatBlock}
-                    onClick={() => setPreviewSlug(draft.inheritedCreatureEntry?.slug ?? null)}
+                    onClick={() =>
+                      setPreviewKey(
+                        draft.inheritedCreatureEntry
+                          ? getMonsterKey(draft.inheritedCreatureEntry)
+                          : null
+                      )
+                    }
                   >
                     Preview
                   </button>
@@ -782,12 +816,12 @@ function CreatureEditorModal({
           totalPages={totalPages}
           query={monsterQuery}
           searchResetSignal={monsterSearchResetSignal}
-          selectedMonsterSlug={selectedMonsterSlug}
+          selectedMonsterKey={selectedMonsterKey}
           monsterTypeFilter={monsterTypeFilter}
           monsterSourceFilter={monsterSourceFilter}
           monsterTypeOptions={monsterTypeOptions}
           ordering={monsterOrdering}
-          pendingSelectSlug={pendingSelectSlug}
+          pendingSelectKey={pendingSelectKey}
           title={labels.browseTitle}
           summary={labels.browseSummary}
           onClose={() => setIsMonsterBrowserOpen(false)}
@@ -804,18 +838,18 @@ function CreatureEditorModal({
           }}
           onOrderingChange={setMonsterOrdering}
           onPageChange={setCurrentPage}
-          onOpenMonsterPreview={(monster) => setPreviewSlug(monster.slug)}
+          onOpenMonsterPreview={(monster) => setPreviewKey(getMonsterListItemKey(monster))}
           onSelectMonster={handleSelectMonster}
         />
       ) : null}
 
-      {previewSlug ? (
+      {previewKey ? (
         <MonsterEntryDrawer
           monster={previewMonster}
           status={previewStatus}
-          onClose={() => setPreviewSlug(null)}
+          onClose={() => setPreviewKey(null)}
           badgeLabel={
-            allowPrimalBeasts && getPrimalBeastTemplateBySlug(previewSlug)
+            allowPrimalBeasts && getPrimalBeastTemplateByKey(previewKey)
               ? "Primal Beast"
               : labels.previewBadgeLabel
           }
