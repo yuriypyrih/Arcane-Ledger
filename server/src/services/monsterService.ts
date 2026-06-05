@@ -18,6 +18,7 @@ const v2ToLegacySourceKeyMap: Record<string, string> = {
   "a5e-mm": "menagerie",
   tdcs: "taldorei"
 };
+const defaultExcludedSourceAliases = ["srd-2014", "wotc-srd"].map(createCaseInsensitiveExactMatch);
 
 function getSourceAliases(source: string) {
   return Array.from(new Set([source, v2ToLegacySourceKeyMap[source] ?? source]));
@@ -72,6 +73,13 @@ function buildMonsterFilter(query: MonsterListQuery): FilterQuery<MonsterRecord>
       $or: [
         ...sourceAliases.map((sourceAlias) => ({ "document.key": sourceAlias })),
         ...sourceAliases.map((sourceAlias) => ({ document__slug: sourceAlias }))
+      ]
+    });
+  } else {
+    appendFilterClause(filter, {
+      $nor: [
+        ...defaultExcludedSourceAliases.map((sourceAlias) => ({ "document.key": sourceAlias })),
+        ...defaultExcludedSourceAliases.map((sourceAlias) => ({ document__slug: sourceAlias }))
       ]
     });
   }

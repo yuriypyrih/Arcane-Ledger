@@ -15,7 +15,6 @@ export const MONSTER_TYPE_OPTIONS = [
 ] as const;
 
 export const MONSTER_SOURCE_OPTIONS = [
-  "srd-2014",
   "srd-2024",
   "bfrd",
   "ccdx",

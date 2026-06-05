@@ -44,7 +44,7 @@ type DruidWildShapeMonsterModalProps = {
 
 const MONSTERS_PER_PAGE = 20;
 const DEFAULT_VALID_MONSTER_TYPE = "Beast";
-const DEFAULT_VALID_MONSTER_SOURCE = "srd-2014";
+const DEFAULT_VALID_MONSTER_SOURCE = "srd-2024";
 
 function isQualifiedWildShapeMonster(
   monster: Pick<MonsterListItem, "typeKey" | "typeName" | "challengeRating">,
