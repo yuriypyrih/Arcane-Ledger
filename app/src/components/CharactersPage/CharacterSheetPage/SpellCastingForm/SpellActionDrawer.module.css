@@ -110,6 +110,33 @@
   width: 100%;
 }
 
+.castActionLabelContent {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  min-width: 0;
+}
+
+.castActionUsage,
+.castActionUsageCharges {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.34rem;
+  min-width: 0;
+}
+
+.castActionUsageCharges {
+  font-size: 0.76rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.castActionUsageDots {
+  margin-top: 0;
+}
+
 .castActionIcon {
   display: block;
   filter: brightness(0) invert(1);

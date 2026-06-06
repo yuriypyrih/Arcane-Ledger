@@ -337,8 +337,10 @@ import {
   restoreLuckyPointsForCharacter,
   restoreMageSlayerGuardedMindForCharacter,
   restoreMagicInitiateFreeCastsForCharacter,
+  restorePurpleDragonRookRallyingCryForCharacter,
   restoreRitualCasterQuickRitualForCharacter,
   restoreShadowTouchedFreeCastsForCharacter,
+  restoreSpellfireSparkSpellfireFlameForCharacter,
   restoreTelepathicDetectThoughtsFreeCastForCharacter
 } from "../../../../../pages/CharactersPage/feats/runtime";
 import { getSpellSlotTotalsForCharacter } from "../../../../../pages/CharactersPage/spellcasting";
@@ -394,6 +396,12 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const cultOfDragonInitiateInspiredByFearIsFull =
     featDerivedState.cultOfDragonInitiateInspiredByFearRemaining >=
     featDerivedState.cultOfDragonInitiateInspiredByFearTotal;
+  const purpleDragonRookRallyingCryIsFull =
+    featDerivedState.purpleDragonRookRallyingCryRemaining >=
+    featDerivedState.purpleDragonRookRallyingCryTotal;
+  const spellfireSparkSpellfireFlameIsFull =
+    featDerivedState.spellfireSparkSpellfireFlameRemaining >=
+    featDerivedState.spellfireSparkSpellfireFlameTotal;
   const boonOfRecoveryDiceAreFull =
     featDerivedState.boonOfRecoveryDiceRemaining >= featDerivedState.boonOfRecoveryDiceTotal;
   const mageSlayerGuardedMindAreFull =
@@ -831,6 +839,36 @@ export function createLongRestOptions(character: Character): RestOption[] {
             disabled: cultOfDragonInitiateInspiredByFearIsFull,
             apply: (currentCharacter: Character) =>
               restoreCultOfDragonInitiateInspiredByFearForCharacter(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(featDerivedState.hasPurpleDragonRook
+      ? [
+          {
+            id: "restore-purple-dragon-rook-rallying-cry",
+            label: "Restore Rallying Cry",
+            charges: {
+              current: featDerivedState.purpleDragonRookRallyingCryRemaining,
+              total: featDerivedState.purpleDragonRookRallyingCryTotal
+            },
+            disabled: purpleDragonRookRallyingCryIsFull,
+            apply: (currentCharacter: Character) =>
+              restorePurpleDragonRookRallyingCryForCharacter(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(featDerivedState.hasSpellfireSpark
+      ? [
+          {
+            id: "restore-spellfire-spark-spellfire-flame",
+            label: "Restore Spellfire Flame",
+            charges: {
+              current: featDerivedState.spellfireSparkSpellfireFlameRemaining,
+              total: featDerivedState.spellfireSparkSpellfireFlameTotal
+            },
+            disabled: spellfireSparkSpellfireFlameIsFull,
+            apply: (currentCharacter: Character) =>
+              restoreSpellfireSparkSpellfireFlameForCharacter(currentCharacter)
           } satisfies RestOption
         ]
       : []),

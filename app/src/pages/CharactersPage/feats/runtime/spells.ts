@@ -10,6 +10,7 @@ import {
   emeraldEnclaveFledglingSpeakWithAnimalsSpellId,
   feyTouchedMistyStepSpellId,
   shadowTouchedInvisibilitySpellId,
+  spellfireSparkSacredFlameSpellId,
   telekineticMageHandSpellId,
   telepathicDetectThoughtsSpellId
 } from "./constants";
@@ -114,6 +115,16 @@ export function getEmeraldEnclaveFledglingSpellEntry(
   }
 
   return getSpellEntryById(emeraldEnclaveFledglingSpeakWithAnimalsSpellId);
+}
+
+export function getSpellfireSparkSacredFlameSpellEntry(
+  entry: CharacterFeatEntry
+): SpellEntry | null {
+  if (entry.feat !== FEATS.SPELLFIRE_SPARK || !entry.spellfireSpark) {
+    return null;
+  }
+
+  return getSpellEntryById(spellfireSparkSacredFlameSpellId);
 }
 
 export function getFeyTouchedSpellEntries(entry: CharacterFeatEntry): SpellEntry[] {

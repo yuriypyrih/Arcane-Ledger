@@ -19,6 +19,9 @@ import {
 import { abilityKeys } from "./constants";
 import { getDefaultCultOfDragonInitiateLanguage } from "./feats/cultOfDragonInitiate";
 import { crafterFastCraftingToolProficiencies } from "./feats/crafter";
+import { getDefaultHarperAgentInstrument } from "./feats/harperAgent";
+import { getDefaultPurpleDragonRookSkill } from "./feats/purpleDragonRook";
+import { getDefaultSpellfireSparkSpellcastingAbility } from "./feats/spellfireSpark";
 import {
   musicalInstrumentToolProficiencies,
   gamingSetToolProficiencies,
@@ -517,6 +520,33 @@ export function createDefaultBackgroundOriginFeatEntry(
     });
   }
 
+  if (entry.originFeat === FEATS.HARPER_AGENT) {
+    return createBackgroundFeatEntry(entry, level, {
+      source,
+      harperAgent: {
+        toolProficiency: getDefaultHarperAgentInstrument()
+      }
+    });
+  }
+
+  if (entry.originFeat === FEATS.PURPLE_DRAGON_ROOK) {
+    return createBackgroundFeatEntry(entry, level, {
+      source,
+      purpleDragonRook: {
+        skill: getDefaultPurpleDragonRookSkill()
+      }
+    });
+  }
+
+  if (entry.originFeat === FEATS.SPELLFIRE_SPARK) {
+    return createBackgroundFeatEntry(entry, level, {
+      source,
+      spellfireSpark: {
+        spellcastingAbility: getDefaultSpellfireSparkSpellcastingAbility()
+      }
+    });
+  }
+
   if (entry.originFeat === FEATS.EMERALD_ENCLAVE_FLEDGLING) {
     return createBackgroundFeatEntry(entry, level, {
       source,
@@ -587,6 +617,33 @@ function ensureBackgroundFeatChoices(
       ...entry,
       cultOfDragonInitiate: {
         language: getDefaultCultOfDragonInitiateLanguage()
+      }
+    };
+  }
+
+  if (backgroundEntry.originFeat === FEATS.HARPER_AGENT && !entry.harperAgent) {
+    return {
+      ...entry,
+      harperAgent: {
+        toolProficiency: getDefaultHarperAgentInstrument()
+      }
+    };
+  }
+
+  if (backgroundEntry.originFeat === FEATS.PURPLE_DRAGON_ROOK && !entry.purpleDragonRook) {
+    return {
+      ...entry,
+      purpleDragonRook: {
+        skill: getDefaultPurpleDragonRookSkill()
+      }
+    };
+  }
+
+  if (backgroundEntry.originFeat === FEATS.SPELLFIRE_SPARK && !entry.spellfireSpark) {
+    return {
+      ...entry,
+      spellfireSpark: {
+        spellcastingAbility: getDefaultSpellfireSparkSpellcastingAbility()
       }
     };
   }

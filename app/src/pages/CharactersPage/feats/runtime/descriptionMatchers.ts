@@ -35,6 +35,41 @@ export function isEmeraldEnclaveFledglingTagTeamDescriptionEntry(entry: string):
   return entry.startsWith("<strong>Tag Team.</strong>");
 }
 
+export function isHarperAgentDistractingMelodyDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Distracting Melody.</strong>");
+}
+
+export function isPurpleDragonRookRallyingCryDescriptionEntry(entry: string): boolean {
+  return (
+    entry.startsWith("<strong>Rallying Cry.</strong>") ||
+    entry.startsWith("Once you use this benefit,")
+  );
+}
+
+export function isSpellfireSparkMagicAbsorptionDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Magic Absorption.</strong>");
+}
+
+export function isSpellfireSparkSpellfireFlameDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Spellfire Flame.</strong>");
+}
+
+export function isTyroOfTheGauntletStandAsOneDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Stand as One.</strong>");
+}
+
+export function isTyroOfTheGauntletVigilantDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Vigilant.</strong>");
+}
+
+export function isZhentarimRuffianExploitOpeningDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Exploit Opening.</strong>");
+}
+
+export function isZhentarimRuffianFamilyFirstDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Family First.</strong>");
+}
+
 export function isChefReplenishingMealDescriptionEntry(entry: string): boolean {
   return entry.startsWith("<strong>Replenishing Meal.</strong>");
 }

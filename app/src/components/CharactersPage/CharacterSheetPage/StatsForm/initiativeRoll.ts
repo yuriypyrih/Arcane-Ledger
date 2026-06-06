@@ -22,15 +22,22 @@ import {
   applySuperiorInspirationOnInitiativeForCharacter,
   expendBardicInspirationUseForCharacter
 } from "../../../../pages/CharactersPage/classFeatures";
-import { restoreBoonOfFateImproveFateForCharacter } from "../../../../pages/CharactersPage/feats/runtime";
+import {
+  restoreBoonOfFateImproveFateForCharacter,
+  spendPurpleDragonRookRallyingCryForCharacter
+} from "../../../../pages/CharactersPage/feats/runtime";
+import { expendHeroicInspirationForCharacter } from "../../../../pages/CharactersPage/heroicInspiration";
 import { setRoundTrackerCombatState } from "../../../../pages/CharactersPage/combat";
 import type { Character } from "../../../../types";
 import { formatRollResultTotal } from "../../../../utils/dice";
 
 type InitiativeCharacterEffectOptions = {
   usePersistentRageOnInitiative: boolean;
+  usePurpleDragonRookRallyingCryOnInitiative: boolean;
+  useZhentarimRuffianFamilyFirstOnInitiative: boolean;
   useTandemFootworkOnInitiative: boolean;
   useUncannyMetabolismOnInitiative: boolean;
+  zhentarimRuffianFamilyFirstAvailable: boolean;
   tandemFootworkAvailable: boolean;
 };
 
@@ -81,6 +88,10 @@ function appendInitiativeDescription(
   return `${description}${description.endsWith(".") ? "" : "."} ${addition}`;
 }
 
+function applyAdvantageToRollMode(rollMode: RollMode | undefined): RollMode {
+  return rollMode === "disadvantage" ? "normal" : "advantage";
+}
+
 export function applyInitiativeRollCharacterEffects(
   currentCharacter: Character,
   options: InitiativeCharacterEffectOptions
@@ -101,6 +112,18 @@ export function applyInitiativeRollCharacterEffects(
     nextCharacter = applyPersistentRageOnInitiativeForCharacter(nextCharacter);
   }
 
+  if (options.usePurpleDragonRookRallyingCryOnInitiative) {
+    nextCharacter = spendPurpleDragonRookRallyingCryForCharacter(nextCharacter);
+  }
+
+  if (
+    options.useZhentarimRuffianFamilyFirstOnInitiative &&
+    options.zhentarimRuffianFamilyFirstAvailable &&
+    nextCharacter.heroicInspiration
+  ) {
+    nextCharacter = expendHeroicInspirationForCharacter(nextCharacter);
+  }
+
   if (options.useTandemFootworkOnInitiative && options.tandemFootworkAvailable) {
     nextCharacter = expendBardicInspirationUseForCharacter(nextCharacter);
   }
@@ -119,6 +142,12 @@ export function createInitiativeRollRequest(
     options.useTandemFootworkOnInitiative && options.bardicInspirationDie
       ? formatDieFormula(options.bardicInspirationDie)
       : null;
+  const useFamilyFirst =
+    options.useZhentarimRuffianFamilyFirstOnInitiative &&
+    options.zhentarimRuffianFamilyFirstAvailable;
+  const rollMode = useFamilyFirst
+    ? applyAdvantageToRollMode(options.rollMode)
+    : options.rollMode;
   const initiativeBonusFormulaTerms = options.initiativeBreakdown.entries
     .map(formatCustomTraitBonusRollFormulaTerm)
     .filter((entry): entry is string => Boolean(entry));
@@ -129,9 +158,15 @@ export function createInitiativeRollRequest(
   const initiativeRollFormula = tandemFootworkFormula
     ? formatFormulaTerms([baseInitiativeRollFormula, tandemFootworkFormula])
     : baseInitiativeRollFormula;
-  const initiativeDescription = tandemFootworkFormula
+  const initiativeDescriptionWithTandemFootwork = tandemFootworkFormula
     ? `${initiativeFormulaDescription}. Tandem Footwork adds ${tandemFootworkFormula}.`
     : initiativeFormulaDescription;
+  const initiativeDescription = appendInitiativeDescription(
+    initiativeDescriptionWithTandemFootwork,
+    useFamilyFirst
+      ? "Family First expends Heroic Inspiration and gives Advantage on this Initiative roll."
+      : null
+  );
   const describedInitiative = appendInitiativeDescription(
     initiativeDescription,
     options.hasThiefsReflexes
@@ -161,7 +196,7 @@ export function createInitiativeRollRequest(
       return {
         title: initiativeLabel,
         description: describedInitiative,
-        mode: options.rollMode,
+        mode: rollMode,
         entries: [initiativeEntry, thiefsReflexesEntry],
         getFullManualToastText: formatDualRollToast
       };
@@ -172,7 +207,7 @@ export function createInitiativeRollRequest(
       formula: initiativeRollFormula,
       formulaDisplay: initiativeRollFormula,
       description: describedInitiative,
-      mode: options.rollMode
+      mode: rollMode
     };
   }
 
@@ -184,7 +219,7 @@ export function createInitiativeRollRequest(
       describedInitiative,
       "Uncanny Metabolism restores all Focus Points and heals for your Monk level plus the Martial Arts die result."
     ),
-    mode: options.rollMode,
+    mode: rollMode,
     entries: [
       initiativeEntry,
       ...(thiefsReflexesEntry ? [thiefsReflexesEntry] : []),

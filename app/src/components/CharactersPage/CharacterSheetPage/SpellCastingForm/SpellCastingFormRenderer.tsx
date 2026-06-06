@@ -111,6 +111,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     selectedSpellAlwaysSpellbook,
     selectedSpellAttackRollFormula,
     selectedSpellBlockedReason,
+    selectedSpellCanCastAsEmeraldEnclaveFledglingRitual,
     selectedSpellCanCastAsRitualFromSpellbook,
     selectedSpellCanOnlyBeCastAsRitual,
     selectedSpellCastWarning,
@@ -202,6 +203,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     setUseBlessingOfMoonlightOnSelectedSpell,
     setUseBoonOfSpellRecallOnSelectedSpell,
     setUseDetectThoughtsOnSelectedSpell,
+    setUseEmeraldEnclaveFledglingFreeUseOnSelectedSpell,
     setUseElementalSmiteOnSelectedSpell,
     setUseFeyMagicOnSelectedSpell,
     setUseFiendishLegacyOnSelectedSpell,
@@ -247,6 +249,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     useBlessingOfMoonlightOnSelectedSpell,
     useBoonOfSpellRecallOnSelectedSpell,
     useDetectThoughtsOnSelectedSpell,
+    useEmeraldEnclaveFledglingFreeUseOnSelectedSpell,
     useElementalSmiteOnSelectedSpell,
     useFeyMagicOnSelectedSpell,
     useFiendishLegacyOnSelectedSpell,
@@ -543,7 +546,9 @@ export function renderSpellCastingForm(context: Record<string, any>) {
               useTamedSurge: useTamedSurgeOnSelectedSpell,
               useTelekineticMaster: useTelekineticMasterOnSelectedSpell,
               useRadiantSoul: useRadiantSoulOnSelectedSpell,
-              useOverchannel: useOverchannelOnSelectedSpell
+              useOverchannel: useOverchannelOnSelectedSpell,
+              useEmeraldEnclaveFledglingFreeUse:
+                useEmeraldEnclaveFledglingFreeUseOnSelectedSpell
             })
           }
           actionConsumesSpellSlot={
@@ -560,7 +565,10 @@ export function renderSpellCastingForm(context: Record<string, any>) {
             !(selectedSpellSupportsShadowMagic && useShadowMagicOnSelectedSpell) &&
             !(selectedSpellSupportsDetectThoughts && useDetectThoughtsOnSelectedSpell) &&
             !(selectedSpellSupportsBoonOfSpellRecall && useBoonOfSpellRecallOnSelectedSpell) &&
-            !selectedSpellSupportsEmeraldEnclaveFledgling &&
+            !(
+              selectedSpellSupportsEmeraldEnclaveFledgling &&
+              useEmeraldEnclaveFledglingFreeUseOnSelectedSpell
+            ) &&
             !(selectedSpellSupportsPsionicSorcery && usePsionicSorceryOnSelectedSpell) &&
             !(selectedSpellSupportsStepsOfTheFey && useStepsOfTheFeyOnSelectedSpell) &&
             !(selectedSpellSupportsBewitchingMagic && useBewitchingMagicOnSelectedSpell) &&
@@ -576,9 +584,20 @@ export function renderSpellCastingForm(context: Record<string, any>) {
               : null
           }
           allowRitualCasting={
-            selectedSpellCanCastAsRitualFromSpellbook || selectedSpellCanOnlyBeCastAsRitual
+            selectedSpellCanCastAsRitualFromSpellbook ||
+            selectedSpellCanCastAsEmeraldEnclaveFledglingRitual ||
+            selectedSpellCanOnlyBeCastAsRitual
           }
           ritualCastingRequired={selectedSpellCanOnlyBeCastAsRitual}
+          slotFreeUseOption={
+            selectedSpellSupportsEmeraldEnclaveFledgling
+              ? {
+                  label: "Free use",
+                  selected: useEmeraldEnclaveFledglingFreeUseOnSelectedSpell,
+                  onSelectedChange: setUseEmeraldEnclaveFledglingFreeUseOnSelectedSpell
+                }
+              : null
+          }
           actionAvailabilityText={
             selectedSpellSupportsMindMagic && useMindMagicOnSelectedSpell
               ? "Mind Magic lets you cast this spell at its base level by using 1 Channel Divinity instead of a spell slot."
@@ -604,7 +623,8 @@ export function renderSpellCastingForm(context: Record<string, any>) {
                                 : selectedSpellSupportsBoonOfSpellRecall &&
                                     useBoonOfSpellRecallOnSelectedSpell
                                   ? "Free Casting prevents this cast from expending a spell slot."
-                                  : selectedSpellSupportsEmeraldEnclaveFledgling
+                                  : selectedSpellSupportsEmeraldEnclaveFledgling &&
+                                      useEmeraldEnclaveFledglingFreeUseOnSelectedSpell
                                     ? "Emerald Enclave Fledgling lets you cast this spell without expending a spell slot."
                                     : selectedSpellSupportsStepsOfTheFey &&
                                         useStepsOfTheFeyOnSelectedSpell
@@ -667,11 +687,14 @@ export function renderSpellCastingForm(context: Record<string, any>) {
               return actionShape
                 ? {
                     id: path.id,
+                    actionLabel: path.actionLabel,
                     actionShape,
                     actionShapeAvailable: path.shapeState.isAvailable,
                     actionShapeMultiCount: path.shapeState.multiCount,
-                    disabledReason: path.shapeState.disabledReason,
-                    roundTrackerResourceOverride: path.roundTrackerResource
+                    disabledReason: path.disabledReason ?? path.shapeState.disabledReason,
+                    roundTrackerResourceOverride: path.roundTrackerResource,
+                    usage: path.usage,
+                    useSpellfireFlame: path.useSpellfireFlame
                   }
                 : null;
             })

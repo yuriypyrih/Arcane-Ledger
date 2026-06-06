@@ -72,10 +72,13 @@ import { abilityKeys } from "../constants";
 import { getToolProficiencyLabel, musicalInstrumentToolProficiencies } from "../proficiencyOptions";
 import { getWeaponProficiencyLabel } from "../proficiencyWeaponLabels";
 import { getCrafterChoiceSummary } from "./crafter";
+import { getHarperAgentChoiceSummary } from "./harperAgent";
+import { getSpellfireSparkChoiceSummary } from "./spellfireSpark";
 import {
   getCultOfDragonInitiateLanguageLabel,
   isCultOfDragonInitiateLanguage
 } from "./cultOfDragonInitiate";
+import { getPurpleDragonRookChoiceSummary } from "./purpleDragonRook";
 import {
   boonOfEnergyResistanceDamageTypeOptions,
   emeraldEnclaveFledglingSpellcastingAbilityOptions,
@@ -1886,6 +1889,18 @@ export function getCharacterFeatSummary(entry: CharacterFeatEntry): string | nul
 
   if (entry.feat === FEATS.SKILLED) {
     return getSkilledChoiceSummary(entry.skilled);
+  }
+
+  if (entry.feat === FEATS.HARPER_AGENT) {
+    return getHarperAgentChoiceSummary(entry.harperAgent);
+  }
+
+  if (entry.feat === FEATS.PURPLE_DRAGON_ROOK) {
+    return getPurpleDragonRookChoiceSummary(entry.purpleDragonRook);
+  }
+
+  if (entry.feat === FEATS.SPELLFIRE_SPARK) {
+    return getSpellfireSparkChoiceSummary(entry.spellfireSpark);
   }
 
   if (entry.feat === FEATS.MUSICIAN) {

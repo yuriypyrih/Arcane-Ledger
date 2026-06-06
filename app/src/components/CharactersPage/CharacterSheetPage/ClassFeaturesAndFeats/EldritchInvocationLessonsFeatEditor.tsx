@@ -19,8 +19,11 @@ import {
   decodePendingCultOfDragonInitiateChoice,
   decodePendingCrafterChoice,
   decodePendingEmeraldEnclaveFledglingChoice,
+  decodePendingHarperAgentChoice,
   decodePendingMagicInitiateChoice,
   decodePendingMusicianChoice,
+  decodePendingPurpleDragonRookChoice,
+  decodePendingSpellfireSparkChoice,
   decodePendingSkilledChoice
 } from "./featEditorUtils";
 import {
@@ -155,6 +158,41 @@ function EldritchInvocationLessonsFeatEditor({
     );
   }
 
+  function savePendingHarperAgentChoice() {
+    const choice = pendingFeatState.harperAgentChoice;
+    const harperAgent = choice ? decodePendingHarperAgentChoice(choice) : null;
+
+    if (!harperAgent) {
+      return;
+    }
+
+    saveConfiguredFeatEntry(createSelectedFeatEntry(FEATS.HARPER_AGENT, { harperAgent }));
+  }
+
+  function savePendingPurpleDragonRookChoice() {
+    const choice = pendingFeatState.purpleDragonRookChoice;
+    const purpleDragonRook = choice ? decodePendingPurpleDragonRookChoice(choice) : null;
+
+    if (!purpleDragonRook) {
+      return;
+    }
+
+    saveConfiguredFeatEntry(
+      createSelectedFeatEntry(FEATS.PURPLE_DRAGON_ROOK, { purpleDragonRook })
+    );
+  }
+
+  function savePendingSpellfireSparkChoice() {
+    const choice = pendingFeatState.spellfireSparkChoice;
+    const spellfireSpark = choice ? decodePendingSpellfireSparkChoice(choice) : null;
+
+    if (!spellfireSpark) {
+      return;
+    }
+
+    saveConfiguredFeatEntry(createSelectedFeatEntry(FEATS.SPELLFIRE_SPARK, { spellfireSpark }));
+  }
+
   function savePendingMagicInitiateChoice() {
     const choice = pendingFeatState.magicInitiateChoice;
     const magicInitiate = choice ? decodePendingMagicInitiateChoice(choice) : null;
@@ -262,6 +300,9 @@ function EldritchInvocationLessonsFeatEditor({
         onSavePendingEmeraldEnclaveFledglingChoice={
           savePendingEmeraldEnclaveFledglingChoice
         }
+        onSavePendingHarperAgentChoice={savePendingHarperAgentChoice}
+        onSavePendingPurpleDragonRookChoice={savePendingPurpleDragonRookChoice}
+        onSavePendingSpellfireSparkChoice={savePendingSpellfireSparkChoice}
         onSavePendingCrafterChoice={savePendingCrafterChoice}
         onSavePendingDruidicWarriorChoice={noopSavePendingChoice}
         onSavePendingEpicBoonAbilityChoice={noopSavePendingChoice}

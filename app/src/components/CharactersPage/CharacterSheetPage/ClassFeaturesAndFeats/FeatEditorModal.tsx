@@ -99,6 +99,9 @@ type FeatEditorModalProps = {
   onSavePendingMagicInitiateChoice: () => void;
   onSavePendingCultOfDragonInitiateChoice: () => void;
   onSavePendingEmeraldEnclaveFledglingChoice: () => void;
+  onSavePendingHarperAgentChoice: () => void;
+  onSavePendingPurpleDragonRookChoice: () => void;
+  onSavePendingSpellfireSparkChoice: () => void;
   onSavePendingMusicianChoice: () => void;
   onSavePendingSkilledChoice: () => void;
 };
@@ -193,6 +196,9 @@ function FeatEditorModal({
   onSavePendingMagicInitiateChoice,
   onSavePendingCultOfDragonInitiateChoice,
   onSavePendingEmeraldEnclaveFledglingChoice,
+  onSavePendingHarperAgentChoice,
+  onSavePendingPurpleDragonRookChoice,
+  onSavePendingSpellfireSparkChoice,
   onSavePendingMusicianChoice,
   onSavePendingSkilledChoice
 }: FeatEditorModalProps) {
@@ -333,6 +339,9 @@ function FeatEditorModal({
                 onSavePendingEmeraldEnclaveFledglingChoice={
                   onSavePendingEmeraldEnclaveFledglingChoice
                 }
+                onSavePendingHarperAgentChoice={onSavePendingHarperAgentChoice}
+                onSavePendingPurpleDragonRookChoice={onSavePendingPurpleDragonRookChoice}
+                onSavePendingSpellfireSparkChoice={onSavePendingSpellfireSparkChoice}
                 onSavePendingMusicianChoice={onSavePendingMusicianChoice}
                 onSavePendingSkilledChoice={onSavePendingSkilledChoice}
               />

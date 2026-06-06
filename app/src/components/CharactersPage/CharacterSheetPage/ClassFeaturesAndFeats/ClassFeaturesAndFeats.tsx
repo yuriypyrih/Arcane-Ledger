@@ -86,6 +86,7 @@ import {
   decodePendingEmeraldEnclaveFledglingChoice,
   decodePendingElementalAdeptChoice,
   decodePendingFeyTouchedChoice,
+  decodePendingHarperAgentChoice,
   decodePendingHeavilyArmoredChoice,
   decodePendingHeavyArmorMasterChoice,
   decodePendingInspiringLeaderChoice,
@@ -100,11 +101,13 @@ import {
   decodePendingPiercerChoice,
   decodePendingPoisonerChoice,
   decodePendingPolearmMasterChoice,
+  decodePendingPurpleDragonRookChoice,
   decodePendingRitualCasterChoice,
   decodePendingResilientChoice,
   decodePendingSentinelChoice,
   decodePendingShadowTouchedChoice,
   decodePendingSlasherChoice,
+  decodePendingSpellfireSparkChoice,
   decodePendingSpellSniperChoice,
   decodePendingTelekineticChoice,
   decodePendingTelepathicChoice,
@@ -1697,6 +1700,88 @@ function ClassFeaturesAndFeats({
     );
   }
 
+  function savePendingHarperAgentChoice() {
+    const choice = pendingFeatState.harperAgentChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const harperAgent = decodePendingHarperAgentChoice(choice);
+
+    if (!harperAgent) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.HARPER_AGENT, {
+        harperAgent
+      })
+    );
+  }
+
+  function savePendingPurpleDragonRookChoice() {
+    const choice = pendingFeatState.purpleDragonRookChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const purpleDragonRook = decodePendingPurpleDragonRookChoice(choice);
+
+    if (!purpleDragonRook) {
+      return;
+    }
+
+    const editingEntry = editingFeatEntryId
+      ? featEditorDraftRef.current.feats.find((entry) => entry.id === editingFeatEntryId)
+      : null;
+    const rallyingCryExpended =
+      editingEntry?.feat === FEATS.PURPLE_DRAGON_ROOK
+        ? editingEntry.purpleDragonRook?.rallyingCryExpended
+        : undefined;
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.PURPLE_DRAGON_ROOK, {
+        purpleDragonRook: {
+          ...purpleDragonRook,
+          ...(rallyingCryExpended === undefined ? {} : { rallyingCryExpended })
+        }
+      })
+    );
+  }
+
+  function savePendingSpellfireSparkChoice() {
+    const choice = pendingFeatState.spellfireSparkChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const spellfireSpark = decodePendingSpellfireSparkChoice(choice);
+
+    if (!spellfireSpark) {
+      return;
+    }
+
+    const editingEntry = editingFeatEntryId
+      ? featEditorDraftRef.current.feats.find((entry) => entry.id === editingFeatEntryId)
+      : null;
+    const spellfireFlameExpended =
+      editingEntry?.feat === FEATS.SPELLFIRE_SPARK
+        ? editingEntry.spellfireSpark?.spellfireFlameExpended
+        : undefined;
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.SPELLFIRE_SPARK, {
+        spellfireSpark: {
+          ...spellfireSpark,
+          ...(spellfireFlameExpended === undefined ? {} : { spellfireFlameExpended })
+        }
+      })
+    );
+  }
+
   function savePendingMusicianChoice() {
     const choice = pendingFeatState.musicianChoice;
 
@@ -2025,6 +2110,9 @@ function ClassFeaturesAndFeats({
           onSavePendingEmeraldEnclaveFledglingChoice={
             savePendingEmeraldEnclaveFledglingChoice
           }
+          onSavePendingHarperAgentChoice={savePendingHarperAgentChoice}
+          onSavePendingPurpleDragonRookChoice={savePendingPurpleDragonRookChoice}
+          onSavePendingSpellfireSparkChoice={savePendingSpellfireSparkChoice}
           onSavePendingCrafterChoice={savePendingCrafterChoice}
           onSavePendingDruidicWarriorChoice={savePendingDruidicWarriorChoice}
           onSavePendingEpicBoonAbilityChoice={savePendingEpicBoonAbilityChoice}

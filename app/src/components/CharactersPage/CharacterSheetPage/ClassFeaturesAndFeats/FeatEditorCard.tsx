@@ -51,6 +51,8 @@ import {
   isFeatEntryRemovable,
   magicInitiateSpellListOptions,
   magicInitiateSpellcastingAbilityOptions,
+  spellfireSparkSpellcastingAbilityOptions,
+  purpleDragonRookSkillOptions,
   type FeatDefinition
 } from "../../../../pages/CharactersPage/feats";
 import {
@@ -136,6 +138,9 @@ import {
   getPendingCrafterChoiceSummary,
   getPendingDruidicWarriorChoiceSummary,
   getPendingEmeraldEnclaveFledglingChoiceSummary,
+  getPendingHarperAgentChoiceSummary,
+  getPendingPurpleDragonRookChoiceSummary,
+  getPendingSpellfireSparkChoiceSummary,
   getPendingMagicInitiateChoiceSummary,
   getPendingCultOfDragonInitiateChoiceSummary,
   getPendingMusicianChoiceSummary,
@@ -147,6 +152,9 @@ import {
   isPendingCrafterChoiceValid,
   isPendingDruidicWarriorChoiceValid,
   isPendingEmeraldEnclaveFledglingChoiceValid,
+  isPendingHarperAgentChoiceValid,
+  isPendingPurpleDragonRookChoiceValid,
+  isPendingSpellfireSparkChoiceValid,
   isPendingFeyTouchedChoiceValid,
   isPendingKeenMindChoiceValid,
   isPendingObservantChoiceValid,
@@ -167,6 +175,9 @@ import {
   magicInitiateCantripSelectionIndices,
   cultOfDragonInitiateNoneOptionValue,
   emeraldEnclaveFledglingNoneOptionValue,
+  harperAgentNoneOptionValue,
+  purpleDragonRookNoneOptionValue,
+  spellfireSparkNoneOptionValue,
   magicInitiateNoneOptionValue,
   musicianNoneOptionValue,
   musicianSelectionIndices,
@@ -203,6 +214,9 @@ import type {
   PendingElementalAdeptChoice,
   PendingFeyTouchedChoice,
   PendingFeatState,
+  PendingHarperAgentChoice,
+  PendingPurpleDragonRookChoice,
+  PendingSpellfireSparkChoice,
   PendingHeavilyArmoredChoice,
   PendingHeavyArmorMasterChoice,
   PendingInspiringLeaderChoice,
@@ -299,6 +313,9 @@ type FeatEditorCardProps = {
   onSavePendingMagicInitiateChoice: () => void;
   onSavePendingCultOfDragonInitiateChoice: () => void;
   onSavePendingEmeraldEnclaveFledglingChoice: () => void;
+  onSavePendingHarperAgentChoice: () => void;
+  onSavePendingPurpleDragonRookChoice: () => void;
+  onSavePendingSpellfireSparkChoice: () => void;
   onSavePendingMusicianChoice: () => void;
   onSavePendingSkilledChoice: () => void;
 };
@@ -427,6 +444,35 @@ type MusicianChoiceEditorProps = {
   onCancel: () => void;
   onSave: () => void;
   onChange: (selectionIndex: number, nextValue: string) => void;
+};
+
+type HarperAgentChoiceEditorProps = {
+  choice: PendingHarperAgentChoice;
+  summary: string | null;
+  isValid: boolean;
+  toolProficiencies: ToolProficiencyEntry[];
+  onCancel: () => void;
+  onSave: () => void;
+  onChange: (nextValue: string) => void;
+};
+
+type PurpleDragonRookChoiceEditorProps = {
+  choice: PendingPurpleDragonRookChoice;
+  summary: string | null;
+  isValid: boolean;
+  skillProficiencies: SkillProficiencyEntry[];
+  onCancel: () => void;
+  onSave: () => void;
+  onChange: (nextValue: string) => void;
+};
+
+type SpellfireSparkChoiceEditorProps = {
+  choice: PendingSpellfireSparkChoice;
+  summary: string | null;
+  isValid: boolean;
+  onCancel: () => void;
+  onSave: () => void;
+  onChange: (nextChoice: PendingSpellfireSparkChoice) => void;
 };
 
 type MagicInitiateChoiceEditorProps = {
@@ -1509,6 +1555,195 @@ function MusicianChoiceEditor({
   );
 }
 
+function HarperAgentChoiceEditor({
+  choice,
+  summary,
+  isValid,
+  toolProficiencies,
+  onCancel,
+  onSave,
+  onChange
+}: HarperAgentChoiceEditorProps) {
+  const currentValue = choice.toolProficiency;
+  const currentTool =
+    currentValue === harperAgentNoneOptionValue ? null : (currentValue as ToolProficiency);
+  const availableTools = getSourceChoiceToolOptions(
+    { toolProficiencies },
+    musicalInstrumentToolProficiencies,
+    currentTool,
+    []
+  );
+
+  return (
+    <InlineEditorFrame
+      title="Harper Agent"
+      cancelLabel="Cancel Harper Agent instrument selection"
+      onCancel={onCancel}
+      footer={
+        <div className={modalStyles.editorActions}>
+          <ActionButton
+            icon={<Plus size={16} />}
+            fullWidth={false}
+            disabled={!isValid}
+            onClick={onSave}
+          >
+            Add Feat
+          </ActionButton>
+        </div>
+      }
+    >
+      <div className={modalStyles.singleFieldGrid}>
+        <SelectField
+          label="Instrument"
+          value={currentValue}
+          options={[
+            {
+              label: "-",
+              value: harperAgentNoneOptionValue
+            },
+            ...buildToolSelectOptions(
+              musicalInstrumentToolProficiencies,
+              availableTools,
+              currentTool
+            ).map((option) => ({
+              disabled: option.disabled,
+              label: option.label,
+              value: option.tool
+            }))
+          ]}
+          onChange={onChange}
+        />
+      </div>
+      {summary ? <p className={modalStyles.summary}>{summary}</p> : null}
+      {!isValid ? (
+        <p className={modalStyles.validation}>Choose one Musical Instrument.</p>
+      ) : null}
+    </InlineEditorFrame>
+  );
+}
+
+function PurpleDragonRookChoiceEditor({
+  choice,
+  summary,
+  isValid,
+  skillProficiencies,
+  onCancel,
+  onSave,
+  onChange
+}: PurpleDragonRookChoiceEditorProps) {
+  const currentSkill =
+    choice.skill === purpleDragonRookNoneOptionValue ? null : (choice.skill as SkillName);
+  const availableSkills = getSourceChoiceSkillOptions(
+    { skillProficiencies },
+    purpleDragonRookSkillOptions,
+    currentSkill,
+    []
+  );
+
+  return (
+    <InlineEditorFrame
+      title="Purple Dragon Rook"
+      cancelLabel="Cancel Purple Dragon Rook skill selection"
+      onCancel={onCancel}
+      footer={
+        <div className={modalStyles.editorActions}>
+          <ActionButton
+            icon={<Plus size={16} />}
+            fullWidth={false}
+            disabled={!isValid}
+            onClick={onSave}
+          >
+            Add Feat
+          </ActionButton>
+        </div>
+      }
+    >
+      <div className={modalStyles.singleFieldGrid}>
+        <SelectField
+          label="Skill"
+          value={choice.skill}
+          options={[
+            {
+              label: "-",
+              value: purpleDragonRookNoneOptionValue
+            },
+            ...buildSkillSelectOptions(
+              purpleDragonRookSkillOptions,
+              availableSkills,
+              currentSkill
+            ).map((option) => ({
+              disabled: option.disabled,
+              label: option.label,
+              value: option.skill
+            }))
+          ]}
+          onChange={onChange}
+        />
+      </div>
+      {summary ? <p className={modalStyles.summary}>{summary}</p> : null}
+      {!isValid ? (
+        <p className={modalStyles.validation}>Choose Insight, Performance, or Persuasion.</p>
+      ) : null}
+    </InlineEditorFrame>
+  );
+}
+
+function SpellfireSparkChoiceEditor({
+  choice,
+  summary,
+  isValid,
+  onCancel,
+  onSave,
+  onChange
+}: SpellfireSparkChoiceEditorProps) {
+  return (
+    <InlineEditorFrame
+      title="Spellfire Spark"
+      cancelLabel="Cancel Spellfire Spark spellcasting ability selection"
+      onCancel={onCancel}
+      footer={
+        <div className={modalStyles.editorActions}>
+          <ActionButton
+            icon={<Plus size={16} />}
+            fullWidth={false}
+            disabled={!isValid}
+            onClick={onSave}
+          >
+            Add Feat
+          </ActionButton>
+        </div>
+      }
+    >
+      <div className={modalStyles.singleFieldGrid}>
+        <SelectField
+          label="Spellcasting Ability"
+          value={choice.spellcastingAbility}
+          options={[
+            {
+              label: "-",
+              value: spellfireSparkNoneOptionValue
+            },
+            ...spellfireSparkSpellcastingAbilityOptions.map((ability) => ({
+              label: ability,
+              value: ability
+            }))
+          ]}
+          onChange={(nextValue) =>
+            onChange({
+              spellcastingAbility:
+                nextValue as PendingSpellfireSparkChoice["spellcastingAbility"]
+            })
+          }
+        />
+      </div>
+      {summary ? <p className={modalStyles.summary}>{summary}</p> : null}
+      {!isValid ? (
+        <p className={modalStyles.validation}>Choose a spellcasting ability.</p>
+      ) : null}
+    </InlineEditorFrame>
+  );
+}
+
 function MagicInitiateChoiceEditor({
   choice,
   selectedEntries,
@@ -1972,6 +2207,9 @@ function renderInlineEditor({
   onSavePendingMagicInitiateChoice,
   onSavePendingCultOfDragonInitiateChoice,
   onSavePendingEmeraldEnclaveFledglingChoice,
+  onSavePendingHarperAgentChoice,
+  onSavePendingPurpleDragonRookChoice,
+  onSavePendingSpellfireSparkChoice,
   onSavePendingMusicianChoice,
   onSavePendingSkilledChoice
 }: Omit<
@@ -3291,6 +3529,93 @@ function renderInlineEditor({
     );
   }
 
+  if (featDefinition.feat === FEATS.HARPER_AGENT && pendingFeatState.harperAgentChoice) {
+    const choice = pendingFeatState.harperAgentChoice;
+
+    return (
+      <HarperAgentChoiceEditor
+        choice={choice}
+        summary={getPendingHarperAgentChoiceSummary(choice)}
+        isValid={isPendingHarperAgentChoiceValid(choice)}
+        toolProficiencies={toolProficiencies}
+        onCancel={() =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            harperAgentChoice: null
+          }))
+        }
+        onSave={onSavePendingHarperAgentChoice}
+        onChange={(nextValue) =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            harperAgentChoice: current.harperAgentChoice
+              ? {
+                  toolProficiency: nextValue
+                }
+              : current.harperAgentChoice
+          }))
+        }
+      />
+    );
+  }
+
+  if (featDefinition.feat === FEATS.PURPLE_DRAGON_ROOK && pendingFeatState.purpleDragonRookChoice) {
+    const choice = pendingFeatState.purpleDragonRookChoice;
+
+    return (
+      <PurpleDragonRookChoiceEditor
+        choice={choice}
+        summary={getPendingPurpleDragonRookChoiceSummary(choice)}
+        isValid={isPendingPurpleDragonRookChoiceValid(choice)}
+        skillProficiencies={skillProficiencies}
+        onCancel={() =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            purpleDragonRookChoice: null
+          }))
+        }
+        onSave={onSavePendingPurpleDragonRookChoice}
+        onChange={(nextValue) =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            purpleDragonRookChoice: current.purpleDragonRookChoice
+              ? {
+                  skill: nextValue as PendingPurpleDragonRookChoice["skill"]
+                }
+              : current.purpleDragonRookChoice
+          }))
+        }
+      />
+    );
+  }
+
+  if (featDefinition.feat === FEATS.SPELLFIRE_SPARK && pendingFeatState.spellfireSparkChoice) {
+    const choice = pendingFeatState.spellfireSparkChoice;
+
+    return (
+      <SpellfireSparkChoiceEditor
+        choice={choice}
+        summary={getPendingSpellfireSparkChoiceSummary(choice)}
+        isValid={isPendingSpellfireSparkChoiceValid(choice)}
+        onCancel={() =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            spellfireSparkChoice: null
+          }))
+        }
+        onSave={onSavePendingSpellfireSparkChoice}
+        onChange={(nextChoice) =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            spellfireSparkChoice: current.spellfireSparkChoice
+              ? nextChoice
+              : current.spellfireSparkChoice
+          }))
+        }
+      />
+    );
+  }
+
   if (featDefinition.feat === FEATS.MUSICIAN && pendingFeatState.musicianChoice) {
     const musicianChoice = pendingFeatState.musicianChoice;
 
@@ -3511,6 +3836,9 @@ function FeatEditorCard({
   onSavePendingMagicInitiateChoice,
   onSavePendingCultOfDragonInitiateChoice,
   onSavePendingEmeraldEnclaveFledglingChoice,
+  onSavePendingHarperAgentChoice,
+  onSavePendingPurpleDragonRookChoice,
+  onSavePendingSpellfireSparkChoice,
   onSavePendingMusicianChoice,
   onSavePendingSkilledChoice
 }: FeatEditorCardProps) {
@@ -3659,6 +3987,9 @@ function FeatEditorCard({
         onSavePendingMagicInitiateChoice,
         onSavePendingCultOfDragonInitiateChoice,
         onSavePendingEmeraldEnclaveFledglingChoice,
+        onSavePendingHarperAgentChoice,
+        onSavePendingPurpleDragonRookChoice,
+        onSavePendingSpellfireSparkChoice,
         onSavePendingMusicianChoice,
         onSavePendingSkilledChoice
       })}

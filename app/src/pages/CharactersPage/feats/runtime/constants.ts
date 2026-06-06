@@ -1,10 +1,15 @@
 export const actorStatusSourceId = "feat-actor";
 export const heavyArmorMasterDamageReductionStatusSourceId =
   "feat-heavy-armor-master-damage-reduction";
+export const lordsAllianceAgentStatusSourceId = "feat-lords-alliance-agent";
 export const mageSlayerConcentrationBreakerStatusSourceId =
   "feat-mage-slayer-concentration-breaker";
+export const spellfireSparkMagicAbsorptionStatusSourceId =
+  "feat-spellfire-spark-magic-absorption";
 export const speedyAgileMovementStatusSourceId = "feat-speedy-agile-movement";
 export const sentinelGuardianHaltStatusSourceId = "feat-sentinel-guardian-halt";
+export const zhentarimRuffianExploitOpeningStatusSourceId =
+  "feat-zhentarim-ruffian-exploit-opening";
 export const blindFightingBlindsightStatusSourceId = "feat-blind-fighting-blindsight";
 export const skulkerBlindsightStatusSourceId = "feat-skulker-blindsight";
 export const telepathicUtteranceStatusSourceId = "feat-telepathic-utterance";
@@ -19,6 +24,8 @@ export const polearmMasterReactiveStrikeReactionEntryId =
   "reaction-polearm-master-reactive-strike";
 export const protectionReactionEntryId = "reaction-protection";
 export const shieldMasterReactionEntryId = "reaction-shield-master";
+export const tyroOfTheGauntletStandAsOneReactionEntryId =
+  "reaction-tyro-of-the-gauntlet-stand-as-one";
 export const warCasterReactiveSpellReactionEntryId = "reaction-war-caster-reactive-spell";
 
 export const luckyFeatActionKey = "feat-lucky";
@@ -38,6 +45,7 @@ export const telepathicDetectThoughtsSpellId = "spell-detect-thoughts";
 export const shadowTouchedInvisibilitySpellId = "spell-invisibility";
 export const emeraldEnclaveFledglingSpeakWithAnimalsSpellId =
   "spell-speak-with-animals";
+export const spellfireSparkSacredFlameSpellId = "spell-sacred-flame";
 
 export const healerKitItemKeys = new Set([
   "srd_healers-kit",

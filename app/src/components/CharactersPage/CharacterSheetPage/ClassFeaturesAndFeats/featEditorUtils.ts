@@ -82,6 +82,9 @@ import {
   getMagicInitiateLevelOneSpellOptions,
   getFeyTouchedSpellOptions,
   getFeatProficiencyBonusForLevel,
+  getHarperAgentChoiceSummary,
+  getPurpleDragonRookChoiceSummary,
+  getSpellfireSparkChoiceSummary,
   emeraldEnclaveFledglingSpellcastingAbilityOptions,
   getMusicianChoiceSummary,
   getRitualCasterSpellOptions,
@@ -90,6 +93,11 @@ import {
   magicInitiateSpellcastingAbilityOptions,
   getSkilledChoiceSummary
 } from "../../../../pages/CharactersPage/feats";
+import { isHarperAgentInstrument } from "../../../../pages/CharactersPage/feats/harperAgent";
+import {
+  isPurpleDragonRookSkill
+} from "../../../../pages/CharactersPage/feats/purpleDragonRook";
+import { isSpellfireSparkSpellcastingAbility } from "../../../../pages/CharactersPage/feats/spellfireSpark";
 import {
   getCrafterChoiceSummary,
   isCrafterFastCraftingTool
@@ -123,6 +131,7 @@ import type {
   FeyTouchedChoice,
   HeavilyArmoredChoice,
   HeavyArmorMasterChoice,
+  HarperAgentChoice,
   InspiringLeaderChoice,
   KeenMindChoice,
   LightlyArmoredChoice,
@@ -135,11 +144,13 @@ import type {
   PiercerChoice,
   PoisonerChoice,
   PolearmMasterChoice,
+  PurpleDragonRookChoice,
   RitualCasterChoice,
   ResilientChoice,
   SentinelChoice,
   ShadowTouchedChoice,
   SlasherChoice,
+  SpellfireSparkChoice,
   SpellSniperChoice,
   TelekineticChoice,
   TelepathicChoice,
@@ -171,6 +182,9 @@ import type {
   PendingDruidicWarriorChoice,
   PendingEmeraldEnclaveFledglingChoice,
   PendingEpicBoonAbilityChoice,
+  PendingHarperAgentChoice,
+  PendingPurpleDragonRookChoice,
+  PendingSpellfireSparkChoice,
   PendingFeyTouchedChoice,
   PendingFeatState,
   PendingHeavilyArmoredChoice,
@@ -213,6 +227,9 @@ export const crafterNoneOptionValue = "none";
 export const crafterSelectionIndices = [0, 1, 2] as const;
 export const musicianNoneOptionValue = "none";
 export const musicianSelectionIndices = [0, 1, 2] as const;
+export const harperAgentNoneOptionValue = "none";
+export const purpleDragonRookNoneOptionValue = "none";
+export const spellfireSparkNoneOptionValue = "none";
 export const magicInitiateNoneOptionValue = "none";
 export const cultOfDragonInitiateNoneOptionValue = "none";
 export const emeraldEnclaveFledglingNoneOptionValue = "none";
@@ -344,6 +361,9 @@ export function createEmptyPendingFeatState(): PendingFeatState {
     magicInitiateChoice: null,
     cultOfDragonInitiateChoice: null,
     emeraldEnclaveFledglingChoice: null,
+    harperAgentChoice: null,
+    purpleDragonRookChoice: null,
+    spellfireSparkChoice: null,
     musicianChoice: null,
     epicBoonAbilityChoice: null,
     skilledChoice: null
@@ -635,6 +655,24 @@ export function createDefaultPendingCultOfDragonInitiateChoice(
 export function createDefaultPendingEmeraldEnclaveFledglingChoice(): PendingEmeraldEnclaveFledglingChoice {
   return {
     spellcastingAbility: emeraldEnclaveFledglingNoneOptionValue
+  };
+}
+
+export function createDefaultPendingHarperAgentChoice(): PendingHarperAgentChoice {
+  return {
+    toolProficiency: harperAgentNoneOptionValue
+  };
+}
+
+export function createDefaultPendingPurpleDragonRookChoice(): PendingPurpleDragonRookChoice {
+  return {
+    skill: purpleDragonRookNoneOptionValue
+  };
+}
+
+export function createDefaultPendingSpellfireSparkChoice(): PendingSpellfireSparkChoice {
+  return {
+    spellcastingAbility: spellfireSparkNoneOptionValue
   };
 }
 
@@ -973,6 +1011,27 @@ export function createPendingFeatStateForFeat(
     };
   }
 
+  if (feat === FEATS.HARPER_AGENT) {
+    return {
+      ...createEmptyPendingFeatState(),
+      harperAgentChoice: createDefaultPendingHarperAgentChoice()
+    };
+  }
+
+  if (feat === FEATS.PURPLE_DRAGON_ROOK) {
+    return {
+      ...createEmptyPendingFeatState(),
+      purpleDragonRookChoice: createDefaultPendingPurpleDragonRookChoice()
+    };
+  }
+
+  if (feat === FEATS.SPELLFIRE_SPARK) {
+    return {
+      ...createEmptyPendingFeatState(),
+      spellfireSparkChoice: createDefaultPendingSpellfireSparkChoice()
+    };
+  }
+
   if (feat === FEATS.MUSICIAN) {
     return {
       ...createEmptyPendingFeatState(),
@@ -1047,6 +1106,33 @@ export function createPendingFeatStateForEntry(entry: CharacterFeatEntry): Pendi
       ...createEmptyPendingFeatState(),
       emeraldEnclaveFledglingChoice: {
         spellcastingAbility: entry.emeraldEnclaveFledgling.spellcastingAbility
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.HARPER_AGENT && entry.harperAgent) {
+    return {
+      ...createEmptyPendingFeatState(),
+      harperAgentChoice: {
+        toolProficiency: entry.harperAgent.toolProficiency
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.PURPLE_DRAGON_ROOK && entry.purpleDragonRook) {
+    return {
+      ...createEmptyPendingFeatState(),
+      purpleDragonRookChoice: {
+        skill: entry.purpleDragonRook.skill
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.SPELLFIRE_SPARK && entry.spellfireSpark) {
+    return {
+      ...createEmptyPendingFeatState(),
+      spellfireSparkChoice: {
+        spellcastingAbility: entry.spellfireSpark.spellcastingAbility
       }
     };
   }
@@ -2195,6 +2281,70 @@ export function isPendingCrafterChoiceValid(choice: PendingCrafterChoice): boole
 
 export function getPendingCrafterChoiceSummary(choice: PendingCrafterChoice): string | null {
   return getCrafterChoiceSummary(decodePendingCrafterChoice(choice) ?? undefined);
+}
+
+export function decodePendingHarperAgentChoice(
+  choice: PendingHarperAgentChoice
+): HarperAgentChoice | null {
+  return isHarperAgentInstrument(choice.toolProficiency)
+    ? {
+        toolProficiency: choice.toolProficiency
+      }
+    : null;
+}
+
+export function isPendingHarperAgentChoiceValid(choice: PendingHarperAgentChoice): boolean {
+  return decodePendingHarperAgentChoice(choice) !== null;
+}
+
+export function getPendingHarperAgentChoiceSummary(
+  choice: PendingHarperAgentChoice
+): string | null {
+  return getHarperAgentChoiceSummary(decodePendingHarperAgentChoice(choice) ?? undefined);
+}
+
+export function decodePendingPurpleDragonRookChoice(
+  choice: PendingPurpleDragonRookChoice
+): PurpleDragonRookChoice | null {
+  return isPurpleDragonRookSkill(choice.skill)
+    ? {
+        skill: choice.skill
+      }
+    : null;
+}
+
+export function isPendingPurpleDragonRookChoiceValid(
+  choice: PendingPurpleDragonRookChoice
+): boolean {
+  return decodePendingPurpleDragonRookChoice(choice) !== null;
+}
+
+export function getPendingPurpleDragonRookChoiceSummary(
+  choice: PendingPurpleDragonRookChoice
+): string | null {
+  return getPurpleDragonRookChoiceSummary(
+    decodePendingPurpleDragonRookChoice(choice) ?? undefined
+  );
+}
+
+export function decodePendingSpellfireSparkChoice(
+  choice: PendingSpellfireSparkChoice
+): SpellfireSparkChoice | null {
+  return isSpellfireSparkSpellcastingAbility(choice.spellcastingAbility)
+    ? {
+        spellcastingAbility: choice.spellcastingAbility
+      }
+    : null;
+}
+
+export function isPendingSpellfireSparkChoiceValid(choice: PendingSpellfireSparkChoice): boolean {
+  return decodePendingSpellfireSparkChoice(choice) !== null;
+}
+
+export function getPendingSpellfireSparkChoiceSummary(
+  choice: PendingSpellfireSparkChoice
+): string | null {
+  return getSpellfireSparkChoiceSummary(decodePendingSpellfireSparkChoice(choice) ?? undefined);
 }
 
 export function decodePendingMusicianChoice(choice: PendingMusicianChoice): MusicianChoice | null {

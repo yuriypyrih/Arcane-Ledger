@@ -40,6 +40,7 @@ export type FeatDerivedState = {
   alwaysPreparedSpellEntries: SpellEntry[];
   alwaysPreparedSpellSourceMap: SpellSourceMap;
   magicInitiateSpellcastingAbilityBySpellId: Map<string, AbilityKey>;
+  spellfireSparkSpellcastingAbilityBySpellId: Map<string, AbilityKey>;
   magicInitiateFreeCastEntries: Array<{
     featEntryId: string;
     spellId: string;
@@ -77,13 +78,19 @@ export type FeatDerivedState = {
   hasLucky: boolean;
   hasMageSlayer: boolean;
   hasMagicInitiate: boolean;
+  hasPurpleDragonRook: boolean;
   hasRitualCaster: boolean;
   hasShadowTouched: boolean;
+  hasSpellfireSpark: boolean;
   hasTelepathic: boolean;
   luckyPointsRemaining: number;
   luckyPointsTotal: number;
   cultOfDragonInitiateInspiredByFearRemaining: number;
   cultOfDragonInitiateInspiredByFearTotal: number;
+  purpleDragonRookRallyingCryRemaining: number;
+  purpleDragonRookRallyingCryTotal: number;
+  spellfireSparkSpellfireFlameRemaining: number;
+  spellfireSparkSpellfireFlameTotal: number;
   boonOfFateImproveFateRemaining: number;
   boonOfFateImproveFateTotal: number;
   boonOfRecoveryDiceRemaining: number;

@@ -7,7 +7,10 @@ import type { FeatDefinition } from "./types";
 export { featDefinitions } from "./definitions";
 export * from "./choiceOptions";
 export * from "./choices";
+export * from "./harperAgent";
 export * from "./normalization";
+export * from "./purpleDragonRook";
+export * from "./spellfireSpark";
 export * from "./source";
 export type { FeatDefinition, FeatProficiencyRequirement, FeatRequirement } from "./types";
 

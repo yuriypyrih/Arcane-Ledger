@@ -159,7 +159,10 @@ export const featRuntimeCapabilityMatrix = {
     feat: FEATS.GREAT_WEAPON_MASTER,
     capabilities: ["abilityBonus", "weaponActionTransform"]
   },
-  [FEATS.HARPER_AGENT]: { feat: FEATS.HARPER_AGENT, capabilities: [] },
+  [FEATS.HARPER_AGENT]: {
+    feat: FEATS.HARPER_AGENT,
+    capabilities: ["choice", "commonActionTransform", "proficiency"]
+  },
   [FEATS.HEALER]: {
     feat: FEATS.HEALER,
     capabilities: ["itemDescription"]
@@ -187,7 +190,7 @@ export const featRuntimeCapabilityMatrix = {
   },
   [FEATS.LORDS_ALLIANCE_AGENT]: {
     feat: FEATS.LORDS_ALLIANCE_AGENT,
-    capabilities: []
+    capabilities: ["status"]
   },
   [FEATS.LUCKY]: {
     feat: FEATS.LUCKY,
@@ -238,7 +241,10 @@ export const featRuntimeCapabilityMatrix = {
     capabilities: ["abilityBonus", "choice", "reaction", "weaponActionTransform"]
   },
   [FEATS.PROTECTION]: { feat: FEATS.PROTECTION, capabilities: ["reaction"] },
-  [FEATS.PURPLE_DRAGON_ROOK]: { feat: FEATS.PURPLE_DRAGON_ROOK, capabilities: [] },
+  [FEATS.PURPLE_DRAGON_ROOK]: {
+    feat: FEATS.PURPLE_DRAGON_ROOK,
+    capabilities: ["choice", "proficiency", "restRecovery"]
+  },
   [FEATS.RESILIENT]: {
     feat: FEATS.RESILIENT,
     capabilities: ["abilityBonus", "choice", "proficiency"]
@@ -287,7 +293,10 @@ export const featRuntimeCapabilityMatrix = {
     feat: FEATS.SPEEDY,
     capabilities: ["abilityBonus", "choice", "commonActionTransform", "speed", "status"]
   },
-  [FEATS.SPELLFIRE_SPARK]: { feat: FEATS.SPELLFIRE_SPARK, capabilities: [] },
+  [FEATS.SPELLFIRE_SPARK]: {
+    feat: FEATS.SPELLFIRE_SPARK,
+    capabilities: ["choice", "restRecovery", "spellGrant", "spellTransform", "status"]
+  },
   [FEATS.SPELL_SNIPER]: {
     feat: FEATS.SPELL_SNIPER,
     capabilities: ["abilityBonus", "choice", "spellTransform"]
@@ -309,7 +318,10 @@ export const featRuntimeCapabilityMatrix = {
     capabilities: ["weaponActionTransform"]
   },
   [FEATS.TOUGH]: { feat: FEATS.TOUGH, capabilities: ["hitPoints"] },
-  [FEATS.TYRO_OF_THE_GAUNTLET]: { feat: FEATS.TYRO_OF_THE_GAUNTLET, capabilities: [] },
+  [FEATS.TYRO_OF_THE_GAUNTLET]: {
+    feat: FEATS.TYRO_OF_THE_GAUNTLET,
+    capabilities: ["commonActionTransform", "reaction"]
+  },
   [FEATS.TWO_WEAPON_FIGHTING]: {
     feat: FEATS.TWO_WEAPON_FIGHTING,
     capabilities: ["weaponActionTransform"]
@@ -423,7 +435,10 @@ export const featRuntimeCapabilityMatrix = {
     feat: FEATS.STREET_JUSTICE,
     capabilities: ["abilityBonus", "choice"]
   },
-  [FEATS.ZHENTARIM_RUFFIAN]: { feat: FEATS.ZHENTARIM_RUFFIAN, capabilities: [] },
+  [FEATS.ZHENTARIM_RUFFIAN]: {
+    feat: FEATS.ZHENTARIM_RUFFIAN,
+    capabilities: ["status"]
+  },
   [FEATS.ZHENTARIM_TACTICS]: {
     feat: FEATS.ZHENTARIM_TACTICS,
     capabilities: ["abilityBonus", "choice"]

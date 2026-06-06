@@ -6,6 +6,9 @@ import {
   type EmeraldEnclaveFledglingChoice,
   type LanguageProficiencyEntry,
   type MagicInitiateChoice,
+  type PurpleDragonRookChoice,
+  type SkillProficiencyEntry,
+  type SpellfireSparkChoice,
   type TOOL_PROFICIENCY
 } from "../../../types";
 import SelectInput from "../FormInputs/SelectInput";
@@ -16,8 +19,11 @@ import {
   getMagicInitiateLevelOneSpellOptions,
   getMagicInitiateSpellListLabel,
   magicInitiateSpellcastingAbilityOptions,
-  magicInitiateSpellListOptions
+  magicInitiateSpellListOptions,
+  spellfireSparkSpellcastingAbilityOptions
 } from "../../../pages/CharactersPage/feats";
+import { purpleDragonRookSkillOptions } from "../../../pages/CharactersPage/feats/purpleDragonRook";
+import { getSourceChoiceSkillOptions } from "../../../pages/CharactersPage/proficiency";
 import {
   cultOfDragonInitiateDefaultLanguage,
   cultOfDragonInitiateLanguageOptions,
@@ -39,6 +45,7 @@ type OriginFeatSetupControlsProps = {
   featEntry: CharacterFeatEntry | null;
   sourceLabel: string;
   emptyText: string;
+  skillProficiencies: SkillProficiencyEntry[];
   languageProficiencies: LanguageProficiencyEntry[];
   lockedMagicInitiateSpellList?: MagicInitiateChoice["spellList"];
   onMagicInitiateChange: (partialChoice: Partial<MagicInitiateChoice>) => void;
@@ -46,8 +53,10 @@ type OriginFeatSetupControlsProps = {
   onEmeraldEnclaveFledglingChange: (
     partialChoice: Partial<EmeraldEnclaveFledglingChoice>
   ) => void;
+  onSpellfireSparkChange: (partialChoice: Partial<SpellfireSparkChoice>) => void;
+  onPurpleDragonRookSkillChange: (skill: PurpleDragonRookChoice["skill"]) => void;
   onToolFeatSelection: (
-    feat: FEATS.CRAFTER | FEATS.MUSICIAN,
+    feat: FEATS.CRAFTER | FEATS.HARPER_AGENT | FEATS.MUSICIAN,
     index: number,
     tool: TOOL_PROFICIENCY
   ) => void;
@@ -74,11 +83,14 @@ function OriginFeatSetupControls({
   featEntry,
   sourceLabel,
   emptyText,
+  skillProficiencies,
   languageProficiencies,
   lockedMagicInitiateSpellList,
   onMagicInitiateChange,
   onCultOfDragonInitiateLanguageChange,
   onEmeraldEnclaveFledglingChange,
+  onSpellfireSparkChange,
+  onPurpleDragonRookSkillChange,
   onToolFeatSelection,
   onSkilledSelection
 }: OriginFeatSetupControlsProps) {
@@ -281,6 +293,34 @@ function OriginFeatSetupControls({
     );
   }
 
+  if (feat === FEATS.SPELLFIRE_SPARK && featEntry.spellfireSpark) {
+    const choice = featEntry.spellfireSpark;
+
+    return (
+      <div className={styles.classSetupGrid}>
+        <label className={styles.field}>
+          <span>Spellcasting ability</span>
+          <SelectInput
+            className={styles.fieldInput}
+            value={choice.spellcastingAbility}
+            onChange={(event) =>
+              onSpellfireSparkChange({
+                spellcastingAbility:
+                  event.target.value as SpellfireSparkChoice["spellcastingAbility"]
+              })
+            }
+          >
+            {spellfireSparkSpellcastingAbilityOptions.map((ability) => (
+              <option key={ability} value={ability}>
+                {ability}
+              </option>
+            ))}
+          </SelectInput>
+        </label>
+      </div>
+    );
+  }
+
   if (feat === FEATS.CRAFTER && featEntry.crafter) {
     const selectedTools = featEntry.crafter.toolProficiencies;
 
@@ -339,6 +379,73 @@ function OriginFeatSetupControls({
             </SelectInput>
           </label>
         ))}
+      </div>
+    );
+  }
+
+  if (feat === FEATS.HARPER_AGENT && featEntry.harperAgent) {
+    const selectedTool = featEntry.harperAgent.toolProficiency;
+
+    return (
+      <div className={styles.classSetupGrid}>
+        <label className={styles.field}>
+          <span>Instrument</span>
+          <SelectInput
+            className={styles.fieldInput}
+            value={selectedTool}
+            onChange={(event) =>
+              onToolFeatSelection(
+                FEATS.HARPER_AGENT,
+                0,
+                event.target.value as TOOL_PROFICIENCY
+              )
+            }
+          >
+            {musicalInstrumentToolProficiencies.map((tool) => (
+              <option key={tool} value={tool}>
+                {getToolProficiencyLabel(tool)}
+              </option>
+            ))}
+          </SelectInput>
+        </label>
+      </div>
+    );
+  }
+
+  if (feat === FEATS.PURPLE_DRAGON_ROOK && featEntry.purpleDragonRook) {
+    const selectedSkill = featEntry.purpleDragonRook.skill;
+    const availableSkills = getSourceChoiceSkillOptions(
+      { skillProficiencies },
+      purpleDragonRookSkillOptions,
+      selectedSkill,
+      []
+    );
+    const availableSkillSet = new Set(availableSkills);
+
+    return (
+      <div className={styles.classSetupGrid}>
+        <label className={styles.field}>
+          <span>Skill</span>
+          <SelectInput
+            className={styles.fieldInput}
+            value={selectedSkill}
+            onChange={(event) =>
+              onPurpleDragonRookSkillChange(
+                event.target.value as PurpleDragonRookChoice["skill"]
+              )
+            }
+          >
+            {purpleDragonRookSkillOptions.map((skill) => (
+              <option
+                key={skill}
+                value={skill}
+                disabled={skill !== selectedSkill && !availableSkillSet.has(skill)}
+              >
+                {skill}
+              </option>
+            ))}
+          </SelectInput>
+        </label>
       </div>
     );
   }

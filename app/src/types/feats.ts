@@ -236,6 +236,20 @@ export type EmeraldEnclaveFledglingChoice = {
   spellcastingAbility: "INT" | "WIS" | "CHA";
 };
 
+export type SpellfireSparkChoice = {
+  spellcastingAbility: "INT" | "WIS" | "CHA";
+  spellfireFlameExpended?: number;
+};
+
+export type HarperAgentChoice = {
+  toolProficiency: TOOL_PROFICIENCY;
+};
+
+export type PurpleDragonRookChoice = {
+  skill: "Insight" | "Performance" | "Persuasion";
+  rallyingCryExpended?: boolean;
+};
+
 export type MusicianChoice = {
   toolProficiencies: [TOOL_PROFICIENCY, TOOL_PROFICIENCY, TOOL_PROFICIENCY];
 };
@@ -329,6 +343,9 @@ export type CharacterFeatEntry = {
   magicInitiate?: MagicInitiateChoice;
   cultOfDragonInitiate?: CultOfDragonInitiateChoice;
   emeraldEnclaveFledgling?: EmeraldEnclaveFledglingChoice;
+  spellfireSpark?: SpellfireSparkChoice;
+  harperAgent?: HarperAgentChoice;
+  purpleDragonRook?: PurpleDragonRookChoice;
   musician?: MusicianChoice;
   crafter?: CrafterChoice;
   boonOfEnergyResistance?: BoonOfEnergyResistanceChoice;

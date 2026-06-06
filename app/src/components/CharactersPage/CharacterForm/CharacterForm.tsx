@@ -13,6 +13,8 @@ import type {
   CharacterSpeciesChoices,
   EmeraldEnclaveFledglingChoice,
   MagicInitiateChoice,
+  PurpleDragonRookChoice,
+  SpellfireSparkChoice,
   SkillName
 } from "../../../types";
 import {
@@ -361,9 +363,43 @@ function updateEmeraldEnclaveFledglingFeatEntry(
   };
 }
 
+function updateSpellfireSparkFeatEntry(
+  featEntry: CharacterFeatEntry | null,
+  partialChoice: Partial<SpellfireSparkChoice>
+): CharacterFeatEntry | null {
+  if (!featEntry?.spellfireSpark) {
+    return null;
+  }
+
+  return {
+    ...featEntry,
+    spellfireSpark: {
+      ...featEntry.spellfireSpark,
+      ...partialChoice
+    }
+  };
+}
+
+function updatePurpleDragonRookFeatEntry(
+  featEntry: CharacterFeatEntry | null,
+  skill: PurpleDragonRookChoice["skill"]
+): CharacterFeatEntry | null {
+  if (!featEntry?.purpleDragonRook) {
+    return null;
+  }
+
+  return {
+    ...featEntry,
+    purpleDragonRook: {
+      ...featEntry.purpleDragonRook,
+      skill
+    }
+  };
+}
+
 function updateToolFeatEntry(
   featEntry: CharacterFeatEntry | null,
-  feat: FEATS.CRAFTER | FEATS.MUSICIAN,
+  feat: FEATS.CRAFTER | FEATS.HARPER_AGENT | FEATS.MUSICIAN,
   index: number,
   tool: TOOL_PROFICIENCY
 ): CharacterFeatEntry | null {
@@ -383,6 +419,15 @@ function updateToolFeatEntry(
       ...featEntry,
       crafter: {
         toolProficiencies
+      }
+    };
+  }
+
+  if (feat === FEATS.HARPER_AGENT && featEntry.harperAgent) {
+    return {
+      ...featEntry,
+      harperAgent: {
+        toolProficiency: tool
       }
     };
   }
@@ -1982,8 +2027,40 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     }
   }
 
+  function updateBackgroundSpellfireSpark(partialChoice: Partial<SpellfireSparkChoice>) {
+    const nextEntry = updateSpellfireSparkFeatEntry(selectedBackgroundFeatEntry, partialChoice);
+
+    if (nextEntry) {
+      commitBackgroundFeat(nextEntry);
+    }
+  }
+
+  function updateHumanSpellfireSpark(partialChoice: Partial<SpellfireSparkChoice>) {
+    const nextEntry = updateSpellfireSparkFeatEntry(selectedHumanOriginFeatEntry, partialChoice);
+
+    if (nextEntry) {
+      commitHumanOriginFeat(nextEntry);
+    }
+  }
+
+  function updateBackgroundPurpleDragonRookSkill(skill: PurpleDragonRookChoice["skill"]) {
+    const nextEntry = updatePurpleDragonRookFeatEntry(selectedBackgroundFeatEntry, skill);
+
+    if (nextEntry) {
+      commitBackgroundFeat(nextEntry);
+    }
+  }
+
+  function updateHumanPurpleDragonRookSkill(skill: PurpleDragonRookChoice["skill"]) {
+    const nextEntry = updatePurpleDragonRookFeatEntry(selectedHumanOriginFeatEntry, skill);
+
+    if (nextEntry) {
+      commitHumanOriginFeat(nextEntry);
+    }
+  }
+
   function updateBackgroundToolFeatSelection(
-    feat: FEATS.CRAFTER | FEATS.MUSICIAN,
+    feat: FEATS.CRAFTER | FEATS.HARPER_AGENT | FEATS.MUSICIAN,
     index: number,
     tool: TOOL_PROFICIENCY
   ) {
@@ -1995,7 +2072,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   }
 
   function updateHumanToolFeatSelection(
-    feat: FEATS.CRAFTER | FEATS.MUSICIAN,
+    feat: FEATS.CRAFTER | FEATS.HARPER_AGENT | FEATS.MUSICIAN,
     index: number,
     tool: TOOL_PROFICIENCY
   ) {
@@ -3130,11 +3207,14 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         featEntry={selectedBackgroundFeatEntry}
         sourceLabel="background"
         emptyText="Choose a supported background first."
+        skillProficiencies={proficiencyPreviewCollections.skillProficiencies}
         languageProficiencies={proficiencyPreviewCollections.languageProficiencies}
         lockedMagicInitiateSpellList={backgroundEntry?.originFeatSpellList}
         onMagicInitiateChange={updateBackgroundMagicInitiate}
         onCultOfDragonInitiateLanguageChange={updateBackgroundCultOfDragonInitiateLanguage}
         onEmeraldEnclaveFledglingChange={updateBackgroundEmeraldEnclaveFledgling}
+        onSpellfireSparkChange={updateBackgroundSpellfireSpark}
+        onPurpleDragonRookSkillChange={updateBackgroundPurpleDragonRookSkill}
         onToolFeatSelection={updateBackgroundToolFeatSelection}
         onSkilledSelection={updateBackgroundSkilledSelection}
       />
@@ -3148,10 +3228,13 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         featEntry={selectedHumanOriginFeatEntry}
         sourceLabel="species"
         emptyText="Choose a Human origin feat first."
+        skillProficiencies={proficiencyPreviewCollections.skillProficiencies}
         languageProficiencies={proficiencyPreviewCollections.languageProficiencies}
         onMagicInitiateChange={updateHumanMagicInitiate}
         onCultOfDragonInitiateLanguageChange={updateHumanCultOfDragonInitiateLanguage}
         onEmeraldEnclaveFledglingChange={updateHumanEmeraldEnclaveFledgling}
+        onSpellfireSparkChange={updateHumanSpellfireSpark}
+        onPurpleDragonRookSkillChange={updateHumanPurpleDragonRookSkill}
         onToolFeatSelection={updateHumanToolFeatSelection}
         onSkilledSelection={updateHumanSkilledSelection}
       />

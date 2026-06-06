@@ -19,6 +19,10 @@ import {
 import { getCharacterRuntime } from "../../../../pages/CharactersPage/characterRuntime/characterRuntime";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { getRollModeFromIndicators } from "../../../RollStatePill/rollState";
+import {
+  getPurpleDragonRookRallyingCryStateForCharacter,
+  hasZhentarimRuffianForCharacter
+} from "../../../../pages/CharactersPage/feats/runtime";
 import ResourceManagementModal from "../ResourceManagementModal";
 import ArmorClassFormulaFooter from "./ArmorClassFormulaFooter";
 import InitiativeReferenceFooter from "./InitiativeReferenceFooter";
@@ -41,6 +45,14 @@ export function useCoreStatReferenceDrawer(
   const [isHitDiceManagementOpen, setIsHitDiceManagementOpen] = useState(false);
   const [useUncannyMetabolismOnInitiative, setUseUncannyMetabolismOnInitiative] = useState(false);
   const [usePersistentRageOnInitiative, setUsePersistentRageOnInitiative] = useState(false);
+  const [
+    usePurpleDragonRookRallyingCryOnInitiative,
+    setUsePurpleDragonRookRallyingCryOnInitiative
+  ] = useState(false);
+  const [
+    useZhentarimRuffianFamilyFirstOnInitiative,
+    setUseZhentarimRuffianFamilyFirstOnInitiative
+  ] = useState(false);
   const [useTandemFootworkOnInitiative, setUseTandemFootworkOnInitiative] = useState(false);
   const [isDiceRollerSettingsOpen, setIsDiceRollerSettingsOpen] = useState(false);
   const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
@@ -56,6 +68,12 @@ export function useCoreStatReferenceDrawer(
   const uncannyMetabolismUsesRemaining =
     getMonkUncannyMetabolismUsesRemainingForCharacter(character);
   const hasUncannyMetabolism = uncannyMetabolismUsesTotal > 0;
+  const purpleDragonRookRallyingCryState =
+    getPurpleDragonRookRallyingCryStateForCharacter(character);
+  const hasPurpleDragonRookRallyingCry = purpleDragonRookRallyingCryState !== null;
+  const hasZhentarimRuffianFamilyFirst = hasZhentarimRuffianForCharacter(character);
+  const zhentarimRuffianFamilyFirstAvailable =
+    hasZhentarimRuffianFamilyFirst && character.heroicInspiration;
   const hasTandemFootwork =
     character.className === "Bard" &&
     character.subclassId === "bard-college-of-dance" &&
@@ -82,6 +100,8 @@ export function useCoreStatReferenceDrawer(
   function closeCoreStatReference() {
     setIsDiceRollerSettingsOpen(false);
     setUsePersistentRageOnInitiative(false);
+    setUsePurpleDragonRookRallyingCryOnInitiative(false);
+    setUseZhentarimRuffianFamilyFirstOnInitiative(false);
     setUseTandemFootworkOnInitiative(false);
     setUseUncannyMetabolismOnInitiative(false);
     setSelectedStatReference(null);
@@ -96,6 +116,14 @@ export function useCoreStatReferenceDrawer(
 
     if (card.label === "Initiative" && hasPersistentRage) {
       setUsePersistentRageOnInitiative(false);
+    }
+
+    if (card.label === "Initiative" && hasPurpleDragonRookRallyingCry) {
+      setUsePurpleDragonRookRallyingCryOnInitiative(false);
+    }
+
+    if (card.label === "Initiative" && hasZhentarimRuffianFamilyFirst) {
+      setUseZhentarimRuffianFamilyFirstOnInitiative(false);
     }
 
     if (card.label === "Initiative" && hasUncannyMetabolism) {
@@ -148,8 +176,11 @@ export function useCoreStatReferenceDrawer(
     onPersistCharacter((currentCharacter) => {
       return applyInitiativeRollCharacterEffects(currentCharacter, {
         usePersistentRageOnInitiative,
+        usePurpleDragonRookRallyingCryOnInitiative,
+        useZhentarimRuffianFamilyFirstOnInitiative,
         useTandemFootworkOnInitiative,
         useUncannyMetabolismOnInitiative,
+        zhentarimRuffianFamilyFirstAvailable,
         tandemFootworkAvailable
       });
     });
@@ -161,8 +192,11 @@ export function useCoreStatReferenceDrawer(
         monkMartialArtsDie,
         hasThiefsReflexes,
         usePersistentRageOnInitiative,
+        usePurpleDragonRookRallyingCryOnInitiative,
+        useZhentarimRuffianFamilyFirstOnInitiative,
         useTandemFootworkOnInitiative,
         useUncannyMetabolismOnInitiative,
+        zhentarimRuffianFamilyFirstAvailable,
         tandemFootworkAvailable,
         characterLevel: character.level,
         onPersistCharacter,
@@ -172,6 +206,14 @@ export function useCoreStatReferenceDrawer(
 
     if (useUncannyMetabolismOnInitiative) {
       setUseUncannyMetabolismOnInitiative(false);
+    }
+
+    if (usePurpleDragonRookRallyingCryOnInitiative) {
+      setUsePurpleDragonRookRallyingCryOnInitiative(false);
+    }
+
+    if (useZhentarimRuffianFamilyFirstOnInitiative) {
+      setUseZhentarimRuffianFamilyFirstOnInitiative(false);
     }
   }
 
@@ -230,6 +272,29 @@ export function useCoreStatReferenceDrawer(
                 persistentRageUsesTotal={persistentRageUsesTotal}
                 usePersistentRageOnInitiative={usePersistentRageOnInitiative}
                 onUsePersistentRageChange={setUsePersistentRageOnInitiative}
+                hasPurpleDragonRookRallyingCry={hasPurpleDragonRookRallyingCry}
+                purpleDragonRookRallyingCryUsesRemaining={
+                  purpleDragonRookRallyingCryState?.usesRemaining ?? 0
+                }
+                purpleDragonRookRallyingCryUsesTotal={
+                  purpleDragonRookRallyingCryState?.usesTotal ?? 0
+                }
+                usePurpleDragonRookRallyingCryOnInitiative={
+                  usePurpleDragonRookRallyingCryOnInitiative
+                }
+                onUsePurpleDragonRookRallyingCryChange={
+                  setUsePurpleDragonRookRallyingCryOnInitiative
+                }
+                hasZhentarimRuffianFamilyFirst={hasZhentarimRuffianFamilyFirst}
+                zhentarimRuffianFamilyFirstAvailable={
+                  zhentarimRuffianFamilyFirstAvailable
+                }
+                useZhentarimRuffianFamilyFirstOnInitiative={
+                  useZhentarimRuffianFamilyFirstOnInitiative
+                }
+                onUseZhentarimRuffianFamilyFirstChange={
+                  setUseZhentarimRuffianFamilyFirstOnInitiative
+                }
                 hasTandemFootwork={hasTandemFootwork}
                 tandemFootworkAvailable={tandemFootworkAvailable}
                 useTandemFootworkOnInitiative={useTandemFootworkOnInitiative}

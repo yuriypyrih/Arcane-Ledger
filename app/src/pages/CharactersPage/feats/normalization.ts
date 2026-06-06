@@ -20,6 +20,7 @@ import type {
   FeyTouchedChoice,
   HeavilyArmoredChoice,
   HeavyArmorMasterChoice,
+  HarperAgentChoice,
   InspiringLeaderChoice,
   KeenMindChoice,
   LightlyArmoredChoice,
@@ -32,11 +33,13 @@ import type {
   PiercerChoice,
   PoisonerChoice,
   PolearmMasterChoice,
+  PurpleDragonRookChoice,
   RitualCasterChoice,
   ResilientChoice,
   SentinelChoice,
   ShadowTouchedChoice,
   SlasherChoice,
+  SpellfireSparkChoice,
   SpellSniperChoice,
   TelekineticChoice,
   TelepathicChoice,
@@ -111,6 +114,9 @@ import {
 } from "./choices";
 import { normalizeCrafterChoice } from "./crafter";
 import { featDefinitions } from "./definitions";
+import { normalizeHarperAgentChoice } from "./harperAgent";
+import { normalizePurpleDragonRookChoice } from "./purpleDragonRook";
+import { normalizeSpellfireSparkChoice } from "./spellfireSpark";
 
 const deprecatedSubclassPlaceholderFeatures = new Set<CLASS_FEATURE>([
   CLASS_FEATURE.ARTIFICER_SUBCLASS,
@@ -445,6 +451,16 @@ export function normalizeCharacterFeats(
           : undefined))
       : undefined;
     const skilled = feat === FEATS.SKILLED ? normalizeSkilledChoice(record.skilled) : undefined;
+    const harperAgent =
+      feat === FEATS.HARPER_AGENT ? normalizeHarperAgentChoice(record.harperAgent) : undefined;
+    const purpleDragonRook =
+      feat === FEATS.PURPLE_DRAGON_ROOK
+        ? normalizePurpleDragonRookChoice(record.purpleDragonRook)
+        : undefined;
+    const spellfireSpark =
+      feat === FEATS.SPELLFIRE_SPARK
+        ? normalizeSpellfireSparkChoice(record.spellfireSpark, currentLevel)
+        : undefined;
     const musician = feat === FEATS.MUSICIAN ? normalizeMusicianChoice(record.musician) : undefined;
     const lucky =
       feat === FEATS.LUCKY ? normalizeLuckyChoice(record.lucky, currentLevel) : undefined;
@@ -508,6 +524,9 @@ export function normalizeCharacterFeats(
         boonOfSkill,
         epicBoonAbilityChoice,
         skilled,
+        harperAgent,
+        purpleDragonRook,
+        spellfireSpark,
         musician,
         lucky
       }
@@ -559,6 +578,9 @@ export function createCharacterFeatEntry(
     magicInitiate?: MagicInitiateChoice;
     cultOfDragonInitiate?: CultOfDragonInitiateChoice;
     emeraldEnclaveFledgling?: EmeraldEnclaveFledglingChoice;
+    harperAgent?: HarperAgentChoice;
+    purpleDragonRook?: PurpleDragonRookChoice;
+    spellfireSpark?: SpellfireSparkChoice;
     musician?: MusicianChoice;
     crafter?: CrafterChoice;
     boonOfEnergyResistance?: BoonOfEnergyResistanceChoice;
@@ -621,6 +643,11 @@ export function createCharacterFeatEntry(
       feat === FEATS.EMERALD_ENCLAVE_FLEDGLING
         ? options?.emeraldEnclaveFledgling
         : undefined,
+    harperAgent: feat === FEATS.HARPER_AGENT ? options?.harperAgent : undefined,
+    purpleDragonRook:
+      feat === FEATS.PURPLE_DRAGON_ROOK ? options?.purpleDragonRook : undefined,
+    spellfireSpark:
+      feat === FEATS.SPELLFIRE_SPARK ? options?.spellfireSpark : undefined,
     musician: feat === FEATS.MUSICIAN ? options?.musician : undefined,
     crafter: feat === FEATS.CRAFTER ? options?.crafter : undefined,
     boonOfEnergyResistance:

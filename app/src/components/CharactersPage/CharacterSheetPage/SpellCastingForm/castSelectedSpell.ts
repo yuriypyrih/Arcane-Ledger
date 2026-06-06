@@ -30,6 +30,7 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
     consumeRitualCasterQuickRitualForCharacter,
     consumeShadowTouchedFreeCastForCharacter,
     consumeTelepathicDetectThoughtsFreeCastForCharacter,
+    spendSpellfireSparkSpellfireFlameForCharacter,
     consumeRangerFeyReinforcementsUseForCharacter,
     consumeRangerMistyWandererUseForCharacter,
     consumeRangerWinterWalkerFrozenHauntUseForCharacter,
@@ -93,6 +94,7 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
     selectedSpellSupportsPsionicSorcery,
     selectedSpellSupportsQuickRitual,
     selectedSpellSupportsShadowMagic,
+    selectedSpellSupportsSpellfireFlame,
     selectedSpellSupportsStarMap,
     selectedSpellSupportsStepsOfTheFey,
     selectedSpellSupportsTamedSurge,
@@ -152,6 +154,11 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
     options?.useDetectThoughts === true && selectedSpellSupportsDetectThoughts;
   const useBoonOfSpellRecall =
     options?.useBoonOfSpellRecall === true && selectedSpellSupportsBoonOfSpellRecall;
+  const useSpellfireFlame =
+    options?.useSpellfireFlame === true && selectedSpellSupportsSpellfireFlame;
+  const useEmeraldEnclaveFledglingFreeUse =
+    options?.useEmeraldEnclaveFledglingFreeUse === true &&
+    selectedSpellSupportsEmeraldEnclaveFledgling;
   const spellImplementationOptions = options?.spellImplementationOptions ?? {};
   const useBlessingOfMoonlight = options?.useBlessingOfMoonlight === true;
   const useElementalSmite =
@@ -273,13 +280,23 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
         const nextCharacterWithGoliathAncestry = consumeGoliathAncestryIfSelected(
           nextCharacterWithSpellImplementation
         );
+        const nextCharacterWithSpellfireFlame = useSpellfireFlame
+          ? spendSpellfireSparkSpellfireFlameForCharacter(nextCharacterWithGoliathAncestry)
+          : nextCharacterWithGoliathAncestry;
+
+        if (
+          useSpellfireFlame &&
+          nextCharacterWithSpellfireFlame === nextCharacterWithGoliathAncestry
+        ) {
+          return currentCharacter;
+        }
 
         const nextCharacterWithSharedMulti = consumeSharedEconomyMultiForCharacterAction(
-          nextCharacterWithGoliathAncestry,
+          nextCharacterWithSpellfireFlame,
           sharedEconomyContext
         );
 
-        if (nextCharacterWithSharedMulti !== nextCharacterWithGoliathAncestry) {
+        if (nextCharacterWithSharedMulti !== nextCharacterWithSpellfireFlame) {
           return applySpellCastFeatureEffectsForCharacter(
             nextCharacterWithSharedMulti,
             selectedSpell,
@@ -288,7 +305,7 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
         }
 
         const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
-          nextCharacterWithGoliathAncestry,
+          nextCharacterWithSpellfireFlame,
           selectedSpell,
           { useRadiantSoul }
         );
@@ -337,8 +354,19 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
         const nextCharacterWithGoliathAncestry = consumeGoliathAncestryIfSelected(
           nextCharacterWithSpellImplementation
         );
+        const nextCharacterWithSpellfireFlame = useSpellfireFlame
+          ? spendSpellfireSparkSpellfireFlameForCharacter(nextCharacterWithGoliathAncestry)
+          : nextCharacterWithGoliathAncestry;
+
+        if (
+          useSpellfireFlame &&
+          nextCharacterWithSpellfireFlame === nextCharacterWithGoliathAncestry
+        ) {
+          return currentCharacter;
+        }
+
         const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
-          nextCharacterWithGoliathAncestry,
+          nextCharacterWithSpellfireFlame,
           selectedSpell,
           { useRadiantSoul }
         );
@@ -429,7 +457,7 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
     useShadowMagic ||
     useDetectThoughts ||
     useBoonOfSpellRecall ||
-    selectedSpellSupportsEmeraldEnclaveFledgling ||
+    useEmeraldEnclaveFledglingFreeUse ||
     useStepsOfTheFey ||
     useBewitchingMagic ||
     useMistyWanderer ||
@@ -457,7 +485,7 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
   const castsFreeViaShadowMagic = useShadowMagic;
   const castsFreeViaDetectThoughts = useDetectThoughts;
   const castsFreeViaBoonOfSpellRecall = useBoonOfSpellRecall;
-  const castsFreeViaEmeraldEnclaveFledgling = selectedSpellSupportsEmeraldEnclaveFledgling;
+  const castsFreeViaEmeraldEnclaveFledgling = useEmeraldEnclaveFledglingFreeUse;
   const castsFreeViaMindMagic = useMindMagic;
   const castsFreeViaWarGodsBlessing = useWarGodsBlessing;
   const castsFreeViaPsionicSorcery = usePsionicSorcery && sorceryPointsRemaining >= slotLevel;

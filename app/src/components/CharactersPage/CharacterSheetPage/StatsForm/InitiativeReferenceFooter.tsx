@@ -20,6 +20,15 @@ type InitiativeReferenceFooterProps = {
   persistentRageUsesTotal: number;
   usePersistentRageOnInitiative: boolean;
   onUsePersistentRageChange: (checked: boolean) => void;
+  hasPurpleDragonRookRallyingCry: boolean;
+  purpleDragonRookRallyingCryUsesRemaining: number;
+  purpleDragonRookRallyingCryUsesTotal: number;
+  usePurpleDragonRookRallyingCryOnInitiative: boolean;
+  onUsePurpleDragonRookRallyingCryChange: (checked: boolean) => void;
+  hasZhentarimRuffianFamilyFirst: boolean;
+  zhentarimRuffianFamilyFirstAvailable: boolean;
+  useZhentarimRuffianFamilyFirstOnInitiative: boolean;
+  onUseZhentarimRuffianFamilyFirstChange: (checked: boolean) => void;
   hasTandemFootwork: boolean;
   tandemFootworkAvailable: boolean;
   useTandemFootworkOnInitiative: boolean;
@@ -40,6 +49,15 @@ function InitiativeReferenceFooter({
   persistentRageUsesTotal,
   usePersistentRageOnInitiative,
   onUsePersistentRageChange,
+  hasPurpleDragonRookRallyingCry,
+  purpleDragonRookRallyingCryUsesRemaining,
+  purpleDragonRookRallyingCryUsesTotal,
+  usePurpleDragonRookRallyingCryOnInitiative,
+  onUsePurpleDragonRookRallyingCryChange,
+  hasZhentarimRuffianFamilyFirst,
+  zhentarimRuffianFamilyFirstAvailable,
+  useZhentarimRuffianFamilyFirstOnInitiative,
+  onUseZhentarimRuffianFamilyFirstChange,
   hasTandemFootwork,
   tandemFootworkAvailable,
   useTandemFootworkOnInitiative,
@@ -77,6 +95,47 @@ function InitiativeReferenceFooter({
             onCheckedChange={onUsePersistentRageChange}
             usage={createChargesCardUsage(persistentRageUsesRemaining, persistentRageUsesTotal)}
             usageKey="persistent-rage-initiative"
+          />
+        ) : null}
+        {hasPurpleDragonRookRallyingCry ? (
+          <FeatureOptInToggle
+            label="Rallying Cry"
+            checked={usePurpleDragonRookRallyingCryOnInitiative}
+            disabled={purpleDragonRookRallyingCryUsesRemaining <= 0}
+            muted={purpleDragonRookRallyingCryUsesRemaining <= 0}
+            onCheckedChange={onUsePurpleDragonRookRallyingCryChange}
+            title={
+              purpleDragonRookRallyingCryUsesRemaining <= 0
+                ? "No Rallying Cry charges remaining."
+                : undefined
+            }
+            usage={createChargesCardUsage(
+              purpleDragonRookRallyingCryUsesRemaining,
+              purpleDragonRookRallyingCryUsesTotal
+            )}
+            usageKey="purple-dragon-rook-rallying-cry-initiative"
+          />
+        ) : null}
+        {hasZhentarimRuffianFamilyFirst ? (
+          <FeatureOptInToggle
+            label="Family First"
+            checked={useZhentarimRuffianFamilyFirstOnInitiative}
+            disabled={!zhentarimRuffianFamilyFirstAvailable}
+            muted={!zhentarimRuffianFamilyFirstAvailable}
+            onCheckedChange={onUseZhentarimRuffianFamilyFirstChange}
+            title={
+              !zhentarimRuffianFamilyFirstAvailable
+                ? "Family First requires Heroic Inspiration."
+                : undefined
+            }
+            usage={createNamedResourceCardUsage(
+              createFeatureActionCardCost({
+                amountText: "1",
+                resourceLabel: "Heroic Inspiration",
+                icon: "sparkles"
+              })
+            )}
+            usageKey="zhentarim-ruffian-family-first-initiative"
           />
         ) : null}
         {hasTandemFootwork ? (

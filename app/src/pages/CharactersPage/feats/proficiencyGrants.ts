@@ -9,9 +9,12 @@ import {
   type ArmorProficiencyEntry,
   type CharacterFeatEntry,
   type CrafterChoice,
+  LANGUAGE_PROFICIENCY,
   type LanguageProficiency,
   type LanguageProficiencyEntry,
+  type HarperAgentChoice,
   type MusicianChoice,
+  type PurpleDragonRookChoice,
   type SAVING_THROW_PROFICIENCY,
   type SavingThrowProficiencyEntry,
   type SkillName,
@@ -94,6 +97,14 @@ function getMusicianToolSelections(choice?: MusicianChoice): TOOL_PROFICIENCY[] 
   return choice?.toolProficiencies ? [...choice.toolProficiencies] : [];
 }
 
+function getHarperAgentToolSelections(choice?: HarperAgentChoice): TOOL_PROFICIENCY[] {
+  return choice ? [choice.toolProficiency] : [];
+}
+
+function getPurpleDragonRookSkillSelections(choice?: PurpleDragonRookChoice): SkillName[] {
+  return choice ? [choice.skill] : [];
+}
+
 function getFeatProficiencyGrantDescriptors(
   featEntry: CharacterFeatEntry
 ): FeatProficiencyGrantDescriptor[] {
@@ -123,6 +134,25 @@ function getFeatProficiencyGrantDescriptors(
       {
         label: "Musician",
         tools: getMusicianToolSelections(featEntry.musician)
+      }
+    ];
+  }
+
+  if (featEntry.feat === FEATS.HARPER_AGENT) {
+    return [
+      {
+        label: "Harper Agent",
+        languages: [LANGUAGE_PROFICIENCY.THIEVES_CANT],
+        tools: getHarperAgentToolSelections(featEntry.harperAgent)
+      }
+    ];
+  }
+
+  if (featEntry.feat === FEATS.PURPLE_DRAGON_ROOK) {
+    return [
+      {
+        label: "Purple Dragon Rook",
+        skills: getPurpleDragonRookSkillSelections(featEntry.purpleDragonRook)
       }
     ];
   }

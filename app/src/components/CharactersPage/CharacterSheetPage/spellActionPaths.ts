@@ -11,9 +11,12 @@ import {
   getEconomyTypeForSpell,
   getSharedEconomyMultiCountForCharacterAction
 } from "../../../pages/CharactersPage/classFeatures/economyMulti";
+import { createChargesCardUsage } from "../../../pages/CharactersPage/classFeatures/cardUsage";
+import type { FeatureActionCardUsage } from "../../../pages/CharactersPage/classFeatures";
 import { canUsePaladinOathOfTheAncientsElderChampionBonusActionPathForSpell } from "../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfTheAncients";
 import { canUseRogueArcaneTricksterMageHandLegerdemainBonusActionPathForSpell } from "../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueArcaneTrickster";
 import { canUseWizardAbjurerSpellBreakerBonusActionPathForSpell } from "../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardAbjurer";
+import { getSpellfireSparkSpellfireFlameStateForCharacter } from "../../../pages/CharactersPage/feats/runtime";
 import type { RoundTrackerResource } from "../../../pages/CharactersPage/combat";
 import { getEconomyShapeState } from "./GameplayForm/gameplayWidgetUtils";
 
@@ -25,10 +28,14 @@ type RoundTrackerAvailability = {
 };
 
 export type SpellActionPathState = {
-  id: "primary" | "secondary";
+  id: "primary" | "secondary" | "spellfire-flame";
   economyType: EconomyType;
   roundTrackerResource: RoundTrackerResource | null;
   shapeState: ReturnType<typeof getEconomyShapeState>;
+  actionLabel?: string;
+  disabledReason?: string | null;
+  usage?: FeatureActionCardUsage;
+  useSpellfireFlame?: boolean;
 };
 
 function createSpellActionPathState(
@@ -85,6 +92,33 @@ export function getSpellActionPathStates(
     );
   }
 
+  const spellfireFlameState = getSpellfireSparkSpellfireFlameStateForCharacter(
+    character,
+    spell.id
+  );
+
+  if (primaryEconomyType === ECONOMY_TYPE.ACTION && spellfireFlameState) {
+    actionPaths.push({
+      ...createSpellActionPathState(
+        character,
+        roundTracker,
+        "spellfire-flame",
+        ECONOMY_TYPE.BONUS_ACTION,
+        spell
+      ),
+      actionLabel: "Spellfire Flame",
+      disabledReason:
+        spellfireFlameState.usesRemaining <= 0
+          ? "Spellfire Flame has no charges remaining."
+          : null,
+      usage: createChargesCardUsage(
+        spellfireFlameState.usesRemaining,
+        spellfireFlameState.usesTotal
+      ),
+      useSpellfireFlame: true
+    });
+  }
+
   return actionPaths;
 }
 
@@ -94,7 +128,7 @@ export function getSpellActionPathWarning(actionPaths: SpellActionPathState[]): 
   }
 
   const disabledReasons = actionPaths
-    .map((path) => path.shapeState.disabledReason)
+    .map((path) => path.disabledReason ?? path.shapeState.disabledReason)
     .filter((reason): reason is string => reason !== null);
 
   if (actionPaths.some((path) => path.shapeState.isUsable)) {

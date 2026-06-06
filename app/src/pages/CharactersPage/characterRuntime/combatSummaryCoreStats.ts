@@ -40,7 +40,9 @@ import {
 } from "../speed";
 import {
   getAthleteSpeedDescriptionAdditionsForCharacter,
-  getMediumArmorMasterArmorClassDescriptionAdditionsForCharacter
+  getMediumArmorMasterArmorClassDescriptionAdditionsForCharacter,
+  getPurpleDragonRookRallyingCryDescriptionAdditionsForCharacter,
+  getZhentarimRuffianFamilyFirstDescriptionAdditionsForCharacter
 } from "../feats/runtime";
 import { createAdditionalCoreStatCards } from "./combatSummaryCoreStatAdditionalCards";
 
@@ -348,7 +350,11 @@ export function buildReferenceIndicatorSections(
 }
 
 function getInitiativeDescriptionAdditions(character: Character): SpellDescriptionEntry[][] {
-  return getInitiativeReferenceDescriptionAdditions(character);
+  return [
+    ...getInitiativeReferenceDescriptionAdditions(character),
+    ...getPurpleDragonRookRallyingCryDescriptionAdditionsForCharacter(character),
+    ...getZhentarimRuffianFamilyFirstDescriptionAdditionsForCharacter(character)
+  ];
 }
 
 function getArmorClassDescriptionAdditions(character: Character): SpellDescriptionEntry[][] {

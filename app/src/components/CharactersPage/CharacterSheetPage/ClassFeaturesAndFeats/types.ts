@@ -21,6 +21,7 @@ import type {
   FeyTouchedChoice,
   HeavilyArmoredChoice,
   HeavyArmorMasterChoice,
+  HarperAgentChoice,
   InspiringLeaderChoice,
   KeenMindChoice,
   LightlyArmoredChoice,
@@ -33,11 +34,13 @@ import type {
   PiercerChoice,
   PoisonerChoice,
   PolearmMasterChoice,
+  PurpleDragonRookChoice,
   RitualCasterChoice,
   ResilientChoice,
   SentinelChoice,
   ShadowTouchedChoice,
   SlasherChoice,
+  SpellfireSparkChoice,
   SpellSniperChoice,
   TelekineticChoice,
   TelepathicChoice,
@@ -262,6 +265,18 @@ export type PendingEmeraldEnclaveFledglingChoice = {
   spellcastingAbility: EmeraldEnclaveFledglingChoice["spellcastingAbility"] | "none";
 };
 
+export type PendingHarperAgentChoice = {
+  toolProficiency: string;
+};
+
+export type PendingPurpleDragonRookChoice = {
+  skill: PurpleDragonRookChoice["skill"] | "none";
+};
+
+export type PendingSpellfireSparkChoice = {
+  spellcastingAbility: SpellfireSparkChoice["spellcastingAbility"] | "none";
+};
+
 export type PendingMusicianChoice = {
   toolProficiencies: [string, string, string];
 };
@@ -334,6 +349,9 @@ export type PendingFeatState = {
   magicInitiateChoice: PendingMagicInitiateChoice | null;
   cultOfDragonInitiateChoice: PendingCultOfDragonInitiateChoice | null;
   emeraldEnclaveFledglingChoice: PendingEmeraldEnclaveFledglingChoice | null;
+  harperAgentChoice: PendingHarperAgentChoice | null;
+  purpleDragonRookChoice: PendingPurpleDragonRookChoice | null;
+  spellfireSparkChoice: PendingSpellfireSparkChoice | null;
   musicianChoice: PendingMusicianChoice | null;
   epicBoonAbilityChoice: PendingEpicBoonAbilityChoice | null;
   skilledChoice: PendingSkilledChoice | null;
@@ -348,6 +366,9 @@ export type RepeatableFeatChoice =
   | MagicInitiateChoice
   | CultOfDragonInitiateChoice
   | EmeraldEnclaveFledglingChoice
+  | HarperAgentChoice
+  | PurpleDragonRookChoice
+  | SpellfireSparkChoice
   | MusicianChoice
   | RitualCasterChoice
   | ShadowTouchedChoice

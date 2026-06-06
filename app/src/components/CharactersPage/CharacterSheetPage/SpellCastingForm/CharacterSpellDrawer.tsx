@@ -63,6 +63,7 @@ import FeatureOptInToggle, {
   type FeatureOptInToggleApplication,
   type FeatureOptInToggleMetaItem
 } from "../FeatureOptInToggle/FeatureOptInToggle";
+import FeatureUsageLabel from "../FeatureUsageLabel";
 import { FeatureTrackingBadgeButton } from "../../../FeatureDisclosure";
 import RadioContainerOption from "../RadioContainerOption";
 import FeatureActionFacts from "../GameplayForm/widgets/ActionsWidget/FeatureActionFacts";
@@ -99,6 +100,7 @@ export type CharacterSpellDrawerActionOptions = {
   useShadowMagic?: boolean;
   useDetectThoughts?: boolean;
   useBoonOfSpellRecall?: boolean;
+  useSpellfireFlame?: boolean;
   spellImplementationOptions?: SpellImplementationOptionValues;
 };
 
@@ -149,6 +151,14 @@ export type CharacterSpellDrawerActionPath = {
   actionShapeMultiCount?: number;
   disabledReason?: string | null;
   roundTrackerResourceOverride?: RoundTrackerResource | null;
+  usage?: FeatureActionCardUsage;
+  useSpellfireFlame?: boolean;
+};
+
+export type CharacterSpellDrawerSlotFreeUseOption = {
+  label: string;
+  selected: boolean;
+  onSelectedChange: (selected: boolean) => void;
 };
 
 type CharacterSpellDrawerProps = {
@@ -172,6 +182,7 @@ type CharacterSpellDrawerProps = {
   minimumActionSpellSlotLevel?: number;
   freeCastSlotLevel?: number | null;
   freeCastAvailabilityText?: string | null;
+  slotFreeUseOption?: CharacterSpellDrawerSlotFreeUseOption | null;
   allowRitualCasting?: boolean;
   ritualCastingRequired?: boolean;
   actionAvailabilityText?: string | null;
@@ -192,6 +203,8 @@ type CharacterSpellDrawerProps = {
   forcedSpellImplementationOptions?: SpellImplementationOptionValues;
   backdropClassName?: string;
 };
+
+const slotFreeUseSelectValue = "free-use";
 
 function getActionShapeTitle(shape: ActionShapeType): string {
   switch (shape) {
@@ -246,6 +259,7 @@ function CharacterSpellDrawer({
   minimumActionSpellSlotLevel = 1,
   freeCastSlotLevel = null,
   freeCastAvailabilityText = null,
+  slotFreeUseOption = null,
   allowRitualCasting = false,
   ritualCastingRequired = false,
   actionAvailabilityText = null,
@@ -354,10 +368,15 @@ function CharacterSpellDrawer({
     spellLevel > 0 &&
     freeCastSlotLevel !== null &&
     normalizedSelectedSpellSlotLevel === freeCastSlotLevel;
+  const selectedSlotIsFreeUse = spellLevel > 0 && slotFreeUseOption?.selected === true;
   const selectedSpellRemainingSlots =
-    spellLevel === 0 ? null : (spellSlotsRemaining[normalizedSelectedSpellSlotLevel - 1] ?? 0);
+    spellLevel === 0 || selectedSlotIsFreeUse
+      ? null
+      : (spellSlotsRemaining[normalizedSelectedSpellSlotLevel - 1] ?? 0);
+  const onSlotFreeUseSelectedChange = slotFreeUseOption?.onSelectedChange;
   const canCastAtSelectedSlot =
     spellLevel === 0 ||
+    selectedSlotIsFreeUse ||
     selectedSlotIsFreeCast ||
     (selectedSpellRemainingSlots !== null &&
       normalizedSelectedSpellSlotLevel >= minimumSelectedSlotLevel &&
@@ -384,7 +403,7 @@ function CharacterSpellDrawer({
   const shouldShowSlotControls =
     mode === "standard" &&
     spellLevel > 0 &&
-    (actionConsumesSpellSlot || freeCastSlotLevel !== null) &&
+    (actionConsumesSpellSlot || freeCastSlotLevel !== null || slotFreeUseOption !== null) &&
     !isRitualCastingSelected &&
     !isQuickRitualSelected;
   const effectiveBlockedReason =
@@ -469,6 +488,7 @@ function CharacterSpellDrawer({
     useDetectThoughts: allActionOptions.some(
       (option) => option.id === "detect-thoughts" && option.checked
     ),
+    useSpellfireFlame: false,
     spellImplementationOptions: activeSpellImplementationOptionValues
   };
   const resolvedActionPaths =
@@ -583,6 +603,23 @@ function CharacterSpellDrawer({
   }, [isQuickRitualSelected]);
 
   useEffect(() => {
+    if (
+      !selectedSlotIsFreeUse ||
+      (!isRitualCastingSelected && !ritualCastingRequired && !isQuickRitualSelected)
+    ) {
+      return;
+    }
+
+    onSlotFreeUseSelectedChange?.(false);
+  }, [
+    isQuickRitualSelected,
+    isRitualCastingSelected,
+    onSlotFreeUseSelectedChange,
+    ritualCastingRequired,
+    selectedSlotIsFreeUse
+  ]);
+
+  useEffect(() => {
     if (!isRitualCastingSelected) {
       return;
     }
@@ -605,14 +642,18 @@ function CharacterSpellDrawer({
       : actionAvailabilityText;
   const slotText =
     availabilityText ??
-    (selectedSlotIsFreeCast
-      ? (freeCastAvailabilityText ??
-        `You can cast this spell at level ${normalizedSelectedSpellSlotLevel} without expending a spell slot.`)
-      : `${selectedSpellRemainingSlots ?? 0} slot${
+    (selectedSlotIsFreeUse
+      ? "Free use selected. This cast won't expend a spell slot."
+      : selectedSlotIsFreeCast
+        ? (freeCastAvailabilityText ??
+          `You can cast this spell at level ${normalizedSelectedSpellSlotLevel} without expending a spell slot.`)
+        : `${selectedSpellRemainingSlots ?? 0} slot${
           (selectedSpellRemainingSlots ?? 0) === 1 ? "" : "s"
         } remaining at level ${normalizedSelectedSpellSlotLevel}.`);
+  const shouldShowSelectedSlotText =
+    selectedSlotIsFreeUse || (selectedSlotIsFreeCast && !freeCastContextText);
   const relativeDescription = shouldShowSlotControls
-    ? (availabilityText ?? (selectedSlotIsFreeCast && !freeCastContextText ? slotText : null))
+    ? (availabilityText ?? (shouldShowSelectedSlotText ? slotText : null))
     : availabilityText;
   const shouldShowTopRow =
     relativeDescription !== null ||
@@ -624,6 +665,16 @@ function CharacterSpellDrawer({
 
   if (typeof document === "undefined") {
     return null;
+  }
+
+  function handleSelectedSpellSlotLevelChange(value: string) {
+    if (value === slotFreeUseSelectValue) {
+      onSlotFreeUseSelectedChange?.(true);
+      return;
+    }
+
+    onSlotFreeUseSelectedChange?.(false);
+    onSelectedSpellSlotLevelChange(clampNumber(value, 1, 9, 1));
   }
 
   return createPortal(
@@ -986,15 +1037,24 @@ function CharacterSpellDrawer({
                     <div className={actionStyles.compactSlotSelectField}>
                       <SelectInput
                         aria-label="Cast at slot level"
-                        value={normalizedSelectedSpellSlotLevel}
+                        value={
+                          selectedSlotIsFreeUse
+                            ? slotFreeUseSelectValue
+                            : normalizedSelectedSpellSlotLevel
+                        }
                         className={clsx(
                           sheetStyles.spellSlotSelect,
                           actionStyles.compactSlotSelect
                         )}
                         onChange={(event) =>
-                          onSelectedSpellSlotLevelChange(clampNumber(event.target.value, 1, 9, 1))
+                          handleSelectedSpellSlotLevelChange(event.target.value)
                         }
                       >
+                        {slotFreeUseOption ? (
+                          <option value={slotFreeUseSelectValue}>
+                            {slotFreeUseOption.label}
+                          </option>
+                        ) : null}
                         {spellSlotLevels.map((slotLevel) => {
                           const totalSlots = spellSlotTotals[slotLevel - 1] ?? 0;
                           const remainingSlots = spellSlotsRemaining[slotLevel - 1] ?? 0;
@@ -1021,14 +1081,16 @@ function CharacterSpellDrawer({
                         showActionDiceControls
                           ? onAction({
                               ...baseActionOptions,
-                              roundTrackerResourceOverride: path.roundTrackerResourceOverride
+                              roundTrackerResourceOverride: path.roundTrackerResourceOverride,
+                              useSpellfireFlame: path.useSpellfireFlame === true
                             })
                           : runWithActionConfirmationToast(
                               path.roundTrackerResourceOverride ?? path.actionShape,
                               () =>
                                 onAction({
                                   ...baseActionOptions,
-                                  roundTrackerResourceOverride: path.roundTrackerResourceOverride
+                                  roundTrackerResourceOverride: path.roundTrackerResourceOverride,
+                                  useSpellfireFlame: path.useSpellfireFlame === true
                                 })
                             )
                       }
@@ -1049,7 +1111,18 @@ function CharacterSpellDrawer({
                         />
                       }
                     >
-                      {path.actionLabel ?? actionLabel}
+                      <span className={actionStyles.castActionLabelContent}>
+                        <span>{path.actionLabel ?? actionLabel}</span>
+                        {path.usage ? (
+                          <FeatureUsageLabel
+                            usage={path.usage}
+                            usageKey={`${spell.id}-${path.id}`}
+                            className={actionStyles.castActionUsage}
+                            chargesClassName={actionStyles.castActionUsageCharges}
+                            dotsClassName={actionStyles.castActionUsageDots}
+                          />
+                        ) : null}
+                      </span>
                     </ActionButton>
                   ))}
                 </ActionFooterButtonRow>

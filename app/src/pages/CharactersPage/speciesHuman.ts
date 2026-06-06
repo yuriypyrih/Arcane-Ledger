@@ -27,6 +27,9 @@ import {
 } from "./feats";
 import { getDefaultCultOfDragonInitiateLanguage } from "./feats/cultOfDragonInitiate";
 import { crafterFastCraftingToolProficiencies } from "./feats/crafter";
+import { getDefaultHarperAgentInstrument } from "./feats/harperAgent";
+import { getDefaultPurpleDragonRookSkill } from "./feats/purpleDragonRook";
+import { getDefaultSpellfireSparkSpellcastingAbility } from "./feats/spellfireSpark";
 import { restoreHeroicInspirationForCharacter } from "./heroicInspiration";
 import { musicalInstrumentToolProficiencies } from "./proficiencyOptions";
 
@@ -186,6 +189,30 @@ function getHumanOriginFeatChoiceOptions(feat: FEATS): CharacterFeatEntryOptions
     };
   }
 
+  if (feat === FEATS.HARPER_AGENT) {
+    return {
+      harperAgent: {
+        toolProficiency: getDefaultHarperAgentInstrument()
+      }
+    };
+  }
+
+  if (feat === FEATS.PURPLE_DRAGON_ROOK) {
+    return {
+      purpleDragonRook: {
+        skill: getDefaultPurpleDragonRookSkill()
+      }
+    };
+  }
+
+  if (feat === FEATS.SPELLFIRE_SPARK) {
+    return {
+      spellfireSpark: {
+        spellcastingAbility: getDefaultSpellfireSparkSpellcastingAbility()
+      }
+    };
+  }
+
   if (feat === FEATS.EMERALD_ENCLAVE_FLEDGLING) {
     return {
       emeraldEnclaveFledgling: {
@@ -254,6 +281,33 @@ function ensureHumanOriginFeatChoices(entry: CharacterFeatEntry): CharacterFeatE
       ...entry,
       cultOfDragonInitiate: {
         language: getDefaultCultOfDragonInitiateLanguage()
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.HARPER_AGENT && !entry.harperAgent) {
+    return {
+      ...entry,
+      harperAgent: {
+        toolProficiency: getDefaultHarperAgentInstrument()
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.PURPLE_DRAGON_ROOK && !entry.purpleDragonRook) {
+    return {
+      ...entry,
+      purpleDragonRook: {
+        skill: getDefaultPurpleDragonRookSkill()
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.SPELLFIRE_SPARK && !entry.spellfireSpark) {
+    return {
+      ...entry,
+      spellfireSpark: {
+        spellcastingAbility: getDefaultSpellfireSparkSpellcastingAbility()
       }
     };
   }
