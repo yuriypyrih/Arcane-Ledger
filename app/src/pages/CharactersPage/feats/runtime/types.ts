@@ -22,7 +22,9 @@ export type FeatRuntimeCharacter = Pick<Character, "level"> &
       | "classFeatureState"
       | "className"
       | "customClass"
+      | "heroicInspiration"
       | "hitDiceRemaining"
+      | "languageProficiencies"
       | "statusEntries"
     >
   > & {
@@ -65,6 +67,7 @@ export type FeatDerivedState = {
   actions: FeatureActionCard[];
   reactionEntries: ReactionEntry[];
   hasCrafterDiscount: boolean;
+  hasCultOfDragonInitiate: boolean;
   hasDefenseFightingStyle: boolean;
   hasHealer: boolean;
   hasFeyTouched: boolean;
@@ -79,6 +82,8 @@ export type FeatDerivedState = {
   hasTelepathic: boolean;
   luckyPointsRemaining: number;
   luckyPointsTotal: number;
+  cultOfDragonInitiateInspiredByFearRemaining: number;
+  cultOfDragonInitiateInspiredByFearTotal: number;
   boonOfFateImproveFateRemaining: number;
   boonOfFateImproveFateTotal: number;
   boonOfRecoveryDiceRemaining: number;

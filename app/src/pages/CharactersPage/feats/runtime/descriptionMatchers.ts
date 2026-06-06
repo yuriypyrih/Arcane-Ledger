@@ -17,6 +17,24 @@ export function isChargerChargeAttackDescriptionEntry(entry: string): boolean {
   return entry.startsWith("<strong>Charge Attack.</strong>");
 }
 
+export function isCultOfDragonInitiateDragonsTerrorDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Dragon's Terror.</strong>");
+}
+
+export function isCultOfDragonInitiateInspiredByFearDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Inspired by Fear.</strong>");
+}
+
+export function isEmeraldEnclaveFledglingSpeakWithAnimalsDescriptionEntry(
+  entry: string
+): boolean {
+  return entry.startsWith("<strong>Speak with Animals.</strong>");
+}
+
+export function isEmeraldEnclaveFledglingTagTeamDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Tag Team.</strong>");
+}
+
 export function isChefReplenishingMealDescriptionEntry(entry: string): boolean {
   return entry.startsWith("<strong>Replenishing Meal.</strong>");
 }

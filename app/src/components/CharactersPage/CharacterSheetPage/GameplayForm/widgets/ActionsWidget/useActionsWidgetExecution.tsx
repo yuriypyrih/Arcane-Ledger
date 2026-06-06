@@ -98,12 +98,15 @@ import {
   boonOfFateImproveFateActionKey,
   boonOfRecoveryRecoverVitalityActionKey,
   consumeBoonOfFateImproveFateForCharacter,
+  cultOfDragonInitiateInspiredByFearActionKey,
   durableSpeedyRecoveryActionKey,
   getBoonOfRecoveryRecoverVitalityFormula,
   getDurableSpeedyRecoveryHealingFormulaForCharacter,
   spendBoonOfRecoveryDiceForCharacter,
+  spendCultOfDragonInitiateInspiredByFearForCharacter,
   spendDurableSpeedyRecoveryHitDieForCharacter
 } from "../../../../../../pages/CharactersPage/feats/runtime";
+import { restoreHeroicInspirationForCharacter } from "../../../../../../pages/CharactersPage/heroicInspiration";
 import { getHitDiceRemainingForCharacter } from "../../../../../../pages/CharactersPage/hitDice";
 import { bardicInspirationActionKey } from "../../../../../../pages/CharactersPage/classFeatures/bard/bard";
 import { activateBarbarianRecklessAttack } from "../../../../../../pages/CharactersPage/classFeatures/barbarian/barbarian";
@@ -1597,6 +1600,29 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
             applyRolledHealingToCharacter(currentCharacter, result.total)
           );
         }
+      });
+
+      closeActionDrawer();
+      return;
+    }
+
+    if (
+      effectKind === "cult-inspired-by-fear" ||
+      action.key === cultOfDragonInitiateInspiredByFearActionKey
+    ) {
+      if ((action.usesRemaining ?? 0) <= 0) {
+        return;
+      }
+
+      onPersistCharacter((currentCharacter) => {
+        const nextCharacter =
+          spendCultOfDragonInitiateInspiredByFearForCharacter(currentCharacter);
+
+        if (nextCharacter === currentCharacter) {
+          return currentCharacter;
+        }
+
+        return restoreHeroicInspirationForCharacter(nextCharacter);
       });
 
       closeActionDrawer();

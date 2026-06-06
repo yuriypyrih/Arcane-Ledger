@@ -146,7 +146,7 @@ function CodexSpellDrawer({ spell, onClose, backdropClassName }: CodexSpellDrawe
         </OverlayHeader>
 
         <OverlayBody>
-          <OverlayDetailsGrid>
+          <OverlayDetailsGrid className={styles.spellInfoGrid}>
             <CellContainer
               label="Casting Time"
               content={formatSpellCastingTime(spell.castingTime)}

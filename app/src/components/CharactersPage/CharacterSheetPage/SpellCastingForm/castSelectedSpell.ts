@@ -79,6 +79,7 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
     selectedSpellSupportsBoonOfSpellRecall,
     selectedSpellSupportsDetectThoughts,
     selectedSpellSupportsElementalSmite,
+    selectedSpellSupportsEmeraldEnclaveFledgling,
     selectedSpellSupportsFeyMagic,
     selectedSpellSupportsFiendishLegacy,
     selectedSpellSupportsForestGnome,
@@ -428,6 +429,7 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
     useShadowMagic ||
     useDetectThoughts ||
     useBoonOfSpellRecall ||
+    selectedSpellSupportsEmeraldEnclaveFledgling ||
     useStepsOfTheFey ||
     useBewitchingMagic ||
     useMistyWanderer ||
@@ -455,6 +457,7 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
   const castsFreeViaShadowMagic = useShadowMagic;
   const castsFreeViaDetectThoughts = useDetectThoughts;
   const castsFreeViaBoonOfSpellRecall = useBoonOfSpellRecall;
+  const castsFreeViaEmeraldEnclaveFledgling = selectedSpellSupportsEmeraldEnclaveFledgling;
   const castsFreeViaMindMagic = useMindMagic;
   const castsFreeViaWarGodsBlessing = useWarGodsBlessing;
   const castsFreeViaPsionicSorcery = usePsionicSorcery && sorceryPointsRemaining >= slotLevel;
@@ -477,6 +480,7 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
     castsFreeViaShadowMagic ||
     castsFreeViaDetectThoughts ||
     castsFreeViaBoonOfSpellRecall ||
+    castsFreeViaEmeraldEnclaveFledgling ||
     castsFreeViaMindMagic ||
     castsFreeViaWarGodsBlessing ||
     castsFreeViaPsionicSorcery ||

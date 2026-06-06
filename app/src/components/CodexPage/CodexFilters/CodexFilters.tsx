@@ -24,6 +24,10 @@ import {
   type BackgroundSource
 } from "../../../codex/entries";
 import ItemBrowserFilters from "../../ItemBrowser";
+import {
+  FEAT_SOURCE_VALUES,
+  type FeatSource
+} from "../../../pages/CharactersPage/feats/source";
 import type {
   ItemArmorType,
   ItemAttackType,
@@ -58,6 +62,7 @@ type CodexFiltersProps = {
   itemSourceFilter: string | null;
   backgroundSourceFilter: BackgroundSource | null;
   featCategoryFilter: FEAT_CATEGORY | null;
+  featSourceFilter: FeatSource | null;
   itemFilterOptions: ItemFilterOptions | null;
   onQueryChange: (value: string) => void;
   onCategoryChange: (value: CodexFilterCategory) => void;
@@ -78,6 +83,7 @@ type CodexFiltersProps = {
   onItemSourceFilterChange: (value: string | null) => void;
   onBackgroundSourceFilterChange: (value: BackgroundSource | null) => void;
   onFeatCategoryFilterChange: (value: FEAT_CATEGORY | null) => void;
+  onFeatSourceFilterChange: (value: FeatSource | null) => void;
 };
 
 function formatEnumLabel(value: string): string {
@@ -159,6 +165,7 @@ function CodexFilters({
   itemSourceFilter,
   backgroundSourceFilter,
   featCategoryFilter,
+  featSourceFilter,
   itemFilterOptions,
   onQueryChange,
   onCategoryChange,
@@ -178,7 +185,8 @@ function CodexFilters({
   onItemRarityFilterChange,
   onItemSourceFilterChange,
   onBackgroundSourceFilterChange,
-  onFeatCategoryFilterChange
+  onFeatCategoryFilterChange,
+  onFeatSourceFilterChange
 }: CodexFiltersProps) {
   const searchPlaceholder =
     category === ENTRY_CATEGORIES.ITEMS
@@ -348,25 +356,46 @@ function CodexFilters({
       ) : null}
 
       {category === CODEX_FEATS_CATEGORY ? (
-        <label className={styles.field}>
-          <span>Feat Category</span>
-          <select
-            className={styles.input}
-            value={featCategoryFilter ?? "ALL"}
-            onChange={(event) =>
-              onFeatCategoryFilterChange(
-                event.target.value === "ALL" ? null : (event.target.value as FEAT_CATEGORY)
-              )
-            }
-          >
-            <option value="ALL">All</option>
-            {featCategoryOptions.map((featCategory) => (
-              <option key={featCategory} value={featCategory}>
-                {formatFeatCategoryOptionLabel(featCategory)}
-              </option>
-            ))}
-          </select>
-        </label>
+        <>
+          <label className={styles.field}>
+            <span>Feat Category</span>
+            <select
+              className={styles.input}
+              value={featCategoryFilter ?? "ALL"}
+              onChange={(event) =>
+                onFeatCategoryFilterChange(
+                  event.target.value === "ALL" ? null : (event.target.value as FEAT_CATEGORY)
+                )
+              }
+            >
+              <option value="ALL">All</option>
+              {featCategoryOptions.map((featCategory) => (
+                <option key={featCategory} value={featCategory}>
+                  {formatFeatCategoryOptionLabel(featCategory)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className={styles.field}>
+            <span>Source</span>
+            <select
+              className={styles.input}
+              value={featSourceFilter ?? "ALL"}
+              onChange={(event) =>
+                onFeatSourceFilterChange(
+                  event.target.value === "ALL" ? null : (event.target.value as FeatSource)
+                )
+              }
+            >
+              <option value="ALL">All</option>
+              {FEAT_SOURCE_VALUES.map((featSource) => (
+                <option key={featSource} value={featSource}>
+                  {featSource}
+                </option>
+              ))}
+            </select>
+          </label>
+        </>
       ) : null}
 
       {category === ENTRY_CATEGORIES.BACKGROUNDS ? (

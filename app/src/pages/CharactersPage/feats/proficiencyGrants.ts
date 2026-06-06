@@ -9,6 +9,8 @@ import {
   type ArmorProficiencyEntry,
   type CharacterFeatEntry,
   type CrafterChoice,
+  type LanguageProficiency,
+  type LanguageProficiencyEntry,
   type MusicianChoice,
   type SAVING_THROW_PROFICIENCY,
   type SavingThrowProficiencyEntry,
@@ -20,12 +22,14 @@ import {
 } from "../../../types";
 import {
   addFeatGrantedArmorEntries,
+  addFeatGrantedLanguageEntries,
   addFeatGrantedSavingThrowEntries,
   addFeatGrantedSkillEntries,
   addFeatGrantedSkillEntriesAtLevel,
   addFeatGrantedToolEntries,
   addFeatGrantedWeaponEntries,
   removeFeatGrantedArmorEntries,
+  removeFeatGrantedLanguageEntries,
   removeFeatGrantedSavingThrowEntries,
   removeFeatGrantedSkillEntries,
   removeFeatGrantedToolEntries,
@@ -40,6 +44,7 @@ export type FeatProficiencyCollections = {
   skillProficiencies: SkillProficiencyEntry[];
   toolProficiencies: ToolProficiencyEntry[];
   weaponProficiencies: WeaponProficiencyEntry[];
+  languageProficiencies: LanguageProficiencyEntry[];
 };
 
 type FeatProficiencyGrantDescriptor = {
@@ -52,6 +57,7 @@ type FeatProficiencyGrantDescriptor = {
     level: PROF_LEVEL;
   }>;
   adaptiveSkills?: SkillName[];
+  languages?: LanguageProficiency[];
   tools?: TOOL_PROFICIENCY[];
   weapons?: WEAPON_PROFICIENCY[];
 };
@@ -117,6 +123,18 @@ function getFeatProficiencyGrantDescriptors(
       {
         label: "Musician",
         tools: getMusicianToolSelections(featEntry.musician)
+      }
+    ];
+  }
+
+  if (
+    featEntry.feat === FEATS.CULT_OF_THE_DRAGON_INITIATE &&
+    featEntry.cultOfDragonInitiate
+  ) {
+    return [
+      {
+        label: "Cult of the Dragon Initiate",
+        languages: [featEntry.cultOfDragonInitiate.language]
       }
     ];
   }
@@ -296,7 +314,7 @@ export function removeFeatGrantedProficienciesFromCollections<
             grant.tools,
             grant.label,
             entryToRemove.id
-          )
+        )
         : currentCollections.toolProficiencies,
       weaponProficiencies: grant.weapons?.length
         ? removeFeatGrantedWeaponEntries(
@@ -304,8 +322,16 @@ export function removeFeatGrantedProficienciesFromCollections<
             grant.weapons,
             grant.label,
             entryToRemove.id
+        )
+        : currentCollections.weaponProficiencies,
+      languageProficiencies: grant.languages?.length
+        ? removeFeatGrantedLanguageEntries(
+            currentCollections.languageProficiencies,
+            grant.languages,
+            grant.label,
+            entryToRemove.id
           )
-        : currentCollections.weaponProficiencies
+        : currentCollections.languageProficiencies
     };
   }, collections);
 }
@@ -434,6 +460,18 @@ function addFeatProficiencyGrantToCollections<TCollections extends FeatProficien
     };
   }
 
+  if (grant.languages?.length) {
+    nextCollections = {
+      ...nextCollections,
+      languageProficiencies: addFeatGrantedLanguageEntries(
+        nextCollections.languageProficiencies,
+        grant.languages,
+        grant.label,
+        featEntryId
+      )
+    };
+  }
+
   return nextCollections;
 }
 
@@ -465,6 +503,9 @@ export function stripFeatGrantedProficienciesFromCollections<
       (entry) => entry.source !== PROFICIENCY_SOURCE.FEAT
     ),
     weaponProficiencies: collections.weaponProficiencies.filter(
+      (entry) => entry.source !== PROFICIENCY_SOURCE.FEAT
+    ),
+    languageProficiencies: collections.languageProficiencies.filter(
       (entry) => entry.source !== PROFICIENCY_SOURCE.FEAT
     )
   };

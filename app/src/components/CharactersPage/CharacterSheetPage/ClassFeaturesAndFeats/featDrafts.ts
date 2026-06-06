@@ -3,6 +3,7 @@ import type {
   CharacterFeatEntry,
   CharacterFeatSource,
   ArmorProficiencyEntry,
+  LanguageProficiencyEntry,
   SavingThrowProficiencyEntry,
   SkillProficiencyEntry,
   ToolProficiencyEntry,
@@ -22,6 +23,7 @@ export type FeatEditorDraft = {
   skillProficiencies: SkillProficiencyEntry[];
   toolProficiencies: ToolProficiencyEntry[];
   weaponProficiencies: WeaponProficiencyEntry[];
+  languageProficiencies: LanguageProficiencyEntry[];
 };
 
 type ClassFeatureFeatSource = CharacterFeatSource & {
@@ -39,7 +41,8 @@ export function createFeatEditorDraft(character: Character): FeatEditorDraft {
     savingThrowProficiencies: character.savingThrowProficiencies,
     skillProficiencies: character.skillProficiencies,
     toolProficiencies: character.toolProficiencies,
-    weaponProficiencies: character.weaponProficiencies
+    weaponProficiencies: character.weaponProficiencies,
+    languageProficiencies: character.languageProficiencies
   };
 }
 
@@ -56,7 +59,8 @@ export function applyFeatEditorDraftToCharacter(
     ) &&
     areDraftListsEqual(currentCharacter.skillProficiencies, draft.skillProficiencies) &&
     areDraftListsEqual(currentCharacter.toolProficiencies, draft.toolProficiencies) &&
-    areDraftListsEqual(currentCharacter.weaponProficiencies, draft.weaponProficiencies)
+    areDraftListsEqual(currentCharacter.weaponProficiencies, draft.weaponProficiencies) &&
+    areDraftListsEqual(currentCharacter.languageProficiencies, draft.languageProficiencies)
   ) {
     return currentCharacter;
   }
@@ -68,7 +72,8 @@ export function applyFeatEditorDraftToCharacter(
     savingThrowProficiencies: draft.savingThrowProficiencies,
     skillProficiencies: draft.skillProficiencies,
     toolProficiencies: draft.toolProficiencies,
-    weaponProficiencies: draft.weaponProficiencies
+    weaponProficiencies: draft.weaponProficiencies,
+    languageProficiencies: draft.languageProficiencies
   };
 }
 

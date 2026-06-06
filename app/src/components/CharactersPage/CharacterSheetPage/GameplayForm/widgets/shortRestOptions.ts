@@ -268,8 +268,10 @@ import { getMagicTemporaryHitPointsFeatureForCharacter } from "../../../../../pa
 import { CLASS_FEATURE } from "../../../../../codex/entries";
 import {
   getBoonOfFateImproveFateStateForCharacter,
+  getCultOfDragonInitiateInspiredByFearStateForCharacter,
   getMageSlayerGuardedMindStateForCharacter,
   restoreBoonOfFateImproveFateForCharacter,
+  restoreCultOfDragonInitiateInspiredByFearForCharacter,
   restoreMageSlayerGuardedMindForCharacter
 } from "../../../../../pages/CharactersPage/feats/runtime";
 import { getHitDiceRemainingForCharacter } from "../../../../../pages/CharactersPage/gameplay";
@@ -358,6 +360,8 @@ export function createShortRestOptions(character: Character): RestOption[] {
     getWarlockCelestialResilienceTemporaryHitPoints(character);
   const clairvoyantCombatantUsesTotal = getWarlockClairvoyantCombatantUsesTotal(character);
   const boonOfFateImproveFateState = getBoonOfFateImproveFateStateForCharacter(character);
+  const cultOfDragonInitiateInspiredByFearState =
+    getCultOfDragonInitiateInspiredByFearStateForCharacter(character);
   const mageSlayerGuardedMindState = getMageSlayerGuardedMindStateForCharacter(character);
   const artificerFlashOfGeniusUsesTotal = getArtificerFlashOfGeniusUsesTotal(character);
   const artificerFlashOfGeniusUsesRemaining = getArtificerFlashOfGeniusUsesRemaining(character);
@@ -395,6 +399,23 @@ export function createShortRestOptions(character: Character): RestOption[] {
               boonOfFateImproveFateState.usesRemaining >= boonOfFateImproveFateState.usesTotal,
             apply: (currentCharacter: Character) =>
               restoreBoonOfFateImproveFateForCharacter(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(cultOfDragonInitiateInspiredByFearState
+      ? [
+          {
+            id: "restore-cult-inspired-by-fear",
+            label: "Restore Inspired by Fear",
+            charges: {
+              current: cultOfDragonInitiateInspiredByFearState.usesRemaining,
+              total: cultOfDragonInitiateInspiredByFearState.usesTotal
+            },
+            disabled:
+              cultOfDragonInitiateInspiredByFearState.usesRemaining >=
+              cultOfDragonInitiateInspiredByFearState.usesTotal,
+            apply: (currentCharacter: Character) =>
+              restoreCultOfDragonInitiateInspiredByFearForCharacter(currentCharacter)
           } satisfies RestOption
         ]
       : []),

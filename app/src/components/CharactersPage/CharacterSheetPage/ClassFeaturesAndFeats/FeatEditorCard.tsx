@@ -39,7 +39,9 @@ import {
   getAbilityScoreImprovementSummary,
   getEpicBoonAbilityChoiceSummary,
   getEpicBoonAbilityOptions,
+  getFeatAbilityIncreaseMaxScore,
   getMagicInitiateCantripOptions,
+  emeraldEnclaveFledglingSpellcastingAbilityOptions,
   getFeyTouchedSpellOptions,
   getMagicInitiateLevelOneSpellOptions,
   getMagicInitiateSpellListLabel,
@@ -65,9 +67,16 @@ import {
 import { getWeaponProficiencyLabel } from "../../../../pages/CharactersPage/proficiencyWeaponLabels";
 import { crafterFastCraftingToolProficiencies } from "../../../../pages/CharactersPage/feats/crafter";
 import {
+  cultOfDragonInitiateDefaultLanguage,
+  cultOfDragonInitiateLanguageOptions,
+  getCultOfDragonInitiateLanguageLabel,
+  hasDraconicLanguageFromOtherSource
+} from "../../../../pages/CharactersPage/feats/cultOfDragonInitiate";
+import {
   PROF_LEVEL,
   type AbilityKey,
   type CharacterFeatEntry,
+  type LanguageProficiencyEntry,
   type SavingThrowProficiencyEntry,
   type SkillName,
   type SkillProficiencyEntry,
@@ -126,7 +135,9 @@ import {
   getPendingWeaponMasterChoiceSummary,
   getPendingCrafterChoiceSummary,
   getPendingDruidicWarriorChoiceSummary,
+  getPendingEmeraldEnclaveFledglingChoiceSummary,
   getPendingMagicInitiateChoiceSummary,
+  getPendingCultOfDragonInitiateChoiceSummary,
   getPendingMusicianChoiceSummary,
   getPendingSkilledChoiceSummary,
   getRepeatableFeatEntrySummary,
@@ -135,6 +146,7 @@ import {
   isPendingBoonOfSkillChoiceValid,
   isPendingCrafterChoiceValid,
   isPendingDruidicWarriorChoiceValid,
+  isPendingEmeraldEnclaveFledglingChoiceValid,
   isPendingFeyTouchedChoiceValid,
   isPendingKeenMindChoiceValid,
   isPendingObservantChoiceValid,
@@ -144,6 +156,7 @@ import {
   isPendingSkillExpertChoiceValid,
   isPendingWeaponMasterChoiceValid,
   isPendingMagicInitiateChoiceValid,
+  isPendingCultOfDragonInitiateChoiceValid,
   isPendingMusicianChoiceValid,
   isPendingSkilledChoiceValid,
   createPendingFeatStateForFeat,
@@ -152,6 +165,8 @@ import {
   feyTouchedNoneOptionValue,
   getRitualCasterSpellCountForLevel,
   magicInitiateCantripSelectionIndices,
+  cultOfDragonInitiateNoneOptionValue,
+  emeraldEnclaveFledglingNoneOptionValue,
   magicInitiateNoneOptionValue,
   musicianNoneOptionValue,
   musicianSelectionIndices,
@@ -182,7 +197,9 @@ import type {
   PendingBoonOfEnergyResistanceChoice,
   PendingBoonOfSkillChoice,
   PendingCrafterChoice,
+  PendingCultOfDragonInitiateChoice,
   PendingDruidicWarriorChoice,
+  PendingEmeraldEnclaveFledglingChoice,
   PendingElementalAdeptChoice,
   PendingFeyTouchedChoice,
   PendingFeatState,
@@ -225,6 +242,7 @@ type FeatEditorCardProps = {
   savingThrowProficiencies: SavingThrowProficiencyEntry[];
   weaponProficiencies: WeaponProficiencyEntry[];
   toolProficiencies: ToolProficiencyEntry[];
+  languageProficiencies: LanguageProficiencyEntry[];
   selectedEntries: CharacterFeatEntry[];
   editingFeatEntryId: string | null;
   pendingFeatState: PendingFeatState;
@@ -279,6 +297,8 @@ type FeatEditorCardProps = {
   onSavePendingDruidicWarriorChoice: () => void;
   onSavePendingEpicBoonAbilityChoice: () => void;
   onSavePendingMagicInitiateChoice: () => void;
+  onSavePendingCultOfDragonInitiateChoice: () => void;
+  onSavePendingEmeraldEnclaveFledglingChoice: () => void;
   onSavePendingMusicianChoice: () => void;
   onSavePendingSkilledChoice: () => void;
 };
@@ -417,6 +437,26 @@ type MagicInitiateChoiceEditorProps = {
   onCancel: () => void;
   onSave: () => void;
   onChange: (nextChoice: PendingMagicInitiateChoice) => void;
+};
+
+type CultOfDragonInitiateChoiceEditorProps = {
+  choice: PendingCultOfDragonInitiateChoice;
+  languageProficiencies: LanguageProficiencyEntry[];
+  editingFeatEntryId: string | null;
+  summary: string | null;
+  isValid: boolean;
+  onCancel: () => void;
+  onSave: () => void;
+  onChange: (nextChoice: PendingCultOfDragonInitiateChoice) => void;
+};
+
+type EmeraldEnclaveFledglingChoiceEditorProps = {
+  choice: PendingEmeraldEnclaveFledglingChoice;
+  summary: string | null;
+  isValid: boolean;
+  onCancel: () => void;
+  onSave: () => void;
+  onChange: (nextChoice: PendingEmeraldEnclaveFledglingChoice) => void;
 };
 
 function ElementalAdeptChoiceEditor({
@@ -1628,6 +1668,131 @@ function MagicInitiateChoiceEditor({
   );
 }
 
+function CultOfDragonInitiateChoiceEditor({
+  choice,
+  languageProficiencies,
+  editingFeatEntryId,
+  summary,
+  isValid,
+  onCancel,
+  onSave,
+  onChange
+}: CultOfDragonInitiateChoiceEditorProps) {
+  const knowsDraconicFromOtherSource = hasDraconicLanguageFromOtherSource(
+    languageProficiencies,
+    editingFeatEntryId
+  );
+  const isLanguageLocked = !knowsDraconicFromOtherSource;
+
+  return (
+    <InlineEditorFrame
+      title="Cult of the Dragon Initiate"
+      cancelLabel="Cancel Cult of the Dragon Initiate language selection"
+      onCancel={onCancel}
+      footer={
+        <div className={modalStyles.editorActions}>
+          <ActionButton
+            icon={<Plus size={16} />}
+            fullWidth={false}
+            disabled={!isValid}
+            onClick={onSave}
+          >
+            Add Feat
+          </ActionButton>
+        </div>
+      }
+    >
+      <div className={modalStyles.singleFieldGrid}>
+        <SelectField
+          label="Language"
+          value={isLanguageLocked ? cultOfDragonInitiateDefaultLanguage : choice.language}
+          disabled={isLanguageLocked}
+          options={[
+            ...(isLanguageLocked
+              ? []
+              : [
+                  {
+                    label: "-",
+                    value: cultOfDragonInitiateNoneOptionValue
+                  }
+                ]),
+            ...cultOfDragonInitiateLanguageOptions.map((language) => ({
+              disabled:
+                knowsDraconicFromOtherSource &&
+                language === cultOfDragonInitiateDefaultLanguage,
+              label: getCultOfDragonInitiateLanguageLabel(language),
+              value: language
+            }))
+          ]}
+          onChange={(nextValue) =>
+            onChange({
+              language: nextValue as PendingCultOfDragonInitiateChoice["language"]
+            })
+          }
+        />
+      </div>
+      {summary ? <p className={modalStyles.summary}>{summary}</p> : null}
+      {!isValid ? <p className={modalStyles.validation}>Choose a non-Draconic language.</p> : null}
+    </InlineEditorFrame>
+  );
+}
+
+function EmeraldEnclaveFledglingChoiceEditor({
+  choice,
+  summary,
+  isValid,
+  onCancel,
+  onSave,
+  onChange
+}: EmeraldEnclaveFledglingChoiceEditorProps) {
+  return (
+    <InlineEditorFrame
+      title="Emerald Enclave Fledgling"
+      cancelLabel="Cancel Emerald Enclave Fledgling spellcasting ability selection"
+      onCancel={onCancel}
+      footer={
+        <div className={modalStyles.editorActions}>
+          <ActionButton
+            icon={<Plus size={16} />}
+            fullWidth={false}
+            disabled={!isValid}
+            onClick={onSave}
+          >
+            Add Feat
+          </ActionButton>
+        </div>
+      }
+    >
+      <div className={modalStyles.singleFieldGrid}>
+        <SelectField
+          label="Spellcasting Ability"
+          value={choice.spellcastingAbility}
+          options={[
+            {
+              label: "-",
+              value: emeraldEnclaveFledglingNoneOptionValue
+            },
+            ...emeraldEnclaveFledglingSpellcastingAbilityOptions.map((ability) => ({
+              label: ability,
+              value: ability
+            }))
+          ]}
+          onChange={(nextValue) =>
+            onChange({
+              spellcastingAbility:
+                nextValue as PendingEmeraldEnclaveFledglingChoice["spellcastingAbility"]
+            })
+          }
+        />
+      </div>
+      {summary ? <p className={modalStyles.summary}>{summary}</p> : null}
+      {!isValid ? (
+        <p className={modalStyles.validation}>Choose a spellcasting ability.</p>
+      ) : null}
+    </InlineEditorFrame>
+  );
+}
+
 function AbilityScoreImprovementEditor({
   choice,
   onChange,
@@ -1756,6 +1921,7 @@ function renderInlineEditor({
   skillProficiencies,
   savingThrowProficiencies,
   toolProficiencies,
+  languageProficiencies,
   selectedEntries,
   editingFeatEntryId,
   pendingFeatState,
@@ -1804,6 +1970,8 @@ function renderInlineEditor({
   onSavePendingDruidicWarriorChoice,
   onSavePendingEpicBoonAbilityChoice,
   onSavePendingMagicInitiateChoice,
+  onSavePendingCultOfDragonInitiateChoice,
+  onSavePendingEmeraldEnclaveFledglingChoice,
   onSavePendingMusicianChoice,
   onSavePendingSkilledChoice
 }: Omit<
@@ -3053,6 +3221,76 @@ function renderInlineEditor({
     );
   }
 
+  if (
+    featDefinition.feat === FEATS.CULT_OF_THE_DRAGON_INITIATE &&
+    pendingFeatState.cultOfDragonInitiateChoice
+  ) {
+    const choice = pendingFeatState.cultOfDragonInitiateChoice;
+
+    return (
+      <CultOfDragonInitiateChoiceEditor
+        choice={choice}
+        languageProficiencies={languageProficiencies}
+        editingFeatEntryId={editingFeatEntryId}
+        summary={getPendingCultOfDragonInitiateChoiceSummary(
+          choice,
+          languageProficiencies,
+          editingFeatEntryId
+        )}
+        isValid={isPendingCultOfDragonInitiateChoiceValid(
+          choice,
+          languageProficiencies,
+          editingFeatEntryId
+        )}
+        onCancel={() =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            cultOfDragonInitiateChoice: null
+          }))
+        }
+        onSave={onSavePendingCultOfDragonInitiateChoice}
+        onChange={(nextChoice) =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            cultOfDragonInitiateChoice: current.cultOfDragonInitiateChoice
+              ? nextChoice
+              : current.cultOfDragonInitiateChoice
+          }))
+        }
+      />
+    );
+  }
+
+  if (
+    featDefinition.feat === FEATS.EMERALD_ENCLAVE_FLEDGLING &&
+    pendingFeatState.emeraldEnclaveFledglingChoice
+  ) {
+    const choice = pendingFeatState.emeraldEnclaveFledglingChoice;
+
+    return (
+      <EmeraldEnclaveFledglingChoiceEditor
+        choice={choice}
+        summary={getPendingEmeraldEnclaveFledglingChoiceSummary(choice)}
+        isValid={isPendingEmeraldEnclaveFledglingChoiceValid(choice)}
+        onCancel={() =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            emeraldEnclaveFledglingChoice: null
+          }))
+        }
+        onSave={onSavePendingEmeraldEnclaveFledglingChoice}
+        onChange={(nextChoice) =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            emeraldEnclaveFledglingChoice: current.emeraldEnclaveFledglingChoice
+              ? nextChoice
+              : current.emeraldEnclaveFledglingChoice
+          }))
+        }
+      />
+    );
+  }
+
   if (featDefinition.feat === FEATS.MUSICIAN && pendingFeatState.musicianChoice) {
     const musicianChoice = pendingFeatState.musicianChoice;
 
@@ -3099,7 +3337,7 @@ function renderInlineEditor({
         label="Ability"
         summary={`${getEpicBoonAbilityChoiceSummary({
           ability: pendingFeatState.epicBoonAbilityChoice.ability
-        })} (max 30)`}
+        })} (max ${getFeatAbilityIncreaseMaxScore(featDefinition.feat) ?? 30})`}
         value={pendingFeatState.epicBoonAbilityChoice.ability}
         options={getEpicBoonAbilityOptions(featDefinition.feat) ?? []}
         onCancel={() =>
@@ -3216,6 +3454,7 @@ function FeatEditorCard({
   savingThrowProficiencies,
   weaponProficiencies,
   toolProficiencies,
+  languageProficiencies,
   selectedEntries,
   editingFeatEntryId,
   pendingFeatState,
@@ -3270,6 +3509,8 @@ function FeatEditorCard({
   onSavePendingDruidicWarriorChoice,
   onSavePendingEpicBoonAbilityChoice,
   onSavePendingMagicInitiateChoice,
+  onSavePendingCultOfDragonInitiateChoice,
+  onSavePendingEmeraldEnclaveFledglingChoice,
   onSavePendingMusicianChoice,
   onSavePendingSkilledChoice
 }: FeatEditorCardProps) {
@@ -3367,6 +3608,7 @@ function FeatEditorCard({
         savingThrowProficiencies,
         weaponProficiencies,
         toolProficiencies,
+        languageProficiencies,
         selectedEntries,
         editingFeatEntryId,
         pendingFeatState,
@@ -3415,6 +3657,8 @@ function FeatEditorCard({
         onSavePendingDruidicWarriorChoice,
         onSavePendingEpicBoonAbilityChoice,
         onSavePendingMagicInitiateChoice,
+        onSavePendingCultOfDragonInitiateChoice,
+        onSavePendingEmeraldEnclaveFledglingChoice,
         onSavePendingMusicianChoice,
         onSavePendingSkilledChoice
       })}

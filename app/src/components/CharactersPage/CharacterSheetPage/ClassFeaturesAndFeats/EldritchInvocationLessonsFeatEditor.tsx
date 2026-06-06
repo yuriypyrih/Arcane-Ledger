@@ -5,6 +5,7 @@ import { getFeatDefinition } from "../../../../pages/CharactersPage/feats";
 import type { WarlockEldritchInvocationOption } from "../../../../pages/CharactersPage/classFeatures/warlock/warlock";
 import type {
   CharacterFeatEntry,
+  LanguageProficiencyEntry,
   SavingThrowProficiencyEntry,
   SkillProficiencyEntry,
   ToolProficiencyEntry,
@@ -15,7 +16,9 @@ import modalStyles from "./FeatEditorModal.module.css";
 import {
   createEmptyPendingFeatState,
   createPendingFeatStateForFeat,
+  decodePendingCultOfDragonInitiateChoice,
   decodePendingCrafterChoice,
+  decodePendingEmeraldEnclaveFledglingChoice,
   decodePendingMagicInitiateChoice,
   decodePendingMusicianChoice,
   decodePendingSkilledChoice
@@ -38,6 +41,7 @@ type EldritchInvocationLessonsFeatEditorProps = {
   savingThrowProficiencies: SavingThrowProficiencyEntry[];
   weaponProficiencies: WeaponProficiencyEntry[];
   toolProficiencies: ToolProficiencyEntry[];
+  languageProficiencies: LanguageProficiencyEntry[];
   renderTrackingButton: TrackingButtonRenderer;
   onConfiguredFeatEntryChange: (entry: CharacterFeatEntry | null) => void;
 };
@@ -49,6 +53,7 @@ function EldritchInvocationLessonsFeatEditor({
   savingThrowProficiencies,
   weaponProficiencies,
   toolProficiencies,
+  languageProficiencies,
   renderTrackingButton,
   onConfiguredFeatEntryChange
 }: EldritchInvocationLessonsFeatEditorProps) {
@@ -60,7 +65,9 @@ function EldritchInvocationLessonsFeatEditor({
     : null;
   const [pendingFeatState, setPendingFeatState] = useState<PendingFeatState>(() =>
     selectedOriginFeat
-      ? (createPendingFeatStateForFeat(selectedOriginFeat) ?? createEmptyPendingFeatState())
+      ? (createPendingFeatStateForFeat(selectedOriginFeat, {
+          languageProficiencies
+        }) ?? createEmptyPendingFeatState())
       : createEmptyPendingFeatState()
   );
   const [configuredFeatEntry, setConfiguredFeatEntry] = useState<CharacterFeatEntry | null>(
@@ -114,6 +121,40 @@ function EldritchInvocationLessonsFeatEditor({
     saveConfiguredFeatEntry(createSelectedFeatEntry(FEATS.CRAFTER, { crafter }));
   }
 
+  function savePendingCultOfDragonInitiateChoice() {
+    const choice = pendingFeatState.cultOfDragonInitiateChoice;
+    const cultOfDragonInitiate = choice
+      ? decodePendingCultOfDragonInitiateChoice(choice, languageProficiencies)
+      : null;
+
+    if (!cultOfDragonInitiate) {
+      return;
+    }
+
+    saveConfiguredFeatEntry(
+      createSelectedFeatEntry(FEATS.CULT_OF_THE_DRAGON_INITIATE, {
+        cultOfDragonInitiate
+      })
+    );
+  }
+
+  function savePendingEmeraldEnclaveFledglingChoice() {
+    const choice = pendingFeatState.emeraldEnclaveFledglingChoice;
+    const emeraldEnclaveFledgling = choice
+      ? decodePendingEmeraldEnclaveFledglingChoice(choice)
+      : null;
+
+    if (!emeraldEnclaveFledgling) {
+      return;
+    }
+
+    saveConfiguredFeatEntry(
+      createSelectedFeatEntry(FEATS.EMERALD_ENCLAVE_FLEDGLING, {
+        emeraldEnclaveFledgling
+      })
+    );
+  }
+
   function savePendingMagicInitiateChoice() {
     const choice = pendingFeatState.magicInitiateChoice;
     const magicInitiate = choice ? decodePendingMagicInitiateChoice(choice) : null;
@@ -161,6 +202,7 @@ function EldritchInvocationLessonsFeatEditor({
         savingThrowProficiencies={savingThrowProficiencies}
         weaponProficiencies={weaponProficiencies}
         toolProficiencies={toolProficiencies}
+        languageProficiencies={languageProficiencies}
         selectedEntries={[]}
         editingFeatEntryId={null}
         pendingFeatState={pendingFeatState}
@@ -214,6 +256,12 @@ function EldritchInvocationLessonsFeatEditor({
         onSavePendingBoonOfIrresistibleOffense={noopSavePendingChoice}
         onSavePendingBoonOfSkillChoice={noopSavePendingChoice}
         onSavePendingBlessedWarriorChoice={noopSavePendingChoice}
+        onSavePendingCultOfDragonInitiateChoice={
+          savePendingCultOfDragonInitiateChoice
+        }
+        onSavePendingEmeraldEnclaveFledglingChoice={
+          savePendingEmeraldEnclaveFledglingChoice
+        }
         onSavePendingCrafterChoice={savePendingCrafterChoice}
         onSavePendingDruidicWarriorChoice={noopSavePendingChoice}
         onSavePendingEpicBoonAbilityChoice={noopSavePendingChoice}

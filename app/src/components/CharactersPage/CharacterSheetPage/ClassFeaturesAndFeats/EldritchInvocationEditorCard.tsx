@@ -311,6 +311,7 @@ function EldritchInvocationEditorCard({
               savingThrowProficiencies={savingThrowProficiencies}
               weaponProficiencies={weaponProficiencies}
               toolProficiencies={toolProficiencies}
+              languageProficiencies={character.languageProficiencies}
               renderTrackingButton={renderTrackingButton}
               onConfiguredFeatEntryChange={setConfiguredFeatEntry}
             />

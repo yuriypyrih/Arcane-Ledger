@@ -143,6 +143,7 @@ import {
   consumeRitualCasterQuickRitualForCharacter,
   consumeShadowTouchedFreeCastForCharacter,
   consumeTelepathicDetectThoughtsFreeCastForCharacter,
+  canUseEmeraldEnclaveFledglingSpeakWithAnimalsForSpell,
   canUseBoonOfSpellRecallFreeCastingForSpell,
   getFeyTouchedFreeCastStateForCharacter,
   getMagicInitiateFreeCastStateForCharacter,
@@ -1117,6 +1118,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const selectedSpellSupportsBoonOfSpellRecall = selectedSpell
     ? canUseBoonOfSpellRecallFreeCastingForSpell(character, selectedSpell)
     : false;
+  const selectedSpellSupportsEmeraldEnclaveFledgling =
+    selectedSpell !== null &&
+    canUseEmeraldEnclaveFledglingSpeakWithAnimalsForSpell(character, selectedSpell.id);
   const selectedSpellMagicInitiateAbility = selectedSpell
     ? getSpellcastingAbilityOverrideForSpell(selectedSpell.id)
     : null;
@@ -1329,6 +1333,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     (selectedSpellSupportsShadowMagic && useShadowMagicOnSelectedSpell) ||
     (selectedSpellSupportsDetectThoughts && useDetectThoughtsOnSelectedSpell) ||
     (selectedSpellSupportsBoonOfSpellRecall && useBoonOfSpellRecallOnSelectedSpell) ||
+    selectedSpellSupportsEmeraldEnclaveFledgling ||
     (selectedSpellSupportsPsionicSorcery && usePsionicSorceryOnSelectedSpell) ||
     (selectedSpellSupportsStepsOfTheFey && useStepsOfTheFeyOnSelectedSpell) ||
     (selectedSpellSupportsBewitchingMagic && useBewitchingMagicOnSelectedSpell) ||
@@ -1362,7 +1367,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       (selectedSpellSupportsQuickRitual && useQuickRitualOnSelectedSpell) ||
       (selectedSpellSupportsShadowMagic && useShadowMagicOnSelectedSpell) ||
       (selectedSpellSupportsDetectThoughts && useDetectThoughtsOnSelectedSpell) ||
-      (selectedSpellSupportsBoonOfSpellRecall && useBoonOfSpellRecallOnSelectedSpell)
+      (selectedSpellSupportsBoonOfSpellRecall && useBoonOfSpellRecallOnSelectedSpell) ||
+      selectedSpellSupportsEmeraldEnclaveFledgling
         ? minimumSlotLevel
         : clampNumber(selectedSpellSlotLevel, minimumSlotLevel, 9, minimumSlotLevel);
     const castsWithoutSpellSlot =
@@ -1377,7 +1383,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       (selectedSpellSupportsQuickRitual && useQuickRitualOnSelectedSpell) ||
       (selectedSpellSupportsShadowMagic && useShadowMagicOnSelectedSpell) ||
       (selectedSpellSupportsDetectThoughts && useDetectThoughtsOnSelectedSpell) ||
-      (selectedSpellSupportsBoonOfSpellRecall && useBoonOfSpellRecallOnSelectedSpell);
+      (selectedSpellSupportsBoonOfSpellRecall && useBoonOfSpellRecallOnSelectedSpell) ||
+      selectedSpellSupportsEmeraldEnclaveFledgling;
 
     if (castsWithoutSpellSlot) {
       return spellSlotsExpended;
@@ -1400,6 +1407,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpellSupportsShadowMagic,
     selectedSpellSupportsDetectThoughts,
     selectedSpellSupportsBoonOfSpellRecall,
+    selectedSpellSupportsEmeraldEnclaveFledgling,
     selectedSpellSupportsStarMap,
     selectedSpellSupportsWarGodsBlessing,
     spellSlotsExpended,
@@ -2199,6 +2207,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         selectedSpellSlotLevel,
         selectedSpellSupportsBewitchingMagic,
         selectedSpellSupportsElementalSmite,
+        selectedSpellSupportsEmeraldEnclaveFledgling,
         selectedSpellSupportsBoonOfSpellRecall,
         selectedSpellSupportsDetectThoughts,
         selectedSpellSupportsFeyMagic,
@@ -2430,6 +2439,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpellSupportsBlessingOfMoonlight,
     selectedSpellSupportsBoonOfSpellRecall,
     selectedSpellSupportsElementalSmite,
+    selectedSpellSupportsEmeraldEnclaveFledgling,
     selectedSpellSupportsDetectThoughts,
     selectedSpellSupportsFeyMagic,
     selectedSpellSupportsForestGnome,

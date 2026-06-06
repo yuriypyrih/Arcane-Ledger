@@ -2,6 +2,11 @@
   --character-profile-edge-start: rgba(22, 15, 13, 0.82);
   --character-profile-edge-mid: rgba(22, 15, 13, 0.32);
   --character-profile-border-rest: rgba(75, 47, 29, 0.18);
+  --character-profile-readable-gradient: linear-gradient(
+    90deg,
+    rgba(251, 242, 230, 1) 0,
+    rgba(251, 242, 230, 0) 300px
+  );
   position: relative;
   isolation: isolate;
   display: grid;
@@ -111,6 +116,7 @@
   place-items: center;
   aspect-ratio: 3 / 4;
   width: 100%;
+  min-width: 90px;
   align-self: start;
   margin-top: -0.9rem;
   margin-left: -1.1rem;
@@ -300,7 +306,7 @@
   min-width: 0;
   margin: 0;
   border-radius: var(--radius-tiny);
-  background: linear-gradient(90deg, rgba(251, 242, 230, 1) 0, rgba(251, 242, 230, 0) 300px);
+  background: var(--character-profile-readable-gradient);
   color: var(--color-ink);
   font-size: clamp(1.34rem, 2.02vw, 1.76rem);
   font-weight: 850;
@@ -325,6 +331,13 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.identityMetaLine {
+  box-sizing: border-box;
+  border-radius: var(--radius-tiny);
+  background: var(--character-profile-readable-gradient);
+  padding: 0.08rem 0.72rem 0.1rem 0.28rem;
 }
 
 .identityClassLine {
@@ -414,13 +427,13 @@
   }
 
   .profileShell {
-    grid-template-columns: 74px minmax(0, 1fr);
+    grid-template-columns: clamp(90px, 21vw, 108px) minmax(0, 1fr);
     gap: 0.62rem;
   }
 
   .portraitFrame {
     justify-self: start;
-    width: 74px;
+    width: 100%;
     margin-top: -0.76rem;
     margin-left: -0.88rem;
     border-radius: var(--radius-control);

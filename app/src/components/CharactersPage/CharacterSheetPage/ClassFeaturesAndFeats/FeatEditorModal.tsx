@@ -5,6 +5,7 @@ import { useRenderProfiler } from "../../../../lib/useRenderProfiler";
 import { getFeatCategoryLabel, type FeatDefinition } from "../../../../pages/CharactersPage/feats";
 import type {
   CharacterFeatEntry,
+  LanguageProficiencyEntry,
   SavingThrowProficiencyEntry,
   SkillProficiencyEntry,
   ToolProficiencyEntry,
@@ -40,6 +41,7 @@ type FeatEditorModalProps = {
   savingThrowProficiencies: SavingThrowProficiencyEntry[];
   weaponProficiencies: WeaponProficiencyEntry[];
   toolProficiencies: ToolProficiencyEntry[];
+  languageProficiencies: LanguageProficiencyEntry[];
   selectedFeats: CharacterFeatEntry[];
   editingFeatEntryId: string | null;
   pendingFeatState: PendingFeatState;
@@ -95,6 +97,8 @@ type FeatEditorModalProps = {
   onSavePendingDruidicWarriorChoice: () => void;
   onSavePendingEpicBoonAbilityChoice: () => void;
   onSavePendingMagicInitiateChoice: () => void;
+  onSavePendingCultOfDragonInitiateChoice: () => void;
+  onSavePendingEmeraldEnclaveFledglingChoice: () => void;
   onSavePendingMusicianChoice: () => void;
   onSavePendingSkilledChoice: () => void;
 };
@@ -131,6 +135,7 @@ function FeatEditorModal({
   savingThrowProficiencies,
   weaponProficiencies,
   toolProficiencies,
+  languageProficiencies,
   selectedFeats,
   editingFeatEntryId,
   pendingFeatState,
@@ -186,6 +191,8 @@ function FeatEditorModal({
   onSavePendingDruidicWarriorChoice,
   onSavePendingEpicBoonAbilityChoice,
   onSavePendingMagicInitiateChoice,
+  onSavePendingCultOfDragonInitiateChoice,
+  onSavePendingEmeraldEnclaveFledglingChoice,
   onSavePendingMusicianChoice,
   onSavePendingSkilledChoice
 }: FeatEditorModalProps) {
@@ -262,6 +269,7 @@ function FeatEditorModal({
                 savingThrowProficiencies={savingThrowProficiencies}
                 weaponProficiencies={weaponProficiencies}
                 toolProficiencies={toolProficiencies}
+                languageProficiencies={languageProficiencies}
                 selectedEntries={
                   selectedFeatEntriesByFeat.get(featDefinition.feat) ?? emptySelectedFeatEntries
                 }
@@ -319,6 +327,12 @@ function FeatEditorModal({
                 onSavePendingDruidicWarriorChoice={onSavePendingDruidicWarriorChoice}
                 onSavePendingEpicBoonAbilityChoice={onSavePendingEpicBoonAbilityChoice}
                 onSavePendingMagicInitiateChoice={onSavePendingMagicInitiateChoice}
+                onSavePendingCultOfDragonInitiateChoice={
+                  onSavePendingCultOfDragonInitiateChoice
+                }
+                onSavePendingEmeraldEnclaveFledglingChoice={
+                  onSavePendingEmeraldEnclaveFledglingChoice
+                }
                 onSavePendingMusicianChoice={onSavePendingMusicianChoice}
                 onSavePendingSkilledChoice={onSavePendingSkilledChoice}
               />

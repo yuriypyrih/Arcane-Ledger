@@ -7,14 +7,21 @@ import {
   getSpellEntries,
   type SpellEntry
 } from "../../../codex/entries";
-import { ALL_SKILLS, TOOL_PROFICIENCY, type WEAPON_PROFICIENCY } from "../../../types";
+import {
+  ALL_SKILLS,
+  LANGUAGE_PROFICIENCY,
+  TOOL_PROFICIENCY,
+  type WEAPON_PROFICIENCY
+} from "../../../types";
 import type {
   AbilityKey,
   BlessedWarriorChoice,
   CharacterFeatEntry,
   CrusherChoice,
+  CultOfDragonInitiateChoice,
   DualWielderChoice,
   ElementalAdeptChoice,
+  EmeraldEnclaveFledglingChoice,
   DruidicWarriorChoice,
   FeyTouchedChoice,
   HeavilyArmoredChoice,
@@ -66,7 +73,12 @@ import { getToolProficiencyLabel, musicalInstrumentToolProficiencies } from "../
 import { getWeaponProficiencyLabel } from "../proficiencyWeaponLabels";
 import { getCrafterChoiceSummary } from "./crafter";
 import {
+  getCultOfDragonInitiateLanguageLabel,
+  isCultOfDragonInitiateLanguage
+} from "./cultOfDragonInitiate";
+import {
   boonOfEnergyResistanceDamageTypeOptions,
+  emeraldEnclaveFledglingSpellcastingAbilityOptions,
   elementalAdeptAbilityOptions,
   elementalAdeptDamageTypeOptions,
   feyTouchedAbilityOptions,
@@ -124,6 +136,9 @@ const druidicWarriorCantripOptionsById = new Map(
 const magicInitiateSpellListOptionSet = new Set<SPELL_LIST_CLASS>(magicInitiateSpellListOptions);
 const magicInitiateSpellcastingAbilityOptionSet = new Set<AbilityKey>(
   magicInitiateSpellcastingAbilityOptions
+);
+const emeraldEnclaveFledglingSpellcastingAbilityOptionSet = new Set<AbilityKey>(
+  emeraldEnclaveFledglingSpellcastingAbilityOptions
 );
 const elementalAdeptAbilityOptionSet = new Set<AbilityKey>(elementalAdeptAbilityOptions);
 const elementalAdeptDamageTypeOptionSet = new Set<DAMAGE_TYPE>(elementalAdeptDamageTypeOptions);
@@ -240,19 +255,57 @@ const shadowTouchedSpellOptions = getSpellEntries()
 const shadowTouchedSpellOptionsById = new Map(
   shadowTouchedSpellOptions.map((spell) => [spell.id, spell] as const)
 );
-export const epicBoonAbilityIncreaseFeatOptions = new Map<FEATS, AbilityKey[]>([
-  [FEATS.BOON_OF_COMBAT_PROWESS, allEpicBoonAbilityOptions],
-  [FEATS.BOON_OF_DIMENSIONAL_TRAVEL, allEpicBoonAbilityOptions],
-  [FEATS.BOON_OF_FATE, allEpicBoonAbilityOptions],
-  [FEATS.BOON_OF_FORTITUDE, allEpicBoonAbilityOptions],
-  [FEATS.BOON_OF_IRRESISTIBLE_OFFENSE, allEpicBoonAbilityOptions],
-  [FEATS.BOON_OF_RECOVERY, allEpicBoonAbilityOptions],
-  [FEATS.BOON_OF_SKILL, allEpicBoonAbilityOptions],
-  [FEATS.BOON_OF_SPEED, allEpicBoonAbilityOptions],
-  [FEATS.BOON_OF_THE_NIGHT_SPIRIT, allEpicBoonAbilityOptions],
-  [FEATS.BOON_OF_SPELL_RECALL, allEpicBoonAbilityOptions],
-  [FEATS.BOON_OF_TRUESIGHT, allEpicBoonAbilityOptions]
+type FeatAbilityIncreaseConfig = {
+  abilityOptions: AbilityKey[];
+  maxScore: number;
+};
+
+const spellcastingAbilityOptions: AbilityKey[] = ["INT", "WIS", "CHA"];
+
+export const featAbilityIncreaseConfigs = new Map<FEATS, FeatAbilityIncreaseConfig>([
+  [FEATS.COLD_CASTER, { abilityOptions: spellcastingAbilityOptions, maxScore: 20 }],
+  [FEATS.DRAGONSCARRED, { abilityOptions: ["CON", "CHA"], maxScore: 20 }],
+  [FEATS.ENCLAVE_MAGIC, { abilityOptions: spellcastingAbilityOptions, maxScore: 20 }],
+  [FEATS.FAIRY_TRICKSTER, { abilityOptions: ["DEX", "CHA"], maxScore: 20 }],
+  [FEATS.GENIE_MAGIC, { abilityOptions: spellcastingAbilityOptions, maxScore: 20 }],
+  [FEATS.HARPER_TEAMWORK, { abilityOptions: ["DEX", "CHA"], maxScore: 20 }],
+  [FEATS.LORDLY_RESOLVE, { abilityOptions: ["STR", "CHA"], maxScore: 20 }],
+  [FEATS.MYTHAL_TOUCHED, { abilityOptions: spellcastingAbilityOptions, maxScore: 20 }],
+  [FEATS.ORDERS_RESILIENCE, { abilityOptions: ["STR", "WIS", "CHA"], maxScore: 20 }],
+  [FEATS.PURPLE_DRAGON_COMMANDANT, { abilityOptions: ["STR", "DEX"], maxScore: 20 }],
+  [FEATS.SPELLFIRE_ADEPT, { abilityOptions: spellcastingAbilityOptions, maxScore: 20 }],
+  [FEATS.STREET_JUSTICE, { abilityOptions: ["STR", "DEX"], maxScore: 20 }],
+  [FEATS.ZHENTARIM_TACTICS, { abilityOptions: ["DEX", "CHA"], maxScore: 20 }],
+  [FEATS.BOON_OF_BLOODSHED, { abilityOptions: allEpicBoonAbilityOptions, maxScore: 30 }],
+  [FEATS.BOON_OF_BOUNTIFUL_HEALTH, { abilityOptions: allEpicBoonAbilityOptions, maxScore: 30 }],
+  [FEATS.BOON_OF_BRIGHT_SUN, { abilityOptions: ["CON", "WIS", "CHA"], maxScore: 30 }],
+  [FEATS.BOON_OF_COMMUNICATION, { abilityOptions: spellcastingAbilityOptions, maxScore: 30 }],
+  [FEATS.BOON_OF_COMBAT_PROWESS, { abilityOptions: allEpicBoonAbilityOptions, maxScore: 30 }],
+  [FEATS.BOON_OF_DESPERATE_RESILIENCE, { abilityOptions: ["STR", "CON"], maxScore: 30 }],
+  [FEATS.BOON_OF_DIMENSIONAL_TRAVEL, { abilityOptions: allEpicBoonAbilityOptions, maxScore: 30 }],
+  [FEATS.BOON_OF_ENERGY_RESISTANCE, { abilityOptions: allEpicBoonAbilityOptions, maxScore: 30 }],
+  [FEATS.BOON_OF_EXQUISITE_RADIANCE, { abilityOptions: allEpicBoonAbilityOptions, maxScore: 30 }],
+  [FEATS.BOON_OF_FATE, { abilityOptions: allEpicBoonAbilityOptions, maxScore: 30 }],
+  [FEATS.BOON_OF_FLUID_FORMS, { abilityOptions: spellcastingAbilityOptions, maxScore: 30 }],
+  [FEATS.BOON_OF_FORTITUDE, { abilityOptions: allEpicBoonAbilityOptions, maxScore: 30 }],
+  [FEATS.BOON_OF_FORTUNES_FAVOR, { abilityOptions: allEpicBoonAbilityOptions, maxScore: 30 }],
+  [FEATS.BOON_OF_FURIOUS_STORM, { abilityOptions: spellcastingAbilityOptions, maxScore: 30 }],
+  [FEATS.BOON_OF_IRRESISTIBLE_OFFENSE, { abilityOptions: allEpicBoonAbilityOptions, maxScore: 30 }],
+  [FEATS.BOON_OF_POISON_MASTERY, { abilityOptions: allEpicBoonAbilityOptions, maxScore: 30 }],
+  [FEATS.BOON_OF_RECOVERY, { abilityOptions: allEpicBoonAbilityOptions, maxScore: 30 }],
+  [FEATS.BOON_OF_REVELRY, { abilityOptions: spellcastingAbilityOptions, maxScore: 30 }],
+  [FEATS.BOON_OF_SKILL, { abilityOptions: allEpicBoonAbilityOptions, maxScore: 30 }],
+  [FEATS.BOON_OF_SOUL_DRINKER, { abilityOptions: allEpicBoonAbilityOptions, maxScore: 30 }],
+  [FEATS.BOON_OF_SPEED, { abilityOptions: allEpicBoonAbilityOptions, maxScore: 30 }],
+  [FEATS.BOON_OF_TERROR, { abilityOptions: ["CHA"], maxScore: 30 }],
+  [FEATS.BOON_OF_THE_NIGHT_SPIRIT, { abilityOptions: allEpicBoonAbilityOptions, maxScore: 30 }],
+  [FEATS.BOON_OF_SPELL_RECALL, { abilityOptions: spellcastingAbilityOptions, maxScore: 30 }],
+  [FEATS.BOON_OF_TRUESIGHT, { abilityOptions: allEpicBoonAbilityOptions, maxScore: 30 }]
 ]);
+
+export const epicBoonAbilityIncreaseFeatOptions = new Map<FEATS, AbilityKey[]>([
+  ...featAbilityIncreaseConfigs.entries()
+].map(([feat, config]) => [feat, config.abilityOptions]));
 
 function isAbilityKey(value: unknown): value is AbilityKey {
   return typeof value === "string" && abilityKeySet.has(value as AbilityKey);
@@ -1215,6 +1268,49 @@ export function normalizeMagicInitiateChoice(value: unknown): MagicInitiateChoic
   };
 }
 
+export function normalizeCultOfDragonInitiateChoice(
+  value: unknown
+): CultOfDragonInitiateChoice | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const record = value as Partial<CultOfDragonInitiateChoice>;
+
+  if (!isCultOfDragonInitiateLanguage(record.language)) {
+    return undefined;
+  }
+
+  return {
+    language: record.language as LANGUAGE_PROFICIENCY,
+    inspiredByFearExpended: record.inspiredByFearExpended === true ? true : undefined
+  };
+}
+
+export function normalizeEmeraldEnclaveFledglingChoice(
+  value: unknown
+): EmeraldEnclaveFledglingChoice | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const record = value as Partial<EmeraldEnclaveFledglingChoice>;
+
+  if (
+    typeof record.spellcastingAbility !== "string" ||
+    !emeraldEnclaveFledglingSpellcastingAbilityOptionSet.has(
+      record.spellcastingAbility as AbilityKey
+    )
+  ) {
+    return undefined;
+  }
+
+  return {
+    spellcastingAbility:
+      record.spellcastingAbility as EmeraldEnclaveFledglingChoice["spellcastingAbility"]
+  };
+}
+
 function isSkilledTool(value: unknown): value is TOOL_PROFICIENCY {
   return (
     typeof value === "string" && Object.values(TOOL_PROFICIENCY).includes(value as TOOL_PROFICIENCY)
@@ -1597,6 +1693,18 @@ export function getMagicInitiateChoiceSummary(choice?: MagicInitiateChoice): str
     : null;
 }
 
+export function getCultOfDragonInitiateChoiceSummary(
+  choice?: CultOfDragonInitiateChoice
+): string | null {
+  return choice ? `Language: ${getCultOfDragonInitiateLanguageLabel(choice.language)}` : null;
+}
+
+export function getEmeraldEnclaveFledglingChoiceSummary(
+  choice?: EmeraldEnclaveFledglingChoice
+): string | null {
+  return choice ? `Spellcasting Ability: ${choice.spellcastingAbility}` : null;
+}
+
 export function getCharacterFeatSummary(entry: CharacterFeatEntry): string | null {
   if (entry.feat === FEATS.ABILITY_SCORE_IMPROVEMENT) {
     return getAbilityScoreImprovementSummary(entry.abilityScoreImprovement);
@@ -1612,6 +1720,14 @@ export function getCharacterFeatSummary(entry: CharacterFeatEntry): string | nul
 
   if (entry.feat === FEATS.MAGIC_INITIATE) {
     return getMagicInitiateChoiceSummary(entry.magicInitiate);
+  }
+
+  if (entry.feat === FEATS.CULT_OF_THE_DRAGON_INITIATE) {
+    return getCultOfDragonInitiateChoiceSummary(entry.cultOfDragonInitiate);
+  }
+
+  if (entry.feat === FEATS.EMERALD_ENCLAVE_FLEDGLING) {
+    return getEmeraldEnclaveFledglingChoiceSummary(entry.emeraldEnclaveFledgling);
   }
 
   if (entry.feat === FEATS.CRAFTER) {
@@ -1815,4 +1931,8 @@ export function getEpicBoonAbilityOptions(feat: FEATS): AbilityKey[] | null {
   const options = epicBoonAbilityIncreaseFeatOptions.get(feat);
 
   return options ? [...options] : null;
+}
+
+export function getFeatAbilityIncreaseMaxScore(feat: FEATS): number | null {
+  return featAbilityIncreaseConfigs.get(feat)?.maxScore ?? null;
 }

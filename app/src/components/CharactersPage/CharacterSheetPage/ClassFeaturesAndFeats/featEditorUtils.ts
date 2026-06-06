@@ -44,6 +44,7 @@ import {
   getCharacterFeatSummary,
   getCrusherChoiceSummary,
   getDualWielderChoiceSummary,
+  getEmeraldEnclaveFledglingChoiceSummary,
   getElementalAdeptChoiceSummary,
   getFeyTouchedChoiceSummary,
   getHeavilyArmoredChoiceSummary,
@@ -76,10 +77,12 @@ import {
   getDruidicWarriorChoiceSummary,
   getEpicBoonAbilityOptions,
   getMagicInitiateCantripOptions,
+  getCultOfDragonInitiateChoiceSummary,
   getMagicInitiateChoiceSummary,
   getMagicInitiateLevelOneSpellOptions,
   getFeyTouchedSpellOptions,
   getFeatProficiencyBonusForLevel,
+  emeraldEnclaveFledglingSpellcastingAbilityOptions,
   getMusicianChoiceSummary,
   getRitualCasterSpellOptions,
   getShadowTouchedSpellOptions,
@@ -91,6 +94,12 @@ import {
   getCrafterChoiceSummary,
   isCrafterFastCraftingTool
 } from "../../../../pages/CharactersPage/feats/crafter";
+import {
+  cultOfDragonInitiateDefaultLanguage,
+  getDefaultCultOfDragonInitiateLanguage,
+  hasDraconicLanguageFromOtherSource,
+  isCultOfDragonInitiateLanguage
+} from "../../../../pages/CharactersPage/feats/cultOfDragonInitiate";
 import {
   skillsOptions,
   musicalInstrumentToolProficiencies,
@@ -105,8 +114,10 @@ import type {
   ChargerChoice,
   ChefChoice,
   CrusherChoice,
+  CultOfDragonInitiateChoice,
   DualWielderChoice,
   ElementalAdeptChoice,
+  EmeraldEnclaveFledglingChoice,
   CrafterChoice,
   DruidicWarriorChoice,
   FeyTouchedChoice,
@@ -140,7 +151,8 @@ import type {
   MusicianChoice,
   SkillName,
   SkilledChoice,
-  SkilledFeatSelection
+  SkilledFeatSelection,
+  LanguageProficiencyEntry
 } from "../../../../types";
 import type {
   PendingAbilityScoreImprovement,
@@ -155,7 +167,9 @@ import type {
   PendingDualWielderChoice,
   PendingElementalAdeptChoice,
   PendingCrafterChoice,
+  PendingCultOfDragonInitiateChoice,
   PendingDruidicWarriorChoice,
+  PendingEmeraldEnclaveFledglingChoice,
   PendingEpicBoonAbilityChoice,
   PendingFeyTouchedChoice,
   PendingFeatState,
@@ -200,6 +214,8 @@ export const crafterSelectionIndices = [0, 1, 2] as const;
 export const musicianNoneOptionValue = "none";
 export const musicianSelectionIndices = [0, 1, 2] as const;
 export const magicInitiateNoneOptionValue = "none";
+export const cultOfDragonInitiateNoneOptionValue = "none";
+export const emeraldEnclaveFledglingNoneOptionValue = "none";
 export const magicInitiateCantripSelectionIndices = [0, 1] as const;
 export const feyTouchedNoneOptionValue = "none";
 export const ritualCasterNoneOptionValue = "none";
@@ -326,6 +342,8 @@ export function createEmptyPendingFeatState(): PendingFeatState {
     crafterChoice: null,
     druidicWarriorChoice: null,
     magicInitiateChoice: null,
+    cultOfDragonInitiateChoice: null,
+    emeraldEnclaveFledglingChoice: null,
     musicianChoice: null,
     epicBoonAbilityChoice: null,
     skilledChoice: null
@@ -603,6 +621,23 @@ export function createDefaultPendingMagicInitiateChoice(): PendingMagicInitiateC
   };
 }
 
+export function createDefaultPendingCultOfDragonInitiateChoice(
+  languageProficiencies: readonly LanguageProficiencyEntry[] = [],
+  editingFeatEntryId: string | null = null
+): PendingCultOfDragonInitiateChoice {
+  return {
+    language: getDefaultCultOfDragonInitiateLanguage(
+      hasDraconicLanguageFromOtherSource(languageProficiencies, editingFeatEntryId)
+    )
+  };
+}
+
+export function createDefaultPendingEmeraldEnclaveFledglingChoice(): PendingEmeraldEnclaveFledglingChoice {
+  return {
+    spellcastingAbility: emeraldEnclaveFledglingNoneOptionValue
+  };
+}
+
 export function createDefaultPendingMusicianChoice(): PendingMusicianChoice {
   return {
     toolProficiencies: [
@@ -634,7 +669,13 @@ export function createDefaultPendingSkilledChoice(): PendingSkilledChoice {
   };
 }
 
-export function createPendingFeatStateForFeat(feat: FEATS): PendingFeatState | null {
+export function createPendingFeatStateForFeat(
+  feat: FEATS,
+  options: {
+    languageProficiencies?: readonly LanguageProficiencyEntry[];
+    editingFeatEntryId?: string | null;
+  } = {}
+): PendingFeatState | null {
   if (feat === FEATS.ABILITY_SCORE_IMPROVEMENT) {
     return {
       ...createEmptyPendingFeatState(),
@@ -915,6 +956,23 @@ export function createPendingFeatStateForFeat(feat: FEATS): PendingFeatState | n
     };
   }
 
+  if (feat === FEATS.CULT_OF_THE_DRAGON_INITIATE) {
+    return {
+      ...createEmptyPendingFeatState(),
+      cultOfDragonInitiateChoice: createDefaultPendingCultOfDragonInitiateChoice(
+        options.languageProficiencies,
+        options.editingFeatEntryId ?? null
+      )
+    };
+  }
+
+  if (feat === FEATS.EMERALD_ENCLAVE_FLEDGLING) {
+    return {
+      ...createEmptyPendingFeatState(),
+      emeraldEnclaveFledglingChoice: createDefaultPendingEmeraldEnclaveFledglingChoice()
+    };
+  }
+
   if (feat === FEATS.MUSICIAN) {
     return {
       ...createEmptyPendingFeatState(),
@@ -971,6 +1029,24 @@ export function createPendingFeatStateForEntry(entry: CharacterFeatEntry): Pendi
       ...createEmptyPendingFeatState(),
       blessedWarriorChoice: {
         cantripIds: entry.blessedWarrior.cantripIds
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.CULT_OF_THE_DRAGON_INITIATE && entry.cultOfDragonInitiate) {
+    return {
+      ...createEmptyPendingFeatState(),
+      cultOfDragonInitiateChoice: {
+        language: entry.cultOfDragonInitiate.language
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.EMERALD_ENCLAVE_FLEDGLING && entry.emeraldEnclaveFledgling) {
+    return {
+      ...createEmptyPendingFeatState(),
+      emeraldEnclaveFledglingChoice: {
+        spellcastingAbility: entry.emeraldEnclaveFledgling.spellcastingAbility
       }
     };
   }
@@ -2165,6 +2241,94 @@ export function getPendingMagicInitiateChoiceSummary(
   choice: PendingMagicInitiateChoice
 ): string | null {
   return getMagicInitiateChoiceSummary(decodePendingMagicInitiateChoice(choice) ?? undefined);
+}
+
+export function decodePendingCultOfDragonInitiateChoice(
+  choice: PendingCultOfDragonInitiateChoice,
+  languageProficiencies: readonly LanguageProficiencyEntry[] = [],
+  editingFeatEntryId: string | null = null
+): CultOfDragonInitiateChoice | null {
+  const knowsDraconicFromOtherSource = hasDraconicLanguageFromOtherSource(
+    languageProficiencies,
+    editingFeatEntryId
+  );
+
+  if (!knowsDraconicFromOtherSource) {
+    return {
+      language: cultOfDragonInitiateDefaultLanguage
+    };
+  }
+
+  if (
+    choice.language === cultOfDragonInitiateNoneOptionValue ||
+    choice.language === cultOfDragonInitiateDefaultLanguage ||
+    !isCultOfDragonInitiateLanguage(choice.language)
+  ) {
+    return null;
+  }
+
+  return {
+    language: choice.language
+  };
+}
+
+export function isPendingCultOfDragonInitiateChoiceValid(
+  choice: PendingCultOfDragonInitiateChoice,
+  languageProficiencies: readonly LanguageProficiencyEntry[] = [],
+  editingFeatEntryId: string | null = null
+): boolean {
+  return (
+    decodePendingCultOfDragonInitiateChoice(
+      choice,
+      languageProficiencies,
+      editingFeatEntryId
+    ) !== null
+  );
+}
+
+export function getPendingCultOfDragonInitiateChoiceSummary(
+  choice: PendingCultOfDragonInitiateChoice,
+  languageProficiencies: readonly LanguageProficiencyEntry[] = [],
+  editingFeatEntryId: string | null = null
+): string | null {
+  return getCultOfDragonInitiateChoiceSummary(
+    decodePendingCultOfDragonInitiateChoice(
+      choice,
+      languageProficiencies,
+      editingFeatEntryId
+    ) ?? undefined
+  );
+}
+
+export function decodePendingEmeraldEnclaveFledglingChoice(
+  choice: PendingEmeraldEnclaveFledglingChoice
+): EmeraldEnclaveFledglingChoice | null {
+  if (
+    choice.spellcastingAbility === emeraldEnclaveFledglingNoneOptionValue ||
+    !emeraldEnclaveFledglingSpellcastingAbilityOptions.includes(
+      choice.spellcastingAbility as EmeraldEnclaveFledglingChoice["spellcastingAbility"]
+    )
+  ) {
+    return null;
+  }
+
+  return {
+    spellcastingAbility: choice.spellcastingAbility
+  };
+}
+
+export function isPendingEmeraldEnclaveFledglingChoiceValid(
+  choice: PendingEmeraldEnclaveFledglingChoice
+): boolean {
+  return decodePendingEmeraldEnclaveFledglingChoice(choice) !== null;
+}
+
+export function getPendingEmeraldEnclaveFledglingChoiceSummary(
+  choice: PendingEmeraldEnclaveFledglingChoice
+): string | null {
+  return getEmeraldEnclaveFledglingChoiceSummary(
+    decodePendingEmeraldEnclaveFledglingChoice(choice) ?? undefined
+  );
 }
 
 export function decodePendingSkilledChoice(choice: PendingSkilledChoice): SkilledChoice | null {

@@ -1,12 +1,14 @@
 import { FEAT_CATEGORY, FEATS, TRACKER } from "../../../codex/entries";
 import { formatCodexLabel } from "../../../utils/codex";
 import { featDefinitions } from "./definitions";
+import { DEFAULT_FEAT_SOURCE } from "./source";
 import type { FeatDefinition } from "./types";
 
 export { featDefinitions } from "./definitions";
 export * from "./choiceOptions";
 export * from "./choices";
 export * from "./normalization";
+export * from "./source";
 export type { FeatDefinition, FeatProficiencyRequirement, FeatRequirement } from "./types";
 
 const featDefinitionsByFeat = new Map(
@@ -31,6 +33,10 @@ export function isFeatRepeatable(feat: FEATS): boolean {
 
 export function getFeatTrackingState(feat: FEATS): TRACKER {
   return getFeatDefinition(feat)?.trackingState ?? TRACKER.NOT_TRACKED;
+}
+
+export function getFeatSource(definition: FeatDefinition) {
+  return definition.source ?? DEFAULT_FEAT_SOURCE;
 }
 
 export function getFeatDefinitionsByCategory(): Record<FEAT_CATEGORY, FeatDefinition[]> {

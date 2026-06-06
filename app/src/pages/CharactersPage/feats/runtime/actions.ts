@@ -1,6 +1,7 @@
 import type { SpellDescriptionEntry } from "../../../../codex/entries";
 import type { AbilityKey, CharacterFeatEntry } from "../../../../types";
 import { getAbilityModifierForCharacter } from "../../abilities";
+import { ACTION_CARD_THEME } from "../../actionCardTheme";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import {
   createChargesCardUsage,
@@ -20,11 +21,15 @@ import { formatFormulaCell, formatSignedFormulaTerm } from "../../shared/formula
 import {
   boonOfFateImproveFateActionKey,
   boonOfRecoveryRecoverVitalityActionKey,
+  cultOfDragonInitiateDragonsTerrorActionKey,
+  cultOfDragonInitiateInspiredByFearActionKey,
   durableSpeedyRecoveryActionKey,
   luckyFeatActionKey,
   telekineticShoveActionKey
 } from "./constants";
 import type { FeatRuntimeCharacter } from "./types";
+
+const cultOfDragonInitiateFeatName = "Cult of the Dragon Initiate";
 
 export function createLuckyAction(
   remaining: number,
@@ -107,6 +112,113 @@ export function createBoonOfFateImproveFateAction(
     execute: {
       kind: "activate",
       label: "Use Improve Fate"
+    }
+  };
+}
+
+function getCultOfDragonInitiateDragonsTerrorSavingThrowFact(
+  character: FeatRuntimeCharacter,
+  normalizedFeats: CharacterFeatEntry[]
+): NonNullable<FeatureActionCard["facts"]>[number] {
+  const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
+  const wisdomModifier = getAbilityModifierForCharacter(
+    {
+      ...character,
+      feats: normalizedFeats
+    },
+    "WIS"
+  );
+  const saveDc = 8 + wisdomModifier + proficiencyBonus;
+  const displayTerms = [
+    "DC 8 (Base)",
+    formatSignedFormulaTerm(wisdomModifier, "WIS"),
+    formatSignedFormulaTerm(proficiencyBonus, "Prof. Bonus")
+  ];
+  const formulaCell = formatFormulaCell({
+    formula: String(saveDc),
+    displayTerms,
+    breakdownTerms: displayTerms
+  });
+
+  return {
+    label: "Saving Throw Formula",
+    value: `WIS DC ${saveDc} = ${formulaCell.value}`,
+    fullWidth: true
+  };
+}
+
+export function createCultOfDragonInitiateDragonsTerrorAction(
+  character: FeatRuntimeCharacter,
+  normalizedFeats: CharacterFeatEntry[],
+  description: SpellDescriptionEntry[]
+): FeatureActionCard {
+  const facts = [getCultOfDragonInitiateDragonsTerrorSavingThrowFact(character, normalizedFeats)];
+
+  return {
+    key: cultOfDragonInitiateDragonsTerrorActionKey,
+    name: "Dragon's Terror",
+    actionSource: {
+      type: "feat",
+      name: cultOfDragonInitiateFeatName
+    },
+    summary: "Instill fear in a nearby creature.",
+    detail: "Instill fear in a creature you can see.",
+    breakdown: "Frighten nearby creature",
+    economyType: ECONOMY_TYPE.ACTION,
+    actionCategory: ACTION_CATEGORY.MAGIC,
+    cardTheme: ACTION_CARD_THEME.FEATURE,
+    description,
+    facts,
+    drawer: {
+      kind: "confirm",
+      description,
+      confirmLabel: "Use Dragon's Terror"
+    },
+    execute: {
+      kind: "activate",
+      label: "Use Dragon's Terror"
+    }
+  };
+}
+
+export function createCultOfDragonInitiateInspiredByFearAction(
+  remaining: number,
+  total: number,
+  description: SpellDescriptionEntry[]
+): FeatureActionCard {
+  const chargesTag = createChargesHeaderTag(remaining, total);
+  const disabledReason = remaining > 0 ? undefined : "Inspired by Fear recharges on a rest.";
+
+  return {
+    key: cultOfDragonInitiateInspiredByFearActionKey,
+    name: "Inspired by Fear",
+    actionSource: {
+      type: "feat",
+      name: cultOfDragonInitiateFeatName
+    },
+    summary: `Charge ${remaining}/${total}`,
+    detail: "Regain Heroic Inspiration after instilling fear.",
+    breakdown: "Regain Heroic Inspiration",
+    economyType: ECONOMY_TYPE.FREE,
+    actionCategory: ACTION_CATEGORY.FEATURE,
+    usesRemaining: remaining,
+    usesTotal: total,
+    hideUsesTrackerOnCard: true,
+    cardUsage: createChargesCardUsage(remaining, total),
+    disabled: remaining <= 0,
+    disabledReason,
+    description,
+    headerTags: [chargesTag],
+    drawer: {
+      kind: "confirm",
+      description,
+      confirmLabel: "Use Inspired by Fear",
+      headerTags: [chargesTag]
+    },
+    execute: {
+      kind: "activate",
+      label: "Use Inspired by Fear",
+      effectKind: "cult-inspired-by-fear"
     }
   };
 }

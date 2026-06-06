@@ -163,6 +163,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     selectedSpellSupportsElementalSmite,
     selectedSpellSupportsBoonOfSpellRecall,
     selectedSpellSupportsDetectThoughts,
+    selectedSpellSupportsEmeraldEnclaveFledgling,
     selectedSpellSupportsFeyMagic,
     selectedSpellSupportsFiendishLegacy,
     selectedSpellSupportsForestGnome,
@@ -559,6 +560,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
             !(selectedSpellSupportsShadowMagic && useShadowMagicOnSelectedSpell) &&
             !(selectedSpellSupportsDetectThoughts && useDetectThoughtsOnSelectedSpell) &&
             !(selectedSpellSupportsBoonOfSpellRecall && useBoonOfSpellRecallOnSelectedSpell) &&
+            !selectedSpellSupportsEmeraldEnclaveFledgling &&
             !(selectedSpellSupportsPsionicSorcery && usePsionicSorceryOnSelectedSpell) &&
             !(selectedSpellSupportsStepsOfTheFey && useStepsOfTheFeyOnSelectedSpell) &&
             !(selectedSpellSupportsBewitchingMagic && useBewitchingMagicOnSelectedSpell) &&
@@ -602,35 +604,37 @@ export function renderSpellCastingForm(context: Record<string, any>) {
                                 : selectedSpellSupportsBoonOfSpellRecall &&
                                     useBoonOfSpellRecallOnSelectedSpell
                                   ? "Free Casting prevents this cast from expending a spell slot."
-                                  : selectedSpellSupportsStepsOfTheFey &&
-                                      useStepsOfTheFeyOnSelectedSpell
-                                    ? selectedSpellSupportsBewitchingMagic &&
-                                      useBewitchingMagicOnSelectedSpell
-                                      ? "Steps of the Fey and Bewitching Magic both let you cast this spell without expending a spell slot. Steps of the Fey still spends one use."
-                                      : "Steps of the Fey lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
-                                    : selectedSpellSupportsBewitchingMagic &&
+                                  : selectedSpellSupportsEmeraldEnclaveFledgling
+                                    ? "Emerald Enclave Fledgling lets you cast this spell without expending a spell slot."
+                                    : selectedSpellSupportsStepsOfTheFey &&
+                                        useStepsOfTheFeyOnSelectedSpell
+                                      ? selectedSpellSupportsBewitchingMagic &&
                                         useBewitchingMagicOnSelectedSpell
-                                      ? "Bewitching Magic lets you cast this spell without expending a spell slot."
-                                      : selectedSpellSupportsMistyWanderer &&
-                                          useMistyWandererOnSelectedSpell
-                                        ? "Misty Wanderer lets you cast this spell without expending a spell slot."
-                                        : selectedSpellSupportsFeyReinforcements &&
-                                            useFeyReinforcementsOnSelectedSpell
-                                          ? "Fey Reinforcements lets you cast this spell without expending a spell slot."
-                                          : selectedSpellSupportsPhantasmalCreatures &&
-                                              usePhantasmalCreaturesOnSelectedSpell
-                                            ? "Phantasmal Creatures lets you cast this spell without expending a spell slot. This shared use recharges on a Long Rest, and the summoned creature has half Hit Points."
-                                            : selectedSpellSupportsTelekineticMaster &&
-                                                useTelekineticMasterOnSelectedSpell
-                                              ? fighterPsiWarriorTelekineticMasterUsesRemaining > 0
-                                                ? "Telekinetic Master lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
-                                                : "Telekinetic Master lets you cast this spell without expending a spell slot by using 1 Psi Energy Die."
-                                              : selectedSpellSupportsTamedSurge &&
-                                                  useTamedSurgeOnSelectedSpell
-                                                ? "Tamed Surge will be spent after this spell consumes a spell slot."
-                                                : selectedSpellUnderMantleOfMajesty
-                                                  ? "Mantle of Majesty is active. Cast at level 1 without expending a spell slot, or upcast normally."
-                                                  : null
+                                        ? "Steps of the Fey and Bewitching Magic both let you cast this spell without expending a spell slot. Steps of the Fey still spends one use."
+                                        : "Steps of the Fey lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                                      : selectedSpellSupportsBewitchingMagic &&
+                                          useBewitchingMagicOnSelectedSpell
+                                        ? "Bewitching Magic lets you cast this spell without expending a spell slot."
+                                        : selectedSpellSupportsMistyWanderer &&
+                                            useMistyWandererOnSelectedSpell
+                                          ? "Misty Wanderer lets you cast this spell without expending a spell slot."
+                                          : selectedSpellSupportsFeyReinforcements &&
+                                              useFeyReinforcementsOnSelectedSpell
+                                            ? "Fey Reinforcements lets you cast this spell without expending a spell slot."
+                                            : selectedSpellSupportsPhantasmalCreatures &&
+                                                usePhantasmalCreaturesOnSelectedSpell
+                                              ? "Phantasmal Creatures lets you cast this spell without expending a spell slot. This shared use recharges on a Long Rest, and the summoned creature has half Hit Points."
+                                              : selectedSpellSupportsTelekineticMaster &&
+                                                  useTelekineticMasterOnSelectedSpell
+                                                ? fighterPsiWarriorTelekineticMasterUsesRemaining > 0
+                                                  ? "Telekinetic Master lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                                                  : "Telekinetic Master lets you cast this spell without expending a spell slot by using 1 Psi Energy Die."
+                                                : selectedSpellSupportsTamedSurge &&
+                                                    useTamedSurgeOnSelectedSpell
+                                                  ? "Tamed Surge will be spent after this spell consumes a spell slot."
+                                                  : selectedSpellUnderMantleOfMajesty
+                                                    ? "Mantle of Majesty is active. Cast at level 1 without expending a spell slot, or upcast normally."
+                                                    : null
           }
           actionContextText={
             selectedSpellSupportsWarGodsBlessing &&

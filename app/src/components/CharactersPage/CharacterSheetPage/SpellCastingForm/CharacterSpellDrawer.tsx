@@ -700,7 +700,7 @@ function CharacterSpellDrawer({
           </div>
 
           <div className={sheetStyles.spellDrawerBody}>
-            <div className={sheetStyles.spellDrawerDetails}>
+            <div className={clsx(sheetStyles.spellDrawerDetails, styles.spellInfoGrid)}>
               <CellContainer
                 label="Casting Time"
                 content={

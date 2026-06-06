@@ -7,6 +7,7 @@ import {
 import { getSpellEntriesForSpellListClass } from "../../../../codex/classes/spellAccess";
 import type { CharacterFeatEntry, MagicInitiateChoice } from "../../../../types";
 import {
+  emeraldEnclaveFledglingSpeakWithAnimalsSpellId,
   feyTouchedMistyStepSpellId,
   shadowTouchedInvisibilitySpellId,
   telekineticMageHandSpellId,
@@ -103,6 +104,16 @@ export function getMagicInitiateLevelOneSpellEntry(
       .get(entry.magicInitiate.spellList)
       ?.get(entry.magicInitiate.levelOneSpellId) ?? null
   );
+}
+
+export function getEmeraldEnclaveFledglingSpellEntry(
+  entry: CharacterFeatEntry
+): SpellEntry | null {
+  if (entry.feat !== FEATS.EMERALD_ENCLAVE_FLEDGLING || !entry.emeraldEnclaveFledgling) {
+    return null;
+  }
+
+  return getSpellEntryById(emeraldEnclaveFledglingSpeakWithAnimalsSpellId);
 }
 
 export function getFeyTouchedSpellEntries(entry: CharacterFeatEntry): SpellEntry[] {

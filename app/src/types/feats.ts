@@ -6,7 +6,11 @@ import type {
   SPELL_LIST_CLASS
 } from "../codex/entries/enums";
 import type { AbilityKey } from "./characters";
-import type { TOOL_PROFICIENCY, WEAPON_PROFICIENCY } from "./proficiencies";
+import type {
+  LANGUAGE_PROFICIENCY,
+  TOOL_PROFICIENCY,
+  WEAPON_PROFICIENCY
+} from "./proficiencies";
 import type { SkillName } from "./skills";
 
 export type AbilityScoreImprovementChoice =
@@ -223,6 +227,15 @@ export type MagicInitiateChoice = {
   freeCastExpended?: boolean;
 };
 
+export type CultOfDragonInitiateChoice = {
+  language: LANGUAGE_PROFICIENCY;
+  inspiredByFearExpended?: boolean;
+};
+
+export type EmeraldEnclaveFledglingChoice = {
+  spellcastingAbility: "INT" | "WIS" | "CHA";
+};
+
 export type MusicianChoice = {
   toolProficiencies: [TOOL_PROFICIENCY, TOOL_PROFICIENCY, TOOL_PROFICIENCY];
 };
@@ -314,6 +327,8 @@ export type CharacterFeatEntry = {
   blessedWarrior?: BlessedWarriorChoice;
   druidicWarrior?: DruidicWarriorChoice;
   magicInitiate?: MagicInitiateChoice;
+  cultOfDragonInitiate?: CultOfDragonInitiateChoice;
+  emeraldEnclaveFledgling?: EmeraldEnclaveFledglingChoice;
   musician?: MusicianChoice;
   crafter?: CrafterChoice;
   boonOfEnergyResistance?: BoonOfEnergyResistanceChoice;

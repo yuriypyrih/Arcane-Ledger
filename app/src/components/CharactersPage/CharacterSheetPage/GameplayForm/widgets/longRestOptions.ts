@@ -332,6 +332,7 @@ import {
   collectFeatDerivedState,
   restoreBoonOfFateImproveFateForCharacter,
   restoreBoonOfRecoveryDiceForCharacter,
+  restoreCultOfDragonInitiateInspiredByFearForCharacter,
   restoreFeyTouchedFreeCastsForCharacter,
   restoreLuckyPointsForCharacter,
   restoreMageSlayerGuardedMindForCharacter,
@@ -390,6 +391,9 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const luckyPointsAreFull = featDerivedState.luckyPointsRemaining >= luckyPointsTotal;
   const boonOfFateImproveFateIsFull =
     featDerivedState.boonOfFateImproveFateRemaining >= featDerivedState.boonOfFateImproveFateTotal;
+  const cultOfDragonInitiateInspiredByFearIsFull =
+    featDerivedState.cultOfDragonInitiateInspiredByFearRemaining >=
+    featDerivedState.cultOfDragonInitiateInspiredByFearTotal;
   const boonOfRecoveryDiceAreFull =
     featDerivedState.boonOfRecoveryDiceRemaining >= featDerivedState.boonOfRecoveryDiceTotal;
   const mageSlayerGuardedMindAreFull =
@@ -812,6 +816,21 @@ export function createLongRestOptions(character: Character): RestOption[] {
             disabled: boonOfFateImproveFateIsFull,
             apply: (currentCharacter: Character) =>
               restoreBoonOfFateImproveFateForCharacter(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(featDerivedState.hasCultOfDragonInitiate
+      ? [
+          {
+            id: "restore-cult-inspired-by-fear",
+            label: "Restore Inspired by Fear",
+            charges: {
+              current: featDerivedState.cultOfDragonInitiateInspiredByFearRemaining,
+              total: featDerivedState.cultOfDragonInitiateInspiredByFearTotal
+            },
+            disabled: cultOfDragonInitiateInspiredByFearIsFull,
+            apply: (currentCharacter: Character) =>
+              restoreCultOfDragonInitiateInspiredByFearForCharacter(currentCharacter)
           } satisfies RestOption
         ]
       : []),

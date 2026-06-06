@@ -17,6 +17,7 @@ import {
   getMagicInitiateLevelOneSpellOptions
 } from "./feats";
 import { abilityKeys } from "./constants";
+import { getDefaultCultOfDragonInitiateLanguage } from "./feats/cultOfDragonInitiate";
 import { crafterFastCraftingToolProficiencies } from "./feats/crafter";
 import {
   musicalInstrumentToolProficiencies,
@@ -507,6 +508,24 @@ export function createDefaultBackgroundOriginFeatEntry(
     });
   }
 
+  if (entry.originFeat === FEATS.CULT_OF_THE_DRAGON_INITIATE) {
+    return createBackgroundFeatEntry(entry, level, {
+      source,
+      cultOfDragonInitiate: {
+        language: getDefaultCultOfDragonInitiateLanguage()
+      }
+    });
+  }
+
+  if (entry.originFeat === FEATS.EMERALD_ENCLAVE_FLEDGLING) {
+    return createBackgroundFeatEntry(entry, level, {
+      source,
+      emeraldEnclaveFledgling: {
+        spellcastingAbility: "WIS"
+      }
+    });
+  }
+
   return createBackgroundFeatEntry(entry, level, {
     source
   });
@@ -556,6 +575,30 @@ function ensureBackgroundFeatChoices(
           { kind: "skill", skill: "Animal Handling" },
           { kind: "skill", skill: "Arcana" }
         ]
+      }
+    };
+  }
+
+  if (
+    backgroundEntry.originFeat === FEATS.CULT_OF_THE_DRAGON_INITIATE &&
+    !entry.cultOfDragonInitiate
+  ) {
+    return {
+      ...entry,
+      cultOfDragonInitiate: {
+        language: getDefaultCultOfDragonInitiateLanguage()
+      }
+    };
+  }
+
+  if (
+    backgroundEntry.originFeat === FEATS.EMERALD_ENCLAVE_FLEDGLING &&
+    !entry.emeraldEnclaveFledgling
+  ) {
+    return {
+      ...entry,
+      emeraldEnclaveFledgling: {
+        spellcastingAbility: "WIS"
       }
     };
   }

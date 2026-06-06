@@ -115,7 +115,7 @@ export const featRuntimeCapabilityMatrix = {
   },
   [FEATS.CULT_OF_THE_DRAGON_INITIATE]: {
     feat: FEATS.CULT_OF_THE_DRAGON_INITIATE,
-    capabilities: []
+    capabilities: ["actionCard", "choice", "proficiency", "restRecovery"]
   },
   [FEATS.DEFENSE]: { feat: FEATS.DEFENSE, capabilities: ["armorClass"] },
   [FEATS.DEFENSIVE_DUELIST]: {
@@ -144,7 +144,7 @@ export const featRuntimeCapabilityMatrix = {
   },
   [FEATS.EMERALD_ENCLAVE_FLEDGLING]: {
     feat: FEATS.EMERALD_ENCLAVE_FLEDGLING,
-    capabilities: []
+    capabilities: ["choice", "commonActionTransform", "freeCast", "spellGrant", "spellTransform"]
   },
   [FEATS.FEY_TOUCHED]: {
     feat: FEATS.FEY_TOUCHED,
@@ -326,5 +326,106 @@ export const featRuntimeCapabilityMatrix = {
     feat: FEATS.WEAPON_MASTER,
     capabilities: ["abilityBonus", "choice", "proficiency", "weaponActionTransform"]
   },
-  [FEATS.ZHENTARIM_RUFFIAN]: { feat: FEATS.ZHENTARIM_RUFFIAN, capabilities: [] }
+  [FEATS.BOON_OF_BLOODSHED]: {
+    feat: FEATS.BOON_OF_BLOODSHED,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.BOON_OF_BOUNTIFUL_HEALTH]: {
+    feat: FEATS.BOON_OF_BOUNTIFUL_HEALTH,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.BOON_OF_BRIGHT_SUN]: {
+    feat: FEATS.BOON_OF_BRIGHT_SUN,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.BOON_OF_COMMUNICATION]: {
+    feat: FEATS.BOON_OF_COMMUNICATION,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.BOON_OF_DESPERATE_RESILIENCE]: {
+    feat: FEATS.BOON_OF_DESPERATE_RESILIENCE,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.BOON_OF_EXQUISITE_RADIANCE]: {
+    feat: FEATS.BOON_OF_EXQUISITE_RADIANCE,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.BOON_OF_FLUID_FORMS]: {
+    feat: FEATS.BOON_OF_FLUID_FORMS,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.BOON_OF_FORTUNES_FAVOR]: {
+    feat: FEATS.BOON_OF_FORTUNES_FAVOR,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.BOON_OF_FURIOUS_STORM]: {
+    feat: FEATS.BOON_OF_FURIOUS_STORM,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.BOON_OF_POISON_MASTERY]: {
+    feat: FEATS.BOON_OF_POISON_MASTERY,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.BOON_OF_REVELRY]: {
+    feat: FEATS.BOON_OF_REVELRY,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.BOON_OF_SOUL_DRINKER]: {
+    feat: FEATS.BOON_OF_SOUL_DRINKER,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.BOON_OF_TERROR]: {
+    feat: FEATS.BOON_OF_TERROR,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.COLD_CASTER]: { feat: FEATS.COLD_CASTER, capabilities: ["abilityBonus", "choice"] },
+  [FEATS.DRAGONSCARRED]: {
+    feat: FEATS.DRAGONSCARRED,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.ENCLAVE_MAGIC]: {
+    feat: FEATS.ENCLAVE_MAGIC,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.FAIRY_TRICKSTER]: {
+    feat: FEATS.FAIRY_TRICKSTER,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.GENIE_MAGIC]: {
+    feat: FEATS.GENIE_MAGIC,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.HARPER_TEAMWORK]: {
+    feat: FEATS.HARPER_TEAMWORK,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.LORDLY_RESOLVE]: {
+    feat: FEATS.LORDLY_RESOLVE,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.MYTHAL_TOUCHED]: {
+    feat: FEATS.MYTHAL_TOUCHED,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.ORDERS_RESILIENCE]: {
+    feat: FEATS.ORDERS_RESILIENCE,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.PURPLE_DRAGON_COMMANDANT]: {
+    feat: FEATS.PURPLE_DRAGON_COMMANDANT,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.SPELLFIRE_ADEPT]: {
+    feat: FEATS.SPELLFIRE_ADEPT,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.STREET_JUSTICE]: {
+    feat: FEATS.STREET_JUSTICE,
+    capabilities: ["abilityBonus", "choice"]
+  },
+  [FEATS.ZHENTARIM_RUFFIAN]: { feat: FEATS.ZHENTARIM_RUFFIAN, capabilities: [] },
+  [FEATS.ZHENTARIM_TACTICS]: {
+    feat: FEATS.ZHENTARIM_TACTICS,
+    capabilities: ["abilityBonus", "choice"]
+  }
 } as const satisfies Record<FEATS, FeatRuntimeCapabilityDescriptor>;

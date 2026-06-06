@@ -41,6 +41,7 @@ import {
   ITEM_SOURCE_PARAM,
   ITEM_TAB_PARAM,
   FEAT_CATEGORY_PARAM,
+  FEAT_SOURCE_PARAM,
   BACKGROUND_SOURCE_PARAM,
   MONSTERS_PER_PAGE,
   MONSTER_ORDER_PARAM,
@@ -96,6 +97,7 @@ function CodexPage() {
     itemTab,
     backgroundSourceFilter,
     featCategoryFilter,
+    featSourceFilter,
     query,
     spellClassFilter,
     spellLevelFilter,
@@ -550,6 +552,16 @@ function CodexPage() {
     },
     [clearSearchForSelectionChange, searchParams, setSearchParams]
   );
+  const handleFeatSourceFilterChange = useCallback(
+    (value: typeof featSourceFilter) => {
+      const nextSearchParams = new URLSearchParams(searchParams);
+      setSearchParamValue(nextSearchParams, FEAT_SOURCE_PARAM, value);
+      clearSearchForSelectionChange(nextSearchParams);
+      resetPageSearchParam(nextSearchParams);
+      setSearchParams(nextSearchParams, { replace: true });
+    },
+    [clearSearchForSelectionChange, searchParams, setSearchParams]
+  );
   const handleBackgroundSourceFilterChange = useCallback(
     (value: typeof backgroundSourceFilter) => {
       const nextSearchParams = new URLSearchParams(searchParams);
@@ -611,6 +623,7 @@ function CodexPage() {
           itemSourceFilter={itemSourceFilter}
           backgroundSourceFilter={backgroundSourceFilter}
           featCategoryFilter={featCategoryFilter}
+          featSourceFilter={featSourceFilter}
           itemFilterOptions={itemFilterOptionsPayload}
           onQueryChange={handleQueryChange}
           onCategoryChange={updateCategory}
@@ -631,6 +644,7 @@ function CodexPage() {
           onItemSourceFilterChange={handleItemSourceFilterChange}
           onBackgroundSourceFilterChange={handleBackgroundSourceFilterChange}
           onFeatCategoryFilterChange={handleFeatCategoryFilterChange}
+          onFeatSourceFilterChange={handleFeatSourceFilterChange}
         />
       </div>
 
@@ -661,7 +675,11 @@ function CodexPage() {
           heading="Equipment Entries"
         />
       ) : isFeatCategory ? (
-        <FeatCodexList query={query} featCategoryFilter={featCategoryFilter} />
+        <FeatCodexList
+          query={query}
+          featCategoryFilter={featCategoryFilter}
+          featSourceFilter={featSourceFilter}
+        />
       ) : isBackgroundCategory || isSpeciesCategory ? (
         <CodexDisclosureList
           entries={visibleEntries}

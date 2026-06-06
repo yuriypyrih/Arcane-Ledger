@@ -1,6 +1,7 @@
 import { ARMOR_PROFICIENCY, PROF_LEVEL, type Character } from "../../../types";
 import { getAbilityScoresForCharacter } from "../abilities";
 import type { FeatDefinition, FeatProficiencyRequirement, FeatRequirement } from "./types";
+import { formatCodexLabel } from "../../../utils/codex";
 import {
   getArmorLevelFromEntries,
   getLanguageLevelFromEntries,
@@ -185,32 +186,107 @@ function formatAbilityRequirementLabel(
   return `${requirement.abilities.join(" or ")} ${requirement.score}`;
 }
 
+function hasRequiredFeat(
+  character: Character,
+  feat: Extract<FeatRequirement, { type: "feat" }>["feat"]
+): boolean {
+  return Array.isArray(character.feats) && character.feats.some((entry) => entry.feat === feat);
+}
+
+function isFeatRequirementMet(
+  character: Character,
+  abilityScores: ReturnType<typeof getAbilityScoresForCharacter>,
+  requirement: FeatRequirement
+): boolean {
+  if (requirement.type === "minimum-level") {
+    return character.level >= requirement.level;
+  }
+
+  if (requirement.type === "minimum-ability-score") {
+    return requirement.abilities.some((ability) => abilityScores[ability] >= requirement.score);
+  }
+
+  if (requirement.type === "proficiency") {
+    return hasRequiredProficiency(character, requirement.proficiency);
+  }
+
+  if (requirement.type === "spellcasting-or-pact-magic") {
+    return isSpellcastingClass(character.className, character.level, character.subclassId);
+  }
+
+  if (requirement.type === "feat") {
+    return hasRequiredFeat(character, requirement.feat);
+  }
+
+  return requirement.requirements.some((nestedRequirement) =>
+    isFeatRequirementMet(character, abilityScores, nestedRequirement)
+  );
+}
+
+function formatFeatRequirementLabel(requirement: FeatRequirement): string {
+  if (requirement.type === "minimum-level") {
+    return `level ${requirement.level}`;
+  }
+
+  if (requirement.type === "minimum-ability-score") {
+    return formatAbilityRequirementLabel(requirement);
+  }
+
+  if (requirement.type === "proficiency") {
+    return `${getFeatRequirementProficiencyLabel(requirement.proficiency)} proficiency`;
+  }
+
+  if (requirement.type === "spellcasting-or-pact-magic") {
+    return "Spellcasting or Pact Magic";
+  }
+
+  if (requirement.type === "feat") {
+    return `${formatCodexLabel(requirement.feat)} feat`;
+  }
+
+  return requirement.requirements.map(formatFeatRequirementLabel).join(" or ");
+}
+
+function getUnmetRequirementMessages(
+  character: Character,
+  abilityScores: ReturnType<typeof getAbilityScoresForCharacter>,
+  requirement: FeatRequirement
+): string[] {
+  if (isFeatRequirementMet(character, abilityScores, requirement)) {
+    return [];
+  }
+
+  if (requirement.type === "minimum-level") {
+    return [`Requires level ${requirement.level}.`];
+  }
+
+  if (requirement.type === "minimum-ability-score") {
+    return [`Requires ${formatAbilityRequirementLabel(requirement)}.`];
+  }
+
+  if (requirement.type === "proficiency") {
+    return [`Requires ${getFeatRequirementProficiencyLabel(requirement.proficiency)} proficiency.`];
+  }
+
+  if (requirement.type === "spellcasting-or-pact-magic") {
+    return ["Requires Spellcasting or Pact Magic."];
+  }
+
+  if (requirement.type === "feat") {
+    return [`Requires ${formatCodexLabel(requirement.feat)} feat.`];
+  }
+
+  return [`Requires ${formatFeatRequirementLabel(requirement)}.`];
+}
+
 export function getFeatEligibilityForCharacter(
   character: Character,
   definition: FeatDefinition
 ): FeatEligibilityResult {
   const abilityScores = getAbilityScoresForCharacter(character);
-  const unmetRequirements = getFeatRequirements(definition).flatMap((requirement) => {
-    if (requirement.type === "minimum-level") {
-      return character.level >= requirement.level ? [] : [`Requires level ${requirement.level}.`];
-    }
-
-    if (requirement.type === "minimum-ability-score") {
-      return requirement.abilities.some((ability) => abilityScores[ability] >= requirement.score)
-        ? []
-        : [`Requires ${formatAbilityRequirementLabel(requirement)}.`];
-    }
-
-    if (requirement.type === "proficiency") {
-      return hasRequiredProficiency(character, requirement.proficiency)
-        ? []
-        : [`Requires ${getFeatRequirementProficiencyLabel(requirement.proficiency)} proficiency.`];
-    }
-
-    return isSpellcastingClass(character.className, character.level, character.subclassId)
-      ? []
-      : ["Requires Spellcasting or Pact Magic."];
-  });
+  const unmetRequirements = getFeatRequirements(definition).flatMap((requirement) =>
+    getUnmetRequirementMessages(character, abilityScores, requirement)
+  );
 
   return {
     isEligible: unmetRequirements.length === 0,

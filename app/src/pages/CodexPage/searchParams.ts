@@ -8,6 +8,10 @@ import {
 } from "../../codex/entries";
 import { MONSTER_SOURCE_OPTIONS, MONSTER_TYPE_OPTIONS } from "../../constants/monsters";
 import {
+  FEAT_SOURCE_VALUES,
+  type FeatSource
+} from "../CharactersPage/feats/source";
+import {
   DEFAULT_ITEM_BROWSER_TAB,
   type ItemArmorType,
   type ItemAttackType,
@@ -44,6 +48,7 @@ export const ITEM_RARITY_PARAM = "itemRarity";
 export const ITEM_SOURCE_PARAM = "itemSource";
 export const ITEM_ORDER_PARAM = "itemOrder";
 export const FEAT_CATEGORY_PARAM = "featCategory";
+export const FEAT_SOURCE_PARAM = "featSource";
 export const BACKGROUND_SOURCE_PARAM = "backgroundSource";
 export const PAGE_PARAM = "page";
 export const QUERY_PARAM = "q";
@@ -71,6 +76,7 @@ const ITEM_ATTACK_TYPES = new Set<ItemAttackType>(["melee", "range"]);
 const ITEM_PROFICIENCY_TYPES = new Set<ItemProficiencyType>(["simple", "martial"]);
 const ITEM_ARMOR_TYPES = new Set<ItemArmorType>(["light", "medium", "heavy"]);
 const FEAT_CATEGORIES = new Set<FEAT_CATEGORY>(Object.values(FEAT_CATEGORY));
+const FEAT_SOURCES = new Set<FeatSource>(FEAT_SOURCE_VALUES);
 const BACKGROUND_SOURCES = new Set<BackgroundSource>(BACKGROUND_SOURCE_VALUES);
 const SPELL_MAGIC_SCHOOLS = new Set<MAGIC_SCHOOL>(Object.values(MAGIC_SCHOOL));
 const SPELL_SPECIAL_FILTERS = new Set<CodexSpellSpecialFilter>(CODEX_SPELL_SPECIAL_FILTERS);
@@ -96,6 +102,7 @@ export type ParsedCodexSearchState = {
   itemSourceFilter: string | null;
   itemOrdering: ItemOrdering;
   featCategoryFilter: FEAT_CATEGORY | null;
+  featSourceFilter: FeatSource | null;
   backgroundSourceFilter: BackgroundSource | null;
   currentPage: number;
 };
@@ -226,6 +233,7 @@ export function parseCodexSearchState(
     itemSourceFilter: parseOptionalFilter(searchParams.get(ITEM_SOURCE_PARAM)),
     itemOrdering: parseItemOrdering(searchParams.get(ITEM_ORDER_PARAM)),
     featCategoryFilter: parseEnumFilter(searchParams.get(FEAT_CATEGORY_PARAM), FEAT_CATEGORIES),
+    featSourceFilter: parseEnumFilter(searchParams.get(FEAT_SOURCE_PARAM), FEAT_SOURCES),
     backgroundSourceFilter: parseEnumFilter(
       searchParams.get(BACKGROUND_SOURCE_PARAM),
       BACKGROUND_SOURCES
@@ -265,6 +273,7 @@ export function clearItemSearchParams(searchParams: URLSearchParams): URLSearchP
 
 export function clearFeatSearchParams(searchParams: URLSearchParams): URLSearchParams {
   searchParams.delete(FEAT_CATEGORY_PARAM);
+  searchParams.delete(FEAT_SOURCE_PARAM);
   return searchParams;
 }
 
@@ -329,6 +338,7 @@ export function hasCategoryScopedSearchParams(searchParams: URLSearchParams): bo
     searchParams.has(ITEM_SOURCE_PARAM) ||
     searchParams.has(ITEM_ORDER_PARAM) ||
     searchParams.has(FEAT_CATEGORY_PARAM) ||
+    searchParams.has(FEAT_SOURCE_PARAM) ||
     searchParams.has(BACKGROUND_SOURCE_PARAM) ||
     searchParams.has(PAGE_PARAM)
   );

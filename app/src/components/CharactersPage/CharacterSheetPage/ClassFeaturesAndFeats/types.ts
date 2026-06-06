@@ -13,6 +13,8 @@ import type {
   BlessedWarriorChoice,
   CharacterFeatEntry,
   CharacterFeatSource,
+  CultOfDragonInitiateChoice,
+  EmeraldEnclaveFledglingChoice,
   CrafterChoice,
   DruidicWarriorChoice,
   ElementalAdeptChoice,
@@ -252,6 +254,14 @@ export type PendingMagicInitiateChoice = {
   spellcastingAbility: string;
 };
 
+export type PendingCultOfDragonInitiateChoice = {
+  language: CultOfDragonInitiateChoice["language"] | "none";
+};
+
+export type PendingEmeraldEnclaveFledglingChoice = {
+  spellcastingAbility: EmeraldEnclaveFledglingChoice["spellcastingAbility"] | "none";
+};
+
 export type PendingMusicianChoice = {
   toolProficiencies: [string, string, string];
 };
@@ -322,6 +332,8 @@ export type PendingFeatState = {
   crafterChoice: PendingCrafterChoice | null;
   druidicWarriorChoice: PendingDruidicWarriorChoice | null;
   magicInitiateChoice: PendingMagicInitiateChoice | null;
+  cultOfDragonInitiateChoice: PendingCultOfDragonInitiateChoice | null;
+  emeraldEnclaveFledglingChoice: PendingEmeraldEnclaveFledglingChoice | null;
   musicianChoice: PendingMusicianChoice | null;
   epicBoonAbilityChoice: PendingEpicBoonAbilityChoice | null;
   skilledChoice: PendingSkilledChoice | null;
@@ -334,6 +346,8 @@ export type RepeatableFeatChoice =
   | ElementalAdeptChoice
   | FeyTouchedChoice
   | MagicInitiateChoice
+  | CultOfDragonInitiateChoice
+  | EmeraldEnclaveFledglingChoice
   | MusicianChoice
   | RitualCasterChoice
   | ShadowTouchedChoice

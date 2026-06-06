@@ -560,6 +560,59 @@ export function createLanguageEntry(
   };
 }
 
+export function addFeatGrantedLanguageEntries(
+  entries: LanguageProficiencyEntry[],
+  languages: LanguageProficiency[],
+  featLabel: string,
+  featEntryId: string
+): LanguageProficiencyEntry[] {
+  const sourceStr = createFeatProficiencySourceStr(featLabel, featEntryId);
+  const manualProficiencies = new Set(
+    entries
+      .filter(
+        (entry) =>
+          entry.source === PROFICIENCY_SOURCE.MANUAL &&
+          hasPositiveProficiencyLevel(entry.proficiencyLevel)
+      )
+      .map((entry) => entry.proficiency)
+  );
+
+  return mergeProficiencyEntries([
+    ...entries,
+    ...languages
+      .filter((language) => !manualProficiencies.has(language))
+      .map((language) =>
+        createLanguageEntry(
+          language,
+          PROFICIENCY_SOURCE.FEAT,
+          sourceStr,
+          PROF_LEVEL.PROFICIENT
+        )
+      )
+  ]);
+}
+
+export function removeFeatGrantedLanguageEntries(
+  entries: LanguageProficiencyEntry[],
+  languages: LanguageProficiency[],
+  featLabel: string,
+  featEntryId: string
+): LanguageProficiencyEntry[] {
+  const sourceStr = createFeatProficiencySourceStr(featLabel, featEntryId);
+  const languagesToRemove = new Set<LanguageProficiency>(languages);
+
+  return mergeProficiencyEntries(
+    entries.filter(
+      (entry) =>
+        !(
+          entry.source === PROFICIENCY_SOURCE.FEAT &&
+          entry.sourceStr === sourceStr &&
+          languagesToRemove.has(entry.proficiency)
+        )
+    )
+  );
+}
+
 export function createEntryIdentityKey(entry: ProficiencyEntry): string {
   return `${entry.proficiency}:${entry.source}:${entry.sourceStr ?? ""}`;
 }

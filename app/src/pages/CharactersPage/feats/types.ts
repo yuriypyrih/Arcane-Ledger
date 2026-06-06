@@ -9,11 +9,14 @@ import type {
 } from "../../../types";
 import type { FEAT_CATEGORY, FEATS } from "../../../codex/entries";
 import type { TOOL_PROFICIENCY } from "../../../types";
+import type { FeatSource } from "./source";
 
 export type FeatDefinition = FeatureMapEntry & {
   feat: FEATS;
   label: string;
   category: FEAT_CATEGORY;
+  source?: FeatSource;
+  page?: number;
   prerequisite?: string;
   requirements?: FeatRequirement[];
   repeatable?: boolean;
@@ -61,4 +64,12 @@ export type FeatRequirement =
     }
   | {
       type: "spellcasting-or-pact-magic";
+    }
+  | {
+      type: "feat";
+      feat: FEATS;
+    }
+  | {
+      type: "any";
+      requirements: FeatRequirement[];
     };

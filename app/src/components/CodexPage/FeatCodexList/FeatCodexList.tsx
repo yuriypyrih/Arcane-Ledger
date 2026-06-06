@@ -16,7 +16,12 @@ import {
   type DivinityEntry,
   type SpellEntry
 } from "../../../codex/entries";
-import { featDefinitions, getFeatCategoryLabel } from "../../../pages/CharactersPage/feats";
+import {
+  featDefinitions,
+  getFeatCategoryLabel,
+  getFeatSource
+} from "../../../pages/CharactersPage/feats";
+import type { FeatSource } from "../../../pages/CharactersPage/feats/source";
 import type { ResolvedKeywordReference } from "../../../utils/codex/renderCodexRichText";
 import styles from "./FeatCodexList.module.css";
 import resultStyles from "../CodexResults/CodexResults.module.css";
@@ -29,9 +34,10 @@ type SelectedFeatReference = {
 type FeatCodexListProps = {
   query: string;
   featCategoryFilter: FEAT_CATEGORY | null;
+  featSourceFilter: FeatSource | null;
 };
 
-function FeatCodexList({ query, featCategoryFilter }: FeatCodexListProps) {
+function FeatCodexList({ query, featCategoryFilter, featSourceFilter }: FeatCodexListProps) {
   const [expandedFeatKeys, setExpandedFeatKeys] = useState<string[]>([]);
   const [selectedSpellReference, setSelectedSpellReference] = useState<SpellEntry | null>(null);
   const [selectedDivinityReference, setSelectedDivinityReference] = useState<DivinityEntry | null>(
@@ -47,18 +53,21 @@ function FeatCodexList({ query, featCategoryFilter }: FeatCodexListProps) {
     const filteredFeatDefinitions =
       normalizedQuery.length === 0
         ? featDefinitions.filter(
-            (definition) => featCategoryFilter === null || definition.category === featCategoryFilter
+            (definition) =>
+              (featCategoryFilter === null || definition.category === featCategoryFilter) &&
+              (featSourceFilter === null || getFeatSource(definition) === featSourceFilter)
           )
         : featDefinitions.filter(
             (definition) =>
               (featCategoryFilter === null || definition.category === featCategoryFilter) &&
+              (featSourceFilter === null || getFeatSource(definition) === featSourceFilter) &&
               definition.label.toLowerCase().includes(normalizedQuery)
           );
 
     return [...filteredFeatDefinitions].sort((left, right) =>
       left.label.localeCompare(right.label)
     );
-  }, [featCategoryFilter, normalizedQuery]);
+  }, [featCategoryFilter, featSourceFilter, normalizedQuery]);
 
   function toggleFeatKey(featKey: string) {
     setExpandedFeatKeys((currentKeys) =>
@@ -109,6 +118,15 @@ function FeatCodexList({ query, featCategoryFilter }: FeatCodexListProps) {
                     onClick={() => toggleFeatKey(featKey)}
                   />
                 }
+                endMeta={
+                  <span
+                    className={styles.entrySource}
+                    aria-label={`Source: ${getFeatSource(definition)}`}
+                  >
+                    {getFeatSource(definition)}
+                  </span>
+                }
+                toggleIconPlacement="end"
                 showDivider={index > 0}
               >
                 <p className={styles.featMeta}>

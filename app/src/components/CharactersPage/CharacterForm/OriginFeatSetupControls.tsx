@@ -1,14 +1,30 @@
+import { useEffect } from "react";
 import { FEATS } from "../../../codex/entries";
-import type { CharacterFeatEntry, MagicInitiateChoice, TOOL_PROFICIENCY } from "../../../types";
+import {
+  LANGUAGE_PROFICIENCY,
+  type CharacterFeatEntry,
+  type EmeraldEnclaveFledglingChoice,
+  type LanguageProficiencyEntry,
+  type MagicInitiateChoice,
+  type TOOL_PROFICIENCY
+} from "../../../types";
 import SelectInput from "../FormInputs/SelectInput";
 import {
   getFeatLabel,
   getMagicInitiateCantripOptions,
+  emeraldEnclaveFledglingSpellcastingAbilityOptions,
   getMagicInitiateLevelOneSpellOptions,
   getMagicInitiateSpellListLabel,
   magicInitiateSpellcastingAbilityOptions,
   magicInitiateSpellListOptions
 } from "../../../pages/CharactersPage/feats";
+import {
+  cultOfDragonInitiateDefaultLanguage,
+  cultOfDragonInitiateLanguageOptions,
+  getCultOfDragonInitiateLanguageLabel,
+  getDefaultCultOfDragonInitiateLanguage,
+  hasDraconicLanguageFromOtherSource
+} from "../../../pages/CharactersPage/feats/cultOfDragonInitiate";
 import { crafterFastCraftingToolProficiencies } from "../../../pages/CharactersPage/feats/crafter";
 import {
   getToolProficiencyLabel,
@@ -23,8 +39,13 @@ type OriginFeatSetupControlsProps = {
   featEntry: CharacterFeatEntry | null;
   sourceLabel: string;
   emptyText: string;
+  languageProficiencies: LanguageProficiencyEntry[];
   lockedMagicInitiateSpellList?: MagicInitiateChoice["spellList"];
   onMagicInitiateChange: (partialChoice: Partial<MagicInitiateChoice>) => void;
+  onCultOfDragonInitiateLanguageChange: (language: LANGUAGE_PROFICIENCY) => void;
+  onEmeraldEnclaveFledglingChange: (
+    partialChoice: Partial<EmeraldEnclaveFledglingChoice>
+  ) => void;
   onToolFeatSelection: (
     feat: FEATS.CRAFTER | FEATS.MUSICIAN,
     index: number,
@@ -53,11 +74,40 @@ function OriginFeatSetupControls({
   featEntry,
   sourceLabel,
   emptyText,
+  languageProficiencies,
   lockedMagicInitiateSpellList,
   onMagicInitiateChange,
+  onCultOfDragonInitiateLanguageChange,
+  onEmeraldEnclaveFledglingChange,
   onToolFeatSelection,
   onSkilledSelection
 }: OriginFeatSetupControlsProps) {
+  useEffect(() => {
+    if (feat !== FEATS.CULT_OF_THE_DRAGON_INITIATE || !featEntry?.cultOfDragonInitiate) {
+      return;
+    }
+
+    const knowsDraconicFromOtherSource = hasDraconicLanguageFromOtherSource(
+      languageProficiencies,
+      featEntry.id
+    );
+    const expectedLanguage = getDefaultCultOfDragonInitiateLanguage(knowsDraconicFromOtherSource);
+
+    if (
+      (!knowsDraconicFromOtherSource &&
+        featEntry.cultOfDragonInitiate.language !== expectedLanguage) ||
+      (knowsDraconicFromOtherSource &&
+        featEntry.cultOfDragonInitiate.language === cultOfDragonInitiateDefaultLanguage)
+    ) {
+      onCultOfDragonInitiateLanguageChange(expectedLanguage);
+    }
+  }, [
+    feat,
+    featEntry,
+    languageProficiencies,
+    onCultOfDragonInitiateLanguageChange
+  ]);
+
   if (!feat || !featEntry) {
     return <p className={styles.helperText}>{emptyText}</p>;
   }
@@ -154,6 +204,75 @@ function OriginFeatSetupControls({
             {levelOneSpellOptions.map((spell) => (
               <option key={spell.id} value={spell.id}>
                 {spell.name}
+              </option>
+            ))}
+          </SelectInput>
+        </label>
+      </div>
+    );
+  }
+
+  if (feat === FEATS.CULT_OF_THE_DRAGON_INITIATE && featEntry.cultOfDragonInitiate) {
+    const choice = featEntry.cultOfDragonInitiate;
+    const knowsDraconicFromOtherSource = hasDraconicLanguageFromOtherSource(
+      languageProficiencies,
+      featEntry.id
+    );
+    const isLanguageLocked = !knowsDraconicFromOtherSource;
+    const languageOptions = isLanguageLocked
+      ? [cultOfDragonInitiateDefaultLanguage]
+      : cultOfDragonInitiateLanguageOptions;
+
+    return (
+      <div className={styles.classSetupGrid}>
+        <label className={styles.field}>
+          <span>Language</span>
+          <SelectInput
+            className={styles.fieldInput}
+            value={isLanguageLocked ? cultOfDragonInitiateDefaultLanguage : choice.language}
+            disabled={isLanguageLocked}
+            onChange={(event) =>
+              onCultOfDragonInitiateLanguageChange(event.target.value as LANGUAGE_PROFICIENCY)
+            }
+          >
+            {languageOptions.map((language) => (
+              <option
+                key={language}
+                value={language}
+                disabled={
+                  knowsDraconicFromOtherSource &&
+                  language === cultOfDragonInitiateDefaultLanguage
+                }
+              >
+                {getCultOfDragonInitiateLanguageLabel(language)}
+              </option>
+            ))}
+          </SelectInput>
+        </label>
+      </div>
+    );
+  }
+
+  if (feat === FEATS.EMERALD_ENCLAVE_FLEDGLING && featEntry.emeraldEnclaveFledgling) {
+    const choice = featEntry.emeraldEnclaveFledgling;
+
+    return (
+      <div className={styles.classSetupGrid}>
+        <label className={styles.field}>
+          <span>Spellcasting ability</span>
+          <SelectInput
+            className={styles.fieldInput}
+            value={choice.spellcastingAbility}
+            onChange={(event) =>
+              onEmeraldEnclaveFledglingChange({
+                spellcastingAbility:
+                  event.target.value as EmeraldEnclaveFledglingChoice["spellcastingAbility"]
+              })
+            }
+          >
+            {emeraldEnclaveFledglingSpellcastingAbilityOptions.map((ability) => (
+              <option key={ability} value={ability}>
+                {ability}
               </option>
             ))}
           </SelectInput>

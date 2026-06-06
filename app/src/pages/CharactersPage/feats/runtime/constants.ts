@@ -22,6 +22,10 @@ export const shieldMasterReactionEntryId = "reaction-shield-master";
 export const warCasterReactiveSpellReactionEntryId = "reaction-war-caster-reactive-spell";
 
 export const luckyFeatActionKey = "feat-lucky";
+export const cultOfDragonInitiateDragonsTerrorActionKey =
+  "feat-cult-of-the-dragon-initiate-dragons-terror";
+export const cultOfDragonInitiateInspiredByFearActionKey =
+  "feat-cult-of-the-dragon-initiate-inspired-by-fear";
 export const boonOfFateImproveFateActionKey = "feat-boon-of-fate-improve-fate";
 export const boonOfRecoveryRecoverVitalityActionKey =
   "feat-boon-of-recovery-recover-vitality";
@@ -32,6 +36,8 @@ export const feyTouchedMistyStepSpellId = "spell-misty-step";
 export const telekineticMageHandSpellId = "spell-mage-hand";
 export const telepathicDetectThoughtsSpellId = "spell-detect-thoughts";
 export const shadowTouchedInvisibilitySpellId = "spell-invisibility";
+export const emeraldEnclaveFledglingSpeakWithAnimalsSpellId =
+  "spell-speak-with-animals";
 
 export const healerKitItemKeys = new Set([
   "srd_healers-kit",

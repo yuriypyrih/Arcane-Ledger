@@ -11,10 +11,12 @@ import type {
   ChargerChoice,
   ChefChoice,
   CrusherChoice,
+  CultOfDragonInitiateChoice,
   DualWielderChoice,
   ElementalAdeptChoice,
   CrafterChoice,
   DruidicWarriorChoice,
+  EmeraldEnclaveFledglingChoice,
   FeyTouchedChoice,
   HeavilyArmoredChoice,
   HeavyArmorMasterChoice,
@@ -69,7 +71,9 @@ import {
   normalizeChargerChoice,
   normalizeChefChoice,
   normalizeCrusherChoice,
+  normalizeCultOfDragonInitiateChoice,
   normalizeDualWielderChoice,
+  normalizeEmeraldEnclaveFledglingChoice,
   normalizeElementalAdeptChoice,
   normalizeDruidicWarriorChoice,
   normalizeEpicBoonAbilityChoice,
@@ -425,6 +429,14 @@ export function normalizeCharacterFeats(
       feat === FEATS.MAGIC_INITIATE
         ? normalizeMagicInitiateChoice(record.magicInitiate)
         : undefined;
+    const cultOfDragonInitiate =
+      feat === FEATS.CULT_OF_THE_DRAGON_INITIATE
+        ? normalizeCultOfDragonInitiateChoice(record.cultOfDragonInitiate)
+        : undefined;
+    const emeraldEnclaveFledgling =
+      feat === FEATS.EMERALD_ENCLAVE_FLEDGLING
+        ? normalizeEmeraldEnclaveFledglingChoice(record.emeraldEnclaveFledgling)
+        : undefined;
     const crafter = feat === FEATS.CRAFTER ? normalizeCrafterChoice(record.crafter) : undefined;
     const epicBoonAbilityChoice = epicBoonAbilityIncreaseFeatOptions.has(feat)
       ? (normalizeEpicBoonAbilityChoice(feat, record.epicBoonAbilityChoice) ??
@@ -486,6 +498,8 @@ export function normalizeCharacterFeats(
         blessedWarrior,
         druidicWarrior,
         magicInitiate,
+        cultOfDragonInitiate,
+        emeraldEnclaveFledgling,
         crafter,
         boonOfEnergyResistance,
         boonOfFate,
@@ -543,6 +557,8 @@ export function createCharacterFeatEntry(
     blessedWarrior?: BlessedWarriorChoice;
     druidicWarrior?: DruidicWarriorChoice;
     magicInitiate?: MagicInitiateChoice;
+    cultOfDragonInitiate?: CultOfDragonInitiateChoice;
+    emeraldEnclaveFledgling?: EmeraldEnclaveFledglingChoice;
     musician?: MusicianChoice;
     crafter?: CrafterChoice;
     boonOfEnergyResistance?: BoonOfEnergyResistanceChoice;
@@ -599,6 +615,12 @@ export function createCharacterFeatEntry(
     blessedWarrior: feat === FEATS.BLESSED_WARRIOR ? options?.blessedWarrior : undefined,
     druidicWarrior: feat === FEATS.DRUIDIC_WARRIOR ? options?.druidicWarrior : undefined,
     magicInitiate: feat === FEATS.MAGIC_INITIATE ? options?.magicInitiate : undefined,
+    cultOfDragonInitiate:
+      feat === FEATS.CULT_OF_THE_DRAGON_INITIATE ? options?.cultOfDragonInitiate : undefined,
+    emeraldEnclaveFledgling:
+      feat === FEATS.EMERALD_ENCLAVE_FLEDGLING
+        ? options?.emeraldEnclaveFledgling
+        : undefined,
     musician: feat === FEATS.MUSICIAN ? options?.musician : undefined,
     crafter: feat === FEATS.CRAFTER ? options?.crafter : undefined,
     boonOfEnergyResistance:

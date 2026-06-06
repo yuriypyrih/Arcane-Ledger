@@ -538,7 +538,7 @@
   --sheet-drawer-bottom-padding: 0.95rem;
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 0.92rem;
   width: min(var(--overlay-size-medium), 100%);
   max-height: calc(100dvh - (var(--overlay-backdrop-padding) * 2));
   border: 1px solid rgba(75, 47, 29, 0.22);
@@ -556,8 +556,7 @@
   min-height: 0;
   overflow: auto;
   overscroll-behavior: contain;
-  padding: 0 calc(var(--sheet-drawer-inline-padding) - 0.12rem) var(--sheet-drawer-bottom-padding)
-    var(--sheet-drawer-inline-padding);
+  padding: 0 var(--sheet-drawer-inline-padding) 0.35rem;
 }
 
 .spellDrawerHeader {
@@ -662,11 +661,7 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 0.85rem;
-  position: sticky;
-  bottom: 0;
-  z-index: 2;
   border-top: 1px solid rgba(75, 47, 29, 0.12);
-  background: linear-gradient(160deg, rgba(255, 252, 245, 0.99), rgba(245, 234, 218, 0.99));
   padding: 0.8rem var(--sheet-drawer-inline-padding) var(--sheet-drawer-bottom-padding);
 }
 

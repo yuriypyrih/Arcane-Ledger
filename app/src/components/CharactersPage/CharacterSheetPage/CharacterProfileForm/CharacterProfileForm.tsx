@@ -159,13 +159,13 @@ function CharacterProfileForm({
               </button>
             </div>
             <div className={styles.identityRows}>
-              <p className={styles.identityClassLine}>
+              <p className={clsx(styles.identityMetaLine, styles.identityClassLine)}>
                 {identityLine}
                 {selectedSubclass ? (
                   <span className={styles.identitySubclassLine}> ({selectedSubclass.name})</span>
                 ) : null}
               </p>
-              <p>{character.alignment}</p>
+              <p className={styles.identityMetaLine}>{character.alignment}</p>
             </div>
             <div className={styles.profileActionLinks}>
               <InlineToggleButton

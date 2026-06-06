@@ -80,8 +80,10 @@ import {
   decodePendingBoonOfSkillChoice,
   decodePendingChargerChoice,
   decodePendingChefChoice,
+  decodePendingCultOfDragonInitiateChoice,
   decodePendingCrusherChoice,
   decodePendingDualWielderChoice,
+  decodePendingEmeraldEnclaveFledglingChoice,
   decodePendingElementalAdeptChoice,
   decodePendingFeyTouchedChoice,
   decodePendingHeavilyArmoredChoice,
@@ -793,7 +795,9 @@ function ClassFeaturesAndFeats({
       return;
     }
 
-    const pendingState = createPendingFeatStateForFeat(feat);
+    const pendingState = createPendingFeatStateForFeat(feat, {
+      languageProficiencies: featEditorDraftRef.current.languageProficiencies
+    });
 
     if (pendingState) {
       setEditingFeatEntryId(null);
@@ -1616,6 +1620,43 @@ function ClassFeaturesAndFeats({
     );
   }
 
+  function savePendingCultOfDragonInitiateChoice() {
+    const choice = pendingFeatState.cultOfDragonInitiateChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const cultOfDragonInitiate = decodePendingCultOfDragonInitiateChoice(
+      choice,
+      featEditorDraftRef.current.languageProficiencies,
+      editingFeatEntryId
+    );
+
+    if (!cultOfDragonInitiate) {
+      return;
+    }
+
+    const editingEntry = editingFeatEntryId
+      ? featEditorDraftRef.current.feats.find((entry) => entry.id === editingFeatEntryId)
+      : null;
+    const inspiredByFearExpended =
+      editingEntry?.feat === FEATS.CULT_OF_THE_DRAGON_INITIATE
+        ? editingEntry.cultOfDragonInitiate?.inspiredByFearExpended
+        : undefined;
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.CULT_OF_THE_DRAGON_INITIATE, {
+        cultOfDragonInitiate: {
+          ...cultOfDragonInitiate,
+          ...(inspiredByFearExpended === undefined
+            ? {}
+            : { inspiredByFearExpended })
+        }
+      })
+    );
+  }
+
   function savePendingMagicInitiateChoice() {
     const choice = pendingFeatState.magicInitiateChoice;
 
@@ -1632,6 +1673,26 @@ function ClassFeaturesAndFeats({
     upsertFeatForContext(
       createContextualFeatEntry(FEATS.MAGIC_INITIATE, {
         magicInitiate
+      })
+    );
+  }
+
+  function savePendingEmeraldEnclaveFledglingChoice() {
+    const choice = pendingFeatState.emeraldEnclaveFledglingChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const emeraldEnclaveFledgling = decodePendingEmeraldEnclaveFledglingChoice(choice);
+
+    if (!emeraldEnclaveFledgling) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.EMERALD_ENCLAVE_FLEDGLING, {
+        emeraldEnclaveFledgling
       })
     );
   }
@@ -1906,6 +1967,7 @@ function ClassFeaturesAndFeats({
           savingThrowProficiencies={featEditorDraft.savingThrowProficiencies}
           weaponProficiencies={featEditorDraft.weaponProficiencies}
           toolProficiencies={featEditorDraft.toolProficiencies}
+          languageProficiencies={featEditorDraft.languageProficiencies}
           selectedFeats={featEditorDraft.feats}
           editingFeatEntryId={editingFeatEntryId}
           pendingFeatState={pendingFeatState}
@@ -1957,6 +2019,12 @@ function ClassFeaturesAndFeats({
           onSavePendingBoonOfIrresistibleOffense={savePendingBoonOfIrresistibleOffense}
           onSavePendingBoonOfSkillChoice={savePendingBoonOfSkillChoice}
           onSavePendingBlessedWarriorChoice={savePendingBlessedWarriorChoice}
+          onSavePendingCultOfDragonInitiateChoice={
+            savePendingCultOfDragonInitiateChoice
+          }
+          onSavePendingEmeraldEnclaveFledglingChoice={
+            savePendingEmeraldEnclaveFledglingChoice
+          }
           onSavePendingCrafterChoice={savePendingCrafterChoice}
           onSavePendingDruidicWarriorChoice={savePendingDruidicWarriorChoice}
           onSavePendingEpicBoonAbilityChoice={savePendingEpicBoonAbilityChoice}

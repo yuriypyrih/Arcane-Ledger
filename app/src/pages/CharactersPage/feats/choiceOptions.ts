@@ -10,6 +10,8 @@ export const magicInitiateSpellListOptions = [
 ] as const;
 
 export const magicInitiateSpellcastingAbilityOptions = ["INT", "WIS", "CHA"] as const;
+export const emeraldEnclaveFledglingSpellcastingAbilityOptions =
+  magicInitiateSpellcastingAbilityOptions;
 export const elementalAdeptAbilityOptions = ["INT", "WIS", "CHA"] as const;
 
 export const elementalAdeptDamageTypeOptions = [

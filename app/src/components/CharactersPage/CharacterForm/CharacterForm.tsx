@@ -11,6 +11,7 @@ import type {
   CharacterDraft,
   CharacterFeatEntry,
   CharacterSpeciesChoices,
+  EmeraldEnclaveFledglingChoice,
   MagicInitiateChoice,
   SkillName
 } from "../../../types";
@@ -321,6 +322,40 @@ function updateMagicInitiateFeatEntry(
     ...featEntry,
     magicInitiate: {
       ...featEntry.magicInitiate,
+      ...partialChoice
+    }
+  };
+}
+
+function updateCultOfDragonInitiateFeatEntry(
+  featEntry: CharacterFeatEntry | null,
+  language: LANGUAGE_PROFICIENCY
+): CharacterFeatEntry | null {
+  if (!featEntry?.cultOfDragonInitiate) {
+    return null;
+  }
+
+  return {
+    ...featEntry,
+    cultOfDragonInitiate: {
+      ...featEntry.cultOfDragonInitiate,
+      language
+    }
+  };
+}
+
+function updateEmeraldEnclaveFledglingFeatEntry(
+  featEntry: CharacterFeatEntry | null,
+  partialChoice: Partial<EmeraldEnclaveFledglingChoice>
+): CharacterFeatEntry | null {
+  if (!featEntry?.emeraldEnclaveFledgling) {
+    return null;
+  }
+
+  return {
+    ...featEntry,
+    emeraldEnclaveFledgling: {
+      ...featEntry.emeraldEnclaveFledgling,
       ...partialChoice
     }
   };
@@ -1905,6 +1940,48 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     }
   }
 
+  function updateBackgroundCultOfDragonInitiateLanguage(language: LANGUAGE_PROFICIENCY) {
+    const nextEntry = updateCultOfDragonInitiateFeatEntry(selectedBackgroundFeatEntry, language);
+
+    if (nextEntry) {
+      commitBackgroundFeat(nextEntry);
+    }
+  }
+
+  function updateHumanCultOfDragonInitiateLanguage(language: LANGUAGE_PROFICIENCY) {
+    const nextEntry = updateCultOfDragonInitiateFeatEntry(selectedHumanOriginFeatEntry, language);
+
+    if (nextEntry) {
+      commitHumanOriginFeat(nextEntry);
+    }
+  }
+
+  function updateBackgroundEmeraldEnclaveFledgling(
+    partialChoice: Partial<EmeraldEnclaveFledglingChoice>
+  ) {
+    const nextEntry = updateEmeraldEnclaveFledglingFeatEntry(
+      selectedBackgroundFeatEntry,
+      partialChoice
+    );
+
+    if (nextEntry) {
+      commitBackgroundFeat(nextEntry);
+    }
+  }
+
+  function updateHumanEmeraldEnclaveFledgling(
+    partialChoice: Partial<EmeraldEnclaveFledglingChoice>
+  ) {
+    const nextEntry = updateEmeraldEnclaveFledglingFeatEntry(
+      selectedHumanOriginFeatEntry,
+      partialChoice
+    );
+
+    if (nextEntry) {
+      commitHumanOriginFeat(nextEntry);
+    }
+  }
+
   function updateBackgroundToolFeatSelection(
     feat: FEATS.CRAFTER | FEATS.MUSICIAN,
     index: number,
@@ -3053,8 +3130,11 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         featEntry={selectedBackgroundFeatEntry}
         sourceLabel="background"
         emptyText="Choose a supported background first."
+        languageProficiencies={proficiencyPreviewCollections.languageProficiencies}
         lockedMagicInitiateSpellList={backgroundEntry?.originFeatSpellList}
         onMagicInitiateChange={updateBackgroundMagicInitiate}
+        onCultOfDragonInitiateLanguageChange={updateBackgroundCultOfDragonInitiateLanguage}
+        onEmeraldEnclaveFledglingChange={updateBackgroundEmeraldEnclaveFledgling}
         onToolFeatSelection={updateBackgroundToolFeatSelection}
         onSkilledSelection={updateBackgroundSkilledSelection}
       />
@@ -3068,7 +3148,10 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         featEntry={selectedHumanOriginFeatEntry}
         sourceLabel="species"
         emptyText="Choose a Human origin feat first."
+        languageProficiencies={proficiencyPreviewCollections.languageProficiencies}
         onMagicInitiateChange={updateHumanMagicInitiate}
+        onCultOfDragonInitiateLanguageChange={updateHumanCultOfDragonInitiateLanguage}
+        onEmeraldEnclaveFledglingChange={updateHumanEmeraldEnclaveFledgling}
         onToolFeatSelection={updateHumanToolFeatSelection}
         onSkilledSelection={updateHumanSkilledSelection}
       />

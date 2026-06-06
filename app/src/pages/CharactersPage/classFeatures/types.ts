@@ -154,6 +154,7 @@ export type FeatureActionExecuteEffectKind =
   | "bardic-inspiration-roll"
   | "second-wind"
   | "speedy-recovery"
+  | "cult-inspired-by-fear"
   | "tactical-mind"
   | "tireless";
 
