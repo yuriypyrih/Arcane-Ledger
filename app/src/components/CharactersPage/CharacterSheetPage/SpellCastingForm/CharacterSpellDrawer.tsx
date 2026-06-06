@@ -100,7 +100,7 @@ export type CharacterSpellDrawerActionOptions = {
   useShadowMagic?: boolean;
   useDetectThoughts?: boolean;
   useBoonOfSpellRecall?: boolean;
-  useSpellfireFlame?: boolean;
+  spellCastEffectIds?: string[];
   spellImplementationOptions?: SpellImplementationOptionValues;
 };
 
@@ -152,7 +152,7 @@ export type CharacterSpellDrawerActionPath = {
   disabledReason?: string | null;
   roundTrackerResourceOverride?: RoundTrackerResource | null;
   usage?: FeatureActionCardUsage;
-  useSpellfireFlame?: boolean;
+  spellCastEffectIds?: string[];
 };
 
 export type CharacterSpellDrawerSlotFreeUseOption = {
@@ -488,7 +488,7 @@ function CharacterSpellDrawer({
     useDetectThoughts: allActionOptions.some(
       (option) => option.id === "detect-thoughts" && option.checked
     ),
-    useSpellfireFlame: false,
+    spellCastEffectIds: [],
     spellImplementationOptions: activeSpellImplementationOptionValues
   };
   const resolvedActionPaths =
@@ -1082,7 +1082,7 @@ function CharacterSpellDrawer({
                           ? onAction({
                               ...baseActionOptions,
                               roundTrackerResourceOverride: path.roundTrackerResourceOverride,
-                              useSpellfireFlame: path.useSpellfireFlame === true
+                              spellCastEffectIds: path.spellCastEffectIds ?? []
                             })
                           : runWithActionConfirmationToast(
                               path.roundTrackerResourceOverride ?? path.actionShape,
@@ -1090,7 +1090,7 @@ function CharacterSpellDrawer({
                                 onAction({
                                   ...baseActionOptions,
                                   roundTrackerResourceOverride: path.roundTrackerResourceOverride,
-                                  useSpellfireFlame: path.useSpellfireFlame === true
+                                  spellCastEffectIds: path.spellCastEffectIds ?? []
                                 })
                             )
                       }

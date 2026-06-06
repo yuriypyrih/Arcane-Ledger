@@ -7,6 +7,7 @@ import {
   type RoundTrackerResource
 } from "../../../../pages/CharactersPage/combat";
 import { applySpellCastFeatureEffectsForCharacter } from "../../../../pages/CharactersPage/classFeatures";
+import { applyFeatSpellCastEffectsForCharacter } from "../../../../pages/CharactersPage/feats/runtime";
 import {
   consumeSharedEconomyMultiForCharacterAction,
   createEconomyMultiContextForSpell
@@ -160,7 +161,8 @@ function EquipmentStoredSpellDrawer({
             actionShapeAvailable: path.shapeState.isAvailable,
             actionShapeMultiCount: path.shapeState.multiCount,
             disabledReason: chargeWarning ?? path.shapeState.disabledReason,
-            roundTrackerResourceOverride: path.roundTrackerResource
+            roundTrackerResourceOverride: path.roundTrackerResource,
+            spellCastEffectIds: path.spellCastEffectIds
           }
         : null;
     })
@@ -187,6 +189,7 @@ function EquipmentStoredSpellDrawer({
 
   function castStoredSpell(options?: {
     roundTrackerResourceOverride?: RoundTrackerResource | null;
+    spellCastEffectIds?: string[];
     spellImplementationOptions?: SpellImplementationOptionValues;
   }) {
     if (!selectedStoredSpell || !activeSpellEntry) {
@@ -247,14 +250,24 @@ function EquipmentStoredSpellDrawer({
         nextCharacterWithSpellImplementation,
         spell
       );
+      const nextCharacterWithFeatCastEffects = applyFeatSpellCastEffectsForCharacter(
+        nextCharacterWithSpellCastEffects,
+        spell,
+        options?.spellCastEffectIds
+      );
+
+      if (!nextCharacterWithFeatCastEffects) {
+        return currentCharacter;
+      }
+
       const nextCharacterWithSharedMulti = roundTrackerResource
         ? consumeSharedEconomyMultiForCharacterAction(
-            nextCharacterWithSpellCastEffects,
+            nextCharacterWithFeatCastEffects,
             sharedEconomyContext
           )
-        : nextCharacterWithSpellCastEffects;
+        : nextCharacterWithFeatCastEffects;
       const nextCharacterWithEconomy =
-        roundTrackerResource && nextCharacterWithSharedMulti === nextCharacterWithSpellCastEffects
+        roundTrackerResource && nextCharacterWithSharedMulti === nextCharacterWithFeatCastEffects
           ? consumeRoundTrackerResourceForCharacter(
               nextCharacterWithSharedMulti,
               roundTrackerResource

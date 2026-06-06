@@ -30,7 +30,7 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
     consumeRitualCasterQuickRitualForCharacter,
     consumeShadowTouchedFreeCastForCharacter,
     consumeTelepathicDetectThoughtsFreeCastForCharacter,
-    spendSpellfireSparkSpellfireFlameForCharacter,
+    applyFeatSpellCastEffectsForCharacter,
     consumeRangerFeyReinforcementsUseForCharacter,
     consumeRangerMistyWandererUseForCharacter,
     consumeRangerWinterWalkerFrozenHauntUseForCharacter,
@@ -154,8 +154,9 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
     options?.useDetectThoughts === true && selectedSpellSupportsDetectThoughts;
   const useBoonOfSpellRecall =
     options?.useBoonOfSpellRecall === true && selectedSpellSupportsBoonOfSpellRecall;
-  const useSpellfireFlame =
-    options?.useSpellfireFlame === true && selectedSpellSupportsSpellfireFlame;
+  const selectedSpellCastEffectIds = Array.isArray(options?.spellCastEffectIds)
+    ? options.spellCastEffectIds
+    : [];
   const useEmeraldEnclaveFledglingFreeUse =
     options?.useEmeraldEnclaveFledglingFreeUse === true &&
     selectedSpellSupportsEmeraldEnclaveFledgling;
@@ -280,23 +281,22 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
         const nextCharacterWithGoliathAncestry = consumeGoliathAncestryIfSelected(
           nextCharacterWithSpellImplementation
         );
-        const nextCharacterWithSpellfireFlame = useSpellfireFlame
-          ? spendSpellfireSparkSpellfireFlameForCharacter(nextCharacterWithGoliathAncestry)
-          : nextCharacterWithGoliathAncestry;
+        const nextCharacterWithFeatCastEffects = applyFeatSpellCastEffectsForCharacter(
+          nextCharacterWithGoliathAncestry,
+          selectedSpell,
+          selectedSpellCastEffectIds
+        );
 
-        if (
-          useSpellfireFlame &&
-          nextCharacterWithSpellfireFlame === nextCharacterWithGoliathAncestry
-        ) {
+        if (!nextCharacterWithFeatCastEffects) {
           return currentCharacter;
         }
 
         const nextCharacterWithSharedMulti = consumeSharedEconomyMultiForCharacterAction(
-          nextCharacterWithSpellfireFlame,
+          nextCharacterWithFeatCastEffects,
           sharedEconomyContext
         );
 
-        if (nextCharacterWithSharedMulti !== nextCharacterWithSpellfireFlame) {
+        if (nextCharacterWithSharedMulti !== nextCharacterWithFeatCastEffects) {
           return applySpellCastFeatureEffectsForCharacter(
             nextCharacterWithSharedMulti,
             selectedSpell,
@@ -305,7 +305,7 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
         }
 
         const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
-          nextCharacterWithSpellfireFlame,
+          nextCharacterWithFeatCastEffects,
           selectedSpell,
           { useRadiantSoul }
         );
@@ -354,19 +354,18 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
         const nextCharacterWithGoliathAncestry = consumeGoliathAncestryIfSelected(
           nextCharacterWithSpellImplementation
         );
-        const nextCharacterWithSpellfireFlame = useSpellfireFlame
-          ? spendSpellfireSparkSpellfireFlameForCharacter(nextCharacterWithGoliathAncestry)
-          : nextCharacterWithGoliathAncestry;
+        const nextCharacterWithFeatCastEffects = applyFeatSpellCastEffectsForCharacter(
+          nextCharacterWithGoliathAncestry,
+          selectedSpell,
+          selectedSpellCastEffectIds
+        );
 
-        if (
-          useSpellfireFlame &&
-          nextCharacterWithSpellfireFlame === nextCharacterWithGoliathAncestry
-        ) {
+        if (!nextCharacterWithFeatCastEffects) {
           return currentCharacter;
         }
 
         const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
-          nextCharacterWithSpellfireFlame,
+          nextCharacterWithFeatCastEffects,
           selectedSpell,
           { useRadiantSoul }
         );
@@ -772,11 +771,21 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
     const nextCharacterWithGoliathAncestry = consumeGoliathAncestryIfSelected(
       nextCharacterWithFrozenHaunt
     );
+    const nextCharacterWithFeatCastEffects = applyFeatSpellCastEffectsForCharacter(
+      nextCharacterWithGoliathAncestry,
+      selectedSpell,
+      selectedSpellCastEffectIds
+    );
+
+    if (!nextCharacterWithFeatCastEffects) {
+      return currentCharacter;
+    }
+
     const spellConsumedSpellSlot = !castsWithoutSpellSlot || shouldSpendFrozenHauntFallbackSlot;
     const nextCharacterWithTamedSurge =
       useTamedSurge && spellConsumedSpellSlot
-        ? consumeSorcererSubclassTamedSurgeUseForCharacter(nextCharacterWithGoliathAncestry)
-        : nextCharacterWithGoliathAncestry;
+        ? consumeSorcererSubclassTamedSurgeUseForCharacter(nextCharacterWithFeatCastEffects)
+        : nextCharacterWithFeatCastEffects;
     const nextCharacterWithOverchannel = useOverchannel
       ? applyWizardEvokerOverchannelUse(nextCharacterWithTamedSurge)
       : nextCharacterWithTamedSurge;

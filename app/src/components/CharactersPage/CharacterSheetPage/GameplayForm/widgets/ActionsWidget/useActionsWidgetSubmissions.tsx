@@ -95,6 +95,7 @@ import {
   type FeatureActionHeaderTag,
   type FeatureActionOptionCard
 } from "../../../../../../pages/CharactersPage/classFeatures";
+import { applyFeatSpellCastEffectsForCharacter } from "../../../../../../pages/CharactersPage/feats/runtime";
 import { bardicInspirationActionKey } from "../../../../../../pages/CharactersPage/classFeatures/bard/bard";
 import {
   createChargesCardUsage,
@@ -1825,6 +1826,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
 
   function castFixedSpellAction(options?: {
     roundTrackerResourceOverride?: "action" | "bonusAction" | "reaction" | null;
+    spellCastEffectIds?: string[];
     useBeguilingMagic?: boolean;
     useElementalSmite?: boolean;
     elementalSmiteOption?: PaladinOathOfTheNobleGeniesElementalSmiteOptionKey | null;
@@ -2037,14 +2039,24 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
       const nextCharacterWithGoliathAncestry = useGoliathAncestry
         ? consumeGoliathGiantAncestryUseForCharacter(nextCharacterWithFrozenHaunt)
         : nextCharacterWithFrozenHaunt;
+      const nextCharacterWithFeatCastEffects = applyFeatSpellCastEffectsForCharacter(
+        nextCharacterWithGoliathAncestry,
+        fixedSpellEntry,
+        options?.spellCastEffectIds
+      );
+
+      if (!nextCharacterWithFeatCastEffects) {
+        return currentCharacter;
+      }
+
       const spellConsumedSpellSlot =
         (fixedSpellConsumesSpellSlot && !castsWithoutSpellSlot) ||
         shouldSpendFrozenHauntFallbackSlot;
       const nextCharacterWithSorcererSubclassRecharge = spellConsumedSpellSlot
         ? restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter(
-            nextCharacterWithGoliathAncestry
+            nextCharacterWithFeatCastEffects
           )
-        : nextCharacterWithGoliathAncestry;
+        : nextCharacterWithFeatCastEffects;
       const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
         nextCharacterWithSorcererSubclassRecharge,
         fixedSpellEntry,

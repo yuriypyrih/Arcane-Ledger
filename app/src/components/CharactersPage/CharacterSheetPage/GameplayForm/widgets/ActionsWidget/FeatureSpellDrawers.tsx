@@ -6,6 +6,7 @@ import type { Character } from "../../../../../../types";
 import type { SpellEntry } from "../../../../../../codex/entries";
 import type {
   FeatureActionCard,
+  FeatureActionCardUsage,
   FeatureActionExecuteConfig,
   FeatureActionFact
 } from "../../../../../../pages/CharactersPage/classFeatures";
@@ -50,6 +51,10 @@ type SpellActionPathState = {
     multiCount: number;
     disabledReason?: string | null;
   };
+  actionLabel?: string;
+  disabledReason?: string | null;
+  usage?: FeatureActionCardUsage;
+  spellCastEffectIds?: string[];
 };
 
 type FrozenHauntOptionState = {
@@ -414,12 +419,14 @@ function FeatureSpellDrawers({
               return actionShape
                 ? {
                     id: path.id,
-                    actionLabel: fixedSpellExecute.actionLabel,
+                    actionLabel: path.actionLabel ?? fixedSpellExecute.actionLabel,
                     actionShape,
                     actionShapeAvailable: path.shapeState.isAvailable,
                     actionShapeMultiCount: path.shapeState.multiCount,
-                    disabledReason: path.shapeState.disabledReason,
-                    roundTrackerResourceOverride: path.roundTrackerResource
+                    disabledReason: path.disabledReason ?? path.shapeState.disabledReason,
+                    roundTrackerResourceOverride: path.roundTrackerResource,
+                    usage: path.usage,
+                    spellCastEffectIds: path.spellCastEffectIds
                   }
                 : null;
             })

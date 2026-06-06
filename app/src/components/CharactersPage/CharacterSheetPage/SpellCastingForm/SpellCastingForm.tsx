@@ -150,7 +150,7 @@ import {
   getRitualCasterQuickRitualStateForCharacter,
   getShadowTouchedFreeCastStateForCharacter,
   getSpellfireSparkSpellfireFlameStateForCharacter,
-  spendSpellfireSparkSpellfireFlameForCharacter,
+  applyFeatSpellCastEffectsForCharacter,
   getTelepathicDetectThoughtsFreeCastStateForCharacter
 } from "../../../../pages/CharactersPage/feats/runtime";
 import {
@@ -463,14 +463,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const getSpellcastingAbilityOverrideForSpell = useCallback(
     (spellId: string) =>
       getSpeciesSpellcastingAbilityForCharacter(character, spellId) ??
-      featRuntime.magicInitiateSpellcastingAbilityBySpellId.get(spellId) ??
-      featRuntime.spellfireSparkSpellcastingAbilityBySpellId.get(spellId) ??
+      featRuntime.spellcastingAbilityBySpellId.get(spellId) ??
       null,
-    [
-      character,
-      featRuntime.magicInitiateSpellcastingAbilityBySpellId,
-      featRuntime.spellfireSparkSpellcastingAbilityBySpellId
-    ]
+    [character, featRuntime.spellcastingAbilityBySpellId]
   );
   const featAlwaysPreparedSpellEntries = useMemo(
     () => featRuntime.alwaysPreparedSpellEntries.map((spell) => transformSpellEntry(spell)),
@@ -2160,7 +2155,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     useOverchannel?: boolean;
     useBoonOfSpellRecall?: boolean;
     useEmeraldEnclaveFledglingFreeUse?: boolean;
-    useSpellfireFlame?: boolean;
+    spellCastEffectIds?: string[];
     spellImplementationOptions?: SpellImplementationOptionValues;
   }) {
     return castSelectedSpellWithContext(
@@ -2190,7 +2185,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         consumeRitualCasterQuickRitualForCharacter,
         consumeShadowTouchedFreeCastForCharacter,
         consumeTelepathicDetectThoughtsFreeCastForCharacter,
-        spendSpellfireSparkSpellfireFlameForCharacter,
+        applyFeatSpellCastEffectsForCharacter,
         consumeDruidNaturalRecoveryUseForCharacter,
         consumeDruidStarMapGuidingBoltUseForCharacter,
         consumeRangerFeyReinforcementsUseForCharacter,

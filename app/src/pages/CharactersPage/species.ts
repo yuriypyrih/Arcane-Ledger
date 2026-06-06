@@ -27,22 +27,19 @@ import {
 } from "../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "./actionEconomy";
 import { createChargesCardUsage } from "./classFeatures/cardUsage";
-import { addSpellSource } from "./classFeatures/spellSources";
 import type {
   FeatureActionCard,
   FeatureActionFact,
   FeatureSpeedBonus,
   SpellSourceMap
 } from "./classFeatures/types";
+import { compileFeatureContributions, type FeatureContributionSpec } from "./featureContributions";
 import { formatFormulaBreakdown, formatFormulaCell } from "./shared/formulas";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "./statusEntries";
 import {
   getDefaultDragonbornDraconicAncestryForSpecies,
-  getDragonbornActionsForCharacter,
-  getDragonbornDerivedStatusEntriesForCharacter,
   getDragonbornDraconicAncestryForCharacter,
   getDragonbornDraconicAncestryOptionsForSpecies,
-  getDragonbornSpeedBonusesForCharacter,
   formatDragonbornDraconicAncestryOptionLabel as formatDragonbornDraconicAncestrySummaryLabel,
   isDragonbornDraconicFlightStatusEntry,
   isDragonbornSpecies,
@@ -51,8 +48,6 @@ import {
   normalizeDragonbornFeatureState
 } from "./speciesDragonborn";
 import {
-  getDwarfActionsForCharacter,
-  getDwarfDerivedStatusEntriesForCharacter,
   isDwarfSpecies,
   isDwarfStonecunningStatusEntry,
   normalizeDwarfFeatureState,
@@ -62,14 +57,8 @@ import {
   getDefaultElfLineageForSpecies,
   getDefaultElfSkillProficiencyForSpecies,
   getDefaultElfSpellcastingAbilityForSpecies,
-  getElfAlwaysPreparedSpellIdsForCharacter,
-  getElfAlwaysPreparedSpellSourceMapForCharacter,
-  getElfDerivedStatusEntriesForCharacter,
-  getElfGrantedCantripEntriesForCharacter,
   getElfLineageOptionsForSpecies,
   getElfSkillProficiencyOptionsForSpecies,
-  getElfSpeedBonusesForCharacter,
-  getElfSpellcastingAbilityForCharacter,
   getElfSpellcastingAbilityOptionsForSpecies,
   formatElfLineageOptionLabel as formatElfLineageSummaryLabel,
   normalizeElfLineage,
@@ -79,13 +68,7 @@ import {
 import {
   getDefaultGnomeLineageForSpecies,
   getDefaultGnomeSpellcastingAbilityForSpecies,
-  getGnomeAlwaysPreparedSpellIdsForCharacter,
-  getGnomeAlwaysPreparedSpellSourceMapForCharacter,
-  getGnomeDerivedStatusEntriesForCharacter,
-  getGnomeGrantedCantripEntriesForCharacter,
   getGnomeLineageOptionsForSpecies,
-  getGnomeSpellEntryForCharacter,
-  getGnomeSpellcastingAbilityForCharacter,
   getGnomeSpellcastingAbilityOptionsForSpecies,
   formatGnomeLineageOptionLabel as formatGnomeLineageSummaryLabel,
   isGnomeSpecies,
@@ -95,12 +78,9 @@ import {
 } from "./speciesGnome";
 import {
   getDefaultGoliathGiantAncestryForSpecies,
-  getGoliathActionsForCharacter,
   getGoliathBodySizeOverrideForCharacter,
-  getGoliathDerivedStatusEntriesForCharacter,
   getGoliathGiantAncestryForCharacter,
   getGoliathGiantAncestryOptionsForSpecies,
-  getGoliathSpeedBonusesForCharacter,
   formatGoliathGiantAncestryOptionLabel as formatGoliathGiantAncestrySummaryLabel,
   isGoliathLargeFormStatusEntry,
   isGoliathSpecies,
@@ -108,7 +88,6 @@ import {
   normalizeGoliathGiantAncestry,
   normalizeGoliathLargeFormStatusEntry
 } from "./speciesGoliath";
-import { getHalflingDerivedStatusEntriesForCharacter } from "./speciesHalfling";
 import {
   formatHumanOriginFeatOptionLabel as formatHumanOriginFeatSummaryLabel,
   getDefaultHumanOriginFeatForSpecies,
@@ -119,29 +98,23 @@ import {
   normalizeHumanOriginFeat,
   normalizeHumanSkillProficiency
 } from "./speciesHuman";
-import {
-  getOrcCommonActionForCharacter,
-  getOrcDerivedStatusEntriesForCharacter,
-  isOrcSpecies,
-  normalizeOrcFeatureState
-} from "./speciesOrc";
+import { isOrcSpecies, normalizeOrcFeatureState } from "./speciesOrc";
 import {
   formatTieflingFiendishLegacyOptionLabel as formatTieflingFiendishLegacySummaryLabel,
   getDefaultTieflingFiendishLegacyForSpecies,
   getDefaultTieflingSpellcastingAbilityForSpecies,
-  getTieflingAlwaysPreparedSpellIdsForCharacter,
-  getTieflingAlwaysPreparedSpellSourceMapForCharacter,
-  getTieflingDerivedStatusEntriesForCharacter,
   getTieflingFiendishLegacyForCharacter,
   getTieflingFiendishLegacyOptionsForSpecies,
-  getTieflingGrantedCantripEntriesForCharacter,
-  getTieflingSpellcastingAbilityForCharacter,
   getTieflingSpellcastingAbilityOptionsForSpecies,
   isTieflingSpecies,
   normalizeTieflingFeatureState,
   normalizeTieflingFiendishLegacy,
   normalizeTieflingSpellcastingAbility
 } from "./speciesTiefling";
+import {
+  getSpeciesFeatureContributionsForCharacter,
+  type SpeciesContributionCharacter
+} from "./speciesContributions";
 
 export {
   activateDragonbornDraconicFlightForCharacter,
@@ -1235,135 +1208,149 @@ export function getAasimarCelestialRevelationOptions(): AasimarCelestialRevelati
   }));
 }
 
-export function getSpeciesActionsForCharacter(character: Character): FeatureActionCard[] {
-  if (isAasimarSpecies(character.species)) {
-    return [
-      getAasimarHealingHandsAction(character),
-      ...(character.level >= 3 ? [getAasimarCelestialRevelationAction(character)] : [])
-    ];
+function getAasimarFeatureContributionsForCharacter(
+  character: SpeciesContributionCharacter
+): FeatureContributionSpec[] {
+  if (!isAasimarSpecies(character.species)) {
+    return [];
   }
 
+  const entry = getSpeciesEntry(character.species);
+  const light = getSpellEntryById(aasimarLightCantripId);
+  const canCreateActions = typeof character.level === "number";
+  const hasHeavenlyWingsActive = normalizeCharacterStatusEntries(character.statusEntries).some(
+    (statusEntry) => getAasimarCelestialRevelationStatusOptionKey(statusEntry) === "heavenly-wings"
+  );
+
   return [
-    ...getDragonbornActionsForCharacter(character),
-    ...getDwarfActionsForCharacter(character),
-    ...getGoliathActionsForCharacter(character)
+    {
+      source: {
+        type: "species",
+        id: aasimarSpeciesId,
+        label: "Aasimar"
+      },
+      resources: [
+        {
+          id: "species-aasimar-healing-hands",
+          label: "Healing Hands",
+          remaining: getAasimarHealingHandsUsesRemaining(character),
+          total: getAasimarHealingHandsUsesTotal(character),
+          recovery: "longRest" as const
+        },
+        {
+          id: "species-aasimar-celestial-revelation",
+          label: "Celestial Revelation",
+          remaining: getAasimarCelestialRevelationUsesRemaining(character),
+          total: getAasimarCelestialRevelationUsesTotal(character),
+          recovery: "longRest" as const
+        }
+      ].filter((resource) => resource.total > 0),
+      actions: canCreateActions
+        ? [
+            getAasimarHealingHandsAction(character as SpeciesFeatureRuntimeCharacter),
+            ...((character.level ?? 1) >= 3
+              ? [getAasimarCelestialRevelationAction(character as SpeciesFeatureRuntimeCharacter)]
+              : [])
+          ]
+        : [],
+      statuses: entry ? getAasimarDerivedStatusEntries(entry) : [],
+      speedBonuses: hasHeavenlyWingsActive
+        ? [
+            {
+              label: "Heavenly Wings",
+              value: 0,
+              movementType: "fly" as const,
+              setBaseFromWalkMultiplier: 1
+            }
+          ]
+        : [],
+      spellGrants: light
+        ? [
+            {
+              kind: "granted-cantrip",
+              spell: light
+            },
+            {
+              kind: "always-prepared-cantrip",
+              spell: light,
+              sourceLabel: "Aasimar",
+              spellcastingAbility: "CHA"
+            }
+          ]
+        : []
+    }
   ];
+}
+
+function collectSpeciesContributionState(character: SpeciesContributionCharacter) {
+  return compileFeatureContributions([
+    ...getAasimarFeatureContributionsForCharacter(character),
+    ...getSpeciesFeatureContributionsForCharacter(character)
+  ]);
+}
+
+export function getSpeciesActionsForCharacter(character: Character): FeatureActionCard[] {
+  return collectSpeciesContributionState(character).actions;
 }
 
 export function transformSpeciesCommonActionForCharacter(
   character: Pick<Character, "species" | "level"> & Partial<Pick<Character, "speciesFeatureState">>,
   action: FeatureActionCard
 ): FeatureActionCard {
-  return getOrcCommonActionForCharacter(character, action);
+  return collectSpeciesContributionState(character).commonActionTransforms.reduce(
+    (currentAction, contribution) => contribution.transform(character as Character, currentAction),
+    action
+  );
 }
 
 export function getSpeciesGrantedCantripEntriesForCharacter(
   character: Pick<Character, "species"> & Partial<Pick<Character, "speciesChoices">>
 ): SpellEntry[] {
-  const grantedCantrips: SpellEntry[] = [];
-
-  if (isAasimarSpecies(character.species)) {
-    const light = getSpellEntryById(aasimarLightCantripId);
-
-    if (light) {
-      grantedCantrips.push(light);
-    }
-  }
-
-  grantedCantrips.push(...getElfGrantedCantripEntriesForCharacter(character));
-  grantedCantrips.push(...getGnomeGrantedCantripEntriesForCharacter(character));
-  grantedCantrips.push(...getTieflingGrantedCantripEntriesForCharacter(character));
-
-  return grantedCantrips;
+  return collectSpeciesContributionState(character).grantedCantripEntries;
 }
 
 export function getSpeciesAlwaysPreparedCantripEntriesForCharacter(
   character: Pick<Character, "species"> & Partial<Pick<Character, "speciesChoices">>
 ): SpellEntry[] {
-  return getSpeciesGrantedCantripEntriesForCharacter(character);
+  return collectSpeciesContributionState(character).alwaysPreparedCantripEntries;
 }
 
 export function getSpeciesAlwaysPreparedSpellIdsForCharacter(
   character: Pick<Character, "species"> & Partial<Pick<Character, "level" | "speciesChoices">>
 ): string[] {
-  return [
-    ...getElfAlwaysPreparedSpellIdsForCharacter(character),
-    ...getGnomeAlwaysPreparedSpellIdsForCharacter(character),
-    ...getTieflingAlwaysPreparedSpellIdsForCharacter(character)
-  ];
+  return collectSpeciesContributionState(character).alwaysPreparedSpellEntries.map(
+    (spell) => spell.id
+  );
 }
 
 export function getSpeciesAlwaysPreparedSpellSourceMapForCharacter(
   character: Pick<Character, "species"> & Partial<Pick<Character, "level" | "speciesChoices">>
 ): SpellSourceMap {
-  const sourceMap: SpellSourceMap = {
-    ...getElfAlwaysPreparedSpellSourceMapForCharacter(character),
-    ...getGnomeAlwaysPreparedSpellSourceMapForCharacter(character),
-    ...getTieflingAlwaysPreparedSpellSourceMapForCharacter(character)
-  };
-
-  if (isAasimarSpecies(character.species)) {
-    addSpellSource(sourceMap, aasimarLightCantripId, "Aasimar");
-  }
-
-  return sourceMap;
+  return collectSpeciesContributionState(character).alwaysPreparedSpellSourceMap;
 }
 
 export function getSpeciesSpellcastingAbilityForCharacter(
   character: Pick<Character, "species"> & Partial<Pick<Character, "speciesChoices">>,
   spellId: string
 ): AbilityKey | null {
-  if (isAasimarSpecies(character.species) && spellId === aasimarLightCantripId) {
-    return "CHA";
-  }
-
-  const elfSpellcastingAbility = getElfSpellcastingAbilityForCharacter(character, spellId);
-
-  if (elfSpellcastingAbility) {
-    return elfSpellcastingAbility;
-  }
-
-  const gnomeSpellcastingAbility = getGnomeSpellcastingAbilityForCharacter(character, spellId);
-
-  if (gnomeSpellcastingAbility) {
-    return gnomeSpellcastingAbility;
-  }
-
-  return getTieflingSpellcastingAbilityForCharacter(character, spellId);
+  return collectSpeciesContributionState(character).spellcastingAbilityBySpellId.get(spellId) ?? null;
 }
 
 export function getSpeciesSpellEntryForCharacter(
   character: Pick<Character, "species"> & Partial<Pick<Character, "speciesChoices">>,
   spell: SpellEntry
 ): SpellEntry {
-  return getGnomeSpellEntryForCharacter(character, spell);
+  return collectSpeciesContributionState(character).spellTransforms.reduce(
+    (currentSpell, contribution) => contribution.transform(currentSpell),
+    spell
+  );
 }
 
 export function getSpeciesSpeedBonusesForCharacter(
   character: Pick<Character, "species"> &
     Partial<Pick<Character, "speciesChoices" | "statusEntries">>
 ): FeatureSpeedBonus[] {
-  const hasHeavenlyWingsActive = normalizeCharacterStatusEntries(character.statusEntries).some(
-    (entry) => getAasimarCelestialRevelationStatusOptionKey(entry) === "heavenly-wings"
-  );
-  const aasimarSpeedBonuses =
-    isAasimarSpecies(character.species) && hasHeavenlyWingsActive
-      ? [
-          {
-            label: "Heavenly Wings",
-            value: 0,
-            movementType: "fly" as const,
-            setBaseFromWalkMultiplier: 1
-          }
-        ]
-      : [];
-
-  return [
-    ...aasimarSpeedBonuses,
-    ...getDragonbornSpeedBonusesForCharacter(character),
-    ...getElfSpeedBonusesForCharacter(character),
-    ...getGoliathSpeedBonusesForCharacter(character)
-  ];
+  return collectSpeciesContributionState(character).speedBonuses;
 }
 
 function createAasimarStatusEntry(
@@ -1425,32 +1412,5 @@ function getAasimarDerivedStatusEntries(entry: SpeciesEntry): CharacterStatusEnt
 export function getSpeciesDerivedStatusEntriesForCharacter(
   character: Pick<Character, "species"> & Partial<Pick<Character, "speciesChoices">>
 ): CharacterStatusEntry[] {
-  const entry = getSpeciesEntry(character.species);
-
-  if (!entry) {
-    return [];
-  }
-
-  switch (entry.id) {
-    case "species-aasimar-2024":
-      return getAasimarDerivedStatusEntries(entry);
-    case "species-dragonborn-2024":
-      return getDragonbornDerivedStatusEntriesForCharacter(character);
-    case "species-dwarf-2024":
-      return getDwarfDerivedStatusEntriesForCharacter(character);
-    case "species-elf-2024":
-      return getElfDerivedStatusEntriesForCharacter(character);
-    case "species-gnome-2024":
-      return getGnomeDerivedStatusEntriesForCharacter(character);
-    case "species-goliath-2024":
-      return getGoliathDerivedStatusEntriesForCharacter(character);
-    case "species-halfling-2024":
-      return getHalflingDerivedStatusEntriesForCharacter(character);
-    case "species-orc-2024":
-      return getOrcDerivedStatusEntriesForCharacter(character);
-    case "species-tiefling-2024":
-      return getTieflingDerivedStatusEntriesForCharacter(character);
-    default:
-      return [];
-  }
+  return collectSpeciesContributionState(character).statuses;
 }

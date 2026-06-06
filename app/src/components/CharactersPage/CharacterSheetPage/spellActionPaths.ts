@@ -11,12 +11,11 @@ import {
   getEconomyTypeForSpell,
   getSharedEconomyMultiCountForCharacterAction
 } from "../../../pages/CharactersPage/classFeatures/economyMulti";
-import { createChargesCardUsage } from "../../../pages/CharactersPage/classFeatures/cardUsage";
 import type { FeatureActionCardUsage } from "../../../pages/CharactersPage/classFeatures";
 import { canUsePaladinOathOfTheAncientsElderChampionBonusActionPathForSpell } from "../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfTheAncients";
 import { canUseRogueArcaneTricksterMageHandLegerdemainBonusActionPathForSpell } from "../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueArcaneTrickster";
 import { canUseWizardAbjurerSpellBreakerBonusActionPathForSpell } from "../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardAbjurer";
-import { getSpellfireSparkSpellfireFlameStateForCharacter } from "../../../pages/CharactersPage/feats/runtime";
+import { getFeatSpellActionPathContributionsForCharacter } from "../../../pages/CharactersPage/feats/runtime";
 import type { RoundTrackerResource } from "../../../pages/CharactersPage/combat";
 import { getEconomyShapeState } from "./GameplayForm/gameplayWidgetUtils";
 
@@ -28,14 +27,14 @@ type RoundTrackerAvailability = {
 };
 
 export type SpellActionPathState = {
-  id: "primary" | "secondary" | "spellfire-flame";
+  id: string;
   economyType: EconomyType;
   roundTrackerResource: RoundTrackerResource | null;
   shapeState: ReturnType<typeof getEconomyShapeState>;
   actionLabel?: string;
   disabledReason?: string | null;
   usage?: FeatureActionCardUsage;
-  useSpellfireFlame?: boolean;
+  spellCastEffectIds?: string[];
 };
 
 function createSpellActionPathState(
@@ -92,32 +91,30 @@ export function getSpellActionPathStates(
     );
   }
 
-  const spellfireFlameState = getSpellfireSparkSpellfireFlameStateForCharacter(
-    character,
-    spell.id
-  );
+  getFeatSpellActionPathContributionsForCharacter(character, spell).forEach((contribution) => {
+    if (primaryEconomyType !== ECONOMY_TYPE.ACTION) {
+      return;
+    }
 
-  if (primaryEconomyType === ECONOMY_TYPE.ACTION && spellfireFlameState) {
+    const pathContext = {
+      character,
+      spell
+    };
+
     actionPaths.push({
       ...createSpellActionPathState(
         character,
         roundTracker,
-        "spellfire-flame",
-        ECONOMY_TYPE.BONUS_ACTION,
+        contribution.id,
+        contribution.economyType,
         spell
       ),
-      actionLabel: "Spellfire Flame",
-      disabledReason:
-        spellfireFlameState.usesRemaining <= 0
-          ? "Spellfire Flame has no charges remaining."
-          : null,
-      usage: createChargesCardUsage(
-        spellfireFlameState.usesRemaining,
-        spellfireFlameState.usesTotal
-      ),
-      useSpellfireFlame: true
+      actionLabel: contribution.actionLabel,
+      disabledReason: contribution.getDisabledReason?.(pathContext) ?? null,
+      usage: contribution.getUsage?.(pathContext),
+      spellCastEffectIds: contribution.spellCastEffectIds
     });
-  }
+  });
 
   return actionPaths;
 }

@@ -2,13 +2,13 @@ import { FEAT_CATEGORY, FEATS, TRACKER } from "../../../../codex/entries";
 import { WEAPON_PROFICIENCY } from "../../../../types";
 import type { FeatDefinition, FeatRequirement } from "../types";
 
-type FrhofFeatSeed = Omit<FeatDefinition, "source" | "trackingState">;
+type FrhofFeatSeed = Omit<FeatDefinition, "source">;
 
 function createFrhofFeatDefinition(seed: FrhofFeatSeed): FeatDefinition {
   return {
     ...seed,
     source: "FRHoF",
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: seed.trackingState ?? TRACKER.NOT_TRACKED
   };
 }
 
@@ -62,6 +62,7 @@ export const frhofOriginFeatDefinitions: FeatDefinition[] = [
     feat: FEATS.CULT_OF_THE_DRAGON_INITIATE,
     label: "Cult of the Dragon Initiate",
     category: FEAT_CATEGORY.ORIGIN,
+    trackingState: TRACKER.TRACKED,
     page: 37,
     description: [
       "You gain the following benefits.",
@@ -74,6 +75,7 @@ export const frhofOriginFeatDefinitions: FeatDefinition[] = [
     feat: FEATS.EMERALD_ENCLAVE_FLEDGLING,
     label: "Emerald Enclave Fledgling",
     category: FEAT_CATEGORY.ORIGIN,
+    trackingState: TRACKER.TRACKED,
     page: 37,
     description: [
       "You gain the following benefits.",
@@ -85,6 +87,7 @@ export const frhofOriginFeatDefinitions: FeatDefinition[] = [
     feat: FEATS.HARPER_AGENT,
     label: "Harper Agent",
     category: FEAT_CATEGORY.ORIGIN,
+    trackingState: TRACKER.TRACKED,
     page: 37,
     description: [
       "You gain the following benefits.",
@@ -97,6 +100,7 @@ export const frhofOriginFeatDefinitions: FeatDefinition[] = [
     feat: FEATS.LORDS_ALLIANCE_AGENT,
     label: "Lords' Alliance Agent",
     category: FEAT_CATEGORY.ORIGIN,
+    trackingState: TRACKER.TRACKED,
     page: 38,
     description: [
       "You gain the following benefits.",
@@ -108,6 +112,7 @@ export const frhofOriginFeatDefinitions: FeatDefinition[] = [
     feat: FEATS.PURPLE_DRAGON_ROOK,
     label: "Purple Dragon Rook",
     category: FEAT_CATEGORY.ORIGIN,
+    trackingState: TRACKER.TRACKED,
     page: 38,
     description: [
       "You gain the following benefits.",
@@ -120,6 +125,7 @@ export const frhofOriginFeatDefinitions: FeatDefinition[] = [
     feat: FEATS.SPELLFIRE_SPARK,
     label: "Spellfire Spark",
     category: FEAT_CATEGORY.ORIGIN,
+    trackingState: TRACKER.TRACKED,
     page: 38,
     description: [
       "You gain the following benefits.",
@@ -131,6 +137,7 @@ export const frhofOriginFeatDefinitions: FeatDefinition[] = [
     feat: FEATS.TYRO_OF_THE_GAUNTLET,
     label: "Tyro of the Gauntlet",
     category: FEAT_CATEGORY.ORIGIN,
+    trackingState: TRACKER.TRACKED,
     page: 38,
     description: [
       "You gain the following benefits.",
@@ -142,6 +149,7 @@ export const frhofOriginFeatDefinitions: FeatDefinition[] = [
     feat: FEATS.ZHENTARIM_RUFFIAN,
     label: "Zhentarim Ruffian",
     category: FEAT_CATEGORY.ORIGIN,
+    trackingState: TRACKER.TRACKED,
     page: 38,
     description: [
       "You gain the following benefits.",

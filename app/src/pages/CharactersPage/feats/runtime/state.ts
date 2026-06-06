@@ -1,4 +1,4 @@
-import { FEATS, type ReactionEntry, type SpellDescriptionEntry, type SpellEntry } from "../../../../codex/entries";
+import { FEATS, WEAPON_COMBAT_TYPE, type SpellDescriptionEntry } from "../../../../codex/entries";
 import {
   SENSE,
   STATUS_DURATION_KIND,
@@ -6,8 +6,15 @@ import {
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../types";
 import type { AbilityKey, CharacterFeatEntry } from "../../../../types";
-import type { FeatureActionCard, FeatureSpeedBonus, SpellSourceMap } from "../../classFeatures/types";
-import { addSpellSource } from "../../classFeatures/spellSources";
+import { ECONOMY_TYPE } from "../../actionEconomy";
+import { createChargesCardUsage } from "../../classFeatures/cardUsage";
+import {
+  compileFeatureContributions,
+  getFeatureDescriptionAdditions,
+  getFeatureFreeCastEntriesById,
+  type CompiledFeatureContributionState,
+  type FeatureContributionSpec
+} from "../../featureContributions";
 import {
   getFeatAbilityIncreaseMaxScore,
   getFeatDefinition,
@@ -16,6 +23,7 @@ import {
 } from "..";
 import {
   getEpicBoonDerivedStatusEntries,
+  getEpicBoonFeatActionsForCharacter,
   getEpicBoonFeatHitPointMaximumBonus,
   getEpicBoonFeatResourceState,
   getEpicBoonFeatSpeedBonuses,
@@ -29,9 +37,11 @@ import {
 import {
   getGeneralFeatReactionEntries,
   getGeneralFeatResourceState,
+  getGeneralFeatActionsForCharacter,
   getGeneralFeatSpeedBonuses
 } from "./general";
 import {
+  getOriginFeatActionsForCharacter,
   getOriginFeatHitPointMaximumBonus,
   getOriginFeatReactionEntries,
   getOriginFeatResourceState
@@ -46,6 +56,10 @@ import {
   skulkerBlindsightStatusSourceId,
   speedyAgileMovementStatusSourceId,
   spellfireSparkMagicAbsorptionStatusSourceId,
+  spellfireSparkSacredFlameSpellId,
+  spellfireSparkSpellfireFlameResourceId,
+  spellfireSparkSpellfireFlameSpellActionPathId,
+  spellfireSparkSpellfireFlameSpellCastEffectId,
   telepathicUtteranceStatusSourceId,
   zhentarimRuffianExploitOpeningStatusSourceId
 } from "./constants";
@@ -60,6 +74,7 @@ import {
   getTelekineticMageHandSpellEntry,
   getTelepathicDetectThoughtsSpellEntry
 } from "./spells";
+import { transformFeatSpellEntryForEntries } from "./spellTransforms";
 import {
   filterDescriptionEntries,
   isBoonOfEnergyResistanceEnergyResistancesDescriptionEntry,
@@ -71,9 +86,15 @@ import {
   isTelepathicUtteranceDescriptionEntry,
   isZhentarimRuffianExploitOpeningDescriptionEntry
 } from "./descriptionMatchers";
+import { getFeatDescriptionContributions } from "./descriptionContributions";
 import type { FeatDerivedState, FeatRuntimeCharacter } from "./types";
 
 const featDerivedStateCache = new WeakMap<object, Map<number, FeatDerivedState>>();
+const magicInitiateFreeCastContributionId = "feat-magic-initiate-free-cast";
+const feyTouchedFreeCastContributionId = "feat-fey-touched-free-cast";
+const shadowTouchedFreeCastContributionId = "feat-shadow-touched-free-cast";
+const telepathicDetectThoughtsFreeCastContributionId =
+  "feat-telepathic-detect-thoughts-free-cast";
 
 function normalizeFeatRuntimeLevel(value: unknown): number {
   const parsed = Number(value);
@@ -111,23 +132,71 @@ export function getFeatDescriptionSlice(
   return filterDescriptionEntries(getFeatDefinition(feat)?.description ?? [], predicate);
 }
 
+function createFeatContributionSource(
+  entry: CharacterFeatEntry,
+  index: number
+): FeatureContributionSpec<FeatDerivedState>["source"] {
+  return {
+    type: "feat",
+    id: entry.feat,
+    entryId: entry.id,
+    label: getFeatLabel(entry.feat),
+    order: entry.takenAtLevel + index / 100
+  };
+}
+
+function createFeatContribution(
+  entry: CharacterFeatEntry,
+  index: number
+): FeatureContributionSpec<FeatDerivedState> {
+  return {
+    source: createFeatContributionSource(entry, index),
+    resources: [],
+    actions: [],
+    actionFactories: [],
+    reactions: [],
+    statuses: [],
+    descriptionAdditions: [],
+    abilityScoreBonuses: [],
+    speedBonuses: [],
+    spellGrants: [],
+    spellTransforms: [],
+    spellActionPaths: [],
+    spellCastEffects: []
+  };
+}
+
+function projectFeatSpellcastingAbilityMap(
+  compiledState: CompiledFeatureContributionState<FeatDerivedState>,
+  predicate: (sourceId: string) => boolean
+): Map<string, AbilityKey> {
+  const abilityBySpellId = new Map<string, AbilityKey>();
+
+  compiledState.spellcastingAbilityEntries.forEach((entry) => {
+    if (predicate(entry.sourceId)) {
+      abilityBySpellId.set(entry.spellId, entry.ability);
+    }
+  });
+
+  return abilityBySpellId;
+}
+
+function projectFeatFreeCastEntries(
+  compiledState: Pick<CompiledFeatureContributionState<FeatDerivedState>, "freeCastEntries">,
+  id: string
+): FeatDerivedState["magicInitiateFreeCastEntries"] {
+  return getFeatureFreeCastEntriesById(compiledState, id).map((entry) => ({
+    featEntryId: entry.entryId ?? entry.sourceId ?? "",
+    spellId: entry.spellId,
+    expended: entry.expended === true || entry.usesRemaining === 0
+  }));
+}
+
 function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState {
   const normalizedFeats = normalizeCharacterFeats(feats, level);
   const featsByFeat = new Map<FEATS, CharacterFeatEntry[]>();
   const featSet = new Set<FEATS>();
-  const grantedCantripEntriesById = new Map<string, SpellEntry>();
-  const alwaysPreparedCantripEntriesById = new Map<string, SpellEntry>();
-  const alwaysPreparedSpellEntriesById = new Map<string, SpellEntry>();
-  const alwaysPreparedSpellSourceMap: SpellSourceMap = {};
-  const magicInitiateSpellcastingAbilityBySpellId = new Map<string, AbilityKey>();
-  const spellfireSparkSpellcastingAbilityBySpellId = new Map<string, AbilityKey>();
-  const magicInitiateFreeCastEntries: FeatDerivedState["magicInitiateFreeCastEntries"] = [];
-  const feyTouchedFreeCastEntries: FeatDerivedState["feyTouchedFreeCastEntries"] = [];
-  const shadowTouchedFreeCastEntries: FeatDerivedState["shadowTouchedFreeCastEntries"] = [];
-  const telepathicDetectThoughtsFreeCastEntries: FeatDerivedState["telepathicDetectThoughtsFreeCastEntries"] =
-    [];
-  const abilityScoreBonuses: FeatDerivedState["abilityScoreBonuses"] = [];
-  const derivedStatusEntries: FeatDerivedState["derivedStatusEntries"] = [];
+  const contributions: FeatureContributionSpec<FeatDerivedState>[] = [];
   const featDefinitionCache = new Map<FEATS, SpellDescriptionEntry[]>();
   const getFeatDescription = (feat: FEATS) => {
     const cachedDescription = featDefinitionCache.get(feat);
@@ -140,45 +209,51 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
     featDefinitionCache.set(feat, description);
     return description;
   };
-  const addAlwaysPreparedSpellSource = (spellId: string, feat: FEATS) => {
-    addSpellSource(alwaysPreparedSpellSourceMap, spellId, getFeatLabel(feat));
-  };
-
   normalizedFeats.forEach((entry, index) => {
+    const contribution = createFeatContribution(entry, index);
+    const abilityScoreBonuses = contribution.abilityScoreBonuses!;
+    const derivedStatusEntries = contribution.statuses!;
+    const descriptionAdditions = contribution.descriptionAdditions!;
+
+    contributions.push(contribution);
     featSet.add(entry.feat);
     featsByFeat.set(entry.feat, [...(featsByFeat.get(entry.feat) ?? []), entry]);
+    descriptionAdditions.push(...getFeatDescriptionContributions(entry.feat));
 
     const featCantripEntries = getFeatCantripEntries(entry);
 
     featCantripEntries.forEach((cantrip) => {
-      grantedCantripEntriesById.set(cantrip.id, cantrip);
+      contribution.spellGrants!.push({
+        kind: "granted-cantrip",
+        spell: cantrip
+      });
     });
 
     if (entry.feat === FEATS.MAGIC_INITIATE && entry.magicInitiate) {
       const magicInitiate = entry.magicInitiate;
 
       featCantripEntries.forEach((cantrip) => {
-        alwaysPreparedCantripEntriesById.set(cantrip.id, cantrip);
-        addAlwaysPreparedSpellSource(cantrip.id, entry.feat);
-        magicInitiateSpellcastingAbilityBySpellId.set(
-          cantrip.id,
-          magicInitiate.spellcastingAbility
-        );
+        contribution.spellGrants!.push({
+          kind: "always-prepared-cantrip",
+          spell: cantrip,
+          sourceLabel: getFeatLabel(entry.feat),
+          spellcastingAbility: magicInitiate.spellcastingAbility
+        });
       });
 
       const levelOneSpell = getMagicInitiateLevelOneSpellEntry(entry);
 
       if (levelOneSpell) {
-        alwaysPreparedSpellEntriesById.set(levelOneSpell.id, levelOneSpell);
-        addAlwaysPreparedSpellSource(levelOneSpell.id, entry.feat);
-        magicInitiateSpellcastingAbilityBySpellId.set(
-          levelOneSpell.id,
-          magicInitiate.spellcastingAbility
-        );
-        magicInitiateFreeCastEntries.push({
-          featEntryId: entry.id,
-          spellId: levelOneSpell.id,
-          expended: magicInitiate.freeCastExpended === true
+        contribution.spellGrants!.push({
+          kind: "always-prepared-spell",
+          spell: levelOneSpell,
+          sourceLabel: getFeatLabel(entry.feat),
+          spellcastingAbility: magicInitiate.spellcastingAbility,
+          freeCast: {
+            id: magicInitiateFreeCastContributionId,
+            entryId: entry.id,
+            expended: magicInitiate.freeCastExpended === true
+          }
         });
       }
     }
@@ -187,12 +262,12 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
       const speakWithAnimals = getEmeraldEnclaveFledglingSpellEntry(entry);
 
       if (speakWithAnimals) {
-        alwaysPreparedSpellEntriesById.set(speakWithAnimals.id, speakWithAnimals);
-        addAlwaysPreparedSpellSource(speakWithAnimals.id, entry.feat);
-        magicInitiateSpellcastingAbilityBySpellId.set(
-          speakWithAnimals.id,
-          entry.emeraldEnclaveFledgling.spellcastingAbility
-        );
+        contribution.spellGrants!.push({
+          kind: "always-prepared-spell",
+          spell: speakWithAnimals,
+          sourceLabel: getFeatLabel(entry.feat),
+          spellcastingAbility: entry.emeraldEnclaveFledgling.spellcastingAbility
+        });
       }
     }
 
@@ -200,12 +275,17 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
       const sacredFlame = getSpellfireSparkSacredFlameSpellEntry(entry);
 
       if (sacredFlame) {
-        grantedCantripEntriesById.set(sacredFlame.id, sacredFlame);
-        alwaysPreparedCantripEntriesById.set(sacredFlame.id, sacredFlame);
-        addAlwaysPreparedSpellSource(sacredFlame.id, entry.feat);
-        spellfireSparkSpellcastingAbilityBySpellId.set(
-          sacredFlame.id,
-          entry.spellfireSpark.spellcastingAbility
+        contribution.spellGrants!.push(
+          {
+            kind: "granted-cantrip",
+            spell: sacredFlame
+          },
+          {
+            kind: "always-prepared-cantrip",
+            spell: sacredFlame,
+            sourceLabel: getFeatLabel(entry.feat),
+            spellcastingAbility: entry.spellfireSpark.spellcastingAbility
+          }
         );
       }
     }
@@ -214,13 +294,16 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
       const feyTouched = entry.feyTouched;
 
       getFeyTouchedSpellEntries(entry).forEach((spell) => {
-        alwaysPreparedSpellEntriesById.set(spell.id, spell);
-        addAlwaysPreparedSpellSource(spell.id, entry.feat);
-        magicInitiateSpellcastingAbilityBySpellId.set(spell.id, feyTouched.ability);
-        feyTouchedFreeCastEntries.push({
-          featEntryId: entry.id,
-          spellId: spell.id,
-          expended: feyTouched.freeCastExpendedSpellIds?.includes(spell.id) === true
+        contribution.spellGrants!.push({
+          kind: "always-prepared-spell",
+          spell,
+          sourceLabel: getFeatLabel(entry.feat),
+          spellcastingAbility: feyTouched.ability,
+          freeCast: {
+            id: feyTouchedFreeCastContributionId,
+            entryId: entry.id,
+            expended: feyTouched.freeCastExpendedSpellIds?.includes(spell.id) === true
+          }
         });
       });
     }
@@ -229,9 +312,12 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
       const ritualCaster = entry.ritualCaster;
 
       getRitualCasterSpellEntries(entry).forEach((spell) => {
-        alwaysPreparedSpellEntriesById.set(spell.id, spell);
-        addAlwaysPreparedSpellSource(spell.id, entry.feat);
-        magicInitiateSpellcastingAbilityBySpellId.set(spell.id, ritualCaster.ability);
+        contribution.spellGrants!.push({
+          kind: "always-prepared-spell",
+          spell,
+          sourceLabel: getFeatLabel(entry.feat),
+          spellcastingAbility: ritualCaster.ability
+        });
       });
     }
 
@@ -239,13 +325,16 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
       const shadowTouched = entry.shadowTouched;
 
       getShadowTouchedSpellEntries(entry).forEach((spell) => {
-        alwaysPreparedSpellEntriesById.set(spell.id, spell);
-        addAlwaysPreparedSpellSource(spell.id, entry.feat);
-        magicInitiateSpellcastingAbilityBySpellId.set(spell.id, shadowTouched.ability);
-        shadowTouchedFreeCastEntries.push({
-          featEntryId: entry.id,
-          spellId: spell.id,
-          expended: shadowTouched.freeCastExpendedSpellIds?.includes(spell.id) === true
+        contribution.spellGrants!.push({
+          kind: "always-prepared-spell",
+          spell,
+          sourceLabel: getFeatLabel(entry.feat),
+          spellcastingAbility: shadowTouched.ability,
+          freeCast: {
+            id: shadowTouchedFreeCastContributionId,
+            entryId: entry.id,
+            expended: shadowTouched.freeCastExpendedSpellIds?.includes(spell.id) === true
+          }
         });
       });
     }
@@ -254,9 +343,12 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
       const mageHand = getTelekineticMageHandSpellEntry(entry);
 
       if (mageHand) {
-        alwaysPreparedCantripEntriesById.set(mageHand.id, mageHand);
-        addAlwaysPreparedSpellSource(mageHand.id, entry.feat);
-        magicInitiateSpellcastingAbilityBySpellId.set(mageHand.id, entry.telekinetic.ability);
+        contribution.spellGrants!.push({
+          kind: "always-prepared-cantrip",
+          spell: mageHand,
+          sourceLabel: getFeatLabel(entry.feat),
+          spellcastingAbility: entry.telekinetic.ability
+        });
       }
     }
 
@@ -264,13 +356,16 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
       const detectThoughts = getTelepathicDetectThoughtsSpellEntry(entry);
 
       if (detectThoughts) {
-        alwaysPreparedSpellEntriesById.set(detectThoughts.id, detectThoughts);
-        addAlwaysPreparedSpellSource(detectThoughts.id, entry.feat);
-        magicInitiateSpellcastingAbilityBySpellId.set(detectThoughts.id, entry.telepathic.ability);
-        telepathicDetectThoughtsFreeCastEntries.push({
-          featEntryId: entry.id,
-          spellId: detectThoughts.id,
-          expended: entry.telepathic.detectThoughtsExpended === true
+        contribution.spellGrants!.push({
+          kind: "always-prepared-spell",
+          spell: detectThoughts,
+          sourceLabel: getFeatLabel(entry.feat),
+          spellcastingAbility: entry.telepathic.ability,
+          freeCast: {
+            id: telepathicDetectThoughtsFreeCastContributionId,
+            entryId: entry.id,
+            expended: entry.telepathic.detectThoughtsExpended === true
+          }
         });
       }
     }
@@ -857,6 +952,11 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
     }
   });
 
+  const spellGrantContributionState = compileFeatureContributions(contributions);
+  const telepathicDetectThoughtsFreeCastEntries = projectFeatFreeCastEntries(
+    spellGrantContributionState,
+    telepathicDetectThoughtsFreeCastContributionId
+  );
   const originResourceState = getOriginFeatResourceState(normalizedFeats, featSet, level);
   const generalResourceState = getGeneralFeatResourceState(
     normalizedFeats,
@@ -867,49 +967,268 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
   const hitPointMaximumBonus =
     getOriginFeatHitPointMaximumBonus(featSet, level) +
     getEpicBoonFeatHitPointMaximumBonus(featSet);
-  const speedBonuses: FeatureSpeedBonus[] = [
-    ...getGeneralFeatSpeedBonuses(featSet),
-    ...getEpicBoonFeatSpeedBonuses(featSet)
-  ];
-  const actions: FeatureActionCard[] = [];
-  const reactionEntries: ReactionEntry[] = [
-    ...getOriginFeatReactionEntries(featSet, getFeatDescriptionSlice),
-    ...getGeneralFeatReactionEntries(featSet, getFeatDescription),
-    ...getFightingStyleReactionEntries(featSet, getFeatDescription),
-    ...getEpicBoonReactionEntries(normalizedFeats, getFeatDescription)
-  ];
+  const runtimeContribution: FeatureContributionSpec<FeatDerivedState> = {
+    source: {
+      type: "feat",
+      id: "feat-runtime-aggregates",
+      label: "Feat Runtime"
+    },
+    resources: [
+      {
+        id: "feat-lucky-points",
+        label: "Lucky Points",
+        remaining: originResourceState.luckyPointsRemaining,
+        total: originResourceState.luckyPointsTotal,
+        recovery: "longRest" as const
+      },
+      {
+        id: "feat-cult-of-the-dragon-initiate-inspired-by-fear",
+        label: "Inspired by Fear",
+        remaining: originResourceState.cultOfDragonInitiateInspiredByFearRemaining,
+        total: originResourceState.cultOfDragonInitiateInspiredByFearTotal,
+        recovery: "longRest" as const
+      },
+      {
+        id: "feat-purple-dragon-rook-rallying-cry",
+        label: "Rallying Cry",
+        remaining: originResourceState.purpleDragonRookRallyingCryRemaining,
+        total: originResourceState.purpleDragonRookRallyingCryTotal,
+        recovery: "longRest" as const
+      },
+      {
+        id: spellfireSparkSpellfireFlameResourceId,
+        label: "Spellfire Flame",
+        remaining: originResourceState.spellfireSparkSpellfireFlameRemaining,
+        total: originResourceState.spellfireSparkSpellfireFlameTotal,
+        recovery: "longRest" as const
+      },
+      {
+        id: "feat-boon-of-fate-improve-fate",
+        label: "Improve Fate",
+        remaining: epicBoonResourceState.boonOfFateImproveFateRemaining,
+        total: epicBoonResourceState.boonOfFateImproveFateTotal,
+        recovery: "longRest" as const
+      },
+      {
+        id: "feat-boon-of-recovery-dice",
+        label: "Recover Vitality Dice",
+        remaining: epicBoonResourceState.boonOfRecoveryDiceRemaining,
+        total: epicBoonResourceState.boonOfRecoveryDiceTotal,
+        recovery: "longRest" as const
+      },
+      {
+        id: "feat-mage-slayer-guarded-mind",
+        label: "Guarded Mind",
+        remaining: generalResourceState.mageSlayerGuardedMindRemaining,
+        total: generalResourceState.mageSlayerGuardedMindTotal,
+        recovery: "shortRest" as const
+      },
+      {
+        id: "feat-ritual-caster-quick-ritual",
+        label: "Quick Ritual",
+        remaining: generalResourceState.ritualCasterQuickRitualRemaining,
+        total: generalResourceState.ritualCasterQuickRitualTotal,
+        recovery: "longRest" as const
+      },
+      {
+        id: "feat-telepathic-detect-thoughts",
+        label: "Detect Thoughts",
+        remaining: generalResourceState.telepathicDetectThoughtsRemaining,
+        total: generalResourceState.telepathicDetectThoughtsTotal,
+        recovery: "longRest" as const
+      }
+    ].filter((resource) => resource.total > 0),
+    actionFactories: [
+      (character, derivedState) =>
+        getOriginFeatActionsForCharacter(character, derivedState, getFeatDescriptionSlice),
+      (character, derivedState) =>
+        getGeneralFeatActionsForCharacter(character, derivedState, getFeatDescriptionSlice),
+      (_character, derivedState) =>
+        getEpicBoonFeatActionsForCharacter(derivedState, getFeatDescriptionSlice)
+    ],
+    reactions: [
+      ...getOriginFeatReactionEntries(featSet, getFeatDescriptionSlice),
+      ...getGeneralFeatReactionEntries(featSet, getFeatDescription),
+      ...getFightingStyleReactionEntries(featSet, getFeatDescription),
+      ...getEpicBoonReactionEntries(normalizedFeats, getFeatDescription)
+    ],
+    statuses: [
+      ...getFightingStyleDerivedStatusEntries(normalizedFeats),
+      ...getEpicBoonDerivedStatusEntries(normalizedFeats, getFeatDescription)
+    ],
+    speedBonuses: [
+      ...getGeneralFeatSpeedBonuses(featSet),
+      ...getEpicBoonFeatSpeedBonuses(featSet)
+    ],
+    hitPointMaximumBonus,
+    spellTransforms: [
+      {
+        id: "feat-spell-transforms",
+        transform: (spell) =>
+          transformFeatSpellEntryForEntries(normalizedFeats, spell, getFeatDescriptionSlice)
+      }
+    ],
+    commonActionTransforms: [
+      {
+        id: "feat-common-action-description-additions",
+        transform: (character, action) => {
+          const descriptionAdditions = getFeatureDescriptionAdditions(
+            collectFeatDerivedState(character),
+            "commonAction",
+            {
+              targetKey: action.key
+            }
+          );
 
-  derivedStatusEntries.push(
-    ...getFightingStyleDerivedStatusEntries(normalizedFeats),
-    ...getEpicBoonDerivedStatusEntries(normalizedFeats, getFeatDescription)
+          return descriptionAdditions.length > 0
+            ? {
+                ...action,
+                descriptionAdditions: [
+                  ...(action.descriptionAdditions ?? []),
+                  ...descriptionAdditions
+                ]
+              }
+            : action;
+        }
+      }
+    ],
+    weaponActionTransforms: [
+      {
+        id: "feat-archery-weapon-action-transform",
+        transform: (character, action) => {
+          const weaponAction = action as {
+            attackKind?: string;
+            combatType?: WEAPON_COMBAT_TYPE | null;
+            attackBonusEntries?: Array<{
+              label: string;
+              value: number;
+            }>;
+          };
+
+          if (
+            !collectFeatDerivedState(character).featSet.has(FEATS.ARCHERY) ||
+            weaponAction.attackKind !== "weapon" ||
+            weaponAction.combatType !== WEAPON_COMBAT_TYPE.RANGED
+          ) {
+            return action;
+          }
+
+          return {
+            ...(action as object),
+            attackBonusEntries: [
+              ...(weaponAction.attackBonusEntries ?? []),
+              {
+                label: getFeatLabel(FEATS.ARCHERY),
+                value: 2
+              }
+            ]
+          } as typeof action;
+        }
+      }
+    ],
+    spellActionPaths:
+      originResourceState.hasSpellfireSpark &&
+      originResourceState.spellfireSparkSpellfireFlameTotal > 0
+        ? [
+            {
+              id: spellfireSparkSpellfireFlameSpellActionPathId,
+              spellId: spellfireSparkSacredFlameSpellId,
+              economyType: ECONOMY_TYPE.BONUS_ACTION,
+              actionLabel: "Spellfire Flame",
+              getDisabledReason: ({ character, spell }) => {
+                const spellfireState = collectFeatDerivedState(character);
+
+                if (spell.id !== spellfireSparkSacredFlameSpellId) {
+                  return null;
+                }
+
+                return spellfireState.spellfireSparkSpellfireFlameRemaining <= 0
+                  ? "Spellfire Flame has no charges remaining."
+                  : null;
+              },
+              getUsage: ({ character }) => {
+                const spellfireState = collectFeatDerivedState(character);
+
+                return createChargesCardUsage(
+                  spellfireState.spellfireSparkSpellfireFlameRemaining,
+                  spellfireState.spellfireSparkSpellfireFlameTotal
+                );
+              },
+              spellCastEffectIds: [spellfireSparkSpellfireFlameSpellCastEffectId]
+            }
+          ]
+        : [],
+    spellCastEffects:
+      originResourceState.hasSpellfireSpark &&
+      originResourceState.spellfireSparkSpellfireFlameTotal > 0
+        ? [
+            {
+              id: spellfireSparkSpellfireFlameSpellCastEffectId
+            }
+          ]
+        : []
+  };
+
+  contributions.push(runtimeContribution);
+  const compiledContributionState = compileFeatureContributions(contributions);
+  const magicInitiateSpellcastingAbilityBySpellId = projectFeatSpellcastingAbilityMap(
+    compiledContributionState,
+    (sourceId) => sourceId !== FEATS.SPELLFIRE_SPARK
+  );
+  const spellfireSparkSpellcastingAbilityBySpellId = projectFeatSpellcastingAbilityMap(
+    compiledContributionState,
+    (sourceId) => sourceId === FEATS.SPELLFIRE_SPARK
+  );
+  const magicInitiateFreeCastEntries = projectFeatFreeCastEntries(
+    compiledContributionState,
+    magicInitiateFreeCastContributionId
+  );
+  const feyTouchedFreeCastEntries = projectFeatFreeCastEntries(
+    compiledContributionState,
+    feyTouchedFreeCastContributionId
+  );
+  const shadowTouchedFreeCastEntries = projectFeatFreeCastEntries(
+    compiledContributionState,
+    shadowTouchedFreeCastContributionId
+  );
+  const finalTelepathicDetectThoughtsFreeCastEntries = projectFeatFreeCastEntries(
+    compiledContributionState,
+    telepathicDetectThoughtsFreeCastContributionId
   );
 
   return {
+    contributions: compiledContributionState.contributions,
+    resources: compiledContributionState.resources,
     normalizedFeats,
     featsByFeat,
     featSet,
-    grantedCantripEntries: [...grantedCantripEntriesById.values()].sort((left, right) =>
-      left.name.localeCompare(right.name)
-    ),
-    alwaysPreparedCantripEntries: [...alwaysPreparedCantripEntriesById.values()].sort(
-      (left, right) => left.name.localeCompare(right.name)
-    ),
-    alwaysPreparedSpellEntries: [...alwaysPreparedSpellEntriesById.values()].sort((left, right) =>
-      left.name.localeCompare(right.name)
-    ),
-    alwaysPreparedSpellSourceMap,
+    grantedCantripEntries: compiledContributionState.grantedCantripEntries,
+    alwaysPreparedCantripEntries: compiledContributionState.alwaysPreparedCantripEntries,
+    alwaysPreparedSpellEntries: compiledContributionState.alwaysPreparedSpellEntries,
+    alwaysPreparedSpellSourceMap: compiledContributionState.alwaysPreparedSpellSourceMap,
+    spellcastingAbilityEntries: compiledContributionState.spellcastingAbilityEntries,
+    spellcastingAbilityBySpellId: compiledContributionState.spellcastingAbilityBySpellId,
+    freeCastEntries: compiledContributionState.freeCastEntries,
+    descriptionAdditions: compiledContributionState.descriptionAdditions,
     magicInitiateSpellcastingAbilityBySpellId,
     spellfireSparkSpellcastingAbilityBySpellId,
     magicInitiateFreeCastEntries,
     feyTouchedFreeCastEntries,
     shadowTouchedFreeCastEntries,
-    telepathicDetectThoughtsFreeCastEntries,
-    abilityScoreBonuses,
-    speedBonuses,
-    hitPointMaximumBonus,
-    derivedStatusEntries,
-    actions,
-    reactionEntries,
+    telepathicDetectThoughtsFreeCastEntries: finalTelepathicDetectThoughtsFreeCastEntries,
+    abilityScoreBonuses: compiledContributionState.abilityScoreBonuses,
+    speedBonuses: compiledContributionState.speedBonuses,
+    hitPointMaximumBonus: compiledContributionState.hitPointMaximumBonus,
+    derivedStatusEntries: compiledContributionState.statuses,
+    actions: compiledContributionState.actions,
+    actionFactories: compiledContributionState.actionFactories,
+    reactionEntries: compiledContributionState.reactions,
+    spellTransforms: compiledContributionState.spellTransforms,
+    commonActionTransforms: compiledContributionState.commonActionTransforms,
+    weaponActionTransforms: compiledContributionState.weaponActionTransforms,
+    itemDescriptionTransforms: compiledContributionState.itemDescriptionTransforms,
+    spellActionPaths: compiledContributionState.spellActionPaths,
+    spellCastEffects: compiledContributionState.spellCastEffects,
     hasCrafterDiscount: featSet.has(FEATS.CRAFTER),
     hasCultOfDragonInitiate: originResourceState.hasCultOfDragonInitiate,
     hasDefenseFightingStyle: hasDefenseFightingStyle(featSet),

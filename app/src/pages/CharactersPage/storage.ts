@@ -28,9 +28,9 @@ import {
 } from "./spellcasting";
 import {
   getAlwaysSpellbookSpellIdsForCharacter,
-  getMagicTemporaryHitPointsFeatureForCharacter,
   normalizeCharacterClassFeatureState
 } from "./classFeatures";
+import { getMagicTemporaryHitPointsFeatureForCharacter } from "./classFeatures/magicTemporaryHitPoints";
 import { normalizeLevelAndXp } from "./experience";
 import { normalizeCustomEquipmentEntries } from "./customEquipment";
 import { normalizeCharacterCompanions } from "./companions";

@@ -46,6 +46,12 @@ export const shadowTouchedInvisibilitySpellId = "spell-invisibility";
 export const emeraldEnclaveFledglingSpeakWithAnimalsSpellId =
   "spell-speak-with-animals";
 export const spellfireSparkSacredFlameSpellId = "spell-sacred-flame";
+export const spellfireSparkSpellfireFlameResourceId =
+  "feat-spellfire-spark-spellfire-flame";
+export const spellfireSparkSpellfireFlameSpellActionPathId =
+  "spellfire-flame";
+export const spellfireSparkSpellfireFlameSpellCastEffectId =
+  "feat-spellfire-spark-spellfire-flame-cast-effect";
 
 export const healerKitItemKeys = new Set([
   "srd_healers-kit",

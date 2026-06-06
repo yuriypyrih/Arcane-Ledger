@@ -5,53 +5,12 @@ import {
   WEAPON_PROPERTY,
   type SpellDescriptionEntry
 } from "../../../../codex/entries";
-import type { AbilityKey } from "../../../../types";
-import { createSourcedDescriptionEntries } from "../../actionModalDescriptions";
+import type { AbilityKey, Character } from "../../../../types";
 import type { FeatureActionCard } from "../../classFeatures/types";
-import { getFeatDefinition, getFeatLabel } from "..";
-import {
-  filterDescriptionEntries,
-  isArcheryWeaponActionDescriptionEntry,
-  isBoonOfCombatProwessPeerlessAimDescriptionEntry,
-  isBoonOfDimensionalTravelBlinkStepsDescriptionEntry,
-  isBoonOfIrresistibleOffenseDescriptionEntry,
-  isBoonOfSpeedEscapeArtistDescriptionEntry,
-  isChargerChargeAttackDescriptionEntry,
-  isChargerImprovedDashDescriptionEntry,
-  isChefBolsteringTreatsDescriptionEntry,
-  isChefReplenishingMealDescriptionEntry,
-  isCrossbowExpertDescriptionEntry,
-  isCrusherWeaponActionDescriptionEntry,
-  isDualWielderEnhancedDualWieldingDescriptionEntry,
-  isDuelingWeaponActionDescriptionEntry,
-  isEmeraldEnclaveFledglingTagTeamDescriptionEntry,
-  isGreatWeaponMasterHeavyWeaponMasteryDescriptionEntry,
-  isGreatWeaponMasterHewDescriptionEntry,
-  isHarperAgentDistractingMelodyDescriptionEntry,
-  isInspiringLeaderBolsteringPerformanceDescriptionEntry,
-  isKeenMindQuickStudyDescriptionEntry,
-  isMageSlayerGuardedMindDescriptionEntry,
-  isMediumArmorMasterDexterousWearerDescriptionEntry,
-  isObservantQuickSearchDescriptionEntry,
-  isPiercerWeaponActionDescriptionEntry,
-  isPoisonerPotentPoisonDescriptionEntry,
-  isPolearmMasterPoleStrikeDescriptionEntry,
-  isPurpleDragonRookRallyingCryDescriptionEntry,
-  isSharpshooterDescriptionEntry,
-  isShieldMasterInterposeShieldDescriptionEntry,
-  isShieldMasterShieldBashDescriptionEntry,
-  isSkulkerHideDescriptionEntry,
-  isSlasherWeaponActionDescriptionEntry,
-  isSpeedyDashOverDifficultTerrainDescriptionEntry,
-  isThrownWeaponFightingWeaponActionDescriptionEntry,
-  isTyroOfTheGauntletVigilantDescriptionEntry,
-  isTwoWeaponFightingWeaponActionDescriptionEntry,
-  isUnarmedFightingWeaponActionDescriptionEntry,
-  isWarCasterConcentrationDescriptionEntry,
-  isWeaponMasterMasteryPropertyDescriptionEntry,
-  isZhentarimRuffianFamilyFirstDescriptionEntry
-} from "./descriptionMatchers";
-import { collectFeatDerivedState, getFeatDescriptionSlice, hasFeatForCharacter } from "./state";
+import { getFeatureDescriptionAdditions } from "../../featureContributions";
+import { getFeatLabel } from "..";
+import { featDescriptionTargetKeys } from "./descriptionContributions";
+import { collectFeatDerivedState, hasFeatForCharacter } from "./state";
 import type { FeatRuntimeCharacter } from "./types";
 
 type ChargerWeaponActionContext = {
@@ -240,71 +199,62 @@ function isPolearmMasterWeaponAction(action: PolearmMasterWeaponActionContext): 
   return properties.includes(WEAPON_PROPERTY.HEAVY) && properties.includes(WEAPON_PROPERTY.REACH);
 }
 
+function getFeatDescriptionAdditionsForTarget(
+  character: FeatRuntimeCharacter,
+  target: Parameters<typeof getFeatureDescriptionAdditions>[1],
+  targetKey: string
+): SpellDescriptionEntry[][] {
+  return getFeatureDescriptionAdditions(collectFeatDerivedState(character), target, {
+    targetKey
+  });
+}
+
+function getFeatDescriptionEntriesForTarget(
+  character: FeatRuntimeCharacter,
+  target: Parameters<typeof getFeatureDescriptionAdditions>[1],
+  targetKey: string
+): SpellDescriptionEntry[] {
+  return getFeatDescriptionAdditionsForTarget(character, target, targetKey).flat();
+}
+
 export function getAthleteSpeedDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter
 ): SpellDescriptionEntry[][] {
-  if (!hasFeatForCharacter(character, FEATS.ATHLETE)) {
-    return [];
-  }
-
-  const athleteDescription = getFeatDescriptionSlice(
-    FEATS.ATHLETE,
-    (descriptionEntry) =>
-      descriptionEntry.startsWith("<strong>Hop Up.</strong>") ||
-      descriptionEntry.startsWith("<strong>Jumping.</strong>")
+  return getFeatDescriptionAdditionsForTarget(
+    character,
+    "stat",
+    featDescriptionTargetKeys.speed
   );
-
-  return athleteDescription.length > 0
-    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.ATHLETE), athleteDescription)]
-    : [];
 }
 
 export function getChargerDashDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter
 ): SpellDescriptionEntry[][] {
-  if (!hasFeatForCharacter(character, FEATS.CHARGER)) {
-    return [];
-  }
-
-  const description = getFeatDescriptionSlice(FEATS.CHARGER, isChargerImprovedDashDescriptionEntry);
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.CHARGER), description)]
-    : [];
+  return getFeatDescriptionAdditionsForTarget(
+    character,
+    "commonAction",
+    featDescriptionTargetKeys.commonActionChargerDash
+  );
 }
 
 export function getSpeedyDashDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter
 ): SpellDescriptionEntry[][] {
-  if (!hasFeatForCharacter(character, FEATS.SPEEDY)) {
-    return [];
-  }
-
-  const description = getFeatDescriptionSlice(
-    FEATS.SPEEDY,
-    isSpeedyDashOverDifficultTerrainDescriptionEntry
+  return getFeatDescriptionAdditionsForTarget(
+    character,
+    "commonAction",
+    featDescriptionTargetKeys.commonActionSpeedyDash
   );
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.SPEEDY), description)]
-    : [];
 }
 
 export function getBoonOfSpeedDisengageDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter
 ): SpellDescriptionEntry[][] {
-  if (!hasFeatForCharacter(character, FEATS.BOON_OF_SPEED)) {
-    return [];
-  }
-
-  const description = getFeatDescriptionSlice(
-    FEATS.BOON_OF_SPEED,
-    isBoonOfSpeedEscapeArtistDescriptionEntry
+  return getFeatDescriptionAdditionsForTarget(
+    character,
+    "commonAction",
+    featDescriptionTargetKeys.commonActionBoonOfSpeedDisengage
   );
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.BOON_OF_SPEED), description)]
-    : [];
 }
 
 export function hasBoonOfSpeedDisengageBonusActionPath(
@@ -312,7 +262,12 @@ export function hasBoonOfSpeedDisengageBonusActionPath(
   actionKey: string
 ): boolean {
   return (
-    actionKey === "common-action-disengage" && hasFeatForCharacter(character, FEATS.BOON_OF_SPEED)
+    actionKey === "common-action-disengage" &&
+    getFeatDescriptionAdditionsForTarget(
+      character,
+      "commonAction",
+      featDescriptionTargetKeys.commonActionBoonOfSpeedDisengage
+    ).length > 0
   );
 }
 
@@ -320,14 +275,12 @@ export function getChargerWeaponActionDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter,
   action: ChargerWeaponActionContext
 ): SpellDescriptionEntry[][] {
-  if (!hasFeatForCharacter(character, FEATS.CHARGER) || !isChargerMeleeWeaponAction(action)) {
-    return [];
-  }
-
-  const description = getFeatDescriptionSlice(FEATS.CHARGER, isChargerChargeAttackDescriptionEntry);
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.CHARGER), description)]
+  return isChargerMeleeWeaponAction(action)
+    ? getFeatDescriptionAdditionsForTarget(
+        character,
+        "weaponAction",
+        featDescriptionTargetKeys.weaponChargerChargeAttack
+      )
     : [];
 }
 
@@ -335,14 +288,12 @@ export function getArcheryWeaponActionDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter,
   action: ArcheryWeaponActionContext
 ): SpellDescriptionEntry[][] {
-  if (!hasFeatForCharacter(character, FEATS.ARCHERY) || !isArcheryWeaponAction(action)) {
-    return [];
-  }
-
-  const description = getFeatDescriptionSlice(FEATS.ARCHERY, isArcheryWeaponActionDescriptionEntry);
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.ARCHERY), description)]
+  return isArcheryWeaponAction(action)
+    ? getFeatDescriptionAdditionsForTarget(
+        character,
+        "weaponAction",
+        featDescriptionTargetKeys.weaponArchery
+      )
     : [];
 }
 
@@ -350,14 +301,12 @@ export function getDuelingWeaponActionDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter,
   action: DuelingWeaponActionContext
 ): SpellDescriptionEntry[][] {
-  if (!hasFeatForCharacter(character, FEATS.DUELING) || !isDuelingWeaponAction(action)) {
-    return [];
-  }
-
-  const description = getFeatDescriptionSlice(FEATS.DUELING, isDuelingWeaponActionDescriptionEntry);
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.DUELING), description)]
+  return isDuelingWeaponAction(action)
+    ? getFeatDescriptionAdditionsForTarget(
+        character,
+        "weaponAction",
+        featDescriptionTargetKeys.weaponDueling
+      )
     : [];
 }
 
@@ -365,20 +314,12 @@ export function getBoonOfCombatProwessWeaponActionDescriptionAdditionsForCharact
   character: FeatRuntimeCharacter,
   action: EpicBoonWeaponActionContext
 ): SpellDescriptionEntry[][] {
-  if (
-    !hasFeatForCharacter(character, FEATS.BOON_OF_COMBAT_PROWESS) ||
-    !isEpicBoonWeaponAction(action)
-  ) {
-    return [];
-  }
-
-  const description = getFeatDescriptionSlice(
-    FEATS.BOON_OF_COMBAT_PROWESS,
-    isBoonOfCombatProwessPeerlessAimDescriptionEntry
-  );
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.BOON_OF_COMBAT_PROWESS), description)]
+  return isEpicBoonWeaponAction(action)
+    ? getFeatDescriptionAdditionsForTarget(
+        character,
+        "weaponAction",
+        featDescriptionTargetKeys.weaponBoonOfCombatProwess
+      )
     : [];
 }
 
@@ -386,20 +327,12 @@ export function getBoonOfDimensionalTravelWeaponActionDescriptionAdditionsForCha
   character: FeatRuntimeCharacter,
   action: EpicBoonWeaponActionContext
 ): SpellDescriptionEntry[][] {
-  if (
-    !hasFeatForCharacter(character, FEATS.BOON_OF_DIMENSIONAL_TRAVEL) ||
-    !isEpicBoonWeaponAction(action)
-  ) {
-    return [];
-  }
-
-  const description = getFeatDescriptionSlice(
-    FEATS.BOON_OF_DIMENSIONAL_TRAVEL,
-    isBoonOfDimensionalTravelBlinkStepsDescriptionEntry
-  );
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.BOON_OF_DIMENSIONAL_TRAVEL), description)]
+  return isEpicBoonWeaponAction(action)
+    ? getFeatDescriptionAdditionsForTarget(
+        character,
+        "weaponAction",
+        featDescriptionTargetKeys.weaponBoonOfDimensionalTravel
+      )
     : [];
 }
 
@@ -407,25 +340,12 @@ export function getBoonOfIrresistibleOffenseWeaponActionDescriptionAdditionsForC
   character: FeatRuntimeCharacter,
   action: DamageTypedWeaponActionContext
 ): SpellDescriptionEntry[][] {
-  if (
-    !hasFeatForCharacter(character, FEATS.BOON_OF_IRRESISTIBLE_OFFENSE) ||
-    !isBoonOfIrresistibleOffenseWeaponAction(action)
-  ) {
-    return [];
-  }
-
-  const description = getFeatDescriptionSlice(
-    FEATS.BOON_OF_IRRESISTIBLE_OFFENSE,
-    isBoonOfIrresistibleOffenseDescriptionEntry
-  );
-
-  return description.length > 0
-    ? [
-        createSourcedDescriptionEntries(
-          getFeatLabel(FEATS.BOON_OF_IRRESISTIBLE_OFFENSE),
-          description
-        )
-      ]
+  return isBoonOfIrresistibleOffenseWeaponAction(action)
+    ? getFeatDescriptionAdditionsForTarget(
+        character,
+        "weaponAction",
+        featDescriptionTargetKeys.weaponBoonOfIrresistibleOffense
+      )
     : [];
 }
 
@@ -433,20 +353,12 @@ export function getThrownWeaponFightingWeaponActionDescriptionAdditionsForCharac
   character: FeatRuntimeCharacter,
   action: ThrownWeaponFightingWeaponActionContext
 ): SpellDescriptionEntry[][] {
-  if (
-    !hasFeatForCharacter(character, FEATS.THROWN_WEAPON_FIGHTING) ||
-    !isThrownWeaponFightingWeaponAction(action)
-  ) {
-    return [];
-  }
-
-  const description = getFeatDescriptionSlice(
-    FEATS.THROWN_WEAPON_FIGHTING,
-    isThrownWeaponFightingWeaponActionDescriptionEntry
-  );
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.THROWN_WEAPON_FIGHTING), description)]
+  return isThrownWeaponFightingWeaponAction(action)
+    ? getFeatDescriptionAdditionsForTarget(
+        character,
+        "weaponAction",
+        featDescriptionTargetKeys.weaponThrownWeaponFighting
+      )
     : [];
 }
 
@@ -454,20 +366,12 @@ export function getTwoWeaponFightingWeaponActionDescriptionAdditionsForCharacter
   character: FeatRuntimeCharacter,
   action: TwoWeaponFightingWeaponActionContext
 ): SpellDescriptionEntry[][] {
-  if (
-    !hasFeatForCharacter(character, FEATS.TWO_WEAPON_FIGHTING) ||
-    !isTwoWeaponFightingWeaponAction(action)
-  ) {
-    return [];
-  }
-
-  const description = getFeatDescriptionSlice(
-    FEATS.TWO_WEAPON_FIGHTING,
-    isTwoWeaponFightingWeaponActionDescriptionEntry
-  );
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.TWO_WEAPON_FIGHTING), description)]
+  return isTwoWeaponFightingWeaponAction(action)
+    ? getFeatDescriptionAdditionsForTarget(
+        character,
+        "weaponAction",
+        featDescriptionTargetKeys.weaponTwoWeaponFighting
+      )
     : [];
 }
 
@@ -475,20 +379,12 @@ export function getUnarmedFightingWeaponActionDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter,
   action: UnarmedFightingWeaponActionContext
 ): SpellDescriptionEntry[][] {
-  if (
-    !hasFeatForCharacter(character, FEATS.UNARMED_FIGHTING) ||
-    !isUnarmedFightingWeaponAction(action)
-  ) {
-    return [];
-  }
-
-  const description = getFeatDescriptionSlice(
-    FEATS.UNARMED_FIGHTING,
-    isUnarmedFightingWeaponActionDescriptionEntry
-  );
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.UNARMED_FIGHTING), description)]
+  return isUnarmedFightingWeaponAction(action)
+    ? getFeatDescriptionAdditionsForTarget(
+        character,
+        "weaponAction",
+        featDescriptionTargetKeys.weaponUnarmedFighting
+      )
     : [];
 }
 
@@ -496,14 +392,12 @@ export function getCrusherWeaponActionDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter,
   action: CrusherWeaponActionContext
 ): SpellDescriptionEntry[][] {
-  if (!hasFeatForCharacter(character, FEATS.CRUSHER) || !isCrusherWeaponAction(action)) {
-    return [];
-  }
-
-  const description = getFeatDescriptionSlice(FEATS.CRUSHER, isCrusherWeaponActionDescriptionEntry);
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.CRUSHER), description)]
+  return isCrusherWeaponAction(action)
+    ? getFeatDescriptionAdditionsForTarget(
+        character,
+        "weaponAction",
+        featDescriptionTargetKeys.weaponCrusher
+      )
     : [];
 }
 
@@ -511,14 +405,12 @@ export function getPiercerWeaponActionDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter,
   action: DamageTypedWeaponActionContext
 ): SpellDescriptionEntry[][] {
-  if (!hasFeatForCharacter(character, FEATS.PIERCER) || !isPiercerWeaponAction(action)) {
-    return [];
-  }
-
-  const description = getFeatDescriptionSlice(FEATS.PIERCER, isPiercerWeaponActionDescriptionEntry);
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.PIERCER), description)]
+  return isPiercerWeaponAction(action)
+    ? getFeatDescriptionAdditionsForTarget(
+        character,
+        "weaponAction",
+        featDescriptionTargetKeys.weaponPiercer
+      )
     : [];
 }
 
@@ -526,14 +418,12 @@ export function getSlasherWeaponActionDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter,
   action: DamageTypedWeaponActionContext
 ): SpellDescriptionEntry[][] {
-  if (!hasFeatForCharacter(character, FEATS.SLASHER) || !isSlasherWeaponAction(action)) {
-    return [];
-  }
-
-  const description = getFeatDescriptionSlice(FEATS.SLASHER, isSlasherWeaponActionDescriptionEntry);
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.SLASHER), description)]
+  return isSlasherWeaponAction(action)
+    ? getFeatDescriptionAdditionsForTarget(
+        character,
+        "weaponAction",
+        featDescriptionTargetKeys.weaponSlasher
+      )
     : [];
 }
 
@@ -541,17 +431,12 @@ export function getPoisonerWeaponActionDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter,
   action: DamageTypedWeaponActionContext
 ): SpellDescriptionEntry[][] {
-  if (!hasFeatForCharacter(character, FEATS.POISONER) || !isPoisonerWeaponAction(action)) {
-    return [];
-  }
-
-  const description = getFeatDescriptionSlice(
-    FEATS.POISONER,
-    isPoisonerPotentPoisonDescriptionEntry
-  );
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries("Poisoner: Potent Poison", description)]
+  return isPoisonerWeaponAction(action)
+    ? getFeatDescriptionAdditionsForTarget(
+        character,
+        "weaponAction",
+        featDescriptionTargetKeys.weaponPoisoner
+      )
     : [];
 }
 
@@ -559,17 +444,12 @@ export function getDualWielderWeaponActionDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter,
   action: DualWielderWeaponActionContext
 ): SpellDescriptionEntry[][] {
-  if (!hasFeatForCharacter(character, FEATS.DUAL_WIELDER) || !isDualWielderWeaponAction(action)) {
-    return [];
-  }
-
-  const description = getFeatDescriptionSlice(
-    FEATS.DUAL_WIELDER,
-    isDualWielderEnhancedDualWieldingDescriptionEntry
-  );
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.DUAL_WIELDER), description)]
+  return isDualWielderWeaponAction(action)
+    ? getFeatDescriptionAdditionsForTarget(
+        character,
+        "weaponAction",
+        featDescriptionTargetKeys.weaponDualWielder
+      )
     : [];
 }
 
@@ -577,45 +457,34 @@ export function getGreatWeaponMasterWeaponActionDescriptionAdditionsForCharacter
   character: FeatRuntimeCharacter,
   action: GreatWeaponMasterWeaponActionContext
 ): SpellDescriptionEntry[][] {
-  if (!hasFeatForCharacter(character, FEATS.GREAT_WEAPON_MASTER)) {
-    return [];
-  }
-
-  const description: SpellDescriptionEntry[] = [
+  return [
     ...(isGreatWeaponMasterHeavyWeaponAction(action)
-      ? getFeatDescriptionSlice(
-          FEATS.GREAT_WEAPON_MASTER,
-          isGreatWeaponMasterHeavyWeaponMasteryDescriptionEntry
+      ? getFeatDescriptionAdditionsForTarget(
+          character,
+          "weaponAction",
+          featDescriptionTargetKeys.weaponGreatWeaponMasterHeavy
         )
       : []),
     ...(isGreatWeaponMasterMeleeWeaponAction(action)
-      ? getFeatDescriptionSlice(FEATS.GREAT_WEAPON_MASTER, isGreatWeaponMasterHewDescriptionEntry)
+      ? getFeatDescriptionAdditionsForTarget(
+          character,
+          "weaponAction",
+          featDescriptionTargetKeys.weaponGreatWeaponMasterHew
+        )
       : [])
   ];
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.GREAT_WEAPON_MASTER), description)]
-    : [];
 }
 
 export function getPolearmMasterWeaponActionDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter,
   action: PolearmMasterWeaponActionContext
 ): SpellDescriptionEntry[][] {
-  if (
-    !hasFeatForCharacter(character, FEATS.POLEARM_MASTER) ||
-    !isPolearmMasterWeaponAction(action)
-  ) {
-    return [];
-  }
-
-  const description = getFeatDescriptionSlice(
-    FEATS.POLEARM_MASTER,
-    isPolearmMasterPoleStrikeDescriptionEntry
-  );
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.POLEARM_MASTER), description)]
+  return isPolearmMasterWeaponAction(action)
+    ? getFeatDescriptionAdditionsForTarget(
+        character,
+        "weaponAction",
+        featDescriptionTargetKeys.weaponPolearmMaster
+      )
     : [];
 }
 
@@ -623,20 +492,12 @@ export function getCrossbowExpertWeaponActionDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter,
   action: CrossbowExpertWeaponActionContext
 ): SpellDescriptionEntry[][] {
-  if (
-    !hasFeatForCharacter(character, FEATS.CROSSBOW_EXPERT) ||
-    !isCrossbowExpertWeaponAction(action)
-  ) {
-    return [];
-  }
-
-  const description = getFeatDescriptionSlice(
-    FEATS.CROSSBOW_EXPERT,
-    isCrossbowExpertDescriptionEntry
-  );
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.CROSSBOW_EXPERT), description)]
+  return isCrossbowExpertWeaponAction(action)
+    ? getFeatDescriptionAdditionsForTarget(
+        character,
+        "weaponAction",
+        featDescriptionTargetKeys.weaponCrossbowExpert
+      )
     : [];
 }
 
@@ -644,14 +505,12 @@ export function getSharpshooterWeaponActionDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter,
   action: SharpshooterWeaponActionContext
 ): SpellDescriptionEntry[][] {
-  if (!hasFeatForCharacter(character, FEATS.SHARPSHOOTER) || !isSharpshooterWeaponAction(action)) {
-    return [];
-  }
-
-  const description = getFeatDescriptionSlice(FEATS.SHARPSHOOTER, isSharpshooterDescriptionEntry);
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.SHARPSHOOTER), description)]
+  return isSharpshooterWeaponAction(action)
+    ? getFeatDescriptionAdditionsForTarget(
+        character,
+        "weaponAction",
+        featDescriptionTargetKeys.weaponSharpshooter
+      )
     : [];
 }
 
@@ -659,266 +518,190 @@ export function getShieldMasterWeaponActionDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter,
   action: ShieldMasterWeaponActionContext
 ): SpellDescriptionEntry[][] {
-  if (!hasFeatForCharacter(character, FEATS.SHIELD_MASTER) || !isShieldMasterWeaponAction(action)) {
-    return [];
-  }
-
-  const description = getFeatDescriptionSlice(
-    FEATS.SHIELD_MASTER,
-    isShieldMasterShieldBashDescriptionEntry
-  );
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.SHIELD_MASTER), description)]
+  return isShieldMasterWeaponAction(action)
+    ? getFeatDescriptionAdditionsForTarget(
+        character,
+        "weaponAction",
+        featDescriptionTargetKeys.weaponShieldMaster
+      )
     : [];
 }
 
 export function getChefShortRestDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter
 ): SpellDescriptionEntry[][] {
-  if (!hasFeatForCharacter(character, FEATS.CHEF)) {
-    return [];
-  }
-
-  const description = getFeatDescriptionSlice(FEATS.CHEF, isChefReplenishingMealDescriptionEntry);
-
-  return description.length > 0 ? [createSourcedDescriptionEntries("Chef", description)] : [];
+  return getFeatDescriptionAdditionsForTarget(
+    character,
+    "rest",
+    featDescriptionTargetKeys.shortRest
+  ).filter((section) =>
+    section.some((entry) =>
+      typeof entry === "string" ? entry.includes("<strong>Chef.") : false
+    )
+  );
 }
 
 export function getChefLongRestDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter
 ): SpellDescriptionEntry[][] {
-  if (!hasFeatForCharacter(character, FEATS.CHEF)) {
-    return [];
-  }
-
-  const description = getFeatDescriptionSlice(FEATS.CHEF, isChefBolsteringTreatsDescriptionEntry);
-
-  return description.length > 0 ? [createSourcedDescriptionEntries("Chef", description)] : [];
+  return getFeatDescriptionAdditionsForTarget(
+    character,
+    "rest",
+    featDescriptionTargetKeys.longRest
+  ).filter((section) =>
+    section.some((entry) =>
+      typeof entry === "string" ? entry.includes("<strong>Chef.") : false
+    )
+  );
 }
 
 export function getInspiringLeaderRestDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter
 ): SpellDescriptionEntry[][] {
-  if (!hasFeatForCharacter(character, FEATS.INSPIRING_LEADER)) {
-    return [];
-  }
-
-  const description = getFeatDescriptionSlice(
-    FEATS.INSPIRING_LEADER,
-    isInspiringLeaderBolsteringPerformanceDescriptionEntry
+  return getFeatDescriptionAdditionsForTarget(
+    character,
+    "rest",
+    featDescriptionTargetKeys.shortRest
+  ).filter((section) =>
+    section.some((entry) =>
+      typeof entry === "string" ? entry.includes(getFeatLabel(FEATS.INSPIRING_LEADER)) : false
+    )
   );
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.INSPIRING_LEADER), description)]
-    : [];
 }
 
 export function getWeaponMasterLongRestDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter
 ): SpellDescriptionEntry[][] {
-  if (!hasFeatForCharacter(character, FEATS.WEAPON_MASTER)) {
-    return [];
-  }
-
-  const description = getFeatDescriptionSlice(
-    FEATS.WEAPON_MASTER,
-    isWeaponMasterMasteryPropertyDescriptionEntry
+  return getFeatDescriptionAdditionsForTarget(
+    character,
+    "rest",
+    featDescriptionTargetKeys.longRest
+  ).filter((section) =>
+    section.some((entry) =>
+      typeof entry === "string" ? entry.includes(getFeatLabel(FEATS.WEAPON_MASTER)) : false
+    )
   );
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.WEAPON_MASTER), description)]
-    : [];
 }
 
 export function getKeenMindStudyDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter
 ): SpellDescriptionEntry[][] {
-  if (!hasFeatForCharacter(character, FEATS.KEEN_MIND)) {
-    return [];
-  }
-
-  const description = getFeatDescriptionSlice(
-    FEATS.KEEN_MIND,
-    isKeenMindQuickStudyDescriptionEntry
+  return getFeatDescriptionAdditionsForTarget(
+    character,
+    "commonAction",
+    featDescriptionTargetKeys.commonActionKeenMindStudy
   );
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.KEEN_MIND), description)]
-    : [];
 }
 
 export function getObservantSearchDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter
 ): SpellDescriptionEntry[][] {
-  if (!hasFeatForCharacter(character, FEATS.OBSERVANT)) {
-    return [];
-  }
-
-  const description = getFeatDescriptionSlice(
-    FEATS.OBSERVANT,
-    isObservantQuickSearchDescriptionEntry
+  return getFeatDescriptionAdditionsForTarget(
+    character,
+    "commonAction",
+    featDescriptionTargetKeys.commonActionObservantSearch
   );
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.OBSERVANT), description)]
-    : [];
 }
 
 export function getSkulkerHideDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter
 ): SpellDescriptionEntry[][] {
-  if (!hasFeatForCharacter(character, FEATS.SKULKER)) {
-    return [];
-  }
-
-  const description = getFeatDescriptionSlice(FEATS.SKULKER, isSkulkerHideDescriptionEntry);
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.SKULKER), description)]
-    : [];
+  return getFeatDescriptionAdditionsForTarget(
+    character,
+    "commonAction",
+    featDescriptionTargetKeys.commonActionSkulkerHide
+  );
 }
 
 export function getEmeraldEnclaveFledglingTagTeamDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter
 ): SpellDescriptionEntry[][] {
-  if (!hasFeatForCharacter(character, FEATS.EMERALD_ENCLAVE_FLEDGLING)) {
-    return [];
-  }
-
-  const description = getFeatDescriptionSlice(
-    FEATS.EMERALD_ENCLAVE_FLEDGLING,
-    isEmeraldEnclaveFledglingTagTeamDescriptionEntry
+  return getFeatDescriptionAdditionsForTarget(
+    character,
+    "commonAction",
+    featDescriptionTargetKeys.commonActionEmeraldEnclaveHelp
   );
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.EMERALD_ENCLAVE_FLEDGLING), description)]
-    : [];
 }
 
 export function getHarperAgentDistractingMelodyDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter
 ): SpellDescriptionEntry[][] {
-  if (!hasFeatForCharacter(character, FEATS.HARPER_AGENT)) {
-    return [];
-  }
-
-  const description = getFeatDescriptionSlice(
-    FEATS.HARPER_AGENT,
-    isHarperAgentDistractingMelodyDescriptionEntry
+  return getFeatDescriptionAdditionsForTarget(
+    character,
+    "commonAction",
+    featDescriptionTargetKeys.commonActionHarperAgentHelp
   );
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.HARPER_AGENT), description)]
-    : [];
 }
 
 export function getPurpleDragonRookRallyingCryDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter
 ): SpellDescriptionEntry[][] {
-  if (!hasFeatForCharacter(character, FEATS.PURPLE_DRAGON_ROOK)) {
-    return [];
-  }
-
-  const description = getFeatDescriptionSlice(
-    FEATS.PURPLE_DRAGON_ROOK,
-    isPurpleDragonRookRallyingCryDescriptionEntry
+  return getFeatDescriptionAdditionsForTarget(
+    character,
+    "initiative",
+    featDescriptionTargetKeys.initiativeRallyingCry
   );
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.PURPLE_DRAGON_ROOK), description)]
-    : [];
 }
 
 export function getTyroOfTheGauntletVigilantDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter
 ): SpellDescriptionEntry[][] {
-  if (!hasFeatForCharacter(character, FEATS.TYRO_OF_THE_GAUNTLET)) {
-    return [];
-  }
-
-  const description = getFeatDescriptionSlice(
-    FEATS.TYRO_OF_THE_GAUNTLET,
-    isTyroOfTheGauntletVigilantDescriptionEntry
+  return getFeatDescriptionAdditionsForTarget(
+    character,
+    "commonAction",
+    featDescriptionTargetKeys.commonActionTyroReady
   );
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.TYRO_OF_THE_GAUNTLET), description)]
-    : [];
 }
 
 export function getZhentarimRuffianFamilyFirstDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter
 ): SpellDescriptionEntry[][] {
-  if (!hasFeatForCharacter(character, FEATS.ZHENTARIM_RUFFIAN)) {
-    return [];
-  }
-
-  const description = getFeatDescriptionSlice(
-    FEATS.ZHENTARIM_RUFFIAN,
-    isZhentarimRuffianFamilyFirstDescriptionEntry
+  return getFeatDescriptionAdditionsForTarget(
+    character,
+    "initiative",
+    featDescriptionTargetKeys.initiativeFamilyFirst
   );
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.ZHENTARIM_RUFFIAN), description)]
-    : [];
 }
 
 export function getMageSlayerGuardedMindDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter,
   ability: AbilityKey
 ): SpellDescriptionEntry[][] {
-  if (
-    !hasFeatForCharacter(character, FEATS.MAGE_SLAYER) ||
-    (ability !== "INT" && ability !== "WIS" && ability !== "CHA")
-  ) {
+  if (ability !== "INT" && ability !== "WIS" && ability !== "CHA") {
     return [];
   }
 
-  const description = getFeatDescriptionSlice(
-    FEATS.MAGE_SLAYER,
-    isMageSlayerGuardedMindDescriptionEntry
-  );
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries("Mage Slayer: Guarded Mind", description)]
-    : [];
+  return getFeatDescriptionAdditionsForTarget(character, "stat", `savingThrow:${ability}`);
 }
 
 export function getShieldMasterInterposeShieldDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter,
   ability: AbilityKey
 ): SpellDescriptionEntry[][] {
-  if (!hasFeatForCharacter(character, FEATS.SHIELD_MASTER) || ability !== "DEX") {
+  if (ability !== "DEX") {
     return [];
   }
 
-  const description = getFeatDescriptionSlice(
-    FEATS.SHIELD_MASTER,
-    isShieldMasterInterposeShieldDescriptionEntry
+  return getFeatDescriptionAdditionsForTarget(
+    character,
+    "stat",
+    featDescriptionTargetKeys.savingThrowDex
   );
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.SHIELD_MASTER), description)]
-    : [];
 }
 
 export function getWarCasterConcentrationDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter,
   ability: AbilityKey
 ): SpellDescriptionEntry[][] {
-  if (!hasFeatForCharacter(character, FEATS.WAR_CASTER) || ability !== "CON") {
+  if (ability !== "CON") {
     return [];
   }
 
-  const description = getFeatDescriptionSlice(
-    FEATS.WAR_CASTER,
-    isWarCasterConcentrationDescriptionEntry
+  return getFeatDescriptionAdditionsForTarget(
+    character,
+    "stat",
+    featDescriptionTargetKeys.savingThrowConcentration
   );
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries("War Caster: Concentration", description)]
-    : [];
 }
 
 export function getMageSlayerGuardedMindStateForCharacter(character: FeatRuntimeCharacter): {
@@ -944,18 +727,11 @@ export function getMageSlayerGuardedMindStateForCharacter(character: FeatRuntime
 export function getMediumArmorMasterArmorClassDescriptionAdditionsForCharacter(
   character: FeatRuntimeCharacter
 ): SpellDescriptionEntry[][] {
-  if (!hasFeatForCharacter(character, FEATS.MEDIUM_ARMOR_MASTER)) {
-    return [];
-  }
-
-  const description = getFeatDescriptionSlice(
-    FEATS.MEDIUM_ARMOR_MASTER,
-    isMediumArmorMasterDexterousWearerDescriptionEntry
+  return getFeatDescriptionAdditionsForTarget(
+    character,
+    "stat",
+    featDescriptionTargetKeys.armorClass
   );
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.MEDIUM_ARMOR_MASTER), description)]
-    : [];
 }
 
 export function hasMediumArmorMasterForCharacter(character: FeatRuntimeCharacter): boolean {
@@ -970,14 +746,28 @@ export function hasKeenMindStudyBonusActionPath(
   character: FeatRuntimeCharacter,
   actionKey: string
 ): boolean {
-  return actionKey === "common-action-study" && hasFeatForCharacter(character, FEATS.KEEN_MIND);
+  return (
+    actionKey === "common-action-study" &&
+    getFeatDescriptionAdditionsForTarget(
+      character,
+      "commonAction",
+      featDescriptionTargetKeys.commonActionKeenMindStudy
+    ).length > 0
+  );
 }
 
 export function hasObservantSearchBonusActionPath(
   character: FeatRuntimeCharacter,
   actionKey: string
 ): boolean {
-  return actionKey === "common-action-search" && hasFeatForCharacter(character, FEATS.OBSERVANT);
+  return (
+    actionKey === "common-action-search" &&
+    getFeatDescriptionAdditionsForTarget(
+      character,
+      "commonAction",
+      featDescriptionTargetKeys.commonActionObservantSearch
+    ).length > 0
+  );
 }
 
 export function transformFeatWeaponActionForCharacter<
@@ -988,112 +778,51 @@ export function transformFeatWeaponActionForCharacter<
     }>;
   }
 >(character: FeatRuntimeCharacter, action: T): T {
-  if (!hasFeatForCharacter(character, FEATS.ARCHERY) || !isArcheryWeaponAction(action)) {
-    return action;
-  }
-
-  return {
-    ...action,
-    attackBonusEntries: [
-      ...(action.attackBonusEntries ?? []),
-      {
-        label: getFeatLabel(FEATS.ARCHERY),
-        value: 2
-      }
-    ]
-  };
+  return collectFeatDerivedState(character).weaponActionTransforms.reduce(
+    (currentAction, contribution) =>
+      contribution.transform(character as Character, currentAction) as T,
+    action
+  );
 }
 
 export function transformFeatCommonActionForCharacter<T extends Pick<FeatureActionCard, "key">>(
   character: FeatRuntimeCharacter,
   action: T & Pick<FeatureActionCard, "descriptionAdditions">
 ): T & Pick<FeatureActionCard, "descriptionAdditions"> {
-  const descriptionAdditions: SpellDescriptionEntry[][] = [];
-
-  if (action.key === "common-action-dash") {
-    descriptionAdditions.push(...getChargerDashDescriptionAdditionsForCharacter(character));
-    descriptionAdditions.push(...getSpeedyDashDescriptionAdditionsForCharacter(character));
-  }
-
-  if (action.key === "common-action-disengage") {
-    descriptionAdditions.push(
-      ...getBoonOfSpeedDisengageDescriptionAdditionsForCharacter(character)
-    );
-  }
-
-  if (action.key === "common-action-study") {
-    descriptionAdditions.push(...getKeenMindStudyDescriptionAdditionsForCharacter(character));
-  }
-
-  if (action.key === "common-action-search") {
-    descriptionAdditions.push(...getObservantSearchDescriptionAdditionsForCharacter(character));
-  }
-
-  if (action.key === "common-action-hide") {
-    descriptionAdditions.push(...getSkulkerHideDescriptionAdditionsForCharacter(character));
-  }
-
-  if (action.key === "common-action-help") {
-    descriptionAdditions.push(
-      ...getEmeraldEnclaveFledglingTagTeamDescriptionAdditionsForCharacter(character)
-    );
-    descriptionAdditions.push(
-      ...getHarperAgentDistractingMelodyDescriptionAdditionsForCharacter(character)
-    );
-  }
-
-  if (action.key === "common-action-ready") {
-    descriptionAdditions.push(
-      ...getTyroOfTheGauntletVigilantDescriptionAdditionsForCharacter(character)
-    );
-  }
-
-  if (descriptionAdditions.length === 0) {
-    return action;
-  }
-
-  return {
-    ...action,
-    descriptionAdditions: [...(action.descriptionAdditions ?? []), ...descriptionAdditions]
-  };
+  return collectFeatDerivedState(character).commonActionTransforms.reduce(
+    (currentAction, contribution) =>
+      contribution.transform(character as Character, currentAction) as unknown as T &
+        Pick<FeatureActionCard, "descriptionAdditions">,
+    action
+  );
 }
 
 export function getSavageAttackerWeaponActionDescriptionAdditions(
   character: FeatRuntimeCharacter
 ): SpellDescriptionEntry[][] {
-  if (!hasFeatForCharacter(character, FEATS.SAVAGE_ATTACKER)) {
-    return [];
-  }
-
-  const description = getFeatDefinition(FEATS.SAVAGE_ATTACKER)?.description ?? [];
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.SAVAGE_ATTACKER), description)]
-    : [];
+  return getFeatDescriptionAdditionsForTarget(
+    character,
+    "weaponAction",
+    featDescriptionTargetKeys.weaponSavageAttacker
+  );
 }
 
 export function getTavernBrawlerUnarmedStrikeDescriptionAdditions(
   character: FeatRuntimeCharacter
 ): SpellDescriptionEntry[][] {
-  if (!hasFeatForCharacter(character, FEATS.TAVERN_BRAWLER)) {
-    return [];
-  }
-
-  const description = getFeatDefinition(FEATS.TAVERN_BRAWLER)?.description ?? [];
-
-  return description.length > 0
-    ? [createSourcedDescriptionEntries(getFeatLabel(FEATS.TAVERN_BRAWLER), description)]
-    : [];
+  return getFeatDescriptionAdditionsForTarget(
+    character,
+    "weaponAction",
+    featDescriptionTargetKeys.weaponTavernBrawler
+  );
 }
 
 export function getMusicianEncouragingSongDescriptionEntriesForCharacter(
   character: FeatRuntimeCharacter
 ): SpellDescriptionEntry[] {
-  if (!hasFeatForCharacter(character, FEATS.MUSICIAN)) {
-    return [];
-  }
-
-  return filterDescriptionEntries(getFeatDefinition(FEATS.MUSICIAN)?.description ?? [], (entry) =>
-    entry.includes("Encouraging Song")
+  return getFeatDescriptionEntriesForTarget(
+    character,
+    "rest",
+    featDescriptionTargetKeys.musicianEncouragingSong
   );
 }

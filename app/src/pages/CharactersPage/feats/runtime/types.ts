@@ -11,6 +11,20 @@ import type {
   SpellSourceMap,
   FeatureSpeedBonus
 } from "../../classFeatures/types";
+import type {
+  FeatureContributionActionFactory,
+  FeatureCommonActionTransform,
+  FeatureDescriptionContribution,
+  FeatureContributionResource,
+  FeatureContributionSpec,
+  FeatureFreeCastEntry,
+  FeatureItemDescriptionTransform,
+  FeatureSpellActionPathContribution,
+  FeatureSpellCastEffectContribution,
+  FeatureSpellcastingAbilityEntry,
+  FeatureSpellTransform,
+  FeatureWeaponActionTransform
+} from "../../featureContributions";
 
 export type FeatRuntimeCharacter = Pick<Character, "level"> &
   Partial<
@@ -32,6 +46,8 @@ export type FeatRuntimeCharacter = Pick<Character, "level"> &
   };
 
 export type FeatDerivedState = {
+  contributions: FeatureContributionSpec<FeatDerivedState>[];
+  resources: FeatureContributionResource[];
   normalizedFeats: CharacterFeatEntry[];
   featsByFeat: Map<FEATS, CharacterFeatEntry[]>;
   featSet: Set<FEATS>;
@@ -39,6 +55,10 @@ export type FeatDerivedState = {
   alwaysPreparedCantripEntries: SpellEntry[];
   alwaysPreparedSpellEntries: SpellEntry[];
   alwaysPreparedSpellSourceMap: SpellSourceMap;
+  spellcastingAbilityEntries: FeatureSpellcastingAbilityEntry[];
+  spellcastingAbilityBySpellId: Map<string, AbilityKey>;
+  freeCastEntries: FeatureFreeCastEntry[];
+  descriptionAdditions: FeatureDescriptionContribution[];
   magicInitiateSpellcastingAbilityBySpellId: Map<string, AbilityKey>;
   spellfireSparkSpellcastingAbilityBySpellId: Map<string, AbilityKey>;
   magicInitiateFreeCastEntries: Array<{
@@ -66,7 +86,14 @@ export type FeatDerivedState = {
   hitPointMaximumBonus: number;
   derivedStatusEntries: CharacterStatusEntry[];
   actions: FeatureActionCard[];
+  actionFactories: FeatureContributionActionFactory<FeatDerivedState>[];
   reactionEntries: ReactionEntry[];
+  spellTransforms: FeatureSpellTransform[];
+  commonActionTransforms: FeatureCommonActionTransform[];
+  weaponActionTransforms: FeatureWeaponActionTransform[];
+  itemDescriptionTransforms: FeatureItemDescriptionTransform[];
+  spellActionPaths: FeatureSpellActionPathContribution[];
+  spellCastEffects: FeatureSpellCastEffectContribution[];
   hasCrafterDiscount: boolean;
   hasCultOfDragonInitiate: boolean;
   hasDefenseFightingStyle: boolean;

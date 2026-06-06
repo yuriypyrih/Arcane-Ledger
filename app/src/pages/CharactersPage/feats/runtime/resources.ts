@@ -2,18 +2,17 @@ import { FEATS, type ReactionEntry, type SpellDescriptionEntry, type SpellEntry 
 import type { Character, ItemRecord } from "../../../../types";
 import { getAbilityModifierForCharacter } from "../../abilities";
 import type { FeatureActionCard } from "../../classFeatures/types";
+import type { FeatureSpellActionPathContribution } from "../../featureContributions";
 import { getHitDiceRemainingForCharacter, getHitDieFormulaForClass } from "../../hitDice";
-import { getEpicBoonFeatActionsForCharacter } from "./epicBoon";
-import { getGeneralFeatActionsForCharacter } from "./general";
-import { getOriginFeatActionsForCharacter } from "./origin";
 import {
   feyTouchedMistyStepSpellId,
   shadowTouchedInvisibilitySpellId,
   spellfireSparkSacredFlameSpellId,
+  spellfireSparkSpellfireFlameSpellCastEffectId,
   telepathicDetectThoughtsSpellId
 } from "./constants";
 import { getFeatItemAdditionalDescription } from "./itemAdditions";
-import { collectFeatDerivedState, getFeatDescriptionSlice, hasFeatForCharacter } from "./state";
+import { collectFeatDerivedState, hasFeatForCharacter } from "./state";
 import type { FeatRuntimeCharacter } from "./types";
 
 export function characterHasCrafterDiscount(character: FeatRuntimeCharacter): boolean {
@@ -300,6 +299,15 @@ export function getSpellfireSparkSpellfireFlameStateForCharacter(
   };
 }
 
+export function getFeatSpellActionPathContributionsForCharacter(
+  character: Character,
+  spell: Pick<SpellEntry, "id" | "castingTime" | "spellLevel">
+): FeatureSpellActionPathContribution[] {
+  return collectFeatDerivedState(character).spellActionPaths.filter(
+    (contribution) => contribution.spellId === spell.id
+  );
+}
+
 export function spendSpellfireSparkSpellfireFlameForCharacter(character: Character): Character {
   const derivedState = collectFeatDerivedState(character);
   let didSpendSpellfireFlame = false;
@@ -342,6 +350,46 @@ export function spendSpellfireSparkSpellfireFlameForCharacter(character: Charact
         feats
       }
     : character;
+}
+
+export function applyFeatSpellCastEffectsForCharacter(
+  character: Character,
+  spell: Pick<SpellEntry, "id" | "spellLevel">,
+  spellCastEffectIds: readonly string[] | null | undefined
+): Character | null {
+  const effectIds = [...new Set(spellCastEffectIds ?? [])];
+
+  if (effectIds.length === 0) {
+    return character;
+  }
+
+  const effectsById = new Map(
+    collectFeatDerivedState(character).spellCastEffects.map((effect) => [effect.id, effect])
+  );
+  let nextCharacter = character;
+
+  for (const effectId of effectIds) {
+    const effect = effectsById.get(effectId);
+
+    if (!effect) {
+      continue;
+    }
+
+    const nextEffectCharacter =
+      effect.apply?.(nextCharacter, { spell }) ??
+      (effectId === spellfireSparkSpellfireFlameSpellCastEffectId &&
+      spell.id === spellfireSparkSacredFlameSpellId
+        ? spendSpellfireSparkSpellfireFlameForCharacter(nextCharacter)
+        : nextCharacter);
+
+    if (nextEffectCharacter === nextCharacter) {
+      return null;
+    }
+
+    nextCharacter = nextEffectCharacter;
+  }
+
+  return nextCharacter;
 }
 
 export function restoreSpellfireSparkSpellfireFlameForCharacter(
@@ -591,9 +639,9 @@ export function getFeatActionsForCharacter(character: FeatRuntimeCharacter): Fea
 
   return [
     ...derivedState.actions,
-    ...getOriginFeatActionsForCharacter(character, derivedState, getFeatDescriptionSlice),
-    ...getGeneralFeatActionsForCharacter(character, derivedState, getFeatDescriptionSlice),
-    ...getEpicBoonFeatActionsForCharacter(derivedState, getFeatDescriptionSlice)
+    ...derivedState.actionFactories.flatMap((createActions) =>
+      createActions(character as Character, derivedState)
+    )
   ];
 }
 
