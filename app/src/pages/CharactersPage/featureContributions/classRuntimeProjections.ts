@@ -54,13 +54,14 @@ function getProjectedActions<TDerivedState>(
 function getAlwaysPreparedSpellIds(
   compiled: Pick<
     CompiledFeatureContributionState,
-    "alwaysPreparedCantripEntries" | "alwaysPreparedSpellEntries"
+    "alwaysPreparedSpellIds" | "alwaysPreparedCantripEntries" | "alwaysPreparedSpellEntries"
   >
 ): string[] {
-  return [
+  return [...new Set([
+    ...compiled.alwaysPreparedSpellIds,
     ...compiled.alwaysPreparedCantripEntries.map((spell) => spell.id),
     ...compiled.alwaysPreparedSpellEntries.map((spell) => spell.id)
-  ];
+  ])];
 }
 
 function resolveSpellcastingState(
@@ -357,6 +358,10 @@ export function projectCompiledContributionsToSubclassDerivedFeatureState<
       compiled.armorClassBonuses.flatMap((contribution) => contribution.getBonuses(context));
   }
   if (compiled.speedBonuses.length > 0) state.speedBonuses = compiled.speedBonuses;
+  if (compiled.speedBonusProviders.length > 0) {
+    state.getSpeedBonuses = (context) =>
+      compiled.speedBonusProviders.flatMap((contribution) => contribution.getBonuses(context));
+  }
   if (compiled.abilityScoreBonuses.length > 0) state.abilityScoreBonuses = compiled.abilityScoreBonuses;
   if (compiled.cantripLimitBonus !== 0) state.cantripLimitBonus = compiled.cantripLimitBonus;
   if (compiled.cantripDamageBonus !== 0) state.cantripDamageBonus = compiled.cantripDamageBonus;

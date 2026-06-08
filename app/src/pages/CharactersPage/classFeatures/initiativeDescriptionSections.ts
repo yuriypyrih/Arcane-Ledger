@@ -6,13 +6,12 @@ import {
 } from "../actionModalDescriptions";
 import { hasFeatForCharacter } from "../feats/runtime";
 import { getFeatDefinition } from "../feats";
-import { getBarbarianPersistentRageInitiativeDescriptionAdditions } from "./barbarian/barbarianDescriptionSections";
+import { getBarbarianFeatureDescriptionAdditions } from "./barbarian/contributions";
 import { getFeatureDescriptionForCharacter } from "./featureDescriptions";
 import { getMonkInitiativeDescriptionAdditions } from "./monk/monkDescriptionSections";
 import { getRogueThiefInitiativeDescriptionAdditions } from "./rogue/subclasses/rogueThief";
 
-type InitiativeDescriptionCharacter = Pick<Character, "className" | "feats" | "level"> &
-  Partial<Pick<Character, "subclassId">>;
+type InitiativeDescriptionCharacter = Character;
 
 const alertInitiativeSwapSource = "Alert";
 const tandemFootworkSource = "Tandem Footwork";
@@ -84,7 +83,7 @@ export function getInitiativeReferenceDescriptionAdditions(
 ): SpellDescriptionEntry[][] {
   return [
     ...getAlertInitiativeDescriptionAdditions(character),
-    ...getBarbarianPersistentRageInitiativeDescriptionAdditions(character),
+    ...getBarbarianFeatureDescriptionAdditions(character, "initiative"),
     ...getBardInitiativeDescriptionAdditions(character),
     ...getMonkInitiativeDescriptionAdditions(character),
     ...getRogueThiefInitiativeDescriptionAdditions(character)

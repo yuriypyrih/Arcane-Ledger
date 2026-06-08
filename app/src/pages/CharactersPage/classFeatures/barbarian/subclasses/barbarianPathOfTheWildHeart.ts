@@ -22,9 +22,20 @@ import type {
   SpeedFeatureContext
 } from "../../types";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
+import {
+  getBarbarianSubclassContributionRageState,
+  isBarbarianSubclassContributionRaging
+} from "./contributionContext";
 
 export const pathOfTheWildHeartSubclassId = "barbarian-path-of-the-wild-heart";
 
+const barbarianRageActionKey = "barbarian-rage";
 const wildHeartAnimalSpeakerSpellIds = ["spell-beast-sense", "spell-speak-with-animals"] as const;
 const wildHeartNatureSpeakerSpellId = "spell-commune-with-nature";
 const rageOfTheWildsBearStatusSourceId = "feature-barbarian-rage-of-the-wilds-bear";
@@ -615,19 +626,177 @@ function getBarbarianPathOfTheWildHeartSpeakerSpellIds(
   ];
 }
 
-export const getBarbarianPathOfTheWildHeartDerivedFeatureState: SubclassRuntimeResolver = (
-  character
-) => {
+function getAnimalSpeakerSpellIds(): string[] {
+  return [...wildHeartAnimalSpeakerSpellIds];
+}
+
+function getNatureSpeakerSpellIds(character: Partial<Pick<Character, "level">>): string[] {
+  return (character.level ?? 0) >= 10 ? [wildHeartNatureSpeakerSpellId] : [];
+}
+
+function getWildHeartDerivedConditionsBySource(
+  character: BarbarianSubclassCharacter,
+  rageState: CharacterRageFeatureState,
+  isRaging: boolean,
+  source: "Rage of the Wilds" | "Aspect of the Wilds" | "Power of the Wilds"
+): DerivedFeatureStatusEntry[] {
+  return getBarbarianPathOfTheWildHeartDerivedConditions(
+    character,
+    rageState,
+    isRaging
+  ).filter((entry) => entry.source === source);
+}
+
+function getWildHeartAspectSpeedBonuses(
+  character: BarbarianSubclassCharacter,
+  rageState: CharacterRageFeatureState,
+  context: SpeedFeatureContext,
+  isRaging: boolean
+): FeatureSpeedBonus[] {
+  return getBarbarianPathOfTheWildHeartSpeedBonuses(
+    character,
+    rageState,
+    context,
+    isRaging
+  ).filter((entry) => entry.label === "Panther" || entry.label === "Salmon");
+}
+
+function getWildHeartPowerSpeedBonuses(
+  character: BarbarianSubclassCharacter,
+  rageState: CharacterRageFeatureState,
+  context: SpeedFeatureContext,
+  isRaging: boolean
+): FeatureSpeedBonus[] {
+  return getBarbarianPathOfTheWildHeartSpeedBonuses(
+    character,
+    rageState,
+    context,
+    isRaging
+  ).filter((entry) => entry.label === "Falcon");
+}
+
+export function collectBarbarianPathOfTheWildHeartContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
   if (
     character.className !== "Barbarian" ||
     character.subclassId !== pathOfTheWildHeartSubclassId ||
     (character.level ?? 0) < 3
   ) {
-    return {};
+    return [];
   }
 
-  return {
-    alwaysPreparedSpellIds: getBarbarianPathOfTheWildHeartSpeakerSpellIds(character),
-    ritualOnlySpellIds: getBarbarianPathOfTheWildHeartSpeakerSpellIds(character)
+  const runtimeCharacter = {
+    ...character,
+    level: character.level ?? 0
   };
+  const rageState = getBarbarianSubclassContributionRageState(runtimeCharacter);
+  const isRaging = isBarbarianSubclassContributionRaging(runtimeCharacter, rageState);
+  const animalSpeakerSpellIds = getAnimalSpeakerSpellIds();
+  const natureSpeakerSpellIds = getNatureSpeakerSpellIds(runtimeCharacter);
+
+  return [
+    {
+      source: createSubclassContributionSource({
+        id: `${pathOfTheWildHeartSubclassId}-rage-of-the-wilds`,
+        label: "Rage of the Wilds"
+      }),
+      actionOptions: {
+        [barbarianRageActionKey]: getBarbarianPathOfTheWildHeartRageOptions(runtimeCharacter)
+      },
+      featureActionTransforms: [
+        {
+          id: "barbarian-wild-heart-rage-action",
+          transform: (action) => {
+            if (action.key !== barbarianRageActionKey) {
+              return action;
+            }
+
+            const actionOverride = getBarbarianPathOfTheWildHeartRageActionOverride(
+              runtimeCharacter,
+              rageState,
+              action.drawer?.headerTags ?? []
+            );
+
+            return {
+              ...action,
+              drawer: actionOverride.drawer,
+              execute: actionOverride.execute
+            };
+          }
+        }
+      ],
+      statuses: getWildHeartDerivedConditionsBySource(
+        runtimeCharacter,
+        rageState,
+        isRaging,
+        "Rage of the Wilds"
+      )
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${pathOfTheWildHeartSubclassId}-animal-speaker`,
+        label: "Animal Speaker"
+      }),
+      alwaysPreparedSpellIds: animalSpeakerSpellIds,
+      ritualOnlySpellIds: animalSpeakerSpellIds
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${pathOfTheWildHeartSubclassId}-aspect-of-the-wilds`,
+        label: "Aspect of the Wilds"
+      }),
+      statuses: getWildHeartDerivedConditionsBySource(
+        runtimeCharacter,
+        rageState,
+        isRaging,
+        "Aspect of the Wilds"
+      ),
+      speedBonusProviders: [
+        {
+          id: "barbarian-wild-heart-aspect-speed",
+          getBonuses: (context) =>
+            getWildHeartAspectSpeedBonuses(runtimeCharacter, rageState, context, isRaging)
+        }
+      ]
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${pathOfTheWildHeartSubclassId}-nature-speaker`,
+        label: "Nature Speaker"
+      }),
+      alwaysPreparedSpellIds: natureSpeakerSpellIds,
+      ritualOnlySpellIds: natureSpeakerSpellIds
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${pathOfTheWildHeartSubclassId}-power-of-the-wilds`,
+        label: "Power of the Wilds"
+      }),
+      statuses: getWildHeartDerivedConditionsBySource(
+        runtimeCharacter,
+        rageState,
+        isRaging,
+        "Power of the Wilds"
+      ),
+      speedBonusProviders: [
+        {
+          id: "barbarian-wild-heart-power-speed",
+          getBonuses: (context) =>
+            getWildHeartPowerSpeedBonuses(runtimeCharacter, rageState, context, isRaging)
+        }
+      ]
+    }
+  ];
+}
+
+export const getBarbarianPathOfTheWildHeartDerivedFeatureState: SubclassRuntimeResolver = (
+  character
+) => {
+  return projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectBarbarianPathOfTheWildHeartContributions(character)),
+    {
+      character: character as Character
+    }
+  );
 };

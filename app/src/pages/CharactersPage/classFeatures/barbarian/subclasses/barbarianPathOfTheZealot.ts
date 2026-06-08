@@ -31,6 +31,18 @@ import type {
 } from "../../types";
 import { normalizeRoundTracker, shouldTrackRoundScopedResources } from "../../../combat";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
+import {
+  getBarbarianSubclassContributionRageState,
+  getBarbarianSubclassContributionRageUsesRemaining,
+  getBarbarianSubclassContributionRageUsesTotal,
+  isBarbarianSubclassContributionRaging
+} from "./contributionContext";
 
 export const pathOfTheZealotSubclassId = "barbarian-path-of-the-zealot";
 export const barbarianWarriorOfTheGodsActionKey = "barbarian-warrior-of-the-gods";
@@ -677,9 +689,9 @@ function appendDivineFuryDescription(
   );
 }
 
-export const getBarbarianPathOfTheZealotDerivedFeatureState: SubclassRuntimeResolver = (
-  character
-) => {
+export function collectBarbarianPathOfTheZealotContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
   const normalizedCharacter = {
     className: character.className,
     subclassId: character.subclassId,
@@ -687,18 +699,103 @@ export const getBarbarianPathOfTheZealotDerivedFeatureState: SubclassRuntimeReso
   };
 
   if (!hasBarbarianPathOfTheZealotDivineFury(normalizedCharacter)) {
-    return {};
+    return [];
   }
 
+  const runtimeCharacter = {
+    ...character,
+    level: character.level ?? 0
+  };
   const divineFuryDescription = getFeatureDescriptionForCharacter(
     normalizedCharacter,
     CLASS_FEATURE.DIVINE_FURY
   );
+  const rageState = getBarbarianSubclassContributionRageState(runtimeCharacter);
+  const rageUsesRemaining = getBarbarianSubclassContributionRageUsesRemaining(
+    runtimeCharacter,
+    rageState
+  );
+  const rageUsesTotal = getBarbarianSubclassContributionRageUsesTotal(runtimeCharacter);
+  const isRaging = isBarbarianSubclassContributionRaging(runtimeCharacter, rageState);
 
-  return divineFuryDescription.length > 0
-    ? {
-        transformWeaponAction: (action: WeaponAction) =>
-          appendDivineFuryDescription(character, action, divineFuryDescription)
-      }
-    : {};
+  return [
+    {
+      source: createSubclassContributionSource({
+        id: `${pathOfTheZealotSubclassId}-divine-fury`,
+        label: "Divine Fury",
+        entryId: CLASS_FEATURE.DIVINE_FURY
+      }),
+      weaponDamageBonuses: [
+        {
+          id: "barbarian-zealot-divine-fury-damage",
+          getBonuses: (context) =>
+            getBarbarianPathOfTheZealotWeaponDamageBonuses(
+              runtimeCharacter,
+              rageState,
+              context,
+              isRaging
+            )
+        }
+      ],
+      weaponActionTransforms:
+        divineFuryDescription.length > 0
+          ? [
+              {
+                id: "barbarian-zealot-divine-fury-description",
+                transform: (_runtimeCharacter, action) =>
+                  appendDivineFuryDescription(
+                    character,
+                    action as WeaponAction,
+                    divineFuryDescription
+                  )
+              }
+            ]
+          : []
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${pathOfTheZealotSubclassId}-warrior-of-the-gods`,
+        label: "Warrior of the Gods",
+        entryId: CLASS_FEATURE.WARRIOR_OF_THE_GODS
+      }),
+      actions: [
+        getBarbarianPathOfTheZealotWarriorOfTheGodsAction(runtimeCharacter, rageState)
+      ].filter((action): action is FeatureActionCard => action !== null)
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${pathOfTheZealotSubclassId}-zealous-presence`,
+        label: "Zealous Presence",
+        entryId: CLASS_FEATURE.ZEALOUS_PRESENCE
+      }),
+      actions: [
+        getBarbarianPathOfTheZealotZealousPresenceAction(
+          runtimeCharacter,
+          rageState,
+          rageUsesRemaining,
+          rageUsesTotal
+        )
+      ].filter((action): action is FeatureActionCard => action !== null)
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${pathOfTheZealotSubclassId}-rage-of-the-gods`,
+        label: "Rage of the Gods",
+        entryId: CLASS_FEATURE.RAGE_OF_THE_GODS
+      }),
+      statuses: getBarbarianPathOfTheZealotDerivedConditions(runtimeCharacter),
+      speedBonuses: getBarbarianPathOfTheZealotSpeedBonuses(runtimeCharacter)
+    }
+  ];
+}
+
+export const getBarbarianPathOfTheZealotDerivedFeatureState: SubclassRuntimeResolver = (
+  character
+) => {
+  return projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectBarbarianPathOfTheZealotContributions(character)),
+    {
+      character: character as Character
+    }
+  );
 };

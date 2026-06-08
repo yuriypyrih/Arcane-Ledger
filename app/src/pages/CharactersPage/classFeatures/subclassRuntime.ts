@@ -66,6 +66,9 @@ export type SubclassDerivedFeatureState = {
   abilityScoreBonuses?: FeatureAbilityScoreBonus[];
   cantripLimitBonus?: number;
   cantripDamageBonus?: number;
+  getSpeedBonuses?: (context: {
+    wornBodyArmorType: "light" | "medium" | "heavy" | null;
+  }) => FeatureSpeedBonus[];
   weaponProficiencyEntries?: FeatureWeaponProficiencyEntry[];
   skillProficiencyEntries?: FeatureSkillProficiencyEntry[];
   savingThrowProficiencyEntries?: FeatureSavingThrowProficiencyEntry[];

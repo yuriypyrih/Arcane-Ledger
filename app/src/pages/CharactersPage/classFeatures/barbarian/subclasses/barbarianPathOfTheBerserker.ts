@@ -25,8 +25,24 @@ import type {
   FeatureDamageBonus,
   WeaponFeatureContext
 } from "../../types";
-import { removeCharacterConditionsForImmunities } from "../../../statusEntries";
+import {
+  normalizeCharacterStatusEntries,
+  removeCharacterConditionsForImmunities
+} from "../../../statusEntries";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
+import {
+  getBarbarianSubclassContributionRageDamageBonus,
+  getBarbarianSubclassContributionRageState,
+  getBarbarianSubclassContributionRageUsesRemaining,
+  getBarbarianSubclassContributionRageUsesTotal,
+  isBarbarianSubclassContributionRaging
+} from "./contributionContext";
 
 export const pathOfTheBerserkerSubclassId = "barbarian-path-of-the-berserker";
 export const barbarianIntimidatingPresenceActionKey = "barbarian-intimidating-presence";
@@ -36,6 +52,7 @@ export const frenzyDamageBonusLabel = "Frenzy";
 const mindlessRageCharmedImmunitySourceId = "feature-barbarian-mindless-rage-charmed-immunity";
 const mindlessRageFrightenedImmunitySourceId =
   "feature-barbarian-mindless-rage-frightened-immunity";
+const recklessAttackStatusSourceId = "feature-barbarian-reckless-attack";
 const intimidatingPresenceUsesTotal = 1;
 
 type BarbarianSubclassCharacter = Pick<Character, "className" | "level"> &
@@ -428,18 +445,109 @@ export function restoreBarbarianPathOfTheBerserkerIntimidatingPresenceOnLongRest
   };
 }
 
-export const getBarbarianPathOfTheBerserkerDerivedFeatureState: SubclassRuntimeResolver = (
-  character
-) => {
+function hasActiveRecklessAttackStatus(character: Partial<Pick<Character, "statusEntries">>) {
+  return normalizeCharacterStatusEntries(character.statusEntries).some((entry) => {
+    if (
+      entry.sourceId !== recklessAttackStatusSourceId ||
+      entry.disabled === true ||
+      entry.group !== STATUS_ENTRY_GROUP.EFFECTS
+    ) {
+      return false;
+    }
+
+    return entry.duration.kind !== STATUS_DURATION_KIND.ROUNDS || entry.duration.amount > 0;
+  });
+}
+
+export function collectBarbarianPathOfTheBerserkerContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
   if (
     character.className !== "Barbarian" ||
     character.subclassId !== pathOfTheBerserkerSubclassId ||
-    (character.level ?? 0) < 10
+    (character.level ?? 0) < 3
   ) {
-    return {};
+    return [];
   }
 
-  const retaliation = getReactionEntryById(barbarianBerserkerRetaliationReactionId);
+  const runtimeCharacter = {
+    ...character,
+    level: character.level ?? 0
+  };
+  const retaliation = hasBarbarianPathOfTheBerserkerRetaliation(runtimeCharacter)
+    ? getReactionEntryById(barbarianBerserkerRetaliationReactionId)
+    : null;
+  const rageState = getBarbarianSubclassContributionRageState(runtimeCharacter);
+  const rageUsesRemaining = getBarbarianSubclassContributionRageUsesRemaining(
+    runtimeCharacter,
+    rageState
+  );
+  const rageUsesTotal = getBarbarianSubclassContributionRageUsesTotal(runtimeCharacter);
+  const isRaging = isBarbarianSubclassContributionRaging(runtimeCharacter, rageState);
 
-  return retaliation ? { reactionEntries: [retaliation] } : {};
+  return [
+    {
+      source: createSubclassContributionSource({
+        id: `${pathOfTheBerserkerSubclassId}-frenzy`,
+        label: "Frenzy",
+        entryId: CLASS_FEATURE.FRENZY
+      }),
+      weaponDamageBonuses: [
+        {
+          id: "barbarian-berserker-frenzy-damage",
+          getBonuses: (context) =>
+            getBarbarianPathOfTheBerserkerWeaponDamageBonuses(
+              runtimeCharacter,
+              rageState,
+              context,
+              getBarbarianSubclassContributionRageDamageBonus(runtimeCharacter),
+              isRaging,
+              hasActiveRecklessAttackStatus(character)
+            )
+        }
+      ]
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${pathOfTheBerserkerSubclassId}-mindless-rage`,
+        label: "Mindless Rage",
+        entryId: CLASS_FEATURE.MINDLESS_RAGE
+      }),
+      statuses: getBarbarianPathOfTheBerserkerDerivedConditions(runtimeCharacter, isRaging)
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${pathOfTheBerserkerSubclassId}-retaliation`,
+        label: "Retaliation",
+        entryId: CLASS_FEATURE.RETALIATION
+      }),
+      reactions: retaliation ? [retaliation] : []
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${pathOfTheBerserkerSubclassId}-intimidating-presence`,
+        label: "Intimidating Presence",
+        entryId: CLASS_FEATURE.INTIMIDATING_PRESENCE
+      }),
+      actions: [
+        getBarbarianPathOfTheBerserkerFeatureAction(
+          runtimeCharacter,
+          rageState,
+          rageUsesRemaining,
+          rageUsesTotal
+        )
+      ].filter((action): action is FeatureActionCard => action !== null)
+    }
+  ];
+}
+
+export const getBarbarianPathOfTheBerserkerDerivedFeatureState: SubclassRuntimeResolver = (
+  character
+) => {
+  return projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectBarbarianPathOfTheBerserkerContributions(character)),
+    {
+      character: character as Character
+    }
+  );
 };

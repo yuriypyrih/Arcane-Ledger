@@ -35,23 +35,6 @@ function getPersistentRageDescriptionSplit(character: BarbarianDescriptionCharac
   };
 }
 
-export function getBarbarianPersistentRageInitiativeDescriptionAdditions(
-  character: BarbarianDescriptionCharacter
-): SpellDescriptionEntry[][] {
-  const { initiativeEntries } = getPersistentRageDescriptionSplit(character);
-
-  return initiativeEntries.length > 0
-    ? [
-        createFeatureSourcedDescriptionEntries(
-          character,
-          CLASS_FEATURE.PERSISTENT_RAGE,
-          initiativeEntries,
-          persistentRageSource
-        )
-      ]
-    : [];
-}
-
 export function getBarbarianRageActionDescriptionAdditions(
   character: BarbarianDescriptionCharacter
 ): SpellDescriptionEntry[][] {

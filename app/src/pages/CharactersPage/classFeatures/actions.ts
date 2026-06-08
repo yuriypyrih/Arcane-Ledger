@@ -1142,6 +1142,7 @@ export function getSpeedBonusesForCharacter(
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
   return [
     ...(baseFeatureState.getSpeedBonuses?.(context) ?? []),
+    ...(subclassDerivedState.getSpeedBonuses?.(context) ?? []),
     ...(subclassDerivedState.speedBonuses ?? []),
     ...getCustomTraitSpeedBonuses(getCharacterCustomTraitEffectInput(character)).map((bonus) => ({
       ...bonus,

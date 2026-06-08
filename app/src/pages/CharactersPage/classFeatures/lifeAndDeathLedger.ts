@@ -29,6 +29,10 @@ import {
   getBarbarianRageState,
   hasBarbarianRelentlessRageFeature
 } from "./barbarian/barbarian";
+import {
+  barbarianLifeAndDeathLedgerDescriptionTargetKey,
+  getBarbarianFeatureDescriptionAdditions
+} from "./barbarian/contributions";
 import { getFeatureDescriptionForCharacter } from "./featureDescriptions";
 import {
   activatePaladinOathOfTheAncientsUndyingSentinel,
@@ -152,25 +156,13 @@ export function getLifeAndDeathLedgerDescriptionAdditions(
 ): SpellDescriptionEntry[][] {
   const descriptionAdditions: SpellDescriptionEntry[][] = [
     ...getSoulOfArtificeLifeAndDeathDescriptionAdditions(character),
-    ...getArtificerCartographerSafeHavenDescriptionAdditions(character)
-  ];
-
-  if (hasBarbarianRelentlessRageFeature(character)) {
-    const relentlessRageDescription = getFeatureDescriptionForCharacter(
+    ...getArtificerCartographerSafeHavenDescriptionAdditions(character),
+    ...getBarbarianFeatureDescriptionAdditions(
       character,
-      CLASS_FEATURE.RELENTLESS_RAGE
-    );
-
-    if (relentlessRageDescription.length > 0) {
-      descriptionAdditions.push(
-        createFeatureSourcedDescriptionEntries(
-          character,
-          CLASS_FEATURE.RELENTLESS_RAGE,
-          relentlessRageDescription
-        )
-      );
-    }
-  }
+      "custom",
+      barbarianLifeAndDeathLedgerDescriptionTargetKey
+    )
+  ];
 
   if (hasPaladinOathOfTheAncientsUndyingSentinelFeature(character)) {
     const undyingSentinelDescription = getFeatureDescriptionForCharacter(

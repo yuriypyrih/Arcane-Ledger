@@ -23,7 +23,7 @@ function appendRecordArrayValues<TValue>(
   source: Partial<Record<string, TValue[]>> | null | undefined
 ) {
   Object.entries(source ?? {}).forEach(([key, values]) => {
-    if (!values || values.length === 0) {
+    if (!values) {
       return;
     }
 
@@ -92,6 +92,7 @@ export function createEmptyCompiledFeatureContributionState<TDerivedState = unkn
     spellcastingAbilityBySpellId: new Map(),
     freeCastEntries: [],
     spellcastingStates: [],
+    alwaysPreparedSpellIds: [],
     alwaysSpellbookSpellIds: [],
     ritualOnlySpellIds: [],
     spellTransforms: [],
@@ -154,6 +155,11 @@ export function compileFeatureContributions<TDerivedState = unknown>(
     if (contribution.spellcastingState) {
       compiled.spellcastingStates.push(contribution.spellcastingState);
     }
+    compiled.alwaysPreparedSpellIds.push(...(contribution.alwaysPreparedSpellIds ?? []));
+    appendRecordArrayValues(
+      compiled.alwaysPreparedSpellSourceMap,
+      contribution.alwaysPreparedSpellSources
+    );
     compiled.alwaysSpellbookSpellIds.push(...(contribution.alwaysSpellbookSpellIds ?? []));
     compiled.ritualOnlySpellIds.push(...(contribution.ritualOnlySpellIds ?? []));
     compiled.spellTransforms.push(...(contribution.spellTransforms ?? []));
@@ -229,6 +235,7 @@ export function compileFeatureContributions<TDerivedState = unknown>(
   compiled.alwaysPreparedSpellEntries = sortSpellsByName([
     ...alwaysPreparedSpellEntriesById.values()
   ]);
+  compiled.alwaysPreparedSpellIds = uniqueStrings(compiled.alwaysPreparedSpellIds);
   compiled.alwaysSpellbookSpellIds = uniqueStrings(compiled.alwaysSpellbookSpellIds);
   compiled.ritualOnlySpellIds = uniqueStrings(compiled.ritualOnlySpellIds);
 

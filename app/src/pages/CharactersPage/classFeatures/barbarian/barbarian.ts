@@ -738,11 +738,6 @@ export function getBarbarianFeatureAction(
     }
   ]);
   const descriptionAdditions = getBarbarianRageActionDescriptionAdditions(character);
-  const rageActionOverride = wildHeartSubclass.getBarbarianPathOfTheWildHeartRageActionOverride(
-    character,
-    rageState,
-    rageDrawerHeaderTags
-  );
 
   return {
     key: barbarianRageActionKey,
@@ -757,8 +752,14 @@ export function getBarbarianFeatureAction(
     actionCategory: ACTION_CATEGORY.FEATURE,
     usesLabel: "Use 1",
     usesIcon: "flame",
-    drawer: rageActionOverride.drawer,
-    execute: rageActionOverride.execute,
+    drawer: {
+      kind: "confirm",
+      eyebrow: "Barbarian",
+      headerTags: rageDrawerHeaderTags
+    },
+    execute: {
+      kind: "activate"
+    },
     isActive: rageState.active,
     disabled: rageState.active || usesRemaining <= 0,
     disabledReason: rageState.active
@@ -769,7 +770,7 @@ export function getBarbarianFeatureAction(
   };
 }
 
-function getBarbarianBrutalStrikeAction(
+export function getBarbarianBrutalStrikeAction(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "statusEntries"> &
     Partial<Pick<Character, "subclassId">>
 ): FeatureActionCard | null {
@@ -854,22 +855,12 @@ export function getBarbarianWeaponDamageBonuses(
     Partial<Pick<Character, "subclassId" | "roundTracker" | "statusEntries">>,
   context: WeaponFeatureContext
 ): FeatureDamageBonus[] {
-  const damageBonuses: FeatureDamageBonus[] = [];
   const rageState = getBarbarianRageState(character);
   const isRaging = isBarbarianRaging(character);
   const hasRecklessAttack = hasActiveBarbarianRecklessAttackStatus(character);
 
-  if (isRaging && context.ability === "STR") {
-    const rageDamage = getBarbarianRageDamageBonus(character);
-
-    if (rageDamage > 0) {
-      damageBonuses.push({
-        label: "Rage",
-        value: rageDamage
-      });
-    }
-  }
-  damageBonuses.push(
+  return [
+    ...getBarbarianRageWeaponDamageBonuses(character, context),
     ...zealotSubclass.getBarbarianPathOfTheZealotWeaponDamageBonuses(
       character,
       rageState,
@@ -883,23 +874,53 @@ export function getBarbarianWeaponDamageBonuses(
       getBarbarianRageDamageBonus(character),
       isRaging,
       hasRecklessAttack
-    )
-  );
+    ),
+    ...getBarbarianBrutalStrikeWeaponDamageBonuses(character, context)
+  ];
+}
 
+export function getBarbarianRageWeaponDamageBonuses(
+  character: Pick<Character, "className" | "level" | "classFeatureState">,
+  context: WeaponFeatureContext
+): FeatureDamageBonus[] {
+  if (!isBarbarianRaging(character) || context.ability !== "STR") {
+    return [];
+  }
+
+  const rageDamage = getBarbarianRageDamageBonus(character);
+
+  return rageDamage > 0
+    ? [
+        {
+          label: "Rage",
+          value: rageDamage
+        }
+      ]
+    : [];
+}
+
+export function getBarbarianBrutalStrikeWeaponDamageBonuses(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>,
+  context: WeaponFeatureContext
+): FeatureDamageBonus[] {
+  const rageState = getBarbarianRageState(character);
   if (
     hasBarbarianBrutalStrike(character) &&
     rageState.brutalStrikePending === true &&
     context.ability === "STR" &&
     (context.attackKind === "weapon" || context.attackKind === "unarmed")
   ) {
-    damageBonuses.push({
-      label: brutalStrikeDamageBonusLabel,
-      formula: getBarbarianBrutalStrikeDamageFormula(character),
-      displayLabel: getBarbarianBrutalStrikeDamageFormula(character)
-    });
+    return [
+      {
+        label: brutalStrikeDamageBonusLabel,
+        formula: getBarbarianBrutalStrikeDamageFormula(character),
+        displayLabel: getBarbarianBrutalStrikeDamageFormula(character)
+      }
+    ];
   }
 
-  return damageBonuses;
+  return [];
 }
 
 export function getBarbarianRecklessAttackWeaponDamagePreviewBonuses(
@@ -929,20 +950,33 @@ export function getBarbarianRecklessAttackWeaponDamagePreviewBonuses(
 export function getBarbarianSavingThrowIndicators(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "statusEntries">
 ): SavingThrowIndicatorMap {
-  const savingThrowIndicators: SavingThrowIndicatorMap = {};
+  return {
+    ...getBarbarianDangerSenseSavingThrowIndicators(character),
+    ...getBarbarianRageSavingThrowIndicators(character)
+  };
+}
 
-  if (
-    hasBarbarianFeature(character, CLASS_FEATURE.DANGER_SENSE) &&
+export function getBarbarianDangerSenseSavingThrowIndicators(
+  character: Pick<Character, "className" | "level" | "statusEntries">
+): SavingThrowIndicatorMap {
+  return hasBarbarianFeature(character, CLASS_FEATURE.DANGER_SENSE) &&
     !hasActiveCondition(character, CONDITION_NAME.INCAPACITATED)
-  ) {
-    savingThrowIndicators.DEX = [dangerSenseAdvantageIndicator];
-  }
+    ? {
+        DEX: [dangerSenseAdvantageIndicator]
+      }
+    : {};
+}
 
+export function getBarbarianRageSavingThrowIndicators(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): SavingThrowIndicatorMap {
   if (isBarbarianRaging(character)) {
-    savingThrowIndicators.STR = [rageAdvantageIndicator];
+    return {
+      STR: [rageAdvantageIndicator]
+    };
   }
 
-  return savingThrowIndicators;
+  return {};
 }
 
 export function getBarbarianCoreStatIndicators(
@@ -960,6 +994,12 @@ export function getBarbarianCoreStatIndicators(
 export function getBarbarianAbilityCheckIndicators(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): AbilityCheckIndicatorMap {
+  return getBarbarianRageAbilityCheckIndicators(character);
+}
+
+export function getBarbarianRageAbilityCheckIndicators(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): AbilityCheckIndicatorMap {
   if (!isBarbarianRaging(character)) {
     return {};
   }
@@ -972,27 +1012,44 @@ export function getBarbarianAbilityCheckIndicators(
 export function getBarbarianSkillIndicators(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): SkillIndicatorMap {
+  return {
+    ...getBarbarianRageSkillIndicators(character),
+    ...getBarbarianPrimalKnowledgeSkillIndicators(character)
+  };
+}
+
+export function getBarbarianRageSkillIndicators(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): SkillIndicatorMap {
   if (!isBarbarianRaging(character)) {
     return {};
   }
 
   const strengthSkills =
     skillGroupsByAbility.find((group) => group.ability === "STR")?.skills ?? [];
-  const primalKnowledgeSkills = hasBarbarianFeature(character, CLASS_FEATURE.PRIMAL_KNOWLEDGE)
-    ? [...primalKnowledgeSkillNames]
-    : [];
   const strengthSkillEntries = strengthSkills.map((skill): [SkillName, FeatureIndicator[]] => [
     skill,
     [rageAdvantageIndicator]
   ]);
-  const primalKnowledgeSkillEntries = primalKnowledgeSkills.map(
+
+  return Object.fromEntries(strengthSkillEntries) as SkillIndicatorMap;
+}
+
+export function getBarbarianPrimalKnowledgeSkillIndicators(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): SkillIndicatorMap {
+  if (
+    !isBarbarianRaging(character) ||
+    !hasBarbarianFeature(character, CLASS_FEATURE.PRIMAL_KNOWLEDGE)
+  ) {
+    return {};
+  }
+
+  const primalKnowledgeSkillEntries = primalKnowledgeSkillNames.map(
     (skill): [SkillName, FeatureIndicator[]] => [skill, [primalKnowledgeRageAdvantageIndicator]]
   );
 
-  return Object.fromEntries([
-    ...strengthSkillEntries,
-    ...primalKnowledgeSkillEntries
-  ]) as SkillIndicatorMap;
+  return Object.fromEntries(primalKnowledgeSkillEntries) as SkillIndicatorMap;
 }
 
 export function getBarbarianSkillBonuses(
@@ -1076,21 +1133,11 @@ export function getBarbarianSpeedBonuses(
     Partial<Pick<Character, "subclassId" | "statusEntries">>,
   context: SpeedFeatureContext
 ): FeatureSpeedBonus[] {
-  const speedBonuses: FeatureSpeedBonus[] = [];
   const rageState = getBarbarianRageState(character);
   const isRaging = isBarbarianRaging(character);
 
-  if (
-    hasBarbarianFeature(character, CLASS_FEATURE.FAST_MOVEMENT) &&
-    context.wornBodyArmorType !== "heavy"
-  ) {
-    speedBonuses.push({
-      label: "Fast Movement",
-      value: 10
-    });
-  }
-
-  speedBonuses.push(
+  return [
+    ...getBarbarianFastMovementSpeedBonuses(character, context),
     ...wildHeartSubclass.getBarbarianPathOfTheWildHeartSpeedBonuses(
       character,
       rageState,
@@ -1098,9 +1145,22 @@ export function getBarbarianSpeedBonuses(
       isRaging
     ),
     ...zealotSubclass.getBarbarianPathOfTheZealotSpeedBonuses(character)
-  );
+  ];
+}
 
-  return speedBonuses;
+export function getBarbarianFastMovementSpeedBonuses(
+  character: Pick<Character, "className" | "level">,
+  context: SpeedFeatureContext
+): FeatureSpeedBonus[] {
+  return hasBarbarianFeature(character, CLASS_FEATURE.FAST_MOVEMENT) &&
+    context.wornBodyArmorType !== "heavy"
+    ? [
+        {
+          label: "Fast Movement",
+          value: 10
+        }
+      ]
+    : [];
 }
 
 export function getBarbarianAbilityScoreBonuses(
@@ -1132,12 +1192,27 @@ export function getBarbarianDerivedConditions(
   character: Pick<Character, "className" | "level" | "classFeatureState"> &
     Partial<Pick<Character, "subclassId" | "statusEntries">>
 ): DerivedFeatureStatusEntry[] {
-  const derivedEntries: DerivedFeatureStatusEntry[] = [];
   const rageState = getBarbarianRageState(character);
   const isRaging = isBarbarianRaging(character);
 
-  if (isRaging) {
-    derivedEntries.push(
+  return [
+    ...getBarbarianRageDerivedConditions(character),
+    ...wildHeartSubclass.getBarbarianPathOfTheWildHeartDerivedConditions(
+      character,
+      rageState,
+      isRaging
+    ),
+    ...berserkerSubclass.getBarbarianPathOfTheBerserkerDerivedConditions(character, isRaging),
+    ...getBarbarianRecklessAttackDerivedConditions(character),
+    ...zealotSubclass.getBarbarianPathOfTheZealotDerivedConditions(character)
+  ];
+}
+
+export function getBarbarianRageDerivedConditions(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): DerivedFeatureStatusEntry[] {
+  if (isBarbarianRaging(character)) {
+    return [
       {
         id: "feature-rage-effect",
         sourceId: rageStatusSourceId,
@@ -1189,38 +1264,36 @@ export function getBarbarianDerivedConditions(
           linkedValue: EFFECT_NAME.RAGE
         }
       }
-    );
+    ];
   }
 
-  derivedEntries.push(
-    ...wildHeartSubclass.getBarbarianPathOfTheWildHeartDerivedConditions(
-      character,
-      rageState,
-      isRaging
-    ),
-    ...berserkerSubclass.getBarbarianPathOfTheBerserkerDerivedConditions(character, isRaging)
-  );
+  return [];
+}
 
+export function getBarbarianRecklessAttackDerivedConditions(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): DerivedFeatureStatusEntry[] {
   const recklessAttackRoundsRemaining = getBarbarianRecklessAttackRoundsRemaining(character);
 
   if (recklessAttackRoundsRemaining > 0) {
-    derivedEntries.push({
-      id: barbarianRecklessAttackStatusSourceId,
-      sourceId: barbarianRecklessAttackStatusSourceId,
-      group: STATUS_ENTRY_GROUP.EFFECTS,
-      value: barbarianRecklessAttackName,
-      source: "Barbarian",
-      sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
-      duration: {
-        kind: STATUS_DURATION_KIND.ROUNDS,
-        amount: recklessAttackRoundsRemaining,
-        tickOn: STATUS_DURATION_ROUND_TICK.ROUND_START
+    return [
+      {
+        id: barbarianRecklessAttackStatusSourceId,
+        sourceId: barbarianRecklessAttackStatusSourceId,
+        group: STATUS_ENTRY_GROUP.EFFECTS,
+        value: barbarianRecklessAttackName,
+        source: "Barbarian",
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+        duration: {
+          kind: STATUS_DURATION_KIND.ROUNDS,
+          amount: recklessAttackRoundsRemaining,
+          tickOn: STATUS_DURATION_ROUND_TICK.ROUND_START
+        }
       }
-    });
+    ];
   }
-  derivedEntries.push(...zealotSubclass.getBarbarianPathOfTheZealotDerivedConditions(character));
 
-  return derivedEntries;
+  return [];
 }
 
 export function activateBarbarianRage(

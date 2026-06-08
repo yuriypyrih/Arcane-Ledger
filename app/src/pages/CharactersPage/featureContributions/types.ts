@@ -304,6 +304,8 @@ export type FeatureContributionSpec<TDerivedState = unknown> = {
   cantripDamageBonus?: number;
   spellGrants?: FeatureSpellGrant[];
   spellcastingState?: FeatureSpellcastingState | null;
+  alwaysPreparedSpellIds?: string[];
+  alwaysPreparedSpellSources?: SpellSourceMap;
   alwaysSpellbookSpellIds?: string[];
   ritualOnlySpellIds?: string[];
   spellTransforms?: FeatureSpellTransform[];
@@ -361,6 +363,7 @@ export type CompiledFeatureContributionState<TDerivedState = unknown> = {
   spellcastingAbilityBySpellId: Map<string, AbilityKey>;
   freeCastEntries: FeatureFreeCastEntry[];
   spellcastingStates: FeatureSpellcastingState[];
+  alwaysPreparedSpellIds: string[];
   alwaysSpellbookSpellIds: string[];
   ritualOnlySpellIds: string[];
   spellTransforms: FeatureSpellTransform[];

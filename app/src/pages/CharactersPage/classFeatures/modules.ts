@@ -65,30 +65,9 @@ import {
   barbarianWarriorOfTheGodsActionKey,
   barbarianTravelAlongTheTreeActionKey,
   barbarianZealousPresenceActionKey,
-  getBarbarianAbilityCheckIndicators,
-  getBarbarianAbilityScoreBonuses,
-  getBarbarianArmorClassBonuses,
-  getBarbarianArmorClassModes,
-  getBarbarianBrutalStrikeOptions,
-  getBarbarianCoreStatIndicators,
-  getBarbarianDerivedConditions,
-  getBarbarianFeatureActions,
-  getBarbarianRageOfTheWildsOptions,
-  getBarbarianSavingThrowIndicators,
-  getBarbarianSkillBonuses,
-  getBarbarianSkillIndicators,
-  getBarbarianSkillProficiencyEntries,
-  getBarbarianSpeedBonuses,
-  getBarbarianSpellcastingState,
-  getBarbarianWeaponDamageBonuses,
-  getBarbarianWeaponMasteryOptions,
-  getBarbarianWeaponMasterySelectionCount,
-  getBarbarianWeaponMasterySelections,
-  getBarbarianWeaponProficiencyEntries,
-  normalizeBarbarianRageState,
-  setBarbarianWeaponMasterySelections
+  normalizeBarbarianRageState
 } from "./barbarian/barbarian";
-import { transformBarbarianRecklessAttackWeaponAction } from "./barbarian/barbarianRecklessAttack";
+import { getBarbarianClassFeatureDerivedState } from "./barbarian/contributions";
 import {
   activateClericBlessingOfTheTrickster,
   activateClericCoronaOfLight,
@@ -482,35 +461,7 @@ const classFeatureModules = {
     stateKey: "rage",
     normalizeState: normalizeBarbarianRageState,
     collectDerived(character) {
-      return {
-        actions: getBarbarianFeatureActions(character),
-        actionOptions: {
-          [barbarianRageActionKey]: getBarbarianRageOfTheWildsOptions(character),
-          [barbarianBrutalStrikeActionKey]: getBarbarianBrutalStrikeOptions(character)
-        },
-        getWeaponDamageBonuses: (context) => getBarbarianWeaponDamageBonuses(character, context),
-        savingThrowIndicators: getBarbarianSavingThrowIndicators(character),
-        abilityCheckIndicators: getBarbarianAbilityCheckIndicators(character),
-        coreStatIndicators: getBarbarianCoreStatIndicators(character),
-        skillIndicators: getBarbarianSkillIndicators(character),
-        getSkillBonuses: (skill) => getBarbarianSkillBonuses(character, skill),
-        skillProficiencyEntries: getBarbarianSkillProficiencyEntries(character),
-        spellcastingState: getBarbarianSpellcastingState(character),
-        getArmorClassModes: (context) => getBarbarianArmorClassModes(character, context),
-        getArmorClassBonuses: (context) => getBarbarianArmorClassBonuses(character, context),
-        getSpeedBonuses: (context) => getBarbarianSpeedBonuses(character, context),
-        transformWeaponAction: (action) =>
-          transformBarbarianRecklessAttackWeaponAction(character, action),
-        abilityScoreBonuses: getBarbarianAbilityScoreBonuses(character),
-        weaponProficiencyEntries: getBarbarianWeaponProficiencyEntries(character),
-        weaponMastery: createWeaponMasteryState(
-          getBarbarianWeaponMasterySelectionCount(character),
-          getBarbarianWeaponMasteryOptions(),
-          getBarbarianWeaponMasterySelections(character),
-          setBarbarianWeaponMasterySelections
-        ),
-        derivedStatusEntries: getBarbarianDerivedConditions(character)
-      };
+      return getBarbarianClassFeatureDerivedState(character);
     },
     handleAction(character, actionKey) {
       if (actionKey === barbarianRageActionKey) {

@@ -16,6 +16,16 @@ import { swapTemporaryHitPointsAssignment } from "../../../shared";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import type { FeatureActionCard } from "../../types";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
+import {
+  getBarbarianSubclassContributionRageState,
+  getBarbarianSubclassContributionRageUsesRemaining
+} from "./contributionContext";
 
 export const pathOfTheWorldTreeSubclassId = "barbarian-path-of-the-world-tree";
 export const barbarianTravelAlongTheTreeActionKey = "barbarian-travel-along-the-tree";
@@ -228,9 +238,9 @@ export function activateBarbarianPathOfTheWorldTreeTravelAlongTheTree(
   return character;
 }
 
-export const getBarbarianPathOfTheWorldTreeDerivedFeatureState: SubclassRuntimeResolver = (
-  character
-) => {
+export function collectBarbarianPathOfTheWorldTreeContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
   const normalizedCharacter = {
     className: character.className,
     subclassId: character.subclassId,
@@ -242,7 +252,7 @@ export const getBarbarianPathOfTheWorldTreeDerivedFeatureState: SubclassRuntimeR
     normalizedCharacter.subclassId !== pathOfTheWorldTreeSubclassId ||
     normalizedCharacter.level < 6
   ) {
-    return {};
+    return [];
   }
 
   const branchesOfTheTree = getReactionEntryById(barbarianWorldTreeBranchesOfTheTreeReactionId);
@@ -251,14 +261,70 @@ export const getBarbarianPathOfTheWorldTreeDerivedFeatureState: SubclassRuntimeR
   )
     ? getFeatureDescriptionForCharacter(normalizedCharacter, CLASS_FEATURE.BATTERING_ROOTS)
     : [];
-
-  return {
-    ...(branchesOfTheTree ? { reactionEntries: [branchesOfTheTree] } : {}),
-    ...(batteringRootsDescription.length > 0
-      ? {
-          transformWeaponAction: (action: WeaponAction) =>
-            appendBatteringRootsDescription(character, action, batteringRootsDescription)
-        }
-      : {})
+  const runtimeCharacter = {
+    ...character,
+    level: character.level ?? 0
   };
+  const rageState = getBarbarianSubclassContributionRageState(runtimeCharacter);
+  const rageUsesRemaining = getBarbarianSubclassContributionRageUsesRemaining(
+    runtimeCharacter,
+    rageState
+  );
+
+  return [
+    {
+      source: createSubclassContributionSource({
+        id: `${pathOfTheWorldTreeSubclassId}-branches-of-the-tree`,
+        label: "Branches of the Tree",
+        entryId: CLASS_FEATURE.BRANCHES_OF_THE_TREE
+      }),
+      reactions: branchesOfTheTree ? [branchesOfTheTree] : []
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${pathOfTheWorldTreeSubclassId}-battering-roots`,
+        label: "Battering Roots",
+        entryId: CLASS_FEATURE.BATTERING_ROOTS
+      }),
+      weaponActionTransforms:
+        batteringRootsDescription.length > 0
+          ? [
+              {
+                id: "barbarian-world-tree-battering-roots-description",
+                transform: (_runtimeCharacter, action) =>
+                  appendBatteringRootsDescription(
+                    character,
+                    action as WeaponAction,
+                    batteringRootsDescription
+                  )
+              }
+            ]
+          : []
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${pathOfTheWorldTreeSubclassId}-travel-along-the-tree`,
+        label: "Travel Along the Tree",
+        entryId: CLASS_FEATURE.TRAVEL_ALONG_THE_TREE
+      }),
+      actions: [
+        getBarbarianPathOfTheWorldTreeFeatureAction(
+          runtimeCharacter,
+          rageState,
+          rageUsesRemaining
+        )
+      ].filter((action): action is FeatureActionCard => action !== null)
+    }
+  ];
+}
+
+export const getBarbarianPathOfTheWorldTreeDerivedFeatureState: SubclassRuntimeResolver = (
+  character
+) => {
+  return projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectBarbarianPathOfTheWorldTreeContributions(character)),
+    {
+      character: character as Character
+    }
+  );
 };
