@@ -13,6 +13,12 @@ import {
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
 import {
   createCharacterStatusEntry,
@@ -349,6 +355,20 @@ function getPaladinOathOfTheAncientsFeatureActions(
   return actions;
 }
 
+function getFeatureActionByKey(
+  actions: FeatureActionCard[],
+  actionKey: string
+): FeatureActionCard[] {
+  return actions.filter((action) => action.key === actionKey);
+}
+
+function getStatusEntriesBySource(
+  statuses: DerivedFeatureStatusEntry[],
+  source: string
+): DerivedFeatureStatusEntry[] {
+  return statuses.filter((status) => status.source === source);
+}
+
 function getPaladinOathOfTheAncientsDerivedStatusEntries(
   character: PaladinOathOfTheAncientsCharacter
 ): DerivedFeatureStatusEntry[] {
@@ -620,18 +640,89 @@ export function advancePaladinOathOfTheAncientsFeaturesForNewRound(
       });
 }
 
+function createOathOfTheAncientsLocalHookContribution(input: {
+  id: string;
+  label: string;
+  entryId: CLASS_FEATURE;
+}): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource(input)
+  };
+}
+
+function collectPaladinOathOfTheAncientsContributions(
+  character: PaladinOathOfTheAncientsCharacter
+): FeatureContributionSpec[] {
+  if (!isPaladinOathOfTheAncients(character)) {
+    return [];
+  }
+
+  const featureActions = getPaladinOathOfTheAncientsFeatureActions(character);
+  const derivedStatusEntries = getPaladinOathOfTheAncientsDerivedStatusEntries(character);
+  const contributions: FeatureContributionSpec[] = [
+    {
+      source: createSubclassContributionSource({
+        id: "paladin-oath-of-the-ancients-spells",
+        label: "Oath of the Ancients Spells",
+        entryId: CLASS_FEATURE.OATH_OF_THE_ANCIENTS_SPELLS
+      }),
+      alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
+        character.level ?? 0,
+        oathOfTheAncientsSpellIdsByLevel
+      )
+    },
+    {
+      source: createSubclassContributionSource({
+        id: "paladin-oath-of-the-ancients-natures-wrath",
+        label: "Nature's Wrath",
+        entryId: CLASS_FEATURE.NATURES_WRATH
+      }),
+      actions: getFeatureActionByKey(featureActions, naturesWrathActionKey)
+    }
+  ];
+
+  if (hasPaladinOathOfTheAncientsAuraOfWarding(character)) {
+    contributions.push({
+      source: createSubclassContributionSource({
+        id: "paladin-oath-of-the-ancients-aura-of-warding",
+        label: auraOfWardingName,
+        entryId: CLASS_FEATURE.AURA_OF_WARDING
+      }),
+      statuses: getStatusEntriesBySource(derivedStatusEntries, auraOfWardingName)
+    });
+  }
+
+  if (hasPaladinOathOfTheAncientsUndyingSentinelFeature(character)) {
+    contributions.push(
+      createOathOfTheAncientsLocalHookContribution({
+        id: "paladin-oath-of-the-ancients-undying-sentinel",
+        label: "Undying Sentinel",
+        entryId: CLASS_FEATURE.UNDYING_SENTINEL
+      })
+    );
+  }
+
+  if (hasPaladinOathOfTheAncientsElderChampionFeature(character)) {
+    contributions.push({
+      source: createSubclassContributionSource({
+        id: "paladin-oath-of-the-ancients-elder-champion",
+        label: elderChampionName,
+        entryId: CLASS_FEATURE.ELDER_CHAMPION
+      }),
+      actions: getFeatureActionByKey(featureActions, elderChampionActionKey),
+      statuses: getStatusEntriesBySource(derivedStatusEntries, diminishDefianceName)
+    });
+  }
+
+  return contributions;
+}
+
 export const getPaladinOathOfTheAncientsDerivedFeatureState: SubclassRuntimeResolver = (
   character
 ) =>
-  character.className === "Paladin" &&
-  character.subclassId === oathOfTheAncientsSubclassId &&
-  (character.level ?? 0) >= 3
-    ? {
-        alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-          character.level ?? 0,
-          oathOfTheAncientsSpellIdsByLevel
-        ),
-        featureActions: getPaladinOathOfTheAncientsFeatureActions(character),
-        derivedStatusEntries: getPaladinOathOfTheAncientsDerivedStatusEntries(character)
-      }
-    : {};
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectPaladinOathOfTheAncientsContributions(character)),
+    {
+      character: character as Character
+    }
+  );

@@ -8,6 +8,12 @@ import {
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import type { WeaponAction } from "../../../gameplay";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
 import {
@@ -411,6 +417,20 @@ function getPaladinOathOfVengeanceFeatureActions(
   ];
 }
 
+function getFeatureActionByKey(
+  actions: FeatureActionCard[],
+  actionKey: string
+): FeatureActionCard[] {
+  return actions.filter((action) => action.key === actionKey);
+}
+
+function getReactionEntryById(
+  reactions: ReactionEntry[],
+  reactionId: string
+): ReactionEntry[] {
+  return reactions.filter((reaction) => reaction.id === reactionId);
+}
+
 function getPaladinOathOfVengeanceDerivedStatusEntries(
   character: PaladinOathOfVengeanceCharacter
 ): DerivedFeatureStatusEntry[] {
@@ -611,19 +631,93 @@ export function restorePaladinOathOfVengeanceAvengingAngelOnLongRest(
   };
 }
 
+function collectPaladinOathOfVengeanceContributions(
+  character: PaladinOathOfVengeanceCharacter
+): FeatureContributionSpec[] {
+  if (
+    character.className !== "Paladin" ||
+    character.subclassId !== oathOfVengeanceSubclassId ||
+    (character.level ?? 0) < 3
+  ) {
+    return [];
+  }
+
+  const featureActions = getPaladinOathOfVengeanceFeatureActions(character);
+  const reactionEntries = getPaladinOathOfVengeanceReactionEntries(character);
+  const contributions: FeatureContributionSpec[] = [
+    {
+      source: createSubclassContributionSource({
+        id: "paladin-oath-of-vengeance-spells",
+        label: "Oath of Vengeance Spells",
+        entryId: CLASS_FEATURE.OATH_OF_VENGEANCE_SPELLS
+      }),
+      alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
+        character.level ?? 0,
+        oathOfVengeanceSpellIdsByLevel
+      )
+    }
+  ];
+
+  if (hasPaladinOathOfVengeanceVowOfEnmity(character)) {
+    contributions.push({
+      source: createSubclassContributionSource({
+        id: "paladin-oath-of-vengeance-vow-of-enmity",
+        label: vowOfEnmityName,
+        entryId: CLASS_FEATURE.VOW_OF_ENMITY
+      }),
+      weaponActionTransforms: [
+        {
+          id: "paladin-oath-of-vengeance-vow-of-enmity-transform",
+          transform: (_character, action) =>
+            transformVowOfEnmityAction(character, action as WeaponAction)
+        }
+      ]
+    });
+  }
+
+  if (hasPaladinOathOfVengeanceRelentlessAvengerFeature(character)) {
+    contributions.push({
+      source: createSubclassContributionSource({
+        id: "paladin-oath-of-vengeance-relentless-avenger",
+        label: relentlessAvengerName,
+        entryId: CLASS_FEATURE.RELENTLESS_AVENGER
+      }),
+      reactions: getReactionEntryById(reactionEntries, relentlessAvengerReactionId)
+    });
+  }
+
+  if (hasPaladinOathOfVengeanceSoulOfVengeanceFeature(character)) {
+    contributions.push({
+      source: createSubclassContributionSource({
+        id: "paladin-oath-of-vengeance-soul-of-vengeance",
+        label: soulOfVengeanceName,
+        entryId: CLASS_FEATURE.SOUL_OF_VENGEANCE
+      }),
+      reactions: getReactionEntryById(reactionEntries, soulOfVengeanceReactionId)
+    });
+  }
+
+  if (hasPaladinOathOfVengeanceAvengingAngelFeature(character)) {
+    contributions.push({
+      source: createSubclassContributionSource({
+        id: "paladin-oath-of-vengeance-avenging-angel",
+        label: avengingAngelName,
+        entryId: CLASS_FEATURE.AVENGING_ANGEL
+      }),
+      actions: getFeatureActionByKey(featureActions, avengingAngelActionKey),
+      statuses: getPaladinOathOfVengeanceDerivedStatusEntries(character),
+      reactions: getReactionEntryById(reactionEntries, frightfulAuraReactionId),
+      speedBonuses: getPaladinOathOfVengeanceSpeedBonuses(character)
+    });
+  }
+
+  return contributions;
+}
+
 export const getPaladinOathOfVengeanceDerivedFeatureState: SubclassRuntimeResolver = (character) =>
-  character.className === "Paladin" &&
-  character.subclassId === oathOfVengeanceSubclassId &&
-  (character.level ?? 0) >= 3
-    ? {
-        alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-          character.level ?? 0,
-          oathOfVengeanceSpellIdsByLevel
-        ),
-        featureActions: getPaladinOathOfVengeanceFeatureActions(character),
-        derivedStatusEntries: getPaladinOathOfVengeanceDerivedStatusEntries(character),
-        reactionEntries: getPaladinOathOfVengeanceReactionEntries(character),
-        speedBonuses: getPaladinOathOfVengeanceSpeedBonuses(character),
-        transformWeaponAction: (action) => transformVowOfEnmityAction(character, action)
-      }
-    : {};
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectPaladinOathOfVengeanceContributions(character)),
+    {
+      character: character as Character
+    }
+  );

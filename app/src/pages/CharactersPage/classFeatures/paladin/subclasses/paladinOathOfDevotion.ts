@@ -10,6 +10,12 @@ import {
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import type { AbilityModifierBonusEntry } from "../../../abilities";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import { getProficiencyBonus, type WeaponAction } from "../../../gameplay";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
 import { appendWeaponActionCardBonusLabel } from "../../../weaponActionCardBreakdown";
@@ -669,6 +675,13 @@ function getPaladinOathOfDevotionFeatureActions(
   ];
 }
 
+function getFeatureActionByKey(
+  actions: FeatureActionCard[],
+  actionKey: string
+): FeatureActionCard[] {
+  return actions.filter((action) => action.key === actionKey);
+}
+
 function appendSmiteOfProtectionDescription(
   character: PaladinOathOfDevotionCharacter,
   action: FeatureActionCard
@@ -694,20 +707,87 @@ function appendSmiteOfProtectionDescription(
   );
 }
 
+function collectPaladinOathOfDevotionContributions(
+  character: PaladinOathOfDevotionCharacter
+): FeatureContributionSpec[] {
+  if (!isPaladinOathOfDevotion(character)) {
+    return [];
+  }
+
+  const featureActions = getPaladinOathOfDevotionFeatureActions(character);
+  const contributions: FeatureContributionSpec[] = [
+    {
+      source: createSubclassContributionSource({
+        id: "paladin-oath-of-devotion-spells",
+        label: "Oath of Devotion Spells",
+        entryId: CLASS_FEATURE.OATH_OF_DEVOTION_SPELLS
+      }),
+      alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
+        character.level ?? 0,
+        oathOfDevotionSpellIdsByLevel
+      )
+    },
+    {
+      source: createSubclassContributionSource({
+        id: "paladin-oath-of-devotion-sacred-weapon",
+        label: sacredWeaponEffectName,
+        entryId: CLASS_FEATURE.SACRED_WEAPON
+      }),
+      weaponActionTransforms: [
+        {
+          id: "paladin-oath-of-devotion-sacred-weapon-transform",
+          transform: (_character, action) =>
+            transformSacredWeaponAction(character, action as WeaponAction)
+        }
+      ]
+    }
+  ];
+
+  if (hasPaladinOathOfDevotionAuraOfDevotion(character)) {
+    contributions.push({
+      source: createSubclassContributionSource({
+        id: "paladin-oath-of-devotion-aura-of-devotion",
+        label: auraOfDevotionName,
+        entryId: CLASS_FEATURE.AURA_OF_DEVOTION
+      }),
+      statuses: getPaladinOathOfDevotionDerivedStatusEntries(character)
+    });
+  }
+
+  if (hasPaladinOathOfDevotionSmiteOfProtection(character)) {
+    contributions.push({
+      source: createSubclassContributionSource({
+        id: "paladin-oath-of-devotion-smite-of-protection",
+        label: "Smite of Protection",
+        entryId: CLASS_FEATURE.SMITE_OF_PROTECTION
+      }),
+      featureActionTransforms: [
+        {
+          id: "paladin-oath-of-devotion-smite-of-protection-transform",
+          transform: (action) => appendSmiteOfProtectionDescription(character, action)
+        }
+      ]
+    });
+  }
+
+  if (hasPaladinOathOfDevotionHolyNimbusFeature(character)) {
+    contributions.push({
+      source: createSubclassContributionSource({
+        id: "paladin-oath-of-devotion-holy-nimbus",
+        label: holyNimbusName,
+        entryId: CLASS_FEATURE.HOLY_NIMBUS
+      }),
+      actions: getFeatureActionByKey(featureActions, holyNimbusActionKey)
+    });
+  }
+
+  return contributions;
+}
+
 export const getPaladinOathOfDevotionDerivedFeatureState: SubclassRuntimeResolver = (character) =>
-  character.className === "Paladin" &&
-  character.subclassId === oathOfDevotionSubclassId &&
-  (character.level ?? 0) >= 3
-    ? {
-        alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-          character.level ?? 0,
-          oathOfDevotionSpellIdsByLevel
-        ),
-        featureActions: getPaladinOathOfDevotionFeatureActions(character),
-        derivedStatusEntries: getPaladinOathOfDevotionDerivedStatusEntries(character),
-        transformFeatureAction: hasPaladinOathOfDevotionSmiteOfProtection(character)
-          ? (action) => appendSmiteOfProtectionDescription(character, action)
-          : undefined,
-        transformWeaponAction: (action) => transformSacredWeaponAction(character, action)
-      }
-    : {};
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectPaladinOathOfDevotionContributions(character)),
+    {
+      character: character as Character
+    }
+  );

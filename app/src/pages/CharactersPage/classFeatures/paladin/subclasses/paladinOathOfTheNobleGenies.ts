@@ -29,6 +29,12 @@ import {
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getAbilityModifierForCharacter } from "../../../abilities";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
 import {
   createCharacterStatusEntry,
@@ -754,6 +760,27 @@ function getPaladinOathOfTheNobleGeniesFeatureActions(
   ];
 }
 
+function getFeatureActionByKey(
+  actions: FeatureActionCard[],
+  actionKey: string
+): FeatureActionCard[] {
+  return actions.filter((action) => action.key === actionKey);
+}
+
+function getReactionEntryById(
+  reactions: ReactionEntry[],
+  reactionId: string
+): ReactionEntry[] {
+  return reactions.filter((reaction) => reaction.id === reactionId);
+}
+
+function getStatusEntriesBySource(
+  statuses: DerivedFeatureStatusEntry[],
+  source: string
+): DerivedFeatureStatusEntry[] {
+  return statuses.filter((status) => status.source === source);
+}
+
 function getPaladinOathOfTheNobleGeniesSpeedBonuses(
   character: PaladinOathOfTheNobleGeniesCharacter
 ): FeatureSpeedBonus[] {
@@ -872,37 +899,116 @@ export function restorePaladinOathOfTheNobleGeniesNobleScionOnLongRest(
   };
 }
 
+function collectPaladinOathOfTheNobleGeniesContributions(
+  character: PaladinOathOfTheNobleGeniesCharacter
+): FeatureContributionSpec[] {
+  if (!isPaladinOathOfTheNobleGenies(character)) {
+    return [];
+  }
+
+  const featureActions = getPaladinOathOfTheNobleGeniesFeatureActions(character);
+  const derivedStatusEntries = getPaladinOathOfTheNobleGeniesDerivedStatusEntries(character);
+  const reactionEntries = getPaladinOathOfTheNobleGeniesReactionEntries(character);
+  const contributions: FeatureContributionSpec[] = [
+    {
+      source: createSubclassContributionSource({
+        id: "paladin-oath-of-the-noble-genies-spells",
+        label: "Genie Spells",
+        entryId: CLASS_FEATURE.GENIE_SPELLS
+      }),
+      alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
+        character.level ?? 0,
+        oathOfTheNobleGeniesSpellIdsByLevel
+      )
+    },
+    {
+      source: createSubclassContributionSource({
+        id: "paladin-oath-of-the-noble-genies-elemental-smite",
+        label: elementalSmiteSource,
+        entryId: CLASS_FEATURE.ELEMENTAL_SMITE
+      }),
+      spellTransforms: [
+        {
+          id: "paladin-oath-of-the-noble-genies-elemental-smite-transform",
+          transform: (spell) => appendElementalSmiteDescription(character, spell)
+        }
+      ]
+    },
+    {
+      source: createSubclassContributionSource({
+        id: "paladin-oath-of-the-noble-genies-genies-splendor",
+        label: geniesSplendorSource,
+        entryId: CLASS_FEATURE.GENIES_SPLENDOR
+      }),
+      armorClassModes: [
+        {
+          id: "paladin-oath-of-the-noble-genies-genies-splendor-mode",
+          getModes: (context) => [
+            {
+              key: "paladin-oath-of-the-noble-genies-genies-splendor",
+              label: geniesSplendorSource,
+              unlockedAtLevel: 3,
+              baseValue: 10,
+              abilityModifiers: ["DEX", "CHA"],
+              shieldAllowed: true,
+              isApplicable: !context.hasWornBodyArmor,
+              unavailableReason: context.hasWornBodyArmor
+                ? "Requires you to wear no body armor."
+                : undefined,
+              detail: "Oath of the Noble Genies feature"
+            }
+          ]
+        }
+      ],
+      skillProficiencyEntries: getPaladinOathOfTheNobleGeniesSkillProficiencyEntries(character)
+    }
+  ];
+
+  if (hasPaladinOathOfTheNobleGeniesAuraOfElementalShielding(character)) {
+    contributions.push({
+      source: createSubclassContributionSource({
+        id: "paladin-oath-of-the-noble-genies-aura-of-elemental-shielding",
+        label: auraOfElementalShieldingName,
+        entryId: CLASS_FEATURE.AURA_OF_ELEMENTAL_SHIELDING
+      }),
+      statuses: getStatusEntriesBySource(derivedStatusEntries, auraOfElementalShieldingName)
+    });
+  }
+
+  if (hasPaladinOathOfTheNobleGeniesElementalRebukeFeature(character)) {
+    contributions.push({
+      source: createSubclassContributionSource({
+        id: "paladin-oath-of-the-noble-genies-elemental-rebuke",
+        label: elementalRebukeName,
+        entryId: CLASS_FEATURE.ELEMENTAL_REBUKE
+      }),
+      reactions: getReactionEntryById(reactionEntries, elementalRebukeReactionId)
+    });
+  }
+
+  if (hasPaladinOathOfTheNobleGeniesNobleScionFeature(character)) {
+    contributions.push({
+      source: createSubclassContributionSource({
+        id: "paladin-oath-of-the-noble-genies-noble-scion",
+        label: nobleScionName,
+        entryId: CLASS_FEATURE.NOBLE_SCION
+      }),
+      actions: getFeatureActionByKey(featureActions, nobleScionActionKey),
+      statuses: getStatusEntriesBySource(derivedStatusEntries, minorWishName),
+      reactions: getReactionEntryById(reactionEntries, minorWishReactionId),
+      speedBonuses: getPaladinOathOfTheNobleGeniesSpeedBonuses(character)
+    });
+  }
+
+  return contributions;
+}
+
 export const getPaladinOathOfTheNobleGeniesDerivedFeatureState: SubclassRuntimeResolver = (
   character
 ) =>
-  character.className === "Paladin" &&
-  character.subclassId === oathOfTheNobleGeniesSubclassId &&
-  (character.level ?? 0) >= 3
-    ? {
-        alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-          character.level ?? 0,
-          oathOfTheNobleGeniesSpellIdsByLevel
-        ),
-        featureActions: getPaladinOathOfTheNobleGeniesFeatureActions(character),
-        transformSpellEntry: (spell) => appendElementalSmiteDescription(character, spell),
-        getArmorClassModes: (context) => [
-          {
-            key: "paladin-oath-of-the-noble-genies-genies-splendor",
-            label: geniesSplendorSource,
-            unlockedAtLevel: 3,
-            baseValue: 10,
-            abilityModifiers: ["DEX", "CHA"],
-            shieldAllowed: true,
-            isApplicable: !context.hasWornBodyArmor,
-            unavailableReason: context.hasWornBodyArmor
-              ? "Requires you to wear no body armor."
-              : undefined,
-            detail: "Oath of the Noble Genies feature"
-          }
-        ],
-        skillProficiencyEntries: getPaladinOathOfTheNobleGeniesSkillProficiencyEntries(character),
-        derivedStatusEntries: getPaladinOathOfTheNobleGeniesDerivedStatusEntries(character),
-        reactionEntries: getPaladinOathOfTheNobleGeniesReactionEntries(character),
-        speedBonuses: getPaladinOathOfTheNobleGeniesSpeedBonuses(character)
-      }
-    : {};
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectPaladinOathOfTheNobleGeniesContributions(character)),
+    {
+      character: character as Character
+    }
+  );

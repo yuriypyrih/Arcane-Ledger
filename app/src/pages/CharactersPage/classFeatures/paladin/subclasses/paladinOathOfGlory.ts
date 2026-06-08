@@ -10,6 +10,12 @@ import {
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getAbilityModifierForCharacter } from "../../../abilities";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
 import {
   createCharacterStatusEntry,
@@ -377,6 +383,28 @@ function getPaladinOathOfGloryFeatureActions(
   return actions;
 }
 
+function getFeatureActionByKey(
+  actions: FeatureActionCard[],
+  actionKey: string
+): FeatureActionCard[] {
+  return actions.filter((action) => action.key === actionKey);
+}
+
+function pickSkillIndicators(
+  indicators: SkillIndicatorMap,
+  skills: SKILL[]
+): SkillIndicatorMap {
+  return skills.reduce<SkillIndicatorMap>((nextIndicators, skill) => {
+    const skillIndicators = indicators[skill];
+
+    if (skillIndicators) {
+      nextIndicators[skill] = skillIndicators;
+    }
+
+    return nextIndicators;
+  }, {});
+}
+
 export function applyPaladinOathOfGloryLivingLegendStatus(character: Character): Character {
   const nextStatusEntries = normalizeCharacterStatusEntries(character.statusEntries).filter(
     (entry) => entry.sourceId !== paladinOathOfGloryLivingLegendStatusSourceId
@@ -632,20 +660,98 @@ export function restorePaladinOathOfGloryGloriousDefenseOnLongRest(
   };
 }
 
+function collectPaladinOathOfGloryContributions(
+  character: PaladinOathOfGloryCharacter
+): FeatureContributionSpec[] {
+  if (!isPaladinOathOfGlory(character)) {
+    return [];
+  }
+
+  const featureActions = getPaladinOathOfGloryFeatureActions(character);
+  const skillIndicators = getPaladinOathOfGlorySkillIndicators(character);
+  const contributions: FeatureContributionSpec[] = [
+    {
+      source: createSubclassContributionSource({
+        id: "paladin-oath-of-glory-spells",
+        label: "Oath of Glory Spells",
+        entryId: CLASS_FEATURE.OATH_OF_GLORY_SPELLS
+      }),
+      alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
+        character.level ?? 0,
+        oathOfGlorySpellIdsByLevel
+      )
+    },
+    {
+      source: createSubclassContributionSource({
+        id: "paladin-oath-of-glory-inspiring-smite",
+        label: "Inspiring Smite",
+        entryId: CLASS_FEATURE.INSPIRING_SMITE
+      }),
+      spellTransforms: [
+        {
+          id: "paladin-oath-of-glory-inspiring-smite-transform",
+          transform: (spell) => appendInspiringSmiteDescription(character, spell)
+        }
+      ]
+    },
+    {
+      source: createSubclassContributionSource({
+        id: "paladin-oath-of-glory-peerless-athlete",
+        label: peerlessAthleteName,
+        entryId: CLASS_FEATURE.PEERLESS_ATHLETE
+      }),
+      actions: getFeatureActionByKey(featureActions, peerlessAthleteActionKey),
+      skillIndicators: pickSkillIndicators(skillIndicators, [SKILL.ACROBATICS, SKILL.ATHLETICS])
+    }
+  ];
+
+  if (hasPaladinOathOfGloryAuraOfAlacrity(character)) {
+    contributions.push({
+      source: createSubclassContributionSource({
+        id: "paladin-oath-of-glory-aura-of-alacrity",
+        label: "Aura of Alacrity",
+        entryId: CLASS_FEATURE.AURA_OF_ALACRITY
+      }),
+      speedBonuses: getPaladinOathOfGlorySpeedBonuses(character)
+    });
+  }
+
+  if (hasPaladinOathOfGloryGloriousDefenseFeature(character)) {
+    contributions.push({
+      source: createSubclassContributionSource({
+        id: "paladin-oath-of-glory-glorious-defense",
+        label: gloriousDefenseName,
+        entryId: CLASS_FEATURE.GLORIOUS_DEFENSE
+      }),
+      reactions: getPaladinOathOfGloryReactionEntries(character)
+    });
+  }
+
+  if (hasPaladinOathOfGloryLivingLegendFeature(character)) {
+    contributions.push({
+      source: createSubclassContributionSource({
+        id: "paladin-oath-of-glory-living-legend",
+        label: livingLegendName,
+        entryId: CLASS_FEATURE.LIVING_LEGEND
+      }),
+      actions: getFeatureActionByKey(featureActions, livingLegendActionKey),
+      abilityCheckIndicators: getPaladinOathOfGloryAbilityCheckIndicators(character),
+      skillIndicators: pickSkillIndicators(skillIndicators, [
+        SKILL.DECEPTION,
+        SKILL.INTIMIDATION,
+        SKILL.PERFORMANCE,
+        SKILL.PERSUASION
+      ])
+    });
+  }
+
+  return contributions;
+}
+
 export const getPaladinOathOfGloryDerivedFeatureState: SubclassRuntimeResolver = (character) =>
-  character.className === "Paladin" &&
-  character.subclassId === oathOfGlorySubclassId &&
-  (character.level ?? 0) >= 3
-    ? {
-        alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-          character.level ?? 0,
-          oathOfGlorySpellIdsByLevel
-        ),
-        featureActions: getPaladinOathOfGloryFeatureActions(character),
-        abilityCheckIndicators: getPaladinOathOfGloryAbilityCheckIndicators(character),
-        skillIndicators: getPaladinOathOfGlorySkillIndicators(character),
-        speedBonuses: getPaladinOathOfGlorySpeedBonuses(character),
-        reactionEntries: getPaladinOathOfGloryReactionEntries(character),
-        transformSpellEntry: (spell) => appendInspiringSmiteDescription(character, spell)
-      }
-    : {};
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectPaladinOathOfGloryContributions(character)),
+    {
+      character: character as Character
+    }
+  );

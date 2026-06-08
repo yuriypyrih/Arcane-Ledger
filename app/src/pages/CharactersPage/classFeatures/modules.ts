@@ -161,15 +161,6 @@ import {
   applyShortRestToPaladinFeatures,
   elderChampionActionKey,
   faithfulSteedActionKey,
-  getPaladinAlwaysPreparedSpellIds,
-  getPaladinDerivedStatusEntries,
-  getPaladinFeatureActions,
-  getPaladinFeatureActionOptions,
-  getPaladinWeaponDamageBonuses,
-  getPaladinWeaponMasteryOptions,
-  getPaladinWeaponMasterySelectionCount,
-  getPaladinWeaponMasterySelections,
-  getPaladinWeaponProficiencyEntries,
   holyNimbusActionKey,
   livingLegendActionKey,
   nobleScionActionKey,
@@ -179,9 +170,9 @@ import {
   paladinChannelDivinityActionKey,
   paladinLayOnHandsActionKey,
   paladinsSmiteActionKey,
-  peerlessAthleteActionKey,
-  setPaladinWeaponMasterySelections
+  peerlessAthleteActionKey
 } from "./paladin/paladin";
+import { getPaladinClassFeatureDerivedState } from "./paladin/contributions";
 import {
   activateRangerBeastMasterAction,
   activateRangerNaturesVeil,
@@ -657,24 +648,7 @@ const classFeatureModules = {
     className: "Paladin",
     stateKey: "paladin",
     normalizeState: normalizePaladinFeatureState,
-    collectDerived(character) {
-      return {
-        actions: getPaladinFeatureActions(character),
-        actionOptions: {
-          [paladinChannelDivinityActionKey]: getPaladinFeatureActionOptions(character)
-        },
-        getWeaponDamageBonuses: (context) => getPaladinWeaponDamageBonuses(character, context),
-        alwaysPreparedSpellIds: getPaladinAlwaysPreparedSpellIds(character),
-        weaponProficiencyEntries: getPaladinWeaponProficiencyEntries(character),
-        weaponMastery: createWeaponMasteryState(
-          getPaladinWeaponMasterySelectionCount(character),
-          getPaladinWeaponMasteryOptions(),
-          getPaladinWeaponMasterySelections(character),
-          setPaladinWeaponMasterySelections
-        ),
-        derivedStatusEntries: getPaladinDerivedStatusEntries(character)
-      };
-    },
+    collectDerived: getPaladinClassFeatureDerivedState,
     handleAction(character, actionKey) {
       if (
         actionKey === paladinLayOnHandsActionKey ||
