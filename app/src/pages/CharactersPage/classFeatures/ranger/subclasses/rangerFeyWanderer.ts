@@ -24,6 +24,12 @@ import type {
   FeatureSkillProficiencyEntry
 } from "../../types";
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import type { WeaponAction } from "../../../gameplay";
 import {
   getPreparedSpellIdsByLevel,
@@ -530,18 +536,6 @@ function appendMistyWandererDescription(
   );
 }
 
-function appendFeyWandererSpellDescriptions(character: RangerFeyWandererCharacter) {
-  return (spell: SpellEntry): SpellEntry => {
-    const spellWithFeyReinforcements = hasRangerFeyWandererFeyReinforcementsFeature(character)
-      ? appendFeyReinforcementsDescription(character, spell)
-      : spell;
-
-    return hasRangerFeyWandererMistyWandererFeature(character)
-      ? appendMistyWandererDescription(character, spellWithFeyReinforcements)
-      : spellWithFeyReinforcements;
-  };
-}
-
 export function setRangerOtherworldlyGlamourSkillSelection(
   character: Character,
   selection: RangerOtherworldlyGlamourSkill | null
@@ -631,23 +625,115 @@ export function setRangerFeyWandererGiftSelection(
   };
 }
 
+function collectRangerFeyWandererContributions(
+  character: RangerFeyWandererCharacter
+): FeatureContributionSpec[] {
+  if (character.className !== "Ranger" || character.subclassId !== feyWandererSubclassId) {
+    return [];
+  }
+
+  const contributions: FeatureContributionSpec[] = [];
+
+  if (hasRangerFeyWandererSpellsFeature(character)) {
+    contributions.push({
+      source: createSubclassContributionSource({
+        id: "ranger-fey-wanderer-spells",
+        label: "Fey Wanderer Spells",
+        entryId: CLASS_FEATURE.FEY_WANDERER_SPELLS
+      }),
+      alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
+        character.level ?? 0,
+        feyWandererSpellIdsByLevel
+      )
+    });
+  }
+
+  if (hasRangerFeyWandererDreadfulStrikesFeature(character)) {
+    contributions.push({
+      source: createSubclassContributionSource({
+        id: "ranger-fey-wanderer-dreadful-strikes",
+        label: dreadfulStrikesLabel,
+        entryId: CLASS_FEATURE.DREADFUL_STRIKES
+      }),
+      weaponActionTransforms: [
+        {
+          id: "ranger-fey-wanderer-dreadful-strikes-transform",
+          transform: (_character, action) =>
+            appendDreadfulStrikesDescription(character, action as WeaponAction)
+        }
+      ]
+    });
+  }
+
+  if (hasRangerFeyWandererOtherworldlyGlamourFeature(character)) {
+    contributions.push({
+      source: createSubclassContributionSource({
+        id: "ranger-fey-wanderer-otherworldly-glamour",
+        label: otherworldlyGlamourLabel,
+        entryId: CLASS_FEATURE.OTHERWORLDLY_GLAMOUR
+      }),
+      skillBonuses: [
+        {
+          id: "ranger-fey-wanderer-otherworldly-glamour-skill-bonus",
+          getBonuses: (skill) =>
+            getRangerFeyWandererOtherworldlyGlamourSkillBonuses(character, skill)
+        }
+      ],
+      skillProficiencyEntries:
+        getRangerFeyWandererOtherworldlyGlamourSkillProficiencyEntries(character)
+    });
+  }
+
+  if (hasRangerFeyWandererBeguilingTwistFeature(character)) {
+    contributions.push({
+      source: createSubclassContributionSource({
+        id: "ranger-fey-wanderer-beguiling-twist",
+        label: beguilingTwistName,
+        entryId: CLASS_FEATURE.BEGUILING_TWIST
+      }),
+      reactions: [beguilingTwistReactionEntry]
+    });
+  }
+
+  if (hasRangerFeyWandererFeyReinforcementsFeature(character)) {
+    contributions.push({
+      source: createSubclassContributionSource({
+        id: "ranger-fey-wanderer-fey-reinforcements",
+        label: feyReinforcementsName,
+        entryId: CLASS_FEATURE.FEY_REINFORCEMENTS
+      }),
+      spellTransforms: [
+        {
+          id: "ranger-fey-wanderer-fey-reinforcements-transform",
+          transform: (spell) => appendFeyReinforcementsDescription(character, spell)
+        }
+      ]
+    });
+  }
+
+  if (hasRangerFeyWandererMistyWandererFeature(character)) {
+    contributions.push({
+      source: createSubclassContributionSource({
+        id: "ranger-fey-wanderer-misty-wanderer",
+        label: mistyWandererName,
+        entryId: CLASS_FEATURE.MISTY_WANDERER
+      }),
+      spellTransforms: [
+        {
+          id: "ranger-fey-wanderer-misty-wanderer-transform",
+          transform: (spell) => appendMistyWandererDescription(character, spell)
+        }
+      ]
+    });
+  }
+
+  return contributions;
+}
+
 export const getRangerFeyWandererDerivedFeatureState: SubclassRuntimeResolver = (character) =>
-  character.className === "Ranger" && character.subclassId === feyWandererSubclassId
-    ? {
-        alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-          character.level ?? 0,
-          feyWandererSpellIdsByLevel
-        ),
-        reactionEntries: hasRangerFeyWandererBeguilingTwistFeature(character)
-          ? [beguilingTwistReactionEntry]
-          : [],
-        transformSpellEntry:
-          hasRangerFeyWandererFeyReinforcementsFeature(character) ||
-          hasRangerFeyWandererMistyWandererFeature(character)
-            ? appendFeyWandererSpellDescriptions(character)
-            : undefined,
-        transformWeaponAction: hasRangerFeyWandererDreadfulStrikesFeature(character)
-          ? (action) => appendDreadfulStrikesDescription(character, action)
-          : undefined
-      }
-    : {};
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectRangerFeyWandererContributions(character)),
+    {
+      character: character as Character
+    }
+  );

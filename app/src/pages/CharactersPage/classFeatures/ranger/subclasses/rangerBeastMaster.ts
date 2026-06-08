@@ -9,6 +9,12 @@ import {
   reviveBeastMasterCompanion
 } from "../../../beastMasterCompanions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import type { FeatureActionCard } from "../../types";
 
@@ -181,9 +187,71 @@ export function activateRangerBeastMasterAction(
   return character;
 }
 
+function createBeastMasterLocalHookContribution(input: {
+  id: string;
+  label: string;
+  entryId: CLASS_FEATURE;
+}): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource(input)
+  };
+}
+
+function collectRangerBeastMasterContributions(
+  character: BeastMasterRuntimeCharacter
+): FeatureContributionSpec[] {
+  if (!isBeastMasterCharacter(character)) {
+    return [];
+  }
+
+  const contributions: FeatureContributionSpec[] = [
+    {
+      source: createSubclassContributionSource({
+        id: "ranger-beast-master-primal-companion",
+        label: "Primal Companion",
+        entryId: CLASS_FEATURE.PRIMAL_COMPANION
+      }),
+      actions: getRangerBeastMasterFeatureActions(character)
+    }
+  ];
+
+  if ((character.level ?? 0) >= 7) {
+    contributions.push(
+      createBeastMasterLocalHookContribution({
+        id: "ranger-beast-master-exceptional-training",
+        label: "Exceptional Training",
+        entryId: CLASS_FEATURE.EXCEPTIONAL_TRAINING
+      })
+    );
+  }
+
+  if ((character.level ?? 0) >= 11) {
+    contributions.push(
+      createBeastMasterLocalHookContribution({
+        id: "ranger-beast-master-bestial-fury",
+        label: "Bestial Fury",
+        entryId: CLASS_FEATURE.BESTIAL_FURY
+      })
+    );
+  }
+
+  if ((character.level ?? 0) >= 15) {
+    contributions.push(
+      createBeastMasterLocalHookContribution({
+        id: "ranger-beast-master-share-spells",
+        label: "Share Spells",
+        entryId: CLASS_FEATURE.SHARE_SPELLS
+      })
+    );
+  }
+
+  return contributions;
+}
+
 export const getRangerBeastMasterDerivedFeatureState: SubclassRuntimeResolver = (character) =>
-  isBeastMasterCharacter(character)
-    ? {
-        featureActions: getRangerBeastMasterFeatureActions(character)
-      }
-    : {};
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectRangerBeastMasterContributions(character)),
+    {
+      character: character as Character
+    }
+  );

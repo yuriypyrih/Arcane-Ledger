@@ -19,6 +19,12 @@ import {
   appendFeatureSourcedDescriptionAddition,
   descriptionValueSomeText
 } from "../../../actionModalDescriptions";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import type { WeaponAction } from "../../../gameplay";
 import {
   formatFormulaCell,
@@ -934,32 +940,120 @@ export function consumeRangerWinterWalkerPolarStrikesUse(character: Character): 
   };
 }
 
-export const getRangerWinterWalkerDerivedFeatureState: SubclassRuntimeResolver = (character) =>
-  character.className === "Ranger" && character.subclassId === winterWalkerSubclassId
-    ? {
-        alwaysPreparedSpellIds: hasRangerWinterWalkerSpellsFeature(character)
-          ? getPreparedSpellIdsByLevel(character.level ?? 0, winterWalkerSpellIdsByLevel)
-          : [],
-        featureActions: getRangerWinterWalkerFeatureActions(character),
-        derivedStatusEntries: getRangerWinterWalkerDerivedStatusEntries(character),
-        reactionEntries: getRangerWinterWalkerReactionEntries(character),
-        transformFeatureAction: hasRangerWinterWalkerHuntersRimeFeature(character)
-          ? (action) => appendHuntersRimeToFeatureAction(character, action)
-          : undefined,
-        transformSpellEntry: hasRangerWinterWalkerFrigidExplorerFeature(character)
-          ? (spell) => {
-              const nextSpell = appendHuntersRimeSpellDescription(
-                character,
-                appendBitingColdSpellDescription(character, spell)
-              );
+function collectRangerWinterWalkerContributions(
+  character: RangerWinterWalkerCharacter
+): FeatureContributionSpec[] {
+  if (!isRangerWinterWalker(character)) {
+    return [];
+  }
 
-              return hasRangerWinterWalkerFrozenHauntFeature(character)
-                ? appendFrozenHauntSpellDescription(character, nextSpell)
-                : nextSpell;
-            }
-          : undefined,
-        transformWeaponAction: hasRangerWinterWalkerFrigidExplorerFeature(character)
-          ? (action) => appendPolarStrikesDescription(appendBitingColdWeaponDescription(action))
-          : undefined
-      }
-    : {};
+  const contributions: FeatureContributionSpec[] = [];
+
+  if (hasRangerWinterWalkerSpellsFeature(character)) {
+    contributions.push({
+      source: createSubclassContributionSource({
+        id: "ranger-winter-walker-spells",
+        label: "Winter Walker Spells",
+        entryId: CLASS_FEATURE.WINTER_WALKER_SPELLS
+      }),
+      alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
+        character.level ?? 0,
+        winterWalkerSpellIdsByLevel
+      )
+    });
+  }
+
+  if (hasRangerWinterWalkerFrigidExplorerFeature(character)) {
+    contributions.push({
+      source: createSubclassContributionSource({
+        id: "ranger-winter-walker-frigid-explorer",
+        label: "Frigid Explorer",
+        entryId: CLASS_FEATURE.FRIGID_EXPLORER
+      }),
+      statuses: getRangerWinterWalkerDerivedStatusEntries(character),
+      spellTransforms: [
+        {
+          id: "ranger-winter-walker-biting-cold-spell-transform",
+          transform: (spell) => appendBitingColdSpellDescription(character, spell)
+        }
+      ],
+      weaponActionTransforms: [
+        {
+          id: "ranger-winter-walker-frigid-explorer-weapon-transform",
+          transform: (_character, action) =>
+            appendPolarStrikesDescription(appendBitingColdWeaponDescription(action as WeaponAction))
+        }
+      ]
+    });
+  }
+
+  if (hasRangerWinterWalkerHuntersRimeFeature(character)) {
+    contributions.push({
+      source: createSubclassContributionSource({
+        id: "ranger-winter-walker-hunters-rime",
+        label: huntersRimeSource,
+        entryId: CLASS_FEATURE.HUNTERS_RIME
+      }),
+      featureActionTransforms: [
+        {
+          id: "ranger-winter-walker-hunters-rime-feature-action-transform",
+          transform: (action) => appendHuntersRimeToFeatureAction(character, action)
+        }
+      ],
+      spellTransforms: [
+        {
+          id: "ranger-winter-walker-hunters-rime-spell-transform",
+          transform: (spell) => appendHuntersRimeSpellDescription(character, spell)
+        }
+      ]
+    });
+  }
+
+  if (hasRangerWinterWalkerFortifyingSoulFeature(character)) {
+    contributions.push({
+      source: createSubclassContributionSource({
+        id: "ranger-winter-walker-fortifying-soul",
+        label: fortifyingSoulActionName,
+        entryId: CLASS_FEATURE.FORTIFYING_SOUL
+      }),
+      actions: getRangerWinterWalkerFeatureActions(character)
+    });
+  }
+
+  if (hasRangerWinterWalkerChillingRetributionFeature(character)) {
+    contributions.push({
+      source: createSubclassContributionSource({
+        id: "ranger-winter-walker-chilling-retribution",
+        label: chillingRetributionReactionName,
+        entryId: CLASS_FEATURE.CHILLING_RETRIBUTION
+      }),
+      reactions: getRangerWinterWalkerReactionEntries(character)
+    });
+  }
+
+  if (hasRangerWinterWalkerFrozenHauntFeature(character)) {
+    contributions.push({
+      source: createSubclassContributionSource({
+        id: "ranger-winter-walker-frozen-haunt",
+        label: frozenHauntName,
+        entryId: CLASS_FEATURE.FROZEN_HAUNT
+      }),
+      spellTransforms: [
+        {
+          id: "ranger-winter-walker-frozen-haunt-spell-transform",
+          transform: (spell) => appendFrozenHauntSpellDescription(character, spell)
+        }
+      ]
+    });
+  }
+
+  return contributions;
+}
+
+export const getRangerWinterWalkerDerivedFeatureState: SubclassRuntimeResolver = (character) =>
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectRangerWinterWalkerContributions(character)),
+    {
+      character: character as Character
+    }
+  );

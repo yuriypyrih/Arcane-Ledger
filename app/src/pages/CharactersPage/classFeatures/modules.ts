@@ -179,29 +179,16 @@ import {
   advanceRangerFeaturesForNewRound,
   applyLongRestToRangerFeatures,
   applyShortRestToRangerFeatures,
-  getRangerAlwaysPreparedSpellIds,
-  getRangerDerivedStatusEntries,
-  getRangerFeatureActions,
-  getRangerLanguageProficiencyEntries,
-  getRangerSkillBonuses,
-  getRangerSkillProficiencyEntries,
-  getRangerSpeedBonuses,
-  getRangerSpellDamageFormula,
-  getRangerSpellEntry,
-  getRangerWeaponMasteryOptions,
-  getRangerWeaponMasterySelectionCount,
-  getRangerWeaponMasterySelections,
-  getRangerWeaponProficiencyEntries,
   fortifyingSoulActionKey,
   naturesVeilActionKey,
   normalizeRangerFeatureState,
   rangerBeastMasterCommandActionKey,
   rangerBeastMasterReviveActionKey,
-  setRangerWeaponMasterySelections,
   tirelessActionKey,
   consumeRangerTirelessUse,
   consumeRangerWinterWalkerFortifyingSoulUse
 } from "./ranger/ranger";
+import { getRangerClassFeatureDerivedState } from "./ranger/contributions";
 import {
   activateRogueSneakAttack,
   activateRogueSteadyAim,
@@ -705,26 +692,7 @@ const classFeatureModules = {
     className: "Ranger",
     stateKey: "ranger",
     normalizeState: normalizeRangerFeatureState,
-    collectDerived(character) {
-      return {
-        actions: getRangerFeatureActions(character),
-        getSkillBonuses: (skill) => getRangerSkillBonuses(character, skill),
-        getSpeedBonuses: (context) => getRangerSpeedBonuses(character, context),
-        skillProficiencyEntries: getRangerSkillProficiencyEntries(character),
-        languageProficiencyEntries: getRangerLanguageProficiencyEntries(character),
-        alwaysPreparedSpellIds: getRangerAlwaysPreparedSpellIds(character),
-        weaponProficiencyEntries: getRangerWeaponProficiencyEntries(character),
-        weaponMastery: createWeaponMasteryState(
-          getRangerWeaponMasterySelectionCount(character),
-          getRangerWeaponMasteryOptions(),
-          getRangerWeaponMasterySelections(character),
-          setRangerWeaponMasterySelections
-        ),
-        derivedStatusEntries: getRangerDerivedStatusEntries(character),
-        transformSpellEntry: (spell) => getRangerSpellEntry(character, spell),
-        getSpellDamageFormulaOverride: (spell) => getRangerSpellDamageFormula(character, spell)
-      };
-    },
+    collectDerived: getRangerClassFeatureDerivedState,
     handleAction(character, actionKey) {
       if (actionKey === tirelessActionKey) {
         return consumeRangerTirelessUse(character);

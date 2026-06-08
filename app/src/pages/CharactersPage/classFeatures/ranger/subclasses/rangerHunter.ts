@@ -23,6 +23,12 @@ import {
   appendFeatureSourcedDescriptionAddition,
   createFeatureSourcedDescriptionEntries
 } from "../../../actionModalDescriptions";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import type { WeaponAction } from "../../../gameplay";
 import {
   createCharacterStatusEntry,
@@ -728,27 +734,93 @@ function getRangerHunterReactionEntries(character: RangerHunterCharacter): React
     : [];
 }
 
-export const getRangerHunterDerivedFeatureState: SubclassRuntimeResolver = (character) =>
-  character.className === "Ranger" && character.subclassId === hunterSubclassId
-    ? {
-        derivedStatusEntries: getRangerHunterDefensiveTacticsDerivedStatusEntries(character),
-        reactionEntries: getRangerHunterReactionEntries(character),
-        transformFeatureAction:
-          hasRangerHunterHuntersLoreFeature(character) ||
-          hasRangerHunterSuperiorHuntersPreyFeature(character)
-            ? (action) => appendHuntersLoreToFeatureAction(character, action)
-            : undefined,
-        transformWeaponAction: hasRangerHunterHuntersPreyFeature(character)
-          ? (action) =>
-              applySelectedHordeBreakerWeaponAction(
-                character,
-                appendHuntersPreyDescription(character, action)
-              )
-          : undefined,
-        transformSpellEntry:
-          hasRangerHunterHuntersLoreFeature(character) ||
-          hasRangerHunterSuperiorHuntersPreyFeature(character)
-            ? (spell) => appendHunterSpellDescription(character, spell)
-            : undefined
+function collectRangerHunterContributions(
+  character: RangerHunterCharacter
+): FeatureContributionSpec[] {
+  if (!isRangerHunter(character)) {
+    return [];
+  }
+
+  const contributions: FeatureContributionSpec[] = [
+    {
+      source: createSubclassContributionSource({
+        id: "ranger-hunter-hunters-prey",
+        label: "Hunter's Prey",
+        entryId: CLASS_FEATURE.HUNTERS_PREY
+      }),
+      weaponActionTransforms: [
+        {
+          id: "ranger-hunter-hunters-prey-transform",
+          transform: (_character, action) =>
+            applySelectedHordeBreakerWeaponAction(
+              character,
+              appendHuntersPreyDescription(character, action as WeaponAction)
+            )
+        }
+      ]
+    },
+    {
+      source: createSubclassContributionSource({
+        id: "ranger-hunter-hunters-lore",
+        label: huntersLoreSource,
+        entryId: CLASS_FEATURE.HUNTERS_LORE
+      }),
+      featureActionTransforms: [
+        {
+          id: "ranger-hunter-hunters-lore-feature-action-transform",
+          transform: (action) => appendHuntersLoreToFeatureAction(character, action)
+        }
+      ],
+      spellTransforms: [
+        {
+          id: "ranger-hunter-hunters-lore-spell-transform",
+          transform: (spell) => appendHunterSpellDescription(character, spell)
+        }
+      ]
+    }
+  ];
+
+  if (hasRangerHunterDefensiveTacticsFeature(character)) {
+    contributions.push({
+      source: createSubclassContributionSource({
+        id: "ranger-hunter-defensive-tactics",
+        label: "Defensive Tactics",
+        entryId: CLASS_FEATURE.DEFENSIVE_TACTICS
+      }),
+      statuses: getRangerHunterDefensiveTacticsDerivedStatusEntries(character)
+    });
+  }
+
+  if (hasRangerHunterSuperiorHuntersPreyFeature(character)) {
+    contributions.push(
+      {
+        source: createSubclassContributionSource({
+          id: "ranger-hunter-superior-hunters-prey",
+          label: superiorHuntersPreySource,
+          entryId: CLASS_FEATURE.SUPERIOR_HUNTERS_PREY
+        })
       }
-    : {};
+    );
+  }
+
+  if (hasRangerHunterSuperiorHuntersDefenseFeature(character)) {
+    contributions.push({
+      source: createSubclassContributionSource({
+        id: "ranger-hunter-superior-hunters-defense",
+        label: superiorHuntersDefenseName,
+        entryId: CLASS_FEATURE.SUPERIOR_HUNTERS_DEFENSE
+      }),
+      reactions: getRangerHunterReactionEntries(character)
+    });
+  }
+
+  return contributions;
+}
+
+export const getRangerHunterDerivedFeatureState: SubclassRuntimeResolver = (character) =>
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectRangerHunterContributions(character)),
+    {
+      character: character as Character
+    }
+  );

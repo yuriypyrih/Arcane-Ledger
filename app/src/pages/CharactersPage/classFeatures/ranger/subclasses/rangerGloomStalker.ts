@@ -13,6 +13,12 @@ import {
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import type { WeaponAction } from "../../../gameplay";
 import { getRuntimeSavingThrowLevel } from "../../../proficiency/runtime";
 import {
@@ -517,28 +523,102 @@ function getRangerGloomStalkerDerivedStatusEntries(
   ];
 }
 
+function collectRangerGloomStalkerContributions(
+  character: RangerGloomStalkerCharacter
+): FeatureContributionSpec[] {
+  if (!isRangerGloomStalker(character)) {
+    return [];
+  }
+
+  const contributions: FeatureContributionSpec[] = [
+    {
+      source: createSubclassContributionSource({
+        id: "ranger-gloom-stalker-spells",
+        label: "Gloom Stalker Spells",
+        entryId: CLASS_FEATURE.GLOOM_STALKER_SPELLS
+      }),
+      alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
+        character.level ?? 0,
+        gloomStalkerSpellIdsByLevel
+      )
+    },
+    {
+      source: createSubclassContributionSource({
+        id: "ranger-gloom-stalker-dread-ambusher",
+        label: "Dread Ambusher",
+        entryId: CLASS_FEATURE.DREAD_AMBUSHER
+      }),
+      initiativeBonuses: [
+        {
+          id: "ranger-gloom-stalker-dread-ambusher-initiative",
+          getBonuses: () => [dreadAmbusherInitiativeBonus]
+        }
+      ],
+      weaponActionTransforms: [
+        {
+          id: "ranger-gloom-stalker-dread-ambusher-transform",
+          transform: (_character, action) =>
+            appendDreadAmbusherDescription(character, action as WeaponAction)
+        }
+      ]
+    },
+    {
+      source: createSubclassContributionSource({
+        id: "ranger-gloom-stalker-umbral-sight",
+        label: umbralSightName,
+        entryId: CLASS_FEATURE.UMBRAL_SIGHT
+      }),
+      statuses: getRangerGloomStalkerDerivedStatusEntries(character)
+    }
+  ];
+
+  if (hasRangerGloomStalkerIronMindFeature(character)) {
+    contributions.push({
+      source: createSubclassContributionSource({
+        id: "ranger-gloom-stalker-iron-mind",
+        label: ironMindSource,
+        entryId: CLASS_FEATURE.IRON_MIND
+      }),
+      savingThrowProficiencyEntries:
+        getRangerGloomStalkerIronMindSavingThrowProficiencyEntries(character)
+    });
+  }
+
+  if (hasRangerGloomStalkerStalkersFlurryFeature(character)) {
+    contributions.push({
+      source: createSubclassContributionSource({
+        id: "ranger-gloom-stalker-stalkers-flurry",
+        label: stalkersFlurrySource,
+        entryId: CLASS_FEATURE.STALKERS_FLURRY
+      }),
+      weaponActionTransforms: [
+        {
+          id: "ranger-gloom-stalker-stalkers-flurry-transform",
+          transform: (_character, action) =>
+            appendStalkersFlurryDescription(character, action as WeaponAction)
+        }
+      ]
+    });
+  }
+
+  if (hasRangerGloomStalkerShadowyDodgeFeature(character)) {
+    contributions.push({
+      source: createSubclassContributionSource({
+        id: "ranger-gloom-stalker-shadowy-dodge",
+        label: "Shadowy Dodge",
+        entryId: CLASS_FEATURE.SHADOWY_DODGE
+      }),
+      reactions: [shadowyDodgeReactionEntry]
+    });
+  }
+
+  return contributions;
+}
+
 export const getRangerGloomStalkerDerivedFeatureState: SubclassRuntimeResolver = (character) =>
-  character.className === "Ranger" && character.subclassId === gloomStalkerSubclassId
-    ? {
-        alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-          character.level ?? 0,
-          gloomStalkerSpellIdsByLevel
-        ),
-        derivedStatusEntries: getRangerGloomStalkerDerivedStatusEntries(character),
-        savingThrowProficiencyEntries:
-          getRangerGloomStalkerIronMindSavingThrowProficiencyEntries(character),
-        reactionEntries: hasRangerGloomStalkerShadowyDodgeFeature(character)
-          ? [shadowyDodgeReactionEntry]
-          : [],
-        getInitiativeBonuses: hasRangerGloomStalkerDreadAmbusherFeature(character)
-          ? () => [dreadAmbusherInitiativeBonus]
-          : undefined,
-        transformWeaponAction: hasRangerGloomStalkerDreadAmbusherFeature(character)
-          ? (action) =>
-              appendStalkersFlurryDescription(
-                character,
-                appendDreadAmbusherDescription(character, action)
-              )
-          : undefined
-      }
-    : {};
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectRangerGloomStalkerContributions(character)),
+    {
+      character: character as Character
+    }
+  );
