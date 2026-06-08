@@ -6,6 +6,12 @@ import {
   appendFeatureSourcedDescriptionAddition,
   createFeatureSourcedDescriptionEntries
 } from "../../../actionModalDescriptions";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import type { FeatureActionCard, FeatureSpeedBonus } from "../../types";
 import { rogueSneakAttackActionKey } from "../rogue";
@@ -144,25 +150,101 @@ function appendFeatureActionDescriptionSection(
   return appendFeatureSourcedDescriptionAddition(action, character, feature, descriptionEntries);
 }
 
-function transformRogueThiefFeatureAction(
-  character: RogueThiefCharacter,
-  action: FeatureActionCard
-): FeatureActionCard {
-  return appendFeatureActionDescriptionSection(
-    character,
-    action,
-    rogueSneakAttackActionKey,
-    CLASS_FEATURE.SUPREME_SNEAK,
-    supremeSneakEffectDescription
-  );
+function createRogueThiefLocalHookContribution(input: {
+  id: string;
+  label: string;
+  entryId: CLASS_FEATURE;
+}): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource(input)
+  };
+}
+
+function createRogueThiefSecondStoryWorkContribution(
+  character: RogueThiefCharacter
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "rogue-thief-second-story-work",
+      label: secondStoryWorkSource,
+      entryId: CLASS_FEATURE.SECOND_STORY_WORK
+    }),
+    speedBonuses: getRogueThiefSpeedBonuses(character)
+  };
+}
+
+function createRogueThiefSupremeSneakContribution(
+  character: RogueThiefCharacter
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "rogue-thief-supreme-sneak",
+      label: "Supreme Sneak",
+      entryId: CLASS_FEATURE.SUPREME_SNEAK
+    }),
+    featureActionTransforms: [
+      {
+        id: "rogue-thief-supreme-sneak-feature-action-transform",
+        transform: (action) =>
+          appendFeatureActionDescriptionSection(
+            character,
+            action,
+            rogueSneakAttackActionKey,
+            CLASS_FEATURE.SUPREME_SNEAK,
+            supremeSneakEffectDescription
+          )
+      }
+    ]
+  };
+}
+
+function collectRogueThiefFeatureContributions(
+  character: RogueThiefCharacter
+): FeatureContributionSpec[] {
+  if (!hasRogueThiefSecondStoryWorkFeature(character)) {
+    return [];
+  }
+
+  const contributions: FeatureContributionSpec[] = [
+    createRogueThiefLocalHookContribution({
+      id: "rogue-thief-fast-hands",
+      label: fastHandsSource,
+      entryId: CLASS_FEATURE.FAST_HANDS
+    }),
+    createRogueThiefSecondStoryWorkContribution(character)
+  ];
+
+  if (hasRogueThiefSupremeSneakFeature(character)) {
+    contributions.push(createRogueThiefSupremeSneakContribution(character));
+  }
+
+  if (hasRogueThiefFeature(character, 13)) {
+    contributions.push(
+      createRogueThiefLocalHookContribution({
+        id: "rogue-thief-use-magic-device",
+        label: "Use Magic Device",
+        entryId: CLASS_FEATURE.USE_MAGIC_DEVICE
+      })
+    );
+  }
+
+  if (hasRogueThiefThiefsReflexesFeature(character)) {
+    contributions.push(
+      createRogueThiefLocalHookContribution({
+        id: "rogue-thief-thiefs-reflexes",
+        label: thiefsReflexesSource,
+        entryId: CLASS_FEATURE.THIEFS_REFLEXES
+      })
+    );
+  }
+
+  return contributions;
 }
 
 export const getRogueThiefDerivedFeatureState: SubclassRuntimeResolver = (character) =>
-  hasRogueThiefSecondStoryWorkFeature(character)
-    ? {
-        speedBonuses: getRogueThiefSpeedBonuses(character),
-        transformFeatureAction: hasRogueThiefSupremeSneakFeature(character)
-          ? (action) => transformRogueThiefFeatureAction(character, action)
-          : undefined
-      }
-    : {};
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectRogueThiefFeatureContributions(character)),
+    {
+      character: character as Character
+    }
+  );

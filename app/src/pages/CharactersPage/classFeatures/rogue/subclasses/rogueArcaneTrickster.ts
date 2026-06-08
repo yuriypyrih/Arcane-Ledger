@@ -10,9 +10,16 @@ import {
   CONDITION_NAME,
   STATUS_DURATION_KIND,
   STATUS_ENTRY_GROUP,
-  STATUS_ENTRY_SOURCE_TYPE
+  STATUS_ENTRY_SOURCE_TYPE,
+  type Character
 } from "../../../../../types";
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import { hasStatusCondition } from "../../../statusEntries";
 import type { DerivedFeatureStatusEntry } from "../../types";
 import { resolveSpellIdsByName, type SubclassRuntimeResolver } from "../../subclassRuntime";
@@ -179,44 +186,163 @@ function getRogueArcaneTricksterDerivedStatusEntries(
   ];
 }
 
-function transformArcaneTricksterSpell(
-  character: Parameters<SubclassRuntimeResolver>[0],
-  spell: SpellEntry
-): SpellEntry {
+function getStatusEntriesBySourceId(
+  statuses: DerivedFeatureStatusEntry[],
+  sourceId: string
+): DerivedFeatureStatusEntry[] {
+  return statuses.filter((status) => status.sourceId === sourceId);
+}
+
+function getSpellThiefStatusEntries(
+  statuses: DerivedFeatureStatusEntry[]
+): DerivedFeatureStatusEntry[] {
+  return statuses.filter((status) =>
+    isRogueArcaneTricksterSpellThiefStatusSourceId(status.sourceId)
+  );
+}
+
+function createArcaneTricksterLocalHookContribution(input: {
+  id: string;
+  label: string;
+  entryId: CLASS_FEATURE;
+}): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource(input)
+  };
+}
+
+function createArcaneTricksterMageHandLegerdemainContribution(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "rogue-arcane-trickster-mage-hand-legerdemain",
+      label: mageHandLegerdemainSource,
+      entryId: CLASS_FEATURE.MAGE_HAND_LEGERDEMAIN
+    }),
+    alwaysPreparedSpellIds: arcaneTricksterAlwaysPreparedSpellIds,
+    spellTransforms: [
+      {
+        id: "rogue-arcane-trickster-mage-hand-legerdemain-transform",
+        transform: (spell) =>
+          spell.id === mageHandSpellId
+            ? appendArcaneTricksterSpellDescription(
+                character,
+                spell,
+                CLASS_FEATURE.MAGE_HAND_LEGERDEMAIN,
+                mageHandLegerdemainSource,
+                mageHandLegerdemainDescription
+              )
+            : spell
+      }
+    ]
+  };
+}
+
+function createArcaneTricksterMagicalAmbushContribution(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "rogue-arcane-trickster-magical-ambush",
+      label: magicalAmbushName,
+      entryId: CLASS_FEATURE.MAGICAL_AMBUSH
+    }),
+    statuses: getStatusEntriesBySourceId(
+      getRogueArcaneTricksterDerivedStatusEntries(character),
+      rogueArcaneTricksterMagicalAmbushStatusSourceId
+    ),
+    spellTransforms: [
+      {
+        id: "rogue-arcane-trickster-magical-ambush-transform",
+        transform: (spell) =>
+          spell.isSavingThrowSpell === true
+            ? appendArcaneTricksterSpellDescription(
+                character,
+                spell,
+                CLASS_FEATURE.MAGICAL_AMBUSH,
+                magicalAmbushName,
+                magicalAmbushDescription
+              )
+            : spell
+      }
+    ]
+  };
+}
+
+function createArcaneTricksterVersatileTricksterContribution(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "rogue-arcane-trickster-versatile-trickster",
+      label: versatileTricksterSource,
+      entryId: CLASS_FEATURE.VERSATILE_TRICKSTER
+    }),
+    spellTransforms: [
+      {
+        id: "rogue-arcane-trickster-versatile-trickster-transform",
+        transform: (spell) =>
+          spell.id === mageHandSpellId
+            ? appendArcaneTricksterSpellDescription(
+                character,
+                spell,
+                CLASS_FEATURE.VERSATILE_TRICKSTER,
+                versatileTricksterSource,
+                versatileTricksterDescription
+              )
+            : spell
+      }
+    ]
+  };
+}
+
+function createArcaneTricksterSpellThiefContribution(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec {
+  const statusEntries = getRogueArcaneTricksterDerivedStatusEntries(character);
+
+  return {
+    source: createSubclassContributionSource({
+      id: "rogue-arcane-trickster-spell-thief",
+      label: spellThiefName,
+      entryId: CLASS_FEATURE.SPELL_THIEF
+    }),
+    alwaysPreparedSpellIds: getRogueArcaneTricksterSpellThiefAlwaysPreparedSpellIds(character),
+    statuses: getSpellThiefStatusEntries(statusEntries),
+    reactions: [spellThiefReactionEntry]
+  };
+}
+
+function collectRogueArcaneTricksterFeatureContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
   if (!hasRogueArcaneTricksterFeature(character, 3)) {
-    return spell;
+    return [];
   }
 
-  let nextSpell =
-    spell.id === mageHandSpellId
-      ? appendArcaneTricksterSpellDescription(
-          character,
-          spell,
-          CLASS_FEATURE.MAGE_HAND_LEGERDEMAIN,
-          mageHandLegerdemainSource,
-          mageHandLegerdemainDescription
-        )
-      : spell;
+  const contributions: FeatureContributionSpec[] = [
+    createArcaneTricksterLocalHookContribution({
+      id: "rogue-arcane-trickster-spellcasting",
+      label: "Spellcasting",
+      entryId: CLASS_FEATURE.SPELLCASTING
+    }),
+    createArcaneTricksterMageHandLegerdemainContribution(character)
+  ];
 
-  if (spell.id === mageHandSpellId && hasRogueArcaneTricksterFeature(character, 13)) {
-    nextSpell = appendArcaneTricksterSpellDescription(
-      character,
-      nextSpell,
-      CLASS_FEATURE.VERSATILE_TRICKSTER,
-      versatileTricksterSource,
-      versatileTricksterDescription
-    );
+  if (hasRogueArcaneTricksterFeature(character, 9)) {
+    contributions.push(createArcaneTricksterMagicalAmbushContribution(character));
   }
 
-  return hasRogueArcaneTricksterFeature(character, 9) && spell.isSavingThrowSpell === true
-    ? appendArcaneTricksterSpellDescription(
-        character,
-        nextSpell,
-        CLASS_FEATURE.MAGICAL_AMBUSH,
-        magicalAmbushName,
-        magicalAmbushDescription
-      )
-    : nextSpell;
+  if (hasRogueArcaneTricksterFeature(character, 13)) {
+    contributions.push(createArcaneTricksterVersatileTricksterContribution(character));
+  }
+
+  if (hasRogueArcaneTricksterFeature(character, 17)) {
+    contributions.push(createArcaneTricksterSpellThiefContribution(character));
+  }
+
+  return contributions;
 }
 
 export function isRogueArcaneTricksterMagicalAmbushActiveForSpell(
@@ -242,18 +368,9 @@ export function canUseRogueArcaneTricksterMageHandLegerdemainBonusActionPathForS
 }
 
 export const getRogueArcaneTricksterDerivedFeatureState: SubclassRuntimeResolver = (character) =>
-  hasRogueArcaneTricksterFeature(character, 3)
-    ? {
-        alwaysPreparedSpellIds: [
-          ...new Set([
-            ...arcaneTricksterAlwaysPreparedSpellIds,
-            ...getRogueArcaneTricksterSpellThiefAlwaysPreparedSpellIds(character)
-          ])
-        ],
-        derivedStatusEntries: getRogueArcaneTricksterDerivedStatusEntries(character),
-        reactionEntries: hasRogueArcaneTricksterFeature(character, 17)
-          ? [spellThiefReactionEntry]
-          : undefined,
-        transformSpellEntry: (spell) => transformArcaneTricksterSpell(character, spell)
-      }
-    : {};
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectRogueArcaneTricksterFeatureContributions(character)),
+    {
+      character: character as Character
+    }
+  );

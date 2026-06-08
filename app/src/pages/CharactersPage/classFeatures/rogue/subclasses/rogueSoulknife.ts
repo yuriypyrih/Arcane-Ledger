@@ -36,6 +36,12 @@ import {
   createHeldInventoryItemCopyReferences
 } from "../../../inventoryItems";
 import { isShieldArmorEntry } from "../../../armor";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import { getLoadoutCodexEntryByName } from "../../../proficiency";
 import {
   createCharacterStatusEntry,
@@ -1090,14 +1096,116 @@ export function getRogueSoulknifeWeaponActions(character: RogueSoulknifeCharacte
   );
 }
 
-export const getRogueSoulknifeDerivedFeatureState: SubclassRuntimeResolver = (character) =>
-  hasRogueSoulknifePsychicBladesFeature(character)
-    ? {
-        featureActions: getRogueSoulknifeFeatureActions(character),
-        equipmentEntries: getRogueSoulknifeFeatureEquipmentEntries(character),
-        weaponActions: getRogueSoulknifeWeaponActions(character),
-        transformFeatureAction: hasRogueSoulknifeRendMindFeature(character)
-          ? (action) => transformRogueSoulknifeFeatureAction(character, action)
-          : undefined
+function getFeatureActionByKey(
+  actions: FeatureActionCard[],
+  actionKey: string
+): FeatureActionCard[] {
+  return actions.filter((action) => action.key === actionKey);
+}
+
+function createRogueSoulknifePsionicPowerContribution(
+  featureActions: FeatureActionCard[]
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "rogue-soulknife-psionic-power",
+      label: "Psionic Power",
+      entryId: CLASS_FEATURE.PSIONIC_POWER
+    }),
+    actions: getFeatureActionByKey(featureActions, rogueSoulknifePsychicWhispersActionKey)
+  };
+}
+
+function createRogueSoulknifePsychicBladesContribution(
+  character: RogueSoulknifeCharacter
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "rogue-soulknife-psychic-blades",
+      label: soulknifeSourceLabel,
+      entryId: CLASS_FEATURE.PSYCHIC_BLADES
+    }),
+    equipmentEntries: getRogueSoulknifeFeatureEquipmentEntries(character),
+    weaponActions: getRogueSoulknifeWeaponActions(character)
+  };
+}
+
+function createRogueSoulknifeSoulBladesContribution(
+  featureActions: FeatureActionCard[]
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "rogue-soulknife-soul-blades",
+      label: "Soul Blades",
+      entryId: CLASS_FEATURE.SOUL_BLADES
+    }),
+    actions: getFeatureActionByKey(featureActions, rogueSoulknifePsychicTeleportationActionKey)
+  };
+}
+
+function createRogueSoulknifePsychicVeilContribution(
+  featureActions: FeatureActionCard[]
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "rogue-soulknife-psychic-veil",
+      label: psychicVeilName,
+      entryId: CLASS_FEATURE.PSYCHIC_VEIL
+    }),
+    actions: getFeatureActionByKey(featureActions, rogueSoulknifePsychicVeilActionKey)
+  };
+}
+
+function createRogueSoulknifeRendMindContribution(
+  character: RogueSoulknifeCharacter
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "rogue-soulknife-rend-mind",
+      label: "Rend Mind",
+      entryId: CLASS_FEATURE.REND_MIND
+    }),
+    featureActionTransforms: [
+      {
+        id: "rogue-soulknife-rend-mind-feature-action-transform",
+        transform: (action) => transformRogueSoulknifeFeatureAction(character, action)
       }
-    : {};
+    ]
+  };
+}
+
+function collectRogueSoulknifeFeatureContributions(
+  character: RogueSoulknifeCharacter
+): FeatureContributionSpec[] {
+  if (!hasRogueSoulknifePsychicBladesFeature(character)) {
+    return [];
+  }
+
+  const featureActions = getRogueSoulknifeFeatureActions(character);
+  const contributions: FeatureContributionSpec[] = [
+    createRogueSoulknifePsionicPowerContribution(featureActions),
+    createRogueSoulknifePsychicBladesContribution(character)
+  ];
+
+  if (hasRogueSoulknifeSoulBladesFeature(character)) {
+    contributions.push(createRogueSoulknifeSoulBladesContribution(featureActions));
+  }
+
+  if (hasRogueSoulknifePsychicVeilFeature(character)) {
+    contributions.push(createRogueSoulknifePsychicVeilContribution(featureActions));
+  }
+
+  if (hasRogueSoulknifeRendMindFeature(character)) {
+    contributions.push(createRogueSoulknifeRendMindContribution(character));
+  }
+
+  return contributions;
+}
+
+export const getRogueSoulknifeDerivedFeatureState: SubclassRuntimeResolver = (character) =>
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectRogueSoulknifeFeatureContributions(character)),
+    {
+      character: character as Character
+    }
+  );

@@ -12,6 +12,12 @@ import {
   createFeatureSourcedDescriptionEntries
 } from "../../../actionModalDescriptions";
 import { getAbilityModifierBreakdownForCharacter } from "../../../abilities";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import { getProficiencyBonus } from "../../../gameplay";
 import type { WeaponAction } from "../../../gameplay";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
@@ -249,67 +255,165 @@ function appendFeatureActionDescriptionSection(
   return appendFeatureSourcedDescriptionAddition(action, character, feature, descriptionEntries);
 }
 
-function transformRogueAssassinFeatureAction(
-  character: RogueAssassinCharacter,
-  action: FeatureActionCard
-): FeatureActionCard {
-  let nextAction = action;
+function createRogueAssassinLocalHookContribution(input: {
+  id: string;
+  label: string;
+  entryId: CLASS_FEATURE;
+}): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource(input)
+  };
+}
 
-  if (hasRogueAssassinFeature(character, 3)) {
-    nextAction = appendFeatureActionDescriptionSection(
-      character,
-      nextAction,
-      rogueSneakAttackActionKey,
-      CLASS_FEATURE.ASSASSINATE,
-      surprisingStrikesDescription
-    );
+function createRogueAssassinAssassinateContribution(
+  character: RogueAssassinCharacter
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "rogue-assassin-assassinate",
+      label: assassinateSource,
+      entryId: CLASS_FEATURE.ASSASSINATE
+    }),
+    coreStatIndicators: getRogueAssassinCoreStatIndicators(character),
+    weaponActionTransforms: [
+      {
+        id: "rogue-assassin-assassinate-weapon-transform",
+        transform: (_character: Character, action: unknown) =>
+          appendWeaponDescriptionSection(
+            character,
+            action as WeaponAction,
+            CLASS_FEATURE.ASSASSINATE,
+            surprisingStrikesDescription
+          )
+      }
+    ],
+    featureActionTransforms: [
+      {
+        id: "rogue-assassin-assassinate-feature-action-transform",
+        transform: (action) =>
+          appendFeatureActionDescriptionSection(
+            character,
+            action,
+            rogueSneakAttackActionKey,
+            CLASS_FEATURE.ASSASSINATE,
+            surprisingStrikesDescription
+          )
+      }
+    ]
+  };
+}
+
+function createRogueAssassinToolsContribution(
+  character: RogueAssassinCharacter
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "rogue-assassin-assassins-tools",
+      label: assassinsToolsSource,
+      entryId: CLASS_FEATURE.ASSASSINS_TOOLS
+    }),
+    toolProficiencyEntries: getRogueAssassinToolProficiencyEntries(character)
+  };
+}
+
+function createRogueAssassinInfiltrationExpertiseContribution(
+  character: RogueAssassinCharacter
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "rogue-assassin-infiltration-expertise",
+      label: "Infiltration Expertise",
+      entryId: CLASS_FEATURE.INFILTRATION_EXPERTISE
+    }),
+    featureActionTransforms: [
+      {
+        id: "rogue-assassin-roving-aim-feature-action-transform",
+        transform: (action) =>
+          appendFeatureActionDescriptionSection(
+            character,
+            action,
+            rogueSteadyAimActionKey,
+            CLASS_FEATURE.INFILTRATION_EXPERTISE,
+            rovingAimDescription
+          )
+      }
+    ]
+  };
+}
+
+function createRogueAssassinDeathStrikeContribution(
+  character: RogueAssassinCharacter
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "rogue-assassin-death-strike",
+      label: "Death Strike",
+      entryId: CLASS_FEATURE.DEATH_STRIKE
+    }),
+    featureActionTransforms: [
+      {
+        id: "rogue-assassin-death-strike-feature-action-transform",
+        transform: (action) => {
+          const actionWithDescription = appendFeatureActionDescriptionSection(
+            character,
+            action,
+            rogueSneakAttackActionKey,
+            CLASS_FEATURE.DEATH_STRIKE,
+            deathStrikeDescription
+          );
+
+          return actionWithDescription.key === rogueSneakAttackActionKey
+            ? appendUniqueFeatureActionFact(
+                actionWithDescription,
+                getRogueAssassinDeathStrikeSavingThrowFormulaFact(character)
+              )
+            : actionWithDescription;
+        }
+      }
+    ]
+  };
+}
+
+function collectRogueAssassinFeatureContributions(
+  character: RogueAssassinCharacter
+): FeatureContributionSpec[] {
+  if (!hasRogueAssassinFeature(character, 3)) {
+    return [];
   }
 
+  const contributions: FeatureContributionSpec[] = [
+    createRogueAssassinAssassinateContribution(character),
+    createRogueAssassinToolsContribution(character)
+  ];
+
   if (hasRogueAssassinInfiltrationExpertise(character)) {
-    nextAction = appendFeatureActionDescriptionSection(
-      character,
-      nextAction,
-      rogueSteadyAimActionKey,
-      CLASS_FEATURE.INFILTRATION_EXPERTISE,
-      rovingAimDescription
+    contributions.push(createRogueAssassinInfiltrationExpertiseContribution(character));
+  }
+
+  if (hasRogueAssassinEnvenomWeapons(character)) {
+    contributions.push(
+      createRogueAssassinLocalHookContribution({
+        id: "rogue-assassin-envenom-weapons",
+        label: envenomWeaponsSource,
+        entryId: CLASS_FEATURE.ENVENOM_WEAPONS
+      })
     );
   }
 
   if (hasRogueAssassinDeathStrike(character)) {
-    nextAction = appendFeatureActionDescriptionSection(
-      character,
-      nextAction,
-      rogueSneakAttackActionKey,
-      CLASS_FEATURE.DEATH_STRIKE,
-      deathStrikeDescription
-    );
-
-    if (nextAction.key === rogueSneakAttackActionKey) {
-      nextAction = appendUniqueFeatureActionFact(
-        nextAction,
-        getRogueAssassinDeathStrikeSavingThrowFormulaFact(character)
-      );
-    }
+    contributions.push(createRogueAssassinDeathStrikeContribution(character));
   }
 
-  return nextAction;
+  return contributions;
 }
 
 export const getRogueAssassinDerivedFeatureState: SubclassRuntimeResolver = (character) =>
-  hasRogueAssassinFeature(character, 3)
-    ? {
-        coreStatIndicators: getRogueAssassinCoreStatIndicators(character),
-        toolProficiencyEntries: getRogueAssassinToolProficiencyEntries(character),
-        transformWeaponAction: (action) =>
-          appendWeaponDescriptionSection(
-            character,
-            action,
-            CLASS_FEATURE.ASSASSINATE,
-            surprisingStrikesDescription
-          ),
-        transformFeatureAction: (action) => transformRogueAssassinFeatureAction(character, action)
-      }
-    : {};
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectRogueAssassinFeatureContributions(character)),
+    {
+      character: character as Character
+    }
+  );
 
 export function getRogueAssassinSneakAttackEffectDescriptionAdditions(
   character: RogueAssassinCharacter,

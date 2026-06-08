@@ -17,7 +17,13 @@ import {
   createFeatureSourcedDescriptionEntries
 } from "../../../actionModalDescriptions";
 import { getAbilityModifierForCharacter } from "../../../abilities";
-import { resolveSpellIdsByName, type SubclassDerivedFeatureState } from "../../subclassRuntime";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
+import { resolveSpellIdsByName } from "../../subclassRuntime";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import type { DerivedFeatureStatusEntry, FeatureActionCard, FeatureActionFact } from "../../types";
 import type { WeaponAction } from "../../../gameplay";
@@ -411,24 +417,107 @@ function getRogueScionOfTheThreeDreadAllegianceDerivedStatusEntries(
   ];
 }
 
-function collectRogueScionOfTheThreeDerivedFeatureState(
-  character: Parameters<SubclassRuntimeResolver>[0]
-): SubclassDerivedFeatureState {
-  if (!hasRogueScionOfTheThreeFeature(character)) {
-    return {};
-  }
+function createRogueScionOfTheThreeLocalHookContribution(input: {
+  id: string;
+  label: string;
+  entryId: CLASS_FEATURE;
+}): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource(input)
+  };
+}
 
+function createRogueScionOfTheThreeBloodthirstContribution(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "rogue-scion-of-the-three-bloodthirst",
+      label: bloodthirstName,
+      entryId: CLASS_FEATURE.BLOODTHIRST
+    }),
+    reactions: [getRogueScionOfTheThreeBloodthirstReactionEntry(character)],
+    weaponActionTransforms: [
+      {
+        id: "rogue-scion-of-the-three-bloodthirst-weapon-transform",
+        transform: (_character: Character, action: unknown) =>
+          transformRogueScionOfTheThreeWeaponAction(character, action as WeaponAction)
+      }
+    ]
+  };
+}
+
+function createRogueScionOfTheThreeDreadAllegianceContribution(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec {
   const dreadAllegianceConfig = getRogueScionOfTheThreeDreadAllegianceConfig(character);
 
   return {
-    reactionEntries: [getRogueScionOfTheThreeBloodthirstReactionEntry(character)],
+    source: createSubclassContributionSource({
+      id: "rogue-scion-of-the-three-dread-allegiance",
+      label: dreadAllegianceSource,
+      entryId: CLASS_FEATURE.DREAD_ALLEGIANCE
+    }),
     alwaysPreparedSpellIds: dreadAllegianceConfig?.alwaysPreparedSpellIds ?? [],
-    derivedStatusEntries: getRogueScionOfTheThreeDreadAllegianceDerivedStatusEntries(character),
-    transformWeaponAction: (action) => transformRogueScionOfTheThreeWeaponAction(character, action),
-    transformFeatureAction: hasRogueScionOfTheThreeDreadIncarnateFeature(character)
-      ? (action) => transformRogueScionOfTheThreeFeatureAction(character, action)
-      : undefined
+    statuses: getRogueScionOfTheThreeDreadAllegianceDerivedStatusEntries(character)
   };
+}
+
+function createRogueScionOfTheThreeDreadIncarnateContribution(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "rogue-scion-of-the-three-dread-incarnate",
+      label: "Dread Incarnate",
+      entryId: CLASS_FEATURE.DREAD_INCARNATE
+    }),
+    featureActionTransforms: [
+      {
+        id: "rogue-scion-of-the-three-dread-incarnate-feature-action-transform",
+        transform: (action) => transformRogueScionOfTheThreeFeatureAction(character, action)
+      }
+    ]
+  };
+}
+
+function collectRogueScionOfTheThreeFeatureContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
+  if (!hasRogueScionOfTheThreeFeature(character)) {
+    return [];
+  }
+
+  const contributions: FeatureContributionSpec[] = [
+    createRogueScionOfTheThreeBloodthirstContribution(character),
+    createRogueScionOfTheThreeDreadAllegianceContribution(character)
+  ];
+
+  if (hasRogueScionOfTheThreeStrikeFearFeature(character)) {
+    contributions.push(
+      createRogueScionOfTheThreeLocalHookContribution({
+        id: "rogue-scion-of-the-three-strike-fear",
+        label: "Strike Fear",
+        entryId: CLASS_FEATURE.STRIKE_FEAR
+      })
+    );
+  }
+
+  if (hasRogueScionOfTheThreeAuraOfMalevolenceFeature(character)) {
+    contributions.push(
+      createRogueScionOfTheThreeLocalHookContribution({
+        id: "rogue-scion-of-the-three-aura-of-malevolence",
+        label: auraOfMalevolenceSource,
+        entryId: CLASS_FEATURE.AURA_OF_MALEVOLENCE
+      })
+    );
+  }
+
+  if (hasRogueScionOfTheThreeDreadIncarnateFeature(character)) {
+    contributions.push(createRogueScionOfTheThreeDreadIncarnateContribution(character));
+  }
+
+  return contributions;
 }
 
 export function getRogueScionOfTheThreeBloodthirstUsesTotal(
@@ -566,4 +655,9 @@ export function restoreRogueScionOfTheThreeBloodthirstOnShortRest(character: Cha
 }
 
 export const getRogueScionOfTheThreeDerivedFeatureState: SubclassRuntimeResolver = (character) =>
-  collectRogueScionOfTheThreeDerivedFeatureState(character);
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectRogueScionOfTheThreeFeatureContributions(character)),
+    {
+      character: character as Character
+    }
+  );

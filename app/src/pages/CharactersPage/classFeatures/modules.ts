@@ -1,4 +1,4 @@
-import type { Character, CharacterClassFeatureState, WEAPON_PROFICIENCY } from "../../../types";
+import type { Character, CharacterClassFeatureState } from "../../../types";
 import { createDefaultAbilities } from "../constants";
 import {
   activateArtificerArmorerArcaneArmorOption,
@@ -196,27 +196,12 @@ import {
   applyLongRestToRogueFeatures,
   applyShortRestToRogueFeatures,
   consumeRogueStrokeOfLuckUse,
-  getRogueCommonAction,
-  getRogueDerivedStatusEntries,
-  getRogueFeatureActions,
-  getRogueLanguageProficiencyEntries,
-  getRogueReactionEntries,
-  getRogueSavingThrowProficiencyEntries,
-  getRogueSkillProficiencyEntries,
-  getRogueSneakAttackDiceCount,
-  getRogueSneakAttackFormula,
-  getRogueSpeedBonuses,
-  getRogueWeaponMasteryOptions,
-  getRogueWeaponMasterySelectionCount,
-  getRogueWeaponMasterySelections,
-  getRogueWeaponAction,
-  getRogueWeaponProficiencyEntries,
   normalizeRogueFeatureState,
   rogueSneakAttackActionKey,
   rogueSteadyAimActionKey,
-  rogueStrokeOfLuckActionKey,
-  setRogueWeaponMasterySelections
+  rogueStrokeOfLuckActionKey
 } from "./rogue/rogue";
+import { getRogueClassFeatureDerivedState } from "./rogue/contributions";
 import {
   activateRogueSoulknifePsychicTeleportation,
   activateRogueSoulknifePsychicWhispers,
@@ -317,20 +302,6 @@ function withClassFeatureDerivationDefaults(
     spellbookSpellIds: character.spellbookSpellIds ?? [],
     cantripIds: character.cantripIds ?? [],
     feats: character.feats ?? []
-  };
-}
-
-function createWeaponMasteryState(
-  selectionCount: number,
-  options: WEAPON_PROFICIENCY[],
-  selections: WEAPON_PROFICIENCY[],
-  setSelections: (character: Character, nextSelections: WEAPON_PROFICIENCY[]) => Character
-) {
-  return {
-    selectionCount,
-    options,
-    selections,
-    setSelections
   };
 }
 
@@ -723,28 +694,7 @@ const classFeatureModules = {
     className: "Rogue",
     stateKey: "rogue",
     normalizeState: normalizeRogueFeatureState,
-    collectDerived(character) {
-      return {
-        actions: getRogueFeatureActions(character),
-        getSpeedBonuses: () => getRogueSpeedBonuses(character),
-        skillProficiencyEntries: getRogueSkillProficiencyEntries(character),
-        savingThrowProficiencyEntries: getRogueSavingThrowProficiencyEntries(character),
-        languageProficiencyEntries: getRogueLanguageProficiencyEntries(character),
-        reactionEntries: getRogueReactionEntries(character),
-        weaponProficiencyEntries: getRogueWeaponProficiencyEntries(character),
-        weaponMastery: createWeaponMasteryState(
-          getRogueWeaponMasterySelectionCount(character),
-          getRogueWeaponMasteryOptions(),
-          getRogueWeaponMasterySelections(character),
-          setRogueWeaponMasterySelections
-        ),
-        transformCommonAction: (action) => getRogueCommonAction(character, action),
-        transformWeaponAction: (action) => getRogueWeaponAction(character, action),
-        derivedStatusEntries: getRogueDerivedStatusEntries(character),
-        rogueSneakAttackDiceCount: getRogueSneakAttackDiceCount(character),
-        rogueSneakAttackFormula: getRogueSneakAttackFormula(character) ?? "0"
-      };
-    },
+    collectDerived: getRogueClassFeatureDerivedState,
     handleAction(character, actionKey) {
       if (actionKey === rogueSneakAttackActionKey) {
         return activateRogueSneakAttack(character);
