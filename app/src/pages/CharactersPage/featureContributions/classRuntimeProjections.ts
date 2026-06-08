@@ -10,7 +10,8 @@ import type { SubclassDerivedFeatureState } from "../classFeatures/subclassRunti
 import { getFeatureSpellDamageBonuses } from "./compiler";
 import type {
   CompiledFeatureContributionState,
-  FeatureClassMechanicsContribution
+  FeatureClassMechanicsContribution,
+  FeatureInventoryAttunementLimitContribution
 } from "./types";
 
 export type FeatureContributionClassProjectionOptions<TDerivedState = unknown> = {
@@ -92,6 +93,22 @@ function getSpellDamageFormulaOverride(
   }
 
   return null;
+}
+
+function resolveInventoryAttunementLimit(
+  contributions: readonly FeatureInventoryAttunementLimitContribution[],
+  defaultLimit: number
+): number {
+  return contributions.reduce((currentLimit, contribution) => {
+    const nextLimit = contribution.getLimit({
+      defaultLimit,
+      currentLimit
+    });
+
+    return typeof nextLimit === "number" && Number.isFinite(nextLimit)
+      ? Math.max(currentLimit, Math.floor(nextLimit))
+      : currentLimit;
+  }, defaultLimit);
 }
 
 function applyClassMechanics(
@@ -221,6 +238,10 @@ export function projectCompiledContributionsToClassFeatureDerivedState<
   if (compiled.armorClassBonuses.length > 0) {
     state.getArmorClassBonuses = (context) =>
       compiled.armorClassBonuses.flatMap((contribution) => contribution.getBonuses(context));
+  }
+  if (compiled.inventoryAttunementLimits.length > 0) {
+    state.getInventoryAttunementLimit = (defaultLimit) =>
+      resolveInventoryAttunementLimit(compiled.inventoryAttunementLimits, defaultLimit);
   }
   if (compiled.speedBonuses.length > 0 || compiled.speedBonusProviders.length > 0) {
     state.getSpeedBonuses = (context) => [
@@ -356,6 +377,10 @@ export function projectCompiledContributionsToSubclassDerivedFeatureState<
   if (compiled.armorClassBonuses.length > 0) {
     state.getArmorClassBonuses = (context) =>
       compiled.armorClassBonuses.flatMap((contribution) => contribution.getBonuses(context));
+  }
+  if (compiled.inventoryAttunementLimits.length > 0) {
+    state.getInventoryAttunementLimit = (defaultLimit) =>
+      resolveInventoryAttunementLimit(compiled.inventoryAttunementLimits, defaultLimit);
   }
   if (compiled.speedBonuses.length > 0) state.speedBonuses = compiled.speedBonuses;
   if (compiled.speedBonusProviders.length > 0) {

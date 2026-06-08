@@ -1,9 +1,17 @@
+import { CLASS_FEATURE } from "../../../../../codex/entries";
 import { WEAPON_PROFICIENCY } from "../../../../../types";
+import type { Character } from "../../../../../types";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
+import type { WeaponAction } from "../../../gameplay";
 import {
   getPreparedSpellIdsByLevel,
   type SubclassRuntimeResolver
 } from "../../subclassRuntime";
-import type { FeatureActionCard } from "../../types";
 import {
   createArtificerWeaponProficiencyEntries,
   hasArtificerSubclassFeature
@@ -58,34 +66,97 @@ const battleSmithSpellIdsByLevel = {
 
 const battleSmithBattleReadySource = "Battle Smith: Battle Ready";
 
-export const getArtificerBattleSmithDerivedFeatureState: SubclassRuntimeResolver = (character) => {
+function compactActions<TAction>(actions: Array<TAction | null>): TAction[] {
+  return actions.filter((action): action is TAction => action !== null);
+}
+
+export function collectArtificerBattleSmithContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
   if (!hasArtificerSubclassFeature(character, battleSmithSubclassId, 3)) {
-    return {};
+    return [];
   }
 
   const steelDefenderAction = getArtificerSteelDefenderAction(character);
   const arcaneJoltAction = getArtificerArcaneJoltAction(character);
 
-  return {
-    alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-      character.level ?? 0,
-      battleSmithSpellIdsByLevel
-    ),
-    weaponProficiencyEntries: createArtificerWeaponProficiencyEntries(
-      [WEAPON_PROFICIENCY.MARTIAL],
-      battleSmithBattleReadySource
-    ),
-    toolProficiencyEntries: getArtificerToolsOfTheTradeToolProficiencyEntries(character),
-    featureActions: [steelDefenderAction, arcaneJoltAction].filter(
-      (action): action is FeatureActionCard => action !== null
-    ),
-    transformWeaponAction: (action) => {
-      const battleReadyAction = transformArtificerBattleSmithBattleReadyWeaponAction(
-        character,
-        action
-      );
-
-      return transformArtificerBattleSmithArcaneJoltWeaponAction(character, battleReadyAction);
+  return [
+    {
+      source: createSubclassContributionSource({
+        id: `${battleSmithSubclassId}-tools-of-the-trade`,
+        label: "Tools of the Trade",
+        entryId: CLASS_FEATURE.TOOLS_OF_THE_TRADE
+      }),
+      toolProficiencyEntries: getArtificerToolsOfTheTradeToolProficiencyEntries(character)
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${battleSmithSubclassId}-battle-smith-spells`,
+        label: "Battle Smith Spells",
+        entryId: CLASS_FEATURE.BATTLE_SMITH_SPELLS
+      }),
+      alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
+        character.level ?? 0,
+        battleSmithSpellIdsByLevel
+      )
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${battleSmithSubclassId}-battle-ready`,
+        label: "Battle Ready",
+        entryId: CLASS_FEATURE.BATTLE_READY
+      }),
+      weaponProficiencyEntries: createArtificerWeaponProficiencyEntries(
+        [WEAPON_PROFICIENCY.MARTIAL],
+        battleSmithBattleReadySource
+      ),
+      weaponActionTransforms: [
+        {
+          id: "artificer-battle-smith-battle-ready-weapon-action",
+          transform: (_runtimeCharacter, action) =>
+            transformArtificerBattleSmithBattleReadyWeaponAction(
+              character,
+              action as WeaponAction
+            )
+        }
+      ]
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${battleSmithSubclassId}-steel-defender`,
+        label: "Steel Defender",
+        entryId: CLASS_FEATURE.STEEL_DEFENDER
+      }),
+      actions: compactActions([steelDefenderAction])
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${battleSmithSubclassId}-arcane-jolt`,
+        label: "Arcane Jolt",
+        entryId: CLASS_FEATURE.ARCANE_JOLT
+      }),
+      actions: compactActions([arcaneJoltAction]),
+      weaponActionTransforms: [
+        {
+          id: "artificer-battle-smith-arcane-jolt-weapon-action",
+          transform: (_runtimeCharacter, action) =>
+            transformArtificerBattleSmithArcaneJoltWeaponAction(
+              character,
+              action as WeaponAction
+            )
+        }
+      ]
     }
-  };
+  ];
+}
+
+export const getArtificerBattleSmithDerivedFeatureState: SubclassRuntimeResolver = (
+  character
+) => {
+  return projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectArtificerBattleSmithContributions(character)),
+    {
+      character: character as Character
+    }
+  );
 };

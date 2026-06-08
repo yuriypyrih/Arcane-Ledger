@@ -1,22 +1,20 @@
 import type { Character, CharacterArtificerFeatureState } from "../../../../types";
-import type { FeatureActionCard, SpellSourceMap } from "../types";
+import type {
+  ClassFeatureDerivedState,
+  FeatureActionCard,
+  FeatureActionOptionCard,
+  SpellSourceMap
+} from "../types";
 import {
-  getArtificerTinkersMagicAction,
-  hasArtificerTinkersMagicFeature,
   normalizeArtificerTinkersMagicState,
   restoreArtificerTinkersMagicOnLongRest
 } from "./tinkersMagic";
 import {
-  getArtificerFlashOfGeniusReactionEntries,
   normalizeArtificerFlashOfGeniusState,
   restoreArtificerFlashOfGeniusOnLongRest
 } from "./flashOfGenius";
+import { normalizeArtificerReplicateMagicItemPlanState } from "./replicateMagicItem";
 import {
-  getArtificerReplicateMagicItemAction,
-  normalizeArtificerReplicateMagicItemPlanState
-} from "./replicateMagicItem";
-import {
-  getArtificerMagicItemTinkerActions,
   normalizeArtificerMagicItemTinkerState,
   restoreArtificerMagicItemTinkerDrainOnLongRest,
   restoreArtificerMagicItemTinkerTransmuteOnLongRest
@@ -60,13 +58,22 @@ import {
   normalizeArtificerBattleSmithState,
   restoreArtificerArcaneJoltOnLongRest
 } from "./subclasses/artificerBattleSmith";
-import type { ReactionEntry } from "../../../../codex/entries";
+import type { ReactionEntry, SpellDescriptionEntry } from "../../../../codex/entries";
+import {
+  artificerSoulOfArtificeLifeAndDeathLedgerDescriptionTargetKey,
+  getArtificerClassFeatureDerivedState,
+  getArtificerFeatureDescriptionAdditions as getArtificerContributionDescriptionAdditions
+} from "./contributions";
+
+export {
+  artificerSoulOfArtificeLifeAndDeathLedgerDescriptionTargetKey,
+  getArtificerFeatureDescriptionAdditions
+} from "./contributions";
 
 export {
   addArtificerTinkersMagicItemToInventory,
   artificerTinkersMagicActionKey,
   consumeArtificerTinkersMagicUse,
-  getArtificerFeatureActionOptions,
   getArtificerTinkersMagicUsesRemaining,
   getArtificerTinkersMagicUsesTotal,
   restoreArtificerTinkersMagicOnLongRest
@@ -251,7 +258,6 @@ export {
 export {
   applySoulOfArtificeCheatDeathForCharacter,
   getSoulOfArtificeCheatDeathItemOptions,
-  getSoulOfArtificeLifeAndDeathDescriptionAdditions,
   hasArtificerSoulOfArtificeFeature,
   isArtificerSoulOfArtificeCheatDeathAvailable,
   type SoulOfArtificeCheatDeathItemOption
@@ -266,10 +272,37 @@ export {
   setArtificerToolsOfTheTradeToolSelectionsForCharacter
 } from "./toolsOfTheTrade";
 
-const mendingSpellId = "spell-mending";
-const tinkersMagicSource = "Tinker's Magic";
+type ArtificerRuntimeCharacter = Pick<Character, "className"> &
+  Partial<
+    Pick<
+      Character,
+      | "abilities"
+      | "cantripIds"
+      | "classFeatureState"
+      | "customEquipment"
+      | "equipment"
+      | "feats"
+      | "inventoryItems"
+      | "level"
+      | "roundTracker"
+      | "savingThrowProficiencies"
+      | "skillProficiencies"
+      | "spellSlotsExpended"
+      | "spellbookSpellIds"
+      | "statusEntries"
+      | "subclassId"
+      | "toolProficiencies"
+    >
+  >;
 
-type ArtificerRuntimeCharacter = Pick<Character, "className"> & Partial<Pick<Character, "level">>;
+function getArtificerProjectedDerivedState(
+  character: ArtificerRuntimeCharacter
+): ClassFeatureDerivedState {
+  return getArtificerClassFeatureDerivedState({
+    ...character,
+    level: character.level ?? 0
+  } as Parameters<typeof getArtificerClassFeatureDerivedState>[0]);
+}
 
 export function normalizeArtificerFeatureState(
   value: unknown,
@@ -322,17 +355,13 @@ export function consumeArtificerWeaponAttack(character: Character): Character {
 }
 
 export function getArtificerAlwaysPreparedSpellIds(character: ArtificerRuntimeCharacter): string[] {
-  return hasArtificerTinkersMagicFeature(character) ? [mendingSpellId] : [];
+  return getArtificerProjectedDerivedState(character).alwaysPreparedSpellIds ?? [];
 }
 
 export function getArtificerAlwaysPreparedSpellSourceMap(
   character: ArtificerRuntimeCharacter
 ): SpellSourceMap {
-  return hasArtificerTinkersMagicFeature(character)
-    ? {
-        [mendingSpellId]: [tinkersMagicSource]
-      }
-    : {};
+  return getArtificerProjectedDerivedState(character).alwaysPreparedSpellSources ?? {};
 }
 
 export function getArtificerFeatureActions(
@@ -344,17 +373,32 @@ export function getArtificerFeatureActions(
       >
     >
 ): FeatureActionCard[] {
-  return [
-    getArtificerTinkersMagicAction(character),
-    getArtificerReplicateMagicItemAction(character),
-    ...getArtificerMagicItemTinkerActions(character)
-  ].filter((action): action is FeatureActionCard => Boolean(action));
+  return getArtificerProjectedDerivedState(character).actions ?? [];
+}
+
+export function getArtificerFeatureActionOptions(
+  character: ArtificerRuntimeCharacter
+): Partial<Record<string, FeatureActionOptionCard[]>> {
+  return getArtificerProjectedDerivedState(character).actionOptions ?? {};
 }
 
 export function getArtificerReactionEntries(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): ReactionEntry[] {
-  return getArtificerFlashOfGeniusReactionEntries(character);
+  return getArtificerProjectedDerivedState(character).reactionEntries ?? [];
+}
+
+export function getSoulOfArtificeLifeAndDeathDescriptionAdditions(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): SpellDescriptionEntry[][] {
+  return getArtificerContributionDescriptionAdditions(
+    {
+      ...character,
+      level: character.level ?? 0
+    } as Parameters<typeof getArtificerContributionDescriptionAdditions>[0],
+    "custom",
+    artificerSoulOfArtificeLifeAndDeathLedgerDescriptionTargetKey
+  );
 }
 
 export function applyLongRestToArtificerFeatures(character: Character): Character {

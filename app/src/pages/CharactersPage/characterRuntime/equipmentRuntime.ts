@@ -1,4 +1,5 @@
 import type { Character } from "../../../types";
+import { collectActiveClassFeatureState } from "../classFeatures/modules";
 import {
   createHeldDescriptorForInventoryItem,
   createHeldInventoryItemCopyReferences,
@@ -23,18 +24,13 @@ const rogueThiefSubclassId = "rogue-thief";
 export function getInventoryAttunementLimit(
   character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
 ): number {
-  if (character.className === "Artificer") {
-    if (character.level >= 18) {
-      return 6;
-    }
+  const classFeatureLimit =
+    collectActiveClassFeatureState(character).getInventoryAttunementLimit?.(
+      defaultInventoryAttunementLimit
+    );
 
-    if (character.level >= 14) {
-      return 5;
-    }
-
-    if (character.level >= 10) {
-      return 4;
-    }
+  if (typeof classFeatureLimit === "number" && Number.isFinite(classFeatureLimit)) {
+    return classFeatureLimit;
   }
 
   if (

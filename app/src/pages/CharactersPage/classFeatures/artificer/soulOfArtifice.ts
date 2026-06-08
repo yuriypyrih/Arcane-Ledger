@@ -1,6 +1,5 @@
 import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../codex/entries";
 import type { Character, CharacterInventoryItem, ItemRecord } from "../../../../types";
-import { createFeatureSourcedDescriptionEntries } from "../../actionModalDescriptions";
 import {
   getInventoryContainerContents,
   getInventoryItemQuantity,
@@ -112,23 +111,6 @@ export function getSoulOfArtificeCheatDeathDescription(
     (entry): entry is string =>
       typeof entry === "string" && entry.startsWith(cheatDeathDescriptionMarker)
   );
-}
-
-export function getSoulOfArtificeLifeAndDeathDescriptionAdditions(
-  character: Pick<Character, "className"> &
-    Partial<Pick<Character, "level" | "subclassId">>
-): SpellDescriptionEntry[][] {
-  const cheatDeathDescription = getSoulOfArtificeCheatDeathDescription(character);
-
-  return cheatDeathDescription.length > 0
-    ? [
-        createFeatureSourcedDescriptionEntries(
-          character,
-          CLASS_FEATURE.SOUL_OF_ARTIFICE,
-          cheatDeathDescription
-        )
-      ]
-    : [];
 }
 
 export function getSoulOfArtificeCheatDeathItemOptions(

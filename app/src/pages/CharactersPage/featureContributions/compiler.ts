@@ -105,6 +105,7 @@ export function createEmptyCompiledFeatureContributionState<TDerivedState = unkn
     skillBonuses: [],
     armorClassModes: [],
     armorClassBonuses: [],
+    inventoryAttunementLimits: [],
     savingThrowIndicators: {},
     abilityCheckIndicators: {},
     coreStatIndicators: {},
@@ -177,6 +178,7 @@ export function compileFeatureContributions<TDerivedState = unknown>(
     compiled.skillBonuses.push(...(contribution.skillBonuses ?? []));
     compiled.armorClassModes.push(...(contribution.armorClassModes ?? []));
     compiled.armorClassBonuses.push(...(contribution.armorClassBonuses ?? []));
+    compiled.inventoryAttunementLimits.push(...(contribution.inventoryAttunementLimits ?? []));
     appendRecordArrayValues(compiled.savingThrowIndicators, contribution.savingThrowIndicators);
     appendRecordArrayValues(compiled.abilityCheckIndicators, contribution.abilityCheckIndicators);
     appendRecordArrayValues(compiled.coreStatIndicators, contribution.coreStatIndicators);

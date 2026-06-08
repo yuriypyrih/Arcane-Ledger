@@ -14,6 +14,15 @@ import { ACTION_CARD_THEME } from "../../../actionCardTheme";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  getFeatureDescriptionAdditions,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureDescriptionContribution,
+  type FeatureDescriptionContributionTarget,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
+import {
   appendFeatureSourcedDescriptionAddition,
   createFeatureSourcedDescriptionEntries
 } from "../../../actionModalDescriptions";
@@ -44,6 +53,11 @@ export const artificerAdventurersAtlasActionKey = "artificer-adventurers-atlas";
 export const artificerIlluminatedCartographyActionKey =
   "artificer-illuminated-cartography";
 export const artificerUnerringPathActionKey = "artificer-unerring-path";
+export const artificerCartographerLifeAndDeathLedgerDescriptionTargetKey =
+  "artificer-cartographer-life-and-death-ledger";
+export const artificerCartographerFlashOfGeniusDescriptionTargetKey =
+  "artificer-cartographer-flash-of-genius";
+export const artificerCartographerSpeedDescriptionTargetKey = "speed";
 
 const adventurersAtlasName = "Adventurer's Atlas";
 const adventurersAtlasBaseItemId = "custom-item-artificer-adventurers-atlas";
@@ -342,7 +356,7 @@ export function getArtificerAdventurersAtlasAction(
 
   const mapCount = getArtificerAdventurersAtlasMapCount(character);
   const safeHavenDescriptionAdditions =
-    getArtificerCartographerSafeHavenDescriptionAdditions(character);
+    getArtificerCartographerSafeHavenDescriptionAdditionsDirect(character);
 
   return {
     key: artificerAdventurersAtlasActionKey,
@@ -676,7 +690,7 @@ export function restoreArtificerUnerringPathOnLongRest(character: Character): Ch
   };
 }
 
-export function getArtificerCartographerSafeHavenDescriptionAdditions(
+function getArtificerCartographerSafeHavenDescriptionAdditionsDirect(
   character: ArtificerSuperiorAtlasCharacter
 ): SpellDescriptionEntry[][] {
   const safeHavenDescription = getSafeHavenDescriptionSection(character);
@@ -693,7 +707,7 @@ export function getArtificerCartographerSafeHavenDescriptionAdditions(
     : [];
 }
 
-export function getArtificerCartographerPortalJumpSpeedDescriptionAdditions(
+function getArtificerCartographerPortalJumpSpeedDescriptionAdditionsDirect(
   character: ArtificerMappingMagicCharacter
 ): SpellDescriptionEntry[][] {
   if (!hasArtificerMappingMagicFeature(character)) {
@@ -712,6 +726,73 @@ export function getArtificerCartographerPortalJumpSpeedDescriptionAdditions(
         )
       ]
     : [];
+}
+
+function getArtificerCartographerIngeniousMovementFlashOfGeniusDescriptionAdditionsDirect(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): SpellDescriptionEntry[][] {
+  if (!hasArtificerIngeniousMovementFeature(character)) {
+    return [];
+  }
+
+  const ingeniousMovementDescription = getFeatureDescriptionForCharacter(
+    character,
+    CLASS_FEATURE.INGENIOUS_MOVEMENT
+  );
+
+  return ingeniousMovementDescription.length > 0
+    ? [
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.INGENIOUS_MOVEMENT,
+          ingeniousMovementDescription,
+          "Ingenious Movement"
+        )
+      ]
+    : [];
+}
+
+function compactDescriptionAdditions(
+  additions: Array<FeatureDescriptionContribution | null>
+): FeatureDescriptionContribution[] {
+  return additions.filter(
+    (addition): addition is FeatureDescriptionContribution => addition !== null
+  );
+}
+
+export function getArtificerCartographerFeatureDescriptionAdditions(
+  character: Parameters<SubclassRuntimeResolver>[0],
+  target: FeatureDescriptionContributionTarget,
+  targetKey?: string
+): SpellDescriptionEntry[][] {
+  return getFeatureDescriptionAdditions(
+    compileFeatureContributions(collectArtificerCartographerContributions(character)),
+    target,
+    {
+      character: character as Character,
+      targetKey
+    }
+  );
+}
+
+export function getArtificerCartographerSafeHavenDescriptionAdditions(
+  character: ArtificerSuperiorAtlasCharacter
+): SpellDescriptionEntry[][] {
+  return getArtificerCartographerFeatureDescriptionAdditions(
+    character as Parameters<SubclassRuntimeResolver>[0],
+    "custom",
+    artificerCartographerLifeAndDeathLedgerDescriptionTargetKey
+  );
+}
+
+export function getArtificerCartographerPortalJumpSpeedDescriptionAdditions(
+  character: ArtificerMappingMagicCharacter
+): SpellDescriptionEntry[][] {
+  return getArtificerCartographerFeatureDescriptionAdditions(
+    character as Parameters<SubclassRuntimeResolver>[0],
+    "stat",
+    artificerCartographerSpeedDescriptionTargetKey
+  );
 }
 
 export function transformArtificerCartographerGuidedPrecisionSpellEntry(
@@ -739,43 +820,125 @@ export function transformArtificerCartographerGuidedPrecisionSpellEntry(
 export function getArtificerCartographerIngeniousMovementFlashOfGeniusDescriptionAdditions(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): SpellDescriptionEntry[][] {
-  if (!hasArtificerIngeniousMovementFeature(character)) {
+  return getArtificerCartographerFeatureDescriptionAdditions(
+    character as Parameters<SubclassRuntimeResolver>[0],
+    "custom",
+    artificerCartographerFlashOfGeniusDescriptionTargetKey
+  );
+}
+
+function compactActions<TAction>(actions: Array<TAction | null>): TAction[] {
+  return actions.filter((action): action is TAction => action !== null);
+}
+
+export function collectArtificerCartographerContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
+  if (!hasArtificerSubclassFeature(character, cartographerSubclassId, 3)) {
     return [];
   }
 
-  const ingeniousMovementDescription = getFeatureDescriptionForCharacter(
-    character,
-    CLASS_FEATURE.INGENIOUS_MOVEMENT
-  );
-
-  return ingeniousMovementDescription.length > 0
-    ? [
-        createFeatureSourcedDescriptionEntries(
-          character,
-          CLASS_FEATURE.INGENIOUS_MOVEMENT,
-          ingeniousMovementDescription,
-          "Ingenious Movement"
-        )
+  return [
+    {
+      source: createSubclassContributionSource({
+        id: `${cartographerSubclassId}-tools-of-the-trade`,
+        label: "Tools of the Trade",
+        entryId: CLASS_FEATURE.TOOLS_OF_THE_TRADE
+      }),
+      toolProficiencyEntries: getArtificerToolsOfTheTradeToolProficiencyEntries(character)
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${cartographerSubclassId}-cartographer-spells`,
+        label: "Cartographer Spells",
+        entryId: CLASS_FEATURE.CARTOGRAPHER_SPELLS
+      }),
+      alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
+        character.level ?? 0,
+        cartographerSpellIdsByLevel
+      )
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${cartographerSubclassId}-adventurers-atlas`,
+        label: "Adventurer's Atlas",
+        entryId: CLASS_FEATURE.ADVENTURERS_ATLAS
+      }),
+      actions: compactActions([getArtificerAdventurersAtlasAction(character)])
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${cartographerSubclassId}-mapping-magic`,
+        label: "Mapping Magic",
+        entryId: CLASS_FEATURE.MAPPING_MAGIC
+      }),
+      actions: compactActions([getArtificerIlluminatedCartographyAction(character)]),
+      descriptionAdditions: compactDescriptionAdditions([
+        {
+          id: "artificer-cartographer-portal-jump-speed-description",
+          target: "stat",
+          targetKey: artificerCartographerSpeedDescriptionTargetKey,
+          getDescriptionAdditions: () =>
+            getArtificerCartographerPortalJumpSpeedDescriptionAdditionsDirect(character)
+        }
+      ])
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${cartographerSubclassId}-guided-precision`,
+        label: "Guided Precision",
+        entryId: CLASS_FEATURE.GUIDED_PRECISION
+      }),
+      spellTransforms: [
+        {
+          id: "artificer-cartographer-guided-precision-spell-transform",
+          transform: (spell) =>
+            transformArtificerCartographerGuidedPrecisionSpellEntry(character, spell)
+        }
       ]
-    : [];
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${cartographerSubclassId}-ingenious-movement`,
+        label: "Ingenious Movement",
+        entryId: CLASS_FEATURE.INGENIOUS_MOVEMENT
+      }),
+      descriptionAdditions: compactDescriptionAdditions([
+        {
+          id: "artificer-cartographer-ingenious-movement-flash-of-genius-description",
+          target: "custom",
+          targetKey: artificerCartographerFlashOfGeniusDescriptionTargetKey,
+          getDescriptionAdditions: () =>
+            getArtificerCartographerIngeniousMovementFlashOfGeniusDescriptionAdditionsDirect(
+              character
+            )
+        }
+      ])
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${cartographerSubclassId}-superior-atlas`,
+        label: "Superior Atlas",
+        entryId: CLASS_FEATURE.SUPERIOR_ATLAS
+      }),
+      actions: compactActions([getArtificerUnerringPathAction(character)]),
+      descriptionAdditions: compactDescriptionAdditions([
+        {
+          id: "artificer-cartographer-safe-haven-life-and-death-description",
+          target: "custom",
+          targetKey: artificerCartographerLifeAndDeathLedgerDescriptionTargetKey,
+          getDescriptionAdditions: () =>
+            getArtificerCartographerSafeHavenDescriptionAdditionsDirect(character)
+        }
+      ])
+    }
+  ];
 }
 
 export const getArtificerCartographerDerivedFeatureState: SubclassRuntimeResolver = (character) =>
-  hasArtificerSubclassFeature(character, cartographerSubclassId, 3)
-    ? {
-        alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-          character.level ?? 0,
-          cartographerSpellIdsByLevel
-        ),
-        featureActions: [
-          getArtificerAdventurersAtlasAction(character),
-          getArtificerIlluminatedCartographyAction(character),
-          getArtificerUnerringPathAction(character)
-        ].filter(
-          (action): action is FeatureActionCard => Boolean(action)
-        ),
-        transformSpellEntry: (spell) =>
-          transformArtificerCartographerGuidedPrecisionSpellEntry(character, spell),
-        toolProficiencyEntries: getArtificerToolsOfTheTradeToolProficiencyEntries(character)
-      }
-    : {};
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectArtificerCartographerContributions(character)),
+    {
+      character: character as Character
+    }
+  );

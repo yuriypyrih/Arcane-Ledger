@@ -602,6 +602,7 @@ export type ClassFeatureDerivedState = {
   spellcastingState?: FeatureSpellcastingState;
   getArmorClassModes?: (context: ArmorClassFeatureContext) => FeatureArmorClassMode[];
   getArmorClassBonuses?: (context: ArmorClassFeatureContext) => FeatureArmorClassBonus[];
+  getInventoryAttunementLimit?: (defaultLimit: number) => number;
   getSpeedBonuses?: (context: SpeedFeatureContext) => FeatureSpeedBonus[];
   abilityScoreBonuses?: FeatureAbilityScoreBonus[];
   cantripLimitBonus?: number;

@@ -16,13 +16,9 @@ import {
   artificerArmorerInfiltratorsFlightActionKey,
   consumeArtificerArcaneJoltUse,
   createArtificerAdventurersAtlasMapsForCharacter,
-  getArtificerFeatureActionOptions,
-  getArtificerFeatureActions,
-  getArtificerAlwaysPreparedSpellIds,
-  getArtificerAlwaysPreparedSpellSourceMap,
-  getArtificerReactionEntries,
   normalizeArtificerFeatureState
 } from "./artificer/artificer";
+import { getArtificerClassFeatureDerivedState } from "./artificer/contributions";
 import {
   activateBardicInspiration,
   activateBardCollegeOfTheMoonLunarVitality,
@@ -413,13 +409,7 @@ const classFeatureModules = {
     stateKey: "artificer",
     normalizeState: normalizeArtificerFeatureState,
     collectDerived(character) {
-      return {
-        actions: getArtificerFeatureActions(character),
-        actionOptions: getArtificerFeatureActionOptions(character),
-        alwaysPreparedSpellIds: getArtificerAlwaysPreparedSpellIds(character),
-        alwaysPreparedSpellSources: getArtificerAlwaysPreparedSpellSourceMap(character),
-        reactionEntries: getArtificerReactionEntries(character)
-      };
+      return getArtificerClassFeatureDerivedState(character);
     },
     handleAction(character, actionKey) {
       if (actionKey === artificerArmorerArcaneArmorActionKey) {

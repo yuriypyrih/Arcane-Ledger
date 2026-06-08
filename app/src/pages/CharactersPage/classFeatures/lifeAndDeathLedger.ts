@@ -15,9 +15,12 @@ import {
   reconcileCharacterStatusConsequences
 } from "../traits";
 import {
-  getSoulOfArtificeLifeAndDeathDescriptionAdditions,
   isArtificerSoulOfArtificeCheatDeathAvailable
 } from "./artificer/soulOfArtifice";
+import {
+  artificerSoulOfArtificeLifeAndDeathLedgerDescriptionTargetKey,
+  getArtificerFeatureDescriptionAdditions
+} from "./artificer/contributions";
 import {
   consumeArtificerAdventurersAtlasMapForCharacter,
   getArtificerAdventurersAtlasInventoryMapCount,
@@ -155,7 +158,11 @@ export function getLifeAndDeathLedgerDescriptionAdditions(
   character: Character
 ): SpellDescriptionEntry[][] {
   const descriptionAdditions: SpellDescriptionEntry[][] = [
-    ...getSoulOfArtificeLifeAndDeathDescriptionAdditions(character),
+    ...getArtificerFeatureDescriptionAdditions(
+      character,
+      "custom",
+      artificerSoulOfArtificeLifeAndDeathLedgerDescriptionTargetKey
+    ),
     ...getArtificerCartographerSafeHavenDescriptionAdditions(character),
     ...getBarbarianFeatureDescriptionAdditions(
       character,

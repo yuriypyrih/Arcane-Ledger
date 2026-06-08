@@ -34,6 +34,12 @@ import {
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../../combat";
 import { ACTION_CARD_THEME } from "../../../actionCardTheme";
 import { createWeaponAction, getProficiencyBonus, type WeaponAction } from "../../../gameplay";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import { skillGroupsByAbility } from "../../../skillDefinitions";
 import { swapTemporaryHitPointsAssignment } from "../../../shared/temporaryHitPoints";
 import {
@@ -1604,21 +1610,24 @@ function getArtificerArmorerDreadnaughtSkillIndicators(
   ) as SkillIndicatorMap;
 }
 
-function mergeSkillIndicatorMaps(...maps: SkillIndicatorMap[]): SkillIndicatorMap {
-  const merged: SkillIndicatorMap = {};
+function compactActions<TAction>(actions: Array<TAction | null>): TAction[] {
+  return actions.filter((action): action is TAction => action !== null);
+}
 
-  maps.forEach((map) => {
-    Object.entries(map).forEach(([skill, indicators]) => {
-      if (!indicators || indicators.length === 0) {
-        return;
-      }
+function getArtificerArmorerArmorModelSpeedBonuses(
+  character: ArmorerArcaneArmorCharacter
+): FeatureSpeedBonus[] {
+  return getArtificerArmorerInfiltratorSpeedBonuses(character).filter(
+    (bonus) => bonus.label !== infiltratorsFlightName
+  );
+}
 
-      const skillName = skill as SkillName;
-      merged[skillName] = [...(merged[skillName] ?? []), ...indicators];
-    });
-  });
-
-  return merged;
+function getArtificerArmorerPerfectedArmorSpeedBonuses(
+  character: ArmorerArcaneArmorCharacter
+): FeatureSpeedBonus[] {
+  return getArtificerArmorerInfiltratorSpeedBonuses(character).filter(
+    (bonus) => bonus.label === infiltratorsFlightName
+  );
 }
 
 function getArtificerArmorerPerfectedArmorGuardianReactionEntries(
@@ -1649,35 +1658,83 @@ function getArtificerArmorerPerfectedArmorGuardianReactionEntries(
   ];
 }
 
-export const getArtificerArmorerDerivedFeatureState: SubclassRuntimeResolver = (character) =>
-  hasArtificerSubclassFeature(character, armorerSubclassId, 3)
-    ? {
-        alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-          character.level ?? 0,
-          armorerSpellIdsByLevel
-        ),
-        armorProficiencyEntries: createArtificerArmorProficiencyEntries(
-          [ARMOR_PROFICIENCY.HEAVY],
-          armorerToolsSource
-        ),
-        toolProficiencyEntries: getArtificerToolsOfTheTradeToolProficiencyEntries(character),
-        featureActions: [
-          getArtificerArmorerArcaneArmorAction(character),
-          getArtificerArmorerDefensiveFieldAction(character),
-          getArtificerArmorerGiantStatureAction(character),
-          getArtificerArmorerInfiltratorsFlightAction(character)
-        ].filter((action): action is FeatureActionCard => action !== null),
-        weaponActions: getArtificerArmorerArmorModelWeaponActions(character),
-        speedBonuses: getArtificerArmorerInfiltratorSpeedBonuses(character),
-        savingThrowIndicators: getArtificerArmorerDreadnaughtSavingThrowIndicators(character),
-        abilityCheckIndicators: getArtificerArmorerDreadnaughtAbilityCheckIndicators(character),
-        skillIndicators: mergeSkillIndicatorMaps(
-          getArtificerArmorerInfiltratorSkillIndicators(character),
-          getArtificerArmorerDreadnaughtSkillIndicators(character)
-        ),
-        reactionEntries: getArtificerArmorerPerfectedArmorGuardianReactionEntries(character),
-        featureActionOptions: {
-          [artificerArmorerArcaneArmorActionKey]: getArtificerArmorerArcaneArmorOptions(character)
-        }
-      }
-    : {};
+export function collectArtificerArmorerContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
+  if (!hasArtificerSubclassFeature(character, armorerSubclassId, 3)) {
+    return [];
+  }
+
+  return [
+    {
+      source: createSubclassContributionSource({
+        id: `${armorerSubclassId}-tools-of-the-trade`,
+        label: "Tools of the Trade",
+        entryId: CLASS_FEATURE.TOOLS_OF_THE_TRADE
+      }),
+      armorProficiencyEntries: createArtificerArmorProficiencyEntries(
+        [ARMOR_PROFICIENCY.HEAVY],
+        armorerToolsSource
+      ),
+      toolProficiencyEntries: getArtificerToolsOfTheTradeToolProficiencyEntries(character)
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${armorerSubclassId}-armorer-spells`,
+        label: "Armorer Spells",
+        entryId: CLASS_FEATURE.ARMORER_SPELLS
+      }),
+      alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
+        character.level ?? 0,
+        armorerSpellIdsByLevel
+      )
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${armorerSubclassId}-arcane-armor`,
+        label: "Arcane Armor",
+        entryId: CLASS_FEATURE.ARCANE_ARMOR
+      }),
+      actions: compactActions([getArtificerArmorerArcaneArmorAction(character)])
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${armorerSubclassId}-armor-model`,
+        label: "Armor Model",
+        entryId: CLASS_FEATURE.ARMOR_MODEL
+      }),
+      actions: compactActions([
+        getArtificerArmorerDefensiveFieldAction(character),
+        getArtificerArmorerGiantStatureAction(character)
+      ]),
+      actionOptions: {
+        [artificerArmorerArcaneArmorActionKey]: getArtificerArmorerArcaneArmorOptions(character)
+      },
+      weaponActions: getArtificerArmorerArmorModelWeaponActions(character),
+      speedBonuses: getArtificerArmorerArmorModelSpeedBonuses(character),
+      skillIndicators: getArtificerArmorerInfiltratorSkillIndicators(character)
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${armorerSubclassId}-perfected-armor`,
+        label: "Perfected Armor",
+        entryId: CLASS_FEATURE.PERFECTED_ARMOR
+      }),
+      actions: compactActions([getArtificerArmorerInfiltratorsFlightAction(character)]),
+      speedBonuses: getArtificerArmorerPerfectedArmorSpeedBonuses(character),
+      savingThrowIndicators: getArtificerArmorerDreadnaughtSavingThrowIndicators(character),
+      abilityCheckIndicators: getArtificerArmorerDreadnaughtAbilityCheckIndicators(character),
+      skillIndicators: getArtificerArmorerDreadnaughtSkillIndicators(character),
+      reactions: getArtificerArmorerPerfectedArmorGuardianReactionEntries(character)
+    }
+  ];
+}
+
+export const getArtificerArmorerDerivedFeatureState: SubclassRuntimeResolver = (character) => {
+  return projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectArtificerArmorerContributions(character)),
+    {
+      character: character as Character
+    }
+  );
+};

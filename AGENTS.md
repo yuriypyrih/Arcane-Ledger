@@ -118,7 +118,7 @@ Preferred contribution lanes:
 - proficiency lanes for skills, saves, armor, weapons, tools, and languages.
 - `descriptionAdditions` for sourced drawer/reference injections.
 - spell lanes for grants, always-prepared spells, spellbook-only spells, ritual-only spells, spellcasting abilities, free casts, spell transforms, spell action paths, spell damage bonuses, spell formula overrides, and cast effects.
-- bonus and indicator lanes for ability scores, hit point maximums, speed, initiative, saves, skills, armor class, weapon damage, spell damage, saving throw indicators, ability check indicators, core stat indicators, skill indicators, and weapon attack indicators.
+- bonus and indicator lanes for ability scores, hit point maximums, speed, initiative, saves, skills, armor class, inventory attunement limits, weapon damage, spell damage, saving throw indicators, ability check indicators, core stat indicators, skill indicators, and weapon attack indicators.
 - transform lanes when a feature modifies an existing common action, feature action, weapon action, item description, or spell entry instead of creating a duplicate.
 - `classMechanics` only for narrow class/subclass compatibility facts such as weapon mastery, magic temporary hit points, Bardic Inspiration die, Monk Martial Arts die, Rogue Sneak Attack values, Monk unarmed strike config, and Monk Martial Arts eligibility.
 

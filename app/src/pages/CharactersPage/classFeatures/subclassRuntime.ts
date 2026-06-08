@@ -62,6 +62,7 @@ export type SubclassDerivedFeatureState = {
     hasWornBodyArmor: boolean;
     hasShieldEquipped: boolean;
   }) => FeatureArmorClassBonus[];
+  getInventoryAttunementLimit?: (defaultLimit: number) => number;
   speedBonuses?: FeatureSpeedBonus[];
   abilityScoreBonuses?: FeatureAbilityScoreBonus[];
   cantripLimitBonus?: number;

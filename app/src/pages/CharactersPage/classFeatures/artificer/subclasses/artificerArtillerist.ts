@@ -1,9 +1,16 @@
+import { CLASS_FEATURE } from "../../../../../codex/entries";
 import { WEAPON_PROFICIENCY } from "../../../../../types";
+import type { Character } from "../../../../../types";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import {
   getPreparedSpellIdsByLevel,
   type SubclassRuntimeResolver
 } from "../../subclassRuntime";
-import type { FeatureActionCard } from "../../types";
 import {
   artificerEldritchCannonActionKey,
   artilleristSubclassId,
@@ -64,9 +71,15 @@ const artilleristSpellIdsByLevel = {
 
 const artilleristToolsSource = "Artillerist: Tools of the Trade";
 
-export const getArtificerArtilleristDerivedFeatureState: SubclassRuntimeResolver = (character) => {
+function compactActions<TAction>(actions: Array<TAction | null>): TAction[] {
+  return actions.filter((action): action is TAction => action !== null);
+}
+
+export function collectArtificerArtilleristContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
   if (!hasArtificerSubclassFeature(character, artilleristSubclassId, 3)) {
-    return {};
+    return [];
   }
 
   const eldritchCannonAction = getArtificerEldritchCannonAction(character);
@@ -76,21 +89,71 @@ export const getArtificerArtilleristDerivedFeatureState: SubclassRuntimeResolver
     artilleristSpellIdsByLevel
   );
 
-  return {
-    alwaysPreparedSpellIds: artilleristSpellIds,
-    weaponProficiencyEntries: createArtificerWeaponProficiencyEntries(
-      [WEAPON_PROFICIENCY.MARTIAL_RANGED],
-      artilleristToolsSource
-    ),
-    toolProficiencyEntries: getArtificerToolsOfTheTradeToolProficiencyEntries(character),
-    featureActions: [eldritchCannonAction, arcaneFirearmAction].filter(
-      (action): action is FeatureActionCard => action !== null
-    ),
-    featureActionOptions: {
-      [artificerEldritchCannonActionKey]: getArtificerEldritchCannonOptions()
+  return [
+    {
+      source: createSubclassContributionSource({
+        id: `${artilleristSubclassId}-tools-of-the-trade`,
+        label: "Tools of the Trade",
+        entryId: CLASS_FEATURE.TOOLS_OF_THE_TRADE
+      }),
+      weaponProficiencyEntries: createArtificerWeaponProficiencyEntries(
+        [WEAPON_PROFICIENCY.MARTIAL_RANGED],
+        artilleristToolsSource
+      ),
+      toolProficiencyEntries: getArtificerToolsOfTheTradeToolProficiencyEntries(character)
     },
-    reactionEntries: getArtificerExplosiveCannonReactionEntries(character),
-    getSpellDamageBonuses: (context) =>
-      getArtificerArcaneFirearmSpellDamageBonuses(character, context, artilleristSpellIds)
-  };
+    {
+      source: createSubclassContributionSource({
+        id: `${artilleristSubclassId}-artillerist-spells`,
+        label: "Artillerist Spells",
+        entryId: CLASS_FEATURE.ARTILLERIST_SPELLS
+      }),
+      alwaysPreparedSpellIds: artilleristSpellIds
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${artilleristSubclassId}-eldritch-cannon`,
+        label: "Eldritch Cannon",
+        entryId: CLASS_FEATURE.ELDRITCH_CANNON
+      }),
+      actions: compactActions([eldritchCannonAction]),
+      actionOptions: {
+        [artificerEldritchCannonActionKey]: getArtificerEldritchCannonOptions()
+      }
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${artilleristSubclassId}-arcane-firearm`,
+        label: "Arcane Firearm",
+        entryId: CLASS_FEATURE.ARCANE_FIREARM
+      }),
+      actions: compactActions([arcaneFirearmAction]),
+      spellDamageBonuses: [
+        {
+          id: "artificer-artillerist-arcane-firearm-spell-damage",
+          getBonuses: (context) =>
+            getArtificerArcaneFirearmSpellDamageBonuses(character, context, artilleristSpellIds)
+        }
+      ]
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${artilleristSubclassId}-explosive-cannon`,
+        label: "Explosive Cannon",
+        entryId: CLASS_FEATURE.EXPLOSIVE_CANNON
+      }),
+      reactions: getArtificerExplosiveCannonReactionEntries(character)
+    }
+  ];
+}
+
+export const getArtificerArtilleristDerivedFeatureState: SubclassRuntimeResolver = (
+  character
+) => {
+  return projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectArtificerArtilleristContributions(character)),
+    {
+      character: character as Character
+    }
+  );
 };

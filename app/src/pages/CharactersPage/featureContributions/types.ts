@@ -209,6 +209,16 @@ export type FeatureSpeedBonusContribution = {
   getBonuses: (context: SpeedFeatureContext) => FeatureSpeedBonus[];
 };
 
+export type FeatureInventoryAttunementLimitContext = {
+  defaultLimit: number;
+  currentLimit: number;
+};
+
+export type FeatureInventoryAttunementLimitContribution = {
+  id: string;
+  getLimit: (context: FeatureInventoryAttunementLimitContext) => number | null;
+};
+
 export type FeatureSpellDamageFormulaOverrideContribution = {
   id: string;
   getOverride: (spell: Pick<SpellEntry, "id">) => string | null;
@@ -318,6 +328,7 @@ export type FeatureContributionSpec<TDerivedState = unknown> = {
   skillBonuses?: FeatureSkillBonusContribution[];
   armorClassModes?: FeatureArmorClassModeContribution[];
   armorClassBonuses?: FeatureArmorClassBonusContribution[];
+  inventoryAttunementLimits?: FeatureInventoryAttunementLimitContribution[];
   savingThrowIndicators?: SavingThrowIndicatorMap;
   abilityCheckIndicators?: AbilityCheckIndicatorMap;
   coreStatIndicators?: CoreStatIndicatorMap;
@@ -376,6 +387,7 @@ export type CompiledFeatureContributionState<TDerivedState = unknown> = {
   skillBonuses: FeatureSkillBonusContribution[];
   armorClassModes: FeatureArmorClassModeContribution[];
   armorClassBonuses: FeatureArmorClassBonusContribution[];
+  inventoryAttunementLimits: FeatureInventoryAttunementLimitContribution[];
   savingThrowIndicators: SavingThrowIndicatorMap;
   abilityCheckIndicators: AbilityCheckIndicatorMap;
   coreStatIndicators: CoreStatIndicatorMap;
