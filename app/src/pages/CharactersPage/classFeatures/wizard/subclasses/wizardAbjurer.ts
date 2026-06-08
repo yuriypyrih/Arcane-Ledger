@@ -21,6 +21,12 @@ import {
 } from "../../../actionModalDescriptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getAbilityModifierForCharacter } from "../../../abilities";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
 import {
   createMagicTemporaryHitPointsAssignment,
@@ -406,24 +412,104 @@ export function restoreWizardAbjurerArcaneWardOnLongRest(character: Character): 
   };
 }
 
-export const getWizardAbjurerDerivedFeatureState: SubclassRuntimeResolver = (character) =>
-  typeof character.level === "number"
-    ? {
-        featureActions: getWizardAbjurerArcaneWardFeatureActions(character),
-        alwaysPreparedSpellIds: hasWizardAbjurerSpellBreakerFeature(character)
-          ? getWizardAbjurerSpellBreakerAlwaysPreparedSpellIds()
-          : [],
-        alwaysSpellbookSpellIds: getWizardSavantSpellIdsFromFeatureState({
-          className: character.className,
-          level: character.level,
-          subclassId: character.subclassId,
-          classFeatureState: character.classFeatureState
-        }),
-        derivedStatusEntries: getWizardAbjurerDerivedStatusEntries(character),
-        magicTemporaryHitPointsFeature: getWizardAbjurerMagicTemporaryHitPointsFeature(character),
-        reactionEntries: character.level >= 6 ? [projectedWardReactionEntry] : [],
-        transformSpellEntry: hasWizardAbjurerSpellBreakerFeature(character)
-          ? (spell) => transformWizardAbjurerSpellBreakerSpell(character, spell)
-          : undefined
+function createWizardAbjurerSource(input: {
+  id: string;
+  label: string;
+  entryId: CLASS_FEATURE;
+}) {
+  return createSubclassContributionSource({
+    ...input,
+    id: `wizard-abjurer-${input.id}`
+  });
+}
+
+export function collectWizardAbjurerContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
+  if (
+    character.className !== "Wizard" ||
+    character.subclassId !== abjurerSubclassId ||
+    typeof character.level !== "number"
+  ) {
+    return [];
+  }
+
+  const contributions: FeatureContributionSpec[] = [
+    {
+      source: createWizardAbjurerSource({
+        id: "abjuration-savant",
+        label: "Abjuration Savant",
+        entryId: CLASS_FEATURE.ABJURATION_SAVANT
+      }),
+      alwaysSpellbookSpellIds: getWizardSavantSpellIdsFromFeatureState({
+        className: character.className,
+        level: character.level,
+        subclassId: character.subclassId,
+        classFeatureState: character.classFeatureState
+      })
+    }
+  ];
+
+  if (hasWizardAbjurerArcaneWardFeature(character)) {
+    contributions.push({
+      source: createWizardAbjurerSource({
+        id: "arcane-ward",
+        label: arcaneWardLabel,
+        entryId: CLASS_FEATURE.ARCANE_WARD
+      }),
+      actions: getWizardAbjurerArcaneWardFeatureActions(character),
+      classMechanics: {
+        magicTemporaryHitPointsFeature: getWizardAbjurerMagicTemporaryHitPointsFeature(character)
       }
-    : {};
+    });
+  }
+
+  if (character.level >= 6) {
+    contributions.push({
+      source: createWizardAbjurerSource({
+        id: "projected-ward",
+        label: projectedWardName,
+        entryId: CLASS_FEATURE.PROJECTED_WARD
+      }),
+      reactions: [projectedWardReactionEntry]
+    });
+  }
+
+  if (hasWizardAbjurerSpellBreakerFeature(character)) {
+    contributions.push({
+      source: createWizardAbjurerSource({
+        id: "spell-breaker",
+        label: spellBreakerName,
+        entryId: CLASS_FEATURE.SPELL_BREAKER
+      }),
+      alwaysPreparedSpellIds: getWizardAbjurerSpellBreakerAlwaysPreparedSpellIds(),
+      spellTransforms: [
+        {
+          id: "wizard-abjurer-spell-breaker-spell-transform",
+          transform: (spell) => transformWizardAbjurerSpellBreakerSpell(character, spell)
+        }
+      ]
+    });
+  }
+
+  if (hasWizardAbjurerSpellResistanceFeature(character)) {
+    contributions.push({
+      source: createWizardAbjurerSource({
+        id: "spell-resistance",
+        label: "Spell Resistance",
+        entryId: CLASS_FEATURE.SPELL_RESISTANCE
+      }),
+      statuses: getWizardAbjurerDerivedStatusEntries(character)
+    });
+  }
+
+  return contributions;
+}
+
+export const getWizardAbjurerDerivedFeatureState: SubclassRuntimeResolver = (character) =>
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectWizardAbjurerContributions(character)),
+    {
+      character: character as Character
+    }
+  );

@@ -17,6 +17,12 @@ import {
 } from "../../../../../types";
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
 import {
   createCharacterStatusEntry,
@@ -139,20 +145,6 @@ function hasWizardIllusionistIllusoryRealityFeature(
   return hasWizardIllusionistFeature(character, 14);
 }
 
-function getWizardIllusionistAlwaysPreparedSpellIds(
-  character: Pick<WizardIllusionistCharacter, "className"> &
-    Partial<Pick<WizardIllusionistCharacter, "level" | "subclassId">>
-): string[] {
-  return [
-    ...(hasWizardIllusionistImprovedIllusionsFeature(character)
-      ? improvedIllusionsAlwaysPreparedSpellIds
-      : []),
-    ...(hasWizardIllusionistPhantasmalCreaturesFeature(character)
-      ? phantasmalCreaturesAlwaysPreparedSpellIds
-      : [])
-  ];
-}
-
 function getWizardIllusionistFeatureState(
   character: Partial<Pick<Character, "classFeatureState">>
 ): CharacterWizardFeatureState {
@@ -260,20 +252,6 @@ function appendPhantasmalCreaturesSpellDescription(
         phantasmalCreaturesName
       )
     : spell;
-}
-
-function transformWizardIllusionistSpell(
-  character: Pick<WizardIllusionistCharacter, "className"> &
-    Partial<Pick<WizardIllusionistCharacter, "level" | "subclassId">>,
-  spell: SpellEntry
-): SpellEntry {
-  const spellWithImprovedIllusions = hasWizardIllusionistImprovedIllusionsFeature(character)
-    ? appendImprovedIllusionsSpellDescription(character, spell)
-    : spell;
-
-  return hasWizardIllusionistPhantasmalCreaturesFeature(character)
-    ? appendPhantasmalCreaturesSpellDescription(character, spellWithImprovedIllusions)
-    : spellWithImprovedIllusions;
 }
 
 export function hasActiveWizardIllusionistIllusoryReality(
@@ -628,28 +606,109 @@ export function restoreWizardIllusionistIllusorySelfOnLongRest(character: Charac
   return restoreWizardIllusionistIllusorySelfUses(character);
 }
 
+function createWizardIllusionistSource(input: {
+  id: string;
+  label: string;
+  entryId: CLASS_FEATURE;
+}) {
+  return createSubclassContributionSource({
+    ...input,
+    id: `wizard-illusionist-${input.id}`
+  });
+}
+
+export function collectWizardIllusionistContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
+  if (
+    character.className !== "Wizard" ||
+    character.subclassId !== illusionistSubclassId ||
+    typeof character.level !== "number"
+  ) {
+    return [];
+  }
+
+  const contributions: FeatureContributionSpec[] = [
+    {
+      source: createWizardIllusionistSource({
+        id: "illusion-savant",
+        label: "Illusion Savant",
+        entryId: CLASS_FEATURE.ILLUSION_SAVANT
+      }),
+      alwaysSpellbookSpellIds: getWizardSavantSpellIdsFromFeatureState({
+        className: character.className,
+        level: character.level,
+        subclassId: character.subclassId,
+        classFeatureState: character.classFeatureState
+      })
+    }
+  ];
+
+  if (hasWizardIllusionistImprovedIllusionsFeature(character)) {
+    contributions.push({
+      source: createWizardIllusionistSource({
+        id: "improved-illusions",
+        label: improvedIllusionsName,
+        entryId: CLASS_FEATURE.IMPROVED_ILLUSIONS
+      }),
+      alwaysPreparedSpellIds: improvedIllusionsAlwaysPreparedSpellIds,
+      spellTransforms: [
+        {
+          id: "wizard-illusionist-improved-illusions-spell-transform",
+          transform: (spell) => appendImprovedIllusionsSpellDescription(character, spell)
+        }
+      ]
+    });
+  }
+
+  if (hasWizardIllusionistPhantasmalCreaturesFeature(character)) {
+    contributions.push({
+      source: createWizardIllusionistSource({
+        id: "phantasmal-creatures",
+        label: phantasmalCreaturesName,
+        entryId: CLASS_FEATURE.PHANTASMAL_CREATURES
+      }),
+      alwaysPreparedSpellIds: phantasmalCreaturesAlwaysPreparedSpellIds,
+      spellTransforms: [
+        {
+          id: "wizard-illusionist-phantasmal-creatures-spell-transform",
+          transform: (spell) => appendPhantasmalCreaturesSpellDescription(character, spell)
+        }
+      ]
+    });
+  }
+
+  if (hasWizardIllusionistIllusorySelfFeature(character)) {
+    contributions.push({
+      source: createWizardIllusionistSource({
+        id: "illusory-self",
+        label: illusorySelfName,
+        entryId: CLASS_FEATURE.ILLUSORY_SELF
+      }),
+      reactions: [illusorySelfReactionEntry]
+    });
+  }
+
+  if (hasWizardIllusionistIllusoryRealityFeature(character)) {
+    contributions.push({
+      source: createWizardIllusionistSource({
+        id: "illusory-reality",
+        label: illusoryRealityName,
+        entryId: CLASS_FEATURE.ILLUSORY_REALITY
+      }),
+      actions: [getWizardIllusionistIllusoryRealityFeatureAction(character)].filter(
+        (action): action is FeatureActionCard => action !== null
+      )
+    });
+  }
+
+  return contributions;
+}
+
 export const getWizardIllusionistDerivedFeatureState: SubclassRuntimeResolver = (character) =>
-  typeof character.level === "number"
-    ? {
-        featureActions: hasWizardIllusionistIllusoryRealityFeature(character)
-          ? [getWizardIllusionistIllusoryRealityFeatureAction(character)].filter(
-              (action): action is FeatureActionCard => action !== null
-            )
-          : [],
-        alwaysPreparedSpellIds: getWizardIllusionistAlwaysPreparedSpellIds(character),
-        alwaysSpellbookSpellIds: getWizardSavantSpellIdsFromFeatureState({
-          className: character.className,
-          level: character.level,
-          subclassId: character.subclassId,
-          classFeatureState: character.classFeatureState
-        }),
-        transformSpellEntry:
-          hasWizardIllusionistImprovedIllusionsFeature(character) ||
-          hasWizardIllusionistPhantasmalCreaturesFeature(character)
-            ? (spell) => transformWizardIllusionistSpell(character, spell)
-            : undefined,
-        reactionEntries: hasWizardIllusionistIllusorySelfFeature(character)
-          ? [illusorySelfReactionEntry]
-          : []
-      }
-    : {};
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectWizardIllusionistContributions(character)),
+    {
+      character: character as Character
+    }
+  );

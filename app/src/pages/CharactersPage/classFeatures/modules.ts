@@ -233,11 +233,9 @@ import {
   advanceWizardFeaturesForNewRound,
   applyLongRestToWizardFeatures,
   applyShortRestToWizardFeatures,
-  getWizardAlwaysPreparedSpellIds,
-  getWizardFeatureActions,
-  getWizardSkillProficiencyEntries,
   normalizeWizardFeatureState
 } from "./wizard/wizard";
+import { getWizardClassFeatureDerivedState } from "./wizard/contributions";
 import type {
   ActiveClassFeatureName,
   CollectedClassFeatureCharacter,
@@ -751,13 +749,7 @@ const classFeatureModules = {
     className: "Wizard",
     stateKey: "wizard",
     normalizeState: normalizeWizardFeatureState,
-    collectDerived(character) {
-      return {
-        actions: getWizardFeatureActions(character),
-        skillProficiencyEntries: getWizardSkillProficiencyEntries(character),
-        alwaysPreparedSpellIds: getWizardAlwaysPreparedSpellIds(character)
-      };
-    },
+    collectDerived: getWizardClassFeatureDerivedState,
     handleAction(character, actionKey) {
       return activateWizardFeatureAction(character, actionKey);
     },

@@ -31,6 +31,12 @@ import {
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { createFeatureSourcedDescriptionEntries } from "../../../actionModalDescriptions";
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../../combat";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import type { WeaponAction } from "../../../gameplay";
 import {
   createCharacterStatusEntry,
@@ -893,26 +899,110 @@ function transformWizardBladesongWeaponAction(
   );
 }
 
-export const getWizardBladesingerDerivedFeatureState: SubclassRuntimeResolver = (character) => {
+function createWizardBladesingerSource(input: {
+  id: string;
+  label: string;
+  entryId: CLASS_FEATURE;
+}) {
+  return createSubclassContributionSource({
+    ...input,
+    id: `wizard-bladesinger-${input.id}`
+  });
+}
+
+export function collectWizardBladesingerContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
+  if (character.className !== "Wizard" || character.subclassId !== bladesingerSubclassId) {
+    return [];
+  }
+
   const bladesongAction = getWizardBladesongFeatureAction(character);
   const bladesongActive = hasActiveWizardBladesong(character);
+  const contributions: FeatureContributionSpec[] = [];
 
-  return {
-    featureActions: bladesongAction ? [bladesongAction] : [],
-    reactionEntries: hasWizardBladesingerSongOfDefenseFeature(character)
-      ? [wizardBladesingerSongOfDefenseReactionEntry]
-      : [],
-    weaponProficiencyEntries:
-      getWizardBladesingerTrainingInWarAndSongWeaponProficiencyEntries(character),
-    skillProficiencyEntries:
-      getWizardBladesingerTrainingInWarAndSongSkillProficiencyEntries(character),
-    getArmorClassBonuses: bladesongActive
-      ? () => getWizardBladesongArmorClassBonuses(character)
-      : undefined,
-    speedBonuses: bladesongActive ? getWizardBladesongSpeedBonuses() : [],
-    skillIndicators: bladesongActive ? getWizardBladesongSkillIndicators() : {},
-    transformWeaponAction: bladesongActive
-      ? (action) => transformWizardBladesongWeaponAction(character, action)
-      : undefined
-  };
-};
+  if (hasWizardTrainingInWarAndSongFeature(character)) {
+    contributions.push({
+      source: createWizardBladesingerSource({
+        id: "training-in-war-and-song",
+        label: trainingInWarAndSongName,
+        entryId: CLASS_FEATURE.TRAINING_IN_WAR_AND_SONG
+      }),
+      weaponProficiencyEntries:
+        getWizardBladesingerTrainingInWarAndSongWeaponProficiencyEntries(character),
+      skillProficiencyEntries:
+        getWizardBladesingerTrainingInWarAndSongSkillProficiencyEntries(character)
+    });
+  }
+
+  if (hasWizardBladesongFeature(character)) {
+    contributions.push({
+      source: createWizardBladesingerSource({
+        id: "bladesong",
+        label: bladesongName,
+        entryId: CLASS_FEATURE.BLADESONG
+      }),
+      actions: bladesongAction ? [bladesongAction] : [],
+      ...(bladesongActive
+        ? {
+            armorClassBonuses: [
+              {
+                id: "wizard-bladesinger-bladesong-ac",
+                getBonuses: () => getWizardBladesongArmorClassBonuses(character)
+              }
+            ],
+            speedBonuses: getWizardBladesongSpeedBonuses(),
+            skillIndicators: getWizardBladesongSkillIndicators(),
+            weaponActionTransforms: [
+              {
+                id: "wizard-bladesinger-bladesong-weapon-transform",
+                transform: (_character, action) =>
+                  transformWizardBladesongWeaponAction(character, action as WeaponAction)
+              }
+            ]
+          }
+        : {})
+    });
+  }
+
+  if (hasWizardBladesingerExtraAttackFeature(character)) {
+    contributions.push({
+      source: createWizardBladesingerSource({
+        id: "extra-attack",
+        label: "Extra Attack",
+        entryId: CLASS_FEATURE.EXTRA_ATTACK
+      })
+    });
+  }
+
+  if (hasWizardBladesingerSongOfDefenseFeature(character)) {
+    contributions.push({
+      source: createWizardBladesingerSource({
+        id: "song-of-defense",
+        label: songOfDefenseName,
+        entryId: CLASS_FEATURE.SONG_OF_DEFENSE
+      }),
+      reactions: [wizardBladesingerSongOfDefenseReactionEntry]
+    });
+  }
+
+  if (hasWizardBladesingerSpellcastWeaponBonusActionFeature(character)) {
+    contributions.push({
+      source: createWizardBladesingerSource({
+        id: "song-of-victory",
+        label: "Song of Victory",
+        entryId: CLASS_FEATURE.SONG_OF_VICTORY
+      })
+    });
+  }
+
+  return contributions;
+}
+
+export const getWizardBladesingerDerivedFeatureState: SubclassRuntimeResolver = (character) =>
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectWizardBladesingerContributions(character)),
+    {
+      character: character as Character
+    }
+  );

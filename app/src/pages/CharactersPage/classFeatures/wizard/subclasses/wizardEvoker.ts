@@ -8,6 +8,12 @@ import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import type { Character } from "../../../../../types";
 import { getAbilityModifierForCharacter } from "../../../abilities";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import { getWizardSavantSpellIdsFromFeatureState } from "../savant";
 
@@ -255,17 +261,97 @@ export function getWizardEvokerSpellbookSpellEntry(
     : spellWithEmpoweredEvocation;
 }
 
+function createWizardEvokerSource(input: {
+  id: string;
+  label: string;
+  entryId: CLASS_FEATURE;
+}) {
+  return createSubclassContributionSource({
+    ...input,
+    id: `wizard-evoker-${input.id}`
+  });
+}
+
+export function collectWizardEvokerContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
+  if (
+    character.className !== "Wizard" ||
+    character.subclassId !== evokerSubclassId ||
+    typeof character.level !== "number"
+  ) {
+    return [];
+  }
+
+  const contributions: FeatureContributionSpec[] = [
+    {
+      source: createWizardEvokerSource({
+        id: "evocation-savant",
+        label: "Evocation Savant",
+        entryId: CLASS_FEATURE.EVOCATION_SAVANT
+      }),
+      alwaysSpellbookSpellIds: getWizardSavantSpellIdsFromFeatureState({
+        className: character.className,
+        level: character.level,
+        subclassId: character.subclassId,
+        classFeatureState: character.classFeatureState
+      })
+    }
+  ];
+
+  if (hasWizardEvokerPotentCantripFeature(character)) {
+    contributions.push({
+      source: createWizardEvokerSource({
+        id: "potent-cantrip",
+        label: potentCantripName,
+        entryId: CLASS_FEATURE.POTENT_CANTRIP
+      }),
+      spellTransforms: [
+        {
+          id: "wizard-evoker-potent-cantrip-spell-transform",
+          transform: (spell) => appendWizardEvokerPotentCantripDescription(character, spell)
+        }
+      ]
+    });
+  }
+
+  if (hasWizardEvokerSculptSpellsFeature(character)) {
+    contributions.push({
+      source: createWizardEvokerSource({
+        id: "sculpt-spells",
+        label: "Sculpt Spells",
+        entryId: CLASS_FEATURE.SCULPT_SPELLS
+      })
+    });
+  }
+
+  if (hasWizardEvokerEmpoweredEvocationFeature(character)) {
+    contributions.push({
+      source: createWizardEvokerSource({
+        id: "empowered-evocation",
+        label: "Empowered Evocation",
+        entryId: CLASS_FEATURE.EMPOWERED_EVOCATION
+      })
+    });
+  }
+
+  if (hasWizardEvokerOverchannelFeature(character)) {
+    contributions.push({
+      source: createWizardEvokerSource({
+        id: "overchannel",
+        label: "Overchannel",
+        entryId: CLASS_FEATURE.OVERCHANNEL
+      })
+    });
+  }
+
+  return contributions;
+}
+
 export const getWizardEvokerDerivedFeatureState: SubclassRuntimeResolver = (character) =>
-  typeof character.level === "number"
-    ? {
-        alwaysSpellbookSpellIds: getWizardSavantSpellIdsFromFeatureState({
-          className: character.className,
-          level: character.level,
-          subclassId: character.subclassId,
-          classFeatureState: character.classFeatureState
-        }),
-        transformSpellEntry: hasWizardEvokerPotentCantripFeature(character)
-          ? (spell) => appendWizardEvokerPotentCantripDescription(character, spell)
-          : undefined
-      }
-    : {};
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectWizardEvokerContributions(character)),
+    {
+      character: character as Character
+    }
+  );
