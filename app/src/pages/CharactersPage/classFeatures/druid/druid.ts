@@ -135,7 +135,7 @@ function getUnlockedDruidFeatures(level: number): Set<CLASS_FEATURE> {
     }, new Set<CLASS_FEATURE>());
 }
 
-function hasDruidFeature(
+export function hasDruidFeature(
   character: Pick<Character, "className" | "level">,
   feature: CLASS_FEATURE
 ): boolean {
@@ -1197,7 +1197,7 @@ export function getDruidDerivedStatusEntries(
   ];
 }
 
-function getDruidWildShapeAction(
+export function getDruidWildShapeAction(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): FeatureActionCard | null {
   if (!hasDruidFeature(character, CLASS_FEATURE.WILD_SHAPE)) {
@@ -1254,7 +1254,7 @@ function getDruidWildShapeAction(
   };
 }
 
-function getDruidWildCompanionAction(
+export function getDruidWildCompanionAction(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "spellSlotsExpended">
 ): FeatureActionCard | null {
   if (!hasDruidFeature(character, CLASS_FEATURE.WILD_COMPANION)) {
@@ -1339,7 +1339,7 @@ function getDruidNatureMagicianDescription() {
   );
 }
 
-function getDruidWildResurgenceAction(
+export function getDruidWildResurgenceAction(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "spellSlotsExpended">
 ): FeatureActionCard | null {
   if (!hasDruidFeature(character, CLASS_FEATURE.WILD_RESURGENCE)) {
@@ -1417,7 +1417,7 @@ function getDruidWildResurgenceAction(
   };
 }
 
-function getDruidNatureMagicianAction(
+export function getDruidNatureMagicianAction(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "spellSlotsExpended">
 ): FeatureActionCard | null {
   if (!hasDruidFeature(character, CLASS_FEATURE.ARCHDRUID)) {

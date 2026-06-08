@@ -91,23 +91,11 @@ import {
   druidMoonlightStepActionKey,
   druidNaturesSanctuaryActionKey,
   druidWrathOfTheSeaActionKey,
-  getDruidAlwaysPreparedSpellIds,
-  getDruidArmorProficiencyEntries,
-  getDruidCantripBonus,
-  getDruidCantripDamageBonus,
-  getDruidDerivedStatusEntries,
-  getDruidFeatureActions,
-  getDruidLanguageProficiencyEntries,
-  getDruidSpellEntry,
-  getDruidWeaponAction,
   druidNatureMagicianActionKey,
   druidWildResurgenceActionKey,
-  getDruidSpellcastingState,
-  getDruidSkillBonuses,
-  getDruidWeaponDamageBonuses,
-  getDruidWeaponProficiencyEntries,
   normalizeDruidFeatureState
 } from "./druid/druid";
+import { getDruidClassFeatureDerivedState } from "./druid/contributions";
 import {
   activateFighterPsiWarriorBulwarkOfForceForCharacter,
   activateFighterPsiWarriorTelekineticMovementForCharacter,
@@ -125,15 +113,9 @@ import {
   fighterPsiWarriorTelekineticMovementActionKey,
   fighterSecondWindActionKey,
   fighterTacticalMindActionKey,
-  getFighterFeatureActions,
-  getFighterWeaponAction,
-  getFighterWeaponMasteryOptions,
-  getFighterWeaponMasterySelectionCount,
-  getFighterWeaponMasterySelections,
-  getFighterWeaponProficiencyEntries,
-  normalizeFighterFeatureState,
-  setFighterWeaponMasterySelections
+  normalizeFighterFeatureState
 } from "./fighter/fighter";
+import { getFighterClassFeatureDerivedState } from "./fighter/contributions";
 import {
   activateMonkCloakOfShadow,
   activateMonkElementalBurst,
@@ -149,20 +131,8 @@ import {
   advanceMonkFeaturesForNewRound,
   applyLongRestToMonkFeatures,
   applyShortRestToMonkFeatures,
-  canUseMonkMartialArts,
-  getMonkAbilityScoreBonuses,
-  getMonkArmorClassModes,
-  getMonkCommonAction,
-  getMonkDerivedStatusEntries,
-  getMonkFeatureActions,
-  getMonkMartialArtsDie,
-  getMonkReactionEntries,
-  getMonkSavingThrowProficiencyEntries,
-  getMonkSpeedBonuses,
-  getMonkWeaponAction,
   monkHandOfHealingActionKey,
   monkHandOfUltimateJusticeActionKey,
-  getMonkUnarmedDamageTypeLabel,
   monkFlurryOfBlowsActionKey,
   monkPatientDefenseActionKey,
   monkCloakOfShadowActionKey,
@@ -174,6 +144,7 @@ import {
   monkWholenessOfBodyActionKey,
   normalizeMonkFeatureState
 } from "./monk/monk";
+import { getMonkClassFeatureDerivedState } from "./monk/contributions";
 import {
   abjureFoesActionKey,
   activateAbjureFoes,
@@ -558,23 +529,7 @@ const classFeatureModules = {
     className: "Druid",
     stateKey: "druid",
     normalizeState: normalizeDruidFeatureState,
-    collectDerived(character) {
-      return {
-        actions: getDruidFeatureActions(character),
-        getSkillBonuses: (skill) => getDruidSkillBonuses(character, skill),
-        cantripLimitBonus: getDruidCantripBonus(character),
-        cantripDamageBonus: getDruidCantripDamageBonus(character),
-        transformSpellEntry: (spell) => getDruidSpellEntry(character, spell),
-        transformWeaponAction: (action) => getDruidWeaponAction(character, action),
-        getWeaponDamageBonuses: (context) => getDruidWeaponDamageBonuses(character, context),
-        weaponProficiencyEntries: getDruidWeaponProficiencyEntries(character),
-        armorProficiencyEntries: getDruidArmorProficiencyEntries(character),
-        languageProficiencyEntries: getDruidLanguageProficiencyEntries(character),
-        alwaysPreparedSpellIds: getDruidAlwaysPreparedSpellIds(character),
-        spellcastingState: getDruidSpellcastingState(character),
-        derivedStatusEntries: getDruidDerivedStatusEntries(character)
-      };
-    },
+    collectDerived: getDruidClassFeatureDerivedState,
     handleAction(character, actionKey) {
       if (actionKey === druidLandsAidActionKey) {
         return activateDruidLandsAid(character);
@@ -610,19 +565,7 @@ const classFeatureModules = {
     className: "Fighter",
     stateKey: "fighter",
     normalizeState: normalizeFighterFeatureState,
-    collectDerived(character) {
-      return {
-        actions: getFighterFeatureActions(character),
-        transformWeaponAction: (action) => getFighterWeaponAction(character, action),
-        weaponProficiencyEntries: getFighterWeaponProficiencyEntries(character),
-        weaponMastery: createWeaponMasteryState(
-          getFighterWeaponMasterySelectionCount(character),
-          getFighterWeaponMasteryOptions(),
-          getFighterWeaponMasterySelections(character),
-          setFighterWeaponMasterySelections
-        )
-      };
-    },
+    collectDerived: getFighterClassFeatureDerivedState,
     handleAction(character, actionKey) {
       if (actionKey === fighterActionSurgeActionKey) {
         return activateFighterActionSurge(character);
@@ -658,22 +601,7 @@ const classFeatureModules = {
     className: "Monk",
     stateKey: "monk",
     normalizeState: normalizeMonkFeatureState,
-    collectDerived(character) {
-      return {
-        actions: getMonkFeatureActions(character),
-        getArmorClassModes: (context) => getMonkArmorClassModes(character, context),
-        getSpeedBonuses: (context) => getMonkSpeedBonuses(character, context),
-        abilityScoreBonuses: getMonkAbilityScoreBonuses(character),
-        savingThrowProficiencyEntries: getMonkSavingThrowProficiencyEntries(character),
-        derivedStatusEntries: getMonkDerivedStatusEntries(character),
-        reactionEntries: getMonkReactionEntries(character),
-        transformCommonAction: (action) => getMonkCommonAction(character, action),
-        transformWeaponAction: (action) => getMonkWeaponAction(character, action),
-        monkMartialArtsDie: getMonkMartialArtsDie(character),
-        monkUnarmedDamageTypeLabel: getMonkUnarmedDamageTypeLabel(character),
-        canUseMonkMartialArts: (context) => canUseMonkMartialArts(character, context)
-      };
-    },
+    collectDerived: getMonkClassFeatureDerivedState,
     handleAction(character, actionKey) {
       if (actionKey === monkFlurryOfBlowsActionKey) {
         return activateMonkFlurryOfBlows(character);

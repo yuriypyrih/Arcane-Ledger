@@ -13,6 +13,12 @@ import {
 } from "../../../../../types";
 import { getSelectedSubclassForCharacter, getSubclassFeatureDetails } from "../../../subclasses";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import { getPreparedSpellIdsByLevel, resolveSpellIdsByName } from "../../subclassRuntime";
@@ -446,8 +452,66 @@ function getCircleOfTheLandNaturesWardEntries(character: Parameters<SubclassRunt
   return entries;
 }
 
-export const getDruidCircleOfTheLandDerivedFeatureState: SubclassRuntimeResolver = (character) => ({
-  featureActions: getCircleOfTheLandFeatureActions(character),
-  alwaysPreparedSpellIds: getDruidCircleOfTheLandSpellIdsForCharacter(character),
-  derivedStatusEntries: getCircleOfTheLandNaturesWardEntries(character)
-});
+export function collectDruidCircleOfTheLandContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
+  const featureActions = getCircleOfTheLandFeatureActions(character);
+
+  return [
+    {
+      source: createSubclassContributionSource({
+        id: `${circleOfTheLandSubclassId}-circle-spells`,
+        label: "Circle of the Land Spells",
+        entryId: CLASS_FEATURE.CIRCLE_OF_THE_LAND_SPELLS
+      }),
+      alwaysPreparedSpellIds: getDruidCircleOfTheLandSpellIdsForCharacter(character)
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${circleOfTheLandSubclassId}-lands-aid`,
+        label: "Lands Aid",
+        entryId: CLASS_FEATURE.LANDS_AID
+      }),
+      actions: featureActions.filter((action) => action.key === druidLandsAidActionKey)
+    },
+    ...(hasDruidNaturalRecoveryFeature({
+      className: character.className,
+      level: character.level ?? 0,
+      subclassId: character.subclassId
+    })
+      ? [
+          {
+            source: createSubclassContributionSource({
+              id: `${circleOfTheLandSubclassId}-natural-recovery`,
+              label: "Natural Recovery",
+              entryId: CLASS_FEATURE.NATURAL_RECOVERY
+            })
+          }
+        ]
+      : []),
+    {
+      source: createSubclassContributionSource({
+        id: `${circleOfTheLandSubclassId}-natures-ward`,
+        label: "Nature's Ward",
+        entryId: CLASS_FEATURE.NATURES_WARD
+      }),
+      statuses: getCircleOfTheLandNaturesWardEntries(character)
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${circleOfTheLandSubclassId}-natures-sanctuary`,
+        label: "Nature's Sanctuary",
+        entryId: CLASS_FEATURE.NATURES_SANCTUARY
+      }),
+      actions: featureActions.filter((action) => action.key === druidNaturesSanctuaryActionKey)
+    }
+  ];
+}
+
+export const getDruidCircleOfTheLandDerivedFeatureState: SubclassRuntimeResolver = (character) =>
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectDruidCircleOfTheLandContributions(character)),
+    {
+      character: character as Character
+    }
+  );

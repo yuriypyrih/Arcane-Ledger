@@ -4,6 +4,12 @@ import { getSelectedSubclassForCharacter, getSubclassFeatureDetails } from "../.
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
 import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
+import {
   createChargesAndUsageHeaderTags,
   createChargesOrResourceCardUsage,
   createFeatureActionCardCost
@@ -22,6 +28,7 @@ import {
   hasDruidCircleFormsFeature,
   hasDruidCircleOfTheMoonSpellsFeature,
   hasDruidImprovedCircleFormsFeature,
+  hasDruidLunarFormFeature,
   hasDruidMoonlightStepFeature
 } from "./druidCircleOfTheMoonFeatures";
 import {
@@ -405,37 +412,85 @@ function getCircleOfTheMoonFeatureActions(character: Parameters<SubclassRuntimeR
   ];
 }
 
-export const getDruidCircleOfTheMoonDerivedFeatureState: SubclassRuntimeResolver = (character) =>
-  hasDruidCircleOfTheMoonSpellsFeature({
+export function collectDruidCircleOfTheMoonContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
+  const runtimeCharacter = {
     className: character.className,
     level: character.level ?? 0,
-    subclassId: character.subclassId
-  })
-    ? {
-        featureActions: getCircleOfTheMoonFeatureActions(character),
-        alwaysPreparedSpellIds: getDruidCircleOfTheMoonSpellIdsForCharacter(character),
-        getArmorClassModes: (context) =>
-          getDruidCircleFormsArmorClassModes(
-            {
-              className: character.className,
-              level: character.level ?? 0,
-              subclassId: character.subclassId,
-              classFeatureState: character.classFeatureState
-            },
-            context
-          ),
-        getSavingThrowBonuses: (ability) =>
-          getDruidCircleOfTheMoonSavingThrowBonuses(
-            {
-              className: character.className,
-              level: character.level ?? 0,
-              subclassId: character.subclassId,
-              classFeatureState: character.classFeatureState
-            },
-            ability
-          )
-      }
-    : {};
+    subclassId: character.subclassId,
+    classFeatureState: character.classFeatureState
+  };
+
+  return [
+    {
+      source: createSubclassContributionSource({
+        id: `${circleOfTheMoonSubclassId}-circle-spells`,
+        label: "Circle of the Moon Spells",
+        entryId: CLASS_FEATURE.CIRCLE_OF_THE_MOON_SPELLS
+      }),
+      alwaysPreparedSpellIds: getDruidCircleOfTheMoonSpellIdsForCharacter(character)
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${circleOfTheMoonSubclassId}-circle-forms`,
+        label: "Circle Forms",
+        entryId: CLASS_FEATURE.CIRCLE_FORMS
+      }),
+      armorClassModes: [
+        {
+          id: `${circleOfTheMoonSubclassId}-circle-forms-ac`,
+          getModes: (context) => getDruidCircleFormsArmorClassModes(runtimeCharacter, context)
+        }
+      ]
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${circleOfTheMoonSubclassId}-improved-circle-forms`,
+        label: "Improved Circle Forms",
+        entryId: CLASS_FEATURE.IMPROVED_CIRCLE_FORMS
+      }),
+      savingThrowBonuses: [
+        {
+          id: `${circleOfTheMoonSubclassId}-improved-circle-forms-saving-throw`,
+          getBonuses: (ability) =>
+            getDruidCircleOfTheMoonSavingThrowBonuses(runtimeCharacter, ability)
+        }
+      ]
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${circleOfTheMoonSubclassId}-moonlight-step`,
+        label: "Moonlight Step",
+        entryId: CLASS_FEATURE.MOONLIGHT_STEP
+      }),
+      actions: getCircleOfTheMoonFeatureActions(character)
+    },
+    ...(hasDruidLunarFormFeature({
+      className: character.className,
+      level: character.level ?? 0,
+      subclassId: character.subclassId
+    })
+      ? [
+          {
+            source: createSubclassContributionSource({
+              id: `${circleOfTheMoonSubclassId}-lunar-form`,
+              label: "Lunar Form",
+              entryId: CLASS_FEATURE.LUNAR_FORM
+            })
+          }
+        ]
+      : [])
+  ];
+}
+
+export const getDruidCircleOfTheMoonDerivedFeatureState: SubclassRuntimeResolver = (character) =>
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectDruidCircleOfTheMoonContributions(character)),
+    {
+      character: character as Character
+    }
+  );
 
 export function getDruidCircleOfTheMoonSpellIdsForCharacter(
   character: Parameters<SubclassRuntimeResolver>[0],

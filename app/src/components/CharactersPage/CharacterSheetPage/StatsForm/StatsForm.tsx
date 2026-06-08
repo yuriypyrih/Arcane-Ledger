@@ -44,7 +44,7 @@ import {
   consumeMonkDisciplinedSurvivor,
   getMonkDisciplinedSurvivorOptionState
 } from "../../../../pages/CharactersPage/classFeatures/monk/monkDisciplinedSurvivor";
-import { getMonkAbilityDescriptionAdditions } from "../../../../pages/CharactersPage/classFeatures/monk/monkDescriptionSections";
+import { getMonkFeatureDescriptionAdditions } from "../../../../pages/CharactersPage/classFeatures/monk/contributions";
 import {
   getRollModeFromIndicators,
   areResolvedRollStatesEquivalent,
@@ -260,7 +260,7 @@ function getAbilityDescriptionAdditions(
   }
 
   descriptionAdditions.push(...getFanaticalFocusDescriptionAdditions(character));
-  descriptionAdditions.push(...getMonkAbilityDescriptionAdditions(character, ability));
+  descriptionAdditions.push(...getMonkFeatureDescriptionAdditions(character, "stat", ability));
   descriptionAdditions.push(
     ...getSavingThrowReferenceDescriptionAdditionsForCharacter(character, ability)
   );

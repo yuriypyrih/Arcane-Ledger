@@ -2,6 +2,12 @@ import { ACTION_TYPE, CLASS_FEATURE, type SpellEntry } from "../../../../../code
 import type { Character, CharacterFighterFeatureState } from "../../../../../types";
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../../combat";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import type { FeatureActionCard } from "../../types";
@@ -279,13 +285,22 @@ function appendFeatureActionDescriptionEntries(
   );
 }
 
-export const getFighterEldritchKnightDerivedFeatureState: SubclassRuntimeResolver = (character) => {
+function hasFighterEldritchKnightFeature(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
+  minimumLevel: number
+): boolean {
+  return (
+    character.className === "Fighter" &&
+    character.subclassId === eldritchKnightSubclassId &&
+    (character.level ?? 0) >= minimumLevel
+  );
+}
+
+export function collectFighterEldritchKnightContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
   const hasEldritchStrike = hasFighterEldritchKnightEldritchStrikeFeature(character);
   const hasArcaneCharge = hasFighterEldritchKnightArcaneChargeFeature(character);
-
-  if (!hasEldritchStrike && !hasArcaneCharge) {
-    return {};
-  }
 
   const eldritchStrikeDescription = hasEldritchStrike
     ? getFeatureDescriptionForCharacter(character, CLASS_FEATURE.ELDRITCH_STRIKE).filter(
@@ -298,29 +313,101 @@ export const getFighterEldritchKnightDerivedFeatureState: SubclassRuntimeResolve
       )
     : [];
 
-  return {
-    transformFeatureAction: hasArcaneCharge
-      ? (action) =>
-          appendFeatureActionDescriptionEntries(
-            character,
-            action,
-            fighterActionSurgeActionKey,
-            CLASS_FEATURE.ARCANE_CHARGE,
-            arcaneChargeSource,
-            arcaneChargeDescription
-          )
-      : undefined,
-    transformWeaponAction: hasEldritchStrike
-      ? (action) =>
-          action.attackKind === "weapon"
-            ? appendWeaponDescriptionSection(
-                character,
-                action,
-                CLASS_FEATURE.ELDRITCH_STRIKE,
-                eldritchStrikeSource,
-                eldritchStrikeDescription
-              )
-            : action
-      : undefined
-  };
-};
+  return [
+    ...(hasFighterEldritchKnightFeature(character, 3)
+      ? [
+          {
+            source: createSubclassContributionSource({
+              id: `${eldritchKnightSubclassId}-spellcasting`,
+              label: "Spellcasting",
+              entryId: CLASS_FEATURE.SPELLCASTING
+            })
+          },
+          {
+            source: createSubclassContributionSource({
+              id: `${eldritchKnightSubclassId}-war-bond`,
+              label: "War Bond",
+              entryId: CLASS_FEATURE.WAR_BOND
+            })
+          }
+        ]
+      : []),
+    ...(hasFighterEldritchKnightWarMagicFeature(character)
+      ? [
+          {
+            source: createSubclassContributionSource({
+              id: `${eldritchKnightSubclassId}-war-magic`,
+              label: "War Magic",
+              entryId: CLASS_FEATURE.WAR_MAGIC
+            })
+          }
+        ]
+      : []),
+    {
+      source: createSubclassContributionSource({
+        id: `${eldritchKnightSubclassId}-eldritch-strike`,
+        label: "Eldritch Strike",
+        entryId: CLASS_FEATURE.ELDRITCH_STRIKE
+      }),
+      weaponActionTransforms: hasEldritchStrike
+        ? [
+            {
+              id: `${eldritchKnightSubclassId}-eldritch-strike-weapon-action-transform`,
+              transform: (_character, action) =>
+                (action as WeaponAction).attackKind === "weapon"
+                  ? appendWeaponDescriptionSection(
+                      character,
+                      action as WeaponAction,
+                      CLASS_FEATURE.ELDRITCH_STRIKE,
+                      eldritchStrikeSource,
+                      eldritchStrikeDescription
+                    )
+                  : (action as WeaponAction)
+            }
+          ]
+        : []
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${eldritchKnightSubclassId}-arcane-charge`,
+        label: "Arcane Charge",
+        entryId: CLASS_FEATURE.ARCANE_CHARGE
+      }),
+      featureActionTransforms: hasArcaneCharge
+        ? [
+            {
+              id: `${eldritchKnightSubclassId}-arcane-charge-feature-action-transform`,
+              transform: (action) =>
+                appendFeatureActionDescriptionEntries(
+                  character,
+                  action,
+                  fighterActionSurgeActionKey,
+                  CLASS_FEATURE.ARCANE_CHARGE,
+                  arcaneChargeSource,
+                  arcaneChargeDescription
+                )
+            }
+          ]
+        : []
+    },
+    ...(hasFighterEldritchKnightFeature(character, 18)
+      ? [
+          {
+            source: createSubclassContributionSource({
+              id: `${eldritchKnightSubclassId}-improved-war-magic`,
+              label: "Improved War Magic",
+              entryId: CLASS_FEATURE.IMPROVED_WAR_MAGIC
+            })
+          }
+        ]
+      : [])
+  ];
+}
+
+export const getFighterEldritchKnightDerivedFeatureState: SubclassRuntimeResolver = (character) =>
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectFighterEldritchKnightContributions(character)),
+    {
+      character: character as Character
+    }
+  );

@@ -25,6 +25,12 @@ import type {
 } from "../../types";
 import { createHeaderTagsFromResources } from "../../cardUsage";
 import { resolveSpellIdsByName, type SubclassRuntimeResolver } from "../../subclassRuntime";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 
 export const warriorOfTheElementsSubclassId = "monk-warrior-of-the-elements";
 export const monkElementalAttunementActionKey = "monk-warrior-of-the-elements-elemental-attunement";
@@ -442,6 +448,13 @@ function appendElementalAttunementDescriptionAddition(
     : action;
 }
 
+function getFeatureActionByKey(
+  actions: FeatureActionCard[],
+  actionKey: string
+): FeatureActionCard[] {
+  return actions.filter((action) => action.key === actionKey);
+}
+
 function getMonkWarriorOfTheElementsElementalAttunementAction(
   character: MonkWarriorOfTheElementsCharacter
 ): FeatureActionCard | null {
@@ -718,16 +731,19 @@ function getMonkWarriorOfTheElementsDerivedStatusEntries(
   ];
 }
 
-export const getMonkWarriorOfTheElementsDerivedFeatureState: SubclassRuntimeResolver = (
-  character
-) => {
+export function collectMonkWarriorOfTheElementsContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
   if (!hasMonkWarriorOfTheElementsElementalAttunement(character)) {
-    return {};
+    return [];
   }
 
   const elementalAttunementAction = getMonkWarriorOfTheElementsElementalAttunementAction(character);
   const elementalBurstAction = getMonkWarriorOfTheElementsElementalBurstAction(character);
-  const speedBonuses: FeatureSpeedBonus[] =
+  const featureActions = [elementalAttunementAction, elementalBurstAction].filter(
+    (action): action is FeatureActionCard => action !== null
+  );
+  const strideSpeedBonuses: FeatureSpeedBonus[] =
     hasMonkWarriorOfTheElementsStrideOfTheElements(character) &&
     isMonkWarriorOfTheElementsElementalAttunementActive(character)
       ? [
@@ -746,15 +762,78 @@ export const getMonkWarriorOfTheElementsDerivedFeatureState: SubclassRuntimeReso
         ]
       : [];
 
-  return {
-    featureActions: [elementalAttunementAction, elementalBurstAction].filter(
-      (action): action is FeatureActionCard => action !== null
-    ),
-    alwaysPreparedSpellIds: manipulateElementsElementalismSpellIds,
-    derivedStatusEntries: getMonkWarriorOfTheElementsDerivedStatusEntries(character),
-    speedBonuses,
-    transformWeaponAction: (action) =>
-      transformMonkWarriorOfTheElementsWeaponAction(character, action),
-    getUnarmedStrikeConfig: () => getMonkWarriorOfTheElementsUnarmedStrikeConfig(character)
-  };
-};
+  return [
+    {
+      source: createSubclassContributionSource({
+        id: `${warriorOfTheElementsSubclassId}-elemental-attunement`,
+        label: elementalAttunementEffectName,
+        entryId: CLASS_FEATURE.ELEMENTAL_ATTUNEMENT
+      }),
+      actions: getFeatureActionByKey(featureActions, monkElementalAttunementActionKey),
+      weaponActionTransforms: [
+        {
+          id: `${warriorOfTheElementsSubclassId}-elemental-attunement-weapon-transform`,
+          transform: (_character: Character, action: unknown) =>
+            transformMonkWarriorOfTheElementsWeaponAction(character, action as WeaponAction)
+        }
+      ],
+      classMechanics: {
+        getUnarmedStrikeConfig: () => getMonkWarriorOfTheElementsUnarmedStrikeConfig(character)
+      }
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${warriorOfTheElementsSubclassId}-manipulate-elements`,
+        label: "Manipulate Elements",
+        entryId: CLASS_FEATURE.MANIPULATE_ELEMENTS
+      }),
+      alwaysPreparedSpellIds: manipulateElementsElementalismSpellIds
+    },
+    ...(hasMonkWarriorOfTheElementsElementalBurst(character)
+      ? [
+          {
+            source: createSubclassContributionSource({
+              id: `${warriorOfTheElementsSubclassId}-elemental-burst`,
+              label: "Elemental Burst",
+              entryId: CLASS_FEATURE.ELEMENTAL_BURST
+            }),
+            actions: getFeatureActionByKey(featureActions, monkElementalBurstActionKey)
+          }
+        ]
+      : []),
+    ...(hasMonkWarriorOfTheElementsStrideOfTheElements(character)
+      ? [
+          {
+            source: createSubclassContributionSource({
+              id: `${warriorOfTheElementsSubclassId}-stride-of-the-elements`,
+              label: strideOfTheElementsName,
+              entryId: CLASS_FEATURE.STRIDE_OF_THE_ELEMENTS
+            }),
+            speedBonuses: strideSpeedBonuses
+          }
+        ]
+      : []),
+    ...(hasMonkWarriorOfTheElementsElementalEpitome(character)
+      ? [
+          {
+            source: createSubclassContributionSource({
+              id: `${warriorOfTheElementsSubclassId}-elemental-epitome`,
+              label: elementalEpitomeName,
+              entryId: CLASS_FEATURE.ELEMENTAL_EPITOME
+            }),
+            statuses: getMonkWarriorOfTheElementsDerivedStatusEntries(character)
+          }
+        ]
+      : [])
+  ];
+}
+
+export const getMonkWarriorOfTheElementsDerivedFeatureState: SubclassRuntimeResolver = (
+  character
+) =>
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectMonkWarriorOfTheElementsContributions(character)),
+    {
+      character: character as Character
+    }
+  );

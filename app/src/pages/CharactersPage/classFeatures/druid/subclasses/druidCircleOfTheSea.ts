@@ -1,4 +1,4 @@
-import { DAMAGE_TYPE } from "../../../../../codex/entries";
+import { CLASS_FEATURE, DAMAGE_TYPE } from "../../../../../codex/entries";
 import {
   STATUS_DURATION_KIND,
   STATUS_ENTRY_GROUP,
@@ -6,6 +6,12 @@ import {
   type Character
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import { getPreparedSpellIdsByLevel, resolveSpellIdsByName } from "../../subclassRuntime";
@@ -250,17 +256,68 @@ function getCircleOfTheSeaStormbornEntries(character: Parameters<SubclassRuntime
   );
 }
 
+export function collectDruidCircleOfTheSeaContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
+  const speedBonuses = getCircleOfTheSeaSpeedBonuses(character);
+
+  return [
+    {
+      source: createSubclassContributionSource({
+        id: `${circleOfTheSeaSubclassId}-circle-spells`,
+        label: "Circle of the Sea Spells",
+        entryId: CLASS_FEATURE.CIRCLE_OF_THE_SEA_SPELLS
+      }),
+      alwaysPreparedSpellIds: getDruidCircleOfTheSeaSpellIdsForCharacter(character)
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${circleOfTheSeaSubclassId}-wrath-of-the-sea`,
+        label: "Wrath of the Sea",
+        entryId: CLASS_FEATURE.WRATH_OF_THE_SEA
+      }),
+      actions: getCircleOfTheSeaFeatureActions(character)
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${circleOfTheSeaSubclassId}-aquatic-affinity`,
+        label: "Aquatic Affinity",
+        entryId: CLASS_FEATURE.AQUATIC_AFFINITY
+      }),
+      speedBonuses: speedBonuses.filter((bonus) => bonus.label === "Aquatic Affinity")
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${circleOfTheSeaSubclassId}-stormborn`,
+        label: "Stormborn",
+        entryId: CLASS_FEATURE.STORMBORN
+      }),
+      speedBonuses: speedBonuses.filter((bonus) => bonus.label === "Stormborn"),
+      statuses: getCircleOfTheSeaStormbornEntries(character)
+    },
+    ...(character.className === "Druid" &&
+    character.subclassId === circleOfTheSeaSubclassId &&
+    (character.level ?? 0) >= 14
+      ? [
+          {
+            source: createSubclassContributionSource({
+              id: `${circleOfTheSeaSubclassId}-oceanic-gift`,
+              label: "Oceanic Gift",
+              entryId: CLASS_FEATURE.OCEANIC_GIFT
+            })
+          }
+        ]
+      : [])
+  ];
+}
+
 export const getDruidCircleOfTheSeaDerivedFeatureState: SubclassRuntimeResolver = (character) =>
-  character.className === "Druid" &&
-  character.subclassId === circleOfTheSeaSubclassId &&
-  (character.level ?? 0) >= 3
-    ? {
-        featureActions: getCircleOfTheSeaFeatureActions(character),
-        alwaysPreparedSpellIds: getDruidCircleOfTheSeaSpellIdsForCharacter(character),
-        speedBonuses: getCircleOfTheSeaSpeedBonuses(character),
-        derivedStatusEntries: getCircleOfTheSeaStormbornEntries(character)
-      }
-    : {};
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectDruidCircleOfTheSeaContributions(character)),
+    {
+      character: character as Character
+    }
+  );
 
 export function getDruidCircleOfTheSeaSpellIdsForCharacter(
   character: Parameters<SubclassRuntimeResolver>[0],

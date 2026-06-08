@@ -24,6 +24,12 @@ import {
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import { getProficiencyBonus } from "../../../gameplay";
@@ -233,40 +239,6 @@ function getTelekineticThrustDcFact(character: PsiWarriorCharacter): FeatureActi
     breakdown: `[${breakdown}]`,
     fullWidth: true
   };
-}
-
-function applyPsiWarriorWeaponDescriptionAdditions(
-  action: WeaponAction,
-  character: PsiWarriorCharacter
-): WeaponAction {
-  if (action.attackKind !== "weapon") {
-    return action;
-  }
-
-  let nextAction = action;
-
-  if (hasFighterPsiWarriorPsionicPower(character)) {
-    nextAction = appendWeaponDescriptionSection(
-      character,
-      nextAction,
-      CLASS_FEATURE.PSIONIC_POWER,
-      psiWarriorPsionicStrikeSource,
-      psiWarriorPsionicStrikeDescription
-    );
-  }
-
-  if (hasFighterPsiWarriorTelekineticAdept(character)) {
-    nextAction = appendWeaponDescriptionSection(
-      character,
-      nextAction,
-      CLASS_FEATURE.TELEKINETIC_ADEPT,
-      psiWarriorTelekineticThrustSource,
-      psiWarriorTelekineticThrustDescription
-    );
-    nextAction = appendWeaponFact(nextAction, getTelekineticThrustDcFact(character));
-  }
-
-  return nextAction;
 }
 
 function hasFighterPsiWarriorPsiPoweredLeapStatus(
@@ -1273,9 +1245,11 @@ function getFighterPsiWarriorDerivedStatusEntries(
   ];
 }
 
-export const getFighterPsiWarriorDerivedFeatureState: SubclassRuntimeResolver = (character) => {
+export function collectFighterPsiWarriorContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
   if (!hasFighterPsiWarriorPsionicPower(character)) {
-    return {};
+    return [];
   }
 
   const psiPoweredLeapAction = getFighterPsiWarriorPsiPoweredLeapAction(character);
@@ -1293,23 +1267,111 @@ export const getFighterPsiWarriorDerivedFeatureState: SubclassRuntimeResolver = 
       ]
     : [];
 
-  return {
-    featureActions: [psiPoweredLeapAction, telekineticMovementAction, bulwarkOfForceAction].filter(
-      (action): action is FeatureActionCard => action !== null
-    ),
-    alwaysPreparedSpellIds:
-      hasFighterPsiWarriorTelekineticMaster(character) && telekinesisSpellId
-        ? [telekinesisSpellId]
-        : [],
-    transformSpellEntry: hasFighterPsiWarriorTelekineticMaster(character)
-      ? (spell) => appendTelekineticMasterSpellDescription(character, spell)
-      : undefined,
-    reactionEntries: protectiveFieldReaction ? [protectiveFieldReaction] : [],
-    derivedStatusEntries: getFighterPsiWarriorDerivedStatusEntries(character),
-    speedBonuses,
-    transformWeaponAction:
-      hasFighterPsiWarriorPsionicPower(character) || hasFighterPsiWarriorTelekineticAdept(character)
-        ? (action) => applyPsiWarriorWeaponDescriptionAdditions(action, character)
-        : undefined
-  };
-};
+  return [
+    {
+      source: createSubclassContributionSource({
+        id: `${psiWarriorSubclassId}-psionic-power`,
+        label: "Psionic Power",
+        entryId: CLASS_FEATURE.PSIONIC_POWER
+      }),
+      actions: [telekineticMovementAction].filter(
+        (action): action is FeatureActionCard => action !== null
+      ),
+      reactions: protectiveFieldReaction ? [protectiveFieldReaction] : [],
+      weaponActionTransforms: [
+        {
+          id: `${psiWarriorSubclassId}-psionic-strike-weapon-action-transform`,
+          transform: (_character, action) =>
+            (action as WeaponAction).attackKind === "weapon"
+              ? appendWeaponDescriptionSection(
+                  character,
+                  action as WeaponAction,
+                  CLASS_FEATURE.PSIONIC_POWER,
+                  psiWarriorPsionicStrikeSource,
+                  psiWarriorPsionicStrikeDescription
+                )
+              : (action as WeaponAction)
+        }
+      ]
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${psiWarriorSubclassId}-telekinetic-adept`,
+        label: "Telekinetic Adept",
+        entryId: CLASS_FEATURE.TELEKINETIC_ADEPT
+      }),
+      actions: [psiPoweredLeapAction].filter(
+        (action): action is FeatureActionCard => action !== null
+      ),
+      speedBonuses,
+      weaponActionTransforms: hasFighterPsiWarriorTelekineticAdept(character)
+        ? [
+            {
+              id: `${psiWarriorSubclassId}-telekinetic-thrust-weapon-action-transform`,
+              transform: (_character, action) => {
+                if ((action as WeaponAction).attackKind !== "weapon") {
+                  return action as WeaponAction;
+                }
+
+                return appendWeaponFact(
+                  appendWeaponDescriptionSection(
+                    character,
+                    action as WeaponAction,
+                    CLASS_FEATURE.TELEKINETIC_ADEPT,
+                    psiWarriorTelekineticThrustSource,
+                    psiWarriorTelekineticThrustDescription
+                  ),
+                  getTelekineticThrustDcFact(character)
+                );
+              }
+            }
+          ]
+        : []
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${psiWarriorSubclassId}-guarded-mind`,
+        label: "Guarded Mind",
+        entryId: CLASS_FEATURE.GUARDED_MIND
+      }),
+      statuses: getFighterPsiWarriorDerivedStatusEntries(character)
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${psiWarriorSubclassId}-bulwark-of-force`,
+        label: "Bulwark of Force",
+        entryId: CLASS_FEATURE.BULWARK_OF_FORCE
+      }),
+      actions: [bulwarkOfForceAction].filter(
+        (action): action is FeatureActionCard => action !== null
+      )
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${psiWarriorSubclassId}-telekinetic-master`,
+        label: "Telekinetic Master",
+        entryId: CLASS_FEATURE.TELEKINETIC_MASTER
+      }),
+      alwaysPreparedSpellIds:
+        hasFighterPsiWarriorTelekineticMaster(character) && telekinesisSpellId
+          ? [telekinesisSpellId]
+          : [],
+      spellTransforms: hasFighterPsiWarriorTelekineticMaster(character)
+        ? [
+            {
+              id: `${psiWarriorSubclassId}-telekinetic-master-spell-transform`,
+              transform: (spell) => appendTelekineticMasterSpellDescription(character, spell)
+            }
+          ]
+        : []
+    }
+  ];
+}
+
+export const getFighterPsiWarriorDerivedFeatureState: SubclassRuntimeResolver = (character) =>
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectFighterPsiWarriorContributions(character)),
+    {
+      character: character as Character
+    }
+  );

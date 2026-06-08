@@ -148,11 +148,19 @@ export function getFighterWeaponAction(
   character: Pick<Character, "className" | "level">,
   action: WeaponAction
 ): WeaponAction {
+  return getFighterStudiedAttacksWeaponAction(
+    character,
+    getFighterTacticalMasterWeaponAction(character, action)
+  );
+}
+
+export function getFighterTacticalMasterWeaponAction(
+  character: Pick<Character, "className" | "level">,
+  action: WeaponAction
+): WeaponAction {
   if (action.attackKind !== "weapon" && action.attackKind !== "unarmed") {
     return action;
   }
-
-  let nextAction = action;
 
   if (
     action.attackKind === "weapon" &&
@@ -160,33 +168,43 @@ export function getFighterWeaponAction(
   ) {
     const tacticalMasterDescription = getFighterFeatureDescription(CLASS_FEATURE.TACTICAL_MASTER);
 
-    nextAction =
-      tacticalMasterDescription.length > 0
-        ? appendFeatureSourcedDescriptionAddition(
-            nextAction,
-            character,
-            CLASS_FEATURE.TACTICAL_MASTER,
-            tacticalMasterDescription,
-            "Tactical Master"
-          )
-        : nextAction;
+    return tacticalMasterDescription.length > 0
+      ? appendFeatureSourcedDescriptionAddition(
+          action,
+          character,
+          CLASS_FEATURE.TACTICAL_MASTER,
+          tacticalMasterDescription,
+          "Tactical Master"
+        )
+      : action;
+  }
+
+  return action;
+}
+
+export function getFighterStudiedAttacksWeaponAction(
+  character: Pick<Character, "className" | "level">,
+  action: WeaponAction
+): WeaponAction {
+  if (action.attackKind !== "weapon" && action.attackKind !== "unarmed") {
+    return action;
   }
 
   if (!hasFighterFeature(character, CLASS_FEATURE.STUDIED_ATTACKS)) {
-    return nextAction;
+    return action;
   }
 
   const studiedAttacksDescription = getFighterFeatureDescription(CLASS_FEATURE.STUDIED_ATTACKS);
 
   return studiedAttacksDescription.length > 0
     ? appendFeatureSourcedDescriptionAddition(
-        nextAction,
+        action,
         character,
         CLASS_FEATURE.STUDIED_ATTACKS,
         studiedAttacksDescription,
         "Studied Attacks"
       )
-    : nextAction;
+    : action;
 }
 
 function getFighterFeatureRow(level: number) {
@@ -212,7 +230,7 @@ function getUnlockedFighterFeatures(level: number): Set<CLASS_FEATURE> {
     }, new Set<CLASS_FEATURE>());
 }
 
-function hasFighterFeature(
+export function hasFighterFeature(
   character: Pick<Character, "className" | "level">,
   feature: CLASS_FEATURE
 ): boolean {

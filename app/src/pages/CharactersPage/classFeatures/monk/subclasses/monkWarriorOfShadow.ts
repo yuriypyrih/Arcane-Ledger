@@ -20,6 +20,12 @@ import {
 import type { DerivedFeatureStatusEntry, FeatureActionCard, FeatureIndicator } from "../../types";
 import { createHeaderTagsFromResources } from "../../cardUsage";
 import { resolveSpellIdsByName, type SubclassRuntimeResolver } from "../../subclassRuntime";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 
 export const warriorOfShadowSubclassId = "monk-warrior-of-shadow";
 export const monkShadowArtsDarknessActionKey = "monk-warrior-of-shadow-shadow-arts-darkness";
@@ -411,6 +417,13 @@ function appendImprovedShadowStepDescription(
     : action;
 }
 
+function getFeatureActionByKey(
+  actions: FeatureActionCard[],
+  actionKey: string
+): FeatureActionCard[] {
+  return actions.filter((action) => action.key === actionKey);
+}
+
 function getMonkWarriorOfShadowDerivedStatusEntries(
   character: MonkWarriorOfShadowCharacter
 ): DerivedFeatureStatusEntry[] {
@@ -567,18 +580,77 @@ function getMonkWarriorOfShadowFeatureActions(
   return actions;
 }
 
-export const getMonkWarriorOfShadowDerivedFeatureState: SubclassRuntimeResolver = (character) => {
+export function collectMonkWarriorOfShadowContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
   if (!hasMonkWarriorOfShadowArts(character)) {
-    return {};
+    return [];
   }
 
-  return {
-    derivedStatusEntries: getMonkWarriorOfShadowDerivedStatusEntries(character),
-    featureActions: getMonkWarriorOfShadowFeatureActions(character),
-    transformWeaponAction: (action) =>
-      hasMonkWarriorOfShadowStepAttackAdvantage(character)
-        ? appendShadowStepAdvantageIndicator(action)
-        : action,
-    alwaysPreparedSpellIds: shadowArtsMinorIllusionSpellIds
-  };
-};
+  const featureActions = getMonkWarriorOfShadowFeatureActions(character);
+
+  return [
+    {
+      source: createSubclassContributionSource({
+        id: `${warriorOfShadowSubclassId}-shadow-arts`,
+        label: "Shadow Arts",
+        entryId: CLASS_FEATURE.SHADOW_ARTS
+      }),
+      actions: getFeatureActionByKey(featureActions, monkShadowArtsDarknessActionKey),
+      statuses: getMonkWarriorOfShadowDerivedStatusEntries(character),
+      alwaysPreparedSpellIds: shadowArtsMinorIllusionSpellIds
+    },
+    ...(hasMonkWarriorOfShadowStep(character)
+      ? [
+          {
+            source: createSubclassContributionSource({
+              id: `${warriorOfShadowSubclassId}-shadow-step`,
+              label: "Shadow Step",
+              entryId: CLASS_FEATURE.SHADOW_STEP
+            }),
+            actions: getFeatureActionByKey(featureActions, monkShadowStepActionKey),
+            weaponActionTransforms: [
+              {
+                id: `${warriorOfShadowSubclassId}-shadow-step-advantage-transform`,
+                transform: (_character: Character, action: unknown) =>
+                  hasMonkWarriorOfShadowStepAttackAdvantage(character)
+                    ? appendShadowStepAdvantageIndicator(action as WeaponAction)
+                    : (action as WeaponAction)
+              }
+            ]
+          }
+        ]
+      : []),
+    ...(hasMonkWarriorOfShadowImprovedShadowStep(character)
+      ? [
+          {
+            source: createSubclassContributionSource({
+              id: `${warriorOfShadowSubclassId}-improved-shadow-step`,
+              label: "Improved Shadow Step",
+              entryId: CLASS_FEATURE.IMPROVED_SHADOW_STEP
+            })
+          }
+        ]
+      : []),
+    ...(hasMonkWarriorOfShadowCloakOfShadows(character)
+      ? [
+          {
+            source: createSubclassContributionSource({
+              id: `${warriorOfShadowSubclassId}-cloak-of-shadows`,
+              label: cloakOfShadowActionName,
+              entryId: CLASS_FEATURE.CLOAK_OF_SHADOWS
+            }),
+            actions: getFeatureActionByKey(featureActions, monkCloakOfShadowActionKey)
+          }
+        ]
+      : [])
+  ];
+}
+
+export const getMonkWarriorOfShadowDerivedFeatureState: SubclassRuntimeResolver = (character) =>
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectMonkWarriorOfShadowContributions(character)),
+    {
+      character: character as Character
+    }
+  );

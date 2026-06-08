@@ -34,6 +34,12 @@ import {
   normalizeCharacterStatusEntries
 } from "../../../statusEntries";
 import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
+import {
   createDefaultFeatureActionDescription,
   type SubclassRuntimeResolver
 } from "../../subclassRuntime";
@@ -505,68 +511,121 @@ export function restoreFighterBanneretGroupRecoveryOnLongRest(character: Charact
   return restoreFighterBanneretGroupRecoveryOnShortRest(character);
 }
 
-export const getFighterBanneretDerivedFeatureState: SubclassRuntimeResolver = (character) => {
+export function collectFighterBanneretContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
   if (
     character.className !== "Fighter" ||
     character.subclassId !== banneretSubclassId ||
     (character.level ?? 0) < 3
   ) {
-    return {};
+    return [];
   }
 
-  return {
-    alwaysPreparedSpellIds: [comprehendLanguagesSpellId],
-    ritualOnlySpellIds: [comprehendLanguagesSpellId],
-    languageProficiencyEntries: getFighterBanneretLanguageProficiencyEntries(character),
-    skillProficiencyEntries: getFighterBanneretSkillProficiencyEntries(character),
-    derivedStatusEntries: getFighterBanneretDerivedStatusEntries(character),
-    transformFeatureAction: (action) => {
-      const secondWindAction = appendFeatureDescriptionSections(
-        character,
-        action,
-        fighterSecondWindActionKey,
-        [
-          {
-            feature: CLASS_FEATURE.GROUP_RECOVERY,
-            sourceName: "Group Recovery",
-            descriptionEntries: getFighterBanneretGroupRecoveryDescriptionEntries(character)
-          },
-          ...(hasFighterBanneretTeamTactics(character)
-            ? [
-                {
-                  feature: CLASS_FEATURE.TEAM_TACTICS,
-                  sourceName: "Team Tactics",
-                  descriptionEntries: teamTacticsDescriptionEntries
-                }
-              ]
-            : [])
-        ]
-      );
+  const sharedResilience = getReactionEntryById("reaction-banneret-shared-resilience");
 
-      return appendFeatureDescriptionSections(
-        character,
-        secondWindAction,
-        fighterActionSurgeActionKey,
-        [
-          ...(hasFighterBanneretFeature(character, 10)
-            ? [
-                {
-                  feature: CLASS_FEATURE.RALLYING_SURGE,
-                  sourceName: "Rallying Surge",
-                  descriptionEntries: getFighterBanneretRallyingSurgeDescriptionEntries(character)
-                }
-              ]
-            : [])
-        ]
-      );
+  return [
+    {
+      source: createSubclassContributionSource({
+        id: `${banneretSubclassId}-knightly-envoy`,
+        label: "Knightly Envoy",
+        entryId: CLASS_FEATURE.KNIGHTLY_ENVOY
+      }),
+      alwaysPreparedSpellIds: [comprehendLanguagesSpellId],
+      ritualOnlySpellIds: [comprehendLanguagesSpellId],
+      languageProficiencyEntries: getFighterBanneretLanguageProficiencyEntries(character),
+      skillProficiencyEntries: getFighterBanneretSkillProficiencyEntries(character)
     },
-    reactionEntries: hasFighterBanneretSharedResilience(character)
-      ? (() => {
-          const sharedResilience = getReactionEntryById("reaction-banneret-shared-resilience");
-          return sharedResilience
-            ? [{ ...sharedResilience, description: sharedResilienceDescriptionEntries }]
-            : [];
-        })()
-      : undefined
-  };
-};
+    {
+      source: createSubclassContributionSource({
+        id: `${banneretSubclassId}-group-recovery`,
+        label: "Group Recovery",
+        entryId: CLASS_FEATURE.GROUP_RECOVERY
+      }),
+      featureActionTransforms: [
+        {
+          id: `${banneretSubclassId}-group-recovery-feature-action-transform`,
+          transform: (action) =>
+            appendFeatureDescriptionSections(character, action, fighterSecondWindActionKey, [
+              {
+                feature: CLASS_FEATURE.GROUP_RECOVERY,
+                sourceName: "Group Recovery",
+                descriptionEntries: getFighterBanneretGroupRecoveryDescriptionEntries(character)
+              }
+            ])
+        }
+      ]
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${banneretSubclassId}-team-tactics`,
+        label: "Team Tactics",
+        entryId: CLASS_FEATURE.TEAM_TACTICS
+      }),
+      featureActionTransforms: hasFighterBanneretTeamTactics(character)
+        ? [
+            {
+              id: `${banneretSubclassId}-team-tactics-feature-action-transform`,
+              transform: (action) =>
+                appendFeatureDescriptionSections(character, action, fighterSecondWindActionKey, [
+                  {
+                    feature: CLASS_FEATURE.TEAM_TACTICS,
+                    sourceName: "Team Tactics",
+                    descriptionEntries: teamTacticsDescriptionEntries
+                  }
+                ])
+            }
+          ]
+        : []
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${banneretSubclassId}-rallying-surge`,
+        label: "Rallying Surge",
+        entryId: CLASS_FEATURE.RALLYING_SURGE
+      }),
+      featureActionTransforms: hasFighterBanneretFeature(character, 10)
+        ? [
+            {
+              id: `${banneretSubclassId}-rallying-surge-feature-action-transform`,
+              transform: (action) =>
+                appendFeatureDescriptionSections(character, action, fighterActionSurgeActionKey, [
+                  {
+                    feature: CLASS_FEATURE.RALLYING_SURGE,
+                    sourceName: "Rallying Surge",
+                    descriptionEntries: getFighterBanneretRallyingSurgeDescriptionEntries(character)
+                  }
+                ])
+            }
+          ]
+        : []
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${banneretSubclassId}-shared-resilience`,
+        label: "Shared Resilience",
+        entryId: CLASS_FEATURE.SHARED_RESILIENCE
+      }),
+      reactions:
+        hasFighterBanneretSharedResilience(character) && sharedResilience
+          ? [{ ...sharedResilience, description: sharedResilienceDescriptionEntries }]
+          : []
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${banneretSubclassId}-inspiring-commander`,
+        label: "Inspiring Commander",
+        entryId: CLASS_FEATURE.INSPIRING_COMMANDER
+      }),
+      statuses: getFighterBanneretDerivedStatusEntries(character)
+    }
+  ];
+}
+
+export const getFighterBanneretDerivedFeatureState: SubclassRuntimeResolver = (character) =>
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectFighterBanneretContributions(character)),
+    {
+      character: character as Character
+    }
+  );

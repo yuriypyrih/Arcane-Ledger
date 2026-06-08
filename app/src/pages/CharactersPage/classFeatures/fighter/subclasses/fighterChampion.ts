@@ -5,6 +5,12 @@ import {
 } from "../../../../../codex/subclasses/fighterChampion";
 import { SKILL, type Character } from "../../../../../types";
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import { restoreHeroicInspirationForCharacter } from "../../../heroicInspiration";
 import type { WeaponAction } from "../../../gameplay";
@@ -110,9 +116,11 @@ function getRemarkableAthleteCriticalHitDescription(
   );
 }
 
-export const getFighterChampionDerivedFeatureState: SubclassRuntimeResolver = (character) => {
+export function collectFighterChampionContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
   if (!hasFighterChampionImprovedCritical(character)) {
-    return {};
+    return [];
   }
 
   const criticalFeatureSource = hasFighterChampionSuperiorCritical(character)
@@ -128,25 +136,74 @@ export const getFighterChampionDerivedFeatureState: SubclassRuntimeResolver = (c
     ? getRemarkableAthleteCriticalHitDescription(character)
     : [];
 
-  return {
-    coreStatIndicators: getFighterChampionCoreStatIndicators(character),
-    skillIndicators: getFighterChampionSkillIndicators(character),
-    transformWeaponAction: (action) =>
-      appendWeaponDescriptionSection(
-        character,
-        appendWeaponDescriptionSection(
-          character,
-          action,
-          criticalFeature,
-          criticalFeatureDescription,
-          criticalFeatureSource
-        ),
-        CLASS_FEATURE.REMARKABLE_ATHLETE,
-        remarkableAthleteDescription,
-        remarkableAthleteSource
-      )
-  };
+  return [
+    {
+      source: createSubclassContributionSource({
+        id: `${championSubclassId}-${criticalFeature.toLowerCase().replace(/_/g, "-")}`,
+        label: criticalFeatureSource,
+        entryId: criticalFeature
+      }),
+      weaponActionTransforms: [
+        {
+          id: `${championSubclassId}-critical-weapon-action-transform`,
+          transform: (_character, action) =>
+            appendWeaponDescriptionSection(
+              character,
+              action as WeaponAction,
+              criticalFeature,
+              criticalFeatureDescription,
+              criticalFeatureSource
+            )
+        }
+      ]
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${championSubclassId}-remarkable-athlete`,
+        label: "Remarkable Athlete",
+        entryId: CLASS_FEATURE.REMARKABLE_ATHLETE
+      }),
+      coreStatIndicators: getFighterChampionCoreStatIndicators(character),
+      skillIndicators: getFighterChampionSkillIndicators(character),
+      weaponActionTransforms: [
+        {
+          id: `${championSubclassId}-remarkable-athlete-weapon-action-transform`,
+          transform: (_character, action) =>
+            appendWeaponDescriptionSection(
+              character,
+              action as WeaponAction,
+              CLASS_FEATURE.REMARKABLE_ATHLETE,
+              remarkableAthleteDescription,
+              remarkableAthleteSource
+            )
+        }
+      ]
+    },
+    ...(hasFighterChampionHeroicWarrior({
+      className: character.className,
+      subclassId: character.subclassId ?? "",
+      level: character.level ?? 0
+    })
+      ? [
+          {
+            source: createSubclassContributionSource({
+              id: `${championSubclassId}-heroic-warrior`,
+              label: "Heroic Warrior",
+              entryId: CLASS_FEATURE.HEROIC_WARRIOR
+            })
+          }
+        ]
+      : [])
+  ];
 };
+
+export const getFighterChampionDerivedFeatureState: SubclassRuntimeResolver = (character) =>
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectFighterChampionContributions(character)),
+    {
+      character: character as Character
+    }
+  );
 
 export function advanceFighterChampionFeaturesForNewRound(character: Character): Character {
   if (!hasFighterChampionHeroicWarrior(character) || character.heroicInspiration) {

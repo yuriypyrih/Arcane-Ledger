@@ -17,6 +17,12 @@ import {
 import type { WeaponAction } from "../../../gameplay";
 import type { FeatureActionCard, FeatureActionFact } from "../../types";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 
 export const warriorOfTheOpenHandSubclassId = "monk-warrior-of-the-open-hand";
 export const monkWholenessOfBodyActionKey = "monk-warrior-of-the-open-hand-wholeness-of-body";
@@ -528,49 +534,109 @@ function getMonkWarriorOfTheOpenHandFeatureActions(
   return actions;
 }
 
-export const getMonkWarriorOfTheOpenHandDerivedFeatureState: SubclassRuntimeResolver = (
-  character
-) => {
+export function collectMonkWarriorOfTheOpenHandContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
   if (!hasMonkWarriorOfTheOpenHandTechnique(character)) {
-    return {};
+    return [];
   }
 
-  return {
-    featureActions: getMonkWarriorOfTheOpenHandFeatureActions(character),
-    transformFeatureAction: (action) =>
-      action.key === monkFlurryOfBlowsActionKey
-        ? appendFeatureSourcedDescriptionAddition(
-            action,
-            character,
-            CLASS_FEATURE.OPEN_HAND_TECHNIQUE,
-            openHandTechniqueDescription,
-            openHandTechniqueName
-          )
-        : action,
-    transformWeaponAction: (action) => {
-      if (!isOpenHandUnarmedStrikeAction(action)) {
-        return action;
-      }
+  return [
+    {
+      source: createSubclassContributionSource({
+        id: `${warriorOfTheOpenHandSubclassId}-open-hand-technique`,
+        label: openHandTechniqueName,
+        entryId: CLASS_FEATURE.OPEN_HAND_TECHNIQUE
+      }),
+      featureActionTransforms: [
+        {
+          id: `${warriorOfTheOpenHandSubclassId}-open-hand-technique-flurry-transform`,
+          transform: (action) =>
+            action.key === monkFlurryOfBlowsActionKey
+              ? appendFeatureSourcedDescriptionAddition(
+                  action,
+                  character,
+                  CLASS_FEATURE.OPEN_HAND_TECHNIQUE,
+                  openHandTechniqueDescription,
+                  openHandTechniqueName
+                )
+              : action
+        }
+      ],
+      weaponActionTransforms: [
+        {
+          id: `${warriorOfTheOpenHandSubclassId}-open-hand-technique-weapon-transform`,
+          transform: (_character: Character, action: unknown) =>
+            isOpenHandUnarmedStrikeAction(action as OpenHandWeaponAction)
+              ? appendFeatureSourcedDescriptionAddition(
+                  action as WeaponAction,
+                  character,
+                  CLASS_FEATURE.OPEN_HAND_TECHNIQUE,
+                  openHandTechniqueDescription,
+                  openHandTechniqueName
+                )
+              : (action as WeaponAction)
+        }
+      ]
+    },
+    ...(hasMonkWarriorOfTheOpenHandWholenessOfBody(character)
+      ? [
+          {
+            source: createSubclassContributionSource({
+              id: `${warriorOfTheOpenHandSubclassId}-wholeness-of-body`,
+              label: wholenessOfBodyActionName,
+              entryId: CLASS_FEATURE.WHOLENESS_OF_BODY
+            }),
+            actions: getMonkWarriorOfTheOpenHandFeatureActions(character)
+          }
+        ]
+      : []),
+    ...(hasMonkWarriorOfTheOpenHandFleetStep(character)
+      ? [
+          {
+            source: createSubclassContributionSource({
+              id: `${warriorOfTheOpenHandSubclassId}-fleet-step`,
+              label: "Fleet Step",
+              entryId: CLASS_FEATURE.FLEET_STEP
+            })
+          }
+        ]
+      : []),
+    ...(hasMonkWarriorOfTheOpenHandQuiveringPalm(character)
+      ? [
+          {
+            source: createSubclassContributionSource({
+              id: `${warriorOfTheOpenHandSubclassId}-quivering-palm`,
+              label: quiveringPalmEffectName,
+              entryId: CLASS_FEATURE.QUIVERING_PALM
+            }),
+            weaponActionTransforms: [
+              {
+                id: `${warriorOfTheOpenHandSubclassId}-quivering-palm-weapon-transform`,
+                transform: (_character: Character, action: unknown) =>
+                  isOpenHandUnarmedStrikeAction(action as OpenHandWeaponAction)
+                    ? appendFeatureSourcedDescriptionAddition(
+                        action as WeaponAction,
+                        character,
+                        CLASS_FEATURE.QUIVERING_PALM,
+                        quiveringPalmDescription,
+                        quiveringPalmEffectName
+                      )
+                    : (action as WeaponAction)
+              }
+            ]
+          }
+        ]
+      : [])
+  ];
+}
 
-      let nextAction = appendFeatureSourcedDescriptionAddition(
-        action,
-        character,
-        CLASS_FEATURE.OPEN_HAND_TECHNIQUE,
-        openHandTechniqueDescription,
-        openHandTechniqueName
-      );
-
-      if (hasMonkWarriorOfTheOpenHandQuiveringPalm(character)) {
-        nextAction = appendFeatureSourcedDescriptionAddition(
-          nextAction,
-          character,
-          CLASS_FEATURE.QUIVERING_PALM,
-          quiveringPalmDescription,
-          quiveringPalmEffectName
-        );
-      }
-
-      return nextAction;
+export const getMonkWarriorOfTheOpenHandDerivedFeatureState: SubclassRuntimeResolver = (
+  character
+) =>
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectMonkWarriorOfTheOpenHandContributions(character)),
+    {
+      character: character as Character
     }
-  };
-};
+  );

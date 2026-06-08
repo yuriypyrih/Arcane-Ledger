@@ -1,6 +1,5 @@
 import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../codex/entries";
 import type { AbilityKey, Character, CoreStats } from "../../../types";
-import { createFeatureSourcedDescriptionEntries } from "../actionModalDescriptions";
 import {
   getArmorClassResolutionForCharacter,
   type ArmorClassBreakdown,
@@ -13,6 +12,7 @@ import {
 import { getArtificerCartographerPortalJumpSpeedDescriptionAdditions } from "../classFeatures/artificer/artificer";
 import { getFeatureDescriptionForCharacter } from "../classFeatures/featureDescriptions";
 import { getInitiativeReferenceDescriptionAdditions } from "../classFeatures/initiativeDescriptionSections";
+import { getMonkFeatureDescriptionAdditions } from "../classFeatures/monk/contributions";
 import { createDefaultCoreStats } from "../constants";
 import { formatCustomTraitBonusFormulaTerm } from "../customTraitEffects";
 import {
@@ -362,22 +362,9 @@ function getArmorClassDescriptionAdditions(character: Character): SpellDescripti
 }
 
 function getSpeedDescriptionAdditions(character: Character): SpellDescriptionEntry[][] {
-  const acrobaticMovementDescription = getFeatureDescriptionForCharacter(
-    character,
-    CLASS_FEATURE.ACROBATIC_MOVEMENT
-  );
-  const descriptionAdditions: SpellDescriptionEntry[][] = [];
-
-  if (acrobaticMovementDescription.length > 0) {
-    descriptionAdditions.push(
-      createFeatureSourcedDescriptionEntries(
-        character,
-        CLASS_FEATURE.ACROBATIC_MOVEMENT,
-        acrobaticMovementDescription,
-        "Acrobatic Movement"
-      )
-    );
-  }
+  const descriptionAdditions: SpellDescriptionEntry[][] = [
+    ...getMonkFeatureDescriptionAdditions(character, "stat", "speed")
+  ];
 
   descriptionAdditions.push(...getAthleteSpeedDescriptionAdditionsForCharacter(character));
   descriptionAdditions.push(

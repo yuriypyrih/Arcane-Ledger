@@ -17,6 +17,12 @@ import {
   createHeaderTagsFromResources
 } from "../../cardUsage";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import type { FeatureActionCard, FeatureActionFact } from "../../types";
 
@@ -704,19 +710,90 @@ function getFighterBattleMasterKnowYourEnemyAction(
   };
 }
 
-export const getFighterBattleMasterDerivedFeatureState: SubclassRuntimeResolver = (character) => {
+export function collectFighterBattleMasterContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
   const combatSuperiorityAction = getFighterBattleMasterCombatSuperiorityAction(character);
   const knowYourEnemyAction = getFighterBattleMasterKnowYourEnemyAction(character);
-  const featureActions = [combatSuperiorityAction, knowYourEnemyAction].filter(
-    (action): action is FeatureActionCard => action !== null
-  );
 
-  return featureActions.length > 0
-    ? {
-        featureActions
-      }
-    : {};
-};
+  return [
+    {
+      source: createSubclassContributionSource({
+        id: `${battleMasterSubclassId}-combat-superiority`,
+        label: "Combat Superiority",
+        entryId: CLASS_FEATURE.COMBAT_SUPERIORITY
+      }),
+      actions: [combatSuperiorityAction].filter(
+        (action): action is FeatureActionCard => action !== null
+      )
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${battleMasterSubclassId}-student-of-war`,
+        label: "Student of War",
+        entryId: CLASS_FEATURE.STUDENT_OF_WAR
+      })
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${battleMasterSubclassId}-maneuver-options`,
+        label: "Maneuver Options",
+        entryId: CLASS_FEATURE.MANEUVER_OPTIONS
+      })
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${battleMasterSubclassId}-know-your-enemy`,
+        label: "Know Your Enemy",
+        entryId: CLASS_FEATURE.KNOW_YOUR_ENEMY
+      }),
+      actions: [knowYourEnemyAction].filter(
+        (action): action is FeatureActionCard => action !== null
+      )
+    },
+    ...(hasFighterBattleMasterFeature(character, 10)
+      ? [
+          {
+            source: createSubclassContributionSource({
+              id: `${battleMasterSubclassId}-improved-combat-superiority`,
+              label: "Improved Combat Superiority",
+              entryId: CLASS_FEATURE.IMPROVED_COMBAT_SUPERIORITY
+            })
+          }
+        ]
+      : []),
+    ...(hasFighterBattleMasterRelentless(character)
+      ? [
+          {
+            source: createSubclassContributionSource({
+              id: `${battleMasterSubclassId}-relentless`,
+              label: "Relentless",
+              entryId: CLASS_FEATURE.RELENTLESS
+            })
+          }
+        ]
+      : []),
+    ...(hasFighterBattleMasterFeature(character, 18)
+      ? [
+          {
+            source: createSubclassContributionSource({
+              id: `${battleMasterSubclassId}-ultimate-combat-superiority`,
+              label: "Ultimate Combat Superiority",
+              entryId: CLASS_FEATURE.ULTIMATE_COMBAT_SUPERIORITY
+            })
+          }
+        ]
+      : [])
+  ];
+}
+
+export const getFighterBattleMasterDerivedFeatureState: SubclassRuntimeResolver = (character) =>
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectFighterBattleMasterContributions(character)),
+    {
+      character: character as Character
+    }
+  );
 
 export function advanceFighterBattleMasterFeaturesForNewRound(character: Character): Character {
   return clearFighterBattleMasterCombatSuperiorityUsed(character);

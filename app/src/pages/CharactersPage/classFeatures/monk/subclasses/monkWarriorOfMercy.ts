@@ -25,6 +25,12 @@ import type {
 } from "../../types";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import type { WeaponAction } from "../../../gameplay";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 
 export const warriorOfMercySubclassId = "monk-warrior-of-mercy";
 export const monkWarriorOfMercyHandOfHarmBonusLabel = "Hand of Harm";
@@ -133,6 +139,13 @@ function appendFeatureActionDescriptionEntries(
     descriptionEntries,
     sourceName
   );
+}
+
+function getFeatureActionByKey(
+  actions: FeatureActionCard[],
+  actionKey: string
+): FeatureActionCard[] {
+  return actions.filter((action) => action.key === actionKey);
 }
 
 function getRawWisdomModifier(character: Partial<Pick<Character, "abilities">>): number | null {
@@ -832,68 +845,152 @@ export function getMonkWarriorOfMercySkillProficiencyEntries(
     .filter((entry): entry is FeatureSkillProficiencyEntry => entry !== null);
 }
 
-export const getMonkWarriorOfMercyDerivedFeatureState: SubclassRuntimeResolver = (character) => {
+export function collectMonkWarriorOfMercyContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
   if (!hasMonkWarriorOfMercyHandOfHarm(character)) {
-    return {};
+    return [];
   }
 
-  return {
-    featureActions: getMonkWarriorOfMercyFeatureActions(character),
-    transformFeatureAction: (action) => {
-      let nextAction = appendFeatureActionDescriptionEntries(
-        character,
-        action,
-        monkFlurryOfBlowsActionKey,
-        CLASS_FEATURE.HAND_OF_HEALING,
-        handOfHealingSource,
-        handOfHealingFlurryDescription
-      );
+  const featureActions = getMonkWarriorOfMercyFeatureActions(character);
 
-      if (hasMonkWarriorOfMercyFlurryOfHealingAndHarm(character)) {
-        nextAction = appendFeatureActionDescriptionEntries(
-          character,
-          nextAction,
-          monkFlurryOfBlowsActionKey,
-          CLASS_FEATURE.FLURRY_OF_HEALING_AND_HARM,
-          flurryOfHealingAndHarmSource,
-          flurryOfHealingAndHarmDescription
-        );
-      }
-
-      return hasMonkWarriorOfMercyPhysiciansTouch(character)
-        ? appendFeatureActionDescriptionEntries(
-            character,
-            nextAction,
-            monkHandOfHealingActionKey,
-            CLASS_FEATURE.PHYSICIANS_TOUCH,
-            "Physician's Touch: Hand of Healing",
-            physiciansTouchHandOfHealingDescription
-          )
-        : nextAction;
+  return [
+    {
+      source: createSubclassContributionSource({
+        id: `${warriorOfMercySubclassId}-hand-of-harm`,
+        label: "Hand of Harm",
+        entryId: CLASS_FEATURE.HAND_OF_HARM
+      }),
+      weaponActionTransforms: [
+        {
+          id: `${warriorOfMercySubclassId}-hand-of-harm-weapon-transform`,
+          transform: (_character: Character, action: unknown) =>
+            isMercyUnarmedStrikeAction(action as MercyWeaponAction)
+              ? appendWeaponDescriptionSection(
+                  character,
+                  action as WeaponAction,
+                  CLASS_FEATURE.HAND_OF_HARM,
+                  "Hand of Harm",
+                  handOfHarmDescription
+                )
+              : (action as WeaponAction)
+        }
+      ]
     },
-    skillProficiencyEntries: getMonkWarriorOfMercySkillProficiencyEntries(character),
-    transformWeaponAction: (action) => {
-      if (!isMercyUnarmedStrikeAction(action)) {
-        return action;
-      }
+    {
+      source: createSubclassContributionSource({
+        id: `${warriorOfMercySubclassId}-hand-of-healing`,
+        label: handOfHealingSource,
+        entryId: CLASS_FEATURE.HAND_OF_HEALING
+      }),
+      actions: getFeatureActionByKey(featureActions, monkHandOfHealingActionKey),
+      featureActionTransforms: [
+        {
+          id: `${warriorOfMercySubclassId}-hand-of-healing-flurry-transform`,
+          transform: (action) =>
+            appendFeatureActionDescriptionEntries(
+              character,
+              action,
+              monkFlurryOfBlowsActionKey,
+              CLASS_FEATURE.HAND_OF_HEALING,
+              handOfHealingSource,
+              handOfHealingFlurryDescription
+            )
+        }
+      ]
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${warriorOfMercySubclassId}-implements-of-mercy`,
+        label: implementsOfMercySource,
+        entryId: CLASS_FEATURE.IMPLEMENTS_OF_MERCY
+      }),
+      skillProficiencyEntries: getMonkWarriorOfMercySkillProficiencyEntries(character)
+    },
+    ...(hasMonkWarriorOfMercyPhysiciansTouch(character)
+      ? [
+          {
+            source: createSubclassContributionSource({
+              id: `${warriorOfMercySubclassId}-physicians-touch`,
+              label: "Physician's Touch",
+              entryId: CLASS_FEATURE.PHYSICIANS_TOUCH
+            }),
+            featureActionTransforms: [
+              {
+                id: `${warriorOfMercySubclassId}-physicians-touch-hand-of-healing-transform`,
+                transform: (action: FeatureActionCard) =>
+                  appendFeatureActionDescriptionEntries(
+                    character,
+                    action,
+                    monkHandOfHealingActionKey,
+                    CLASS_FEATURE.PHYSICIANS_TOUCH,
+                    "Physician's Touch: Hand of Healing",
+                    physiciansTouchHandOfHealingDescription
+                  )
+              }
+            ],
+            weaponActionTransforms: [
+              {
+                id: `${warriorOfMercySubclassId}-physicians-touch-hand-of-harm-transform`,
+                transform: (_character: Character, action: unknown) =>
+                  isMercyUnarmedStrikeAction(action as MercyWeaponAction)
+                    ? appendWeaponDescriptionSection(
+                        character,
+                        action as WeaponAction,
+                        CLASS_FEATURE.PHYSICIANS_TOUCH,
+                        "Physician's Touch: Hand of Harm",
+                        physiciansTouchHandOfHarmDescription
+                      )
+                    : (action as WeaponAction)
+              }
+            ]
+          }
+        ]
+      : []),
+    ...(hasMonkWarriorOfMercyFlurryOfHealingAndHarm(character)
+      ? [
+          {
+            source: createSubclassContributionSource({
+              id: `${warriorOfMercySubclassId}-flurry-of-healing-and-harm`,
+              label: flurryOfHealingAndHarmSource,
+              entryId: CLASS_FEATURE.FLURRY_OF_HEALING_AND_HARM
+            }),
+            featureActionTransforms: [
+              {
+                id: `${warriorOfMercySubclassId}-flurry-of-healing-and-harm-transform`,
+                transform: (action: FeatureActionCard) =>
+                  appendFeatureActionDescriptionEntries(
+                    character,
+                    action,
+                    monkFlurryOfBlowsActionKey,
+                    CLASS_FEATURE.FLURRY_OF_HEALING_AND_HARM,
+                    flurryOfHealingAndHarmSource,
+                    flurryOfHealingAndHarmDescription
+                  )
+              }
+            ]
+          }
+        ]
+      : []),
+    ...(hasMonkWarriorOfMercyHandOfUltimateMercy(character)
+      ? [
+          {
+            source: createSubclassContributionSource({
+              id: `${warriorOfMercySubclassId}-hand-of-ultimate-mercy`,
+              label: handOfUltimateJusticeActionName,
+              entryId: CLASS_FEATURE.HAND_OF_ULTIMATE_MERCY
+            }),
+            actions: getFeatureActionByKey(featureActions, monkHandOfUltimateJusticeActionKey)
+          }
+        ]
+      : [])
+  ];
+}
 
-      const actionWithHandOfHarm = appendWeaponDescriptionSection(
-        character,
-        action,
-        CLASS_FEATURE.HAND_OF_HARM,
-        "Hand of Harm",
-        handOfHarmDescription
-      );
-
-      return hasMonkWarriorOfMercyPhysiciansTouch(character)
-        ? appendWeaponDescriptionSection(
-            character,
-            actionWithHandOfHarm,
-            CLASS_FEATURE.PHYSICIANS_TOUCH,
-            "Physician's Touch: Hand of Harm",
-            physiciansTouchHandOfHarmDescription
-          )
-        : actionWithHandOfHarm;
+export const getMonkWarriorOfMercyDerivedFeatureState: SubclassRuntimeResolver = (character) =>
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectMonkWarriorOfMercyContributions(character)),
+    {
+      character: character as Character
     }
-  };
-};
+  );

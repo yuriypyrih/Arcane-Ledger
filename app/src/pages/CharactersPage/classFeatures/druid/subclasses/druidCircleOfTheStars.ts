@@ -20,6 +20,12 @@ import {
   getAbilityModifierForCharacter
 } from "../../../abilities";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import type {
   DerivedFeatureStatusEntry,
   FeatureActionCard,
@@ -795,28 +801,72 @@ function getCircleOfTheStarsFullOfStarsDerivedStatusEntries(
   );
 }
 
+export function collectDruidCircleOfTheStarsContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
+  return [
+    {
+      source: createSubclassContributionSource({
+        id: `${circleOfTheStarsSubclassId}-star-map`,
+        label: "Star Map",
+        entryId: CLASS_FEATURE.STAR_MAP
+      }),
+      alwaysPreparedSpellIds: getCircleOfTheStarsAlwaysPreparedSpellIds(character),
+      spellTransforms: [
+        {
+          id: `${circleOfTheStarsSubclassId}-star-map-guiding-bolt-spell-transform`,
+          transform: (spell) =>
+            getDruidCircleOfTheStarsGuidingBoltSpellEntry(
+              {
+                className: character.className,
+                level: character.level ?? 0,
+                subclassId: character.subclassId
+              },
+              spell
+            )
+        }
+      ]
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${circleOfTheStarsSubclassId}-starry-form`,
+        label: "Starry Form",
+        entryId: CLASS_FEATURE.STARRY_FORM
+      }),
+      actions: getCircleOfTheStarsFeatureActions(character),
+      weaponActions: getCircleOfTheStarsWeaponActions(character)
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${circleOfTheStarsSubclassId}-cosmic-omen`,
+        label: "Cosmic Omen",
+        entryId: CLASS_FEATURE.COSMIC_OMEN
+      }),
+      reactions: getCircleOfTheStarsReactionEntries(character)
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${circleOfTheStarsSubclassId}-twinkling-constellations`,
+        label: "Twinkling Constellations",
+        entryId: CLASS_FEATURE.TWINKLING_CONSTELLATIONS
+      }),
+      speedBonuses: getCircleOfTheStarsSpeedBonuses(character)
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${circleOfTheStarsSubclassId}-full-of-stars`,
+        label: "Full of Stars",
+        entryId: CLASS_FEATURE.FULL_OF_STARS
+      }),
+      statuses: getCircleOfTheStarsFullOfStarsDerivedStatusEntries(character)
+    }
+  ];
+}
+
 export const getDruidCircleOfTheStarsDerivedFeatureState: SubclassRuntimeResolver = (character) =>
-  hasDruidStarMapFeature({
-    className: character.className,
-    level: character.level ?? 0,
-    subclassId: character.subclassId,
-    abilities: character.abilities
-  })
-    ? {
-        featureActions: getCircleOfTheStarsFeatureActions(character),
-        weaponActions: getCircleOfTheStarsWeaponActions(character),
-        reactionEntries: getCircleOfTheStarsReactionEntries(character),
-        alwaysPreparedSpellIds: getCircleOfTheStarsAlwaysPreparedSpellIds(character),
-        speedBonuses: getCircleOfTheStarsSpeedBonuses(character),
-        derivedStatusEntries: getCircleOfTheStarsFullOfStarsDerivedStatusEntries(character),
-        transformSpellEntry: (spell) =>
-          getDruidCircleOfTheStarsGuidingBoltSpellEntry(
-            {
-              className: character.className,
-              level: character.level ?? 0,
-              subclassId: character.subclassId
-            },
-            spell
-          )
-      }
-    : {};
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectDruidCircleOfTheStarsContributions(character)),
+    {
+      character: character as Character
+    }
+  );

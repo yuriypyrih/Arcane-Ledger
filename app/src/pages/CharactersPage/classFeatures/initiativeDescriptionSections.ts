@@ -8,7 +8,7 @@ import { hasFeatForCharacter } from "../feats/runtime";
 import { getFeatDefinition } from "../feats";
 import { getBarbarianFeatureDescriptionAdditions } from "./barbarian/contributions";
 import { getFeatureDescriptionForCharacter } from "./featureDescriptions";
-import { getMonkInitiativeDescriptionAdditions } from "./monk/monkDescriptionSections";
+import { getMonkFeatureDescriptionAdditions } from "./monk/contributions";
 import { getRogueThiefInitiativeDescriptionAdditions } from "./rogue/subclasses/rogueThief";
 
 type InitiativeDescriptionCharacter = Character;
@@ -85,7 +85,7 @@ export function getInitiativeReferenceDescriptionAdditions(
     ...getAlertInitiativeDescriptionAdditions(character),
     ...getBarbarianFeatureDescriptionAdditions(character, "initiative"),
     ...getBardInitiativeDescriptionAdditions(character),
-    ...getMonkInitiativeDescriptionAdditions(character),
+    ...getMonkFeatureDescriptionAdditions(character, "initiative"),
     ...getRogueThiefInitiativeDescriptionAdditions(character)
   ];
 }
