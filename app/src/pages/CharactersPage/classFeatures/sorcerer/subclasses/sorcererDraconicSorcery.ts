@@ -8,6 +8,12 @@ import {
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
 import {
   createChargesAndUsageHeaderTags,
@@ -466,21 +472,128 @@ function getSorcererDraconicElementalAffinityDerivedStatusEntries(
   ];
 }
 
+function getFeatureActionByKey(
+  actions: FeatureActionCard[],
+  actionKey: string
+): FeatureActionCard[] {
+  return actions.filter((action) => action.key === actionKey);
+}
+
+function createSorcererDraconicLocalHookContribution(input: {
+  id: string;
+  label: string;
+  entryId: CLASS_FEATURE;
+}): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource(input)
+  };
+}
+
+function createSorcererDraconicResilienceContribution(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "sorcerer-draconic-sorcery-draconic-resilience",
+      label: "Draconic Resilience",
+      entryId: CLASS_FEATURE.DRACONIC_RESILIENCE
+    }),
+    hitPointMaximumBonus: getSorcererDraconicResilienceHitPointMaximumBonus(character),
+    armorClassModes: [
+      {
+        id: "sorcerer-draconic-sorcery-draconic-resilience-ac-mode",
+        getModes: (context) => getSorcererDraconicResilienceArmorClassModes(character, context)
+      }
+    ]
+  };
+}
+
+function createSorcererDraconicSpellsContribution(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "sorcerer-draconic-sorcery-draconic-spells",
+      label: "Draconic Spells",
+      entryId: CLASS_FEATURE.DRACONIC_SPELLS
+    }),
+    alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
+      character.level ?? 0,
+      draconicSorcerySpellIdsByLevel
+    )
+  };
+}
+
+function createSorcererDraconicElementalAffinityContribution(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "sorcerer-draconic-sorcery-elemental-affinity",
+      label: elementalAffinityName,
+      entryId: CLASS_FEATURE.ELEMENTAL_AFFINITY
+    }),
+    statuses: getSorcererDraconicElementalAffinityDerivedStatusEntries(character)
+  };
+}
+
+function createSorcererDraconicDragonWingsContribution(
+  character: Parameters<SubclassRuntimeResolver>[0],
+  featureActions: FeatureActionCard[]
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "sorcerer-draconic-sorcery-dragon-wings",
+      label: dragonWingsName,
+      entryId: CLASS_FEATURE.DRAGON_WINGS
+    }),
+    actions: getFeatureActionByKey(featureActions, sorcererDragonWingsActionKey),
+    speedBonuses: getSorcererDragonWingsSpeedBonuses(character)
+  };
+}
+
+function collectSorcererDraconicSorceryContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
+  if (!hasSorcererDraconicResilienceFeature(character)) {
+    return [];
+  }
+
+  const featureActions = [getSorcererDragonWingsAction(character)].filter(
+    (action): action is FeatureActionCard => action !== null
+  );
+  const contributions: FeatureContributionSpec[] = [
+    createSorcererDraconicResilienceContribution(character),
+    createSorcererDraconicSpellsContribution(character)
+  ];
+
+  if (hasSorcererDraconicElementalAffinityFeature(character)) {
+    contributions.push(createSorcererDraconicElementalAffinityContribution(character));
+  }
+
+  if (hasSorcererDragonWingsFeature(character)) {
+    contributions.push(createSorcererDraconicDragonWingsContribution(character, featureActions));
+  }
+
+  if ((character.level ?? 0) >= 18) {
+    contributions.push(
+      createSorcererDraconicLocalHookContribution({
+        id: "sorcerer-draconic-sorcery-dragon-companion",
+        label: "Dragon Companion",
+        entryId: CLASS_FEATURE.DRAGON_COMPANION
+      })
+    );
+  }
+
+  return contributions;
+}
+
 export const getSorcererDraconicSorceryDerivedFeatureState: SubclassRuntimeResolver = (
   character
 ) =>
-  hasSorcererDraconicResilienceFeature(character)
-    ? {
-        featureActions: [getSorcererDragonWingsAction(character)].filter(
-          (action): action is FeatureActionCard => action !== null
-        ),
-        getArmorClassModes: (context) =>
-          getSorcererDraconicResilienceArmorClassModes(character, context),
-        alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-          character.level ?? 0,
-          draconicSorcerySpellIdsByLevel
-        ),
-        derivedStatusEntries: getSorcererDraconicElementalAffinityDerivedStatusEntries(character),
-        speedBonuses: getSorcererDragonWingsSpeedBonuses(character)
-      }
-    : {};
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectSorcererDraconicSorceryContributions(character)),
+    {
+      character: character as Character
+    }
+  );

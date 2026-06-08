@@ -14,6 +14,12 @@ import {
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
+import {
   formatFormulaCell,
   formatFormulaTerms,
   formatSignedFormulaTerm
@@ -507,29 +513,128 @@ export function restoreSorcererSpellfireCrownOfSpellfireOnLongRest(
   };
 }
 
+function createSorcererSpellfireLocalHookContribution(input: {
+  id: string;
+  label: string;
+  entryId: CLASS_FEATURE;
+}): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource(input)
+  };
+}
+
+function createSorcererSpellfireBurstContribution(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec {
+  const spellfireBurstAction = getSorcererSpellfireBurstAction(character);
+
+  return {
+    source: createSubclassContributionSource({
+      id: "sorcerer-spellfire-sorcery-spellfire-burst",
+      label: spellfireBurstName,
+      entryId: CLASS_FEATURE.SPELLFIRE_BURST
+    }),
+    actions: spellfireBurstAction ? [spellfireBurstAction] : []
+  };
+}
+
+function createSorcererSpellfireSpellsContribution(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "sorcerer-spellfire-sorcery-spellfire-spells",
+      label: "Spellfire Spells",
+      entryId: CLASS_FEATURE.SPELLFIRE_SPELLS
+    }),
+    alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
+      character.level ?? 0,
+      spellfireSorcerySpellIdsByLevel
+    )
+  };
+}
+
+function createSorcererSpellfireAbsorbSpellsContribution(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "sorcerer-spellfire-sorcery-absorb-spells",
+      label: "Absorb Spells",
+      entryId: CLASS_FEATURE.ABSORB_SPELLS
+    }),
+    alwaysPreparedSpellIds: spellfireSorceryBonusSpellIdsByLevel[6],
+    spellTransforms: [
+      {
+        id: "sorcerer-spellfire-sorcery-absorb-spells-counterspell-transform",
+        transform: (spell) => appendAbsorbSpellsCounterspellDescription(character, spell)
+      }
+    ]
+  };
+}
+
+function createSorcererSpellfireCrownOfSpellfireContribution(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "sorcerer-spellfire-sorcery-crown-of-spellfire",
+      label: spellfireCrownOfSpellfireName,
+      entryId: CLASS_FEATURE.CROWN_OF_SPELLFIRE
+    }),
+    featureActionTransforms: [
+      {
+        id: "sorcerer-spellfire-sorcery-crown-of-spellfire-feature-action-transform",
+        transform: (action) => appendCrownOfSpellfireDescription(character, action)
+      }
+    ],
+    speedBonuses: getSorcererSpellfireCrownOfSpellfireSpeedBonuses(character)
+  };
+}
+
+function collectSorcererSpellfireSorceryContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
+  if (
+    character.className !== "Sorcerer" ||
+    character.subclassId !== spellfireSorcerySubclassId ||
+    (character.level ?? 0) < 3
+  ) {
+    return [];
+  }
+
+  const contributions: FeatureContributionSpec[] = [
+    createSorcererSpellfireBurstContribution(character),
+    createSorcererSpellfireSpellsContribution(character)
+  ];
+
+  if (hasSorcererSpellfireAbsorbSpellsFeature(character)) {
+    contributions.push(createSorcererSpellfireAbsorbSpellsContribution(character));
+  }
+
+  if (hasSorcererSpellfireHonedSpellfireFeature(character)) {
+    contributions.push(
+      createSorcererSpellfireLocalHookContribution({
+        id: "sorcerer-spellfire-sorcery-honed-spellfire",
+        label: "Honed Spellfire",
+        entryId: CLASS_FEATURE.HONED_SPELLFIRE
+      })
+    );
+  }
+
+  if (hasSorcererSpellfireCrownOfSpellfireFeature(character)) {
+    contributions.push(createSorcererSpellfireCrownOfSpellfireContribution(character));
+  }
+
+  return contributions;
+}
+
 export const getSorcererSpellfireSorceryDerivedFeatureState: SubclassRuntimeResolver = (
   character
 ) =>
-  character.className === "Sorcerer" &&
-  character.subclassId === spellfireSorcerySubclassId &&
-  (character.level ?? 0) >= 3
-    ? {
-        featureActions: [
-          ...(() => {
-            const spellfireBurstAction = getSorcererSpellfireBurstAction(character);
-            return spellfireBurstAction ? [spellfireBurstAction] : [];
-          })()
-        ],
-        alwaysPreparedSpellIds: [
-          ...getPreparedSpellIdsByLevel(character.level ?? 0, spellfireSorcerySpellIdsByLevel),
-          ...((character.level ?? 0) >= 6 ? spellfireSorceryBonusSpellIdsByLevel[6] : [])
-        ],
-        transformFeatureAction: hasSorcererSpellfireCrownOfSpellfireFeature(character)
-          ? (action) => appendCrownOfSpellfireDescription(character, action)
-          : undefined,
-        transformSpellEntry: hasSorcererSpellfireAbsorbSpellsFeature(character)
-          ? (spell) => appendAbsorbSpellsCounterspellDescription(character, spell)
-          : undefined,
-        speedBonuses: getSorcererSpellfireCrownOfSpellfireSpeedBonuses(character)
-      }
-    : {};
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectSorcererSpellfireSorceryContributions(character)),
+    {
+      character: character as Character
+    }
+  );

@@ -9,6 +9,12 @@ import {
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getAbilityModifierForCharacter } from "../../../abilities";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
 import {
   createChargesAndUsageHeaderTags,
@@ -734,24 +740,130 @@ export function restoreSorcererClockworkFeaturesOnLongRest(character: Character)
   );
 }
 
+function getFeatureActionByKey(
+  actions: FeatureActionCard[],
+  actionKey: string
+): FeatureActionCard[] {
+  return actions.filter((action) => action.key === actionKey);
+}
+
+function createSorcererClockworkSpellsContribution(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "sorcerer-clockwork-sorcery-clockwork-spells",
+      label: "Clockwork Spells",
+      entryId: CLASS_FEATURE.CLOCKWORK_SPELLS
+    }),
+    alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
+      character.level ?? 0,
+      clockworkSorcerySpellIdsByLevel
+    )
+  };
+}
+
+function createSorcererClockworkRestoreBalanceContribution(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "sorcerer-clockwork-sorcery-restore-balance",
+      label: restoreBalanceName,
+      entryId: CLASS_FEATURE.RESTORE_BALANCE
+    }),
+    reactions: getSorcererClockworkReactionEntries(character)
+  };
+}
+
+function createSorcererClockworkBastionOfLawContribution(
+  character: Parameters<SubclassRuntimeResolver>[0],
+  featureActions: FeatureActionCard[]
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "sorcerer-clockwork-sorcery-bastion-of-law",
+      label: bastionOfLawName,
+      entryId: CLASS_FEATURE.BASTION_OF_LAW
+    }),
+    actions: getFeatureActionByKey(featureActions, sorcererBastionOfLawActionKey),
+    actionOptions: {
+      [sorcererBastionOfLawActionKey]: getSorcererClockworkBastionOfLawOptions(character)
+    },
+    statuses: getSorcererClockworkActiveDerivedStatusEntries(character).filter(
+      (status) => status.sourceId === sorcererClockworkBastionOfLawStatusSourceId
+    )
+  };
+}
+
+function createSorcererClockworkTranceOfOrderContribution(
+  character: Parameters<SubclassRuntimeResolver>[0],
+  featureActions: FeatureActionCard[]
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "sorcerer-clockwork-sorcery-trance-of-order",
+      label: tranceOfOrderName,
+      entryId: CLASS_FEATURE.TRANCE_OF_ORDER
+    }),
+    actions: getFeatureActionByKey(featureActions, sorcererTranceOfOrderActionKey),
+    statuses: getSorcererClockworkActiveDerivedStatusEntries(character).filter(
+      (status) => status.sourceId === sorcererClockworkTranceOfOrderStatusSourceId
+    )
+  };
+}
+
+function createSorcererClockworkCavalcadeContribution(
+  featureActions: FeatureActionCard[]
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "sorcerer-clockwork-sorcery-clockwork-cavalcade",
+      label: clockworkCavalcadeName,
+      entryId: CLASS_FEATURE.CLOCKWORK_CAVALCADE
+    }),
+    actions: getFeatureActionByKey(featureActions, sorcererClockworkCavalcadeActionKey)
+  };
+}
+
+function collectSorcererClockworkSorceryContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
+  if (
+    character.className !== "Sorcerer" ||
+    character.subclassId !== clockworkSorcerySubclassId ||
+    (character.level ?? 0) < 3
+  ) {
+    return [];
+  }
+
+  const featureActions = getSorcererClockworkFeatureActions(character);
+  const contributions: FeatureContributionSpec[] = [
+    createSorcererClockworkSpellsContribution(character),
+    createSorcererClockworkRestoreBalanceContribution(character)
+  ];
+
+  if (hasSorcererClockworkBastionOfLawFeature(character)) {
+    contributions.push(createSorcererClockworkBastionOfLawContribution(character, featureActions));
+  }
+
+  if (hasSorcererClockworkTranceOfOrderFeature(character)) {
+    contributions.push(createSorcererClockworkTranceOfOrderContribution(character, featureActions));
+  }
+
+  if (hasSorcererClockworkCavalcadeFeature(character)) {
+    contributions.push(createSorcererClockworkCavalcadeContribution(featureActions));
+  }
+
+  return contributions;
+}
+
 export const getSorcererClockworkSorceryDerivedFeatureState: SubclassRuntimeResolver = (
   character
 ) =>
-  character.className === "Sorcerer" &&
-  character.subclassId === clockworkSorcerySubclassId &&
-  (character.level ?? 0) >= 3
-    ? {
-        derivedStatusEntries: getSorcererClockworkActiveDerivedStatusEntries(character),
-        featureActions: getSorcererClockworkFeatureActions(character),
-        featureActionOptions: hasSorcererClockworkBastionOfLawFeature(character)
-          ? {
-              [sorcererBastionOfLawActionKey]: getSorcererClockworkBastionOfLawOptions(character)
-            }
-          : {},
-        alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-          character.level ?? 0,
-          clockworkSorcerySpellIdsByLevel
-        ),
-        reactionEntries: getSorcererClockworkReactionEntries(character)
-      }
-    : {};
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectSorcererClockworkSorceryContributions(character)),
+    {
+      character: character as Character
+    }
+  );

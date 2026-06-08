@@ -217,12 +217,9 @@ import {
   advanceSorcererFeaturesForNewRound,
   applyLongRestToSorcererFeatures,
   applyShortRestToSorcererFeatures,
-  getSorcererFeatureActions,
-  getSorcererMetamagicOptionsForAction,
-  metamagicActionKey,
   normalizeSorcererFeatureState
 } from "./sorcerer/sorcerer";
-import { getSorcererSpellEntry } from "./sorcerer/innateSorcerySpell";
+import { getSorcererClassFeatureDerivedState } from "./sorcerer/contributions";
 import {
   activateWarlockFeatureAction,
   advanceWarlockFeaturesForNewRound,
@@ -730,15 +727,7 @@ const classFeatureModules = {
     className: "Sorcerer",
     stateKey: "sorcerer",
     normalizeState: normalizeSorcererFeatureState,
-    collectDerived(character) {
-      return {
-        actions: getSorcererFeatureActions(character),
-        actionOptions: {
-          [metamagicActionKey]: getSorcererMetamagicOptionsForAction(character)
-        },
-        transformSpellEntry: (spell) => getSorcererSpellEntry(character, spell)
-      };
-    },
+    collectDerived: getSorcererClassFeatureDerivedState,
     handleAction(character, actionKey) {
       return activateSorcererFeatureAction(character, actionKey);
     },

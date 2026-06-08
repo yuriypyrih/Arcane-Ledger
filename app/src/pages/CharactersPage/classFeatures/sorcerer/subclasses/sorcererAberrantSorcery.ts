@@ -14,6 +14,12 @@ import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { formatFormulaCell, formatSignedFormulaTerm } from "../../../shared/formulas";
 import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
+import {
   createChargesAndUsageHeaderTags,
   createChargesOrResourceCardUsage,
   createFeatureActionCardCost,
@@ -815,27 +821,149 @@ export function restoreSorcererAberrantWarpingImplosionOnLongRest(
   };
 }
 
+function getFeatureActionByKey(
+  actions: FeatureActionCard[],
+  actionKey: string
+): FeatureActionCard[] {
+  return actions.filter((action) => action.key === actionKey);
+}
+
+function createSorcererAberrantPsionicSpellsContribution(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "sorcerer-aberrant-sorcery-psionic-spells",
+      label: "Psionic Spells",
+      entryId: CLASS_FEATURE.PSIONIC_SPELLS
+    }),
+    alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
+      character.level ?? 0,
+      aberrantSorcerySpellIdsByLevel
+    )
+  };
+}
+
+function createSorcererAberrantTelepathicSpeechContribution(
+  featureActions: FeatureActionCard[]
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "sorcerer-aberrant-sorcery-telepathic-speech",
+      label: telepathicSpeechName,
+      entryId: CLASS_FEATURE.TELEPATHIC_SPEECH
+    }),
+    actions: getFeatureActionByKey(featureActions, sorcererTelepathicSpeechActionKey)
+  };
+}
+
+function createSorcererAberrantPsionicSorceryContribution(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "sorcerer-aberrant-sorcery-psionic-sorcery",
+      label: "Psionic Sorcery",
+      entryId: CLASS_FEATURE.PSIONIC_SORCERY
+    }),
+    spellTransforms: [
+      {
+        id: "sorcerer-aberrant-sorcery-psionic-sorcery-spell-transform",
+        transform: (spell) => transformSorcererAberrantPsionicSorcerySpell(character, spell)
+      }
+    ]
+  };
+}
+
+function createSorcererAberrantPsychicDefensesContribution(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "sorcerer-aberrant-sorcery-psychic-defenses",
+      label: psychicDefensesName,
+      entryId: CLASS_FEATURE.PSYCHIC_DEFENSES
+    }),
+    statuses: getSorcererAberrantDerivedStatusEntries(character)
+  };
+}
+
+function createSorcererAberrantRevelationInFleshContribution(
+  character: Parameters<SubclassRuntimeResolver>[0],
+  featureActions: FeatureActionCard[]
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "sorcerer-aberrant-sorcery-revelation-in-flesh",
+      label: revelationInFleshName,
+      entryId: CLASS_FEATURE.REVELATION_IN_FLESH
+    }),
+    actions: getFeatureActionByKey(featureActions, sorcererRevelationInFleshActionKey),
+    actionOptions: {
+      [sorcererRevelationInFleshActionKey]:
+        getSorcererAberrantRevelationInFleshOptions(character)
+    },
+    speedBonuses: getSorcererAberrantRevelationInFleshSpeedBonuses(character)
+  };
+}
+
+function createSorcererAberrantWarpingImplosionContribution(
+  featureActions: FeatureActionCard[]
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "sorcerer-aberrant-sorcery-warping-implosion",
+      label: warpingImplosionName,
+      entryId: CLASS_FEATURE.WARPING_IMPLOSION
+    }),
+    actions: getFeatureActionByKey(featureActions, sorcererWarpingImplosionActionKey)
+  };
+}
+
+function collectSorcererAberrantSorceryContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
+  if (
+    character.className !== "Sorcerer" ||
+    character.subclassId !== aberrantSorcerySubclassId ||
+    (character.level ?? 0) < 3
+  ) {
+    return [];
+  }
+
+  const featureActions = getSorcererAberrantSorceryFeatureActions(character);
+  const contributions: FeatureContributionSpec[] = [
+    createSorcererAberrantPsionicSpellsContribution(character),
+    createSorcererAberrantTelepathicSpeechContribution(featureActions)
+  ];
+
+  if (hasSorcererAberrantPsionicSorceryFeature(character)) {
+    contributions.push(createSorcererAberrantPsionicSorceryContribution(character));
+  }
+
+  if (hasSorcererAberrantPsychicDefensesFeature(character)) {
+    contributions.push(createSorcererAberrantPsychicDefensesContribution(character));
+  }
+
+  if (hasSorcererAberrantRevelationInFleshFeature(character)) {
+    contributions.push(
+      createSorcererAberrantRevelationInFleshContribution(character, featureActions)
+    );
+  }
+
+  if (hasSorcererAberrantWarpingImplosionFeature(character)) {
+    contributions.push(createSorcererAberrantWarpingImplosionContribution(featureActions));
+  }
+
+  return contributions;
+}
+
 export const getSorcererAberrantSorceryDerivedFeatureState: SubclassRuntimeResolver = (
   character
 ) =>
-  character.className === "Sorcerer" &&
-  character.subclassId === aberrantSorcerySubclassId &&
-  (character.level ?? 0) >= 3
-    ? {
-        featureActions: getSorcererAberrantSorceryFeatureActions(character),
-        featureActionOptions: hasSorcererAberrantRevelationInFleshFeature(character)
-          ? {
-              [sorcererRevelationInFleshActionKey]:
-                getSorcererAberrantRevelationInFleshOptions(character)
-            }
-          : {},
-        derivedStatusEntries: getSorcererAberrantDerivedStatusEntries(character),
-        speedBonuses: getSorcererAberrantRevelationInFleshSpeedBonuses(character),
-        alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-          character.level ?? 0,
-          aberrantSorcerySpellIdsByLevel
-        ),
-        transformSpellEntry: (spell) =>
-          transformSorcererAberrantPsionicSorcerySpell(character, spell)
-      }
-    : {};
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectSorcererAberrantSorceryContributions(character)),
+    {
+      character: character as Character
+    }
+  );

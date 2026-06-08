@@ -9,6 +9,12 @@ import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character } from "../../../../../types";
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import type { FeatureActionCard } from "../../types";
 
@@ -355,53 +361,173 @@ export function canUseSorcererWildMagicTamedSurgeForSpell(
   return hasSorcererTamedSurgeFeature(character) && isWildMagicSorcerySpellCandidate(spell);
 }
 
-function getSorcererWildMagicSpellEntry(
+function appendWildMagicSpellDescription(
   character: WildMagicSorceryCharacter,
-  spell: SpellEntry
+  spell: SpellEntry,
+  feature: CLASS_FEATURE,
+  description: readonly string[],
+  sourceLabel: string
 ): SpellEntry {
-  if (
-    !hasSorcererWildMagicSurgeFeature(character) ||
-    !isWildMagicSorcerySpellCandidate(spell)
-  ) {
+  if (!isWildMagicSorcerySpellCandidate(spell)) {
     return spell;
   }
 
-  const withWildMagicSurge = appendFeatureSourcedDescriptionAddition(
+  return appendFeatureSourcedDescriptionAddition(
     spell,
     character,
-    CLASS_FEATURE.WILD_MAGIC_SURGE,
-    wildMagicSurgeSpellDescription,
-    wildMagicSurgeName
+    feature,
+    description,
+    sourceLabel
   );
+}
 
-  const withTidesOfChaos = appendFeatureSourcedDescriptionAddition(
-    withWildMagicSurge,
-    character,
-    CLASS_FEATURE.TIDES_OF_CHAOS,
-    tidesOfChaosSpellDescription,
-    tidesOfChaosName
-  );
+function getFeatureActionByKey(
+  actions: FeatureActionCard[],
+  actionKey: string
+): FeatureActionCard[] {
+  return actions.filter((action) => action.key === actionKey);
+}
 
-  return hasSorcererTamedSurgeFeature(character)
-    ? appendFeatureSourcedDescriptionAddition(
-        withTidesOfChaos,
-        character,
-        CLASS_FEATURE.TAMED_SURGE,
-        tamedSurgeDescription,
-        tamedSurgeName
-      )
-    : withTidesOfChaos;
+function createSorcererWildMagicLocalHookContribution(input: {
+  id: string;
+  label: string;
+  entryId: CLASS_FEATURE;
+}): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource(input)
+  };
+}
+
+function createSorcererWildMagicSurgeContribution(
+  character: WildMagicSorceryCharacter,
+  featureActions: FeatureActionCard[]
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "sorcerer-wild-magic-sorcery-wild-magic-surge",
+      label: wildMagicSurgeName,
+      entryId: CLASS_FEATURE.WILD_MAGIC_SURGE
+    }),
+    actions: getFeatureActionByKey(featureActions, sorcererWildMagicSurgeActionKey),
+    spellTransforms: [
+      {
+        id: "sorcerer-wild-magic-sorcery-wild-magic-surge-spell-transform",
+        transform: (spell) =>
+          appendWildMagicSpellDescription(
+            character,
+            spell,
+            CLASS_FEATURE.WILD_MAGIC_SURGE,
+            wildMagicSurgeSpellDescription,
+            wildMagicSurgeName
+          )
+      }
+    ]
+  };
+}
+
+function createSorcererWildMagicTidesOfChaosContribution(
+  character: WildMagicSorceryCharacter,
+  featureActions: FeatureActionCard[]
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "sorcerer-wild-magic-sorcery-tides-of-chaos",
+      label: tidesOfChaosName,
+      entryId: CLASS_FEATURE.TIDES_OF_CHAOS
+    }),
+    actions: getFeatureActionByKey(featureActions, sorcererTidesOfChaosActionKey),
+    spellTransforms: [
+      {
+        id: "sorcerer-wild-magic-sorcery-tides-of-chaos-spell-transform",
+        transform: (spell) =>
+          appendWildMagicSpellDescription(
+            character,
+            spell,
+            CLASS_FEATURE.TIDES_OF_CHAOS,
+            tidesOfChaosSpellDescription,
+            tidesOfChaosName
+          )
+      }
+    ]
+  };
+}
+
+function createSorcererWildMagicBendLuckContribution(): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "sorcerer-wild-magic-sorcery-bend-luck",
+      label: bendLuckName,
+      entryId: CLASS_FEATURE.BEND_LUCK
+    }),
+    reactions: [bendLuckReactionEntry]
+  };
+}
+
+function createSorcererWildMagicTamedSurgeContribution(
+  character: WildMagicSorceryCharacter
+): FeatureContributionSpec {
+  return {
+    source: createSubclassContributionSource({
+      id: "sorcerer-wild-magic-sorcery-tamed-surge",
+      label: tamedSurgeName,
+      entryId: CLASS_FEATURE.TAMED_SURGE
+    }),
+    spellTransforms: [
+      {
+        id: "sorcerer-wild-magic-sorcery-tamed-surge-spell-transform",
+        transform: (spell) =>
+          appendWildMagicSpellDescription(
+            character,
+            spell,
+            CLASS_FEATURE.TAMED_SURGE,
+            tamedSurgeDescription,
+            tamedSurgeName
+          )
+      }
+    ]
+  };
+}
+
+function collectSorcererWildMagicSorceryContributions(
+  character: WildMagicSorceryCharacter
+): FeatureContributionSpec[] {
+  if (!hasSorcererWildMagicSurgeFeature(character)) {
+    return [];
+  }
+
+  const featureActions = getSorcererWildMagicFeatureActions(character);
+  const contributions: FeatureContributionSpec[] = [
+    createSorcererWildMagicSurgeContribution(character, featureActions),
+    createSorcererWildMagicTidesOfChaosContribution(character, featureActions)
+  ];
+
+  if (hasSorcererBendLuckFeature(character)) {
+    contributions.push(createSorcererWildMagicBendLuckContribution());
+  }
+
+  if (hasSorcererControlledChaosFeature(character)) {
+    contributions.push(
+      createSorcererWildMagicLocalHookContribution({
+        id: "sorcerer-wild-magic-sorcery-controlled-chaos",
+        label: "Controlled Chaos",
+        entryId: CLASS_FEATURE.CONTROLLED_CHAOS
+      })
+    );
+  }
+
+  if (hasSorcererTamedSurgeFeature(character)) {
+    contributions.push(createSorcererWildMagicTamedSurgeContribution(character));
+  }
+
+  return contributions;
 }
 
 export const getSorcererWildMagicSorceryDerivedFeatureState: SubclassRuntimeResolver = (
   character
 ) =>
-  character.className === "Sorcerer" &&
-  character.subclassId === wildMagicSorcerySubclassId &&
-  (character.level ?? 0) >= 3
-    ? {
-        featureActions: getSorcererWildMagicFeatureActions(character),
-        reactionEntries: hasSorcererBendLuckFeature(character) ? [bendLuckReactionEntry] : [],
-        transformSpellEntry: (spell) => getSorcererWildMagicSpellEntry(character, spell)
-      }
-    : {};
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectSorcererWildMagicSorceryContributions(character)),
+    {
+      character: character as Character
+    }
+  );
