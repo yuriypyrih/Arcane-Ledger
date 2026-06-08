@@ -15,6 +15,12 @@ import {
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import { getPreparedSpellIdsByLevel, type SubclassRuntimeResolver } from "../../subclassRuntime";
 import type { FeatureActionCard, FeatureIndicator, SkillIndicatorMap } from "../../types";
 import {
@@ -302,23 +308,88 @@ function getClericInvokeDuplicityAction(
   };
 }
 
-export const getClericTrickeryDomainDerivedFeatureState: SubclassRuntimeResolver = (character) => {
+function getClericTrickeryDomainActionsByKey(
+  actions: readonly FeatureActionCard[],
+  actionKey: string
+): FeatureActionCard[] {
+  return actions.filter((action) => action.key === actionKey);
+}
+
+export function collectClericTrickeryDomainContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
   if (!hasClericTrickeryDomainFeature(character, 3)) {
-    return {};
+    return [];
   }
 
   const blessingOfTheTricksterAction = getClericBlessingOfTheTricksterAction(character);
   const invokeDuplicityAction = getClericInvokeDuplicityAction(character);
+  const featureActions = [blessingOfTheTricksterAction, invokeDuplicityAction].filter(
+    (action): action is FeatureActionCard => action !== null
+  );
   const blessingOfTheTricksterActive = hasActiveClericBlessingOfTheTrickster(character);
 
-  return {
-    featureActions: [blessingOfTheTricksterAction, invokeDuplicityAction].filter(
-      (action): action is FeatureActionCard => action !== null
-    ),
-    skillIndicators: blessingOfTheTricksterActive ? getBlessingOfTheTricksterSkillIndicators() : {},
-    alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-      character.level ?? 0,
-      trickeryDomainSpellIdsByLevel
-    )
-  };
-};
+  return [
+    {
+      source: createSubclassContributionSource({
+        id: `${trickeryDomainSubclassId}-domain-spells`,
+        label: "Trickery Domain Spells",
+        entryId: CLASS_FEATURE.TRICKERY_DOMAIN_SPELLS
+      }),
+      alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
+        character.level ?? 0,
+        trickeryDomainSpellIdsByLevel
+      )
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${trickeryDomainSubclassId}-blessing-of-the-trickster`,
+        label: "Blessing of the Trickster",
+        entryId: CLASS_FEATURE.BLESSING_OF_THE_TRICKSTER
+      }),
+      actions: getClericTrickeryDomainActionsByKey(
+        featureActions,
+        blessingOfTheTricksterActionKey
+      ),
+      skillIndicators: blessingOfTheTricksterActive ? getBlessingOfTheTricksterSkillIndicators() : {}
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${trickeryDomainSubclassId}-invoke-duplicity`,
+        label: "Invoke Duplicity",
+        entryId: CLASS_FEATURE.INVOKE_DUPLICITY
+      }),
+      actions: getClericTrickeryDomainActionsByKey(featureActions, invokeDuplicityActionKey)
+    },
+    ...(hasClericTrickeryDomainFeature(character, 6)
+      ? [
+          {
+            source: createSubclassContributionSource({
+              id: `${trickeryDomainSubclassId}-tricksters-transposition`,
+              label: "Trickster's Transposition",
+              entryId: CLASS_FEATURE.TRICKSTERS_TRANSPOSITION
+            })
+          }
+        ]
+      : []),
+    ...(hasClericTrickeryDomainFeature(character, 17)
+      ? [
+          {
+            source: createSubclassContributionSource({
+              id: `${trickeryDomainSubclassId}-improved-duplicity`,
+              label: "Improved Duplicity",
+              entryId: CLASS_FEATURE.IMPROVED_DUPLICITY
+            })
+          }
+        ]
+      : [])
+  ];
+}
+
+export const getClericTrickeryDomainDerivedFeatureState: SubclassRuntimeResolver = (character) =>
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectClericTrickeryDomainContributions(character)),
+    {
+      character: character as Character
+    }
+  );

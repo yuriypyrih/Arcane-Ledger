@@ -27,22 +27,13 @@ import {
   activateUnbreakableMajesty,
   applyLongRestToBardFeatures,
   applyShortRestToBardFeatures,
-  getBardArmorProficiencyEntries,
   bardicInspirationActionKey,
-  getBardAlwaysPreparedSpellIds,
-  getBardFeatureAction,
-  getBardLanguageProficiencyEntries,
-  getBardReactionEntries,
-  getBardSpellEntry,
-  getBardSkillBonuses,
-  getBardSkillProficiencyEntries,
-  getBardicInspirationDie,
-  getBardWeaponProficiencyEntries,
   mantleOfInspirationActionKey,
   lunarVitalityActionKey,
   unbreakableMajestyActionKey,
   normalizeBardFeatureState
 } from "./bard/bard";
+import { getBardClassFeatureDerivedState } from "./bard/contributions";
 import {
   activateBarbarianIntimidatingPresence,
   activateBarbarianBrutalStrike,
@@ -82,21 +73,12 @@ import {
   divineForeknowledgeActionKey,
   divineInterventionActionKey,
   invokeDuplicityActionKey,
-  getClericArmorProficiencyEntries,
-  getClericCantripBonus,
-  getClericCantripDamageBonus,
-  getClericFeatureActions,
-  getClericFeatureActionOptions,
-  getClericSkillBonuses,
-  getClericSpellEntry,
-  getClericWeaponAction,
-  getClericWeaponDamageBonuses,
-  getClericWeaponProficiencyEntries,
   preserveLifeActionKey,
   radianceOfTheDawnActionKey,
   warPriestActionKey,
   normalizeClericFeatureState
 } from "./cleric/cleric";
+import { getClericClassFeatureDerivedState } from "./cleric/contributions";
 import {
   activateDruidLandsAid,
   activateDruidMoonlightStep,
@@ -498,20 +480,7 @@ const classFeatureModules = {
     stateKey: "bard",
     normalizeState: normalizeBardFeatureState,
     collectDerived(character) {
-      const bardAction = getBardFeatureAction(character);
-      return {
-        actions: bardAction ? [bardAction] : [],
-        getSkillBonuses: (skill, proficiencyLevel) =>
-          skill ? getBardSkillBonuses(character, proficiencyLevel) : [],
-        skillProficiencyEntries: getBardSkillProficiencyEntries(character),
-        weaponProficiencyEntries: getBardWeaponProficiencyEntries(character),
-        armorProficiencyEntries: getBardArmorProficiencyEntries(character),
-        languageProficiencyEntries: getBardLanguageProficiencyEntries(character),
-        alwaysPreparedSpellIds: getBardAlwaysPreparedSpellIds(character),
-        transformSpellEntry: (spell) => getBardSpellEntry(character, spell),
-        reactionEntries: getBardReactionEntries(character),
-        bardicInspirationDie: getBardicInspirationDie(character)
-      };
+      return getBardClassFeatureDerivedState(character);
     },
     handleAction(character, actionKey) {
       if (actionKey === bardicInspirationActionKey) {
@@ -541,20 +510,7 @@ const classFeatureModules = {
     stateKey: "cleric",
     normalizeState: normalizeClericFeatureState,
     collectDerived(character) {
-      return {
-        actions: getClericFeatureActions(character),
-        actionOptions: {
-          "cleric-channel-divinity": getClericFeatureActionOptions(character)
-        },
-        getWeaponDamageBonuses: (context) => getClericWeaponDamageBonuses(character, context),
-        getSkillBonuses: (skill) => getClericSkillBonuses(character, skill),
-        cantripLimitBonus: getClericCantripBonus(character),
-        cantripDamageBonus: getClericCantripDamageBonus(character),
-        transformSpellEntry: (spell) => getClericSpellEntry(character, spell),
-        transformWeaponAction: (action) => getClericWeaponAction(character, action),
-        weaponProficiencyEntries: getClericWeaponProficiencyEntries(character),
-        armorProficiencyEntries: getClericArmorProficiencyEntries(character)
-      };
+      return getClericClassFeatureDerivedState(character);
     },
     handleAction(character, actionKey) {
       if (actionKey === blessingOfTheTricksterActionKey) {

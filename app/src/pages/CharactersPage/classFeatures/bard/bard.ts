@@ -424,12 +424,12 @@ export function setBardPrimalLoreSkillSelection(
   );
 }
 
-export function getBardSkillProficiencyEntries(
+export function getBardExpertiseSkillProficiencyEntries(
   character: Pick<Character, "className" | "level" | "classFeatureState"> &
     Partial<Pick<Character, "subclassId">>
 ): FeatureSkillProficiencyEntry[] {
   if (!hasBardLevel2Expertise(character)) {
-    return loreSubclass.getBardCollegeOfLoreSkillProficiencyEntries(character);
+    return [];
   }
 
   const level2Entries = getBardExpertiseSelections(character, "level2")
@@ -449,10 +449,18 @@ export function getBardSkillProficiencyEntries(
         .filter((entry): entry is SkillProficiencyEntry => entry !== null)
     : [];
 
-  const loreEntries = loreSubclass.getBardCollegeOfLoreSkillProficiencyEntries(character);
-  const primalLoreEntries = moonSubclass.getBardCollegeOfTheMoonSkillProficiencyEntries(character);
+  return [...level2Entries, ...level9Entries];
+}
 
-  return [...level2Entries, ...level9Entries, ...loreEntries, ...primalLoreEntries];
+export function getBardSkillProficiencyEntries(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): FeatureSkillProficiencyEntry[] {
+  return [
+    ...getBardExpertiseSkillProficiencyEntries(character),
+    ...loreSubclass.getBardCollegeOfLoreSkillProficiencyEntries(character),
+    ...moonSubclass.getBardCollegeOfTheMoonSkillProficiencyEntries(character)
+  ];
 }
 
 export function getBardLanguageProficiencyEntries(
@@ -566,22 +574,28 @@ export function consumeBardValorActionCantrip(character: Character): Character {
   );
 }
 
+export function getBardWordsOfCreationAlwaysPreparedSpellIds(
+  character: Pick<Character, "className" | "level">
+): string[] {
+  return hasBardFeature(character, CLASS_FEATURE.WORDS_OF_CREATION)
+    ? [...wordsOfCreationAlwaysPreparedSpellIds]
+    : [];
+}
+
 export function getBardAlwaysPreparedSpellIds(
   character: Pick<Character, "className" | "level" | "classFeatureState"> &
     Partial<Pick<Character, "subclassId">>
 ): string[] {
   return [
     ...new Set([
-      ...(hasBardFeature(character, CLASS_FEATURE.WORDS_OF_CREATION)
-        ? [...wordsOfCreationAlwaysPreparedSpellIds]
-        : []),
+      ...getBardWordsOfCreationAlwaysPreparedSpellIds(character),
       ...getBardMagicalDiscoveriesSpellIds(character),
       ...moonSubclass.getBardCollegeOfTheMoonAlwaysPreparedSpellIds(character)
     ])
   ];
 }
 
-export function getBardSpellEntry(
+export function transformBardWordsOfCreationSpellEntry(
   character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
   spell: SpellEntry
 ): SpellEntry {
@@ -596,6 +610,13 @@ export function getBardSpellEntry(
     getFeatureDescriptionForCharacter(character, CLASS_FEATURE.WORDS_OF_CREATION),
     "Words of Creation"
   );
+}
+
+export function getBardSpellEntry(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
+  spell: SpellEntry
+): SpellEntry {
+  return transformBardWordsOfCreationSpellEntry(character, spell);
 }
 
 export function getBeguilingMagicUsesTotal(

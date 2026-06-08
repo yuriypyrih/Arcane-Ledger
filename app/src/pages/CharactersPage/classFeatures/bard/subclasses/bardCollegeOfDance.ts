@@ -8,6 +8,12 @@ import {
 import { getInventoryItemOnHandQuantity, isItemShieldRecord } from "../../../inventoryItems";
 import { getEffectiveInventoryItemRecord } from "../../../itemMods";
 import { getEquipmentByName } from "../../../proficiencyCodexData";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import { createDefaultFeatureActionDescription } from "../../subclassRuntime";
@@ -302,65 +308,106 @@ export const getBardCollegeOfDanceDerivedFeatureState: SubclassRuntimeResolver =
     return {};
   }
 
+  return projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectBardCollegeOfDanceContributions(character)),
+    {
+      character: character as Character
+    }
+  );
+};
+
+export function collectBardCollegeOfDanceContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
+  if (character.className !== "Bard" || character.subclassId !== collegeOfDanceSubclassId) {
+    return [];
+  }
+
+  const hasDazzlingFootwork = hasBardCollegeOfDanceDazzlingFootworkFeature(character);
+  const hasActiveCombatBenefits = hasActiveCollegeOfDanceCombatBenefits(character);
   const reactionEntries = hasBardCollegeOfDanceInspiringMovementFeature(character)
     ? [getBardCollegeOfDanceInspiringMovementReactionEntry(character)]
     : [];
 
-  return {
-    reactionEntries,
-    skillIndicators: hasBardCollegeOfDanceDazzlingFootworkFeature(character)
-      ? {
-          [SKILL.PERFORMANCE]: [dazzlingFootworkPerformanceIndicator]
+  return [
+    {
+      source: createSubclassContributionSource({
+        id: `${collegeOfDanceSubclassId}-dazzling-footwork`,
+        label: "Dazzling Footwork",
+        entryId: CLASS_FEATURE.DAZZLING_FOOTWORK
+      }),
+      skillIndicators: hasDazzlingFootwork
+        ? {
+            [SKILL.PERFORMANCE]: [dazzlingFootworkPerformanceIndicator]
+          }
+        : {},
+      featureActionTransforms: hasActiveCombatBenefits
+        ? [
+            {
+              id: "bard-college-of-dance-agile-strikes-feature-action-transform",
+              transform: (action) => appendAgileStrikesDescription(character, action)
+            }
+          ]
+        : [],
+      armorClassModes: hasDazzlingFootwork
+        ? [
+            {
+              id: "bard-college-of-dance-unarmored-defense-armor-class-mode",
+              getModes: (context) => {
+                const isApplicable = !context.hasWornBodyArmor && !context.hasShieldEquipped;
+                const unavailableReason = context.hasWornBodyArmor
+                  ? context.hasShieldEquipped
+                    ? "Requires you to wear no body armor and wield no shield."
+                    : "Requires you to wear no body armor."
+                  : context.hasShieldEquipped
+                    ? "Requires you to wield no shield."
+                    : undefined;
+
+                return [
+                  {
+                    key: "bard-dance-unarmored-defense",
+                    label: "Unarmored Defense",
+                    unlockedAtLevel: 3,
+                    baseValue: 10,
+                    abilityModifiers: ["DEX", "CHA"],
+                    shieldAllowed: false,
+                    isApplicable,
+                    unavailableReason,
+                    detail: "College of Dance feature"
+                  }
+                ];
+              }
+            }
+          ]
+        : [],
+      classMechanics: {
+        getUnarmedStrikeConfig: () => {
+          if (!hasActiveCombatBenefits) {
+            return null;
+          }
+
+          const bardicDie = getBardicInspirationDie({
+            className: character.className,
+            level: character.level ?? 0
+          });
+
+          return {
+            attackAbility: "finesse",
+            damageAbility: "DEX",
+            damageFormula: bardicDie ? `1${String(bardicDie).toLowerCase()}` : undefined,
+            damageTypeLabel: "Bludgeoning",
+            damageBreakdownLabel: bardicDie ? dazzlingFootworkBardicDamageSource : undefined
+          };
         }
-      : {},
-    transformFeatureAction: hasActiveCollegeOfDanceCombatBenefits(character)
-      ? (action) => appendAgileStrikesDescription(character, action)
-      : undefined,
-    getArmorClassModes: (context) => {
-      if (!hasBardCollegeOfDanceDazzlingFootworkFeature(character)) {
-        return [];
       }
-
-      const isApplicable = !context.hasWornBodyArmor && !context.hasShieldEquipped;
-      const unavailableReason = context.hasWornBodyArmor
-        ? context.hasShieldEquipped
-          ? "Requires you to wear no body armor and wield no shield."
-          : "Requires you to wear no body armor."
-        : context.hasShieldEquipped
-          ? "Requires you to wield no shield."
-          : undefined;
-
-      return [
-        {
-          key: "bard-dance-unarmored-defense",
-          label: "Unarmored Defense",
-          unlockedAtLevel: 3,
-          baseValue: 10,
-          abilityModifiers: ["DEX", "CHA"],
-          shieldAllowed: false,
-          isApplicable,
-          unavailableReason,
-          detail: "College of Dance feature"
-        }
-      ];
     },
-    getUnarmedStrikeConfig: () => {
-      if (!hasActiveCollegeOfDanceCombatBenefits(character)) {
-        return null;
-      }
-
-      const bardicDie = getBardicInspirationDie({
-        className: character.className,
-        level: character.level ?? 0
-      });
-
-      return {
-        attackAbility: "finesse",
-        damageAbility: "DEX",
-        damageFormula: bardicDie ? `1${String(bardicDie).toLowerCase()}` : undefined,
-        damageTypeLabel: "Bludgeoning",
-        damageBreakdownLabel: bardicDie ? dazzlingFootworkBardicDamageSource : undefined
-      };
+    {
+      source: createSubclassContributionSource({
+        id: `${collegeOfDanceSubclassId}-inspiring-movement`,
+        label: "Inspiring Movement",
+        entryId: CLASS_FEATURE.INSPIRING_MOVEMENT
+      }),
+      reactions: reactionEntries
     }
-  };
-};
+  ];
+}

@@ -15,6 +15,12 @@ import {
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { ECONOMY_TYPE } from "../../../actionEconomy";
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../../combat";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import type {
   FeatureActionCard,
@@ -395,8 +401,76 @@ function appendCombatInspirationDescription(
   );
 }
 
-export const getBardCollegeOfValorDerivedFeatureState: SubclassRuntimeResolver = (character) => ({
-  transformFeatureAction: hasBardCollegeOfValorCombatInspirationFeature(character)
-    ? (action) => appendCombatInspirationDescription(character, action)
-    : undefined
-});
+export function collectBardCollegeOfValorContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
+  if (character.className !== "Bard" || character.subclassId !== collegeOfValorSubclassId) {
+    return [];
+  }
+
+  return [
+    {
+      source: createSubclassContributionSource({
+        id: `${collegeOfValorSubclassId}-martial-training`,
+        label: "Martial Training",
+        entryId: CLASS_FEATURE.MARTIAL_TRAINING
+      }),
+      weaponProficiencyEntries: getBardCollegeOfValorWeaponProficiencyEntries({
+        className: character.className,
+        level: character.level ?? 0,
+        subclassId: character.subclassId
+      }),
+      armorProficiencyEntries: getBardCollegeOfValorArmorProficiencyEntries({
+        className: character.className,
+        level: character.level ?? 0,
+        subclassId: character.subclassId
+      })
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${collegeOfValorSubclassId}-combat-inspiration`,
+        label: "Combat Inspiration",
+        entryId: CLASS_FEATURE.COMBAT_INSPIRATION
+      }),
+      featureActionTransforms: hasBardCollegeOfValorCombatInspirationFeature(character)
+        ? [
+            {
+              id: "bard-college-of-valor-combat-inspiration-feature-action-transform",
+              transform: (action) => appendCombatInspirationDescription(character, action)
+            }
+          ]
+        : []
+    },
+    ...(hasBardCollegeOfValorExtraAttackFeature(character)
+      ? [
+          {
+            source: createSubclassContributionSource({
+              id: `${collegeOfValorSubclassId}-extra-attack`,
+              label: "Extra Attack",
+              entryId: CLASS_FEATURE.EXTRA_ATTACK
+            })
+          }
+        ]
+      : []),
+    ...(hasBardCollegeOfValorBattleMagicFeature(character)
+      ? [
+          {
+            source: createSubclassContributionSource({
+              id: `${collegeOfValorSubclassId}-battle-magic`,
+              label: "Battle Magic",
+              entryId: CLASS_FEATURE.BATTLE_MAGIC
+            })
+          }
+        ]
+      : [])
+  ];
+}
+
+export const getBardCollegeOfValorDerivedFeatureState: SubclassRuntimeResolver = (character) => {
+  return projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectBardCollegeOfValorContributions(character)),
+    {
+      character: character as Character
+    }
+  );
+};

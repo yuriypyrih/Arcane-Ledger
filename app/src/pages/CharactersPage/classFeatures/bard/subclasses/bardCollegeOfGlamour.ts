@@ -16,6 +16,12 @@ import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDes
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
 import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
+import {
   createCharacterStatusEntry,
   normalizeCharacterStatusEntries
 } from "../../../statusEntries";
@@ -245,17 +251,6 @@ function appendBeguilingMagicDescription(
     getFeatureDescriptionForCharacter(character, CLASS_FEATURE.BEGUILING_MAGIC),
     "Beguiling Magic"
   );
-}
-
-function getBardCollegeOfGlamourTransformedSpell(
-  character: Parameters<SubclassRuntimeResolver>[0],
-  spell: SpellEntry
-): SpellEntry {
-  const spellWithBeguilingMagic = appendBeguilingMagicDescription(character, spell);
-
-  return hasActiveBardCollegeOfGlamourMantleOfMajesty(character)
-    ? transformSpellToBonusAction(glamourCommandSpellId, spellWithBeguilingMagic)
-    : spellWithBeguilingMagic;
 }
 
 export function getBardCollegeOfGlamourMantleOfMajestyUsesTotal(
@@ -560,9 +555,11 @@ export function activateBardCollegeOfGlamourMantleOfInspiration(character: Chara
   return expendBardicInspirationUse(character);
 }
 
-export const getBardCollegeOfGlamourDerivedFeatureState: SubclassRuntimeResolver = (character) => {
+function getBardCollegeOfGlamourFeatureActions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureActionCard[] {
   if (character.className !== "Bard" || character.subclassId !== collegeOfGlamourSubclassId) {
-    return {};
+    return [];
   }
 
   const level = character.level ?? 0;
@@ -726,12 +723,92 @@ export const getBardCollegeOfGlamourDerivedFeatureState: SubclassRuntimeResolver
     }
   }
 
-  return {
-    featureActions,
-    alwaysPreparedSpellIds:
-      level >= 3
-        ? [...glamourBeguilingMagicSpellIds, ...(level >= 6 ? [glamourCommandSpellId] : [])]
-        : [],
-    transformSpellEntry: (spell) => getBardCollegeOfGlamourTransformedSpell(character, spell)
-  };
+  return featureActions;
+}
+
+function getBardCollegeOfGlamourFeatureActionsByKey(
+  actions: readonly FeatureActionCard[],
+  actionKey: string
+): FeatureActionCard[] {
+  return actions.filter((action) => action.key === actionKey);
+}
+
+export function collectBardCollegeOfGlamourContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
+  if (character.className !== "Bard" || character.subclassId !== collegeOfGlamourSubclassId) {
+    return [];
+  }
+
+  const level = character.level ?? 0;
+  const hasBeguilingMagic = hasBardCollegeOfGlamourBeguilingMagicFeature(character);
+  const hasMantleOfMajesty = hasBardCollegeOfGlamourMantleOfMajestyFeature(character);
+  const featureActions = getBardCollegeOfGlamourFeatureActions(character);
+
+  return [
+    {
+      source: createSubclassContributionSource({
+        id: `${collegeOfGlamourSubclassId}-beguiling-magic`,
+        label: "Beguiling Magic",
+        entryId: CLASS_FEATURE.BEGUILING_MAGIC
+      }),
+      alwaysPreparedSpellIds: hasBeguilingMagic ? [...glamourBeguilingMagicSpellIds] : [],
+      spellTransforms: hasBeguilingMagic
+        ? [
+            {
+              id: "bard-college-of-glamour-beguiling-magic-spell-transform",
+              transform: (spell) => appendBeguilingMagicDescription(character, spell)
+            }
+          ]
+        : []
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${collegeOfGlamourSubclassId}-mantle-of-inspiration`,
+        label: "Mantle of Inspiration",
+        entryId: CLASS_FEATURE.MANTLE_OF_INSPIRATION
+      }),
+      actions: getBardCollegeOfGlamourFeatureActionsByKey(
+        featureActions,
+        mantleOfInspirationActionKey
+      )
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${collegeOfGlamourSubclassId}-mantle-of-majesty`,
+        label: "Mantle of Majesty",
+        entryId: CLASS_FEATURE.MANTLE_OF_MAJESTY
+      }),
+      actions: getBardCollegeOfGlamourFeatureActionsByKey(featureActions, mantleOfMajestyActionKey),
+      alwaysPreparedSpellIds: hasMantleOfMajesty && level >= 6 ? [glamourCommandSpellId] : [],
+      spellTransforms: hasActiveBardCollegeOfGlamourMantleOfMajesty(character)
+        ? [
+            {
+              id: "bard-college-of-glamour-mantle-of-majesty-command-transform",
+              transform: (spell) => transformSpellToBonusAction(glamourCommandSpellId, spell)
+            }
+          ]
+        : []
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${collegeOfGlamourSubclassId}-unbreakable-majesty`,
+        label: "Unbreakable Majesty",
+        entryId: CLASS_FEATURE.UNBREAKABLE_MAJESTY
+      }),
+      actions: getBardCollegeOfGlamourFeatureActionsByKey(
+        featureActions,
+        unbreakableMajestyActionKey
+      )
+    }
+  ];
+}
+
+export const getBardCollegeOfGlamourDerivedFeatureState: SubclassRuntimeResolver = (character) => {
+  return projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectBardCollegeOfGlamourContributions(character)),
+    {
+      character: character as Character
+    }
+  );
 };

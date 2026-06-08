@@ -21,7 +21,14 @@ import {
   shouldTrackRoundScopedResources,
   startRoundTrackerTurn
 } from "../../../combat";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
+import type { WeaponAction } from "../../../gameplay";
 import { getPreparedSpellIdsByLevel, type SubclassRuntimeResolver } from "../../subclassRuntime";
 import type {
   DerivedFeatureStatusEntry,
@@ -419,24 +426,90 @@ export function restoreClericWarPriestOnLongRest(character: Character): Characte
   return restoreClericWarPriestUses(character);
 }
 
+export function collectClericWarDomainContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
+  if (!hasClericWarDomainFeature(character, 3)) {
+    return [];
+  }
+
+  return [
+    {
+      source: createSubclassContributionSource({
+        id: `${warDomainSubclassId}-domain-spells`,
+        label: "War Domain Spells",
+        entryId: CLASS_FEATURE.WAR_DOMAIN_SPELLS
+      }),
+      alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
+        character.level ?? 0,
+        warDomainSpellIdsByLevel
+      )
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${warDomainSubclassId}-war-priest`,
+        label: "War Priest",
+        entryId: CLASS_FEATURE.WAR_PRIEST
+      }),
+      actions: getClericWarDomainFeatureActions(character)
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${warDomainSubclassId}-guided-strike`,
+        label: guidedStrikeName,
+        entryId: CLASS_FEATURE.GUIDED_STRIKE
+      }),
+      reactions: [getClericGuidedStrikeReactionEntry(character)],
+      weaponActionTransforms: [
+        {
+          id: "cleric-war-domain-guided-strike-weapon-action-transform",
+          transform: (_character, action) =>
+            appendFeatureSourcedDescriptionAddition(
+              action as WeaponAction,
+              character,
+              CLASS_FEATURE.GUIDED_STRIKE,
+              getGuidedStrikeDescription(character),
+              guidedStrikeName
+            )
+        }
+      ]
+    },
+    ...(hasClericWarDomainFeature(character, 6)
+      ? [
+          {
+            source: createSubclassContributionSource({
+              id: `${warDomainSubclassId}-war-gods-blessing`,
+              label: warGodsBlessingName,
+              entryId: CLASS_FEATURE.WAR_GODS_BLESSING
+            }),
+            spellTransforms: [
+              {
+                id: "cleric-war-domain-war-gods-blessing-spell-transform",
+                transform: (spell: SpellEntry) => getClericWarGodsBlessingSpellEntry(character, spell)
+              }
+            ]
+          }
+        ]
+      : []),
+    ...(hasClericWarDomainFeature(character, 17)
+      ? [
+          {
+            source: createSubclassContributionSource({
+              id: `${warDomainSubclassId}-avatar-of-battle`,
+              label: avatarOfBattleName,
+              entryId: CLASS_FEATURE.AVATAR_OF_BATTLE
+            }),
+            statuses: getClericAvatarOfBattleDerivedStatusEntries(character)
+          }
+        ]
+      : [])
+  ];
+}
+
 export const getClericWarDomainDerivedFeatureState: SubclassRuntimeResolver = (character) =>
-  hasClericWarDomainFeature(character, 3)
-    ? {
-        featureActions: getClericWarDomainFeatureActions(character),
-        derivedStatusEntries: getClericAvatarOfBattleDerivedStatusEntries(character),
-        reactionEntries: [getClericGuidedStrikeReactionEntry(character)],
-        transformSpellEntry: (spell) => getClericWarGodsBlessingSpellEntry(character, spell),
-        transformWeaponAction: (action) =>
-          appendFeatureSourcedDescriptionAddition(
-            action,
-            character,
-            CLASS_FEATURE.GUIDED_STRIKE,
-            getGuidedStrikeDescription(character),
-            guidedStrikeName
-          ),
-        alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-          character.level ?? 0,
-          warDomainSpellIdsByLevel
-        )
-      }
-    : {};
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectClericWarDomainContributions(character)),
+    {
+      character: character as Character
+    }
+  );

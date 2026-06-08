@@ -20,6 +20,12 @@ import type {
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
+import {
   CONDITION_NAME,
   LANGUAGE_PROFICIENCY,
   PROFICIENCY_OVERRIDE_POLICY,
@@ -691,22 +697,87 @@ function getBardCollegeOfTheMoonLunarVitalityAction(
 }
 
 export const getBardCollegeOfTheMoonDerivedFeatureState: SubclassRuntimeResolver = (character) => {
-  const lunarVitalityAction = getBardCollegeOfTheMoonLunarVitalityAction(character);
-
-  return {
-    featureActions: lunarVitalityAction ? [lunarVitalityAction] : [],
-    transformFeatureAction: hasCollegeOfTheMoonMoonsInspiration(character)
-      ? (action) =>
-          appendInspiredEclipseDescription(action, hasCollegeOfTheMoonEventidesSplendor(character))
-      : undefined,
-    alwaysPreparedSpellIds:
-      character.className === "Bard" &&
-      character.subclassId === collegeOfTheMoonSubclassId &&
-      (character.level ?? 0) >= 6
-        ? [moonbeamSpellId]
-        : [],
-    transformSpellEntry: hasCollegeOfTheMoonBlessingOfMoonlight(character)
-      ? (spell) => appendBlessingOfMoonlightDescription(character, spell)
-      : undefined
-  };
+  return projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectBardCollegeOfTheMoonContributions(character)),
+    {
+      character: character as Character
+    }
+  );
 };
+
+export function collectBardCollegeOfTheMoonContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
+  if (character.className !== "Bard" || character.subclassId !== collegeOfTheMoonSubclassId) {
+    return [];
+  }
+
+  const lunarVitalityAction = getBardCollegeOfTheMoonLunarVitalityAction(character);
+  const hasMoonsInspiration = hasCollegeOfTheMoonMoonsInspiration(character);
+  const hasBlessingOfMoonlight = hasCollegeOfTheMoonBlessingOfMoonlight(character);
+  const hasEventidesSplendor = hasCollegeOfTheMoonEventidesSplendor(character);
+
+  return [
+    {
+      source: createSubclassContributionSource({
+        id: `${collegeOfTheMoonSubclassId}-moons-inspiration`,
+        label: "Moon's Inspiration",
+        entryId: CLASS_FEATURE.MOONS_INSPIRATION
+      }),
+      actions: lunarVitalityAction ? [lunarVitalityAction] : [],
+      featureActionTransforms: hasMoonsInspiration
+        ? [
+            {
+              id: "bard-college-of-the-moon-inspired-eclipse-feature-action-transform",
+              transform: (action) =>
+                appendInspiredEclipseDescription(
+                  action,
+                  hasCollegeOfTheMoonEventidesSplendor(character)
+                )
+            }
+          ]
+        : []
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${collegeOfTheMoonSubclassId}-primal-lore`,
+        label: "Primal Lore",
+        entryId: CLASS_FEATURE.PRIMAL_LORE
+      }),
+      alwaysPreparedSpellIds: getBardCollegeOfTheMoonAlwaysPreparedSpellIds(character),
+      skillProficiencyEntries: getBardCollegeOfTheMoonSkillProficiencyEntries(character),
+      languageProficiencyEntries: getBardCollegeOfTheMoonLanguageProficiencyEntries({
+        className: character.className,
+        level: character.level ?? 0,
+        subclassId: character.subclassId
+      })
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${collegeOfTheMoonSubclassId}-blessing-of-moonlight`,
+        label: "Blessing of Moonlight",
+        entryId: CLASS_FEATURE.BLESSING_OF_MOONLIGHT
+      }),
+      alwaysPreparedSpellIds: hasBlessingOfMoonlight ? [moonbeamSpellId] : [],
+      spellTransforms: hasBlessingOfMoonlight
+        ? [
+            {
+              id: "bard-college-of-the-moon-blessing-of-moonlight-spell-transform",
+              transform: (spell) => appendBlessingOfMoonlightDescription(character, spell)
+            }
+          ]
+        : []
+    },
+    ...(hasEventidesSplendor
+      ? [
+          {
+            source: createSubclassContributionSource({
+              id: `${collegeOfTheMoonSubclassId}-eventides-splendor`,
+              label: "Eventide's Splendor",
+              entryId: CLASS_FEATURE.EVENTIDES_SPLENDOR
+            })
+          }
+        ]
+      : [])
+  ];
+}

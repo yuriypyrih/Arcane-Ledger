@@ -18,6 +18,12 @@ import {
 } from "../../../../../types";
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import { getPreparedSpellIdsByLevel } from "../../subclassRuntime";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import type { FeatureActionCard } from "../../types";
@@ -425,14 +431,80 @@ export function restoreClericCoronaOfLightOnLongRest(character: Character): Char
   };
 }
 
+function getClericLightDomainActionsByKey(
+  actions: readonly FeatureActionCard[],
+  actionKey: string
+): FeatureActionCard[] {
+  return actions.filter((action) => action.key === actionKey);
+}
+
+export function collectClericLightDomainContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
+  if (!hasClericLightDomainFeature(character, 3)) {
+    return [];
+  }
+
+  const featureActions = getClericLightDomainFeatureActions(character);
+
+  return [
+    {
+      source: createSubclassContributionSource({
+        id: `${lightDomainSubclassId}-domain-spells`,
+        label: "Light Domain Spells",
+        entryId: CLASS_FEATURE.LIGHT_DOMAIN_SPELLS
+      }),
+      alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
+        character.level ?? 0,
+        lightDomainSpellIdsByLevel
+      )
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${lightDomainSubclassId}-radiance-of-the-dawn`,
+        label: "Radiance of the Dawn",
+        entryId: CLASS_FEATURE.RADIANCE_OF_THE_DAWN
+      }),
+      actions: getClericLightDomainActionsByKey(featureActions, radianceOfTheDawnActionKey)
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${lightDomainSubclassId}-warding-flare`,
+        label: "Warding Flare",
+        entryId: CLASS_FEATURE.WARDING_FLARE
+      }),
+      reactions: getClericLightDomainReactionEntries(character)
+    },
+    ...(hasClericLightDomainFeature(character, 6)
+      ? [
+          {
+            source: createSubclassContributionSource({
+              id: `${lightDomainSubclassId}-improved-warding-flare`,
+              label: "Improved Warding Flare",
+              entryId: CLASS_FEATURE.IMPROVED_WARDING_FLARE
+            })
+          }
+        ]
+      : []),
+    ...(hasClericLightDomainFeature(character, 17)
+      ? [
+          {
+            source: createSubclassContributionSource({
+              id: `${lightDomainSubclassId}-corona-of-light`,
+              label: "Corona of Light",
+              entryId: CLASS_FEATURE.CORONA_OF_LIGHT
+            }),
+            actions: getClericLightDomainActionsByKey(featureActions, coronaOfLightActionKey)
+          }
+        ]
+      : [])
+  ];
+}
+
 export const getClericLightDomainDerivedFeatureState: SubclassRuntimeResolver = (character) =>
-  hasClericLightDomainFeature(character, 3)
-    ? {
-        featureActions: getClericLightDomainFeatureActions(character),
-        reactionEntries: getClericLightDomainReactionEntries(character),
-        alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-          character.level ?? 0,
-          lightDomainSpellIdsByLevel
-        )
-      }
-    : {};
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectClericLightDomainContributions(character)),
+    {
+      character: character as Character
+    }
+  );

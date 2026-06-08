@@ -20,6 +20,12 @@ import {
 import { artisanToolProficiencies, type ToolProficiency } from "../../../proficiencyOptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import { getSkillProficiencyForName } from "../../../proficiencyResolvers";
 import { getRuntimeSavingThrowLevel } from "../../../proficiency/runtime";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellSlots";
@@ -848,22 +854,68 @@ export function restoreClericDivineForeknowledgeOnLongRest(character: Character)
 }
 
 export const getClericKnowledgeDomainDerivedFeatureState: SubclassRuntimeResolver = (character) => {
+  return projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectClericKnowledgeDomainContributions(character)),
+    {
+      character: character as Character
+    }
+  );
+};
+
+export function collectClericKnowledgeDomainContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
   if (!hasClericKnowledgeDomainFeature(character, 3)) {
-    return {};
+    return [];
   }
 
-  return {
-    featureActions: getKnowledgeDomainFeatureActions(character),
-    skillProficiencyEntries: getKnowledgeDomainSkillProficiencyEntries(character),
-    toolProficiencyEntries: getKnowledgeDomainToolProficiencyEntries(character),
-    savingThrowProficiencyEntries: getKnowledgeDomainSavingThrowProficiencyEntries(character),
-    skillIndicators: getKnowledgeDomainSkillIndicators(character),
-    savingThrowIndicators: getKnowledgeDomainSavingThrowIndicators(character),
-    abilityCheckIndicators: getKnowledgeDomainAbilityCheckIndicators(character),
-    coreStatIndicators: getKnowledgeDomainCoreStatIndicators(character),
-    alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-      character.level ?? 0,
-      knowledgeDomainSpellIdsByLevel
-    )
-  };
-};
+  return [
+    {
+      source: createSubclassContributionSource({
+        id: `${knowledgeDomainSubclassId}-blessings-of-knowledge`,
+        label: "Blessings of Knowledge",
+        entryId: CLASS_FEATURE.BLESSINGS_OF_KNOWLEDGE
+      }),
+      skillProficiencyEntries: getKnowledgeDomainSkillProficiencyEntries(character),
+      toolProficiencyEntries: getKnowledgeDomainToolProficiencyEntries(character)
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${knowledgeDomainSubclassId}-domain-spells`,
+        label: "Knowledge Domain Spells",
+        entryId: CLASS_FEATURE.KNOWLEDGE_DOMAIN_SPELLS
+      }),
+      alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
+        character.level ?? 0,
+        knowledgeDomainSpellIdsByLevel
+      )
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${knowledgeDomainSubclassId}-mind-magic`,
+        label: "Mind Magic",
+        entryId: CLASS_FEATURE.MIND_MAGIC
+      })
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${knowledgeDomainSubclassId}-unfettered-mind`,
+        label: "Unfettered Mind",
+        entryId: CLASS_FEATURE.UNFETTERED_MIND
+      }),
+      savingThrowProficiencyEntries: getKnowledgeDomainSavingThrowProficiencyEntries(character)
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${knowledgeDomainSubclassId}-divine-foreknowledge`,
+        label: "Divine Foreknowledge",
+        entryId: CLASS_FEATURE.DIVINE_FOREKNOWLEDGE
+      }),
+      actions: getKnowledgeDomainFeatureActions(character),
+      skillIndicators: getKnowledgeDomainSkillIndicators(character),
+      savingThrowIndicators: getKnowledgeDomainSavingThrowIndicators(character),
+      abilityCheckIndicators: getKnowledgeDomainAbilityCheckIndicators(character),
+      coreStatIndicators: getKnowledgeDomainCoreStatIndicators(character)
+    }
+  ];
+}

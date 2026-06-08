@@ -814,7 +814,7 @@ export function getClericDivineInterventionSpellEntries(
   });
 }
 
-function getClericChannelDivinityAction(
+export function getClericChannelDivinityAction(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): FeatureActionCard | null {
   if (!hasClericFeature(character, CLASS_FEATURE.CHANNEL_DIVINITY)) {
@@ -851,7 +851,7 @@ function getClericChannelDivinityAction(
   };
 }
 
-function getClericDivineInterventionAction(
+export function getClericDivineInterventionAction(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): FeatureActionCard | null {
   if (!hasClericFeature(character, CLASS_FEATURE.DIVINE_INTERVENTION)) {

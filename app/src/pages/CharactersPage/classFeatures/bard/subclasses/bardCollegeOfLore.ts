@@ -12,6 +12,12 @@ import type {
   SkillProficiencyEntry
 } from "../../../../../types";
 import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
+import {
   PROFICIENCY_OVERRIDE_POLICY,
   PROFICIENCY_SOURCE,
   PROF_LEVEL,
@@ -206,24 +212,58 @@ export function setBardCollegeOfLoreMagicalDiscoveriesSpellIds(
 }
 
 export const getBardCollegeOfLoreDerivedFeatureState: SubclassRuntimeResolver = (character) => {
+  return projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectBardCollegeOfLoreContributions(character)),
+    {
+      character: character as Character
+    }
+  );
+};
+
+export function collectBardCollegeOfLoreContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
   if (
     character.className !== "Bard" ||
     character.subclassId !== collegeOfLoreSubclassId ||
     (character.level ?? 0) < 3
   ) {
-    return {};
+    return [];
   }
 
   const cuttingWords = getReactionEntryById("reaction-cutting-words");
 
-  return cuttingWords
-    ? {
-        reactionEntries: [
-          {
-            ...cuttingWords,
-            description: getFeatureDescriptionForCharacter(character, CLASS_FEATURE.CUTTING_WORDS)
-          }
-        ]
-      }
-    : {};
-};
+  return [
+    {
+      source: createSubclassContributionSource({
+        id: `${collegeOfLoreSubclassId}-bonus-proficiencies`,
+        label: "Bonus Proficiencies",
+        entryId: CLASS_FEATURE.BONUS_PROFICIENCIES
+      }),
+      skillProficiencyEntries: getBardCollegeOfLoreSkillProficiencyEntries(character)
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${collegeOfLoreSubclassId}-cutting-words`,
+        label: "Cutting Words",
+        entryId: CLASS_FEATURE.CUTTING_WORDS
+      }),
+      reactions: cuttingWords
+        ? [
+            {
+              ...cuttingWords,
+              description: getFeatureDescriptionForCharacter(character, CLASS_FEATURE.CUTTING_WORDS)
+            }
+          ]
+        : []
+    },
+    {
+      source: createSubclassContributionSource({
+        id: `${collegeOfLoreSubclassId}-magical-discoveries`,
+        label: "Magical Discoveries",
+        entryId: CLASS_FEATURE.MAGICAL_DISCOVERIES
+      }),
+      alwaysPreparedSpellIds: getBardCollegeOfLoreMagicalDiscoveriesSpellIds(character)
+    }
+  ];
+}
