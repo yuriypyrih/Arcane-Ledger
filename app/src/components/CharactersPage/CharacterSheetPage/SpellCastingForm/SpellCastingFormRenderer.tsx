@@ -694,6 +694,8 @@ export function renderSpellCastingForm(context: Record<string, any>) {
                     disabledReason: path.disabledReason ?? path.shapeState.disabledReason,
                     roundTrackerResourceOverride: path.roundTrackerResource,
                     usage: path.usage,
+                    spellImplementationCastSource: path.spellImplementationCastSource,
+                    forcedSpellImplementationOptions: path.forcedSpellImplementationOptions,
                     spellCastEffectIds: path.spellCastEffectIds
                   }
                 : null;

@@ -7,13 +7,14 @@ import {
   type RoundTrackerResource
 } from "../../../../pages/CharactersPage/combat";
 import { applySpellCastFeatureEffectsForCharacter } from "../../../../pages/CharactersPage/classFeatures";
-import { applyFeatSpellCastEffectsForCharacter } from "../../../../pages/CharactersPage/feats/runtime";
+import { applyFeatureSpellCastEffectsForCharacter } from "../../../../pages/CharactersPage/feats/runtime";
 import {
   consumeSharedEconomyMultiForCharacterAction,
   createEconomyMultiContextForSpell
 } from "../../../../pages/CharactersPage/classFeatures/economyMulti";
 import {
   applySpellImplementationForCharacter,
+  type SpellImplementationCastSource,
   type SpellImplementationOptionValues
 } from "../../../../pages/CharactersPage/characterRuntime/spellImplementations";
 import {
@@ -162,6 +163,8 @@ function EquipmentStoredSpellDrawer({
             actionShapeMultiCount: path.shapeState.multiCount,
             disabledReason: chargeWarning ?? path.shapeState.disabledReason,
             roundTrackerResourceOverride: path.roundTrackerResource,
+            spellImplementationCastSource: path.spellImplementationCastSource,
+            forcedSpellImplementationOptions: path.forcedSpellImplementationOptions,
             spellCastEffectIds: path.spellCastEffectIds
           }
         : null;
@@ -190,6 +193,8 @@ function EquipmentStoredSpellDrawer({
   function castStoredSpell(options?: {
     roundTrackerResourceOverride?: RoundTrackerResource | null;
     spellCastEffectIds?: string[];
+    spellActionPathId?: string | null;
+    spellImplementationCastSource?: SpellImplementationCastSource;
     spellImplementationOptions?: SpellImplementationOptionValues;
   }) {
     if (!selectedStoredSpell || !activeSpellEntry) {
@@ -243,17 +248,23 @@ function EquipmentStoredSpellDrawer({
         character: nextCharacterWithConcentration,
         spell,
         spellSlotLevel: spell.spellLevel > 0 ? spell.spellLevel : null,
-        castSource: "standard",
+        castSource: options?.spellImplementationCastSource ?? "standard",
         options: options?.spellImplementationOptions ?? {}
       });
       const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
         nextCharacterWithSpellImplementation,
         spell
       );
-      const nextCharacterWithFeatCastEffects = applyFeatSpellCastEffectsForCharacter(
+      const nextCharacterWithFeatCastEffects = applyFeatureSpellCastEffectsForCharacter(
         nextCharacterWithSpellCastEffects,
         spell,
-        options?.spellCastEffectIds
+        options?.spellCastEffectIds,
+        {
+          spellSlotLevel: spell.spellLevel > 0 ? spell.spellLevel : null,
+          castSource: options?.spellImplementationCastSource ?? "standard",
+          options: options?.spellImplementationOptions ?? {},
+          spellActionPathId: options?.spellActionPathId ?? null
+        }
       );
 
       if (!nextCharacterWithFeatCastEffects) {

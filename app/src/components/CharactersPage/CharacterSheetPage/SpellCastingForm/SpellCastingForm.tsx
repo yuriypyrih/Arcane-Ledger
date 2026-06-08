@@ -150,7 +150,7 @@ import {
   getRitualCasterQuickRitualStateForCharacter,
   getShadowTouchedFreeCastStateForCharacter,
   getSpellfireSparkSpellfireFlameStateForCharacter,
-  applyFeatSpellCastEffectsForCharacter,
+  applyFeatureSpellCastEffectsForCharacter,
   getTelepathicDetectThoughtsFreeCastStateForCharacter
 } from "../../../../pages/CharactersPage/feats/runtime";
 import {
@@ -197,12 +197,9 @@ import {
 } from "../../../../pages/CharactersPage/spellOutcome";
 import { getSpellAttackRollFormulaForCharacter } from "../../../../pages/CharactersPage/shared/spellFormulas";
 import {
-  applyFalseLifeTemporaryHitPointsToCharacter,
   applySpellImplementationForCharacter,
-  falseLifeSpellId,
-  getFalseLifeTemporaryHitPointsFormula,
-  getFalseLifeTemporaryHitPointsFormulaDisplay,
-  getFalseLifeTemporaryHitPointsFromRoll,
+  getSpellImplementationRollEffectsForCharacter,
+  type SpellImplementationCastSource,
   type SpellImplementationOptionValues
 } from "../../../../pages/CharactersPage/characterRuntime/spellImplementations";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
@@ -1457,8 +1454,17 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpell?.id === huntersMarkSpellId
       ? getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormulaDisplayForCharacter(character)
       : null;
+  const selectedSpellImplementationRollEffects = selectedSpell
+    ? getSpellImplementationRollEffectsForCharacter({
+        character,
+        spell: selectedSpell,
+        spellSlotLevel: selectedSpellSlotLevel,
+        castSource: "standard",
+        options: {}
+      })
+    : [];
   const selectedSpellFalseLifeTemporaryHitPointsFormula =
-    selectedSpell?.id === falseLifeSpellId ? getFalseLifeTemporaryHitPointsFormula() : null;
+    selectedSpellImplementationRollEffects[0]?.formula ?? null;
   const selectedSpellFacts =
     selectedSpell?.id === huntersMarkSpellId
       ? getRangerWinterWalkerHuntersRimeTemporaryHitPointsFactsForCharacter(character)
@@ -2070,29 +2076,34 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     });
   }
 
-  function rollFalseLifeTemporaryHitPointsForSpellCast(
-    spell: Pick<SpellEntry, "id" | "name">,
-    spellSlotLevel: number
+  function rollSpellImplementationEffectsForSpellCast(
+    spell: SpellEntry,
+    spellSlotLevel: number | null,
+    options: SpellImplementationOptionValues = {},
+    castSource: SpellImplementationCastSource = "standard"
   ) {
-    if (spell.id !== falseLifeSpellId) {
-      return;
-    }
+    const rollEffects = getSpellImplementationRollEffectsForCharacter({
+      character,
+      spell,
+      spellSlotLevel,
+      castSource,
+      options
+    });
 
-    openDiceRoller({
-      title: spell.name,
-      formula: getFalseLifeTemporaryHitPointsFormula(),
-      formulaDisplay: getFalseLifeTemporaryHitPointsFormulaDisplay(spellSlotLevel),
-      description: `When you cast ${spell.name}, you gain Temporary Hit Points.`,
-      onResolvedResult: ({ result }) => {
-        const temporaryHitPoints = getFalseLifeTemporaryHitPointsFromRoll(
-          result.total,
-          spellSlotLevel
-        );
-
-        onPersistCharacter((currentCharacter) =>
-          applyFalseLifeTemporaryHitPointsToCharacter(currentCharacter, temporaryHitPoints)
-        );
-      }
+    rollEffects.forEach((effect) => {
+      openDiceRoller({
+        title: effect.title,
+        formula: effect.formula,
+        formulaDisplay: effect.formulaDisplay ?? effect.formula,
+        description: effect.description,
+        onResolvedResult: effect.applyResolvedResult
+          ? ({ result }) => {
+              onPersistCharacter((currentCharacter) =>
+                effect.applyResolvedResult!(currentCharacter, result)
+              );
+            }
+          : undefined
+      });
     });
   }
 
@@ -2156,6 +2167,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     useBoonOfSpellRecall?: boolean;
     useEmeraldEnclaveFledglingFreeUse?: boolean;
     spellCastEffectIds?: string[];
+    spellActionPathId?: string | null;
+    spellImplementationCastSource?: SpellImplementationCastSource;
     spellImplementationOptions?: SpellImplementationOptionValues;
   }) {
     return castSelectedSpellWithContext(
@@ -2185,7 +2198,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         consumeRitualCasterQuickRitualForCharacter,
         consumeShadowTouchedFreeCastForCharacter,
         consumeTelepathicDetectThoughtsFreeCastForCharacter,
-        applyFeatSpellCastEffectsForCharacter,
+        applyFeatureSpellCastEffectsForCharacter,
         consumeDruidNaturalRecoveryUseForCharacter,
         consumeDruidStarMapGuidingBoltUseForCharacter,
         consumeRangerFeyReinforcementsUseForCharacter,
@@ -2219,7 +2232,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         rangerFeyReinforcementsUsesRemaining,
         rangerMistyWandererUsesRemaining,
         restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter,
-        rollFalseLifeTemporaryHitPointsForSpellCast,
+        rollSpellImplementationEffectsForSpellCast,
         rollHuntersRimeTemporaryHitPointsForSpellCast,
         rollSpellAttackForSpellCast,
         selectedSpell,

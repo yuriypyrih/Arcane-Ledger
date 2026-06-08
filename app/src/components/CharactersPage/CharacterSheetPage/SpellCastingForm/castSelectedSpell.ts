@@ -30,7 +30,7 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
     consumeRitualCasterQuickRitualForCharacter,
     consumeShadowTouchedFreeCastForCharacter,
     consumeTelepathicDetectThoughtsFreeCastForCharacter,
-    applyFeatSpellCastEffectsForCharacter,
+    applyFeatureSpellCastEffectsForCharacter,
     consumeRangerFeyReinforcementsUseForCharacter,
     consumeRangerMistyWandererUseForCharacter,
     consumeRangerWinterWalkerFrozenHauntUseForCharacter,
@@ -62,8 +62,8 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
     rangerFeyReinforcementsUsesRemaining,
     rangerMistyWandererUsesRemaining,
     restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter,
-    rollFalseLifeTemporaryHitPointsForSpellCast,
     rollHuntersRimeTemporaryHitPointsForSpellCast,
+    rollSpellImplementationEffectsForSpellCast,
     rollSpellAttackForSpellCast,
     selectedSpell,
     selectedSpellActionPaths,
@@ -161,6 +161,12 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
     options?.useEmeraldEnclaveFledglingFreeUse === true &&
     selectedSpellSupportsEmeraldEnclaveFledgling;
   const spellImplementationOptions = options?.spellImplementationOptions ?? {};
+  const spellImplementationCastSource =
+    options?.spellImplementationCastSource ??
+    selectedSpellActionPath?.spellImplementationCastSource ??
+    "standard";
+  const spellActionPathId =
+    options?.spellActionPathId ?? selectedSpellActionPath?.id ?? null;
   const useBlessingOfMoonlight = options?.useBlessingOfMoonlight === true;
   const useElementalSmite =
     options?.useElementalSmite === true &&
@@ -275,16 +281,22 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
           character: nextCharacterWithElementalSmite,
           spell: selectedSpell,
           spellSlotLevel: null,
-          castSource: "standard",
+          castSource: spellImplementationCastSource,
           options: spellImplementationOptions
         });
         const nextCharacterWithGoliathAncestry = consumeGoliathAncestryIfSelected(
           nextCharacterWithSpellImplementation
         );
-        const nextCharacterWithFeatCastEffects = applyFeatSpellCastEffectsForCharacter(
+        const nextCharacterWithFeatCastEffects = applyFeatureSpellCastEffectsForCharacter(
           nextCharacterWithGoliathAncestry,
           selectedSpell,
-          selectedSpellCastEffectIds
+          selectedSpellCastEffectIds,
+          {
+            spellSlotLevel: null,
+            castSource: spellImplementationCastSource,
+            options: spellImplementationOptions,
+            spellActionPathId
+          }
         );
 
         if (!nextCharacterWithFeatCastEffects) {
@@ -348,16 +360,22 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
           character: nextCharacterWithConcentration,
           spell: selectedSpell,
           spellSlotLevel: null,
-          castSource: "standard",
+          castSource: spellImplementationCastSource,
           options: spellImplementationOptions
         });
         const nextCharacterWithGoliathAncestry = consumeGoliathAncestryIfSelected(
           nextCharacterWithSpellImplementation
         );
-        const nextCharacterWithFeatCastEffects = applyFeatSpellCastEffectsForCharacter(
+        const nextCharacterWithFeatCastEffects = applyFeatureSpellCastEffectsForCharacter(
           nextCharacterWithGoliathAncestry,
           selectedSpell,
-          selectedSpellCastEffectIds
+          selectedSpellCastEffectIds,
+          {
+            spellSlotLevel: null,
+            castSource: spellImplementationCastSource,
+            options: spellImplementationOptions,
+            spellActionPathId
+          }
         );
 
         if (!nextCharacterWithFeatCastEffects) {
@@ -375,7 +393,12 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
     }
 
     rollHuntersRimeTemporaryHitPointsForSpellCast(selectedSpell);
-    rollFalseLifeTemporaryHitPointsForSpellCast(selectedSpell, 1);
+    rollSpellImplementationEffectsForSpellCast(
+      selectedSpell,
+      null,
+      spellImplementationOptions,
+      spellImplementationCastSource
+    );
     rollSpellAttackForSpellCast(selectedSpell);
     closeSelectedSpell();
     return;
@@ -414,7 +437,7 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
         character: nextCharacterWithElementalSmite,
         spell: selectedSpell,
         spellSlotLevel: null,
-        castSource: "standard",
+        castSource: spellImplementationCastSource,
         options: spellImplementationOptions
       });
       const nextCharacterWithGoliathAncestry = consumeGoliathAncestryIfSelected(
@@ -437,7 +460,12 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
     });
 
     rollHuntersRimeTemporaryHitPointsForSpellCast(selectedSpell);
-    rollFalseLifeTemporaryHitPointsForSpellCast(selectedSpell, 1);
+    rollSpellImplementationEffectsForSpellCast(
+      selectedSpell,
+      null,
+      spellImplementationOptions,
+      spellImplementationCastSource
+    );
     rollSpellAttackForSpellCast(selectedSpell);
     closeSelectedSpell();
     return;
@@ -719,7 +747,7 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
       character: nextCharacterWithSpellcast,
       spell: selectedSpell,
       spellSlotLevel: slotLevel,
-      castSource: "standard",
+      castSource: spellImplementationCastSource,
       options: spellImplementationOptions
     });
     const nextCharacterWithTelekineticMaster = castsFreeViaTelekineticMaster
@@ -771,10 +799,16 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
     const nextCharacterWithGoliathAncestry = consumeGoliathAncestryIfSelected(
       nextCharacterWithFrozenHaunt
     );
-    const nextCharacterWithFeatCastEffects = applyFeatSpellCastEffectsForCharacter(
+    const nextCharacterWithFeatCastEffects = applyFeatureSpellCastEffectsForCharacter(
       nextCharacterWithGoliathAncestry,
       selectedSpell,
-      selectedSpellCastEffectIds
+      selectedSpellCastEffectIds,
+      {
+        spellSlotLevel: slotLevel,
+        castSource: spellImplementationCastSource,
+        options: spellImplementationOptions,
+        spellActionPathId
+      }
     );
 
     if (!nextCharacterWithFeatCastEffects) {
@@ -834,7 +868,12 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
   });
 
   rollHuntersRimeTemporaryHitPointsForSpellCast(selectedSpell);
-  rollFalseLifeTemporaryHitPointsForSpellCast(selectedSpell, slotLevel);
+  rollSpellImplementationEffectsForSpellCast(
+    selectedSpell,
+    slotLevel,
+    spellImplementationOptions,
+    spellImplementationCastSource
+  );
   rollSpellAttackForSpellCast(selectedSpell);
   closeSelectedSpell();
 }

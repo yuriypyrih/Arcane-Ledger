@@ -27,8 +27,9 @@ import {
   appendGoliathAttackDescriptionAddition,
   getGoliathAttackDamageDetail
 } from "../../../../../../pages/CharactersPage/species";
-import {
-  mageArmorCastOnSelfOptionId
+import type {
+  SpellImplementationCastSource,
+  SpellImplementationOptionValues
 } from "../../../../../../pages/CharactersPage/characterRuntime/spellImplementations";
 import type { GoliathAttackOptionState } from "../../../../../../pages/CharactersPage/speciesGoliath";
 import {
@@ -54,6 +55,8 @@ type SpellActionPathState = {
   actionLabel?: string;
   disabledReason?: string | null;
   usage?: FeatureActionCardUsage;
+  spellImplementationCastSource?: SpellImplementationCastSource;
+  forcedSpellImplementationOptions?: SpellImplementationOptionValues;
   spellCastEffectIds?: string[];
 };
 
@@ -141,9 +144,6 @@ type FeatureSpellDrawersProps = {
 };
 
 const emptySpellSlots = Array.from({ length: 9 }, () => 0);
-const armorOfShadowsSpellImplementationOptions = {
-  [mageArmorCastOnSelfOptionId]: true
-};
 
 function createBeguilingMagicOption({
   checked,
@@ -380,12 +380,10 @@ function FeatureSpellDrawers({
           selectedSpellSlotLevel={selectedFixedSpellSlotLevel}
           onSelectedSpellSlotLevelChange={onSelectedFixedSpellSlotLevelChange}
           onClose={onCloseFixedSpellDrawer}
-          spellImplementationCastSource="fixed-feature"
-          forcedSpellImplementationOptions={
-            fixedSpellExecute.effectKind === "armor-of-shadows"
-              ? armorOfShadowsSpellImplementationOptions
-              : undefined
+          spellImplementationCastSource={
+            fixedSpellExecute.spellImplementationCastSource ?? "fixed-feature"
           }
+          forcedSpellImplementationOptions={fixedSpellExecute.forcedSpellImplementationOptions}
           onAction={(options) =>
             onCastFixedSpellAction({
               ...options,
@@ -426,6 +424,13 @@ function FeatureSpellDrawers({
                     disabledReason: path.disabledReason ?? path.shapeState.disabledReason,
                     roundTrackerResourceOverride: path.roundTrackerResource,
                     usage: path.usage,
+                    spellImplementationCastSource:
+                      path.spellImplementationCastSource ??
+                      fixedSpellExecute.spellImplementationCastSource,
+                    forcedSpellImplementationOptions: {
+                      ...(fixedSpellExecute.forcedSpellImplementationOptions ?? {}),
+                      ...(path.forcedSpellImplementationOptions ?? {})
+                    },
                     spellCastEffectIds: path.spellCastEffectIds
                   }
                 : null;

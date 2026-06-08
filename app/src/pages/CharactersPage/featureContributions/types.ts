@@ -1,20 +1,52 @@
-import type { ReactionEntry, SpellDescriptionEntry, SpellEntry } from "../../../codex/entries";
-import type { AbilityKey, Character, CharacterStatusEntry } from "../../../types";
+import type { DICE, ReactionEntry, SpellDescriptionEntry, SpellEntry } from "../../../codex/entries";
+import type {
+  AbilityKey,
+  Character,
+  CharacterStatusEntry,
+  PROF_LEVEL,
+  SkillName,
+  WEAPON_PROFICIENCY
+} from "../../../types";
 import type { EconomyType } from "../actionEconomy";
 import type { RoundTrackerResource } from "../combat";
+import type { WeaponAction } from "../gameplay";
 import type {
   FeatureAbilityScoreBonus,
   FeatureActionCard,
+  FeatureActionOptionCard,
   FeatureActionCardUsage,
+  FeatureArmorClassBonus,
+  FeatureArmorClassMode,
   FeatureArmorProficiencyEntry,
+  FeatureEquipmentEntry,
+  FeatureDamageBonus,
+  FeatureIndicator,
+  FeatureInitiativeBonus,
   FeatureSpeedBonus,
+  FeatureSavingThrowBonus,
+  FeatureSkillBonus,
+  FeatureSpellcastingState,
+  FeatureUnarmedStrikeConfig,
+  ArmorClassFeatureContext,
+  SpeedFeatureContext,
+  WeaponFeatureContext,
+  SavingThrowIndicatorMap,
+  AbilityCheckIndicatorMap,
+  CoreStatIndicatorMap,
+  SkillIndicatorMap,
+  MagicTemporaryHitPointsFeature,
   FeatureLanguageProficiencyEntry,
   FeatureSavingThrowProficiencyEntry,
   FeatureSkillProficiencyEntry,
   FeatureToolProficiencyEntry,
   FeatureWeaponProficiencyEntry,
+  SpellFeatureContext,
   SpellSourceMap
 } from "../classFeatures/types";
+import type {
+  SpellImplementationCastSource,
+  SpellImplementationOptionValues
+} from "../characterRuntime/spellImplementations/types";
 
 export type FeatureContributionSourceType =
   | "class"
@@ -22,7 +54,8 @@ export type FeatureContributionSourceType =
   | "feat"
   | "species"
   | "item"
-  | "invocation";
+  | "invocation"
+  | "spell";
 
 export type FeatureContributionSource = {
   type: FeatureContributionSourceType;
@@ -132,6 +165,55 @@ export type FeatureSpellTransform = {
   transform: (spell: SpellEntry) => SpellEntry;
 };
 
+export type FeatureSpellDamageBonusContext = SpellFeatureContext & {
+  character: Character;
+};
+
+export type FeatureSpellDamageBonusContribution = {
+  id: string;
+  getBonuses: (context: FeatureSpellDamageBonusContext) => FeatureDamageBonus[];
+};
+
+export type FeatureWeaponDamageBonusContribution = {
+  id: string;
+  getBonuses: (context: WeaponFeatureContext) => FeatureDamageBonus[];
+};
+
+export type FeatureInitiativeBonusContribution = {
+  id: string;
+  getBonuses: () => FeatureInitiativeBonus[];
+};
+
+export type FeatureSavingThrowBonusContribution = {
+  id: string;
+  getBonuses: (ability: AbilityKey) => FeatureSavingThrowBonus[];
+};
+
+export type FeatureSkillBonusContribution = {
+  id: string;
+  getBonuses: (skill: SkillName, proficiencyLevel: PROF_LEVEL) => FeatureSkillBonus[];
+};
+
+export type FeatureArmorClassModeContribution = {
+  id: string;
+  getModes: (context: ArmorClassFeatureContext) => FeatureArmorClassMode[];
+};
+
+export type FeatureArmorClassBonusContribution = {
+  id: string;
+  getBonuses: (context: ArmorClassFeatureContext) => FeatureArmorClassBonus[];
+};
+
+export type FeatureSpeedBonusContribution = {
+  id: string;
+  getBonuses: (context: SpeedFeatureContext) => FeatureSpeedBonus[];
+};
+
+export type FeatureSpellDamageFormulaOverrideContribution = {
+  id: string;
+  getOverride: (spell: Pick<SpellEntry, "id">) => string | null;
+};
+
 export type FeatureSpellActionPathContext = {
   character: Character;
   spell: Pick<SpellEntry, "id" | "castingTime" | "spellLevel">;
@@ -145,11 +227,18 @@ export type FeatureSpellActionPathContribution = {
   roundTrackerResource?: RoundTrackerResource | null;
   getDisabledReason?: (context: FeatureSpellActionPathContext) => string | null;
   getUsage?: (context: FeatureSpellActionPathContext) => FeatureActionCardUsage | undefined;
+  spellImplementationCastSource?: SpellImplementationCastSource;
+  forcedSpellImplementationOptions?: SpellImplementationOptionValues;
   spellCastEffectIds?: string[];
 };
 
 export type FeatureSpellCastEffectContext = {
   spell: Pick<SpellEntry, "id" | "spellLevel">;
+  spellSlotLevel?: number | null;
+  castSource?: SpellImplementationCastSource;
+  options?: SpellImplementationOptionValues;
+  spellActionPathId?: string | null;
+  spellCastEffectIds?: readonly string[];
 };
 
 export type FeatureSpellCastEffectContribution = {
@@ -157,21 +246,53 @@ export type FeatureSpellCastEffectContribution = {
   apply?: (character: Character, context: FeatureSpellCastEffectContext) => Character;
 };
 
+export type FeatureActionTransform = {
+  id: string;
+  transform: (action: FeatureActionCard) => FeatureActionCard;
+};
+
 export type FeatureContributionActionFactory<TDerivedState = unknown> = (
   character: Character,
   derivedState: TDerivedState
 ) => FeatureActionCard[];
 
+export type FeatureWeaponMasteryContribution = {
+  selectionCount: number;
+  options: WEAPON_PROFICIENCY[];
+  selections: WEAPON_PROFICIENCY[];
+  setSelections: (character: Character, selections: WEAPON_PROFICIENCY[]) => Character;
+};
+
+export type FeatureClassMechanicsContribution = {
+  weaponMastery?: FeatureWeaponMasteryContribution;
+  magicTemporaryHitPointsFeature?: MagicTemporaryHitPointsFeature | null;
+  bardicInspirationDie?: DICE | null;
+  monkMartialArtsDie?: DICE | null;
+  rogueSneakAttackDiceCount?: number;
+  rogueSneakAttackFormula?: string;
+  monkUnarmedDamageTypeLabel?: string;
+  getUnarmedStrikeConfig?: () => FeatureUnarmedStrikeConfig | null;
+  canUseMonkMartialArts?: (context: {
+    hasWornBodyArmor: boolean;
+    hasShieldEquipped: boolean;
+    wieldsOnlyMonkWeaponsOrUnarmed: boolean;
+  }) => boolean;
+};
+
 export type FeatureContributionSpec<TDerivedState = unknown> = {
   source: FeatureContributionSource;
   resources?: FeatureContributionResource[];
   actions?: FeatureActionCard[];
+  actionOptions?: Partial<Record<string, FeatureActionOptionCard[]>>;
   actionFactories?: FeatureContributionActionFactory<TDerivedState>[];
   reactions?: ReactionEntry[];
   statuses?: CharacterStatusEntry[];
+  equipmentEntries?: FeatureEquipmentEntry[];
+  weaponActions?: WeaponAction[];
   descriptionAdditions?: FeatureDescriptionContribution[];
   abilityScoreBonuses?: FeatureAbilityScoreBonus[];
   speedBonuses?: FeatureSpeedBonus[];
+  speedBonusProviders?: FeatureSpeedBonusContribution[];
   weaponProficiencyEntries?: FeatureWeaponProficiencyEntry[];
   skillProficiencyEntries?: FeatureSkillProficiencyEntry[];
   savingThrowProficiencyEntries?: FeatureSavingThrowProficiencyEntry[];
@@ -179,25 +300,50 @@ export type FeatureContributionSpec<TDerivedState = unknown> = {
   toolProficiencyEntries?: FeatureToolProficiencyEntry[];
   languageProficiencyEntries?: FeatureLanguageProficiencyEntry[];
   hitPointMaximumBonus?: number;
+  cantripLimitBonus?: number;
+  cantripDamageBonus?: number;
   spellGrants?: FeatureSpellGrant[];
+  spellcastingState?: FeatureSpellcastingState | null;
+  alwaysSpellbookSpellIds?: string[];
+  ritualOnlySpellIds?: string[];
   spellTransforms?: FeatureSpellTransform[];
+  spellDamageBonuses?: FeatureSpellDamageBonusContribution[];
+  spellDamageFormulaOverrides?: Record<string, string>;
+  spellDamageFormulaOverrideProviders?: FeatureSpellDamageFormulaOverrideContribution[];
+  weaponDamageBonuses?: FeatureWeaponDamageBonusContribution[];
+  initiativeBonuses?: FeatureInitiativeBonusContribution[];
+  savingThrowBonuses?: FeatureSavingThrowBonusContribution[];
+  skillBonuses?: FeatureSkillBonusContribution[];
+  armorClassModes?: FeatureArmorClassModeContribution[];
+  armorClassBonuses?: FeatureArmorClassBonusContribution[];
+  savingThrowIndicators?: SavingThrowIndicatorMap;
+  abilityCheckIndicators?: AbilityCheckIndicatorMap;
+  coreStatIndicators?: CoreStatIndicatorMap;
+  skillIndicators?: SkillIndicatorMap;
+  weaponAttackIndicators?: FeatureIndicator[];
   commonActionTransforms?: FeatureCommonActionTransform[];
+  featureActionTransforms?: FeatureActionTransform[];
   weaponActionTransforms?: FeatureWeaponActionTransform[];
   itemDescriptionTransforms?: FeatureItemDescriptionTransform[];
   spellActionPaths?: FeatureSpellActionPathContribution[];
   spellCastEffects?: FeatureSpellCastEffectContribution[];
+  classMechanics?: FeatureClassMechanicsContribution;
 };
 
 export type CompiledFeatureContributionState<TDerivedState = unknown> = {
   contributions: FeatureContributionSpec<TDerivedState>[];
   resources: FeatureContributionResource[];
   actions: FeatureActionCard[];
+  actionOptions: Partial<Record<string, FeatureActionOptionCard[]>>;
   actionFactories: FeatureContributionActionFactory<TDerivedState>[];
   reactions: ReactionEntry[];
   statuses: CharacterStatusEntry[];
+  equipmentEntries: FeatureEquipmentEntry[];
+  weaponActions: WeaponAction[];
   descriptionAdditions: FeatureDescriptionContribution[];
   abilityScoreBonuses: FeatureAbilityScoreBonus[];
   speedBonuses: FeatureSpeedBonus[];
+  speedBonusProviders: FeatureSpeedBonusContribution[];
   weaponProficiencyEntries: FeatureWeaponProficiencyEntry[];
   skillProficiencyEntries: FeatureSkillProficiencyEntry[];
   savingThrowProficiencyEntries: FeatureSavingThrowProficiencyEntry[];
@@ -205,6 +351,8 @@ export type CompiledFeatureContributionState<TDerivedState = unknown> = {
   toolProficiencyEntries: FeatureToolProficiencyEntry[];
   languageProficiencyEntries: FeatureLanguageProficiencyEntry[];
   hitPointMaximumBonus: number;
+  cantripLimitBonus: number;
+  cantripDamageBonus: number;
   grantedCantripEntries: SpellEntry[];
   alwaysPreparedCantripEntries: SpellEntry[];
   alwaysPreparedSpellEntries: SpellEntry[];
@@ -212,10 +360,29 @@ export type CompiledFeatureContributionState<TDerivedState = unknown> = {
   spellcastingAbilityEntries: FeatureSpellcastingAbilityEntry[];
   spellcastingAbilityBySpellId: Map<string, AbilityKey>;
   freeCastEntries: FeatureFreeCastEntry[];
+  spellcastingStates: FeatureSpellcastingState[];
+  alwaysSpellbookSpellIds: string[];
+  ritualOnlySpellIds: string[];
   spellTransforms: FeatureSpellTransform[];
+  spellDamageBonuses: FeatureSpellDamageBonusContribution[];
+  spellDamageFormulaOverrides: Record<string, string>;
+  spellDamageFormulaOverrideProviders: FeatureSpellDamageFormulaOverrideContribution[];
+  weaponDamageBonuses: FeatureWeaponDamageBonusContribution[];
+  initiativeBonuses: FeatureInitiativeBonusContribution[];
+  savingThrowBonuses: FeatureSavingThrowBonusContribution[];
+  skillBonuses: FeatureSkillBonusContribution[];
+  armorClassModes: FeatureArmorClassModeContribution[];
+  armorClassBonuses: FeatureArmorClassBonusContribution[];
+  savingThrowIndicators: SavingThrowIndicatorMap;
+  abilityCheckIndicators: AbilityCheckIndicatorMap;
+  coreStatIndicators: CoreStatIndicatorMap;
+  skillIndicators: SkillIndicatorMap;
+  weaponAttackIndicators: FeatureIndicator[];
   commonActionTransforms: FeatureCommonActionTransform[];
+  featureActionTransforms: FeatureActionTransform[];
   weaponActionTransforms: FeatureWeaponActionTransform[];
   itemDescriptionTransforms: FeatureItemDescriptionTransform[];
   spellActionPaths: FeatureSpellActionPathContribution[];
   spellCastEffects: FeatureSpellCastEffectContribution[];
+  classMechanics: FeatureClassMechanicsContribution[];
 };

@@ -109,6 +109,30 @@ Implementation expectations:
 - `Visible activated statuses`: when an activated feature is supposed to create a temporary visible trait/effect in Traits & Conditions, prefer a persisted status entry that actually renders in the widget. In practice, activation-created timed effects should usually be stored as status-backed entries that remain visible and decrement over time; passive always-on benefits are the better fit for derived status entries.
 - `Drawer description injections`: when an unlocked feature adds rules text to an existing drawer, spell, action, trait, skill, stat, item, weapon, or other reference, inject it as a sourced additional-description section instead of appending it to the base description. Keep the target's `description` as the base text, and put feature-derived sections in `descriptionAdditions` or the surface's existing `additionalDescription` field. Use the shared helpers in `app/src/pages/CharactersPage/actionModalDescriptions.ts`, especially `createFeatureSourcedDescriptionEntries`, `appendFeatureSourcedDescriptionAddition`, or the lower-level dedupe helpers, so injected text is labeled and ordered by feature level. Ranger Favored Enemy and Hunter's Mark are the reference pattern: derive the unlocked feature text in the class runtime, create sourced sections, and let the drawer render them separately.
 
+### FeatureContributionSpec Runtime Framework
+
+`FeatureContributionSpec` in `app/src/pages/CharactersPage/featureContributions/` is the shared declaration language for feature-derived sheet behavior. Use it for selected sources that contribute reusable outputs to the sheet, including feats, species, Eldritch Invocations, future class features, future subclass features, items, and spell-compatible feature effects. Source metadata supports `class`, `subclass`, `feat`, `species`, `item`, `invocation`, and `spell`.
+
+Preferred contribution lanes:
+- `actions`, `actionOptions`, `reactions`, `statuses`, `resources`, `equipmentEntries`, and `weaponActions` for visible sheet entries.
+- proficiency lanes for skills, saves, armor, weapons, tools, and languages.
+- `descriptionAdditions` for sourced drawer/reference injections.
+- spell lanes for grants, always-prepared spells, spellbook-only spells, ritual-only spells, spellcasting abilities, free casts, spell transforms, spell action paths, spell damage bonuses, spell formula overrides, and cast effects.
+- bonus and indicator lanes for ability scores, hit point maximums, speed, initiative, saves, skills, armor class, weapon damage, spell damage, saving throw indicators, ability check indicators, core stat indicators, skill indicators, and weapon attack indicators.
+- transform lanes when a feature modifies an existing common action, feature action, weapon action, item description, or spell entry instead of creating a duplicate.
+- `classMechanics` only for narrow class/subclass compatibility facts such as weapon mastery, magic temporary hit points, Bardic Inspiration die, Monk Martial Arts die, Rogue Sneak Attack values, Monk unarmed strike config, and Monk Martial Arts eligibility.
+
+Local hooks remain correct for behavior that mutates character state or requires custom execution: feature activation, resource spending, rest and round cleanup, choice normalization, inventory tagging, complex weapon/spell resolution, dice roll resolution, and highly feature-specific branching. A good runtime can declare most sheet outputs through contributions while still using local hooks for the few things that actually change state.
+
+Runtime migration expectations:
+- Existing public selectors may remain in place as compatibility wrappers over compiled contributions.
+- Classes and subclasses should migrate one class or subclass family at a time, preserving the current order where base class outputs are collected before subclass outputs.
+- Use `createClassContributionSource`, `createSubclassContributionSource`, `compileFeatureContributions`, and the class/subclass projection helpers instead of hand-filtering raw contribution arrays.
+- Split future contribution declarations into per-feature, per-class, or per-subclass modules before growing large runtime files.
+- Do not force behavior into the spec if doing so makes the spec magical. Add a small explicit lane only when the same output shape appears across multiple runtime sources.
+
+Spell implementation note: intrinsic spell behavior belongs in the spell implementation runtime adapter, not in ordinary selected-feature contributions. Feature sources can grant spells, alter spell descriptions, add spell action paths, force spell implementation options, and register cast effects, but the spell implementation registry should own spell-specific roll/apply behavior such as Mage Armor or False Life.
+
 ### Gameplay Card Defaults For Class Features
 
 When a future request says to create an `action`, `bonus_action`, or `free` card for a class feature, treat that as a request to create a gameplay card in the `ActionsWidget` inside the Gameplay section.

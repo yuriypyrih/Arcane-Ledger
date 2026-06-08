@@ -8,11 +8,31 @@ import type {
   FeatureDescriptionContributionTarget,
   FeatureContributionSpec,
   FeatureFreeCastEntry,
+  FeatureSpellCastEffectContext,
+  FeatureSpellCastEffectContribution,
+  FeatureSpellDamageBonusContext,
   FeatureSpellcastingAbilityEntry
 } from "./types";
 
 function sortSpellsByName(spells: SpellEntry[]): SpellEntry[] {
   return spells.sort((left, right) => left.name.localeCompare(right.name));
+}
+
+function appendRecordArrayValues<TValue>(
+  target: Partial<Record<string, TValue[]>>,
+  source: Partial<Record<string, TValue[]>> | null | undefined
+) {
+  Object.entries(source ?? {}).forEach(([key, values]) => {
+    if (!values || values.length === 0) {
+      return;
+    }
+
+    target[key] = [...(target[key] ?? []), ...values];
+  });
+}
+
+function uniqueStrings(values: string[]): string[] {
+  return [...new Set(values)];
 }
 
 function addSpellcastingAbility<TDerivedState>(
@@ -45,12 +65,16 @@ export function createEmptyCompiledFeatureContributionState<TDerivedState = unkn
     contributions,
     resources: [],
     actions: [],
+    actionOptions: {},
     actionFactories: [],
     reactions: [],
     statuses: [],
+    equipmentEntries: [],
+    weaponActions: [],
     descriptionAdditions: [],
     abilityScoreBonuses: [],
     speedBonuses: [],
+    speedBonusProviders: [],
     weaponProficiencyEntries: [],
     skillProficiencyEntries: [],
     savingThrowProficiencyEntries: [],
@@ -58,6 +82,8 @@ export function createEmptyCompiledFeatureContributionState<TDerivedState = unkn
     toolProficiencyEntries: [],
     languageProficiencyEntries: [],
     hitPointMaximumBonus: 0,
+    cantripLimitBonus: 0,
+    cantripDamageBonus: 0,
     grantedCantripEntries: [],
     alwaysPreparedCantripEntries: [],
     alwaysPreparedSpellEntries: [],
@@ -65,12 +91,31 @@ export function createEmptyCompiledFeatureContributionState<TDerivedState = unkn
     spellcastingAbilityEntries: [],
     spellcastingAbilityBySpellId: new Map(),
     freeCastEntries: [],
+    spellcastingStates: [],
+    alwaysSpellbookSpellIds: [],
+    ritualOnlySpellIds: [],
     spellTransforms: [],
+    spellDamageBonuses: [],
+    spellDamageFormulaOverrides: {},
+    spellDamageFormulaOverrideProviders: [],
+    weaponDamageBonuses: [],
+    initiativeBonuses: [],
+    savingThrowBonuses: [],
+    skillBonuses: [],
+    armorClassModes: [],
+    armorClassBonuses: [],
+    savingThrowIndicators: {},
+    abilityCheckIndicators: {},
+    coreStatIndicators: {},
+    skillIndicators: {},
+    weaponAttackIndicators: [],
     commonActionTransforms: [],
+    featureActionTransforms: [],
     weaponActionTransforms: [],
     itemDescriptionTransforms: [],
     spellActionPaths: [],
-    spellCastEffects: []
+    spellCastEffects: [],
+    classMechanics: []
   };
 }
 
@@ -85,12 +130,16 @@ export function compileFeatureContributions<TDerivedState = unknown>(
   contributions.forEach((contribution) => {
     compiled.resources.push(...(contribution.resources ?? []));
     compiled.actions.push(...(contribution.actions ?? []));
+    appendRecordArrayValues(compiled.actionOptions, contribution.actionOptions);
     compiled.actionFactories.push(...(contribution.actionFactories ?? []));
     compiled.reactions.push(...(contribution.reactions ?? []));
     compiled.statuses.push(...(contribution.statuses ?? []));
+    compiled.equipmentEntries.push(...(contribution.equipmentEntries ?? []));
+    compiled.weaponActions.push(...(contribution.weaponActions ?? []));
     compiled.descriptionAdditions.push(...(contribution.descriptionAdditions ?? []));
     compiled.abilityScoreBonuses.push(...(contribution.abilityScoreBonuses ?? []));
     compiled.speedBonuses.push(...(contribution.speedBonuses ?? []));
+    compiled.speedBonusProviders.push(...(contribution.speedBonusProviders ?? []));
     compiled.weaponProficiencyEntries.push(...(contribution.weaponProficiencyEntries ?? []));
     compiled.skillProficiencyEntries.push(...(contribution.skillProficiencyEntries ?? []));
     compiled.savingThrowProficiencyEntries.push(
@@ -100,12 +149,42 @@ export function compileFeatureContributions<TDerivedState = unknown>(
     compiled.toolProficiencyEntries.push(...(contribution.toolProficiencyEntries ?? []));
     compiled.languageProficiencyEntries.push(...(contribution.languageProficiencyEntries ?? []));
     compiled.hitPointMaximumBonus += contribution.hitPointMaximumBonus ?? 0;
+    compiled.cantripLimitBonus += contribution.cantripLimitBonus ?? 0;
+    compiled.cantripDamageBonus += contribution.cantripDamageBonus ?? 0;
+    if (contribution.spellcastingState) {
+      compiled.spellcastingStates.push(contribution.spellcastingState);
+    }
+    compiled.alwaysSpellbookSpellIds.push(...(contribution.alwaysSpellbookSpellIds ?? []));
+    compiled.ritualOnlySpellIds.push(...(contribution.ritualOnlySpellIds ?? []));
     compiled.spellTransforms.push(...(contribution.spellTransforms ?? []));
+    compiled.spellDamageBonuses.push(...(contribution.spellDamageBonuses ?? []));
+    Object.assign(
+      compiled.spellDamageFormulaOverrides,
+      contribution.spellDamageFormulaOverrides ?? {}
+    );
+    compiled.spellDamageFormulaOverrideProviders.push(
+      ...(contribution.spellDamageFormulaOverrideProviders ?? [])
+    );
+    compiled.weaponDamageBonuses.push(...(contribution.weaponDamageBonuses ?? []));
+    compiled.initiativeBonuses.push(...(contribution.initiativeBonuses ?? []));
+    compiled.savingThrowBonuses.push(...(contribution.savingThrowBonuses ?? []));
+    compiled.skillBonuses.push(...(contribution.skillBonuses ?? []));
+    compiled.armorClassModes.push(...(contribution.armorClassModes ?? []));
+    compiled.armorClassBonuses.push(...(contribution.armorClassBonuses ?? []));
+    appendRecordArrayValues(compiled.savingThrowIndicators, contribution.savingThrowIndicators);
+    appendRecordArrayValues(compiled.abilityCheckIndicators, contribution.abilityCheckIndicators);
+    appendRecordArrayValues(compiled.coreStatIndicators, contribution.coreStatIndicators);
+    appendRecordArrayValues(compiled.skillIndicators, contribution.skillIndicators);
+    compiled.weaponAttackIndicators.push(...(contribution.weaponAttackIndicators ?? []));
     compiled.commonActionTransforms.push(...(contribution.commonActionTransforms ?? []));
+    compiled.featureActionTransforms.push(...(contribution.featureActionTransforms ?? []));
     compiled.weaponActionTransforms.push(...(contribution.weaponActionTransforms ?? []));
     compiled.itemDescriptionTransforms.push(...(contribution.itemDescriptionTransforms ?? []));
     compiled.spellActionPaths.push(...(contribution.spellActionPaths ?? []));
     compiled.spellCastEffects.push(...(contribution.spellCastEffects ?? []));
+    if (contribution.classMechanics) {
+      compiled.classMechanics.push(contribution.classMechanics);
+    }
 
     (contribution.spellGrants ?? []).forEach((grant) => {
       const sourceLabel = grant.sourceLabel ?? contribution.source.label;
@@ -150,6 +229,8 @@ export function compileFeatureContributions<TDerivedState = unknown>(
   compiled.alwaysPreparedSpellEntries = sortSpellsByName([
     ...alwaysPreparedSpellEntriesById.values()
   ]);
+  compiled.alwaysSpellbookSpellIds = uniqueStrings(compiled.alwaysSpellbookSpellIds);
+  compiled.ritualOnlySpellIds = uniqueStrings(compiled.ritualOnlySpellIds);
 
   return compiled;
 }
@@ -261,4 +342,50 @@ export function getFeatureDescriptionAdditions<TDerivedState = unknown>(
 
     return [...staticAddition, ...generatedAdditions];
   });
+}
+
+export function getFeatureSpellDamageBonuses(
+  compiled: Pick<CompiledFeatureContributionState, "spellDamageBonuses">,
+  context: FeatureSpellDamageBonusContext
+) {
+  return compiled.spellDamageBonuses.flatMap((contribution) =>
+    contribution.getBonuses(context)
+  );
+}
+
+export function applyFeatureSpellCastEffects(
+  effects: readonly FeatureSpellCastEffectContribution[],
+  character: Parameters<NonNullable<FeatureSpellCastEffectContribution["apply"]>>[0],
+  context: FeatureSpellCastEffectContext,
+  effectIds: readonly string[] | null | undefined
+) {
+  const uniqueEffectIds = [...new Set(effectIds ?? [])];
+
+  if (uniqueEffectIds.length === 0) {
+    return character;
+  }
+
+  const effectsById = new Map(effects.map((effect) => [effect.id, effect]));
+  let nextCharacter = character;
+
+  for (const effectId of uniqueEffectIds) {
+    const effect = effectsById.get(effectId);
+
+    if (!effect) {
+      continue;
+    }
+
+    const nextEffectCharacter = effect.apply?.(nextCharacter, {
+      ...context,
+      spellCastEffectIds: uniqueEffectIds
+    });
+
+    if (!nextEffectCharacter || nextEffectCharacter === nextCharacter) {
+      return null;
+    }
+
+    nextCharacter = nextEffectCharacter;
+  }
+
+  return nextCharacter;
 }

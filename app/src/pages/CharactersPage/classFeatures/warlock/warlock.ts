@@ -21,14 +21,9 @@ import {
   getRoundTrackerResourceForEconomyType
 } from "../../actionEconomy";
 import {
-  appendSourcedDescriptionAddition,
-  createFeatureSourcedDescriptionEntries,
-  createSourcedDescriptionEntries
+  createFeatureSourcedDescriptionEntries
 } from "../../actionModalDescriptions";
-import {
-  getAbilityModifierBreakdownForCharacter,
-  getAbilityModifierForCharacter
-} from "../../abilities";
+import { getAbilityModifierBreakdownForCharacter } from "../../abilities";
 import {
   getHitDiceRemainingForCharacter,
   getHitDiceTotalForCharacter,
@@ -126,16 +121,11 @@ import {
   restoreWarlockSubclassFeaturesOnLongRest
 } from "./subclasses";
 import {
-  findFamiliarSpellId,
-  giftOfTheDepthsActionKey,
-  getWarlockInvocationSpellActions,
-  isWarlockInvocationSpellActionKey,
-  pactOfTheChainActionKey
+  isWarlockInvocationSpellActionKey
 } from "./invocations/spellActions";
 import {
   activateWarlockGazeOfTwoMindsStatus,
-  gazeOfTwoMindsActionKey,
-  getWarlockGazeOfTwoMindsAction
+  gazeOfTwoMindsActionKey
 } from "./invocations/actions";
 import { orderedWarlockEldritchInvocationIds } from "./invocations/editorTabs";
 import {
@@ -153,7 +143,6 @@ import {
 } from "./invocations/pactBlade";
 import {
   getChoiceLabelForPactTomeSelection,
-  getWarlockPactTomeSpellIdsFromChoiceValues,
   parseWarlockPactTomeChoiceValue
 } from "./invocations/pactTome";
 import {
@@ -163,7 +152,6 @@ import {
   parseWarlockInvocationSelectionId,
   placeholderSelectionSuffix
 } from "./invocations/selectionIds";
-import { getWarlockInvocationDerivedStatusEntries } from "./invocations/statuses";
 import {
   consumeWarlockExpendedUse,
   getWarlockUsesRemaining,
@@ -171,6 +159,12 @@ import {
   normalizeWarlockExpendedUses,
   restoreWarlockExpendedUse
 } from "./invocations/uses";
+import {
+  collectWarlockInvocationContributionState,
+  getWarlockInvocationSpellDamageBonuses,
+  getWarlockInvocationStatDescriptionAdditions,
+  getWarlockPactTomeSpellIdsFromCharacter
+} from "./invocations/contributions";
 
 const magicalCunningUsesTotal = 1;
 const contactPatronUsesTotal = 1;
@@ -180,14 +174,6 @@ const contactOtherPlaneSpellId = "spell-contact-other-plane";
 const mysticArcanumActionSummary = "Cast your chosen arcanum spells without spell slots.";
 const mysticArcanumActionDetail =
   "Open your chosen Mystic Arcanum spells and cast each of them once per Long Rest.";
-const eldritchSpearRangeDescription =
-  "When you cast that spell, its range increases by a number of feet equal to 30 times your Warlock level.";
-const repellingBlastPushDescription =
-  "When you hit a Large or smaller creature with that cantrip, you can push the creature up to 10 feet straight away from you.";
-const pactOfTheChainSpecialFormsDescription =
-  "When you cast the spell, you choose one of the normal forms for your familiar or one of the following special forms: Imp, Pseudodragon, Quasit, Skeleton, Slaad Tadpole, Sphinx of Wonder, Sprite, or Venomous Snake.";
-const pactOfTheChainFamiliarAttackDescription =
-  "Additionally, when you take the Attack action, you can forgo one of your own attacks to allow your familiar to make one attack of its own with its Reaction.";
 
 export const magicalCunningActionKey = "warlock-magical-cunning";
 export const contactPatronActionKey = "warlock-contact-patron";
@@ -934,156 +920,19 @@ export function getWarlockLearnedInvocationOptions(
     .filter((option): option is WarlockEldritchInvocationOption => Boolean(option));
 }
 
-function getWarlockInvocationChoiceValues(
-  character: WarlockInvocationCharacter,
-  invocationId: ELDRITCH_INVOCATION
-): string[] {
-  return getWarlockInvocationSelectionIds(character)
-    .map(parseSelectionId)
-    .filter(
-      (
-        selection
-      ): selection is {
-        invocationId: ELDRITCH_INVOCATION;
-        choiceValue: string;
-      } =>
-        selection.invocationId === invocationId &&
-        typeof selection.choiceValue === "string" &&
-        selection.choiceValue.length > 0
-    )
-    .map((selection) => selection.choiceValue);
-}
-
 export function getWarlockPactTomeSpellIds(character: WarlockInvocationCharacter): string[] {
-  return getWarlockPactTomeSpellIdsFromChoiceValues(
-    getWarlockInvocationChoiceValues(character, ELDRITCH_INVOCATION.PACT_OF_THE_TOME)
-  );
-}
-
-function getWarlockAgonizingBlastCantripIds(character: WarlockInvocationCharacter): Set<string> {
-  return new Set(getWarlockInvocationChoiceValues(character, ELDRITCH_INVOCATION.AGONIZING_BLAST));
-}
-
-function getWarlockEldritchSpearCantripIds(character: WarlockInvocationCharacter): Set<string> {
-  return new Set(getWarlockInvocationChoiceValues(character, ELDRITCH_INVOCATION.ELDRITCH_SPEAR));
-}
-
-function getWarlockRepellingBlastCantripIds(character: WarlockInvocationCharacter): Set<string> {
-  return new Set(getWarlockInvocationChoiceValues(character, ELDRITCH_INVOCATION.REPELLING_BLAST));
-}
-
-function getWarlockEldritchSpearDescription(
-  character: Pick<Character, "level">
-): SpellDescriptionEntry[] {
-  const invocation = getEldritchInvocationEntryById(ELDRITCH_INVOCATION.ELDRITCH_SPEAR);
-  const descriptionEntry = invocation?.description.find(
-    (entry): entry is string =>
-      typeof entry === "string" && entry.includes(eldritchSpearRangeDescription)
-  );
-  const rangeDescription = descriptionEntry
-    ? descriptionEntry.slice(
-        descriptionEntry.indexOf(eldritchSpearRangeDescription),
-        descriptionEntry.indexOf(eldritchSpearRangeDescription) +
-          eldritchSpearRangeDescription.length
-      )
-    : eldritchSpearRangeDescription;
-  const rangeIncreaseFeet = clampWarlockLevel(character.level) * 30;
-
-  return [`${rangeDescription} <strong>(${rangeIncreaseFeet} ft)</strong>`];
-}
-
-function getWarlockRepellingBlastDescription(): SpellDescriptionEntry[] {
-  const invocation = getEldritchInvocationEntryById(ELDRITCH_INVOCATION.REPELLING_BLAST);
-  const descriptionEntry = invocation?.description.find(
-    (entry): entry is string =>
-      typeof entry === "string" && entry.includes(repellingBlastPushDescription)
-  );
-  const pushDescription = descriptionEntry
-    ? descriptionEntry.slice(
-        descriptionEntry.indexOf(repellingBlastPushDescription),
-        descriptionEntry.indexOf(repellingBlastPushDescription) +
-          repellingBlastPushDescription.length
-      )
-    : repellingBlastPushDescription;
-
-  return [pushDescription];
-}
-
-function getWarlockPactOfTheChainFindFamiliarDescription(): SpellDescriptionEntry[] {
-  const invocation = getEldritchInvocationEntryById(ELDRITCH_INVOCATION.PACT_OF_THE_CHAIN);
-  const descriptionEntries = invocation?.description ?? [];
-  const specialFormsDescription =
-    descriptionEntries.find(
-      (entry): entry is string =>
-        typeof entry === "string" && entry.includes(pactOfTheChainSpecialFormsDescription)
-    ) ?? pactOfTheChainSpecialFormsDescription;
-  const familiarAttackDescription =
-    descriptionEntries.find(
-      (entry): entry is string =>
-        typeof entry === "string" && entry.includes(pactOfTheChainFamiliarAttackDescription)
-    ) ?? pactOfTheChainFamiliarAttackDescription;
-
-  return [specialFormsDescription, familiarAttackDescription];
-}
-
-function getWarlockInvestmentOfTheChainMasterDescription(): SpellDescriptionEntry[] {
-  const invocation = getEldritchInvocationEntryById(
-    ELDRITCH_INVOCATION.INVESTMENT_OF_THE_CHAIN_MASTER
-  );
-
-  return (
-    invocation?.description ?? [
-      "When you cast Find Familiar, you infuse the summoned familiar with a measure of your eldritch power."
-    ]
-  );
-}
-
-function getWarlockInvestmentOfTheChainMasterDescriptionAdditions(
-  character: WarlockInvocationCharacter
-): SpellDescriptionEntry[][] {
-  if (
-    !getWarlockSelectedInvocationIds(character).has(
-      ELDRITCH_INVOCATION.INVESTMENT_OF_THE_CHAIN_MASTER
-    )
-  ) {
-    return [];
-  }
-
-  const invocation = getEldritchInvocationEntryById(
-    ELDRITCH_INVOCATION.INVESTMENT_OF_THE_CHAIN_MASTER
-  );
-  const descriptionEntries = createSourcedDescriptionEntries(
-    invocation?.name ?? "Investment of the Chain Master",
-    getWarlockInvestmentOfTheChainMasterDescription()
-  );
-
-  return descriptionEntries.length > 0 ? [descriptionEntries] : [];
+  return getWarlockPactTomeSpellIdsFromCharacter(character);
 }
 
 export function getWarlockSpellDamageBonuses(
   character: WarlockInvocationCharacter,
   { spell }: SpellFeatureContext
 ): FeatureDamageBonus[] {
-  if (
-    character.className !== "Warlock" ||
-    spell.spellLevel !== 0 ||
-    spell.damage.length === 0 ||
-    !getWarlockAgonizingBlastCantripIds(character).has(spell.id)
-  ) {
+  if (character.className !== "Warlock") {
     return [];
   }
 
-  const charismaModifier = getAbilityModifierForCharacter(character, "CHA");
-
-  return charismaModifier === 0
-    ? []
-    : [
-        {
-          label: "Agonizing Blast",
-          value: charismaModifier,
-          abilityModifierSource: "CHA"
-        }
-      ];
+  return getWarlockInvocationSpellDamageBonuses(character, spell);
 }
 
 export function getWarlockSpellEntry(
@@ -1094,54 +943,10 @@ export function getWarlockSpellEntry(
     return spell;
   }
 
-  const selectedInvocationIds = getWarlockSelectedInvocationIds(character);
-  let nextSpell = spell;
-
-  if (spell.spellLevel === 0 && getWarlockEldritchSpearCantripIds(character).has(nextSpell.id)) {
-    const invocation = getEldritchInvocationEntryById(ELDRITCH_INVOCATION.ELDRITCH_SPEAR);
-
-    nextSpell = appendSourcedDescriptionAddition(
-      nextSpell,
-      invocation?.name ?? "Eldritch Spear",
-      getWarlockEldritchSpearDescription(character)
-    );
-  }
-
-  if (spell.spellLevel === 0 && getWarlockRepellingBlastCantripIds(character).has(nextSpell.id)) {
-    const invocation = getEldritchInvocationEntryById(ELDRITCH_INVOCATION.REPELLING_BLAST);
-
-    nextSpell = appendSourcedDescriptionAddition(
-      nextSpell,
-      invocation?.name ?? "Repelling Blast",
-      getWarlockRepellingBlastDescription()
-    );
-  }
-
-  if (nextSpell.id === findFamiliarSpellId) {
-    if (selectedInvocationIds.has(ELDRITCH_INVOCATION.PACT_OF_THE_CHAIN)) {
-      const invocation = getEldritchInvocationEntryById(ELDRITCH_INVOCATION.PACT_OF_THE_CHAIN);
-
-      nextSpell = appendSourcedDescriptionAddition(
-        nextSpell,
-        invocation?.name ?? "Pact of the Chain",
-        getWarlockPactOfTheChainFindFamiliarDescription()
-      );
-    }
-
-    if (selectedInvocationIds.has(ELDRITCH_INVOCATION.INVESTMENT_OF_THE_CHAIN_MASTER)) {
-      const invocation = getEldritchInvocationEntryById(
-        ELDRITCH_INVOCATION.INVESTMENT_OF_THE_CHAIN_MASTER
-      );
-
-      nextSpell = appendSourcedDescriptionAddition(
-        nextSpell,
-        invocation?.name ?? "Investment of the Chain Master",
-        getWarlockInvestmentOfTheChainMasterDescription()
-      );
-    }
-  }
-
-  return nextSpell;
+  return collectWarlockInvocationContributionState(character).spellTransforms.reduce(
+    (currentSpell, contribution) => contribution.transform(currentSpell),
+    spell
+  );
 }
 
 export function getWarlockEldritchMindSavingThrowDescriptionAdditions(
@@ -1150,21 +955,12 @@ export function getWarlockEldritchMindSavingThrowDescriptionAdditions(
 ): SpellDescriptionEntry[][] {
   if (
     character.className !== "Warlock" ||
-    ability !== "CON" ||
-    !getWarlockSelectedInvocationIds(character).has(ELDRITCH_INVOCATION.ELDRITCH_MIND)
+    ability !== "CON"
   ) {
     return [];
   }
 
-  const invocation = getEldritchInvocationEntryById(ELDRITCH_INVOCATION.ELDRITCH_MIND);
-  const descriptionEntries = createSourcedDescriptionEntries(
-    invocation?.name ?? "Eldritch Mind",
-    invocation?.description ?? [
-      "You have Advantage on Constitution saving throws that you make to maintain Concentration."
-    ]
-  );
-
-  return descriptionEntries.length > 0 ? [descriptionEntries] : [];
+  return getWarlockInvocationStatDescriptionAdditions(character, "savingThrow:CON");
 }
 
 function getProficiencyBonusForLevel(level: number): number {
@@ -1738,11 +1534,12 @@ export function getWarlockAlwaysPreparedSpellIds(
     spellIds.push(contactOtherPlaneSpellId);
   }
 
-  if (getWarlockSelectedInvocationIds(character).has(ELDRITCH_INVOCATION.PACT_OF_THE_CHAIN)) {
-    spellIds.push(findFamiliarSpellId);
-  }
+  const invocationContributionState = collectWarlockInvocationContributionState(character);
 
-  spellIds.push(...getWarlockPactTomeSpellIds(character));
+  spellIds.push(
+    ...invocationContributionState.alwaysPreparedCantripEntries.map((spell) => spell.id),
+    ...invocationContributionState.alwaysPreparedSpellEntries.map((spell) => spell.id)
+  );
 
   return [...new Set(spellIds)];
 }
@@ -2007,25 +1804,14 @@ export function consumeWarlockPactWeaponAttack(
 export function getWarlockDerivedStatusEntries(
   character: WarlockInvocationCharacter
 ): DerivedFeatureStatusEntry[] {
-  return getWarlockInvocationDerivedStatusEntries(getWarlockSelectedInvocationIds(character));
+  return collectWarlockInvocationContributionState(character).statuses;
 }
 
 export function getWarlockSpeedBonuses(
   character: WarlockInvocationCharacter,
   _context: SpeedFeatureContext
 ): FeatureSpeedBonus[] {
-  if (!getWarlockSelectedInvocationIds(character).has(ELDRITCH_INVOCATION.GIFT_OF_THE_DEPTHS)) {
-    return [];
-  }
-
-  return [
-    {
-      label: "Gift of the Depths",
-      movementType: "swim",
-      value: 0,
-      setBaseFromWalkMultiplier: 1
-    }
-  ];
+  return collectWarlockInvocationContributionState(character).speedBonuses;
 }
 
 export function getWarlockFeatureActions(
@@ -2033,7 +1819,6 @@ export function getWarlockFeatureActions(
     Partial<Pick<Character, "statusEntries">>
 ): FeatureActionCard[] {
   const actions: FeatureActionCard[] = [];
-  const selectedInvocationIds = getWarlockSelectedInvocationIds(character);
 
   if (hasWarlockFeature(character, CLASS_FEATURE.MAGICAL_CUNNING)) {
     const usesRemaining = getWarlockMagicalCunningUsesRemaining(character);
@@ -2079,26 +1864,7 @@ export function getWarlockFeatureActions(
     });
   }
 
-  actions.push(
-    ...getWarlockInvocationSpellActions(
-      selectedInvocationIds,
-      {
-        [giftOfTheDepthsActionKey]: {
-          usesRemaining: getWarlockGiftOfTheDepthsUsesRemaining(character),
-          usesTotal: getWarlockGiftOfTheDepthsUsesTotal(character),
-          disabledReason: "Gift of the Depths recharges on a Long Rest."
-        }
-      },
-      {
-        [pactOfTheChainActionKey]:
-          getWarlockInvestmentOfTheChainMasterDescriptionAdditions(character)
-      }
-    )
-  );
-
-  if (selectedInvocationIds.has(ELDRITCH_INVOCATION.GAZE_OF_TWO_MINDS)) {
-    actions.push(getWarlockGazeOfTwoMindsAction(character));
-  }
+  actions.push(...collectWarlockInvocationContributionState(character).actions);
 
   if (hasWarlockFeature(character, CLASS_FEATURE.CONTACT_PATRON)) {
     const usesRemaining = getContactPatronUsesRemaining(character);

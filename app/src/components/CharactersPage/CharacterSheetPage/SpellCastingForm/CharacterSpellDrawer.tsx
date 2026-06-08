@@ -101,6 +101,8 @@ export type CharacterSpellDrawerActionOptions = {
   useDetectThoughts?: boolean;
   useBoonOfSpellRecall?: boolean;
   spellCastEffectIds?: string[];
+  spellActionPathId?: string | null;
+  spellImplementationCastSource?: SpellImplementationCastSource;
   spellImplementationOptions?: SpellImplementationOptionValues;
 };
 
@@ -152,6 +154,8 @@ export type CharacterSpellDrawerActionPath = {
   disabledReason?: string | null;
   roundTrackerResourceOverride?: RoundTrackerResource | null;
   usage?: FeatureActionCardUsage;
+  spellImplementationCastSource?: SpellImplementationCastSource;
+  forcedSpellImplementationOptions?: SpellImplementationOptionValues;
   spellCastEffectIds?: string[];
 };
 
@@ -508,6 +512,20 @@ function CharacterSpellDrawer({
             }
           ]
         : [];
+
+  function createActionOptionsForPath(path: CharacterSpellDrawerActionPath) {
+    return {
+      ...baseActionOptions,
+      roundTrackerResourceOverride: path.roundTrackerResourceOverride,
+      spellCastEffectIds: path.spellCastEffectIds ?? [],
+      spellActionPathId: path.id,
+      spellImplementationCastSource: path.spellImplementationCastSource,
+      spellImplementationOptions: {
+        ...baseActionOptions.spellImplementationOptions,
+        ...(path.forcedSpellImplementationOptions ?? {})
+      }
+    };
+  }
   const castingTimeActionShapes =
     actionPaths && actionPaths.length > 0
       ? actionPaths.map((path) => ({
@@ -1079,19 +1097,10 @@ function CharacterSpellDrawer({
                       }
                       onClick={() =>
                         showActionDiceControls
-                          ? onAction({
-                              ...baseActionOptions,
-                              roundTrackerResourceOverride: path.roundTrackerResourceOverride,
-                              spellCastEffectIds: path.spellCastEffectIds ?? []
-                            })
+                          ? onAction(createActionOptionsForPath(path))
                           : runWithActionConfirmationToast(
                               path.roundTrackerResourceOverride ?? path.actionShape,
-                              () =>
-                                onAction({
-                                  ...baseActionOptions,
-                                  roundTrackerResourceOverride: path.roundTrackerResourceOverride,
-                                  spellCastEffectIds: path.spellCastEffectIds ?? []
-                                })
+                              () => onAction(createActionOptionsForPath(path))
                             )
                       }
                       disabled={!isActionEnabled || path.disabledReason !== null}

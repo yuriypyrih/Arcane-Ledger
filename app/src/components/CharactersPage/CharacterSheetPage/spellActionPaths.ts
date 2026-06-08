@@ -17,6 +17,10 @@ import { canUseRogueArcaneTricksterMageHandLegerdemainBonusActionPathForSpell } 
 import { canUseWizardAbjurerSpellBreakerBonusActionPathForSpell } from "../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardAbjurer";
 import { getFeatSpellActionPathContributionsForCharacter } from "../../../pages/CharactersPage/feats/runtime";
 import type { RoundTrackerResource } from "../../../pages/CharactersPage/combat";
+import type {
+  SpellImplementationCastSource,
+  SpellImplementationOptionValues
+} from "../../../pages/CharactersPage/characterRuntime/spellImplementations";
 import { getEconomyShapeState } from "./GameplayForm/gameplayWidgetUtils";
 
 type RoundTrackerAvailability = {
@@ -34,6 +38,8 @@ export type SpellActionPathState = {
   actionLabel?: string;
   disabledReason?: string | null;
   usage?: FeatureActionCardUsage;
+  spellImplementationCastSource?: SpellImplementationCastSource;
+  forcedSpellImplementationOptions?: SpellImplementationOptionValues;
   spellCastEffectIds?: string[];
 };
 
@@ -112,6 +118,8 @@ export function getSpellActionPathStates(
       actionLabel: contribution.actionLabel,
       disabledReason: contribution.getDisabledReason?.(pathContext) ?? null,
       usage: contribution.getUsage?.(pathContext),
+      spellImplementationCastSource: contribution.spellImplementationCastSource,
+      forcedSpellImplementationOptions: contribution.forcedSpellImplementationOptions,
       spellCastEffectIds: contribution.spellCastEffectIds
     });
   });

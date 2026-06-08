@@ -2,7 +2,11 @@ import { FEATS, type ReactionEntry, type SpellDescriptionEntry, type SpellEntry 
 import type { Character, ItemRecord } from "../../../../types";
 import { getAbilityModifierForCharacter } from "../../abilities";
 import type { FeatureActionCard } from "../../classFeatures/types";
-import type { FeatureSpellActionPathContribution } from "../../featureContributions";
+import {
+  applyFeatureSpellCastEffects,
+  type FeatureSpellActionPathContribution,
+  type FeatureSpellCastEffectContext
+} from "../../featureContributions";
 import { getHitDiceRemainingForCharacter, getHitDieFormulaForClass } from "../../hitDice";
 import {
   feyTouchedMistyStepSpellId,
@@ -352,10 +356,11 @@ export function spendSpellfireSparkSpellfireFlameForCharacter(character: Charact
     : character;
 }
 
-export function applyFeatSpellCastEffectsForCharacter(
+export function applyFeatureSpellCastEffectsForCharacter(
   character: Character,
   spell: Pick<SpellEntry, "id" | "spellLevel">,
-  spellCastEffectIds: readonly string[] | null | undefined
+  spellCastEffectIds: readonly string[] | null | undefined,
+  context: Omit<FeatureSpellCastEffectContext, "spell" | "spellCastEffectIds"> = {}
 ): Character | null {
   const effectIds = [...new Set(spellCastEffectIds ?? [])];
 
@@ -363,33 +368,37 @@ export function applyFeatSpellCastEffectsForCharacter(
     return character;
   }
 
-  const effectsById = new Map(
-    collectFeatDerivedState(character).spellCastEffects.map((effect) => [effect.id, effect])
+  return applyFeatureSpellCastEffects(
+    collectFeatDerivedState(character).spellCastEffects.map((effect) =>
+      effect.id === spellfireSparkSpellfireFlameSpellCastEffectId && !effect.apply
+        ? {
+            ...effect,
+            apply: (
+              nextCharacter: Character,
+              effectContext: FeatureSpellCastEffectContext
+            ) =>
+              effectContext.spell.id === spellfireSparkSacredFlameSpellId
+                ? spendSpellfireSparkSpellfireFlameForCharacter(nextCharacter)
+                : nextCharacter
+          }
+        : effect
+    ),
+    character,
+    {
+      ...context,
+      spell
+    },
+    effectIds
   );
-  let nextCharacter = character;
+}
 
-  for (const effectId of effectIds) {
-    const effect = effectsById.get(effectId);
-
-    if (!effect) {
-      continue;
-    }
-
-    const nextEffectCharacter =
-      effect.apply?.(nextCharacter, { spell }) ??
-      (effectId === spellfireSparkSpellfireFlameSpellCastEffectId &&
-      spell.id === spellfireSparkSacredFlameSpellId
-        ? spendSpellfireSparkSpellfireFlameForCharacter(nextCharacter)
-        : nextCharacter);
-
-    if (nextEffectCharacter === nextCharacter) {
-      return null;
-    }
-
-    nextCharacter = nextEffectCharacter;
-  }
-
-  return nextCharacter;
+export function applyFeatSpellCastEffectsForCharacter(
+  character: Character,
+  spell: Pick<SpellEntry, "id" | "spellLevel">,
+  spellCastEffectIds: readonly string[] | null | undefined,
+  context: Omit<FeatureSpellCastEffectContext, "spell" | "spellCastEffectIds"> = {}
+): Character | null {
+  return applyFeatureSpellCastEffectsForCharacter(character, spell, spellCastEffectIds, context);
 }
 
 export function restoreSpellfireSparkSpellfireFlameForCharacter(

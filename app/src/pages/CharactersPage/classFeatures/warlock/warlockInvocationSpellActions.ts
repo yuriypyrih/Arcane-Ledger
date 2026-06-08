@@ -5,7 +5,9 @@ import {
 } from "../../../../codex/entries";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import {
+  falseLifeMaximizeTemporaryHitPointsOptionId,
   falseLifeSpellId,
+  mageArmorCastOnSelfOptionId,
   mageArmorSpellId
 } from "../../characterRuntime/spellImplementations";
 import type {
@@ -54,6 +56,7 @@ type WarlockInvocationSpellActionDefinition = {
   summary: string;
   detail: string;
   actionAvailabilityText?: string;
+  forcedSpellImplementationOptions?: Record<string, boolean>;
 };
 
 const warlockInvocationSpellActionDefinitions: WarlockInvocationSpellActionDefinition[] = [
@@ -66,7 +69,10 @@ const warlockInvocationSpellActionDefinitions: WarlockInvocationSpellActionDefin
     spellLevel: 1,
     fallbackDescription: ["You can cast Mage Armor on yourself without expending a spell slot."],
     summary: "Cast Mage Armor on yourself without a spell slot.",
-    detail: "Open Mage Armor and cast it on yourself without expending a spell slot."
+    detail: "Open Mage Armor and cast it on yourself without expending a spell slot.",
+    forcedSpellImplementationOptions: {
+      [mageArmorCastOnSelfOptionId]: true
+    }
   },
   {
     invocationId: ELDRITCH_INVOCATION.FIENDISH_VIGOR,
@@ -81,7 +87,10 @@ const warlockInvocationSpellActionDefinitions: WarlockInvocationSpellActionDefin
     summary: "Cast False Life on yourself without a spell slot.",
     detail: "Open False Life and cast it on yourself without expending a spell slot.",
     actionAvailabilityText:
-      "Cast without expending a spell slot. Treat the d4 as a 4 for this casting."
+      "Cast without expending a spell slot. Treat the d4 as a 4 for this casting.",
+    forcedSpellImplementationOptions: {
+      [falseLifeMaximizeTemporaryHitPointsOptionId]: true
+    }
   },
   {
     invocationId: ELDRITCH_INVOCATION.ASCENDANT_STEP,
@@ -259,7 +268,9 @@ export function getWarlockInvocationSpellActions(
           actionContextText: `${name} is active.`,
           actionAvailabilityText:
             definition.actionAvailabilityText ?? "Cast without expending a spell slot.",
-          actionConsumesSpellSlot: false
+          actionConsumesSpellSlot: false,
+          spellImplementationCastSource: "fixed-feature",
+          forcedSpellImplementationOptions: definition.forcedSpellImplementationOptions
         },
         disabled,
         disabledReason: disabled ? usageState?.disabledReason : undefined

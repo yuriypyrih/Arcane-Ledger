@@ -1,5 +1,6 @@
 import type { SpellEntry } from "../../../../codex/entries";
 import type { Character } from "../../../../types";
+import type { FeatureContributionSource } from "../../featureContributions";
 
 export type SpellImplementationCastSource =
   | "standard"
@@ -17,6 +18,22 @@ export type SpellImplementationCastOption = {
   disabled?: boolean;
 };
 
+export type SpellImplementationRollResult = {
+  total: number;
+};
+
+export type SpellImplementationRollEffect = {
+  id: string;
+  title: string;
+  formula: string;
+  formulaDisplay?: string;
+  description?: string;
+  applyResolvedResult?: (
+    character: Character,
+    result: SpellImplementationRollResult
+  ) => Character;
+};
+
 export type SpellImplementationCastOptionsContext = {
   character: Character;
   spell: SpellEntry;
@@ -32,10 +49,25 @@ export type SpellImplementationApplyContext = {
   options: SpellImplementationOptionValues;
 };
 
+export type SpellImplementationRollEffectsContext = SpellImplementationApplyContext;
+
 export type SpellImplementation = {
   spellId: string;
   getCastOptions?: (
     context: SpellImplementationCastOptionsContext
   ) => SpellImplementationCastOption[];
   applyOnCast?: (context: SpellImplementationApplyContext) => Character;
+  getRollEffects?: (
+    context: SpellImplementationRollEffectsContext
+  ) => SpellImplementationRollEffect[];
+};
+
+export type SpellImplementationContributionSpec = {
+  source: FeatureContributionSource & {
+    type: "spell";
+  };
+  spellId: string;
+  getCastOptions?: SpellImplementation["getCastOptions"];
+  applyOnCast?: SpellImplementation["applyOnCast"];
+  getRollEffects?: SpellImplementation["getRollEffects"];
 };

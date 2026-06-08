@@ -95,7 +95,7 @@ import {
   type FeatureActionHeaderTag,
   type FeatureActionOptionCard
 } from "../../../../../../pages/CharactersPage/classFeatures";
-import { applyFeatSpellCastEffectsForCharacter } from "../../../../../../pages/CharactersPage/feats/runtime";
+import { applyFeatureSpellCastEffectsForCharacter } from "../../../../../../pages/CharactersPage/feats/runtime";
 import { bardicInspirationActionKey } from "../../../../../../pages/CharactersPage/classFeatures/bard/bard";
 import {
   createChargesCardUsage,
@@ -265,14 +265,9 @@ import {
   removeInvisibleConditionFromCharacter
 } from "../../../../../../pages/CharactersPage/statusEntries";
 import {
-  applyFalseLifeTemporaryHitPointsToCharacter,
   applySpellImplementationForCharacter,
-  falseLifeSpellId,
-  fiendishVigorTemporaryHitPointsSource,
-  getFalseLifeTemporaryHitPointsFormula,
-  getFalseLifeTemporaryHitPointsFormulaDisplay,
-  getFalseLifeTemporaryHitPointsFromRoll,
-  mageArmorCastOnSelfOptionId,
+  getSpellImplementationRollEffectsForCharacter,
+  type SpellImplementationCastSource,
   type SpellImplementationOptionValues
 } from "../../../../../../pages/CharactersPage/characterRuntime/spellImplementations";
 import {
@@ -1762,37 +1757,34 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     });
   }
 
-  function rollFixedSpellFalseLifeTemporaryHitPoints(
-    spell: Pick<SpellEntry, "id" | "name">,
-    spellSlotLevel: number,
-    maximizeDie: boolean
+  function rollFixedSpellImplementationEffects(
+    spell: SpellEntry,
+    spellSlotLevel: number | null,
+    options: SpellImplementationOptionValues,
+    castSource: SpellImplementationCastSource
   ) {
-    if (spell.id !== falseLifeSpellId) {
-      return;
-    }
+    const rollEffects = getSpellImplementationRollEffectsForCharacter({
+      character,
+      spell,
+      spellSlotLevel,
+      castSource,
+      options
+    });
 
-    openDiceRoller({
-      title: maximizeDie ? "Fiendish Vigor" : spell.name,
-      formula: getFalseLifeTemporaryHitPointsFormula({
-        maximizeDie,
-        spellSlotLevel
-      }),
-      formulaDisplay: getFalseLifeTemporaryHitPointsFormulaDisplay(spellSlotLevel, {
-        maximizeDie
-      }),
-      description: maximizeDie
-        ? "When you cast False Life with Fiendish Vigor, you gain Temporary Hit Points and treat the d4 as a 4."
-        : `When you cast ${spell.name}, you gain Temporary Hit Points.`,
-      onResolvedResult: ({ result }) => {
-        const temporaryHitPoints = maximizeDie
-          ? result.total
-          : getFalseLifeTemporaryHitPointsFromRoll(result.total, spellSlotLevel);
-        const source = maximizeDie ? fiendishVigorTemporaryHitPointsSource : spell.name;
-
-        onPersistCharacter((currentCharacter) =>
-          applyFalseLifeTemporaryHitPointsToCharacter(currentCharacter, temporaryHitPoints, source)
-        );
-      }
+    rollEffects.forEach((effect) => {
+      openDiceRoller({
+        title: effect.title,
+        formula: effect.formula,
+        formulaDisplay: effect.formulaDisplay ?? effect.formula,
+        description: effect.description,
+        onResolvedResult: effect.applyResolvedResult
+          ? ({ result }) => {
+              onPersistCharacter((currentCharacter) =>
+                effect.applyResolvedResult!(currentCharacter, result)
+              );
+            }
+          : undefined
+      });
     });
   }
 
@@ -1834,6 +1826,8 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     useFrozenHaunt?: boolean;
     frozenHauntFallbackSlotLevel?: number;
     castAsRitual?: boolean;
+    spellActionPathId?: string | null;
+    spellImplementationCastSource?: SpellImplementationCastSource;
     spellImplementationOptions?: SpellImplementationOptionValues;
   }) {
     if (!fixedSpellExecute || !fixedSpellEntry || !selectedFeatureAction) {
@@ -1856,13 +1850,6 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
       ? (options?.frozenHauntFallbackSlotLevel ?? null)
       : null;
     const castAsRitual = options?.castAsRitual === true;
-    const spellImplementationOptions =
-      fixedSpellExecute.effectKind === "armor-of-shadows"
-        ? {
-            ...(options?.spellImplementationOptions ?? {}),
-            [mageArmorCastOnSelfOptionId]: true
-          }
-        : (options?.spellImplementationOptions ?? {});
     const minimumSlotLevel = Math.max(
       getSpellLevel(fixedSpellEntry),
       fixedSpellMinimumActionSlotLevel ?? 1
@@ -1878,6 +1865,24 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
       fixedSpellActionPaths.find((path) => path.roundTrackerResource === roundTrackerResource) ??
       fixedSpellActionPaths[0] ??
       null;
+    const spellImplementationOptions = {
+      ...(options?.spellImplementationOptions ?? {}),
+      ...(fixedSpellExecute.forcedSpellImplementationOptions ?? {}),
+      ...(fixedSpellActionPath?.forcedSpellImplementationOptions ?? {})
+    };
+    const spellImplementationCastSource =
+      options?.spellImplementationCastSource ??
+      fixedSpellActionPath?.spellImplementationCastSource ??
+      fixedSpellExecute.spellImplementationCastSource ??
+      "fixed-feature";
+    const spellActionPathId = options?.spellActionPathId ?? fixedSpellActionPath?.id ?? null;
+    const spellCastEffectIds = [
+      ...new Set([
+        ...(fixedSpellExecute.spellCastEffectIds ?? []),
+        ...(fixedSpellActionPath?.spellCastEffectIds ?? []),
+        ...(options?.spellCastEffectIds ?? [])
+      ])
+    ];
     const sharedEconomyContext = fixedSpellActionPath
       ? {
           economyType: fixedSpellActionPath.economyType,
@@ -2021,7 +2026,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
         character: nextCharacterWithConcentration,
         spell: fixedSpellEntry,
         spellSlotLevel: slotLevel,
-        castSource: "fixed-feature",
+        castSource: spellImplementationCastSource,
         options: spellImplementationOptions
       });
       const nextCharacterWithBeguilingMagic = useBeguilingMagic
@@ -2039,10 +2044,16 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
       const nextCharacterWithGoliathAncestry = useGoliathAncestry
         ? consumeGoliathGiantAncestryUseForCharacter(nextCharacterWithFrozenHaunt)
         : nextCharacterWithFrozenHaunt;
-      const nextCharacterWithFeatCastEffects = applyFeatSpellCastEffectsForCharacter(
+      const nextCharacterWithFeatCastEffects = applyFeatureSpellCastEffectsForCharacter(
         nextCharacterWithGoliathAncestry,
         fixedSpellEntry,
-        options?.spellCastEffectIds
+        spellCastEffectIds,
+        {
+          spellSlotLevel: slotLevel,
+          castSource: spellImplementationCastSource,
+          options: spellImplementationOptions,
+          spellActionPathId
+        }
       );
 
       if (!nextCharacterWithFeatCastEffects) {
@@ -2082,10 +2093,11 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     });
 
     rollFixedSpellHuntersRimeTemporaryHitPoints(fixedSpellEntry);
-    rollFixedSpellFalseLifeTemporaryHitPoints(
+    rollFixedSpellImplementationEffects(
       fixedSpellEntry,
       slotLevel,
-      fixedSpellExecute.effectKind === "fiendish-vigor"
+      spellImplementationOptions,
+      spellImplementationCastSource
     );
     closeActionDrawer();
   }

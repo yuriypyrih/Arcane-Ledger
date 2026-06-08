@@ -13,15 +13,24 @@ import {
   pruneLinkedStatusEntries
 } from "../../statusEntries";
 import type {
-  SpellImplementation,
   SpellImplementationApplyContext,
   SpellImplementationCastOptionsContext
 } from "./types";
+import { compileSpellImplementationContributions } from "./contributions";
+import {
+  applyFalseLifeTemporaryHitPointsToCharacter,
+  falseLifeSpellId,
+  fiendishVigorTemporaryHitPointsSource,
+  getFalseLifeTemporaryHitPointsFormula,
+  getFalseLifeTemporaryHitPointsFormulaDisplay,
+  getFalseLifeTemporaryHitPointsFromRoll
+} from "./falseLife";
 
 export const mageArmorSpellId = "spell-mage-armor";
 export const mageArmorStatusSourceId = "spell-mage-armor-self";
 export const mageArmorStatusValue = "Mage Armor";
 export const mageArmorCastOnSelfOptionId = "castOnSelf";
+export const falseLifeMaximizeTemporaryHitPointsOptionId = "maximizeTemporaryHitPoints";
 
 export function isMageArmorSelfStatusEntry(
   entry: Pick<CharacterStatusEntry, "group" | "sourceId" | "value">
@@ -92,10 +101,77 @@ export function applyMageArmorSpellImplementation(
   return applyMageArmorSelfCastForCharacter(context.character, context.spell);
 }
 
-const mageArmorSpellImplementation: SpellImplementation = {
+const mageArmorSpellImplementationSpec = {
+  source: {
+    type: "spell" as const,
+    id: mageArmorSpellId,
+    label: mageArmorStatusValue
+  },
   spellId: mageArmorSpellId,
   getCastOptions: getMageArmorCastOptions,
   applyOnCast: applyMageArmorSpellImplementation
+};
+
+function getFalseLifeCastOptions(context: SpellImplementationCastOptionsContext) {
+  const forceMaximizedTemporaryHitPoints =
+    context.forcedOptions?.[falseLifeMaximizeTemporaryHitPointsOptionId] === true;
+
+  return forceMaximizedTemporaryHitPoints
+    ? [
+        {
+          id: falseLifeMaximizeTemporaryHitPointsOptionId,
+          label: "Maximize temporary hit points",
+          defaultChecked: true,
+          disabled: true
+        }
+      ]
+    : [];
+}
+
+const falseLifeSpellImplementationSpec = {
+  source: {
+    type: "spell" as const,
+    id: falseLifeSpellId,
+    label: "False Life"
+  },
+  spellId: falseLifeSpellId,
+  getCastOptions: getFalseLifeCastOptions,
+  getRollEffects: (context: SpellImplementationApplyContext) => {
+    const maximizeDie =
+      context.options[falseLifeMaximizeTemporaryHitPointsOptionId] === true;
+
+    return [
+      {
+        id: "false-life-temporary-hit-points",
+        title: maximizeDie ? "Fiendish Vigor" : context.spell.name,
+        formula: getFalseLifeTemporaryHitPointsFormula({
+          maximizeDie,
+          spellSlotLevel: context.spellSlotLevel
+        }),
+        formulaDisplay: getFalseLifeTemporaryHitPointsFormulaDisplay(
+          context.spellSlotLevel,
+          { maximizeDie }
+        ),
+        description: maximizeDie
+          ? "When you cast False Life with Fiendish Vigor, you gain Temporary Hit Points and treat the d4 as a 4."
+          : `When you cast ${context.spell.name}, you gain Temporary Hit Points.`,
+        applyResolvedResult: (character: Character, result: { total: number }) => {
+          const temporaryHitPoints = maximizeDie
+            ? result.total
+            : getFalseLifeTemporaryHitPointsFromRoll(result.total, context.spellSlotLevel);
+          const source = maximizeDie
+            ? fiendishVigorTemporaryHitPointsSource
+            : context.spell.name;
+
+          return applyFalseLifeTemporaryHitPointsToCharacter(
+            character,
+            temporaryHitPoints,
+            source
+          );
+        }
+      }
+    ];
+  }
 };
 
 export function getMageArmorArmorClassModes(
@@ -122,4 +198,7 @@ export function getMageArmorArmorClassModes(
   ];
 }
 
-export const spellImplementations1: SpellImplementation[] = [mageArmorSpellImplementation];
+export const spellImplementations1 = compileSpellImplementationContributions([
+  mageArmorSpellImplementationSpec,
+  falseLifeSpellImplementationSpec
+]);

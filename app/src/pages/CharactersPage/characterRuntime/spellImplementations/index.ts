@@ -5,7 +5,9 @@ import type {
   SpellImplementationCastOption,
   SpellImplementationCastOptionsContext,
   SpellImplementationCastSource,
-  SpellImplementationOptionValues
+  SpellImplementationOptionValues,
+  SpellImplementationRollEffect,
+  SpellImplementationRollEffectsContext
 } from "./types";
 import { spellImplementations0 } from "./spells0";
 import { spellImplementations1 } from "./spells1";
@@ -24,7 +26,9 @@ export type {
   SpellImplementationCastOption,
   SpellImplementationCastOptionsContext,
   SpellImplementationCastSource,
-  SpellImplementationOptionValues
+  SpellImplementationOptionValues,
+  SpellImplementationRollEffect,
+  SpellImplementationRollEffectsContext
 } from "./types";
 export {
   applyFalseLifeTemporaryHitPointsToCharacter,
@@ -37,6 +41,7 @@ export {
   getFalseLifeTemporaryHitPointsFromRoll
 } from "./falseLife";
 export {
+  falseLifeMaximizeTemporaryHitPointsOptionId,
   mageArmorCastOnSelfOptionId,
   getMageArmorArmorClassModes,
   hasMageArmorSelfStatus,
@@ -80,6 +85,12 @@ export function getSpellCastOptionsForCharacter(
   context: SpellImplementationCastOptionsContext
 ): SpellImplementationCastOption[] {
   return getSpellImplementation(context.spell.id)?.getCastOptions?.(context) ?? [];
+}
+
+export function getSpellImplementationRollEffectsForCharacter(
+  context: SpellImplementationRollEffectsContext
+): SpellImplementationRollEffect[] {
+  return getSpellImplementation(context.spell.id)?.getRollEffects?.(context) ?? [];
 }
 
 export function createDefaultSpellImplementationOptionValues(

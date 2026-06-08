@@ -30,6 +30,10 @@ import type {
   WeaponProficiencyEntry
 } from "../../../types";
 import type { WeaponAction } from "../gameplay";
+import type {
+  SpellImplementationCastSource,
+  SpellImplementationOptionValues
+} from "../characterRuntime/spellImplementations/types";
 
 export type FeatureActionTone = "default" | "accent" | "danger";
 export type FeatureActionIcon =
@@ -290,6 +294,9 @@ export type FeatureActionExecuteConfig =
       actionConsumesSpellSlot?: boolean;
       allowRitualCasting?: boolean;
       freeCastSlotLevel?: number | null;
+      spellImplementationCastSource?: SpellImplementationCastSource;
+      forcedSpellImplementationOptions?: SpellImplementationOptionValues;
+      spellCastEffectIds?: string[];
     };
 
 export type FeatureActionCard = {
