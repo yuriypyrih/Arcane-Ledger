@@ -14,6 +14,12 @@ import {
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import { swapTemporaryHitPointsAssignment } from "../../../shared";
 import {
   createFeatureActionCardCost,
@@ -670,29 +676,107 @@ function getWarlockCelestialPatronHealingLightAction(
   };
 }
 
-export const getWarlockCelestialPatronDerivedFeatureState: SubclassRuntimeResolver = (
-  character
-) => {
+function createWarlockCelestialPatronSource(input: {
+  id: string;
+  label: string;
+  entryId: CLASS_FEATURE;
+}) {
+  return createSubclassContributionSource({
+    ...input,
+    id: `warlock-celestial-patron-${input.id}`
+  });
+}
+
+export function collectWarlockCelestialPatronContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
   if (
     character.className !== "Warlock" ||
     character.subclassId !== celestialPatronSubclassId ||
     (character.level ?? 0) < 3
   ) {
-    return {};
+    return [];
   }
 
-  return {
-    featureActions: [getWarlockCelestialPatronHealingLightAction(character)].filter(
-      (action): action is FeatureActionCard => action !== null
-    ),
-    derivedStatusEntries: getWarlockCelestialPatronDerivedStatusEntries(character),
-    transformFeatureAction: (action) =>
-      transformWarlockCelestialPatronFeatureAction(character, action),
-    transformSpellEntry: (spell) =>
-      getWarlockCelestialPatronRadiantSoulSpellEntry(character, spell),
-    alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-      character.level ?? 0,
-      celestialPatronSpellIdsByLevel
-    )
-  };
-};
+  const contributions: FeatureContributionSpec[] = [
+    {
+      source: createWarlockCelestialPatronSource({
+        id: "spells",
+        label: "Celestial Spells",
+        entryId: CLASS_FEATURE.CELESTIAL_SPELLS
+      }),
+      alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
+        character.level ?? 0,
+        celestialPatronSpellIdsByLevel
+      )
+    }
+  ];
+
+  if (hasWarlockCelestialPatronHealingLight(character)) {
+    contributions.push({
+      source: createWarlockCelestialPatronSource({
+        id: "healing-light",
+        label: "Healing Light",
+        entryId: CLASS_FEATURE.HEALING_LIGHT
+      }),
+      actions: [getWarlockCelestialPatronHealingLightAction(character)].filter(
+        (action): action is FeatureActionCard => action !== null
+      )
+    });
+  }
+
+  if (hasWarlockCelestialPatronRadiantSoul(character)) {
+    contributions.push({
+      source: createWarlockCelestialPatronSource({
+        id: "radiant-soul",
+        label: radiantSoulName,
+        entryId: CLASS_FEATURE.RADIANT_SOUL
+      }),
+      statuses: getWarlockCelestialPatronDerivedStatusEntries(character),
+      spellTransforms: [
+        {
+          id: "warlock-celestial-patron-radiant-soul-spell",
+          transform: (spell) => getWarlockCelestialPatronRadiantSoulSpellEntry(character, spell)
+        }
+      ]
+    });
+  }
+
+  if (hasWarlockCelestialPatronCelestialResilience(character)) {
+    contributions.push({
+      source: createWarlockCelestialPatronSource({
+        id: "celestial-resilience",
+        label: celestialResilienceName,
+        entryId: CLASS_FEATURE.CELESTIAL_RESILIENCE
+      }),
+      featureActionTransforms: [
+        {
+          id: "warlock-celestial-patron-celestial-resilience-magical-cunning",
+          transform: (action) => transformWarlockCelestialPatronFeatureAction(character, action)
+        }
+      ]
+    });
+  }
+
+  if (hasWarlockCelestialPatronSearingVengeance(character)) {
+    contributions.push({
+      source: createWarlockCelestialPatronSource({
+        id: "searing-vengeance",
+        label: "Searing Vengeance",
+        entryId: CLASS_FEATURE.SEARING_VENGEANCE
+      })
+    });
+  }
+
+  return contributions;
+}
+
+export const getWarlockCelestialPatronDerivedFeatureState: SubclassRuntimeResolver = (
+  character
+) =>
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectWarlockCelestialPatronContributions(character)),
+    {
+      character: character as Character
+    }
+  );

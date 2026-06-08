@@ -14,6 +14,12 @@ import {
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import { createFeatureSourcedDescriptionEntries } from "../../../actionModalDescriptions";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import { getProficiencyBonus } from "../../../gameplay";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
 import { swapTemporaryHitPointsAssignment } from "../../../shared";
@@ -685,20 +691,99 @@ function getWarlockFiendPatronHurlThroughHellAction(
   };
 }
 
+function createWarlockFiendPatronSource(input: {
+  id: string;
+  label: string;
+  entryId: CLASS_FEATURE;
+}) {
+  return createSubclassContributionSource({
+    ...input,
+    id: `warlock-fiend-patron-${input.id}`
+  });
+}
+
+export function collectWarlockFiendPatronContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
+  if (
+    character.className !== "Warlock" ||
+    character.subclassId !== fiendPatronSubclassId ||
+    (character.level ?? 0) < 3
+  ) {
+    return [];
+  }
+
+  const contributions: FeatureContributionSpec[] = [
+    {
+      source: createWarlockFiendPatronSource({
+        id: "spells",
+        label: "Fiend Spells",
+        entryId: CLASS_FEATURE.FIEND_SPELLS
+      }),
+      alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
+        character.level ?? 0,
+        fiendPatronSpellIdsByLevel
+      )
+    }
+  ];
+
+  if (hasWarlockFiendPatronDarkOnesBlessing(character)) {
+    contributions.push({
+      source: createWarlockFiendPatronSource({
+        id: "dark-ones-blessing",
+        label: darkOnesBlessingName,
+        entryId: CLASS_FEATURE.DARK_ONES_BLESSING
+      }),
+      actions: [getWarlockFiendPatronDarkOnesBlessingAction(character)].filter(
+        (action): action is FeatureActionCard => action !== null
+      )
+    });
+  }
+
+  if (hasWarlockFiendPatronDarkOnesOwnLuck(character)) {
+    contributions.push({
+      source: createWarlockFiendPatronSource({
+        id: "dark-ones-own-luck",
+        label: darkOnesOwnLuckName,
+        entryId: CLASS_FEATURE.DARK_ONES_OWN_LUCK
+      }),
+      actions: [getWarlockFiendPatronDarkOnesOwnLuckAction(character)].filter(
+        (action): action is FeatureActionCard => action !== null
+      )
+    });
+  }
+
+  if (hasWarlockFiendPatronFiendishResilience(character)) {
+    contributions.push({
+      source: createWarlockFiendPatronSource({
+        id: "fiendish-resilience",
+        label: fiendishResilienceName,
+        entryId: CLASS_FEATURE.FIENDISH_RESILIENCE
+      }),
+      statuses: getWarlockFiendPatronDerivedStatusEntries(character)
+    });
+  }
+
+  if (hasWarlockFiendPatronHurlThroughHell(character)) {
+    contributions.push({
+      source: createWarlockFiendPatronSource({
+        id: "hurl-through-hell",
+        label: hurlThroughHellName,
+        entryId: CLASS_FEATURE.HURL_THROUGH_HELL
+      }),
+      actions: [getWarlockFiendPatronHurlThroughHellAction(character)].filter(
+        (action): action is FeatureActionCard => action !== null
+      )
+    });
+  }
+
+  return contributions;
+}
+
 export const getWarlockFiendPatronDerivedFeatureState: SubclassRuntimeResolver = (character) =>
-  character.className === "Warlock" &&
-  character.subclassId === fiendPatronSubclassId &&
-  (character.level ?? 0) >= 3
-    ? {
-        featureActions: [
-          getWarlockFiendPatronDarkOnesBlessingAction(character),
-          getWarlockFiendPatronDarkOnesOwnLuckAction(character),
-          getWarlockFiendPatronHurlThroughHellAction(character)
-        ].filter((action): action is FeatureActionCard => action !== null),
-        derivedStatusEntries: getWarlockFiendPatronDerivedStatusEntries(character),
-        alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-          character.level ?? 0,
-          fiendPatronSpellIdsByLevel
-        )
-      }
-    : {};
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectWarlockFiendPatronContributions(character)),
+    {
+      character: character as Character
+    }
+  );

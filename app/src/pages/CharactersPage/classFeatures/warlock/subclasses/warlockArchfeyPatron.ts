@@ -19,6 +19,12 @@ import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDes
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
 import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
+import {
   getPreparedSpellIdsByLevel,
   resolveSpellIdsByName,
   type SubclassRuntimeResolver
@@ -478,19 +484,6 @@ export function getWarlockArchfeyPatronMistyEscapeReactionSpell(
     : transformedSpell;
 }
 
-function getWarlockArchfeyPatronTransformedSpell(
-  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
-  spell: SpellEntry
-): SpellEntry {
-  const nextSpell = hasWarlockArchfeyPatronMistyEscapeFeature(character)
-    ? appendMistyEscapeDescription(appendStepsOfTheFeyDescription(spell, character), character)
-    : appendStepsOfTheFeyDescription(spell, character);
-
-  return hasWarlockArchfeyPatronBewitchingMagicFeature(character)
-    ? appendBewitchingMagicDescription(character, nextSpell)
-    : nextSpell;
-}
-
 export type WarlockArchfeyPatronFeatureReactionSpellDefinition = {
   spellId: string;
   transformSpellEntry: (
@@ -510,26 +503,110 @@ export function getWarlockArchfeyPatronFeatureReactionSpellDefinition(
     : null;
 }
 
+function createWarlockArchfeyPatronSource(input: {
+  id: string;
+  label: string;
+  entryId: CLASS_FEATURE;
+}) {
+  return createSubclassContributionSource({
+    ...input,
+    id: `warlock-archfey-patron-${input.id}`
+  });
+}
+
+export function collectWarlockArchfeyPatronContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
+  if (
+    character.className !== "Warlock" ||
+    character.subclassId !== archfeyPatronSubclassId ||
+    (character.level ?? 0) < 3
+  ) {
+    return [];
+  }
+
+  const contributions: FeatureContributionSpec[] = [
+    {
+      source: createWarlockArchfeyPatronSource({
+        id: "spells",
+        label: "Archfey Spells",
+        entryId: CLASS_FEATURE.ARCHFEY_SPELLS
+      }),
+      alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
+        character.level ?? 0,
+        archfeyPatronSpellIdsByLevel
+      )
+    }
+  ];
+
+  if (hasWarlockArchfeyPatronStepsOfTheFeyFeature(character)) {
+    contributions.push({
+      source: createWarlockArchfeyPatronSource({
+        id: "steps-of-the-fey",
+        label: stepsOfTheFeyName,
+        entryId: CLASS_FEATURE.STEPS_OF_THE_FEY
+      }),
+      spellTransforms: [
+        {
+          id: "warlock-archfey-patron-steps-of-the-fey-misty-step",
+          transform: (spell) => appendStepsOfTheFeyDescription(spell, character)
+        }
+      ]
+    });
+  }
+
+  if (hasWarlockArchfeyPatronMistyEscapeFeature(character)) {
+    contributions.push({
+      source: createWarlockArchfeyPatronSource({
+        id: "misty-escape",
+        label: mistyEscapeName,
+        entryId: CLASS_FEATURE.MISTY_ESCAPE
+      }),
+      reactions: [mistyEscapeReactionEntry],
+      spellTransforms: [
+        {
+          id: "warlock-archfey-patron-misty-escape-misty-step",
+          transform: (spell) => appendMistyEscapeDescription(spell, character)
+        }
+      ]
+    });
+  }
+
+  if (hasWarlockArchfeyPatronBeguilingDefensesFeature(character)) {
+    contributions.push({
+      source: createWarlockArchfeyPatronSource({
+        id: "beguiling-defenses",
+        label: beguilingDefensesName,
+        entryId: CLASS_FEATURE.BEGUILING_DEFENSES
+      }),
+      reactions: [beguilingDefenseReactionEntry],
+      statuses: getWarlockArchfeyPatronDerivedStatusEntries(character)
+    });
+  }
+
+  if (hasWarlockArchfeyPatronBewitchingMagicFeature(character)) {
+    contributions.push({
+      source: createWarlockArchfeyPatronSource({
+        id: "bewitching-magic",
+        label: bewitchingMagicName,
+        entryId: CLASS_FEATURE.BEWITCHING_MAGIC
+      }),
+      spellTransforms: [
+        {
+          id: "warlock-archfey-patron-bewitching-magic",
+          transform: (spell) => appendBewitchingMagicDescription(character, spell)
+        }
+      ]
+    });
+  }
+
+  return contributions;
+}
+
 export const getWarlockArchfeyPatronDerivedFeatureState: SubclassRuntimeResolver = (character) =>
-  character.className === "Warlock" &&
-  character.subclassId === archfeyPatronSubclassId &&
-  (character.level ?? 0) >= 3
-    ? {
-        alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
-          character.level ?? 0,
-          archfeyPatronSpellIdsByLevel
-        ),
-        reactionEntries: hasWarlockArchfeyPatronMistyEscapeFeature(character)
-          ? [
-              mistyEscapeReactionEntry,
-              ...(hasWarlockArchfeyPatronBeguilingDefensesFeature(character)
-                ? [beguilingDefenseReactionEntry]
-                : [])
-            ]
-          : hasWarlockArchfeyPatronBeguilingDefensesFeature(character)
-            ? [beguilingDefenseReactionEntry]
-            : [],
-        derivedStatusEntries: getWarlockArchfeyPatronDerivedStatusEntries(character),
-        transformSpellEntry: (spell) => getWarlockArchfeyPatronTransformedSpell(character, spell)
-      }
-    : {};
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectWarlockArchfeyPatronContributions(character)),
+    {
+      character: character as Character
+    }
+  );

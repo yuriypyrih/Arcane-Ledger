@@ -19,6 +19,12 @@ import {
   appendFeatureSourcedDescriptionAddition,
   createFeatureSourcedDescriptionEntries
 } from "../../../actionModalDescriptions";
+import {
+  compileFeatureContributions,
+  createSubclassContributionSource,
+  projectCompiledContributionsToSubclassDerivedFeatureState,
+  type FeatureContributionSpec
+} from "../../../featureContributions";
 import { getSpellSaveFormulaCell } from "../../../shared/spellFormulas";
 import {
   activateTelepathicBond,
@@ -469,37 +475,6 @@ function getWarlockGreatOldOnePatronDerivedStatusEntries(
   ];
 }
 
-function getWarlockGreatOldOnePatronAlwaysPreparedSpellIds(
-  character: WarlockGreatOldOnePatronCharacter
-): string[] {
-  const spellIds = getPreparedSpellIdsByLevel(
-    character.level ?? 0,
-    greatOldOnePatronSpellIdsByLevel
-  );
-
-  if (!hasWarlockGreatOldOnePatronEldritchHex(character)) {
-    return spellIds;
-  }
-
-  return Array.from(new Set([...spellIds, hexSpellId]));
-}
-
-function getWarlockGreatOldOnePatronTransformedSpell(
-  character: WarlockGreatOldOnePatronCharacter,
-  spell: SpellEntry
-): SpellEntry {
-  const psychicSpell = hasWarlockGreatOldOnePatronPsychicSpells(character)
-    ? appendPsychicSpellsDescription(character, spell)
-    : spell;
-  const eldritchHexSpell = hasWarlockGreatOldOnePatronEldritchHex(character)
-    ? appendEldritchHexDescription(character, psychicSpell)
-    : psychicSpell;
-
-  return hasWarlockGreatOldOnePatronCreateThrall(character)
-    ? appendCreateThrallDescription(character, eldritchHexSpell)
-    : eldritchHexSpell;
-}
-
 function getWarlockGreatOldOnePatronFeatureActions(
   character: WarlockGreatOldOnePatronCharacter
 ): FeatureActionCard[] {
@@ -560,17 +535,132 @@ export function activateWarlockGreatOldOnePatronAwakenedMind(
   });
 }
 
+function createWarlockGreatOldOnePatronSource(input: {
+  id: string;
+  label: string;
+  entryId: CLASS_FEATURE;
+}) {
+  return createSubclassContributionSource({
+    ...input,
+    id: `warlock-great-old-one-patron-${input.id}`
+  });
+}
+
+export function collectWarlockGreatOldOnePatronContributions(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureContributionSpec[] {
+  if (
+    character.className !== "Warlock" ||
+    character.subclassId !== greatOldOnePatronSubclassId ||
+    (character.level ?? 0) < 3
+  ) {
+    return [];
+  }
+
+  const contributions: FeatureContributionSpec[] = [
+    {
+      source: createWarlockGreatOldOnePatronSource({
+        id: "spells",
+        label: "Great Old One Spells",
+        entryId: CLASS_FEATURE.GREAT_OLD_ONE_SPELLS
+      }),
+      alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
+        character.level ?? 0,
+        greatOldOnePatronSpellIdsByLevel
+      )
+    }
+  ];
+
+  if (hasWarlockGreatOldOnePatronAwakenedMind(character)) {
+    contributions.push({
+      source: createWarlockGreatOldOnePatronSource({
+        id: "awakened-mind",
+        label: awakenedMindName,
+        entryId: CLASS_FEATURE.AWAKENED_MIND
+      }),
+      actions: getWarlockGreatOldOnePatronFeatureActions(character)
+    });
+  }
+
+  if (hasWarlockGreatOldOnePatronPsychicSpells(character)) {
+    contributions.push({
+      source: createWarlockGreatOldOnePatronSource({
+        id: "psychic-spells",
+        label: psychicSpellsName,
+        entryId: CLASS_FEATURE.PSYCHIC_SPELLS
+      }),
+      spellTransforms: [
+        {
+          id: "warlock-great-old-one-patron-psychic-spells",
+          transform: (spell) => appendPsychicSpellsDescription(character, spell)
+        }
+      ]
+    });
+  }
+
+  if (hasWarlockGreatOldOnePatronClairvoyantCombatant(character)) {
+    contributions.push({
+      source: createWarlockGreatOldOnePatronSource({
+        id: "clairvoyant-combatant",
+        label: clairvoyantCombatantName,
+        entryId: CLASS_FEATURE.CLAIRVOYANT_COMBATANT
+      })
+    });
+  }
+
+  if (hasWarlockGreatOldOnePatronEldritchHex(character)) {
+    contributions.push({
+      source: createWarlockGreatOldOnePatronSource({
+        id: "eldritch-hex",
+        label: eldritchHexName,
+        entryId: CLASS_FEATURE.ELDRITCH_HEX
+      }),
+      alwaysPreparedSpellIds: [hexSpellId],
+      spellTransforms: [
+        {
+          id: "warlock-great-old-one-patron-eldritch-hex",
+          transform: (spell) => appendEldritchHexDescription(character, spell)
+        }
+      ]
+    });
+  }
+
+  if (hasWarlockGreatOldOnePatronThoughtShield(character)) {
+    contributions.push({
+      source: createWarlockGreatOldOnePatronSource({
+        id: "thought-shield",
+        label: thoughtShieldName,
+        entryId: CLASS_FEATURE.THOUGHT_SHIELD
+      }),
+      statuses: getWarlockGreatOldOnePatronDerivedStatusEntries(character)
+    });
+  }
+
+  if (hasWarlockGreatOldOnePatronCreateThrall(character)) {
+    contributions.push({
+      source: createWarlockGreatOldOnePatronSource({
+        id: "create-thrall",
+        label: createThrallName,
+        entryId: CLASS_FEATURE.CREATE_THRALL
+      }),
+      spellTransforms: [
+        {
+          id: "warlock-great-old-one-patron-create-thrall",
+          transform: (spell) => appendCreateThrallDescription(character, spell)
+        }
+      ]
+    });
+  }
+
+  return contributions;
+}
+
 export const getWarlockGreatOldOnePatronDerivedFeatureState: SubclassRuntimeResolver = (
   character
 ) =>
-  character.className === "Warlock" &&
-  character.subclassId === greatOldOnePatronSubclassId &&
-  (character.level ?? 0) >= 3
-    ? {
-        featureActions: getWarlockGreatOldOnePatronFeatureActions(character),
-        derivedStatusEntries: getWarlockGreatOldOnePatronDerivedStatusEntries(character),
-        transformSpellEntry: (spell) =>
-          getWarlockGreatOldOnePatronTransformedSpell(character, spell),
-        alwaysPreparedSpellIds: getWarlockGreatOldOnePatronAlwaysPreparedSpellIds(character)
-      }
-    : {};
+  projectCompiledContributionsToSubclassDerivedFeatureState(
+    compileFeatureContributions(collectWarlockGreatOldOnePatronContributions(character)),
+    {
+      character: character as Character
+    }
+  );

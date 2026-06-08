@@ -225,15 +225,9 @@ import {
   advanceWarlockFeaturesForNewRound,
   applyLongRestToWarlockFeatures,
   applyShortRestToWarlockFeatures,
-  getWarlockAlwaysPreparedSpellIds,
-  getWarlockDerivedStatusEntries,
-  getWarlockFeatureActions,
-  getWarlockSpeedBonuses,
-  getWarlockSpellEntry,
-  getWarlockSpellDamageBonuses,
-  getWarlockWeaponAction,
   normalizeWarlockFeatureState
 } from "./warlock/warlock";
+import { getWarlockClassFeatureDerivedState } from "./warlock/contributions";
 import {
   activateWizardFeatureAction,
   advanceWizardFeaturesForNewRound,
@@ -745,17 +739,7 @@ const classFeatureModules = {
     className: "Warlock",
     stateKey: "warlock",
     normalizeState: normalizeWarlockFeatureState,
-    collectDerived(character) {
-      return {
-        actions: getWarlockFeatureActions(character),
-        getSpellDamageBonuses: (context) => getWarlockSpellDamageBonuses(character, context),
-        getSpeedBonuses: (context) => getWarlockSpeedBonuses(character, context),
-        alwaysPreparedSpellIds: getWarlockAlwaysPreparedSpellIds(character),
-        derivedStatusEntries: getWarlockDerivedStatusEntries(character),
-        transformSpellEntry: (spell) => getWarlockSpellEntry(character, spell),
-        transformWeaponAction: (action) => getWarlockWeaponAction(character, action)
-      };
-    },
+    collectDerived: getWarlockClassFeatureDerivedState,
     handleAction(character, actionKey) {
       return activateWarlockFeatureAction(character, actionKey);
     },
