@@ -1,5 +1,6 @@
 import * as Sentry from "@sentry/react";
 import type { Breadcrumb, ErrorEvent, SeverityLevel, User } from "@sentry/react";
+import { isStaleAssetLoadSentryEvent } from "./staleAssetLoadError";
 
 type PrimitiveTagValue = string | number | boolean;
 
@@ -195,6 +196,14 @@ function sanitizeEvent(event: ErrorEvent): ErrorEvent {
   };
 }
 
+function beforeSend(event: ErrorEvent): ErrorEvent | null {
+  if (isStaleAssetLoadSentryEvent(event)) {
+    return null;
+  }
+
+  return sanitizeEvent(event);
+}
+
 export function isFrontendSentryEnabled() {
   return sentryActive;
 }
@@ -216,7 +225,7 @@ export function initFrontendSentry() {
     release: readEnvValue(import.meta.env.VITE_SENTRY_RELEASE),
     sendDefaultPii: false,
     beforeBreadcrumb,
-    beforeSend: sanitizeEvent
+    beforeSend
   });
 
   sentryActive = true;

@@ -1,9 +1,29 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import svgr from "vite-plugin-svgr";
+import type { Plugin } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 
+const buildId = new Date().toISOString();
+const buildVersionText = `arcane-ledger-build:${buildId}`;
+
+function buildVersionPlugin(): Plugin {
+  return {
+    name: "arcane-ledger-build-version",
+    generateBundle() {
+      this.emitFile({
+        type: "asset",
+        fileName: "version.txt",
+        source: buildVersionText
+      });
+    }
+  };
+}
+
 export default defineConfig({
+  define: {
+    __ARCANE_LEDGER_BUILD_ID__: JSON.stringify(buildId)
+  },
   server: {
     host: "0.0.0.0",
     port: 5174
@@ -15,9 +35,10 @@ export default defineConfig({
   plugins: [
     react(),
     svgr(),
+    buildVersionPlugin(),
     VitePWA({
       injectRegister: "auto",
-      registerType: "autoUpdate",
+      registerType: "prompt",
       includeAssets: [
         "favicon.svg",
         "favicon.ico",

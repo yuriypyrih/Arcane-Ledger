@@ -2,6 +2,8 @@
 /// <reference types="vite-plugin-pwa/client" />
 /// <reference types="vite-plugin-svgr/client" />
 
+declare const __ARCANE_LEDGER_BUILD_ID__: string;
+
 interface ImportMetaEnv {
   readonly VITE_API_BASE_URL?: string;
   readonly VITE_SENTRY_DSN?: string;

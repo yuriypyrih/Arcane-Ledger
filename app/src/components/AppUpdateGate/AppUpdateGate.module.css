@@ -1,0 +1,94 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1600;
+  display: grid;
+  place-items: center;
+  padding: clamp(1rem, 4vw, 2rem);
+  background:
+    linear-gradient(rgba(239, 228, 211, 0.92), rgba(239, 228, 211, 0.96)),
+    url("../../assets/img/paper-background.webp") center / 360px auto;
+  color: var(--color-ink);
+}
+
+.panel {
+  display: grid;
+  justify-items: center;
+  gap: 0.72rem;
+  width: min(100%, 32rem);
+  border: 1px solid rgba(90, 47, 29, 0.22);
+  border-radius: var(--radius-panel);
+  background: rgba(255, 252, 245, 0.98);
+  padding: clamp(1.35rem, 4vw, 2rem);
+  text-align: center;
+  box-shadow: 0 20px 54px rgba(56, 31, 18, 0.2);
+}
+
+.fullscreen {
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: clamp(1rem, 4vw, 2rem);
+  background:
+    linear-gradient(rgba(239, 228, 211, 0.7), rgba(239, 228, 211, 0.82)),
+    url("../../assets/img/paper-background.webp") center / 360px auto;
+  color: var(--color-ink);
+}
+
+.fullscreen .panel {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.icon {
+  width: 2.65rem;
+  height: 2.65rem;
+  color: var(--color-accent);
+  filter: drop-shadow(0 0 8px rgba(162, 77, 45, 0.24));
+}
+
+.title {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: clamp(1.65rem, 5vw, 2.35rem);
+  line-height: 1.08;
+}
+
+.copy {
+  max-width: 25rem;
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: 1rem;
+}
+
+.reloadButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 2.55rem;
+  margin-top: 0.35rem;
+  border: 1px solid rgba(90, 47, 29, 0.28);
+  border-radius: var(--radius-control);
+  background: #7b351f;
+  color: #fff8ec;
+  cursor: pointer;
+  padding: 0 1rem;
+  box-shadow: 0 9px 18px rgba(63, 31, 18, 0.15);
+}
+
+.reloadButton:hover {
+  background: #8d3f25;
+}
+
+.reloadButton:focus-visible {
+  outline: 3px solid rgba(162, 77, 45, 0.3);
+  outline-offset: 3px;
+}
+
+.buttonIcon {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
+}

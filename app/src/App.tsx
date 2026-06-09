@@ -5,6 +5,7 @@ import AuthSessionBootstrap from "./auth/AuthSessionBootstrap";
 import PreferencesSyncBootstrap from "./auth/PreferencesSyncBootstrap";
 import SentryUserBridge from "./auth/SentryUserBridge";
 import CharacterSyncBootstrap from "./characterSync/CharacterSyncBootstrap";
+import AppUpdateGate from "./components/AppUpdateGate";
 import AppShell from "./components/AppShell";
 import AnalyticsBootstrap from "./lib/AnalyticsBootstrap";
 import PageLoadingFallback from "./components/PageLoadingFallback";
@@ -108,6 +109,7 @@ function App() {
       <SentryUserBridge />
       <CharacterSyncBootstrap />
       <AnalyticsBootstrap />
+      <AppUpdateGate />
       <Suspense fallback={<PageLoadingFallback />}>
         <Routes>
           <Route element={<AppShell />}>
