@@ -51,6 +51,10 @@
   flex: 0 0 auto;
 }
 
+.actionLabelCompact {
+  display: none;
+}
+
 .listCount {
   color: var(--color-ink-soft);
 }
@@ -78,5 +82,13 @@
   .listHeaderActions {
     justify-content: flex-end;
     width: 100%;
+  }
+
+  .actionLabelFull {
+    display: none;
+  }
+
+  .actionLabelCompact {
+    display: inline;
   }
 }

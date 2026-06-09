@@ -109,7 +109,8 @@ function CharacterList({
               }
               onClick={() => navigate("/characters/new")}
             >
-              New Character
+              <span className={styles.actionLabelFull}>New Character</span>
+              <span className={styles.actionLabelCompact}>New</span>
             </ActionButton>
             <ActionButton
               icon={<Upload size={16} aria-hidden="true" />}
@@ -123,7 +124,8 @@ function CharacterList({
               }
               onClick={() => setIsImportModalOpen(true)}
             >
-              Import Character
+              <span className={styles.actionLabelFull}>Import Character</span>
+              <span className={styles.actionLabelCompact}>Import</span>
             </ActionButton>
           </div>
         </div>
