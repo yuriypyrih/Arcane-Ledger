@@ -81,6 +81,7 @@ import {
   ensurePortableCharacterSheetSyncMetadata,
   isPortableCharacterSheet,
   markPortableCharacterSheetDirty,
+  normalizeCharacterBackgroundTextureMetadata,
   normalizeCharacterAvatarMetadata,
   normalizeCharacterSyncMetadata
 } from "./portableCharacterSheet";
@@ -668,6 +669,15 @@ export function normalizeCharacter(value: unknown): Character | null {
               ? {
                   avatar: normalizeCharacterAvatarMetadata(
                     (record.storageMetadata as { avatar?: unknown }).avatar
+                  )
+                }
+              : {}),
+            ...(normalizeCharacterBackgroundTextureMetadata(
+              (record.storageMetadata as { backgroundTexture?: unknown }).backgroundTexture
+            )
+              ? {
+                  backgroundTexture: normalizeCharacterBackgroundTextureMetadata(
+                    (record.storageMetadata as { backgroundTexture?: unknown }).backgroundTexture
                   )
                 }
               : {})

@@ -4,6 +4,7 @@ import {
   applyCloudSyncMetadataToPortableCharacterSheet,
   createHydratedCharacterInputFromPortableSheet,
   ensurePortableCharacterSheetSyncMetadata,
+  normalizeCharacterBackgroundTextureMetadata,
   normalizeCharacterAvatarMetadata,
   normalizeCharacterSyncMetadata,
   stripPortableCharacterSheetLocalSyncMetadata
@@ -87,16 +88,22 @@ export function applyCloudDocumentToPortableCharacterSheet(record: CharacterShee
     syncedAt: record.updatedAt ?? undefined
   });
   const avatar = normalizeCharacterAvatarMetadata(record.avatar);
-  const { avatar: _avatar, ...metadataWithoutAvatar } = syncedRecord.metadata ?? {
+  const backgroundTexture = normalizeCharacterBackgroundTextureMetadata(record.backgroundTexture);
+  const {
+    avatar: _avatar,
+    backgroundTexture: _backgroundTexture,
+    ...metadataWithoutCloudFields
+  } = syncedRecord.metadata ?? {
     sheetSizeBytes: 0
   };
 
   return {
     ...syncedRecord,
     metadata: {
-      ...metadataWithoutAvatar,
-      sheetSizeBytes: metadataWithoutAvatar.sheetSizeBytes ?? 0,
-      ...(avatar ? { avatar } : {})
+      ...metadataWithoutCloudFields,
+      sheetSizeBytes: metadataWithoutCloudFields.sheetSizeBytes ?? 0,
+      ...(avatar ? { avatar } : {}),
+      ...(backgroundTexture ? { backgroundTexture } : {})
     }
   };
 }

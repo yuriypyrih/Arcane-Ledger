@@ -7,6 +7,7 @@ import type { AuthenticatedLocals, OptionalAuthenticatedLocals } from "../middle
 import {
   CharacterSheet,
   type CharacterAvatarRecord,
+  type CharacterBackgroundTextureRecord,
   type CharacterEncounterStatBlockRecord,
   type CharacterSheetDocument,
   type CharacterSheetSummaryRecord
@@ -17,6 +18,17 @@ import {
   isAllowedCharacterAvatarMimeType,
   saveCharacterAvatarToS3
 } from "../services/characterAvatarService.js";
+import {
+  createBackgroundTextureRecord,
+  getUploadedBackgroundTextureObjectKey,
+  readBackgroundTextureMutationBody,
+  toBackgroundTextureResponse,
+  type CharacterBackgroundTextureResponse
+} from "./characterBackgroundTextureControllerHelpers.js";
+import {
+  deleteCharacterBackgroundTextureFromS3,
+  saveCharacterBackgroundTextureToS3
+} from "../services/characterBackgroundTextureService.js";
 import { recordCharacterCreatedMetric } from "../services/analyticsService.js";
 import { getCharacterLimitForRole } from "../services/characterLimits.js";
 import {
@@ -53,6 +65,7 @@ type CharacterSheetCloudDocument = {
   summary: CharacterSheetDocument["summary"];
   sheet: Record<string, unknown>;
   avatar: CharacterAvatarResponse | null;
+  backgroundTexture: CharacterBackgroundTextureResponse | null;
   createdAt: string | null;
   updatedAt: string | null;
 };
@@ -70,6 +83,7 @@ type CharacterSheetCloudSource = {
   summary: CharacterSheetSummaryRecord;
   sheet: Record<string, unknown>;
   avatar?: CharacterAvatarRecord | null;
+  backgroundTexture?: CharacterBackgroundTextureRecord | null;
   deletedAt?: Date | string | null;
   createdAt?: Date | string | null;
   updatedAt?: Date | string | null;
@@ -486,7 +500,12 @@ function buildCharacterSheetSummary(sheet: Record<string, unknown>) {
 
 function stripLocalSyncMetadata(sheet: Record<string, unknown>) {
   const metadata = getSheetGroup(sheet, "metadata");
-  const { avatar: _avatar, sync: _sync, ...storedMetadata } = metadata;
+  const {
+    avatar: _avatar,
+    backgroundTexture: _backgroundTexture,
+    sync: _sync,
+    ...storedMetadata
+  } = metadata;
 
   return {
     ...sheet,
@@ -533,6 +552,7 @@ function toCloudRecord(document: CharacterSheetCloudSource): CharacterSheetCloud
     summary: document.summary,
     sheet: document.sheet,
     avatar: toAvatarResponse(document.avatar),
+    backgroundTexture: toBackgroundTextureResponse(document.backgroundTexture),
     createdAt: toIsoTimestamp(document.createdAt),
     updatedAt: toIsoTimestamp(document.updatedAt)
   };
@@ -548,6 +568,7 @@ function toCloudRosterRecord(document: CharacterSheetRosterSource): CharacterShe
     revision: document.revision,
     summary: document.summary,
     avatar: toAvatarResponse(document.avatar),
+    backgroundTexture: toBackgroundTextureResponse(document.backgroundTexture),
     createdAt: toIsoTimestamp(document.createdAt),
     updatedAt: toIsoTimestamp(document.updatedAt)
   };
@@ -597,7 +618,7 @@ function applyCharacterSheetPayload(
   character.sheet = payload.sheet;
 }
 
-function readOptionalPortraitCharacterPayload(value: unknown) {
+function readOptionalCharacterMutationPayload(value: unknown) {
   if (!isObjectRecord(value) || !("character" in value)) {
     return null;
   }
@@ -612,7 +633,9 @@ export const listCharacterSheets = asyncHandler(
       ownerId,
       deletedAt: null
     })
-      .select("_id ownerId clientId localId schemaVersion revision summary avatar createdAt updatedAt")
+      .select(
+        "_id ownerId clientId localId schemaVersion revision summary avatar backgroundTexture createdAt updatedAt"
+      )
       .sort({ updatedAt: -1 })
       .lean()
       .exec()) as CharacterSheetRosterSource[];
@@ -809,6 +832,9 @@ export const deleteCharacterSheet = asyncHandler(
 
     const characterRecord = toCloudRecord(character);
     const previousObjectKey = character.avatar?.objectKey;
+    const previousBackgroundTextureObjectKey = getUploadedBackgroundTextureObjectKey(
+      character.backgroundTexture
+    );
 
     await PartyGroup.updateMany(
       {
@@ -829,6 +855,14 @@ export const deleteCharacterSheet = asyncHandler(
       });
     }
 
+    if (previousBackgroundTextureObjectKey) {
+      deleteCharacterBackgroundTextureFromS3(previousBackgroundTextureObjectKey).catch(
+        (error: unknown) => {
+          warnBackgroundTextureDeleteFailure(previousBackgroundTextureObjectKey, error);
+        }
+      );
+    }
+
     response.json({ character: characterRecord });
   }
 );
@@ -836,6 +870,15 @@ export const deleteCharacterSheet = asyncHandler(
 function warnAvatarDeleteFailure(objectKey: string, error: unknown) {
   if (process.env.NODE_ENV !== "test") {
     console.warn("Unable to delete previous character avatar from S3.", {
+      objectKey,
+      error
+    });
+  }
+}
+
+function warnBackgroundTextureDeleteFailure(objectKey: string, error: unknown) {
+  if (process.env.NODE_ENV !== "test") {
+    console.warn("Unable to delete previous character background texture from S3.", {
       objectKey,
       error
     });
@@ -904,7 +947,7 @@ function readPortraitUploadBody(request: Request) {
 
   return {
     ...portrait,
-    sheetPayload: readOptionalPortraitCharacterPayload(request.body)
+    sheetPayload: readOptionalCharacterMutationPayload(request.body)
   };
 }
 
@@ -972,7 +1015,7 @@ export const uploadCharacterPortrait = asyncHandler(
 export const deleteCharacterPortrait = asyncHandler(
   async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
     const characterSheetId = readCharacterSheetId(request.params.characterSheetId);
-    const sheetPayload = readOptionalPortraitCharacterPayload(request.body);
+    const sheetPayload = readOptionalCharacterMutationPayload(request.body);
     const character = await findOwnedCharacterSheet(
       characterSheetId,
       response.locals.authUser._id
@@ -997,6 +1040,92 @@ export const deleteCharacterPortrait = asyncHandler(
 
     response.json({
       avatar: null,
+      character: toCloudRecord(savedCharacter)
+    });
+  }
+);
+
+export const updateCharacterBackgroundTexture = asyncHandler(
+  async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
+    const characterSheetId = readCharacterSheetId(request.params.characterSheetId);
+    const mutation = readBackgroundTextureMutationBody(request);
+    const sheetPayload =
+      mutation.sheetPayloadValue === undefined
+        ? null
+        : readSheetPayload(mutation.sheetPayloadValue);
+
+    if (mutation.source === "uploaded") {
+      if (!mutation.imageBuffer || mutation.imageBuffer.byteLength === 0) {
+        throw new AppError(
+          "Character background texture image body is required.",
+          400,
+          "EMPTY_BACKGROUND_TEXTURE_BODY"
+        );
+      }
+
+      if (mutation.imageBuffer.byteLength > getAppConfig().characterBackgroundTextureUploadMaxBytes) {
+        throw new AppError(
+          "Character background texture image is too large.",
+          413,
+          "BACKGROUND_TEXTURE_TOO_LARGE",
+          {
+            maxBytes: getAppConfig().characterBackgroundTextureUploadMaxBytes
+          }
+        );
+      }
+    }
+
+    const character = await findOwnedCharacterSheet(
+      characterSheetId,
+      response.locals.authUser._id
+    );
+
+    if (sheetPayload) {
+      assertCanApplyCharacterSheetPayload(character, sheetPayload);
+    }
+
+    const previousObjectKey = getUploadedBackgroundTextureObjectKey(character.backgroundTexture);
+    const uploadedTexture =
+      mutation.source === "uploaded"
+        ? await saveCharacterBackgroundTextureToS3({
+            characterSheetId,
+            imageBuffer: mutation.imageBuffer,
+            mimeType: mutation.mimeType
+          })
+        : null;
+    const nextBackgroundTexture = createBackgroundTextureRecord(mutation, uploadedTexture);
+    const nextObjectKey = getUploadedBackgroundTextureObjectKey(nextBackgroundTexture);
+
+    let savedCharacter: CharacterSheetDocument;
+
+    try {
+      if (sheetPayload) {
+        applyCharacterSheetPayload(character, sheetPayload);
+      }
+
+      character.backgroundTexture = nextBackgroundTexture;
+      character.revision += 1;
+      savedCharacter = await character.save();
+    } catch (error) {
+      if (uploadedTexture?.objectKey) {
+        await deleteCharacterBackgroundTextureFromS3(uploadedTexture.objectKey).catch(
+          (deleteError: unknown) => {
+            warnBackgroundTextureDeleteFailure(uploadedTexture.objectKey ?? "", deleteError);
+          }
+        );
+      }
+
+      throw error;
+    }
+
+    if (previousObjectKey && previousObjectKey !== nextObjectKey) {
+      deleteCharacterBackgroundTextureFromS3(previousObjectKey).catch((error: unknown) => {
+        warnBackgroundTextureDeleteFailure(previousObjectKey, error);
+      });
+    }
+
+    response.json({
+      backgroundTexture: toBackgroundTextureResponse(savedCharacter.backgroundTexture),
       character: toCloudRecord(savedCharacter)
     });
   }

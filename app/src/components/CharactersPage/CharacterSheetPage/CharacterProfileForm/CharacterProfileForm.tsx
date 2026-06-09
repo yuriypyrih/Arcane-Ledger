@@ -1,6 +1,8 @@
 import clsx from "clsx";
 import { ScrollText, UsersRound } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
+import type { CharacterBackgroundTextureMutationResponse } from "../../../../api/characterBackgroundTextures";
+import type { CharacterSheetCloudDocument } from "../../../../api/characters";
 import type { CharacterPortraitMutationResponse } from "../../../../api/characterPortraits";
 import type { Character } from "../../../../types";
 import {
@@ -30,6 +32,7 @@ import styles from "./CharacterProfileForm.module.css";
 import InlineToggleButton from "../InlineToggleButton";
 import { useCoreStatReferenceDrawer } from "../StatsForm/useCoreStatReferenceDrawer";
 import CoreStatCards from "../StatsForm/CoreStatCards";
+import useCharacterBackgroundTexture from "./useCharacterBackgroundTexture";
 import useCharacterPortrait from "./useCharacterPortrait";
 
 type CharacterProfileFormProps = {
@@ -61,15 +64,19 @@ function CharacterProfileForm({
     isAuthenticated && remoteCharacterId
       ? (character.storageMetadata?.avatar?.imageUrl ?? null)
       : null;
-  const portraitUnavailableMessage = !isAuthenticated
-    ? "Avatar editing is reserved for logged in users only."
-    : !remoteCharacterId
-      ? "Save this character to your account before editing its avatar."
+  const activeBackgroundTexture =
+    isAuthenticated && remoteCharacterId
+      ? (character.storageMetadata?.backgroundTexture ?? null)
       : null;
-  const handlePortraitMutationComplete = useCallback(
-    (response: CharacterPortraitMutationResponse) => {
-      upsertCharacterRosterCacheDocument(response.character.ownerId, response.character);
-      const record = storeCloudCharacterSheetDocument(response.character, {
+  const profileImageUnavailableMessage = !isAuthenticated
+    ? "Profile image editing is reserved for logged in users only."
+    : !remoteCharacterId
+      ? "Save this character to your account before editing profile images."
+      : null;
+  const applyCloudCharacterMutation = useCallback(
+    (document: CharacterSheetCloudDocument) => {
+      upsertCharacterRosterCacheDocument(document.ownerId, document);
+      const record = storeCloudCharacterSheetDocument(document, {
         localId: character.id
       });
       const nextCharacter = normalizeCharacter(record);
@@ -85,7 +92,19 @@ function CharacterProfileForm({
     },
     [character.id, dispatch]
   );
-  const createPortraitSyncPayload = useCallback(() => {
+  const handlePortraitMutationComplete = useCallback(
+    (response: CharacterPortraitMutationResponse) => {
+      applyCloudCharacterMutation(response.character);
+    },
+    [applyCloudCharacterMutation]
+  );
+  const handleBackgroundTextureMutationComplete = useCallback(
+    (response: CharacterBackgroundTextureMutationResponse) => {
+      applyCloudCharacterMutation(response.character);
+    },
+    [applyCloudCharacterMutation]
+  );
+  const createProfileImageSyncPayload = useCallback(() => {
     const sync = character.storageMetadata?.sync;
 
     if (!sync?.ownerId || !sync.remoteId || !sync.remoteRevision) {
@@ -99,10 +118,17 @@ function CharacterProfileForm({
   }, [character]);
   const characterPortrait = useCharacterPortrait({
     characterSheetId: remoteCharacterId,
-    createSyncPayload: createPortraitSyncPayload,
+    createSyncPayload: createProfileImageSyncPayload,
     initialPortraitUrl: activePortraitUrl,
     isUploadEnabled,
     onMutationComplete: handlePortraitMutationComplete
+  });
+  const characterBackgroundTexture = useCharacterBackgroundTexture({
+    characterSheetId: remoteCharacterId,
+    createSyncPayload: createProfileImageSyncPayload,
+    initialBackgroundTexture: activeBackgroundTexture,
+    isUploadEnabled,
+    onMutationComplete: handleBackgroundTextureMutationComplete
   });
 
   const combatSummary = useMemo(() => getCharacterRuntime(character).combatSummary, [character]);
@@ -144,6 +170,7 @@ function CharacterProfileForm({
   function closePortraitModal() {
     setIsPortraitModalOpen(false);
     characterPortrait.clearError();
+    characterBackgroundTexture.clearError();
   }
 
   return (
@@ -230,12 +257,19 @@ function CharacterProfileForm({
       {isPortraitModalOpen ? (
         <CharacterPortraitModal
           characterName={character.name}
+          characterClassName={character.className}
+          backgroundErrorMessage={characterBackgroundTexture.errorMessage}
+          backgroundTexture={characterBackgroundTexture.backgroundTexture}
           errorMessage={characterPortrait.errorMessage}
           hasCustomPortrait={characterPortrait.hasCustomPortrait}
           isAuthenticated={isAuthenticated}
+          isBackgroundSaving={characterBackgroundTexture.isSaving}
           isUploadEnabled={isUploadEnabled}
           isSaving={characterPortrait.isSaving}
-          unavailableMessage={portraitUnavailableMessage}
+          unavailableMessage={profileImageUnavailableMessage}
+          onBackgroundSelect={characterBackgroundTexture.saveSelection}
+          onBackgroundUploadBlob={characterBackgroundTexture.saveTextureBlob}
+          onClearBackgroundError={characterBackgroundTexture.clearError}
           onClearError={characterPortrait.clearError}
           onClose={closePortraitModal}
           onReset={characterPortrait.resetPortrait}

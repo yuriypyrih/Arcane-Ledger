@@ -14,6 +14,7 @@ import type {
   CharacterCustomSpeciesConfig,
   CharacterCustomSubclassConfig,
   CharacterAvatarMetadata,
+  CharacterBackgroundTextureMetadata,
   CharacterDeathSaves,
   CharacterInventoryItem,
   CharacterRoundTracker,
@@ -129,6 +130,7 @@ export type PortableCharacterSheetMetadata = {
   sheetSizeBytes: number;
   sync?: CharacterSyncMetadata;
   avatar?: CharacterAvatarMetadata;
+  backgroundTexture?: CharacterBackgroundTextureMetadata;
 };
 
 export type PortableEncounterStatBlockAbility = {

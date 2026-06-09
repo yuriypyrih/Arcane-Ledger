@@ -238,10 +238,28 @@ export type CharacterAvatarMetadata = {
   updatedAt: string;
 };
 
+export type CharacterBackgroundTextureMetadata =
+  | {
+      source: "none";
+    }
+  | {
+      source: "predefined";
+      textureId: string;
+    }
+  | {
+      source: "uploaded";
+      objectKey: string;
+      imageUrl: string;
+      mimeType: string;
+      sizeBytes: number;
+      updatedAt: string;
+    };
+
 export type CharacterStorageMetadata = {
   sheetSizeBytes?: number;
   sync?: CharacterSyncMetadata;
   avatar?: CharacterAvatarMetadata;
+  backgroundTexture?: CharacterBackgroundTextureMetadata;
 };
 
 export type ArmorClassFormulaSelectionMode = "auto" | "manual";

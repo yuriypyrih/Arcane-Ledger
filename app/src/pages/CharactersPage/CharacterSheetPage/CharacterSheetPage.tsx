@@ -7,7 +7,10 @@ import {
   removeCharacterCompanion,
   upsertCharacterCompanion
 } from "../../../components/CharactersPage/CharacterSheetPage/CompanionsSection/companionPersistence";
-import { getClassSignatureStyle } from "../../../components/CharactersPage/classSignature";
+import {
+  getClassPageTextureUrl,
+  getClassSignatureStyle
+} from "../../../components/CharactersPage/classSignature";
 import type { AppShellOutletContext } from "../../../components/AppShell/outletContext";
 import { trackAnalyticsEvent } from "../../../lib/analytics";
 import PageLoadingFallback from "../../../components/PageLoadingFallback";
@@ -108,8 +111,22 @@ function CharacterSheetPage() {
     );
   }
 
+  const backgroundTexture = character.storageMetadata?.backgroundTexture;
+  const pageSignatureStyle =
+    backgroundTexture?.source === "none"
+      ? getClassSignatureStyle(character.className, { pageTextureDisabled: true })
+      : backgroundTexture?.source === "predefined"
+        ? getClassSignatureStyle(character.className, {
+            pageTextureOverrideUrl: getClassPageTextureUrl(backgroundTexture.textureId)
+          })
+        : backgroundTexture?.source === "uploaded"
+          ? getClassSignatureStyle(character.className, {
+              pageTextureOverrideUrl: backgroundTexture.imageUrl
+            })
+          : getClassSignatureStyle(character.className);
+
   return (
-    <section className={pageClassName} style={getClassSignatureStyle(character.className)}>
+    <section className={pageClassName} style={pageSignatureStyle}>
       <div className={cascadeStackClassName}>
         <CharacterSheetSectionProfiler id="character-profile">
           <CharacterProfileSection

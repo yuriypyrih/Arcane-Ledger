@@ -63,6 +63,16 @@ export type CharacterAvatarRecord = {
   updatedAt: Date;
 };
 
+export type CharacterBackgroundTextureRecord = {
+  source: "none" | "predefined" | "uploaded";
+  textureId?: string;
+  objectKey?: string;
+  imageUrl?: string;
+  mimeType?: string;
+  sizeBytes?: number;
+  updatedAt?: Date;
+};
+
 export type CharacterSheetRecord = {
   ownerId: Types.ObjectId;
   clientId: string;
@@ -73,6 +83,7 @@ export type CharacterSheetRecord = {
   summary: CharacterSheetSummaryRecord;
   sheet: Record<string, unknown>;
   avatar?: CharacterAvatarRecord | null;
+  backgroundTexture?: CharacterBackgroundTextureRecord | null;
   deletedAt?: Date | null;
   createdAt?: Date;
   updatedAt?: Date;
@@ -422,6 +433,42 @@ const characterAvatarSchema = new Schema<CharacterAvatarRecord>(
   }
 );
 
+const characterBackgroundTextureSchema = new Schema<CharacterBackgroundTextureRecord>(
+  {
+    source: {
+      type: String,
+      enum: ["none", "predefined", "uploaded"],
+      required: true
+    },
+    textureId: {
+      type: String,
+      trim: true
+    },
+    objectKey: {
+      type: String,
+      trim: true
+    },
+    imageUrl: {
+      type: String,
+      trim: true
+    },
+    mimeType: {
+      type: String,
+      trim: true
+    },
+    sizeBytes: {
+      type: Number,
+      min: 0
+    },
+    updatedAt: {
+      type: Date
+    }
+  },
+  {
+    _id: false
+  }
+);
+
 const characterSheetSchema = new Schema<CharacterSheetRecord>(
   {
     ownerId: {
@@ -467,6 +514,10 @@ const characterSheetSchema = new Schema<CharacterSheetRecord>(
     },
     avatar: {
       type: characterAvatarSchema,
+      default: null
+    },
+    backgroundTexture: {
+      type: characterBackgroundTextureSchema,
       default: null
     },
     deletedAt: {

@@ -1,5 +1,6 @@
 import type {
   CharacterAvatarMetadata,
+  CharacterBackgroundTextureMetadata,
   HydratedCharacter,
   PortableCharacterSheet,
   CharacterSheetSyncStatus,
@@ -124,6 +125,56 @@ export function normalizeCharacterAvatarMetadata(
   }
 
   return {
+    objectKey,
+    imageUrl,
+    mimeType,
+    sizeBytes,
+    updatedAt
+  };
+}
+
+export function normalizeCharacterBackgroundTextureMetadata(
+  value: unknown
+): CharacterBackgroundTextureMetadata | undefined {
+  if (!isObjectRecord(value)) {
+    return undefined;
+  }
+
+  const source = readString(value.source);
+
+  if (source === "none") {
+    return {
+      source: "none"
+    };
+  }
+
+  if (source === "predefined") {
+    const textureId = readString(value.textureId);
+
+    return textureId
+      ? {
+          source: "predefined",
+          textureId
+        }
+      : undefined;
+  }
+
+  if (source !== "uploaded") {
+    return undefined;
+  }
+
+  const objectKey = readString(value.objectKey);
+  const imageUrl = readString(value.imageUrl);
+  const mimeType = readString(value.mimeType);
+  const sizeBytes = readPositiveInteger(value.sizeBytes);
+  const updatedAt = normalizeIsoTimestamp(value.updatedAt);
+
+  if (!objectKey || !imageUrl || !mimeType || !sizeBytes || !updatedAt) {
+    return undefined;
+  }
+
+  return {
+    source: "uploaded",
     objectKey,
     imageUrl,
     mimeType,
@@ -357,10 +408,15 @@ export function detachPortableCharacterSheetCloudSync(
 export function stripPortableCharacterSheetLocalSyncMetadata(
   record: PortableCharacterSheet
 ): PortableCharacterSheet {
-  if (!record.metadata?.sync && !record.metadata?.avatar) {
+  if (!record.metadata?.sync && !record.metadata?.avatar && !record.metadata?.backgroundTexture) {
     return record;
   }
-  const { avatar: _avatar, sync: _sync, ...storedMetadata } = record.metadata ?? {
+  const {
+    avatar: _avatar,
+    backgroundTexture: _backgroundTexture,
+    sync: _sync,
+    ...storedMetadata
+  } = record.metadata ?? {
     sheetSizeBytes: 0
   };
 
@@ -570,6 +626,13 @@ export function createPortableCharacterSheet(character: HydratedCharacter): Port
         : {}),
       ...(normalizeCharacterAvatarMetadata(character.storageMetadata?.avatar)
         ? { avatar: normalizeCharacterAvatarMetadata(character.storageMetadata?.avatar) }
+        : {}),
+      ...(normalizeCharacterBackgroundTextureMetadata(character.storageMetadata?.backgroundTexture)
+        ? {
+            backgroundTexture: normalizeCharacterBackgroundTextureMetadata(
+              character.storageMetadata?.backgroundTexture
+            )
+          }
         : {})
     }
   });
@@ -645,6 +708,13 @@ export function createHydratedCharacterInputFromPortableSheet(
         : {}),
       ...(normalizeCharacterAvatarMetadata(record.metadata?.avatar)
         ? { avatar: normalizeCharacterAvatarMetadata(record.metadata?.avatar) }
+        : {}),
+      ...(normalizeCharacterBackgroundTextureMetadata(record.metadata?.backgroundTexture)
+        ? {
+            backgroundTexture: normalizeCharacterBackgroundTextureMetadata(
+              record.metadata?.backgroundTexture
+            )
+          }
         : {})
     }
   };

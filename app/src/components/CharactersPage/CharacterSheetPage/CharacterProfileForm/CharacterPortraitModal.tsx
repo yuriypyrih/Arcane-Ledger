@@ -1,41 +1,38 @@
-import { RotateCcw, Save, Upload } from "lucide-react";
+import { useRef, useState, type ReactNode } from "react";
+import type { CharacterBackgroundTextureSelection } from "../../../../api/characterBackgroundTextures";
 import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type CSSProperties,
-  type ChangeEvent
-} from "react";
-import type { CharacterPortraitCropSettings } from "../../../../pages/CharactersPage/characterPortraits";
-import ActionButton from "../../../ActionButton";
+  cropAndScaleBackgroundTextureFile,
+  type CharacterPortraitCropSettings
+} from "../../../../pages/CharactersPage/characterPortraits";
+import type { CharacterBackgroundTextureMetadata } from "../../../../types";
 import {
-  OverlayBody,
   OverlayCloseButton,
   OverlayEyebrow,
-  OverlayFooter,
   OverlayHeader,
   OverlayHeaderContent,
   OverlayTitle,
   SheetModal
 } from "../../../Overlay";
-import { DefaultCharacterPortraitIcon } from "../../CharacterPortrait";
+import CharacterBackgroundTexturePanel from "./CharacterBackgroundTexturePanel";
+import CharacterPortraitPanel from "./CharacterPortraitPanel";
 import styles from "./CharacterProfileForm.module.css";
 
-const defaultCropSettings: CharacterPortraitCropSettings = {
-  offsetX: 0,
-  offsetY: 0,
-  rotationDegrees: 0,
-  zoom: 1
-};
+type CharacterPortraitModalTab = "portrait" | "background";
 
 type CharacterPortraitModalProps = {
+  backgroundErrorMessage: string | null;
+  backgroundTexture: CharacterBackgroundTextureMetadata | null;
+  characterClassName: string;
   characterName: string;
   errorMessage: string | null;
   hasCustomPortrait: boolean;
   isAuthenticated: boolean;
+  isBackgroundSaving: boolean;
   isUploadEnabled: boolean;
   isSaving: boolean;
+  onBackgroundSelect: (selection: CharacterBackgroundTextureSelection) => Promise<boolean>;
+  onBackgroundUploadBlob: (textureBlob: Blob) => Promise<boolean>;
+  onClearBackgroundError: () => void;
   onClearError: () => void;
   onClose: () => void;
   onReset: () => Promise<void>;
@@ -45,12 +42,19 @@ type CharacterPortraitModalProps = {
 };
 
 function CharacterPortraitModal({
+  backgroundErrorMessage,
+  backgroundTexture,
+  characterClassName,
   characterName,
   errorMessage,
   hasCustomPortrait,
   isAuthenticated,
+  isBackgroundSaving,
   isUploadEnabled,
   isSaving,
+  onBackgroundSelect,
+  onBackgroundUploadBlob,
+  onClearBackgroundError,
   onClearError,
   onClose,
   onReset,
@@ -58,95 +62,140 @@ function CharacterPortraitModal({
   portraitUrl,
   unavailableMessage
 }: CharacterPortraitModalProps) {
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [pendingFile, setPendingFile] = useState<File | null>(null);
-  const [pendingPreviewUrl, setPendingPreviewUrl] = useState<string | null>(null);
-  const [cropSettings, setCropSettings] =
-    useState<CharacterPortraitCropSettings>(defaultCropSettings);
+  const [activeTab, setActiveTab] = useState<CharacterPortraitModalTab>("portrait");
+  const [backgroundDraftSelection, setBackgroundDraftSelection] =
+    useState<CharacterBackgroundTextureSelection | null>(null);
+  const [backgroundDraftErrorMessage, setBackgroundDraftErrorMessage] = useState<string | null>(null);
+  const [isProcessingBackgroundDraft, setIsProcessingBackgroundDraft] = useState(false);
+  const isClosingRef = useRef(false);
   const resolvedName = characterName.trim() || "Character Portrait";
-  const cropPreviewStyle = useMemo<CSSProperties>(() => {
-    const rotationPadding = Math.abs(cropSettings.rotationDegrees) > 0 ? 1.16 : 1;
-    const previewScale = cropSettings.zoom * rotationPadding;
+  const isModalSaving = isSaving || isBackgroundSaving || isProcessingBackgroundDraft;
 
-    return {
-      transform: `translate(${cropSettings.offsetX * 18}%, ${
-        cropSettings.offsetY * 18
-      }%) rotate(${cropSettings.rotationDegrees}deg) scale(${previewScale})`
-    };
-  }, [cropSettings]);
-  const portraitNotice = !isUploadEnabled ? unavailableMessage : null;
+  function clearBackgroundErrors() {
+    setBackgroundDraftErrorMessage(null);
+    onClearBackgroundError();
+  }
 
-  useEffect(
-    () => () => {
-      if (pendingPreviewUrl) {
-        URL.revokeObjectURL(pendingPreviewUrl);
+  function isBackgroundSelectionCurrent(selection: CharacterBackgroundTextureSelection) {
+    if (!backgroundTexture) {
+      return selection.source === "default";
+    }
+
+    if (backgroundTexture.source === "predefined" && selection.source === "predefined") {
+      return backgroundTexture.textureId === selection.textureId;
+    }
+
+    return backgroundTexture.source === selection.source;
+  }
+
+  function stageBackgroundSelection(selection: CharacterBackgroundTextureSelection) {
+    clearBackgroundErrors();
+    setBackgroundDraftSelection(selection);
+  }
+
+  function stageCurrentUploadedBackground() {
+    clearBackgroundErrors();
+    setBackgroundDraftSelection(null);
+  }
+
+  async function stageBackgroundUpload(file: File, crop?: Partial<CharacterPortraitCropSettings>) {
+    clearBackgroundErrors();
+    setIsProcessingBackgroundDraft(true);
+    setBackgroundDraftSelection(null);
+    let didSave = false;
+
+    try {
+      const texture = await cropAndScaleBackgroundTextureFile(file, { crop });
+      didSave = await onBackgroundUploadBlob(texture.blob);
+
+      if (didSave) {
+        onClearError();
+        clearBackgroundErrors();
+        resetBackgroundDraft();
+        onClose();
       }
-    },
-    [pendingPreviewUrl]
-  );
 
-  function openFilePicker() {
-    fileInputRef.current?.click();
-  }
-
-  function clearPendingCrop() {
-    if (pendingPreviewUrl) {
-      URL.revokeObjectURL(pendingPreviewUrl);
-    }
-
-    setPendingFile(null);
-    setPendingPreviewUrl(null);
-    setCropSettings(defaultCropSettings);
-  }
-
-  function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.currentTarget.files?.[0] ?? null;
-
-    event.currentTarget.value = "";
-
-    if (!file) {
-      return;
-    }
-
-    if (pendingPreviewUrl) {
-      URL.revokeObjectURL(pendingPreviewUrl);
-    }
-
-    onClearError();
-    setPendingFile(file);
-    setPendingPreviewUrl(URL.createObjectURL(file));
-    setCropSettings(defaultCropSettings);
-  }
-
-  function updateCropSetting(key: keyof CharacterPortraitCropSettings, value: string) {
-    const numericValue = Number(value);
-
-    setCropSettings((current) => ({
-      ...current,
-      [key]: Number.isFinite(numericValue) ? numericValue : current[key]
-    }));
-  }
-
-  async function savePendingCrop() {
-    if (!pendingFile) {
-      return;
-    }
-
-    const didSave = await onUpload(pendingFile, cropSettings);
-
-    if (didSave) {
-      closeModal();
+      return didSave;
+    } catch (error: unknown) {
+      setBackgroundDraftErrorMessage(
+        error instanceof Error && error.message.length > 0
+          ? error.message
+          : "Unable to process that background texture."
+      );
+      return false;
+    } finally {
+      if (!didSave) {
+        setIsProcessingBackgroundDraft(false);
+      }
     }
   }
 
-  function resetCropSettings() {
-    setCropSettings(defaultCropSettings);
+  async function commitBackgroundDraft() {
+    if (backgroundDraftSelection) {
+      if (isBackgroundSelectionCurrent(backgroundDraftSelection)) {
+        return true;
+      }
+
+      return onBackgroundSelect(backgroundDraftSelection);
+    }
+
+    return true;
+  }
+
+  function resetBackgroundDraft() {
+    setBackgroundDraftSelection(null);
+    setBackgroundDraftErrorMessage(null);
   }
 
   function closeModal() {
-    clearPendingCrop();
+    void closeModalAfterBackgroundCommit();
+  }
+
+  async function closeModalAfterBackgroundCommit() {
+    if (isModalSaving || isClosingRef.current) {
+      return;
+    }
+
+    isClosingRef.current = true;
+    setIsProcessingBackgroundDraft(true);
+
+    const didCommitBackgroundDraft = await commitBackgroundDraft();
+
+    if (!didCommitBackgroundDraft) {
+      isClosingRef.current = false;
+      setIsProcessingBackgroundDraft(false);
+      return;
+    }
+
+    onClearError();
+    clearBackgroundErrors();
+    resetBackgroundDraft();
     onClose();
   }
+
+  function renderTabButton(tab: CharacterPortraitModalTab, label: string): ReactNode {
+    const active = activeTab === tab;
+
+    return (
+      <button
+        type="button"
+        className={[styles.portraitSegmentButton, active ? styles.portraitSegmentButtonActive : ""]
+          .join(" ")
+          .trim()}
+        aria-pressed={active}
+        onClick={() => setActiveTab(tab)}
+      >
+        {label}
+      </button>
+    );
+  }
+
+  const modeSwitch = (
+    <div className={styles.portraitModeSwitch} aria-label="Profile image mode">
+      {renderTabButton("portrait", "Character Portrait")}
+      {renderTabButton("background", "Background Texture")}
+    </div>
+  );
 
   return (
     <SheetModal
@@ -154,161 +203,50 @@ function CharacterPortraitModal({
       onClose={closeModal}
       size="medium"
       panelClassName={styles.portraitModalPanel}
-      isBusy={isSaving}
-      busyLabel="Saving portrait"
+      isBusy={isModalSaving}
+      busyLabel={activeTab === "portrait" ? "Saving portrait" : "Saving background texture"}
     >
       <OverlayHeader>
         <OverlayHeaderContent>
-          <OverlayEyebrow>Character portrait</OverlayEyebrow>
+          <OverlayEyebrow>Character profile</OverlayEyebrow>
           <OverlayTitle id="character-portrait-modal-title">{resolvedName}</OverlayTitle>
         </OverlayHeaderContent>
-        <OverlayCloseButton label="Close character portrait" onClick={closeModal} />
+        <OverlayCloseButton label="Close character profile images" onClick={closeModal} />
       </OverlayHeader>
 
-      <OverlayBody className={styles.portraitModalBody}>
-        <div className={styles.portraitPreviewFrame}>
-          {pendingPreviewUrl ? (
-            <img
-              src={pendingPreviewUrl}
-              alt={`${resolvedName} crop preview`}
-              className={styles.portraitCropPreviewImage}
-              style={cropPreviewStyle}
-            />
-          ) : portraitUrl ? (
-            <img
-              src={portraitUrl}
-              alt={`${resolvedName} portrait preview`}
-              className={styles.portraitPreviewImage}
-            />
-          ) : (
-            <DefaultCharacterPortraitIcon className={styles.portraitPreviewDefaultIcon} />
-          )}
-        </div>
-        {pendingPreviewUrl ? (
-          <div className={styles.portraitCropControls} aria-label="Adjust portrait crop">
-            <label className={styles.portraitCropField}>
-              <span>
-                Angle <strong>{cropSettings.rotationDegrees} deg</strong>
-              </span>
-              <input
-                type="range"
-                min="-30"
-                max="30"
-                step="1"
-                value={cropSettings.rotationDegrees}
-                onChange={(event) => updateCropSetting("rotationDegrees", event.target.value)}
-              />
-            </label>
-            <label className={styles.portraitCropField}>
-              <span>
-                Zoom <strong>{cropSettings.zoom.toFixed(2)}x</strong>
-              </span>
-              <input
-                type="range"
-                min="1"
-                max="2.5"
-                step="0.05"
-                value={cropSettings.zoom}
-                onChange={(event) => updateCropSetting("zoom", event.target.value)}
-              />
-            </label>
-            <label className={styles.portraitCropField}>
-              <span>
-                Horizontal <strong>{Math.round(cropSettings.offsetX * 100)}%</strong>
-              </span>
-              <input
-                type="range"
-                min="-1"
-                max="1"
-                step="0.02"
-                value={cropSettings.offsetX}
-                onChange={(event) => updateCropSetting("offsetX", event.target.value)}
-              />
-            </label>
-            <label className={styles.portraitCropField}>
-              <span>
-                Vertical <strong>{Math.round(cropSettings.offsetY * 100)}%</strong>
-              </span>
-              <input
-                type="range"
-                min="-1"
-                max="1"
-                step="0.02"
-                value={cropSettings.offsetY}
-                onChange={(event) => updateCropSetting("offsetY", event.target.value)}
-              />
-            </label>
-          </div>
-        ) : null}
-        {errorMessage ? (
-          <p className={styles.portraitError} role="alert">
-            {errorMessage}
-          </p>
-        ) : null}
-        {portraitNotice ? <p className={styles.portraitNotice}>{portraitNotice}</p> : null}
-        <input
-          ref={fileInputRef}
-          className={styles.portraitFileInput}
-          type="file"
-          accept="image/*"
-          disabled={!isAuthenticated || !isUploadEnabled}
-          onChange={handleFileChange}
+      {activeTab === "portrait" ? (
+        <CharacterPortraitPanel
+          characterName={characterName}
+          errorMessage={errorMessage}
+          hasCustomPortrait={hasCustomPortrait}
+          isAuthenticated={isAuthenticated}
+          isUploadEnabled={isUploadEnabled}
+          isSaving={isSaving}
+          modeSwitch={modeSwitch}
+          unavailableMessage={unavailableMessage}
+          onClearError={onClearError}
+          onClose={closeModal}
+          onReset={onReset}
+          onUpload={onUpload}
+          portraitUrl={portraitUrl}
         />
-      </OverlayBody>
-
-      <OverlayFooter
-        className={[
-          styles.portraitModalFooter,
-          pendingPreviewUrl ? styles.portraitModalFooterEditing : ""
-        ]
-          .join(" ")
-          .trim()}
-      >
-        {pendingPreviewUrl ? (
-          <>
-            <ActionButton
-              fullWidth={false}
-              icon={<Save size={16} />}
-              loading={isSaving}
-              disabled={!isUploadEnabled}
-              onClick={() => void savePendingCrop()}
-            >
-              Save image
-            </ActionButton>
-            <ActionButton
-              fullWidth={false}
-              icon={<RotateCcw size={16} />}
-              variant="OUTLINE"
-              onClick={resetCropSettings}
-            >
-              Reset crop
-            </ActionButton>
-          </>
-        ) : isAuthenticated ? (
-          <>
-            <ActionButton
-              fullWidth={false}
-              icon={<Upload size={16} />}
-              loading={isSaving}
-              disabled={!isUploadEnabled}
-              onClick={openFilePicker}
-            >
-              Upload image
-            </ActionButton>
-            {isUploadEnabled && hasCustomPortrait ? (
-              <ActionButton
-                actionType="ERROR"
-                fullWidth={false}
-                icon={<RotateCcw size={16} />}
-                variant="OUTLINE"
-                onClick={() => void onReset()}
-              >
-                Reset to default
-              </ActionButton>
-            ) : null}
-          </>
-        ) : null}
-      </OverlayFooter>
+      ) : (
+        <CharacterBackgroundTexturePanel
+          backgroundTexture={backgroundTexture}
+          characterClassName={characterClassName}
+          draftSelection={backgroundDraftSelection}
+          errorMessage={backgroundDraftErrorMessage ?? backgroundErrorMessage}
+          isAuthenticated={isAuthenticated}
+          isUploadEnabled={isUploadEnabled}
+          isSaving={isBackgroundSaving || isProcessingBackgroundDraft}
+          modeSwitch={modeSwitch}
+          unavailableMessage={unavailableMessage}
+          onClearError={clearBackgroundErrors}
+          onSelect={stageBackgroundSelection}
+          onSelectCurrentUploaded={stageCurrentUploadedBackground}
+          onUpload={stageBackgroundUpload}
+        />
+      )}
     </SheetModal>
   );
 }

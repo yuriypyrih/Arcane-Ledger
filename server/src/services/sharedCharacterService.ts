@@ -81,7 +81,12 @@ export function normalizeSharedCharacterLink(value: unknown) {
 function getImportSheet(snapshotSheet: Record<string, unknown>, localId: number) {
   const sheet = cloneObjectRecord(snapshotSheet);
   const metadata = isObjectRecord(sheet.metadata) ? sheet.metadata : {};
-  const { avatar: _avatar, sync: _sync, ...metadataWithoutAvatarAndSync } = metadata;
+  const {
+    avatar: _avatar,
+    backgroundTexture: _backgroundTexture,
+    sync: _sync,
+    ...metadataWithoutCloudFields
+  } = metadata;
   const identity = isObjectRecord(sheet.identity) ? sheet.identity : {};
   const summary = isObjectRecord(sheet.summary) ? sheet.summary : {};
 
@@ -95,7 +100,7 @@ function getImportSheet(snapshotSheet: Record<string, unknown>, localId: number)
       ...summary,
       localId
     },
-    metadata: metadataWithoutAvatarAndSync
+    metadata: metadataWithoutCloudFields
   };
 }
 

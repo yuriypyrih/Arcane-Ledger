@@ -10,6 +10,7 @@ import {
   listCharacterSheets,
   saveCharacterSheet,
   shareCharacterSheet,
+  updateCharacterBackgroundTexture,
   uploadCharacterPortrait
 } from "../controllers/characterController.js";
 import { optionalAuth, requireAuth } from "../middleware/authMiddleware.js";
@@ -35,5 +36,15 @@ characterRoutes.put(
   uploadCharacterPortrait
 );
 characterRoutes.delete("/:characterSheetId/portrait", requireAuth, deleteCharacterPortrait);
+
+characterRoutes.put(
+  "/:characterSheetId/background-texture",
+  requireAuth,
+  express.raw({
+    limit: getAppConfig().characterBackgroundTextureUploadMaxBytes,
+    type: ["image/webp", "image/jpeg"]
+  }),
+  updateCharacterBackgroundTexture
+);
 
 export { characterRoutes };

@@ -649,6 +649,7 @@ function CharacterSyncBootstrap() {
             revision: sync.remoteRevision ?? 1,
             summary: record.summary,
             avatar: record.metadata?.avatar ?? null,
+            backgroundTexture: record.metadata?.backgroundTexture ?? null,
             createdAt: sync.lastSyncedAt ?? null,
             updatedAt: sync.lastSyncedAt ?? null
           });

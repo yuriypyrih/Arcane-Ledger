@@ -8,6 +8,27 @@ type ClassSignatureStyle = CSSProperties & {
   "--class-signature-page-texture-opacity": string;
 };
 
+export type ClassSignaturePageTextureId =
+  | "artificer"
+  | "barbarian"
+  | "bard"
+  | "cleric"
+  | "druid"
+  | "fighter"
+  | "monk"
+  | "paladin"
+  | "ranger"
+  | "rogue"
+  | "sorcerer"
+  | "warlock"
+  | "wizard";
+
+export type ClassSignaturePageTextureOption = {
+  id: ClassSignaturePageTextureId;
+  label: string;
+  imageUrl: string;
+};
+
 type ClassCornerArtSpec = {
   getCornerImage: () => string;
 };
@@ -20,7 +41,23 @@ const defaultClassSignatureStyle: ClassSignatureStyle = {
   "--class-signature-page-texture-opacity": "0"
 };
 
-const classPageTextureByClass: Record<string, () => string> = {
+const classPageTextureLabels: Record<ClassSignaturePageTextureId, string> = {
+  artificer: "Artificer",
+  barbarian: "Barbarian",
+  bard: "Bard",
+  cleric: "Cleric",
+  druid: "Druid",
+  fighter: "Fighter",
+  monk: "Monk",
+  paladin: "Paladin",
+  ranger: "Ranger",
+  rogue: "Rogue",
+  sorcerer: "Sorcerer",
+  warlock: "Warlock",
+  wizard: "Wizard"
+};
+
+const classPageTextureByClass: Record<ClassSignaturePageTextureId, () => string> = {
   artificer: () => new URL("../../assets/img/artificer.webp", import.meta.url).href,
   barbarian: () => new URL("../../assets/img/barbarian.webp", import.meta.url).href,
   bard: () => new URL("../../assets/img/bard.webp", import.meta.url).href,
@@ -91,10 +128,34 @@ const classCornerArtByClass: Record<string, ClassCornerArtSpec> = {
   }
 };
 
-export function getClassSignatureStyle(className: string): ClassSignatureStyle {
+export function getClassPageTextureUrl(textureId: string) {
+  const normalizedTextureId = textureId.trim().toLowerCase() as ClassSignaturePageTextureId;
+
+  return classPageTextureByClass[normalizedTextureId]?.() ?? null;
+}
+
+export function getClassPageTextureOptions(): ClassSignaturePageTextureOption[] {
+  return (Object.keys(classPageTextureByClass) as ClassSignaturePageTextureId[]).map((id) => ({
+    id,
+    label: classPageTextureLabels[id],
+    imageUrl: classPageTextureByClass[id]()
+  }));
+}
+
+export function getClassSignatureStyle(
+  className: string,
+  options: {
+    pageTextureDisabled?: boolean;
+    pageTextureOverrideUrl?: string | null;
+  } = {}
+): ClassSignatureStyle {
   const normalizedClassName = className.trim().toLowerCase();
   const cornerImage = classCornerArtByClass[normalizedClassName]?.getCornerImage();
-  const classPageTexture = classPageTextureByClass[normalizedClassName]?.();
+  const classPageTexture = options.pageTextureDisabled
+    ? null
+    : options.pageTextureOverrideUrl !== undefined
+      ? options.pageTextureOverrideUrl
+      : getClassPageTextureUrl(normalizedClassName);
 
   if (!cornerImage && !classPageTexture) {
     return defaultClassSignatureStyle;

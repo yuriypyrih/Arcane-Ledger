@@ -1,5 +1,6 @@
 import type {
   CharacterAvatarMetadata,
+  CharacterBackgroundTextureMetadata,
   PortableCharacterSheet,
   PortableCharacterSheetSummary
 } from "../types";
@@ -14,6 +15,7 @@ export type CharacterSheetCloudDocument = {
   revision: number;
   summary: PortableCharacterSheetSummary;
   avatar: CharacterAvatarMetadata | null;
+  backgroundTexture: CharacterBackgroundTextureMetadata | null;
   sheet: PortableCharacterSheet;
   createdAt: string | null;
   updatedAt: string | null;
