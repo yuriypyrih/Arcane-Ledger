@@ -116,11 +116,16 @@
   display: inline;
   color: #fff6e2;
   text-shadow:
-    0 1px 0 rgba(22, 15, 13, 0.68),
+    0 1px 0 rgba(22, 15, 13, 0.82),
+    0 -1px 0 rgba(22, 15, 13, 0.42),
+    1px 0 0 rgba(22, 15, 13, 0.44),
+    -1px 0 0 rgba(22, 15, 13, 0.44),
+    0 0 4px rgba(22, 15, 13, 0.5),
+    0 0 8px rgba(22, 15, 13, 0.26),
     0 0 3px rgba(231, 252, 255, 0.34),
     0 0 9px rgba(90, 211, 255, 0.24),
     0 0 22px rgba(37, 132, 255, 0.14);
-  -webkit-text-stroke: 0.2px rgba(230, 252, 255, 0.12);
+  -webkit-text-stroke: 0.65px rgba(22, 15, 13, 0.5);
 }
 
 .titleRuneLayer {
