@@ -10,7 +10,7 @@
 }
 
 .eyebrow {
-  margin: 0 0 0.35rem;
+  margin: 0;
   color: var(--color-accent);
   font-size: 0.82rem;
   letter-spacing: 0.14em;
@@ -22,10 +22,21 @@
 }
 
 .listHeader {
+  display: grid;
+  gap: 0.78rem;
+}
+
+.listEyebrowRow,
+.listTitleRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  min-width: 0;
+}
+
+.listEyebrowRow {
+  align-items: flex-start;
 }
 
 .listHeaderActions {
@@ -34,6 +45,10 @@
   justify-content: flex-end;
   flex-wrap: wrap;
   gap: 0.65rem;
+}
+
+.joinPartyButton {
+  flex: 0 0 auto;
 }
 
 .listCount {
@@ -49,13 +64,19 @@
 }
 
 @media (max-width: 599px) {
-  .listHeader {
+  .listEyebrowRow,
+  .listTitleRow {
     align-items: flex-start;
     flex-direction: column;
+    gap: 0.62rem;
+  }
+
+  .joinPartyButton.joinPartyButton {
+    width: 100%;
   }
 
   .listHeaderActions {
-    justify-content: flex-start;
+    justify-content: flex-end;
     width: 100%;
   }
 }

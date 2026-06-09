@@ -385,7 +385,7 @@ button.syncStatusBadge:focus-visible {
   }
 }
 
-@media (max-width: 599px) {
+@media (max-width: 899px) {
   .leftCluster {
     gap: 0.24rem;
   }

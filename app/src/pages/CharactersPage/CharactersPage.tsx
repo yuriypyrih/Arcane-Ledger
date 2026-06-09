@@ -1,6 +1,8 @@
+import { useState } from "react";
 import CharacterList from "../../components/CharactersPage/CharacterList";
 import { captureAppError } from "../../lib/sentry";
 import { showToast, useAppDispatch, useAppSelector } from "../../store";
+import JoinPartyGroupModal from "../DmToolsPage/JoinPartyGroupModal";
 import { usePartyMemberships } from "../DmToolsPage/usePartyMemberships";
 import { removeCharacterRosterEntry } from "./characterRoster";
 import { getCharacterLimitForAuth } from "./characterLimits";
@@ -23,6 +25,7 @@ function CharactersPage() {
   const ownerId = status === "authenticated" && user ? user.id : null;
   const characters = useCharacterRosterEntries(ownerId);
   const characterLimit = getCharacterLimitForAuth(status, user?.role);
+  const [joinPartyModalOpen, setJoinPartyModalOpen] = useState(false);
   const {
     duplicateCharacter: handleDuplicateCharacter,
     importCharacter: handleImportCharacter,
@@ -34,6 +37,20 @@ function CharactersPage() {
     user
   });
   usePartyMemberships();
+
+  function handleJoinPartyGroup() {
+    if (status !== "authenticated") {
+      dispatch(
+        showToast({
+          text: "Sign in to join a party group.",
+          type: "warning"
+        })
+      );
+      return;
+    }
+
+    setJoinPartyModalOpen(true);
+  }
 
   async function handleDeleteCharacter(characterId: number) {
     const deletedCharacter = characters.find((character) => character.id === characterId);
@@ -118,8 +135,12 @@ function CharactersPage() {
         onDeleteCharacter={handleDeleteCharacter}
         onDuplicateCharacter={handleDuplicateCharacter}
         onImportCharacter={handleImportCharacter}
+        onJoinPartyGroup={handleJoinPartyGroup}
         onShareCharacter={handleShareCharacter}
       />
+      {joinPartyModalOpen ? (
+        <JoinPartyGroupModal characters={characters} onClose={() => setJoinPartyModalOpen(false)} />
+      ) : null}
     </section>
   );
 }

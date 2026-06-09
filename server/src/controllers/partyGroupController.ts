@@ -4,8 +4,10 @@ import type { AuthenticatedLocals } from "../middleware/authMiddleware.js";
 import {
   createOwnedPartyGroup,
   deleteOwnedPartyGroup,
+  getMemberVisiblePartyGroupDetail,
   getOwnedPartyGroupDetail,
   joinPartyGroup,
+  leavePartyGroup,
   listCharacterPartyMemberships,
   listOwnedPartyGroups,
   normalizePartyGroupName,
@@ -21,9 +23,14 @@ function isObjectRecord(value: unknown): value is Record<string, unknown> {
 
 function readRequiredString(value: unknown, fieldName: string) {
   if (typeof value !== "string" || value.trim().length === 0) {
-    throw new AppError(`Request body must include "${fieldName}".`, 400, "INVALID_PARTY_GROUP_INPUT", {
-      field: fieldName
-    });
+    throw new AppError(
+      `Request body must include "${fieldName}".`,
+      400,
+      "INVALID_PARTY_GROUP_INPUT",
+      {
+        field: fieldName
+      }
+    );
   }
 
   return value;
@@ -57,6 +64,17 @@ export const getPartyGroup = asyncHandler(
   async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
     response.json({
       partyGroup: await getOwnedPartyGroupDetail({
+        ownerId: response.locals.authUser._id,
+        partyGroupId: request.params.partyGroupId ?? ""
+      })
+    });
+  }
+);
+
+export const getPartyGroupMemberView = asyncHandler(
+  async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
+    response.json({
+      partyGroup: await getMemberVisiblePartyGroupDetail({
         ownerId: response.locals.authUser._id,
         partyGroupId: request.params.partyGroupId ?? ""
       })
@@ -111,6 +129,18 @@ export const removePartyGroupCharacterById = asyncHandler(
         partyGroupId: request.params.partyGroupId ?? ""
       })
     });
+  }
+);
+
+export const leavePartyGroupMembership = asyncHandler(
+  async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
+    response.json(
+      await leavePartyGroup({
+        characterSheetId: request.params.characterSheetId ?? "",
+        ownerId: response.locals.authUser._id,
+        partyGroupId: request.params.partyGroupId ?? ""
+      })
+    );
   }
 );
 

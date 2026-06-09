@@ -60,6 +60,11 @@ export function mergeCurrentUserPortableCharacterSheets(options: {
   cloudRecords: PortableCharacterSheet[];
 }) {
   const mergedRecords = new Map<string, PortableCharacterSheet>();
+  const cloudRemoteIds = new Set(
+    options.cloudRecords
+      .map((record) => getPortableCharacterSheetSync(record)?.remoteId)
+      .filter((remoteId): remoteId is string => Boolean(remoteId))
+  );
 
   options.cloudRecords.forEach((record) => {
     mergedRecords.set(getRecordMergeKey(record), record);
@@ -70,6 +75,11 @@ export function mergeCurrentUserPortableCharacterSheets(options: {
     .forEach((record) => {
       const key = getRecordMergeKey(record);
       const existingRecord = mergedRecords.get(key);
+      const sync = getPortableCharacterSheetSync(record);
+
+      if (sync?.remoteId && !cloudRemoteIds.has(sync.remoteId)) {
+        return;
+      }
 
       if (!existingRecord || isPortableCharacterSheetCloudDirty(record)) {
         mergedRecords.set(key, record);
@@ -77,6 +87,28 @@ export function mergeCurrentUserPortableCharacterSheets(options: {
     });
 
   return [...mergedRecords.values()];
+}
+
+export function reconcilePortableCharacterSheetsWithCloudSnapshot(options: {
+  ownerId: string;
+  localRecords: PortableCharacterSheet[];
+  cloudRecords: PortableCharacterSheet[];
+  preserveUnownedRecords?: boolean;
+}) {
+  const currentUserRecords = mergeCurrentUserPortableCharacterSheets(options);
+
+  if (!options.preserveUnownedRecords) {
+    return currentUserRecords;
+  }
+
+  const currentUserRecordKeys = new Set(currentUserRecords.map(getRecordMergeKey));
+  const preservedUnownedRecords = options.localRecords.filter(
+    (record) =>
+      !isPortableCharacterSheetOwnedBy(record, options.ownerId) &&
+      !currentUserRecordKeys.has(getRecordMergeKey(record))
+  );
+
+  return [...currentUserRecords, ...preservedUnownedRecords];
 }
 
 export function applyCloudDocumentToPortableCharacterSheet(record: CharacterSheetCloudDocument) {

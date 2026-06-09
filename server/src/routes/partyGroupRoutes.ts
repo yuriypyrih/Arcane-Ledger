@@ -3,7 +3,9 @@ import {
   createPartyGroup,
   deletePartyGroup,
   getPartyGroup,
+  getPartyGroupMemberView,
   joinPartyGroupByInvite,
+  leavePartyGroupMembership,
   listMyPartyMemberships,
   listPartyGroups,
   removePartyGroupCharacterById,
@@ -20,6 +22,12 @@ partyGroupRoutes.post("/join", requireAuth, joinPartyGroupByInvite);
 partyGroupRoutes.get("/my-memberships", requireAuth, listMyPartyMemberships);
 partyGroupRoutes.delete("/:partyGroupId", requireAuth, deletePartyGroup);
 partyGroupRoutes.patch("/:partyGroupId", requireAuth, updatePartyGroup);
+partyGroupRoutes.get("/:partyGroupId/member-view", requireAuth, getPartyGroupMemberView);
+partyGroupRoutes.delete(
+  "/:partyGroupId/memberships/:characterSheetId",
+  requireAuth,
+  leavePartyGroupMembership
+);
 partyGroupRoutes.post("/:partyGroupId/invite-token/reset", requireAuth, resetPartyGroupInviteToken);
 partyGroupRoutes.delete(
   "/:partyGroupId/characters/:characterSheetId",

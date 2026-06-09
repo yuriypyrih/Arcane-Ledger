@@ -14,8 +14,10 @@ type CharacterRowBaseProps = {
   linkAriaLabel?: string;
   linkTo?: string;
   name: string;
+  nameAccessory?: ReactNode;
   secondaryMeta?: ReactNode;
   subtitle: ReactNode;
+  subtitleAccessory?: ReactNode;
 };
 
 type CharacterRowIconButtonProps = ButtonHTMLAttributes<HTMLButtonElement>;
@@ -25,13 +27,7 @@ export function CharacterRowIconButton({
   type = "button",
   ...buttonProps
 }: CharacterRowIconButtonProps) {
-  return (
-    <button
-      {...buttonProps}
-      type={type}
-      className={clsx(styles.iconButton, className)}
-    />
-  );
+  return <button {...buttonProps} type={type} className={clsx(styles.iconButton, className)} />;
 }
 
 export function CharacterRowBase({
@@ -43,17 +39,15 @@ export function CharacterRowBase({
   linkAriaLabel,
   linkTo,
   name,
+  nameAccessory,
   secondaryMeta,
-  subtitle
+  subtitle,
+  subtitleAccessory
 }: CharacterRowBaseProps) {
   return (
     <article className={styles.row} style={getClassSignatureStyle(className)}>
       {linkTo ? (
-        <Link
-          to={linkTo}
-          className={styles.rowLink}
-          aria-label={linkAriaLabel ?? `View ${name}`}
-        />
+        <Link to={linkTo} className={styles.rowLink} aria-label={linkAriaLabel ?? `View ${name}`} />
       ) : null}
       <span className={styles.characterPortrait}>
         {avatarUrl ? (
@@ -63,8 +57,14 @@ export function CharacterRowBase({
         )}
       </span>
       <span className={styles.characterMain}>
-        <strong>{name}</strong>
-        <span>{subtitle}</span>
+        <span className={styles.characterNameLine}>
+          <strong>{name}</strong>
+          {nameAccessory}
+        </span>
+        <span className={styles.characterSubtitleLine}>
+          <span className={styles.characterSubtitle}>{subtitle}</span>
+          {subtitleAccessory}
+        </span>
       </span>
       <span className={styles.characterSide}>
         {level !== undefined && level !== null ? (

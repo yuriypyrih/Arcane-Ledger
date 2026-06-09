@@ -66,6 +66,11 @@ export type PartyMembershipEnvelope = {
   memberships: PartyMembershipRecord[];
 };
 
+export type PartyGroupLeaveEnvelope = {
+  partyGroupId: string;
+  characterId: string;
+};
+
 export function listPartyGroups(options?: ApiRequestOptions) {
   return apiGet<PartyGroupListEnvelope>("/party-groups", options);
 }
@@ -78,11 +83,11 @@ export function getPartyGroup(partyGroupId: string, options?: ApiRequestOptions)
   return apiGet<PartyGroupDetailEnvelope>(`/party-groups/${partyGroupId}`, options);
 }
 
-export function updatePartyGroup(
-  partyGroupId: string,
-  name: string,
-  options?: ApiRequestOptions
-) {
+export function getPartyGroupMemberView(partyGroupId: string, options?: ApiRequestOptions) {
+  return apiGet<PartyGroupDetailEnvelope>(`/party-groups/${partyGroupId}/member-view`, options);
+}
+
+export function updatePartyGroup(partyGroupId: string, name: string, options?: ApiRequestOptions) {
   return apiPatch<PartyGroupDetailEnvelope>(`/party-groups/${partyGroupId}`, { name }, options);
 }
 
@@ -105,6 +110,17 @@ export function removePartyGroupCharacter(
 ) {
   return apiDelete<PartyGroupDetailEnvelope>(
     `/party-groups/${partyGroupId}/characters/${characterSheetId}`,
+    options
+  );
+}
+
+export function leavePartyGroup(
+  partyGroupId: string,
+  characterSheetId: string,
+  options?: ApiRequestOptions
+) {
+  return apiDelete<PartyGroupLeaveEnvelope>(
+    `/party-groups/${partyGroupId}/memberships/${characterSheetId}`,
     options
   );
 }

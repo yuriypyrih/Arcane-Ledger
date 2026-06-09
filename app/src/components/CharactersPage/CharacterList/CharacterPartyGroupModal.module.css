@@ -1,0 +1,137 @@
+.body {
+  gap: 1rem;
+}
+
+.section {
+  display: grid;
+  gap: 0.82rem;
+  border-top: 1px solid rgba(75, 47, 29, 0.1);
+  padding-top: 1rem;
+}
+
+.section:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.sectionTitle {
+  color: var(--color-ink);
+  font-size: 1rem;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.memberCount {
+  border: 1px solid rgba(75, 47, 29, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.44);
+  color: var(--color-ink-soft);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1;
+  padding: 0.36rem 0.52rem;
+  white-space: nowrap;
+}
+
+.linkResult,
+.memberList {
+  display: grid;
+  gap: 0.68rem;
+}
+
+.linkRow {
+  display: grid;
+  align-items: center;
+  gap: 0.5rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.linkValue {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(75, 47, 29, 0.2);
+  border-radius: var(--radius-control);
+  background: rgba(255, 255, 255, 0.58);
+  color: var(--color-ink);
+  font: inherit;
+  font-weight: 800;
+  padding: 0 0.76rem;
+  white-space: nowrap;
+}
+
+.linkValue > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-height: 44px;
+  min-width: 44px;
+  border: none;
+  border-radius: var(--radius-control);
+  background: rgba(75, 47, 29, 0.1);
+  color: var(--color-ink);
+  cursor: pointer;
+  padding: 0;
+}
+
+.iconButton:hover,
+.iconButton:focus-visible {
+  background: rgba(75, 47, 29, 0.16);
+}
+
+.iconButton:focus-visible {
+  outline: 2px solid rgba(47, 120, 255, 0.4);
+  outline-offset: 2px;
+}
+
+.emptyState {
+  color: var(--color-ink-soft);
+  font-size: 0.92rem;
+  font-weight: 650;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.error {
+  border: 1px solid rgba(150, 47, 47, 0.22);
+  border-radius: var(--radius-card);
+  background: rgba(150, 47, 47, 0.08);
+  color: #8d2e2e;
+  margin: 0;
+  padding: 0.7rem 0.78rem;
+}
+
+.footerActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  width: 100%;
+}
+
+@media (max-width: 599px) {
+  .sectionHeader {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+
+  .footerActions {
+    flex-direction: column-reverse;
+  }
+}

@@ -4,7 +4,7 @@ import {
   CheckCircle2,
   Cloud,
   CloudOff,
-  LifeBuoy,
+  Headset,
   LogIn,
   RefreshCw,
   Settings,
@@ -202,6 +202,7 @@ function PrimaryNav({
     liveEncounterTrackerCampaignId && isAuthenticated
       ? "Retry encounter tracker sync"
       : "Retry character sync";
+  const visibleLinks = links.filter((link) => !link.requiresAuth || isAuthenticated);
 
   useEffect(() => {
     if (!accountMenuOpen) {
@@ -258,7 +259,7 @@ function PrimaryNav({
           <span>Arcane Ledger</span>
         </NavLink>
         <div className={styles.linkGroup}>
-          {links.map(({ to, label, icon: Icon }) => (
+          {visibleLinks.map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
               to={to}
@@ -350,7 +351,7 @@ function PrimaryNav({
                   role="menuitem"
                   onClick={handleSupport}
                 >
-                  <LifeBuoy size={15} aria-hidden="true" />
+                  <Headset size={15} aria-hidden="true" />
                   <span>Support</span>
                 </button>
                 {user?.role === "admin" ? (

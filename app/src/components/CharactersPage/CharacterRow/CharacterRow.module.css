@@ -131,18 +131,46 @@
   max-width: 100%;
   min-width: 0;
   border-radius: var(--radius-tiny);
-  background: linear-gradient(90deg, rgba(251, 242, 230, 1) 0,rgba(251, 242, 230, 0.6) 200px, rgba(251, 242, 230, 0) 300px);
+  background: linear-gradient(
+    90deg,
+    rgba(251, 242, 230, 1) 0,
+    rgba(251, 242, 230, 0.6) 200px,
+    rgba(251, 242, 230, 0) 300px
+  );
   padding: 0.16rem 0.68rem 0.16rem 0.34rem;
 }
 
-.characterMain strong,
-.characterMain span {
+.characterNameLine {
+  display: flex;
+  align-items: center;
+  gap: 0.36rem;
+  min-width: 0;
+}
+
+.characterSubtitleLine {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.36rem;
+  min-width: 0;
+}
+
+.characterNameLine strong,
+.characterSubtitle {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.characterMain span,
+.characterNameLine strong {
+  min-width: 0;
+}
+
+.characterSubtitle {
+  min-width: 0;
+}
+
+.characterSubtitle,
 .characterMeta {
   color: var(--color-ink-soft);
   font-size: 0.82rem;
@@ -173,6 +201,35 @@
   border-color: rgba(40, 116, 72, 0.24);
   background: rgba(40, 116, 72, 0.1);
   color: #28693f;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+  max-width: 100%;
+  padding: 0.36rem 0.56rem;
+  pointer-events: auto;
+  position: relative;
+  text-align: left;
+  z-index: 3;
+}
+
+.partyPill:hover,
+.partyPill:focus-visible {
+  border-color: rgba(40, 116, 72, 0.38);
+  background: rgba(40, 116, 72, 0.16);
+  color: #1f5835;
+}
+
+.partyPill:focus-visible {
+  outline: 2px solid rgba(47, 120, 255, 0.4);
+  outline-offset: 2px;
+}
+
+.partyPillText {
+  display: inline-block;
+  max-width: min(18rem, 100%);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
 }
 
 .characterSide {

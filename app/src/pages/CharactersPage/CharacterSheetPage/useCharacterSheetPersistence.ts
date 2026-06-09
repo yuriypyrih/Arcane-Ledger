@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import type { Character } from "../../../types";
 import { captureAppError } from "../../../lib/sentry";
 import {
+  CHARACTER_STORAGE_CHANGED_EVENT,
   findCharacter,
   normalizeCharacter,
   upsertTrustedCharacter
@@ -278,6 +279,25 @@ export function useCharacterSheetPersistence(characterId: number) {
     return savedCharacter;
   }, [flushPendingHitPointSave, flushPendingStorageSave]);
 
+  const clearCurrentCharacterWithoutSaving = useCallback(() => {
+    clearPendingHitPointTimeout();
+    clearPendingStorageSchedule();
+    initialCharacterRef.current = {
+      characterId,
+      character: null
+    };
+    characterRef.current = null;
+    pendingHitPointCharacterRef.current = null;
+    pendingStorageCharacterRef.current = null;
+    setIsLoadingCharacter(false);
+    dispatch(
+      setActiveCharacterSheet({
+        character: null,
+        characterId: null
+      })
+    );
+  }, [characterId, clearPendingHitPointTimeout, clearPendingStorageSchedule, dispatch]);
+
   const persistCharacter = useCallback<PersistCharacterUpdater>(
     (updater, options) => {
       const currentCharacter = flushPendingHitPointSave();
@@ -332,6 +352,46 @@ export function useCharacterSheetPersistence(characterId: number) {
       window.removeEventListener(CHARACTER_SYNC_REQUEST_EVENT, handleCharacterSyncRequest);
     };
   }, [flushPendingSaves]);
+
+  useEffect(() => {
+    if (!Number.isFinite(characterId) || characterId <= 0) {
+      return undefined;
+    }
+
+    function handleCharacterStorageChange() {
+      let storedCharacter: Character | null;
+
+      try {
+        storedCharacter = loadCharacter(characterId);
+      } catch {
+        return;
+      }
+
+      if (storedCharacter) {
+        return;
+      }
+
+      const isCurrentCharacterLoadedOrPending =
+        characterRef.current?.id === characterId ||
+        pendingHitPointCharacterRef.current?.id === characterId ||
+        pendingStorageCharacterRef.current?.id === characterId ||
+        (initialCharacterRef.current.characterId === characterId &&
+          initialCharacterRef.current.character !== null);
+
+      if (!isCurrentCharacterLoadedOrPending) {
+        return;
+      }
+
+      clearCurrentCharacterWithoutSaving();
+      navigate("/characters", { replace: true });
+    }
+
+    window.addEventListener(CHARACTER_STORAGE_CHANGED_EVENT, handleCharacterStorageChange);
+
+    return () => {
+      window.removeEventListener(CHARACTER_STORAGE_CHANGED_EVENT, handleCharacterStorageChange);
+    };
+  }, [characterId, clearCurrentCharacterWithoutSaving, navigate]);
 
   useEffect(() => {
     function handlePageHide() {

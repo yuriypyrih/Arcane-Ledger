@@ -53,7 +53,8 @@ import {
   getPortableCharacterSheetSync,
   getUnclaimedPortableCharacterSheets,
   isPortableCharacterSheetOwnedBy,
-  mergeCurrentUserPortableCharacterSheets
+  mergeCurrentUserPortableCharacterSheets,
+  reconcilePortableCharacterSheetsWithCloudSnapshot
 } from "./characterSyncRecords";
 import UnclaimedCharactersModal from "./UnclaimedCharactersModal";
 
@@ -316,6 +317,39 @@ function CharacterSyncBootstrap() {
     [activeCharacterId, dispatch]
   );
 
+  const syncActiveCharacterWithStoredRecords = useCallback(
+    async (records: PortableCharacterSheet[]) => {
+      if (activeCharacterId === null) {
+        return;
+      }
+
+      const activeRecord = records.find(
+        (record) => record.identity.localId === activeCharacterId
+      );
+
+      if (activeRecord) {
+        await updateActiveCharacterIfOpen(activeRecord);
+        return;
+      }
+
+      dispatch(
+        setActiveCharacterSheet({
+          character: null,
+          characterId: null
+        })
+      );
+    },
+    [activeCharacterId, dispatch, updateActiveCharacterIfOpen]
+  );
+
+  const replaceStoredCharacterRecords = useCallback(
+    async (records: PortableCharacterSheet[]) => {
+      replaceRawStoredCharacterRecords(records);
+      await syncActiveCharacterWithStoredRecords(records);
+    },
+    [syncActiveCharacterWithStoredRecords]
+  );
+
   const syncDirtyCharacterRecords = useCallback(async () => {
     if (status !== "authenticated" || !user || syncInFlightRef.current) {
       return;
@@ -401,15 +435,7 @@ function CharacterSyncBootstrap() {
               sentLocalRevision,
               ownerId
             });
-            replaceRawStoredCharacterRecords(records);
-
-            const activeRecord = records.find(
-              (candidateRecord) => candidateRecord.identity.localId === activeCharacterId
-            );
-
-            if (activeRecord) {
-              await updateActiveCharacterIfOpen(activeRecord);
-            }
+            await replaceStoredCharacterRecords(records);
           }
 
           continue;
@@ -487,15 +513,7 @@ function CharacterSyncBootstrap() {
           sentLocalRevision,
           ownerId
         });
-        replaceRawStoredCharacterRecords(records);
-
-        const activeRecord = records.find(
-          (candidateRecord) => candidateRecord.identity.localId === activeCharacterId
-        );
-
-        if (activeRecord) {
-          await updateActiveCharacterIfOpen(activeRecord);
-        }
+        await replaceStoredCharacterRecords(records);
       }
     } catch (error) {
       captureCharacterSyncError(error, {
@@ -504,7 +522,7 @@ function CharacterSyncBootstrap() {
     } finally {
       syncInFlightRef.current = false;
     }
-  }, [activeCharacterId, status, updateActiveCharacterIfOpen, user]);
+  }, [replaceStoredCharacterRecords, status, user]);
 
   const queueCloudSync = useCallback(
     (delayMs = cloudSyncDebounceMs) => {
@@ -521,6 +539,44 @@ function CharacterSyncBootstrap() {
     },
     [clearSyncTimer, status, syncDirtyCharacterRecords, user]
   );
+
+  const refreshAuthenticatedCharacterCache = useCallback(async () => {
+    if (status !== "authenticated" || !user) {
+      return false;
+    }
+
+    try {
+      const localSnapshot = await loadSyncableStoredPortableCharacterSheets();
+      const cloudSnapshot = await fetchCloudPortableCharacterSheets(user.id);
+      const records = reconcilePortableCharacterSheetsWithCloudSnapshot({
+        ownerId: user.id,
+        localRecords: localSnapshot,
+        cloudRecords: cloudSnapshot.cloudRecords,
+        preserveUnownedRecords: true
+      });
+
+      await replaceStoredCharacterRecords(records);
+      return true;
+    } catch (error) {
+      if (!(error instanceof ApiOfflineError)) {
+        captureCharacterSyncError(error, {
+          action: "refresh",
+          syncStatus: "restore"
+        });
+      }
+
+      return false;
+    }
+  }, [replaceStoredCharacterRecords, status, user]);
+
+  const refreshAuthenticatedCharacterCacheAndSyncDirty = useCallback(async () => {
+    if (syncInFlightRef.current) {
+      return;
+    }
+
+    await refreshAuthenticatedCharacterCache();
+    await syncDirtyCharacterRecords();
+  }, [refreshAuthenticatedCharacterCache, syncDirtyCharacterRecords]);
 
   const initializeAuthenticatedCharacterCache = useCallback(async () => {
     if (status !== "authenticated" || !user) {
@@ -540,10 +596,19 @@ function CharacterSyncBootstrap() {
     try {
       const localSnapshot = await loadSyncableStoredPortableCharacterSheets();
       const cloudSnapshot = await fetchCloudPortableCharacterSheets(user.id);
-      const unclaimedRecords = getUnclaimedPortableCharacterSheets(localSnapshot, user.id);
-      const { availableSlots, currentCount } = getImportCapacity({
+      const reconciledLocalSnapshot = reconcilePortableCharacterSheetsWithCloudSnapshot({
         ownerId: user.id,
         localRecords: localSnapshot,
+        cloudRecords: cloudSnapshot.cloudRecords,
+        preserveUnownedRecords: true
+      });
+      const unclaimedRecords = getUnclaimedPortableCharacterSheets(
+        reconciledLocalSnapshot,
+        user.id
+      );
+      const { availableSlots, currentCount } = getImportCapacity({
+        ownerId: user.id,
+        localRecords: reconciledLocalSnapshot,
         cloudRecords: cloudSnapshot.cloudRecords,
         limit: cloudSnapshot.limit
       });
@@ -551,9 +616,10 @@ function CharacterSyncBootstrap() {
       initializedUserIdRef.current = user.id;
 
       if (unclaimedRecords.length > 0) {
+        await replaceStoredCharacterRecords(reconciledLocalSnapshot);
         setClaimPrompt({
           ownerId: user.id,
-          localSnapshot,
+          localSnapshot: reconciledLocalSnapshot,
           cloudRecords: cloudSnapshot.cloudRecords,
           cloudRosterDocuments: cloudSnapshot.cloudRosterDocuments,
           unclaimedRecords,
@@ -565,13 +631,7 @@ function CharacterSyncBootstrap() {
         return;
       }
 
-      replaceRawStoredCharacterRecords(
-        mergeCurrentUserPortableCharacterSheets({
-          ownerId: user.id,
-          localRecords: localSnapshot,
-          cloudRecords: cloudSnapshot.cloudRecords
-        })
-      );
+      await replaceStoredCharacterRecords(reconciledLocalSnapshot);
       queueCloudSync(0);
     } catch (error) {
       if (!(error instanceof ApiOfflineError)) {
@@ -591,7 +651,7 @@ function CharacterSyncBootstrap() {
     } finally {
       initializingUserIdRef.current = null;
     }
-  }, [claimPrompt?.ownerId, dispatch, queueCloudSync, status, user]);
+  }, [claimPrompt?.ownerId, dispatch, queueCloudSync, replaceStoredCharacterRecords, status, user]);
 
   const confirmClaimPrompt = useCallback(
     async (selectedRecords: PortableCharacterSheet[]) => {
@@ -659,7 +719,7 @@ function CharacterSyncBootstrap() {
           ...claimPrompt.cloudRosterDocuments,
           ...importedRosterDocuments
         ]);
-        replaceRawStoredCharacterRecords(finalRecords);
+        await replaceStoredCharacterRecords(finalRecords);
         setClaimPrompt(null);
         queueCloudSync(0);
         dispatch(
@@ -688,7 +748,7 @@ function CharacterSyncBootstrap() {
         setIsClaiming(false);
       }
     },
-    [claimPrompt, dispatch, queueCloudSync]
+    [claimPrompt, dispatch, queueCloudSync, replaceStoredCharacterRecords]
   );
 
   const openConflictPrompt = useCallback((detail: CharacterSyncConflictEventDetail) => {
@@ -828,7 +888,7 @@ function CharacterSyncBootstrap() {
     function handleCharacterSyncRequest() {
       clearSyncTimer();
       window.setTimeout(() => {
-        void syncDirtyCharacterRecords();
+        void refreshAuthenticatedCharacterCacheAndSyncDirty();
       }, 0);
     }
 
@@ -837,7 +897,7 @@ function CharacterSyncBootstrap() {
     return () => {
       window.removeEventListener(CHARACTER_SYNC_REQUEST_EVENT, handleCharacterSyncRequest);
     };
-  }, [clearSyncTimer, syncDirtyCharacterRecords]);
+  }, [clearSyncTimer, refreshAuthenticatedCharacterCacheAndSyncDirty]);
 
   useEffect(() => {
     function handleCharacterSyncConflict(event: Event) {
@@ -881,7 +941,8 @@ function CharacterSyncBootstrap() {
         return;
       }
 
-      queueCloudSync(0);
+      clearSyncTimer();
+      void refreshAuthenticatedCharacterCacheAndSyncDirty();
     }
 
     function handleVisibilityChange() {
@@ -901,7 +962,12 @@ function CharacterSyncBootstrap() {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       clearSyncTimer();
     };
-  }, [clearSyncTimer, initializeAuthenticatedCharacterCache, queueCloudSync, syncDirtyCharacterRecords]);
+  }, [
+    clearSyncTimer,
+    initializeAuthenticatedCharacterCache,
+    refreshAuthenticatedCharacterCacheAndSyncDirty,
+    syncDirtyCharacterRecords
+  ]);
 
   return (
     <>

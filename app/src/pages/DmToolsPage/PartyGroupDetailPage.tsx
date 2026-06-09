@@ -7,7 +7,10 @@ import {
   resetPartyGroupInviteToken,
   type PartyGroupMemberRecord
 } from "../../api/partyGroups";
-import { CharacterRowBase, CharacterRowIconButton } from "../../components/CharactersPage/CharacterRow";
+import {
+  CharacterRowBase,
+  CharacterRowIconButton
+} from "../../components/CharactersPage/CharacterRow";
 import { DestructiveConfirmationModal } from "../../components/Overlay";
 import { PARTY_GROUP_MAX_MEMBERS } from "../../constants/QUOTAS";
 import {
@@ -18,34 +21,13 @@ import {
   useAppDispatch,
   useAppSelector
 } from "../../store";
+import { copyTextToClipboard } from "../../utils/copyTextToClipboard";
 import { getDmToolsApiErrorMessage } from "./dmToolsApiErrors";
 import DmToolsBackButton from "./DmToolsBackButton";
 import DmToolsEditButton from "./DmToolsEditButton";
 import DmToolsEmptyState from "./DmToolsEmptyState";
 import EditPartyGroupModal from "./EditPartyGroupModal";
 import styles from "./DmToolsPage.module.css";
-
-async function copyTextToClipboard(value: string) {
-  if (typeof navigator !== "undefined" && navigator.clipboard) {
-    await navigator.clipboard.writeText(value);
-    return;
-  }
-
-  if (typeof document === "undefined") {
-    return;
-  }
-
-  const textArea = document.createElement("textarea");
-
-  textArea.value = value;
-  textArea.setAttribute("readonly", "");
-  textArea.style.position = "fixed";
-  textArea.style.opacity = "0";
-  document.body.append(textArea);
-  textArea.select();
-  document.execCommand("copy");
-  textArea.remove();
-}
 
 function PartyGroupDetailPage() {
   const { partyGroupId = "" } = useParams();
@@ -187,9 +169,7 @@ function PartyGroupDetailPage() {
           </div>
           {partyGroup ? (
             <div className={styles.headerActions}>
-              <DmToolsEditButton onClick={() => setIsEditModalOpen(true)}>
-                Edit
-              </DmToolsEditButton>
+              <DmToolsEditButton onClick={() => setIsEditModalOpen(true)}>Edit</DmToolsEditButton>
             </div>
           ) : null}
         </div>

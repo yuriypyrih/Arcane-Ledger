@@ -1,15 +1,17 @@
 import { Copy, Share2, Trash2 } from "lucide-react";
+import type { PartyMembershipRecord } from "../../../api/partyGroups";
 import type { CharacterRosterEntry } from "../../../pages/CharactersPage/characterRoster";
 import { CharacterRowBase, CharacterRowIconButton } from "./CharacterRowBase";
 import styles from "./CharacterRow.module.css";
 
 type CharacterRowProps = {
   character: CharacterRosterEntry;
-  inParty?: boolean;
   isDuplicateDisabled?: boolean;
   onDelete?: (character: CharacterRosterEntry) => void;
   onDuplicate?: (character: CharacterRosterEntry) => void | Promise<void>;
+  onOpenParty?: (character: CharacterRosterEntry, membership: PartyMembershipRecord) => void;
   onShare?: (character: CharacterRosterEntry) => void;
+  partyMembership?: PartyMembershipRecord;
 };
 
 function getSyncStatusLabel(character: CharacterRosterEntry) {
@@ -33,10 +35,11 @@ function getSyncStatusLabel(character: CharacterRosterEntry) {
 
 function CharacterRow({
   character,
-  inParty = false,
   isDuplicateDisabled = false,
   onDelete,
   onDuplicate,
+  onOpenParty,
+  partyMembership,
   onShare
 }: CharacterRowProps) {
   const hasActions = Boolean(onDuplicate || onShare || onDelete);
@@ -54,12 +57,20 @@ function CharacterRow({
       linkTo={`/characters/${character.id}`}
       name={character.name}
       subtitle={`${character.species} ${character.className}`}
-      badges={
-        <>
-          {inParty ? <span className={styles.partyPill}>In Party</span> : null}
-          {syncStatusLabel ? <span className={styles.syncPill}>{syncStatusLabel}</span> : null}
-        </>
+      subtitleAccessory={
+        partyMembership ? (
+          <button
+            type="button"
+            className={styles.partyPill}
+            aria-label={`View ${partyMembership.partyGroupName} party`}
+            title={`View ${partyMembership.partyGroupName} party`}
+            onClick={() => onOpenParty?.(character, partyMembership)}
+          >
+            <span className={styles.partyPillText}>In Party: {partyMembership.partyGroupName}</span>
+          </button>
+        ) : null
       }
+      badges={syncStatusLabel ? <span className={styles.syncPill}>{syncStatusLabel}</span> : null}
       actions={
         hasActions ? (
           <>
@@ -97,7 +108,8 @@ function CharacterRow({
               </CharacterRowIconButton>
             ) : null}
           </>
-        ) : null}
+        ) : null
+      }
     />
   );
 }

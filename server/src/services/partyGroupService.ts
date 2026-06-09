@@ -8,7 +8,11 @@ import {
   type CharacterSheetSummaryRecord
 } from "../models/CharacterSheet.js";
 import { Campaign } from "../models/Campaign.js";
-import { PartyGroup, type PartyGroupDocument, type PartyGroupRecord } from "../models/PartyGroup.js";
+import {
+  PartyGroup,
+  type PartyGroupDocument,
+  type PartyGroupRecord
+} from "../models/PartyGroup.js";
 import { User } from "../models/User.js";
 import type { UserRole } from "../types/auth.js";
 import { PARTY_GROUP_MAX_MEMBERS as PARTY_GROUP_MAX_MEMBERS_QUOTA } from "../constants/QUOTAS.js";
@@ -51,7 +55,9 @@ type PartyGroupMemberUser = {
   nickname: string;
 };
 
-function getDocumentId(document: Pick<PartyGroupSource | CharacterSheetMemberSource, "_id" | "id">) {
+function getDocumentId(
+  document: Pick<PartyGroupSource | CharacterSheetMemberSource, "_id" | "id">
+) {
   return document.id ?? document._id?.toString() ?? "";
 }
 
@@ -148,7 +154,8 @@ export function normalizePartyInviteToken(value: unknown) {
 
   try {
     const inviteUrl = new URL(rawValue);
-    token = inviteUrl.searchParams.get("partyInvite") ?? inviteUrl.pathname.split("/").pop() ?? rawValue;
+    token =
+      inviteUrl.searchParams.get("partyInvite") ?? inviteUrl.pathname.split("/").pop() ?? rawValue;
   } catch {
     token = rawValue;
   }
@@ -227,6 +234,37 @@ function toPartyGroupMemberRecord(
   };
 }
 
+async function getPartyGroupDetailFromSource(partyGroup: PartyGroupSource) {
+  const characters = (await CharacterSheet.find({
+    _id: { $in: partyGroup.characterIds },
+    deletedAt: null
+  })
+    .select("_id ownerId summary avatar updatedAt")
+    .lean()
+    .exec()) as CharacterSheetMemberSource[];
+  const ownerIds = [...new Set(characters.map((character) => character.ownerId.toString()))];
+  const users = await User.find({
+    _id: { $in: ownerIds }
+  })
+    .select("_id nickname")
+    .lean()
+    .exec();
+  const userById = new Map(
+    users.map((user) => [
+      user._id.toString(),
+      {
+        id: user._id.toString(),
+        nickname: user.nickname
+      }
+    ])
+  );
+
+  return {
+    ...toPartyGroupDetailRecord(partyGroup),
+    members: characters.map((character) => toPartyGroupMemberRecord(character, userById))
+  };
+}
+
 export async function listOwnedPartyGroups(ownerId: Types.ObjectId) {
   const partyGroups = (await PartyGroup.aggregate<PartyGroupListSource>([
     { $match: { ownerId } },
@@ -251,7 +289,8 @@ export async function createOwnedPartyGroup(options: {
   ownerRole: UserRole;
 }) {
   const name = normalizePartyGroupName(options.name);
-  const countOwnedPartyGroups = () => PartyGroup.countDocuments({ ownerId: options.ownerId }).exec();
+  const countOwnedPartyGroups = () =>
+    PartyGroup.countDocuments({ ownerId: options.ownerId }).exec();
   const currentCount = await countOwnedPartyGroups();
 
   assertDmToolCreationLimit({
@@ -305,7 +344,11 @@ export async function createOwnedPartyGroup(options: {
     }
   }
 
-  throw new AppError("Unable to create a unique party invite link.", 500, "PARTY_INVITE_CREATE_FAILED");
+  throw new AppError(
+    "Unable to create a unique party invite link.",
+    500,
+    "PARTY_INVITE_CREATE_FAILED"
+  );
 }
 
 export async function getOwnedPartyGroupDetail(options: {
@@ -327,34 +370,38 @@ export async function getOwnedPartyGroupDetail(options: {
     throw new AppError("Party group was not found.", 404, "PARTY_GROUP_NOT_FOUND");
   }
 
-  const characters = (await CharacterSheet.find({
-    _id: { $in: partyGroup.characterIds },
-    deletedAt: null
-  })
-    .select("_id ownerId summary avatar updatedAt")
-    .lean()
-    .exec()) as CharacterSheetMemberSource[];
-  const ownerIds = [...new Set(characters.map((character) => character.ownerId.toString()))];
-  const users = await User.find({
-    _id: { $in: ownerIds }
-  })
-    .select("_id nickname")
-    .lean()
-    .exec();
-  const userById = new Map(
-    users.map((user) => [
-      user._id.toString(),
-      {
-        id: user._id.toString(),
-        nickname: user.nickname
-      }
-    ])
-  );
+  return getPartyGroupDetailFromSource(partyGroup);
+}
 
-  return {
-    ...toPartyGroupDetailRecord(partyGroup),
-    members: characters.map((character) => toPartyGroupMemberRecord(character, userById))
-  };
+export async function getMemberVisiblePartyGroupDetail(options: {
+  ownerId: Types.ObjectId;
+  partyGroupId: string;
+}) {
+  if (!options.partyGroupId || !Types.ObjectId.isValid(options.partyGroupId)) {
+    throw new AppError("Party group id is invalid.", 400, "INVALID_PARTY_GROUP_ID");
+  }
+
+  const partyGroup = (await PartyGroup.findById(options.partyGroupId)
+    .lean()
+    .exec()) as PartyGroupSource | null;
+
+  if (!partyGroup) {
+    throw new AppError("Party group was not found.", 404, "PARTY_GROUP_NOT_FOUND");
+  }
+
+  if (partyGroup.ownerId.toString() !== options.ownerId.toString()) {
+    const ownedMember = await CharacterSheet.exists({
+      ownerId: options.ownerId,
+      deletedAt: null,
+      partyGroupId: new Types.ObjectId(options.partyGroupId)
+    }).exec();
+
+    if (!ownedMember) {
+      throw new AppError("Party group was not found.", 404, "PARTY_GROUP_NOT_FOUND");
+    }
+  }
+
+  return getPartyGroupDetailFromSource(partyGroup);
 }
 
 export async function deleteOwnedPartyGroup(options: {
@@ -446,7 +493,11 @@ export async function resetOwnedPartyGroupInviteToken(options: {
     }
   }
 
-  throw new AppError("Unable to create a unique party invite link.", 500, "PARTY_INVITE_CREATE_FAILED");
+  throw new AppError(
+    "Unable to create a unique party invite link.",
+    500,
+    "PARTY_INVITE_CREATE_FAILED"
+  );
 }
 
 export async function removePartyGroupCharacter(options: {
@@ -463,7 +514,9 @@ export async function removePartyGroupCharacter(options: {
     partyGroupId: options.partyGroupId
   });
   const characterObjectId = new Types.ObjectId(options.characterSheetId);
-  const isMember = partyGroup.characterIds.some((characterId) => characterId.equals(characterObjectId));
+  const isMember = partyGroup.characterIds.some((characterId) =>
+    characterId.equals(characterObjectId)
+  );
 
   if (!isMember) {
     throw new AppError("Party member was not found.", 404, "PARTY_MEMBER_NOT_FOUND");
@@ -489,6 +542,51 @@ export async function removePartyGroupCharacter(options: {
     ownerId: options.ownerId,
     partyGroupId: partyGroup.id
   });
+}
+
+export async function leavePartyGroup(options: {
+  characterSheetId: string;
+  ownerId: Types.ObjectId;
+  partyGroupId: string;
+}) {
+  if (!options.partyGroupId || !Types.ObjectId.isValid(options.partyGroupId)) {
+    throw new AppError("Party group id is invalid.", 400, "INVALID_PARTY_GROUP_ID");
+  }
+
+  if (!options.characterSheetId || !Types.ObjectId.isValid(options.characterSheetId)) {
+    throw new AppError("Character sheet id is invalid.", 400, "INVALID_CHARACTER_SHEET_ID");
+  }
+
+  const partyGroup = await PartyGroup.findById(options.partyGroupId).exec();
+
+  if (!partyGroup) {
+    throw new AppError("Party group was not found.", 404, "PARTY_GROUP_NOT_FOUND");
+  }
+
+  const characterObjectId = new Types.ObjectId(options.characterSheetId);
+  const character = await CharacterSheet.findOne({
+    _id: characterObjectId,
+    ownerId: options.ownerId,
+    deletedAt: null,
+    partyGroupId: partyGroup._id
+  }).exec();
+
+  if (!character) {
+    throw new AppError("Party membership was not found.", 404, "PARTY_MEMBER_NOT_FOUND");
+  }
+
+  character.partyGroupId = null;
+  partyGroup.characterIds = partyGroup.characterIds.filter(
+    (characterId) => !characterId.equals(characterObjectId)
+  );
+
+  await character.save();
+  await partyGroup.save();
+
+  return {
+    partyGroupId: partyGroup.id,
+    characterId: character.id
+  };
 }
 
 export async function joinPartyGroup(options: {
