@@ -25,6 +25,7 @@ import {
 } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import RadioContainerOption from "../RadioContainerOption";
 import styles from "./SpellCastingForm.module.css";
 import { applySpellManagementDraftToCharacter } from "./spellManagementDrafts";
 import SpellManagementFilterControls from "./SpellManagementFilterControls";
@@ -62,11 +63,14 @@ type SpellManagementModalProps = {
   onClose: () => void;
   onOpenSpellDetails: (spell: SpellEntry, viewMode: "prepare-preview") => void;
   onPersistCharacter: PersistCharacterUpdater;
+  onSpellcastingRulesEnforcementChange: (enabled: boolean) => void;
   preparedSpellLimit: number | null;
   selectedCantripIds: string[];
   selectedManualSpellbookSpellIds: string[];
   selectedPreparedSpellIds: string[];
   spellbookSpellEntriesById: Map<string, SpellEntry>;
+  spellcastingRulesEnforced: boolean;
+  spellcastingRulesEnforcementDisabled: boolean;
   spellPreparationOptions: SpellEntry[];
   suspendEscapeClose: boolean;
   usesPreparedSpells: boolean;
@@ -139,11 +143,14 @@ function SpellManagementModal({
   onClose,
   onOpenSpellDetails,
   onPersistCharacter,
+  onSpellcastingRulesEnforcementChange,
   preparedSpellLimit,
   selectedCantripIds,
   selectedManualSpellbookSpellIds,
   selectedPreparedSpellIds,
   spellbookSpellEntriesById,
+  spellcastingRulesEnforced,
+  spellcastingRulesEnforcementDisabled,
   spellPreparationOptions,
   suspendEscapeClose,
   usesPreparedSpells,
@@ -488,7 +495,7 @@ function SpellManagementModal({
       isBusy={isCommitting}
       busyLabel="Saving spell choices"
       panelClassName={isSpellSelectionMode ? styles.spellManagementModalPanelFullHeight : undefined}
-      size="medium"
+      size="small"
     >
       <OverlayHeader>
         <OverlayHeaderContent>
@@ -509,53 +516,66 @@ function SpellManagementModal({
         )}
       >
         {mode === "menu" ? (
-          <div className={sheetStyles.spellManagementOptionGrid}>
-            {hasCantripManagement ? (
-              <button
-                type="button"
-                className={sheetStyles.spellManagementOptionButton}
-                onClick={beginCantripManagement}
-              >
-                <strong>
-                  Manage cantrips{" "}
-                  <SelectionCounter current={selectedCantripIds.length} total={cantripLimit} />
-                </strong>
-                <small>Choose from the list of cantrips for your class.</small>
-              </button>
-            ) : null}
-            {usesPreparedSpells ? (
-              <button
-                type="button"
-                className={sheetStyles.spellManagementOptionButton}
-                onClick={beginPreparedSpellManagement}
-              >
-                <strong>
-                  {usesSpellbook ? (
-                    <>
-                      Manage spellbook &amp; prepare spells{" "}
-                      <SelectionCounter
-                        current={selectedPreparedSpellIds.length}
-                        total={preparedSpellLimit}
-                      />
-                    </>
-                  ) : (
-                    <>
-                      Prepare spells{" "}
-                      <SelectionCounter
-                        current={selectedPreparedSpellIds.length}
-                        total={preparedSpellLimit}
-                      />
-                    </>
-                  )}
-                </strong>
-                <small>
-                  {usesSpellbook
-                    ? "Add spells to your spellbook, then choose which of them are prepared."
-                    : "Choose from the list of spells for your class based on your current level."}
-                </small>
-              </button>
-            ) : null}
-          </div>
+          <>
+            <div className={sheetStyles.spellManagementOptionGrid}>
+              {hasCantripManagement ? (
+                <button
+                  type="button"
+                  className={sheetStyles.spellManagementOptionButton}
+                  onClick={beginCantripManagement}
+                >
+                  <strong>
+                    Manage cantrips{" "}
+                    <SelectionCounter current={selectedCantripIds.length} total={cantripLimit} />
+                  </strong>
+                  <small>Choose from the list of cantrips for your class.</small>
+                </button>
+              ) : null}
+              {usesPreparedSpells ? (
+                <button
+                  type="button"
+                  className={sheetStyles.spellManagementOptionButton}
+                  onClick={beginPreparedSpellManagement}
+                >
+                  <strong>
+                    {usesSpellbook ? (
+                      <>
+                        Manage spellbook &amp; prepare spells{" "}
+                        <SelectionCounter
+                          current={selectedPreparedSpellIds.length}
+                          total={preparedSpellLimit}
+                        />
+                      </>
+                    ) : (
+                      <>
+                        Prepare spells{" "}
+                        <SelectionCounter
+                          current={selectedPreparedSpellIds.length}
+                          total={preparedSpellLimit}
+                        />
+                      </>
+                    )}
+                  </strong>
+                  <small>
+                    {usesSpellbook
+                      ? "Add spells to your spellbook, then choose which of them are prepared."
+                      : "Choose from the list of spells for your class based on your current level."}
+                  </small>
+                </button>
+              ) : null}
+            </div>
+            <div className={styles.rulesEnforcementDivider} aria-hidden="true" />
+            <RadioContainerOption
+              header="Spellcasting rules enforcement"
+              subheader="Your class will enforce their spellcasting rules"
+              selected={spellcastingRulesEnforced}
+              onSelect={() =>
+                onSpellcastingRulesEnforcementChange(!spellcastingRulesEnforced)
+              }
+              disabled={spellcastingRulesEnforcementDisabled || isCommitting}
+              indicatorType="checkbox"
+            />
+          </>
         ) : mode === "cantrips" ? (
           <>
             <div className={styles.preparedSpellStatusRow}>

@@ -211,7 +211,13 @@ function isFeatRequirementMet(
   }
 
   if (requirement.type === "spellcasting-or-pact-magic") {
-    return isSpellcastingClass(character.className, character.level, character.subclassId);
+    return isSpellcastingClass(
+      character.className,
+      character.level,
+      character.subclassId,
+      character.customClass,
+      character.classRules
+    );
   }
 
   if (requirement.type === "feat") {

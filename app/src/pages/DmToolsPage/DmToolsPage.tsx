@@ -22,6 +22,22 @@ function getTabPanelId(tabId: DmToolsTabId) {
   return `dm-tools-${tabId}-panel`;
 }
 
+const tabToneClassNames: Record<DmToolsTabId, string> = {
+  "campaign-manager": styles.toolToneCampaign,
+  "encounter-templates": styles.toolToneEncounter,
+  "party-manager": styles.toolToneParty
+};
+
+function getTabClassName(tabId: DmToolsTabId, selected: boolean) {
+  const classNames = [styles.tabButton, tabToneClassNames[tabId]];
+
+  if (selected) {
+    classNames.push(styles.tabButtonActive);
+  }
+
+  return classNames.join(" ");
+}
+
 function renderTabBody(activeTab: DmToolsTabId) {
   const tabId = getTabButtonId(activeTab);
   const panelId = getTabPanelId(activeTab);
@@ -82,7 +98,7 @@ function DmToolsPage() {
                 id={getTabButtonId(id)}
                 aria-controls={getTabPanelId(id)}
                 aria-selected={selected}
-                className={selected ? `${styles.tabButton} ${styles.tabButtonActive}` : styles.tabButton}
+                className={getTabClassName(id, selected)}
                 onClick={() => handleTabChange(id)}
               >
                 <TabIcon size={16} aria-hidden="true" />

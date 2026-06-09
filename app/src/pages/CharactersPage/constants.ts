@@ -7,7 +7,7 @@ import type {
   CoreStats
 } from "../../types";
 import { createDefaultRoundTracker } from "./combat";
-import { defaultCustomClassConfig } from "./customClass";
+import { defaultCharacterClassRulesConfig, defaultCustomClassConfig } from "./customClass";
 
 export const abilityKeys: AbilityKey[] = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
 
@@ -84,11 +84,35 @@ export function createEmptyCharacter(): CharacterDraft {
     name: "",
     species: "",
     speciesChoices: undefined,
+    customSpecies: undefined,
     speciesFeatureState: {},
     className: "",
     subclassId: "",
+    customSubclass: undefined,
+    classRules: {
+      ...defaultCharacterClassRulesConfig,
+      spellSlotMaximums: [...defaultCharacterClassRulesConfig.spellSlotMaximums],
+      mechanics: {
+        extraAttacks: { ...defaultCharacterClassRulesConfig.mechanics.extraAttacks },
+        eldritchInvocations: {
+          ...defaultCharacterClassRulesConfig.mechanics.eldritchInvocations,
+          selectionIds: [
+            ...defaultCharacterClassRulesConfig.mechanics.eldritchInvocations.selectionIds
+          ]
+        },
+        spellcasting: { ...defaultCharacterClassRulesConfig.mechanics.spellcasting }
+      }
+    },
     customClass: {
       ...defaultCustomClassConfig,
+      mechanics: {
+        extraAttacks: { ...defaultCustomClassConfig.mechanics.extraAttacks },
+        eldritchInvocations: {
+          ...defaultCustomClassConfig.mechanics.eldritchInvocations,
+          selectionIds: [...defaultCustomClassConfig.mechanics.eldritchInvocations.selectionIds]
+        },
+        spellcasting: { ...defaultCustomClassConfig.mechanics.spellcasting }
+      },
       spellSlotMaximums: [...defaultCustomClassConfig.spellSlotMaximums]
     },
     level: 1,
@@ -106,6 +130,7 @@ export function createEmptyCharacter(): CharacterDraft {
     abilities: createDefaultAbilities(),
     alignment: "True Neutral",
     background: "",
+    customBackground: undefined,
     backgroundChoices: undefined,
     backgroundNotes: "",
     currencies: createDefaultCurrencies(),

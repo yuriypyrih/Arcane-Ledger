@@ -1903,7 +1903,10 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
       let nextCharacter = preparedCharacter;
       const spellSlotTotals = getSpellSlotTotalsForCharacter(
         preparedCharacter.className,
-        preparedCharacter.level
+        preparedCharacter.level,
+        preparedCharacter.subclassId,
+        preparedCharacter.customClass,
+        preparedCharacter.classRules
       );
       const spellSlotsExpended = normalizeSpellSlotsExpended(
         preparedCharacter.spellSlotsExpended,

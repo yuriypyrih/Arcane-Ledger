@@ -7,6 +7,11 @@ import type {
 } from "../../types";
 import { PORTABLE_CHARACTER_SHEET_SCHEMA_VERSION } from "../../types";
 import { getSerializedJsonSizeBytes, normalizeSheetSizeBytes } from "./characterSheetSize";
+import {
+  getCharacterBackgroundDisplayName,
+  getCharacterClassDisplayName,
+  getCharacterSpeciesDisplayName
+} from "./customOrigins";
 
 function isObjectRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -479,13 +484,17 @@ export function createPortableCharacterSheet(character: HydratedCharacter): Port
     origin: {
       species: character.species,
       speciesChoices: character.speciesChoices,
+      customSpecies: character.customSpecies,
       background: character.background,
       backgroundChoices: character.backgroundChoices,
+      customBackground: character.customBackground,
       backgroundNotes: character.backgroundNotes
     },
     progression: {
       className: character.className,
       subclassId: character.subclassId,
+      customSubclass: character.customSubclass,
+      classRules: character.classRules,
       customClass: character.customClass,
       level: character.level,
       xp: character.xp
@@ -546,11 +555,11 @@ export function createPortableCharacterSheet(character: HydratedCharacter): Port
     summary: {
       localId: character.id,
       name: character.name,
-      species: character.species,
-      className: character.className,
+      species: getCharacterSpeciesDisplayName(character),
+      className: getCharacterClassDisplayName(character),
       subclassId: character.subclassId,
       level: character.level,
-      background: character.background,
+      background: getCharacterBackgroundDisplayName(character),
       sheetSizeBytes: normalizeSheetSizeBytes(character.storageMetadata?.sheetSizeBytes)
     },
     metadata: {
@@ -580,9 +589,12 @@ export function createHydratedCharacterInputFromPortableSheet(
     alignment: record.identity.alignment,
     species: record.origin.species ?? record.summary.species,
     speciesChoices: record.origin.speciesChoices,
+    customSpecies: record.origin.customSpecies,
     speciesFeatureState: record.features.speciesFeatureState,
     className: record.progression.className ?? record.summary.className,
     subclassId: record.progression.subclassId ?? record.summary.subclassId ?? undefined,
+    customSubclass: record.progression.customSubclass,
+    classRules: record.progression.classRules,
     customClass: record.progression.customClass,
     level: record.progression.level ?? record.summary.level,
     xp: record.progression.xp,
@@ -599,6 +611,7 @@ export function createHydratedCharacterInputFromPortableSheet(
     abilities: record.abilities.scores,
     background: record.origin.background ?? record.summary.background,
     backgroundChoices: record.origin.backgroundChoices,
+    customBackground: record.origin.customBackground,
     backgroundNotes: record.origin.backgroundNotes,
     currencies: record.inventory.currencies,
     skillProficiencies: record.proficiencies.skillProficiencies ?? [],

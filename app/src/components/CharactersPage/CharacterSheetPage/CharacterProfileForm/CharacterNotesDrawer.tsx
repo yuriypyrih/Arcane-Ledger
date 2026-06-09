@@ -17,6 +17,11 @@ import SelectInput from "../../FormInputs/SelectInput";
 import TextAreaInput from "../../FormInputs/TextAreaInput";
 import TextInput from "../../FormInputs/TextInput";
 import { alignmentOptions } from "../../../../pages/CharactersPage/constants";
+import {
+  getCharacterBackgroundDisplayName,
+  getCharacterClassDisplayName,
+  getCharacterSpeciesDisplayName
+} from "../../../../pages/CharactersPage/customOrigins";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import type { Character } from "../../../../types";
 import { sanitizeUserInput } from "../../../../utils/userInputSanitization";
@@ -30,8 +35,11 @@ type CharacterNotesDrawerProps = {
 };
 
 function getCharacterSummary(character: Character) {
-  const identityLine = [character.species, character.className].filter(Boolean).join(" ");
-  const background = character.background.trim();
+  const identityLine = [
+    getCharacterSpeciesDisplayName(character),
+    getCharacterClassDisplayName(character)
+  ].filter(Boolean).join(" ");
+  const background = getCharacterBackgroundDisplayName(character).trim();
   const alignment = character.alignment.trim();
 
   return [identityLine, background, alignment].filter(Boolean).join(" - ") || "Character profile";

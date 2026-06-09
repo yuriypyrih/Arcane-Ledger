@@ -37,6 +37,11 @@ import { compileFeatureContributions, type FeatureContributionSpec } from "./fea
 import { formatFormulaBreakdown, formatFormulaCell } from "./shared/formulas";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "./statusEntries";
 import {
+  getCharacterSpeciesDisplayName,
+  isCustomSpeciesName,
+  normalizeCustomSpeciesConfig
+} from "./customOrigins";
+import {
   getDefaultDragonbornDraconicAncestryForSpecies,
   getDragonbornDraconicAncestryForCharacter,
   getDragonbornDraconicAncestryOptionsForSpecies,
@@ -192,7 +197,7 @@ export {
 } from "./speciesTiefling";
 
 type SpeciesRuntimeCharacter = Pick<Character, "species"> &
-  Partial<Pick<Character, "speciesChoices" | "statusEntries">>;
+  Partial<Pick<Character, "customSpecies" | "speciesChoices" | "statusEntries">>;
 type SpeciesFeatureRuntimeCharacter = Pick<Character, "species" | "level"> &
   Partial<Pick<Character, "speciesFeatureState" | "statusEntries">>;
 
@@ -681,6 +686,10 @@ export function getBodySizeForCharacter(character: SpeciesRuntimeCharacter): BOD
     return bodySizeOverride;
   }
 
+  if (isCustomSpeciesName(character.species)) {
+    return normalizeCustomSpeciesConfig(character.customSpecies)?.size ?? null;
+  }
+
   return (
     normalizeCharacterSpeciesChoices(character.species, character.speciesChoices)?.bodySize ??
     createDefaultSpeciesChoicesForSpecies(character.species)?.bodySize ??
@@ -696,6 +705,21 @@ export function getBodySizeLabelForCharacter(character: SpeciesRuntimeCharacter)
 export function getSpeciesChoiceSummaryItemsForCharacter(
   character: SpeciesRuntimeCharacter
 ): SpeciesChoiceSummaryItem[] {
+  if (isCustomSpeciesName(character.species)) {
+    const customSpecies = normalizeCustomSpeciesConfig(character.customSpecies);
+
+    return [
+      {
+        label: "Size",
+        value: customSpecies ? formatBodySize(customSpecies.size) : "Not selected"
+      },
+      {
+        label: "Speed",
+        value: customSpecies ? `${customSpecies.speed} ft` : "Not selected"
+      }
+    ];
+  }
+
   const choices = normalizeCharacterSpeciesChoices(character.species, character.speciesChoices);
   const items: SpeciesChoiceSummaryItem[] = [];
   const bodySize = getBodySizeForCharacter({
@@ -833,8 +857,19 @@ export function getSpeciesChoiceSummaryItemsForCharacter(
 }
 
 export function getSpeciesSpeedDetailsForCharacter(
-  character: Pick<Character, "species">
+  character: Pick<Character, "species"> & Partial<Pick<Character, "customSpecies">>
 ): SpeciesSpeedDetails {
+  if (isCustomSpeciesName(character.species)) {
+    const customSpecies = normalizeCustomSpeciesConfig(character.customSpecies);
+
+    if (customSpecies) {
+      return {
+        speed: customSpecies.speed,
+        source: getCharacterSpeciesDisplayName(character)
+      };
+    }
+  }
+
   const entry = getSpeciesEntry(character.species);
 
   return {
@@ -843,7 +878,9 @@ export function getSpeciesSpeedDetailsForCharacter(
   };
 }
 
-export function getSpeciesSpeedForCharacter(character: Pick<Character, "species">): number {
+export function getSpeciesSpeedForCharacter(
+  character: Pick<Character, "species"> & Partial<Pick<Character, "customSpecies">>
+): number {
   return getSpeciesSpeedDetailsForCharacter(character).speed;
 }
 

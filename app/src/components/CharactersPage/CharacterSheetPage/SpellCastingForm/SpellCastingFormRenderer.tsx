@@ -79,6 +79,8 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     isSelectedSpellDiceRollerSettingsOpen,
     isSpellcastingGuideOpen,
     isSpellManagementModalOpen,
+    isSpellcastingRulesEnforced,
+    isSpellcastingRulesEnforcementDisabled,
     knownSpellEntriesById,
     onPersistCharacter,
     openDivinityDetails,
@@ -97,6 +99,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     selectedDivinityActionShape,
     selectedDivinityActionShapeState,
     selectedDivinityActionWarning,
+    selectedDivinityBackdropHandlers,
     selectedDivinityDisplay,
     selectedDivinityOptionKey,
     selectedDivinityRow,
@@ -243,6 +246,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     tamedSurgeUsesRemaining,
     tamedSurgeUsesTotal,
     updateCustomSpellSlotMaximum,
+    updateSpellcastingRulesEnforcement,
     updateSpellSlotsExpended,
     useBeguilingMagicOnSelectedSpell,
     useBewitchingMagicOnSelectedSpell,
@@ -477,6 +481,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
           onClose={() => setIsSpellManagementModalOpen(false)}
           onOpenSpellDetails={openSpellDetails}
           onPersistCharacter={onPersistCharacter}
+          onSpellcastingRulesEnforcementChange={updateSpellcastingRulesEnforcement}
           preparedSpellLimit={preparedSpellLimit}
           selectedCantripIds={selectedCantripIds}
           selectedManualSpellbookSpellIds={selectedManualSpellbookSpellIds}
@@ -489,6 +494,8 @@ export function renderSpellCastingForm(context: Record<string, any>) {
             selectedDivinityOptionKey ||
             isSelectedSpellDiceRollerSettingsOpen
           )}
+          spellcastingRulesEnforced={isSpellcastingRulesEnforced}
+          spellcastingRulesEnforcementDisabled={isSpellcastingRulesEnforcementDisabled}
           usesPreparedSpells={usesPreparedSpells}
           usesSpellbook={usesSpellbook}
         />
@@ -1349,14 +1356,15 @@ export function renderSpellCastingForm(context: Record<string, any>) {
         <div
           className={sheetStyles.spellDrawerBackdrop}
           role="presentation"
-          onClick={closeSelectedDivinity}
+          onClick={selectedDivinityBackdropHandlers.onBackdropClick}
+          onPointerDown={selectedDivinityBackdropHandlers.onBackdropPointerDown}
         >
           <section
             className={sheetStyles.spellDrawer}
             role="dialog"
             aria-modal="true"
             aria-labelledby="character-divinity-drawer-title"
-            onClick={(event) => event.stopPropagation()}
+            onClick={selectedDivinityBackdropHandlers.onContentClick}
           >
             <div className={sheetStyles.spellDrawerHeader}>
               <div className={sheetStyles.spellDrawerHeaderContent}>

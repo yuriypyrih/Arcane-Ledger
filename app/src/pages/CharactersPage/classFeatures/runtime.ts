@@ -701,7 +701,10 @@ export function hasPerfectFocusForCharacter(
 }
 
 export function getDerivedFeatureStatusEntriesForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState" | "statusEntries">
+  character: Pick<
+    Character,
+    "className" | "level" | "classFeatureState" | "classRules" | "customClass" | "statusEntries"
+  >
 ): DerivedFeatureStatusEntry[] {
   const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
@@ -719,6 +722,8 @@ export function getSpellEntryForCharacter(
         | "subclassId"
         | "statusEntries"
         | "classFeatureState"
+        | "classRules"
+        | "customClass"
         | "feats"
         | "species"
         | "speciesChoices"
@@ -801,7 +806,8 @@ export function getFeatureReactionSpellForCharacter(
 }
 
 export function getSpellDamageFormulaOverrideForCharacter(
-  character: Pick<Character, "className" | "level">,
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "classRules" | "customClass">>,
   spell: Pick<SpellEntry, "id">
 ): string | null {
   const baseFeatureState = collectActiveClassFeatureState(character);
@@ -815,7 +821,8 @@ export function getSpellDamageFormulaOverrideForCharacter(
 }
 
 export function getFeatureReactionEntriesForCharacter(
-  character: Pick<Character, "className" | "level">
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "classRules" | "customClass">>
 ): ReactionEntry[] {
   const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
@@ -1696,6 +1703,15 @@ export function consumeWeaponAttackActionForCharacter(
 
   if (action.lightFollowUpKind) {
     return finalize(consumeLightFollowUp(character));
+  }
+
+  const nextCharacterWithSharedMulti = consumeSharedEconomyMultiForCharacterAction(
+    character,
+    createEconomyMultiContextForWeaponAction(action)
+  );
+
+  if (nextCharacterWithSharedMulti !== character) {
+    return finalize(nextCharacterWithSharedMulti);
   }
 
   if (character.className === "Barbarian") {

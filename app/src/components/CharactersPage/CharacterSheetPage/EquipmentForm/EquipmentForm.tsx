@@ -21,7 +21,7 @@ import coinGoldIcon from "../../../../assets/svg/coin.svg";
 import coinPlatinumIcon from "../../../../assets/svg/coin-platinum.svg";
 import coinSilverIcon from "../../../../assets/svg/coin-silver.svg";
 import CurrencyInlineDisplay from "../../../CurrencyInlineDisplay";
-import { deferModalCommit } from "../../../Overlay";
+import { deferModalCommit, useExplicitBackdropClick } from "../../../Overlay";
 import NumberInput from "../../FormInputs/NumberInput";
 import RarityPill, { hasDisplayableRarity } from "../../../CodexPage/RarityPill";
 import { captureAppError } from "../../../../lib/sentry";
@@ -2898,6 +2898,11 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       ))}
     </span>
   );
+  const loadoutDrawerBackdropHandlers = useExplicitBackdropClick(closeLoadoutDrawer);
+  const deleteCustomEquipmentBackdropHandlers = useExplicitBackdropClick(() =>
+    setPendingDeleteCustomEquipmentId(null)
+  );
+
   return (
     <>
       {renderEquipmentForm({
@@ -2996,6 +3001,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     isSelectedEntryOnHand,
     isSelectedFeatureManagedEntry,
     isSelectedShield,
+    loadoutDrawerBackdropHandlers,
     managedContainerStack,
     managingContainerStackId,
     normalizeCurrencyAmountInput,
@@ -3014,6 +3020,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     parentInventoryInspection,
     parentInventoryRecord,
     pendingDeleteCustomEquipment,
+    deleteCustomEquipmentBackdropHandlers,
     pendingContainerInventoryRemoval,
     closeContainerManagement,
     confirmContainerRemoval,

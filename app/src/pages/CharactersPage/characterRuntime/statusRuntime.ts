@@ -1,4 +1,3 @@
-import { getClassSpellEntries, getPreparedSpellEntries } from "../../../codex/classes";
 import {
   ACTION_TYPE,
   getSpellEntryById,
@@ -30,9 +29,12 @@ import {
 import {
   getAlwaysPreparedSpellIds,
   getCantripLimitForCharacter,
+  getCantripSelectionOptionsForCharacter,
   getPreparedSpellLimitForCharacter,
+  getPreparedSpellSelectionOptionsForCharacter,
   getSpellLevel,
   getSpellSlotTotalsForCharacter,
+  isSpellcastingClass,
   normalizePreparedSpellIds,
   normalizeSpellSlotsExpended,
   normalizeTrackedSpellIds,
@@ -141,9 +143,24 @@ function createStatusSections(statusEntries: CharacterStatusEntry[]): StatusRunt
 }
 
 function createStatusRuntime(character: Character): CharacterStatusRuntime {
+  const shouldUseClassSpellPools = isSpellcastingClass(
+    character.className,
+    character.level,
+    character.subclassId,
+    character.customClass,
+    character.classRules
+  );
   const classSpellEntries = transformSpellEntries(
     character,
-    getClassSpellEntries(character.className, character.subclassId)
+    shouldUseClassSpellPools
+      ? getCantripSelectionOptionsForCharacter(
+          character.className,
+          character.level,
+          character.subclassId,
+          character.customClass,
+          character.classRules
+        )
+      : []
   );
   const featGrantedCantripEntries = transformSpellEntries(
     character,
@@ -159,24 +176,37 @@ function createStatusRuntime(character: Character): CharacterStatusRuntime {
   );
   const preparedSpellPoolEntries = transformSpellEntries(
     character,
-    getPreparedSpellEntries(character.className, character.level, character.subclassId)
+    shouldUseClassSpellPools
+      ? getPreparedSpellSelectionOptionsForCharacter(
+          character.className,
+          character.level,
+          character.subclassId,
+          character.customClass,
+          character.classRules
+        )
+      : []
   );
   const cantripLimit = getCantripLimitForCharacter(
     character.className,
     character.level,
     character.classFeatureState,
-    character.subclassId
+    character.subclassId,
+    character.customClass,
+    character.classRules
   );
   const preparedSpellLimit = getPreparedSpellLimitForCharacter(
     character.className,
     character.level,
-    character.subclassId
+    character.subclassId,
+    character.customClass,
+    character.classRules
   );
   const spellSlotTotals = getSpellSlotTotalsForCharacter(
     character.className,
     character.level,
     character.subclassId,
-    character.customClass
+    character.customClass,
+    character.classRules
   );
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
@@ -188,7 +218,9 @@ function createStatusRuntime(character: Character): CharacterStatusRuntime {
   const usesPreparedSpells = usesPreparedSpellsForCharacter(
     character.className,
     character.level,
-    character.subclassId
+    character.subclassId,
+    character.customClass,
+    character.classRules
   );
   const alwaysPreparedSpellIds = [
     ...new Set([
@@ -198,7 +230,9 @@ function createStatusRuntime(character: Character): CharacterStatusRuntime {
         character.classFeatureState,
         undefined,
         character.subclassId,
-        character.statusEntries
+        character.statusEntries,
+        character.customClass,
+        character.classRules
       ),
       ...featAlwaysPreparedSpellEntries.map((spell) => spell.id),
       ...getSpeciesAlwaysPreparedSpellIdsForCharacter({

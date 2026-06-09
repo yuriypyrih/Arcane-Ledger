@@ -15,7 +15,13 @@ export function hasSpellcastingForCharacter(character: Character): boolean {
   const spellcastingRuntime = getCharacterRuntime(character).spellcasting;
 
   return (
-    isSpellcastingClass(character.className, character.level, character.subclassId) ||
+    isSpellcastingClass(
+      character.className,
+      character.level,
+      character.subclassId,
+      character.customClass,
+      character.classRules
+    ) ||
     getFeatGrantedCantripEntriesForCharacter(character).length > 0 ||
     getSpeciesGrantedCantripEntriesForCharacter(character).length > 0 ||
     getFeatAlwaysPreparedCantripEntriesForCharacter(character).length > 0 ||

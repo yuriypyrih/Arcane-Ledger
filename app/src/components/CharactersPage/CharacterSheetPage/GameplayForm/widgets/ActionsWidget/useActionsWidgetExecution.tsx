@@ -1364,7 +1364,10 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
       onPersistCharacter((currentCharacter) => {
         const spellSlotTotals = getSpellSlotTotalsForCharacter(
           currentCharacter.className,
-          currentCharacter.level
+          currentCharacter.level,
+          currentCharacter.subclassId,
+          currentCharacter.customClass,
+          currentCharacter.classRules
         );
         const spellSlotsExpended = normalizeSpellSlotsExpended(
           currentCharacter.spellSlotsExpended,

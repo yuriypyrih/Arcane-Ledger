@@ -7,6 +7,7 @@
 .linkButton {
   display: inline-flex;
   align-items: center;
+  gap: 0.34rem;
   justify-self: start;
   border: 1px solid rgba(75, 47, 29, 0.1);
   border-radius: var(--radius-pill);

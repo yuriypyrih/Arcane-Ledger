@@ -20,7 +20,7 @@ function SheetDrawer({
   backdropClassName,
   drawerClassName
 }: SheetDrawerProps) {
-  const { onBackdropClick, onContentClick } = useDismissableOverlay({
+  const { onBackdropClick, onBackdropPointerDown, onContentClick } = useDismissableOverlay({
     isOpen: true,
     onClose,
     onEscape
@@ -35,6 +35,7 @@ function SheetDrawer({
       className={[styles.drawerBackdrop, backdropClassName ?? ""].join(" ").trim()}
       role="presentation"
       onClick={onBackdropClick}
+      onPointerDown={onBackdropPointerDown}
     >
       <section
         className={[styles.drawerPanel, drawerClassName ?? ""].join(" ").trim()}

@@ -567,7 +567,8 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
       preparedCharacter.className,
       preparedCharacter.level,
       preparedCharacter.subclassId,
-      preparedCharacter.customClass
+      preparedCharacter.customClass,
+      preparedCharacter.classRules
     );
     const currentSpellSlotsExpended = normalizeSpellSlotsExpended(
       preparedCharacter.spellSlotsExpended,

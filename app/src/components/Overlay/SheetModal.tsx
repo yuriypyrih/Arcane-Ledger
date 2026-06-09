@@ -35,7 +35,7 @@ function SheetModal({
   panelClassName,
   size = "small"
 }: SheetModalProps) {
-  const { onBackdropClick, onContentClick } = useDismissableOverlay({
+  const { onBackdropClick, onBackdropPointerDown, onContentClick } = useDismissableOverlay({
     isOpen: true,
     onClose: isBusy ? () => undefined : onClose,
     onEscape: isBusy ? () => undefined : onEscape
@@ -50,6 +50,7 @@ function SheetModal({
       className={[styles.modalBackdrop, backdropClassName ?? ""].join(" ").trim()}
       role="presentation"
       onClick={onBackdropClick}
+      onPointerDown={onBackdropPointerDown}
     >
       <section
         className={[

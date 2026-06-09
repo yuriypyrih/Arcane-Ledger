@@ -244,6 +244,11 @@
   grid-template-columns: minmax(0, 1fr);
 }
 
+.rulesEnforcementDivider {
+  border-top: 1px solid rgba(75, 47, 29, 0.12);
+  margin-top: 0.1rem;
+}
+
 .field {
   display: grid;
   gap: 0.32rem;

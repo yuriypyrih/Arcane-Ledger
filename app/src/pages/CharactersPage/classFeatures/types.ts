@@ -575,6 +575,7 @@ export type ActiveClassFeatureName =
   | "Barbarian"
   | "Bard"
   | "Cleric"
+  | "Custom"
   | "Druid"
   | "Fighter"
   | "Monk"
@@ -650,6 +651,8 @@ export type CollectedClassFeatureCharacter = Pick<Character, "className" | "leve
     | "abilities"
     | "subclassId"
     | "classFeatureState"
+    | "classRules"
+    | "customClass"
     | "skillProficiencies"
     | "toolProficiencies"
     | "savingThrowProficiencies"
@@ -673,7 +676,14 @@ export type ClassFeatureModule<TStateKey extends keyof CharacterClassFeatureStat
       Partial<
         Pick<
           Character,
-          "abilities" | "cantripIds" | "feats" | "inventoryItems" | "statusEntries" | "subclassId"
+          | "abilities"
+          | "cantripIds"
+          | "classRules"
+          | "customClass"
+          | "feats"
+          | "inventoryItems"
+          | "statusEntries"
+          | "subclassId"
         >
       >
   ) => CharacterClassFeatureState[TStateKey];

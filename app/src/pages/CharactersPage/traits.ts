@@ -632,7 +632,7 @@ export function getExhaustionSpeedAdjustment(
 
 export function getEffectiveHitPointMaximumForCharacter(
   character: Pick<Character, "className" | "hitPoints" | "statusEntries"> &
-    Partial<Pick<Character, "feats" | "level" | "species" | "subclassId">>
+    Partial<Pick<Character, "customSpecies" | "feats" | "level" | "species" | "subclassId">>
 ): number {
   const baseHitPoints = Math.max(1, Math.floor(character.hitPoints));
   const featureHitPointMaximumBonus = getSorcererDraconicResilienceHitPointMaximumBonus(character);

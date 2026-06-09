@@ -40,6 +40,8 @@ export function getSpellSelectionInputStatusForCharacter(
     | "className"
     | "level"
     | "subclassId"
+    | "classRules"
+    | "customClass"
     | "classFeatureState"
     | "cantripIds"
     | "preparedSpellIds"
@@ -54,12 +56,16 @@ export function getSpellSelectionInputStatusForCharacter(
     character.className,
     character.level,
     character.classFeatureState,
-    character.subclassId
+    character.subclassId,
+    character.customClass,
+    character.classRules
   );
   const cantripOptions = getCantripSelectionOptionsForCharacter(
     character.className,
     character.level,
-    character.subclassId
+    character.subclassId,
+    character.customClass,
+    character.classRules
   );
   const selectedCantripIds = normalizeTrackedSpellIds(
     character.cantripIds,
@@ -74,27 +80,41 @@ export function getSpellSelectionInputStatusForCharacter(
   const preparedSpellLimit = getPreparedSpellLimitForCharacter(
     character.className,
     character.level,
-    character.subclassId
+    character.subclassId,
+    character.customClass,
+    character.classRules
   );
   const usesPreparedSpells = usesPreparedSpellsForCharacter(
     character.className,
     character.level,
-    character.subclassId
+    character.subclassId,
+    character.customClass,
+    character.classRules
   );
-  const usesSpellbook = usesSpellbookForCharacter(character.className, character.subclassId);
+  const usesSpellbook = usesSpellbookForCharacter(
+    character.className,
+    character.subclassId,
+    character.customClass,
+    character.classRules,
+    character.level
+  );
   const spellPreparationOptions = getPreparedSpellSelectionOptionsForCharacter(
     character.className,
     character.level,
-    character.subclassId
+    character.subclassId,
+    character.customClass,
+    character.classRules
   );
   const classAlwaysPreparedSpellIds = getAlwaysPreparedSpellIds(
     character.className,
     character.level,
     character.classFeatureState,
     character.spellbookSpellIds,
-    character.subclassId,
-    character.statusEntries
-  );
+        character.subclassId,
+        character.statusEntries,
+        character.customClass,
+        character.classRules
+      );
   const featAlwaysPreparedSpellIds = getFeatAlwaysPreparedSpellEntriesForCharacter(character).map(
     (spell) => spell.id
   );

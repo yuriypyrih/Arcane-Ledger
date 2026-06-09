@@ -18,6 +18,7 @@
 .backButton {
   display: inline-flex;
   align-items: center;
+  gap: 0.34rem;
   justify-self: start;
   border: 1px solid rgba(75, 47, 29, 0.1);
   border-radius: var(--radius-pill);
@@ -126,26 +127,49 @@
   line-height: 1.05;
 }
 
+.toolToneCampaign {
+  --tool-signature: #2f78ff;
+  --tool-signature-strong: #1d4ed8;
+  --tool-signature-rgb: 47, 120, 255;
+}
+
+.toolToneParty {
+  --tool-signature: #1f9d55;
+  --tool-signature-strong: #15733f;
+  --tool-signature-rgb: 31, 157, 85;
+}
+
+.toolToneEncounter {
+  --tool-signature: #d84a2b;
+  --tool-signature-strong: #a9361f;
+  --tool-signature-rgb: 216, 74, 43;
+}
+
 .tabRow {
   display: flex;
+  align-items: flex-end;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.42rem;
+  margin-bottom: calc(var(--space-section-gap) * -1);
+  padding-inline: 0.18rem;
 }
 
 .tabButton {
   display: inline-flex;
   align-items: center;
   gap: 0.44rem;
-  border: 1px solid rgba(75, 47, 29, 0.12);
-  border-radius: var(--radius-control-lg);
-  background: rgba(255, 255, 255, 0.56);
-  color: var(--color-ink-soft);
+  position: relative;
+  border: 1px solid rgba(var(--tool-signature-rgb, 162, 77, 45), 0.24);
+  border-bottom: none;
+  border-radius: var(--radius-control-lg) var(--radius-control-lg) 0 0;
+  background: rgba(255, 253, 248, 0.84);
+  color: var(--tool-signature-strong, var(--color-ink-soft));
   cursor: pointer;
   font: inherit;
   font-size: 0.88rem;
   font-weight: 800;
-  min-height: 40px;
-  padding: 0 0.78rem;
+  min-height: 46px;
+  padding: 0.44rem 0.86rem 0.66rem;
   transition:
     background-color 140ms ease,
     border-color 140ms ease,
@@ -153,10 +177,31 @@
     color 140ms ease;
 }
 
+.tabButton::after {
+  content: "";
+  position: absolute;
+  right: 0.7rem;
+  bottom: -1px;
+  left: 0.7rem;
+  height: 2px;
+  border-radius: var(--radius-pill) var(--radius-pill) 0 0;
+  background: rgba(var(--tool-signature-rgb, 162, 77, 45), 0.28);
+  transition:
+    background-color 140ms ease,
+    height 140ms ease;
+}
+
 .tabButton:hover,
 .tabButton:focus-visible {
-  background: rgba(75, 47, 29, 0.08);
-  color: var(--color-ink);
+  border-color: rgba(var(--tool-signature-rgb, 162, 77, 45), 0.42);
+  background: rgba(var(--tool-signature-rgb, 162, 77, 45), 0.1);
+  color: var(--tool-signature-strong, var(--color-ink));
+}
+
+.tabButton:hover::after,
+.tabButton:focus-visible::after {
+  height: 4px;
+  background: rgba(var(--tool-signature-rgb, 162, 77, 45), 0.42);
 }
 
 .tabButton:focus-visible {
@@ -165,10 +210,17 @@
 }
 
 .tabButtonActive {
-  border-color: rgba(162, 77, 45, 0.34);
-  background: rgba(162, 77, 45, 0.12);
-  box-shadow: 0 8px 18px rgba(54, 34, 21, 0.06);
-  color: var(--color-ink);
+  border-color: rgba(var(--tool-signature-rgb, 162, 77, 45), 0.56);
+  background: rgba(var(--tool-signature-rgb, 162, 77, 45), 0.14);
+  box-shadow:
+    0 -1px 0 rgba(var(--tool-signature-rgb, 162, 77, 45), 0.12),
+    0 8px 18px rgba(54, 34, 21, 0.06);
+  color: var(--tool-signature-strong, var(--color-ink));
+}
+
+.tabButtonActive::after {
+  height: 4px;
+  background: var(--tool-signature, var(--color-accent));
 }
 
 .toolBody {
@@ -499,6 +551,24 @@
   opacity: 0.62;
 }
 
+.dmToolsListCardCampaign .dmToolsListCardIcon {
+  background: rgba(47, 120, 255, 0.13);
+  box-shadow: inset 0 0 0 1px rgba(47, 120, 255, 0.12);
+  color: #1d4ed8;
+}
+
+.dmToolsListCardParty .dmToolsListCardIcon {
+  background: rgba(31, 157, 85, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(31, 157, 85, 0.12);
+  color: #15733f;
+}
+
+.dmToolsListCardEncounter .dmToolsListCardIcon {
+  background: rgba(216, 74, 43, 0.14);
+  box-shadow: inset 0 0 0 1px rgba(216, 74, 43, 0.13);
+  color: #a9361f;
+}
+
 .dmToolsListCardDanger {
   border-color: rgba(150, 47, 47, 0.28);
   background: rgba(150, 47, 47, 0.09);
@@ -608,6 +678,11 @@ button.dmToolsListCardMain:disabled {
   gap: 0.82rem;
   border-top: 1px solid rgba(75, 47, 29, 0.1);
   padding-top: var(--space-section-gap);
+}
+
+.campaignDetailSummaryPanel {
+  align-content: start;
+  min-height: 180px;
 }
 
 .linkResult {

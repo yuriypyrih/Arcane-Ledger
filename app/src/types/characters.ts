@@ -40,8 +40,56 @@ export type AbilityScores = Record<AbilityKey, number>;
 
 export type CharacterCustomHitDie = "d6" | "d8" | "d10" | "d12";
 
-export type CharacterCustomClassConfig = {
+export type CharacterCustomSubclassConfig = {
+  id: string;
+  name: string;
+  className: string;
+};
+
+export type CharacterCustomSpeciesSize = BODY_SIZE.SMALL | BODY_SIZE.MEDIUM | BODY_SIZE.LARGE;
+
+export type CharacterCustomSpeciesConfig = {
+  id: string;
+  name: string;
+  speed: number;
+  size: CharacterCustomSpeciesSize;
+};
+
+export type CharacterCustomBackgroundConfig = {
+  id: string;
+  name: string;
+};
+
+export type CharacterClassMechanics = {
+  extraAttacks: {
+    enabled: boolean;
+    count: number;
+  };
+  eldritchInvocations: {
+    enabled: boolean;
+    selectionIds: string[];
+  };
+  spellcasting: {
+    enabled: boolean;
+  };
+};
+
+export type CharacterCustomClassMechanics = CharacterClassMechanics;
+
+export type CharacterClassRulesConfig = {
+  classRulesEnforced: boolean;
+  spellcastingRulesEnforced: boolean;
   hitDie: CharacterCustomHitDie;
+  spellcastingAbility: AbilityKey;
+  spellSlotMaximums: number[];
+  mechanics: CharacterClassMechanics;
+};
+
+export type CharacterCustomClassConfig = {
+  id?: string;
+  name?: string;
+  hitDie: CharacterCustomHitDie;
+  mechanics: CharacterCustomClassMechanics;
   spellcastingAbility: AbilityKey;
   spellSlotMaximums: number[];
 };
@@ -413,9 +461,12 @@ export type Character = {
   name: string;
   species: string;
   speciesChoices?: CharacterSpeciesChoices;
+  customSpecies?: CharacterCustomSpeciesConfig;
   speciesFeatureState?: CharacterSpeciesFeatureState;
   className: string;
   subclassId?: string;
+  customSubclass?: CharacterCustomSubclassConfig;
+  classRules?: CharacterClassRulesConfig;
   customClass?: CharacterCustomClassConfig;
   level: number;
   xp: number;
@@ -431,6 +482,7 @@ export type Character = {
   abilities: AbilityScores;
   alignment: Alignment;
   background: string;
+  customBackground?: CharacterCustomBackgroundConfig;
   backgroundChoices?: CharacterBackgroundChoices;
   backgroundNotes: string;
   currencies: CharacterCurrencies;
@@ -468,9 +520,12 @@ export type CharacterDraft = {
   name: string;
   species: string;
   speciesChoices?: CharacterSpeciesChoices;
+  customSpecies?: CharacterCustomSpeciesConfig;
   speciesFeatureState?: CharacterSpeciesFeatureState;
   className: string;
   subclassId?: string;
+  customSubclass?: CharacterCustomSubclassConfig;
+  classRules?: CharacterClassRulesConfig;
   customClass?: CharacterCustomClassConfig;
   level: number;
   xp: number;
@@ -486,6 +541,7 @@ export type CharacterDraft = {
   abilities: AbilityScores;
   alignment: Alignment;
   background: string;
+  customBackground?: CharacterCustomBackgroundConfig;
   backgroundChoices?: CharacterBackgroundChoices;
   backgroundNotes: string;
   currencies: CharacterCurrencies;

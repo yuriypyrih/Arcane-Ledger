@@ -733,7 +733,14 @@ export function normalizeCharacterClassFeatureState(
     Partial<
       Pick<
         Character,
-        "abilities" | "cantripIds" | "feats" | "inventoryItems" | "statusEntries" | "subclassId"
+        | "abilities"
+        | "cantripIds"
+        | "classRules"
+        | "customClass"
+        | "feats"
+        | "inventoryItems"
+        | "statusEntries"
+        | "subclassId"
       >
     >
 ): CharacterClassFeatureState {

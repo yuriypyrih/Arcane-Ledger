@@ -7,6 +7,7 @@ import ActionShape, {
   getActionShapeForCastingTime,
   type ActionShapeType
 } from "../../../ActionShape";
+import { useExplicitBackdropClick } from "../../../Overlay";
 import CellContainer from "../../../CellContainer/CellContainer";
 import ConcentrationLabel from "../../../ConcentrationLabel";
 import KeywordReferenceDrawer from "../../../KeywordReferenceDrawer/KeywordReferenceDrawer";
@@ -284,6 +285,8 @@ function CharacterSpellDrawer({
   forcedSpellImplementationOptions,
   backdropClassName
 }: CharacterSpellDrawerProps) {
+  const { onBackdropClick, onBackdropPointerDown, onContentClick } =
+    useExplicitBackdropClick(onClose);
   const [isComponentsTooltipOpen, setIsComponentsTooltipOpen] = useState(false);
   const [selectedTrackingKeyword, setSelectedTrackingKeyword] =
     useState<ResolvedKeywordReference | null>(null);
@@ -700,14 +703,15 @@ function CharacterSpellDrawer({
       <div
         className={clsx(sheetStyles.spellDrawerBackdrop, backdropClassName)}
         role="presentation"
-        onClick={onClose}
+        onClick={onBackdropClick}
+        onPointerDown={onBackdropPointerDown}
       >
         <section
           className={sheetStyles.spellDrawer}
           role="dialog"
           aria-modal="true"
           aria-labelledby="character-spell-drawer-title"
-          onClick={(event) => event.stopPropagation()}
+          onClick={onContentClick}
         >
           <div className={sheetStyles.spellDrawerHeader}>
             <div className={sheetStyles.spellDrawerHeaderContent}>

@@ -196,6 +196,7 @@ function CampaignManagerBody({ panelId, tabId }: CampaignManagerBodyProps) {
               } · ${campaign.preparedEncounterCount} ${
                 campaign.preparedEncounterCount === 1 ? "encounter" : "encounters"
               }`}
+              tone="campaign"
               to={`/gm-tools/campaign-manager/${campaign.id}`}
               actions={[
                 {

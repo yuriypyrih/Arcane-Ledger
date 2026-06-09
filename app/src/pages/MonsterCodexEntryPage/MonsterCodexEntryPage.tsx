@@ -1,7 +1,17 @@
+import { ArrowLeft } from "lucide-react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import MonsterEntryRenderer from "../../components/MonsterEntryRenderer";
 import styles from "./MonsterCodexEntryPage.module.css";
 import { useMonsterEntry } from "./useMonsterEntry";
+
+function BackToCompendiumLabel() {
+  return (
+    <>
+      <ArrowLeft size={14} aria-hidden="true" />
+      <span>Back to compendium</span>
+    </>
+  );
+}
 
 function MonsterCodexEntryPage() {
   const navigate = useNavigate();
@@ -14,7 +24,7 @@ function MonsterCodexEntryPage() {
   return (
     <section className={styles.page}>
       <button type="button" className={styles.backButton} onClick={() => navigate(backToCodexPath)}>
-        Back to compendium
+        <BackToCompendiumLabel />
       </button>
 
       {status === "loading" ? (
@@ -29,7 +39,7 @@ function MonsterCodexEntryPage() {
           <h2>Monster unavailable</h2>
           <p>The selected monster could not be loaded.</p>
           <Link to={backToCodexPath} className={styles.linkButton}>
-            Back to compendium
+            <BackToCompendiumLabel />
           </Link>
         </article>
       ) : null}
@@ -39,7 +49,7 @@ function MonsterCodexEntryPage() {
           <h2>Server Unavailable</h2>
           <p>Monster details are unavailable because the backend is not configured or cannot be reached.</p>
           <Link to={backToCodexPath} className={styles.linkButton}>
-            Back to compendium
+            <BackToCompendiumLabel />
           </Link>
         </article>
       ) : null}
@@ -49,7 +59,7 @@ function MonsterCodexEntryPage() {
           <h2>Monster not found</h2>
           <p>The selected monster could not be found.</p>
           <Link to={backToCodexPath} className={styles.linkButton}>
-            Back to compendium
+            <BackToCompendiumLabel />
           </Link>
         </article>
       ) : null}

@@ -222,7 +222,6 @@ export function isWarlockPactBladeWeaponAction(
   selectedInvocationIds: ReadonlySet<ELDRITCH_INVOCATION>
 ): boolean {
   if (
-    character.className !== "Warlock" ||
     action.attackKind !== "weapon" ||
     !selectedInvocationIds.has(ELDRITCH_INVOCATION.PACT_OF_THE_BLADE)
   ) {
@@ -242,7 +241,6 @@ export function isWarlockPactBladeWeaponAttackContext(
   selectedInvocationIds: ReadonlySet<ELDRITCH_INVOCATION>
 ): boolean {
   if (
-    character.className !== "Warlock" ||
     action.attackKind !== "weapon" ||
     !selectedInvocationIds.has(ELDRITCH_INVOCATION.PACT_OF_THE_BLADE)
   ) {

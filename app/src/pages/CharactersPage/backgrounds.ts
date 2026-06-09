@@ -6,6 +6,7 @@ import type {
   CharacterBackgroundAbilityScoreIncrease,
   CharacterBackgroundChoices,
   CharacterBackgroundEquipmentMode,
+  CharacterCustomBackgroundConfig,
   CharacterFeatEntry,
   MagicInitiateChoice,
   SkillName
@@ -28,6 +29,7 @@ import {
   languageProficiencyOptions,
   type ToolProficiency
 } from "./proficiencyOptions";
+import { getCharacterBackgroundDisplayName, isCustomBackgroundName } from "./customOrigins";
 
 type BackgroundChoiceContext = {
   preferredAbilities?: AbilityKey[];
@@ -85,6 +87,31 @@ function isAbilityScoreIncreaseValidForBackground(
   }
 
   const allowedAbilitySet = new Set<AbilityKey>(entry.abilityScoreOptions);
+
+  if (choice.mode === "two-one") {
+    return (
+      allowedAbilitySet.has(choice.primaryAbility) &&
+      allowedAbilitySet.has(choice.secondaryAbility) &&
+      choice.primaryAbility !== choice.secondaryAbility
+    );
+  }
+
+  return (
+    choice.abilities.length === 3 &&
+    new Set(choice.abilities).size === 3 &&
+    choice.abilities.every((ability) => allowedAbilitySet.has(ability))
+  );
+}
+
+function isAbilityScoreIncreaseValidForAbilities(
+  allowedAbilities: readonly AbilityKey[],
+  choice: CharacterBackgroundAbilityScoreIncrease | undefined
+): boolean {
+  if (!choice) {
+    return false;
+  }
+
+  const allowedAbilitySet = new Set<AbilityKey>(allowedAbilities);
 
   if (choice.mode === "two-one") {
     return (
@@ -237,6 +264,52 @@ function normalizeAbilityScoreIncrease(
   };
 }
 
+function normalizeCustomBackgroundAbilityScoreIncrease(
+  value: unknown,
+  context?: BackgroundChoiceContext
+): CharacterBackgroundAbilityScoreIncrease {
+  if (value && typeof value === "object") {
+    const record = value as Partial<CharacterBackgroundAbilityScoreIncrease>;
+
+    if (
+      record.mode === "two-one" &&
+      isAbilityScoreIncreaseValidForAbilities(abilityKeys, {
+        mode: "two-one",
+        primaryAbility: record.primaryAbility as AbilityKey,
+        secondaryAbility: record.secondaryAbility as AbilityKey
+      })
+    ) {
+      return {
+        mode: "two-one",
+        primaryAbility: record.primaryAbility as AbilityKey,
+        secondaryAbility: record.secondaryAbility as AbilityKey
+      };
+    }
+
+    if (
+      record.mode === "one-one-one" &&
+      Array.isArray(record.abilities) &&
+      isAbilityScoreIncreaseValidForAbilities(abilityKeys, {
+        mode: "one-one-one",
+        abilities: record.abilities as [AbilityKey, AbilityKey, AbilityKey]
+      })
+    ) {
+      return {
+        mode: "one-one-one",
+        abilities: record.abilities as [AbilityKey, AbilityKey, AbilityKey]
+      };
+    }
+  }
+
+  const abilityOrder = getPreferredAbilityOrder(context);
+
+  return {
+    mode: "two-one",
+    primaryAbility: abilityOrder[0] ?? "STR",
+    secondaryAbility: abilityOrder[1] ?? "DEX"
+  };
+}
+
 function normalizeEquipmentMode(value: unknown): CharacterBackgroundEquipmentMode {
   return typeof value === "string" &&
     backgroundEquipmentModes.has(value as CharacterBackgroundEquipmentMode)
@@ -314,6 +387,23 @@ export function normalizeBackgroundChoices(
   value: unknown,
   context?: BackgroundChoiceContext
 ): CharacterBackgroundChoices | undefined {
+  if (isCustomBackgroundName(background)) {
+    const record =
+      value && typeof value === "object" ? (value as Partial<CharacterBackgroundChoices>) : {};
+    const hasLanguageChoices =
+      value !== null && typeof value === "object" && "languageProficiencies" in value;
+
+    return {
+      abilityScoreIncrease: normalizeCustomBackgroundAbilityScoreIncrease(
+        record.abilityScoreIncrease,
+        context
+      ),
+      languageProficiencies: normalizeBackgroundLanguageProficiencies(
+        hasLanguageChoices ? record.languageProficiencies : undefined
+      )
+    };
+  }
+
   const entry = getBackgroundEntry(background);
 
   if (!entry) {
@@ -390,6 +480,10 @@ export function getBackgroundLanguageProficiencies(
   background: string,
   choices?: CharacterBackgroundChoices
 ): LANGUAGE_PROFICIENCY[] {
+  if (isCustomBackgroundName(background)) {
+    return normalizeBackgroundLanguageProficiencies(choices?.languageProficiencies);
+  }
+
   const entry = getBackgroundEntry(background);
 
   if (!entry) {
@@ -414,23 +508,34 @@ export function getBackgroundEquipmentChoice(
 }
 
 export function getBackgroundAbilityScoreBonusesForCharacter(
-  character: Partial<Pick<Character, "background" | "backgroundChoices">>
+  character: Partial<
+    Pick<Character, "background" | "backgroundChoices"> & {
+      customBackground?: CharacterCustomBackgroundConfig;
+    }
+  >
 ) {
   const entry = getBackgroundEntry(character.background ?? "");
+  const isCustomBackground = isCustomBackgroundName(character.background);
   const choices = normalizeBackgroundChoices(
     character.background ?? "",
     character.backgroundChoices
   );
   const abilityScoreIncrease = choices?.abilityScoreIncrease;
+  const backgroundLabel = isCustomBackground
+    ? getCharacterBackgroundDisplayName({
+        background: character.background ?? "",
+        customBackground: character.customBackground
+      })
+    : entry?.name;
 
-  if (!entry || !abilityScoreIncrease) {
+  if ((!entry && !isCustomBackground) || !abilityScoreIncrease || !backgroundLabel) {
     return [];
   }
 
   if (abilityScoreIncrease.mode === "one-one-one") {
     return abilityScoreIncrease.abilities.map((ability, index) => ({
       ability,
-      label: `${entry.name} Background`,
+      label: `${backgroundLabel} Background`,
       value: 1,
       maxScore: 20,
       order: -100 + index
@@ -440,14 +545,14 @@ export function getBackgroundAbilityScoreBonusesForCharacter(
   return [
     {
       ability: abilityScoreIncrease.primaryAbility,
-      label: `${entry.name} Background`,
+      label: `${backgroundLabel} Background`,
       value: 2,
       maxScore: 20,
       order: -101
     },
     {
       ability: abilityScoreIncrease.secondaryAbility,
-      label: `${entry.name} Background`,
+      label: `${backgroundLabel} Background`,
       value: 1,
       maxScore: 20,
       order: -100

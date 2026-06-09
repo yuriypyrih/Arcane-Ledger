@@ -33,7 +33,11 @@ import {
   normalizeCharacterClassFeatureState
 } from "../classFeatures";
 import { shouldTrackRoundScopedResources } from "../combat";
-import { isCustomClassName, normalizeCustomClassConfig } from "../customClass";
+import {
+  isCustomClassName,
+  normalizeCharacterClassRulesConfig,
+  normalizeCustomClassConfig
+} from "../customClass";
 import { reconcileCharacterStatusConsequences } from "../traits";
 import { characterSheetDomains, type CharacterSheetDomain } from "./domains";
 
@@ -102,10 +106,19 @@ function normalizeStatusRuntime(character: Character): Character {
 
 function normalizeFeatureRuntime(character: Character): Character {
   const normalizedCustomClass = isCustomClassName(character.className)
-    ? normalizeCustomClassConfig(character.customClass)
+    ? normalizeCustomClassConfig(character.customClass, {
+        legacySpellcastingEnabled: character.customClass === undefined
+      })
     : undefined;
+  const normalizedClassRules = normalizeCharacterClassRulesConfig(character.classRules, {
+    className: character.className,
+    legacyCustomClass: normalizedCustomClass,
+    legacySpellcastingEnabled:
+      isCustomClassName(character.className) && character.customClass === undefined
+  });
   const normalizedCharacter = {
     ...character,
+    classRules: normalizedClassRules,
     customClass: normalizedCustomClass,
     speciesFeatureState: normalizeCharacterSpeciesFeatureState(
       character.species,
@@ -115,6 +128,8 @@ function normalizeFeatureRuntime(character: Character): Character {
       className: character.className,
       level: character.level,
       subclassId: character.subclassId,
+      classRules: normalizedClassRules,
+      customClass: normalizedCustomClass,
       abilities: character.abilities,
       cantripIds: character.cantripIds,
       feats: character.feats
@@ -128,22 +143,34 @@ function normalizeFeatureRuntime(character: Character): Character {
 
 function normalizeSpellRuntime(character: Character): Character {
   const normalizedCustomClass = isCustomClassName(character.className)
-    ? normalizeCustomClassConfig(character.customClass)
+    ? normalizeCustomClassConfig(character.customClass, {
+        legacySpellcastingEnabled: character.customClass === undefined
+      })
     : undefined;
+  const normalizedClassRules = normalizeCharacterClassRulesConfig(character.classRules, {
+    className: character.className,
+    legacyCustomClass: normalizedCustomClass,
+    legacySpellcastingEnabled:
+      isCustomClassName(character.className) && character.customClass === undefined
+  });
   const rawPersistedCantripIds = normalizeRuntimeSpellIds(character.cantripIds);
   const rawCantripIds = rawPersistedCantripIds;
   const cantripSelectionOptionIds = new Set(
     getCantripSelectionOptionsForCharacter(
       character.className,
       character.level,
-      character.subclassId
+      character.subclassId,
+      normalizedCustomClass,
+      normalizedClassRules
     ).map((spell) => spell.id)
   );
   const cantripLimit = getCantripLimitForCharacter(
     character.className,
     character.level,
     character.classFeatureState,
-    character.subclassId
+    character.subclassId,
+    normalizedCustomClass,
+    normalizedClassRules
   );
   const normalizedCantripIds = [...new Set(rawCantripIds)]
     .filter((spellId) => cantripSelectionOptionIds.has(spellId))
@@ -154,6 +181,8 @@ function normalizeSpellRuntime(character: Character): Character {
       className: character.className,
       level: character.level,
       subclassId: character.subclassId,
+      classRules: normalizedClassRules,
+      customClass: normalizedCustomClass,
       abilities: character.abilities,
       cantripIds: normalizedCantripIds,
       feats: character.feats
@@ -163,27 +192,40 @@ function normalizeSpellRuntime(character: Character): Character {
   const preparedSpellSelectionOptions = getPreparedSpellSelectionOptionsForCharacter(
     character.className,
     character.level,
-    character.subclassId
+    character.subclassId,
+    normalizedCustomClass,
+    normalizedClassRules
   );
   const preparedSpellSelectionOptionIds = new Set(
     preparedSpellSelectionOptions.map((spell) => spell.id)
   );
   const rawSpellbookSpellIds = Array.isArray(character.spellbookSpellIds)
     ? normalizeRuntimeSpellIds(character.spellbookSpellIds)
-    : usesSpellbookForCharacter(character.className, character.subclassId)
+    : usesSpellbookForCharacter(
+          character.className,
+          character.subclassId,
+          normalizedCustomClass,
+          normalizedClassRules,
+          character.level
+        )
       ? rawPreparedSpellIds
       : [];
   const alwaysSpellbookSpellIds = getAlwaysSpellbookSpellIdsForCharacter({
     className: character.className,
     level: character.level,
     classFeatureState: normalizedClassFeatureState,
+    classRules: normalizedClassRules,
+    customClass: normalizedCustomClass,
     spellbookSpellIds: rawSpellbookSpellIds,
     subclassId: character.subclassId
   });
   const alwaysSpellbookSpellIdSet = new Set(alwaysSpellbookSpellIds);
   const normalizedSpellbookSpellIds = usesSpellbookForCharacter(
     character.className,
-    character.subclassId
+    character.subclassId,
+    normalizedCustomClass,
+    normalizedClassRules,
+    character.level
   )
     ? normalizeSpellbookSpellIds(
         rawSpellbookSpellIds.filter(
@@ -201,11 +243,23 @@ function normalizeSpellRuntime(character: Character): Character {
     rawPreparedSpellIds.filter(
       (spellId) =>
         preparedSpellSelectionOptionIds.has(spellId) &&
-        (!usesSpellbookForCharacter(character.className, character.subclassId) ||
+        (!usesSpellbookForCharacter(
+          character.className,
+          character.subclassId,
+          normalizedCustomClass,
+          normalizedClassRules,
+          character.level
+        ) ||
           normalizedSpellbookSpellIdSet.has(spellId))
     ),
     preparedSpellSelectionOptions,
-    getPreparedSpellLimitForCharacter(character.className, character.level, character.subclassId),
+    getPreparedSpellLimitForCharacter(
+      character.className,
+      character.level,
+      character.subclassId,
+      normalizedCustomClass,
+      normalizedClassRules
+    ),
     [
       ...getAlwaysPreparedSpellIds(
         character.className,
@@ -213,7 +267,9 @@ function normalizeSpellRuntime(character: Character): Character {
         normalizedClassFeatureState,
         undefined,
         character.subclassId,
-        character.statusEntries
+        character.statusEntries,
+        normalizedCustomClass,
+        normalizedClassRules
       ),
       ...getSpeciesAlwaysPreparedSpellIdsForCharacter(character)
     ]
@@ -222,11 +278,13 @@ function normalizeSpellRuntime(character: Character): Character {
     character.className,
     character.level,
     character.subclassId,
-    normalizedCustomClass
+    normalizedCustomClass,
+    normalizedClassRules
   );
 
   return {
     ...character,
+    classRules: normalizedClassRules,
     customClass: normalizedCustomClass,
     speciesFeatureState: normalizeCharacterSpeciesFeatureState(
       character.species,

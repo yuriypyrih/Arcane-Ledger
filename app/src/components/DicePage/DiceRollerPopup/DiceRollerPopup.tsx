@@ -4,6 +4,7 @@ import { lazy, Suspense, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { loadD20Viewport } from "../../D20Viewport/lazy";
 import { useBodyScrollLock } from "../../../lib/useBodyScrollLock";
+import { useExplicitBackdropClick } from "../../Overlay";
 import type { NaturalOutcome } from "../../../types";
 import styles from "./DiceRollerPopup.module.css";
 import type { DiceRollerPopupState } from "./types";
@@ -43,6 +44,9 @@ function renderNaturalOutcomePill(outcome: NaturalOutcome) {
 }
 
 function DiceRollerPopup({ state, onClose, onRollComplete }: DiceRollerPopupProps) {
+  const { onBackdropClick, onBackdropPointerDown, onContentClick } =
+    useExplicitBackdropClick(onClose);
+
   useBodyScrollLock(Boolean(state));
 
   useEffect(() => {
@@ -75,13 +79,18 @@ function DiceRollerPopup({ state, onClose, onRollComplete }: DiceRollerPopupProp
   const hasMultipleResults = state.results.length > 1;
 
   return createPortal(
-    <div className={styles.modalBackdrop} role="presentation" onClick={onClose}>
+    <div
+      className={styles.modalBackdrop}
+      role="presentation"
+      onClick={onBackdropClick}
+      onPointerDown={onBackdropPointerDown}
+    >
       <section
         className={styles.modalCard}
         role="dialog"
         aria-modal="true"
         aria-label={request.title}
-        onClick={(event) => event.stopPropagation()}
+        onClick={onContentClick}
       >
         <button
           type="button"

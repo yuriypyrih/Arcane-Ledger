@@ -6,6 +6,10 @@ import {
   type SpellEntry
 } from "../../../../../codex/entries";
 import type { Character, CharacterWarlockFeatureState } from "../../../../../types";
+import {
+  getCharacterClassRulesEldritchInvocationSelectionIds,
+  isCharacterClassRulesEldritchInvocationsEnabled
+} from "../../../customClass";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import {
   appendSourcedDescriptionAddition,
@@ -35,7 +39,9 @@ export type WarlockInvocationContributionCharacter = Pick<Character, "className"
       Character,
       | "abilities"
       | "cantripIds"
+      | "classRules"
       | "classFeatureState"
+      | "customClass"
       | "inventoryItems"
       | "spellSlotsExpended"
       | "statusEntries"
@@ -62,9 +68,22 @@ function getWarlockFeatureState(
   return character.classFeatureState?.warlock ?? {};
 }
 
+function hasInvocationContributionAccess(
+  character: WarlockInvocationContributionCharacter
+): boolean {
+  return (
+    character.className === "Warlock" ||
+    isCharacterClassRulesEldritchInvocationsEnabled(character)
+  );
+}
+
 export function getWarlockInvocationSelectionIdsFromCharacter(
   character: WarlockInvocationContributionCharacter
 ): string[] {
+  if (character.className !== "Warlock") {
+    return getCharacterClassRulesEldritchInvocationSelectionIds(character);
+  }
+
   return getWarlockFeatureState(character).eldritchInvocationIds ?? [];
 }
 
@@ -236,7 +255,7 @@ function createSpellGrant(spell: SpellEntry, sourceLabel: string) {
 export function collectWarlockInvocationContributions(
   character: WarlockInvocationContributionCharacter
 ): FeatureContributionSpec[] {
-  if (character.className !== "Warlock") {
+  if (!hasInvocationContributionAccess(character)) {
     return [];
   }
 

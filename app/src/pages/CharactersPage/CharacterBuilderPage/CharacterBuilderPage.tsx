@@ -1,3 +1,4 @@
+import { ArrowLeft } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { importCharacterSheets } from "../../../api/characters";
@@ -28,6 +29,15 @@ import {
 import { normalizeCharacter, upsertCharacter } from "../storage";
 import { useCharacterRosterEntries } from "../useCharacterRosterEntries";
 import styles from "./CharacterBuilderPage.module.css";
+
+function BackToCharactersLabel() {
+  return (
+    <>
+      <ArrowLeft size={16} aria-hidden="true" />
+      <span>Back to characters</span>
+    </>
+  );
+}
 
 function CharacterBuilderPage() {
   const dispatch = useAppDispatch();
@@ -228,7 +238,7 @@ function CharacterBuilderPage() {
           <h2 className={styles.title}>Loading character</h2>
           <p className={styles.description}>Preparing the selected sheet.</p>
           <Link to="/characters" className={styles.primaryButton}>
-            Back to characters
+            <BackToCharactersLabel />
           </Link>
         </div>
       </section>
@@ -245,7 +255,7 @@ function CharacterBuilderPage() {
             The selected sheet could not be loaded. Your local and cloud copies were left unchanged.
           </p>
           <Link to="/characters" className={styles.primaryButton}>
-            Back to characters
+            <BackToCharactersLabel />
           </Link>
         </div>
       </section>
@@ -262,7 +272,7 @@ function CharacterBuilderPage() {
             That sheet is no longer in local storage, so there is nothing to edit.
           </p>
           <Link to="/characters" className={styles.primaryButton}>
-            Back to characters
+            <BackToCharactersLabel />
           </Link>
         </div>
       </section>
@@ -277,7 +287,7 @@ function CharacterBuilderPage() {
           <h2 className={styles.title}>Checking character limit</h2>
           <p className={styles.description}>Your session is still loading.</p>
           <Link to="/characters" className={styles.primaryButton}>
-            Back to characters
+            <BackToCharactersLabel />
           </Link>
         </div>
       </section>
@@ -294,7 +304,7 @@ function CharacterBuilderPage() {
             This roster already has {characterCount}/{characterLimit} characters.
           </p>
           <Link to="/characters" className={styles.primaryButton}>
-            Back to characters
+            <BackToCharactersLabel />
           </Link>
         </div>
       </section>

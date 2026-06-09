@@ -22,7 +22,22 @@ import {
   getTieflingSpellcastingAbilityOptionsForSpecies,
   normalizeCharacterSpeciesChoices
 } from "../../../../pages/CharactersPage/species";
-import type { Character, CharacterSpeciesChoices } from "../../../../types";
+import type {
+  Character,
+  CharacterCustomSpeciesConfig,
+  CharacterSpeciesChoices
+} from "../../../../types";
+import {
+  CUSTOM_SPECIES_NAME,
+  CUSTOM_SPECIES_NAME_MAX_LENGTH,
+  CUSTOM_SPECIES_SPEED_MAXIMUM,
+  CUSTOM_SPECIES_SPEED_MINIMUM,
+  createDefaultCustomSpeciesConfig,
+  customSpeciesSizeOptions,
+  isCustomSpeciesName,
+  normalizeCustomSpeciesConfig,
+  normalizeCustomSpeciesSpeed
+} from "../../../../pages/CharactersPage/customOrigins";
 import {
   OverlayBody,
   OverlayCloseButton,
@@ -34,7 +49,9 @@ import {
   SheetModal
 } from "../../../Overlay";
 import ActionButton from "../../../ActionButton";
+import NumberInput from "../../FormInputs/NumberInput";
 import SelectInput from "../../FormInputs/SelectInput";
+import TextInput from "../../FormInputs/TextInput";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./FeatEditorModal.module.css";
 import { buildSkillSelectOptions, getSourceChoiceSkillOptions } from "./helpers";
@@ -42,7 +59,11 @@ import { buildSkillSelectOptions, getSourceChoiceSkillOptions } from "./helpers"
 type SpeciesEditorModalProps = {
   character: Character;
   onCancel: () => void;
-  onSave: (species: string, speciesChoices?: CharacterSpeciesChoices) => void;
+  onSave: (
+    species: string,
+    speciesChoices?: CharacterSpeciesChoices,
+    customSpecies?: CharacterCustomSpeciesConfig
+  ) => void;
 };
 
 function SpeciesEditorModal({ character, onCancel, onSave }: SpeciesEditorModalProps) {
@@ -50,6 +71,14 @@ function SpeciesEditorModal({ character, onCancel, onSave }: SpeciesEditorModalP
   const [draftChoices, setDraftChoices] = useState<CharacterSpeciesChoices | undefined>(() =>
     normalizeCharacterSpeciesChoices(character.species, character.speciesChoices)
   );
+  const [draftCustomSpecies, setDraftCustomSpecies] = useState<CharacterCustomSpeciesConfig>(() =>
+    isCustomSpeciesName(character.species)
+      ? (normalizeCustomSpeciesConfig(character.customSpecies) ??
+        createDefaultCustomSpeciesConfig())
+      : createDefaultCustomSpeciesConfig()
+  );
+  const isDraftCustomSpecies = isCustomSpeciesName(draftSpecies);
+  const normalizedCustomSpecies = normalizeCustomSpeciesConfig(draftCustomSpecies);
   const normalizedChoices = useMemo(
     () => normalizeCharacterSpeciesChoices(draftSpecies, draftChoices),
     [draftChoices, draftSpecies]
@@ -91,25 +120,26 @@ function SpeciesEditorModal({ character, onCancel, onSave }: SpeciesEditorModalP
     selectedHumanSkillProficiency
   );
   const requiresBodySize = bodySizeOptions.length > 1;
-  const isReady =
-    draftSpecies.trim().length > 0 &&
-    (!requiresBodySize || Boolean(normalizedChoices?.bodySize)) &&
-    (draconicAncestryOptions.length === 0 || Boolean(normalizedChoices?.draconicAncestry)) &&
-    (elfLineageOptions.length === 0 || Boolean(normalizedChoices?.elvenLineage)) &&
-    (elfSkillProficiencyOptions.length === 0 ||
-      Boolean(normalizedChoices?.elvenSkillProficiency)) &&
-    (elfSpellcastingAbilityOptions.length === 0 ||
-      Boolean(normalizedChoices?.elvenSpellcastingAbility)) &&
-    (gnomeLineageOptions.length === 0 || Boolean(normalizedChoices?.gnomeLineage)) &&
-    (gnomeSpellcastingAbilityOptions.length === 0 ||
-      Boolean(normalizedChoices?.gnomeSpellcastingAbility)) &&
-    (giantAncestryOptions.length === 0 || Boolean(normalizedChoices?.giantAncestry)) &&
-    (humanSkillProficiencyOptions.length === 0 ||
-      Boolean(normalizedChoices?.humanSkillProficiency)) &&
-    (humanOriginFeatOptions.length === 0 || Boolean(normalizedChoices?.humanOriginFeat)) &&
-    (tieflingLegacyOptions.length === 0 || Boolean(normalizedChoices?.tieflingLegacy)) &&
-    (tieflingSpellcastingAbilityOptions.length === 0 ||
-      Boolean(normalizedChoices?.tieflingSpellcastingAbility));
+  const isReady = isDraftCustomSpecies
+    ? Boolean(normalizedCustomSpecies?.name.trim())
+    : draftSpecies.trim().length > 0 &&
+      (!requiresBodySize || Boolean(normalizedChoices?.bodySize)) &&
+      (draconicAncestryOptions.length === 0 || Boolean(normalizedChoices?.draconicAncestry)) &&
+      (elfLineageOptions.length === 0 || Boolean(normalizedChoices?.elvenLineage)) &&
+      (elfSkillProficiencyOptions.length === 0 ||
+        Boolean(normalizedChoices?.elvenSkillProficiency)) &&
+      (elfSpellcastingAbilityOptions.length === 0 ||
+        Boolean(normalizedChoices?.elvenSpellcastingAbility)) &&
+      (gnomeLineageOptions.length === 0 || Boolean(normalizedChoices?.gnomeLineage)) &&
+      (gnomeSpellcastingAbilityOptions.length === 0 ||
+        Boolean(normalizedChoices?.gnomeSpellcastingAbility)) &&
+      (giantAncestryOptions.length === 0 || Boolean(normalizedChoices?.giantAncestry)) &&
+      (humanSkillProficiencyOptions.length === 0 ||
+        Boolean(normalizedChoices?.humanSkillProficiency)) &&
+      (humanOriginFeatOptions.length === 0 || Boolean(normalizedChoices?.humanOriginFeat)) &&
+      (tieflingLegacyOptions.length === 0 || Boolean(normalizedChoices?.tieflingLegacy)) &&
+      (tieflingSpellcastingAbilityOptions.length === 0 ||
+        Boolean(normalizedChoices?.tieflingSpellcastingAbility));
 
   function updateChoices(nextChoices: CharacterSpeciesChoices) {
     setDraftChoices(normalizeCharacterSpeciesChoices(draftSpecies, nextChoices));
@@ -120,7 +150,11 @@ function SpeciesEditorModal({ character, onCancel, onSave }: SpeciesEditorModalP
       return;
     }
 
-    onSave(draftSpecies.trim(), normalizeCharacterSpeciesChoices(draftSpecies, draftChoices));
+    onSave(
+      draftSpecies.trim(),
+      normalizeCharacterSpeciesChoices(draftSpecies, draftChoices),
+      isDraftCustomSpecies ? normalizedCustomSpecies : undefined
+    );
   }
 
   return (
@@ -154,6 +188,12 @@ function SpeciesEditorModal({ character, onCancel, onSave }: SpeciesEditorModalP
               onChange={(event) => {
                 setDraftSpecies(event.target.value);
                 setDraftChoices(undefined);
+                if (isCustomSpeciesName(event.target.value)) {
+                  setDraftCustomSpecies(
+                    normalizeCustomSpeciesConfig(draftCustomSpecies) ??
+                      createDefaultCustomSpeciesConfig()
+                  );
+                }
               }}
             >
               <option value="">Select a species</option>
@@ -162,8 +202,65 @@ function SpeciesEditorModal({ character, onCancel, onSave }: SpeciesEditorModalP
                   {species}
                 </option>
               ))}
+              <option disabled value="__custom-species-divider">
+                ──────────
+              </option>
+              <option value={CUSTOM_SPECIES_NAME}>{CUSTOM_SPECIES_NAME}</option>
             </SelectInput>
           </label>
+
+          {isDraftCustomSpecies ? (
+            <>
+              <label className={styles.field}>
+                Custom species name
+                <TextInput
+                  value={draftCustomSpecies.name}
+                  maxLength={CUSTOM_SPECIES_NAME_MAX_LENGTH}
+                  onChange={(event) =>
+                    setDraftCustomSpecies((current) => ({
+                      ...current,
+                      name: event.target.value.slice(0, CUSTOM_SPECIES_NAME_MAX_LENGTH)
+                    }))
+                  }
+                />
+              </label>
+
+              <label className={styles.field}>
+                Speed
+                <NumberInput
+                  value={draftCustomSpecies.speed}
+                  min={CUSTOM_SPECIES_SPEED_MINIMUM}
+                  max={CUSTOM_SPECIES_SPEED_MAXIMUM}
+                  onChange={(event) =>
+                    setDraftCustomSpecies((current) => ({
+                      ...current,
+                      speed: normalizeCustomSpeciesSpeed(event.target.value)
+                    }))
+                  }
+                />
+              </label>
+
+              <label className={styles.field}>
+                Size
+                <SelectInput
+                  compact
+                  value={draftCustomSpecies.size}
+                  onChange={(event) =>
+                    setDraftCustomSpecies((current) => ({
+                      ...current,
+                      size: event.target.value as CharacterCustomSpeciesConfig["size"]
+                    }))
+                  }
+                >
+                  {customSpeciesSizeOptions.map((bodySize) => (
+                    <option key={bodySize} value={bodySize}>
+                      {formatBodySize(bodySize)}
+                    </option>
+                  ))}
+                </SelectInput>
+              </label>
+            </>
+          ) : null}
 
           {bodySizeOptions.length > 0 ? (
             <label className={styles.field}>

@@ -1,3 +1,4 @@
+import { ArrowLeft } from "lucide-react";
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import CodexDivinityDrawer from "../../components/CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
@@ -79,6 +80,16 @@ function hasSpellHealing(spell: Pick<SpellEntry, "healing">): boolean {
     ? spell.healing.length > 0
     : spell.healing.label.trim().length > 0;
 }
+
+function BackToCompendiumLabel() {
+  return (
+    <>
+      <ArrowLeft size={14} aria-hidden="true" />
+      <span>Back to compendium</span>
+    </>
+  );
+}
+
 function formatSelectableProficiencyList(values: string[], count: number): string {
   if (values.length === 0 || count <= 0) {
     return "None";
@@ -264,7 +275,7 @@ function CodexEntryPage() {
   return (
     <section className={styles.page} style={pageStyle}>
       <button type="button" className={styles.backButton} onClick={() => navigate(backToCodexPath)}>
-        Back to compendium
+        <BackToCompendiumLabel />
       </button>
 
       {status === "loading" ? (
@@ -286,7 +297,7 @@ function CodexEntryPage() {
           <h2>Entry not found</h2>
           <p>The selected compendium entry does not exist.</p>
           <Link to={backToCodexPath} className={styles.linkButton}>
-            Back to compendium
+            <BackToCompendiumLabel />
           </Link>
         </article>
       ) : null}

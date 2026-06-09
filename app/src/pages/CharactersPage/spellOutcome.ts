@@ -6,7 +6,10 @@ import {
   getSpellDamageFormulaOverrideForCharacter
 } from "./classFeatures";
 import { getWizardEvokerEmpoweredEvocationDamageDetail } from "./classFeatures/wizard/subclasses/wizardEvoker";
-import { isCustomClassName, normalizeCustomClassConfig } from "./customClass";
+import {
+  areCharacterClassRulesEnforced,
+  getCharacterClassRulesSpellcastingAbility
+} from "./customClass";
 import { getMainAbilityForClass } from "./gameplay";
 import {
   formatFormulaRangeLabel,
@@ -43,7 +46,7 @@ type SpellOutcomeCharacter = Pick<
   Character,
   "className" | "abilities" | "level" | "classFeatureState" | "feats" | "cantripIds"
 > &
-  Partial<Pick<Character, "customClass" | "inventoryItems" | "subclassId">>;
+  Partial<Pick<Character, "classRules" | "customClass" | "inventoryItems" | "subclassId">>;
 
 function formatSpellDamageBonusFormulaTerm(entry: {
   value?: number;
@@ -104,20 +107,22 @@ function formatSpellDamageBonusDetail(entry: {
 }
 
 function getSpellcastingAbilityModifier(
-  character: Pick<Character, "className" | "abilities"> & Partial<Pick<Character, "customClass">>,
+  character: Pick<Character, "className" | "abilities"> &
+    Partial<Pick<Character, "classRules" | "customClass">>,
   spellcastingAbilityOverride?: AbilityKey | null
 ): number {
   const mainAbility =
     spellcastingAbilityOverride ??
-    (isCustomClassName(character.className)
-      ? normalizeCustomClassConfig(character.customClass).spellcastingAbility
+    (!areCharacterClassRulesEnforced(character)
+      ? getCharacterClassRulesSpellcastingAbility(character)
       : getMainAbilityForClass(character.className));
 
   return mainAbility ? getAbilityModifierForCharacter(character, mainAbility) : 0;
 }
 
 function getSpellHealingFormatOptions(
-  character: Pick<Character, "className" | "abilities"> & Partial<Pick<Character, "customClass">>,
+  character: Pick<Character, "className" | "abilities"> &
+    Partial<Pick<Character, "classRules" | "customClass">>,
   spellcastingAbilityOverride?: AbilityKey | null
 ): {
   spellcastingAbilityLabel: string;
@@ -125,8 +130,8 @@ function getSpellHealingFormatOptions(
 } {
   const mainAbility =
     spellcastingAbilityOverride ??
-    (isCustomClassName(character.className)
-      ? normalizeCustomClassConfig(character.customClass).spellcastingAbility
+    (!areCharacterClassRulesEnforced(character)
+      ? getCharacterClassRulesSpellcastingAbility(character)
       : getMainAbilityForClass(character.className));
 
   return {

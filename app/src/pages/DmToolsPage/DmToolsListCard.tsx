@@ -17,7 +17,7 @@ type DmToolsListCardProps = {
   icon: ReactNode;
   meta?: ReactNode;
   onClick?: () => void;
-  tone?: "default" | "danger";
+  tone?: "campaign" | "default" | "danger" | "encounter" | "party";
   title: ReactNode;
   to?: string;
 };
@@ -40,6 +40,18 @@ function DmToolsListCardContent({
 
 function getCardClassName(disabled?: boolean, tone: DmToolsListCardProps["tone"] = "default") {
   const classNames = [styles.dmToolsListCard];
+
+  if (tone === "campaign") {
+    classNames.push(styles.dmToolsListCardCampaign);
+  }
+
+  if (tone === "party") {
+    classNames.push(styles.dmToolsListCardParty);
+  }
+
+  if (tone === "encounter") {
+    classNames.push(styles.dmToolsListCardEncounter);
+  }
 
   if (tone === "danger") {
     classNames.push(styles.dmToolsListCardDanger);

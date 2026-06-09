@@ -5,7 +5,10 @@ import { isInnateSorceryActiveForSpell } from "../classFeatures/sorcerer/innateS
 import { getAbilityModifierForCharacter } from "../abilities";
 import { getProficiencyBonus } from "../gameplay";
 import { getExhaustionD20TestPenalty } from "../statusEntries";
-import { isCustomClassName, normalizeCustomClassConfig } from "../customClass";
+import {
+  areCharacterClassRulesEnforced,
+  getCharacterClassRulesSpellcastingAbility
+} from "../customClass";
 import { getCharacterCustomTraitEffectInput } from "../characterRuntime/customEffectRuntime";
 import {
   formatCustomTraitBonusFormulaTerm,
@@ -169,10 +172,16 @@ function getResolvedCustomTraitFormulaEntries(
 }
 
 export function getSpellcastingAbilityForCharacter(character: Character): AbilityKey | null {
-  if (isCustomClassName(character.className)) {
-    return normalizeCustomClassConfig(character.customClass).spellcastingAbility;
+  if (!areCharacterClassRulesEnforced(character)) {
+    return getCharacterClassRulesSpellcastingAbility(character);
   }
 
+  return getBuiltInSpellcastingAbilityForCharacter(character);
+}
+
+export function getBuiltInSpellcastingAbilityForCharacter(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "subclassId">>
+): AbilityKey | null {
   if (character.subclassId) {
     const subclassAbility = spellcastingAbilityBySubclassId[character.subclassId];
 

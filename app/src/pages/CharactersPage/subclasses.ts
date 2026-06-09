@@ -6,12 +6,17 @@ import type {
 } from "../../codex/entries";
 import { getSubclassEntryById, getSubclassEntriesForClass } from "../../codex/subclasses";
 import type { Character } from "../../types";
+import { isCustomSubclassId } from "./customOrigins";
 
 export function getSubclassOptionsForClassName(className: string): SubclassEntry[] {
   return getSubclassEntriesForClass(className);
 }
 
-export function normalizeSubclassId(value: unknown, className: string): string | undefined {
+export function normalizeSubclassId(
+  value: unknown,
+  className: string,
+  customSubclass?: Character["customSubclass"]
+): string | undefined {
   if (typeof value !== "string") {
     return undefined;
   }
@@ -20,6 +25,14 @@ export function normalizeSubclassId(value: unknown, className: string): string |
 
   if (!trimmedValue) {
     return undefined;
+  }
+
+  if (
+    isCustomSubclassId(trimmedValue) &&
+    customSubclass?.id === trimmedValue &&
+    customSubclass.className === className
+  ) {
+    return trimmedValue;
   }
 
   const subclass = getSubclassEntryById(trimmedValue);

@@ -124,6 +124,7 @@ function CampaignCopyEncounterTemplateModal({
                 meta={`${encounterTemplate.creatureCount} ${
                   encounterTemplate.creatureCount === 1 ? "creature" : "creatures"
                 }`}
+                tone="encounter"
                 disabled={isCopying}
                 onClick={() => {
                   void handleImportTemplate(encounterTemplate.id);

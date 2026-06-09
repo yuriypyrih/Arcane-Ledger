@@ -4,7 +4,12 @@ import {
   type FeatureClassObj,
   type SpellEntry
 } from "../../codex/entries";
-import type { CharacterClassFeatureState, CharacterStatusEntry } from "../../types";
+import type {
+  CharacterClassRulesConfig,
+  CharacterClassFeatureState,
+  CharacterCustomClassConfig,
+  CharacterStatusEntry
+} from "../../types";
 import {
   getSpellEntriesForAllSpellListClasses,
   getSpellEntriesForSpellListClasses
@@ -21,7 +26,11 @@ import {
   getCantripLimitBonusForCharacter
 } from "./classFeatures";
 import { getSpellSlotTotalsForCharacter } from "./spellSlots";
-import { isCustomClassName } from "./customClass";
+import {
+  getCharacterClassRulesConfig,
+  isCharacterClassRulesSpellcastingEnabled,
+  isCustomClassName
+} from "./customClass";
 
 const arcaneTricksterRequiredCantripId = "spell-mage-hand";
 
@@ -109,9 +118,13 @@ function getCantripCountForFeatureRow(featureRow?: SpellcastingFeatureClassObj):
   return typeof cantripCount === "number" ? Math.max(0, Math.floor(cantripCount)) : null;
 }
 
-export function isSpellcastingClass(className: string, level = 20, subclassId?: string): boolean {
+export function hasBuiltInSpellcastingForCharacter(
+  className: string,
+  level = 20,
+  subclassId?: string
+): boolean {
   if (isCustomClassName(className)) {
-    return true;
+    return false;
   }
 
   if (getSubclassSpellcastingProgressionRow(className, level, subclassId)) {
@@ -120,6 +133,54 @@ export function isSpellcastingClass(className: string, level = 20, subclassId?: 
 
   return getClassFeatureRowsUpToLevel(className, level).some((featureRow) =>
     featureRow.classFeatures.some((classFeature) => spellcastingClassFeatures.has(classFeature))
+  );
+}
+
+export function areSpellcastingRulesEnforcedForCharacter(
+  className: string,
+  level = 20,
+  subclassId?: string,
+  customClass?: CharacterCustomClassConfig,
+  classRules?: CharacterClassRulesConfig
+): boolean {
+  return (
+    hasBuiltInSpellcastingForCharacter(className, level, subclassId) &&
+    !isCustomClassName(className) &&
+    getCharacterClassRulesConfig({ className, classRules, customClass })
+      .spellcastingRulesEnforced
+  );
+}
+
+export function usesFlexibleSpellcastingRulesForCharacter(
+  className: string,
+  level = 20,
+  subclassId?: string,
+  customClass?: CharacterCustomClassConfig,
+  classRules?: CharacterClassRulesConfig
+): boolean {
+  return (
+    isCharacterClassRulesSpellcastingEnabled({ className, classRules, customClass }) ||
+    (hasBuiltInSpellcastingForCharacter(className, level, subclassId) &&
+      !areSpellcastingRulesEnforcedForCharacter(
+        className,
+        level,
+        subclassId,
+        customClass,
+        classRules
+      ))
+  );
+}
+
+export function isSpellcastingClass(
+  className: string,
+  level = 20,
+  subclassId?: string,
+  customClass?: CharacterCustomClassConfig,
+  classRules?: CharacterClassRulesConfig
+): boolean {
+  return (
+    hasBuiltInSpellcastingForCharacter(className, level, subclassId) ||
+    isCharacterClassRulesSpellcastingEnabled({ className, classRules, customClass })
   );
 }
 
@@ -132,9 +193,23 @@ export { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "./s
 export function getPreparedSpellLimitForCharacter(
   className: string,
   level: number,
-  subclassId?: string
+  subclassId?: string,
+  customClass?: CharacterCustomClassConfig,
+  classRules?: CharacterClassRulesConfig
 ): number | null {
-  if (isCustomClassName(className)) {
+  if (!isSpellcastingClass(className, level, subclassId, customClass, classRules)) {
+    return null;
+  }
+
+  if (
+    usesFlexibleSpellcastingRulesForCharacter(
+      className,
+      level,
+      subclassId,
+      customClass,
+      classRules
+    )
+  ) {
     return null;
   }
 
@@ -153,9 +228,23 @@ export function getCantripLimitForCharacter(
   className: string,
   level: number,
   classFeatureState?: CharacterClassFeatureState,
-  subclassId?: string
+  subclassId?: string,
+  customClass?: CharacterCustomClassConfig,
+  classRules?: CharacterClassRulesConfig
 ): number | null {
-  if (isCustomClassName(className)) {
+  if (!isSpellcastingClass(className, level, subclassId, customClass, classRules)) {
+    return 0;
+  }
+
+  if (
+    usesFlexibleSpellcastingRulesForCharacter(
+      className,
+      level,
+      subclassId,
+      customClass,
+      classRules
+    )
+  ) {
     return null;
   }
 
@@ -184,15 +273,47 @@ export function getCantripLimitForCharacter(
 export function usesPreparedSpellsForCharacter(
   className: string,
   level: number,
-  subclassId?: string
+  subclassId?: string,
+  customClass?: CharacterCustomClassConfig,
+  classRules?: CharacterClassRulesConfig
 ): boolean {
+  if (
+    usesFlexibleSpellcastingRulesForCharacter(
+      className,
+      level,
+      subclassId,
+      customClass,
+      classRules
+    )
+  ) {
+    return true;
+  }
+
   return (
-    isCustomClassName(className) ||
-    getPreparedSpellLimitForCharacter(className, level, subclassId) !== null
+    getPreparedSpellLimitForCharacter(className, level, subclassId, customClass, classRules) !==
+    null
   );
 }
 
-export function usesSpellbookForCharacter(className: string, subclassId?: string): boolean {
+export function usesSpellbookForCharacter(
+  className: string,
+  subclassId?: string,
+  customClass?: CharacterCustomClassConfig,
+  classRules?: CharacterClassRulesConfig,
+  level = 20
+): boolean {
+  if (
+    usesFlexibleSpellcastingRulesForCharacter(
+      className,
+      level,
+      subclassId,
+      customClass,
+      classRules
+    )
+  ) {
+    return false;
+  }
+
   return getSpellbookUsageForCharacter(className, subclassId);
 }
 
@@ -209,16 +330,33 @@ export function hasClassFeatureForCharacter(
 export function getCantripSelectionOptionsForCharacter(
   className: string,
   level: number,
-  subclassId?: string
+  subclassId?: string,
+  customClass?: CharacterCustomClassConfig,
+  classRules?: CharacterClassRulesConfig
 ): SpellEntry[] {
-  if (isCustomClassName(className)) {
+  if (
+    usesFlexibleSpellcastingRulesForCharacter(
+      className,
+      level,
+      subclassId,
+      customClass,
+      classRules
+    )
+  ) {
     return getSpellEntriesForAllSpellListClasses().filter((spell) => getSpellLevel(spell) === 0);
   }
 
-  const cantripLimit = getCantripLimitForCharacter(className, level, undefined, subclassId);
+  const cantripLimit = getCantripLimitForCharacter(
+    className,
+    level,
+    undefined,
+    subclassId,
+    customClass,
+    classRules
+  );
 
   if (
-    !isSpellcastingClass(className, level, subclassId) ||
+    !isSpellcastingClass(className, level, subclassId, customClass, classRules) ||
     cantripLimit === null ||
     cantripLimit <= 0
   ) {
@@ -239,18 +377,28 @@ export function getCantripSelectionOptionsForCharacter(
 export function getPreparedSpellSelectionOptionsForCharacter(
   className: string,
   level: number,
-  subclassId?: string
+  subclassId?: string,
+  customClass?: CharacterCustomClassConfig,
+  classRules?: CharacterClassRulesConfig
 ): SpellEntry[] {
-  if (isCustomClassName(className)) {
+  if (
+    usesFlexibleSpellcastingRulesForCharacter(
+      className,
+      level,
+      subclassId,
+      customClass,
+      classRules
+    )
+  ) {
     return getSpellEntriesForAllSpellListClasses().filter((spell) => getSpellLevel(spell) > 0);
   }
 
-  if (!usesPreparedSpellsForCharacter(className, level, subclassId)) {
+  if (!usesPreparedSpellsForCharacter(className, level, subclassId, customClass, classRules)) {
     return [];
   }
 
   const highestSlotLevel = getHighestSlotLevel(
-    getSpellSlotTotalsForCharacter(className, level, subclassId)
+    getSpellSlotTotalsForCharacter(className, level, subclassId, customClass, classRules)
   );
   const preparedSpellEntries = getSpellEntriesForSpellListClasses(
     getPreparedSpellListClassesForCharacter(className, level, subclassId)
@@ -347,12 +495,16 @@ export function getAlwaysPreparedSpellIds(
   classFeatureState?: CharacterClassFeatureState,
   spellbookSpellIds?: string[],
   subclassId?: string,
-  statusEntries?: CharacterStatusEntry[]
+  statusEntries?: CharacterStatusEntry[],
+  customClass?: CharacterCustomClassConfig,
+  classRules?: CharacterClassRulesConfig
 ): string[] {
   return getAlwaysPreparedSpellIdsForCharacter({
     className,
     level,
     classFeatureState,
+    classRules,
+    customClass,
     spellbookSpellIds,
     subclassId,
     statusEntries

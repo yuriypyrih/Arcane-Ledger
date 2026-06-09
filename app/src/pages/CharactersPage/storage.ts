@@ -62,7 +62,18 @@ import {
   getEffectiveHitPointMaximumForCharacter,
   reconcileCharacterStatusConsequences
 } from "./traits";
-import { isCustomClassName, normalizeCustomClassConfig } from "./customClass";
+import {
+  isCustomClassName,
+  normalizeCharacterClassRulesConfig,
+  normalizeCustomClassConfig
+} from "./customClass";
+import {
+  isCustomBackgroundName,
+  isCustomSpeciesName,
+  normalizeCustomBackgroundConfig,
+  normalizeCustomSpeciesConfig,
+  normalizeCustomSubclassConfig
+} from "./customOrigins";
 import {
   createHydratedCharacterInputFromPortableSheet,
   createPortableCharacterSheet,
@@ -215,6 +226,7 @@ export function normalizeCharacter(value: unknown): Character | null {
     currencies?: unknown;
     backgroundNotes?: unknown;
     backgroundChoices?: unknown;
+    customBackground?: unknown;
     savingThrowProficiencies?: unknown;
     hitDiceRemaining?: unknown;
     maxHitPointsMode?: unknown;
@@ -230,7 +242,10 @@ export function normalizeCharacter(value: unknown): Character | null {
     customEquipment?: unknown;
     companions?: unknown;
     classFeatureState?: unknown;
+    classRules?: unknown;
     customClass?: unknown;
+    customSpecies?: unknown;
+    customSubclass?: unknown;
     feats?: unknown;
     heroicInspiration?: unknown;
     speciesChoices?: unknown;
@@ -251,6 +266,9 @@ export function normalizeCharacter(value: unknown): Character | null {
   );
   const normalizedSpecies =
     typeof record.species === "string" ? record.species.trim() : defaults.species;
+  const normalizedCustomSpecies = isCustomSpeciesName(normalizedSpecies)
+    ? normalizeCustomSpeciesConfig(record.customSpecies)
+    : undefined;
   const normalizedSpeciesChoices = normalizeCharacterSpeciesChoices(
     normalizedSpecies,
     record.speciesChoices
@@ -261,21 +279,39 @@ export function normalizeCharacter(value: unknown): Character | null {
   );
   const normalizedClassName =
     typeof record.className === "string" ? record.className.trim() : defaults.className;
+  const hasPersistedCustomClassConfig =
+    "customClass" in record && record.customClass !== undefined && record.customClass !== null;
   const normalizedCustomClass = isCustomClassName(normalizedClassName)
-    ? normalizeCustomClassConfig(record.customClass)
+    ? normalizeCustomClassConfig(record.customClass, {
+        legacySpellcastingEnabled: !hasPersistedCustomClassConfig
+      })
     : undefined;
+  const normalizedClassRules = normalizeCharacterClassRulesConfig(record.classRules, {
+    className: normalizedClassName,
+    legacyCustomClass: normalizedCustomClass,
+    legacySpellcastingEnabled:
+      isCustomClassName(normalizedClassName) && !hasPersistedCustomClassConfig
+  });
   const normalizedBackground =
     typeof record.background === "string" ? record.background.trim() : defaults.background;
+  const normalizedCustomBackground = isCustomBackgroundName(normalizedBackground)
+    ? normalizeCustomBackgroundConfig(record.customBackground)
+    : undefined;
   const normalizedBackgroundNotes =
     typeof record.backgroundNotes === "string"
       ? record.backgroundNotes.trim()
       : defaults.backgroundNotes;
+  const normalizedCustomSubclass = normalizeCustomSubclassConfig(record.customSubclass, {
+    className: normalizedClassName
+  });
   const normalizedSubclassId = isCustomClassName(normalizedClassName)
     ? undefined
-    : normalizeSubclassId(record.subclassId, normalizedClassName);
+    : normalizeSubclassId(record.subclassId, normalizedClassName, normalizedCustomSubclass);
   const resolvedBackground = normalizedBackground || defaults.background;
   const normalizedBackgroundChoices = normalizeBackgroundChoices(
-    isBackgroundName(resolvedBackground) ? resolvedBackground : "",
+    isBackgroundName(resolvedBackground) || isCustomBackgroundName(resolvedBackground)
+      ? resolvedBackground
+      : "",
     record.backgroundChoices
   );
   const rawEquipment = Array.isArray(record.equipment) ? record.equipment : defaults.equipment;
@@ -311,6 +347,8 @@ export function normalizeCharacter(value: unknown): Character | null {
       className: normalizedClassName,
       level: normalizedLevel,
       subclassId: normalizedSubclassId,
+      classRules: normalizedClassRules,
+      customClass: normalizedCustomClass,
       abilities: normalizedAbilities,
       cantripIds: rawPersistedCantripIds,
       feats: normalizedFeats
@@ -321,13 +359,17 @@ export function normalizeCharacter(value: unknown): Character | null {
     normalizedClassName,
     normalizedLevel,
     preliminaryClassFeatureState,
-    normalizedSubclassId
+    normalizedSubclassId,
+    normalizedCustomClass,
+    normalizedClassRules
   );
   const cantripSelectionOptionIds = new Set(
     getCantripSelectionOptionsForCharacter(
       normalizedClassName,
       normalizedLevel,
-      normalizedSubclassId
+      normalizedSubclassId,
+      normalizedCustomClass,
+      normalizedClassRules
     ).map((spell) => spell.id)
   );
   const normalizedCantripIds = [...new Set(rawCantripIds)]
@@ -337,6 +379,8 @@ export function normalizeCharacter(value: unknown): Character | null {
     className: normalizedClassName,
     level: normalizedLevel,
     subclassId: normalizedSubclassId,
+    classRules: normalizedClassRules,
+    customClass: normalizedCustomClass,
     abilities: normalizedAbilities,
     cantripIds: normalizedCantripIds,
     feats: normalizedFeats
@@ -371,12 +415,16 @@ export function normalizeCharacter(value: unknown): Character | null {
   const preparedSpellLimit = getPreparedSpellLimitForCharacter(
     normalizedClassName,
     normalizedLevel,
-    normalizedSubclassId
+    normalizedSubclassId,
+    normalizedCustomClass,
+    normalizedClassRules
   );
   const preparedSpellSelectionOptions = getPreparedSpellSelectionOptionsForCharacter(
     normalizedClassName,
     normalizedLevel,
-    normalizedSubclassId
+    normalizedSubclassId,
+    normalizedCustomClass,
+    normalizedClassRules
   );
   const preparedSpellSelectionOptionIds = new Set(
     preparedSpellSelectionOptions.map((spell) => spell.id)
@@ -388,13 +436,18 @@ export function normalizeCharacter(value: unknown): Character | null {
     className: normalizedClassName,
     level: normalizedLevel,
     classFeatureState: normalizedClassFeatureState,
+    classRules: normalizedClassRules,
+    customClass: normalizedCustomClass,
     spellbookSpellIds: rawSpellbookSpellIds,
     subclassId: normalizedSubclassId
   });
   const alwaysSpellbookSpellIdSet = new Set(alwaysSpellbookSpellIds);
   const normalizedSpellbookSpellIds = usesSpellbookForCharacter(
     normalizedClassName,
-    normalizedSubclassId
+    normalizedSubclassId,
+    normalizedCustomClass,
+    normalizedClassRules,
+    normalizedLevel
   )
     ? normalizeSpellbookSpellIds(
         rawSpellbookSpellIds.filter(
@@ -412,7 +465,13 @@ export function normalizeCharacter(value: unknown): Character | null {
     rawPreparedSpellIds.filter(
       (spellId) =>
         preparedSpellSelectionOptionIds.has(spellId) &&
-        (!usesSpellbookForCharacter(normalizedClassName, normalizedSubclassId) ||
+        (!usesSpellbookForCharacter(
+          normalizedClassName,
+          normalizedSubclassId,
+          normalizedCustomClass,
+          normalizedClassRules,
+          normalizedLevel
+        ) ||
           normalizedSpellbookSpellIdSet.has(spellId))
     ),
     preparedSpellSelectionOptions,
@@ -424,7 +483,9 @@ export function normalizeCharacter(value: unknown): Character | null {
         normalizedClassFeatureState,
         undefined,
         normalizedSubclassId,
-        normalizedStatusEntries
+        normalizedStatusEntries,
+        normalizedCustomClass,
+        normalizedClassRules
       ),
       ...getSpeciesAlwaysPreparedSpellIdsForCharacter({
         species: normalizedSpecies,
@@ -437,7 +498,8 @@ export function normalizeCharacter(value: unknown): Character | null {
     normalizedClassName,
     normalizedLevel,
     normalizedSubclassId,
-    normalizedCustomClass
+    normalizedCustomClass,
+    normalizedClassRules
   );
   const normalizedSpellSlotsExpended = normalizeSpellSlotsExpended(
     record.spellSlotsExpended,
@@ -509,6 +571,7 @@ export function normalizeCharacter(value: unknown): Character | null {
     subclassId: normalizedSubclassId,
     level: normalizedLevel,
     species: normalizedSpecies,
+    customSpecies: normalizedCustomSpecies,
     hitPoints: normalizedHitPoints,
     statusEntries: normalizedStatusEntries
   });
@@ -518,9 +581,12 @@ export function normalizeCharacter(value: unknown): Character | null {
     name: typeof record.name === "string" ? record.name : defaults.name,
     species: normalizedSpecies,
     speciesChoices: normalizedSpeciesChoices,
+    customSpecies: normalizedCustomSpecies,
     speciesFeatureState: normalizedSpeciesFeatureState,
     className: normalizedClassName,
     subclassId: normalizedSubclassId,
+    customSubclass: normalizedCustomSubclass,
+    classRules: normalizedClassRules,
     customClass: normalizedCustomClass,
     level: normalizedLevel,
     xp: normalizedXp,
@@ -549,6 +615,7 @@ export function normalizeCharacter(value: unknown): Character | null {
         ? (record.alignment as Character["alignment"])
         : defaults.alignment,
     background: resolvedBackground,
+    customBackground: normalizedCustomBackground,
     backgroundChoices: normalizedBackgroundChoices,
     backgroundNotes: normalizedBackgroundNotes,
     currencies: normalizedCurrencies,

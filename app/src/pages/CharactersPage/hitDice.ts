@@ -1,9 +1,12 @@
 import type { Character } from "../../types";
 import { getClassEntries } from "../../codex/selectors";
-import { isCustomClassName, normalizeCustomClassConfig } from "./customClass";
+import {
+  areCharacterClassRulesEnforced,
+  getCharacterClassRulesHitDie
+} from "./customClass";
 
 type HitDiceCharacter = Pick<Character, "level"> &
-  Partial<Pick<Character, "className" | "customClass" | "hitDiceRemaining">>;
+  Partial<Pick<Character, "className" | "classRules" | "customClass" | "hitDiceRemaining">>;
 
 const codexClassEntriesByName = new Map(
   getClassEntries().map((entry) => [entry.name, entry])
@@ -21,10 +24,11 @@ function getHitDiceTotalForLevel(level: unknown): number {
 
 export function getHitDieFormulaForClass(
   className: string | null | undefined,
-  customClass?: HitDiceCharacter["customClass"]
+  customClass?: HitDiceCharacter["customClass"],
+  classRules?: HitDiceCharacter["classRules"]
 ): string {
-  if (isCustomClassName(className)) {
-    return `1${normalizeCustomClassConfig(customClass).hitDie}`;
+  if (!areCharacterClassRulesEnforced({ className, classRules, customClass })) {
+    return `1${getCharacterClassRulesHitDie({ className, classRules, customClass })}`;
   }
 
   const classEntry =
@@ -40,21 +44,27 @@ export function getHitDieFormulaForClass(
 
 export function getHitDieLabelForClass(
   className: string | null | undefined,
-  customClass?: HitDiceCharacter["customClass"]
+  customClass?: HitDiceCharacter["customClass"],
+  classRules?: HitDiceCharacter["classRules"]
 ): string {
-  return getHitDieFormulaForClass(className, customClass).replace(/^1/i, "").toUpperCase();
+  return getHitDieFormulaForClass(className, customClass, classRules)
+    .replace(/^1/i, "")
+    .toUpperCase();
 }
 
 export function getHitDieLabelForCharacter(character: HitDiceCharacter): string {
-  return getHitDieLabelForClass(character.className, character.customClass);
+  return getHitDieLabelForClass(character.className, character.customClass, character.classRules);
 }
 
 export function getHitDieMaximumForClass(
   className: string | null | undefined,
-  customClass?: HitDiceCharacter["customClass"]
+  customClass?: HitDiceCharacter["customClass"],
+  classRules?: HitDiceCharacter["classRules"]
 ): number {
-  if (isCustomClassName(className)) {
-    return Number(normalizeCustomClassConfig(customClass).hitDie.replace(/\D/g, ""));
+  if (!areCharacterClassRulesEnforced({ className, classRules, customClass })) {
+    return Number(
+      getCharacterClassRulesHitDie({ className, classRules, customClass }).replace(/\D/g, "")
+    );
   }
 
   const classEntry =
@@ -85,7 +95,11 @@ export function getHitDiceRemainingForCharacter(character: HitDiceCharacter): nu
 }
 
 export function getHitDiceDisplayForCharacter(character: HitDiceCharacter): string {
-  const hitDieFormula = getHitDieFormulaForClass(character.className, character.customClass);
+  const hitDieFormula = getHitDieFormulaForClass(
+    character.className,
+    character.customClass,
+    character.classRules
+  );
   const totalHitDice = getHitDiceTotalForCharacter(character);
   const availableHitDice = getHitDiceRemainingForCharacter(character);
 

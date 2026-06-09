@@ -48,7 +48,11 @@ type EldritchInvocationCardGroup = {
   options: WarlockEldritchInvocationOption[];
 };
 
-function SelectionCounter({ current, total }: { current: number; total: number }) {
+function SelectionCounter({ current, total }: { current: number; total: number | null }) {
+  if (total === null) {
+    return <span>{`${current}/Unlimited`}</span>;
+  }
+
   return (
     <span className={current < total ? styles.validation : undefined}>{`${current}/${total}`}</span>
   );
@@ -153,7 +157,8 @@ function EldritchInvocationEditorModal({
     () => new Map(invocationOptions.map((option) => [option.selectionId, option] as const)),
     [invocationOptions]
   );
-  const isInvocationLimitReached = invocationDraftIds.length >= invocationLimit;
+  const isInvocationLimitReached =
+    invocationLimit !== null && invocationDraftIds.length >= invocationLimit;
 
   const commitAndClose = useCallback(() => {
     const normalizedSelectionIds = normalizeWarlockInvocationSelectionIdsForCharacter(
@@ -173,7 +178,10 @@ function EldritchInvocationEditorModal({
 
   const addInvocation = useCallback(
     (selectionId: string, featEntry?: CharacterFeatEntry) => {
-      if (invocationDraftIds.includes(selectionId) || invocationDraftIds.length >= invocationLimit) {
+      if (
+        invocationDraftIds.includes(selectionId) ||
+        (invocationLimit !== null && invocationDraftIds.length >= invocationLimit)
+      ) {
         return;
       }
 

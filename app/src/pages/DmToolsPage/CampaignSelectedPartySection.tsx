@@ -43,7 +43,10 @@ function CampaignSelectedPartySection({ campaign }: CampaignSelectedPartySection
   }
 
   return (
-    <section className={styles.membersPanel} aria-labelledby="campaign-party-title">
+    <section
+      className={`${styles.membersPanel} ${styles.campaignDetailSummaryPanel}`}
+      aria-labelledby="campaign-party-title"
+    >
       <div className={styles.memberPanelHeader}>
         <div>
           <h3 id="campaign-party-title" className={styles.bodyTitle}>
@@ -61,6 +64,7 @@ function CampaignSelectedPartySection({ campaign }: CampaignSelectedPartySection
           meta={`${campaign.selectedParty.memberCount} ${
             campaign.selectedParty.memberCount === 1 ? "member" : "members"
           }`}
+          tone="party"
           onClick={() =>
             navigate(
               `/gm-tools/party-manager/${campaign.selectedParty?.id}?returnToCampaign=${campaign.id}`

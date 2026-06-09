@@ -37,7 +37,13 @@ function FontOfMagicActionBody({
 }: FontOfMagicActionBodyProps) {
   const sorceryPointsRemaining = getSorceryPointsRemainingForCharacter(character);
   const sorceryPointsTotal = getSorceryPointsTotalForCharacter(character);
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const spellSlotTotals = getSpellSlotTotalsForCharacter(
+    character.className,
+    character.level,
+    character.subclassId,
+    character.customClass,
+    character.classRules
+  );
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals

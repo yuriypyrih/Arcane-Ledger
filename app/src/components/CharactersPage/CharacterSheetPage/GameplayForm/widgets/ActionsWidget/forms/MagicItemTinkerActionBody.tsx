@@ -41,7 +41,13 @@ type MagicItemTinkerActionBodyProps = {
 function getExpendedSpellSlots(character: Character): number[] {
   return normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
-    getSpellSlotTotalsForCharacter(character.className, character.level, character.subclassId)
+    getSpellSlotTotalsForCharacter(
+      character.className,
+      character.level,
+      character.subclassId,
+      character.customClass,
+      character.classRules
+    )
   );
 }
 

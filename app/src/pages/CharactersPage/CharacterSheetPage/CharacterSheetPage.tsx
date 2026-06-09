@@ -1,3 +1,4 @@
+import { ArrowLeft } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useOutletContext, useParams } from "react-router-dom";
 import { ThumbDiceButton } from "../../../components/CharactersPage/CharacterSheetPage";
@@ -99,7 +100,8 @@ function CharacterSheetPage() {
           <h2>Character not found</h2>
           <p>The selected sheet is no longer available in local storage.</p>
           <Link to="/characters" className={styles.primaryLink}>
-            Back to roster
+            <ArrowLeft size={16} aria-hidden="true" />
+            <span>Back to roster</span>
           </Link>
         </article>
       </section>

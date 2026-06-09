@@ -159,6 +159,7 @@ function CampaignPreparedEncountersSection({
               icon={<Swords size={18} aria-hidden="true" />}
               title={encounter.name}
               meta={`${encounter.creatures.length}/${ENCOUNTER_MAX_CREATURES} creatures`}
+              tone="encounter"
               onClick={() =>
                 navigate(`/gm-tools/campaign-manager/${campaign.id}/encounters/${encounter.id}`)
               }

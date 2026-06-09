@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { CircleHelp, Dice6 } from "lucide-react";
+import { ArrowLeft, CircleHelp, Dice6 } from "lucide-react";
 import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import type {
@@ -7,7 +7,11 @@ import type {
   AbilityScores,
   AttributeMode,
   CharacterBackgroundChoices,
+  CharacterClassRulesConfig,
+  CharacterCustomBackgroundConfig,
   CharacterCustomClassConfig,
+  CharacterCustomSpeciesConfig,
+  CharacterCustomSubclassConfig,
   CharacterDraft,
   CharacterFeatEntry,
   CharacterSpeciesChoices,
@@ -70,8 +74,32 @@ import {
   CUSTOM_CLASS_NAME,
   customClassHitDice,
   isCustomClassName,
+  normalizeCharacterClassRulesConfig,
   normalizeCustomClassConfig
 } from "../../../pages/CharactersPage/customClass";
+import {
+  CUSTOM_BACKGROUND_NAME,
+  CUSTOM_BACKGROUND_NAME_MAX_LENGTH,
+  CUSTOM_CLASS_NAME_MAX_LENGTH,
+  CUSTOM_SPECIES_NAME,
+  CUSTOM_SPECIES_NAME_MAX_LENGTH,
+  CUSTOM_SPECIES_SPEED_MAXIMUM,
+  CUSTOM_SPECIES_SPEED_MINIMUM,
+  CUSTOM_SUBCLASS_LABEL,
+  CUSTOM_SUBCLASS_NAME_MAX_LENGTH,
+  createCustomMetadataId,
+  createDefaultCustomBackgroundConfig,
+  createDefaultCustomSpeciesConfig,
+  createDefaultCustomSubclassConfig,
+  customSpeciesSizeOptions,
+  isCustomBackgroundName,
+  isCustomSpeciesName,
+  isCustomSubclassId,
+  normalizeCustomBackgroundConfig,
+  normalizeCustomSpeciesConfig,
+  normalizeCustomSpeciesSpeed,
+  normalizeCustomSubclassConfig
+} from "../../../pages/CharactersPage/customOrigins";
 import { getAutomaticMaxHitPointsForCharacter } from "../../../pages/CharactersPage/gameplay";
 import { getEffectiveHitPointMaximumForCharacter } from "../../../pages/CharactersPage/traits";
 import {
@@ -506,9 +534,24 @@ function createFormValues(
     starterPackSelectionValues?: Record<string, string>;
   }
 ): CharacterFormValues {
+  const normalizedCustomClass = normalizeCustomClassConfig(draft.customClass);
+
   return {
     ...draft,
-    customClass: normalizeCustomClassConfig(draft.customClass),
+    customClass: normalizedCustomClass,
+    customSubclass: normalizeCustomSubclassConfig(draft.customSubclass, {
+      className: draft.className
+    }),
+    classRules: normalizeCharacterClassRulesConfig(draft.classRules, {
+      className: draft.className,
+      legacyCustomClass: normalizedCustomClass
+    }),
+    customSpecies: isCustomSpeciesName(draft.species)
+      ? normalizeCustomSpeciesConfig(draft.customSpecies)
+      : undefined,
+    customBackground: isCustomBackgroundName(draft.background)
+      ? normalizeCustomBackgroundConfig(draft.customBackground)
+      : undefined,
     abilities:
       draft.attributeMode === "pointBuy"
         ? normalizePointBuyAbilities(draft.abilities)
@@ -519,12 +562,53 @@ function createFormValues(
   };
 }
 
+function createDraftCustomClassConfig(
+  value?: CharacterCustomClassConfig
+): CharacterCustomClassConfig {
+  const normalizedConfig = normalizeCustomClassConfig(value);
+
+  return {
+    ...normalizedConfig,
+    id: normalizedConfig.id ?? createCustomMetadataId("class"),
+    name: normalizedConfig.name ?? ""
+  };
+}
+
+function createDraftCustomSubclassConfig(
+  className: string,
+  value?: CharacterCustomSubclassConfig
+): CharacterCustomSubclassConfig {
+  return (
+    normalizeCustomSubclassConfig(value, {
+      className
+    }) ?? createDefaultCustomSubclassConfig(className)
+  );
+}
+
+function createDraftCustomSpeciesConfig(
+  value?: CharacterCustomSpeciesConfig
+): CharacterCustomSpeciesConfig {
+  return normalizeCustomSpeciesConfig(value) ?? createDefaultCustomSpeciesConfig();
+}
+
+function createDraftCustomBackgroundConfig(
+  value?: CharacterCustomBackgroundConfig
+): CharacterCustomBackgroundConfig {
+  return normalizeCustomBackgroundConfig(value) ?? createDefaultCustomBackgroundConfig();
+}
+
 function getEffectiveHitPointMaximumForDraft(
   draft: Pick<CharacterDraft, "className" | "hitPoints"> &
     Partial<
       Pick<
         CharacterDraft,
-        "customClass" | "level" | "species" | "subclassId" | "statusEntries" | "feats"
+        | "customClass"
+        | "customSpecies"
+        | "level"
+        | "species"
+        | "subclassId"
+        | "statusEntries"
+        | "feats"
       >
     >
 ): number {
@@ -533,6 +617,7 @@ function getEffectiveHitPointMaximumForDraft(
     subclassId: draft.subclassId,
     level: draft.level,
     species: draft.species,
+    customSpecies: draft.customSpecies,
     hitPoints: draft.hitPoints,
     statusEntries: draft.statusEntries ?? [],
     feats: draft.feats
@@ -559,12 +644,26 @@ function createBasicProfileSnapshot(
       ...defaults,
       name: values.name,
       species: values.species,
+      customSpecies: isCustomSpeciesName(values.species)
+        ? normalizeCustomSpeciesConfig(values.customSpecies)
+        : undefined,
       speciesChoices: undefined,
       speciesFeatureState: normalizeCharacterSpeciesFeatureState(values.species, undefined),
       className: values.className,
       subclassId: isCustomClassName(values.className) ? "" : values.subclassId,
+      customSubclass:
+        !isCustomClassName(values.className) && values.subclassId === values.customSubclass?.id
+          ? normalizeCustomSubclassConfig(values.customSubclass, { className: values.className })
+          : undefined,
+      classRules: normalizeCharacterClassRulesConfig(values.classRules, {
+        className: values.className,
+        legacyCustomClass: values.customClass
+      }),
       customClass: normalizeCustomClassConfig(values.customClass),
       background: values.background,
+      customBackground: isCustomBackgroundName(values.background)
+        ? normalizeCustomBackgroundConfig(values.customBackground)
+        : undefined,
       backgroundChoices: includeBackgroundDefaults
         ? backgroundDefaults
         : backgroundDefaults
@@ -957,10 +1056,14 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     selectedName,
     selectedClassName,
     selectedSubclassId,
+    selectedCustomSubclass,
+    selectedClassRules,
     selectedCustomClass,
     selectedSpecies,
+    selectedCustomSpecies,
     selectedSpeciesChoices,
     selectedBackground,
+    selectedCustomBackground,
     selectedBackgroundChoices,
     selectedLevel,
     attributeMode,
@@ -982,10 +1085,14 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       "name",
       "className",
       "subclassId",
+      "customSubclass",
+      "classRules",
       "customClass",
       "species",
+      "customSpecies",
       "speciesChoices",
       "background",
+      "customBackground",
       "backgroundChoices",
       "level",
       "attributeMode",
@@ -1006,14 +1113,55 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   const resolvedName = selectedName ?? initialFormValues.name;
   const resolvedClassName = selectedClassName ?? initialFormValues.className;
   const resolvedSubclassId = selectedSubclassId ?? initialFormValues.subclassId ?? "";
+  const resolvedCustomSubclass = useMemo(
+    () =>
+      normalizeCustomSubclassConfig(selectedCustomSubclass ?? initialFormValues.customSubclass, {
+        className: resolvedClassName
+      }),
+    [initialFormValues.customSubclass, resolvedClassName, selectedCustomSubclass]
+  );
+  const draftCustomSubclassOption = useMemo(
+    () => createDraftCustomSubclassConfig(resolvedClassName, resolvedCustomSubclass),
+    [resolvedClassName, resolvedCustomSubclass]
+  );
   const resolvedCustomClass = useMemo(
     () => normalizeCustomClassConfig(selectedCustomClass ?? initialFormValues.customClass),
     [initialFormValues.customClass, selectedCustomClass]
   );
+  const resolvedClassRules = useMemo(
+    () =>
+      normalizeCharacterClassRulesConfig(selectedClassRules ?? initialFormValues.classRules, {
+        className: resolvedClassName,
+        legacyCustomClass: resolvedCustomClass
+      }),
+    [initialFormValues.classRules, resolvedClassName, resolvedCustomClass, selectedClassRules]
+  );
   const isCustomClassSelected = isCustomClassName(resolvedClassName);
   const resolvedSpecies = selectedSpecies ?? initialFormValues.species;
+  const resolvedCustomSpecies = useMemo(
+    () => normalizeCustomSpeciesConfig(selectedCustomSpecies ?? initialFormValues.customSpecies),
+    [initialFormValues.customSpecies, selectedCustomSpecies]
+  );
+  const isCustomSpeciesSelected = isCustomSpeciesName(resolvedSpecies);
   const resolvedSpeciesChoices = selectedSpeciesChoices ?? initialFormValues.speciesChoices;
   const resolvedBackground = selectedBackground ?? initialFormValues.background;
+  const resolvedCustomBackground = useMemo(
+    () =>
+      normalizeCustomBackgroundConfig(
+        selectedCustomBackground ?? initialFormValues.customBackground
+      ),
+    [initialFormValues.customBackground, selectedCustomBackground]
+  );
+  const isCustomBackgroundSelected = isCustomBackgroundName(resolvedBackground);
+  const isCustomSubclassSelected =
+    !isCustomClassSelected &&
+    isCustomSubclassId(resolvedSubclassId) &&
+    resolvedCustomSubclass?.id === resolvedSubclassId;
+  const hasAnyCustomOriginSelected =
+    isCustomClassSelected ||
+    isCustomSubclassSelected ||
+    isCustomSpeciesSelected ||
+    isCustomBackgroundSelected;
   const resolvedBackgroundChoiceInput =
     selectedBackgroundChoices ?? initialFormValues.backgroundChoices;
   const resolvedBackgroundChoices = useMemo(
@@ -1120,6 +1268,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   const selectedTieflingLegacy = normalizedSpeciesChoices?.tieflingLegacy ?? "";
   const selectedTieflingSpellcastingAbility =
     normalizedSpeciesChoices?.tieflingSpellcastingAbility ?? "";
+  const hasSubclassSelection = !isCustomClassSelected;
   const availableSubclassOptions = isCustomClassSelected
     ? []
     : getSubclassOptionsForClassName(resolvedClassName);
@@ -1280,6 +1429,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   );
   const automaticHitPoints = getAutomaticMaxHitPointsForCharacter({
     className: resolvedClassName,
+    classRules: resolvedClassRules,
     customClass: resolvedCustomClass,
     level: resolvedLevel,
     abilities: resolvedAbilities,
@@ -1293,6 +1443,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     backgroundChoices: resolvedBackgroundChoices,
     classFeatureState: getValues("classFeatureState") ?? {},
     className: resolvedClassName,
+    classRules: resolvedClassRules,
     currentHitPoints: resolvedCurrentHitPoints,
     customClass: resolvedCustomClass,
     feats: resolvedFeats,
@@ -1335,15 +1486,19 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   const isStarterPackSelectionReady = requiredStarterPackSelections.every(
     (selection) => normalizedStarterPackSelectionValues[selection.id]?.length > 0
   );
+  const backgroundAbilityOptions = isCustomBackgroundSelected
+    ? abilityKeys
+    : (backgroundEntry?.abilityScoreOptions ?? []);
   const isBackgroundAbilitySelectionReady =
-    !backgroundEntry ||
+    (!backgroundEntry && !isCustomBackgroundSelected) ||
     isEditing ||
     isBackgroundAbilityScoreIncreaseReady(
-      backgroundEntry.abilityScoreOptions,
+      backgroundAbilityOptions,
       displayedBackgroundChoices?.abilityScoreIncrease
     );
   const isBackgroundSkillSelectionReady =
     !backgroundEntry ||
+    isCustomBackgroundSelected ||
     isEditing ||
     !hasBackgroundSkillChoice ||
     (selectedBackgroundSkillProficiencies.length === backgroundSkillSelectionLimit &&
@@ -1352,11 +1507,13 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       ));
   const isBackgroundToolSelectionReady =
     !backgroundEntry ||
+    isCustomBackgroundSelected ||
     isEditing ||
     !hasBackgroundToolChoice ||
     backgroundToolOptions.includes(selectedBackgroundToolChoice as TOOL_PROFICIENCY);
   const isBackgroundEquipmentSelectionReady =
     !backgroundEntry ||
+    isCustomBackgroundSelected ||
     isEditing ||
     isBackgroundEquipmentModeReady(displayedBackgroundChoices?.equipmentMode);
   const isBackgroundSetupReady =
@@ -1401,7 +1558,20 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     isToolSelectionReady &&
     isEquipmentChoiceReady &&
     isStarterPackSelectionReady;
+  const isCustomClassNameReady =
+    !isCustomClassSelected || Boolean(resolvedCustomClass.name?.trim());
+  const isCustomSubclassNameReady =
+    !isCustomSubclassSelected || Boolean(resolvedCustomSubclass?.name.trim());
+  const isCustomSpeciesReady =
+    !isCustomSpeciesSelected ||
+    Boolean(resolvedCustomSpecies?.name.trim()) ||
+    Boolean(isEditing && !resolvedCustomSpecies);
+  const isCustomBackgroundReady =
+    !isCustomBackgroundSelected ||
+    Boolean(resolvedCustomBackground?.name.trim()) ||
+    Boolean(isEditing && !resolvedCustomBackground);
   const isSpeciesSetupReady =
+    isCustomSpeciesReady &&
     isSpeciesBodySizeReady &&
     isSpeciesDraconicAncestryReady &&
     isSpeciesElvenLineageReady &&
@@ -1416,6 +1586,9 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     isSpeciesTieflingSpellcastingAbilityReady;
   const isBuildSetupReady =
     isStartingHitPointsReady &&
+    isCustomClassNameReady &&
+    isCustomSubclassNameReady &&
+    isCustomBackgroundReady &&
     isClassSetupReady &&
     isBackgroundSetupReady &&
     isSpeciesSetupReady &&
@@ -1425,7 +1598,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     resolvedSpecies.trim().length > 0 &&
     resolvedBackground.trim().length > 0 &&
     resolvedName.trim().length > 0 &&
-    (!availableSubclassOptions.length || resolvedSubclassId.trim().length > 0) &&
+    (!hasSubclassSelection || resolvedSubclassId.trim().length > 0) &&
     Number.isFinite(resolvedLevel) &&
     resolvedLevel >= 1 &&
     resolvedLevel <= 20;
@@ -1540,12 +1713,18 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
           shouldValidate: true
         });
       }
+      if (resolvedCustomSubclass) {
+        setValue("customSubclass", undefined, {
+          shouldDirty: true,
+          shouldValidate: true
+        });
+      }
 
       return;
     }
 
     const normalizedSubclassId =
-      normalizeSubclassId(resolvedSubclassId, resolvedClassName) ??
+      normalizeSubclassId(resolvedSubclassId, resolvedClassName, resolvedCustomSubclass) ??
       getDefaultSubclassIdForClass(resolvedClassName);
 
     if (resolvedSubclassId !== normalizedSubclassId) {
@@ -1554,7 +1733,13 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         shouldValidate: true
       });
     }
-  }, [isCustomClassSelected, resolvedClassName, resolvedSubclassId, setValue]);
+  }, [
+    isCustomClassSelected,
+    resolvedClassName,
+    resolvedCustomSubclass,
+    resolvedSubclassId,
+    setValue
+  ]);
 
   useEffect(() => {
     if (
@@ -1857,7 +2042,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   }
 
   function updateBackgroundAbilityMode(mode: "two-one" | "one-one-one") {
-    if (!backgroundEntry) {
+    if (backgroundAbilityOptions.length === 0) {
       return;
     }
 
@@ -1866,21 +2051,21 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         ...getBackgroundChoiceDraftBase(),
         abilityScoreIncrease: {
           mode,
-          abilities: backgroundEntry.abilityScoreOptions
+          abilities: backgroundAbilityOptions.slice(0, 3) as [AbilityKey, AbilityKey, AbilityKey]
         }
       });
       return;
     }
 
     const preferredAbilities = getBackgroundPreferredAbilities(resolvedClassName).filter(
-      (ability) => backgroundEntry.abilityScoreOptions.includes(ability)
+      (ability) => backgroundAbilityOptions.includes(ability)
     );
     commitBackgroundChoices({
       ...getBackgroundChoiceDraftBase(),
       abilityScoreIncrease: {
         mode,
-        primaryAbility: preferredAbilities[0] ?? backgroundEntry.abilityScoreOptions[0],
-        secondaryAbility: preferredAbilities[1] ?? backgroundEntry.abilityScoreOptions[1]
+        primaryAbility: preferredAbilities[0] ?? backgroundAbilityOptions[0],
+        secondaryAbility: preferredAbilities[1] ?? backgroundAbilityOptions[1]
       }
     });
   }
@@ -1889,14 +2074,13 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     kind: "primaryAbility" | "secondaryAbility",
     ability: AbilityKey
   ) {
-    if (!backgroundEntry || !resolvedBackgroundChoices?.abilityScoreIncrease) {
+    if (backgroundAbilityOptions.length === 0 || !resolvedBackgroundChoices?.abilityScoreIncrease) {
       return;
     }
 
     const currentChoice = resolvedBackgroundChoices.abilityScoreIncrease;
     const fallbackAbility =
-      backgroundEntry.abilityScoreOptions.find((option) => option !== ability) ??
-      backgroundEntry.abilityScoreOptions[0];
+      backgroundAbilityOptions.find((option) => option !== ability) ?? backgroundAbilityOptions[0];
     const nextChoice =
       currentChoice.mode === "two-one"
         ? {
@@ -1921,7 +2105,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   }
 
   function updateBackgroundOneOneOneAbility(index: number, ability: AbilityKey) {
-    if (!backgroundEntry) {
+    if (backgroundAbilityOptions.length === 0) {
       return;
     }
 
@@ -1929,18 +2113,18 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     const selectedAbilities =
       currentChoice?.mode === "one-one-one"
         ? [...currentChoice.abilities]
-        : [...backgroundEntry.abilityScoreOptions];
+        : [...backgroundAbilityOptions.slice(0, 3)];
     const usedAbilities = new Set<AbilityKey>();
 
     selectedAbilities[index] = ability;
 
     const nextAbilities = selectedAbilities.map((selectedAbility) => {
       const normalizedAbility =
-        backgroundEntry.abilityScoreOptions.includes(selectedAbility) &&
+        backgroundAbilityOptions.includes(selectedAbility) &&
         !usedAbilities.has(selectedAbility)
           ? selectedAbility
-          : (backgroundEntry.abilityScoreOptions.find((option) => !usedAbilities.has(option)) ??
-            backgroundEntry.abilityScoreOptions[0]);
+          : (backgroundAbilityOptions.find((option) => !usedAbilities.has(option)) ??
+            backgroundAbilityOptions[0]);
 
       usedAbilities.add(normalizedAbility);
       return normalizedAbility;
@@ -2110,14 +2294,33 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     const normalizedCustomClass = isCustomClassName(normalizedClassName)
       ? normalizeCustomClassConfig(draftValues.customClass)
       : undefined;
+    const normalizedClassRules = normalizeCharacterClassRulesConfig(draftValues.classRules, {
+      className: normalizedClassName,
+      legacyCustomClass: normalizedCustomClass
+    });
+    const normalizedCustomSubclass = isCustomClassName(normalizedClassName)
+      ? undefined
+      : normalizeCustomSubclassConfig(draftValues.customSubclass, {
+          className: normalizedClassName
+        });
     const normalizedSpecies = draftValues.species.trim();
+    const normalizedCustomSpecies = isCustomSpeciesName(normalizedSpecies)
+      ? normalizeCustomSpeciesConfig(draftValues.customSpecies)
+      : undefined;
     const normalizedSpeciesChoices = normalizeCharacterSpeciesChoices(
       normalizedSpecies,
       draftValues.speciesChoices
     );
     const normalizedBackground = draftValues.background.trim();
     const resolvedNormalizedBackground =
-      backgroundOptions.includes(normalizedBackground) || isEditing ? normalizedBackground : "";
+      backgroundOptions.includes(normalizedBackground) ||
+      isCustomBackgroundName(normalizedBackground) ||
+      isEditing
+        ? normalizedBackground
+        : "";
+    const normalizedCustomBackground = isCustomBackgroundName(resolvedNormalizedBackground)
+      ? normalizeCustomBackgroundConfig(draftValues.customBackground)
+      : undefined;
     const normalizedBackgroundChoices = getNormalizedBackgroundChoices(
       resolvedNormalizedBackground,
       draftValues.backgroundChoices,
@@ -2132,6 +2335,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         ? getAutomaticMaxHitPointsForCharacter({
             className: normalizedClassName,
             customClass: normalizedCustomClass,
+            classRules: normalizedClassRules,
             level: normalizedProgress.level,
             abilities: normalizedAbilities,
             classFeatureState: draftValues.classFeatureState ?? {},
@@ -2152,7 +2356,11 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     const normalizedSubclassId =
       isCustomClassName(normalizedClassName)
         ? ""
-        : (normalizeSubclassId(draftValues.subclassId, normalizedClassName) ?? "");
+        : (normalizeSubclassId(
+            draftValues.subclassId,
+            normalizedClassName,
+            normalizedCustomSubclass
+          ) ?? "");
     const backgroundFeat = getBackgroundFeatEntry(draftValues.feats, resolvedNormalizedBackground);
     const backgroundReconciledFeats = backgroundFeat
       ? upsertBackgroundFeatEntry(draftValues.feats, resolvedNormalizedBackground, backgroundFeat)
@@ -2166,6 +2374,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     const normalizedCurrentHitPointMaximum = getEffectiveHitPointMaximumForDraft({
       className: normalizedClassName,
       customClass: normalizedCustomClass,
+      customSpecies: normalizedCustomSpecies,
       subclassId: normalizedSubclassId,
       level: normalizedProgress.level,
       hitPoints: normalizedHitPoints,
@@ -2197,12 +2406,17 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       name: sanitizeUserInput(draftValues.name),
       species: normalizedSpecies,
       speciesChoices: normalizedSpeciesChoices,
+      customSpecies: normalizedCustomSpecies,
       speciesFeatureState: normalizeCharacterSpeciesFeatureState(
         normalizedSpecies,
         draftValues.speciesFeatureState
       ),
       className: normalizedClassName,
       subclassId: normalizedSubclassId,
+      customSubclass: normalizedCustomSubclass?.id === normalizedSubclassId
+        ? normalizedCustomSubclass
+        : undefined,
+      classRules: normalizedClassRules,
       customClass: normalizedCustomClass,
       level: normalizedProgress.level,
       xp: normalizedProgress.xp,
@@ -2222,6 +2436,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
           : undefined,
       maxHitPointsMode: draftValues.maxHitPointsMode ?? "automatic",
       background: resolvedNormalizedBackground,
+      customBackground: normalizedCustomBackground,
       backgroundChoices: normalizedBackgroundChoices,
       backgroundNotes: sanitizeUserInput(draftValues.backgroundNotes, { multiline: true }),
       alignment: alignmentOptions.includes(draftValues.alignment)
@@ -2316,6 +2531,16 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   }
 
   async function submitForm(values: CharacterFormValues) {
+    if (
+      !isCustomClassNameReady ||
+      !isCustomSubclassNameReady ||
+      !isCustomSpeciesReady ||
+      !isCustomBackgroundReady
+    ) {
+      setAttemptedBuildAdvance(true);
+      return;
+    }
+
     if (!isPointBuyAbilityDistributionReady(values.attributeMode, values.abilities)) {
       setAttemptedBuildAdvance(true);
 
@@ -2378,7 +2603,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     const fields: Array<"name" | "species" | "className" | "subclassId" | "background" | "level"> =
       ["name", "species", "className", "background", "level"];
 
-    if (availableSubclassOptions.length > 0) {
+    if (hasSubclassSelection) {
       fields.splice(3, 0, "subclassId");
     }
 
@@ -2386,13 +2611,13 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   }
 
   async function handleRecommendedCreate() {
-    if (isCustomClassSelected) {
+    if (hasAnyCustomOriginSelected) {
       return;
     }
 
     const isValid = await validateWizardStepOne();
 
-    if (!isValid) {
+    if (!isValid || !isCoreProfileReady) {
       return;
     }
 
@@ -2406,7 +2631,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   async function handleStartCustomization() {
     const isValid = await validateWizardStepOne();
 
-    if (!isValid) {
+    if (!isValid || !isCoreProfileReady) {
       return;
     }
 
@@ -2551,6 +2776,9 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         isEditing || !disabledCreationClassNames.has(value) ? true : "Choose a supported class"
     });
     const speciesRegistration = register("species", { required: "Choose a species" });
+    const backgroundRegistration = register("background", {
+      required: "Choose a background"
+    });
 
     return (
       <section className={clsx(styles.sectionCard, styles.primarySection)}>
@@ -2608,20 +2836,71 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                 className={styles.fieldInput}
                 invalid={Boolean(errors.className)}
                 {...classRegistration}
+                value={resolvedClassName}
                 onChange={(event) => {
-                  void classRegistration.onChange(event);
                   const nextClassName = event.target.value;
+                  const nextIsCustomClass = isCustomClassName(nextClassName);
+                  const nextSubclassId = nextIsCustomClass
+                    ? ""
+                    : getDefaultSubclassIdForClass(nextClassName);
 
-                  setValue("subclassId", isCustomClassName(nextClassName) ? "" : getDefaultSubclassIdForClass(nextClassName), {
+                  setValue("className", nextClassName, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  });
+                  setValue("subclassId", nextSubclassId, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  });
+                  setValue("customSubclass", undefined, {
                     shouldDirty: true,
                     shouldValidate: true
                   });
 
-                  if (isCustomClassName(nextClassName)) {
-                    setValue("customClass", normalizeCustomClassConfig(getValues("customClass")), {
+                  if (nextIsCustomClass) {
+                    const nextCustomClass = createDraftCustomClassConfig(getValues("customClass"));
+
+                    setValue("customClass", nextCustomClass, {
                       shouldDirty: true,
                       shouldValidate: true
                     });
+                    setValue(
+                      "classRules",
+                      normalizeCharacterClassRulesConfig(
+                        {
+                          ...getValues("classRules"),
+                          classRulesEnforced: false,
+                          spellcastingRulesEnforced: false
+                        },
+                        {
+                          className: nextClassName,
+                          legacyCustomClass: nextCustomClass
+                        }
+                      ),
+                      {
+                        shouldDirty: true,
+                        shouldValidate: true
+                      }
+                    );
+                  } else {
+                    setValue(
+                      "classRules",
+                      normalizeCharacterClassRulesConfig(
+                        {
+                          ...getValues("classRules"),
+                          classRulesEnforced: true,
+                          spellcastingRulesEnforced: true
+                        },
+                        {
+                          className: nextClassName,
+                          legacyCustomClass: getValues("customClass")
+                        }
+                      ),
+                      {
+                        shouldDirty: true,
+                        shouldValidate: true
+                      }
+                    );
                   }
                 }}
               >
@@ -2650,17 +2929,36 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
               <SelectInput
                 className={styles.fieldInput}
                 invalid={Boolean(errors.subclassId)}
-                disabled={availableSubclassOptions.length === 0}
+                disabled={!hasSubclassSelection}
                 {...register("subclassId", {
                   validate: (value) =>
-                    availableSubclassOptions.length === 0 ||
-                    normalizeSubclassId(value, resolvedClassName)
+                    !hasSubclassSelection ||
+                    normalizeSubclassId(value, resolvedClassName, resolvedCustomSubclass)
                       ? true
                       : "Choose a subclass"
                 })}
+                value={resolvedSubclassId}
+                onChange={(event) => {
+                  const nextSubclassId = event.target.value;
+
+                  setValue("subclassId", nextSubclassId, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  });
+                  setValue(
+                    "customSubclass",
+                    nextSubclassId === draftCustomSubclassOption.id
+                      ? draftCustomSubclassOption
+                      : undefined,
+                    {
+                      shouldDirty: true,
+                      shouldValidate: true
+                    }
+                  );
+                }}
               >
                 <option value="">
-                  {availableSubclassOptions.length > 0
+                  {hasSubclassSelection
                     ? "Select a subclass"
                     : "No subclass options"}
                 </option>
@@ -2669,6 +2967,14 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                     {subclass.name}
                   </option>
                 ))}
+                {hasSubclassSelection ? (
+                  <>
+                    <option disabled value="__custom-subclass-divider">
+                      ──────────
+                    </option>
+                    <option value={draftCustomSubclassOption.id}>{CUSTOM_SUBCLASS_LABEL}</option>
+                  </>
+                ) : null}
               </SelectInput>
             </label>
           </div>
@@ -2682,13 +2988,25 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                 {...speciesRegistration}
                 onChange={(event) => {
                   void speciesRegistration.onChange(event);
+                  const nextSpecies = event.target.value;
+
+                  setValue(
+                    "customSpecies",
+                    isCustomSpeciesName(nextSpecies)
+                      ? createDraftCustomSpeciesConfig(getValues("customSpecies"))
+                      : undefined,
+                    {
+                      shouldDirty: true,
+                      shouldValidate: true
+                    }
+                  );
                   setValue("speciesChoices", undefined, {
                     shouldDirty: true,
                     shouldValidate: true
                   });
                   setValue(
                     "speciesFeatureState",
-                    normalizeCharacterSpeciesFeatureState(event.target.value, undefined),
+                    normalizeCharacterSpeciesFeatureState(nextSpecies, undefined),
                     {
                       shouldDirty: true,
                       shouldValidate: true
@@ -2702,6 +3020,10 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                     {species}
                   </option>
                 ))}
+                <option disabled value="__custom-species-divider">
+                  ──────────
+                </option>
+                <option value={CUSTOM_SPECIES_NAME}>{CUSTOM_SPECIES_NAME}</option>
               </SelectInput>
               {errors.species ? (
                 <small className={styles.errorText}>{errors.species.message}</small>
@@ -2713,9 +3035,32 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
               <SelectInput
                 className={styles.fieldInput}
                 invalid={Boolean(errors.background)}
-                {...register("background", {
-                  required: "Choose a background"
-                })}
+                {...backgroundRegistration}
+                onChange={(event) => {
+                  void backgroundRegistration.onChange(event);
+                  const nextBackground = event.target.value;
+
+                  setValue(
+                    "customBackground",
+                    isCustomBackgroundName(nextBackground)
+                      ? createDraftCustomBackgroundConfig(getValues("customBackground"))
+                      : undefined,
+                    {
+                      shouldDirty: true,
+                      shouldValidate: true
+                    }
+                  );
+                  setValue(
+                    "backgroundChoices",
+                    normalizeBackgroundChoices(nextBackground, undefined, {
+                      preferredAbilities: getBackgroundPreferredAbilities(resolvedClassName)
+                    }),
+                    {
+                      shouldDirty: true,
+                      shouldValidate: true
+                    }
+                  );
+                }}
               >
                 <option value="">Select a background</option>
                 {backgroundOptions.map((background) => (
@@ -2723,6 +3068,10 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                     {background}
                   </option>
                 ))}
+                <option disabled value="__custom-background-divider">
+                  ──────────
+                </option>
+                <option value={CUSTOM_BACKGROUND_NAME}>{CUSTOM_BACKGROUND_NAME}</option>
               </SelectInput>
               {errors.background ? (
                 <small className={styles.errorText}>{errors.background.message}</small>
@@ -2828,16 +3177,32 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   }
 
   function updateCustomClassConfig(nextConfig: CharacterCustomClassConfig) {
-    setValue("customClass", normalizeCustomClassConfig(nextConfig), {
+    setValue("customClass", nextConfig, {
       shouldDirty: true,
       shouldValidate: true
     });
+  }
+
+  function updateClassRulesConfig(nextConfig: CharacterClassRulesConfig) {
+    setValue(
+      "classRules",
+      normalizeCharacterClassRulesConfig(nextConfig, {
+        className: resolvedClassName,
+        legacyCustomClass: resolvedCustomClass
+      }),
+      {
+        shouldDirty: true,
+        shouldValidate: true
+      }
+    );
   }
 
   function renderCustomClassSetupSection() {
     if (!isCustomClassSelected) {
       return null;
     }
+
+    const customClassNameDraft = selectedCustomClass?.name ?? resolvedCustomClass.name ?? "";
 
     return (
       <section className={styles.sectionCard}>
@@ -2849,22 +3214,44 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         </div>
 
         <p className={styles.helperText}>
-          Custom classes skip predefined class setup and use these saved foundations for HP, Hit
-          Dice, and spell formulas.
+          Custom classes skip predefined class setup and use these saved foundations for HP and Hit
+          Dice.
         </p>
 
         <div className={styles.classSetupGrid}>
           <label className={styles.field}>
+            <span>Custom class name</span>
+            <TextInput
+              className={styles.fieldInput}
+              invalid={attemptedBuildAdvance && !isCustomClassNameReady}
+              value={customClassNameDraft}
+              maxLength={CUSTOM_CLASS_NAME_MAX_LENGTH}
+              onChange={(event) =>
+                updateCustomClassConfig({
+                  ...createDraftCustomClassConfig(resolvedCustomClass),
+                  name: event.target.value.slice(0, CUSTOM_CLASS_NAME_MAX_LENGTH)
+                })
+              }
+            />
+          </label>
+
+          <label className={styles.field}>
             <span>Hit Die</span>
             <SelectInput
               className={styles.fieldInput}
-              value={resolvedCustomClass.hitDie}
-              onChange={(event) =>
+              value={resolvedClassRules.hitDie}
+              onChange={(event) => {
+                const hitDie = event.target.value as CharacterClassRulesConfig["hitDie"];
+
+                updateClassRulesConfig({
+                  ...resolvedClassRules,
+                  hitDie
+                });
                 updateCustomClassConfig({
                   ...resolvedCustomClass,
-                  hitDie: event.target.value as CharacterCustomClassConfig["hitDie"]
-                })
-              }
+                  hitDie
+                });
+              }}
             >
               {customClassHitDice.map((hitDie) => (
                 <option key={hitDie} value={hitDie}>
@@ -2873,28 +3260,65 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
               ))}
             </SelectInput>
           </label>
-
-          <label className={styles.field}>
-            <span>Spellcasting Ability</span>
-            <SelectInput
-              className={styles.fieldInput}
-              value={resolvedCustomClass.spellcastingAbility}
-              onChange={(event) =>
-                updateCustomClassConfig({
-                  ...resolvedCustomClass,
-                  spellcastingAbility: event.target
-                    .value as CharacterCustomClassConfig["spellcastingAbility"]
-                })
-              }
-            >
-              {abilityKeys.map((ability) => (
-                <option key={ability} value={ability}>
-                  {ability}
-                </option>
-              ))}
-            </SelectInput>
-          </label>
         </div>
+
+        {attemptedBuildAdvance && !isCustomClassNameReady ? (
+          <p className={styles.errorText}>Enter a custom class name before continuing.</p>
+        ) : null}
+
+        <p className={styles.helperText}>
+          Class mechanics, features, proficiencies, equipment, and extra traits can be added
+          directly in the character sheet after creation.
+        </p>
+      </section>
+    );
+  }
+
+  function renderCustomSubclassSetupSection() {
+    if (!isCustomSubclassSelected) {
+      return null;
+    }
+
+    const customSubclassNameDraft =
+      selectedCustomSubclass?.name ?? resolvedCustomSubclass?.name ?? "";
+
+    return (
+      <section className={styles.sectionCard}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <p className={styles.sectionEyebrow}>Custom Subclass</p>
+            <h3 className={styles.sectionValueHeading}>Subclass identity</h3>
+          </div>
+          {!isCustomSubclassNameReady ? <InputRequiredBadge /> : null}
+        </div>
+
+        <label className={styles.field}>
+          <span>Custom subclass name</span>
+          <TextInput
+            className={styles.fieldInput}
+            invalid={attemptedBuildAdvance && !isCustomSubclassNameReady}
+            value={customSubclassNameDraft}
+            maxLength={CUSTOM_SUBCLASS_NAME_MAX_LENGTH}
+            onChange={(event) =>
+              setValue(
+                "customSubclass",
+                {
+                  ...draftCustomSubclassOption,
+                  id: resolvedSubclassId,
+                  name: event.target.value.slice(0, CUSTOM_SUBCLASS_NAME_MAX_LENGTH)
+                },
+                {
+                  shouldDirty: true,
+                  shouldValidate: true
+                }
+              )
+            }
+          />
+        </label>
+
+        {attemptedBuildAdvance && !isCustomSubclassNameReady ? (
+          <p className={styles.errorText}>Enter a custom subclass name before continuing.</p>
+        ) : null}
       </section>
     );
   }
@@ -3241,7 +3665,227 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     );
   }
 
+  function renderCustomBackgroundSetupSection() {
+    if (!isCustomBackgroundSelected) {
+      return null;
+    }
+
+    const customBackground = resolvedCustomBackground ?? createDraftCustomBackgroundConfig();
+    const customBackgroundNameDraft = selectedCustomBackground?.name ?? customBackground.name;
+    const abilityScoreIncrease = displayedBackgroundChoices?.abilityScoreIncrease;
+    const twoOneChoice = abilityScoreIncrease?.mode === "two-one" ? abilityScoreIncrease : null;
+    const oneOneOneChoice =
+      abilityScoreIncrease?.mode === "one-one-one" ? abilityScoreIncrease : null;
+
+    function updateCustomBackground(partial: Partial<CharacterCustomBackgroundConfig>) {
+      setValue(
+        "customBackground",
+        {
+          ...customBackground,
+          ...partial
+        },
+        {
+          shouldDirty: true,
+          shouldValidate: true
+        }
+      );
+    }
+
+    return (
+      <section className={styles.sectionCard}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <p className={styles.sectionEyebrow}>Custom Background</p>
+            <h3 className={styles.sectionValueHeading}>Background foundations</h3>
+          </div>
+          {!isBackgroundSetupReady || !isCustomBackgroundReady ? <InputRequiredBadge /> : null}
+        </div>
+
+        <div className={styles.choiceGroupColumns}>
+          <fieldset className={styles.choiceGroup}>
+            <legend>Identity</legend>
+            <label className={styles.field}>
+              <span>Custom background name</span>
+              <TextInput
+                className={styles.fieldInput}
+                invalid={attemptedBuildAdvance && !isCustomBackgroundReady}
+                value={customBackgroundNameDraft}
+                maxLength={CUSTOM_BACKGROUND_NAME_MAX_LENGTH}
+                onChange={(event) =>
+                  updateCustomBackground({
+                    name: event.target.value.slice(0, CUSTOM_BACKGROUND_NAME_MAX_LENGTH)
+                  })
+                }
+              />
+            </label>
+          </fieldset>
+
+          <fieldset className={styles.choiceGroup}>
+            <legend>Ability Scores</legend>
+            <p className={styles.helperText}>
+              Choose either +2/+1 or +1/+1/+1 among any ability scores.
+            </p>
+            <div
+              className={styles.segmentedControl}
+              role="tablist"
+              aria-label="Background ability mode"
+            >
+              <button
+                type="button"
+                className={clsx(
+                  styles.segmentButton,
+                  abilityScoreIncrease?.mode === "two-one" && styles.segmentButtonActive
+                )}
+                onClick={() => updateBackgroundAbilityMode("two-one")}
+              >
+                +2/+1
+              </button>
+              <button
+                type="button"
+                className={clsx(
+                  styles.segmentButton,
+                  abilityScoreIncrease?.mode === "one-one-one" && styles.segmentButtonActive
+                )}
+                onClick={() => updateBackgroundAbilityMode("one-one-one")}
+              >
+                +1/+1/+1
+              </button>
+            </div>
+
+            {twoOneChoice ? (
+              <div className={styles.classSetupGrid}>
+                <label className={styles.field}>
+                  <span>+2 ability</span>
+                  <SelectInput
+                    className={styles.fieldInput}
+                    value={twoOneChoice.primaryAbility}
+                    onChange={(event) =>
+                      updateBackgroundTwoOneAbility(
+                        "primaryAbility",
+                        event.target.value as AbilityKey
+                      )
+                    }
+                  >
+                    {abilityKeys.map((ability) => (
+                      <option
+                        key={ability}
+                        value={ability}
+                        disabled={ability === twoOneChoice.secondaryAbility}
+                      >
+                        {ability}
+                      </option>
+                    ))}
+                  </SelectInput>
+                </label>
+
+                <label className={styles.field}>
+                  <span>+1 ability</span>
+                  <SelectInput
+                    className={styles.fieldInput}
+                    value={twoOneChoice.secondaryAbility}
+                    onChange={(event) =>
+                      updateBackgroundTwoOneAbility(
+                        "secondaryAbility",
+                        event.target.value as AbilityKey
+                      )
+                    }
+                  >
+                    {abilityKeys.map((ability) => (
+                      <option
+                        key={ability}
+                        value={ability}
+                        disabled={ability === twoOneChoice.primaryAbility}
+                      >
+                        {ability}
+                      </option>
+                    ))}
+                  </SelectInput>
+                </label>
+              </div>
+            ) : oneOneOneChoice ? (
+              <div className={styles.classSetupGrid}>
+                {oneOneOneChoice.abilities.map((selectedAbility, index) => (
+                  <label key={`custom-background-plus-one-${index}`} className={styles.field}>
+                    <span>+1 ability {index + 1}</span>
+                    <SelectInput
+                      className={styles.fieldInput}
+                      value={selectedAbility}
+                      onChange={(event) =>
+                        updateBackgroundOneOneOneAbility(index, event.target.value as AbilityKey)
+                      }
+                    >
+                      {abilityKeys.map((ability) => (
+                        <option
+                          key={ability}
+                          value={ability}
+                          disabled={
+                            ability !== selectedAbility &&
+                            oneOneOneChoice.abilities.includes(ability)
+                          }
+                        >
+                          {ability}
+                        </option>
+                      ))}
+                    </SelectInput>
+                  </label>
+                ))}
+              </div>
+            ) : (
+              <p className={styles.helperText}>Choose an ability increase mode.</p>
+            )}
+          </fieldset>
+
+          <fieldset className={styles.choiceGroup}>
+            <legend>Languages</legend>
+            <p className={styles.helperText}>Choose up to 3 total languages (unless you want more)</p>
+            <p className={styles.helperText}>Standard</p>
+            <div className={styles.choiceGrid}>
+              {standardBackgroundLanguageOptions.map((language) => {
+                const isActive = selectedBackgroundLanguageProficiencies.includes(language);
+
+                return (
+                  <RadioContainerOption
+                    key={language}
+                    header={languageProficiencyLabels[language]}
+                    selected={isActive}
+                    onSelect={() => toggleBackgroundLanguageProficiency(language)}
+                    indicatorType="checkbox"
+                  />
+                );
+              })}
+            </div>
+            <p className={styles.helperText}>Rare</p>
+            <div className={styles.choiceGrid}>
+              {rareBackgroundLanguageOptions.map((language) => {
+                const isActive = selectedBackgroundLanguageProficiencies.includes(language);
+
+                return (
+                  <RadioContainerOption
+                    key={language}
+                    header={languageProficiencyLabels[language]}
+                    selected={isActive}
+                    onSelect={() => toggleBackgroundLanguageProficiency(language)}
+                    indicatorType="checkbox"
+                  />
+                );
+              })}
+            </div>
+          </fieldset>
+        </div>
+
+        <p className={styles.helperText}>
+          Skill proficiencies, origin feats, and starting equipment can be added directly in the
+          character sheet after creation.
+        </p>
+      </section>
+    );
+  }
+
   function renderBackgroundSetupSection() {
+    if (isCustomBackgroundSelected) {
+      return renderCustomBackgroundSetupSection();
+    }
+
     const abilityScoreIncrease = displayedBackgroundChoices?.abilityScoreIncrease;
     const twoOneChoice = abilityScoreIncrease?.mode === "two-one" ? abilityScoreIncrease : null;
     const oneOneOneChoice =
@@ -3560,13 +4204,110 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     );
   }
 
+  function renderCustomSpeciesSetupSection() {
+    if (!isCustomSpeciesSelected) {
+      return null;
+    }
+
+    const customSpecies = resolvedCustomSpecies ?? createDraftCustomSpeciesConfig();
+    const customSpeciesNameDraft = selectedCustomSpecies?.name ?? customSpecies.name;
+
+    function updateCustomSpecies(partial: Partial<CharacterCustomSpeciesConfig>) {
+      setValue(
+        "customSpecies",
+        {
+          ...customSpecies,
+          ...partial
+        },
+        {
+          shouldDirty: true,
+          shouldValidate: true
+        }
+      );
+    }
+
+    return (
+      <section className={styles.sectionCard}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <p className={styles.sectionEyebrow}>Custom Species</p>
+            <h3 className={styles.sectionValueHeading}>Species foundations</h3>
+          </div>
+          {!isCustomSpeciesReady ? <InputRequiredBadge /> : null}
+        </div>
+
+        <div className={styles.classSetupGrid}>
+          <label className={styles.field}>
+            <span>Custom species name</span>
+            <TextInput
+              className={styles.fieldInput}
+              invalid={attemptedBuildAdvance && !isCustomSpeciesReady}
+              value={customSpeciesNameDraft}
+              maxLength={CUSTOM_SPECIES_NAME_MAX_LENGTH}
+              onChange={(event) =>
+                updateCustomSpecies({
+                  name: event.target.value.slice(0, CUSTOM_SPECIES_NAME_MAX_LENGTH)
+                })
+              }
+            />
+          </label>
+
+          <label className={styles.field}>
+            <span>Speed</span>
+            <NumberInput
+              className={styles.fieldInput}
+              value={customSpecies.speed}
+              min={CUSTOM_SPECIES_SPEED_MINIMUM}
+              max={CUSTOM_SPECIES_SPEED_MAXIMUM}
+              onChange={(event) =>
+                updateCustomSpecies({
+                  speed: normalizeCustomSpeciesSpeed(event.target.value)
+                })
+              }
+            />
+          </label>
+
+          <label className={styles.field}>
+            <span>Size</span>
+            <SelectInput
+              className={styles.fieldInput}
+              value={customSpecies.size}
+              onChange={(event) =>
+                updateCustomSpecies({
+                  size: event.target.value as CharacterCustomSpeciesConfig["size"]
+                })
+              }
+            >
+              {customSpeciesSizeOptions.map((bodySize) => (
+                <option key={bodySize} value={bodySize}>
+                  {formatBodySize(bodySize)}
+                </option>
+              ))}
+            </SelectInput>
+          </label>
+        </div>
+
+        {attemptedBuildAdvance && !isCustomSpeciesReady ? (
+          <p className={styles.errorText}>Enter a custom species name before continuing.</p>
+        ) : null}
+      </section>
+    );
+  }
+
   function renderSpeciesSetupSection() {
+    if (isCustomSpeciesSelected) {
+      return renderCustomSpeciesSetupSection();
+    }
+
     const speciesSpeedBonuses = getSpeciesSpeedBonusesForCharacter({
       species: resolvedSpecies,
       speciesChoices: normalizedSpeciesChoices
     });
     const speciesSpeed =
-      getSpeciesSpeedForCharacter({ species: resolvedSpecies }) +
+      getSpeciesSpeedForCharacter({
+        species: resolvedSpecies,
+        customSpecies: resolvedCustomSpecies
+      }) +
       speciesSpeedBonuses
         .filter((bonus) => (bonus.movementType ?? "walk") === "walk")
         .reduce((total, bonus) => total + bonus.value, 0);
@@ -4242,8 +4983,10 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             {renderStartingHitPointsSection()}
             {renderAbilityDistributionSection()}
             {renderCustomClassSetupSection()}
+            {renderCustomSubclassSetupSection()}
             {renderClassSetupSection({ showStartingEquipmentChoice: false })}
             {renderSpeciesSetupSection()}
+            {renderBackgroundSetupSection()}
             {renderNotesSection()}
           </>
         ) : null}
@@ -4255,6 +4998,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             {renderStartingHitPointsSection()}
             {renderAbilityDistributionSection()}
             {renderCustomClassSetupSection()}
+            {renderCustomSubclassSetupSection()}
             {renderClassSetupSection()}
             {renderSpeciesSetupSection()}
             {renderBackgroundSetupSection()}
@@ -4303,7 +5047,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                   </ActionButton>
                 </div>
                 <div className={clsx(styles.actionsGroup, styles.actionsRight)}>
-                  {!isCustomClassSelected ? (
+                  {!hasAnyCustomOriginSelected ? (
                     <ActionButton
                       type="button"
                       fullWidth={false}
@@ -4336,6 +5080,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                 <ActionButton
                   type="button"
                   fullWidth={false}
+                  icon={<ArrowLeft size={16} aria-hidden="true" />}
                   onClick={handleBackToStepOne}
                   disabled={hasPendingAction}
                 >
@@ -4360,6 +5105,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                 <ActionButton
                   type="button"
                   fullWidth={false}
+                  icon={<ArrowLeft size={16} aria-hidden="true" />}
                   onClick={() => setWizardStep(2)}
                   disabled={hasPendingAction}
                 >

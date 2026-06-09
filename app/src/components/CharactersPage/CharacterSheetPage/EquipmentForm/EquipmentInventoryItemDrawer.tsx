@@ -2,6 +2,7 @@ import { X } from "lucide-react";
 import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
 import ItemInspectionContent, { ItemInspectionHeader } from "../../../ItemInspection";
+import { useExplicitBackdropClick } from "../../../Overlay";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import type { SpellDescriptionEntry } from "../../../../codex/entries";
 import type { CharacterCustomTraitEffect, CodexStatus, ItemRecord } from "../../../../types";
@@ -47,6 +48,8 @@ function EquipmentInventoryItemDrawer({
   weaponProficient = false,
   onOpenWeaponReference
 }: EquipmentInventoryItemDrawerProps) {
+  const { onBackdropClick, onBackdropPointerDown, onContentClick } =
+    useExplicitBackdropClick(onClose);
   const resolvedHeaderContent =
     headerContent ??
     (status === "ready" && item ? (
@@ -61,14 +64,15 @@ function EquipmentInventoryItemDrawer({
     <div
       className={`${sheetStyles.spellDrawerBackdrop} ${styles.backdrop} ${backdropClassName ?? ""}`}
       role="presentation"
-      onClick={onClose}
+      onClick={onBackdropClick}
+      onPointerDown={onBackdropPointerDown}
     >
       <section
         className={`${sheetStyles.spellDrawer} ${styles.drawer} ${drawerClassName ?? ""}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        onClick={(event) => event.stopPropagation()}
+        onClick={onContentClick}
       >
         <div className={sheetStyles.spellDrawerHeader}>
           {resolvedHeaderContent ?? (

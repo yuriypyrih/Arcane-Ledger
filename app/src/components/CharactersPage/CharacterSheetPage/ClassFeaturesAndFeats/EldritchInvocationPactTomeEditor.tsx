@@ -117,7 +117,9 @@ function EldritchInvocationPactTomeEditor({
       character.classFeatureState,
       character.spellbookSpellIds,
       character.subclassId,
-      character.statusEntries
+      character.statusEntries,
+      character.customClass,
+      character.classRules
     ).filter((spellId) => !currentPactTomeSpellIds.has(spellId));
 
     return new Set([

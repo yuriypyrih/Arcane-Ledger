@@ -7,6 +7,7 @@ import DivinityListRow from "../../../DivinityListRow/DivinityListRow";
 import SpellDescriptionContent from "../../../SpellDescriptionContent";
 import InputRequiredBadge from "../../../InputRequiredBadge";
 import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
+import { useExplicitBackdropClick } from "../../../Overlay";
 import CharacterSpellDrawer, { type CharacterSpellDrawerMode } from "./CharacterSpellDrawer";
 import SpellMainListRow from "./SpellMainListRow";
 import SpellCastingGuideModal from "./SpellCastingGuideModal";
@@ -120,20 +121,27 @@ import {
 } from "../../../../pages/CharactersPage/classFeatures/sorcerer/subclasses";
 import {
   getAlwaysPreparedSpellIds,
+  getCantripSelectionOptionsForCharacter,
+  getPreparedSpellSelectionOptionsForCharacter,
   getSpellLevel,
   getSpellSlotTotalsForCharacter,
+  areSpellcastingRulesEnforcedForCharacter,
+  hasBuiltInSpellcastingForCharacter,
   hasClassFeatureForCharacter,
+  isSpellcastingClass,
   normalizeTrackedSpellIds,
   normalizePreparedSpellIds,
   normalizeSpellbookSpellIds,
   normalizeSpellSlotsExpended,
+  usesFlexibleSpellcastingRulesForCharacter,
   usesSpellbookForCharacter,
   usesPreparedSpellsForCharacter
 } from "../../../../pages/CharactersPage/spellcasting";
 import {
   CUSTOM_CLASS_SPELL_SLOT_MAXIMUM,
+  getCharacterClassRulesConfig,
   isCustomClassName,
-  normalizeCustomClassConfig
+  normalizeCharacterClassRulesConfig
 } from "../../../../pages/CharactersPage/customClass";
 import { hasSpellcastingForCharacter } from "../../../../pages/CharactersPage/spellcastingAvailability";
 import { getSpellSelectionInputStatusForCharacter } from "../../../../pages/CharactersPage/spellSelection";
@@ -312,6 +320,33 @@ function getActionShapeStateForRoundTrackerResource(
 
 function SpellCastingForm({ character, className, onPersistCharacter }: SpellCastingFormProps) {
   const isCustomClass = isCustomClassName(character.className);
+  const hasBuiltInSpellcastingRules = hasBuiltInSpellcastingForCharacter(
+    character.className,
+    character.level,
+    character.subclassId
+  );
+  const spellcastingRulesEnforced = areSpellcastingRulesEnforcedForCharacter(
+    character.className,
+    character.level,
+    character.subclassId,
+    character.customClass,
+    character.classRules
+  );
+  const spellcastingRulesEnforcementDisabled = isCustomClass || !hasBuiltInSpellcastingRules;
+  const usesManualSpellcastingRules = usesFlexibleSpellcastingRulesForCharacter(
+    character.className,
+    character.level,
+    character.subclassId,
+    character.customClass,
+    character.classRules
+  );
+  const hasClassSpellcasting = isSpellcastingClass(
+    character.className,
+    character.level,
+    character.subclassId,
+    character.customClass,
+    character.classRules
+  );
   const [selectedSpell, setSelectedSpell] = useState<SpellEntry | null>(null);
   const [selectedDivinityOptionKey, setSelectedDivinityOptionKey] = useState<string | null>(null);
   const [selectedSpellViewMode, setSelectedSpellViewMode] =
@@ -418,6 +453,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const closeSelectedDivinity = useCallback(() => {
     setSelectedDivinityOptionKey(null);
   }, []);
+  const selectedDivinityBackdropHandlers = useExplicitBackdropClick(closeSelectedDivinity);
   const closeSpellSlotActionSheet = useCallback(() => {
     setActiveSpellSlotSheetLevel(null);
   }, []);
@@ -498,12 +534,18 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setIsSpellManagementModalOpen(false);
   }, [closeSpellSlotActionSheet, spellcastingState.blocked]);
   const classSpellEntries = useMemo(
-    () => baseClassSpellEntries.map((spell) => transformSpellEntry(spell)),
-    [baseClassSpellEntries, transformSpellEntry]
+    () =>
+      hasClassSpellcasting
+        ? baseClassSpellEntries.map((spell) => transformSpellEntry(spell))
+        : [],
+    [baseClassSpellEntries, hasClassSpellcasting, transformSpellEntry]
   );
   const preparedSpellPoolEntries = useMemo(
-    () => basePreparedSpellPoolEntries.map((spell) => transformSpellEntry(spell)),
-    [basePreparedSpellPoolEntries, transformSpellEntry]
+    () =>
+      !hasClassSpellcasting
+        ? []
+        : basePreparedSpellPoolEntries.map((spell) => transformSpellEntry(spell)),
+    [basePreparedSpellPoolEntries, hasClassSpellcasting, transformSpellEntry]
   );
   const featureActions = spellcastingRuntime.featureActions;
   const channelDivinityAction = useMemo(
@@ -563,7 +605,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const usesPreparedSpells = usesPreparedSpellsForCharacter(
     character.className,
     character.level,
-    character.subclassId
+    character.subclassId,
+    character.customClass,
+    character.classRules
   );
   const cantripLimit = spellcastingRuntime.cantripLimit;
   const preparedSpellLimit = spellcastingRuntime.preparedSpellLimit;
@@ -595,18 +639,48 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const bardicInspirationUsesRemaining = spellcastingRuntime.bardicInspirationUsesRemaining;
   const highestSpellSlotLevel = spellcastingRuntime.highestSpellSlotLevel;
   const cantripOptions = useMemo(
-    () => classSpellEntries.filter((spell) => getSpellLevel(spell) === 0),
-    [classSpellEntries]
+    () =>
+      getCantripSelectionOptionsForCharacter(
+        character.className,
+        character.level,
+        character.subclassId,
+        character.customClass,
+        character.classRules
+      ).map((spell) => transformSpellEntry(spell)),
+    [
+      character.className,
+      character.classRules,
+      character.customClass,
+      character.level,
+      character.subclassId,
+      transformSpellEntry
+    ]
   );
   const spellPreparationOptions = useMemo(
     () =>
-      preparedSpellPoolEntries.filter((spell) => {
-        const spellLevel = getSpellLevel(spell);
-        return spellLevel > 0 && (isCustomClass || spellLevel <= highestSpellSlotLevel);
-      }),
-    [highestSpellSlotLevel, isCustomClass, preparedSpellPoolEntries]
+      getPreparedSpellSelectionOptionsForCharacter(
+        character.className,
+        character.level,
+        character.subclassId,
+        character.customClass,
+        character.classRules
+      ).map((spell) => transformSpellEntry(spell)),
+    [
+      character.className,
+      character.classRules,
+      character.customClass,
+      character.level,
+      character.subclassId,
+      transformSpellEntry
+    ]
   );
-  const usesSpellbook = usesSpellbookForCharacter(character.className, character.subclassId);
+  const usesSpellbook = usesSpellbookForCharacter(
+    character.className,
+    character.subclassId,
+    character.customClass,
+    character.classRules,
+    character.level
+  );
   const hasWizardRitualAdept =
     usesSpellbook &&
     hasClassFeatureForCharacter(character.className, character.level, CLASS_FEATURE.RITUAL_ADEPT);
@@ -634,11 +708,15 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         character.classFeatureState,
         character.spellbookSpellIds,
         character.subclassId,
-        character.statusEntries
+        character.statusEntries,
+        character.customClass,
+        character.classRules
       ),
     [
       character.classFeatureState,
       character.className,
+      character.classRules,
+      character.customClass,
       character.level,
       character.spellbookSpellIds,
       character.statusEntries,
@@ -798,18 +876,22 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       new Map(
         [
           ...classSpellEntries,
+          ...cantripOptions,
           ...featGrantedCantripEntries,
           ...speciesGrantedCantripEntries,
           ...preparedSpellPoolEntries,
+          ...spellPreparationOptions,
           ...alwaysPreparedSpellEntries
         ].map((spell) => [spell.id, spell])
       ),
     [
       alwaysPreparedSpellEntries,
+      cantripOptions,
       classSpellEntries,
       featGrantedCantripEntries,
       speciesGrantedCantripEntries,
-      preparedSpellPoolEntries
+      preparedSpellPoolEntries,
+      spellPreparationOptions
     ]
   );
   const spellbookSpellEntriesById = useMemo(
@@ -1898,7 +1980,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           currentCharacter.className,
           currentCharacter.level,
           currentCharacter.subclassId,
-          currentCharacter.customClass
+          currentCharacter.customClass,
+          currentCharacter.classRules
         );
         const currentSpellSlotsExpended = normalizeSpellSlotsExpended(
           currentCharacter.spellSlotsExpended,
@@ -1937,7 +2020,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           currentCharacter.className,
           currentCharacter.level,
           currentCharacter.subclassId,
-          currentCharacter.customClass
+          currentCharacter.customClass,
+          currentCharacter.classRules
         );
         const currentSpellSlotsExpended = normalizeSpellSlotsExpended(
           currentCharacter.spellSlotsExpended,
@@ -1966,13 +2050,21 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const updateCustomSpellSlotMaximum = useCallback(
     (slotLevel: number, delta: number) => {
       onPersistCharacter((currentCharacter) => {
-        if (!isCustomClassName(currentCharacter.className)) {
+        if (
+          !usesFlexibleSpellcastingRulesForCharacter(
+            currentCharacter.className,
+            currentCharacter.level,
+            currentCharacter.subclassId,
+            currentCharacter.customClass,
+            currentCharacter.classRules
+          )
+        ) {
           return currentCharacter;
         }
 
         const slotIndex = slotLevel - 1;
-        const currentCustomClass = normalizeCustomClassConfig(currentCharacter.customClass);
-        const currentMaximum = currentCustomClass.spellSlotMaximums[slotIndex] ?? 0;
+        const currentClassRules = getCharacterClassRulesConfig(currentCharacter);
+        const currentMaximum = currentClassRules.spellSlotMaximums[slotIndex] ?? 0;
         const nextMaximum = Math.min(
           CUSTOM_CLASS_SPELL_SLOT_MAXIMUM,
           Math.max(0, currentMaximum + delta)
@@ -1982,22 +2074,86 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           return currentCharacter;
         }
 
-        const nextSpellSlotMaximums = [...currentCustomClass.spellSlotMaximums];
+        const nextSpellSlotMaximums = [...currentClassRules.spellSlotMaximums];
         nextSpellSlotMaximums[slotIndex] = nextMaximum;
 
-        const nextCustomClass = normalizeCustomClassConfig({
-          ...currentCustomClass,
-          spellSlotMaximums: nextSpellSlotMaximums
-        });
+        const nextClassRules = normalizeCharacterClassRulesConfig(
+          {
+            ...currentClassRules,
+            spellSlotMaximums: nextSpellSlotMaximums
+          },
+          {
+            className: currentCharacter.className,
+            legacyCustomClass: currentCharacter.customClass
+          }
+        );
+        const nextSpellSlotTotals = getSpellSlotTotalsForCharacter(
+          currentCharacter.className,
+          currentCharacter.level,
+          currentCharacter.subclassId,
+          currentCharacter.customClass,
+          nextClassRules
+        );
         const nextSpellSlotsExpended = normalizeSpellSlotsExpended(
           currentCharacter.spellSlotsExpended,
-          nextCustomClass.spellSlotMaximums
+          nextSpellSlotTotals
         );
 
         return {
           ...currentCharacter,
-          customClass: nextCustomClass,
+          classRules: nextClassRules,
           spellSlotsExpended: nextSpellSlotsExpended
+        };
+      });
+    },
+    [onPersistCharacter]
+  );
+
+  const updateSpellcastingRulesEnforcement = useCallback(
+    (enabled: boolean) => {
+      onPersistCharacter((currentCharacter) => {
+        if (
+          isCustomClassName(currentCharacter.className) ||
+          !hasBuiltInSpellcastingForCharacter(
+            currentCharacter.className,
+            currentCharacter.level,
+            currentCharacter.subclassId
+          )
+        ) {
+          return currentCharacter;
+        }
+
+        const currentClassRules = getCharacterClassRulesConfig(currentCharacter);
+
+        if (currentClassRules.spellcastingRulesEnforced === enabled) {
+          return currentCharacter;
+        }
+
+        const nextClassRules = normalizeCharacterClassRulesConfig(
+          {
+            ...currentClassRules,
+            spellcastingRulesEnforced: enabled
+          },
+          {
+            className: currentCharacter.className,
+            legacyCustomClass: currentCharacter.customClass
+          }
+        );
+        const nextSpellSlotTotals = getSpellSlotTotalsForCharacter(
+          currentCharacter.className,
+          currentCharacter.level,
+          currentCharacter.subclassId,
+          currentCharacter.customClass,
+          nextClassRules
+        );
+
+        return {
+          ...currentCharacter,
+          classRules: nextClassRules,
+          spellSlotsExpended: normalizeSpellSlotsExpended(
+            currentCharacter.spellSlotsExpended,
+            nextSpellSlotTotals
+          )
         };
       });
     },
@@ -2321,7 +2477,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     activeSpellSlotSheetLevel !== null
       ? (spellSlotsExpended[activeSpellSlotSheetLevel - 1] ?? 0)
       : 0;
-
   return renderSpellCastingForm({
     ActionButton,
     ActionShape,
@@ -2393,11 +2548,13 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     hasSpellSelectionInputRequired,
     highestSpellSlotLevel,
     isPreparedSpellPreview,
-    isCustomClass,
+    isCustomClass: usesManualSpellcastingRules,
     customClassSpellSlotMaximumLimit: CUSTOM_CLASS_SPELL_SLOT_MAXIMUM,
     isSelectedSpellDiceRollerSettingsOpen,
     isSpellcastingGuideOpen,
     isSpellManagementModalOpen,
+    isSpellcastingRulesEnforced: spellcastingRulesEnforced,
+    isSpellcastingRulesEnforcementDisabled: spellcastingRulesEnforcementDisabled,
     knownSpellEntriesById,
     onPersistCharacter,
     openDivinityDetails,
@@ -2416,6 +2573,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedDivinityActionShape,
     selectedDivinityActionShapeState,
     selectedDivinityActionWarning,
+    selectedDivinityBackdropHandlers,
     selectedDivinityDisplay,
     selectedDivinityOptionKey,
     selectedDivinityRow,
@@ -2563,6 +2721,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     tamedSurgeUsesTotal,
     updateSpellSlotsExpended,
     updateCustomSpellSlotMaximum,
+    updateSpellcastingRulesEnforcement,
     useBeguilingMagicOnSelectedSpell,
     useBewitchingMagicOnSelectedSpell,
     useBlessingOfMoonlightOnSelectedSpell,

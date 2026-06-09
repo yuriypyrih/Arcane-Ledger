@@ -203,6 +203,7 @@ function PartyManagerBody({ panelId, tabId }: PartyManagerBodyProps) {
               meta={`${partyGroup.memberCount} ${
                 partyGroup.memberCount === 1 ? "member" : "members"
               }`}
+              tone="party"
               to={`/gm-tools/party-manager/${partyGroup.id}`}
               actions={[
                 {

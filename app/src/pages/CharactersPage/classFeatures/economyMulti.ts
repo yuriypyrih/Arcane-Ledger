@@ -34,7 +34,12 @@ import {
   getFighterEldritchKnightWarMagicMultiCount,
   getFighterEldritchKnightWarMagicSpellLevels
 } from "./fighter/subclasses/fighterEldritchKnight";
+import {
+  consumeCustomClassWeaponAttack,
+  getCustomClassWeaponAttackMultiCount
+} from "./customClass/customClass";
 import { INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE } from "../inventoryItems";
+import { getCharacterClassRulesExtraAttackCount } from "../customClass";
 import { consumeMonkWeaponAttack, getMonkExtraAttackMultiCount } from "./monk/monk";
 import { consumePaladinWeaponAttack, getPaladinWeaponAttackMultiCount } from "./paladin/paladin";
 import { consumeRangerWeaponAttack, getRangerWeaponAttackMultiCount } from "./ranger/ranger";
@@ -63,7 +68,7 @@ type SharedEconomyMultiPool = FeatureEconomyMultiPool & {
 
 type SharedEconomyMultiCharacter = Pick<
   Character,
-  "className" | "level" | "classFeatureState" | "roundTracker"
+  "className" | "level" | "classFeatureState" | "classRules" | "customClass" | "roundTracker"
 > &
   Partial<Pick<Character, "subclassId">>;
 
@@ -373,10 +378,27 @@ function createMonkExtraAttackPool(
   };
 }
 
+function createCustomClassExtraAttackPool(
+  character: SharedEconomyMultiCharacter
+): SharedEconomyMultiPool | null {
+  if (getCharacterClassRulesExtraAttackCount(character) <= 0) {
+    return null;
+  }
+
+  return {
+    id: "custom-class-extra-attack",
+    remaining: clampRemaining(getCustomClassWeaponAttackMultiCount(character)),
+    priority: 10,
+    accessRules: [createAttackAccessRule()],
+    consume: (nextCharacter, context) =>
+      consumeCustomClassWeaponAttack(nextCharacter, createWeaponAttackConsumptionContext(context))
+  };
+}
+
 function createWarlockPactBladeExtraAttackPool(
   character: SharedEconomyMultiCharacter
 ): SharedEconomyMultiPool | null {
-  if (!hasWarlockPactBladeExtraAttackFeature(character)) {
+  if (character.className !== "Warlock" || !hasWarlockPactBladeExtraAttackFeature(character)) {
     return null;
   }
 
@@ -428,17 +450,19 @@ function createWizardBladesingerExtraAttackPool(
 function getSharedEconomyMultiPools(
   character: SharedEconomyMultiCharacter
 ): SharedEconomyMultiPool[] {
+  const hasCustomExtraAttackOverride = getCharacterClassRulesExtraAttackCount(character) > 0;
   const pools = [
-    createFighterExtraAttackPool(character),
+    hasCustomExtraAttackOverride ? null : createFighterExtraAttackPool(character),
     createFighterActionSurgePool(character),
-    createBardValorExtraAttackPool(character),
-    createBarbarianExtraAttackPool(character),
-    createRangerExtraAttackPool(character),
-    createPaladinExtraAttackPool(character),
-    createArtificerExtraAttackPool(character),
-    createMonkExtraAttackPool(character),
-    createWarlockPactBladeExtraAttackPool(character),
-    createWizardBladesingerExtraAttackPool(character)
+    hasCustomExtraAttackOverride ? null : createBardValorExtraAttackPool(character),
+    hasCustomExtraAttackOverride ? null : createBarbarianExtraAttackPool(character),
+    hasCustomExtraAttackOverride ? null : createRangerExtraAttackPool(character),
+    hasCustomExtraAttackOverride ? null : createPaladinExtraAttackPool(character),
+    hasCustomExtraAttackOverride ? null : createArtificerExtraAttackPool(character),
+    hasCustomExtraAttackOverride ? null : createMonkExtraAttackPool(character),
+    createCustomClassExtraAttackPool(character),
+    hasCustomExtraAttackOverride ? null : createWarlockPactBladeExtraAttackPool(character),
+    hasCustomExtraAttackOverride ? null : createWizardBladesingerExtraAttackPool(character)
   ].filter((pool): pool is SharedEconomyMultiPool => pool !== null);
 
   return pools.sort((left, right) => left.priority - right.priority);

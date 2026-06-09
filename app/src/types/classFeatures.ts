@@ -233,6 +233,10 @@ export type CharacterWarlockFeatureState = {
   mysticArcanumExpendedLevels?: Array<6 | 7 | 8 | 9>;
 };
 
+export type CharacterCustomClassFeatureState = {
+  extraAttacksRemainingThisTurn?: number;
+};
+
 export type CharacterMonkFeatureState = {
   focusPointsExpended?: number;
   uncannyMetabolismUsesExpended?: number;
@@ -325,6 +329,7 @@ export type CharacterClericFeatureState = {
 
 export type CharacterClassFeatureState = {
   artificer?: CharacterArtificerFeatureState;
+  customClass?: CharacterCustomClassFeatureState;
   rage?: CharacterRageFeatureState;
   bard?: CharacterBardFeatureState;
   cleric?: CharacterClericFeatureState;

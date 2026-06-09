@@ -394,7 +394,11 @@ export function createBaseCoreStatCards(
     speed: `${getSpeedForCharacter(character)} ft`,
     passivePerception: String(getPassivePerceptionForCharacter(character)),
     proficiencyBonus: formatAbilityModifier(proficiencyBonus),
-    hitDice: getHitDieLabelForClass(character.className, character.customClass)
+    hitDice: getHitDieLabelForClass(
+      character.className,
+      character.customClass,
+      character.classRules
+    )
   };
   const coreStatIndicators = getCoreStatIndicatorsForCharacter(character);
   const speedBreakdown = getSpeedBreakdownForCharacter(character);

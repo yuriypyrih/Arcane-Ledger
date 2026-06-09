@@ -16,6 +16,11 @@ import { normalizeCharacter } from "../../../../pages/CharactersPage/storage";
 import { getCharacterRuntime } from "../../../../pages/CharactersPage/characterRuntime/characterRuntime";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { getSelectedSubclassForCharacter } from "../../../../pages/CharactersPage/subclasses";
+import {
+  getCharacterClassDisplayName,
+  getCharacterSpeciesDisplayName,
+  getCharacterSubclassDisplayName
+} from "../../../../pages/CharactersPage/customOrigins";
 import { getClassSignatureStyle } from "../../classSignature";
 import CharacterNotesDrawer from "./CharacterNotesDrawer";
 import CharacterProgressModal from "./CharacterProgressModal";
@@ -110,7 +115,11 @@ function CharacterProfileForm({
     onPersistCharacter
   );
   const selectedSubclass = getSelectedSubclassForCharacter(character);
-  const identityLine = [character.species, character.className].filter(Boolean).join(" ");
+  const customSubclassLabel = getCharacterSubclassDisplayName(character);
+  const identityLine = [
+    getCharacterSpeciesDisplayName(character),
+    getCharacterClassDisplayName(character)
+  ].filter(Boolean).join(" ");
 
   function openProgressModal() {
     setIsProgressModalOpen(true);
@@ -161,8 +170,11 @@ function CharacterProfileForm({
             <div className={styles.identityRows}>
               <p className={clsx(styles.identityMetaLine, styles.identityClassLine)}>
                 {identityLine}
-                {selectedSubclass ? (
-                  <span className={styles.identitySubclassLine}> ({selectedSubclass.name})</span>
+                {selectedSubclass || customSubclassLabel ? (
+                  <span className={styles.identitySubclassLine}>
+                    {" "}
+                    ({selectedSubclass?.name ?? customSubclassLabel})
+                  </span>
                 ) : null}
               </p>
               <p className={styles.identityMetaLine}>{character.alignment}</p>

@@ -62,7 +62,10 @@ export function applyArcaneWardActionUse(
 
   const spellSlotTotals = getSpellSlotTotalsForCharacter(
     currentCharacter.className,
-    currentCharacter.level
+    currentCharacter.level,
+    currentCharacter.subclassId,
+    currentCharacter.customClass,
+    currentCharacter.classRules
   );
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     currentCharacter.spellSlotsExpended,

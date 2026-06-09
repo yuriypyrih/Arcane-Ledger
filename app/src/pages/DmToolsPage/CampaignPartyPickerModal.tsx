@@ -115,6 +115,7 @@ function CampaignPartyPickerModal({
                 meta={`${partyGroup.memberCount} ${
                   partyGroup.memberCount === 1 ? "member" : "members"
                 }${partyGroup.id === selectedPartyId ? " · selected" : ""}`}
+                tone="party"
                 disabled={isSaving || selectingPartyId !== null}
                 onClick={() => {
                   void handleSelectParty(partyGroup.id);

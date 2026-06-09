@@ -60,6 +60,7 @@
 .primaryLink {
   display: inline-flex;
   align-items: center;
+  gap: 0.45rem;
   justify-content: center;
   justify-self: start;
   border-radius: var(--radius-control-lg);

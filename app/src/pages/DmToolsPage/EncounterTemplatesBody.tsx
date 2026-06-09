@@ -213,6 +213,7 @@ function EncounterTemplatesBody({ panelId, tabId }: EncounterTemplatesBodyProps)
               meta={`${encounterTemplate.creatureCount} ${
                 encounterTemplate.creatureCount === 1 ? "creature" : "creatures"
               }`}
+              tone="encounter"
               to={`/gm-tools/encounter-templates/${encounterTemplate.id}`}
               actions={[
                 {

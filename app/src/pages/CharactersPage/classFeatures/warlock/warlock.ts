@@ -29,6 +29,12 @@ import {
   getHitDiceTotalForCharacter,
   getHitDieFormulaForClass
 } from "../../hitDice";
+import {
+  getCharacterClassRulesConfig,
+  getCharacterClassRulesEldritchInvocationSelectionIds,
+  isCharacterClassRulesEldritchInvocationsEnabled,
+  normalizeCharacterClassRulesConfig
+} from "../../customClass";
 import { getFeatDefinitionsByCategory } from "../../feats";
 import {
   type AbilityKey,
@@ -267,7 +273,7 @@ export type WarlockEldritchInvocationOption = {
 export type WarlockEldritchInvocationInputStatus = {
   hasInputRequired: boolean;
   selectedCount: number;
-  limit: number;
+  limit: number | null;
   message: string | null;
 };
 
@@ -277,7 +283,9 @@ type WarlockInvocationCharacter = Pick<Character, "className" | "level"> &
       Character,
       | "abilities"
       | "cantripIds"
+      | "classRules"
       | "classFeatureState"
+      | "customClass"
       | "feats"
       | "hitDiceRemaining"
       | "inventoryItems"
@@ -326,6 +334,13 @@ function getWarlockFeatureState(
   character: WarlockInvocationCharacter
 ): CharacterWarlockFeatureState {
   return normalizeWarlockFeatureState(character.classFeatureState?.warlock, character);
+}
+
+function hasEldritchInvocationAccess(character: WarlockInvocationCharacter): boolean {
+  return (
+    hasWarlockFeature(character, CLASS_FEATURE.ELDRITCH_INVOCATIONS) ||
+    isCharacterClassRulesEldritchInvocationsEnabled(character)
+  );
 }
 
 function getUnlockedMysticArcanumLevels(
@@ -551,6 +566,11 @@ function normalizeWarlockInvocationSelectionIdsForState(
   selectionIds: string[]
 ): string[] {
   const limit = getWarlockEldritchInvocationLimit(character);
+
+  if (limit === 0) {
+    return [];
+  }
+
   const candidateSelectionIds = [...new Set(sortSelectionIdsForNormalization(selectionIds))];
   const optionMap = new Map(
     getWarlockInvocationOptions(character, candidateSelectionIds).map((option) => [
@@ -562,7 +582,7 @@ function normalizeWarlockInvocationSelectionIdsForState(
   const acceptedBaseInvocationIds = new Set<ELDRITCH_INVOCATION>();
 
   for (const selectionId of candidateSelectionIds) {
-    if (acceptedSelectionIds.length >= limit) {
+    if (limit !== null && acceptedSelectionIds.length >= limit) {
       break;
     }
 
@@ -596,8 +616,13 @@ export function hasWarlockFeature(
 }
 
 export function getWarlockEldritchInvocationLimit(
-  character: Pick<Character, "className" | "level">
-): number {
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "classRules" | "customClass">>
+): number | null {
+  if (isCharacterClassRulesEldritchInvocationsEnabled(character)) {
+    return null;
+  }
+
   if (!hasWarlockFeature(character, CLASS_FEATURE.ELDRITCH_INVOCATIONS)) {
     return 0;
   }
@@ -606,6 +631,10 @@ export function getWarlockEldritchInvocationLimit(
 }
 
 export function getWarlockInvocationSelectionIds(character: WarlockInvocationCharacter): string[] {
+  if (!hasWarlockFeature(character, CLASS_FEATURE.ELDRITCH_INVOCATIONS)) {
+    return getCharacterClassRulesEldritchInvocationSelectionIds(character);
+  }
+
   return getWarlockFeatureState(character).eldritchInvocationIds ?? [];
 }
 
@@ -613,7 +642,7 @@ export function normalizeWarlockInvocationSelectionIds(
   character: WarlockInvocationCharacter,
   selectionIds: string[]
 ): string[] {
-  if (character.className !== "Warlock") {
+  if (!hasEldritchInvocationAccess(character)) {
     return [];
   }
 
@@ -762,7 +791,7 @@ export function getWarlockInvocationOptions(
   character: WarlockInvocationCharacter,
   selectedIds: string[] = getWarlockInvocationSelectionIds(character)
 ): WarlockEldritchInvocationOption[] {
-  if (!hasWarlockFeature(character, CLASS_FEATURE.ELDRITCH_INVOCATIONS)) {
+  if (!hasEldritchInvocationAccess(character)) {
     return [];
   }
 
@@ -1132,7 +1161,11 @@ export function getWarlockLifedrinkerWeaponOptionState(
     return null;
   }
 
-  const hitDieFormula = getHitDieFormulaForClass(character.className);
+  const hitDieFormula = getHitDieFormulaForClass(
+    character.className,
+    character.customClass,
+    character.classRules
+  );
   const constitutionBreakdown = getAbilityModifierBreakdownForCharacter(character, "CON");
   const healFormula = createSignedFormula(hitDieFormula, constitutionBreakdown.total);
   const constitutionDisplayTerm =
@@ -1178,10 +1211,6 @@ export function getWarlockLifedrinkerWeaponOptionState(
 }
 
 export function consumeWarlockLifedrinkerHitDie(character: Character): Character {
-  if (character.className !== "Warlock") {
-    return character;
-  }
-
   const selectedInvocationIds = getWarlockSelectedInvocationIds(character);
 
   if (
@@ -1208,15 +1237,16 @@ export function getWarlockEldritchInvocationInputStatus(
 ): WarlockEldritchInvocationInputStatus {
   const limit = getWarlockEldritchInvocationLimit(character);
   const selectedIds = getWarlockInvocationSelectionIds(character);
+  const isUnlimited = limit === null;
   const hasRemainingQualifiedInvocationOption =
-    limit > 0 &&
-    selectedIds.length < limit &&
+    (isUnlimited || limit > 0) &&
+    (isUnlimited || selectedIds.length < limit) &&
     getWarlockInvocationOptions(character, selectedIds).some(
       (option) =>
         option.isQualified && !option.isPlaceholder && !selectedIds.includes(option.selectionId)
     );
   const hasInputRequired =
-    limit > 0 && selectedIds.length < limit && hasRemainingQualifiedInvocationOption;
+    !isUnlimited && limit > 0 && selectedIds.length < limit && hasRemainingQualifiedInvocationOption;
   const hasPactBladeSelected = selectedIds.some(
     (selectionId) =>
       parseSelectionId(selectionId).invocationId === ELDRITCH_INVOCATION.PACT_OF_THE_BLADE
@@ -1225,7 +1255,7 @@ export function getWarlockEldritchInvocationInputStatus(
     isPactOfTheBladeInventoryItem(entry)
   );
   const hasMissingPactBladeWeapon = hasPactBladeSelected && !hasPactBladeInventoryTag;
-  const remainingCount = Math.max(0, limit - selectedIds.length);
+  const remainingCount = isUnlimited ? 0 : Math.max(0, limit - selectedIds.length);
 
   return {
     hasInputRequired: hasInputRequired || hasMissingPactBladeWeapon,
@@ -1585,18 +1615,20 @@ export function setWarlockInvocationSelectionIds(
   selectionIds: string[],
   options: SetWarlockInvocationSelectionIdsOptions = {}
 ): Character {
-  if (character.className !== "Warlock") {
+  if (!hasEldritchInvocationAccess(character)) {
     return character;
   }
 
-  const nextWarlockState = normalizeWarlockFeatureState(
-    {
-      ...character.classFeatureState?.warlock,
-      eldritchInvocationIds: selectionIds
-    },
-    character
-  );
-  const normalizedSelectionIds = nextWarlockState.eldritchInvocationIds ?? [];
+  const usesWarlockFeatureState = hasWarlockFeature(character, CLASS_FEATURE.ELDRITCH_INVOCATIONS);
+  const normalizedSelectionIds = usesWarlockFeatureState
+    ? (normalizeWarlockFeatureState(
+        {
+          ...character.classFeatureState?.warlock,
+          eldritchInvocationIds: selectionIds
+        },
+        character
+      ).eldritchInvocationIds ?? [])
+    : normalizeWarlockInvocationSelectionIds(character, selectionIds);
   const pactBladeSelection = getSelectedPactBladeSelection(normalizedSelectionIds);
   const nextInventoryItems = (() => {
     if (!pactBladeSelection) {
@@ -1628,6 +1660,41 @@ export function setWarlockInvocationSelectionIds(
     return clearPactOfTheBladeInventoryTags(character.inventoryItems);
   })();
 
+  if (!usesWarlockFeatureState) {
+    const currentClassRules = getCharacterClassRulesConfig(character);
+    const nextClassRules = normalizeCharacterClassRulesConfig(
+      {
+        ...currentClassRules,
+        mechanics: {
+          ...currentClassRules.mechanics,
+          eldritchInvocations: {
+            ...currentClassRules.mechanics.eldritchInvocations,
+            enabled: true,
+            selectionIds: normalizedSelectionIds
+          }
+        }
+      },
+      {
+        className: character.className,
+        legacyCustomClass: character.customClass
+      }
+    );
+
+    return {
+      ...character,
+      inventoryItems: nextInventoryItems,
+      classRules: nextClassRules
+    };
+  }
+
+  const nextWarlockState = normalizeWarlockFeatureState(
+    {
+      ...character.classFeatureState?.warlock,
+      eldritchInvocationIds: normalizedSelectionIds
+    },
+    character
+  );
+
   return {
     ...character,
     inventoryItems: nextInventoryItems,
@@ -1638,8 +1705,37 @@ export function setWarlockInvocationSelectionIds(
   };
 }
 
+export function setClassRulesEldritchInvocationSelectionIds(
+  character: Character,
+  selectionIds: string[]
+): Character {
+  const currentClassRules = getCharacterClassRulesConfig(character);
+  const nextClassRules = normalizeCharacterClassRulesConfig(
+    {
+      ...currentClassRules,
+      mechanics: {
+        ...currentClassRules.mechanics,
+        eldritchInvocations: {
+          ...currentClassRules.mechanics.eldritchInvocations,
+          enabled: true,
+          selectionIds
+        }
+      }
+    },
+    {
+      className: character.className,
+      legacyCustomClass: character.customClass
+    }
+  );
+
+  return {
+    ...character,
+    classRules: nextClassRules
+  };
+}
+
 export function clearWarlockPactOfTheBladeInvocationSelection(character: Character): Character {
-  if (character.className !== "Warlock") {
+  if (!hasEldritchInvocationAccess(character)) {
     return character;
   }
 
@@ -1656,7 +1752,7 @@ export function replaceWarlockPactOfTheBladeOwnedStackSelection(
   previousStackId: string,
   nextStackId: string
 ): Character {
-  if (character.className !== "Warlock" || previousStackId === nextStackId) {
+  if (!hasEldritchInvocationAccess(character) || previousStackId === nextStackId) {
     return character;
   }
 

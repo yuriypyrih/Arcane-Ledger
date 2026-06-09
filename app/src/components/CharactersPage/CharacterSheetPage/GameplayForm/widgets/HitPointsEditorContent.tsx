@@ -41,6 +41,7 @@ export type HitPointsEditorCharacter = Pick<
   | "abilities"
   | "classFeatureState"
   | "className"
+  | "classRules"
   | "currentHitPoints"
   | "customClass"
   | "hitPoints"
@@ -74,8 +75,16 @@ function formatHitPointFormulaContent({
   mode: MaxHitPointsMode;
 }): { content: string; breakdown: string } {
   const hitDieLabel = getHitDieLabelForCharacter(character);
-  const hitDieFormula = getHitDieFormulaForClass(character.className, character.customClass);
-  const hitDieMaximum = getHitDieMaximumForClass(character.className, character.customClass);
+  const hitDieFormula = getHitDieFormulaForClass(
+    character.className,
+    character.customClass,
+    character.classRules
+  );
+  const hitDieMaximum = getHitDieMaximumForClass(
+    character.className,
+    character.customClass,
+    character.classRules
+  );
   const constitutionModifier = getAbilityModifierForCharacter(character, "CON");
   const level = Math.max(1, Math.floor(character.level));
   const laterLevelCount = Math.max(0, level - 1);

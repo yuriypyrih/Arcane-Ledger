@@ -5,9 +5,13 @@ import type {
   AttributeMode,
   CharacterArmorClassFormulaSelection,
   CharacterBackgroundChoices,
+  CharacterCustomBackgroundConfig,
   CharacterCompanion,
   CharacterCurrencies,
+  CharacterClassRulesConfig,
   CharacterCustomClassConfig,
+  CharacterCustomSpeciesConfig,
+  CharacterCustomSubclassConfig,
   CharacterAvatarMetadata,
   CharacterDeathSaves,
   CharacterInventoryItem,
@@ -39,14 +43,18 @@ export type PortableCharacterSheetIdentity = {
 export type PortableCharacterSheetOrigin = {
   species: string;
   speciesChoices?: CharacterSpeciesChoices;
+  customSpecies?: CharacterCustomSpeciesConfig;
   background: string;
   backgroundChoices?: CharacterBackgroundChoices;
+  customBackground?: CharacterCustomBackgroundConfig;
   backgroundNotes: string;
 };
 
 export type PortableCharacterSheetProgression = {
   className: string;
   subclassId?: string;
+  customSubclass?: CharacterCustomSubclassConfig;
+  classRules?: CharacterClassRulesConfig;
   customClass?: CharacterCustomClassConfig;
   level: number;
   xp: number;

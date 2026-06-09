@@ -478,7 +478,9 @@ export function renderClassFeatureContent(context: Record<string, any>) {
             <div className={styles.featureChoiceSummary}>
               <span className={styles.featureChoiceLabel}>Selected invocations</span>
               <span className={styles.featureChoiceValueText}>
-                {`${eldritchInvocationInputStatus.selectedCount}/${eldritchInvocationInputStatus.limit} selected`}
+                {eldritchInvocationInputStatus.limit === null
+                  ? `${eldritchInvocationInputStatus.selectedCount}/Unlimited selected`
+                  : `${eldritchInvocationInputStatus.selectedCount}/${eldritchInvocationInputStatus.limit} selected`}
               </span>
             </div>
             <button

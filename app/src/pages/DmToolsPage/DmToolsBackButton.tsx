@@ -1,3 +1,4 @@
+import { ArrowLeft } from "lucide-react";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import styles from "./DmToolsPage.module.css";
 
@@ -17,7 +18,8 @@ function DmToolsBackButton({
 }: DmToolsBackButtonProps) {
   return (
     <button type={type} className={getClassName(className)} {...buttonProps}>
-      {children}
+      <ArrowLeft size={14} aria-hidden="true" />
+      <span>{children}</span>
     </button>
   );
 }

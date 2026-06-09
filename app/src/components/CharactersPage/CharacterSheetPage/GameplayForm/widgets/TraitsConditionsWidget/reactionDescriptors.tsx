@@ -227,7 +227,8 @@ function spendSongOfDefenseSpellSlot(
     currentCharacter.className,
     currentCharacter.level,
     currentCharacter.subclassId,
-    currentCharacter.customClass
+    currentCharacter.customClass,
+    currentCharacter.classRules
   );
   const nextSpellSlotsExpended = normalizeSpellSlotsExpended(
     currentCharacter.spellSlotsExpended,

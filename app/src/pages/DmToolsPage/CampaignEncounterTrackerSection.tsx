@@ -47,7 +47,10 @@ function CampaignEncounterTrackerSection({ campaign }: CampaignEncounterTrackerS
   }
 
   return (
-    <section className={styles.membersPanel} aria-labelledby="campaign-encounter-tracker-title">
+    <section
+      className={`${styles.membersPanel} ${styles.campaignDetailSummaryPanel}`}
+      aria-labelledby="campaign-encounter-tracker-title"
+    >
       <div className={styles.memberPanelHeader}>
         <div>
           <h3 id="campaign-encounter-tracker-title" className={styles.bodyTitle}>
@@ -73,7 +76,7 @@ function CampaignEncounterTrackerSection({ campaign }: CampaignEncounterTrackerS
               ? tracker.status.message
               : tracker.preparedEncounterName
           }
-          tone={isTrackerInvalid ? "danger" : "default"}
+          tone={isTrackerInvalid ? "danger" : "encounter"}
           onClick={
             isTrackerInvalid
               ? undefined

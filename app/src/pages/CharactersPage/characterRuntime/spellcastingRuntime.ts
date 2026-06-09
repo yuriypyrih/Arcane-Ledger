@@ -144,7 +144,8 @@ function createSpellcastingRuntime(
     character.className,
     character.level,
     includeSubclassSlots ? character.subclassId : undefined,
-    character.customClass
+    character.customClass,
+    character.classRules
   );
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
@@ -165,12 +166,16 @@ function createSpellcastingRuntime(
       character.className,
       character.level,
       character.classFeatureState,
-      character.subclassId
+      character.subclassId,
+      character.customClass,
+      character.classRules
     ),
     preparedSpellLimit: getPreparedSpellLimitForCharacter(
       character.className,
       character.level,
-      character.subclassId
+      character.subclassId,
+      character.customClass,
+      character.classRules
     ),
     spellSlotTotals,
     spellSlotsExpended,

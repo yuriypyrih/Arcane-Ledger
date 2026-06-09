@@ -62,6 +62,7 @@ import {
   getBackgroundToolProficiencies,
   normalizeBackgroundChoices
 } from "../backgrounds";
+import { isCustomBackgroundName } from "../customOrigins";
 import { getElfSkillProficiencyForCharacter } from "../speciesElf";
 import { getHumanSkillProficiencyForCharacter } from "../speciesHuman";
 import {
@@ -183,7 +184,7 @@ function getBackgroundGrantedLanguageProficiencies(
 ) {
   const entry = getBackgroundEntryByName(background);
 
-  if (!entry) {
+  if (!entry && !isCustomBackgroundName(background)) {
     return [];
   }
 

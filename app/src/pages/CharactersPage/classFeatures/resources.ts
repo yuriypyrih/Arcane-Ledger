@@ -1251,7 +1251,13 @@ export function consumeSorcererRestoreBalanceUseForCharacter(character: Characte
 export function getAlwaysPreparedSpellIdsForCharacter(
   character: Pick<
     Character,
-    "className" | "level" | "classFeatureState" | "spellbookSpellIds" | "subclassId"
+    | "className"
+    | "level"
+    | "classFeatureState"
+    | "classRules"
+    | "customClass"
+    | "spellbookSpellIds"
+    | "subclassId"
   > &
     Partial<Pick<Character, "statusEntries">>
 ): string[] {
@@ -1283,7 +1289,13 @@ function addFallbackSpellSources(
 export function getAlwaysPreparedSpellSourceMapForCharacter(
   character: Pick<
     Character,
-    "className" | "level" | "classFeatureState" | "spellbookSpellIds" | "subclassId"
+    | "className"
+    | "level"
+    | "classFeatureState"
+    | "classRules"
+    | "customClass"
+    | "spellbookSpellIds"
+    | "subclassId"
   > &
     Partial<Pick<Character, "statusEntries">>
 ): SpellSourceMap {
@@ -1316,7 +1328,13 @@ export function getAlwaysPreparedSpellSourceMapForCharacter(
 export function getAlwaysSpellbookSpellIdsForCharacter(
   character: Pick<
     Character,
-    "className" | "level" | "classFeatureState" | "spellbookSpellIds" | "subclassId"
+    | "className"
+    | "level"
+    | "classFeatureState"
+    | "classRules"
+    | "customClass"
+    | "spellbookSpellIds"
+    | "subclassId"
   >
 ): string[] {
   const baseFeatureState = collectActiveClassFeatureState(character);
@@ -1332,7 +1350,13 @@ export function getAlwaysSpellbookSpellIdsForCharacter(
 export function getRitualOnlySpellIdsForCharacter(
   character: Pick<
     Character,
-    "className" | "level" | "classFeatureState" | "spellbookSpellIds" | "subclassId"
+    | "className"
+    | "level"
+    | "classFeatureState"
+    | "classRules"
+    | "customClass"
+    | "spellbookSpellIds"
+    | "subclassId"
   >
 ): string[] {
   const baseFeatureState = collectActiveClassFeatureState(character);
@@ -1346,7 +1370,8 @@ export function getRitualOnlySpellIdsForCharacter(
 }
 
 export function getWarlockEldritchInvocationLimitForCharacter(
-  character: Pick<Character, "className" | "level">
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "classRules" | "customClass">>
 ) {
   return getWarlockEldritchInvocationLimit(character);
 }
@@ -1354,7 +1379,14 @@ export function getWarlockEldritchInvocationLimitForCharacter(
 export function getWarlockEldritchInvocationInputStatusForCharacter(
   character: Pick<
     Character,
-    "className" | "level" | "classFeatureState" | "cantripIds" | "feats" | "inventoryItems"
+    | "className"
+    | "level"
+    | "classFeatureState"
+    | "classRules"
+    | "customClass"
+    | "cantripIds"
+    | "feats"
+    | "inventoryItems"
   >
 ) {
   return getWarlockEldritchInvocationInputStatus(character);
@@ -1517,7 +1549,14 @@ export function setWarlockFiendishResilienceDamageTypeSelectionForCharacter(
 export function getWarlockInvocationSelectionIdsForCharacter(
   character: Pick<
     Character,
-    "className" | "level" | "classFeatureState" | "cantripIds" | "feats" | "inventoryItems"
+    | "className"
+    | "level"
+    | "classFeatureState"
+    | "classRules"
+    | "customClass"
+    | "cantripIds"
+    | "feats"
+    | "inventoryItems"
   >
 ) {
   return getWarlockInvocationSelectionIds(character);
@@ -1526,7 +1565,14 @@ export function getWarlockInvocationSelectionIdsForCharacter(
 export function normalizeWarlockInvocationSelectionIdsForCharacter(
   character: Pick<
     Character,
-    "className" | "level" | "classFeatureState" | "cantripIds" | "feats" | "inventoryItems"
+    | "className"
+    | "level"
+    | "classFeatureState"
+    | "classRules"
+    | "customClass"
+    | "cantripIds"
+    | "feats"
+    | "inventoryItems"
   > &
     Partial<Pick<Character, "abilities" | "statusEntries" | "subclassId">>,
   selectionIds: string[]
@@ -1537,7 +1583,14 @@ export function normalizeWarlockInvocationSelectionIdsForCharacter(
 export function getWarlockInvocationOptionsForCharacter(
   character: Pick<
     Character,
-    "className" | "level" | "classFeatureState" | "cantripIds" | "feats" | "inventoryItems"
+    | "className"
+    | "level"
+    | "classFeatureState"
+    | "classRules"
+    | "customClass"
+    | "cantripIds"
+    | "feats"
+    | "inventoryItems"
   >,
   selectedIds?: string[]
 ) {
@@ -1547,7 +1600,14 @@ export function getWarlockInvocationOptionsForCharacter(
 export function getWarlockLearnedInvocationOptionsForCharacter(
   character: Pick<
     Character,
-    "className" | "level" | "classFeatureState" | "cantripIds" | "feats" | "inventoryItems"
+    | "className"
+    | "level"
+    | "classFeatureState"
+    | "classRules"
+    | "customClass"
+    | "cantripIds"
+    | "feats"
+    | "inventoryItems"
   >
 ) {
   return getWarlockLearnedInvocationOptions(character);

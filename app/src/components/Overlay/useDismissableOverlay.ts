@@ -1,4 +1,10 @@
-import { useCallback, useEffect, type MouseEventHandler } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  type MouseEventHandler,
+  type PointerEventHandler
+} from "react";
 import { useBodyScrollLock } from "../../lib/useBodyScrollLock";
 import { dismissAllToasts, useAppDispatch } from "../../store";
 
@@ -10,8 +16,43 @@ type UseDismissableOverlayOptions = {
 
 type DismissableOverlayHandlers = {
   onBackdropClick: MouseEventHandler<HTMLElement>;
+  onBackdropPointerDown: PointerEventHandler<HTMLElement>;
   onContentClick: MouseEventHandler<HTMLElement>;
 };
+
+export function useExplicitBackdropClick(onClose: () => void): DismissableOverlayHandlers {
+  const didPointerStartOnBackdropRef = useRef(false);
+
+  const onBackdropPointerDown = useCallback<PointerEventHandler<HTMLElement>>((event) => {
+    didPointerStartOnBackdropRef.current = event.target === event.currentTarget;
+  }, []);
+
+  const onBackdropClick = useCallback<MouseEventHandler<HTMLElement>>(
+    (event) => {
+      const didExplicitlyClickBackdrop =
+        didPointerStartOnBackdropRef.current && event.target === event.currentTarget;
+
+      didPointerStartOnBackdropRef.current = false;
+
+      if (!didExplicitlyClickBackdrop) {
+        return;
+      }
+
+      onClose();
+    },
+    [onClose]
+  );
+
+  const onContentClick = useCallback<MouseEventHandler<HTMLElement>>((event) => {
+    event.stopPropagation();
+  }, []);
+
+  return {
+    onBackdropClick,
+    onBackdropPointerDown,
+    onContentClick
+  };
+}
 
 export function useDismissableOverlay({
   isOpen,
@@ -19,6 +60,7 @@ export function useDismissableOverlay({
   onEscape
 }: UseDismissableOverlayOptions): DismissableOverlayHandlers {
   const dispatch = useAppDispatch();
+  const backdropClickHandlers = useExplicitBackdropClick(onClose);
 
   useBodyScrollLock(isOpen);
 
@@ -45,19 +87,5 @@ export function useDismissableOverlay({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose, onEscape]);
 
-  const onBackdropClick = useCallback<MouseEventHandler<HTMLElement>>(
-    () => {
-      onClose();
-    },
-    [onClose]
-  );
-
-  const onContentClick = useCallback<MouseEventHandler<HTMLElement>>((event) => {
-    event.stopPropagation();
-  }, []);
-
-  return {
-    onBackdropClick,
-    onContentClick
-  };
+  return backdropClickHandlers;
 }

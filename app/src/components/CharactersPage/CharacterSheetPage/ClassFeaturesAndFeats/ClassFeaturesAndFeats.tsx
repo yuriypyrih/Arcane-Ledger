@@ -36,33 +36,53 @@ import { getFeatEligibilityForCharacter } from "../../../../pages/CharactersPage
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import {
   getSelectedSubclassForCharacter,
-  getSubclassOptionsForClassName,
   getSubclassFeatureDetails,
   getSubclassFeatureRowsForCharacter
 } from "../../../../pages/CharactersPage/subclasses";
 import type {
+  AbilityKey,
   Character,
+  CharacterClassRulesConfig,
+  CharacterCustomSpeciesConfig,
   CharacterFeatEntry,
   CharacterSpeciesChoices,
   ItemRecord
 } from "../../../../types";
+import { abilityKeys } from "../../../../pages/CharactersPage/constants";
 import {
   normalizeCharacterSpeciesChoices,
   normalizeCharacterSpeciesFeatureState,
   normalizeSpeciesStatusEntriesForCharacter,
   reconcileHumanOriginFeatEntries
 } from "../../../../pages/CharactersPage/species";
-import { isCustomClassName } from "../../../../pages/CharactersPage/customClass";
+import {
+  CUSTOM_CLASS_EXTRA_ATTACK_MAXIMUM,
+  CUSTOM_CLASS_EXTRA_ATTACK_MINIMUM,
+  areCharacterClassRulesEnforced,
+  customClassHitDice,
+  getCharacterClassRulesConfig,
+  isCustomClassName,
+  normalizeCharacterClassRulesConfig
+} from "../../../../pages/CharactersPage/customClass";
+import { seedClassRulesDefaultsForCharacter } from "../../../../pages/CharactersPage/classRulesDefaults";
+import {
+  getCharacterSubclassDisplayName,
+  isCustomSpeciesName
+} from "../../../../pages/CharactersPage/customOrigins";
+import { hasBuiltInSpellcastingForCharacter } from "../../../../pages/CharactersPage/spellcasting";
 import { resolveKeywordReference } from "../../../../utils/codex/renderCodexRichText";
 import CodexDivinityDrawer from "../../../CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
 import CodexSpellDrawer from "../../../CodexPage/CodexSpellDrawer";
 import { FeatureTrackingBadgeButton } from "../../../FeatureDisclosure";
 import KeywordReferenceDrawer from "../../../KeywordReferenceDrawer/KeywordReferenceDrawer";
+import SelectInput from "../../FormInputs/SelectInput";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import FeatureOptInToggle from "../FeatureOptInToggle/FeatureOptInToggle";
 import InlineToggleButton from "../InlineToggleButton";
 import ClassFeatureList from "./ClassFeatureList";
 import ClassFeaturesGuideModal from "./ClassFeaturesGuideModal";
 import EldritchInvocationEditorModal from "./EldritchInvocationEditorModal";
+import EldritchInvocationList from "./EldritchInvocationList";
 import EldritchInvocationReferenceDrawer from "./EldritchInvocationReferenceDrawer";
 import FeatEditorModal from "./FeatEditorModal";
 import FeatList from "./FeatList";
@@ -217,6 +237,33 @@ function ClassFeaturesAndFeats({
 
   const classEntry = classEntriesByName.get(character.className) ?? null;
   const isCustomClass = isCustomClassName(character.className);
+  const resolvedClassRules = useMemo(
+    () => getCharacterClassRulesConfig(character),
+    [character]
+  );
+  const classRulesEnforced = areCharacterClassRulesEnforced(character);
+  const shouldRenderClassNeutralMechanics = isCustomClass || !classRulesEnforced;
+  const hasBuiltInSpellcastingRules = hasBuiltInSpellcastingForCharacter(
+    character.className,
+    character.level,
+    character.subclassId
+  );
+  const hasBuiltInEldritchInvocations = character.className === "Warlock";
+  const isSpellcastingMechanicChecked =
+    hasBuiltInSpellcastingRules || resolvedClassRules.mechanics.spellcasting.enabled;
+  const isEldritchInvocationMechanicChecked =
+    hasBuiltInEldritchInvocations || resolvedClassRules.mechanics.eldritchInvocations.enabled;
+  const isSpellcastingMechanicLocked = hasBuiltInSpellcastingRules;
+  const isEldritchInvocationMechanicLocked = hasBuiltInEldritchInvocations;
+  const isNeutralSpellcastingAbilityVisible = isSpellcastingMechanicChecked;
+  const mechanics = resolvedClassRules.mechanics;
+  const extraAttackCount = mechanics.extraAttacks.count;
+  const selectedHitDie = resolvedClassRules.hitDie;
+  const selectedSpellcastingAbility = resolvedClassRules.spellcastingAbility;
+  const hitDieOptions = useMemo(
+    () => customClassHitDice.map((hitDie) => ({ value: hitDie, label: hitDie.toUpperCase() })),
+    []
+  );
   const selectedSubclass = useMemo(
     () =>
       getSelectedSubclassForCharacter({
@@ -225,11 +272,8 @@ function ClassFeaturesAndFeats({
       }),
     [character.className, character.subclassId]
   );
-  const subclassOptions = useMemo(
-    () => getSubclassOptionsForClassName(character.className),
-    [character.className]
-  );
-  const selectedSubclassLabel = selectedSubclass?.name ?? "No subclass selected";
+  const selectedSubclassLabel =
+    selectedSubclass?.name ?? getCharacterSubclassDisplayName(character) ?? "No subclass selected";
   const allFeatures = useMemo<FeatureRow[]>(() => {
     if (!classEntry) {
       return [];
@@ -357,6 +401,14 @@ function ClassFeaturesAndFeats({
   const eldritchInvocationInputStatus = useMemo(
     () => getWarlockEldritchInvocationInputStatusForCharacter(character),
     [character]
+  );
+  const customExtraAttackCountOptions = useMemo(
+    () =>
+      Array.from(
+        { length: CUSTOM_CLASS_EXTRA_ATTACK_MAXIMUM - CUSTOM_CLASS_EXTRA_ATTACK_MINIMUM + 1 },
+        (_, index) => CUSTOM_CLASS_EXTRA_ATTACK_MINIMUM + index
+      ),
+    []
   );
   const selectedFeatDefinition = selectedFeatReference
     ? getFeatDefinition(selectedFeatReference.feat)
@@ -663,16 +715,24 @@ function ClassFeaturesAndFeats({
     setIsFeatModalOpen(false);
   }
 
-  function saveSpecies(species: string, speciesChoices?: CharacterSpeciesChoices) {
+  function saveSpecies(
+    species: string,
+    speciesChoices?: CharacterSpeciesChoices,
+    customSpecies?: CharacterCustomSpeciesConfig
+  ) {
     setIsSpeciesModalOpen(false);
     onPersistCharacter((currentCharacter) => {
       const normalizedSpecies = species.trim();
       const normalizedChoices = normalizeCharacterSpeciesChoices(normalizedSpecies, speciesChoices);
+      const normalizedCustomSpecies = isCustomSpeciesName(normalizedSpecies)
+        ? customSpecies
+        : undefined;
 
       return {
         ...currentCharacter,
         species: normalizedSpecies,
         speciesChoices: normalizedChoices,
+        customSpecies: normalizedCustomSpecies,
         speciesFeatureState: normalizeCharacterSpeciesFeatureState(
           normalizedSpecies,
           currentCharacter.species === normalizedSpecies
@@ -694,20 +754,68 @@ function ClassFeaturesAndFeats({
     });
   }
 
-  function saveSubclass(subclassId: string) {
+  function saveSubclass({
+    subclassId,
+    classRulesEnforced: nextClassRulesEnforced,
+    customClass,
+    customSubclass
+  }: {
+    subclassId: string;
+    classRulesEnforced: boolean;
+    customClass?: Character["customClass"];
+    customSubclass?: Character["customSubclass"];
+  }) {
     setIsSubclassModalOpen(false);
-    onPersistCharacter((currentCharacter) => ({
-      ...currentCharacter,
-      subclassId,
-      classFeatureState: normalizeCharacterClassFeatureState(currentCharacter.classFeatureState, {
-        className: currentCharacter.className,
-        level: currentCharacter.level,
-        subclassId,
-        abilities: currentCharacter.abilities,
-        cantripIds: currentCharacter.cantripIds,
-        feats: currentCharacter.feats
-      })
-    }));
+    onPersistCharacter((currentCharacter) => {
+      const currentClassRules = getCharacterClassRulesConfig(currentCharacter);
+      const isCurrentCustomClass = isCustomClassName(currentCharacter.className);
+      const nextClassRulesInput = {
+        ...currentClassRules,
+        classRulesEnforced: isCurrentCustomClass ? false : nextClassRulesEnforced
+      };
+      const nextClassRules = normalizeCharacterClassRulesConfig(
+        !isCurrentCustomClass && currentClassRules.classRulesEnforced && !nextClassRulesEnforced
+          ? seedClassRulesDefaultsForCharacter(
+              {
+                className: currentCharacter.className,
+                subclassId
+              },
+              nextClassRulesInput
+            )
+          : nextClassRulesInput,
+        {
+          className: currentCharacter.className,
+          legacyCustomClass: customClass ?? currentCharacter.customClass
+        }
+      );
+      const nextSubclassId = isCurrentCustomClass ? "" : subclassId;
+      const nextCustomClass = isCurrentCustomClass
+        ? (customClass ?? currentCharacter.customClass)
+        : currentCharacter.customClass;
+      const nextCustomSubclass =
+        !isCurrentCustomClass && customSubclass?.id === subclassId ? customSubclass : undefined;
+
+      return {
+        ...currentCharacter,
+        subclassId: nextSubclassId,
+        customClass: nextCustomClass,
+        customSubclass: nextCustomSubclass,
+        classRules: nextClassRules,
+        classFeatureState: normalizeCharacterClassFeatureState(
+          currentCharacter.classFeatureState,
+          {
+            className: currentCharacter.className,
+            level: currentCharacter.level,
+            subclassId: nextSubclassId,
+            classRules: nextClassRules,
+            customClass: nextCustomClass,
+            abilities: currentCharacter.abilities,
+            cantripIds: currentCharacter.cantripIds,
+            feats: currentCharacter.feats
+          }
+        )
+      };
+    });
   }
 
   function openFeatEditor() {
@@ -720,6 +828,43 @@ function ClassFeaturesAndFeats({
 
   function openEldritchInvocationEditor() {
     setIsEldritchInvocationModalOpen(true);
+  }
+
+  function updateClassRulesConfig(
+    updater: (currentConfig: CharacterClassRulesConfig) => CharacterClassRulesConfig
+  ) {
+    onPersistCharacter((currentCharacter) => {
+      const currentClassRules = getCharacterClassRulesConfig(currentCharacter);
+      const nextClassRules = normalizeCharacterClassRulesConfig(
+        updater(currentClassRules),
+        {
+          className: currentCharacter.className,
+          legacyCustomClass: currentCharacter.customClass
+        }
+      );
+
+      if (Object.is(nextClassRules, currentClassRules)) {
+        return currentCharacter;
+      }
+
+      return {
+        ...currentCharacter,
+        classRules: nextClassRules,
+        classFeatureState: normalizeCharacterClassFeatureState(
+          currentCharacter.classFeatureState,
+          {
+            className: currentCharacter.className,
+            level: currentCharacter.level,
+            subclassId: currentCharacter.subclassId,
+            classRules: nextClassRules,
+            customClass: currentCharacter.customClass,
+            abilities: currentCharacter.abilities,
+            cantripIds: currentCharacter.cantripIds,
+            feats: currentCharacter.feats
+          }
+        )
+      };
+    });
   }
 
   async function closeEldritchInvocationEditor(
@@ -1850,6 +1995,202 @@ function ClassFeaturesAndFeats({
     setExpandedFeatureKeys([]);
   }
 
+  function renderCustomInvocationSelectionLabel() {
+    return eldritchInvocationInputStatus.limit === null
+      ? `${eldritchInvocationInputStatus.selectedCount}/Unlimited selected`
+      : `${eldritchInvocationInputStatus.selectedCount}/${eldritchInvocationInputStatus.limit} selected`;
+  }
+
+  function renderClassNeutralMechanicsPanel() {
+    if (!shouldRenderClassNeutralMechanics) {
+      return null;
+    }
+
+    return (
+      <div className={styles.customMechanicsList}>
+        <div className={styles.featureChoiceRow}>
+          <div className={styles.featureChoiceSummary}>
+            <span className={styles.featureChoiceLabel}>Hit die</span>
+            <span className={styles.featureChoiceValueText}>{selectedHitDie.toUpperCase()}</span>
+          </div>
+          <SelectInput
+            compact
+            value={selectedHitDie}
+            onChange={(event) =>
+              updateClassRulesConfig((currentConfig) => ({
+                ...currentConfig,
+                hitDie: event.target.value as CharacterClassRulesConfig["hitDie"]
+              }))
+            }
+            aria-label="Class hit die"
+          >
+            {hitDieOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </SelectInput>
+        </div>
+
+        <FeatureOptInToggle
+          label="Extra Attacks"
+          checked={mechanics.extraAttacks.enabled}
+          onCheckedChange={(enabled) =>
+            updateClassRulesConfig((currentConfig) => ({
+              ...currentConfig,
+              mechanics: {
+                ...currentConfig.mechanics,
+                extraAttacks: {
+                  ...currentConfig.mechanics.extraAttacks,
+                  enabled
+                }
+              }
+            }))
+          }
+          metaItems={[
+            {
+              kind: "text",
+              label: mechanics.extraAttacks.enabled
+                ? `${extraAttackCount} extra ${extraAttackCount === 1 ? "attack" : "attacks"}`
+                : "Off"
+            }
+          ]}
+        />
+        {mechanics.extraAttacks.enabled ? (
+          <div className={styles.featureChoiceRow}>
+            <div className={styles.featureChoiceSummary}>
+              <span className={styles.featureChoiceLabel}>Extra attacks per turn</span>
+              <span className={styles.featureChoiceValueText}>{extraAttackCount}</span>
+            </div>
+            <SelectInput
+              compact
+              value={extraAttackCount}
+              onChange={(event) =>
+                updateClassRulesConfig((currentConfig) => ({
+                  ...currentConfig,
+                  mechanics: {
+                    ...currentConfig.mechanics,
+                    extraAttacks: {
+                      ...currentConfig.mechanics.extraAttacks,
+                      count: Number(event.target.value)
+                    }
+                  }
+                }))
+              }
+              aria-label="Extra attacks per turn"
+            >
+              {customExtraAttackCountOptions.map((count) => (
+                <option key={count} value={count}>
+                  {count}
+                </option>
+              ))}
+            </SelectInput>
+          </div>
+        ) : null}
+
+        <FeatureOptInToggle
+          label="Eldritch Invocations"
+          checked={isEldritchInvocationMechanicChecked}
+          disabled={isEldritchInvocationMechanicLocked}
+          onCheckedChange={(enabled) =>
+            updateClassRulesConfig((currentConfig) => ({
+              ...currentConfig,
+              mechanics: {
+                ...currentConfig.mechanics,
+                eldritchInvocations: {
+                  ...currentConfig.mechanics.eldritchInvocations,
+                  enabled
+                }
+              }
+            }))
+          }
+          metaItems={[
+            {
+              kind: "text",
+              label: isEldritchInvocationMechanicChecked
+                ? renderCustomInvocationSelectionLabel()
+                : "Off"
+            }
+          ]}
+        />
+        {isEldritchInvocationMechanicChecked ? (
+          <>
+            <div className={styles.featureChoiceRow}>
+              <div className={styles.featureChoiceSummary}>
+                <span className={styles.featureChoiceLabel}>Selected invocations</span>
+                <span className={styles.featureChoiceValueText}>
+                  {renderCustomInvocationSelectionLabel()}
+                </span>
+              </div>
+              <button
+                type="button"
+                className={shared.editButton}
+                onClick={openEldritchInvocationEditor}
+                disabled={isEldritchInvocationModalOpen}
+              >
+                <Pencil size={16} />
+                Edit
+              </button>
+            </div>
+            <EldritchInvocationList
+              invocations={learnedInvocationOptions}
+              onOpenInvocationReference={openInvocationReference}
+              renderTrackingButton={renderTrackingButton}
+            />
+          </>
+        ) : null}
+
+        <FeatureOptInToggle
+          label="Spellcasting"
+          checked={isSpellcastingMechanicChecked}
+          disabled={isSpellcastingMechanicLocked}
+          onCheckedChange={(enabled) =>
+            updateClassRulesConfig((currentConfig) => ({
+              ...currentConfig,
+              mechanics: {
+                ...currentConfig.mechanics,
+                spellcasting: {
+                  enabled
+                }
+              }
+            }))
+          }
+          metaItems={[
+            {
+              kind: "text",
+              label: isSpellcastingMechanicChecked ? selectedSpellcastingAbility : "Off"
+            }
+          ]}
+        />
+        {isNeutralSpellcastingAbilityVisible ? (
+          <div className={styles.featureChoiceRow}>
+            <div className={styles.featureChoiceSummary}>
+              <span className={styles.featureChoiceLabel}>Spellcasting ability</span>
+              <span className={styles.featureChoiceValueText}>{selectedSpellcastingAbility}</span>
+            </div>
+            <SelectInput
+              compact
+              value={selectedSpellcastingAbility}
+              onChange={(event) =>
+                updateClassRulesConfig((currentConfig) => ({
+                  ...currentConfig,
+                  spellcastingAbility: event.target.value as AbilityKey
+                }))
+              }
+              aria-label="Spellcasting ability"
+            >
+              {abilityKeys.map((ability) => (
+                <option key={ability} value={ability}>
+                  {ability}
+                </option>
+              ))}
+            </SelectInput>
+          </div>
+        ) : null}
+      </div>
+    );
+  }
+
   const renderTrackingButton: TrackingButtonRenderer = (trackingState) => {
     return <FeatureTrackingBadgeButton trackingState={trackingState} onClick={openKeyword} />;
   };
@@ -1919,106 +2260,110 @@ function ClassFeaturesAndFeats({
             />
           </section>
 
-          {!isCustomClass ? (
-            <section className={styles.subsection} aria-labelledby="character-class-features-title">
-              <div className={styles.subsectionHeader}>
-                <div className={styles.subsectionHeaderText}>
-                  <div className={styles.subsectionTitleRow}>
-                    <h3 id="character-class-features-title" className={styles.subsectionTitle}>
-                      Class Features
-                    </h3>
-                    {hasExpandedVisibleClassFeature ? (
-                      <InlineToggleButton
-                        label="Close Expanded Items"
-                        onClick={closeExpandedClassFeatures}
+          <section className={styles.subsection} aria-labelledby="character-class-features-title">
+            <div className={styles.subsectionHeader}>
+              <div className={styles.subsectionHeaderText}>
+                <div className={styles.subsectionTitleRow}>
+                  <h3 id="character-class-features-title" className={styles.subsectionTitle}>
+                    Class Features
+                  </h3>
+                  {hasExpandedVisibleClassFeature ? (
+                    <InlineToggleButton
+                      label="Close Expanded Items"
+                      onClick={closeExpandedClassFeatures}
+                    />
+                  ) : null}
+                </div>
+                <p className={styles.subsectionMeta}>
+                  {isCustomClass ? "Custom class mechanics" : `Subclass: ${selectedSubclassLabel}`}
+                </p>
+              </div>
+              <button
+                type="button"
+                className={shared.editButton}
+                onClick={() => setIsSubclassModalOpen(true)}
+                disabled={isSubclassModalOpen}
+              >
+                <Pencil size={16} />
+                Edit
+              </button>
+            </div>
+
+            {renderClassNeutralMechanicsPanel()}
+
+            {unlockedFeatures.length > 0 ? (
+              <>
+                <ClassFeatureList
+                  character={character}
+                  features={unlockedFeatures}
+                  expandedFeatureKeys={expandedFeatureKeys}
+                  onToggleFeature={toggleFeature}
+                  getLinkedFeatForFeature={getLinkedFeatForFeature}
+                  onOpenFeatEditorForFeature={openFeatEditorForFeature}
+                  onOpenKeyword={openKeyword}
+                  onOpenFeatReference={openFeatReference}
+                  onOpenSpellReference={openSpellReference}
+                  onOpenDivinityReference={openDivinityReference}
+                  onOpenInvocationReference={openInvocationReference}
+                  onOpenEldritchInvocationEditor={openEldritchInvocationEditor}
+                  onPersistCharacter={onPersistCharacter}
+                  renderTrackingButton={renderTrackingButton}
+                  eldritchInvocationInputStatus={eldritchInvocationInputStatus}
+                  learnedInvocationOptions={learnedInvocationOptions}
+                  getCharacterFeatSummary={(entry) =>
+                    entry ? getCharacterFeatSummary(entry) : null
+                  }
+                  getFeatDefinition={getFeatDefinition}
+                />
+
+                {futureFeatures.length > 0 ? (
+                  <>
+                    <InlineToggleButton
+                      label={
+                        isFutureFeaturesVisible
+                          ? "Hide unlockable features"
+                          : "Show unlockable features"
+                      }
+                      expanded={isFutureFeaturesVisible}
+                      onClick={() => setIsFutureFeaturesVisible((current) => !current)}
+                    />
+                    {isFutureFeaturesVisible ? (
+                      <ClassFeatureList
+                        character={character}
+                        features={futureFeatures}
+                        expandedFeatureKeys={expandedFeatureKeys}
+                        onToggleFeature={toggleFeature}
+                        getLinkedFeatForFeature={getLinkedFeatForFeature}
+                        onOpenFeatEditorForFeature={openFeatEditorForFeature}
+                        onOpenKeyword={openKeyword}
+                        onOpenFeatReference={openFeatReference}
+                        onOpenSpellReference={openSpellReference}
+                        onOpenDivinityReference={openDivinityReference}
+                        onOpenInvocationReference={openInvocationReference}
+                        onOpenEldritchInvocationEditor={openEldritchInvocationEditor}
+                        onPersistCharacter={onPersistCharacter}
+                        renderTrackingButton={renderTrackingButton}
+                        eldritchInvocationInputStatus={eldritchInvocationInputStatus}
+                        learnedInvocationOptions={learnedInvocationOptions}
+                        getCharacterFeatSummary={(entry) =>
+                          entry ? getCharacterFeatSummary(entry) : null
+                        }
+                        getFeatDefinition={getFeatDefinition}
                       />
                     ) : null}
-                  </div>
-                  <p className={styles.subsectionMeta}>Subclass: {selectedSubclassLabel}</p>
-                </div>
-                <button
-                  type="button"
-                  className={shared.editButton}
-                  onClick={() => setIsSubclassModalOpen(true)}
-                  disabled={isSubclassModalOpen || subclassOptions.length === 0}
-                >
-                  <Pencil size={16} />
-                  Edit
-                </button>
-              </div>
-
-              {unlockedFeatures.length > 0 ? (
-                <>
-                  <ClassFeatureList
-                    character={character}
-                    features={unlockedFeatures}
-                    expandedFeatureKeys={expandedFeatureKeys}
-                    onToggleFeature={toggleFeature}
-                    getLinkedFeatForFeature={getLinkedFeatForFeature}
-                    onOpenFeatEditorForFeature={openFeatEditorForFeature}
-                    onOpenKeyword={openKeyword}
-                    onOpenFeatReference={openFeatReference}
-                    onOpenSpellReference={openSpellReference}
-                    onOpenDivinityReference={openDivinityReference}
-                    onOpenInvocationReference={openInvocationReference}
-                    onOpenEldritchInvocationEditor={openEldritchInvocationEditor}
-                    onPersistCharacter={onPersistCharacter}
-                    renderTrackingButton={renderTrackingButton}
-                    eldritchInvocationInputStatus={eldritchInvocationInputStatus}
-                    learnedInvocationOptions={learnedInvocationOptions}
-                    getCharacterFeatSummary={(entry) =>
-                      entry ? getCharacterFeatSummary(entry) : null
-                    }
-                    getFeatDefinition={getFeatDefinition}
-                  />
-
-                  {futureFeatures.length > 0 ? (
-                    <>
-                      <InlineToggleButton
-                        label={
-                          isFutureFeaturesVisible
-                            ? "Hide unlockable features"
-                            : "Show unlockable features"
-                        }
-                        expanded={isFutureFeaturesVisible}
-                        onClick={() => setIsFutureFeaturesVisible((current) => !current)}
-                      />
-                      {isFutureFeaturesVisible ? (
-                        <ClassFeatureList
-                          character={character}
-                          features={futureFeatures}
-                          expandedFeatureKeys={expandedFeatureKeys}
-                          onToggleFeature={toggleFeature}
-                          getLinkedFeatForFeature={getLinkedFeatForFeature}
-                          onOpenFeatEditorForFeature={openFeatEditorForFeature}
-                          onOpenKeyword={openKeyword}
-                          onOpenFeatReference={openFeatReference}
-                          onOpenSpellReference={openSpellReference}
-                          onOpenDivinityReference={openDivinityReference}
-                          onOpenInvocationReference={openInvocationReference}
-                          onOpenEldritchInvocationEditor={openEldritchInvocationEditor}
-                          onPersistCharacter={onPersistCharacter}
-                          renderTrackingButton={renderTrackingButton}
-                          eldritchInvocationInputStatus={eldritchInvocationInputStatus}
-                          learnedInvocationOptions={learnedInvocationOptions}
-                          getCharacterFeatSummary={(entry) =>
-                            entry ? getCharacterFeatSummary(entry) : null
-                          }
-                          getFeatDefinition={getFeatDefinition}
-                        />
-                      ) : null}
-                    </>
-                  ) : null}
-                </>
-              ) : (
-                <p className={shared.emptyText}>
-                  {classEntry
-                    ? "No class features are available for this level yet."
-                    : "No class feature progression is available for this class yet."}
-                </p>
-              )}
-            </section>
-          ) : null}
+                  </>
+                ) : null}
+              </>
+            ) : classEntry ? (
+              <p className={shared.emptyText}>
+                No class features are available for this level yet.
+              </p>
+            ) : shouldRenderClassNeutralMechanics ? null : (
+              <p className={shared.emptyText}>
+                No class feature progression is available for this class yet.
+              </p>
+            )}
+          </section>
         </div>
       </article>
 

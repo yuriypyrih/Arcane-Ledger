@@ -9,9 +9,9 @@ export function renderEquipmentForm(context: Record<string, any>) {
     clsx, currencyAmountDraft, currencyDefinitions, currencyPillSummary, customEditorMode, deleteCustomEquipment, editingInventoryStack, equipmentRenderGroups, formatCodexLabel, formatCodexList,
     formatEquipmentWeight, formatInventoryStackName, formatOnHandLabel, formatWeaponDamage, formatWeaponProperties, formatWeaponType, formatWeaponWeight, formatWeightValue, getArcaneArmorFeatureTagsForInventoryStack, getArmorTypeSummary, getInventoryItemChargesTagLabel, getInventoryItemConjuredRowTagLabel, getInventoryItemFeatureTagLabels, getInventoryItemStoredSpellRowTagLabel, getInventoryItemTotalWeightValue, getInventoryRowObjectTagLabel, getInventoryTagPillProps, getItemObjectTagLabel,
     groupedInventoryItems, hasCharacterItemMods, hasDisplayableRarity, inventoryDrawerBodyAfterItem, inventoryDrawerClassName, inventoryDrawerFooter, inventoryDrawerHeaderAction, inventoryDrawerHeaderContent, inventoryObjectCount, inventoryObjectLimitMessage, isAddModalCommitting, isAddModalOpen, isCurrencyDrawerOpen, characterSheetSizeBytes,
-    isCustomEquipmentModalOpen, isEquipmentGuideOpen, isGeneralEquipmentExpanded, isHandEquippableEntry, isOverCarryingCapacity, isSelectedArmorWorn, isSelectedCustomEntry, isSelectedEntryOnHand, isSelectedFeatureManagedEntry, isSelectedShield, managedContainerStack, managingContainerStackId,
+    isCustomEquipmentModalOpen, isEquipmentGuideOpen, isGeneralEquipmentExpanded, isHandEquippableEntry, isOverCarryingCapacity, isSelectedArmorWorn, isSelectedCustomEntry, isSelectedEntryOnHand, isSelectedFeatureManagedEntry, isSelectedShield, loadoutDrawerBackdropHandlers, managedContainerStack, managingContainerStackId,
     normalizeCurrencyAmountInput, normalizedCurrencies, openAddModal, openCurrencyModal, openCustomEquipmentCreator, openCustomEquipmentEditor, openInventoryInspectionFromBrowser, openInventoryInspectionFromLoadout, openLoadoutEntryDetails,
-    openWeaponReference, parentInventoryDrawerBodyAfterItem, parentInventoryDrawerHeaderContent, parentInventoryDrawerTitleId, parentInventoryInspection, parentInventoryRecord, pendingContainerInventoryRemoval, pendingDeleteCustomEquipment, removeEquipmentItem, saveContainerManagement, saveCustomEquipment, selectedAdditionalWeaponMasteries, selectedInventoryAdditionalDescription, selectedInventoryDescriptionAdditions,
+    openWeaponReference, parentInventoryDrawerBodyAfterItem, parentInventoryDrawerHeaderContent, parentInventoryDrawerTitleId, parentInventoryInspection, parentInventoryRecord, pendingContainerInventoryRemoval, pendingDeleteCustomEquipment, deleteCustomEquipmentBackdropHandlers, removeEquipmentItem, saveContainerManagement, saveCustomEquipment, selectedAdditionalWeaponMasteries, selectedInventoryAdditionalDescription, selectedInventoryDescriptionAdditions,
     inventoryDrawerTitleId, selectedInventoryInspection, selectedInventoryItemStatus, selectedInventoryModEffects, selectedInventoryRecord,
     selectedInventoryWeaponHasActiveMastery, selectedInventoryWeaponHasProficiency, selectedLoadoutEntry, selectedLoadoutEntryData, selectedLoadoutItems, selectedLoadoutSummary, selectedWeaponHasActiveMastery, selectedWeaponHasProficiency, selectedWeaponMasteryKeywords,
     selectedWeaponMasteryLabel, selectedWeaponReference, setActiveCurrencyKey, setCurrencyAmountDraft, setIsCurrencyDrawerOpen, setIsEquipmentGuideOpen, setIsGeneralEquipmentExpanded, setPendingContainerInventoryRemoval, setPendingDeleteCustomEquipmentId, setSelectedWeaponReference, shared, SheetSurface,
@@ -413,14 +413,15 @@ export function renderEquipmentForm(context: Record<string, any>) {
         <div
           className={clsx(sheetStyles.spellDrawerBackdrop, styles.equipmentOverlayDrawerBackdrop)}
           role="presentation"
-          onClick={closeLoadoutDrawer}
+          onClick={loadoutDrawerBackdropHandlers.onBackdropClick}
+          onPointerDown={loadoutDrawerBackdropHandlers.onBackdropPointerDown}
         >
           <section
             className={sheetStyles.spellDrawer}
             role="dialog"
             aria-modal="true"
             aria-labelledby="character-loadout-drawer-title"
-            onClick={(event) => event.stopPropagation()}
+            onClick={loadoutDrawerBackdropHandlers.onContentClick}
           >
             <div className={sheetStyles.spellDrawerHeader}>
               <div className={sheetStyles.spellDrawerHeaderContent}>
@@ -741,14 +742,15 @@ export function renderEquipmentForm(context: Record<string, any>) {
         <div
           className={styles.customEquipmentDeleteBackdrop}
           role="presentation"
-          onClick={() => setPendingDeleteCustomEquipmentId(null)}
+          onClick={deleteCustomEquipmentBackdropHandlers.onBackdropClick}
+          onPointerDown={deleteCustomEquipmentBackdropHandlers.onBackdropPointerDown}
         >
           <section
             className={styles.customEquipmentDeleteCard}
             role="dialog"
             aria-modal="true"
             aria-labelledby="custom-equipment-delete-title"
-            onClick={(event) => event.stopPropagation()}
+            onClick={deleteCustomEquipmentBackdropHandlers.onContentClick}
           >
             <h4 id="custom-equipment-delete-title">Delete custom equipment?</h4>
             <p>

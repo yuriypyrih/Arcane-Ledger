@@ -1,14 +1,26 @@
+import { CLASS_FEATURE } from "../../codex/entries";
 import type { ClassEntry, FeatureClassObj } from "../../codex/entries/types";
-import type { CharacterCustomClassConfig } from "../../types";
+import type { CharacterClassRulesConfig, CharacterCustomClassConfig } from "../../types";
 import { getClassEntryByName } from "../../codex/selectors";
 import { getSubclassSpellcastingProgressionRow } from "../../codex/classes/subclassSpellcasting";
-import { isCustomClassName, normalizeCustomClassSpellSlotMaximums } from "./customClass";
+import {
+  getCharacterClassRulesConfig,
+  getCharacterClassRulesSpellSlotMaximums,
+  isCharacterClassRulesSpellcastingEnabled,
+  isCustomClassName,
+  normalizeCustomClassSpellSlotMaximums
+} from "./customClass";
 
 const spellSlotLevels = [1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
 
 type SpellSlotFeatureClassObj = FeatureClassObj & {
   spellSlots?: number[];
 };
+
+const spellcastingClassFeatures = new Set<CLASS_FEATURE>([
+  CLASS_FEATURE.SPELLCASTING,
+  CLASS_FEATURE.PACT_MAGIC
+]);
 
 function createSpellSlotRow(...slots: number[]): number[] {
   return spellSlotLevels.map((_, index) => Math.max(0, Math.floor(slots[index] ?? 0)));
@@ -48,14 +60,59 @@ function getClassFeatureRowForLevel(
   return featureRows[featureRows.length - 1];
 }
 
+function hasBuiltInSpellSlotRules(className: string, level: number, subclassId?: string): boolean {
+  if (isCustomClassName(className)) {
+    return false;
+  }
+
+  if (getSubclassSpellcastingProgressionRow(className, level, subclassId)) {
+    return true;
+  }
+
+  return getClassFeatureRowsUpToLevel(className, level).some((featureRow) =>
+    featureRow.classFeatures.some((classFeature) => spellcastingClassFeatures.has(classFeature))
+  );
+}
+
+function usesManualSpellSlots(
+  className: string,
+  level: number,
+  subclassId: string | undefined,
+  customClass: CharacterCustomClassConfig | undefined,
+  classRules: CharacterClassRulesConfig | undefined
+): boolean {
+  const classRulesCharacter = { className, classRules, customClass };
+
+  return (
+    isCharacterClassRulesSpellcastingEnabled(classRulesCharacter) ||
+    (hasBuiltInSpellSlotRules(className, level, subclassId) &&
+      !getCharacterClassRulesConfig(classRulesCharacter).spellcastingRulesEnforced)
+  );
+}
+
 export function getSpellSlotTotalsForCharacter(
   className: string,
   level: number,
   subclassId?: string,
-  customClass?: CharacterCustomClassConfig
+  customClass?: CharacterCustomClassConfig,
+  classRules?: CharacterClassRulesConfig
 ): number[] {
+  if (usesManualSpellSlots(className, level, subclassId, customClass, classRules)) {
+    return normalizeCustomClassSpellSlotMaximums(
+      getCharacterClassRulesSpellSlotMaximums({ className, classRules, customClass })
+    );
+  }
+
   if (isCustomClassName(className)) {
-    return normalizeCustomClassSpellSlotMaximums(customClass?.spellSlotMaximums);
+    return [...emptySpellSlotRow];
+  }
+
+  if (!hasBuiltInSpellSlotRules(className, level, subclassId)) {
+    return isCharacterClassRulesSpellcastingEnabled({ className, classRules, customClass })
+      ? normalizeCustomClassSpellSlotMaximums(
+          getCharacterClassRulesSpellSlotMaximums({ className, classRules, customClass })
+        )
+      : [...emptySpellSlotRow];
   }
 
   const subclassFeatureRow = getSubclassSpellcastingProgressionRow(className, level, subclassId);

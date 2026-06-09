@@ -1,7 +1,17 @@
+import { ArrowLeft } from "lucide-react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import ItemInspectionContent from "../../components/ItemInspection";
 import styles from "./ItemCodexEntryPage.module.css";
 import { useItemEntry } from "./useItemEntry";
+
+function BackToCompendiumLabel() {
+  return (
+    <>
+      <ArrowLeft size={14} aria-hidden="true" />
+      <span>Back to compendium</span>
+    </>
+  );
+}
 
 function ItemCodexEntryPage() {
   const navigate = useNavigate();
@@ -14,7 +24,7 @@ function ItemCodexEntryPage() {
   return (
     <section className={styles.page}>
       <button type="button" className={styles.backButton} onClick={() => navigate(backToCodexPath)}>
-        Back to compendium
+        <BackToCompendiumLabel />
       </button>
 
       {status === "loading" ? (
@@ -29,7 +39,7 @@ function ItemCodexEntryPage() {
           <h2>Item unavailable</h2>
           <p>The selected item could not be loaded.</p>
           <Link to={backToCodexPath} className={styles.linkButton}>
-            Back to compendium
+            <BackToCompendiumLabel />
           </Link>
         </article>
       ) : null}
@@ -39,7 +49,7 @@ function ItemCodexEntryPage() {
           <h2>Server Unavailable</h2>
           <p>Item details are unavailable because the backend is not configured or cannot be reached.</p>
           <Link to={backToCodexPath} className={styles.linkButton}>
-            Back to compendium
+            <BackToCompendiumLabel />
           </Link>
         </article>
       ) : null}
@@ -49,7 +59,7 @@ function ItemCodexEntryPage() {
           <h2>Item not found</h2>
           <p>The selected item could not be found.</p>
           <Link to={backToCodexPath} className={styles.linkButton}>
-            Back to compendium
+            <BackToCompendiumLabel />
           </Link>
         </article>
       ) : null}
