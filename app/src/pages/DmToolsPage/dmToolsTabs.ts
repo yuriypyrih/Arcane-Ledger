@@ -28,7 +28,7 @@ export const DM_TOOLS_TABS: DmToolsTabConfig[] = [
     label: "Party Manager"
   },
   {
-    homeLabel: "Encounter Tracker",
+    homeLabel: "Encounter Templates",
     icon: Swords,
     id: "encounter-templates",
     label: "Encounter Templates"

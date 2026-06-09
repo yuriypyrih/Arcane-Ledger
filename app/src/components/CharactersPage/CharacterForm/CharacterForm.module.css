@@ -85,6 +85,10 @@
   padding: var(--space-card-padding);
 }
 
+.inputRequiredSection {
+  border-right: 2px solid #a63729;
+}
+
 .primarySection {
   background:
     radial-gradient(circle at top right, rgba(217, 184, 146, 0.24), transparent 34%),

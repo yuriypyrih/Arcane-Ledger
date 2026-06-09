@@ -194,6 +194,17 @@ const randomizableClassOptions = classOptions.filter(
   (className) => !disabledCreationClassNames.has(className)
 );
 
+function getSectionCardClassName(
+  isInputRequired: boolean,
+  ...additionalClassNames: Array<string | false | null | undefined>
+) {
+  return clsx(
+    styles.sectionCard,
+    ...additionalClassNames,
+    isInputRequired && styles.inputRequiredSection
+  );
+}
+
 function normalizeCustomAbilities(abilities: AbilityScores): AbilityScores {
   return abilityKeys.reduce((next, ability) => {
     next[ability] = Math.max(1, Math.min(CUSTOM_ABILITY_SCORE_MAX, abilities[ability]));
@@ -1273,7 +1284,9 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     ? []
     : getSubclassOptionsForClassName(resolvedClassName);
   const starterPack = getResolvedStarterPack(resolvedClassName);
-  const configuredStarterPack = isCustomClassSelected ? null : getClassStarterPack(resolvedClassName);
+  const configuredStarterPack = isCustomClassSelected
+    ? null
+    : getClassStarterPack(resolvedClassName);
   const backgroundEntry = getBackgroundEntry(resolvedBackground);
   const backgroundToolOptions = getBackgroundToolChoiceOptions(resolvedBackground);
   const backgroundSkillOptions = backgroundEntry?.grantedSkillProficiencies ?? [];
@@ -1346,13 +1359,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       normalizedSpeciesChoices,
       resolvedLevel
     );
-  }, [
-    normalizedSpeciesChoices,
-    resolvedBackground,
-    resolvedFeats,
-    resolvedLevel,
-    resolvedSpecies
-  ]);
+  }, [normalizedSpeciesChoices, resolvedBackground, resolvedFeats, resolvedLevel, resolvedSpecies]);
   const proficiencyPreviewCollections = useMemo(
     () =>
       normalizeCharacterProficiencies({
@@ -1602,6 +1609,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     Number.isFinite(resolvedLevel) &&
     resolvedLevel >= 1 &&
     resolvedLevel <= 20;
+  const isNotesSetupReady = alignmentOptions.includes(resolvedAlignment);
 
   useEffect(() => {
     const nextInitialValues = createFormValues(initialValues, {
@@ -1890,24 +1898,20 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       CUSTOM_ABILITY_SCORE_MAX,
       getValues(`abilities.${ability}`)
     );
-    commitAbilities(
-      {
-        ...getValues("abilities"),
-        [ability]: nextScore
-      }
-    );
+    commitAbilities({
+      ...getValues("abilities"),
+      [ability]: nextScore
+    });
   }
 
   function handlePointBuyAbilityChange(ability: AbilityKey, rawValue: string) {
     const currentAbilities = getValues("abilities");
     const nextScore = clampNumber(rawValue, 8, 15, currentAbilities[ability]);
 
-    commitAbilities(
-      {
-        ...currentAbilities,
-        [ability]: nextScore
-      }
-    );
+    commitAbilities({
+      ...currentAbilities,
+      [ability]: nextScore
+    });
   }
 
   function handleMaxHitPointsModeChange(nextMode: NonNullable<CharacterDraft["maxHitPointsMode"]>) {
@@ -2020,7 +2024,9 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   function toggleBackgroundLanguageProficiency(language: LANGUAGE_PROFICIENCY) {
     const currentChoices = getBackgroundChoiceDraftBase();
     const currentLanguages =
-      currentChoices.languageProficiencies ?? resolvedBackgroundChoices?.languageProficiencies ?? [];
+      currentChoices.languageProficiencies ??
+      resolvedBackgroundChoices?.languageProficiencies ??
+      [];
     const nextLanguages = currentLanguages.includes(language)
       ? currentLanguages.filter((selectedLanguage) => selectedLanguage !== language)
       : [...currentLanguages, language];
@@ -2120,8 +2126,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
 
     const nextAbilities = selectedAbilities.map((selectedAbility) => {
       const normalizedAbility =
-        backgroundAbilityOptions.includes(selectedAbility) &&
-        !usedAbilities.has(selectedAbility)
+        backgroundAbilityOptions.includes(selectedAbility) && !usedAbilities.has(selectedAbility)
           ? selectedAbility
           : (backgroundAbilityOptions.find((option) => !usedAbilities.has(option)) ??
             backgroundAbilityOptions[0]);
@@ -2353,14 +2358,13 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       normalizedClassName,
       draftValues.toolProficiencies ?? []
     );
-    const normalizedSubclassId =
-      isCustomClassName(normalizedClassName)
-        ? ""
-        : (normalizeSubclassId(
-            draftValues.subclassId,
-            normalizedClassName,
-            normalizedCustomSubclass
-          ) ?? "");
+    const normalizedSubclassId = isCustomClassName(normalizedClassName)
+      ? ""
+      : (normalizeSubclassId(
+          draftValues.subclassId,
+          normalizedClassName,
+          normalizedCustomSubclass
+        ) ?? "");
     const backgroundFeat = getBackgroundFeatEntry(draftValues.feats, resolvedNormalizedBackground);
     const backgroundReconciledFeats = backgroundFeat
       ? upsertBackgroundFeatEntry(draftValues.feats, resolvedNormalizedBackground, backgroundFeat)
@@ -2413,9 +2417,10 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       ),
       className: normalizedClassName,
       subclassId: normalizedSubclassId,
-      customSubclass: normalizedCustomSubclass?.id === normalizedSubclassId
-        ? normalizedCustomSubclass
-        : undefined,
+      customSubclass:
+        normalizedCustomSubclass?.id === normalizedSubclassId
+          ? normalizedCustomSubclass
+          : undefined,
       classRules: normalizedClassRules,
       customClass: normalizedCustomClass,
       level: normalizedProgress.level,
@@ -2456,7 +2461,9 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   async function submitResolvedDraft(values: CharacterFormValues) {
     const normalizedDraft = normalizeDraft(values);
 
-    if (!isPointBuyAbilityDistributionReady(normalizedDraft.attributeMode, normalizedDraft.abilities)) {
+    if (
+      !isPointBuyAbilityDistributionReady(normalizedDraft.attributeMode, normalizedDraft.abilities)
+    ) {
       setAttemptedBuildAdvance(true);
 
       if (!isEditing) {
@@ -2781,7 +2788,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     });
 
     return (
-      <section className={clsx(styles.sectionCard, styles.primarySection)}>
+      <section className={getSectionCardClassName(!isCoreProfileReady, styles.primarySection)}>
         <div className={styles.sectionHeader}>
           <div>
             <p className={styles.sectionEyebrow}>Core profile</p>
@@ -2958,9 +2965,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                 }}
               >
                 <option value="">
-                  {hasSubclassSelection
-                    ? "Select a subclass"
-                    : "No subclass options"}
+                  {hasSubclassSelection ? "Select a subclass" : "No subclass options"}
                 </option>
                 {availableSubclassOptions.map((subclass) => (
                   <option key={subclass.id} value={subclass.id}>
@@ -3100,7 +3105,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
 
   function renderStartingHitPointsSection() {
     return (
-      <section className={styles.sectionCard}>
+      <section className={getSectionCardClassName(!isStartingHitPointsReady)}>
         <div className={styles.sectionHeader}>
           <div>
             <p className={styles.sectionEyebrow}>Starting HP</p>
@@ -3139,7 +3144,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
 
   function renderAbilityDistributionSection() {
     return (
-      <section className={styles.sectionCard}>
+      <section className={getSectionCardClassName(!isPointBuyReady)}>
         <div className={styles.sectionHeader}>
           <div>
             <p className={styles.sectionEyebrow}>Base Stats</p>
@@ -3205,12 +3210,13 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     const customClassNameDraft = selectedCustomClass?.name ?? resolvedCustomClass.name ?? "";
 
     return (
-      <section className={styles.sectionCard}>
+      <section className={getSectionCardClassName(!isCustomClassNameReady)}>
         <div className={styles.sectionHeader}>
           <div>
             <p className={styles.sectionEyebrow}>Custom Class</p>
             <h3 className={styles.sectionValueHeading}>Class foundations</h3>
           </div>
+          {!isCustomClassNameReady ? <InputRequiredBadge /> : null}
         </div>
 
         <p className={styles.helperText}>
@@ -3283,7 +3289,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       selectedCustomSubclass?.name ?? resolvedCustomSubclass?.name ?? "";
 
     return (
-      <section className={styles.sectionCard}>
+      <section className={getSectionCardClassName(!isCustomSubclassNameReady)}>
         <div className={styles.sectionHeader}>
           <div>
             <p className={styles.sectionEyebrow}>Custom Subclass</p>
@@ -3335,7 +3341,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       (!showStartingEquipmentChoice || (isEquipmentChoiceReady && isStarterPackSelectionReady));
 
     return (
-      <section className={styles.sectionCard}>
+      <section className={getSectionCardClassName(!isRenderedClassSetupReady)}>
         <div className={styles.sectionHeader}>
           <div>
             <p className={styles.sectionEyebrow}>Class setup</p>
@@ -3692,7 +3698,9 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     }
 
     return (
-      <section className={styles.sectionCard}>
+      <section
+        className={getSectionCardClassName(!isBackgroundSetupReady || !isCustomBackgroundReady)}
+      >
         <div className={styles.sectionHeader}>
           <div>
             <p className={styles.sectionEyebrow}>Custom Background</p>
@@ -3837,7 +3845,9 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
 
           <fieldset className={styles.choiceGroup}>
             <legend>Languages</legend>
-            <p className={styles.helperText}>Choose up to 3 total languages (unless you want more)</p>
+            <p className={styles.helperText}>
+              Choose up to 3 total languages (unless you want more)
+            </p>
             <p className={styles.helperText}>Standard</p>
             <div className={styles.choiceGrid}>
               {standardBackgroundLanguageOptions.map((language) => {
@@ -3893,7 +3903,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     const fixedBackgroundTools = backgroundEntry?.grantedToolProficiencies ?? [];
 
     return (
-      <section className={styles.sectionCard}>
+      <section className={getSectionCardClassName(!isBackgroundSetupReady)}>
         <div className={styles.sectionHeader}>
           <div>
             <p className={styles.sectionEyebrow}>Background</p>
@@ -4161,9 +4171,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             </fieldset>
 
             <fieldset className={styles.choiceGroup}>
-              <legend>
-                Origin Feat · {getFeatLabel(backgroundEntry.originFeat)}
-              </legend>
+              <legend>Origin Feat · {getFeatLabel(backgroundEntry.originFeat)}</legend>
               {renderBackgroundOriginFeatControls()}
             </fieldset>
 
@@ -4227,7 +4235,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     }
 
     return (
-      <section className={styles.sectionCard}>
+      <section className={getSectionCardClassName(!isCustomSpeciesReady)}>
         <div className={styles.sectionHeader}>
           <div>
             <p className={styles.sectionEyebrow}>Custom Species</p>
@@ -4325,7 +4333,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       tieflingLegacyOptions.find((option) => option.key === selectedTieflingLegacy) ?? null;
 
     return (
-      <section className={styles.sectionCard}>
+      <section className={getSectionCardClassName(!isSpeciesSetupReady)}>
         <div className={styles.sectionHeader}>
           <div>
             <p className={styles.sectionEyebrow}>Species</p>
@@ -4876,7 +4884,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
 
   function renderProficiencyPreviewSection() {
     return (
-      <section className={styles.sectionCard}>
+      <section className={getSectionCardClassName(false)}>
         <div className={styles.sectionHeader}>
           <div>
             <p className={styles.sectionEyebrow}>PREVIEW</p>
@@ -4894,12 +4902,13 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
 
   function renderNotesSection() {
     return (
-      <section className={styles.sectionCard}>
+      <section className={getSectionCardClassName(!isNotesSetupReady)}>
         <div className={styles.sectionHeader}>
           <div>
             <p className={styles.sectionEyebrow}>Notes</p>
             <h3>Alignment and notes</h3>
           </div>
+          {!isNotesSetupReady ? <InputRequiredBadge /> : null}
         </div>
 
         <div className={styles.alignmentGrid} role="radiogroup" aria-label="Character alignment">
