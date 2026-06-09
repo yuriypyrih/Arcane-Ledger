@@ -22,6 +22,7 @@ export const acidArrow: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "90 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "powdered rhubarb leaf",
   duration: ["Instantaneous"],
   description: [
     "A shimmering green arrow streaks toward a target within range and bursts in a spray of acid. Make a ranged spell attack against the target. On a hit, the target takes <strong>4d4</strong> Acid damage and <strong>2d4</strong> Acid damage at the end of its next turn. On a miss, the arrow splashes the target with acid for half as much of the initial damage only.",
@@ -80,6 +81,7 @@ export const aid: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "30 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a strip of white cloth",
   duration: ["8 hours"],
   description: [
     "Choose up to three creatures within range. Each target's Hit Point maximum and current Hit Points increase by 5 for the duration.",
@@ -146,6 +148,7 @@ export const animalMessenger: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "30 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a morsel of food",
   duration: ["24 hours"],
   description: [
     "A Tiny Beast of your choice that you can see within range must succeed on a Charisma saving throw, or it attempts to deliver a message for you (if the target's Challenge Rating isn't 0, it automatically succeeds). You specify a location you have visited and a recipient who matches a general description, such as \"a person dressed in the uniform of the town guard\" or \"a red-haired dwarf wearing a pointed hat.\" You also communicate a message of up to twenty-five words. The Beast travels for the duration toward the specified location, covering about 25 miles per 24 hours or 50 miles if the Beast can fly. When the Beast arrives, it delivers your message to the creature that you described, mimicking your communication. If the Beast doesn't reach its destination before the spell ends, the message is lost, and the Beast returns to where you cast the spell.",
@@ -192,6 +195,7 @@ export const arcaneLock: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "gold dust worth 25+ GP, which the spell consumes",
   duration: ["Until dispelled"],
   description: [
     "You touch a closed door, window, gate, container, or hatch and magically lock it for the duration. This lock can't be unlocked by any nonmagical means. You and any creatures you designate when you cast the spell can open and close the object despite the lock. You can also set a password that, when spoken within 5 feet of the object, unlocks it for 1 minute."
@@ -234,6 +238,7 @@ export const arcanistsMagicAura: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a small square of silk",
   duration: ["24 hours"],
   description: [
     "With a touch, you place an illusion on a willing creature or an object that isn't being worn or carried. A creature gains the Mask effect below, and an object gains the False Aura effect below. The effect lasts for the duration. If you cast the spell on the same target every day for 30 days, the illusion lasts until dispelled."
@@ -254,6 +259,7 @@ export const augury: SpellEntry = {
   castingTime: [ACTION_TYPE.MINUTE],
   range: "Self",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "specially marked sticks, bones, cards, or other divinatory tokens worth 25+ GP",
   duration: ["Instantaneous"],
   description: [
     "You receive an omen from an otherworldly entity about the results of a course of action that you plan to take within the next 30 minutes. The GM chooses the omen from the Omens table. Table: Omens | Omen | For Results That Will Be … | |--------------|----------------------------| | Weal | Good | | Woe | Bad | | Weal and woe | Good and bad | | Indifference | Neither good nor bad | The spell doesn't account for circumstances, such as other spells, that might change the results. If you cast the spell more than once before finishing a Long Rest, there is a cumulative 25 percent chance for each casting after the first that you get no answer."
@@ -275,6 +281,7 @@ export const barkskin: SpellEntry = {
   castingTime: [ACTION_TYPE.BONUS_ACTION],
   range: "Touch",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a handful of bark",
   duration: ["1 hour"],
   description: [
     "You touch a willing creature. Until the spell ends, the target's skin assumes a bark-like appearance, and the target has an Armor Class of 17 if its AC is lower than that."
@@ -429,6 +436,7 @@ export const continualFlame: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "ruby dust worth 50+ GP, which the spell consumes",
   duration: ["Until dispelled"],
   description: [
     "A flame springs from an object that you touch. The effect casts Bright Light in a 20-foot radius and Dim Light for an additional 20 feet. It looks like a regular flame, but it creates no heat and consumes no fuel. The flame can be covered or hidden but not smothered or quenched."
@@ -500,6 +508,7 @@ export const darkness: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.M],
+  materialSpecified: "bat fur and a piece of coal",
   duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: [
     "For the duration, magical Darkness spreads from a point within range and fills a 15-foot-radius Sphere. Darkvision can't see through it, and nonmagical light can't illuminate it. Alternatively, you cast the spell on an object that isn't being worn or carried, causing the Darkness to fill a 15-foot Emanation originating from that object. Covering that object with something opaque, such as a bowl or helm, blocks the Darkness. If any of this spell's area overlaps with an area of Bright Light or Dim Light created by a spell of level 2 or lower, that other spell is dispelled."
@@ -520,6 +529,7 @@ export const darkvision: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a dried carrot",
   duration: ["8 hours"],
   description: [
     "For the duration, a willing creature you touch has Darkvision with a range of 150 feet."
@@ -540,6 +550,7 @@ export const detectThoughts: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "1 Copper Piece",
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "You activate one of the effects below. Until the spell ends, you can activate either effect as a Magic action on your later turns.",
@@ -585,6 +596,7 @@ export const dragonsBreath: SpellEntry = {
   castingTime: [ACTION_TYPE.BONUS_ACTION],
   range: "Touch",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a hot pepper",
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "You touch one willing creature, and choose Acid, Cold, Fire, Lightning, or Poison. Until the spell ends, the target can take a Magic action to exhale a 15-foot Cone. Each creature in that area makes a Dexterity saving throw, taking <strong>3d6</strong> damage of the chosen type on a failed save or half as much damage on a successful one.",
@@ -663,6 +675,7 @@ export const enhanceAbility: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "fur or a feather",
   duration: [DURATION.CONCENTRATION, "up to 1 hour"],
   description: [
     "You touch a creature and choose Strength, Dexterity, Intelligence, Wisdom, or Charisma. For the duration, the target has Advantage on ability checks using the chosen ability.",
@@ -684,6 +697,7 @@ export const enlargeReduce: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "30 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a pinch of powdered iron",
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "For the duration, the spell enlarges or reduces a creature or an object you can see within range (see the chosen effect below). A targeted object must be neither worn nor carried. If the target is an unwilling creature, it can make a Constitution saving throw. On a successful save, the spell has no effect. Everything that a targeted creature is wearing and carrying changes size with it. Any item it drops returns to normal size at once. A thrown weapon or piece of ammunition returns to normal size immediately after it hits or misses a target.",
@@ -801,6 +815,7 @@ export const flameBlade: SpellEntry = {
   castingTime: [ACTION_TYPE.BONUS_ACTION],
   range: "Self",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a sumac leaf",
   duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: [
     "You evoke a fiery blade in your free hand. The blade is similar in size and shape to a scimitar, and it lasts for the duration. If you let go of the blade, it disappears, but you can evoke it again as a Bonus Action. As a Magic action, you can make a melee spell attack with the fiery blade. On a hit, the target takes Fire damage equal to <strong>3d6</strong> plus your spellcasting ability modifier. The flaming blade sheds Bright Light in a 10-foot radius and Dim Light for an additional 10 feet.",
@@ -828,6 +843,7 @@ export const flamingSphere: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a ball of wax",
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "You create a 5-foot-diameter sphere of fire in an unoccupied space on the ground within range. It lasts for the duration. Any creature that ends its turn within 5 feet of the sphere makes a Dexterity saving throw, taking <strong>2d6</strong> Fire damage on a failed save or half as much damage on a successful one. As a Bonus Action, you can move the sphere up to 30 feet, rolling it along the ground. If you move the sphere into a creature's space, that creature makes the save against the sphere, and the sphere stops moving for the turn. When you move the sphere, you can direct it over barriers up to 5 feet tall and jump it across pits up to 10 feet wide. Flammable objects that aren't being worn or carried start burning if touched by the sphere, and it sheds Bright Light in a 20-foot radius and Dim Light for an additional 20 feet.",
@@ -896,6 +912,7 @@ export const gentleRepose: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "2 Copper Pieces, which the spell consumes",
   duration: ["10 day"],
   description: [
     "You touch a corpse or other remains. For the duration, the target is protected from decay and can't become Undead. The spell also effectively extends the time limit on raising the target from the dead, since days spent under the influence of this spell don't count against the time limit of spells such as Raise Dead."
@@ -937,6 +954,7 @@ export const gustOfWind: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a legume seed",
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "A Line of strong wind 60 feet long and 10 feet wide blasts from you in a direction you choose for the duration. Each creature in the Line must succeed on a Strength saving throw or be pushed 15 feet away from you in a direction following the Line. A creature that ends its turn in the Line must make the same save. Any creature in the Line must spend 2 feet of movement for every 1 foot it moves when moving closer to you. The gust disperses gas or vapor, and it extinguishes candles and similar unprotected flames in the area. It causes protected flames, such as those of lanterns, to dance wildly and has a 50 percent chance to extinguish them. As a Bonus Action on your later turns, you can change the direction in which the Line blasts from you."
@@ -983,6 +1001,7 @@ export const heatMetal: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a piece of iron and a flame",
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "Choose a manufactured metal object, such as a metal weapon or a suit of Heavy or Medium metal armor, that you can see within range. You cause the object to glow red-hot. Any creature in physical contact with the object takes <strong>2d8</strong> Fire damage when you cast the spell. Until the spell ends, you can take a Bonus Action on each of your later turns to deal this damage again if the object is within range. If a creature is holding or wearing the object and takes the damage from it, the creature must succeed on a Constitution saving throw or drop the object if it can. If it doesn't drop the object, it has Disadvantage on attack rolls and ability checks until the start of your next turn.",
@@ -1011,6 +1030,7 @@ export const holdPerson: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a straight piece of iron",
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "Choose a Humanoid that you can see within range. The target must succeed on a Wisdom saving throw or have the Paralyzed condition for the duration. At the end of each of its turns, the target repeats the save, ending the spell on itself on a success.",
@@ -1125,6 +1145,7 @@ export const invisibility: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "an eyelash in gum arabic",
   duration: [DURATION.CONCENTRATION, "up to 1 hour"],
   description: [
     "A creature you touch has the Invisible condition until the spell ends. The spell ends early immediately after the target makes an attack roll, deals damage, or casts a spell.",
@@ -1235,6 +1256,7 @@ export const levitate: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a metal spring",
   duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: [
     "One creature or loose object of your choice that you can see within range rises vertically up to 20 feet and remains suspended there for the duration. The spell can levitate an object that weighs up to 500 pounds. An unwilling creature that succeeds on a Constitution saving throw is unaffected. The target can move only by pushing or pulling against a fixed object or surface within reach (such as a wall or a ceiling), which allows it to move as if it were climbing. You can change the target's altitude by up to 20 feet in either direction on your turn. If you are the target, you can move up or down as part of your move. Otherwise, you can take a Magic action to move the target, which must remain within the spell's range. When the spell ends, the target floats gently to the ground if it is still aloft."
@@ -1257,6 +1279,7 @@ export const locateAnimalsOrPlants: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "fur from a bloodhound",
   duration: ["Instantaneous"],
   description: [
     "Describe or name a specific kind of Beast, Plant creature, or nonmagical plant. You learn the direction and distance to the closest creature or plant of that kind within 5 miles, if any are present."
@@ -1278,6 +1301,7 @@ export const locateObject: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a forked twig",
   duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: [
     "Describe or name an object that is familiar to you. You sense the direction to the object's location if that object is within 1,000 feet of you. If the object is in motion, you know the direction of its movement. The spell can locate a specific object known to you if you have seen it up close—within 30 feet—at least once. Alternatively, the spell can locate the nearest object of a particular kind, such as a certain kind of apparel, jewelry, furniture, tool, or weapon. This spell can't locate an object if any thickness of lead blocks a direct path between you and the object."
@@ -1298,6 +1322,7 @@ export const magicMouth: SpellEntry = {
   castingTime: [ACTION_TYPE.MINUTE],
   range: "30 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "jade dust worth 10+ GP, which the spell consumes",
   duration: ["Until dispelled"],
   description: [
     "You implant a message within an object in range—a message that is uttered when a trigger condition is met. Choose an object that you can see and that isn't being worn or carried by another creature. Then speak the message, which must be 25 words or fewer, though it can be delivered over as long as 10 minutes. Finally, determine the circumstance that will trigger the spell to deliver your message. When that trigger occurs, a magical mouth appears on the object and recites the message in your voice and at the same volume you spoke. If the object you chose has a mouth or something that looks like a mouth (for example, the mouth of a statue), the magical mouth appears there, so the words appear to come from the object's mouth. When you cast this spell, you can have the spell end after it delivers its message, or it can remain and repeat its message whenever the trigger occurs. The trigger can be as general or as detailed as you like, though it must be based on visual or audible conditions that occur within 30 feet of the object. For example, you could instruct the mouth to speak when any creature moves within 30 feet of the object or when a silver bell rings within 30 feet of it."
@@ -1482,6 +1507,7 @@ export const moonbeam: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "120 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a moonseed leaf",
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "When the Cylinder appears, each creature in it makes a Constitution saving throw. On a failed save, a creature takes <strong>2d10</strong> Radiant damage, and if the creature is shape-shifted (as a result of the Polymorph spell, for example), it reverts to its true form and can't shape-shift until it leaves the Cylinder. On a successful save, a creature takes half as much damage only. A creature also makes this save when the spell's area moves into its space and when it enters the spell's area or ends its turn there. A creature makes this save only once per turn.",
@@ -1534,6 +1560,7 @@ export const passWithoutTrace: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "ashes from burned mistletoe",
   duration: [DURATION.CONCENTRATION, "up to 1 hour"],
   description: [
     "You radiate a concealing aura in a 30-foot Emanation for the duration. While in the aura, you and each creature you choose have a +10 bonus to Dexterity (Stealth) checks and leave no tracks."
@@ -1554,6 +1581,7 @@ export const phantasmalForce: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a bit of fleece",
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "You attempt to craft an illusion in the mind of a creature you can see within range. The target makes an Intelligence saving throw. On a failed save, you create a phantasmal object, creature, or other phenomenon that is no larger than a 10-foot Cube and that is perceivable only to the target for the duration. The phantasm includes sound, temperature, and other stimuli. The target can take a Study action to examine the phantasm with an Intelligence (Investigation) check against your spell save DC. If the check succeeds, the target realizes that the phantasm is an illusion, and the spell ends. While affected by the spell, the target treats the phantasm as if it were real and rationalizes any illogical outcomes from interacting with it. For example, if the target steps through a phantasmal bridge and survives the fall, it believes the bridge exists and something else caused it to fall. An affected target can even take damage from the illusion if the phantasm represents a dangerous creature or hazard. On each of your turns, such a phantasm can deal <strong>2d8</strong> Psychic damage to the target if it is in the phantasm's area or within 5 feet of the phantasm. The target perceives the damage as a type appropriate to the illusion."
@@ -1697,6 +1725,7 @@ export const ropeTrick: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a segment of rope",
   duration: ["1 hour"],
   description: [
     "You touch a rope. One end of it hovers upward until the rope hangs perpendicular to the ground or the rope reaches a ceiling. At the rope's upper end, an Invisible 3-foot-by-5-foot portal opens to an extradimensional space that lasts until the spell ends. That space can be reached by climbing the rope, which can be pulled into or dropped out of it. The space can hold up to eight Medium or smaller creatures. Attacks, spells, and other effects can't pass into or out of the space, but creatures inside it can see through the portal. Anything inside the space drops out when the spell ends."
@@ -1743,6 +1772,7 @@ export const seeInvisibility: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a pinch of talc",
   duration: ["1 hour"],
   description: [
     "For the duration, you see creatures and objects that have the Invisible condition as if they were visible, and you can see into the Ethereal Plane. Creatures and objects there appear ghostly."
@@ -1789,6 +1819,7 @@ export const shatter: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a chip of mica",
   duration: ["Instantaneous"],
   description: [
     "A loud noise erupts from a point of your choice within range. Each creature in a 10-foot-radius Sphere centered there makes a Constitution saving throw, taking <strong>3d8</strong> Thunder damage on a failed save or half as much damage on a successful one. A Construct has Disadvantage on the save. A nonmagical object that isn't being worn or carried also takes the damage if it's in the spell's area.",
@@ -1913,6 +1944,7 @@ export const spiderClimb: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a drop of bitumen and a spider",
   duration: [DURATION.CONCENTRATION, "up to 1 hour"],
   description: [
     "Until the spell ends, one willing creature you touch gains the ability to move up, down, and across vertical surfaces and along ceilings, while leaving its hands free. The target also gains a Climb Speed equal to its Speed.",
@@ -1934,6 +1966,7 @@ export const spikeGrowth: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "150 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "seven thorns",
   duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: [
     "The ground in a 20-foot-radius Sphere centered on a point within range sprouts hard spikes and thorns. The area becomes Difficult Terrain for the duration. When a creature moves into or within the area, it takes <strong>2d4</strong> Piercing damage for every 5 feet it travels. The transformation of the ground is camouflaged to look natural. Any creature that can't see the area when the spell is cast must take a Search action and succeed on a Wisdom (Perception or Survival) check against your spell save DC to recognize the terrain as hazardous before entering it."
@@ -2009,6 +2042,7 @@ export const suggestion: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "30 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.M],
+  materialSpecified: "a drop of honey",
   duration: [DURATION.CONCENTRATION, "up to 8 hours"],
   description: [
     "You suggest a course of activity—described in no more than 25 words—to one creature you can see within range that can hear and understand you. The suggestion must sound achievable and not involve anything that would obviously deal damage to the target or its allies. For example, you could say, \"Fetch the key to the cult's treasure vault, and give the key to me.\" Or you could say, \"Stop fighting, leave this library peacefully, and don't return.\" The target must succeed on a Wisdom saving throw or have the Charmed condition for the duration or until you or your allies deal damage to the target. The Charmed target pursues the suggestion to the best of its ability. The suggested activity can continue for the entire duration, but if the suggested activity can be completed in a shorter time, the spell ends for the target upon completing it."
@@ -2140,6 +2174,7 @@ export const wardingBond: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a pair of platinum rings worth 50+ GP each, which you and the target must wear for the duration",
   duration: ["1 hour"],
   description: [
     "You touch another creature that is willing and create a mystic connection between you and the target until the spell ends. While the target is within 60 feet of you, it gains a +1 bonus to AC and saving throws, and it has Resistance to all damage. Also, each time it takes damage, you take the same amount of damage. The spell ends if you drop to 0 Hit Points or if you and the target become separated by more than 60 feet. It also ends if the spell is cast again on either of the connected creatures."
@@ -2207,6 +2242,7 @@ export const web: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a bit of spiderweb",
   duration: [DURATION.CONCENTRATION, "up to 1 hour"],
   description: [
     "You conjure a mass of sticky webbing at a point within range. The webs fill a 20-foot Cube there for the duration. The webs are Difficult Terrain, and the area within them is Lightly Obscured. If the webs aren't anchored between two solid masses (such as walls or trees) or layered across a floor, wall, or ceiling, the web collapses on itself, and the spell ends at the start of your next turn. Webs layered over a flat surface have a depth of 5 feet. The first time a creature enters the webs on a turn or starts its turn there, it must succeed on a Dexterity saving throw or have the Restrained condition while in the webs or until it breaks free. A creature Restrained by the webs can take an action to make a Strength (Athletics) check against your spell save DC. If it succeeds, it is no longer Restrained. The webs are flammable. Any 5-foot Cube of webs exposed to fire burns away in 1 round, dealing <strong>2d4</strong> Fire damage to any creature that starts its turn in the fire."

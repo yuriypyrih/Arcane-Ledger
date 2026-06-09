@@ -74,6 +74,7 @@ export const alarm: SpellEntry = {
   castingTime: [ACTION_TYPE.MINUTE],
   range: "30 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a bell and silver wire",
   duration: ["8 hours"],
   description: [
     "You set an alarm against intrusion. Choose a door, a window, or an area within range that is no larger than a 20-foot Cube. Until the spell ends, an alarm alerts you whenever a creature touches or enters the warded area. When you cast the spell, you can designate creatures that won't set off the alarm. You also choose whether the alarm is audible or mental:"
@@ -95,6 +96,7 @@ export const animalFriendship: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "30 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a morsel of food",
   duration: ["24 hours"],
   description: [
     "Target a Beast that you can see within range. The target must succeed on a Wisdom saving throw or have the Charmed condition for the duration. If you or one of your allies deals damage to the target, the spells ends.",
@@ -194,6 +196,7 @@ export const bane: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "30 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a drop of blood",
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "Up to three creatures of your choice that you can see within range must each make a Charisma saving throw. Whenever a target that fails this save makes an attack roll or a saving throw before the spell ends, the target must subtract <strong>1d4</strong> from the attack roll or save.",
@@ -238,6 +241,7 @@ export const bless: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "30 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a Holy Symbol worth 5+ GP",
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "You bless up to three creatures within range. Whenever a target makes an attack roll or a saving throw before the spell ends, the target adds <strong>1d4</strong> to the attack roll or save.",
@@ -413,6 +417,7 @@ export const chromaticOrb: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "90 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a diamond worth 50+ GP",
   duration: ["Instantaneous"],
   description: [
     "You hurl an orb of energy at a target within range. Choose Acid, Cold, Fire, Lightning, Poison, or Thunder for the type of orb you create, and then make a ranged spell attack against the target. On a hit, the target takes <strong>3d8</strong> damage of the chosen type. If you roll the same number on two or more of the d8s, the orb leaps to a different target of your choice within 30 feet of the target. Make an attack roll against the new target, and make a new damage roll. The orb can't leap again unless you cast the spell with a level 2+ spell slot.",
@@ -440,6 +445,7 @@ export const colorSpray: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a pinch of colorful sand",
   duration: ["Instantaneous"],
   description: [
     "You launch a dazzling array of flashing, colorful light. Each creature in a 15-foot Cone originating from you must succeed on a Constitution saving throw or have the Blinded condition until the end of your next turn."
@@ -509,6 +515,7 @@ export const comprehendLanguages: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a pinch of soot and salt",
   duration: ["1 hour"],
   description: [
     "For the duration, you understand the literal meaning of any language that you hear or see signed. You also understand any written language that you see, but you must be touching the surface on which the words are written. It takes about 1 minute to read one page of text. This spell doesn't decode symbols or secret messages."
@@ -530,6 +537,7 @@ export const createOrDestroyWater: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "30 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a mix of water and sand",
   duration: ["Instantaneous"],
   description: [
     "You do one of the following:",
@@ -614,6 +622,7 @@ export const detectPoisonAndDisease: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a yew leaf",
   duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: [
     "For the duration, you sense the location of poisons, poisonous or venomous creatures, and magical contagions within 30 feet of yourself. You sense the kind of poison, creature, or contagion in each case. The spell is blocked by 1 foot of stone, dirt, or wood; 1 inch of metal; or a thin sheet of lead."
@@ -868,6 +877,7 @@ export const falseLife: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a drop of alcohol",
   duration: ["Instantaneous"],
   description: [
     "You gain <strong>2d4 + 4</strong> Temporary Hit Points.",
@@ -889,6 +899,7 @@ export const featherFall: SpellEntry = {
   castingTime: [ACTION_TYPE.REACTION, "which you take when you or a creature you can see within 60 feet of you falls"],
   range: "60 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.M],
+  materialSpecified: "a small feather or piece of down",
   duration: ["1 minute"],
   description: [
     "Choose up to five falling creatures within range. A falling creature's rate of descent slows to 60 feet per round until the spell ends. If a creature lands before the spell ends, the creature takes no damage from the fall, and the spell ends for that creature."
@@ -909,6 +920,7 @@ export const findFamiliar: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "10 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "burning incense worth 10+ GP, which the spell consumes",
   duration: ["Instantaneous"],
   description: [
     "You gain the service of a familiar, a spirit that takes an animal form you choose: Bat, Cat, Frog, Hawk, Lizard, Octopus, Owl, Rat, Raven, Spider, Weasel, or another Beast that has a Challenge Rating of 0. Appearing in an unoccupied space within range, the familiar has the statistics of the chosen form (see \"Monsters\"), though it is a Celestial, Fey, or Fiend (your choice) instead of a Beast. Your familiar acts independently of you, but it obeys your commands.",
@@ -935,6 +947,7 @@ export const floatingDisk: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "30 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a drop of mercury",
   duration: ["1 hour"],
   description: [
     "This spell creates a circular, horizontal plane of force, 3 feet in diameter and 1 inch thick, that floats 3 feet above the ground in an unoccupied space of your choice that you can see within range. The disk remains for the duration and can hold up to 500 pounds. If more weight is placed on it, the spell ends, and everything on the disk falls to the ground. The disk is immobile while you are within 20 feet of it. If you move more than 20 feet away from it, the disk follows you so that it remains within 20 feet of you. It can move across uneven terrain, up or down stairs, slopes and the like, but it can't cross an elevation change of 10 feet or more. For example, the disk can't move across a 10-foot-deep pit, nor could it leave such a pit if it was created at the bottom. If you move more than 100 feet from the disk (typically because it can't move around an obstacle to follow you), the spell ends."
@@ -1025,6 +1038,7 @@ export const goodberry: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a sprig of mistletoe",
   duration: ["24 hours"],
   description: [
     "Ten berries appear in your hand and are infused with magic for the duration. A creature can take a Bonus Action to eat one berry. Eating a berry restores 1 Hit Point, and the berry provides enough nourishment to sustain a creature for one day. Uneaten berries disappear when the spell ends."
@@ -1046,6 +1060,7 @@ export const grease: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a bit of pork rind or butter",
   duration: ["1 minute"],
   description: [
     "Nonflammable grease covers the ground in a 10 foot square centered on a point within range and turns it into Difficult Terrain for the duration. When the grease appears, each creature standing in its area must succeed on a Dexterity saving throw or have the Prone condition. A creature that enters the area or ends its turn there must also succeed on that save or fall Prone."
@@ -1232,6 +1247,7 @@ export const hex: SpellEntry = {
   castingTime: [ACTION_TYPE.BONUS_ACTION],
   range: "90 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "the petrified eye of a newt",
   duration: [DURATION.CONCENTRATION, "up to 1 hour"],
   description: [
     "You place a curse on a creature that you can see within range. Until the spell ends, you deal an extra <strong>1d6</strong> Necrotic damage to the target whenever you hit it with an attack roll. Also, choose one ability when you cast the spell. The target has Disadvantage on ability checks made with the chosen ability. If the target drops to 0 Hit Points before this spell ends, you can take a Bonus Action on a later turn to curse a new creature.",
@@ -1257,6 +1273,7 @@ export const hideousLaughter: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "30 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a tart and a feather",
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "One creature of your choice that you can see within range makes a Wisdom saving throw. On a failed save, it has the Prone and Incapacitated conditions for the duration. During that time, it laughs uncontrollably if it's capable of laughter, and it can't end the Prone condition on itself. At the end of each of its turns and each time it takes damage, it makes another Wisdom saving throw. The target has Advantage on the save if the save is triggered by damage. On a successful save, the spell ends.",
@@ -1305,6 +1322,7 @@ export const iceKnife: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
   components: [SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a drop of water or a piece of ice",
   duration: ["Instantaneous"],
   description: [
     "You create a shard of ice and fling it at one creature within range. Make a ranged spell attack against the target. On a hit, the target takes <strong>1d10</strong> Piercing damage. Hit or miss, the shard then explodes. The target and each creature within 5 feet of it must succeed on a Dexterity saving throw or take <strong>2d6</strong> Cold damage.",
@@ -1359,6 +1377,7 @@ export const identify: SpellEntry = {
   castingTime: [ACTION_TYPE.MINUTE],
   range: "Touch",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a pearl worth 100+ GP",
   duration: ["Instantaneous"],
   description: [
     "You touch an object throughout the spell's casting. If the object is a magic item or some other magical object, you learn its properties and how to use them, whether it requires Attunement, and how many charges it has, if any. You learn whether any ongoing spells are affecting the item and what they are. If the item was created by a spell, you learn that spell's name. If you instead touch a creature throughout the casting, you learn which ongoing spells, if any, are currently affecting it."
@@ -1380,6 +1399,7 @@ export const illusoryScript: SpellEntry = {
   castingTime: [ACTION_TYPE.MINUTE],
   range: "Touch",
   components: [SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "ink worth 10+ GP, which the spell consumes",
   duration: ["10 day"],
   description: [
     "You write on parchment, paper, or another suitable material and imbue it with an illusion that lasts for the duration. To you and any creatures you designate when you cast the spell, the writing appears normal, seems to be written in your hand, and conveys whatever meaning you intended when you wrote the text. To all others, the writing appears as if it were written in an unknown or magical script that is unintelligible. Alternatively, the illusion can alter the meaning, handwriting, and language of the text, though the language must be one you know. If the spell is dispelled, the original script and the illusion both disappear. A creature that has Truesight can read the hidden message."
@@ -1495,6 +1515,7 @@ export const longstrider: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a pinch of dirt",
   duration: ["1 hour"],
   description: [
     "You touch a creature. The target's Speed increases by 10 feet until the spell ends.",
@@ -1516,6 +1537,7 @@ export const mageArmor: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a piece of cured leather",
   duration: ["8 hours"],
   description: [
     "You touch a willing creature who isn't wearing armor. Until the spell ends, the target's base AC becomes 13 plus its Dexterity modifier. The spell ends early if the target dons armor."
@@ -1589,6 +1611,7 @@ export const protectionFromEvilAndGood: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a flask of Holy Water worth 25+ GP, which the spell consumes",
   duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: [
     "Until the spell ends, one willing creature you touch is protected against creatures that are Aberrations, Celestials, Elementals, Fey, Fiends, or Undead. The protection grants several benefits. Creatures of those types have Disadvantage on attack rolls against the target. The target also can't be possessed by or gain the Charmed or Frightened conditions from them. If the target is already possessed, Charmed, or Frightened by such a creature, the target has Advantage on any new saving throw against the relevant effect."
@@ -1699,6 +1722,7 @@ export const sanctuary: SpellEntry = {
   castingTime: [ACTION_TYPE.BONUS_ACTION],
   range: "30 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a shard of glass from a mirror",
   duration: ["1 minute"],
   description: [
     "You ward a creature within range. Until the spell ends, any creature who targets the warded creature with an attack roll or a damaging spell must succeed on a Wisdom saving throw or either choose a new target or lose the attack or spell. This spell doesn't protect the warded creature from areas of effect. The spell ends if the warded creature makes an attack roll, casts a spell, or deals damage."
@@ -1789,6 +1813,7 @@ export const shieldOfFaith: SpellEntry = {
   castingTime: [ACTION_TYPE.BONUS_ACTION],
   range: "60 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a prayer scroll",
   duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: [
     "A shimmering field surrounds a creature of your choice within range, granting it a +2 bonus to AC for the duration."
@@ -1809,6 +1834,7 @@ export const silentImage: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a bit of fleece",
   duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: [
     "You create the image of an object, a creature, or some other visible phenomenon that is no larger than a 15-foot Cube. The image appears at a spot within range and lasts for the duration. The image is purely visual; it isn't accompanied by sound, smell, or other sensory effects. As a Magic action, you can cause the image to move to any spot within range. As the image changes location, you can alter its appearance so that its movements appear natural for the image. For example, if you create an image of a creature and move it, you can alter the image so that it appears to be walking. Physical interaction with the image reveals it to be an illusion, since things can pass through it. A creature that takes a Study action to examine the image can determine that it is an illusion with a successful Intelligence (Investigation) check against your spell save DC. If a creature discerns the illusion for what it is, the creature can see through the image."
@@ -1850,6 +1876,7 @@ export const sleep: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a pinch of sand or rose petals",
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "Each creature of your choice in a 5-foot-radius Sphere centered on a point within range must succeed on a Wisdom saving throw or have the Incapacitated condition until the end of its next turn, at which point it must repeat the save. If the target fails the second save, the target has the Unconscious condition for the duration. The spell ends on a target if it takes damage or someone within 5 feet of it takes an action to shake it out of the spell's effect. Creatures that don't sleep, such as elves, or that have Immunity to the Exhaustion condition automatically succeed on saves against this spell."
@@ -2043,6 +2070,7 @@ export const unseenServant: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a bit of string and of wood",
   duration: ["1 hour"],
   description: [
     "This spell creates an Invisible, mindless, shapeless, Medium force that performs simple tasks at your command until the spell ends. The servant springs into existence in an unoccupied space on the ground within range. It has AC 10, 1 Hit Point, and a Strength of 2, and it can't attack. If it drops to 0 Hit Points, the spell ends. Once on each of your turns as a Bonus Action, you can mentally command the servant to move up to 15 feet and interact with an object. The servant can perform simple tasks that a human could do, such as fetching things, cleaning, mending, folding clothes, lighting fires, serving food, and pouring drinks. Once you give the command, the servant performs the task to the best of its ability until it completes the task, then waits for your next command. If you command the servant to perform a task that would move it more than 60 feet away from you, the spell ends."

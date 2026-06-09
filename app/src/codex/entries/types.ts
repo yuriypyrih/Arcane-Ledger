@@ -164,6 +164,7 @@ export type SpellEntry = {
   castingTime: SpellCastingTimePart[];
   range: string;
   components: SPELL_COMPONENT[];
+  materialSpecified?: string;
   duration: SpellDurationPart[];
   description: SpellDescriptionEntry[];
   descriptionAdditions?: SpellDescriptionEntry[][];

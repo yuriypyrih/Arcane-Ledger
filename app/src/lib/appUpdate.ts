@@ -11,6 +11,7 @@ export type AppUpdateState = {
 };
 
 type VersionCheckResult = "confirmed-update" | "current" | "failed" | "pending-mismatch";
+type LifecycleVersionCheckTrigger = "boot" | "focus" | "online" | "visible";
 
 const BUILD_VERSION_PREFIX = "arcane-ledger-build:";
 const LIFECYCLE_CHECK_COOLDOWN_MS = 60_000;
@@ -38,6 +39,16 @@ let lastLifecycleCheckStartedAt = 0;
 let lastVersionCheckResult: VersionCheckResult | null = null;
 let pendingMismatchBuildId: string | null = null;
 let pendingMismatchCount = 0;
+
+function isLocalVersionCheckHost() {
+  const localHostnames = new Set(["localhost", "127.0.0.1", "0.0.0.0", "::1", "[::1]"]);
+
+  return localHostnames.has(window.location.hostname);
+}
+
+function shouldSkipBuildVersionChecks() {
+  return import.meta.env.DEV || isLocalVersionCheckHost();
+}
 
 function emitUpdateState() {
   listeners.forEach((listener) => listener());
@@ -186,8 +197,8 @@ async function checkForBuildVersionUpdate(): Promise<VersionCheckResult> {
   }
 }
 
-function shouldRunLifecycleVersionCheck(trigger: "boot" | "focus" | "online" | "visible") {
-  if (state.updateRequired) {
+function shouldRunLifecycleVersionCheck(trigger: LifecycleVersionCheckTrigger) {
+  if (state.updateRequired || shouldSkipBuildVersionChecks()) {
     return false;
   }
 
@@ -201,7 +212,7 @@ function shouldRunLifecycleVersionCheck(trigger: "boot" | "focus" | "online" | "
   return cooldownHasElapsed || (trigger === "online" && lastVersionCheckResult === "failed");
 }
 
-function scheduleLifecycleVersionCheck(trigger: "boot" | "focus" | "online" | "visible") {
+function scheduleLifecycleVersionCheck(trigger: LifecycleVersionCheckTrigger) {
   if (!shouldRunLifecycleVersionCheck(trigger)) {
     return;
   }

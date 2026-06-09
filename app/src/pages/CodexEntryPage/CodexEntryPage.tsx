@@ -388,7 +388,7 @@ function CodexEntryPage() {
                         as="button"
                         className={styles.drawerDetailButton}
                         label="Components"
-                        content={formatSpellComponents(entry.components)}
+                        content={formatSpellComponents(entry.components, entry.materialSpecified)}
                         onClick={() => {
                           if (componentsTooltipEntry) {
                             setIsComponentsTooltipOpen(true);

@@ -802,7 +802,7 @@ function CharacterSpellDrawer({
                 as="button"
                 className={styles.spellDetailButton}
                 label="Components"
-                content={formatSpellComponents(spell.components)}
+                content={formatSpellComponents(spell.components, spell.materialSpecified)}
                 onClick={() => setIsComponentsTooltipOpen(true)}
               />
               <CellContainer

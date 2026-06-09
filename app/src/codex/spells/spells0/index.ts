@@ -168,6 +168,7 @@ export const dancingLights: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "120 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a bit of phosphorus",
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "You create up to four torch-size lights within range, making them appear as torches, lanterns, or glowing orbs that hover for the duration. Alternatively, you combine the four lights into one glowing Medium form that is vaguely humanlike. Whichever form you choose, each light sheds Dim Light in a 10 foot radius. As a Bonus Action, you can move the lights up to 60 feet to a space within range. A light must be within 20 feet of another light created by this spell, and a light vanishes if it exceeds the spell's range."
@@ -474,6 +475,7 @@ export const light: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.M],
+  materialSpecified: "a firefly or phosphorescent moss",
   duration: ["1 hour"],
   description: [
     "You touch one Large or smaller object that isn't being worn or carried by someone else. Until the spell ends, the object sheds Bright Light in a 20-foot radius and Dim Light for an additional 20 feet. The light can be colored as you like. Covering the object with something opaque blocks the light. The spell ends if you cast it again."
@@ -565,6 +567,7 @@ export const mending: SpellEntry = {
   castingTime: [ACTION_TYPE.MINUTE],
   range: "Touch",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "two lodestones",
   duration: ["Instantaneous"],
   description: [
     "This spell repairs a single break or tear in an object you touch, such as a broken chain link, two halves of a broken key, a torn cloak, or a leaking wineskin. As long as the break or tear is no larger than 1 foot in any dimension, you mend it, leaving no trace of the former damage. This spell can physically repair a magic item, but it can't restore magic to such an object."
@@ -585,6 +588,7 @@ export const message: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "120 feet",
   components: [SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a copper wire",
   duration: ["1 round"],
   description: [
     "You point toward a creature within range and whisper a message. The target (and only the target) hears the message and can reply in a whisper that only you can hear. You can cast this spell through solid objects if you are familiar with the target and know it is beyond the barrier. Magical silence; 1 foot of stone, metal, or wood; or a thin sheet of lead blocks the spell."
@@ -631,6 +635,7 @@ export const minorIllusion: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "30 feet",
   components: [SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a bit of fleece",
   duration: ["1 minute"],
   description: [
     "You create a sound or an image of an object within range that lasts for the duration. See the descriptions below for the effects of each. The illusion ends if you cast this spell again. If a creature takes a Study action to examine the sound or image, the creature can determine that it is an illusion with a successful Intelligence (Investigation) check against your spell save DC. If a creature discerns the illusion for what it is, the illusion becomes faint to the creature.",
@@ -920,6 +925,7 @@ export const shillelagh: SpellEntry = {
   castingTime: [ACTION_TYPE.BONUS_ACTION],
   range: "Self",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "mistletoe",
   duration: ["1 minute"],
   description: [
     "A Club or Quarterstaff you are holding is imbued with nature's power. For the duration, you can use your spellcasting ability instead of Strength for the attack and damage rolls of melee attacks using that weapon, and the weapon's damage die becomes a d8. If the attack deals damage, it can be Force damage or the weapon's normal damage type (your choice). The spell ends early if you cast it again or if you let go of the weapon.",
@@ -1170,6 +1176,7 @@ export const trueStrike: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
   components: [SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a weapon with which you have proficiency and that is worth 1+ CP",
   duration: ["Instantaneous"],
   description: [
     "Guided by a flash of magical insight, you make one attack with the weapon used in the spell's casting. The attack uses your spellcasting ability for the attack and damage rolls instead of using Strength or Dexterity. If the attack deals damage, it can be Radiant damage or the weapon's normal damage type (your choice).",

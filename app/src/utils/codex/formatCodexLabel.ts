@@ -76,12 +76,21 @@ export function formatSpellSubtitle(spell: Pick<SpellEntry, "magicSchool" | "spe
   return `${formatCodexLabel(spell.magicSchool)} ${formatSpellLevelLabel(spell.spellLevel).toLowerCase()}`;
 }
 
-export function formatSpellComponents(components: SPELL_COMPONENT[]): string {
+export function formatSpellComponents(
+  components: SPELL_COMPONENT[],
+  materialSpecified?: string
+): string {
   if (components.length === 0) {
     return "None";
   }
 
-  return components.join(", ");
+  const materialText = materialSpecified?.trim();
+
+  return components
+    .map((component) =>
+      component === SPELL_COMPONENT.M && materialText ? `${component} (${materialText})` : component
+    )
+    .join(", ");
 }
 
 function isCastingTimeConnector(part: string): boolean {

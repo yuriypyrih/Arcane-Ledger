@@ -519,9 +519,7 @@
   }
 
   .heroPortrait {
-    width: clamp(6.35rem, 29vw, 7.85rem);
-    margin-top: calc(var(--home-hero-padding) * -1.18);
-    margin-left: calc(var(--home-hero-padding) * -1.18);
+    display: none;
   }
 
   .title {

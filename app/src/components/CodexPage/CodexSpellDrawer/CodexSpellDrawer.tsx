@@ -155,7 +155,7 @@ function CodexSpellDrawer({ spell, onClose, backdropClassName }: CodexSpellDrawe
             <CellContainer
               as="button"
               label="Components"
-              content={formatSpellComponents(spell.components)}
+              content={formatSpellComponents(spell.components, spell.materialSpecified)}
               className={styles.detailButton}
               onClick={() => {
                 if (componentsTooltipEntry) {
