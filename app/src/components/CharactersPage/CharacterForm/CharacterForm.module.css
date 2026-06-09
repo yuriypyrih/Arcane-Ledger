@@ -78,22 +78,51 @@
 }
 
 .sectionCard {
-  border: 1px solid rgba(75, 47, 29, 0.12);
-  border-right: 4px solid rgba(255, 250, 241, 0.92);
+  --section-card-background: rgba(255, 250, 241, 0.92);
+  --section-card-border-color: rgba(255, 250, 241, 0.92);
+  --section-card-required-color: #a63729;
+
+  position: relative;
+  border: 2px solid var(--section-card-border-color);
   border-radius: var(--radius-section);
-  background: rgba(255, 250, 241, 0.92);
+  background: var(--section-card-background);
   box-shadow: 0 18px 50px rgba(54, 34, 21, 0.06);
   padding: var(--space-card-padding);
 }
 
 .inputRequiredSection {
-  border-right-color: #a63729;
+  border-color: transparent;
+  border-right-width: 4px;
+}
+
+.inputRequiredSection::before {
+  box-sizing: border-box;
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: -2px -4px -2px -2px;
+  border-radius: inherit;
+  background: linear-gradient(
+    to right,
+    var(--section-card-border-color),
+    var(--section-card-required-color)
+  );
+  padding: 2px 4px 2px 2px;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
 }
 
 .primarySection {
-  background:
+  --section-card-background:
     radial-gradient(circle at top right, rgba(217, 184, 146, 0.24), transparent 34%),
     rgba(255, 250, 241, 0.96);
+  --section-card-border-color: rgba(255, 250, 241, 0.96);
 }
 
 .sectionHeader {
