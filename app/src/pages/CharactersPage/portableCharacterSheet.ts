@@ -527,6 +527,7 @@ export function createPortableCharacterSheet(character: HydratedCharacter): Port
     features: {
       speciesFeatureState: character.speciesFeatureState,
       classFeatureState: character.classFeatureState,
+      customActions: character.customActions,
       feats: character.feats
     },
     proficiencies: {
@@ -624,6 +625,7 @@ export function createHydratedCharacterInputFromPortableSheet(
     inventoryItems: record.inventory.items,
     customEquipment: [],
     companions: record.companions.entries,
+    customActions: record.features.customActions,
     cantripIds: record.spellcasting.cantripIds,
     spellbookSpellIds: record.spellcasting.spellbookSpellIds,
     preparedSpellIds: record.spellcasting.preparedSpellIds,

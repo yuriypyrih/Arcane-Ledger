@@ -367,6 +367,10 @@ import {
 } from "../../../../../pages/CharactersPage/traits";
 import { createDefaultRoundTracker } from "../../../../../pages/CharactersPage/combat";
 import {
+  getCustomActionRestRecoveryEntries,
+  restoreCustomActionChargesForRest
+} from "../../../../../pages/CharactersPage/customActions";
+import {
   createDefaultDeathSaves,
   createMagicTemporaryHitPointsAssignment,
   normalizeMagicTemporaryHitPoints,
@@ -597,6 +601,7 @@ export function createLongRestOptions(character: Character): RestOption[] {
     hasFiniteCompanionDuration(character.companions);
   const hasLongRestConjuredItems = hasLongRestConjuredInventoryItems(character.inventoryItems);
   const exhaustionLevel = getExhaustionLevel(character.statusEntries);
+  const customActionRecoveryEntries = getCustomActionRestRecoveryEntries(character, "long");
 
   return [
     ...(exhaustionLevel !== null
@@ -668,6 +673,20 @@ export function createLongRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
+    ...customActionRecoveryEntries.map(
+      (entry) =>
+        ({
+          id: `restore-custom-action-${entry.id}`,
+          label: `Restore ${entry.name}`,
+          detail: `Long Rest restores up to ${entry.recovery} expended charges.`,
+          charges: {
+            current: entry.current,
+            total: entry.total
+          },
+          apply: (currentCharacter: Character) =>
+            restoreCustomActionChargesForRest(currentCharacter, entry.id, "long")
+        }) satisfies RestOption
+    ),
     ...(aasimarHealingHandsUsesTotal > 0
       ? [
           {

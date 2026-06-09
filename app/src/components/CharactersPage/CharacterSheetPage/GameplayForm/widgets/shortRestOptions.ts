@@ -299,6 +299,10 @@ import {
 } from "../../../../../pages/CharactersPage/traits";
 import { createDefaultRoundTracker } from "../../../../../pages/CharactersPage/combat";
 import {
+  getCustomActionRestRecoveryEntries,
+  restoreCustomActionChargesForRest
+} from "../../../../../pages/CharactersPage/customActions";
+import {
   createDefaultDeathSaves,
   createMagicTemporaryHitPointsAssignment,
   normalizeMagicTemporaryHitPoints,
@@ -377,6 +381,7 @@ export function createShortRestOptions(character: Character): RestOption[] {
     : character.className === "Artificer" && character.level >= 20
       ? "Refreshed Genius restores one expended use. Soul of Artifice restores all instead while you have at least one attuned item."
       : "Refreshed Genius restores one expended Flash of Genius use.";
+  const customActionRecoveryEntries = getCustomActionRestRecoveryEntries(character, "short");
 
   return [
     {
@@ -436,6 +441,20 @@ export function createShortRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
+    ...customActionRecoveryEntries.map(
+      (entry) =>
+        ({
+          id: `restore-custom-action-${entry.id}`,
+          label: `Restore ${entry.name}`,
+          detail: `Short Rest restores up to ${entry.recovery} expended charges.`,
+          charges: {
+            current: entry.current,
+            total: entry.total
+          },
+          apply: (currentCharacter: Character) =>
+            restoreCustomActionChargesForRest(currentCharacter, entry.id, "short")
+        }) satisfies RestOption
+    ),
     ...(hasWarlockPactMagic && spellSlotTotal > 0
       ? [
           {

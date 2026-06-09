@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { SportShoe } from "lucide-react";
+import { Pencil, SportShoe } from "lucide-react";
 import { useRenderProfiler } from "../../../../../../lib/useRenderProfiler";
 import type { Character } from "../../../../../../types";
 import type { GameplayActionDefinition } from "../../../../../../pages/CharactersPage/combatActions";
@@ -15,8 +15,10 @@ type ActionsGridProps = {
   character: Character;
   combatActions: GameplayActionDefinition[];
   isCommonActionsOpen: boolean;
+  isCustomActionsOpen: boolean;
   roundTracker: RoundTrackerAvailability;
   onCommonActionsOpen: () => void;
+  onCustomActionsOpen: () => void;
   onActionSelect: (actionKey: string) => void;
 };
 
@@ -24,8 +26,10 @@ function ActionsGrid({
   character,
   combatActions,
   isCommonActionsOpen,
+  isCustomActionsOpen,
   roundTracker,
   onCommonActionsOpen,
+  onCustomActionsOpen,
   onActionSelect
 }: ActionsGridProps) {
   useRenderProfiler("ActionsGrid", {
@@ -37,18 +41,32 @@ function ActionsGrid({
     <section className={clsx(widgetShellStyles.widgetCard, styles.root)}>
       <header className={widgetShellStyles.widgetHeader}>
         <p className={widgetShellStyles.widgetTitle}>Actions</p>
-        <button
-          type="button"
-          className={clsx(
-            shared.editButton,
-            styles.commonActionsButton,
-            isCommonActionsOpen && styles.commonActionsButtonActive
-          )}
-          onClick={onCommonActionsOpen}
-        >
-          <SportShoe size={16} />
-          Common Actions
-        </button>
+        <div className={styles.headerActions}>
+          <button
+            type="button"
+            className={clsx(
+              shared.editButton,
+              styles.commonActionsButton,
+              isCommonActionsOpen && styles.commonActionsButtonActive
+            )}
+            onClick={onCommonActionsOpen}
+          >
+            <SportShoe size={16} />
+            Common Actions
+          </button>
+          <button
+            type="button"
+            className={clsx(
+              shared.editButton,
+              styles.commonActionsButton,
+              isCustomActionsOpen && styles.commonActionsButtonActive
+            )}
+            onClick={onCustomActionsOpen}
+          >
+            <Pencil size={16} />
+            Edit
+          </button>
+        </div>
       </header>
       {combatActions.length === 0 ? (
         <p className={shared.emptyText}>No actions available. Equip a weapon to roll attacks.</p>

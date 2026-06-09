@@ -299,6 +299,7 @@ import { getInventoryTagPillProps } from "../../../EquipmentForm/inventoryTagPil
 import { getSpellActionPathStates, getSpellActionPathWarning } from "../../../spellActionPaths";
 import SneakAttackActionBody, { type SneakAttackActionSelection } from "./SneakAttackModal";
 import GameplayActionDrawer from "./GameplayActionDrawer";
+import CustomActionDrawerDetails from "./CustomActionDrawerDetails";
 import ActionDiceConfirmFooter from "./ActionDiceConfirmFooter";
 import { ArcaneWardActionFooter } from "./ArcaneWardActionFooter";
 import { BardicInspirationActionFooter } from "./BardicInspirationActionFooter";
@@ -389,6 +390,8 @@ import {
   type SpellfireBurstTarget
 } from "./SpellfireBurstAction";
 import CommonActionsModal from "./CommonActionsModal";
+import CustomActionEditorModal from "./CustomActionEditorModal";
+import CustomActionsModal from "./CustomActionsModal";
 import { getCommonActionPathStates } from "./commonActionEconomy";
 import { getMonkHandOfHealingActionPathStates } from "./monkHandOfHealingActionUtils";
 import ArcaneRecoveryActionBody from "./forms/ArcaneRecoveryActionBody";
@@ -426,6 +429,7 @@ import {
 import { useActionsWidgetExecution } from "./useActionsWidgetExecution";
 import { useActionsWidgetActions } from "./useActionsWidgetActions";
 import { useActionResourceOptionModel } from "./useActionResourceOptionModel";
+import { useCustomActionsEditor } from "./useCustomActionsEditor";
 import { useSelectedActionModel } from "./useSelectedActionModel";
 import { useSelectedWeaponActionModel } from "./useSelectedWeaponActionModel";
 import ActionsGrid from "./ActionsGrid";
@@ -458,6 +462,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const {
     isCommonActionsOpen,
     setIsCommonActionsOpen,
+    isCustomActionsOpen,
+    setIsCustomActionsOpen,
     selectedActionKey,
     setSelectedActionKey,
     selectedActionOptionKeys,
@@ -618,6 +624,11 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectableActions,
     customWeaponEntriesById
   } = useActionsWidgetActions(character);
+  const customActionsEditor = useCustomActionsEditor({
+    character,
+    onEditorClose: () => setIsCustomActionsOpen(false),
+    onPersistCharacter
+  });
   const {
     spellcastingState,
     beguilingMagicUsesTotal,
@@ -1734,6 +1745,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         : null;
   const hasOverlayOpen =
     isCommonActionsOpen ||
+    isCustomActionsOpen ||
+    customActionsEditor.editorDraft !== null ||
     selectedAction !== null ||
     isDiceRollerSettingsOpen ||
     isFixedSpellDrawerOpen ||
@@ -1854,6 +1867,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     isClairvoyantCombatantSelected,
     isColossusSlayerSelected,
     isCommonActionsOpen,
+    isCustomActionsOpen,
     isCrownOfSpellfireSelected,
     isDiceRollerSettingsOpen,
     isDreadfulStrikeSelected,
@@ -1960,6 +1974,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setIsClairvoyantCombatantSelected,
     setIsColossusSlayerSelected,
     setIsCommonActionsOpen,
+    setIsCustomActionsOpen,
     setIsDiceRollerSettingsOpen,
     setIsDreadfulStrikeSelected,
     setIsEmpoweredStrikesSelected,
@@ -2344,8 +2359,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         character={character}
         combatActions={combatActions}
         isCommonActionsOpen={isCommonActionsOpen}
+        isCustomActionsOpen={isCustomActionsOpen}
         roundTracker={roundTracker}
         onCommonActionsOpen={() => setIsCommonActionsOpen(true)}
+        onCustomActionsOpen={() => setIsCustomActionsOpen(true)}
         onActionSelect={setSelectedActionKey}
       />
 
@@ -2358,6 +2375,24 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           onActionSelect={(action) => setSelectedActionKey(action.key)}
           onClose={() => setIsCommonActionsOpen(false)}
         />
+      ) : null}
+
+      {isCustomActionsOpen ? (
+        <CustomActionsModal
+          actions={customActionsEditor.customActions}
+          isEditorOpen={customActionsEditor.editorDraft !== null}
+          onAdd={customActionsEditor.openCreator}
+          onEdit={customActionsEditor.openEditor}
+          onDelete={customActionsEditor.deleteAction}
+          onClose={() => {
+            customActionsEditor.closeEditor();
+            setIsCustomActionsOpen(false);
+          }}
+        />
+      ) : null}
+
+      {customActionsEditor.editorProps ? (
+        <CustomActionEditorModal {...customActionsEditor.editorProps} />
       ) : null}
 
       {selectedAction ? (
@@ -2397,6 +2432,14 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
             selectedAction.kind === "weapon" ? undefined : selectedAction.drawer.factsSectionTitle
           }
           headerTags={selectedActionHeaderTags}
+          detailsContent={
+            selectedAction.kind === "feature" ? (
+              <CustomActionDrawerDetails
+                character={character}
+                actionKey={selectedAction.action.key}
+              />
+            ) : null
+          }
           warning={selectedDrawerWarning}
           blockedReason={
             selectedAction.kind === "feature"

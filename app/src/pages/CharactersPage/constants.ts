@@ -148,6 +148,7 @@ export function createEmptyCharacter(): CharacterDraft {
     inventoryItems: [],
     customEquipment: [],
     companions: [],
+    customActions: [],
     cantripIds: [],
     spellbookSpellIds: [],
     preparedSpellIds: [],

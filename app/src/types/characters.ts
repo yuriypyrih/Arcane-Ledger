@@ -445,6 +445,30 @@ export type CharacterCompanion = {
   inheritedCreatureEntryModified?: boolean;
 };
 
+export type CharacterCustomActionEconomy =
+  | "action"
+  | "bonus_action"
+  | "reaction"
+  | "long_action"
+  | "non_action";
+
+export type CharacterCustomActionCharges = {
+  current: number;
+  max: number;
+  shortRestRecovery: number;
+  longRestRecovery: number;
+};
+
+export type CharacterCustomAction = {
+  id: string;
+  name: string;
+  description: string;
+  economy: CharacterCustomActionEconomy;
+  duration?: CharacterStatusDuration;
+  customEffects?: CharacterCustomTraitEffect[];
+  charges?: CharacterCustomActionCharges;
+};
+
 export type Alignment =
   | "Lawful Good"
   | "Neutral Good"
@@ -500,6 +524,7 @@ export type Character = {
   inventoryItems: CharacterInventoryItem[];
   customEquipment: CharacterCustomEquipment[];
   companions: CharacterCompanion[];
+  customActions: CharacterCustomAction[];
   cantripIds?: string[];
   spellbookSpellIds?: string[];
   preparedSpellIds?: string[];
@@ -558,6 +583,7 @@ export type CharacterDraft = {
   inventoryItems: CharacterInventoryItem[];
   customEquipment: CharacterCustomEquipment[];
   companions: CharacterCompanion[];
+  customActions: CharacterCustomAction[];
   cantripIds?: string[];
   spellbookSpellIds?: string[];
   preparedSpellIds?: string[];

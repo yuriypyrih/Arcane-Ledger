@@ -244,6 +244,10 @@ import {
 import { getCharacterRuntime } from "../../../../../../pages/CharactersPage/characterRuntime/characterRuntime";
 import { isCommonActionKey } from "../../../../../../pages/CharactersPage/commonActions";
 import {
+  activateCustomActionForCharacter,
+  isCustomActionKey
+} from "../../../../../../pages/CharactersPage/customActions";
+import {
   ACTION_CATEGORY,
   ECONOMY_TYPE,
   getRoundTrackerResourceForEconomyType,
@@ -481,6 +485,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     isClairvoyantCombatantSelected,
     isColossusSlayerSelected,
     isCommonActionsOpen,
+    isCustomActionsOpen,
     isCrownOfSpellfireSelected,
     isDiceRollerSettingsOpen,
     isDreadfulStrikeSelected,
@@ -587,6 +592,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     setIsClairvoyantCombatantSelected,
     setIsColossusSlayerSelected,
     setIsCommonActionsOpen,
+    setIsCustomActionsOpen,
     setIsDiceRollerSettingsOpen,
     setIsDreadfulStrikeSelected,
     setIsEmpoweredStrikesSelected,
@@ -1057,6 +1063,11 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
 
       if (isCommonActionsOpen) {
         setIsCommonActionsOpen(false);
+        return;
+      }
+
+      if (isCustomActionsOpen) {
+        setIsCustomActionsOpen(false);
       }
     }
 
@@ -1065,6 +1076,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
   }, [
     hasOverlayOpen,
     isCommonActionsOpen,
+    isCustomActionsOpen,
     isDiceRollerSettingsOpen,
     isFixedSpellDrawerOpen,
     selectedActionKey,
@@ -1083,9 +1095,12 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
             ...action,
             economyType: economyTypeOverride
           };
+    const applyActionForCharacter = isCustomActionKey(action.key)
+      ? activateCustomActionForCharacter
+      : activateFeatureActionForCharacter;
 
     onPersistCharacter((currentCharacter) => {
-      const nextCharacter = activateFeatureActionForCharacter(currentCharacter, action.key);
+      const nextCharacter = applyActionForCharacter(currentCharacter, action.key);
       const roundTrackerResource = getRoundTrackerResourceForEconomyType(nextAction.economyType);
       const preparedCharacter = prepareCharacterForResourceConsumption(
         currentCharacter,
@@ -1094,7 +1109,12 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
       const preparedNextCharacter =
         preparedCharacter === currentCharacter
           ? nextCharacter
-          : activateFeatureActionForCharacter(preparedCharacter, action.key);
+          : applyActionForCharacter(preparedCharacter, action.key);
+
+      if (isCustomActionKey(action.key) && preparedNextCharacter === preparedCharacter) {
+        return currentCharacter;
+      }
+
       const characterToUpdate =
         preparedNextCharacter === preparedCharacter && nextAction.consumesEconomyOnActivate
           ? preparedCharacter

@@ -6,6 +6,7 @@ import type {
   CharacterArmorClassFormulaSelection,
   CharacterBackgroundChoices,
   CharacterCustomBackgroundConfig,
+  CharacterCustomAction,
   CharacterCompanion,
   CharacterCurrencies,
   CharacterClassRulesConfig,
@@ -92,6 +93,7 @@ export type PortableCharacterSheetSpellcasting = {
 export type PortableCharacterSheetFeatures = {
   speciesFeatureState?: CharacterSpeciesFeatureState;
   classFeatureState?: CharacterClassFeatureState;
+  customActions?: CharacterCustomAction[];
   feats?: CharacterFeatEntry[];
 };
 

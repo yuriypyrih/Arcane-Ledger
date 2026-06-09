@@ -22,6 +22,7 @@ import type {
 
 type ActionsWidgetUiState = {
   isCommonActionsOpen: boolean;
+  isCustomActionsOpen: boolean;
   selectedActionKey: string | null;
   selectedActionOptionKeys: string[];
   selectedChannelDivinityOptionKey: string | null;
@@ -120,6 +121,7 @@ function createInitialState(
 ): ActionsWidgetUiState {
   return {
     isCommonActionsOpen: false,
+    isCustomActionsOpen: false,
     selectedActionKey: null,
     selectedActionOptionKeys: [],
     selectedChannelDivinityOptionKey: null,
@@ -368,6 +370,7 @@ export function useActionsWidgetUiState(
   const setters = useMemo(
     () => ({
       setIsCommonActionsOpen: createFieldSetter(dispatch, "isCommonActionsOpen"),
+      setIsCustomActionsOpen: createFieldSetter(dispatch, "isCustomActionsOpen"),
       setSelectedActionKey: createFieldSetter(dispatch, "selectedActionKey"),
       setSelectedActionOptionKeys: createFieldSetter(dispatch, "selectedActionOptionKeys"),
       setSelectedChannelDivinityOptionKey: createFieldSetter(

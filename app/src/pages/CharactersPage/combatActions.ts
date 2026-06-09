@@ -25,6 +25,7 @@ import {
   type FeatureActionResource,
   type FeatureActionTone
 } from "./classFeatures";
+import { getCustomActionCardsForCharacter } from "./customActions";
 import { getWeaponActionsForCharacter, type WeaponAction } from "./gameplay";
 import { getWeaponActionDrawerDescriptionAdditions } from "./weaponActionDrawerDescriptions";
 
@@ -529,9 +530,10 @@ export function getCombatActionsForCharacter(character: Character): GameplayActi
   }
 
   const actions = measureCharacterRuntime("character-sheet:combat-actions", () => {
-    const featureActions = getFeatureActionsForCharacter(character).map((action) =>
-      createFeatureActionDefinition(character, action)
-    );
+    const featureActions = [
+      ...getCustomActionCardsForCharacter(character),
+      ...getFeatureActionsForCharacter(character)
+    ].map((action) => createFeatureActionDefinition(character, action));
     const weaponActions = getWeaponActionsForCharacter(character).map((action) =>
       createWeaponActionDefinition(character, action)
     );

@@ -2,6 +2,13 @@
   grid-column: 1 / -1;
 }
 
+.headerActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
 .commonActionsButton {
   gap: 0.45rem;
 }

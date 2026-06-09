@@ -42,6 +42,7 @@ type GameplayActionDrawerProps = {
   facts?: FeatureActionFact[];
   factsSectionTitle?: string | null;
   headerTags?: FeatureActionHeaderTag[];
+  detailsContent?: ReactNode;
   warning?: string | null;
   blockedReason?: string | null;
   footer?: ReactNode;
@@ -63,6 +64,7 @@ function GameplayActionDrawer({
   facts = [],
   factsSectionTitle = "Details",
   headerTags = [],
+  detailsContent = null,
   warning = null,
   blockedReason = null,
   footer,
@@ -183,6 +185,8 @@ function GameplayActionDrawer({
                 ))}
               </div>
             ) : null}
+
+            {detailsContent}
 
             <FeatureActionFacts title={title} facts={facts} sectionTitle={factsSectionTitle} />
 

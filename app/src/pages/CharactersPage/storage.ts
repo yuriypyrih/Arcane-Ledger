@@ -33,6 +33,7 @@ import {
 import { getMagicTemporaryHitPointsFeatureForCharacter } from "./classFeatures/magicTemporaryHitPoints";
 import { normalizeLevelAndXp } from "./experience";
 import { normalizeCustomEquipmentEntries } from "./customEquipment";
+import { normalizeCharacterCustomActions } from "./customActions";
 import { normalizeCharacterCompanions } from "./companions";
 import { convertLegacyEquipmentToInventoryItems } from "./legacyEquipmentItems";
 import { normalizeCharacterFeats } from "./feats";
@@ -240,6 +241,7 @@ export function normalizeCharacter(value: unknown): Character | null {
     deathSaves?: unknown;
     inventoryItems?: unknown;
     customEquipment?: unknown;
+    customActions?: unknown;
     companions?: unknown;
     classFeatureState?: unknown;
     classRules?: unknown;
@@ -317,6 +319,7 @@ export function normalizeCharacter(value: unknown): Character | null {
   const rawEquipment = Array.isArray(record.equipment) ? record.equipment : defaults.equipment;
   const normalizedEquipment = normalizeCharacterEquipmentSelections(rawEquipment);
   const normalizedCustomEquipment = normalizeCustomEquipmentEntries(record.customEquipment);
+  const normalizedCustomActions = normalizeCharacterCustomActions(record.customActions);
   const normalizedInventoryItems = normalizeCharacterInventoryItems([
     ...normalizeCharacterInventoryItems(record.inventoryItems),
     ...convertLegacyEquipmentToInventoryItems(normalizedEquipment, normalizedCustomEquipment)
@@ -632,6 +635,7 @@ export function normalizeCharacter(value: unknown): Character | null {
     inventoryItems: normalizedArmorWearState.inventoryItems,
     customEquipment: [],
     companions: normalizedCompanions,
+    customActions: normalizedCustomActions,
     cantripIds: normalizedCantripIds,
     spellbookSpellIds: normalizedSpellbookSpellIds,
     preparedSpellIds: normalizedPreparedSpellIds,
