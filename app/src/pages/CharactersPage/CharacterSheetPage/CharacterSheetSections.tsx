@@ -95,6 +95,11 @@ export const GameplaySection = memo(function GameplaySection({
   onQueueHitPointCharacter
 }: GameplaySectionProps) {
   const character = useAppSelector(selectGameplayCharacter);
+  const partyMembership = useAppSelector((state) => {
+    const remoteId = character?.storageMetadata?.sync?.remoteId;
+
+    return remoteId ? state.dmTools.membershipsByCharacterId[remoteId] : undefined;
+  });
   const persistGameplayCharacter = useDefaultPersistOptions(
     onPersistCharacter,
     gameplayPersistOptions
@@ -106,6 +111,7 @@ export const GameplaySection = memo(function GameplaySection({
       className={className}
       onPersistCharacter={persistGameplayCharacter}
       onQueueHitPointCharacter={onQueueHitPointCharacter}
+      partyMembership={partyMembership}
     />
   ) : null;
 });

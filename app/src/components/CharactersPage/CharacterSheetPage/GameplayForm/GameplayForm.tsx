@@ -1,6 +1,9 @@
 import clsx from "clsx";
-import { CircleHelp } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft, CircleCheck, CircleHelp, RefreshCw, Users } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { PartyMembershipRecord } from "../../../../api/partyGroups";
+import { requestImmediateCharacterSync } from "../../../../characterSync/characterSyncRequests";
+import { useAppSelector } from "../../../../store";
 import type { Character } from "../../../../types";
 import { getRestDescriptionInjectionsForCharacter } from "../../../../pages/CharactersPage/classFeatures/restDescriptionInjections";
 import { getHumanResourcefulDescriptionEntriesForCharacter } from "../../../../pages/CharactersPage/species";
@@ -37,24 +40,67 @@ import TraitsConditionsWidget from "./widgets/TraitsConditionsWidget";
 import GameplayGuideModal from "./GameplayGuideModal";
 import HitPointsCluster from "./widgets/HitPointsCluster";
 import type { QueueCharacterSave } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
+import CharacterPartyGroupModal from "../../CharacterList/CharacterPartyGroupModal";
+import characterRowStyles from "../../CharacterRow/CharacterRow.module.css";
+import GameplayPartyPanel from "./GameplayPartyPanel";
+import { createCharacterRosterEntryForPartyModal } from "./partyCharacterRoster";
+import ActionButton from "../../../ActionButton";
+import useGameplayPartyEncounter from "./useGameplayPartyEncounter";
 
 type GameplayFormProps = {
   character: Character;
   className?: string;
   onPersistCharacter: PersistCharacterUpdater;
   onQueueHitPointCharacter: QueueCharacterSave;
+  partyMembership?: PartyMembershipRecord;
 };
 
 function GameplayForm({
   character,
   className,
   onPersistCharacter,
-  onQueueHitPointCharacter
+  onQueueHitPointCharacter,
+  partyMembership
 }: GameplayFormProps) {
   const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [isPartyMode, setIsPartyMode] = useState(false);
+  const [isPartyModalOpen, setIsPartyModalOpen] = useState(false);
   const [isRoundStartFlashActive, setIsRoundStartFlashActive] = useState(false);
+  const isActiveCharacterPendingSave = useAppSelector(
+    (state) =>
+      state.activeCharacterSheet.characterId === character.id && state.activeCharacterSheet.dirty
+  );
   const roundTracker = normalizeRoundTracker(character.roundTracker);
   const previousTurnStartedRef = useRef(roundTracker.turnStarted);
+  const characterSyncStatus = character.storageMetadata?.sync?.syncStatus;
+  const syncBeforePartyEncounterRefresh = useCallback(async () => {
+    if (
+      isActiveCharacterPendingSave ||
+      characterSyncStatus === "dirty" ||
+      characterSyncStatus === "syncing"
+    ) {
+      await requestImmediateCharacterSync();
+    }
+  }, [characterSyncStatus, isActiveCharacterPendingSave]);
+  const partyEncounter = useGameplayPartyEncounter({
+    beforeRefresh: syncBeforePartyEncounterRefresh,
+    isActive: isPartyMode,
+    membership: partyMembership
+  });
+  const isPartyRefreshComplete = partyEncounter.isRefreshCoolingDown;
+  const isPartyRefreshBusy = partyEncounter.isRefreshLoading;
+  const partyRefreshIcon = isPartyRefreshComplete ? (
+    <CircleCheck size={16} aria-hidden="true" />
+  ) : (
+    <RefreshCw size={16} aria-hidden="true" />
+  );
+  const partyRefreshLabel = isPartyRefreshBusy
+    ? "Refreshing encounter"
+    : partyEncounter.refreshLabel;
+  const partyModalCharacter = useMemo(
+    () => createCharacterRosterEntryForPartyModal(character),
+    [character]
+  );
   const restDescriptionInjections = useMemo(
     () => getRestDescriptionInjectionsForCharacter(character),
     [character]
@@ -150,6 +196,15 @@ function GameplayForm({
   ]);
 
   useEffect(() => {
+    if (partyMembership) {
+      return;
+    }
+
+    setIsPartyMode(false);
+    setIsPartyModalOpen(false);
+  }, [partyMembership]);
+
+  useEffect(() => {
     const wasTurnStarted = previousTurnStartedRef.current;
     previousTurnStartedRef.current = roundTracker.turnStarted;
 
@@ -182,19 +237,43 @@ function GameplayForm({
       )}
     >
       <div className={clsx(shared.sectionHeader, styles.gameplaySectionHeader)}>
-        <div className={shared.eyebrowHelpRow}>
-          <span className={clsx(shared.eyebrow, shared.eyebrowInHelpRow)}>Gameplay</span>
-          <button
-            type="button"
-            className={shared.helpButton}
-            onClick={() => setIsGuideOpen(true)}
-            aria-label="Open gameplay guide"
-            title="Open gameplay guide"
-          >
-            <CircleHelp size={16} />
-          </button>
+        <div className={styles.gameplayHeaderIdentity}>
+          <div className={shared.eyebrowHelpRow}>
+            <span className={clsx(shared.eyebrow, shared.eyebrowInHelpRow)}>Gameplay</span>
+            <button
+              type="button"
+              className={shared.helpButton}
+              onClick={() => setIsGuideOpen(true)}
+              aria-label="Open gameplay guide"
+              title="Open gameplay guide"
+            >
+              <CircleHelp size={16} />
+            </button>
+          </div>
+          {partyMembership ? (
+            <button
+              type="button"
+              className={clsx(shared.editButton, styles.partyModeButton)}
+              onClick={() => setIsPartyMode((currentMode) => !currentMode)}
+              aria-label={isPartyMode ? "Return to gameplay" : "View party initiative"}
+              title={isPartyMode ? "Return to gameplay" : "View party initiative"}
+            >
+              {isPartyMode ? (
+                <ArrowLeft size={16} aria-hidden="true" />
+              ) : (
+                <Users size={16} aria-hidden="true" />
+              )}
+              <span>{isPartyMode ? "Back" : "Party"}</span>
+            </button>
+          ) : null}
         </div>
-        <div className={styles.gameplayHeaderControls}>
+        <div
+          className={clsx(
+            styles.gameplayHeaderControls,
+            isPartyMode && styles.gameplayRegionHidden
+          )}
+          aria-hidden={isPartyMode}
+        >
           <CharacterSheetSectionProfiler id="gameplay-header-heroic-inspiration">
             <HeroicInspirationWidget
               character={character}
@@ -252,9 +331,49 @@ function GameplayForm({
             />
           </CharacterSheetSectionProfiler>
         </div>
+        {partyMembership ? (
+          <div
+            className={clsx(
+              styles.gameplayHeaderControls,
+              styles.partyHeaderControls,
+              !isPartyMode && styles.gameplayRegionHidden
+            )}
+            aria-hidden={!isPartyMode}
+          >
+            <button
+              type="button"
+              className={characterRowStyles.partyPill}
+              aria-label={`View ${partyMembership.partyGroupName} party`}
+              title={`View ${partyMembership.partyGroupName} party`}
+              onClick={() => setIsPartyModalOpen(true)}
+            >
+              <span className={characterRowStyles.partyPillText}>
+                In Party: {partyMembership.partyGroupName}
+              </span>
+            </button>
+            <ActionButton
+              actionType={isPartyRefreshComplete ? "SUCCESS" : "INFO"}
+              variant="FILL"
+              fullWidth={false}
+              iconOnly
+              icon={partyRefreshIcon}
+              className={clsx(
+                styles.partyRefreshButton,
+                isPartyRefreshBusy && styles.partyRefreshButtonBusy
+              )}
+              disabled={partyEncounter.isRefreshDisabled}
+              aria-label={partyRefreshLabel}
+              title={partyRefreshLabel}
+              onClick={partyEncounter.refreshEncounter}
+            />
+          </div>
+        ) : null}
       </div>
 
-      <div className={styles.dashboardGrid}>
+      <div
+        className={clsx(styles.dashboardGrid, isPartyMode && styles.gameplayRegionHidden)}
+        aria-hidden={isPartyMode}
+      >
         <CharacterSheetSectionProfiler id="gameplay-hit-points">
           <HitPointsCluster character={character} onQueueCharacterSave={onQueueHitPointCharacter} />
         </CharacterSheetSectionProfiler>
@@ -264,14 +383,34 @@ function GameplayForm({
         </CharacterSheetSectionProfiler>
 
         <CharacterSheetSectionProfiler id="gameplay-traits-conditions">
-          <TraitsConditionsWidget
-            character={character}
-            onPersistCharacter={onPersistCharacter}
-          />
+          <TraitsConditionsWidget character={character} onPersistCharacter={onPersistCharacter} />
         </CharacterSheetSectionProfiler>
       </div>
 
+      {partyMembership ? (
+        <div
+          className={clsx(styles.partyPanel, !isPartyMode && styles.gameplayRegionHidden)}
+          aria-hidden={!isPartyMode}
+        >
+          <GameplayPartyPanel
+            error={partyEncounter.error}
+            inspectedParticipant={partyEncounter.inspectedParticipant}
+            isInitialLoading={partyEncounter.isInitialLoading}
+            onCloseInspection={() => partyEncounter.setInspectedParticipant(null)}
+            onInspectParticipant={partyEncounter.setInspectedParticipant}
+            tracker={partyEncounter.tracker}
+          />
+        </div>
+      ) : null}
+
       {isGuideOpen ? <GameplayGuideModal onClose={() => setIsGuideOpen(false)} /> : null}
+      {isPartyModalOpen && partyMembership ? (
+        <CharacterPartyGroupModal
+          character={partyModalCharacter}
+          membership={partyMembership}
+          onClose={() => setIsPartyModalOpen(false)}
+        />
+      ) : null}
     </article>
   );
 }

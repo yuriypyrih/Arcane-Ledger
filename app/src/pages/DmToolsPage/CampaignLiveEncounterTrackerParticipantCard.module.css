@@ -1,20 +1,41 @@
+.cardNumberedRow {
+  display: grid;
+  align-items: stretch;
+  grid-template-columns: 1.35rem minmax(0, 1fr);
+  gap: 0;
+  min-width: 0;
+}
+
+.cardOrderNumber {
+  align-self: center;
+  justify-self: start;
+  color: var(--color-ink-soft);
+  font-size: 0.8rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.cardNumberedRowActive .cardOrderNumber {
+  color: #2f78ff;
+}
+
 .card {
-  --live-tracker-card-action-size: 2.125rem;
-  --live-tracker-card-drag-width: 2.125rem;
-  --live-tracker-card-portrait-size: 2.75rem;
+  --live-tracker-card-action-size: 1.9rem;
+  --live-tracker-card-drag-width: 1.9rem;
+  --live-tracker-card-portrait-size: 2.42rem;
   display: grid;
   align-items: start;
   grid-template-columns:
     var(--live-tracker-card-portrait-size)
     minmax(0, 1fr)
     var(--live-tracker-card-action-size);
-  gap: calc(var(--space-card-padding-tight) * 0.56);
-  min-height: 76px;
+  gap: 0.48rem;
+  min-height: 64px;
   border: 1px solid rgba(75, 47, 29, 0.14);
-  border-radius: var(--radius-card);
+  border-radius: 7px;
   background: rgba(251, 242, 230, 0.86);
   color: var(--color-ink);
-  padding: var(--space-card-padding-tight);
+  padding: 0.5rem;
   box-shadow: 0 8px 18px rgba(54, 34, 21, 0.04);
   transition:
     border-color 140ms ease,
@@ -28,6 +49,11 @@
     var(--live-tracker-card-portrait-size)
     minmax(0, 1fr)
     var(--live-tracker-card-action-size);
+}
+
+.cardReadOnlyInitiative {
+  align-items: stretch;
+  grid-template-columns: var(--live-tracker-card-portrait-size) minmax(0, 1fr);
 }
 
 .cardActive {
@@ -48,7 +74,7 @@
   width: var(--live-tracker-card-drag-width);
   min-height: 100%;
   border: none;
-  border-radius: var(--radius-control);
+  border-radius: 6px;
   background: rgba(75, 47, 29, 0.09);
   color: var(--color-ink-soft);
   cursor: grab;
@@ -84,7 +110,7 @@
   display: grid;
   align-self: start;
   justify-items: center;
-  gap: 0.36rem;
+  gap: 0.28rem;
   width: var(--live-tracker-card-portrait-size);
   min-width: 0;
 }
@@ -100,7 +126,7 @@ label.portraitControl {
   aspect-ratio: 1;
   overflow: hidden;
   border: 1px solid rgba(75, 47, 29, 0.34);
-  border-radius: var(--radius-control);
+  border-radius: 6px;
   background: linear-gradient(150deg, #6f4629 0%, #3c2518 48%, #160f0d 100%);
   box-shadow:
     0 0 0 1px rgba(255, 246, 226, 0.38),
@@ -135,7 +161,7 @@ label.portraitControl {
 .contentButton {
   display: grid;
   align-content: center;
-  gap: 0.4rem;
+  gap: 0.3rem;
   min-width: 0;
   min-height: 100%;
   border: none;
@@ -155,7 +181,7 @@ label.portraitControl {
   width: var(--live-tracker-card-action-size);
   aspect-ratio: 1;
   border: 1px solid rgba(75, 47, 29, 0.12);
-  border-radius: var(--radius-control);
+  border-radius: 6px;
   background: rgba(255, 255, 255, 0.48);
   color: var(--color-ink-soft);
   cursor: pointer;
@@ -173,7 +199,7 @@ label.portraitControl {
   display: flex;
   align-items: baseline;
   flex-wrap: wrap;
-  gap: 0.34rem;
+  gap: 0.28rem;
   min-width: 0;
 }
 
@@ -184,7 +210,7 @@ label.portraitControl {
 
 .title {
   color: var(--color-ink);
-  font-size: 0.96rem;
+  font-size: 0.9rem;
   font-weight: 800;
   line-height: 1.2;
 }
@@ -192,7 +218,7 @@ label.portraitControl {
 .type,
 .status {
   color: var(--color-ink-soft);
-  font-size: 0.84rem;
+  font-size: 0.78rem;
 }
 
 .vitalsRow {
@@ -200,8 +226,8 @@ label.portraitControl {
   align-items: center;
   color: var(--color-ink-soft);
   flex-wrap: wrap;
-  font-size: 0.84rem;
-  gap: 0.28rem;
+  font-size: 0.78rem;
+  gap: 0.22rem;
   min-width: 0;
 }
 
@@ -236,16 +262,17 @@ label.portraitControl {
 }
 
 .hitPointBar {
+  block-size: 8px;
   flex: 1;
   min-width: 0;
 }
 
 @media (max-width: 599px) {
   .card {
-    --live-tracker-card-action-size: 2rem;
-    --live-tracker-card-drag-width: 2rem;
-    --live-tracker-card-portrait-size: 2.5rem;
-    gap: 0.48rem;
+    --live-tracker-card-action-size: 1.8rem;
+    --live-tracker-card-drag-width: 1.8rem;
+    --live-tracker-card-portrait-size: 2.32rem;
+    gap: 0.42rem;
   }
 
   .cardInInitiative {
@@ -254,5 +281,9 @@ label.portraitControl {
       var(--live-tracker-card-portrait-size)
       minmax(0, 1fr)
       var(--live-tracker-card-action-size);
+  }
+
+  .cardReadOnlyInitiative {
+    grid-template-columns: var(--live-tracker-card-portrait-size) minmax(0, 1fr);
   }
 }

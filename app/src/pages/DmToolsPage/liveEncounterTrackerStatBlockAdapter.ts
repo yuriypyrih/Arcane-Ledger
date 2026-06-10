@@ -237,10 +237,7 @@ export function createEncounterStatBlockRendererModel(
     challenge_rating: "Character",
     actions: null,
     traits: null,
-    document: {
-      key: "arcane-ledger",
-      name: "Arcane Ledger"
-    },
+    document: null,
     illustration: null
   };
 

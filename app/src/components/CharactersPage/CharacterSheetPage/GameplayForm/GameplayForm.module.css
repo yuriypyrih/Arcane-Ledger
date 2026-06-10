@@ -47,6 +47,19 @@
   gap: 0.75rem;
 }
 
+.gameplayHeaderIdentity {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.partyModeButton {
+  min-height: 34px;
+  padding: 0 0.78rem;
+}
+
 .gameplayHeaderControls {
   display: flex;
   align-items: center;
@@ -55,6 +68,80 @@
   justify-content: flex-end;
   margin-left: auto;
   min-width: 0;
+}
+
+.partyHeaderControls {
+  min-height: 34px;
+}
+
+.partyRefreshButton.partyRefreshButton {
+  min-height: 38px;
+  min-width: 38px;
+  border-radius: var(--radius-control);
+}
+
+.partyRefreshButtonBusy svg {
+  animation: partyRefreshSpin 850ms linear infinite;
+}
+
+.gameplayRegionHidden {
+  display: none !important;
+}
+
+.partyPanel {
+  block-size: 600px;
+  min-width: 0;
+}
+
+.partyPanelContent {
+  display: grid;
+  gap: 0.72rem;
+  block-size: 100%;
+  min-height: 0;
+  min-block-size: 0;
+  min-width: 0;
+}
+
+.partyInitiativeList.partyInitiativeList {
+  align-content: stretch;
+  block-size: 100%;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
+  min-block-size: 0;
+  overflow: hidden;
+}
+
+.partyInitiativeParticipantList.partyInitiativeParticipantList {
+  align-content: start;
+  align-items: start;
+  min-height: 0;
+  min-block-size: 0;
+  overflow-y: auto;
+  padding-right: 0.18rem;
+}
+
+.partyNoEncounterState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 0.72rem;
+  block-size: 100%;
+  min-block-size: 0;
+  padding: 1rem;
+  font-size: 1.08rem;
+  text-align: center;
+}
+
+.partyNoEncounterIcon {
+  block-size: 48px;
+  inline-size: 48px;
+}
+
+@keyframes partyRefreshSpin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes gameplayTurnStartFlash {

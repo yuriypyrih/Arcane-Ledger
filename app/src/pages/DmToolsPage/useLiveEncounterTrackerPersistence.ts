@@ -18,6 +18,11 @@ import {
 
 const liveEncounterTrackerSaveDebounceMs = 20_000;
 
+type LiveEncounterTrackerSaveResult = {
+  hasPendingChanges: boolean;
+  savedTracker: CampaignLiveEncounterTrackerRecord | null;
+};
+
 type UseLiveEncounterTrackerPersistenceOptions = {
   campaignId: string;
   onSavedTracker: (
@@ -33,7 +38,7 @@ export function useLiveEncounterTrackerPersistence({
   const dispatch = useAppDispatch();
   const saveTimeoutRef = useRef<number | null>(null);
   const pendingTrackerRef = useRef<CampaignLiveEncounterTrackerRecord | null>(null);
-  const isSavingRef = useRef(false);
+  const savePromiseRef = useRef<Promise<LiveEncounterTrackerSaveResult> | null>(null);
 
   const clearSaveTimeout = useCallback(() => {
     if (saveTimeoutRef.current === null) {
@@ -44,84 +49,124 @@ export function useLiveEncounterTrackerPersistence({
     saveTimeoutRef.current = null;
   }, []);
 
-  const flushPendingSave = useCallback(async () => {
-    clearSaveTimeout();
+  const flushPendingSave =
+    useCallback(async (): Promise<CampaignLiveEncounterTrackerRecord | null> => {
+      clearSaveTimeout();
 
-    if (isSavingRef.current) {
-      return;
-    }
+      let latestSavedTracker: CampaignLiveEncounterTrackerRecord | null = null;
 
-    const pendingTracker = pendingTrackerRef.current;
+      while (true) {
+        if (savePromiseRef.current) {
+          const result = await savePromiseRef.current;
 
-    if (!pendingTracker) {
-      return;
-    }
+          if (result.savedTracker) {
+            latestSavedTracker = result.savedTracker;
+          }
 
-    pendingTrackerRef.current = null;
-    isSavingRef.current = true;
-    dispatch(
-      setLiveEncounterTrackerSaveStatus({
-        campaignId,
-        status: "saving"
-      })
-    );
+          clearSaveTimeout();
 
-    try {
-      const campaignPatch = await updateCampaignLiveEncounterTracker(
-        campaignId,
-        toLiveEncounterTrackerUpdateInput(pendingTracker),
-        { suppressFailureToast: true }
-      );
-      const savedTracker = campaignPatch.patch.liveEncounterTracker;
+          if (!result.hasPendingChanges || !pendingTrackerRef.current) {
+            return latestSavedTracker;
+          }
 
-      dispatch(patchSelectedCampaign(campaignPatch));
+          continue;
+        }
 
-      if (savedTracker?.status.state === "valid") {
-        const hasPendingChanges = Boolean(pendingTrackerRef.current);
+        const pendingTracker = pendingTrackerRef.current;
 
-        if (pendingTrackerRef.current) {
-          pendingTrackerRef.current = withLiveEncounterTrackerRevision(
-            pendingTrackerRef.current,
-            savedTracker
+        if (!pendingTracker) {
+          return latestSavedTracker;
+        }
+
+        const savePromise = (async (): Promise<LiveEncounterTrackerSaveResult> => {
+          pendingTrackerRef.current = null;
+          dispatch(
+            setLiveEncounterTrackerSaveStatus({
+              campaignId,
+              status: "saving"
+            })
           );
+
+          try {
+            const campaignPatch = await updateCampaignLiveEncounterTracker(
+              campaignId,
+              toLiveEncounterTrackerUpdateInput(pendingTracker),
+              { suppressFailureToast: true }
+            );
+            const savedTracker = campaignPatch.patch.liveEncounterTracker;
+
+            dispatch(patchSelectedCampaign(campaignPatch));
+
+            if (savedTracker?.status.state === "valid") {
+              const hasPendingChanges = Boolean(pendingTrackerRef.current);
+
+              if (pendingTrackerRef.current) {
+                pendingTrackerRef.current = withLiveEncounterTrackerRevision(
+                  pendingTrackerRef.current,
+                  savedTracker
+                );
+              }
+
+              onSavedTracker(savedTracker, { hasPendingChanges });
+
+              dispatch(
+                setLiveEncounterTrackerSaveStatus({
+                  campaignId,
+                  status: hasPendingChanges ? "dirty" : "synced"
+                })
+              );
+
+              if (hasPendingChanges) {
+                saveTimeoutRef.current = window.setTimeout(() => {
+                  saveTimeoutRef.current = null;
+                  void flushPendingSave();
+                }, liveEncounterTrackerSaveDebounceMs);
+              }
+
+              return { hasPendingChanges, savedTracker };
+            }
+
+            dispatch(
+              setLiveEncounterTrackerSaveStatus({
+                campaignId,
+                status: "synced"
+              })
+            );
+
+            return { hasPendingChanges: false, savedTracker: null };
+          } catch (saveError) {
+            pendingTrackerRef.current = pendingTracker;
+            dispatch(
+              setLiveEncounterTrackerSaveStatus({
+                campaignId,
+                error: getDmToolsApiErrorMessage(saveError, "Unable to save encounter tracker."),
+                status: "error"
+              })
+            );
+
+            return { hasPendingChanges: false, savedTracker: null };
+          }
+        })();
+
+        savePromiseRef.current = savePromise;
+
+        try {
+          const result = await savePromise;
+
+          if (result.savedTracker) {
+            latestSavedTracker = result.savedTracker;
+          }
+
+          if (!result.hasPendingChanges || !pendingTrackerRef.current) {
+            return latestSavedTracker;
+          }
+        } finally {
+          if (savePromiseRef.current === savePromise) {
+            savePromiseRef.current = null;
+          }
         }
-
-        onSavedTracker(savedTracker, { hasPendingChanges });
-
-        dispatch(
-          setLiveEncounterTrackerSaveStatus({
-            campaignId,
-            status: hasPendingChanges ? "dirty" : "synced"
-          })
-        );
-
-        if (hasPendingChanges) {
-          saveTimeoutRef.current = window.setTimeout(() => {
-            saveTimeoutRef.current = null;
-            void flushPendingSave();
-          }, liveEncounterTrackerSaveDebounceMs);
-        }
-      } else {
-        dispatch(
-          setLiveEncounterTrackerSaveStatus({
-            campaignId,
-            status: "synced"
-          })
-        );
       }
-    } catch (saveError) {
-      pendingTrackerRef.current = pendingTracker;
-      dispatch(
-        setLiveEncounterTrackerSaveStatus({
-          campaignId,
-          error: getDmToolsApiErrorMessage(saveError, "Unable to save encounter tracker."),
-          status: "error"
-        })
-      );
-    } finally {
-      isSavingRef.current = false;
-    }
-  }, [campaignId, clearSaveTimeout, dispatch, onSavedTracker]);
+    }, [campaignId, clearSaveTimeout, dispatch, onSavedTracker]);
 
   const queueSave = useCallback(
     (tracker: CampaignLiveEncounterTrackerRecord) => {

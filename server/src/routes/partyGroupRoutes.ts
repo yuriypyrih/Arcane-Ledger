@@ -3,6 +3,7 @@ import {
   createPartyGroup,
   deletePartyGroup,
   getPartyGroup,
+  getPartyGroupLiveEncounter,
   getPartyGroupMemberView,
   joinPartyGroupByInvite,
   leavePartyGroupMembership,
@@ -23,6 +24,7 @@ partyGroupRoutes.get("/my-memberships", requireAuth, listMyPartyMemberships);
 partyGroupRoutes.delete("/:partyGroupId", requireAuth, deletePartyGroup);
 partyGroupRoutes.patch("/:partyGroupId", requireAuth, updatePartyGroup);
 partyGroupRoutes.get("/:partyGroupId/member-view", requireAuth, getPartyGroupMemberView);
+partyGroupRoutes.get("/:partyGroupId/live-encounter", requireAuth, getPartyGroupLiveEncounter);
 partyGroupRoutes.delete(
   "/:partyGroupId/memberships/:characterSheetId",
   requireAuth,

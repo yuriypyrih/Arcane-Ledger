@@ -1,3 +1,4 @@
+import type { CampaignLiveEncounterTrackerRecord } from "./campaigns";
 import type { CharacterAvatarMetadata, PortableCharacterSheetSummary } from "../types";
 import { apiDelete, apiGet, apiPatch, apiPost, type ApiRequestOptions } from "./client";
 
@@ -26,12 +27,18 @@ export type PartyGroupMemberRecord = {
   updatedAt: string | null;
 };
 
+export type PartyGroupOwnerRecord = {
+  id: string;
+  nickname: string;
+};
+
 export type PartyGroupDetailRecord = PartyGroupRecord & {
   adminUserIds: string[];
   inviteToken: string;
   inviteUrl: string;
   characterIds: string[];
   maxMembers: number;
+  owner: PartyGroupOwnerRecord;
   members: PartyGroupMemberRecord[];
 };
 
@@ -66,6 +73,11 @@ export type PartyMembershipEnvelope = {
   memberships: PartyMembershipRecord[];
 };
 
+export type PartyGroupLiveEncounterEnvelope = {
+  partyGroupId: string;
+  liveEncounterTracker: CampaignLiveEncounterTrackerRecord | null;
+};
+
 export type PartyGroupLeaveEnvelope = {
   partyGroupId: string;
   characterId: string;
@@ -85,6 +97,13 @@ export function getPartyGroup(partyGroupId: string, options?: ApiRequestOptions)
 
 export function getPartyGroupMemberView(partyGroupId: string, options?: ApiRequestOptions) {
   return apiGet<PartyGroupDetailEnvelope>(`/party-groups/${partyGroupId}/member-view`, options);
+}
+
+export function getPartyGroupLiveEncounter(partyGroupId: string, options?: ApiRequestOptions) {
+  return apiGet<PartyGroupLiveEncounterEnvelope>(
+    `/party-groups/${partyGroupId}/live-encounter`,
+    options
+  );
 }
 
 export function updatePartyGroup(partyGroupId: string, name: string, options?: ApiRequestOptions) {

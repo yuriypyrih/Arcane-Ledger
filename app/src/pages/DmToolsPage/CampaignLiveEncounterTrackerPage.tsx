@@ -1,5 +1,5 @@
-import { AlertTriangle, ScrollText, Swords, X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { AlertTriangle, CircleCheck, RefreshCw, ScrollText, Swords, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   getCampaign,
@@ -17,6 +17,7 @@ import {
   useAppDispatch,
   useAppSelector
 } from "../../store";
+import ActionButton from "../../components/ActionButton";
 import CampaignLiveEncounterTrackerBoard from "./CampaignLiveEncounterTrackerBoard";
 import CampaignLiveEncounterTrackerInspectionDrawer from "./CampaignLiveEncounterTrackerInspectionDrawer";
 import CampaignLiveEncounterRoundTracker from "./CampaignLiveEncounterRoundTracker";
@@ -31,6 +32,8 @@ import {
   withLiveEncounterTrackerRevision
 } from "./liveEncounterTrackerUtils";
 import { useLiveEncounterTrackerPersistence } from "./useLiveEncounterTrackerPersistence";
+
+const trackerRefreshCooldownMs = 5_000;
 
 function CampaignLiveEncounterTrackerPage() {
   const { campaignId = "" } = useParams();
@@ -50,13 +53,33 @@ function CampaignLiveEncounterTrackerPage() {
   const saveError = useAppSelector(
     (state) => state.dmTools.liveEncounterTrackerSaveErrorByCampaignId[campaignId] ?? null
   );
-  const [draftTracker, setDraftTracker] = useState<CampaignLiveEncounterTrackerRecord | null>(
-    null
-  );
+  const [draftTracker, setDraftTracker] = useState<CampaignLiveEncounterTrackerRecord | null>(null);
   const [inspectedParticipant, setInspectedParticipant] =
     useState<CampaignLiveEncounterTrackerParticipantRecord | null>(null);
   const [isRemovingTracker, setIsRemovingTracker] = useState(false);
+  const [isRefreshingTracker, setIsRefreshingTracker] = useState(false);
+  const [isTrackerRefreshCoolingDown, setIsTrackerRefreshCoolingDown] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const trackerRefreshCooldownRef = useRef<number | null>(null);
+
+  const clearTrackerRefreshCooldown = useCallback(() => {
+    if (trackerRefreshCooldownRef.current === null) {
+      return;
+    }
+
+    window.clearTimeout(trackerRefreshCooldownRef.current);
+    trackerRefreshCooldownRef.current = null;
+  }, []);
+
+  const startTrackerRefreshCooldown = useCallback(() => {
+    clearTrackerRefreshCooldown();
+    setIsTrackerRefreshCoolingDown(true);
+
+    trackerRefreshCooldownRef.current = window.setTimeout(() => {
+      trackerRefreshCooldownRef.current = null;
+      setIsTrackerRefreshCoolingDown(false);
+    }, trackerRefreshCooldownMs);
+  }, [clearTrackerRefreshCooldown]);
 
   useEffect(() => {
     let didCancel = false;
@@ -92,10 +115,7 @@ function CampaignLiveEncounterTrackerPage() {
   }, [authStatus, campaignId, dispatch]);
 
   const handleSavedTracker = useCallback(
-    (
-      savedTracker: CampaignLiveEncounterTrackerRecord,
-      options: { hasPendingChanges: boolean }
-    ) => {
+    (savedTracker: CampaignLiveEncounterTrackerRecord, options: { hasPendingChanges: boolean }) => {
       const normalizedSavedTracker = normalizeLiveEncounterTracker(savedTracker);
 
       setDraftTracker((currentTracker) => {
@@ -109,7 +129,7 @@ function CampaignLiveEncounterTrackerPage() {
     []
   );
 
-  const { queueSave } = useLiveEncounterTrackerPersistence({
+  const { flushPendingSave, queueSave } = useLiveEncounterTrackerPersistence({
     campaignId,
     onSavedTracker: handleSavedTracker
   });
@@ -123,6 +143,10 @@ function CampaignLiveEncounterTrackerPage() {
   );
   const tracker = draftTracker ?? serverTracker;
   const isTrackerValid = tracker?.status.state === "valid";
+
+  useEffect(() => {
+    return () => clearTrackerRefreshCooldown();
+  }, [clearTrackerRefreshCooldown]);
 
   useEffect(() => {
     if (saveStatus === "dirty" || saveStatus === "saving") {
@@ -161,11 +185,54 @@ function CampaignLiveEncounterTrackerPage() {
       dispatch(clearLiveEncounterTrackerSaveStatus(campaignId));
       navigate(`/gm-tools/campaign-manager/${campaignId}`);
     } catch (removeError) {
-      setActionError(
-        getDmToolsApiErrorMessage(removeError, "Unable to remove active encounter.")
-      );
+      setActionError(getDmToolsApiErrorMessage(removeError, "Unable to remove active encounter."));
     } finally {
       setIsRemovingTracker(false);
+    }
+  }
+
+  async function handleRefreshTracker() {
+    if (
+      isRefreshingTracker ||
+      isTrackerRefreshCoolingDown ||
+      !campaignId ||
+      authStatus !== "authenticated"
+    ) {
+      return;
+    }
+
+    setActionError(null);
+    setIsRefreshingTracker(true);
+
+    try {
+      if (saveStatus === "dirty" || saveStatus === "saving") {
+        const savedTracker = await flushPendingSave();
+
+        if (savedTracker) {
+          setInspectedParticipant(null);
+          startTrackerRefreshCooldown();
+        }
+
+        return;
+      }
+
+      const { campaign: nextCampaign } = await getCampaign(campaignId, {
+        suppressFailureToast: true
+      });
+      const nextTracker = nextCampaign.liveEncounterTracker
+        ? normalizeLiveEncounterTracker(nextCampaign.liveEncounterTracker)
+        : null;
+
+      dispatch(setSelectedCampaign(nextCampaign));
+      setDraftTracker(nextTracker?.status.state === "valid" ? nextTracker : null);
+      setInspectedParticipant(null);
+      startTrackerRefreshCooldown();
+    } catch (refreshError) {
+      setActionError(
+        getDmToolsApiErrorMessage(refreshError, "Unable to refresh encounter tracker.")
+      );
+    } finally {
+      setIsRefreshingTracker(false);
     }
   }
 
@@ -190,6 +257,33 @@ function CampaignLiveEncounterTrackerPage() {
             <h2 id="live-encounter-title" className={styles.title}>
               {tracker?.preparedEncounterName ?? "Encounter Tracker"}
             </h2>
+          </div>
+          <div className={styles.headerActions}>
+            <ActionButton
+              actionType={isTrackerRefreshCoolingDown ? "SUCCESS" : "INFO"}
+              variant="FILL"
+              fullWidth={false}
+              icon={
+                isTrackerRefreshCoolingDown ? (
+                  <CircleCheck size={16} aria-hidden="true" />
+                ) : (
+                  <RefreshCw size={16} aria-hidden="true" />
+                )
+              }
+              loading={isRefreshingTracker}
+              loadingLabel="Refreshing encounter tracker"
+              disabled={
+                isRefreshingTracker ||
+                isTrackerRefreshCoolingDown ||
+                !campaignId ||
+                authStatus !== "authenticated"
+              }
+              onClick={() => {
+                void handleRefreshTracker();
+              }}
+            >
+              {isTrackerRefreshCoolingDown ? "Refreshed" : "Refresh"}
+            </ActionButton>
           </div>
         </div>
 
@@ -237,10 +331,7 @@ function CampaignLiveEncounterTrackerPage() {
               onChange={handleTrackerChange}
               onInspectParticipant={setInspectedParticipant}
             />
-            <CampaignLiveEncounterRoundTracker
-              tracker={tracker}
-              onChange={handleTrackerChange}
-            />
+            <CampaignLiveEncounterRoundTracker tracker={tracker} onChange={handleTrackerChange} />
             {inspectedParticipant ? (
               <CampaignLiveEncounterTrackerInspectionDrawer
                 participant={inspectedParticipant}

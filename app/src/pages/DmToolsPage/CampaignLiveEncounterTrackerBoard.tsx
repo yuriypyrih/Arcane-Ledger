@@ -13,7 +13,7 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy
 } from "@dnd-kit/sortable";
-import { Shield, Skull, Swords } from "lucide-react";
+import { Skull, Swords, Users } from "lucide-react";
 import type {
   CampaignLiveEncounterTrackerCreatureRecord,
   CampaignLiveEncounterTrackerParticipantRecord,
@@ -25,7 +25,6 @@ import {
   CampaignLiveEncounterTrackerSortableParticipantCard
 } from "./CampaignLiveEncounterTrackerParticipantCard";
 import type { LiveEncounterTrackerListKey } from "./liveEncounterTrackerUtils";
-import DmToolsEmptyState from "./DmToolsEmptyState";
 import styles from "./DmToolsPage.module.css";
 
 type CampaignLiveEncounterTrackerBoardProps = {
@@ -36,7 +35,6 @@ type CampaignLiveEncounterTrackerBoardProps = {
 
 type TrackerListProps = {
   activeParticipantId: string | null;
-  emptyText: string;
   icon: JSX.Element;
   listKey: LiveEncounterTrackerListKey;
   onInspectParticipant: (participant: CampaignLiveEncounterTrackerParticipantRecord) => void;
@@ -134,7 +132,6 @@ function toggleParticipantInitiativePlacement(
 
 function TrackerList({
   activeParticipantId,
-  emptyText,
   icon,
   listKey,
   onInspectParticipant,
@@ -164,10 +161,11 @@ function TrackerList({
               items={participants.map((participant) => participant.participantId)}
               strategy={verticalListSortingStrategy}
             >
-              {participants.map((participant) => (
+              {participants.map((participant, participantIndex) => (
                 <CampaignLiveEncounterTrackerSortableParticipantCard
                   key={participant.participantId}
                   activeParticipantId={activeParticipantId}
+                  initiativeOrderNumber={participantIndex + 1}
                   listKey={listKey}
                   onInspect={onInspectParticipant}
                   onSelectActiveParticipant={onSelectActiveParticipant}
@@ -190,7 +188,7 @@ function TrackerList({
             ))
           )
         ) : (
-          <DmToolsEmptyState icon={icon}>{emptyText}</DmToolsEmptyState>
+          <p className={styles.liveTrackerEmptyListState}>Empty</p>
         )}
       </div>
     </section>
@@ -260,8 +258,7 @@ function CampaignLiveEncounterTrackerBoard({
       <div className={styles.liveTrackerSourceColumn}>
         <TrackerList
           activeParticipantId={tracker.activeParticipantId}
-          emptyText="All party members are in initiative."
-          icon={<Shield size={16} aria-hidden="true" />}
+          icon={<Users size={16} aria-hidden="true" />}
           listKey="partyMembers"
           onInspectParticipant={onInspectParticipant}
           onSelectActiveParticipant={handleSelectActiveParticipant}
@@ -271,7 +268,6 @@ function CampaignLiveEncounterTrackerBoard({
         />
         <TrackerList
           activeParticipantId={tracker.activeParticipantId}
-          emptyText="All creatures are in initiative."
           icon={<Skull size={16} aria-hidden="true" />}
           listKey="creatures"
           onInspectParticipant={onInspectParticipant}
@@ -284,7 +280,6 @@ function CampaignLiveEncounterTrackerBoard({
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <TrackerList
           activeParticipantId={tracker.activeParticipantId}
-          emptyText="Use the add button on a party member or creature."
           icon={<Swords size={16} aria-hidden="true" />}
           listKey="initiativeOrder"
           onInspectParticipant={onInspectParticipant}

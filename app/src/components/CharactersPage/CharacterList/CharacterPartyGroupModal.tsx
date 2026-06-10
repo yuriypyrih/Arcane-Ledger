@@ -61,11 +61,20 @@ function CharacterPartyGroupModal({
   const [isLeaveConfirmOpen, setIsLeaveConfirmOpen] = useState(false);
 
   useEffect(() => {
+    setDidCopyInvite(false);
+    setActionError(null);
+  }, [membership.partyGroupId]);
+
+  useEffect(() => {
     let didCancel = false;
     const abortController = new AbortController();
 
-    setDidCopyInvite(false);
-    setActionError(null);
+    if (partyGroup) {
+      return () => {
+        didCancel = true;
+      };
+    }
+
     dispatch(setSelectedPartyGroupLoading(membership.partyGroupId));
 
     void getPartyGroupMemberView(membership.partyGroupId, {
@@ -92,7 +101,7 @@ function CharacterPartyGroupModal({
       didCancel = true;
       abortController.abort();
     };
-  }, [dispatch, membership.partyGroupId]);
+  }, [dispatch, membership.partyGroupId, partyGroup]);
 
   async function handleCopyInvite() {
     if (!partyGroup) {
@@ -158,7 +167,9 @@ function CharacterPartyGroupModal({
             <OverlayTitle id={titleId}>
               {partyGroup?.name ?? membership.partyGroupName}
             </OverlayTitle>
-            <OverlaySummary>{character.name}</OverlaySummary>
+            <OverlaySummary>
+              {partyGroup?.owner.nickname ? `Game Master: ${partyGroup.owner.nickname}` : "GM"}
+            </OverlaySummary>
           </OverlayHeaderContent>
           <OverlayCloseButton label="Close party group modal" onClick={onClose} />
         </OverlayHeader>

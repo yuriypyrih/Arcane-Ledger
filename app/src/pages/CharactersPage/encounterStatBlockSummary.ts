@@ -12,11 +12,9 @@ import {
 } from "../../types";
 import { formatCodexLabel } from "../../utils/codex";
 import { abilityKeys } from "./constants";
-import {
-  getCharacterRuntime,
-  type CharacterRuntime
-} from "./characterRuntime/characterRuntime";
+import { getCharacterRuntime, type CharacterRuntime } from "./characterRuntime/characterRuntime";
 import type { CharacterCombatSummaryCoreStats } from "./characterRuntime/combatSummaryCoreStats";
+import { getCharacterClassDisplayName, getCharacterSpeciesDisplayName } from "./customOrigins";
 import type { SkillRow } from "./skills";
 
 export const ENCOUNTER_STAT_BLOCK_VERSION = 1;
@@ -141,11 +139,7 @@ function formatEncounterSpeed(coreStats: CharacterCombatSummaryCoreStats): strin
     return breakdown.isModified && speed ? [`${type} ${speed}`] : [];
   });
 
-  return [
-    walkSpeed,
-    ...specialMovement,
-    ...(coreStats.canHover ? ["can hover"] : [])
-  ].join(", ");
+  return [walkSpeed, ...specialMovement, ...(coreStats.canHover ? ["can hover"] : [])].join(", ");
 }
 
 function createEncounterAbilities(
@@ -153,10 +147,7 @@ function createEncounterAbilities(
   runtime: CharacterRuntime
 ): PortableEncounterStatBlock["abilities"] {
   const abilityCards = new Map(
-    runtime.combatSummary.abilities.abilitySavingThrowCards.map((card) => [
-      card.ability,
-      card
-    ])
+    runtime.combatSummary.abilities.abilitySavingThrowCards.map((card) => [card.ability, card])
   );
 
   return abilityKeys.reduce(
@@ -187,18 +178,20 @@ export function createEncounterStatBlockSummary(
   const hitPoints = combatSummary.hitPoints;
   const defenses = combatSummary.defenses;
   const sync = character.storageMetadata?.sync;
+  const className = getCharacterClassDisplayName(character);
+  const species = getCharacterSpeciesDisplayName(character);
 
   return {
     version: ENCOUNTER_STAT_BLOCK_VERSION,
     name: character.name,
-    typeLabel: [character.className, character.species]
+    typeLabel: [className, species]
       .map((value) => value.trim())
       .filter((value) => value.length > 0)
       .join(" "),
     alignment: character.alignment,
     level: character.level,
-    className: character.className,
-    species: character.species,
+    className,
+    species,
     armorClass: coreStats.armorClassResolution.activeFormula.breakdown.total,
     initiative: getCoreStatCardValue(coreStats.cards, "initiative", "+0"),
     speed: formatEncounterSpeed(coreStats),

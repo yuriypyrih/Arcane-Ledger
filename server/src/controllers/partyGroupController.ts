@@ -5,6 +5,7 @@ import {
   createOwnedPartyGroup,
   deleteOwnedPartyGroup,
   getMemberVisiblePartyGroupDetail,
+  getMemberVisiblePartyGroupLiveEncounter,
   getOwnedPartyGroupDetail,
   joinPartyGroup,
   leavePartyGroup,
@@ -79,6 +80,17 @@ export const getPartyGroupMemberView = asyncHandler(
         partyGroupId: request.params.partyGroupId ?? ""
       })
     });
+  }
+);
+
+export const getPartyGroupLiveEncounter = asyncHandler(
+  async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
+    response.json(
+      await getMemberVisiblePartyGroupLiveEncounter({
+        ownerId: response.locals.authUser._id,
+        partyGroupId: request.params.partyGroupId ?? ""
+      })
+    );
   }
 );
 

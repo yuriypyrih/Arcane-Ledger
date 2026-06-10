@@ -16,6 +16,7 @@ import { trackAnalyticsEvent } from "../../../lib/analytics";
 import PageLoadingFallback from "../../../components/PageLoadingFallback";
 import type { CharacterCompanion } from "../../../types";
 import { CHARACTER_COMPANION_LIMIT } from "../companions";
+import { usePartyMemberships } from "../../DmToolsPage/usePartyMemberships";
 import { hasSpellcastingForCharacter } from "../spellcastingAvailability";
 import { CharacterSheetSectionProfiler } from "./CharacterSheetSectionProfiler";
 import styles from "./CharacterSheetPage.module.css";
@@ -75,6 +76,8 @@ function CharacterSheetPage() {
     },
     [persistCharacter]
   );
+
+  usePartyMemberships();
 
   useEffect(() => {
     if (!character || trackedCharacterOpenId.current === character.id) {

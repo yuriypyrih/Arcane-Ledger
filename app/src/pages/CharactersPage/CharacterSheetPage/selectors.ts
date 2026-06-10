@@ -121,7 +121,8 @@ export const selectGameplayCharacter = createCharacterFieldsSelector(
     "toolProficiencies",
     "languageProficiencies",
     "feats",
-    "companions"
+    "companions",
+    "storageMetadata"
   ],
   [
     "resources",

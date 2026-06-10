@@ -16,6 +16,7 @@ import {
 import { User } from "../models/User.js";
 import type { UserRole } from "../types/auth.js";
 import { PARTY_GROUP_MAX_MEMBERS as PARTY_GROUP_MAX_MEMBERS_QUOTA } from "../constants/QUOTAS.js";
+import { toCampaignLiveEncounterTrackerDetailRecord } from "./campaignLiveEncounterTrackerService.js";
 import { assertCreatedDmToolWithinLimit, assertDmToolCreationLimit } from "./dmToolLimits.js";
 
 const PARTY_GROUP_INVITE_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -54,6 +55,8 @@ type PartyGroupMemberUser = {
   id: string;
   nickname: string;
 };
+
+type PartyGroupOwnerUser = PartyGroupMemberUser;
 
 function getDocumentId(
   document: Pick<PartyGroupSource | CharacterSheetMemberSource, "_id" | "id">
@@ -104,6 +107,37 @@ async function findOwnedPartyGroupDocument(options: {
 
   if (!partyGroup) {
     throw new AppError("Party group was not found.", 404, "PARTY_GROUP_NOT_FOUND");
+  }
+
+  return partyGroup;
+}
+
+async function findMemberVisiblePartyGroupSource(options: {
+  ownerId: Types.ObjectId;
+  partyGroupId: string;
+}) {
+  if (!options.partyGroupId || !Types.ObjectId.isValid(options.partyGroupId)) {
+    throw new AppError("Party group id is invalid.", 400, "INVALID_PARTY_GROUP_ID");
+  }
+
+  const partyGroup = (await PartyGroup.findById(options.partyGroupId)
+    .lean()
+    .exec()) as PartyGroupSource | null;
+
+  if (!partyGroup) {
+    throw new AppError("Party group was not found.", 404, "PARTY_GROUP_NOT_FOUND");
+  }
+
+  if (partyGroup.ownerId.toString() !== options.ownerId.toString()) {
+    const ownedMember = await CharacterSheet.exists({
+      ownerId: options.ownerId,
+      deletedAt: null,
+      partyGroupId: new Types.ObjectId(options.partyGroupId)
+    }).exec();
+
+    if (!ownedMember) {
+      throw new AppError("Party group was not found.", 404, "PARTY_GROUP_NOT_FOUND");
+    }
   }
 
   return partyGroup;
@@ -242,7 +276,10 @@ async function getPartyGroupDetailFromSource(partyGroup: PartyGroupSource) {
     .select("_id ownerId summary avatar updatedAt")
     .lean()
     .exec()) as CharacterSheetMemberSource[];
-  const ownerIds = [...new Set(characters.map((character) => character.ownerId.toString()))];
+  const partyOwnerId = partyGroup.ownerId.toString();
+  const ownerIds = [
+    ...new Set([partyOwnerId, ...characters.map((character) => character.ownerId.toString())])
+  ];
   const users = await User.find({
     _id: { $in: ownerIds }
   })
@@ -258,9 +295,14 @@ async function getPartyGroupDetailFromSource(partyGroup: PartyGroupSource) {
       }
     ])
   );
+  const owner: PartyGroupOwnerUser = userById.get(partyOwnerId) ?? {
+    id: partyOwnerId,
+    nickname: "Unknown Player"
+  };
 
   return {
     ...toPartyGroupDetailRecord(partyGroup),
+    owner,
     members: characters.map((character) => toPartyGroupMemberRecord(character, userById))
   };
 }
@@ -377,31 +419,34 @@ export async function getMemberVisiblePartyGroupDetail(options: {
   ownerId: Types.ObjectId;
   partyGroupId: string;
 }) {
-  if (!options.partyGroupId || !Types.ObjectId.isValid(options.partyGroupId)) {
-    throw new AppError("Party group id is invalid.", 400, "INVALID_PARTY_GROUP_ID");
-  }
-
-  const partyGroup = (await PartyGroup.findById(options.partyGroupId)
-    .lean()
-    .exec()) as PartyGroupSource | null;
-
-  if (!partyGroup) {
-    throw new AppError("Party group was not found.", 404, "PARTY_GROUP_NOT_FOUND");
-  }
-
-  if (partyGroup.ownerId.toString() !== options.ownerId.toString()) {
-    const ownedMember = await CharacterSheet.exists({
-      ownerId: options.ownerId,
-      deletedAt: null,
-      partyGroupId: new Types.ObjectId(options.partyGroupId)
-    }).exec();
-
-    if (!ownedMember) {
-      throw new AppError("Party group was not found.", 404, "PARTY_GROUP_NOT_FOUND");
-    }
-  }
+  const partyGroup = await findMemberVisiblePartyGroupSource(options);
 
   return getPartyGroupDetailFromSource(partyGroup);
+}
+
+export async function getMemberVisiblePartyGroupLiveEncounter(options: {
+  ownerId: Types.ObjectId;
+  partyGroupId: string;
+}) {
+  const partyGroup = await findMemberVisiblePartyGroupSource(options);
+  const partyGroupObjectId = new Types.ObjectId(options.partyGroupId);
+  const campaign = await Campaign.findOne({
+    "liveEncounterTracker.partyGroupId": partyGroupObjectId,
+    "liveEncounterTracker.preparedEncounterId": { $exists: true }
+  })
+    .sort({
+      "liveEncounterTracker.updatedAt": -1,
+      updatedAt: -1,
+      _id: -1
+    })
+    .exec();
+
+  return {
+    partyGroupId: getDocumentId(partyGroup),
+    liveEncounterTracker: campaign
+      ? await toCampaignLiveEncounterTrackerDetailRecord(campaign)
+      : null
+  };
 }
 
 export async function deleteOwnedPartyGroup(options: {

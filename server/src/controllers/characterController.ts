@@ -3,7 +3,10 @@ import { Types } from "mongoose";
 import { getAppConfig } from "../config/env.js";
 import { AppError } from "../errors/AppError.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
-import type { AuthenticatedLocals, OptionalAuthenticatedLocals } from "../middleware/authMiddleware.js";
+import type {
+  AuthenticatedLocals,
+  OptionalAuthenticatedLocals
+} from "../middleware/authMiddleware.js";
 import {
   CharacterSheet,
   type CharacterAvatarRecord,
@@ -147,10 +150,7 @@ function assertCharacterSheetIsAvailable<T extends { deletedAt?: Date | string |
   }
 }
 
-async function findOwnedCharacterSheet(
-  characterSheetId: string,
-  ownerId: Types.ObjectId
-) {
+async function findOwnedCharacterSheet(characterSheetId: string, ownerId: Types.ObjectId) {
   const character = await CharacterSheet.findOne({
     _id: characterSheetId,
     ownerId
@@ -161,10 +161,7 @@ async function findOwnedCharacterSheet(
   return character;
 }
 
-async function findOwnedCharacterSheetLean(
-  characterSheetId: string,
-  ownerId: Types.ObjectId
-) {
+async function findOwnedCharacterSheetLean(characterSheetId: string, ownerId: Types.ObjectId) {
   const character = (await CharacterSheet.findOne({
     _id: characterSheetId,
     ownerId
@@ -200,7 +197,11 @@ function readPortableCharacterSheet(value: unknown): Record<string, unknown> {
   ];
 
   if (!requiredGroups.every((group) => isObjectRecord(value[group]))) {
-    throw new AppError("Portable character sheet is missing required groups.", 400, "INVALID_SHEET");
+    throw new AppError(
+      "Portable character sheet is missing required groups.",
+      400,
+      "INVALID_SHEET"
+    );
   }
 
   return value;
@@ -244,6 +245,27 @@ function readSheetLevel(value: unknown) {
   return Math.min(level, 100);
 }
 
+function readCustomDisplayName(value: unknown) {
+  return isObjectRecord(value) ? readString(value.name) : null;
+}
+
+function resolveSheetDisplayName(options: {
+  customConfig: unknown;
+  fallback: string;
+  rawValue: unknown;
+  summaryValue: unknown;
+}) {
+  const summaryLabel = readString(options.summaryValue);
+  const rawLabel = readString(options.rawValue);
+  const customLabel = readCustomDisplayName(options.customConfig);
+
+  if (customLabel && (summaryLabel === "Custom" || rawLabel === "Custom")) {
+    return customLabel;
+  }
+
+  return summaryLabel ?? rawLabel ?? customLabel ?? options.fallback;
+}
+
 const encounterStatBlockAbilityKeys = ["STR", "DEX", "CON", "INT", "WIS", "CHA"] as const;
 const encounterStatBlockLabelMaxLength = 160;
 const encounterStatBlockListMaxLength = 100;
@@ -277,12 +299,7 @@ function readEncounterOptionalString(value: unknown, field: string) {
   return readEncounterRequiredString(value, field);
 }
 
-function readEncounterInteger(
-  value: unknown,
-  field: string,
-  min: number,
-  max: number
-) {
+function readEncounterInteger(value: unknown, field: string, min: number, max: number) {
   const integerValue = readIntegerInRange(value, min, max);
 
   if (integerValue === null) {
@@ -490,12 +507,20 @@ function buildCharacterSheetSummary(sheet: Record<string, unknown>) {
 
   return {
     localId:
-      readPositiveInteger(summary.localId) ??
-      readPositiveInteger(identity.localId) ??
-      undefined,
+      readPositiveInteger(summary.localId) ?? readPositiveInteger(identity.localId) ?? undefined,
     name: readString(summary.name) ?? readString(identity.name) ?? "Unnamed Character",
-    species: readString(summary.species) ?? readString(origin.species) ?? "Unknown",
-    className: readString(summary.className) ?? readString(progression.className) ?? "Unknown",
+    species: resolveSheetDisplayName({
+      summaryValue: summary.species,
+      rawValue: origin.species,
+      customConfig: origin.customSpecies,
+      fallback: "Unknown"
+    }),
+    className: resolveSheetDisplayName({
+      summaryValue: summary.className,
+      rawValue: progression.className,
+      customConfig: progression.customClass,
+      fallback: "Unknown"
+    }),
     ...(subclassId ? { subclassId } : { subclassId: null }),
     level: readSheetLevel(summary.level ?? progression.level),
     background: readString(summary.background) ?? readString(origin.background) ?? "Unknown",
@@ -564,7 +589,9 @@ function toCloudRecord(document: CharacterSheetCloudSource): CharacterSheetCloud
   };
 }
 
-function toCloudRosterRecord(document: CharacterSheetRosterSource): CharacterSheetCloudRosterDocument {
+function toCloudRosterRecord(
+  document: CharacterSheetRosterSource
+): CharacterSheetCloudRosterDocument {
   return {
     id: getDocumentId(document),
     ownerId: document.ownerId.toString(),
@@ -815,10 +842,7 @@ export const saveCharacterSheet = asyncHandler(
   async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
     const characterSheetId = readCharacterSheetId(request.params.characterSheetId);
     const payload = readSheetPayload(request.body);
-    const character = await findOwnedCharacterSheet(
-      characterSheetId,
-      response.locals.authUser._id
-    );
+    const character = await findOwnedCharacterSheet(characterSheetId, response.locals.authUser._id);
 
     assertCanApplyCharacterSheetPayload(character, payload);
     applyCharacterSheetPayload(character, payload);
@@ -831,10 +855,7 @@ export const saveCharacterSheet = asyncHandler(
 export const deleteCharacterSheet = asyncHandler(
   async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
     const characterSheetId = readCharacterSheetId(request.params.characterSheetId);
-    const character = await findOwnedCharacterSheet(
-      characterSheetId,
-      response.locals.authUser._id
-    );
+    const character = await findOwnedCharacterSheet(characterSheetId, response.locals.authUser._id);
 
     const characterRecord = toCloudRecord(character);
     const previousObjectKey = character.avatar?.objectKey;
@@ -972,10 +993,7 @@ export const uploadCharacterPortrait = asyncHandler(
       });
     }
 
-    const character = await findOwnedCharacterSheet(
-      characterSheetId,
-      response.locals.authUser._id
-    );
+    const character = await findOwnedCharacterSheet(characterSheetId, response.locals.authUser._id);
 
     if (sheetPayload) {
       assertCanApplyCharacterSheetPayload(character, sheetPayload);
@@ -1028,10 +1046,7 @@ export const deleteCharacterPortrait = asyncHandler(
   async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
     const characterSheetId = readCharacterSheetId(request.params.characterSheetId);
     const sheetPayload = readOptionalCharacterMutationPayload(request.body);
-    const character = await findOwnedCharacterSheet(
-      characterSheetId,
-      response.locals.authUser._id
-    );
+    const character = await findOwnedCharacterSheet(characterSheetId, response.locals.authUser._id);
 
     if (sheetPayload) {
       assertCanApplyCharacterSheetPayload(character, sheetPayload);
@@ -1075,7 +1090,9 @@ export const updateCharacterBackgroundTexture = asyncHandler(
         );
       }
 
-      if (mutation.imageBuffer.byteLength > getAppConfig().characterBackgroundTextureUploadMaxBytes) {
+      if (
+        mutation.imageBuffer.byteLength > getAppConfig().characterBackgroundTextureUploadMaxBytes
+      ) {
         throw new AppError(
           "Character background texture image is too large.",
           413,
@@ -1087,10 +1104,7 @@ export const updateCharacterBackgroundTexture = asyncHandler(
       }
     }
 
-    const character = await findOwnedCharacterSheet(
-      characterSheetId,
-      response.locals.authUser._id
-    );
+    const character = await findOwnedCharacterSheet(characterSheetId, response.locals.authUser._id);
 
     if (sheetPayload) {
       assertCanApplyCharacterSheetPayload(character, sheetPayload);

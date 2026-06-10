@@ -20,10 +20,19 @@ import styles from "./CampaignLiveEncounterTrackerParticipantCard.module.css";
 
 type CampaignLiveEncounterTrackerParticipantCardProps = {
   activeParticipantId: string | null;
+  initiativeOrderNumber?: number;
   listKey: LiveEncounterTrackerListKey;
   onInspect: (participant: CampaignLiveEncounterTrackerParticipantRecord) => void;
-  onSelectActiveParticipant: (participantId: string) => void;
-  onToggleInitiative: (participant: CampaignLiveEncounterTrackerParticipantRecord) => void;
+  onSelectActiveParticipant?: (participantId: string) => void;
+  onToggleInitiative?: (participant: CampaignLiveEncounterTrackerParticipantRecord) => void;
+  participant: CampaignLiveEncounterTrackerParticipantRecord;
+  readOnly?: boolean;
+};
+
+type CampaignLiveEncounterTrackerReadOnlyParticipantCardProps = {
+  activeParticipantId: string | null;
+  initiativeOrderNumber?: number;
+  onInspect: (participant: CampaignLiveEncounterTrackerParticipantRecord) => void;
   participant: CampaignLiveEncounterTrackerParticipantRecord;
 };
 
@@ -234,12 +243,14 @@ function ParticipantHitPointBar({ viewModel }: { viewModel: ParticipantCardViewM
 function ParticipantPortraitControl({
   isActiveParticipant,
   isInInitiative,
+  isReadOnly,
   onSelect,
   participant,
   title
 }: {
   isActiveParticipant: boolean;
   isInInitiative: boolean;
+  isReadOnly: boolean;
   onSelect: () => void;
   participant: CampaignLiveEncounterTrackerParticipantRecord;
   title: string;
@@ -250,7 +261,7 @@ function ParticipantPortraitControl({
     </span>
   );
 
-  if (!isInInitiative) {
+  if (!isInInitiative || isReadOnly) {
     return <span className={styles.portraitControl}>{portrait}</span>;
   }
 
@@ -275,24 +286,28 @@ function ParticipantCardFrame({
   cardStyle,
   dragHandle,
   isDragging = false,
+  initiativeOrderNumber,
   listKey,
   onInspect,
   onSelectActiveParticipant,
   onToggleInitiative,
-  participant
+  participant,
+  readOnly = false
 }: ParticipantCardFrameProps) {
   const isInInitiative = listKey === "initiativeOrder";
   const isActiveParticipant =
     isInInitiative && activeParticipantId === participant.participantId;
   const viewModel = getParticipantViewModel(participant);
+  const hasInitiativeOrderNumber = typeof initiativeOrderNumber === "number";
 
-  return (
+  const card = (
     <article
-      ref={cardRef}
-      style={cardStyle}
+      ref={hasInitiativeOrderNumber ? undefined : cardRef}
+      style={hasInitiativeOrderNumber ? undefined : cardStyle}
       className={clsx(
         styles.card,
-        isInInitiative && styles.cardInInitiative,
+        isInInitiative && !readOnly && styles.cardInInitiative,
+        isInInitiative && readOnly && styles.cardReadOnlyInitiative,
         isActiveParticipant && styles.cardActive,
         isDragging && styles.cardDragging
       )}
@@ -301,9 +316,10 @@ function ParticipantCardFrame({
       <ParticipantPortraitControl
         isActiveParticipant={isActiveParticipant}
         isInInitiative={isInInitiative}
+        isReadOnly={readOnly}
         participant={participant}
         title={viewModel.title}
-        onSelect={() => onSelectActiveParticipant(participant.participantId)}
+        onSelect={() => onSelectActiveParticipant?.(participant.participantId)}
       />
       <button
         type="button"
@@ -322,24 +338,49 @@ function ParticipantCardFrame({
 
         {isInInitiative ? <ParticipantHitPointBar viewModel={viewModel} /> : null}
       </button>
-      <button
-        type="button"
-        className={styles.moveButton}
-        aria-label={
-          isInInitiative
-            ? `Return ${viewModel.title} to its source list`
-            : `Add ${viewModel.title} to initiative`
-        }
-        title={isInInitiative ? "Return to source list" : "Add to initiative"}
-        onClick={() => onToggleInitiative(participant)}
-      >
-        {isInInitiative ? (
-          <Undo2 size={16} aria-hidden="true" />
-        ) : (
-          <ArrowRightFromLine size={16} aria-hidden="true" />
-        )}
-      </button>
+      {!readOnly ? (
+        <button
+          type="button"
+          className={styles.moveButton}
+          aria-label={
+            isInInitiative
+              ? `Return ${viewModel.title} to its source list`
+              : `Add ${viewModel.title} to initiative`
+          }
+          title={isInInitiative ? "Return to source list" : "Add to initiative"}
+          onClick={() => onToggleInitiative?.(participant)}
+        >
+          {isInInitiative ? (
+            <Undo2 size={16} aria-hidden="true" />
+          ) : (
+            <ArrowRightFromLine size={16} aria-hidden="true" />
+          )}
+        </button>
+      ) : null}
     </article>
+  );
+
+  if (!hasInitiativeOrderNumber) {
+    return card;
+  }
+
+  return (
+    <div
+      ref={cardRef}
+      style={cardStyle}
+      className={clsx(
+        styles.cardNumberedRow,
+        isActiveParticipant && styles.cardNumberedRowActive
+      )}
+    >
+      <span
+        className={styles.cardOrderNumber}
+        aria-label={`Initiative order ${initiativeOrderNumber}`}
+      >
+        {initiativeOrderNumber}
+      </span>
+      {card}
+    </div>
   );
 }
 
@@ -391,7 +432,26 @@ function CampaignLiveEncounterTrackerSortableParticipantCard(
   );
 }
 
+function CampaignLiveEncounterTrackerReadOnlyParticipantCard({
+  activeParticipantId,
+  initiativeOrderNumber,
+  onInspect,
+  participant
+}: CampaignLiveEncounterTrackerReadOnlyParticipantCardProps) {
+  return (
+    <ParticipantCardFrame
+      activeParticipantId={activeParticipantId}
+      initiativeOrderNumber={initiativeOrderNumber}
+      listKey="initiativeOrder"
+      onInspect={onInspect}
+      participant={participant}
+      readOnly
+    />
+  );
+}
+
 export {
   CampaignLiveEncounterTrackerParticipantCard,
+  CampaignLiveEncounterTrackerReadOnlyParticipantCard,
   CampaignLiveEncounterTrackerSortableParticipantCard
 };
