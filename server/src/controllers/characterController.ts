@@ -29,6 +29,12 @@ import {
   deleteCharacterBackgroundTextureFromS3,
   saveCharacterBackgroundTextureToS3
 } from "../services/characterBackgroundTextureService.js";
+import {
+  CHARACTER_BACKGROUND_TEXTURE_OUTPUT_SIZE,
+  CHARACTER_PORTRAIT_OUTPUT_HEIGHT,
+  CHARACTER_PORTRAIT_OUTPUT_WIDTH,
+  processCharacterImageUpload
+} from "../services/characterImageProcessingService.js";
 import { recordCharacterCreatedMetric } from "../services/analyticsService.js";
 import { getCharacterLimitForRole } from "../services/characterLimits.js";
 import {
@@ -954,7 +960,7 @@ function readPortraitUploadBody(request: Request) {
 export const uploadCharacterPortrait = asyncHandler(
   async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
     const characterSheetId = readCharacterSheetId(request.params.characterSheetId);
-    const { imageBuffer, mimeType, sheetPayload } = readPortraitUploadBody(request);
+    const { imageBuffer, sheetPayload } = readPortraitUploadBody(request);
 
     if (!imageBuffer || imageBuffer.byteLength === 0) {
       throw new AppError("Character portrait image body is required.", 400, "EMPTY_AVATAR_BODY");
@@ -976,10 +982,16 @@ export const uploadCharacterPortrait = asyncHandler(
     }
 
     const previousObjectKey = character.avatar?.objectKey;
+    const processedAvatar = await processCharacterImageUpload({
+      imageBuffer,
+      kind: "portrait",
+      outputHeight: CHARACTER_PORTRAIT_OUTPUT_HEIGHT,
+      outputWidth: CHARACTER_PORTRAIT_OUTPUT_WIDTH
+    });
     const nextAvatar = await saveCharacterAvatarToS3({
       characterSheetId,
-      imageBuffer,
-      mimeType
+      imageBuffer: processedAvatar.imageBuffer,
+      mimeType: processedAvatar.mimeType
     });
 
     let savedCharacter: CharacterSheetDocument;
@@ -1085,14 +1097,22 @@ export const updateCharacterBackgroundTexture = asyncHandler(
     }
 
     const previousObjectKey = getUploadedBackgroundTextureObjectKey(character.backgroundTexture);
-    const uploadedTexture =
+    const processedBackgroundTexture =
       mutation.source === "uploaded"
-        ? await saveCharacterBackgroundTextureToS3({
-            characterSheetId,
+        ? await processCharacterImageUpload({
             imageBuffer: mutation.imageBuffer,
-            mimeType: mutation.mimeType
+            kind: "background_texture",
+            outputHeight: CHARACTER_BACKGROUND_TEXTURE_OUTPUT_SIZE,
+            outputWidth: CHARACTER_BACKGROUND_TEXTURE_OUTPUT_SIZE
           })
         : null;
+    const uploadedTexture = processedBackgroundTexture
+      ? await saveCharacterBackgroundTextureToS3({
+          characterSheetId,
+          imageBuffer: processedBackgroundTexture.imageBuffer,
+          mimeType: processedBackgroundTexture.mimeType
+        })
+      : null;
     const nextBackgroundTexture = createBackgroundTextureRecord(mutation, uploadedTexture);
     const nextObjectKey = getUploadedBackgroundTextureObjectKey(nextBackgroundTexture);
 

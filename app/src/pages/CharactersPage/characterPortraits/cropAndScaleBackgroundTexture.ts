@@ -1,16 +1,17 @@
 import type { CharacterPortraitCropSettings } from "./cropAndScaleImage";
+import {
+  CHARACTER_IMAGE_TRANSPORT_MAX_BYTES,
+  encodeCanvasForImageTransport
+} from "./transportImageEncoding";
 
 export const CHARACTER_BACKGROUND_TEXTURE_SIZE = 750;
-export const CHARACTER_BACKGROUND_TEXTURE_MAX_BYTES = 60 * 1024;
-
-const preferredTextureMimeType = "image/webp";
-const fallbackTextureMimeType = "image/jpeg";
-const textureQualitySteps = [0.82, 0.76, 0.7, 0.64, 0.58, 0.52, 0.46, 0.4, 0.34, 0.28, 0.22];
+export const CHARACTER_BACKGROUND_TEXTURE_TRANSPORT_MAX_BYTES =
+  CHARACTER_IMAGE_TRANSPORT_MAX_BYTES;
 
 export type CropAndScaleBackgroundTextureOptions = {
   crop?: Partial<CharacterPortraitCropSettings>;
-  maxBytes?: number;
   size?: number;
+  transportMaxBytes?: number;
 };
 
 export type CroppedCharacterBackgroundTexture = {
@@ -62,42 +63,6 @@ function normalizeCropSettings(
   };
 }
 
-function encodeCanvas(canvas: HTMLCanvasElement, mimeType: string, quality: number) {
-  return new Promise<Blob | null>((resolve) => {
-    canvas.toBlob((blob) => resolve(blob), mimeType, quality);
-  });
-}
-
-async function encodeTextureUnderLimit(canvas: HTMLCanvasElement, maxBytes: number) {
-  let smallestBlob: Blob | null = null;
-
-  for (const quality of textureQualitySteps) {
-    const preferredBlob = await encodeCanvas(canvas, preferredTextureMimeType, quality);
-    const blob =
-      preferredBlob?.type === preferredTextureMimeType
-        ? preferredBlob
-        : await encodeCanvas(canvas, fallbackTextureMimeType, quality);
-
-    if (!blob) {
-      continue;
-    }
-
-    if (!smallestBlob || blob.size < smallestBlob.size) {
-      smallestBlob = blob;
-    }
-
-    if (blob.size <= maxBytes) {
-      return blob;
-    }
-  }
-
-  if (!smallestBlob) {
-    throw new Error("Unable to save that image.");
-  }
-
-  throw new Error("Background texture must be 60KB or smaller after processing.");
-}
-
 export async function cropAndScaleBackgroundTextureFile(
   file: File,
   options: CropAndScaleBackgroundTextureOptions = {}
@@ -105,7 +70,6 @@ export async function cropAndScaleBackgroundTextureFile(
   assertImageFile(file);
 
   const targetSize = Math.max(1, Math.round(options.size ?? CHARACTER_BACKGROUND_TEXTURE_SIZE));
-  const maxBytes = Math.max(1, Math.round(options.maxBytes ?? CHARACTER_BACKGROUND_TEXTURE_MAX_BYTES));
   const cropSettings = normalizeCropSettings(options.crop);
   const image = await loadImageFromFile(file);
   const sourceWidth = image.naturalWidth;
@@ -150,11 +114,13 @@ export async function cropAndScaleBackgroundTextureFile(
   );
   context.restore();
 
-  const blob = await encodeTextureUnderLimit(canvas, maxBytes);
+  const blob = await encodeCanvasForImageTransport(canvas, {
+    maxBytes: options.transportMaxBytes ?? CHARACTER_BACKGROUND_TEXTURE_TRANSPORT_MAX_BYTES
+  });
 
   return {
     blob,
-    mimeType: blob.type || fallbackTextureMimeType,
+    mimeType: blob.type || "image/jpeg",
     width: targetSize,
     height: targetSize
   };

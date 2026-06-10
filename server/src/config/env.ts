@@ -11,9 +11,8 @@ const AUTH_TOKEN_MAX_AGE_SECONDS = 90 * 24 * 60 * 60;
 const EMAIL_VERIFICATION_EXPIRES_MINUTES = 24 * 60;
 const PASSWORD_RESET_EXPIRES_MINUTES = 10;
 const AVATAR_OBJECT_KEY_PREFIX = "avatars";
-const AVATAR_UPLOAD_MAX_BYTES = 512 * 1024;
+const CHARACTER_IMAGE_UPLOAD_MAX_BYTES = 1024 * 1024;
 const BACKGROUND_TEXTURE_OBJECT_KEY_PREFIX = "background-textures";
-const BACKGROUND_TEXTURE_UPLOAD_MAX_BYTES = 60 * 1024;
 
 function loadEnv() {
   if (envLoaded) {
@@ -132,9 +131,9 @@ export function getAppConfig(): AppConfig {
     characterAvatarS3Region: process.env.CHARACTER_AVATAR_S3_REGION ?? "",
     characterAvatarS3PublicBaseUrl: process.env.CHARACTER_AVATAR_S3_PUBLIC_BASE_URL ?? "",
     characterAvatarS3KeyPrefix: AVATAR_OBJECT_KEY_PREFIX,
-    characterAvatarUploadMaxBytes: AVATAR_UPLOAD_MAX_BYTES,
+    characterAvatarUploadMaxBytes: CHARACTER_IMAGE_UPLOAD_MAX_BYTES,
     characterBackgroundTextureS3KeyPrefix: BACKGROUND_TEXTURE_OBJECT_KEY_PREFIX,
-    characterBackgroundTextureUploadMaxBytes: BACKGROUND_TEXTURE_UPLOAD_MAX_BYTES,
+    characterBackgroundTextureUploadMaxBytes: CHARACTER_IMAGE_UPLOAD_MAX_BYTES,
     sentryDsn: process.env.SENTRY_DSN ?? "",
     sentryEnvironment: process.env.SENTRY_ENVIRONMENT ?? nodeEnv,
     sentryRelease: process.env.SENTRY_RELEASE ?? ""

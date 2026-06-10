@@ -1,9 +1,8 @@
+import { encodeCanvasForImageTransport } from "./transportImageEncoding";
+
 export const CHARACTER_PORTRAIT_MAX_SIZE = 512;
-export const CHARACTER_PORTRAIT_QUALITY = 0.85;
 
 const characterPortraitAspectRatio = 3 / 4;
-const preferredPortraitMimeType = "image/webp";
-const fallbackPortraitMimeType = "image/jpeg";
 
 export type CharacterPortraitCropSettings = {
   offsetX: number;
@@ -15,7 +14,7 @@ export type CharacterPortraitCropSettings = {
 export type CropAndScaleImageOptions = {
   crop?: Partial<CharacterPortraitCropSettings>;
   maxSize?: number;
-  quality?: number;
+  transportMaxBytes?: number;
 };
 
 export type CroppedCharacterPortrait = {
@@ -100,12 +99,6 @@ function normalizeCropSettings(
   };
 }
 
-function encodeCanvas(canvas: HTMLCanvasElement, mimeType: string, quality: number) {
-  return new Promise<Blob | null>((resolve) => {
-    canvas.toBlob((blob) => resolve(blob), mimeType, quality);
-  });
-}
-
 export async function cropAndScaleImageFile(
   file: File,
   options: CropAndScaleImageOptions = {}
@@ -113,7 +106,6 @@ export async function cropAndScaleImageFile(
   assertImageFile(file);
 
   const maxSize = options.maxSize ?? CHARACTER_PORTRAIT_MAX_SIZE;
-  const quality = options.quality ?? CHARACTER_PORTRAIT_QUALITY;
   const cropSettings = normalizeCropSettings(options.crop);
   const targetHeight = Math.max(1, Math.round(maxSize));
   const targetWidth = Math.max(1, Math.round(targetHeight * characterPortraitAspectRatio));
@@ -181,19 +173,13 @@ export async function cropAndScaleImageFile(
     context.restore();
   }
 
-  const preferredBlob = await encodeCanvas(canvas, preferredPortraitMimeType, quality);
-  const blob =
-    preferredBlob?.type === preferredPortraitMimeType
-      ? preferredBlob
-      : await encodeCanvas(canvas, fallbackPortraitMimeType, quality);
-
-  if (!blob) {
-    throw new Error("Unable to save that image.");
-  }
+  const blob = await encodeCanvasForImageTransport(canvas, {
+    maxBytes: options.transportMaxBytes
+  });
 
   return {
     blob,
-    mimeType: blob.type || fallbackPortraitMimeType,
+    mimeType: blob.type || "image/jpeg",
     width: targetWidth,
     height: targetHeight
   };

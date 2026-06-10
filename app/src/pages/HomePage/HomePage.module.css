@@ -252,34 +252,34 @@
   filter: drop-shadow(0 10px 18px rgba(22, 15, 13, 0.26));
   object-fit: cover;
   -webkit-mask-image:
-    linear-gradient(
-      90deg,
-      rgba(0, 0, 0, 0) 0%,
-      #000 10px,
-      #000 calc(100% - 10px),
-      rgba(0, 0, 0, 0) 100%
-    ),
-    linear-gradient(
-      180deg,
-      rgba(0, 0, 0, 0) 0%,
-      #000 10px,
-      #000 calc(100% - 10px),
-      rgba(0, 0, 0, 0) 100%
-    );
+          linear-gradient(
+                  90deg,
+                  rgba(0, 0, 0, 0) 0%,
+                  #000 40px,
+                  #000 calc(100% - 50px),
+                  rgba(0, 0, 0, 0) 100%
+          ),
+          linear-gradient(
+                  180deg,
+                  rgba(0, 0, 0, 0) 0%,
+                  #000 20px,
+                  #000 calc(100% - 40px),
+                  rgba(0, 0, 0, 0) 100%
+          );
   -webkit-mask-composite: source-in;
   mask-image:
     linear-gradient(
       90deg,
       rgba(0, 0, 0, 0) 0%,
-      #000 10px,
-      #000 calc(100% - 10px),
+      #000 40px,
+      #000 calc(100% - 50px),
       rgba(0, 0, 0, 0) 100%
     ),
     linear-gradient(
       180deg,
       rgba(0, 0, 0, 0) 0%,
-      #000 10px,
-      #000 calc(100% - 10px),
+      #000 20px,
+      #000 calc(100% - 40px),
       rgba(0, 0, 0, 0) 100%
     );
   mask-composite: intersect;

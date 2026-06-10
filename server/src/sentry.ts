@@ -1,5 +1,5 @@
 import * as Sentry from "@sentry/node";
-import type { Breadcrumb, ErrorEvent } from "@sentry/node";
+import type { Breadcrumb, ErrorEvent, SeverityLevel } from "@sentry/node";
 import type { Express } from "express";
 import { AppError } from "./errors/AppError.js";
 import type { AppConfig } from "./config/env.js";
@@ -11,6 +11,10 @@ type ServerErrorContext = {
   action?: string;
   tags?: Record<string, PrimitiveTagValue | null | undefined>;
   extra?: Record<string, unknown>;
+};
+
+type ServerMessageContext = ServerErrorContext & {
+  level?: SeverityLevel;
 };
 
 const REDACTED_VALUE = "[Filtered]";
@@ -271,6 +275,36 @@ export function captureServerError(error: unknown, context: ServerErrorContext) 
     }
 
     Sentry.captureException(error);
+  });
+}
+
+export function captureServerMessage(message: string, context: ServerMessageContext) {
+  if (!sentryActive) {
+    return;
+  }
+
+  Sentry.withScope((scope) => {
+    scope.setTag("area", context.area);
+
+    if (context.action) {
+      scope.setTag("action", context.action);
+    }
+
+    if (context.level) {
+      scope.setLevel(context.level);
+    }
+
+    Object.entries(context.tags ?? {}).forEach(([key, value]) => {
+      if (value !== null && value !== undefined) {
+        scope.setTag(key, value);
+      }
+    });
+
+    if (context.extra) {
+      scope.setContext("arcaneLedger", sanitizeValue(context.extra) as Record<string, unknown>);
+    }
+
+    Sentry.captureMessage(message);
   });
 }
 
