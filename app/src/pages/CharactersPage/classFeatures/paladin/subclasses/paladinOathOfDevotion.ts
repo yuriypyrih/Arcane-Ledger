@@ -29,6 +29,10 @@ import {
   createChargesOrResourceCardUsage,
   createFeatureActionCardCost
 } from "../../cardUsage";
+import {
+  paladinChannelDivinityActionKey,
+  paladinChannelDivinityOptionKeys
+} from "../../channelDivinity";
 import type { DerivedFeatureStatusEntry, FeatureActionCard, FeatureDamageBonus } from "../../types";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import { getPreparedSpellIdsByLevel, resolveSpellIdsByName } from "../../subclassRuntime";
@@ -86,6 +90,7 @@ type PaladinOathOfDevotionCharacter = Pick<Character, "className"> &
 type SacredWeaponAction = Pick<WeaponAction, "attackKind" | "combatType">;
 
 export type PaladinOathOfDevotionSacredWeaponOptionState = {
+  active: boolean;
   disabled: boolean;
   disabledReason?: string;
 };
@@ -267,13 +272,16 @@ export function getPaladinOathOfDevotionSacredWeaponOptionState(
 
   let disabledReason: string | undefined;
 
-  if (isPaladinOathOfDevotionSacredWeaponActive(character)) {
+  const isActive = isPaladinOathOfDevotionSacredWeaponActive(character);
+
+  if (isActive) {
     disabledReason = "Sacred Weapon is already active.";
   } else if (getChannelDivinityUsesRemaining(character) <= 0) {
     disabledReason = "No Channel Divinity uses remaining.";
   }
 
   return {
+    active: isActive,
     disabled: Boolean(disabledReason),
     disabledReason
   };
@@ -715,6 +723,11 @@ function collectPaladinOathOfDevotionContributions(
   }
 
   const featureActions = getPaladinOathOfDevotionFeatureActions(character);
+  const channelDivinityCharacter = {
+    className: character.className,
+    level: character.level ?? 0,
+    classFeatureState: character.classFeatureState
+  };
   const contributions: FeatureContributionSpec[] = [
     {
       source: createSubclassContributionSource({
@@ -733,6 +746,29 @@ function collectPaladinOathOfDevotionContributions(
         label: sacredWeaponEffectName,
         entryId: CLASS_FEATURE.SACRED_WEAPON
       }),
+      actionOptions: {
+        [paladinChannelDivinityActionKey]: [
+          {
+            key: paladinChannelDivinityOptionKeys.sacredWeapon,
+            name: sacredWeaponEffectName,
+            summary: "Empower a melee weapon",
+            detail: "Spend 1 Channel Divinity to create a 10-minute Sacred Weapon trait.",
+            economyType: ECONOMY_TYPE.ACTION,
+            actionCategory: ACTION_CATEGORY.FEATURE,
+            resultLabel: "Effect",
+            breakdown: "10-minute weapon blessing",
+            description: getOathOfDevotionFeatureDescriptionEntries(CLASS_FEATURE.SACRED_WEAPON),
+            disabled:
+              isPaladinOathOfDevotionSacredWeaponActive(character) ||
+              getPaladinChannelDivinityUsesRemaining(channelDivinityCharacter) <= 0,
+            disabledReason: isPaladinOathOfDevotionSacredWeaponActive(character)
+              ? "Sacred Weapon is already active."
+              : getPaladinChannelDivinityUsesRemaining(channelDivinityCharacter) <= 0
+                ? "No Channel Divinity uses remaining."
+                : undefined
+          }
+        ]
+      },
       weaponActionTransforms: [
         {
           id: "paladin-oath-of-devotion-sacred-weapon-transform",

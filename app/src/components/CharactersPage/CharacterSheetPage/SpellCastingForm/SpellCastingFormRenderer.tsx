@@ -1,24 +1,16 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment, @typescript-eslint/no-explicit-any */
 // @ts-nocheck
-import { runWithActionConfirmationToast } from "../actionConfirmationToast";
 
 export function renderSpellCastingForm(context: Record<string, any>) {
   const {
-    ActionButton,
-    ActionShape,
-    CellContainer,
     CharacterSpellDrawer,
     CircleHelp,
-    DURATION,
-    DivinityListRow,
     Pencil,
     SpellCastingGuideModal,
-    SpellDescriptionContent,
     SpellMainListRow,
     SpellManagementModal,
     SpellSlotActionSheet,
     InputRequiredBadge,
-    X,
     activeSpellSlotSheetExpended,
     activeSpellSlotSheetLevel,
     activeSpellSlotSheetTotal,
@@ -34,12 +26,8 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     cantripLimit,
     cantripOptions,
     castSelectedSpell,
-    channelDivinityUsesRemaining,
-    channelDivinityUsesTotal,
-    channelSelectedDivinity,
     character,
     className,
-    closeSelectedDivinity,
     closeSelectedSpell,
     closeSpellSlotActionSheet,
     clsx,
@@ -59,16 +47,9 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     fighterPsiWarriorEnergyDiceTotal,
     fighterPsiWarriorTelekineticMasterUsesRemaining,
     fighterPsiWarriorTelekineticMasterUsesTotal,
-    formatCodexLabel,
-    formatDivinitySubtitle,
-    formatFeatureActionOptionRangeLabel,
-    formatSpellCastingTime,
     formatSpellGroupTitle,
     frozenHauntFallbackSpellSlotMinimumLevel,
-    gameplayActionStyles,
     getActionShapeForEconomyType,
-    getDivinityDrawerValueLabel,
-    getDivinityRowActionShapeState,
     getSpellOutcomeSummary,
     getSpellRowActionShapes,
     hasSpellManagementOptions,
@@ -83,11 +64,8 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     isSpellcastingRulesEnforcementDisabled,
     knownSpellEntriesById,
     onPersistCharacter,
-    openDivinityDetails,
     openSpellDetails,
     openSpellManagementMenu,
-    orderDescriptionAdditionSections,
-    paladinOathOfTheNobleGeniesElementalSmiteOptions,
     preparedSpellRowGroups,
     preparedSpellLimit,
     rangerFeyReinforcementsUsesRemaining,
@@ -96,14 +74,6 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     rangerMistyWandererUsesTotal,
     resetAllSpellSlotsAtLevel,
     selectedCantripIds,
-    selectedDivinityActionShape,
-    selectedDivinityActionShapeState,
-    selectedDivinityActionWarning,
-    selectedDivinityBackdropHandlers,
-    selectedDivinityDisplay,
-    selectedDivinityOptionKey,
-    selectedDivinityRow,
-    selectedElementalSmiteOptionOnSelectedSpell,
     selectedFrozenHauntFallbackSlotLevel,
     selectedManualSpellbookSpellIds,
     selectedPreparedSpellIds,
@@ -125,7 +95,6 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     selectedSpellMagicInitiateAbility,
     selectedSpellMagicInitiateDisabled,
     selectedSpellMagicInitiateFreeCastState,
-    selectedSpellElementalSmiteDisabled,
     selectedSpellFacts,
     selectedSpellFalseLifeTemporaryHitPointsFormula,
     selectedSpellFeyMagicDisabled,
@@ -144,7 +113,6 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     selectedSpellHuntersRimeTemporaryHitPointsFormula,
     selectedSpellIsSpellbookOnly,
     selectedSpellIsWizardSpellMastery,
-    selectedSpellMindMagicDisabled,
     selectedSpellMistyWandererDisabled,
     selectedSpellOverchannelDisabled,
     selectedSpellOverchannelNecroticDamage,
@@ -164,7 +132,6 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     selectedSpellSupportsBeguilingMagic,
     selectedSpellSupportsBewitchingMagic,
     selectedSpellSupportsBlessingOfMoonlight,
-    selectedSpellSupportsElementalSmite,
     selectedSpellSupportsBoonOfSpellRecall,
     selectedSpellSupportsDetectThoughts,
     selectedSpellSupportsEmeraldEnclaveFledgling,
@@ -174,7 +141,6 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     selectedSpellSupportsFeyReinforcements,
     selectedSpellSupportsGoliathAncestry,
     selectedSpellSupportsMagicInitiate,
-    selectedSpellSupportsMindMagic,
     selectedSpellSupportsMistyWanderer,
     selectedSpellSupportsNaturalRecovery,
     selectedSpellSupportsOverchannel,
@@ -187,18 +153,15 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     selectedSpellSupportsStepsOfTheFey,
     selectedSpellSupportsTamedSurge,
     selectedSpellSupportsTelekineticMaster,
-    selectedSpellSupportsWarGodsBlessing,
     selectedSpellTamedSurgeDisabled,
     selectedSpellTelekineticMasterDisabled,
     selectedSpellUnderMantleOfMajesty,
     selectedSpellViewMode,
-    selectedSpellWarGodsBlessingDisabled,
     setActiveSpellSlotSheetLevel,
     setActiveWizardSpellFilter,
     setIsSelectedSpellDiceRollerSettingsOpen,
     setIsSpellcastingGuideOpen,
     setIsSpellManagementModalOpen,
-    setSelectedElementalSmiteOptionOnSelectedSpell,
     setSelectedFrozenHauntFallbackSlotLevel,
     setSelectedSpellSlotLevel,
     setUseBeguilingMagicOnSelectedSpell,
@@ -207,7 +170,6 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     setUseBoonOfSpellRecallOnSelectedSpell,
     setUseDetectThoughtsOnSelectedSpell,
     setUseEmeraldEnclaveFledglingFreeUseOnSelectedSpell,
-    setUseElementalSmiteOnSelectedSpell,
     setUseFeyMagicOnSelectedSpell,
     setUseFiendishLegacyOnSelectedSpell,
     setUseForestGnomeOnSelectedSpell,
@@ -216,7 +178,6 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     setUseFeyReinforcementsOnSelectedSpell,
     setUseFrozenHauntOnSelectedSpell,
     setUseMagicInitiateOnSelectedSpell,
-    setUseMindMagicOnSelectedSpell,
     setUseMistyWandererOnSelectedSpell,
     setUseNaturalRecoveryOnSelectedSpell,
     setUseOverchannelOnSelectedSpell,
@@ -229,10 +190,8 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     setUseStepsOfTheFeyOnSelectedSpell,
     setUseTamedSurgeOnSelectedSpell,
     setUseTelekineticMasterOnSelectedSpell,
-    setUseWarGodsBlessingOnSelectedSpell,
     shared,
     SheetSurface,
-    sheetStyles,
     sorceryPointsRemaining,
     sorceryPointsTotal,
     spellPreparationOptions,
@@ -240,7 +199,6 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     spellSlotTotals,
     spellSlotsRemaining,
     spellbookSpellEntriesById,
-    spellcastingChannelDivinityRows,
     spellcastingState,
     styles,
     tamedSurgeUsesRemaining,
@@ -254,7 +212,6 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     useBoonOfSpellRecallOnSelectedSpell,
     useDetectThoughtsOnSelectedSpell,
     useEmeraldEnclaveFledglingFreeUseOnSelectedSpell,
-    useElementalSmiteOnSelectedSpell,
     useFeyMagicOnSelectedSpell,
     useFiendishLegacyOnSelectedSpell,
     useForestGnomeOnSelectedSpell,
@@ -263,7 +220,6 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     useFeyReinforcementsOnSelectedSpell,
     useFrozenHauntOnSelectedSpell,
     useMagicInitiateOnSelectedSpell,
-    useMindMagicOnSelectedSpell,
     useMistyWandererOnSelectedSpell,
     useNaturalRecoveryOnSelectedSpell,
     useOverchannelOnSelectedSpell,
@@ -276,7 +232,6 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     useStepsOfTheFeyOnSelectedSpell,
     useTamedSurgeOnSelectedSpell,
     useTelekineticMasterOnSelectedSpell,
-    useWarGodsBlessingOnSelectedSpell,
     usesPreparedSpells,
     usesSpellbook,
     warlockStepsOfTheFeyUsesRemaining,
@@ -396,37 +351,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
       ) : null}
 
       <div className={styles.spellListStack}>
-        {spellcastingChannelDivinityRows.length > 0 ? (
-          <div className={styles.spellGroup}>
-            <p className={styles.spellGroupTitle}>
-              {`Channel Divinity (uses ${channelDivinityUsesRemaining}/${channelDivinityUsesTotal})`}
-            </p>
-            <ul className={styles.spellList}>
-              {spellcastingChannelDivinityRows.map((row) => (
-                <li key={row.option.key}>
-                  {(() => {
-                    const actionShapeState = getDivinityRowActionShapeState(row);
-
-                    return (
-                      <DivinityListRow
-                        divinity={{
-                          ...row.entry,
-                          name: row.option.name
-                        }}
-                        onClick={() => openDivinityDetails(row.option.key)}
-                        valueSummary={formatFeatureActionOptionRangeLabel(row.option)}
-                        actionShapeSelected={actionShapeState.isSelected}
-                        actionShapeMultiCount={actionShapeState.multiCount}
-                      />
-                    );
-                  })()}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : null}
-
-        {preparedSpellRowGroups.length === 0 && spellcastingChannelDivinityRows.length === 0 ? (
+        {preparedSpellRowGroups.length === 0 ? (
           <p className={shared.emptyText}>No spells or cantrips have been selected yet.</p>
         ) : (
           preparedSpellRowGroups.map((group) => (
@@ -491,7 +416,6 @@ export function renderSpellCastingForm(context: Record<string, any>) {
           suspendEscapeClose={Boolean(
             activeSpellSlotSheetLevel !== null ||
             selectedSpell ||
-            selectedDivinityOptionKey ||
             isSelectedSpellDiceRollerSettingsOpen
           )}
           spellcastingRulesEnforced={isSpellcastingRulesEnforced}
@@ -524,8 +448,6 @@ export function renderSpellCastingForm(context: Record<string, any>) {
             castSelectedSpell({
               ...options,
               useBeguilingMagic: useBeguilingMagicOnSelectedSpell,
-              useMindMagic: useMindMagicOnSelectedSpell,
-              useWarGodsBlessing: useWarGodsBlessingOnSelectedSpell,
               useStarMap: useStarMapOnSelectedSpell,
               useMagicInitiate: useMagicInitiateOnSelectedSpell,
               useForestGnome: useForestGnomeOnSelectedSpell,
@@ -537,8 +459,6 @@ export function renderSpellCastingForm(context: Record<string, any>) {
               useDetectThoughts: useDetectThoughtsOnSelectedSpell,
               useBoonOfSpellRecall: useBoonOfSpellRecallOnSelectedSpell,
               useBlessingOfMoonlight: useBlessingOfMoonlightOnSelectedSpell,
-              useElementalSmite: useElementalSmiteOnSelectedSpell,
-              elementalSmiteOption: selectedElementalSmiteOptionOnSelectedSpell,
               useFeyReinforcements: useFeyReinforcementsOnSelectedSpell,
               useFeyReinforcementsNoConcentration:
                 useFeyReinforcementsNoConcentrationOnSelectedSpell,
@@ -561,8 +481,6 @@ export function renderSpellCastingForm(context: Record<string, any>) {
           actionConsumesSpellSlot={
             !selectedSpellIsSpellbookOnly &&
             !selectedSpellCanOnlyBeCastAsRitual &&
-            !(selectedSpellSupportsMindMagic && useMindMagicOnSelectedSpell) &&
-            !(selectedSpellSupportsWarGodsBlessing && useWarGodsBlessingOnSelectedSpell) &&
             !(selectedSpellSupportsStarMap && useStarMapOnSelectedSpell) &&
             !(selectedSpellSupportsMagicInitiate && useMagicInitiateOnSelectedSpell) &&
             !(selectedSpellSupportsForestGnome && useForestGnomeOnSelectedSpell) &&
@@ -606,9 +524,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
               : null
           }
           actionAvailabilityText={
-            selectedSpellSupportsMindMagic && useMindMagicOnSelectedSpell
-              ? "Mind Magic lets you cast this spell at its base level by using 1 Channel Divinity instead of a spell slot."
-              : selectedSpellSupportsPsionicSorcery && usePsionicSorceryOnSelectedSpell
+            selectedSpellSupportsPsionicSorcery && usePsionicSorceryOnSelectedSpell
                 ? `Psionic Sorcery lets you cast this spell at level ${selectedSpellPsionicSorceryCurrentCost} by spending ${selectedSpellPsionicSorceryCurrentCost} Sorcery Point${selectedSpellPsionicSorceryCurrentCost === 1 ? "" : "s"} instead of a spell slot.`
                 : selectedSpellSupportsStarMap && useStarMapOnSelectedSpell
                   ? "Star Map lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
@@ -664,11 +580,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
                                                     : null
           }
           actionContextText={
-            selectedSpellSupportsWarGodsBlessing &&
-            useWarGodsBlessingOnSelectedSpell &&
-            selectedSpell?.duration.includes(DURATION.CONCENTRATION)
-              ? "Concentration is removed for this casting."
-              : selectedSpellSupportsFeyReinforcements &&
+            selectedSpellSupportsFeyReinforcements &&
                   useFeyReinforcementsNoConcentrationOnSelectedSpell
                 ? "Concentration is removed for this casting, and the duration becomes 10 turns."
                 : selectedSpellUnderMantleOfMajesty
@@ -709,8 +621,6 @@ export function renderSpellCastingForm(context: Record<string, any>) {
             })
             .filter((path): path is NonNullable<typeof path> => path !== null)}
           actionOptions={
-            selectedSpellSupportsWarGodsBlessing ||
-            selectedSpellSupportsMindMagic ||
             selectedSpellSupportsStarMap ||
             selectedSpellSupportsMagicInitiate ||
             selectedSpellSupportsForestGnome ||
@@ -724,7 +634,6 @@ export function renderSpellCastingForm(context: Record<string, any>) {
             selectedSpellSupportsPsionicSorcery ||
             selectedSpellSupportsBeguilingMagic ||
             selectedSpellSupportsBlessingOfMoonlight ||
-            selectedSpellSupportsElementalSmite ||
             selectedSpellSupportsStepsOfTheFey ||
             selectedSpellSupportsBewitchingMagic ||
             selectedSpellSupportsMistyWanderer ||
@@ -745,62 +654,6 @@ export function renderSpellCastingForm(context: Record<string, any>) {
                           checked: useOverchannelOnSelectedSpell,
                           onCheckedChange: setUseOverchannelOnSelectedSpell,
                           disabled: selectedSpellOverchannelDisabled
-                        }
-                      ]
-                    : []),
-                  ...(selectedSpellSupportsWarGodsBlessing
-                    ? [
-                        {
-                          id: "war-gods-blessing",
-                          label: "War God's Blessing",
-                          checked: useWarGodsBlessingOnSelectedSpell,
-                          onCheckedChange: setUseWarGodsBlessingOnSelectedSpell,
-                          disabled: selectedSpellWarGodsBlessingDisabled,
-                          headerTags: createNamedUsageHeaderTags(
-                            createFeatureActionCardCost({
-                              amountText: "1",
-                              icon: "pyromancy"
-                            }),
-                            channelDivinityUsesRemaining,
-                            channelDivinityUsesTotal,
-                            {
-                              icon: "pyromancy"
-                            }
-                          ),
-                          usage: createNamedResourceCardUsage(
-                            createFeatureActionCardCost({
-                              amountText: "1",
-                              icon: "pyromancy"
-                            })
-                          )
-                        }
-                      ]
-                    : []),
-                  ...(selectedSpellSupportsMindMagic
-                    ? [
-                        {
-                          id: "mind-magic",
-                          label: "Mind Magic",
-                          checked: useMindMagicOnSelectedSpell,
-                          onCheckedChange: setUseMindMagicOnSelectedSpell,
-                          disabled: selectedSpellMindMagicDisabled,
-                          headerTags: createNamedUsageHeaderTags(
-                            createFeatureActionCardCost({
-                              amountText: "1",
-                              icon: "pyromancy"
-                            }),
-                            channelDivinityUsesRemaining,
-                            channelDivinityUsesTotal,
-                            {
-                              icon: "pyromancy"
-                            }
-                          ),
-                          usage: createNamedResourceCardUsage(
-                            createFeatureActionCardCost({
-                              amountText: "1",
-                              icon: "pyromancy"
-                            })
-                          )
                         }
                       ]
                     : []),
@@ -1128,53 +981,6 @@ export function renderSpellCastingForm(context: Record<string, any>) {
                         }
                       ]
                     : []),
-                  ...(selectedSpellSupportsElementalSmite
-                    ? [
-                        {
-                          id: "elemental-smite",
-                          label: "Elemental Smite",
-                          checked: useElementalSmiteOnSelectedSpell,
-                          onCheckedChange: setUseElementalSmiteOnSelectedSpell,
-                          disabled: selectedSpellElementalSmiteDisabled,
-                          radioOptions: {
-                            value: selectedElementalSmiteOptionOnSelectedSpell,
-                            onValueChange: (value: string) =>
-                              setSelectedElementalSmiteOptionOnSelectedSpell(
-                                value as Exclude<
-                                  typeof selectedElementalSmiteOptionOnSelectedSpell,
-                                  null
-                                >
-                              ),
-                            required: true,
-                            placement: "body" as const,
-                            options: paladinOathOfTheNobleGeniesElementalSmiteOptions.map(
-                              (option) => ({
-                                id: option.key,
-                                header: option.label,
-                                description: option.descriptionEntries
-                              })
-                            )
-                          },
-                          headerTags: createNamedUsageHeaderTags(
-                            createFeatureActionCardCost({
-                              amountText: "1",
-                              icon: "pyromancy"
-                            }),
-                            channelDivinityUsesRemaining,
-                            channelDivinityUsesTotal,
-                            {
-                              icon: "pyromancy"
-                            }
-                          ),
-                          usage: createNamedResourceCardUsage(
-                            createFeatureActionCardCost({
-                              amountText: "1",
-                              icon: "pyromancy"
-                            })
-                          )
-                        }
-                      ]
-                    : []),
                   ...(selectedSpellSupportsStepsOfTheFey
                     ? [
                         {
@@ -1352,154 +1158,6 @@ export function renderSpellCastingForm(context: Record<string, any>) {
         />
       ) : null}
 
-      {selectedDivinityRow ? (
-        <div
-          className={sheetStyles.spellDrawerBackdrop}
-          role="presentation"
-          onClick={selectedDivinityBackdropHandlers.onBackdropClick}
-          onPointerDown={selectedDivinityBackdropHandlers.onBackdropPointerDown}
-        >
-          <section
-            className={sheetStyles.spellDrawer}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="character-divinity-drawer-title"
-            onClick={selectedDivinityBackdropHandlers.onContentClick}
-          >
-            <div className={sheetStyles.spellDrawerHeader}>
-              <div className={sheetStyles.spellDrawerHeaderContent}>
-                <p className={sheetStyles.spellDrawerBadge}>{formatCodexLabel("DIVINITY")}</p>
-                <div className={sheetStyles.spellDrawerTitleRow}>
-                  <h3 id="character-divinity-drawer-title" className={sheetStyles.spellDrawerTitle}>
-                    {selectedDivinityRow.option.name}
-                  </h3>
-                </div>
-                <p className={sheetStyles.spellDrawerSummary}>
-                  {formatDivinitySubtitle(selectedDivinityRow.entry)}
-                </p>
-              </div>
-              <button
-                type="button"
-                className={sheetStyles.spellDrawerCloseButton}
-                onClick={closeSelectedDivinity}
-                aria-label="Close divinity details"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className={sheetStyles.spellDrawerBody}>
-              <div className={sheetStyles.spellDrawerDetails}>
-                <CellContainer
-                  label="Casting Time"
-                  content={
-                    <span className={styles.divinityCastingTimeContent}>
-                      <span>{formatSpellCastingTime(selectedDivinityRow.entry.castingTime)}</span>
-                      {selectedDivinityActionShape ? (
-                        <ActionShape
-                          shape={selectedDivinityActionShape}
-                          isSelected
-                          size="small"
-                          className={styles.divinityCastingTimeShape}
-                        />
-                      ) : null}
-                    </span>
-                  }
-                />
-                <CellContainer label="Range" content={selectedDivinityRow.entry.range} />
-                <CellContainer label="Duration" content={selectedDivinityRow.entry.duration} />
-                <CellContainer
-                  label={selectedDivinityRow.option.resultLabel ?? "Damage"}
-                  content={getDivinityDrawerValueLabel(selectedDivinityRow.option)}
-                />
-              </div>
-
-              {(() => {
-                const descriptionEntries =
-                  selectedDivinityDisplay?.description ?? selectedDivinityRow.entry.description;
-                const descriptionSections = orderDescriptionAdditionSections(
-                  selectedDivinityDisplay?.descriptionAdditions ?? []
-                );
-                const hasBaseDescription = descriptionEntries.length > 0;
-
-                return hasBaseDescription || descriptionSections.length > 0 ? (
-                  <div className={sheetStyles.spellDrawerDescriptionStack}>
-                    {hasBaseDescription ? (
-                      <SpellDescriptionContent
-                        description={descriptionEntries}
-                        className={clsx(
-                          sheetStyles.spellDrawerDescriptionList,
-                          sheetStyles.spellDrawerDescriptionSection
-                        )}
-                        entryClassName={sheetStyles.spellDrawerDescriptionLine}
-                        strongClassName={sheetStyles.spellDrawerDescriptionStrong}
-                      />
-                    ) : null}
-                    {descriptionSections.map((section, index) => (
-                      <div
-                        key={`${selectedDivinityRow.option.key}-description-addition-${index}`}
-                        className={sheetStyles.spellDrawerDescriptionAdditionSection}
-                      >
-                        {hasBaseDescription || index > 0 ? (
-                          <hr
-                            className={sheetStyles.spellDrawerDescriptionDivider}
-                            aria-hidden="true"
-                          />
-                        ) : null}
-                        <SpellDescriptionContent
-                          description={section}
-                          className={clsx(
-                            sheetStyles.spellDrawerDescriptionList,
-                            sheetStyles.spellDrawerDescriptionSection
-                          )}
-                          entryClassName={sheetStyles.spellDrawerDescriptionLine}
-                          strongClassName={sheetStyles.spellDrawerDescriptionStrong}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                ) : null;
-              })()}
-            </div>
-
-            <div className={sheetStyles.spellDrawerActions}>
-              <div className={styles.divinityDrawerActionStack}>
-                {selectedDivinityActionWarning ? (
-                  <div className={styles.divinityDrawerWarningBlock}>
-                    <p className={gameplayActionStyles.warningCard}>
-                      {selectedDivinityActionWarning}
-                    </p>
-                  </div>
-                ) : null}
-              </div>
-              <ActionButton
-                className={styles.divinityDrawerActionButton}
-                onClick={() =>
-                  runWithActionConfirmationToast(
-                    selectedDivinityRow.option.economyType,
-                    channelSelectedDivinity
-                  )
-                }
-                disabled={
-                  channelDivinityUsesRemaining <= 0 || selectedDivinityActionWarning !== null
-                }
-                trailingBadge={
-                  selectedDivinityActionShape ? (
-                    <ActionShape
-                      shape={selectedDivinityActionShape}
-                      isSelected={selectedDivinityActionShapeState?.isSelected ?? true}
-                      multiCount={selectedDivinityActionShapeState?.multiCount ?? 0}
-                      className={styles.divinityDrawerActionButtonShape}
-                    />
-                  ) : null
-                }
-              >
-                Use Channel Divinity
-              </ActionButton>
-            </div>
-          </section>
-        </div>
-      ) : null}
       {diceRollerPopup}
     </article>
   );

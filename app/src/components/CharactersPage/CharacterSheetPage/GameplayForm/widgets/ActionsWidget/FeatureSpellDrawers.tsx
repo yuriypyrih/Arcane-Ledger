@@ -19,8 +19,7 @@ import {
   createChargesCardUsage,
   createChargesHeaderTag,
   createChargesOrResourceCardUsage,
-  createFeatureActionCardCost,
-  createNamedResourceCardUsage
+  createFeatureActionCardCost
 } from "../../../../../../pages/CharactersPage/classFeatures/cardUsage";
 import { getSpellDamageDetailForCharacter } from "../../../../../../pages/CharactersPage/spellOutcome";
 import {
@@ -32,10 +31,6 @@ import type {
   SpellImplementationOptionValues
 } from "../../../../../../pages/CharactersPage/characterRuntime/spellImplementations";
 import type { GoliathAttackOptionState } from "../../../../../../pages/CharactersPage/speciesGoliath";
-import {
-  paladinOathOfTheNobleGeniesElementalSmiteOptions,
-  type PaladinOathOfTheNobleGeniesElementalSmiteOptionKey
-} from "../../../../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfTheNobleGenies";
 import type { EconomyType } from "../../../../../../pages/CharactersPage/actionEconomy";
 import type { RoundTrackerResource } from "../../../../../../pages/CharactersPage/combat";
 import { getActionShapeForEconomyType } from "../../gameplayWidgetUtils";
@@ -85,7 +80,6 @@ type FeatureSpellDrawersProps = {
   onCloseFixedSpellDrawer: () => void;
   onCastFixedSpellAction: (
     options?: CharacterSpellDrawerActionOptions & {
-      elementalSmiteOption?: PaladinOathOfTheNobleGeniesElementalSmiteOptionKey | null;
       frozenHauntFallbackSlotLevel?: number;
       useFrozenHaunt?: boolean;
     }
@@ -105,8 +99,6 @@ type FeatureSpellDrawersProps = {
   spellcastingBlockedReason: string | null;
   fixedSpellActionPaths: SpellActionPathState[];
   selectedActionSpellSupportsBeguilingMagic: boolean;
-  selectedActionSpellSupportsElementalSmite: boolean;
-  selectedActionSpellElementalSmiteDisabled: boolean;
   selectedActionSpellFrozenHauntOptionState: FrozenHauntOptionState;
   selectedActionSpellFrozenHauntFallbackSlotOptions: SpellSlotSelectOption[];
   beguilingMagicUsesRemaining: number;
@@ -114,15 +106,9 @@ type FeatureSpellDrawersProps = {
   bardicInspirationUsesRemaining: number;
   useBeguilingMagicOnActionSpell: boolean;
   onUseBeguilingMagicOnActionSpellChange: (checked: boolean) => void;
-  useElementalSmiteOnActionSpell: boolean;
-  onUseElementalSmiteOnActionSpellChange: (checked: boolean) => void;
   selectedActionSpellGoliathAncestryState: GoliathAttackOptionState | null;
   useGoliathAncestryOnActionSpell: boolean;
   onUseGoliathAncestryOnActionSpellChange: (checked: boolean) => void;
-  selectedElementalSmiteOptionOnActionSpell: PaladinOathOfTheNobleGeniesElementalSmiteOptionKey | null;
-  onSelectedElementalSmiteOptionOnActionSpellChange: (
-    value: PaladinOathOfTheNobleGeniesElementalSmiteOptionKey | null
-  ) => void;
   useFrozenHauntOnActionSpell: boolean;
   onUseFrozenHauntOnActionSpellChange: (checked: boolean) => void;
   selectedFrozenHauntFallbackSlotLevel: number;
@@ -248,8 +234,6 @@ function FeatureSpellDrawers({
   spellcastingBlockedReason,
   fixedSpellActionPaths,
   selectedActionSpellSupportsBeguilingMagic,
-  selectedActionSpellSupportsElementalSmite,
-  selectedActionSpellElementalSmiteDisabled,
   selectedActionSpellFrozenHauntOptionState,
   selectedActionSpellFrozenHauntFallbackSlotOptions,
   beguilingMagicUsesRemaining,
@@ -257,13 +241,9 @@ function FeatureSpellDrawers({
   bardicInspirationUsesRemaining,
   useBeguilingMagicOnActionSpell,
   onUseBeguilingMagicOnActionSpellChange,
-  useElementalSmiteOnActionSpell,
-  onUseElementalSmiteOnActionSpellChange,
   selectedActionSpellGoliathAncestryState,
   useGoliathAncestryOnActionSpell,
   onUseGoliathAncestryOnActionSpellChange,
-  selectedElementalSmiteOptionOnActionSpell,
-  onSelectedElementalSmiteOptionOnActionSpellChange,
   useFrozenHauntOnActionSpell,
   onUseFrozenHauntOnActionSpellChange,
   selectedFrozenHauntFallbackSlotLevel,
@@ -388,9 +368,7 @@ function FeatureSpellDrawers({
             onCastFixedSpellAction({
               ...options,
               useBeguilingMagic: useBeguilingMagicOnActionSpell,
-              useElementalSmite: useElementalSmiteOnActionSpell,
               useGoliathAncestry: useGoliathAncestryOnActionSpell,
-              elementalSmiteOption: selectedElementalSmiteOptionOnActionSpell,
               useFrozenHaunt: useFrozenHauntOnActionSpell,
               frozenHauntFallbackSlotLevel: selectedFrozenHauntFallbackSlotLevel
             })
@@ -439,7 +417,6 @@ function FeatureSpellDrawers({
           actionOptions={
             beguilingMagicOption ||
             goliathAncestryOption ||
-            selectedActionSpellSupportsElementalSmite ||
             selectedActionSpellFrozenHauntOptionState !== null
               ? [
                   ...(beguilingMagicOption ? [beguilingMagicOption] : []),
@@ -471,39 +448,6 @@ function FeatureSpellDrawers({
                                   options: selectedActionSpellFrozenHauntFallbackSlotOptions
                                 }
                               : undefined
-                        }
-                      ]
-                    : []),
-                  ...(selectedActionSpellSupportsElementalSmite
-                    ? [
-                        {
-                          id: "elemental-smite",
-                          label: "Elemental Smite",
-                          checked: useElementalSmiteOnActionSpell,
-                          onCheckedChange: onUseElementalSmiteOnActionSpellChange,
-                          disabled: selectedActionSpellElementalSmiteDisabled,
-                          radioOptions: {
-                            value: selectedElementalSmiteOptionOnActionSpell,
-                            onValueChange: (value: string) =>
-                              onSelectedElementalSmiteOptionOnActionSpellChange(
-                                value as PaladinOathOfTheNobleGeniesElementalSmiteOptionKey
-                              ),
-                            required: true,
-                            placement: "body" as const,
-                            options: paladinOathOfTheNobleGeniesElementalSmiteOptions.map(
-                              (option) => ({
-                                id: option.key,
-                                header: option.label,
-                                description: option.descriptionEntries
-                              })
-                            )
-                          },
-                          usage: createNamedResourceCardUsage(
-                            createFeatureActionCardCost({
-                              amountText: "1",
-                              icon: "pyromancy"
-                            })
-                          )
                         }
                       ]
                     : [])

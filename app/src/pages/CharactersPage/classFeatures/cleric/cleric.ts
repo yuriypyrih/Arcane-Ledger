@@ -77,6 +77,10 @@ import {
   hasClericFeature,
   normalizeClericBaseFeatureState
 } from "./clericFeatureState";
+import {
+  clericChannelDivinityActionKey,
+  clericChannelDivinityOptionKeys
+} from "../channelDivinity";
 import * as knowledgeDomainSubclass from "./subclasses/clericKnowledgeDomain";
 import * as lifeDomainSubclass from "./subclasses/clericLifeDomain";
 import * as lightDomainSubclass from "./subclasses/clericLightDomain";
@@ -88,7 +92,7 @@ const divineStrikeSource = "Divine Strike";
 const discipleOfLifeSource = "Disciple of Life";
 const blessedHealerSource = "Blessed Healer";
 const supremeHealingSource = "Supreme Healing";
-export const channelDivinityActionKey = "cleric-channel-divinity";
+export const channelDivinityActionKey = clericChannelDivinityActionKey;
 export const divineInterventionActionKey = "cleric-divine-intervention";
 export const divineForeknowledgeActionKey = knowledgeDomainSubclass.divineForeknowledgeActionKey;
 export const blessingOfTheTricksterActionKey =
@@ -1067,7 +1071,7 @@ export function getClericFeatureActionOptions(
 
   return [
     {
-      key: "divine-spark",
+      key: clericChannelDivinityOptionKeys.divineSpark,
       name: divineSparkEntry.name,
       summary: "Damage or healing",
       detail:
@@ -1089,7 +1093,7 @@ export function getClericFeatureActionOptions(
       ]
     },
     {
-      key: "turn-undead",
+      key: clericChannelDivinityOptionKeys.turnUndead,
       name: turnUndeadEntry.name,
       summary: hasClericSearUndead(character) ? "Damage" : "Specified Effect",
       detail:
@@ -1117,11 +1121,23 @@ export function activateClericFeatureActionOption(
     return character;
   }
 
-  if (!["divine-spark", "turn-undead"].includes(optionKey)) {
-    return character;
+  switch (optionKey) {
+    case clericChannelDivinityOptionKeys.divineSpark:
+    case clericChannelDivinityOptionKeys.turnUndead:
+    case clericChannelDivinityOptionKeys.mindMagic:
+    case clericChannelDivinityOptionKeys.warGodsBlessing:
+      return expendClericChannelDivinityUse(character);
+    case clericChannelDivinityOptionKeys.preserveLife:
+      return activateClericPreserveLife(character);
+    case clericChannelDivinityOptionKeys.radianceOfTheDawn:
+      return activateClericRadianceOfTheDawn(character);
+    case clericChannelDivinityOptionKeys.invokeDuplicity:
+      return activateClericInvokeDuplicity(character);
+    case clericChannelDivinityOptionKeys.guidedStrike:
+      return consumeClericGuidedStrikeReaction(character);
+    default:
+      return character;
   }
-
-  return expendClericChannelDivinityUse(character);
 }
 
 export function activateClericDivineIntervention(character: Character): Character {

@@ -62,6 +62,7 @@ import {
   consumeWeaponAttackActionForCharacter,
   createEconomyMultiContextForFeatureAction,
   createEconomyMultiContextForFeatureActionOption,
+  createEconomyMultiContextForSpell,
   expendMonkFocusPointForCharacter,
   getBardicInspirationUsesRemainingForCharacter,
   getChannelDivinityUsesRemainingForCharacter,
@@ -286,6 +287,7 @@ import {
   CLASS_FEATURE,
   ACTION_TYPE,
   DAMAGE_TYPE,
+  DURATION,
   MAGIC_SCHOOL,
   type SpellEntry
 } from "../../../../../../codex/entries";
@@ -648,6 +650,120 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
       return roundTrackerResource
         ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
         : nextCharacter;
+    });
+
+    if (row.option.rollFormula) {
+      openDiceRoller({
+        title: row.option.name,
+        formula: row.option.rollFormula,
+        formulaDisplay: row.option.rollFormulaDisplay ?? row.option.rollFormula,
+        description: row.option.rollDescription ?? row.option.detail
+      });
+    }
+
+    closeActionDrawer();
+  }
+
+  function castSelectedChannelDivinitySpell(row: ChannelDivinityOptionRow, spell: SpellEntry) {
+    if (channelDivinityUsesRemaining <= 0) {
+      return;
+    }
+
+    const roundTrackerResource = getRoundTrackerResourceForSpell(spell);
+    const spellLevel = Math.max(1, getSpellLevel(spell));
+
+    onPersistCharacter((currentCharacter) => {
+      const preparedCharacter = prepareCharacterForResourceConsumption(
+        currentCharacter,
+        roundTrackerResource
+      );
+      const nextCharacter = activateFeatureActionOptionForCharacter(
+        preparedCharacter,
+        row.action.key,
+        row.option.key
+      );
+
+      if (nextCharacter === preparedCharacter) {
+        return currentCharacter;
+      }
+
+      const spellForStatusEntries =
+        row.option.key === "cleric-war-gods-blessing" &&
+        spell.duration.includes(DURATION.CONCENTRATION)
+          ? {
+              name: spell.name,
+              duration: spell.duration.filter(
+                (durationPart) => durationPart !== DURATION.CONCENTRATION
+              )
+            }
+          : spell;
+      const nextCharacterWithConcentration = {
+        ...nextCharacter,
+        statusEntries: applySpellConcentrationToStatusEntries(
+          nextCharacter.statusEntries,
+          spellForStatusEntries
+        )
+      };
+      const nextCharacterWithSpellImplementation = applySpellImplementationForCharacter({
+        character: nextCharacterWithConcentration,
+        spell,
+        spellSlotLevel: spellLevel,
+        castSource: "standard",
+        options: {}
+      });
+      const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
+        nextCharacterWithSpellImplementation,
+        spell,
+        {
+          spellSlotLevel
+        }
+      );
+      const nextCharacterWithSharedMulti = roundTrackerResource
+        ? consumeSharedEconomyMultiForCharacterAction(
+            nextCharacterWithSpellCastEffects,
+            createEconomyMultiContextForSpell(spell)
+          )
+        : nextCharacterWithSpellCastEffects;
+
+      return roundTrackerResource
+        ? consumeRoundTrackerResourceForCharacter(
+            nextCharacterWithSharedMulti,
+            roundTrackerResource
+          )
+        : nextCharacterWithSharedMulti;
+    });
+
+    closeActionDrawer();
+  }
+
+  function activateSelectedElementalSmiteChannelDivinity(
+    row: ChannelDivinityOptionRow,
+    option: PaladinOathOfTheNobleGeniesElementalSmiteOptionKey
+  ) {
+    onPersistCharacter((currentCharacter) => {
+      const roundTrackerResource = getRoundTrackerResourceForEconomyType(row.option.economyType);
+      const preparedCharacter = prepareCharacterForResourceConsumption(
+        currentCharacter,
+        roundTrackerResource
+      );
+      const nextCharacter = activateFeatureActionOptionForCharacter(
+        preparedCharacter,
+        row.action.key,
+        row.option.key
+      );
+
+      if (nextCharacter === preparedCharacter) {
+        return currentCharacter;
+      }
+
+      const nextCharacterWithEffect = applyPaladinOathOfTheNobleGeniesElementalSmiteEffect(
+        nextCharacter,
+        option
+      );
+
+      return roundTrackerResource
+        ? consumeRoundTrackerResourceForCharacter(nextCharacterWithEffect, roundTrackerResource)
+        : nextCharacterWithEffect;
     });
 
     closeActionDrawer();
@@ -1821,7 +1937,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     spellCastEffectIds?: string[];
     useBeguilingMagic?: boolean;
     useElementalSmite?: boolean;
-    elementalSmiteOption?: PaladinOathOfTheNobleGeniesElementalSmiteOptionKey | null;
+    elementalSmiteOption?: string | null;
     useGoliathAncestry?: boolean;
     useFrozenHaunt?: boolean;
     frozenHauntFallbackSlotLevel?: number;
@@ -2262,6 +2378,8 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     toggleFeatureOptionSelection,
     handleFeatureOptionExecute,
     activateSelectedChannelDivinity,
+    castSelectedChannelDivinitySpell,
+    activateSelectedElementalSmiteChannelDivinity,
     confirmSelectedFeatureOptions,
     isArcaneFirearmSubmitting,
     isArtificerMagicItemTinkerSubmitting,

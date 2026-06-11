@@ -1965,11 +1965,21 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
 
   function handleWeaponAttackRoll(action: WeaponAction, pathState?: WeaponAttackPathState) {
     const economyTypeOverride = pathState?.economyType;
+    const sacredWeaponIsActive = selectedWeaponSacredWeaponState?.active === true;
+    const vowOfEnmityIsActive = selectedWeaponVowOfEnmityState?.active === true;
     const useSacredWeapon =
+      selectedWeaponSacredWeaponState !== null &&
+      (sacredWeaponIsActive || (isSacredWeaponSelected && !selectedWeaponSacredWeaponToggleDisabled));
+    const useVowOfEnmity =
+      selectedWeaponVowOfEnmityState !== null &&
+      (vowOfEnmityIsActive || (isVowOfEnmitySelected && !selectedWeaponVowOfEnmityToggleDisabled));
+    const shouldActivateSacredWeapon =
+      !sacredWeaponIsActive &&
       isSacredWeaponSelected &&
       selectedWeaponSacredWeaponState !== null &&
       !selectedWeaponSacredWeaponToggleDisabled;
-    const useVowOfEnmity =
+    const shouldActivateVowOfEnmity =
+      !vowOfEnmityIsActive &&
       isVowOfEnmitySelected &&
       selectedWeaponVowOfEnmityState !== null &&
       !selectedWeaponVowOfEnmityToggleDisabled;
@@ -2042,11 +2052,11 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
 
       let nextCharacter = preparedCharacter;
 
-      if (useSacredWeapon) {
+      if (shouldActivateSacredWeapon) {
         nextCharacter = activatePaladinOathOfDevotionSacredWeapon(nextCharacter);
       }
 
-      if (useVowOfEnmity) {
+      if (shouldActivateVowOfEnmity) {
         nextCharacter = activatePaladinOathOfVengeanceVowOfEnmity(nextCharacter);
       }
 

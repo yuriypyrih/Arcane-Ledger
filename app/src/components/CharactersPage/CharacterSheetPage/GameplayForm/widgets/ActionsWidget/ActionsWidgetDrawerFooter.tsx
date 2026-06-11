@@ -927,42 +927,6 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
             usageKey="goliath-giant-ancestry"
           />
         ) : null}
-        {selectedWeaponSacredWeaponState ? (
-          <FeatureOptInToggle
-            label="Sacred Weapon"
-            checked={isSacredWeaponSelected}
-            disabled={selectedWeaponSacredWeaponToggleDisabled}
-            muted={selectedWeaponSacredWeaponToggleDisabled}
-            onCheckedChange={setIsSacredWeaponSelected}
-            title={selectedWeaponSacredWeaponState.disabledReason ?? undefined}
-            usage={createNamedResourceCardUsage(
-              createFeatureActionCardCost({
-                amountText: "1",
-                icon: "pyromancy"
-              })
-            )}
-            application={{ targetLabel: "Attack" }}
-            usageKey="sacred-weapon"
-          />
-        ) : null}
-        {selectedWeaponVowOfEnmityState ? (
-          <FeatureOptInToggle
-            label="Vow of Enmity"
-            checked={Boolean(selectedWeaponVowOfEnmityState.active) || isVowOfEnmitySelected}
-            disabled={selectedWeaponVowOfEnmityToggleDisabled}
-            muted={selectedWeaponVowOfEnmityToggleDisabled}
-            onCheckedChange={setIsVowOfEnmitySelected}
-            title={selectedWeaponVowOfEnmityState.disabledReason ?? undefined}
-            usage={createNamedResourceCardUsage(
-              createFeatureActionCardCost({
-                amountText: "1",
-                icon: "pyromancy"
-              })
-            )}
-            application={{ targetLabel: "Attack" }}
-            usageKey="vow-of-enmity"
-          />
-        ) : null}
         {selectedWeaponStunningStrikeState ? (
           <FeatureOptInToggle
             label="Stunning Strike"

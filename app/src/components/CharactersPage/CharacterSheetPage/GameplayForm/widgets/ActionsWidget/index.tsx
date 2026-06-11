@@ -408,6 +408,8 @@ import WildResurgenceActionBody from "./forms/WildResurgenceActionBody";
 import WildShapeActionBody from "./forms/WildShapeActionBody";
 import {
   createChannelDivinityOptionRows,
+  getChannelDivinityGuidedFlow,
+  getChannelDivinityGuidedSpellOptions,
   type ChannelDivinityOptionRow
 } from "../../../channelDivinityUtils";
 import { getWeaponAttackPathStates } from "./weaponActionEconomy";
@@ -433,6 +435,7 @@ import { useCustomActionsEditor } from "./useCustomActionsEditor";
 import { useSelectedActionModel } from "./useSelectedActionModel";
 import { useSelectedWeaponActionModel } from "./useSelectedWeaponActionModel";
 import ActionsGrid from "./ActionsGrid";
+import ChannelDivinityGuidedControls from "./ChannelDivinityGuidedControls";
 import FeatureSpellDrawers from "./FeatureSpellDrawers";
 import WildShapePreviewDrawer from "./WildShapePreviewDrawer";
 import { getMonsterKey } from "../../../../../../utils/monsters";
@@ -459,6 +462,13 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     title: string;
     entries: ReturnType<typeof getKeywordReferences>;
   } | null>(null);
+  const [selectedChannelDivinitySpellId, setSelectedChannelDivinitySpellId] = useState<
+    string | null
+  >(null);
+  const [
+    selectedChannelDivinityElementalSmiteOption,
+    setSelectedChannelDivinityElementalSmiteOption
+  ] = useState<PaladinOathOfTheNobleGeniesElementalSmiteOptionKey | null>(null);
   const {
     isCommonActionsOpen,
     setIsCommonActionsOpen,
@@ -812,6 +822,25 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           ) ?? null)
         : null,
     [selectedChannelDivinityOptionKey, selectedChannelDivinityRows]
+  );
+  const selectedChannelDivinityGuidedFlow = selectedChannelDivinityRow
+    ? getChannelDivinityGuidedFlow(selectedChannelDivinityRow.option.key)
+    : null;
+  const selectedChannelDivinitySpellOptions = useMemo(
+    () =>
+      selectedChannelDivinityRow
+        ? getChannelDivinityGuidedSpellOptions(character, selectedChannelDivinityRow.option.key)
+        : [],
+    [character, selectedChannelDivinityRow]
+  );
+  const selectedChannelDivinitySpell = useMemo(
+    () =>
+      selectedChannelDivinitySpellId
+        ? (selectedChannelDivinitySpellOptions.find(
+            (spell) => spell.id === selectedChannelDivinitySpellId
+          ) ?? null)
+        : null,
+    [selectedChannelDivinitySpellId, selectedChannelDivinitySpellOptions]
   );
   const selectedWildShapeMonster = useMemo(
     () =>
@@ -1375,6 +1404,19 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       selectedChannelDivinityRow.option.disabledReason ??
       null)
     : null;
+  const selectedChannelDivinityGuidedWarning =
+    selectedChannelDivinityGuidedFlow === "spell"
+      ? selectedChannelDivinitySpellOptions.length <= 0
+        ? "No eligible spells are available."
+        : selectedChannelDivinitySpell === null
+          ? "Choose a spell."
+          : null
+      : selectedChannelDivinityGuidedFlow === "elemental-smite" &&
+          selectedChannelDivinityElementalSmiteOption === null
+        ? "Choose an Elemental Smite effect."
+        : null;
+  const selectedChannelDivinitySubmitWarning =
+    selectedChannelDivinityWarning ?? selectedChannelDivinityGuidedWarning;
   const selectedChannelDivinityActionShape = selectedChannelDivinityRow
     ? getActionShapeForCastingTime(selectedChannelDivinityRow.entry.castingTime)
     : null;
@@ -1385,6 +1427,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         : null,
     [roundTracker, selectedChannelDivinityRow]
   );
+  useEffect(() => {
+    setSelectedChannelDivinitySpellId(null);
+    setSelectedChannelDivinityElementalSmiteOption(null);
+  }, [selectedChannelDivinityOptionKey]);
   const canSubmitSelectedWarriorOfTheGodsRoll =
     selectedWarriorOfTheGodsChargeCount > 0 &&
     selectedWarriorOfTheGodsChargeCount <= selectedWarriorOfTheGodsUsesRemaining;
@@ -1539,9 +1585,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     beguilingMagicUsesTotal > 0 &&
     (selectedActionSpellEntry.magicSchool === MAGIC_SCHOOL.ENCHANTMENT ||
       selectedActionSpellEntry.magicSchool === MAGIC_SCHOOL.ILLUSION);
-  const selectedActionSpellSupportsElementalSmite =
-    selectedActionSpellEntry?.id === "spell-divine-smite" &&
-    hasPaladinOathOfTheNobleGeniesElementalSmite(character);
+  const selectedActionSpellSupportsElementalSmite = false;
   const selectedActionSpellElementalSmiteDisabled =
     selectedActionSpellSupportsElementalSmite && channelDivinityUsesRemaining <= 0;
   const selectedActionSpellGoliathAncestryState =
@@ -1774,6 +1818,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     toggleFeatureOptionSelection,
     handleFeatureOptionExecute,
     activateSelectedChannelDivinity,
+    castSelectedChannelDivinitySpell,
+    activateSelectedElementalSmiteChannelDivinity,
     confirmSelectedFeatureOptions,
     isArcaneFirearmSubmitting,
     isArtificerMagicItemTinkerSubmitting,
@@ -2033,6 +2079,26 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     useFrozenHauntOnActionSpell,
     selectedFrozenHauntFallbackSlotLevel
   });
+
+  function submitSelectedChannelDivinity(row: ChannelDivinityOptionRow) {
+    if (selectedChannelDivinityGuidedFlow === "spell" && selectedChannelDivinitySpell) {
+      castSelectedChannelDivinitySpell(row, selectedChannelDivinitySpell);
+      return;
+    }
+
+    if (
+      selectedChannelDivinityGuidedFlow === "elemental-smite" &&
+      selectedChannelDivinityElementalSmiteOption
+    ) {
+      activateSelectedElementalSmiteChannelDivinity(
+        row,
+        selectedChannelDivinityElementalSmiteOption
+      );
+      return;
+    }
+
+    activateSelectedChannelDivinity(row);
+  }
 
   const drawerRenderContext = {
     character,
@@ -2485,10 +2551,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           onClose={() => setSelectedChannelDivinityOptionKey(null)}
           footer={
             <div className={styles.footerActionStack}>
-              {selectedChannelDivinityWarning ? (
+              {selectedChannelDivinitySubmitWarning ? (
                 <div className={styles.channelDivinityFooterMeta}>
                   <p className={styles.channelDivinityFooterWarning}>
-                    {selectedChannelDivinityWarning}
+                    {selectedChannelDivinitySubmitWarning}
                   </p>
                 </div>
               ) : null}
@@ -2497,10 +2563,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
                 onClick={() =>
                   runWithActionConfirmationToast(
                     selectedChannelDivinityRow.option.economyType,
-                    () => activateSelectedChannelDivinity(selectedChannelDivinityRow)
+                    () => submitSelectedChannelDivinity(selectedChannelDivinityRow)
                   )
                 }
-                disabled={selectedChannelDivinityWarning !== null}
+                disabled={selectedChannelDivinitySubmitWarning !== null}
                 trailingBadge={
                   selectedChannelDivinityActionShape ? (
                     <ActionShape
@@ -2516,7 +2582,16 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               </ActionButton>
             </div>
           }
-        />
+        >
+          <ChannelDivinityGuidedControls
+            flow={selectedChannelDivinityGuidedFlow}
+            spellOptions={selectedChannelDivinitySpellOptions}
+            selectedSpellId={selectedChannelDivinitySpellId}
+            selectedElementalSmiteOption={selectedChannelDivinityElementalSmiteOption}
+            onSelectedSpellIdChange={setSelectedChannelDivinitySpellId}
+            onSelectedElementalSmiteOptionChange={setSelectedChannelDivinityElementalSmiteOption}
+          />
+        </CodexDivinityDrawer>
       ) : null}
 
       <FeatureSpellDrawers
@@ -2558,8 +2633,6 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         spellcastingBlockedReason={spellcastingState.reason}
         fixedSpellActionPaths={fixedSpellActionPaths}
         selectedActionSpellSupportsBeguilingMagic={selectedActionSpellSupportsBeguilingMagic}
-        selectedActionSpellSupportsElementalSmite={selectedActionSpellSupportsElementalSmite}
-        selectedActionSpellElementalSmiteDisabled={selectedActionSpellElementalSmiteDisabled}
         selectedActionSpellFrozenHauntOptionState={selectedActionSpellFrozenHauntOptionState}
         selectedActionSpellFrozenHauntFallbackSlotOptions={
           selectedActionSpellFrozenHauntFallbackSlotOptions
@@ -2569,15 +2642,9 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         bardicInspirationUsesRemaining={bardicInspirationUsesRemaining}
         useBeguilingMagicOnActionSpell={useBeguilingMagicOnActionSpell}
         onUseBeguilingMagicOnActionSpellChange={setUseBeguilingMagicOnActionSpell}
-        useElementalSmiteOnActionSpell={useElementalSmiteOnActionSpell}
-        onUseElementalSmiteOnActionSpellChange={setUseElementalSmiteOnActionSpell}
         selectedActionSpellGoliathAncestryState={selectedActionSpellGoliathAncestryState}
         useGoliathAncestryOnActionSpell={useGoliathAncestryOnActionSpell}
         onUseGoliathAncestryOnActionSpellChange={setUseGoliathAncestryOnActionSpell}
-        selectedElementalSmiteOptionOnActionSpell={selectedElementalSmiteOptionOnActionSpell}
-        onSelectedElementalSmiteOptionOnActionSpellChange={
-          setSelectedElementalSmiteOptionOnActionSpell
-        }
         useFrozenHauntOnActionSpell={useFrozenHauntOnActionSpell}
         onUseFrozenHauntOnActionSpellChange={setUseFrozenHauntOnActionSpell}
         selectedFrozenHauntFallbackSlotLevel={selectedFrozenHauntFallbackSlotLevel}

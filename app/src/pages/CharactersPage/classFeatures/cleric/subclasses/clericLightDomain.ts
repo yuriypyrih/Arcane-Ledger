@@ -19,6 +19,10 @@ import {
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import {
+  clericChannelDivinityActionKey,
+  clericChannelDivinityOptionKeys
+} from "../../channelDivinity";
+import {
   compileFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
@@ -465,7 +469,15 @@ export function collectClericLightDomainContributions(
         label: "Radiance of the Dawn",
         entryId: CLASS_FEATURE.RADIANCE_OF_THE_DAWN
       }),
-      actions: getClericLightDomainActionsByKey(featureActions, radianceOfTheDawnActionKey)
+      actionOptions: {
+        [clericChannelDivinityActionKey]: getClericLightDomainActionsByKey(
+          featureActions,
+          radianceOfTheDawnActionKey
+        ).map((action) => ({
+          ...action,
+          key: clericChannelDivinityOptionKeys.radianceOfTheDawn
+        }))
+      }
     },
     {
       source: createSubclassContributionSource({

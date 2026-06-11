@@ -498,17 +498,17 @@ export function useSelectedWeaponActionModel({
     }
 
     if (
-      isSacredWeaponSelected &&
       selectedWeaponSacredWeaponState &&
-      !selectedWeaponSacredWeaponToggleDisabled
+      (selectedWeaponSacredWeaponState.active ||
+        (isSacredWeaponSelected && !selectedWeaponSacredWeaponToggleDisabled))
     ) {
       nextAction = applyPaladinOathOfDevotionSacredWeaponAction(character, nextAction);
     }
 
     if (
-      isVowOfEnmitySelected &&
       selectedWeaponVowOfEnmityState &&
-      !selectedWeaponVowOfEnmityToggleDisabled
+      (selectedWeaponVowOfEnmityState.active ||
+        (isVowOfEnmitySelected && !selectedWeaponVowOfEnmityToggleDisabled))
     ) {
       nextAction = applyPaladinOathOfVengeanceVowOfEnmityAction(nextAction);
     }

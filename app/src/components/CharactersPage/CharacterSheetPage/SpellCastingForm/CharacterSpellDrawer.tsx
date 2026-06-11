@@ -83,10 +83,7 @@ export type CharacterSpellDrawerActionOptions = {
   castAsRitual?: boolean;
   roundTrackerResourceOverride?: RoundTrackerResource | null;
   useBeguilingMagic?: boolean;
-  useMindMagic?: boolean;
   useStarMap?: boolean;
-  useElementalSmite?: boolean;
-  elementalSmiteOption?: string | null;
   usePhantasmalCreatures?: boolean;
   usePsionicSorcery?: boolean;
   useTamedSurge?: boolean;
@@ -389,12 +386,7 @@ function CharacterSpellDrawer({
       normalizedSelectedSpellSlotLevel >= minimumSelectedSlotLevel &&
       selectedSpellRemainingSlots > 0);
   const shouldShowActionFooter = mode !== "prepare-preview";
-  const isMindMagicSelected = allActionOptions.some(
-    (option) => option.id === "mind-magic" && option.checked
-  );
-  const visibleActionOptions = isRitualCastingSelected
-    ? allActionOptions.filter((option) => option.id !== "mind-magic")
-    : allActionOptions;
+  const visibleActionOptions = allActionOptions;
   const visibleHeaderTags = visibleActionOptions.flatMap((option) =>
     option.headerTags?.length
       ? (option.usage?.mode === "charges-or-resource"
@@ -406,7 +398,7 @@ function CharacterSpellDrawer({
         }))
       : []
   );
-  const shouldShowRitualToggle = ritualCastingAvailable && !isMindMagicSelected;
+  const shouldShowRitualToggle = ritualCastingAvailable;
   const shouldShowSlotControls =
     mode === "standard" &&
     spellLevel > 0 &&
@@ -423,11 +415,9 @@ function CharacterSpellDrawer({
         ) ?? null)
       : null;
   const requiredActionOptionWarning =
-    missingRequiredActionOptionSelection?.id === "elemental-smite"
-      ? "Choose an Elemental Smite effect."
-      : missingRequiredActionOptionSelection
-        ? `Choose a ${missingRequiredActionOptionSelection.label} option.`
-        : null;
+    missingRequiredActionOptionSelection !== null
+      ? `Choose a ${missingRequiredActionOptionSelection.label} option.`
+      : null;
   const isActionEnabled = shouldShowSlotControls
     ? canCastAtSelectedSlot &&
       !effectiveBlockedReason &&
@@ -458,16 +448,7 @@ function CharacterSpellDrawer({
     requiredActionOptionWarning ?? (isSpentActionWarning(actionWarning) ? null : actionWarning);
   const baseActionOptions = {
     castAsRitual: !isQuickRitualSelected && (ritualCastingRequired || isRitualCastingSelected),
-    useMindMagic:
-      !isRitualCastingSelected &&
-      allActionOptions.some((option) => option.id === "mind-magic" && option.checked),
     useStarMap: allActionOptions.some((option) => option.id === "star-map" && option.checked),
-    useElementalSmite: allActionOptions.some(
-      (option) => option.id === "elemental-smite" && option.checked
-    ),
-    elementalSmiteOption:
-      allActionOptions.find((option) => option.id === "elemental-smite")?.radioOptions?.value ??
-      null,
     usePsionicSorcery: allActionOptions.some(
       (option) => option.id === "psionic-sorcery" && option.checked
     ),
@@ -608,14 +589,6 @@ function CharacterSpellDrawer({
   }, [ritualCastingRequired, spell.id]);
 
   useEffect(() => {
-    if (!isMindMagicSelected) {
-      return;
-    }
-
-    setIsRitualCastingSelected(false);
-  }, [isMindMagicSelected]);
-
-  useEffect(() => {
     if (!isQuickRitualSelected) {
       return;
     }
@@ -639,18 +612,6 @@ function CharacterSpellDrawer({
     ritualCastingRequired,
     selectedSlotIsFreeUse
   ]);
-
-  useEffect(() => {
-    if (!isRitualCastingSelected) {
-      return;
-    }
-
-    const mindMagicOption = allActionOptions.find((option) => option.id === "mind-magic");
-
-    if (mindMagicOption?.checked) {
-      mindMagicOption.onCheckedChange(false);
-    }
-  }, [allActionOptions, isRitualCastingSelected]);
 
   const hasBaseDescription = spell.description.length > 0;
   const spellDescriptionSections = orderDescriptionAdditionSections(

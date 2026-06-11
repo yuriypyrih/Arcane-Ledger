@@ -26,6 +26,10 @@ import {
   createFeatureActionCardCost
 } from "../../cardUsage";
 import {
+  paladinChannelDivinityActionKey,
+  paladinChannelDivinityOptionKeys
+} from "../../channelDivinity";
+import {
   getPreparedSpellIdsByLevel,
   resolveSpellIdsByName,
   type SubclassRuntimeResolver
@@ -643,6 +647,11 @@ function collectPaladinOathOfVengeanceContributions(
   }
 
   const featureActions = getPaladinOathOfVengeanceFeatureActions(character);
+  const channelDivinityCharacter = {
+    className: character.className,
+    level: character.level ?? 0,
+    classFeatureState: character.classFeatureState
+  };
   const reactionEntries = getPaladinOathOfVengeanceReactionEntries(character);
   const contributions: FeatureContributionSpec[] = [
     {
@@ -665,6 +674,29 @@ function collectPaladinOathOfVengeanceContributions(
         label: vowOfEnmityName,
         entryId: CLASS_FEATURE.VOW_OF_ENMITY
       }),
+      actionOptions: {
+        [paladinChannelDivinityActionKey]: [
+          {
+            key: paladinChannelDivinityOptionKeys.vowOfEnmity,
+            name: vowOfEnmityName,
+            summary: "Gain advantage against a foe.",
+            detail: "Spend 1 Channel Divinity to create a 1-minute Vow of Enmity trait.",
+            economyType: ECONOMY_TYPE.ACTION,
+            actionCategory: ACTION_CATEGORY.FEATURE,
+            resultLabel: "Effect",
+            breakdown: "1-minute advantage",
+            description: getOathOfVengeanceFeatureDescriptionEntries(CLASS_FEATURE.VOW_OF_ENMITY),
+            disabled:
+              hasActivePaladinOathOfVengeanceVowOfEnmity(character) ||
+              getPaladinChannelDivinityUsesRemaining(channelDivinityCharacter) <= 0,
+            disabledReason: hasActivePaladinOathOfVengeanceVowOfEnmity(character)
+              ? "Vow of Enmity is already active."
+              : getPaladinChannelDivinityUsesRemaining(channelDivinityCharacter) <= 0
+                ? "No Channel Divinity uses remaining."
+                : undefined
+          }
+        ]
+      },
       weaponActionTransforms: [
         {
           id: "paladin-oath-of-vengeance-vow-of-enmity-transform",

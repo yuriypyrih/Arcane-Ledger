@@ -34,6 +34,10 @@ import {
   normalizeCharacterStatusEntries
 } from "../../../statusEntries";
 import {
+  clericChannelDivinityActionKey,
+  clericChannelDivinityOptionKeys
+} from "../../channelDivinity";
+import {
   createChargesAndUsageHeaderTags,
   createChargesOrResourceCardUsage,
   createFeatureActionCardCost
@@ -895,7 +899,22 @@ export function collectClericKnowledgeDomainContributions(
         id: `${knowledgeDomainSubclassId}-mind-magic`,
         label: "Mind Magic",
         entryId: CLASS_FEATURE.MIND_MAGIC
-      })
+      }),
+      actionOptions: {
+        [clericChannelDivinityActionKey]: [
+          {
+            key: clericChannelDivinityOptionKeys.mindMagic,
+            name: mindMagicSource,
+            summary: "Cast a Divination spell",
+            detail: "Spend 1 Channel Divinity to cast an eligible prepared Divination spell.",
+            economyType: ECONOMY_TYPE.ACTION,
+            actionCategory: ACTION_CATEGORY.MAGIC,
+            resultLabel: "Spell",
+            breakdown: "Prepared Divination spell",
+            description: getFeatureDescriptionForCharacter(character, CLASS_FEATURE.MIND_MAGIC)
+          }
+        ]
+      }
     },
     {
       source: createSubclassContributionSource({

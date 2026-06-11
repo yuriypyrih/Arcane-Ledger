@@ -3,6 +3,10 @@ import { preserveLifeDescription } from "../../../../../codex/subclasses/cleric"
 import type { Character } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import {
+  clericChannelDivinityActionKey,
+  clericChannelDivinityOptionKeys
+} from "../../channelDivinity";
+import {
   compileFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
@@ -121,7 +125,14 @@ export function collectClericLifeDomainContributions(
         label: "Preserve Life",
         entryId: CLASS_FEATURE.PRESERVE_LIFE
       }),
-      actions: getClericLifeDomainFeatureActions(character)
+      actionOptions: {
+        [clericChannelDivinityActionKey]: getClericLifeDomainFeatureActions(character).map(
+          (action) => ({
+            ...action,
+            key: clericChannelDivinityOptionKeys.preserveLife
+          })
+        )
+      }
     },
     ...(hasClericLifeDomainFeature(character, 6)
       ? [

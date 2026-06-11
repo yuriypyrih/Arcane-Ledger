@@ -46,6 +46,10 @@ import {
   createFeatureActionCardCost
 } from "../../cardUsage";
 import {
+  paladinChannelDivinityActionKey,
+  paladinChannelDivinityOptionKeys
+} from "../../channelDivinity";
+import {
   getPreparedSpellIdsByLevel,
   resolveSpellIdsByName,
   type SubclassRuntimeResolver
@@ -56,7 +60,11 @@ import type {
   FeatureSkillProficiencyEntry,
   FeatureSpeedBonus
 } from "../../types";
-import { hasActivePaladinAuraOfProtection, hasPaladinFeature } from "../paladin";
+import {
+  getPaladinChannelDivinityUsesRemaining,
+  hasActivePaladinAuraOfProtection,
+  hasPaladinFeature
+} from "../paladin";
 
 export const oathOfTheNobleGeniesSubclassId = "paladin-oath-of-the-noble-genies";
 export const paladinOathOfTheNobleGeniesGeniesSplendorSkillOptions = [
@@ -907,6 +915,11 @@ function collectPaladinOathOfTheNobleGeniesContributions(
   }
 
   const featureActions = getPaladinOathOfTheNobleGeniesFeatureActions(character);
+  const channelDivinityCharacter = {
+    className: character.className,
+    level: character.level ?? 0,
+    classFeatureState: character.classFeatureState
+  };
   const derivedStatusEntries = getPaladinOathOfTheNobleGeniesDerivedStatusEntries(character);
   const reactionEntries = getPaladinOathOfTheNobleGeniesReactionEntries(character);
   const contributions: FeatureContributionSpec[] = [
@@ -927,6 +940,27 @@ function collectPaladinOathOfTheNobleGeniesContributions(
         label: elementalSmiteSource,
         entryId: CLASS_FEATURE.ELEMENTAL_SMITE
       }),
+      actionOptions: {
+        [paladinChannelDivinityActionKey]: [
+          {
+            key: paladinChannelDivinityOptionKeys.elementalSmite,
+            name: elementalSmiteSource,
+            summary: "Invoke an elemental smite",
+            detail:
+              "Spend 1 Channel Divinity after Divine Smite to choose a genie smite effect.",
+            economyType: ECONOMY_TYPE.BONUS_ACTION,
+            actionCategory: ACTION_CATEGORY.MAGIC,
+            resultLabel: "Effect",
+            breakdown: "After Divine Smite",
+            description: elementalSmiteDescription,
+            disabled: getPaladinChannelDivinityUsesRemaining(channelDivinityCharacter) <= 0,
+            disabledReason:
+              getPaladinChannelDivinityUsesRemaining(channelDivinityCharacter) <= 0
+                ? "No Channel Divinity uses remaining."
+                : undefined
+          }
+        ]
+      },
       spellTransforms: [
         {
           id: "paladin-oath-of-the-noble-genies-elemental-smite-transform",

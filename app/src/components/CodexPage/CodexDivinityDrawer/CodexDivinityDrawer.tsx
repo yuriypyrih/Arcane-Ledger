@@ -50,6 +50,7 @@ type CodexDivinityDrawerProps = {
   character?: Pick<Character, "className" | "level" | "abilities" | "feats"> &
     Partial<Pick<Character, "subclassId">>;
   resources?: FeatureActionResource[];
+  children?: ReactNode;
   footer?: ReactNode;
   onClose: () => void;
   backdropClassName?: string;
@@ -188,6 +189,7 @@ function CodexDivinityDrawer({
   divinity,
   character,
   resources = [],
+  children,
   footer,
   onClose,
   backdropClassName
@@ -321,6 +323,7 @@ function CodexDivinityDrawer({
               ))}
             </div>
           ) : null}
+          {children}
         </OverlayBody>
         {footer ? <OverlayFooter>{footer}</OverlayFooter> : null}
       </SheetDrawer>

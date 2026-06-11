@@ -21,9 +21,7 @@ import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "..
 import { hasStatusCondition, normalizeCharacterStatusEntries } from "../../statusEntries";
 import { getFeatureDescriptionForCharacter } from "../featureDescriptions";
 import {
-  createFeatureActionCardCost,
-  createHeaderTagsFromResources,
-  createNamedUsageHeaderTags
+  createHeaderTagsFromResources
 } from "../cardUsage";
 import {
   getEffectiveHitPointMaximumForCharacter,
@@ -36,6 +34,10 @@ import type {
   FeatureDamageBonus,
   FeatureWeaponProficiencyEntry
 } from "../types";
+import {
+  paladinChannelDivinityActionKey as sharedPaladinChannelDivinityActionKey,
+  paladinChannelDivinityOptionKeys
+} from "../channelDivinity";
 import { getWeaponMasteryOptions, normalizeWeaponMasterySelections } from "../weaponMastery";
 import * as ancientsSubclass from "./subclasses/paladinOathOfTheAncients";
 import * as devotionSubclass from "./subclasses/paladinOathOfDevotion";
@@ -44,7 +46,7 @@ import * as nobleGeniesSubclass from "./subclasses/paladinOathOfTheNobleGenies";
 import * as vengeanceSubclass from "./subclasses/paladinOathOfVengeance";
 
 export const paladinLayOnHandsActionKey = "paladin-lay-on-hands";
-export const paladinChannelDivinityActionKey = "paladin-channel-divinity";
+export const paladinChannelDivinityActionKey = sharedPaladinChannelDivinityActionKey;
 export const paladinsSmiteActionKey = "paladin-paladins-smite";
 export const faithfulSteedActionKey = "paladin-faithful-steed";
 export const abjureFoesActionKey = "paladin-abjure-foes";
@@ -67,7 +69,7 @@ const divineSmiteSpellId = "spell-divine-smite";
 const findSteedSpellId = "spell-find-steed";
 const paladinsSmiteUsesTotal = 1;
 const faithfulSteedUsesTotal = 1;
-const paladinDivineSenseOptionKey = "paladin-divine-sense";
+const paladinDivineSenseOptionKey = paladinChannelDivinityOptionKeys.divineSense;
 const auraOfProtectionStatusSourceId = "feature-paladin-aura-of-protection";
 const auraOfCourageStatusSourceId = "feature-paladin-aura-of-courage";
 const auraOfCourageImmunitySourceId = "feature-paladin-aura-of-courage-immunity";
@@ -742,43 +744,6 @@ export function getPaladinFeatureActions(
     });
   }
 
-  if (hasPaladinFeature(character, CLASS_FEATURE.ABJURE_FOES)) {
-    const usesRemaining = getPaladinChannelDivinityUsesRemaining(character);
-    const usesTotal = getPaladinChannelDivinityUsesTotal(character);
-
-    featureActions.push({
-      key: abjureFoesActionKey,
-      name: "Abjure Foes",
-      sourceFeature: CLASS_FEATURE.ABJURE_FOES,
-      summary: "Overwhelm foes with divine awe.",
-      detail: "Use a Magic action to force nearby foes to resist your divine presence.",
-      economyType: ECONOMY_TYPE.ACTION,
-      actionCategory: ACTION_CATEGORY.MAGIC,
-      consumesEconomyOnActivate: true,
-      hideUsesTrackerOnCard: true,
-      usesInlineLabel: "Use 1",
-      usesInlineIcon: "pyromancy",
-      usesRemaining,
-      usesTotal,
-      headerTags: createNamedUsageHeaderTags(
-        createFeatureActionCardCost({
-          amountText: "1",
-          icon: "pyromancy"
-        }),
-        usesRemaining,
-        usesTotal,
-        {
-          label: "Channel Divinity"
-        }
-      ),
-      execute: {
-        kind: "activate"
-      },
-      disabled: usesRemaining <= 0,
-      disabledReason: usesRemaining <= 0 ? "No Channel Divinity uses remaining." : undefined
-    });
-  }
-
   return featureActions;
 }
 
@@ -790,12 +755,14 @@ export function getPaladinFeatureActionOptions(
   }
 
   const divineSense = getDivinityEntryById("divinity-divine-sense");
+  const abjureFoes = getDivinityEntryById("divinity-abjure-foes");
 
   if (!divineSense) {
     return [];
   }
 
-  return [
+  const usesRemaining = getPaladinChannelDivinityUsesRemaining(character);
+  const options: FeatureActionOptionCard[] = [
     {
       key: paladinDivineSenseOptionKey,
       name: divineSense.name,
@@ -808,6 +775,24 @@ export function getPaladinFeatureActionOptions(
       breakdown: "60 ft | 10 minutes"
     }
   ];
+
+  if (hasPaladinFeature(character, CLASS_FEATURE.ABJURE_FOES) && abjureFoes) {
+    options.push({
+      key: paladinChannelDivinityOptionKeys.abjureFoes,
+      name: abjureFoes.name,
+      summary: "Overwhelm foes with divine awe.",
+      detail: "Use a Magic action to force nearby foes to resist your divine presence.",
+      economyType: ECONOMY_TYPE.ACTION,
+      actionCategory: ACTION_CATEGORY.MAGIC,
+      resultLabel: "Effect",
+      breakdown: "60 ft | Wisdom save",
+      description: abjureFoes.description,
+      disabled: usesRemaining <= 0,
+      disabledReason: usesRemaining <= 0 ? "No Channel Divinity uses remaining." : undefined
+    });
+  }
+
+  return options;
 }
 
 export function activatePaladinFeatureActionOption(
@@ -818,28 +803,26 @@ export function activatePaladinFeatureActionOption(
     return character;
   }
 
-  if (optionKey !== paladinDivineSenseOptionKey) {
-    return character;
+  switch (optionKey) {
+    case paladinChannelDivinityOptionKeys.divineSense:
+      return expendPaladinChannelDivinityUse(character);
+    case paladinChannelDivinityOptionKeys.abjureFoes:
+      return activateAbjureFoes(character);
+    case paladinChannelDivinityOptionKeys.naturesWrath:
+      return activateNaturesWrath(character);
+    case paladinChannelDivinityOptionKeys.sacredWeapon:
+      return devotionSubclass.activatePaladinOathOfDevotionSacredWeapon(character);
+    case paladinChannelDivinityOptionKeys.inspiringSmite:
+      return expendPaladinChannelDivinityUse(character);
+    case paladinChannelDivinityOptionKeys.peerlessAthlete:
+      return activatePeerlessAthlete(character);
+    case paladinChannelDivinityOptionKeys.elementalSmite:
+      return expendPaladinChannelDivinityUse(character);
+    case paladinChannelDivinityOptionKeys.vowOfEnmity:
+      return vengeanceSubclass.activatePaladinOathOfVengeanceVowOfEnmity(character);
+    default:
+      return character;
   }
-
-  const paladinState = getPaladinFeatureState(character);
-  const totalUses = getPaladinChannelDivinityUsesTotal(character);
-  const usesExpended = paladinState.channelDivinityUsesExpended ?? 0;
-
-  if (usesExpended >= totalUses) {
-    return character;
-  }
-
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      paladin: {
-        ...paladinState,
-        channelDivinityUsesExpended: usesExpended + 1
-      }
-    }
-  };
 }
 
 export function applyLayOnHands(character: Character, options: LayOnHandsOptions): Character {

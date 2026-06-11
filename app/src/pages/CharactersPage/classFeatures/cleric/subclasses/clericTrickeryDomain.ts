@@ -21,6 +21,10 @@ import {
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
 } from "../../../featureContributions";
+import {
+  clericChannelDivinityActionKey,
+  clericChannelDivinityOptionKeys
+} from "../../channelDivinity";
 import { getPreparedSpellIdsByLevel, type SubclassRuntimeResolver } from "../../subclassRuntime";
 import type { FeatureActionCard, FeatureIndicator, SkillIndicatorMap } from "../../types";
 import {
@@ -359,7 +363,15 @@ export function collectClericTrickeryDomainContributions(
         label: "Invoke Duplicity",
         entryId: CLASS_FEATURE.INVOKE_DUPLICITY
       }),
-      actions: getClericTrickeryDomainActionsByKey(featureActions, invokeDuplicityActionKey)
+      actionOptions: {
+        [clericChannelDivinityActionKey]: getClericTrickeryDomainActionsByKey(
+          featureActions,
+          invokeDuplicityActionKey
+        ).map((action) => ({
+          ...action,
+          key: clericChannelDivinityOptionKeys.invokeDuplicity
+        }))
+      }
     },
     ...(hasClericTrickeryDomainFeature(character, 6)
       ? [

@@ -1,8 +1,6 @@
 import {
   CLASS_FEATURE,
   DAMAGE_TYPE,
-  REACTION,
-  type ReactionEntry,
   type SpellEntry
 } from "../../../../../codex/entries";
 import {
@@ -27,6 +25,10 @@ import {
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
 } from "../../../featureContributions";
+import {
+  clericChannelDivinityActionKey,
+  clericChannelDivinityOptionKeys
+} from "../../channelDivinity";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import type { WeaponAction } from "../../../gameplay";
 import { getPreparedSpellIdsByLevel, type SubclassRuntimeResolver } from "../../subclassRuntime";
@@ -239,20 +241,6 @@ function getClericWarGodsBlessingSpellEntry(
   );
 }
 
-function getClericGuidedStrikeReactionEntry(
-  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
-): ReactionEntry {
-  return {
-    id: guidedStrikeReactionEntryId,
-    reaction: REACTION.GUIDED_STRIKE,
-    name: guidedStrikeName,
-    sourceType: "feature",
-    sourceFeature: CLASS_FEATURE.GUIDED_STRIKE,
-    sourceLabel: "War Domain",
-    description: getGuidedStrikeDescription(character)
-  };
-}
-
 export function consumeClericGuidedStrikeReaction(character: Character): Character {
   return hasClericWarDomainFeature(character, 3)
     ? expendClericChannelDivinityUse(character)
@@ -459,7 +447,22 @@ export function collectClericWarDomainContributions(
         label: guidedStrikeName,
         entryId: CLASS_FEATURE.GUIDED_STRIKE
       }),
-      reactions: [getClericGuidedStrikeReactionEntry(character)],
+      actionOptions: {
+        [clericChannelDivinityActionKey]: [
+          {
+            key: clericChannelDivinityOptionKeys.guidedStrike,
+            name: guidedStrikeName,
+            summary: "Add +10 to a miss",
+            detail: "Spend 1 Channel Divinity to add +10 to a missed attack roll.",
+            economyType: ECONOMY_TYPE.REACTION,
+            actionCategory: ACTION_CATEGORY.FEATURE,
+            resultLabel: "Bonus",
+            breakdown: "+10 to attack roll",
+            rollFormulaDisplay: "+10",
+            description: getGuidedStrikeDescription(character)
+          }
+        ]
+      },
       weaponActionTransforms: [
         {
           id: "cleric-war-domain-guided-strike-weapon-action-transform",
@@ -482,6 +485,22 @@ export function collectClericWarDomainContributions(
               label: warGodsBlessingName,
               entryId: CLASS_FEATURE.WAR_GODS_BLESSING
             }),
+            actionOptions: {
+              [clericChannelDivinityActionKey]: [
+                {
+                  key: clericChannelDivinityOptionKeys.warGodsBlessing,
+                  name: warGodsBlessingName,
+                  summary: "Cast a War Domain spell",
+                  detail:
+                    "Spend 1 Channel Divinity to cast Shield of Faith or Spiritual Weapon without a spell slot.",
+                  economyType: ECONOMY_TYPE.BONUS_ACTION,
+                  actionCategory: ACTION_CATEGORY.MAGIC,
+                  resultLabel: "Spell",
+                  breakdown: "Shield of Faith or Spiritual Weapon",
+                  description: getWarGodsBlessingDescription(character)
+                }
+              ]
+            },
             spellTransforms: [
               {
                 id: "cleric-war-domain-war-gods-blessing-spell-transform",

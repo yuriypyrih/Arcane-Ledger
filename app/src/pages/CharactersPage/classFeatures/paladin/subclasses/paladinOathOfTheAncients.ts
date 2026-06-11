@@ -35,6 +35,10 @@ import {
   createHeaderTagsFromResources
 } from "../../cardUsage";
 import {
+  paladinChannelDivinityActionKey,
+  paladinChannelDivinityOptionKeys
+} from "../../channelDivinity";
+import {
   getPreparedSpellIdsByLevel,
   resolveSpellIdsByName,
   type SubclassRuntimeResolver
@@ -677,7 +681,15 @@ function collectPaladinOathOfTheAncientsContributions(
         label: "Nature's Wrath",
         entryId: CLASS_FEATURE.NATURES_WRATH
       }),
-      actions: getFeatureActionByKey(featureActions, naturesWrathActionKey)
+      actionOptions: {
+        [paladinChannelDivinityActionKey]: getFeatureActionByKey(
+          featureActions,
+          naturesWrathActionKey
+        ).map((action) => ({
+          ...action,
+          key: paladinChannelDivinityOptionKeys.naturesWrath
+        }))
+      }
     }
   ];
 

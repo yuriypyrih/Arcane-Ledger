@@ -12,7 +12,6 @@ import type {
   FeatureActionCard
 } from "../types";
 import {
-  abjureFoesActionKey,
   faithfulSteedActionKey,
   getPaladinAlwaysPreparedSpellIds,
   getPaladinDerivedStatusEntries,
@@ -155,19 +154,6 @@ function createPaladinAuraOfProtectionContribution(
   };
 }
 
-function createPaladinAbjureFoesContribution(
-  featureActions: FeatureActionCard[]
-): FeatureContributionSpec {
-  return {
-    source: createClassContributionSource({
-      id: "paladin-abjure-foes",
-      label: "Abjure Foes",
-      entryId: CLASS_FEATURE.ABJURE_FOES
-    }),
-    actions: getFeatureActionByKey(featureActions, abjureFoesActionKey)
-  };
-}
-
 function createPaladinAuraOfCourageContribution(
   character: CollectedClassFeatureCharacter
 ): FeatureContributionSpec {
@@ -234,10 +220,6 @@ export function collectPaladinFeatureContributions(
 
   if (hasPaladinFeature(character, CLASS_FEATURE.AURA_OF_PROTECTION)) {
     contributions.push(createPaladinAuraOfProtectionContribution(character));
-  }
-
-  if (hasPaladinFeature(character, CLASS_FEATURE.ABJURE_FOES)) {
-    contributions.push(createPaladinAbjureFoesContribution(featureActions));
   }
 
   if (hasPaladinFeature(character, CLASS_FEATURE.AURA_OF_COURAGE)) {

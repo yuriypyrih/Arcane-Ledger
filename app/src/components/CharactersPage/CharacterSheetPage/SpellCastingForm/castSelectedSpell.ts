@@ -4,9 +4,7 @@
 export function castSelectedSpellWithContext(context: Record<string, any>, options?: any) {
   const {
     ACTION_CATEGORY,
-    DURATION,
     activateFighterPsiWarriorTelekineticMasterSpellCastForCharacter,
-    applyPaladinOathOfTheNobleGeniesElementalSmiteEffect,
     applyRangerWinterWalkerFrozenHauntStatusEntriesForCharacter,
     applySpellCastFeatureEffectsForCharacter,
     applySpellConcentrationToStatusEntries,
@@ -14,7 +12,6 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
     applyWizardEvokerOverchannelUse,
     canUseWarlockCelestialPatronRadiantSoulForSpell,
     canUseWizardEvokerOverchannelForSpellSlot,
-    channelDivinityUsesRemaining,
     character,
     clampNumber,
     closeSelectedSpell,
@@ -42,7 +39,6 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
     consumeWizardSignatureSpellFreeCastForCharacter,
     createEconomyMultiContextForSpell,
     druidNaturalRecoveryUsesRemaining,
-    expendChannelDivinityUseForCharacter,
     fighterPsiWarriorEnergyDiceRemaining,
     fighterPsiWarriorTelekineticMasterConcentrationStatusSourceId,
     fighterPsiWarriorTelekineticMasterUsesRemaining,
@@ -79,7 +75,6 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
     selectedSpellSupportsBewitchingMagic,
     selectedSpellSupportsBoonOfSpellRecall,
     selectedSpellSupportsDetectThoughts,
-    selectedSpellSupportsElementalSmite,
     selectedSpellSupportsEmeraldEnclaveFledgling,
     selectedSpellSupportsFeyMagic,
     selectedSpellSupportsFiendishLegacy,
@@ -87,7 +82,6 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
     selectedSpellSupportsFeyReinforcements,
     selectedSpellSupportsGoliathAncestry,
     selectedSpellSupportsMagicInitiate,
-    selectedSpellSupportsMindMagic,
     selectedSpellSupportsMistyWanderer,
     selectedSpellSupportsNaturalRecovery,
     selectedSpellSupportsOverchannel,
@@ -99,7 +93,6 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
     selectedSpellSupportsStepsOfTheFey,
     selectedSpellSupportsTamedSurge,
     selectedSpellSupportsTelekineticMaster,
-    selectedSpellSupportsWarGodsBlessing,
     sorceryPointsRemaining,
     spellSlotsExpended,
     spellSlotsRemaining,
@@ -132,14 +125,6 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
     : createEconomyMultiContextForSpell(selectedSpell);
   const castAsRitual = options?.castAsRitual === true && selectedSpell.ritual === true;
   const useBeguilingMagic = options?.useBeguilingMagic === true;
-  const useMindMagic =
-    options?.useMindMagic === true &&
-    selectedSpellSupportsMindMagic &&
-    channelDivinityUsesRemaining > 0;
-  const useWarGodsBlessing =
-    options?.useWarGodsBlessing === true &&
-    selectedSpellSupportsWarGodsBlessing &&
-    channelDivinityUsesRemaining > 0;
   const useStarMap = options?.useStarMap === true && selectedSpellSupportsStarMap;
   const useMagicInitiate = options?.useMagicInitiate === true && selectedSpellSupportsMagicInitiate;
   const useForestGnome = options?.useForestGnome === true && selectedSpellSupportsForestGnome;
@@ -168,11 +153,6 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
   const spellActionPathId =
     options?.spellActionPathId ?? selectedSpellActionPath?.id ?? null;
   const useBlessingOfMoonlight = options?.useBlessingOfMoonlight === true;
-  const useElementalSmite =
-    options?.useElementalSmite === true &&
-    selectedSpellSupportsElementalSmite &&
-    channelDivinityUsesRemaining > 0;
-  const elementalSmiteOption = useElementalSmite ? (options?.elementalSmiteOption ?? null) : null;
   const useStepsOfTheFey =
     options?.useStepsOfTheFey === true &&
     selectedSpellSupportsStepsOfTheFey &&
@@ -219,14 +199,7 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
         name: selectedSpell.name,
         duration: ["1 minute"]
       }
-    : useWarGodsBlessing && selectedSpell.duration.includes(DURATION.CONCENTRATION)
-      ? {
-          name: selectedSpell.name,
-          duration: selectedSpell.duration.filter(
-            (durationPart) => durationPart !== DURATION.CONCENTRATION
-          )
-        }
-      : selectedSpell;
+    : selectedSpell;
   const concentrationStatusOptions = useTelekineticMaster
     ? {
         sourceId: fighterPsiWarriorTelekineticMasterConcentrationStatusSourceId
@@ -240,10 +213,6 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
     useGoliathAncestry ? consumeGoliathGiantAncestryUseForCharacter(nextCharacter) : nextCharacter;
 
   if (selectedSpellIsSpellbookOnly && !canCastSpellbookRitual) {
-    return;
-  }
-
-  if (useElementalSmite && elementalSmiteOption === null) {
     return;
   }
 
@@ -265,20 +234,11 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
         const nextCharacterWithBeguilingMagic = useBeguilingMagic
           ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacter)
           : nextCharacter;
-        const nextCharacterWithMindMagic = useMindMagic
-          ? expendChannelDivinityUseForCharacter(nextCharacterWithBeguilingMagic)
-          : nextCharacterWithBeguilingMagic;
         const nextCharacterWithSpellOptions = useBlessingOfMoonlight
-          ? consumeBlessingOfMoonlightUseForCharacter(nextCharacterWithMindMagic)
-          : nextCharacterWithMindMagic;
-        const nextCharacterWithElementalSmite = useElementalSmite
-          ? applyPaladinOathOfTheNobleGeniesElementalSmiteEffect(
-              expendChannelDivinityUseForCharacter(nextCharacterWithSpellOptions),
-              elementalSmiteOption
-            )
-          : nextCharacterWithSpellOptions;
+          ? consumeBlessingOfMoonlightUseForCharacter(nextCharacterWithBeguilingMagic)
+          : nextCharacterWithBeguilingMagic;
         const nextCharacterWithSpellImplementation = applySpellImplementationForCharacter({
-          character: nextCharacterWithElementalSmite,
+          character: nextCharacterWithSpellOptions,
           spell: selectedSpell,
           spellSlotLevel: null,
           castSource: spellImplementationCastSource,
@@ -336,22 +296,13 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
         const nextCharacter = useBeguilingMagic
           ? consumeBeguilingMagicOrBardicInspirationForCharacter(currentCharacter)
           : currentCharacter;
-        const nextCharacterWithMindMagic = useMindMagic
-          ? expendChannelDivinityUseForCharacter(nextCharacter)
-          : nextCharacter;
         const nextCharacterWithSpellOptions = useBlessingOfMoonlight
-          ? consumeBlessingOfMoonlightUseForCharacter(nextCharacterWithMindMagic)
-          : nextCharacterWithMindMagic;
-        const nextCharacterWithElementalSmite = useElementalSmite
-          ? applyPaladinOathOfTheNobleGeniesElementalSmiteEffect(
-              expendChannelDivinityUseForCharacter(nextCharacterWithSpellOptions),
-              elementalSmiteOption
-            )
-          : nextCharacterWithSpellOptions;
+          ? consumeBlessingOfMoonlightUseForCharacter(nextCharacter)
+          : nextCharacter;
         const nextCharacterWithConcentration = {
-          ...nextCharacterWithElementalSmite,
+          ...nextCharacterWithSpellOptions,
           statusEntries: applySpellConcentrationToStatusEntries(
-            nextCharacterWithElementalSmite.statusEntries,
+            nextCharacterWithSpellOptions.statusEntries,
             spellForStatusEntries,
             concentrationStatusOptions
           )
@@ -421,20 +372,11 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
       const nextCharacterWithBeguilingMagic = useBeguilingMagic
         ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacter)
         : nextCharacter;
-      const nextCharacterWithMindMagic = useMindMagic
-        ? expendChannelDivinityUseForCharacter(nextCharacterWithBeguilingMagic)
-        : nextCharacterWithBeguilingMagic;
       const nextCharacterWithSpellOptions = useBlessingOfMoonlight
-        ? consumeBlessingOfMoonlightUseForCharacter(nextCharacterWithMindMagic)
-        : nextCharacterWithMindMagic;
-      const nextCharacterWithElementalSmite = useElementalSmite
-        ? applyPaladinOathOfTheNobleGeniesElementalSmiteEffect(
-            expendChannelDivinityUseForCharacter(nextCharacterWithSpellOptions),
-            elementalSmiteOption
-          )
-        : nextCharacterWithSpellOptions;
+        ? consumeBlessingOfMoonlightUseForCharacter(nextCharacterWithBeguilingMagic)
+        : nextCharacterWithBeguilingMagic;
       const nextCharacterWithSpellImplementation = applySpellImplementationForCharacter({
-        character: nextCharacterWithElementalSmite,
+        character: nextCharacterWithSpellOptions,
         spell: selectedSpell,
         spellSlotLevel: null,
         castSource: spellImplementationCastSource,
@@ -473,8 +415,6 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
 
   const minimumSlotLevel = Math.max(1, spellLevel);
   const slotLevel =
-    useMindMagic ||
-    useWarGodsBlessing ||
     useStarMap ||
     useMagicInitiate ||
     useForestGnome ||
@@ -513,8 +453,6 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
   const castsFreeViaDetectThoughts = useDetectThoughts;
   const castsFreeViaBoonOfSpellRecall = useBoonOfSpellRecall;
   const castsFreeViaEmeraldEnclaveFledgling = useEmeraldEnclaveFledglingFreeUse;
-  const castsFreeViaMindMagic = useMindMagic;
-  const castsFreeViaWarGodsBlessing = useWarGodsBlessing;
   const castsFreeViaPsionicSorcery = usePsionicSorcery && sorceryPointsRemaining >= slotLevel;
   const castsFreeViaStepsOfTheFey = useStepsOfTheFey;
   const castsFreeViaBewitchingMagic = useBewitchingMagic;
@@ -536,8 +474,6 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
     castsFreeViaDetectThoughts ||
     castsFreeViaBoonOfSpellRecall ||
     castsFreeViaEmeraldEnclaveFledgling ||
-    castsFreeViaMindMagic ||
-    castsFreeViaWarGodsBlessing ||
     castsFreeViaPsionicSorcery ||
     castsFreeViaStepsOfTheFey ||
     castsFreeViaBewitchingMagic ||
@@ -759,24 +695,12 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
     const nextCharacterWithBeguilingMagic = useBeguilingMagic
       ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithTelekineticMaster)
       : nextCharacterWithTelekineticMaster;
-    const nextCharacterWithMindMagic = castsFreeViaMindMagic
-      ? expendChannelDivinityUseForCharacter(nextCharacterWithBeguilingMagic)
-      : nextCharacterWithBeguilingMagic;
-    const nextCharacterWithWarGodsBlessing = castsFreeViaWarGodsBlessing
-      ? expendChannelDivinityUseForCharacter(nextCharacterWithMindMagic)
-      : nextCharacterWithMindMagic;
     const nextCharacterWithSpellOptions = useBlessingOfMoonlight
-      ? consumeBlessingOfMoonlightUseForCharacter(nextCharacterWithWarGodsBlessing)
-      : nextCharacterWithWarGodsBlessing;
-    const nextCharacterWithElementalSmite = useElementalSmite
-      ? applyPaladinOathOfTheNobleGeniesElementalSmiteEffect(
-          expendChannelDivinityUseForCharacter(nextCharacterWithSpellOptions),
-          elementalSmiteOption
-        )
-      : nextCharacterWithSpellOptions;
+      ? consumeBlessingOfMoonlightUseForCharacter(nextCharacterWithBeguilingMagic)
+      : nextCharacterWithBeguilingMagic;
     const nextCharacterWithNaturalRecovery = castsFreeViaNaturalRecovery
-      ? consumeDruidNaturalRecoveryUseForCharacter(nextCharacterWithElementalSmite)
-      : nextCharacterWithElementalSmite;
+      ? consumeDruidNaturalRecoveryUseForCharacter(nextCharacterWithSpellOptions)
+      : nextCharacterWithSpellOptions;
     const nextCharacterWithStarMap = castsFreeViaStarMap
       ? consumeDruidStarMapGuidingBoltUseForCharacter(nextCharacterWithNaturalRecovery)
       : nextCharacterWithNaturalRecovery;

@@ -28,6 +28,10 @@ import {
   createHeaderTagsFromResources
 } from "../../cardUsage";
 import {
+  paladinChannelDivinityActionKey,
+  paladinChannelDivinityOptionKeys
+} from "../../channelDivinity";
+import {
   getPreparedSpellIdsByLevel,
   resolveSpellIdsByName,
   type SubclassRuntimeResolver
@@ -687,6 +691,24 @@ function collectPaladinOathOfGloryContributions(
         label: "Inspiring Smite",
         entryId: CLASS_FEATURE.INSPIRING_SMITE
       }),
+      actionOptions: {
+        [paladinChannelDivinityActionKey]: [
+          {
+            key: paladinChannelDivinityOptionKeys.inspiringSmite,
+            name: "Inspiring Smite",
+            summary: "Grant temporary hit points",
+            detail:
+              "Spend 1 Channel Divinity after Divine Smite to distribute temporary hit points.",
+            economyType: ECONOMY_TYPE.BONUS_ACTION,
+            actionCategory: ACTION_CATEGORY.MAGIC,
+            resultLabel: "Temp HP",
+            rollFormula: `2d8+${character.level ?? 0}`,
+            rollFormulaDisplay: `2d8 + ${character.level ?? 0} Paladin level`,
+            breakdown: "After Divine Smite",
+            description: inspiringSmiteDescription
+          }
+        ]
+      },
       spellTransforms: [
         {
           id: "paladin-oath-of-glory-inspiring-smite-transform",
@@ -700,7 +722,15 @@ function collectPaladinOathOfGloryContributions(
         label: peerlessAthleteName,
         entryId: CLASS_FEATURE.PEERLESS_ATHLETE
       }),
-      actions: getFeatureActionByKey(featureActions, peerlessAthleteActionKey),
+      actionOptions: {
+        [paladinChannelDivinityActionKey]: getFeatureActionByKey(
+          featureActions,
+          peerlessAthleteActionKey
+        ).map((action) => ({
+          ...action,
+          key: paladinChannelDivinityOptionKeys.peerlessAthlete
+        }))
+      },
       skillIndicators: pickSkillIndicators(skillIndicators, [SKILL.ACROBATICS, SKILL.ATHLETICS])
     }
   ];

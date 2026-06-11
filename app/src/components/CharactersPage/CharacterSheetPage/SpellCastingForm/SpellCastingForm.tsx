@@ -1,13 +1,8 @@
 import clsx from "clsx";
-import { CircleHelp, Pencil, X } from "lucide-react";
+import { CircleHelp, Pencil } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import ActionShape, { getActionShapeForCastingTime } from "../../../ActionShape";
-import CellContainer from "../../../CellContainer/CellContainer";
-import DivinityListRow from "../../../DivinityListRow/DivinityListRow";
-import SpellDescriptionContent from "../../../SpellDescriptionContent";
 import InputRequiredBadge from "../../../InputRequiredBadge";
 import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
-import { useExplicitBackdropClick } from "../../../Overlay";
 import CharacterSpellDrawer, { type CharacterSpellDrawerMode } from "./CharacterSpellDrawer";
 import SpellMainListRow from "./SpellMainListRow";
 import SpellCastingGuideModal from "./SpellCastingGuideModal";
@@ -17,29 +12,18 @@ import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import { useClassSpellEntries, usePreparedSpellEntries } from "../../../../codex/classes";
 import { getCharacterRuntime } from "../../../../pages/CharactersPage/characterRuntime/characterRuntime";
 import {
-  ACTION_TYPE,
   CLASS_FEATURE,
-  DURATION,
   MAGIC_SCHOOL,
   getSpellEntryById,
   type SpellEntry
 } from "../../../../codex/entries";
 import type { Character } from "../../../../types";
 import {
-  formatDivinitySubtitle,
-  formatSpellCastingTime,
-  formatCodexLabel
-} from "../../../../utils/codex";
-import {
-  isRoundTrackerResourceAvailable,
   normalizeRoundTracker,
   shouldTrackRoundScopedResources,
   type RoundTrackerResource
 } from "../../../../pages/CharactersPage/combat";
-import {
-  ACTION_CATEGORY,
-  getRoundTrackerResourceForEconomyType
-} from "../../../../pages/CharactersPage/actionEconomy";
+import { ACTION_CATEGORY } from "../../../../pages/CharactersPage/actionEconomy";
 import {
   applyRangerWinterWalkerFrozenHauntStatusEntriesForCharacter,
   applySpellCastFeatureEffectsForCharacter,
@@ -47,7 +31,6 @@ import {
   consumeDruidStarMapGuidingBoltUseForCharacter,
   consumeDruidNaturalRecoveryUseForCharacter,
   consumeBlessingOfMoonlightUseForCharacter,
-  activateFeatureActionOptionForCharacter,
   consumeBeguilingMagicOrBardicInspirationForCharacter,
   consumeRangerFeyReinforcementsUseForCharacter,
   consumeWizardIllusionistPhantasmalCreaturesUseForCharacter,
@@ -55,9 +38,7 @@ import {
   consumeRangerMistyWandererUseForCharacter,
   consumeWarlockStepsOfTheFeyUseForCharacter,
   consumeSharedEconomyMultiForCharacterAction,
-  expendChannelDivinityUseForCharacter,
   getDruidStarMapGuidingBoltUsesRemainingForCharacter,
-  getFeatureActionOptionsForCharacter,
   getRangerWinterWalkerFrozenHauntSpellOptionStateForCharacter,
   getRangerWinterWalkerHuntersRimeTemporaryHitPointsFactsForCharacter,
   getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormulaDisplayForCharacter,
@@ -71,8 +52,7 @@ import {
   getWizardSignatureSpellIdsForCharacter,
   hasWizardSignatureSpellFreeCastAvailableForCharacter,
   getWizardSpellMasterySpellIdsForCharacter,
-  getWizardIllusionistPhantasmalCreaturesSpellOptionStateForCharacter,
-  type FeatureActionOptionCard
+  getWizardIllusionistPhantasmalCreaturesSpellOptionStateForCharacter
 } from "../../../../pages/CharactersPage/classFeatures";
 import {
   grantMonkWarriorOfTheOpenHandFleetStepFollowUpUse,
@@ -85,12 +65,8 @@ import {
   getDruidCircleOfTheLandSpellIdsForCharacter
 } from "../../../../pages/CharactersPage/classFeatures/subclasses";
 import {
-  channelDivinityActionKey,
-  canUseClericMindMagicForSpell,
-  canUseClericWarGodsBlessingForSpell,
   getClericLifeDomainHealingSpellEntry,
-  getClericMindMagicSpellEntry,
-  getClericResolvedDivinityDisplay
+  getClericMindMagicSpellEntry
 } from "../../../../pages/CharactersPage/classFeatures/cleric/cleric";
 import { getDruidCircleOfTheStarsChaliceHealingSpellEntry } from "../../../../pages/CharactersPage/classFeatures/druid/subclasses/druidCircleOfTheStarsDescriptions";
 import {
@@ -102,14 +78,6 @@ import {
   createNamedResourceCardUsage,
   createNamedUsageHeaderTags
 } from "../../../../pages/CharactersPage/classFeatures/cardUsage";
-import { paladinChannelDivinityActionKey } from "../../../../pages/CharactersPage/classFeatures/paladin/paladin";
-import {
-  applyPaladinOathOfTheNobleGeniesElementalSmiteEffect,
-  getPaladinOathOfTheNobleGeniesElementalSmiteDamageDetail,
-  hasPaladinOathOfTheNobleGeniesElementalSmite,
-  paladinOathOfTheNobleGeniesElementalSmiteOptions,
-  type PaladinOathOfTheNobleGeniesElementalSmiteOptionKey
-} from "../../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfTheNobleGenies";
 import {
   getSorceryPointsRemaining,
   spendSorceryPoints
@@ -176,7 +144,6 @@ import {
   getSpeciesSpellcastingAbilityForCharacter,
   getTieflingFiendishLegacyFreeCastStateForCharacter
 } from "../../../../pages/CharactersPage/species";
-import { formatFeatureActionOptionRangeLabel } from "../../../../pages/CharactersPage/actionOutcome";
 import { applySpellConcentrationToStatusEntries } from "../../../../pages/CharactersPage/statusEntries";
 import { fighterPsiWarriorTelekineticMasterConcentrationStatusSourceId } from "../../../../pages/CharactersPage/classFeatures/fighter/subclasses/fighterPsiWarriorShared";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
@@ -198,7 +165,6 @@ import {
   spellSlotLevels
 } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import { getRoundTrackerResourceForSpell } from "../../../../pages/CharactersPage/shared";
-import { orderDescriptionAdditionSections } from "../../../../pages/CharactersPage/actionModalDescriptions";
 import {
   getSpellDamageDetailForCharacter,
   getSpellOutcomeSummaryForCharacter
@@ -210,12 +176,10 @@ import {
   type SpellImplementationCastSource,
   type SpellImplementationOptionValues
 } from "../../../../pages/CharactersPage/characterRuntime/spellImplementations";
-import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import SheetSurface from "../SheetSurface";
 import ActionButton from "../../../ActionButton";
 import { getActionShapeForEconomyType } from "../GameplayForm/gameplayWidgetUtils";
-import gameplayActionStyles from "../GameplayForm/widgets/ActionsWidget/GameplayActionDrawer.module.css";
 import { getSpellActionPathStates, getSpellActionPathWarning } from "../spellActionPaths";
 import styles from "./SpellCastingForm.module.css";
 import {
@@ -223,10 +187,6 @@ import {
   consumeRoundTrackerResourceForCharacter,
   prepareCharacterForRoundTrackerResourceConsumption
 } from "../GameplayForm/gameplayStateUtils";
-import {
-  createChannelDivinityOptionRows,
-  type ChannelDivinityOptionRow
-} from "../channelDivinityUtils";
 import { renderSpellCastingForm } from "./SpellCastingFormRenderer";
 import { castSelectedSpellWithContext } from "./castSelectedSpell";
 import {
@@ -264,60 +224,6 @@ const mistyStepSpellId = "spell-misty-step";
 const summonFeySpellId = "spell-summon-fey";
 const telekinesisSpellId = "spell-telekinesis";
 
-function getDivinityDrawerValueLabel(option: FeatureActionOptionCard): string {
-  return option.rollFormulaDisplay ?? "-";
-}
-
-function getRoundTrackerResourceLabel(resource: RoundTrackerResource): string {
-  switch (resource) {
-    case "bonusAction":
-      return ACTION_TYPE.BONUS_ACTION;
-    case "reaction":
-      return ACTION_TYPE.REACTION;
-    case "action":
-    default:
-      return ACTION_TYPE.ACTION;
-  }
-}
-
-function getRoundTrackerActionWarning(
-  resource: RoundTrackerResource | null,
-  roundTracker: ReturnType<typeof normalizeRoundTracker>
-): string | null {
-  if (
-    !resource ||
-    !shouldTrackRoundScopedResources(roundTracker) ||
-    isRoundTrackerResourceAvailable(roundTracker, resource)
-  ) {
-    return null;
-  }
-
-  return `You already used the ${getRoundTrackerResourceLabel(resource)} for this turn`;
-}
-
-function getActionShapeStateForRoundTrackerResource(
-  resource: RoundTrackerResource | null,
-  roundTracker: ReturnType<typeof normalizeRoundTracker>,
-  multiCount = 0
-): {
-  isSelected: boolean;
-  multiCount: number;
-} {
-  if (!shouldTrackRoundScopedResources(roundTracker)) {
-    return {
-      isSelected: true,
-      multiCount: 0
-    };
-  }
-
-  const isSelected = !resource || isRoundTrackerResourceAvailable(roundTracker, resource);
-
-  return {
-    isSelected,
-    multiCount: isSelected ? 0 : Math.max(0, Math.floor(multiCount))
-  };
-}
-
 function SpellCastingForm({ character, className, onPersistCharacter }: SpellCastingFormProps) {
   const isCustomClass = isCustomClassName(character.className);
   const hasBuiltInSpellcastingRules = hasBuiltInSpellcastingForCharacter(
@@ -348,20 +254,12 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     character.classRules
   );
   const [selectedSpell, setSelectedSpell] = useState<SpellEntry | null>(null);
-  const [selectedDivinityOptionKey, setSelectedDivinityOptionKey] = useState<string | null>(null);
   const [selectedSpellViewMode, setSelectedSpellViewMode] =
     useState<SelectedSpellViewMode>("standard");
   const [selectedSpellSlotLevel, setSelectedSpellSlotLevel] = useState(1);
   const [useBeguilingMagicOnSelectedSpell, setUseBeguilingMagicOnSelectedSpell] = useState(false);
-  const [useMindMagicOnSelectedSpell, setUseMindMagicOnSelectedSpell] = useState(false);
-  const [useWarGodsBlessingOnSelectedSpell, setUseWarGodsBlessingOnSelectedSpell] = useState(false);
   const [useBlessingOfMoonlightOnSelectedSpell, setUseBlessingOfMoonlightOnSelectedSpell] =
     useState(false);
-  const [useElementalSmiteOnSelectedSpell, setUseElementalSmiteOnSelectedSpell] = useState(false);
-  const [
-    selectedElementalSmiteOptionOnSelectedSpell,
-    setSelectedElementalSmiteOptionOnSelectedSpell
-  ] = useState<PaladinOathOfTheNobleGeniesElementalSmiteOptionKey | null>(null);
   const [useStarMapOnSelectedSpell, setUseStarMapOnSelectedSpell] = useState(false);
   const [useMagicInitiateOnSelectedSpell, setUseMagicInitiateOnSelectedSpell] = useState(false);
   const [useForestGnomeOnSelectedSpell, setUseForestGnomeOnSelectedSpell] = useState(false);
@@ -412,8 +310,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       isSpellManagementModalOpen ||
       isSpellcastingGuideOpen ||
       activeSpellSlotSheetLevel !== null ||
-      selectedSpell ||
-      selectedDivinityOptionKey
+      selectedSpell
     )
   );
 
@@ -421,11 +318,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setSelectedSpell(null);
     setSelectedSpellViewMode("standard");
     setUseBeguilingMagicOnSelectedSpell(false);
-    setUseMindMagicOnSelectedSpell(false);
-    setUseWarGodsBlessingOnSelectedSpell(false);
     setUseBlessingOfMoonlightOnSelectedSpell(false);
-    setUseElementalSmiteOnSelectedSpell(false);
-    setSelectedElementalSmiteOptionOnSelectedSpell(null);
     setUseFeyReinforcementsOnSelectedSpell(false);
     setUseMagicInitiateOnSelectedSpell(false);
     setUseForestGnomeOnSelectedSpell(false);
@@ -450,10 +343,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setIsSelectedSpellDiceRollerSettingsOpen(false);
     setSelectedFrozenHauntFallbackSlotLevel(frozenHauntFallbackSpellSlotMinimumLevel);
   }, []);
-  const closeSelectedDivinity = useCallback(() => {
-    setSelectedDivinityOptionKey(null);
-  }, []);
-  const selectedDivinityBackdropHandlers = useExplicitBackdropClick(closeSelectedDivinity);
   const closeSpellSlotActionSheet = useCallback(() => {
     setActiveSpellSlotSheetLevel(null);
   }, []);
@@ -520,10 +409,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     }
 
     closeSelectedSpell();
-    closeSelectedDivinity();
     closeSpellSlotActionSheet();
     setIsSpellManagementModalOpen(false);
-  }, [canCastSpells, closeSelectedDivinity, closeSelectedSpell, closeSpellSlotActionSheet]);
+  }, [canCastSpells, closeSelectedSpell, closeSpellSlotActionSheet]);
 
   useEffect(() => {
     if (!spellcastingState.blocked) {
@@ -547,56 +435,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         : basePreparedSpellPoolEntries.map((spell) => transformSpellEntry(spell)),
     [basePreparedSpellPoolEntries, hasClassSpellcasting, transformSpellEntry]
   );
-  const featureActions = spellcastingRuntime.featureActions;
-  const channelDivinityAction = useMemo(
-    () =>
-      featureActions.find(
-        (action) =>
-          action.key === channelDivinityActionKey || action.key === paladinChannelDivinityActionKey
-      ) ?? null,
-    [featureActions]
-  );
-  const channelDivinityOptions = useMemo(
-    () =>
-      channelDivinityAction
-        ? getFeatureActionOptionsForCharacter(character, channelDivinityAction.key)
-        : [],
-    [channelDivinityAction, character]
-  );
-  const channelDivinityRows = useMemo(
-    () => createChannelDivinityOptionRows(channelDivinityAction, channelDivinityOptions),
-    [channelDivinityAction, channelDivinityOptions]
-  );
-  const spellcastingChannelDivinityRows = useMemo(
-    () => (channelDivinityAction?.key === channelDivinityActionKey ? [] : channelDivinityRows),
-    [channelDivinityAction?.key, channelDivinityRows]
-  );
-  const selectedDivinityRow = useMemo(
-    () =>
-      selectedDivinityOptionKey
-        ? (spellcastingChannelDivinityRows.find(
-            (row) => row.option.key === selectedDivinityOptionKey
-          ) ?? null)
-        : null,
-    [selectedDivinityOptionKey, spellcastingChannelDivinityRows]
-  );
-  const selectedDivinityDisplay = useMemo(
-    () =>
-      selectedDivinityRow
-        ? selectedDivinityRow.action.key === channelDivinityActionKey
-          ? getClericResolvedDivinityDisplay(character, selectedDivinityRow.entry)
-          : {
-              damage: null,
-              healing: null,
-              valueCell: null,
-              description: selectedDivinityRow.entry.description,
-              descriptionAdditions: []
-            }
-        : null,
-    [character, selectedDivinityRow]
-  );
-  const channelDivinityUsesTotal = spellcastingRuntime.channelDivinityUsesTotal;
-  const channelDivinityUsesRemaining = spellcastingRuntime.channelDivinityUsesRemaining;
   const bardicInspirationUsesTotal = spellcastingRuntime.bardicInspirationUsesTotal;
   const sorceryPointsRemaining = spellcastingRuntime.sorceryPointsRemaining;
   const sorceryPointsTotal = spellcastingRuntime.sorceryPointsTotal;
@@ -1081,18 +919,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     () => (selectedSpell ? getSpellActionPathStates(character, selectedSpell, roundTracker) : []),
     [character, roundTracker, selectedSpell]
   );
-  const selectedDivinityActionWarning = getRoundTrackerActionWarning(
-    selectedDivinityRow
-      ? getRoundTrackerResourceForEconomyType(selectedDivinityRow.option.economyType)
-      : null,
-    roundTracker
-  );
-  const selectedDivinityActionShape = selectedDivinityRow
-    ? getActionShapeForCastingTime(selectedDivinityRow.entry.castingTime)
-    : null;
-  const selectedDivinityActionShapeState = selectedDivinityRow
-    ? getDivinityRowActionShapeState(selectedDivinityRow)
-    : null;
   const selectedSpellAlwaysPrepared = selectedSpell
     ? alwaysPreparedSpellIdSet.has(selectedSpell.id) ||
       alwaysPreparedCantripIdSet.has(selectedSpell.id)
@@ -1221,15 +1047,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     canUseSorcererSubclassPsionicSorceryForSpell(character, selectedSpell.id);
   const selectedSpellSupportsTamedSurge =
     selectedSpell !== null && canUseSorcererSubclassTamedSurgeForSpell(character, selectedSpell);
-  const selectedSpellSupportsMindMagic = canUseClericMindMagicForSpell(
-    character,
-    selectedSpell,
-    selectedSpellIsPrepared
-  );
-  const selectedSpellSupportsWarGodsBlessing = canUseClericWarGodsBlessingForSpell(
-    character,
-    selectedSpell
-  );
   const selectedSpellSupportsStepsOfTheFey =
     selectedSpell?.id === mistyStepSpellId && warlockStepsOfTheFeyUsesTotal > 0;
   const selectedSpellSupportsBewitchingMagic =
@@ -1261,10 +1078,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const selectedSpellPsionicSorceryCurrentCost = selectedSpellSupportsPsionicSorcery
     ? selectedSpellPsionicSorcerySlotLevel
     : 0;
-  const selectedSpellMindMagicDisabled =
-    selectedSpellSupportsMindMagic && channelDivinityUsesRemaining <= 0;
-  const selectedSpellWarGodsBlessingDisabled =
-    selectedSpellSupportsWarGodsBlessing && channelDivinityUsesRemaining <= 0;
   const selectedSpellStarMapDisabled =
     selectedSpellSupportsStarMap && druidStarMapGuidingBoltUsesRemaining <= 0;
   const selectedSpellPsionicSorceryDisabled =
@@ -1317,11 +1130,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   }, [character, selectedSpell, selectedSpellIsPrepared]);
   const selectedSpellSupportsBlessingOfMoonlight =
     selectedSpell?.id === "spell-moonbeam" && blessingOfMoonlightUsesTotal > 0;
-  const selectedSpellSupportsElementalSmite =
-    selectedSpell?.id === "spell-divine-smite" &&
-    hasPaladinOathOfTheNobleGeniesElementalSmite(character);
-  const selectedSpellElementalSmiteDisabled =
-    selectedSpellSupportsElementalSmite && channelDivinityUsesRemaining <= 0;
   const selectedSpellSupportsRadiantSoul = spellSupportsWarlockCelestialPatronRadiantSoul(
     character,
     selectedSpellDisplay
@@ -1358,9 +1166,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const selectedSpellDamageDetailOverride = useMemo(() => {
     if (
       !selectedSpellDisplay ||
-      (!useElementalSmiteOnSelectedSpell &&
-        !useRadiantSoulOnSelectedSpell &&
-        !useGoliathAncestryOnSelectedSpell)
+      (!useRadiantSoulOnSelectedSpell && !useGoliathAncestryOnSelectedSpell)
     ) {
       return null;
     }
@@ -1370,31 +1176,23 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       selectedSpellDisplay,
       selectedSpellMagicInitiateAbility
     );
-    const elementalSmiteDamageDetail = useElementalSmiteOnSelectedSpell
-      ? getPaladinOathOfTheNobleGeniesElementalSmiteDamageDetail(
-          baseDamageDetail,
-          selectedElementalSmiteOptionOnSelectedSpell
-        )
-      : baseDamageDetail;
 
     const radiantSoulDamageDetail = useRadiantSoulOnSelectedSpell
       ? getWarlockCelestialPatronRadiantSoulDamageDetail(
           character,
           selectedSpellDisplay,
-          elementalSmiteDamageDetail
+          baseDamageDetail
         )
-      : elementalSmiteDamageDetail;
+      : baseDamageDetail;
 
     return useGoliathAncestryOnSelectedSpell
       ? getGoliathAttackDamageDetail(radiantSoulDamageDetail, selectedSpellGoliathAncestryState)
       : radiantSoulDamageDetail;
   }, [
     character,
-    selectedElementalSmiteOptionOnSelectedSpell,
     selectedSpellGoliathAncestryState,
     selectedSpellMagicInitiateAbility,
     selectedSpellDisplay,
-    useElementalSmiteOnSelectedSpell,
     useGoliathAncestryOnSelectedSpell,
     useRadiantSoulOnSelectedSpell
   ]);
@@ -1413,8 +1211,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     fighterPsiWarriorTelekineticMasterUsesRemaining <= 0 &&
     fighterPsiWarriorEnergyDiceRemaining <= 0;
   const selectedSpellCastOptionSkipsSpellSlot =
-    (selectedSpellSupportsMindMagic && useMindMagicOnSelectedSpell) ||
-    (selectedSpellSupportsWarGodsBlessing && useWarGodsBlessingOnSelectedSpell) ||
     (selectedSpellSupportsStarMap && useStarMapOnSelectedSpell) ||
     (selectedSpellSupportsMagicInitiate && useMagicInitiateOnSelectedSpell) ||
     (selectedSpellSupportsForestGnome && useForestGnomeOnSelectedSpell) ||
@@ -1449,8 +1245,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
 
     const minimumSlotLevel = Math.max(1, getSpellLevel(selectedSpell));
     const slotLevel =
-      (selectedSpellSupportsMindMagic && useMindMagicOnSelectedSpell) ||
-      (selectedSpellSupportsWarGodsBlessing && useWarGodsBlessingOnSelectedSpell) ||
       (selectedSpellSupportsStarMap && useStarMapOnSelectedSpell) ||
       (selectedSpellSupportsMagicInitiate && useMagicInitiateOnSelectedSpell) ||
       (selectedSpellSupportsForestGnome && useForestGnomeOnSelectedSpell) ||
@@ -1466,8 +1260,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         : clampNumber(selectedSpellSlotLevel, minimumSlotLevel, 9, minimumSlotLevel);
     const castsWithoutSpellSlot =
       (selectedSpellFreeCastSlotLevel !== null && slotLevel === selectedSpellFreeCastSlotLevel) ||
-      (selectedSpellSupportsMindMagic && useMindMagicOnSelectedSpell) ||
-      (selectedSpellSupportsWarGodsBlessing && useWarGodsBlessingOnSelectedSpell) ||
       (selectedSpellSupportsStarMap && useStarMapOnSelectedSpell) ||
       (selectedSpellSupportsMagicInitiate && useMagicInitiateOnSelectedSpell) ||
       (selectedSpellSupportsForestGnome && useForestGnomeOnSelectedSpell) ||
@@ -1492,7 +1284,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpell,
     selectedSpellFreeCastSlotLevel,
     selectedSpellSlotLevel,
-    selectedSpellSupportsMindMagic,
     selectedSpellSupportsMagicInitiate,
     selectedSpellSupportsForestGnome,
     selectedSpellSupportsFiendishLegacy,
@@ -1503,9 +1294,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpellSupportsBoonOfSpellRecall,
     selectedSpellSupportsEmeraldEnclaveFledgling,
     selectedSpellSupportsStarMap,
-    selectedSpellSupportsWarGodsBlessing,
     spellSlotsExpended,
-    useMindMagicOnSelectedSpell,
     useMagicInitiateOnSelectedSpell,
     useForestGnomeOnSelectedSpell,
     useFiendishLegacyOnSelectedSpell,
@@ -1515,8 +1304,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     useDetectThoughtsOnSelectedSpell,
     useBoonOfSpellRecallOnSelectedSpell,
     useEmeraldEnclaveFledglingFreeUseOnSelectedSpell,
-    useStarMapOnSelectedSpell,
-    useWarGodsBlessingOnSelectedSpell
+    useStarMapOnSelectedSpell
   ]);
   const selectedSpellFrozenHauntOptionState = useMemo(
     () =>
@@ -1603,11 +1391,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
 
   useEffect(() => {
     setUseBeguilingMagicOnSelectedSpell(false);
-    setUseMindMagicOnSelectedSpell(false);
-    setUseWarGodsBlessingOnSelectedSpell(false);
     setUseBlessingOfMoonlightOnSelectedSpell(false);
-    setUseElementalSmiteOnSelectedSpell(false);
-    setSelectedElementalSmiteOptionOnSelectedSpell(null);
     setUseStarMapOnSelectedSpell(false);
     setUseMagicInitiateOnSelectedSpell(false);
     setUseForestGnomeOnSelectedSpell(false);
@@ -1633,22 +1417,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setUseFrozenHauntOnSelectedSpell(false);
     setSelectedFrozenHauntFallbackSlotLevel(frozenHauntFallbackSpellSlotMinimumLevel);
   }, [selectedSpell?.id]);
-
-  useEffect(() => {
-    if (!selectedSpellSupportsMindMagic || !selectedSpellMindMagicDisabled) {
-      return;
-    }
-
-    setUseMindMagicOnSelectedSpell(false);
-  }, [selectedSpellMindMagicDisabled, selectedSpellSupportsMindMagic]);
-
-  useEffect(() => {
-    if (!selectedSpellSupportsWarGodsBlessing || !selectedSpellWarGodsBlessingDisabled) {
-      return;
-    }
-
-    setUseWarGodsBlessingOnSelectedSpell(false);
-  }, [selectedSpellSupportsWarGodsBlessing, selectedSpellWarGodsBlessingDisabled]);
 
   useEffect(() => {
     if (!selectedSpellSupportsOverchannel || !selectedSpellOverchannelDisabled) {
@@ -1761,15 +1529,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
 
     setUseTamedSurgeOnSelectedSpell(false);
   }, [selectedSpellSupportsTamedSurge, selectedSpellTamedSurgeDisabled]);
-
-  useEffect(() => {
-    if (!selectedSpellSupportsElementalSmite || !selectedSpellElementalSmiteDisabled) {
-      return;
-    }
-
-    setUseElementalSmiteOnSelectedSpell(false);
-    setSelectedElementalSmiteOptionOnSelectedSpell(null);
-  }, [selectedSpellElementalSmiteDisabled, selectedSpellSupportsElementalSmite]);
 
   useEffect(() => {
     if (!selectedSpellSupportsRadiantSoul || !selectedSpellRadiantSoulDisabled) {
@@ -1903,25 +1662,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       wizardSpellbookOnlyRitualIdSet
     ]
   );
-  function getDivinityRowActionShapeState(row: ChannelDivinityOptionRow) {
-    return getActionShapeStateForRoundTrackerResource(
-      getRoundTrackerResourceForEconomyType(row.option.economyType),
-      roundTracker
-    );
-  }
-
-  useEffect(() => {
-    if (!selectedDivinityOptionKey) {
-      return;
-    }
-
-    if (selectedDivinityRow) {
-      return;
-    }
-
-    setSelectedDivinityOptionKey(null);
-  }, [selectedDivinityOptionKey, selectedDivinityRow]);
-
   const openSpellManagementMenu = useCallback(() => {
     if (!hasSpellManagementOptions) {
       return;
@@ -1931,7 +1671,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   }, [hasSpellManagementOptions]);
 
   useEffect(() => {
-    if (activeSpellSlotSheetLevel === null && !selectedSpell && !selectedDivinityOptionKey) {
+    if (activeSpellSlotSheetLevel === null && !selectedSpell) {
       return;
     }
 
@@ -1944,11 +1684,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
 
         if (selectedSpell) {
           closeSelectedSpell();
-          return;
-        }
-
-        if (selectedDivinityOptionKey) {
-          closeSelectedDivinity();
           return;
         }
 
@@ -1966,10 +1701,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   }, [
     activeSpellSlotSheetLevel,
     closeSpellSlotActionSheet,
-    closeSelectedDivinity,
     closeSelectedSpell,
     isSelectedSpellDiceRollerSettingsOpen,
-    selectedDivinityOptionKey,
     selectedSpell
   ]);
 
@@ -2162,7 +1895,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
 
   const openSpellDetails = useCallback(
     (spell: SpellEntry, viewMode: SelectedSpellViewMode = "standard") => {
-      closeSelectedDivinity();
       const spellLevel = getSpellLevel(spell);
       const minimumSlotLevel = Math.max(1, spellLevel);
       const isWizardSpellMasterySpell = wizardSpellMasterySpellIdSet.has(spell.id);
@@ -2192,20 +1924,11 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     },
     [
       character,
-      closeSelectedDivinity,
       spellSlotTotals,
       spellSlotsRemaining,
       wizardSignatureSpellIdSet,
       wizardSpellMasterySpellIdSet
     ]
-  );
-
-  const openDivinityDetails = useCallback(
-    (optionKey: string) => {
-      closeSelectedSpell();
-      setSelectedDivinityOptionKey(optionKey);
-    },
-    [closeSelectedSpell]
   );
 
   if (!canCastSpells) {
@@ -2292,8 +2015,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     castAsRitual?: boolean;
     roundTrackerResourceOverride?: RoundTrackerResource | null;
     useBeguilingMagic?: boolean;
-    useMindMagic?: boolean;
-    useWarGodsBlessing?: boolean;
     useStarMap?: boolean;
     useMagicInitiate?: boolean;
     useForestGnome?: boolean;
@@ -2304,8 +2025,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     useShadowMagic?: boolean;
     useDetectThoughts?: boolean;
     useBlessingOfMoonlight?: boolean;
-    useElementalSmite?: boolean;
-    elementalSmiteOption?: PaladinOathOfTheNobleGeniesElementalSmiteOptionKey | null;
     useFeyReinforcements?: boolean;
     useFeyReinforcementsNoConcentration?: boolean;
     useFrozenHaunt?: boolean;
@@ -2330,9 +2049,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     return castSelectedSpellWithContext(
       {
         ACTION_CATEGORY,
-        DURATION,
         activateFighterPsiWarriorTelekineticMasterSpellCastForCharacter,
-        applyPaladinOathOfTheNobleGeniesElementalSmiteEffect,
         applyRangerWinterWalkerFrozenHauntStatusEntriesForCharacter,
         applySpellCastFeatureEffectsForCharacter,
         applySpellConcentrationToStatusEntries,
@@ -2340,7 +2057,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         applyWizardEvokerOverchannelUse,
         canUseWarlockCelestialPatronRadiantSoulForSpell,
         canUseWizardEvokerOverchannelForSpellSlot,
-        channelDivinityUsesRemaining,
         character,
         clampNumber,
         closeSelectedSpell,
@@ -2368,7 +2084,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         consumeWizardSignatureSpellFreeCastForCharacter,
         createEconomyMultiContextForSpell,
         druidNaturalRecoveryUsesRemaining,
-        expendChannelDivinityUseForCharacter,
         fighterPsiWarriorEnergyDiceRemaining,
         fighterPsiWarriorTelekineticMasterConcentrationStatusSourceId,
         fighterPsiWarriorTelekineticMasterUsesRemaining,
@@ -2403,7 +2118,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         selectedSpellPhantasmalCreaturesOptionState,
         selectedSpellSlotLevel,
         selectedSpellSupportsBewitchingMagic,
-        selectedSpellSupportsElementalSmite,
         selectedSpellSupportsEmeraldEnclaveFledgling,
         selectedSpellSupportsBoonOfSpellRecall,
         selectedSpellSupportsDetectThoughts,
@@ -2413,7 +2127,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         selectedSpellSupportsFeyReinforcements,
         selectedSpellSupportsGoliathAncestry,
         selectedSpellSupportsMagicInitiate,
-        selectedSpellSupportsMindMagic,
         selectedSpellSupportsMistyWanderer,
         selectedSpellSupportsNaturalRecovery,
         selectedSpellSupportsOverchannel,
@@ -2425,7 +2138,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         selectedSpellSupportsStepsOfTheFey,
         selectedSpellSupportsTamedSurge,
         selectedSpellSupportsTelekineticMaster,
-        selectedSpellSupportsWarGodsBlessing,
         sorceryPointsRemaining,
         spellSlotsExpended,
         spellSlotsRemaining,
@@ -2439,37 +2151,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     );
   }
 
-  function channelSelectedDivinity() {
-    if (!selectedDivinityRow || channelDivinityUsesRemaining <= 0) {
-      return;
-    }
-
-    onPersistCharacter((currentCharacter) => {
-      const roundTrackerResource = getRoundTrackerResourceForEconomyType(
-        selectedDivinityRow.option.economyType
-      );
-      const preparedCharacter = prepareCharacterForResourceConsumption(
-        currentCharacter,
-        roundTrackerResource
-      );
-      const nextCharacter = activateFeatureActionOptionForCharacter(
-        preparedCharacter,
-        selectedDivinityRow.action.key,
-        selectedDivinityRow.option.key
-      );
-
-      if (nextCharacter === preparedCharacter) {
-        return currentCharacter;
-      }
-
-      return roundTrackerResource
-        ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
-        : nextCharacter;
-    });
-
-    closeSelectedDivinity();
-  }
-
   const isPreparedSpellPreview = selectedSpellViewMode === "prepare-preview";
   const activeSpellSlotSheetTotal =
     activeSpellSlotSheetLevel !== null ? (spellSlotTotals[activeSpellSlotSheetLevel - 1] ?? 0) : 0;
@@ -2479,20 +2160,14 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       : 0;
   return renderSpellCastingForm({
     ActionButton,
-    ActionShape,
-    CellContainer,
     CharacterSpellDrawer,
     CircleHelp,
-    DURATION,
-    DivinityListRow,
     InputRequiredBadge,
     Pencil,
-    SpellDescriptionContent,
     SpellCastingGuideModal,
     SpellMainListRow,
     SpellManagementModal,
     SpellSlotActionSheet,
-    X,
     activeSpellSlotSheetExpended,
     activeSpellSlotSheetLevel,
     activeSpellSlotSheetTotal,
@@ -2508,12 +2183,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     cantripLimit,
     cantripOptions,
     castSelectedSpell,
-    channelDivinityUsesRemaining,
-    channelDivinityUsesTotal,
-    channelSelectedDivinity,
     character,
     className,
-    closeSelectedDivinity,
     closeSelectedSpell,
     closeSpellSlotActionSheet,
     clsx,
@@ -2532,16 +2203,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     fighterPsiWarriorEnergyDiceTotal,
     fighterPsiWarriorTelekineticMasterUsesRemaining,
     fighterPsiWarriorTelekineticMasterUsesTotal,
-    formatCodexLabel,
-    formatDivinitySubtitle,
-    formatFeatureActionOptionRangeLabel,
-    formatSpellCastingTime,
     formatSpellGroupTitle,
     frozenHauntFallbackSpellSlotMinimumLevel,
-    gameplayActionStyles,
     getActionShapeForEconomyType,
-    getDivinityDrawerValueLabel,
-    getDivinityRowActionShapeState,
     getSpellOutcomeSummary,
     getSpellRowActionShapes,
     hasSpellManagementOptions,
@@ -2557,11 +2221,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     isSpellcastingRulesEnforcementDisabled: spellcastingRulesEnforcementDisabled,
     knownSpellEntriesById,
     onPersistCharacter,
-    openDivinityDetails,
     openSpellDetails,
     openSpellManagementMenu,
-    orderDescriptionAdditionSections,
-    paladinOathOfTheNobleGeniesElementalSmiteOptions,
     preparedSpellRowGroups,
     preparedSpellLimit,
     rangerFeyReinforcementsUsesRemaining,
@@ -2570,14 +2231,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     rangerMistyWandererUsesTotal,
     resetAllSpellSlotsAtLevel,
     selectedCantripIds,
-    selectedDivinityActionShape,
-    selectedDivinityActionShapeState,
-    selectedDivinityActionWarning,
-    selectedDivinityBackdropHandlers,
-    selectedDivinityDisplay,
-    selectedDivinityOptionKey,
-    selectedDivinityRow,
-    selectedElementalSmiteOptionOnSelectedSpell,
     selectedFrozenHauntFallbackSlotLevel,
     selectedManualSpellbookSpellIds,
     selectedPreparedSpellIds,
@@ -2605,7 +2258,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpellDetectThoughtsDisabled,
     selectedSpellDetectThoughtsFreeCastState,
     selectedSpellDisplay,
-    selectedSpellElementalSmiteDisabled,
     selectedSpellFacts,
     selectedSpellFeyMagicDisabled,
     selectedSpellFeyMagicFreeCastState,
@@ -2618,7 +2270,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpellHuntersRimeTemporaryHitPointsFormula,
     selectedSpellIsSpellbookOnly,
     selectedSpellIsWizardSpellMastery,
-    selectedSpellMindMagicDisabled,
     selectedSpellMistyWandererDisabled,
     selectedSpellOverchannelDisabled,
     selectedSpellOverchannelNecroticDamage,
@@ -2639,7 +2290,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpellSupportsBewitchingMagic,
     selectedSpellSupportsBlessingOfMoonlight,
     selectedSpellSupportsBoonOfSpellRecall,
-    selectedSpellSupportsElementalSmite,
     selectedSpellSupportsEmeraldEnclaveFledgling,
     selectedSpellSupportsDetectThoughts,
     selectedSpellSupportsFeyMagic,
@@ -2648,7 +2298,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpellSupportsFeyReinforcements,
     selectedSpellSupportsGoliathAncestry,
     selectedSpellSupportsMagicInitiate,
-    selectedSpellSupportsMindMagic,
     selectedSpellSupportsMistyWanderer,
     selectedSpellSupportsNaturalRecovery,
     selectedSpellSupportsOverchannel,
@@ -2661,18 +2310,15 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpellSupportsStepsOfTheFey,
     selectedSpellSupportsTamedSurge,
     selectedSpellSupportsTelekineticMaster,
-    selectedSpellSupportsWarGodsBlessing,
     selectedSpellTamedSurgeDisabled,
     selectedSpellTelekineticMasterDisabled,
     selectedSpellUnderMantleOfMajesty,
     selectedSpellViewMode,
-    selectedSpellWarGodsBlessingDisabled,
     setActiveSpellSlotSheetLevel,
     setActiveWizardSpellFilter,
     setIsSelectedSpellDiceRollerSettingsOpen,
     setIsSpellcastingGuideOpen,
     setIsSpellManagementModalOpen,
-    setSelectedElementalSmiteOptionOnSelectedSpell,
     setSelectedFrozenHauntFallbackSlotLevel,
     setSelectedSpellSlotLevel,
     setUseBeguilingMagicOnSelectedSpell,
@@ -2681,7 +2327,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setUseBoonOfSpellRecallOnSelectedSpell,
     setUseEmeraldEnclaveFledglingFreeUseOnSelectedSpell,
     setUseDetectThoughtsOnSelectedSpell,
-    setUseElementalSmiteOnSelectedSpell,
     setUseFeyMagicOnSelectedSpell,
     setUseForestGnomeOnSelectedSpell,
     setUseFiendishLegacyOnSelectedSpell,
@@ -2690,7 +2335,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setUseFeyReinforcementsOnSelectedSpell,
     setUseFrozenHauntOnSelectedSpell,
     setUseMagicInitiateOnSelectedSpell,
-    setUseMindMagicOnSelectedSpell,
     setUseMistyWandererOnSelectedSpell,
     setUseNaturalRecoveryOnSelectedSpell,
     setUseOverchannelOnSelectedSpell,
@@ -2703,10 +2347,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setUseStepsOfTheFeyOnSelectedSpell,
     setUseTamedSurgeOnSelectedSpell,
     setUseTelekineticMasterOnSelectedSpell,
-    setUseWarGodsBlessingOnSelectedSpell,
     shared,
     SheetSurface,
-    sheetStyles,
     sorceryPointsRemaining,
     sorceryPointsTotal,
     spellPreparationOptions,
@@ -2714,7 +2356,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     spellSlotTotals,
     spellSlotsRemaining,
     spellbookSpellEntriesById,
-    spellcastingChannelDivinityRows,
     spellcastingState,
     styles,
     tamedSurgeUsesRemaining,
@@ -2725,7 +2366,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     useBeguilingMagicOnSelectedSpell,
     useBewitchingMagicOnSelectedSpell,
     useBlessingOfMoonlightOnSelectedSpell,
-    useElementalSmiteOnSelectedSpell,
     useBoonOfSpellRecallOnSelectedSpell,
     useEmeraldEnclaveFledglingFreeUseOnSelectedSpell,
     useDetectThoughtsOnSelectedSpell,
@@ -2737,7 +2377,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     useFeyReinforcementsOnSelectedSpell,
     useFrozenHauntOnSelectedSpell,
     useMagicInitiateOnSelectedSpell,
-    useMindMagicOnSelectedSpell,
     useMistyWandererOnSelectedSpell,
     useNaturalRecoveryOnSelectedSpell,
     useOverchannelOnSelectedSpell,
@@ -2750,7 +2389,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     useStepsOfTheFeyOnSelectedSpell,
     useTamedSurgeOnSelectedSpell,
     useTelekineticMasterOnSelectedSpell,
-    useWarGodsBlessingOnSelectedSpell,
     usesPreparedSpells,
     usesSpellbook,
     warlockStepsOfTheFeyUsesRemaining,
