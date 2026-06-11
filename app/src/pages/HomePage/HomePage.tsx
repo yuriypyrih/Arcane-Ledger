@@ -11,6 +11,7 @@ import { Link, useNavigate } from "react-router-dom";
 import ActionButton from "../../components/ActionButton";
 import CharacterEmptyState from "../../components/CharactersPage/CharacterEmptyState";
 import CharacterRow from "../../components/CharactersPage/CharacterRow";
+import PwaInstallPanel from "../../components/PwaInstallPanel";
 import { useAppSelector } from "../../store";
 import { GUEST_CHARACTER_LIMIT, USER_CHARACTER_LIMIT } from "../CharactersPage/characterLimits";
 import { useCharacterRosterEntries } from "../CharactersPage/useCharacterRosterEntries";
@@ -139,47 +140,51 @@ function HomePage() {
           ) : null}
 
           {shouldShowGuestBanner ? (
-            <section className={styles.guestBanner} aria-labelledby="guest-benefits-title">
-              <div className={styles.guestBannerHeader}>
-                <p className={styles.guestBannerEyebrow}>
-                  <Sparkles size={15} aria-hidden="true" />
-                  <span>Consider registering</span>
-                </p>
-                <h3 id="guest-benefits-title" className={styles.guestBannerTitle}>
-                  Account Benefits
-                </h3>
-              </div>
+            <>
+              <section className={styles.guestBanner} aria-labelledby="guest-benefits-title">
+                <div className={styles.guestBannerHeader}>
+                  <p className={styles.guestBannerEyebrow}>
+                    <Sparkles size={15} aria-hidden="true" />
+                    <span>Consider registering</span>
+                  </p>
+                  <h3 id="guest-benefits-title" className={styles.guestBannerTitle}>
+                    Account Benefits
+                  </h3>
+                </div>
 
-              <ul className={styles.guestBenefitList}>
-                <li>
-                  <Users size={18} aria-hidden="true" />
-                  <span>
-                    Create up to {USER_CHARACTER_LIMIT} characters, {accountCapacityMultiplier}x the
-                    guest limit
-                  </span>
-                </li>
-                <li>
-                  <Cloud size={18} aria-hidden="true" />
-                  <span>Cloud-stored characters you can open anywhere</span>
-                </li>
-                <li>
-                  <Swords size={18} aria-hidden="true" />
-                  <span>GM Tools like Campaign Manager and Encounter Tracker</span>
-                </li>
-                <li>
-                  <Image size={18} aria-hidden="true" />
-                  <span>Change avatars for your characters</span>
-                </li>
-                <li>
-                  <Headset size={18} aria-hidden="true" />
-                  <span>Submit support tickets when you need help</span>
-                </li>
-                <li>
-                  <Sparkles size={18} aria-hidden="true" />
-                  <span>And much more as Arcane Ledger grows</span>
-                </li>
-              </ul>
-            </section>
+                <ul className={styles.guestBenefitList}>
+                  <li>
+                    <Users size={18} aria-hidden="true" />
+                    <span>
+                      Create up to {USER_CHARACTER_LIMIT} characters, {accountCapacityMultiplier}x
+                      the guest limit
+                    </span>
+                  </li>
+                  <li>
+                    <Cloud size={18} aria-hidden="true" />
+                    <span>Cloud-stored characters you can open anywhere</span>
+                  </li>
+                  <li>
+                    <Swords size={18} aria-hidden="true" />
+                    <span>GM Tools like Campaign Manager and Encounter Tracker</span>
+                  </li>
+                  <li>
+                    <Image size={18} aria-hidden="true" />
+                    <span>Change avatars for your characters</span>
+                  </li>
+                  <li>
+                    <Headset size={18} aria-hidden="true" />
+                    <span>Submit support tickets when you need help</span>
+                  </li>
+                  <li>
+                    <Sparkles size={18} aria-hidden="true" />
+                    <span>And much more as Arcane Ledger grows</span>
+                  </li>
+                </ul>
+              </section>
+
+              <PwaInstallPanel />
+            </>
           ) : null}
         </div>
       </div>

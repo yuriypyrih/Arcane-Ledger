@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { changeNickname, changePassword, logout } from "../../api/auth";
 import { clearLocalAuthSession } from "../../auth/authSessionLifecycle";
 import ActionButton from "../../components/ActionButton";
+import PwaInstallPanel from "../../components/PwaInstallPanel";
 import {
   setAuthError,
   setAuthenticatedUser,
@@ -223,62 +224,66 @@ function AccountPage() {
       </div>
 
       <div className={styles.accountLayout}>
-        <section className={styles.accountSection} aria-labelledby="account-details-title">
-          <div className={styles.accountSectionTopline}>
-            <div className={styles.accountSectionHeader}>
-              <span className={styles.accountSectionIcon}>
-                <BadgeCheck size={20} aria-hidden="true" />
-              </span>
-              <div>
-                <p className={styles.eyebrow}>Profile</p>
-                <h2 id="account-details-title" className={styles.accountSectionTitle}>
-                  Account Details
-                </h2>
+        <div className={styles.accountDetailsColumn}>
+          <section className={styles.accountSection} aria-labelledby="account-details-title">
+            <div className={styles.accountSectionTopline}>
+              <div className={styles.accountSectionHeader}>
+                <span className={styles.accountSectionIcon}>
+                  <BadgeCheck size={20} aria-hidden="true" />
+                </span>
+                <div>
+                  <p className={styles.eyebrow}>Profile</p>
+                  <h2 id="account-details-title" className={styles.accountSectionTitle}>
+                    Account Details
+                  </h2>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className={styles.accountDetailGrid}>
-            <AccountDetailCard
-              icon={<Mail size={18} aria-hidden="true" />}
-              label="Email"
-              value={user.email}
-            />
-            <AccountDetailCard
-              icon={<UserCircle size={18} aria-hidden="true" />}
-              label="Nickname"
-              value={user.nickname}
-            />
-            <AccountDetailCard
-              icon={<BadgeCheck size={18} aria-hidden="true" />}
-              label="Role"
-              value={<span className={styles.rolePill}>{user.role}</span>}
-            />
-            <AccountDetailCard
-              icon={<CalendarDays size={18} aria-hidden="true" />}
-              label="Created"
-              value={formatAuthDate(user.createdAt)}
-            />
-          </div>
+            <div className={styles.accountDetailGrid}>
+              <AccountDetailCard
+                icon={<Mail size={18} aria-hidden="true" />}
+                label="Email"
+                value={user.email}
+              />
+              <AccountDetailCard
+                icon={<UserCircle size={18} aria-hidden="true" />}
+                label="Nickname"
+                value={user.nickname}
+              />
+              <AccountDetailCard
+                icon={<BadgeCheck size={18} aria-hidden="true" />}
+                label="Role"
+                value={<span className={styles.rolePill}>{user.role}</span>}
+              />
+              <AccountDetailCard
+                icon={<CalendarDays size={18} aria-hidden="true" />}
+                label="Created"
+                value={formatAuthDate(user.createdAt)}
+              />
+            </div>
 
-          <div className={styles.accountActionRows}>
-            <ActionButton
-              icon={<KeyRound size={16} aria-hidden="true" />}
-              type="button"
-              onClick={openPasswordModal}
-            >
-              Change Password
-            </ActionButton>
-            <ActionButton
-              icon={<Pencil size={16} aria-hidden="true" />}
-              variant="OUTLINE"
-              type="button"
-              onClick={openNicknameModal}
-            >
-              Change Nickname
-            </ActionButton>
-          </div>
-        </section>
+            <div className={styles.accountActionRows}>
+              <ActionButton
+                icon={<KeyRound size={16} aria-hidden="true" />}
+                type="button"
+                onClick={openPasswordModal}
+              >
+                Change Password
+              </ActionButton>
+              <ActionButton
+                icon={<Pencil size={16} aria-hidden="true" />}
+                variant="OUTLINE"
+                type="button"
+                onClick={openNicknameModal}
+              >
+                Change Nickname
+              </ActionButton>
+            </div>
+          </section>
+
+          <PwaInstallPanel />
+        </div>
 
         <AccountPrivilegesSection role={user.role} />
       </div>
