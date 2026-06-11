@@ -5,15 +5,17 @@ import {
   Cloud,
   CloudOff,
   Headset,
+  LoaderCircle,
   LogIn,
   RefreshCw,
   Settings,
   UserCircle
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { NavLink, useMatch, useNavigate } from "react-router-dom";
 import { requestImmediateCharacterSync } from "../../../characterSync/characterSyncRequests";
 import { requestImmediateLiveEncounterTrackerSync } from "../../../liveEncounterTracker/liveEncounterTrackerSyncRequests";
+import { useIsLazyLoading } from "../../../lib/lazyLoadTracker";
 import { useOnlineStatus } from "../../../lib/useOnlineStatus";
 import { useAppSelector } from "../../../store";
 import type { LiveEncounterTrackerSaveStatus } from "../../../store";
@@ -169,6 +171,7 @@ function PrimaryNav({
     end: true
   });
   const liveEncounterTrackerCampaignId = liveEncounterTrackerMatch?.params.campaignId ?? null;
+  const isLazyLoading = useIsLazyLoading();
   const { status, user } = useAppSelector((state) => state.auth);
   const activeCharacter = useAppSelector((state) => state.activeCharacterSheet.activeCharacter);
   const isActiveSheetDirty = useAppSelector((state) => state.activeCharacterSheet.dirty);
@@ -260,17 +263,33 @@ function PrimaryNav({
         </NavLink>
         <div className={styles.linkGroup}>
           {visibleLinks.map(({ to, label, icon: Icon }) => (
-            <NavLink
-              key={to}
-              to={to}
-              aria-label={label}
-              className={({ isActive }) =>
-                isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink
-              }
-            >
-              <Icon size={15} aria-hidden="true" />
-              <span>{label}</span>
-            </NavLink>
+            <Fragment key={to}>
+              <NavLink
+                to={to}
+                aria-label={label}
+                className={({ isActive }) =>
+                  isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink
+                }
+              >
+                <Icon size={15} aria-hidden="true" />
+                <span>{label}</span>
+              </NavLink>
+              {to === "/compendium" && isLazyLoading ? (
+                <span
+                  className={styles.lazyLoadingIndicator}
+                  role="status"
+                  aria-label="Loading"
+                  aria-live="polite"
+                >
+                  <LoaderCircle
+                    className={styles.lazyLoadingIcon}
+                    size={15}
+                    aria-hidden="true"
+                  />
+                  <span className={styles.lazyLoadingText}>Loading</span>
+                </span>
+              ) : null}
+            </Fragment>
           ))}
         </div>
       </div>

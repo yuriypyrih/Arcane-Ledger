@@ -1,4 +1,4 @@
-import { Suspense, lazy } from "react";
+import { Suspense } from "react";
 import { Compass } from "lucide-react";
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import AuthSessionBootstrap from "./auth/AuthSessionBootstrap";
@@ -8,40 +8,51 @@ import CharacterSyncBootstrap from "./characterSync/CharacterSyncBootstrap";
 import AppUpdateGate from "./components/AppUpdateGate";
 import AppShell from "./components/AppShell";
 import AnalyticsBootstrap from "./lib/AnalyticsBootstrap";
+import { lazyWithTrackedLoad } from "./lib/lazyLoadTracker";
 import PageLoadingFallback from "./components/PageLoadingFallback";
 import styles from "./App.module.css";
 
 const LEGACY_NETLIFY_HOSTNAME = "arcane-ledger.netlify.app";
 const ARCANE_LEDGER_HOME_URL = "https://arcane-ledger.com";
 
-const AccountPage = lazy(() => import("./pages/AuthPages/AccountPage"));
-const AnalyticsPage = lazy(() => import("./pages/AuthPages/AnalyticsPage"));
-const CharacterBuilderPage = lazy(() => import("./pages/CharactersPage/CharacterBuilderPage"));
-const CharacterSheetPage = lazy(() => import("./pages/CharactersPage/CharacterSheetPage"));
-const CharactersPage = lazy(() => import("./pages/CharactersPage"));
-const CodexEntryPage = lazy(() => import("./pages/CodexEntryPage"));
-const CodexPage = lazy(() => import("./pages/CodexPage"));
-const DmToolsPage = lazy(() => import("./pages/DmToolsPage"));
-const CampaignDetailPage = lazy(() => import("./pages/DmToolsPage/CampaignDetailPage"));
-const CampaignEncounterBuilderPage = lazy(
+const AccountPage = lazyWithTrackedLoad(() => import("./pages/AuthPages/AccountPage"));
+const AnalyticsPage = lazyWithTrackedLoad(() => import("./pages/AuthPages/AnalyticsPage"));
+const CharacterBuilderPage = lazyWithTrackedLoad(
+  () => import("./pages/CharactersPage/CharacterBuilderPage")
+);
+const CharacterSheetPage = lazyWithTrackedLoad(
+  () => import("./pages/CharactersPage/CharacterSheetPage")
+);
+const CharactersPage = lazyWithTrackedLoad(() => import("./pages/CharactersPage"));
+const CodexEntryPage = lazyWithTrackedLoad(() => import("./pages/CodexEntryPage"));
+const CodexPage = lazyWithTrackedLoad(() => import("./pages/CodexPage"));
+const DmToolsPage = lazyWithTrackedLoad(() => import("./pages/DmToolsPage"));
+const CampaignDetailPage = lazyWithTrackedLoad(
+  () => import("./pages/DmToolsPage/CampaignDetailPage")
+);
+const CampaignEncounterBuilderPage = lazyWithTrackedLoad(
   () => import("./pages/DmToolsPage/CampaignEncounterBuilderPage")
 );
-const CampaignLiveEncounterTrackerPage = lazy(
+const CampaignLiveEncounterTrackerPage = lazyWithTrackedLoad(
   () => import("./pages/DmToolsPage/CampaignLiveEncounterTrackerPage")
 );
-const EncounterTemplateDetailPage = lazy(
+const EncounterTemplateDetailPage = lazyWithTrackedLoad(
   () => import("./pages/DmToolsPage/EncounterTemplateDetailPage")
 );
-const ForgotPasswordPage = lazy(() => import("./pages/AuthPages/ForgotPasswordPage"));
-const HomePage = lazy(() => import("./pages/HomePage"));
-const ItemCodexEntryPage = lazy(() => import("./pages/ItemCodexEntryPage"));
-const LoginPage = lazy(() => import("./pages/AuthPages/LoginPage"));
-const MonsterCodexEntryPage = lazy(() => import("./pages/MonsterCodexEntryPage"));
-const PartyGroupDetailPage = lazy(() => import("./pages/DmToolsPage/PartyGroupDetailPage"));
-const RegisterPage = lazy(() => import("./pages/AuthPages/RegisterPage"));
-const ResetPasswordPage = lazy(() => import("./pages/AuthPages/ResetPasswordPage"));
-const SupportPage = lazy(() => import("./pages/AuthPages/SupportPage"));
-const VerifyEmailPage = lazy(() => import("./pages/AuthPages/VerifyEmailPage"));
+const ForgotPasswordPage = lazyWithTrackedLoad(
+  () => import("./pages/AuthPages/ForgotPasswordPage")
+);
+const HomePage = lazyWithTrackedLoad(() => import("./pages/HomePage"));
+const ItemCodexEntryPage = lazyWithTrackedLoad(() => import("./pages/ItemCodexEntryPage"));
+const LoginPage = lazyWithTrackedLoad(() => import("./pages/AuthPages/LoginPage"));
+const MonsterCodexEntryPage = lazyWithTrackedLoad(() => import("./pages/MonsterCodexEntryPage"));
+const PartyGroupDetailPage = lazyWithTrackedLoad(
+  () => import("./pages/DmToolsPage/PartyGroupDetailPage")
+);
+const RegisterPage = lazyWithTrackedLoad(() => import("./pages/AuthPages/RegisterPage"));
+const ResetPasswordPage = lazyWithTrackedLoad(() => import("./pages/AuthPages/ResetPasswordPage"));
+const SupportPage = lazyWithTrackedLoad(() => import("./pages/AuthPages/SupportPage"));
+const VerifyEmailPage = lazyWithTrackedLoad(() => import("./pages/AuthPages/VerifyEmailPage"));
 
 function isLegacyNetlifyHost() {
   return typeof window !== "undefined" && window.location.hostname === LEGACY_NETLIFY_HOSTNAME;
