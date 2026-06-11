@@ -3478,6 +3478,14 @@ export type InventoryContainerAddBlockReason =
   | "container"
   | "object-limit"
   | "weight-limit";
+export type InventoryRootTransferBlockReason = "invalid" | "object-limit";
+
+export type InventoryRootTransferResult = {
+  blockReason: InventoryRootTransferBlockReason | null;
+  destinationInventoryItems: CharacterInventoryItem[];
+  movedStackId: string | null;
+  sourceInventoryItems: CharacterInventoryItem[];
+};
 
 function wouldContainerContentsExceedWeightLimit(
   containerStack: CharacterInventoryItem,
@@ -3559,6 +3567,133 @@ export function canMoveOneInventoryItemCopyIntoContainer(
       objectLimit
     ) === null
   );
+}
+
+function createRootTransferInventoryStack(entry: CharacterInventoryItem): CharacterInventoryItem {
+  return createCharacterInventoryItem(entry.item, {
+    quantity: 1,
+    onHandQuantity: 0,
+    worn: false,
+    attuned: false,
+    usesRemaining: getMovedInventoryItemUsesRemaining(entry),
+    chargesTotal: entry.chargesTotal,
+    chargesRecharge: entry.chargesRecharge,
+    storedSpell: entry.storedSpell,
+    featureTags: entry.featureTags,
+    spellcastingFocusSources: entry.spellcastingFocusSources,
+    conjuredSource: entry.conjuredSource,
+    conjuredDuration: entry.conjuredDuration,
+    replicateMagicItemPlanKey: entry.replicateMagicItemPlanKey,
+    replicateMagicItemSlot: entry.replicateMagicItemSlot,
+    mods: entry.mods,
+    containerContents: isInventoryContainerItem(entry)
+      ? getInventoryContainerContents(entry)
+      : undefined
+  });
+}
+
+function shouldCreateSeparateRootTransferStack(entry: CharacterInventoryItem): boolean {
+  return (
+    isInventoryContainerItem(entry) ||
+    Boolean(entry.mods) ||
+    entry.usesRemaining !== undefined ||
+    normalizeInventoryChargesTotal(entry.chargesTotal) !== undefined ||
+    normalizeInventoryChargesRecharge(entry.chargesRecharge) !== undefined ||
+    normalizeInventoryStoredSpell(entry.storedSpell) !== undefined ||
+    (entry.featureTags?.length ?? 0) > 0
+  );
+}
+
+function addRootTransferInventoryStackWithResult(
+  inventoryItems: CharacterInventoryItem[],
+  movedStack: CharacterInventoryItem
+): Pick<InventoryRootTransferResult, "destinationInventoryItems" | "movedStackId"> {
+  if (!shouldCreateSeparateRootTransferStack(movedStack)) {
+    const existingStack = movedStack.item.key
+      ? findUntaggedInventoryItemStackByKey(inventoryItems, movedStack.item.key)
+      : null;
+
+    return {
+      destinationInventoryItems: existingStack
+        ? addInventoryItemCopies(inventoryItems, movedStack.item, 1)
+        : [...inventoryItems, movedStack],
+      movedStackId: existingStack?.id ?? movedStack.id
+    };
+  }
+
+  return {
+    destinationInventoryItems: [...inventoryItems, movedStack],
+    movedStackId: movedStack.id
+  };
+}
+
+export function getInventoryRootTransferBlockReason(
+  sourceInventoryItems: CharacterInventoryItem[],
+  destinationInventoryItems: CharacterInventoryItem[],
+  sourceStackId: string,
+  objectLimit = INVENTORY_OBJECT_LIMIT
+): InventoryRootTransferBlockReason | null {
+  const sourceStack = findInventoryItemStackById(sourceInventoryItems, sourceStackId);
+
+  if (!sourceStack) {
+    return "invalid";
+  }
+
+  const movedStack = createRootTransferInventoryStack(sourceStack);
+  const projectedDestinationInventoryItems = addRootTransferInventoryStackWithResult(
+    destinationInventoryItems,
+    movedStack
+  ).destinationInventoryItems;
+
+  return getInventoryObjectCount(projectedDestinationInventoryItems) > objectLimit
+    ? "object-limit"
+    : null;
+}
+
+export function moveOneInventoryItemCopyBetweenRootInventories(
+  sourceInventoryItems: CharacterInventoryItem[],
+  destinationInventoryItems: CharacterInventoryItem[],
+  sourceStackId: string,
+  objectLimit = INVENTORY_OBJECT_LIMIT
+): InventoryRootTransferResult {
+  const sourceStack = findInventoryItemStackById(sourceInventoryItems, sourceStackId);
+
+  if (!sourceStack) {
+    return {
+      blockReason: "invalid",
+      destinationInventoryItems,
+      movedStackId: null,
+      sourceInventoryItems
+    };
+  }
+
+  const blockReason = getInventoryRootTransferBlockReason(
+    sourceInventoryItems,
+    destinationInventoryItems,
+    sourceStackId,
+    objectLimit
+  );
+
+  if (blockReason) {
+    return {
+      blockReason,
+      destinationInventoryItems,
+      movedStackId: null,
+      sourceInventoryItems
+    };
+  }
+
+  const movedStack = createRootTransferInventoryStack(sourceStack);
+  const addedResult = addRootTransferInventoryStackWithResult(destinationInventoryItems, movedStack);
+
+  return {
+    blockReason: null,
+    destinationInventoryItems: addedResult.destinationInventoryItems,
+    movedStackId: addedResult.movedStackId,
+    sourceInventoryItems: sourceInventoryItems.flatMap((entry) =>
+      entry.id === sourceStack.id ? removeOneInventoryItemCopyForContainerTransfer(entry) : [entry]
+    )
+  };
 }
 
 export function getAddOneContainerContentItemCopyBlockReason(

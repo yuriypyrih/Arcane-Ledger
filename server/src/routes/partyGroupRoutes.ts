@@ -4,6 +4,7 @@ import {
   deletePartyGroup,
   getPartyGroup,
   getPartyGroupLiveEncounter,
+  getPartyGroupMasterChestContent,
   getPartyGroupMemberView,
   joinPartyGroupByInvite,
   leavePartyGroupMembership,
@@ -11,6 +12,7 @@ import {
   listPartyGroups,
   removePartyGroupCharacterById,
   resetPartyGroupInviteToken,
+  updatePartyGroupMasterChestContent,
   updatePartyGroup
 } from "../controllers/partyGroupController.js";
 import { requireAuth } from "../middleware/authMiddleware.js";
@@ -25,6 +27,12 @@ partyGroupRoutes.delete("/:partyGroupId", requireAuth, deletePartyGroup);
 partyGroupRoutes.patch("/:partyGroupId", requireAuth, updatePartyGroup);
 partyGroupRoutes.get("/:partyGroupId/member-view", requireAuth, getPartyGroupMemberView);
 partyGroupRoutes.get("/:partyGroupId/live-encounter", requireAuth, getPartyGroupLiveEncounter);
+partyGroupRoutes.get("/:partyGroupId/master-chest", requireAuth, getPartyGroupMasterChestContent);
+partyGroupRoutes.put(
+  "/:partyGroupId/master-chest",
+  requireAuth,
+  updatePartyGroupMasterChestContent
+);
 partyGroupRoutes.delete(
   "/:partyGroupId/memberships/:characterSheetId",
   requireAuth,

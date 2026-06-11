@@ -3,18 +3,18 @@
 
 export function renderEquipmentForm(context: Record<string, any>) {
   const {
-    ActionButton, CellContainer, CircleHelp, CurrencyInlineDisplay, CustomEquipmentEditor, DestructiveConfirmationModal, ENTRY_CATEGORIES, EquipmentContainerManageModal, EquipmentGuideModal, EquipmentInventoryItemDrawer, EquipmentItemBrowserModal, Hand, InlineToggleButton, InventoryTagPill, KeywordReferenceDrawer,
-    Minus, NumberInput, OverlayBody, OverlayCloseButton, OverlayEyebrow, OverlayFooter, OverlayHeader, OverlayHeaderContent, OverlaySummary, OverlayTitle, Plus, RarityPill, SheetModal, Shield, WeaponMasteryStatusLabel, X, activeCurrencyDefinition, activeCurrencyKey,
+    ActionButton, CellContainer, CircleHelp, CurrencyInlineDisplay, CustomEquipmentEditor, DestructiveConfirmationModal, ENTRY_CATEGORIES, EquipmentContainerManageModal, EquipmentGuideModal, EquipmentInventoryItemDrawer, EquipmentItemBrowserModal, Hand, InlineToggleButton, InventoryTagPill, KeywordReferenceDrawer, MasterChestModal,
+    Minus, NumberInput, OverlayBody, OverlayCloseButton, OverlayEyebrow, OverlayFooter, OverlayHeader, OverlayHeaderContent, OverlaySummary, OverlayTitle, Package, Plus, RarityPill, SheetModal, Shield, WeaponMasteryStatusLabel, X, activeCurrencyDefinition, activeCurrencyKey,
     adjustCurrencyBalance, canSpendCurrency, carriedWeight, carryingCapacity, className, containerManagementInventoryItems, closeAddModal, closeContainerManagement, closeCustomEquipmentModal, closeInventoryItemDrawer, closeLoadoutDrawer,
-    clsx, currencyAmountDraft, currencyDefinitions, currencyPillSummary, customEditorMode, deleteCustomEquipment, editingInventoryStack, equipmentRenderGroups, formatCodexLabel, formatCodexList,
+    clsx, currencyAmountDraft, currencyDefinitions, currencyPillSummary, customEditorMode, deleteCustomEquipment, editingInventoryStack, equipmentCharacter, equipmentRenderGroups, formatCodexLabel, formatCodexList,
     formatEquipmentWeight, formatInventoryStackName, formatOnHandLabel, formatWeaponDamage, formatWeaponProperties, formatWeaponType, formatWeaponWeight, formatWeightValue, getArcaneArmorFeatureTagsForInventoryStack, getArmorTypeSummary, getInventoryItemChargesTagLabel, getInventoryItemConjuredRowTagLabel, getInventoryItemFeatureTagLabels, getInventoryItemStoredSpellRowTagLabel, getInventoryItemTotalWeightValue, getInventoryRowObjectTagLabel, getInventoryTagPillProps, getItemObjectTagLabel,
     groupedInventoryItems, hasCharacterItemMods, hasDisplayableRarity, inventoryDrawerBodyAfterItem, inventoryDrawerClassName, inventoryDrawerFooter, inventoryDrawerHeaderAction, inventoryDrawerHeaderContent, inventoryObjectCount, inventoryObjectLimitMessage, isAddModalCommitting, isAddModalOpen, isCurrencyDrawerOpen, characterSheetSizeBytes,
-    isCustomEquipmentModalOpen, isEquipmentGuideOpen, isGeneralEquipmentExpanded, isHandEquippableEntry, isOverCarryingCapacity, isSelectedArmorWorn, isSelectedCustomEntry, isSelectedEntryOnHand, isSelectedFeatureManagedEntry, isSelectedShield, loadoutDrawerBackdropHandlers, managedContainerStack, managingContainerStackId,
+    isCustomEquipmentModalOpen, isEquipmentGuideOpen, isGeneralEquipmentExpanded, isHandEquippableEntry, isMasterChestOpen, isOverCarryingCapacity, isSelectedArmorWorn, isSelectedCustomEntry, isSelectedEntryOnHand, isSelectedFeatureManagedEntry, isSelectedShield, loadoutDrawerBackdropHandlers, managedContainerStack, managingContainerStackId,
     normalizeCurrencyAmountInput, normalizedCurrencies, openAddModal, openCurrencyModal, openCustomEquipmentCreator, openCustomEquipmentEditor, openInventoryInspectionFromBrowser, openInventoryInspectionFromLoadout, openLoadoutEntryDetails,
-    openWeaponReference, parentInventoryDrawerBodyAfterItem, parentInventoryDrawerHeaderContent, parentInventoryDrawerTitleId, parentInventoryInspection, parentInventoryRecord, pendingContainerInventoryRemoval, pendingDeleteCustomEquipment, deleteCustomEquipmentBackdropHandlers, removeEquipmentItem, saveContainerManagement, saveCustomEquipment, selectedAdditionalWeaponMasteries, selectedInventoryAdditionalDescription, selectedInventoryDescriptionAdditions,
+    openWeaponReference, parentInventoryDrawerBodyAfterItem, parentInventoryDrawerHeaderContent, parentInventoryDrawerTitleId, parentInventoryInspection, parentInventoryRecord, pendingContainerInventoryRemoval, pendingDeleteCustomEquipment, partyMembership, deleteCustomEquipmentBackdropHandlers, removeEquipmentItem, saveContainerManagement, saveCustomEquipment, saveMasterChestCharacterDraft, selectedAdditionalWeaponMasteries, selectedInventoryAdditionalDescription, selectedInventoryDescriptionAdditions,
     inventoryDrawerTitleId, selectedInventoryInspection, selectedInventoryItemStatus, selectedInventoryModEffects, selectedInventoryRecord,
     selectedInventoryWeaponHasActiveMastery, selectedInventoryWeaponHasProficiency, selectedLoadoutEntry, selectedLoadoutEntryData, selectedLoadoutItems, selectedLoadoutSummary, selectedWeaponHasActiveMastery, selectedWeaponHasProficiency, selectedWeaponMasteryKeywords,
-    selectedWeaponMasteryLabel, selectedWeaponReference, setActiveCurrencyKey, setCurrencyAmountDraft, setIsCurrencyDrawerOpen, setIsEquipmentGuideOpen, setIsGeneralEquipmentExpanded, setPendingContainerInventoryRemoval, setPendingDeleteCustomEquipmentId, setSelectedWeaponReference, shared, SheetSurface,
+    selectedWeaponMasteryLabel, selectedWeaponReference, setActiveCurrencyKey, setCurrencyAmountDraft, setIsCurrencyDrawerOpen, setIsEquipmentGuideOpen, setIsGeneralEquipmentExpanded, setIsMasterChestOpen, setPendingContainerInventoryRemoval, setPendingDeleteCustomEquipmentId, setSelectedWeaponReference, shared, SheetSurface,
     sheetStyles, shouldOfferHandSwap, styles, swapEntryToHand, toggleArmorWorn, toggleEntryOnHand, confirmContainerRemoval
   } = context;
 
@@ -33,6 +33,18 @@ export function renderEquipmentForm(context: Record<string, any>) {
             >
               <CircleHelp size={16} />
             </button>
+            {partyMembership ? (
+              <button
+                type="button"
+                className={clsx(shared.editButton, styles.masterChestButton)}
+                onClick={() => setIsMasterChestOpen(true)}
+                aria-label={`Open ${partyMembership.partyGroupName} master chest`}
+                title={`Open ${partyMembership.partyGroupName} master chest`}
+              >
+                <Package size={16} aria-hidden="true" />
+                <span>Master Chest</span>
+              </button>
+            ) : null}
           </div>
           <div className={styles.loadoutPinnedActions}>
             <div
@@ -282,6 +294,17 @@ export function renderEquipmentForm(context: Record<string, any>) {
           inventoryObjectCount={inventoryObjectCount}
           sheetSizeBytes={characterSheetSizeBytes}
           onClose={() => setIsEquipmentGuideOpen(false)}
+        />
+      ) : null}
+
+      {isMasterChestOpen && partyMembership ? (
+        <MasterChestModal
+          character={equipmentCharacter}
+          mode="player"
+          partyGroupId={partyMembership.partyGroupId}
+          partyGroupName={partyMembership.partyGroupName}
+          onClose={() => setIsMasterChestOpen(false)}
+          onSaveCharacterDraft={saveMasterChestCharacterDraft}
         />
       ) : null}
 

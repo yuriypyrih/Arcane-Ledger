@@ -27,7 +27,12 @@ import RarityPill, { hasDisplayableRarity } from "../../../CodexPage/RarityPill"
 import { captureAppError } from "../../../../lib/sentry";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import { useRenderProfiler } from "../../../../lib/useRenderProfiler";
-import { ApiRequestFailedError, fetchItemPackContents, isApiOfflineError } from "../../../../api";
+import {
+  ApiRequestFailedError,
+  fetchItemPackContents,
+  isApiOfflineError,
+  type PartyMembershipRecord
+} from "../../../../api";
 import { ENTRY_CATEGORIES } from "../../../../codex/entries";
 import { getSpellEntryById } from "../../../../codex/spells";
 import {
@@ -170,6 +175,7 @@ import EquipmentContainerManageModal from "./EquipmentContainerManageModal";
 import EquipmentContainerContentsList from "./EquipmentContainerContentsList";
 import EquipmentGuideModal from "./EquipmentGuideModal";
 import EquipmentItemBrowserModal from "./EquipmentItemBrowserModal";
+import MasterChestModal from "./MasterChestModal";
 import InventoryTagPill from "./InventoryTagPill";
 import { getInventoryTagPillProps } from "./inventoryTagPillModel";
 import { renderEquipmentForm } from "./EquipmentFormRenderer";
@@ -224,6 +230,7 @@ type EquipmentFormProps = {
   character: Character;
   className?: string;
   onPersistCharacter: PersistCharacterUpdater;
+  partyMembership?: PartyMembershipRecord;
 };
 
 type SelectedLoadoutEntryState = {
@@ -318,7 +325,12 @@ function getInventoryRowObjectTagLabel(
   return getItemObjectTagLabel(item);
 }
 
-function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFormProps) {
+function EquipmentForm({
+  character,
+  className,
+  onPersistCharacter,
+  partyMembership
+}: EquipmentFormProps) {
   const isAddModalCommittingRef = useRef(false);
   const [selectedLoadoutEntry, setSelectedLoadoutEntry] =
     useState<SelectedLoadoutEntryState | null>(null);
@@ -342,6 +354,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   );
   const [isAddEquipmentDraftDirty, setIsAddEquipmentDraftDirty] = useState(false);
   const [isCustomEquipmentModalOpen, setIsCustomEquipmentModalOpen] = useState(false);
+  const [isMasterChestOpen, setIsMasterChestOpen] = useState(false);
   const [customEditorMode, setCustomEditorMode] = useState<"create" | "edit">("create");
   const [editingInventoryStackId, setEditingInventoryStackId] = useState<string | null>(null);
   const [isEquipmentGuideOpen, setIsEquipmentGuideOpen] = useState(false);
@@ -462,6 +475,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     isCurrencyDrawerOpen ||
     isAddModalOpen ||
     isCustomEquipmentModalOpen ||
+    isMasterChestOpen ||
     isEquipmentGuideOpen ||
     pendingDeleteCustomEquipmentId ||
     managingContainerStackId ||
@@ -474,6 +488,12 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       setInventoryObjectLimitNotice(null);
     }
   }, [inventoryObjectCount]);
+
+  useEffect(() => {
+    if (!partyMembership) {
+      setIsMasterChestOpen(false);
+    }
+  }, [partyMembership]);
 
   const closeInventoryItemDrawer = useCallback(() => {
     setInventoryDrawerNotice(null);
@@ -532,6 +552,11 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
           return;
         }
 
+        if (isMasterChestOpen) {
+          setIsMasterChestOpen(false);
+          return;
+        }
+
         if (selectedLoadoutEntry) {
           closeLoadoutDrawer();
           return;
@@ -566,6 +591,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     isCurrencyDrawerOpen,
     isCustomEquipmentModalOpen,
     isEquipmentGuideOpen,
+    isMasterChestOpen,
     managingContainerStackId,
     pendingContainerInventoryRemoval,
     pendingDeleteCustomEquipmentId,
@@ -1548,6 +1574,20 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
 
     setManagingContainerStackId(null);
     closeInventoryItemDrawer();
+  }
+
+  function saveMasterChestCharacterDraft(draft: {
+    currencies: Character["currencies"];
+    inventoryItems: Character["inventoryItems"];
+  }) {
+    onPersistCharacter(
+      (currentCharacter) => ({
+        ...currentCharacter,
+        currencies: draft.currencies,
+        inventoryItems: draft.inventoryItems
+      }),
+      equipmentPersistOptions
+    );
   }
 
   function canAddItemToSelectedInventoryTarget(item: ItemRecord): boolean {
@@ -2921,6 +2961,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     InlineToggleButton,
     InventoryTagPill,
     KeywordReferenceDrawer,
+    MasterChestModal,
     Minus,
     NumberInput,
     OverlayBody,
@@ -2931,6 +2972,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     OverlayHeaderContent,
     OverlaySummary,
     OverlayTitle,
+    Package,
     Plus,
     RarityPill,
     SheetModal,
@@ -2957,6 +2999,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     customEditorMode,
     deleteCustomEquipment,
     editingInventoryStack,
+    equipmentCharacter,
     equipmentRenderGroups,
     formatCodexLabel,
     formatCodexList,
@@ -2994,6 +3037,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     isCustomEquipmentModalOpen,
     isEquipmentGuideOpen,
     isGeneralEquipmentExpanded,
+    isMasterChestOpen,
     isHandEquippableEntry,
     isOverCarryingCapacity,
     isSelectedArmorWorn,
@@ -3022,11 +3066,13 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     pendingDeleteCustomEquipment,
     deleteCustomEquipmentBackdropHandlers,
     pendingContainerInventoryRemoval,
+    partyMembership,
     closeContainerManagement,
     confirmContainerRemoval,
     removeEquipmentItem,
     saveCustomEquipment,
     saveContainerManagement,
+    saveMasterChestCharacterDraft,
     selectedAdditionalWeaponMasteries,
     selectedInventoryInspection,
     inventoryDrawerTitleId,
@@ -3049,6 +3095,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     setActiveCurrencyKey,
     setCurrencyAmountDraft,
     setIsEquipmentGuideOpen,
+    setIsMasterChestOpen,
     setIsCurrencyDrawerOpen,
     setIsGeneralEquipmentExpanded,
     setPendingContainerInventoryRemoval,

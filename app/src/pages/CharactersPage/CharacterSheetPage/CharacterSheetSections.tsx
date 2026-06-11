@@ -188,12 +188,18 @@ export const EquipmentSheetSection = memo(function EquipmentSheetSection({
   onPersistCharacter
 }: PersistSectionProps) {
   const character = useAppSelector(selectEquipmentCharacter);
+  const partyMembership = useAppSelector((state) => {
+    const remoteId = character?.storageMetadata?.sync?.remoteId;
+
+    return remoteId ? state.dmTools.membershipsByCharacterId[remoteId] : undefined;
+  });
 
   return character ? (
     <EquipmentForm
       character={character}
       className={className}
       onPersistCharacter={onPersistCharacter}
+      partyMembership={partyMembership}
     />
   ) : null;
 });

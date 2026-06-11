@@ -25,10 +25,24 @@ const PARTY_GROUP_INVITE_CREATE_ATTEMPTS = 5;
 const PARTY_GROUP_NAME_MIN_LENGTH = 2;
 const PARTY_GROUP_NAME_MAX_LENGTH = 128;
 export const PARTY_GROUP_MAX_MEMBERS = PARTY_GROUP_MAX_MEMBERS_QUOTA;
+const MASTER_CHEST_OBJECT_LIMIT = 200;
+const MASTER_CHEST_CURRENCY_MAX = 999_999_999;
+const MASTER_CHEST_HISTORY_LIMIT = 20;
+const MASTER_CHEST_HISTORY_SUMMARY_MAX_LENGTH = 1000;
+const masterChestCurrencyKeys = ["copper", "silver", "electrum", "gold", "platinum"] as const;
+
+type MasterChestCurrencyKey = (typeof masterChestCurrencyKeys)[number];
 
 type PartyGroupSource = PartyGroupRecord & {
   _id?: Types.ObjectId | { toString(): string };
   id?: string;
+};
+
+type PartyGroupMasterChestSource = PartyGroupSource & {
+  masterChestItems?: unknown[];
+  masterChestCurrencies?: Record<string, unknown> | null;
+  masterChestHistory?: string[] | null;
+  masterChestRevision?: number | null;
 };
 
 type PartyGroupListSource = {
@@ -79,6 +93,175 @@ function isDuplicateKeyError(error: unknown) {
     "code" in error &&
     (error as { code?: unknown }).code === 11000
   );
+}
+
+function isObjectRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function clampMasterChestCurrencyValue(value: unknown) {
+  const numericValue = typeof value === "number" ? value : Number(value);
+
+  if (!Number.isFinite(numericValue)) {
+    return 0;
+  }
+
+  return Math.max(0, Math.min(MASTER_CHEST_CURRENCY_MAX, Math.floor(numericValue)));
+}
+
+function normalizeMasterChestCurrencies(value: unknown): Record<MasterChestCurrencyKey, number> {
+  const currencies: Record<MasterChestCurrencyKey, number> = {
+    copper: 0,
+    silver: 0,
+    electrum: 0,
+    gold: 0,
+    platinum: 0
+  };
+
+  if (!isObjectRecord(value)) {
+    return currencies;
+  }
+
+  masterChestCurrencyKeys.forEach((currencyKey) => {
+    currencies[currencyKey] = clampMasterChestCurrencyValue(value[currencyKey]);
+  });
+
+  return currencies;
+}
+
+function countMasterChestInventoryObjects(inventoryItems: unknown[]) {
+  return inventoryItems.reduce<number>((objectCount, entry) => {
+    if (!isObjectRecord(entry)) {
+      throw new AppError(
+        "Master chest inventory items must be objects.",
+        400,
+        "INVALID_MASTER_CHEST_INPUT"
+      );
+    }
+
+    const containerContents = entry.containerContents;
+
+    if (containerContents !== undefined && !Array.isArray(containerContents)) {
+      throw new AppError(
+        "Master chest container contents must be arrays.",
+        400,
+        "INVALID_MASTER_CHEST_INPUT"
+      );
+    }
+
+    if (Array.isArray(containerContents)) {
+      containerContents.forEach((content) => {
+        if (!isObjectRecord(content)) {
+          throw new AppError(
+            "Master chest container content items must be objects.",
+            400,
+            "INVALID_MASTER_CHEST_INPUT"
+          );
+        }
+      });
+    }
+
+    return objectCount + 1 + (Array.isArray(containerContents) ? containerContents.length : 0);
+  }, 0);
+}
+
+function readMasterChestInventoryItems(value: unknown) {
+  if (!Array.isArray(value)) {
+    throw new AppError(
+      "Master chest inventoryItems must be an array.",
+      400,
+      "INVALID_MASTER_CHEST_INPUT"
+    );
+  }
+
+  const objectCount = countMasterChestInventoryObjects(value);
+
+  if (objectCount > MASTER_CHEST_OBJECT_LIMIT) {
+    throw new AppError(
+      `Master chest can hold up to ${MASTER_CHEST_OBJECT_LIMIT} inventory objects.`,
+      400,
+      "MASTER_CHEST_OBJECT_LIMIT_EXCEEDED",
+      {
+        objectCount,
+        objectLimit: MASTER_CHEST_OBJECT_LIMIT
+      }
+    );
+  }
+
+  return value;
+}
+
+function readMasterChestRevision(value: unknown) {
+  if (typeof value !== "number" || !Number.isInteger(value) || value < 1) {
+    throw new AppError(
+      "Master chest revision is invalid.",
+      400,
+      "INVALID_MASTER_CHEST_INPUT"
+    );
+  }
+
+  return value;
+}
+
+function getMasterChestRevision(value: number | null | undefined) {
+  return typeof value === "number" && Number.isInteger(value) && value >= 1 ? value : 1;
+}
+
+function normalizeMasterChestTransactionSummary(value: unknown) {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const summary = value.trim().replace(/\s+/g, " ");
+
+  if (!summary) {
+    return null;
+  }
+
+  return summary.slice(0, MASTER_CHEST_HISTORY_SUMMARY_MAX_LENGTH);
+}
+
+function padHistoryDatePart(value: number) {
+  return value.toString().padStart(2, "0");
+}
+
+function formatMasterChestHistoryTimestamp(date: Date) {
+  const day = padHistoryDatePart(date.getDate());
+  const month = padHistoryDatePart(date.getMonth() + 1);
+  const year = padHistoryDatePart(date.getFullYear() % 100);
+  const hour = padHistoryDatePart(date.getHours());
+  const minute = padHistoryDatePart(date.getMinutes());
+
+  return `${day}/${month}/${year} ${hour}:${minute}`;
+}
+
+function normalizeMasterChestHistory(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .filter((entry): entry is string => typeof entry === "string" && entry.trim().length > 0)
+    .map((entry) => entry.trim())
+    .slice(0, MASTER_CHEST_HISTORY_LIMIT);
+}
+
+function createMasterChestHistory(options: {
+  actorNickname: string;
+  currentHistory: unknown;
+  transactionSummary: unknown;
+}) {
+  const currentHistory = normalizeMasterChestHistory(options.currentHistory);
+  const transactionSummary = normalizeMasterChestTransactionSummary(options.transactionSummary);
+
+  if (!transactionSummary) {
+    return currentHistory;
+  }
+
+  const nickname = options.actorNickname.trim() || "Unknown Player";
+  const entry = `${formatMasterChestHistoryTimestamp(new Date())} - ${nickname}: ${transactionSummary}`;
+
+  return [entry, ...currentHistory].slice(0, MASTER_CHEST_HISTORY_LIMIT);
 }
 
 function createPartyGroupInviteToken() {
@@ -141,6 +324,60 @@ async function findMemberVisiblePartyGroupSource(options: {
   }
 
   return partyGroup;
+}
+
+async function findMasterChestVisiblePartyGroupSource(options: {
+  ownerId: Types.ObjectId;
+  partyGroupId: string;
+}) {
+  if (!options.partyGroupId || !Types.ObjectId.isValid(options.partyGroupId)) {
+    throw new AppError("Party group id is invalid.", 400, "INVALID_PARTY_GROUP_ID");
+  }
+
+  const partyGroup = (await PartyGroup.findById(options.partyGroupId)
+    .select("+masterChestItems +masterChestCurrencies +masterChestHistory +masterChestRevision")
+    .lean()
+    .exec()) as PartyGroupMasterChestSource | null;
+
+  if (!partyGroup) {
+    throw new AppError("Party group was not found.", 404, "PARTY_GROUP_NOT_FOUND");
+  }
+
+  const ownerId = options.ownerId.toString();
+  const isOwner = partyGroup.ownerId.toString() === ownerId;
+  const isAdmin = (partyGroup.adminUserIds ?? []).some(
+    (adminUserId) => adminUserId.toString() === ownerId
+  );
+
+  if (isOwner || isAdmin) {
+    return partyGroup;
+  }
+
+  const ownedMember = await CharacterSheet.exists({
+    ownerId: options.ownerId,
+    deletedAt: null,
+    partyGroupId: new Types.ObjectId(options.partyGroupId)
+  }).exec();
+
+  if (!ownedMember) {
+    throw new AppError("Party group was not found.", 404, "PARTY_GROUP_NOT_FOUND");
+  }
+
+  return partyGroup;
+}
+
+function toPartyGroupMasterChestRecord(partyGroup: PartyGroupMasterChestSource) {
+  const inventoryItems = Array.isArray(partyGroup.masterChestItems)
+    ? partyGroup.masterChestItems
+    : [];
+
+  return {
+    partyGroupId: getDocumentId(partyGroup),
+    revision: getMasterChestRevision(partyGroup.masterChestRevision),
+    inventoryItems,
+    currencies: normalizeMasterChestCurrencies(partyGroup.masterChestCurrencies),
+    history: normalizeMasterChestHistory(partyGroup.masterChestHistory)
+  };
 }
 
 function createPartyInviteUrl(inviteToken: string) {
@@ -422,6 +659,101 @@ export async function getMemberVisiblePartyGroupDetail(options: {
   const partyGroup = await findMemberVisiblePartyGroupSource(options);
 
   return getPartyGroupDetailFromSource(partyGroup);
+}
+
+export async function getPartyGroupMasterChest(options: {
+  ownerId: Types.ObjectId;
+  partyGroupId: string;
+}) {
+  const partyGroup = await findMasterChestVisiblePartyGroupSource(options);
+
+  return toPartyGroupMasterChestRecord(partyGroup);
+}
+
+export async function updatePartyGroupMasterChest(options: {
+  actorCharacterId: unknown;
+  actorNickname: string;
+  baseRevision: unknown;
+  currencies: unknown;
+  inventoryItems: unknown;
+  ownerId: Types.ObjectId;
+  partyGroupId: string;
+  transactionSummary?: unknown;
+}) {
+  const partyGroup = await findMasterChestVisiblePartyGroupSource({
+    ownerId: options.ownerId,
+    partyGroupId: options.partyGroupId
+  });
+  const baseRevision = readMasterChestRevision(options.baseRevision);
+  const inventoryItems = readMasterChestInventoryItems(options.inventoryItems);
+  const currencies = normalizeMasterChestCurrencies(options.currencies);
+
+  const ownerId = options.ownerId.toString();
+  const canManageAsPartyOwner =
+    partyGroup.ownerId.toString() === ownerId ||
+    (partyGroup.adminUserIds ?? []).some((adminUserId) => adminUserId.toString() === ownerId);
+
+  if (!canManageAsPartyOwner) {
+    if (
+      typeof options.actorCharacterId !== "string" ||
+      !Types.ObjectId.isValid(options.actorCharacterId)
+    ) {
+      throw new AppError("Character sheet id is invalid.", 400, "INVALID_CHARACTER_SHEET_ID");
+    }
+
+    const actorCharacterId = new Types.ObjectId(options.actorCharacterId);
+    const ownedMember = await CharacterSheet.exists({
+      _id: actorCharacterId,
+      ownerId: options.ownerId,
+      deletedAt: null,
+      partyGroupId: new Types.ObjectId(options.partyGroupId)
+    }).exec();
+
+    if (!ownedMember) {
+      throw new AppError("Party member was not found.", 404, "PARTY_MEMBER_NOT_FOUND");
+    }
+  }
+
+  const revisionFilter =
+    baseRevision === 1
+      ? {
+          $or: [{ masterChestRevision: baseRevision }, { masterChestRevision: { $exists: false } }]
+        }
+      : { masterChestRevision: baseRevision };
+  const updatedPartyGroup = (await PartyGroup.findOneAndUpdate(
+    {
+      _id: getDocumentId(partyGroup),
+      ...revisionFilter
+    },
+    {
+      $set: {
+        masterChestItems: inventoryItems,
+        masterChestCurrencies: currencies,
+        masterChestHistory: createMasterChestHistory({
+          actorNickname: options.actorNickname,
+          currentHistory: partyGroup.masterChestHistory,
+          transactionSummary: options.transactionSummary
+        }),
+        masterChestRevision: baseRevision + 1
+      }
+    },
+    {
+      new: true
+    }
+  )
+    .select("+masterChestItems +masterChestCurrencies +masterChestHistory +masterChestRevision")
+    .lean()
+    .exec()) as PartyGroupMasterChestSource | null;
+
+  if (!updatedPartyGroup) {
+    throw new AppError(
+      "Master chest has changed. Reopen it to get the latest contents.",
+      409,
+      "MASTER_CHEST_REVISION_CONFLICT"
+    );
+  }
+
+  return toPartyGroupMasterChestRecord(updatedPartyGroup);
 }
 
 export async function getMemberVisiblePartyGroupLiveEncounter(options: {

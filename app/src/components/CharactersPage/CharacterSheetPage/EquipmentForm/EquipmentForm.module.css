@@ -150,6 +150,11 @@
   padding: 0 0.82rem;
 }
 
+.masterChestButton {
+  min-height: 32px;
+  padding: 0 0.74rem;
+}
+
 .drawerSummaryRow {
   display: flex;
   flex-wrap: wrap;

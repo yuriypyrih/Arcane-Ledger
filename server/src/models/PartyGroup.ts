@@ -6,6 +6,10 @@ export type PartyGroupRecord = {
   adminUserIds: Types.ObjectId[];
   inviteToken: string;
   characterIds: Types.ObjectId[];
+  masterChestItems: unknown[];
+  masterChestCurrencies: Record<string, number>;
+  masterChestHistory: string[];
+  masterChestRevision: number;
   createdAt?: Date;
   updatedAt?: Date;
 };
@@ -42,6 +46,33 @@ const partyGroupSchema = new Schema<PartyGroupRecord>(
       type: [Schema.Types.ObjectId],
       ref: "CharacterSheet",
       default: []
+    },
+    masterChestItems: {
+      type: [Schema.Types.Mixed],
+      default: [],
+      select: false
+    },
+    masterChestCurrencies: {
+      type: Schema.Types.Mixed,
+      default: () => ({
+        copper: 0,
+        silver: 0,
+        electrum: 0,
+        gold: 0,
+        platinum: 0
+      }),
+      select: false
+    },
+    masterChestHistory: {
+      type: [String],
+      default: [],
+      select: false
+    },
+    masterChestRevision: {
+      type: Number,
+      default: 1,
+      min: 1,
+      select: false
     }
   },
   {

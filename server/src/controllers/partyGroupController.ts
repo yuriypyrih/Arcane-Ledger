@@ -7,6 +7,7 @@ import {
   getMemberVisiblePartyGroupDetail,
   getMemberVisiblePartyGroupLiveEncounter,
   getOwnedPartyGroupDetail,
+  getPartyGroupMasterChest,
   joinPartyGroup,
   leavePartyGroup,
   listCharacterPartyMemberships,
@@ -14,6 +15,7 @@ import {
   normalizePartyGroupName,
   removePartyGroupCharacter,
   resetOwnedPartyGroupInviteToken,
+  updatePartyGroupMasterChest,
   updateOwnedPartyGroupName
 } from "../services/partyGroupService.js";
 import { AppError } from "../errors/AppError.js";
@@ -91,6 +93,38 @@ export const getPartyGroupLiveEncounter = asyncHandler(
         partyGroupId: request.params.partyGroupId ?? ""
       })
     );
+  }
+);
+
+export const getPartyGroupMasterChestContent = asyncHandler(
+  async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
+    response.json({
+      masterChest: await getPartyGroupMasterChest({
+        ownerId: response.locals.authUser._id,
+        partyGroupId: request.params.partyGroupId ?? ""
+      })
+    });
+  }
+);
+
+export const updatePartyGroupMasterChestContent = asyncHandler(
+  async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
+    if (!isObjectRecord(request.body)) {
+      throw new AppError("Request body must be a JSON object.", 400, "INVALID_MASTER_CHEST_INPUT");
+    }
+
+    response.json({
+      masterChest: await updatePartyGroupMasterChest({
+        actorCharacterId: request.body.actorCharacterId,
+        actorNickname: response.locals.authUser.nickname,
+        baseRevision: request.body.baseRevision,
+        currencies: request.body.currencies,
+        inventoryItems: request.body.inventoryItems,
+        ownerId: response.locals.authUser._id,
+        partyGroupId: request.params.partyGroupId ?? "",
+        transactionSummary: request.body.transactionSummary
+      })
+    });
   }
 );
 

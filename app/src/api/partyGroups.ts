@@ -1,6 +1,11 @@
 import type { CampaignLiveEncounterTrackerRecord } from "./campaigns";
-import type { CharacterAvatarMetadata, PortableCharacterSheetSummary } from "../types";
-import { apiDelete, apiGet, apiPatch, apiPost, type ApiRequestOptions } from "./client";
+import type {
+  CharacterAvatarMetadata,
+  CharacterCurrencies,
+  CharacterInventoryItem,
+  PortableCharacterSheetSummary
+} from "../types";
+import { apiDelete, apiGet, apiPatch, apiPost, apiPut, type ApiRequestOptions } from "./client";
 
 export type PartyGroupCharacterSummary = Omit<PortableCharacterSheetSummary, "localId"> & {
   localId?: number;
@@ -83,6 +88,18 @@ export type PartyGroupLeaveEnvelope = {
   characterId: string;
 };
 
+export type PartyGroupMasterChestRecord = {
+  partyGroupId: string;
+  revision: number;
+  inventoryItems: CharacterInventoryItem[];
+  currencies: CharacterCurrencies;
+  history: string[];
+};
+
+export type PartyGroupMasterChestEnvelope = {
+  masterChest: PartyGroupMasterChestRecord;
+};
+
 export function listPartyGroups(options?: ApiRequestOptions) {
   return apiGet<PartyGroupListEnvelope>("/party-groups", options);
 }
@@ -102,6 +119,31 @@ export function getPartyGroupMemberView(partyGroupId: string, options?: ApiReque
 export function getPartyGroupLiveEncounter(partyGroupId: string, options?: ApiRequestOptions) {
   return apiGet<PartyGroupLiveEncounterEnvelope>(
     `/party-groups/${partyGroupId}/live-encounter`,
+    options
+  );
+}
+
+export function getPartyGroupMasterChest(partyGroupId: string, options?: ApiRequestOptions) {
+  return apiGet<PartyGroupMasterChestEnvelope>(
+    `/party-groups/${partyGroupId}/master-chest`,
+    options
+  );
+}
+
+export function updatePartyGroupMasterChest(
+  partyGroupId: string,
+  payload: {
+    actorCharacterId?: string;
+    baseRevision: number;
+    currencies: CharacterCurrencies;
+    inventoryItems: CharacterInventoryItem[];
+    transactionSummary?: string;
+  },
+  options?: ApiRequestOptions
+) {
+  return apiPut<PartyGroupMasterChestEnvelope>(
+    `/party-groups/${partyGroupId}/master-chest`,
+    payload,
     options
   );
 }

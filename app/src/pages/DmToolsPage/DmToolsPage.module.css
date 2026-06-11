@@ -61,6 +61,31 @@
   gap: 0.55rem;
 }
 
+.masterChestButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 38px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: rgba(75, 47, 29, 0.1);
+  color: var(--color-ink);
+  cursor: pointer;
+  font: inherit;
+  padding: 0 0.9rem;
+  white-space: nowrap;
+}
+
+.masterChestButton:hover,
+.masterChestButton:focus-visible {
+  background: rgba(75, 47, 29, 0.16);
+}
+
+.masterChestButton:focus-visible {
+  outline: 2px solid rgba(47, 120, 255, 0.34);
+  outline-offset: 2px;
+}
+
 .eyebrow,
 .title,
 .bodyTitle {

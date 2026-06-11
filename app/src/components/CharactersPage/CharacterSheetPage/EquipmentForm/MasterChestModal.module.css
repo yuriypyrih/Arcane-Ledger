@@ -1,0 +1,450 @@
+.headerActions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.historyHeaderButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 38px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: rgba(75, 47, 29, 0.1);
+  color: var(--color-ink);
+  cursor: pointer;
+  font: inherit;
+  padding: 0 0.9rem;
+  white-space: nowrap;
+}
+
+.historyHeaderButton:hover:not(:disabled),
+.historyHeaderButton:focus-visible:not(:disabled) {
+  background: rgba(75, 47, 29, 0.16);
+}
+
+.historyHeaderButton:focus-visible {
+  outline: 2px solid rgba(47, 120, 255, 0.34);
+  outline-offset: 2px;
+}
+
+.historyHeaderButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  min-height: 0;
+}
+
+.inventoryGrid {
+  display: grid;
+  gap: 0.9rem;
+  min-height: 0;
+}
+
+.transferBody {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.readOnlyBody {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.statusBody {
+  align-items: center;
+  justify-content: center;
+  min-height: 320px;
+}
+
+.bodyToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.notice,
+.error {
+  grid-column: 1 / -1;
+  margin: 0;
+  border-radius: var(--radius-compact);
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.35;
+  padding: 0.65rem 0.78rem;
+}
+
+.notice {
+  border: 1px solid rgba(75, 47, 29, 0.12);
+  background: rgba(75, 47, 29, 0.07);
+  color: var(--color-ink-soft);
+}
+
+.error {
+  border: 1px solid rgba(198, 40, 40, 0.22);
+  background: rgba(198, 40, 40, 0.08);
+  color: #9f1f1f;
+}
+
+.readOnlyItem {
+  cursor: default;
+}
+
+.currencyPill {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 40px;
+  min-height: 40px;
+  max-width: 100%;
+  border: 1px solid rgba(75, 47, 29, 0.12);
+  border-radius: var(--radius-pill);
+  background: var(--color-panel-muted);
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0 0.78rem;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    opacity 140ms ease;
+}
+
+.currencyPill:hover:not(:disabled) {
+  border-color: rgba(143, 91, 56, 0.38);
+  background: rgba(255, 247, 235, 0.95);
+}
+
+.currencyPillDisabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.currencyPillSummary {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0.56rem;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.currencyPillToken {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 0.16rem;
+  color: var(--color-ink);
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.currencyPillTokenValue,
+.currencyPillTokenCode {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.currencyPillTokenValue {
+  font-weight: 600;
+}
+
+.currencyPillTokenCode {
+  color: var(--color-ink-soft);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.currencyPillTokenIcon {
+  block-size: 17px;
+  inline-size: 17px;
+  object-fit: contain;
+}
+
+.currencyModalBackdrop,
+.historyModalBackdrop {
+  z-index: 55;
+}
+
+.currencyModal,
+.historyModal {
+  max-height: 100%;
+}
+
+.currencyModalBody,
+.historyModalBody {
+  gap: 0.85rem;
+}
+
+.currencySelectorRow {
+  display: grid;
+  gap: 0.48rem;
+  grid-template-columns: repeat(auto-fit, minmax(78px, 1fr));
+}
+
+.currencySelectorCell {
+  display: grid;
+  gap: 0.22rem;
+  min-width: 0;
+}
+
+.currencySelectorHint {
+  color: rgba(75, 47, 29, 0.48);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  line-height: 1;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.currencySelectorButton {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 0.12rem;
+  min-height: 62px;
+  width: 100%;
+  border: 1px solid transparent;
+  border-radius: var(--radius-compact);
+  background: rgba(75, 47, 29, 0.08);
+  color: var(--color-ink);
+  cursor: pointer;
+  font: inherit;
+  padding: 0.4rem 0.42rem;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease;
+}
+
+.currencySelectorButton strong {
+  font-size: 0.92rem;
+  line-height: 1.1;
+}
+
+.currencySelectorButton span {
+  color: var(--color-ink-soft);
+  font-size: 0.7rem;
+  letter-spacing: 0.07em;
+  line-height: 1;
+}
+
+.currencySelectorButtonActive {
+  border-color: rgba(143, 91, 56, 0.56);
+  background: rgba(143, 91, 56, 0.18);
+}
+
+.currencySelectorIcon {
+  block-size: 18px;
+  inline-size: 18px;
+  object-fit: contain;
+}
+
+.currencyModalActionRow {
+  width: 100%;
+}
+
+.currencyModalActions,
+.footerActions {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: 100%;
+}
+
+.historyList {
+  display: grid;
+  gap: 0.52rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.historyItem {
+  border: 1px solid rgba(75, 47, 29, 0.14);
+  border-radius: var(--radius-compact);
+  background: linear-gradient(135deg, rgba(255, 250, 241, 0.9), rgba(245, 236, 223, 0.72));
+  color: var(--color-ink);
+  font-size: 0.9rem;
+  line-height: 1.42;
+  padding: 0.72rem 0.78rem;
+}
+
+.historyEntryContent {
+  display: grid;
+  gap: 0.58rem;
+}
+
+.historyEntryHeader {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.42rem;
+}
+
+.historyTimestamp {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-pill);
+  background: rgba(75, 47, 29, 0.1);
+  color: rgba(75, 47, 29, 0.7);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  min-height: 24px;
+  padding: 0 0.5rem;
+}
+
+.historyActor {
+  color: var(--color-ink);
+  font-size: 0.92rem;
+  font-weight: 800;
+}
+
+.historyActionList {
+  display: grid;
+  gap: 0.42rem;
+}
+
+.historyAction {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.34rem;
+}
+
+.historyActionLabel {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-pill);
+  background: rgba(75, 47, 29, 0.1);
+  color: rgba(75, 47, 29, 0.74);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  min-height: 24px;
+  padding: 0 0.52rem;
+  text-transform: uppercase;
+}
+
+.historyActionIn {
+  background: rgba(35, 123, 76, 0.13);
+  color: #237b4c;
+}
+
+.historyActionOut {
+  background: rgba(165, 82, 40, 0.13);
+  color: #9a512c;
+}
+
+.historyActionTokens {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.26rem;
+}
+
+.historyToken {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--color-ink);
+  font-size: 0.82rem;
+  font-weight: 700;
+  min-height: 24px;
+  padding: 0 0.5rem;
+}
+
+.historyTokenSeparator {
+  display: none;
+}
+
+.historyEmpty {
+  margin: 0;
+  border: 1px dashed rgba(75, 47, 29, 0.18);
+  border-radius: var(--radius-compact);
+  color: var(--color-ink-soft);
+  font-weight: 700;
+  padding: 0.75rem;
+  text-align: center;
+}
+
+.readOnlyFooterActions {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+}
+
+@media (max-width: 760px) {
+  .headerActions {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .bodyToolbar {
+    justify-content: stretch;
+  }
+
+  .bodyToolbar .currencyPill {
+    width: 100%;
+  }
+
+  .transferBody {
+    grid-template-columns: 1fr;
+  }
+
+  .currencyPill {
+    min-height: 36px;
+    padding-inline: 0.62rem;
+  }
+
+  .currencyPillSummary {
+    gap: 0.5rem;
+  }
+
+  .currencyPillToken {
+    gap: 0.16rem;
+    font-size: 0.86rem;
+  }
+
+  .currencyPillTokenCode {
+    font-size: 0.68rem;
+  }
+
+  .currencyPillTokenIcon {
+    block-size: 16px;
+    inline-size: 16px;
+  }
+
+  .currencyModalActionRow {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 520px) {
+  .currencyPillSummary {
+    flex-wrap: wrap;
+    gap: 0.32rem 0.5rem;
+    white-space: normal;
+  }
+
+  .currencyModalActions,
+  .footerActions {
+    grid-template-columns: 1fr;
+  }
+}

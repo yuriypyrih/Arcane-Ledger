@@ -1,4 +1,4 @@
-import { Check, Copy, Link as LinkIcon, RefreshCcw, Users, X } from "lucide-react";
+import { Check, Copy, Link as LinkIcon, Package, RefreshCcw, Users, X } from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
@@ -11,6 +11,7 @@ import {
   CharacterRowBase,
   CharacterRowIconButton
 } from "../../components/CharactersPage/CharacterRow";
+import MasterChestModal from "../../components/CharactersPage/CharacterSheetPage/EquipmentForm/MasterChestModal";
 import { DestructiveConfirmationModal } from "../../components/Overlay";
 import { PARTY_GROUP_MAX_MEMBERS } from "../../constants/QUOTAS";
 import {
@@ -45,6 +46,7 @@ function PartyGroupDetailPage() {
   );
   const [didCopyInvite, setDidCopyInvite] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isMasterChestOpen, setIsMasterChestOpen] = useState(false);
   const [isResettingInvite, setIsResettingInvite] = useState(false);
   const [isKickingMember, setIsKickingMember] = useState(false);
   const [pendingKickMember, setPendingKickMember] = useState<PartyGroupMemberRecord | null>(null);
@@ -169,6 +171,16 @@ function PartyGroupDetailPage() {
           </div>
           {partyGroup ? (
             <div className={styles.headerActions}>
+              <button
+                type="button"
+                className={styles.masterChestButton}
+                onClick={() => setIsMasterChestOpen(true)}
+                aria-label={`Open ${partyGroup.name} master chest`}
+                title={`Open ${partyGroup.name} master chest`}
+              >
+                <Package size={16} aria-hidden="true" />
+                <span>Master Chest</span>
+              </button>
               <DmToolsEditButton onClick={() => setIsEditModalOpen(true)}>Edit</DmToolsEditButton>
             </div>
           ) : null}
@@ -278,6 +290,14 @@ function PartyGroupDetailPage() {
               <EditPartyGroupModal
                 partyGroup={partyGroup}
                 onClose={() => setIsEditModalOpen(false)}
+              />
+            ) : null}
+            {isMasterChestOpen ? (
+              <MasterChestModal
+                mode="gm"
+                partyGroupId={partyGroup.id}
+                partyGroupName={partyGroup.name}
+                onClose={() => setIsMasterChestOpen(false)}
               />
             ) : null}
             {pendingKickMember ? (
