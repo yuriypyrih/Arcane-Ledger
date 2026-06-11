@@ -33,7 +33,6 @@ function HomePage() {
   const accountCapacityMultiplier = Math.floor(USER_CHARACTER_LIMIT / GUEST_CHARACTER_LIMIT);
   const shouldShowGuestBanner = status === "guest";
   const shouldShowGmTools = status === "authenticated";
-  const canUseDmTools = user?.role === "admin" || user?.role === "keeper";
 
   return (
     <section className={styles.page}>
@@ -113,26 +112,13 @@ function HomePage() {
                 {DM_TOOLS_TABS.map(({ homeLabel, icon: ToolIcon, id }) => {
                   const toolButtonClassName = `${styles.toolButton} ${dmToolToneClassNames[id]}`;
 
-                  return canUseDmTools ? (
+                  return (
                     <Link key={id} to={createDmToolsPath(id)} className={toolButtonClassName}>
                       <ToolIcon size={16} aria-hidden="true" />
                       <span className={styles.toolText}>
                         <strong>{homeLabel}</strong>
                       </span>
                     </Link>
-                  ) : (
-                    <button
-                      key={id}
-                      type="button"
-                      className={`${toolButtonClassName} ${styles.toolButtonDisabled}`}
-                      disabled
-                      title="GM tools require Keeper or Admin access."
-                    >
-                      <ToolIcon size={16} aria-hidden="true" />
-                      <span className={styles.toolText}>
-                        <strong>{homeLabel}</strong>
-                      </span>
-                    </button>
                   );
                 })}
               </div>
