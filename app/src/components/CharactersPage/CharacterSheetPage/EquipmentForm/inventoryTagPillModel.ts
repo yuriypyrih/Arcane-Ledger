@@ -11,6 +11,7 @@ export type InventoryTagPillType =
   | "spell"
   | "conjured"
   | "spellcastingFocus"
+  | "custom"
   | "feature";
 
 export type InventoryTagPillProps = {

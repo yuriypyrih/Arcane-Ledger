@@ -25,6 +25,7 @@ import {
   INVENTORY_STORED_SPELL_MODE_CONSUME_CHARGES_DESTRUCTIBLE,
   INVENTORY_STORED_SPELL_MODE_DEFAULT,
   isConjuredInventoryItem,
+  normalizeInventoryCustomTag,
   type InventoryItemSettingsSavePayload
 } from "../../../../pages/CharactersPage/inventoryItems";
 import { getEffectiveInventoryItemRecord } from "../../../../pages/CharactersPage/itemMods";
@@ -44,6 +45,8 @@ export type CustomEquipmentItemSettingsDraft = {
   storedSpellSearch: string;
   storedSpellMode: CharacterInventoryStoredSpellMode;
   storedSpellChargeCost: number;
+  customTagEnabled: boolean;
+  customTag: string;
 };
 
 export type CustomEquipmentItemSettingsParseResult =
@@ -121,6 +124,7 @@ export function createCustomEquipmentItemSettingsDraft(
   const explicitChargesTotal = getInventoryItemExplicitChargesTotal(initialStack);
   const chargesRecharge = getInventoryItemChargesRecharge(initialStack);
   const storedSpell = getInventoryItemStoredSpell(initialStack);
+  const customTag = normalizeInventoryCustomTag(initialStack?.customTag) ?? "";
   const spellcastingFocusSources = new Set(
     getInventoryItemSpellcastingFocusSources(initialStack)
   );
@@ -152,7 +156,9 @@ export function createCustomEquipmentItemSettingsDraft(
     storedSpellId: storedSpell?.spellId ?? "",
     storedSpellSearch: "",
     storedSpellMode: storedSpell?.mode ?? INVENTORY_STORED_SPELL_MODE_DEFAULT,
-    storedSpellChargeCost: storedSpell?.chargeCost ?? 1
+    storedSpellChargeCost: storedSpell?.chargeCost ?? 1,
+    customTagEnabled: customTag.length > 0,
+    customTag
   };
 }
 
@@ -216,6 +222,17 @@ export function parseCustomEquipmentItemSettingsDraft(
     };
   }
 
+  const customTag = draft.customTagEnabled
+    ? normalizeInventoryCustomTag(draft.customTag)
+    : undefined;
+
+  if (draft.customTagEnabled && !customTag) {
+    return {
+      settings: null,
+      error: "Enter a custom tag or turn off Custom Tag."
+    };
+  }
+
   return {
     settings: {
       chargesTotal,
@@ -228,6 +245,7 @@ export function parseCustomEquipmentItemSettingsDraft(
           }
         : undefined,
       featureTags: getOrderedFeatureTags(nextTags),
+      customTag,
       spellcastingFocusSources: getOrderedSpellcastingFocusSources(
         nextSpellcastingFocusSources
       ),

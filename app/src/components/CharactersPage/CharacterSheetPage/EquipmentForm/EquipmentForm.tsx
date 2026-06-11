@@ -303,6 +303,7 @@ function createInventoryStackFromContainerContent(
     chargesRecharge: content.chargesRecharge,
     storedSpell: content.storedSpell,
     featureTags: content.featureTags,
+    customTag: content.customTag,
     spellcastingFocusSources: content.spellcastingFocusSources,
     conjuredSource: content.conjuredSource,
     conjuredDuration: content.conjuredDuration,
@@ -1444,6 +1445,8 @@ function EquipmentForm({
         chargesRecharge: payload.settings.chargesRecharge,
         storedSpell: payload.settings.storedSpell,
         featureTags: payload.settings.featureTags,
+        customTag: payload.settings.customTag,
+        spellcastingFocusSources: payload.settings.spellcastingFocusSources,
         conjuredSource: payload.settings.conjuredSource,
         conjuredDuration: payload.settings.conjuredDuration
       });
@@ -2856,6 +2859,7 @@ function EquipmentForm({
       chargesLabel={selectedInventoryChargesTagLabel}
       spellTag={selectedInventoryStoredSpellHeaderTag}
       featureTags={selectedInventoryFeatureTagLabels}
+      customTag={selectedInventoryStack?.customTag}
       modded={Boolean(selectedInventoryIsModded)}
     />
   ) : undefined;
@@ -2894,6 +2898,7 @@ function EquipmentForm({
           includeModel: true
         })
       ]}
+      customTag={parentInventoryStack?.customTag}
       modded={Boolean(
         parentInventoryStack &&
         hasCharacterItemMods(parentInventoryStack.mods) &&

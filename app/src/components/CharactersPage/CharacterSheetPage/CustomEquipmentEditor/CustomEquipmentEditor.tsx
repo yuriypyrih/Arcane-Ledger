@@ -515,6 +515,8 @@ function CustomEquipmentEditor({
             chargesRecharge: initialStack?.chargesRecharge,
             storedSpell: initialStack?.storedSpell,
             featureTags: initialStack?.featureTags,
+            customTag: initialStack?.customTag,
+            spellcastingFocusSources: initialStack?.spellcastingFocusSources,
             conjuredSource: initialStack?.conjuredSource,
             conjuredDuration: initialStack?.conjuredDuration
           },

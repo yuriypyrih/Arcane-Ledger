@@ -238,6 +238,12 @@ export function renderEquipmentForm(context: Record<string, any>) {
                               {otherFeatureTagLabels.map((tagLabel) => (
                                 <InventoryTagPill key={tagLabel} {...getInventoryTagPillProps(tagLabel)} />
                               ))}
+                              {entry.item.stack.customTag ? (
+                                <InventoryTagPill
+                                  type="custom"
+                                  label={entry.item.stack.customTag}
+                                />
+                              ) : null}
                             </span>
                             <span className={styles.equipmentItemTagsRight}>
                               {storedSpellRowTagLabel ? (

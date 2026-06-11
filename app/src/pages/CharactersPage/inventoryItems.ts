@@ -28,6 +28,7 @@ import {
   getItemModsCategory,
   normalizeCharacterItemMods
 } from "./itemMods";
+import { sanitizeUserInput } from "../../utils/userInputSanitization";
 import {
   CONTAINER_OBJECT_LIMIT,
   INVENTORY_OBJECT_LIMIT,
@@ -50,6 +51,7 @@ export type InventoryItemCopyReference = {
   onHand: boolean;
   worn: boolean;
   featureTags?: CharacterInventoryFeatureTag[];
+  customTag?: string;
 };
 
 export type GroupedInventoryItem = {
@@ -92,6 +94,7 @@ export type InventoryItemSettingsSavePayload = {
   chargesRecharge?: CharacterInventoryChargesRecharge;
   storedSpell?: CharacterInventoryStoredSpell;
   featureTags?: CharacterInventoryFeatureTag[];
+  customTag?: string;
   spellcastingFocusSources?: CharacterInventorySpellcastingFocusSource[];
   conjuredSource?: CharacterInventoryConjuredSource;
   conjuredDuration?: CharacterInventoryConjuredDuration;
@@ -228,6 +231,7 @@ const inventorySpellcastingFocusSourceOrder: CharacterInventorySpellcastingFocus
   INVENTORY_SPELLCASTING_FOCUS_SOURCE_MANUAL,
   INVENTORY_SPELLCASTING_FOCUS_SOURCE_ARCANE_FIREARM
 ];
+const INVENTORY_CUSTOM_TAG_MAX_LENGTH = 24;
 
 function getCopperValue(cost: EquipmentCost): number {
   return cost.amount * currencyCopperValueByType[cost.currency];
@@ -387,6 +391,16 @@ function normalizeInventoryFeatureTags(value: unknown): CharacterInventoryFeatur
   const normalizedTags = inventoryFeatureTagOrder.filter((tag) => tagSet.has(tag));
 
   return normalizedTags.length > 0 ? normalizedTags : undefined;
+}
+
+export function normalizeInventoryCustomTag(value: unknown): string | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const normalizedTag = sanitizeUserInput(value).slice(0, INVENTORY_CUSTOM_TAG_MAX_LENGTH).trim();
+
+  return normalizedTag.length > 0 ? normalizedTag : undefined;
 }
 
 function normalizeInventorySpellcastingFocusSourceValues(
@@ -564,12 +578,16 @@ function normalizeReplicateMagicItemSlot(value: unknown): CharacterReplicateMagi
 }
 
 function hasInventoryItemExplicitSettings(
-  entry: Pick<CharacterInventoryItem, "chargesTotal" | "chargesRecharge" | "storedSpell"> | null | undefined
+  entry:
+    | Pick<CharacterInventoryItem, "chargesTotal" | "chargesRecharge" | "storedSpell" | "customTag">
+    | null
+    | undefined
 ): boolean {
   return (
     normalizeInventoryChargesTotal(entry?.chargesTotal) !== undefined ||
     normalizeInventoryChargesRecharge(entry?.chargesRecharge) !== undefined ||
-    normalizeInventoryStoredSpell(entry?.storedSpell) !== undefined
+    normalizeInventoryStoredSpell(entry?.storedSpell) !== undefined ||
+    normalizeInventoryCustomTag(entry?.customTag) !== undefined
   );
 }
 
@@ -597,6 +615,7 @@ export function isBagOfHoldingInventoryItem(
 
 function getContainerContentStackKey(entry: CharacterContainerContentItem, index: number): string {
   const featureTags = normalizeInventoryFeatureTags(entry.featureTags);
+  const customTag = normalizeInventoryCustomTag(entry.customTag);
   const chargesTotal = normalizeInventoryChargesTotal(entry.chargesTotal);
   const chargesRecharge = normalizeInventoryChargesRecharge(entry.chargesRecharge);
   const storedSpell = normalizeInventoryStoredSpell(entry.storedSpell);
@@ -609,6 +628,7 @@ function getContainerContentStackKey(entry: CharacterContainerContentItem, index
     storedSpell === undefined &&
     !entry.conjuredSource &&
     !entry.conjuredDuration &&
+    !customTag &&
     (featureTags?.length ?? 0) === 0;
 
   return isSimpleStack ? `item:${getItemRecordKey(entry.item)}` : `unique:${index}`;
@@ -621,6 +641,7 @@ function normalizeContainerContentItem(
   const chargesTotal = normalizeInventoryChargesTotal(entry.chargesTotal);
   const rawChargesRecharge = normalizeInventoryChargesRecharge(entry.chargesRecharge);
   const storedSpell = normalizeInventoryStoredSpell(entry.storedSpell);
+  const customTag = normalizeInventoryCustomTag(entry.customTag);
   const hasExplicitSettings =
     chargesTotal !== undefined || rawChargesRecharge !== undefined || storedSpell !== undefined;
   const quantity = hasExplicitSettings ? 1 : normalizeInventoryStackQuantity(entry.quantity, 1, 1);
@@ -667,6 +688,7 @@ function normalizeContainerContentItem(
     item: entry.item,
     quantity,
     featureTags,
+    ...(customTag ? { customTag } : {}),
     ...(spellcastingFocusSources ? { spellcastingFocusSources } : {}),
     ...(chargesTotal !== undefined ? { chargesTotal } : {}),
     ...(chargesRecharge ? { chargesRecharge } : {}),
@@ -711,6 +733,7 @@ function normalizeCharacterContainerContentItems(value: unknown): CharacterConta
       chargesRecharge?: unknown;
       storedSpell?: unknown;
       featureTags?: unknown;
+      customTag?: unknown;
       spellcastingFocusSources?: unknown;
       conjuredSource?: unknown;
       conjuredDuration?: unknown;
@@ -744,6 +767,7 @@ function normalizeCharacterContainerContentItems(value: unknown): CharacterConta
       chargesRecharge: normalizeInventoryChargesRecharge(record.chargesRecharge),
       storedSpell: normalizeInventoryStoredSpell(record.storedSpell),
       featureTags,
+      customTag: normalizeInventoryCustomTag(record.customTag),
       spellcastingFocusSources,
       conjuredSource: normalizeInventoryConjuredSourceForFeatureTags(
         record.conjuredSource,
@@ -834,6 +858,7 @@ function normalizeInventoryStack(entry: CharacterInventoryItem): CharacterInvent
   const chargesTotal = normalizeInventoryChargesTotal(entry.chargesTotal);
   const rawChargesRecharge = normalizeInventoryChargesRecharge(entry.chargesRecharge);
   const storedSpell = normalizeInventoryStoredSpell(entry.storedSpell);
+  const customTag = normalizeInventoryCustomTag(entry.customTag);
   const hasExplicitSettings =
     chargesTotal !== undefined || rawChargesRecharge !== undefined || storedSpell !== undefined;
   const isUniqueStack = isContainer || Boolean(mods) || hasExplicitSettings;
@@ -892,6 +917,7 @@ function normalizeInventoryStack(entry: CharacterInventoryItem): CharacterInvent
     onHandQuantity,
     worn: Boolean(entry.worn),
     featureTags,
+    ...(customTag ? { customTag } : {}),
     ...(spellcastingFocusSources ? { spellcastingFocusSources } : {}),
     ...(chargesTotal !== undefined ? { chargesTotal } : {}),
     ...(storedSpell ? { storedSpell } : {}),
@@ -948,7 +974,8 @@ function createInventoryItemCopyReference(
     item: options?.item ?? getEffectiveInventoryItemRecord(entry),
     onHand: copyIndex < onHandQuantity,
     worn: entry.worn && copyIndex === 0,
-    featureTags: normalizeInventoryFeatureTags(entry.featureTags)
+    featureTags: normalizeInventoryFeatureTags(entry.featureTags),
+    customTag: normalizeInventoryCustomTag(entry.customTag)
   };
 }
 
@@ -1025,6 +1052,7 @@ export function createCharacterInventoryItem(
     chargesRecharge?: CharacterInventoryChargesRecharge;
     storedSpell?: CharacterInventoryStoredSpell;
     featureTags?: CharacterInventoryFeatureTag[];
+    customTag?: string;
     spellcastingFocusSources?: CharacterInventorySpellcastingFocusSource[];
     conjuredSource?: CharacterInventoryConjuredSource;
     conjuredDuration?: CharacterInventoryConjuredDuration;
@@ -1054,6 +1082,7 @@ export function createCharacterInventoryItem(
     chargesRecharge: options?.chargesRecharge,
     storedSpell: options?.storedSpell,
     featureTags: options?.featureTags,
+    customTag: options?.customTag,
     spellcastingFocusSources: options?.spellcastingFocusSources,
     conjuredSource: options?.conjuredSource,
     conjuredDuration: options?.conjuredDuration,
@@ -1074,6 +1103,7 @@ export function createCharacterContainerContentItem(
     chargesRecharge?: CharacterInventoryChargesRecharge;
     storedSpell?: CharacterInventoryStoredSpell;
     featureTags?: CharacterInventoryFeatureTag[];
+    customTag?: string;
     spellcastingFocusSources?: CharacterInventorySpellcastingFocusSource[];
     conjuredSource?: CharacterInventoryConjuredSource;
     conjuredDuration?: CharacterInventoryConjuredDuration;
@@ -1095,6 +1125,7 @@ export function createCharacterContainerContentItem(
     chargesRecharge: options?.chargesRecharge,
     storedSpell: options?.storedSpell,
     featureTags: options?.featureTags,
+    customTag: options?.customTag,
     spellcastingFocusSources: options?.spellcastingFocusSources,
     conjuredSource: options?.conjuredSource,
     conjuredDuration: options?.conjuredDuration,
@@ -1139,6 +1170,7 @@ export function normalizeCharacterInventoryItems(value: unknown): CharacterInven
       chargesRecharge?: unknown;
       storedSpell?: unknown;
       featureTags?: unknown;
+      customTag?: unknown;
       spellcastingFocusSources?: unknown;
       conjuredSource?: unknown;
       conjuredDuration?: unknown;
@@ -1159,6 +1191,7 @@ export function normalizeCharacterInventoryItems(value: unknown): CharacterInven
     const chargesTotal = normalizeInventoryChargesTotal(record.chargesTotal);
     const chargesRecharge = normalizeInventoryChargesRecharge(record.chargesRecharge);
     const storedSpell = normalizeInventoryStoredSpell(record.storedSpell);
+    const customTag = normalizeInventoryCustomTag(record.customTag);
     const isUniqueStack =
       isContainer ||
       Boolean(mods) ||
@@ -1202,6 +1235,7 @@ export function normalizeCharacterInventoryItems(value: unknown): CharacterInven
         chargesRecharge,
         storedSpell,
         featureTags,
+        customTag,
         spellcastingFocusSources,
         conjuredSource,
         conjuredDuration: normalizeInventoryConjuredDuration(record.conjuredDuration),
@@ -1215,10 +1249,10 @@ export function normalizeCharacterInventoryItems(value: unknown): CharacterInven
             ? normalizeCharacterContainerContentItems(record.containerContents)
             : undefined
       });
-      const stackHasFeatureTags = (stack.featureTags?.length ?? 0) > 0;
+      const stackHasUtilityTags = (stack.featureTags?.length ?? 0) > 0 || Boolean(stack.customTag);
       const mergeKey = isUniqueStack
         ? `unique:${stack.id}:${index}:${copyIndex}`
-        : stackHasFeatureTags
+        : stackHasUtilityTags
           ? `tagged:${stack.id}:${index}`
           : `item:${key}`;
       const existingStack = stacksByMergeKey.get(mergeKey);
@@ -1546,6 +1580,7 @@ export function createInventoryItemFromContainerContent(
     chargesRecharge: content.chargesRecharge,
     storedSpell: content.storedSpell,
     featureTags: content.featureTags,
+    customTag: content.customTag,
     spellcastingFocusSources: content.spellcastingFocusSources,
     conjuredSource: content.conjuredSource,
     conjuredDuration: content.conjuredDuration,
@@ -1589,7 +1624,8 @@ function findUntaggedInventoryItemStackByKey(
         getItemRecordKey(entry.item) === itemKey &&
         !normalizeCharacterItemMods(entry.mods) &&
         !hasInventoryItemExplicitSettings(entry) &&
-        (normalizeInventoryFeatureTags(entry.featureTags)?.length ?? 0) === 0
+        (normalizeInventoryFeatureTags(entry.featureTags)?.length ?? 0) === 0 &&
+        !normalizeInventoryCustomTag(entry.customTag)
     ) ?? null
   );
 }
@@ -2130,6 +2166,7 @@ function createContainerContentItemFromInventoryStack(
     chargesRecharge: entry.chargesRecharge,
     storedSpell: entry.storedSpell,
     featureTags: entry.featureTags,
+    customTag: entry.customTag,
     spellcastingFocusSources: entry.spellcastingFocusSources,
     conjuredSource: entry.conjuredSource,
     conjuredDuration: entry.conjuredDuration,
@@ -2158,6 +2195,7 @@ function getInventoryItemSettingsForSave(
     chargesRecharge: settings ? settings.chargesRecharge : entry.chargesRecharge,
     storedSpell: settings ? settings.storedSpell : entry.storedSpell,
     featureTags,
+    customTag: normalizeInventoryCustomTag(settings ? settings.customTag : entry.customTag),
     spellcastingFocusSources,
     conjuredSource: isConjured ? (settings ? settings.conjuredSource : entry.conjuredSource) : undefined,
     conjuredDuration: isConjured
@@ -2194,6 +2232,7 @@ function updateInventoryItemModsInPlace(
     chargesRecharge: savedSettings.chargesRecharge,
     storedSpell: savedSettings.storedSpell,
     featureTags: savedSettings.featureTags,
+    customTag: savedSettings.customTag,
     spellcastingFocusSources: savedSettings.spellcastingFocusSources,
     conjuredSource: savedSettings.conjuredSource,
     conjuredDuration: savedSettings.conjuredDuration,
@@ -2233,6 +2272,7 @@ function transformInventoryItemCopyWithMods(
       chargesRecharge: savedSettings.chargesRecharge,
       storedSpell: savedSettings.storedSpell,
       featureTags: savedSettings.featureTags,
+      customTag: savedSettings.customTag,
       spellcastingFocusSources: savedSettings.spellcastingFocusSources,
       conjuredSource: savedSettings.conjuredSource,
       conjuredDuration: savedSettings.conjuredDuration,
@@ -2261,6 +2301,7 @@ function transformInventoryItemCopyWithMods(
       chargesRecharge: entry.chargesRecharge,
       storedSpell: entry.storedSpell,
       featureTags: getSourceFeatureTagsAfterModdedTransform(entry),
+      customTag: entry.customTag,
       spellcastingFocusSources: getSourceSpellcastingFocusSourcesAfterModdedTransform(entry),
       conjuredSource: entry.conjuredSource,
       conjuredDuration: entry.conjuredDuration,
@@ -2451,6 +2492,7 @@ export function getContainerContentsWeightValue(
       chargesRecharge: content.chargesRecharge,
       storedSpell: content.storedSpell,
       featureTags: content.featureTags,
+      customTag: content.customTag,
       spellcastingFocusSources: content.spellcastingFocusSources,
       conjuredSource: content.conjuredSource,
       conjuredDuration: content.conjuredDuration,
@@ -2473,6 +2515,7 @@ function getContainerContentCopyWeightValue(content: CharacterContainerContentIt
     chargesRecharge: content.chargesRecharge,
     storedSpell: content.storedSpell,
     featureTags: content.featureTags,
+    customTag: content.customTag,
     spellcastingFocusSources: content.spellcastingFocusSources,
     conjuredSource: content.conjuredSource,
     conjuredDuration: content.conjuredDuration,
@@ -2852,7 +2895,8 @@ function addContainerContentItemToInventoryWithResult(
     normalizeInventoryChargesTotal(normalizedContentItem.chargesTotal) !== undefined ||
     normalizeInventoryChargesRecharge(normalizedContentItem.chargesRecharge) !== undefined ||
     normalizeInventoryStoredSpell(normalizedContentItem.storedSpell) !== undefined ||
-    (normalizedContentItem.featureTags?.length ?? 0) > 0;
+    (normalizedContentItem.featureTags?.length ?? 0) > 0 ||
+    Boolean(normalizedContentItem.customTag);
 
   if (!shouldCreateSeparateStack) {
     const existingStack = normalizedContentItem.item.key
@@ -2880,6 +2924,8 @@ function addContainerContentItemToInventoryWithResult(
     chargesRecharge: normalizedContentItem.chargesRecharge,
     storedSpell: normalizedContentItem.storedSpell,
     featureTags: normalizedContentItem.featureTags,
+    customTag: normalizedContentItem.customTag,
+    spellcastingFocusSources: normalizedContentItem.spellcastingFocusSources,
     conjuredSource: normalizedContentItem.conjuredSource,
     conjuredDuration: normalizedContentItem.conjuredDuration,
     replicateMagicItemPlanKey: normalizedContentItem.replicateMagicItemPlanKey,
@@ -3580,6 +3626,7 @@ function createRootTransferInventoryStack(entry: CharacterInventoryItem): Charac
     chargesRecharge: entry.chargesRecharge,
     storedSpell: entry.storedSpell,
     featureTags: entry.featureTags,
+    customTag: entry.customTag,
     spellcastingFocusSources: entry.spellcastingFocusSources,
     conjuredSource: entry.conjuredSource,
     conjuredDuration: entry.conjuredDuration,
@@ -3600,7 +3647,8 @@ function shouldCreateSeparateRootTransferStack(entry: CharacterInventoryItem): b
     normalizeInventoryChargesTotal(entry.chargesTotal) !== undefined ||
     normalizeInventoryChargesRecharge(entry.chargesRecharge) !== undefined ||
     normalizeInventoryStoredSpell(entry.storedSpell) !== undefined ||
-    (entry.featureTags?.length ?? 0) > 0
+    (entry.featureTags?.length ?? 0) > 0 ||
+    Boolean(entry.customTag)
   );
 }
 

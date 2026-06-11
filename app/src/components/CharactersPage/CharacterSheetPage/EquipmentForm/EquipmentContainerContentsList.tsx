@@ -39,8 +39,10 @@ function getContentRowItem(
     attuned: content.attuned,
     usesRemaining: content.usesRemaining,
     chargesTotal: content.chargesTotal,
+    chargesRecharge: content.chargesRecharge,
     storedSpell: content.storedSpell,
     featureTags: content.featureTags,
+    customTag: content.customTag,
     spellcastingFocusSources: content.spellcastingFocusSources,
     conjuredSource: content.conjuredSource,
     conjuredDuration: content.conjuredDuration,
@@ -126,6 +128,9 @@ function EquipmentContainerContentsList({
                       {otherFeatureTagLabels.map((tagLabel) => (
                         <InventoryTagPill key={tagLabel} {...getInventoryTagPillProps(tagLabel)} />
                       ))}
+                      {stack.customTag ? (
+                        <InventoryTagPill type="custom" label={stack.customTag} />
+                      ) : null}
                     </span>
                     <span className={styles.equipmentItemTagsRight}>
                       {storedSpellRowTagLabel ? (

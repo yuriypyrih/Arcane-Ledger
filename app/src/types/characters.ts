@@ -386,6 +386,7 @@ export type CharacterInventoryItemBase = {
   chargesRecharge?: CharacterInventoryChargesRecharge;
   storedSpell?: CharacterInventoryStoredSpell;
   featureTags?: CharacterInventoryFeatureTag[];
+  customTag?: string;
   spellcastingFocusSources?: CharacterInventorySpellcastingFocusSource[];
   conjuredSource?: CharacterInventoryConjuredSource;
   conjuredDuration?: CharacterInventoryConjuredDuration;

@@ -60,6 +60,11 @@ const inventoryTagPillDefinitions: Record<InventoryTagPillType, InventoryTagPill
     icon: Sparkles,
     className: styles.inventoryTagPillSpellcastingFocus
   },
+  custom: {
+    label: "Custom Tag",
+    icon: null,
+    className: styles.inventoryTagPillCustom
+  },
   feature: {
     label: "Feature",
     icon: null,

@@ -44,6 +44,7 @@ type CustomEquipmentItemSettingsProps = {
 };
 
 const maxDropdownSpellOptions = 50;
+const customTagMaxLength = 24;
 const conjuredDurationOptions: Array<{
   value: CharacterInventoryConjuredDuration;
   label: string;
@@ -365,6 +366,37 @@ function CustomEquipmentItemSettings({
                   </label>
                 ) : null}
               </div>
+            </div>
+          ) : null}
+        </div>
+
+        <div className={styles.customEquipmentSettingsOption}>
+          <RadioContainerOption
+            header="Custom Tag"
+            subheader="Display a custom inventory tag on this item."
+            selected={draft.customTagEnabled}
+            onSelect={() =>
+              onChange(
+                draft.customTagEnabled
+                  ? { customTagEnabled: false, customTag: "" }
+                  : { customTagEnabled: true }
+              )
+            }
+            indicatorType="checkbox"
+            className={styles.customEquipmentChoiceOption}
+          />
+          {draft.customTagEnabled ? (
+            <div className={styles.customEquipmentSettingsFields}>
+              <label className={styles.customEquipmentField}>
+                <span>Tag</span>
+                <TextInput
+                  value={draft.customTag}
+                  maxLength={customTagMaxLength}
+                  onChange={(event) =>
+                    onChange({ customTag: event.target.value.slice(0, customTagMaxLength) })
+                  }
+                />
+              </label>
             </div>
           ) : null}
         </div>

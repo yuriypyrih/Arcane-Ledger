@@ -15,6 +15,7 @@ type EquipmentInventoryItemDrawerHeaderProps = {
   chargesLabel?: string | null;
   spellTag?: string | null;
   featureTags?: string[];
+  customTag?: string | null;
   modded?: boolean;
 };
 
@@ -31,6 +32,7 @@ function EquipmentInventoryItemDrawerHeader({
   chargesLabel = null,
   spellTag = null,
   featureTags = [],
+  customTag = null,
   modded = false
 }: EquipmentInventoryItemDrawerHeaderProps) {
   const presentation = buildItemDetailPresentation(item);
@@ -57,6 +59,7 @@ function EquipmentInventoryItemDrawerHeader({
         {featureTags.map((tagLabel) => (
           <InventoryTagPill key={tagLabel} {...getInventoryTagPillProps(tagLabel)} />
         ))}
+        {customTag ? <InventoryTagPill type="custom" label={customTag} /> : null}
       </div>
       <p className={`${sheetStyles.spellDrawerSummary} ${styles.drawerSummaryRow}`}>
         <span>{presentation.categoryLabel}</span>
