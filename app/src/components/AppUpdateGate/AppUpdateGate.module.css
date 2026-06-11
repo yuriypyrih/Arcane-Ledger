@@ -18,7 +18,9 @@
   width: min(100%, 32rem);
   border: 1px solid rgba(90, 47, 29, 0.22);
   border-radius: var(--radius-panel);
-  background: rgba(255, 252, 245, 0.98);
+  background:
+    linear-gradient(rgba(255, 250, 239, 0.76), rgba(239, 228, 211, 0.84)),
+    url("../../assets/img/paper-background.webp") center / cover;
   padding: clamp(1.35rem, 4vw, 2rem);
   text-align: center;
   box-shadow: 0 20px 54px rgba(56, 31, 18, 0.2);
@@ -37,7 +39,9 @@
 
 .fullscreen .panel {
   border: 0;
-  background: transparent;
+  background:
+    linear-gradient(rgba(255, 250, 239, 0.62), rgba(239, 228, 211, 0.72)),
+    url("../../assets/img/paper-background.webp") center / cover;
   box-shadow: none;
 }
 
@@ -82,13 +86,33 @@
   background: #8d3f25;
 }
 
+.reloadButton:disabled {
+  cursor: wait;
+  opacity: 0.82;
+}
+
+.reloadButton:disabled:hover {
+  background: #7b351f;
+}
+
 .reloadButton:focus-visible {
   outline: 3px solid rgba(162, 77, 45, 0.3);
   outline-offset: 3px;
 }
 
-.buttonIcon {
+.buttonIcon,
+.loadingIcon {
   width: 1rem;
   height: 1rem;
   flex: 0 0 auto;
+}
+
+.loadingIcon {
+  animation: updateGateSpin 850ms linear infinite;
+}
+
+@keyframes updateGateSpin {
+  to {
+    transform: rotate(360deg);
+  }
 }

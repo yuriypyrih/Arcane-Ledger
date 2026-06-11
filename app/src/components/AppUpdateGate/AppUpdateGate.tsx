@@ -1,6 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { RefreshCw, Sparkles } from "lucide-react";
+import { LoaderCircle, RefreshCw, Rocket } from "lucide-react";
 import { reloadForAppUpdate, useAppUpdateState } from "../../lib/appUpdate";
 import styles from "./AppUpdateGate.module.css";
 
@@ -14,10 +14,20 @@ export function AppUpdateRequiredPanel({
   titleId
 }: AppUpdateRequiredPanelProps) {
   const reloadButtonRef = useRef<HTMLButtonElement | null>(null);
+  const [isReloading, setIsReloading] = useState(false);
 
   useEffect(() => {
     reloadButtonRef.current?.focus();
   }, []);
+
+  function handleReloadClick() {
+    if (isReloading) {
+      return;
+    }
+
+    setIsReloading(true);
+    void reloadForAppUpdate();
+  }
 
   return (
     <main className={fullscreen ? styles.fullscreen : styles.backdrop}>
@@ -27,22 +37,25 @@ export function AppUpdateRequiredPanel({
         aria-modal="true"
         aria-labelledby={titleId}
       >
-        <Sparkles className={styles.icon} aria-hidden="true" />
+        <Rocket className={styles.icon} aria-hidden="true" />
         <h1 id={titleId} className={styles.title}>
           Arcane Ledger updated
         </h1>
-        <p className={styles.copy}>
-          A newer version is ready. Reload to continue with the latest character sheet and codex
-          tools.
-        </p>
+        <p className={styles.copy}>A newer version is ready. Reload to continue.</p>
         <button
           ref={reloadButtonRef}
           className={styles.reloadButton}
           type="button"
-          onClick={() => void reloadForAppUpdate()}
+          onClick={handleReloadClick}
+          disabled={isReloading}
+          aria-busy={isReloading || undefined}
         >
-          <RefreshCw className={styles.buttonIcon} aria-hidden="true" />
-          <span>Reload</span>
+          {isReloading ? (
+            <LoaderCircle className={styles.loadingIcon} aria-hidden="true" />
+          ) : (
+            <RefreshCw className={styles.buttonIcon} aria-hidden="true" />
+          )}
+          <span>{isReloading ? "Loading" : "Reload"}</span>
         </button>
       </section>
     </main>
