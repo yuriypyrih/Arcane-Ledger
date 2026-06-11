@@ -37,7 +37,12 @@ export const bladeOfDisaster: SpellEntry = {
   id: "spell-blade-of-disaster",
   name: "Blade of Disaster",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "frhof",
+    documentName: "Forgotten Realms: Heroes of Faerun",
+    ruleset: "5e-2024",
+    publisherKey: "wizards-of-the-coast"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.BONUS_ACTION],
@@ -45,17 +50,23 @@ export const bladeOfDisaster: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "You create a blade-shaped planar rift about 3 feet long in an unoccupied space you can see within range. The blade lasts for the duration. When you cast this spell, you can make up to two melee spell attacks with the blade, each one against a creature, loose object, or structure within 5 feet of the blade.",
-    "On a hit, the target takes <strong>4d12</strong> Force damage. This attack scores a critical hit if the number on the <strong>d20</strong> is 18 or higher. On a critical hit, the blade deals an extra <strong>8d12</strong> Force damage, for a total of <strong>12d12</strong> Force damage.",
-    "As a Bonus Action on your turn, you can move the blade up to 30 feet to an unoccupied space you can see and then make up to two melee spell attacks with it again.",
-    "The blade can harmlessly pass through any barrier, including a Wall of Force."
+    "You create a 3-foot-long blade-shaped planar rift that lasts for the duration. The rift appears within range in a space of your choice, and you can immediately make up to two melee spell attacks, each one against a creature or object within 5 feet of the rift. On a hit, the target takes <strong>10d6</strong> Force damage. This attack scores a Critical Hit if the number on the <strong>d20</strong> is 18 or higher.",
+    "As a Bonus Action on your later turns, you can move the rift up to 60 feet and repeat the two attacks against a creature or an object within 5 feet of it. You can direct the attacks at the same target or at different ones.",
+    "The blade can harmlessly pass through any barrier, including ones created by spells like Wall of Force."
   ],
+  isAttackSpell: true,
   isDamagingSpell: true,
   damage: [
-    [DICE.D12, DAMAGE_TYPE.FORCE],
-    [DICE.D12, DAMAGE_TYPE.FORCE],
-    [DICE.D12, DAMAGE_TYPE.FORCE],
-    [DICE.D12, DAMAGE_TYPE.FORCE]
+    [DICE.D6, DAMAGE_TYPE.FORCE],
+    [DICE.D6, DAMAGE_TYPE.FORCE],
+    [DICE.D6, DAMAGE_TYPE.FORCE],
+    [DICE.D6, DAMAGE_TYPE.FORCE],
+    [DICE.D6, DAMAGE_TYPE.FORCE],
+    [DICE.D6, DAMAGE_TYPE.FORCE],
+    [DICE.D6, DAMAGE_TYPE.FORCE],
+    [DICE.D6, DAMAGE_TYPE.FORCE],
+    [DICE.D6, DAMAGE_TYPE.FORCE],
+    [DICE.D6, DAMAGE_TYPE.FORCE]
   ],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],

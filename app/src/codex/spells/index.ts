@@ -9,6 +9,7 @@ import { spellEntries6 } from "./spells6";
 import { spellEntries7 } from "./spells7";
 import { spellEntries8 } from "./spells8";
 import { spellEntries9 } from "./spells9";
+import { frhofSpellEntries } from "./frhof";
 
 export const spellEntries: SpellEntry[] = [
   ...spellEntries0,
@@ -20,7 +21,8 @@ export const spellEntries: SpellEntry[] = [
   ...spellEntries6,
   ...spellEntries7,
   ...spellEntries8,
-  ...spellEntries9
+  ...spellEntries9,
+  ...frhofSpellEntries
 ];
 
 function normalizeSpellLookupName(name: string): string {
@@ -52,3 +54,4 @@ export * from "./spells6";
 export * from "./spells7";
 export * from "./spells8";
 export * from "./spells9";
+export * from "./frhof";
