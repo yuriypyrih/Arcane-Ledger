@@ -1,12 +1,23 @@
-import { AlertTriangle, CircleCheck, RefreshCw, ScrollText, Swords, X } from "lucide-react";
+import {
+  AlertTriangle,
+  CircleCheck,
+  Eye,
+  EyeOff,
+  RefreshCw,
+  ScrollText,
+  Swords,
+  X
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   getCampaign,
   removeCampaignLiveEncounterTracker,
+  upsertCampaignPreparedEncounterCreature,
   type CampaignLiveEncounterTrackerParticipantRecord,
   type CampaignLiveEncounterTrackerRecord
 } from "../../api/campaigns";
+import type { EncounterTemplateCreatureRecord } from "../../api/encounterTemplates";
 import {
   clearLiveEncounterTrackerSaveStatus,
   patchSelectedCampaign,
@@ -31,9 +42,107 @@ import {
   normalizeLiveEncounterTracker,
   withLiveEncounterTrackerRevision
 } from "./liveEncounterTrackerUtils";
+import { createPlayerVisibleLiveEncounterTracker } from "./liveEncounterPlayerVisibility";
 import { useLiveEncounterTrackerPersistence } from "./useLiveEncounterTrackerPersistence";
 
 const trackerRefreshCooldownMs = 5_000;
+
+function PlayerVisibilitySwitchVisual({ checked }: { checked: boolean }) {
+  return (
+    <span
+      className={
+        checked
+          ? `${styles.visibilitySwitch} ${styles.visibilitySwitchActive}`
+          : styles.visibilitySwitch
+      }
+      aria-hidden="true"
+    >
+      <span className={styles.visibilitySwitchTrack}>
+        <span className={styles.visibilitySwitchThumb} />
+      </span>
+    </span>
+  );
+}
+
+function findLiveEncounterParticipantById(
+  tracker: CampaignLiveEncounterTrackerRecord | null,
+  participantId: string | null
+) {
+  if (!tracker || !participantId || tracker.status.state !== "valid") {
+    return null;
+  }
+
+  return (
+    tracker.initiativeOrder.find((participant) => participant.participantId === participantId) ??
+    tracker.partyMembers.find((participant) => participant.participantId === participantId) ??
+    tracker.creatures.find((participant) => participant.participantId === participantId) ??
+    null
+  );
+}
+
+function createLiveEncounterParticipantLookup(tracker: CampaignLiveEncounterTrackerRecord) {
+  return new Map(
+    [...tracker.partyMembers, ...tracker.creatures, ...tracker.initiativeOrder].map(
+      (participant) => [participant.participantId, participant]
+    )
+  );
+}
+
+function restoreLiveEncounterPartyMembers(
+  participants: CampaignLiveEncounterTrackerParticipantRecord[],
+  participantById: Map<string, CampaignLiveEncounterTrackerParticipantRecord>
+) {
+  return participants.flatMap((participant) => {
+    const fullParticipant = participantById.get(participant.participantId);
+
+    return fullParticipant?.kind === "party-member" ? [fullParticipant] : [];
+  });
+}
+
+function restoreLiveEncounterCreatures(
+  participants: CampaignLiveEncounterTrackerParticipantRecord[],
+  participantById: Map<string, CampaignLiveEncounterTrackerParticipantRecord>
+) {
+  return participants.flatMap((participant) => {
+    const fullParticipant = participantById.get(participant.participantId);
+
+    return fullParticipant?.kind === "creature" ? [fullParticipant] : [];
+  });
+}
+
+function restoreLiveEncounterParticipants(
+  participants: CampaignLiveEncounterTrackerParticipantRecord[],
+  participantById: Map<string, CampaignLiveEncounterTrackerParticipantRecord>
+) {
+  return participants.flatMap((participant) => {
+    const fullParticipant = participantById.get(participant.participantId);
+
+    return fullParticipant ? [fullParticipant] : [];
+  });
+}
+
+function restoreFullLiveEncounterTrackerFromDisplayTracker(
+  fullTracker: CampaignLiveEncounterTrackerRecord,
+  displayTracker: CampaignLiveEncounterTrackerRecord
+): CampaignLiveEncounterTrackerRecord {
+  if (fullTracker.status.state !== "valid" || displayTracker.status.state !== "valid") {
+    return fullTracker;
+  }
+
+  const participantById = createLiveEncounterParticipantLookup(fullTracker);
+
+  return {
+    ...fullTracker,
+    activeParticipantId: displayTracker.activeParticipantId,
+    roundNumber: displayTracker.roundNumber,
+    partyMembers: restoreLiveEncounterPartyMembers(displayTracker.partyMembers, participantById),
+    creatures: restoreLiveEncounterCreatures(displayTracker.creatures, participantById),
+    initiativeOrder: restoreLiveEncounterParticipants(
+      displayTracker.initiativeOrder,
+      participantById
+    )
+  };
+}
 
 function CampaignLiveEncounterTrackerPage() {
   const { campaignId = "" } = useParams();
@@ -54,8 +163,8 @@ function CampaignLiveEncounterTrackerPage() {
     (state) => state.dmTools.liveEncounterTrackerSaveErrorByCampaignId[campaignId] ?? null
   );
   const [draftTracker, setDraftTracker] = useState<CampaignLiveEncounterTrackerRecord | null>(null);
-  const [inspectedParticipant, setInspectedParticipant] =
-    useState<CampaignLiveEncounterTrackerParticipantRecord | null>(null);
+  const [inspectedParticipantId, setInspectedParticipantId] = useState<string | null>(null);
+  const [isGmViewEnabled, setIsGmViewEnabled] = useState(true);
   const [isRemovingTracker, setIsRemovingTracker] = useState(false);
   const [isRefreshingTracker, setIsRefreshingTracker] = useState(false);
   const [isTrackerRefreshCoolingDown, setIsTrackerRefreshCoolingDown] = useState(false);
@@ -143,6 +252,17 @@ function CampaignLiveEncounterTrackerPage() {
   );
   const tracker = draftTracker ?? serverTracker;
   const isTrackerValid = tracker?.status.state === "valid";
+  const displayTracker = useMemo(
+    () =>
+      tracker && tracker.status.state === "valid" && !isGmViewEnabled
+        ? createPlayerVisibleLiveEncounterTracker(tracker)
+        : tracker,
+    [isGmViewEnabled, tracker]
+  );
+  const inspectedParticipant = useMemo(
+    () => findLiveEncounterParticipantById(displayTracker, inspectedParticipantId),
+    [displayTracker, inspectedParticipantId]
+  );
 
   useEffect(() => {
     return () => clearTrackerRefreshCooldown();
@@ -153,8 +273,14 @@ function CampaignLiveEncounterTrackerPage() {
       return;
     }
 
-    setDraftTracker(serverTracker?.status.state === "valid" ? serverTracker : null);
-    setInspectedParticipant(null);
+    const nextTracker = serverTracker?.status.state === "valid" ? serverTracker : null;
+
+    setDraftTracker(nextTracker);
+    setInspectedParticipantId((currentParticipantId) =>
+      findLiveEncounterParticipantById(nextTracker, currentParticipantId)
+        ? currentParticipantId
+        : null
+    );
   }, [saveStatus, serverTracker]);
 
   useEffect(() => {
@@ -209,7 +335,7 @@ function CampaignLiveEncounterTrackerPage() {
         const savedTracker = await flushPendingSave();
 
         if (savedTracker) {
-          setInspectedParticipant(null);
+          setInspectedParticipantId(null);
           startTrackerRefreshCooldown();
         }
 
@@ -225,7 +351,7 @@ function CampaignLiveEncounterTrackerPage() {
 
       dispatch(setSelectedCampaign(nextCampaign));
       setDraftTracker(nextTracker?.status.state === "valid" ? nextTracker : null);
-      setInspectedParticipant(null);
+      setInspectedParticipantId(null);
       startTrackerRefreshCooldown();
     } catch (refreshError) {
       setActionError(
@@ -236,9 +362,95 @@ function CampaignLiveEncounterTrackerPage() {
     }
   }
 
+  async function handleEditPreparedEncounter() {
+    if (!campaignId || !tracker || tracker.status.state !== "valid") {
+      return;
+    }
+
+    setActionError(null);
+
+    try {
+      if (saveStatus === "dirty" || saveStatus === "saving") {
+        await flushPendingSave();
+      }
+
+      navigate(
+        `/gm-tools/campaign-manager/${campaignId}/encounters/${tracker.preparedEncounterId}?returnToLiveEncounter=1`
+      );
+    } catch (syncError) {
+      setActionError(
+        getDmToolsApiErrorMessage(syncError, "Unable to sync encounter before editing.")
+      );
+    }
+  }
+
+  async function handleUpdateInspectedCreature(
+    creatureId: string,
+    updateCreature: (creature: EncounterTemplateCreatureRecord) => EncounterTemplateCreatureRecord
+  ) {
+    if (
+      !campaignId ||
+      !campaign ||
+      !tracker ||
+      tracker.status.state !== "valid" ||
+      !isGmViewEnabled
+    ) {
+      throw new Error("Creature hit points can only be edited from GM View.");
+    }
+
+    const preparedEncounter = campaign.preparedEncounters.find(
+      (encounter) => encounter.id === tracker.preparedEncounterId
+    );
+    const sourceCreature = preparedEncounter?.creatures.find(
+      (creature) => creature.id === creatureId
+    );
+
+    if (!preparedEncounter || !sourceCreature) {
+      throw new Error("Unable to find this prepared encounter creature.");
+    }
+
+    setActionError(null);
+
+    if (saveStatus === "dirty" || saveStatus === "saving" || saveStatus === "error") {
+      const savedTracker = await flushPendingSave();
+
+      if (!savedTracker) {
+        throw new Error("Unable to sync encounter tracker changes before editing hit points.");
+      }
+    }
+
+    const nextCreature = updateCreature(sourceCreature);
+    const campaignPatch = await upsertCampaignPreparedEncounterCreature(
+      campaignId,
+      preparedEncounter.id,
+      nextCreature,
+      { suppressFailureToast: true }
+    );
+    const nextTracker = campaignPatch.patch.liveEncounterTracker
+      ? normalizeLiveEncounterTracker(campaignPatch.patch.liveEncounterTracker)
+      : null;
+
+    dispatch(patchSelectedCampaign(campaignPatch));
+
+    setDraftTracker(nextTracker?.status.state === "valid" ? nextTracker : null);
+  }
+
   function handleTrackerChange(nextTracker: CampaignLiveEncounterTrackerRecord) {
     setDraftTracker(nextTracker);
     queueSave(nextTracker);
+  }
+
+  function handleDisplayedTrackerChange(nextTracker: CampaignLiveEncounterTrackerRecord) {
+    if (
+      !isGmViewEnabled &&
+      tracker?.status.state === "valid" &&
+      nextTracker.status.state === "valid"
+    ) {
+      handleTrackerChange(restoreFullLiveEncounterTrackerFromDisplayTracker(tracker, nextTracker));
+      return;
+    }
+
+    handleTrackerChange(nextTracker);
   }
 
   return (
@@ -259,6 +471,25 @@ function CampaignLiveEncounterTrackerPage() {
             </h2>
           </div>
           <div className={styles.headerActions}>
+            <ActionButton
+              role="switch"
+              aria-checked={isGmViewEnabled}
+              actionType="INFO"
+              variant="OUTLINE"
+              fullWidth={false}
+              disabled={!isTrackerValid}
+              icon={
+                isGmViewEnabled ? (
+                  <Eye size={16} aria-hidden="true" />
+                ) : (
+                  <EyeOff size={16} aria-hidden="true" />
+                )
+              }
+              trailingBadge={<PlayerVisibilitySwitchVisual checked={isGmViewEnabled} />}
+              onClick={() => setIsGmViewEnabled((currentValue) => !currentValue)}
+            >
+              GM View
+            </ActionButton>
             <ActionButton
               actionType={isTrackerRefreshCoolingDown ? "SUCCESS" : "INFO"}
               variant="FILL"
@@ -327,15 +558,25 @@ function CampaignLiveEncounterTrackerPage() {
               <p className={styles.modalError}>{saveError}</p>
             ) : null}
             <CampaignLiveEncounterTrackerBoard
-              tracker={tracker}
-              onChange={handleTrackerChange}
-              onInspectParticipant={setInspectedParticipant}
+              tracker={displayTracker ?? tracker}
+              onEditEncounterCreatures={() => {
+                void handleEditPreparedEncounter();
+              }}
+              onChange={handleDisplayedTrackerChange}
+              onInspectParticipant={(participant) =>
+                setInspectedParticipantId(participant.participantId)
+              }
             />
-            <CampaignLiveEncounterRoundTracker tracker={tracker} onChange={handleTrackerChange} />
+            <CampaignLiveEncounterRoundTracker
+              tracker={displayTracker ?? tracker}
+              onChange={handleDisplayedTrackerChange}
+            />
             {inspectedParticipant ? (
               <CampaignLiveEncounterTrackerInspectionDrawer
                 participant={inspectedParticipant}
-                onClose={() => setInspectedParticipant(null)}
+                readOnly={!isGmViewEnabled}
+                onClose={() => setInspectedParticipantId(null)}
+                onUpdateCreature={handleUpdateInspectedCreature}
               />
             ) : null}
           </>

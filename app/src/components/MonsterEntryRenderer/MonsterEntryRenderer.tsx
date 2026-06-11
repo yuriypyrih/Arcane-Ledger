@@ -118,6 +118,21 @@ function MonsterEntryRenderer({
   const actionGroups = providedActionGroups ?? buildMonsterActionGroups(monster);
   const shouldRenderIntro = showHeading || description;
   const isDeprecated = isDeprecatedMonsterRecord(monster);
+  const coreRows = [
+    {
+      label: "Armor Class",
+      value: formatMonsterValueWithNote(monster.armor_class, monster.armor_detail)
+    },
+    {
+      label: "Hit Points",
+      value: formatMonsterValueWithNote(monster.hit_points, monster.hit_dice)
+    },
+    {
+      label: "Speed",
+      value: speed
+    },
+    ...vitalRows
+  ].filter((row) => Boolean(row.value));
 
   return (
     <article
@@ -149,26 +164,21 @@ function MonsterEntryRenderer({
         </p>
       ) : null}
 
-      <section className={styles.section}>
-        <div className={styles.inlineRows}>
-          <InlineRow
-            label="Armor Class"
-            value={formatMonsterValueWithNote(monster.armor_class, monster.armor_detail)}
-          />
-          <InlineRow
-            label="Hit Points"
-            value={formatMonsterValueWithNote(monster.hit_points, monster.hit_dice)}
-          />
-          <InlineRow label="Speed" value={speed} />
-          {vitalRows.map((row) => (
-            <InlineRow key={row.label} label={row.label} value={row.value} />
-          ))}
-        </div>
-      </section>
+      {coreRows.length > 0 ? (
+        <section className={styles.section}>
+          <div className={styles.inlineRows}>
+            {coreRows.map((row) => (
+              <InlineRow key={row.label} label={row.label} value={row.value} />
+            ))}
+          </div>
+        </section>
+      ) : null}
 
-      <section className={styles.section}>
-        <AbilitySavingThrowCards cards={abilitySavingThrowCards} />
-      </section>
+      {abilitySavingThrowCards.length > 0 ? (
+        <section className={styles.section}>
+          <AbilitySavingThrowCards cards={abilitySavingThrowCards} />
+        </section>
+      ) : null}
 
       {detailRows.length > 0 ? (
         <section className={styles.section}>

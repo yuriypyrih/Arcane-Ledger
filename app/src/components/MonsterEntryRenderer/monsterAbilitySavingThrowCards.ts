@@ -28,6 +28,18 @@ function getMonsterMapNumber(
 export function buildMonsterAbilitySavingThrowCards(
   monster: MonsterRecord
 ): AbilitySavingThrowCard[] {
+  const hasAbilityScores = monsterAbilityKeys.every(
+    (monsterAbility) => {
+      const score = monster.ability_scores?.[monsterAbility];
+
+      return typeof score === "number" && Number.isFinite(score);
+    }
+  );
+
+  if (!hasAbilityScores) {
+    return [];
+  }
+
   return monsterAbilityKeys.map((monsterAbility) => {
     const score = getMonsterMapNumber(monster.ability_scores, monsterAbility) ?? 10;
     const modifierValue =

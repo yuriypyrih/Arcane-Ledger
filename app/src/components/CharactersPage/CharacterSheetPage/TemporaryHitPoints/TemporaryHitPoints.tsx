@@ -13,7 +13,8 @@ type TemporaryHitPointsProps = {
   temporaryHitPointsSource?: string;
   modalTitle?: string;
   description?: string;
-  onSaveTemporaryHitPoints: (value: number) => void;
+  readOnly?: boolean;
+  onSaveTemporaryHitPoints?: (value: number) => void;
 };
 
 function TemporaryHitPoints({
@@ -21,6 +22,7 @@ function TemporaryHitPoints({
   temporaryHitPointsSource,
   modalTitle = "Temporary Hit Points",
   description = "When taking damage the temporary hit points are consumed first. They do not stack and they vanish after resting at a camp.",
+  readOnly = false,
   onSaveTemporaryHitPoints
 }: TemporaryHitPointsProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -39,8 +41,19 @@ function TemporaryHitPoints({
   }, [normalizedTemporaryHitPoints, isModalOpen]);
 
   const hasTemporaryHitPoints = normalizedTemporaryHitPoints > 0;
+  const canEdit = !readOnly && Boolean(onSaveTemporaryHitPoints);
+
+  useEffect(() => {
+    if (!canEdit && isModalOpen) {
+      setIsModalOpen(false);
+    }
+  }, [canEdit, isModalOpen]);
 
   function openModal() {
+    if (!canEdit) {
+      return;
+    }
+
     setTemporaryHitPointsDraft(normalizedTemporaryHitPoints);
     setIsModalOpen(true);
   }
@@ -53,14 +66,14 @@ function TemporaryHitPoints({
   function saveTemporaryHitPoints() {
     const nextTemporaryHitPoints = normalizeTemporaryHitPoints(temporaryHitPointsDraft);
 
-    onSaveTemporaryHitPoints(nextTemporaryHitPoints);
+    onSaveTemporaryHitPoints?.(nextTemporaryHitPoints);
 
     setTemporaryHitPointsDraft(nextTemporaryHitPoints);
     setIsModalOpen(false);
   }
 
   function clearTemporaryHitPoints() {
-    onSaveTemporaryHitPoints(0);
+    onSaveTemporaryHitPoints?.(0);
 
     setTemporaryHitPointsDraft(0);
     setIsModalOpen(false);
@@ -72,11 +85,17 @@ function TemporaryHitPoints({
         type="button"
         className={clsx(
           styles.tempHpTrigger,
-          hasTemporaryHitPoints ? styles.tempHpTriggerActive : styles.tempHpTriggerInactive
+          hasTemporaryHitPoints ? styles.tempHpTriggerActive : styles.tempHpTriggerInactive,
+          !canEdit && styles.tempHpTriggerReadOnly
         )}
+        disabled={!canEdit}
         onClick={openModal}
-        aria-label={`Temporary hit points: ${temporaryHitPoints}. Edit temporary hit points`}
-        title="Edit temporary hit points"
+        aria-label={
+          canEdit
+            ? `Temporary hit points: ${temporaryHitPoints}. Edit temporary hit points`
+            : `Temporary hit points: ${temporaryHitPoints}`
+        }
+        title={canEdit ? "Edit temporary hit points" : "Temporary hit points"}
       >
         <Shield size={18} />
         {hasTemporaryHitPoints ? (
@@ -84,7 +103,7 @@ function TemporaryHitPoints({
         ) : null}
       </button>
 
-      {isModalOpen ? (
+      {isModalOpen && canEdit ? (
         <TemporaryHitPointsEditorModal
           titleId="temp-hp-modal-title"
           title={modalTitle}

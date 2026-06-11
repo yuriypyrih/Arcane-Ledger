@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { Skull } from "lucide-react";
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import type { RollMode } from "../../../../../types";
 import d20Icon from "../../../../../assets/svg/d20.svg";
 import {
@@ -40,10 +40,11 @@ type DeathSavesTrackerProps = {
   rollFormulaDisplay?: string;
   rollMode?: RollMode;
   rollTitle?: string;
+  readOnly?: boolean;
   showDiceSettings?: boolean;
   title?: string;
-  onReset: () => void;
-  onUpdate: (track: DeathSaveTrack) => void;
+  onReset?: () => void;
+  onUpdate?: (track: DeathSaveTrack) => void;
 };
 
 function DeathSavesTracker({
@@ -56,6 +57,7 @@ function DeathSavesTracker({
   rollFormulaDisplay = rollFormula,
   rollMode,
   rollTitle = "Death save",
+  readOnly = false,
   showDiceSettings = true,
   title = "Death Saves",
   onReset,
@@ -71,8 +73,19 @@ function DeathSavesTracker({
     deathSaves.failures > 0 ||
     deathSaves.resolution === "instant-death";
   const descriptionSections = orderDescriptionAdditionSections(descriptionAdditions);
+  const canEdit = !readOnly && Boolean(onReset && onUpdate);
+
+  useEffect(() => {
+    if (!canEdit && isModalOpen) {
+      setIsModalOpen(false);
+    }
+  }, [canEdit, isModalOpen]);
 
   function rollDeathSave() {
+    if (!onUpdate) {
+      return;
+    }
+
     openDiceRoller({
       title: rollTitle,
       formula: rollFormula,
@@ -107,9 +120,14 @@ function DeathSavesTracker({
       <button
         type="button"
         className={styles.trigger}
-        onClick={() => setIsModalOpen(true)}
+        disabled={!canEdit}
+        onClick={() => {
+          if (canEdit) {
+            setIsModalOpen(true);
+          }
+        }}
         aria-label={`Death saves: ${deathSaves.successes} successes and ${deathSaves.failures} failures`}
-        title="Manage death saves"
+        title={canEdit ? "Manage death saves" : "Death saves"}
       >
         <Skull size={15} aria-hidden="true" />
         <span className={styles.triggerLabel}>{title}</span>
@@ -122,7 +140,7 @@ function DeathSavesTracker({
         </span>
       </button>
 
-      {isModalOpen ? (
+      {isModalOpen && canEdit ? (
         <SheetModal titleId={titleId} onClose={() => setIsModalOpen(false)} size="small">
           <OverlayHeader>
             <OverlayHeaderContent>
@@ -177,7 +195,7 @@ function DeathSavesTracker({
                   actionType="SUCCESS"
                   variant="OUTLINE"
                   className={styles.incrementButton}
-                  onClick={() => onUpdate("success")}
+                  onClick={() => onUpdate?.("success")}
                   disabled={isDeathSaveResolved}
                 >
                   + Success
@@ -186,7 +204,7 @@ function DeathSavesTracker({
                   actionType="ERROR"
                   variant="OUTLINE"
                   className={styles.incrementButton}
-                  onClick={() => onUpdate("failure")}
+                  onClick={() => onUpdate?.("failure")}
                   disabled={isDeathSaveResolved}
                 >
                   + Failure
@@ -194,7 +212,7 @@ function DeathSavesTracker({
                 <ActionButton
                   variant="OUTLINE"
                   className={styles.incrementButton}
-                  onClick={onReset}
+                  onClick={() => onReset?.()}
                   disabled={!hasMarkedDeathSaves}
                 >
                   Reset All

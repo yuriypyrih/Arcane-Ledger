@@ -7,6 +7,7 @@ import styles from "./CampaignLiveEncounterRoundTracker.module.css";
 
 type CampaignLiveEncounterRoundTrackerProps = {
   onChange: (tracker: CampaignLiveEncounterTrackerRecord) => void;
+  readOnly?: boolean;
   tracker: CampaignLiveEncounterTrackerRecord;
 };
 
@@ -22,6 +23,7 @@ function getParticipantName(participant: CampaignLiveEncounterTrackerParticipant
 
 function CampaignLiveEncounterRoundTracker({
   onChange,
+  readOnly = false,
   tracker
 }: CampaignLiveEncounterRoundTrackerProps) {
   const roundNumber = normalizeRoundNumber(tracker.roundNumber);
@@ -30,12 +32,16 @@ function CampaignLiveEncounterRoundTracker({
   );
   const activeParticipant =
     activeParticipantIndex >= 0 ? tracker.initiativeOrder[activeParticipantIndex] : null;
-  const nextTurnDisabled = activeParticipantIndex < 0;
+  const nextTurnDisabled = readOnly || activeParticipantIndex < 0;
   const turnLabel = activeParticipant
     ? `${getParticipantName(activeParticipant)}'s Turn`
     : "Decide who plays first";
 
   function updateRound(nextRoundNumber: number) {
+    if (readOnly) {
+      return;
+    }
+
     onChange({
       ...tracker,
       roundNumber: Math.max(1, nextRoundNumber)
@@ -43,6 +49,10 @@ function CampaignLiveEncounterRoundTracker({
   }
 
   function handleNextTurn() {
+    if (readOnly) {
+      return;
+    }
+
     if (nextTurnDisabled || tracker.initiativeOrder.length === 0) {
       return;
     }
@@ -71,7 +81,7 @@ function CampaignLiveEncounterRoundTracker({
           <button
             type="button"
             className={styles.controlButton}
-            disabled={roundNumber <= 1}
+            disabled={readOnly || roundNumber <= 1}
             onClick={() => updateRound(roundNumber - 1)}
             aria-label="Decrease round"
             title="Decrease round"
@@ -82,6 +92,7 @@ function CampaignLiveEncounterRoundTracker({
           <button
             type="button"
             className={styles.controlButton}
+            disabled={readOnly}
             onClick={() => updateRound(roundNumber + 1)}
             aria-label="Increase round"
             title="Increase round"

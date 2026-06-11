@@ -19,10 +19,11 @@ type HitPointControlsProps = {
   extraTemporaryHitPointControl?: ReactNode;
   temporaryHitPointsDescription?: string;
   className?: string;
+  readOnly?: boolean;
   showSummary?: boolean;
-  onDamage: (amount: number) => void;
-  onHeal: (amount: number) => void;
-  onSaveTemporaryHitPoints: (value: number) => void;
+  onDamage?: (amount: number) => void;
+  onHeal?: (amount: number) => void;
+  onSaveTemporaryHitPoints?: (value: number) => void;
 };
 
 function HitPointControls({
@@ -35,6 +36,7 @@ function HitPointControls({
   extraTemporaryHitPointControl,
   temporaryHitPointsDescription,
   className,
+  readOnly = false,
   showSummary = true,
   onDamage,
   onHeal,
@@ -49,6 +51,7 @@ function HitPointControls({
     currentHitPoints
   );
   const normalizedTemporaryHitPoints = normalizeTemporaryHitPoints(temporaryHitPoints);
+  const canAdjustHitPoints = !readOnly && Boolean(onDamage && onHeal);
 
   function updateHitPointStep(event: ChangeEvent<HTMLInputElement>) {
     const normalizedValue = event.target.value.replace(/^0+(?=\d)/, "");
@@ -64,9 +67,9 @@ function HitPointControls({
     }
 
     if (direction > 0) {
-      onHeal(amount);
+      onHeal?.(amount);
     } else {
-      onDamage(amount);
+      onDamage?.(amount);
     }
 
     setHitPointStep(1);
@@ -86,6 +89,7 @@ function HitPointControls({
                   temporaryHitPoints={normalizedTemporaryHitPoints}
                   temporaryHitPointsSource={temporaryHitPointsSource}
                   description={temporaryHitPointsDescription}
+                  readOnly={readOnly}
                   onSaveTemporaryHitPoints={onSaveTemporaryHitPoints}
                 />
                 {extraTemporaryHitPointControl}
@@ -105,30 +109,34 @@ function HitPointControls({
           magicTemporaryHitPoints={magicTemporaryHitPoints}
         />
 
-        <div className={styles.stepControl}>
-          <NumberInput
-            min={0}
-            className={styles.stepInput}
-            value={hitPointStep}
-            onChange={updateHitPointStep}
-          />
-          <button
-            type="button"
-            className={clsx(styles.actionButton, styles.damageButton)}
-            onClick={() => adjustHitPoints(-1)}
-            title={`Deal ${hitPointStep} hit points`}
-          >
-            <HeartMinus size={20} />
-          </button>
-          <button
-            type="button"
-            className={clsx(styles.actionButton, styles.healButton)}
-            onClick={() => adjustHitPoints(1)}
-            title={`Heal ${hitPointStep} hit points`}
-          >
-            <HeartPlus size={20} />
-          </button>
-        </div>
+        {readOnly ? null : (
+          <div className={styles.stepControl}>
+            <NumberInput
+              min={0}
+              className={styles.stepInput}
+              value={hitPointStep}
+              onChange={updateHitPointStep}
+            />
+            <button
+              type="button"
+              className={clsx(styles.actionButton, styles.damageButton)}
+              onClick={() => adjustHitPoints(-1)}
+              disabled={!canAdjustHitPoints}
+              title={`Deal ${hitPointStep} hit points`}
+            >
+              <HeartMinus size={20} />
+            </button>
+            <button
+              type="button"
+              className={clsx(styles.actionButton, styles.healButton)}
+              onClick={() => adjustHitPoints(1)}
+              disabled={!canAdjustHitPoints}
+              title={`Heal ${hitPointStep} hit points`}
+            >
+              <HeartPlus size={20} />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

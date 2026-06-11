@@ -38,6 +38,7 @@ import CampButton from "./widgets/CampButton";
 import ActionsWidget from "./widgets/ActionsWidget";
 import TraitsConditionsWidget from "./widgets/TraitsConditionsWidget";
 import GameplayGuideModal from "./GameplayGuideModal";
+import EncounterTrackerGuideModal from "./EncounterTrackerGuideModal";
 import HitPointsCluster from "./widgets/HitPointsCluster";
 import type { QueueCharacterSave } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import CharacterPartyGroupModal from "../../CharacterList/CharacterPartyGroupModal";
@@ -62,7 +63,7 @@ function GameplayForm({
   onQueueHitPointCharacter,
   partyMembership
 }: GameplayFormProps) {
-  const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [openGuideMode, setOpenGuideMode] = useState<"gameplay" | "encounter" | null>(null);
   const [isPartyMode, setIsPartyMode] = useState(false);
   const [isPartyModalOpen, setIsPartyModalOpen] = useState(false);
   const [isRoundStartFlashActive, setIsRoundStartFlashActive] = useState(false);
@@ -202,6 +203,7 @@ function GameplayForm({
 
     setIsPartyMode(false);
     setIsPartyModalOpen(false);
+    setOpenGuideMode(null);
   }, [partyMembership]);
 
   useEffect(() => {
@@ -239,13 +241,15 @@ function GameplayForm({
       <div className={clsx(shared.sectionHeader, styles.gameplaySectionHeader)}>
         <div className={styles.gameplayHeaderIdentity}>
           <div className={shared.eyebrowHelpRow}>
-            <span className={clsx(shared.eyebrow, shared.eyebrowInHelpRow)}>Gameplay</span>
+            <span className={clsx(shared.eyebrow, shared.eyebrowInHelpRow)}>
+              {isPartyMode ? "Encounter Tracker" : "Gameplay"}
+            </span>
             <button
               type="button"
               className={shared.helpButton}
-              onClick={() => setIsGuideOpen(true)}
-              aria-label="Open gameplay guide"
-              title="Open gameplay guide"
+              onClick={() => setOpenGuideMode(isPartyMode ? "encounter" : "gameplay")}
+              aria-label={isPartyMode ? "Open encounter tracker guide" : "Open gameplay guide"}
+              title={isPartyMode ? "Open encounter tracker guide" : "Open gameplay guide"}
             >
               <CircleHelp size={16} />
             </button>
@@ -403,7 +407,12 @@ function GameplayForm({
         </div>
       ) : null}
 
-      {isGuideOpen ? <GameplayGuideModal onClose={() => setIsGuideOpen(false)} /> : null}
+      {openGuideMode === "gameplay" ? (
+        <GameplayGuideModal onClose={() => setOpenGuideMode(null)} />
+      ) : null}
+      {openGuideMode === "encounter" ? (
+        <EncounterTrackerGuideModal onClose={() => setOpenGuideMode(null)} />
+      ) : null}
       {isPartyModalOpen && partyMembership ? (
         <CharacterPartyGroupModal
           character={partyModalCharacter}

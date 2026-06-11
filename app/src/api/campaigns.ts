@@ -1,6 +1,7 @@
 import type { EncounterTemplateCreatureRecord } from "./encounterTemplates";
 import type {
   CharacterAvatarMetadata,
+  MonsterRecord,
   PortableCharacterSheetSummary,
   PortableEncounterStatBlock
 } from "../types";
@@ -47,6 +48,21 @@ export type CampaignPreparedEncounterCreatureRecord = EncounterTemplateCreatureR
   visibilitySettings?: PlayerVisibilitySettings | null;
 };
 
+export type CampaignLiveEncounterTrackerCreatureStatBlockRecord = Partial<MonsterRecord> &
+  Pick<MonsterRecord, "key" | "name">;
+
+export type CampaignLiveEncounterTrackerCreaturePayloadRecord = Omit<
+  Partial<EncounterTemplateCreatureRecord>,
+  "id" | "inheritedCreatureEntry" | "name"
+> &
+  Pick<EncounterTemplateCreatureRecord, "id" | "name"> & {
+    effectivePlayerVisibilitySettings: PlayerVisibilitySettings;
+    inheritedCreatureEntry?: CampaignLiveEncounterTrackerCreatureStatBlockRecord;
+    statBlockNameHidden?: boolean;
+    visibilitySettings?: PlayerVisibilitySettings | null;
+    vitalityStatusLabel?: string;
+  };
+
 export type CampaignLiveEncounterTrackerParticipantKind = "party-member" | "creature";
 
 export type CampaignLiveEncounterTrackerParticipantRefRecord = {
@@ -92,7 +108,7 @@ export type CampaignLiveEncounterTrackerCreatureRecord =
   CampaignLiveEncounterTrackerParticipantRefRecord & {
     kind: "creature";
     creatureId: string;
-    creature: CampaignPreparedEncounterCreatureRecord;
+    creature: CampaignLiveEncounterTrackerCreaturePayloadRecord;
   };
 
 export type CampaignLiveEncounterTrackerParticipantRecord =

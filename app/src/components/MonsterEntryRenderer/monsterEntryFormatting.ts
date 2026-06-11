@@ -369,11 +369,14 @@ export function buildMonsterDetailRows(monster: MonsterRecord): MonsterDetailRow
     },
     {
       label: "Languages",
-      value: getKnownMonsterText(monster.languages?.as_string) ?? "None"
+      value: monster.languages ? (getKnownMonsterText(monster.languages.as_string) ?? "None") : ""
     },
     {
       label: "CR",
-      value: formatMonsterChallengeRating(monster)
+      value:
+        monster.challenge_rating !== null && monster.challenge_rating !== undefined
+          ? formatMonsterChallengeRating(monster)
+          : ""
     }
   ].filter((row) => Boolean(row.value));
 }

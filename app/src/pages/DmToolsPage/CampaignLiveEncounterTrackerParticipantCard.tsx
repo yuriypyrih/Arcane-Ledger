@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import type { CSSProperties } from "react";
+import { Fragment, type CSSProperties } from "react";
 import { ArrowRightFromLine, GripVertical, Shield, Undo2 } from "lucide-react";
 import { CSS } from "@dnd-kit/utilities";
 import { useSortable } from "@dnd-kit/sortable";
@@ -7,14 +7,15 @@ import EnemyIcon from "../../assets/svg/enemy.svg";
 import { DefaultCharacterPortraitIcon } from "../../components/CharactersPage/CharacterPortrait";
 import HitPointBar from "../../components/CharactersPage/CharacterSheetPage/HitPointControls/HitPointBar";
 import { getCompanionDisplayType } from "../../components/CharactersPage/CharacterSheetPage/CompanionsSection/companionUtils";
-import { getMonsterArmorClass, getMonsterImageUrl } from "../../utils/monsters";
 import type {
   CampaignLiveEncounterTrackerCreatureRecord,
   CampaignLiveEncounterTrackerParticipantRecord,
   CampaignLiveEncounterTrackerPartyMemberRecord
 } from "../../api/campaigns";
-import { getCompanionStatusLabel } from "../CharactersPage/companions";
-import { getDeathSaveStatusLabel } from "../CharactersPage/deathSaves";
+import {
+  getDeathSaveStatusLabel,
+  normalizeDeathSaveTrack
+} from "../CharactersPage/deathSaves";
 import type { LiveEncounterTrackerListKey } from "./liveEncounterTrackerUtils";
 import styles from "./CampaignLiveEncounterTrackerParticipantCard.module.css";
 
@@ -52,7 +53,7 @@ type ParticipantCardViewModel = {
   title: string;
   typeLabel: string;
   unavailableLabel?: string;
-  vitalityLabel: string;
+  vitalityLabel: string | null;
 };
 
 type CreaturePortraitStyle = CSSProperties & {
@@ -134,17 +135,32 @@ function getCreatureViewModel(
   const creature = participant.creature;
 
   return {
-    armorClass: normalizeDisplayNumber(
-      creature.inheritedCreatureEntry ? getMonsterArmorClass(creature.inheritedCreatureEntry) : null
-    ),
+    armorClass: normalizeDisplayNumber(creature.inheritedCreatureEntry?.armor_class),
     currentHitPoints: normalizeDisplayNumber(creature.currentHitPoints),
     magicTemporaryHitPoints: 0,
     maxHitPoints: normalizePositiveDisplayNumber(creature.maxHitPoints),
-    temporaryHitPoints: Math.max(0, creature.temporaryHitPoints),
+    temporaryHitPoints: Math.max(0, normalizeDisplayNumber(creature.temporaryHitPoints) ?? 0),
     title: creature.name,
-    typeLabel: getCompanionDisplayType(creature) || "Creature",
-    vitalityLabel: getCompanionStatusLabel(creature)
+    typeLabel: getCompanionDisplayType(creature),
+    vitalityLabel: getCreatureVitalityLabel(creature)
   };
+}
+
+function getCreatureVitalityLabel(
+  creature: CampaignLiveEncounterTrackerCreatureRecord["creature"]
+) {
+  if (creature.vitalityStatusLabel) {
+    return creature.vitalityStatusLabel;
+  }
+
+  return typeof creature.currentHitPoints === "number" &&
+    typeof creature.maxHitPoints === "number"
+    ? getDeathSaveStatusLabel(
+        creature.currentHitPoints,
+        Math.max(1, creature.maxHitPoints),
+        normalizeDeathSaveTrack(creature.deathSaves)
+      )
+    : null;
 }
 
 function getParticipantViewModel(
@@ -165,7 +181,7 @@ function renderParticipantPortrait(participant: CampaignLiveEncounterTrackerPart
   }
 
   const monsterImage = participant.creature.inheritedCreatureEntry
-    ? getMonsterImageUrl(participant.creature.inheritedCreatureEntry)
+    ? getLiveEncounterMonsterImageUrl(participant.creature.inheritedCreatureEntry)
     : null;
 
   return monsterImage ? (
@@ -173,6 +189,14 @@ function renderParticipantPortrait(participant: CampaignLiveEncounterTrackerPart
   ) : (
     <span className={styles.creaturePortraitIcon} style={creaturePortraitStyle} />
   );
+}
+
+function getLiveEncounterMonsterImageUrl(
+  monster: CampaignLiveEncounterTrackerCreatureRecord["creature"]["inheritedCreatureEntry"]
+) {
+  const imageUrl = monster?.illustration?.file_url;
+
+  return typeof imageUrl === "string" && imageUrl.trim().length > 0 ? imageUrl.trim() : null;
 }
 
 function ParticipantVitalsRow({ viewModel }: { viewModel: ParticipantCardViewModel }) {
@@ -184,40 +208,61 @@ function ParticipantVitalsRow({ viewModel }: { viewModel: ParticipantCardViewMod
     );
   }
 
+  const vitals: JSX.Element[] = [];
+
+  if (viewModel.armorClass !== null) {
+    vitals.push(
+      <span key="armor-class" className={styles.armorClassText}>
+        AC {formatNumber(viewModel.armorClass)}
+      </span>
+    );
+  }
+
+  if (viewModel.currentHitPoints !== null && viewModel.maxHitPoints !== null) {
+    vitals.push(
+      <span key="hit-points" className={styles.hitPointText}>
+        {formatNumber(viewModel.currentHitPoints)}/{formatNumber(viewModel.maxHitPoints)} HP
+      </span>
+    );
+  }
+
+  if (viewModel.temporaryHitPoints > 0) {
+    vitals.push(
+      <span key="temporary-hit-points" className={styles.tempHitPointText}>
+        <Shield size={14} aria-hidden="true" />
+        {viewModel.temporaryHitPoints}
+      </span>
+    );
+  }
+
+  if (viewModel.magicTemporaryHitPoints > 0) {
+    vitals.push(
+      <span key="magic-temporary-hit-points" className={styles.magicTempHitPointText}>
+        Magic Temp {viewModel.magicTemporaryHitPoints}
+      </span>
+    );
+  }
+
+  if (viewModel.vitalityLabel) {
+    vitals.push(
+      <span key="vitality" className={styles.status}>
+        {viewModel.vitalityLabel}
+      </span>
+    );
+  }
+
+  if (vitals.length === 0) {
+    return null;
+  }
+
   return (
     <div className={styles.vitalsRow}>
-      {viewModel.armorClass !== null ? (
-        <>
-          <span className={styles.armorClassText}>AC {formatNumber(viewModel.armorClass)}</span>
-          <span className={styles.vitalsDivider}>·</span>
-        </>
-      ) : null}
-      {viewModel.currentHitPoints !== null && viewModel.maxHitPoints !== null ? (
-        <>
-          <span className={styles.hitPointText}>
-            {formatNumber(viewModel.currentHitPoints)}/{formatNumber(viewModel.maxHitPoints)} HP
-          </span>
-          <span className={styles.vitalsDivider}>·</span>
-        </>
-      ) : null}
-      {viewModel.temporaryHitPoints > 0 ? (
-        <>
-          <span className={styles.tempHitPointText}>
-            <Shield size={14} aria-hidden="true" />
-            {viewModel.temporaryHitPoints}
-          </span>
-          <span className={styles.vitalsDivider}>·</span>
-        </>
-      ) : null}
-      {viewModel.magicTemporaryHitPoints > 0 ? (
-        <>
-          <span className={styles.magicTempHitPointText}>
-            Magic Temp {viewModel.magicTemporaryHitPoints}
-          </span>
-          <span className={styles.vitalsDivider}>·</span>
-        </>
-      ) : null}
-      <span className={styles.status}>{viewModel.vitalityLabel}</span>
+      {vitals.map((vital, index) => (
+        <Fragment key={`${vital.key ?? index}`}>
+          {index > 0 ? <span className={styles.vitalsDivider}>·</span> : null}
+          {vital}
+        </Fragment>
+      ))}
     </div>
   );
 }

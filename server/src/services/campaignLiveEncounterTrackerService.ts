@@ -5,7 +5,6 @@ import {
   type CampaignDocument,
   type CampaignLiveEncounterParticipantRefRecord,
   type CampaignLiveEncounterTrackerRecord,
-  type CampaignPreparedEncounterCreatureRecord,
   type CampaignPreparedEncounterRecord,
   type CampaignRecord
 } from "../models/Campaign.js";
@@ -18,6 +17,12 @@ import {
 import { PartyGroup, type PartyGroupRecord } from "../models/PartyGroup.js";
 import { User } from "../models/User.js";
 import { ENCOUNTER_MAX_CREATURES, PARTY_GROUP_MAX_MEMBERS } from "../constants/QUOTAS.js";
+import {
+  createLiveEncounterCreatureWithEffectivePlayerVisibility,
+  createPlayerVisibleLiveEncounterCreature,
+  type LiveEncounterCreatureWithEffectiveVisibility,
+  type PlayerVisibleLiveEncounterCreatureRecord
+} from "./liveEncounterPlayerVisibility.js";
 
 const LIVE_ENCOUNTER_TRACKER_MAX_PARTICIPANTS =
   PARTY_GROUP_MAX_MEMBERS + ENCOUNTER_MAX_CREATURES;
@@ -74,7 +79,9 @@ export type CampaignLiveEncounterTrackerCreatureRecord =
   CampaignLiveEncounterParticipantRefRecord & {
     kind: "creature";
     creatureId: string;
-    creature: CampaignPreparedEncounterCreatureRecord;
+    creature:
+      | LiveEncounterCreatureWithEffectiveVisibility
+      | PlayerVisibleLiveEncounterCreatureRecord;
   };
 
 export type CampaignLiveEncounterTrackerParticipantRecord =
@@ -138,10 +145,6 @@ function toIsoTimestamp(value: Date | string | null | undefined) {
 
 function toStringId(value: Types.ObjectId | string | { toString(): string } | null | undefined) {
   return value ? value.toString() : "";
-}
-
-function clonePlainObject<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value)) as T;
 }
 
 function createPartyMemberParticipantId(characterId: string) {
@@ -354,7 +357,11 @@ async function loadLiveEncounterSourceContext(options: {
   const creatures = preparedEncounter.creatures.map(
     (creature): CampaignLiveEncounterTrackerCreatureRecord => ({
       ...createCreatureParticipantRef(creature.id),
-      creature: clonePlainObject(creature)
+      creature: createLiveEncounterCreatureWithEffectivePlayerVisibility({
+        campaignVisibilitySettings: options.campaign.visibilitySettings,
+        creature,
+        preparedEncounter
+      })
     })
   );
   const partyMembersByParticipantId = new Map(
@@ -544,6 +551,47 @@ export async function toCampaignLiveEncounterTrackerDetailRecord(
 
     throw error;
   }
+}
+
+function toPlayerVisibleLiveEncounterCreatureParticipant(
+  participant: CampaignLiveEncounterTrackerCreatureRecord
+): CampaignLiveEncounterTrackerCreatureRecord {
+  return {
+    ...participant,
+    creature: createPlayerVisibleLiveEncounterCreature(
+      participant.creature as LiveEncounterCreatureWithEffectiveVisibility
+    )
+  };
+}
+
+function toPlayerVisibleLiveEncounterParticipant(
+  participant: CampaignLiveEncounterTrackerParticipantRecord
+): CampaignLiveEncounterTrackerParticipantRecord {
+  return participant.kind === "creature"
+    ? toPlayerVisibleLiveEncounterCreatureParticipant(participant)
+    : participant;
+}
+
+function toPlayerVisibleLiveEncounterTrackerDetailRecord(
+  tracker: CampaignLiveEncounterTrackerDetailRecord
+): CampaignLiveEncounterTrackerDetailRecord {
+  if (tracker.status.state !== "valid") {
+    return tracker;
+  }
+
+  return {
+    ...tracker,
+    creatures: tracker.creatures.map(toPlayerVisibleLiveEncounterCreatureParticipant),
+    initiativeOrder: tracker.initiativeOrder.map(toPlayerVisibleLiveEncounterParticipant)
+  };
+}
+
+export async function toMemberVisibleCampaignLiveEncounterTrackerDetailRecord(
+  campaign: CampaignSource
+): Promise<CampaignLiveEncounterTrackerDetailRecord | null> {
+  const tracker = await toCampaignLiveEncounterTrackerDetailRecord(campaign);
+
+  return tracker ? toPlayerVisibleLiveEncounterTrackerDetailRecord(tracker) : null;
 }
 
 function toCampaignPatchEnvelope(campaign: CampaignSource, patch: CampaignPatchRecord) {

@@ -16,7 +16,7 @@
     box-shadow 160ms ease;
 }
 
-.trigger:hover {
+.trigger:not(:disabled):hover {
   border-color: rgba(75, 47, 29, 0.24);
   background: rgba(75, 47, 29, 0.1);
 }
@@ -24,6 +24,11 @@
 .trigger:focus-visible {
   outline: 2px solid rgba(179, 92, 28, 0.34);
   outline-offset: 2px;
+}
+
+.trigger:disabled {
+  cursor: default;
+  opacity: 1;
 }
 
 .triggerLabel {

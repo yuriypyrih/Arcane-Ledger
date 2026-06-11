@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   getCampaign,
   removeCampaignPreparedEncounterCreature,
@@ -41,6 +41,7 @@ function toBuilderResource(preparedEncounter: CampaignPreparedEncounterRecord | 
 function CampaignEncounterBuilderPage() {
   const { campaignId = "", preparedEncounterId = "" } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const dispatch = useAppDispatch();
   const authStatus = useAppSelector((state) => state.auth.status);
   const campaign = useAppSelector((state) => state.dmTools.selectedCampaignsById[campaignId]);
@@ -64,6 +65,7 @@ function CampaignEncounterBuilderPage() {
   const builderError =
     error ??
     (campaign && !preparedEncounter ? "Prepared encounter was not found." : null);
+  const shouldReturnToLiveEncounter = searchParams.get("returnToLiveEncounter") === "1";
 
   useEffect(() => {
     let didCancel = false;
@@ -191,7 +193,9 @@ function CampaignEncounterBuilderPage() {
       <EncounterCreatureBuilder
         actionError={actionError}
         authRequiredLabel="Sign in to view this campaign encounter."
-        backLabel="Back to the Campaign Manager"
+        backLabel={
+          shouldReturnToLiveEncounter ? "Back to Live Encounter" : "Back to the Campaign Manager"
+        }
         error={builderError}
         isAuthenticated={authStatus === "authenticated"}
         isCreatureVisibilitySettingsActive={
@@ -219,7 +223,13 @@ function CampaignEncounterBuilderPage() {
         status={status}
         titleId="campaign-encounter-title"
         toolLabel="Campaign Encounter"
-        onBack={() => navigate(`/gm-tools/campaign-manager/${campaignId}`)}
+        onBack={() =>
+          navigate(
+            shouldReturnToLiveEncounter
+              ? `/gm-tools/campaign-manager/${campaignId}/live-encounter`
+              : `/gm-tools/campaign-manager/${campaignId}`
+          )
+        }
         onEditCreatureVisibilitySettings={
           preparedEncounter ? (creatureId) => setVisibilityCreatureId(creatureId) : undefined
         }

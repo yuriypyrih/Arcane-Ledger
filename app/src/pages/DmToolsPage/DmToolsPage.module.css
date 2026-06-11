@@ -424,66 +424,6 @@
   gap: var(--space-section-gap);
 }
 
-.liveTrackerReadOnlyHpPanel {
-  display: grid;
-  gap: var(--space-section-gap);
-  border: 1px solid rgba(75, 47, 29, 0.12);
-  border-radius: var(--radius-card);
-  background: var(--color-panel-surface);
-  padding: var(--space-card-padding-tight);
-}
-
-.liveTrackerReadOnlyHpHeader {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: var(--space-section-gap);
-}
-
-.liveTrackerReadOnlyHpHeader > div:first-child {
-  display: grid;
-  gap: 0.14rem;
-  min-width: 0;
-}
-
-.liveTrackerReadOnlyHpHeader strong {
-  color: var(--color-ink);
-  font-size: 1.08rem;
-  line-height: 1;
-}
-
-.liveTrackerReadOnlyHpHeader span {
-  color: var(--color-ink-soft);
-  font-size: 0.84rem;
-  font-weight: 700;
-}
-
-.liveTrackerReadOnlyHpBadges,
-.liveTrackerReadOnlyDeathSaves {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.34rem;
-}
-
-.liveTrackerReadOnlyHpBadges {
-  justify-content: flex-end;
-}
-
-.liveTrackerReadOnlyHpBadges span,
-.liveTrackerReadOnlyDeathSaves span {
-  display: inline-flex;
-  align-items: center;
-  min-height: 24px;
-  border: 1px solid rgba(75, 47, 29, 0.12);
-  border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.46);
-  color: var(--color-ink-soft);
-  font-size: 0.74rem;
-  font-weight: 800;
-  line-height: 1;
-  padding: 0 0.48rem;
-}
-
 .liveTrackerDrawerSection {
   display: grid;
   gap: var(--space-section-gap);
@@ -1037,14 +977,6 @@ button.dmToolsListCardMain:disabled {
 
   .linkRow {
     grid-template-columns: minmax(0, 1fr) auto auto;
-  }
-
-  .liveTrackerReadOnlyHpHeader {
-    display: grid;
-  }
-
-  .liveTrackerReadOnlyHpBadges {
-    justify-content: flex-start;
   }
 
 }

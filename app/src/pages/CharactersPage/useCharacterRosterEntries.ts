@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { ApiOfflineError } from "../../api/client";
 import { captureAppError } from "../../lib/sentry";
 import {
   CHARACTER_ROSTER_CHANGED_EVENT,
@@ -8,6 +9,7 @@ import {
   type CharacterRosterEntry
 } from "./characterRoster";
 import { CHARACTER_STORAGE_CHANGED_EVENT } from "./portableCharacterSheetStorage";
+import { refreshCharacterCloudRoster } from "./resolvePortableCharacterSheet";
 
 export function useCharacterRosterEntries(ownerId?: string | null) {
   const [characters, setCharacters] = useState<CharacterRosterEntry[]>(() =>
@@ -27,6 +29,35 @@ export function useCharacterRosterEntries(ownerId?: string | null) {
     return () => {
       window.removeEventListener(CHARACTER_STORAGE_CHANGED_EVENT, refreshRosterEntries);
       window.removeEventListener(CHARACTER_ROSTER_CHANGED_EVENT, refreshRosterEntries);
+    };
+  }, [ownerId]);
+
+  useEffect(() => {
+    let didCancel = false;
+
+    if (!ownerId) {
+      return () => {
+        didCancel = true;
+      };
+    }
+
+    void refreshCharacterCloudRoster(ownerId)
+      .then(() => {
+        if (!didCancel) {
+          setCharacters(loadCharacterRosterEntries(ownerId));
+        }
+      })
+      .catch((error) => {
+        if (!didCancel && !(error instanceof ApiOfflineError)) {
+          captureAppError(error, {
+            area: "characters",
+            action: "refresh-roster"
+          });
+        }
+      });
+
+    return () => {
+      didCancel = true;
     };
   }, [ownerId]);
 

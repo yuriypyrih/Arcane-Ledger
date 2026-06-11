@@ -945,14 +945,14 @@ function CharacterSyncBootstrap() {
   }, [queueCloudSync, status, user]);
 
   useEffect(() => {
-    function handleOnlineOrFocus() {
+    function handleOnline() {
       if (initializedUserIdRef.current === null) {
         void initializeAuthenticatedCharacterCache();
         return;
       }
 
       clearSyncTimer();
-      void refreshAuthenticatedCharacterCacheAndSyncDirty();
+      void syncDirtyCharacterRecords();
     }
 
     function handleVisibilityChange() {
@@ -962,20 +962,17 @@ function CharacterSyncBootstrap() {
       }
     }
 
-    window.addEventListener("online", handleOnlineOrFocus);
-    window.addEventListener("focus", handleOnlineOrFocus);
+    window.addEventListener("online", handleOnline);
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
-      window.removeEventListener("online", handleOnlineOrFocus);
-      window.removeEventListener("focus", handleOnlineOrFocus);
+      window.removeEventListener("online", handleOnline);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       clearSyncTimer();
     };
   }, [
     clearSyncTimer,
     initializeAuthenticatedCharacterCache,
-    refreshAuthenticatedCharacterCacheAndSyncDirty,
     syncDirtyCharacterRecords
   ]);
 

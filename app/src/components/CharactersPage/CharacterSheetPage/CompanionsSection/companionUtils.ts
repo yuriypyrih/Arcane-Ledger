@@ -93,7 +93,10 @@ export function getCompanionSourceLabel(companion: CharacterCompanion) {
 }
 
 export function getCompanionDisplayType(
-  companion: Pick<CharacterCompanion, "type" | "inheritedCreatureEntry">
+  companion: {
+    inheritedCreatureEntry?: Pick<MonsterRecord, "key" | "type"> | null;
+    type?: string | null;
+  }
 ) {
   const inheritedType = companion.inheritedCreatureEntry
     ? (getMonsterTypeName(companion.inheritedCreatureEntry) ?? "")
@@ -103,7 +106,7 @@ export function getCompanionDisplayType(
     return inheritedType;
   }
 
-  return companion.type.trim();
+  return (companion.type ?? "").trim();
 }
 
 export function getInheritedEntryLabel(

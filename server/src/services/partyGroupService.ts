@@ -16,7 +16,7 @@ import {
 import { User } from "../models/User.js";
 import type { UserRole } from "../types/auth.js";
 import { PARTY_GROUP_MAX_MEMBERS as PARTY_GROUP_MAX_MEMBERS_QUOTA } from "../constants/QUOTAS.js";
-import { toCampaignLiveEncounterTrackerDetailRecord } from "./campaignLiveEncounterTrackerService.js";
+import { toMemberVisibleCampaignLiveEncounterTrackerDetailRecord } from "./campaignLiveEncounterTrackerService.js";
 import { assertCreatedDmToolWithinLimit, assertDmToolCreationLimit } from "./dmToolLimits.js";
 
 const PARTY_GROUP_INVITE_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -444,7 +444,7 @@ export async function getMemberVisiblePartyGroupLiveEncounter(options: {
   return {
     partyGroupId: getDocumentId(partyGroup),
     liveEncounterTracker: campaign
-      ? await toCampaignLiveEncounterTrackerDetailRecord(campaign)
+      ? await toMemberVisibleCampaignLiveEncounterTrackerDetailRecord(campaign)
       : null
   };
 }

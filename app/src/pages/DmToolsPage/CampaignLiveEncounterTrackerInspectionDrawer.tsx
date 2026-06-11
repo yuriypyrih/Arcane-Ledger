@@ -1,5 +1,6 @@
-import { useId } from "react";
-import HitPointBar from "../../components/CharactersPage/CharacterSheetPage/HitPointControls/HitPointBar";
+import { useId, useState } from "react";
+import DeathSavesTracker from "../../components/CharactersPage/CharacterSheetPage/GameplayForm/widgets/DeathSavesTracker";
+import HitPointControls from "../../components/CharactersPage/CharacterSheetPage/HitPointControls/HitPointControls";
 import MonsterEntryRenderer from "../../components/MonsterEntryRenderer/MonsterEntryRenderer";
 import {
   OverlayBadge,
@@ -16,18 +17,36 @@ import type {
   CampaignLiveEncounterTrackerParticipantRecord,
   CampaignLiveEncounterTrackerPartyMemberRecord
 } from "../../api/campaigns";
-import { getMonsterArmorClass } from "../../utils/monsters";
+import type { EncounterTemplateCreatureRecord } from "../../api/encounterTemplates";
+import companionStyles from "../../components/CharactersPage/CharacterSheetPage/CompanionsSection/CompanionsSection.module.css";
+import { getCompanionDisplayType } from "../../components/CharactersPage/CharacterSheetPage/CompanionsSection/companionUtils";
+import {
+  applyDamageToCharacterCompanion,
+  applyHealingToCharacterCompanion,
+  assignManualTemporaryHitPointsToCharacterCompanion,
+  resetCharacterCompanionDeathSaves,
+  updateCharacterCompanionDeathSaves
+} from "../CharactersPage/companions";
+import {
+  getDeathSaveStatusLabel,
+  normalizeDeathSaveTrack
+} from "../CharactersPage/deathSaves";
+import { getDmToolsApiErrorMessage } from "./dmToolsApiErrors";
 import styles from "./DmToolsPage.module.css";
+import { toEncounterCreatureRecord } from "./encounterCreatureUtils";
 import { createEncounterStatBlockRendererModel } from "./liveEncounterTrackerStatBlockAdapter";
+
+type LiveEncounterCreatureUpdate = (
+  creatureId: string,
+  update: (creature: EncounterTemplateCreatureRecord) => EncounterTemplateCreatureRecord
+) => void | Promise<void>;
 
 type CampaignLiveEncounterTrackerInspectionDrawerProps = {
   participant: CampaignLiveEncounterTrackerParticipantRecord;
+  readOnly?: boolean;
   onClose: () => void;
+  onUpdateCreature?: LiveEncounterCreatureUpdate;
 };
-
-function formatNumber(value: number | null | undefined) {
-  return typeof value === "number" && Number.isFinite(value) ? value.toString() : "-";
-}
 
 function getParticipantName(participant: CampaignLiveEncounterTrackerParticipantRecord) {
   return participant.kind === "party-member"
@@ -37,7 +56,7 @@ function getParticipantName(participant: CampaignLiveEncounterTrackerParticipant
 
 function getParticipantSummary(participant: CampaignLiveEncounterTrackerParticipantRecord) {
   if (participant.kind === "creature") {
-    return participant.creature.type || "Creature";
+    return getCompanionDisplayType(participant.creature);
   }
 
   const statBlock = participant.statBlock;
@@ -48,74 +67,25 @@ function getParticipantSummary(participant: CampaignLiveEncounterTrackerParticip
     : [participant.summary.species, participant.summary.className].filter(Boolean).join(" ");
 }
 
-function ReadOnlyHitPointsPanel({
-  armorClass,
-  currentHitPoints,
-  maxHitPoints,
-  magicTemporaryHitPoints = 0,
-  statusLabel,
-  temporaryHitPoints = 0
-}: {
-  armorClass?: number | null;
-  currentHitPoints?: number | null;
-  maxHitPoints?: number | null;
-  magicTemporaryHitPoints?: number;
-  statusLabel?: string;
-  temporaryHitPoints?: number;
-}) {
-  const resolvedCurrentHitPoints =
-    typeof currentHitPoints === "number" && Number.isFinite(currentHitPoints)
-      ? currentHitPoints
-      : 0;
-  const resolvedMaxHitPoints =
-    typeof maxHitPoints === "number" && Number.isFinite(maxHitPoints) && maxHitPoints > 0
-      ? maxHitPoints
-      : 1;
-
-  return (
-    <section className={styles.liveTrackerReadOnlyHpPanel}>
-      <div className={styles.liveTrackerReadOnlyHpHeader}>
-        <div>
-          <p className={styles.panelEyebrow}>Hit Points</p>
-          <strong>
-            {formatNumber(currentHitPoints)}/{formatNumber(maxHitPoints)} HP
-          </strong>
-          {statusLabel ? <span>{statusLabel}</span> : null}
-        </div>
-        <div className={styles.liveTrackerReadOnlyHpBadges}>
-          {typeof armorClass === "number" && Number.isFinite(armorClass) ? (
-            <span>AC {armorClass}</span>
-          ) : null}
-          {temporaryHitPoints > 0 ? <span>Temp {temporaryHitPoints}</span> : null}
-          {magicTemporaryHitPoints > 0 ? <span>Magic Temp {magicTemporaryHitPoints}</span> : null}
-        </div>
-      </div>
-      <HitPointBar
-        currentHitPoints={resolvedCurrentHitPoints}
-        maxHitPoints={resolvedMaxHitPoints}
-        temporaryHitPoints={temporaryHitPoints}
-        magicTemporaryHitPoints={magicTemporaryHitPoints}
-      />
-    </section>
-  );
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === "number" && Number.isFinite(value);
 }
 
-function ReadOnlyDeathSaves({
-  deathSaves
-}: {
-  deathSaves: CampaignLiveEncounterTrackerCreatureRecord["creature"]["deathSaves"];
-}) {
-  if (!deathSaves) {
-    return null;
+function getPartyMemberVitalityLabel(participant: CampaignLiveEncounterTrackerPartyMemberRecord) {
+  const statBlock = participant.statBlock;
+
+  if (
+    !statBlock ||
+    !isFiniteNumber(statBlock.currentHitPoints) ||
+    !isFiniteNumber(statBlock.hitPoints)
+  ) {
+    return undefined;
   }
 
-  return (
-    <div className={styles.liveTrackerReadOnlyDeathSaves}>
-      <span>Death Saves</span>
-      <span>Successes {deathSaves.successes ?? 0}/3</span>
-      <span>Failures {deathSaves.failures ?? 0}/3</span>
-      {deathSaves.resolution ? <span>{deathSaves.resolution}</span> : null}
-    </div>
+  return getDeathSaveStatusLabel(
+    statBlock.currentHitPoints,
+    Math.max(1, statBlock.hitPoints),
+    { successes: 0, failures: 0 }
   );
 }
 
@@ -160,24 +130,24 @@ function CreatureStatBlock({
 }) {
   const creature = participant.creature;
   const monster = creature.inheritedCreatureEntry;
-  const description = creature.description.trim();
+  const description = (creature.description ?? "").trim();
 
   return (
     <>
-      <ReadOnlyDeathSaves deathSaves={creature.deathSaves} />
       {description ? (
         <section className={styles.liveTrackerDrawerSection}>
           <h4>Description</h4>
           <p className={styles.liveTrackerDrawerDescription}>{description}</p>
         </section>
       ) : null}
-      {monster ? (
+      {monster && hasVisibleCreatureStatBlockContent(participant) ? (
         <section className={styles.liveTrackerDrawerSection}>
           <h4>Stat Block</h4>
           <MonsterEntryRenderer
             monster={monster}
             className={styles.liveTrackerMonsterEntry}
             headingTag={creature.inheritedCreatureEntryModified ? "Modded" : undefined}
+            showHeading={!creature.statBlockNameHidden}
           />
         </section>
       ) : null}
@@ -185,32 +155,224 @@ function CreatureStatBlock({
   );
 }
 
+function isObjectRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function hasObjectEntries(value: unknown) {
+  return isObjectRecord(value) && Object.keys(value).length > 0;
+}
+
+function hasArrayEntries(value: unknown) {
+  return Array.isArray(value) && value.length > 0;
+}
+
+function hasVisibleMonsterRendererContent(
+  monster: CampaignLiveEncounterTrackerCreatureRecord["creature"]["inheritedCreatureEntry"]
+) {
+  if (!monster) {
+    return false;
+  }
+
+  return Boolean(
+    monster.desc ||
+      monster.alignment ||
+      monster.armor_class !== undefined ||
+      monster.armor_detail ||
+      monster.challenge_rating !== undefined ||
+      monster.experience_points !== undefined ||
+      monster.hit_points !== undefined ||
+      monster.hit_dice ||
+      monster.languages ||
+      monster.passive_perception !== undefined ||
+      monster.proficiency_bonus !== undefined ||
+      monster.senses_display ||
+      monster.size ||
+      monster.speed ||
+      monster.speed_all ||
+      monster.subcategory ||
+      monster.type ||
+      hasObjectEntries(monster.ability_scores) ||
+      hasObjectEntries(monster.modifiers) ||
+      hasObjectEntries(monster.resistances_and_immunities) ||
+      hasObjectEntries(monster.saving_throws) ||
+      hasObjectEntries(monster.saving_throws_all) ||
+      hasObjectEntries(monster.skill_bonuses) ||
+      hasObjectEntries(monster.skill_bonuses_all) ||
+      hasArrayEntries(monster.actions) ||
+      hasArrayEntries(monster.traits)
+  );
+}
+
+function hasVisibleCreatureStatBlockContent(
+  participant: CampaignLiveEncounterTrackerCreatureRecord
+) {
+  const monster = participant.creature.inheritedCreatureEntry;
+
+  return Boolean(
+    monster &&
+      (hasVisibleMonsterRendererContent(monster) || !participant.creature.statBlockNameHidden)
+  );
+}
+
+function getCreatureVitalityLabel(participant: CampaignLiveEncounterTrackerCreatureRecord) {
+  const creature = participant.creature;
+
+  if (creature.vitalityStatusLabel) {
+    return creature.vitalityStatusLabel;
+  }
+
+  return typeof creature.currentHitPoints === "number" &&
+    typeof creature.maxHitPoints === "number"
+    ? getDeathSaveStatusLabel(
+        creature.currentHitPoints,
+        Math.max(1, creature.maxHitPoints),
+        normalizeDeathSaveTrack(creature.deathSaves)
+      )
+    : undefined;
+}
+
+function LiveEncounterHitPointsPanel({
+  participant,
+  readOnly,
+  onUpdateCreature
+}: {
+  participant: CampaignLiveEncounterTrackerParticipantRecord;
+  readOnly: boolean;
+  onUpdateCreature?: LiveEncounterCreatureUpdate;
+}) {
+  if (participant.kind === "party-member") {
+    const statBlock = participant.statBlock;
+
+    if (
+      !statBlock ||
+      !isFiniteNumber(statBlock.currentHitPoints) ||
+      !isFiniteNumber(statBlock.hitPoints)
+    ) {
+      return null;
+    }
+
+    return (
+      <HitPointControls
+        className={companionStyles.companionHpControls}
+        currentHitPoints={statBlock.currentHitPoints}
+        maxHitPoints={statBlock.hitPoints}
+        temporaryHitPoints={
+          isFiniteNumber(statBlock.temporaryHitPoints) ? statBlock.temporaryHitPoints : 0
+        }
+        magicTemporaryHitPoints={
+          isFiniteNumber(statBlock.magicTemporaryHitPoints) ? statBlock.magicTemporaryHitPoints : 0
+        }
+        statusText={getPartyMemberVitalityLabel(participant)}
+        readOnly
+      />
+    );
+  }
+
+  const creature = participant.creature;
+
+  if (!isFiniteNumber(creature.currentHitPoints) || !isFiniteNumber(creature.maxHitPoints)) {
+    return null;
+  }
+
+  const canEdit = !readOnly && Boolean(onUpdateCreature);
+  const creatureId = participant.creatureId ?? creature.id;
+  const deathSaves = normalizeDeathSaveTrack(creature.deathSaves);
+  const shouldShowDeathSaves =
+    creature.currentHitPoints <= 0 && deathSaves.resolution !== "instant-death";
+
+  function updateCreature(
+    update: (creature: EncounterTemplateCreatureRecord) => EncounterTemplateCreatureRecord
+  ) {
+    return onUpdateCreature?.(creatureId, update);
+  }
+
+  return (
+    <HitPointControls
+      className={companionStyles.companionHpControls}
+      currentHitPoints={creature.currentHitPoints}
+      maxHitPoints={creature.maxHitPoints}
+      temporaryHitPoints={
+        isFiniteNumber(creature.temporaryHitPoints) ? creature.temporaryHitPoints : 0
+      }
+      temporaryHitPointsSource={creature.temporaryHitPointsSource}
+      statusText={getCreatureVitalityLabel(participant)}
+      extraTemporaryHitPointControl={
+        shouldShowDeathSaves ? (
+          <DeathSavesTracker
+            deathSaves={deathSaves}
+            ignoreNextRollOverrides
+            modalEyebrow="Creature"
+            rollDescription="Roll a plain death saving throw for this creature."
+            showDiceSettings={false}
+            readOnly={!canEdit}
+            onReset={() =>
+              void updateCreature((currentCreature) =>
+                toEncounterCreatureRecord(resetCharacterCompanionDeathSaves(currentCreature))
+              )
+            }
+            onUpdate={(track) =>
+              void updateCreature((currentCreature) =>
+                toEncounterCreatureRecord(
+                  updateCharacterCompanionDeathSaves(currentCreature, track)
+                )
+              )
+            }
+          />
+        ) : null
+      }
+      temporaryHitPointsDescription="When taking damage the temporary hit points are consumed first. They do not stack."
+      readOnly={!canEdit}
+      onDamage={(amount) =>
+        void updateCreature((currentCreature) =>
+          toEncounterCreatureRecord(applyDamageToCharacterCompanion(currentCreature, amount))
+        )
+      }
+      onHeal={(amount) =>
+        void updateCreature((currentCreature) =>
+          toEncounterCreatureRecord(applyHealingToCharacterCompanion(currentCreature, amount))
+        )
+      }
+      onSaveTemporaryHitPoints={(value) =>
+        void updateCreature((currentCreature) =>
+          toEncounterCreatureRecord(
+            assignManualTemporaryHitPointsToCharacterCompanion(currentCreature, value)
+          )
+        )
+      }
+    />
+  );
+}
+
 function CampaignLiveEncounterTrackerInspectionDrawer({
   participant,
-  onClose
+  readOnly = true,
+  onClose,
+  onUpdateCreature
 }: CampaignLiveEncounterTrackerInspectionDrawerProps) {
   const titleId = useId();
+  const [drawerNotice, setDrawerNotice] = useState<string | null>(null);
   const participantName = getParticipantName(participant);
   const participantSummary = getParticipantSummary(participant);
-  const statBlock = participant.kind === "party-member" ? participant.statBlock : null;
-  const armorClass =
-    participant.kind === "party-member"
-      ? statBlock?.armorClass
-      : participant.creature.inheritedCreatureEntry
-        ? getMonsterArmorClass(participant.creature.inheritedCreatureEntry)
-        : null;
-  const currentHitPoints =
-    participant.kind === "party-member"
-      ? statBlock?.currentHitPoints
-      : participant.creature.currentHitPoints;
-  const maxHitPoints =
-    participant.kind === "party-member" ? statBlock?.hitPoints : participant.creature.maxHitPoints;
-  const temporaryHitPoints =
-    participant.kind === "party-member"
-      ? statBlock?.temporaryHitPoints
-      : participant.creature.temporaryHitPoints;
-  const magicTemporaryHitPoints =
-    participant.kind === "party-member" ? statBlock?.magicTemporaryHitPoints : 0;
+
+  async function handleUpdateCreature(
+    creatureId: string,
+    update: (creature: EncounterTemplateCreatureRecord) => EncounterTemplateCreatureRecord
+  ) {
+    if (!onUpdateCreature) {
+      return;
+    }
+
+    setDrawerNotice(null);
+
+    try {
+      await onUpdateCreature(creatureId, update);
+    } catch (updateError) {
+      setDrawerNotice(
+        getDmToolsApiErrorMessage(updateError, "Unable to update creature hit points.")
+      );
+    }
+  }
 
   return (
     <SheetDrawer titleId={titleId} onClose={onClose}>
@@ -226,18 +388,12 @@ function CampaignLiveEncounterTrackerInspectionDrawer({
       </OverlayHeader>
 
       <OverlayBody className={styles.liveTrackerDrawerBody}>
-        <ReadOnlyHitPointsPanel
-          armorClass={armorClass}
-          currentHitPoints={currentHitPoints}
-          maxHitPoints={maxHitPoints}
-          temporaryHitPoints={temporaryHitPoints}
-          magicTemporaryHitPoints={magicTemporaryHitPoints}
-          statusLabel={
-            participant.kind === "party-member" && !participant.statBlock
-              ? "Stat block unavailable"
-              : undefined
-          }
+        <LiveEncounterHitPointsPanel
+          participant={participant}
+          readOnly={readOnly}
+          onUpdateCreature={handleUpdateCreature}
         />
+        {drawerNotice ? <p className={styles.modalError}>{drawerNotice}</p> : null}
 
         {participant.kind === "party-member" ? (
           <MemberStatBlock participant={participant} />

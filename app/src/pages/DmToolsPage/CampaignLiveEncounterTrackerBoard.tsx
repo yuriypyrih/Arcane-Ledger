@@ -24,23 +24,28 @@ import {
   CampaignLiveEncounterTrackerParticipantCard,
   CampaignLiveEncounterTrackerSortableParticipantCard
 } from "./CampaignLiveEncounterTrackerParticipantCard";
+import DmToolsEditButton from "./DmToolsEditButton";
 import type { LiveEncounterTrackerListKey } from "./liveEncounterTrackerUtils";
 import styles from "./DmToolsPage.module.css";
 
 type CampaignLiveEncounterTrackerBoardProps = {
   onChange: (tracker: CampaignLiveEncounterTrackerRecord) => void;
+  onEditEncounterCreatures?: () => void;
   onInspectParticipant: (participant: CampaignLiveEncounterTrackerParticipantRecord) => void;
+  readOnly?: boolean;
   tracker: CampaignLiveEncounterTrackerRecord;
 };
 
 type TrackerListProps = {
   activeParticipantId: string | null;
   icon: JSX.Element;
+  headerAction?: JSX.Element;
   listKey: LiveEncounterTrackerListKey;
   onInspectParticipant: (participant: CampaignLiveEncounterTrackerParticipantRecord) => void;
   onSelectActiveParticipant: (participantId: string) => void;
   onToggleInitiative: (participant: CampaignLiveEncounterTrackerParticipantRecord) => void;
   participants: CampaignLiveEncounterTrackerParticipantRecord[];
+  readOnly?: boolean;
   title: string;
 };
 
@@ -132,15 +137,18 @@ function toggleParticipantInitiativePlacement(
 
 function TrackerList({
   activeParticipantId,
+  headerAction,
   icon,
   listKey,
   onInspectParticipant,
   onSelectActiveParticipant,
   onToggleInitiative,
   participants,
+  readOnly = false,
   title
 }: TrackerListProps) {
   const isInitiativeList = listKey === "initiativeOrder";
+  const shouldUseSortableCards = isInitiativeList && !readOnly;
 
   return (
     <section
@@ -152,11 +160,12 @@ function TrackerList({
           {icon}
           <span>{title}</span>
         </h3>
+        {headerAction}
       </div>
 
       <div className={styles.liveTrackerParticipantList}>
         {participants.length > 0 ? (
-          isInitiativeList ? (
+          shouldUseSortableCards ? (
             <SortableContext
               items={participants.map((participant) => participant.participantId)}
               strategy={verticalListSortingStrategy}
@@ -174,6 +183,18 @@ function TrackerList({
                 />
               ))}
             </SortableContext>
+          ) : isInitiativeList && readOnly ? (
+            participants.map((participant, participantIndex) => (
+              <CampaignLiveEncounterTrackerParticipantCard
+                key={participant.participantId}
+                activeParticipantId={activeParticipantId}
+                initiativeOrderNumber={participantIndex + 1}
+                listKey={listKey}
+                onInspect={onInspectParticipant}
+                participant={participant}
+                readOnly
+              />
+            ))
           ) : (
             participants.map((participant) => (
               <CampaignLiveEncounterTrackerParticipantCard
@@ -184,6 +205,7 @@ function TrackerList({
                 onSelectActiveParticipant={onSelectActiveParticipant}
                 onToggleInitiative={onToggleInitiative}
                 participant={participant}
+                readOnly={readOnly}
               />
             ))
           )
@@ -197,7 +219,9 @@ function TrackerList({
 
 function CampaignLiveEncounterTrackerBoard({
   onChange,
+  onEditEncounterCreatures,
   onInspectParticipant,
+  readOnly = false,
   tracker
 }: CampaignLiveEncounterTrackerBoardProps) {
   const sensors = useSensors(
@@ -212,6 +236,10 @@ function CampaignLiveEncounterTrackerBoard({
   );
 
   function handleDragEnd(event: DragEndEvent) {
+    if (readOnly) {
+      return;
+    }
+
     const activeParticipantId = String(event.active.id);
     const overParticipantId = event.over ? String(event.over.id) : null;
 
@@ -237,6 +265,10 @@ function CampaignLiveEncounterTrackerBoard({
   }
 
   function handleSelectActiveParticipant(participantId: string) {
+    if (readOnly) {
+      return;
+    }
+
     onChange({
       ...tracker,
       activeParticipantId: participantId
@@ -246,6 +278,10 @@ function CampaignLiveEncounterTrackerBoard({
   function handleToggleInitiative(
     participant: CampaignLiveEncounterTrackerParticipantRecord
   ) {
+    if (readOnly) {
+      return;
+    }
+
     const nextTracker = toggleParticipantInitiativePlacement(tracker, participant);
 
     if (nextTracker !== tracker) {
@@ -264,20 +300,27 @@ function CampaignLiveEncounterTrackerBoard({
           onSelectActiveParticipant={handleSelectActiveParticipant}
           onToggleInitiative={handleToggleInitiative}
           participants={tracker.partyMembers}
+          readOnly={readOnly}
           title="Party Members"
         />
         <TrackerList
           activeParticipantId={tracker.activeParticipantId}
+          headerAction={
+            onEditEncounterCreatures ? (
+              <DmToolsEditButton onClick={onEditEncounterCreatures}>Edit</DmToolsEditButton>
+            ) : undefined
+          }
           icon={<Skull size={16} aria-hidden="true" />}
           listKey="creatures"
           onInspectParticipant={onInspectParticipant}
           onSelectActiveParticipant={handleSelectActiveParticipant}
           onToggleInitiative={handleToggleInitiative}
           participants={tracker.creatures}
+          readOnly={readOnly}
           title="Encounter Creatures"
         />
       </div>
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      {readOnly ? (
         <TrackerList
           activeParticipantId={tracker.activeParticipantId}
           icon={<Swords size={16} aria-hidden="true" />}
@@ -286,9 +329,23 @@ function CampaignLiveEncounterTrackerBoard({
           onSelectActiveParticipant={handleSelectActiveParticipant}
           onToggleInitiative={handleToggleInitiative}
           participants={tracker.initiativeOrder}
+          readOnly
           title="Initiative Order"
         />
-      </DndContext>
+      ) : (
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <TrackerList
+            activeParticipantId={tracker.activeParticipantId}
+            icon={<Swords size={16} aria-hidden="true" />}
+            listKey="initiativeOrder"
+            onInspectParticipant={onInspectParticipant}
+            onSelectActiveParticipant={handleSelectActiveParticipant}
+            onToggleInitiative={handleToggleInitiative}
+            participants={tracker.initiativeOrder}
+            title="Initiative Order"
+          />
+        </DndContext>
+      )}
     </div>
   );
 }
