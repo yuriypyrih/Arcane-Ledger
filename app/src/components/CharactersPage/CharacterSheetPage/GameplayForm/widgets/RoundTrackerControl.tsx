@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { CirclePlay, CircleStop, Swords } from "lucide-react";
+import { CirclePlay, Play, Square, Swords } from "lucide-react";
 import ActionShape from "../../../../ActionShape";
 import type { RoundTrackerResource } from "../../../../../pages/CharactersPage/combat";
 import styles from "./RoundTrackerControl.module.css";
@@ -49,9 +49,15 @@ function RoundTrackerControl({
         title={roundTracker.turnStarted ? "End round" : "Start round"}
       >
         {roundTracker.turnStarted ? (
-          <CircleStop className={styles.turnButtonIcon} strokeWidth={1} aria-hidden="true" />
+          <Square className={styles.turnButtonIcon} strokeWidth={2} aria-hidden="true" />
+        ) : roundTracker.isInCombat ? (
+          <Play className={styles.turnButtonIcon} strokeWidth={2} aria-hidden="true" />
         ) : (
-          <CirclePlay className={styles.turnButtonIcon} strokeWidth={1} aria-hidden="true" />
+          <CirclePlay
+            className={clsx(styles.turnButtonIcon, styles.turnButtonIconInactive)}
+            strokeWidth={1}
+            aria-hidden="true"
+          />
         )}
       </button>
       <button

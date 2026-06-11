@@ -1,4 +1,4 @@
-import { CirclePlay, CircleStop, Swords } from "lucide-react";
+import { Play, Square, Swords } from "lucide-react";
 import ActionShape from "../../../ActionShape";
 import {
   OverlayBody,
@@ -92,7 +92,7 @@ function GameplayGuideModal({ onClose }: GameplayGuideModalProps) {
                 className={`${styles.turnFlowIcon} ${styles.turnFlowIconStart}`}
                 aria-hidden="true"
               >
-                <CirclePlay size={18} strokeWidth={1.3} />
+                <Play size={18} strokeWidth={2} />
               </span>
               <p className={styles.sectionText}>
                 Start round resets your tracked action, bonus action, and reaction, then advances
@@ -104,7 +104,7 @@ function GameplayGuideModal({ onClose }: GameplayGuideModalProps) {
                 className={`${styles.turnFlowIcon} ${styles.turnFlowIconEnd}`}
                 aria-hidden="true"
               >
-                <CircleStop size={18} strokeWidth={1.3} />
+                <Square size={18} strokeWidth={2} />
               </span>
               <p className={styles.sectionText}>
                 End round finishes your turn and advances effects that count down at the end of your

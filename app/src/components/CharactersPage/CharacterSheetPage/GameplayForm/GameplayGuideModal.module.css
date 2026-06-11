@@ -90,8 +90,8 @@
 
 .turnFlowIconEnd,
 .turnFlowIconCombat {
-  background: linear-gradient(145deg, #b9312b 0%, #7f1e1c 58%, #521717 100%);
-  color: #fff7e8;
+  background: #b94937;
+  color: #fff8ee;
 }
 
 @media (max-width: 599px) {

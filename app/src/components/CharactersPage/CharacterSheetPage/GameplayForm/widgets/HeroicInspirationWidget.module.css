@@ -1,24 +1,27 @@
 .button {
   position: relative;
+  align-items: center;
   justify-content: center;
   gap: 0;
   isolation: isolate;
-  min-width: 40px;
+  block-size: 34px;
+  inline-size: 34px;
+  min-height: 34px;
+  min-width: 34px;
   border: 1px solid rgba(75, 47, 29, 0.16);
-  background: linear-gradient(165deg, rgba(255, 252, 245, 0.96), rgba(241, 228, 213, 0.92));
+  border-radius: 50%;
+  background: #f3e6d4;
   color: var(--color-ink);
-  padding-inline: 0.8rem;
+  padding: 0;
   transition:
     background 160ms ease,
     border-color 160ms ease,
-    box-shadow 160ms ease,
     transform 160ms ease;
 }
 
 .button:hover {
   border-color: rgba(124, 78, 38, 0.28);
-  background: linear-gradient(165deg, rgba(255, 253, 248, 1), rgba(246, 236, 221, 0.98));
-  box-shadow: 0 5px 12px rgba(54, 34, 21, 0.06);
+  background: #f7ead9;
 }
 
 .button:focus-visible {
@@ -27,21 +30,13 @@
 }
 
 .buttonActive {
-  border-color: rgba(111, 61, 24, 0.62);
-  background:
-    linear-gradient(165deg, rgba(164, 91, 36, 0.96) 0%, rgba(111, 55, 28, 0.98) 58%, #4f2819 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 231, 170, 0.28),
-    0 5px 12px rgba(84, 48, 23, 0.16);
+  border-color: rgba(205, 124, 31, 0.7);
+  background: #c96c14;
 }
 
 .buttonActive:hover {
-  border-color: rgba(133, 75, 31, 0.72);
-  background:
-    linear-gradient(165deg, rgba(181, 101, 40, 0.98) 0%, rgba(122, 61, 30, 1) 58%, #5a2d1b 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 231, 170, 0.32),
-    0 6px 14px rgba(84, 48, 23, 0.18);
+  border-color: rgba(219, 143, 45, 0.76);
+  background: #d98224;
 }
 
 .starIcon {
@@ -107,9 +102,9 @@
 }
 
 .toggleButtonActive {
-  border-color: rgba(156, 88, 35, 0.32);
+  border-color: rgba(205, 124, 31, 0.32);
   background:
-    linear-gradient(160deg, rgba(255, 252, 245, 0.96), rgba(255, 239, 198, 0.76));
+    linear-gradient(160deg, rgba(255, 252, 245, 0.96), rgba(255, 235, 202, 0.78));
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.56),
     0 6px 14px rgba(75, 47, 29, 0.07);
@@ -154,13 +149,10 @@
 }
 
 .toggleStateActive {
-  border-color: rgba(111, 61, 24, 0.62);
-  background:
-    linear-gradient(165deg, rgba(164, 91, 36, 0.96) 0%, rgba(111, 55, 28, 0.98) 58%, #4f2819 100%);
+  border-color: rgba(205, 124, 31, 0.7);
+  background: #c96c14;
   color: #fff7db;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 231, 170, 0.28),
-    0 4px 10px rgba(84, 48, 23, 0.14);
+  box-shadow: none;
 }
 
 .toggleStateIcon {
