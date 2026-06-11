@@ -46,21 +46,6 @@ function formatList(values: readonly string[] | null | undefined) {
   return values && values.length > 0 ? values.join(", ") : "";
 }
 
-function formatOptionalHitPoints(
-  value: number,
-  source: string | undefined,
-  label: string
-): MonsterDetailRow | null {
-  if (!Number.isFinite(value) || value <= 0) {
-    return null;
-  }
-
-  return {
-    label,
-    value: source ? `${value} (${source})` : value.toString()
-  };
-}
-
 function formatMemberSkills(statBlock: PortableEncounterStatBlock) {
   const skills = statBlock.skills ?? {};
   const displayedSkills = Object.entries(skills)
@@ -104,22 +89,13 @@ function toFeatureRecords(labels: string[]): MonsterTraitRecord[] | null {
   }));
 }
 
-function buildDetailRows(statBlock: PortableEncounterStatBlock): MonsterDetailRow[] {
-  const temporaryHitPoints = formatOptionalHitPoints(
-    statBlock.temporaryHitPoints,
-    statBlock.temporaryHitPointsSource,
-    "Temporary HP"
-  );
-  const magicTemporaryHitPoints = formatOptionalHitPoints(
-    statBlock.magicTemporaryHitPoints,
-    statBlock.magicTemporaryHitPointsSource,
-    "Magic Temporary HP"
-  );
+function formatMemberSpeed(statBlock: PortableEncounterStatBlock) {
+  return typeof statBlock.speed === "string" ? statBlock.speed.trim() : "";
+}
 
+function buildDetailRows(statBlock: PortableEncounterStatBlock): MonsterDetailRow[] {
   return [
     { label: "Skills", value: formatMemberSkills(statBlock) },
-    temporaryHitPoints,
-    magicTemporaryHitPoints,
     { label: "Damage Vulnerabilities", value: formatList(statBlock.vulnerabilities) },
     { label: "Damage Resistances", value: formatList(statBlock.resistances) },
     { label: "Damage Immunities", value: formatList(statBlock.immunities) },
@@ -132,6 +108,7 @@ function buildDetailRows(statBlock: PortableEncounterStatBlock): MonsterDetailRo
 function buildVitalRows(statBlock: PortableEncounterStatBlock): MonsterDetailRow[] {
   return [
     { label: "Initiative", value: formatSigned(statBlock.initiative) },
+    { label: "Speed", value: formatMemberSpeed(statBlock) },
     {
       label: "Passive Perception",
       value:
@@ -194,7 +171,6 @@ export function createEncounterStatBlockRendererModel(
       statBlock.abilities[abilityKey as AbilityKey].save
     ])
   );
-  const speedValue = Number(statBlock.speed);
   const monster: MonsterRecord = {
     id: `encounter-stat-block-${toSlug(statBlock.name)}`,
     key: `encounter-stat-block-${toSlug(statBlock.name)}`,
@@ -212,7 +188,7 @@ export function createEncounterStatBlockRendererModel(
     armor_detail: null,
     hit_points: statBlock.hitPoints,
     hit_dice: `current ${statBlock.currentHitPoints}/${statBlock.hitPoints}`,
-    speed: Number.isFinite(speedValue) ? { walk: speedValue, unit: "feet" } : null,
+    speed: null,
     ability_scores: abilityScores,
     modifiers,
     saving_throws: savingThrows,

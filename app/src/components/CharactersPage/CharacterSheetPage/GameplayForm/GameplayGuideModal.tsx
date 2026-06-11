@@ -126,6 +126,16 @@ function GameplayGuideModal({ onClose }: GameplayGuideModalProps) {
             </div>
           </div>
         </section>
+
+        <section className={styles.section}>
+          <h4 className={styles.sectionTitle}>Live Encounter</h4>
+          <p className={styles.sectionText}>
+            When your character is in a party, the Party control can switch Gameplay into a shared
+            party view with group information and the live encounter tracker when one is active.
+            Syncing your character publishes your latest sheet state, so the rest of the party sees
+            the live version after they refresh their encounter tracker.
+          </p>
+        </section>
       </OverlayBody>
     </SheetModal>
   );

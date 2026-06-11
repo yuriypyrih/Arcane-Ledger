@@ -4,7 +4,7 @@
 export function renderEquipmentForm(context: Record<string, any>) {
   const {
     ActionButton, CellContainer, CircleHelp, CurrencyInlineDisplay, CustomEquipmentEditor, DestructiveConfirmationModal, ENTRY_CATEGORIES, EquipmentContainerManageModal, EquipmentGuideModal, EquipmentInventoryItemDrawer, EquipmentItemBrowserModal, Hand, InlineToggleButton, InventoryTagPill, KeywordReferenceDrawer, MasterChestModal,
-    Minus, NumberInput, OverlayBody, OverlayCloseButton, OverlayEyebrow, OverlayFooter, OverlayHeader, OverlayHeaderContent, OverlaySummary, OverlayTitle, Package, Plus, RarityPill, SheetModal, Shield, WeaponMasteryStatusLabel, X, activeCurrencyDefinition, activeCurrencyKey,
+    Minus, NumberInput, OverlayBody, OverlayCloseButton, OverlayEyebrow, OverlayFooter, OverlayHeader, OverlayHeaderContent, OverlaySummary, OverlayTitle, Pencil, Plus, RarityPill, SheetModal, Shield, Toolbox, WeaponMasteryStatusLabel, X, activeCurrencyDefinition, activeCurrencyKey,
     adjustCurrencyBalance, canSpendCurrency, carriedWeight, carryingCapacity, className, containerManagementInventoryItems, closeAddModal, closeContainerManagement, closeCustomEquipmentModal, closeInventoryItemDrawer, closeLoadoutDrawer,
     clsx, currencyAmountDraft, currencyDefinitions, currencyPillSummary, customEditorMode, deleteCustomEquipment, editingInventoryStack, equipmentCharacter, equipmentRenderGroups, formatCodexLabel, formatCodexList,
     formatEquipmentWeight, formatInventoryStackName, formatOnHandLabel, formatWeaponDamage, formatWeaponProperties, formatWeaponType, formatWeaponWeight, formatWeightValue, getArcaneArmorFeatureTagsForInventoryStack, getArmorTypeSummary, getInventoryItemChargesTagLabel, getInventoryItemConjuredRowTagLabel, getInventoryItemFeatureTagLabels, getInventoryItemStoredSpellRowTagLabel, getInventoryItemTotalWeightValue, getInventoryRowObjectTagLabel, getInventoryTagPillProps, getItemObjectTagLabel,
@@ -41,38 +41,19 @@ export function renderEquipmentForm(context: Record<string, any>) {
                 aria-label={`Open ${partyMembership.partyGroupName} master chest`}
                 title={`Open ${partyMembership.partyGroupName} master chest`}
               >
-                <Package size={16} aria-hidden="true" />
+                <Toolbox size={16} aria-hidden="true" />
                 <span>Master Chest</span>
               </button>
             ) : null}
           </div>
           <div className={styles.loadoutPinnedActions}>
-            <div
-              className={styles.carryCapacityPill}
-              aria-label={`Carried weight ${formatWeightValue(carriedWeight)} out of ${formatWeightValue(
-                carryingCapacity
-              )} pounds`}
-            >
-              <span
-                className={clsx(
-                  styles.carryCapacityValue,
-                  isOverCarryingCapacity && styles.carryCapacityValueOver
-                )}
-              >
-                {formatWeightValue(carriedWeight)}
-              </span>
-              <span className={styles.carryCapacityDivider}>/</span>
-              <span className={styles.carryCapacityLimit}>
-                {formatWeightValue(carryingCapacity)} lb
-              </span>
-            </div>
             <button
               type="button"
               className={clsx(shared.editButton, styles.loadoutAddButton)}
               onClick={openAddModal}
             >
-              <Plus size={16} />
-              Add
+              <Pencil size={16} />
+              Edit
             </button>
           </div>
         </div>
@@ -83,7 +64,28 @@ export function renderEquipmentForm(context: Record<string, any>) {
         >
           {currencyPillSummary}
         </button>
-        <h3 className={shared.subtitle}>Current loadout</h3>
+        <div className={styles.loadoutTitleRow}>
+          <h3 className={shared.subtitle}>Current loadout</h3>
+          <div
+            className={styles.carryCapacityPill}
+            aria-label={`Carried weight ${formatWeightValue(carriedWeight)} out of ${formatWeightValue(
+              carryingCapacity
+            )} pounds`}
+          >
+            <span
+              className={clsx(
+                styles.carryCapacityValue,
+                isOverCarryingCapacity && styles.carryCapacityValueOver
+              )}
+            >
+              {formatWeightValue(carriedWeight)}
+            </span>
+            <span className={styles.carryCapacityDivider}>/</span>
+            <span className={styles.carryCapacityLimit}>
+              {formatWeightValue(carryingCapacity)} lb
+            </span>
+          </div>
+        </div>
       </div>
 
       {inventoryObjectLimitMessage ? (

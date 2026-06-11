@@ -493,7 +493,7 @@ function MasterChestModal({
     }
   }
 
-  const title = partyGroupName ? `${partyGroupName} Master Chest` : "Master Chest";
+  const title = partyGroupName?.trim() ? partyGroupName : "Party Chest";
 
   return (
     <SheetModal
@@ -504,6 +504,7 @@ function MasterChestModal({
     >
       <OverlayHeader>
         <OverlayHeaderContent>
+          <OverlayEyebrow>Master Chest</OverlayEyebrow>
           <OverlayTitle id="master-chest-modal-title">{title}</OverlayTitle>
           <OverlaySummary>
             {isGmMode

@@ -105,6 +105,16 @@ function EquipmentGuideModal({
           </p>
         </section>
 
+        <section className={styles.section}>
+          <h4 className={styles.sectionTitle}>Master Chest</h4>
+          <p className={styles.sectionText}>
+            Once your character is in a party, the Master Chest becomes a shared place for party
+            equipment and currencies. Use it to deposit gear for safekeeping, withdraw what someone
+            needs, and make your own table rules for when items are stored, claimed, or saved for
+            later.
+          </p>
+        </section>
+
         {sheetSizeLabel ? (
           <p className={styles.storageNote}>Sheet object size: {sheetSizeLabel}</p>
         ) : null}

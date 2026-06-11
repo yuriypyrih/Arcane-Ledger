@@ -5,12 +5,14 @@ import {
   Hand,
   Minus,
   Package,
+  Pencil,
   Plus,
   Settings,
   Shield,
   Sparkles,
   TicketMinus,
   TicketPlus,
+  Toolbox,
   X
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -2972,11 +2974,12 @@ function EquipmentForm({
     OverlayHeaderContent,
     OverlaySummary,
     OverlayTitle,
-    Package,
+    Pencil,
     Plus,
     RarityPill,
     SheetModal,
     Shield,
+    Toolbox,
     WeaponMasteryStatusLabel,
     X,
     activeCurrencyDefinition,

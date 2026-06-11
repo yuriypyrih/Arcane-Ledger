@@ -54,17 +54,29 @@ function getParticipantName(participant: CampaignLiveEncounterTrackerParticipant
     : participant.creature.name;
 }
 
-function getParticipantSummary(participant: CampaignLiveEncounterTrackerParticipantRecord) {
-  if (participant.kind === "creature") {
-    return getCompanionDisplayType(participant.creature);
-  }
-
+function getPartyMemberTypeSummary(participant: CampaignLiveEncounterTrackerPartyMemberRecord) {
   const statBlock = participant.statBlock;
 
   return statBlock
     ? statBlock.typeLabel ||
         [statBlock.species, statBlock.className].filter(Boolean).join(" ")
     : [participant.summary.species, participant.summary.className].filter(Boolean).join(" ");
+}
+
+function getPartyMemberSpeedSummary(participant: CampaignLiveEncounterTrackerPartyMemberRecord) {
+  const speed = participant.statBlock?.speed;
+
+  return typeof speed === "string" && speed.trim().length > 0 ? `Speed: ${speed.trim()}` : "";
+}
+
+function getParticipantSummary(participant: CampaignLiveEncounterTrackerParticipantRecord) {
+  if (participant.kind === "creature") {
+    return getCompanionDisplayType(participant.creature);
+  }
+
+  return [getPartyMemberTypeSummary(participant), getPartyMemberSpeedSummary(participant)]
+    .filter((value) => value.length > 0)
+    .join(" - ");
 }
 
 function isFiniteNumber(value: unknown): value is number {

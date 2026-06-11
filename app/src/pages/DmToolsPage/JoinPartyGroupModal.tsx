@@ -45,6 +45,15 @@ function isJoinableCharacter(
   );
 }
 
+function formatCharacterOptionLabel(character: JoinableCharacterRosterEntry): string {
+  const ancestryAndClass = [character.species, character.className]
+    .map((value) => value.trim())
+    .filter((value) => value.length > 0)
+    .join(" ");
+
+  return `${character.name} - Lv ${character.level}${ancestryAndClass ? ` ${ancestryAndClass}` : ""}`;
+}
+
 function JoinPartyGroupModal({ characters, onClose }: JoinPartyGroupModalProps) {
   const dispatch = useAppDispatch();
   const membershipsByCharacterId = useAppSelector(
@@ -141,7 +150,7 @@ function JoinPartyGroupModal({ characters, onClose }: JoinPartyGroupModalProps) 
               <option value="">-</option>
               {eligibleCharacters.map((character) => (
                 <option key={character.remoteId} value={character.remoteId}>
-                  {character.name} - Lv {character.level} {character.className}
+                  {formatCharacterOptionLabel(character)}
                 </option>
               ))}
             </SelectInput>

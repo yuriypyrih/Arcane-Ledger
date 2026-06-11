@@ -1,12 +1,15 @@
 .modal {
-  min-height: min(720px, 100%);
+  height: calc(100dvh - (var(--overlay-backdrop-padding) * 2));
+  min-height: 0;
 }
 
 .body {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
   gap: 0.9rem;
   min-height: 0;
+  overflow: hidden;
 }
 
 .column {
@@ -143,9 +146,10 @@
 @media (max-width: 760px) {
   .body {
     grid-template-columns: 1fr;
+    grid-template-rows: repeat(2, minmax(0, 1fr));
   }
 
   .column {
-    min-height: 280px;
+    min-height: 0;
   }
 }

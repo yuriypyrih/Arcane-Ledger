@@ -77,12 +77,12 @@
 
 .equipmentItemTagRow {
   display: flex;
-  flex: 1 1 24rem;
+  flex: 1 1 auto;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 0.34rem 0.7rem;
-  min-width: min(100%, 18rem);
+  min-width: min-content;
 }
 
 .equipmentItemTagsLeft,
@@ -223,6 +223,14 @@
   gap: 0.45rem;
 }
 
+.loadoutTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
 .loadoutCurrencyPill {
   justify-self: end;
   max-width: 100%;
@@ -233,9 +241,10 @@
   align-items: center;
   gap: 0.16rem;
   border-radius: var(--radius-pill);
-  background: var(--color-panel-muted);
+  background: rgba(75, 47, 29, 0.1);
   color: var(--color-ink);
   font-size: 0.92rem;
+  flex: 0 0 auto;
   min-height: 42px;
   padding: 0 0.86rem;
   white-space: nowrap;
@@ -281,7 +290,8 @@
   }
 
   .loadoutHeaderTop,
-  .loadoutPinnedActions {
+  .loadoutPinnedActions,
+  .loadoutTitleRow {
     gap: 0.32rem;
   }
 
