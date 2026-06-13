@@ -162,6 +162,18 @@ function detachUnavailableCloudRecord(
   );
 }
 
+function loadLatestLocalRecordForOpen(options: {
+  characterId: number;
+  clientId?: string | null;
+  remoteId?: string | null;
+}) {
+  return loadStoredPortableCharacterSheetByMatch({
+    clientId: options.clientId,
+    localId: options.characterId,
+    remoteId: options.remoteId
+  });
+}
+
 async function recoverCloudCharacterSheetForOpen(options: {
   characterId: number;
   clientId?: string | null;
@@ -273,20 +285,30 @@ export async function resolvePortableCharacterSheetForOpen(
     throw error;
   }
 
+  const latestLocalRecord = loadLatestLocalRecordForOpen({
+    characterId,
+    clientId: localSync?.clientId ?? cachedRosterEntry?.clientId ?? cloudDocument?.clientId,
+    remoteId: localSync?.remoteId ?? cachedRosterEntry?.remoteId ?? cloudDocument?.id
+  });
+
   if (!cloudDocument) {
-    return localRecord;
+    return latestLocalRecord;
   }
 
-  if (!localRecord) {
+  if (!latestLocalRecord) {
+    if (localRecord) {
+      return null;
+    }
+
     return storeCloudCharacterSheetDocument(cloudDocument, { localId: characterId });
   }
 
-  if (!isServerRevisionNewer(cloudDocument, localRecord)) {
-    return localRecord;
+  if (!isServerRevisionNewer(cloudDocument, latestLocalRecord)) {
+    return latestLocalRecord;
   }
 
-  if (isLocalRecordDirty(localRecord)) {
-    return markLocalRecordConflict(localRecord, {
+  if (isLocalRecordDirty(latestLocalRecord)) {
+    return markLocalRecordConflict(latestLocalRecord, {
       message: "This character has unsynced local changes and a newer cloud revision.",
       serverRevision: cloudDocument.revision
     });

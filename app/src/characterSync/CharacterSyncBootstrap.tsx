@@ -554,11 +554,11 @@ function CharacterSyncBootstrap() {
     }
 
     try {
-      const localSnapshot = await loadSyncableStoredPortableCharacterSheets();
       const cloudSnapshot = await fetchCloudPortableCharacterSheets(user.id);
+      const latestLocalSnapshot = await loadSyncableStoredPortableCharacterSheets();
       const records = reconcilePortableCharacterSheetsWithCloudSnapshot({
         ownerId: user.id,
-        localRecords: localSnapshot,
+        localRecords: latestLocalSnapshot,
         cloudRecords: cloudSnapshot.cloudRecords,
         preserveUnownedRecords: true
       });
@@ -602,11 +602,11 @@ function CharacterSyncBootstrap() {
     initializingUserIdRef.current = user.id;
 
     try {
-      const localSnapshot = await loadSyncableStoredPortableCharacterSheets();
       const cloudSnapshot = await fetchCloudPortableCharacterSheets(user.id);
+      const latestLocalSnapshot = await loadSyncableStoredPortableCharacterSheets();
       const reconciledLocalSnapshot = reconcilePortableCharacterSheetsWithCloudSnapshot({
         ownerId: user.id,
-        localRecords: localSnapshot,
+        localRecords: latestLocalSnapshot,
         cloudRecords: cloudSnapshot.cloudRecords,
         preserveUnownedRecords: true
       });
