@@ -101,6 +101,13 @@
   gap: 0.85rem;
 }
 
+.maxFieldHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
 .checkboxRow {
   display: inline-flex;
   align-items: center;
@@ -109,9 +116,27 @@
   font-weight: 700;
 }
 
-.checkboxRow input {
+.inlineCheckbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--color-ink-soft);
+  font-size: 0.76rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.checkboxRow input,
+.inlineCheckbox input {
   accent-color: var(--color-accent);
   margin: 0;
+}
+
+.chargeHint {
+  color: var(--color-ink-soft);
+  font-size: 0.82rem;
+  line-height: 1.45;
+  margin: -0.15rem 0 0;
 }
 
 .editorFooter {

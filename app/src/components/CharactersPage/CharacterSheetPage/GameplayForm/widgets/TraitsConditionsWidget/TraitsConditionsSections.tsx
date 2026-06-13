@@ -30,9 +30,6 @@ type TraitsConditionsSectionsProps = {
   onSelectEntry: (entryId: string) => void;
 };
 
-const durationPillTruncationThreshold = 18;
-const durationPillTruncatedLength = 15;
-
 type StatusLayoutStyle = CSSProperties & {
   "--status-rendered-column-count": number;
 };
@@ -77,12 +74,6 @@ function splitStatusSectionsIntoColumns(
   }
 
   return columns.map((column) => column.sections);
-}
-
-function getTraitPillDurationLabel(durationLabel: string): string {
-  return durationLabel.length >= durationPillTruncationThreshold
-    ? `${durationLabel.slice(0, durationPillTruncatedLength).trimEnd()}..`
-    : durationLabel;
 }
 
 function getResponsiveStatusColumnCap() {
@@ -176,16 +167,13 @@ function TraitsConditionsSections({
         <ul className={styles.list}>
           {section.entries.map((entry) => {
             const shortDurationLabel = getStatusDurationShortLabel(entry.duration);
-            const traitPillDurationLabel = shortDurationLabel
-              ? getTraitPillDurationLabel(shortDurationLabel)
-              : null;
-            const isDurationTruncated =
-              shortDurationLabel !== null && traitPillDurationLabel !== shortDurationLabel;
             const isReactionEntry = entry.group === STATUS_ENTRY_GROUP.REACTIONS;
             const roundTickOn = getStatusDurationTickOn(entry.duration);
             const roundPrefix = roundTickOn === STATUS_DURATION_ROUND_TICK.ROUND_START ? "<" : "";
             const roundSuffix = roundTickOn === STATUS_DURATION_ROUND_TICK.ROUND_END ? ">" : "";
             const hasDescriptionAdditions = hasStatusEntryDescriptionAdditions(entry);
+            const statusTitle = getStatusEntryTitle(entry);
+            const sourceLabel = getStatusEntrySourceLabel(entry);
 
             return (
               <li key={entry.id}>
@@ -205,11 +193,13 @@ function TraitsConditionsSections({
                     <span className={styles.buttonTitle}>
                       {entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
                       entry.value === EFFECT_NAME.CONCENTRATION ? (
-                        <span className={styles.buttonTitleText}>
+                        <span className={styles.buttonTitleText} title={statusTitle}>
                           <ConcentrationLabel iconSize={14} />
                         </span>
                       ) : (
-                        <span className={styles.buttonTitleText}>{getStatusEntryTitle(entry)}</span>
+                        <span className={styles.buttonTitleText} title={statusTitle}>
+                          {statusTitle}
+                        </span>
                       )}
                       {hasDescriptionAdditions ? (
                         <span
@@ -221,18 +211,15 @@ function TraitsConditionsSections({
                         </span>
                       ) : null}
                     </span>
-                    <small>{getStatusEntrySourceLabel(entry)}</small>
+                    <small title={sourceLabel}>{sourceLabel}</small>
                   </span>
                   {shortDurationLabel || isReactionEntry ? (
                     <span className={styles.buttonMeta}>
-                      {traitPillDurationLabel ? (
-                        <strong
-                          className={styles.duration}
-                          title={isDurationTruncated ? shortDurationLabel : undefined}
-                        >
+                      {shortDurationLabel ? (
+                        <strong className={styles.duration} title={shortDurationLabel}>
                           {roundPrefix ? <span>{roundPrefix}</span> : null}
                           <span>(</span>
-                          {traitPillDurationLabel}
+                          <span className={styles.durationText}>{shortDurationLabel}</span>
                           <span>)</span>
                           {roundSuffix ? <span>{roundSuffix}</span> : null}
                         </strong>

@@ -471,9 +471,12 @@ export type CharacterCustomActionEconomy =
   | "long_action"
   | "non_action";
 
+export type CharacterCustomActionChargeMaxMode = "fixed" | "proficiency_bonus";
+
 export type CharacterCustomActionCharges = {
   current: number;
   max: number;
+  maxMode?: CharacterCustomActionChargeMaxMode;
   shortRestRecovery: number;
   longRestRecovery: number;
 };

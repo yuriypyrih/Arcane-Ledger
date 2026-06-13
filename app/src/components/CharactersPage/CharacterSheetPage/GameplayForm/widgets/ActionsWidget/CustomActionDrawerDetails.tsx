@@ -3,6 +3,7 @@ import { OverlayDetailsGrid } from "../../../../../Overlay";
 import type { Character, CharacterCustomAction } from "../../../../../../types";
 import { STATUS_DURATION_KIND } from "../../../../../../types";
 import {
+  getCustomActionChargeStateForCharacter,
   getCustomActionIdFromActionKey,
   normalizeCharacterCustomActions
 } from "../../../../../../pages/CharactersPage/customActions";
@@ -15,12 +16,17 @@ type CustomActionDrawerDetailsProps = {
   actionKey: string;
 };
 
-function getCustomActionRecoveryLabel(action: CharacterCustomAction): string {
-  if (!action.charges) {
+function getCustomActionRecoveryLabel(
+  character: Character,
+  action: CharacterCustomAction
+): string {
+  const charges = getCustomActionChargeStateForCharacter(character, action);
+
+  if (!charges) {
     return "None";
   }
 
-  return `Short Rest +${action.charges.shortRestRecovery}, Long Rest +${action.charges.longRestRecovery}`;
+  return `Short Rest +${charges.shortRestRecovery}, Long Rest +${charges.longRestRecovery}`;
 }
 
 function CustomActionDrawerDetails({ character, actionKey }: CustomActionDrawerDetailsProps) {
@@ -59,7 +65,7 @@ function CustomActionDrawerDetails({ character, actionKey }: CustomActionDrawerD
             )}
           />
         ) : null}
-        <CellContainer label="Recovery" content={getCustomActionRecoveryLabel(action)} />
+        <CellContainer label="Recovery" content={getCustomActionRecoveryLabel(character, action)} />
       </OverlayDetailsGrid>
     </div>
   );

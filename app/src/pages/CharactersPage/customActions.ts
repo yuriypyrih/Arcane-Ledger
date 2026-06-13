@@ -3,6 +3,7 @@ import type {
   Character,
   CharacterCustomAction,
   CharacterCustomActionCharges,
+  CharacterCustomActionChargeMaxMode,
   CharacterCustomActionEconomy,
   CharacterStatusDuration
 } from "../../types";
@@ -20,6 +21,7 @@ import { ACTION_CATEGORY, ECONOMY_TYPE, type EconomyType } from "./actionEconomy
 import { createChargesCardUsage } from "./classFeatures/cardUsage";
 import type { FeatureActionCard } from "./classFeatures/types";
 import { normalizeCharacterCustomTraitEffects } from "./customTraitEffects";
+import { getProficiencyBonus } from "./gameplay";
 import {
   createCharacterStatusEntry,
   normalizeCharacterStatusEntries,
@@ -38,6 +40,11 @@ const customActionEconomies = new Set<CharacterCustomActionEconomy>([
   "reaction",
   "long_action",
   "non_action"
+]);
+
+const customActionChargeMaxModes = new Set<CharacterCustomActionChargeMaxMode>([
+  "fixed",
+  "proficiency_bonus"
 ]);
 
 function clampInteger(value: unknown, min: number, max: number, fallback: number): number {
@@ -80,6 +87,12 @@ function normalizeCustomActionEconomy(value: unknown): CharacterCustomActionEcon
     : "action";
 }
 
+function normalizeCustomActionChargeMaxMode(value: unknown): CharacterCustomActionChargeMaxMode {
+  return customActionChargeMaxModes.has(value as CharacterCustomActionChargeMaxMode)
+    ? (value as CharacterCustomActionChargeMaxMode)
+    : "fixed";
+}
+
 function normalizeCustomActionDuration(value: unknown): CharacterStatusDuration {
   if (!isObjectRecord(value)) {
     return { kind: STATUS_DURATION_KIND.INFINITE };
@@ -117,11 +130,18 @@ function normalizeCustomActionCharges(value: unknown): CharacterCustomActionChar
     return undefined;
   }
 
-  const max = clampInteger(value.max, 1, CUSTOM_ACTION_CHARGES_MAX, 1);
+  const maxMode = normalizeCustomActionChargeMaxMode(value.maxMode);
+  const max = clampInteger(
+    value.max,
+    1,
+    CUSTOM_ACTION_CHARGES_MAX,
+    maxMode === "proficiency_bonus" ? CUSTOM_ACTION_CHARGES_MAX : 1
+  );
 
   return {
     current: clampInteger(value.current, 0, max, max),
     max,
+    ...(maxMode === "proficiency_bonus" ? { maxMode } : {}),
     shortRestRecovery: clampInteger(value.shortRestRecovery, 0, max, 0),
     longRestRecovery: clampInteger(value.longRestRecovery, 0, max, 1)
   };
@@ -236,6 +256,42 @@ export function getCustomActionEconomyType(economy: CharacterCustomActionEconomy
   }
 }
 
+export function getCustomActionChargesMaxForCharacter(
+  character: Pick<Character, "level">,
+  charges: CharacterCustomActionCharges
+): number {
+  const fallbackMax = clampInteger(charges.max, 1, CUSTOM_ACTION_CHARGES_MAX, 1);
+
+  if (charges.maxMode !== "proficiency_bonus") {
+    return fallbackMax;
+  }
+
+  return clampInteger(
+    getProficiencyBonus(character.level),
+    1,
+    CUSTOM_ACTION_CHARGES_MAX,
+    fallbackMax
+  );
+}
+
+export function getCustomActionChargeStateForCharacter(
+  character: Pick<Character, "level">,
+  action: CharacterCustomAction
+) {
+  if (!action.charges) {
+    return null;
+  }
+
+  const max = getCustomActionChargesMaxForCharacter(character, action.charges);
+
+  return {
+    current: clampInteger(action.charges.current, 0, max, max),
+    max,
+    shortRestRecovery: clampInteger(action.charges.shortRestRecovery, 0, max, 0),
+    longRestRecovery: clampInteger(action.charges.longRestRecovery, 0, max, 1)
+  };
+}
+
 export function hasActiveCustomActionTrait(
   character: Pick<Character, "statusEntries">,
   actionId: string
@@ -256,7 +312,9 @@ function getCustomActionDisabledReason(character: Character, action: CharacterCu
     return "This custom action is already active in Traits & Conditions.";
   }
 
-  if (action.charges && action.charges.current <= 0) {
+  const charges = getCustomActionChargeStateForCharacter(character, action);
+
+  if (charges && charges.current <= 0) {
     return "No custom action charges remain.";
   }
 
@@ -270,7 +328,7 @@ function createCustomActionDescription(action: CharacterCustomAction): SpellDesc
 export function getCustomActionCardsForCharacter(character: Character): FeatureActionCard[] {
   return normalizeCharacterCustomActions(character.customActions).map((action) => {
     const disabledReason = getCustomActionDisabledReason(character, action);
-    const charges = action.charges;
+    const charges = getCustomActionChargeStateForCharacter(character, action);
 
     return {
       key: `${customActionKeyPrefix}${action.id}`,
@@ -303,16 +361,21 @@ export function getCustomActionCardsForCharacter(character: Character): FeatureA
   });
 }
 
-function spendCustomActionCharge(action: CharacterCustomAction): CharacterCustomAction {
+function spendCustomActionCharge(
+  character: Pick<Character, "level">,
+  action: CharacterCustomAction
+): CharacterCustomAction {
   if (!action.charges) {
     return action;
   }
+
+  const charges = getCustomActionChargeStateForCharacter(character, action);
 
   return {
     ...action,
     charges: {
       ...action.charges,
-      current: Math.max(0, action.charges.current - 1)
+      current: Math.max(0, (charges?.current ?? action.charges.current) - 1)
     }
   };
 }
@@ -332,7 +395,7 @@ export function activateCustomActionForCharacter(character: Character, actionKey
   }
 
   const nextCustomActions = customActions.map((entry) =>
-    entry.id === actionId ? spendCustomActionCharge(entry) : entry
+    entry.id === actionId ? spendCustomActionCharge(character, entry) : entry
   );
 
   if (!customAction.customEffects || customAction.customEffects.length <= 0) {
@@ -374,7 +437,7 @@ export function getCustomActionRestRecoveryEntries(
   restType: "short" | "long"
 ): CustomActionRestRecoveryEntry[] {
   return normalizeCharacterCustomActions(character.customActions).flatMap((action) => {
-    const charges = action.charges;
+    const charges = getCustomActionChargeStateForCharacter(character, action);
 
     if (!charges) {
       return [];
@@ -411,10 +474,13 @@ export function restoreCustomActionChargesForRest(
       return action;
     }
 
+    const charges = getCustomActionChargeStateForCharacter(character, action);
     const recovery =
-      restType === "short" ? action.charges.shortRestRecovery : action.charges.longRestRecovery;
+      restType === "short"
+        ? (charges?.shortRestRecovery ?? 0)
+        : (charges?.longRestRecovery ?? 0);
 
-    if (recovery <= 0 || action.charges.current >= action.charges.max) {
+    if (!charges || recovery <= 0 || charges.current >= charges.max) {
       return action;
     }
 
@@ -424,7 +490,7 @@ export function restoreCustomActionChargesForRest(
       ...action,
       charges: {
         ...action.charges,
-        current: Math.min(action.charges.max, action.charges.current + recovery)
+        current: Math.min(charges.max, charges.current + recovery)
       }
     };
   });

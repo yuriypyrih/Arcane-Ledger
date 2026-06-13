@@ -1,10 +1,15 @@
 import { useMemo, useState } from "react";
 import type { Character, CharacterCustomAction } from "../../../../../../types";
 import type { PersistCharacterUpdater } from "../../../../../../pages/CharactersPage/CharacterSheetPage/types";
-import { normalizeCharacterCustomActions } from "../../../../../../pages/CharactersPage/customActions";
+import {
+  CUSTOM_ACTION_CHARGES_MAX,
+  normalizeCharacterCustomActions
+} from "../../../../../../pages/CharactersPage/customActions";
+import { getProficiencyBonus } from "../../../../../../pages/CharactersPage/gameplay";
 import {
   createCustomActionDraftFromEntry,
   createDefaultCustomActionDraft,
+  getCustomActionDraftChargesMax,
   isCustomActionDraftValid,
   parseCustomActionDraft,
   removeCustomActionDraftEffect,
@@ -30,6 +35,7 @@ export function useCustomActionsEditor({
     () => normalizeCharacterCustomActions(character.customActions),
     [character.customActions]
   );
+  const proficiencyBonus = useMemo(() => getProficiencyBonus(character.level), [character.level]);
   const [draft, setDraft] = useState<CustomActionDraft | null>(null);
   const [editingActionId, setEditingActionId] = useState<string | null>(null);
 
@@ -45,7 +51,7 @@ export function useCustomActionsEditor({
   }
 
   function openEditor(action: CharacterCustomAction) {
-    setDraft(createCustomActionDraftFromEntry(action));
+    setDraft(createCustomActionDraftFromEntry(action, proficiencyBonus));
     setEditingActionId(action.id);
   }
 
@@ -63,7 +69,7 @@ export function useCustomActionsEditor({
       return;
     }
 
-    const parsedAction = parseCustomActionDraft(draft);
+    const parsedAction = parseCustomActionDraft(draft, proficiencyBonus);
 
     if (!parsedAction) {
       return;
@@ -87,7 +93,7 @@ export function useCustomActionsEditor({
     customActions,
     editorDraft: draft,
     isEditing: editingActionId !== null,
-    createDisabled: !draft || !isCustomActionDraftValid(draft),
+    createDisabled: !draft || !isCustomActionDraftValid(draft, proficiencyBonus),
     closeEditor,
     deleteAction,
     openCreator,
@@ -98,7 +104,8 @@ export function useCustomActionsEditor({
       ? {
           draft,
           isEditing: editingActionId !== null,
-          createDisabled: !isCustomActionDraftValid(draft),
+          createDisabled: !isCustomActionDraftValid(draft, proficiencyBonus),
+          proficiencyBonus,
           onNameChange: (value: string) =>
             setDraft((current) => (current ? { ...current, name: value } : current)),
           onDescriptionChange: (value: string) =>
@@ -159,6 +166,26 @@ export function useCustomActionsEditor({
             setDraft((current) => (current ? { ...current, hasCharges: value } : current)),
           onChargesCurrentChange: (value: number) =>
             setDraft((current) => (current ? { ...current, chargesCurrent: value } : current)),
+          onChargesMaxModeChange: (value: boolean) =>
+            setDraft((current) => {
+              if (!current) {
+                return current;
+              }
+
+              const nextDraft = {
+                ...current,
+                chargesMax: value ? CUSTOM_ACTION_CHARGES_MAX : current.chargesMax,
+                chargesMaxMode: value ? "proficiency_bonus" : "fixed"
+              } satisfies CustomActionDraft;
+              const chargesMax = getCustomActionDraftChargesMax(nextDraft, proficiencyBonus);
+
+              return {
+                ...nextDraft,
+                chargesCurrent: Math.min(current.chargesCurrent, chargesMax),
+                shortRestRecovery: Math.min(current.shortRestRecovery, chargesMax),
+                longRestRecovery: Math.min(current.longRestRecovery, chargesMax)
+              };
+            }),
           onChargesMaxChange: (value: number) =>
             setDraft((current) =>
               current

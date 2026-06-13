@@ -28,7 +28,7 @@ import {
   CUSTOM_ACTION_NAME_MAX_LENGTH
 } from "../../../../../../pages/CharactersPage/customActions";
 import ManualStatusDurationFields from "../TraitsConditionsWidget/ManualStatusDurationFields";
-import type { CustomActionDraft } from "./customActionDraft";
+import { getCustomActionDraftChargesMax, type CustomActionDraft } from "./customActionDraft";
 import type { ManualStatusDurationType } from "../TraitsConditionsWidget/manualStatusDuration";
 import styles from "./CustomActionsModal.module.css";
 
@@ -47,6 +47,7 @@ type CustomActionEditorModalProps = {
   draft: CustomActionDraft;
   isEditing: boolean;
   createDisabled: boolean;
+  proficiencyBonus: number;
   onNameChange: (value: string) => void;
   onDescriptionChange: (value: string) => void;
   onEconomyChange: (value: CharacterCustomActionEconomy) => void;
@@ -61,6 +62,7 @@ type CustomActionEditorModalProps = {
   onRemoveEffect: (effectId: string) => void;
   onHasChargesChange: (value: boolean) => void;
   onChargesCurrentChange: (value: number) => void;
+  onChargesMaxModeChange: (value: boolean) => void;
   onChargesMaxChange: (value: number) => void;
   onShortRestRecoveryChange: (value: number) => void;
   onLongRestRecoveryChange: (value: number) => void;
@@ -72,6 +74,7 @@ function CustomActionEditorModal({
   draft,
   isEditing,
   createDisabled,
+  proficiencyBonus,
   onNameChange,
   onDescriptionChange,
   onEconomyChange,
@@ -86,12 +89,16 @@ function CustomActionEditorModal({
   onRemoveEffect,
   onHasChargesChange,
   onChargesCurrentChange,
+  onChargesMaxModeChange,
   onChargesMaxChange,
   onShortRestRecoveryChange,
   onLongRestRecoveryChange,
   onCreate,
   onClose
 }: CustomActionEditorModalProps) {
+  const isProficiencyBonusMax = draft.chargesMaxMode === "proficiency_bonus";
+  const chargeInputMax = getCustomActionDraftChargesMax(draft, proficiencyBonus);
+
   return (
     <SheetModal
       titleId="custom-action-editor-title"
@@ -194,47 +201,67 @@ function CustomActionEditorModal({
           </label>
 
           {draft.hasCharges ? (
-            <div className={clsx(shared.formGrid, styles.chargeGrid)}>
-              <label className={shared.field}>
-                <span className={shared.fieldLabel}>Current</span>
-                <NumberInput
-                  min={0}
-                  max={draft.chargesMax}
-                  value={draft.chargesCurrent}
-                  onChange={(event) => onChargesCurrentChange(Number(event.target.value))}
-                />
-              </label>
+            <>
+              <div className={clsx(shared.formGrid, styles.chargeGrid)}>
+                <label className={shared.field}>
+                  <span className={shared.fieldLabel}>Current</span>
+                  <NumberInput
+                    min={0}
+                    max={chargeInputMax}
+                    value={draft.chargesCurrent}
+                    onChange={(event) => onChargesCurrentChange(Number(event.target.value))}
+                  />
+                </label>
 
-              <label className={shared.field}>
-                <span className={shared.fieldLabel}>MAX (10)</span>
-                <NumberInput
-                  min={1}
-                  max={CUSTOM_ACTION_CHARGES_MAX}
-                  value={draft.chargesMax}
-                  onChange={(event) => onChargesMaxChange(Number(event.target.value))}
-                />
-              </label>
+                <div className={shared.field}>
+                  <span className={styles.maxFieldHeader}>
+                    <span className={shared.fieldLabel}>MAX (10)</span>
+                    <label className={styles.inlineCheckbox}>
+                      <input
+                        type="checkbox"
+                        checked={isProficiencyBonusMax}
+                        onChange={(event) => onChargesMaxModeChange(event.target.checked)}
+                      />
+                      <span>Prof. Bonus</span>
+                    </label>
+                  </span>
+                  {isProficiencyBonusMax ? (
+                    <TextInput value="Equal to Prof. Bonus" readOnly disabled />
+                  ) : (
+                    <NumberInput
+                      min={1}
+                      max={CUSTOM_ACTION_CHARGES_MAX}
+                      value={draft.chargesMax}
+                      onChange={(event) => onChargesMaxChange(Number(event.target.value))}
+                    />
+                  )}
+                </div>
 
-              <label className={shared.field}>
-                <span className={shared.fieldLabel}>Short Rest</span>
-                <NumberInput
-                  min={0}
-                  max={draft.chargesMax}
-                  value={draft.shortRestRecovery}
-                  onChange={(event) => onShortRestRecoveryChange(Number(event.target.value))}
-                />
-              </label>
+                <label className={shared.field}>
+                  <span className={shared.fieldLabel}>Short Rest</span>
+                  <NumberInput
+                    min={0}
+                    max={chargeInputMax}
+                    value={draft.shortRestRecovery}
+                    onChange={(event) => onShortRestRecoveryChange(Number(event.target.value))}
+                  />
+                </label>
 
-              <label className={shared.field}>
-                <span className={shared.fieldLabel}>Long Rest</span>
-                <NumberInput
-                  min={0}
-                  max={draft.chargesMax}
-                  value={draft.longRestRecovery}
-                  onChange={(event) => onLongRestRecoveryChange(Number(event.target.value))}
-                />
-              </label>
-            </div>
+                <label className={shared.field}>
+                  <span className={shared.fieldLabel}>Long Rest</span>
+                  <NumberInput
+                    min={0}
+                    max={chargeInputMax}
+                    value={draft.longRestRecovery}
+                    onChange={(event) => onLongRestRecoveryChange(Number(event.target.value))}
+                  />
+                </label>
+              </div>
+              <p className={styles.chargeHint}>
+                It is okay to type 10 (or more) if you do not know the max charges. The value will
+                be corrected on save.
+              </p>
+            </>
           ) : null}
         </section>
       </OverlayBody>

@@ -1,4 +1,4 @@
-import { Check, Copy, Link as LinkIcon, Package, RefreshCcw, Users, X } from "lucide-react";
+import { Check, Copy, Link as LinkIcon, RefreshCcw, Toolbox, Users, X } from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
@@ -178,7 +178,7 @@ function PartyGroupDetailPage() {
                 aria-label={`Open ${partyGroup.name} master chest`}
                 title={`Open ${partyGroup.name} master chest`}
               >
-                <Package size={16} aria-hidden="true" />
+                <Toolbox size={16} aria-hidden="true" />
                 <span>Master Chest</span>
               </button>
               <DmToolsEditButton onClick={() => setIsEditModalOpen(true)}>Edit</DmToolsEditButton>

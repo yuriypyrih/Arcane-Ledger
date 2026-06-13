@@ -1,5 +1,6 @@
 import type {
   CharacterCustomAction,
+  CharacterCustomActionChargeMaxMode,
   CharacterCustomActionEconomy,
   CharacterCustomTraitEffect,
   CharacterCustomTraitRollMode,
@@ -42,6 +43,7 @@ export type CustomActionDraft = {
   hasCharges: boolean;
   chargesCurrent: number;
   chargesMax: number;
+  chargesMaxMode: CharacterCustomActionChargeMaxMode;
   shortRestRecovery: number;
   longRestRecovery: number;
 };
@@ -59,6 +61,38 @@ function clampInteger(value: unknown, min: number, max: number, fallback: number
 function normalizeDraftText(value: string, maxLength: number, multiline = false): string {
   const sanitized = sanitizeUserInput(value, { multiline });
   return sanitized.length > maxLength ? sanitized.slice(0, maxLength) : sanitized;
+}
+
+function normalizeChargeMaxMode(
+  value: CharacterCustomAction["charges"]
+): CharacterCustomActionChargeMaxMode {
+  return value?.maxMode === "proficiency_bonus" ? "proficiency_bonus" : "fixed";
+}
+
+function getActionChargesMax(
+  charges: CharacterCustomAction["charges"],
+  proficiencyBonus: number | undefined
+): number {
+  const fallbackMax = clampInteger(charges?.max, 1, CUSTOM_ACTION_CHARGES_MAX, 1);
+
+  if (charges?.maxMode !== "proficiency_bonus" || proficiencyBonus === undefined) {
+    return fallbackMax;
+  }
+
+  return clampInteger(proficiencyBonus, 1, CUSTOM_ACTION_CHARGES_MAX, fallbackMax);
+}
+
+export function getCustomActionDraftChargesMax(
+  draft: Pick<CustomActionDraft, "chargesMax" | "chargesMaxMode">,
+  proficiencyBonus: number
+): number {
+  const fallbackMax = clampInteger(draft.chargesMax, 1, CUSTOM_ACTION_CHARGES_MAX, 1);
+
+  if (draft.chargesMaxMode !== "proficiency_bonus") {
+    return fallbackMax;
+  }
+
+  return clampInteger(proficiencyBonus, 1, CUSTOM_ACTION_CHARGES_MAX, fallbackMax);
 }
 
 function getParsedCustomActionEffects(draft: CustomActionDraft): CharacterCustomTraitEffect[] {
@@ -88,16 +122,19 @@ export function createDefaultCustomActionDraft(): CustomActionDraft {
     hasCharges: false,
     chargesCurrent: charges.current,
     chargesMax: charges.max,
+    chargesMaxMode: normalizeChargeMaxMode(charges),
     shortRestRecovery: charges.shortRestRecovery,
     longRestRecovery: charges.longRestRecovery
   };
 }
 
 export function createCustomActionDraftFromEntry(
-  action: CharacterCustomAction
+  action: CharacterCustomAction,
+  proficiencyBonus?: number
 ): CustomActionDraft {
   const duration = getManualStatusDurationDraft(action.duration);
   const charges = action.charges ?? createDefaultCustomActionCharges();
+  const chargesMax = getActionChargesMax(charges, proficiencyBonus);
   const effects = action.customEffects?.map(createCustomTraitEffectDraftFromEntry) ?? [];
 
   return {
@@ -110,14 +147,18 @@ export function createCustomActionDraftFromEntry(
     durationValue: duration.value,
     effects: effects.length > 0 ? effects : [createCustomTraitEffectDraft()],
     hasCharges: action.charges !== undefined,
-    chargesCurrent: charges.current,
+    chargesCurrent: clampInteger(charges.current, 0, chargesMax, chargesMax),
     chargesMax: charges.max,
-    shortRestRecovery: charges.shortRestRecovery,
-    longRestRecovery: charges.longRestRecovery
+    chargesMaxMode: normalizeChargeMaxMode(charges),
+    shortRestRecovery: clampInteger(charges.shortRestRecovery, 0, chargesMax, 0),
+    longRestRecovery: clampInteger(charges.longRestRecovery, 0, chargesMax, 1)
   };
 }
 
-export function isCustomActionDraftValid(draft: CustomActionDraft): boolean {
+export function isCustomActionDraftValid(
+  draft: CustomActionDraft,
+  proficiencyBonus?: number
+): boolean {
   const name = normalizeDraftText(draft.name, CUSTOM_ACTION_NAME_MAX_LENGTH);
   const parsedEffects = getParsedCustomActionEffects(draft);
 
@@ -139,7 +180,10 @@ export function isCustomActionDraftValid(draft: CustomActionDraft): boolean {
     return true;
   }
 
-  const chargesMax = clampInteger(draft.chargesMax, 1, CUSTOM_ACTION_CHARGES_MAX, 1);
+  const chargesMax =
+    draft.chargesMaxMode === "proficiency_bonus" && proficiencyBonus !== undefined
+      ? getCustomActionDraftChargesMax(draft, proficiencyBonus)
+      : clampInteger(draft.chargesMax, 1, CUSTOM_ACTION_CHARGES_MAX, 1);
   const chargesCurrent = clampInteger(draft.chargesCurrent, 0, chargesMax, chargesMax);
   const shortRestRecovery = clampInteger(draft.shortRestRecovery, 0, chargesMax, 0);
   const longRestRecovery = clampInteger(draft.longRestRecovery, 0, chargesMax, 1);
@@ -152,13 +196,26 @@ export function isCustomActionDraftValid(draft: CustomActionDraft): boolean {
   );
 }
 
-export function parseCustomActionDraft(draft: CustomActionDraft): CharacterCustomAction | null {
-  if (!isCustomActionDraftValid(draft)) {
+export function parseCustomActionDraft(
+  draft: CustomActionDraft,
+  proficiencyBonus?: number
+): CharacterCustomAction | null {
+  if (!isCustomActionDraftValid(draft, proficiencyBonus)) {
     return null;
   }
 
   const parsedEffects = getParsedCustomActionEffects(draft);
-  const chargesMax = clampInteger(draft.chargesMax, 1, CUSTOM_ACTION_CHARGES_MAX, 1);
+  const storedChargesMax =
+    draft.chargesMaxMode === "proficiency_bonus"
+      ? CUSTOM_ACTION_CHARGES_MAX
+      : clampInteger(draft.chargesMax, 1, CUSTOM_ACTION_CHARGES_MAX, 1);
+  const effectiveChargesMax =
+    draft.chargesMaxMode === "proficiency_bonus" && proficiencyBonus !== undefined
+      ? getCustomActionDraftChargesMax(
+          { chargesMax: storedChargesMax, chargesMaxMode: draft.chargesMaxMode },
+          proficiencyBonus
+        )
+      : storedChargesMax;
 
   return {
     id: draft.id,
@@ -178,10 +235,18 @@ export function parseCustomActionDraft(draft: CustomActionDraft): CharacterCusto
     ...(draft.hasCharges
       ? {
           charges: {
-            current: clampInteger(draft.chargesCurrent, 0, chargesMax, chargesMax),
-            max: chargesMax,
-            shortRestRecovery: clampInteger(draft.shortRestRecovery, 0, chargesMax, 0),
-            longRestRecovery: clampInteger(draft.longRestRecovery, 0, chargesMax, 1)
+            current: clampInteger(
+              draft.chargesCurrent,
+              0,
+              effectiveChargesMax,
+              effectiveChargesMax
+            ),
+            max: storedChargesMax,
+            ...(draft.chargesMaxMode === "proficiency_bonus"
+              ? { maxMode: draft.chargesMaxMode }
+              : {}),
+            shortRestRecovery: clampInteger(draft.shortRestRecovery, 0, effectiveChargesMax, 0),
+            longRestRecovery: clampInteger(draft.longRestRecovery, 0, effectiveChargesMax, 1)
           }
         }
       : {})

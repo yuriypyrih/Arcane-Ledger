@@ -42,6 +42,10 @@
   padding: 0;
 }
 
+.list > li {
+  min-width: 0;
+}
+
 .button {
   display: inline-flex;
   align-items: center;
@@ -54,7 +58,10 @@
   cursor: pointer;
   font: inherit;
   font-size: 0.82rem;
+  max-width: 100%;
   min-height: 32px;
+  min-width: 0;
+  overflow: hidden;
   padding: 0.46rem 0.5rem;
   width: 100%;
 }
@@ -76,26 +83,39 @@
 
 .buttonText {
   display: grid;
+  flex: 1 1 0;
   gap: 0.08rem;
+  max-width: 100%;
   min-width: 0;
+  overflow: hidden;
   text-align: left;
 }
 
 .buttonText small {
   color: var(--color-ink-soft);
+  display: block;
   font-size: 0.68rem;
   letter-spacing: 0.04em;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .buttonTitle {
   align-items: center;
   display: inline-flex;
   gap: 0.22rem;
+  max-width: 100%;
   min-width: 0;
+  overflow: hidden;
 }
 
 .buttonTitleText {
+  display: block;
+  flex: 1 1 auto;
+  max-width: 100%;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -112,20 +132,40 @@
   display: inline-flex;
   align-items: center;
   gap: 0.42rem;
-  flex-shrink: 0;
+  flex: 0 1 auto;
+  justify-content: flex-end;
+  max-inline-size: min(8.8rem, 46%);
+  min-width: 0;
+  overflow: hidden;
 }
 
 .duration {
   display: inline-flex;
   align-items: center;
+  flex: 0 1 auto;
   gap: 0.12rem;
   color: var(--color-accent);
   font-size: 0.75rem;
+  max-inline-size: 100%;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.durationText {
+  display: block;
+  flex: 0 1 auto;
+  max-inline-size: min(6.5rem, 100%);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .reactionBadge {
   display: inline-flex;
   align-items: center;
+  flex: 0 0 auto;
   justify-content: center;
   min-width: 1rem;
 }
