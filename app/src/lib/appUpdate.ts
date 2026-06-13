@@ -18,6 +18,9 @@ const LIFECYCLE_CHECK_COOLDOWN_MS = 60_000;
 const LIFECYCLE_CHECK_DEBOUNCE_MS = 750;
 const VERSION_CHECK_TIMEOUT_MS = 8_000;
 const SERVICE_WORKER_WAITING_TIMEOUT_MS = 5_000;
+const SERVICE_WORKER_UPDATE_TIMEOUT_MS = 6_000;
+const SERVICE_WORKER_RELOAD_TIMEOUT_MS = 4_000;
+const UPDATE_RELOAD_NAVIGATION_FALLBACK_MS = 750;
 const STALE_ASSET_FAILURE_STORAGE_KEY =
   `arcane-ledger.update.asset-load-failure.${__ARCANE_LEDGER_BUILD_ID__}`;
 
@@ -113,6 +116,23 @@ function normalizeBuildVersionText(text: string) {
 function resetPendingMismatch() {
   pendingMismatchBuildId = null;
   pendingMismatchCount = 0;
+}
+
+function settleWithTimeout<T>(promise: Promise<T>, timeoutMs: number, timeoutValue: T) {
+  return new Promise<T>((resolve) => {
+    const timeoutId = window.setTimeout(() => resolve(timeoutValue), timeoutMs);
+
+    promise.then(
+      (value) => {
+        window.clearTimeout(timeoutId);
+        resolve(value);
+      },
+      () => {
+        window.clearTimeout(timeoutId);
+        resolve(timeoutValue);
+      }
+    );
+  });
 }
 
 function recordPendingMismatch(latestBuildId: string) {
@@ -244,6 +264,7 @@ export function initializeAppUpdateLifecycle() {
   }
 
   isLifecycleInitialized = true;
+
   updateSW = registerSW({
     immediate: true,
     onNeedRefresh() {
@@ -318,21 +339,48 @@ async function waitForWaitingServiceWorker(registration: ServiceWorkerRegistrati
   });
 }
 
+function reloadCurrentPageForAppUpdate() {
+  window.location.reload();
+  window.setTimeout(() => {
+    window.location.replace(window.location.href);
+  }, UPDATE_RELOAD_NAVIGATION_FALLBACK_MS);
+}
+
+async function requestServiceWorkerReload() {
+  if (!updateSW) {
+    return false;
+  }
+
+  return settleWithTimeout(
+    updateSW(true).then(() => true),
+    SERVICE_WORKER_RELOAD_TIMEOUT_MS,
+    false
+  );
+}
+
 async function activateWaitingServiceWorker() {
   if (!updateSW || !serviceWorkerRegistration) {
     return false;
   }
 
   try {
-    const registration = await serviceWorkerRegistration.update();
+    const registration = await settleWithTimeout(
+      serviceWorkerRegistration.update(),
+      SERVICE_WORKER_UPDATE_TIMEOUT_MS,
+      undefined
+    );
+
+    if (!registration) {
+      return false;
+    }
+
     const hasWaitingWorker = await waitForWaitingServiceWorker(registration);
 
     if (!hasWaitingWorker) {
       return false;
     }
 
-    await updateSW(true);
-    return true;
+    return requestServiceWorkerReload();
   } catch {
     return false;
   }
@@ -340,17 +388,17 @@ async function activateWaitingServiceWorker() {
 
 export async function reloadForAppUpdate() {
   if (updateSW && state.reason === "service-worker") {
-    try {
-      await updateSW(true);
+    if (await requestServiceWorkerReload()) {
       return;
-    } catch {
-      // Fall through to a normal reload if the waiting service worker cannot be activated.
     }
+
+    reloadCurrentPageForAppUpdate();
+    return;
   }
 
   if (await activateWaitingServiceWorker()) {
     return;
   }
 
-  window.location.reload();
+  reloadCurrentPageForAppUpdate();
 }

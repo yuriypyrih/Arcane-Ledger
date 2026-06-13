@@ -6,8 +6,21 @@
   place-items: center;
   padding: clamp(1rem, 4vw, 2rem);
   background:
-    linear-gradient(rgba(239, 228, 211, 0.92), rgba(239, 228, 211, 0.96)),
-    url("../../assets/img/paper-background.webp") center / 360px auto;
+    linear-gradient(
+      180deg,
+      rgba(239, 228, 211, 0.02) 0%,
+      rgba(244, 239, 230, 0.66) 50%,
+      rgba(231, 220, 200, 0.04) 100%
+    ),
+    url("../../assets/img/paper-background.webp");
+  background-color: #efe4d3;
+  background-position:
+    top center,
+    top center;
+  background-repeat: no-repeat, no-repeat;
+  background-size:
+    auto,
+    cover;
   color: var(--color-ink);
 }
 
@@ -18,9 +31,7 @@
   width: min(100%, 32rem);
   border: 1px solid rgba(90, 47, 29, 0.22);
   border-radius: var(--radius-panel);
-  background:
-    linear-gradient(rgba(255, 250, 239, 0.76), rgba(239, 228, 211, 0.84)),
-    url("../../assets/img/paper-background.webp") center / cover;
+  background: var(--color-panel-surface);
   padding: clamp(1.35rem, 4vw, 2rem);
   text-align: center;
   box-shadow: 0 20px 54px rgba(56, 31, 18, 0.2);
@@ -32,16 +43,27 @@
   min-height: 100dvh;
   padding: clamp(1rem, 4vw, 2rem);
   background:
-    linear-gradient(rgba(239, 228, 211, 0.7), rgba(239, 228, 211, 0.82)),
-    url("../../assets/img/paper-background.webp") center / 360px auto;
+    linear-gradient(
+      180deg,
+      rgba(239, 228, 211, 0.02) 0%,
+      rgba(244, 239, 230, 0.66) 50%,
+      rgba(231, 220, 200, 0.04) 100%
+    ),
+    url("../../assets/img/paper-background.webp");
+  background-color: #efe4d3;
+  background-position:
+    top center,
+    top center;
+  background-repeat: no-repeat, no-repeat;
+  background-size:
+    auto,
+    cover;
   color: var(--color-ink);
 }
 
 .fullscreen .panel {
   border: 0;
-  background:
-    linear-gradient(rgba(255, 250, 239, 0.62), rgba(239, 228, 211, 0.72)),
-    url("../../assets/img/paper-background.webp") center / cover;
+  background: var(--color-panel-surface);
   box-shadow: none;
 }
 

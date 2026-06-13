@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { LoaderCircle, RefreshCw, Rocket } from "lucide-react";
+import { LoaderCircle, RefreshCw, Sparkles } from "lucide-react";
 import { reloadForAppUpdate, useAppUpdateState } from "../../lib/appUpdate";
 import styles from "./AppUpdateGate.module.css";
 
@@ -26,7 +26,9 @@ export function AppUpdateRequiredPanel({
     }
 
     setIsReloading(true);
-    void reloadForAppUpdate();
+    void reloadForAppUpdate().finally(() => {
+      setIsReloading(false);
+    });
   }
 
   return (
@@ -37,7 +39,7 @@ export function AppUpdateRequiredPanel({
         aria-modal="true"
         aria-labelledby={titleId}
       >
-        <Rocket className={styles.icon} aria-hidden="true" />
+        <Sparkles className={styles.icon} aria-hidden="true" />
         <h1 id={titleId} className={styles.title}>
           Arcane Ledger updated
         </h1>
