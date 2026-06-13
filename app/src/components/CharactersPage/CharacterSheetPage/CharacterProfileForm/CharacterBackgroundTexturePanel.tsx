@@ -38,7 +38,9 @@ type CharacterBackgroundTexturePanelProps = {
   isUploadEnabled: boolean;
   modeSwitch: ReactNode;
   unavailableMessage: string | null;
+  hasPendingSelectionChange: boolean;
   onClearError: () => void;
+  onSaveSelection: () => Promise<boolean>;
   onSelect: (selection: CharacterBackgroundTextureSelection) => void;
   onSelectCurrentUploaded: () => void;
   onUpload: (file: File, crop?: Partial<CharacterPortraitCropSettings>) => Promise<boolean>;
@@ -105,7 +107,9 @@ function CharacterBackgroundTexturePanel({
   isUploadEnabled,
   modeSwitch,
   unavailableMessage,
+  hasPendingSelectionChange,
   onClearError,
+  onSaveSelection,
   onSelect,
   onSelectCurrentUploaded,
   onUpload
@@ -331,17 +335,32 @@ function CharacterBackgroundTexturePanel({
               Reset crop
             </ActionButton>
           </>
-        ) : isAuthenticated ? (
-          <ActionButton
-            fullWidth={false}
-            icon={<Upload size={16} />}
-            loading={isSaving}
-            disabled={!isUploadEnabled}
-            onClick={openFilePicker}
-          >
-            Upload texture
-          </ActionButton>
-        ) : null}
+        ) : (
+          <>
+            {hasPendingSelectionChange ? (
+              <ActionButton
+                fullWidth={false}
+                icon={<Save size={16} />}
+                loading={isSaving}
+                disabled={!isUploadEnabled}
+                onClick={() => void onSaveSelection()}
+              >
+                Save texture
+              </ActionButton>
+            ) : null}
+            {isAuthenticated ? (
+              <ActionButton
+                fullWidth={false}
+                icon={<Upload size={16} />}
+                loading={isSaving}
+                disabled={!isUploadEnabled}
+                onClick={openFilePicker}
+              >
+                Upload texture
+              </ActionButton>
+            ) : null}
+          </>
+        )}
       </OverlayFooter>
     </>
   );

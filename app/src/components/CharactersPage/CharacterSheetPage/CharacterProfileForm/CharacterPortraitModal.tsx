@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import type { CharacterBackgroundTextureSelection } from "../../../../api/characterBackgroundTextures";
 import {
   cropAndScaleBackgroundTextureFile,
@@ -67,7 +67,6 @@ function CharacterPortraitModal({
     useState<CharacterBackgroundTextureSelection | null>(null);
   const [backgroundDraftErrorMessage, setBackgroundDraftErrorMessage] = useState<string | null>(null);
   const [isProcessingBackgroundDraft, setIsProcessingBackgroundDraft] = useState(false);
-  const isClosingRef = useRef(false);
   const resolvedName = characterName.trim() || "Character Portrait";
   const isModalSaving = isSaving || isBackgroundSaving || isProcessingBackgroundDraft;
 
@@ -90,7 +89,7 @@ function CharacterPortraitModal({
 
   function stageBackgroundSelection(selection: CharacterBackgroundTextureSelection) {
     clearBackgroundErrors();
-    setBackgroundDraftSelection(selection);
+    setBackgroundDraftSelection(isBackgroundSelectionCurrent(selection) ? null : selection);
   }
 
   function stageCurrentUploadedBackground() {
@@ -130,15 +129,24 @@ function CharacterPortraitModal({
     }
   }
 
-  async function commitBackgroundDraft() {
-    if (backgroundDraftSelection) {
-      if (isBackgroundSelectionCurrent(backgroundDraftSelection)) {
-        return true;
-      }
-
-      return onBackgroundSelect(backgroundDraftSelection);
+  async function saveBackgroundDraftSelection() {
+    if (!backgroundDraftSelection || isModalSaving) {
+      return false;
     }
 
+    setIsProcessingBackgroundDraft(true);
+
+    const didSave = await onBackgroundSelect(backgroundDraftSelection);
+
+    if (!didSave) {
+      setIsProcessingBackgroundDraft(false);
+      return false;
+    }
+
+    onClearError();
+    clearBackgroundErrors();
+    resetBackgroundDraft();
+    onClose();
     return true;
   }
 
@@ -148,22 +156,7 @@ function CharacterPortraitModal({
   }
 
   function closeModal() {
-    void closeModalAfterBackgroundCommit();
-  }
-
-  async function closeModalAfterBackgroundCommit() {
-    if (isModalSaving || isClosingRef.current) {
-      return;
-    }
-
-    isClosingRef.current = true;
-    setIsProcessingBackgroundDraft(true);
-
-    const didCommitBackgroundDraft = await commitBackgroundDraft();
-
-    if (!didCommitBackgroundDraft) {
-      isClosingRef.current = false;
-      setIsProcessingBackgroundDraft(false);
+    if (isModalSaving) {
       return;
     }
 
@@ -236,12 +229,14 @@ function CharacterPortraitModal({
           characterClassName={characterClassName}
           draftSelection={backgroundDraftSelection}
           errorMessage={backgroundDraftErrorMessage ?? backgroundErrorMessage}
+          hasPendingSelectionChange={backgroundDraftSelection !== null}
           isAuthenticated={isAuthenticated}
           isUploadEnabled={isUploadEnabled}
           isSaving={isBackgroundSaving || isProcessingBackgroundDraft}
           modeSwitch={modeSwitch}
           unavailableMessage={unavailableMessage}
           onClearError={clearBackgroundErrors}
+          onSaveSelection={saveBackgroundDraftSelection}
           onSelect={stageBackgroundSelection}
           onSelectCurrentUploaded={stageCurrentUploadedBackground}
           onUpload={stageBackgroundUpload}
