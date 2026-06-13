@@ -182,8 +182,9 @@ import InventoryTagPill from "./InventoryTagPill";
 import { getInventoryTagPillProps } from "./inventoryTagPillModel";
 import { renderEquipmentForm } from "./EquipmentFormRenderer";
 import {
-  applyAddEquipmentDraftToCharacter,
-  createAddEquipmentDraftCharacter
+  applyAddEquipmentDraftOperations,
+  createAddEquipmentDraftCharacter,
+  type AddEquipmentDraftOperation
 } from "./equipmentDrafts";
 import {
   createEquipmentRenderGroups,
@@ -355,7 +356,8 @@ function EquipmentForm({
   const [addEquipmentDraftCharacter, setAddEquipmentDraftCharacter] = useState<Character | null>(
     null
   );
-  const [isAddEquipmentDraftDirty, setIsAddEquipmentDraftDirty] = useState(false);
+  const addEquipmentDraftCharacterRef = useRef<Character | null>(null);
+  const addEquipmentDraftOperationsRef = useRef<AddEquipmentDraftOperation[]>([]);
   const [isCustomEquipmentModalOpen, setIsCustomEquipmentModalOpen] = useState(false);
   const [isMasterChestOpen, setIsMasterChestOpen] = useState(false);
   const [customEditorMode, setCustomEditorMode] = useState<"create" | "edit">("create");
@@ -401,16 +403,20 @@ function EquipmentForm({
 
       deferModalCommit(() => {
         try {
-          if (addEquipmentDraftCharacter && isAddEquipmentDraftDirty) {
+          const addEquipmentDraft = addEquipmentDraftCharacterRef.current;
+          const addEquipmentDraftOperations = addEquipmentDraftOperationsRef.current;
+
+          if (addEquipmentDraft && addEquipmentDraftOperations.length > 0) {
             onPersistCharacter(
               (currentCharacter) =>
-                applyAddEquipmentDraftToCharacter(currentCharacter, addEquipmentDraftCharacter),
+                applyAddEquipmentDraftOperations(currentCharacter, addEquipmentDraftOperations),
               equipmentPersistOptions
             );
           }
 
+          addEquipmentDraftCharacterRef.current = null;
+          addEquipmentDraftOperationsRef.current = [];
           setAddEquipmentDraftCharacter(null);
-          setIsAddEquipmentDraftDirty(false);
           setIsAddModalOpen(false);
           setParentInventoryInspection(null);
           setRestoreParentInventoryWithoutAnimation(false);
@@ -428,7 +434,7 @@ function EquipmentForm({
         }
       });
     },
-    [addEquipmentDraftCharacter, isAddEquipmentDraftDirty, onPersistCharacter]
+    [onPersistCharacter]
   );
 
   function openAddModal() {
@@ -443,8 +449,11 @@ function EquipmentForm({
     setIsEquipmentGuideOpen(false);
     setSelectedInventoryInspection(null);
     setIsCurrencyDrawerOpen(false);
-    setAddEquipmentDraftCharacter(createAddEquipmentDraftCharacter(character));
-    setIsAddEquipmentDraftDirty(false);
+    const draftCharacter = createAddEquipmentDraftCharacter(character);
+
+    addEquipmentDraftCharacterRef.current = draftCharacter;
+    addEquipmentDraftOperationsRef.current = [];
+    setAddEquipmentDraftCharacter(draftCharacter);
     setIsAddModalOpen(true);
   }
 
@@ -453,16 +462,19 @@ function EquipmentForm({
     options?: { stage?: boolean }
   ) {
     if (options?.stage) {
-      setAddEquipmentDraftCharacter((currentDraft) => {
-        const draft = currentDraft ?? createAddEquipmentDraftCharacter(character);
-        const nextDraft = updater(draft);
+      const draft =
+        addEquipmentDraftCharacterRef.current ?? createAddEquipmentDraftCharacter(character);
+      const nextDraft = updater(draft);
 
-        if (nextDraft !== draft) {
-          setIsAddEquipmentDraftDirty(true);
-        }
+      if (nextDraft !== draft) {
+        addEquipmentDraftCharacterRef.current = nextDraft;
+        addEquipmentDraftOperationsRef.current = [
+          ...addEquipmentDraftOperationsRef.current,
+          updater
+        ];
+        setAddEquipmentDraftCharacter(nextDraft);
+      }
 
-        return nextDraft;
-      });
       return;
     }
 

@@ -14,8 +14,19 @@ import {
   setArtificerReplicateMagicItemPlanKeysForCharacter,
   setArtificerToolsOfTheTradeToolSelectionsForCharacter
 } from "../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
+import type { PersistCharacterOptions } from "../../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { updateSelectionAtIndex } from "../helpers";
 import { recomputeCharacterFeatureProficiencies, type ClassFeatureChoiceModelArgs } from "./shared";
+
+const artificerPlanChoicePersistOptions: PersistCharacterOptions = {
+  domains: ["features"],
+  normalize: "targeted"
+};
+
+const artificerToolChoicePersistOptions: PersistCharacterOptions = {
+  domains: ["features", "proficiencies"],
+  normalize: "targeted"
+};
 
 export function createArtificerFeatureChoiceModel({
   character,
@@ -26,16 +37,18 @@ export function createArtificerFeatureChoiceModel({
   }
 
   function updateArtificerReplicateMagicItemPlanSelection(slotIndex: number, nextPlanKey: string) {
-    onPersistCharacter((currentCharacter) =>
-      setArtificerReplicateMagicItemPlanKeysForCharacter(
-        currentCharacter,
-        updateSelectionAtIndex(
-          getArtificerReplicateMagicItemPlanKeysForCharacter(currentCharacter),
-          getArtificerReplicateMagicItemPlansKnown(currentCharacter),
-          slotIndex,
-          nextPlanKey
-        )
-      )
+    onPersistCharacter(
+      (currentCharacter) =>
+        setArtificerReplicateMagicItemPlanKeysForCharacter(
+          currentCharacter,
+          updateSelectionAtIndex(
+            getArtificerReplicateMagicItemPlanKeysForCharacter(currentCharacter),
+            getArtificerReplicateMagicItemPlansKnown(currentCharacter),
+            slotIndex,
+            nextPlanKey
+          )
+        ),
+      artificerPlanChoicePersistOptions
     );
   }
 
@@ -44,11 +57,13 @@ export function createArtificerFeatureChoiceModel({
   }
 
   function updateArtificerImprovedArmorerArmorReplicationPlanSelection(nextPlanKey: string) {
-    onPersistCharacter((currentCharacter) =>
-      setArtificerImprovedArmorerArmorReplicationPlanKeyForCharacter(
-        currentCharacter,
-        nextPlanKey
-      )
+    onPersistCharacter(
+      (currentCharacter) =>
+        setArtificerImprovedArmorerArmorReplicationPlanKeyForCharacter(
+          currentCharacter,
+          nextPlanKey
+        ),
+      artificerPlanChoicePersistOptions
     );
   }
 
@@ -57,18 +72,20 @@ export function createArtificerFeatureChoiceModel({
   }
 
   function updateArtificerToolsOfTheTradeToolSelection(slotIndex: number, nextTool: string) {
-    onPersistCharacter((currentCharacter) =>
-      recomputeCharacterFeatureProficiencies(
-        setArtificerToolsOfTheTradeToolSelectionsForCharacter(
-          currentCharacter,
-          updateSelectionAtIndex(
-            getArtificerToolsOfTheTradeChoiceSelectionsForCharacter(currentCharacter),
-            getArtificerToolsOfTheTradeChoiceCountForCharacter(currentCharacter),
-            slotIndex,
-            nextTool
+    onPersistCharacter(
+      (currentCharacter) =>
+        recomputeCharacterFeatureProficiencies(
+          setArtificerToolsOfTheTradeToolSelectionsForCharacter(
+            currentCharacter,
+            updateSelectionAtIndex(
+              getArtificerToolsOfTheTradeChoiceSelectionsForCharacter(currentCharacter),
+              getArtificerToolsOfTheTradeChoiceCountForCharacter(currentCharacter),
+              slotIndex,
+              nextTool
+            )
           )
-        )
-      )
+        ),
+      artificerToolChoicePersistOptions
     );
   }
 

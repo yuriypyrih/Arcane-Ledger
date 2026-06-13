@@ -1,5 +1,7 @@
 import type { Character } from "../../../../types";
 
+export type AddEquipmentDraftOperation = (currentCharacter: Character) => Character;
+
 export function createAddEquipmentDraftCharacter(character: Character): Character {
   return {
     ...character,
@@ -10,15 +12,12 @@ export function createAddEquipmentDraftCharacter(character: Character): Characte
   };
 }
 
-export function applyAddEquipmentDraftToCharacter(
+export function applyAddEquipmentDraftOperations(
   currentCharacter: Character,
-  draftCharacter: Character
+  operations: readonly AddEquipmentDraftOperation[]
 ): Character {
-  return {
-    ...currentCharacter,
-    currencies: draftCharacter.currencies,
-    equipment: draftCharacter.equipment,
-    inventoryItems: draftCharacter.inventoryItems,
-    customEquipment: draftCharacter.customEquipment
-  };
+  return operations.reduce(
+    (nextCharacter, operation) => operation(nextCharacter),
+    currentCharacter
+  );
 }

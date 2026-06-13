@@ -35,7 +35,11 @@ type MagicItemTinkerActionBodyProps = {
   confirmationTrigger: ActionConfirmationToastTrigger;
   onChargeMagicItem: (stackId: string, spellSlotLevel: number) => Promise<void>;
   onDrainMagicItem: (stackId: string) => Promise<void>;
-  onTransmuteMagicItem: (stackId: string, item: ItemRecord) => Promise<void>;
+  onTransmuteMagicItem: (
+    stackId: string,
+    item: ItemRecord,
+    planKey: string | null
+  ) => Promise<void>;
 };
 
 function getExpendedSpellSlots(character: Character): number[] {
@@ -303,7 +307,11 @@ type TransmuteMagicItemActionBodyProps = {
   actionShape: ActionShapeType | null;
   actionShapeAvailable: boolean;
   actionShapeMultiCount: number;
-  onTransmuteMagicItem: (stackId: string, item: ItemRecord) => Promise<void>;
+  onTransmuteMagicItem: (
+    stackId: string,
+    item: ItemRecord,
+    planKey: string | null
+  ) => Promise<void>;
 };
 
 function TransmuteMagicItemActionBody({
@@ -346,12 +354,12 @@ function TransmuteMagicItemActionBody({
         actionShape={actionShape}
         actionShapeAvailable={actionShapeAvailable}
         actionShapeMultiCount={actionShapeMultiCount}
-        onUseItem={(item) => {
+        onUseItem={(item, planKey) => {
           if (!selectedItem) {
             return Promise.resolve();
           }
 
-          return onTransmuteMagicItem(selectedItem.stackId, item);
+          return onTransmuteMagicItem(selectedItem.stackId, item, planKey);
         }}
         heading="Transmute Magic Item Plans"
         useButtonLabel="Use Transmute Magic Item"

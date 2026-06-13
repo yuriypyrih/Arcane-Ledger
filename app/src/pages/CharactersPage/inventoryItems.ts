@@ -799,45 +799,7 @@ function normalizeCharacterContainerContentItems(value: unknown): CharacterConta
     );
   });
 
-  return [...contentsByMergeKey.values()].slice(0, CONTAINER_OBJECT_LIMIT);
-}
-
-function trimInventoryItemsToObjectLimit(
-  inventoryItems: CharacterInventoryItem[]
-): CharacterInventoryItem[] {
-  const trimmedInventoryItems: CharacterInventoryItem[] = [];
-  let objectCount = 0;
-
-  for (const entry of inventoryItems) {
-    if (objectCount >= INVENTORY_OBJECT_LIMIT) {
-      break;
-    }
-
-    const remainingContentSlots = INVENTORY_OBJECT_LIMIT - objectCount - 1;
-
-    if (remainingContentSlots < 0) {
-      break;
-    }
-
-    if (!isInventoryContainerItem(entry)) {
-      trimmedInventoryItems.push(entry);
-      objectCount += 1;
-      continue;
-    }
-
-    const containerContents = getInventoryContainerContents(entry).slice(
-      0,
-      Math.min(CONTAINER_OBJECT_LIMIT, remainingContentSlots)
-    );
-
-    trimmedInventoryItems.push({
-      ...entry,
-      containerContents
-    });
-    objectCount += 1 + containerContents.length;
-  }
-
-  return trimmedInventoryItems;
+  return [...contentsByMergeKey.values()];
 }
 
 function addInventoryItemFeatureTag(
@@ -1278,9 +1240,7 @@ export function normalizeCharacterInventoryItems(value: unknown): CharacterInven
     }
   });
 
-  return trimInventoryItemsToObjectLimit(
-    [...stacksByMergeKey.values()].map(normalizeInventoryStack)
-  );
+  return [...stacksByMergeKey.values()].map(normalizeInventoryStack);
 }
 
 export function getItemRecordKey(item: ItemRecord | null | undefined): string {

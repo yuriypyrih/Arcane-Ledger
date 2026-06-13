@@ -416,7 +416,11 @@ export function useArtificerActionSubmissions({
     }
   }
 
-  async function submitArtificerTransmuteMagicItem(stackId: string, item: ItemRecord) {
+  async function submitArtificerTransmuteMagicItem(
+    stackId: string,
+    item: ItemRecord,
+    planKey: string | null
+  ) {
     if (
       !isSelectedFeatureAction(
         selectedAction,
@@ -435,7 +439,7 @@ export function useArtificerActionSubmissions({
 
     try {
       const didApply = applySelectedFeatureAction((preparedCharacter) =>
-        transmuteArtificerMagicItemForCharacter(preparedCharacter, stackId, item)
+        transmuteArtificerMagicItemForCharacter(preparedCharacter, stackId, item, planKey)
       );
 
       if (!didApply) {

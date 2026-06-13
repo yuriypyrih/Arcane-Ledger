@@ -489,7 +489,8 @@ export function drainArtificerMagicItemForCharacter(
 export function transmuteArtificerMagicItemForCharacter(
   character: Character,
   stackId: string,
-  item: ItemRecord
+  item: ItemRecord,
+  planKey: string | null = null
 ): Character {
   if (!hasArtificerMagicItemTinkerFeature(character) || !item.key) {
     return character;
@@ -501,18 +502,27 @@ export function transmuteArtificerMagicItemForCharacter(
     return character;
   }
 
-  const characterWithUseSpent = consumeArtificerMagicItemTinkerTransmuteUse(character);
-
-  if (characterWithUseSpent === character) {
+  if (getArtificerMagicItemTinkerTransmuteUsesRemaining(character) <= 0) {
     return character;
   }
 
   const characterWithoutOldItem = {
-    ...characterWithUseSpent,
-    inventoryItems: removeOneInventoryItemCopyById(characterWithUseSpent.inventoryItems, stackId)
+    ...character,
+    inventoryItems: removeOneInventoryItemCopyById(character.inventoryItems, stackId)
   };
+  const characterWithNewItem = addArtificerReplicateMagicItemToInventory(
+    characterWithoutOldItem,
+    item,
+    {
+      planKey
+    }
+  );
 
-  return addArtificerReplicateMagicItemToInventory(characterWithoutOldItem, item);
+  if (characterWithNewItem === characterWithoutOldItem) {
+    return character;
+  }
+
+  return consumeArtificerMagicItemTinkerTransmuteUse(characterWithNewItem);
 }
 
 function getChargeMagicItemDisabledReason(character: MagicItemTinkerCharacter): string | undefined {
