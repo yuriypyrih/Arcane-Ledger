@@ -57,9 +57,9 @@ export function trackLazyLoad<T>(loader: () => Promise<T>): Promise<T> {
   }
 }
 
-export function lazyWithTrackedLoad<T extends ComponentType<any>>(
-  loader: () => Promise<{ default: T }>
-): LazyExoticComponent<T> {
+export function lazyWithTrackedLoad<TProps>(
+  loader: () => Promise<{ default: ComponentType<TProps> }>
+): LazyExoticComponent<ComponentType<TProps>> {
   return lazy(() => trackLazyLoad(loader));
 }
 

@@ -23,6 +23,7 @@ import type {
 import { parseItemCost } from "../../utils/items/cost";
 import { adaptItemWeapon, type AdaptedItemWeaponRecord } from "../../utils/items/adaptItemWeapon";
 import type { HeldWeaponDescriptor } from "./inventory";
+import { DEFAULT_TEXT_INPUT_MAX_LENGTH } from "../../constants/inputLimits";
 import {
   getEffectiveInventoryItemRecord,
   getItemModsCategory,
@@ -231,7 +232,7 @@ const inventorySpellcastingFocusSourceOrder: CharacterInventorySpellcastingFocus
   INVENTORY_SPELLCASTING_FOCUS_SOURCE_MANUAL,
   INVENTORY_SPELLCASTING_FOCUS_SOURCE_ARCANE_FIREARM
 ];
-const INVENTORY_CUSTOM_TAG_MAX_LENGTH = 24;
+const INVENTORY_CUSTOM_TAG_MAX_LENGTH = DEFAULT_TEXT_INPUT_MAX_LENGTH;
 
 function getCopperValue(cost: EquipmentCost): number {
   return cost.amount * currencyCopperValueByType[cost.currency];

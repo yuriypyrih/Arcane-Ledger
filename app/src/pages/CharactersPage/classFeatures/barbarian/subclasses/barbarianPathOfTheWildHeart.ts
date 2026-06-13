@@ -617,15 +617,6 @@ export function getBarbarianPathOfTheWildHeartStatusDescriptionEntries(
   );
 }
 
-function getBarbarianPathOfTheWildHeartSpeakerSpellIds(
-  character: Partial<Pick<Character, "level">>
-): string[] {
-  return [
-    ...wildHeartAnimalSpeakerSpellIds,
-    ...((character.level ?? 0) >= 10 ? [wildHeartNatureSpeakerSpellId] : [])
-  ];
-}
-
 function getAnimalSpeakerSpellIds(): string[] {
   return [...wildHeartAnimalSpeakerSpellIds];
 }

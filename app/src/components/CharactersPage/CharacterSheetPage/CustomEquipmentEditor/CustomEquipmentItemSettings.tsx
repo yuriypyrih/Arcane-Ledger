@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import NumberInput from "../../FormInputs/NumberInput";
 import SelectInput from "../../FormInputs/SelectInput";
 import TextInput from "../../FormInputs/TextInput";
+import { DEFAULT_TEXT_INPUT_MAX_LENGTH } from "../../../../constants/inputLimits";
 import { spellEntries } from "../../../../codex/spells";
 import type { SpellEntry } from "../../../../codex/entries";
 import type {
@@ -44,7 +45,7 @@ type CustomEquipmentItemSettingsProps = {
 };
 
 const maxDropdownSpellOptions = 50;
-const customTagMaxLength = 24;
+const customTagMaxLength = DEFAULT_TEXT_INPUT_MAX_LENGTH;
 const conjuredDurationOptions: Array<{
   value: CharacterInventoryConjuredDuration;
   label: string;

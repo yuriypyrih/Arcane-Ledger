@@ -6,6 +6,7 @@ import type {
   CharacterCustomSpeciesSize,
   CharacterCustomSubclassConfig
 } from "../../types";
+import { DEFAULT_TEXT_INPUT_MAX_LENGTH } from "../../constants/inputLimits";
 import { sanitizeUserInput } from "../../utils/userInputSanitization";
 import { CUSTOM_CLASS_NAME, isCustomClassName } from "./customClass";
 
@@ -13,10 +14,10 @@ export const CUSTOM_SUBCLASS_LABEL = "Custom";
 export const CUSTOM_SPECIES_NAME = "Custom";
 export const CUSTOM_BACKGROUND_NAME = "Custom";
 
-export const CUSTOM_CLASS_NAME_MAX_LENGTH = 16;
-export const CUSTOM_SUBCLASS_NAME_MAX_LENGTH = 24;
-export const CUSTOM_SPECIES_NAME_MAX_LENGTH = 16;
-export const CUSTOM_BACKGROUND_NAME_MAX_LENGTH = 24;
+export const CUSTOM_CLASS_NAME_MAX_LENGTH = DEFAULT_TEXT_INPUT_MAX_LENGTH;
+export const CUSTOM_SUBCLASS_NAME_MAX_LENGTH = DEFAULT_TEXT_INPUT_MAX_LENGTH;
+export const CUSTOM_SPECIES_NAME_MAX_LENGTH = DEFAULT_TEXT_INPUT_MAX_LENGTH;
+export const CUSTOM_BACKGROUND_NAME_MAX_LENGTH = DEFAULT_TEXT_INPUT_MAX_LENGTH;
 
 export const CUSTOM_SPECIES_SPEED_MINIMUM = 0;
 export const CUSTOM_SPECIES_SPEED_MAXIMUM = 100;

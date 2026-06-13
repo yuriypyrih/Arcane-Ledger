@@ -78,7 +78,7 @@ export function getDeathSaveStatusLabel(
     return "Unconscious";
   }
 
-  return currentHitPoints > maxHitPoints * 0.5 ? "Healthy" : "Blooded";
+  return currentHitPoints > maxHitPoints * 0.5 ? "Healthy" : "Bloodied";
 }
 
 export function hasDeathSaveAdvantageForCharacter(character: Character): boolean {

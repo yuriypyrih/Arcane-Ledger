@@ -30,7 +30,6 @@ import {
   getBarbarianPrimalKnowledgeSkillIndicators,
   getBarbarianRageAbilityCheckIndicators,
   getBarbarianRageDerivedConditions,
-  getBarbarianRageOfTheWildsOptions,
   getBarbarianRageSavingThrowIndicators,
   getBarbarianRageSkillIndicators,
   getBarbarianRageWeaponDamageBonuses,

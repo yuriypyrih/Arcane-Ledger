@@ -175,6 +175,10 @@ export type CharacterCustomTraitEffect =
     } & CharacterCustomTraitFlexibleValue &
       CharacterCustomTraitEffectRoll
   | {
+      type: "savingThrows";
+    } & CharacterCustomTraitFlexibleValue &
+      CharacterCustomTraitEffectRoll
+  | {
       type: "skill";
       skill: SkillName;
     } & CharacterCustomTraitFlexibleValue &

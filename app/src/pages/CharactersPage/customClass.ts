@@ -5,11 +5,12 @@ import type {
   CharacterCustomClassMechanics,
   CharacterCustomHitDie
 } from "../../types";
+import { DEFAULT_TEXT_INPUT_MAX_LENGTH } from "../../constants/inputLimits";
 import { sanitizeUserInput } from "../../utils/userInputSanitization";
 
 export const CUSTOM_CLASS_NAME = "Custom";
 export const CUSTOM_CLASS_ID_PREFIX = "custom-class-";
-export const CUSTOM_CLASS_NAME_MAX_LENGTH = 16;
+export const CUSTOM_CLASS_NAME_MAX_LENGTH = DEFAULT_TEXT_INPUT_MAX_LENGTH;
 export const CUSTOM_CLASS_SPELL_SLOT_MAXIMUM = 10;
 export const CUSTOM_CLASS_EXTRA_ATTACK_MINIMUM = 1;
 export const CUSTOM_CLASS_EXTRA_ATTACK_MAXIMUM = 10;

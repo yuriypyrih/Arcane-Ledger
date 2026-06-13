@@ -6,6 +6,7 @@ import type {
   CharacterCustomActionEconomy,
   CharacterStatusDuration
 } from "../../types";
+import { DEFAULT_TEXT_INPUT_MAX_LENGTH } from "../../constants/inputLimits";
 import {
   STATUS_DURATION_KIND,
   STATUS_DURATION_ROUND_TICK,
@@ -25,7 +26,7 @@ import {
   resolveCharacterStatusEntries
 } from "./statusEntries";
 
-export const CUSTOM_ACTION_NAME_MAX_LENGTH = 24;
+export const CUSTOM_ACTION_NAME_MAX_LENGTH = DEFAULT_TEXT_INPUT_MAX_LENGTH;
 export const CUSTOM_ACTION_DESCRIPTION_MAX_LENGTH = 1000;
 export const CUSTOM_ACTION_CHARGES_MAX = 10;
 export const customActionKeyPrefix = "custom-action-";

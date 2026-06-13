@@ -44,6 +44,14 @@ import { formatEquipmentWeight } from "../../../../utils/codex";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import { formatCurrencyPillAmount, formatInventoryStackName, normalizeCurrencyAmountInput } from "./equipmentLoadoutModel";
 import containerStyles from "./EquipmentContainerManageModal.module.css";
+import {
+  addTransactionCurrency,
+  addTransactionItem,
+  createEmptyTransactionLog,
+  createTransactionSummary,
+  parseHistoryEntry,
+  type MasterChestTransactionLog
+} from "./masterChestTransactions";
 import styles from "./MasterChestModal.module.css";
 
 type MasterChestMode = "player" | "gm";
@@ -53,13 +61,6 @@ type MasterChestDraft = {
   characterInventoryItems: CharacterInventoryItem[];
   chestCurrencies: CharacterCurrencies;
   chestInventoryItems: CharacterInventoryItem[];
-};
-
-type MasterChestTransactionLog = {
-  deposits: Partial<Record<CurrencyKey, number>>;
-  transferredInItems: Record<string, number>;
-  transferredOutItems: Record<string, number>;
-  withdrawals: Partial<Record<CurrencyKey, number>>;
 };
 
 type MasterChestModalProps = {
@@ -137,133 +138,6 @@ function getTransferBlockTitle(
 
 function normalizeCurrencies(value: unknown): CharacterCurrencies {
   return normalizeCharacterCurrencies(value, createDefaultCurrencies());
-}
-
-function createEmptyTransactionLog(): MasterChestTransactionLog {
-  return {
-    deposits: {},
-    transferredInItems: {},
-    transferredOutItems: {},
-    withdrawals: {}
-  };
-}
-
-function addTransactionItem(
-  log: MasterChestTransactionLog,
-  key: "transferredInItems" | "transferredOutItems",
-  itemName: string
-): MasterChestTransactionLog {
-  return {
-    ...log,
-    [key]: {
-      ...log[key],
-      [itemName]: (log[key][itemName] ?? 0) + 1
-    }
-  };
-}
-
-function addTransactionCurrency(
-  log: MasterChestTransactionLog,
-  key: "deposits" | "withdrawals",
-  currencyKey: CurrencyKey,
-  amount: number
-): MasterChestTransactionLog {
-  return {
-    ...log,
-    [key]: {
-      ...log[key],
-      [currencyKey]: (log[key][currencyKey] ?? 0) + amount
-    }
-  };
-}
-
-function formatTransactionItems(items: Record<string, number>): string | null {
-  const entries = Object.entries(items).filter(([, count]) => count > 0);
-
-  if (entries.length === 0) {
-    return null;
-  }
-
-  return entries
-    .map(([itemName, count]) => `x${count} ${itemName}`)
-    .join(", ");
-}
-
-function formatTransactionCurrencies(currencies: Partial<Record<CurrencyKey, number>>): string | null {
-  const entries = currencyDefinitions
-    .map((currency) => ({
-      ...currency,
-      amount: currencies[currency.key] ?? 0
-    }))
-    .filter((currency) => currency.amount > 0);
-
-  if (entries.length === 0) {
-    return null;
-  }
-
-  return entries
-    .map((currency) => `${formatCurrencyPillAmount(currency.amount)}${currency.code}`)
-    .join(", ");
-}
-
-function createTransactionSummary(log: MasterChestTransactionLog): string | undefined {
-  const sections: string[] = [];
-  const transferredInItems = formatTransactionItems(log.transferredInItems);
-  const transferredOutItems = formatTransactionItems(log.transferredOutItems);
-  const deposits = formatTransactionCurrencies(log.deposits);
-  const withdrawals = formatTransactionCurrencies(log.withdrawals);
-
-  if (transferredInItems) {
-    sections.push(`Transferred-in (${transferredInItems})`);
-  }
-
-  if (transferredOutItems) {
-    sections.push(`Transferred-out (${transferredOutItems})`);
-  }
-
-  if (deposits) {
-    sections.push(`Deposit (${deposits})`);
-  }
-
-  if (withdrawals) {
-    sections.push(`Withdraw (${withdrawals})`);
-  }
-
-  return sections.length > 0 ? sections.join(", ") : undefined;
-}
-
-type ParsedHistoryAction = {
-  content: string;
-  label: string;
-};
-
-type ParsedHistoryEntry = {
-  actions: ParsedHistoryAction[];
-  actor: string;
-  timestamp: string;
-};
-
-const historyActionPattern =
-  /(?:^|,\s*)(Transferred-in|Transferred-out|Deposit|Withdraw) \((.*?)\)(?=,\s*(?:Transferred-in|Transferred-out|Deposit|Withdraw) \(|$)/g;
-
-function parseHistoryEntry(entry: string): ParsedHistoryEntry {
-  const [, timestamp = "", actor = "", summary = entry] =
-    entry.match(/^(\d{2}\/\d{2}\/\d{2} \d{2}:\d{2}) - ([^:]+): (.+)$/) ?? [];
-  const actions: ParsedHistoryAction[] = [];
-
-  for (const match of summary.matchAll(historyActionPattern)) {
-    const [, label, content] = match;
-
-    if (label && content) {
-      actions.push({ label, content });
-    }
-  }
-
-  return {
-    actions,
-    actor,
-    timestamp
-  };
 }
 
 function getHistoryActionClassName(label: string) {
@@ -392,7 +266,7 @@ function MasterChestModal({
       addTransactionItem(
         currentLog,
         direction === "deposit" ? "transferredInItems" : "transferredOutItems",
-        formatInventoryStackName(item)
+        item.name
       )
     );
     setNotice(null);

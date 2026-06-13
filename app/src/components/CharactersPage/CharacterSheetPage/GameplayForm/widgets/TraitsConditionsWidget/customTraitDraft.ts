@@ -19,6 +19,7 @@ import {
 } from "./manualStatusDuration";
 
 const abilityKeys: AbilityKey[] = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
+const allSavingThrowsTarget = "savingThrows";
 
 export type CustomTraitEffectDraft = {
   id: string;
@@ -76,7 +77,12 @@ export function isCustomTraitRollModeDisabledTarget(target: string): boolean {
 
 export function doesCustomTraitTargetAllowAbilityValue(target: string): boolean {
   const [type] = target.trim().split(":");
-  return type !== "abilityScore" && type !== "abilityModifier" && type !== "savingThrow";
+  return (
+    type !== "abilityScore" &&
+    type !== "abilityModifier" &&
+    type !== "savingThrow" &&
+    type !== allSavingThrowsTarget
+  );
 }
 
 export function doesCustomTraitTargetAllowDiceValue(target: string): boolean {
@@ -85,6 +91,7 @@ export function doesCustomTraitTargetAllowDiceValue(target: string): boolean {
   return (
     type === "initiative" ||
     type === "savingThrow" ||
+    type === allSavingThrowsTarget ||
     type === "skill" ||
     type === "spellAttack" ||
     type === "weaponDamage"
@@ -126,6 +133,7 @@ export const customTraitTargetOptions: CustomTraitTargetOption[] = [
     value: `savingThrow:${ability}`,
     label: `${ability} Saving Throw`
   })),
+  { value: allSavingThrowsTarget, label: "All Saving Throws" },
   ...ALL_SKILLS.map((skill) => ({
     value: `skill:${skill}`,
     label: skill
@@ -167,6 +175,7 @@ export function createCustomTraitEffectDraftFromEntry(
     case "speed":
     case "spellAttack":
     case "spellDc":
+    case "savingThrows":
       return {
         id: createDraftId(),
         target: effect.type,
@@ -274,6 +283,10 @@ export function parseCustomTraitEffectDraft(
 
   if (trimmedTarget === "spellDc") {
     return { type: "spellDc", value: normalizedValue, ...valueModeFields };
+  }
+
+  if (trimmedTarget === allSavingThrowsTarget) {
+    return { type: "savingThrows", value: normalizedValue, ...valueModeFields, ...rollModeFields };
   }
 
   const [type, rawDetail] = trimmedTarget.split(":");

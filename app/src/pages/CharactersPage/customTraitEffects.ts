@@ -28,6 +28,7 @@ const customTraitEffectTypes = new Set<CharacterCustomTraitEffect["type"]>([
   "abilityScore",
   "abilityModifier",
   "savingThrow",
+  "savingThrows",
   "skill",
   "weaponDamage"
 ]);
@@ -128,13 +129,19 @@ function isRollModeDisabledEffectType(type: CharacterCustomTraitEffect["type"]):
 }
 
 function isAbilityValueAllowedEffectType(type: CharacterCustomTraitEffect["type"]): boolean {
-  return type !== "abilityScore" && type !== "abilityModifier" && type !== "savingThrow";
+  return (
+    type !== "abilityScore" &&
+    type !== "abilityModifier" &&
+    type !== "savingThrow" &&
+    type !== "savingThrows"
+  );
 }
 
 function isDiceValueAllowedEffectType(type: CharacterCustomTraitEffect["type"]): boolean {
   return (
     type === "initiative" ||
     type === "savingThrow" ||
+    type === "savingThrows" ||
     type === "skill" ||
     type === "spellAttack" ||
     type === "weaponDamage"
@@ -177,6 +184,7 @@ function normalizeCharacterCustomTraitEffect(value: unknown): CharacterCustomTra
     case "speed":
     case "spellAttack":
     case "spellDc":
+    case "savingThrows":
       return {
         type: record.type,
         value: normalizedValue,
@@ -392,7 +400,9 @@ export function getCustomTraitSavingThrowBonuses(
 ): CustomTraitFlatBonus[] {
   return mapCustomTraitBonuses(
     statusEntries,
-    (effect) => effect.type === "savingThrow" && effect.ability === ability
+    (effect) =>
+      effect.type === "savingThrows" ||
+      (effect.type === "savingThrow" && effect.ability === ability)
   );
 }
 
@@ -459,7 +469,9 @@ export function getCustomTraitSavingThrowRollIndicators(
 ): CustomTraitRollIndicator[] {
   return mapCustomTraitRollIndicators(
     statusEntries,
-    (effect) => effect.type === "savingThrow" && effect.ability === ability
+    (effect) =>
+      effect.type === "savingThrows" ||
+      (effect.type === "savingThrow" && effect.ability === ability)
   );
 }
 
@@ -521,6 +533,8 @@ export function formatCharacterCustomTraitEffectTargetLabel(
       return `${effect.ability} Modifier`;
     case "savingThrow":
       return `${effect.ability} Saving Throw`;
+    case "savingThrows":
+      return "All Saving Throws";
     case "skill":
       return effect.skill;
     case "weaponDamage":
