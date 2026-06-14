@@ -1,9 +1,14 @@
 import clsx from "clsx";
 import { ArrowLeft, CircleCheck, CircleHelp, RefreshCw, Users } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { PartyMembershipRecord } from "../../../../api/partyGroups";
+import {
+  updatePartyGroupLiveEncounterTurn,
+  type PartyGroupLiveEncounterTurnAction,
+  type PartyMembershipRecord
+} from "../../../../api/partyGroups";
 import { requestImmediateCharacterSync } from "../../../../characterSync/characterSyncRequests";
-import { useAppSelector } from "../../../../store";
+import { requestImmediateLiveEncounterTrackerSync } from "../../../../liveEncounterTracker/liveEncounterTrackerSyncRequests";
+import { showToast, useAppDispatch, useAppSelector } from "../../../../store";
 import type { Character } from "../../../../types";
 import { getRestDescriptionInjectionsForCharacter } from "../../../../pages/CharactersPage/classFeatures/restDescriptionInjections";
 import { getHumanResourcefulDescriptionEntriesForCharacter } from "../../../../pages/CharactersPage/species";
@@ -62,6 +67,7 @@ function GameplayForm({
   onQueueHitPointCharacter,
   partyMembership
 }: GameplayFormProps) {
+  const dispatch = useAppDispatch();
   const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [isPartyMode, setIsPartyMode] = useState(false);
   const [isPartyModalOpen, setIsPartyModalOpen] = useState(false);
@@ -87,6 +93,47 @@ function GameplayForm({
     isActive: isPartyMode,
     membership: partyMembership
   });
+  const invalidatePartyEncounter = partyEncounter.invalidateEncounter;
+  const setPartyEncounterTracker = partyEncounter.setEncounterTracker;
+  const handlePartyRoundChange = useCallback(
+    async (action: PartyGroupLiveEncounterTurnAction) => {
+      if (!partyMembership) {
+        return;
+      }
+
+      const characterSyncPromise = requestImmediateCharacterSync();
+
+      try {
+        await requestImmediateLiveEncounterTrackerSync();
+
+        const { liveEncounterTracker } = await updatePartyGroupLiveEncounterTurn(
+          partyMembership.partyGroupId,
+          {
+            action,
+            characterId: partyMembership.characterId
+          },
+          {
+            suppressFailureToast: true
+          }
+        );
+
+        setPartyEncounterTracker(liveEncounterTracker);
+        await characterSyncPromise;
+      } catch {
+        dispatch(
+          showToast({
+            text: "Party turn sync failed. Refresh party initiative to retry.",
+            type: "error",
+            position: "bottom-middle",
+            dismissMs: 4_000
+          })
+        );
+      } finally {
+        invalidatePartyEncounter();
+      }
+    },
+    [dispatch, invalidatePartyEncounter, partyMembership, setPartyEncounterTracker]
+  );
   const isPartyRefreshComplete = partyEncounter.isRefreshCoolingDown;
   const isPartyRefreshBusy = partyEncounter.isRefreshLoading;
   const partyRefreshIcon = isPartyRefreshComplete ? (
@@ -323,7 +370,11 @@ function GameplayForm({
             <DivinityPointsWidget character={character} onPersistCharacter={onPersistCharacter} />
           </CharacterSheetSectionProfiler>
           <CharacterSheetSectionProfiler id="gameplay-round-tracker">
-            <RoundTrackerWidget character={character} onPersistCharacter={onPersistCharacter} />
+            <RoundTrackerWidget
+              character={character}
+              onAfterRoundChange={partyMembership ? handlePartyRoundChange : undefined}
+              onPersistCharacter={onPersistCharacter}
+            />
           </CharacterSheetSectionProfiler>
           <CharacterSheetSectionProfiler id="gameplay-camp">
             <CampButton

@@ -3,7 +3,11 @@ import {
   updateCampaignLiveEncounterTracker,
   type CampaignLiveEncounterTrackerRecord
 } from "../../api/campaigns";
-import { LIVE_ENCOUNTER_TRACKER_SYNC_REQUEST_EVENT } from "../../liveEncounterTracker/liveEncounterTrackerSyncRequests";
+import {
+  dispatchLiveEncounterTrackerSyncRequestComplete,
+  LIVE_ENCOUNTER_TRACKER_SYNC_REQUEST_EVENT,
+  type LiveEncounterTrackerSyncRequestEventDetail
+} from "../../liveEncounterTracker/liveEncounterTrackerSyncRequests";
 import {
   clearLiveEncounterTrackerSaveStatus,
   patchSelectedCampaign,
@@ -203,8 +207,17 @@ export function useLiveEncounterTrackerPersistence({
   }, [campaignId, clearSaveTimeout, dispatch, flushPendingSave]);
 
   useEffect(() => {
-    function handleSyncRequest() {
-      void flushPendingSave();
+    function handleSyncRequest(event: Event) {
+      const syncEvent = event as CustomEvent<LiveEncounterTrackerSyncRequestEventDetail>;
+      const requestId = syncEvent.detail?.requestId;
+
+      if (requestId) {
+        syncEvent.preventDefault();
+      }
+
+      void flushPendingSave().finally(() => {
+        dispatchLiveEncounterTrackerSyncRequestComplete(requestId);
+      });
     }
 
     window.addEventListener(LIVE_ENCOUNTER_TRACKER_SYNC_REQUEST_EVENT, handleSyncRequest);

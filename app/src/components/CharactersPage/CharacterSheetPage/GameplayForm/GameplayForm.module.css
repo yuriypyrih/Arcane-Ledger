@@ -121,22 +121,12 @@
   padding-right: 0.18rem;
 }
 
-.partyNoEncounterState {
+.partyInitiativeParticipantListCentered.partyInitiativeParticipantListCentered {
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-direction: column;
-  gap: 0.72rem;
-  block-size: 100%;
-  min-block-size: 0;
-  padding: 1rem;
-  font-size: 1.08rem;
-  text-align: center;
-}
-
-.partyNoEncounterIcon {
-  block-size: 48px;
-  inline-size: 48px;
+  overflow-y: hidden;
+  padding-right: 0;
 }
 
 @keyframes partyRefreshSpin {

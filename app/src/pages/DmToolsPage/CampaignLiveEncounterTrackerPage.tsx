@@ -32,6 +32,8 @@ import ActionButton from "../../components/ActionButton";
 import CampaignLiveEncounterTrackerBoard from "./CampaignLiveEncounterTrackerBoard";
 import CampaignLiveEncounterTrackerInspectionDrawer from "./CampaignLiveEncounterTrackerInspectionDrawer";
 import CampaignLiveEncounterRoundTracker from "./CampaignLiveEncounterRoundTracker";
+import LiveEncounterGuideButton from "./LiveEncounterGuideButton";
+import LiveEncounterGuideModal from "./LiveEncounterGuideModal";
 import liveEncounterStyles from "./CampaignLiveEncounterTrackerPage.module.css";
 import DmToolsBackButton from "./DmToolsBackButton";
 import DmToolsEmptyState from "./DmToolsEmptyState";
@@ -167,6 +169,7 @@ function CampaignLiveEncounterTrackerPage() {
   const [isGmViewEnabled, setIsGmViewEnabled] = useState(true);
   const [isRemovingTracker, setIsRemovingTracker] = useState(false);
   const [isRefreshingTracker, setIsRefreshingTracker] = useState(false);
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [isTrackerRefreshCoolingDown, setIsTrackerRefreshCoolingDown] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const trackerRefreshCooldownRef = useRef<number | null>(null);
@@ -462,10 +465,13 @@ function CampaignLiveEncounterTrackerPage() {
       <section className={styles.panel} aria-labelledby="live-encounter-title">
         <div className={styles.header}>
           <div>
-            <p className={styles.eyebrow}>
-              <Swords size={15} aria-hidden="true" />
-              <span>Live Encounter</span>
-            </p>
+            <div className={styles.eyebrowHelpRow}>
+              <p className={styles.eyebrow}>
+                <Swords size={15} aria-hidden="true" />
+                <span>Live Encounter</span>
+              </p>
+              <LiveEncounterGuideButton onClick={() => setIsGuideOpen(true)} />
+            </div>
             <h2 id="live-encounter-title" className={styles.title}>
               {tracker?.preparedEncounterName ?? "Encounter Tracker"}
             </h2>
@@ -581,6 +587,7 @@ function CampaignLiveEncounterTrackerPage() {
             ) : null}
           </>
         )}
+        {isGuideOpen ? <LiveEncounterGuideModal onClose={() => setIsGuideOpen(false)} /> : null}
       </section>
     </section>
   );

@@ -152,9 +152,44 @@ function useGameplayPartyEncounter({
 
     void loadLiveEncounter({ markRefreshed: true });
   }, [beforeRefresh, isRefreshDisabled, loadLiveEncounter]);
+  const setEncounterTracker = useCallback(
+    (nextTracker: CampaignLiveEncounterTrackerRecord | null) => {
+      loadedPartyGroupIdRef.current = partyGroupId;
+      setInspectedParticipant(null);
+      setTracker(nextTracker ? normalizeLiveEncounterTracker(nextTracker) : null);
+      setStatus("ready");
+      setError(null);
+    },
+    [partyGroupId]
+  );
+  const invalidateEncounter = useCallback(() => {
+    loadedPartyGroupIdRef.current = null;
+    setInspectedParticipant(null);
+
+    if (!partyGroupId) {
+      requestIdRef.current += 1;
+      setTracker(null);
+      setStatus("idle");
+      setError(null);
+      return;
+    }
+
+    if (!isActive) {
+      requestIdRef.current += 1;
+      setTracker(null);
+      setStatus("idle");
+      setError(null);
+      return;
+    }
+
+    loadedPartyGroupIdRef.current = partyGroupId;
+    setTracker(null);
+    void loadLiveEncounter();
+  }, [isActive, loadLiveEncounter, partyGroupId]);
 
   return {
     error,
+    invalidateEncounter,
     inspectedParticipant,
     isInitialLoading,
     isRefreshCoolingDown,
@@ -162,6 +197,7 @@ function useGameplayPartyEncounter({
     isRefreshLoading,
     refreshEncounter,
     refreshLabel,
+    setEncounterTracker,
     setInspectedParticipant,
     tracker
   };

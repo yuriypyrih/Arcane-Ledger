@@ -415,6 +415,13 @@
   gap: var(--space-section-gap);
 }
 
+.liveTrackerListTitleRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  min-width: 0;
+}
+
 .liveTrackerListHeader h3 {
   display: inline-flex;
   align-items: center;
@@ -433,6 +440,28 @@
   display: grid;
   gap: calc(var(--space-section-gap) * 0.66);
   min-height: 72px;
+}
+
+.liveTrackerCenteredParticipantList {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.liveTrackerCenteredEmptyState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 0.7rem;
+  min-height: 100%;
+  padding: 1rem;
+  text-align: center;
+}
+
+.liveTrackerCenteredEmptyState .emptyStateIcon svg {
+  block-size: 42px;
+  inline-size: 42px;
 }
 
 .liveTrackerEmptyListState {

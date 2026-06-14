@@ -5,7 +5,10 @@ import ActionShape from "../../../../ActionShape";
 import ResourceManagementModal from "../../ResourceManagementModal";
 import type { Character, CharacterStatusEntry } from "../../../../../types";
 import { STATUS_DURATION_ROUND_TICK, STATUS_ENTRY_SOURCE_TYPE } from "../../../../../types";
-import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPage/CharacterSheetPage/types";
+import type {
+  PersistCharacterOptions,
+  PersistCharacterUpdater
+} from "../../../../../pages/CharactersPage/CharacterSheetPage/types";
 import {
   finishRoundTrackerTurn,
   normalizeRoundTracker,
@@ -34,7 +37,14 @@ const COMBAT_MANAGEMENT_DESCRIPTION =
 
 type RoundTrackerWidgetProps = {
   character: Character;
+  onAfterRoundChange?: (action: "start" | "end") => Promise<void> | void;
   onPersistCharacter: PersistCharacterUpdater;
+};
+
+const partyRoundPersistOptions: PersistCharacterOptions = {
+  domains: ["resources", "features", "statuses", "spells"],
+  normalize: "targeted",
+  flush: true
 };
 
 function getExpiredFeatureOverrideEntries(
@@ -54,7 +64,11 @@ function getExpiredFeatureOverrideEntries(
   );
 }
 
-function RoundTrackerWidget({ character, onPersistCharacter }: RoundTrackerWidgetProps) {
+function RoundTrackerWidget({
+  character,
+  onAfterRoundChange,
+  onPersistCharacter
+}: RoundTrackerWidgetProps) {
   const dispatch = useAppDispatch();
   const [selectedResource, setSelectedResource] = useState<RoundTrackerResource | null>(null);
   const [isCombatManagementOpen, setIsCombatManagementOpen] = useState(false);
@@ -73,7 +87,11 @@ function RoundTrackerWidget({ character, onPersistCharacter }: RoundTrackerWidge
       : null;
 
   function startTurn() {
-    onPersistCharacter((currentCharacter) => startCharacterTurn(currentCharacter));
+    onPersistCharacter(
+      (currentCharacter) => startCharacterTurn(currentCharacter),
+      onAfterRoundChange ? partyRoundPersistOptions : undefined
+    );
+    void onAfterRoundChange?.("start");
     dispatch(
       showToast({
         text: "Your Turn Started.",
@@ -108,17 +126,21 @@ function RoundTrackerWidget({ character, onPersistCharacter }: RoundTrackerWidge
   }
 
   function finishRound() {
-    onPersistCharacter((currentCharacter) => {
-      const nextCharacter = advanceTimedStatuses(
-        currentCharacter,
-        STATUS_DURATION_ROUND_TICK.ROUND_END
-      );
+    onPersistCharacter(
+      (currentCharacter) => {
+        const nextCharacter = advanceTimedStatuses(
+          currentCharacter,
+          STATUS_DURATION_ROUND_TICK.ROUND_END
+        );
 
-      return {
-        ...nextCharacter,
-        roundTracker: finishRoundTrackerTurn(nextCharacter.roundTracker)
-      };
-    });
+        return {
+          ...nextCharacter,
+          roundTracker: finishRoundTrackerTurn(nextCharacter.roundTracker)
+        };
+      },
+      onAfterRoundChange ? partyRoundPersistOptions : undefined
+    );
+    void onAfterRoundChange?.("end");
     dispatch(
       showToast({
         text: "Your Turn Ended.",

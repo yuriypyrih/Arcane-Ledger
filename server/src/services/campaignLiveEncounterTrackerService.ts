@@ -110,7 +110,7 @@ type LiveEncounterSourceContext = {
   preparedEncounter: CampaignPreparedEncounterRecord;
 };
 
-type ReconciledLiveEncounterLists = {
+export type ReconciledLiveEncounterLists = {
   activeParticipantId: string | null;
   partyMembers: CampaignLiveEncounterParticipantRefRecord[];
   creatures: CampaignLiveEncounterParticipantRefRecord[];
@@ -147,7 +147,7 @@ function toStringId(value: Types.ObjectId | string | { toString(): string } | nu
   return value ? value.toString() : "";
 }
 
-function createPartyMemberParticipantId(characterId: string) {
+export function createPartyMemberParticipantId(characterId: string) {
   return `member:${characterId}`;
 }
 
@@ -594,6 +594,27 @@ export async function toMemberVisibleCampaignLiveEncounterTrackerDetailRecord(
   return tracker ? toPlayerVisibleLiveEncounterTrackerDetailRecord(tracker) : null;
 }
 
+export async function createReconciledCampaignLiveEncounterTrackerSnapshot(
+  campaign: CampaignSource
+) {
+  const tracker = campaign.liveEncounterTracker;
+
+  if (!tracker) {
+    throw new AppError("There is no live encounter tracker.", 404, "LIVE_ENCOUNTER_NOT_FOUND");
+  }
+
+  const sourceContext = await loadLiveEncounterSourceContext({
+    campaign,
+    ownerId: campaign.ownerId
+  });
+
+  return {
+    tracker,
+    reconciledLists: reconcileLiveEncounterLists(tracker, sourceContext),
+    roundNumber: normalizeRoundNumber(tracker.roundNumber)
+  };
+}
+
 function toCampaignPatchEnvelope(campaign: CampaignSource, patch: CampaignPatchRecord) {
   return {
     campaignId: getDocumentId(campaign),
@@ -776,14 +797,6 @@ export async function updateCampaignLiveEncounterTracker(options: {
 
   if (!tracker) {
     throw new AppError("There is no live encounter tracker.", 404, "LIVE_ENCOUNTER_NOT_FOUND");
-  }
-
-  if (payload.revision !== tracker.revision) {
-    throw new AppError(
-      "This encounter tracker changed elsewhere. Refresh before saving again.",
-      409,
-      "LIVE_ENCOUNTER_REVISION_CONFLICT"
-    );
   }
 
   const sourceContext = await loadLiveEncounterSourceContext({

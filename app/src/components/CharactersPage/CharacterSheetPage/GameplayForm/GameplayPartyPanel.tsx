@@ -1,4 +1,5 @@
-import { AlertTriangle, ScrollText, Swords } from "lucide-react";
+import { AlertTriangle, ScrollText } from "lucide-react";
+import { useState } from "react";
 import type {
   CampaignLiveEncounterTrackerParticipantRecord,
   CampaignLiveEncounterTrackerRecord
@@ -6,6 +7,7 @@ import type {
 import CampaignLiveEncounterTrackerInspectionDrawer from "../../../../pages/DmToolsPage/CampaignLiveEncounterTrackerInspectionDrawer";
 import CampaignLiveEncounterTrackerReadOnlyInitiativeList from "../../../../pages/DmToolsPage/CampaignLiveEncounterTrackerReadOnlyInitiativeList";
 import DmToolsEmptyState from "../../../../pages/DmToolsPage/DmToolsEmptyState";
+import LiveEncounterGuideModal from "../../../../pages/DmToolsPage/LiveEncounterGuideModal";
 import styles from "./GameplayForm.module.css";
 
 type GameplayPartyPanelProps = {
@@ -25,6 +27,8 @@ function GameplayPartyPanel({
   onInspectParticipant,
   tracker
 }: GameplayPartyPanelProps) {
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
+
   return (
     <section className={styles.partyPanelContent} aria-label="Party initiative order">
       {isInitialLoading ? (
@@ -36,10 +40,16 @@ function GameplayPartyPanel({
           {error}
         </DmToolsEmptyState>
       ) : !tracker ? (
-        <div className={styles.partyNoEncounterState} role="status">
-          <Swords className={styles.partyNoEncounterIcon} size={48} aria-hidden="true" />
-          <span>There is no active encounter.</span>
-        </div>
+        <CampaignLiveEncounterTrackerReadOnlyInitiativeList
+          activeParticipantId={null}
+          className={styles.partyInitiativeList}
+          emptyStateVariant="centered"
+          emptyText="There is no active encounter."
+          onOpenGuide={() => setIsGuideOpen(true)}
+          onInspectParticipant={onInspectParticipant}
+          participantListClassName={`${styles.partyInitiativeParticipantList} ${styles.partyInitiativeParticipantListCentered}`}
+          participants={[]}
+        />
       ) : tracker.status.state !== "valid" ? (
         <DmToolsEmptyState icon={<AlertTriangle size={18} aria-hidden="true" />}>
           {tracker.status.message}
@@ -48,6 +58,7 @@ function GameplayPartyPanel({
         <CampaignLiveEncounterTrackerReadOnlyInitiativeList
           activeParticipantId={tracker.activeParticipantId}
           className={styles.partyInitiativeList}
+          onOpenGuide={() => setIsGuideOpen(true)}
           onInspectParticipant={onInspectParticipant}
           participantListClassName={styles.partyInitiativeParticipantList}
           participants={tracker.initiativeOrder}
@@ -60,6 +71,7 @@ function GameplayPartyPanel({
           onClose={onCloseInspection}
         />
       ) : null}
+      {isGuideOpen ? <LiveEncounterGuideModal onClose={() => setIsGuideOpen(false)} /> : null}
     </section>
   );
 }

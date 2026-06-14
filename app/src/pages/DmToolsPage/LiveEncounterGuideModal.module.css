@@ -1,0 +1,20 @@
+.body {
+  gap: 1rem;
+}
+
+.section {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.sectionTitle {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: 0.96rem;
+}
+
+.sectionText {
+  margin: 0;
+  color: var(--color-ink-soft);
+  line-height: 1.5;
+}

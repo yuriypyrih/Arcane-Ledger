@@ -18,6 +18,7 @@ import {
   updatePartyGroupMasterChest,
   updateOwnedPartyGroupName
 } from "../services/partyGroupService.js";
+import { updateMemberVisibleCampaignLiveEncounterTrackerTurn } from "../services/liveEncounterPlayerTurnService.js";
 import { AppError } from "../errors/AppError.js";
 
 function isObjectRecord(value: unknown): value is Record<string, unknown> {
@@ -91,6 +92,26 @@ export const getPartyGroupLiveEncounter = asyncHandler(
       await getMemberVisiblePartyGroupLiveEncounter({
         ownerId: response.locals.authUser._id,
         partyGroupId: request.params.partyGroupId ?? ""
+      })
+    );
+  }
+);
+
+export const updatePartyGroupLiveEncounterTurn = asyncHandler(
+  async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
+    if (!isObjectRecord(request.body)) {
+      throw new AppError(
+        "Request body must be a JSON object.",
+        400,
+        "INVALID_LIVE_ENCOUNTER_INPUT"
+      );
+    }
+
+    response.json(
+      await updateMemberVisibleCampaignLiveEncounterTrackerTurn({
+        ownerId: response.locals.authUser._id,
+        partyGroupId: request.params.partyGroupId ?? "",
+        payload: request.body
       })
     );
   }

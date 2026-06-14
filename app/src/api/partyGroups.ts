@@ -83,6 +83,12 @@ export type PartyGroupLiveEncounterEnvelope = {
   liveEncounterTracker: CampaignLiveEncounterTrackerRecord | null;
 };
 
+export type PartyGroupLiveEncounterTurnAction = "start" | "end";
+
+export type PartyGroupLiveEncounterTurnEnvelope = PartyGroupLiveEncounterEnvelope & {
+  turnUpdated: boolean;
+};
+
 export type PartyGroupLeaveEnvelope = {
   partyGroupId: string;
   characterId: string;
@@ -119,6 +125,21 @@ export function getPartyGroupMemberView(partyGroupId: string, options?: ApiReque
 export function getPartyGroupLiveEncounter(partyGroupId: string, options?: ApiRequestOptions) {
   return apiGet<PartyGroupLiveEncounterEnvelope>(
     `/party-groups/${partyGroupId}/live-encounter`,
+    options
+  );
+}
+
+export function updatePartyGroupLiveEncounterTurn(
+  partyGroupId: string,
+  payload: {
+    action: PartyGroupLiveEncounterTurnAction;
+    characterId: string;
+  },
+  options?: ApiRequestOptions
+) {
+  return apiPatch<PartyGroupLiveEncounterTurnEnvelope>(
+    `/party-groups/${partyGroupId}/live-encounter/turn`,
+    payload,
     options
   );
 }

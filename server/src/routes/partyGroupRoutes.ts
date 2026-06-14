@@ -13,6 +13,7 @@ import {
   removePartyGroupCharacterById,
   resetPartyGroupInviteToken,
   updatePartyGroupMasterChestContent,
+  updatePartyGroupLiveEncounterTurn,
   updatePartyGroup
 } from "../controllers/partyGroupController.js";
 import { requireAuth } from "../middleware/authMiddleware.js";
@@ -27,6 +28,11 @@ partyGroupRoutes.delete("/:partyGroupId", requireAuth, deletePartyGroup);
 partyGroupRoutes.patch("/:partyGroupId", requireAuth, updatePartyGroup);
 partyGroupRoutes.get("/:partyGroupId/member-view", requireAuth, getPartyGroupMemberView);
 partyGroupRoutes.get("/:partyGroupId/live-encounter", requireAuth, getPartyGroupLiveEncounter);
+partyGroupRoutes.patch(
+  "/:partyGroupId/live-encounter/turn",
+  requireAuth,
+  updatePartyGroupLiveEncounterTurn
+);
 partyGroupRoutes.get("/:partyGroupId/master-chest", requireAuth, getPartyGroupMasterChestContent);
 partyGroupRoutes.put(
   "/:partyGroupId/master-chest",
