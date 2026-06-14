@@ -576,6 +576,7 @@ export function normalizeCharacter(value: unknown): Character | null {
     level: normalizedLevel,
     species: normalizedSpecies,
     customSpecies: normalizedCustomSpecies,
+    feats: normalizedFeats,
     hitPoints: normalizedHitPoints,
     statusEntries: normalizedStatusEntries
   });

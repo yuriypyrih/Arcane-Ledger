@@ -2379,6 +2379,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       className: normalizedClassName,
       customClass: normalizedCustomClass,
       customSpecies: normalizedCustomSpecies,
+      species: normalizedSpecies,
       subclassId: normalizedSubclassId,
       level: normalizedProgress.level,
       hitPoints: normalizedHitPoints,
