@@ -133,6 +133,13 @@ function MonsterEntryRenderer({
     },
     ...vitalRows
   ].filter((row) => Boolean(row.value));
+  const hasRenderedContent =
+    shouldRenderIntro ||
+    isDeprecated ||
+    coreRows.length > 0 ||
+    abilitySavingThrowCards.length > 0 ||
+    detailRows.length > 0 ||
+    actionGroups.length > 0;
 
   return (
     <article
@@ -188,6 +195,10 @@ function MonsterEntryRenderer({
             ))}
           </div>
         </section>
+      ) : null}
+
+      {!hasRenderedContent ? (
+        <p className={styles.emptyState}>No information available for the creature.</p>
       ) : null}
 
       {actionGroups.length > 0 ? (

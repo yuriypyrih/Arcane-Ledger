@@ -95,6 +95,14 @@
   line-height: 1.45;
 }
 
+.emptyState {
+  color: var(--color-ink-soft);
+  font-size: 0.88rem;
+  line-height: 1.45;
+  margin: 0;
+  opacity: 0.7;
+}
+
 .inlineRows {
   display: grid;
   gap: 0.28rem;

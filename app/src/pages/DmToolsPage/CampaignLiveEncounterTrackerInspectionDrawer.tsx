@@ -143,6 +143,8 @@ function CreatureStatBlock({
   const creature = participant.creature;
   const monster = creature.inheritedCreatureEntry;
   const description = (creature.description ?? "").trim();
+  const hasHitPointSummary =
+    isFiniteNumber(creature.currentHitPoints) && isFiniteNumber(creature.maxHitPoints);
 
   return (
     <>
@@ -152,7 +154,7 @@ function CreatureStatBlock({
           <p className={styles.liveTrackerDrawerDescription}>{description}</p>
         </section>
       ) : null}
-      {monster && hasVisibleCreatureStatBlockContent(participant) ? (
+      {monster ? (
         <section className={styles.liveTrackerDrawerSection}>
           <h4>Stat Block</h4>
           <MonsterEntryRenderer
@@ -163,67 +165,12 @@ function CreatureStatBlock({
           />
         </section>
       ) : null}
+      {!hasHitPointSummary && !description && !monster ? (
+        <p className={styles.liveTrackerDrawerMutedText}>
+          No information available for the creature.
+        </p>
+      ) : null}
     </>
-  );
-}
-
-function isObjectRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function hasObjectEntries(value: unknown) {
-  return isObjectRecord(value) && Object.keys(value).length > 0;
-}
-
-function hasArrayEntries(value: unknown) {
-  return Array.isArray(value) && value.length > 0;
-}
-
-function hasVisibleMonsterRendererContent(
-  monster: CampaignLiveEncounterTrackerCreatureRecord["creature"]["inheritedCreatureEntry"]
-) {
-  if (!monster) {
-    return false;
-  }
-
-  return Boolean(
-    monster.desc ||
-      monster.alignment ||
-      monster.armor_class !== undefined ||
-      monster.armor_detail ||
-      monster.challenge_rating !== undefined ||
-      monster.experience_points !== undefined ||
-      monster.hit_points !== undefined ||
-      monster.hit_dice ||
-      monster.languages ||
-      monster.passive_perception !== undefined ||
-      monster.proficiency_bonus !== undefined ||
-      monster.senses_display ||
-      monster.size ||
-      monster.speed ||
-      monster.speed_all ||
-      monster.subcategory ||
-      monster.type ||
-      hasObjectEntries(monster.ability_scores) ||
-      hasObjectEntries(monster.modifiers) ||
-      hasObjectEntries(monster.resistances_and_immunities) ||
-      hasObjectEntries(monster.saving_throws) ||
-      hasObjectEntries(monster.saving_throws_all) ||
-      hasObjectEntries(monster.skill_bonuses) ||
-      hasObjectEntries(monster.skill_bonuses_all) ||
-      hasArrayEntries(monster.actions) ||
-      hasArrayEntries(monster.traits)
-  );
-}
-
-function hasVisibleCreatureStatBlockContent(
-  participant: CampaignLiveEncounterTrackerCreatureRecord
-) {
-  const monster = participant.creature.inheritedCreatureEntry;
-
-  return Boolean(
-    monster &&
-      (hasVisibleMonsterRendererContent(monster) || !participant.creature.statBlockNameHidden)
   );
 }
 
