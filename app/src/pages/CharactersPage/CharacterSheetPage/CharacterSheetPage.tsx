@@ -130,6 +130,7 @@ function CharacterSheetPage() {
 
   return (
     <section className={pageClassName} style={pageSignatureStyle}>
+      <div className={styles.pageTextureBackdrop} aria-hidden="true" />
       <div className={cascadeStackClassName}>
         <CharacterSheetSectionProfiler id="character-profile">
           <CharacterProfileSection

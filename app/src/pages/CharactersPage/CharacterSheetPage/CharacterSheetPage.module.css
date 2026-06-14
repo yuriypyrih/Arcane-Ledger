@@ -10,22 +10,32 @@
   padding-bottom: calc(env(safe-area-inset-bottom, 0px) + clamp(6.8rem, 12vw, 9.2rem));
 }
 
-.page::before {
-  content: "";
+.pageTextureBackdrop {
   position: fixed;
   top: 0;
   bottom: 0;
   left: 0;
   width: 100dvh;
-  z-index: -1;
+  z-index: 0;
   background-image: var(--class-signature-page-texture);
   background-position: left top;
   background-repeat: no-repeat;
   background-size: 100% 100%;
   opacity: var(--class-signature-page-texture-opacity);
   pointer-events: none;
-  -webkit-mask-image: linear-gradient(to right, #000 0%, #000 64%, rgba(0, 0, 0, 0) 100%);
-  mask-image: linear-gradient(to right, #000 0%, #000 64%, rgba(0, 0, 0, 0) 100%);
+}
+
+@media (min-width: 900px) {
+  .pageTextureBackdrop {
+    -webkit-mask-image: linear-gradient(to right, #000 0%, #000 64%, rgba(0, 0, 0, 0) 100%);
+    mask-image: linear-gradient(to right, #000 0%, #000 64%, rgba(0, 0, 0, 0) 100%);
+  }
+}
+
+.cascadeStack,
+.notFoundCard {
+  position: relative;
+  z-index: 1;
 }
 
 .pageBroad {

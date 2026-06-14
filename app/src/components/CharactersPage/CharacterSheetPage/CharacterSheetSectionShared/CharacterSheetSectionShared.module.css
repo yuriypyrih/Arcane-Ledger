@@ -1,4 +1,7 @@
 .sectionCard {
+  position: relative;
+  z-index: 1;
+  isolation: isolate;
   display: grid;
   gap: var(--space-section-gap);
   border: 1px solid rgba(75, 47, 29, 0.12);
