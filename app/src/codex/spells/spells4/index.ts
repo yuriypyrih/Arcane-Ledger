@@ -750,7 +750,7 @@ export const greaterInvisibility: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "You or a creature you touch becomes Invisible until the spell ends. Anything the target is wearing or carrying is Invisible as long as it is on the target's person."
+    "A creature you touch has the Invisible condition until the spell ends."
   ],
   damage: [],
   healing: [],

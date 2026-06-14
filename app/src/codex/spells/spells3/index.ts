@@ -684,8 +684,8 @@ export const fly: SpellEntry = {
   materialSpecified: "a feather",
   duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: [
-    "You touch a willing creature. The target gains a Flying Speed of 60 feet for the duration. When the spell ends, the target falls if it is still aloft, unless it can stop the fall.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, you can target one additional creature for each slot level above 3rd."
+    "You touch a willing creature. For the duration, the target gains a Fly Speed of 60 feet and can hover. When the spell ends, the target falls if it is still aloft unless it can stop the fall.",
+    "<strong>Using a Higher-Level Spell Slot.</strong> You can target one additional creature for each spell slot level above 3."
   ],
   damage: [],
   healing: [],

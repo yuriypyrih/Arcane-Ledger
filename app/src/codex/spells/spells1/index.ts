@@ -2112,20 +2112,24 @@ export const witchBolt: SpellEntry = {
   id: "spell-witch-bolt",
   name: "Witch Bolt",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: { documentKey: "phb-2024", documentName: "Player's Handbook", ruleset: "5e-2024", publisherKey: "wizards-of-the-coast" },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
-  range: "30 feet",
+  range: "60 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified: "a twig struck by lightning",
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "A beam of crackling, blue energy lances out toward a creature within range, forming a sustained arc of Lightning between you and the target. Make a ranged spell attack against that creature. On a hit, the target takes <strong>1d12</strong> Lightning damage, and on each of your turns for the duration, you can use your action to deal <strong>1d12</strong> Lightning damage to the target automatically. The spell ends if you use your action to do anything else. The spell also ends if the target is ever outside the spell's range or if it has Total Cover from you.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the initial damage increases by <strong>1d12</strong> for each slot level above 1st."
+    "A beam of crackling energy lances toward a creature within range, forming a sustained arc of Lightning between you and the target. Make a ranged spell attack against it. On a hit, the target takes <strong>2d12</strong> Lightning damage.",
+    "On each of your subsequent turns, you can take a Bonus Action to deal <strong>1d12</strong> Lightning damage to the target automatically, even if the first attack missed.",
+    "The spell ends if the target is ever outside the spell's range or if it has Total Cover from you.",
+    "<strong>Using a Higher-Level Spell Slot.</strong> The initial damage increases by <strong>1d12</strong> for each spell slot level above 1."
   ],
   isAttackSpell: true,
   isDamagingSpell: true,
   damage: [
+    [DICE.D12, DAMAGE_TYPE.LIGHTNING],
     [DICE.D12, DAMAGE_TYPE.LIGHTNING]
   ],
   healing: [],
