@@ -2,6 +2,7 @@
   --roll-state-background: #e5e9ed;
   --roll-state-border: #cfd6dc;
   --roll-state-color: #4d6072;
+
   display: inline-flex;
   align-items: center;
   gap: 0.28rem;
@@ -10,6 +11,12 @@
   background: var(--roll-state-background);
   color: var(--roll-state-color);
   padding: 0.18rem 0.44rem;
+}
+
+:global(html[data-theme="dark"]) .pill {
+  border-color: var(--roll-state-background);
+  background: var(--roll-state-color);
+  color: var(--roll-state-background);
 }
 
 .small {

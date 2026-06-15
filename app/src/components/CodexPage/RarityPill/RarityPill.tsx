@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import {
   getRarityAppearance,
   getRarityDisplayLabel,
@@ -22,15 +23,16 @@ function RarityPill({ rarity, className }: RarityPillProps) {
   }
 
   const appearance = getRarityAppearance(rarity);
+  const style = {
+    "--rarity-pill-color": appearance.color,
+    "--rarity-pill-background": appearance.background,
+    "--rarity-pill-border": appearance.border
+  } as CSSProperties;
 
   return (
     <span
       className={[styles.pill, className ?? ""].join(" ").trim()}
-      style={{
-        color: appearance.color,
-        backgroundColor: appearance.background,
-        borderColor: appearance.border
-      }}
+      style={style}
     >
       {label}
     </span>

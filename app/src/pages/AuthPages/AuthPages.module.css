@@ -676,7 +676,7 @@
 :global(html[data-theme="dark"]) .accountDetailCard {
   border-color: var(--theme-border-subtle);
   background:
-    linear-gradient(140deg, rgba(35, 39, 45, 0.78), rgba(20, 23, 28, 0.74)),
+    linear-gradient(140deg, rgba(41, 46, 53, 0.76), rgba(34, 38, 44, 0.7)),
     var(--theme-paper-background-image);
   background-color: var(--theme-surface-panel);
   background-position: center;
@@ -695,7 +695,7 @@
 :global(html[data-theme="dark"]) .accountPrivilegesTableWrap {
   border-color: var(--theme-border-subtle);
   background:
-    linear-gradient(180deg, rgba(35, 39, 45, 0.62), rgba(21, 24, 29, 0.7)),
+    linear-gradient(180deg, rgba(41, 46, 53, 0.6), rgba(34, 38, 44, 0.66)),
     var(--theme-surface-panel);
 }
 

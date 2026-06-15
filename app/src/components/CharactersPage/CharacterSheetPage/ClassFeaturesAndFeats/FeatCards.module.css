@@ -58,22 +58,22 @@
 }
 
 :global(html[data-theme="dark"]) .card {
-  --build-card-control-bg: #2a2e35;
-  --build-card-control-bg-active: #323841;
-  --build-card-control-bg-disabled: #20242a;
+  --build-card-control-bg: var(--theme-surface-muted);
+  --build-card-control-bg-active: #353b44;
+  --build-card-control-bg-disabled: var(--theme-surface-panel);
   --build-card-control-border: rgba(221, 230, 242, 0.1);
   --build-card-border: var(--theme-border-medium);
   --build-card-glow: rgba(156, 188, 255, 0.07);
   --build-card-panel-soft: rgba(156, 188, 255, 0.01);
   --build-card-panel-strong: rgba(156, 188, 255, 0.035);
-  --build-card-surface: #15181d;
+  --build-card-surface: var(--theme-surface-section);
   background-image:
     radial-gradient(circle at 92% 16%, var(--build-card-glow), transparent 34%),
     linear-gradient(
       60deg,
-      rgba(19, 21, 25, 0.34) 0%,
-      rgba(22, 24, 29, 0.26) 70%,
-      rgba(19, 21, 25, 0.12) 100%
+      rgba(255, 255, 255, 0.045) 0%,
+      rgba(255, 255, 255, 0.032) 70%,
+      rgba(255, 255, 255, 0.014) 100%
     ),
     linear-gradient(
       180deg,
@@ -141,7 +141,7 @@
   --build-card-glow: rgba(156, 188, 255, 0.13);
   --build-card-panel-soft: rgba(156, 188, 255, 0.022);
   --build-card-panel-strong: rgba(156, 188, 255, 0.07);
-  --build-card-surface: #181b21;
+  --build-card-surface: var(--theme-surface-panel);
   box-shadow:
     inset 4px 0 0 rgba(156, 188, 255, 0.78),
     inset 0 1px 0 rgba(255, 255, 255, 0.06),
@@ -182,7 +182,7 @@
   --build-card-glow: rgba(255, 255, 255, 0.035);
   --build-card-panel-soft: rgba(255, 255, 255, 0.008);
   --build-card-panel-strong: rgba(255, 255, 255, 0.024);
-  --build-card-surface: rgba(20, 23, 28, 0.82);
+  --build-card-surface: rgba(27, 31, 36, 0.82);
   box-shadow: none;
 }
 

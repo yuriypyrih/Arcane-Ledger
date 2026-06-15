@@ -157,18 +157,18 @@
 
 :global(html[data-theme="dark"]) .row::before {
   -webkit-mask-image: radial-gradient(
-    ellipse 27% 76% at left top,
+    ellipse 29% 80% at left top,
     rgba(0, 0, 0, 0.9) 0%,
-    rgba(0, 0, 0, 0.82) 40%,
-    rgba(0, 0, 0, 0.34) 68%,
-    rgba(0, 0, 0, 0) 88%
+    rgba(0, 0, 0, 0.82) 44%,
+    rgba(0, 0, 0, 0.34) 72%,
+    rgba(0, 0, 0, 0) 92%
   );
   mask-image: radial-gradient(
-    ellipse 27% 76% at left top,
+    ellipse 29% 80% at left top,
     rgba(0, 0, 0, 0.9) 0%,
-    rgba(0, 0, 0, 0.82) 40%,
-    rgba(0, 0, 0, 0.34) 68%,
-    rgba(0, 0, 0, 0) 88%
+    rgba(0, 0, 0, 0.82) 44%,
+    rgba(0, 0, 0, 0.34) 72%,
+    rgba(0, 0, 0, 0) 92%
   );
 }
 
@@ -237,12 +237,14 @@
 }
 
 .partyPill {
-  border-color: rgba(40, 116, 72, 0.24);
-  background: rgba(40, 116, 72, 0.1);
-  color: #28693f;
+  border-color: rgba(40, 116, 72, 0.34);
+  background: rgba(40, 116, 72, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(255, 246, 226, 0.26);
+  color: #225c38;
   cursor: pointer;
-  font: inherit;
+  font-family: inherit;
   font-size: 0.78rem;
+  font-weight: 800;
   max-width: 100%;
   padding: 0.36rem 0.56rem;
   pointer-events: auto;
@@ -253,9 +255,9 @@
 
 .partyPill:hover,
 .partyPill:focus-visible {
-  border-color: rgba(40, 116, 72, 0.38);
-  background: rgba(40, 116, 72, 0.16);
-  color: #1f5835;
+  border-color: rgba(40, 116, 72, 0.5);
+  background: rgba(40, 116, 72, 0.22);
+  color: #17472a;
 }
 
 .partyPill:focus-visible {
@@ -269,6 +271,26 @@
   overflow: hidden;
   text-overflow: ellipsis;
   vertical-align: bottom;
+}
+
+:global(html[data-theme="dark"]) .partyPill {
+  border-color: rgba(130, 220, 160, 0.42);
+  background:
+    linear-gradient(145deg, rgba(78, 160, 108, 0.24), rgba(42, 98, 66, 0.18)),
+    var(--theme-surface-raised);
+  box-shadow:
+    inset 0 0 0 1px rgba(184, 255, 209, 0.08),
+    0 6px 18px rgba(0, 0, 0, 0.18);
+  color: #bff4d1;
+}
+
+:global(html[data-theme="dark"]) .partyPill:hover,
+:global(html[data-theme="dark"]) .partyPill:focus-visible {
+  border-color: rgba(157, 239, 184, 0.58);
+  background:
+    linear-gradient(145deg, rgba(86, 176, 118, 0.3), rgba(46, 108, 72, 0.24)),
+    var(--theme-surface-raised);
+  color: #d5ffe1;
 }
 
 .characterSide {
@@ -306,6 +328,28 @@
 .iconButton:hover,
 .iconButton:focus-visible {
   background: var(--theme-control-subtle-hover);
+}
+
+.deleteIconButton {
+  background: rgba(166, 55, 41, 0.1);
+  color: #9f2f22;
+}
+
+.deleteIconButton:hover,
+.deleteIconButton:focus-visible {
+  background: rgba(166, 55, 41, 0.16);
+  color: #7e241a;
+}
+
+:global(html[data-theme="dark"]) .deleteIconButton {
+  background: rgba(232, 116, 102, 0.14);
+  color: var(--theme-state-danger);
+}
+
+:global(html[data-theme="dark"]) .deleteIconButton:hover,
+:global(html[data-theme="dark"]) .deleteIconButton:focus-visible {
+  background: rgba(232, 116, 102, 0.2);
+  color: #ffc9c1;
 }
 
 .iconButton:disabled {

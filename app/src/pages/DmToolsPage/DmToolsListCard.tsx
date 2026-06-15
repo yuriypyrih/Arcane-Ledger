@@ -22,6 +22,10 @@ type DmToolsListCardProps = {
   to?: string;
 };
 
+function isDangerAction(action: DmToolsListCardAction) {
+  return action.label.trim().toLowerCase().startsWith("delete");
+}
+
 function DmToolsListCardContent({
   icon,
   meta,
@@ -103,7 +107,12 @@ function DmToolsListCard({
             <button
               key={action.label}
               type="button"
-              className={styles.iconButton}
+              className={[
+                styles.iconButton,
+                isDangerAction(action) ? styles.dangerIconButton : ""
+              ]
+                .filter(Boolean)
+                .join(" ")}
               aria-label={action.label}
               title={action.title ?? action.label}
               disabled={action.disabled}

@@ -10,7 +10,7 @@
 
 :global(html[data-theme="dark"]) .widgetCard {
   border-color: rgba(221, 230, 242, 0.12);
-  background: linear-gradient(160deg, rgba(12, 14, 17, 0.96), rgba(16, 18, 22, 0.92));
+  background: linear-gradient(160deg, var(--theme-surface-panel), var(--theme-surface-section));
   color: var(--theme-text-primary);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.035),

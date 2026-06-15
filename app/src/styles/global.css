@@ -104,7 +104,7 @@
 
 :root[data-theme="dark"] {
   --theme-color-scheme: dark;
-  --theme-app-background: #101114;
+  --theme-app-background: #14161a;
   --theme-paper-background-image: url("../assets/img/dark-paper-background.webp");
   --theme-app-backdrop: var(--theme-paper-background-image);
   --theme-app-backdrop-position: top center;
@@ -116,10 +116,10 @@
   --theme-text-disabled: rgba(194, 200, 207, 0.46);
   --theme-accent: #9cbcff;
   --theme-accent-strong: #c2d3ff;
-  --theme-surface-section: #17191d;
-  --theme-surface-panel: #1d2025;
-  --theme-surface-raised: #23272d;
-  --theme-surface-muted: #24272d;
+  --theme-surface-section: #1b1f24;
+  --theme-surface-panel: #22262c;
+  --theme-surface-raised: #292e35;
+  --theme-surface-muted: #2b3037;
   --theme-surface-subtle: rgba(255, 255, 255, 0.055);
   --theme-surface-subtle-bordered: rgba(255, 255, 255, 0.035);
   --theme-border-subtle: rgba(221, 230, 242, 0.1);
@@ -148,16 +148,16 @@
   --theme-expertise-color: #f2b765;
   --theme-section-shadow: 0 18px 50px rgba(0, 0, 0, 0.3);
   --theme-overlay-backdrop: rgba(4, 5, 8, 0.72);
-  --theme-overlay-surface: #181b20;
+  --theme-overlay-surface: #1d2127;
   --theme-overlay-header-background: linear-gradient(
     165deg,
-    rgba(38, 43, 52, 0.99),
-    rgba(24, 28, 35, 0.99) 58%,
-    rgba(16, 18, 22, 0.99)
+    rgba(43, 49, 58, 0.99),
+    rgba(31, 36, 44, 0.99) 58%,
+    rgba(22, 25, 31, 0.99)
   );
   --theme-overlay-shadow: 0 24px 70px rgba(0, 0, 0, 0.46);
   --theme-drawer-shadow: 0 28px 84px rgba(0, 0, 0, 0.58);
-  --theme-busy-scrim: rgba(18, 20, 24, 0.68);
+  --theme-busy-scrim: rgba(20, 23, 28, 0.64);
   --color-ink: var(--theme-text-primary);
   --color-ink-soft: var(--theme-text-secondary);
   --color-accent: var(--theme-accent);

@@ -4,6 +4,9 @@
   align-self: start;
   border: 1px solid transparent;
   border-radius: var(--radius-pill);
+  border-color: var(--rarity-pill-border);
+  background-color: var(--rarity-pill-background);
+  color: var(--rarity-pill-color);
   width: fit-content;
   white-space: nowrap;
   font-size: 0.66rem;
@@ -11,4 +14,10 @@
   letter-spacing: 0.04em;
   line-height: 1;
   padding: 0.24rem 0.56rem;
+}
+
+:global(html[data-theme="dark"]) .pill {
+  border-color: var(--rarity-pill-background);
+  background-color: var(--rarity-pill-color);
+  color: var(--rarity-pill-background);
 }

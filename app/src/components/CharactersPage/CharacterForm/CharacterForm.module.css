@@ -56,6 +56,12 @@
   padding: 0.4rem 0.8rem;
 }
 
+:global(html[data-theme="dark"]) .stepBadge {
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-secondary);
+}
+
 .stepBadgeActive {
   background: #fffaf1;
   border-color: #2f78ff;
@@ -63,14 +69,31 @@
   color: var(--color-ink);
 }
 
+:global(html[data-theme="dark"]) .stepBadgeActive {
+  border-color: rgba(156, 188, 255, 0.42);
+  background: rgba(156, 188, 255, 0.12);
+  box-shadow: var(--theme-section-shadow);
+  color: var(--theme-text-primary);
+}
+
 .stepBadgeDone {
   background: rgba(143, 91, 56, 0.2);
   color: var(--color-ink);
 }
 
+:global(html[data-theme="dark"]) .stepBadgeDone {
+  background: rgba(156, 188, 255, 0.1);
+  color: var(--theme-accent-strong);
+}
+
 .stepBadgeButton:hover {
   background: rgba(47, 120, 255, 0.12);
   border-color: rgba(47, 120, 255, 0.32);
+}
+
+:global(html[data-theme="dark"]) .stepBadgeButton:hover {
+  background: rgba(156, 188, 255, 0.16);
+  border-color: rgba(156, 188, 255, 0.44);
 }
 
 .form {
@@ -88,6 +111,14 @@
   background: var(--section-card-background);
   box-shadow: 0 18px 50px rgba(54, 34, 21, 0.06);
   padding: var(--space-card-padding);
+}
+
+:global(html[data-theme="dark"]) .sectionCard {
+  --section-card-background: var(--theme-surface-section);
+  --section-card-border-color: var(--theme-border-subtle);
+  --section-card-required-color: var(--theme-state-danger);
+
+  box-shadow: var(--theme-section-shadow);
 }
 
 .inputRequiredSection {
@@ -125,6 +156,13 @@
   --section-card-border-color: rgba(255, 250, 241, 0.96);
 }
 
+:global(html[data-theme="dark"]) .primarySection {
+  --section-card-background:
+    radial-gradient(circle at top right, rgba(156, 188, 255, 0.08), transparent 36%),
+    var(--theme-surface-section);
+  --section-card-border-color: var(--theme-border-subtle);
+}
+
 .sectionHeader {
   display: flex;
   align-items: start;
@@ -157,6 +195,10 @@
   font-weight: 700;
   letter-spacing: 0;
   line-height: 1.12;
+}
+
+:global(html[data-theme="dark"]) .sectionValueHeading {
+  color: var(--theme-text-primary);
 }
 
 .progressCard {
@@ -211,9 +253,20 @@
   padding: 0;
 }
 
+:global(html[data-theme="dark"]) .multiclassHelpButton {
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-control-subtle);
+  color: var(--theme-accent-strong);
+}
+
 .multiclassHelpButton:hover {
   border-color: rgba(47, 120, 255, 0.32);
   background: rgba(47, 120, 255, 0.1);
+}
+
+:global(html[data-theme="dark"]) .multiclassHelpButton:hover {
+  border-color: rgba(156, 188, 255, 0.34);
+  background: var(--theme-control-subtle-hover);
 }
 
 .field {
@@ -299,6 +352,11 @@
   padding: 0.9rem 1rem;
 }
 
+:global(html[data-theme="dark"]) .pointSummary {
+  background: var(--theme-surface-panel);
+  box-shadow: inset 0 0 0 1px var(--theme-border-subtle);
+}
+
 .pointSummary strong,
 .pointSummary span {
   margin: 0;
@@ -320,6 +378,11 @@
   border-radius: var(--radius-panel);
   background: rgba(75, 47, 29, 0.06);
   padding: 1rem;
+}
+
+:global(html[data-theme="dark"]) .abilityCard {
+  background: var(--theme-surface-panel);
+  box-shadow: inset 0 0 0 1px var(--theme-border-subtle);
 }
 
 .abilityHeader {
@@ -355,6 +418,12 @@
   width: 100%;
 }
 
+:global(html[data-theme="dark"]) .abilityInput {
+  border-color: var(--theme-input-border);
+  background: var(--theme-input-background);
+  color: var(--theme-input-text);
+}
+
 .stepper {
   display: grid;
   grid-template-columns: 48px minmax(0, 1fr) 48px;
@@ -367,6 +436,11 @@
   color: var(--color-ink);
   font-size: 1.35rem;
   min-height: 54px;
+}
+
+:global(html[data-theme="dark"]) .stepButton {
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-primary);
 }
 
 .stepButton:disabled {
@@ -388,6 +462,11 @@
   padding: 0.45rem 0.8rem;
 }
 
+:global(html[data-theme="dark"]) .legendChip {
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-secondary);
+}
+
 .alignmentGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -406,6 +485,12 @@
   border-radius: var(--radius-card);
   background: rgba(75, 47, 29, 0.04);
   padding: 1rem 1.1rem;
+}
+
+:global(html[data-theme="dark"]) .infoCard,
+:global(html[data-theme="dark"]) .placeholderCard {
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-surface-panel);
 }
 
 .infoCard strong,
@@ -431,6 +516,11 @@
   border-radius: var(--radius-card);
   background: rgba(75, 47, 29, 0.06);
   padding: 1rem;
+}
+
+:global(html[data-theme="dark"]) .summaryCard {
+  background: var(--theme-surface-panel);
+  box-shadow: inset 0 0 0 1px var(--theme-border-subtle);
 }
 
 .summaryCard strong,
@@ -478,6 +568,11 @@
   padding: var(--space-card-padding-tight);
 }
 
+:global(html[data-theme="dark"]) .choiceGroup {
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-surface-panel);
+}
+
 .choiceGroupColumns > .choiceGroup {
   break-inside: avoid;
   display: inline-grid;
@@ -490,6 +585,10 @@
   font-size: 0.92rem;
   font-weight: 700;
   padding: 0 0.35rem;
+}
+
+:global(html[data-theme="dark"]) .choiceGroup legend {
+  color: var(--theme-text-primary);
 }
 
 .choiceGrid {
@@ -517,6 +616,12 @@
   text-align: left;
 }
 
+:global(html[data-theme="dark"]) .radioChoiceCard {
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-surface-raised);
+  color: var(--theme-text-primary);
+}
+
 .radioChoiceCard strong,
 .radioChoiceCard span {
   margin: 0;
@@ -531,6 +636,11 @@
 .radioChoiceCardActive {
   background: rgba(47, 99, 197, 0.14);
   border-color: rgba(47, 99, 197, 0.36);
+}
+
+:global(html[data-theme="dark"]) .radioChoiceCardActive {
+  border-color: rgba(156, 188, 255, 0.42);
+  background: rgba(156, 188, 255, 0.12);
 }
 
 .grantedSkillList {
@@ -554,11 +664,20 @@
   padding: 0.22rem 0.44rem;
 }
 
+:global(html[data-theme="dark"]) .grantedSkillList li {
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-primary);
+}
+
 .grantedSkillList li small {
   color: var(--color-ink-soft);
   font-size: 0.62rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+
+:global(html[data-theme="dark"]) .grantedSkillList li small {
+  color: var(--theme-text-secondary);
 }
 
 .choiceOption {
@@ -574,9 +693,20 @@
   padding: 0.45rem 0.55rem;
 }
 
+:global(html[data-theme="dark"]) .choiceOption {
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-surface-raised);
+  color: var(--theme-text-primary);
+}
+
 .choiceOptionActive {
   background: rgba(47, 99, 197, 0.14);
   border-color: rgba(47, 99, 197, 0.36);
+}
+
+:global(html[data-theme="dark"]) .choiceOptionActive {
+  border-color: rgba(156, 188, 255, 0.42);
+  background: rgba(156, 188, 255, 0.12);
 }
 
 .choiceCheckbox {
@@ -628,6 +758,11 @@
   color: var(--color-ink);
   min-height: 52px;
   padding: 0 1.2rem;
+}
+
+:global(html[data-theme="dark"]) .secondaryButton {
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-primary);
 }
 
 @media (max-width: 899px) {

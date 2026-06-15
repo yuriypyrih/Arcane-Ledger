@@ -46,6 +46,16 @@
   pointer-events: auto;
 }
 
+:global(html[data-theme="dark"]) .dicePanel {
+  border-color: var(--theme-border-medium);
+  background:
+    linear-gradient(160deg, var(--theme-surface-raised), var(--theme-surface-panel)),
+    var(--theme-surface-panel);
+  box-shadow:
+    0 16px 32px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
 .modeGroup {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

@@ -9,7 +9,7 @@
 }
 
 :global(html[data-theme="dark"]) .root {
-  background: #0d0f12;
+  background: var(--theme-surface-panel);
   box-shadow:
     inset 0 0 0 1px var(--theme-border-subtle),
     0 8px 18px rgba(0, 0, 0, 0.24);

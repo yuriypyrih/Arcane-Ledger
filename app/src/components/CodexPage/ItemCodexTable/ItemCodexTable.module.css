@@ -79,6 +79,10 @@
 }
 
 .table th[data-active="true"] {
+  background: var(--theme-surface-muted);
+}
+
+:global(html[data-theme="dark"]) .table th[data-active="true"] {
   background: var(--theme-surface-raised);
 }
 

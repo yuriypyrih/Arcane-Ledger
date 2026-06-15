@@ -30,7 +30,7 @@
 :global(html[data-theme="dark"]) .modalCard {
   border-color: var(--theme-border-medium);
   background:
-    linear-gradient(165deg, rgba(33, 36, 42, 0.98), rgba(17, 19, 24, 0.98)),
+    linear-gradient(165deg, var(--theme-surface-raised), var(--theme-overlay-surface)),
     var(--theme-overlay-surface);
   box-shadow: var(--theme-drawer-shadow);
   color: var(--theme-text-primary);

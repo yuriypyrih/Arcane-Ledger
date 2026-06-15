@@ -47,13 +47,13 @@
   background:
     linear-gradient(
       140deg,
-      rgba(18, 20, 24, 0.32) 0%,
-      rgba(22, 24, 29, 0.24) 68%,
-      rgba(18, 20, 24, 0.1) 100%
+      rgba(34, 38, 44, 0.3) 0%,
+      rgba(41, 46, 53, 0.22) 68%,
+      rgba(34, 38, 44, 0.08) 100%
     ),
     linear-gradient(135deg, rgba(156, 188, 255, 0.04), rgba(156, 188, 255, 0.01)),
     var(--theme-paper-background-image);
-  background-color: #111318;
+  background-color: var(--theme-surface-section);
   background-position: center, center, center;
   background-repeat: no-repeat;
   background-size: auto, auto, 155% auto;

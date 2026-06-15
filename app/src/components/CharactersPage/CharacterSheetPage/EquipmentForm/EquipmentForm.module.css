@@ -100,12 +100,15 @@
 }
 
 .inventoryTagPill {
+  --equipment-tag-background: #eadccc;
+  --equipment-tag-color: #5f3f2c;
+
   display: inline-flex;
   align-items: center;
   gap: 0.24rem;
   border-radius: var(--radius-pill);
-  background: #eadccc;
-  color: #5f3f2c;
+  background: var(--equipment-tag-background);
+  color: var(--equipment-tag-color);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.03em;
@@ -119,35 +122,40 @@
 
 .inventoryTagPillWorn,
 .inventoryTagPillPack {
-  background: #e5ead5;
-  color: #51631f;
+  --equipment-tag-background: #e5ead5;
+  --equipment-tag-color: #51631f;
 }
 
 .inventoryTagPillAttuned,
 .inventoryTagPillSpell,
 .inventoryTagPillSpellcastingFocus {
-  background: #dbeafe;
-  color: #1d4ed8;
+  --equipment-tag-background: #dbeafe;
+  --equipment-tag-color: #1d4ed8;
 }
 
 .inventoryTagPillCharges {
-  background: #dce8ef;
-  color: #315c73;
+  --equipment-tag-background: #dce8ef;
+  --equipment-tag-color: #315c73;
 }
 
 .inventoryTagPillModded {
-  background: #e5e7eb;
-  color: #4b5563;
+  --equipment-tag-background: #e5e7eb;
+  --equipment-tag-color: #4b5563;
 }
 
 .inventoryTagPillFeature {
-  background: #ede9fe;
-  color: #6d28d9;
+  --equipment-tag-background: #ede9fe;
+  --equipment-tag-color: #6d28d9;
 }
 
 .inventoryTagPillCustom {
-  background: #fef3c7;
-  color: #92400e;
+  --equipment-tag-background: #fef3c7;
+  --equipment-tag-color: #92400e;
+}
+
+:global(html[data-theme="dark"]) .inventoryTagPill {
+  background: var(--equipment-tag-color);
+  color: var(--equipment-tag-background);
 }
 
 .inventoryModsButton {
@@ -177,16 +185,24 @@
 }
 
 .equipmentItemWeight {
+  --equipment-weight-background: #eadccc;
+  --equipment-weight-color: #5f3f2c;
+
   display: inline-flex;
   align-items: center;
   min-height: 24px;
   border-radius: var(--radius-pill);
-  background: #eadccc;
-  color: #5f3f2c;
+  background: var(--equipment-weight-background);
+  color: var(--equipment-weight-color);
   font-size: 0.74rem;
   font-weight: 600;
   padding: 0 0.56rem;
   white-space: nowrap;
+}
+
+:global(html[data-theme="dark"]) .equipmentItemWeight {
+  background: var(--equipment-weight-color);
+  color: var(--equipment-weight-background);
 }
 
 .containerContentsSection {
@@ -740,7 +756,7 @@
 
 :global(html[data-theme="dark"]) .currencySelectorButton {
   border-color: var(--theme-border-subtle);
-  background: #111318;
+  background: var(--theme-surface-panel);
   color: var(--theme-text-primary);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
 }
@@ -748,7 +764,7 @@
 :global(html[data-theme="dark"]) .currencySelectorButton:hover:not(:disabled),
 :global(html[data-theme="dark"]) .currencySelectorButton:focus-visible:not(:disabled) {
   border-color: var(--theme-border-medium);
-  background: #151820;
+  background: var(--theme-surface-raised);
 }
 
 :global(html[data-theme="dark"]) .currencySelectorButton span {

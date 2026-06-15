@@ -34,7 +34,7 @@ function CampaignLiveEncounterRoundTracker({
     activeParticipantIndex >= 0 ? tracker.initiativeOrder[activeParticipantIndex] : null;
   const nextTurnDisabled = readOnly || activeParticipantIndex < 0;
   const turnLabel = activeParticipant
-    ? `${getParticipantName(activeParticipant)}'s Turn`
+    ? `${activeParticipantIndex + 1}. ${getParticipantName(activeParticipant)}'s Turn`
     : "Decide who plays first";
 
   function updateRound(nextRoundNumber: number) {

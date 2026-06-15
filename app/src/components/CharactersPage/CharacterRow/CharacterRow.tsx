@@ -100,6 +100,7 @@ function CharacterRow({
             {onDelete ? (
               <CharacterRowIconButton
                 type="button"
+                className={styles.deleteIconButton}
                 aria-label={`Delete ${character.name}`}
                 title={`Delete ${character.name}`}
                 onClick={() => onDelete(character)}

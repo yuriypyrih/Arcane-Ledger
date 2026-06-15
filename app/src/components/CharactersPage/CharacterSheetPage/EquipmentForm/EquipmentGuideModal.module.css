@@ -59,6 +59,11 @@
   line-height: 1.45;
 }
 
+:global(html[data-theme="dark"]) .effectRuleRow {
+  background: var(--theme-surface-subtle);
+  color: var(--theme-text-secondary);
+}
+
 @media (max-width: 520px) {
   .effectRuleRow {
     grid-template-columns: 1fr;

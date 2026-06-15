@@ -176,20 +176,20 @@
 :global(html[data-theme="dark"]) .classCard::before {
   opacity: 0.84;
   -webkit-mask-image: radial-gradient(
-    ellipse 205px 235px at left top,
+    ellipse 200px 228px at left top,
     #000 0%,
-    #000 31%,
-    rgba(0, 0, 0, 0.54) 48%,
-    rgba(0, 0, 0, 0.15) 62%,
-    rgba(0, 0, 0, 0) 74%
+    #000 38%,
+    rgba(0, 0, 0, 0.64) 51%,
+    rgba(0, 0, 0, 0.18) 63%,
+    rgba(0, 0, 0, 0) 72%
   );
   mask-image: radial-gradient(
-    ellipse 205px 235px at left top,
+    ellipse 200px 228px at left top,
     #000 0%,
-    #000 31%,
-    rgba(0, 0, 0, 0.54) 48%,
-    rgba(0, 0, 0, 0.15) 62%,
-    rgba(0, 0, 0, 0) 74%
+    #000 38%,
+    rgba(0, 0, 0, 0.64) 51%,
+    rgba(0, 0, 0, 0.18) 63%,
+    rgba(0, 0, 0, 0) 72%
   );
 }
 
@@ -201,7 +201,7 @@
 :global(html[data-theme="dark"]) .classCardIcon {
   border-color: var(--theme-border-medium);
   background:
-    linear-gradient(145deg, rgba(35, 39, 45, 0.72), rgba(29, 32, 37, 0.62)),
+    linear-gradient(145deg, rgba(41, 46, 53, 0.7), rgba(34, 38, 44, 0.6)),
     var(--theme-paper-background-image) center / 220px auto;
   box-shadow: none;
   color: var(--theme-text-primary);

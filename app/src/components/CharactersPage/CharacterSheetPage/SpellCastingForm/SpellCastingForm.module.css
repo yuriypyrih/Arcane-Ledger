@@ -71,7 +71,7 @@
 
 :global(html[data-theme="dark"]) .spellSlotSquare {
   border-color: rgba(156, 188, 255, 0.46);
-  background: #0d0f12;
+  background: var(--theme-surface-panel);
 }
 
 .spellSlotSquareFilled {
@@ -112,7 +112,7 @@
 
 :global(html[data-theme="dark"]) .wizardFilterBar {
   border-color: var(--theme-border-subtle);
-  background: #111318;
+  background: var(--theme-surface-panel);
 }
 
 .wizardFilterButton {
@@ -291,7 +291,7 @@
 
 :global(html[data-theme="dark"]) .preparedSpellTabButton {
   border-color: var(--theme-border-subtle);
-  background: #111318;
+  background: var(--theme-surface-panel);
   color: var(--theme-text-secondary);
 }
 
@@ -501,7 +501,7 @@
 }
 
 :global(html[data-theme="dark"]) .divinityDrawerActionButtonShape {
-  background: #111318;
+  background: var(--theme-surface-panel);
 }
 
 @media (max-width: 899px) {

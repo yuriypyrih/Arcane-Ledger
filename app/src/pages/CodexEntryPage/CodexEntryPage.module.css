@@ -61,7 +61,7 @@
 :global(html[data-theme="dark"]) .backButton,
 :global(html[data-theme="dark"]) .linkButton {
   border-color: var(--theme-border-medium);
-  background: linear-gradient(180deg, rgba(42, 47, 55, 0.98), rgba(31, 35, 42, 0.98));
+  background: linear-gradient(180deg, var(--theme-surface-raised), var(--theme-surface-panel));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.04),
     0 8px 18px rgba(0, 0, 0, 0.22);
@@ -73,7 +73,7 @@
 :global(html[data-theme="dark"]) .backButton:focus-visible,
 :global(html[data-theme="dark"]) .linkButton:focus-visible {
   border-color: rgba(221, 230, 242, 0.24);
-  background: linear-gradient(180deg, rgba(50, 56, 65, 0.98), rgba(36, 41, 49, 0.98));
+  background: linear-gradient(180deg, var(--theme-surface-muted), var(--theme-surface-raised));
   color: var(--theme-text-primary);
 }
 

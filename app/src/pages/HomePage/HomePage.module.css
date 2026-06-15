@@ -563,7 +563,7 @@
 
 :global(html[data-theme="dark"]) .guestBanner {
   background:
-    linear-gradient(180deg, rgba(32, 36, 42, 0.72), rgba(18, 20, 24, 0.9)),
+    linear-gradient(180deg, rgba(41, 46, 53, 0.68), rgba(34, 38, 44, 0.82)),
     var(--theme-surface-section);
 }
 
