@@ -4,12 +4,14 @@ import type { LucideIcon } from "lucide-react";
 import styles from "./SheetSurface.module.css";
 
 export type SheetSurfaceBorderSize = "xm" | "sm" | "md" | "lg" | "xl";
+export type SheetSurfaceBorderStrength = "strong" | "light";
 export type SheetSurfaceTexturePosition = "right" | "center";
 type SheetSurfaceTextureIcon = LucideIcon | string;
 
 type SheetSurfaceOwnProps<T extends ElementType = "div"> = {
   as?: T;
   borderSize?: SheetSurfaceBorderSize;
+  borderStrength?: SheetSurfaceBorderStrength;
   hasBorder?: boolean;
   hoverBorder?: boolean;
   textureIcon?: SheetSurfaceTextureIcon;
@@ -29,6 +31,11 @@ const borderSizeClassNames: Record<SheetSurfaceBorderSize, string> = {
   xl: styles.borderXl
 };
 
+const borderStrengthClassNames: Record<SheetSurfaceBorderStrength, string> = {
+  strong: styles.borderStrong,
+  light: styles.borderLight
+};
+
 const texturePositionClassNames: Record<SheetSurfaceTexturePosition, string> = {
   right: styles.textureIconRight,
   center: styles.textureIconCenter
@@ -37,6 +44,7 @@ const texturePositionClassNames: Record<SheetSurfaceTexturePosition, string> = {
 function SheetSurface<T extends ElementType = "div">({
   as,
   borderSize = "md",
+  borderStrength = "strong",
   hasBorder = false,
   hoverBorder = false,
   textureIcon: TextureIcon,
@@ -54,6 +62,7 @@ function SheetSurface<T extends ElementType = "div">({
         styles.root,
         isNativeButton && styles.buttonRoot,
         borderSizeClassNames[borderSize],
+        borderStrengthClassNames[borderStrength],
         hoverBorder && styles.hoverTint,
         hasBorder && styles.hasBorder,
         TextureIcon && styles.hasTexture,

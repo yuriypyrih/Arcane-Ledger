@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { memo, type ReactNode } from "react";
 import { DURATION, type SpellEntry } from "../../codex/entries";
 import ActionShape, { getActionShapeForCastingTime, type ActionShapeType } from "../ActionShape";
+import SheetSurface from "../CharactersPage/CharacterSheetPage/SheetSurface";
 import ConcentrationLabel from "../ConcentrationLabel";
 import SpellSubtitle from "../SpellSubtitle";
 import { formatSpellCastingTimeSummary, getSpellDurationDisplayParts } from "../../utils/codex";
@@ -176,7 +177,12 @@ function SpellListRow({
 
   if (selectable) {
     return (
-      <article
+      <SheetSurface
+        as="article"
+        borderSize="md"
+        borderStrength="light"
+        hasBorder
+        hoverBorder
         className={clsx(
           styles.button,
           highlightTone === "spell-mastery" && styles.spellMasteryHighlight,
@@ -257,13 +263,18 @@ function SpellListRow({
             </div>
           </div>
         </button>
-      </article>
+      </SheetSurface>
     );
   }
 
   return (
-    <button
+    <SheetSurface
+      as="button"
       type="button"
+      borderSize="md"
+      borderStrength="light"
+      hasBorder
+      hoverBorder
       className={clsx(
         styles.button,
         highlightTone === "spell-mastery" && styles.spellMasteryHighlight,
@@ -310,7 +321,7 @@ function SpellListRow({
         )}
         {metaNode}
       </div>
-    </button>
+    </SheetSurface>
   );
 }
 

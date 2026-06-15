@@ -3,6 +3,7 @@ import { ChevronsUp } from "lucide-react";
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import ActionShape from "../../../../../ActionShape";
 import ConcentrationLabel from "../../../../../ConcentrationLabel";
+import SheetSurface from "../../../SheetSurface";
 import {
   getStatusDurationTickOn,
   getStatusDurationShortLabel,
@@ -177,8 +178,11 @@ function TraitsConditionsSections({
 
             return (
               <li key={entry.id}>
-                <button
+                <SheetSurface
+                  as="button"
                   type="button"
+                  borderSize="md"
+                  hoverBorder
                   className={clsx(styles.button, entry.disabled && styles.buttonDisabled)}
                   onClick={() => {
                     if (entry.disabled) {
@@ -235,7 +239,7 @@ function TraitsConditionsSections({
                       ) : null}
                     </span>
                   ) : null}
-                </button>
+                </SheetSurface>
               </li>
             );
           })}

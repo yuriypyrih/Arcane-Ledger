@@ -23,6 +23,25 @@
   border-color: rgba(47, 120, 255, 0.34);
 }
 
+:global(html[data-theme="dark"]) .abilityButton {
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-surface-panel);
+  color: var(--theme-text-primary);
+}
+
+:global(html[data-theme="dark"]) .abilityButton:hover,
+:global(html[data-theme="dark"]) .abilityButton:focus-visible {
+  border-color: var(--theme-border-medium);
+  background: var(--theme-surface-raised);
+}
+
+:global(html[data-theme="dark"]) .abilityButtonActive,
+:global(html[data-theme="dark"]) .abilityButtonActive:hover,
+:global(html[data-theme="dark"]) .abilityButtonActive:focus-visible {
+  border-color: rgba(156, 188, 255, 0.42);
+  background: rgba(156, 188, 255, 0.12);
+}
+
 .abilityName {
   font-size: 0.94rem;
 }
@@ -30,6 +49,10 @@
 .abilityMeta {
   color: var(--color-ink-soft);
   font-size: 0.76rem;
+}
+
+:global(html[data-theme="dark"]) .abilityMeta {
+  color: var(--theme-text-secondary);
 }
 
 .formulaGrid {
@@ -46,6 +69,10 @@
   font-weight: 700;
   line-height: 1.55;
   overflow-wrap: anywhere;
+}
+
+:global(html[data-theme="dark"]) .formulaValue {
+  color: var(--theme-text-primary);
 }
 
 .footerActionShape {

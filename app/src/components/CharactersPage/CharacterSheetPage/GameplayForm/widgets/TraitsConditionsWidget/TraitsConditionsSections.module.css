@@ -51,9 +51,6 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.65rem;
-  border: none;
-  border-radius: var(--radius-control);
-  background: rgba(75, 47, 29, 0.1);
   color: var(--color-ink);
   cursor: pointer;
   font: inherit;
@@ -67,7 +64,6 @@
 }
 
 :global(html[data-theme="dark"]) .button {
-  background: var(--theme-surface-subtle-bordered);
   color: var(--theme-text-primary);
 }
 
@@ -76,23 +72,12 @@
 }
 
 .buttonDisabled {
-  background: rgba(108, 128, 145, 0.14);
-  color: rgba(53, 66, 74, 0.82);
-  opacity: 0.68;
-}
-
-:global(html[data-theme="dark"]) .buttonDisabled {
-  background: var(--theme-surface-subtle-bordered);
   color: var(--theme-text-disabled);
+  opacity: 0.68;
 }
 
 .buttonDisabled .buttonText small,
 .buttonDisabled .duration {
-  color: rgba(84, 101, 111, 0.85);
-}
-
-:global(html[data-theme="dark"]) .buttonDisabled .buttonText small,
-:global(html[data-theme="dark"]) .buttonDisabled .duration {
   color: var(--theme-text-disabled);
 }
 

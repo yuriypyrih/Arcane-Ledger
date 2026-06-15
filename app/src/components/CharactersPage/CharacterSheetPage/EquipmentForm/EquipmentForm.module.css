@@ -321,24 +321,6 @@
     padding-inline: 0.62rem;
   }
 
-  .loadoutCurrencyPill .currencyPillSummary {
-    gap: 0.5rem;
-  }
-
-  .loadoutCurrencyPill .currencyPillToken {
-    gap: 0.16rem;
-    font-size: 0.88rem;
-  }
-
-  .loadoutCurrencyPill .currencyPillTokenCode {
-    font-size: 0.7rem;
-  }
-
-  .loadoutCurrencyPill .currencyPillTokenIcon {
-    block-size: 16px;
-    inline-size: 16px;
-  }
-
   .carryCapacityPill {
     font-size: 0.88rem;
   }
@@ -373,56 +355,9 @@
   font-weight: 600;
 }
 
-.currencyPillSummary {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.62rem;
-  flex-wrap: nowrap;
-  white-space: nowrap;
-}
-
-.currencyPillToken {
-  display: inline-flex;
-  align-items: center;
-  flex: 0 0 auto;
-  gap: 0.16rem;
-  color: var(--color-ink);
-  font-size: 0.92rem;
-  line-height: 1;
-}
-
-:global(html[data-theme="dark"]) .currencyPillToken {
-  color: var(--theme-text-primary);
-}
-
-.currencyPillTokenValue,
-.currencyPillTokenCode {
-  display: inline-flex;
-  align-items: center;
-  line-height: 1;
-}
-
-.currencyPillTokenValue {
-  font-weight: 600;
-}
-
-.currencyPillTokenCode {
-  color: var(--color-ink-soft);
-  font-size: 0.74rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-}
-
-:global(html[data-theme="dark"]) .currencyPillTokenCode,
 :global(html[data-theme="dark"]) .carryCapacityDivider,
 :global(html[data-theme="dark"]) .carryCapacityLimit {
   color: var(--theme-text-secondary);
-}
-
-.currencyPillTokenIcon {
-  block-size: 18px;
-  inline-size: 18px;
-  object-fit: contain;
 }
 
 .catalogModal {

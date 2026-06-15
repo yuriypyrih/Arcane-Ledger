@@ -13,6 +13,10 @@
   background: rgba(255, 252, 245, 0.78);
 }
 
+:global(html[data-theme="dark"]) .option {
+  background: var(--theme-surface-raised);
+}
+
 .overrideSection {
   display: grid;
   gap: 0.45rem;
@@ -25,6 +29,10 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+:global(html[data-theme="dark"]) .overrideSectionTitle {
+  color: var(--theme-text-secondary);
 }
 
 .overrideList {
@@ -47,8 +55,20 @@
     opacity 140ms ease;
 }
 
+:global(html[data-theme="dark"]) .overrideRow {
+  border: 1px solid var(--theme-border-subtle);
+  background: var(--theme-surface-raised);
+  color: var(--theme-text-primary);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
 .overrideRowSelected {
   background: rgba(255, 249, 240, 0.82);
+}
+
+:global(html[data-theme="dark"]) .overrideRowSelected {
+  border-color: var(--theme-border-medium);
+  background: rgba(156, 188, 255, 0.12);
 }
 
 .overrideRowDisabled {
@@ -71,9 +91,17 @@
   font-weight: 700;
 }
 
+:global(html[data-theme="dark"]) .advantageTone {
+  color: var(--theme-state-success);
+}
+
 .disadvantageTone {
   color: #a33f34;
   font-weight: 700;
+}
+
+:global(html[data-theme="dark"]) .disadvantageTone {
+  color: var(--theme-state-danger);
 }
 
 .normalTone {
@@ -81,7 +109,15 @@
   font-weight: 700;
 }
 
+:global(html[data-theme="dark"]) .normalTone {
+  color: var(--theme-accent-strong);
+}
+
 .criticalTone {
   color: var(--color-accent);
   font-weight: 800;
+}
+
+:global(html[data-theme="dark"]) .criticalTone {
+  color: var(--theme-state-warning);
 }

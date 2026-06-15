@@ -128,13 +128,7 @@ function AbilitySavingThrowCards({
                   {card.modifier}
                 </strong>
               </span>
-              <span
-                className={clsx(
-                  styles.valueWell,
-                  styles.saveWell,
-                  card.isSavingThrowProficient && styles.saveWellProficient
-                )}
-              >
+              <span className={clsx(styles.valueWell, styles.saveWell)}>
                 <span className={styles.valueLabel}>SAVE</span>
                 <span className={styles.saveValueRow}>
                   <strong

@@ -1,5 +1,7 @@
 .root {
   --sheet-surface-radius: var(--sheet-surface-radius-md);
+  --sheet-surface-border-color: var(--theme-border-medium);
+  --sheet-surface-hover-border-color: rgba(47, 120, 255, 0.54);
 
   position: relative;
   overflow: hidden;
@@ -35,6 +37,24 @@
 
 .borderXl {
   --sheet-surface-radius: var(--sheet-surface-radius-xl);
+}
+
+.borderStrong {
+  --sheet-surface-border-color: var(--theme-border-medium);
+  --sheet-surface-hover-border-color: rgba(47, 120, 255, 0.54);
+}
+
+.borderLight {
+  --sheet-surface-border-color: var(--theme-border-subtle);
+  --sheet-surface-hover-border-color: rgba(47, 120, 255, 0.32);
+}
+
+:global(html[data-theme="dark"]) .borderStrong {
+  --sheet-surface-hover-border-color: rgba(156, 188, 255, 0.54);
+}
+
+:global(html[data-theme="dark"]) .borderLight {
+  --sheet-surface-hover-border-color: rgba(156, 188, 255, 0.32);
 }
 
 .hoverTint {
@@ -80,13 +100,13 @@
 }
 
 .hasBorder {
-  border-color: var(--theme-border-medium);
+  border-color: var(--sheet-surface-border-color);
   background: var(--theme-surface-subtle-bordered);
 }
 
 .hasBorder.hoverTint:hover:not(:disabled),
 .hasBorder.hoverTint:focus-visible:not(:disabled),
 .hasBorder.hoverTint:focus-within:not(:disabled) {
-  border-color: rgba(47, 120, 255, 0.54);
+  border-color: var(--sheet-surface-hover-border-color);
   box-shadow: 0 4px 7px -8px rgba(0, 0, 0, 0.18);
 }

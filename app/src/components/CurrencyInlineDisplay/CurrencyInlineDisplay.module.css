@@ -16,3 +16,139 @@
   block-size: 1rem;
   object-fit: contain;
 }
+
+.balancePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: rgba(75, 47, 29, 0.1);
+  color: var(--color-ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.92rem;
+  min-height: 42px;
+  max-width: 100%;
+  padding: 0 0.86rem;
+  white-space: nowrap;
+  transition:
+    background-color 140ms ease,
+    box-shadow 140ms ease,
+    opacity 140ms ease;
+}
+
+.balancePill:hover:not(:disabled),
+.balancePill:focus-visible:not(:disabled) {
+  background: rgba(75, 47, 29, 0.14);
+}
+
+.balancePill:focus-visible {
+  outline: 2px solid var(--theme-focus-ring);
+  outline-offset: 2px;
+}
+
+.balancePill:disabled {
+  cursor: wait;
+  opacity: 0.58;
+}
+
+.balanceSummary {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0.62rem;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.balanceToken {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 0.16rem;
+  color: var(--color-ink);
+  font-size: 0.92rem;
+  line-height: 1;
+}
+
+.balanceTokenValue,
+.balanceTokenCode {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.balanceTokenValue {
+  font-weight: 600;
+}
+
+.balanceTokenCode {
+  color: var(--color-ink-soft);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.balanceTokenIcon {
+  block-size: 18px;
+  inline-size: 18px;
+  object-fit: contain;
+}
+
+:global(html[data-theme="dark"]) .balancePill {
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-primary);
+  box-shadow: inset 0 0 0 1px var(--theme-border-subtle);
+}
+
+:global(html[data-theme="dark"]) .balancePill:hover:not(:disabled),
+:global(html[data-theme="dark"]) .balancePill:focus-visible:not(:disabled) {
+  background: var(--theme-control-subtle-hover);
+  box-shadow: inset 0 0 0 1px var(--theme-border-medium);
+}
+
+:global(html[data-theme="dark"]) .balanceToken {
+  color: var(--theme-text-primary);
+}
+
+:global(html[data-theme="dark"]) .balanceTokenCode {
+  color: var(--theme-text-secondary);
+}
+
+@media (max-width: 599px) {
+  .balancePill {
+    min-height: 36px;
+    padding-inline: 0.62rem;
+  }
+
+  .balanceSummary {
+    gap: 0.5rem;
+  }
+
+  .balanceToken {
+    gap: 0.16rem;
+    font-size: 0.88rem;
+  }
+
+  .balanceTokenCode {
+    font-size: 0.7rem;
+  }
+
+  .balanceTokenIcon {
+    block-size: 16px;
+    inline-size: 16px;
+  }
+}
+
+@media (max-width: 520px) {
+  .balancePill {
+    white-space: normal;
+  }
+
+  .balanceSummary {
+    flex-wrap: wrap;
+    gap: 0.32rem 0.5rem;
+    white-space: normal;
+  }
+}

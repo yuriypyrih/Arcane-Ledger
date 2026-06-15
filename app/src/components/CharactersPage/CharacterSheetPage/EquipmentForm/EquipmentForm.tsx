@@ -22,7 +22,7 @@ import coinElectrumIcon from "../../../../assets/svg/coin-electrum.svg";
 import coinGoldIcon from "../../../../assets/svg/coin.svg";
 import coinPlatinumIcon from "../../../../assets/svg/coin-platinum.svg";
 import coinSilverIcon from "../../../../assets/svg/coin-silver.svg";
-import CurrencyInlineDisplay from "../../../CurrencyInlineDisplay";
+import CurrencyInlineDisplay, { CurrencyBalancePill } from "../../../CurrencyInlineDisplay";
 import { deferModalCommit, useExplicitBackdropClick } from "../../../Overlay";
 import NumberInput from "../../FormInputs/NumberInput";
 import RarityPill, { hasDisplayableRarity } from "../../../CodexPage/RarityPill";
@@ -190,7 +190,6 @@ import {
 import {
   createEquipmentRenderGroups,
   createHeldDescriptorForEntry,
-  formatCurrencyPillAmount,
   formatInventoryStackName,
   formatOnHandLabel,
   formatWeightValue,
@@ -2939,23 +2938,12 @@ function EquipmentForm({
         }
       />
     ) : null;
-  const currencyPillSummary = (
-    <span className={styles.currencyPillSummary}>
-      {currencyDefinitions.map((currency) => (
-        <span key={currency.key} className={styles.currencyPillToken}>
-          <img
-            src={currency.icon}
-            alt=""
-            className={styles.currencyPillTokenIcon}
-            aria-hidden="true"
-          />
-          <span className={styles.currencyPillTokenValue}>
-            {formatCurrencyPillAmount(normalizedCurrencies[currency.key])}
-          </span>
-          <span className={styles.currencyPillTokenCode}>{currency.code}</span>
-        </span>
-      ))}
-    </span>
+  const currencyPill = (
+    <CurrencyBalancePill
+      currencies={normalizedCurrencies}
+      className={styles.loadoutCurrencyPill}
+      onClick={openCurrencyModal}
+    />
   );
   const loadoutDrawerBackdropHandlers = useExplicitBackdropClick(closeLoadoutDrawer);
   const deleteCustomEquipmentBackdropHandlers = useExplicitBackdropClick(() =>
@@ -3015,7 +3003,7 @@ function EquipmentForm({
     clsx,
     currencyAmountDraft,
     currencyDefinitions,
-    currencyPillSummary,
+    currencyPill,
     customEditorMode,
     deleteCustomEquipment,
     editingInventoryStack,

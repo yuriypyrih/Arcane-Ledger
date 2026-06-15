@@ -6,7 +6,7 @@ export function renderEquipmentForm(context: Record<string, any>) {
     ActionButton, CellContainer, CircleHelp, CurrencyInlineDisplay, CustomEquipmentEditor, DestructiveConfirmationModal, ENTRY_CATEGORIES, EquipmentContainerManageModal, EquipmentGuideModal, EquipmentInventoryItemDrawer, EquipmentItemBrowserModal, Hand, InlineToggleButton, InventoryTagPill, KeywordReferenceDrawer, MasterChestModal,
     Minus, NumberInput, OverlayBody, OverlayCloseButton, OverlayEyebrow, OverlayFooter, OverlayHeader, OverlayHeaderContent, OverlaySummary, OverlayTitle, Pencil, Plus, RarityPill, SheetModal, Shield, Toolbox, WeaponMasteryStatusLabel, X, activeCurrencyDefinition, activeCurrencyKey,
     adjustCurrencyBalance, canSpendCurrency, carriedWeight, carryingCapacity, className, containerManagementInventoryItems, closeAddModal, closeContainerManagement, closeCustomEquipmentModal, closeInventoryItemDrawer, closeLoadoutDrawer,
-    clsx, currencyAmountDraft, currencyDefinitions, currencyPillSummary, customEditorMode, deleteCustomEquipment, editingInventoryStack, equipmentCharacter, equipmentRenderGroups, formatCodexLabel, formatCodexList,
+    clsx, currencyAmountDraft, currencyDefinitions, currencyPill, customEditorMode, deleteCustomEquipment, editingInventoryStack, equipmentCharacter, equipmentRenderGroups, formatCodexLabel, formatCodexList,
     formatEquipmentWeight, formatInventoryStackName, formatOnHandLabel, formatWeaponDamage, formatWeaponProperties, formatWeaponType, formatWeaponWeight, formatWeightValue, getArcaneArmorFeatureTagsForInventoryStack, getArmorTypeSummary, getInventoryItemChargesTagLabel, getInventoryItemConjuredRowTagLabel, getInventoryItemFeatureTagLabels, getInventoryItemStoredSpellRowTagLabel, getInventoryItemTotalWeightValue, getInventoryRowObjectTagLabel, getInventoryTagPillProps, getItemObjectTagLabel,
     groupedInventoryItems, hasCharacterItemMods, hasDisplayableRarity, inventoryDrawerBodyAfterItem, inventoryDrawerClassName, inventoryDrawerFooter, inventoryDrawerHeaderAction, inventoryDrawerHeaderContent, inventoryObjectCount, inventoryObjectLimitMessage, isAddModalCommitting, isAddModalOpen, isCurrencyDrawerOpen, characterSheetSizeBytes,
     isCustomEquipmentModalOpen, isEquipmentGuideOpen, isGeneralEquipmentExpanded, isHandEquippableEntry, isMasterChestOpen, isOverCarryingCapacity, isSelectedArmorWorn, isSelectedCustomEntry, isSelectedEntryOnHand, isSelectedFeatureManagedEntry, isSelectedShield, loadoutDrawerBackdropHandlers, managedContainerStack, managingContainerStackId,
@@ -55,13 +55,7 @@ export function renderEquipmentForm(context: Record<string, any>) {
             </SheetActionButton>
           </div>
         </div>
-        <button
-          type="button"
-          className={clsx(shared.currencyPill, styles.loadoutCurrencyPill)}
-          onClick={openCurrencyModal}
-        >
-          {currencyPillSummary}
-        </button>
+        {currencyPill}
         <div className={styles.loadoutTitleRow}>
           <h3 className={shared.subtitle}>Current loadout</h3>
           <div
@@ -288,7 +282,7 @@ export function renderEquipmentForm(context: Record<string, any>) {
       <EquipmentItemBrowserModal
         isOpen={isAddModalOpen}
         isClosing={isAddModalCommitting}
-        currencySummary={currencyPillSummary}
+        currencies={normalizedCurrencies}
         onClose={closeAddModal}
         onOpenCurrencyModal={openCurrencyModal}
         onOpenCustomEquipmentCreator={openCustomEquipmentCreator}

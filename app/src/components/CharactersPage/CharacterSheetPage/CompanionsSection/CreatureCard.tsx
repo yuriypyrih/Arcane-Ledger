@@ -5,6 +5,7 @@ import EnemyIcon from "../../../../assets/svg/enemy.svg";
 import type { CharacterCompanion } from "../../../../types";
 import { getMonsterArmorClass } from "../../../../utils/monsters";
 import { normalizeTemporaryHitPoints } from "../GameplayForm/gameplayStateUtils";
+import SheetSurface from "../SheetSurface";
 import { getCompanionDisplayType } from "./companionUtils";
 import styles from "./CreatureCard.module.css";
 
@@ -64,7 +65,7 @@ function CreatureCard({
   const isModified = creature.inheritedCreatureEntryModified === true;
 
   return (
-    <article className={styles.card}>
+    <SheetSurface as="article" borderSize="lg" hasBorder hoverBorder className={styles.card}>
       <button
         type="button"
         className={styles.portraitButton}
@@ -168,7 +169,7 @@ function CreatureCard({
           </span>
         </span>
       </span>
-    </article>
+    </SheetSurface>
   );
 }
 

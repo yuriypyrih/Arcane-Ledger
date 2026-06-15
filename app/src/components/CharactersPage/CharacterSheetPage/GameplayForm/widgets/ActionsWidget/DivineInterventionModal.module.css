@@ -21,6 +21,10 @@
   text-transform: uppercase;
 }
 
+:global(html[data-theme="dark"]) .divineInterventionTabLabel {
+  color: var(--theme-text-secondary);
+}
+
 .divineInterventionTabList {
   display: flex;
   gap: 0.35rem;
@@ -45,6 +49,19 @@
   padding: 0.45rem 0.5rem;
 }
 
+:global(html[data-theme="dark"]) .divineInterventionTabButton {
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-surface-panel);
+  color: var(--theme-text-secondary);
+}
+
+:global(html[data-theme="dark"]) .divineInterventionTabButton:hover:not(:disabled),
+:global(html[data-theme="dark"]) .divineInterventionTabButton:focus-visible:not(:disabled) {
+  border-color: var(--theme-border-medium);
+  background: var(--theme-surface-raised);
+  color: var(--theme-text-primary);
+}
+
 .divineInterventionTabButton:disabled {
   cursor: not-allowed;
   opacity: 0.48;
@@ -54,6 +71,14 @@
   background: rgba(47, 120, 255, 0.12);
   border-color: rgba(47, 120, 255, 0.38);
   color: var(--color-ink);
+}
+
+:global(html[data-theme="dark"]) .divineInterventionTabButtonActive,
+:global(html[data-theme="dark"]) .divineInterventionTabButtonActive:hover,
+:global(html[data-theme="dark"]) .divineInterventionTabButtonActive:focus-visible {
+  border-color: rgba(156, 188, 255, 0.42);
+  background: rgba(156, 188, 255, 0.12);
+  color: var(--theme-accent-strong);
 }
 
 .divineInterventionList {

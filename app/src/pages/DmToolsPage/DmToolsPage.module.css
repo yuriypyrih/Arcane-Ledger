@@ -20,7 +20,8 @@
   justify-self: start;
   border: 1px solid var(--theme-border-subtle);
   border-radius: var(--radius-pill);
-  background: var(--theme-control-subtle);
+  background: linear-gradient(180deg, rgba(255, 253, 248, 0.98), rgba(248, 239, 226, 0.96));
+  box-shadow: 0 6px 14px rgba(54, 34, 21, 0.07);
   color: var(--theme-text-secondary);
   cursor: pointer;
   font: inherit;
@@ -34,13 +35,29 @@
 .backButton:hover,
 .backButton:focus-visible {
   border-color: var(--theme-border-medium);
-  background: var(--theme-control-subtle-hover);
+  background: linear-gradient(180deg, rgba(255, 255, 252, 0.99), rgba(242, 231, 216, 0.98));
   color: var(--theme-text-primary);
 }
 
 .backButton:focus-visible {
   outline: 2px solid var(--theme-focus-ring);
   outline-offset: 2px;
+}
+
+:global(html[data-theme="dark"]) .backButton {
+  border-color: var(--theme-border-medium);
+  background: linear-gradient(180deg, rgba(42, 47, 55, 0.98), rgba(31, 35, 42, 0.98));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 8px 18px rgba(0, 0, 0, 0.22);
+  color: var(--theme-text-secondary);
+}
+
+:global(html[data-theme="dark"]) .backButton:hover,
+:global(html[data-theme="dark"]) .backButton:focus-visible {
+  border-color: rgba(221, 230, 242, 0.24);
+  background: linear-gradient(180deg, rgba(50, 56, 65, 0.98), rgba(36, 41, 49, 0.98));
+  color: var(--theme-text-primary);
 }
 
 .header,
@@ -168,6 +185,24 @@
   --tool-signature-rgb: 216, 74, 43;
 }
 
+:global(html[data-theme="dark"]) .toolToneCampaign {
+  --tool-signature: #8fb0ee;
+  --tool-signature-strong: #c2d3ff;
+  --tool-signature-rgb: 143, 176, 238;
+}
+
+:global(html[data-theme="dark"]) .toolToneParty {
+  --tool-signature: #7fcf94;
+  --tool-signature-strong: #b3e4c0;
+  --tool-signature-rgb: 127, 207, 148;
+}
+
+:global(html[data-theme="dark"]) .toolToneEncounter {
+  --tool-signature: #e68475;
+  --tool-signature-strong: #f1b1a8;
+  --tool-signature-rgb: 230, 132, 117;
+}
+
 .tabRow {
   display: flex;
   align-items: flex-end;
@@ -243,6 +278,57 @@
 
 .tabButtonActive::after {
   height: 4px;
+  background: var(--tool-signature, var(--theme-accent));
+}
+
+:global(html[data-theme="dark"]) .tabButton {
+  border-color: rgba(var(--tool-signature-rgb, 156, 188, 255), 0.24);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.04)),
+    var(--theme-surface-panel);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  color: var(--theme-text-secondary);
+}
+
+:global(html[data-theme="dark"]) .tabButton::after {
+  background: rgba(var(--tool-signature-rgb, 156, 188, 255), 0.38);
+}
+
+:global(html[data-theme="dark"]) .tabButton:hover,
+:global(html[data-theme="dark"]) .tabButton:focus-visible {
+  border-color: rgba(var(--tool-signature-rgb, 156, 188, 255), 0.34);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(var(--tool-signature-rgb, 156, 188, 255), 0.08),
+      rgba(255, 255, 255, 0.05)
+    ),
+    var(--theme-surface-panel);
+  color: var(--theme-text-primary);
+}
+
+:global(html[data-theme="dark"]) .tabButton:hover::after,
+:global(html[data-theme="dark"]) .tabButton:focus-visible::after {
+  background: rgba(var(--tool-signature-rgb, 156, 188, 255), 0.52);
+}
+
+:global(html[data-theme="dark"]) .tabButtonActive {
+  border-color: rgba(var(--tool-signature-rgb, 156, 188, 255), 0.38);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(var(--tool-signature-rgb, 156, 188, 255), 0.1),
+      rgba(255, 255, 255, 0.055)
+    ),
+    var(--theme-surface-raised);
+  box-shadow:
+    0 -1px 0 rgba(var(--tool-signature-rgb, 156, 188, 255), 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    var(--theme-section-shadow);
+  color: var(--theme-text-primary);
+}
+
+:global(html[data-theme="dark"]) .tabButtonActive::after {
   background: var(--tool-signature, var(--theme-accent));
 }
 
@@ -554,21 +640,24 @@
 }
 
 .dmToolsListCardCampaign .dmToolsListCardIcon {
-  background: rgba(47, 120, 255, 0.13);
-  box-shadow: inset 0 0 0 1px rgba(47, 120, 255, 0.12);
-  color: #1d4ed8;
+  border-color: rgba(47, 120, 255, 0.22);
+  background: rgba(47, 120, 255, 0.18);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42);
+  color: #1744c7;
 }
 
 .dmToolsListCardParty .dmToolsListCardIcon {
-  background: rgba(31, 157, 85, 0.14);
-  box-shadow: inset 0 0 0 1px rgba(31, 157, 85, 0.12);
-  color: #15733f;
+  border-color: rgba(31, 157, 85, 0.22);
+  background: rgba(31, 157, 85, 0.18);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42);
+  color: #116735;
 }
 
 .dmToolsListCardEncounter .dmToolsListCardIcon {
-  background: rgba(216, 74, 43, 0.14);
-  box-shadow: inset 0 0 0 1px rgba(216, 74, 43, 0.13);
-  color: #a9361f;
+  border-color: rgba(216, 74, 43, 0.24);
+  background: rgba(216, 74, 43, 0.18);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42);
+  color: #96301b;
 }
 
 .dmToolsListCardDanger {
@@ -577,7 +666,8 @@
 }
 
 .dmToolsListCardDanger .dmToolsListCardIcon {
-  background: rgba(150, 47, 47, 0.12);
+  border-color: rgba(150, 47, 47, 0.24);
+  background: rgba(150, 47, 47, 0.18);
   color: #8d2e2e;
 }
 
@@ -629,9 +719,48 @@ button.dmToolsListCardMain:disabled {
   place-items: center;
   width: 40px;
   aspect-ratio: 1;
+  border: 1px solid transparent;
   border-radius: var(--radius-control);
   background: var(--theme-control-subtle);
   color: var(--theme-accent);
+}
+
+:global(html[data-theme="dark"]) .dmToolsListCardIcon {
+  background: var(--theme-surface-muted);
+  color: var(--theme-accent-strong);
+}
+
+:global(html[data-theme="dark"]) .dmToolsListCardCampaign .dmToolsListCardIcon {
+  border-color: rgba(143, 176, 238, 0.34);
+  background: rgba(143, 176, 238, 0.2);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.075),
+    0 0 18px rgba(143, 176, 238, 0.08);
+  color: #d4e0ff;
+}
+
+:global(html[data-theme="dark"]) .dmToolsListCardParty .dmToolsListCardIcon {
+  border-color: rgba(127, 207, 148, 0.34);
+  background: rgba(127, 207, 148, 0.2);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.075),
+    0 0 18px rgba(127, 207, 148, 0.08);
+  color: #cef0d8;
+}
+
+:global(html[data-theme="dark"]) .dmToolsListCardEncounter .dmToolsListCardIcon {
+  border-color: rgba(230, 132, 117, 0.34);
+  background: rgba(230, 132, 117, 0.2);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.075),
+    0 0 18px rgba(230, 132, 117, 0.08);
+  color: #ffd4cc;
+}
+
+:global(html[data-theme="dark"]) .dmToolsListCardDanger .dmToolsListCardIcon {
+  border-color: rgba(232, 116, 102, 0.34);
+  background: rgba(232, 116, 102, 0.18);
+  color: #ffc9c1;
 }
 
 .dmToolsListCardMainText {

@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { History, Minus, MoveLeft, MoveRight, Package, Plus, Save } from "lucide-react";
 import { Fragment, useEffect, useMemo, useState, type ReactNode } from "react";
 import ActionButton from "../../../ActionButton";
+import { CurrencyBalancePill } from "../../../CurrencyInlineDisplay";
 import {
   ApiRequestFailedError,
   getPartyGroupMasterChest,
@@ -622,29 +623,12 @@ function CurrencyPill({
   onClick: () => void;
 }) {
   return (
-    <button
-      type="button"
-      className={clsx(styles.currencyPill, disabled && styles.currencyPillDisabled)}
+    <CurrencyBalancePill
+      currencies={currencies}
+      className={styles.masterChestCurrencyPill}
       disabled={disabled}
       onClick={onClick}
-    >
-      <span className={styles.currencyPillSummary}>
-        {currencyDefinitions.map((currency) => (
-          <span key={currency.key} className={styles.currencyPillToken}>
-            <img
-              src={currency.icon}
-              alt=""
-              className={styles.currencyPillTokenIcon}
-              aria-hidden="true"
-            />
-            <span className={styles.currencyPillTokenValue}>
-              {formatCurrencyPillAmount(currencies[currency.key] ?? 0)}
-            </span>
-            <span className={styles.currencyPillTokenCode}>{currency.code}</span>
-          </span>
-        ))}
-      </span>
-    </button>
+    />
   );
 }
 

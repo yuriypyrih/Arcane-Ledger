@@ -5,6 +5,7 @@ import {
   formatDivinitySubtitle,
   formatSpellCastingTimeSummary
 } from "../../utils/codex";
+import SheetSurface from "../CharactersPage/CharacterSheetPage/SheetSurface";
 import styles from "../SpellListRow/SpellListRow.module.css";
 
 type DivinityListRowProps = {
@@ -42,7 +43,16 @@ function DivinityListRow({
   const metaText = formatDivinityRowMeta(divinity, actionShape !== null);
 
   return (
-    <button type="button" className={clsx(styles.button, className)} onClick={onClick}>
+    <SheetSurface
+      as="button"
+      type="button"
+      borderSize="md"
+      borderStrength="light"
+      hasBorder
+      hoverBorder
+      className={clsx(styles.button, className)}
+      onClick={onClick}
+    >
       <div className={styles.contentRow}>
         <div className={styles.primaryBlock}>
           <span className={styles.name}>{divinity.name}</span>
@@ -62,7 +72,7 @@ function DivinityListRow({
           {metaText ? <small className={styles.meta}>{metaText}</small> : null}
         </span>
       </div>
-    </button>
+    </SheetSurface>
   );
 }
 

@@ -68,8 +68,13 @@
 
 .viewportStage {
   height: clamp(210px, 36vh, 400px);
+  border: 1px solid rgba(75, 47, 29, 0.14);
   border-radius: var(--radius-field);
   overflow: hidden;
+}
+
+:global(html[data-theme="dark"]) .viewportStage {
+  border-color: var(--theme-border-subtle);
 }
 
 .viewportFallback {
@@ -111,7 +116,9 @@
 
 :global(html[data-theme="dark"]) .resultPanel,
 :global(html[data-theme="dark"]) .multiResultPanel {
+  border: 1px solid var(--theme-border-subtle);
   background: rgba(255, 255, 255, 0.055);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
 }
 
 .resultLabel {
@@ -122,11 +129,20 @@
   text-transform: uppercase;
 }
 
+:global(html[data-theme="dark"]) .resultLabel {
+  color: var(--theme-text-secondary);
+}
+
 .resultValue {
   color: var(--color-ink);
   font-family: "Palatino Linotype", "Book Antiqua", Georgia, serif;
   font-size: clamp(2.6rem, 11vw, 6.4rem);
   line-height: 1;
+}
+
+:global(html[data-theme="dark"]) .resultValue,
+:global(html[data-theme="dark"]) .multiResultSummary {
+  color: var(--theme-text-primary);
 }
 
 .multiResultSummary {
@@ -165,11 +181,19 @@
   text-transform: uppercase;
 }
 
+:global(html[data-theme="dark"]) .multiResultCardLabel {
+  color: var(--theme-text-secondary);
+}
+
 .multiResultCardValue {
   color: var(--color-ink);
   font-family: "Palatino Linotype", "Book Antiqua", Georgia, serif;
   font-size: clamp(2rem, 7vw, 3.2rem);
   line-height: 1;
+}
+
+:global(html[data-theme="dark"]) .multiResultCardValue {
+  color: var(--theme-text-primary);
 }
 
 .naturalOutcomePill {
@@ -238,6 +262,10 @@
   overflow-wrap: anywhere;
 }
 
+:global(html[data-theme="dark"]) .breakdown {
+  color: var(--theme-text-muted);
+}
+
 .resultBreakdown {
   max-width: min(100%, 34rem);
 }
@@ -262,6 +290,10 @@
   color: var(--color-ink-soft);
   font-size: 0.92rem;
   text-align: center;
+}
+
+:global(html[data-theme="dark"]) .pendingText {
+  color: var(--theme-text-secondary);
 }
 
 @keyframes diceDrawerDrop {

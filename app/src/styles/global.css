@@ -25,7 +25,7 @@
   --theme-app-backdrop-size: auto, cover;
   --theme-text-primary: #24150f;
   --theme-text-secondary: #5f3f2c;
-  --theme-text-muted: rgba(95, 63, 44, 0.72);
+  --theme-text-muted: rgba(95, 63, 44, 0.76);
   --theme-text-disabled: rgba(75, 47, 29, 0.48);
   --theme-accent: #a24d2d;
   --theme-accent-strong: #8f4d1f;
@@ -112,7 +112,7 @@
   --theme-app-backdrop-size: cover;
   --theme-text-primary: #eef1f4;
   --theme-text-secondary: #c2c8cf;
-  --theme-text-muted: #8f98a3;
+  --theme-text-muted: #97a0aa;
   --theme-text-disabled: rgba(194, 200, 207, 0.46);
   --theme-accent: #9cbcff;
   --theme-accent-strong: #c2d3ff;

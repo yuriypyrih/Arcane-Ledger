@@ -1,5 +1,6 @@
 import { Plus } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { CurrencyBalancePill } from "../../../CurrencyInlineDisplay";
 import ItemBrowserFilters from "../../../ItemBrowser";
 import { sanitizeItemBrowserScopedFilters } from "../../../ItemBrowser/itemBrowser";
 import ItemCodexTable from "../../../CodexPage/ItemCodexTable";
@@ -15,6 +16,7 @@ import { useItemEntries } from "../../../../pages/CodexPage/useItemEntries";
 import { useItemFilterOptions } from "../../../../pages/CodexPage/useItemFilterOptions";
 import {
   DEFAULT_ITEM_BROWSER_TAB,
+  type CharacterCurrencies,
   type ItemArmorType,
   type ItemAttackType,
   type ItemBrowserTab,
@@ -27,7 +29,7 @@ import styles from "./EquipmentItemBrowserModal.module.css";
 type EquipmentItemBrowserModalProps = {
   isOpen: boolean;
   isClosing?: boolean;
-  currencySummary: ReactNode;
+  currencies: CharacterCurrencies;
   onClose: () => void;
   onOpenCurrencyModal: () => void;
   onOpenCustomEquipmentCreator: () => void;
@@ -37,7 +39,7 @@ type EquipmentItemBrowserModalProps = {
 function EquipmentItemBrowserModal({
   isOpen,
   isClosing = false,
-  currencySummary,
+  currencies,
   onClose,
   onOpenCurrencyModal,
   onOpenCustomEquipmentCreator,
@@ -187,14 +189,11 @@ function EquipmentItemBrowserModal({
         </OverlayHeaderContent>
         <div className={styles.headerControlCluster}>
           <div className={styles.headerActions}>
-            <button
-              type="button"
-              className={styles.currencyButton}
+            <CurrencyBalancePill
+              currencies={currencies}
               onClick={onOpenCurrencyModal}
               disabled={isClosing}
-            >
-              {currencySummary}
-            </button>
+            />
             <button
               type="button"
               className={styles.customButton}

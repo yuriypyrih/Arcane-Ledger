@@ -6,6 +6,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import EnemyIcon from "../../assets/svg/enemy.svg";
 import { DefaultCharacterPortraitIcon } from "../../components/CharactersPage/CharacterPortrait";
 import HitPointBar from "../../components/CharactersPage/CharacterSheetPage/HitPointControls/HitPointBar";
+import SheetSurface from "../../components/CharactersPage/CharacterSheetPage/SheetSurface";
 import { getCompanionDisplayType } from "../../components/CharactersPage/CharacterSheetPage/CompanionsSection/companionUtils";
 import type {
   CampaignLiveEncounterTrackerCreatureRecord,
@@ -346,9 +347,11 @@ function ParticipantCardFrame({
   const hasInitiativeOrderNumber = typeof initiativeOrderNumber === "number";
 
   const card = (
-    <article
-      ref={hasInitiativeOrderNumber ? undefined : cardRef}
-      style={hasInitiativeOrderNumber ? undefined : cardStyle}
+    <SheetSurface
+      as="article"
+      borderSize="xm"
+      hasBorder
+      hoverBorder
       className={clsx(
         styles.card,
         isInInitiative && !readOnly && styles.cardInInitiative,
@@ -402,11 +405,15 @@ function ParticipantCardFrame({
           )}
         </button>
       ) : null}
-    </article>
+    </SheetSurface>
   );
 
   if (!hasInitiativeOrderNumber) {
-    return card;
+    return (
+      <div ref={cardRef} style={cardStyle} className={styles.cardDragFrame}>
+        {card}
+      </div>
+    );
   }
 
   return (
