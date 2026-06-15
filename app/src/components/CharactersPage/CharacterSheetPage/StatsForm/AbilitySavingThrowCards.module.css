@@ -25,7 +25,7 @@
       rgba(255, 248, 236, 0.3) 100%
     ),
     linear-gradient(135deg, rgba(145, 101, 54, 0.08), rgba(145, 101, 54, 0.02)),
-    url("../../../../assets/img/paper-background.webp");
+    var(--theme-paper-background-image);
   background-position: center, center, center;
   background-repeat: no-repeat;
   background-size:
@@ -40,6 +40,24 @@
   font: inherit;
   padding: 0.68rem 0.72rem 0.78rem;
   text-align: center;
+}
+
+:global(html[data-theme="dark"]) .card {
+  border-color: var(--theme-border-medium);
+  background:
+    linear-gradient(
+      140deg,
+      rgba(18, 20, 24, 0.32) 0%,
+      rgba(22, 24, 29, 0.24) 68%,
+      rgba(18, 20, 24, 0.1) 100%
+    ),
+    linear-gradient(135deg, rgba(156, 188, 255, 0.04), rgba(156, 188, 255, 0.01)),
+    var(--theme-paper-background-image);
+  background-color: #111318;
+  background-position: center, center, center;
+  background-repeat: no-repeat;
+  background-size: auto, auto, 155% auto;
+  color: var(--theme-text-primary);
 }
 
 .staticCard {
@@ -76,6 +94,10 @@
   line-height: 1;
 }
 
+:global(html[data-theme="dark"]) .abilityLabel {
+  color: var(--theme-text-primary);
+}
+
 .scoreChip {
   display: inline-grid;
   place-items: center;
@@ -88,6 +110,13 @@
   font-size: 0.84rem;
   font-weight: 950;
   line-height: 1;
+}
+
+:global(html[data-theme="dark"]) .scoreChip,
+:global(html[data-theme="dark"]) .scoreChipPrimary {
+  border-color: var(--theme-border-medium);
+  background: var(--theme-surface-muted);
+  color: var(--theme-text-secondary);
 }
 
 .scoreChipPrimary {
@@ -138,6 +167,15 @@
   padding: 0.42rem 0.24rem 0.4rem;
 }
 
+:global(html[data-theme="dark"]) .valueWell,
+:global(html[data-theme="dark"]) .modifierWell,
+:global(html[data-theme="dark"]) .saveWell,
+:global(html[data-theme="dark"]) .saveWellProficient {
+  border-color: var(--theme-border-subtle);
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
 .modifierWell {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 255, 255, 0.46)),
@@ -153,12 +191,22 @@
   background: rgba(255, 255, 255, 0.56);
 }
 
+:global(html[data-theme="dark"]) .saveWellProficient {
+  border-color: var(--theme-border-subtle);
+  background: rgba(196, 167, 255, 0.045);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
 .valueLabel {
   color: rgba(47, 32, 22, 0.72);
   font-size: 0.58rem;
   font-weight: 900;
   letter-spacing: 0;
   line-height: 1;
+}
+
+:global(html[data-theme="dark"]) .valueLabel {
+  color: var(--theme-text-muted);
 }
 
 .value {
@@ -170,6 +218,11 @@
   line-height: 1.05;
   text-align: center;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.76);
+}
+
+:global(html[data-theme="dark"]) .value {
+  color: var(--theme-text-primary);
+  text-shadow: none;
 }
 
 :global(html.broad-layout-lg-compact) .gridBroad .value {
@@ -194,7 +247,11 @@
 }
 
 .saveValueProficient {
-  color: #6f2bc5;
+  color: var(--theme-proficiency-color);
+}
+
+:global(html[data-theme="dark"]) .saveValueProficient {
+  color: var(--theme-proficiency-color);
 }
 
 .combinedRollStateRow {

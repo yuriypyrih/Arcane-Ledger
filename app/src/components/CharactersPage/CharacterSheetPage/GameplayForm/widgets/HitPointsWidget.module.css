@@ -34,6 +34,22 @@
   border-color: rgba(47, 109, 224, 0.48);
 }
 
+:global(html[data-theme="dark"]) .ledgerButtonActive {
+  background: rgba(156, 188, 255, 0.18);
+  border-color: rgba(156, 188, 255, 0.42);
+  color: var(--theme-accent-strong);
+  box-shadow:
+    0 0 0 1px rgba(156, 188, 255, 0.1),
+    0 0 12px rgba(95, 146, 255, 0.18),
+    0 0 20px rgba(47, 109, 224, 0.12);
+  animation-name: ledgerButtonPulseDark;
+}
+
+:global(html[data-theme="dark"]) .ledgerButtonActive:hover {
+  background: rgba(156, 188, 255, 0.24);
+  border-color: rgba(156, 188, 255, 0.52);
+}
+
 .header {
   align-items: flex-start;
 }
@@ -77,5 +93,22 @@
       0 0 0 2px rgba(47, 109, 224, 0.16),
       0 0 16px rgba(74, 142, 255, 0.36),
       0 0 24px rgba(32, 112, 210, 0.2);
+  }
+}
+
+@keyframes ledgerButtonPulseDark {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px rgba(156, 188, 255, 0.08),
+      0 0 10px rgba(95, 146, 255, 0.16),
+      0 0 18px rgba(47, 109, 224, 0.1);
+  }
+
+  50% {
+    box-shadow:
+      0 0 0 2px rgba(156, 188, 255, 0.14),
+      0 0 16px rgba(95, 146, 255, 0.26),
+      0 0 24px rgba(47, 109, 224, 0.16);
   }
 }

@@ -9,7 +9,7 @@
 .cardOrderNumber {
   align-self: center;
   justify-self: start;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-muted);
   font-size: 0.8rem;
   font-weight: 800;
   line-height: 1;
@@ -31,12 +31,12 @@
     var(--live-tracker-card-action-size);
   gap: 0.48rem;
   min-height: 64px;
-  border: 1px solid rgba(75, 47, 29, 0.14);
+  border: 1px solid var(--theme-border-subtle);
   border-radius: 7px;
-  background: rgba(251, 242, 230, 0.86);
-  color: var(--color-ink);
+  background: var(--theme-surface-panel);
+  color: var(--theme-text-primary);
   padding: 0.5rem;
-  box-shadow: 0 8px 18px rgba(54, 34, 21, 0.04);
+  box-shadow: var(--theme-section-shadow);
   transition:
     border-color 140ms ease,
     box-shadow 140ms ease;
@@ -75,8 +75,8 @@
   min-height: 100%;
   border: none;
   border-radius: 6px;
-  background: rgba(75, 47, 29, 0.09);
-  color: var(--color-ink-soft);
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-muted);
   cursor: grab;
   padding: 0;
   touch-action: none;
@@ -88,14 +88,14 @@
 
 .dragHandle:hover,
 .dragHandle:focus-visible {
-  background: rgba(75, 47, 29, 0.15);
-  color: var(--color-ink);
+  background: var(--theme-control-subtle-hover);
+  color: var(--theme-text-primary);
 }
 
 .dragHandle:focus-visible,
 .moveButton:focus-visible,
 .contentButton:focus-visible {
-  outline: 2px solid rgba(47, 120, 255, 0.34);
+  outline: 2px solid var(--theme-focus-ring);
   outline-offset: 2px;
 }
 
@@ -180,19 +180,19 @@ label.portraitControl {
   justify-self: end;
   width: var(--live-tracker-card-action-size);
   aspect-ratio: 1;
-  border: 1px solid rgba(75, 47, 29, 0.12);
+  border: 1px solid var(--theme-border-subtle);
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.48);
-  color: var(--color-ink-soft);
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-muted);
   cursor: pointer;
   padding: 0;
 }
 
 .moveButton:hover,
 .moveButton:focus-visible {
-  border-color: rgba(162, 77, 45, 0.28);
-  background: rgba(162, 77, 45, 0.1);
-  color: var(--color-accent);
+  border-color: var(--theme-border-medium);
+  background: var(--theme-control-subtle-hover);
+  color: var(--theme-accent);
 }
 
 .titleRow {
@@ -209,7 +209,7 @@ label.portraitControl {
 }
 
 .title {
-  color: var(--color-ink);
+  color: var(--theme-text-primary);
   font-size: 0.9rem;
   font-weight: 800;
   line-height: 1.2;
@@ -217,14 +217,14 @@ label.portraitControl {
 
 .type,
 .status {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-muted);
   font-size: 0.78rem;
 }
 
 .vitalsRow {
   display: inline-flex;
   align-items: center;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-muted);
   flex-wrap: wrap;
   font-size: 0.78rem;
   gap: 0.22rem;

@@ -13,6 +13,11 @@
   line-height: 1.5;
 }
 
+:global(html[data-theme="dark"]) .sectionText,
+:global(html[data-theme="dark"]) .spellSlotLabel {
+  color: var(--theme-text-secondary);
+}
+
 .spellSlotLabel {
   display: inline-flex;
   align-items: center;

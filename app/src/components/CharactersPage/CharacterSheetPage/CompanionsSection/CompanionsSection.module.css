@@ -37,6 +37,10 @@
   border-top: 1px solid rgba(75, 47, 29, 0.1);
 }
 
+:global(html[data-theme="dark"]) .editorFooter {
+  border-top-color: var(--theme-divider);
+}
+
 .editorFooterActions {
   display: grid;
   gap: 0.7rem;

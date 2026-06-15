@@ -65,6 +65,7 @@ import {
   formatFormulaTerms
 } from "../../../../pages/CharactersPage/shared";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import SheetActionButton from "../SheetActionButton";
 import AbilitySavingThrowCards, { type SavingThrowBonusEntry } from "./AbilitySavingThrowCards";
 import AbilityReferenceFooter from "./AbilityReferenceFooter";
 import AbilityScoresModal from "./AbilityScoresModal";
@@ -755,10 +756,10 @@ function CharacterStatsForm({
             <span className={styles.groupTitleDivider} aria-hidden="true" />
             <span>Saving Throws</span>
           </h3>
-          <button type="button" className={shared.editButton} onClick={openAbilityEditor}>
+          <SheetActionButton onClick={openAbilityEditor}>
             <Pencil size={16} />
             Edit
-          </button>
+          </SheetActionButton>
         </div>
 
         <AbilitySavingThrowCards

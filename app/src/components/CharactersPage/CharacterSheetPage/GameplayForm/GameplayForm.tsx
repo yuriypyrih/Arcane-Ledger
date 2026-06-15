@@ -26,6 +26,7 @@ import {
   getWeaponMasterLongRestDescriptionAdditionsForCharacter
 } from "../../../../pages/CharactersPage/feats/runtime";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import SheetActionButton from "../SheetActionButton";
 import styles from "./GameplayForm.module.css";
 import BardicInspirationWidget from "./widgets/BardicInspirationWidget";
 import DivinityPointsWidget from "./widgets/DivinityPointsWidget";
@@ -301,9 +302,8 @@ function GameplayForm({
             </button>
           </div>
           {partyMembership ? (
-            <button
-              type="button"
-              className={clsx(shared.editButton, styles.partyModeButton)}
+            <SheetActionButton
+              className={styles.partyModeButton}
               onClick={() => setIsPartyMode((currentMode) => !currentMode)}
               aria-label={isPartyMode ? "Return to gameplay" : "View party initiative"}
               title={isPartyMode ? "Return to gameplay" : "View party initiative"}
@@ -314,7 +314,7 @@ function GameplayForm({
                 <Users size={16} aria-hidden="true" />
               )}
               <span>{isPartyMode ? "Back" : "Party"}</span>
-            </button>
+            </SheetActionButton>
           ) : null}
         </div>
         <div

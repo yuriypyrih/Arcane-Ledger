@@ -370,12 +370,21 @@ button.syncStatusBadge:focus-visible {
 
 .accountMenuHeader {
   display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
   gap: 0.16rem;
   padding: 0.78rem 0.86rem;
   border-bottom: 1px solid rgba(94, 62, 39, 0.16);
 }
 
-.accountMenuHeader strong {
+.accountIdentity {
+  display: grid;
+  gap: 0.16rem;
+  min-width: 0;
+  padding-right: 0.75rem;
+}
+
+.accountIdentity strong {
   color: #2f1b12;
   font-size: 0.86rem;
   line-height: 1.25;
@@ -388,6 +397,32 @@ button.syncStatusBadge:focus-visible {
   font-weight: 800;
   letter-spacing: 0.07em;
   text-transform: uppercase;
+}
+
+.accountThemeToggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid rgba(94, 62, 39, 0.16);
+  border-radius: var(--radius-pill);
+  background: rgba(75, 47, 29, 0.08);
+  color: #2f1b12;
+  cursor: pointer;
+  padding: 0;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.accountThemeToggle:hover,
+.accountThemeToggle:focus-visible {
+  border-color: rgba(94, 62, 39, 0.28);
+  background: rgba(143, 91, 56, 0.13);
+  outline: none;
 }
 
 .accountMenuItem {
@@ -411,6 +446,44 @@ button.syncStatusBadge:focus-visible {
 .accountMenuItem:focus-visible {
   background: rgba(143, 91, 56, 0.1);
   outline: none;
+}
+
+:global(html[data-theme="dark"]) .accountMenu {
+  border-color: var(--theme-border-medium);
+  background: var(--theme-overlay-surface);
+  box-shadow: var(--theme-overlay-shadow);
+  color: var(--theme-text-primary);
+}
+
+:global(html[data-theme="dark"]) .accountMenuHeader {
+  border-bottom-color: var(--theme-divider);
+}
+
+:global(html[data-theme="dark"]) .accountIdentity strong,
+:global(html[data-theme="dark"]) .accountMenuItem,
+:global(html[data-theme="dark"]) .accountThemeToggle {
+  color: var(--theme-text-primary);
+}
+
+:global(html[data-theme="dark"]) .accountMenuKicker {
+  color: var(--theme-text-muted);
+}
+
+:global(html[data-theme="dark"]) .accountThemeToggle {
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-control-subtle);
+}
+
+:global(html[data-theme="dark"]) .accountThemeToggle:hover,
+:global(html[data-theme="dark"]) .accountThemeToggle:focus-visible {
+  border-color: var(--theme-border-medium);
+  background: var(--theme-control-subtle-hover);
+  box-shadow: 0 0 0 2px var(--theme-focus-ring);
+}
+
+:global(html[data-theme="dark"]) .accountMenuItem:hover,
+:global(html[data-theme="dark"]) .accountMenuItem:focus-visible {
+  background: var(--theme-control-subtle-hover);
 }
 
 @media (min-width: 1200px) {

@@ -1,6 +1,6 @@
 .copy {
   margin: 0;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-muted);
   line-height: 1.55;
 }
 
@@ -10,7 +10,7 @@
 }
 
 .fieldLabel {
-  color: var(--color-ink);
+  color: var(--theme-text-primary);
   font-size: 0.82rem;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -21,10 +21,10 @@
 .linkValue {
   width: 100%;
   min-height: 44px;
-  border: 1px solid rgba(75, 47, 29, 0.2);
+  border: 1px solid var(--theme-border-medium);
   border-radius: var(--radius-control);
-  background: rgba(255, 255, 255, 0.58);
-  color: var(--color-ink);
+  background: var(--theme-surface-raised);
+  color: var(--theme-text-primary);
   font: inherit;
 }
 
@@ -35,7 +35,7 @@
 
 .linkInput:focus-visible {
   border-color: rgba(47, 120, 255, 0.55);
-  outline: 3px solid rgba(47, 120, 255, 0.16);
+  outline: 3px solid var(--theme-focus-ring);
 }
 
 .linkResult {
@@ -66,8 +66,8 @@
   justify-content: center;
   border: none;
   border-radius: var(--radius-control);
-  background: rgba(75, 47, 29, 0.1);
-  color: var(--color-ink);
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-primary);
   cursor: pointer;
   min-height: 44px;
   min-width: 44px;
@@ -76,11 +76,11 @@
 
 .iconButton:hover,
 .iconButton:focus-visible {
-  background: rgba(75, 47, 29, 0.16);
+  background: var(--theme-control-subtle-hover);
 }
 
 .iconButton:focus-visible {
-  outline: 2px solid rgba(47, 120, 255, 0.4);
+  outline: 2px solid var(--theme-focus-ring);
   outline-offset: 2px;
 }
 

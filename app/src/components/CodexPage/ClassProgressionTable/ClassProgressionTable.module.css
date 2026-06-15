@@ -1,8 +1,8 @@
 .scrollArea {
   overflow-x: auto;
-  border: 1px solid rgba(75, 47, 29, 0.1);
+  border: 1px solid var(--theme-border-subtle);
   border-radius: var(--radius-control-lg);
-  background: var(--color-panel-surface);
+  background: var(--theme-surface-panel);
 }
 
 .table {
@@ -17,8 +17,8 @@
 .table th,
 .table td {
   padding: 0.34rem 0.46rem;
-  border-right: 1px solid rgba(75, 47, 29, 0.08);
-  border-bottom: 1px solid rgba(75, 47, 29, 0.08);
+  border-right: 1px solid var(--theme-divider);
+  border-bottom: 1px solid var(--theme-divider);
   text-align: center;
   white-space: nowrap;
 }
@@ -34,8 +34,8 @@
 }
 
 .table thead th {
-  background: rgba(245, 234, 218, 0.95);
-  color: var(--color-accent);
+  background: var(--theme-surface-muted);
+  color: var(--theme-accent);
   font-size: 0.67rem;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -54,18 +54,18 @@
 
 .levelHeader {
   z-index: 3;
-  background: rgba(239, 225, 205, 0.98);
+  background: var(--theme-surface-muted);
 }
 
 .levelCell {
   z-index: 1;
-  background: var(--color-panel-surface);
-  color: var(--color-ink);
+  background: var(--theme-surface-panel);
+  color: var(--theme-text-primary);
   font-weight: 700;
 }
 
 .valueCell {
-  color: var(--color-ink);
+  color: var(--theme-text-primary);
 }
 
 .featureCell {

@@ -28,16 +28,35 @@
     transform 120ms ease;
 }
 
+:global(html[data-theme="dark"]) .tabButton {
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-secondary);
+}
+
 .tabButton:hover {
   border-color: rgba(139, 107, 67, 0.3);
   color: var(--color-ink);
   transform: translateY(-1px);
 }
 
+:global(html[data-theme="dark"]) .tabButton:hover,
+:global(html[data-theme="dark"]) .tabButton:focus-visible {
+  border-color: var(--theme-border-medium);
+  background: var(--theme-control-subtle-hover);
+  color: var(--theme-text-primary);
+}
+
 .tabButtonActive {
   border-color: rgba(139, 107, 67, 0.38);
   background: rgba(139, 107, 67, 0.13);
   color: var(--color-ink);
+}
+
+:global(html[data-theme="dark"]) .tabButtonActive {
+  border-color: rgba(156, 188, 255, 0.42);
+  background: rgba(156, 188, 255, 0.12);
+  color: var(--theme-accent-strong);
 }
 
 .tabCount {
@@ -47,6 +66,10 @@
   font-size: 0.78rem;
   line-height: 1;
   padding: 0.28rem 0.5rem;
+}
+
+:global(html[data-theme="dark"]) .tabCount {
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .controls {
@@ -70,6 +93,12 @@
   color: var(--color-ink);
   font: inherit;
   padding: 0.7rem 0.85rem;
+}
+
+:global(html[data-theme="dark"]) .input {
+  border-color: var(--theme-input-border);
+  background: var(--theme-input-background);
+  color: var(--theme-input-text);
 }
 
 .searchField {

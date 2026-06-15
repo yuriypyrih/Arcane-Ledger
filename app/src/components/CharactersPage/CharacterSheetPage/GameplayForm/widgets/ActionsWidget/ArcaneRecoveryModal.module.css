@@ -8,7 +8,7 @@
 }
 
 .arcaneRecoverySummaryLabel {
-  color: #25508d;
+  color: var(--theme-state-info-strong);
   font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -93,7 +93,7 @@
 }
 
 .arcaneRecoveryCount {
-  color: #25508d;
+  color: var(--theme-state-info-strong);
   font-size: 0.94rem;
   font-weight: 700;
   text-align: center;

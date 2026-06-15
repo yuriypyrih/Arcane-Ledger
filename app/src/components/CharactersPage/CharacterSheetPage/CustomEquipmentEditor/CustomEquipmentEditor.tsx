@@ -9,7 +9,7 @@ import ActionButton from "../../../ActionButton";
 import { OverlayBody, OverlayFooter } from "../../../Overlay";
 import ModEffectsEditor from "../ModEffectsEditor";
 import RadioContainerOption from "../RadioContainerOption";
-import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import SheetActionButton from "../SheetActionButton";
 import CustomEquipmentItemSettings from "./CustomEquipmentItemSettings";
 import {
   createCustomEquipmentItemSettingsDraft,
@@ -762,14 +762,13 @@ function CustomEquipmentEditor({
             <section className={styles.customEquipmentSection}>
               <div className={styles.customEquipmentSectionHeader}>
                 <p className={styles.customEquipmentSectionTitle}>Damage</p>
-                <button
-                  type="button"
-                  className={clsx(shared.editButton, styles.customEquipmentInlineButton)}
+                <SheetActionButton
+                  className={styles.customEquipmentInlineButton}
                   onClick={() => patchDraft({ damage: [...draft.damage, createDamageRowDraft()] })}
                 >
                   <Plus size={15} aria-hidden="true" />
                   Add
-                </button>
+                </SheetActionButton>
               </div>
               <div className={styles.customDamageList}>
                 {draft.damage.map((row) => (
@@ -865,9 +864,8 @@ function CustomEquipmentEditor({
               <section className={styles.customEquipmentSection}>
                 <div className={styles.customEquipmentSectionHeader}>
                   <p className={styles.customEquipmentSectionTitle}>Versatile Damage</p>
-                  <button
-                    type="button"
-                    className={clsx(shared.editButton, styles.customEquipmentInlineButton)}
+                  <SheetActionButton
+                    className={styles.customEquipmentInlineButton}
                     onClick={() =>
                       patchDraft({
                         versatileDamage: [...draft.versatileDamage, createDamageRowDraft()]
@@ -876,7 +874,7 @@ function CustomEquipmentEditor({
                   >
                     <Plus size={15} aria-hidden="true" />
                     Add
-                  </button>
+                  </SheetActionButton>
                 </div>
                 <div className={styles.customDamageList}>
                   {draft.versatileDamage.map((row) => (

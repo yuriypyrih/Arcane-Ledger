@@ -580,9 +580,9 @@ function SpellManagementModal({
           <>
             <div className={styles.preparedSpellStatusRow}>
               <div>
-                <p className={styles.preparedSpellStatusLabel}>Cantrips</p>
-                <p className={styles.preparedSpellLimitText}>
-                  <SelectionCounter current={cantripCount} total={cantripLimit} /> selected
+                <p className={styles.preparedSpellStatusLabel}>
+                  <span>Cantrips</span>
+                  <SelectionCounter current={cantripCount} total={cantripLimit} />
                 </p>
               </div>
             </div>
@@ -650,7 +650,10 @@ function SpellManagementModal({
             <div className={styles.preparedSpellStatusRow}>
               <div>
                 <p className={styles.preparedSpellStatusLabel}>
-                  {usesSpellbook ? "Spellbook and prepared spells" : "Prepared spells"}
+                  <span>
+                    {usesSpellbook ? "Spellbook and prepared spells" : "Prepared spells"}
+                  </span>
+                  <SelectionCounter current={preparedSpellCount} total={preparedSpellLimit} />
                 </p>
                 {usesSpellbook ? (
                   <>
@@ -662,17 +665,8 @@ function SpellManagementModal({
                         {alwaysSpellbookCount} always in spellbook
                       </p>
                     ) : null}
-                    <p className={styles.preparedSpellLimitText}>
-                      <SelectionCounter current={preparedSpellCount} total={preparedSpellLimit} />{" "}
-                      prepared
-                    </p>
                   </>
-                ) : (
-                  <p className={styles.preparedSpellLimitText}>
-                    <SelectionCounter current={preparedSpellCount} total={preparedSpellLimit} />{" "}
-                    prepared
-                  </p>
-                )}
+                ) : null}
               </div>
             </div>
 

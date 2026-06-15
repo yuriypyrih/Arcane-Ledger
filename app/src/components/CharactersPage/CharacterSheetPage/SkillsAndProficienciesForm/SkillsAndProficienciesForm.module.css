@@ -153,11 +153,11 @@
 }
 
 .skillRowProficient {
-  color: #6f2bc5;
+  color: var(--theme-proficiency-color);
 }
 
 .skillRowExpert {
-  color: #d78321;
+  color: var(--theme-expertise-color);
   font-size: 0.95rem;
 }
 
@@ -238,6 +238,25 @@
   font-size: 0.68rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+
+:global(html[data-theme="dark"]) .skillGroupTitle,
+:global(html[data-theme="dark"]) .skillRow {
+  color: var(--theme-text-primary);
+}
+
+:global(html[data-theme="dark"]) .skillGroupSubtitle,
+:global(html[data-theme="dark"]) .skillAbilityTitle,
+:global(html[data-theme="dark"]) .proficiencyPill small {
+  color: var(--theme-text-muted);
+}
+
+:global(html[data-theme="dark"]) .skillRowProficient {
+  color: var(--theme-proficiency-color);
+}
+
+:global(html[data-theme="dark"]) .skillRowExpert {
+  color: var(--theme-expertise-color);
 }
 
 @media (max-width: 899px) {

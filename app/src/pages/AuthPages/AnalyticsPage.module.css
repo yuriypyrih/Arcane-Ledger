@@ -125,6 +125,12 @@
   padding: 0.25rem;
 }
 
+:global(html[data-theme="dark"]) .segmentedControl,
+:global(html[data-theme="dark"]) .segmentedControlCompact {
+  border-color: var(--theme-border-subtle);
+  background: rgba(255, 255, 255, 0.055);
+}
+
 .segmentedControlCompact {
   justify-content: flex-end;
 }
@@ -147,16 +153,35 @@
     box-shadow 140ms ease;
 }
 
+:global(html[data-theme="dark"]) .segmentButton,
+:global(html[data-theme="dark"]) .segmentButtonActive {
+  color: var(--theme-text-secondary);
+}
+
 .segmentButton:hover,
 .segmentButton:focus-visible {
   background: rgba(75, 47, 29, 0.08);
   color: #2f1b12;
 }
 
+:global(html[data-theme="dark"]) .segmentButton:hover,
+:global(html[data-theme="dark"]) .segmentButton:focus-visible {
+  background: var(--theme-control-subtle-hover);
+  color: var(--theme-text-primary);
+}
+
 .segmentButtonActive {
   background: #2f6de0;
   box-shadow: 0 8px 18px rgba(37, 88, 184, 0.2);
   color: #f7fbff;
+}
+
+:global(html[data-theme="dark"]) .segmentButtonActive {
+  background: rgba(156, 188, 255, 0.12);
+  box-shadow:
+    inset 0 0 0 1px rgba(156, 188, 255, 0.34),
+    0 10px 22px rgba(0, 0, 0, 0.22);
+  color: var(--theme-accent-strong);
 }
 
 .segmentButton:focus-visible,
@@ -506,4 +531,97 @@
   .kpiCard {
     min-height: 82px;
   }
+}
+
+:global(html[data-theme="dark"]) .header,
+:global(html[data-theme="dark"]) .panel,
+:global(html[data-theme="dark"]) .section,
+:global(html[data-theme="dark"]) .kpiCard {
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-surface-section);
+  box-shadow: var(--theme-section-shadow);
+  color: var(--theme-text-primary);
+}
+
+:global(html[data-theme="dark"]) .eyebrow,
+:global(html[data-theme="dark"]) .overviewRows dt,
+:global(html[data-theme="dark"]) .kpiLabel,
+:global(html[data-theme="dark"]) .sectionHeader span,
+:global(html[data-theme="dark"]) .table th,
+:global(html[data-theme="dark"]) .dateField {
+  color: var(--theme-text-muted);
+}
+
+:global(html[data-theme="dark"]) .title,
+:global(html[data-theme="dark"]) .overviewRows dd,
+:global(html[data-theme="dark"]) .kpiValue,
+:global(html[data-theme="dark"]) .sectionHeader h3,
+:global(html[data-theme="dark"]) .chartPanel h4,
+:global(html[data-theme="dark"]) .legendItem,
+:global(html[data-theme="dark"]) .table td {
+  color: var(--theme-text-primary);
+}
+
+:global(html[data-theme="dark"]) .text,
+:global(html[data-theme="dark"]) .legendItem strong,
+:global(html[data-theme="dark"]) .statusDetailRow td {
+  color: var(--theme-text-secondary);
+}
+
+:global(html[data-theme="dark"]) .dateField input {
+  border-color: var(--theme-input-border);
+  background: var(--theme-input-background);
+  color: var(--theme-input-text);
+}
+
+:global(html[data-theme="dark"]) .dateField input:focus {
+  border-color: var(--theme-input-focus-border);
+  box-shadow: 0 0 0 3px var(--theme-input-focus-shadow);
+  outline: none;
+}
+
+:global(html[data-theme="dark"]) .kpiCard {
+  background:
+    linear-gradient(145deg, rgba(35, 39, 45, 0.92), rgba(19, 21, 26, 0.96)),
+    var(--theme-surface-panel);
+}
+
+:global(html[data-theme="dark"]) .sectionHeader {
+  border-bottom-color: var(--theme-divider);
+}
+
+:global(html[data-theme="dark"]) .donutTrack {
+  stroke: rgba(221, 230, 242, 0.14);
+}
+
+:global(html[data-theme="dark"]) .table th,
+:global(html[data-theme="dark"]) .table td {
+  border-bottom-color: var(--theme-divider);
+}
+
+:global(html[data-theme="dark"]) .statusGroupRowInteractive:hover td {
+  background: rgba(156, 188, 255, 0.06);
+}
+
+:global(html[data-theme="dark"]) .statusRowToggle:focus-visible {
+  outline-color: var(--theme-focus-ring);
+}
+
+:global(html[data-theme="dark"]) .statusToggleIcon {
+  color: var(--theme-text-muted);
+}
+
+:global(html[data-theme="dark"]) .statusDetailRow td {
+  background: rgba(255, 255, 255, 0.035);
+}
+
+:global(html[data-theme="dark"]) .emptyState {
+  border-color: var(--theme-border-medium);
+  color: var(--theme-text-secondary);
+}
+
+:global(html[data-theme="dark"]) .error {
+  border-color: rgba(232, 116, 102, 0.26);
+  background: rgba(232, 116, 102, 0.12);
+  color: var(--theme-state-danger);
 }

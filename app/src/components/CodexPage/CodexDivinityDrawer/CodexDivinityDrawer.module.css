@@ -84,14 +84,14 @@
 
 .descriptionDivider {
   border: none;
-  border-top: 1px solid rgba(75, 47, 29, 0.14);
+  border-top: 1px solid var(--theme-divider);
   margin: 0;
 }
 
 .inlineLinkButton {
   border: none;
   background: transparent;
-  color: var(--color-accent);
+  color: var(--theme-accent);
   cursor: pointer;
   font: inherit;
   margin: 0;
@@ -101,7 +101,7 @@
 }
 
 .inlineLinkButton:hover {
-  color: var(--color-accent-strong, #8f4d1f);
+  color: var(--theme-accent-strong);
 }
 
 @media (max-width: 599px) {

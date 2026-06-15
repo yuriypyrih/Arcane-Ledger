@@ -1,5 +1,5 @@
 .button {
-  --action-button-fill-background: linear-gradient(135deg, #2f6de0, #4a8eff);
+  --action-button-fill-background: var(--gradient-primary-action);
   --action-button-fill-color: #f7fbff;
   --action-button-outline-border: rgba(47, 109, 224, 0.46);
   --action-button-outline-background: rgba(47, 109, 224, 0.08);
@@ -94,6 +94,42 @@
   --action-button-focus: rgba(143, 52, 40, 0.42);
   --action-button-hover-tint: rgba(255, 255, 255, 0.16);
   --action-button-press-tint: rgba(53, 16, 12, 0.1);
+}
+
+:global(html[data-theme="dark"]) .button {
+  --action-button-outline-border: var(--theme-state-info);
+  --action-button-outline-background: rgba(111, 164, 245, 0.12);
+  --action-button-outline-color: var(--theme-state-info-strong);
+  --action-button-ghost-background: rgba(111, 164, 245, 0.1);
+  --action-button-ghost-color: var(--theme-state-info-strong);
+  --action-button-focus: rgba(111, 164, 245, 0.48);
+}
+
+:global(html[data-theme="dark"]) .typeSUCCESS {
+  --action-button-outline-border: var(--theme-state-success);
+  --action-button-outline-background: rgba(101, 199, 125, 0.12);
+  --action-button-outline-color: var(--theme-state-success);
+  --action-button-ghost-background: rgba(101, 199, 125, 0.1);
+  --action-button-ghost-color: var(--theme-state-success);
+  --action-button-focus: rgba(101, 199, 125, 0.48);
+}
+
+:global(html[data-theme="dark"]) .typeWARNING {
+  --action-button-outline-border: var(--theme-state-warning);
+  --action-button-outline-background: rgba(239, 189, 117, 0.12);
+  --action-button-outline-color: var(--theme-state-warning);
+  --action-button-ghost-background: rgba(239, 189, 117, 0.1);
+  --action-button-ghost-color: var(--theme-state-warning);
+  --action-button-focus: rgba(239, 189, 117, 0.48);
+}
+
+:global(html[data-theme="dark"]) .typeERROR {
+  --action-button-outline-border: var(--theme-state-danger);
+  --action-button-outline-background: rgba(232, 116, 102, 0.12);
+  --action-button-outline-color: var(--theme-state-danger);
+  --action-button-ghost-background: rgba(232, 116, 102, 0.1);
+  --action-button-ghost-color: var(--theme-state-danger);
+  --action-button-focus: rgba(232, 116, 102, 0.48);
 }
 
 .variantFILL {

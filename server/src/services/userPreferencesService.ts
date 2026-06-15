@@ -1,9 +1,14 @@
-import type { DiceRollerBehaviorPreference, UserPreferences } from "../types/preferences.js";
+import type {
+  DiceRollerBehaviorPreference,
+  ThemeModePreference,
+  UserPreferences
+} from "../types/preferences.js";
 import type { UserDocument } from "../models/User.js";
 
 export const defaultUserPreferences: UserPreferences = {
   diceRollerBehavior: "full_auto",
-  broadLayout: false
+  broadLayout: false,
+  themeMode: "light"
 };
 
 function isObjectRecord(value: unknown): value is Record<string, unknown> {
@@ -22,6 +27,14 @@ function normalizeDiceRollerBehaviorPreference(value: unknown): DiceRollerBehavi
   return defaultUserPreferences.diceRollerBehavior;
 }
 
+function normalizeThemeModePreference(value: unknown): ThemeModePreference {
+  if (value === "light" || value === "dark") {
+    return value;
+  }
+
+  return defaultUserPreferences.themeMode;
+}
+
 export function normalizeUserPreferences(value: unknown): UserPreferences {
   if (!isObjectRecord(value)) {
     return defaultUserPreferences;
@@ -29,7 +42,8 @@ export function normalizeUserPreferences(value: unknown): UserPreferences {
 
   return {
     diceRollerBehavior: normalizeDiceRollerBehaviorPreference(value.diceRollerBehavior),
-    broadLayout: normalizeBoolean(value.broadLayout, defaultUserPreferences.broadLayout)
+    broadLayout: normalizeBoolean(value.broadLayout, defaultUserPreferences.broadLayout),
+    themeMode: normalizeThemeModePreference(value.themeMode)
   };
 }
 
@@ -54,7 +68,8 @@ function areUserPreferencesNormalized(value: unknown, preferences: UserPreferenc
 
   return (
     value.diceRollerBehavior === preferences.diceRollerBehavior &&
-    value.broadLayout === preferences.broadLayout
+    value.broadLayout === preferences.broadLayout &&
+    value.themeMode === preferences.themeMode
   );
 }
 

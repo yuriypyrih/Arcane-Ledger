@@ -36,9 +36,21 @@
   padding: 0 0.42rem;
 }
 
+:global(html[data-theme="dark"]) .modeOption {
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-primary);
+}
+
 .modeOption:has(input:checked) {
   border-color: rgba(37, 80, 141, 0.32);
   background: rgba(37, 80, 141, 0.12);
+}
+
+:global(html[data-theme="dark"]) .modeOption:has(input:checked) {
+  border-color: rgba(156, 188, 255, 0.42);
+  background: rgba(156, 188, 255, 0.12);
+  color: var(--theme-accent-strong);
 }
 
 .modeOption:has(input[value="buff"]:checked),
@@ -48,11 +60,25 @@
   color: #4f6f46;
 }
 
+:global(html[data-theme="dark"]) .modeOption:has(input[value="buff"]:checked),
+:global(html[data-theme="dark"]) .modeOption:has(input[value="advantage"]:checked) {
+  border-color: rgba(101, 199, 125, 0.36);
+  background: rgba(101, 199, 125, 0.13);
+  color: var(--theme-state-success);
+}
+
 .modeOption:has(input[value="debuff"]:checked),
 .modeOption:has(input[value="disadvantage"]:checked) {
   border-color: #dfc9c2;
   background: #efe1dd;
   color: #79493f;
+}
+
+:global(html[data-theme="dark"]) .modeOption:has(input[value="debuff"]:checked),
+:global(html[data-theme="dark"]) .modeOption:has(input[value="disadvantage"]:checked) {
+  border-color: rgba(232, 116, 102, 0.34);
+  background: rgba(232, 116, 102, 0.12);
+  color: var(--theme-state-danger);
 }
 
 .rollModeGroup:disabled .modeOption {
@@ -80,6 +106,18 @@
   background: rgba(197, 57, 43, 0.12);
   color: #a03326;
   cursor: pointer;
+}
+
+:global(html[data-theme="dark"]) .removeButton {
+  border-color: rgba(232, 116, 102, 0.28);
+  background: rgba(232, 116, 102, 0.1);
+  color: var(--theme-state-danger);
+}
+
+:global(html[data-theme="dark"]) .removeButton:hover:not(:disabled),
+:global(html[data-theme="dark"]) .removeButton:focus-visible:not(:disabled) {
+  border-color: rgba(232, 116, 102, 0.42);
+  background: rgba(232, 116, 102, 0.16);
 }
 
 .removeButton:disabled {

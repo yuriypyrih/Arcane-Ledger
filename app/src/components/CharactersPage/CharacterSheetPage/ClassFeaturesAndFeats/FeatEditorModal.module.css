@@ -22,6 +22,12 @@
   padding: 0.24rem;
 }
 
+:global(html[data-theme="dark"]) .tabRow,
+:global(html[data-theme="dark"]) .featTabScroller {
+  background: rgba(255, 255, 255, 0.055);
+  box-shadow: inset 0 0 0 1px var(--theme-border-subtle);
+}
+
 .invocationTabRow {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -38,10 +44,22 @@
   white-space: nowrap;
 }
 
+:global(html[data-theme="dark"]) .tabButton {
+  color: var(--theme-text-secondary);
+}
+
 .tabButtonActive {
   background: rgba(255, 255, 255, 0.95);
   color: var(--color-ink);
   box-shadow: 0 8px 18px rgba(54, 34, 21, 0.08);
+}
+
+:global(html[data-theme="dark"]) .tabButtonActive {
+  background: var(--theme-control-subtle-hover);
+  color: var(--theme-text-primary);
+  box-shadow:
+    inset 0 0 0 1px var(--theme-border-medium),
+    0 10px 22px rgba(0, 0, 0, 0.22);
 }
 
 .body {
@@ -75,6 +93,10 @@
   scrollbar-width: thin;
 }
 
+:global(html[data-theme="dark"]) .featTabScroller {
+  scrollbar-color: var(--theme-border-medium) transparent;
+}
+
 .featTabRow {
   display: flex;
   align-items: center;
@@ -105,6 +127,10 @@
   gap: 0.6rem;
   padding-top: 0.85rem;
   border-top: 1px solid rgba(75, 47, 29, 0.12);
+}
+
+:global(html[data-theme="dark"]) .invocationOptionGroup {
+  border-top-color: var(--theme-divider);
 }
 
 .invocationOptionGroup:first-child {
@@ -181,6 +207,11 @@
   padding: 0.9rem 0.95rem;
 }
 
+:global(html[data-theme="dark"]) .editorCard {
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-surface-raised);
+}
+
 .editorHeader,
 .editorActions {
   display: flex;
@@ -226,10 +257,29 @@
   padding: 0 0.9rem;
 }
 
+:global(html[data-theme="dark"]) .modeButton {
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-secondary);
+}
+
+:global(html[data-theme="dark"]) .modeButton:hover,
+:global(html[data-theme="dark"]) .modeButton:focus-visible {
+  border-color: var(--theme-border-medium);
+  background: var(--theme-control-subtle-hover);
+  color: var(--theme-text-primary);
+}
+
 .modeButtonActive {
   background: rgba(47, 109, 224, 0.08);
   border-color: rgba(47, 109, 224, 0.34);
   color: #2558b8;
+}
+
+:global(html[data-theme="dark"]) .modeButtonActive {
+  border-color: rgba(156, 188, 255, 0.42);
+  background: rgba(156, 188, 255, 0.12);
+  color: var(--theme-accent-strong);
 }
 
 .fieldGrid {
@@ -247,6 +297,10 @@
 .rulesEnforcementDivider {
   border-top: 1px solid rgba(75, 47, 29, 0.12);
   margin-top: 0.1rem;
+}
+
+:global(html[data-theme="dark"]) .rulesEnforcementDivider {
+  border-top-color: var(--theme-divider);
 }
 
 .field {

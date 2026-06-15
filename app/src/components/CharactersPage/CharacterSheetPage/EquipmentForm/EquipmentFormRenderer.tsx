@@ -14,7 +14,7 @@ export function renderEquipmentForm(context: Record<string, any>) {
     openWeaponReference, parentInventoryDrawerBodyAfterItem, parentInventoryDrawerHeaderContent, parentInventoryDrawerTitleId, parentInventoryInspection, parentInventoryRecord, pendingContainerInventoryRemoval, pendingDeleteCustomEquipment, partyMembership, deleteCustomEquipmentBackdropHandlers, removeEquipmentItem, saveContainerManagement, saveCustomEquipment, saveMasterChestCharacterDraft, selectedAdditionalWeaponMasteries, selectedInventoryAdditionalDescription, selectedInventoryDescriptionAdditions,
     inventoryDrawerTitleId, selectedInventoryInspection, selectedInventoryItemStatus, selectedInventoryModEffects, selectedInventoryRecord,
     selectedInventoryWeaponHasActiveMastery, selectedInventoryWeaponHasProficiency, selectedLoadoutEntry, selectedLoadoutEntryData, selectedLoadoutItems, selectedLoadoutSummary, selectedWeaponHasActiveMastery, selectedWeaponHasProficiency, selectedWeaponMasteryKeywords,
-    selectedWeaponMasteryLabel, selectedWeaponReference, setActiveCurrencyKey, setCurrencyAmountDraft, setIsCurrencyDrawerOpen, setIsEquipmentGuideOpen, setIsGeneralEquipmentExpanded, setIsMasterChestOpen, setPendingContainerInventoryRemoval, setPendingDeleteCustomEquipmentId, setSelectedWeaponReference, shared, SheetSurface,
+    selectedWeaponMasteryLabel, selectedWeaponReference, setActiveCurrencyKey, setCurrencyAmountDraft, setIsCurrencyDrawerOpen, setIsEquipmentGuideOpen, setIsGeneralEquipmentExpanded, setIsMasterChestOpen, setPendingContainerInventoryRemoval, setPendingDeleteCustomEquipmentId, setSelectedWeaponReference, shared, SheetActionButton, SheetSurface,
     sheetStyles, shouldOfferHandSwap, styles, swapEntryToHand, toggleArmorWorn, toggleEntryOnHand, confirmContainerRemoval
   } = context;
 
@@ -34,27 +34,25 @@ export function renderEquipmentForm(context: Record<string, any>) {
               <CircleHelp size={16} />
             </button>
             {partyMembership ? (
-              <button
-                type="button"
-                className={clsx(shared.editButton, styles.masterChestButton)}
+              <SheetActionButton
+                className={styles.masterChestButton}
                 onClick={() => setIsMasterChestOpen(true)}
                 aria-label={`Open ${partyMembership.partyGroupName} master chest`}
                 title={`Open ${partyMembership.partyGroupName} master chest`}
               >
                 <Toolbox size={16} aria-hidden="true" />
                 <span>Master Chest</span>
-              </button>
+              </SheetActionButton>
             ) : null}
           </div>
           <div className={styles.loadoutPinnedActions}>
-            <button
-              type="button"
-              className={clsx(shared.editButton, styles.loadoutAddButton)}
+            <SheetActionButton
+              className={styles.loadoutAddButton}
               onClick={openAddModal}
             >
               <Pencil size={16} />
               Edit
-            </button>
+            </SheetActionButton>
           </div>
         </div>
         <button

@@ -45,6 +45,10 @@
   color: rgba(75, 47, 29, 0.54);
 }
 
+:global(html[data-theme="dark"]) .metaDivider {
+  color: var(--theme-divider);
+}
+
 .metaText {
   font-size: 0.78rem;
   font-weight: 700;

@@ -3,9 +3,12 @@ import { Outlet, useMatch } from "react-router-dom";
 import { useMediaQuery } from "../../lib/useMediaQuery";
 import {
   getBroadLayoutPreference,
+  getThemeModePreference,
   PREFERENCES_CHANGED_EVENT,
-  updateBroadLayoutPreference
+  updateBroadLayoutPreference,
+  updateThemeModePreference
 } from "../../storage/preferences";
+import type { ThemeModePreference } from "../../storage/preferences";
 import { MEDIA_QUERIES } from "../../styles/breakpoints";
 import ToastHost from "../ToastViewport";
 import PrimaryNav from "./PrimaryNav";
@@ -14,6 +17,7 @@ import type { AppShellOutletContext } from "./outletContext";
 import styles from "./AppShell.module.css";
 
 const BROAD_LAYOUT_LG_COMPACT_CLASS = "broad-layout-lg-compact";
+const THEME_MODE_ATTRIBUTE = "data-theme";
 
 function AppShell() {
   const characterSheetMatch = useMatch({ path: "/characters/:characterId", end: true });
@@ -23,12 +27,18 @@ function AppShell() {
   const isLgUp = useMediaQuery(MEDIA_QUERIES.lgUp);
   const isLgOnly = useMediaQuery(MEDIA_QUERIES.lgOnly);
   const [broadLayout, setBroadLayout] = useState(() => getBroadLayoutPreference());
+  const [themeMode, setThemeMode] = useState<ThemeModePreference>(() => getThemeModePreference());
   const showBroadLayoutSwitch = characterSheetLocalId !== null && isLgUp;
   const isBroadLayoutActive = broadLayout && showBroadLayoutSwitch;
   const useLgCompactScale = isBroadLayoutActive && isLgOnly;
-  const outletContext: AppShellOutletContext = {
-    isBroadLayoutActive
-  };
+
+  useEffect(() => {
+    if (typeof document === "undefined") {
+      return;
+    }
+
+    document.documentElement.setAttribute(THEME_MODE_ATTRIBUTE, themeMode);
+  }, [themeMode]);
 
   useEffect(() => {
     if (typeof document === "undefined") {
@@ -50,14 +60,15 @@ function AppShell() {
       return undefined;
     }
 
-    function syncBroadLayoutPreference() {
+    function syncPreferences() {
       setBroadLayout(getBroadLayoutPreference());
+      setThemeMode(getThemeModePreference());
     }
 
-    window.addEventListener(PREFERENCES_CHANGED_EVENT, syncBroadLayoutPreference);
+    window.addEventListener(PREFERENCES_CHANGED_EVENT, syncPreferences);
 
     return () => {
-      window.removeEventListener(PREFERENCES_CHANGED_EVENT, syncBroadLayoutPreference);
+      window.removeEventListener(PREFERENCES_CHANGED_EVENT, syncPreferences);
     };
   }, []);
 
@@ -66,6 +77,18 @@ function AppShell() {
     setBroadLayout(nextBroadLayout);
     updateBroadLayoutPreference(nextBroadLayout);
   }
+
+  function toggleThemeMode() {
+    const nextThemeMode: ThemeModePreference = themeMode === "dark" ? "light" : "dark";
+    setThemeMode(nextThemeMode);
+    updateThemeModePreference(nextThemeMode);
+  }
+
+  const outletContext: AppShellOutletContext = {
+    isBroadLayoutActive,
+    themeMode,
+    onToggleThemeMode: toggleThemeMode
+  };
 
   return (
     <div className={isBroadLayoutActive ? `${styles.shell} ${styles.shellBroad}` : styles.shell}>
@@ -76,7 +99,9 @@ function AppShell() {
             broadLayout={broadLayout}
             characterSheetId={characterSheetLocalId}
             showBroadLayoutSwitch={showBroadLayoutSwitch}
+            themeMode={themeMode}
             onToggleBroadLayout={toggleBroadLayout}
+            onToggleThemeMode={toggleThemeMode}
           />
         </div>
       </header>

@@ -13,6 +13,10 @@
   padding-bottom: 0.76rem;
 }
 
+:global(html[data-theme="dark"]) .header {
+  border-bottom-color: var(--theme-divider);
+}
+
 .headerContent {
   flex: 1 1 auto;
   gap: 0.32rem;
@@ -59,6 +63,10 @@
   gap: 0.45rem;
 }
 
+:global(html[data-theme="dark"]) .tabRow {
+  color: var(--theme-text-primary);
+}
+
 .tabButton {
   border: 1px solid rgba(75, 47, 29, 0.12);
   border-radius: var(--radius-pill);
@@ -72,16 +80,40 @@
   white-space: nowrap;
 }
 
+:global(html[data-theme="dark"]) .tabButton {
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-secondary);
+}
+
+:global(html[data-theme="dark"]) .tabButton:hover,
+:global(html[data-theme="dark"]) .tabButton:focus-visible {
+  border-color: var(--theme-border-medium);
+  background: var(--theme-control-subtle-hover);
+  color: var(--theme-text-primary);
+}
+
 .tabButtonActive {
   border-color: rgba(47, 109, 224, 0.42);
   background: rgba(47, 109, 224, 0.06);
   color: #2f6de0;
 }
 
+:global(html[data-theme="dark"]) .tabButtonActive {
+  border-color: rgba(156, 188, 255, 0.42);
+  background: rgba(156, 188, 255, 0.12);
+  color: var(--theme-accent-strong);
+}
+
 .footer {
   border-top: 1px solid rgba(75, 47, 29, 0.1);
   background: linear-gradient(180deg, rgba(255, 252, 245, 0.24), rgba(246, 236, 221, 0.92));
   padding-top: 0.78rem;
+}
+
+:global(html[data-theme="dark"]) .footer {
+  border-top-color: var(--theme-divider);
+  background: linear-gradient(180deg, rgba(30, 33, 39, 0.54), rgba(15, 17, 21, 0.88));
 }
 
 .createButton {

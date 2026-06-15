@@ -2,13 +2,16 @@ import {
   Cloud,
   Headset,
   Image,
+  Moon,
   Sparkles,
+  Sun,
   Swords,
   Users
 } from "lucide-react";
 import { useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useOutletContext } from "react-router-dom";
 import ActionButton from "../../components/ActionButton";
+import type { AppShellOutletContext } from "../../components/AppShell/outletContext";
 import CharacterEmptyState from "../../components/CharactersPage/CharacterEmptyState";
 import CharacterRow from "../../components/CharactersPage/CharacterRow";
 import PwaInstallPanel from "../../components/PwaInstallPanel";
@@ -26,6 +29,7 @@ const dmToolToneClassNames = {
 
 function HomePage() {
   const navigate = useNavigate();
+  const { themeMode, onToggleThemeMode } = useOutletContext<AppShellOutletContext>();
   const { status, user } = useAppSelector((state) => state.auth);
   const ownerId = status === "authenticated" && user ? user.id : null;
   const characters = useCharacterRosterEntries(ownerId);
@@ -33,10 +37,21 @@ function HomePage() {
   const accountCapacityMultiplier = Math.floor(USER_CHARACTER_LIMIT / GUEST_CHARACTER_LIMIT);
   const shouldShowGuestBanner = status === "guest";
   const shouldShowGmTools = status === "authenticated";
+  const isDarkMode = themeMode === "dark";
+  const ThemeIcon = isDarkMode ? Sun : Moon;
 
   return (
     <section className={styles.page}>
       <section className={styles.workbenchHero} aria-labelledby="home-dashboard-title">
+        <button
+          type="button"
+          className={styles.themeToggle}
+          aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+          aria-pressed={isDarkMode}
+          onClick={onToggleThemeMode}
+        >
+          <ThemeIcon size={17} strokeWidth={2.1} aria-hidden="true" />
+        </button>
         <div className={styles.heroContent}>
           <div className={styles.heroPortrait} aria-hidden="true">
             <img

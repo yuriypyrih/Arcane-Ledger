@@ -63,6 +63,10 @@
   text-transform: uppercase;
 }
 
+:global(html[data-theme="dark"]) .sectionEyebrow {
+  color: var(--theme-accent);
+}
+
 .sectionTitle {
   margin: 0;
 }
@@ -89,6 +93,11 @@
   padding: 0.72rem;
 }
 
+:global(html[data-theme="dark"]) .effectCard {
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-surface-raised);
+}
+
 .effectCardHeader {
   display: flex;
   align-items: center;
@@ -110,6 +119,10 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+:global(html[data-theme="dark"]) .effectIndex {
+  color: var(--theme-text-secondary);
 }
 
 @media (max-width: 599px) {

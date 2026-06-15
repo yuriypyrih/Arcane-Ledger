@@ -12,6 +12,7 @@ import { formatD20Formula } from "../../../../pages/CharactersPage/shared";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { getRollModeFromIndicators } from "../../../RollStatePill/rollState";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import SheetActionButton from "../SheetActionButton";
 import ProficiencyEditorModal, { type ProficiencyEditorTab } from "./ProficiencyEditorModal";
 import ProficiencySummaryPills from "./ProficiencySummaryPills";
 import SkillEditorModal from "./SkillEditorModal";
@@ -144,16 +145,14 @@ function SkillsAndProficienciesForm({
         <div className={styles.skillGroup}>
           <div className={styles.skillGroupHeader}>
             <p className={styles.skillGroupTitle}>Skills</p>
-            <button
-              type="button"
-              className={shared.editButton}
+            <SheetActionButton
               disabled={isProficiencyModalOpen}
               onClick={() => setIsSkillEditorOpen(true)}
               aria-label="Edit skills"
             >
               <Pencil size={16} />
               Edit
-            </button>
+            </SheetActionButton>
           </div>
           <SkillRowsGrid
             skillSummary={combatSummary.skills}
@@ -165,16 +164,14 @@ function SkillsAndProficienciesForm({
         <div className={clsx(styles.skillGroup, styles.proficiencyGroup)}>
           <div className={styles.skillGroupHeader}>
             <p className={styles.skillGroupTitle}>Proficiencies</p>
-            <button
-              type="button"
-              className={shared.editButton}
+            <SheetActionButton
               disabled={isSkillEditorOpen || isProficiencyModalOpen}
               onClick={() => openProficiencyEditor("weapons")}
               aria-label="Edit proficiencies"
             >
               <Pencil size={16} />
               Edit
-            </button>
+            </SheetActionButton>
           </div>
           <ProficiencySummaryPills
             sections={visibleProficiencySections}

@@ -1,11 +1,10 @@
 import { Plus } from "lucide-react";
-import clsx from "clsx";
 import type { CharacterCustomTraitRollMode, CharacterCustomTraitValueMode } from "../../../../types";
 import CustomTraitEffectEditorRow, {
   CustomTraitEffectRollModeToggle,
   CustomTraitEffectValueModeToggle
 } from "../GameplayForm/widgets/TraitsConditionsWidget/CustomTraitEffectEditorRow";
-import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import SheetActionButton from "../SheetActionButton";
 import {
   customTraitTargetOptions,
   isCustomTraitEffectDraftEmpty,
@@ -44,16 +43,15 @@ function ModEffectsEditor({
           <h4 className={styles.sectionTitle}>Bonus Targets</h4>
         </div>
 
-        <button
-          type="button"
-          className={clsx(shared.editButton, styles.addEffectButton)}
+        <SheetActionButton
+          className={styles.addEffectButton}
           disabled={isAtEffectLimit}
           onClick={onAddEffect}
           title={isAtEffectLimit ? `Maximum ${maxEffects} effects per item.` : undefined}
         >
           <Plus size={16} aria-hidden="true" />
           <span>{isAtEffectLimit ? `${maxEffects} max` : "Effect"}</span>
-        </button>
+        </SheetActionButton>
       </div>
 
       <div className={styles.effectsList}>

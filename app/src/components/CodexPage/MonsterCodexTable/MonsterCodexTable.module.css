@@ -31,15 +31,15 @@
 
 .totalLabel,
 .statusContent span {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-muted);
 }
 
 .tableWrapper {
   overflow-x: auto;
-  border: 1px solid rgba(75, 47, 29, 0.12);
+  border: 1px solid var(--theme-border-subtle);
   border-radius: var(--radius-field);
-  background: var(--color-panel-strong);
-  box-shadow: 0 14px 38px rgba(54, 34, 21, 0.05);
+  background: var(--theme-surface-section);
+  box-shadow: var(--theme-section-shadow);
 }
 
 .table {
@@ -49,14 +49,14 @@
 }
 
 .table thead {
-  background: rgba(143, 91, 56, 0.08);
+  background: var(--theme-surface-muted);
 }
 
 .table thead th {
   position: sticky;
   top: 0;
   z-index: 1;
-  background: #fff6ea;
+  background: var(--theme-surface-muted);
 }
 
 .table th,
@@ -66,8 +66,8 @@
 }
 
 .table th {
-  border-bottom: 1px solid rgba(75, 47, 29, 0.12);
-  color: var(--color-accent);
+  border-bottom: 1px solid var(--theme-divider);
+  color: var(--theme-accent);
   font-size: 0.76rem;
   font-weight: 800;
   letter-spacing: 0.11em;
@@ -75,7 +75,7 @@
 }
 
 .table th[data-active="true"] {
-  background: rgba(236, 226, 208, 0.99);
+  background: var(--theme-surface-raised);
 }
 
 .sortHeader {
@@ -91,7 +91,7 @@
 }
 
 .table tbody tr + tr td {
-  border-top: 1px solid rgba(75, 47, 29, 0.08);
+  border-top: 1px solid var(--theme-divider);
 }
 
 .statusCell {
@@ -114,7 +114,7 @@
 
 .tableRow:hover,
 .tableRow:focus-visible {
-  background: rgba(244, 233, 214, 0.72);
+  background: var(--theme-control-subtle);
 }
 
 .tableRowValid td:first-child {
@@ -152,7 +152,7 @@
 }
 
 .sourceCell {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-muted);
 }
 
 .sortButton {
@@ -177,7 +177,7 @@
 }
 
 .sortIcon {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-muted);
   flex: 0 0 auto;
   width: 0.88rem;
   height: 0.88rem;

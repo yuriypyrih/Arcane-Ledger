@@ -164,6 +164,7 @@ import KeywordReferenceDrawer from "../../../KeywordReferenceDrawer/KeywordRefer
 import type { ItemRecord } from "../../../../types";
 import ActionButton from "../../../ActionButton";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import SheetActionButton from "../SheetActionButton";
 import SheetSurface from "../SheetSurface";
 import CustomEquipmentEditor, {
   type CustomEquipmentEditorSavePayload
@@ -2877,14 +2878,13 @@ function EquipmentForm({
   ) : undefined;
   const inventoryDrawerHeaderAction =
     selectedInventoryInspection?.source === "inventory" && selectedInventoryStack ? (
-      <button
-        type="button"
-        className={clsx(shared.editButton, styles.inventoryModsButton)}
+      <SheetActionButton
+        className={styles.inventoryModsButton}
         onClick={() => openInventoryItemModsEditor(selectedInventoryStack.id)}
       >
         <Settings size={16} aria-hidden="true" />
         <span>Mods</span>
-      </button>
+      </SheetActionButton>
     ) : null;
   const parentInventoryStack =
     parentInventoryInspection?.source === "inventory" && parentInventoryInspection.stackId
@@ -3122,6 +3122,7 @@ function EquipmentForm({
     setPendingDeleteCustomEquipmentId,
     setSelectedWeaponReference,
     shared,
+    SheetActionButton,
     SheetSurface,
     sheetStyles,
     shouldOfferHandSwap,

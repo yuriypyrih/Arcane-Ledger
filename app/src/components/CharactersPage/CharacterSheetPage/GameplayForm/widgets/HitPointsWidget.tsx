@@ -8,6 +8,7 @@ import HitPointControls from "../../HitPointControls/HitPointControls";
 import MagicTemporaryHitPoints from "../../MagicTemporaryHitPoints";
 import TemporaryHitPoints from "../../TemporaryHitPoints";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import SheetActionButton from "../../SheetActionButton";
 import widgetShellStyles from "../GameplayWidgetShared.module.css";
 import {
   normalizeMaxHitPointsMode
@@ -90,10 +91,8 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
         </div>
         <div className={shared.headerActions}>
           {hitPoints.hasLedgerContent ? (
-            <button
-              type="button"
+            <SheetActionButton
               className={clsx(
-                shared.editButton,
                 styles.editButton,
                 styles.ledgerButton,
                 hitPoints.isLedgerActive && styles.ledgerButtonActive
@@ -103,16 +102,12 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
             >
               <BookHeart size={16} />
               Life & Death
-            </button>
+            </SheetActionButton>
           ) : null}
-          <button
-            type="button"
-            className={clsx(shared.editButton, styles.editButton)}
-            onClick={() => setIsEditModalOpen(true)}
-          >
+          <SheetActionButton className={styles.editButton} onClick={() => setIsEditModalOpen(true)}>
             <Pencil size={16} />
             Edit
-          </button>
+          </SheetActionButton>
         </div>
       </header>
 

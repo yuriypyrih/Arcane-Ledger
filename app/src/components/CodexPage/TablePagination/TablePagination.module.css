@@ -7,10 +7,10 @@
 }
 
 .button {
-  border: 1px solid rgba(75, 47, 29, 0.18);
+  border: 1px solid var(--theme-border-medium);
   border-radius: var(--radius-pill);
-  background: var(--color-panel-strong);
-  color: var(--color-accent);
+  background: var(--theme-control-subtle);
+  color: var(--theme-accent);
   cursor: pointer;
   font: inherit;
   min-height: 36px;
@@ -22,8 +22,19 @@
   opacity: 0.5;
 }
 
+.button:hover:not(:disabled),
+.button:focus-visible:not(:disabled) {
+  background: var(--theme-control-subtle-hover);
+  color: var(--theme-accent-strong);
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--theme-focus-ring);
+  outline-offset: 2px;
+}
+
 .status {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-muted);
   font-size: 0.88rem;
 }
 

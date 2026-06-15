@@ -12,6 +12,14 @@
   box-shadow: 0 16px 42px rgba(54, 34, 21, 0.07);
 }
 
+:global(html[data-theme="dark"]) .panel,
+:global(html[data-theme="dark"]) .guestBanner {
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-surface-section);
+  box-shadow: var(--theme-section-shadow);
+  color: var(--theme-text-primary);
+}
+
 .workbenchHero {
   --home-hero-padding: clamp(1.45rem, 3.4vw, 2.45rem);
 
@@ -28,6 +36,41 @@
       transparent 58%
     ),
     linear-gradient(150deg, #6f4629 0%, #3c2518 48%, #160f0d 100%);
+}
+
+.themeToggle {
+  position: absolute;
+  top: calc(var(--home-hero-padding) * 0.55);
+  right: calc(var(--home-hero-padding) * 0.55);
+  z-index: 4;
+  display: inline-grid;
+  place-items: center;
+  width: 2.45rem;
+  height: 2.45rem;
+  border: 1px solid rgba(255, 246, 226, 0.3);
+  border-radius: var(--radius-pill);
+  background: rgba(22, 15, 13, 0.28);
+  color: rgba(255, 246, 226, 0.92);
+  cursor: pointer;
+  padding: 0;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease,
+    transform 120ms ease;
+}
+
+.themeToggle:hover,
+.themeToggle:focus-visible {
+  border-color: rgba(255, 246, 226, 0.52);
+  background: rgba(255, 246, 226, 0.14);
+  color: #fff6e2;
+  transform: translateY(-1px);
+}
+
+.themeToggle:focus-visible {
+  outline: 2px solid rgba(111, 224, 255, 0.58);
+  outline-offset: 2px;
 }
 
 .heroContent {
@@ -376,6 +419,24 @@
   --tool-signature-rgb: 216, 74, 43;
 }
 
+:global(html[data-theme="dark"]) .toolToneCampaign {
+  --tool-signature: #8fb0ee;
+  --tool-signature-strong: #c2d3ff;
+  --tool-signature-rgb: 143, 176, 238;
+}
+
+:global(html[data-theme="dark"]) .toolToneParty {
+  --tool-signature: #7fcf94;
+  --tool-signature-strong: #b3e4c0;
+  --tool-signature-rgb: 127, 207, 148;
+}
+
+:global(html[data-theme="dark"]) .toolToneEncounter {
+  --tool-signature: #e68475;
+  --tool-signature-strong: #f1b1a8;
+  --tool-signature-rgb: 230, 132, 117;
+}
+
 .toolButton {
   display: grid;
   align-items: center;
@@ -405,6 +466,23 @@
   transform: translateY(-1px);
 }
 
+:global(html[data-theme="dark"]) .toolButton {
+  border-color: rgba(var(--tool-signature-rgb, 156, 188, 255), 0.28);
+  border-left-color: var(--tool-signature, var(--theme-accent));
+  background: rgba(var(--tool-signature-rgb, 156, 188, 255), 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+:global(html[data-theme="dark"]) .toolButton:hover,
+:global(html[data-theme="dark"]) .toolButton:focus-visible {
+  border-color: rgba(var(--tool-signature-rgb, 156, 188, 255), 0.42);
+  border-left-color: var(--tool-signature, var(--theme-accent));
+  background: rgba(var(--tool-signature-rgb, 156, 188, 255), 0.18);
+  box-shadow:
+    0 8px 18px rgba(0, 0, 0, 0.22),
+    0 4px 16px rgba(var(--tool-signature-rgb, 156, 188, 255), 0.12);
+}
+
 .toolButton:focus-visible {
   outline: 2px solid rgba(47, 120, 255, 0.34);
   outline-offset: 2px;
@@ -430,6 +508,17 @@
   transform: none;
 }
 
+:global(html[data-theme="dark"]) .toolButton:disabled,
+:global(html[data-theme="dark"]) .toolButtonDisabled,
+:global(html[data-theme="dark"]) .toolButton:disabled:hover,
+:global(html[data-theme="dark"]) .toolButtonDisabled:hover {
+  border-color: var(--theme-border-subtle);
+  border-left-color: var(--theme-border-medium);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--theme-text-disabled);
+  box-shadow: none;
+}
+
 .toolButton svg {
   color: var(--tool-signature, var(--color-accent));
 }
@@ -438,6 +527,12 @@
 .toolButtonDisabled svg,
 .toolButtonDisabled .toolText strong {
   color: rgba(75, 47, 29, 0.46);
+}
+
+:global(html[data-theme="dark"]) .toolButton:disabled svg,
+:global(html[data-theme="dark"]) .toolButtonDisabled svg,
+:global(html[data-theme="dark"]) .toolButtonDisabled .toolText strong {
+  color: var(--theme-text-disabled);
 }
 
 .toolText {
@@ -464,6 +559,12 @@
   background:
     linear-gradient(180deg, rgba(255, 253, 248, 0.88), rgba(255, 250, 241, 0.92)),
     rgba(255, 250, 241, 0.92);
+}
+
+:global(html[data-theme="dark"]) .guestBanner {
+  background:
+    linear-gradient(180deg, rgba(32, 36, 42, 0.72), rgba(18, 20, 24, 0.9)),
+    var(--theme-surface-section);
 }
 
 .guestBannerHeader {

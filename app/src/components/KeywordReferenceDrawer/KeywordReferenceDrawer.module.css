@@ -9,7 +9,7 @@
 }
 
 .referenceEntry + .referenceEntry {
-  border-top: 1px solid rgba(75, 47, 29, 0.08);
+  border-top: 1px solid var(--theme-divider);
   padding-top: 0.8rem;
 }
 
@@ -23,14 +23,14 @@
 
 .referenceTitle {
   margin: 0;
-  color: var(--color-ink);
+  color: var(--theme-text-primary);
   font-size: 0.94rem;
 }
 
 .inlineLinkButton {
   border: none;
   background: transparent;
-  color: var(--color-accent);
+  color: var(--theme-accent);
   cursor: pointer;
   font: inherit;
   margin: 0;
@@ -40,5 +40,5 @@
 }
 
 .inlineLinkButton:hover {
-  color: var(--color-accent-strong, #8f4d1f);
+  color: var(--theme-accent-strong);
 }

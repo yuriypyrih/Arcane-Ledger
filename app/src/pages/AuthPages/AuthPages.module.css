@@ -319,7 +319,7 @@
       rgba(255, 248, 236, 0.36) 100%
     ),
     linear-gradient(135deg, rgba(145, 101, 54, 0.08), rgba(145, 101, 54, 0.02)),
-    url("../../assets/img/paper-background.webp");
+    var(--theme-paper-background-image);
   background-color: var(--color-panel-surface);
   background-position: center;
   background-repeat: no-repeat;
@@ -604,4 +604,159 @@
     flex-basis: 100%;
     width: 100%;
   }
+}
+
+:global(html[data-theme="dark"]) .panel,
+:global(html[data-theme="dark"]) .accountHeaderCard,
+:global(html[data-theme="dark"]) .accountSection {
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-surface-section);
+  box-shadow: var(--theme-section-shadow);
+  color: var(--theme-text-primary);
+}
+
+:global(html[data-theme="dark"]) .supportPanel {
+  background: var(--theme-surface-section);
+}
+
+:global(html[data-theme="dark"]) .accountHeaderCard {
+  background:
+    linear-gradient(135deg, rgba(156, 188, 255, 0.08), rgba(101, 199, 125, 0.045) 52%, transparent),
+    var(--theme-surface-section);
+}
+
+:global(html[data-theme="dark"]) .eyebrow,
+:global(html[data-theme="dark"]) .accountIdentityLabel,
+:global(html[data-theme="dark"]) .accountDetailLabel,
+:global(html[data-theme="dark"]) .label {
+  color: var(--theme-text-muted);
+}
+
+:global(html[data-theme="dark"]) .title,
+:global(html[data-theme="dark"]) .accountTitle,
+:global(html[data-theme="dark"]) .accountSectionTitle,
+:global(html[data-theme="dark"]) .accountIdentityText strong,
+:global(html[data-theme="dark"]) .accountDetailValue {
+  color: var(--theme-text-primary);
+}
+
+:global(html[data-theme="dark"]) .text,
+:global(html[data-theme="dark"]) .accountIntro,
+:global(html[data-theme="dark"]) .accountSectionText,
+:global(html[data-theme="dark"]) .accountPrivilegesUpgradeText,
+:global(html[data-theme="dark"]) .supportMetaRow {
+  color: var(--theme-text-secondary);
+}
+
+:global(html[data-theme="dark"]) .accountIdentityCard {
+  border-color: var(--theme-divider);
+}
+
+:global(html[data-theme="dark"]) .accountSectionIcon,
+:global(html[data-theme="dark"]) .accountDetailIcon {
+  background: rgba(156, 188, 255, 0.12);
+  color: var(--theme-accent-strong);
+}
+
+:global(html[data-theme="dark"]) .accountDetailCard:nth-child(2) .accountDetailIcon {
+  background: rgba(239, 189, 117, 0.12);
+  color: var(--theme-state-warning);
+}
+
+:global(html[data-theme="dark"]) .accountDetailCard:nth-child(3) .accountDetailIcon {
+  background: rgba(196, 167, 255, 0.12);
+  color: var(--theme-proficiency-color);
+}
+
+:global(html[data-theme="dark"]) .accountDetailCard:nth-child(4) .accountDetailIcon {
+  background: rgba(101, 199, 125, 0.12);
+  color: var(--theme-state-success);
+}
+
+:global(html[data-theme="dark"]) .accountDetailCard {
+  border-color: var(--theme-border-subtle);
+  background:
+    linear-gradient(140deg, rgba(35, 39, 45, 0.78), rgba(20, 23, 28, 0.74)),
+    var(--theme-paper-background-image);
+  background-color: var(--theme-surface-panel);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size:
+    auto,
+    155% auto;
+}
+
+:global(html[data-theme="dark"]) .rolePill {
+  border-color: rgba(156, 188, 255, 0.28);
+  background: rgba(156, 188, 255, 0.12);
+  color: var(--theme-accent-strong);
+}
+
+:global(html[data-theme="dark"]) .accountPrivilegesTableWrap {
+  border-color: var(--theme-border-subtle);
+  background:
+    linear-gradient(180deg, rgba(35, 39, 45, 0.62), rgba(21, 24, 29, 0.7)),
+    var(--theme-surface-panel);
+}
+
+:global(html[data-theme="dark"]) .accountPrivilegesTable {
+  color: var(--theme-text-primary);
+}
+
+:global(html[data-theme="dark"]) .accountPrivilegesTable th,
+:global(html[data-theme="dark"]) .accountPrivilegesTable td {
+  border-bottom-color: var(--theme-divider);
+}
+
+:global(html[data-theme="dark"]) .accountPrivilegesTable thead th {
+  background: rgba(156, 188, 255, 0.08);
+  color: var(--theme-text-secondary);
+}
+
+:global(html[data-theme="dark"]) .accountPrivilegesTable tbody th {
+  color: var(--theme-text-primary);
+}
+
+:global(html[data-theme="dark"]) .accountPrivilegesTable tbody td {
+  color: var(--theme-text-secondary);
+}
+
+:global(html[data-theme="dark"]) .accountPrivilegesTable tbody tr:hover {
+  background: rgba(156, 188, 255, 0.055);
+}
+
+:global(html[data-theme="dark"]) .privilegeIncluded {
+  color: var(--theme-state-success);
+}
+
+:global(html[data-theme="dark"]) .privilegeUnavailable {
+  color: var(--theme-text-muted);
+}
+
+:global(html[data-theme="dark"]) .accountPrivilegesUpgradeText a,
+:global(html[data-theme="dark"]) .link {
+  color: var(--theme-accent-strong);
+}
+
+:global(html[data-theme="dark"]) .supportTextarea {
+  background: var(--theme-input-background);
+  color: var(--theme-input-text);
+}
+
+:global(html[data-theme="dark"]) .error {
+  border-color: rgba(232, 116, 102, 0.26);
+  background: rgba(232, 116, 102, 0.12);
+  color: var(--theme-state-danger);
+}
+
+:global(html[data-theme="dark"]) .success {
+  border-color: rgba(101, 199, 125, 0.26);
+  background: rgba(101, 199, 125, 0.12);
+  color: var(--theme-state-success);
+}
+
+:global(html[data-theme="dark"]) .info {
+  border-color: rgba(156, 188, 255, 0.26);
+  background: rgba(156, 188, 255, 0.12);
+  color: var(--theme-state-info-strong);
 }

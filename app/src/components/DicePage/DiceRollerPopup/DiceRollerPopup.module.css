@@ -9,6 +9,10 @@
   z-index: 52;
 }
 
+:global(html[data-theme="dark"]) .modalBackdrop {
+  background: var(--theme-overlay-backdrop);
+}
+
 .modalCard {
   position: relative;
   display: grid;
@@ -21,6 +25,15 @@
   box-shadow: 0 24px 70px rgba(38, 23, 14, 0.24);
   padding: 0.7rem;
   animation: diceDrawerDrop 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+:global(html[data-theme="dark"]) .modalCard {
+  border-color: var(--theme-border-medium);
+  background:
+    linear-gradient(165deg, rgba(33, 36, 42, 0.98), rgba(17, 19, 24, 0.98)),
+    var(--theme-overlay-surface);
+  box-shadow: var(--theme-drawer-shadow);
+  color: var(--theme-text-primary);
 }
 
 .closeButton {
@@ -41,6 +54,18 @@
   z-index: 1;
 }
 
+:global(html[data-theme="dark"]) .closeButton {
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-primary);
+  box-shadow: inset 0 0 0 1px var(--theme-border-subtle);
+}
+
+:global(html[data-theme="dark"]) .closeButton:hover,
+:global(html[data-theme="dark"]) .closeButton:focus-visible {
+  background: var(--theme-control-subtle-hover);
+  box-shadow: inset 0 0 0 1px var(--theme-border-medium);
+}
+
 .viewportStage {
   height: clamp(210px, 36vh, 400px);
   border-radius: var(--radius-field);
@@ -56,6 +81,11 @@
   color: var(--color-ink-soft);
   font-size: 0.92rem;
   text-align: center;
+}
+
+:global(html[data-theme="dark"]) .viewportFallback {
+  background: rgba(255, 255, 255, 0.055);
+  color: var(--theme-text-secondary);
 }
 
 .resultPanel {
@@ -77,6 +107,11 @@
   background: rgba(75, 47, 29, 0.06);
   padding: 0.8rem 0.9rem;
   text-align: center;
+}
+
+:global(html[data-theme="dark"]) .resultPanel,
+:global(html[data-theme="dark"]) .multiResultPanel {
+  background: rgba(255, 255, 255, 0.055);
 }
 
 .resultLabel {
@@ -114,6 +149,11 @@
   border-radius: var(--radius-control-lg);
   background: rgba(255, 255, 255, 0.72);
   padding: 0.8rem 0.9rem;
+}
+
+:global(html[data-theme="dark"]) .multiResultCard {
+  border: 1px solid var(--theme-border-subtle);
+  background: var(--theme-surface-raised);
 }
 
 .multiResultCardLabel {
@@ -154,6 +194,14 @@
     linear-gradient(180deg, rgba(255, 244, 192, 0.96), rgba(249, 208, 84, 0.94)),
     rgba(255, 216, 103, 0.92);
   color: #724508;
+}
+
+:global(html[data-theme="dark"]) .natural20Pill {
+  border-color: rgba(239, 189, 117, 0.44);
+  background:
+    linear-gradient(180deg, rgba(91, 63, 22, 0.96), rgba(123, 79, 22, 0.92)),
+    rgba(83, 57, 24, 0.9);
+  color: #ffe3aa;
 }
 
 .natural1Pill {
@@ -203,6 +251,10 @@
   margin: 0;
   color: #8b2d1f;
   font-weight: 600;
+}
+
+:global(html[data-theme="dark"]) .errorText {
+  color: var(--theme-state-danger);
 }
 
 .pendingText {

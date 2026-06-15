@@ -19,6 +19,6 @@
 }
 
 .purpleText {
-  color: #6f2bc5;
+  color: var(--theme-proficiency-color);
   font-weight: 800;
 }

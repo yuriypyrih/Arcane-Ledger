@@ -136,7 +136,7 @@ export function renderClassFeatureContent(context: Record<string, any>) {
     renderTrackingButton,
     setIsWildShapeModalOpen,
     setSelectedWildShapeMonster,
-    shared,
+    SheetActionButton,
     skillsOptions,
     sorcererDraconicElementalAffinityDamageTypeOptions,
     spellSelectionInputStatus,
@@ -483,15 +483,13 @@ export function renderClassFeatureContent(context: Record<string, any>) {
                   : `${eldritchInvocationInputStatus.selectedCount}/${eldritchInvocationInputStatus.limit} selected`}
               </span>
             </div>
-            <button
-              type="button"
-              className={shared.editButton}
+            <SheetActionButton
               disabled={!isUnlocked}
               onClick={onOpenEldritchInvocationEditor}
             >
               <Pencil size={16} />
               Edit
-            </button>
+            </SheetActionButton>
           </div>
           <EldritchInvocationList
             invocations={learnedInvocationOptions}
@@ -552,15 +550,13 @@ export function renderClassFeatureContent(context: Record<string, any>) {
                   : "Unavailable"}
               </span>
             </div>
-            <button
-              type="button"
-              className={shared.editButton}
+            <SheetActionButton
               disabled={!isUnlocked}
               onClick={() => setIsWildShapeModalOpen(true)}
             >
               {druidWildShapeKnownForms.length > 0 ? <Pencil size={16} /> : <Plus size={16} />}
               {druidWildShapeKnownForms.length > 0 ? "Edit" : "Choose"}
-            </button>
+            </SheetActionButton>
           </div>
           {druidWildShapeKnownForms.length > 0 ? (
             <div className={styles.wildShapeMonsterList}>
@@ -1957,27 +1953,23 @@ export function renderClassFeatureContent(context: Record<string, any>) {
                 {linkedFeatSummary ? ` · ${linkedFeatSummary}` : ""}
               </button>
             </div>
-            <button
-              type="button"
-              className={shared.editButton}
+            <SheetActionButton
               disabled={!isUnlocked}
               onClick={() => onOpenFeatEditorForFeature(featureRow.level, featureRow.feature)}
             >
               <Pencil size={16} />
               Edit
-            </button>
+            </SheetActionButton>
           </div>
         ) : (
           <div className={styles.featureChoiceRow}>
-            <button
-              type="button"
-              className={shared.editButton}
+            <SheetActionButton
               disabled={!isUnlocked}
               onClick={() => onOpenFeatEditorForFeature(featureRow.level, featureRow.feature)}
             >
               <Plus size={16} />
               Choose Feat
-            </button>
+            </SheetActionButton>
           </div>
         )
       ) : null}

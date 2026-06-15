@@ -1,5 +1,6 @@
 import { Schema, model, type HydratedDocument } from "mongoose";
 import { USER_ROLES, type UserRole } from "../types/auth.js";
+import { THEME_MODE_PREFERENCES } from "../types/preferences.js";
 import type { UserPreferences } from "../types/preferences.js";
 import {
   DEFAULT_USER_NICKNAME,
@@ -41,6 +42,12 @@ const userPreferencesSchema = new Schema<UserPreferences>(
     broadLayout: {
       type: Boolean,
       default: defaultUserPreferences.broadLayout,
+      required: true
+    },
+    themeMode: {
+      type: String,
+      enum: [...THEME_MODE_PREFERENCES],
+      default: defaultUserPreferences.themeMode,
       required: true
     }
   },

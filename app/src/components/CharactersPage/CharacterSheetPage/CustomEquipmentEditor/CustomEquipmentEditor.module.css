@@ -32,6 +32,10 @@
   background: linear-gradient(180deg, rgba(255, 252, 245, 0.24), rgba(246, 236, 221, 0.92));
 }
 
+:global(html[data-theme="dark"]) .customEquipmentEditorFooter {
+  background: linear-gradient(180deg, rgba(30, 33, 39, 0.54), rgba(15, 17, 21, 0.88));
+}
+
 .customEquipmentCategoryGrid {
   display: grid;
   gap: 0.48rem;
@@ -86,6 +90,10 @@
   padding-top: 0.66rem;
 }
 
+:global(html[data-theme="dark"]) .customEquipmentSettingsOption + .customEquipmentSettingsOption {
+  border-top-color: var(--theme-divider);
+}
+
 .customEquipmentSettingsOption:last-child {
   padding-bottom: 0.1rem;
 }
@@ -96,6 +104,10 @@
   margin-left: 1.1rem;
   padding-left: 0.72rem;
   border-left: 2px solid rgba(75, 47, 29, 0.14);
+}
+
+:global(html[data-theme="dark"]) .customEquipmentSettingsFields {
+  border-left-color: var(--theme-border-medium);
 }
 
 .customEquipmentThreeColumnRow {
@@ -145,10 +157,19 @@
   padding: 0.62rem 0.68rem;
 }
 
+:global(html[data-theme="dark"]) .customEquipmentSection {
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-surface-raised);
+}
+
 .customEquipmentDivider {
   block-size: 1px;
   background: rgba(75, 47, 29, 0.16);
   margin: 0.04rem 0;
+}
+
+:global(html[data-theme="dark"]) .customEquipmentDivider {
+  background: var(--theme-divider);
 }
 
 .customEquipmentSectionHeader {
@@ -172,6 +193,10 @@
   color: var(--color-ink-soft);
   font-size: 0.82rem;
   line-height: 1.45;
+}
+
+:global(html[data-theme="dark"]) .customEquipmentSectionDescription {
+  color: var(--theme-text-secondary);
 }
 
 .customEquipmentInlineButton {
@@ -264,8 +289,24 @@
   padding: 0 0.62rem;
 }
 
+:global(html[data-theme="dark"]) .customEquipmentCheckbox {
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-primary);
+}
+
+:global(html[data-theme="dark"]) .customEquipmentCheckbox:hover,
+:global(html[data-theme="dark"]) .customEquipmentCheckbox:focus-within {
+  border-color: var(--theme-border-medium);
+  background: var(--theme-control-subtle-hover);
+}
+
 .customEquipmentCheckbox input {
   accent-color: #2f78ff;
+}
+
+:global(html[data-theme="dark"]) .customEquipmentCheckbox input {
+  accent-color: var(--theme-accent);
 }
 
 .customEquipmentCheckbox span {
@@ -274,6 +315,10 @@
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+}
+
+:global(html[data-theme="dark"]) .customEquipmentCheckbox span {
+  color: var(--theme-text-primary);
 }
 
 .customEquipmentError {

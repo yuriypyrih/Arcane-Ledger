@@ -89,6 +89,7 @@ import {
 } from "./choiceModels";
 import type { FeatureRow, TrackingButtonRenderer } from "./types";
 import { renderClassFeatureContent } from "./ClassFeatureListFeatureContent";
+import SheetActionButton from "../SheetActionButton";
 import type {
   WarlockEldritchInvocationInputStatus,
   WarlockEldritchInvocationOption
@@ -914,6 +915,7 @@ function ClassFeatureList({
                   setIsWildShapeModalOpen,
                   setSelectedWildShapeMonster,
                   shared,
+                  SheetActionButton,
                   skillsOptions,
                   sorcererDraconicElementalAffinityDamageTypeOptions,
                   spellSelectionInputStatus,

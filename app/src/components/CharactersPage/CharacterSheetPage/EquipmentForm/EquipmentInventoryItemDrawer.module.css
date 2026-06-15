@@ -23,13 +23,27 @@
   padding: 1rem;
 }
 
+:global(html[data-theme="dark"]) .statusCard {
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-surface-panel);
+  color: var(--theme-text-secondary);
+}
+
 .statusCard strong {
   color: var(--color-ink);
+}
+
+:global(html[data-theme="dark"]) .statusCard strong {
+  color: var(--theme-text-primary);
 }
 
 .footer {
   border-top: 1px solid rgba(75, 47, 29, 0.12);
   padding: 0.85rem 1rem 1rem;
+}
+
+:global(html[data-theme="dark"]) .footer {
+  border-top-color: var(--theme-divider);
 }
 
 .footerStack {
@@ -46,6 +60,12 @@
   font-size: 0.92rem;
   font-weight: 700;
   padding: 0.65rem 0.8rem;
+}
+
+:global(html[data-theme="dark"]) .footerNotice {
+  border-color: rgba(232, 116, 102, 0.32);
+  background: rgba(232, 116, 102, 0.12);
+  color: var(--theme-state-danger);
 }
 
 .footerLayout {
@@ -78,6 +98,12 @@
   padding: 0.6rem 0.85rem;
 }
 
+:global(html[data-theme="dark"]) .copyCountBadge {
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-primary);
+}
+
 .footerButton {
   display: inline-flex;
   align-items: center;
@@ -90,6 +116,18 @@
   cursor: pointer;
   font: inherit;
   padding: 0.6rem 0.85rem;
+}
+
+:global(html[data-theme="dark"]) .footerButton {
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-control-subtle);
+  box-shadow: inset 0 0 0 1px transparent;
+}
+
+:global(html[data-theme="dark"]) .footerButton:hover:not(:disabled),
+:global(html[data-theme="dark"]) .footerButton:focus-visible:not(:disabled) {
+  border-color: var(--theme-border-medium);
+  background: var(--theme-control-subtle-hover);
 }
 
 .footerButton:disabled {
@@ -110,6 +148,12 @@
   font: inherit;
   font-weight: 600;
   padding: 0.36rem 0.5rem 0.36rem 0.85rem;
+}
+
+:global(html[data-theme="dark"]) .footerChargeControl {
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-secondary);
 }
 
 .footerChargeLabel {
@@ -133,6 +177,11 @@
   background: rgba(75, 47, 29, 0.1);
 }
 
+:global(html[data-theme="dark"]) .footerChargeIconButton:hover:not(:disabled),
+:global(html[data-theme="dark"]) .footerChargeIconButton:focus-visible {
+  background: var(--theme-control-subtle-hover);
+}
+
 .footerChargeIconButton:disabled {
   cursor: default;
   opacity: 0.35;
@@ -142,18 +191,38 @@
   color: #2e7d32;
 }
 
+:global(html[data-theme="dark"]) .footerChargeIconButtonPositive {
+  color: var(--theme-state-success);
+}
+
 .footerChargeIconButtonNegative {
   color: #c62828;
+}
+
+:global(html[data-theme="dark"]) .footerChargeIconButtonNegative {
+  color: var(--theme-state-danger);
 }
 
 .toneNeutral {
   color: var(--color-ink-soft);
 }
 
+:global(html[data-theme="dark"]) .toneNeutral {
+  color: var(--theme-text-secondary);
+}
+
 .tonePositive {
   color: #2e7d32;
 }
 
+:global(html[data-theme="dark"]) .tonePositive {
+  color: var(--theme-state-success);
+}
+
 .toneNegative {
   color: #c62828;
+}
+
+:global(html[data-theme="dark"]) .toneNegative {
+  color: var(--theme-state-danger);
 }

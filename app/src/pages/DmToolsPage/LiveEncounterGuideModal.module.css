@@ -9,12 +9,12 @@
 
 .sectionTitle {
   margin: 0;
-  color: var(--color-ink);
+  color: var(--theme-text-primary);
   font-size: 0.96rem;
 }
 
 .sectionText {
   margin: 0;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-muted);
   line-height: 1.5;
 }

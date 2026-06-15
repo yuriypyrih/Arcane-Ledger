@@ -8,6 +8,7 @@ import type { Character, CharacterStatusEntry } from "../../../../../../types";
 import { useDiceRollerPopup } from "../../../../../DicePage/DiceRollerPopup";
 import CharacterSpellDrawer from "../../../SpellCastingForm/CharacterSpellDrawer";
 import shared from "../../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import SheetActionButton from "../../../SheetActionButton";
 import widgetShellStyles from "../../GameplayWidgetShared.module.css";
 import CustomTraitEditorModal from "./CustomTraitEditorModal";
 import ReactionEntryDrawer from "./ReactionEntryDrawer";
@@ -106,10 +107,10 @@ function TraitsConditionsWidget({
       <section className={clsx(widgetShellStyles.widgetCard, styles.root)}>
         <header className={widgetShellStyles.widgetHeader}>
           <p className={widgetShellStyles.widgetTitle}>Traits &amp; Conditions</p>
-          <button type="button" className={shared.editButton} onClick={openTraitEditor}>
+          <SheetActionButton onClick={openTraitEditor}>
             <Pencil size={16} />
             Edit
-          </button>
+          </SheetActionButton>
         </header>
 
         {statusSections.length === 0 ? (

@@ -43,6 +43,7 @@ import { normalizeCharacterCurrencies } from "../../../../pages/CharactersPage/s
 import { formatEquipmentWeight } from "../../../../utils/codex";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import { formatCurrencyPillAmount, formatInventoryStackName, normalizeCurrencyAmountInput } from "./equipmentLoadoutModel";
+import SheetActionButton from "../SheetActionButton";
 import containerStyles from "./EquipmentContainerManageModal.module.css";
 import {
   addTransactionCurrency,
@@ -387,15 +388,13 @@ function MasterChestModal({
           </OverlaySummary>
         </OverlayHeaderContent>
         <div className={styles.headerActions}>
-          <button
-            type="button"
-            className={styles.historyHeaderButton}
+          <SheetActionButton
             disabled={loadStatus !== "ready"}
             onClick={() => setIsHistoryModalOpen(true)}
           >
             <History size={16} aria-hidden="true" />
             History
-          </button>
+          </SheetActionButton>
           <OverlayCloseButton label="Close master chest" onClick={onClose} />
         </div>
       </OverlayHeader>

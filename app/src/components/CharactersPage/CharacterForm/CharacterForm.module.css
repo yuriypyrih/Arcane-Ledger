@@ -258,6 +258,11 @@
   padding: 0.3rem;
 }
 
+:global(html[data-theme="dark"]) .segmentedControl {
+  background: rgba(255, 255, 255, 0.055);
+  box-shadow: inset 0 0 0 1px var(--theme-border-subtle);
+}
+
 .segmentButton {
   border-radius: var(--radius-field);
   background: transparent;
@@ -266,10 +271,22 @@
   padding: 0 1rem;
 }
 
+:global(html[data-theme="dark"]) .segmentButton {
+  color: var(--theme-text-secondary);
+}
+
 .segmentButtonActive {
   background: #fffaf1;
   box-shadow: 0 8px 18px rgba(54, 34, 21, 0.08);
   color: var(--color-ink);
+}
+
+:global(html[data-theme="dark"]) .segmentButtonActive {
+  background: var(--theme-control-subtle-hover);
+  color: var(--theme-text-primary);
+  box-shadow:
+    inset 0 0 0 1px var(--theme-border-medium),
+    0 10px 22px rgba(0, 0, 0, 0.22);
 }
 
 .pointSummary {

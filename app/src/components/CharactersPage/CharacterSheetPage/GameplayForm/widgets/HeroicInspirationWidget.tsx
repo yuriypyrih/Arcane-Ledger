@@ -21,6 +21,7 @@ import {
   toggleHeroicInspirationForCharacter
 } from "../../../../../pages/CharactersPage/heroicInspiration";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import SheetActionButton from "../../SheetActionButton";
 import { resourcePersistOptions } from "./persistOptions";
 import styles from "./HeroicInspirationWidget.module.css";
 
@@ -55,10 +56,8 @@ function HeroicInspirationWidget({ character, onPersistCharacter }: HeroicInspir
 
   return (
     <>
-      <button
-        type="button"
+      <SheetActionButton
         className={clsx(
-          shared.editButton,
           styles.button,
           hasHeroicInspiration && styles.buttonActive
         )}
@@ -67,7 +66,7 @@ function HeroicInspirationWidget({ character, onPersistCharacter }: HeroicInspir
         title={HEROIC_INSPIRATION_TITLE}
       >
         <HeroicInspirationStar isActive={hasHeroicInspiration} />
-      </button>
+      </SheetActionButton>
 
       {isOpen ? (
         <SheetModal titleId="heroic-inspiration-modal-title" onClose={() => setIsOpen(false)}>

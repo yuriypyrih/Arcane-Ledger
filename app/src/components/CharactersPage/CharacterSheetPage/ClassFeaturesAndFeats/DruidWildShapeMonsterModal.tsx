@@ -33,6 +33,7 @@ import type {
   MonsterOrdering,
   MonsterRecord
 } from "../../../../types";
+import SheetActionButton from "../SheetActionButton";
 import styles from "./DruidWildShapeMonsterModal.module.css";
 
 type DruidWildShapeMonsterModalProps = {
@@ -427,8 +428,7 @@ function DruidWildShapeMonsterModal({
               const monsterKey = getMonsterListItemKey(monster);
 
               return (
-                <button
-                  type="button"
+                <SheetActionButton
                   className={styles.tableAddButton}
                   onClick={(event) => {
                     event.stopPropagation();
@@ -439,7 +439,7 @@ function DruidWildShapeMonsterModal({
                   aria-label={`Add ${monster.name}`}
                 >
                   <Plus size={14} aria-hidden="true" />
-                </button>
+                </SheetActionButton>
               );
             }}
           />

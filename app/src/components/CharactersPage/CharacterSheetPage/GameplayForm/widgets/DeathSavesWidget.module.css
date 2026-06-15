@@ -84,6 +84,10 @@
   font-weight: 800;
 }
 
+:global(html[data-theme="dark"]) .dotDivider {
+  color: var(--theme-divider);
+}
+
 .modalBody {
   gap: 1rem;
 }
@@ -103,6 +107,10 @@
   margin: 0;
   border: none;
   border-top: 1px solid rgba(75, 47, 29, 0.12);
+}
+
+:global(html[data-theme="dark"]) .descriptionDivider {
+  border-top-color: var(--theme-divider);
 }
 
 .modalTracker {

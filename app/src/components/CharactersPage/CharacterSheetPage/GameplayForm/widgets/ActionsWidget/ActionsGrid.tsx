@@ -5,6 +5,7 @@ import type { Character } from "../../../../../../types";
 import type { GameplayActionDefinition } from "../../../../../../pages/CharactersPage/combatActions";
 import { monkHandOfHealingActionKey } from "../../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfMercy";
 import shared from "../../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import SheetActionButton from "../../../SheetActionButton";
 import widgetShellStyles from "../../GameplayWidgetShared.module.css";
 import { FeatureActionCardButton, WeaponActionCard } from "./ActionCards";
 import { MonkHandOfHealingActionCard } from "./MonkHandOfHealingAction";
@@ -42,10 +43,8 @@ function ActionsGrid({
       <header className={widgetShellStyles.widgetHeader}>
         <p className={widgetShellStyles.widgetTitle}>Actions</p>
         <div className={styles.headerActions}>
-          <button
-            type="button"
+          <SheetActionButton
             className={clsx(
-              shared.editButton,
               styles.commonActionsButton,
               isCommonActionsOpen && styles.commonActionsButtonActive
             )}
@@ -53,11 +52,9 @@ function ActionsGrid({
           >
             <SportShoe size={16} />
             Common Actions
-          </button>
-          <button
-            type="button"
+          </SheetActionButton>
+          <SheetActionButton
             className={clsx(
-              shared.editButton,
               styles.commonActionsButton,
               isCustomActionsOpen && styles.commonActionsButtonActive
             )}
@@ -65,7 +62,7 @@ function ActionsGrid({
           >
             <Pencil size={16} />
             Edit
-          </button>
+          </SheetActionButton>
         </div>
       </header>
       {combatActions.length === 0 ? (

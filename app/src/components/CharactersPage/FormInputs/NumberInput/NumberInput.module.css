@@ -1,8 +1,8 @@
 .input {
-  border: 1px solid rgba(75, 47, 29, 0.18);
+  border: 1px solid var(--theme-input-border);
   border-radius: var(--radius-field);
-  background: rgba(255, 255, 255, 0.7);
-  color: var(--color-ink);
+  background: var(--theme-input-background);
+  color: var(--theme-input-text);
   font: inherit;
   min-height: 54px;
   padding: 0 1rem;
@@ -14,20 +14,20 @@
 
 .input:focus {
   outline: none;
-  border-color: rgba(143, 91, 56, 0.8);
-  box-shadow: 0 0 0 4px rgba(143, 91, 56, 0.12);
+  border-color: var(--theme-input-focus-border);
+  box-shadow: 0 0 0 4px var(--theme-input-focus-shadow);
 }
 
 .input:disabled {
-  border-color: rgba(75, 47, 29, 0.12);
-  background: rgba(75, 47, 29, 0.08);
-  color: rgba(75, 47, 29, 0.46);
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-input-disabled-background);
+  color: var(--theme-input-disabled-text);
   cursor: not-allowed;
-  -webkit-text-fill-color: rgba(75, 47, 29, 0.46);
+  -webkit-text-fill-color: var(--theme-input-disabled-text);
 }
 
 .input:disabled:focus {
-  border-color: rgba(75, 47, 29, 0.12);
+  border-color: var(--theme-border-subtle);
   box-shadow: none;
 }
 
@@ -45,12 +45,12 @@
 .inputInvalid,
 .input[data-range-invalid="true"],
 .input:out-of-range {
-  border-color: rgba(169, 56, 32, 0.42);
+  border-color: var(--theme-input-invalid-border);
 }
 
 .inputInvalid:focus,
 .input[data-range-invalid="true"]:focus,
 .input:out-of-range:focus {
-  border-color: rgba(169, 56, 32, 0.58);
-  box-shadow: 0 0 0 4px rgba(169, 56, 32, 0.12);
+  border-color: var(--theme-input-invalid-focus-border);
+  box-shadow: 0 0 0 4px var(--theme-input-invalid-focus-shadow);
 }

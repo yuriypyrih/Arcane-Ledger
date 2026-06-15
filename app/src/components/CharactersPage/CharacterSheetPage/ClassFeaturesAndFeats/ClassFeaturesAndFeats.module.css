@@ -19,7 +19,7 @@
 }
 
 .subsection + .subsection {
-  border-top: 1px solid rgba(75, 47, 29, 0.14);
+  border-top: 1px solid var(--theme-divider);
   padding-top: 1.6rem;
 }
 
@@ -87,6 +87,12 @@
   padding: 0.2rem 0.46rem;
   text-transform: uppercase;
   white-space: nowrap;
+}
+
+:global(html[data-theme="dark"]) .subclassFeatureIndicator {
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-secondary);
 }
 
 .featureDescriptionList {

@@ -8,7 +8,7 @@
 .inlineLinkButton {
   border: none;
   background: transparent;
-  color: var(--color-accent);
+  color: var(--theme-accent);
   cursor: pointer;
   font: inherit;
   margin: 0;
@@ -18,5 +18,5 @@
 }
 
 .inlineLinkButton:hover {
-  color: var(--color-accent-strong, #8f4d1f);
+  color: var(--theme-accent-strong);
 }

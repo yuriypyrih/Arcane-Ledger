@@ -6,36 +6,6 @@
   gap: 0.5rem;
 }
 
-.historyHeaderButton {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  min-height: 38px;
-  border: none;
-  border-radius: var(--radius-pill);
-  background: rgba(75, 47, 29, 0.1);
-  color: var(--color-ink);
-  cursor: pointer;
-  font: inherit;
-  padding: 0 0.9rem;
-  white-space: nowrap;
-}
-
-.historyHeaderButton:hover:not(:disabled),
-.historyHeaderButton:focus-visible:not(:disabled) {
-  background: rgba(75, 47, 29, 0.16);
-}
-
-.historyHeaderButton:focus-visible {
-  outline: 2px solid rgba(47, 120, 255, 0.34);
-  outline-offset: 2px;
-}
-
-.historyHeaderButton:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-
 .body {
   display: flex;
   flex-direction: column;
@@ -213,6 +183,10 @@
   white-space: nowrap;
 }
 
+:global(html[data-theme="dark"]) .currencySelectorHint {
+  color: var(--theme-text-muted);
+}
+
 .currencySelectorButton {
   display: grid;
   align-content: center;
@@ -232,6 +206,19 @@
     background-color 140ms ease;
 }
 
+:global(html[data-theme="dark"]) .currencySelectorButton {
+  border-color: var(--theme-border-subtle);
+  background: #111318;
+  color: var(--theme-text-primary);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+:global(html[data-theme="dark"]) .currencySelectorButton:hover:not(:disabled),
+:global(html[data-theme="dark"]) .currencySelectorButton:focus-visible:not(:disabled) {
+  border-color: var(--theme-border-medium);
+  background: #151820;
+}
+
 .currencySelectorButton strong {
   font-size: 0.92rem;
   line-height: 1.1;
@@ -244,9 +231,18 @@
   line-height: 1;
 }
 
+:global(html[data-theme="dark"]) .currencySelectorButton span {
+  color: var(--theme-text-secondary);
+}
+
 .currencySelectorButtonActive {
   border-color: rgba(143, 91, 56, 0.56);
   background: rgba(143, 91, 56, 0.18);
+}
+
+:global(html[data-theme="dark"]) .currencySelectorButtonActive {
+  border-color: rgba(156, 188, 255, 0.42);
+  background: rgba(156, 188, 255, 0.12);
 }
 
 .currencySelectorIcon {
@@ -285,6 +281,13 @@
   padding: 0.72rem 0.78rem;
 }
 
+:global(html[data-theme="dark"]) .historyItem {
+  border-color: var(--theme-border-subtle);
+  background: linear-gradient(135deg, rgba(35, 39, 45, 0.84), rgba(18, 20, 24, 0.88));
+  color: var(--theme-text-primary);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
 .historyEntryContent {
   display: grid;
   gap: 0.58rem;
@@ -310,10 +313,20 @@
   padding: 0 0.5rem;
 }
 
+:global(html[data-theme="dark"]) .historyTimestamp {
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-secondary);
+  box-shadow: inset 0 0 0 1px var(--theme-border-subtle);
+}
+
 .historyActor {
   color: var(--color-ink);
   font-size: 0.92rem;
   font-weight: 800;
+}
+
+:global(html[data-theme="dark"]) .historyActor {
+  color: var(--theme-text-primary);
 }
 
 .historyActionList {
@@ -342,14 +355,32 @@
   text-transform: uppercase;
 }
 
+:global(html[data-theme="dark"]) .historyActionLabel {
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-secondary);
+  box-shadow: inset 0 0 0 1px var(--theme-border-subtle);
+}
+
 .historyActionIn {
   background: rgba(35, 123, 76, 0.13);
   color: #237b4c;
 }
 
+:global(html[data-theme="dark"]) .historyActionIn {
+  background: rgba(101, 199, 125, 0.14);
+  color: var(--theme-state-success);
+  box-shadow: inset 0 0 0 1px rgba(101, 199, 125, 0.22);
+}
+
 .historyActionOut {
   background: rgba(165, 82, 40, 0.13);
   color: #9a512c;
+}
+
+:global(html[data-theme="dark"]) .historyActionOut {
+  background: rgba(239, 189, 117, 0.14);
+  color: var(--theme-state-warning);
+  box-shadow: inset 0 0 0 1px rgba(239, 189, 117, 0.22);
 }
 
 .historyActionTokens {
@@ -371,6 +402,12 @@
   padding: 0 0.5rem;
 }
 
+:global(html[data-theme="dark"]) .historyToken {
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-primary);
+  box-shadow: inset 0 0 0 1px var(--theme-border-subtle);
+}
+
 .historyTokenSeparator {
   display: none;
 }
@@ -383,6 +420,11 @@
   font-weight: 700;
   padding: 0.75rem;
   text-align: center;
+}
+
+:global(html[data-theme="dark"]) .historyEmpty {
+  border-color: var(--theme-border-medium);
+  color: var(--theme-text-secondary);
 }
 
 .readOnlyFooterActions {

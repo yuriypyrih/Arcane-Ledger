@@ -66,6 +66,11 @@
   width: 100%;
 }
 
+:global(html[data-theme="dark"]) .button {
+  background: var(--theme-surface-subtle-bordered);
+  color: var(--theme-text-primary);
+}
+
 .button:disabled {
   cursor: not-allowed;
 }
@@ -76,9 +81,19 @@
   opacity: 0.68;
 }
 
+:global(html[data-theme="dark"]) .buttonDisabled {
+  background: var(--theme-surface-subtle-bordered);
+  color: var(--theme-text-disabled);
+}
+
 .buttonDisabled .buttonText small,
 .buttonDisabled .duration {
   color: rgba(84, 101, 111, 0.85);
+}
+
+:global(html[data-theme="dark"]) .buttonDisabled .buttonText small,
+:global(html[data-theme="dark"]) .buttonDisabled .duration {
+  color: var(--theme-text-disabled);
 }
 
 .buttonText {
@@ -103,6 +118,10 @@
   white-space: nowrap;
 }
 
+:global(html[data-theme="dark"]) .buttonText small {
+  color: var(--theme-text-muted);
+}
+
 .buttonTitle {
   align-items: center;
   display: inline-flex;
@@ -123,7 +142,7 @@
 }
 
 .modifiedIcon {
-  color: #1d4ed8;
+  color: var(--theme-state-info);
   display: inline-flex;
   flex: 0 0 auto;
 }
@@ -150,6 +169,10 @@
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
+}
+
+:global(html[data-theme="dark"]) .duration {
+  color: var(--theme-accent-strong);
 }
 
 .durationText {

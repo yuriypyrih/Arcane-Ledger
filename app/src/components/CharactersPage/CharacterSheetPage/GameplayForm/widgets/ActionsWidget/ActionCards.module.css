@@ -182,7 +182,7 @@
       var(--action-card-theme-panel-soft) 82%,
       var(--action-card-theme-panel-strong) 100%
     ),
-    url("../../../../../../assets/img/paper-background.webp");
+    var(--theme-paper-background-image);
   --action-card-theme-background-position: center, center, center, center;
   --action-card-theme-background-size: auto, auto, auto, 155% auto;
   --action-card-theme-glow: rgba(145, 101, 54, 0.18);
@@ -493,6 +493,10 @@
   height: 14px;
   object-fit: contain;
   width: 14px;
+}
+
+:global(html[data-theme="dark"]) .usesAssetIcon {
+  filter: brightness(0) invert(1) opacity(0.92);
 }
 
 @media (max-width: 599px) {

@@ -12,7 +12,7 @@
 .resultsHeader span,
 .card p,
 .card small {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-muted);
 }
 
 .resultsMeta {
@@ -52,10 +52,10 @@
   display: grid;
   gap: var(--space-section-gap);
   height: 100%;
-  border: 1px solid rgba(75, 47, 29, 0.12);
+  border: 1px solid var(--theme-border-subtle);
   border-radius: var(--radius-panel);
-  background: var(--color-panel-strong);
-  box-shadow: 0 18px 50px rgba(54, 34, 21, 0.06);
+  background: var(--theme-surface-section);
+  box-shadow: var(--theme-section-shadow);
   padding: var(--space-card-padding);
 }
 
@@ -111,7 +111,7 @@
   content: "";
   position: absolute;
   inset: 0;
-  background: url("../../../assets/img/paper-background.webp") right bottom / 360px auto no-repeat;
+  background: var(--theme-paper-background-image) right bottom / 360px auto no-repeat;
   -webkit-mask-image: radial-gradient(
     circle at 100% 100%,
     rgba(0, 0, 0, 0.56) 0%,
@@ -159,11 +159,52 @@
   border-radius: var(--radius-control);
   background:
     linear-gradient(145deg, rgba(255, 252, 245, 0.72), rgba(239, 222, 199, 0.62)),
-    url("../../../assets/img/paper-background.webp") center / 220px auto;
+    var(--theme-paper-background-image) center / 220px auto;
   box-shadow:
     inset 0 0 0 1px rgba(255, 246, 226, 0.28),
     0 4px 10px rgba(54, 34, 21, 0.08);
   color: #2f1b12;
+}
+
+:global(html[data-theme="dark"]) .classCard {
+  --class-card-text-backdrop: var(--theme-surface-panel);
+  border-color: var(--theme-border-medium);
+  background: var(--theme-surface-panel);
+  box-shadow: var(--theme-section-shadow);
+}
+
+:global(html[data-theme="dark"]) .classCard::before {
+  opacity: 0.84;
+  -webkit-mask-image: radial-gradient(
+    ellipse 205px 235px at left top,
+    #000 0%,
+    #000 31%,
+    rgba(0, 0, 0, 0.54) 48%,
+    rgba(0, 0, 0, 0.15) 62%,
+    rgba(0, 0, 0, 0) 74%
+  );
+  mask-image: radial-gradient(
+    ellipse 205px 235px at left top,
+    #000 0%,
+    #000 31%,
+    rgba(0, 0, 0, 0.54) 48%,
+    rgba(0, 0, 0, 0.15) 62%,
+    rgba(0, 0, 0, 0) 74%
+  );
+}
+
+:global(html[data-theme="dark"]) .classCard::after {
+  background: var(--theme-paper-background-image) right bottom / 360px auto no-repeat;
+  opacity: 0.12;
+}
+
+:global(html[data-theme="dark"]) .classCardIcon {
+  border-color: var(--theme-border-medium);
+  background:
+    linear-gradient(145deg, rgba(35, 39, 45, 0.72), rgba(29, 32, 37, 0.62)),
+    var(--theme-paper-background-image) center / 220px auto;
+  box-shadow: none;
+  color: var(--theme-text-primary);
 }
 
 .titleBlock {
@@ -172,7 +213,7 @@
 }
 
 .typeSubtitle {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-muted);
   font-size: 0.8rem;
   font-weight: 400;
   line-height: 1.3;
@@ -180,7 +221,7 @@
 
 .cardButton:focus-visible .card,
 .cardButton:hover .card {
-  border-color: rgba(75, 47, 29, 0.28);
+  border-color: var(--theme-border-medium);
   transform: translateY(-1px);
 }
 
@@ -193,12 +234,24 @@
     0 3px 10px rgba(54, 34, 21, 0.1);
 }
 
+:global(html[data-theme="dark"]) .cardButton:focus-visible .classCard,
+:global(html[data-theme="dark"]) .cardButton:hover .classCard {
+  border-color: var(--theme-border-medium);
+  box-shadow: var(--theme-section-shadow);
+}
+
 .cardButton:focus-visible .classCardIcon,
 .cardButton:hover .classCardIcon {
   border-color: rgba(75, 47, 29, 0.28);
   box-shadow:
     inset 0 0 0 1px rgba(255, 246, 226, 0.32),
     0 5px 12px rgba(54, 34, 21, 0.12);
+}
+
+:global(html[data-theme="dark"]) .cardButton:focus-visible .classCardIcon,
+:global(html[data-theme="dark"]) .cardButton:hover .classCardIcon {
+  border-color: var(--theme-border-medium);
+  box-shadow: none;
 }
 
 .card h4,
@@ -221,10 +274,10 @@
 
 .tableWrapper {
   overflow-x: auto;
-  border: 1px solid rgba(75, 47, 29, 0.12);
+  border: 1px solid var(--theme-border-subtle);
   border-radius: var(--radius-panel);
-  background: var(--color-panel-strong);
-  box-shadow: 0 18px 50px rgba(54, 34, 21, 0.06);
+  background: var(--theme-surface-section);
+  box-shadow: var(--theme-section-shadow);
 }
 
 .table {
@@ -240,14 +293,14 @@
 }
 
 .table th {
-  color: var(--color-accent);
+  color: var(--theme-accent);
   font-size: 0.82rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .table tbody tr + tr td {
-  border-top: 1px solid rgba(75, 47, 29, 0.08);
+  border-top: 1px solid var(--theme-divider);
 }
 
 .tableRow {
@@ -259,7 +312,7 @@
 
 .tableRow:hover,
 .tableRow:focus-visible {
-  background: rgba(244, 233, 214, 0.72);
+  background: var(--theme-control-subtle);
 }
 
 .tableNameCell {
@@ -268,7 +321,7 @@
 }
 
 .tableNameCell span {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-muted);
   font-size: 0.82rem;
 }
 

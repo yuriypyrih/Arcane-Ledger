@@ -9,10 +9,10 @@
   align-items: center;
   gap: 0.34rem;
   justify-self: start;
-  border: 1px solid rgba(75, 47, 29, 0.1);
+  border: 1px solid var(--theme-border-subtle);
   border-radius: var(--radius-pill);
-  background: var(--color-panel-strong);
-  color: var(--color-ink-soft);
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-secondary);
   cursor: pointer;
   font: inherit;
   font-size: 0.78rem;
@@ -24,17 +24,17 @@
 
 .backButton:hover,
 .linkButton:hover {
-  border-color: rgba(75, 47, 29, 0.18);
-  background: var(--color-panel-surface);
-  color: var(--color-ink);
+  border-color: var(--theme-border-medium);
+  background: var(--theme-control-subtle-hover);
+  color: var(--theme-text-primary);
 }
 
 .card {
   display: grid;
   gap: 0.72rem;
-  border: 1px solid rgba(75, 47, 29, 0.12);
+  border: 1px solid var(--theme-border-subtle);
   border-radius: var(--radius-field);
-  background: var(--color-panel-strong);
-  box-shadow: 0 10px 30px rgba(54, 34, 21, 0.05);
+  background: var(--theme-surface-section);
+  box-shadow: var(--theme-section-shadow);
   padding: var(--space-card-padding-tight);
 }

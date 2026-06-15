@@ -65,6 +65,52 @@
   padding: 0.72rem;
 }
 
+:global(html[data-theme="dark"]) .profileCard {
+  --color-ink: var(--theme-text-primary);
+  --color-ink-soft: var(--theme-text-secondary);
+  --character-profile-edge-start: rgba(221, 230, 242, 0.22);
+  --character-profile-edge-mid: rgba(221, 230, 242, 0.09);
+  --character-profile-border-rest: var(--theme-border-subtle);
+  --character-profile-readable-gradient: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--theme-surface-section) 90%, transparent) 0,
+    color-mix(in srgb, var(--theme-surface-section) 0%, transparent) 300px
+  );
+  background:
+    linear-gradient(var(--theme-surface-section), var(--theme-surface-section)) padding-box,
+    linear-gradient(
+        140deg,
+        var(--character-profile-edge-start) 0%,
+        var(--character-profile-edge-mid) 9.6%,
+        var(--character-profile-border-rest) 33.6%,
+        var(--character-profile-border-rest) 100%
+      )
+      border-box;
+  background-color: var(--theme-surface-section);
+  box-shadow: var(--theme-section-shadow);
+  color: var(--theme-text-primary);
+}
+
+:global(html[data-theme="dark"]) .profileCard::before {
+  opacity: 0.84;
+  -webkit-mask-image: radial-gradient(
+    ellipse 205px 182px at left top,
+    #000 0%,
+    #000 31%,
+    rgba(0, 0, 0, 0.52) 48%,
+    rgba(0, 0, 0, 0.15) 62%,
+    rgba(0, 0, 0, 0) 74%
+  );
+  mask-image: radial-gradient(
+    ellipse 205px 182px at left top,
+    #000 0%,
+    #000 31%,
+    rgba(0, 0, 0, 0.52) 48%,
+    rgba(0, 0, 0, 0.15) 62%,
+    rgba(0, 0, 0, 0) 74%
+  );
+}
+
 .profileShell {
   position: relative;
   z-index: 1;
@@ -515,6 +561,14 @@
   padding-left: 0;
 }
 
+:global(html[data-theme="dark"]) .profileSummary {
+  border-left-color: var(--theme-divider);
+}
+
+:global(html[data-theme="dark"]) .profileSummaryBroad {
+  border-top-color: var(--theme-divider);
+}
+
 .levelButton {
   display: inline-flex;
   align-items: center;
@@ -540,6 +594,18 @@
   box-shadow: 0 8px 18px rgba(54, 34, 21, 0.1);
 }
 
+:global(html[data-theme="dark"]) .levelButton {
+  border-color: var(--theme-border-medium);
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-primary);
+}
+
+:global(html[data-theme="dark"]) .levelButton:hover,
+:global(html[data-theme="dark"]) .levelButton:focus-visible {
+  border-color: var(--theme-accent);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+}
+
 .profileActionLinks {
   display: grid;
   gap: 0.26rem;
@@ -553,6 +619,11 @@
   font-size: 0.84rem;
 }
 
+:global(html[data-theme="dark"]) .notesToggle,
+:global(html[data-theme="dark"]) .companionToggle {
+  color: var(--theme-accent);
+}
+
 @media (max-width: 899px) {
   .profileShell {
     grid-template-columns: clamp(96px, 16vw, 120px) minmax(0, 1fr);
@@ -564,6 +635,10 @@
     border-left: 0;
     padding-top: 0.72rem;
     padding-left: 0;
+  }
+
+  :global(html[data-theme="dark"]) .profileSummary {
+    border-top-color: var(--theme-divider);
   }
 }
 

@@ -27,6 +27,10 @@
   padding: 0.8rem;
 }
 
+:global(html[data-theme="dark"]) .shapeGroup {
+  background: var(--theme-surface-subtle);
+}
+
 .shapeLabel {
   color: var(--color-ink-soft);
   font-size: 0.76rem;
@@ -71,6 +75,10 @@
   padding: 0.8rem;
 }
 
+:global(html[data-theme="dark"]) .turnFlowItem {
+  background: var(--theme-surface-subtle);
+}
+
 .turnFlowIcon {
   display: inline-flex;
   align-items: center;
@@ -81,6 +89,11 @@
   border-radius: var(--radius-pill);
   background: rgba(75, 47, 29, 0.09);
   color: var(--color-accent);
+}
+
+:global(html[data-theme="dark"]) .turnFlowIcon {
+  background: var(--theme-control-subtle);
+  color: var(--theme-accent-strong);
 }
 
 .turnFlowIconStart {

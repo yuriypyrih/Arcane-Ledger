@@ -29,6 +29,10 @@
   text-transform: uppercase;
 }
 
+:global(html[data-theme="dark"]) .label {
+  color: var(--theme-text-muted);
+}
+
 .content,
 .breakdown {
   min-width: 0;
@@ -42,9 +46,17 @@
   flex: 1 1 auto;
 }
 
+:global(html[data-theme="dark"]) .content {
+  color: var(--theme-text-primary);
+}
+
 .breakdown {
   color: #827b74;
   flex-shrink: 0;
   margin-left: auto;
   text-align: right;
+}
+
+:global(html[data-theme="dark"]) .breakdown {
+  color: var(--theme-text-secondary);
 }

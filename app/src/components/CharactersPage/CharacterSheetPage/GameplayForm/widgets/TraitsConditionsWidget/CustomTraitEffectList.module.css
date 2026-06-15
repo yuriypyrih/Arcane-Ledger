@@ -17,10 +17,18 @@
   text-transform: uppercase;
 }
 
+:global(html[data-theme="dark"]) .eyebrow {
+  color: var(--theme-accent);
+}
+
 .title {
   margin: 0;
   color: var(--color-ink);
   font-size: 1rem;
+}
+
+:global(html[data-theme="dark"]) .title {
+  color: var(--theme-text-primary);
 }
 
 .list {
@@ -38,4 +46,10 @@
   color: var(--color-ink);
   font-weight: 600;
   padding: 0.72rem 0.8rem;
+}
+
+:global(html[data-theme="dark"]) .item {
+  border-color: rgba(156, 188, 255, 0.2);
+  background: rgba(156, 188, 255, 0.08);
+  color: var(--theme-text-primary);
 }

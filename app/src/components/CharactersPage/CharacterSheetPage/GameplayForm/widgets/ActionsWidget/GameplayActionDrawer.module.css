@@ -13,7 +13,7 @@
 .header {
   position: relative;
   z-index: 2;
-  background: linear-gradient(160deg, rgba(255, 252, 245, 0.99), rgba(245, 234, 218, 0.99));
+  background: var(--theme-overlay-header-background);
   padding-bottom: 0.25rem;
 }
 
@@ -63,11 +63,22 @@
   padding: 0.28rem 0.62rem;
 }
 
+:global(html[data-theme="dark"]) .resourceBadge {
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-primary);
+  box-shadow: inset 0 0 0 1px var(--theme-border-subtle);
+}
+
 .resourceBadgeLabel {
   color: var(--color-ink-soft);
   font-size: 0.72rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+
+:global(html[data-theme="dark"]) .resourceBadgeLabel,
+:global(html[data-theme="dark"]) .resourceBadgeSupplementary {
+  color: var(--theme-text-secondary);
 }
 
 .resourceBadgeValue {
@@ -95,6 +106,10 @@
   width: 14px;
 }
 
+:global(html[data-theme="dark"]) .resourceAssetIcon {
+  filter: brightness(0) invert(1) opacity(0.92);
+}
+
 .resourceBadgeSupplementary {
   color: var(--color-ink-soft);
   font-size: 0.72rem;
@@ -102,11 +117,11 @@
 }
 
 .resourceBadgeValueDanger {
-  color: #8b3321;
+  color: var(--theme-state-danger);
 }
 
 .resourceBadgeValueAccent {
-  color: #25508d;
+  color: var(--theme-state-info-strong);
 }
 
 .badgePill {
@@ -119,6 +134,12 @@
   text-transform: uppercase;
 }
 
+:global(html[data-theme="dark"]) .badgePill {
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-secondary);
+  box-shadow: inset 0 0 0 1px var(--theme-border-subtle);
+}
+
 .section {
   display: grid;
   gap: 0.6rem;
@@ -126,7 +147,7 @@
 
 .sectionTitle {
   margin: 0;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.78rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -160,7 +181,7 @@
 }
 
 .factBreakdown {
-  color: rgba(102, 75, 56, 0.72);
+  color: var(--theme-text-muted);
   font-size: 0.94rem;
   font-weight: 600;
 }
@@ -197,21 +218,21 @@
 
 .descriptionDivider {
   border: none;
-  border-top: 1px solid rgba(75, 47, 29, 0.14);
+  border-top: 1px solid var(--theme-divider);
   margin: 0;
 }
 
 .footer {
   display: grid;
   gap: 0.8rem;
-  border-top: 1px solid rgba(75, 47, 29, 0.1);
+  border-top: 1px solid var(--theme-divider);
   padding: 0.9rem var(--overlay-panel-inline-padding) var(--overlay-panel-bottom-padding);
 }
 
 .inlineLinkButton {
   border: none;
   background: none;
-  color: var(--color-accent);
+  color: var(--theme-accent);
   cursor: pointer;
   font: inherit;
   padding: 0;

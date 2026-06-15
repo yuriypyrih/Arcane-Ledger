@@ -73,11 +73,21 @@
   padding: 0.28rem 0.62rem;
 }
 
+:global(html[data-theme="dark"]) .resourceBadge {
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-primary);
+  box-shadow: inset 0 0 0 1px var(--theme-border-subtle);
+}
+
 .resourceBadgeLabel {
   color: var(--color-ink-soft);
   font-size: 0.72rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+}
+
+:global(html[data-theme="dark"]) .resourceBadgeLabel {
+  color: var(--theme-text-secondary);
 }
 
 .resourceBadgeValue {
@@ -97,6 +107,10 @@
   height: 14px;
   object-fit: contain;
   width: 14px;
+}
+
+:global(html[data-theme="dark"]) .resourceAssetIcon {
+  filter: brightness(0) invert(1) opacity(0.92);
 }
 
 .concentrationDetailValue {

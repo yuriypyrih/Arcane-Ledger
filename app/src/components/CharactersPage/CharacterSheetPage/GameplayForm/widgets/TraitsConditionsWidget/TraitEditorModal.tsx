@@ -3,6 +3,7 @@ import { Plus } from "lucide-react";
 import ActionButton from "../../../../../ActionButton";
 import SelectInput from "../../../../FormInputs/SelectInput";
 import shared from "../../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import SheetActionButton from "../../../SheetActionButton";
 import { isExhaustionConditionOptionValue } from "../../../../../../pages/CharactersPage/traits";
 import {
   OverlayBody,
@@ -66,14 +67,10 @@ function TraitEditorModal({
           </OverlayTitleRow>
         </OverlayHeaderContent>
         <div className={styles.titleActions}>
-          <button
-            type="button"
-            className={clsx(shared.editButton, styles.titleActionButton)}
-            onClick={onCreateCustomTrait}
-          >
+          <SheetActionButton className={styles.titleActionButton} onClick={onCreateCustomTrait}>
             <Plus size={16} aria-hidden="true" />
             <span>Custom Trait</span>
-          </button>
+          </SheetActionButton>
         </div>
         <OverlayCloseButton label="Close traits and conditions editor" onClick={onClose} />
       </OverlayHeader>

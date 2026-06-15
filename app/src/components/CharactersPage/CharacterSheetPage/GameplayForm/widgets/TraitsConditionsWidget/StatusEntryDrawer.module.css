@@ -24,6 +24,11 @@
   padding-top: 0.9rem;
 }
 
+:global(html[data-theme="dark"]) .footer {
+  border-top-color: var(--theme-divider);
+  background: linear-gradient(180deg, rgba(30, 33, 39, 0.54), rgba(15, 17, 21, 0.88));
+}
+
 .footerActionRow {
   display: grid;
   gap: 0.65rem;

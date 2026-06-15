@@ -69,9 +69,19 @@
   background: var(--color-panel-surface);
 }
 
+:global(html[data-theme="dark"]) .spellSlotSquare {
+  border-color: rgba(156, 188, 255, 0.46);
+  background: #0d0f12;
+}
+
 .spellSlotSquareFilled {
-  background: #2f78ff;
-  border-color: #2f78ff;
+  background: var(--gradient-primary-action);
+  border-color: rgba(47, 120, 255, 0.86);
+}
+
+:global(html[data-theme="dark"]) .spellSlotSquareFilled {
+  background: var(--gradient-primary-action);
+  border-color: rgba(111, 164, 245, 0.86);
 }
 
 :global(html.broad-layout-lg-compact) .spellSlotSquares {
@@ -100,6 +110,11 @@
   width: fit-content;
 }
 
+:global(html[data-theme="dark"]) .wizardFilterBar {
+  border-color: var(--theme-border-subtle);
+  background: #111318;
+}
+
 .wizardFilterButton {
   border: none;
   border-right: 1px solid rgba(75, 47, 29, 0.12);
@@ -115,6 +130,11 @@
   text-transform: uppercase;
 }
 
+:global(html[data-theme="dark"]) .wizardFilterButton {
+  border-right-color: var(--theme-divider);
+  color: var(--theme-text-secondary);
+}
+
 .wizardFilterButton:last-child {
   border-right: none;
 }
@@ -123,6 +143,12 @@
   background: rgba(47, 120, 255, 0.12);
   border-color: rgba(47, 120, 255, 0.34);
   color: #2f78ff;
+}
+
+:global(html[data-theme="dark"]) .wizardFilterButtonActive {
+  border-color: rgba(156, 188, 255, 0.38);
+  background: rgba(156, 188, 255, 0.12);
+  color: var(--theme-accent-strong);
 }
 
 .spellcastingBlockedNotice {
@@ -152,15 +178,19 @@
   gap: 0.88rem;
 }
 
+.spellManagementModalBodyFullHeight {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .rulesEnforcementDivider {
   border-top: 1px solid rgba(75, 47, 29, 0.12);
   margin-top: 0.1rem;
 }
 
-.spellManagementModalBodyFullHeight {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+:global(html[data-theme="dark"]) .rulesEnforcementDivider {
+  border-top-color: var(--theme-divider);
 }
 
 .spellGroup {
@@ -197,7 +227,15 @@
   gap: 0.75rem;
 }
 
+:global(html[data-theme="dark"]) .preparedSpellStatusRow {
+  color: var(--theme-text-primary);
+}
+
 .preparedSpellStatusLabel {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.42rem;
   margin: 0;
   color: var(--color-ink-soft);
   font-size: 0.76rem;
@@ -230,6 +268,10 @@
   scrollbar-width: thin;
 }
 
+:global(html[data-theme="dark"]) .preparedSpellTabList {
+  scrollbar-color: var(--theme-border-medium) transparent;
+}
+
 .preparedSpellTabButton {
   display: grid;
   justify-items: center;
@@ -247,6 +289,12 @@
   padding: 0.45rem 0.5rem;
 }
 
+:global(html[data-theme="dark"]) .preparedSpellTabButton {
+  border-color: var(--theme-border-subtle);
+  background: #111318;
+  color: var(--theme-text-secondary);
+}
+
 .preparedSpellTabButton:disabled {
   cursor: not-allowed;
   opacity: 0.48;
@@ -256,6 +304,12 @@
   background: rgba(47, 120, 255, 0.12);
   border-color: rgba(47, 120, 255, 0.38);
   color: var(--color-ink);
+}
+
+:global(html[data-theme="dark"]) .preparedSpellTabButtonActive {
+  border-color: rgba(156, 188, 255, 0.42);
+  background: rgba(156, 188, 255, 0.12);
+  color: var(--theme-text-primary);
 }
 
 .preparedSpellTabNumber {
@@ -278,6 +332,13 @@
   align-items: end;
   gap: 0.55rem;
   grid-template-columns: minmax(12rem, 1.35fr) repeat(3, minmax(8.5rem, 1fr));
+}
+
+:global(html[data-theme="dark"]) .spellManagementFilterPanel {
+  border: 1px solid var(--theme-border-subtle);
+  border-radius: var(--radius-control-lg);
+  background: rgba(255, 255, 255, 0.035);
+  padding: 0.7rem;
 }
 
 .spellManagementFilterField {
@@ -331,6 +392,10 @@
   min-width: 8.7rem;
 }
 
+:global(html[data-theme="dark"]) .wizardSelectionControls {
+  background: rgba(255, 255, 255, 0.025);
+}
+
 .wizardSelectionToggle {
   align-items: center;
   background: none;
@@ -345,14 +410,31 @@
   text-align: left;
 }
 
+:global(html[data-theme="dark"]) .wizardSelectionToggle {
+  color: var(--theme-text-primary);
+}
+
+:global(html[data-theme="dark"]) .wizardSelectionToggle:hover:not(:disabled),
+:global(html[data-theme="dark"]) .wizardSelectionToggle:focus-visible:not(:disabled) {
+  background: rgba(255, 255, 255, 0.055);
+}
+
 .wizardSelectionToggle + .wizardSelectionToggle {
   border-top: 1px solid rgba(75, 47, 29, 0.12);
+}
+
+:global(html[data-theme="dark"]) .wizardSelectionToggle + .wizardSelectionToggle {
+  border-top-color: var(--theme-divider);
 }
 
 .wizardSelectionToggleDisabled {
   background: rgba(75, 47, 29, 0.04);
   cursor: not-allowed;
   opacity: 0.58;
+}
+
+:global(html[data-theme="dark"]) .wizardSelectionToggleDisabled {
+  background: rgba(255, 255, 255, 0.035);
 }
 
 .wizardSelectionLabel {
@@ -363,10 +445,18 @@
   text-transform: uppercase;
 }
 
+:global(html[data-theme="dark"]) .wizardSelectionLabel {
+  color: var(--theme-text-secondary);
+}
+
 .selectableCheckbox {
   accent-color: #2f78ff;
   margin: 0;
   pointer-events: none;
+}
+
+:global(html[data-theme="dark"]) .selectableCheckbox {
+  accent-color: var(--theme-accent);
 }
 
 .previewSpellDrawerBackdrop {
@@ -408,6 +498,10 @@
   flex-shrink: 0;
   justify-content: center;
   padding: 0.18rem;
+}
+
+:global(html[data-theme="dark"]) .divinityDrawerActionButtonShape {
+  background: #111318;
 }
 
 @media (max-width: 899px) {

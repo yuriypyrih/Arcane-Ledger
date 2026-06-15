@@ -26,6 +26,10 @@
   background: rgba(75, 47, 29, 0.16);
 }
 
+:global(html[data-theme="dark"]) .commonActionsButtonActive {
+  background: var(--theme-control-subtle-hover);
+}
+
 .grid {
   contain: layout style;
   display: flex;

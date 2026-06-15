@@ -1,5 +1,5 @@
 .bodyWithHeaderDivider {
-  border-top: 1px solid rgba(75, 47, 29, 0.08);
+  border-top: 1px solid var(--theme-divider);
   padding-top: 0.72rem;
 }
 
@@ -14,7 +14,7 @@
 }
 
 .statusState p {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
 }
 
 .footer {

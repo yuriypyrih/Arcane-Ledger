@@ -14,7 +14,7 @@
 }
 
 .featureActionHelperTextAccent {
-  color: #25508d;
+  color: var(--theme-state-info-strong);
   font-weight: 700;
 }
 
@@ -42,10 +42,10 @@
 
 .chargeSpendInput {
   min-height: 48px;
-  border: 1px solid rgba(75, 47, 29, 0.16);
+  border: 1px solid var(--theme-input-border);
   border-radius: var(--radius-compact);
-  background: rgba(255, 255, 255, 0.94);
-  color: var(--color-ink);
+  background: var(--theme-input-background);
+  color: var(--theme-input-text);
   font: inherit;
   padding: 0.72rem 0.82rem;
 }

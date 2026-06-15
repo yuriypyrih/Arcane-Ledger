@@ -75,7 +75,7 @@
 .restChecklistLink {
   border: none;
   background: transparent;
-  color: #25508d;
+  color: var(--theme-state-info-strong);
   cursor: pointer;
   font: inherit;
   font-size: 0.82rem;
@@ -97,7 +97,7 @@
 }
 
 .additionalDescription {
-  border-top: 1px solid rgba(75, 47, 29, 0.14);
+  border-top: 1px solid var(--theme-divider);
   display: grid;
   gap: 0.75rem;
   padding-top: 0.65rem;
@@ -109,7 +109,7 @@
 }
 
 .additionalDescriptionSection + .additionalDescriptionSection {
-  border-top: 1px solid rgba(75, 47, 29, 0.14);
+  border-top: 1px solid var(--theme-divider);
   padding-top: 0.75rem;
 }
 
@@ -121,6 +121,10 @@
   justify-content: space-between;
   margin-top: 0.9rem;
   padding-top: 0.9rem;
+}
+
+:global(html[data-theme="dark"]) .footer {
+  border-top-color: var(--theme-divider);
 }
 
 .hitDiceInputLabel {

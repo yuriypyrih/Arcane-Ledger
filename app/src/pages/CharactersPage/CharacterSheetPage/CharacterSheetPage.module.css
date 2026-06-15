@@ -55,10 +55,11 @@
 .notFoundCard {
   display: grid;
   gap: var(--space-section-gap);
-  border: 1px solid rgba(75, 47, 29, 0.12);
+  border: 1px solid var(--theme-border-subtle);
   border-radius: var(--radius-section);
-  background: rgba(255, 250, 241, 0.95);
-  box-shadow: 0 18px 50px rgba(54, 34, 21, 0.08);
+  background: var(--theme-surface-section);
+  box-shadow: var(--theme-section-shadow);
+  color: var(--theme-text-primary);
   padding: var(--space-card-padding);
 }
 
@@ -163,7 +164,7 @@
 
 .eyebrow {
   margin: 0 0 0.25rem;
-  color: var(--color-accent);
+  color: var(--theme-accent);
   font-size: 0.82rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -198,7 +199,7 @@
 }
 
 .fieldLabel {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.82rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -233,19 +234,19 @@
 
 .helperText {
   margin: 0;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.9rem;
 }
 
 .emptyText {
   margin: 0;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   white-space: pre-line;
 }
 
 .spellGroupTitle {
   margin: 0;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.8rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -259,7 +260,7 @@
   inset: 0;
   display: grid;
   place-items: center;
-  background: rgba(32, 18, 12, 0.56);
+  background: var(--theme-overlay-backdrop);
   padding: var(--overlay-backdrop-padding);
   z-index: 46;
 }
@@ -275,10 +276,11 @@
   gap: 0.88rem;
   width: min(var(--overlay-size-small), 100%);
   max-height: calc(100dvh - (var(--overlay-backdrop-padding) * 2));
-  border: 1px solid rgba(75, 47, 29, 0.2);
+  border: 1px solid var(--theme-border-medium);
   border-radius: var(--radius-panel);
-  background: linear-gradient(165deg, rgba(255, 252, 245, 0.98), rgba(246, 236, 221, 0.98));
-  box-shadow: 0 24px 60px rgba(38, 23, 14, 0.24);
+  background: var(--theme-overlay-surface);
+  box-shadow: var(--theme-overlay-shadow);
+  color: var(--theme-text-primary);
   overflow: auto;
   overscroll-behavior: contain;
   padding: 0;
@@ -293,7 +295,7 @@
   position: sticky;
   top: 0;
   z-index: 2;
-  background: linear-gradient(165deg, rgba(255, 252, 245, 0.98), rgba(246, 236, 221, 0.98));
+  background: var(--theme-overlay-header-background);
   padding: var(--sheet-panel-top-padding) var(--sheet-panel-inline-padding) 0.2rem;
 }
 
@@ -319,8 +321,8 @@
   justify-content: center;
   border: none;
   border-radius: var(--radius-compact);
-  background: rgba(75, 47, 29, 0.08);
-  color: var(--color-ink);
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-primary);
   cursor: pointer;
   min-height: 40px;
   min-width: 40px;
@@ -346,9 +348,26 @@
   text-align: left;
 }
 
+:global(html[data-theme="dark"]) .spellManagementOptionButton {
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-surface-raised);
+  color: var(--theme-text-primary);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+:global(html[data-theme="dark"]) .spellManagementOptionButton:hover,
+:global(html[data-theme="dark"]) .spellManagementOptionButton:focus-visible {
+  border-color: var(--theme-border-medium);
+  background: var(--theme-control-subtle-hover);
+}
+
 .spellManagementOptionButton small {
   color: var(--color-ink-soft);
   font-size: 0.84rem;
+}
+
+:global(html[data-theme="dark"]) .spellManagementOptionButton small {
+  color: var(--theme-text-secondary);
 }
 
 .spellManagementList {
@@ -358,6 +377,10 @@
   max-height: min(50vh, 430px);
   overflow: auto;
   padding-right: 0.12rem;
+}
+
+:global(html[data-theme="dark"]) .spellManagementList {
+  scrollbar-color: var(--theme-border-medium) transparent;
 }
 
 .spellManagementGroup {
@@ -387,7 +410,7 @@
 
 .restOptionButton small,
 .longRestNote {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
 }
 
 .restOptionButtonActive {
@@ -431,7 +454,7 @@
 
 .restChecklistHeading {
   margin: 0;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.82rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -457,7 +480,7 @@
 
 .restChecklistDivider {
   height: 1px;
-  background: rgba(75, 47, 29, 0.14);
+  background: var(--theme-divider);
   margin: 0.15rem 0 0.1rem;
 }
 
@@ -481,7 +504,7 @@
 }
 
 .xpProgressMetaLabel {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.72rem;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -494,7 +517,7 @@
 .xpProgressTrack {
   block-size: 16px;
   border-radius: var(--radius-pill);
-  background: rgba(75, 47, 29, 0.13);
+  background: var(--theme-surface-subtle);
   overflow: hidden;
 }
 
@@ -515,7 +538,7 @@
 }
 
 .xpAddLabel {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.78rem;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -538,7 +561,7 @@
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  background: rgba(32, 18, 12, 0.56);
+  background: var(--theme-overlay-backdrop);
   padding: var(--overlay-backdrop-padding);
   z-index: var(--sheet-drawer-z-index, 45);
 }
@@ -552,10 +575,11 @@
   gap: 0.92rem;
   width: min(var(--overlay-size-medium), 100%);
   max-height: calc(100dvh - (var(--overlay-backdrop-padding) * 2));
-  border: 1px solid rgba(75, 47, 29, 0.22);
+  border: 1px solid var(--theme-border-medium);
   border-radius: var(--radius-panel) var(--radius-panel) var(--radius-field) var(--radius-field);
-  background: linear-gradient(160deg, rgba(255, 252, 245, 0.99), rgba(245, 234, 218, 0.99));
-  box-shadow: 0 28px 70px rgba(32, 18, 12, 0.35);
+  background: var(--theme-overlay-surface);
+  box-shadow: var(--theme-drawer-shadow);
+  color: var(--theme-text-primary);
   overflow: hidden;
   animation: drawerSlideUp 220ms cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -578,7 +602,7 @@
   gap: 0.75rem;
   position: relative;
   z-index: 2;
-  background: linear-gradient(160deg, rgba(255, 252, 245, 0.99), rgba(245, 234, 218, 0.99));
+  background: var(--theme-overlay-header-background);
   padding: var(--sheet-drawer-top-padding) var(--sheet-drawer-inline-padding) 0.2rem;
 }
 
@@ -590,7 +614,7 @@
 
 .spellDrawerBadge {
   margin: 0;
-  color: var(--color-accent);
+  color: var(--theme-accent);
   font-size: 0.76rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -609,7 +633,7 @@
 }
 
 .spellDrawerSummary {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
 }
 
 .spellDrawerCloseButton {
@@ -618,8 +642,8 @@
   justify-content: center;
   border: none;
   border-radius: var(--radius-compact);
-  background: rgba(75, 47, 29, 0.08);
-  color: var(--color-ink);
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-primary);
   cursor: pointer;
   min-height: 40px;
   min-width: 40px;
@@ -653,17 +677,17 @@
 
 .spellDrawerDescriptionDivider {
   border: none;
-  border-top: 1px solid rgba(75, 47, 29, 0.14);
+  border-top: 1px solid var(--theme-divider);
   margin: 0;
 }
 
 .spellDrawerDescriptionLine {
   margin: 0;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
 }
 
 .spellDrawerDescriptionStrong {
-  color: var(--color-ink);
+  color: var(--theme-text-primary);
   font-weight: 700;
 }
 
@@ -672,7 +696,7 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 0.85rem;
-  border-top: 1px solid rgba(75, 47, 29, 0.12);
+  border-top: 1px solid var(--theme-divider);
   padding: 0.8rem var(--sheet-drawer-inline-padding) var(--sheet-drawer-bottom-padding);
 }
 
@@ -685,7 +709,7 @@
 
 .spellDrawerSlotText {
   margin: 0;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.89rem;
 }
 
@@ -695,7 +719,7 @@
 }
 
 .spellSlotSelectLabel {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.72rem;
   letter-spacing: 0.07em;
   text-transform: uppercase;
@@ -740,7 +764,7 @@
 }
 
 .currencyDrawerLabel {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.78rem;
   letter-spacing: 0.07em;
   text-transform: uppercase;

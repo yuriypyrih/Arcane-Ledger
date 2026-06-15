@@ -24,6 +24,18 @@
   background: #f7ead9;
 }
 
+:global(html[data-theme="dark"]) .button {
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-primary);
+}
+
+:global(html[data-theme="dark"]) .button:hover {
+  border-color: var(--theme-border-medium);
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-primary);
+}
+
 .button:focus-visible {
   outline: 2px solid rgba(179, 92, 28, 0.34);
   outline-offset: 2px;
@@ -37,6 +49,16 @@
 .buttonActive:hover {
   border-color: rgba(219, 143, 45, 0.76);
   background: #d98224;
+}
+
+:global(html[data-theme="dark"]) .buttonActive {
+  border-color: rgba(242, 183, 101, 0.52);
+  background: rgba(201, 108, 20, 0.72);
+}
+
+:global(html[data-theme="dark"]) .buttonActive:hover {
+  border-color: rgba(242, 183, 101, 0.68);
+  background: rgba(201, 108, 20, 0.72);
 }
 
 .starIcon {
@@ -55,6 +77,11 @@
 .starIconInactive {
   color: rgba(95, 63, 44, 0.64);
   fill: rgba(95, 63, 44, 0.08);
+}
+
+:global(html[data-theme="dark"]) .starIconInactive {
+  color: var(--theme-text-muted);
+  fill: rgba(255, 255, 255, 0.06);
 }
 
 .body {
@@ -110,6 +137,32 @@
     0 6px 14px rgba(75, 47, 29, 0.07);
 }
 
+:global(html[data-theme="dark"]) .toggleButton {
+  border-color: var(--theme-border-subtle);
+  background:
+    linear-gradient(165deg, rgba(31, 35, 42, 0.82), rgba(17, 20, 25, 0.72)),
+    var(--theme-surface-subtle-bordered);
+  color: var(--theme-text-primary);
+}
+
+:global(html[data-theme="dark"]) .toggleButton:hover,
+:global(html[data-theme="dark"]) .toggleButton:focus-visible {
+  border-color: rgba(242, 183, 101, 0.4);
+  background:
+    linear-gradient(165deg, rgba(45, 38, 28, 0.52), rgba(25, 24, 22, 0.7)),
+    rgba(242, 183, 101, 0.08);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+}
+
+:global(html[data-theme="dark"]) .toggleButtonActive,
+:global(html[data-theme="dark"]) .toggleButtonActive:hover,
+:global(html[data-theme="dark"]) .toggleButtonActive:focus-visible {
+  border-color: rgba(242, 183, 101, 0.58);
+  background:
+    linear-gradient(160deg, rgba(76, 48, 21, 0.62), rgba(33, 28, 21, 0.74)),
+    rgba(201, 108, 20, 0.2);
+}
+
 .toggleBody {
   display: grid;
   gap: 0.3rem;
@@ -153,6 +206,18 @@
   background: #c96c14;
   color: #fff7db;
   box-shadow: none;
+}
+
+:global(html[data-theme="dark"]) .toggleState {
+  border-color: var(--theme-border-subtle);
+  background: rgba(255, 255, 255, 0.055);
+  color: var(--theme-text-secondary);
+}
+
+:global(html[data-theme="dark"]) .toggleStateActive {
+  border-color: rgba(242, 183, 101, 0.58);
+  background: rgba(201, 108, 20, 0.72);
+  color: #fff7db;
 }
 
 .toggleStateIcon {

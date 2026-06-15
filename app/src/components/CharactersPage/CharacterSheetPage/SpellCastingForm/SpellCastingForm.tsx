@@ -177,6 +177,7 @@ import {
   type SpellImplementationOptionValues
 } from "../../../../pages/CharactersPage/characterRuntime/spellImplementations";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import SheetActionButton from "../SheetActionButton";
 import SheetSurface from "../SheetSurface";
 import ActionButton from "../../../ActionButton";
 import { getActionShapeForEconomyType } from "../GameplayForm/gameplayWidgetUtils";
@@ -2348,6 +2349,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setUseTamedSurgeOnSelectedSpell,
     setUseTelekineticMasterOnSelectedSpell,
     shared,
+    SheetActionButton,
     SheetSurface,
     sorceryPointsRemaining,
     sorceryPointsTotal,

@@ -11,6 +11,15 @@
   padding: var(--space-card-padding);
 }
 
+:global(html[data-theme="dark"]) .installPanel {
+  border-color: var(--theme-border-subtle);
+  background:
+    linear-gradient(180deg, rgba(29, 37, 36, 0.68), rgba(18, 20, 24, 0.9)),
+    var(--theme-surface-section);
+  box-shadow: var(--theme-section-shadow);
+  color: var(--theme-text-primary);
+}
+
 .installHeader {
   display: grid;
   gap: 0.3rem;
@@ -35,6 +44,10 @@
   text-transform: uppercase;
 }
 
+:global(html[data-theme="dark"]) .installEyebrow {
+  color: var(--theme-state-success);
+}
+
 .installTitle {
   color: var(--color-ink);
   font-size: 1.12rem;
@@ -45,6 +58,10 @@
   color: rgba(75, 47, 29, 0.78);
   font-size: 0.9rem;
   line-height: 1.42;
+}
+
+:global(html[data-theme="dark"]) .installIntro {
+  color: var(--theme-text-secondary);
 }
 
 .installStepList {
@@ -65,6 +82,10 @@
   line-height: 1.34;
 }
 
+:global(html[data-theme="dark"]) .installStepList li {
+  color: var(--theme-text-primary);
+}
+
 .installStepIcon {
   display: grid;
   place-items: center;
@@ -74,6 +95,12 @@
   border-radius: var(--radius-control);
   background: rgba(31, 122, 104, 0.1);
   color: #1f7a68;
+}
+
+:global(html[data-theme="dark"]) .installStepIcon {
+  border-color: rgba(101, 199, 125, 0.24);
+  background: rgba(101, 199, 125, 0.12);
+  color: var(--theme-state-success);
 }
 
 .installStepText {
@@ -89,4 +116,8 @@
 
 .installStepText span {
   color: rgba(75, 47, 29, 0.76);
+}
+
+:global(html[data-theme="dark"]) .installStepText span {
+  color: var(--theme-text-secondary);
 }

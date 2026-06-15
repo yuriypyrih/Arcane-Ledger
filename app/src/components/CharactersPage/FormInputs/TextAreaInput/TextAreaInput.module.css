@@ -1,8 +1,8 @@
 .textarea {
-  border: 1px solid rgba(75, 47, 29, 0.18);
+  border: 1px solid var(--theme-input-border);
   border-radius: var(--radius-field);
-  background: rgba(255, 255, 255, 0.72);
-  color: var(--color-ink);
+  background: var(--theme-input-background);
+  color: var(--theme-input-text);
   font: inherit;
   min-height: 154px;
   padding: 0.9rem 1rem;
@@ -15,10 +15,10 @@
 
 .textarea:focus {
   outline: none;
-  border-color: rgba(143, 91, 56, 0.8);
-  box-shadow: 0 0 0 4px rgba(143, 91, 56, 0.12);
+  border-color: var(--theme-input-focus-border);
+  box-shadow: 0 0 0 4px var(--theme-input-focus-shadow);
 }
 
 .textareaInvalid {
-  border-color: rgba(169, 56, 32, 0.42);
+  border-color: var(--theme-input-invalid-border);
 }

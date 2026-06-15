@@ -191,6 +191,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     setUseTamedSurgeOnSelectedSpell,
     setUseTelekineticMasterOnSelectedSpell,
     shared,
+    SheetActionButton,
     SheetSurface,
     sorceryPointsRemaining,
     sorceryPointsTotal,
@@ -258,15 +259,13 @@ export function renderSpellCastingForm(context: Record<string, any>) {
         <div className={clsx(shared.headerActions, styles.spellcastingHeaderActions)}>
           {hasSpellSelectionInputRequired ? <InputRequiredBadge /> : null}
           {hasSpellManagementOptions ? (
-            <button
-              type="button"
-              className={shared.editButton}
+            <SheetActionButton
               onClick={openSpellManagementMenu}
               disabled={spellcastingState.blocked}
             >
               <Pencil size={16} />
               Edit
-            </button>
+            </SheetActionButton>
           ) : null}
         </div>
       </div>

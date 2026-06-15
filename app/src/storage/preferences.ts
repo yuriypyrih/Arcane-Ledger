@@ -1,14 +1,23 @@
 import { isObjectRecord, normalizeBoolean } from "../utils/normalize";
-import type { DiceRollerBehaviorPreference, Preferences } from "../types/preferences";
+import type {
+  DiceRollerBehaviorPreference,
+  Preferences,
+  ThemeModePreference
+} from "../types/preferences";
 
-export type { DiceRollerBehaviorPreference, Preferences } from "../types/preferences";
+export type {
+  DiceRollerBehaviorPreference,
+  Preferences,
+  ThemeModePreference
+} from "../types/preferences";
 
 const PREFERENCES_STORAGE_KEY = "arcane-ledger.preferences";
 export const PREFERENCES_CHANGED_EVENT = "arcane-ledger:preferences-changed";
 
 const defaultPreferences: Preferences = {
   diceRollerBehavior: "full_auto",
-  broadLayout: false
+  broadLayout: false,
+  themeMode: "light"
 };
 
 type PreferenceRemoteSave = (preferences: Preferences) => Promise<void> | void;
@@ -84,6 +93,14 @@ function normalizeDiceRollerBehaviorPreference(value: unknown): DiceRollerBehavi
   return defaultPreferences.diceRollerBehavior;
 }
 
+function normalizeThemeModePreference(value: unknown): ThemeModePreference {
+  if (value === "light" || value === "dark") {
+    return value;
+  }
+
+  return defaultPreferences.themeMode;
+}
+
 export function normalizePreferences(value: unknown): Preferences {
   if (!isObjectRecord(value)) {
     return defaultPreferences;
@@ -93,7 +110,8 @@ export function normalizePreferences(value: unknown): Preferences {
 
   return {
     diceRollerBehavior: normalizeDiceRollerBehaviorPreference(record.diceRollerBehavior),
-    broadLayout: normalizeBoolean(record.broadLayout, defaultPreferences.broadLayout)
+    broadLayout: normalizeBoolean(record.broadLayout, defaultPreferences.broadLayout),
+    themeMode: normalizeThemeModePreference(record.themeMode)
   };
 }
 
@@ -183,5 +201,15 @@ export function getBroadLayoutPreference(): boolean {
 export function updateBroadLayoutPreference(broadLayout: boolean): Preferences {
   return updatePreferences({
     broadLayout
+  });
+}
+
+export function getThemeModePreference(): ThemeModePreference {
+  return loadPreferences().themeMode;
+}
+
+export function updateThemeModePreference(themeMode: ThemeModePreference): Preferences {
+  return updatePreferences({
+    themeMode
   });
 }

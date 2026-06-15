@@ -5,7 +5,7 @@
   overflow: hidden;
   border: 1px solid transparent;
   border-radius: var(--sheet-surface-radius);
-  background: rgba(68, 64, 60, 0.07);
+  background: var(--theme-surface-subtle);
 }
 
 .buttonRoot {
@@ -59,7 +59,7 @@
   z-index: 0;
   width: auto;
   height: calc(100% - 8px);
-  color: rgb(78, 86, 96);
+  color: var(--theme-text-muted);
   object-fit: contain;
   opacity: 0.1;
   pointer-events: none;
@@ -80,13 +80,13 @@
 }
 
 .hasBorder {
-  border-color: rgba(99, 107, 117, 0.24);
-  background: rgba(68, 64, 60, 0.04);
+  border-color: var(--theme-border-medium);
+  background: var(--theme-surface-subtle-bordered);
 }
 
 .hasBorder.hoverTint:hover:not(:disabled),
 .hasBorder.hoverTint:focus-visible:not(:disabled),
 .hasBorder.hoverTint:focus-within:not(:disabled) {
   border-color: rgba(47, 120, 255, 0.54);
-  box-shadow: 0 4px 7px -8px rgba(75, 47, 29, 0.14);
+  box-shadow: 0 4px 7px -8px rgba(0, 0, 0, 0.18);
 }

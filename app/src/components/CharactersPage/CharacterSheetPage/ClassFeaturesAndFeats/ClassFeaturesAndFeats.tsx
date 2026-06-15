@@ -79,6 +79,7 @@ import SelectInput from "../../FormInputs/SelectInput";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import FeatureOptInToggle from "../FeatureOptInToggle/FeatureOptInToggle";
 import InlineToggleButton from "../InlineToggleButton";
+import SheetActionButton from "../SheetActionButton";
 import ClassFeatureList from "./ClassFeatureList";
 import ClassFeaturesGuideModal from "./ClassFeaturesGuideModal";
 import EldritchInvocationEditorModal from "./EldritchInvocationEditorModal";
@@ -2122,15 +2123,13 @@ function ClassFeaturesAndFeats({
                   {renderCustomInvocationSelectionLabel()}
                 </span>
               </div>
-              <button
-                type="button"
-                className={shared.editButton}
+              <SheetActionButton
                 onClick={openEldritchInvocationEditor}
                 disabled={isEldritchInvocationModalOpen}
               >
                 <Pencil size={16} />
                 Edit
-              </button>
+              </SheetActionButton>
             </div>
             <EldritchInvocationList
               invocations={learnedInvocationOptions}
@@ -2221,15 +2220,13 @@ function ClassFeaturesAndFeats({
               <h3 id="character-species-title" className={styles.subsectionTitle}>
                 Species
               </h3>
-              <button
-                type="button"
-                className={shared.editButton}
+              <SheetActionButton
                 onClick={() => setIsSpeciesModalOpen(true)}
                 disabled={isSpeciesModalOpen}
               >
                 <Pencil size={16} />
                 Edit
-              </button>
+              </SheetActionButton>
             </div>
             <SpeciesBuildCard
               character={character}
@@ -2242,15 +2239,13 @@ function ClassFeaturesAndFeats({
               <h3 id="character-feats-title" className={styles.subsectionTitle}>
                 Feats
               </h3>
-              <button
-                type="button"
-                className={shared.editButton}
+              <SheetActionButton
                 onClick={openFeatEditor}
                 disabled={isFeatModalOpen}
               >
                 <Pencil size={16} />
                 Edit
-              </button>
+              </SheetActionButton>
             </div>
             <FeatList
               feats={selectedFeats}
@@ -2278,15 +2273,13 @@ function ClassFeaturesAndFeats({
                   {isCustomClass ? "Custom class mechanics" : `Subclass: ${selectedSubclassLabel}`}
                 </p>
               </div>
-              <button
-                type="button"
-                className={shared.editButton}
+              <SheetActionButton
                 onClick={() => setIsSubclassModalOpen(true)}
                 disabled={isSubclassModalOpen}
               >
                 <Pencil size={16} />
                 Edit
-              </button>
+              </SheetActionButton>
             </div>
 
             {renderClassNeutralMechanicsPanel()}

@@ -7,8 +7,10 @@ import {
   Headset,
   LoaderCircle,
   LogIn,
+  Moon,
   RefreshCw,
   Settings,
+  Sun,
   UserCircle
 } from "lucide-react";
 import { Fragment, useEffect, useRef, useState } from "react";
@@ -20,6 +22,7 @@ import { useOnlineStatus } from "../../../lib/useOnlineStatus";
 import { useAppSelector } from "../../../store";
 import type { LiveEncounterTrackerSaveStatus } from "../../../store";
 import type { CharacterSheetSyncStatus } from "../../../types";
+import type { ThemeModePreference } from "../../../storage/preferences";
 import type { NavigationLink } from "../navigationLinks";
 import styles from "./PrimaryNav.module.css";
 
@@ -155,7 +158,9 @@ type PrimaryNavProps = {
   broadLayout: boolean;
   characterSheetId: number | null;
   showBroadLayoutSwitch: boolean;
+  themeMode: ThemeModePreference;
   onToggleBroadLayout: () => void;
+  onToggleThemeMode: () => void;
 };
 
 function PrimaryNav({
@@ -163,7 +168,9 @@ function PrimaryNav({
   broadLayout,
   characterSheetId,
   showBroadLayoutSwitch,
-  onToggleBroadLayout
+  themeMode,
+  onToggleBroadLayout,
+  onToggleThemeMode
 }: PrimaryNavProps) {
   const navigate = useNavigate();
   const liveEncounterTrackerMatch = useMatch({
@@ -206,6 +213,8 @@ function PrimaryNav({
       ? "Retry encounter tracker sync"
       : "Retry character sync";
   const visibleLinks = links.filter((link) => !link.requiresAuth || isAuthenticated);
+  const isDarkMode = themeMode === "dark";
+  const ThemeIcon = isDarkMode ? Sun : Moon;
 
   useEffect(() => {
     if (!accountMenuOpen) {
@@ -352,8 +361,21 @@ function PrimaryNav({
             {accountMenuOpen ? (
               <div className={styles.accountMenu} role="menu">
                 <div className={styles.accountMenuHeader}>
-                  <span className={styles.accountMenuKicker}>Signed in</span>
-                  <strong>{user?.email}</strong>
+                  <div className={styles.accountIdentity}>
+                    <span className={styles.accountMenuKicker}>Signed in</span>
+                    <strong>{user?.email}</strong>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    className={styles.accountThemeToggle}
+                    aria-checked={isDarkMode}
+                    aria-label={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+                    title={isDarkMode ? "Switch to light mode" : "Switch to dark mode"}
+                    onClick={onToggleThemeMode}
+                  >
+                    <ThemeIcon size={15} strokeWidth={2.1} aria-hidden="true" />
+                  </button>
                 </div>
                 <button
                   type="button"

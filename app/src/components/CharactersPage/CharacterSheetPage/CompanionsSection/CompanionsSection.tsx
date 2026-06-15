@@ -11,6 +11,7 @@ import {
 import type { Character, CharacterCompanion } from "../../../../types";
 import { DestructiveConfirmationModal } from "../../../Overlay";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import SheetActionButton from "../SheetActionButton";
 import CreatureCard from "./CreatureCard";
 import CreatureDrawer from "./CreatureDrawer";
 import CompanionEditorModal from "./CompanionEditorModal";
@@ -131,9 +132,7 @@ function CompanionsSection({ character, className, onPersistCharacter }: Compani
             </div>
           </div>
           <div className={clsx(shared.headerActions, styles.companionsHeaderActions)}>
-            <button
-              type="button"
-              className={shared.editButton}
+            <SheetActionButton
               disabled={isCompanionLimitReached}
               title={
                 isCompanionLimitReached
@@ -145,7 +144,7 @@ function CompanionsSection({ character, className, onPersistCharacter }: Compani
             >
               <Plus size={16} />
               Add
-            </button>
+            </SheetActionButton>
           </div>
         </div>
 

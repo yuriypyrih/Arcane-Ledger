@@ -58,6 +58,7 @@ import TextInput from "../../FormInputs/TextInput";
 import { sanitizeUserInput } from "../../../../utils/userInputSanitization";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import RadioContainerOption from "../RadioContainerOption";
+import SheetActionButton from "../SheetActionButton";
 import styles from "./ProficiencyEditorModal.module.css";
 import {
   applyProficiencyEditorDraftToCharacter,
@@ -437,14 +438,13 @@ function ProficiencyEditorModal({
               onChange={(event) => setCustomLanguageDescriptionDraft(event.target.value)}
               placeholder="Optional description"
             />
-            <button
-              type="button"
+            <SheetActionButton
               className={styles.addLanguageButton}
               onClick={addCustomLanguage}
               disabled={customLanguageNameDraft.trim().length === 0}
             >
               Add language
-            </button>
+            </SheetActionButton>
           </div>
           {customLanguageEntries.length > 0 ? (
             <ul className={styles.customLanguageList}>

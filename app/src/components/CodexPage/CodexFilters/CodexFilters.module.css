@@ -26,10 +26,10 @@
 
 .categoryTab {
   appearance: none;
-  border: 1px solid rgba(75, 47, 29, 0.12);
+  border: 1px solid var(--theme-border-subtle);
   border-radius: var(--radius-control);
-  background: rgba(255, 255, 255, 0.6);
-  color: var(--color-ink);
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-primary);
   cursor: pointer;
   font: inherit;
   min-height: 4.95rem;
@@ -43,17 +43,17 @@
 }
 
 .categoryTab:hover {
-  background: rgba(240, 247, 255, 0.78);
+  background: var(--theme-control-subtle-hover);
 }
 
 .categoryTab:focus-visible {
-  outline: 2px solid rgba(47, 120, 255, 0.38);
+  outline: 2px solid var(--theme-focus-ring);
   outline-offset: 3px;
 }
 
 .categoryTabActive {
-  border-color: #2f78ff;
-  color: #2f78ff;
+  border-color: var(--theme-accent);
+  color: var(--theme-accent);
 }
 
 .categoryTabContent {
@@ -81,17 +81,17 @@
 }
 
 .field span {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-muted);
   font-size: 0.88rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .input {
-  border: 1px solid rgba(75, 47, 29, 0.18);
+  border: 1px solid var(--theme-border-medium);
   border-radius: var(--radius-field);
-  background: var(--color-panel-surface);
-  color: var(--color-ink);
+  background: var(--theme-surface-panel);
+  color: var(--theme-text-primary);
   font: inherit;
   min-height: 54px;
   padding: 0 1rem;

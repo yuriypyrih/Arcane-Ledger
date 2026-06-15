@@ -3,7 +3,12 @@
   min-height: 100dvh;
   place-items: center;
   padding: clamp(1.25rem, 4vw, 3rem);
-  color: var(--color-ink);
+  background: var(--theme-app-backdrop);
+  background-color: var(--theme-app-background);
+  background-position: var(--theme-app-backdrop-position);
+  background-repeat: var(--theme-app-backdrop-repeat);
+  background-size: var(--theme-app-backdrop-size);
+  color: var(--theme-text-primary);
 }
 
 .message {
@@ -11,19 +16,24 @@
   justify-items: center;
   gap: 0.7rem;
   width: min(100%, 32rem);
+  border: 1px solid var(--theme-border-medium);
+  border-radius: var(--radius-panel);
+  background: var(--theme-surface-panel);
+  padding: clamp(1.35rem, 4vw, 2rem);
   text-align: center;
+  box-shadow: var(--theme-overlay-shadow);
 }
 
 .icon {
   width: 2.7rem;
   height: 2.7rem;
-  color: var(--color-accent);
+  color: var(--theme-accent);
   filter: drop-shadow(0 0 8px rgba(162, 77, 45, 0.24));
 }
 
 .title {
   margin: 0;
-  color: var(--color-ink);
+  color: var(--theme-text-primary);
   font-size: clamp(1.65rem, 5vw, 2.45rem);
   line-height: 1.05;
 }
@@ -31,7 +41,7 @@
 .copy {
   max-width: 24rem;
   margin: 0;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 1rem;
 }
 
@@ -58,6 +68,25 @@
 .reloadButton:focus-visible {
   outline: 3px solid rgba(162, 77, 45, 0.3);
   outline-offset: 3px;
+}
+
+:global(html[data-theme="dark"]) .icon {
+  filter: drop-shadow(0 0 10px rgba(156, 188, 255, 0.24));
+}
+
+:global(html[data-theme="dark"]) .reloadButton {
+  border-color: rgba(156, 188, 255, 0.28);
+  background: #2e4e8c;
+  color: #f6f9ff;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.28);
+}
+
+:global(html[data-theme="dark"]) .reloadButton:hover {
+  background: #385da5;
+}
+
+:global(html[data-theme="dark"]) .reloadButton:focus-visible {
+  outline-color: var(--theme-focus-ring);
 }
 
 .buttonIcon {

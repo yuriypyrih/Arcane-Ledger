@@ -19,10 +19,19 @@
   line-height: 1.45;
 }
 
+:global(html[data-theme="dark"]) .description {
+  color: var(--theme-text-secondary);
+}
+
 .footer {
   border-top: 1px solid rgba(75, 47, 29, 0.12);
   background: linear-gradient(180deg, rgba(255, 252, 245, 0.24), rgba(246, 236, 221, 0.92));
   padding-top: 0.9rem;
+}
+
+:global(html[data-theme="dark"]) .footer {
+  border-top-color: var(--theme-divider);
+  background: linear-gradient(180deg, rgba(30, 33, 39, 0.54), rgba(15, 17, 21, 0.88));
 }
 
 .footerActions {

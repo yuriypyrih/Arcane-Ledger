@@ -11,7 +11,7 @@ import type {
   WeaponProficiencyEntry
 } from "../../../../types";
 import ActionButton from "../../../ActionButton";
-import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import SheetActionButton from "../SheetActionButton";
 import cardStyles from "./FeatCards.module.css";
 import modalStyles from "./FeatEditorModal.module.css";
 import { InlineEditorFrame, SelectField } from "./FeatEditorPrimitives";
@@ -328,9 +328,8 @@ function EldritchInvocationEditorCard({
       ) : null}
       <div className={modalStyles.footer}>
         {isRepeatable || !isSelected ? (
-          <button
-            type="button"
-            className={clsx(shared.editButton, modalStyles.addButton)}
+          <SheetActionButton
+            className={modalStyles.addButton}
             disabled={isAddButtonDisabled}
             title={addTitle}
             onClick={(event) => {
@@ -352,11 +351,10 @@ function EldritchInvocationEditorCard({
               : isSelected
                 ? "Added"
                 : "Add"}
-          </button>
+          </SheetActionButton>
         ) : selectedOption ? (
-          <button
-            type="button"
-            className={clsx(shared.editButton, modalStyles.removeActionButton)}
+          <SheetActionButton
+            className={modalStyles.removeActionButton}
             disabled={isRemoveDisabled}
             title={removeTitle}
             onClick={(event) => {
@@ -366,7 +364,7 @@ function EldritchInvocationEditorCard({
           >
             <X size={16} />
             Remove
-          </button>
+          </SheetActionButton>
         ) : null}
       </div>
     </article>

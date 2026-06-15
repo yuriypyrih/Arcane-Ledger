@@ -35,8 +35,8 @@ import {
 } from "../../../../Overlay";
 import { useDiceRollerPopup } from "../../../../DicePage/DiceRollerPopup";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
-import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import RadioContainerOption from "../../RadioContainerOption";
+import SheetActionButton from "../../SheetActionButton";
 import NumberInput from "../../../FormInputs/NumberInput";
 import type { RestOption, RestType } from "./restOptions";
 import { createLongRestOptions, createShortRestOptions } from "./restOptions";
@@ -319,10 +319,10 @@ function CampButton({
 
   return (
     <>
-      <button type="button" className={clsx(shared.editButton, styles.button)} onClick={openPopup}>
+      <SheetActionButton className={styles.button} onClick={openPopup}>
         <FlameKindling size={16} />
         Camp
-      </button>
+      </SheetActionButton>
 
       {isOpen ? (
         <SheetModal titleId={titleId} onClose={closePopup} onEscape={closePopup} size="medium">

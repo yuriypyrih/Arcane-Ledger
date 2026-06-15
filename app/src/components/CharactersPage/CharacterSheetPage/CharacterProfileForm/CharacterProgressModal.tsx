@@ -29,6 +29,7 @@ import { reconcileCharacterAfterLevelDecrease } from "../../../../pages/Characte
 import { clampNumber, formatCount } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import SheetActionButton from "../SheetActionButton";
 import styles from "./CharacterProgressModal.module.css";
 
 type ProgressEditMode = "idle" | "add-xp" | "edit-xp" | "edit-level";
@@ -343,39 +344,35 @@ function CharacterProgressModal({
                 <div className={styles.progressActions}>
                   {isXpMode ? (
                     <>
-                      <button
-                        type="button"
-                        className={clsx(shared.editButton, styles.actionButton)}
+                      <SheetActionButton
+                        className={styles.actionButton}
                         onClick={confirmActiveMode}
                       >
                         {activeMode === "add-xp" ? "Add" : "Confirm"}
-                      </button>
-                      <button
-                        type="button"
-                        className={clsx(shared.editButton, styles.actionButton)}
+                      </SheetActionButton>
+                      <SheetActionButton
+                        className={styles.actionButton}
                         onClick={cancelActiveMode}
                       >
                         Cancel
-                      </button>
+                      </SheetActionButton>
                     </>
                   ) : (
                     <>
-                      <button
-                        type="button"
-                        className={clsx(shared.editButton, styles.actionButton)}
+                      <SheetActionButton
+                        className={styles.actionButton}
                         onClick={startAddXp}
                         disabled={isLevelMode}
                       >
                         Add XP
-                      </button>
-                      <button
-                        type="button"
-                        className={clsx(shared.editButton, styles.actionButton)}
+                      </SheetActionButton>
+                      <SheetActionButton
+                        className={styles.actionButton}
                         onClick={startEditXp}
                         disabled={isLevelMode}
                       >
                         Edit
-                      </button>
+                      </SheetActionButton>
                     </>
                   )}
                 </div>
@@ -404,49 +401,44 @@ function CharacterProgressModal({
                 <div className={styles.progressActions}>
                   {isLevelMode ? (
                     <>
-                      <button
-                        type="button"
-                        className={clsx(shared.editButton, styles.actionButton)}
+                      <SheetActionButton
+                        className={styles.actionButton}
                         onClick={confirmActiveMode}
                       >
                         Confirm
-                      </button>
-                      <button
-                        type="button"
-                        className={clsx(shared.editButton, styles.actionButton)}
+                      </SheetActionButton>
+                      <SheetActionButton
+                        className={styles.actionButton}
                         onClick={cancelActiveMode}
                       >
                         Cancel
-                      </button>
+                      </SheetActionButton>
                     </>
                   ) : (
                     <>
                       {isBeyondStandardLevelUpAvailable ? (
-                        <button
-                          type="button"
-                          className={clsx(shared.editButton, styles.actionButton)}
+                        <SheetActionButton
+                          className={styles.actionButton}
                           onClick={levelUp}
                           disabled={!canLevelUp}
                         >
                           Level up beyond 20
-                        </button>
+                        </SheetActionButton>
                       ) : null}
-                      <button
-                        type="button"
-                        className={clsx(shared.editButton, styles.actionButton)}
+                      <SheetActionButton
+                        className={styles.actionButton}
                         onClick={levelUp}
                         disabled={isXpMode || draft.level >= STANDARD_LEVEL_UP_CAP}
                       >
                         Level Up
-                      </button>
-                      <button
-                        type="button"
-                        className={clsx(shared.editButton, styles.actionButton)}
+                      </SheetActionButton>
+                      <SheetActionButton
+                        className={styles.actionButton}
                         onClick={startEditLevel}
                         disabled={isXpMode}
                       >
                         Edit
-                      </button>
+                      </SheetActionButton>
                     </>
                   )}
                 </div>

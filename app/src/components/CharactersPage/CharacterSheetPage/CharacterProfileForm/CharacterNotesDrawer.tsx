@@ -25,7 +25,7 @@ import {
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import type { Character } from "../../../../types";
 import { sanitizeUserInput } from "../../../../utils/userInputSanitization";
-import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import SheetActionButton from "../SheetActionButton";
 import styles from "./CharacterNotesDrawer.module.css";
 
 type CharacterNotesDrawerProps = {
@@ -155,15 +155,15 @@ function CharacterNotesDrawer({
               Character name
             </label>
             {isEditingName ? (
-              <button type="button" className={shared.editButton} onClick={cancelNameEdit}>
+              <SheetActionButton onClick={cancelNameEdit}>
                 <X size={16} aria-hidden="true" />
                 Cancel
-              </button>
+              </SheetActionButton>
             ) : (
-              <button type="button" className={shared.editButton} onClick={startEditingName}>
+              <SheetActionButton onClick={startEditingName}>
                 <Pencil size={16} aria-hidden="true" />
                 Edit
-              </button>
+              </SheetActionButton>
             )}
           </div>
           <TextInput
@@ -189,19 +189,15 @@ function CharacterNotesDrawer({
               Character alignment
             </label>
             {isEditingAlignment ? (
-              <button type="button" className={shared.editButton} onClick={cancelAlignmentEdit}>
+              <SheetActionButton onClick={cancelAlignmentEdit}>
                 <X size={16} aria-hidden="true" />
                 Cancel
-              </button>
+              </SheetActionButton>
             ) : (
-              <button
-                type="button"
-                className={shared.editButton}
-                onClick={startEditingAlignment}
-              >
+              <SheetActionButton onClick={startEditingAlignment}>
                 <Pencil size={16} aria-hidden="true" />
                 Edit
-              </button>
+              </SheetActionButton>
             )}
           </div>
           {isEditingAlignment ? (
@@ -233,15 +229,15 @@ function CharacterNotesDrawer({
               Character notes
             </label>
             {isEditingNotes ? (
-              <button type="button" className={shared.editButton} onClick={cancelNotesEdit}>
+              <SheetActionButton onClick={cancelNotesEdit}>
                 <X size={16} aria-hidden="true" />
                 Cancel
-              </button>
+              </SheetActionButton>
             ) : (
-              <button type="button" className={shared.editButton} onClick={startEditingNotes}>
+              <SheetActionButton onClick={startEditingNotes}>
                 <Pencil size={16} aria-hidden="true" />
                 Edit
-              </button>
+              </SheetActionButton>
             )}
           </div>
 

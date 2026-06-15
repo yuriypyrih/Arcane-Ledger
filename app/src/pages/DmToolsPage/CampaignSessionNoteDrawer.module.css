@@ -16,7 +16,7 @@
 }
 
 .fieldLabel {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-muted);
   font-size: 0.86rem;
   font-weight: 850;
   letter-spacing: 0.06em;
@@ -35,10 +35,10 @@
   display: inline-flex;
   align-items: center;
   min-height: 42px;
-  border: 1px solid rgba(75, 47, 29, 0.16);
+  border: 1px solid var(--theme-border-medium);
   border-radius: var(--radius-control);
-  background: rgba(75, 47, 29, 0.06);
-  color: var(--color-ink-soft);
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-muted);
   font-size: 0.86rem;
   font-weight: 850;
   line-height: 1;
@@ -47,7 +47,7 @@
 }
 
 .readOnlyControl {
-  border-color: rgba(75, 47, 29, 0.16);
+  border-color: var(--theme-border-medium);
   background:
     linear-gradient(
       140deg,
@@ -56,7 +56,7 @@
       rgba(255, 248, 236, 0.3) 100%
     ),
     linear-gradient(135deg, rgba(145, 101, 54, 0.08), rgba(145, 101, 54, 0.02)),
-    url("../../assets/img/paper-background.webp");
+    var(--theme-paper-background-image);
   background-color: #fffdf8;
   background-clip: padding-box;
   background-position:
@@ -75,6 +75,18 @@
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.76);
 }
 
+:global(html[data-theme="dark"]) .readOnlyControl {
+  background:
+    linear-gradient(140deg, rgba(35, 39, 45, 0.96) 0%, rgba(29, 32, 37, 0.92) 100%),
+    linear-gradient(135deg, rgba(156, 188, 255, 0.08), rgba(156, 188, 255, 0.02)),
+    var(--theme-paper-background-image);
+  background-position: center, center, center;
+  background-repeat: no-repeat;
+  background-size: auto, auto, 155% auto;
+  color: var(--theme-text-primary);
+  text-shadow: none;
+}
+
 .notesTextarea {
   min-height: clamp(220px, 34dvh, 420px);
   resize: vertical;
@@ -89,7 +101,7 @@
 }
 
 .characterCounter {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-muted);
   font-size: 0.78rem;
   font-weight: 700;
   margin: 0;

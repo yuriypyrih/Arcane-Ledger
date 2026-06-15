@@ -40,7 +40,7 @@
       var(--build-card-panel-soft) 82%,
       var(--build-card-panel-strong) 100%
     ),
-    url("../../../../assets/img/paper-background.webp");
+    var(--theme-paper-background-image);
   background-position: center, center, center, center;
   background-repeat: no-repeat;
   background-size: auto, auto, auto, 155% auto;
@@ -55,6 +55,39 @@
     box-shadow 160ms ease,
     transform 160ms ease,
     opacity 160ms ease;
+}
+
+:global(html[data-theme="dark"]) .card {
+  --build-card-control-bg: #2a2e35;
+  --build-card-control-bg-active: #323841;
+  --build-card-control-bg-disabled: #20242a;
+  --build-card-control-border: rgba(221, 230, 242, 0.1);
+  --build-card-border: var(--theme-border-medium);
+  --build-card-glow: rgba(156, 188, 255, 0.07);
+  --build-card-panel-soft: rgba(156, 188, 255, 0.01);
+  --build-card-panel-strong: rgba(156, 188, 255, 0.035);
+  --build-card-surface: #15181d;
+  background-image:
+    radial-gradient(circle at 92% 16%, var(--build-card-glow), transparent 34%),
+    linear-gradient(
+      60deg,
+      rgba(19, 21, 25, 0.34) 0%,
+      rgba(22, 24, 29, 0.26) 70%,
+      rgba(19, 21, 25, 0.12) 100%
+    ),
+    linear-gradient(
+      180deg,
+      transparent 0%,
+      transparent 68%,
+      var(--build-card-panel-soft) 82%,
+      var(--build-card-panel-strong) 100%
+    ),
+    var(--theme-paper-background-image);
+  background-size: auto, auto, auto, 155% auto;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 8px 18px -16px rgba(0, 0, 0, 0.5);
+  color: var(--theme-text-primary);
 }
 
 .interactiveCard {
@@ -72,6 +105,17 @@
     0 8px 16px -14px rgba(75, 47, 29, 0.18),
     0 3px 6px -6px rgba(36, 21, 15, 0.16);
   transform: translateY(-1px);
+}
+
+:global(html[data-theme="dark"]) .interactiveCard:hover,
+:global(html[data-theme="dark"]) .interactiveCard:focus-within {
+  --build-card-glow: rgba(156, 188, 255, 0.1);
+  --build-card-panel-soft: rgba(156, 188, 255, 0.016);
+  --build-card-panel-strong: rgba(156, 188, 255, 0.055);
+  border-color: rgba(156, 188, 255, 0.48);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 10px 22px -16px rgba(0, 0, 0, 0.55);
 }
 
 .interactiveCard:focus-visible {
@@ -92,6 +136,18 @@
     0 4px 8px -8px rgba(54, 34, 21, 0.14);
 }
 
+:global(html[data-theme="dark"]) .selectedCard {
+  --build-card-border: rgba(156, 188, 255, 0.7);
+  --build-card-glow: rgba(156, 188, 255, 0.13);
+  --build-card-panel-soft: rgba(156, 188, 255, 0.022);
+  --build-card-panel-strong: rgba(156, 188, 255, 0.07);
+  --build-card-surface: #181b21;
+  box-shadow:
+    inset 4px 0 0 rgba(156, 188, 255, 0.78),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 12px 26px -18px rgba(0, 0, 0, 0.62);
+}
+
 .interactiveCard.selectedCard:hover,
 .interactiveCard.selectedCard:focus-within {
   border-color: var(--build-card-border);
@@ -100,6 +156,14 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.58),
     0 12px 24px -14px rgba(47, 109, 224, 0.38),
     0 4px 8px -8px rgba(54, 34, 21, 0.14);
+}
+
+:global(html[data-theme="dark"]) .interactiveCard.selectedCard:hover,
+:global(html[data-theme="dark"]) .interactiveCard.selectedCard:focus-within {
+  box-shadow:
+    inset 4px 0 0 rgba(156, 188, 255, 0.78),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 14px 28px -18px rgba(0, 0, 0, 0.66);
 }
 
 .unavailableCard {
@@ -113,6 +177,15 @@
   opacity: 0.78;
 }
 
+:global(html[data-theme="dark"]) .unavailableCard {
+  --build-card-border: rgba(221, 230, 242, 0.08);
+  --build-card-glow: rgba(255, 255, 255, 0.035);
+  --build-card-panel-soft: rgba(255, 255, 255, 0.008);
+  --build-card-panel-strong: rgba(255, 255, 255, 0.024);
+  --build-card-surface: rgba(20, 23, 28, 0.82);
+  box-shadow: none;
+}
+
 .interactiveCard.unavailableCard:hover,
 .interactiveCard.unavailableCard:focus-within {
   --build-card-border: rgba(75, 47, 29, 0.13);
@@ -124,10 +197,25 @@
   transform: none;
 }
 
+:global(html[data-theme="dark"]) .interactiveCard.unavailableCard:hover,
+:global(html[data-theme="dark"]) .interactiveCard.unavailableCard:focus-within {
+  --build-card-border: rgba(221, 230, 242, 0.08);
+  --build-card-glow: rgba(255, 255, 255, 0.035);
+  --build-card-panel-soft: rgba(255, 255, 255, 0.008);
+  --build-card-panel-strong: rgba(255, 255, 255, 0.024);
+  box-shadow: none;
+}
+
 .unavailableCard .title,
 .unavailableCard .summary,
 .unavailableCard .repeatable {
   color: rgba(74, 63, 55, 0.62);
+}
+
+:global(html[data-theme="dark"]) .unavailableCard .title,
+:global(html[data-theme="dark"]) .unavailableCard .summary,
+:global(html[data-theme="dark"]) .unavailableCard .repeatable {
+  color: var(--theme-text-disabled);
 }
 
 .headerRow {
@@ -156,6 +244,11 @@
   font-weight: 700;
 }
 
+:global(html[data-theme="dark"]) .title,
+:global(html[data-theme="dark"]) .summary {
+  color: var(--theme-text-primary);
+}
+
 .meta,
 .summary,
 .repeatable {
@@ -166,6 +259,12 @@
   color: var(--color-ink-soft);
   font-size: 0.78rem;
   letter-spacing: 0.04em;
+}
+
+:global(html[data-theme="dark"]) .meta,
+:global(html[data-theme="dark"]) .repeatable,
+:global(html[data-theme="dark"]) .selectedItem {
+  color: var(--theme-text-secondary);
 }
 
 .summary {
@@ -198,7 +297,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.55rem;
-  border-left: 2px solid rgba(75, 47, 29, 0.12);
+  border-left: 2px solid var(--theme-border-subtle);
   color: var(--color-ink-soft);
   font-size: 0.82rem;
   padding-left: 0.65rem;

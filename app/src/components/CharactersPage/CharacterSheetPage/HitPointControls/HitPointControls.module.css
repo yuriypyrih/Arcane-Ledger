@@ -57,6 +57,10 @@
   overflow: hidden;
 }
 
+:global(html[data-theme="dark"]) .barTrack {
+  background: rgba(221, 230, 242, 0.22);
+}
+
 .barMeter {
   display: flex;
   block-size: 100%;

@@ -119,7 +119,7 @@
       rgba(255, 248, 236, 0.3) 100%
     ),
     linear-gradient(135deg, rgba(145, 101, 54, 0.08), rgba(145, 101, 54, 0.02)),
-    url("../../../../assets/img/paper-background.webp");
+    var(--theme-paper-background-image);
   background-color: #fffdf8;
   background-clip: padding-box;
   background-position: center, center, center;
@@ -147,6 +147,9 @@
 }
 
 .card.armorClassCard {
+  --color-ink: #24150f;
+  --color-ink-soft: #5f3f2c;
+
   border-color: rgba(255, 246, 226, 0.38);
   background: linear-gradient(150deg, #6f4629 0%, #3c2518 48%, #160f0d 100%);
   box-shadow:
@@ -179,7 +182,7 @@
 }
 
 .compactLabel {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.62rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -260,6 +263,28 @@
 .valueIcon {
   color: #2f7fd8;
   flex: 0 0 auto;
+}
+
+:global(html[data-theme="dark"]) .profileStatCard {
+  border-color: var(--theme-border-medium);
+  background:
+    linear-gradient(140deg, rgba(35, 39, 45, 0.78) 0%, rgba(29, 32, 37, 0.68) 100%),
+    linear-gradient(135deg, rgba(156, 188, 255, 0.08), rgba(156, 188, 255, 0.02)),
+    var(--theme-paper-background-image);
+  background-color: var(--theme-surface-raised);
+  background-position: center, center, center;
+  background-repeat: no-repeat;
+  background-size: auto, auto, 135% auto;
+  color: var(--theme-text-primary);
+}
+
+:global(html[data-theme="dark"]) .profileStatCard .label {
+  color: var(--theme-text-secondary);
+}
+
+:global(html[data-theme="dark"]) .profileStatCard .valueRow {
+  color: var(--theme-text-primary);
+  text-shadow: none;
 }
 
 .floatingState {

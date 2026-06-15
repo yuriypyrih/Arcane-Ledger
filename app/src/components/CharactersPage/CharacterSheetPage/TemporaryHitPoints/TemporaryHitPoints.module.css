@@ -22,10 +22,20 @@
   color: rgba(75, 47, 29, 0.48);
 }
 
+:global(html[data-theme="dark"]) .tempHpTriggerInactive {
+  color: rgba(221, 230, 242, 0.68);
+}
+
 .tempHpTriggerInactive:not(:disabled):hover {
   border-color: rgba(75, 47, 29, 0.14);
   background: rgba(75, 47, 29, 0.06);
   color: var(--color-ink);
+}
+
+:global(html[data-theme="dark"]) .tempHpTriggerInactive:not(:disabled):hover {
+  border-color: var(--theme-border-medium);
+  background: var(--theme-control-subtle-hover);
+  color: var(--theme-text-primary);
 }
 
 .tempHpTrigger:disabled,

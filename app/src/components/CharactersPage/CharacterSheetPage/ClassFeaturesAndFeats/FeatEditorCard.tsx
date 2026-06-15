@@ -89,7 +89,7 @@ import type { FeatEligibilityResult } from "../../../../pages/CharactersPage/fea
 import { formatCodexLabel } from "../../../../utils/codex";
 import ActionButton from "../../../ActionButton";
 import SelectInput from "../../FormInputs/SelectInput";
-import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import SheetActionButton from "../SheetActionButton";
 import cardStyles from "./FeatCards.module.css";
 import modalStyles from "./FeatEditorModal.module.css";
 import {
@@ -3996,9 +3996,8 @@ function FeatEditorCard({
       {hideFooter ? null : (
         <div className={modalStyles.footer}>
           {isRepeatable || !isSelected ? (
-            <button
-              type="button"
-              className={clsx(shared.editButton, modalStyles.addButton)}
+            <SheetActionButton
+              className={modalStyles.addButton}
               disabled={isAddDisabled}
               title={unmetRequirementText || undefined}
               onClick={(event) => {
@@ -4008,13 +4007,12 @@ function FeatEditorCard({
             >
               <Plus size={16} />
               {isRepeatable && isSelected ? "Add Another" : isSelected ? "Added" : "Add"}
-            </button>
+            </SheetActionButton>
           ) : selectedEntry ? (
             <>
               {canEditFeat ? (
-                <button
-                  type="button"
-                  className={clsx(shared.editButton, modalStyles.addButton)}
+                <SheetActionButton
+                  className={modalStyles.addButton}
                   onClick={(event) => {
                     event.stopPropagation();
                     onEditFeat(selectedEntry);
@@ -4022,11 +4020,10 @@ function FeatEditorCard({
                 >
                   <Pencil size={16} />
                   Edit
-                </button>
+                </SheetActionButton>
               ) : null}
-              <button
-                type="button"
-                className={clsx(shared.editButton, modalStyles.removeActionButton)}
+              <SheetActionButton
+                className={modalStyles.removeActionButton}
                 disabled={!isSelectedEntryRemovable}
                 title={!isSelectedEntryRemovable ? lockedRemoveTitle : undefined}
                 onClick={(event) => {
@@ -4036,7 +4033,7 @@ function FeatEditorCard({
               >
                 <X size={16} />
                 Remove
-              </button>
+              </SheetActionButton>
             </>
           ) : null}
         </div>

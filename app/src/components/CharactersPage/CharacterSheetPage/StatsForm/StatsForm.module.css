@@ -32,6 +32,10 @@
   background: rgba(75, 47, 29, 0.24);
 }
 
+:global(html[data-theme="dark"]) .groupTitleDivider {
+  background: var(--theme-divider);
+}
+
 .modifierGrid {
   display: grid;
   gap: 0.75rem;

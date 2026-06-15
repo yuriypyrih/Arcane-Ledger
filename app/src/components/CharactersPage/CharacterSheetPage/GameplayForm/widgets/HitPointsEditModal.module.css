@@ -44,6 +44,10 @@
   padding-top: 0.65rem;
 }
 
+:global(html[data-theme="dark"]) .additionalDescription {
+  border-top-color: var(--theme-divider);
+}
+
 .additionalDescriptionSection {
   display: grid;
   gap: 0.55rem;
@@ -52,6 +56,10 @@
 .additionalDescriptionSection + .additionalDescriptionSection {
   border-top: 1px solid rgba(75, 47, 29, 0.14);
   padding-top: 0.75rem;
+}
+
+:global(html[data-theme="dark"]) .additionalDescriptionSection + .additionalDescriptionSection {
+  border-top-color: var(--theme-divider);
 }
 
 .fieldGrid {
