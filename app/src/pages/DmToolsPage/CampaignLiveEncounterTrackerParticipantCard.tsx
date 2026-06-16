@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { Fragment, type CSSProperties } from "react";
-import { ArrowRightFromLine, GripVertical, Shield, Undo2 } from "lucide-react";
+import { ArrowRightFromLine, ChessRook, GripVertical, Shield, Undo2 } from "lucide-react";
 import { CSS } from "@dnd-kit/utilities";
 import { useSortable } from "@dnd-kit/sortable";
 import EnemyIcon from "../../assets/svg/enemy.svg";
@@ -213,8 +213,14 @@ function ParticipantVitalsRow({ viewModel }: { viewModel: ParticipantCardViewMod
 
   if (viewModel.armorClass !== null) {
     vitals.push(
-      <span key="armor-class" className={styles.armorClassText}>
-        AC {formatNumber(viewModel.armorClass)}
+      <span
+        key="armor-class"
+        className={styles.armorClassText}
+        aria-label={`Armor Class ${formatNumber(viewModel.armorClass)}`}
+        title={`Armor Class ${formatNumber(viewModel.armorClass)}`}
+      >
+        <Shield size={14} aria-hidden="true" />
+        {formatNumber(viewModel.armorClass)}
       </span>
     );
   }
@@ -230,7 +236,7 @@ function ParticipantVitalsRow({ viewModel }: { viewModel: ParticipantCardViewMod
   if (viewModel.temporaryHitPoints > 0) {
     vitals.push(
       <span key="temporary-hit-points" className={styles.tempHitPointText}>
-        <Shield size={14} aria-hidden="true" />
+        <ChessRook size={14} aria-hidden="true" />
         {viewModel.temporaryHitPoints}
       </span>
     );
@@ -239,6 +245,7 @@ function ParticipantVitalsRow({ viewModel }: { viewModel: ParticipantCardViewMod
   if (viewModel.magicTemporaryHitPoints > 0) {
     vitals.push(
       <span key="magic-temporary-hit-points" className={styles.magicTempHitPointText}>
+        <ChessRook size={14} aria-hidden="true" />
         Magic Temp {viewModel.magicTemporaryHitPoints}
       </span>
     );

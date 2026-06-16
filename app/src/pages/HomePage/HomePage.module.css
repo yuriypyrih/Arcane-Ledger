@@ -402,9 +402,9 @@
 }
 
 .toolToneCampaign {
-  --tool-signature: #2f78ff;
-  --tool-signature-strong: #1d4ed8;
-  --tool-signature-rgb: 47, 120, 255;
+  --tool-signature: var(--theme-tool-campaign);
+  --tool-signature-strong: var(--theme-tool-campaign-strong);
+  --tool-signature-rgb: var(--theme-tool-campaign-rgb);
 }
 
 .toolToneParty {
@@ -417,12 +417,6 @@
   --tool-signature: #d84a2b;
   --tool-signature-strong: #a9361f;
   --tool-signature-rgb: 216, 74, 43;
-}
-
-:global(html[data-theme="dark"]) .toolToneCampaign {
-  --tool-signature: #8fb0ee;
-  --tool-signature-strong: #c2d3ff;
-  --tool-signature-rgb: 143, 176, 238;
 }
 
 :global(html[data-theme="dark"]) .toolToneParty {

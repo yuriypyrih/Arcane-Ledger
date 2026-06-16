@@ -193,8 +193,9 @@
 
 .warningCard {
   border-radius: var(--radius-control-lg);
-  background: rgba(139, 51, 33, 0.1);
-  color: #6d2417;
+  background: var(--theme-warning-card-background);
+  box-shadow: inset 0 0 0 1px var(--theme-warning-card-border);
+  color: var(--theme-warning-card-text);
   margin: 0;
   padding: 0.8rem 0.9rem;
 }

@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Shield } from "lucide-react";
+import { ChessRook } from "lucide-react";
 import { useEffect, useState } from "react";
 import type { MagicTemporaryHitPointsFeature } from "../../../../pages/CharactersPage/classFeatures/types";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
@@ -68,7 +68,7 @@ function MagicTemporaryHitPoints({
         aria-label={`${feature.modalTitle}: ${normalizedMagicTemporaryHitPoints} out of ${feature.maxHitPoints}`}
         title={feature.modalTitle}
       >
-        <Shield size={18} />
+        <ChessRook size={18} />
         <strong className={styles.tempHpTriggerCount}>{normalizedMagicTemporaryHitPoints}</strong>
       </button>
 

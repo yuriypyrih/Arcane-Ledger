@@ -45,12 +45,16 @@
 }
 
 .tempHpTriggerActive {
-  border-color: rgba(205, 166, 58, 0.55);
-  background: linear-gradient(180deg, rgba(255, 248, 210, 0.92), rgba(246, 225, 132, 0.82));
-  color: #8c6611;
+  border-color: var(--theme-temp-hit-points-border);
+  background: var(--theme-temp-hit-points-surface);
+  color: var(--theme-temp-hit-points-text);
   box-shadow:
-    0 0 0 1px rgba(234, 197, 84, 0.18),
-    0 0 14px rgba(245, 204, 70, 0.24);
+    0 0 0 1px var(--theme-temp-hit-points-ring),
+    0 0 14px var(--theme-temp-hit-points-glow);
+}
+
+.tempHpTriggerActive svg {
+  color: var(--theme-temp-hit-points-icon);
 }
 
 .tempHpTriggerCount {

@@ -168,9 +168,9 @@
 }
 
 .toolToneCampaign {
-  --tool-signature: #2f78ff;
-  --tool-signature-strong: #1d4ed8;
-  --tool-signature-rgb: 47, 120, 255;
+  --tool-signature: var(--theme-tool-campaign);
+  --tool-signature-strong: var(--theme-tool-campaign-strong);
+  --tool-signature-rgb: var(--theme-tool-campaign-rgb);
 }
 
 .toolToneParty {
@@ -183,12 +183,6 @@
   --tool-signature: #d84a2b;
   --tool-signature-strong: #a9361f;
   --tool-signature-rgb: 216, 74, 43;
-}
-
-:global(html[data-theme="dark"]) .toolToneCampaign {
-  --tool-signature: #8fb0ee;
-  --tool-signature-strong: #c2d3ff;
-  --tool-signature-rgb: 143, 176, 238;
 }
 
 :global(html[data-theme="dark"]) .toolToneParty {
@@ -730,13 +724,25 @@ button.dmToolsListCardMain:disabled {
   color: var(--theme-accent-strong);
 }
 
+:global(html[data-theme="dark"]) .dmToolsListCardCampaign {
+  border-color: rgba(var(--theme-tool-campaign-rgb), 0.18);
+}
+
+:global(html[data-theme="dark"]) .dmToolsListCardCampaign:hover,
+:global(html[data-theme="dark"]) .dmToolsListCardCampaign:focus-within {
+  border-color: rgba(var(--theme-tool-campaign-rgb), 0.34);
+  box-shadow:
+    0 10px 24px rgba(0, 0, 0, 0.24),
+    0 0 18px rgba(var(--theme-tool-campaign-rgb), 0.1);
+}
+
 :global(html[data-theme="dark"]) .dmToolsListCardCampaign .dmToolsListCardIcon {
-  border-color: rgba(143, 176, 238, 0.34);
-  background: rgba(143, 176, 238, 0.2);
+  border-color: rgba(var(--theme-tool-campaign-rgb), 0.38);
+  background: rgba(var(--theme-tool-campaign-rgb), 0.22);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.075),
-    0 0 18px rgba(143, 176, 238, 0.08);
-  color: #d4e0ff;
+    0 0 18px rgba(var(--theme-tool-campaign-rgb), 0.1);
+  color: var(--theme-tool-campaign-strong);
 }
 
 :global(html[data-theme="dark"]) .dmToolsListCardParty .dmToolsListCardIcon {
@@ -923,6 +929,15 @@ button.dmToolsListCardMain:disabled {
   line-height: 1;
   padding: 0.36rem 0.52rem;
   white-space: nowrap;
+}
+
+:global(html[data-theme="dark"]) .memberCount {
+  border-color: var(--theme-border-medium);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.095), rgba(255, 255, 255, 0.055)),
+    var(--theme-surface-raised);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  color: var(--theme-text-primary);
 }
 
 .emptyActionState {

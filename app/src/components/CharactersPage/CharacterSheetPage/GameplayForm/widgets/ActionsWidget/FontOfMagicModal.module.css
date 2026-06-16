@@ -21,8 +21,9 @@
 
 .fontOfMagicWarning {
   border-radius: var(--radius-pill);
-  background: rgba(188, 63, 78, 0.12);
-  color: #bc3f4e;
+  background: var(--theme-warning-card-background);
+  box-shadow: inset 0 0 0 1px var(--theme-warning-card-border);
+  color: var(--theme-warning-card-text);
   font-size: 0.76rem;
   font-weight: 700;
   line-height: 1.1;

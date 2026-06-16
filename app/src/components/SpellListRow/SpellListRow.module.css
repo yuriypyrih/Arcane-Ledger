@@ -179,18 +179,13 @@
 }
 
 .alwaysPreparedPill {
-  background: rgba(222, 102, 158, 0.16);
-  color: #c04f86;
+  background: var(--theme-always-prepared-tag-background);
+  color: var(--theme-always-prepared-tag-color);
 }
 
 .alwaysSpellbookPill {
   background: rgba(47, 120, 255, 0.14);
   color: #2f78ff;
-}
-
-:global(html[data-theme="dark"]) .alwaysPreparedPill {
-  background: rgba(244, 139, 190, 0.16);
-  color: #f4a6cb;
 }
 
 :global(html[data-theme="dark"]) .alwaysSpellbookPill {

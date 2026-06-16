@@ -90,7 +90,7 @@
   position: absolute;
   inset: 0 auto 0 0;
   height: 100%;
-  background: linear-gradient(90deg, #7fc4ff 0%, #d6efff 60%, #7fc4ff 100%);
+  background: var(--theme-magic-temp-hit-points-bar);
   transition:
     left 180ms ease,
     width 180ms ease;
@@ -100,7 +100,7 @@
   position: absolute;
   inset: 0 auto 0 0;
   height: 100%;
-  background: linear-gradient(90deg, #f2d786 0%, #fff1b8 60%, #f2d786 100%);
+  background: var(--theme-temp-hit-points-bar);
   transition:
     left 180ms ease,
     width 180ms ease;

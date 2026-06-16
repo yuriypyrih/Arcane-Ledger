@@ -5,9 +5,11 @@ import App from "./App";
 import { initializeAppUpdateLifecycle } from "./lib/appUpdate";
 import { SentryErrorBoundary } from "./lib/SentryErrorBoundary";
 import { initFrontendSentry } from "./lib/sentry";
+import { applyThemeModePreferenceToDocument } from "./storage/preferences";
 import { store } from "./store";
 import "./styles/global.css";
 
+applyThemeModePreferenceToDocument();
 initFrontendSentry();
 initializeAppUpdateLifecycle();
 

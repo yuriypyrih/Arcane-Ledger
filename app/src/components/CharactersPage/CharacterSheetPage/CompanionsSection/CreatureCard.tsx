@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { Copy, Eye, Pencil, Shield, Trash2 } from "lucide-react";
+import { ChessRook, Copy, Eye, Pencil, Shield, Trash2 } from "lucide-react";
 import CollaborationIcon from "../../../../assets/svg/collaboration.svg";
 import EnemyIcon from "../../../../assets/svg/enemy.svg";
 import type { CharacterCompanion } from "../../../../types";
@@ -95,7 +95,14 @@ function CreatureCard({
           <span className={styles.vitalsRow}>
             {shouldShowArmorClass ? (
               <>
-                <span className={styles.armorClassText}>AC {armorClass}</span>
+                <span
+                  className={styles.armorClassText}
+                  aria-label={`Armor Class ${armorClass}`}
+                  title={`Armor Class ${armorClass}`}
+                >
+                  <Shield size={14} aria-hidden="true" />
+                  {armorClass}
+                </span>
                 <span className={styles.vitalsDivider}>·</span>
               </>
             ) : null}
@@ -106,7 +113,7 @@ function CreatureCard({
               <>
                 <span className={styles.vitalsDivider}>·</span>
                 <span className={styles.tempHitPointText}>
-                  <Shield size={14} aria-hidden="true" />
+                  <ChessRook size={14} aria-hidden="true" />
                   {temporaryHitPoints}
                 </span>
               </>

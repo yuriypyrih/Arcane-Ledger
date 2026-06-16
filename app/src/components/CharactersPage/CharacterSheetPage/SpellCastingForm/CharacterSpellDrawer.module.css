@@ -12,8 +12,8 @@
   align-items: center;
   gap: 0.28rem;
   border-radius: var(--radius-pill);
-  background: rgba(222, 102, 158, 0.16);
-  color: #c04f86;
+  background: var(--theme-always-prepared-tag-background);
+  color: var(--theme-always-prepared-tag-color);
   line-height: 1;
   padding: 0.22rem 0.48rem;
 }
@@ -26,7 +26,7 @@
 }
 
 .alwaysPreparedPillDetail {
-  color: var(--color-ink-soft);
+  color: var(--theme-always-prepared-tag-detail);
   font-size: 0.72rem;
   font-weight: 500;
   letter-spacing: 0;

@@ -135,6 +135,8 @@
   display: grid;
   align-content: start;
   gap: var(--space-page-gap);
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
   width: 100%;
   padding-bottom: calc(env(safe-area-inset-bottom, 0px) + var(--space-page-gap));
 }
@@ -148,6 +150,7 @@
 
 .accountHeaderCard,
 .accountSection {
+  min-width: 0;
   border: 1px solid rgba(75, 47, 29, 0.12);
   border-radius: var(--radius-section);
   background: var(--color-panel-strong);
@@ -244,6 +247,8 @@
   align-items: start;
   gap: var(--space-page-gap);
   grid-template-columns: minmax(260px, 1fr) minmax(0, 2fr);
+  min-width: 0;
+  width: 100%;
 }
 
 .accountDetailsColumn {
@@ -429,8 +434,10 @@
 }
 
 .accountPrivilegesTableWrap {
+  max-width: 100%;
   min-width: 0;
   overflow-x: auto;
+  width: 100%;
   border: 1px solid rgba(75, 47, 29, 0.12);
   border-radius: var(--radius-card);
   background:
@@ -443,6 +450,11 @@
   min-width: 540px;
   border-collapse: collapse;
   color: #2f1b12;
+}
+
+.accountPrivilegesSection {
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .accountPrivilegesTable th,
@@ -553,7 +565,7 @@
 @media (max-width: 960px) {
   .accountGuestGrid,
   .accountLayout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

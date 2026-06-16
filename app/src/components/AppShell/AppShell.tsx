@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Outlet, useMatch } from "react-router-dom";
 import { useMediaQuery } from "../../lib/useMediaQuery";
 import {
+  applyThemeModePreferenceToDocument,
   getBroadLayoutPreference,
   getThemeModePreference,
   PREFERENCES_CHANGED_EVENT,
@@ -17,7 +18,6 @@ import type { AppShellOutletContext } from "./outletContext";
 import styles from "./AppShell.module.css";
 
 const BROAD_LAYOUT_LG_COMPACT_CLASS = "broad-layout-lg-compact";
-const THEME_MODE_ATTRIBUTE = "data-theme";
 
 function AppShell() {
   const characterSheetMatch = useMatch({ path: "/characters/:characterId", end: true });
@@ -33,11 +33,7 @@ function AppShell() {
   const useLgCompactScale = isBroadLayoutActive && isLgOnly;
 
   useEffect(() => {
-    if (typeof document === "undefined") {
-      return;
-    }
-
-    document.documentElement.setAttribute(THEME_MODE_ATTRIBUTE, themeMode);
+    applyThemeModePreferenceToDocument(themeMode);
   }, [themeMode]);
 
   useEffect(() => {

@@ -13,6 +13,7 @@ export type {
 
 const PREFERENCES_STORAGE_KEY = "arcane-ledger.preferences";
 export const PREFERENCES_CHANGED_EVENT = "arcane-ledger:preferences-changed";
+const THEME_MODE_ATTRIBUTE = "data-theme";
 
 const defaultPreferences: Preferences = {
   diceRollerBehavior: "full_auto",
@@ -206,6 +207,17 @@ export function updateBroadLayoutPreference(broadLayout: boolean): Preferences {
 
 export function getThemeModePreference(): ThemeModePreference {
   return loadPreferences().themeMode;
+}
+
+export function applyThemeModePreferenceToDocument(themeMode?: unknown) {
+  if (typeof document === "undefined") {
+    return;
+  }
+
+  document.documentElement.setAttribute(
+    THEME_MODE_ATTRIBUTE,
+    normalizeThemeModePreference(themeMode ?? getThemeModePreference())
+  );
 }
 
 export function updateThemeModePreference(themeMode: ThemeModePreference): Preferences {

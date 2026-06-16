@@ -355,26 +355,25 @@
 :global(html[data-theme="dark"]) .themedActionCard {
   --action-card-theme-base: var(--theme-surface-panel);
   --action-card-theme-background-image: radial-gradient(
-      circle at 94% 12%,
-      var(--action-card-theme-glow) 0%,
-      var(--action-card-theme-glow) 14%,
-      transparent 42%
+      circle at 92% 16%,
+      var(--action-card-theme-glow),
+      transparent 33%
     ),
     linear-gradient(
       60deg,
-      rgba(255, 255, 255, 0.035) 0%,
-      rgba(255, 255, 255, 0.018) 48%,
-      rgba(0, 0, 0, 0.18) 100%
+      rgba(41, 46, 53, 0.86) 0%,
+      rgba(34, 38, 44, 0.76) 70%,
+      rgba(27, 31, 36, 0.34) 100%
     ),
     linear-gradient(
       180deg,
       transparent 0%,
-      transparent 60%,
-      rgba(255, 255, 255, 0.018) 78%,
-      rgba(0, 0, 0, 0.16) 100%
+      transparent 68%,
+      var(--action-card-theme-panel-soft) 82%,
+      var(--action-card-theme-panel-strong) 100%
     ),
     var(--theme-paper-background-image);
-  --action-card-theme-background-size: auto, auto, auto, 170% auto;
+  --action-card-theme-background-size: auto, auto, auto, 155% auto;
   --action-card-theme-icon-opacity: 0.24;
 
   background-color: var(--action-card-theme-base);

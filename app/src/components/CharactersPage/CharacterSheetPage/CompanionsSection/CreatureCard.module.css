@@ -153,12 +153,14 @@
   opacity: 0.86;
 }
 
+.armorClassText,
 .tempHitPointText {
   display: inline-flex;
   align-items: center;
   gap: 0.22rem;
 }
 
+.armorClassText svg,
 .tempHitPointText svg {
   flex: 0 0 auto;
   stroke: currentColor;

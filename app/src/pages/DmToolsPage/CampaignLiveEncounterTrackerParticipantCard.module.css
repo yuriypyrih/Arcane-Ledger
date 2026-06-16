@@ -243,12 +243,16 @@ label.portraitControl {
   opacity: 0.9;
 }
 
-.tempHitPointText {
+.armorClassText,
+.tempHitPointText,
+.magicTempHitPointText {
   display: inline-flex;
   align-items: center;
   gap: 0.2rem;
 }
 
+.armorClassText svg,
+.magicTempHitPointText svg,
 .tempHitPointText svg {
   flex: 0 0 auto;
   stroke: currentColor;

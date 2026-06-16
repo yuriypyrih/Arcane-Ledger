@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Shield } from "lucide-react";
+import { ChessRook } from "lucide-react";
 import { useEffect, useState } from "react";
 import styles from "./TemporaryHitPoints.module.css";
 import {
@@ -97,7 +97,7 @@ function TemporaryHitPoints({
         }
         title={canEdit ? "Edit temporary hit points" : "Temporary hit points"}
       >
-        <Shield size={18} />
+        <ChessRook size={18} />
         {hasTemporaryHitPoints ? (
           <strong className={styles.tempHpTriggerCount}>{normalizedTemporaryHitPoints}</strong>
         ) : null}

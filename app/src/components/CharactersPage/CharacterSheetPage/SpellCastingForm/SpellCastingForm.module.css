@@ -75,13 +75,13 @@
 }
 
 .spellSlotSquareFilled {
-  background: var(--gradient-primary-action);
-  border-color: rgba(47, 120, 255, 0.86);
+  background: var(--theme-non-combat-action-background);
+  border-color: var(--theme-non-combat-action-border);
 }
 
 :global(html[data-theme="dark"]) .spellSlotSquareFilled {
-  background: var(--gradient-primary-action);
-  border-color: rgba(111, 164, 245, 0.86);
+  background: var(--theme-non-combat-action-background);
+  border-color: var(--theme-non-combat-action-border);
 }
 
 :global(html.broad-layout-lg-compact) .spellSlotSquares {

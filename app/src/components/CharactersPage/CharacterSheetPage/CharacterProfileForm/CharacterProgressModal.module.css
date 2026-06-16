@@ -109,7 +109,7 @@
 
 .warningText {
   margin: 0;
-  color: #8b5a12;
+  color: var(--theme-warning-inline-text);
   font-size: 0.92rem;
   font-weight: 600;
   line-height: 1.45;

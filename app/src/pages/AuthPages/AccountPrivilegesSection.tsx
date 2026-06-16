@@ -45,7 +45,10 @@ function AccountPrivilegesSection({ role }: AccountPrivilegesSectionProps) {
   const visibleRows = accountPrivilegeRows.filter((row) => !row.adminOnly || isAdmin);
 
   return (
-    <section className={styles.accountSection} aria-labelledby="account-privileges-title">
+    <section
+      className={`${styles.accountSection} ${styles.accountPrivilegesSection}`}
+      aria-labelledby="account-privileges-title"
+    >
       <div className={styles.accountSectionHeader}>
         <span className={styles.accountSectionIcon}>
           <ShieldCheck size={20} aria-hidden="true" />

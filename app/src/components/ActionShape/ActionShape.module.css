@@ -112,8 +112,8 @@
 }
 
 .nonCombat {
-  --shape-fill: #5c8dff;
-  --shape-stroke: #3d6fdd;
+  --shape-fill: var(--theme-non-combat-action-background);
+  --shape-stroke: var(--theme-non-combat-action-border);
 }
 
 .multiCountLabel {

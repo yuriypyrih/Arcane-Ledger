@@ -253,8 +253,9 @@
 .referenceWarningCard {
   margin: 0;
   border-radius: var(--radius-control-lg);
-  background: rgba(169, 56, 32, 0.12);
-  color: #8b2d1f;
+  background: var(--theme-warning-card-background);
+  box-shadow: inset 0 0 0 1px var(--theme-warning-card-border);
+  color: var(--theme-warning-card-text);
   padding: 0.9rem 1rem;
 }
 

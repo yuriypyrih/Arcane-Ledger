@@ -39,9 +39,9 @@
 .spellSlotSquare {
   block-size: 9px;
   inline-size: 9px;
-  border: 1px solid #2f78ff;
+  border: 1px solid var(--theme-non-combat-action-border);
   border-radius: 2px;
-  background: #2f78ff;
+  background: var(--theme-non-combat-action-background);
 }
 
 .alwaysPreparedPill,
@@ -60,8 +60,8 @@
 }
 
 .alwaysPreparedPill {
-  background: rgba(222, 102, 158, 0.16);
-  color: #c04f86;
+  background: var(--theme-always-prepared-tag-background);
+  color: var(--theme-always-prepared-tag-color);
 }
 
 .ritualPill {
