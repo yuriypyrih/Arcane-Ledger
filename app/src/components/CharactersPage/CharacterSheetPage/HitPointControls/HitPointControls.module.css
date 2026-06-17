@@ -17,9 +17,21 @@
 }
 
 .summaryCopy {
-  display: flex;
-  flex-direction: column;
+  display: grid;
   gap: 0.2rem;
+}
+
+.summaryTitle {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: 0.78rem;
+  letter-spacing: 0.07em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+:global(html[data-theme="dark"]) .summaryTitle {
+  color: var(--theme-text-secondary);
 }
 
 .currentRow {
@@ -29,7 +41,7 @@
   flex-wrap: wrap;
 }
 
-.summary strong {
+.hitPointValue {
   display: inline-flex;
   align-items: center;
   color: var(--theme-text-primary);
@@ -37,13 +49,13 @@
   line-height: 1;
 }
 
-.summary span {
+.statusText {
   color: var(--color-ink-soft);
   font-size: 0.85rem;
   line-height: 1;
 }
 
-:global(html[data-theme="dark"]) .summary span {
+:global(html[data-theme="dark"]) .statusText {
   color: var(--theme-text-secondary);
 }
 

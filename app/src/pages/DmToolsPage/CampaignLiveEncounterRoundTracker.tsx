@@ -16,9 +16,15 @@ function normalizeRoundNumber(value: number) {
 }
 
 function getParticipantName(participant: CampaignLiveEncounterTrackerParticipantRecord) {
-  return participant.kind === "party-member"
-    ? (participant.statBlock?.name ?? participant.summary.name)
-    : participant.creature.name;
+  if (participant.kind === "party-member") {
+    return participant.statBlock?.name ?? participant.summary.name;
+  }
+
+  if (participant.kind === "party-companion") {
+    return participant.companion.name;
+  }
+
+  return participant.creature.name;
 }
 
 function CampaignLiveEncounterRoundTracker({

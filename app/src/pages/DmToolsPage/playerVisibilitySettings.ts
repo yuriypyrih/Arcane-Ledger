@@ -3,6 +3,7 @@ import type { PlayerVisibilitySettings } from "../../api/campaigns";
 export const DEFAULT_PLAYER_VISIBILITY_SETTINGS = {
   showVitalityStatus: true,
   showHpBar: false,
+  showDeathSaves: false,
   showMonsterType: false,
   showBaseStatBlockDescription: false,
   showDmDescription: false,
@@ -31,7 +32,8 @@ export const PLAYER_VISIBILITY_SETTING_GROUPS: PlayerVisibilitySettingGroup[] = 
     label: "Vitality",
     settings: [
       { key: "showVitalityStatus", label: "Show vitality status" },
-      { key: "showHpBar", label: "Show HP bar" }
+      { key: "showHpBar", label: "Show HP bar" },
+      { key: "showDeathSaves", label: "Show Death Saves" }
     ]
   },
   {

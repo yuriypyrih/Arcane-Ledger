@@ -24,6 +24,7 @@ export type CharacterEncounterStatBlockRecord = {
   temporaryHitPointsSource?: string;
   magicTemporaryHitPoints: number;
   magicTemporaryHitPointsSource?: string;
+  deathSaves?: CharacterCompanionDeathSavesRecord;
   immunities: string[];
   conditionImmunities?: string[];
   resistances: string[];
@@ -43,6 +44,27 @@ export type CharacterEncounterStatBlockRecord = {
   sourceRemoteRevision?: number;
 };
 
+export type CharacterCompanionDeathSavesRecord = {
+  successes: number;
+  failures: number;
+  resolution?: "instant-death";
+};
+
+export type CharacterEncounterCompanionSummaryRecord = {
+  id: string;
+  name: string;
+  description: string;
+  type: string;
+  separateInitiative: boolean;
+  maxHitPoints: number;
+  currentHitPoints: number;
+  temporaryHitPoints: number;
+  temporaryHitPointsSource?: string;
+  deathSaves?: CharacterCompanionDeathSavesRecord;
+  inheritedCreatureEntry?: Record<string, unknown>;
+  inheritedCreatureEntryModified?: boolean;
+};
+
 export type CharacterSheetSummaryRecord = {
   localId?: number;
   name: string;
@@ -53,6 +75,7 @@ export type CharacterSheetSummaryRecord = {
   background: string;
   sheetSizeBytes?: number;
   encounterStatBlock?: CharacterEncounterStatBlockRecord;
+  companions?: CharacterEncounterCompanionSummaryRecord[];
 };
 
 export type CharacterAvatarRecord = {
@@ -176,6 +199,128 @@ function validateEncounterStatBlockSkillRecord(value: unknown) {
   );
 }
 
+function validateEncounterCompanionMonsterRecord(value: unknown) {
+  if (value === undefined || value === null) {
+    return true;
+  }
+
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return false;
+  }
+
+  const source = value as Record<string, unknown>;
+
+  return (
+    typeof source.key === "string" &&
+    source.key.trim().length > 0 &&
+    source.key.length <= encounterStatBlockStringMaxLength &&
+    typeof source.name === "string" &&
+    source.name.trim().length > 0 &&
+    source.name.length <= encounterStatBlockStringMaxLength
+  );
+}
+
+const characterCompanionDeathSavesSchema = new Schema<CharacterCompanionDeathSavesRecord>(
+  {
+    successes: {
+      type: Number,
+      required: true,
+      min: 0,
+      max: 3
+    },
+    failures: {
+      type: Number,
+      required: true,
+      min: 0,
+      max: 3
+    },
+    resolution: {
+      type: String,
+      enum: ["instant-death"]
+    }
+  },
+  {
+    _id: false
+  }
+);
+
+const characterEncounterCompanionSummarySchema =
+  new Schema<CharacterEncounterCompanionSummaryRecord>(
+    {
+      id: {
+        type: String,
+        required: true,
+        trim: true,
+        maxlength: encounterStatBlockStringMaxLength
+      },
+      name: {
+        type: String,
+        required: true,
+        trim: true,
+        maxlength: encounterStatBlockStringMaxLength
+      },
+      description: {
+        type: String,
+        default: "",
+        trim: true,
+        maxlength: 10000
+      },
+      type: {
+        type: String,
+        default: "",
+        trim: true,
+        maxlength: encounterStatBlockStringMaxLength
+      },
+      separateInitiative: {
+        type: Boolean,
+        default: false,
+        required: true
+      },
+      maxHitPoints: {
+        type: Number,
+        required: true,
+        min: 1,
+        max: 10000
+      },
+      currentHitPoints: {
+        type: Number,
+        required: true,
+        min: 0,
+        max: 10000
+      },
+      temporaryHitPoints: {
+        type: Number,
+        required: true,
+        min: 0,
+        max: 10000
+      },
+      temporaryHitPointsSource: {
+        type: String,
+        trim: true,
+        maxlength: encounterStatBlockStringMaxLength
+      },
+      deathSaves: {
+        type: characterCompanionDeathSavesSchema,
+        default: undefined
+      },
+      inheritedCreatureEntry: {
+        type: Schema.Types.Mixed,
+        default: undefined,
+        validate: {
+          validator: validateEncounterCompanionMonsterRecord,
+          message: "Encounter companion stat block is invalid."
+        }
+      },
+      inheritedCreatureEntryModified: {
+        type: Boolean
+      }
+    },
+    {
+      _id: false,
+      minimize: false
+    }
+  );
+
 export const characterEncounterStatBlockSchema = new Schema<CharacterEncounterStatBlockRecord>(
   {
     version: {
@@ -276,6 +421,10 @@ export const characterEncounterStatBlockSchema = new Schema<CharacterEncounterSt
       type: String,
       trim: true,
       maxlength: encounterStatBlockStringMaxLength
+    },
+    deathSaves: {
+      type: characterCompanionDeathSavesSchema,
+      default: undefined
     },
     immunities: createEncounterStatBlockLabelListField(),
     conditionImmunities: createEncounterStatBlockLabelListField(),
@@ -394,6 +543,16 @@ const characterSheetSummarySchema = new Schema<CharacterSheetSummaryRecord>(
     encounterStatBlock: {
       type: characterEncounterStatBlockSchema,
       default: undefined
+    },
+    companions: {
+      type: [characterEncounterCompanionSummarySchema],
+      default: undefined,
+      validate: {
+        validator(values: unknown[]) {
+          return !Array.isArray(values) || values.length <= encounterStatBlockListMaxLength;
+        },
+        message: "Encounter companion summaries are too large."
+      }
     }
   },
   {

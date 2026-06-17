@@ -101,6 +101,7 @@ type CreatureEditorModalProps = {
   onClose: () => void;
   onRemoveCreature?: (creatureId: string) => void | Promise<void>;
   onSaveCreature: (creature: CharacterCompanion) => void | Promise<void>;
+  showSeparateInitiativeToggle?: boolean;
   showDurationFields?: boolean;
 };
 
@@ -176,6 +177,7 @@ function CreatureEditorModal({
   onClose,
   onRemoveCreature,
   onSaveCreature,
+  showSeparateInitiativeToggle = false,
   showDurationFields = true
 }: CreatureEditorModalProps) {
   const isOnline = useOnlineStatus();
@@ -529,6 +531,8 @@ function CreatureEditorModal({
       name,
       description,
       type,
+      source: draft.source || creature?.source || "Manual",
+      separateInitiative: showSeparateInitiativeToggle ? draft.separateInitiative : false,
       maxHitPoints: resolvedMaxHitPoints,
       currentHitPoints: resolvedCurrentHitPoints,
       temporaryHitPoints: creature?.temporaryHitPoints ?? 0,
@@ -757,6 +761,23 @@ function CreatureEditorModal({
                 placeholder="20"
               />
             </label>
+
+            {showSeparateInitiativeToggle ? (
+              <label className={`${shared.field} ${styles.initiativeToggleField}`}>
+                <span className={styles.initiativeToggleLabel}>
+                  <input
+                    type="checkbox"
+                    checked={draft.separateInitiative}
+                    disabled={isSaving || isDeleting}
+                    onChange={(event) =>
+                      handleDraftChange("separateInitiative", event.target.checked)
+                    }
+                  />
+                  <span>Separate initiative</span>
+                </span>
+              </label>
+            ) : null}
+
             {showDurationFields ? (
               <ManualStatusDurationFields
                 durationType={draft.durationType}

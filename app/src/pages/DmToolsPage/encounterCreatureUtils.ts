@@ -10,8 +10,14 @@ export function normalizeEncounterCreatureRecord(
   const {
     inheritedCreatureEntry: _unusedInheritedCreatureEntry,
     inheritedCreatureEntryModified: _unusedInheritedCreatureEntryModified,
-    ...baseCreature
+    ...creatureWithoutInheritedEntry
   } = creature;
+  const {
+    separateInitiative: _unusedSeparateInitiative,
+    source: _unusedSource,
+    ...baseCreature
+  } = creatureWithoutInheritedEntry as typeof creatureWithoutInheritedEntry &
+    Partial<Pick<CharacterCompanion, "separateInitiative" | "source">>;
 
   return {
     ...baseCreature,

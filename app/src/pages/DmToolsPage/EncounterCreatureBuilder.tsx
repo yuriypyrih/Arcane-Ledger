@@ -5,7 +5,10 @@ import ActionButton from "../../components/ActionButton";
 import CreatureCard from "../../components/CharactersPage/CharacterSheetPage/CompanionsSection/CreatureCard";
 import CreatureDrawer from "../../components/CharactersPage/CharacterSheetPage/CompanionsSection/CreatureDrawer";
 import CreatureEditorModal from "../../components/CharactersPage/CharacterSheetPage/CompanionsSection/CreatureEditorModal";
-import { getCompanionSourceLabel } from "../../components/CharactersPage/CharacterSheetPage/CompanionsSection/companionUtils";
+import {
+  getCompanionSourceLabel,
+  getInheritedEntryLabel
+} from "../../components/CharactersPage/CharacterSheetPage/CompanionsSection/companionUtils";
 import shared from "../../components/CharactersPage/CharacterSheetPage/CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import { DestructiveConfirmationModal } from "../../components/Overlay";
 import { useBodyScrollLock } from "../../lib/useBodyScrollLock";
@@ -54,12 +57,22 @@ type EncounterCreatureBuilderProps = {
   toolLabel: string;
 };
 
-function getDeleteCreatureMessage(creature: CharacterCompanion): ReactNode {
+function getDeleteCreatureMessage(creature: Pick<CharacterCompanion, "name">): ReactNode {
   return (
     <>
       Remove <strong>{creature.name}</strong> from this encounter.
     </>
   );
+}
+
+function toEncounterCreatureCompanion(
+  creature: EncounterTemplateCreatureRecord
+): CharacterCompanion {
+  return {
+    ...creature,
+    source: getInheritedEntryLabel(creature),
+    separateInitiative: false
+  };
 }
 
 function EncounterCreatureBuilder({
@@ -90,20 +103,24 @@ function EncounterCreatureBuilder({
   const [editingCreatureId, setEditingCreatureId] = useState<string | null>(null);
   const [selectedCreatureId, setSelectedCreatureId] = useState<string | null>(null);
   const [pendingDeleteCreature, setPendingDeleteCreature] =
-    useState<EncounterTemplateCreatureRecord | null>(null);
+    useState<CharacterCompanion | null>(null);
   const [isDeletingCreature, setIsDeletingCreature] = useState(false);
   const [duplicatingCreatureId, setDuplicatingCreatureId] = useState<string | null>(null);
   const creatures = useMemo(
     () => resource?.creatures.map(normalizeEncounterCreatureRecord) ?? [],
     [resource?.creatures]
   );
+  const companionCreatures = useMemo(
+    () => creatures.map(toEncounterCreatureCompanion),
+    [creatures]
+  );
   const editorCreature =
     editingCreatureId && resource
-      ? (creatures.find((creature) => creature.id === editingCreatureId) ?? null)
+      ? (companionCreatures.find((creature) => creature.id === editingCreatureId) ?? null)
       : null;
   const selectedCreature =
     selectedCreatureId && resource
-      ? (creatures.find((creature) => creature.id === selectedCreatureId) ?? null)
+      ? (companionCreatures.find((creature) => creature.id === selectedCreatureId) ?? null)
       : null;
   const isCreatureEditorOpen = isCreatingCreature || editorCreature !== null;
   const isAtCreatureLimit = resource ? creatures.length >= resource.maxCreatures : false;
@@ -155,7 +172,7 @@ function EncounterCreatureBuilder({
     setActionError(null);
   }
 
-  async function handleDuplicateCreature(creature: EncounterTemplateCreatureRecord) {
+  async function handleDuplicateCreature(creature: CharacterCompanion) {
     if (!resource || duplicatingCreatureId) {
       return;
     }
@@ -169,7 +186,7 @@ function EncounterCreatureBuilder({
     setDuplicatingCreatureId(creature.id);
 
     try {
-      await onSaveCreature(duplicateEncounterCreature(creature));
+      await onSaveCreature(duplicateEncounterCreature(toEncounterCreatureRecord(creature)));
     } catch (duplicateError) {
       setActionError(getDmToolsApiErrorMessage(duplicateError, "Unable to duplicate creature."));
     } finally {
@@ -274,7 +291,7 @@ function EncounterCreatureBuilder({
 
               {creatures.length > 0 ? (
                 <div className={styles.creatureList}>
-                  {creatures.map((creature) => (
+                  {companionCreatures.map((creature) => (
                     <CreatureCard
                       key={creature.id}
                       creature={creature}
@@ -319,7 +336,7 @@ function EncounterCreatureBuilder({
               <CreatureEditorModal
                 allowPrimalBeasts={false}
                 creature={editorCreature}
-                creatures={creatures}
+                creatures={companionCreatures}
                 getErrorMessage={getDmToolsApiErrorMessage}
                 labels={{
                   browseButton: "Browse Monsters",

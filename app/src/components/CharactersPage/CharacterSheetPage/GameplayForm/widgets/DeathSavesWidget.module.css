@@ -21,14 +21,68 @@
   background: rgba(75, 47, 29, 0.1);
 }
 
+:global(html[data-theme="dark"]) .trigger {
+  border-color: rgba(221, 230, 242, 0.24);
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-primary);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+:global(html[data-theme="dark"]) .trigger:not(:disabled):hover {
+  border-color: rgba(221, 230, 242, 0.36);
+  background: var(--theme-control-subtle-hover);
+}
+
 .trigger:focus-visible {
   outline: 2px solid rgba(179, 92, 28, 0.34);
   outline-offset: 2px;
 }
 
+:global(html[data-theme="dark"]) .trigger:focus-visible {
+  outline-color: var(--theme-focus-ring);
+}
+
 .trigger:disabled {
   cursor: default;
   opacity: 1;
+}
+
+.triggerReadOnly {
+  cursor: default;
+  pointer-events: none;
+  transition: none;
+}
+
+.triggerReadOnly:hover,
+.triggerReadOnly:focus-visible {
+  border-color: rgba(75, 47, 29, 0.14);
+  background: rgba(75, 47, 29, 0.06);
+}
+
+:global(html[data-theme="dark"]) .triggerReadOnly:hover,
+:global(html[data-theme="dark"]) .triggerReadOnly:focus-visible {
+  border-color: rgba(221, 230, 242, 0.24);
+  background: var(--theme-control-subtle);
+}
+
+.triggerInline {
+  min-height: 0;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  color: inherit;
+  padding: 0;
+}
+
+.triggerInline:hover,
+.triggerInline:focus-visible,
+:global(html[data-theme="dark"]) .triggerInline,
+:global(html[data-theme="dark"]) .triggerInline:hover,
+:global(html[data-theme="dark"]) .triggerInline:focus-visible {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  color: inherit;
 }
 
 .triggerLabel {
@@ -124,6 +178,12 @@
   background: rgba(255, 255, 255, 0.48);
 }
 
+:global(html[data-theme="dark"]) .modalTracker {
+  border-color: var(--theme-border-medium);
+  background: var(--theme-surface-panel);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
 .trackRow {
   display: flex;
   align-items: center;
@@ -137,6 +197,10 @@
   font-weight: 800;
   letter-spacing: 0.07em;
   text-transform: uppercase;
+}
+
+:global(html[data-theme="dark"]) .trackRow span:first-child {
+  color: var(--theme-text-secondary);
 }
 
 .footer {

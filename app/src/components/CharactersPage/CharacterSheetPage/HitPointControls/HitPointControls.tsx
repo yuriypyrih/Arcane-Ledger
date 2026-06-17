@@ -81,8 +81,9 @@ function HitPointControls({
         <div className={styles.summary}>
           <div className={styles.valueRow}>
             <div className={styles.summaryCopy}>
+              <p className={styles.summaryTitle}>Hit Points</p>
               <div className={styles.currentRow}>
-                <strong>
+                <strong className={styles.hitPointValue}>
                   {normalizedCurrentHitPoints}/{normalizedMaxHitPoints} HP
                 </strong>
                 <TemporaryHitPoints
@@ -95,7 +96,7 @@ function HitPointControls({
                 {extraTemporaryHitPointControl}
               </div>
 
-              {statusText ? <span>{statusText}</span> : null}
+              {statusText ? <span className={styles.statusText}>{statusText}</span> : null}
             </div>
           </div>
         </div>

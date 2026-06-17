@@ -10,6 +10,8 @@ import type {
 import {
   CharacterSheet,
   type CharacterAvatarRecord,
+  type CharacterCompanionDeathSavesRecord,
+  type CharacterEncounterCompanionSummaryRecord,
   type CharacterBackgroundTextureRecord,
   type CharacterEncounterStatBlockRecord,
   type CharacterSheetDocument,
@@ -440,6 +442,7 @@ function readOptionalEncounterStatBlock(
     value.magicTemporaryHitPointsSource,
     "magicTemporaryHitPointsSource"
   );
+  const deathSaves = readEncounterCompanionDeathSaves(value.deathSaves, "deathSaves");
   const sourceLocalRevision = readEncounterOptionalPositiveInteger(
     value.sourceLocalRevision,
     "sourceLocalRevision"
@@ -477,6 +480,7 @@ function readOptionalEncounterStatBlock(
       10000
     ),
     ...(magicTemporaryHitPointsSource ? { magicTemporaryHitPointsSource } : {}),
+    ...(deathSaves ? { deathSaves } : {}),
     immunities: readEncounterLabelList(value.immunities, "immunities"),
     conditionImmunities: readEncounterOptionalLabelList(
       value.conditionImmunities,
@@ -497,6 +501,147 @@ function readOptionalEncounterStatBlock(
   };
 }
 
+function readEncounterOptionalText(value: unknown, field: string, maxLength = 10000) {
+  if (value === undefined || value === null) {
+    return "";
+  }
+
+  if (typeof value !== "string") {
+    throw createEncounterStatBlockError(`Encounter ${field} is invalid.`);
+  }
+
+  const trimmedValue = value.trim();
+
+  if (trimmedValue.length > maxLength) {
+    throw createEncounterStatBlockError(`Encounter ${field} is invalid.`);
+  }
+
+  return trimmedValue;
+}
+
+function readEncounterCompanionDeathSaves(
+  value: unknown,
+  field: string
+): CharacterCompanionDeathSavesRecord | undefined {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+
+  if (!isObjectRecord(value)) {
+    throw createEncounterStatBlockError(`Encounter ${field} is invalid.`);
+  }
+
+  const resolution = value.resolution === "instant-death" ? "instant-death" : undefined;
+
+  return {
+    successes: readEncounterInteger(value.successes, `${field}.successes`, 0, 3),
+    failures: readEncounterInteger(value.failures, `${field}.failures`, 0, 3),
+    ...(resolution ? { resolution } : {})
+  };
+}
+
+function readEncounterCompanionMonsterRecord(
+  value: unknown,
+  field: string
+): Record<string, unknown> | undefined {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+
+  if (!isObjectRecord(value)) {
+    throw createEncounterStatBlockError(`Encounter companion ${field} is invalid.`);
+  }
+
+  return {
+    ...value,
+    key: readEncounterRequiredString(value.key, `${field}.key`),
+    name: readEncounterRequiredString(value.name, `${field}.name`)
+  };
+}
+
+function readEncounterCompanionSummary(
+  value: unknown,
+  index: number
+): CharacterEncounterCompanionSummaryRecord {
+  if (!isObjectRecord(value)) {
+    throw createEncounterStatBlockError("Encounter companion summary is invalid.");
+  }
+
+  const maxHitPoints = readEncounterInteger(
+    value.maxHitPoints,
+    `companions.${index}.maxHitPoints`,
+    1,
+    10000
+  );
+  const currentHitPoints = readEncounterInteger(
+    value.currentHitPoints,
+    `companions.${index}.currentHitPoints`,
+    0,
+    10000
+  );
+  const temporaryHitPointsSource = readEncounterOptionalString(
+    value.temporaryHitPointsSource,
+    `companions.${index}.temporaryHitPointsSource`
+  );
+  const deathSaves = readEncounterCompanionDeathSaves(
+    value.deathSaves,
+    `companions.${index}.deathSaves`
+  );
+  const inheritedCreatureEntry = readEncounterCompanionMonsterRecord(
+    value.inheritedCreatureEntry,
+    `companions.${index}.inheritedCreatureEntry`
+  );
+
+  return {
+    id: readEncounterRequiredString(value.id, `companions.${index}.id`),
+    name: readEncounterRequiredString(value.name, `companions.${index}.name`),
+    description: readEncounterOptionalText(value.description, `companions.${index}.description`),
+    type: readEncounterOptionalText(
+      value.type,
+      `companions.${index}.type`,
+      encounterStatBlockStringMaxLength
+    ),
+    separateInitiative: value.separateInitiative === true,
+    maxHitPoints,
+    currentHitPoints: Math.min(maxHitPoints, currentHitPoints),
+    temporaryHitPoints: readEncounterInteger(
+      value.temporaryHitPoints,
+      `companions.${index}.temporaryHitPoints`,
+      0,
+      10000
+    ),
+    ...(temporaryHitPointsSource ? { temporaryHitPointsSource } : {}),
+    ...(deathSaves ? { deathSaves } : {}),
+    ...(inheritedCreatureEntry ? { inheritedCreatureEntry } : {}),
+    ...(inheritedCreatureEntry && value.inheritedCreatureEntryModified === true
+      ? { inheritedCreatureEntryModified: true }
+      : {})
+  };
+}
+
+function readOptionalEncounterCompanionSummaries(
+  value: unknown
+): CharacterEncounterCompanionSummaryRecord[] | undefined {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+
+  if (!Array.isArray(value) || value.length > encounterStatBlockListMaxLength) {
+    throw createEncounterStatBlockError("Encounter companion summaries are invalid.");
+  }
+
+  const seenCompanionIds = new Set<string>();
+
+  return value.map(readEncounterCompanionSummary).filter((companion) => {
+    if (seenCompanionIds.has(companion.id)) {
+      throw createEncounterStatBlockError("Encounter companion summaries contain duplicate ids.");
+    }
+
+    seenCompanionIds.add(companion.id);
+    return true;
+  });
+}
+
 function buildCharacterSheetSummary(sheet: Record<string, unknown>) {
   const identity = getSheetGroup(sheet, "identity");
   const origin = getSheetGroup(sheet, "origin");
@@ -504,6 +649,7 @@ function buildCharacterSheetSummary(sheet: Record<string, unknown>) {
   const summary = getSheetGroup(sheet, "summary");
   const subclassId = readString(summary.subclassId) ?? readString(progression.subclassId);
   const encounterStatBlock = readOptionalEncounterStatBlock(summary.encounterStatBlock);
+  const companions = readOptionalEncounterCompanionSummaries(summary.companions);
 
   return {
     localId:
@@ -525,7 +671,8 @@ function buildCharacterSheetSummary(sheet: Record<string, unknown>) {
     level: readSheetLevel(summary.level ?? progression.level),
     background: readString(summary.background) ?? readString(origin.background) ?? "Unknown",
     sheetSizeBytes: readPositiveInteger(summary.sheetSizeBytes) ?? undefined,
-    ...(encounterStatBlock ? { encounterStatBlock } : {})
+    ...(encounterStatBlock ? { encounterStatBlock } : {}),
+    ...(companions ? { companions } : {})
   };
 }
 

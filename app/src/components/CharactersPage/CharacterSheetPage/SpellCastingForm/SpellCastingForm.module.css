@@ -167,7 +167,7 @@
 }
 
 .selectionCounterIncomplete {
-  color: #a63729;
+  color: var(--theme-state-danger);
 }
 
 .spellManagementModalPanelFullHeight {

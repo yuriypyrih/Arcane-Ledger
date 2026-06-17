@@ -3,19 +3,25 @@ import { Fragment, type CSSProperties } from "react";
 import { ArrowRightFromLine, ChessRook, GripVertical, Shield, Undo2 } from "lucide-react";
 import { CSS } from "@dnd-kit/utilities";
 import { useSortable } from "@dnd-kit/sortable";
+import CollaborationIcon from "../../assets/svg/collaboration.svg";
 import EnemyIcon from "../../assets/svg/enemy.svg";
 import { DefaultCharacterPortraitIcon } from "../../components/CharactersPage/CharacterPortrait";
 import HitPointBar from "../../components/CharactersPage/CharacterSheetPage/HitPointControls/HitPointBar";
+import { DeathSavesReadOnlyIndicator } from "../../components/CharactersPage/CharacterSheetPage/GameplayForm/widgets/DeathSavesIndicator";
 import SheetSurface from "../../components/CharactersPage/CharacterSheetPage/SheetSurface";
 import { getCompanionDisplayType } from "../../components/CharactersPage/CharacterSheetPage/CompanionsSection/companionUtils";
 import type {
   CampaignLiveEncounterTrackerCreatureRecord,
   CampaignLiveEncounterTrackerParticipantRecord,
+  CampaignLiveEncounterTrackerPartyCompanionRecord,
   CampaignLiveEncounterTrackerPartyMemberRecord
 } from "../../api/campaigns";
+import type { PortableEncounterCompanionSummary } from "../../types";
 import {
   getDeathSaveStatusLabel,
-  normalizeDeathSaveTrack
+  isDeathSaveTrackResolved,
+  normalizeDeathSaveTrack,
+  type DeathSaveTrackState
 } from "../CharactersPage/deathSaves";
 import type { LiveEncounterTrackerListKey } from "./liveEncounterTrackerUtils";
 import styles from "./CampaignLiveEncounterTrackerParticipantCard.module.css";
@@ -48,6 +54,8 @@ type ParticipantCardFrameProps = CampaignLiveEncounterTrackerParticipantCardProp
 type ParticipantCardViewModel = {
   armorClass: number | null;
   currentHitPoints: number | null;
+  deathSaves: DeathSaveTrackState | null;
+  isMakingDeathSaves: boolean;
   magicTemporaryHitPoints: number;
   maxHitPoints: number | null;
   temporaryHitPoints: number;
@@ -63,6 +71,10 @@ type CreaturePortraitStyle = CSSProperties & {
 
 const creaturePortraitStyle: CreaturePortraitStyle = {
   "--live-tracker-creature-icon-image": `url("${EnemyIcon}")`
+};
+
+const companionPortraitStyle: CreaturePortraitStyle = {
+  "--live-tracker-creature-icon-image": `url("${CollaborationIcon}")`
 };
 
 const emptyDeathSaveTrack = {
@@ -89,10 +101,13 @@ function formatNumber(value: number | null | undefined) {
 function getPartyMemberTypeLabel(participant: CampaignLiveEncounterTrackerPartyMemberRecord) {
   const statBlock = participant.statBlock;
 
-  return statBlock
-    ? statBlock.typeLabel ||
-        [statBlock.species, statBlock.className].filter(Boolean).join(" ")
-    : [participant.summary.species, participant.summary.className].filter(Boolean).join(" ");
+  if (statBlock) {
+    const computedLabel = [statBlock.species, statBlock.className].filter(Boolean).join(" ");
+
+    return computedLabel || statBlock.typeLabel || "";
+  }
+
+  return [participant.summary.species, participant.summary.className].filter(Boolean).join(" ");
 }
 
 function getPartyMemberViewModel(
@@ -104,6 +119,8 @@ function getPartyMemberViewModel(
     return {
       armorClass: null,
       currentHitPoints: null,
+      deathSaves: null,
+      isMakingDeathSaves: false,
       magicTemporaryHitPoints: 0,
       maxHitPoints: null,
       temporaryHitPoints: 0,
@@ -117,6 +134,10 @@ function getPartyMemberViewModel(
   return {
     armorClass: normalizeDisplayNumber(statBlock.armorClass),
     currentHitPoints: normalizeDisplayNumber(statBlock.currentHitPoints),
+    deathSaves: normalizeDeathSaveTrack(statBlock.deathSaves),
+    isMakingDeathSaves:
+      statBlock.currentHitPoints <= 0 &&
+      !isDeathSaveTrackResolved(normalizeDeathSaveTrack(statBlock.deathSaves)),
     magicTemporaryHitPoints: Math.max(0, statBlock.magicTemporaryHitPoints),
     maxHitPoints: normalizePositiveDisplayNumber(statBlock.hitPoints),
     temporaryHitPoints: Math.max(0, statBlock.temporaryHitPoints),
@@ -125,19 +146,57 @@ function getPartyMemberViewModel(
     vitalityLabel: getDeathSaveStatusLabel(
       statBlock.currentHitPoints,
       Math.max(1, statBlock.hitPoints),
-      emptyDeathSaveTrack
+      normalizeDeathSaveTrack(statBlock.deathSaves)
     )
   };
 }
 
+function getCompanionViewModel(
+  companion: PortableEncounterCompanionSummary
+): ParticipantCardViewModel {
+  return {
+    armorClass: normalizeDisplayNumber(companion.inheritedCreatureEntry?.armor_class),
+    currentHitPoints: normalizeDisplayNumber(companion.currentHitPoints),
+    deathSaves: normalizeDeathSaveTrack(companion.deathSaves),
+    isMakingDeathSaves:
+      companion.currentHitPoints <= 0 &&
+      !isDeathSaveTrackResolved(normalizeDeathSaveTrack(companion.deathSaves)),
+    magicTemporaryHitPoints: 0,
+    maxHitPoints: normalizePositiveDisplayNumber(companion.maxHitPoints),
+    temporaryHitPoints: Math.max(0, normalizeDisplayNumber(companion.temporaryHitPoints) ?? 0),
+    title: companion.name,
+    typeLabel: getCompanionDisplayType(companion),
+    vitalityLabel: getDeathSaveStatusLabel(
+      companion.currentHitPoints,
+      Math.max(1, companion.maxHitPoints),
+      normalizeDeathSaveTrack(companion.deathSaves)
+    )
+  };
+}
+
+function getPartyCompanionViewModel(
+  participant: CampaignLiveEncounterTrackerPartyCompanionRecord
+): ParticipantCardViewModel {
+  return getCompanionViewModel(participant.companion);
+}
+
 function getCreatureViewModel(
-  participant: CampaignLiveEncounterTrackerCreatureRecord
+  participant: CampaignLiveEncounterTrackerCreatureRecord,
+  options: { readOnly: boolean }
 ): ParticipantCardViewModel {
   const creature = participant.creature;
+  const deathSaves = normalizeDeathSaveTrack(creature.deathSaves);
 
   return {
     armorClass: normalizeDisplayNumber(creature.inheritedCreatureEntry?.armor_class),
     currentHitPoints: normalizeDisplayNumber(creature.currentHitPoints),
+    deathSaves,
+    isMakingDeathSaves:
+      creature.isMakingDeathSaves === true ||
+      (!options.readOnly &&
+        typeof creature.currentHitPoints === "number" &&
+        creature.currentHitPoints <= 0 &&
+        !isDeathSaveTrackResolved(deathSaves)),
     magicTemporaryHitPoints: 0,
     maxHitPoints: normalizePositiveDisplayNumber(creature.maxHitPoints),
     temporaryHitPoints: Math.max(0, normalizeDisplayNumber(creature.temporaryHitPoints) ?? 0),
@@ -165,11 +224,18 @@ function getCreatureVitalityLabel(
 }
 
 function getParticipantViewModel(
-  participant: CampaignLiveEncounterTrackerParticipantRecord
+  participant: CampaignLiveEncounterTrackerParticipantRecord,
+  options: { readOnly: boolean }
 ): ParticipantCardViewModel {
-  return participant.kind === "party-member"
-    ? getPartyMemberViewModel(participant)
-    : getCreatureViewModel(participant);
+  if (participant.kind === "party-member") {
+    return getPartyMemberViewModel(participant);
+  }
+
+  if (participant.kind === "party-companion") {
+    return getPartyCompanionViewModel(participant);
+  }
+
+  return getCreatureViewModel(participant, options);
 }
 
 function renderParticipantPortrait(participant: CampaignLiveEncounterTrackerParticipantRecord) {
@@ -179,6 +245,10 @@ function renderParticipantPortrait(participant: CampaignLiveEncounterTrackerPart
     ) : (
       <DefaultCharacterPortraitIcon className={styles.portraitDefaultIcon} />
     );
+  }
+
+  if (participant.kind === "party-companion") {
+    return <span className={styles.creaturePortraitIcon} style={companionPortraitStyle} />;
   }
 
   const monsterImage = participant.creature.inheritedCreatureEntry
@@ -200,7 +270,13 @@ function getLiveEncounterMonsterImageUrl(
   return typeof imageUrl === "string" && imageUrl.trim().length > 0 ? imageUrl.trim() : null;
 }
 
-function ParticipantVitalsRow({ viewModel }: { viewModel: ParticipantCardViewModel }) {
+function ParticipantVitalsRow({
+  showDeathSaves = false,
+  viewModel
+}: {
+  showDeathSaves?: boolean;
+  viewModel: ParticipantCardViewModel;
+}) {
   if (viewModel.unavailableLabel) {
     return (
       <div className={styles.vitalsRow}>
@@ -246,7 +322,7 @@ function ParticipantVitalsRow({ viewModel }: { viewModel: ParticipantCardViewMod
     vitals.push(
       <span key="magic-temporary-hit-points" className={styles.magicTempHitPointText}>
         <ChessRook size={14} aria-hidden="true" />
-        Magic Temp {viewModel.magicTemporaryHitPoints}
+        Magic {viewModel.magicTemporaryHitPoints}
       </span>
     );
   }
@@ -256,6 +332,18 @@ function ParticipantVitalsRow({ viewModel }: { viewModel: ParticipantCardViewMod
       <span key="vitality" className={styles.status}>
         {viewModel.vitalityLabel}
       </span>
+    );
+  }
+
+  if (showDeathSaves && viewModel.isMakingDeathSaves) {
+    vitals.push(
+      <DeathSavesReadOnlyIndicator
+        key="death-saves"
+        className={styles.deathSavesIndicator}
+        deathSaves={viewModel.deathSaves ?? emptyDeathSaveTrack}
+        showLabel={false}
+        variant="inline"
+      />
     );
   }
 
@@ -289,6 +377,83 @@ function ParticipantHitPointBar({ viewModel }: { viewModel: ParticipantCardViewM
         temporaryHitPoints={viewModel.temporaryHitPoints}
         magicTemporaryHitPoints={viewModel.magicTemporaryHitPoints}
       />
+    </div>
+  );
+}
+
+function createNestedCompanionParticipant(
+  participant: CampaignLiveEncounterTrackerPartyMemberRecord,
+  companion: PortableEncounterCompanionSummary
+): CampaignLiveEncounterTrackerPartyCompanionRecord {
+  return {
+    participantId: `companion:${participant.characterId}:${companion.id}`,
+    kind: "party-companion",
+    characterId: participant.characterId,
+    companionId: companion.id,
+    ownerId: participant.ownerId,
+    user: participant.user,
+    summary: participant.summary,
+    companion,
+    avatar: participant.avatar,
+    updatedAt: participant.updatedAt
+  };
+}
+
+function NestedCompanionRows({
+  isInInitiative,
+  onInspect,
+  participant,
+  readOnly
+}: {
+  isInInitiative: boolean;
+  onInspect: (participant: CampaignLiveEncounterTrackerParticipantRecord) => void;
+  participant: CampaignLiveEncounterTrackerPartyMemberRecord;
+  readOnly: boolean;
+}) {
+  const companions = participant.companions ?? [];
+
+  if (companions.length === 0) {
+    return null;
+  }
+
+  return (
+    <div
+      className={clsx(
+        styles.companionRows,
+        isInInitiative && !readOnly && styles.companionRowsInInitiative
+      )}
+    >
+      {companions.map((companion) => {
+        const viewModel = getCompanionViewModel(companion);
+        const companionParticipant = createNestedCompanionParticipant(participant, companion);
+
+        return (
+          <button
+            key={companion.id}
+            type="button"
+            className={styles.companionRow}
+            onClick={() => onInspect(companionParticipant)}
+            aria-label={`Inspect ${viewModel.title}`}
+          >
+            <span className={styles.companionBranch} aria-hidden="true" />
+            <span className={styles.companionPortrait} aria-hidden="true">
+              <span
+                className={styles.creaturePortraitIcon}
+                style={companionPortraitStyle}
+              />
+            </span>
+            <span className={styles.companionRowBody}>
+              <span className={styles.titleRow}>
+                <span className={styles.companionTitle}>{viewModel.title}</span>
+                {viewModel.typeLabel ? (
+                  <span className={styles.type}>· {viewModel.typeLabel}</span>
+                ) : null}
+              </span>
+              <ParticipantVitalsRow viewModel={viewModel} />
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -350,8 +515,14 @@ function ParticipantCardFrame({
   const isInInitiative = listKey === "initiativeOrder";
   const isActiveParticipant =
     isInInitiative && activeParticipantId === participant.participantId;
-  const viewModel = getParticipantViewModel(participant);
+  const isAllyParticipant =
+    participant.kind === "party-member" || participant.kind === "party-companion";
+  const viewModel = getParticipantViewModel(participant, { readOnly });
   const hasInitiativeOrderNumber = typeof initiativeOrderNumber === "number";
+  const ownerLabel =
+    participant.kind === "party-companion" && participant.summary.name
+      ? `Owner: ${participant.summary.name}`
+      : null;
 
   const card = (
     <SheetSurface
@@ -363,6 +534,8 @@ function ParticipantCardFrame({
         styles.card,
         isInInitiative && !readOnly && styles.cardInInitiative,
         isInInitiative && readOnly && styles.cardReadOnlyInitiative,
+        isInInitiative && isAllyParticipant && styles.cardAlly,
+        isInInitiative && participant.kind === "creature" && styles.cardEnemy,
         isActiveParticipant && styles.cardActive,
         isDragging && styles.cardDragging
       )}
@@ -382,17 +555,28 @@ function ParticipantCardFrame({
         onClick={() => onInspect(participant)}
         aria-label={`Inspect ${viewModel.title}`}
       >
-        <span className={styles.titleRow}>
-          <span className={styles.title}>{viewModel.title}</span>
-          {viewModel.typeLabel ? (
-            <span className={styles.type}>· {viewModel.typeLabel}</span>
-          ) : null}
+        <span className={styles.titleLine}>
+          <span className={styles.titleRow}>
+            <span className={styles.title}>{viewModel.title}</span>
+            {viewModel.typeLabel ? (
+              <span className={styles.type}>· {viewModel.typeLabel}</span>
+            ) : null}
+          </span>
+          {ownerLabel ? <span className={styles.ownerLabel}>{ownerLabel}</span> : null}
         </span>
 
-        <ParticipantVitalsRow viewModel={viewModel} />
+        <ParticipantVitalsRow viewModel={viewModel} showDeathSaves={isInInitiative} />
 
         {isInInitiative ? <ParticipantHitPointBar viewModel={viewModel} /> : null}
       </button>
+      {participant.kind === "party-member" ? (
+        <NestedCompanionRows
+          isInInitiative={isInInitiative}
+          onInspect={onInspect}
+          participant={participant}
+          readOnly={readOnly}
+        />
+      ) : null}
       {!readOnly ? (
         <button
           type="button"
@@ -467,7 +651,9 @@ function CampaignLiveEncounterTrackerSortableParticipantCard(
     transform: CSS.Transform.toString(transform),
     transition
   };
-  const viewModel = getParticipantViewModel(props.participant);
+  const viewModel = getParticipantViewModel(props.participant, {
+    readOnly: props.readOnly ?? false
+  });
 
   return (
     <ParticipantCardFrame

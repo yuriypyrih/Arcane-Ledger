@@ -520,6 +520,10 @@
   min-height: 72px;
 }
 
+.liveTrackerInitiativeParticipantList {
+  padding-bottom: 0.5rem;
+}
+
 .liveTrackerCenteredParticipantList {
   display: flex;
   align-items: center;

@@ -52,6 +52,7 @@ function CompanionEditorModal({
       onClose={onClose}
       onRemoveCreature={onRemoveCompanion}
       onSaveCreature={onSaveCompanion}
+      showSeparateInitiativeToggle
     />
   );
 }

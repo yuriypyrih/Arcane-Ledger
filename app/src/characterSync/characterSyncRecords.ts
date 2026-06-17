@@ -144,8 +144,13 @@ async function withEncounterStatBlockSummary(
   record: PortableCharacterSheet
 ): Promise<PortableCharacterSheet> {
   try {
-    const [{ normalizeCharacter }, { createEncounterStatBlockSummary }] = await Promise.all([
+    const [
+      { normalizeCharacter },
+      { createEncounterCompanionSummaries },
+      { createEncounterStatBlockSummary }
+    ] = await Promise.all([
       import("../pages/CharactersPage/storage"),
+      import("../pages/CharactersPage/encounterCompanionSummary"),
       import("../pages/CharactersPage/encounterStatBlockSummary")
     ]);
     const character = normalizeCharacter(createHydratedCharacterInputFromPortableSheet(record));
@@ -158,6 +163,7 @@ async function withEncounterStatBlockSummary(
       ...record,
       summary: {
         ...record.summary,
+        companions: createEncounterCompanionSummaries(character),
         encounterStatBlock: createEncounterStatBlockSummary(character)
       }
     };

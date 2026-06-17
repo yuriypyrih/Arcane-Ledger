@@ -62,7 +62,7 @@
   --theme-warning-card-text: #6d2417;
   --theme-warning-inline-text: #8b5a12;
   --theme-temp-hit-points-text: #8c6611;
-  --theme-temp-hit-points-icon: #8c6611;
+  --theme-temp-hit-points-icon: #dca23f;
   --theme-temp-hit-points-border: rgba(205, 166, 58, 0.55);
   --theme-temp-hit-points-surface: linear-gradient(
     180deg,
@@ -83,6 +83,16 @@
     #9dd8ff 52%,
     #5facf0 100%
   );
+  --theme-magic-temp-hit-points-text: #15507d;
+  --theme-magic-temp-hit-points-icon: #5facf0;
+  --theme-magic-temp-hit-points-border: rgba(69, 143, 214, 0.58);
+  --theme-magic-temp-hit-points-surface: linear-gradient(
+    180deg,
+    rgba(224, 243, 255, 0.96),
+    rgba(143, 205, 255, 0.88)
+  );
+  --theme-magic-temp-hit-points-ring: rgba(74, 152, 221, 0.16);
+  --theme-magic-temp-hit-points-glow: rgba(76, 160, 232, 0.22);
   --theme-always-prepared-tag-background: rgba(222, 102, 158, 0.16);
   --theme-always-prepared-tag-color: #c04f86;
   --theme-always-prepared-tag-detail: var(--color-ink-soft);
@@ -113,6 +123,7 @@
   --color-panel-muted: #f1e4d5;
   --space-shell-gutter: clamp(0.5rem, 2.2vw, 1.35rem);
   --space-page-gap: clamp(0.65rem, 2vw, 1.35rem);
+  --space-page-end-padding: calc(env(safe-area-inset-bottom, 0px) + clamp(6.8rem, 12vw, 9.2rem));
   --space-section-gap: clamp(0.6rem, 1.7vw, 1.1rem);
   --space-card-padding: clamp(0.78rem, 2.3vw, 1.35rem);
   --space-card-padding-tight: clamp(0.68rem, 2vw, 1.15rem);
@@ -187,16 +198,16 @@
   --theme-temp-hit-points-border: rgba(216, 183, 99, 0.34);
   --theme-temp-hit-points-surface: linear-gradient(
     180deg,
-    rgba(196, 147, 53, 0.22),
-    rgba(142, 99, 31, 0.16)
+    rgba(205, 156, 60, 0.24),
+    rgba(154, 109, 36, 0.18)
   );
   --theme-temp-hit-points-ring: rgba(216, 183, 99, 0.12);
   --theme-temp-hit-points-glow: rgba(216, 169, 70, 0.13);
   --theme-temp-hit-points-bar: linear-gradient(
     90deg,
-    #f0ca6f 0%,
-    #dfb04e 54%,
-    #c88e32 100%
+    #f4d47d 0%,
+    #e6ba5a 54%,
+    #d69d3b 100%
   );
   --theme-magic-temp-hit-points-bar: linear-gradient(
     90deg,
@@ -204,6 +215,16 @@
     #86cfff 52%,
     #4c9ee8 100%
   );
+  --theme-magic-temp-hit-points-text: #9fd7ff;
+  --theme-magic-temp-hit-points-icon: #86cfff;
+  --theme-magic-temp-hit-points-border: rgba(134, 207, 255, 0.36);
+  --theme-magic-temp-hit-points-surface: linear-gradient(
+    180deg,
+    rgba(76, 158, 232, 0.24),
+    rgba(48, 101, 158, 0.18)
+  );
+  --theme-magic-temp-hit-points-ring: rgba(134, 207, 255, 0.14);
+  --theme-magic-temp-hit-points-glow: rgba(76, 160, 232, 0.14);
   --theme-always-prepared-tag-background: #c04f86;
   --theme-always-prepared-tag-color: #fde3ef;
   --theme-always-prepared-tag-detail: #fde3ef;

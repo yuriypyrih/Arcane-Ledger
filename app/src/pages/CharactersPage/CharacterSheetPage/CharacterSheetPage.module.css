@@ -7,7 +7,6 @@
   gap: var(--space-page-gap);
   max-width: 1200px;
   margin: 0 auto;
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + clamp(6.8rem, 12vw, 9.2rem));
 }
 
 .pageTextureBackdrop {

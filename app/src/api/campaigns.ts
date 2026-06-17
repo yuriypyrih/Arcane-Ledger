@@ -2,6 +2,7 @@ import type { EncounterTemplateCreatureRecord } from "./encounterTemplates";
 import type {
   CharacterAvatarMetadata,
   MonsterRecord,
+  PortableEncounterCompanionSummary,
   PortableCharacterSheetSummary,
   PortableEncounterStatBlock
 } from "../types";
@@ -10,6 +11,7 @@ import { apiDelete, apiGet, apiPatch, apiPost, apiPut, type ApiRequestOptions } 
 export type CampaignVisibilitySettings = {
   showVitalityStatus: boolean;
   showHpBar: boolean;
+  showDeathSaves: boolean;
   showMonsterType: boolean;
   showBaseStatBlockDescription: boolean;
   showDmDescription: boolean;
@@ -58,17 +60,22 @@ export type CampaignLiveEncounterTrackerCreaturePayloadRecord = Omit<
   Pick<EncounterTemplateCreatureRecord, "id" | "name"> & {
     effectivePlayerVisibilitySettings: PlayerVisibilitySettings;
     inheritedCreatureEntry?: CampaignLiveEncounterTrackerCreatureStatBlockRecord;
+    isMakingDeathSaves?: boolean;
     statBlockNameHidden?: boolean;
     visibilitySettings?: PlayerVisibilitySettings | null;
     vitalityStatusLabel?: string;
   };
 
-export type CampaignLiveEncounterTrackerParticipantKind = "party-member" | "creature";
+export type CampaignLiveEncounterTrackerParticipantKind =
+  | "party-member"
+  | "party-companion"
+  | "creature";
 
 export type CampaignLiveEncounterTrackerParticipantRefRecord = {
   participantId: string;
   kind: CampaignLiveEncounterTrackerParticipantKind;
   characterId?: string;
+  companionId?: string;
   creatureId?: string;
 };
 
@@ -100,9 +107,30 @@ export type CampaignLiveEncounterTrackerPartyMemberRecord =
     };
     summary: CampaignLiveEncounterTrackerCharacterSummary;
     statBlock?: PortableEncounterStatBlock;
+    companions: PortableEncounterCompanionSummary[];
     avatar: CharacterAvatarMetadata | null;
     updatedAt: string | null;
   };
+
+export type CampaignLiveEncounterTrackerPartyCompanionRecord =
+  CampaignLiveEncounterTrackerParticipantRefRecord & {
+    kind: "party-companion";
+    characterId: string;
+    companionId: string;
+    ownerId: string;
+    user: {
+      id: string;
+      nickname: string;
+    };
+    summary: CampaignLiveEncounterTrackerCharacterSummary;
+    companion: PortableEncounterCompanionSummary;
+    avatar: CharacterAvatarMetadata | null;
+    updatedAt: string | null;
+  };
+
+export type CampaignLiveEncounterTrackerPartyParticipantRecord =
+  | CampaignLiveEncounterTrackerPartyMemberRecord
+  | CampaignLiveEncounterTrackerPartyCompanionRecord;
 
 export type CampaignLiveEncounterTrackerCreatureRecord =
   CampaignLiveEncounterTrackerParticipantRefRecord & {
@@ -112,6 +140,7 @@ export type CampaignLiveEncounterTrackerCreatureRecord =
   };
 
 export type CampaignLiveEncounterTrackerParticipantRecord =
+  | CampaignLiveEncounterTrackerPartyCompanionRecord
   | CampaignLiveEncounterTrackerPartyMemberRecord
   | CampaignLiveEncounterTrackerCreatureRecord;
 
@@ -122,7 +151,7 @@ export type CampaignLiveEncounterTrackerRecord = {
   activeParticipantId: string | null;
   roundNumber: number;
   status: CampaignLiveEncounterTrackerStatusRecord;
-  partyMembers: CampaignLiveEncounterTrackerPartyMemberRecord[];
+  partyMembers: CampaignLiveEncounterTrackerPartyParticipantRecord[];
   creatures: CampaignLiveEncounterTrackerCreatureRecord[];
   initiativeOrder: CampaignLiveEncounterTrackerParticipantRecord[];
   revision: number;

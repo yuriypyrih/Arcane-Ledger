@@ -34,7 +34,6 @@ import CampaignLiveEncounterTrackerInspectionDrawer from "./CampaignLiveEncounte
 import CampaignLiveEncounterRoundTracker from "./CampaignLiveEncounterRoundTracker";
 import LiveEncounterGuideButton from "./LiveEncounterGuideButton";
 import LiveEncounterGuideModal from "./LiveEncounterGuideModal";
-import liveEncounterStyles from "./CampaignLiveEncounterTrackerPage.module.css";
 import DmToolsBackButton from "./DmToolsBackButton";
 import DmToolsEmptyState from "./DmToolsEmptyState";
 import DmToolsListCard from "./DmToolsListCard";
@@ -97,7 +96,9 @@ function restoreLiveEncounterPartyMembers(
   return participants.flatMap((participant) => {
     const fullParticipant = participantById.get(participant.participantId);
 
-    return fullParticipant?.kind === "party-member" ? [fullParticipant] : [];
+    return fullParticipant?.kind === "party-member" || fullParticipant?.kind === "party-companion"
+      ? [fullParticipant]
+      : [];
   });
 }
 
@@ -457,7 +458,7 @@ function CampaignLiveEncounterTrackerPage() {
   }
 
   return (
-    <section className={`${styles.page} ${liveEncounterStyles.page}`}>
+    <section className={styles.page}>
       <DmToolsBackButton onClick={() => navigate(`/gm-tools/campaign-manager/${campaignId}`)}>
         Back to Campaign
       </DmToolsBackButton>

@@ -15,6 +15,7 @@ import { abilityKeys } from "./constants";
 import { getCharacterRuntime, type CharacterRuntime } from "./characterRuntime/characterRuntime";
 import type { CharacterCombatSummaryCoreStats } from "./characterRuntime/combatSummaryCoreStats";
 import { getCharacterClassDisplayName, getCharacterSpeciesDisplayName } from "./customOrigins";
+import { normalizeDeathSaveTrack } from "./deathSaves";
 import type { SkillRow } from "./skills";
 
 export const ENCOUNTER_STAT_BLOCK_VERSION = 1;
@@ -184,7 +185,7 @@ export function createEncounterStatBlockSummary(
   return {
     version: ENCOUNTER_STAT_BLOCK_VERSION,
     name: character.name,
-    typeLabel: [className, species]
+    typeLabel: [species, className]
       .map((value) => value.trim())
       .filter((value) => value.length > 0)
       .join(" "),
@@ -206,6 +207,7 @@ export function createEncounterStatBlockSummary(
     ...(character.magicTemporaryHitPointsSource
       ? { magicTemporaryHitPointsSource: character.magicTemporaryHitPointsSource }
       : {}),
+    deathSaves: normalizeDeathSaveTrack(character.deathSaves),
     immunities: getStatusLabels(defenses.immunities, isDamageStatusEntry),
     conditionImmunities: getStatusLabels(defenses.immunities, isConditionStatusEntry),
     resistances: getStatusLabels(defenses.resistances),

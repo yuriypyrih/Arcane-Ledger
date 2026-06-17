@@ -20,6 +20,8 @@ export type CompanionDraft = {
   name: string;
   description: string;
   type: string;
+  source: string;
+  separateInitiative: boolean;
   primalBeastKind: PrimalBeastKind | null;
   maxHitPoints: string;
   durationType: ManualStatusDurationType;
@@ -56,6 +58,8 @@ export function createEmptyCompanionDraft(): CompanionDraft {
     name: "",
     description: "",
     type: "",
+    source: "Manual",
+    separateInitiative: false,
     primalBeastKind: null,
     maxHitPoints: "10",
     durationType: defaultManualStatusDurationDraft.type,
@@ -73,6 +77,8 @@ export function createDraftFromCompanion(companion: CharacterCompanion): Compani
     name: companion.name,
     description: companion.description,
     type: companion.type,
+    source: companion.source || "Manual",
+    separateInitiative: companion.separateInitiative === true,
     primalBeastKind: companion.primalBeastKind ?? null,
     maxHitPoints: String(companion.maxHitPoints),
     durationType: durationDraft.type,
@@ -84,12 +90,10 @@ export function createDraftFromCompanion(companion: CharacterCompanion): Compani
   };
 }
 
-export function getCompanionSourceLabel(companion: CharacterCompanion) {
-  if (companion.primalBeastKind) {
-    return "Primal Beast";
-  }
+export function getCompanionSourceLabel(companion: { source?: string | null }) {
+  const source = companion.source?.trim() ?? "";
 
-  return getInheritedEntryLabel(companion);
+  return source.length > 0 && source.toLowerCase() !== "manual" ? source : "MANUAL";
 }
 
 export function getCompanionDisplayType(

@@ -116,7 +116,7 @@
 .title {
   position: relative;
   display: inline-block;
-  max-width: 11ch;
+  max-width: 100%;
   color: #fff6e2;
   font-size: clamp(2.45rem, 6vw, 4.8rem);
   line-height: 1.05;
@@ -156,8 +156,9 @@
 .titleText {
   position: relative;
   z-index: 2;
-  display: inline;
+  display: inline-block;
   color: #fff6e2;
+  white-space: nowrap;
   text-shadow:
     0 1px 0 rgba(22, 15, 13, 0.82),
     0 -1px 0 rgba(22, 15, 13, 0.42),

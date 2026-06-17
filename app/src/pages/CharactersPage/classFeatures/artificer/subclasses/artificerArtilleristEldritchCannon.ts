@@ -411,6 +411,8 @@ function createEldritchCannonCompanion(
     name: option.name,
     description: "",
     type: eldritchCannonCompanionType,
+    source: "Eldritch Cannon",
+    separateInitiative: false,
     maxHitPoints: maximumHitPoints,
     currentHitPoints: maximumHitPoints,
     temporaryHitPoints: 0,

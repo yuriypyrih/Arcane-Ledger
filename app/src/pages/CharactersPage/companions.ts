@@ -87,6 +87,8 @@ function normalizeCharacterCompanion(value: unknown, index: number): CharacterCo
     name,
     description: normalizeText(value.description),
     type,
+    source: normalizeText(value.source, "Manual"),
+    separateInitiative: value.separateInitiative === true,
     maxHitPoints: 1,
     currentHitPoints: 1,
     ...temporaryHitPointsAssignment,

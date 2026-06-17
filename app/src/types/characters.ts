@@ -452,6 +452,8 @@ export type CharacterCompanion = {
   name: string;
   description: string;
   type: string;
+  source: string;
+  separateInitiative: boolean;
   role?: "beast-master";
   primalBeastKind?: "land" | "sea" | "sky";
   maxHitPoints: number;

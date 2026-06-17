@@ -131,23 +131,24 @@ function CodexResults({
       ) : null}
 
       {status === "ready" && entries.length > 0 && isSpellCategory ? (
-        <>
-          <div className={styles.spellList}>
+        <section className={styles.spellResultsSection} aria-label={entriesTitle}>
+          <ul className={styles.spellList}>
             {entries.map((entry) => {
               if (entry.category !== ENTRY_CATEGORIES.SPELLS) {
                 return null;
               }
 
               return (
-                <SpellListRow
-                  key={entry.id}
-                  spell={entry}
-                  onClick={() => (onSpellSelect ? onSpellSelect(entry) : openEntry(entry.id))}
-                />
+                <li key={entry.id} className={styles.spellListItem}>
+                  <SpellListRow
+                    spell={entry}
+                    onClick={() => (onSpellSelect ? onSpellSelect(entry) : openEntry(entry.id))}
+                  />
+                </li>
               );
             })}
-          </div>
-        </>
+          </ul>
+        </section>
       ) : null}
 
       {status === "ready" && entries.length > 0 && !isSpellCategory ? (

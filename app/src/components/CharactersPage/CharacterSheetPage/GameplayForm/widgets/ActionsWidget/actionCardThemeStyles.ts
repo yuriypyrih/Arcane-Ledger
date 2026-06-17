@@ -2,9 +2,9 @@ import { createElement } from "react";
 import {
   Component,
   Cross,
+  ChessRook,
   Flame,
   Puzzle,
-  Shield,
   Sparkles,
   Swords,
   type LucideIcon
@@ -28,7 +28,7 @@ const actionCardThemeIconByTheme: Record<ACTION_CARD_THEME, LucideIcon> = {
   [ACTION_CARD_THEME.MAGIC]: Sparkles,
   [ACTION_CARD_THEME.UTIL]: Puzzle,
   [ACTION_CARD_THEME.HEAL]: Cross,
-  [ACTION_CARD_THEME.DEFENSE]: Shield,
+  [ACTION_CARD_THEME.DEFENSE]: ChessRook,
   [ACTION_CARD_THEME.WEAPON]: Swords
 };
 

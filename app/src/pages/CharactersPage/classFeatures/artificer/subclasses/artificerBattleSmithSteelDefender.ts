@@ -233,6 +233,8 @@ function createSteelDefenderCompanion(
     name: steelDefenderName,
     description: "",
     type: steelDefenderCompanionType,
+    source: "Steel Defender",
+    separateInitiative: false,
     maxHitPoints: maximumHitPoints,
     currentHitPoints: maximumHitPoints,
     temporaryHitPoints: 0,

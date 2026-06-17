@@ -21,6 +21,15 @@ export function toLiveEncounterParticipantRef(
     };
   }
 
+  if (participant.kind === "party-companion") {
+    return {
+      participantId: participant.participantId,
+      kind: "party-companion",
+      characterId: participant.characterId,
+      companionId: participant.companionId
+    };
+  }
+
   return {
     participantId: participant.participantId,
     kind: "creature",
@@ -140,6 +149,13 @@ function normalizeLiveEncounterCreatureRecord(
 function normalizeLiveEncounterParticipant(
   participant: CampaignLiveEncounterTrackerParticipantRecord
 ): CampaignLiveEncounterTrackerParticipantRecord {
+  if (participant.kind === "party-member") {
+    return {
+      ...participant,
+      companions: participant.companions ?? []
+    };
+  }
+
   if (participant.kind !== "creature") {
     return participant;
   }
@@ -155,6 +171,9 @@ export function normalizeLiveEncounterTracker(
 ): CampaignLiveEncounterTrackerRecord {
   return {
     ...tracker,
+    partyMembers: tracker.partyMembers.map((participant) =>
+      normalizeLiveEncounterParticipant(participant)
+    ) as CampaignLiveEncounterTrackerRecord["partyMembers"],
     creatures: tracker.creatures.map((participant) => ({
       ...participant,
       creature: normalizeLiveEncounterCreatureRecord(participant.creature)

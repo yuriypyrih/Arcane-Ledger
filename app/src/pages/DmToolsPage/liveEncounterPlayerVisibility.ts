@@ -14,6 +14,7 @@ import {
 const DEFAULT_PLAYER_VISIBILITY_SETTINGS: PlayerVisibilitySettings = {
   showVitalityStatus: true,
   showHpBar: false,
+  showDeathSaves: false,
   showMonsterType: false,
   showBaseStatBlockDescription: false,
   showDmDescription: false,
@@ -143,6 +144,18 @@ function getCreatureVitalityStatusLabel(
     : undefined;
 }
 
+function isCreatureMakingDeathSaves(creature: CampaignLiveEncounterTrackerCreaturePayloadRecord) {
+  const deathSaves = normalizeDeathSaveTrack(creature.deathSaves);
+
+  return (
+    typeof creature.currentHitPoints === "number" &&
+    creature.currentHitPoints <= 0 &&
+    deathSaves.resolution !== "instant-death" &&
+    deathSaves.successes < 3 &&
+    deathSaves.failures < 3
+  );
+}
+
 function createPlayerVisibleLiveEncounterCreature(
   creature: CampaignLiveEncounterTrackerCreaturePayloadRecord
 ): CampaignLiveEncounterTrackerCreaturePayloadRecord {
@@ -161,7 +174,11 @@ function createPlayerVisibleLiveEncounterCreature(
     visibleCreature.currentHitPoints = creature.currentHitPoints;
     visibleCreature.maxHitPoints = creature.maxHitPoints;
     visibleCreature.temporaryHitPoints = creature.temporaryHitPoints;
+  }
+
+  if (settings.showDeathSaves) {
     visibleCreature.deathSaves = creature.deathSaves;
+    visibleCreature.isMakingDeathSaves = isCreatureMakingDeathSaves(creature);
   }
 
   if (settings.showVitalityStatus) {

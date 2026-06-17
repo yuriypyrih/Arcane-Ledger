@@ -42,5 +42,6 @@
   margin: 0 auto;
   max-width: var(--shell-content-max-width);
   min-height: 0;
+  padding-bottom: var(--space-page-end-padding);
   width: 100%;
 }

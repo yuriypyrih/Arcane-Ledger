@@ -7,6 +7,7 @@ import type {
 const DEFAULT_PLAYER_VISIBILITY_SETTINGS: PlayerVisibilitySettingsRecord = {
   showVitalityStatus: true,
   showHpBar: false,
+  showDeathSaves: false,
   showMonsterType: false,
   showBaseStatBlockDescription: false,
   showDmDescription: false,
@@ -37,6 +38,7 @@ export type PlayerVisibleLiveEncounterCreatureRecord = Omit<
   Pick<CampaignPreparedEncounterCreatureRecord, "id" | "name"> & {
     effectivePlayerVisibilitySettings: PlayerVisibilitySettingsRecord;
     inheritedCreatureEntry?: Record<string, unknown>;
+    isMakingDeathSaves?: boolean;
     statBlockNameHidden?: boolean;
     vitalityStatusLabel?: string;
   };
@@ -220,6 +222,17 @@ function getCreatureVitalityStatusLabel(creature: CampaignPreparedEncounterCreat
   return currentHitPoints > maxHitPoints * 0.5 ? "Healthy" : "Blooded";
 }
 
+function isCreatureMakingDeathSaves(creature: CampaignPreparedEncounterCreatureRecord) {
+  const deathSaves = getDeathSaveTrack(creature.deathSaves);
+
+  return (
+    creature.currentHitPoints <= 0 &&
+    deathSaves.resolution !== "instant-death" &&
+    deathSaves.successes < 3 &&
+    deathSaves.failures < 3
+  );
+}
+
 export function createLiveEncounterCreatureWithEffectivePlayerVisibility(options: {
   campaignVisibilitySettings: PlayerVisibilitySettingsRecord;
   creature: CampaignPreparedEncounterCreatureRecord;
@@ -255,9 +268,13 @@ export function createPlayerVisibleLiveEncounterCreature(
     visibleCreature.currentHitPoints = creature.currentHitPoints;
     visibleCreature.maxHitPoints = creature.maxHitPoints;
     visibleCreature.temporaryHitPoints = creature.temporaryHitPoints;
+  }
+
+  if (settings.showDeathSaves) {
     visibleCreature.deathSaves = clonePlainObjectValue(creature.deathSaves) as
       | LiveEncounterCreatureWithEffectiveVisibility["deathSaves"]
       | undefined;
+    visibleCreature.isMakingDeathSaves = isCreatureMakingDeathSaves(creature);
   }
 
   if (settings.showVitalityStatus) {

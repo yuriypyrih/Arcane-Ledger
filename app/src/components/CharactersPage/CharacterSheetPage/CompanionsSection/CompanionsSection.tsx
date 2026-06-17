@@ -132,6 +132,9 @@ function CompanionsSection({ character, className, onPersistCharacter }: Compani
             </div>
           </div>
           <div className={clsx(shared.headerActions, styles.companionsHeaderActions)}>
+            <span className={styles.companionCount}>
+              {companions.length}/{CHARACTER_COMPANION_LIMIT} Companions
+            </span>
             <SheetActionButton
               disabled={isCompanionLimitReached}
               title={

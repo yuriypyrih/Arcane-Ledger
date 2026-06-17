@@ -15,9 +15,11 @@ import {
 import type {
   CampaignLiveEncounterTrackerCreatureRecord,
   CampaignLiveEncounterTrackerParticipantRecord,
+  CampaignLiveEncounterTrackerPartyCompanionRecord,
   CampaignLiveEncounterTrackerPartyMemberRecord
 } from "../../api/campaigns";
 import type { EncounterTemplateCreatureRecord } from "../../api/encounterTemplates";
+import type { CharacterCompanion } from "../../types";
 import companionStyles from "../../components/CharactersPage/CharacterSheetPage/CompanionsSection/CompanionsSection.module.css";
 import { getCompanionDisplayType } from "../../components/CharactersPage/CharacterSheetPage/CompanionsSection/companionUtils";
 import {
@@ -29,6 +31,7 @@ import {
 } from "../CharactersPage/companions";
 import {
   getDeathSaveStatusLabel,
+  isDeathSaveTrackResolved,
   normalizeDeathSaveTrack
 } from "../CharactersPage/deathSaves";
 import { getDmToolsApiErrorMessage } from "./dmToolsApiErrors";
@@ -49,18 +52,27 @@ type CampaignLiveEncounterTrackerInspectionDrawerProps = {
 };
 
 function getParticipantName(participant: CampaignLiveEncounterTrackerParticipantRecord) {
-  return participant.kind === "party-member"
-    ? (participant.statBlock?.name ?? participant.summary.name)
-    : participant.creature.name;
+  if (participant.kind === "party-member") {
+    return participant.statBlock?.name ?? participant.summary.name;
+  }
+
+  if (participant.kind === "party-companion") {
+    return participant.companion.name;
+  }
+
+  return participant.creature.name;
 }
 
 function getPartyMemberTypeSummary(participant: CampaignLiveEncounterTrackerPartyMemberRecord) {
   const statBlock = participant.statBlock;
 
-  return statBlock
-    ? statBlock.typeLabel ||
-        [statBlock.species, statBlock.className].filter(Boolean).join(" ")
-    : [participant.summary.species, participant.summary.className].filter(Boolean).join(" ");
+  if (statBlock) {
+    const computedSummary = [statBlock.species, statBlock.className].filter(Boolean).join(" ");
+
+    return computedSummary || statBlock.typeLabel || "";
+  }
+
+  return [participant.summary.species, participant.summary.className].filter(Boolean).join(" ");
 }
 
 function getPartyMemberSpeedSummary(participant: CampaignLiveEncounterTrackerPartyMemberRecord) {
@@ -74,6 +86,15 @@ function getParticipantSummary(participant: CampaignLiveEncounterTrackerParticip
     return getCompanionDisplayType(participant.creature);
   }
 
+  if (participant.kind === "party-companion") {
+    return [
+      getCompanionDisplayType(participant.companion),
+      participant.summary.name ? `Companion of ${participant.summary.name}` : ""
+    ]
+      .filter((value) => value.length > 0)
+      .join(" - ");
+  }
+
   return [getPartyMemberTypeSummary(participant), getPartyMemberSpeedSummary(participant)]
     .filter((value) => value.length > 0)
     .join(" - ");
@@ -81,6 +102,16 @@ function getParticipantSummary(participant: CampaignLiveEncounterTrackerParticip
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
+}
+
+function toEncounterCreatureCompanion(
+  creature: EncounterTemplateCreatureRecord
+): CharacterCompanion {
+  return {
+    ...creature,
+    source: "Manual",
+    separateInitiative: false
+  };
 }
 
 function getPartyMemberVitalityLabel(participant: CampaignLiveEncounterTrackerPartyMemberRecord) {
@@ -97,8 +128,15 @@ function getPartyMemberVitalityLabel(participant: CampaignLiveEncounterTrackerPa
   return getDeathSaveStatusLabel(
     statBlock.currentHitPoints,
     Math.max(1, statBlock.hitPoints),
-    { successes: 0, failures: 0 }
+    normalizeDeathSaveTrack(statBlock.deathSaves)
   );
+}
+
+function isMakingDeathSaves(
+  currentHitPoints: number,
+  deathSaves: ReturnType<typeof normalizeDeathSaveTrack>
+) {
+  return currentHitPoints <= 0 && !isDeathSaveTrackResolved(deathSaves);
 }
 
 function MemberStatBlock({
@@ -132,6 +170,44 @@ function MemberStatBlock({
         vitalRows={rendererModel.vitalRows}
       />
     </section>
+  );
+}
+
+function CompanionStatBlock({
+  participant
+}: {
+  participant: CampaignLiveEncounterTrackerPartyCompanionRecord;
+}) {
+  const companion = participant.companion;
+  const monster = companion.inheritedCreatureEntry;
+  const description = (companion.description ?? "").trim();
+  const hasHitPointSummary =
+    isFiniteNumber(companion.currentHitPoints) && isFiniteNumber(companion.maxHitPoints);
+
+  return (
+    <>
+      {description ? (
+        <section className={styles.liveTrackerDrawerSection}>
+          <h4>Description</h4>
+          <p className={styles.liveTrackerDrawerDescription}>{description}</p>
+        </section>
+      ) : null}
+      {monster ? (
+        <section className={styles.liveTrackerDrawerSection}>
+          <h4>Stat Block</h4>
+          <MonsterEntryRenderer
+            monster={monster}
+            className={styles.liveTrackerMonsterEntry}
+            headingTag={companion.inheritedCreatureEntryModified ? "Modded" : undefined}
+          />
+        </section>
+      ) : null}
+      {!hasHitPointSummary && !description && !monster ? (
+        <p className={styles.liveTrackerDrawerMutedText}>
+          No information available for the companion.
+        </p>
+      ) : null}
+    </>
   );
 }
 
@@ -191,6 +267,19 @@ function getCreatureVitalityLabel(participant: CampaignLiveEncounterTrackerCreat
     : undefined;
 }
 
+function getCompanionVitalityLabel(participant: CampaignLiveEncounterTrackerPartyCompanionRecord) {
+  const companion = participant.companion;
+
+  return typeof companion.currentHitPoints === "number" &&
+    typeof companion.maxHitPoints === "number"
+    ? getDeathSaveStatusLabel(
+        companion.currentHitPoints,
+        Math.max(1, companion.maxHitPoints),
+        normalizeDeathSaveTrack(companion.deathSaves)
+      )
+    : undefined;
+}
+
 function LiveEncounterHitPointsPanel({
   participant,
   readOnly,
@@ -211,6 +300,9 @@ function LiveEncounterHitPointsPanel({
       return null;
     }
 
+    const deathSaves = normalizeDeathSaveTrack(statBlock.deathSaves);
+    const shouldShowDeathSaves = isMakingDeathSaves(statBlock.currentHitPoints, deathSaves);
+
     return (
       <HitPointControls
         className={companionStyles.companionHpControls}
@@ -223,6 +315,40 @@ function LiveEncounterHitPointsPanel({
           isFiniteNumber(statBlock.magicTemporaryHitPoints) ? statBlock.magicTemporaryHitPoints : 0
         }
         statusText={getPartyMemberVitalityLabel(participant)}
+        extraTemporaryHitPointControl={
+          shouldShowDeathSaves ? <DeathSavesTracker deathSaves={deathSaves} readOnly /> : null
+        }
+        readOnly
+      />
+    );
+  }
+
+  if (participant.kind === "party-companion") {
+    const companion = participant.companion;
+
+    if (
+      !isFiniteNumber(companion.currentHitPoints) ||
+      !isFiniteNumber(companion.maxHitPoints)
+    ) {
+      return null;
+    }
+
+    const deathSaves = normalizeDeathSaveTrack(companion.deathSaves);
+    const shouldShowDeathSaves = isMakingDeathSaves(companion.currentHitPoints, deathSaves);
+
+    return (
+      <HitPointControls
+        className={companionStyles.companionHpControls}
+        currentHitPoints={companion.currentHitPoints}
+        maxHitPoints={companion.maxHitPoints}
+        temporaryHitPoints={
+          isFiniteNumber(companion.temporaryHitPoints) ? companion.temporaryHitPoints : 0
+        }
+        temporaryHitPointsSource={companion.temporaryHitPointsSource}
+        statusText={getCompanionVitalityLabel(participant)}
+        extraTemporaryHitPointControl={
+          shouldShowDeathSaves ? <DeathSavesTracker deathSaves={deathSaves} readOnly /> : null
+        }
         readOnly
       />
     );
@@ -230,20 +356,36 @@ function LiveEncounterHitPointsPanel({
 
   const creature = participant.creature;
 
+  const deathSaves = normalizeDeathSaveTrack(creature.deathSaves);
+  const shouldShowDeathSaves =
+    creature.isMakingDeathSaves === true ||
+    (!readOnly &&
+      isFiniteNumber(creature.currentHitPoints) &&
+      isMakingDeathSaves(creature.currentHitPoints, deathSaves));
+
   if (!isFiniteNumber(creature.currentHitPoints) || !isFiniteNumber(creature.maxHitPoints)) {
-    return null;
+    return shouldShowDeathSaves ? (
+      <div className={companionStyles.companionHpControls}>
+        <DeathSavesTracker deathSaves={deathSaves} readOnly />
+      </div>
+    ) : null;
   }
 
   const canEdit = !readOnly && Boolean(onUpdateCreature);
   const creatureId = participant.creatureId ?? creature.id;
-  const deathSaves = normalizeDeathSaveTrack(creature.deathSaves);
-  const shouldShowDeathSaves =
-    creature.currentHitPoints <= 0 && deathSaves.resolution !== "instant-death";
 
   function updateCreature(
     update: (creature: EncounterTemplateCreatureRecord) => EncounterTemplateCreatureRecord
   ) {
     return onUpdateCreature?.(creatureId, update);
+  }
+
+  function updateCreatureWithCompanionHelper(
+    update: (creature: CharacterCompanion) => CharacterCompanion
+  ) {
+    return updateCreature((currentCreature) =>
+      toEncounterCreatureRecord(update(toEncounterCreatureCompanion(currentCreature)))
+    );
   }
 
   return (
@@ -266,15 +408,13 @@ function LiveEncounterHitPointsPanel({
             showDiceSettings={false}
             readOnly={!canEdit}
             onReset={() =>
-              void updateCreature((currentCreature) =>
-                toEncounterCreatureRecord(resetCharacterCompanionDeathSaves(currentCreature))
+              void updateCreatureWithCompanionHelper((currentCreature) =>
+                resetCharacterCompanionDeathSaves(currentCreature)
               )
             }
             onUpdate={(track) =>
-              void updateCreature((currentCreature) =>
-                toEncounterCreatureRecord(
-                  updateCharacterCompanionDeathSaves(currentCreature, track)
-                )
+              void updateCreatureWithCompanionHelper((currentCreature) =>
+                updateCharacterCompanionDeathSaves(currentCreature, track)
               )
             }
           />
@@ -283,20 +423,18 @@ function LiveEncounterHitPointsPanel({
       temporaryHitPointsDescription="When taking damage the temporary hit points are consumed first. They do not stack."
       readOnly={!canEdit}
       onDamage={(amount) =>
-        void updateCreature((currentCreature) =>
-          toEncounterCreatureRecord(applyDamageToCharacterCompanion(currentCreature, amount))
+        void updateCreatureWithCompanionHelper((currentCreature) =>
+          applyDamageToCharacterCompanion(currentCreature, amount)
         )
       }
       onHeal={(amount) =>
-        void updateCreature((currentCreature) =>
-          toEncounterCreatureRecord(applyHealingToCharacterCompanion(currentCreature, amount))
+        void updateCreatureWithCompanionHelper((currentCreature) =>
+          applyHealingToCharacterCompanion(currentCreature, amount)
         )
       }
       onSaveTemporaryHitPoints={(value) =>
-        void updateCreature((currentCreature) =>
-          toEncounterCreatureRecord(
-            assignManualTemporaryHitPointsToCharacterCompanion(currentCreature, value)
-          )
+        void updateCreatureWithCompanionHelper((currentCreature) =>
+          assignManualTemporaryHitPointsToCharacterCompanion(currentCreature, value)
         )
       }
     />
@@ -338,7 +476,11 @@ function CampaignLiveEncounterTrackerInspectionDrawer({
       <OverlayHeader>
         <OverlayHeaderContent>
           <OverlayBadge>
-            {participant.kind === "party-member" ? "Party Member" : "Creature Inspection"}
+            {participant.kind === "party-member"
+              ? "Party Member"
+              : participant.kind === "party-companion"
+                ? "Companion"
+                : "Creature Inspection"}
           </OverlayBadge>
           <OverlayTitle id={titleId}>{participantName}</OverlayTitle>
           {participantSummary ? <OverlaySummary>{participantSummary}</OverlaySummary> : null}
@@ -356,6 +498,8 @@ function CampaignLiveEncounterTrackerInspectionDrawer({
 
         {participant.kind === "party-member" ? (
           <MemberStatBlock participant={participant} />
+        ) : participant.kind === "party-companion" ? (
+          <CompanionStatBlock participant={participant} />
         ) : (
           <CreatureStatBlock participant={participant} />
         )}

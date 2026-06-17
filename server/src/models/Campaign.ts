@@ -13,6 +13,7 @@ export type CampaignSessionNoteRecord = {
 export type PlayerVisibilitySettingsRecord = {
   showVitalityStatus: boolean;
   showHpBar: boolean;
+  showDeathSaves: boolean;
   showMonsterType: boolean;
   showBaseStatBlockDescription: boolean;
   showDmDescription: boolean;
@@ -41,12 +42,16 @@ export type CampaignPreparedEncounterRecord = {
   creatures: CampaignPreparedEncounterCreatureRecord[];
 };
 
-export type CampaignLiveEncounterParticipantKindRecord = "party-member" | "creature";
+export type CampaignLiveEncounterParticipantKindRecord =
+  | "party-member"
+  | "party-companion"
+  | "creature";
 
 export type CampaignLiveEncounterParticipantRefRecord = {
   participantId: string;
   kind: CampaignLiveEncounterParticipantKindRecord;
   characterId?: string;
+  companionId?: string;
   creatureId?: string;
 };
 
@@ -103,6 +108,7 @@ const campaignSessionNoteSchema = new Schema<CampaignSessionNoteRecord>(
 const defaultCampaignVisibilitySettings = {
   showVitalityStatus: true,
   showHpBar: false,
+  showDeathSaves: false,
   showMonsterType: false,
   showBaseStatBlockDescription: false,
   showDmDescription: false,
@@ -127,6 +133,11 @@ const campaignVisibilitySettingsSchema = new Schema<CampaignVisibilitySettingsRe
       required: true
     },
     showHpBar: {
+      type: Boolean,
+      default: false,
+      required: true
+    },
+    showDeathSaves: {
       type: Boolean,
       default: false,
       required: true
@@ -242,10 +253,15 @@ const campaignLiveEncounterParticipantRefSchema =
       },
       kind: {
         type: String,
-        enum: ["party-member", "creature"],
+        enum: ["party-member", "party-companion", "creature"],
         required: true
       },
       characterId: {
+        type: String,
+        trim: true,
+        maxlength: 128
+      },
+      companionId: {
         type: String,
         trim: true,
         maxlength: 128

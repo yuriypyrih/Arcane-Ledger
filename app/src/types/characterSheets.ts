@@ -157,6 +157,7 @@ export type PortableEncounterStatBlock = {
   temporaryHitPointsSource?: string;
   magicTemporaryHitPoints: number;
   magicTemporaryHitPointsSource?: string;
+  deathSaves?: CharacterDeathSaves;
   immunities: string[];
   conditionImmunities?: string[];
   resistances: string[];
@@ -173,6 +174,22 @@ export type PortableEncounterStatBlock = {
   sourceRemoteRevision?: number;
 };
 
+export type PortableEncounterCompanionSummary = Pick<
+  CharacterCompanion,
+  | "id"
+  | "name"
+  | "description"
+  | "type"
+  | "separateInitiative"
+  | "maxHitPoints"
+  | "currentHitPoints"
+  | "temporaryHitPoints"
+  | "temporaryHitPointsSource"
+  | "deathSaves"
+  | "inheritedCreatureEntry"
+  | "inheritedCreatureEntryModified"
+>;
+
 export type PortableCharacterSheetSummary = {
   localId: number;
   name: string;
@@ -183,6 +200,7 @@ export type PortableCharacterSheetSummary = {
   background: string;
   sheetSizeBytes?: number;
   encounterStatBlock?: PortableEncounterStatBlock;
+  companions?: PortableEncounterCompanionSummary[];
 };
 
 export type PortableCharacterSheet = {

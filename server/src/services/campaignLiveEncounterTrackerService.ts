@@ -11,12 +11,17 @@ import {
 import {
   CharacterSheet,
   type CharacterAvatarRecord,
+  type CharacterEncounterCompanionSummaryRecord,
   type CharacterEncounterStatBlockRecord,
   type CharacterSheetSummaryRecord
 } from "../models/CharacterSheet.js";
 import { PartyGroup, type PartyGroupRecord } from "../models/PartyGroup.js";
 import { User } from "../models/User.js";
-import { ENCOUNTER_MAX_CREATURES, PARTY_GROUP_MAX_MEMBERS } from "../constants/QUOTAS.js";
+import {
+  CHARACTER_COMPANION_LIMIT,
+  ENCOUNTER_MAX_CREATURES,
+  PARTY_GROUP_MAX_MEMBERS
+} from "../constants/QUOTAS.js";
 import {
   createLiveEncounterCreatureWithEffectivePlayerVisibility,
   createPlayerVisibleLiveEncounterCreature,
@@ -25,7 +30,7 @@ import {
 } from "./liveEncounterPlayerVisibility.js";
 
 const LIVE_ENCOUNTER_TRACKER_MAX_PARTICIPANTS =
-  PARTY_GROUP_MAX_MEMBERS + ENCOUNTER_MAX_CREATURES;
+  PARTY_GROUP_MAX_MEMBERS * (CHARACTER_COMPANION_LIMIT + 1) + ENCOUNTER_MAX_CREATURES;
 
 type DocumentIdSource = {
   _id?: Types.ObjectId | { toString(): string };
@@ -71,9 +76,27 @@ export type CampaignLiveEncounterTrackerPartyMemberRecord =
     user: PartyGroupMemberUser;
     summary: CharacterSheetSummaryRecord;
     statBlock?: CharacterEncounterStatBlockRecord;
+    companions: CharacterEncounterCompanionSummaryRecord[];
     avatar: ReturnType<typeof toAvatarResponse>;
     updatedAt: string | null;
   };
+
+export type CampaignLiveEncounterTrackerPartyCompanionRecord =
+  CampaignLiveEncounterParticipantRefRecord & {
+    kind: "party-companion";
+    characterId: string;
+    companionId: string;
+    ownerId: string;
+    user: PartyGroupMemberUser;
+    summary: CharacterSheetSummaryRecord;
+    companion: CharacterEncounterCompanionSummaryRecord;
+    avatar: ReturnType<typeof toAvatarResponse>;
+    updatedAt: string | null;
+  };
+
+export type CampaignLiveEncounterTrackerPartyParticipantRecord =
+  | CampaignLiveEncounterTrackerPartyMemberRecord
+  | CampaignLiveEncounterTrackerPartyCompanionRecord;
 
 export type CampaignLiveEncounterTrackerCreatureRecord =
   CampaignLiveEncounterParticipantRefRecord & {
@@ -85,6 +108,7 @@ export type CampaignLiveEncounterTrackerCreatureRecord =
   };
 
 export type CampaignLiveEncounterTrackerParticipantRecord =
+  | CampaignLiveEncounterTrackerPartyCompanionRecord
   | CampaignLiveEncounterTrackerPartyMemberRecord
   | CampaignLiveEncounterTrackerCreatureRecord;
 
@@ -95,7 +119,7 @@ export type CampaignLiveEncounterTrackerDetailRecord = {
   activeParticipantId: string | null;
   roundNumber: number;
   status: LiveEncounterTrackerStatusRecord;
-  partyMembers: CampaignLiveEncounterTrackerPartyMemberRecord[];
+  partyMembers: CampaignLiveEncounterTrackerPartyParticipantRecord[];
   creatures: CampaignLiveEncounterTrackerCreatureRecord[];
   initiativeOrder: CampaignLiveEncounterTrackerParticipantRecord[];
   revision: number;
@@ -106,7 +130,7 @@ export type CampaignLiveEncounterTrackerDetailRecord = {
 type LiveEncounterSourceContext = {
   allowedRefsByParticipantId: Map<string, CampaignLiveEncounterParticipantRefRecord>;
   creaturesByParticipantId: Map<string, CampaignLiveEncounterTrackerCreatureRecord>;
-  partyMembersByParticipantId: Map<string, CampaignLiveEncounterTrackerPartyMemberRecord>;
+  partyMembersByParticipantId: Map<string, CampaignLiveEncounterTrackerPartyParticipantRecord>;
   preparedEncounter: CampaignPreparedEncounterRecord;
 };
 
@@ -120,6 +144,12 @@ export type ReconciledLiveEncounterLists = {
 type PartyMemberParticipantRefRecord = CampaignLiveEncounterParticipantRefRecord & {
   kind: "party-member";
   characterId: string;
+};
+
+type PartyCompanionParticipantRefRecord = CampaignLiveEncounterParticipantRefRecord & {
+  kind: "party-companion";
+  characterId: string;
+  companionId: string;
 };
 
 type CreatureParticipantRefRecord = CampaignLiveEncounterParticipantRefRecord & {
@@ -151,6 +181,10 @@ export function createPartyMemberParticipantId(characterId: string) {
   return `member:${characterId}`;
 }
 
+function createPartyCompanionParticipantId(characterId: string, companionId: string) {
+  return `companion:${characterId}:${companionId}`;
+}
+
 function createCreatureParticipantId(creatureId: string) {
   return `creature:${creatureId}`;
 }
@@ -162,6 +196,18 @@ function createPartyMemberParticipantRef(
     participantId: createPartyMemberParticipantId(characterId),
     kind: "party-member",
     characterId
+  };
+}
+
+function createPartyCompanionParticipantRef(
+  characterId: string,
+  companionId: string
+): PartyCompanionParticipantRefRecord {
+  return {
+    participantId: createPartyCompanionParticipantId(characterId, companionId),
+    kind: "party-companion",
+    characterId,
+    companionId
   };
 }
 
@@ -287,23 +333,45 @@ async function loadPartyMemberRecords(partyGroup: PartyGroupSource) {
     ])
   );
 
-  return orderedCharacters.map((character) => {
+  return orderedCharacters.flatMap((character) => {
     const characterId = getDocumentId(character);
     const statBlock = character.summary.encounterStatBlock;
+    const companionSummaries = (character.summary.companions ?? []).slice(
+      0,
+      CHARACTER_COMPANION_LIMIT
+    );
     const ownerId = character.ownerId.toString();
-
-    return {
+    const user = userById.get(ownerId) ?? {
+      id: ownerId,
+      nickname: "Unknown Player"
+    };
+    const avatar = toAvatarResponse(character.avatar);
+    const updatedAt = toIsoTimestamp(character.updatedAt);
+    const memberRecord = {
       ...createPartyMemberParticipantRef(characterId),
       ownerId,
-      user: userById.get(ownerId) ?? {
-        id: ownerId,
-        nickname: "Unknown Player"
-      },
+      user,
       summary: character.summary,
       ...(statBlock ? { statBlock } : {}),
-      avatar: toAvatarResponse(character.avatar),
-      updatedAt: toIsoTimestamp(character.updatedAt)
+      companions: companionSummaries.filter((companion) => companion.separateInitiative !== true),
+      avatar,
+      updatedAt
     } satisfies CampaignLiveEncounterTrackerPartyMemberRecord;
+    const companionRecords = companionSummaries
+      .filter((companion) => companion.separateInitiative === true)
+      .map(
+        (companion): CampaignLiveEncounterTrackerPartyCompanionRecord => ({
+          ...createPartyCompanionParticipantRef(characterId, companion.id),
+          ownerId,
+          user,
+          summary: character.summary,
+          companion,
+          avatar,
+          updatedAt
+        })
+      );
+
+    return [memberRecord, ...companionRecords];
   });
 }
 
@@ -373,7 +441,12 @@ async function loadLiveEncounterSourceContext(options: {
   const allowedRefsByParticipantId = new Map<string, CampaignLiveEncounterParticipantRefRecord>();
 
   partyMembers.forEach((member) => {
-    allowedRefsByParticipantId.set(member.participantId, createPartyMemberParticipantRef(member.characterId));
+    allowedRefsByParticipantId.set(
+      member.participantId,
+      member.kind === "party-companion"
+        ? createPartyCompanionParticipantRef(member.characterId, member.companionId)
+        : createPartyMemberParticipantRef(member.characterId)
+    );
   });
   creatures.forEach((creature) => {
     allowedRefsByParticipantId.set(creature.participantId, createCreatureParticipantRef(creature.creatureId));
@@ -441,7 +514,7 @@ function reconcileLiveEncounterLists(
       return;
     }
 
-    if (ref.kind === "party-member") {
+    if (ref.kind === "party-member" || ref.kind === "party-companion") {
       partyMembers.push(ref);
     } else {
       creatures.push(ref);
@@ -468,7 +541,7 @@ function hydrateParticipantRef(
   ref: CampaignLiveEncounterParticipantRefRecord,
   sourceContext: LiveEncounterSourceContext
 ): CampaignLiveEncounterTrackerParticipantRecord | null {
-  if (ref.kind === "party-member") {
+  if (ref.kind === "party-member" || ref.kind === "party-companion") {
     return sourceContext.partyMembersByParticipantId.get(ref.participantId) ?? null;
   }
 
@@ -499,7 +572,7 @@ function toCampaignLiveEncounterTrackerDetailRecordFromContext(options: {
     status: {
       state: "valid"
     },
-    partyMembers: hydrateParticipantList<CampaignLiveEncounterTrackerPartyMemberRecord>(
+    partyMembers: hydrateParticipantList<CampaignLiveEncounterTrackerPartyParticipantRecord>(
       reconciledLists.partyMembers,
       options.sourceContext
     ),
@@ -681,6 +754,22 @@ function normalizeParticipantRef(value: unknown): CampaignLiveEncounterParticipa
     return createPartyMemberParticipantRef(characterId);
   }
 
+  if (value.kind === "party-companion") {
+    const characterId = typeof value.characterId === "string" ? value.characterId.trim() : "";
+    const companionId = typeof value.companionId === "string" ? value.companionId.trim() : "";
+    const participantId = typeof value.participantId === "string" ? value.participantId.trim() : "";
+
+    if (
+      !characterId ||
+      !companionId ||
+      participantId !== createPartyCompanionParticipantId(characterId, companionId)
+    ) {
+      throw new AppError("Party companion participant is invalid.", 400, "INVALID_LIVE_ENCOUNTER_INPUT");
+    }
+
+    return createPartyCompanionParticipantRef(characterId, companionId);
+  }
+
   if (value.kind === "creature") {
     const creatureId = typeof value.creatureId === "string" ? value.creatureId.trim() : "";
     const participantId = typeof value.participantId === "string" ? value.participantId.trim() : "";
@@ -773,7 +862,10 @@ export async function startCampaignLiveEncounterTracker(options: {
   });
 
   campaign.liveEncounterTracker.partyMembers = [...sourceContext.partyMembersByParticipantId.values()].map(
-    (member) => createPartyMemberParticipantRef(member.characterId)
+    (member) =>
+      member.kind === "party-companion"
+        ? createPartyCompanionParticipantRef(member.characterId, member.companionId)
+        : createPartyMemberParticipantRef(member.characterId)
   );
   campaign.liveEncounterTracker.creatures = [...sourceContext.creaturesByParticipantId.values()].map(
     (creature) => createCreatureParticipantRef(creature.creatureId)

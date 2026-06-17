@@ -17,7 +17,7 @@ import { Skull, Swords, Users } from "lucide-react";
 import type {
   CampaignLiveEncounterTrackerCreatureRecord,
   CampaignLiveEncounterTrackerParticipantRecord,
-  CampaignLiveEncounterTrackerPartyMemberRecord,
+  CampaignLiveEncounterTrackerPartyParticipantRecord,
   CampaignLiveEncounterTrackerRecord
 } from "../../api/campaigns";
 import {
@@ -52,7 +52,7 @@ type TrackerListProps = {
 function getSourceListKey(
   participant: CampaignLiveEncounterTrackerParticipantRecord
 ): Exclude<LiveEncounterTrackerListKey, "initiativeOrder"> {
-  return participant.kind === "party-member" ? "partyMembers" : "creatures";
+  return participant.kind === "creature" ? "creatures" : "partyMembers";
 }
 
 function moveParticipantIntoInitiative(
@@ -67,7 +67,7 @@ function moveParticipantIntoInitiative(
     return tracker;
   }
 
-  if (participant.kind === "party-member") {
+  if (participant.kind !== "creature") {
     return {
       ...tracker,
       partyMembers: tracker.partyMembers.filter(
@@ -106,7 +106,7 @@ function returnParticipantToSourceList(
       initiativeOrder: nextInitiativeOrder,
       partyMembers: [
         ...tracker.partyMembers,
-        participant as CampaignLiveEncounterTrackerPartyMemberRecord
+        participant as CampaignLiveEncounterTrackerPartyParticipantRecord
       ]
     };
   }
@@ -163,7 +163,14 @@ function TrackerList({
         {headerAction}
       </div>
 
-      <div className={styles.liveTrackerParticipantList}>
+      <div
+        className={[
+          styles.liveTrackerParticipantList,
+          isInitiativeList ? styles.liveTrackerInitiativeParticipantList : null
+        ]
+          .filter(Boolean)
+          .join(" ")}
+      >
         {participants.length > 0 ? (
           shouldUseSortableCards ? (
             <SortableContext

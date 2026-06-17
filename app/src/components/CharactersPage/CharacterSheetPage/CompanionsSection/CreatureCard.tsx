@@ -125,6 +125,9 @@ function CreatureCard({
 
         <span className={styles.metaColumn}>
           <span className={styles.tagRow}>
+            {creature.separateInitiative ? (
+              <span className={styles.separateInitiativeTag}>Separate Initiative</span>
+            ) : null}
             <span className={styles.sourceTag}>{sourceLabel}</span>
             {isModified ? <span className={styles.moddedTag}>Modded</span> : null}
           </span>

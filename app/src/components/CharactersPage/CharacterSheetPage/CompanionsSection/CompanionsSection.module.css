@@ -13,6 +13,27 @@
   margin-left: auto;
 }
 
+.companionCount {
+  border: 1px solid rgba(75, 47, 29, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.44);
+  color: var(--color-ink-soft);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1;
+  padding: 0.36rem 0.52rem;
+  white-space: nowrap;
+}
+
+:global(html[data-theme="dark"]) .companionCount {
+  border-color: var(--theme-border-medium);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.095), rgba(255, 255, 255, 0.055)),
+    var(--theme-surface-raised);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  color: var(--theme-text-primary);
+}
+
 .browserBackdrop {
   z-index: 47;
 }
@@ -143,6 +164,25 @@
   margin: 0;
   color: #8f3428;
   font-size: 0.9rem;
+}
+
+.initiativeToggleField {
+  border: 1px solid rgba(75, 47, 29, 0.12);
+  border-radius: var(--radius-control);
+  background: var(--color-panel-surface);
+  padding: 0.75rem 0.8rem;
+}
+
+.initiativeToggleLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--theme-text-primary);
+  font-size: 0.94rem;
+}
+
+.initiativeToggleLabel input {
+  accent-color: var(--color-accent);
 }
 
 .browserBody {

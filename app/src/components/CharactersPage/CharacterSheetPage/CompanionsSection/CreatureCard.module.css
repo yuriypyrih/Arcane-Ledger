@@ -106,6 +106,7 @@
 }
 
 .sourceTag,
+.separateInitiativeTag,
 .moddedTag {
   display: inline-flex;
   align-items: center;
@@ -116,6 +117,11 @@
   line-height: 1.2;
   padding: 0.2rem 0.52rem;
   white-space: nowrap;
+}
+
+.separateInitiativeTag {
+  background: rgba(47, 120, 255, 0.12);
+  color: #245cbd;
 }
 
 .sourceTag {
@@ -234,6 +240,11 @@
 
 :global(html[data-theme="dark"]) .removeButton {
   color: var(--theme-state-danger);
+}
+
+:global(html[data-theme="dark"]) .separateInitiativeTag {
+  background: rgba(47, 120, 255, 0.18);
+  color: var(--theme-state-info);
 }
 
 .visibilityActiveIcon {

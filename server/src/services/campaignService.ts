@@ -39,6 +39,7 @@ export const CAMPAIGN_MAX_PREPARED_ENCOUNTERS = CAMPAIGN_MAX_PREPARED_ENCOUNTERS
 const DEFAULT_PLAYER_VISIBILITY_SETTINGS: PlayerVisibilitySettingsRecord = {
   showVitalityStatus: true,
   showHpBar: false,
+  showDeathSaves: false,
   showMonsterType: false,
   showBaseStatBlockDescription: false,
   showDmDescription: false,

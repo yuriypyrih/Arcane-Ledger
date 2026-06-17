@@ -33,6 +33,27 @@
 .spellList {
   display: grid;
   gap: 0.45rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.spellResultsSection {
+  display: grid;
+  gap: 0.45rem;
+  border: 1px solid var(--theme-border-subtle);
+  border-radius: var(--radius-panel);
+  background: var(--theme-surface-section);
+  box-shadow: var(--theme-section-shadow);
+  padding: var(--space-card-padding-tight);
+}
+
+:global(html[data-theme="dark"]) .spellResultsSection {
+  background: var(--theme-surface-panel);
+}
+
+.spellListItem {
+  min-width: 0;
 }
 
 .cardButton {

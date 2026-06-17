@@ -18,12 +18,16 @@
 }
 
 .tempHpTriggerActive {
-  border-color: rgba(69, 143, 214, 0.58);
-  background: linear-gradient(180deg, rgba(224, 243, 255, 0.96), rgba(143, 205, 255, 0.88));
-  color: #15507d;
+  border-color: var(--theme-magic-temp-hit-points-border);
+  background: var(--theme-magic-temp-hit-points-surface);
+  color: var(--theme-magic-temp-hit-points-text);
   box-shadow:
-    0 0 0 1px rgba(74, 152, 221, 0.16),
-    0 0 14px rgba(76, 160, 232, 0.22);
+    0 0 0 1px var(--theme-magic-temp-hit-points-ring),
+    0 0 14px var(--theme-magic-temp-hit-points-glow);
+}
+
+.tempHpTriggerActive svg {
+  color: var(--theme-magic-temp-hit-points-icon);
 }
 
 .tempHpTriggerCount {

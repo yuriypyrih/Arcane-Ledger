@@ -1,7 +1,10 @@
 import type { CharacterCompanion } from "../types";
 import { apiDelete, apiGet, apiPatch, apiPost, apiPut, type ApiRequestOptions } from "./client";
 
-export type EncounterTemplateCreatureRecord = Omit<CharacterCompanion, "role">;
+export type EncounterTemplateCreatureRecord = Omit<
+  CharacterCompanion,
+  "role" | "separateInitiative" | "source"
+>;
 
 export type EncounterTemplateRecord = {
   id: string;

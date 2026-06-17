@@ -1,5 +1,3 @@
-import clsx from "clsx";
-import { Skull } from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import type { RollMode } from "../../../../../types";
 import d20Icon from "../../../../../assets/svg/d20.svg";
@@ -26,6 +24,7 @@ import {
   overlayClassNames
 } from "../../../../Overlay";
 import DiceRollerSettingsButton from "./DiceRollerSettingsButton";
+import { DeathSaveDots, DeathSavesIndicatorContent } from "./DeathSavesIndicator";
 import styles from "./DeathSavesWidget.module.css";
 
 type DeathSaveTrack = "success" | "failure";
@@ -46,6 +45,10 @@ type DeathSavesTrackerProps = {
   onReset?: () => void;
   onUpdate?: (track: DeathSaveTrack) => void;
 };
+
+function formatDeathSavesAriaLabel(deathSaves: DeathSaveTrackState) {
+  return `Death saves: ${deathSaves.successes} successes and ${deathSaves.failures} failures`;
+}
 
 function DeathSavesTracker({
   deathSaves,
@@ -99,45 +102,21 @@ function DeathSavesTracker({
     });
   }
 
-  function renderDeathSaveDots(track: DeathSaveTrack) {
-    const current = track === "success" ? deathSaves.successes : deathSaves.failures;
-    const dotClassName = track === "success" ? styles.dotSuccess : styles.dotFailure;
-
-    return (
-      <span className={styles.dotsRow} aria-hidden="true">
-        {Array.from({ length: 3 }, (_, index) => (
-          <span
-            key={`${track}-${index}`}
-            className={clsx(styles.dot, dotClassName, index < current && styles.dotActive)}
-          />
-        ))}
-      </span>
-    );
-  }
-
   return (
     <>
       <button
         type="button"
-        className={styles.trigger}
+        className={`${styles.trigger} ${!canEdit ? styles.triggerReadOnly : ""}`}
         disabled={!canEdit}
         onClick={() => {
           if (canEdit) {
             setIsModalOpen(true);
           }
         }}
-        aria-label={`Death saves: ${deathSaves.successes} successes and ${deathSaves.failures} failures`}
-        title={canEdit ? "Manage death saves" : "Death saves"}
+        aria-label={formatDeathSavesAriaLabel(deathSaves)}
+        title={canEdit ? "Manage death saves" : undefined}
       >
-        <Skull size={15} aria-hidden="true" />
-        <span className={styles.triggerLabel}>{title}</span>
-        <span className={styles.triggerDots}>
-          {renderDeathSaveDots("success")}
-          <span className={styles.dotDivider} aria-hidden="true">
-            |
-          </span>
-          {renderDeathSaveDots("failure")}
-        </span>
+        <DeathSavesIndicatorContent deathSaves={deathSaves} title={title} />
       </button>
 
       {isModalOpen && canEdit ? (
@@ -179,11 +158,11 @@ function DeathSavesTracker({
             <div className={styles.modalTracker} aria-label="Death save tracker">
               <div className={styles.trackRow}>
                 <span>Successes</span>
-                {renderDeathSaveDots("success")}
+                <DeathSaveDots deathSaves={deathSaves} track="success" />
               </div>
               <div className={styles.trackRow}>
                 <span>Failures</span>
-                {renderDeathSaveDots("failure")}
+                <DeathSaveDots deathSaves={deathSaves} track="failure" />
               </div>
             </div>
           </OverlayBody>

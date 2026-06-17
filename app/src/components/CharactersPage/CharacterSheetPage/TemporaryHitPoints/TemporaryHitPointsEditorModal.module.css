@@ -50,6 +50,13 @@
   padding: 0.78rem 0.9rem;
 }
 
+:global(html[data-theme="dark"]) .detailItem {
+  border-color: var(--theme-magic-temp-hit-points-border);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.025)),
+    var(--theme-surface-panel);
+}
+
 .detailLabel {
   color: var(--color-ink-soft);
   font-size: 0.76rem;
@@ -61,6 +68,10 @@
   color: #15507d;
   font-size: 1.24rem;
   line-height: 1;
+}
+
+:global(html[data-theme="dark"]) .detailValue {
+  color: var(--theme-magic-temp-hit-points-text);
 }
 
 .footerActions {

@@ -143,7 +143,14 @@ function CharacterPortraitPanel({
     <>
       <OverlayBody className={styles.portraitModalBody}>
         {modeSwitch}
-        <div className={styles.portraitPreviewFrame}>
+        <div
+          className={[
+            styles.portraitPreviewFrame,
+            pendingPreviewUrl ? styles.portraitPreviewFrameEditing : ""
+          ]
+            .join(" ")
+            .trim()}
+        >
           {pendingPreviewUrl ? (
             <img
               src={pendingPreviewUrl}
