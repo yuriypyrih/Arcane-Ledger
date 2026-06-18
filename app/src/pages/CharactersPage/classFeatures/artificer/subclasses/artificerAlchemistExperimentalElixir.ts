@@ -9,7 +9,7 @@ import {
   INVENTORY_FEATURE_TAG_CONJURED
 } from "../../../inventoryItems";
 import { createCustomItemRecordFromMods } from "../../../itemMods";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
+import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellSlots";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import type { SubclassRuntimeCharacter } from "../../subclassRuntime";
 import type { FeatureActionCard } from "../../types";

@@ -17,7 +17,7 @@ import {
   type FeatureContributionSpec
 } from "../../../featureContributions";
 import { getProficiencyBonus, type WeaponAction } from "../../../gameplay";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
+import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellSlots";
 import { appendWeaponActionCardBonusLabel } from "../../../weaponActionCardBreakdown";
 import {
   createCharacterStatusEntry,
@@ -40,9 +40,9 @@ import {
   expendPaladinChannelDivinityUse,
   hasActivePaladinAuraOfProtection,
   hasPaladinFeature,
-  getPaladinChannelDivinityUsesRemaining,
-  paladinsSmiteActionKey
-} from "../paladin";
+  getPaladinChannelDivinityUsesRemaining
+} from "../base";
+import { paladinsSmiteActionKey } from "../actionKeys";
 
 export const oathOfDevotionSubclassId = "paladin-oath-of-devotion";
 export const paladinOathOfDevotionSacredWeaponStatusSourceId =

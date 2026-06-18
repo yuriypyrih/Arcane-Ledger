@@ -42,7 +42,7 @@ import {
   type CharacterWarlockFeatureState
 } from "../../../../types";
 import type { ItemRecord } from "../../../../types";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../spellcasting";
+import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../spellSlots";
 import type { WeaponAction } from "../../gameplay";
 import {
   addConjuredPactOfTheBladeInventoryItem,

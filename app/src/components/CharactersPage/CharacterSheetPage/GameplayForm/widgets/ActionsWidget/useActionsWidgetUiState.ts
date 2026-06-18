@@ -1,101 +1,8 @@
 import { useCallback, useMemo, useReducer, type Dispatch, type SetStateAction } from "react";
-import type { AbilityKey } from "../../../../../../types";
-import type { SpellEntry } from "../../../../../../codex/entries";
-import type { MysticArcanumLevel } from "../../../../../../pages/CharactersPage/classFeatures/warlock/warlock";
-import type { DruidStarryFormConstellation } from "../../../../../../pages/CharactersPage/classFeatures/druid/druid";
-import type { LayOnHandsCondition } from "../../../../../../pages/CharactersPage/classFeatures/paladin/paladin";
-import type { PaladinOathOfTheNobleGeniesElementalSmiteOptionKey } from "../../../../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfTheNobleGenies";
-import type { ArtificerExperimentalElixirOptionKey } from "../../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
-import type { WizardDivinerThirdEyeOptionKey } from "../../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardDivinerThirdEyeConfig";
 import type {
-  AasimarCelestialRevelationOptionKey,
-  AasimarHealingHandsTarget
-} from "../../../../../../pages/CharactersPage/species";
-import type { LayOnHandsTarget } from "./LayOnHandsAction";
-import type { MonkHandOfHealingTarget } from "./MonkHandOfHealingAction";
-import type {
-  BlessingOfTheTricksterTarget,
-  FontOfMagicSelection,
-  WildCompanionResourceKind,
-  WildResurgenceMode
+  ActionsWidgetUiState,
+  ActionsWidgetUiStateResult
 } from "./types";
-
-type ActionsWidgetUiState = {
-  isCommonActionsOpen: boolean;
-  isCustomActionsOpen: boolean;
-  selectedActionKey: string | null;
-  selectedActionOptionKeys: string[];
-  selectedChannelDivinityOptionKey: string | null;
-  selectedFontOfMagicSelection: FontOfMagicSelection | null;
-  selectedWildShapeMonsterSlug: string | null;
-  selectedWildCompanionResource: WildCompanionResourceKind;
-  selectedBardicInspirationSpellSlotLevel: number | null;
-  selectedArcaneWardSpellSlotLevel: number | null;
-  selectedExperimentalElixirOptionKey: ArtificerExperimentalElixirOptionKey | null;
-  selectedExperimentalElixirSpellSlotLevel: number | null;
-  selectedArtificerEldritchCannonSpellSlotLevel: number | null;
-  selectedArtificerSteelDefenderSpellSlotLevel: number | null;
-  selectedBeastMasterReviveSpellSlotLevel: number | null;
-  selectedWildCompanionSpellSlotLevel: number;
-  selectedWildResurgenceMode: WildResurgenceMode | null;
-  selectedWildResurgenceSpellSlotLevel: number;
-  selectedNatureMagicianSpellSlotLevel: number | null;
-  selectedLayOnHandsTarget: LayOnHandsTarget;
-  selectedLayOnHandsPoolSpendInput: string;
-  selectedLayOnHandsConditions: LayOnHandsCondition[];
-  selectedAasimarHealingHandsTarget: AasimarHealingHandsTarget;
-  selectedAasimarCelestialRevelationOptionKey: AasimarCelestialRevelationOptionKey | null;
-  selectedBlessingOfTheTricksterTarget: BlessingOfTheTricksterTarget;
-  selectedHandOfHealingTarget: MonkHandOfHealingTarget;
-  selectedThirdEyeOptionKey: WizardDivinerThirdEyeOptionKey | null;
-  selectedStarryFormConstellation: DruidStarryFormConstellation | null;
-  selectedWildShapePreviewSlug: string | null;
-  selectedRageOptionKey: string | null;
-  selectedRagePowerOptionKey: string | null;
-  isRageOfTheGodsSelected: boolean;
-  selectedIndomitableAbility: AbilityKey | null;
-  selectedWarriorOfTheGodsChargeCount: number;
-  isFixedSpellDrawerOpen: boolean;
-  selectedFixedSpellSlotLevel: number;
-  isDiceRollerSettingsOpen: boolean;
-  selectedDivineInterventionSpell: SpellEntry | null;
-  selectedMysticArcanumSpell: SpellEntry | null;
-  selectedMysticArcanumSpellLevel: MysticArcanumLevel | null;
-  useBeguilingMagicOnActionSpell: boolean;
-  useElementalSmiteOnActionSpell: boolean;
-  useGoliathAncestryOnActionSpell: boolean;
-  selectedElementalSmiteOptionOnActionSpell: PaladinOathOfTheNobleGeniesElementalSmiteOptionKey | null;
-  useFrozenHauntOnActionSpell: boolean;
-  selectedFrozenHauntFallbackSlotLevel: number;
-  isCrownOfSpellfireSelected: boolean;
-  isFortifyingSoulIncludingSelfSelected: boolean;
-  isInspiredEclipseSelected: boolean;
-  isGroupRecoverySelected: boolean;
-  isClairvoyantCombatantSelected: boolean;
-  isEldritchSmiteSelected: boolean;
-  isLifedrinkerSelected: boolean;
-  isPsionicStrikeSelected: boolean;
-  isDreadfulStrikeSelected: boolean;
-  isColossusSlayerSelected: boolean;
-  isPolarStrikesSelected: boolean;
-  isGoliathAncestryStrikeSelected: boolean;
-  isHuntersMarkTargetSelected: boolean;
-  isRecklessAttackSelected: boolean;
-  isSacredWeaponSelected: boolean;
-  isVowOfEnmitySelected: boolean;
-  isStunningStrikeSelected: boolean;
-  isHandOfHarmSelected: boolean;
-  isFlurryOfHealingAndHarmSelected: boolean;
-  isEmpoweredStrikesSelected: boolean;
-  isQuiveringPalmSelected: boolean;
-  isImprovedShadowStepSelected: boolean;
-};
-
-type FieldSetterMap = {
-  [K in keyof ActionsWidgetUiState as `set${Capitalize<string & K>}`]: Dispatch<
-    SetStateAction<ActionsWidgetUiState[K]>
-  >;
-};
 
 type ActionsWidgetUiAction =
   | {
@@ -109,12 +16,6 @@ type ActionsWidgetUiAction =
   | {
       type: "reset-action-selection";
     };
-
-type ActionsWidgetUiStateResult = ActionsWidgetUiState &
-  FieldSetterMap & {
-    resetActionDrawerState: () => void;
-    resetActionSelectionState: () => void;
-  };
 
 function createInitialState(
   frozenHauntFallbackSpellSlotMinimumLevel: number

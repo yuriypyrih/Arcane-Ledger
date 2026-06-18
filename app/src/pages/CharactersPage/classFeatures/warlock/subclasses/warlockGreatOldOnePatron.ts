@@ -6,7 +6,7 @@ import {
   SPELL_LIST_CLASS,
   type SpellEntry
 } from "../../../../../codex/entries";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
+import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellSlots";
 import { warlockFeatures } from "../../../../../codex/classes";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character, CharacterWarlockFeatureState } from "../../../../../types";

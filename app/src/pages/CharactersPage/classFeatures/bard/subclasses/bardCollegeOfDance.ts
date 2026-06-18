@@ -18,7 +18,7 @@ import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import { createDefaultFeatureActionDescription } from "../../subclassRuntime";
 import type { FeatureActionCard, WeaponAttackConsumptionContext } from "../../types";
-import { getBardicInspirationDie } from "../bard";
+import { getBardicInspirationDie } from "../base";
 
 export const collegeOfDanceSubclassId = "bard-college-of-dance";
 export const bardCollegeOfDanceInspiringMovementReactionId = "reaction-inspiring-movement";

@@ -35,7 +35,7 @@ import {
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
 } from "../../../featureContributions";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
+import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellSlots";
 import {
   createCharacterStatusEntry,
   normalizeCharacterStatusEntries
@@ -64,7 +64,7 @@ import {
   getPaladinChannelDivinityUsesRemaining,
   hasActivePaladinAuraOfProtection,
   hasPaladinFeature
-} from "../paladin";
+} from "../base";
 
 export const oathOfTheNobleGeniesSubclassId = "paladin-oath-of-the-noble-genies";
 export const paladinOathOfTheNobleGeniesGeniesSplendorSkillOptions = [
@@ -197,6 +197,15 @@ export const paladinOathOfTheNobleGeniesElementalSmiteOptions = [
 
 export type PaladinOathOfTheNobleGeniesElementalSmiteOptionKey =
   (typeof paladinOathOfTheNobleGeniesElementalSmiteOptions)[number]["key"];
+
+export function isPaladinOathOfTheNobleGeniesElementalSmiteOptionKey(
+  value: string | null | undefined
+): value is PaladinOathOfTheNobleGeniesElementalSmiteOptionKey {
+  return paladinOathOfTheNobleGeniesElementalSmiteOptions.some(
+    (option) => option.key === value
+  );
+}
+
 const elementalRebukeDescription = getOathOfTheNobleGeniesFeatureDescriptionEntries(
   CLASS_FEATURE.ELEMENTAL_REBUKE
 );

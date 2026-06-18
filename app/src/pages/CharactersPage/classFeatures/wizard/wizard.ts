@@ -18,12 +18,9 @@ import {
   SKILL
 } from "../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
-import {
-  getPreparedSpellSelectionOptionsForCharacter,
-  getSpellLevel,
-  getSpellSlotTotalsForCharacter,
-  normalizeSpellSlotsExpended
-} from "../../spellcasting";
+import { getPreparedSpellSelectionOptionsForCharacter } from "../../preparedSpellSelection";
+import { getSpellLevel } from "../../spellLevels";
+import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../spellSlots";
 import type {
   FeatureActionCard,
   FeatureSkillProficiencyEntry,

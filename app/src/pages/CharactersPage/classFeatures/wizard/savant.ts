@@ -4,7 +4,7 @@ import {
   type SpellEntry
 } from "../../../../codex/entries";
 import type { Character } from "../../../../types";
-import { getPreparedSpellSelectionOptionsForCharacter } from "../../spellcasting";
+import { getPreparedSpellSelectionOptionsForCharacter } from "../../preparedSpellSelection";
 
 const wizardSavantConfigsBySubclassId = {
   "wizard-abjurer": {

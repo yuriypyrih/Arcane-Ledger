@@ -17,6 +17,7 @@ import {
 } from "./monkHandOfHealingActionUtils";
 import DiceRollerSettingsButton from "../DiceRollerSettingsButton";
 import ActionFooterButtonRow from "./ActionFooterButtonRow";
+import type { MonkHandOfHealingTarget } from "./types";
 import targetStyles from "./HealingLightActionBody.module.css";
 
 type RoundTrackerAvailability = {
@@ -25,8 +26,6 @@ type RoundTrackerAvailability = {
   bonusActionAvailable: boolean;
   reactionAvailable: boolean;
 };
-
-export type MonkHandOfHealingTarget = "self" | "other";
 
 type MonkHandOfHealingActionCardProps = {
   action: FeatureActionCard;

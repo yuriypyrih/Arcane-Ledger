@@ -23,7 +23,7 @@ import type { WeaponAction } from "../../../gameplay";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import type { CoreStatIndicatorMap, FeatureActionCard, FeatureActionFact } from "../../types";
 import type { RogueSneakAttackEffectKey } from "../types";
-import { rogueSneakAttackActionKey, rogueSteadyAimActionKey } from "../rogue";
+import { rogueSneakAttackActionKey, rogueSteadyAimActionKey } from "../actionKeys";
 
 export const assassinSubclassId = "rogue-assassin";
 

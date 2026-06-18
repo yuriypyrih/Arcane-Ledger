@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment, @typescript-eslint/no-explicit-any */
-// @ts-nocheck
+import type { CastSelectedSpellOptions, SpellCastingFormRendererContext } from "./types";
 
-export function renderSpellCastingForm(context: Record<string, any>) {
+export function renderSpellCastingForm(context: SpellCastingFormRendererContext) {
   const {
     CharacterSpellDrawer,
     CircleHelp,
@@ -443,7 +442,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
           selectedSpellSlotLevel={selectedSpellSlotLevel}
           onSelectedSpellSlotLevelChange={setSelectedSpellSlotLevel}
           onClose={closeSelectedSpell}
-          onAction={(options) =>
+          onAction={(options: CastSelectedSpellOptions = {}) =>
             castSelectedSpell({
               ...options,
               useBeguilingMagic: useBeguilingMagicOnSelectedSpell,

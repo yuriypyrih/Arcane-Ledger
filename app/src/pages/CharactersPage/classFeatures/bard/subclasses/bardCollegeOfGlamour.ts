@@ -14,7 +14,7 @@ import {
 } from "../../../../../types";
 import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
+import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellSlots";
 import {
   compileFeatureContributions,
   createSubclassContributionSource,
@@ -38,7 +38,7 @@ import {
   expendBardicInspirationUse,
   getBardicInspirationUsesRemaining,
   getBardicInspirationUsesTotal
-} from "../bard";
+} from "../base";
 
 export const collegeOfGlamourSubclassId = "bard-college-of-glamour";
 export const mantleOfInspirationActionKey = "bard-mantle-of-inspiration";

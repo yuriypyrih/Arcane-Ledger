@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import clsx from "clsx";
 import { useEffect, useMemo, useState } from "react";
 import CellContainer from "../../../../../CellContainer/CellContainer";
@@ -428,7 +427,10 @@ import {
   resolveFeatureSavingThrowBonusTotal,
   shouldConsumeMonkFleetStepFollowUp
 } from "./actionHelpers";
-import type { ActionsWidgetProps } from "./types";
+import type {
+  ActionsWidgetDrawerFooterContext,
+  ActionsWidgetProps
+} from "./types";
 import { useActionsWidgetUiState } from "./useActionsWidgetUiState";
 import { useActionsWidgetExecution } from "./useActionsWidgetExecution";
 import { useActionsWidgetActions } from "./useActionsWidgetActions";
@@ -502,7 +504,7 @@ function getSelectedActionToastTrigger(
   return action.economyType;
 }
 
-export function renderActionDrawerFooter(context: Record<string, any>) {
+export function renderActionDrawerFooter(context: ActionsWidgetDrawerFooterContext) {
   const {
     arcaneWardSpellSlotOptions,
     bardicInspirationFallbackSpellSlotOptions,

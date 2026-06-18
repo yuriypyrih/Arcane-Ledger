@@ -2,7 +2,7 @@ import { CLASS_FEATURE } from "../../../../../codex/entries";
 import type { Character, CharacterDruidFeatureState } from "../../../../../types";
 import { getSelectedSubclassForCharacter, getSubclassFeatureDetails } from "../../../subclasses";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
+import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellSlots";
 import {
   compileFeatureContributions,
   createSubclassContributionSource,
@@ -31,11 +31,10 @@ import {
   hasDruidLunarFormFeature,
   hasDruidMoonlightStepFeature
 } from "./druidCircleOfTheMoonFeatures";
+import { druidMoonlightStepActionKey } from "../actionKeys";
 import {
-  druidMoonlightStepActionKey,
-  getDruidWildShapeActiveForm,
-  normalizeDruidFeatureState
-} from "../druid";
+  getDruidWildShapeActiveForm
+} from "../base";
 
 export const circleOfTheMoonSpellIdsByLevel = {
   3: resolveSpellIdsByName(["Cure Wounds", "Moonbeam", "Starry Wisp"]),
@@ -181,7 +180,7 @@ export function getDruidMoonlightStepFallbackSlotSummary(
 
 export function restoreDruidMoonlightStepOnLongRest(
   character: Character,
-  druidState = normalizeDruidFeatureState(character.classFeatureState?.druid, character)
+  druidState: CharacterDruidFeatureState = character.classFeatureState?.druid ?? {}
 ): Character {
   if (
     getDruidMoonlightStepUsesTotal(character) <= 0 ||
@@ -204,7 +203,7 @@ export function restoreDruidMoonlightStepOnLongRest(
 
 export function activateDruidMoonlightStep(
   character: Character,
-  druidState = normalizeDruidFeatureState(character.classFeatureState?.druid, character)
+  druidState: CharacterDruidFeatureState = character.classFeatureState?.druid ?? {}
 ): Character {
   if (!hasDruidMoonlightStepFeature(character)) {
     return character;

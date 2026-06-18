@@ -21,7 +21,7 @@ import {
   type FeatureContributionSpec
 } from "../../../featureContributions";
 import { getProficiencyBonus } from "../../../gameplay";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
+import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellSlots";
 import { swapTemporaryHitPointsAssignment } from "../../../shared";
 import { formatFormulaCell, formatSignedFormulaTerm } from "../../../shared/formulas";
 import {

@@ -4,10 +4,9 @@ import ActionShape, { type ActionShapeType } from "../../../../../ActionShape";
 import type { LayOnHandsCondition } from "../../../../../../pages/CharactersPage/classFeatures/paladin/paladin";
 import RadioContainerOption from "../../../RadioContainerOption";
 import { runWithActionConfirmationToast } from "../../../actionConfirmationToast";
+import type { LayOnHandsTarget } from "./types";
 import actionStyles from "./ActionsWidget.module.css";
 import styles from "./LayOnHandsAction.module.css";
-
-export type LayOnHandsTarget = "self" | "other";
 
 type LayOnHandsActionBodyProps = {
   conditionOptions: LayOnHandsCondition[];

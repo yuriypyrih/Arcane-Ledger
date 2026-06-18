@@ -19,7 +19,7 @@ import {
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
 } from "../../../featureContributions";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
+import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellSlots";
 import {
   createCharacterStatusEntry,
   normalizeCharacterStatusEntries
@@ -50,7 +50,7 @@ import {
   getPaladinChannelDivinityUsesTotal,
   hasActivePaladinAuraOfProtection,
   hasPaladinFeature
-} from "../paladin";
+} from "../base";
 
 export const oathOfTheAncientsSubclassId = "paladin-oath-of-the-ancients";
 export const naturesWrathActionKey = "paladin-natures-wrath";

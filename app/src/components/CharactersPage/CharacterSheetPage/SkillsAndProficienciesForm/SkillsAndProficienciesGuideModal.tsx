@@ -40,7 +40,7 @@ function SkillsAndProficienciesGuideModal({
         <section className={styles.section}>
           <p className={styles.sectionText}>
             You can manually add or remove some entries. If a skill or proficiency comes from a
-            feature, it is locked here; change it from the source feature instead.
+            feature, it is locked here. Change it from the source feature instead.
           </p>
         </section>
       </OverlayBody>

@@ -1,5 +1,5 @@
 import { CLASS_FEATURE, WEAPON_COMBAT_TYPE, getDivinityEntryById } from "../../../../codex/entries";
-import { paladinFeatureMap, paladinFeatures } from "../../../../codex/classes";
+import { paladinFeatureMap } from "../../../../codex/classes";
 import type {
   Character,
   CharacterPaladinFeatureState,
@@ -18,7 +18,7 @@ import {
 import { appendFeatureSourcedDescriptionAddition } from "../../actionModalDescriptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../combat";
-import { hasStatusCondition, normalizeCharacterStatusEntries } from "../../statusEntries";
+import { normalizeCharacterStatusEntries } from "../../statusEntries";
 import { getFeatureDescriptionForCharacter } from "../featureDescriptions";
 import {
   createHeaderTagsFromResources
@@ -44,11 +44,29 @@ import * as devotionSubclass from "./subclasses/paladinOathOfDevotion";
 import * as glorySubclass from "./subclasses/paladinOathOfGlory";
 import * as nobleGeniesSubclass from "./subclasses/paladinOathOfTheNobleGenies";
 import * as vengeanceSubclass from "./subclasses/paladinOathOfVengeance";
+import {
+  faithfulSteedActionKey,
+  paladinLayOnHandsActionKey,
+  paladinsSmiteActionKey
+} from "./actionKeys";
+import {
+  expendPaladinChannelDivinityUse,
+  getPaladinChannelDivinityUsesRemaining,
+  getPaladinChannelDivinityUsesTotal,
+  getPaladinFeatureRow,
+  hasActivePaladinAuraOfProtection,
+  hasPaladinFeature
+} from "./base";
+export { faithfulSteedActionKey, paladinLayOnHandsActionKey, paladinsSmiteActionKey } from "./actionKeys";
+export {
+  expendPaladinChannelDivinityUse,
+  getPaladinChannelDivinityUsesRemaining,
+  getPaladinChannelDivinityUsesTotal,
+  hasActivePaladinAuraOfProtection,
+  hasPaladinFeature
+} from "./base";
 
-export const paladinLayOnHandsActionKey = "paladin-lay-on-hands";
 export const paladinChannelDivinityActionKey = sharedPaladinChannelDivinityActionKey;
-export const paladinsSmiteActionKey = "paladin-paladins-smite";
-export const faithfulSteedActionKey = "paladin-faithful-steed";
 export const abjureFoesActionKey = "paladin-abjure-foes";
 export const holyNimbusActionKey = "paladin-holy-nimbus";
 export const peerlessAthleteActionKey = "paladin-peerless-athlete";
@@ -123,40 +141,6 @@ function getPaladinsSmiteDescription(): string[] {
   return (paladinFeatureMap[CLASS_FEATURE.PALADINS_SMITE]?.description ?? []).filter(
     (entry): entry is string => typeof entry === "string"
   );
-}
-
-function getPaladinFeatureRow(level: number) {
-  const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-  const matchingRows = paladinFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .sort((left, right) => left.level - right.level);
-
-  return matchingRows.length > 0 ? matchingRows[matchingRows.length - 1] : null;
-}
-
-function getUnlockedPaladinFeatures(level: number): Set<CLASS_FEATURE> {
-  const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-
-  return paladinFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .reduce((featureSet, row) => {
-      row.classFeatures.forEach((feature) => {
-        featureSet.add(feature);
-      });
-
-      return featureSet;
-    }, new Set<CLASS_FEATURE>());
-}
-
-export function hasPaladinFeature(
-  character: Pick<Character, "className" | "level">,
-  feature: CLASS_FEATURE
-): boolean {
-  if (character.className !== "Paladin") {
-    return false;
-  }
-
-  return getUnlockedPaladinFeatures(character.level).has(feature);
 }
 
 function getPaladinAdditionalAttackCount(
@@ -416,50 +400,6 @@ export function getLayOnHandsCurableConditions(
   return hasPaladinFeature(character, CLASS_FEATURE.RESTORING_TOUCH)
     ? [...layOnHandsBaseCurableConditions, ...layOnHandsRestoringTouchConditions]
     : [...layOnHandsBaseCurableConditions];
-}
-
-export function getPaladinChannelDivinityUsesTotal(
-  character: Pick<Character, "className" | "level">
-): number {
-  if (!hasPaladinFeature(character, CLASS_FEATURE.CHANNEL_DIVINITY)) {
-    return 0;
-  }
-
-  return getPaladinFeatureRow(character.level)?.channelDivinity ?? 0;
-}
-
-export function getPaladinChannelDivinityUsesRemaining(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
-): number {
-  const totalUses = getPaladinChannelDivinityUsesTotal(character);
-  const usesExpended = getPaladinFeatureState(character).channelDivinityUsesExpended ?? 0;
-
-  return Math.max(0, totalUses - usesExpended);
-}
-
-export function expendPaladinChannelDivinityUse(character: Character): Character {
-  if (!hasPaladinFeature(character, CLASS_FEATURE.CHANNEL_DIVINITY)) {
-    return character;
-  }
-
-  const paladinState = getPaladinFeatureState(character);
-  const totalUses = getPaladinChannelDivinityUsesTotal(character);
-  const usesExpended = paladinState.channelDivinityUsesExpended ?? 0;
-
-  if (usesExpended >= totalUses) {
-    return character;
-  }
-
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      paladin: {
-        ...paladinState,
-        channelDivinityUsesExpended: usesExpended + 1
-      }
-    }
-  };
 }
 
 export function getPaladinsSmiteUsesTotal(
@@ -1420,15 +1360,6 @@ export function getPaladinWeaponDamageBonuses(
 
 function getPaladinAuraRangeFeet(character: Pick<Character, "className" | "level">): number {
   return hasPaladinFeature(character, CLASS_FEATURE.AURA_EXPANSION) ? 30 : 10;
-}
-
-export function hasActivePaladinAuraOfProtection(
-  character: Pick<Character, "className" | "level" | "statusEntries">
-): boolean {
-  return (
-    hasPaladinFeature(character, CLASS_FEATURE.AURA_OF_PROTECTION) &&
-    !hasStatusCondition(character.statusEntries, CONDITION_NAME.INCAPACITATED)
-  );
 }
 
 export function getPaladinDerivedStatusEntries(

@@ -14,7 +14,7 @@ import {
 } from "../../../featureContributions";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import type { FeatureActionCard, FeatureSpeedBonus } from "../../types";
-import { rogueSneakAttackActionKey } from "../rogue";
+import { rogueSneakAttackActionKey } from "../actionKeys";
 import type { RogueSneakAttackEffectDefinition } from "../types";
 
 export const thiefSubclassId = "rogue-thief";

@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any, react-hooks/exhaustive-deps */
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-unused-vars, react-hooks/exhaustive-deps */
 import clsx from "clsx";
 import { useEffect, useMemo, useState } from "react";
 import CellContainer from "../../../../../CellContainer/CellContainer";
@@ -435,7 +434,7 @@ import {
   resolveFeatureSavingThrowBonusTotal,
   shouldConsumeMonkFleetStepFollowUp
 } from "./actionHelpers";
-import type { ActionsWidgetProps } from "./types";
+import type { ActionsWidgetExecutionContext, ActionsWidgetProps } from "./types";
 import { useActionsWidgetUiState } from "./useActionsWidgetUiState";
 import { useActionsWidgetSubmissions } from "./useActionsWidgetSubmissions";
 import { useActionsWidgetActions } from "./useActionsWidgetActions";
@@ -445,8 +444,6 @@ import { useSelectedWeaponActionModel } from "./useSelectedWeaponActionModel";
 import ActionsGrid from "./ActionsGrid";
 import FeatureSpellDrawers from "./FeatureSpellDrawers";
 import WildShapePreviewDrawer from "./WildShapePreviewDrawer";
-
-type ActionsWidgetExecutionContext = Record<string, any>;
 
 export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext) {
   const {

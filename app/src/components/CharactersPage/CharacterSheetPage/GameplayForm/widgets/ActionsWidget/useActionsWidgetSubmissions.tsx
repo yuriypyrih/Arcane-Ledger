@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import clsx from "clsx";
 import CellContainer from "../../../../../CellContainer/CellContainer";
 import { useDiceRollerPopup } from "../../../../../DicePage/DiceRollerPopup";
@@ -172,6 +171,7 @@ import {
   applyPaladinOathOfTheNobleGeniesElementalSmiteEffect,
   getPaladinOathOfTheNobleGeniesElementalSmiteDamageDetail,
   hasPaladinOathOfTheNobleGeniesElementalSmite,
+  isPaladinOathOfTheNobleGeniesElementalSmiteOptionKey,
   type PaladinOathOfTheNobleGeniesElementalSmiteOptionKey
 } from "../../../../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfTheNobleGenies";
 import {
@@ -436,7 +436,7 @@ import {
   resolveFeatureSavingThrowBonusTotal,
   shouldConsumeMonkFleetStepFollowUp
 } from "./actionHelpers";
-import type { ActionsWidgetProps } from "./types";
+import type { ActionsWidgetProps, ActionsWidgetSubmissionContext } from "./types";
 import { useActionsWidgetUiState } from "./useActionsWidgetUiState";
 import { useActionsWidgetActions } from "./useActionsWidgetActions";
 import { useActionResourceOptionModel } from "./useActionResourceOptionModel";
@@ -446,8 +446,6 @@ import ActionsGrid from "./ActionsGrid";
 import FeatureSpellDrawers from "./FeatureSpellDrawers";
 import WildShapePreviewDrawer from "./WildShapePreviewDrawer";
 import { useArtificerActionSubmissions } from "./useArtificerActionSubmissions";
-
-type ActionsWidgetSubmissionContext = Record<string, any>;
 
 export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionContext) {
   const { ...values } = context;
@@ -715,7 +713,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
         nextCharacterWithSpellImplementation,
         spell,
         {
-          spellSlotLevel
+          spellSlotLevel: spellLevel
         }
       );
       const nextCharacterWithSharedMulti = roundTrackerResource
@@ -1955,7 +1953,11 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
       options?.useElementalSmite === true &&
       selectedActionSpellSupportsElementalSmite &&
       channelDivinityUsesRemaining > 0;
-    const elementalSmiteOption = useElementalSmite ? (options?.elementalSmiteOption ?? null) : null;
+    const elementalSmiteOption =
+      useElementalSmite &&
+      isPaladinOathOfTheNobleGeniesElementalSmiteOptionKey(options?.elementalSmiteOption)
+        ? options.elementalSmiteOption
+        : null;
     const useFrozenHaunt =
       options?.useFrozenHaunt === true && selectedActionSpellFrozenHauntOptionState !== null;
     const useGoliathAncestry =

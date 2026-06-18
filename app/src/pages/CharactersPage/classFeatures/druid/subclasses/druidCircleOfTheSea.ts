@@ -23,11 +23,13 @@ import {
 } from "./druidCircleOfTheSeaDescriptions";
 import {
   druidWrathOfTheSeaActionKey,
-  druidWrathOfTheSeaStatusSourceId,
+  druidWrathOfTheSeaStatusSourceId
+} from "../actionKeys";
+import {
   expendOneDruidWildShapeUse,
   getDruidWildShapeUsesRemaining,
   getDruidWildShapeUsesTotal
-} from "../druid";
+} from "../base";
 
 export const circleOfTheSeaSubclassId = "druid-circle-of-the-sea";
 

@@ -24,7 +24,8 @@ import {
   getSkillProficiencyForSkillName,
   isSkillName
 } from "../../../../../types";
-import { getSpellLevel, getSpellSlotTotalsForCharacter } from "../../../spellcasting";
+import { getSpellLevel } from "../../../spellLevels";
+import { getSpellSlotTotalsForCharacter } from "../../../spellSlots";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import type { FeatureSkillProficiencyEntry } from "../../types";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";

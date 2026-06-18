@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import CellContainer from "../../CellContainer/CellContainer";
 import ConcentrationLabel from "../../ConcentrationLabel";
 import SpellSubtitle from "../../SpellSubtitle";
@@ -25,7 +25,6 @@ import {
   SheetDrawer,
   overlayClassNames
 } from "../../Overlay";
-import KeywordReferenceDrawer from "../../KeywordReferenceDrawer/KeywordReferenceDrawer";
 import {
   resolveKeywordReference,
   type ResolvedKeywordReference
@@ -44,9 +43,13 @@ import {
   getSpellAttackFormulaCell,
   getSpellSaveFormulaCell
 } from "../../../pages/CharactersPage/shared/spellFormulas";
-import CodexDivinityDrawer from "../CodexDivinityDrawer/CodexDivinityDrawer";
-import CodexFeatDrawer from "../CodexFeatDrawer/CodexFeatDrawer";
 import styles from "./CodexSpellDrawer.module.css";
+
+const CodexDivinityDrawer = lazy(() => import("../CodexDivinityDrawer/CodexDivinityDrawer"));
+const CodexFeatDrawer = lazy(() => import("../CodexFeatDrawer/CodexFeatDrawer"));
+const KeywordReferenceDrawer = lazy(
+  () => import("../../KeywordReferenceDrawer/KeywordReferenceDrawer")
+);
 
 type SelectedFeatReference = {
   feat: FEATS;
@@ -220,57 +223,58 @@ function CodexSpellDrawer({ spell, onClose, backdropClassName }: CodexSpellDrawe
         </OverlayBody>
       </SheetDrawer>
 
-      {isComponentsTooltipOpen && componentsTooltipEntry ? (
-        <KeywordReferenceDrawer
-          title={componentsTooltipEntry.title}
-          entries={[
-            {
-              title: componentsTooltipEntry.title,
-              description: componentsTooltipEntry.description
-            }
-          ]}
-          badgeLabel="Keyword"
-          backdropClassName={backdropClassName}
-          onClose={() => setIsComponentsTooltipOpen(false)}
-        />
-      ) : null}
-
-      {selectedSpellReference ? (
-        <CodexSpellDrawer
-          spell={selectedSpellReference}
-          backdropClassName={backdropClassName}
-          onClose={() => setSelectedSpellReference(null)}
-        />
-      ) : null}
-      {selectedDivinityReference ? (
-        <CodexDivinityDrawer
-          divinity={selectedDivinityReference}
-          backdropClassName={backdropClassName}
-          onClose={() => setSelectedDivinityReference(null)}
-        />
-      ) : null}
-      {selectedKeyword ? (
-        <KeywordReferenceDrawer
-          title={selectedKeyword.title}
-          entries={[
-            {
-              title: selectedKeyword.title,
-              description: selectedKeyword.description
-            }
-          ]}
-          badgeLabel="Keyword"
-          backdropClassName={backdropClassName}
-          onClose={() => setSelectedKeyword(null)}
-        />
-      ) : null}
-      {selectedFeatReference ? (
-        <CodexFeatDrawer
-          feat={selectedFeatReference.feat}
-          label={selectedFeatReference.label}
-          backdropClassName={backdropClassName}
-          onClose={() => setSelectedFeatReference(null)}
-        />
-      ) : null}
+      <Suspense fallback={null}>
+        {isComponentsTooltipOpen && componentsTooltipEntry ? (
+          <KeywordReferenceDrawer
+            title={componentsTooltipEntry.title}
+            entries={[
+              {
+                title: componentsTooltipEntry.title,
+                description: componentsTooltipEntry.description
+              }
+            ]}
+            badgeLabel="Keyword"
+            backdropClassName={backdropClassName}
+            onClose={() => setIsComponentsTooltipOpen(false)}
+          />
+        ) : null}
+        {selectedSpellReference ? (
+          <CodexSpellDrawer
+            spell={selectedSpellReference}
+            backdropClassName={backdropClassName}
+            onClose={() => setSelectedSpellReference(null)}
+          />
+        ) : null}
+        {selectedDivinityReference ? (
+          <CodexDivinityDrawer
+            divinity={selectedDivinityReference}
+            backdropClassName={backdropClassName}
+            onClose={() => setSelectedDivinityReference(null)}
+          />
+        ) : null}
+        {selectedKeyword ? (
+          <KeywordReferenceDrawer
+            title={selectedKeyword.title}
+            entries={[
+              {
+                title: selectedKeyword.title,
+                description: selectedKeyword.description
+              }
+            ]}
+            badgeLabel="Keyword"
+            backdropClassName={backdropClassName}
+            onClose={() => setSelectedKeyword(null)}
+          />
+        ) : null}
+        {selectedFeatReference ? (
+          <CodexFeatDrawer
+            feat={selectedFeatReference.feat}
+            label={selectedFeatReference.label}
+            backdropClassName={backdropClassName}
+            onClose={() => setSelectedFeatReference(null)}
+          />
+        ) : null}
+      </Suspense>
     </>
   );
 }

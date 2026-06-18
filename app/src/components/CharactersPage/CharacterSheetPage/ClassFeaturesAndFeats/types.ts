@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { ReactNode } from "react";
 import type {
   CLASS_FEATURE,
+  DAMAGE_TYPE,
   FEAT_CATEGORY,
   FEATS,
   DivinityEntry,
@@ -11,6 +13,7 @@ import type {
 import type {
   AbilityKey,
   BlessedWarriorChoice,
+  Character,
   CharacterFeatEntry,
   CharacterFeatSource,
   CultOfDragonInitiateChoice,
@@ -51,9 +54,20 @@ import type {
   MagicInitiateChoice,
   MusicianChoice,
   BoonOfSkillChoice,
-  SkilledChoice
+  SkilledChoice,
+  LANGUAGE_PROFICIENCY,
+  MonsterRecord,
+  SAVING_THROW_PROFICIENCY,
+  SkillName,
+  WEAPON_PROFICIENCY
 } from "../../../../types";
 import type { FeatEligibilityResult } from "../../../../pages/CharactersPage/feats/eligibility";
+import type { SorcererMetamagicOptionDefinition } from "../../../../pages/CharactersPage/classFeatures/sorcerer/sorcerer";
+import type {
+  buildSkillSelectOptions,
+  buildToolSelectOptions,
+  SkillSelectOption
+} from "./helpers";
 
 export type FeatureRow = {
   key: string;
@@ -64,6 +78,55 @@ export type FeatureRow = {
 };
 
 export type TrackingButtonRenderer = (trackingState: TRACKER) => ReactNode;
+
+type FeatureChoiceOption<TValue extends string = string> = {
+  value: TValue;
+  label?: string;
+};
+
+export type ClassFeatureContentContext = Record<string, any> & {
+  character: Character;
+  druidWildShapeKnownForms: MonsterRecord[];
+  featureDetails: FeatureMapEntry;
+  featureRow: FeatureRow;
+  fighterBanneretKnightlyEnvoySkillOptions: readonly SkillName[];
+  isUnlocked: boolean;
+  paladinOathOfTheNobleGeniesGeniesSplendorSkillOptions: readonly SkillName[];
+  rangerFeyWandererGiftOptions: readonly FeatureChoiceOption[];
+  rangerOtherworldlyGlamourSkillOptions: readonly FeatureChoiceOption<SkillName>[];
+  skillsOptions: readonly SkillName[];
+  sorcererDraconicElementalAffinityDamageTypeOptions: readonly DAMAGE_TYPE[];
+  warlockFiendPatronFiendishResilienceDamageTypeOptions: readonly DAMAGE_TYPE[];
+  wizardScholarSkillOptions: readonly SkillName[];
+  buildSkillSelectOptions: typeof buildSkillSelectOptions;
+  buildToolSelectOptions: typeof buildToolSelectOptions;
+  getAvailableBardExpertiseSkills: (level: number, slotIndex: number) => SkillName[];
+  getAvailableBardLoreBonusProficiencySkills: (slotIndex: number) => SkillName[];
+  getAvailableBardMagicalDiscoveriesSpells: (slotIndex: number) => SpellEntry[];
+  getAvailableBardPrimalLoreCantrips: () => SpellEntry[];
+  getAvailableBardPrimalLoreSkills: () => SkillName[];
+  getAvailableFighterBanneretKnightlyEnvoyLanguages: () => LANGUAGE_PROFICIENCY[];
+  getAvailableFighterBanneretKnightlyEnvoySkills: () => SkillName[];
+  getAvailableKnowledgeDomainUnfetteredMindSavingThrows: () => SAVING_THROW_PROFICIENCY[];
+  getAvailablePaladinOathOfTheNobleGeniesGeniesSplendorSkills: () => SkillName[];
+  getAvailableRangerDeftExplorerLanguages: (slotIndex: number) => LANGUAGE_PROFICIENCY[];
+  getAvailableRangerDeftExplorerSkills: () => SkillName[];
+  getAvailableRangerGloomStalkerIronMindSavingThrows: () => SAVING_THROW_PROFICIENCY[];
+  getAvailableRangerLevel9ExpertiseSkills: (slotIndex: number) => SkillName[];
+  getAvailableRangerOtherworldlyGlamourSkills: () => SkillName[];
+  getAvailableRogueExpertiseSkills: (level: number, slotIndex: number) => SkillName[];
+  getAvailableRogueThievesCantLanguages: () => LANGUAGE_PROFICIENCY[];
+  getAvailableSorcererMetamagicOptions: (
+    level: number,
+    slotIndex: number
+  ) => SorcererMetamagicOptionDefinition[];
+  getAvailableWarlockMysticArcanumSpells: (level: number) => SpellEntry[];
+  getAvailableWeaponMasteryOptions: (slotIndex: number) => WEAPON_PROFICIENCY[];
+  getAvailableWizardScholarSkills: () => SkillName[];
+  getAvailableWizardSignatureSpells: (slotIndex: number) => SpellEntry[];
+  getAvailableWizardSpellMasterySpells: (spellLevel: 1 | 2) => SpellEntry[];
+  getBarbarianPrimalKnowledgeOptions: () => SkillSelectOption[];
+};
 
 export type FeatEligibilityByFeat = Partial<Record<FEATS, FeatEligibilityResult>>;
 

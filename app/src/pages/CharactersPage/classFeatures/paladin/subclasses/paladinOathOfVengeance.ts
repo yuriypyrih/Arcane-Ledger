@@ -15,7 +15,7 @@ import {
   type FeatureContributionSpec
 } from "../../../featureContributions";
 import type { WeaponAction } from "../../../gameplay";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
+import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellSlots";
 import {
   createCharacterStatusEntry,
   normalizeCharacterStatusEntries
@@ -45,7 +45,7 @@ import {
   getPaladinChannelDivinityUsesRemaining,
   hasActivePaladinAuraOfProtection,
   hasPaladinFeature
-} from "../paladin";
+} from "../base";
 
 export const oathOfVengeanceSubclassId = "paladin-oath-of-vengeance";
 export const avengingAngelActionKey = "paladin-avenging-angel";

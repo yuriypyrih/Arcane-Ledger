@@ -1,13 +1,10 @@
-import { bardFeatures } from "../../../../codex/classes";
 import {
   getReactionEntryById,
   CLASS_FEATURE,
-  type DICE,
   type ReactionEntry,
   type SpellDescriptionEntry,
   type SpellEntry
 } from "../../../../codex/entries";
-import type { BardFeatureClassObj } from "../../../../types";
 import type {
   Character,
   CharacterBardFeatureState,
@@ -22,8 +19,6 @@ import {
   PROFICIENCY_SOURCE
 } from "../../../../types";
 import { appendFeatureSourcedDescriptionAddition } from "../../actionModalDescriptions";
-import { getFeatAbilityScoreBonusesForCharacter } from "../../feats/runtime";
-import { getBackgroundAbilityScoreBonusesForCharacter } from "../../backgrounds";
 import {
   createFeatureActionCardCost,
   markUsageHeaderTagsAsFallback,
@@ -32,7 +27,7 @@ import {
   createNamedUsageHeaderTags
 } from "../cardUsage";
 import { getFeatureDescriptionForCharacter } from "../featureDescriptions";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../spellcasting";
+import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../spellSlots";
 import {
   ACTION_CATEGORY,
   ECONOMY_TYPE,
@@ -48,11 +43,25 @@ import type {
   FeatureWeaponProficiencyEntry,
   WeaponAttackConsumptionContext
 } from "../types";
+import {
+  expendBardicInspirationUse,
+  getBardicInspirationBaseUsesTotal,
+  getBardicInspirationDie,
+  getBardicInspirationUsesRemaining,
+  getBardicInspirationUsesTotal,
+  hasBardFeature
+} from "./base";
 import * as danceSubclass from "./subclasses/bardCollegeOfDance";
 import * as glamourSubclass from "./subclasses/bardCollegeOfGlamour";
 import * as loreSubclass from "./subclasses/bardCollegeOfLore";
 import * as moonSubclass from "./subclasses/bardCollegeOfTheMoon";
 import * as valorSubclass from "./subclasses/bardCollegeOfValor";
+export {
+  expendBardicInspirationUse,
+  getBardicInspirationDie,
+  getBardicInspirationUsesRemaining,
+  getBardicInspirationUsesTotal
+} from "./base";
 
 const bardicInspirationActionKey = "bard-bardic-inspiration";
 const lunarVitalityActionKey = moonSubclass.lunarVitalityActionKey;
@@ -71,37 +80,6 @@ const bardExpertiseLevel2SourceKey = "bard-expertise-level-2";
 const bardExpertiseLevel9SourceKey = "bard-expertise-level-9";
 const bardSourceMetadataSeparator = "::";
 type BardExpertiseTier = "level2" | "level9";
-
-function getBardFeatureRow(level: number): BardFeatureClassObj | null {
-  const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-  const matchingRows = bardFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .sort((left, right) => left.level - right.level);
-
-  return matchingRows.length > 0 ? matchingRows[matchingRows.length - 1] : null;
-}
-
-function getUnlockedBardFeatures(level: number): Set<CLASS_FEATURE> {
-  const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-
-  return bardFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .reduce((featureSet, row) => {
-      row.classFeatures.forEach((feature) => {
-        featureSet.add(feature);
-      });
-
-      return featureSet;
-    }, new Set<CLASS_FEATURE>());
-}
-
-function hasBardFeature(character: Pick<Character, "className" | "level">, feature: CLASS_FEATURE) {
-  if (character.className !== "Bard") {
-    return false;
-  }
-
-  return getUnlockedBardFeatures(character.level).has(feature);
-}
 
 function hasBardLevel2Expertise(character: Pick<Character, "className" | "level">): boolean {
   return character.className === "Bard" && character.level >= 2;
@@ -141,62 +119,6 @@ function createBardExpertiseEntry(
   };
 }
 
-function getAppliedAbilityScoreBonus(
-  currentScore: number,
-  value: number,
-  maxScore?: number | null
-): number {
-  const normalizedValue = Math.floor(value);
-
-  if (!Number.isFinite(normalizedValue) || normalizedValue === 0) {
-    return 0;
-  }
-
-  if (maxScore === null || maxScore === undefined) {
-    return normalizedValue;
-  }
-
-  if (normalizedValue > 0) {
-    return Math.max(0, Math.min(normalizedValue, maxScore - currentScore));
-  }
-
-  return normalizedValue;
-}
-
-function getBardCharismaModifier(
-  character: Pick<Character, "abilities" | "level" | "feats"> &
-    Partial<Pick<Character, "background" | "backgroundChoices">>
-): number {
-  let total = Math.max(1, Math.floor(character.abilities.CHA));
-
-  [
-    ...getBackgroundAbilityScoreBonusesForCharacter(character),
-    ...getFeatAbilityScoreBonusesForCharacter(character)
-  ]
-    .filter((bonus) => bonus.ability === "CHA")
-    .sort((left, right) => {
-      const leftHasCap = left.maxScore !== null && left.maxScore !== undefined;
-      const rightHasCap = right.maxScore !== null && right.maxScore !== undefined;
-
-      if (leftHasCap !== rightHasCap) {
-        return leftHasCap ? -1 : 1;
-      }
-
-      if (leftHasCap && rightHasCap && left.maxScore !== right.maxScore) {
-        return (
-          (left.maxScore ?? Number.POSITIVE_INFINITY) - (right.maxScore ?? Number.POSITIVE_INFINITY)
-        );
-      }
-
-      return (left.order ?? 0) - (right.order ?? 0);
-    })
-    .forEach((bonus) => {
-      total += getAppliedAbilityScoreBonus(total, bonus.value, bonus.maxScore);
-    });
-
-  return Math.floor((total - 10) / 2);
-}
-
 function hasSuperiorInspiration(character: Pick<Character, "className" | "level">): boolean {
   return hasBardFeature(character, CLASS_FEATURE.SUPERIOR_INSPIRATION);
 }
@@ -207,16 +129,6 @@ function hasWordsOfCreation(character: Pick<Character, "className" | "level">): 
 
 function hasFontOfInspiration(character: Pick<Character, "className" | "level">): boolean {
   return hasBardFeature(character, CLASS_FEATURE.FONT_OF_INSPIRATION);
-}
-
-function getBardicInspirationBaseUsesTotal(
-  character: Pick<Character, "className" | "level" | "abilities" | "classFeatureState" | "feats">
-): number {
-  if (!hasBardFeature(character, CLASS_FEATURE.BARDIC_INSPIRATION)) {
-    return 0;
-  }
-
-  return Math.max(1, getBardCharismaModifier(character));
 }
 
 export function normalizeBardFeatureState(
@@ -808,58 +720,6 @@ export function getBardSkillBonuses(
       value: Math.floor((Math.floor((Math.max(1, Math.min(20, character.level)) - 1) / 4) + 2) / 2)
     }
   ];
-}
-
-export function getBardicInspirationDie(
-  character: Pick<Character, "className" | "level">
-): DICE | null {
-  if (!hasBardFeature(character, CLASS_FEATURE.BARDIC_INSPIRATION)) {
-    return null;
-  }
-
-  return getBardFeatureRow(character.level)?.bardicDie ?? null;
-}
-
-export function getBardicInspirationUsesTotal(
-  character: Pick<Character, "className" | "level" | "abilities" | "classFeatureState" | "feats">
-): number {
-  const baseTotal = getBardicInspirationBaseUsesTotal(character);
-  const bardState = getBardFeatureState(character);
-
-  return Math.max(baseTotal, bardState.bardicInspirationTemporaryTotal ?? 0);
-}
-
-export function getBardicInspirationUsesRemaining(
-  character: Pick<Character, "className" | "level" | "abilities" | "classFeatureState" | "feats">
-): number {
-  const totalUses = getBardicInspirationUsesTotal(character);
-  const bardState = getBardFeatureState(character);
-  return Math.max(0, totalUses - (bardState.bardicInspirationUsesExpended ?? 0));
-}
-
-export function expendBardicInspirationUse(character: Character): Character {
-  if (!hasBardFeature(character, CLASS_FEATURE.BARDIC_INSPIRATION)) {
-    return character;
-  }
-
-  const bardState = getBardFeatureState(character);
-  const totalUses = getBardicInspirationUsesTotal(character);
-  const currentExpended = Math.max(0, bardState.bardicInspirationUsesExpended ?? 0);
-
-  if (currentExpended >= totalUses) {
-    return character;
-  }
-
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      bard: {
-        ...bardState,
-        bardicInspirationUsesExpended: currentExpended + 1
-      }
-    }
-  };
 }
 
 export function restoreBardicInspirationUse(character: Character): Character {

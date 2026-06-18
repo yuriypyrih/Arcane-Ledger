@@ -63,7 +63,7 @@ import {
 import type { FeatureActionCard, FeatureActionFact, FeatureEquipmentEntry } from "../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE, type EconomyType } from "../../../actionEconomy";
 import { formatWeaponDamage, formatWeaponDamageFormula } from "../../../../../utils/codex";
-import { rogueSneakAttackActionKey } from "../rogue";
+import { rogueSneakAttackActionKey } from "../actionKeys";
 
 export const soulknifeSubclassId = "rogue-soulknife";
 export const rogueSoulknifePsychicBladeWeaponActionKey = "rogue-soulknife-psychic-blade";

@@ -46,14 +46,13 @@ import {
   getDruidCircleOfTheStarsGuidingBoltSpellEntry,
   getDruidCircleOfTheStarsTwinklingConstellationsDescriptionAdditions
 } from "./druidCircleOfTheStarsDescriptions";
+import { druidStarryFormActionKey } from "../actionKeys";
 import {
   deactivateDruidWildShape,
-  druidStarryFormActionKey,
   expendOneDruidWildShapeUse,
   getDruidWildShapeUsesRemaining,
-  getDruidWildShapeUsesTotal,
-  normalizeDruidFeatureState
-} from "../druid";
+  getDruidWildShapeUsesTotal
+} from "../base";
 
 export const circleOfTheStarsSubclassId = "druid-circle-of-the-stars";
 export const druidStarryFormStatusSourceId = "feature-druid-starry-form";
@@ -425,7 +424,7 @@ export function setDruidCosmicOmenSelection(
     return character;
   }
 
-  const druidState = normalizeDruidFeatureState(character.classFeatureState?.druid, character);
+  const druidState = character.classFeatureState?.druid ?? {};
 
   if (druidState.cosmicOmenSelection === selection) {
     return character;
@@ -445,7 +444,7 @@ export function setDruidCosmicOmenSelection(
 
 export function restoreDruidStarMapGuidingBoltOnLongRest(
   character: Character,
-  druidState = normalizeDruidFeatureState(character.classFeatureState?.druid, character)
+  druidState: CharacterDruidFeatureState = character.classFeatureState?.druid ?? {}
 ): Character {
   if (
     getDruidStarMapGuidingBoltUsesTotal(character) <= 0 ||
@@ -468,7 +467,7 @@ export function restoreDruidStarMapGuidingBoltOnLongRest(
 
 export function restoreDruidCosmicOmenOnLongRest(
   character: Character,
-  druidState = normalizeDruidFeatureState(character.classFeatureState?.druid, character)
+  druidState: CharacterDruidFeatureState = character.classFeatureState?.druid ?? {}
 ): Character {
   if (
     getDruidCosmicOmenUsesTotal(character) <= 0 ||
@@ -491,7 +490,7 @@ export function restoreDruidCosmicOmenOnLongRest(
 
 export function consumeDruidStarMapGuidingBoltUse(
   character: Character,
-  druidState = normalizeDruidFeatureState(character.classFeatureState?.druid, character)
+  druidState: CharacterDruidFeatureState = character.classFeatureState?.druid ?? {}
 ): Character {
   const usesRemaining = getDruidStarMapGuidingBoltUsesRemaining(character);
 
@@ -516,7 +515,7 @@ export function consumeDruidStarMapGuidingBoltUse(
 
 export function consumeDruidCosmicOmenUse(
   character: Character,
-  druidState = normalizeDruidFeatureState(character.classFeatureState?.druid, character)
+  druidState: CharacterDruidFeatureState = character.classFeatureState?.druid ?? {}
 ): Character {
   const usesRemaining = getDruidCosmicOmenUsesRemaining(character);
 

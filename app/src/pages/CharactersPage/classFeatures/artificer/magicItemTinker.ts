@@ -14,7 +14,7 @@ import {
   removeOneInventoryItemCopyById,
   resetInventoryItemChargeById
 } from "../../inventoryItems";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../spellcasting";
+import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../spellSlots";
 import { createChargesCardUsage, createTextCardUsage } from "../cardUsage";
 import { getFeatureDescriptionForCharacter } from "../featureDescriptions";
 import type { FeatureActionCard } from "../types";

@@ -1,4 +1,4 @@
-import { druidFeatureMap, druidFeatures } from "../../../../codex/classes";
+import { druidFeatureMap } from "../../../../codex/classes";
 import { CLASS_FEATURE, type SpellEntry } from "../../../../codex/entries";
 import type {
   Character,
@@ -26,7 +26,7 @@ import {
 import { normalizeCharacterStatusEntries } from "../../statusEntries";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import type { WeaponAction } from "../../gameplay";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../spellcasting";
+import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../spellSlots";
 import { clampNumber, swapTemporaryHitPointsAssignment } from "../../shared";
 import type {
   DerivedFeatureStatusEntry,
@@ -55,32 +55,57 @@ import {
 } from "./druidWildShapeDescriptions";
 import type { DruidStarryFormConstellation as DruidStarryFormConstellationType } from "./subclasses/druidCircleOfTheStars";
 import {
+  druidNatureMagicianActionKey,
+  druidWildCompanionActionKey,
+  druidWildResurgenceActionKey,
+  druidWildShapeActionKey,
+  druidWildShapeSource,
+  druidWildShapeStatusSourceIdPrefix
+} from "./actionKeys";
+import {
+  expendOneDruidWildShapeUse,
+  getDruidFeatureRow,
+  getDruidWildShapeActiveForm,
+  getDruidWildShapeUsesRemaining,
+  getDruidWildShapeUsesTotal,
+  hasDruidFeature,
+  isDruidWildShapeStatusSourceId
+} from "./base";
+import {
   getMonsterChallengeRatingNumber,
   getMonsterKey,
   getMonsterTypeName,
   hasMonsterFlySpeed,
   normalizeMonsterRecord
 } from "../../../../utils/monsters";
+export {
+  deactivateDruidWildShape,
+  expendOneDruidWildShapeUse,
+  getDruidWildShapeActiveForm,
+  getDruidWildShapeUsesRemaining,
+  getDruidWildShapeUsesTotal,
+  hasDruidFeature,
+  isDruidWildShapeStatusSourceId
+} from "./base";
+export {
+  druidLandsAidActionKey,
+  druidMoonlightStepActionKey,
+  druidNaturesSanctuaryActionKey,
+  druidNaturesSanctuaryStatusSourceId,
+  druidNatureMagicianActionKey,
+  druidStarryFormActionKey,
+  druidWildCompanionActionKey,
+  druidWildResurgenceActionKey,
+  druidWildShapeActionKey,
+  druidWrathOfTheSeaActionKey,
+  druidWrathOfTheSeaStatusSourceId
+} from "./actionKeys";
 
 const primalOrderWardenSource = "Primal Order";
 const druidicSource = "Druid";
 const primalStrikeSource = "Primal Strike";
 const speakWithAnimalsSpellId = "spell-speak-with-animals";
-const druidWildShapeSource = "Wild Shape";
-const druidWildShapeStatusSourceIdPrefix = "feature-druid-wild-shape:";
 export const circleOfTheStarsSubclassId = starsSubclass.circleOfTheStarsSubclassId;
-
-export const druidWildShapeActionKey = "druid-wild-shape";
-export const druidWildCompanionActionKey = "druid-wild-companion";
-export const druidLandsAidActionKey = "druid-lands-aid";
-export const druidNaturesSanctuaryActionKey = "druid-natures-sanctuary";
-export const druidWrathOfTheSeaActionKey = "druid-wrath-of-the-sea";
-export const druidStarryFormActionKey = "druid-starry-form";
-export const druidWildResurgenceActionKey = "druid-wild-resurgence";
-export const druidNatureMagicianActionKey = "druid-nature-magician";
-export const druidMoonlightStepActionKey = "druid-moonlight-step";
-export const druidNaturesSanctuaryStatusSourceId = "feature-druid-natures-sanctuary";
-export const druidWrathOfTheSeaStatusSourceId = "feature-druid-wrath-of-the-sea";
 export const druidStarryFormStatusSourceId = starsSubclass.druidStarryFormStatusSourceId;
 export const druidCosmicOmenReactionId = starsSubclass.druidCosmicOmenReactionId;
 
@@ -110,40 +135,6 @@ export type DruidNatureMagicianOption = {
 
 function getDruidNatureMagicianWildShapeCost(spellSlotLevel: number): number {
   return Math.ceil(Math.max(1, Math.floor(spellSlotLevel)) / 2);
-}
-
-function getDruidFeatureRow(level: number) {
-  const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-  const matchingRows = druidFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .sort((left, right) => left.level - right.level);
-
-  return matchingRows.length > 0 ? matchingRows[matchingRows.length - 1] : null;
-}
-
-function getUnlockedDruidFeatures(level: number): Set<CLASS_FEATURE> {
-  const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-
-  return druidFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .reduce((featureSet, row) => {
-      row.classFeatures.forEach((feature) => {
-        featureSet.add(feature);
-      });
-
-      return featureSet;
-    }, new Set<CLASS_FEATURE>());
-}
-
-export function hasDruidFeature(
-  character: Pick<Character, "className" | "level">,
-  feature: CLASS_FEATURE
-): boolean {
-  if (character.className !== "Druid") {
-    return false;
-  }
-
-  return getUnlockedDruidFeatures(character.level).has(feature);
 }
 
 function getDruidWisdomModifier(character: Partial<Pick<Character, "abilities">>): number {
@@ -456,28 +447,6 @@ export function getDruidWildShapeRules(
   return getWildShapeRulesForCharacter(character);
 }
 
-export function getDruidWildShapeUsesTotal(
-  character: Pick<Character, "className" | "level">
-): number {
-  if (!hasDruidFeature(character, CLASS_FEATURE.WILD_SHAPE)) {
-    return 0;
-  }
-
-  return Math.max(0, Math.floor(getDruidFeatureRow(character.level)?.wildShape ?? 0));
-}
-
-export function getDruidWildShapeUsesRemaining(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
-): number {
-  const totalUses = getDruidWildShapeUsesTotal(character);
-
-  if (totalUses <= 0) {
-    return 0;
-  }
-
-  return Math.max(0, totalUses - (getDruidWildShapeState(character).wildShapeUsesExpended ?? 0));
-}
-
 export function getDruidStarMapGuidingBoltUsesTotal(
   character: Pick<Character, "className" | "level"> &
     Partial<Pick<Character, "subclassId" | "abilities">>
@@ -605,12 +574,6 @@ export function getDruidWildShapeKnownForms(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): MonsterRecord[] {
   return getDruidWildShapeState(character).wildShapeKnownForms ?? [];
-}
-
-export function getDruidWildShapeActiveForm(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
-): MonsterRecord | null {
-  return getDruidWildShapeState(character).wildShapeActiveForm ?? null;
 }
 
 export function getDruidActiveStarryFormConstellation(
@@ -875,27 +838,6 @@ export function consumeDruidNaturalRecoveryUse(character: Character): Character 
   return landSubclass.consumeDruidNaturalRecoveryUse(character, getDruidWildShapeState(character));
 }
 
-export function expendOneDruidWildShapeUse(character: Character): Character {
-  const totalUses = getDruidWildShapeUsesTotal(character);
-  const wildShapeState = getDruidWildShapeState(character);
-  const wildShapeUsesExpended = wildShapeState.wildShapeUsesExpended ?? 0;
-
-  if (totalUses <= 0 || wildShapeUsesExpended >= totalUses) {
-    return character;
-  }
-
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      druid: {
-        ...wildShapeState,
-        wildShapeUsesExpended: wildShapeUsesExpended + 1
-      }
-    }
-  };
-}
-
 export function applyArchdruidOnInitiative(character: Character): Character {
   if (
     !hasDruidFeature(character, CLASS_FEATURE.ARCHDRUID) ||
@@ -1140,33 +1082,6 @@ export function activateDruidWildShape(character: Character, monsterKey: string)
       }
     }
   };
-}
-
-export function deactivateDruidWildShape(character: Character): Character {
-  const wildShapeState = getDruidWildShapeState(character);
-  const nextStatusEntries = pruneDruidWildShapeStatusOverrides(character.statusEntries);
-  const removedOverrideEntries =
-    nextStatusEntries.length !== normalizeCharacterStatusEntries(character.statusEntries).length;
-
-  if (!wildShapeState.wildShapeActiveForm && !removedOverrideEntries) {
-    return character;
-  }
-
-  return {
-    ...character,
-    statusEntries: nextStatusEntries,
-    classFeatureState: {
-      ...character.classFeatureState,
-      druid: {
-        ...wildShapeState,
-        wildShapeActiveForm: undefined
-      }
-    }
-  };
-}
-
-export function isDruidWildShapeStatusSourceId(value: unknown): value is string {
-  return typeof value === "string" && value.startsWith(druidWildShapeStatusSourceIdPrefix);
 }
 
 export function getDruidDerivedStatusEntries(

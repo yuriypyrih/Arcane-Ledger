@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import {
   FEATS,
   TRACKER,
@@ -13,7 +13,6 @@ import {
 } from "../../../utils/codex/renderCodexRichText";
 import DescriptionContent from "../../DescriptionContent/DescriptionContent";
 import { FeatureTrackingBadgeButton } from "../../FeatureDisclosure";
-import KeywordReferenceDrawer from "../../KeywordReferenceDrawer/KeywordReferenceDrawer";
 import {
   OverlayBadge,
   OverlayBody,
@@ -26,9 +25,13 @@ import {
   SheetDrawer,
   overlayClassNames
 } from "../../Overlay";
-import CodexDivinityDrawer from "../CodexDivinityDrawer/CodexDivinityDrawer";
-import CodexSpellDrawer from "../CodexSpellDrawer/CodexSpellDrawer";
 import styles from "./CodexFeatDrawer.module.css";
+
+const CodexDivinityDrawer = lazy(() => import("../CodexDivinityDrawer/CodexDivinityDrawer"));
+const CodexSpellDrawer = lazy(() => import("../CodexSpellDrawer/CodexSpellDrawer"));
+const KeywordReferenceDrawer = lazy(
+  () => import("../../KeywordReferenceDrawer/KeywordReferenceDrawer")
+);
 
 type SelectedFeatReference = {
   feat: FEATS;
@@ -134,42 +137,44 @@ function CodexFeatDrawer({ feat, label, onClose, backdropClassName }: CodexFeatD
         </OverlayBody>
       </SheetDrawer>
 
-      {selectedSpellReference ? (
-        <CodexSpellDrawer
-          spell={selectedSpellReference}
-          backdropClassName={backdropClassName}
-          onClose={() => setSelectedSpellReference(null)}
-        />
-      ) : null}
-      {selectedDivinityReference ? (
-        <CodexDivinityDrawer
-          divinity={selectedDivinityReference}
-          backdropClassName={backdropClassName}
-          onClose={() => setSelectedDivinityReference(null)}
-        />
-      ) : null}
-      {selectedKeyword ? (
-        <KeywordReferenceDrawer
-          title={selectedKeyword.title}
-          entries={[
-            {
-              title: selectedKeyword.title,
-              description: selectedKeyword.description
-            }
-          ]}
-          badgeLabel="Keyword"
-          backdropClassName={backdropClassName}
-          onClose={() => setSelectedKeyword(null)}
-        />
-      ) : null}
-      {selectedFeatReference ? (
-        <CodexFeatDrawer
-          feat={selectedFeatReference.feat}
-          label={selectedFeatReference.label}
-          backdropClassName={backdropClassName}
-          onClose={() => setSelectedFeatReference(null)}
-        />
-      ) : null}
+      <Suspense fallback={null}>
+        {selectedSpellReference ? (
+          <CodexSpellDrawer
+            spell={selectedSpellReference}
+            backdropClassName={backdropClassName}
+            onClose={() => setSelectedSpellReference(null)}
+          />
+        ) : null}
+        {selectedDivinityReference ? (
+          <CodexDivinityDrawer
+            divinity={selectedDivinityReference}
+            backdropClassName={backdropClassName}
+            onClose={() => setSelectedDivinityReference(null)}
+          />
+        ) : null}
+        {selectedKeyword ? (
+          <KeywordReferenceDrawer
+            title={selectedKeyword.title}
+            entries={[
+              {
+                title: selectedKeyword.title,
+                description: selectedKeyword.description
+              }
+            ]}
+            badgeLabel="Keyword"
+            backdropClassName={backdropClassName}
+            onClose={() => setSelectedKeyword(null)}
+          />
+        ) : null}
+        {selectedFeatReference ? (
+          <CodexFeatDrawer
+            feat={selectedFeatReference.feat}
+            label={selectedFeatReference.label}
+            backdropClassName={backdropClassName}
+            onClose={() => setSelectedFeatReference(null)}
+          />
+        ) : null}
+      </Suspense>
     </>
   );
 }

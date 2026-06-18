@@ -12,7 +12,7 @@ import {
 } from "../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../statusEntries";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../spellcasting";
+import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../spellSlots";
 import {
   activateSorcererSubclassCrownOfSpellfire,
   activateSorcererSubclassFeatureAction,

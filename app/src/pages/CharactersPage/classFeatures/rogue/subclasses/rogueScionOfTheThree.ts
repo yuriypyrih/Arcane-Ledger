@@ -28,7 +28,7 @@ import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import type { DerivedFeatureStatusEntry, FeatureActionCard, FeatureActionFact } from "../../types";
 import type { WeaponAction } from "../../../gameplay";
 import type { RogueSneakAttackEffectDefinition } from "../types";
-import { rogueSneakAttackActionKey } from "../rogue";
+import { rogueSneakAttackActionKey } from "../actionKeys";
 import { formatCodexLabel } from "../../../../../utils/codex";
 
 export const scionOfTheThreeSubclassId = "rogue-scion-of-the-three";

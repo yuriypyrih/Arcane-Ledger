@@ -9,7 +9,7 @@ import {
   getCustomTraitAbilityModifierBonuses,
   type CustomTraitBonusInput
 } from "./customTraitEffects";
-import { getFeatAbilityScoreBonusesForCharacter } from "./feats/runtime";
+import { getFeatAbilityScoreBonusesForCharacter } from "./feats/runtime/derivedSelectors";
 import { getBackgroundAbilityScoreBonusesForCharacter } from "./backgrounds";
 import { getCharacterCustomTraitEffectInput } from "./characterRuntime/customEffectRuntime";
 

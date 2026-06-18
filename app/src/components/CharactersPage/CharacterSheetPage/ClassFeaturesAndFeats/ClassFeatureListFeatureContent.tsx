@@ -1,7 +1,9 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment, @typescript-eslint/no-explicit-any */
-// @ts-nocheck
+import type { DAMAGE_TYPE } from "../../../../codex/entries";
+import type { LANGUAGE_PROFICIENCY, SkillName } from "../../../../types";
+import SelectInput from "../../FormInputs/SelectInput";
+import type { ClassFeatureContentContext } from "./types";
 
-export function renderClassFeatureContent(context: Record<string, any>) {
+export function renderClassFeatureContent(context: ClassFeatureContentContext) {
   const {
     ArtificerReplicateMagicItemPlanSelection,
     ArtificerToolsOfTheTradeSelection,
@@ -13,7 +15,6 @@ export function renderClassFeatureContent(context: Record<string, any>) {
     Pencil,
     Plus,
     SKILL,
-    SelectInput,
     WizardBladesingerTrainingInWarAndSongFields,
     WizardSavantFeatureFields,
     artisanToolProficiencies,

@@ -21,16 +21,16 @@ import {
   getSpellbookUsageForCharacter,
   getSubclassSpellcastingProgressionRow
 } from "../../codex/classes/subclassSpellcasting";
-import {
-  getAlwaysPreparedSpellIdsForCharacter,
-  getCantripLimitBonusForCharacter
-} from "./classFeatures";
+import { getCantripLimitBonusForCharacter } from "./classFeatures/actions";
+import { getAlwaysPreparedSpellIdsForCharacter } from "./classFeatures/resources";
 import { getSpellSlotTotalsForCharacter } from "./spellSlots";
 import {
   getCharacterClassRulesConfig,
   isCharacterClassRulesSpellcastingEnabled,
   isCustomClassName
 } from "./customClass";
+import { getSpellLevel } from "./spellLevels";
+export { getSpellLevel } from "./spellLevels";
 
 const arcaneTricksterRequiredCantripId = "spell-mage-hand";
 
@@ -46,16 +46,6 @@ const spellcastingClassFeatures = new Set<CLASS_FEATURE>([
 
 function clampCharacterLevel(level: number): number {
   return Math.max(1, Math.min(20, Math.floor(level)));
-}
-
-function sanitizeSpellLevel(value: unknown): number {
-  const numericValue = Number(value);
-
-  if (!Number.isFinite(numericValue)) {
-    return 1;
-  }
-
-  return Math.max(0, Math.min(9, Math.floor(numericValue)));
 }
 
 function normalizeSpellId(value: string): string {
@@ -182,10 +172,6 @@ export function isSpellcastingClass(
     hasBuiltInSpellcastingForCharacter(className, level, subclassId) ||
     isCharacterClassRulesSpellcastingEnabled({ className, classRules, customClass })
   );
-}
-
-export function getSpellLevel(spell: Pick<SpellEntry, "spellLevel">): number {
-  return sanitizeSpellLevel(spell.spellLevel);
 }
 
 export { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "./spellSlots";

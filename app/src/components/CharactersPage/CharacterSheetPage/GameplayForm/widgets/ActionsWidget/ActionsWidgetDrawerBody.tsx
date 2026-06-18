@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import clsx from "clsx";
 import { useEffect, useMemo, useState } from "react";
 import CellContainer from "../../../../../CellContainer/CellContainer";
@@ -424,7 +423,10 @@ import {
   resolveFeatureSavingThrowBonusTotal,
   shouldConsumeMonkFleetStepFollowUp
 } from "./actionHelpers";
-import type { ActionsWidgetProps } from "./types";
+import type {
+  ActionsWidgetDrawerBodyContext,
+  ActionsWidgetProps
+} from "./types";
 import { useActionsWidgetUiState } from "./useActionsWidgetUiState";
 import { useActionsWidgetExecution } from "./useActionsWidgetExecution";
 import { useActionsWidgetActions } from "./useActionsWidgetActions";
@@ -435,7 +437,7 @@ import ActionsGrid from "./ActionsGrid";
 import FeatureSpellDrawers from "./FeatureSpellDrawers";
 import WildShapePreviewDrawer from "./WildShapePreviewDrawer";
 
-export function renderActionDrawerBody(context: Record<string, any>) {
+export function renderActionDrawerBody(context: ActionsWidgetDrawerBodyContext) {
   const {
     arcaneWardSpellSlotOptions,
     bardicInspirationFallbackSpellSlotOptions,
@@ -1215,7 +1217,7 @@ export function renderActionDrawerBody(context: Record<string, any>) {
   return null;
 }
 
-export function renderActionHeaderAside(context: Record<string, any>) {
+export function renderActionHeaderAside(context: ActionsWidgetDrawerBodyContext) {
   const {
     arcaneWardSpellSlotOptions,
     bardicInspirationFallbackSpellSlotOptions,

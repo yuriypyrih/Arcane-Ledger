@@ -27,12 +27,13 @@ import { createHeaderTagsFromResources } from "../../cardUsage";
 import {
   druidLandsAidActionKey,
   druidNaturesSanctuaryActionKey,
-  druidNaturesSanctuaryStatusSourceId,
+  druidNaturesSanctuaryStatusSourceId
+} from "../actionKeys";
+import {
   expendOneDruidWildShapeUse,
   getDruidWildShapeUsesRemaining,
-  getDruidWildShapeUsesTotal,
-  normalizeDruidFeatureState
-} from "../druid";
+  getDruidWildShapeUsesTotal
+} from "../base";
 
 export const circleOfTheLandSubclassId = "druid-circle-of-the-land";
 
@@ -209,7 +210,7 @@ export function consumeDruidNaturalRecoveryUse(
 
 export function restoreDruidNaturalRecoveryOnLongRest(
   character: Character,
-  druidState = normalizeDruidFeatureState(character.classFeatureState?.druid, character)
+  druidState: CharacterDruidFeatureState = character.classFeatureState?.druid ?? {}
 ): Character {
   if (
     getDruidNaturalRecoveryUsesTotal(character) <= 0 ||

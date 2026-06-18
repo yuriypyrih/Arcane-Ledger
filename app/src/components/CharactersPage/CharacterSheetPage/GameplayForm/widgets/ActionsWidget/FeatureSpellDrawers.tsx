@@ -6,7 +6,6 @@ import type { Character } from "../../../../../../types";
 import type { SpellEntry } from "../../../../../../codex/entries";
 import type {
   FeatureActionCard,
-  FeatureActionCardUsage,
   FeatureActionExecuteConfig,
   FeatureActionFact
 } from "../../../../../../pages/CharactersPage/classFeatures";
@@ -26,34 +25,12 @@ import {
   appendGoliathAttackDescriptionAddition,
   getGoliathAttackDamageDetail
 } from "../../../../../../pages/CharactersPage/species";
-import type {
-  SpellImplementationCastSource,
-  SpellImplementationOptionValues
-} from "../../../../../../pages/CharactersPage/characterRuntime/spellImplementations";
 import type { GoliathAttackOptionState } from "../../../../../../pages/CharactersPage/speciesGoliath";
-import type { EconomyType } from "../../../../../../pages/CharactersPage/actionEconomy";
-import type { RoundTrackerResource } from "../../../../../../pages/CharactersPage/combat";
 import { getActionShapeForEconomyType } from "../../gameplayWidgetUtils";
+import type { SpellActionPathState } from "./types";
 import styles from "./ActionsWidget.module.css";
 
 type FixedSpellExecute = Extract<FeatureActionExecuteConfig, { kind: "spell" }>;
-
-type SpellActionPathState = {
-  id: string;
-  economyType: EconomyType;
-  roundTrackerResource: RoundTrackerResource | null;
-  shapeState: {
-    isAvailable: boolean;
-    multiCount: number;
-    disabledReason?: string | null;
-  };
-  actionLabel?: string;
-  disabledReason?: string | null;
-  usage?: FeatureActionCardUsage;
-  spellImplementationCastSource?: SpellImplementationCastSource;
-  forcedSpellImplementationOptions?: SpellImplementationOptionValues;
-  spellCastEffectIds?: string[];
-};
 
 type FrozenHauntOptionState = {
   disabled: boolean;

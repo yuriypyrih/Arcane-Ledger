@@ -16,7 +16,7 @@ import {
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
 } from "../../../featureContributions";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
+import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellSlots";
 import {
   createCharacterStatusEntry,
   normalizeCharacterStatusEntries
@@ -47,7 +47,7 @@ import {
   expendPaladinChannelDivinityUse,
   getPaladinChannelDivinityUsesRemaining,
   getPaladinChannelDivinityUsesTotal
-} from "../paladin";
+} from "../base";
 import type { SpellEntry } from "../../../../../codex/entries";
 
 export const oathOfGlorySubclassId = "paladin-oath-of-glory";

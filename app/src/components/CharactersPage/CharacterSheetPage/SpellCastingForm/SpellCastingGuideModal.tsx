@@ -49,6 +49,16 @@ function SpellCastingGuideModal({ onClose }: SpellCastingGuideModalProps) {
         </section>
 
         <section className={styles.section}>
+          <h4 className={styles.sectionTitle}>Cantrips vs Spells</h4>
+          <p className={styles.sectionText}>
+            Cantrips are level 0 spells and do not require a spell slot. Spells from level 1 to 9
+            require at least a spell slot of the same level. You can use a higher-level spell slot to
+            cast a lower-level spell. This is called upcasting and usually provides stronger effects
+            when mentioned in the spell description.
+          </p>
+        </section>
+
+        <section className={styles.section}>
           <span className={styles.alwaysPreparedPill}>Always Prepared</span>
           <p className={styles.sectionText}>
             Granted by a class, species, feat, or feature. These spells stay prepared automatically
@@ -62,6 +72,18 @@ function SpellCastingGuideModal({ onClose }: SpellCastingGuideModalProps) {
             This spell can be cast as a ritual when your character has access to that ritual path.
             Ritual casting does not spend a spell slot, but it follows the ritual rules shown in the
             spell drawer.
+          </p>
+        </section>
+
+        <section className={styles.section}>
+          <h4 className={styles.sectionTitle}>Summoning Spells</h4>
+          <p className={styles.sectionText}>
+            These spells let you summon new companions. Define the stat block yourself from the
+            Bestiary table. No matter what a spell description says, recasting a summoning spell will
+            not automatically remove old companions, and summoned companions will not vanish when
+            Concentration breaks. Replace or remove them manually. Creating companions through
+            spellcasting also tracks the source spell and embeds the spell description in the
+            companion.
           </p>
         </section>
       </OverlayBody>

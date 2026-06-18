@@ -1,7 +1,11 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment, @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any */
-// @ts-nocheck
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import type { Character } from "../../../../types";
+import type { CastSelectedSpellContext, CastSelectedSpellOptions } from "./types";
 
-export function castSelectedSpellWithContext(context: Record<string, any>, options?: any) {
+export function castSelectedSpellWithContext(
+  context: CastSelectedSpellContext,
+  options?: CastSelectedSpellOptions
+) {
   const {
     ACTION_CATEGORY,
     activateFighterPsiWarriorTelekineticMasterSpellCastForCharacter,
@@ -147,10 +151,10 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
   const selectedSummonCompanions = Array.isArray(options?.summonCompanions)
     ? options.summonCompanions
     : [];
-  const canAddSelectedSummonCompanions = (nextCharacter: any) =>
+  const canAddSelectedSummonCompanions = (nextCharacter: Character) =>
     selectedSummonCompanions.length === 0 ||
     canAddSpellSummonCompanionsForCast(nextCharacter, selectedSummonCompanions);
-  const appendSelectedSummonCompanions = (nextCharacter: any) =>
+  const appendSelectedSummonCompanions = (nextCharacter: Character) =>
     selectedSummonCompanions.length > 0
       ? appendSpellSummonCompanionsForCast(nextCharacter, selectedSummonCompanions)
       : nextCharacter;
@@ -228,7 +232,7 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
     selectedSpellIsSpellbookOnly &&
     castAsRitual &&
     (hasWizardRitualAdept || selectedSpellCanOnlyBeCastAsRitual);
-  const consumeGoliathAncestryIfSelected = (nextCharacter: any) =>
+  const consumeGoliathAncestryIfSelected = (nextCharacter: Character) =>
     useGoliathAncestry ? consumeGoliathGiantAncestryUseForCharacter(nextCharacter) : nextCharacter;
 
   if (selectedSpellIsSpellbookOnly && !canCastSpellbookRitual) {

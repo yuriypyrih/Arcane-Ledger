@@ -21,7 +21,7 @@ import {
   hasActiveNickMasteryForWeaponAction,
   isLightWeaponAction
 } from "../weaponLightProperty";
-import { transformFeatSpellEntryForCharacter } from "../feats/runtime";
+import { transformFeatSpellEntryForCharacter } from "../feats/runtime/spellcasting";
 import { getSpeciesSpellEntryForCharacter } from "../species";
 import {
   removeCharacterStatusEntry

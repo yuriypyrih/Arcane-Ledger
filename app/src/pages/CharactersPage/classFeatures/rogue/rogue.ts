@@ -81,10 +81,17 @@ import {
 import type { RogueSneakAttackEffectDefinition, RogueSneakAttackEffectKey } from "./types";
 import { getWeaponMasteryOptions, normalizeWeaponMasterySelections } from "../weaponMastery";
 import { formatFormulaDieDisplayTerm } from "../../shared/formulas";
+import {
+  rogueSneakAttackActionKey,
+  rogueSteadyAimActionKey,
+  rogueStrokeOfLuckActionKey
+} from "./actionKeys";
+export {
+  rogueSneakAttackActionKey,
+  rogueSteadyAimActionKey,
+  rogueStrokeOfLuckActionKey
+} from "./actionKeys";
 
-export const rogueSneakAttackActionKey = "rogue-sneak-attack";
-export const rogueSteadyAimActionKey = "rogue-steady-aim";
-export const rogueStrokeOfLuckActionKey = "rogue-stroke-of-luck";
 const rogueCunningActionCommonActionBonusPathKeys = new Set([
   "common-action-dash",
   "common-action-disengage",
