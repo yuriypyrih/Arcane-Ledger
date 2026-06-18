@@ -15,9 +15,7 @@ export const manualStatusDurationTypeOptions = [
 
 export type ManualStatusDurationType = (typeof manualStatusDurationTypeOptions)[number]["value"];
 
-export const companionDurationTypeOptions = manualStatusDurationTypeOptions.filter(
-  (option) => option.value !== "MINUTES"
-);
+export const companionDurationTypeOptions = manualStatusDurationTypeOptions;
 
 export type ManualStatusDurationDraft = {
   type: ManualStatusDurationType;

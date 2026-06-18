@@ -148,6 +148,16 @@
   color: var(--action-button-ghost-color);
 }
 
+.sizeMD {
+  min-height: 44px;
+  padding: 0 1.26rem;
+}
+
+.sizeSM {
+  min-height: 36px;
+  padding: 0 0.82rem;
+}
+
 .fullWidth {
   width: 100%;
 }
@@ -161,6 +171,10 @@
   flex: 0 0 auto;
   min-width: 48px;
   padding: 0;
+}
+
+.sizeSM.iconOnly {
+  min-width: 36px;
 }
 
 .content {

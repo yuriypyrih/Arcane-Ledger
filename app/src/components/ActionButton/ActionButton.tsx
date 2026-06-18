@@ -6,6 +6,7 @@ import styles from "./ActionButton.module.css";
 export type ActionButtonType = "INFO" | "SUCCESS" | "WARNING" | "ERROR";
 export type ActionButtonVariant = "FILL" | "OUTLINE" | "GHOST";
 export type ActionButtonIconPosition = "left" | "right";
+export type ActionButtonSize = "md" | "sm";
 
 type ActionButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   actionType?: ActionButtonType;
@@ -17,6 +18,7 @@ type ActionButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   iconOnly?: boolean;
   loading?: boolean;
   loadingLabel?: string;
+  size?: ActionButtonSize;
 };
 
 function ActionButton({
@@ -29,6 +31,7 @@ function ActionButton({
   iconOnly = false,
   loading = false,
   loadingLabel = "Loading",
+  size = "md",
   className,
   children,
   disabled,
@@ -49,6 +52,7 @@ function ActionButton({
         styles.button,
         styles[`type${actionType}`],
         styles[`variant${variant}`],
+        styles[`size${size.toUpperCase()}`],
         fullWidth ? styles.fullWidth : styles.autoWidth,
         iconOnly && styles.iconOnly,
         loading && styles.loading,

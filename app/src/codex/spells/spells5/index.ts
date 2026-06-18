@@ -24,7 +24,7 @@ export const animateObjects: SpellEntry = {
     publisherKey: "wizards-of-the-coast",
     permalink: "https://dnd.wizards.com/resources/systems-reference-document"
   },
-  trackingState: TRACKER.NOT_TRACKED,
+  trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "120 feet",
@@ -113,7 +113,7 @@ export const awaken: SpellEntry = {
     publisherKey: "wizards-of-the-coast",
     permalink: "https://dnd.wizards.com/resources/systems-reference-document"
   },
-  trackingState: TRACKER.NOT_TRACKED,
+  trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.EIGHT_HOURS],
   range: "Touch",
@@ -358,7 +358,7 @@ export const conjureElemental: SpellEntry = {
     publisherKey: "wizards-of-the-coast",
     permalink: "https://dnd.wizards.com/resources/systems-reference-document"
   },
-  trackingState: TRACKER.NOT_TRACKED,
+  trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
@@ -421,7 +421,7 @@ export const conjureVrock: SpellEntry = {
     documentName: "Legacy / Expanded Local",
     ruleset: "legacy-local"
   },
-  trackingState: TRACKER.NOT_TRACKED,
+  trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
@@ -616,7 +616,7 @@ export const danseMacabre: SpellEntry = {
     documentName: "Legacy / Expanded Local",
     ruleset: "legacy-local"
   },
-  trackingState: TRACKER.NOT_TRACKED,
+  trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.NECROMANCY,
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
@@ -1137,7 +1137,7 @@ export const infernalCalling: SpellEntry = {
     documentName: "Legacy / Expanded Local",
     ruleset: "legacy-local"
   },
-  trackingState: TRACKER.NOT_TRACKED,
+  trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.MINUTE],
   range: "90 feet",
@@ -1347,7 +1347,7 @@ export const negativeEnergyFlood: SpellEntry = {
     documentName: "Legacy / Expanded Local",
     ruleset: "legacy-local"
   },
-  trackingState: TRACKER.NOT_TRACKED,
+  trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.NECROMANCY,
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
@@ -1665,7 +1665,7 @@ export const summonCelestial: SpellEntry = {
     documentName: "Legacy / Expanded Local",
     ruleset: "legacy-local"
   },
-  trackingState: TRACKER.NOT_TRACKED,
+  trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "90 feet",
@@ -1691,7 +1691,7 @@ export const summonDraconicSpirit: SpellEntry = {
     documentName: "Legacy / Expanded Local",
     ruleset: "legacy-local"
   },
-  trackingState: TRACKER.NOT_TRACKED,
+  trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
@@ -1700,34 +1700,7 @@ export const summonDraconicSpirit: SpellEntry = {
   description: [
     "You call forth a draconic spirit. It manifests in an unoccupied space that you can see within range. This corporeal form uses the Draconic Spirit stat block. When you cast this spell, choose a family of dragon: Chromatic, Gem, or Metallic. The creature resembles a dragon of the chosen family, which determines certain traits in its stat block. The creature disappears when it drops to 0 Hit Points or when the spell ends.",
     "The creature is an ally to you and your companions. In combat, the creature shares your Initiative count, but it takes its turn immediately after yours. It obeys your verbal commands, no action required by you. If you don't issue any, it takes the Dodge action and uses its move to avoid danger.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 6th level or higher, use the higher level wherever the spell's level appears in the stat block.",
-    "<strong>Draconic Spirit.</strong> Large Dragon, Neutral.",
-    {
-      type: "list",
-      style: "bullet",
-      items: [
-        "<strong>Armor Class.</strong> 14 + the level of the spell, natural armor.",
-        "<strong>Hit Points.</strong> 50 + 10 for each spell level above 5th. The dragon has a number of Hit Dice, <strong>d10s</strong>, equal to the level of the spell.",
-        "<strong>Speed.</strong> 30 ft., fly 60 ft., swim 30 ft.",
-        "<strong>Abilities.</strong> STR 19 (+4), DEX 14 (+2), CON 17 (+3), INT 10 (+0), WIS 14 (+2), CHA 14 (+2).",
-        "<strong>Damage Resistances.</strong> Chromatic and Metallic only: Acid, Cold, Fire, Lightning, Poison.",
-        "<strong>Damage Resistances.</strong> Gem only: Force, Necrotic, Psychic, Radiant, Thunder.",
-        "<strong>Condition Immunities.</strong> Charmed, Frightened, Poisoned.",
-        "<strong>Senses.</strong> Blindsight 30 ft., Darkvision 60 ft., passive Perception 12.",
-        "<strong>Languages.</strong> Draconic, understands the languages you speak.",
-        "<strong>Proficiency Bonus.</strong> Equals your bonus."
-      ]
-    },
-    "<strong>Shared Resistances.</strong> When you summon the dragon, choose one of its damage resistances. You have Resistance to the chosen damage type until the spell ends.",
-    {
-      type: "list",
-      style: "bullet",
-      items: [
-        "<strong>Multiattack.</strong> The dragon makes a number of Rend attacks equal to half the spell's level, rounded down, and it uses Breath Weapon.",
-        "<strong>Rend.</strong> Melee Weapon Attack: your spell attack modifier to hit, reach 10 ft., one target. Hit: <strong>1d6</strong> + 4 + the spell's level Piercing damage.",
-        "<strong>Breath Weapon.</strong> The dragon exhales destructive energy in a 30-foot cone. Each creature in that area must make a Dexterity saving throw against your spell save DC. A creature takes <strong>2d6</strong> damage of a type this dragon has Resistance to, your choice, on a failed save, or half as much damage on a successful one."
-      ]
-    }
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 6th level or higher, use the higher level wherever the spell's level appears in the stat block."
   ],
   isDamagingSpell: true,
   damage: [[DICE.D6, DAMAGE_TYPE.PIERCING]],
@@ -1748,7 +1721,7 @@ export const summonDragon: SpellEntry = {
     publisherKey: "wizards-of-the-coast",
     permalink: "https://dnd.wizards.com/resources/systems-reference-document"
   },
-  trackingState: TRACKER.NOT_TRACKED,
+  trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",

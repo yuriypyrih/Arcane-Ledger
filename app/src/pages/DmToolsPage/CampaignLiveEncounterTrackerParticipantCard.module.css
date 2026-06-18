@@ -18,8 +18,8 @@
 .cardNumberedRowActive .cardOrderNumber {
   color: #2f6de0;
   text-decoration: underline;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 0.16em;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.3em;
 }
 
 :global(html[data-theme="dark"]) .cardNumberedRowActive .cardOrderNumber {

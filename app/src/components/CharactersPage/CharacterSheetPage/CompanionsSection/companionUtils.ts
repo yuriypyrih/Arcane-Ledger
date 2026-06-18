@@ -52,7 +52,9 @@ const reservedTypeOptions = new Set([
   ...companionSpeciesTypeOptions
 ]);
 
-export function createEmptyCompanionDraft(): CompanionDraft {
+export function createEmptyCompanionDraft(
+  overrides: Partial<CompanionDraft> = {}
+): CompanionDraft {
   return {
     id: null,
     name: "",
@@ -65,7 +67,8 @@ export function createEmptyCompanionDraft(): CompanionDraft {
     durationType: defaultManualStatusDurationDraft.type,
     durationValue: defaultManualStatusDurationDraft.value,
     inheritedCreatureEntry: null,
-    inheritedCreatureEntryModified: false
+    inheritedCreatureEntryModified: false,
+    ...overrides
   };
 }
 

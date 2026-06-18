@@ -17,7 +17,7 @@ import {
   getSpellEntryById,
   type SpellEntry
 } from "../../../../codex/entries";
-import type { Character } from "../../../../types";
+import type { Character, CharacterCompanion } from "../../../../types";
 import {
   normalizeRoundTracker,
   shouldTrackRoundScopedResources,
@@ -182,6 +182,10 @@ import SheetSurface from "../SheetSurface";
 import ActionButton from "../../../ActionButton";
 import { getActionShapeForEconomyType } from "../GameplayForm/gameplayWidgetUtils";
 import { getSpellActionPathStates, getSpellActionPathWarning } from "../spellActionPaths";
+import {
+  appendSpellSummonCompanionsForCast,
+  canAddSpellSummonCompanionsForCast
+} from "../../../../pages/CharactersPage/spellSummons";
 import styles from "./SpellCastingForm.module.css";
 import {
   applyRolledTemporaryHitPointsToCharacter,
@@ -2046,6 +2050,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     spellActionPathId?: string | null;
     spellImplementationCastSource?: SpellImplementationCastSource;
     spellImplementationOptions?: SpellImplementationOptionValues;
+    summonCompanions?: CharacterCompanion[];
   }) {
     return castSelectedSpellWithContext(
       {
@@ -2072,6 +2077,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         consumeShadowTouchedFreeCastForCharacter,
         consumeTelepathicDetectThoughtsFreeCastForCharacter,
         applyFeatureSpellCastEffectsForCharacter,
+        appendSpellSummonCompanionsForCast,
+        canAddSpellSummonCompanionsForCast,
         consumeDruidNaturalRecoveryUseForCharacter,
         consumeDruidStarMapGuidingBoltUseForCharacter,
         consumeRangerFeyReinforcementsUseForCharacter,

@@ -9,7 +9,8 @@
 }
 
 .portraitButton,
-.inspectButton {
+.inspectButton,
+.vitalsInspectButton {
   border: none;
   background: transparent;
   color: inherit;
@@ -26,12 +27,13 @@
 
 .inspectButton {
   display: grid;
-  gap: 0.4rem;
   min-width: 0;
+  width: 100%;
 }
 
 .portraitButton:focus-visible,
-.inspectButton:focus-visible {
+.inspectButton:focus-visible,
+.vitalsInspectButton:focus-visible {
   outline: 2px solid rgba(47, 120, 255, 0.34);
   outline-offset: 2px;
 }
@@ -62,23 +64,41 @@
 .main {
   display: grid;
   align-items: start;
-  gap: 0.75rem;
-  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.4rem;
+  grid-template-columns: minmax(0, 1fr);
   min-width: 0;
 }
 
-.metaColumn {
+.vitalsActionsRow {
   display: flex;
-  align-items: flex-end;
-  flex-direction: column;
+  align-items: flex-start;
+  flex-wrap: wrap;
   justify-content: space-between;
-  gap: 0.62rem;
+  gap: 0.45rem 0.75rem;
+  min-width: 0;
+}
+
+.vitalsInspectButton {
+  display: inline-flex;
+  align-items: flex-start;
+  flex: 1 1 auto;
   min-width: 0;
 }
 
 .titleRow {
   display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem 0.8rem;
+  min-width: 0;
+  width: 100%;
+}
+
+.titleText {
+  display: flex;
   align-items: baseline;
+  flex: 1 1 auto;
   flex-wrap: wrap;
   gap: 0.34rem;
   min-width: 0;
@@ -99,13 +119,17 @@
 
 .tagRow {
   display: flex;
+  align-items: center;
+  flex: 0 1 auto;
   flex-wrap: wrap;
   justify-content: flex-end;
+  margin-left: auto;
   gap: 0.34rem;
-  max-width: 16rem;
+  max-width: min(22rem, 54%);
 }
 
 .sourceTag,
+.durationTag,
 .separateInitiativeTag,
 .moddedTag {
   display: inline-flex;
@@ -129,6 +153,19 @@
   color: var(--color-ink-soft);
 }
 
+.durationTag {
+  background: rgba(179, 92, 28, 0.12);
+  color: var(--color-accent);
+}
+
+.durationText {
+  display: block;
+  max-inline-size: min(5.5rem, 100%);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .moddedTag {
   background: #e5e7eb;
   color: #4b5563;
@@ -136,7 +173,7 @@
 
 .vitalsRow {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;
   color: var(--color-ink-soft);
   flex-wrap: wrap;
   font-size: 0.9rem;
@@ -179,8 +216,10 @@
 
 .actions {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;
+  flex: 0 0 auto;
   justify-content: flex-end;
+  margin-left: auto;
   gap: 0.44rem;
 }
 
@@ -247,6 +286,24 @@
   color: var(--theme-state-info);
 }
 
+:global(html[data-theme="dark"]) .sourceTag {
+  border: 1px solid rgba(221, 230, 242, 0.14);
+  background: rgba(255, 255, 255, 0.095);
+  color: var(--theme-text-primary);
+}
+
+:global(html[data-theme="dark"]) .durationTag {
+  border: 1px solid rgba(239, 189, 117, 0.22);
+  background: rgba(239, 189, 117, 0.13);
+  color: var(--theme-state-warning);
+}
+
+:global(html[data-theme="dark"]) .moddedTag {
+  border: 1px solid rgba(221, 230, 242, 0.16);
+  background: rgba(221, 230, 242, 0.1);
+  color: var(--theme-text-secondary);
+}
+
 .visibilityActiveIcon {
   color: #2f78ff;
 }
@@ -265,14 +322,15 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .metaColumn,
   .tagRow {
     align-items: flex-start;
     justify-content: flex-start;
+    margin-left: 0;
     max-width: none;
   }
 
   .actions {
+    margin-left: 0;
     justify-content: flex-start;
   }
 }

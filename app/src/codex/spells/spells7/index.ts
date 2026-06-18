@@ -59,7 +59,7 @@ export const conjureCelestial: SpellEntry = {
     publisherKey: "wizards-of-the-coast",
     permalink: "https://dnd.wizards.com/resources/systems-reference-document"
   },
-  trackingState: TRACKER.NOT_TRACKED,
+  trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "90 feet",
@@ -84,7 +84,7 @@ export const conjureHezrou: SpellEntry = {
     documentName: "Legacy / Expanded Local",
     ruleset: "legacy-local"
   },
-  trackingState: TRACKER.NOT_TRACKED,
+  trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
@@ -111,7 +111,7 @@ export const createMagen: SpellEntry = {
     documentName: "Legacy / Expanded Local",
     ruleset: "legacy-local"
   },
-  trackingState: TRACKER.NOT_TRACKED,
+  trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.HOUR],
   range: "Touch",
@@ -356,7 +356,7 @@ export const fingerOfDeath: SpellEntry = {
     publisherKey: "wizards-of-the-coast",
     permalink: "https://dnd.wizards.com/resources/systems-reference-document"
   },
-  trackingState: TRACKER.NOT_TRACKED,
+  trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.NECROMANCY,
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
@@ -761,7 +761,7 @@ export const simulacrum: SpellEntry = {
     publisherKey: "wizards-of-the-coast",
     permalink: "https://dnd.wizards.com/resources/systems-reference-document"
   },
-  trackingState: TRACKER.NOT_TRACKED,
+  trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.ILLUSION,
   castingTime: [ACTION_TYPE.TWELVE_HOURS],
   range: "Touch",

@@ -97,10 +97,12 @@ type CreatureEditorModalProps = {
   creature: CharacterCompanion | null;
   creatures: CharacterCompanion[];
   getErrorMessage?: (error: unknown, fallback: string) => string;
+  initialDraft?: Partial<CompanionDraft>;
   labels: CreatureEditorLabels;
   onClose: () => void;
   onRemoveCreature?: (creatureId: string) => void | Promise<void>;
   onSaveCreature: (creature: CharacterCompanion) => void | Promise<void>;
+  preserveTypeOnMonsterSelect?: boolean;
   showSeparateInitiativeToggle?: boolean;
   showDurationFields?: boolean;
 };
@@ -173,10 +175,12 @@ function CreatureEditorModal({
   creature,
   creatures,
   getErrorMessage = getDefaultErrorMessage,
+  initialDraft,
   labels,
   onClose,
   onRemoveCreature,
   onSaveCreature,
+  preserveTypeOnMonsterSelect = false,
   showSeparateInitiativeToggle = false,
   showDurationFields = true
 }: CreatureEditorModalProps) {
@@ -194,7 +198,7 @@ function CreatureEditorModal({
     [allowPrimalBeasts]
   );
   const [draft, setDraft] = useState<CompanionDraft>(() =>
-    creature ? createDraftFromCompanion(creature) : createEmptyCompanionDraft()
+    creature ? createDraftFromCompanion(creature) : createEmptyCompanionDraft(initialDraft)
   );
   const [showValidation, setShowValidation] = useState(false);
   const [isDeleteConfirmationOpen, setIsDeleteConfirmationOpen] = useState(false);
@@ -273,12 +277,12 @@ function CreatureEditorModal({
     !isDeprecatedMonsterRecord(draft.inheritedCreatureEntry);
 
   useEffect(() => {
-    setDraft(creature ? createDraftFromCompanion(creature) : createEmptyCompanionDraft());
+    setDraft(creature ? createDraftFromCompanion(creature) : createEmptyCompanionDraft(initialDraft));
     setShowValidation(false);
     setMonsterNotice(null);
     setIsStatBlockEditorOpen(false);
     setEditorError(null);
-  }, [creature]);
+  }, [creature, initialDraft]);
 
   useEffect(() => {
     setMonsterTypeFilter(defaultMonsterTypeFilter);
@@ -419,11 +423,14 @@ function CreatureEditorModal({
       setDraft((currentDraft) => ({
         ...currentDraft,
         name: resolvedMonster.name,
-        type: primalBeastKind
-          ? PRIMAL_BEAST_MONSTER_TYPE
-          : typeName
-            ? typeName
-            : currentDraft.type,
+        type:
+          preserveTypeOnMonsterSelect && currentDraft.type.trim().length > 0
+            ? currentDraft.type
+            : primalBeastKind
+              ? PRIMAL_BEAST_MONSTER_TYPE
+              : typeName
+                ? typeName
+                : currentDraft.type,
         maxHitPoints: String(hitPoints),
         primalBeastKind,
         inheritedCreatureEntry: resolvedMonster,
@@ -619,15 +626,17 @@ function CreatureEditorModal({
           <section className={styles.monsterSection}>
             <div className={styles.panelHeader}>
               <h4 className={styles.panelTitle}>{labels.inheritedStatBlockTitle}</h4>
-              <button
-                type="button"
-                className={styles.secondaryButton}
+              <ActionButton
+                actionType="INFO"
+                variant="FILL"
+                size="sm"
+                fullWidth={false}
+                icon={<Search size={16} aria-hidden="true" />}
                 disabled={isSaving || isDeleting || isResettingStatBlock}
                 onClick={() => setIsMonsterBrowserOpen(true)}
               >
-                <Search size={16} />
                 {labels.browseButton}
-              </button>
+              </ActionButton>
             </div>
 
             {draft.inheritedCreatureEntry ? (
@@ -706,7 +715,7 @@ function CreatureEditorModal({
             {monsterNotice ? <p className={styles.notice}>{monsterNotice}</p> : null}
           </section>
 
-          <div className={shared.formGrid}>
+          <div className={`${shared.formGrid} ${styles.editorInputGrid}`}>
             <label className={shared.field}>
               <span className={shared.fieldLabel}>Name</span>
               <TextInput

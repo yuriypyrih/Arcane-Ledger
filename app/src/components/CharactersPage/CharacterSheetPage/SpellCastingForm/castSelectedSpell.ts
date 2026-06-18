@@ -28,6 +28,8 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
     consumeShadowTouchedFreeCastForCharacter,
     consumeTelepathicDetectThoughtsFreeCastForCharacter,
     applyFeatureSpellCastEffectsForCharacter,
+    appendSpellSummonCompanionsForCast,
+    canAddSpellSummonCompanionsForCast,
     consumeRangerFeyReinforcementsUseForCharacter,
     consumeRangerMistyWandererUseForCharacter,
     consumeRangerWinterWalkerFrozenHauntUseForCharacter,
@@ -142,6 +144,23 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
   const selectedSpellCastEffectIds = Array.isArray(options?.spellCastEffectIds)
     ? options.spellCastEffectIds
     : [];
+  const selectedSummonCompanions = Array.isArray(options?.summonCompanions)
+    ? options.summonCompanions
+    : [];
+  const canAddSelectedSummonCompanions = (nextCharacter: any) =>
+    selectedSummonCompanions.length === 0 ||
+    canAddSpellSummonCompanionsForCast(nextCharacter, selectedSummonCompanions);
+  const appendSelectedSummonCompanions = (nextCharacter: any) =>
+    selectedSummonCompanions.length > 0
+      ? appendSpellSummonCompanionsForCast(nextCharacter, selectedSummonCompanions)
+      : nextCharacter;
+
+  if (
+    selectedSummonCompanions.length > 0 &&
+    !canAddSpellSummonCompanionsForCast(character, selectedSummonCompanions)
+  ) {
+    return;
+  }
   const useEmeraldEnclaveFledglingFreeUse =
     options?.useEmeraldEnclaveFledglingFreeUse === true &&
     selectedSpellSupportsEmeraldEnclaveFledgling;
@@ -219,6 +238,10 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
   if (spellLevel === 0) {
     if (roundTrackerResource) {
       onPersistCharacter((currentCharacter) => {
+        if (!canAddSelectedSummonCompanions(currentCharacter)) {
+          return currentCharacter;
+        }
+
         const preparedCharacter = prepareCharacterForResourceConsumption(
           currentCharacter,
           roundTrackerResource
@@ -269,10 +292,12 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
         );
 
         if (nextCharacterWithSharedMulti !== nextCharacterWithFeatCastEffects) {
-          return applySpellCastFeatureEffectsForCharacter(
-            nextCharacterWithSharedMulti,
-            selectedSpell,
-            { useRadiantSoul }
+          return appendSelectedSummonCompanions(
+            applySpellCastFeatureEffectsForCharacter(
+              nextCharacterWithSharedMulti,
+              selectedSpell,
+              { useRadiantSoul }
+            )
           );
         }
 
@@ -286,13 +311,16 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
           roundTrackerResource
         );
 
-        return consumeRoundTrackerResourceForCharacter(
-          nextCharacterWithFleetStep,
-          roundTrackerResource
+        return appendSelectedSummonCompanions(
+          consumeRoundTrackerResourceForCharacter(nextCharacterWithFleetStep, roundTrackerResource)
         );
       });
     } else {
       onPersistCharacter((currentCharacter) => {
+        if (!canAddSelectedSummonCompanions(currentCharacter)) {
+          return currentCharacter;
+        }
+
         const nextCharacter = useBeguilingMagic
           ? consumeBeguilingMagicOrBardicInspirationForCharacter(currentCharacter)
           : currentCharacter;
@@ -339,7 +367,7 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
           { useRadiantSoul }
         );
 
-        return nextCharacterWithSpellCastEffects;
+        return appendSelectedSummonCompanions(nextCharacterWithSpellCastEffects);
       });
     }
 
@@ -357,6 +385,10 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
 
   if (castAsRitual) {
     onPersistCharacter((currentCharacter) => {
+      if (!canAddSelectedSummonCompanions(currentCharacter)) {
+        return currentCharacter;
+      }
+
       const preparedCharacter = prepareCharacterForResourceConsumption(
         currentCharacter,
         roundTrackerResource
@@ -396,9 +428,11 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
         roundTrackerResource
       );
 
-      return roundTrackerResource
+      const nextCharacterWithResource = roundTrackerResource
         ? consumeRoundTrackerResourceForCharacter(nextCharacterWithFleetStep, roundTrackerResource)
         : nextCharacterWithFleetStep;
+
+      return appendSelectedSummonCompanions(nextCharacterWithResource);
     });
 
     rollHuntersRimeTemporaryHitPointsForSpellCast(selectedSpell);
@@ -495,6 +529,10 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
   }
 
   onPersistCharacter((currentCharacter) => {
+    if (!canAddSelectedSummonCompanions(currentCharacter)) {
+      return currentCharacter;
+    }
+
     const preparedCharacter = prepareCharacterForResourceConsumption(
       currentCharacter,
       roundTrackerResource
@@ -770,9 +808,8 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
     );
 
     if (castsFreeViaTelekineticMaster && roundTrackerResource) {
-      return consumeRoundTrackerResourceForCharacter(
-        nextCharacterWithFleetStep,
-        roundTrackerResource
+      return appendSelectedSummonCompanions(
+        consumeRoundTrackerResourceForCharacter(nextCharacterWithFleetStep, roundTrackerResource)
       );
     }
 
@@ -784,12 +821,14 @@ export function castSelectedSpellWithContext(context: Record<string, any>, optio
       : nextCharacterWithSpellCastEffects;
 
     if (nextCharacterWithSharedMulti !== nextCharacterWithSpellCastEffects) {
-      return nextCharacterWithSharedMulti;
+      return appendSelectedSummonCompanions(nextCharacterWithSharedMulti);
     }
 
-    return roundTrackerResource
+    const nextCharacterWithResource = roundTrackerResource
       ? consumeRoundTrackerResourceForCharacter(nextCharacterWithFleetStep, roundTrackerResource)
       : nextCharacterWithFleetStep;
+
+    return appendSelectedSummonCompanions(nextCharacterWithResource);
   });
 
   rollHuntersRimeTemporaryHitPointsForSpellCast(selectedSpell);

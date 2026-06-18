@@ -14,6 +14,7 @@ import KeywordReferenceDrawer from "../../../KeywordReferenceDrawer/KeywordRefer
 import SpellSubtitle from "../../../SpellSubtitle";
 import SelectInput from "../../FormInputs/SelectInput";
 import SpellDescriptionContent from "../../../SpellDescriptionContent";
+import SummonDefinitionPanel from "./SummonDefinitionPanel";
 import {
   ENTRY_CATEGORIES,
   KeywordTooltip,
@@ -22,7 +23,7 @@ import {
   type SpellDescriptionEntry,
   type SpellEntry
 } from "../../../../codex/entries";
-import type { AbilityKey, Character } from "../../../../types";
+import type { AbilityKey, Character, CharacterCompanion } from "../../../../types";
 import type { RoundTrackerResource } from "../../../../pages/CharactersPage/combat";
 import {
   formatCodexLabel,
@@ -43,6 +44,8 @@ import { markUsageHeaderTagsAsFallback } from "../../../../pages/CharactersPage/
 import { orderDescriptionAdditionSections } from "../../../../pages/CharactersPage/actionModalDescriptions";
 import { getSpellLevel } from "../../../../pages/CharactersPage/spellcasting";
 import { getSpellDamageDetailForCharacter } from "../../../../pages/CharactersPage/spellOutcome";
+import { CHARACTER_COMPANION_LIMIT } from "../../../../pages/CharactersPage/companions";
+import { getSpellSummonDefinitionConfig } from "../../../../pages/CharactersPage/spellSummons";
 import {
   getSpellAttackFormulaCell,
   getSpellSaveFormulaCell
@@ -102,6 +105,7 @@ export type CharacterSpellDrawerActionOptions = {
   spellActionPathId?: string | null;
   spellImplementationCastSource?: SpellImplementationCastSource;
   spellImplementationOptions?: SpellImplementationOptionValues;
+  summonCompanions?: CharacterCompanion[];
 };
 
 export type CharacterSpellDrawerActionRadioOption = {
@@ -288,7 +292,34 @@ function CharacterSpellDrawer({
   const [selectedTrackingKeyword, setSelectedTrackingKeyword] =
     useState<ResolvedKeywordReference | null>(null);
   const [isRitualCastingSelected, setIsRitualCastingSelected] = useState(ritualCastingRequired);
+  const [spellSummonDefinitions, setSpellSummonDefinitions] = useState<CharacterCompanion[]>([]);
   const spellLevel = getSpellLevel(spell);
+  const spellSummonDefinitionConfig =
+    mode === "standard" ? getSpellSummonDefinitionConfig(spell) : null;
+  const isSpellSummonDefinitionRequired = spellSummonDefinitionConfig !== null;
+  const companionCount = character.companions?.length ?? 0;
+  const summonDefinitionCount = spellSummonDefinitions.length;
+  const companionCountAfterSummonCast = companionCount + summonDefinitionCount;
+  const isSummonDefinitionAddDisabled =
+    isSpellSummonDefinitionRequired &&
+    companionCountAfterSummonCast >= CHARACTER_COMPANION_LIMIT;
+  const doSummonDefinitionsExceedCompanionLimit =
+    isSpellSummonDefinitionRequired &&
+    companionCountAfterSummonCast > CHARACTER_COMPANION_LIMIT;
+  const summonDefinitionAddDisabledReason = isSummonDefinitionAddDisabled
+    ? companionCount >= CHARACTER_COMPANION_LIMIT && summonDefinitionCount === 0
+      ? `You have reached the companion limit (${CHARACTER_COMPANION_LIMIT}).`
+      : `These summons fill the companion limit (${CHARACTER_COMPANION_LIMIT}).`
+    : null;
+  const summonDefinitionWarning = isSpellSummonDefinitionRequired
+    ? companionCount >= CHARACTER_COMPANION_LIMIT && summonDefinitionCount === 0
+      ? `You have reached the companion limit (${CHARACTER_COMPANION_LIMIT}). Remove a companion before casting this summon.`
+      : summonDefinitionCount === 0
+        ? "Define a summon before casting."
+        : doSummonDefinitionsExceedCompanionLimit
+          ? `These summons would exceed the companion limit (${CHARACTER_COMPANION_LIMIT}). Remove a summon definition or companion before casting.`
+        : null
+    : null;
   const resolvedSpellImplementationCastSource =
     spellImplementationCastSource ??
     (mode === "divine-intervention" ? "divine-intervention" : "standard");
@@ -422,8 +453,12 @@ function CharacterSpellDrawer({
     ? canCastAtSelectedSlot &&
       !effectiveBlockedReason &&
       !actionDisabled &&
-      requiredActionOptionWarning === null
-    : !effectiveBlockedReason && !actionDisabled && requiredActionOptionWarning === null;
+      requiredActionOptionWarning === null &&
+      summonDefinitionWarning === null
+    : !effectiveBlockedReason &&
+      !actionDisabled &&
+      requiredActionOptionWarning === null &&
+      summonDefinitionWarning === null;
   const componentsTooltipEntry = KeywordTooltip.components ?? null;
   const spellTrackingState = getSpellTrackingState(spell);
   const badgeLabel =
@@ -445,7 +480,9 @@ function CharacterSpellDrawer({
     ? getActionShapeTitle(castingTimeActionShape)
     : null;
   const visibleActionWarning =
-    requiredActionOptionWarning ?? (isSpentActionWarning(actionWarning) ? null : actionWarning);
+    requiredActionOptionWarning ??
+    summonDefinitionWarning ??
+    (isSpentActionWarning(actionWarning) ? null : actionWarning);
   const baseActionOptions = {
     castAsRitual: !isQuickRitualSelected && (ritualCastingRequired || isRitualCastingSelected),
     useStarMap: allActionOptions.some((option) => option.id === "star-map" && option.checked),
@@ -477,7 +514,8 @@ function CharacterSpellDrawer({
       (option) => option.id === "detect-thoughts" && option.checked
     ),
     spellCastEffectIds: [],
-    spellImplementationOptions: activeSpellImplementationOptionValues
+    spellImplementationOptions: activeSpellImplementationOptionValues,
+    summonCompanions: isSpellSummonDefinitionRequired ? spellSummonDefinitions : []
   };
   const resolvedActionPaths =
     actionPaths && actionPaths.length > 0
@@ -581,6 +619,10 @@ function CharacterSpellDrawer({
   useEffect(() => {
     setSpellImplementationOptionValues(defaultSpellImplementationOptionValues);
   }, [defaultSpellImplementationOptionValues, spell.id]);
+
+  useEffect(() => {
+    setSpellSummonDefinitions([]);
+  }, [spell.id]);
 
   useEffect(() => {
     if (ritualCastingRequired) {
@@ -830,6 +872,17 @@ function CharacterSpellDrawer({
                   </div>
                 ))}
               </div>
+            ) : null}
+            {isSpellSummonDefinitionRequired && spellSummonDefinitionConfig ? (
+              <SummonDefinitionPanel
+                character={character}
+                config={spellSummonDefinitionConfig}
+                definitions={spellSummonDefinitions}
+                disabled={isSummonDefinitionAddDisabled}
+                disabledReason={summonDefinitionAddDisabledReason}
+                onDefinitionsChange={setSpellSummonDefinitions}
+                spell={spell}
+              />
             ) : null}
             {spellFormulaCells.length > 0 ? (
               <div className={sheetStyles.spellDrawerDetails}>

@@ -164,3 +164,26 @@
   display: grid;
   gap: 0.55rem;
 }
+
+.summonDefinitionSection {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.summonDefinitionEmpty {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.summonDefinitionNotice {
+  color: var(--theme-text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.35;
+  margin: 0;
+}
+
+@media (max-width: 560px) {
+  .summonDefinitionEmpty {
+    gap: 0.45rem;
+  }
+}
