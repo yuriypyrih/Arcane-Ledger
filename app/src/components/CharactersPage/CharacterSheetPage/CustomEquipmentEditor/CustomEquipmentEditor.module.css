@@ -220,6 +220,18 @@
   opacity: 0.48;
 }
 
+:global(html[data-theme="dark"]) .customEquipmentInlineButton {
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-primary);
+  box-shadow: inset 0 0 0 1px var(--theme-border-subtle);
+}
+
+:global(html[data-theme="dark"]) .customEquipmentInlineButton:hover:not(:disabled),
+:global(html[data-theme="dark"]) .customEquipmentInlineButton:focus-visible:not(:disabled) {
+  background: var(--theme-control-subtle-hover);
+  box-shadow: inset 0 0 0 1px var(--theme-border-medium);
+}
+
 .customStoredSpellList {
   display: grid;
   gap: 0.44rem;
@@ -249,6 +261,18 @@
 .customSpellRemoveButton:disabled {
   cursor: not-allowed;
   opacity: 0.48;
+}
+
+:global(html[data-theme="dark"]) .customSpellRemoveButton {
+  background: rgba(232, 116, 102, 0.14);
+  color: var(--theme-state-danger);
+  box-shadow: inset 0 0 0 1px rgba(232, 116, 102, 0.24);
+}
+
+:global(html[data-theme="dark"]) .customSpellRemoveButton:hover:not(:disabled),
+:global(html[data-theme="dark"]) .customSpellRemoveButton:focus-visible:not(:disabled) {
+  background: rgba(232, 116, 102, 0.2);
+  box-shadow: inset 0 0 0 1px rgba(232, 116, 102, 0.36);
 }
 
 .customDamageList {
