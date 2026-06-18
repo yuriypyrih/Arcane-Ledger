@@ -10,7 +10,7 @@ import {
   normalizeCustomClassHitDie
 } from "./customClass";
 import { getPrimaryAbilityForClass } from "./proficiencyClassData";
-import { getBuiltInSpellcastingAbilityForCharacter } from "./shared/spellFormulas";
+import { getBuiltInSpellcastingAbilityForCharacter } from "./shared/spellcastingAbility";
 
 export function getDefaultClassRulesHitDie(className: string): CharacterCustomHitDie {
   const classEntry = getClassEntryByName(className);

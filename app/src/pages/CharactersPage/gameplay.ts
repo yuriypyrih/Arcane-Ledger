@@ -8,6 +8,7 @@ import {
   WEAPON_MASTERY,
   WEAPON_TRAINING,
   WEAPON_PROPERTY,
+  getSpellEntryById,
   type SpellDescriptionEntry,
   type WeaponDamage,
   type WeaponDamageAmount,
@@ -32,6 +33,18 @@ import {
 import type { AbilityModifierBonusEntry } from "./abilities";
 import { getEquipmentRuntimeForCharacter } from "./characterRuntime/equipmentRuntime";
 import { measureCharacterRuntime } from "./characterRuntime/performance";
+import {
+  getShillelaghDamageAdjustmentForWeapon,
+  getShillelaghSpellcastingAbilityForWeapon,
+  getTrueStrikeDamageAdjustmentForWeapon,
+  getTrueStrikeEconomyMultiCountForWeapon,
+  getTrueStrikeExtraRadiantDamageFormulaForLevel,
+  getTrueStrikeSpellcastingAbilityForWeapon,
+  shillelaghSpellId,
+  shillelaghStatusValue,
+  trueStrikeSpellId,
+  trueStrikeStatusValue
+} from "./characterRuntime/spellImplementations";
 import {
   canUseMonkMartialArtsForCharacter,
   getAdditionalWeaponMasteriesForCharacter,
@@ -94,13 +107,14 @@ import { getResolvedCustomLoadoutEntries, type ResolvedCustomWeaponEntry } from 
 import { skillGroupsByAbility } from "./skillDefinitions";
 import { getHitDieMaximumForClass } from "./hitDice";
 import { getExhaustionD20TestPenalty } from "./statusEntries";
+import { createSourcedDescriptionEntries } from "./actionModalDescriptions";
 export {
   getHitDiceDisplayForCharacter,
   getHitDiceRemainingForCharacter,
   getHitDieFormulaForClass
 } from "./hitDice";
 
-type WeaponAbilityRule = "strength" | "dexterity" | "finesse";
+type WeaponAbilityRule = "strength" | "dexterity" | "finesse" | AbilityKey;
 
 type WeaponReference = {
   damageLabel: string;
@@ -511,6 +525,10 @@ function getWeaponReferenceFromItemRecord(
 }
 
 function resolveWeaponAbility(rule: WeaponAbilityRule, abilities: AbilityScores): AbilityKey {
+  if (abilityKeys.includes(rule as AbilityKey)) {
+    return rule as AbilityKey;
+  }
+
   if (rule === "dexterity") {
     return "DEX";
   }
@@ -628,6 +646,10 @@ function appendFeatureDamageBonuses(
 }
 
 function formatFeatureDamageBonusLabel(entry: FeatureDamageBonus): string | null {
+  if (entry.displayLabel) {
+    return entry.displayLabel;
+  }
+
   const customFormulaLabel = formatCustomTraitBonusFormulaTerm({
     value: entry.value ?? 0,
     formula: entry.formula,
@@ -638,10 +660,6 @@ function formatFeatureDamageBonusLabel(entry: FeatureDamageBonus): string | null
 
   if (customFormulaLabel) {
     return customFormulaLabel;
-  }
-
-  if (entry.displayLabel) {
-    return entry.displayLabel;
   }
 
   if (entry.formula) {
@@ -693,6 +711,58 @@ function getDuelingDamageBonusEntriesForWeaponAction(
   ];
 }
 
+function getTrueStrikeDamageBonusEntriesForWeaponAction(
+  character: Pick<Character, "level" | "statusEntries">,
+  context: {
+    attackKind: "weapon" | "unarmed";
+  }
+): FeatureDamageBonus[] {
+  if (getTrueStrikeEconomyMultiCountForWeapon(character, context) === 0) {
+    return [];
+  }
+
+  const formula = getTrueStrikeExtraRadiantDamageFormulaForLevel(character.level);
+
+  return formula
+    ? [
+        {
+          label: trueStrikeStatusValue,
+          formula,
+          displayLabel: `${formula} Radiant`,
+          formulaSourceLabel: trueStrikeStatusValue
+        }
+      ]
+    : [];
+}
+
+function getWeaponSpellCardBonusLabels(options: {
+  trueStrikeEconomyMultiCount: number;
+  hasShillelagh: boolean;
+}): string[] {
+  return [
+    ...(options.trueStrikeEconomyMultiCount > 0 ? [trueStrikeStatusValue] : []),
+    ...(options.hasShillelagh ? [shillelaghStatusValue] : [])
+  ];
+}
+
+function getSpellDescriptionAddition(spellId: string): SpellDescriptionEntry[] {
+  const spell = getSpellEntryById(spellId);
+
+  return spell ? createSourcedDescriptionEntries(spell.name, spell.description) : [];
+}
+
+function getWeaponSpellDescriptionAdditions(options: {
+  trueStrikeEconomyMultiCount: number;
+  hasShillelagh: boolean;
+}): SpellDescriptionEntry[][] {
+  return [
+    ...(options.trueStrikeEconomyMultiCount > 0
+      ? [getSpellDescriptionAddition(trueStrikeSpellId)]
+      : []),
+    ...(options.hasShillelagh ? [getSpellDescriptionAddition(shillelaghSpellId)] : [])
+  ].filter((section) => section.length > 0);
+}
+
 export function createWeaponAction(
   character: Pick<
     Character,
@@ -719,6 +789,9 @@ export function createWeaponAction(
     proficiencyLabel: string;
     proficiencyBonus: number;
     damageBonusEntries?: FeatureDamageBonus[];
+    cardBonusLabels?: string[];
+    description?: SpellDescriptionEntry[];
+    descriptionAdditions?: SpellDescriptionEntry[][];
     economyType?: EconomyType;
     economyMultiCount?: number;
     hasVersatileBonus: boolean;
@@ -840,7 +913,7 @@ export function createWeaponAction(
     totalModifier,
     indicators,
     damageBonusEntries,
-    cardBonusLabels: [],
+    cardBonusLabels: options.cardBonusLabels ?? [],
     rollFormula: createRollFormula(rollFormulaBase, totalModifier),
     hasVersatileBonus: options.hasVersatileBonus,
     hasGreatWeaponFighting: options.hasGreatWeaponFighting,
@@ -849,6 +922,8 @@ export function createWeaponAction(
     hasActiveMastery: options.hasActiveMastery,
     isBatteringRootsEligible,
     isMagicWeapon: options.isMagicWeapon,
+    description: options.description,
+    descriptionAdditions: options.descriptionAdditions,
     inventoryStackId: options.inventoryStackId,
     inventoryFeatureTags: options.inventoryFeatureTags
   };
@@ -1195,19 +1270,54 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
       versatileDamage: weaponEntry.versatileDamage
     };
     const useVersatileDamage = hasVersatileHandBonus(weaponDescriptor, heldWeaponDescriptors);
+    const baseWeapon = equipmentDefinition.baseWeapon ?? null;
+    const selectedDamage = getSelectedWeaponDamage(weaponEntry, { useVersatileDamage });
+    const weaponSpellContext = {
+      attackKind: "weapon" as const,
+      baseWeapon,
+      combatType: weaponEntry.type.combat
+    };
+    const trueStrikeAbility = getTrueStrikeSpellcastingAbilityForWeapon(
+      character,
+      weaponSpellContext
+    );
+    const trueStrikeDamageAdjustment = getTrueStrikeDamageAdjustmentForWeapon(
+      character,
+      weaponSpellContext,
+      selectedDamage
+    );
+    const trueStrikeEconomyMultiCount = getTrueStrikeEconomyMultiCountForWeapon(
+      character,
+      weaponSpellContext
+    );
+    const shillelaghAbility = getShillelaghSpellcastingAbilityForWeapon(
+      character,
+      weaponSpellContext
+    );
+    const shillelaghDamageAdjustment = getShillelaghDamageAdjustmentForWeapon(
+      character,
+      weaponSpellContext,
+      trueStrikeDamageAdjustment?.damage ?? selectedDamage
+    );
     const isEligibleMonkWeapon = monkMartialArtsActive && isMonkWeapon(weaponEntry);
     const monkDamageAdjustment =
       isEligibleMonkWeapon && monkMartialArtsDie
         ? applyMartialArtsDamageDie(
-            getSelectedWeaponDamage(weaponEntry, { useVersatileDamage }),
+            shillelaghDamageAdjustment?.damage ??
+              trueStrikeDamageAdjustment?.damage ??
+              selectedDamage,
             monkMartialArtsDie
           )
         : null;
     const weaponReference = getWeaponReference(equipmentItem.name, {
       useVersatileDamage,
       applyGreatWeaponFighting: hasGreatWeaponFighting,
-      damageOverride: monkDamageAdjustment?.damage,
-      abilityRuleOverride: isEligibleMonkWeapon ? "finesse" : undefined
+      damageOverride:
+        monkDamageAdjustment?.damage ??
+        shillelaghDamageAdjustment?.damage ??
+        trueStrikeDamageAdjustment?.damage,
+      abilityRuleOverride:
+        trueStrikeAbility ?? shillelaghAbility ?? (isEligibleMonkWeapon ? "finesse" : undefined)
     });
 
     if (!weaponReference) {
@@ -1234,7 +1344,7 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
         key: `codex-${equipmentItem.name}`,
         name: equipmentItem.name,
         attackKind: "weapon",
-        baseWeapon: equipmentDefinition.baseWeapon ?? null,
+        baseWeapon,
         combatType: weaponEntry.type.combat,
         weaponTraining: weaponEntry.type.training,
         properties: weaponEntry.properties,
@@ -1246,15 +1356,27 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
         abilityModifier,
         proficiencyLabel,
         proficiencyBonus: appliedProficiencyBonus,
-        damageBonusEntries: getDuelingDamageBonusEntriesForWeaponAction(
-          character,
-          {
-            attackKind: "weapon",
-            combatType: weaponEntry.type.combat
-          },
-          weaponDescriptor,
-          heldWeaponDescriptors
-        ),
+        damageBonusEntries: [
+          ...getDuelingDamageBonusEntriesForWeaponAction(
+            character,
+            {
+              attackKind: "weapon",
+              combatType: weaponEntry.type.combat
+            },
+            weaponDescriptor,
+            heldWeaponDescriptors
+          ),
+          ...getTrueStrikeDamageBonusEntriesForWeaponAction(character, weaponSpellContext)
+        ],
+        cardBonusLabels: getWeaponSpellCardBonusLabels({
+          trueStrikeEconomyMultiCount,
+          hasShillelagh: shillelaghAbility !== null || shillelaghDamageAdjustment?.applied === true
+        }),
+        descriptionAdditions: getWeaponSpellDescriptionAdditions({
+          trueStrikeEconomyMultiCount,
+          hasShillelagh: shillelaghAbility !== null || shillelaghDamageAdjustment?.applied === true
+        }),
+        economyMultiCount: trueStrikeEconomyMultiCount,
         hasVersatileBonus: weaponReference.hasVersatileBonus,
         hasGreatWeaponFighting: weaponReference.hasGreatWeaponFighting,
         hasMartialArtsDamageDie: Boolean(monkDamageAdjustment?.applied)
@@ -1269,19 +1391,54 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
       versatileDamage: weaponEntry.versatileDamage
     } satisfies HeldWeaponDescriptor;
     const useVersatileDamage = hasVersatileHandBonus(weaponDescriptor, heldWeaponDescriptors);
+    const selectedDamage = getSelectedWeaponDamage(weaponEntry, { useVersatileDamage });
+    const weaponSpellContext = {
+      attackKind: "weapon" as const,
+      baseWeapon: weaponEntry.baseWeapon,
+      combatType: weaponEntry.type.combat
+    };
+    const trueStrikeAbility = getTrueStrikeSpellcastingAbilityForWeapon(
+      character,
+      weaponSpellContext
+    );
+    const trueStrikeDamageAdjustment = getTrueStrikeDamageAdjustmentForWeapon(
+      character,
+      weaponSpellContext,
+      selectedDamage
+    );
+    const trueStrikeEconomyMultiCount = getTrueStrikeEconomyMultiCountForWeapon(
+      character,
+      weaponSpellContext
+    );
+    const shillelaghAbility = getShillelaghSpellcastingAbilityForWeapon(
+      character,
+      weaponSpellContext
+    );
+    const shillelaghDamageAdjustment = getShillelaghDamageAdjustmentForWeapon(
+      character,
+      weaponSpellContext,
+      trueStrikeDamageAdjustment?.damage ?? selectedDamage
+    );
     const monkDamageAdjustment =
       monkMartialArtsActive && monkMartialArtsDie && isMonkWeapon(weaponEntry)
         ? applyMartialArtsDamageDie(
-            getSelectedWeaponDamage(weaponEntry, { useVersatileDamage }),
+            shillelaghDamageAdjustment?.damage ??
+              trueStrikeDamageAdjustment?.damage ??
+              selectedDamage,
             monkMartialArtsDie
           )
         : null;
     const weaponReference = getWeaponReferenceFromEntry(weaponEntry, {
       useVersatileDamage,
       applyGreatWeaponFighting: hasGreatWeaponFighting,
-      damageOverride: monkDamageAdjustment?.damage,
+      damageOverride:
+        monkDamageAdjustment?.damage ??
+        shillelaghDamageAdjustment?.damage ??
+        trueStrikeDamageAdjustment?.damage,
       abilityRuleOverride:
-        monkMartialArtsActive && isMonkWeapon(weaponEntry) ? "finesse" : undefined
+        trueStrikeAbility ??
+        shillelaghAbility ??
+        (monkMartialArtsActive && isMonkWeapon(weaponEntry) ? "finesse" : undefined)
     });
 
     if (!weaponReference) {
@@ -1320,15 +1477,27 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
         abilityModifier,
         proficiencyLabel,
         proficiencyBonus: appliedProficiencyBonus,
-        damageBonusEntries: getDuelingDamageBonusEntriesForWeaponAction(
-          character,
-          {
-            attackKind: "weapon",
-            combatType: weaponEntry.type.combat
-          },
-          weaponDescriptor,
-          heldWeaponDescriptors
-        ),
+        damageBonusEntries: [
+          ...getDuelingDamageBonusEntriesForWeaponAction(
+            character,
+            {
+              attackKind: "weapon",
+              combatType: weaponEntry.type.combat
+            },
+            weaponDescriptor,
+            heldWeaponDescriptors
+          ),
+          ...getTrueStrikeDamageBonusEntriesForWeaponAction(character, weaponSpellContext)
+        ],
+        cardBonusLabels: getWeaponSpellCardBonusLabels({
+          trueStrikeEconomyMultiCount,
+          hasShillelagh: shillelaghAbility !== null || shillelaghDamageAdjustment?.applied === true
+        }),
+        descriptionAdditions: getWeaponSpellDescriptionAdditions({
+          trueStrikeEconomyMultiCount,
+          hasShillelagh: shillelaghAbility !== null || shillelaghDamageAdjustment?.applied === true
+        }),
+        economyMultiCount: trueStrikeEconomyMultiCount,
         hasVersatileBonus: weaponReference.hasVersatileBonus,
         hasGreatWeaponFighting: weaponReference.hasGreatWeaponFighting,
         hasMartialArtsDamageDie: Boolean(monkDamageAdjustment?.applied)
@@ -1357,6 +1526,37 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
             { useVersatileDamage }
           )
         : null;
+      const baseWeapon = resolveWeaponBaseReference({
+        name: inventoryItem.item.weapon?.name ?? inventoryItem.item.name,
+        key: inventoryItem.item.key
+      });
+      const weaponSpellContext = {
+        attackKind: "weapon" as const,
+        baseWeapon,
+        combatType: weaponType?.combat ?? null
+      };
+      const trueStrikeAbility = getTrueStrikeSpellcastingAbilityForWeapon(
+        character,
+        weaponSpellContext
+      );
+      const trueStrikeDamageAdjustment = baseDamage
+        ? getTrueStrikeDamageAdjustmentForWeapon(character, weaponSpellContext, baseDamage)
+        : null;
+      const trueStrikeEconomyMultiCount = getTrueStrikeEconomyMultiCountForWeapon(
+        character,
+        weaponSpellContext
+      );
+      const shillelaghAbility = getShillelaghSpellcastingAbilityForWeapon(
+        character,
+        weaponSpellContext
+      );
+      const shillelaghDamageAdjustment = baseDamage
+        ? getShillelaghDamageAdjustmentForWeapon(
+            character,
+            weaponSpellContext,
+            trueStrikeDamageAdjustment?.damage ?? baseDamage
+          )
+        : null;
       const isEligibleMonkWeapon =
         monkMartialArtsActive &&
         weaponType &&
@@ -1366,26 +1566,36 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
         });
       const monkDamageAdjustment =
         isEligibleMonkWeapon && monkMartialArtsDie && baseDamage
-          ? applyMartialArtsDamageDie(baseDamage, monkMartialArtsDie)
+          ? applyMartialArtsDamageDie(
+              shillelaghDamageAdjustment?.damage ??
+                trueStrikeDamageAdjustment?.damage ??
+                baseDamage,
+              monkMartialArtsDie
+            )
           : null;
+      const formulaDamage =
+        monkDamageAdjustment?.damage ??
+        shillelaghDamageAdjustment?.damage ??
+        trueStrikeDamageAdjustment?.damage ??
+        baseDamage;
       const weaponReference = getWeaponReferenceFromItemRecord(inventoryItem.item, {
         useVersatileDamage,
         applyGreatWeaponFighting: hasGreatWeaponFighting,
-        damageOverride: monkDamageAdjustment?.damage,
-        formulaDamageOverride: baseDamage
-          ? resolveAbilityDamageAmounts(monkDamageAdjustment?.damage ?? baseDamage, character)
+        damageOverride:
+          monkDamageAdjustment?.damage ??
+          shillelaghDamageAdjustment?.damage ??
+          trueStrikeDamageAdjustment?.damage,
+        formulaDamageOverride: formulaDamage
+          ? resolveAbilityDamageAmounts(formulaDamage, character)
           : undefined,
-        abilityRuleOverride: isEligibleMonkWeapon ? "finesse" : undefined
+        abilityRuleOverride:
+          trueStrikeAbility ?? shillelaghAbility ?? (isEligibleMonkWeapon ? "finesse" : undefined)
       });
 
       if (!adaptedWeapon || !weaponType || !weaponReference) {
         return actions;
       }
 
-      const baseWeapon = resolveWeaponBaseReference({
-        name: inventoryItem.item.weapon?.name ?? inventoryItem.item.name,
-        key: inventoryItem.item.key
-      });
       const ability = resolveWeaponAbility(weaponReference.abilityRule, effectiveAbilityScores);
       const abilityModifier = getAbilityModifierForCharacter(character, ability);
       const appliedWeaponProficiency = getAppliedWeaponProficiency(
@@ -1417,17 +1627,31 @@ function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
           abilityModifier,
           proficiencyLabel,
           proficiencyBonus: appliedProficiencyBonus,
-          damageBonusEntries: weaponDescriptor
-            ? getDuelingDamageBonusEntriesForWeaponAction(
-                character,
-                {
-                  attackKind: "weapon",
-                  combatType: weaponType.combat
-                },
-                weaponDescriptor,
-                heldWeaponDescriptors
-              )
-            : [],
+          damageBonusEntries: [
+            ...(weaponDescriptor
+              ? getDuelingDamageBonusEntriesForWeaponAction(
+                  character,
+                  {
+                    attackKind: "weapon",
+                    combatType: weaponType.combat
+                  },
+                  weaponDescriptor,
+                  heldWeaponDescriptors
+                )
+              : []),
+            ...getTrueStrikeDamageBonusEntriesForWeaponAction(character, weaponSpellContext)
+          ],
+          cardBonusLabels: getWeaponSpellCardBonusLabels({
+            trueStrikeEconomyMultiCount,
+            hasShillelagh:
+              shillelaghAbility !== null || shillelaghDamageAdjustment?.applied === true
+          }),
+          descriptionAdditions: getWeaponSpellDescriptionAdditions({
+            trueStrikeEconomyMultiCount,
+            hasShillelagh:
+              shillelaghAbility !== null || shillelaghDamageAdjustment?.applied === true
+          }),
+          economyMultiCount: trueStrikeEconomyMultiCount,
           hasVersatileBonus: weaponReference.hasVersatileBonus,
           hasGreatWeaponFighting: weaponReference.hasGreatWeaponFighting,
           hasMartialArtsDamageDie: Boolean(monkDamageAdjustment?.applied),

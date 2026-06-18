@@ -48,11 +48,18 @@ export function getFeatAlwaysPreparedSpellSourceMapForCharacter(
   return collectFeatDerivedState(character).alwaysPreparedSpellSourceMap;
 }
 
-export function getMagicInitiateSpellcastingAbilityForCharacter(
+export function getFeatSpellcastingAbilityForCharacter(
   character: FeatRuntimeCharacter,
   spellId: string
 ): AbilityKey | null {
   return collectFeatDerivedState(character).spellcastingAbilityBySpellId.get(spellId) ?? null;
+}
+
+export function getMagicInitiateSpellcastingAbilityForCharacter(
+  character: FeatRuntimeCharacter,
+  spellId: string
+): AbilityKey | null {
+  return getFeatSpellcastingAbilityForCharacter(character, spellId);
 }
 
 export function canUseEmeraldEnclaveFledglingSpeakWithAnimalsForSpell(

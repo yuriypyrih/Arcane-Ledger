@@ -23,9 +23,7 @@ import {
 } from "../weaponLightProperty";
 import { transformFeatSpellEntryForCharacter } from "../feats/runtime/spellcasting";
 import { getSpeciesSpellEntryForCharacter } from "../species";
-import {
-  removeCharacterStatusEntry
-} from "../statusEntries";
+import { removeCharacterStatusEntry } from "../statusEntries";
 import {
   getCustomTraitAbilityScoreBonuses,
   getCustomTraitArmorClassBonuses,

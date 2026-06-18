@@ -289,6 +289,10 @@ function formatWeaponDamageBonusEntry(entry: WeaponAction["damageBonusEntries"][
   return entry.label;
 }
 
+function formatWeaponDamageBonusDisplaySuffix(entry: WeaponAction["damageBonusEntries"][number]) {
+  return entry.displayLabel ?? formatWeaponDamageBonusEntry(entry);
+}
+
 function formatAbilityModifierBonusEntry(entry: AbilityModifierBonusEntry) {
   return (
     entry.formulaLabel ??
@@ -361,7 +365,7 @@ export function getWeaponDamageFormulaPresentation(
   const baseDamageLabel = stripAppendedWeaponBonusExpression(
     action.damageLabel,
     action,
-    (entry) => formatWeaponDamageBonusEntry(entry)
+    formatWeaponDamageBonusDisplaySuffix
   );
   const [primaryBaseDamage, ...additionalBaseDamageGroups] = parseDamageDisplayGroups(
     baseDamageLabel

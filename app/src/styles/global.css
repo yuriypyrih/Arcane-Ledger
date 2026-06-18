@@ -188,10 +188,10 @@
   --theme-state-info-strong: #8fb0ee;
   --theme-state-success: #65c77d;
   --theme-state-danger: #e87466;
-  --theme-state-warning: #efbd75;
-  --theme-warning-card-background: rgba(239, 189, 117, 0.13);
-  --theme-warning-card-border: rgba(239, 189, 117, 0.28);
-  --theme-warning-card-text: #f2c98f;
+  --theme-state-warning: #ff8a66;
+  --theme-warning-card-background: rgba(255, 111, 82, 0.14);
+  --theme-warning-card-border: rgba(255, 111, 82, 0.32);
+  --theme-warning-card-text: #ffb19c;
   --theme-warning-inline-text: var(--theme-state-warning);
   --theme-temp-hit-points-text: #d8b763;
   --theme-temp-hit-points-icon: #f3d47b;

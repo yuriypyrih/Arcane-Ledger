@@ -226,10 +226,6 @@ function getActionShapeTitle(shape: ActionShapeType): string {
   }
 }
 
-function isSpentActionWarning(value: string | null): boolean {
-  return value !== null && /^You already used the .+ for this turn$/.test(value);
-}
-
 function hasSpellHealing(spell: Pick<SpellEntry, "healing">): boolean {
   return Array.isArray(spell.healing)
     ? spell.healing.length > 0
@@ -480,9 +476,7 @@ function CharacterSpellDrawer({
     ? getActionShapeTitle(castingTimeActionShape)
     : null;
   const visibleActionWarning =
-    requiredActionOptionWarning ??
-    summonDefinitionWarning ??
-    (isSpentActionWarning(actionWarning) ? null : actionWarning);
+    requiredActionOptionWarning ?? summonDefinitionWarning ?? actionWarning;
   const baseActionOptions = {
     castAsRitual: !isQuickRitualSelected && (ritualCastingRequired || isRitualCastingSelected),
     useStarMap: allActionOptions.some((option) => option.id === "star-map" && option.checked),

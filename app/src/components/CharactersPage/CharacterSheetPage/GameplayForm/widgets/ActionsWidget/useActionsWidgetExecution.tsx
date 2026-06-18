@@ -276,6 +276,7 @@ import {
   prepareCharacterForRoundTrackerResourceConsumption
 } from "../../gameplayStateUtils";
 import { getSpellDamageDetailForCharacter } from "../../../../../../pages/CharactersPage/spellOutcome";
+import { consumeTrueStrikePendingAttackForCharacter } from "../../../../../../pages/CharactersPage/characterRuntime/spellImplementations";
 import {
   getSavingThrowLevelFromEntries,
   getSavingThrowProficiencyForAbilityKey
@@ -2319,6 +2320,8 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
           nextCharacter = consumeMonkStunningStrike(nextCharacter);
         }
       }
+
+      nextCharacter = consumeTrueStrikePendingAttackForCharacter(nextCharacter, damageAction);
 
       const nextCharacterWithInvisibleConditionsRemoved =
         removeInvisibleConditionFromCharacter(nextCharacter);

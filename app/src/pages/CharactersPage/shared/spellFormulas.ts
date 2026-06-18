@@ -5,10 +5,6 @@ import { isInnateSorceryActiveForSpell } from "../classFeatures/sorcerer/innateS
 import { getAbilityModifierForCharacter } from "../abilities";
 import { getProficiencyBonus } from "../gameplay";
 import { getExhaustionD20TestPenalty } from "../statusEntries";
-import {
-  areCharacterClassRulesEnforced,
-  getCharacterClassRulesSpellcastingAbility
-} from "../customClass";
 import { getCharacterCustomTraitEffectInput } from "../characterRuntime/customEffectRuntime";
 import {
   formatCustomTraitBonusFormulaTerm,
@@ -27,6 +23,12 @@ import {
   formatSignedFormulaTerm,
   parseFormulaRange
 } from "./formulas";
+import { getSpellcastingAbilityForCharacter } from "./spellcastingAbility";
+export {
+  getBuiltInSpellcastingAbilityForCharacter,
+  getSpellcastingAbilityForCharacter,
+  getSpellcastingAbilityForCharacterSpell
+} from "./spellcastingAbility";
 
 export type SpellFormulaCell = {
   label: string;
@@ -41,24 +43,6 @@ export type SpellAttackRollFormula = {
   rollMode?: RollMode;
   hasInnateSorceryAdvantage?: boolean;
   rollModeBreakdownTerms?: string[];
-};
-
-const spellcastingAbilityByClassName: Record<string, AbilityKey> = {
-  Artificer: "INT",
-  Bard: "CHA",
-  Cleric: "WIS",
-  Druid: "WIS",
-  Paladin: "CHA",
-  Ranger: "WIS",
-  Sorcerer: "CHA",
-  Warlock: "CHA",
-  Wizard: "INT"
-};
-
-const spellcastingAbilityBySubclassId: Record<string, AbilityKey> = {
-  "fighter-eldritch-knight": "INT",
-  "monk-warrior-of-the-elements": "WIS",
-  "rogue-arcane-trickster": "INT"
 };
 
 const abilityNameByAbilityType: Record<ABILITY_TYPES, string> = {
@@ -169,28 +153,6 @@ function getResolvedCustomTraitFormulaEntries(
       }
     ];
   });
-}
-
-export function getSpellcastingAbilityForCharacter(character: Character): AbilityKey | null {
-  if (!areCharacterClassRulesEnforced(character)) {
-    return getCharacterClassRulesSpellcastingAbility(character);
-  }
-
-  return getBuiltInSpellcastingAbilityForCharacter(character);
-}
-
-export function getBuiltInSpellcastingAbilityForCharacter(
-  character: Pick<Character, "className"> & Partial<Pick<Character, "subclassId">>
-): AbilityKey | null {
-  if (character.subclassId) {
-    const subclassAbility = spellcastingAbilityBySubclassId[character.subclassId];
-
-    if (subclassAbility) {
-      return subclassAbility;
-    }
-  }
-
-  return spellcastingAbilityByClassName[character.className] ?? null;
 }
 
 export function getSpellSaveFormulaCell(

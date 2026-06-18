@@ -50,6 +50,32 @@ export {
   mageArmorStatusSourceId,
   mageArmorStatusValue
 } from "./spells1";
+export {
+  applyShillelaghDamageDice,
+  getShillelaghDamageAdjustmentForWeapon,
+  getShillelaghDamageDiceForLevel,
+  getShillelaghSpellcastingAbilityForWeapon,
+  hasShillelaghStatus,
+  isShillelaghEligibleWeapon,
+  isShillelaghStatusEntry,
+  shillelaghSpellId,
+  shillelaghStatusSourceId,
+  shillelaghStatusValue
+} from "./shillelagh";
+export {
+  applyTrueStrikeRadiantDamageType,
+  consumeTrueStrikePendingAttackForCharacter,
+  getTrueStrikeDamageAdjustmentForWeapon,
+  getTrueStrikeEconomyMultiCountForWeapon,
+  getTrueStrikeExtraRadiantDamageFormulaForLevel,
+  getTrueStrikeSpellcastingAbilityForWeapon,
+  hasTrueStrikePendingAttack,
+  isTrueStrikeEligibleWeapon,
+  isTrueStrikePendingAttackStatusEntry,
+  trueStrikeSpellId,
+  trueStrikeStatusSourceId,
+  trueStrikeStatusValue
+} from "./trueStrike";
 
 type ApplySpellImplementationForCharacterContext = Pick<
   SpellImplementationApplyContext,
