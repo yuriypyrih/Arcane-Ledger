@@ -2461,7 +2461,9 @@ function EquipmentForm({
     }
 
     const itemName =
-      selectedInventoryRecord?.name ?? getEffectiveInventoryItemRecord(selectedInventoryStack).name;
+      selectedInventoryRecord?.name ??
+      getEffectiveInventoryItemRecord(selectedInventoryStack).name ??
+      "item";
 
     if (selectedInventoryInspection.source === "container") {
       if (
