@@ -17,6 +17,7 @@ import {
 } from "../customTraitEffects";
 import {
   formatD20Formula,
+  formatFormulaBreakdown,
   formatFormulaCell,
   formatFormulaRangeLabel,
   formatFormulaTerms,
@@ -39,6 +40,7 @@ export type SpellFormulaCell = {
 export type SpellAttackRollFormula = {
   formula: string;
   formulaDisplay: string;
+  formulaBreakdownTerms: string[];
   attackBonus: number;
   rollMode?: RollMode;
   hasInnateSorceryAdvantage?: boolean;
@@ -65,6 +67,35 @@ function dedupeLabels(labels: string[]): string[] {
 function formatRollModeSourceSuffix(sources: string[]): string {
   const dedupedSources = dedupeLabels(sources);
   return dedupedSources.length > 0 ? ` (${dedupedSources.join(", ")})` : "";
+}
+
+function stripLeadingFormulaPlus(term: string): string {
+  return term.trim().replace(/^\+\s*/, "");
+}
+
+function formatSpellAttackFormulaBreakdown(
+  formulaBreakdownTerms: string[],
+  rollModeBreakdownTerms: string[] = []
+): string | undefined {
+  const normalizedFormulaTerms = formulaBreakdownTerms
+    .map((term, index) => (index === 0 ? stripLeadingFormulaPlus(term) : term.trim()))
+    .filter(Boolean);
+  const normalizedRollModeTerms = rollModeBreakdownTerms
+    .map(stripLeadingFormulaPlus)
+    .filter(Boolean);
+  const formulaBreakdown = formatFormulaBreakdown(normalizedFormulaTerms);
+
+  if (!formulaBreakdown) {
+    return normalizedRollModeTerms.length > 0
+      ? `[= ${normalizedRollModeTerms.join("; ")}]`
+      : undefined;
+  }
+
+  if (normalizedRollModeTerms.length === 0) {
+    return formulaBreakdown;
+  }
+
+  return `${formulaBreakdown.replace(/\]$/, "")}; ${normalizedRollModeTerms.join("; ")}]`;
 }
 
 function getSpellAttackRollModeState(
@@ -243,13 +274,13 @@ export function getSpellAttackRollFormulaForCharacter(
     innateSorceryActive,
     getCustomTraitSpellAttackRollIndicators(customTraitEffectInput)
   );
-  const displayTerms = [
-    "1d20",
+  const formulaBreakdownTerms = [
     formatSignedFormulaTerm(proficiencyBonus, "Prof. Bonus"),
     formatSignedFormulaTerm(abilityModifier, spellcastingAbility),
     exhaustionPenalty !== 0 ? formatSignedFormulaTerm(exhaustionPenalty, "Exhaustion") : null,
     ...customAttackEntries.map((entry) => entry.formulaTerm)
-  ];
+  ].filter((term): term is string => term !== null);
+  const displayTerms = ["1d20", ...formulaBreakdownTerms];
 
   return {
     formula: formatFormulaTerms([
@@ -257,6 +288,7 @@ export function getSpellAttackRollFormulaForCharacter(
       ...customAttackEntries.map((entry) => entry.rollFormulaTerm)
     ]),
     formulaDisplay: formatFormulaTerms(displayTerms),
+    formulaBreakdownTerms,
     attackBonus,
     rollMode: rollModeState.rollMode,
     hasInnateSorceryAdvantage: innateSorceryActive,
@@ -279,27 +311,30 @@ export function getSpellAttackFormulaCell(
 
   if (!attackRollFormula) {
     const formulaCell = formatFormulaCell({
-      formula: "1d20",
-      displayTerms: ["1d20", "+ Prof. Bonus", "+ Spellcasting Ability Mod"]
+      formula: "1d20"
     });
 
     return {
       label: "Spell Attack Formula",
       content: `Spell Attack = ${formulaCell.value}`,
-      breakdown: formulaCell.breakdown
+      breakdown: formatSpellAttackFormulaBreakdown([
+        "Prof. Bonus",
+        "+ Spellcasting Ability Mod"
+      ])
     };
   }
 
   const formulaCell = formatFormulaCell({
-    formula: attackRollFormula.formula,
-    displayTerms: [attackRollFormula.formulaDisplay],
-    breakdownTerms: attackRollFormula.rollModeBreakdownTerms
+    formula: attackRollFormula.formula
   });
   const attackRange = parseFormulaRange(attackRollFormula.formula);
 
   return {
     label: "Spell Attack Formula",
     content: `Spell Attack ${attackRange ? formatFormulaRangeLabel(attackRange) : attackRollFormula.attackBonus} = ${formulaCell.value}`,
-    breakdown: formulaCell.breakdown
+    breakdown: formatSpellAttackFormulaBreakdown(
+      attackRollFormula.formulaBreakdownTerms,
+      attackRollFormula.rollModeBreakdownTerms
+    )
   };
 }

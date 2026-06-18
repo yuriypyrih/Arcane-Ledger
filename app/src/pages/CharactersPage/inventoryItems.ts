@@ -84,6 +84,7 @@ type InventoryTransactionCostOptions = {
 };
 
 export const BAG_OF_HOLDING_WEIGHT_LIMIT_LB = 500;
+export const INVENTORY_STORED_SPELL_LIMIT = 10;
 
 export type InventoryItemModsSaveResult = {
   inventoryItems: CharacterInventoryItem[];
@@ -505,13 +506,26 @@ function normalizeInventoryStoredSpellMode(
     : null;
 }
 
+function normalizeInventoryStoredSpellIds(value: unknown, legacySpellId: string): string[] {
+  const rawSpellIds = Array.isArray(value) ? value : [];
+  const normalizedSpellIds = [legacySpellId, ...rawSpellIds]
+    .map((spellId) => (typeof spellId === "string" ? spellId.trim() : ""))
+    .filter((spellId) => spellId.length > 0);
+
+  return [...new Set(normalizedSpellIds)].slice(0, INVENTORY_STORED_SPELL_LIMIT);
+}
+
 function normalizeInventoryStoredSpell(value: unknown): CharacterInventoryStoredSpell | undefined {
   if (!value || typeof value !== "object") {
     return undefined;
   }
 
   const record = value as Partial<CharacterInventoryStoredSpell>;
-  const spellId = typeof record.spellId === "string" ? record.spellId.trim() : "";
+  const storedSpellIds = normalizeInventoryStoredSpellIds(
+    record.spellIds,
+    typeof record.spellId === "string" ? record.spellId : ""
+  );
+  const [spellId] = storedSpellIds;
   const mode = normalizeInventoryStoredSpellMode(record.mode);
 
   if (!spellId || !mode) {
@@ -520,6 +534,7 @@ function normalizeInventoryStoredSpell(value: unknown): CharacterInventoryStored
 
   return {
     spellId,
+    ...(storedSpellIds.length > 1 ? { spellIds: storedSpellIds } : {}),
     mode,
     chargeCost: normalizeInventoryRefillableNumber(record.chargeCost, 1, 1)
   };
@@ -1354,6 +1369,18 @@ export function getInventoryItemStoredSpell(
   entry: Pick<CharacterInventoryItem, "storedSpell"> | null | undefined
 ): CharacterInventoryStoredSpell | null {
   return normalizeInventoryStoredSpell(entry?.storedSpell) ?? null;
+}
+
+export function getInventoryItemStoredSpellIds(
+  entry: Pick<CharacterInventoryItem, "storedSpell"> | null | undefined
+): string[] {
+  const storedSpell = getInventoryItemStoredSpell(entry);
+
+  if (!storedSpell) {
+    return [];
+  }
+
+  return storedSpell.spellIds ?? [storedSpell.spellId];
 }
 
 function getContainerContentUseState(

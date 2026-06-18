@@ -3,6 +3,7 @@ import type { CharacterInventoryItem } from "../../../../types";
 import {
   getInventoryItemChargesRecharge,
   getInventoryItemStoredSpell,
+  getInventoryItemStoredSpellIds,
   getInventoryItemUseState,
   INVENTORY_STORED_SPELL_MODE_CONSUME_CHARGES,
   INVENTORY_STORED_SPELL_MODE_CONSUME_CHARGES_DESTRUCTIBLE,
@@ -43,7 +44,7 @@ function formatStoredSpellModeLabel(mode: string): string {
 export function getInventoryItemStoredSpellRowTagLabel(
   stack: CharacterInventoryItem | null | undefined
 ): string | null {
-  return getInventoryItemStoredSpell(stack) ? "Spell" : null;
+  return getInventoryItemStoredSpellIds(stack).length > 0 ? "Spell" : null;
 }
 
 export function getInventoryItemStoredSpellHeaderTagLabel(
@@ -55,8 +56,11 @@ export function getInventoryItemStoredSpellHeaderTagLabel(
     return null;
   }
 
-  const spell = getSpellEntryById(storedSpell.spellId);
-  const spellName = spell?.name ?? "Unknown spell";
+  const storedSpellIds = getInventoryItemStoredSpellIds(stack);
+  const spellName =
+    storedSpellIds.length > 1
+      ? "Multiple"
+      : (getSpellEntryById(storedSpellIds[0])?.name ?? "Unknown spell");
 
-  return `Spell: ${spellName} | ${formatStoredSpellModeLabel(storedSpell.mode)}`;
+  return `Spell Storing: ${spellName} | ${formatStoredSpellModeLabel(storedSpell.mode)}`;
 }

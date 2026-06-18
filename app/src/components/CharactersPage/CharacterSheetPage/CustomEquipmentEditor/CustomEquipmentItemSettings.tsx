@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { Plus, Trash2 } from "lucide-react";
 import NumberInput from "../../FormInputs/NumberInput";
 import SelectInput from "../../FormInputs/SelectInput";
 import TextInput from "../../FormInputs/TextInput";
@@ -23,6 +24,7 @@ import {
   INVENTORY_CONJURED_SOURCE_REPLICATE_MAGIC_ITEM,
   INVENTORY_CONJURED_SOURCE_TINKERS_MAGIC,
   INVENTORY_REFILLABLE_LIMIT,
+  INVENTORY_STORED_SPELL_LIMIT,
   INVENTORY_STORED_SPELL_MODE_CONSUME_CHARGES,
   INVENTORY_STORED_SPELL_MODE_CONSUME_CHARGES_DESTRUCTIBLE,
   INVENTORY_STORED_SPELL_MODE_DEFAULT
@@ -100,18 +102,18 @@ function matchesSpellSearch(spell: SpellEntry, searchText: string): boolean {
   return searchableText.includes(normalizedSearch);
 }
 
-function getLimitedSpellOptions(searchText: string, selectedSpellId: string): SpellEntry[] {
+function getLimitedSpellOptions(searchText: string, selectedSpellIds: string[]): SpellEntry[] {
   const filteredOptions = spellEntries.filter((spell) => matchesSpellSearch(spell, searchText));
-  const selectedSpell = selectedSpellId
-    ? (spellEntries.find((spell) => spell.id === selectedSpellId) ?? null)
-    : null;
-  const limitedOptions = filteredOptions.slice(0, maxDropdownSpellOptions);
+  const selectedSpellIdSet = new Set(selectedSpellIds.filter(Boolean));
+  const selectedSpells = selectedSpellIds
+    .map((spellId) => spellEntries.find((spell) => spell.id === spellId) ?? null)
+    .filter((spell): spell is SpellEntry => spell !== null);
+  const remainingOptionCount = Math.max(0, maxDropdownSpellOptions - selectedSpells.length);
+  const limitedOptions = filteredOptions
+    .filter((spell) => !selectedSpellIdSet.has(spell.id))
+    .slice(0, remainingOptionCount);
 
-  if (selectedSpell && !limitedOptions.some((spell) => spell.id === selectedSpell.id)) {
-    return [selectedSpell, ...limitedOptions].slice(0, maxDropdownSpellOptions);
-  }
-
-  return limitedOptions;
+  return [...selectedSpells, ...limitedOptions];
 }
 
 function CustomEquipmentItemSettings({
@@ -119,9 +121,16 @@ function CustomEquipmentItemSettings({
   draft,
   onChange
 }: CustomEquipmentItemSettingsProps) {
+  const storedSpellIds = useMemo(
+    () =>
+      draft.storedSpellIds.length > 0
+        ? draft.storedSpellIds.slice(0, INVENTORY_STORED_SPELL_LIMIT)
+        : [""],
+    [draft.storedSpellIds]
+  );
   const spellOptions = useMemo(
-    () => getLimitedSpellOptions(draft.storedSpellSearch, draft.storedSpellId),
-    [draft.storedSpellId, draft.storedSpellSearch]
+    () => getLimitedSpellOptions(draft.storedSpellSearch, storedSpellIds),
+    [draft.storedSpellSearch, storedSpellIds]
   );
   const lockedConjured = isCustomEquipmentItemSettingsConjuredLocked(initialStack);
   const conjuredSource =
@@ -140,6 +149,30 @@ function CustomEquipmentItemSettings({
           }
         : {})
     });
+  }
+
+  function setStoredSpellId(index: number, spellId: string) {
+    onChange({
+      storedSpellIds: storedSpellIds.map((currentSpellId, currentIndex) =>
+        currentIndex === index ? spellId : currentSpellId
+      )
+    });
+  }
+
+  function addStoredSpellRow() {
+    if (storedSpellIds.length >= INVENTORY_STORED_SPELL_LIMIT) {
+      return;
+    }
+
+    onChange({ storedSpellIds: [...storedSpellIds, ""] });
+  }
+
+  function removeStoredSpellRow(index: number) {
+    if (storedSpellIds.length <= 1) {
+      return;
+    }
+
+    onChange({ storedSpellIds: storedSpellIds.filter((_, currentIndex) => currentIndex !== index) });
   }
 
   return (
@@ -293,7 +326,7 @@ function CustomEquipmentItemSettings({
 
         <div className={styles.customEquipmentSettingsOption}>
           <RadioContainerOption
-            header="Spell"
+            header="Spell Storing"
             subheader="Open and cast a stored spell from this item."
             selected={draft.storedSpellEnabled}
             onSelect={() =>
@@ -318,22 +351,6 @@ function CustomEquipmentItemSettings({
                   />
                 </label>
                 <label className={styles.customEquipmentField}>
-                  <span>Stored Spell</span>
-                  <SelectInput
-                    value={draft.storedSpellId}
-                    onChange={(event) => onChange({ storedSpellId: event.target.value })}
-                  >
-                    <option value="">-</option>
-                    {spellOptions.map((spell) => (
-                      <option key={spell.id} value={spell.id}>
-                        {spell.name}
-                      </option>
-                    ))}
-                  </SelectInput>
-                </label>
-              </div>
-              <div className={styles.customEquipmentFormGrid}>
-                <label className={styles.customEquipmentField}>
                   <span>Spell Use</span>
                   <SelectInput
                     value={draft.storedSpellMode}
@@ -348,24 +365,74 @@ function CustomEquipmentItemSettings({
                     ))}
                   </SelectInput>
                 </label>
-                {storedSpellRequiresCharges ? (
-                  <label className={styles.customEquipmentField}>
-                    <span>Charge Cost</span>
-                    <NumberInput
-                      min={1}
-                      max={INVENTORY_REFILLABLE_LIMIT}
-                      value={draft.storedSpellChargeCost}
-                      onChange={(event) =>
-                        onChange({
-                          storedSpellChargeCost: normalizeItemSettingPositiveInteger(
-                            event.target.valueAsNumber,
-                            draft.storedSpellChargeCost
-                          )
-                        })
-                      }
-                    />
-                  </label>
-                ) : null}
+              </div>
+              {storedSpellRequiresCharges ? (
+                <label className={styles.customEquipmentField}>
+                  <span>Charge Cost</span>
+                  <NumberInput
+                    min={1}
+                    max={INVENTORY_REFILLABLE_LIMIT}
+                    value={draft.storedSpellChargeCost}
+                    onChange={(event) =>
+                      onChange({
+                        storedSpellChargeCost: normalizeItemSettingPositiveInteger(
+                          event.target.valueAsNumber,
+                          draft.storedSpellChargeCost
+                        )
+                      })
+                    }
+                  />
+                </label>
+              ) : null}
+              <div className={styles.customStoredSpellList}>
+                {storedSpellIds.map((storedSpellId, index) => (
+                  <div key={`stored-spell-${index}`} className={styles.customStoredSpellRow}>
+                    <label className={styles.customEquipmentField}>
+                      <span>{`Stored Spell ${index + 1}`}</span>
+                      <SelectInput
+                        value={storedSpellId}
+                        onChange={(event) => setStoredSpellId(index, event.target.value)}
+                      >
+                        <option value="">-</option>
+                        {spellOptions.map((spell) => {
+                          const isSelectedElsewhere = storedSpellIds.some(
+                            (selectedSpellId, selectedIndex) =>
+                              selectedIndex !== index && selectedSpellId === spell.id
+                          );
+
+                          return (
+                            <option
+                              key={`${index}-${spell.id}`}
+                              value={spell.id}
+                              disabled={isSelectedElsewhere}
+                            >
+                              {spell.name}
+                            </option>
+                          );
+                        })}
+                      </SelectInput>
+                    </label>
+                    <button
+                      type="button"
+                      className={styles.customSpellRemoveButton}
+                      disabled={storedSpellIds.length <= 1}
+                      aria-label={`Remove stored spell ${index + 1}`}
+                      title="Remove stored spell"
+                      onClick={() => removeStoredSpellRow(index)}
+                    >
+                      <Trash2 size={15} aria-hidden="true" />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  className={styles.customEquipmentInlineButton}
+                  disabled={storedSpellIds.length >= INVENTORY_STORED_SPELL_LIMIT}
+                  onClick={addStoredSpellRow}
+                >
+                  <Plus size={15} aria-hidden="true" />
+                  <span>Add Spell</span>
+                </button>
               </div>
             </div>
           ) : null}

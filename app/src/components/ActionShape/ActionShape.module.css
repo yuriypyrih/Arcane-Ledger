@@ -60,7 +60,7 @@
 }
 
 :global(html[data-theme="dark"]) .backdropElement {
-  fill: rgba(7, 8, 10, 0.96);
+  fill: var(--theme-surface-section);
 }
 
 .shapeElement {

@@ -35,7 +35,7 @@ import {
   isApiOfflineError,
   type PartyMembershipRecord
 } from "../../../../api";
-import { ENTRY_CATEGORIES } from "../../../../codex/entries";
+import { ENTRY_CATEGORIES, type SpellEntry } from "../../../../codex/entries";
 import { getSpellEntryById } from "../../../../codex/spells";
 import {
   currencyKeys,
@@ -117,6 +117,7 @@ import {
   getInventoryItemTotalWeightValue,
   getInventoryItemUseState,
   getInventoryItemStoredSpell,
+  getInventoryItemStoredSpellIds,
   getPreferredInventoryCopiesById,
   getPreferredInventoryCopiesByKey,
   getItemTransactionCost,
@@ -225,6 +226,7 @@ import {
 } from "../../../Overlay";
 import { getCharacterRuntime } from "../../../../pages/CharactersPage/characterRuntime/characterRuntime";
 import { getInventoryAttunementLimit } from "../../../../pages/CharactersPage/characterRuntime/equipmentRuntime";
+import EquipmentStoredSpellsModal from "./EquipmentStoredSpellsModal";
 import EquipmentStoredSpellDrawer, {
   type SelectedInventoryStoredSpellState
 } from "./EquipmentStoredSpellDrawer";
@@ -251,6 +253,13 @@ type SelectedInventoryInspectionState = {
   contentIndex?: number;
   initialItem: ItemRecord | null;
   source: "browser" | "inventory" | "container";
+};
+type SelectedInventoryStoredSpellsModalState = Omit<
+  SelectedInventoryStoredSpellState,
+  "spellId"
+> & {
+  itemName: string;
+  spellIds: string[];
 };
 type PendingContainerInventoryRemoval = {
   action: "remove" | "sell";
@@ -342,6 +351,8 @@ function EquipmentForm({
     useState<SelectedInventoryInspectionState | null>(null);
   const [selectedInventoryStoredSpell, setSelectedInventoryStoredSpell] =
     useState<SelectedInventoryStoredSpellState | null>(null);
+  const [selectedInventoryStoredSpellsModal, setSelectedInventoryStoredSpellsModal] =
+    useState<SelectedInventoryStoredSpellsModalState | null>(null);
   const [parentInventoryInspection, setParentInventoryInspection] =
     useState<SelectedInventoryInspectionState | null>(null);
   const [restoreParentInventoryWithoutAnimation, setRestoreParentInventoryWithoutAnimation] =
@@ -486,6 +497,7 @@ function EquipmentForm({
     selectedLoadoutEntry ||
     selectedInventoryInspection ||
     selectedInventoryStoredSpell ||
+    selectedInventoryStoredSpellsModal ||
     parentInventoryInspection ||
     isCurrencyDrawerOpen ||
     isAddModalOpen ||
@@ -513,6 +525,7 @@ function EquipmentForm({
   const closeInventoryItemDrawer = useCallback(() => {
     setInventoryDrawerNotice(null);
     setSelectedInventoryStoredSpell(null);
+    setSelectedInventoryStoredSpellsModal(null);
     if (parentInventoryInspection && selectedInventoryInspection?.source === "container") {
       setRestoreParentInventoryWithoutAnimation(true);
       setSelectedInventoryInspection(parentInventoryInspection);
@@ -534,6 +547,11 @@ function EquipmentForm({
       if (event.key === "Escape") {
         if (selectedInventoryStoredSpell) {
           setSelectedInventoryStoredSpell(null);
+          return;
+        }
+
+        if (selectedInventoryStoredSpellsModal) {
+          setSelectedInventoryStoredSpellsModal(null);
           return;
         }
 
@@ -613,6 +631,7 @@ function EquipmentForm({
     parentInventoryInspection,
     selectedInventoryInspection,
     selectedInventoryStoredSpell,
+    selectedInventoryStoredSpellsModal,
     selectedLoadoutEntry,
     selectedWeaponReference
   ]);
@@ -1189,9 +1208,15 @@ function EquipmentForm({
     isSelectedInventoryOwnedDrawer && !selectedInventoryOwnedContainer
       ? getInventoryItemStoredSpell(selectedInventoryStack)
       : null;
-  const selectedInventoryItemStoredSpellEntry = selectedInventoryItemStoredSpell
-    ? getSpellEntryById(selectedInventoryItemStoredSpell.spellId)
-    : null;
+  const selectedInventoryItemStoredSpellIds =
+    isSelectedInventoryOwnedDrawer && !selectedInventoryOwnedContainer
+      ? getInventoryItemStoredSpellIds(selectedInventoryStack)
+      : [];
+  const selectedInventoryItemStoredSpellEntries = selectedInventoryItemStoredSpellIds
+    .map((spellId) => getSpellEntryById(spellId) ?? null)
+    .filter((spell): spell is SpellEntry => spell !== null);
+  const selectedInventoryItemStoredSpellActionLabel =
+    selectedInventoryItemStoredSpellIds.length > 1 ? "View Spells" : "Open Spell";
   const selectedInventoryAttuned = Boolean(
     selectedInventoryInspection?.source !== "container" &&
     isSelectedInventoryOwnedDrawer &&
@@ -2425,10 +2450,18 @@ function EquipmentForm({
       !selectedInventoryInspection ||
       !selectedInventoryStack ||
       !selectedInventoryItemStoredSpell ||
-      !selectedInventoryItemStoredSpellEntry
+      selectedInventoryItemStoredSpellEntries.length === 0
     ) {
       return;
     }
+
+    const firstSpell = selectedInventoryItemStoredSpellEntries[0];
+    if (!firstSpell) {
+      return;
+    }
+
+    const itemName =
+      selectedInventoryRecord?.name ?? getEffectiveInventoryItemRecord(selectedInventoryStack).name;
 
     if (selectedInventoryInspection.source === "container") {
       if (
@@ -2438,17 +2471,43 @@ function EquipmentForm({
         return;
       }
 
-      setSelectedInventoryStoredSpell({
-        spellId: selectedInventoryItemStoredSpell.spellId,
+      const storedSpellLocation = {
         source: "container",
         containerStackId: selectedInventoryInspection.containerStackId,
         contentIndex: selectedInventoryInspection.contentIndex
+      } satisfies Omit<SelectedInventoryStoredSpellState, "spellId">;
+
+      if (selectedInventoryItemStoredSpellIds.length > 1) {
+        setSelectedInventoryStoredSpellsModal({
+          ...storedSpellLocation,
+          itemName,
+          spellIds: selectedInventoryItemStoredSpellIds
+        });
+        return;
+      }
+
+      setSelectedInventoryStoredSpell({
+        ...storedSpellLocation,
+        spellId: firstSpell.id
       });
     } else {
-      setSelectedInventoryStoredSpell({
-        spellId: selectedInventoryItemStoredSpell.spellId,
+      const storedSpellLocation = {
         source: "inventory",
         stackId: selectedInventoryStack.id
+      } satisfies Omit<SelectedInventoryStoredSpellState, "spellId">;
+
+      if (selectedInventoryItemStoredSpellIds.length > 1) {
+        setSelectedInventoryStoredSpellsModal({
+          ...storedSpellLocation,
+          itemName,
+          spellIds: selectedInventoryItemStoredSpellIds
+        });
+        return;
+      }
+
+      setSelectedInventoryStoredSpell({
+        ...storedSpellLocation,
+        spellId: firstSpell.id
       });
     }
   }
@@ -2692,11 +2751,11 @@ function EquipmentForm({
                 }
               ]
             : []),
-          ...(selectedInventoryItemStoredSpellEntry
+          ...(selectedInventoryItemStoredSpellEntries.length > 0
             ? [
                 {
                   key: "open-spell",
-                  label: "Open Spell",
+                  label: selectedInventoryItemStoredSpellActionLabel,
                   icon: BookOpen,
                   onClick: openSelectedInventoryStoredSpell
                 }
@@ -3118,7 +3177,22 @@ function EquipmentForm({
     swapEntryToHand,
     toggleArmorWorn,
     toggleEntryOnHand
-  })}
+      })}
+
+      {selectedInventoryStoredSpellsModal ? (
+        <EquipmentStoredSpellsModal
+          itemName={selectedInventoryStoredSpellsModal.itemName}
+          spellIds={selectedInventoryStoredSpellsModal.spellIds}
+          source={selectedInventoryStoredSpellsModal.source}
+          stackId={selectedInventoryStoredSpellsModal.stackId}
+          containerStackId={selectedInventoryStoredSpellsModal.containerStackId}
+          contentIndex={selectedInventoryStoredSpellsModal.contentIndex}
+          isSpellDrawerOpen={selectedInventoryStoredSpell !== null}
+          onClose={() => setSelectedInventoryStoredSpellsModal(null)}
+          onOpenSpell={setSelectedInventoryStoredSpell}
+          backdropClassName={styles.equipmentDrawerTopModalBackdrop}
+        />
+      ) : null}
 
       <EquipmentStoredSpellDrawer
         character={equipmentCharacter}

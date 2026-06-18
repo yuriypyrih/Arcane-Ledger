@@ -22,6 +22,7 @@ import {
   findInventoryItemStackById,
   getInventoryContainerContents,
   getInventoryItemStoredSpell,
+  getInventoryItemStoredSpellIds,
   getInventoryItemUseState,
   removeOneContainerContentItemByIndex,
   removeOneInventoryItemCopyById,
@@ -135,9 +136,12 @@ function EquipmentStoredSpellDrawer({
     selectedStoredSpell
   );
   const activeStoredSpell = getInventoryItemStoredSpell(activeStack);
+  const activeStoredSpellIds = getInventoryItemStoredSpellIds(activeStack);
   const activeSpellEntry =
-    activeStoredSpell && activeStoredSpell.spellId === selectedStoredSpell?.spellId
-      ? getSpellEntryById(activeStoredSpell.spellId)
+    activeStoredSpell &&
+    selectedStoredSpell &&
+    activeStoredSpellIds.includes(selectedStoredSpell.spellId)
+      ? getSpellEntryById(selectedStoredSpell.spellId)
       : null;
   const activeUseState = getInventoryItemUseState(activeStack);
   const consumesCharges = activeStoredSpell !== null && activeStoredSpell.mode !== "default";
@@ -224,8 +228,9 @@ function EquipmentStoredSpellDrawer({
         selectedStoredSpell
       );
       const storedSpell = getInventoryItemStoredSpell(targetStack);
+      const storedSpellIds = getInventoryItemStoredSpellIds(targetStack);
 
-      if (!targetStack || !storedSpell || storedSpell.spellId !== spell.id) {
+      if (!targetStack || !storedSpell || !storedSpellIds.includes(spell.id)) {
         return currentCharacter;
       }
 

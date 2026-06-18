@@ -215,6 +215,42 @@
   padding: 0 0.68rem;
 }
 
+.customEquipmentInlineButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.customStoredSpellList {
+  display: grid;
+  gap: 0.44rem;
+}
+
+.customStoredSpellRow {
+  display: grid;
+  align-items: end;
+  gap: 0.46rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.customSpellRemoveButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-compact);
+  background: rgba(169, 55, 41, 0.12);
+  color: #8a2519;
+  cursor: pointer;
+  min-height: 40px;
+  min-width: 40px;
+  padding: 0;
+}
+
+.customSpellRemoveButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
 .customDamageList {
   display: grid;
   gap: 0.44rem;

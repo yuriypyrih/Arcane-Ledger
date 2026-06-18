@@ -331,6 +331,7 @@ export type CharacterInventoryStoredSpellMode =
 
 export type CharacterInventoryStoredSpell = {
   spellId: string;
+  spellIds?: string[];
   mode: CharacterInventoryStoredSpellMode;
   chargeCost: number;
 };

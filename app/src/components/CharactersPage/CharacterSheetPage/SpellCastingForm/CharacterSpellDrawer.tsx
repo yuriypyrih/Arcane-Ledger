@@ -673,12 +673,12 @@ function CharacterSpellDrawer({
   const relativeDescription = shouldShowSlotControls
     ? (availabilityText ?? (shouldShowSelectedSlotText ? slotText : null))
     : availabilityText;
+  const shouldShowActionWarningRow =
+    visibleActionWarning !== null || effectiveBlockedReason !== null;
   const shouldShowTopRow =
     relativeDescription !== null ||
     ritualCastingAvailable ||
     allActionOptions.length > 0 ||
-    visibleActionWarning !== null ||
-    effectiveBlockedReason !== null ||
     actionContextTexts.length > 0;
 
   if (typeof document === "undefined") {
@@ -1021,20 +1021,6 @@ function CharacterSpellDrawer({
                       })}
                     </div>
                     <div className={actionStyles.castActionTopRight}>
-                      {visibleActionWarning || effectiveBlockedReason ? (
-                        <div className={gameplayActionStyles.warningBlock}>
-                          {visibleActionWarning ? (
-                            <p className={gameplayActionStyles.warningCard}>
-                              {visibleActionWarning}
-                            </p>
-                          ) : null}
-                          {effectiveBlockedReason ? (
-                            <p className={gameplayActionStyles.warningCard}>
-                              {effectiveBlockedReason}
-                            </p>
-                          ) : null}
-                        </div>
-                      ) : null}
                       {actionContextTexts.map((contextText, index) => (
                         <p
                           key={`${spell.id}-action-context-${index}`}
@@ -1044,6 +1030,16 @@ function CharacterSpellDrawer({
                         </p>
                       ))}
                     </div>
+                  </div>
+                ) : null}
+                {shouldShowActionWarningRow ? (
+                  <div className={gameplayActionStyles.warningBlock}>
+                    {visibleActionWarning ? (
+                      <p className={gameplayActionStyles.warningCard}>{visibleActionWarning}</p>
+                    ) : null}
+                    {effectiveBlockedReason ? (
+                      <p className={gameplayActionStyles.warningCard}>{effectiveBlockedReason}</p>
+                    ) : null}
                   </div>
                 ) : null}
                 <ActionFooterButtonRow

@@ -12,9 +12,11 @@ import {
   getInventoryItemChargesRecharge,
   getInventoryItemExplicitChargesTotal,
   getInventoryItemStoredSpell,
+  getInventoryItemStoredSpellIds,
   INVENTORY_CONJURED_DURATION_DEATH,
   INVENTORY_CONJURED_SOURCE_MANUAL,
   INVENTORY_REFILLABLE_LIMIT,
+  INVENTORY_STORED_SPELL_LIMIT,
   INVENTORY_FEATURE_TAG_CONJURED,
   INVENTORY_FEATURE_TAG_PACT_OF_THE_BLADE,
   INVENTORY_FEATURE_TAG_SPELLCASTING_FOCUS,
@@ -41,7 +43,7 @@ export type CustomEquipmentItemSettingsDraft = {
   conjuredDuration: CharacterInventoryConjuredDuration;
   spellcastingFocusEnabled: boolean;
   storedSpellEnabled: boolean;
-  storedSpellId: string;
+  storedSpellIds: string[];
   storedSpellSearch: string;
   storedSpellMode: CharacterInventoryStoredSpellMode;
   storedSpellChargeCost: number;
@@ -107,6 +109,10 @@ function getOrderedSpellcastingFocusSources(
   return sourceOrder.filter((source) => sourceSet.has(source));
 }
 
+function normalizeDraftStoredSpellIds(spellIds: string[]): string[] {
+  return spellIds.map((spellId) => spellId.trim()).slice(0, INVENTORY_STORED_SPELL_LIMIT);
+}
+
 export function isCustomEquipmentItemSettingsConjuredLocked(
   initialStack?: CharacterInventoryItem | null
 ): boolean {
@@ -153,7 +159,7 @@ export function createCustomEquipmentItemSettingsDraft(
       INVENTORY_SPELLCASTING_FOCUS_SOURCE_MANUAL
     ),
     storedSpellEnabled: storedSpell !== null,
-    storedSpellId: storedSpell?.spellId ?? "",
+    storedSpellIds: storedSpell ? getInventoryItemStoredSpellIds(initialStack) : [""],
     storedSpellSearch: "",
     storedSpellMode: storedSpell?.mode ?? INVENTORY_STORED_SPELL_MODE_DEFAULT,
     storedSpellChargeCost: storedSpell?.chargeCost ?? 1,
@@ -215,11 +221,22 @@ export function parseCustomEquipmentItemSettingsDraft(
     }
   }
 
-  if (draft.storedSpellEnabled && !draft.storedSpellId) {
-    return {
-      settings: null,
-      error: "Choose a stored spell or turn off Spell."
-    };
+  const storedSpellIds = normalizeDraftStoredSpellIds(draft.storedSpellIds);
+
+  if (draft.storedSpellEnabled) {
+    if (storedSpellIds.length === 0 || storedSpellIds.some((spellId) => spellId.length === 0)) {
+      return {
+        settings: null,
+        error: "Choose a stored spell for each Spell Storing row or turn off Spell Storing."
+      };
+    }
+
+    if (new Set(storedSpellIds).size !== storedSpellIds.length) {
+      return {
+        settings: null,
+        error: "Choose each stored spell only once."
+      };
+    }
   }
 
   const customTag = draft.customTagEnabled
@@ -239,7 +256,8 @@ export function parseCustomEquipmentItemSettingsDraft(
       chargesRecharge,
       storedSpell: draft.storedSpellEnabled
         ? {
-            spellId: draft.storedSpellId,
+            spellId: storedSpellIds[0],
+            ...(storedSpellIds.length > 1 ? { spellIds: storedSpellIds } : {}),
             mode: draft.storedSpellMode,
             chargeCost: normalizePositiveInteger(draft.storedSpellChargeCost, 1)
           }

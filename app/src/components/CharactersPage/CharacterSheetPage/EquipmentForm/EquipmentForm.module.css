@@ -934,6 +934,15 @@
   --sheet-drawer-z-index: 56;
 }
 
+.equipmentStoredSpellsModalBody {
+  gap: 0.65rem;
+}
+
+.equipmentStoredSpellsList {
+  display: grid;
+  gap: 0.5rem;
+}
+
 .catalogCreateCustomButton {
   background: rgba(75, 47, 29, 0.1);
   color: var(--color-ink);
