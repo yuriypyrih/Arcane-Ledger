@@ -60,7 +60,7 @@ import {
   setRangerHunterSuperiorHuntersDefenseDamageTypeSelectionForCharacter,
   type FeatureActionHeaderTag
 } from "../../../../../../pages/CharactersPage/classFeatures";
-import { applySpellConcentrationToStatusEntries } from "../../../../../../pages/CharactersPage/statusEntries";
+import { applySpellDurationToStatusEntries } from "../../../../../../pages/CharactersPage/statusEntries";
 import {
   applySpellImplementationForCharacter,
   type SpellImplementationOptionValues
@@ -614,25 +614,25 @@ export function useReactionDrawerState({
         const nextCharacter = useBeguilingMagic
           ? consumeBeguilingMagicOrBardicInspirationForCharacter(currentCharacter)
           : currentCharacter;
-        const nextCharacterWithConcentration = {
-          ...nextCharacter,
-          statusEntries: applySpellConcentrationToStatusEntries(
-            nextCharacter.statusEntries,
-            selectedReactionSpell
-          )
-        };
         const nextCharacterWithSpellImplementation = applySpellImplementationForCharacter({
-          character: nextCharacterWithConcentration,
+          character: nextCharacter,
           spell: selectedReactionSpell,
           spellSlotLevel: null,
           castSource: "reaction",
           options: spellImplementationOptions
         });
+        const nextCharacterWithSpellDuration = {
+          ...nextCharacterWithSpellImplementation,
+          statusEntries: applySpellDurationToStatusEntries(
+            nextCharacterWithSpellImplementation.statusEntries,
+            selectedReactionSpell
+          )
+        };
 
         return {
-          ...nextCharacterWithSpellImplementation,
+          ...nextCharacterWithSpellDuration,
           roundTracker: consumeRoundTrackerResource(
-            nextCharacterWithSpellImplementation.roundTracker,
+            nextCharacterWithSpellDuration.roundTracker,
             "reaction"
           )
         };
@@ -648,22 +648,22 @@ export function useReactionDrawerState({
           : currentCharacter;
         const nextCharacterWithStepsOfTheFey =
           consumeWarlockStepsOfTheFeyUseForCharacter(nextCharacter);
-        const nextCharacterWithConcentration = {
-          ...nextCharacterWithStepsOfTheFey,
-          statusEntries: applySpellConcentrationToStatusEntries(
-            nextCharacterWithStepsOfTheFey.statusEntries,
-            selectedReactionSpell
-          )
-        };
         const nextCharacterWithSpellImplementation = applySpellImplementationForCharacter({
-          character: nextCharacterWithConcentration,
+          character: nextCharacterWithStepsOfTheFey,
           spell: selectedReactionSpell,
           spellSlotLevel: spellLevel,
           castSource: "reaction",
           options: spellImplementationOptions
         });
+        const nextCharacterWithSpellDuration = {
+          ...nextCharacterWithSpellImplementation,
+          statusEntries: applySpellDurationToStatusEntries(
+            nextCharacterWithSpellImplementation.statusEntries,
+            selectedReactionSpell
+          )
+        };
         const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
-          nextCharacterWithSpellImplementation,
+          nextCharacterWithSpellDuration,
           selectedReactionSpell,
           { includeBardBattleMagic: false }
         );
@@ -703,10 +703,6 @@ export function useReactionDrawerState({
       const nextCharacterWithSpellcast = {
         ...preparedCharacter,
         spellSlotsExpended: nextSpellSlotsExpended,
-        statusEntries: applySpellConcentrationToStatusEntries(
-          preparedCharacter.statusEntries,
-          selectedReactionSpell
-        ),
         roundTracker: consumeRoundTrackerResource(preparedCharacter.roundTracker, "reaction")
       };
       const nextCharacterWithSpellImplementation = applySpellImplementationForCharacter({
@@ -716,10 +712,17 @@ export function useReactionDrawerState({
         castSource: "reaction",
         options: spellImplementationOptions
       });
+      const nextCharacterWithSpellDuration = {
+        ...nextCharacterWithSpellImplementation,
+        statusEntries: applySpellDurationToStatusEntries(
+          nextCharacterWithSpellImplementation.statusEntries,
+          selectedReactionSpell
+        )
+      };
 
       return applySpellCastFeatureEffectsForCharacter(
         restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter(
-          nextCharacterWithSpellImplementation
+          nextCharacterWithSpellDuration
         ),
         selectedReactionSpell,
         { includeBardBattleMagic: false }

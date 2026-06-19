@@ -33,6 +33,14 @@ export function normalizeStatusDurationRoundTick(value: unknown): STATUS_DURATIO
     : STATUS_DURATION_ROUND_TICK.ROUND_START;
 }
 
+function createTenRoundEndSpellDuration(): CharacterStatusDuration {
+  return {
+    kind: STATUS_DURATION_KIND.ROUNDS,
+    amount: 10,
+    tickOn: STATUS_DURATION_ROUND_TICK.ROUND_END
+  };
+}
+
 function createStatusEntryId(): string {
   if (typeof globalThis.crypto?.randomUUID === "function") {
     return globalThis.crypto.randomUUID();
@@ -109,9 +117,15 @@ function parseSpellConcentrationDurationLabel(label: string): CharacterStatusDur
   const minuteMatch = normalizedLabel.match(/^(\d+)\s+minutes?$/);
 
   if (minuteMatch) {
+    const amount = clampInteger(minuteMatch[1], 1, 999, 1);
+
+    if (amount === 1) {
+      return createTenRoundEndSpellDuration();
+    }
+
     return {
       kind: STATUS_DURATION_KIND.MINUTES,
-      amount: clampInteger(minuteMatch[1], 1, 999, 1)
+      amount
     };
   }
 
@@ -150,6 +164,114 @@ export function getSpellConcentrationDuration(
     .join(", ");
 
   return parseSpellConcentrationDurationLabel(detailText);
+}
+
+const spellDurationStatusSourceIdPrefix = "spell-duration-";
+
+type SpellStatusEntrySource = {
+  id?: string;
+  name: string;
+  duration: SpellDurationPart[];
+  description?: SpellDescriptionEntry[];
+};
+
+function getSpellDurationStatusSourceId(
+  spell: Pick<SpellStatusEntrySource, "id">
+): string | undefined {
+  return spell.id ? `${spellDurationStatusSourceIdPrefix}${spell.id}` : undefined;
+}
+
+function normalizeSpellDurationLabel(label: string): string {
+  return label.trim().toLowerCase().replace(/^up to\s+/, "").replace(/\s+/g, " ");
+}
+
+function isInstantaneousSpellDurationLabel(label: string): boolean {
+  return /^instantaneous(?:\s*\([^)]*\))?$/.test(normalizeSpellDurationLabel(label));
+}
+
+function getSpellDurationLabelCandidates(durationParts: SpellDurationPart[]): string[] {
+  return durationParts
+    .filter((part) => part !== DURATION.CONCENTRATION)
+    .map((part) => String(part).trim())
+    .filter((part) => part.length > 0)
+    .flatMap((part) => part.split(/\s+or\s+|,/i))
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0);
+}
+
+function parseOrdinarySpellDurationLabel(label: string): CharacterStatusDuration | null {
+  const normalizedLabel = normalizeSpellDurationLabel(label);
+
+  const roundMatch = normalizedLabel.match(/^(\d+)\s+rounds?$/);
+
+  if (roundMatch) {
+    return {
+      kind: STATUS_DURATION_KIND.ROUNDS,
+      amount: clampInteger(roundMatch[1], 1, 999, 1),
+      tickOn: STATUS_DURATION_ROUND_TICK.ROUND_START
+    };
+  }
+
+  const minuteMatch = normalizedLabel.match(/^(\d+)\s+minutes?$/);
+
+  if (minuteMatch) {
+    const amount = clampInteger(minuteMatch[1], 1, 999, 1);
+
+    if (amount === 1) {
+      return createTenRoundEndSpellDuration();
+    }
+
+    return {
+      kind: STATUS_DURATION_KIND.MINUTES,
+      amount
+    };
+  }
+
+  const hourMatch = normalizedLabel.match(/^(\d+)\s+hours?$/);
+
+  if (hourMatch) {
+    return {
+      kind: STATUS_DURATION_KIND.HOURS,
+      amount: clampInteger(hourMatch[1], 1, 999, 1)
+    };
+  }
+
+  const dayMatch = normalizedLabel.match(/^(\d+)\s+days?$/);
+
+  if (dayMatch) {
+    return {
+      kind: STATUS_DURATION_KIND.DAYS,
+      amount: clampInteger(dayMatch[1], 1, 999, 1)
+    };
+  }
+
+  return null;
+}
+
+export function getSpellNonConcentrationDuration(
+  durationParts: SpellDurationPart[]
+): CharacterStatusDuration | null {
+  if (durationParts.includes(DURATION.CONCENTRATION)) {
+    return null;
+  }
+
+  const candidates = getSpellDurationLabelCandidates(durationParts);
+
+  for (const candidate of candidates) {
+    if (isInstantaneousSpellDurationLabel(candidate)) {
+      continue;
+    }
+
+    const parsedDuration = parseOrdinarySpellDurationLabel(candidate);
+
+    if (parsedDuration) {
+      return parsedDuration;
+    }
+  }
+
+  return candidates.some((candidate) => !isInstantaneousSpellDurationLabel(candidate))
+    ? { kind: STATUS_DURATION_KIND.INFINITE }
+    : null;
 }
 
 function normalizeStatusDuration(value: unknown): CharacterStatusDuration | null {
@@ -797,6 +919,101 @@ export function applySpellConcentrationToStatusEntries(
       duration: concentrationDuration,
       sourceId: options?.sourceId,
       sourceSpellId: spell.id
+    })
+  ]);
+}
+
+function isGenericSpellDurationStatusEntry(
+  entry: CharacterStatusEntry,
+  spell: Pick<SpellStatusEntrySource, "id" | "name">
+): boolean {
+  const genericSourceId = getSpellDurationStatusSourceId(spell);
+
+  if (genericSourceId) {
+    return entry.sourceId === genericSourceId;
+  }
+
+  return (
+    entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
+    entry.value === spell.name &&
+    entry.source === spell.name &&
+    entry.sourceSpellId === spell.id
+  );
+}
+
+function hasSpecificSpellEffectStatusEntry(
+  entries: CharacterStatusEntry[],
+  spell: Pick<SpellStatusEntrySource, "id">,
+  genericSourceId: string | undefined
+): boolean {
+  if (!spell.id) {
+    return false;
+  }
+
+  return entries.some(
+    (entry) =>
+      entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
+      entry.sourceSpellId === spell.id &&
+      entry.sourceId !== genericSourceId &&
+      entry.value !== EFFECT_NAME.CONCENTRATION
+  );
+}
+
+function getSpellStatusDescription(
+  spell: Pick<SpellStatusEntrySource, "description">
+): string | undefined {
+  if (!Array.isArray(spell.description)) {
+    return undefined;
+  }
+
+  const descriptionLines = spell.description
+    .flatMap((entry) => (typeof entry === "string" ? [entry] : entry.items))
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+
+  return descriptionLines.length > 0 ? descriptionLines.join("\n") : undefined;
+}
+
+export function applySpellDurationToStatusEntries(
+  value: unknown,
+  spell: SpellStatusEntrySource,
+  options?: {
+    sourceId?: string;
+  }
+): CharacterStatusEntry[] {
+  const concentrationDuration = getSpellConcentrationDuration(spell.duration);
+
+  if (concentrationDuration) {
+    return applySpellConcentrationToStatusEntries(value, spell, options);
+  }
+
+  const duration = getSpellNonConcentrationDuration(spell.duration);
+  const entries = normalizeCharacterStatusEntries(value);
+  const genericSourceId = getSpellDurationStatusSourceId(spell);
+
+  if (!duration) {
+    return entries;
+  }
+
+  const entriesWithoutGenericDuration = entries.filter(
+    (entry) => !isGenericSpellDurationStatusEntry(entry, spell)
+  );
+
+  if (hasSpecificSpellEffectStatusEntry(entries, spell, genericSourceId)) {
+    return pruneLinkedStatusEntries(entriesWithoutGenericDuration);
+  }
+
+  return ensureLinkedStatusDependencies([
+    ...entriesWithoutGenericDuration,
+    createCharacterStatusEntry({
+      group: STATUS_ENTRY_GROUP.EFFECTS,
+      value: spell.name,
+      source: spell.name,
+      sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+      duration,
+      sourceId: genericSourceId,
+      sourceSpellId: spell.id,
+      description: getSpellStatusDescription(spell)
     })
   ]);
 }

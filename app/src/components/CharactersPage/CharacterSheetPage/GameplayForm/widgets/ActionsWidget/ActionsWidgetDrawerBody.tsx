@@ -241,10 +241,7 @@ import {
   isRoundTrackerResourceAvailable,
   shouldTrackRoundScopedResources
 } from "../../../../../../pages/CharactersPage/combat";
-import {
-  applySpellConcentrationToStatusEntries,
-  removeInvisibleConditionFromCharacter
-} from "../../../../../../pages/CharactersPage/statusEntries";
+import { removeInvisibleConditionFromCharacter } from "../../../../../../pages/CharactersPage/statusEntries";
 import {
   applyRolledHealingToCharacter,
   applyRolledTemporaryHitPointsToCharacter,

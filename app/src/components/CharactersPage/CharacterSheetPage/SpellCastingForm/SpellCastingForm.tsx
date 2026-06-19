@@ -144,7 +144,7 @@ import {
   getSpeciesSpellcastingAbilityForCharacter,
   getTieflingFiendishLegacyFreeCastStateForCharacter
 } from "../../../../pages/CharactersPage/species";
-import { applySpellConcentrationToStatusEntries } from "../../../../pages/CharactersPage/statusEntries";
+import { applySpellDurationToStatusEntries } from "../../../../pages/CharactersPage/statusEntries";
 import { fighterPsiWarriorTelekineticMasterConcentrationStatusSourceId } from "../../../../pages/CharactersPage/classFeatures/fighter/subclasses/fighterPsiWarriorShared";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { hasWarlockArchfeyPatronBewitchingMagicFeature } from "../../../../pages/CharactersPage/classFeatures/warlock/subclasses/warlockArchfeyPatron";
@@ -2058,7 +2058,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         activateFighterPsiWarriorTelekineticMasterSpellCastForCharacter,
         applyRangerWinterWalkerFrozenHauntStatusEntriesForCharacter,
         applySpellCastFeatureEffectsForCharacter,
-        applySpellConcentrationToStatusEntries,
+        applySpellDurationToStatusEntries,
         applySpellImplementationForCharacter,
         applyWizardEvokerOverchannelUse,
         canUseWarlockCelestialPatronRadiantSoulForSpell,

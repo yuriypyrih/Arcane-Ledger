@@ -150,7 +150,7 @@ function applyShillelaghSpellImplementation({
       duration: {
         kind: STATUS_DURATION_KIND.ROUNDS,
         amount: 10,
-        tickOn: STATUS_DURATION_ROUND_TICK.ROUND_START
+        tickOn: STATUS_DURATION_ROUND_TICK.ROUND_END
       },
       sourceId: shillelaghStatusSourceId,
       sourceSpellId: spell.id,

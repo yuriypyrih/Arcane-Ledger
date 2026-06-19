@@ -26,8 +26,29 @@ function createFrhofSpellEntry(
     ...entry,
     category: ENTRY_CATEGORIES.SPELLS,
     source: FRHOF_SPELL_SOURCE,
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: shouldSemiTrackSpellDuration(entry.duration)
+      ? TRACKER.SEMI_TRACKED
+      : TRACKER.NOT_TRACKED
   };
+}
+
+function isInstantaneousDurationLabel(label: string): boolean {
+  return /^instantaneous(?:\s*\([^)]*\))?$/i.test(label.trim());
+}
+
+function shouldSemiTrackSpellDuration(duration: SpellEntry["duration"]): boolean {
+  if (duration.includes(DURATION.CONCENTRATION)) {
+    return true;
+  }
+
+  return duration
+    .flatMap((part) =>
+      String(part)
+        .split(/\s+or\s+|,/i)
+        .map((piece) => piece.trim())
+        .filter((piece) => piece.length > 0)
+    )
+    .some((part) => !isInstantaneousDurationLabel(part));
 }
 
 export const alustrielsMooncloak = createFrhofSpellEntry({

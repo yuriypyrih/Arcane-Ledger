@@ -11,7 +11,7 @@ export function castSelectedSpellWithContext(
     activateFighterPsiWarriorTelekineticMasterSpellCastForCharacter,
     applyRangerWinterWalkerFrozenHauntStatusEntriesForCharacter,
     applySpellCastFeatureEffectsForCharacter,
-    applySpellConcentrationToStatusEntries,
+    applySpellDurationToStatusEntries,
     applySpellImplementationForCharacter,
     applyWizardEvokerOverchannelUse,
     canUseWarlockCelestialPatronRadiantSoulForSpell,
@@ -219,8 +219,10 @@ export function castSelectedSpellWithContext(
     : null;
   const spellForStatusEntries = useFeyReinforcementsNoConcentration
     ? {
+        id: selectedSpell.id,
         name: selectedSpell.name,
-        duration: ["1 minute"]
+        duration: ["1 minute"],
+        description: selectedSpell.description
       }
     : selectedSpell;
   const concentrationStatusOptions = useTelekineticMaster
@@ -228,6 +230,30 @@ export function castSelectedSpellWithContext(
         sourceId: fighterPsiWarriorTelekineticMasterConcentrationStatusSourceId
       }
     : undefined;
+  const applySelectedSpellDurationToCharacter = (nextCharacter: Character): Character => ({
+    ...nextCharacter,
+    statusEntries: applySpellDurationToStatusEntries(
+      nextCharacter.statusEntries,
+      spellForStatusEntries,
+      concentrationStatusOptions
+    )
+  });
+  const applySelectedSpellDurationAndFrozenHauntToCharacter = (
+    nextCharacter: Character
+  ): Character => {
+    const statusEntries = applySpellDurationToStatusEntries(
+      nextCharacter.statusEntries,
+      spellForStatusEntries,
+      concentrationStatusOptions
+    );
+
+    return {
+      ...nextCharacter,
+      statusEntries: useFrozenHaunt
+        ? applyRangerWinterWalkerFrozenHauntStatusEntriesForCharacter(statusEntries)
+        : statusEntries
+    };
+  };
   const canCastSpellbookRitual =
     selectedSpellIsSpellbookOnly &&
     castAsRitual &&
@@ -250,14 +276,7 @@ export function castSelectedSpellWithContext(
           currentCharacter,
           roundTrackerResource
         );
-        const nextCharacter = {
-          ...preparedCharacter,
-          statusEntries: applySpellConcentrationToStatusEntries(
-            preparedCharacter.statusEntries,
-            spellForStatusEntries,
-            concentrationStatusOptions
-          )
-        };
+        const nextCharacter = preparedCharacter;
         const nextCharacterWithBeguilingMagic = useBeguilingMagic
           ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacter)
           : nextCharacter;
@@ -271,8 +290,11 @@ export function castSelectedSpellWithContext(
           castSource: spellImplementationCastSource,
           options: spellImplementationOptions
         });
-        const nextCharacterWithGoliathAncestry = consumeGoliathAncestryIfSelected(
+        const nextCharacterWithSpellDuration = applySelectedSpellDurationToCharacter(
           nextCharacterWithSpellImplementation
+        );
+        const nextCharacterWithGoliathAncestry = consumeGoliathAncestryIfSelected(
+          nextCharacterWithSpellDuration
         );
         const nextCharacterWithFeatCastEffects = applyFeatureSpellCastEffectsForCharacter(
           nextCharacterWithGoliathAncestry,
@@ -331,23 +353,18 @@ export function castSelectedSpellWithContext(
         const nextCharacterWithSpellOptions = useBlessingOfMoonlight
           ? consumeBlessingOfMoonlightUseForCharacter(nextCharacter)
           : nextCharacter;
-        const nextCharacterWithConcentration = {
-          ...nextCharacterWithSpellOptions,
-          statusEntries: applySpellConcentrationToStatusEntries(
-            nextCharacterWithSpellOptions.statusEntries,
-            spellForStatusEntries,
-            concentrationStatusOptions
-          )
-        };
         const nextCharacterWithSpellImplementation = applySpellImplementationForCharacter({
-          character: nextCharacterWithConcentration,
+          character: nextCharacterWithSpellOptions,
           spell: selectedSpell,
           spellSlotLevel: null,
           castSource: spellImplementationCastSource,
           options: spellImplementationOptions
         });
-        const nextCharacterWithGoliathAncestry = consumeGoliathAncestryIfSelected(
+        const nextCharacterWithSpellDuration = applySelectedSpellDurationToCharacter(
           nextCharacterWithSpellImplementation
+        );
+        const nextCharacterWithGoliathAncestry = consumeGoliathAncestryIfSelected(
+          nextCharacterWithSpellDuration
         );
         const nextCharacterWithFeatCastEffects = applyFeatureSpellCastEffectsForCharacter(
           nextCharacterWithGoliathAncestry,
@@ -397,14 +414,7 @@ export function castSelectedSpellWithContext(
         currentCharacter,
         roundTrackerResource
       );
-      const nextCharacter = {
-        ...preparedCharacter,
-        statusEntries: applySpellConcentrationToStatusEntries(
-          preparedCharacter.statusEntries,
-          spellForStatusEntries,
-          concentrationStatusOptions
-        )
-      };
+      const nextCharacter = preparedCharacter;
       const nextCharacterWithBeguilingMagic = useBeguilingMagic
         ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacter)
         : nextCharacter;
@@ -418,8 +428,11 @@ export function castSelectedSpellWithContext(
         castSource: spellImplementationCastSource,
         options: spellImplementationOptions
       });
-      const nextCharacterWithGoliathAncestry = consumeGoliathAncestryIfSelected(
+      const nextCharacterWithSpellDuration = applySelectedSpellDurationToCharacter(
         nextCharacterWithSpellImplementation
+      );
+      const nextCharacterWithGoliathAncestry = consumeGoliathAncestryIfSelected(
+        nextCharacterWithSpellDuration
       );
 
       const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
@@ -707,20 +720,7 @@ export function castSelectedSpellWithContext(
       spellSlotsExpended:
         castsWithoutSpellSlot && !shouldSpendFrozenHauntFallbackSlot
           ? nextCharacterWithDetectThoughts.spellSlotsExpended
-          : nextSpellSlotsExpended,
-      statusEntries: useFrozenHaunt
-        ? applyRangerWinterWalkerFrozenHauntStatusEntriesForCharacter(
-            applySpellConcentrationToStatusEntries(
-              nextCharacterWithDetectThoughts.statusEntries,
-              spellForStatusEntries,
-              concentrationStatusOptions
-            )
-          )
-        : applySpellConcentrationToStatusEntries(
-            nextCharacterWithDetectThoughts.statusEntries,
-            spellForStatusEntries,
-            concentrationStatusOptions
-          )
+          : nextSpellSlotsExpended
     };
     const nextCharacterWithSpellImplementation = applySpellImplementationForCharacter({
       character: nextCharacterWithSpellcast,
@@ -729,11 +729,14 @@ export function castSelectedSpellWithContext(
       castSource: spellImplementationCastSource,
       options: spellImplementationOptions
     });
+    const nextCharacterWithSpellDuration = applySelectedSpellDurationAndFrozenHauntToCharacter(
+      nextCharacterWithSpellImplementation
+    );
     const nextCharacterWithTelekineticMaster = castsFreeViaTelekineticMaster
       ? activateFighterPsiWarriorTelekineticMasterSpellCastForCharacter(
-          nextCharacterWithSpellImplementation
+          nextCharacterWithSpellDuration
         )
-      : nextCharacterWithSpellImplementation;
+      : nextCharacterWithSpellDuration;
     const nextCharacterWithBeguilingMagic = useBeguilingMagic
       ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithTelekineticMaster)
       : nextCharacterWithTelekineticMaster;

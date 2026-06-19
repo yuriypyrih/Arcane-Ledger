@@ -30,7 +30,7 @@ import {
   useInventoryItemChargeById as spendInventoryItemChargeById
 } from "../../../../pages/CharactersPage/inventoryItems";
 import { getEffectiveInventoryItemRecord } from "../../../../pages/CharactersPage/itemMods";
-import { applySpellConcentrationToStatusEntries } from "../../../../pages/CharactersPage/statusEntries";
+import { applySpellDurationToStatusEntries } from "../../../../pages/CharactersPage/statusEntries";
 import type {
   PersistCharacterOptions,
   PersistCharacterUpdater
@@ -242,22 +242,22 @@ function EquipmentStoredSpellDrawer({
         return currentCharacter;
       }
 
-      const nextCharacterWithConcentration = {
-        ...currentCharacter,
-        statusEntries: applySpellConcentrationToStatusEntries(
-          currentCharacter.statusEntries,
-          spell
-        )
-      };
       const nextCharacterWithSpellImplementation = applySpellImplementationForCharacter({
-        character: nextCharacterWithConcentration,
+        character: currentCharacter,
         spell,
         spellSlotLevel: spell.spellLevel > 0 ? spell.spellLevel : null,
         castSource: options?.spellImplementationCastSource ?? "standard",
         options: options?.spellImplementationOptions ?? {}
       });
+      const nextCharacterWithSpellDuration = {
+        ...nextCharacterWithSpellImplementation,
+        statusEntries: applySpellDurationToStatusEntries(
+          nextCharacterWithSpellImplementation.statusEntries,
+          spell
+        )
+      };
       const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
-        nextCharacterWithSpellImplementation,
+        nextCharacterWithSpellDuration,
         spell
       );
       const nextCharacterWithFeatCastEffects = applyFeatureSpellCastEffectsForCharacter(

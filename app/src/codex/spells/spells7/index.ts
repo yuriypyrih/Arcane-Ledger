@@ -24,7 +24,7 @@ export const arcaneSword: SpellEntry = {
     publisherKey: "wizards-of-the-coast",
     permalink: "https://dnd.wizards.com/resources/systems-reference-document"
   },
-  trackingState: TRACKER.NOT_TRACKED,
+  trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "90 feet",
@@ -137,7 +137,7 @@ export const crownOfStars: SpellEntry = {
     documentName: "Legacy / Expanded Local",
     ruleset: "legacy-local"
   },
-  trackingState: TRACKER.NOT_TRACKED,
+  trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
@@ -173,7 +173,7 @@ export const delayedBlastFireball: SpellEntry = {
     publisherKey: "wizards-of-the-coast",
     permalink: "https://dnd.wizards.com/resources/systems-reference-document"
   },
-  trackingState: TRACKER.NOT_TRACKED,
+  trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "150 feet",
@@ -245,7 +245,7 @@ export const draconicTransformation: SpellEntry = {
     documentName: "Legacy / Expanded Local",
     ruleset: "legacy-local"
   },
-  trackingState: TRACKER.NOT_TRACKED,
+  trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.BONUS_ACTION],
   range: "Self",
@@ -288,7 +288,7 @@ export const dreamOfTheBlueVeil: SpellEntry = {
     documentName: "Legacy / Expanded Local",
     ruleset: "legacy-local"
   },
-  trackingState: TRACKER.NOT_TRACKED,
+  trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.TEN_MINUTES],
   range: "20 feet",
@@ -322,7 +322,7 @@ export const etherealness: SpellEntry = {
     publisherKey: "wizards-of-the-coast",
     permalink: "https://dnd.wizards.com/resources/systems-reference-document"
   },
-  trackingState: TRACKER.NOT_TRACKED,
+  trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
@@ -414,7 +414,7 @@ export const forcecage: SpellEntry = {
     publisherKey: "wizards-of-the-coast",
     permalink: "https://dnd.wizards.com/resources/systems-reference-document"
   },
-  trackingState: TRACKER.NOT_TRACKED,
+  trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "100 feet",
@@ -446,7 +446,7 @@ export const magnificentMansion: SpellEntry = {
     publisherKey: "wizards-of-the-coast",
     permalink: "https://dnd.wizards.com/resources/systems-reference-document"
   },
-  trackingState: TRACKER.NOT_TRACKED,
+  trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.MINUTE],
   range: "300 feet",
@@ -474,7 +474,7 @@ export const mirageArcane: SpellEntry = {
     publisherKey: "wizards-of-the-coast",
     permalink: "https://dnd.wizards.com/resources/systems-reference-document"
   },
-  trackingState: TRACKER.NOT_TRACKED,
+  trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.ILLUSION,
   castingTime: [ACTION_TYPE.TEN_MINUTES],
   range: "Sight",
@@ -618,7 +618,7 @@ export const projectImage: SpellEntry = {
     publisherKey: "wizards-of-the-coast",
     permalink: "https://dnd.wizards.com/resources/systems-reference-document"
   },
-  trackingState: TRACKER.NOT_TRACKED,
+  trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.ILLUSION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "500 miles",
@@ -646,7 +646,7 @@ export const regenerate: SpellEntry = {
     publisherKey: "wizards-of-the-coast",
     permalink: "https://dnd.wizards.com/resources/systems-reference-document"
   },
-  trackingState: TRACKER.NOT_TRACKED,
+  trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.MINUTE],
   range: "Touch",
@@ -703,7 +703,7 @@ export const reverseGravity: SpellEntry = {
     publisherKey: "wizards-of-the-coast",
     permalink: "https://dnd.wizards.com/resources/systems-reference-document"
   },
-  trackingState: TRACKER.NOT_TRACKED,
+  trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "100 feet",
@@ -733,7 +733,7 @@ export const sequester: SpellEntry = {
     publisherKey: "wizards-of-the-coast",
     permalink: "https://dnd.wizards.com/resources/systems-reference-document"
   },
-  trackingState: TRACKER.NOT_TRACKED,
+  trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
@@ -789,7 +789,7 @@ export const symbol: SpellEntry = {
     publisherKey: "wizards-of-the-coast",
     permalink: "https://dnd.wizards.com/resources/systems-reference-document"
   },
-  trackingState: TRACKER.NOT_TRACKED,
+  trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.MINUTE],
   range: "Touch",
@@ -882,7 +882,7 @@ export const templeOfTheGods: SpellEntry = {
     documentName: "Legacy / Expanded Local",
     ruleset: "legacy-local"
   },
-  trackingState: TRACKER.NOT_TRACKED,
+  trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.HOUR],
   range: "120 feet",
@@ -915,7 +915,7 @@ export const tetherEssence: SpellEntry = {
     documentName: "Legacy / Expanded Local",
     ruleset: "legacy-local"
   },
-  trackingState: TRACKER.NOT_TRACKED,
+  trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.NECROMANCY,
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
@@ -942,7 +942,7 @@ export const whirlwind: SpellEntry = {
     documentName: "Legacy / Expanded Local",
     ruleset: "legacy-local"
   },
-  trackingState: TRACKER.NOT_TRACKED,
+  trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "300 feet",

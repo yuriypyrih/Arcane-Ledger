@@ -535,6 +535,7 @@ export {
   applyLongRestToCharacterStatusEntries,
   applyShortRestToCharacterStatusEntries,
   applySpellConcentrationToStatusEntries,
+  applySpellDurationToStatusEntries,
   createCharacterStatusEntry,
   getExhaustionD20TestPenalty,
   getExhaustionStatusEntry,

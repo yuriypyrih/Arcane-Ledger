@@ -262,7 +262,7 @@ import {
   shouldTrackRoundScopedResources
 } from "../../../../../../pages/CharactersPage/combat";
 import {
-  applySpellConcentrationToStatusEntries,
+  applySpellDurationToStatusEntries,
   removeInvisibleConditionFromCharacter
 } from "../../../../../../pages/CharactersPage/statusEntries";
 import {
@@ -689,28 +689,30 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
         row.option.key === "cleric-war-gods-blessing" &&
         spell.duration.includes(DURATION.CONCENTRATION)
           ? {
+              id: spell.id,
               name: spell.name,
               duration: spell.duration.filter(
                 (durationPart) => durationPart !== DURATION.CONCENTRATION
-              )
+              ),
+              description: spell.description
             }
           : spell;
-      const nextCharacterWithConcentration = {
-        ...nextCharacter,
-        statusEntries: applySpellConcentrationToStatusEntries(
-          nextCharacter.statusEntries,
-          spellForStatusEntries
-        )
-      };
       const nextCharacterWithSpellImplementation = applySpellImplementationForCharacter({
-        character: nextCharacterWithConcentration,
+        character: nextCharacter,
         spell,
         spellSlotLevel: spellLevel,
         castSource: "standard",
         options: {}
       });
+      const nextCharacterWithSpellDuration = {
+        ...nextCharacterWithSpellImplementation,
+        statusEntries: applySpellDurationToStatusEntries(
+          nextCharacterWithSpellImplementation.statusEntries,
+          spellForStatusEntries
+        )
+      };
       const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
-        nextCharacterWithSpellImplementation,
+        nextCharacterWithSpellDuration,
         spell,
         {
           spellSlotLevel: spellLevel
@@ -2126,33 +2128,30 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
         };
       }
 
-      const nextCharacterWithConcentration =
+      const nextCharacterWithFeatureStatus =
         fixedSpellExecute.effectKind === "mantle-of-majesty"
           ? applyMantleOfMajestyStatusForCharacter(nextCharacterWithSpellSlot)
-          : {
-              ...nextCharacterWithSpellSlot,
-              statusEntries: useFrozenHaunt
-                ? applyRangerWinterWalkerFrozenHauntStatusEntriesForCharacter(
-                    applySpellConcentrationToStatusEntries(
-                      nextCharacterWithSpellSlot.statusEntries,
-                      fixedSpellEntry
-                    )
-                  )
-                : applySpellConcentrationToStatusEntries(
-                    nextCharacterWithSpellSlot.statusEntries,
-                    fixedSpellEntry
-                  )
-            };
+          : nextCharacterWithSpellSlot;
       const nextCharacterWithSpellImplementation = applySpellImplementationForCharacter({
-        character: nextCharacterWithConcentration,
+        character: nextCharacterWithFeatureStatus,
         spell: fixedSpellEntry,
         spellSlotLevel: slotLevel,
         castSource: spellImplementationCastSource,
         options: spellImplementationOptions
       });
+      const fixedSpellStatusEntries = applySpellDurationToStatusEntries(
+        nextCharacterWithSpellImplementation.statusEntries,
+        fixedSpellEntry
+      );
+      const nextCharacterWithSpellDuration = {
+        ...nextCharacterWithSpellImplementation,
+        statusEntries: useFrozenHaunt
+          ? applyRangerWinterWalkerFrozenHauntStatusEntriesForCharacter(fixedSpellStatusEntries)
+          : fixedSpellStatusEntries
+      };
       const nextCharacterWithBeguilingMagic = useBeguilingMagic
-        ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithSpellImplementation)
-        : nextCharacterWithSpellImplementation;
+        ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithSpellDuration)
+        : nextCharacterWithSpellDuration;
       const nextCharacterWithElementalSmite = useElementalSmite
         ? applyPaladinOathOfTheNobleGeniesElementalSmiteEffect(
             expendChannelDivinityUseForCharacter(nextCharacterWithBeguilingMagic),
@@ -2256,23 +2255,23 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
         return currentCharacter;
       }
 
-      const nextCharacterWithConcentration = {
-        ...nextCharacter,
-        statusEntries: applySpellConcentrationToStatusEntries(
-          nextCharacter.statusEntries,
-          selectedDivineInterventionSpell
-        )
-      };
       const nextCharacterWithSpellImplementation = applySpellImplementationForCharacter({
-        character: nextCharacterWithConcentration,
+        character: nextCharacter,
         spell: selectedDivineInterventionSpell,
         spellSlotLevel: null,
         castSource: "divine-intervention",
         options: spellImplementationOptions
       });
+      const nextCharacterWithSpellDuration = {
+        ...nextCharacterWithSpellImplementation,
+        statusEntries: applySpellDurationToStatusEntries(
+          nextCharacterWithSpellImplementation.statusEntries,
+          selectedDivineInterventionSpell
+        )
+      };
       const nextCharacterWithBeguilingMagic = useBeguilingMagic
-        ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithSpellImplementation)
-        : nextCharacterWithSpellImplementation;
+        ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithSpellDuration)
+        : nextCharacterWithSpellDuration;
       const nextCharacterWithGoliathAncestry = useGoliathAncestry
         ? consumeGoliathGiantAncestryUseForCharacter(nextCharacterWithBeguilingMagic)
         : nextCharacterWithBeguilingMagic;
@@ -2331,23 +2330,23 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
         return currentCharacter;
       }
 
-      const nextCharacterWithConcentration = {
-        ...nextCharacter,
-        statusEntries: applySpellConcentrationToStatusEntries(
-          nextCharacter.statusEntries,
-          selectedMysticArcanumSpell
-        )
-      };
       const nextCharacterWithSpellImplementation = applySpellImplementationForCharacter({
-        character: nextCharacterWithConcentration,
+        character: nextCharacter,
         spell: selectedMysticArcanumSpell,
         spellSlotLevel: selectedMysticArcanumSpellLevel,
         castSource: "mystic-arcanum",
         options: spellImplementationOptions
       });
+      const nextCharacterWithSpellDuration = {
+        ...nextCharacterWithSpellImplementation,
+        statusEntries: applySpellDurationToStatusEntries(
+          nextCharacterWithSpellImplementation.statusEntries,
+          selectedMysticArcanumSpell
+        )
+      };
       const nextCharacterWithBeguilingMagic = useBeguilingMagic
-        ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithSpellImplementation)
-        : nextCharacterWithSpellImplementation;
+        ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithSpellDuration)
+        : nextCharacterWithSpellDuration;
       const nextCharacterWithGoliathAncestry = useGoliathAncestry
         ? consumeGoliathGiantAncestryUseForCharacter(nextCharacterWithBeguilingMagic)
         : nextCharacterWithBeguilingMagic;
