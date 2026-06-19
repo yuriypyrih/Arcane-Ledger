@@ -45,6 +45,15 @@ type SpellGroup = {
 };
 
 type SpellPreparationLevelGroup = Record<number, SpellEntry[]>;
+type SpellSelectionPredicate = (spell: SpellEntry) => boolean;
+type PreparedSpellTab = number | "all";
+type PreparedSpellOrderingSnapshot = {
+  preparedSpellIds: string[];
+  spellbookSpellIds: string[];
+};
+
+const allPreparedSpellTab = "all";
+const allPreparedSpellDisplayLimit = 50;
 
 function ignoreModalEscapeClose() {
   return undefined;
@@ -85,7 +94,39 @@ function SelectionCounter({ current, total }: { current: number; total: number |
   );
 }
 
-function groupSpellsByLevel(spells: SpellEntry[]): SpellGroup[] {
+function compareSpellsByName(left: SpellEntry, right: SpellEntry): number {
+  return left.name.localeCompare(right.name);
+}
+
+function splitSpellsBySelection(spells: SpellEntry[], isSelected: SpellSelectionPredicate) {
+  const selectedSpells: SpellEntry[] = [];
+  const unselectedSpells: SpellEntry[] = [];
+
+  spells.forEach((spell) => {
+    if (isSelected(spell)) {
+      selectedSpells.push(spell);
+      return;
+    }
+
+    unselectedSpells.push(spell);
+  });
+
+  return {
+    selectedSpells: selectedSpells.sort(compareSpellsByName),
+    unselectedSpells: unselectedSpells.sort(compareSpellsByName)
+  };
+}
+
+function orderSpellsBySelection(spells: SpellEntry[], isSelected: SpellSelectionPredicate) {
+  const { selectedSpells, unselectedSpells } = splitSpellsBySelection(spells, isSelected);
+
+  return [...selectedSpells, ...unselectedSpells];
+}
+
+function groupSpellsByLevel(
+  spells: SpellEntry[],
+  options: { preserveSpellOrder?: boolean } = {}
+): SpellGroup[] {
   const spellsByLevel = spells.reduce((groups, spell) => {
     const spellLevel = getSpellLevel(spell);
     const currentGroup = groups.get(spellLevel) ?? [];
@@ -98,7 +139,7 @@ function groupSpellsByLevel(spells: SpellEntry[]): SpellGroup[] {
     .sort(([leftLevel], [rightLevel]) => leftLevel - rightLevel)
     .map(([level, levelSpells]) => ({
       level,
-      spells: [...levelSpells].sort((left, right) => left.name.localeCompare(right.name))
+      spells: options.preserveSpellOrder ? levelSpells : [...levelSpells].sort(compareSpellsByName)
     }));
 }
 
@@ -106,7 +147,7 @@ function createSpellPreparationLevelGroups(spells: SpellEntry[]): SpellPreparati
   return spellSlotLevels.reduce<SpellPreparationLevelGroup>((groups, level) => {
     groups[level] = spells
       .filter((spell) => getSpellLevel(spell) === level)
-      .sort((left, right) => left.name.localeCompare(right.name));
+      .sort(compareSpellsByName);
 
     return groups;
   }, {} as SpellPreparationLevelGroup);
@@ -128,6 +169,22 @@ function countTrackedSpellsByLevel(
     counts[spellLevel] = (counts[spellLevel] ?? 0) + 1;
     return counts;
   }, {});
+}
+
+function isPreparedSpellLevelAvailable(
+  spell: SpellEntry,
+  options: { allowAllSpellLevels: boolean; highestSpellSlotLevel: number }
+): boolean {
+  const spellLevel = getSpellLevel(spell);
+
+  return (
+    spellLevel > 0 &&
+    (options.allowAllSpellLevels || spellLevel <= options.highestSpellSlotLevel)
+  );
+}
+
+function getPreparedSpellTabLabel(tab: PreparedSpellTab): string {
+  return tab === allPreparedSpellTab ? "spells" : formatSpellGroupTitle(tab).toLowerCase();
 }
 
 function SpellManagementModal({
@@ -175,8 +232,16 @@ function SpellManagementModal({
   const [preparedSpellDraftIds, setPreparedSpellDraftIds] = useState<string[]>(
     () => selectedPreparedSpellIds
   );
-  const [activePreparedSpellLevel, setActivePreparedSpellLevel] = useState(
-    firstAvailablePreparedSpellLevel
+  const [cantripOrderingDraftIds, setCantripOrderingDraftIds] = useState<string[]>(
+    () => selectedCantripIds
+  );
+  const [preparedSpellOrderingSnapshot, setPreparedSpellOrderingSnapshot] =
+    useState<PreparedSpellOrderingSnapshot>(() => ({
+      preparedSpellIds: selectedPreparedSpellIds,
+      spellbookSpellIds: selectedManualSpellbookSpellIds
+    }));
+  const [activePreparedSpellLevel, setActivePreparedSpellLevel] = useState<PreparedSpellTab>(
+    allPreparedSpellTab
   );
   const [cantripFilters, setCantripFilters] = useState<SpellManagementFilters>(() => ({
     ...emptySpellManagementFilters
@@ -197,6 +262,10 @@ function SpellManagementModal({
     [spellPreparationOptions]
   );
   const cantripDraftSet = useMemo(() => new Set(cantripDraftIds), [cantripDraftIds]);
+  const cantripOrderingDraftSet = useMemo(
+    () => new Set(cantripOrderingDraftIds),
+    [cantripOrderingDraftIds]
+  );
   const spellbookDraftSet = useMemo(() => new Set(spellbookDraftIds), [spellbookDraftIds]);
   const spellbookAccessibleDraftSet = useMemo(
     () => new Set([...spellbookDraftIds, ...alwaysSpellbookSpellIds]),
@@ -206,9 +275,62 @@ function SpellManagementModal({
     () => new Set(preparedSpellDraftIds),
     [preparedSpellDraftIds]
   );
+  const preparedSpellOrderingDraftSet = useMemo(
+    () => new Set(preparedSpellOrderingSnapshot.preparedSpellIds),
+    [preparedSpellOrderingSnapshot.preparedSpellIds]
+  );
+  const spellbookOrderingAccessibleDraftSet = useMemo(
+    () => new Set([...preparedSpellOrderingSnapshot.spellbookSpellIds, ...alwaysSpellbookSpellIds]),
+    [alwaysSpellbookSpellIds, preparedSpellOrderingSnapshot.spellbookSpellIds]
+  );
+  const isCantripSelected = useCallback(
+    (spell: SpellEntry) => cantripDraftSet.has(spell.id),
+    [cantripDraftSet]
+  );
+  const isCantripSelectedForOrdering = useCallback(
+    (spell: SpellEntry) => cantripOrderingDraftSet.has(spell.id),
+    [cantripOrderingDraftSet]
+  );
+  const isPreparedSpellSelected = useCallback(
+    (spell: SpellEntry) => {
+      const isAlwaysPrepared = alwaysPreparedSpellIdSet.has(spell.id);
+
+      return usesSpellbook
+        ? spellbookAccessibleDraftSet.has(spell.id) || isAlwaysPrepared
+        : preparedSpellDraftSet.has(spell.id) || isAlwaysPrepared;
+    },
+    [alwaysPreparedSpellIdSet, preparedSpellDraftSet, spellbookAccessibleDraftSet, usesSpellbook]
+  );
+  const isPreparedSpellSelectedForOrdering = useCallback(
+    (spell: SpellEntry) => {
+      const isAlwaysPrepared = alwaysPreparedSpellIdSet.has(spell.id);
+
+      return usesSpellbook
+        ? spellbookOrderingAccessibleDraftSet.has(spell.id) || isAlwaysPrepared
+        : preparedSpellOrderingDraftSet.has(spell.id) || isAlwaysPrepared;
+    },
+    [
+      alwaysPreparedSpellIdSet,
+      preparedSpellOrderingDraftSet,
+      spellbookOrderingAccessibleDraftSet,
+      usesSpellbook
+    ]
+  );
+  const allPreparedSpellOptions = useMemo(
+    () =>
+      spellPreparationOptions
+        .filter((spell) =>
+          isPreparedSpellLevelAvailable(spell, { allowAllSpellLevels, highestSpellSlotLevel })
+        )
+        .sort(compareSpellsByName),
+    [allowAllSpellLevels, highestSpellSlotLevel, spellPreparationOptions]
+  );
   const activePreparedSpellOptions = useMemo(
-    () => spellPreparationLevelGroups[activePreparedSpellLevel] ?? [],
-    [activePreparedSpellLevel, spellPreparationLevelGroups]
+    () =>
+      activePreparedSpellLevel === allPreparedSpellTab
+        ? allPreparedSpellOptions
+        : (spellPreparationLevelGroups[activePreparedSpellLevel] ?? []),
+    [activePreparedSpellLevel, allPreparedSpellOptions, spellPreparationLevelGroups]
   );
   const activePreparedSpellDisplayOptions = useMemo(
     () =>
@@ -227,9 +349,13 @@ function SpellManagementModal({
     () => filterSpellManagementSpells(cantripOptions, cantripFilters),
     [cantripFilters, cantripOptions]
   );
+  const orderedFilteredCantripOptions = useMemo(
+    () => orderSpellsBySelection(filteredCantripOptions, isCantripSelectedForOrdering),
+    [filteredCantripOptions, isCantripSelectedForOrdering]
+  );
   const cantripGroups = useMemo(
-    () => groupSpellsByLevel(filteredCantripOptions),
-    [filteredCantripOptions]
+    () => groupSpellsByLevel(orderedFilteredCantripOptions, { preserveSpellOrder: true }),
+    [orderedFilteredCantripOptions]
   );
   const filteredCantripRowDetailsById = useMemo(
     () =>
@@ -244,10 +370,32 @@ function SpellManagementModal({
       ),
     [filteredCantripOptions, getSpellActionShapes, getSpellOutcomeSummary]
   );
-  const filteredActivePreparedSpellDisplayOptions = useMemo(
-    () => filterSpellManagementSpells(activePreparedSpellDisplayOptions, preparedSpellFilters),
-    [activePreparedSpellDisplayOptions, preparedSpellFilters]
-  );
+  const filteredActivePreparedSpellDisplayOptions = useMemo(() => {
+    const filteredSpells = filterSpellManagementSpells(
+      activePreparedSpellDisplayOptions,
+      preparedSpellFilters
+    );
+    const { selectedSpells, unselectedSpells } = splitSpellsBySelection(
+      filteredSpells,
+      isPreparedSpellSelectedForOrdering
+    );
+
+    if (activePreparedSpellLevel !== allPreparedSpellTab) {
+      return [...selectedSpells, ...unselectedSpells];
+    }
+
+    const unselectedDisplayLimit = Math.max(
+      0,
+      allPreparedSpellDisplayLimit - selectedSpells.length
+    );
+
+    return [...selectedSpells, ...unselectedSpells.slice(0, unselectedDisplayLimit)];
+  }, [
+    activePreparedSpellDisplayOptions,
+    activePreparedSpellLevel,
+    isPreparedSpellSelectedForOrdering,
+    preparedSpellFilters
+  ]);
   const filteredActivePreparedSpellRowDetailsById = useMemo(
     () =>
       new Map(
@@ -269,6 +417,14 @@ function SpellManagementModal({
       ),
     [alwaysPreparedSpellIds, knownSpellEntriesById, preparedSpellDraftIds]
   );
+  const allPreparedSpellSelectedCount = useMemo(
+    () =>
+      allPreparedSpellOptions.reduce(
+        (count, spell) => count + (isPreparedSpellSelected(spell) ? 1 : 0),
+        0
+      ),
+    [allPreparedSpellOptions, isPreparedSpellSelected]
+  );
   const hasCantripManagement =
     cantripOptions.length > 0 && (cantripLimit === null || cantripLimit > 0);
   const cantripCount = cantripDraftIds.length;
@@ -282,6 +438,40 @@ function SpellManagementModal({
     preparedSpellLimit !== null && preparedSpellCount >= preparedSpellLimit;
   const modalTitle =
     mode === "menu" ? "Spell options" : mode === "cantrips" ? "Manage cantrips" : "Prepare spells";
+  const refreshCantripOrderingSnapshot = useCallback(() => {
+    setCantripOrderingDraftIds(cantripDraftIds);
+  }, [cantripDraftIds]);
+  const refreshPreparedSpellOrderingSnapshot = useCallback(() => {
+    setPreparedSpellOrderingSnapshot({
+      preparedSpellIds: preparedSpellDraftIds,
+      spellbookSpellIds: spellbookDraftIds
+    });
+  }, [preparedSpellDraftIds, spellbookDraftIds]);
+  const handleCantripFiltersChange = useCallback(
+    (filters: SpellManagementFilters) => {
+      refreshCantripOrderingSnapshot();
+      setCantripFilters(filters);
+    },
+    [refreshCantripOrderingSnapshot]
+  );
+  const handlePreparedSpellFiltersChange = useCallback(
+    (filters: SpellManagementFilters) => {
+      refreshPreparedSpellOrderingSnapshot();
+      setPreparedSpellFilters(filters);
+    },
+    [refreshPreparedSpellOrderingSnapshot]
+  );
+  const selectPreparedSpellLevel = useCallback(
+    (level: PreparedSpellTab) => {
+      if (level === activePreparedSpellLevel) {
+        return;
+      }
+
+      refreshPreparedSpellOrderingSnapshot();
+      setActivePreparedSpellLevel(level);
+    },
+    [activePreparedSpellLevel, refreshPreparedSpellOrderingSnapshot]
+  );
 
   const commitAndClose = useCallback(() => {
     if (isCommittingRef.current) {
@@ -334,26 +524,34 @@ function SpellManagementModal({
       return;
     }
 
+    if (activePreparedSpellLevel === allPreparedSpellTab) {
+      return;
+    }
+
     if (activePreparedSpellLevel <= highestSpellSlotLevel) {
       return;
     }
 
+    refreshPreparedSpellOrderingSnapshot();
     setActivePreparedSpellLevel(firstAvailablePreparedSpellLevel);
   }, [
     activePreparedSpellLevel,
     allowAllSpellLevels,
     firstAvailablePreparedSpellLevel,
-    highestSpellSlotLevel
+    highestSpellSlotLevel,
+    refreshPreparedSpellOrderingSnapshot
   ]);
 
   const beginCantripManagement = useCallback(() => {
+    refreshCantripOrderingSnapshot();
     setMode("cantrips");
-  }, []);
+  }, [refreshCantripOrderingSnapshot]);
 
   const beginPreparedSpellManagement = useCallback(() => {
-    setActivePreparedSpellLevel(firstAvailablePreparedSpellLevel);
+    refreshPreparedSpellOrderingSnapshot();
+    setActivePreparedSpellLevel(allPreparedSpellTab);
     setMode("prepared-spells");
-  }, [firstAvailablePreparedSpellLevel]);
+  }, [refreshPreparedSpellOrderingSnapshot]);
 
   const toggleCantripDraft = useCallback(
     (spellId: string) => {
@@ -591,7 +789,7 @@ function SpellManagementModal({
               <SpellManagementFilterControls
                 filters={cantripFilters}
                 options={cantripFilterOptions}
-                onFiltersChange={setCantripFilters}
+                onFiltersChange={handleCantripFiltersChange}
               />
             ) : null}
 
@@ -614,7 +812,7 @@ function SpellManagementModal({
                     </p>
                     <ul className={styles.preparedSpellSelectionList}>
                       {group.spells.map((spell) => {
-                        const isChecked = cantripDraftSet.has(spell.id);
+                        const isChecked = isCantripSelected(spell);
                         const isDisabled = !isChecked && isCantripLimitReached;
                         const rowDetails = filteredCantripRowDetailsById.get(spell.id);
 
@@ -673,6 +871,26 @@ function SpellManagementModal({
             <div className={styles.preparedSpellTabRow}>
               <span className={styles.preparedSpellTabLabel}>Level</span>
               <div className={styles.preparedSpellTabList} role="tablist" aria-label="Spell levels">
+                <button
+                  key="prepared-level-all"
+                  type="button"
+                  role="tab"
+                  aria-selected={activePreparedSpellLevel === allPreparedSpellTab}
+                  aria-label={`All levels, ${allPreparedSpellSelectedCount} spell${
+                    allPreparedSpellSelectedCount === 1 ? "" : "s"
+                  } selected`}
+                  className={clsx(
+                    styles.preparedSpellTabButton,
+                    activePreparedSpellLevel === allPreparedSpellTab &&
+                      styles.preparedSpellTabButtonActive
+                  )}
+                  onClick={() => selectPreparedSpellLevel(allPreparedSpellTab)}
+                >
+                  <span className={styles.preparedSpellTabNumber}>All</span>
+                  <span className={styles.preparedSpellTabIndicator} aria-hidden="true">
+                    ({allPreparedSpellSelectedCount})
+                  </span>
+                </button>
                 {spellSlotLevels.map((level) => {
                   const selectedCount = preparedSpellDraftCountsByLevel[level] ?? 0;
                   const isDisabled = !allowAllSpellLevels && level > highestSpellSlotLevel;
@@ -683,12 +901,14 @@ function SpellManagementModal({
                       type="button"
                       role="tab"
                       aria-selected={activePreparedSpellLevel === level}
-                      aria-label={`Level ${level}, ${selectedCount} spell${selectedCount === 1 ? "" : "s"} selected`}
+                      aria-label={`Level ${level}, ${selectedCount} spell${
+                        selectedCount === 1 ? "" : "s"
+                      } selected`}
                       className={clsx(
                         styles.preparedSpellTabButton,
                         activePreparedSpellLevel === level && styles.preparedSpellTabButtonActive
                       )}
-                      onClick={() => setActivePreparedSpellLevel(level)}
+                      onClick={() => selectPreparedSpellLevel(level)}
                       disabled={isDisabled}
                     >
                       <span className={styles.preparedSpellTabNumber}>{level}</span>
@@ -705,21 +925,21 @@ function SpellManagementModal({
               <SpellManagementFilterControls
                 filters={preparedSpellFilters}
                 options={preparedSpellFilterOptions}
-                onFiltersChange={setPreparedSpellFilters}
+                onFiltersChange={handlePreparedSpellFiltersChange}
               />
             ) : null}
 
             <div className={clsx(sheetStyles.spellManagementList, styles.preparedSpellList)}>
               {activePreparedSpellDisplayOptions.length === 0 ? (
                 <p className={shared.emptyText}>
-                  No {formatSpellGroupTitle(activePreparedSpellLevel).toLowerCase()} are available
-                  for this class and level yet.
+                  No {getPreparedSpellTabLabel(activePreparedSpellLevel)} are available for this
+                  class and level yet.
                 </p>
               ) : filteredActivePreparedSpellDisplayOptions.length === 0 ? (
                 <p className={shared.emptyText}>
                   {hasActivePreparedSpellFilters
-                    ? `No ${formatSpellGroupTitle(activePreparedSpellLevel).toLowerCase()} match these filters.`
-                    : `No ${formatSpellGroupTitle(activePreparedSpellLevel).toLowerCase()} are available for this class and level yet.`}
+                    ? `No ${getPreparedSpellTabLabel(activePreparedSpellLevel)} match these filters.`
+                    : `No ${getPreparedSpellTabLabel(activePreparedSpellLevel)} are available for this class and level yet.`}
                 </p>
               ) : (
                 <ul className={styles.preparedSpellSelectionList}>
@@ -727,6 +947,7 @@ function SpellManagementModal({
                     const isAlwaysPrepared = alwaysPreparedSpellIdSet.has(spell.id);
                     const isAlwaysSpellbook = alwaysSpellbookSpellIdSet.has(spell.id);
                     const isChecked = isAlwaysPrepared || preparedSpellDraftSet.has(spell.id);
+                    const isSelected = isPreparedSpellSelected(spell);
                     const isDisabled =
                       !usesSpellbook &&
                       (isAlwaysPrepared || (!isChecked && isPreparedSpellLimitReached));
@@ -742,11 +963,7 @@ function SpellManagementModal({
                           alwaysSpellbook={isAlwaysSpellbook}
                           compactConcentrationDuration
                           selectable
-                          isSelected={
-                            usesSpellbook
-                              ? spellbookAccessibleDraftSet.has(spell.id) || isAlwaysPrepared
-                              : isChecked
-                          }
+                          isSelected={isSelected}
                           onSelect={
                             usesSpellbook ? undefined : () => togglePreparedSpellDraft(spell.id)
                           }

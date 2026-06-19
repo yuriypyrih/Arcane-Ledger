@@ -14,6 +14,7 @@ import {
 } from "../../../../pages/CharactersPage/classFeatures/economyMulti";
 import {
   applySpellImplementationForCharacter,
+  getSpellImplementationStatusOptionsForCharacter,
   type SpellImplementationCastSource,
   type SpellImplementationOptionValues
 } from "../../../../pages/CharactersPage/characterRuntime/spellImplementations";
@@ -246,6 +247,7 @@ function EquipmentStoredSpellDrawer({
         character: currentCharacter,
         spell,
         spellSlotLevel: spell.spellLevel > 0 ? spell.spellLevel : null,
+        sourceSpellSlotLevel: null,
         castSource: options?.spellImplementationCastSource ?? "standard",
         options: options?.spellImplementationOptions ?? {}
       });
@@ -253,7 +255,18 @@ function EquipmentStoredSpellDrawer({
         ...nextCharacterWithSpellImplementation,
         statusEntries: applySpellDurationToStatusEntries(
           nextCharacterWithSpellImplementation.statusEntries,
-          spell
+          spell,
+          {
+            ...getSpellImplementationStatusOptionsForCharacter({
+              character: nextCharacterWithSpellImplementation,
+              spell,
+              spellSlotLevel: spell.spellLevel > 0 ? spell.spellLevel : null,
+              sourceSpellSlotLevel: null,
+              castSource: options?.spellImplementationCastSource ?? "standard",
+              options: options?.spellImplementationOptions ?? {}
+            }),
+            sourceSpellSlotLevel: null
+          }
         )
       };
       const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(

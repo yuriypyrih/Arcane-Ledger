@@ -13,6 +13,7 @@ import {
   type ResolvedCustomWeaponEntry
 } from "../customEquipment";
 import { transformSpeciesCommonActionForCharacter } from "../species";
+import { getExpeditiousRetreatCommonActionForCharacter } from "./spellImplementations";
 
 export type CharacterCombatSummaryActions = {
   roundTracker: ReturnType<typeof normalizeRoundTracker>;
@@ -72,9 +73,12 @@ export function createCombatSummaryActions(character: Character): CharacterComba
   const roundTracker = normalizeRoundTracker(character.roundTracker);
   const combatActions = getCombatActionsForCharacter(character);
   const commonActionCards = getCommonActionCards().map((action) =>
-    transformSpeciesCommonActionForCharacter(
+    getExpeditiousRetreatCommonActionForCharacter(
       character,
-      transformCommonActionForCharacter(character, action)
+      transformSpeciesCommonActionForCharacter(
+        character,
+        transformCommonActionForCharacter(character, action)
+      )
     )
   );
   const commonActions = commonActionCards.map((action) => createCommonActionDefinition(action));

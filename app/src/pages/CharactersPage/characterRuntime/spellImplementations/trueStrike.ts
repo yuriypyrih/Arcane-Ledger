@@ -165,7 +165,8 @@ export function consumeTrueStrikePendingAttackForCharacter(
 
 function applyTrueStrikeSpellImplementation({
   character,
-  spell
+  spell,
+  sourceSpellSlotLevel
 }: SpellImplementationApplyContext): Character {
   if (spell.id !== trueStrikeSpellId) {
     return character;
@@ -186,6 +187,7 @@ function applyTrueStrikeSpellImplementation({
       },
       sourceId: trueStrikeStatusSourceId,
       sourceSpellId: spell.id,
+      sourceSpellSlotLevel,
       description: getTrueStrikeStatusDescription(spell)
     })
   ];

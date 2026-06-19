@@ -34,12 +34,15 @@ import type { AbilityModifierBonusEntry } from "./abilities";
 import { getEquipmentRuntimeForCharacter } from "./characterRuntime/equipmentRuntime";
 import { measureCharacterRuntime } from "./characterRuntime/performance";
 import {
+  divineFavorSpellId,
+  getDivineFavorWeaponDamageBonusesForCharacter,
   getShillelaghDamageAdjustmentForWeapon,
   getShillelaghSpellcastingAbilityForWeapon,
   getTrueStrikeDamageAdjustmentForWeapon,
   getTrueStrikeEconomyMultiCountForWeapon,
   getTrueStrikeExtraRadiantDamageFormulaForLevel,
   getTrueStrikeSpellcastingAbilityForWeapon,
+  hasDivineFavorStatus,
   shillelaghSpellId,
   shillelaghStatusValue,
   trueStrikeSpellId,
@@ -816,6 +819,9 @@ export function createWeaponAction(
     ...(options.damageBonusEntries ?? []),
     ...(options.skipFeatureDerivedLookups
       ? []
+      : getDivineFavorWeaponDamageBonusesForCharacter(character)),
+    ...(options.skipFeatureDerivedLookups
+      ? []
       : getFeatureDamageBonusesForWeaponAction(character, {
           name: options.name,
           ability: options.ability,
@@ -848,6 +854,12 @@ export function createWeaponAction(
           total: options.damageAbilityModifier ?? options.abilityModifier
         };
   const damageAbilityModifier = damageAbilityBreakdown.total;
+  const descriptionAdditions = [
+    ...(options.descriptionAdditions ?? []),
+    ...(!options.skipFeatureDerivedLookups && hasDivineFavorStatus(character.statusEntries)
+      ? [getSpellDescriptionAddition(divineFavorSpellId)]
+      : [])
+  ].filter((section) => section.length > 0);
   const totalModifier = damageAbilityModifier + getDamageBonusTotal(damageBonusEntries);
   const indicators = options.skipFeatureDerivedLookups
     ? []
@@ -923,7 +935,7 @@ export function createWeaponAction(
     isBatteringRootsEligible,
     isMagicWeapon: options.isMagicWeapon,
     description: options.description,
-    descriptionAdditions: options.descriptionAdditions,
+    descriptionAdditions,
     inventoryStackId: options.inventoryStackId,
     inventoryFeatureTags: options.inventoryFeatureTags
   };

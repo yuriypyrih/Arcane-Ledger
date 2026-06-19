@@ -135,7 +135,7 @@
 }
 
 .noticeText {
-  color: #8d2e1f;
+  color: var(--theme-state-danger);
   font-weight: 600;
 }
 

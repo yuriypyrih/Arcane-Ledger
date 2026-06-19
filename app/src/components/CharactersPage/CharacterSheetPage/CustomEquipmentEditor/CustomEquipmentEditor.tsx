@@ -41,9 +41,8 @@ import type {
 import {
   createCustomTraitEffectDraft,
   createCustomTraitEffectDraftFromEntry,
-  doesCustomTraitTargetAllowAbilityValue,
-  isCustomTraitAbilityValue,
   isCustomTraitRollModeDisabledTarget,
+  normalizeCustomTraitEffectDraftValueForTarget,
   parseCustomTraitEffectDraft,
   type CustomTraitEffectDraft
 } from "../GameplayForm/widgets/TraitsConditionsWidget/customTraitDraft";
@@ -381,11 +380,7 @@ function CustomEquipmentEditor({
           ? {
               ...effect,
               target: value,
-              value:
-                isCustomTraitAbilityValue(effect.value) &&
-                !doesCustomTraitTargetAllowAbilityValue(value)
-                  ? "0"
-                  : effect.value,
+              value: normalizeCustomTraitEffectDraftValueForTarget(effect.value, value),
               rollMode: isCustomTraitRollModeDisabledTarget(value) ? "normal" : effect.rollMode
             }
           : effect

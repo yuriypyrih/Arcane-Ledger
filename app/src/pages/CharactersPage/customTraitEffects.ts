@@ -19,6 +19,7 @@ import {
 
 const abilityKeys: AbilityKey[] = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
 const customTraitEffectTypes = new Set<CharacterCustomTraitEffect["type"]>([
+  "actualMaxHitPoints",
   "armorClass",
   "initiative",
   "passivePerception",
@@ -125,11 +126,17 @@ function createValueModeFields(valueMode: CharacterCustomTraitValueMode) {
 }
 
 function isRollModeDisabledEffectType(type: CharacterCustomTraitEffect["type"]): boolean {
-  return type === "armorClass" || type === "speed" || type === "spellDc";
+  return (
+    type === "actualMaxHitPoints" ||
+    type === "armorClass" ||
+    type === "speed" ||
+    type === "spellDc"
+  );
 }
 
 function isAbilityValueAllowedEffectType(type: CharacterCustomTraitEffect["type"]): boolean {
   return (
+    type !== "actualMaxHitPoints" &&
     type !== "abilityScore" &&
     type !== "abilityModifier" &&
     type !== "savingThrow" &&
@@ -178,6 +185,14 @@ function normalizeCharacterCustomTraitEffect(value: unknown): CharacterCustomTra
   const valueModeFields = createValueModeFields(valueMode);
 
   switch (record.type) {
+    case "actualMaxHitPoints":
+      return typeof normalizedValue === "number"
+        ? {
+            type: "actualMaxHitPoints",
+            value: normalizedValue,
+            ...valueModeFields
+          }
+        : null;
     case "armorClass":
     case "initiative":
     case "passivePerception":
@@ -342,6 +357,12 @@ export function getCustomTraitArmorClassBonuses(
   statusEntries: CustomTraitBonusInput
 ): CustomTraitFlatBonus[] {
   return mapCustomTraitBonuses(statusEntries, (effect) => effect.type === "armorClass");
+}
+
+export function getCustomTraitActualMaxHitPointBonuses(
+  statusEntries: CustomTraitBonusInput
+): CustomTraitFlatBonus[] {
+  return mapCustomTraitBonuses(statusEntries, (effect) => effect.type === "actualMaxHitPoints");
 }
 
 export function getCustomTraitInitiativeBonuses(
@@ -515,6 +536,8 @@ export function formatCharacterCustomTraitEffectTargetLabel(
   effect: CharacterCustomTraitEffect
 ): string {
   switch (effect.type) {
+    case "actualMaxHitPoints":
+      return "Actual Max HP";
     case "armorClass":
       return "Armor Class";
     case "initiative":

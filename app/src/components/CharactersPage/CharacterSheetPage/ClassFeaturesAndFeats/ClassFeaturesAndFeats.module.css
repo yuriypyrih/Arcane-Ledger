@@ -168,7 +168,7 @@
 
 .featureInputRequiredDescription {
   margin: 8px 0 0 0;
-  color: #a63729;
+  color: var(--theme-state-danger);
   font-weight: 600;
   line-height: 1.5;
 }

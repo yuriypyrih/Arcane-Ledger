@@ -10,7 +10,9 @@ import {
   createFeatureSourcedDescriptionEntries,
   createSourcedDescriptionEntries
 } from "../../../../../pages/CharactersPage/actionModalDescriptions";
+import { getCharacterCustomTraitEffectInput } from "../../../../../pages/CharactersPage/characterRuntime/customEffectRuntime";
 import { getFeatureDescriptionForCharacter } from "../../../../../pages/CharactersPage/classFeatures/featureDescriptions";
+import { getCustomTraitActualMaxHitPointBonuses } from "../../../../../pages/CharactersPage/customTraitEffects";
 import { getFeatDefinition, getFeatLabel } from "../../../../../pages/CharactersPage/feats";
 import { getAutomaticMaxHitPointsForCharacter } from "../../../../../pages/CharactersPage/gameplay";
 import {
@@ -50,7 +52,13 @@ export type HitPointsEditorCharacter = Pick<
   Partial<
     Pick<
       Character,
-      "background" | "backgroundChoices" | "feats" | "species" | "statusEntries" | "subclassId"
+      | "background"
+      | "backgroundChoices"
+      | "feats"
+      | "inventoryItems"
+      | "species"
+      | "statusEntries"
+      | "subclassId"
     >
   >;
 
@@ -130,6 +138,22 @@ function getFeatHitPointDescriptionAddition(feat: FEATS): SpellDescriptionEntry[
   );
 }
 
+function formatActualMaxHitPointBonusValue(value: number): string {
+  const normalizedValue = Math.trunc(value);
+
+  return normalizedValue >= 0 ? `+${normalizedValue}` : String(normalizedValue);
+}
+
+function getActualMaxHitPointDescriptionAdditions(
+  character: HitPointsEditorCharacter
+): SpellDescriptionEntry[][] {
+  return getCustomTraitActualMaxHitPointBonuses(getCharacterCustomTraitEffectInput(character)).map(
+    (bonus) => [
+      `Actual Max HP: ${formatActualMaxHitPointBonusValue(bonus.value)} from ${bonus.label}`
+    ]
+  );
+}
+
 function getHitPointAdditionalDescription(
   character: HitPointsEditorCharacter
 ): SpellDescriptionEntry[][] {
@@ -161,6 +185,8 @@ function getHitPointAdditionalDescription(
   if (characterHasFeat(character, FEATS.BOON_OF_FORTITUDE)) {
     descriptionAdditions.push(getFeatHitPointDescriptionAddition(FEATS.BOON_OF_FORTITUDE));
   }
+
+  descriptionAdditions.push(...getActualMaxHitPointDescriptionAdditions(character));
 
   return descriptionAdditions.filter((description) => description.length > 0);
 }

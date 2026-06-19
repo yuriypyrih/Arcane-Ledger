@@ -300,7 +300,7 @@
 }
 
 .errorText {
-  color: #8d3122;
+  color: var(--theme-state-danger);
 }
 
 .segmentedControl {

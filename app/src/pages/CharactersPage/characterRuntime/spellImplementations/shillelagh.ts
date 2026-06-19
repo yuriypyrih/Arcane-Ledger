@@ -133,7 +133,8 @@ export function getShillelaghDamageAdjustmentForWeapon(
 
 function applyShillelaghSpellImplementation({
   character,
-  spell
+  spell,
+  sourceSpellSlotLevel
 }: SpellImplementationApplyContext): Character {
   if (spell.id !== shillelaghSpellId) {
     return character;
@@ -154,6 +155,7 @@ function applyShillelaghSpellImplementation({
       },
       sourceId: shillelaghStatusSourceId,
       sourceSpellId: spell.id,
+      sourceSpellSlotLevel,
       description: getShillelaghStatusDescription(spell)
     })
   ];

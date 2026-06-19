@@ -13,6 +13,7 @@ export function castSelectedSpellWithContext(
     applySpellCastFeatureEffectsForCharacter,
     applySpellDurationToStatusEntries,
     applySpellImplementationForCharacter,
+    getSpellImplementationStatusOptionsForCharacter,
     applyWizardEvokerOverchannelUse,
     canUseWarlockCelestialPatronRadiantSoulForSpell,
     canUseWizardEvokerOverchannelForSpellSlot,
@@ -230,21 +231,43 @@ export function castSelectedSpellWithContext(
         sourceId: fighterPsiWarriorTelekineticMasterConcentrationStatusSourceId
       }
     : undefined;
-  const applySelectedSpellDurationToCharacter = (nextCharacter: Character): Character => ({
+  const createSpellStatusOptions = (
+    statusCharacter: Character,
+    spellSlotLevel: number | null,
+    sourceSpellSlotLevel: number | null
+  ) => ({
+    ...(concentrationStatusOptions ?? {}),
+    ...getSpellImplementationStatusOptionsForCharacter({
+      character: statusCharacter,
+      spell: selectedSpell,
+      spellSlotLevel,
+      sourceSpellSlotLevel,
+      castSource: spellImplementationCastSource,
+      options: spellImplementationOptions
+    }),
+    sourceSpellSlotLevel
+  });
+  const applySelectedSpellDurationToCharacter = (
+    nextCharacter: Character,
+    spellSlotLevel: number | null = null,
+    sourceSpellSlotLevel: number | null = null
+  ): Character => ({
     ...nextCharacter,
     statusEntries: applySpellDurationToStatusEntries(
       nextCharacter.statusEntries,
       spellForStatusEntries,
-      concentrationStatusOptions
+      createSpellStatusOptions(nextCharacter, spellSlotLevel, sourceSpellSlotLevel)
     )
   });
   const applySelectedSpellDurationAndFrozenHauntToCharacter = (
-    nextCharacter: Character
+    nextCharacter: Character,
+    spellSlotLevel: number | null,
+    sourceSpellSlotLevel: number | null
   ): Character => {
     const statusEntries = applySpellDurationToStatusEntries(
       nextCharacter.statusEntries,
       spellForStatusEntries,
-      concentrationStatusOptions
+      createSpellStatusOptions(nextCharacter, spellSlotLevel, sourceSpellSlotLevel)
     );
 
     return {
@@ -287,11 +310,14 @@ export function castSelectedSpellWithContext(
           character: nextCharacterWithSpellOptions,
           spell: selectedSpell,
           spellSlotLevel: null,
+          sourceSpellSlotLevel: null,
           castSource: spellImplementationCastSource,
           options: spellImplementationOptions
         });
         const nextCharacterWithSpellDuration = applySelectedSpellDurationToCharacter(
-          nextCharacterWithSpellImplementation
+          nextCharacterWithSpellImplementation,
+          null,
+          null
         );
         const nextCharacterWithGoliathAncestry = consumeGoliathAncestryIfSelected(
           nextCharacterWithSpellDuration
@@ -357,11 +383,14 @@ export function castSelectedSpellWithContext(
           character: nextCharacterWithSpellOptions,
           spell: selectedSpell,
           spellSlotLevel: null,
+          sourceSpellSlotLevel: null,
           castSource: spellImplementationCastSource,
           options: spellImplementationOptions
         });
         const nextCharacterWithSpellDuration = applySelectedSpellDurationToCharacter(
-          nextCharacterWithSpellImplementation
+          nextCharacterWithSpellImplementation,
+          null,
+          null
         );
         const nextCharacterWithGoliathAncestry = consumeGoliathAncestryIfSelected(
           nextCharacterWithSpellDuration
@@ -425,11 +454,14 @@ export function castSelectedSpellWithContext(
         character: nextCharacterWithSpellOptions,
         spell: selectedSpell,
         spellSlotLevel: null,
+        sourceSpellSlotLevel: null,
         castSource: spellImplementationCastSource,
         options: spellImplementationOptions
       });
       const nextCharacterWithSpellDuration = applySelectedSpellDurationToCharacter(
-        nextCharacterWithSpellImplementation
+        nextCharacterWithSpellImplementation,
+        null,
+        null
       );
       const nextCharacterWithGoliathAncestry = consumeGoliathAncestryIfSelected(
         nextCharacterWithSpellDuration
@@ -722,15 +754,23 @@ export function castSelectedSpellWithContext(
           ? nextCharacterWithDetectThoughts.spellSlotsExpended
           : nextSpellSlotsExpended
     };
+    const sourceSpellSlotLevel = shouldSpendFrozenHauntFallbackSlot
+      ? frozenHauntFallbackSlotLevel
+      : castsWithoutSpellSlot
+        ? null
+        : slotLevel;
     const nextCharacterWithSpellImplementation = applySpellImplementationForCharacter({
       character: nextCharacterWithSpellcast,
       spell: selectedSpell,
       spellSlotLevel: slotLevel,
+      sourceSpellSlotLevel,
       castSource: spellImplementationCastSource,
       options: spellImplementationOptions
     });
     const nextCharacterWithSpellDuration = applySelectedSpellDurationAndFrozenHauntToCharacter(
-      nextCharacterWithSpellImplementation
+      nextCharacterWithSpellImplementation,
+      slotLevel,
+      sourceSpellSlotLevel
     );
     const nextCharacterWithTelekineticMaster = castsFreeViaTelekineticMaster
       ? activateFighterPsiWarriorTelekineticMasterSpellCastForCharacter(

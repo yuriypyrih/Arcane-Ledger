@@ -17,10 +17,9 @@ import {
 import {
   createCustomTraitEffectDraft,
   createCustomTraitEffectDraftFromEntry,
-  doesCustomTraitTargetAllowAbilityValue,
-  isCustomTraitAbilityValue,
   isCustomTraitEffectDraftEmpty,
   isCustomTraitRollModeDisabledTarget,
+  normalizeCustomTraitEffectDraftValueForTarget,
   parseCustomTraitEffectDraft,
   type CustomTraitEffectDraft
 } from "../TraitsConditionsWidget/customTraitDraft";
@@ -265,11 +264,7 @@ export function updateCustomActionDraftEffectTarget(
         ? {
             ...effect,
             target: value,
-            value:
-              isCustomTraitAbilityValue(effect.value) &&
-              !doesCustomTraitTargetAllowAbilityValue(value)
-                ? "0"
-                : effect.value,
+            value: normalizeCustomTraitEffectDraftValueForTarget(effect.value, value),
             rollMode: isCustomTraitRollModeDisabledTarget(value) ? "normal" : effect.rollMode
           }
         : effect

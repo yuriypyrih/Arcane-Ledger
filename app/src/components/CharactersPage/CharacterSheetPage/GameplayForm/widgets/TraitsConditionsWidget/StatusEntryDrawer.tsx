@@ -28,6 +28,8 @@ import {
   getStatusEntryDescriptionContent,
   isExhaustionStatusEntry,
   getStatusEntrySourceLabel,
+  getStatusEntrySpellSlotLabel,
+  getStatusEntryTargetLabel,
   getStatusEntryTitle
 } from "../../../../../../pages/CharactersPage/traits";
 import type { Character, CharacterStatusEntry } from "../../../../../../types";
@@ -102,6 +104,10 @@ function StatusEntryDrawer({
   const [selectedKeyword, setSelectedKeyword] = useState<ResolvedKeywordReference | null>(null);
   const { description: descriptionEntries, descriptionAdditions } =
     getStatusEntryDescriptionContent(entry, character);
+  const isSpellStatusEntry =
+    typeof entry.sourceSpellId === "string" && entry.sourceSpellId.trim().length > 0;
+  const targetLabel = isSpellStatusEntry ? getStatusEntryTargetLabel(entry) : null;
+  const shouldUseTwoFactLayout = !isSpellStatusEntry && !isExhaustionEntry;
   const hasBaseDescription = descriptionEntries.length > 0;
   const descriptionSections = orderDescriptionAdditionSections(descriptionAdditions);
   const footerActions: FooterAction[] = isEditingDuration
@@ -246,9 +252,23 @@ function StatusEntryDrawer({
 
           {customContent}
 
-          <OverlayDetailsGrid className={styles.drawerFacts}>
+          <OverlayDetailsGrid
+            className={clsx(
+              styles.drawerFacts,
+              targetLabel ? styles.drawerFactsWithTarget : null,
+              shouldUseTwoFactLayout ? styles.drawerFactsTwoColumn : null
+            )}
+          >
             <CellContainer label="Duration" content={getStatusDurationLabel(entry.duration)} />
-            <CellContainer label="Source" content={getStatusEntrySourceLabel(entry)} />
+            {isSpellStatusEntry ? (
+              <CellContainer label="Spell Slot" content={getStatusEntrySpellSlotLabel(entry)} />
+            ) : null}
+            {targetLabel ? <CellContainer label="Target" content={targetLabel} /> : null}
+            <CellContainer
+              label="Source"
+              content={getStatusEntrySourceLabel(entry)}
+              className={isSpellStatusEntry && !targetLabel ? styles.sourceFact : undefined}
+            />
             {isExhaustionEntry ? (
               <CellContainer label="Current Level" content={`Level ${entry.conditionLevel ?? 1}`} />
             ) : null}

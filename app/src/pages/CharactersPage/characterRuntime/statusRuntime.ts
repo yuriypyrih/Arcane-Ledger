@@ -26,6 +26,7 @@ import {
   getSpeciesDerivedStatusEntriesForCharacter,
   getSpeciesGrantedCantripEntriesForCharacter
 } from "../species";
+import { getDarkvisionSpellDerivedStatusEntriesForCharacter } from "./spellImplementations/darkvision";
 import {
   getAlwaysPreparedSpellIds,
   getCantripLimitForCharacter,
@@ -60,6 +61,7 @@ export type CharacterStatusRuntime = {
   classDerivedStatusEntries: CharacterStatusEntry[];
   featDerivedStatusEntries: CharacterStatusEntry[];
   speciesDerivedStatusEntries: CharacterStatusEntry[];
+  spellDerivedStatusEntries: CharacterStatusEntry[];
   reactionStatusEntries: CharacterStatusEntry[];
   derivedStatusEntries: CharacterStatusEntry[];
   statusEntries: CharacterStatusEntry[];
@@ -319,10 +321,12 @@ function createStatusRuntime(character: Character): CharacterStatusRuntime {
   const classDerivedStatusEntries = getDerivedFeatureStatusEntriesForCharacter(character);
   const featDerivedStatusEntries = getFeatDerivedStatusEntriesForCharacter(character);
   const speciesDerivedStatusEntries = getSpeciesDerivedStatusEntriesForCharacter(character);
+  const spellDerivedStatusEntries = getDarkvisionSpellDerivedStatusEntriesForCharacter(character);
   const derivedStatusEntries = [
     ...classDerivedStatusEntries,
     ...featDerivedStatusEntries,
     ...speciesDerivedStatusEntries,
+    ...spellDerivedStatusEntries,
     ...reactionStatusEntries
   ];
   const statusEntries = resolveCharacterStatusEntries(character.statusEntries, derivedStatusEntries);
@@ -349,6 +353,7 @@ function createStatusRuntime(character: Character): CharacterStatusRuntime {
     classDerivedStatusEntries,
     featDerivedStatusEntries,
     speciesDerivedStatusEntries,
+    spellDerivedStatusEntries,
     reactionStatusEntries,
     derivedStatusEntries,
     statusEntries,

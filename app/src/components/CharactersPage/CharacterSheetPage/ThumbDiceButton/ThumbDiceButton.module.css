@@ -228,7 +228,7 @@
 }
 
 .customError {
-  color: #a63729;
+  color: var(--theme-state-danger);
   font-weight: 700;
 }
 

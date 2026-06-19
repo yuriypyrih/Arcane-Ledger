@@ -172,6 +172,7 @@ import {
 import { getSpellAttackRollFormulaForCharacter } from "../../../../pages/CharactersPage/shared/spellFormulas";
 import {
   applySpellImplementationForCharacter,
+  getSpellImplementationStatusOptionsForCharacter,
   getSpellImplementationRollEffectsForCharacter,
   type SpellImplementationCastSource,
   type SpellImplementationOptionValues
@@ -1334,6 +1335,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         character,
         spell: selectedSpell,
         spellSlotLevel: selectedSpellSlotLevel,
+        sourceSpellSlotLevel: null,
         castSource: "standard",
         options: {}
       })
@@ -1970,6 +1972,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       character,
       spell,
       spellSlotLevel,
+      sourceSpellSlotLevel: null,
       castSource,
       options
     });
@@ -2060,6 +2063,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         applySpellCastFeatureEffectsForCharacter,
         applySpellDurationToStatusEntries,
         applySpellImplementationForCharacter,
+        getSpellImplementationStatusOptionsForCharacter,
         applyWizardEvokerOverchannelUse,
         canUseWarlockCelestialPatronRadiantSoulForSpell,
         canUseWizardEvokerOverchannelForSpellSlot,

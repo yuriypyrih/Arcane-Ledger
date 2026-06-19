@@ -415,6 +415,7 @@ export type FeatureDamageBonus = {
   formula?: string;
   formulaMultiplier?: 1 | -1;
   displayLabel?: string;
+  breakdownLabel?: string;
   abilityModifierSource?: AbilityKey;
   abilityModifierMultiplier?: 1 | -1;
   formulaSourceLabel?: string;
@@ -517,6 +518,7 @@ export type FeatureArmorClassMode = {
   abilityModifiers: AbilityKey[];
   abilityModifierCaps?: Partial<Record<AbilityKey, number | null>>;
   shieldAllowed: boolean;
+  featureBonusesAllowed?: boolean;
   isApplicable: boolean;
   unavailableReason?: string;
   detail?: string;

@@ -173,7 +173,7 @@
 }
 
 .factValueDanger {
-  color: #8b3321;
+  color: var(--theme-state-danger);
 }
 
 .factValueAccent {

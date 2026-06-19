@@ -88,7 +88,7 @@
   border: 1px solid rgba(150, 47, 47, 0.22);
   border-radius: var(--radius-card);
   background: rgba(150, 47, 47, 0.08);
-  color: #8d2e2e;
+  color: var(--theme-state-danger);
   margin: 0;
   padding: 0.7rem 0.78rem;
 }

@@ -94,7 +94,7 @@
 }
 
 .errorText {
-  color: #8a2f21;
+  color: var(--theme-state-danger);
   font-size: 0.78rem;
   font-weight: 750;
   line-height: 1.3;

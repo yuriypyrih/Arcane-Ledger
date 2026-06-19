@@ -23,6 +23,7 @@ import {
   getOrcAdrenalineRushUsesRemaining,
   hasOrcAdrenalineRushCommonActionBonusPath
 } from "../../../../../../pages/CharactersPage/species";
+import { hasExpeditiousRetreatDashBonusActionPath } from "../../../../../../pages/CharactersPage/characterRuntime/spellImplementations";
 import { getEconomyShapeState } from "../../gameplayWidgetUtils";
 
 type RoundTrackerAvailability = {
@@ -99,6 +100,10 @@ function getSecondaryCommonActionPathState(
   const hasObservantBonusPath = hasObservantSearchBonusActionPath(character, action.key);
   const hasBoonOfSpeedBonusPath = hasBoonOfSpeedDisengageBonusActionPath(character, action.key);
   const hasOrcBonusPath = hasOrcAdrenalineRushCommonActionBonusPath(character, action.key);
+  const hasExpeditiousRetreatBonusPath = hasExpeditiousRetreatDashBonusActionPath(
+    character,
+    action.key
+  );
 
   if (
     !hasMonkBonusPath &&
@@ -106,7 +111,8 @@ function getSecondaryCommonActionPathState(
     !hasKeenMindBonusPath &&
     !hasObservantBonusPath &&
     !hasBoonOfSpeedBonusPath &&
-    !hasOrcBonusPath
+    !hasOrcBonusPath &&
+    !hasExpeditiousRetreatBonusPath
   ) {
     return null;
   }
@@ -118,7 +124,8 @@ function getSecondaryCommonActionPathState(
     !hasKeenMindBonusPath &&
     !hasObservantBonusPath &&
     !hasBoonOfSpeedBonusPath &&
-    !hasOrcBonusPath
+    !hasOrcBonusPath &&
+    !hasExpeditiousRetreatBonusPath
   ) {
     return null;
   }
@@ -141,7 +148,8 @@ function getSecondaryCommonActionPathState(
     hasRogueBonusPath ||
     hasKeenMindBonusPath ||
     hasObservantBonusPath ||
-    hasBoonOfSpeedBonusPath;
+    hasBoonOfSpeedBonusPath ||
+    hasExpeditiousRetreatBonusPath;
   const orcDisabledReason =
     hasOrcBonusPath && !hasNonOrcBonusPath && getOrcAdrenalineRushUsesRemaining(character) <= 0
       ? "Adrenaline Rush recharges when you finish a Long Rest."

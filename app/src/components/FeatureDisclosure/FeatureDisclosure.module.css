@@ -237,7 +237,7 @@
 }
 
 .featureTrackingButtonNotTracked svg {
-  color: #b54545;
+  color: var(--theme-state-danger);
 }
 
 :global(html[data-theme="dark"]) .featureTrackingButtonNotTracked svg {

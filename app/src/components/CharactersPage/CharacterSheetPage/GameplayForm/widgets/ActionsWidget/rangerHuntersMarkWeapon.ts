@@ -44,7 +44,8 @@ export function getRangerHuntersMarkTargetWeaponOptionState(
     damageBonus: {
       label: huntersMarkWeaponDamageBonusLabel,
       formula: damageFormula,
-      displayLabel: damageFormula
+      displayLabel: damageFormula,
+      breakdownLabel: huntersMarkWeaponDamageBonusLabel
     },
     grantsAdvantage: hasRangerFeature(character, CLASS_FEATURE.PRECISE_HUNTER)
   };

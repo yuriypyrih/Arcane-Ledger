@@ -7,6 +7,8 @@ import {
   getSenseOptions
 } from "../../../../../../pages/CharactersPage/traits";
 import { isCustomFeatureTraitStatusEntry } from "../../../../../../pages/CharactersPage/customTraitEffects";
+import { getSpellEntryById } from "../../../../../../codex/entries";
+import { getSpellLevel } from "../../../../../../pages/CharactersPage/spellLevels";
 import type { CharacterStatusEntry } from "../../../../../../types";
 import {
   CONDITION_NAME,
@@ -120,8 +122,17 @@ export function getStatusDrawerBadgeLabel(entry: CharacterStatusEntry): string {
   }
 
   switch (entry.group) {
-    case STATUS_ENTRY_GROUP.EFFECTS:
+    case STATUS_ENTRY_GROUP.EFFECTS: {
+      const sourceSpell = entry.sourceSpellId ? getSpellEntryById(entry.sourceSpellId) : null;
+
+      if (sourceSpell) {
+        const spellLevel = getSpellLevel(sourceSpell);
+
+        return spellLevel === 0 ? "Effect: Cantrip" : `Effect: Spell Level ${spellLevel}`;
+      }
+
       return "Effect";
+    }
     case STATUS_ENTRY_GROUP.COMPANIONS:
       return "Companion";
     case STATUS_ENTRY_GROUP.REACTIONS:

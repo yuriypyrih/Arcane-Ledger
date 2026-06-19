@@ -33,14 +33,13 @@ export function getFalseLifeTemporaryHitPointsFormula(options?: {
   maximizeDie?: boolean;
   spellSlotLevel?: unknown;
 }): string {
+  const bonus = getFalseLifeTemporaryHitPointsBonus(options?.spellSlotLevel);
+
   if (options?.maximizeDie) {
-    return String(
-      falseLifeMaximumDieResult +
-        getFalseLifeTemporaryHitPointsBonus(options.spellSlotLevel)
-    );
+    return String(falseLifeMaximumDieResult + bonus);
   }
 
-  return falseLifeBaseDiceFormula;
+  return `${falseLifeBaseDiceFormula} + ${bonus}`;
 }
 
 export function getFalseLifeTemporaryHitPointsFormulaDisplay(
@@ -58,14 +57,12 @@ export function getFalseLifeTemporaryHitPointsFormulaDisplay(
 
 export function getFalseLifeTemporaryHitPointsFromRoll(
   rolledTotal: unknown,
-  spellSlotLevel: unknown
+  _spellSlotLevel: unknown
 ): number {
   const normalizedRolledTotal = Number(rolledTotal);
-  const rollTotal = Number.isFinite(normalizedRolledTotal)
+  return Number.isFinite(normalizedRolledTotal)
     ? Math.max(1, Math.floor(normalizedRolledTotal))
     : 1;
-
-  return rollTotal + getFalseLifeTemporaryHitPointsBonus(spellSlotLevel);
 }
 
 export function applyFalseLifeTemporaryHitPointsToCharacter(

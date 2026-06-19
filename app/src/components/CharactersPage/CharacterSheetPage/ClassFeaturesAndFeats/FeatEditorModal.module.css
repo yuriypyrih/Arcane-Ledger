@@ -190,7 +190,7 @@
 
 .validation {
   margin: 0;
-  color: #9b3a35;
+  color: var(--theme-state-danger);
   font-size: 0.8rem;
 }
 

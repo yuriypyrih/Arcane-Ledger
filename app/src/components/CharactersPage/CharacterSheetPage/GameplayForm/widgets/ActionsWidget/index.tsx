@@ -1639,6 +1639,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         character,
         spell: fixedSpellEntry,
         spellSlotLevel: selectedFixedSpellSlotLevel,
+        sourceSpellSlotLevel: null,
         castSource: fixedSpellExecute?.spellImplementationCastSource ?? "fixed-feature",
         options: fixedSpellExecute?.forcedSpellImplementationOptions ?? {}
       }).length > 0

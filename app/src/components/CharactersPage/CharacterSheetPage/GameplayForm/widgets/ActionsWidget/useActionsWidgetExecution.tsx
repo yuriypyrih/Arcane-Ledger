@@ -122,6 +122,7 @@ import {
   getOrcAdrenalineRushUsesRemaining,
   hasOrcAdrenalineRushCommonActionBonusPath
 } from "../../../../../../pages/CharactersPage/species";
+import { hasExpeditiousRetreatDashBonusActionPath } from "../../../../../../pages/CharactersPage/characterRuntime/spellImplementations";
 import { mantleOfInspirationActionKey } from "../../../../../../pages/CharactersPage/classFeatures/bard/subclasses/bardCollegeOfGlamour";
 import {
   channelDivinityActionKey,
@@ -1169,6 +1170,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
 
     if (
       isBonusActionDash &&
+      !hasExpeditiousRetreatDashBonusActionPath(character, action.key) &&
       hasOrcAdrenalineRushCommonActionBonusPath(character, action.key) &&
       getOrcAdrenalineRushUsesRemaining(character) > 0
     ) {

@@ -289,6 +289,16 @@ function formatWeaponDamageBonusEntry(entry: WeaponAction["damageBonusEntries"][
   return entry.label;
 }
 
+function formatWeaponDamageBonusBreakdownEntry(
+  entry: WeaponAction["damageBonusEntries"][number]
+) {
+  const breakdownLabel = entry.breakdownLabel?.trim();
+
+  return breakdownLabel && breakdownLabel.length > 0
+    ? breakdownLabel
+    : formatWeaponDamageBonusEntry(entry);
+}
+
 function formatWeaponDamageBonusDisplaySuffix(entry: WeaponAction["damageBonusEntries"][number]) {
   return entry.displayLabel ?? formatWeaponDamageBonusEntry(entry);
 }
@@ -444,7 +454,7 @@ export function getWeaponDamageFormulaPresentation(
       );
 
       parsedBonusDamages.forEach(addParsedDamageDisplay);
-      breakdownEntries.push(formatWeaponDamageBonusEntry(entry));
+      breakdownEntries.push(formatWeaponDamageBonusBreakdownEntry(entry));
       return;
     }
 
@@ -452,7 +462,7 @@ export function getWeaponDamageFormulaPresentation(
       mainDamageGroup.numericTotal += entry.value;
 
       if (entry.value !== 0) {
-        breakdownEntries.push(formatWeaponDamageBonusEntry(entry));
+        breakdownEntries.push(formatWeaponDamageBonusBreakdownEntry(entry));
       }
 
       return;

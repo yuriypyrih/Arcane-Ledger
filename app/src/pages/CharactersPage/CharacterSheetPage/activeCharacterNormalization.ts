@@ -342,7 +342,7 @@ export function normalizeCharacterRuntimeUpdate(
   let nextCharacter = character;
 
   if (hasDomain(domains, "equipment") || hasDomain(domains, "inventory")) {
-    nextCharacter = normalizeEquipmentRuntime(nextCharacter);
+    nextCharacter = reconcileCharacterStatusConsequences(normalizeEquipmentRuntime(nextCharacter));
   }
 
   if (hasDomain(domains, "features")) {

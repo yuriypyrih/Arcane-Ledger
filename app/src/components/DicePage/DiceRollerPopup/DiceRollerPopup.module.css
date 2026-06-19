@@ -277,7 +277,7 @@
 
 .errorText {
   margin: 0;
-  color: #8b2d1f;
+  color: var(--theme-state-danger);
   font-weight: 600;
 }
 

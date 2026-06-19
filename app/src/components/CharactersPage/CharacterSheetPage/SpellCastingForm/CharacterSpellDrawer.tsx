@@ -12,6 +12,9 @@ import CellContainer from "../../../CellContainer/CellContainer";
 import ConcentrationLabel from "../../../ConcentrationLabel";
 import KeywordReferenceDrawer from "../../../KeywordReferenceDrawer/KeywordReferenceDrawer";
 import SpellSubtitle from "../../../SpellSubtitle";
+import SegmentedChoiceControl, {
+  type SegmentedChoiceOption
+} from "../../../SegmentedChoiceControl";
 import SelectInput from "../../FormInputs/SelectInput";
 import SpellDescriptionContent from "../../../SpellDescriptionContent";
 import SummonDefinitionPanel from "./SummonDefinitionPanel";
@@ -55,6 +58,7 @@ import { isRogueArcaneTricksterMagicalAmbushActiveForSpell } from "../../../../p
 import {
   createDefaultSpellImplementationOptionValues,
   getSpellCastOptionsForCharacter,
+  type SpellImplementationCastOption,
   type SpellImplementationCastSource,
   type SpellImplementationOptionValues
 } from "../../../../pages/CharactersPage/characterRuntime/spellImplementations";
@@ -117,6 +121,34 @@ export type CharacterSpellDrawerActionRadioOption = {
   disabled?: boolean;
 };
 
+type CharacterSpellDrawerNumberSelectOption = {
+  label: string;
+  value: number;
+  onValueChange: (value: number) => void;
+  standalone?: boolean;
+  options: Array<{
+    value: number;
+    label: string;
+    disabled?: boolean;
+  }>;
+};
+
+type CharacterSpellDrawerStringSelectOption = {
+  label: string;
+  value: string;
+  onValueChange: (value: string) => void;
+  standalone?: boolean;
+  options: Array<{
+    value: string;
+    label: string;
+    disabled?: boolean;
+  }>;
+};
+
+type CharacterSpellDrawerActionSelectOption =
+  | CharacterSpellDrawerNumberSelectOption
+  | CharacterSpellDrawerStringSelectOption;
+
 export type CharacterSpellDrawerActionOption = {
   id: string;
   label: string;
@@ -135,15 +167,12 @@ export type CharacterSpellDrawerActionOption = {
     name?: string;
     placement?: "footer" | "body";
   };
-  select?: {
-    label: string;
-    value: number;
-    onValueChange: (value: number) => void;
-    options: Array<{
-      value: number;
-      label: string;
-      disabled?: boolean;
-    }>;
+  select?: CharacterSpellDrawerActionSelectOption;
+  segmentedChoice?: {
+    value: string;
+    options: readonly SegmentedChoiceOption[];
+    onValueChange: (value: string) => void;
+    ariaLabel?: string;
   };
 };
 
@@ -211,6 +240,41 @@ type CharacterSpellDrawerProps = {
 };
 
 const slotFreeUseSelectValue = "free-use";
+
+function getSpellImplementationChoiceValue(
+  option: SpellImplementationCastOption,
+  value: unknown
+): string {
+  if (!option.choices?.length) {
+    return "";
+  }
+
+  const fallbackChoice =
+    option.choices.find((choice) => choice.value === option.defaultValue) ?? option.choices[0];
+
+  return typeof value === "string" &&
+    option.choices.some((choice) => choice.value === value)
+    ? value
+    : (fallbackChoice?.value ?? "");
+}
+
+function isCharacterSpellDrawerNumberSelectOption(
+  select: CharacterSpellDrawerActionSelectOption
+): select is CharacterSpellDrawerNumberSelectOption {
+  return typeof select.value === "number";
+}
+
+function handleCharacterSpellActionSelectChange(
+  select: CharacterSpellDrawerActionSelectOption,
+  value: string
+) {
+  if (isCharacterSpellDrawerNumberSelectOption(select)) {
+    select.onValueChange(clampNumber(value, 1, 9, 1));
+    return;
+  }
+
+  select.onValueChange(value);
+}
 
 function getActionShapeTitle(shape: ActionShapeType): string {
   switch (shape) {
@@ -349,28 +413,89 @@ function CharacterSpellDrawer({
   const activeSpellImplementationOptionValues = useMemo<SpellImplementationOptionValues>(
     () =>
       Object.fromEntries(
-        spellImplementationCastOptions.map((option) => [
-          option.id,
-          spellImplementationOptionValues[option.id] === true
-        ])
+        spellImplementationCastOptions.map((option) => {
+          if (option.choices?.length) {
+            return [
+              option.id,
+              getSpellImplementationChoiceValue(
+                option,
+                spellImplementationOptionValues[option.id]
+              )
+            ];
+          }
+
+          return [option.id, spellImplementationOptionValues[option.id] === true];
+        })
       ),
     [spellImplementationCastOptions, spellImplementationOptionValues]
   );
   const spellImplementationActionOptions = useMemo<CharacterSpellDrawerActionOption[]>(
     () =>
-      spellImplementationCastOptions.map((option) => ({
-        id: `spell-implementation-${option.id}`,
-        label: option.label,
-        checked: activeSpellImplementationOptionValues[option.id] === true,
-        onCheckedChange: option.disabled
-          ? () => undefined
-          : (checked) =>
-              setSpellImplementationOptionValues((currentValues) => ({
-                ...currentValues,
-                [option.id]: checked
-              })),
-        disabled: option.disabled
-      })),
+      spellImplementationCastOptions.map((option) => {
+        if (option.choices?.length) {
+          const choiceValue = getSpellImplementationChoiceValue(
+            option,
+            activeSpellImplementationOptionValues[option.id]
+          );
+
+          if (option.choicePresentation === "select") {
+            return {
+              id: `spell-implementation-${option.id}`,
+              label: option.label,
+              checked: true,
+              onCheckedChange: () => undefined,
+              disabled: option.disabled,
+              select: {
+                label: option.label,
+                value: choiceValue,
+                standalone: true,
+                options: option.choices,
+                onValueChange: option.disabled
+                  ? () => undefined
+                  : (value: string) =>
+                      setSpellImplementationOptionValues((currentValues) => ({
+                        ...currentValues,
+                        [option.id]: String(value)
+                      }))
+              }
+            };
+          }
+
+          return {
+            id: `spell-implementation-${option.id}`,
+            label: option.label,
+            checked: true,
+            onCheckedChange: () => undefined,
+            disabled: option.disabled,
+            segmentedChoice: {
+              value: choiceValue,
+              options: option.choices,
+              ariaLabel: option.label,
+              onValueChange: option.disabled
+                ? () => undefined
+                : (value) =>
+                    setSpellImplementationOptionValues((currentValues) => ({
+                      ...currentValues,
+                      [option.id]: value
+                    }))
+            }
+          };
+        }
+
+        return {
+          id: `spell-implementation-${option.id}`,
+          label: option.label,
+          checked: activeSpellImplementationOptionValues[option.id] === true,
+          onCheckedChange: option.disabled
+            ? () => undefined
+            : (checked) =>
+                setSpellImplementationOptionValues((currentValues) => ({
+                  ...currentValues,
+                  [option.id]: checked
+                })),
+          disabled: option.disabled
+        };
+      }),
     [activeSpellImplementationOptionValues, spellImplementationCastOptions]
   );
   const allActionOptions = useMemo<CharacterSpellDrawerActionOption[]>(() => {
@@ -951,20 +1076,66 @@ function CharacterSpellDrawer({
                       ) : null}
                       {visibleActionOptions.map((option) => {
                         const select = option.select;
+                        const segmentedChoice = option.segmentedChoice;
 
                         return (
                           <div key={option.id} className={actionStyles.featureActionToggle}>
-                            <FeatureOptInToggle
-                              label={option.label}
-                              checked={option.checked}
-                              disabled={option.disabled}
-                              muted={option.disabled}
-                              onCheckedChange={option.onCheckedChange}
-                              usage={option.usage}
-                              application={option.application}
-                              usageKey={option.id}
-                              metaItems={option.metaItems}
-                            />
+                            {segmentedChoice ? (
+                              <div className={actionStyles.featureActionSegmentedField}>
+                                <SegmentedChoiceControl
+                                  ariaLabel={segmentedChoice.ariaLabel ?? option.label}
+                                  value={segmentedChoice.value}
+                                  options={segmentedChoice.options}
+                                  onValueChange={segmentedChoice.onValueChange}
+                                  disabled={option.disabled}
+                                  className={actionStyles.featureActionSegmentedControl}
+                                />
+                              </div>
+                            ) : select?.standalone && option.checked ? (
+                              <label
+                                className={clsx(
+                                  actionStyles.featureActionSelectField,
+                                  actionStyles.featureActionStandaloneSelectField
+                                )}
+                              >
+                                <span className={actionStyles.featureActionSelectLabel}>
+                                  {select.label}
+                                </span>
+                                <SelectInput
+                                  aria-label={select.label}
+                                  value={select.value}
+                                  className={actionStyles.featureActionSelect}
+                                  onChange={(event) =>
+                                    handleCharacterSpellActionSelectChange(
+                                      select,
+                                      event.target.value
+                                    )
+                                  }
+                                >
+                                  {select.options.map((selectOption) => (
+                                    <option
+                                      key={`${option.id}-select-${selectOption.value}`}
+                                      value={selectOption.value}
+                                      disabled={selectOption.disabled}
+                                    >
+                                      {selectOption.label}
+                                    </option>
+                                  ))}
+                                </SelectInput>
+                              </label>
+                            ) : (
+                              <FeatureOptInToggle
+                                label={option.label}
+                                checked={option.checked}
+                                disabled={option.disabled}
+                                muted={option.disabled}
+                                onCheckedChange={option.onCheckedChange}
+                                usage={option.usage}
+                                application={option.application}
+                                usageKey={option.id}
+                                metaItems={option.metaItems}
+                              />
+                            )}
                             {option.radioOptions && option.radioOptions.placement !== "body" ? (
                               <div
                                 className={actionStyles.featureActionRadioGroup}
@@ -991,7 +1162,7 @@ function CharacterSpellDrawer({
                                   />
                                 ))}
                               </div>
-                            ) : option.checked && select ? (
+                            ) : option.checked && select && !select.standalone ? (
                               <div className={actionStyles.featureActionSelectField}>
                                 <span className={actionStyles.featureActionSelectLabel}>
                                   {select.label}
@@ -1001,7 +1172,10 @@ function CharacterSpellDrawer({
                                   value={select.value}
                                   className={actionStyles.featureActionSelect}
                                   onChange={(event) =>
-                                    select.onValueChange(clampNumber(event.target.value, 1, 9, 1))
+                                    handleCharacterSpellActionSelectChange(
+                                      select,
+                                      event.target.value
+                                    )
                                   }
                                 >
                                   {select.options.map((selectOption) => (

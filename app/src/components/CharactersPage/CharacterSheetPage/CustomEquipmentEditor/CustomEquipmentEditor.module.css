@@ -294,7 +294,7 @@
   border: none;
   border-radius: var(--radius-compact);
   background: rgba(169, 55, 41, 0.12);
-  color: #8a2519;
+  color: var(--theme-state-danger);
   cursor: pointer;
   min-height: 36px;
   min-width: 36px;
@@ -383,7 +383,7 @@
 
 .customEquipmentError {
   margin: 0;
-  color: #8a2519;
+  color: var(--theme-state-danger);
   font-size: 0.84rem;
   font-weight: 600;
 }

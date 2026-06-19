@@ -100,10 +100,10 @@ export function useStatusDrawerState({
         return removeFeatureStatusEntryForCharacter(currentCharacter, entry);
       }
 
-      return {
+      return reconcileCharacterStatusConsequences({
         ...currentCharacter,
         statusEntries: removeCharacterStatusEntry(currentCharacter.statusEntries, entry.id)
-      };
+      });
     });
 
     setSelectedStatusEntryId(null);

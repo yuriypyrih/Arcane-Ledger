@@ -7,6 +7,7 @@ export function compileSpellImplementationContributions(
     spellId: spec.spellId,
     getCastOptions: spec.getCastOptions,
     applyOnCast: spec.applyOnCast,
-    getRollEffects: spec.getRollEffects
+    getRollEffects: spec.getRollEffects,
+    getStatusOptions: spec.getStatusOptions
   }));
 }

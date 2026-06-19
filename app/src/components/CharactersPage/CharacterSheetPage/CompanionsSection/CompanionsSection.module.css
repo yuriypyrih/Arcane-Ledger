@@ -140,7 +140,7 @@
 
 :global(html[data-theme="dark"]) .removeButtonText:hover,
 :global(html[data-theme="dark"]) .removeButtonText:focus-visible {
-  color: #ff9a8d;
+  color: var(--theme-state-danger);
 }
 
 .monsterSection {

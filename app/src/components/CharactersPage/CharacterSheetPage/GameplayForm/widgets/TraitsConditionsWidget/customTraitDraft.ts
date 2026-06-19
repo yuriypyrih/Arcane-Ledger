@@ -69,6 +69,7 @@ function isCustomTraitDiceValue(value: string): value is CharacterCustomTraitDic
 export function isCustomTraitRollModeDisabledTarget(target: string): boolean {
   const trimmedTarget = target.trim();
   return (
+    trimmedTarget === "actualMaxHitPoints" ||
     trimmedTarget === "armorClass" ||
     trimmedTarget === "speed" ||
     trimmedTarget === "spellDc"
@@ -78,6 +79,7 @@ export function isCustomTraitRollModeDisabledTarget(target: string): boolean {
 export function doesCustomTraitTargetAllowAbilityValue(target: string): boolean {
   const [type] = target.trim().split(":");
   return (
+    type !== "actualMaxHitPoints" &&
     type !== "abilityScore" &&
     type !== "abilityModifier" &&
     type !== "savingThrow" &&
@@ -103,6 +105,20 @@ export const customTraitDiceValueOptions = characterCustomTraitDiceValues.map((v
   label: value.replace(/^1d/i, "D")
 }));
 
+export function normalizeCustomTraitEffectDraftValueForTarget(
+  value: string,
+  target: string
+): string {
+  if (
+    (isCustomTraitAbilityValue(value) && !doesCustomTraitTargetAllowAbilityValue(target)) ||
+    (isCustomTraitDiceValue(value) && !doesCustomTraitTargetAllowDiceValue(target))
+  ) {
+    return "0";
+  }
+
+  return value;
+}
+
 function createRollModeFields(effect: CustomTraitEffectDraft) {
   const rollMode = isCustomTraitRollModeDisabledTarget(effect.target)
     ? "normal"
@@ -117,6 +133,7 @@ function createValueModeFields(effect: CustomTraitEffectDraft) {
 }
 
 export const customTraitTargetOptions: CustomTraitTargetOption[] = [
+  { value: "actualMaxHitPoints", label: "Actual Max HP" },
   { value: "armorClass", label: "Armor Class" },
   { value: "initiative", label: "Initiative" },
   { value: "passivePerception", label: "Passive Perception" },
@@ -169,6 +186,7 @@ export function createCustomTraitEffectDraftFromEntry(
   effect: CharacterCustomTraitEffect
 ): CustomTraitEffectDraft {
   switch (effect.type) {
+    case "actualMaxHitPoints":
     case "armorClass":
     case "initiative":
     case "passivePerception":
@@ -258,6 +276,10 @@ export function parseCustomTraitEffectDraft(
 
   if (trimmedTarget === "armorClass") {
     return { type: "armorClass", value: normalizedValue, ...valueModeFields };
+  }
+
+  if (trimmedTarget === "actualMaxHitPoints" && typeof normalizedValue === "number") {
+    return { type: "actualMaxHitPoints", value: normalizedValue, ...valueModeFields };
   }
 
   if (trimmedTarget === "initiative") {

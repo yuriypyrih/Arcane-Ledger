@@ -27,6 +27,7 @@ import {
   normalizeCharacterStatusEntries,
   resolveCharacterStatusEntries
 } from "./statusEntries";
+import { reconcileCharacterStatusConsequences } from "./traits";
 
 export const CUSTOM_ACTION_NAME_MAX_LENGTH = DEFAULT_TEXT_INPUT_MAX_LENGTH;
 export const CUSTOM_ACTION_DESCRIPTION_MAX_LENGTH = 1000;
@@ -405,7 +406,7 @@ export function activateCustomActionForCharacter(character: Character, actionKey
     };
   }
 
-  return {
+  return reconcileCharacterStatusConsequences({
     ...character,
     customActions: nextCustomActions,
     statusEntries: [
@@ -421,7 +422,7 @@ export function activateCustomActionForCharacter(character: Character, actionKey
         customEffects: customAction.customEffects
       })
     ]
-  };
+  });
 }
 
 export type CustomActionRestRecoveryEntry = {

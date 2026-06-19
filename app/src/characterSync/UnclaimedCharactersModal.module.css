@@ -62,7 +62,7 @@
 }
 
 .error {
-  color: #8d2f22;
+  color: var(--theme-state-danger);
   font-size: 0.9rem;
   margin: 0;
 }

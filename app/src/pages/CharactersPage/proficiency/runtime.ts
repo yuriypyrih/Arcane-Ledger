@@ -1,5 +1,6 @@
 import type {
   ArmorProficiencyEntry,
+  CharacterStatusEntry,
   CharacterProficiencyCollections,
   LanguageProficiency,
   LanguageProficiencyEntry,
@@ -18,14 +19,18 @@ import {
   WEAPON_PROFICIENCY
 } from "../../../types";
 import { getSkillProficiencyForName } from "../proficiencyResolvers";
+import { getBorrowedKnowledgeSkillProficiencyEntriesForCharacter } from "../characterRuntime/spellImplementations/borrowedKnowledge";
 import { languageProficiencyOptions, type ToolProficiency } from "../proficiencyOptions";
 import {
+  mergeProficiencyEntries,
   getResolvedProficiencyEntry,
   type ResolvedProficiencyEntry
 } from "./core";
 import { getResolvedSkillProficiencyEntry } from "./manual";
 
-type ProficiencyRuntimeCharacter = Partial<CharacterProficiencyCollections>;
+type ProficiencyRuntimeCharacter = Partial<CharacterProficiencyCollections> & {
+  statusEntries?: CharacterStatusEntry[];
+};
 
 type ProficiencyChoiceRuntime = {
   skills: <TSkill extends SkillName>(
@@ -93,8 +98,14 @@ const emptyCollections: CharacterProficiencyCollections = {
 function createCollections(
   character: ProficiencyRuntimeCharacter
 ): CharacterProficiencyCollections {
+  const spellSkillProficiencies =
+    getBorrowedKnowledgeSkillProficiencyEntriesForCharacter(character);
+
   return {
-    skillProficiencies: character.skillProficiencies ?? emptyCollections.skillProficiencies,
+    skillProficiencies: mergeProficiencyEntries([
+      ...(character.skillProficiencies ?? emptyCollections.skillProficiencies),
+      ...spellSkillProficiencies
+    ]),
     savingThrowProficiencies:
       character.savingThrowProficiencies ?? emptyCollections.savingThrowProficiencies,
     weaponProficiencies: character.weaponProficiencies ?? emptyCollections.weaponProficiencies,

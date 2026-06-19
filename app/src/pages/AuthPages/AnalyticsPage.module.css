@@ -107,7 +107,7 @@
   border: 1px solid rgba(165, 55, 34, 0.25);
   border-radius: var(--radius-control);
   background: rgba(165, 55, 34, 0.08);
-  color: #852515;
+  color: var(--theme-state-danger);
   font-size: 0.9rem;
   font-weight: 750;
   padding: 0.82rem 1rem;

@@ -8,11 +8,14 @@ import {
   STATUS_DURATION_ROUND_TICK,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE,
+  isSkillName,
   type Character,
   type CharacterCustomTraitEffect,
   type CharacterStatusDuration,
   type CharacterStatusEntry,
-  type CharacterStatusValue
+  type CharacterStatusSpellTarget,
+  type CharacterStatusValue,
+  type SkillName
 } from "../../types";
 import { normalizeCharacterCustomTraitEffects } from "./customTraitEffects";
 import { clampInteger } from "./shared";
@@ -442,6 +445,24 @@ function normalizeStatusDescriptionAdditions(value: unknown): SpellDescriptionEn
     .filter((section) => section.length > 0);
 }
 
+function normalizeStatusSourceSpellSlotLevel(value: unknown): number | null {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return null;
+  }
+
+  const spellSlotLevel = Math.floor(value);
+
+  return spellSlotLevel >= 1 && spellSlotLevel <= 9 ? spellSlotLevel : null;
+}
+
+function normalizeStatusSourceSpellTarget(value: unknown): CharacterStatusSpellTarget | null {
+  return value === "self" || value === "other" ? value : null;
+}
+
+function normalizeStatusSourceSpellSkill(value: unknown): SkillName | null {
+  return isSkillName(value) ? value : null;
+}
+
 function normalizeStatusEntry(value: unknown): CharacterStatusEntry | null {
   if (!value || typeof value !== "object") {
     return null;
@@ -505,6 +526,9 @@ function normalizeStatusEntry(value: unknown): CharacterStatusEntry | null {
       typeof record.sourceSpellId === "string" && record.sourceSpellId.trim().length > 0
         ? record.sourceSpellId.trim()
         : undefined,
+    sourceSpellSlotLevel: normalizeStatusSourceSpellSlotLevel(record.sourceSpellSlotLevel),
+    sourceSpellTarget: normalizeStatusSourceSpellTarget(record.sourceSpellTarget),
+    sourceSpellSkill: normalizeStatusSourceSpellSkill(record.sourceSpellSkill),
     rangeFeet:
       typeof record.rangeFeet === "number" &&
       Number.isFinite(record.rangeFeet) &&
@@ -645,6 +669,9 @@ export function createCharacterStatusEntry(options: {
   duration?: CharacterStatusDuration;
   sourceId?: string;
   sourceSpellId?: string;
+  sourceSpellSlotLevel?: number | null;
+  sourceSpellTarget?: CharacterStatusSpellTarget | null;
+  sourceSpellSkill?: SkillName | null;
   rangeFeet?: number | null;
   description?: string;
   descriptionAdditions?: SpellDescriptionEntry[][];
@@ -672,6 +699,9 @@ export function createCharacterStatusEntry(options: {
     },
     sourceId: options.sourceId,
     sourceSpellId: options.sourceSpellId,
+    sourceSpellSlotLevel: normalizeStatusSourceSpellSlotLevel(options.sourceSpellSlotLevel),
+    sourceSpellTarget: normalizeStatusSourceSpellTarget(options.sourceSpellTarget),
+    sourceSpellSkill: normalizeStatusSourceSpellSkill(options.sourceSpellSkill),
     rangeFeet: options.rangeFeet ?? null,
     description: options.description?.trim() || undefined,
     descriptionAdditions: descriptionAdditions.length > 0 ? descriptionAdditions : undefined,
@@ -821,6 +851,13 @@ export function upsertManualStatusEntry(
                 : null,
             source: nextEntry.source,
             duration: nextEntry.duration,
+            sourceId: nextEntry.sourceId,
+            sourceSpellId: nextEntry.sourceSpellId,
+            sourceSpellSlotLevel: normalizeStatusSourceSpellSlotLevel(
+              nextEntry.sourceSpellSlotLevel
+            ),
+            sourceSpellTarget: normalizeStatusSourceSpellTarget(nextEntry.sourceSpellTarget),
+            sourceSpellSkill: normalizeStatusSourceSpellSkill(nextEntry.sourceSpellSkill),
             rangeFeet: nextEntry.rangeFeet ?? null,
             description: nextEntry.description?.trim() || undefined,
             customEffects: Array.isArray(nextEntry.customEffects)
@@ -883,6 +920,10 @@ export function updateCharacterStatusEntryDuration(
       sourceType: entryToUpdate.sourceType,
       duration,
       sourceId: entryToUpdate.sourceId ?? entryToUpdate.id,
+      sourceSpellId: entryToUpdate.sourceSpellId,
+      sourceSpellSlotLevel: entryToUpdate.sourceSpellSlotLevel ?? null,
+      sourceSpellTarget: entryToUpdate.sourceSpellTarget ?? null,
+      sourceSpellSkill: entryToUpdate.sourceSpellSkill ?? null,
       rangeFeet: entryToUpdate.rangeFeet ?? null
     })
   ]);
@@ -893,6 +934,9 @@ export function applySpellConcentrationToStatusEntries(
   spell: { id?: string; name: string; duration: SpellDurationPart[] },
   options?: {
     sourceId?: string;
+    sourceSpellSlotLevel?: number | null;
+    sourceSpellTarget?: CharacterStatusSpellTarget | null;
+    sourceSpellSkill?: SkillName | null;
   }
 ): CharacterStatusEntry[] {
   const concentrationDuration = getSpellConcentrationDuration(spell.duration);
@@ -918,7 +962,10 @@ export function applySpellConcentrationToStatusEntries(
       sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
       duration: concentrationDuration,
       sourceId: options?.sourceId,
-      sourceSpellId: spell.id
+      sourceSpellId: spell.id,
+      sourceSpellSlotLevel: options?.sourceSpellSlotLevel ?? null,
+      sourceSpellTarget: options?.sourceSpellTarget ?? null,
+      sourceSpellSkill: options?.sourceSpellSkill ?? null
     })
   ]);
 }
@@ -979,6 +1026,9 @@ export function applySpellDurationToStatusEntries(
   spell: SpellStatusEntrySource,
   options?: {
     sourceId?: string;
+    sourceSpellSlotLevel?: number | null;
+    sourceSpellTarget?: CharacterStatusSpellTarget | null;
+    sourceSpellSkill?: SkillName | null;
   }
 ): CharacterStatusEntry[] {
   const concentrationDuration = getSpellConcentrationDuration(spell.duration);
@@ -1013,6 +1063,9 @@ export function applySpellDurationToStatusEntries(
       duration,
       sourceId: genericSourceId,
       sourceSpellId: spell.id,
+      sourceSpellSlotLevel: options?.sourceSpellSlotLevel ?? null,
+      sourceSpellTarget: options?.sourceSpellTarget ?? null,
+      sourceSpellSkill: options?.sourceSpellSkill ?? null,
       description: getSpellStatusDescription(spell)
     })
   ]);

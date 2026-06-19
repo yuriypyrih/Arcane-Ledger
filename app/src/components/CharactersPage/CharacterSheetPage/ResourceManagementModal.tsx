@@ -16,7 +16,26 @@ import styles from "./ResourceManagementModal.module.css";
 const RESOURCE_MANAGEMENT_DESCRIPTION =
   "Here you can manually adjust your resources outside of the app internal logic.";
 
-const resourceManagementColumnProperty = "--resource-management-columns";
+const resourceManagementButtonBasisProperty = "--resource-management-button-basis";
+const resourceManagementActionGapRem = 0.65;
+
+function getFooterColumnCount(actionCount: number, columnCount?: number): number {
+  const requestedColumnCount = columnCount ?? actionCount;
+
+  if (!Number.isFinite(requestedColumnCount)) {
+    return 1;
+  }
+
+  return Math.min(3, Math.max(1, Math.floor(requestedColumnCount)));
+}
+
+function getFooterButtonBasis(columnCount: number): string {
+  if (columnCount <= 1) {
+    return "100%";
+  }
+
+  return `calc((100% - ${(columnCount - 1) * resourceManagementActionGapRem}rem) / ${columnCount})`;
+}
 
 export type ResourceManagementModalAction = {
   label: string;
@@ -57,8 +76,9 @@ function ResourceManagementModal({
     }
   }
 
+  const footerColumnCount = getFooterColumnCount(actions.length, columnCount);
   const footerActionStyle = {
-    [resourceManagementColumnProperty]: String(Math.max(1, columnCount ?? actions.length))
+    [resourceManagementButtonBasisProperty]: getFooterButtonBasis(footerColumnCount)
   } as CSSProperties;
 
   return (

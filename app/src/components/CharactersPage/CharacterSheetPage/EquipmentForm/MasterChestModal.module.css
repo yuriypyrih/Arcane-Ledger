@@ -62,7 +62,7 @@
 .error {
   border: 1px solid rgba(198, 40, 40, 0.22);
   background: rgba(198, 40, 40, 0.08);
-  color: #9f1f1f;
+  color: var(--theme-state-danger);
 }
 
 .readOnlyItem {

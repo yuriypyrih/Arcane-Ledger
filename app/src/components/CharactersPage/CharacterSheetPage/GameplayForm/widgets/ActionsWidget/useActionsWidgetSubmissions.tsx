@@ -267,6 +267,7 @@ import {
 } from "../../../../../../pages/CharactersPage/statusEntries";
 import {
   applySpellImplementationForCharacter,
+  getSpellImplementationStatusOptionsForCharacter,
   getSpellImplementationRollEffectsForCharacter,
   type SpellImplementationCastSource,
   type SpellImplementationOptionValues
@@ -701,6 +702,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
         character: nextCharacter,
         spell,
         spellSlotLevel: spellLevel,
+        sourceSpellSlotLevel: null,
         castSource: "standard",
         options: {}
       });
@@ -708,7 +710,18 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
         ...nextCharacterWithSpellImplementation,
         statusEntries: applySpellDurationToStatusEntries(
           nextCharacterWithSpellImplementation.statusEntries,
-          spellForStatusEntries
+          spellForStatusEntries,
+          {
+            ...getSpellImplementationStatusOptionsForCharacter({
+              character: nextCharacterWithSpellImplementation,
+              spell,
+              spellSlotLevel: spellLevel,
+              sourceSpellSlotLevel: null,
+              castSource: "standard",
+              options: {}
+            }),
+            sourceSpellSlotLevel: null
+          }
         )
       };
       const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
@@ -1883,6 +1896,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
       character,
       spell,
       spellSlotLevel,
+      sourceSpellSlotLevel: null,
       castSource,
       options
     });
@@ -2132,16 +2146,33 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
         fixedSpellExecute.effectKind === "mantle-of-majesty"
           ? applyMantleOfMajestyStatusForCharacter(nextCharacterWithSpellSlot)
           : nextCharacterWithSpellSlot;
+      const sourceSpellSlotLevel = shouldSpendFrozenHauntFallbackSlot
+        ? frozenHauntFallbackSlotLevel
+        : fixedSpellConsumesSpellSlot && !castsWithoutSpellSlot
+          ? slotLevel
+          : null;
       const nextCharacterWithSpellImplementation = applySpellImplementationForCharacter({
         character: nextCharacterWithFeatureStatus,
         spell: fixedSpellEntry,
         spellSlotLevel: slotLevel,
+        sourceSpellSlotLevel,
         castSource: spellImplementationCastSource,
         options: spellImplementationOptions
       });
       const fixedSpellStatusEntries = applySpellDurationToStatusEntries(
         nextCharacterWithSpellImplementation.statusEntries,
-        fixedSpellEntry
+        fixedSpellEntry,
+        {
+          ...getSpellImplementationStatusOptionsForCharacter({
+            character: nextCharacterWithSpellImplementation,
+            spell: fixedSpellEntry,
+            spellSlotLevel: slotLevel,
+            sourceSpellSlotLevel,
+            castSource: spellImplementationCastSource,
+            options: spellImplementationOptions
+          }),
+          sourceSpellSlotLevel
+        }
       );
       const nextCharacterWithSpellDuration = {
         ...nextCharacterWithSpellImplementation,
@@ -2259,6 +2290,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
         character: nextCharacter,
         spell: selectedDivineInterventionSpell,
         spellSlotLevel: null,
+        sourceSpellSlotLevel: null,
         castSource: "divine-intervention",
         options: spellImplementationOptions
       });
@@ -2266,7 +2298,18 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
         ...nextCharacterWithSpellImplementation,
         statusEntries: applySpellDurationToStatusEntries(
           nextCharacterWithSpellImplementation.statusEntries,
-          selectedDivineInterventionSpell
+          selectedDivineInterventionSpell,
+          {
+            ...getSpellImplementationStatusOptionsForCharacter({
+              character: nextCharacterWithSpellImplementation,
+              spell: selectedDivineInterventionSpell,
+              spellSlotLevel: null,
+              sourceSpellSlotLevel: null,
+              castSource: "divine-intervention",
+              options: spellImplementationOptions
+            }),
+            sourceSpellSlotLevel: null
+          }
         )
       };
       const nextCharacterWithBeguilingMagic = useBeguilingMagic
@@ -2334,6 +2377,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
         character: nextCharacter,
         spell: selectedMysticArcanumSpell,
         spellSlotLevel: selectedMysticArcanumSpellLevel,
+        sourceSpellSlotLevel: null,
         castSource: "mystic-arcanum",
         options: spellImplementationOptions
       });
@@ -2341,7 +2385,18 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
         ...nextCharacterWithSpellImplementation,
         statusEntries: applySpellDurationToStatusEntries(
           nextCharacterWithSpellImplementation.statusEntries,
-          selectedMysticArcanumSpell
+          selectedMysticArcanumSpell,
+          {
+            ...getSpellImplementationStatusOptionsForCharacter({
+              character: nextCharacterWithSpellImplementation,
+              spell: selectedMysticArcanumSpell,
+              spellSlotLevel: selectedMysticArcanumSpellLevel,
+              sourceSpellSlotLevel: null,
+              castSource: "mystic-arcanum",
+              options: spellImplementationOptions
+            }),
+            sourceSpellSlotLevel: null
+          }
         )
       };
       const nextCharacterWithBeguilingMagic = useBeguilingMagic

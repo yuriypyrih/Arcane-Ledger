@@ -106,6 +106,7 @@ export enum STATUS_DURATION_PRESET {
 export type ImmunityValue = DAMAGE_TYPE | CONDITION_NAME;
 
 export type CharacterStatusValue = SENSE | EFFECT_NAME | CONDITION_NAME | DAMAGE_TYPE | string;
+export type CharacterStatusSpellTarget = "self" | "other";
 
 export type CharacterCustomTraitRollMode = "normal" | "advantage" | "disadvantage";
 export type CharacterCustomTraitValueMode = "buff" | "debuff";
@@ -135,6 +136,10 @@ type CharacterCustomTraitFlexibleValue = {
 };
 
 export type CharacterCustomTraitEffect =
+  | {
+      type: "actualMaxHitPoints";
+    } & CharacterCustomTraitNumericValue &
+      CharacterCustomTraitEffectRoll
   | {
       type: "armorClass";
     } & CharacterCustomTraitFlexibleValue &
@@ -237,6 +242,9 @@ export type CharacterStatusEntry = {
   duration: CharacterStatusDuration;
   sourceId?: string;
   sourceSpellId?: string;
+  sourceSpellSlotLevel?: number | null;
+  sourceSpellTarget?: CharacterStatusSpellTarget | null;
+  sourceSpellSkill?: SkillName | null;
   rangeFeet?: number | null;
   description?: string;
   descriptionAdditions?: SpellDescriptionEntry[][];

@@ -63,6 +63,7 @@ import {
 import { applySpellDurationToStatusEntries } from "../../../../../../pages/CharactersPage/statusEntries";
 import {
   applySpellImplementationForCharacter,
+  getSpellImplementationStatusOptionsForCharacter,
   type SpellImplementationOptionValues
 } from "../../../../../../pages/CharactersPage/characterRuntime/spellImplementations";
 import { getSpellLevel } from "../../../../../../pages/CharactersPage/spellcasting";
@@ -618,6 +619,7 @@ export function useReactionDrawerState({
           character: nextCharacter,
           spell: selectedReactionSpell,
           spellSlotLevel: null,
+          sourceSpellSlotLevel: null,
           castSource: "reaction",
           options: spellImplementationOptions
         });
@@ -625,7 +627,18 @@ export function useReactionDrawerState({
           ...nextCharacterWithSpellImplementation,
           statusEntries: applySpellDurationToStatusEntries(
             nextCharacterWithSpellImplementation.statusEntries,
-            selectedReactionSpell
+            selectedReactionSpell,
+            {
+              ...getSpellImplementationStatusOptionsForCharacter({
+                character: nextCharacterWithSpellImplementation,
+                spell: selectedReactionSpell,
+                spellSlotLevel: null,
+                sourceSpellSlotLevel: null,
+                castSource: "reaction",
+                options: spellImplementationOptions
+              }),
+              sourceSpellSlotLevel: null
+            }
           )
         };
 
@@ -652,6 +665,7 @@ export function useReactionDrawerState({
           character: nextCharacterWithStepsOfTheFey,
           spell: selectedReactionSpell,
           spellSlotLevel: spellLevel,
+          sourceSpellSlotLevel: null,
           castSource: "reaction",
           options: spellImplementationOptions
         });
@@ -659,7 +673,18 @@ export function useReactionDrawerState({
           ...nextCharacterWithSpellImplementation,
           statusEntries: applySpellDurationToStatusEntries(
             nextCharacterWithSpellImplementation.statusEntries,
-            selectedReactionSpell
+            selectedReactionSpell,
+            {
+              ...getSpellImplementationStatusOptionsForCharacter({
+                character: nextCharacterWithSpellImplementation,
+                spell: selectedReactionSpell,
+                spellSlotLevel: spellLevel,
+                sourceSpellSlotLevel: null,
+                castSource: "reaction",
+                options: spellImplementationOptions
+              }),
+              sourceSpellSlotLevel: null
+            }
           )
         };
         const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
@@ -709,6 +734,7 @@ export function useReactionDrawerState({
         character: nextCharacterWithSpellcast,
         spell: selectedReactionSpell,
         spellSlotLevel: slotLevel,
+        sourceSpellSlotLevel: slotLevel,
         castSource: "reaction",
         options: spellImplementationOptions
       });
@@ -716,7 +742,18 @@ export function useReactionDrawerState({
         ...nextCharacterWithSpellImplementation,
         statusEntries: applySpellDurationToStatusEntries(
           nextCharacterWithSpellImplementation.statusEntries,
-          selectedReactionSpell
+          selectedReactionSpell,
+          {
+            ...getSpellImplementationStatusOptionsForCharacter({
+              character: nextCharacterWithSpellImplementation,
+              spell: selectedReactionSpell,
+              spellSlotLevel: slotLevel,
+              sourceSpellSlotLevel: slotLevel,
+              castSource: "reaction",
+              options: spellImplementationOptions
+            }),
+            sourceSpellSlotLevel: slotLevel
+          }
         )
       };
 

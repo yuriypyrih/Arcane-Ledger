@@ -30,7 +30,11 @@ import {
   isItemShieldRecord
 } from "./inventoryItems";
 import { getEffectiveInventoryItemRecord, getItemShieldBonus } from "./itemMods";
-import { getMageArmorArmorClassModes } from "./characterRuntime/spellImplementations";
+import {
+  getBarkskinArmorClassModes,
+  getMageArmorArmorClassModes,
+  getSpellArmorClassBonusesForCharacter
+} from "./characterRuntime/spellImplementations";
 
 export type BodyArmorType = "light" | "medium" | "heavy";
 
@@ -51,6 +55,7 @@ type ArmorClassModeDefinition = {
   abilityModifiers: AbilityKey[];
   abilityModifierCaps?: Partial<Record<AbilityKey, number | null>>;
   shieldAllowed: boolean;
+  featureBonusesAllowed?: boolean;
 };
 
 export type ArmorClassBreakdownEntry = {
@@ -484,7 +489,8 @@ function getArmorClassModeStates(
   };
   const featureModes = [
     ...getArmorClassModesForCharacter(character, featureContext),
-    ...getMageArmorArmorClassModes(character, featureContext)
+    ...getMageArmorArmorClassModes(character, featureContext),
+    ...getBarkskinArmorClassModes(character, featureContext)
   ].map((mode) => ({
     ...mode,
     isDefault: false
@@ -573,7 +579,12 @@ function buildArmorClassBreakdown(
   shieldBonus: number,
   featureBonuses: FeatureArmorClassBonus[]
 ): ArmorClassBreakdown {
-  const entries = buildArmorClassBreakdownEntries(character, mode, shieldBonus, featureBonuses);
+  const entries = buildArmorClassBreakdownEntries(
+    character,
+    mode,
+    shieldBonus,
+    mode.featureBonusesAllowed === false ? [] : featureBonuses
+  );
 
   return {
     total: entries.reduce((total, entry) => total + entry.value, 0),
@@ -674,6 +685,7 @@ export function getArmorClassResolutionForCharacter(character: Character): Armor
   };
   const featureBonuses = [
     ...getArmorClassBonusesForCharacter(character, featureContext),
+    ...getSpellArmorClassBonusesForCharacter(character),
     ...getFeatArmorClassBonusesForCharacter(character, featureContext)
   ];
   const formulas = modes.map((mode) =>

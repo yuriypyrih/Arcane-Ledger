@@ -11,6 +11,18 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.sourceFact {
+  grid-column: 1 / -1;
+}
+
+.drawerFactsWithTarget {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.drawerFactsTwoColumn {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .durationEditor {
   display: grid;
   gap: 0.65rem;
@@ -70,6 +82,24 @@
 
 @media (max-width: 599px) {
   .drawerFacts {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 600px) {
+  .drawerFacts {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .drawerFactsWithTarget {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .drawerFactsTwoColumn {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sourceFact {
+    grid-column: auto;
   }
 }

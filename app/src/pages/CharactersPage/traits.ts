@@ -108,6 +108,9 @@ import {
 } from "./actionModalDescriptions";
 import { getFeatureDescriptionForCharacter } from "./classFeatures/featureDescriptions";
 import { getBarbarianPathOfTheWildHeartStatusDescriptionEntries } from "./classFeatures/barbarian/subclasses/barbarianPathOfTheWildHeart";
+import { getCharacterCustomTraitEffectInput } from "./characterRuntime/customEffectRuntime";
+import { getAidHitPointMaximumBonusForCharacter } from "./characterRuntime/spellImplementations/spells2";
+import { getCustomTraitActualMaxHitPointBonuses } from "./customTraitEffects";
 import { getFeatHitPointMaximumBonusForCharacter } from "./feats/runtime";
 import { getKeywordDescriptionLines } from "./keywordDescriptions";
 import { getDwarvenToughnessHitPointMaximumBonus } from "./speciesDwarf";
@@ -633,7 +636,12 @@ export function getExhaustionSpeedAdjustment(
 
 export function getEffectiveHitPointMaximumForCharacter(
   character: Pick<Character, "className" | "hitPoints" | "statusEntries"> &
-    Partial<Pick<Character, "customSpecies" | "feats" | "level" | "species" | "subclassId">>
+    Partial<
+      Pick<
+        Character,
+        "customSpecies" | "feats" | "inventoryItems" | "level" | "species" | "subclassId"
+      >
+    >
 ): number {
   const baseHitPoints = Math.max(1, Math.floor(character.hitPoints));
   const featureHitPointMaximumBonus = getSorcererDraconicResilienceHitPointMaximumBonus(character);
@@ -645,13 +653,19 @@ export function getEffectiveHitPointMaximumForCharacter(
     level: character.level,
     species: character.species
   });
+  const customEffectHitPointMaximumBonus = getCustomTraitActualMaxHitPointBonuses(
+    getCharacterCustomTraitEffectInput(character)
+  ).reduce((total, bonus) => total + bonus.value, 0);
+  const spellHitPointMaximumBonus = getAidHitPointMaximumBonusForCharacter(character);
   const effectiveBaseHitPoints = Math.max(
     1,
     Math.floor(
       baseHitPoints +
         featureHitPointMaximumBonus +
         featHitPointMaximumBonus +
-        speciesHitPointMaximumBonus
+        speciesHitPointMaximumBonus +
+        customEffectHitPointMaximumBonus +
+        spellHitPointMaximumBonus
     )
   );
   return effectiveBaseHitPoints;
@@ -1579,6 +1593,28 @@ export function getStatusEntrySourceLabel(entry: CharacterStatusEntry): string {
   }
 
   return sourceLabel;
+}
+
+export function getStatusEntrySpellSlotLabel(entry: CharacterStatusEntry): string {
+  const spellSlotLevel = entry.sourceSpellSlotLevel;
+
+  return typeof spellSlotLevel === "number" &&
+    Number.isInteger(spellSlotLevel) &&
+    spellSlotLevel >= 1 &&
+    spellSlotLevel <= 9
+    ? `Level ${spellSlotLevel}`
+    : "-";
+}
+
+export function getStatusEntryTargetLabel(entry: CharacterStatusEntry): string | null {
+  switch (entry.sourceSpellTarget) {
+    case "self":
+      return "Myself";
+    case "other":
+      return "Another";
+    default:
+      return null;
+  }
 }
 
 export function getStatusDurationLabel(duration: CharacterStatusDuration): string {

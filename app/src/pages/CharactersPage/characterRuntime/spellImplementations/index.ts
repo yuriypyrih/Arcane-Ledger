@@ -7,7 +7,9 @@ import type {
   SpellImplementationCastSource,
   SpellImplementationOptionValues,
   SpellImplementationRollEffect,
-  SpellImplementationRollEffectsContext
+  SpellImplementationRollEffectsContext,
+  SpellImplementationStatusOptions,
+  SpellImplementationStatusOptionsContext
 } from "./types";
 import { spellImplementations0 } from "./spells0";
 import { spellImplementations1 } from "./spells1";
@@ -23,12 +25,16 @@ import { spellImplementations9 } from "./spells9";
 export type {
   SpellImplementation,
   SpellImplementationApplyContext,
+  SpellImplementationCastOptionChoice,
   SpellImplementationCastOption,
   SpellImplementationCastOptionsContext,
   SpellImplementationCastSource,
+  SpellImplementationOptionValue,
   SpellImplementationOptionValues,
   SpellImplementationRollEffect,
-  SpellImplementationRollEffectsContext
+  SpellImplementationRollEffectsContext,
+  SpellImplementationStatusOptions,
+  SpellImplementationStatusOptionsContext
 } from "./types";
 export {
   applyFalseLifeTemporaryHitPointsToCharacter,
@@ -41,15 +47,58 @@ export {
   getFalseLifeTemporaryHitPointsFromRoll
 } from "./falseLife";
 export {
+  armorOfAgathysSpellId,
+  divineFavorSpellId,
+  divineFavorStatusValue,
+  expeditiousRetreatSpellId,
+  expeditiousRetreatStatusValue,
   falseLifeMaximizeTemporaryHitPointsOptionId,
+  getArmorOfAgathysTemporaryHitPoints,
+  getDivineFavorWeaponDamageBonusesForCharacter,
+  getExpeditiousRetreatCommonActionForCharacter,
+  getSpellArmorClassBonusesForCharacter,
   mageArmorCastOnSelfOptionId,
   getMageArmorArmorClassModes,
+  hasDivineFavorStatus,
+  hasExpeditiousRetreatDashBonusActionPath,
+  hasExpeditiousRetreatStatus,
   hasMageArmorSelfStatus,
+  hasShieldStatus,
   isMageArmorSelfStatusEntry,
+  isShieldStatusEntry,
   mageArmorSpellId,
   mageArmorStatusSourceId,
-  mageArmorStatusValue
+  mageArmorStatusValue,
+  shieldOfFaithSpellId,
+  shieldOfFaithStatusValue,
+  shieldOfFaithTargetOptionId,
+  shieldSpellId,
+  shieldStatusSourceId,
+  shieldStatusValue
 } from "./spells1";
+export {
+  aidSpellId,
+  aidStatusValue,
+  aidTargetOptionId,
+  barkskinSpellId,
+  barkskinStatusValue,
+  barkskinTargetOptionId,
+  getBarkskinArmorClassModes,
+  getAidHitPointMaximumBonusForCharacter
+} from "./spells2";
+export {
+  borrowedKnowledgeSkillOptionId,
+  borrowedKnowledgeSpellId,
+  borrowedKnowledgeStatusValue,
+  getBorrowedKnowledgeSkillProficiencyEntriesForCharacter
+} from "./borrowedKnowledge";
+export {
+  darkvisionSenseStatusSourceId,
+  darkvisionSpellId,
+  darkvisionStatusValue,
+  darkvisionTargetOptionId,
+  getDarkvisionSpellDerivedStatusEntriesForCharacter
+} from "./darkvision";
 export {
   applyShillelaghDamageDice,
   getShillelaghDamageAdjustmentForWeapon,
@@ -82,6 +131,7 @@ type ApplySpellImplementationForCharacterContext = Pick<
   "character" | "spell"
 > & {
   spellSlotLevel?: number | null;
+  sourceSpellSlotLevel?: number | null;
   castSource?: SpellImplementationCastSource;
   options?: SpellImplementationOptionValues;
 };
@@ -119,11 +169,27 @@ export function getSpellImplementationRollEffectsForCharacter(
   return getSpellImplementation(context.spell.id)?.getRollEffects?.(context) ?? [];
 }
 
+export function getSpellImplementationStatusOptionsForCharacter(
+  context: SpellImplementationStatusOptionsContext
+): SpellImplementationStatusOptions {
+  return getSpellImplementation(context.spell.id)?.getStatusOptions?.(context) ?? {};
+}
+
 export function createDefaultSpellImplementationOptionValues(
   options: readonly SpellImplementationCastOption[]
 ): SpellImplementationOptionValues {
   return Object.fromEntries(
-    options.map((option) => [option.id, option.defaultChecked === true])
+    options.map((option) => {
+      if (option.choices?.length) {
+        const defaultChoice =
+          option.choices.find((choice) => choice.value === option.defaultValue) ??
+          option.choices[0];
+
+        return [option.id, defaultChoice?.value ?? ""];
+      }
+
+      return [option.id, option.defaultChecked === true];
+    })
   );
 }
 
@@ -131,6 +197,7 @@ export function applySpellImplementationForCharacter({
   character,
   spell,
   spellSlotLevel = null,
+  sourceSpellSlotLevel = null,
   castSource = "standard",
   options = {}
 }: ApplySpellImplementationForCharacterContext): Character {
@@ -144,6 +211,7 @@ export function applySpellImplementationForCharacter({
     character,
     spell,
     spellSlotLevel,
+    sourceSpellSlotLevel,
     castSource,
     options
   });

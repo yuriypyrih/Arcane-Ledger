@@ -85,7 +85,7 @@
 .error {
   border: 1px solid rgba(165, 55, 34, 0.25);
   background: rgba(165, 55, 34, 0.08);
-  color: #852515;
+  color: var(--theme-state-danger);
 }
 
 .success {

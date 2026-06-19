@@ -19,7 +19,7 @@
   border: 1px solid rgba(198, 40, 40, 0.22);
   border-radius: var(--radius-compact);
   background: rgba(198, 40, 40, 0.08);
-  color: #9f1f1f;
+  color: var(--theme-state-danger);
   font-size: 0.92rem;
   font-weight: 700;
   line-height: 1.35;

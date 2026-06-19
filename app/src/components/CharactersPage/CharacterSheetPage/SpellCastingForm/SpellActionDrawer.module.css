@@ -82,6 +82,15 @@
   min-width: 0;
 }
 
+.featureActionStandaloneSelectField {
+  align-items: stretch;
+  display: grid;
+  gap: 0.35rem;
+  margin-left: 0;
+  min-width: min(100%, 14rem);
+  width: min(100%, 18rem);
+}
+
 .featureActionRadioGroup {
   display: grid;
   gap: 0.5rem;
@@ -89,10 +98,21 @@
   min-width: 0;
 }
 
+.featureActionSegmentedField {
+  display: grid;
+  min-width: min(100%, 14rem);
+  width: min(100%, 18rem);
+}
+
+.featureActionSegmentedControl {
+  width: 100%;
+}
+
 .featureActionSelectLabel {
-  color: #8c4d14;
+  color: rgba(93, 74, 58, 0.78);
   font-size: 0.78rem;
   font-weight: 700;
+  letter-spacing: 0.02em;
   line-height: 1.2;
 }
 
@@ -100,6 +120,15 @@
   min-height: 36px;
   min-width: 168px;
   width: auto;
+}
+
+.featureActionStandaloneSelectField .featureActionSelect {
+  min-height: 46px;
+  width: 100%;
+}
+
+:global(html[data-theme="dark"]) .featureActionSelectLabel {
+  color: var(--theme-text-secondary);
 }
 
 .castActionButton {

@@ -222,14 +222,19 @@ export function createCombatSummarySkills(
   character: Character,
   skillProficiencies: SkillProficiencyEntry[] = character.skillProficiencies
 ): CharacterCombatSummarySkills {
+  const proficiencyRuntime = getProficiencyRuntimeForCharacter(character);
+  const resolvedSkillProficiencies =
+    skillProficiencies === character.skillProficiencies
+      ? proficiencyRuntime.collections.skillProficiencies
+      : skillProficiencies;
   const indicators = getSkillIndicatorsForCharacter(character);
-  const rowsByAbility = getSkillRowsByAbility(character, skillProficiencies);
+  const rowsByAbility = getSkillRowsByAbility(character, resolvedSkillProficiencies);
   const referencesBySkill = new Map<SkillName, CombatSummarySkillReference>();
   const collections =
     skillProficiencies === character.skillProficiencies
-      ? getProficiencyRuntimeForCharacter(character).collections
+      ? proficiencyRuntime.collections
       : {
-          ...getProficiencyRuntimeForCharacter(character).collections,
+          ...proficiencyRuntime.collections,
           skillProficiencies
         };
 

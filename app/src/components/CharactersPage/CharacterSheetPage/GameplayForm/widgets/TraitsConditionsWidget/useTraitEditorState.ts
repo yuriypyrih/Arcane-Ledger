@@ -28,11 +28,10 @@ import {
   createCustomTraitEffectDraft,
   createCustomTraitDraftFromStatusEntry,
   createDefaultCustomTraitDraft,
-  doesCustomTraitTargetAllowAbilityValue,
-  isCustomTraitAbilityValue,
   isCustomTraitDraftValid,
   isCustomTraitEffectDraftEmpty,
   isCustomTraitRollModeDisabledTarget,
+  normalizeCustomTraitEffectDraftValueForTarget,
   parseCustomTraitEffectDraft,
   type CustomTraitDraft
 } from "./customTraitDraft";
@@ -293,11 +292,7 @@ export function useTraitEditorState({ onPersistCharacter }: UseTraitEditorStateO
               ? {
                   ...effect,
                   target: value,
-                  value:
-                    isCustomTraitAbilityValue(effect.value) &&
-                    !doesCustomTraitTargetAllowAbilityValue(value)
-                      ? "0"
-                      : effect.value,
+                  value: normalizeCustomTraitEffectDraftValueForTarget(effect.value, value),
                   rollMode: isCustomTraitRollModeDisabledTarget(value)
                     ? "normal"
                     : effect.rollMode

@@ -349,7 +349,7 @@
 :global(html[data-theme="dark"]) .deleteIconButton:hover,
 :global(html[data-theme="dark"]) .deleteIconButton:focus-visible {
   background: rgba(232, 116, 102, 0.2);
-  color: #ffc9c1;
+  color: var(--theme-state-danger);
 }
 
 .iconButton:disabled {
