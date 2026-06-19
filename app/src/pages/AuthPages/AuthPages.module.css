@@ -618,6 +618,12 @@
   }
 }
 
+@media (max-width: 599px) {
+  .accountPrivilegesSection {
+    display: none;
+  }
+}
+
 :global(html[data-theme="dark"]) .panel,
 :global(html[data-theme="dark"]) .accountHeaderCard,
 :global(html[data-theme="dark"]) .accountSection {
