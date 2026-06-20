@@ -27,6 +27,7 @@ import {
   getSpeciesGrantedCantripEntriesForCharacter
 } from "../species";
 import { getDarkvisionSpellDerivedStatusEntriesForCharacter } from "./spellImplementations/darkvision";
+import { getHeroismSpellDerivedStatusEntriesForCharacter } from "./spellImplementations/heroism";
 import {
   getAlwaysPreparedSpellIds,
   getCantripLimitForCharacter,
@@ -321,7 +322,10 @@ function createStatusRuntime(character: Character): CharacterStatusRuntime {
   const classDerivedStatusEntries = getDerivedFeatureStatusEntriesForCharacter(character);
   const featDerivedStatusEntries = getFeatDerivedStatusEntriesForCharacter(character);
   const speciesDerivedStatusEntries = getSpeciesDerivedStatusEntriesForCharacter(character);
-  const spellDerivedStatusEntries = getDarkvisionSpellDerivedStatusEntriesForCharacter(character);
+  const spellDerivedStatusEntries = [
+    ...getDarkvisionSpellDerivedStatusEntriesForCharacter(character),
+    ...getHeroismSpellDerivedStatusEntriesForCharacter(character)
+  ];
   const derivedStatusEntries = [
     ...classDerivedStatusEntries,
     ...featDerivedStatusEntries,

@@ -10,6 +10,7 @@ import {
   advanceCharacterStatusEntries,
   normalizeCharacterStatusEntries
 } from "../../../../pages/CharactersPage/statusEntries";
+import { applyHeroismRoundStartTemporaryHitPointsForCharacter } from "../../../../pages/CharactersPage/characterRuntime/spellImplementations/heroism";
 import { advanceCharacterCompanionDurations } from "../../../../pages/CharactersPage/companions";
 import {
   getEffectiveHitPointMaximumForCharacter,
@@ -171,7 +172,9 @@ function advanceTimedStatusesForTurnStart(character: Character): Character {
 }
 
 export function startCharacterTurn(character: Character): Character {
-  const nextCharacter = advanceFeatureStateForNewRound(advanceTimedStatusesForTurnStart(character));
+  const nextCharacter = applyHeroismRoundStartTemporaryHitPointsForCharacter(
+    advanceFeatureStateForNewRound(advanceTimedStatusesForTurnStart(character))
+  );
 
   return {
     ...nextCharacter,

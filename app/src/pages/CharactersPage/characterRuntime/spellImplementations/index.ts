@@ -47,6 +47,16 @@ export {
   getFalseLifeTemporaryHitPointsFromRoll
 } from "./falseLife";
 export {
+  giftOfAlacritySpellId,
+  giftOfAlacrityStatusValue,
+  giftOfAlacrityTargetOptionId,
+  getGiftOfAlacrityInitiativeBonusesForCharacter,
+  getLongstriderSpeedBonusesForCharacter,
+  longstriderSpellId,
+  longstriderStatusValue,
+  longstriderTargetOptionId
+} from "./giftOfAlacrityLongstrider";
+export {
   armorOfAgathysSpellId,
   divineFavorSpellId,
   divineFavorStatusValue,
@@ -99,6 +109,16 @@ export {
   darkvisionTargetOptionId,
   getDarkvisionSpellDerivedStatusEntriesForCharacter
 } from "./darkvision";
+export {
+  applyHeroismRoundStartTemporaryHitPointsForCharacter,
+  getHeroismSpellDerivedStatusEntriesForCharacter,
+  hasSelfHeroismStatus,
+  heroismFrightenedImmunityStatusSourceId,
+  heroismSpellId,
+  heroismStatusValue,
+  heroismTargetOptionId,
+  heroismTemporaryHitPointsSource
+} from "./heroism";
 export {
   applyShillelaghDamageDice,
   getShillelaghDamageAdjustmentForWeapon,

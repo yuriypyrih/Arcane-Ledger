@@ -36,6 +36,22 @@ import {
   getFalseLifeTemporaryHitPointsFormulaDisplay,
   getFalseLifeTemporaryHitPointsFromRoll
 } from "./falseLife";
+import {
+  getGiftOfAlacrityCastOptions,
+  getGiftOfAlacrityTargetFromOptions,
+  getLongstriderCastOptions,
+  getLongstriderTargetFromOptions,
+  giftOfAlacritySpellId,
+  giftOfAlacrityStatusValue,
+  longstriderSpellId,
+  longstriderStatusValue
+} from "./giftOfAlacrityLongstrider";
+import {
+  getHeroismCastOptions,
+  getHeroismTargetFromOptions,
+  heroismSpellId,
+  heroismStatusValue
+} from "./heroism";
 
 export const mageArmorSpellId = "spell-mage-armor";
 export const mageArmorStatusSourceId = "spell-mage-armor-self";
@@ -243,6 +259,45 @@ const shieldOfFaithSpellImplementationSpec = {
   getCastOptions: getShieldOfFaithCastOptions,
   getStatusOptions: (context: SpellImplementationStatusOptionsContext) => ({
     sourceSpellTarget: getShieldOfFaithTargetFromOptions(context)
+  })
+};
+
+const heroismSpellImplementationSpec = {
+  source: {
+    type: "spell" as const,
+    id: heroismSpellId,
+    label: heroismStatusValue
+  },
+  spellId: heroismSpellId,
+  getCastOptions: getHeroismCastOptions,
+  getStatusOptions: (context: SpellImplementationStatusOptionsContext) => ({
+    sourceSpellTarget: getHeroismTargetFromOptions(context)
+  })
+};
+
+const giftOfAlacritySpellImplementationSpec = {
+  source: {
+    type: "spell" as const,
+    id: giftOfAlacritySpellId,
+    label: giftOfAlacrityStatusValue
+  },
+  spellId: giftOfAlacritySpellId,
+  getCastOptions: getGiftOfAlacrityCastOptions,
+  getStatusOptions: (context: SpellImplementationStatusOptionsContext) => ({
+    sourceSpellTarget: getGiftOfAlacrityTargetFromOptions(context)
+  })
+};
+
+const longstriderSpellImplementationSpec = {
+  source: {
+    type: "spell" as const,
+    id: longstriderSpellId,
+    label: longstriderStatusValue
+  },
+  spellId: longstriderSpellId,
+  getCastOptions: getLongstriderCastOptions,
+  getStatusOptions: (context: SpellImplementationStatusOptionsContext) => ({
+    sourceSpellTarget: getLongstriderTargetFromOptions(context)
   })
 };
 
@@ -466,5 +521,8 @@ export const spellImplementations1 = compileSpellImplementationContributions([
   armorOfAgathysSpellImplementationSpec,
   shieldSpellImplementationSpec,
   shieldOfFaithSpellImplementationSpec,
+  heroismSpellImplementationSpec,
+  giftOfAlacritySpellImplementationSpec,
+  longstriderSpellImplementationSpec,
   falseLifeSpellImplementationSpec
 ]);

@@ -1,4 +1,5 @@
 import type { AbilityKey, Character } from "../../types";
+import { getLongstriderSpeedBonusesForCharacter } from "./characterRuntime/spellImplementations/giftOfAlacrityLongstrider";
 import { getSpeedBonusesForCharacter } from "./classFeatures";
 import { hasRogueThiefSecondStoryWorkFeature } from "./classFeatures/rogue/subclasses/rogueThief";
 import type { FeatureSpeedBonus, MovementSpeedType } from "./classFeatures/types";
@@ -91,6 +92,7 @@ function getMovementSpeedBonuses(
     ...getSpeedBonusesForCharacter(character, {
       wornBodyArmorType: getWornBodyArmorTypeForCharacter(character)
     }),
+    ...getLongstriderSpeedBonusesForCharacter(character),
     ...getSpeciesSpeedBonusesForCharacter(character),
     ...getFeatSpeedBonusesForCharacter(character)
   ]

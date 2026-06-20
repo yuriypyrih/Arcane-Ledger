@@ -35,6 +35,7 @@ import { getEquipmentRuntimeForCharacter } from "./characterRuntime/equipmentRun
 import { measureCharacterRuntime } from "./characterRuntime/performance";
 import {
   divineFavorSpellId,
+  getGiftOfAlacrityInitiativeBonusesForCharacter,
   getDivineFavorWeaponDamageBonusesForCharacter,
   getShillelaghDamageAdjustmentForWeapon,
   getShillelaghSpellcastingAbilityForWeapon,
@@ -986,9 +987,12 @@ export function getInitiativeBreakdownForCharacter(character: Character): Initia
     },
     ...dexterityModifierBreakdown.bonusEntries
   ];
-  const initiativeBonuses = getInitiativeBonusesForCharacter(character, {
-    customTraitEffectInput
-  });
+  const initiativeBonuses = [
+    ...getInitiativeBonusesForCharacter(character, {
+      customTraitEffectInput
+    }),
+    ...getGiftOfAlacrityInitiativeBonusesForCharacter(character)
+  ];
 
   initiativeBonuses.forEach((bonus) => {
     const value = getAbilitySourcedFeatureBonusValue(character, bonus, {
