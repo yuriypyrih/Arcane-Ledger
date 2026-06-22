@@ -195,15 +195,24 @@
 }
 
 .inlineEditor {
-  margin-left: 1rem;
+  --inline-editor-offset: clamp(0rem, 2vw, 1rem);
+  box-sizing: border-box;
+  justify-self: stretch;
+  margin-left: var(--inline-editor-offset);
+  max-width: calc(100% - var(--inline-editor-offset));
+  min-width: 0;
+  width: calc(100% - var(--inline-editor-offset));
 }
 
 .editorCard {
   display: grid;
   gap: 0.7rem;
+  box-sizing: border-box;
   border: 1px solid rgba(75, 47, 29, 0.12);
   border-radius: var(--radius-field);
   background: rgba(255, 255, 255, 0.72);
+  max-width: 100%;
+  min-width: 0;
   padding: 0.9rem 0.95rem;
 }
 
@@ -218,6 +227,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.6rem;
+  min-width: 0;
 }
 
 .removeButton {
@@ -285,13 +295,15 @@
 .fieldGrid {
   display: grid;
   gap: 0.65rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  min-width: 0;
 }
 
 .singleFieldGrid {
   display: grid;
   gap: 0.65rem;
   grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
 }
 
 .rulesEnforcementDivider {
@@ -308,9 +320,21 @@
   gap: 0.32rem;
   color: var(--color-ink-soft);
   font-size: 0.84rem;
+  min-width: 0;
+  width: 100%;
+}
+
+.field select,
+.field input,
+.field textarea {
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
+  width: 100%;
 }
 
 .searchInput {
+  box-sizing: border-box;
   min-height: 38px;
   border-radius: var(--radius-tiny);
   border: 1px solid rgba(75, 47, 29, 0.14);
@@ -336,6 +360,10 @@
 }
 
 @media (max-width: 599px) {
+  .inlineEditor {
+    --inline-editor-offset: 0rem;
+  }
+
   .fieldGrid {
     grid-template-columns: 1fr;
   }

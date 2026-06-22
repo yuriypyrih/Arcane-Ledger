@@ -110,6 +110,25 @@
   padding: 0 0.8rem;
 }
 
+:global(html[data-theme="dark"]) .secondaryButton {
+  background: var(--theme-control-subtle);
+  border-color: var(--theme-border-subtle);
+  color: var(--theme-text-primary);
+  box-shadow: inset 0 0 0 1px var(--theme-border-subtle);
+}
+
+:global(html[data-theme="dark"]) .secondaryButton:hover:not(:disabled),
+:global(html[data-theme="dark"]) .secondaryButton:focus-visible:not(:disabled) {
+  background: var(--theme-control-subtle-hover);
+  border-color: var(--theme-border-medium);
+  box-shadow: inset 0 0 0 1px var(--theme-border-medium);
+}
+
+:global(html[data-theme="dark"]) .secondaryButton:focus-visible {
+  outline: 2px solid var(--theme-focus-ring);
+  outline-offset: 2px;
+}
+
 .secondaryButton:disabled {
   cursor: not-allowed;
   opacity: 0.55;
@@ -203,10 +222,24 @@
 }
 
 .initiativeToggleField {
-  border: 1px solid rgba(75, 47, 29, 0.12);
+  display: flex;
+  align-items: center;
+  align-self: end;
+  justify-content: flex-start;
+  box-sizing: border-box;
+  border: 1px solid rgba(75, 47, 29, 0.18);
   border-radius: var(--radius-control);
   background: var(--color-panel-surface);
+  min-height: 54px;
+  width: 100%;
   padding: 0.75rem 0.8rem;
+}
+
+:global(html[data-theme="dark"]) .initiativeToggleField {
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-surface-raised);
+  color: var(--theme-text-primary);
+  box-shadow: inset 0 0 0 1px var(--theme-border-subtle);
 }
 
 .initiativeToggleLabel {
@@ -215,10 +248,15 @@
   gap: 0.55rem;
   color: var(--theme-text-primary);
   font-size: 0.94rem;
+  line-height: 1.35;
 }
 
 .initiativeToggleLabel input {
   accent-color: var(--color-accent);
+  flex: 0 0 auto;
+  height: 1rem;
+  margin: 0;
+  width: 1rem;
 }
 
 .browserBody {
@@ -342,9 +380,21 @@
   padding: 0.9rem;
 }
 
+:global(html[data-theme="dark"]) .statBlockEditorSection {
+  border-color: var(--theme-border-subtle);
+  background: linear-gradient(160deg, var(--theme-surface-panel), var(--theme-surface-section));
+  color: var(--theme-text-primary);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
 .statBlockEditorSectionTitle,
 .dynamicRowsTitle {
   margin: 0;
+}
+
+:global(html[data-theme="dark"]) .statBlockEditorSectionTitle,
+:global(html[data-theme="dark"]) .dynamicRowsTitle {
+  color: var(--theme-text-primary);
 }
 
 .statBlockEditorGrid {
@@ -393,6 +443,25 @@
   padding: 0;
 }
 
+:global(html[data-theme="dark"]) .secondaryIconButton {
+  background: var(--theme-control-subtle);
+  border-color: var(--theme-border-subtle);
+  color: var(--theme-text-primary);
+  box-shadow: inset 0 0 0 1px var(--theme-border-subtle);
+}
+
+:global(html[data-theme="dark"]) .secondaryIconButton:hover:not(:disabled),
+:global(html[data-theme="dark"]) .secondaryIconButton:focus-visible:not(:disabled) {
+  background: var(--theme-control-subtle-hover);
+  border-color: var(--theme-border-medium);
+  box-shadow: inset 0 0 0 1px var(--theme-border-medium);
+}
+
+:global(html[data-theme="dark"]) .secondaryIconButton:focus-visible {
+  outline: 2px solid var(--theme-focus-ring);
+  outline-offset: 2px;
+}
+
 .secondaryIconButton:disabled {
   cursor: not-allowed;
   opacity: 0.55;
@@ -405,6 +474,13 @@
   border-radius: var(--radius-control);
   background: var(--color-panel-surface);
   padding: 0.78rem;
+}
+
+:global(html[data-theme="dark"]) .featureRow {
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-surface-raised);
+  color: var(--theme-text-primary);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
 }
 
 .featureRowHeader {

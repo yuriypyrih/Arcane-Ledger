@@ -1,15 +1,19 @@
 .select {
+  box-sizing: border-box;
   border: 1px solid var(--theme-input-border);
   border-radius: var(--radius-field);
   background-color: var(--theme-input-background);
   color: var(--theme-input-text);
   font: inherit;
+  max-width: 100%;
   min-height: 54px;
+  min-width: 0;
   padding: 0 3rem 0 1rem;
   transition:
     border-color 140ms ease,
     box-shadow 140ms ease,
     background-color 140ms ease;
+  width: 100%;
 }
 
 .select:focus {
