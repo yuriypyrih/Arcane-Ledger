@@ -550,6 +550,7 @@ export {
   removeCharacterConditionsForImmunities,
   removeCharacterStatusEntry,
   resolveCharacterStatusEntries,
+  updateCharacterStatusEntryNotes,
   updateCharacterStatusEntryDuration,
   upsertManualStatusEntry
 } from "./statusEntries";

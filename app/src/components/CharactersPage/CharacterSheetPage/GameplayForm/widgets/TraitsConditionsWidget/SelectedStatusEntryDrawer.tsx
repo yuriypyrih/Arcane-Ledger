@@ -59,6 +59,11 @@ import {
   QuiveringPalmStatusDrawerFormula
 } from "./QuiveringPalmStatusDrawerExtras";
 import StatusEntryDrawer from "./StatusEntryDrawer";
+import {
+  TraitNotesBody,
+  TraitNotesFooterControls
+} from "./TraitNotesSection";
+import { useTraitNotesEditor } from "./useTraitNotesEditor";
 import styles from "./TraitsConditionsWidget.module.css";
 import type { ManualStatusDurationType } from "./manualStatusDuration";
 
@@ -76,6 +81,7 @@ type SelectedStatusEntryDrawerProps = {
   openDiceRoller: (request: DiceRollerRequest) => void;
   removeStatusEntry: (entry: CharacterStatusEntry) => void;
   roundTracker: ReturnType<typeof normalizeRoundTracker>;
+  saveStatusEntryNotes: (entry: CharacterStatusEntry, notes: string) => void;
   selectedExhaustionLevel: number | null;
   selectedReactionEntry: ReactionEntry | null;
   selectedReactionSpell: SpellEntry | null;
@@ -87,6 +93,13 @@ type SelectedStatusEntryDrawerProps = {
   statusDrawerDurationType: ManualStatusDurationType;
   statusDrawerDurationValue: number;
   updateExhaustionLevel: (nextLevel: ExhaustionLevel | null) => void;
+};
+
+type SelectedStatusEntryDrawerContentProps = Omit<
+  SelectedStatusEntryDrawerProps,
+  "selectedStatusEntry"
+> & {
+  selectedStatusEntry: CharacterStatusEntry;
 };
 
 function getActorInsightDcFormula(character: Character): string {
@@ -141,7 +154,7 @@ function getAasimarCelestialRevelationStatusFormula(
   return null;
 }
 
-function SelectedStatusEntryDrawer({
+function SelectedStatusEntryDrawerContent({
   applyStatusEntryDuration,
   cancelStatusDurationEdit,
   character,
@@ -151,9 +164,8 @@ function SelectedStatusEntryDrawer({
   openDiceRoller,
   removeStatusEntry,
   roundTracker,
+  saveStatusEntryNotes,
   selectedExhaustionLevel,
-  selectedReactionEntry,
-  selectedReactionSpell,
   selectedStatusEntry,
   setIsEditingStatusDuration,
   setSelectedStatusEntryId,
@@ -162,11 +174,7 @@ function SelectedStatusEntryDrawer({
   statusDrawerDurationType,
   statusDrawerDurationValue,
   updateExhaustionLevel
-}: SelectedStatusEntryDrawerProps) {
-  if (!selectedStatusEntry || selectedReactionSpell || selectedReactionEntry) {
-    return null;
-  }
-
+}: SelectedStatusEntryDrawerContentProps) {
   const selectedWildShapeMonster = selectedStatusEntry.sourceId?.startsWith(
     "feature-druid-wild-shape:"
   )
@@ -198,6 +206,10 @@ function SelectedStatusEntryDrawer({
   const selectedAasimarCelestialRevelationFormula =
     getAasimarCelestialRevelationStatusFormula(character, selectedStatusEntry);
   const isSelectedCustomFeatureTrait = isCustomFeatureTraitStatusEntry(selectedStatusEntry);
+  const wildShapeNotesEditor = useTraitNotesEditor({
+    entry: selectedStatusEntry,
+    onSaveNotes: saveStatusEntryNotes
+  });
 
   function endSelectedWildShape() {
     removeStatusEntry(selectedStatusEntry!);
@@ -264,10 +276,14 @@ function SelectedStatusEntryDrawer({
         onClose={() => setSelectedStatusEntryId(null)}
         contentSurface="plain"
         showHeaderDivider
+        bodyFooter={<TraitNotesBody editor={wildShapeNotesEditor} />}
         footer={
-          <ActionButton actionType="ERROR" variant="OUTLINE" onClick={endSelectedWildShape}>
-            End Wild Shape
-          </ActionButton>
+          <div className={styles.wildShapeFooterContent}>
+            <TraitNotesFooterControls editor={wildShapeNotesEditor} />
+            <ActionButton actionType="ERROR" variant="OUTLINE" onClick={endSelectedWildShape}>
+              End Wild Shape
+            </ActionButton>
+          </div>
         }
       />
     );
@@ -378,6 +394,7 @@ function SelectedStatusEntryDrawer({
       onCancelEditDuration={cancelStatusDurationEdit}
       onApplyDuration={applyStatusEntryDuration}
       onRemove={() => removeStatusEntry(selectedStatusEntry)}
+      onSaveNotes={saveStatusEntryNotes}
       onIncreaseExhaustion={() =>
         updateExhaustionLevel(
           selectedExhaustionLevel === null
@@ -393,6 +410,19 @@ function SelectedStatusEntryDrawer({
         )
       }
       onClose={() => setSelectedStatusEntryId(null)}
+    />
+  );
+}
+
+function SelectedStatusEntryDrawer(props: SelectedStatusEntryDrawerProps) {
+  if (!props.selectedStatusEntry || props.selectedReactionSpell || props.selectedReactionEntry) {
+    return null;
+  }
+
+  return (
+    <SelectedStatusEntryDrawerContent
+      {...props}
+      selectedStatusEntry={props.selectedStatusEntry}
     />
   );
 }

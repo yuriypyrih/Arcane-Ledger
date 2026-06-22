@@ -28,6 +28,68 @@
   gap: 0.65rem;
 }
 
+.notesSection {
+  display: grid;
+  border-top: 1px solid var(--theme-divider);
+  gap: 0.45rem;
+  padding-top: 0.72rem;
+}
+
+.notesHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.notesLabel {
+  color: var(--theme-text-muted, rgba(75, 47, 29, 0.74));
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.2;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.notesActionRow {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  justify-content: flex-end;
+}
+
+.notesFooterActionRow {
+  justify-content: flex-start;
+  justify-self: start;
+}
+
+.notesCancelAction.notesCancelAction {
+  color: var(--theme-state-danger);
+}
+
+.notesInlineLabel {
+  color: var(--theme-accent);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.notesText {
+  color: var(--theme-text);
+  line-height: 1.45;
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+.notesTextarea {
+  min-height: 118px;
+  resize: vertical;
+  width: 100%;
+}
+
 .footer {
   display: grid;
   border-top: 1px solid rgba(75, 47, 29, 0.1);

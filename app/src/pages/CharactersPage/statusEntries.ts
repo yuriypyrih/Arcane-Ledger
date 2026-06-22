@@ -1,5 +1,6 @@
 import type { SpellDescriptionEntry, SpellDurationPart } from "../../codex/entries";
 import { DAMAGE_TYPE, DURATION } from "../../codex/entries";
+import { DEFAULT_TEXTAREA_MAX_LENGTH } from "../../constants/inputLimits";
 import {
   CONDITION_NAME,
   EFFECT_NAME,
@@ -17,6 +18,7 @@ import {
   type CharacterStatusValue,
   type SkillName
 } from "../../types";
+import { sanitizeUserInput } from "../../utils/userInputSanitization";
 import { normalizeCharacterCustomTraitEffects } from "./customTraitEffects";
 import { clampInteger } from "./shared";
 
@@ -50,6 +52,26 @@ function createStatusEntryId(): string {
   }
 
   return `status-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function normalizeStatusEntryId(value: unknown): string | null {
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+}
+
+function normalizeRuntimeOverrideKey(value: unknown): string | undefined {
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : undefined;
+}
+
+function normalizeStatusNotes(value: unknown): string | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const notes = sanitizeUserInput(value, { multiline: true })
+    .slice(0, DEFAULT_TEXTAREA_MAX_LENGTH)
+    .trim();
+
+  return notes.length > 0 ? notes : undefined;
 }
 
 function isConditionName(value: unknown): value is CONDITION_NAME {
@@ -499,11 +521,10 @@ function normalizeStatusEntry(value: unknown): CharacterStatusEntry | null {
   };
   const descriptionAdditions = normalizeStatusDescriptionAdditions(record.descriptionAdditions);
 
+  const runtimeOverride = record.runtimeOverride === true;
+
   return {
-    id:
-      typeof record.id === "string" && record.id.trim().length > 0
-        ? record.id
-        : createStatusEntryId(),
+    id: normalizeStatusEntryId(record.id) ?? createStatusEntryId(),
     group,
     value: normalizedValue,
     conditionLevel:
@@ -542,6 +563,11 @@ function normalizeStatusEntry(value: unknown): CharacterStatusEntry | null {
     descriptionAdditions: descriptionAdditions.length > 0 ? descriptionAdditions : undefined,
     customEffects: Array.isArray(record.customEffects)
       ? normalizeCharacterCustomTraitEffects(record.customEffects)
+      : undefined,
+    notes: normalizeStatusNotes(record.notes),
+    runtimeOverride: runtimeOverride ? true : undefined,
+    runtimeOverrideKey: runtimeOverride
+      ? normalizeRuntimeOverrideKey(record.runtimeOverrideKey)
       : undefined
   };
 }
@@ -659,6 +685,7 @@ export function normalizeCharacterStatusEntries(value: unknown): CharacterStatus
 }
 
 export function createCharacterStatusEntry(options: {
+  id?: string;
   group: STATUS_ENTRY_GROUP;
   value: CharacterStatusValue;
   conditionLevel?: number | null;
@@ -676,11 +703,16 @@ export function createCharacterStatusEntry(options: {
   description?: string;
   descriptionAdditions?: SpellDescriptionEntry[][];
   customEffects?: CharacterCustomTraitEffect[];
+  notes?: string;
+  runtimeOverride?: boolean;
+  runtimeOverrideKey?: string;
 }): CharacterStatusEntry {
   const descriptionAdditions = normalizeStatusDescriptionAdditions(options.descriptionAdditions);
+  const notes = normalizeStatusNotes(options.notes);
+  const runtimeOverride = options.runtimeOverride === true;
 
   return {
-    id: createStatusEntryId(),
+    id: normalizeStatusEntryId(options.id) ?? createStatusEntryId(),
     group: options.group,
     value: options.value,
     conditionLevel:
@@ -707,8 +739,67 @@ export function createCharacterStatusEntry(options: {
     descriptionAdditions: descriptionAdditions.length > 0 ? descriptionAdditions : undefined,
     customEffects: Array.isArray(options.customEffects)
       ? normalizeCharacterCustomTraitEffects(options.customEffects)
+      : undefined,
+    notes,
+    runtimeOverride: runtimeOverride ? true : undefined,
+    runtimeOverrideKey: runtimeOverride
+      ? normalizeRuntimeOverrideKey(options.runtimeOverrideKey)
       : undefined
   };
+}
+
+function getStatusEntryOverrideKey(
+  entry: Pick<
+    CharacterStatusEntry,
+    | "conditionLevel"
+    | "group"
+    | "id"
+    | "rangeFeet"
+    | "sourceId"
+    | "sourceSpellId"
+    | "sourceSpellSkill"
+    | "sourceSpellSlotLevel"
+    | "sourceSpellTarget"
+    | "sourceType"
+    | "runtimeOverride"
+    | "runtimeOverrideKey"
+    | "value"
+  >
+): string {
+  const runtimeOverrideKey =
+    entry.runtimeOverride === true ? normalizeRuntimeOverrideKey(entry.runtimeOverrideKey) : null;
+
+  if (runtimeOverrideKey) {
+    return runtimeOverrideKey;
+  }
+
+  return JSON.stringify([
+    entry.sourceType,
+    normalizeStatusEntryId(entry.sourceId) ?? entry.id,
+    entry.group,
+    String(entry.value),
+    isExhaustionStatusEntry(entry) ? (normalizeExhaustionLevel(entry.conditionLevel) ?? "") : "",
+    entry.sourceSpellId ?? "",
+    entry.sourceSpellSlotLevel ?? "",
+    entry.sourceSpellTarget ?? "",
+    entry.sourceSpellSkill ?? "",
+    entry.rangeFeet ?? ""
+  ]);
+}
+
+function setStatusEntryNotes(
+  entry: CharacterStatusEntry,
+  notes: string | undefined
+): CharacterStatusEntry {
+  if (notes) {
+    return {
+      ...entry,
+      notes
+    };
+  }
+
+  const { notes: _notes, ...entryWithoutNotes } = entry;
+  return entryWithoutNotes;
 }
 
 export function resolveCharacterStatusEntries(
@@ -716,47 +807,80 @@ export function resolveCharacterStatusEntries(
   derivedEntries: CharacterStatusEntry[] = []
 ): CharacterStatusEntry[] {
   const normalizedEntries = normalizeCharacterStatusEntries(manualEntries);
-  const derivedEntrySourceIds = new Set(
-    derivedEntries
-      .map((entry) => entry.sourceId)
-      .filter((sourceId): sourceId is string => typeof sourceId === "string" && sourceId.length > 0)
-  );
+  const derivedEntryOverrideKeys = new Set(derivedEntries.map(getStatusEntryOverrideKey));
+  const derivedEntryIds = new Set(derivedEntries.map((entry) => entry.id));
   const overrideEntries = normalizedEntries.filter(
     (entry) =>
-      entry.sourceType !== STATUS_ENTRY_SOURCE_TYPE.MANUAL &&
-      typeof entry.sourceId === "string" &&
-      entry.sourceId.length > 0
+      entry.runtimeOverride === true ||
+      (entry.sourceType !== STATUS_ENTRY_SOURCE_TYPE.MANUAL &&
+        typeof entry.sourceId === "string" &&
+        entry.sourceId.length > 0)
   );
   const standaloneEntries = normalizedEntries.filter(
     (entry) =>
-      entry.sourceType === STATUS_ENTRY_SOURCE_TYPE.MANUAL ||
-      typeof entry.sourceId !== "string" ||
-      entry.sourceId.length === 0
+      entry.runtimeOverride !== true &&
+      (entry.sourceType === STATUS_ENTRY_SOURCE_TYPE.MANUAL ||
+        typeof entry.sourceId !== "string" ||
+        entry.sourceId.length === 0)
   );
-  const overrideEntriesBySourceId = new Map<string, CharacterStatusEntry>();
+  const nonRuntimeOverrideEntries = overrideEntries.filter((entry) => entry.runtimeOverride !== true);
+  const durationOverrideEntriesByKey = new Map<string, CharacterStatusEntry>();
+  const noteOverrideEntriesByKey = new Map<string, CharacterStatusEntry>();
+  const runtimeNoteOverridesById = new Map<string, CharacterStatusEntry>();
+  const runtimeNoteOverridesByKey = new Map<string, CharacterStatusEntry>();
 
-  overrideEntries.forEach((entry) => {
-    if (entry.sourceId) {
-      overrideEntriesBySourceId.set(entry.sourceId, entry);
+  nonRuntimeOverrideEntries.forEach((entry) => {
+    const overrideKey = getStatusEntryOverrideKey(entry);
+
+    durationOverrideEntriesByKey.set(overrideKey, entry);
+
+    if (entry.notes) {
+      noteOverrideEntriesByKey.set(overrideKey, entry);
     }
   });
 
-  const persistedFeatureEntries = overrideEntries.filter(
-    (entry) => entry.sourceId && !derivedEntrySourceIds.has(entry.sourceId)
+  overrideEntries.forEach((entry) => {
+    if (entry.runtimeOverride === true && entry.notes) {
+      const overrideKey = getStatusEntryOverrideKey(entry);
+
+      if (derivedEntryOverrideKeys.has(overrideKey)) {
+        runtimeNoteOverridesByKey.set(overrideKey, entry);
+      }
+
+      if (derivedEntryIds.has(entry.id)) {
+        runtimeNoteOverridesById.set(entry.id, entry);
+      }
+    }
+  });
+
+  const persistedFeatureEntries = nonRuntimeOverrideEntries.filter(
+    (entry) => !derivedEntryOverrideKeys.has(getStatusEntryOverrideKey(entry))
   );
 
   return pruneLinkedStatusEntries([
     ...standaloneEntries,
     ...persistedFeatureEntries,
     ...derivedEntries.map((entry) => {
-      const durationOverride = overrideEntriesBySourceId.get(entry.sourceId ?? entry.id);
+      const overrideKey = getStatusEntryOverrideKey(entry);
+      const durationOverride = durationOverrideEntriesByKey.get(overrideKey);
+      const noteOverride =
+        runtimeNoteOverridesByKey.get(overrideKey) ??
+        runtimeNoteOverridesById.get(entry.id) ??
+        noteOverrideEntriesByKey.get(overrideKey);
+      const entryWithDuration =
+        durationOverride && entry.duration.kind !== STATUS_DURATION_KIND.LINKED
+          ? {
+              ...entry,
+              duration: durationOverride.duration
+            }
+          : entry;
 
-      return durationOverride && entry.duration.kind !== STATUS_DURATION_KIND.LINKED
+      return noteOverride?.notes
         ? {
-            ...entry,
-            duration: durationOverride.duration
+            ...entryWithDuration,
+            notes: noteOverride.notes
           }
-        : entry;
+        : entryWithDuration;
     })
   ]);
 }
@@ -875,7 +999,9 @@ export function updateCharacterStatusEntryDuration(
   duration: CharacterStatusDuration
 ): CharacterStatusEntry[] {
   const entries = normalizeCharacterStatusEntries(value);
-  const storedEntry = entries.find((entry) => entry.id === entryToUpdate.id);
+  const storedEntry = entries.find(
+    (entry) => entry.id === entryToUpdate.id && entry.runtimeOverride !== true
+  );
 
   if (storedEntry) {
     return ensureLinkedStatusDependencies(
@@ -890,11 +1016,12 @@ export function updateCharacterStatusEntryDuration(
     );
   }
 
+  const entryOverrideKey = getStatusEntryOverrideKey(entryToUpdate);
   const existingDurationOverride = entries.find(
     (entry) =>
-      entry.sourceId === (entryToUpdate.sourceId ?? entryToUpdate.id) &&
+      entry.runtimeOverride !== true &&
       entry.sourceType === entryToUpdate.sourceType &&
-      entry.group === entryToUpdate.group
+      getStatusEntryOverrideKey(entry) === entryOverrideKey
   );
 
   if (existingDurationOverride) {
@@ -913,6 +1040,7 @@ export function updateCharacterStatusEntryDuration(
   return ensureLinkedStatusDependencies([
     ...entries,
     createCharacterStatusEntry({
+      id: entryToUpdate.id,
       group: entryToUpdate.group,
       value: entryToUpdate.value,
       conditionLevel: entryToUpdate.conditionLevel,
@@ -924,9 +1052,94 @@ export function updateCharacterStatusEntryDuration(
       sourceSpellSlotLevel: entryToUpdate.sourceSpellSlotLevel ?? null,
       sourceSpellTarget: entryToUpdate.sourceSpellTarget ?? null,
       sourceSpellSkill: entryToUpdate.sourceSpellSkill ?? null,
-      rangeFeet: entryToUpdate.rangeFeet ?? null
+      rangeFeet: entryToUpdate.rangeFeet ?? null,
+      notes: entryToUpdate.notes
     })
   ]);
+}
+
+export function updateCharacterStatusEntryNotes(
+  value: unknown,
+  entryToUpdate: CharacterStatusEntry,
+  nextNotes: string
+): CharacterStatusEntry[] {
+  const notes = normalizeStatusNotes(nextNotes);
+  const entries = normalizeCharacterStatusEntries(value);
+  const entryOverrideKey = getStatusEntryOverrideKey(entryToUpdate);
+  const isMatchingRuntimeOverride = (entry: CharacterStatusEntry) =>
+    entry.runtimeOverride === true &&
+    (entry.id === entryToUpdate.id || getStatusEntryOverrideKey(entry) === entryOverrideKey);
+  const storedEntry = entries.find(
+    (entry) => entry.id === entryToUpdate.id && entry.runtimeOverride !== true
+  );
+
+  if (storedEntry) {
+    return entries.flatMap((entry) => {
+      if (isMatchingRuntimeOverride(entry)) {
+        return [];
+      }
+
+      return entry.id === storedEntry.id ? [setStatusEntryNotes(entry, notes)] : [entry];
+    });
+  }
+
+  const runtimeOverride = entries.find(isMatchingRuntimeOverride);
+
+  if (runtimeOverride) {
+    if (!notes) {
+      return entries.filter(
+        (entry) => !(entry.runtimeOverride === true && entry.id === runtimeOverride.id)
+      );
+    }
+
+    return entries.map((entry) =>
+      entry.runtimeOverride === true && entry.id === runtimeOverride.id
+        ? setStatusEntryNotes(entry, notes)
+        : entry
+    );
+  }
+
+  const persistedOverride = entries.find(
+    (entry) =>
+      entry.runtimeOverride !== true &&
+      entry.sourceType === entryToUpdate.sourceType &&
+      getStatusEntryOverrideKey(entry) === entryOverrideKey
+  );
+
+  if (persistedOverride) {
+    return entries.flatMap((entry) => {
+      if (isMatchingRuntimeOverride(entry)) {
+        return [];
+      }
+
+      return entry.id === persistedOverride.id ? [setStatusEntryNotes(entry, notes)] : [entry];
+    });
+  }
+
+  if (!notes) {
+    return entries;
+  }
+
+  return [
+    ...entries,
+    createCharacterStatusEntry({
+      id: `status-notes-${entryToUpdate.id}`,
+      group: STATUS_ENTRY_GROUP.EFFECTS,
+      value: `Status notes override: ${entryToUpdate.id}`,
+      source: entryToUpdate.source || "Status Notes",
+      sourceType: entryToUpdate.sourceType,
+      duration: { kind: STATUS_DURATION_KIND.INFINITE },
+      sourceId: entryToUpdate.sourceId ?? entryToUpdate.id,
+      sourceSpellId: entryToUpdate.sourceSpellId,
+      sourceSpellSlotLevel: entryToUpdate.sourceSpellSlotLevel ?? null,
+      sourceSpellTarget: entryToUpdate.sourceSpellTarget ?? null,
+      sourceSpellSkill: entryToUpdate.sourceSpellSkill ?? null,
+      rangeFeet: entryToUpdate.rangeFeet ?? null,
+      runtimeOverride: true,
+      runtimeOverrideKey: entryOverrideKey,
+      notes
+    })
+  ];
 }
 
 export function applySpellConcentrationToStatusEntries(

@@ -44,3 +44,12 @@
   gap: 0.55rem;
   grid-template-columns: minmax(0, 1fr);
 }
+
+.wildShapeFooterContent {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: space-between;
+  width: 100%;
+}

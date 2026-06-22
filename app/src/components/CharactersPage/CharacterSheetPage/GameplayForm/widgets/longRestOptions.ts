@@ -597,7 +597,9 @@ export function createLongRestOptions(character: Character): RestOption[] {
     getPaladinChannelDivinityUsesTotal(character)
   );
   const hasTimedStatuses =
-    normalizeCharacterStatusEntries(character.statusEntries).length > 0 ||
+    normalizeCharacterStatusEntries(character.statusEntries).some(
+      (entry) => entry.runtimeOverride !== true
+    ) ||
     hasFiniteCompanionDuration(character.companions);
   const hasLongRestConjuredItems = hasLongRestConjuredInventoryItems(character.inventoryItems);
   const exhaustionLevel = getExhaustionLevel(character.statusEntries);

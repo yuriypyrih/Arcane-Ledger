@@ -21,6 +21,7 @@ type MonsterEntryDrawerProps = {
   status: CodexStatus;
   onClose: () => void;
   badgeLabel?: string;
+  bodyFooter?: ReactNode;
   backdropClassName?: string;
   drawerClassName?: string;
   footer?: ReactNode;
@@ -33,6 +34,7 @@ function MonsterEntryDrawer({
   status,
   onClose,
   badgeLabel = "Monster",
+  bodyFooter,
   backdropClassName,
   drawerClassName,
   footer,
@@ -111,6 +113,8 @@ function MonsterEntryDrawer({
             surface={contentSurface}
           />
         ) : null}
+
+        {bodyFooter}
       </OverlayBody>
 
       {footer ? <OverlayFooter className={styles.footer}>{footer}</OverlayFooter> : null}

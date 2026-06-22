@@ -249,4 +249,7 @@ export type CharacterStatusEntry = {
   description?: string;
   descriptionAdditions?: SpellDescriptionEntry[][];
   customEffects?: CharacterCustomTraitEffect[];
+  notes?: string;
+  runtimeOverride?: boolean;
+  runtimeOverrideKey?: string;
 };

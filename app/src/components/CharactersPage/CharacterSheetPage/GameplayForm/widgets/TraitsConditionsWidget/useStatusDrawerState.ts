@@ -7,7 +7,8 @@ import {
   isExhaustionStatusEntry,
   removeCharacterStatusEntry,
   setCharacterExhaustionLevel,
-  updateCharacterStatusEntryDuration
+  updateCharacterStatusEntryDuration,
+  updateCharacterStatusEntryNotes
 } from "../../../../../../pages/CharactersPage/statusEntries";
 import {
   reconcileCharacterStatusConsequences,
@@ -131,6 +132,19 @@ export function useStatusDrawerState({
     setIsEditingStatusDuration(false);
   }
 
+  function saveStatusEntryNotes(entry: CharacterStatusEntry, notes: string) {
+    onPersistCharacter(
+      (currentCharacter) => ({
+        ...currentCharacter,
+        statusEntries: updateCharacterStatusEntryNotes(currentCharacter.statusEntries, entry, notes)
+      }),
+      {
+        domains: ["statuses"],
+        normalize: "targeted"
+      }
+    );
+  }
+
   function cancelStatusDurationEdit() {
     if (!selectedStatusEntry) {
       return;
@@ -153,6 +167,7 @@ export function useStatusDrawerState({
     cancelStatusDurationEdit,
     isEditingStatusDuration,
     removeStatusEntry,
+    saveStatusEntryNotes,
     selectedExhaustionLevel,
     setIsEditingStatusDuration,
     setStatusDrawerDurationType,

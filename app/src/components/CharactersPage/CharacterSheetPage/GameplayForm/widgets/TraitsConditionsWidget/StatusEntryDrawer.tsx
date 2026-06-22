@@ -43,6 +43,11 @@ import {
 } from "./traitsWidgetUtils";
 import ManualStatusDurationFields from "./ManualStatusDurationFields";
 import type { ManualStatusDurationType } from "./manualStatusDuration";
+import {
+  TraitNotesBody,
+  TraitNotesFooterControls
+} from "./TraitNotesSection";
+import { useTraitNotesEditor } from "./useTraitNotesEditor";
 
 type StatusEntryDrawerProps = {
   character: Character;
@@ -61,6 +66,7 @@ type StatusEntryDrawerProps = {
   onCancelEditDuration: () => void;
   onApplyDuration: () => void;
   onRemove: () => void;
+  onSaveNotes?: (entry: CharacterStatusEntry, notes: string) => void;
   onIncreaseExhaustion?: () => void;
   onDecreaseExhaustion?: () => void;
   onClose: () => void;
@@ -90,12 +96,18 @@ function StatusEntryDrawer({
   onCancelEditDuration,
   onApplyDuration,
   onRemove,
+  onSaveNotes,
   onIncreaseExhaustion,
   onDecreaseExhaustion,
   onClose
 }: StatusEntryDrawerProps) {
   const canEditDuration = isStatusEntryDurationEditable(entry);
   const canRemove = isStatusEntryRemovable(entry);
+  const canShowNotes = Boolean(onSaveNotes) && (canEditDuration || canRemove);
+  const traitNotesEditor = useTraitNotesEditor({
+    entry,
+    onSaveNotes: onSaveNotes ?? (() => undefined)
+  });
   const isExhaustionEntry = isExhaustionStatusEntry(entry);
   const [selectedSpellReference, setSelectedSpellReference] = useState<SpellEntry | null>(null);
   const [selectedDivinityReference, setSelectedDivinityReference] = useState<DivinityEntry | null>(
@@ -274,6 +286,10 @@ function StatusEntryDrawer({
             ) : null}
           </OverlayDetailsGrid>
 
+          {canShowNotes && onSaveNotes ? (
+            <TraitNotesBody editor={traitNotesEditor} />
+          ) : null}
+
           {afterDetailsContent}
 
           {isEditingDuration ? (
@@ -288,8 +304,9 @@ function StatusEntryDrawer({
           ) : null}
         </OverlayBody>
 
-        {footerActions.length > 0 || customFooterContent ? (
+        {footerActions.length > 0 || customFooterContent || canShowNotes ? (
           <OverlayFooter className={styles.footer}>
+            {canShowNotes ? <TraitNotesFooterControls editor={traitNotesEditor} /> : null}
             {customFooterContent}
             {footerActions.length > 0 ? (
               <div
