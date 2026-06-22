@@ -110,6 +110,7 @@ export type CharacterStatusSpellTarget = "self" | "other";
 
 export type CharacterCustomTraitRollMode = "normal" | "advantage" | "disadvantage";
 export type CharacterCustomTraitValueMode = "buff" | "debuff";
+export type CharacterCustomTraitSkillGroupAbility = Exclude<AbilityKey, "CON">;
 export const characterCustomTraitDiceValues = [
   "1d4",
   "1d6",
@@ -186,6 +187,11 @@ export type CharacterCustomTraitEffect =
   | {
       type: "skill";
       skill: SkillName;
+    } & CharacterCustomTraitFlexibleValue &
+      CharacterCustomTraitEffectRoll
+  | {
+      type: "skillGroup";
+      ability: CharacterCustomTraitSkillGroupAbility;
     } & CharacterCustomTraitFlexibleValue &
       CharacterCustomTraitEffectRoll
   | {

@@ -3,6 +3,7 @@ import {
   type CharacterCustomTraitDiceValue,
   type CharacterCustomTraitEffect,
   type CharacterCustomTraitRollMode,
+  type CharacterCustomTraitSkillGroupAbility,
   type CharacterCustomTraitValueMode,
   type CharacterStatusEntry
 } from "../../../../../../types";
@@ -12,6 +13,7 @@ import {
   isSkillName
 } from "../../../../../../types";
 import { WEAPON_COMBAT_TYPE } from "../../../../../../codex/entries";
+import { skillGroupsByAbility } from "../../../../../../pages/CharactersPage/skillDefinitions";
 import {
   defaultManualStatusDurationDraft,
   getManualStatusDurationDraft,
@@ -19,6 +21,9 @@ import {
 } from "./manualStatusDuration";
 
 const abilityKeys: AbilityKey[] = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
+const skillGroupAbilityKeys: CharacterCustomTraitSkillGroupAbility[] = skillGroupsByAbility
+  .map((group) => group.ability)
+  .filter((ability): ability is CharacterCustomTraitSkillGroupAbility => ability !== "CON");
 const allSavingThrowsTarget = "savingThrows";
 
 export type CustomTraitEffectDraft = {
@@ -66,6 +71,12 @@ function isCustomTraitDiceValue(value: string): value is CharacterCustomTraitDic
   return characterCustomTraitDiceValues.includes(value.trim() as CharacterCustomTraitDiceValue);
 }
 
+function isCustomTraitSkillGroupAbility(
+  value: unknown
+): value is CharacterCustomTraitSkillGroupAbility {
+  return skillGroupAbilityKeys.includes(value as CharacterCustomTraitSkillGroupAbility);
+}
+
 export function isCustomTraitRollModeDisabledTarget(target: string): boolean {
   const trimmedTarget = target.trim();
   return (
@@ -95,6 +106,7 @@ export function doesCustomTraitTargetAllowDiceValue(target: string): boolean {
     type === "savingThrow" ||
     type === allSavingThrowsTarget ||
     type === "skill" ||
+    type === "skillGroup" ||
     type === "spellAttack" ||
     type === "weaponDamage"
   );
@@ -151,6 +163,10 @@ export const customTraitTargetOptions: CustomTraitTargetOption[] = [
     label: `${ability} Saving Throw`
   })),
   { value: allSavingThrowsTarget, label: "All Saving Throws" },
+  ...skillGroupAbilityKeys.map((ability) => ({
+    value: `skillGroup:${ability}`,
+    label: `${ability} Skills`
+  })),
   ...ALL_SKILLS.map((skill) => ({
     value: `skill:${skill}`,
     label: skill
@@ -215,6 +231,14 @@ export function createCustomTraitEffectDraftFromEntry(
       return {
         id: createDraftId(),
         target: `${effect.type}:${effect.skill}`,
+        value: String(effect.value),
+        valueMode: effect.valueMode ?? "buff",
+        rollMode: effect.rollMode ?? "normal"
+      };
+    case "skillGroup":
+      return {
+        id: createDraftId(),
+        target: `${effect.type}:${effect.ability}`,
         value: String(effect.value),
         valueMode: effect.valueMode ?? "buff",
         rollMode: effect.rollMode ?? "normal"
@@ -358,6 +382,16 @@ export function parseCustomTraitEffectDraft(
     return {
       type: "skill",
       skill: rawDetail,
+      value: normalizedValue,
+      ...valueModeFields,
+      ...rollModeFields
+    };
+  }
+
+  if (type === "skillGroup" && isCustomTraitSkillGroupAbility(rawDetail)) {
+    return {
+      type: "skillGroup",
+      ability: rawDetail,
       value: normalizedValue,
       ...valueModeFields,
       ...rollModeFields

@@ -5,6 +5,7 @@ import type {
   CharacterCustomTraitEffect,
   CharacterCustomTraitEffectValue,
   CharacterCustomTraitRollMode,
+  CharacterCustomTraitSkillGroupAbility,
   CharacterCustomTraitValueMode,
   CharacterStatusEntry
 } from "../../types";
@@ -16,8 +17,25 @@ import {
   STATUS_ENTRY_SOURCE_TYPE,
   type SkillName
 } from "../../types";
+import { skillGroupsByAbility } from "./skillDefinitions";
 
 const abilityKeys: AbilityKey[] = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
+const skillGroupAbilityKeys: CharacterCustomTraitSkillGroupAbility[] = skillGroupsByAbility
+  .map((group) => group.ability)
+  .filter((ability): ability is CharacterCustomTraitSkillGroupAbility => ability !== "CON");
+const skillGroupAbilityValues = new Set<CharacterCustomTraitSkillGroupAbility>(
+  skillGroupAbilityKeys
+);
+const skillGroupAbilityBySkill = new Map<SkillName, CharacterCustomTraitSkillGroupAbility>(
+  skillGroupsByAbility.flatMap((group) =>
+    group.ability === "CON"
+      ? []
+      : group.skills.map((skill) => [
+          skill,
+          group.ability as CharacterCustomTraitSkillGroupAbility
+        ] as [SkillName, CharacterCustomTraitSkillGroupAbility])
+  )
+);
 const customTraitEffectTypes = new Set<CharacterCustomTraitEffect["type"]>([
   "actualMaxHitPoints",
   "armorClass",
@@ -31,6 +49,7 @@ const customTraitEffectTypes = new Set<CharacterCustomTraitEffect["type"]>([
   "savingThrow",
   "savingThrows",
   "skill",
+  "skillGroup",
   "weaponDamage"
 ]);
 const customTraitWeaponDamageKinds = new Set<
@@ -112,6 +131,12 @@ function isAbilityKey(value: unknown): value is AbilityKey {
   return typeof value === "string" && abilityKeys.includes(value as AbilityKey);
 }
 
+function isCustomTraitSkillGroupAbility(
+  value: unknown
+): value is CharacterCustomTraitSkillGroupAbility {
+  return skillGroupAbilityValues.has(value as CharacterCustomTraitSkillGroupAbility);
+}
+
 export function isCharacterCustomTraitDiceValue(
   value: unknown
 ): value is CharacterCustomTraitDiceValue {
@@ -150,6 +175,7 @@ function isDiceValueAllowedEffectType(type: CharacterCustomTraitEffect["type"]):
     type === "savingThrow" ||
     type === "savingThrows" ||
     type === "skill" ||
+    type === "skillGroup" ||
     type === "spellAttack" ||
     type === "weaponDamage"
   );
@@ -232,6 +258,16 @@ function normalizeCharacterCustomTraitEffect(value: unknown): CharacterCustomTra
         ? {
             type: "skill",
             skill: record.skill,
+            value: normalizedValue,
+            ...valueModeFields,
+            ...rollModeFields
+          }
+        : null;
+    case "skillGroup":
+      return isCustomTraitSkillGroupAbility(record.ability)
+        ? {
+            type: "skillGroup",
+            ability: record.ability,
             value: normalizedValue,
             ...valueModeFields,
             ...rollModeFields
@@ -427,13 +463,24 @@ export function getCustomTraitSavingThrowBonuses(
   );
 }
 
+function doesCustomTraitEffectApplyToSkill(
+  effect: CharacterCustomTraitEffect,
+  skill: SkillName
+): boolean {
+  if (effect.type === "skill") {
+    return effect.skill === skill;
+  }
+
+  return effect.type === "skillGroup" && effect.ability === skillGroupAbilityBySkill.get(skill);
+}
+
 export function getCustomTraitSkillBonuses(
   statusEntries: CustomTraitBonusInput,
   skill: SkillName
 ): CustomTraitFlatBonus[] {
   return mapCustomTraitBonuses(
     statusEntries,
-    (effect) => effect.type === "skill" && effect.skill === skill
+    (effect) => doesCustomTraitEffectApplyToSkill(effect, skill)
   );
 }
 
@@ -502,7 +549,7 @@ export function getCustomTraitSkillRollIndicators(
 ): CustomTraitRollIndicator[] {
   return mapCustomTraitRollIndicators(
     statusEntries,
-    (effect) => effect.type === "skill" && effect.skill === skill
+    (effect) => doesCustomTraitEffectApplyToSkill(effect, skill)
   );
 }
 
@@ -560,6 +607,8 @@ export function formatCharacterCustomTraitEffectTargetLabel(
       return "All Saving Throws";
     case "skill":
       return effect.skill;
+    case "skillGroup":
+      return `${effect.ability} Skills`;
     case "weaponDamage":
       return effect.attackKind === "unarmed"
         ? "Unarmed Strike"
