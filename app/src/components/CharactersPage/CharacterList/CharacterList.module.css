@@ -56,7 +56,7 @@
 }
 
 .listCount {
-  color: var(--theme-text-muted);
+  color: var(--theme-text-secondary);
 }
 
 .list {

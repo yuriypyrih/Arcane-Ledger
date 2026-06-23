@@ -70,7 +70,7 @@
 .inlineRow span,
 .groupDescription,
 .featureMeta {
-  color: var(--theme-text-muted);
+  color: var(--theme-text-secondary);
 }
 
 .subtitle {
@@ -143,13 +143,18 @@
 }
 
 .groupHeader h3 {
+  color: var(--theme-text-primary);
   font-size: 0.98rem;
 }
 
 .groupDescription {
-  color: var(--theme-text-primary);
+  color: var(--theme-text-secondary);
   font-size: 0.88rem;
   line-height: 1.5;
+}
+
+.groupDescription strong {
+  color: var(--theme-text-primary);
 }
 
 .featureList {
@@ -173,6 +178,7 @@
 }
 
 .featureTitleRow strong {
+  color: var(--theme-text-primary);
   font-size: 0.94rem;
 }
 
@@ -183,9 +189,13 @@
 }
 
 .featureCard p {
-  color: var(--theme-text-primary);
+  color: var(--theme-text-secondary);
   font-size: 0.9rem;
   line-height: 1.56;
+}
+
+.featureCard p strong {
+  color: var(--theme-text-primary);
 }
 
 @media (max-width: 599px) {

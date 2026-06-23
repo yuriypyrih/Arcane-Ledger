@@ -1,6 +1,6 @@
 .copy {
   margin: 0;
-  color: var(--theme-text-muted);
+  color: var(--theme-text-secondary);
   line-height: 1.55;
 }
 

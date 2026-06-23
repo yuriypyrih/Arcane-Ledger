@@ -196,7 +196,7 @@
 }
 
 :global(html[data-theme="dark"]) .valueLabel {
-  color: var(--theme-text-muted);
+  color: var(--theme-text-secondary);
 }
 
 .value {

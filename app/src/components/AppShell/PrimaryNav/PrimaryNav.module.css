@@ -466,7 +466,7 @@ button.syncStatusBadge:focus-visible {
 }
 
 :global(html[data-theme="dark"]) .accountMenuKicker {
-  color: var(--theme-text-muted);
+  color: var(--theme-text-secondary);
 }
 
 :global(html[data-theme="dark"]) .accountThemeToggle {

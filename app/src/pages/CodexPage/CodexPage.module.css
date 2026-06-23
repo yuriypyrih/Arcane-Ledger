@@ -29,7 +29,7 @@
 .resultsHeader span,
 .card small,
 .card p {
-  color: var(--theme-text-muted);
+  color: var(--theme-text-secondary);
 }
 
 @media (max-width: 899px) {

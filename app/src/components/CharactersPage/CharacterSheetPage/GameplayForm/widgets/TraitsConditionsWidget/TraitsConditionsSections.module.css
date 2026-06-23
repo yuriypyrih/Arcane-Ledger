@@ -105,7 +105,7 @@
 }
 
 :global(html[data-theme="dark"]) .buttonText small {
-  color: var(--theme-text-muted);
+  color: var(--theme-text-secondary);
 }
 
 .buttonTitle {

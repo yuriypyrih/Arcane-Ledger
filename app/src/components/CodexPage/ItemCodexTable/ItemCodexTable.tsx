@@ -208,7 +208,7 @@ function ItemCodexTable({
           <td colSpan={6} className={styles.statusCell}>
             <div className={styles.statusContent}>
               <strong>No items found</strong>
-              <span>Try a different search or adjust the filters.</span>
+              <span className={styles.emptyStatusText}>Try a different search or adjust the filters.</span>
             </div>
           </td>
         </tr>

@@ -31,7 +31,7 @@
 
 .totalLabel,
 .statusContent span {
-  color: var(--theme-text-muted);
+  color: var(--theme-text-secondary);
 }
 
 .tableWrapper {
@@ -111,6 +111,10 @@
   font-size: 0.92rem;
 }
 
+.statusContent .emptyStatusText {
+  color: var(--theme-text-muted);
+}
+
 .tableRow {
   cursor: pointer;
   transition: background-color 120ms ease;
@@ -156,7 +160,7 @@
 }
 
 .sourceCell {
-  color: var(--theme-text-muted);
+  color: var(--theme-text-secondary);
 }
 
 .sortButton {

@@ -248,7 +248,7 @@
 :global(html[data-theme="dark"]) .skillGroupSubtitle,
 :global(html[data-theme="dark"]) .skillAbilityTitle,
 :global(html[data-theme="dark"]) .proficiencyPill small {
-  color: var(--theme-text-muted);
+  color: var(--theme-text-secondary);
 }
 
 :global(html[data-theme="dark"]) .skillRowProficient {

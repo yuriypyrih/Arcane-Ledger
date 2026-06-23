@@ -101,7 +101,7 @@
 }
 
 :global(html[data-theme="dark"]) .pointBuyLabelDivider {
-  color: var(--theme-text-muted);
+  color: var(--theme-text-secondary);
 }
 
 .pointBuyStatus {

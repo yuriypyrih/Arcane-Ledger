@@ -211,7 +211,7 @@
 
 .characterSubtitle,
 .characterMeta {
-  color: var(--theme-text-muted);
+  color: var(--theme-text-secondary);
   font-size: 0.82rem;
 }
 

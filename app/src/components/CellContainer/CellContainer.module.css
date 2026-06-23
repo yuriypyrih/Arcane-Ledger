@@ -30,7 +30,7 @@
 }
 
 :global(html[data-theme="dark"]) .label {
-  color: var(--theme-text-muted);
+  color: var(--theme-text-secondary);
 }
 
 .content,

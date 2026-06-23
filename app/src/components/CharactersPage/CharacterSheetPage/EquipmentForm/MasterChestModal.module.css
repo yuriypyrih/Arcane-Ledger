@@ -115,7 +115,7 @@
 }
 
 :global(html[data-theme="dark"]) .currencySelectorHint {
-  color: var(--theme-text-muted);
+  color: var(--theme-text-secondary);
 }
 
 .currencySelectorButton {

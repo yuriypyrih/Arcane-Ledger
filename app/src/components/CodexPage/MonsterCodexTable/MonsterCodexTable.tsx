@@ -191,7 +191,7 @@ function MonsterCodexTable({
           <td colSpan={4} className={styles.statusCell}>
             <div className={styles.statusContent}>
               <strong>No monsters found</strong>
-              <span>Try a different search or adjust the filters.</span>
+              <span className={styles.emptyStatusText}>Try a different search or adjust the filters.</span>
             </div>
           </td>
         </tr>

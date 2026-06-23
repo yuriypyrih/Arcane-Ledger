@@ -81,7 +81,7 @@
 }
 
 .field span {
-  color: var(--theme-text-muted);
+  color: var(--theme-text-secondary);
   font-size: 0.88rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;

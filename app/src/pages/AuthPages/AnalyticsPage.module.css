@@ -549,7 +549,7 @@
 :global(html[data-theme="dark"]) .sectionHeader span,
 :global(html[data-theme="dark"]) .table th,
 :global(html[data-theme="dark"]) .dateField {
-  color: var(--theme-text-muted);
+  color: var(--theme-text-secondary);
 }
 
 :global(html[data-theme="dark"]) .title,

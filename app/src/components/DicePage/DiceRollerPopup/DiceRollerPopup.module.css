@@ -263,7 +263,7 @@
 }
 
 :global(html[data-theme="dark"]) .breakdown {
-  color: var(--theme-text-muted);
+  color: var(--theme-text-secondary);
 }
 
 .resultBreakdown {
