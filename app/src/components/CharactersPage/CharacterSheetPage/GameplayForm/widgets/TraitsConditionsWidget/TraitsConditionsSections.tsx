@@ -1,6 +1,7 @@
 import clsx from "clsx";
-import { ChevronsUp } from "lucide-react";
+import { ChevronsUp, ScrollText } from "lucide-react";
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { DEFAULT_TEXTAREA_MAX_LENGTH } from "../../../../../../constants/inputLimits";
 import ActionShape from "../../../../../ActionShape";
 import ConcentrationLabel from "../../../../../ConcentrationLabel";
 import SheetSurface from "../../../SheetSurface";
@@ -17,6 +18,7 @@ import {
   STATUS_DURATION_ROUND_TICK,
   STATUS_ENTRY_GROUP
 } from "../../../../../../types";
+import { sanitizeUserInput } from "../../../../../../utils/userInputSanitization";
 import styles from "./TraitsConditionsSections.module.css";
 
 type StatusSection = {
@@ -150,6 +152,14 @@ function useResponsiveStatusColumnCap() {
   return columnCap;
 }
 
+function hasStatusEntryNotes(entry: CharacterStatusEntry): boolean {
+  return typeof entry.notes === "string"
+    ? sanitizeUserInput(entry.notes, { multiline: true })
+        .slice(0, DEFAULT_TEXTAREA_MAX_LENGTH)
+        .trim().length > 0
+    : false;
+}
+
 function TraitsConditionsSections({
   sections,
   reactionAvailable,
@@ -173,6 +183,7 @@ function TraitsConditionsSections({
             const roundPrefix = roundTickOn === STATUS_DURATION_ROUND_TICK.ROUND_START ? "<" : "";
             const roundSuffix = roundTickOn === STATUS_DURATION_ROUND_TICK.ROUND_END ? ">" : "";
             const hasDescriptionAdditions = hasStatusEntryDescriptionAdditions(entry);
+            const hasNotes = hasStatusEntryNotes(entry);
             const statusTitle = getStatusEntryTitle(entry);
             const sourceLabel = getStatusEntrySourceLabel(entry);
 
@@ -217,16 +228,29 @@ function TraitsConditionsSections({
                     </span>
                     <small title={sourceLabel}>{sourceLabel}</small>
                   </span>
-                  {shortDurationLabel || isReactionEntry ? (
+                  {shortDurationLabel || hasNotes || isReactionEntry ? (
                     <span className={styles.buttonMeta}>
-                      {shortDurationLabel ? (
-                        <strong className={styles.duration} title={shortDurationLabel}>
-                          {roundPrefix ? <span>{roundPrefix}</span> : null}
-                          <span>(</span>
-                          <span className={styles.durationText}>{shortDurationLabel}</span>
-                          <span>)</span>
-                          {roundSuffix ? <span>{roundSuffix}</span> : null}
-                        </strong>
+                      {shortDurationLabel || hasNotes ? (
+                        <span className={styles.metaStack}>
+                          {shortDurationLabel ? (
+                            <strong className={styles.duration} title={shortDurationLabel}>
+                              {roundPrefix ? <span>{roundPrefix}</span> : null}
+                              <span>(</span>
+                              <span className={styles.durationText}>{shortDurationLabel}</span>
+                              <span>)</span>
+                              {roundSuffix ? <span>{roundSuffix}</span> : null}
+                            </strong>
+                          ) : null}
+                          {hasNotes ? (
+                            <span
+                              className={styles.notesIndicator}
+                              title="Has notes"
+                              aria-label="Has notes"
+                            >
+                              <ScrollText size={14} aria-hidden="true" />
+                            </span>
+                          ) : null}
+                        </span>
                       ) : null}
                       {isReactionEntry ? (
                         <span className={styles.reactionBadge} aria-hidden="true">

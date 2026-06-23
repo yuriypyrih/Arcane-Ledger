@@ -39,7 +39,11 @@ export function TraitNotesBody({ editor, className }: TraitNotesBodyProps) {
     return (
       <section className={clsx(styles.notesSection, className)}>
         <p className={styles.notesText}>
-          <span className={styles.notesInlineLabel}>NOTES:</span> {editor.savedNotes}
+          <span className={styles.notesInlineHeader}>
+            <ScrollText size={14} aria-hidden="true" />
+            <span className={styles.notesInlineLabel}>NOTES:</span>
+          </span>{" "}
+          {editor.savedNotes}
         </p>
       </section>
     );

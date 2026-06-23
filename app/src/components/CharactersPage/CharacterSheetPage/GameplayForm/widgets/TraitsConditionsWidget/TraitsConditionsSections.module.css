@@ -77,7 +77,8 @@
 }
 
 .buttonDisabled .buttonText small,
-.buttonDisabled .duration {
+.buttonDisabled .duration,
+.buttonDisabled .notesIndicator {
   color: var(--theme-text-disabled);
 }
 
@@ -143,6 +144,15 @@
   overflow: hidden;
 }
 
+.metaStack {
+  display: grid;
+  flex: 0 1 auto;
+  gap: 0.1rem;
+  justify-items: end;
+  max-inline-size: 100%;
+  min-width: 0;
+}
+
 .duration {
   display: inline-flex;
   align-items: center;
@@ -156,8 +166,17 @@
   white-space: nowrap;
 }
 
-:global(html[data-theme="dark"]) .duration {
+:global(html[data-theme="dark"]) .duration,
+:global(html[data-theme="dark"]) .notesIndicator {
   color: var(--theme-accent-strong);
+}
+
+.notesIndicator {
+  color: var(--color-accent);
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  line-height: 1;
 }
 
 .durationText {

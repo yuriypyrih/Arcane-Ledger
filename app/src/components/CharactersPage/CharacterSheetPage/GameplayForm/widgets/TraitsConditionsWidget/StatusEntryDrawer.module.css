@@ -69,8 +69,15 @@
   color: var(--theme-state-danger);
 }
 
-.notesInlineLabel {
+.notesInlineHeader {
+  display: inline-flex;
+  gap: 0.22rem;
   color: var(--theme-accent);
+  vertical-align: -0.08em;
+}
+
+.notesInlineLabel {
+  color: inherit;
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.08em;
