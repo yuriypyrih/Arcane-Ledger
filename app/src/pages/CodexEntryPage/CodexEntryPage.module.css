@@ -96,9 +96,10 @@
   margin: 0;
 }
 
-.card p,
+.card > :where(p),
+.sectionHeader :where(p),
 .detailItem span {
-  color: var(--theme-text-muted);
+  color: var(--theme-text-secondary);
 }
 
 .titleRow {

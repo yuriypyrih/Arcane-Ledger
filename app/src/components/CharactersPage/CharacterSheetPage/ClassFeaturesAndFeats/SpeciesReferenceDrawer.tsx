@@ -26,7 +26,7 @@ type SpeciesReferenceDrawerProps = {
   speciesEntry: SpeciesEntry;
   onClose: () => void;
   renderTrackingButton: TrackingButtonRenderer;
-  onOpenKeyword: (keywordKey: string, title?: string) => void;
+  onOpenKeyword: (keywordKey: string, title?: string, trackingMessage?: string) => void;
   onOpenFeatReference: (feat: FEATS) => void;
   onOpenSpellReference: (spell: SpellEntry) => void;
   onOpenDivinityReference: (divinity: DivinityEntry) => void;
@@ -66,7 +66,10 @@ function SpeciesReferenceDrawer({
           </OverlaySummary>
         </OverlayHeaderContent>
         <div className={styles.featDrawerHeaderActions}>
-          {renderTrackingButton(getSpeciesTrackingState(speciesEntry))}
+          {renderTrackingButton(
+            getSpeciesTrackingState(speciesEntry),
+            speciesEntry.trackingMessage
+          )}
           <OverlayCloseButton label={`Close ${speciesEntry.name} reference`} onClick={onClose} />
         </div>
       </OverlayHeader>

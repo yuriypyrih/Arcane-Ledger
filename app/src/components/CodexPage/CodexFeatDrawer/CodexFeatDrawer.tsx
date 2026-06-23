@@ -60,8 +60,8 @@ function CodexFeatDrawer({ feat, label, onClose, backdropClassName }: CodexFeatD
     return null;
   }
 
-  function openTrackingKeyword(trackingState: TRACKER) {
-    const resolvedKeyword = resolveKeywordReference(trackingState);
+  function openTrackingKeyword(trackingState: TRACKER, trackingMessage?: string) {
+    const resolvedKeyword = resolveKeywordReference(trackingState, undefined, trackingMessage);
 
     if (resolvedKeyword) {
       setSelectedKeyword(resolvedKeyword);
@@ -114,6 +114,7 @@ function CodexFeatDrawer({ feat, label, onClose, backdropClassName }: CodexFeatD
           <div className={styles.headerActions}>
             <FeatureTrackingBadgeButton
               trackingState={getFeatureTrackingState(featDefinition)}
+              trackingMessage={featDefinition.trackingMessage}
               onClick={openTrackingKeyword}
             />
             <OverlayCloseButton label={`Close ${featDefinition.label} details`} onClick={onClose} />
@@ -158,7 +159,8 @@ function CodexFeatDrawer({ feat, label, onClose, backdropClassName }: CodexFeatD
             entries={[
               {
                 title: selectedKeyword.title,
-                description: selectedKeyword.description
+                description: selectedKeyword.description,
+                trackingMessage: selectedKeyword.trackingMessage
               }
             ]}
             badgeLabel="Keyword"

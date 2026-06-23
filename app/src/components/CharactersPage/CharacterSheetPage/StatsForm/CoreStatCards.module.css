@@ -148,7 +148,6 @@
 
 .card.armorClassCard {
   --color-ink: #24150f;
-  --color-ink-soft: #5f3f2c;
 
   border-color: rgba(255, 246, 226, 0.38);
   background: linear-gradient(150deg, #6f4629 0%, #3c2518 48%, #160f0d 100%);

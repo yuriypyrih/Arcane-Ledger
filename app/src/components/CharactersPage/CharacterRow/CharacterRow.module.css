@@ -228,7 +228,7 @@
   border: 1px solid rgba(75, 47, 29, 0.16);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.44);
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.72rem;
   font-weight: 700;
   line-height: 1;

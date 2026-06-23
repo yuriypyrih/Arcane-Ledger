@@ -36,7 +36,7 @@
 
 .skillGroupSubtitle {
   margin: 0;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.74rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -62,7 +62,7 @@
 
 .skillAbilityTitle {
   margin: 0;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.76rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -234,7 +234,7 @@
 }
 
 .proficiencyPill small {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.68rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;

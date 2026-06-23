@@ -207,7 +207,7 @@
 .meta,
 .subtitle,
 .outcome {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.74rem;
   letter-spacing: 0.05em;
 }
@@ -244,7 +244,7 @@
 
 .outcome {
   align-self: center;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 1;

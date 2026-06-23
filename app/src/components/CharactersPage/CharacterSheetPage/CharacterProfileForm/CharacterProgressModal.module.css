@@ -65,7 +65,7 @@
 }
 
 .progressLabel {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.78rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -94,7 +94,7 @@
 }
 
 .inputLabel {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.78rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;

@@ -4,6 +4,7 @@ import CodexFeatDrawer from "../CodexFeatDrawer/CodexFeatDrawer";
 import CodexSpellDrawer from "../CodexSpellDrawer";
 import DescriptionContent from "../../DescriptionContent/DescriptionContent";
 import {
+  FeatureDisclosureContentStack,
   FeatureDisclosureRow,
   FeatureTrackingBadgeButton,
   featureDisclosureStyles
@@ -72,6 +73,10 @@ function getEntryTrackingState(entry: BackgroundEntry | SpeciesEntry): TRACKER {
     : (entry.trackingState ?? TRACKER.NOT_TRACKED);
 }
 
+function getEntryTrackingMessage(entry: BackgroundEntry | SpeciesEntry): string | undefined {
+  return entry.category === ENTRY_CATEGORIES.SPECIES ? entry.trackingMessage : undefined;
+}
+
 function getStatusLabel(category: CodexDisclosureCategory): string {
   return category === ENTRY_CATEGORIES.BACKGROUNDS ? "backgrounds" : "species";
 }
@@ -117,8 +122,8 @@ function CodexDisclosureList({ entries, status, category }: CodexDisclosureListP
     );
   }
 
-  function openTrackingReference(trackingState: TRACKER) {
-    const reference = resolveKeywordReference(trackingState);
+  function openTrackingReference(trackingState: TRACKER, trackingMessage?: string) {
+    const reference = resolveKeywordReference(trackingState, undefined, trackingMessage);
 
     if (!reference) {
       return;
@@ -222,10 +227,10 @@ function CodexDisclosureList({ entries, status, category }: CodexDisclosureListP
                 isExpanded={isExpanded}
                 onToggle={() => toggleEntryKey(entryKey)}
                 bodyId={`${entryKey}-content`}
-                bodyClassName={featureDisclosureStyles.descriptionList}
                 trackingButton={
                   <FeatureTrackingBadgeButton
                     trackingState={getEntryTrackingState(entry)}
+                    trackingMessage={getEntryTrackingMessage(entry)}
                     onClick={openTrackingReference}
                   />
                 }
@@ -235,7 +240,9 @@ function CodexDisclosureList({ entries, status, category }: CodexDisclosureListP
                 }
                 showDivider={index > 0}
               >
-                {renderEntryBody(entry)}
+                <FeatureDisclosureContentStack>
+                  {renderEntryBody(entry)}
+                </FeatureDisclosureContentStack>
               </FeatureDisclosureRow>
             );
           })}
@@ -248,7 +255,8 @@ function CodexDisclosureList({ entries, status, category }: CodexDisclosureListP
           entries={[
             {
               title: selectedKeywordReference.title,
-              description: selectedKeywordReference.description
+              description: selectedKeywordReference.description,
+              trackingMessage: selectedKeywordReference.trackingMessage
             }
           ]}
           badgeLabel="Keyword"

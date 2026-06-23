@@ -345,6 +345,7 @@ export type FeatureActionOptionCard = {
   summary: string;
   detail: string;
   trackingState?: TRACKER;
+  trackingMessage?: string;
   economyType: EconomyType;
   actionCategory: ActionCategory;
   economyMultiCount?: number;

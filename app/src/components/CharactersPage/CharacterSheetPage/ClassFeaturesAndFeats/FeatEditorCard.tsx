@@ -724,9 +724,7 @@ function FeyTouchedChoiceEditor({
       </div>
       {summary ? <p className={modalStyles.summary}>{summary}</p> : null}
       {!isValid ? (
-        <p className={modalStyles.validation}>
-          Choose a level 1 Divination or Enchantment spell.
-        </p>
+        <p className={modalStyles.validation}>Choose a level 1 Divination or Enchantment spell.</p>
       ) : null}
     </InlineEditorFrame>
   );
@@ -743,8 +741,9 @@ function RitualCasterChoiceEditor({
 }: RitualCasterChoiceEditorProps) {
   const spellOptions = getRitualCasterSpellOptions();
   const spellCount = getRitualCasterSpellCountForLevel(characterLevel);
-  const selectedSpellIds = Array.from({ length: spellCount }, (_, index) =>
-    choice.spellIds[index] ?? ritualCasterNoneOptionValue
+  const selectedSpellIds = Array.from(
+    { length: spellCount },
+    (_, index) => choice.spellIds[index] ?? ritualCasterNoneOptionValue
   );
 
   return (
@@ -782,8 +781,7 @@ function RitualCasterChoiceEditor({
         />
         {selectedSpellIds.map((selectedSpellId, selectionIndex) => {
           const blockedSpellIds = selectedSpellIds.filter(
-            (spellId, index) =>
-              index !== selectionIndex && spellId !== ritualCasterNoneOptionValue
+            (spellId, index) => index !== selectionIndex && spellId !== ritualCasterNoneOptionValue
           );
 
           return (
@@ -977,7 +975,9 @@ function BoonOfSkillChoiceEditor({
       </div>
       {summary ? <p className={modalStyles.summary}>{summary}</p> : null}
       {!isValid ? (
-        <p className={modalStyles.validation}>Choose a skill that does not already have Expertise.</p>
+        <p className={modalStyles.validation}>
+          Choose a skill that does not already have Expertise.
+        </p>
       ) : null}
     </InlineEditorFrame>
   );
@@ -1615,9 +1615,7 @@ function HarperAgentChoiceEditor({
         />
       </div>
       {summary ? <p className={modalStyles.summary}>{summary}</p> : null}
-      {!isValid ? (
-        <p className={modalStyles.validation}>Choose one Musical Instrument.</p>
-      ) : null}
+      {!isValid ? <p className={modalStyles.validation}>Choose one Musical Instrument.</p> : null}
     </InlineEditorFrame>
   );
 }
@@ -1730,16 +1728,13 @@ function SpellfireSparkChoiceEditor({
           ]}
           onChange={(nextValue) =>
             onChange({
-              spellcastingAbility:
-                nextValue as PendingSpellfireSparkChoice["spellcastingAbility"]
+              spellcastingAbility: nextValue as PendingSpellfireSparkChoice["spellcastingAbility"]
             })
           }
         />
       </div>
       {summary ? <p className={modalStyles.summary}>{summary}</p> : null}
-      {!isValid ? (
-        <p className={modalStyles.validation}>Choose a spellcasting ability.</p>
-      ) : null}
+      {!isValid ? <p className={modalStyles.validation}>Choose a spellcasting ability.</p> : null}
     </InlineEditorFrame>
   );
 }
@@ -1953,8 +1948,7 @@ function CultOfDragonInitiateChoiceEditor({
                 ]),
             ...cultOfDragonInitiateLanguageOptions.map((language) => ({
               disabled:
-                knowsDraconicFromOtherSource &&
-                language === cultOfDragonInitiateDefaultLanguage,
+                knowsDraconicFromOtherSource && language === cultOfDragonInitiateDefaultLanguage,
               label: getCultOfDragonInitiateLanguageLabel(language),
               value: language
             }))
@@ -2021,9 +2015,7 @@ function EmeraldEnclaveFledglingChoiceEditor({
         />
       </div>
       {summary ? <p className={modalStyles.summary}>{summary}</p> : null}
-      {!isValid ? (
-        <p className={modalStyles.validation}>Choose a spellcasting ability.</p>
-      ) : null}
+      {!isValid ? <p className={modalStyles.validation}>Choose a spellcasting ability.</p> : null}
     </InlineEditorFrame>
   );
 }
@@ -2448,9 +2440,7 @@ function renderInlineEditor({
         title="Heavily Armored"
         cancelLabel="Cancel heavily armored selection"
         label="Ability"
-        summary={
-          getPendingHeavilyArmoredChoiceSummary(pendingFeatState.heavilyArmoredChoice) ?? ""
-        }
+        summary={getPendingHeavilyArmoredChoiceSummary(pendingFeatState.heavilyArmoredChoice) ?? ""}
         value={pendingFeatState.heavilyArmoredChoice.ability}
         options={[...heavilyArmoredAbilityOptions]}
         onCancel={() =>
@@ -2474,10 +2464,7 @@ function renderInlineEditor({
     );
   }
 
-  if (
-    featDefinition.feat === FEATS.HEAVY_ARMOR_MASTER &&
-    pendingFeatState.heavyArmorMasterChoice
-  ) {
+  if (featDefinition.feat === FEATS.HEAVY_ARMOR_MASTER && pendingFeatState.heavyArmorMasterChoice) {
     return (
       <SingleAbilityEditor
         title="Heavy Armor Master"
@@ -2573,9 +2560,7 @@ function renderInlineEditor({
         title="Lightly Armored"
         cancelLabel="Cancel lightly armored selection"
         label="Ability"
-        summary={
-          getPendingLightlyArmoredChoiceSummary(pendingFeatState.lightlyArmoredChoice) ?? ""
-        }
+        summary={getPendingLightlyArmoredChoiceSummary(pendingFeatState.lightlyArmoredChoice) ?? ""}
         value={pendingFeatState.lightlyArmoredChoice.ability}
         options={[...lightlyArmoredAbilityOptions]}
         onCancel={() =>
@@ -2736,10 +2721,7 @@ function renderInlineEditor({
     );
   }
 
-  if (
-    featDefinition.feat === FEATS.MOUNTED_COMBATANT &&
-    pendingFeatState.mountedCombatantChoice
-  ) {
+  if (featDefinition.feat === FEATS.MOUNTED_COMBATANT && pendingFeatState.mountedCombatantChoice) {
     return (
       <SingleAbilityEditor
         title="Mounted Combatant"
@@ -2863,9 +2845,7 @@ function renderInlineEditor({
         title="Polearm Master"
         cancelLabel="Cancel polearm master selection"
         label="Ability"
-        summary={
-          getPendingPolearmMasterChoiceSummary(pendingFeatState.polearmMasterChoice) ?? ""
-        }
+        summary={getPendingPolearmMasterChoiceSummary(pendingFeatState.polearmMasterChoice) ?? ""}
         value={pendingFeatState.polearmMasterChoice.ability}
         options={[...polearmMasterAbilityOptions]}
         onCancel={() =>
@@ -2908,9 +2888,7 @@ function renderInlineEditor({
         onChange={(nextChoice) =>
           onPendingFeatStateChange((current) => ({
             ...current,
-            ritualCasterChoice: current.ritualCasterChoice
-              ? nextChoice
-              : current.ritualCasterChoice
+            ritualCasterChoice: current.ritualCasterChoice ? nextChoice : current.ritualCasterChoice
           }))
         }
       />
@@ -3169,9 +3147,7 @@ function renderInlineEditor({
         onChange={(nextChoice) =>
           onPendingFeatStateChange((current) => ({
             ...current,
-            skillExpertChoice: current.skillExpertChoice
-              ? nextChoice
-              : current.skillExpertChoice
+            skillExpertChoice: current.skillExpertChoice ? nextChoice : current.skillExpertChoice
           }))
         }
       />
@@ -3226,9 +3202,7 @@ function renderInlineEditor({
         onChange={(nextChoice) =>
           onPendingFeatStateChange((current) => ({
             ...current,
-            weaponMasterChoice: current.weaponMasterChoice
-              ? nextChoice
-              : current.weaponMasterChoice
+            weaponMasterChoice: current.weaponMasterChoice ? nextChoice : current.weaponMasterChoice
           }))
         }
       />
@@ -3284,9 +3258,7 @@ function renderInlineEditor({
         onChange={(nextChoice) =>
           onPendingFeatStateChange((current) => ({
             ...current,
-            boonOfSkillChoice: current.boonOfSkillChoice
-              ? nextChoice
-              : current.boonOfSkillChoice
+            boonOfSkillChoice: current.boonOfSkillChoice ? nextChoice : current.boonOfSkillChoice
           }))
         }
       />
@@ -3452,7 +3424,9 @@ function renderInlineEditor({
         onChange={(nextChoice) =>
           onPendingFeatStateChange((current) => ({
             ...current,
-            magicInitiateChoice: current.magicInitiateChoice ? nextChoice : current.magicInitiateChoice
+            magicInitiateChoice: current.magicInitiateChoice
+              ? nextChoice
+              : current.magicInitiateChoice
           }))
         }
       />
@@ -3873,7 +3847,10 @@ function FeatEditorCard({
           {isRepeatable ? <span className={cardStyles.repeatable}>(repeatable)</span> : null}
         </div>
         <div className={cardStyles.headerActions}>
-          {renderTrackingButton(getFeatureTrackingState(featDefinition))}
+          {renderTrackingButton(
+            getFeatureTrackingState(featDefinition),
+            featDefinition.trackingMessage
+          )}
         </div>
       </div>
       {featDefinition.prerequisite ? (

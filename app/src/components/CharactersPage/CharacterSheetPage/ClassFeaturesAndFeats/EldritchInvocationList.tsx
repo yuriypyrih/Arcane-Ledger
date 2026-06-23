@@ -66,7 +66,10 @@ function EldritchInvocationList({
             }
             isRepeatable={isRepeatable}
             onClick={() => onOpenInvocationReference(firstOption)}
-            headerActions={renderTrackingButton(firstOption.invocation.trackingState)}
+            headerActions={renderTrackingButton(
+              firstOption.invocation.trackingState,
+              firstOption.invocation.trackingMessage
+            )}
           />
         );
       })}

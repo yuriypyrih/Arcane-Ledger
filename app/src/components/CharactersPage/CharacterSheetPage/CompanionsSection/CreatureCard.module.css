@@ -113,7 +113,7 @@
 
 .type,
 .status {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.9rem;
 }
 
@@ -150,7 +150,7 @@
 
 .sourceTag {
   background: rgba(75, 47, 29, 0.08);
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
 }
 
 .durationTag {
@@ -174,7 +174,7 @@
 .vitalsRow {
   display: inline-flex;
   align-items: flex-start;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   flex-wrap: wrap;
   font-size: 0.9rem;
   font-weight: 400;

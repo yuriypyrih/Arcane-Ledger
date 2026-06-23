@@ -11,12 +11,17 @@ import {
   TRACKER
 } from "../../entries/enums";
 import type { SpellEntry } from "../../entries/types";
+import { spellDurationOnlyTrackingMessage } from "../trackingMessages";
 
 export const abiDalzimsHorridWilting: SpellEntry = {
   id: "spell-abi-dalzims-horrid-wilting",
   name: "Abi-Dalzim's Horrid Wilting",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.NECROMANCY,
   castingTime: [ACTION_TYPE.ACTION],
@@ -53,8 +58,16 @@ export const animalShapes: SpellEntry = {
   id: "spell-animal-shapes",
   name: "Animal Shapes",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_animal-shapes", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_animal-shapes",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "30 feet",
@@ -73,8 +86,16 @@ export const antimagicField: SpellEntry = {
   id: "spell-antimagic-field",
   name: "Antimagic Field",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_antimagic-field", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_antimagic-field",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
@@ -94,8 +115,16 @@ export const antipathySympathy: SpellEntry = {
   id: "spell-antipathy-sympathy",
   name: "Antipathy/Sympathy",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_antipathysympathy", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_antipathysympathy",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
   castingTime: [ACTION_TYPE.HOUR],
   range: "60 feet",
@@ -120,7 +149,14 @@ export const befuddlement: SpellEntry = {
   id: "spell-befuddlement",
   name: "Befuddlement",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_befuddlement", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_befuddlement",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
   castingTime: [ACTION_TYPE.ACTION],
@@ -147,7 +183,12 @@ export const befuddlement: SpellEntry = {
     [DICE.D12, DAMAGE_TYPE.PSYCHIC]
   ],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [
+    SPELL_LIST_CLASS.BARD,
+    SPELL_LIST_CLASS.DRUID,
+    SPELL_LIST_CLASS.WARLOCK,
+    SPELL_LIST_CLASS.WIZARD
+  ],
   spellLevel: 8
 };
 
@@ -155,13 +196,21 @@ export const clone: SpellEntry = {
   id: "spell-clone",
   name: "Clone",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_clone", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_clone",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.NECROMANCY,
   castingTime: [ACTION_TYPE.HOUR],
   range: "Touch",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  materialSpecified: "a diamond worth 1,000+ GP, which the spell consumes, and a sealable vessel worth 2,000+ GP that is large enough to hold the creature being cloned",
+  materialSpecified:
+    "a diamond worth 1,000+ GP, which the spell consumes, and a sealable vessel worth 2,000+ GP that is large enough to hold the creature being cloned",
   duration: ["Instantaneous"],
   description: [
     "You touch a creature or at least 1 cubic inch of its flesh. An inert duplicate of that creature forms inside the vessel used in the spell's casting and finishes growing after 120 days; you choose whether the finished clone is the same age as the creature or younger. The clone remains inert and endures indefinitely while its vessel remains undisturbed. If the original creature dies after the clone finishes forming, the creature's soul transfers to the clone if the soul is free and willing to return. The clone is physically identical to the original and has the same personality, memories, and abilities, but none of the original's equipment. The creature's original remains, if any, become inert and can't be revived, since the creature's soul is elsewhere."
@@ -176,8 +225,16 @@ export const controlWeather: SpellEntry = {
   id: "spell-control-weather",
   name: "Control Weather",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_control-weather", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_control-weather",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.TEN_MINUTES],
   range: "Self",
@@ -197,8 +254,13 @@ export const darkStar: SpellEntry = {
   id: "spell-dark-star",
   name: "Dark Star",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "150 feet",
@@ -231,8 +293,16 @@ export const demiplane: SpellEntry = {
   id: "spell-demiplane",
   name: "Demiplane",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_demiplane", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_demiplane",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
@@ -251,22 +321,35 @@ export const dominateMonster: SpellEntry = {
   id: "spell-dominate-monster",
   name: "Dominate Monster",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_dominate-monster", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_dominate-monster",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: [DURATION.CONCENTRATION, "up to 1 hour"],
   description: [
-    "One creature you can see within range must succeed on a Wisdom saving throw or have the Charmed condition for the duration. The target has Advantage on the save if you or your allies are fighting it. Whenever the target takes damage, it repeats the save, ending the spell on itself on a success. You have a telepathic link with the Charmed target while the two of you are on the same plane of existence. On your turn, you can use this link to issue commands to the target (no action required), such as \"Attack that creature,\" \"Move over there,\" or \"Fetch that object.\" The target does its best to obey on its turn. If it completes an order and doesn't receive further direction from you, it acts and moves as it likes, focusing on protecting itself. You can command the target to take a Reaction but must take your own Reaction to do so.",
+    'One creature you can see within range must succeed on a Wisdom saving throw or have the Charmed condition for the duration. The target has Advantage on the save if you or your allies are fighting it. Whenever the target takes damage, it repeats the save, ending the spell on itself on a success. You have a telepathic link with the Charmed target while the two of you are on the same plane of existence. On your turn, you can use this link to issue commands to the target (no action required), such as "Attack that creature," "Move over there," or "Fetch that object." The target does its best to obey on its turn. If it completes an order and doesn\'t receive further direction from you, it acts and moves as it likes, focusing on protecting itself. You can command the target to take a Reaction but must take your own Reaction to do so.',
     "<strong>Using a Higher-Level Spell Slot.</strong> Your Concentration can last longer with a level 9 spell slot (up to 8 hours)."
   ],
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [
+    SPELL_LIST_CLASS.BARD,
+    SPELL_LIST_CLASS.SORCERER,
+    SPELL_LIST_CLASS.WARLOCK,
+    SPELL_LIST_CLASS.WIZARD
+  ],
   spellLevel: 8
 };
 
@@ -274,8 +357,16 @@ export const earthquake: SpellEntry = {
   id: "spell-earthquake",
   name: "Earthquake",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_earthquake", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_earthquake",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "500 feet",
@@ -316,8 +407,16 @@ export const glibness: SpellEntry = {
   id: "spell-glibness",
   name: "Glibness",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_glibness", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_glibness",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
@@ -336,8 +435,16 @@ export const holyAura: SpellEntry = {
   id: "spell-holy-aura",
   name: "Holy Aura",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_holy-aura", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_holy-aura",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
@@ -358,8 +465,13 @@ export const illusoryDragon: SpellEntry = {
   id: "spell-illusory-dragon",
   name: "Illusory Dragon",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ILLUSION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "120 feet",
@@ -376,13 +488,83 @@ export const illusoryDragon: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.WIS,
   isDamagingSpell: true,
   damage: [
-    [DICE.D6, [DAMAGE_TYPE.ACID, DAMAGE_TYPE.COLD, DAMAGE_TYPE.FIRE, DAMAGE_TYPE.LIGHTNING, DAMAGE_TYPE.NECROTIC, DAMAGE_TYPE.POISON]],
-    [DICE.D6, [DAMAGE_TYPE.ACID, DAMAGE_TYPE.COLD, DAMAGE_TYPE.FIRE, DAMAGE_TYPE.LIGHTNING, DAMAGE_TYPE.NECROTIC, DAMAGE_TYPE.POISON]],
-    [DICE.D6, [DAMAGE_TYPE.ACID, DAMAGE_TYPE.COLD, DAMAGE_TYPE.FIRE, DAMAGE_TYPE.LIGHTNING, DAMAGE_TYPE.NECROTIC, DAMAGE_TYPE.POISON]],
-    [DICE.D6, [DAMAGE_TYPE.ACID, DAMAGE_TYPE.COLD, DAMAGE_TYPE.FIRE, DAMAGE_TYPE.LIGHTNING, DAMAGE_TYPE.NECROTIC, DAMAGE_TYPE.POISON]],
-    [DICE.D6, [DAMAGE_TYPE.ACID, DAMAGE_TYPE.COLD, DAMAGE_TYPE.FIRE, DAMAGE_TYPE.LIGHTNING, DAMAGE_TYPE.NECROTIC, DAMAGE_TYPE.POISON]],
-    [DICE.D6, [DAMAGE_TYPE.ACID, DAMAGE_TYPE.COLD, DAMAGE_TYPE.FIRE, DAMAGE_TYPE.LIGHTNING, DAMAGE_TYPE.NECROTIC, DAMAGE_TYPE.POISON]],
-    [DICE.D6, [DAMAGE_TYPE.ACID, DAMAGE_TYPE.COLD, DAMAGE_TYPE.FIRE, DAMAGE_TYPE.LIGHTNING, DAMAGE_TYPE.NECROTIC, DAMAGE_TYPE.POISON]]
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.COLD,
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.NECROTIC,
+        DAMAGE_TYPE.POISON
+      ]
+    ],
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.COLD,
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.NECROTIC,
+        DAMAGE_TYPE.POISON
+      ]
+    ],
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.COLD,
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.NECROTIC,
+        DAMAGE_TYPE.POISON
+      ]
+    ],
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.COLD,
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.NECROTIC,
+        DAMAGE_TYPE.POISON
+      ]
+    ],
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.COLD,
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.NECROTIC,
+        DAMAGE_TYPE.POISON
+      ]
+    ],
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.COLD,
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.NECROTIC,
+        DAMAGE_TYPE.POISON
+      ]
+    ],
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.COLD,
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.NECROTIC,
+        DAMAGE_TYPE.POISON
+      ]
+    ]
   ],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
@@ -393,8 +575,16 @@ export const incendiaryCloud: SpellEntry = {
   id: "spell-incendiary-cloud",
   name: "Incendiary Cloud",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_incendiary-cloud", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_incendiary-cloud",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "150 feet",
@@ -415,8 +605,13 @@ export const maddeningDarkness: SpellEntry = {
   id: "spell-maddening-darkness",
   name: "Maddening Darkness",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "150 feet",
@@ -448,8 +643,16 @@ export const maze: SpellEntry = {
   id: "spell-maze",
   name: "Maze",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_maze", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_maze",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
@@ -468,7 +671,11 @@ export const mightyFortress: SpellEntry = {
   id: "spell-mighty-fortress",
   name: "Mighty Fortress",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.MINUTE],
@@ -494,8 +701,16 @@ export const mindBlank: SpellEntry = {
   id: "spell-mind-blank",
   name: "Mind Blank",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_mind-blank", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_mind-blank",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
@@ -514,7 +729,14 @@ export const powerWordStun: SpellEntry = {
   id: "spell-power-word-stun",
   name: "Power Word Stun",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_power-word-stun", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_power-word-stun",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
   castingTime: [ACTION_TYPE.ACTION],
@@ -528,7 +750,12 @@ export const powerWordStun: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.CON,
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [
+    SPELL_LIST_CLASS.BARD,
+    SPELL_LIST_CLASS.SORCERER,
+    SPELL_LIST_CLASS.WARLOCK,
+    SPELL_LIST_CLASS.WIZARD
+  ],
   spellLevel: 8
 };
 
@@ -536,8 +763,13 @@ export const realityBreak: SpellEntry = {
   id: "spell-reality-break",
   name: "Reality Break",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
@@ -545,7 +777,16 @@ export const realityBreak: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "You shatter the barriers between realities and timelines, thrusting a creature into turmoil and madness. The target must succeed on a Wisdom saving throw, or it can't take reactions until the spell ends. The affected target must also roll a <strong>d10</strong> at the start of each of its turns. The number rolled determines what happens to the target.",
-    { type: "list", style: "bullet", items: ["<strong>1-2. Vision of the Far Realm.</strong> The target takes <strong>6d12</strong> Psychic damage, and it is Stunned until the end of the turn.", "<strong>3-5. Rending Rift.</strong> The target must make a Dexterity saving throw, taking <strong>8d12</strong> Force damage on a failed save, or half as much damage on a successful save.", "<strong>6-8. Wormhole.</strong> The target is teleported, along with everything it is wearing and carrying, up to 30 feet to an unoccupied space of your choice that you can see. The target also takes <strong>10d12</strong> Force damage and is knocked Prone.", "<strong>9-10. Chill of the Dark Void.</strong> The target takes <strong>10d12</strong> Cold damage, and it is Blinded until the end of the turn."] },
+    {
+      type: "list",
+      style: "bullet",
+      items: [
+        "<strong>1-2. Vision of the Far Realm.</strong> The target takes <strong>6d12</strong> Psychic damage, and it is Stunned until the end of the turn.",
+        "<strong>3-5. Rending Rift.</strong> The target must make a Dexterity saving throw, taking <strong>8d12</strong> Force damage on a failed save, or half as much damage on a successful save.",
+        "<strong>6-8. Wormhole.</strong> The target is teleported, along with everything it is wearing and carrying, up to 30 feet to an unoccupied space of your choice that you can see. The target also takes <strong>10d12</strong> Force damage and is knocked Prone.",
+        "<strong>9-10. Chill of the Dark Void.</strong> The target takes <strong>10d12</strong> Cold damage, and it is Blinded until the end of the turn."
+      ]
+    },
     "At the end of each of its turns, the affected target can repeat the Wisdom saving throw, ending the spell on itself on a success."
   ],
   isSavingThrowSpell: true,
@@ -572,7 +813,14 @@ export const sunburst: SpellEntry = {
   id: "spell-sunburst",
   name: "Sunburst",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_sunburst", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_sunburst",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -601,7 +849,12 @@ export const sunburst: SpellEntry = {
     [DICE.D6, DAMAGE_TYPE.RADIANT]
   ],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [
+    SPELL_LIST_CLASS.CLERIC,
+    SPELL_LIST_CLASS.DRUID,
+    SPELL_LIST_CLASS.SORCERER,
+    SPELL_LIST_CLASS.WIZARD
+  ],
   spellLevel: 8
 };
 
@@ -609,8 +862,13 @@ export const telepathy: SpellEntry = {
   id: "spell-telepathy",
   name: "Telepathy",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Unlimited",
@@ -630,8 +888,16 @@ export const tsunami: SpellEntry = {
   id: "spell-tsunami",
   name: "Tsunami",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_tsunami", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_tsunami",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.MINUTE],
   range: "1 mile",

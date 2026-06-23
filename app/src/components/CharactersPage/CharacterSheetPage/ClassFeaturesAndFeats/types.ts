@@ -63,11 +63,7 @@ import type {
 } from "../../../../types";
 import type { FeatEligibilityResult } from "../../../../pages/CharactersPage/feats/eligibility";
 import type { SorcererMetamagicOptionDefinition } from "../../../../pages/CharactersPage/classFeatures/sorcerer/sorcerer";
-import type {
-  buildSkillSelectOptions,
-  buildToolSelectOptions,
-  SkillSelectOption
-} from "./helpers";
+import type { buildSkillSelectOptions, buildToolSelectOptions, SkillSelectOption } from "./helpers";
 
 export type FeatureRow = {
   key: string;
@@ -77,7 +73,10 @@ export type FeatureRow = {
   isSubclass: boolean;
 };
 
-export type TrackingButtonRenderer = (trackingState: TRACKER) => ReactNode;
+export type TrackingButtonRenderer = (
+  trackingState: TRACKER,
+  trackingMessage?: string
+) => ReactNode;
 
 type FeatureChoiceOption<TValue extends string = string> = {
   value: TValue;
@@ -134,6 +133,7 @@ export type SelectedKeyword = {
   key: string;
   title: string;
   description: string[];
+  trackingMessage?: string;
 };
 
 export type SelectedFeatReference = {

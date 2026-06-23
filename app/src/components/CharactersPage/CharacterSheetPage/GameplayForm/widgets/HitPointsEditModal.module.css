@@ -15,7 +15,7 @@
   border: none;
   border-radius: var(--radius-pill);
   background: transparent;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   cursor: pointer;
   font: inherit;
   font-weight: 700;
@@ -96,7 +96,7 @@
 }
 
 .field span {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0.06em;

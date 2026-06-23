@@ -28,7 +28,7 @@
 
 .equipmentGroupTitle {
   margin: 0;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.8rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -219,7 +219,7 @@
 
 .containerContentsHeader h4 {
   margin: 0;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.8rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -367,7 +367,7 @@
 
 .carryCapacityDivider,
 .carryCapacityLimit {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-weight: 600;
 }
 
@@ -394,7 +394,7 @@
   display: grid;
   margin: 0;
   place-items: center;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.92rem;
   text-align: center;
 }
@@ -558,7 +558,7 @@
 }
 
 .catalogItemType {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.74rem;
   line-height: 1.2;
 }
@@ -584,7 +584,7 @@
   min-height: 24px;
   border-radius: var(--radius-pill);
   background: rgba(75, 47, 29, 0.08);
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.74rem;
   font-weight: 600;
   letter-spacing: 0.01em;
@@ -663,7 +663,7 @@
 }
 
 .catalogItemAddedLabel {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.82rem;
   font-weight: 600;
   white-space: nowrap;
@@ -692,7 +692,7 @@
 }
 
 .catalogPaginationRow span {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.86rem;
 }
 
@@ -743,7 +743,7 @@
 }
 
 .currencySelectorButton span {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.7rem;
   letter-spacing: 0.07em;
   line-height: 1;
@@ -826,7 +826,7 @@
 .featureManagedItemNote {
   margin: 0;
   margin-right: auto;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.92rem;
   font-weight: 600;
 }

@@ -1,4 +1,8 @@
-import { getFeatureTrackingState, type DivinityEntry, type SpellEntry } from "../../../../codex/entries";
+import {
+  getFeatureTrackingState,
+  type DivinityEntry,
+  type SpellEntry
+} from "../../../../codex/entries";
 import { getFeatCategoryLabel, type FeatDefinition } from "../../../../pages/CharactersPage/feats";
 import type { CharacterFeatEntry } from "../../../../types";
 import { featureDisclosureStyles } from "../../../FeatureDisclosure";
@@ -22,7 +26,7 @@ type FeatReferenceDrawerProps = {
   featDefinition: FeatDefinition;
   onClose: () => void;
   renderTrackingButton: TrackingButtonRenderer;
-  onOpenKeyword: (keywordKey: string, title?: string) => void;
+  onOpenKeyword: (keywordKey: string, title?: string, trackingMessage?: string) => void;
   onOpenFeatReference: (feat: CharacterFeatEntry["feat"], entry?: CharacterFeatEntry) => void;
   onOpenSpellReference: (spell: SpellEntry) => void;
   onOpenDivinityReference: (divinity: DivinityEntry) => void;
@@ -58,11 +62,11 @@ function FeatReferenceDrawer({
           </OverlaySummary>
         </OverlayHeaderContent>
         <div className={styles.featDrawerHeaderActions}>
-          {renderTrackingButton(getFeatureTrackingState(featDefinition))}
-          <OverlayCloseButton
-            label={`Close ${featDefinition.label} reference`}
-            onClick={onClose}
-          />
+          {renderTrackingButton(
+            getFeatureTrackingState(featDefinition),
+            featDefinition.trackingMessage
+          )}
+          <OverlayCloseButton label={`Close ${featDefinition.label} reference`} onClick={onClose} />
         </div>
       </OverlayHeader>
 

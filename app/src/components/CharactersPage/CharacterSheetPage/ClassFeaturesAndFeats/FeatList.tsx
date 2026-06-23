@@ -60,7 +60,10 @@ function FeatList({
             }
             isRepeatable={isRepeatable}
             onClick={() => onOpenFeatReference(featDefinition.feat)}
-            headerActions={renderTrackingButton(getFeatureTrackingState(featDefinition))}
+            headerActions={renderTrackingButton(
+              getFeatureTrackingState(featDefinition),
+              featDefinition.trackingMessage
+            )}
           />
         );
       })}

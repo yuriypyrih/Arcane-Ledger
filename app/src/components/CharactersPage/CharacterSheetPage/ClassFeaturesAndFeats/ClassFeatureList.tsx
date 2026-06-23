@@ -51,7 +51,11 @@ import type {
 import { SKILL } from "../../../../types";
 import { formatCodexLabel } from "../../../../utils/codex";
 import { getMonsterKey, getMonsterSourceKey, getMonsterTypeName } from "../../../../utils/monsters";
-import { FeatureDisclosureRow, featureDisclosureStyles } from "../../../FeatureDisclosure";
+import {
+  FeatureDisclosureContentStack,
+  FeatureDisclosureRow,
+  featureDisclosureStyles
+} from "../../../FeatureDisclosure";
 import { MonsterEntryDrawer } from "../../../MonsterEntryRenderer";
 import { CharacterSheetSectionProfiler } from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetSectionProfiler";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
@@ -149,9 +153,9 @@ function FeatureDescriptionLines({
 }
 
 type ClassFeatureRowProps = {
-  bodyClassName: string;
   bodyId: string;
   character: Character;
+  contentClassName: string;
   featureKey: string;
   featureRow: FeatureRow;
   headerMeta: ReactNode;
@@ -167,8 +171,8 @@ type ClassFeatureRowProps = {
 
 const ClassFeatureRow = memo(
   function ClassFeatureRow({
-    bodyClassName,
     bodyId,
+    contentClassName,
     featureKey,
     headerMeta,
     isExpanded,
@@ -209,14 +213,15 @@ const ClassFeatureRow = memo(
         isExpanded={isExpanded}
         onToggle={handleToggle}
         bodyId={bodyId}
-        bodyClassName={bodyClassName}
         trackingButton={trackingButton}
         headerMeta={headerMeta}
         showDivider={showDivider}
       >
         {isBodyRenderReady ? (
           <CharacterSheetSectionProfiler id={`class-feature-body:${featureKey}`}>
-            {renderBody()}
+            <FeatureDisclosureContentStack className={contentClassName}>
+              {renderBody()}
+            </FeatureDisclosureContentStack>
           </CharacterSheetSectionProfiler>
         ) : null}
       </FeatureDisclosureRow>
@@ -224,6 +229,7 @@ const ClassFeatureRow = memo(
   },
   (previous, next) =>
     previous.character === next.character &&
+    previous.contentClassName === next.contentClassName &&
     previous.featureKey === next.featureKey &&
     previous.featureRow === next.featureRow &&
     previous.isExpanded === next.isExpanded &&
@@ -770,11 +776,11 @@ function ClassFeatureList({
               isExpanded={isFeatureExpanded}
               onToggleFeature={onToggleFeature}
               bodyId={featurePanelId}
-              bodyClassName={clsx(
-                featureDisclosureStyles.descriptionList,
-                styles.featureDescriptionList
+              contentClassName={styles.featureDescriptionList}
+              trackingButton={renderTrackingButton(
+                getFeatureTrackingState(featureDetails),
+                featureDetails.trackingMessage
               )}
-              trackingButton={renderTrackingButton(getFeatureTrackingState(featureDetails))}
               headerMeta={isInputRequired ? <InputRequiredBadge /> : null}
               isInputRequired={isInputRequired}
               linkedFeat={linkedFeat}

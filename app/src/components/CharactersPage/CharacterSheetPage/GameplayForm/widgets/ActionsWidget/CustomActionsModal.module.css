@@ -154,7 +154,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.76rem;
   font-weight: 700;
   white-space: nowrap;
@@ -176,7 +176,7 @@
 }
 
 .chargeHint {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.82rem;
   line-height: 1.45;
   margin: -0.15rem 0 0;

@@ -95,7 +95,7 @@
   --theme-magic-temp-hit-points-glow: rgba(76, 160, 232, 0.22);
   --theme-always-prepared-tag-background: rgba(222, 102, 158, 0.16);
   --theme-always-prepared-tag-color: #c04f86;
-  --theme-always-prepared-tag-detail: var(--color-ink-soft);
+  --theme-always-prepared-tag-detail: var(--theme-text-secondary);
   --theme-non-combat-action-background: #5c8dff;
   --theme-non-combat-action-border: #3d6fdd;
   --gradient-primary-action: linear-gradient(135deg, #2f6de0, #4a8eff);
@@ -116,7 +116,6 @@
   --theme-drawer-shadow: 0 28px 70px rgba(32, 18, 12, 0.35);
   --theme-busy-scrim: rgba(255, 252, 245, 0.64);
   --color-ink: #24150f;
-  --color-ink-soft: #5f3f2c;
   --color-accent: #a24d2d;
   --color-panel-strong: #fffaf1;
   --color-panel-surface: #fffdf8;
@@ -248,7 +247,6 @@
   --theme-drawer-shadow: 0 28px 84px rgba(0, 0, 0, 0.58);
   --theme-busy-scrim: rgba(20, 23, 28, 0.64);
   --color-ink: var(--theme-text-primary);
-  --color-ink-soft: var(--theme-text-secondary);
   --color-accent: var(--theme-accent);
   --color-panel-strong: var(--theme-surface-section);
   --color-panel-surface: var(--theme-surface-panel);

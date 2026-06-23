@@ -10,7 +10,7 @@
 
 .source {
   margin: 0;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.92rem;
   line-height: 1.4;
 }
@@ -25,7 +25,7 @@
 }
 
 .fieldLabel {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.82rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -58,7 +58,7 @@
 }
 
 .detailLabel {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.76rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;

@@ -11,12 +11,20 @@ import {
   TRACKER
 } from "../../entries/enums";
 import type { SpellEntry } from "../../entries/types";
+import { spellDurationOnlyTrackingMessage } from "../trackingMessages";
 
 export const animateDead: SpellEntry = {
   id: "spell-animate-dead",
   name: "Animate Dead",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_animate-dead", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_animate-dead",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.NECROMANCY,
   castingTime: [ACTION_TYPE.MINUTE],
@@ -25,7 +33,7 @@ export const animateDead: SpellEntry = {
   materialSpecified: "a drop of blood, a piece of flesh, and a pinch of bone dust",
   duration: ["Instantaneous"],
   description: [
-    "Choose a pile of bones or a corpse of a Medium or Small Humanoid within range. The target becomes an Undead creature: a Skeleton if you chose bones or a Zombie if you chose a corpse (see \"Monsters\" for the stat blocks). On each of your turns, you can take a Bonus Action to mentally command any creature you made with this spell if the creature is within 60 feet of you (if you control multiple creatures, you can command any of them at the same time, issuing the same command to each one). You decide what action the creature will take and where it will move on its next turn, or you can issue a general command, such as to guard a chamber or corridor. If you issue no commands, the creature takes the Dodge action and moves only to avoid harm. Once given an order, the creature continues to follow it until its task is complete. The creature is under your control for 24 hours, after which it stops obeying any command you've given it. To maintain control of the creature for another 24 hours, you must cast this spell on the creature again before the current 24-hour period ends. This use of the spell reasserts your control over up to four creatures you have animated with this spell rather than animating a new creature.",
+    'Choose a pile of bones or a corpse of a Medium or Small Humanoid within range. The target becomes an Undead creature: a Skeleton if you chose bones or a Zombie if you chose a corpse (see "Monsters" for the stat blocks). On each of your turns, you can take a Bonus Action to mentally command any creature you made with this spell if the creature is within 60 feet of you (if you control multiple creatures, you can command any of them at the same time, issuing the same command to each one). You decide what action the creature will take and where it will move on its next turn, or you can issue a general command, such as to guard a chamber or corridor. If you issue no commands, the creature takes the Dodge action and moves only to avoid harm. Once given an order, the creature continues to follow it until its task is complete. The creature is under your control for 24 hours, after which it stops obeying any command you\'ve given it. To maintain control of the creature for another 24 hours, you must cast this spell on the creature again before the current 24-hour period ends. This use of the spell reasserts your control over up to four creatures you have animated with this spell rather than animating a new creature.',
     "<strong>Using a Higher-Level Spell Slot.</strong> You animate or reassert control over two additional Undead creatures for each spell slot level above 3. Each of the creatures must come from a different corpse or pile of bones."
   ],
   damage: [],
@@ -38,7 +46,11 @@ export const antagonize: SpellEntry = {
   id: "spell-antagonize",
   name: "Antagonize",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
   castingTime: [ACTION_TYPE.ACTION],
@@ -59,7 +71,12 @@ export const antagonize: SpellEntry = {
     [DICE.D4, DAMAGE_TYPE.PSYCHIC]
   ],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [
+    SPELL_LIST_CLASS.BARD,
+    SPELL_LIST_CLASS.SORCERER,
+    SPELL_LIST_CLASS.WARLOCK,
+    SPELL_LIST_CLASS.WIZARD
+  ],
   spellLevel: 3
 };
 
@@ -67,8 +84,13 @@ export const ashardalonsStride: SpellEntry = {
   id: "spell-ashardalons-stride",
   name: "Ashardalon's Stride",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.BONUS_ACTION],
   range: "Self",
@@ -80,11 +102,14 @@ export const ashardalonsStride: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, increase your Speed by 5 feet for each spell slot level above 3rd. The spell deals an additional <strong>1d6</strong> Fire damage for each slot level above 3rd."
   ],
   isDamagingSpell: true,
-  damage: [
-    [DICE.D6, DAMAGE_TYPE.FIRE]
-  ],
+  damage: [[DICE.D6, DAMAGE_TYPE.FIRE]],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.RANGER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [
+    SPELL_LIST_CLASS.ARTIFICER,
+    SPELL_LIST_CLASS.RANGER,
+    SPELL_LIST_CLASS.SORCERER,
+    SPELL_LIST_CLASS.WIZARD
+  ],
   spellLevel: 3
 };
 
@@ -92,8 +117,13 @@ export const auraOfVitality: SpellEntry = {
   id: "spell-aura-of-vitality",
   name: "Aura of Vitality",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self (30-foot radius)",
@@ -113,8 +143,16 @@ export const beaconOfHope: SpellEntry = {
   id: "spell-beacon-of-hope",
   name: "Beacon of Hope",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_beacon-of-hope", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_beacon-of-hope",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "30 feet",
@@ -135,8 +173,16 @@ export const bestowCurse: SpellEntry = {
   id: "spell-bestow-curse",
   name: "Bestow Curse",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_bestow-curse", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_bestow-curse",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.NECROMANCY,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
@@ -150,9 +196,7 @@ export const bestowCurse: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.WIS,
   isAttackSpell: true,
   isDamagingSpell: true,
-  damage: [
-    [DICE.D8, DAMAGE_TYPE.NECROTIC]
-  ],
+  damage: [[DICE.D8, DAMAGE_TYPE.NECROTIC]],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 3
@@ -162,8 +206,13 @@ export const blindingSmite: SpellEntry = {
   id: "spell-blinding-smite",
   name: "Blinding Smite",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.BONUS_ACTION],
   range: "Self",
@@ -190,8 +239,16 @@ export const blink: SpellEntry = {
   id: "spell-blink",
   name: "Blink",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_blink", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_blink",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
@@ -210,8 +267,16 @@ export const callLightning: SpellEntry = {
   id: "spell-call-lightning",
   name: "Call Lightning",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_call-lightning", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_call-lightning",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "120 feet",
@@ -233,8 +298,13 @@ export const catnap: SpellEntry = {
   id: "spell-catnap",
   name: "Catnap",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
   castingTime: [ACTION_TYPE.ACTION],
   range: "30 feet",
@@ -245,7 +315,12 @@ export const catnap: SpellEntry = {
   ],
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [
+    SPELL_LIST_CLASS.ARTIFICER,
+    SPELL_LIST_CLASS.BARD,
+    SPELL_LIST_CLASS.SORCERER,
+    SPELL_LIST_CLASS.WIZARD
+  ],
   spellLevel: 3
 };
 
@@ -253,20 +328,34 @@ export const clairvoyance: SpellEntry = {
   id: "spell-clairvoyance",
   name: "Clairvoyance",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_clairvoyance", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_clairvoyance",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.DIVINATION,
   castingTime: [ACTION_TYPE.TEN_MINUTES],
   range: "1 mile",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  materialSpecified: "a focus worth 100+ GP, either a jeweled horn for hearing or a glass eye for seeing",
+  materialSpecified:
+    "a focus worth 100+ GP, either a jeweled horn for hearing or a glass eye for seeing",
   duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: [
     "You create an Invisible sensor within range in a location familiar to you (a place you have visited or seen before) or in an obvious location that is unfamiliar to you (such as behind a door, around a corner, or in a grove of trees). The intangible, invulnerable sensor remains in place for the duration. When you cast the spell, choose seeing or hearing. You can use the chosen sense through the sensor as if you were in its space. As a Bonus Action, you can switch between seeing and hearing. A creature that sees the sensor (such as a creature benefiting from See Invisibility or Truesight) sees a luminous orb about the size of your fist."
   ],
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [
+    SPELL_LIST_CLASS.BARD,
+    SPELL_LIST_CLASS.CLERIC,
+    SPELL_LIST_CLASS.SORCERER,
+    SPELL_LIST_CLASS.WIZARD
+  ],
   spellLevel: 3
 };
 
@@ -274,8 +363,16 @@ export const conjureAnimals: SpellEntry = {
   id: "spell-conjure-animals",
   name: "Conjure Animals",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_conjure-animals", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_conjure-animals",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
@@ -302,7 +399,11 @@ export const conjureBarrage: SpellEntry = {
   id: "spell-conjure-barrage",
   name: "Conjure Barrage",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -329,8 +430,13 @@ export const conjureLesserDemon: SpellEntry = {
   id: "spell-conjure-lesser-demon",
   name: "Conjure Lesser Demon",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
@@ -352,10 +458,20 @@ export const counterspell: SpellEntry = {
   id: "spell-counterspell",
   name: "Counterspell",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_counterspell", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_counterspell",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
-  castingTime: [ACTION_TYPE.REACTION, "which you take when you see a creature within 60 feet of yourself casting a spell with Verbal, Somatic, or Material components"],
+  castingTime: [
+    ACTION_TYPE.REACTION,
+    "which you take when you see a creature within 60 feet of yourself casting a spell with Verbal, Somatic, or Material components"
+  ],
   range: "60 feet",
   components: [SPELL_COMPONENT.S],
   duration: ["Instantaneous"],
@@ -374,7 +490,14 @@ export const createFoodAndWater: SpellEntry = {
   id: "spell-create-food-and-water",
   name: "Create Food and Water",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_create-food-and-water", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_create-food-and-water",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -394,8 +517,13 @@ export const crusadersMantle: SpellEntry = {
   id: "spell-crusaders-mantle",
   name: "Crusader's Mantle",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
@@ -405,9 +533,7 @@ export const crusadersMantle: SpellEntry = {
     "Holy power radiates from you in an aura with a 30-foot radius, awakening boldness in friendly creatures. Until the spell ends, the aura moves with you, centered on you. While in the aura, each non-hostile creature in the aura, including you, deals an extra <strong>1d4</strong> Radiant damage when it hits with a weapon attack."
   ],
   isDamagingSpell: true,
-  damage: [
-    [DICE.D4, DAMAGE_TYPE.RADIANT]
-  ],
+  damage: [[DICE.D4, DAMAGE_TYPE.RADIANT]],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.PALADIN],
   spellLevel: 3
@@ -417,8 +543,16 @@ export const daylight: SpellEntry = {
   id: "spell-daylight",
   name: "Daylight",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_daylight", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_daylight",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
@@ -429,7 +563,13 @@ export const daylight: SpellEntry = {
   ],
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.PALADIN, SPELL_LIST_CLASS.RANGER, SPELL_LIST_CLASS.SORCERER],
+  spellLists: [
+    SPELL_LIST_CLASS.CLERIC,
+    SPELL_LIST_CLASS.DRUID,
+    SPELL_LIST_CLASS.PALADIN,
+    SPELL_LIST_CLASS.RANGER,
+    SPELL_LIST_CLASS.SORCERER
+  ],
   spellLevel: 3
 };
 
@@ -437,7 +577,14 @@ export const dispelMagic: SpellEntry = {
   id: "spell-dispel-magic",
   name: "Dispel Magic",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_dispel-magic", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_dispel-magic",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -450,7 +597,17 @@ export const dispelMagic: SpellEntry = {
   ],
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.PALADIN, SPELL_LIST_CLASS.RANGER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [
+    SPELL_LIST_CLASS.ARTIFICER,
+    SPELL_LIST_CLASS.BARD,
+    SPELL_LIST_CLASS.CLERIC,
+    SPELL_LIST_CLASS.DRUID,
+    SPELL_LIST_CLASS.PALADIN,
+    SPELL_LIST_CLASS.RANGER,
+    SPELL_LIST_CLASS.SORCERER,
+    SPELL_LIST_CLASS.WARLOCK,
+    SPELL_LIST_CLASS.WIZARD
+  ],
   spellLevel: 3
 };
 
@@ -458,8 +615,13 @@ export const elementalWeapon: SpellEntry = {
   id: "spell-elemental-weapon",
   name: "Elemental Weapon",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
@@ -471,10 +633,24 @@ export const elementalWeapon: SpellEntry = {
   ],
   isDamagingSpell: true,
   damage: [
-    [DICE.D4, [DAMAGE_TYPE.ACID, DAMAGE_TYPE.COLD, DAMAGE_TYPE.FIRE, DAMAGE_TYPE.LIGHTNING, DAMAGE_TYPE.THUNDER]]
+    [
+      DICE.D4,
+      [
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.COLD,
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.THUNDER
+      ]
+    ]
   ],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.PALADIN, SPELL_LIST_CLASS.RANGER],
+  spellLists: [
+    SPELL_LIST_CLASS.ARTIFICER,
+    SPELL_LIST_CLASS.DRUID,
+    SPELL_LIST_CLASS.PALADIN,
+    SPELL_LIST_CLASS.RANGER
+  ],
   spellLevel: 3
 };
 
@@ -482,8 +658,13 @@ export const enemiesAbound: SpellEntry = {
   id: "spell-enemies-abound",
   name: "Enemies Abound",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
   castingTime: [ACTION_TYPE.ACTION],
   range: "120 feet",
@@ -497,7 +678,12 @@ export const enemiesAbound: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.INT,
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [
+    SPELL_LIST_CLASS.BARD,
+    SPELL_LIST_CLASS.SORCERER,
+    SPELL_LIST_CLASS.WARLOCK,
+    SPELL_LIST_CLASS.WIZARD
+  ],
   spellLevel: 3
 };
 
@@ -505,7 +691,11 @@ export const eruptingEarth: SpellEntry = {
   id: "spell-erupting-earth",
   name: "Erupting Earth",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -533,8 +723,13 @@ export const fastFriends: SpellEntry = {
   id: "spell-fast-friends",
   name: "Fast Friends",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
   castingTime: [ACTION_TYPE.ACTION],
   range: "30 feet",
@@ -558,8 +753,16 @@ export const fear: SpellEntry = {
   id: "spell-fear",
   name: "Fear",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_fear", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_fear",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ILLUSION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
@@ -573,7 +776,12 @@ export const fear: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [
+    SPELL_LIST_CLASS.BARD,
+    SPELL_LIST_CLASS.SORCERER,
+    SPELL_LIST_CLASS.WARLOCK,
+    SPELL_LIST_CLASS.WIZARD
+  ],
   spellLevel: 3
 };
 
@@ -581,8 +789,13 @@ export const feignDeath: SpellEntry = {
   id: "spell-feign-death",
   name: "Feign Death",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.NECROMANCY,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
@@ -594,7 +807,12 @@ export const feignDeath: SpellEntry = {
   ],
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [
+    SPELL_LIST_CLASS.BARD,
+    SPELL_LIST_CLASS.CLERIC,
+    SPELL_LIST_CLASS.DRUID,
+    SPELL_LIST_CLASS.WIZARD
+  ],
   spellLevel: 3,
   ritual: true
 };
@@ -603,7 +821,14 @@ export const fireball: SpellEntry = {
   id: "spell-fireball",
   name: "Fireball",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_fireball", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_fireball",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -627,8 +852,13 @@ export const flameArrows: SpellEntry = {
   id: "spell-flame-arrows",
   name: "Flame Arrows",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
@@ -639,11 +869,15 @@ export const flameArrows: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, the number of pieces of ammunition you can affect with this spell increases by two for each slot level above 3rd."
   ],
   isDamagingSpell: true,
-  damage: [
-    [DICE.D6, DAMAGE_TYPE.FIRE]
-  ],
+  damage: [[DICE.D6, DAMAGE_TYPE.FIRE]],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.RANGER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD, SPELL_LIST_CLASS.ARTIFICER],
+  spellLists: [
+    SPELL_LIST_CLASS.DRUID,
+    SPELL_LIST_CLASS.RANGER,
+    SPELL_LIST_CLASS.SORCERER,
+    SPELL_LIST_CLASS.WIZARD,
+    SPELL_LIST_CLASS.ARTIFICER
+  ],
   spellLevel: 3
 };
 
@@ -651,8 +885,13 @@ export const flameStride: SpellEntry = {
   id: "spell-flame-stride",
   name: "Flame Stride",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.BONUS_ACTION],
   range: "Self",
@@ -663,11 +902,14 @@ export const flameStride: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, increase your Speed by 5 feet for each slot level above 3rd. Additionally, the spell deals an additional <strong>1d6</strong> Fire damage for each slot level above 3rd."
   ],
   isDamagingSpell: true,
-  damage: [
-    [DICE.D6, DAMAGE_TYPE.FIRE]
-  ],
+  damage: [[DICE.D6, DAMAGE_TYPE.FIRE]],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.RANGER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [
+    SPELL_LIST_CLASS.ARTIFICER,
+    SPELL_LIST_CLASS.RANGER,
+    SPELL_LIST_CLASS.SORCERER,
+    SPELL_LIST_CLASS.WIZARD
+  ],
   spellLevel: 3
 };
 
@@ -675,8 +917,16 @@ export const fly: SpellEntry = {
   id: "spell-fly",
   name: "Fly",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_fly", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_fly",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
@@ -689,7 +939,12 @@ export const fly: SpellEntry = {
   ],
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [
+    SPELL_LIST_CLASS.ARTIFICER,
+    SPELL_LIST_CLASS.SORCERER,
+    SPELL_LIST_CLASS.WARLOCK,
+    SPELL_LIST_CLASS.WIZARD
+  ],
   spellLevel: 3
 };
 
@@ -697,8 +952,13 @@ export const galdersTower: SpellEntry = {
   id: "spell-galders-tower",
   name: "Galder's Tower",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.TEN_MINUTES],
   range: "30 feet",
@@ -727,8 +987,16 @@ export const gaseousForm: SpellEntry = {
   id: "spell-gaseous-form",
   name: "Gaseous Form",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_gaseous-form", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_gaseous-form",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
@@ -751,8 +1019,16 @@ export const glyphOfWarding: SpellEntry = {
   id: "spell-glyph-of-warding",
   name: "Glyph of Warding",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_glyph-of-warding", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_glyph-of-warding",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.HOUR],
   range: "Touch",
@@ -772,14 +1048,64 @@ export const glyphOfWarding: SpellEntry = {
   ],
   isDamagingSpell: true,
   damage: [
-    [DICE.D8, [DAMAGE_TYPE.ACID, DAMAGE_TYPE.COLD, DAMAGE_TYPE.FIRE, DAMAGE_TYPE.LIGHTNING, DAMAGE_TYPE.THUNDER]],
-    [DICE.D8, [DAMAGE_TYPE.ACID, DAMAGE_TYPE.COLD, DAMAGE_TYPE.FIRE, DAMAGE_TYPE.LIGHTNING, DAMAGE_TYPE.THUNDER]],
-    [DICE.D8, [DAMAGE_TYPE.ACID, DAMAGE_TYPE.COLD, DAMAGE_TYPE.FIRE, DAMAGE_TYPE.LIGHTNING, DAMAGE_TYPE.THUNDER]],
-    [DICE.D8, [DAMAGE_TYPE.ACID, DAMAGE_TYPE.COLD, DAMAGE_TYPE.FIRE, DAMAGE_TYPE.LIGHTNING, DAMAGE_TYPE.THUNDER]],
-    [DICE.D8, [DAMAGE_TYPE.ACID, DAMAGE_TYPE.COLD, DAMAGE_TYPE.FIRE, DAMAGE_TYPE.LIGHTNING, DAMAGE_TYPE.THUNDER]]
+    [
+      DICE.D8,
+      [
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.COLD,
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.THUNDER
+      ]
+    ],
+    [
+      DICE.D8,
+      [
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.COLD,
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.THUNDER
+      ]
+    ],
+    [
+      DICE.D8,
+      [
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.COLD,
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.THUNDER
+      ]
+    ],
+    [
+      DICE.D8,
+      [
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.COLD,
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.THUNDER
+      ]
+    ],
+    [
+      DICE.D8,
+      [
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.COLD,
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.THUNDER
+      ]
+    ]
   ],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [
+    SPELL_LIST_CLASS.ARTIFICER,
+    SPELL_LIST_CLASS.BARD,
+    SPELL_LIST_CLASS.CLERIC,
+    SPELL_LIST_CLASS.WIZARD
+  ],
   spellLevel: 3
 };
 
@@ -787,8 +1113,16 @@ export const haste: SpellEntry = {
   id: "spell-haste",
   name: "Haste",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_haste", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_haste",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "30 feet",
@@ -810,8 +1144,13 @@ export const haywire: SpellEntry = {
   id: "spell-haywire",
   name: "Haywire",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
   castingTime: [ACTION_TYPE.ACTION],
   range: "90 feet",
@@ -846,8 +1185,13 @@ export const houseOfCards: SpellEntry = {
   id: "spell-house-of-cards",
   name: "House of Cards",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.MINUTE],
   range: "Touch",
@@ -860,7 +1204,12 @@ export const houseOfCards: SpellEntry = {
   ],
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [
+    SPELL_LIST_CLASS.ARTIFICER,
+    SPELL_LIST_CLASS.BARD,
+    SPELL_LIST_CLASS.SORCERER,
+    SPELL_LIST_CLASS.WIZARD
+  ],
   spellLevel: 3
 };
 
@@ -868,8 +1217,13 @@ export const hungerOfHadar: SpellEntry = {
   id: "spell-hunger-of-hadar",
   name: "Hunger of Hadar",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "150 feet",
@@ -897,8 +1251,16 @@ export const hypnoticPattern: SpellEntry = {
   id: "spell-hypnotic-pattern",
   name: "Hypnotic Pattern",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_hypnotic-pattern", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_hypnotic-pattern",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ILLUSION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "120 feet",
@@ -912,7 +1274,12 @@ export const hypnoticPattern: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [
+    SPELL_LIST_CLASS.BARD,
+    SPELL_LIST_CLASS.SORCERER,
+    SPELL_LIST_CLASS.WARLOCK,
+    SPELL_LIST_CLASS.WIZARD
+  ],
   spellLevel: 3
 };
 
@@ -920,8 +1287,13 @@ export const inciteGreed: SpellEntry = {
   id: "spell-incite-greed",
   name: "Incite Greed",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
   castingTime: [ACTION_TYPE.ACTION],
   range: "30 feet",
@@ -935,7 +1307,12 @@ export const inciteGreed: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [
+    SPELL_LIST_CLASS.CLERIC,
+    SPELL_LIST_CLASS.SORCERER,
+    SPELL_LIST_CLASS.WARLOCK,
+    SPELL_LIST_CLASS.WIZARD
+  ],
   spellLevel: 3
 };
 
@@ -943,8 +1320,13 @@ export const intellectFortress: SpellEntry = {
   id: "spell-intellect-fortress",
   name: "Intellect Fortress",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "30 feet",
@@ -956,7 +1338,13 @@ export const intellectFortress: SpellEntry = {
   ],
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [
+    SPELL_LIST_CLASS.ARTIFICER,
+    SPELL_LIST_CLASS.BARD,
+    SPELL_LIST_CLASS.SORCERER,
+    SPELL_LIST_CLASS.WARLOCK,
+    SPELL_LIST_CLASS.WIZARD
+  ],
   spellLevel: 3
 };
 
@@ -964,8 +1352,13 @@ export const invisibilityToCameras: SpellEntry = {
   id: "spell-invisibility-to-cameras",
   name: "Invisibility To Cameras",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ILLUSION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "10 feet",
@@ -984,7 +1377,11 @@ export const lifeTransference: SpellEntry = {
   id: "spell-life-transference",
   name: "Life Transference",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.NECROMANCY,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1012,8 +1409,13 @@ export const lightningArrow: SpellEntry = {
   id: "spell-lightning-arrow",
   name: "Lightning Arrow",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.BONUS_ACTION],
   range: "Self",
@@ -1043,7 +1445,14 @@ export const lightningBolt: SpellEntry = {
   id: "spell-lightning-bolt",
   name: "Lightning Bolt",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_lightning-bolt", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_lightning-bolt",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1067,8 +1476,16 @@ export const magicCircle: SpellEntry = {
   id: "spell-magic-circle",
   name: "Magic Circle",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_magic-circle", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_magic-circle",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.MINUTE],
   range: "10 feet",
@@ -1077,7 +1494,15 @@ export const magicCircle: SpellEntry = {
   duration: ["1 hour"],
   description: [
     "You create a 10-foot-radius, 20-foot-tall Cylinder of magical energy centered on a point on the ground that you can see within range. Glowing runes appear wherever the Cylinder intersects with the floor or other surface. Choose one or more of the following types of creatures: Celestials, Elementals, Fey, Fiends, or Undead. The circle affects a creature of the chosen type in the following ways:",
-    { type: "list", style: "bullet", items: ["The creature can't willingly enter the Cylinder by nonmagical means. If the creature tries to use teleportation or interplanar travel to do so, it must first succeed on a Charisma saving throw.", "The creature has Disadvantage on attack rolls against targets within the Cylinder.", "Targets within the Cylinder can't be possessed by or gain the Charmed or Frightened condition from the creature. Each time you cast this spell, you can cause its magic to operate in the reverse direction, preventing a creature of the specified type from leaving the Cylinder and protecting targets outside it."] },
+    {
+      type: "list",
+      style: "bullet",
+      items: [
+        "The creature can't willingly enter the Cylinder by nonmagical means. If the creature tries to use teleportation or interplanar travel to do so, it must first succeed on a Charisma saving throw.",
+        "The creature has Disadvantage on attack rolls against targets within the Cylinder.",
+        "Targets within the Cylinder can't be possessed by or gain the Charmed or Frightened condition from the creature. Each time you cast this spell, you can cause its magic to operate in the reverse direction, preventing a creature of the specified type from leaving the Cylinder and protecting targets outside it."
+      ]
+    },
     "<strong>Using a Higher-Level Spell Slot.</strong> The duration increases by 1 hour for each spell slot level above 3."
   ],
   isSavingThrowSpell: true,
@@ -1085,7 +1510,12 @@ export const magicCircle: SpellEntry = {
   isAttackSpell: true,
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.PALADIN, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [
+    SPELL_LIST_CLASS.CLERIC,
+    SPELL_LIST_CLASS.PALADIN,
+    SPELL_LIST_CLASS.WARLOCK,
+    SPELL_LIST_CLASS.WIZARD
+  ],
   spellLevel: 3
 };
 
@@ -1093,8 +1523,16 @@ export const majorImage: SpellEntry = {
   id: "spell-major-image",
   name: "Major Image",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_major-image", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_major-image",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ILLUSION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "120 feet",
@@ -1107,7 +1545,12 @@ export const majorImage: SpellEntry = {
   ],
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [
+    SPELL_LIST_CLASS.BARD,
+    SPELL_LIST_CLASS.SORCERER,
+    SPELL_LIST_CLASS.WARLOCK,
+    SPELL_LIST_CLASS.WIZARD
+  ],
   spellLevel: 3
 };
 
@@ -1115,7 +1558,14 @@ export const massHealingWord: SpellEntry = {
   id: "spell-mass-healing-word",
   name: "Mass Healing Word",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_mass-healing-word", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_mass-healing-word",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.BONUS_ACTION],
@@ -1137,8 +1587,16 @@ export const meldIntoStone: SpellEntry = {
   id: "spell-meld-into-stone",
   name: "Meld into Stone",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_meld-into-stone", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_meld-into-stone",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
@@ -1166,8 +1624,13 @@ export const melfsMinuteMeteors: SpellEntry = {
   id: "spell-melfs-minute-meteors",
   name: "Melf's Minute Meteors",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
@@ -1193,8 +1656,13 @@ export const motivationalSpeech: SpellEntry = {
   id: "spell-motivational-speech",
   name: "Motivational Speech",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
   castingTime: [ACTION_TYPE.MINUTE],
   range: "60 feet",
@@ -1214,8 +1682,16 @@ export const nondetection: SpellEntry = {
   id: "spell-nondetection",
   name: "Nondetection",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_nondetection", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_nondetection",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
@@ -1235,15 +1711,23 @@ export const phantomSteed: SpellEntry = {
   id: "spell-phantom-steed",
   name: "Phantom Steed",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_phantom-steed", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_phantom-steed",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ILLUSION,
   castingTime: [ACTION_TYPE.MINUTE],
   range: "30 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["1 hour"],
   description: [
-    "A Large, quasi-real, horselike creature appears on the ground in an unoccupied space of your choice within range. You decide the creature's appearance, and it is equipped with a saddle, bit, and bridle. Any of the equipment created by the spell vanishes in a puff of smoke if it is carried more than 10 feet away from the steed. For the duration, you or a creature you choose can ride the steed. The steed uses the Riding Horse stat block (see \"Monsters\"), except it has a Speed of 100 feet and can travel 13 miles in an hour. When the spell ends, the steed gradually fades, giving the rider 1 minute to dismount. The spell ends early if the steed takes any damage."
+    'A Large, quasi-real, horselike creature appears on the ground in an unoccupied space of your choice within range. You decide the creature\'s appearance, and it is equipped with a saddle, bit, and bridle. Any of the equipment created by the spell vanishes in a puff of smoke if it is carried more than 10 feet away from the steed. For the duration, you or a creature you choose can ride the steed. The steed uses the Riding Horse stat block (see "Monsters"), except it has a Speed of 100 feet and can travel 13 miles in an hour. When the spell ends, the steed gradually fades, giving the rider 1 minute to dismount. The spell ends early if the steed takes any damage.'
   ],
   damage: [],
   healing: [],
@@ -1256,7 +1740,14 @@ export const plantGrowth: SpellEntry = {
   id: "spell-plant-growth",
   name: "Plant Growth",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_plant-growth", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_plant-growth",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION, "or", ACTION_TYPE.EIGHT_HOURS],
@@ -1278,8 +1769,13 @@ export const protectionFromBallistics: SpellEntry = {
   id: "spell-protection-from-ballistics",
   name: "Protection from Ballistics",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
@@ -1298,8 +1794,16 @@ export const protectionFromEnergy: SpellEntry = {
   id: "spell-protection-from-energy",
   name: "Protection from Energy",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_protection-from-energy", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_protection-from-energy",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
@@ -1310,7 +1814,14 @@ export const protectionFromEnergy: SpellEntry = {
   ],
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.RANGER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [
+    SPELL_LIST_CLASS.ARTIFICER,
+    SPELL_LIST_CLASS.CLERIC,
+    SPELL_LIST_CLASS.DRUID,
+    SPELL_LIST_CLASS.RANGER,
+    SPELL_LIST_CLASS.SORCERER,
+    SPELL_LIST_CLASS.WIZARD
+  ],
   spellLevel: 3
 };
 
@@ -1318,7 +1829,11 @@ export const psionicBlast: SpellEntry = {
   id: "spell-psionic-blast",
   name: "Psionic Blast",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1348,7 +1863,11 @@ export const pulseWave: SpellEntry = {
   id: "spell-pulse-wave",
   name: "Pulse Wave",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1380,7 +1899,14 @@ export const removeCurse: SpellEntry = {
   id: "spell-remove-curse",
   name: "Remove Curse",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_remove-curse", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_remove-curse",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1392,7 +1918,12 @@ export const removeCurse: SpellEntry = {
   ],
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.PALADIN, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [
+    SPELL_LIST_CLASS.CLERIC,
+    SPELL_LIST_CLASS.PALADIN,
+    SPELL_LIST_CLASS.WARLOCK,
+    SPELL_LIST_CLASS.WIZARD
+  ],
   spellLevel: 3
 };
 
@@ -1400,7 +1931,14 @@ export const revivify: SpellEntry = {
   id: "spell-revivify",
   name: "Revivify",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_revivify", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_revivify",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.NECROMANCY,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1413,7 +1951,13 @@ export const revivify: SpellEntry = {
   ],
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.PALADIN, SPELL_LIST_CLASS.RANGER],
+  spellLists: [
+    SPELL_LIST_CLASS.ARTIFICER,
+    SPELL_LIST_CLASS.CLERIC,
+    SPELL_LIST_CLASS.DRUID,
+    SPELL_LIST_CLASS.PALADIN,
+    SPELL_LIST_CLASS.RANGER
+  ],
   spellLevel: 3
 };
 
@@ -1421,7 +1965,14 @@ export const sending: SpellEntry = {
   id: "spell-sending",
   name: "Sending",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_sending", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_sending",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.DIVINATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1442,8 +1993,16 @@ export const sleetStorm: SpellEntry = {
   id: "spell-sleet-storm",
   name: "Sleet Storm",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_sleet-storm", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_sleet-storm",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "150 feet",
@@ -1465,8 +2024,16 @@ export const slow: SpellEntry = {
   id: "spell-slow",
   name: "Slow",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_slow", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_slow",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "120 feet",
@@ -1488,8 +2055,16 @@ export const speakWithDead: SpellEntry = {
   id: "spell-speak-with-dead",
   name: "Speak with Dead",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_speak-with-dead", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_speak-with-dead",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.NECROMANCY,
   castingTime: [ACTION_TYPE.ACTION],
   range: "10 feet",
@@ -1509,8 +2084,16 @@ export const speakWithPlants: SpellEntry = {
   id: "spell-speak-with-plants",
   name: "Speak with Plants",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_speak-with-plants", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_speak-with-plants",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
@@ -1529,8 +2112,16 @@ export const spiritGuardians: SpellEntry = {
   id: "spell-spirit-guardians",
   name: "Spirit Guardians",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_spirit-guardians", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_spirit-guardians",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
@@ -1561,8 +2152,13 @@ export const spiritShroud: SpellEntry = {
   id: "spell-spirit-shroud",
   name: "Spirit Shroud",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.NECROMANCY,
   castingTime: [ACTION_TYPE.BONUS_ACTION],
   range: "Self",
@@ -1575,11 +2171,14 @@ export const spiritShroud: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, the damage increases by <strong>1d8</strong> for every two slot levels above 3rd."
   ],
   isDamagingSpell: true,
-  damage: [
-    [DICE.D8, [DAMAGE_TYPE.RADIANT, DAMAGE_TYPE.NECROTIC, DAMAGE_TYPE.COLD]]
-  ],
+  damage: [[DICE.D8, [DAMAGE_TYPE.RADIANT, DAMAGE_TYPE.NECROTIC, DAMAGE_TYPE.COLD]]],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.PALADIN, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [
+    SPELL_LIST_CLASS.CLERIC,
+    SPELL_LIST_CLASS.PALADIN,
+    SPELL_LIST_CLASS.WARLOCK,
+    SPELL_LIST_CLASS.WIZARD
+  ],
   spellLevel: 3
 };
 
@@ -1587,8 +2186,16 @@ export const stinkingCloud: SpellEntry = {
   id: "spell-stinking-cloud",
   name: "Stinking Cloud",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_stinking-cloud", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_stinking-cloud",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "90 feet",
@@ -1610,8 +2217,13 @@ export const summonFey: SpellEntry = {
   id: "spell-summon-fey",
   name: "Summon Fey",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "90 feet",
@@ -1628,7 +2240,12 @@ export const summonFey: SpellEntry = {
     [DICE.D6, DAMAGE_TYPE.FORCE]
   ],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.RANGER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [
+    SPELL_LIST_CLASS.DRUID,
+    SPELL_LIST_CLASS.RANGER,
+    SPELL_LIST_CLASS.WARLOCK,
+    SPELL_LIST_CLASS.WIZARD
+  ],
   spellLevel: 3
 };
 
@@ -1636,8 +2253,13 @@ export const summonLesserDemons: SpellEntry = {
   id: "spell-summon-lesser-demons",
   name: "Summon Lesser Demons",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
@@ -1663,8 +2285,13 @@ export const summonShadowspawn: SpellEntry = {
   id: "spell-summon-shadowspawn",
   name: "Summon Shadowspawn",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "90 feet",
@@ -1676,9 +2303,7 @@ export const summonShadowspawn: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast the spell using a spell slot of 4th level or higher, use the higher level wherever the spell's level appears in the stat block."
   ],
   isDamagingSpell: true,
-  damage: [
-    [DICE.D12, DAMAGE_TYPE.COLD]
-  ],
+  damage: [[DICE.D12, DAMAGE_TYPE.COLD]],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 3
@@ -1688,8 +2313,13 @@ export const summonUndead: SpellEntry = {
   id: "spell-summon-undead",
   name: "Summon Undead",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.NECROMANCY,
   castingTime: [ACTION_TYPE.ACTION],
   range: "90 feet",
@@ -1714,8 +2344,13 @@ export const summonWarriorSpirit: SpellEntry = {
   id: "spell-summon-warrior-spirit",
   name: "Summon Warrior Spirit",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "90 feet",
@@ -1740,7 +2375,11 @@ export const thunderStep: SpellEntry = {
   id: "spell-thunder-step",
   name: "Thunder Step",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1769,7 +2408,11 @@ export const tidalWave: SpellEntry = {
   id: "spell-tidal-wave",
   name: "Tidal Wave",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1797,8 +2440,16 @@ export const tinyHut: SpellEntry = {
   id: "spell-tiny-hut",
   name: "Tiny Hut",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_tiny-hut", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_tiny-hut",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.MINUTE],
   range: "Self",
@@ -1819,8 +2470,13 @@ export const tinyServant: SpellEntry = {
   id: "spell-tiny-servant",
   name: "Tiny Servant",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.MINUTE],
   range: "Touch",
@@ -1833,9 +2489,7 @@ export const tinyServant: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, you can animate two additional objects for each slot level above 3rd."
   ],
   isDamagingSpell: true,
-  damage: [
-    [DICE.D4, DAMAGE_TYPE.BLUDGEONING]
-  ],
+  damage: [[DICE.D4, DAMAGE_TYPE.BLUDGEONING]],
   healing: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD, SPELL_LIST_CLASS.ARTIFICER],
   spellLevel: 3
@@ -1845,8 +2499,16 @@ export const tongues: SpellEntry = {
   id: "spell-tongues",
   name: "Tongues",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_tongues", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_tongues",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.DIVINATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
@@ -1858,7 +2520,13 @@ export const tongues: SpellEntry = {
   ],
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [
+    SPELL_LIST_CLASS.BARD,
+    SPELL_LIST_CLASS.CLERIC,
+    SPELL_LIST_CLASS.SORCERER,
+    SPELL_LIST_CLASS.WARLOCK,
+    SPELL_LIST_CLASS.WIZARD
+  ],
   spellLevel: 3
 };
 
@@ -1866,8 +2534,16 @@ export const vampiricTouch: SpellEntry = {
   id: "spell-vampiric-touch",
   name: "Vampiric Touch",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_vampiric-touch", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_vampiric-touch",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.NECROMANCY,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
@@ -1894,8 +2570,13 @@ export const wallOfSand: SpellEntry = {
   id: "spell-wall-of-sand",
   name: "Wall of Sand",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "90 feet",
@@ -1914,8 +2595,13 @@ export const wallOfWater: SpellEntry = {
   id: "spell-wall-of-water",
   name: "Wall of Water",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
@@ -1935,8 +2621,16 @@ export const waterBreathing: SpellEntry = {
   id: "spell-water-breathing",
   name: "Water Breathing",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_water-breathing", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_water-breathing",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "30 feet",
@@ -1948,7 +2642,13 @@ export const waterBreathing: SpellEntry = {
   ],
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.RANGER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [
+    SPELL_LIST_CLASS.ARTIFICER,
+    SPELL_LIST_CLASS.DRUID,
+    SPELL_LIST_CLASS.RANGER,
+    SPELL_LIST_CLASS.SORCERER,
+    SPELL_LIST_CLASS.WIZARD
+  ],
   spellLevel: 3,
   ritual: true
 };
@@ -1957,8 +2657,16 @@ export const waterWalk: SpellEntry = {
   id: "spell-water-walk",
   name: "Water Walk",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_water-walk", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_water-walk",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "30 feet",
@@ -1970,7 +2678,13 @@ export const waterWalk: SpellEntry = {
   ],
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.RANGER, SPELL_LIST_CLASS.SORCERER],
+  spellLists: [
+    SPELL_LIST_CLASS.ARTIFICER,
+    SPELL_LIST_CLASS.CLERIC,
+    SPELL_LIST_CLASS.DRUID,
+    SPELL_LIST_CLASS.RANGER,
+    SPELL_LIST_CLASS.SORCERER
+  ],
   spellLevel: 3,
   ritual: true
 };
@@ -1979,8 +2693,16 @@ export const windWall: SpellEntry = {
   id: "spell-wind-wall",
   name: "Wind Wall",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_wind-wall", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_wind-wall",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "120 feet",

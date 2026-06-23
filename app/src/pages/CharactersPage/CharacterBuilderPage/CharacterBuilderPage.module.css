@@ -29,7 +29,7 @@
 }
 
 .description {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
 }
 
 .primaryButton {

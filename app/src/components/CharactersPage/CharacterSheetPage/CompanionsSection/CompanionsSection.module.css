@@ -17,7 +17,7 @@
   border: 1px solid rgba(75, 47, 29, 0.16);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.44);
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.78rem;
   font-weight: 800;
   line-height: 1;
@@ -195,7 +195,7 @@
 
 .selectedMonsterMeta {
   margin: 0.18rem 0 0;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.9rem;
 }
 
@@ -343,7 +343,7 @@
 
 .drawerDescription {
   margin: 0;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   line-height: 1.55;
   white-space: pre-wrap;
 }

@@ -19,7 +19,7 @@
   border: 1px solid rgba(75, 47, 29, 0.12);
   border-radius: var(--radius-control-lg);
   background: rgba(255, 250, 241, 0.92);
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   padding: 1rem;
 }
 
@@ -144,7 +144,7 @@
   border: 1px solid rgba(75, 47, 29, 0.14);
   border-radius: var(--radius-compact);
   background: rgba(255, 250, 241, 0.95);
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font: inherit;
   font-weight: 600;
   padding: 0.36rem 0.5rem 0.36rem 0.85rem;
@@ -204,7 +204,7 @@
 }
 
 .toneNeutral {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
 }
 
 :global(html[data-theme="dark"]) .toneNeutral {

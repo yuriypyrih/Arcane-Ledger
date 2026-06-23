@@ -70,7 +70,7 @@
 }
 
 .resourceBadgeLabel {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.72rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -111,7 +111,7 @@
 }
 
 .resourceBadgeSupplementary {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.72rem;
   font-weight: 700;
 }
@@ -126,7 +126,7 @@
 
 .badgePill {
   background: rgba(75, 47, 29, 0.08);
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.76rem;
   font-weight: 700;
   letter-spacing: 0.06em;

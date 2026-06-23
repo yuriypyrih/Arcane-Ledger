@@ -47,7 +47,7 @@
 }
 
 .abilityMeta {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.76rem;
 }
 

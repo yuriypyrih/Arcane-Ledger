@@ -40,7 +40,7 @@
 }
 
 .button small {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.77rem;
   font-weight: 400;
   line-height: 1.35;
@@ -558,7 +558,7 @@
 }
 
 .optionChoiceBreakdown {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.8rem;
   line-height: 1.42;
 }
@@ -576,7 +576,7 @@
 }
 
 .usesLabelText {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.76rem;
   font-weight: 700;
   line-height: 1;

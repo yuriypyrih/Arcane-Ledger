@@ -16,7 +16,7 @@
   border: 1px solid rgba(92, 59, 37, 0.16);
   border-radius: var(--radius-pill);
   background: rgba(255, 252, 246, 0.72);
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   cursor: pointer;
   font: inherit;
   font-weight: 700;
@@ -81,7 +81,7 @@
 .field {
   display: grid;
   gap: 0.35rem;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.88rem;
 }
 

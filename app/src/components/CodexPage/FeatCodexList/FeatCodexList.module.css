@@ -24,7 +24,7 @@
   border: 1px solid rgba(75, 47, 29, 0.14);
   border-radius: var(--radius-tiny);
   background: rgba(75, 47, 29, 0.06);
-  color: var(--color-ink-soft);
+  color: var(--color-ink);
   flex-shrink: 0;
   font-size: 0.74rem;
   font-weight: 700;
@@ -34,14 +34,14 @@
 }
 
 .featMeta {
-  color: var(--theme-text-muted);
+  color: var(--theme-text-secondary);
   font-size: 0.82rem;
   line-height: 1.45;
   margin: 0;
 }
 
 .emptyDescription {
-  color: var(--theme-text-muted);
+  color: var(--theme-text-secondary);
   line-height: 1.55;
   margin: 0;
 }

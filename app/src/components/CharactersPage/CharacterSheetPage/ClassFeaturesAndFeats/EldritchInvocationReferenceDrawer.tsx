@@ -1,5 +1,10 @@
 import { useMemo, useState } from "react";
-import type { DivinityEntry, FEATS, SpellEntry } from "../../../../codex/entries";
+import {
+  TRACKER,
+  type DivinityEntry,
+  type FEATS,
+  type SpellEntry
+} from "../../../../codex/entries";
 import type { WarlockEldritchInvocationOption } from "../../../../pages/CharactersPage/classFeatures/warlock/warlock";
 import { getFeatDefinition } from "../../../../pages/CharactersPage/feats";
 import DescriptionContent from "../../../DescriptionContent/DescriptionContent";
@@ -47,8 +52,8 @@ function EldritchInvocationReferenceDrawer({
   );
   const linkedReferenceBackdropClassName = styles.linkedReferenceDrawerBackdrop;
 
-  function openTrackingKeyword() {
-    const resolvedKeyword = resolveKeywordReference(option.invocation.trackingState);
+  function openTrackingKeyword(trackingState: TRACKER, trackingMessage?: string) {
+    const resolvedKeyword = resolveKeywordReference(trackingState, undefined, trackingMessage);
 
     if (resolvedKeyword) {
       setSelectedKeyword(resolvedKeyword);
@@ -97,6 +102,7 @@ function EldritchInvocationReferenceDrawer({
           <div className={styles.invocationDrawerHeaderActions}>
             <FeatureTrackingBadgeButton
               trackingState={option.invocation.trackingState}
+              trackingMessage={option.invocation.trackingMessage}
               onClick={openTrackingKeyword}
             />
             <OverlayCloseButton label="Close eldritch invocation" onClick={onClose} />
@@ -138,7 +144,8 @@ function EldritchInvocationReferenceDrawer({
           entries={[
             {
               title: selectedKeyword.title,
-              description: selectedKeyword.description
+              description: selectedKeyword.description,
+              trackingMessage: selectedKeyword.trackingMessage
             }
           ]}
           badgeLabel="Keyword"

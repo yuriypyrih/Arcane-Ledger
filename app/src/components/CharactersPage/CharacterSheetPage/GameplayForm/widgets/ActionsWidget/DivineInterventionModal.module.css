@@ -11,7 +11,7 @@
 }
 
 .divineInterventionTabLabel {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.76rem;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -40,7 +40,7 @@
   border: 1px solid rgba(75, 47, 29, 0.14);
   border-radius: var(--radius-compact);
   background: rgba(255, 255, 255, 0.78);
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   cursor: pointer;
   font: inherit;
   font-weight: 700;

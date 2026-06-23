@@ -11,6 +11,7 @@ import {
   TRACKER
 } from "../../entries/enums";
 import type { SpellEntry } from "../../entries/types";
+import { spellDurationOnlyTrackingMessage } from "../trackingMessages";
 
 export const arcaneSword: SpellEntry = {
   id: "spell-arcane-sword",
@@ -25,6 +26,7 @@ export const arcaneSword: SpellEntry = {
     permalink: "https://dnd.wizards.com/resources/systems-reference-document"
   },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "90 feet",
@@ -60,6 +62,7 @@ export const conjureCelestial: SpellEntry = {
     permalink: "https://dnd.wizards.com/resources/systems-reference-document"
   },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "90 feet",
@@ -85,6 +88,7 @@ export const conjureHezrou: SpellEntry = {
     ruleset: "legacy-local"
   },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
@@ -138,6 +142,7 @@ export const crownOfStars: SpellEntry = {
     ruleset: "legacy-local"
   },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
@@ -174,6 +179,7 @@ export const delayedBlastFireball: SpellEntry = {
     permalink: "https://dnd.wizards.com/resources/systems-reference-document"
   },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "150 feet",
@@ -246,6 +252,7 @@ export const draconicTransformation: SpellEntry = {
     ruleset: "legacy-local"
   },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.BONUS_ACTION],
   range: "Self",
@@ -289,6 +296,7 @@ export const dreamOfTheBlueVeil: SpellEntry = {
     ruleset: "legacy-local"
   },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.TEN_MINUTES],
   range: "20 feet",
@@ -323,6 +331,7 @@ export const etherealness: SpellEntry = {
     permalink: "https://dnd.wizards.com/resources/systems-reference-document"
   },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
@@ -415,6 +424,7 @@ export const forcecage: SpellEntry = {
     permalink: "https://dnd.wizards.com/resources/systems-reference-document"
   },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "100 feet",
@@ -447,6 +457,7 @@ export const magnificentMansion: SpellEntry = {
     permalink: "https://dnd.wizards.com/resources/systems-reference-document"
   },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.MINUTE],
   range: "300 feet",
@@ -475,6 +486,7 @@ export const mirageArcane: SpellEntry = {
     permalink: "https://dnd.wizards.com/resources/systems-reference-document"
   },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ILLUSION,
   castingTime: [ACTION_TYPE.TEN_MINUTES],
   range: "Sight",
@@ -619,6 +631,7 @@ export const projectImage: SpellEntry = {
     permalink: "https://dnd.wizards.com/resources/systems-reference-document"
   },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ILLUSION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "500 miles",
@@ -647,6 +660,7 @@ export const regenerate: SpellEntry = {
     permalink: "https://dnd.wizards.com/resources/systems-reference-document"
   },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.MINUTE],
   range: "Touch",
@@ -704,6 +718,7 @@ export const reverseGravity: SpellEntry = {
     permalink: "https://dnd.wizards.com/resources/systems-reference-document"
   },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "100 feet",
@@ -734,6 +749,7 @@ export const sequester: SpellEntry = {
     permalink: "https://dnd.wizards.com/resources/systems-reference-document"
   },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
@@ -762,6 +778,7 @@ export const simulacrum: SpellEntry = {
     permalink: "https://dnd.wizards.com/resources/systems-reference-document"
   },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ILLUSION,
   castingTime: [ACTION_TYPE.TWELVE_HOURS],
   range: "Touch",
@@ -790,6 +807,7 @@ export const symbol: SpellEntry = {
     permalink: "https://dnd.wizards.com/resources/systems-reference-document"
   },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.MINUTE],
   range: "Touch",
@@ -883,6 +901,7 @@ export const templeOfTheGods: SpellEntry = {
     ruleset: "legacy-local"
   },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.HOUR],
   range: "120 feet",
@@ -916,6 +935,7 @@ export const tetherEssence: SpellEntry = {
     ruleset: "legacy-local"
   },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.NECROMANCY,
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
@@ -943,6 +963,7 @@ export const whirlwind: SpellEntry = {
     ruleset: "legacy-local"
   },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "300 feet",

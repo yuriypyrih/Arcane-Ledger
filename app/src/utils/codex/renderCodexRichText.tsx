@@ -17,6 +17,7 @@ export type ResolvedKeywordReference = {
   key: string;
   title: string;
   description: string[];
+  trackingMessage?: string;
 };
 
 export type RenderCodexRichTextOptions = {
@@ -33,15 +34,18 @@ const inlineMarkupPattern =
 
 export function resolveKeywordReference(
   keywordKey: string,
-  fallbackTitle?: string
+  fallbackTitle?: string,
+  trackingMessage?: string
 ): ResolvedKeywordReference | null {
+  const normalizedTrackingMessage = trackingMessage?.trim();
   const tooltip = KeywordTooltip[keywordKey] as KeywordTooltipEntry | undefined;
 
   if (tooltip) {
     return {
       key: keywordKey,
       title: tooltip.title,
-      description: tooltip.description
+      description: tooltip.description,
+      ...(normalizedTrackingMessage ? { trackingMessage: normalizedTrackingMessage } : {})
     };
   }
 
@@ -54,7 +58,8 @@ export function resolveKeywordReference(
   return {
     key: keywordKey,
     title: fallbackTitle ?? keywordKey,
-    description
+    description,
+    ...(normalizedTrackingMessage ? { trackingMessage: normalizedTrackingMessage } : {})
   };
 }
 

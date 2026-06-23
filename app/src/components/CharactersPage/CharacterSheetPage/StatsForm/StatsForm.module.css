@@ -154,7 +154,7 @@
 }
 
 .referenceIndicatorSectionLabel {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.78rem;
   font-weight: 600;
 }
@@ -168,7 +168,7 @@
 }
 
 .referenceDescriptionItem {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
 }
 
 .referenceDescriptionItem strong {
@@ -270,7 +270,7 @@
 }
 
 .referenceSelectLabel {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: 0.08em;

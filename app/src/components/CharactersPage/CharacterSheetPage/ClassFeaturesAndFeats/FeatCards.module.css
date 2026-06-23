@@ -256,7 +256,7 @@
 }
 
 .meta {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.78rem;
   letter-spacing: 0.04em;
 }
@@ -280,7 +280,7 @@
 }
 
 .repeatable {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.8rem;
 }
 
@@ -298,7 +298,7 @@
   justify-content: space-between;
   gap: 0.55rem;
   border-left: 2px solid var(--theme-border-subtle);
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.82rem;
   padding-left: 0.65rem;
 }
@@ -324,7 +324,7 @@
   border: none;
   border-radius: var(--radius-pill);
   background: var(--build-card-control-bg);
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   cursor: pointer;
   flex-shrink: 0;
   min-height: 24px;

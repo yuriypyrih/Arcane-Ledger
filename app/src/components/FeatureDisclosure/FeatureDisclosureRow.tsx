@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { ChevronDown } from "lucide-react";
 import type { ComponentPropsWithoutRef, ElementType, ReactNode } from "react";
+import FeatureDisclosureBody from "./FeatureDisclosureBody";
 import styles from "./FeatureDisclosure.module.css";
 
 type FeatureDisclosureRowProps<TElement extends ElementType = "div"> = {
@@ -88,9 +89,9 @@ function FeatureDisclosureRow<TElement extends ElementType = "div">({
       </div>
 
       {isExpanded ? (
-        <div id={bodyId} className={clsx(styles.featureBody, bodyClassName)}>
+        <FeatureDisclosureBody bodyId={bodyId} className={bodyClassName}>
           {children}
-        </div>
+        </FeatureDisclosureBody>
       ) : null}
     </Component>
   );

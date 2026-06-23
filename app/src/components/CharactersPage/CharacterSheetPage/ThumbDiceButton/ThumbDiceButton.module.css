@@ -209,7 +209,7 @@
 .customField {
   display: grid;
   gap: 0.38rem;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.07em;
@@ -224,7 +224,7 @@
 }
 
 .customHint {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
 }
 
 .customError {

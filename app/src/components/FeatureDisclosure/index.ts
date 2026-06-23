@@ -1,3 +1,5 @@
+export { default as FeatureDisclosureBody } from "./FeatureDisclosureBody";
+export { default as FeatureDisclosureContentStack } from "./FeatureDisclosureContentStack";
 export { default as FeatureDisclosureRow } from "./FeatureDisclosureRow";
 export { default as FeatureDisclosureSection } from "./FeatureDisclosureSection";
 export { default as FeatureTrackingBadgeButton } from "./FeatureTrackingBadgeButton";

@@ -84,7 +84,7 @@
 }
 
 .balanceTokenCode {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.74rem;
   font-weight: 700;
   letter-spacing: 0.04em;

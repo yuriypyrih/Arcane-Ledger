@@ -4,6 +4,7 @@ import CodexFeatDrawer from "../CodexFeatDrawer/CodexFeatDrawer";
 import CodexSpellDrawer from "../CodexSpellDrawer";
 import DescriptionContent from "../../DescriptionContent/DescriptionContent";
 import {
+  FeatureDisclosureContentStack,
   FeatureDisclosureRow,
   FeatureTrackingBadgeButton,
   featureDisclosureStyles
@@ -22,7 +23,10 @@ import {
   getFeatSource
 } from "../../../pages/CharactersPage/feats";
 import type { FeatSource } from "../../../pages/CharactersPage/feats/source";
-import type { ResolvedKeywordReference } from "../../../utils/codex/renderCodexRichText";
+import {
+  resolveKeywordReference,
+  type ResolvedKeywordReference
+} from "../../../utils/codex/renderCodexRichText";
 import styles from "./FeatCodexList.module.css";
 import resultStyles from "../CodexResults/CodexResults.module.css";
 
@@ -77,6 +81,16 @@ function FeatCodexList({ query, featCategoryFilter, featSourceFilter }: FeatCode
     );
   }
 
+  function openTrackingReference(trackingState: TRACKER, trackingMessage?: string) {
+    const reference = resolveKeywordReference(trackingState, undefined, trackingMessage);
+
+    if (!reference) {
+      return;
+    }
+
+    setSelectedKeywordReference(reference);
+  }
+
   return (
     <>
       <div className={resultStyles.resultsHeader}>
@@ -111,11 +125,11 @@ function FeatCodexList({ query, featCategoryFilter, featSourceFilter }: FeatCode
                 isExpanded={isExpanded}
                 onToggle={() => toggleFeatKey(featKey)}
                 bodyId={`${featKey}-content`}
-                bodyClassName={featureDisclosureStyles.descriptionList}
                 trackingButton={
                   <FeatureTrackingBadgeButton
                     trackingState={trackingState}
-                    onClick={() => toggleFeatKey(featKey)}
+                    trackingMessage={definition.trackingMessage}
+                    onClick={openTrackingReference}
                   />
                 }
                 endMeta={
@@ -129,24 +143,26 @@ function FeatCodexList({ query, featCategoryFilter, featSourceFilter }: FeatCode
                 toggleIconPlacement="end"
                 showDivider={index > 0}
               >
-                <p className={styles.featMeta}>
-                  {getFeatCategoryLabel(definition.category)} Feat
-                  {definition.prerequisite ? ` | Prerequisite: ${definition.prerequisite}` : ""}
-                </p>
-                {description.length > 0 ? (
-                  <DescriptionContent
-                    description={description}
-                    className={featureDisclosureStyles.descriptionList}
-                    entryClassName={featureDisclosureStyles.descriptionLine}
-                    linkClassName={featureDisclosureStyles.inlineLinkButton}
-                    onOpenKeyword={setSelectedKeywordReference}
-                    onOpenSpell={setSelectedSpellReference}
-                    onOpenDivinity={setSelectedDivinityReference}
-                    onOpenFeat={(feat, label) => setSelectedFeatReference({ feat, label })}
-                  />
-                ) : (
-                  <p className={styles.emptyDescription}>No description mounted.</p>
-                )}
+                <FeatureDisclosureContentStack>
+                  <p className={styles.featMeta}>
+                    {getFeatCategoryLabel(definition.category)} Feat
+                    {definition.prerequisite ? ` | Prerequisite: ${definition.prerequisite}` : ""}
+                  </p>
+                  {description.length > 0 ? (
+                    <DescriptionContent
+                      description={description}
+                      className={featureDisclosureStyles.descriptionList}
+                      entryClassName={featureDisclosureStyles.descriptionLine}
+                      linkClassName={featureDisclosureStyles.inlineLinkButton}
+                      onOpenKeyword={setSelectedKeywordReference}
+                      onOpenSpell={setSelectedSpellReference}
+                      onOpenDivinity={setSelectedDivinityReference}
+                      onOpenFeat={(feat, label) => setSelectedFeatReference({ feat, label })}
+                    />
+                  ) : (
+                    <p className={styles.emptyDescription}>No description mounted.</p>
+                  )}
+                </FeatureDisclosureContentStack>
               </FeatureDisclosureRow>
             );
           })}
@@ -159,7 +175,8 @@ function FeatCodexList({ query, featCategoryFilter, featSourceFilter }: FeatCode
           entries={[
             {
               title: selectedKeywordReference.title,
-              description: selectedKeywordReference.description
+              description: selectedKeywordReference.description,
+              trackingMessage: selectedKeywordReference.trackingMessage
             }
           ]}
           badgeLabel="Keyword"

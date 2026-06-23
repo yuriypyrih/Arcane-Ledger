@@ -252,8 +252,7 @@ function getSpellImplementationChoiceValue(
   const fallbackChoice =
     option.choices.find((choice) => choice.value === option.defaultValue) ?? option.choices[0];
 
-  return typeof value === "string" &&
-    option.choices.some((choice) => choice.value === value)
+  return typeof value === "string" && option.choices.some((choice) => choice.value === value)
     ? value
     : (fallbackChoice?.value ?? "");
 }
@@ -361,11 +360,9 @@ function CharacterSpellDrawer({
   const summonDefinitionCount = spellSummonDefinitions.length;
   const companionCountAfterSummonCast = companionCount + summonDefinitionCount;
   const isSummonDefinitionAddDisabled =
-    isSpellSummonDefinitionRequired &&
-    companionCountAfterSummonCast >= CHARACTER_COMPANION_LIMIT;
+    isSpellSummonDefinitionRequired && companionCountAfterSummonCast >= CHARACTER_COMPANION_LIMIT;
   const doSummonDefinitionsExceedCompanionLimit =
-    isSpellSummonDefinitionRequired &&
-    companionCountAfterSummonCast > CHARACTER_COMPANION_LIMIT;
+    isSpellSummonDefinitionRequired && companionCountAfterSummonCast > CHARACTER_COMPANION_LIMIT;
   const summonDefinitionAddDisabledReason = isSummonDefinitionAddDisabled
     ? companionCount >= CHARACTER_COMPANION_LIMIT && summonDefinitionCount === 0
       ? `You have reached the companion limit (${CHARACTER_COMPANION_LIMIT}).`
@@ -378,32 +375,29 @@ function CharacterSpellDrawer({
         ? "Define a summon before casting."
         : doSummonDefinitionsExceedCompanionLimit
           ? `These summons would exceed the companion limit (${CHARACTER_COMPANION_LIMIT}). Remove a summon definition or companion before casting.`
-        : null
+          : null
     : null;
   const resolvedSpellImplementationCastSource =
     spellImplementationCastSource ??
     (mode === "divine-intervention" ? "divine-intervention" : "standard");
-  const spellImplementationCastOptions = useMemo(
-    () => {
-      if (mode === "prepare-preview") {
-        return [];
-      }
+  const spellImplementationCastOptions = useMemo(() => {
+    if (mode === "prepare-preview") {
+      return [];
+    }
 
-      return getSpellCastOptionsForCharacter({
-        character,
-        spell,
-        castSource: resolvedSpellImplementationCastSource,
-        forcedOptions: forcedSpellImplementationOptions
-      });
-    },
-    [
+    return getSpellCastOptionsForCharacter({
       character,
-      forcedSpellImplementationOptions,
-      mode,
-      resolvedSpellImplementationCastSource,
-      spell
-    ]
-  );
+      spell,
+      castSource: resolvedSpellImplementationCastSource,
+      forcedOptions: forcedSpellImplementationOptions
+    });
+  }, [
+    character,
+    forcedSpellImplementationOptions,
+    mode,
+    resolvedSpellImplementationCastSource,
+    spell
+  ]);
   const defaultSpellImplementationOptionValues = useMemo(
     () => createDefaultSpellImplementationOptionValues(spellImplementationCastOptions),
     [spellImplementationCastOptions]
@@ -417,10 +411,7 @@ function CharacterSpellDrawer({
           if (option.choices?.length) {
             return [
               option.id,
-              getSpellImplementationChoiceValue(
-                option,
-                spellImplementationOptionValues[option.id]
-              )
+              getSpellImplementationChoiceValue(option, spellImplementationOptionValues[option.id])
             ];
           }
 
@@ -711,8 +702,8 @@ function CharacterSpellDrawer({
   const alwaysPreparedSourceDetailText =
     formatAlwaysPreparedSourceDetailText(alwaysPreparedSources);
 
-  function openTrackingKeyword(trackingState: TRACKER) {
-    const resolvedKeyword = resolveKeywordReference(trackingState);
+  function openTrackingKeyword(trackingState: TRACKER, trackingMessage?: string) {
+    const resolvedKeyword = resolveKeywordReference(trackingState, undefined, trackingMessage);
 
     if (resolvedKeyword) {
       setSelectedTrackingKeyword(resolvedKeyword);
@@ -791,8 +782,8 @@ function CharacterSpellDrawer({
         ? (freeCastAvailabilityText ??
           `You can cast this spell at level ${normalizedSelectedSpellSlotLevel} without expending a spell slot.`)
         : `${selectedSpellRemainingSlots ?? 0} slot${
-          (selectedSpellRemainingSlots ?? 0) === 1 ? "" : "s"
-        } remaining at level ${normalizedSelectedSpellSlotLevel}.`);
+            (selectedSpellRemainingSlots ?? 0) === 1 ? "" : "s"
+          } remaining at level ${normalizedSelectedSpellSlotLevel}.`);
   const shouldShowSelectedSlotText =
     selectedSlotIsFreeUse || (selectedSlotIsFreeCast && !freeCastContextText);
   const relativeDescription = shouldShowSlotControls
@@ -879,6 +870,7 @@ function CharacterSpellDrawer({
               ) : null}
               <FeatureTrackingBadgeButton
                 trackingState={spellTrackingState}
+                trackingMessage={spell.trackingMessage}
                 onClick={openTrackingKeyword}
               />
               <button
@@ -1246,14 +1238,10 @@ function CharacterSpellDrawer({
                           sheetStyles.spellSlotSelect,
                           actionStyles.compactSlotSelect
                         )}
-                        onChange={(event) =>
-                          handleSelectedSpellSlotLevelChange(event.target.value)
-                        }
+                        onChange={(event) => handleSelectedSpellSlotLevelChange(event.target.value)}
                       >
                         {slotFreeUseOption ? (
-                          <option value={slotFreeUseSelectValue}>
-                            {slotFreeUseOption.label}
-                          </option>
+                          <option value={slotFreeUseSelectValue}>{slotFreeUseOption.label}</option>
                         ) : null}
                         {spellSlotLevels.map((slotLevel) => {
                           const totalSlots = spellSlotTotals[slotLevel - 1] ?? 0;
@@ -1343,7 +1331,8 @@ function CharacterSpellDrawer({
           entries={[
             {
               title: selectedTrackingKeyword.title,
-              description: selectedTrackingKeyword.description
+              description: selectedTrackingKeyword.description,
+              trackingMessage: selectedTrackingKeyword.trackingMessage
             }
           ]}
           badgeLabel="Keyword"

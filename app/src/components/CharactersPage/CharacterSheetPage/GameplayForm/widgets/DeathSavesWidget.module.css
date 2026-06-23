@@ -192,7 +192,7 @@
 }
 
 .trackRow span:first-child {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0.07em;

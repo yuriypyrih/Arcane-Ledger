@@ -22,7 +22,7 @@
 .sectionToggleMeta {
   display: inline-flex;
   align-items: center;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   flex-shrink: 0;
   padding-top: 0.1rem;
 }
@@ -139,7 +139,7 @@
 }
 
 .featureToggleIcon {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   flex-shrink: 0;
   transition: transform 160ms ease;
 }
@@ -167,6 +167,7 @@
     inset 0 0 0 1px var(--theme-border-subtle);
 }
 
+.contentStack,
 .descriptionList {
   display: grid;
   gap: 0.5rem;
@@ -174,12 +175,23 @@
 
 .descriptionLine {
   margin: 0;
-  color: var(--color-ink);
+  color: var(--theme-text-secondary);
   line-height: 1.55;
 }
 
+.contentStack .descriptionLine,
+.descriptionList .descriptionLine {
+  color: var(--theme-text-secondary);
+}
+
 .descriptionLine strong {
+  color: var(--color-ink);
   font-weight: 700;
+}
+
+.contentStack .descriptionLine strong,
+.descriptionList .descriptionLine strong {
+  color: var(--color-ink);
 }
 
 .inlineLinkButton {
@@ -209,7 +221,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.38rem;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   cursor: pointer;
   flex-shrink: 0;
   font: inherit;

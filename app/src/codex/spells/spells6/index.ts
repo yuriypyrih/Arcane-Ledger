@@ -11,13 +11,19 @@ import {
   TRACKER
 } from "../../entries/enums";
 import type { SpellEntry } from "../../entries/types";
+import { spellDurationOnlyTrackingMessage } from "../trackingMessages";
 
 export const arcaneGate: SpellEntry = {
   id: "spell-arcane-gate",
   name: "Arcane Gate",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "500 feet",
@@ -38,8 +44,16 @@ export const bladeBarrier: SpellEntry = {
   id: "spell-blade-barrier",
   name: "Blade Barrier",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_blade-barrier", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_blade-barrier",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "90 feet",
@@ -60,7 +74,11 @@ export const bonesOfTheEarth: SpellEntry = {
   id: "spell-bones-of-the-earth",
   name: "Bones of the Earth",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -93,7 +111,14 @@ export const chainLightning: SpellEntry = {
   id: "spell-chain-lightning",
   name: "Chain Lightning",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_chain-lightning", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_chain-lightning",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -116,7 +141,14 @@ export const circleOfDeath: SpellEntry = {
   id: "spell-circle-of-death",
   name: "Circle of Death",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_circle-of-death", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_circle-of-death",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.NECROMANCY,
   castingTime: [ACTION_TYPE.ACTION],
@@ -140,8 +172,16 @@ export const conjureFey: SpellEntry = {
   id: "spell-conjure-fey",
   name: "Conjure Fey",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_conjure-fey", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_conjure-fey",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
@@ -166,8 +206,16 @@ export const contingency: SpellEntry = {
   id: "spell-contingency",
   name: "Contingency",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_contingency", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_contingency",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.TEN_MINUTES],
   range: "Self",
@@ -187,7 +235,11 @@ export const createHomunculus: SpellEntry = {
   id: "spell-create-homunculus",
   name: "Create Homunculus",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.HOUR],
@@ -213,7 +265,14 @@ export const createUndead: SpellEntry = {
   id: "spell-create-undead",
   name: "Create Undead",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_create-undead", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_create-undead",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.NECROMANCY,
   castingTime: [ACTION_TYPE.MINUTE],
@@ -222,8 +281,8 @@ export const createUndead: SpellEntry = {
   materialSpecified: "one 150+ GP black onyx stone for each corpse",
   duration: ["Instantaneous"],
   description: [
-    "You can cast this spell only at night. Choose up to three corpses of Medium or Small Humanoids within range. Each one becomes a Ghoul under your control (see \"Monsters\" for its stat block). As a Bonus Action on each of your turns, you can mentally command any creature you animated with this spell if the creature is within 120 feet of you (if you control multiple creatures, you can command any of them at the same time, issuing the same command to them). You decide what action the creature will take and where it will move on its next turn, or you can issue a general command, such as to guard a particular place. If you issue no commands, the creature takes the Dodge action and moves only to avoid harm. Once given an order, the creature continues to follow the order until its task is complete. The creature is under your control for 24 hours, after which it stops obeying any command you've given it. To maintain control of the creature for another 24 hours, you must cast this spell on the creature before the current 24-hour period ends. This use of the spell reasserts your control over up to three creatures you have animated with this spell rather than animating new ones.",
-    "<strong>Using a Higher-Level Spell Slot.</strong> If you use a level 7 spell slot, you can animate or reassert control over four Ghouls. If you use a level 8 spell slot, you can animate or reassert control over five Ghouls or two Ghasts or Wights. If you use a level 9 spell slot, you can animate or reassert control over six Ghouls, three Ghasts or Wights, or two Mummies. See \"Monsters\" for these stat blocks."
+    'You can cast this spell only at night. Choose up to three corpses of Medium or Small Humanoids within range. Each one becomes a Ghoul under your control (see "Monsters" for its stat block). As a Bonus Action on each of your turns, you can mentally command any creature you animated with this spell if the creature is within 120 feet of you (if you control multiple creatures, you can command any of them at the same time, issuing the same command to them). You decide what action the creature will take and where it will move on its next turn, or you can issue a general command, such as to guard a particular place. If you issue no commands, the creature takes the Dodge action and moves only to avoid harm. Once given an order, the creature continues to follow the order until its task is complete. The creature is under your control for 24 hours, after which it stops obeying any command you\'ve given it. To maintain control of the creature for another 24 hours, you must cast this spell on the creature before the current 24-hour period ends. This use of the spell reasserts your control over up to three creatures you have animated with this spell rather than animating new ones.',
+    '<strong>Using a Higher-Level Spell Slot.</strong> If you use a level 7 spell slot, you can animate or reassert control over four Ghouls. If you use a level 8 spell slot, you can animate or reassert control over five Ghouls or two Ghasts or Wights. If you use a level 9 spell slot, you can animate or reassert control over six Ghouls, three Ghasts or Wights, or two Mummies. See "Monsters" for these stat blocks.'
   ],
   damage: [],
   healing: [],
@@ -235,7 +294,14 @@ export const disintegrate: SpellEntry = {
   id: "spell-disintegrate",
   name: "Disintegrate",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_disintegrate", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_disintegrate",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -272,8 +338,13 @@ export const druidGrove: SpellEntry = {
   id: "spell-druid-grove",
   name: "Druid Grove",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.TEN_MINUTES],
   range: "Touch",
@@ -282,9 +353,25 @@ export const druidGrove: SpellEntry = {
   description: [
     "You invoke the spirits of nature to protect an area outdoors or underground. The area can be as small as a 30-foot cube or as large as a 90-foot cube. Buildings and other structures are excluded from the affected area. If you cast this spell in the same area every day for a year, the spell lasts until dispelled.",
     "The spell creates the following effects within the area. When you cast this spell, you can specify creatures as friends who are immune to the effects. You can also specify a password that, when spoken aloud, makes the speaker immune to these effects. The entire warded area radiates magic. A Dispel Magic cast on the area, if successful, removes only one of the following effects, not the entire area. That spell's caster chooses which effect to end. Only when all its effects are gone is this spell dispelled.",
-    { type: "list", style: "bullet", items: ["<strong>Solid Fog.</strong> You can fill any number of 5-foot squares on the ground with thick fog, making them heavily obscured. The fog reaches 10 feet high. In addition, every foot of movement through the fog costs 2 extra feet. To a creature immune to this effect, the fog obscures nothing and looks like soft mist, with motes of green light floating in the air.", "<strong>Grasping Undergrowth.</strong> You can fill any number of 5-foot squares on the ground that aren't filled with fog with grasping weeds and vines, as if they were affected by an Entangle spell. To a creature immune to this effect, the weeds and vines feel soft and reshape themselves to serve as temporary seats or beds.", "<strong>Grove Guardians.</strong> You can animate up to four trees in the area, causing them to uproot themselves from the ground. These trees have the same statistics as an awakened tree, except they can't speak, and their bark is covered with druidic symbols. If any creature not immune to this effect enters the warded area, the grove guardians fight until they have driven off or slain the intruders. The grove guardians also obey your spoken commands, no action required by you, that you issue while in the area. If you don't give them commands and no intruders are present, the grove guardians do nothing. The grove guardians can't leave the warded area. When the spell ends, the magic animating them disappears, and the trees take root again if possible."] },
+    {
+      type: "list",
+      style: "bullet",
+      items: [
+        "<strong>Solid Fog.</strong> You can fill any number of 5-foot squares on the ground with thick fog, making them heavily obscured. The fog reaches 10 feet high. In addition, every foot of movement through the fog costs 2 extra feet. To a creature immune to this effect, the fog obscures nothing and looks like soft mist, with motes of green light floating in the air.",
+        "<strong>Grasping Undergrowth.</strong> You can fill any number of 5-foot squares on the ground that aren't filled with fog with grasping weeds and vines, as if they were affected by an Entangle spell. To a creature immune to this effect, the weeds and vines feel soft and reshape themselves to serve as temporary seats or beds.",
+        "<strong>Grove Guardians.</strong> You can animate up to four trees in the area, causing them to uproot themselves from the ground. These trees have the same statistics as an awakened tree, except they can't speak, and their bark is covered with druidic symbols. If any creature not immune to this effect enters the warded area, the grove guardians fight until they have driven off or slain the intruders. The grove guardians also obey your spoken commands, no action required by you, that you issue while in the area. If you don't give them commands and no intruders are present, the grove guardians do nothing. The grove guardians can't leave the warded area. When the spell ends, the magic animating them disappears, and the trees take root again if possible."
+      ]
+    },
     "<strong>Additional Spell Effect.</strong> You can place your choice of one of the following magical effects within the warded area:",
-    { type: "list", style: "bullet", items: ["A constant Gust of Wind in two locations of your choice.", "Spike Growth in one location of your choice.", "Wind Wall in two locations of your choice."] },
+    {
+      type: "list",
+      style: "bullet",
+      items: [
+        "A constant Gust of Wind in two locations of your choice.",
+        "Spike Growth in one location of your choice.",
+        "Wind Wall in two locations of your choice."
+      ]
+    },
     "To a creature immune to this effect, the winds are a fragrant, gentle breeze, and the area of Spike Growth is harmless."
   ],
   damage: [],
@@ -297,8 +384,16 @@ export const eyebite: SpellEntry = {
   id: "spell-eyebite",
   name: "Eyebite",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_eyebite", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_eyebite",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.NECROMANCY,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
@@ -314,7 +409,12 @@ export const eyebite: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [
+    SPELL_LIST_CLASS.BARD,
+    SPELL_LIST_CLASS.SORCERER,
+    SPELL_LIST_CLASS.WARLOCK,
+    SPELL_LIST_CLASS.WIZARD
+  ],
   spellLevel: 6
 };
 
@@ -322,8 +422,16 @@ export const findThePath: SpellEntry = {
   id: "spell-find-the-path",
   name: "Find the Path",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_find-the-path", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_find-the-path",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.DIVINATION,
   castingTime: [ACTION_TYPE.MINUTE],
   range: "Self",
@@ -331,7 +439,7 @@ export const findThePath: SpellEntry = {
   materialSpecified: "a set of divination tools—such as cards or runes—worth 100+ GP",
   duration: [DURATION.CONCENTRATION, "up to 1 day"],
   description: [
-    "You magically sense the most direct physical route to a location you name. You must be familiar with the location, and the spell fails if you name a destination on another plane of existence, a moving destination (such as a mobile fortress), or an unspecific destination (such as \"a green dragon's lair\"). For the duration, as long as you are on the same plane of existence as the destination, you know how far it is and in what direction it lies. Whenever you face a choice of paths along the way there, you know which path is the most direct."
+    'You magically sense the most direct physical route to a location you name. You must be familiar with the location, and the spell fails if you name a destination on another plane of existence, a moving destination (such as a mobile fortress), or an unspecific destination (such as "a green dragon\'s lair"). For the duration, as long as you are on the same plane of existence as the destination, you know how far it is and in what direction it lies. Whenever you face a choice of paths along the way there, you know which path is the most direct.'
   ],
   damage: [],
   healing: [],
@@ -343,8 +451,13 @@ export const fizbansPlatinumShield: SpellEntry = {
   id: "spell-fizbans-platinum-shield",
   name: "Fizban's Platinum Shield",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.BONUS_ACTION],
   range: "60 feet",
@@ -352,7 +465,15 @@ export const fizbansPlatinumShield: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "You create a field of silvery light that surrounds a creature of your choice within range, you can choose yourself. The field sheds dim light out to 5 feet. While surrounded by the field, a creature gains the following benefits:",
-    { type: "list", style: "bullet", items: ["<strong>Cover.</strong> The creature has half cover.", "<strong>Damage Resistance.</strong> The creature has Resistance to Acid, Cold, Fire, Lightning, and Poison damage.", "<strong>Evasion.</strong> If the creature is subjected to an effect that allows it to make a Dexterity saving throw to take only half damage, the creature instead takes no damage if it succeeds on the saving throw, and only half damage if it fails."] },
+    {
+      type: "list",
+      style: "bullet",
+      items: [
+        "<strong>Cover.</strong> The creature has half cover.",
+        "<strong>Damage Resistance.</strong> The creature has Resistance to Acid, Cold, Fire, Lightning, and Poison damage.",
+        "<strong>Evasion.</strong> If the creature is subjected to an effect that allows it to make a Dexterity saving throw to take only half damage, the creature instead takes no damage if it succeeds on the saving throw, and only half damage if it fails."
+      ]
+    },
     "As a Bonus Action on subsequent turns, you can move the field to another creature within 60 feet of the field."
   ],
   damage: [],
@@ -365,8 +486,16 @@ export const fleshToStone: SpellEntry = {
   id: "spell-flesh-to-stone",
   name: "Flesh to Stone",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_flesh-to-stone", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_flesh-to-stone",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
@@ -388,8 +517,16 @@ export const forbiddance: SpellEntry = {
   id: "spell-forbiddance",
   name: "Forbiddance",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_forbiddance", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_forbiddance",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
@@ -417,7 +554,14 @@ export const freezingSphere: SpellEntry = {
   id: "spell-freezing-sphere",
   name: "Freezing Sphere",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_freezing-sphere", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_freezing-sphere",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -443,8 +587,16 @@ export const globeOfInvulnerability: SpellEntry = {
   id: "spell-globe-of-invulnerability",
   name: "Globe of Invulnerability",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_globe-of-invulnerability", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_globe-of-invulnerability",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
@@ -465,7 +617,11 @@ export const gravityFissure: SpellEntry = {
   id: "spell-gravity-fissure",
   name: "Gravity Fissure",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -499,8 +655,16 @@ export const guardsAndWards: SpellEntry = {
   id: "spell-guards-and-wards",
   name: "Guards and Wards",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_guards-and-wards", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_guards-and-wards",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.HOUR],
   range: "Touch",
@@ -515,7 +679,16 @@ export const guardsAndWards: SpellEntry = {
     "<strong>_Doors._</strong> All doors in the warded area are magically locked, as if sealed by the <em>Arcane Lock</em> spell. In addition, you can cover up to ten doors with an illusion to make them appear as plain sections of wall.",
     "<strong>_Stairs._</strong> Webs fill all stairs in the warded area from top to bottom, as in the <em>Web</em> spell. These strands regrow in 10 minutes if they are destroyed while <em>Guards and Wards</em> lasts.",
     "<strong>_Other Spell Effect._</strong> Place one of the following magical effects within the warded area:",
-    { type: "list", style: "bullet", items: ["<em>Dancing Lights</em> in four corridors, with a simple program that the lights repeat as long as Guards and Wards lasts", "<em>Magic Mouth</em> in two locations", "<em>Stinking Cloud</em> in two locations (the vapors return within 10 minutes if dispersed while Guards and Wards lasts) - Gust of Wind in one corridor or room (the wind blows continuously while the spell lasts)", "<em>Suggestion</em> in one 5-foot square; any creature that enters that square receives the suggestion mentally"] }
+    {
+      type: "list",
+      style: "bullet",
+      items: [
+        "<em>Dancing Lights</em> in four corridors, with a simple program that the lights repeat as long as Guards and Wards lasts",
+        "<em>Magic Mouth</em> in two locations",
+        "<em>Stinking Cloud</em> in two locations (the vapors return within 10 minutes if dispersed while Guards and Wards lasts) - Gust of Wind in one corridor or room (the wind blows continuously while the spell lasts)",
+        "<em>Suggestion</em> in one 5-foot square; any creature that enters that square receives the suggestion mentally"
+      ]
+    }
   ],
   damage: [],
   healing: [],
@@ -527,7 +700,14 @@ export const harm: SpellEntry = {
   id: "spell-harm",
   name: "Harm",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_harm", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_harm",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.NECROMANCY,
   castingTime: [ACTION_TYPE.ACTION],
@@ -565,7 +745,14 @@ export const heal: SpellEntry = {
   id: "spell-heal",
   name: "Heal",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_heal", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_heal",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -587,7 +774,14 @@ export const heroesFeast: SpellEntry = {
   id: "spell-heroes-feast",
   name: "Heroes' Feast",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_heroes-feast", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_heroes-feast",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.TEN_MINUTES],
@@ -608,8 +802,16 @@ export const instantSummons: SpellEntry = {
   id: "spell-instant-summons",
   name: "Instant Summons",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_instant-summons", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_instant-summons",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.MINUTE],
   range: "Touch",
@@ -630,8 +832,13 @@ export const investitureOfFlame: SpellEntry = {
   id: "spell-investiture-of-flame",
   name: "Investiture of Flame",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
@@ -639,7 +846,15 @@ export const investitureOfFlame: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: [
     "Flames race across your body, shedding bright light in a 30-foot radius and dim light for an additional 30 feet for the spell's duration. The flames don't harm you. Until the spell ends, you gain the following benefits:",
-    { type: "list", style: "bullet", items: ["You are immune to Fire damage and have Resistance to Cold damage.", "Any creature that moves within 5 feet of you for the first time on a turn or ends its turn there takes <strong>1d10</strong> Fire damage.", "You can use your action to create a line of fire 15 feet long and 5 feet wide extending from you in a direction you choose. Each creature in the line must make a Dexterity saving throw. A creature takes <strong>4d8</strong> Fire damage on a failed save, or half as much damage on a successful one."] }
+    {
+      type: "list",
+      style: "bullet",
+      items: [
+        "You are immune to Fire damage and have Resistance to Cold damage.",
+        "Any creature that moves within 5 feet of you for the first time on a turn or ends its turn there takes <strong>1d10</strong> Fire damage.",
+        "You can use your action to create a line of fire 15 feet long and 5 feet wide extending from you in a direction you choose. Each creature in the line must make a Dexterity saving throw. A creature takes <strong>4d8</strong> Fire damage on a failed save, or half as much damage on a successful one."
+      ]
+    }
   ],
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.DEX,
@@ -652,7 +867,12 @@ export const investitureOfFlame: SpellEntry = {
     [DICE.D8, DAMAGE_TYPE.FIRE]
   ],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [
+    SPELL_LIST_CLASS.DRUID,
+    SPELL_LIST_CLASS.SORCERER,
+    SPELL_LIST_CLASS.WARLOCK,
+    SPELL_LIST_CLASS.WIZARD
+  ],
   spellLevel: 6
 };
 
@@ -660,8 +880,13 @@ export const investitureOfIce: SpellEntry = {
   id: "spell-investiture-of-ice",
   name: "Investiture of Ice",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
@@ -669,7 +894,16 @@ export const investitureOfIce: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: [
     "Until the spell ends, ice rimes your body, and you gain the following benefits:",
-    { type: "list", style: "bullet", items: ["You are immune to Cold damage and have Resistance to Fire damage.", "You can move across difficult terrain created by ice or snow without spending extra movement.", "The ground in a 10-foot radius around you is icy and is difficult terrain for creatures other than you. The radius moves with you.", "You can use your action to create a 15-foot cone of freezing wind extending from your outstretched hand in a direction you choose. Each creature in the cone must make a Constitution saving throw. A creature takes <strong>4d6</strong> Cold damage on a failed save, or half as much damage on a successful one. A creature that fails its save against this effect has its Speed halved until the start of your next turn."] }
+    {
+      type: "list",
+      style: "bullet",
+      items: [
+        "You are immune to Cold damage and have Resistance to Fire damage.",
+        "You can move across difficult terrain created by ice or snow without spending extra movement.",
+        "The ground in a 10-foot radius around you is icy and is difficult terrain for creatures other than you. The radius moves with you.",
+        "You can use your action to create a 15-foot cone of freezing wind extending from your outstretched hand in a direction you choose. Each creature in the cone must make a Constitution saving throw. A creature takes <strong>4d6</strong> Cold damage on a failed save, or half as much damage on a successful one. A creature that fails its save against this effect has its Speed halved until the start of your next turn."
+      ]
+    }
   ],
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.CON,
@@ -681,7 +915,12 @@ export const investitureOfIce: SpellEntry = {
     [DICE.D6, DAMAGE_TYPE.COLD]
   ],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [
+    SPELL_LIST_CLASS.DRUID,
+    SPELL_LIST_CLASS.SORCERER,
+    SPELL_LIST_CLASS.WARLOCK,
+    SPELL_LIST_CLASS.WIZARD
+  ],
   spellLevel: 6
 };
 
@@ -689,8 +928,13 @@ export const investitureOfStone: SpellEntry = {
   id: "spell-investiture-of-stone",
   name: "Investiture of Stone",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
@@ -698,13 +942,26 @@ export const investitureOfStone: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: [
     "Until the spell ends, bits of rock spread across your body, and you gain the following benefits:",
-    { type: "list", style: "bullet", items: ["You have Resistance to Bludgeoning, Piercing, and Slashing damage from nonmagical weapons.", "You can use your action to create a small earthquake on the ground in a 15-foot radius centered on you. Other creatures on that ground must succeed on a Dexterity saving throw or be knocked Prone.", "You can move across difficult terrain made of earth or stone without spending extra movement. You can move through solid earth or stone as if it was air and without destabilizing it, but you can't end your movement there. If you do so, you are ejected to the nearest unoccupied space, this spell ends, and you are Stunned until the end of your next turn."] }
+    {
+      type: "list",
+      style: "bullet",
+      items: [
+        "You have Resistance to Bludgeoning, Piercing, and Slashing damage from nonmagical weapons.",
+        "You can use your action to create a small earthquake on the ground in a 15-foot radius centered on you. Other creatures on that ground must succeed on a Dexterity saving throw or be knocked Prone.",
+        "You can move across difficult terrain made of earth or stone without spending extra movement. You can move through solid earth or stone as if it was air and without destabilizing it, but you can't end your movement there. If you do so, you are ejected to the nearest unoccupied space, this spell ends, and you are Stunned until the end of your next turn."
+      ]
+    }
   ],
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.DEX,
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [
+    SPELL_LIST_CLASS.DRUID,
+    SPELL_LIST_CLASS.SORCERER,
+    SPELL_LIST_CLASS.WARLOCK,
+    SPELL_LIST_CLASS.WIZARD
+  ],
   spellLevel: 6
 };
 
@@ -712,8 +969,13 @@ export const investitureOfWind: SpellEntry = {
   id: "spell-investiture-of-wind",
   name: "Investiture of Wind",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
@@ -721,7 +983,15 @@ export const investitureOfWind: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: [
     "Until the spell ends, wind whirls around you, and you gain the following benefits:",
-    { type: "list", style: "bullet", items: ["Ranged weapon attacks made against you have Disadvantage on the attack roll.", "You gain a flying Speed of 60 feet. If you are still flying when the spell ends, you fall, unless you can somehow prevent it.", "You can use your action to create a 15-foot cube of swirling wind centered on a point you can see within 60 feet of you. Each creature in that area must make a Constitution saving throw. A creature takes <strong>2d10</strong> Bludgeoning damage on a failed save, or half as much damage on a successful one. If a Large or smaller creature fails the save, that creature is also pushed up to 10 feet away from the center of the cube."] }
+    {
+      type: "list",
+      style: "bullet",
+      items: [
+        "Ranged weapon attacks made against you have Disadvantage on the attack roll.",
+        "You gain a flying Speed of 60 feet. If you are still flying when the spell ends, you fall, unless you can somehow prevent it.",
+        "You can use your action to create a 15-foot cube of swirling wind centered on a point you can see within 60 feet of you. Each creature in that area must make a Constitution saving throw. A creature takes <strong>2d10</strong> Bludgeoning damage on a failed save, or half as much damage on a successful one. If a Large or smaller creature fails the save, that creature is also pushed up to 10 feet away from the center of the cube."
+      ]
+    }
   ],
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.CON,
@@ -731,7 +1001,12 @@ export const investitureOfWind: SpellEntry = {
     [DICE.D10, DAMAGE_TYPE.BLUDGEONING]
   ],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [
+    SPELL_LIST_CLASS.DRUID,
+    SPELL_LIST_CLASS.SORCERER,
+    SPELL_LIST_CLASS.WARLOCK,
+    SPELL_LIST_CLASS.WIZARD
+  ],
   spellLevel: 6
 };
 
@@ -739,8 +1014,16 @@ export const irresistibleDance: SpellEntry = {
   id: "spell-irresistible-dance",
   name: "Irresistible Dance",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_irresistible-dance", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_irresistible-dance",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
   castingTime: [ACTION_TYPE.ACTION],
   range: "30 feet",
@@ -762,8 +1045,16 @@ export const magicJar: SpellEntry = {
   id: "spell-magic-jar",
   name: "Magic Jar",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_magic-jar", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_magic-jar",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.NECROMANCY,
   castingTime: [ACTION_TYPE.MINUTE],
   range: "Self",
@@ -785,8 +1076,16 @@ export const massSuggestion: SpellEntry = {
   id: "spell-mass-suggestion",
   name: "Mass Suggestion",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_mass-suggestion", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_mass-suggestion",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
@@ -794,7 +1093,7 @@ export const massSuggestion: SpellEntry = {
   materialSpecified: "a snake's tongue",
   duration: ["24 hours"],
   description: [
-    "You suggest a course of activity—described in no more than 25 words—to twelve or fewer creatures you can see within range that can hear and understand you. The suggestion must sound achievable and not involve anything that would obviously deal damage to any of the targets or their allies. For example, you could say, \"Walk to the village down that road, and help the villagers there harvest crops until sunset.\" Or you could say, \"Now is not the time for violence. Drop your weapons, and dance! Stop in an hour.\" Each target must succeed on a Wisdom saving throw or have the Charmed condition for the duration or until you or your allies deal damage to the target. Each Charmed target pursues the suggestion to the best of its ability. The suggested activity can continue for the entire duration, but if the suggested activity can be completed in a shorter time, the spell ends for a target upon completing it.",
+    'You suggest a course of activity—described in no more than 25 words—to twelve or fewer creatures you can see within range that can hear and understand you. The suggestion must sound achievable and not involve anything that would obviously deal damage to any of the targets or their allies. For example, you could say, "Walk to the village down that road, and help the villagers there harvest crops until sunset." Or you could say, "Now is not the time for violence. Drop your weapons, and dance! Stop in an hour." Each target must succeed on a Wisdom saving throw or have the Charmed condition for the duration or until you or your allies deal damage to the target. Each Charmed target pursues the suggestion to the best of its ability. The suggested activity can continue for the entire duration, but if the suggested activity can be completed in a shorter time, the spell ends for a target upon completing it.',
     "<strong>Using a Higher-Level Spell Slot.</strong> The duration is longer with a spell slot of level 7 (10 days), 8 (30 days), or 9 (366 days)."
   ],
   isSavingThrowSpell: true,
@@ -809,8 +1108,13 @@ export const mentalPrison: SpellEntry = {
   id: "spell-mental-prison",
   name: "Mental Prison",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ILLUSION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
@@ -840,8 +1144,16 @@ export const moveEarth: SpellEntry = {
   id: "spell-move-earth",
   name: "Move Earth",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_move-earth", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_move-earth",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "120 feet",
@@ -861,8 +1173,13 @@ export const otherworldlyForm: SpellEntry = {
   id: "spell-otherworldly-form",
   name: "Otherworldly Form",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
@@ -870,11 +1187,27 @@ export const otherworldlyForm: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "Uttering an incantation, you draw on the magic of the Lower Planes or Upper Planes, your choice, to transform yourself. You gain the following benefits until the spell ends:",
-    { type: "list", style: "bullet", items: ["You are immune to Fire and Poison damage, Lower Planes, or Radiant and Necrotic damage, Upper Planes.", "You are immune to the Poisoned condition, Lower Planes, or the Charmed condition, Upper Planes.", "Spectral wings appear on your back, giving you a flying Speed of 40 feet.", "You have a +2 bonus to AC.", "All your weapon attacks are magical, and when you make a weapon attack, you can use your spellcasting ability modifier, instead of Strength or Dexterity, for the attack and damage rolls.", "You can attack twice, instead of once, when you take the Attack action on your turn. You ignore this benefit if you already have a feature, like Extra Attack, that gives you extra attacks."] }
+    {
+      type: "list",
+      style: "bullet",
+      items: [
+        "You are immune to Fire and Poison damage, Lower Planes, or Radiant and Necrotic damage, Upper Planes.",
+        "You are immune to the Poisoned condition, Lower Planes, or the Charmed condition, Upper Planes.",
+        "Spectral wings appear on your back, giving you a flying Speed of 40 feet.",
+        "You have a +2 bonus to AC.",
+        "All your weapon attacks are magical, and when you make a weapon attack, you can use your spellcasting ability modifier, instead of Strength or Dexterity, for the attack and damage rolls.",
+        "You can attack twice, instead of once, when you take the Attack action on your turn. You ignore this benefit if you already have a feature, like Extra Attack, that gives you extra attacks."
+      ]
+    }
   ],
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [
+    SPELL_LIST_CLASS.CLERIC,
+    SPELL_LIST_CLASS.SORCERER,
+    SPELL_LIST_CLASS.WARLOCK,
+    SPELL_LIST_CLASS.WIZARD
+  ],
   spellLevel: 6
 };
 
@@ -882,7 +1215,14 @@ export const planarAlly: SpellEntry = {
   id: "spell-planar-ally",
   name: "Planar Ally",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_planar-ally", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_planar-ally",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.TEN_MINUTES],
@@ -902,8 +1242,13 @@ export const primordialWard: SpellEntry = {
   id: "spell-primordial-ward",
   name: "Primordial Ward",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
@@ -923,8 +1268,16 @@ export const programmedIllusion: SpellEntry = {
   id: "spell-programmed-illusion",
   name: "Programmed Illusion",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_programmed-illusion", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_programmed-illusion",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ILLUSION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "120 feet",
@@ -944,8 +1297,13 @@ export const psychicCrush: SpellEntry = {
   id: "spell-psychic-crush",
   name: "Psychic Crush",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
@@ -981,7 +1339,11 @@ export const scatter: SpellEntry = {
   id: "spell-scatter",
   name: "Scatter",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
@@ -1003,8 +1365,13 @@ export const soulCage: SpellEntry = {
   id: "spell-soul-cage",
   name: "Soul Cage",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.NECROMANCY,
   castingTime: [ACTION_TYPE.REACTION],
   range: "60 feet",
@@ -1012,7 +1379,16 @@ export const soulCage: SpellEntry = {
   duration: ["8 hours"],
   description: [
     "This spell snatches the soul of a Humanoid as it dies and traps it inside the tiny cage you use for the material component. A stolen soul remains inside the cage until the spell ends or until you destroy the cage, which ends the spell. While you have a soul inside the cage, you can exploit it in any of the ways described below. You can use a trapped soul up to six times. Once you exploit a soul for the sixth time, it is released, and the spell ends. While a soul is trapped, the dead Humanoid it came from can't be revived.",
-    { type: "list", style: "bullet", items: ["<strong>Steal Life.</strong> You can use a Bonus Action to drain vigor from the soul and regain <strong>2d8</strong> Hit Points.", "<strong>Query Soul.</strong> You ask the soul a question, no action required, and receive a brief telepathic answer, which you can understand regardless of the language used. The soul knows only what it knew in life, but it must answer you truthfully and to the best of its ability. The answer is no more than a sentence or two and might be cryptic.", "<strong>Borrow Experience.</strong> You can use a Bonus Action to bolster yourself with the soul's life experience, making your next attack roll, ability check, or saving throw with Advantage. If you don't use this benefit before the start of your next turn, it is lost.", "<strong>Eyes of the Dead.</strong> You can use an action to name a place the Humanoid saw in life, which creates an invisible sensor somewhere in that place if it is on the plane of existence you're currently on. The sensor remains for as long as you concentrate, up to 10 minutes, as if you were concentrating on a spell. You receive visual and auditory information from the sensor as if you were in its space using your senses."] },
+    {
+      type: "list",
+      style: "bullet",
+      items: [
+        "<strong>Steal Life.</strong> You can use a Bonus Action to drain vigor from the soul and regain <strong>2d8</strong> Hit Points.",
+        "<strong>Query Soul.</strong> You ask the soul a question, no action required, and receive a brief telepathic answer, which you can understand regardless of the language used. The soul knows only what it knew in life, but it must answer you truthfully and to the best of its ability. The answer is no more than a sentence or two and might be cryptic.",
+        "<strong>Borrow Experience.</strong> You can use a Bonus Action to bolster yourself with the soul's life experience, making your next attack roll, ability check, or saving throw with Advantage. If you don't use this benefit before the start of your next turn, it is lost.",
+        "<strong>Eyes of the Dead.</strong> You can use an action to name a place the Humanoid saw in life, which creates an invisible sensor somewhere in that place if it is on the plane of existence you're currently on. The sensor remains for as long as you concentrate, up to 10 minutes, as if you were concentrating on a spell. You receive visual and auditory information from the sensor as if you were in its space using your senses."
+      ]
+    },
     "A creature that can see the sensor, such as one using See Invisibility or Truesight, sees a translucent image of the tormented Humanoid whose soul you caged."
   ],
   isHealingSpell: true,
@@ -1026,8 +1402,13 @@ export const summonFiend: SpellEntry = {
   id: "spell-summon-fiend",
   name: "Summon Fiend",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "90 feet",
@@ -1048,8 +1429,16 @@ export const sunbeam: SpellEntry = {
   id: "spell-sunbeam",
   name: "Sunbeam",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_sunbeam", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_sunbeam",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
@@ -1071,7 +1460,12 @@ export const sunbeam: SpellEntry = {
     [DICE.D8, DAMAGE_TYPE.RADIANT]
   ],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [
+    SPELL_LIST_CLASS.CLERIC,
+    SPELL_LIST_CLASS.DRUID,
+    SPELL_LIST_CLASS.SORCERER,
+    SPELL_LIST_CLASS.WIZARD
+  ],
   spellLevel: 6
 };
 
@@ -1079,8 +1473,14 @@ export const tashasBubblingCauldron: SpellEntry = {
   id: "spell-tashas-bubbling-cauldron",
   name: "Tasha's Bubbling Cauldron",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "phb-2024", documentName: "Player's Handbook", ruleset: "5e-2024", publisherKey: "wizards-of-the-coast" },
+  source: {
+    documentKey: "phb-2024",
+    documentName: "Player's Handbook",
+    ruleset: "5e-2024",
+    publisherKey: "wizards-of-the-coast"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "5 feet",
@@ -1101,8 +1501,13 @@ export const tashasOtherworldlyGuise: SpellEntry = {
   id: "spell-tashas-otherworldly-guise",
   name: "Tasha's Otherworldly Guise",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.BONUS_ACTION],
   range: "Self",
@@ -1110,7 +1515,18 @@ export const tashasOtherworldlyGuise: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "Uttering an incantation, you draw on the magic of the Lower Planes or Upper Planes, your choice, to transform yourself. You gain the following benefits until the spell ends:",
-    { type: "list", style: "bullet", items: ["You are immune to Fire and Poison damage, Lower Planes, or Radiant and Necrotic damage, Upper Planes.", "You are immune to the Poisoned condition, Lower Planes, or the Charmed condition, Upper Planes.", "Spectral wings appear on your back, giving you a flying Speed of 40 feet.", "You have a +2 bonus to AC.", "All your weapon attacks are magical, and when you make a weapon attack, you can use your spellcasting ability modifier instead of Strength or Dexterity for the attack and damage rolls.", "You can attack twice, instead of once, when you take the Attack action on your turn. You ignore this benefit if you already have a feature, like Extra Attack, that lets you attack more than once when you take the Attack action on your turn."] }
+    {
+      type: "list",
+      style: "bullet",
+      items: [
+        "You are immune to Fire and Poison damage, Lower Planes, or Radiant and Necrotic damage, Upper Planes.",
+        "You are immune to the Poisoned condition, Lower Planes, or the Charmed condition, Upper Planes.",
+        "Spectral wings appear on your back, giving you a flying Speed of 40 feet.",
+        "You have a +2 bonus to AC.",
+        "All your weapon attacks are magical, and when you make a weapon attack, you can use your spellcasting ability modifier instead of Strength or Dexterity for the attack and damage rolls.",
+        "You can attack twice, instead of once, when you take the Attack action on your turn. You ignore this benefit if you already have a feature, like Extra Attack, that lets you attack more than once when you take the Attack action on your turn."
+      ]
+    }
   ],
   damage: [],
   healing: [],
@@ -1122,8 +1538,13 @@ export const tensersTransformation: SpellEntry = {
   id: "spell-tensers-transformation",
   name: "Tenser's Transformation",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "legacy-local", documentName: "Legacy / Expanded Local", ruleset: "legacy-local" },
+  source: {
+    documentKey: "legacy-local",
+    documentName: "Legacy / Expanded Local",
+    ruleset: "legacy-local"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
@@ -1131,7 +1552,18 @@ export const tensersTransformation: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: [
     "You endow yourself with endurance and martial prowess fueled by magic. Until the spell ends, you can't cast spells, and you gain the following benefits:",
-    { type: "list", style: "bullet", items: ["You gain 50 temporary Hit Points. If any of these remain when the spell ends, they are lost.", "You have Advantage on attack rolls that you make with simple and martial weapons.", "When you hit a target with a weapon attack, that target takes an extra <strong>2d12</strong> Force damage.", "You have Proficiency with all armor, shields, simple weapons, and martial weapons.", "You have Proficiency in Strength and Constitution saving throws.", "You can attack twice, instead of once, when you take the Attack action on your turn. You ignore this benefit if you already have a feature, like Extra Attack, that gives you extra attacks."] },
+    {
+      type: "list",
+      style: "bullet",
+      items: [
+        "You gain 50 temporary Hit Points. If any of these remain when the spell ends, they are lost.",
+        "You have Advantage on attack rolls that you make with simple and martial weapons.",
+        "When you hit a target with a weapon attack, that target takes an extra <strong>2d12</strong> Force damage.",
+        "You have Proficiency with all armor, shields, simple weapons, and martial weapons.",
+        "You have Proficiency in Strength and Constitution saving throws.",
+        "You can attack twice, instead of once, when you take the Attack action on your turn. You ignore this benefit if you already have a feature, like Extra Attack, that gives you extra attacks."
+      ]
+    },
     "Immediately after the spell ends, you must succeed on a DC 15 Constitution saving throw or suffer one level of Exhaustion."
   ],
   isDamagingSpell: true,
@@ -1148,8 +1580,16 @@ export const transportViaPlants: SpellEntry = {
   id: "spell-transport-via-plants",
   name: "Transport via Plants",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_transport-via-plants", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_transport-via-plants",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "10 feet",
@@ -1168,8 +1608,16 @@ export const trueSeeing: SpellEntry = {
   id: "spell-true-seeing",
   name: "True Seeing",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_true-seeing", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_true-seeing",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.DIVINATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
@@ -1181,7 +1629,13 @@ export const trueSeeing: SpellEntry = {
   ],
   damage: [],
   healing: [],
-  spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
+  spellLists: [
+    SPELL_LIST_CLASS.BARD,
+    SPELL_LIST_CLASS.CLERIC,
+    SPELL_LIST_CLASS.SORCERER,
+    SPELL_LIST_CLASS.WARLOCK,
+    SPELL_LIST_CLASS.WIZARD
+  ],
   spellLevel: 6
 };
 
@@ -1189,8 +1643,16 @@ export const wallOfIce: SpellEntry = {
   id: "spell-wall-of-ice",
   name: "Wall of Ice",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_wall-of-ice", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_wall-of-ice",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.EVOCATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "120 feet",
@@ -1230,8 +1692,16 @@ export const wallOfThorns: SpellEntry = {
   id: "spell-wall-of-thorns",
   name: "Wall of Thorns",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_wall-of-thorns", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_wall-of-thorns",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "120 feet",
@@ -1254,8 +1724,16 @@ export const windWalk: SpellEntry = {
   id: "spell-wind-walk",
   name: "Wind Walk",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_wind-walk", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_wind-walk",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.SEMI_TRACKED,
+  trackingMessage: spellDurationOnlyTrackingMessage,
   magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
   castingTime: [ACTION_TYPE.MINUTE],
   range: "30 feet",
@@ -1275,7 +1753,14 @@ export const wordOfRecall: SpellEntry = {
   id: "spell-word-of-recall",
   name: "Word of Recall",
   category: ENTRY_CATEGORIES.SPELLS,
-  source: { documentKey: "srd-2024", documentName: "5e 2024 Rules", ruleset: "5e-2024", open5eKey: "srd-2024_word-of-recall", publisherKey: "wizards-of-the-coast", permalink: "https://dnd.wizards.com/resources/systems-reference-document" },
+  source: {
+    documentKey: "srd-2024",
+    documentName: "5e 2024 Rules",
+    ruleset: "5e-2024",
+    open5eKey: "srd-2024_word-of-recall",
+    publisherKey: "wizards-of-the-coast",
+    permalink: "https://dnd.wizards.com/resources/systems-reference-document"
+  },
   trackingState: TRACKER.NOT_TRACKED,
   magicSchool: MAGIC_SCHOOL.CONJURATION,
   castingTime: [ACTION_TYPE.ACTION],

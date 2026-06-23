@@ -21,7 +21,7 @@
 
 .emptyText {
   margin: 0;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
 }
 
 .headerMeta {

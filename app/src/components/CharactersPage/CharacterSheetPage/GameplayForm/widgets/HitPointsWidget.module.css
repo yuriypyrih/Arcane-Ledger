@@ -74,7 +74,7 @@
 }
 
 .statusLabel {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.85rem;
   line-height: 1;
 }

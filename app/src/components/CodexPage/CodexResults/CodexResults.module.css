@@ -9,9 +9,12 @@
   margin: 0;
 }
 
-.resultsHeader span,
-.card p,
-.card small {
+.card > :where(p),
+.card > :where(small) {
+  color: var(--theme-text-secondary);
+}
+
+.resultsHeader span {
   color: var(--theme-text-muted);
 }
 

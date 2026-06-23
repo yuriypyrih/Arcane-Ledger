@@ -49,7 +49,7 @@
 .field {
   display: grid;
   gap: 0.35rem;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.88rem;
   min-width: 0;
 }

@@ -238,10 +238,7 @@ function ClassFeaturesAndFeats({
 
   const classEntry = classEntriesByName.get(character.className) ?? null;
   const isCustomClass = isCustomClassName(character.className);
-  const resolvedClassRules = useMemo(
-    () => getCharacterClassRulesConfig(character),
-    [character]
-  );
+  const resolvedClassRules = useMemo(() => getCharacterClassRulesConfig(character), [character]);
   const classRulesEnforced = areCharacterClassRulesEnforced(character);
   const shouldRenderClassNeutralMechanics = isCustomClass || !classRulesEnforced;
   const hasBuiltInSpellcastingRules = hasBuiltInSpellcastingForCharacter(
@@ -662,8 +659,8 @@ function ClassFeaturesAndFeats({
     );
   }
 
-  function openKeyword(keywordKey: string, title?: string) {
-    const resolvedKeyword = resolveKeywordReference(keywordKey, title);
+  function openKeyword(keywordKey: string, title?: string, trackingMessage?: string) {
+    const resolvedKeyword = resolveKeywordReference(keywordKey, title, trackingMessage);
 
     if (!resolvedKeyword) {
       return;
@@ -672,7 +669,8 @@ function ClassFeaturesAndFeats({
     setSelectedKeyword({
       key: keywordKey,
       title: resolvedKeyword.title,
-      description: resolvedKeyword.description
+      description: resolvedKeyword.description,
+      trackingMessage: resolvedKeyword.trackingMessage
     });
   }
 
@@ -802,19 +800,16 @@ function ClassFeaturesAndFeats({
         customClass: nextCustomClass,
         customSubclass: nextCustomSubclass,
         classRules: nextClassRules,
-        classFeatureState: normalizeCharacterClassFeatureState(
-          currentCharacter.classFeatureState,
-          {
-            className: currentCharacter.className,
-            level: currentCharacter.level,
-            subclassId: nextSubclassId,
-            classRules: nextClassRules,
-            customClass: nextCustomClass,
-            abilities: currentCharacter.abilities,
-            cantripIds: currentCharacter.cantripIds,
-            feats: currentCharacter.feats
-          }
-        )
+        classFeatureState: normalizeCharacterClassFeatureState(currentCharacter.classFeatureState, {
+          className: currentCharacter.className,
+          level: currentCharacter.level,
+          subclassId: nextSubclassId,
+          classRules: nextClassRules,
+          customClass: nextCustomClass,
+          abilities: currentCharacter.abilities,
+          cantripIds: currentCharacter.cantripIds,
+          feats: currentCharacter.feats
+        })
       };
     });
   }
@@ -836,13 +831,10 @@ function ClassFeaturesAndFeats({
   ) {
     onPersistCharacter((currentCharacter) => {
       const currentClassRules = getCharacterClassRulesConfig(currentCharacter);
-      const nextClassRules = normalizeCharacterClassRulesConfig(
-        updater(currentClassRules),
-        {
-          className: currentCharacter.className,
-          legacyCustomClass: currentCharacter.customClass
-        }
-      );
+      const nextClassRules = normalizeCharacterClassRulesConfig(updater(currentClassRules), {
+        className: currentCharacter.className,
+        legacyCustomClass: currentCharacter.customClass
+      });
 
       if (Object.is(nextClassRules, currentClassRules)) {
         return currentCharacter;
@@ -851,19 +843,16 @@ function ClassFeaturesAndFeats({
       return {
         ...currentCharacter,
         classRules: nextClassRules,
-        classFeatureState: normalizeCharacterClassFeatureState(
-          currentCharacter.classFeatureState,
-          {
-            className: currentCharacter.className,
-            level: currentCharacter.level,
-            subclassId: currentCharacter.subclassId,
-            classRules: nextClassRules,
-            customClass: currentCharacter.customClass,
-            abilities: currentCharacter.abilities,
-            cantripIds: currentCharacter.cantripIds,
-            feats: currentCharacter.feats
-          }
-        )
+        classFeatureState: normalizeCharacterClassFeatureState(currentCharacter.classFeatureState, {
+          className: currentCharacter.className,
+          level: currentCharacter.level,
+          subclassId: currentCharacter.subclassId,
+          classRules: nextClassRules,
+          customClass: currentCharacter.customClass,
+          abilities: currentCharacter.abilities,
+          cantripIds: currentCharacter.cantripIds,
+          feats: currentCharacter.feats
+        })
       };
     });
   }
@@ -881,7 +870,13 @@ function ClassFeaturesAndFeats({
       try {
         pactBladeConjuredItem = await fetchItemByKey(pactBladeConjuredItemKey);
       } catch (error) {
-        if (!(error instanceof ApiRequestFailedError && error.status !== undefined && error.status < 500)) {
+        if (
+          !(
+            error instanceof ApiRequestFailedError &&
+            error.status !== undefined &&
+            error.status < 500
+          )
+        ) {
           console.error("Failed to fetch Pact of the Blade conjured weapon.", error);
           captureAppError(error, {
             area: "class-features",
@@ -1798,9 +1793,7 @@ function ClassFeaturesAndFeats({
       createContextualFeatEntry(FEATS.CULT_OF_THE_DRAGON_INITIATE, {
         cultOfDragonInitiate: {
           ...cultOfDragonInitiate,
-          ...(inspiredByFearExpended === undefined
-            ? {}
-            : { inspiredByFearExpended })
+          ...(inspiredByFearExpended === undefined ? {} : { inspiredByFearExpended })
         }
       })
     );
@@ -2190,8 +2183,16 @@ function ClassFeaturesAndFeats({
     );
   }
 
-  const renderTrackingButton: TrackingButtonRenderer = (trackingState) => {
-    return <FeatureTrackingBadgeButton trackingState={trackingState} onClick={openKeyword} />;
+  const renderTrackingButton: TrackingButtonRenderer = (trackingState, trackingMessage) => {
+    return (
+      <FeatureTrackingBadgeButton
+        trackingState={trackingState}
+        trackingMessage={trackingMessage}
+        onClick={(nextTrackingState, nextTrackingMessage) =>
+          openKeyword(nextTrackingState, undefined, nextTrackingMessage)
+        }
+      />
+    );
   };
 
   return (
@@ -2239,10 +2240,7 @@ function ClassFeaturesAndFeats({
               <h3 id="character-feats-title" className={styles.subsectionTitle}>
                 Feats
               </h3>
-              <SheetActionButton
-                onClick={openFeatEditor}
-                disabled={isFeatModalOpen}
-              >
+              <SheetActionButton onClick={openFeatEditor} disabled={isFeatModalOpen}>
                 <Pencil size={16} />
                 Edit
               </SheetActionButton>
@@ -2442,12 +2440,8 @@ function ClassFeaturesAndFeats({
           onSavePendingBoonOfIrresistibleOffense={savePendingBoonOfIrresistibleOffense}
           onSavePendingBoonOfSkillChoice={savePendingBoonOfSkillChoice}
           onSavePendingBlessedWarriorChoice={savePendingBlessedWarriorChoice}
-          onSavePendingCultOfDragonInitiateChoice={
-            savePendingCultOfDragonInitiateChoice
-          }
-          onSavePendingEmeraldEnclaveFledglingChoice={
-            savePendingEmeraldEnclaveFledglingChoice
-          }
+          onSavePendingCultOfDragonInitiateChoice={savePendingCultOfDragonInitiateChoice}
+          onSavePendingEmeraldEnclaveFledglingChoice={savePendingEmeraldEnclaveFledglingChoice}
           onSavePendingHarperAgentChoice={savePendingHarperAgentChoice}
           onSavePendingPurpleDragonRookChoice={savePendingPurpleDragonRookChoice}
           onSavePendingSpellfireSparkChoice={savePendingSpellfireSparkChoice}
@@ -2512,7 +2506,8 @@ function ClassFeaturesAndFeats({
           entries={[
             {
               title: selectedKeyword.title,
-              description: selectedKeyword.description
+              description: selectedKeyword.description,
+              trackingMessage: selectedKeyword.trackingMessage
             }
           ]}
           badgeLabel="Keyword"

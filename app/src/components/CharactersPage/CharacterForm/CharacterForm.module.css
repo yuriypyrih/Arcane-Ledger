@@ -34,7 +34,7 @@
 
 .description {
   margin: 0;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   max-width: 52rem;
 }
 
@@ -48,7 +48,7 @@
   border: 1px solid transparent;
   border-radius: var(--radius-pill);
   background: rgba(75, 47, 29, 0.08);
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   cursor: default;
   font-size: 0.82rem;
   font-weight: 600;
@@ -234,7 +234,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.9rem;
   font-weight: 700;
   width: fit-content;
@@ -279,7 +279,7 @@
 }
 
 .field span {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.88rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -296,7 +296,7 @@
 }
 
 .helperText {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
 }
 
 .errorText {
@@ -319,7 +319,7 @@
 .segmentButton {
   border-radius: var(--radius-field);
   background: transparent;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   min-height: 46px;
   padding: 0 1rem;
 }
@@ -363,7 +363,7 @@
 }
 
 .pointSummary span {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
 }
 
 .attributesGrid {
@@ -400,7 +400,7 @@
 
 .abilityHeader span,
 .abilityHeader small {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.8rem;
 }
 
@@ -457,7 +457,7 @@
 .legendChip {
   border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.84);
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.84rem;
   padding: 0.45rem 0.8rem;
 }
@@ -501,7 +501,7 @@
 
 .infoCard small,
 .placeholderCard p {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
 }
 
 .summaryGrid {
@@ -529,7 +529,7 @@
 }
 
 .summaryCard span {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
 }
 
 .loadoutGrid {
@@ -628,7 +628,7 @@
 }
 
 .radioChoiceCard span {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.9rem;
   line-height: 1.45;
 }
@@ -670,7 +670,7 @@
 }
 
 .grantedSkillList li small {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.62rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;

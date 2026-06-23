@@ -8,7 +8,7 @@
 }
 
 .copy {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   line-height: 1.5;
   margin: 0;
 }

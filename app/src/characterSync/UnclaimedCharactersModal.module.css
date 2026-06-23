@@ -11,7 +11,7 @@
   flex-wrap: wrap;
   gap: 8px;
   align-items: center;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.9rem;
 }
 
@@ -56,7 +56,7 @@
 
 .warning {
   border-left: 3px solid #b97025;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   margin: 0;
   padding-left: 12px;
 }

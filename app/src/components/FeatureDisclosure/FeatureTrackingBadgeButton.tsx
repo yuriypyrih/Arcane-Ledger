@@ -30,12 +30,14 @@ const trackingBadgeConfig: Record<
 
 type FeatureTrackingBadgeButtonProps = {
   trackingState: TRACKER;
-  onClick?: (trackingState: TRACKER) => void;
+  trackingMessage?: string;
+  onClick?: (trackingState: TRACKER, trackingMessage?: string) => void;
   disabled?: boolean;
 };
 
 function FeatureTrackingBadgeButton({
   trackingState,
+  trackingMessage,
   onClick,
   disabled = false
 }: FeatureTrackingBadgeButtonProps) {
@@ -52,7 +54,7 @@ function FeatureTrackingBadgeButton({
       disabled={disabled}
       onClick={(event) => {
         event.stopPropagation();
-        onClick?.(trackingState);
+        onClick?.(trackingState, trackingMessage);
       }}
     >
       <trackingBadge.icon size={18} aria-hidden="true" />

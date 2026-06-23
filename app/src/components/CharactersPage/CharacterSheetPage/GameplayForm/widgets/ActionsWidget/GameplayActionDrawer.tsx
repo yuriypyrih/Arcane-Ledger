@@ -227,7 +227,8 @@ function GameplayActionDrawer({
           entries={[
             {
               title: selectedKeyword.title,
-              description: selectedKeyword.description
+              description: selectedKeyword.description,
+              trackingMessage: selectedKeyword.trackingMessage
             }
           ]}
           badgeLabel="Keyword"

@@ -7,7 +7,7 @@
 }
 
 .fieldLabel {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   display: grid;
   font-size: 0.75rem;
   font-weight: 800;

@@ -43,10 +43,7 @@ import {
 } from "./traitsWidgetUtils";
 import ManualStatusDurationFields from "./ManualStatusDurationFields";
 import type { ManualStatusDurationType } from "./manualStatusDuration";
-import {
-  TraitNotesBody,
-  TraitNotesFooterControls
-} from "./TraitNotesSection";
+import { TraitNotesBody, TraitNotesFooterControls } from "./TraitNotesSection";
 import { useTraitNotesEditor } from "./useTraitNotesEditor";
 
 type StatusEntryDrawerProps = {
@@ -286,9 +283,7 @@ function StatusEntryDrawer({
             ) : null}
           </OverlayDetailsGrid>
 
-          {canShowNotes && onSaveNotes ? (
-            <TraitNotesBody editor={traitNotesEditor} />
-          ) : null}
+          {canShowNotes && onSaveNotes ? <TraitNotesBody editor={traitNotesEditor} /> : null}
 
           {afterDetailsContent}
 
@@ -357,7 +352,8 @@ function StatusEntryDrawer({
           entries={[
             {
               title: selectedKeyword.title,
-              description: selectedKeyword.description
+              description: selectedKeyword.description,
+              trackingMessage: selectedKeyword.trackingMessage
             }
           ]}
           badgeLabel="Keyword"

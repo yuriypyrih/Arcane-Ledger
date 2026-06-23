@@ -10,7 +10,7 @@
   border: none;
   border-radius: var(--radius-pill);
   background: transparent;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   cursor: pointer;
   font: inherit;
   min-height: 36px;

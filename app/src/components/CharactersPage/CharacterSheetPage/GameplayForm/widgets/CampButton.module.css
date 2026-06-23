@@ -26,7 +26,7 @@
 }
 
 .resourceBadgeLabel {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.72rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -89,7 +89,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.78rem;
   font-weight: 700;
   line-height: 1.2;
@@ -129,7 +129,7 @@
 
 .hitDiceInputLabel {
   align-items: start;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   display: grid;
   flex: 0 0 auto;
   font-size: 0.78rem;

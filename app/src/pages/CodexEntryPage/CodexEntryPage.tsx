@@ -8,6 +8,7 @@ import ClassProgressionTable from "../../components/CodexPage/ClassProgressionTa
 import CellContainer from "../../components/CellContainer/CellContainer";
 import { getClassSignatureStyle } from "../../components/CharactersPage/classSignature";
 import {
+  FeatureDisclosureContentStack,
   FeatureDisclosureRow,
   FeatureDisclosureSection,
   FeatureTrackingBadgeButton,
@@ -262,8 +263,8 @@ function CodexEntryPage() {
     );
   }
 
-  function openTrackingReference(trackingState: TRACKER) {
-    const reference = resolveKeywordReference(trackingState);
+  function openTrackingReference(trackingState: TRACKER, trackingMessage?: string) {
+    const reference = resolveKeywordReference(trackingState, undefined, trackingMessage);
 
     if (!reference) {
       return;
@@ -460,6 +461,7 @@ function CodexEntryPage() {
                 {entry.category === ENTRY_CATEGORIES.SPECIES ? (
                   <FeatureTrackingBadgeButton
                     trackingState={entry.trackingState ?? TRACKER.NOT_TRACKED}
+                    trackingMessage={entry.trackingMessage}
                     onClick={openTrackingReference}
                   />
                 ) : null}
@@ -625,25 +627,27 @@ function CodexEntryPage() {
                       isExpanded={expandedFeatureKeys.includes(featureKey)}
                       onToggle={() => toggleExpandedKey(featureKey, setExpandedFeatureKeys)}
                       bodyId={`${featureKey}-content`}
-                      bodyClassName={featureDisclosureStyles.descriptionList}
                       trackingButton={
                         <FeatureTrackingBadgeButton
                           trackingState={getFeatureTrackingState(item.details)}
+                          trackingMessage={item.details.trackingMessage}
                           onClick={openTrackingReference}
                         />
                       }
                       showDivider={index > 0}
                     >
-                      <SpellDescriptionContent
-                        description={item.details.description}
-                        className={featureDisclosureStyles.descriptionList}
-                        entryClassName={featureDisclosureStyles.descriptionLine}
-                        linkClassName={featureDisclosureStyles.inlineLinkButton}
-                        onOpenKeyword={setSelectedKeywordReference}
-                        onOpenSpell={setSelectedSpellReference}
-                        onOpenDivinity={setSelectedDivinityReference}
-                        onOpenFeat={(feat, label) => setSelectedFeatReference({ feat, label })}
-                      />
+                      <FeatureDisclosureContentStack>
+                        <SpellDescriptionContent
+                          description={item.details.description}
+                          className={featureDisclosureStyles.descriptionList}
+                          entryClassName={featureDisclosureStyles.descriptionLine}
+                          linkClassName={featureDisclosureStyles.inlineLinkButton}
+                          onOpenKeyword={setSelectedKeywordReference}
+                          onOpenSpell={setSelectedSpellReference}
+                          onOpenDivinity={setSelectedDivinityReference}
+                          onOpenFeat={(feat, label) => setSelectedFeatReference({ feat, label })}
+                        />
+                      </FeatureDisclosureContentStack>
                     </FeatureDisclosureRow>
                   );
                 })}
@@ -687,25 +691,27 @@ function CodexEntryPage() {
                         isExpanded={expandedFeatureKeys.includes(featureKey)}
                         onToggle={() => toggleExpandedKey(featureKey, setExpandedFeatureKeys)}
                         bodyId={`${featureKey}-content`}
-                        bodyClassName={featureDisclosureStyles.descriptionList}
                         trackingButton={
                           <FeatureTrackingBadgeButton
                             trackingState={getFeatureTrackingState(item.details)}
+                            trackingMessage={item.details.trackingMessage}
                             onClick={openTrackingReference}
                           />
                         }
                         showDivider={index > 0}
                       >
-                        <SpellDescriptionContent
-                          description={item.details.description}
-                          className={featureDisclosureStyles.descriptionList}
-                          entryClassName={featureDisclosureStyles.descriptionLine}
-                          linkClassName={featureDisclosureStyles.inlineLinkButton}
-                          onOpenKeyword={setSelectedKeywordReference}
-                          onOpenSpell={setSelectedSpellReference}
-                          onOpenDivinity={setSelectedDivinityReference}
-                          onOpenFeat={(feat, label) => setSelectedFeatReference({ feat, label })}
-                        />
+                        <FeatureDisclosureContentStack>
+                          <SpellDescriptionContent
+                            description={item.details.description}
+                            className={featureDisclosureStyles.descriptionList}
+                            entryClassName={featureDisclosureStyles.descriptionLine}
+                            linkClassName={featureDisclosureStyles.inlineLinkButton}
+                            onOpenKeyword={setSelectedKeywordReference}
+                            onOpenSpell={setSelectedSpellReference}
+                            onOpenDivinity={setSelectedDivinityReference}
+                            onOpenFeat={(feat, label) => setSelectedFeatReference({ feat, label })}
+                          />
+                        </FeatureDisclosureContentStack>
                       </FeatureDisclosureRow>
                     );
                   })}
@@ -729,7 +735,8 @@ function CodexEntryPage() {
           entries={[
             {
               title: selectedKeywordReference.title,
-              description: selectedKeywordReference.description
+              description: selectedKeywordReference.description,
+              trackingMessage: selectedKeywordReference.trackingMessage
             }
           ]}
           badgeLabel="Keyword"

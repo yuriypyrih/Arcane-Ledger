@@ -15,9 +15,7 @@ import SheetActionButton from "../SheetActionButton";
 import cardStyles from "./FeatCards.module.css";
 import modalStyles from "./FeatEditorModal.module.css";
 import { InlineEditorFrame, SelectField } from "./FeatEditorPrimitives";
-import {
-  triggerActionOnEnterOrSpace
-} from "./featEditorUtils";
+import { triggerActionOnEnterOrSpace } from "./featEditorUtils";
 import {
   createLessonsOfTheFirstOnesFeatEntry,
   doesLessonsOriginFeatNeedInput,
@@ -99,7 +97,7 @@ function EldritchInvocationEditorCard({
   const choiceOptions = options.filter((currentOption) => !currentOption.isPlaceholder);
   const selectedOption = selectedOptions[0] ?? null;
   const selectedChoiceOption = hasSelection
-    ? options.find((currentOption) => currentOption.selectionId === draftSelectionId) ?? null
+    ? (options.find((currentOption) => currentOption.selectionId === draftSelectionId) ?? null)
     : option;
   const selectedOriginFeat =
     selectedChoiceOption?.invocation.selection?.kind === "origin-feat"
@@ -188,7 +186,7 @@ function EldritchInvocationEditorCard({
           {isRepeatable ? <span className={cardStyles.repeatable}>(repeatable)</span> : null}
         </div>
         <div className={cardStyles.headerActions}>
-          {renderTrackingButton(option.invocation.trackingState)}
+          {renderTrackingButton(option.invocation.trackingState, option.invocation.trackingMessage)}
         </div>
       </div>
       {shouldShowPrerequisite ? (
@@ -279,9 +277,7 @@ function EldritchInvocationEditorCard({
                   value: ""
                 },
                 ...choiceOptions.map((choiceOption) => {
-                  const isChoiceSelected = selectedSelectionIdSet.has(
-                    choiceOption.selectionId
-                  );
+                  const isChoiceSelected = selectedSelectionIdSet.has(choiceOption.selectionId);
                   const choiceDisabledReason = choiceOption.isChoiceDisabled
                     ? ` (${choiceOption.choiceDisabledReason ?? "unavailable"})`
                     : "";
@@ -346,11 +342,7 @@ function EldritchInvocationEditorCard({
             }}
           >
             <Plus size={16} />
-            {isRepeatable && isSelected
-              ? "Add Another"
-              : isSelected
-                ? "Added"
-                : "Add"}
+            {isRepeatable && isSelected ? "Add Another" : isSelected ? "Added" : "Add"}
           </SheetActionButton>
         ) : selectedOption ? (
           <SheetActionButton

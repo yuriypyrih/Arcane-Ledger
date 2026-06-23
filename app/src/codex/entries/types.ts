@@ -74,6 +74,7 @@ export type WeaponCost = EquipmentCost;
 export type FeatureMapEntry = {
   description: string[];
   trackingState?: TRACKER;
+  trackingMessage?: string;
 };
 export type KeywordTooltipEntry = {
   title: string;
@@ -87,12 +88,7 @@ export type SpellDescriptionList = {
 export type SpellDescriptionEntry = string | SpellDescriptionList;
 export type SpellCastingTimePart = ACTION_TYPE | string;
 export type SpellDurationPart = DURATION | string;
-export type SpellSourceRuleset =
-  | "5e-2024"
-  | "5e-2014"
-  | "a5e"
-  | "third-party"
-  | "legacy-local";
+export type SpellSourceRuleset = "5e-2024" | "5e-2014" | "a5e" | "third-party" | "legacy-local";
 export type SpellSourceMetadata = {
   documentKey: string;
   documentName: string;
@@ -169,6 +165,7 @@ export type SpellEntry = {
   description: SpellDescriptionEntry[];
   descriptionAdditions?: SpellDescriptionEntry[][];
   trackingState: TRACKER;
+  trackingMessage?: string;
   isHealingSpell?: boolean;
   isSavingThrowSpell?: boolean;
   savingThrowAbility?: ABILITY_TYPES | null;
@@ -208,6 +205,7 @@ export type EldritchInvocationEntry = {
   id: ELDRITCH_INVOCATION;
   name: string;
   trackingState: TRACKER;
+  trackingMessage?: string;
   description: SpellDescriptionEntry[];
   prerequisites?: EldritchInvocationPrerequisite[];
   selection?: EldritchInvocationSelection;
@@ -260,6 +258,7 @@ export type SpeciesEntry = BaseCodexEntry<ENTRY_CATEGORIES.SPECIES, SPECIES_TYPE
   speed: number;
   size: BODY_SIZE[];
   trackingState?: TRACKER;
+  trackingMessage?: string;
   starterPack: {
     recommendedBodySize?: BODY_SIZE;
     recommendedDraconicAncestry?: string;

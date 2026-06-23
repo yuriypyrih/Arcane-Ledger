@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import type { ReactNode } from "react";
+import { lazy, Suspense, useState, type ReactNode } from "react";
 import ActionShape from "../../../../../ActionShape";
 import RollStatePill from "../../../../../RollStatePill/RollStatePill";
 import FeatureUsageLabel from "../../../FeatureUsageLabel";
@@ -28,13 +28,18 @@ import {
   getWeaponActionBreakdown
 } from "../../gameplayWidgetUtils";
 import { resolveFeatureIndicators } from "../../../../../RollStatePill/rollState";
-import { getWeaponAttackPathStates } from "./weaponActionEconomy";
 import {
-  ActionCardThemeTexture,
-  getActionCardThemeClassNames
-} from "./actionCardThemeStyles";
+  resolveKeywordReference,
+  type ResolvedKeywordReference
+} from "../../../../../../utils/codex/renderCodexRichText";
+import { getWeaponAttackPathStates } from "./weaponActionEconomy";
+import { ActionCardThemeTexture, getActionCardThemeClassNames } from "./actionCardThemeStyles";
 import styles from "./ActionCards.module.css";
 import modalStyles from "./FeatureActionModal.module.css";
+
+const KeywordReferenceDrawer = lazy(
+  () => import("../../../../../KeywordReferenceDrawer/KeywordReferenceDrawer")
+);
 
 type RoundTrackerAvailability = {
   isInCombat?: boolean;
@@ -366,23 +371,58 @@ export function FeatureActionChoiceRow({
   onClick,
   groupName
 }: FeatureActionChoiceRowProps) {
+  const [selectedTrackingKeyword, setSelectedTrackingKeyword] =
+    useState<ResolvedKeywordReference | null>(null);
   const isDisabled = option.disabled === true;
   const cardTheme = resolveActionCardTheme(option);
 
+  function openTrackingKeyword(
+    trackingState: NonNullable<FeatureActionOptionCard["trackingState"]>,
+    trackingMessage?: string
+  ) {
+    const resolvedKeyword = resolveKeywordReference(trackingState, undefined, trackingMessage);
+
+    if (resolvedKeyword) {
+      setSelectedTrackingKeyword(resolvedKeyword);
+    }
+  }
+
   return (
-    <RadioContainerOption
-      header={option.name}
-      breakdown={option.disabledReason ?? option.detail}
-      selected={selected}
-      onSelect={onClick}
-      name={groupName}
-      disabled={isDisabled}
-      className={clsx(getActionCardThemeClassNames(cardTheme))}
-      aside={
-        option.trackingState ? (
-          <FeatureTrackingBadgeButton trackingState={option.trackingState} />
-        ) : undefined
-      }
-    />
+    <>
+      <RadioContainerOption
+        header={option.name}
+        breakdown={option.disabledReason ?? option.detail}
+        selected={selected}
+        onSelect={onClick}
+        name={groupName}
+        disabled={isDisabled}
+        className={clsx(getActionCardThemeClassNames(cardTheme))}
+        aside={
+          option.trackingState ? (
+            <FeatureTrackingBadgeButton
+              trackingState={option.trackingState}
+              trackingMessage={option.trackingMessage}
+              onClick={openTrackingKeyword}
+            />
+          ) : undefined
+        }
+      />
+      <Suspense fallback={null}>
+        {selectedTrackingKeyword ? (
+          <KeywordReferenceDrawer
+            title={selectedTrackingKeyword.title}
+            entries={[
+              {
+                title: selectedTrackingKeyword.title,
+                description: selectedTrackingKeyword.description,
+                trackingMessage: selectedTrackingKeyword.trackingMessage
+              }
+            ]}
+            badgeLabel="Keyword"
+            onClose={() => setSelectedTrackingKeyword(null)}
+          />
+        ) : null}
+      </Suspense>
+    </>
   );
 }

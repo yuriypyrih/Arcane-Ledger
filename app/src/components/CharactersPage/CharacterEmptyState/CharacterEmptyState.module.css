@@ -5,7 +5,7 @@
   min-height: 48px;
   border-radius: var(--radius-field);
   background: var(--color-panel-muted);
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   padding: 0 0.7rem;
 }
 

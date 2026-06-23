@@ -86,8 +86,8 @@ function CodexSpellDrawer({ spell, onClose, backdropClassName }: CodexSpellDrawe
   ].filter((cell): cell is NonNullable<typeof cell> => cell !== null);
   const spellTrackingState = getSpellTrackingState(spell);
 
-  function openTrackingKeyword(trackingState: TRACKER) {
-    const resolvedKeyword = resolveKeywordReference(trackingState);
+  function openTrackingKeyword(trackingState: TRACKER, trackingMessage?: string) {
+    const resolvedKeyword = resolveKeywordReference(trackingState, undefined, trackingMessage);
 
     if (resolvedKeyword) {
       setSelectedKeyword(resolvedKeyword);
@@ -142,6 +142,7 @@ function CodexSpellDrawer({ spell, onClose, backdropClassName }: CodexSpellDrawe
           <div className={styles.headerActions}>
             <FeatureTrackingBadgeButton
               trackingState={spellTrackingState}
+              trackingMessage={spell.trackingMessage}
               onClick={openTrackingKeyword}
             />
             <OverlayCloseButton label="Close spell details" onClick={onClose} />
@@ -258,7 +259,8 @@ function CodexSpellDrawer({ spell, onClose, backdropClassName }: CodexSpellDrawe
             entries={[
               {
                 title: selectedKeyword.title,
-                description: selectedKeyword.description
+                description: selectedKeyword.description,
+                trackingMessage: selectedKeyword.trackingMessage
               }
             ]}
             badgeLabel="Keyword"

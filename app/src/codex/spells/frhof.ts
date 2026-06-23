@@ -11,6 +11,7 @@ import {
   TRACKER
 } from "../entries/enums";
 import type { SpellEntry } from "../entries/types";
+import { spellDurationOnlyTrackingMessage } from "./trackingMessages";
 
 const FRHOF_SPELL_SOURCE: SpellEntry["source"] = {
   documentKey: "frhof",
@@ -20,15 +21,16 @@ const FRHOF_SPELL_SOURCE: SpellEntry["source"] = {
 };
 
 function createFrhofSpellEntry(
-  entry: Omit<SpellEntry, "category" | "source" | "trackingState">
+  entry: Omit<SpellEntry, "category" | "source" | "trackingState" | "trackingMessage">
 ): SpellEntry {
+  const shouldSemiTrackDuration = shouldSemiTrackSpellDuration(entry.duration);
+
   return {
     ...entry,
     category: ENTRY_CATEGORIES.SPELLS,
     source: FRHOF_SPELL_SOURCE,
-    trackingState: shouldSemiTrackSpellDuration(entry.duration)
-      ? TRACKER.SEMI_TRACKED
-      : TRACKER.NOT_TRACKED
+    trackingState: shouldSemiTrackDuration ? TRACKER.SEMI_TRACKED : TRACKER.NOT_TRACKED,
+    ...(shouldSemiTrackDuration ? { trackingMessage: spellDurationOnlyTrackingMessage } : {})
   };
 }
 

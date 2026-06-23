@@ -55,7 +55,7 @@
 
 .subsectionMeta {
   margin: 0;
-  color: var(--color-ink);
+  color: var(--theme-text-secondary);
   font-size: 0.86rem;
   font-weight: 650;
 }
@@ -160,7 +160,7 @@
 }
 
 .featureSelectionLabel {
-  color: var(--color-ink-soft);
+  color: var(--color-ink);
   font-size: 0.76rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -175,7 +175,7 @@
 
 .emptyFeatureText {
   margin: 0;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
 }
 
 .featureChoiceRow {
@@ -196,7 +196,7 @@
 }
 
 .featureChoiceLabel {
-  color: var(--color-ink-soft);
+  color: var(--color-ink);
   font-size: 0.78rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -250,7 +250,7 @@
 }
 
 .wildShapeMonsterMeta {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.86rem;
 }
 
@@ -264,7 +264,7 @@
 
 .featReferenceSummary {
   margin: 0;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.84rem;
 }
 

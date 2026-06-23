@@ -40,6 +40,16 @@ type KeywordReferenceDrawerProps = {
   badgeLabel?: string;
 };
 
+function formatTrackingMessage(message: string | undefined): string | null {
+  const trimmedMessage = message?.trim();
+
+  if (!trimmedMessage) {
+    return null;
+  }
+
+  return `${trimmedMessage.charAt(0).toUpperCase()}${trimmedMessage.slice(1)}`;
+}
+
 function KeywordReferenceDrawer({
   title,
   entries,
@@ -68,8 +78,11 @@ function KeywordReferenceDrawer({
     return !(entries.length === 1 && entryTitle.trim() === title.trim());
   }
 
-  function openTrackingReference(trackingState: NonNullable<KeywordReference["trackingState"]>) {
-    const reference = resolveKeywordReference(trackingState);
+  function openTrackingReference(
+    trackingState: NonNullable<KeywordReference["trackingState"]>,
+    trackingMessage?: string
+  ) {
+    const reference = resolveKeywordReference(trackingState, undefined, trackingMessage);
 
     if (!reference) {
       return;
@@ -133,6 +146,7 @@ function KeywordReferenceDrawer({
                     {entry.trackingState ? (
                       <FeatureTrackingBadgeButton
                         trackingState={entry.trackingState}
+                        trackingMessage={entry.trackingMessage}
                         onClick={openTrackingReference}
                       />
                     ) : null}
@@ -149,6 +163,13 @@ function KeywordReferenceDrawer({
                   onOpenDivinity={setSelectedDivinityReference}
                   onOpenFeat={(feat, label) => setSelectedFeatReference({ feat, label })}
                 />
+                {formatTrackingMessage(entry.trackingMessage) ? (
+                  <div className={styles.trackingDetails}>
+                    <p>
+                      <strong>Details:</strong> {formatTrackingMessage(entry.trackingMessage)}
+                    </p>
+                  </div>
+                ) : null}
               </section>
             ))}
           </div>
@@ -176,7 +197,8 @@ function KeywordReferenceDrawer({
             entries={[
               {
                 title: selectedKeyword.title,
-                description: selectedKeyword.description
+                description: selectedKeyword.description,
+                trackingMessage: selectedKeyword.trackingMessage
               }
             ]}
             badgeLabel="Keyword"

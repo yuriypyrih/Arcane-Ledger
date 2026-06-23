@@ -6,6 +6,7 @@ export type KeywordReference = {
   title: string;
   description: string[];
   trackingState?: TRACKER;
+  trackingMessage?: string;
 };
 
 export const keywordDescriptions = {

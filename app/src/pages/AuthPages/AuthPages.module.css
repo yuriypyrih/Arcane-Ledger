@@ -184,7 +184,7 @@
 
 .accountIntro {
   max-width: 62ch;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: clamp(0.95rem, 1.5vw, 1.05rem);
   line-height: 1.55;
   margin: 0;
@@ -296,7 +296,7 @@
 }
 
 .accountSectionText {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   line-height: 1.5;
   margin: 0.35rem 0 0;
 }
@@ -517,7 +517,7 @@
 
 .accountPrivilegesUpgradeText {
   margin: -0.25rem 0 0;
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.86rem;
   font-weight: 750;
   line-height: 1.45;

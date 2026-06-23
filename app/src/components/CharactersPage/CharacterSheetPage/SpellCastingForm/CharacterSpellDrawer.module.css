@@ -80,7 +80,7 @@
 }
 
 .resourceBadgeLabel {
-  color: var(--color-ink-soft);
+  color: var(--theme-text-secondary);
   font-size: 0.72rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;

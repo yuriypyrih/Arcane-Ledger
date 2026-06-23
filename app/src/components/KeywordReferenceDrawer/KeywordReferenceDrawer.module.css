@@ -27,6 +27,16 @@
   font-size: 0.94rem;
 }
 
+.trackingDetails {
+  border-top: 1px solid var(--theme-divider);
+  color: var(--theme-text-secondary);
+  padding-top: 0.55rem;
+}
+
+.trackingDetails p {
+  margin: 0;
+}
+
 .inlineLinkButton {
   border: none;
   background: transparent;
