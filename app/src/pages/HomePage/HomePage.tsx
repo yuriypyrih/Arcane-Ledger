@@ -9,16 +9,15 @@ import {
   Users
 } from "lucide-react";
 import { useMemo } from "react";
-import { Link, useNavigate, useOutletContext } from "react-router-dom";
-import ActionButton from "../../components/ActionButton";
+import { Link, useOutletContext } from "react-router-dom";
 import type { AppShellOutletContext } from "../../components/AppShell/outletContext";
-import CharacterEmptyState from "../../components/CharactersPage/CharacterEmptyState";
 import CharacterRow from "../../components/CharactersPage/CharacterRow";
 import PwaInstallPanel from "../../components/PwaInstallPanel";
 import { useAppSelector } from "../../store";
 import { GUEST_CHARACTER_LIMIT, USER_CHARACTER_LIMIT } from "../CharactersPage/characterLimits";
 import { useCharacterRosterEntries } from "../CharactersPage/useCharacterRosterEntries";
 import { DM_TOOLS_TABS, createDmToolsPath, type DmToolsTabId } from "../DmToolsPage/dmToolsTabs";
+import EmptyRosterGuestBanner from "./EmptyRosterGuestBanner";
 import styles from "./HomePage.module.css";
 
 const dmToolToneClassNames = {
@@ -28,14 +27,15 @@ const dmToolToneClassNames = {
 } satisfies Record<DmToolsTabId, string>;
 
 function HomePage() {
-  const navigate = useNavigate();
   const { themeMode, onToggleThemeMode } = useOutletContext<AppShellOutletContext>();
   const { status, user } = useAppSelector((state) => state.auth);
   const ownerId = status === "authenticated" && user ? user.id : null;
   const characters = useCharacterRosterEntries(ownerId);
   const visibleCharacters = useMemo(() => characters.slice(0, 3), [characters]);
+  const hasCharacters = characters.length > 0;
   const accountCapacityMultiplier = Math.floor(USER_CHARACTER_LIMIT / GUEST_CHARACTER_LIMIT);
   const shouldShowGuestBanner = status === "guest";
+  const shouldShowEmptyRosterBanner = !hasCharacters;
   const shouldShowGmTools = status === "authenticated";
   const isDarkMode = themeMode === "dark";
   const ThemeIcon = isDarkMode ? Sun : Moon;
@@ -80,37 +80,29 @@ function HomePage() {
       </section>
 
       <div className={styles.dashboardGrid}>
-        <section className={styles.panel} aria-labelledby="home-characters-title">
-          <div className={styles.panelHeader}>
-            <div>
-              <p className={styles.eyebrow}>Roster</p>
-              <h3 id="home-characters-title" className={styles.panelTitle}>
-                Top Active Characters
-              </h3>
-            </div>
-          </div>
+        <div className={styles.dashboardMain}>
+          {hasCharacters ? (
+            <section className={styles.panel} aria-labelledby="home-characters-title">
+              <div className={styles.panelHeader}>
+                <div>
+                  <p className={styles.eyebrow}>Roster</p>
+                  <h3 id="home-characters-title" className={styles.panelTitle}>
+                    Top Active Characters
+                  </h3>
+                </div>
+              </div>
+              <ul className={styles.characterList}>
+                {visibleCharacters.map((character) => (
+                  <li key={character.id}>
+                    <CharacterRow character={character} />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
 
-          {visibleCharacters.length > 0 ? (
-            <ul className={styles.characterList}>
-              {visibleCharacters.map((character) => (
-                <li key={character.id}>
-                  <CharacterRow character={character} />
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <div className={styles.emptyCharacterRow}>
-              <CharacterEmptyState className={styles.emptyCharacterMessage} />
-              <ActionButton
-                className={styles.emptyCharacterCreateAction}
-                fullWidth={false}
-                onClick={() => navigate("/characters/new")}
-              >
-                + New Character
-              </ActionButton>
-            </div>
-          )}
-        </section>
+          {shouldShowEmptyRosterBanner ? <EmptyRosterGuestBanner /> : null}
+        </div>
 
         <div className={styles.dashboardSide}>
           {shouldShowGmTools ? (
