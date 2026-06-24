@@ -1,19 +1,62 @@
-# Arcane Ledger PWA
+# Arcane Ledger
 
-Lightweight Arcane Ledger app with three core features:
+![Arcane Ledger hero](app/src/assets/img/empty-roster-banner.webp)
 
-1. Dice Roller with formula input, advantage/disadvantage, and roll history.
-2. Character Sheets with create and edit flows stored in memory for now.
-3. Encyclopedia / Codex with searchable placeholder rules content from JSON.
+**A 5e-ready campaign workbench for characters, rules, encounters, and table prep.**
 
-The workspace is a monorepo shell with two independent npm projects:
+Arcane Ledger is a polished, full-stack tabletop companion built around a persistent character
+roster, a searchable compendium, and GM tools for preparing and running sessions. It is designed to
+feel like a useful artifact at the table: fast enough for live play, detailed enough for character
+management, and flexible enough for homebrew-heavy campaigns.
 
-- `app`: Vite + React + TypeScript PWA.
-- `server`: Node.js + Express + TypeScript backend with MongoDB-backed read APIs.
+## What It Does
 
-## Getting Started
+- **Character roster and sheets**: create, manage, duplicate, import, share, and sync characters
+  with rich sheet sections for profile, stats, skills, proficiencies, features, feats, companions,
+  equipment, spellcasting, and gameplay.
+- **Gameplay tracking**: track hit points, temporary hit points, death saves, rests, resources,
+  action economy, feature actions, traits, conditions, reactions, and dice-driven outcomes from one
+  play-focused surface.
+- **Spellcasting and inventory**: manage prepared spells, slots, rituals, always-prepared spells,
+  equipment, containers, currency, attunement, custom items, and class-derived spell behavior.
+- **Compendium browsing**: search and inspect spells, items, monsters, classes, species,
+  backgrounds, rules, feats, divinities, and other reference material through reusable drawers and
+  detail pages.
+- **GM tools and prep tray**: build campaigns, organize party groups, prepare encounter templates,
+  attach session notes, tune player visibility, and run live encounters with initiative and round
+  tracking.
+- **Companions and creatures**: create custom companions, inherit monster-backed creatures, inspect
+  stat blocks, and reuse the same creature pipeline across sheets, compendium views, and encounter
+  tools.
 
-Install and run each project independently:
+## Architecture
+
+Arcane Ledger is split into two TypeScript projects:
+
+- `app` is the frontend PWA. It owns the player-facing and GM-facing experience: routing,
+  character sheets, the compendium, offline-friendly local state, sync status, dice rolling,
+  drawers, modals, and responsive UI.
+- `server` is the backend API. It handles authenticated accounts, cloud character storage, sharing,
+  party groups, campaigns, encounter templates, live encounter state, support feedback, analytics,
+  and database-backed reference browsing.
+
+The frontend keeps most sheet behavior derivation-driven: class features, spells, resources,
+actions, statuses, companions, and equipment flow from shared codex/runtime modules plus the current
+character state. The backend keeps durable account and campaign data in MongoDB and exposes the app's
+server-backed workflows under one versioned API surface.
+
+## Tech Stack
+
+- **Frontend**: React, TypeScript, Vite, React Router, Redux Toolkit, React Hook Form, CSS Modules,
+  lucide-react, Three.js, `vite-plugin-pwa`, and `vite-plugin-svgr`.
+- **Backend**: Node.js, Express, TypeScript, MongoDB, Mongoose, cookie-based auth, rate limiting,
+  Helmet, image processing, and structured service/controller layers.
+- **Tooling and delivery**: independent npm projects, ESLint, Prettier, Docker, GitHub Actions,
+  Ansible, Netlify configuration, and separate Docker builds for the frontend and backend.
+
+## Running Locally
+
+Install and run the frontend:
 
 ```bash
 cd app
@@ -22,9 +65,13 @@ cp .env.example .env
 npm run dev
 ```
 
+Install and run the backend:
+
 ```bash
 cd server
 npm install
+cp .env.example .env
+npm run db:docker:up
 npm run dev
 ```
 
@@ -35,31 +82,22 @@ cd app && npm run build
 cd server && npm run build
 ```
 
-## Backend Notes
+The frontend expects `VITE_API_BASE_URL` to point at the backend API root. The backend expects a
+MongoDB connection and the environment values shown in `server/.env.example`.
 
-- The backend exposes its API under `server` at `/api/v1`.
-- Set the frontend `VITE_API_BASE_URL` to the full backend API root, such as `http://localhost:3001/api/v1`. If it is omitted or blank, API-backed frontend features treat the backend as unavailable instead of guessing a same-origin API path.
-- Reference data fetching, snapshots, curated source-of-truth files, and MongoDB replacement imports now live in the separate private `arcane-ledger-data` repository. The ignored `server/data/` directory can remain locally for old snapshots or manual reference, but it is not part of this server's script surface.
+## Project Notes
 
-## Frontend Notes
+Arcane Ledger is unofficial, free, noncommercial fan software for supporting tabletop play. The
+original project source and documentation are licensed under the PolyForm Noncommercial License;
+rules text, game terms, third-party data, and third-party assets remain under their own licenses and
+source terms.
 
-- Global styles are loaded once in `app/src/main.tsx` through `global.css`.
-- Component and page styling uses CSS Modules.
-- The PWA is configured with `vite-plugin-pwa` to precache the app shell and use stale-while-revalidate for JSON assets.
-- SVG React imports are standardized with `vite-plugin-svgr` using the Vite-native `?react` suffix:
+Read the repository's licensing boundary before reusing material:
 
-```ts
-import Logo from "./assets/dragon-dice.svg?react";
-```
+- [LICENSE.md](LICENSE.md)
+- [NOTICE.md](NOTICE.md)
+- [ATTRIBUTIONS.md](ATTRIBUTIONS.md)
 
-## Structure
-
-```text
-.
-├── .gitignore
-├── app
-│   ├── public
-│   └── src
-└── server
-    └── src
-```
+This repository is actively maintained as a portfolio centerpiece and a real application. The codebase
+prioritizes feature-derived character behavior, reusable interaction surfaces, and practical session
+workflows over demo-only scaffolding.
