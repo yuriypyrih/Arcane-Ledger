@@ -4,6 +4,7 @@ import { useSearchParams } from "react-router-dom";
 import CampaignManagerGuideButton from "./CampaignManagerGuideButton";
 import CampaignManagerGuideModal from "./CampaignManagerGuideModal";
 import CampaignManagerBody from "./CampaignManagerBody";
+import CustomItemsBody from "./CustomItemsBody";
 import CustomSpellsBody from "./CustomSpellsBody";
 import EncounterTemplatesBody from "./EncounterTemplatesBody";
 import PartyManagerBody from "./PartyManagerBody";
@@ -25,6 +26,7 @@ function getTabPanelId(tabId: DmToolsTabId) {
 
 const tabToneClassNames: Record<DmToolsTabId, string> = {
   "campaign-manager": styles.toolToneCampaign,
+  "custom-items": styles.toolToneCustomItem,
   "custom-spells": styles.toolToneCustomSpell,
   "encounter-templates": styles.toolToneEncounter,
   "party-manager": styles.toolToneParty
@@ -51,6 +53,8 @@ function renderTabBody(activeTab: DmToolsTabId) {
       return <EncounterTemplatesBody panelId={panelId} tabId={tabId} />;
     case "custom-spells":
       return <CustomSpellsBody panelId={panelId} tabId={tabId} />;
+    case "custom-items":
+      return <CustomItemsBody panelId={panelId} tabId={tabId} />;
     case "campaign-manager":
     default:
       return <CampaignManagerBody panelId={panelId} tabId={tabId} />;

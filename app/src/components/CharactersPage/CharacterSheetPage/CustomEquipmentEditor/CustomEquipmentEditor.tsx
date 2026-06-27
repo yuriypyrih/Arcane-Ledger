@@ -78,9 +78,16 @@ export type CustomEquipmentEditorSavePayload = {
 
 type CustomEquipmentEditorProps = {
   mode: "create" | "edit";
+  externalError?: string | null;
   initialStack?: CharacterInventoryItem | null;
+  isSaving?: boolean;
   onCancel: () => void;
   onSave: (payload: CustomEquipmentEditorSavePayload) => void;
+  publicToggle?: {
+    checked: boolean;
+    disabled?: boolean;
+    onChange: (checked: boolean) => void;
+  };
 };
 
 type DamageRowDraft = {
@@ -294,9 +301,12 @@ function getCustomItemId(initialStack: CharacterInventoryItem | null | undefined
 
 function CustomEquipmentEditor({
   mode,
+  externalError,
   initialStack,
+  isSaving = false,
   onCancel,
-  onSave
+  onSave,
+  publicToggle
 }: CustomEquipmentEditorProps) {
   const [draft, setDraft] = useState<EquipmentModsDraft>(() => createDraft(mode, initialStack));
   const [settingsDraft, setSettingsDraft] = useState<CustomEquipmentItemSettingsDraft>(() =>
@@ -497,6 +507,10 @@ function CustomEquipmentEditor({
   }
 
   function handleSubmit() {
+    if (isSaving) {
+      return;
+    }
+
     const mods = buildMods();
 
     if (!mods) {
@@ -590,6 +604,17 @@ function CustomEquipmentEditor({
             </label>
 
             <div className={styles.customEquipmentCheckboxRow}>
+              {publicToggle ? (
+                <label className={styles.customEquipmentCheckbox}>
+                  <input
+                    type="checkbox"
+                    checked={publicToggle.checked}
+                    disabled={publicToggle.disabled || isSaving}
+                    onChange={(event) => publicToggle.onChange(event.target.checked)}
+                  />
+                  <span>Public</span>
+                </label>
+              ) : null}
               <label className={styles.customEquipmentCheckbox}>
                 <input
                   type="checkbox"
@@ -1003,12 +1028,15 @@ function CustomEquipmentEditor({
       </OverlayBody>
 
       <OverlayFooter className={styles.customEquipmentEditorFooter}>
-        {formError ? <p className={styles.customEquipmentError}>{formError}</p> : null}
+        {formError || externalError ? (
+          <p className={styles.customEquipmentError}>{formError || externalError}</p>
+        ) : null}
         <div className={styles.customEquipmentActionRow}>
           <ActionButton
             actionType="INFO"
             variant="OUTLINE"
             className={styles.customEquipmentFooterButton}
+            disabled={isSaving}
             onClick={onCancel}
             icon={<X size={16} aria-hidden="true" />}
           >
@@ -1016,6 +1044,8 @@ function CustomEquipmentEditor({
           </ActionButton>
           <ActionButton
             className={styles.customEquipmentFooterButton}
+            loading={isSaving}
+            loadingLabel="Saving custom item"
             onClick={handleSubmit}
             icon={<Check size={16} aria-hidden="true" />}
           >

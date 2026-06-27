@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type {
   ItemArmorType,
   ItemAttackType,
@@ -31,6 +32,9 @@ type ItemBrowserFiltersProps = {
   property: string | null;
   armorType: ItemArmorType | null;
   filterOptions: ItemFilterOptions | null;
+  controlsMode?: "full" | "search-only";
+  tabCounts?: Partial<Record<ItemBrowserTab, number>>;
+  tabRowActions?: ReactNode;
   onQueryChange: (value: string) => void;
   onTabChange: (value: ItemBrowserTab) => void;
   onCategoryChange: (value: string | null) => void;
@@ -56,6 +60,9 @@ function ItemBrowserFilters({
   property,
   armorType,
   filterOptions,
+  controlsMode = "full",
+  tabCounts,
+  tabRowActions,
   onQueryChange,
   onTabChange,
   onCategoryChange,
@@ -73,29 +80,33 @@ function ItemBrowserFilters({
   const masteryOptions = getItemBrowserMasteryOptions(filterOptions, tab);
   const propertyOptions = getItemBrowserPropertyOptions(filterOptions, tab);
   const armorTypeOptions = getItemBrowserArmorTypeOptions(filterOptions, tab);
-  const showsScopedFilters = tab !== "all";
+  const showFullControls = controlsMode === "full";
+  const showsScopedFilters = showFullControls && tab !== "all";
 
   return (
     <div className={styles.stack}>
-      <div className={styles.tabRow} role="tablist" aria-label="Item browser groups">
-        {ITEM_BROWSER_TAB_OPTIONS.map((option) => {
-          const isActive = tab === option.value;
-          const count = getItemBrowserTabCount(filterOptions, option.value);
+      <div className={styles.tabBar}>
+        <div className={styles.tabRow} role="tablist" aria-label="Item browser groups">
+          {ITEM_BROWSER_TAB_OPTIONS.map((option) => {
+            const isActive = tab === option.value;
+            const count = tabCounts?.[option.value] ?? getItemBrowserTabCount(filterOptions, option.value);
 
-          return (
-            <button
-              key={option.value}
-              type="button"
-              role="tab"
-              aria-selected={isActive}
-              className={isActive ? `${styles.tabButton} ${styles.tabButtonActive}` : styles.tabButton}
-              onClick={() => onTabChange(option.value)}
-            >
-              <span>{option.label}</span>
-              <span className={styles.tabCount}>{count}</span>
-            </button>
-          );
-        })}
+            return (
+              <button
+                key={option.value}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                className={isActive ? `${styles.tabButton} ${styles.tabButtonActive}` : styles.tabButton}
+                onClick={() => onTabChange(option.value)}
+              >
+                <span>{option.label}</span>
+                <span className={styles.tabCount}>{count}</span>
+              </button>
+            );
+          })}
+        </div>
+        {tabRowActions ? <div className={styles.tabRowActions}>{tabRowActions}</div> : null}
       </div>
 
       <div className={styles.controls}>
@@ -119,7 +130,7 @@ function ItemBrowserFilters({
           </label>
         ) : null}
 
-        {tab === "weapons" ? (
+        {showFullControls && tab === "weapons" ? (
           <>
             <label className={styles.field}>
               <span>Attack Type</span>
@@ -201,7 +212,7 @@ function ItemBrowserFilters({
           </>
         ) : null}
 
-        {tab === "armor" ? (
+        {showFullControls && tab === "armor" ? (
           <label className={styles.field}>
             <span>Armor Type</span>
             <select
@@ -223,37 +234,41 @@ function ItemBrowserFilters({
           </label>
         ) : null}
 
-        <label className={styles.field}>
-          <span>Rarity</span>
-          <select
-            className={styles.input}
-            value={rarity ?? "ALL"}
-            onChange={(event) => onRarityChange(event.target.value === "ALL" ? null : event.target.value)}
-          >
-            <option value="ALL">All</option>
-            {(filterOptions?.rarities ?? []).map((option) => (
-              <option key={option.value} value={option.value}>
-                {`${option.label} (${option.count})`}
-              </option>
-            ))}
-          </select>
-        </label>
+        {showFullControls ? (
+          <>
+            <label className={styles.field}>
+              <span>Rarity</span>
+              <select
+                className={styles.input}
+                value={rarity ?? "ALL"}
+                onChange={(event) => onRarityChange(event.target.value === "ALL" ? null : event.target.value)}
+              >
+                <option value="ALL">All</option>
+                {(filterOptions?.rarities ?? []).map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {`${option.label} (${option.count})`}
+                  </option>
+                ))}
+              </select>
+            </label>
 
-        <label className={styles.field}>
-          <span>Source</span>
-          <select
-            className={styles.input}
-            value={source ?? "ALL"}
-            onChange={(event) => onSourceChange(event.target.value === "ALL" ? null : event.target.value)}
-          >
-            <option value="ALL">All</option>
-            {(filterOptions?.sources ?? []).map((option) => (
-              <option key={option.value} value={option.value}>
-                {`${option.label} (${option.count})`}
-              </option>
-            ))}
-          </select>
-        </label>
+            <label className={styles.field}>
+              <span>Source</span>
+              <select
+                className={styles.input}
+                value={source ?? "ALL"}
+                onChange={(event) => onSourceChange(event.target.value === "ALL" ? null : event.target.value)}
+              >
+                <option value="ALL">All</option>
+                {(filterOptions?.sources ?? []).map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {`${option.label} (${option.count})`}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </>
+        ) : null}
 
         <label className={`${styles.field} ${styles.searchField}`}>
           <span>Search</span>

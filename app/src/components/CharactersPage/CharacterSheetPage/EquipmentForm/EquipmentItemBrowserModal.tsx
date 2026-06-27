@@ -1,5 +1,10 @@
 import { Plus } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  listCustomItems,
+  type CustomItemListScope,
+  type CustomItemRecord
+} from "../../../../api/customItems";
 import { CurrencyBalancePill } from "../../../CurrencyInlineDisplay";
 import ItemBrowserFilters from "../../../ItemBrowser";
 import { sanitizeItemBrowserScopedFilters } from "../../../ItemBrowser/itemBrowser";
@@ -17,14 +22,112 @@ import { useItemFilterOptions } from "../../../../pages/CodexPage/useItemFilterO
 import {
   DEFAULT_ITEM_BROWSER_TAB,
   type CharacterCurrencies,
+  type CodexStatus,
   type ItemArmorType,
   type ItemAttackType,
   type ItemBrowserTab,
   type ItemListItem,
   type ItemOrdering,
+  type ItemRecord,
   type ItemProficiencyType
 } from "../../../../types";
+import { useAppSelector } from "../../../../store";
+import { parseItemCost } from "../../../../utils/items/cost";
 import styles from "./EquipmentItemBrowserModal.module.css";
+
+const ITEM_BROWSER_PAGE_SIZE = 24;
+
+type ItemSourceMode = "standard" | "custom";
+
+function getCustomItemTab(record: CustomItemRecord): Exclude<ItemBrowserTab, "all"> {
+  if (record.item.weapon) {
+    return "weapons";
+  }
+
+  if (record.item.armor) {
+    return "armor";
+  }
+
+  return "gear";
+}
+
+function customItemMatchesTab(record: CustomItemRecord, tab: ItemBrowserTab) {
+  return tab === "all" || getCustomItemTab(record) === tab;
+}
+
+function normalizeComparableText(value: string | null | undefined) {
+  return (value ?? "").trim().toLocaleLowerCase();
+}
+
+function getCustomItemListWeight(record: CustomItemRecord) {
+  const weight = Number(record.item.weight ?? 0);
+
+  return Number.isFinite(weight) ? weight : 0;
+}
+
+function getCustomItemListCost(record: CustomItemRecord) {
+  return parseItemCost(record.item.cost)?.amount ?? 0;
+}
+
+function compareCustomItems(left: CustomItemRecord, right: CustomItemRecord, ordering: ItemOrdering) {
+  const direction = ordering.startsWith("-") ? -1 : 1;
+  const field = ordering.replace("-", "");
+  let result = 0;
+
+  if (field === "rarity") {
+    result = normalizeComparableText(left.item.rarity?.name ?? left.item.rarity?.key).localeCompare(
+      normalizeComparableText(right.item.rarity?.name ?? right.item.rarity?.key)
+    );
+  } else if (field === "weight") {
+    result = getCustomItemListWeight(left) - getCustomItemListWeight(right);
+  } else if (field === "cost") {
+    result = getCustomItemListCost(left) - getCustomItemListCost(right);
+  } else {
+    result = normalizeComparableText(left.item.name).localeCompare(
+      normalizeComparableText(right.item.name)
+    );
+  }
+
+  if (result === 0) {
+    result = normalizeComparableText(left.item.name).localeCompare(
+      normalizeComparableText(right.item.name)
+    );
+  }
+
+  return result * direction;
+}
+
+function createCustomItemListItem(record: CustomItemRecord): ItemListItem {
+  return {
+    id: record.id,
+    key: record.item.key ?? record.id,
+    name: record.item.name ?? "Custom Item",
+    rarityKey: record.item.rarity?.key ?? null,
+    rarityName: record.item.rarity?.name ?? null,
+    categoryKey: record.item.category?.key ?? getCustomItemTab(record),
+    categoryName: record.item.category?.name ?? "Custom Item",
+    weight: record.item.weight ?? "",
+    weightUnit: record.item.weight_unit ?? "",
+    cost: record.item.cost ?? null,
+    sourceKey: record.item.document?.key ?? "custom-items",
+    sourceTitle: record.item.document?.display_name ?? record.item.document?.name ?? "Custom Items"
+  };
+}
+
+function getCustomItemTabCounts(records: CustomItemRecord[]) {
+  const counts: Record<ItemBrowserTab, number> = {
+    all: records.length,
+    armor: 0,
+    gear: 0,
+    weapons: 0
+  };
+
+  records.forEach((record) => {
+    counts[getCustomItemTab(record)] += 1;
+  });
+
+  return counts;
+}
 
 type EquipmentItemBrowserModalProps = {
   isOpen: boolean;
@@ -33,7 +136,7 @@ type EquipmentItemBrowserModalProps = {
   onClose: () => void;
   onOpenCurrencyModal: () => void;
   onOpenCustomEquipmentCreator: () => void;
-  onItemSelect: (item: ItemListItem) => void;
+  onItemSelect: (item: ItemListItem, initialItem?: ItemRecord) => void;
 };
 
 function EquipmentItemBrowserModal({
@@ -45,8 +148,15 @@ function EquipmentItemBrowserModal({
   onOpenCustomEquipmentCreator,
   onItemSelect
 }: EquipmentItemBrowserModalProps) {
+  const authStatus = useAppSelector((state) => state.auth.status);
+  const authUserId = useAppSelector((state) => state.auth.user?.id ?? null);
+  const isAuthenticated = authStatus === "authenticated";
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<ItemBrowserTab>(DEFAULT_ITEM_BROWSER_TAB);
+  const [itemSourceMode, setItemSourceMode] = useState<ItemSourceMode>("standard");
+  const [customItemScope, setCustomItemScope] = useState<CustomItemListScope>("mine");
+  const [customItemRecords, setCustomItemRecords] = useState<CustomItemRecord[]>([]);
+  const [customItemStatus, setCustomItemStatus] = useState<CodexStatus>("ready");
   const [category, setCategory] = useState<string | null>(null);
   const [attackType, setAttackType] = useState<ItemAttackType | null>(null);
   const [proficiencyType, setProficiencyType] = useState<ItemProficiencyType | null>(null);
@@ -76,8 +186,14 @@ function EquipmentItemBrowserModal({
     setSource(null);
     setPage(1);
     setOrdering("name");
+    setItemSourceMode("standard");
+    setCustomItemScope("mine");
+    setCustomItemRecords([]);
+    setCustomItemStatus("ready");
   }, []);
-  const { payload: filterOptionsPayload } = useItemFilterOptions(isOpen);
+  const { payload: filterOptionsPayload } = useItemFilterOptions(
+    isOpen && itemSourceMode === "standard"
+  );
   const sanitizedScopedFilters = useMemo(
     () =>
       sanitizeItemBrowserScopedFilters(
@@ -95,9 +211,9 @@ function EquipmentItemBrowserModal({
     [armorType, attackType, category, filterOptionsPayload, mastery, property, proficiencyType, tab]
   );
   const { payload, status } = useItemEntries({
-    enabled: isOpen,
+    enabled: isOpen && itemSourceMode === "standard",
     page,
-    limit: 24,
+    limit: ITEM_BROWSER_PAGE_SIZE,
     search: query,
     tab: sanitizedScopedFilters.tab,
     category: sanitizedScopedFilters.category,
@@ -110,9 +226,36 @@ function EquipmentItemBrowserModal({
     source,
     ordering
   });
+  const customItemTabCounts = useMemo(() => getCustomItemTabCounts(customItemRecords), [customItemRecords]);
+  const filteredCustomItemRecords = useMemo(() => {
+    const normalizedQuery = normalizeComparableText(query);
+
+    return customItemRecords
+      .filter((record) => customItemMatchesTab(record, sanitizedScopedFilters.tab))
+      .filter(
+        (record) =>
+          !normalizedQuery || normalizeComparableText(record.item.name).includes(normalizedQuery)
+      )
+      .sort((left, right) => compareCustomItems(left, right, ordering));
+  }, [customItemRecords, ordering, query, sanitizedScopedFilters.tab]);
+  const customItemRecordsByKey = useMemo(
+    () => new Map(customItemRecords.map((record) => [record.item.key ?? record.id, record])),
+    [customItemRecords]
+  );
+  const customItemListItems = useMemo(
+    () =>
+      filteredCustomItemRecords
+        .slice((page - 1) * ITEM_BROWSER_PAGE_SIZE, page * ITEM_BROWSER_PAGE_SIZE)
+        .map(createCustomItemListItem),
+    [filteredCustomItemRecords, page]
+  );
+  const activeItems = itemSourceMode === "custom" ? customItemListItems : (payload?.results ?? []);
+  const activeStatus = itemSourceMode === "custom" ? customItemStatus : status;
+  const activeCount =
+    itemSourceMode === "custom" ? filteredCustomItemRecords.length : (payload?.count ?? 0);
   const totalPages = useMemo(
-    () => Math.max(1, Math.ceil((payload?.count ?? 0) / 24)),
-    [payload?.count]
+    () => Math.max(1, Math.ceil(activeCount / ITEM_BROWSER_PAGE_SIZE)),
+    [activeCount]
   );
   const safePage = Math.min(page, totalPages);
 
@@ -129,6 +272,48 @@ function EquipmentItemBrowserModal({
       setPage(safePage);
     }
   }, [page, safePage]);
+
+  useEffect(() => {
+    if (isAuthenticated || itemSourceMode !== "custom") {
+      return;
+    }
+
+    setItemSourceMode("standard");
+    setCustomItemScope("mine");
+    setCustomItemRecords([]);
+    setCustomItemStatus("ready");
+  }, [isAuthenticated, itemSourceMode]);
+
+  useEffect(() => {
+    let didCancel = false;
+
+    if (!isOpen || itemSourceMode !== "custom" || !isAuthenticated || !authUserId) {
+      return () => {
+        didCancel = true;
+      };
+    }
+
+    setCustomItemStatus("loading");
+    setCustomItemRecords([]);
+
+    void listCustomItems({ scope: customItemScope, suppressFailureToast: true })
+      .then(({ customItems }) => {
+        if (!didCancel) {
+          setCustomItemRecords(customItems);
+          setCustomItemStatus("ready");
+        }
+      })
+      .catch(() => {
+        if (!didCancel) {
+          setCustomItemRecords([]);
+          setCustomItemStatus("error");
+        }
+      });
+
+    return () => {
+      didCancel = true;
+    };
+  }, [authUserId, customItemScope, isAuthenticated, isOpen, itemSourceMode]);
 
   useEffect(() => {
     if (sanitizedScopedFilters.category !== category) {
@@ -168,6 +353,111 @@ function EquipmentItemBrowserModal({
     sanitizedScopedFilters.property,
     sanitizedScopedFilters.proficiencyType
   ]);
+
+  function handleItemSourceModeChange(nextMode: ItemSourceMode) {
+    if (nextMode === itemSourceMode || isClosing) {
+      return;
+    }
+
+    clearSearch();
+    setPage(1);
+    setItemSourceMode(nextMode);
+  }
+
+  function handleCustomItemScopeChange(nextScope: CustomItemListScope) {
+    if (nextScope === customItemScope || isClosing) {
+      return;
+    }
+
+    clearSearch();
+    setPage(1);
+    setCustomItemScope(nextScope);
+  }
+
+  function renderItemSourceToggleGroup() {
+    if (!isAuthenticated) {
+      return null;
+    }
+
+    const nextSourceMode = itemSourceMode === "custom" ? "standard" : "custom";
+    const nextScope = customItemScope === "public" ? "mine" : "public";
+
+    return (
+      <div className={styles.sourceToggleGroup}>
+        {itemSourceMode === "custom" ? (
+          <button
+            type="button"
+            className={styles.sourceToggle}
+            aria-label={`Show ${nextScope === "public" ? "public" : "my"} custom items`}
+            disabled={isClosing}
+            onClick={() => handleCustomItemScopeChange(nextScope)}
+          >
+            <span
+              className={[
+                styles.sourceToggleSegment,
+                customItemScope === "mine" ? styles.sourceToggleSegmentActive : ""
+              ]
+                .filter(Boolean)
+                .join(" ")}
+            >
+              Mine
+            </span>
+            <span
+              className={[
+                styles.sourceToggleSegment,
+                customItemScope === "public" ? styles.sourceToggleSegmentActive : ""
+              ]
+                .filter(Boolean)
+                .join(" ")}
+            >
+              Public
+            </span>
+          </button>
+        ) : null}
+        <button
+          type="button"
+          className={styles.sourceToggle}
+          aria-label={`Switch to ${nextSourceMode} items`}
+          disabled={isClosing}
+          onClick={() => handleItemSourceModeChange(nextSourceMode)}
+        >
+          <span
+            className={[
+              styles.sourceToggleSegment,
+              itemSourceMode === "standard" ? styles.sourceToggleSegmentActive : ""
+            ]
+              .filter(Boolean)
+              .join(" ")}
+          >
+            Standard
+          </span>
+          <span
+            className={[
+              styles.sourceToggleSegment,
+              itemSourceMode === "custom" ? styles.sourceToggleSegmentActive : ""
+            ]
+              .filter(Boolean)
+              .join(" ")}
+          >
+            Custom
+          </span>
+        </button>
+      </div>
+    );
+  }
+
+  function handleItemSelect(item: ItemListItem) {
+    if (itemSourceMode === "custom") {
+      const customItem = customItemRecordsByKey.get(item.key);
+
+      if (customItem) {
+        onItemSelect(item, customItem.item);
+      }
+      return;
+    }
+
+    onItemSelect(item);
+  }
 
   if (!isOpen) {
     return null;
@@ -226,7 +516,10 @@ function EquipmentItemBrowserModal({
           armorType={sanitizedScopedFilters.armorType}
           rarity={rarity}
           source={source}
-          filterOptions={filterOptionsPayload}
+          controlsMode={itemSourceMode === "custom" ? "search-only" : "full"}
+          filterOptions={itemSourceMode === "custom" ? null : filterOptionsPayload}
+          tabCounts={itemSourceMode === "custom" ? customItemTabCounts : undefined}
+          tabRowActions={renderItemSourceToggleGroup()}
           onQueryChange={(value: string) => {
             setQuery(value);
             setPage(1);
@@ -285,9 +578,9 @@ function EquipmentItemBrowserModal({
         />
 
         <ItemCodexTable
-          items={payload?.results ?? []}
-          totalEntries={payload?.count ?? 0}
-          status={status}
+          items={activeItems}
+          totalEntries={activeCount}
+          status={activeStatus}
           currentPage={safePage}
           totalPages={totalPages}
           onPageChange={setPage}
@@ -296,8 +589,8 @@ function EquipmentItemBrowserModal({
             setOrdering(value);
             setPage(1);
           }}
-          onItemSelect={onItemSelect}
-          heading="Browse Items"
+          onItemSelect={handleItemSelect}
+          heading={itemSourceMode === "custom" ? "Browse Custom Items" : "Browse Items"}
           className={styles.itemTable}
           tableWrapperClassName={styles.itemTableWrapper}
           paginationClassName={styles.itemTablePagination}

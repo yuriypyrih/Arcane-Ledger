@@ -1527,7 +1527,7 @@ function EquipmentForm({
     setIsCurrencyDrawerOpen(true);
   }
 
-  function openInventoryInspectionFromBrowser(item: { key: string }) {
+  function openInventoryInspectionFromBrowser(item: { key: string }, initialItem?: ItemRecord) {
     setSelectedWeaponReference(null);
     setSelectedLoadoutEntry(null);
     setParentInventoryInspection(null);
@@ -1536,7 +1536,7 @@ function EquipmentForm({
     setInventoryDrawerNotice(null);
     setSelectedInventoryInspection({
       itemKey: item.key,
-      initialItem: findOwnedInventoryItemRecord(equipmentCharacter.inventoryItems, item.key),
+      initialItem: initialItem ?? findOwnedInventoryItemRecord(equipmentCharacter.inventoryItems, item.key),
       source: "browser"
     });
   }

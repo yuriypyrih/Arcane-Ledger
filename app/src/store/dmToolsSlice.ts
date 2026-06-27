@@ -1,5 +1,6 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import type { CampaignDetailRecord, CampaignPatchRecord, CampaignRecord } from "../api/campaigns";
+import type { CustomItemRecord } from "../api/customItems";
 import type { CustomSpellRecord } from "../api/customSpells";
 import type {
   EncounterTemplateDetailRecord,
@@ -39,6 +40,9 @@ export type DmToolsState = {
   selectedEncounterTemplatesById: Record<string, EncounterTemplateDetailRecord>;
   selectedEncounterTemplateStatusById: Record<string, DmToolsLoadStatus>;
   selectedEncounterTemplateErrorById: Record<string, string | null>;
+  customItems: CustomItemRecord[];
+  customItemsStatus: DmToolsLoadStatus;
+  customItemsError: string | null;
   customSpells: CustomSpellRecord[];
   customSpellsStatus: DmToolsLoadStatus;
   customSpellsError: string | null;
@@ -69,6 +73,9 @@ const initialState: DmToolsState = {
   selectedEncounterTemplatesById: {},
   selectedEncounterTemplateStatusById: {},
   selectedEncounterTemplateErrorById: {},
+  customItems: [],
+  customItemsStatus: "idle",
+  customItemsError: null,
   customSpells: [],
   customSpellsStatus: "idle",
   customSpellsError: null
@@ -108,6 +115,17 @@ function upsertCustomSpell(customSpells: CustomSpellRecord[], customSpell: Custo
   }
 
   customSpells.unshift(customSpell);
+}
+
+function upsertCustomItem(customItems: CustomItemRecord[], customItem: CustomItemRecord) {
+  const existingIndex = customItems.findIndex((entry) => entry.id === customItem.id);
+
+  if (existingIndex >= 0) {
+    customItems[existingIndex] = customItem;
+    return;
+  }
+
+  customItems.unshift(customItem);
 }
 
 function upsertCampaign(campaigns: CampaignRecord[], campaign: CampaignRecord) {
@@ -375,6 +393,29 @@ const dmToolsSlice = createSlice({
       state.selectedEncounterTemplateErrorById[action.payload.encounterTemplateId] =
         action.payload.error;
     },
+    setCustomItemsLoading(state) {
+      state.customItemsStatus = "loading";
+      state.customItemsError = null;
+    },
+    setCustomItems(state, action: PayloadAction<CustomItemRecord[]>) {
+      state.customItems = action.payload;
+      state.customItemsStatus = "ready";
+      state.customItemsError = null;
+    },
+    setCustomItemsError(state, action: PayloadAction<string>) {
+      state.customItemsStatus = "error";
+      state.customItemsError = action.payload;
+    },
+    upsertCustomItemRecord(state, action: PayloadAction<CustomItemRecord>) {
+      upsertCustomItem(state.customItems, action.payload);
+      state.customItemsStatus = "ready";
+      state.customItemsError = null;
+    },
+    removeCustomItemRecord(state, action: PayloadAction<string>) {
+      state.customItems = state.customItems.filter(
+        (customItem) => customItem.id !== action.payload
+      );
+    },
     setCustomSpellsLoading(state) {
       state.customSpellsStatus = "loading";
       state.customSpellsError = null;
@@ -431,6 +472,9 @@ export const {
   setEncounterTemplates,
   setEncounterTemplatesError,
   setEncounterTemplatesLoading,
+  setCustomItems,
+  setCustomItemsError,
+  setCustomItemsLoading,
   setCustomSpells,
   setCustomSpellsError,
   setCustomSpellsLoading,
@@ -440,7 +484,9 @@ export const {
   upsertPartyGroupRecord,
   upsertCampaignRecord,
   upsertEncounterTemplateRecord,
+  upsertCustomItemRecord,
   upsertCustomSpellRecord,
+  removeCustomItemRecord,
   removeCustomSpellRecord,
   upsertPartyMembership
 } = dmToolsSlice.actions;

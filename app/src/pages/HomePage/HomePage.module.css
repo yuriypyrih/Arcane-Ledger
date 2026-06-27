@@ -414,6 +414,12 @@
   --tool-signature-rgb: 143, 106, 17;
 }
 
+.toolToneCustomItem {
+  --tool-signature: #23726d;
+  --tool-signature-strong: #175652;
+  --tool-signature-rgb: 35, 114, 109;
+}
+
 :global(html[data-theme="dark"]) .toolToneParty {
   --tool-signature: #7fcf94;
   --tool-signature-strong: #b3e4c0;
@@ -430,6 +436,12 @@
   --tool-signature: #e1c56c;
   --tool-signature-strong: #f1dfa4;
   --tool-signature-rgb: 225, 197, 108;
+}
+
+:global(html[data-theme="dark"]) .toolToneCustomItem {
+  --tool-signature: #78d8cf;
+  --tool-signature-strong: #b9f0eb;
+  --tool-signature-rgb: 120, 216, 207;
 }
 
 .toolButton {

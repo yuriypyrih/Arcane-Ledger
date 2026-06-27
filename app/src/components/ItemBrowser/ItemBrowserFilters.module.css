@@ -3,10 +3,26 @@
   gap: 0.85rem;
 }
 
+.tabBar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
 .tabRow {
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;
+}
+
+.tabRowActions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.42rem;
+  margin-left: auto;
 }
 
 .tabButton {
@@ -114,6 +130,11 @@
     gap: 0.42rem;
   }
 
+  .tabBar,
+  .tabRowActions {
+    gap: 0.42rem;
+  }
+
   .tabButton {
     gap: 0.36rem;
     padding: 0.52rem 0.72rem;
@@ -147,6 +168,11 @@
   }
 
   .tabRow {
+    gap: 0.34rem;
+  }
+
+  .tabBar,
+  .tabRowActions {
     gap: 0.34rem;
   }
 

@@ -4,6 +4,7 @@ import {
   ADMIN_MAX_CAMPAIGNS,
   ADMIN_MAX_ENCOUNTER_TEMPLATES,
   ADMIN_MAX_PARTY_GROUPS,
+  CUSTOM_ITEMS_MAX,
   CUSTOM_SPELLS_MAX,
   KEEPER_MAX_CAMPAIGNS,
   KEEPER_MAX_ENCOUNTER_TEMPLATES,
@@ -13,7 +14,12 @@ import {
   USER_MAX_PARTY_GROUPS
 } from "../constants/QUOTAS.js";
 
-type DmToolLimitKind = "campaigns" | "customSpells" | "encounterTemplates" | "partyGroups";
+type DmToolLimitKind =
+  | "campaigns"
+  | "customItems"
+  | "customSpells"
+  | "encounterTemplates"
+  | "partyGroups";
 
 type DmToolLimitConfig = {
   adminLimit: number;
@@ -37,6 +43,13 @@ const DM_TOOL_LIMITS: Record<DmToolLimitKind, DmToolLimitConfig> = {
     keeperLimit: CUSTOM_SPELLS_MAX,
     label: "custom spells",
     userLimit: CUSTOM_SPELLS_MAX
+  },
+  customItems: {
+    adminLimit: CUSTOM_ITEMS_MAX,
+    code: "CUSTOM_ITEM_LIMIT_REACHED",
+    keeperLimit: CUSTOM_ITEMS_MAX,
+    label: "custom items",
+    userLimit: CUSTOM_ITEMS_MAX
   },
   encounterTemplates: {
     adminLimit: ADMIN_MAX_ENCOUNTER_TEMPLATES,
