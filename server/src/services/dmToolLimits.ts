@@ -2,15 +2,21 @@ import { AppError } from "../errors/AppError.js";
 import type { UserRole } from "../types/auth.js";
 import {
   ADMIN_MAX_CAMPAIGNS,
+  ADMIN_MAX_CUSTOM_BESTIARY,
+  ADMIN_MAX_CUSTOM_ITEMS,
+  ADMIN_MAX_CUSTOM_SPELLS,
   ADMIN_MAX_ENCOUNTER_TEMPLATES,
   ADMIN_MAX_PARTY_GROUPS,
-  CUSTOM_BESTIARY_MAX,
-  CUSTOM_ITEMS_MAX,
-  CUSTOM_SPELLS_MAX,
   KEEPER_MAX_CAMPAIGNS,
+  KEEPER_MAX_CUSTOM_BESTIARY,
+  KEEPER_MAX_CUSTOM_ITEMS,
+  KEEPER_MAX_CUSTOM_SPELLS,
   KEEPER_MAX_ENCOUNTER_TEMPLATES,
   KEEPER_MAX_PARTY_GROUPS,
   USER_MAX_CAMPAIGNS,
+  USER_MAX_CUSTOM_BESTIARY,
+  USER_MAX_CUSTOM_ITEMS,
+  USER_MAX_CUSTOM_SPELLS,
   USER_MAX_ENCOUNTER_TEMPLATES,
   USER_MAX_PARTY_GROUPS
 } from "../constants/QUOTAS.js";
@@ -40,25 +46,25 @@ const DM_TOOL_LIMITS: Record<DmToolLimitKind, DmToolLimitConfig> = {
     userLimit: USER_MAX_CAMPAIGNS
   },
   customBestiary: {
-    adminLimit: CUSTOM_BESTIARY_MAX,
+    adminLimit: ADMIN_MAX_CUSTOM_BESTIARY,
     code: "CUSTOM_BESTIARY_LIMIT_REACHED",
-    keeperLimit: CUSTOM_BESTIARY_MAX,
+    keeperLimit: KEEPER_MAX_CUSTOM_BESTIARY,
     label: "custom creatures",
-    userLimit: CUSTOM_BESTIARY_MAX
+    userLimit: USER_MAX_CUSTOM_BESTIARY
   },
   customSpells: {
-    adminLimit: CUSTOM_SPELLS_MAX,
+    adminLimit: ADMIN_MAX_CUSTOM_SPELLS,
     code: "CUSTOM_SPELL_LIMIT_REACHED",
-    keeperLimit: CUSTOM_SPELLS_MAX,
+    keeperLimit: KEEPER_MAX_CUSTOM_SPELLS,
     label: "custom spells",
-    userLimit: CUSTOM_SPELLS_MAX
+    userLimit: USER_MAX_CUSTOM_SPELLS
   },
   customItems: {
-    adminLimit: CUSTOM_ITEMS_MAX,
+    adminLimit: ADMIN_MAX_CUSTOM_ITEMS,
     code: "CUSTOM_ITEM_LIMIT_REACHED",
-    keeperLimit: CUSTOM_ITEMS_MAX,
+    keeperLimit: KEEPER_MAX_CUSTOM_ITEMS,
     label: "custom items",
-    userLimit: CUSTOM_ITEMS_MAX
+    userLimit: USER_MAX_CUSTOM_ITEMS
   },
   encounterTemplates: {
     adminLimit: ADMIN_MAX_ENCOUNTER_TEMPLATES,

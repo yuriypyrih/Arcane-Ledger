@@ -280,10 +280,19 @@
   align-items: center;
   gap: 0.44rem;
   position: relative;
-  border: 1px solid rgba(var(--tool-signature-rgb, 162, 77, 45), 0.24);
+  border: 1px solid rgba(var(--tool-signature-rgb, 162, 77, 45), 0.34);
   border-bottom: none;
   border-radius: var(--radius-control-lg) var(--radius-control-lg) 0 0;
-  background: var(--theme-surface-panel);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(var(--tool-signature-rgb, 162, 77, 45), 0.16),
+      rgba(var(--tool-signature-rgb, 162, 77, 45), 0.065)
+    ),
+    var(--theme-surface-panel);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.68),
+    0 5px 12px rgba(var(--tool-signature-rgb, 162, 77, 45), 0.08);
   color: var(--tool-signature-strong, var(--theme-text-secondary));
   cursor: pointer;
   font: inherit;
@@ -304,18 +313,29 @@
   right: 0.7rem;
   bottom: -1px;
   left: 0.7rem;
-  height: 2px;
+  height: 3px;
   border-radius: var(--radius-pill) var(--radius-pill) 0 0;
-  background: rgba(var(--tool-signature-rgb, 162, 77, 45), 0.28);
+  background: rgba(var(--tool-signature-rgb, 162, 77, 45), 0.48);
   transition:
     background-color 140ms ease,
     height 140ms ease;
 }
 
+.tabButton svg {
+  color: var(--tool-signature, var(--theme-accent));
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.72));
+}
+
 .tabButton:hover,
 .tabButton:focus-visible {
-  border-color: rgba(var(--tool-signature-rgb, 162, 77, 45), 0.42);
-  background: rgba(var(--tool-signature-rgb, 162, 77, 45), 0.1);
+  border-color: rgba(var(--tool-signature-rgb, 162, 77, 45), 0.5);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(var(--tool-signature-rgb, 162, 77, 45), 0.22),
+      rgba(var(--tool-signature-rgb, 162, 77, 45), 0.1)
+    ),
+    var(--theme-surface-panel);
   color: var(--tool-signature-strong, var(--theme-text-primary));
 }
 
@@ -331,10 +351,17 @@
 }
 
 .tabButtonActive {
-  border-color: rgba(var(--tool-signature-rgb, 162, 77, 45), 0.56);
-  background: rgba(var(--tool-signature-rgb, 162, 77, 45), 0.14);
+  border-color: rgba(var(--tool-signature-rgb, 162, 77, 45), 0.66);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(var(--tool-signature-rgb, 162, 77, 45), 0.28),
+      rgba(var(--tool-signature-rgb, 162, 77, 45), 0.14)
+    ),
+    var(--theme-surface-panel);
   box-shadow:
-    0 -1px 0 rgba(var(--tool-signature-rgb, 162, 77, 45), 0.12),
+    0 -1px 0 rgba(var(--tool-signature-rgb, 162, 77, 45), 0.2),
+    0 7px 16px rgba(var(--tool-signature-rgb, 162, 77, 45), 0.13),
     var(--theme-section-shadow);
   color: var(--tool-signature-strong, var(--theme-text-primary));
 }
@@ -751,6 +778,57 @@
 .dmToolsList {
   display: grid;
   gap: 0.68rem;
+}
+
+.paginationControls {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  justify-self: end;
+}
+
+.paginationIconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  min-width: 34px;
+  border: 1px solid var(--theme-border-subtle);
+  border-radius: var(--radius-control);
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-primary);
+  cursor: pointer;
+  padding: 0;
+}
+
+.paginationIconButton:hover,
+.paginationIconButton:focus-visible {
+  background: var(--theme-control-subtle-hover);
+  border-color: var(--theme-border-medium);
+}
+
+.paginationIconButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.paginationIconButton:disabled:hover {
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-control-subtle);
+}
+
+.paginationIconButton:focus-visible {
+  outline: 2px solid var(--theme-focus-ring);
+  outline-offset: 2px;
+}
+
+.paginationPageLabel {
+  color: var(--theme-text-secondary);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .sessionNotesList {

@@ -15,8 +15,8 @@ import {
   OverlayTitle,
   SheetModal
 } from "../../components/Overlay";
+import { createCharacterInventoryItemFromCustomSource } from "../CharactersPage/inventoryItems";
 import { showToast, useAppDispatch, useAppSelector } from "../../store";
-import type { CharacterInventoryItem } from "../../types";
 import { getDmToolsApiErrorMessage } from "./dmToolsApiErrors";
 import styles from "./DmToolsPage.module.css";
 
@@ -30,27 +30,6 @@ function canPublishCustomItems(role: string | null | undefined) {
   return role === "keeper" || role === "admin";
 }
 
-function createInitialStackFromCustomItem(customItem: CustomItemRecord): CharacterInventoryItem {
-  return {
-    id: `custom-item-editor-${customItem.id}`,
-    item: customItem.item,
-    quantity: 1,
-    onHandQuantity: 0,
-    worn: false,
-    chargesRecharge: customItem.settings.chargesRecharge,
-    chargesTotal: customItem.settings.chargesTotal,
-    conjuredDuration: customItem.settings.conjuredDuration,
-    conjuredSource: customItem.settings.conjuredSource,
-    customTag: customItem.settings.customTag,
-    featureTags: customItem.settings.featureTags,
-    mods: customItem.mods,
-    replicateMagicItemPlanKey: customItem.settings.replicateMagicItemPlanKey,
-    replicateMagicItemSlot: customItem.settings.replicateMagicItemSlot,
-    spellcastingFocusSources: customItem.settings.spellcastingFocusSources,
-    storedSpell: customItem.settings.storedSpell
-  };
-}
-
 function CustomItemEditorModal({ customItem, onClose, onSaved }: CustomItemEditorModalProps) {
   const dispatch = useAppDispatch();
   const authUserRole = useAppSelector((state) => state.auth.user?.role ?? null);
@@ -60,7 +39,12 @@ function CustomItemEditorModal({ customItem, onClose, onSaved }: CustomItemEdito
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const initialStack = useMemo(
-    () => (customItem ? createInitialStackFromCustomItem(customItem) : null),
+    () =>
+      customItem
+        ? createCharacterInventoryItemFromCustomSource(customItem, {
+            id: `custom-item-editor-${customItem.id}`
+          })
+        : null,
     [customItem]
   );
 

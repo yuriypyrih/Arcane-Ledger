@@ -26,7 +26,7 @@ export function AppUpdateRequiredPanel({
     }
 
     setIsReloading(true);
-    void reloadForAppUpdate().finally(() => {
+    void reloadForAppUpdate().catch(() => {
       setIsReloading(false);
     });
   }

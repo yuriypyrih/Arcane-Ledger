@@ -104,6 +104,12 @@ export type InventoryItemSettingsSavePayload = {
   replicateMagicItemSlot?: CharacterReplicateMagicItemSlot;
 };
 
+export type CustomInventoryItemSource = {
+  item: ItemRecord;
+  mods?: CharacterItemMods;
+  settings?: InventoryItemSettingsSavePayload;
+};
+
 type InventoryFeatureTagLabelOptions = {
   excludeConjured?: boolean;
   includeSpellcastingFocusSource?: boolean;
@@ -1068,6 +1074,69 @@ export function createCharacterInventoryItem(
     replicateMagicItemSlot: options?.replicateMagicItemSlot,
     mods: options?.mods,
     containerContents: options?.containerContents
+  });
+}
+
+export function createCharacterInventoryItemFromCustomSource(
+  source: CustomInventoryItemSource,
+  options?: {
+    id?: string;
+    quantity?: number;
+  }
+): CharacterInventoryItem {
+  const settings = source.settings ?? {};
+
+  return createCharacterInventoryItem(source.item, {
+    id: options?.id,
+    quantity: options?.quantity ?? 1,
+    onHandQuantity: 0,
+    worn: false,
+    attuned: false,
+    chargesRecharge: settings.chargesRecharge,
+    chargesTotal: settings.chargesTotal,
+    conjuredDuration: settings.conjuredDuration,
+    conjuredSource: settings.conjuredSource,
+    customTag: settings.customTag,
+    featureTags: settings.featureTags,
+    mods: source.mods,
+    replicateMagicItemPlanKey: settings.replicateMagicItemPlanKey,
+    replicateMagicItemSlot: settings.replicateMagicItemSlot,
+    spellcastingFocusSources: settings.spellcastingFocusSources,
+    storedSpell: settings.storedSpell,
+    containerContents: isItemContainerRecord(source.item) ? [] : undefined
+  });
+}
+
+export function createCharacterInventoryItemFromTemplate(
+  template: CharacterInventoryItem,
+  options?: {
+    id?: string;
+    quantity?: number;
+  }
+): CharacterInventoryItem {
+  return createCharacterInventoryItem(template.item, {
+    id: options?.id,
+    quantity: options?.quantity ?? 1,
+    onHandQuantity: 0,
+    worn: false,
+    attuned: false,
+    usesRemaining: template.usesRemaining,
+    chargesRecharge: template.chargesRecharge,
+    chargesTotal: template.chargesTotal,
+    conjuredDuration: template.conjuredDuration,
+    conjuredSource: template.conjuredSource,
+    customTag: template.customTag,
+    featureTags: template.featureTags,
+    mods: template.mods,
+    replicateMagicItemPlanKey: template.replicateMagicItemPlanKey,
+    replicateMagicItemSlot: template.replicateMagicItemSlot,
+    spellcastingFocusSources: template.spellcastingFocusSources,
+    storedSpell: template.storedSpell,
+    containerContents: template.containerContents
+      ? template.containerContents.map((content) => ({ ...content }))
+      : isItemContainerRecord(template.item)
+        ? []
+        : undefined
   });
 }
 

@@ -249,6 +249,8 @@ export const login = asyncHandler(async (request: Request, response: Response<Au
     throw new AppError("Please verify your email before logging in.", 403, "EMAIL_NOT_VERIFIED");
   }
 
+  user.lastInteractedAt = new Date();
+  await user.save({ validateModifiedOnly: true });
   sendSessionResponse(response, user);
 });
 

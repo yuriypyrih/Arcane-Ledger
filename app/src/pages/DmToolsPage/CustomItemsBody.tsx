@@ -1,5 +1,14 @@
 import { Backpack, PenLine, Plus, Trash2 } from "lucide-react";
-import { lazy, Suspense, type ReactNode, useEffect, useId, useRef, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  type ReactNode,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState
+} from "react";
 import {
   deleteCustomItem,
   listCustomItems,
@@ -23,9 +32,14 @@ import {
 } from "../../store";
 import CustomItemEditorModal from "./CustomItemEditorModal";
 import { getDmToolsApiErrorMessage } from "./dmToolsApiErrors";
+import {
+  clampDmToolsPage,
+  getDmToolsPageItems
+} from "./dmToolsPagination";
 import { getDmToolsQuotaForRole } from "./dmToolsQuotas";
 import DmToolsEmptyState from "./DmToolsEmptyState";
 import DmToolsListCard from "./DmToolsListCard";
+import DmToolsPaginationControls from "./DmToolsPaginationControls";
 import styles from "./DmToolsPage.module.css";
 
 const EquipmentInventoryItemDrawer = lazy(
@@ -76,6 +90,7 @@ function CustomItemsBody({ panelId, tabId }: CustomItemsBodyProps) {
     useState<CustomItemRecord | null>(null);
   const [previewCustomItem, setPreviewCustomItem] = useState<CustomItemRecord | null>(null);
   const [customItemScope, setCustomItemScope] = useState<CustomItemListScope>("mine");
+  const [customItemPage, setCustomItemPage] = useState(1);
   const [isDeletingCustomItem, setIsDeletingCustomItem] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const loadedCustomItemsForAuthRef = useRef<string | null>(null);
@@ -83,6 +98,14 @@ function CustomItemsBody({ panelId, tabId }: CustomItemsBodyProps) {
   const customItemLimit = getDmToolsQuotaForRole("customItems", authUserRole);
   const isAtCustomItemLimit =
     isAuthenticated && customItemScope === "mine" && customItems.length >= customItemLimit;
+  const paginatedCustomItems = useMemo(
+    () => getDmToolsPageItems(customItems, customItemPage),
+    [customItemPage, customItems]
+  );
+
+  useEffect(() => {
+    setCustomItemPage((currentPage) => clampDmToolsPage(currentPage, customItems.length));
+  }, [customItems.length]);
 
   useEffect(() => {
     let didCancel = false;
@@ -187,6 +210,7 @@ function CustomItemsBody({ panelId, tabId }: CustomItemsBodyProps) {
         aria-label={`Show ${nextScope === "public" ? "public" : "my"} custom items`}
         onClick={() => {
           loadedCustomItemsForAuthRef.current = null;
+          setCustomItemPage(1);
           setCustomItemScope(nextScope);
         }}
       >
@@ -264,60 +288,68 @@ function CustomItemsBody({ panelId, tabId }: CustomItemsBodyProps) {
           Sign in to manage custom items.
         </DmToolsEmptyState>
       ) : customItems.length > 0 ? (
-        <div className={styles.dmToolsList}>
-          {customItems.map((customItem) => {
-            const canManageCustomItem = customItem.ownerId === authUserId;
-            const itemName = customItem.item.name ?? "Custom Item";
-            const actionMeta =
-              customItem.public || customItemScope === "public" ? (
-                <>
-                  {customItem.public ? (
-                    <span className={styles.dmToolsListCardPublicPill}>Public</span>
-                  ) : null}
-                  {customItemScope === "public" ? (
-                    <span>Owner: {customItem.ownerNickname ?? "Unknown Player"}</span>
-                  ) : null}
-                </>
-              ) : undefined;
-            const actions = canManageCustomItem
-              ? [
-                  {
-                    disabled: isDeletingCustomItem,
-                    icon: <PenLine size={18} aria-hidden="true" />,
-                    label: `Edit ${itemName}`,
-                    onClick: () => {
-                      setActionError(null);
-                      setEditingCustomItem(customItem);
-                      setIsEditorOpen(true);
+        <>
+          <div className={styles.dmToolsList}>
+            {paginatedCustomItems.map((customItem) => {
+              const canManageCustomItem = customItem.ownerId === authUserId;
+              const itemName = customItem.item.name ?? "Custom Item";
+              const actionMeta =
+                customItem.public || customItemScope === "public" ? (
+                  <>
+                    {customItem.public ? (
+                      <span className={styles.dmToolsListCardPublicPill}>Public</span>
+                    ) : null}
+                    {customItemScope === "public" ? (
+                      <span>Owner: {customItem.ownerNickname ?? "Unknown Player"}</span>
+                    ) : null}
+                  </>
+                ) : undefined;
+              const actions = canManageCustomItem
+                ? [
+                    {
+                      disabled: isDeletingCustomItem,
+                      icon: <PenLine size={18} aria-hidden="true" />,
+                      label: `Edit ${itemName}`,
+                      onClick: () => {
+                        setActionError(null);
+                        setEditingCustomItem(customItem);
+                        setIsEditorOpen(true);
+                      }
+                    },
+                    {
+                      disabled: isDeletingCustomItem,
+                      icon: <Trash2 size={18} aria-hidden="true" />,
+                      label: `Delete ${itemName}`,
+                      onClick: () => {
+                        setActionError(null);
+                        setPendingDeleteCustomItem(customItem);
+                      }
                     }
-                  },
-                  {
-                    disabled: isDeletingCustomItem,
-                    icon: <Trash2 size={18} aria-hidden="true" />,
-                    label: `Delete ${itemName}`,
-                    onClick: () => {
-                      setActionError(null);
-                      setPendingDeleteCustomItem(customItem);
-                    }
-                  }
-                ]
-              : [];
+                  ]
+                : [];
 
-            return (
-              <DmToolsListCard
-                key={customItem.id}
-                actionMeta={actionMeta}
-                icon={<Backpack size={18} aria-hidden="true" />}
-                title={itemName}
-                meta={getCustomItemMeta(customItem)}
-                tone="customItem"
-                ariaLabel={`Preview ${itemName}`}
-                onClick={() => setPreviewCustomItem(customItem)}
-                actions={actions}
-              />
-            );
-          })}
-        </div>
+              return (
+                <DmToolsListCard
+                  key={customItem.id}
+                  actionMeta={actionMeta}
+                  icon={<Backpack size={18} aria-hidden="true" />}
+                  title={itemName}
+                  meta={getCustomItemMeta(customItem)}
+                  tone="customItem"
+                  ariaLabel={`Preview ${itemName}`}
+                  onClick={() => setPreviewCustomItem(customItem)}
+                  actions={actions}
+                />
+              );
+            })}
+          </div>
+          <DmToolsPaginationControls
+            currentPage={customItemPage}
+            itemLabel="custom items"
+            totalItems={customItems.length}
+            onPageChange={setCustomItemPage}
+          />
+        </>
       ) : (
         <DmToolsEmptyState icon={<Backpack size={18} aria-hidden="true" />}>
           {customItemScope === "public" ? "No public custom items yet." : "No custom items yet."}

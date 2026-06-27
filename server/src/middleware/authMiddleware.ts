@@ -1,8 +1,12 @@
 import type { NextFunction, Request, RequestHandler, Response } from "express";
 import { getAppConfig } from "../config/env.js";
 import { AppError } from "../errors/AppError.js";
-import { getUserFromAuthToken } from "../services/authUserService.js";
+import {
+  getUserFromAuthToken,
+  recordUserInteractionIfStale
+} from "../services/authUserService.js";
 import type { UserDocument } from "../models/User.js";
+import { captureServerError } from "../sentry.js";
 
 export type AuthenticatedLocals = {
   authUser: UserDocument;
@@ -26,8 +30,16 @@ export const requireAuth: RequestHandler = (
   }
 
   void getUserFromAuthToken(token)
-    .then((user) => {
+    .then(async (user) => {
       response.locals.authUser = user;
+      try {
+        await recordUserInteractionIfStale(user);
+      } catch (error) {
+        captureServerError(error, {
+          area: "auth",
+          action: "record-user-interaction"
+        });
+      }
       next();
     })
     .catch(next);

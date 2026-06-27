@@ -19,9 +19,11 @@ import {
 } from "../../../Overlay";
 import { useItemEntries } from "../../../../pages/CodexPage/useItemEntries";
 import { useItemFilterOptions } from "../../../../pages/CodexPage/useItemFilterOptions";
+import { createCharacterInventoryItemFromCustomSource } from "../../../../pages/CharactersPage/inventoryItems";
 import {
   DEFAULT_ITEM_BROWSER_TAB,
   type CharacterCurrencies,
+  type CharacterInventoryItem,
   type CodexStatus,
   type ItemArmorType,
   type ItemAttackType,
@@ -129,6 +131,11 @@ function getCustomItemTabCounts(records: CustomItemRecord[]) {
   return counts;
 }
 
+export type EquipmentItemBrowserSelectionOptions = {
+  initialInventoryItem?: CharacterInventoryItem;
+  initialItem?: ItemRecord;
+};
+
 type EquipmentItemBrowserModalProps = {
   isOpen: boolean;
   isClosing?: boolean;
@@ -136,7 +143,7 @@ type EquipmentItemBrowserModalProps = {
   onClose: () => void;
   onOpenCurrencyModal: () => void;
   onOpenCustomEquipmentCreator: () => void;
-  onItemSelect: (item: ItemListItem, initialItem?: ItemRecord) => void;
+  onItemSelect: (item: ItemListItem, options?: EquipmentItemBrowserSelectionOptions) => void;
 };
 
 function EquipmentItemBrowserModal({
@@ -451,7 +458,10 @@ function EquipmentItemBrowserModal({
       const customItem = customItemRecordsByKey.get(item.key);
 
       if (customItem) {
-        onItemSelect(item, customItem.item);
+        onItemSelect(item, {
+          initialInventoryItem: createCharacterInventoryItemFromCustomSource(customItem),
+          initialItem: customItem.item
+        });
       }
       return;
     }

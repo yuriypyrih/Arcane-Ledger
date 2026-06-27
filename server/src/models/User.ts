@@ -21,6 +21,7 @@ export type UserRecord = {
   passwordResetExpiresAt?: Date;
   passwordChangedAt?: Date | null;
   lastFeedback?: Date | null;
+  lastInteractedAt?: Date | null;
   preferences?: UserPreferences;
   active: boolean;
   createdAt?: Date;
@@ -118,6 +119,11 @@ const userSchema = new Schema<UserRecord>(
     lastFeedback: {
       type: Date,
       default: null
+    },
+    lastInteractedAt: {
+      type: Date,
+      default: null,
+      index: true
     },
     preferences: {
       type: userPreferencesSchema,

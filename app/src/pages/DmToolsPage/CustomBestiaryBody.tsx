@@ -1,5 +1,5 @@
 import { PawPrint, PenLine, Plus, Trash2 } from "lucide-react";
-import { type ReactNode, useEffect, useId, useRef, useState } from "react";
+import { type ReactNode, useEffect, useId, useMemo, useRef, useState } from "react";
 import {
   deleteCustomBestiary,
   listCustomBestiary,
@@ -22,9 +22,14 @@ import {
 } from "../../store";
 import CustomBestiaryEditorModal from "./CustomBestiaryEditorModal";
 import { getDmToolsApiErrorMessage } from "./dmToolsApiErrors";
+import {
+  clampDmToolsPage,
+  getDmToolsPageItems
+} from "./dmToolsPagination";
 import { getDmToolsQuotaForRole } from "./dmToolsQuotas";
 import DmToolsEmptyState from "./DmToolsEmptyState";
 import DmToolsListCard from "./DmToolsListCard";
+import DmToolsPaginationControls from "./DmToolsPaginationControls";
 import styles from "./DmToolsPage.module.css";
 
 type CustomBestiaryBodyProps = {
@@ -64,6 +69,7 @@ function CustomBestiaryBody({ panelId, tabId }: CustomBestiaryBodyProps) {
     useState<CustomBestiaryRecord | null>(null);
   const [customBestiaryScope, setCustomBestiaryScope] =
     useState<CustomBestiaryListScope>("mine");
+  const [customBestiaryPage, setCustomBestiaryPage] = useState(1);
   const [isDeletingCustomCreature, setIsDeletingCustomCreature] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const loadedCustomBestiaryForAuthRef = useRef<string | null>(null);
@@ -73,6 +79,16 @@ function CustomBestiaryBody({ panelId, tabId }: CustomBestiaryBodyProps) {
     isAuthenticated &&
     customBestiaryScope === "mine" &&
     customBestiary.length >= customBestiaryLimit;
+  const paginatedCustomBestiary = useMemo(
+    () => getDmToolsPageItems(customBestiary, customBestiaryPage),
+    [customBestiary, customBestiaryPage]
+  );
+
+  useEffect(() => {
+    setCustomBestiaryPage((currentPage) =>
+      clampDmToolsPage(currentPage, customBestiary.length)
+    );
+  }, [customBestiary.length]);
 
   useEffect(() => {
     let didCancel = false;
@@ -182,6 +198,7 @@ function CustomBestiaryBody({ panelId, tabId }: CustomBestiaryBodyProps) {
         aria-label={`Show ${nextScope === "public" ? "public" : "my"} custom creatures`}
         onClick={() => {
           loadedCustomBestiaryForAuthRef.current = null;
+          setCustomBestiaryPage(1);
           setCustomBestiaryScope(nextScope);
         }}
       >
@@ -259,60 +276,68 @@ function CustomBestiaryBody({ panelId, tabId }: CustomBestiaryBodyProps) {
           Sign in to manage custom creatures.
         </DmToolsEmptyState>
       ) : customBestiary.length > 0 ? (
-        <div className={styles.dmToolsList}>
-          {customBestiary.map((customCreature) => {
-            const canManageCustomCreature = customCreature.ownerId === authUserId;
-            const creatureName = customCreature.monster.name || "Custom Creature";
-            const actionMeta =
-              customCreature.public || customBestiaryScope === "public" ? (
-                <>
-                  {customCreature.public ? (
-                    <span className={styles.dmToolsListCardPublicPill}>Public</span>
-                  ) : null}
-                  {customBestiaryScope === "public" ? (
-                    <span>Owner: {customCreature.ownerNickname ?? "Unknown Player"}</span>
-                  ) : null}
-                </>
-              ) : undefined;
-            const actions = canManageCustomCreature
-              ? [
-                  {
-                    disabled: isDeletingCustomCreature,
-                    icon: <PenLine size={18} aria-hidden="true" />,
-                    label: `Edit ${creatureName}`,
-                    onClick: () => {
-                      setActionError(null);
-                      setEditingCustomCreature(customCreature);
-                      setIsEditorOpen(true);
+        <>
+          <div className={styles.dmToolsList}>
+            {paginatedCustomBestiary.map((customCreature) => {
+              const canManageCustomCreature = customCreature.ownerId === authUserId;
+              const creatureName = customCreature.monster.name || "Custom Creature";
+              const actionMeta =
+                customCreature.public || customBestiaryScope === "public" ? (
+                  <>
+                    {customCreature.public ? (
+                      <span className={styles.dmToolsListCardPublicPill}>Public</span>
+                    ) : null}
+                    {customBestiaryScope === "public" ? (
+                      <span>Owner: {customCreature.ownerNickname ?? "Unknown Player"}</span>
+                    ) : null}
+                  </>
+                ) : undefined;
+              const actions = canManageCustomCreature
+                ? [
+                    {
+                      disabled: isDeletingCustomCreature,
+                      icon: <PenLine size={18} aria-hidden="true" />,
+                      label: `Edit ${creatureName}`,
+                      onClick: () => {
+                        setActionError(null);
+                        setEditingCustomCreature(customCreature);
+                        setIsEditorOpen(true);
+                      }
+                    },
+                    {
+                      disabled: isDeletingCustomCreature,
+                      icon: <Trash2 size={18} aria-hidden="true" />,
+                      label: `Delete ${creatureName}`,
+                      onClick: () => {
+                        setActionError(null);
+                        setPendingDeleteCustomCreature(customCreature);
+                      }
                     }
-                  },
-                  {
-                    disabled: isDeletingCustomCreature,
-                    icon: <Trash2 size={18} aria-hidden="true" />,
-                    label: `Delete ${creatureName}`,
-                    onClick: () => {
-                      setActionError(null);
-                      setPendingDeleteCustomCreature(customCreature);
-                    }
-                  }
-                ]
-              : [];
+                  ]
+                : [];
 
-            return (
-              <DmToolsListCard
-                key={customCreature.id}
-                actionMeta={actionMeta}
-                icon={<PawPrint size={18} aria-hidden="true" />}
-                title={creatureName}
-                meta={getCustomCreatureMeta(customCreature)}
-                tone="customBestiary"
-                ariaLabel={`Preview ${creatureName}`}
-                onClick={() => setPreviewCustomCreature(customCreature)}
-                actions={actions}
-              />
-            );
-          })}
-        </div>
+              return (
+                <DmToolsListCard
+                  key={customCreature.id}
+                  actionMeta={actionMeta}
+                  icon={<PawPrint size={18} aria-hidden="true" />}
+                  title={creatureName}
+                  meta={getCustomCreatureMeta(customCreature)}
+                  tone="customBestiary"
+                  ariaLabel={`Preview ${creatureName}`}
+                  onClick={() => setPreviewCustomCreature(customCreature)}
+                  actions={actions}
+                />
+              );
+            })}
+          </div>
+          <DmToolsPaginationControls
+            currentPage={customBestiaryPage}
+            itemLabel="custom creatures"
+            totalItems={customBestiary.length}
+            onPageChange={setCustomBestiaryPage}
+          />
+        </>
       ) : (
         <DmToolsEmptyState icon={<PawPrint size={18} aria-hidden="true" />}>
           {customBestiaryScope === "public"

@@ -1,6 +1,6 @@
 import { apiGet, type ApiRequestOptions } from "./client";
 
-export type AnalyticsSummaryRangeKey = "last30" | "all" | "custom";
+export type AnalyticsSummaryRangeKey = "last7" | "last30" | "all" | "custom";
 
 export type AnalyticsSummaryQuery = {
   end?: string;
@@ -29,6 +29,18 @@ export type AnalyticsCountryBucket = {
   label: string;
 };
 
+export type AnalyticsEntityCounts = {
+  campaigns: number;
+  characters: number;
+  customBestiary: number;
+  customItems: number;
+  customSpells: number;
+  encounterTemplates: number;
+  liveEncounters: number;
+  partyGroups: number;
+  users: number;
+};
+
 export type AnalyticsSummary = {
   range: {
     end: string;
@@ -42,6 +54,19 @@ export type AnalyticsSummary = {
     emailsSent: number;
     totalActiveCharacters: number;
     totalActiveUsers: number;
+  };
+  totals: AnalyticsEntityCounts;
+  activity: AnalyticsEntityCounts & {
+    anonymousVisitors: number;
+    createdCampaigns: number;
+    createdCharacters: number;
+    createdCustomBestiary: number;
+    createdCustomItems: number;
+    createdCustomSpells: number;
+    createdEncounterTemplates: number;
+    createdPartyGroups: number;
+    createdUsers: number;
+    emailsSent: number;
   };
   demographics: {
     all: {

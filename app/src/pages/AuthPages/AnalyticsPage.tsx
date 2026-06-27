@@ -1,5 +1,5 @@
 import { RefreshCw } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import {
   fetchAnalyticsSummary,
@@ -8,6 +8,8 @@ import {
   type AnalyticsSummaryQuery,
   type AnalyticsSummaryRangeKey
 } from "../../api/analytics";
+import { classEntries } from "../../codex/entries/classData";
+import { speciesEntries } from "../../codex/entries/speciesData";
 import ActionButton from "../../components/ActionButton";
 import { useAppSelector } from "../../store";
 import styles from "./AnalyticsPage.module.css";
@@ -20,19 +22,30 @@ type ChartRow = {
   label: string;
 };
 
+type MetricItem = {
+  label: string;
+  value: number | string;
+};
+
+type MetricGroup = {
+  items: MetricItem[];
+  title: string;
+};
+
 type DonutLegendValue = "count" | "percent";
 
 const DONUT_HUES = [
-  "37, 88, 184",
-  "202, 107, 36",
-  "45, 129, 95",
-  "190, 70, 75",
-  "122, 82, 184"
+  "var(--analytics-donut-blue)",
+  "var(--analytics-donut-orange)",
+  "var(--analytics-donut-green)",
+  "var(--analytics-donut-red)",
+  "var(--analytics-donut-purple)"
 ] as const;
 const DONUT_OPACITIES = [1, 0.66, 0.32] as const;
 const DONUT_SEGMENT_LIMIT = DONUT_HUES.length * DONUT_OPACITIES.length;
 
 const rangeOptions: Array<{ label: string; value: AnalyticsSummaryRangeKey }> = [
+  { label: "Last 7 days", value: "last7" },
   { label: "Last 30 days", value: "last30" },
   { label: "All time", value: "all" },
   { label: "Custom", value: "custom" }
@@ -51,6 +64,17 @@ const latencyLabels: Record<string, string> = {
   "1_3s": "1-3s",
   gt_3s: "> 3s"
 };
+
+function normalizeBucketName(value: string) {
+  return value.trim().toLowerCase();
+}
+
+const classLabelsByName = new Map(
+  classEntries.map((entry) => [normalizeBucketName(entry.name), entry.name])
+);
+const speciesLabelsByName = new Map(
+  speciesEntries.map((entry) => [normalizeBucketName(entry.name), entry.name])
+);
 
 function formatNumber(value: number) {
   return new Intl.NumberFormat(undefined, {
@@ -117,11 +141,30 @@ function getSummaryQuery(
   };
 }
 
-function toChartRows(rows: AnalyticsNamedBucket[]): ChartRow[] {
-  return rows.map((row) => ({
-    count: row.count,
-    label: row.name
-  }));
+function getDisplayBucketName(name: string, knownLabelsByName: ReadonlyMap<string, string>) {
+  const normalizedName = normalizeBucketName(name);
+
+  if (!normalizedName || normalizedName === "unknown") {
+    return "Unknown";
+  }
+
+  return knownLabelsByName.get(normalizedName) ?? "Custom";
+}
+
+function toCodexGroupedChartRows(
+  rows: AnalyticsNamedBucket[],
+  knownLabelsByName: ReadonlyMap<string, string>
+): ChartRow[] {
+  const countsByLabel = new Map<string, number>();
+
+  rows.forEach((row) => {
+    const label = getDisplayBucketName(row.name, knownLabelsByName);
+    countsByLabel.set(label, (countsByLabel.get(label) ?? 0) + row.count);
+  });
+
+  return [...countsByLabel.entries()]
+    .map(([label, count]) => ({ count, label }))
+    .sort((left, right) => right.count - left.count || left.label.localeCompare(right.label));
 }
 
 function getDonutSegmentColor(index: number) {
@@ -135,14 +178,47 @@ function EmptyState({ label }: { label: string }) {
   return <p className={styles.emptyState}>{label}</p>;
 }
 
-function KpiCard({ label, value }: { label: string; value: number | string }) {
+function MetricBlock({
+  children,
+  eyebrow,
+  title
+}: {
+  children: ReactNode;
+  eyebrow?: string;
+  title: string;
+}) {
   return (
-    <article className={styles.kpiCard}>
-      <span className={styles.kpiLabel}>{label}</span>
-      <strong className={styles.kpiValue}>
-        {typeof value === "number" ? formatNumber(value) : value}
-      </strong>
-    </article>
+    <section className={styles.metricBlock}>
+      <div className={styles.metricBlockHeader}>
+        <div>
+          {eyebrow ? <p className={styles.eyebrow}>{eyebrow}</p> : null}
+          <h3>{title}</h3>
+        </div>
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function MetricGroupPanel({ groups }: { groups: MetricGroup[] }) {
+  return (
+    <div className={styles.metricPanel}>
+      {groups.map((group) => (
+        <div key={group.title} className={styles.metricGroup}>
+          <h4>{group.title}</h4>
+          <ul className={styles.metricList}>
+            {group.items.map((item) => (
+              <li key={item.label}>
+                <span>{item.label}</span>
+                <strong>
+                  {typeof item.value === "number" ? formatNumber(item.value) : item.value}
+                </strong>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -285,13 +361,89 @@ function AnalyticsPage() {
     () => getSummaryQuery(rangeMode, customStart, customEnd),
     [customEnd, customStart, rangeMode]
   );
-  const topRouteRows = useMemo(
+  const totalMetricGroups = useMemo<MetricGroup[]>(
     () =>
-      summary?.routes.topRoutes.map((row) => ({
-        label: row.route,
-        count: row.count
-      })) ?? [],
-    [summary?.routes.topRoutes]
+      summary
+        ? [
+            {
+              title: "People & Sheets",
+              items: [
+                { label: "Total Users", value: summary.totals.users },
+                { label: "Total Characters", value: summary.totals.characters }
+              ]
+            },
+            {
+              title: "GM Spaces",
+              items: [
+                { label: "Total Campaigns", value: summary.totals.campaigns },
+                { label: "Total Parties", value: summary.totals.partyGroups },
+                { label: "Current Live Encounters", value: summary.totals.liveEncounters }
+              ]
+            },
+            {
+              title: "Prep & Library",
+              items: [
+                { label: "Total Encounter Templates", value: summary.totals.encounterTemplates },
+                { label: "Custom Spells", value: summary.totals.customSpells },
+                { label: "Custom Items", value: summary.totals.customItems },
+                { label: "Custom Bestiary", value: summary.totals.customBestiary }
+              ]
+            }
+          ]
+        : [],
+    [summary]
+  );
+  const activityMetricGroups = useMemo<MetricGroup[]>(
+    () =>
+      summary
+        ? [
+            {
+              title: "People & Play",
+              items: [
+                { label: "Active Users", value: summary.activity.users },
+                { label: "Active Characters", value: summary.activity.characters },
+                { label: "Active Campaigns", value: summary.activity.campaigns }
+              ]
+            },
+            {
+              title: "Signals",
+              items: [
+                { label: "Anonymous Visitors", value: summary.activity.anonymousVisitors },
+                { label: "Emails Sent", value: summary.activity.emailsSent }
+              ]
+            }
+          ]
+        : [],
+    [summary]
+  );
+  const createdMetricGroups = useMemo<MetricGroup[]>(
+    () =>
+      summary
+        ? [
+            {
+              title: "Core Records",
+              items: [
+                { label: "Created Users", value: summary.activity.createdUsers },
+                { label: "Created Characters", value: summary.activity.createdCharacters },
+                { label: "Created Campaigns", value: summary.activity.createdCampaigns },
+                { label: "Created Parties", value: summary.activity.createdPartyGroups },
+                {
+                  label: "Created Encounter Templates",
+                  value: summary.activity.createdEncounterTemplates
+                }
+              ]
+            },
+            {
+              title: "Custom Library",
+              items: [
+                { label: "Created Custom Spells", value: summary.activity.createdCustomSpells },
+                { label: "Created Custom Items", value: summary.activity.createdCustomItems },
+                { label: "Created Custom Bestiary", value: summary.activity.createdCustomBestiary }
+              ]
+            }
+          ]
+        : [],
+    [summary]
   );
   const latencyRows = useMemo(
     () =>
@@ -302,11 +454,13 @@ function AnalyticsPage() {
     [summary?.health.latencyBuckets]
   );
   const classRows = useMemo(
-    () => (summary ? toChartRows(summary.characters.topClasses) : []),
+    () =>
+      summary ? toCodexGroupedChartRows(summary.characters.topClasses, classLabelsByName) : [],
     [summary]
   );
   const speciesRows = useMemo(
-    () => (summary ? toChartRows(summary.characters.topSpecies) : []),
+    () =>
+      summary ? toCodexGroupedChartRows(summary.characters.topSpecies, speciesLabelsByName) : [],
     [summary]
   );
   const countryRows = useMemo(
@@ -393,53 +547,11 @@ function AnalyticsPage() {
           <div>
             <p className={styles.eyebrow}>Analytics</p>
             <h2 className={styles.title}>Admin Overview</h2>
-            {summary ? <p className={styles.text}>{formatDateRange(summary)}</p> : null}
             {summary ? (
-              <dl className={styles.overviewRows}>
-                <div>
-                  <dt>Active users</dt>
-                  <dd>{formatNumber(summary.overview.totalActiveUsers)}</dd>
-                </div>
-                <div>
-                  <dt>Active characters</dt>
-                  <dd>{formatNumber(summary.overview.totalActiveCharacters)}</dd>
-                </div>
-              </dl>
+              <p className={styles.text}>Activity range: {formatDateRange(summary)}</p>
             ) : null}
           </div>
           <div className={styles.headerControls}>
-            <div className={styles.segmentedControl} aria-label="Analytics range">
-              {rangeOptions.map((option) => (
-                <SegmentButton
-                  key={option.value}
-                  active={rangeMode === option.value}
-                  value={option.value}
-                  onSelect={setRangeMode}
-                >
-                  {option.label}
-                </SegmentButton>
-              ))}
-            </div>
-            {rangeMode === "custom" ? (
-              <div className={styles.dateControls}>
-                <label className={styles.dateField}>
-                  <span>Start</span>
-                  <input
-                    type="date"
-                    value={customStart}
-                    onChange={(event) => setCustomStart(event.target.value)}
-                  />
-                </label>
-                <label className={styles.dateField}>
-                  <span>End</span>
-                  <input
-                    type="date"
-                    value={customEnd}
-                    onChange={(event) => setCustomEnd(event.target.value)}
-                  />
-                </label>
-              </div>
-            ) : null}
             <ActionButton
               icon={<RefreshCw size={16} aria-hidden="true" />}
               fullWidth={false}
@@ -455,72 +567,106 @@ function AnalyticsPage() {
 
         {summary ? (
           <>
-            <div className={styles.kpiGrid}>
-              <KpiCard label="Created Users" value={summary.overview.createdUsers} />
-              <KpiCard label="Created Characters" value={summary.overview.createdCharacters} />
-              <KpiCard label="Anonymous Visitors" value={summary.overview.anonymousVisitors} />
-              <KpiCard label="Emails Sent" value={summary.overview.emailsSent} />
-            </div>
+            <MetricBlock eyebrow="Not date-scoped" title="Current Totals">
+              <MetricGroupPanel groups={totalMetricGroups} />
+            </MetricBlock>
 
-            <div className={styles.sectionGrid}>
-              <section className={styles.section}>
-                <div className={styles.sectionHeader}>
-                  <div>
-                    <h3>Demographics</h3>
-                    <span>{formatNumber(demographicTotal)} visitors</span>
-                  </div>
-                  <div className={styles.segmentedControlCompact} aria-label="Demographics filter">
-                    {demographicOptions.map((option) => (
-                      <SegmentButton
-                        key={option.value}
-                        active={demographicFilter === option.value}
-                        value={option.value}
-                        onSelect={setDemographicFilter}
-                      >
-                        {option.label}
-                      </SegmentButton>
-                    ))}
-                  </div>
+            <section className={styles.filterBar} aria-label="Analytics date range">
+              <div>
+                <p className={styles.eyebrow}>Date-scoped</p>
+                <h3>Activity Range</h3>
+                <p className={styles.text}>{formatDateRange(summary)}</p>
+              </div>
+              <div className={styles.filterControls}>
+                <div className={styles.segmentedControl} aria-label="Analytics range">
+                  {rangeOptions.map((option) => (
+                    <SegmentButton
+                      key={option.value}
+                      active={rangeMode === option.value}
+                      value={option.value}
+                      onSelect={setRangeMode}
+                    >
+                      {option.label}
+                    </SegmentButton>
+                  ))}
                 </div>
-                <DonutChart
-                  ariaLabel="Visitor countries"
-                  emptyLabel="No demographics yet."
-                  rows={countryRows}
-                />
-              </section>
+                {rangeMode === "custom" ? (
+                  <div className={styles.dateControls}>
+                    <label className={styles.dateField}>
+                      <span>Start</span>
+                      <input
+                        type="date"
+                        value={customStart}
+                        onChange={(event) => setCustomStart(event.target.value)}
+                      />
+                    </label>
+                    <label className={styles.dateField}>
+                      <span>End</span>
+                      <input
+                        type="date"
+                        value={customEnd}
+                        onChange={(event) => setCustomEnd(event.target.value)}
+                      />
+                    </label>
+                  </div>
+                ) : null}
+              </div>
+            </section>
 
-              <section className={styles.section}>
-                <div className={styles.sectionHeader}>
-                  <h3>Top Routes</h3>
-                  <span>{formatNumber(summary.routes.topRoutes.length)} routes</span>
-                </div>
-                <CountTable
-                  emptyLabel="No route data yet."
-                  rows={topRouteRows}
-                  valueLabel="Views"
-                />
-              </section>
-            </div>
+            <MetricBlock title="Activity In Range">
+              <MetricGroupPanel groups={activityMetricGroups} />
+            </MetricBlock>
+
+            <MetricBlock title="Created In Range">
+              <MetricGroupPanel groups={createdMetricGroups} />
+            </MetricBlock>
+
             <section className={styles.section}>
               <div className={styles.sectionHeader}>
-                <h3>Characters</h3>
-                <span>{formatNumber(summary.overview.totalActiveCharacters)} active</span>
+                <div>
+                  <h3>Demographics</h3>
+                  <span>{formatNumber(demographicTotal)} visitors</span>
+                </div>
+                <div className={styles.segmentedControlCompact} aria-label="Demographics filter">
+                  {demographicOptions.map((option) => (
+                    <SegmentButton
+                      key={option.value}
+                      active={demographicFilter === option.value}
+                      value={option.value}
+                      onSelect={setDemographicFilter}
+                    >
+                      {option.label}
+                    </SegmentButton>
+                  ))}
+                </div>
+              </div>
+              <DonutChart
+                ariaLabel="Visitor countries"
+                emptyLabel="No demographics yet."
+                rows={countryRows}
+              />
+            </section>
+
+            <section className={styles.section}>
+              <div className={styles.sectionHeader}>
+                <h3>Active Characters</h3>
+                <span>{formatNumber(summary.activity.characters)} updated</span>
               </div>
               <div className={styles.characterCharts}>
                 <div className={styles.chartPanel}>
-                  <h4>Classes</h4>
+                  <h4>Character Classes</h4>
                   <DonutChart
                     ariaLabel="Character classes"
-                    emptyLabel="No class data yet."
+                    emptyLabel="No active class data yet."
                     legendValue="count"
                     rows={classRows}
                   />
                 </div>
                 <div className={styles.chartPanel}>
-                  <h4>Species</h4>
+                  <h4>Character Species</h4>
                   <DonutChart
                     ariaLabel="Character species"
-                    emptyLabel="No species data yet."
+                    emptyLabel="No active species data yet."
                     legendValue="count"
                     rows={speciesRows}
                   />

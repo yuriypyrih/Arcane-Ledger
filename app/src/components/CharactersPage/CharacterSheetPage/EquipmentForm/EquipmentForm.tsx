@@ -102,6 +102,7 @@ import {
   addOneContainerContentItemCopyByIndex,
   canAddInventoryObject,
   createCharacterInventoryItem,
+  createCharacterInventoryItemFromTemplate,
   createGroupedInventoryItem,
   createHeldDescriptorForInventoryItem,
   findInventoryItemStackById,
@@ -178,7 +179,9 @@ import EquipmentInventoryItemDrawerFooter, {
 import EquipmentContainerManageModal from "./EquipmentContainerManageModal";
 import EquipmentContainerContentsList from "./EquipmentContainerContentsList";
 import EquipmentGuideModal from "./EquipmentGuideModal";
-import EquipmentItemBrowserModal from "./EquipmentItemBrowserModal";
+import EquipmentItemBrowserModal, {
+  type EquipmentItemBrowserSelectionOptions
+} from "./EquipmentItemBrowserModal";
 import MasterChestModal from "./MasterChestModal";
 import InventoryTagPill from "./InventoryTagPill";
 import { getInventoryTagPillProps } from "./inventoryTagPillModel";
@@ -251,6 +254,7 @@ type SelectedInventoryInspectionState = {
   stackId?: string;
   containerStackId?: string;
   contentIndex?: number;
+  initialInventoryItem?: CharacterInventoryItem | null;
   initialItem: ItemRecord | null;
   source: "browser" | "inventory" | "container";
 };
@@ -1167,7 +1171,10 @@ function EquipmentForm({
   const managedContainerStack = managingContainerStackId
     ? findInventoryItemStackById(equipmentCharacter.inventoryItems, managingContainerStackId)
     : null;
-  const selectedInventoryModEffects = selectedInventoryStack?.mods?.effects ?? [];
+  const selectedInventoryModEffects =
+    selectedInventoryStack?.mods?.effects ??
+    selectedInventoryInspection?.initialInventoryItem?.mods?.effects ??
+    [];
   const selectedInventoryFeatureTagLabels = [
     ...getInventoryItemFeatureTagLabels(selectedInventoryStack, {
       includeSpellcastingFocusSource: true
@@ -1527,7 +1534,10 @@ function EquipmentForm({
     setIsCurrencyDrawerOpen(true);
   }
 
-  function openInventoryInspectionFromBrowser(item: { key: string }, initialItem?: ItemRecord) {
+  function openInventoryInspectionFromBrowser(
+    item: { key: string },
+    options?: EquipmentItemBrowserSelectionOptions
+  ) {
     setSelectedWeaponReference(null);
     setSelectedLoadoutEntry(null);
     setParentInventoryInspection(null);
@@ -1536,7 +1546,9 @@ function EquipmentForm({
     setInventoryDrawerNotice(null);
     setSelectedInventoryInspection({
       itemKey: item.key,
-      initialItem: initialItem ?? findOwnedInventoryItemRecord(equipmentCharacter.inventoryItems, item.key),
+      initialInventoryItem: options?.initialInventoryItem ?? null,
+      initialItem:
+        options?.initialItem ?? findOwnedInventoryItemRecord(equipmentCharacter.inventoryItems, item.key),
       source: "browser"
     });
   }
@@ -1690,6 +1702,21 @@ function EquipmentForm({
     return getInventoryObjectCount(inventoryItems) > INVENTORY_OBJECT_LIMIT;
   }
 
+  function addBrowserSelectedInventoryItemCopy(
+    inventoryItems: CharacterInventoryItem[],
+    item: ItemRecord
+  ) {
+    const browserTemplate =
+      selectedInventoryInspection?.source === "browser" &&
+      selectedInventoryInspection.initialInventoryItem?.item.key === item.key
+        ? selectedInventoryInspection.initialInventoryItem
+        : null;
+
+    return browserTemplate
+      ? [...inventoryItems, createCharacterInventoryItemFromTemplate(browserTemplate)]
+      : addInventoryItemCopies(inventoryItems, item);
+  }
+
   function addInventoryItemCopy(item: ItemRecord) {
     if (!item.key) {
       return;
@@ -1711,7 +1738,7 @@ function EquipmentForm({
                 selectedInventoryInspection.containerStackId,
                 selectedInventoryInspection.contentIndex
               )
-            : addInventoryItemCopies(currentCharacter.inventoryItems, item);
+            : addBrowserSelectedInventoryItemCopy(currentCharacter.inventoryItems, item);
 
         return {
           ...currentCharacter,
@@ -1761,7 +1788,7 @@ function EquipmentForm({
                 selectedInventoryInspection.containerStackId,
                 selectedInventoryInspection.contentIndex
               )
-            : addInventoryItemCopies(currentCharacter.inventoryItems, item);
+            : addBrowserSelectedInventoryItemCopy(currentCharacter.inventoryItems, item);
 
         if (wouldExceedInventoryObjectLimit(nextInventoryItems)) {
           return currentCharacter;

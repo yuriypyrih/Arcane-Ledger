@@ -1,7 +1,21 @@
 .page {
+  --analytics-donut-blue: 37, 88, 184;
+  --analytics-donut-orange: 202, 107, 36;
+  --analytics-donut-green: 45, 129, 95;
+  --analytics-donut-red: 190, 70, 75;
+  --analytics-donut-purple: 122, 82, 184;
+
   width: min(100%, 1180px);
   margin: 0 auto;
   padding: 0 0 clamp(1rem, 3vw, 2rem);
+}
+
+:global(html[data-theme="dark"]) .page {
+  --analytics-donut-blue: 112, 158, 245;
+  --analytics-donut-orange: 238, 157, 88;
+  --analytics-donut-green: 95, 190, 148;
+  --analytics-donut-red: 236, 132, 138;
+  --analytics-donut-purple: 174, 144, 232;
 }
 
 .dashboard {
@@ -11,6 +25,7 @@
 
 .header,
 .panel,
+.metricBlock,
 .section {
   border: 1px solid rgba(75, 47, 29, 0.12);
   border-radius: var(--radius-section);
@@ -39,7 +54,49 @@
   align-items: flex-start;
   justify-content: flex-end;
   gap: 0.7rem;
-  min-width: min(100%, 520px);
+  min-width: min(100%, 180px);
+}
+
+.metricBlock {
+  display: grid;
+  align-content: start;
+  gap: var(--space-section-gap);
+  min-width: 0;
+  padding: var(--space-card-padding);
+}
+
+.metricBlockHeader {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid rgba(94, 62, 39, 0.12);
+  padding-bottom: 0.8rem;
+}
+
+.metricBlockHeader h3,
+.filterBar h3 {
+  color: #2f1b12;
+  font-size: 1rem;
+  margin: 0.12rem 0 0;
+}
+
+.filterBar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-section-gap);
+  border-top: 1px solid rgba(94, 62, 39, 0.12);
+  border-bottom: 1px solid rgba(94, 62, 39, 0.12);
+  padding: 1rem 0;
+}
+
+.filterControls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 0.7rem;
 }
 
 .eyebrow {
@@ -63,38 +120,6 @@
   color: rgba(47, 27, 18, 0.74);
   line-height: 1.5;
   margin: 0.45rem 0 0;
-}
-
-.overviewRows {
-  display: grid;
-  gap: 0.42rem;
-  margin: 0.85rem 0 0;
-}
-
-.overviewRows div {
-  display: grid;
-  align-items: baseline;
-  gap: 1rem;
-  grid-template-columns: minmax(0, 10rem) auto;
-}
-
-.overviewRows dt,
-.overviewRows dd {
-  margin: 0;
-}
-
-.overviewRows dt {
-  color: rgba(47, 27, 18, 0.62);
-  font-size: 0.78rem;
-  font-weight: 850;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.overviewRows dd {
-  color: #2f1b12;
-  font-size: 1rem;
-  font-weight: 850;
 }
 
 .actions {
@@ -172,16 +197,20 @@
 
 .segmentButtonActive {
   background: #2f6de0;
-  box-shadow: 0 8px 18px rgba(37, 88, 184, 0.2);
+  box-shadow: none;
   color: #f7fbff;
 }
 
 :global(html[data-theme="dark"]) .segmentButtonActive {
-  background: rgba(156, 188, 255, 0.12);
-  box-shadow:
-    inset 0 0 0 1px rgba(156, 188, 255, 0.34),
-    0 10px 22px rgba(0, 0, 0, 0.22);
-  color: var(--theme-accent-strong);
+  background: #2f6de0;
+  box-shadow: none;
+  color: #f7fbff;
+}
+
+:global(html[data-theme="dark"]) .segmentButtonActive:hover,
+:global(html[data-theme="dark"]) .segmentButtonActive:focus-visible {
+  background: #2f6de0;
+  color: #f7fbff;
 }
 
 .segmentButton:focus-visible,
@@ -216,44 +245,66 @@
   padding: 0 0.72rem;
 }
 
-.kpiGrid {
+.metricPanel {
   display: grid;
-  gap: 0.75rem;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(1rem, 2vw, 1.35rem);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.kpiCard {
+.metricGroup {
   display: grid;
-  gap: 0.38rem;
-  min-height: 96px;
-  border: 1px solid rgba(94, 62, 39, 0.14);
-  border-radius: var(--radius-card);
-  background: #fffaf1;
-  box-shadow: 0 14px 34px rgba(38, 22, 14, 0.08);
-  color: var(--color-ink);
-  padding: 0.95rem;
+  align-content: start;
+  gap: 0.58rem;
+  min-width: 0;
+  border-left: 3px solid rgba(37, 88, 184, 0.36);
+  padding-left: 0.85rem;
 }
 
-.kpiLabel {
-  color: rgba(47, 27, 18, 0.62);
-  font-size: 0.74rem;
-  font-weight: 850;
+.metricGroup h4 {
+  color: #2f1b12;
+  font-size: 0.78rem;
+  font-weight: 900;
   letter-spacing: 0.04em;
+  margin: 0;
   text-transform: uppercase;
 }
 
-.kpiValue {
-  color: #2f1b12;
-  font-family: "Palatino Linotype", "Book Antiqua", Georgia, serif;
-  font-size: clamp(1.35rem, 3vw, 1.9rem);
-  line-height: 1;
+.metricList {
+  display: grid;
+  gap: 0.18rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
-.sectionGrid {
-  display: grid;
-  align-items: stretch;
-  gap: var(--space-page-gap);
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+.metricList li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.8rem;
+  min-width: 0;
+  border-bottom: 1px solid rgba(94, 62, 39, 0.1);
+  padding: 0.3rem 0;
+}
+
+.metricList li:last-child {
+  border-bottom: 0;
+}
+
+.metricList span {
+  color: rgba(47, 27, 18, 0.62);
+  font-size: 0.84rem;
+  font-weight: 760;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.metricList strong {
+  color: #2f1b12;
+  font-family: "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  font-size: 1.16rem;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 .section {
@@ -475,7 +526,7 @@
 }
 
 @media (max-width: 1100px) {
-  .kpiGrid {
+  .metricPanel {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -490,7 +541,14 @@
     min-width: 0;
   }
 
-  .sectionGrid,
+  .filterBar {
+    display: grid;
+  }
+
+  .filterControls {
+    justify-content: flex-start;
+  }
+
   .chartGrid,
   .splitTables,
   .characterCharts {
@@ -503,7 +561,7 @@
 }
 
 @media (max-width: 620px) {
-  .kpiGrid {
+  .metricPanel {
     grid-template-columns: 1fr;
   }
 
@@ -523,20 +581,17 @@
     flex: 1 1 120px;
   }
 
-  .overviewRows div {
-    grid-template-columns: 1fr;
-    gap: 0.1rem;
-  }
-
-  .kpiCard {
-    min-height: 82px;
+  .metricList li {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.25rem;
   }
 }
 
 :global(html[data-theme="dark"]) .header,
 :global(html[data-theme="dark"]) .panel,
-:global(html[data-theme="dark"]) .section,
-:global(html[data-theme="dark"]) .kpiCard {
+:global(html[data-theme="dark"]) .metricBlock,
+:global(html[data-theme="dark"]) .section {
   border-color: var(--theme-border-subtle);
   background: var(--theme-surface-section);
   box-shadow: var(--theme-section-shadow);
@@ -544,8 +599,7 @@
 }
 
 :global(html[data-theme="dark"]) .eyebrow,
-:global(html[data-theme="dark"]) .overviewRows dt,
-:global(html[data-theme="dark"]) .kpiLabel,
+:global(html[data-theme="dark"]) .metricList span,
 :global(html[data-theme="dark"]) .sectionHeader span,
 :global(html[data-theme="dark"]) .table th,
 :global(html[data-theme="dark"]) .dateField {
@@ -553,8 +607,10 @@
 }
 
 :global(html[data-theme="dark"]) .title,
-:global(html[data-theme="dark"]) .overviewRows dd,
-:global(html[data-theme="dark"]) .kpiValue,
+:global(html[data-theme="dark"]) .metricGroup h4,
+:global(html[data-theme="dark"]) .metricList strong,
+:global(html[data-theme="dark"]) .metricBlockHeader h3,
+:global(html[data-theme="dark"]) .filterBar h3,
 :global(html[data-theme="dark"]) .sectionHeader h3,
 :global(html[data-theme="dark"]) .chartPanel h4,
 :global(html[data-theme="dark"]) .legendItem,
@@ -580,14 +636,22 @@
   outline: none;
 }
 
-:global(html[data-theme="dark"]) .kpiCard {
-  background:
-    linear-gradient(145deg, var(--theme-surface-raised), var(--theme-surface-panel)),
-    var(--theme-surface-panel);
-}
-
+:global(html[data-theme="dark"]) .metricBlockHeader,
 :global(html[data-theme="dark"]) .sectionHeader {
   border-bottom-color: var(--theme-divider);
+}
+
+:global(html[data-theme="dark"]) .metricGroup {
+  border-left-color: rgba(156, 188, 255, 0.34);
+}
+
+:global(html[data-theme="dark"]) .metricList li {
+  border-bottom-color: var(--theme-divider);
+}
+
+:global(html[data-theme="dark"]) .filterBar {
+  border-bottom-color: var(--theme-divider);
+  border-top-color: var(--theme-divider);
 }
 
 :global(html[data-theme="dark"]) .donutTrack {

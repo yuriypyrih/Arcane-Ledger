@@ -1,7 +1,12 @@
-import type { PipelineStage } from "mongoose";
 import { AppError } from "../errors/AppError.js";
 import { AnalyticsDailyRollup, type AnalyticsRollupRecord } from "../models/Analytics.js";
+import { Campaign } from "../models/Campaign.js";
 import { CharacterSheet } from "../models/CharacterSheet.js";
+import { CustomBestiary } from "../models/CustomBestiary.js";
+import { CustomItem } from "../models/CustomItem.js";
+import { CustomSpell } from "../models/CustomSpell.js";
+import { EncounterTemplate } from "../models/EncounterTemplate.js";
+import { PartyGroup } from "../models/PartyGroup.js";
 import { User } from "../models/User.js";
 import { getDemographics, type AnalyticsCountryBucket } from "./analyticsDemographics.js";
 import {
@@ -49,7 +54,19 @@ type AnalyticsDemographicsBucket = {
   countries: AnalyticsCountryBucket[];
 };
 
-export type AnalyticsSummaryRangeKey = "last30" | "all" | "custom";
+type AnalyticsEntityCounts = {
+  campaigns: number;
+  characters: number;
+  customBestiary: number;
+  customItems: number;
+  customSpells: number;
+  encounterTemplates: number;
+  liveEncounters: number;
+  partyGroups: number;
+  users: number;
+};
+
+export type AnalyticsSummaryRangeKey = "last7" | "last30" | "all" | "custom";
 
 export type AnalyticsSummaryOptions = {
   end?: string | null;
@@ -71,6 +88,19 @@ export type AnalyticsSummary = {
     totalActiveCharacters: number;
     totalActiveUsers: number;
   };
+  totals: AnalyticsEntityCounts;
+  activity: AnalyticsEntityCounts & {
+    anonymousVisitors: number;
+    createdCampaigns: number;
+    createdCharacters: number;
+    createdCustomBestiary: number;
+    createdCustomItems: number;
+    createdCustomSpells: number;
+    createdEncounterTemplates: number;
+    createdPartyGroups: number;
+    createdUsers: number;
+    emailsSent: number;
+  };
   demographics: {
     all: AnalyticsDemographicsBucket;
     anonymous: AnalyticsDemographicsBucket;
@@ -91,6 +121,7 @@ export type AnalyticsSummary = {
   };
 };
 
+const LAST_7_DAY_COUNT = 7;
 const LAST_30_DAY_COUNT = 30;
 const TOP_LIMIT = 10;
 const DATE_ONLY_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
@@ -163,10 +194,12 @@ function resolveSummaryRange(options: AnalyticsSummaryOptions = {}, now = new Da
     };
   }
 
-  if (type === "last30") {
+  if (type === "last7" || type === "last30") {
+    const dayCount = type === "last7" ? LAST_7_DAY_COUNT : LAST_30_DAY_COUNT;
+
     return {
       end: endDate,
-      start: startOfUtcDay(addUtcDays(endDate, -(LAST_30_DAY_COUNT - 1))),
+      start: startOfUtcDay(addUtcDays(endDate, -(dayCount - 1))),
       type
     };
   }
@@ -320,36 +353,29 @@ async function getRollups(range: ResolvedSummaryRange) {
     .exec();
 }
 
-function getActiveCharacterOwnerStages(): PipelineStage[] {
-  return [
-    {
-      $match: {
-        deletedAt: null
-      }
-    },
-    {
-      $lookup: {
-        as: "owner",
-        foreignField: "_id",
-        from: User.collection.name,
-        localField: "ownerId"
-      }
-    },
-    {
-      $unwind: "$owner"
-    },
-    {
-      $match: {
-        "owner.active": true,
-        "owner.emailVerifiedAt": { $ne: null }
-      }
-    }
-  ];
+function createRangeUpdatedFilter(range: ResolvedSummaryRange) {
+  return {
+    updatedAt: createDateRangeFilter(range)
+  };
 }
 
-async function getTopCharacterSummaryField(fieldName: "summary.className" | "summary.species") {
+function createRangeCreatedFilter(range: ResolvedSummaryRange) {
+  return {
+    createdAt: createDateRangeFilter(range)
+  };
+}
+
+async function getTopCharacterSummaryField(
+  fieldName: "summary.className" | "summary.species",
+  range: ResolvedSummaryRange
+) {
   const rows = await CharacterSheet.aggregate<{ _id: string; count: number }>([
-    ...getActiveCharacterOwnerStages(),
+    {
+      $match: {
+        deletedAt: null,
+        updatedAt: createDateRangeFilter(range)
+      }
+    },
     {
       $group: {
         _id: `$${fieldName}`,
@@ -366,21 +392,10 @@ async function getTopCharacterSummaryField(fieldName: "summary.className" | "sum
   }));
 }
 
-async function countTotalActiveCharacters() {
-  const rows = await CharacterSheet.aggregate<{ count: number }>([
-    ...getActiveCharacterOwnerStages(),
-    {
-      $count: "count"
-    }
-  ]);
-
-  return rows[0]?.count ?? 0;
-}
-
-async function getCharacterSummary() {
+async function getCharacterSummary(range: ResolvedSummaryRange) {
   const [topClasses, topSpecies] = await Promise.all([
-    getTopCharacterSummaryField("summary.className"),
-    getTopCharacterSummaryField("summary.species")
+    getTopCharacterSummaryField("summary.className", range),
+    getTopCharacterSummaryField("summary.species", range)
   ]);
 
   return {
@@ -389,24 +404,116 @@ async function getCharacterSummary() {
   };
 }
 
-async function getOverviewSummary(
-  range: ResolvedSummaryRange,
-  anonymousVisitorRollups: RollupSummaryRecord[],
-  characterCreatedRollups: RollupSummaryRecord[],
-  emailSentRollups: RollupSummaryRecord[]
-) {
-  const dateFilter = createDateRangeFilter(range);
-  const [totalActiveUsers, totalActiveCharacters, createdUsers] = await Promise.all([
+async function getTotalsSummary(): Promise<AnalyticsEntityCounts> {
+  const [
+    users,
+    characters,
+    campaigns,
+    partyGroups,
+    encounterTemplates,
+    customSpells,
+    customItems,
+    customBestiary,
+    liveEncounters
+  ] = await Promise.all([
     User.countDocuments({ active: true, emailVerifiedAt: { $ne: null } }),
-    countTotalActiveCharacters(),
-    User.countDocuments({ createdAt: dateFilter })
+    CharacterSheet.countDocuments({ deletedAt: null }),
+    Campaign.countDocuments({}),
+    PartyGroup.countDocuments({}),
+    EncounterTemplate.countDocuments({}),
+    CustomSpell.countDocuments({}),
+    CustomItem.countDocuments({}),
+    CustomBestiary.countDocuments({}),
+    Campaign.countDocuments({ liveEncounterTracker: { $exists: true, $ne: null } })
   ]);
 
   return {
-    totalActiveUsers,
-    totalActiveCharacters,
+    users,
+    characters,
+    campaigns,
+    partyGroups,
+    encounterTemplates,
+    customSpells,
+    customItems,
+    customBestiary,
+    liveEncounters
+  };
+}
+
+async function getActivitySummary(
+  range: ResolvedSummaryRange,
+  anonymousVisitorRollups: RollupSummaryRecord[],
+  emailSentRollups: RollupSummaryRecord[]
+) {
+  const createdFilter = createRangeCreatedFilter(range);
+  const updatedFilter = createRangeUpdatedFilter(range);
+  const [
+    activeUsers,
+    activeCharacters,
+    activeCampaigns,
+    activePartyGroups,
+    activeEncounterTemplates,
+    activeCustomSpells,
+    activeCustomItems,
+    activeCustomBestiary,
+    activeLiveEncounters,
     createdUsers,
-    createdCharacters: sumCount(characterCreatedRollups),
+    createdCharacters,
+    createdCampaigns,
+    createdPartyGroups,
+    createdEncounterTemplates,
+    createdCustomSpells,
+    createdCustomItems,
+    createdCustomBestiary
+  ] = await Promise.all([
+    User.countDocuments({
+      active: true,
+      emailVerifiedAt: { $ne: null },
+      lastInteractedAt: createDateRangeFilter(range)
+    }),
+    CharacterSheet.countDocuments({ deletedAt: null, ...updatedFilter }),
+    Campaign.countDocuments(updatedFilter),
+    PartyGroup.countDocuments(updatedFilter),
+    EncounterTemplate.countDocuments(updatedFilter),
+    CustomSpell.countDocuments(updatedFilter),
+    CustomItem.countDocuments(updatedFilter),
+    CustomBestiary.countDocuments(updatedFilter),
+    Campaign.countDocuments({
+      liveEncounterTracker: { $exists: true, $ne: null },
+      "liveEncounterTracker.updatedAt": createDateRangeFilter(range)
+    }),
+    User.countDocuments({
+      active: true,
+      emailVerifiedAt: { $ne: null },
+      ...createdFilter
+    }),
+    CharacterSheet.countDocuments({ deletedAt: null, ...createdFilter }),
+    Campaign.countDocuments(createdFilter),
+    PartyGroup.countDocuments(createdFilter),
+    EncounterTemplate.countDocuments(createdFilter),
+    CustomSpell.countDocuments(createdFilter),
+    CustomItem.countDocuments(createdFilter),
+    CustomBestiary.countDocuments(createdFilter)
+  ]);
+
+  return {
+    users: activeUsers,
+    characters: activeCharacters,
+    campaigns: activeCampaigns,
+    partyGroups: activePartyGroups,
+    encounterTemplates: activeEncounterTemplates,
+    customSpells: activeCustomSpells,
+    customItems: activeCustomItems,
+    customBestiary: activeCustomBestiary,
+    liveEncounters: activeLiveEncounters,
+    createdUsers,
+    createdCharacters,
+    createdCampaigns,
+    createdPartyGroups,
+    createdEncounterTemplates,
+    createdCustomSpells,
+    createdCustomItems,
+    createdCustomBestiary,
     anonymousVisitors: countUniqueVisitors(anonymousVisitorRollups),
     emailsSent: sumCount(emailSentRollups)
   };
@@ -427,15 +534,13 @@ export async function getAnalyticsSummary(
   const anonymousVisitorRollups = visitorRollups.filter((record) => record.visitorType === "anonymous");
   const pageViewRollups = frontendRollups.filter((record) => record.eventName === "page_view");
   const serverRequestRollups = rollups.filter((record) => record.eventName === "server_request");
-  const characterCreatedRollups = rollups.filter(
-    (record) => record.source === "backend" && record.eventName === "character_created"
-  );
   const emailSentRollups = rollups.filter(
     (record) => record.source === "backend" && record.eventName === "email_sent"
   );
-  const [overview, characters] = await Promise.all([
-    getOverviewSummary(range, anonymousVisitorRollups, characterCreatedRollups, emailSentRollups),
-    getCharacterSummary()
+  const [totals, activity, characters] = await Promise.all([
+    getTotalsSummary(),
+    getActivitySummary(range, anonymousVisitorRollups, emailSentRollups),
+    getCharacterSummary(range)
   ]);
 
   return {
@@ -444,7 +549,16 @@ export async function getAnalyticsSummary(
       start: range.start?.toISOString() ?? null,
       end: range.end.toISOString()
     },
-    overview,
+    overview: {
+      totalActiveUsers: activity.users,
+      totalActiveCharacters: activity.characters,
+      createdUsers: activity.createdUsers,
+      createdCharacters: activity.createdCharacters,
+      anonymousVisitors: activity.anonymousVisitors,
+      emailsSent: activity.emailsSent
+    },
+    totals,
+    activity,
     demographics: {
       all: {
         countries: getDemographics(visitorRollups)

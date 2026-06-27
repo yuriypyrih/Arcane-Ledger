@@ -19,7 +19,7 @@ const LIFECYCLE_CHECK_DEBOUNCE_MS = 750;
 const VERSION_CHECK_TIMEOUT_MS = 8_000;
 const SERVICE_WORKER_WAITING_TIMEOUT_MS = 5_000;
 const SERVICE_WORKER_UPDATE_TIMEOUT_MS = 6_000;
-const SERVICE_WORKER_RELOAD_TIMEOUT_MS = 4_000;
+const SERVICE_WORKER_ACTIVATION_TIMEOUT_MS = 4_000;
 const UPDATE_RELOAD_NAVIGATION_FALLBACK_MS = 750;
 const STALE_ASSET_FAILURE_STORAGE_KEY =
   `arcane-ledger.update.asset-load-failure.${__ARCANE_LEDGER_BUILD_ID__}`;
@@ -42,6 +42,7 @@ let lastLifecycleCheckStartedAt = 0;
 let lastVersionCheckResult: VersionCheckResult | null = null;
 let pendingMismatchBuildId: string | null = null;
 let pendingMismatchCount = 0;
+let hasReloadNavigationStarted = false;
 
 function isLocalVersionCheckHost() {
   const localHostnames = new Set(["localhost", "127.0.0.1", "0.0.0.0", "::1", "[::1]"]);
@@ -293,30 +294,47 @@ export function markAssetLoadFailureUpdateRequired() {
   setUpdateRequired("asset-load-failure");
 }
 
-function waitForInstallingWorker(worker: ServiceWorker, resolve: (hasWaitingWorker: boolean) => void) {
+function waitForInstallingWorker(
+  worker: ServiceWorker,
+  resolve: (waitingWorker: ServiceWorker | null) => void
+) {
   if (worker.state === "installed") {
-    resolve(true);
+    resolve(worker);
     return;
   }
 
-  worker.addEventListener("statechange", () => {
+  if (worker.state === "redundant") {
+    resolve(null);
+    return;
+  }
+
+  const handleStateChange = () => {
     if (worker.state === "installed") {
-      resolve(true);
+      worker.removeEventListener("statechange", handleStateChange);
+      resolve(worker);
+      return;
     }
-  });
+
+    if (worker.state === "redundant") {
+      worker.removeEventListener("statechange", handleStateChange);
+      resolve(null);
+    }
+  };
+
+  worker.addEventListener("statechange", handleStateChange);
 }
 
 async function waitForWaitingServiceWorker(registration: ServiceWorkerRegistration) {
   if (registration.waiting) {
-    return true;
+    return registration.waiting;
   }
 
-  return new Promise<boolean>((resolve) => {
-    const timeoutId = window.setTimeout(() => resolve(false), SERVICE_WORKER_WAITING_TIMEOUT_MS);
+  return new Promise<ServiceWorker | null>((resolve) => {
+    const timeoutId = window.setTimeout(() => resolve(null), SERVICE_WORKER_WAITING_TIMEOUT_MS);
 
-    const resolveOnce = (hasWaitingWorker: boolean) => {
+    const resolveOnce = (waitingWorker: ServiceWorker | null) => {
       window.clearTimeout(timeoutId);
-      resolve(hasWaitingWorker);
+      resolve(waitingWorker);
     };
 
     if (registration.installing) {
@@ -332,10 +350,27 @@ async function waitForWaitingServiceWorker(registration: ServiceWorkerRegistrati
           return;
         }
 
-        resolveOnce(false);
+        resolveOnce(null);
       },
       { once: true }
     );
+  });
+}
+
+async function waitForServiceWorkerActivation(worker: ServiceWorker) {
+  if (worker.state === "activated" || worker.state === "redundant") {
+    return;
+  }
+
+  await new Promise<void>((resolve) => {
+    const handleStateChange = () => {
+      if (worker.state === "activated" || worker.state === "redundant") {
+        worker.removeEventListener("statechange", handleStateChange);
+        resolve();
+      }
+    };
+
+    worker.addEventListener("statechange", handleStateChange);
   });
 }
 
@@ -346,21 +381,25 @@ function reloadCurrentPageForAppUpdate() {
   }, UPDATE_RELOAD_NAVIGATION_FALLBACK_MS);
 }
 
-async function requestServiceWorkerReload() {
+async function requestWaitingServiceWorkerActivation(waitingWorker?: ServiceWorker) {
   if (!updateSW) {
-    return false;
+    return;
   }
 
-  return settleWithTimeout(
-    updateSW(true).then(() => true),
-    SERVICE_WORKER_RELOAD_TIMEOUT_MS,
-    false
-  );
+  await settleWithTimeout(updateSW(false), SERVICE_WORKER_ACTIVATION_TIMEOUT_MS, undefined);
+
+  if (waitingWorker) {
+    await settleWithTimeout(
+      waitForServiceWorkerActivation(waitingWorker),
+      SERVICE_WORKER_ACTIVATION_TIMEOUT_MS,
+      undefined
+    );
+  }
 }
 
 async function activateWaitingServiceWorker() {
   if (!updateSW || !serviceWorkerRegistration) {
-    return false;
+    return;
   }
 
   try {
@@ -371,34 +410,38 @@ async function activateWaitingServiceWorker() {
     );
 
     if (!registration) {
-      return false;
+      return;
     }
 
-    const hasWaitingWorker = await waitForWaitingServiceWorker(registration);
+    const waitingWorker = await waitForWaitingServiceWorker(registration);
 
-    if (!hasWaitingWorker) {
-      return false;
+    if (!waitingWorker) {
+      return;
     }
 
-    return requestServiceWorkerReload();
+    await requestWaitingServiceWorkerActivation(waitingWorker);
   } catch {
-    return false;
+    // A stale page should still navigate even when the activation signal fails.
   }
 }
 
 export async function reloadForAppUpdate() {
-  if (updateSW && state.reason === "service-worker") {
-    if (await requestServiceWorkerReload()) {
-      return;
+  if (hasReloadNavigationStarted) {
+    return;
+  }
+
+  hasReloadNavigationStarted = true;
+
+  try {
+    if (updateSW && state.reason === "service-worker") {
+      await requestWaitingServiceWorkerActivation(serviceWorkerRegistration?.waiting ?? undefined);
+    } else {
+      await activateWaitingServiceWorker();
     }
 
     reloadCurrentPageForAppUpdate();
-    return;
+  } catch (error) {
+    hasReloadNavigationStarted = false;
+    throw error;
   }
-
-  if (await activateWaitingServiceWorker()) {
-    return;
-  }
-
-  reloadCurrentPageForAppUpdate();
 }

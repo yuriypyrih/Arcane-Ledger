@@ -17,7 +17,12 @@ export type AnalyticsBatchEnvelope = {
   dropped: number;
 };
 
-const analyticsSummaryRangeKeys = new Set<AnalyticsSummaryRangeKey>(["last30", "all", "custom"]);
+const analyticsSummaryRangeKeys = new Set<AnalyticsSummaryRangeKey>([
+  "last7",
+  "last30",
+  "all",
+  "custom"
+]);
 
 function createAnalyticsRangeError(message: string) {
   return new AppError(message, 400, "INVALID_ANALYTICS_RANGE");
@@ -52,7 +57,7 @@ function readAnalyticsSummaryOptions(request: Request): AnalyticsSummaryOptions 
   const rangeValue = readOptionalQueryString(query.range, "range")?.trim() || "last30";
 
   if (!analyticsSummaryRangeKeys.has(rangeValue as AnalyticsSummaryRangeKey)) {
-    throw createAnalyticsRangeError("Analytics range must be last30, all, or custom.");
+    throw createAnalyticsRangeError("Analytics range must be last7, last30, all, or custom.");
   }
 
   return {

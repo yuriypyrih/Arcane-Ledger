@@ -1,5 +1,14 @@
 import { PenLine, Plus, Sparkles, Trash2 } from "lucide-react";
-import { lazy, Suspense, type ReactNode, useEffect, useId, useRef, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  type ReactNode,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState
+} from "react";
 import {
   deleteCustomSpell,
   listCustomSpells,
@@ -21,9 +30,14 @@ import {
 import { formatCodexLabel, formatSpellLevelLabel } from "../../utils/codex/formatCodexLabel";
 import CustomSpellEditorModal from "./CustomSpellEditorModal";
 import { getDmToolsApiErrorMessage } from "./dmToolsApiErrors";
+import {
+  clampDmToolsPage,
+  getDmToolsPageItems
+} from "./dmToolsPagination";
 import { getDmToolsQuotaForRole } from "./dmToolsQuotas";
 import DmToolsEmptyState from "./DmToolsEmptyState";
 import DmToolsListCard from "./DmToolsListCard";
+import DmToolsPaginationControls from "./DmToolsPaginationControls";
 import styles from "./DmToolsPage.module.css";
 
 const CodexSpellDrawer = lazy(
@@ -69,6 +83,7 @@ function CustomSpellsBody({ panelId, tabId }: CustomSpellsBodyProps) {
     useState<CustomSpellRecord | null>(null);
   const [previewCustomSpell, setPreviewCustomSpell] = useState<CustomSpellRecord | null>(null);
   const [customSpellScope, setCustomSpellScope] = useState<CustomSpellListScope>("mine");
+  const [customSpellPage, setCustomSpellPage] = useState(1);
   const [isDeletingCustomSpell, setIsDeletingCustomSpell] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const loadedCustomSpellsForAuthRef = useRef<string | null>(null);
@@ -76,6 +91,14 @@ function CustomSpellsBody({ panelId, tabId }: CustomSpellsBodyProps) {
   const customSpellLimit = getDmToolsQuotaForRole("customSpells", authUserRole);
   const isAtCustomSpellLimit =
     isAuthenticated && customSpellScope === "mine" && customSpells.length >= customSpellLimit;
+  const paginatedCustomSpells = useMemo(
+    () => getDmToolsPageItems(customSpells, customSpellPage),
+    [customSpellPage, customSpells]
+  );
+
+  useEffect(() => {
+    setCustomSpellPage((currentPage) => clampDmToolsPage(currentPage, customSpells.length));
+  }, [customSpells.length]);
 
   useEffect(() => {
     let didCancel = false;
@@ -182,6 +205,7 @@ function CustomSpellsBody({ panelId, tabId }: CustomSpellsBodyProps) {
         aria-label={`Show ${nextScope === "public" ? "public" : "my"} custom spells`}
         onClick={() => {
           loadedCustomSpellsForAuthRef.current = null;
+          setCustomSpellPage(1);
           setCustomSpellScope(nextScope);
         }}
       >
@@ -259,59 +283,67 @@ function CustomSpellsBody({ panelId, tabId }: CustomSpellsBodyProps) {
           Sign in to manage custom spells.
         </DmToolsEmptyState>
       ) : customSpells.length > 0 ? (
-        <div className={styles.dmToolsList}>
-          {customSpells.map((customSpell) => {
-            const canManageCustomSpell = customSpell.ownerId === authUserId;
-            const actionMeta =
-              customSpell.public || customSpellScope === "public" ? (
-                <>
-                  {customSpell.public ? (
-                    <span className={styles.dmToolsListCardPublicPill}>Public</span>
-                  ) : null}
-                  {customSpellScope === "public" ? (
-                    <span>Owner: {customSpell.ownerNickname ?? "Unknown Player"}</span>
-                  ) : null}
-                </>
-              ) : undefined;
-            const actions = canManageCustomSpell
-              ? [
-                  {
-                    disabled: isDeletingCustomSpell,
-                    icon: <PenLine size={18} aria-hidden="true" />,
-                    label: `Edit ${customSpell.spell.name}`,
-                    onClick: () => {
-                      setActionError(null);
-                      setEditingCustomSpell(customSpell);
-                      setIsEditorOpen(true);
+        <>
+          <div className={styles.dmToolsList}>
+            {paginatedCustomSpells.map((customSpell) => {
+              const canManageCustomSpell = customSpell.ownerId === authUserId;
+              const actionMeta =
+                customSpell.public || customSpellScope === "public" ? (
+                  <>
+                    {customSpell.public ? (
+                      <span className={styles.dmToolsListCardPublicPill}>Public</span>
+                    ) : null}
+                    {customSpellScope === "public" ? (
+                      <span>Owner: {customSpell.ownerNickname ?? "Unknown Player"}</span>
+                    ) : null}
+                  </>
+                ) : undefined;
+              const actions = canManageCustomSpell
+                ? [
+                    {
+                      disabled: isDeletingCustomSpell,
+                      icon: <PenLine size={18} aria-hidden="true" />,
+                      label: `Edit ${customSpell.spell.name}`,
+                      onClick: () => {
+                        setActionError(null);
+                        setEditingCustomSpell(customSpell);
+                        setIsEditorOpen(true);
+                      }
+                    },
+                    {
+                      disabled: isDeletingCustomSpell,
+                      icon: <Trash2 size={18} aria-hidden="true" />,
+                      label: `Delete ${customSpell.spell.name}`,
+                      onClick: () => {
+                        setActionError(null);
+                        setPendingDeleteCustomSpell(customSpell);
+                      }
                     }
-                  },
-                  {
-                    disabled: isDeletingCustomSpell,
-                    icon: <Trash2 size={18} aria-hidden="true" />,
-                    label: `Delete ${customSpell.spell.name}`,
-                    onClick: () => {
-                      setActionError(null);
-                      setPendingDeleteCustomSpell(customSpell);
-                    }
-                  }
-                ]
-              : [];
+                  ]
+                : [];
 
-            return (
-              <DmToolsListCard
-                key={customSpell.id}
-                actionMeta={actionMeta}
-                icon={<Sparkles size={18} aria-hidden="true" />}
-                title={customSpell.spell.name}
-                meta={getCustomSpellMeta(customSpell)}
-                tone="customSpell"
-                ariaLabel={`Preview ${customSpell.spell.name}`}
-                onClick={() => setPreviewCustomSpell(customSpell)}
-                actions={actions}
-              />
-            );
-          })}
-        </div>
+              return (
+                <DmToolsListCard
+                  key={customSpell.id}
+                  actionMeta={actionMeta}
+                  icon={<Sparkles size={18} aria-hidden="true" />}
+                  title={customSpell.spell.name}
+                  meta={getCustomSpellMeta(customSpell)}
+                  tone="customSpell"
+                  ariaLabel={`Preview ${customSpell.spell.name}`}
+                  onClick={() => setPreviewCustomSpell(customSpell)}
+                  actions={actions}
+                />
+              );
+            })}
+          </div>
+          <DmToolsPaginationControls
+            currentPage={customSpellPage}
+            itemLabel="custom spells"
+            totalItems={customSpells.length}
+            onPageChange={setCustomSpellPage}
+          />
+        </>
       ) : (
         <DmToolsEmptyState icon={<Sparkles size={18} aria-hidden="true" />}>
           {customSpellScope === "public" ? "No public custom spells yet." : "No custom spells yet."}
