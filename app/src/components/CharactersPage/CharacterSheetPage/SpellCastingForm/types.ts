@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Dispatch, SetStateAction } from "react";
 import type { SpellEntry } from "../../../../codex/entries";
-import type { Character, CharacterCompanion } from "../../../../types";
+import type { Character, CharacterCompanion, CharacterCustomTraitEffect } from "../../../../types";
 import type { RoundTrackerResource } from "../../../../pages/CharactersPage/combat";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import type {
@@ -68,7 +68,9 @@ export type SpellCastingFormRendererContext = Record<string, any> & {
   preparedSpellRowGroups: SpellGroup<SpellRowModel>[];
   selectedSpell: SpellEntry | null;
   selectedSpellActionPaths: SpellActionPathState[];
+  selectedSpellCustomEffects: CharacterCustomTraitEffect[];
   selectedSpellDisplay: SpellEntry | null;
+  selectedSpellIsCustom: boolean;
   selectedSpellSlotLevel: number;
   selectedSpellViewMode: SpellCastingDrawerViewMode;
   spellPreparationOptions: SpellEntry[];

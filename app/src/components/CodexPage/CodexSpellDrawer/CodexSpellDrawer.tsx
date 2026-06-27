@@ -12,6 +12,7 @@ import {
   type DivinityEntry,
   type SpellEntry
 } from "../../../codex/entries";
+import type { CharacterCustomTraitEffect } from "../../../types";
 import {
   OverlayBadge,
   OverlayBody,
@@ -43,6 +44,7 @@ import {
   getSpellAttackFormulaCell,
   getSpellSaveFormulaCell
 } from "../../../pages/CharactersPage/shared/spellFormulas";
+import CustomTraitEffectList from "../../CharactersPage/CharacterSheetPage/GameplayForm/widgets/TraitsConditionsWidget/CustomTraitEffectList";
 import styles from "./CodexSpellDrawer.module.css";
 
 const CodexDivinityDrawer = lazy(() => import("../CodexDivinityDrawer/CodexDivinityDrawer"));
@@ -60,6 +62,8 @@ type CodexSpellDrawerProps = {
   spell: SpellEntry;
   onClose: () => void;
   backdropClassName?: string;
+  customEffects?: CharacterCustomTraitEffect[];
+  isCustomSpell?: boolean;
 };
 
 function hasSpellHealing(spell: Pick<SpellEntry, "healing">): boolean {
@@ -68,7 +72,13 @@ function hasSpellHealing(spell: Pick<SpellEntry, "healing">): boolean {
     : spell.healing.label.trim().length > 0;
 }
 
-function CodexSpellDrawer({ spell, onClose, backdropClassName }: CodexSpellDrawerProps) {
+function CodexSpellDrawer({
+  spell,
+  onClose,
+  backdropClassName,
+  customEffects = [],
+  isCustomSpell = false
+}: CodexSpellDrawerProps) {
   const [isComponentsTooltipOpen, setIsComponentsTooltipOpen] = useState(false);
   const [selectedSpellReference, setSelectedSpellReference] = useState<SpellEntry | null>(null);
   const [selectedDivinityReference, setSelectedDivinityReference] = useState<DivinityEntry | null>(
@@ -131,7 +141,9 @@ function CodexSpellDrawer({ spell, onClose, backdropClassName }: CodexSpellDrawe
       >
         <OverlayHeader>
           <OverlayHeaderContent>
-            <OverlayBadge>{formatCodexLabel(ENTRY_CATEGORIES.SPELLS)}</OverlayBadge>
+            <OverlayBadge>
+              {isCustomSpell ? "Custom Spells" : formatCodexLabel(ENTRY_CATEGORIES.SPELLS)}
+            </OverlayBadge>
             <OverlayTitleRow>
               <OverlayTitle id="codex-spell-drawer-title">{spell.name}</OverlayTitle>
             </OverlayTitleRow>
@@ -208,6 +220,7 @@ function CodexSpellDrawer({ spell, onClose, backdropClassName }: CodexSpellDrawe
             onOpenDivinity={setSelectedDivinityReference}
             onOpenFeat={(feat, label) => setSelectedFeatReference({ feat, label })}
           />
+          <CustomTraitEffectList effects={customEffects} />
           {spellFormulaCells.length > 0 ? (
             <OverlayDetailsGrid>
               {spellFormulaCells.map((cell) => (

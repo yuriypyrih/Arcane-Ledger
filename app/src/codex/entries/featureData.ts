@@ -79,7 +79,7 @@ export const KeywordTooltip: Record<string, KeywordTooltipEntry> = {
   [TRACKER.SEMI_TRACKED]: {
     title: "Semi Tracked",
     description: [
-      "<strong>Semi Tracked</strong> means the app may handle parts of this feature but not all of them. Check the feature details for specifics; if none are provided, assume the app only offers reminders where you would expect them (Gameplay Dashboard or Spell Drawer)."
+      "<strong>Semi Tracked</strong> means the app may handle parts of this feature but not all of them."
     ]
   }
 };

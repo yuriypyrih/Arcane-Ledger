@@ -1,9 +1,16 @@
+import type { CustomSpellRecord } from "../../../../api/customSpells";
 import type { SpellEntry } from "../../../../codex/entries";
-import type { Character } from "../../../../types";
+import type { Character, CharacterCustomSpellSnapshot } from "../../../../types";
 import {
   syncWizardSignatureSpellsToSpellbookForCharacter,
   syncWizardSpellMasterySelectionsToSpellbookForCharacter
 } from "../../../../pages/CharactersPage/classFeatures";
+import {
+  createCharacterCustomSpellSnapshotFromRecord,
+  createCustomSpellEntryId,
+  isCustomSpellEntryId,
+  normalizeCharacterCustomSpellSnapshots
+} from "../../../../pages/CharactersPage/customSpells";
 import {
   normalizePreparedSpellIds,
   normalizeSpellbookSpellIds,
@@ -27,6 +34,10 @@ type PreparedSpellDraftOptions = {
   usesSpellbook: boolean;
 };
 
+type CustomSpellSnapshotDraftOptions = {
+  customSpellRecords?: CustomSpellRecord[];
+};
+
 export type SpellManagementDraft = {
   cantripDraftIds: string[];
   preparedSpellDraftIds: string[];
@@ -34,7 +45,8 @@ export type SpellManagementDraft = {
 };
 
 type SpellManagementDraftOptions = CantripDraftOptions &
-  PreparedSpellDraftOptions;
+  PreparedSpellDraftOptions &
+  CustomSpellSnapshotDraftOptions;
 
 function getManualSpellbookSpellIds(
   spellIds: unknown,
@@ -54,6 +66,62 @@ function syncWizardSpellbookFeatureSelections(character: Character): Character {
         syncWizardSpellMasterySelectionsToSpellbookForCharacter(character)
       )
     : character;
+}
+
+function getSelectedCustomSpellIds(character: Character): string[] {
+  return [
+    ...(character.cantripIds ?? []),
+    ...(character.spellbookSpellIds ?? []),
+    ...(character.preparedSpellIds ?? [])
+  ].filter((spellId, index, spellIds) => isCustomSpellEntryId(spellId) && spellIds.indexOf(spellId) === index);
+}
+
+function areCustomSpellSnapshotsEqual(
+  left: CharacterCustomSpellSnapshot[],
+  right: CharacterCustomSpellSnapshot[]
+) {
+  return (
+    left.length === right.length &&
+    left.every((snapshot, index) => snapshot.spell.id === right[index]?.spell.id)
+  );
+}
+
+function syncCustomSpellSnapshotsToSelectedIds(
+  character: Character,
+  customSpellRecords: CustomSpellRecord[] = []
+): Character {
+  const selectedCustomSpellIds = getSelectedCustomSpellIds(character);
+  const existingSnapshots = normalizeCharacterCustomSpellSnapshots(character.customSpellSnapshots);
+  const existingSnapshotsBySpellId = new Map(
+    existingSnapshots.map((snapshot) => [snapshot.spell.id, snapshot])
+  );
+  const recordsBySpellId = new Map(
+    customSpellRecords.map((record) => [createCustomSpellEntryId(record.id), record])
+  );
+  const nextSnapshots = selectedCustomSpellIds
+    .map((spellId) => {
+      const existingSnapshot = existingSnapshotsBySpellId.get(spellId);
+
+      if (existingSnapshot) {
+        return existingSnapshot;
+      }
+
+      const customSpellRecord = recordsBySpellId.get(spellId);
+
+      return customSpellRecord
+        ? createCharacterCustomSpellSnapshotFromRecord(customSpellRecord)
+        : null;
+    })
+    .filter((snapshot): snapshot is CharacterCustomSpellSnapshot => snapshot !== null);
+
+  if (areCustomSpellSnapshotsEqual(existingSnapshots, nextSnapshots)) {
+    return character;
+  }
+
+  return {
+    ...character,
+    customSpellSnapshots: nextSnapshots
+  };
 }
 
 export function applyCantripDraftToCharacter(
@@ -138,5 +206,13 @@ export function applySpellManagementDraftToCharacter(
   options: SpellManagementDraftOptions
 ): Character {
   const characterWithCantrips = applyCantripDraftToCharacter(currentCharacter, options);
-  return applyPreparedSpellDraftToCharacter(characterWithCantrips, options);
+  const characterWithPreparedSpells = applyPreparedSpellDraftToCharacter(
+    characterWithCantrips,
+    options
+  );
+
+  return syncCustomSpellSnapshotsToSelectedIds(
+    characterWithPreparedSpells,
+    options.customSpellRecords
+  );
 }

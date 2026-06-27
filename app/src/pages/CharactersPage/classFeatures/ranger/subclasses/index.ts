@@ -1,30 +1,12 @@
 import type {
   SubclassDerivedFeatureState,
-  SubclassRuntimeCharacter,
-  SubclassRuntimeRegistry
+  SubclassRuntimeCharacter
 } from "../../subclassRuntime";
-import { beastMasterSubclassId, getRangerBeastMasterDerivedFeatureState } from "./rangerBeastMaster";
-import {
-  feyWandererSubclassId,
-  getRangerFeyWandererDerivedFeatureState
-} from "./rangerFeyWanderer";
-import {
-  getRangerGloomStalkerDerivedFeatureState,
-  gloomStalkerSubclassId
-} from "./rangerGloomStalker";
-import { getRangerHunterDerivedFeatureState, hunterSubclassId } from "./rangerHunter";
-import {
-  getRangerWinterWalkerDerivedFeatureState,
-  winterWalkerSubclassId
-} from "./rangerWinterWalker";
-
-const rangerSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
-  [beastMasterSubclassId]: getRangerBeastMasterDerivedFeatureState,
-  [feyWandererSubclassId]: getRangerFeyWandererDerivedFeatureState,
-  [gloomStalkerSubclassId]: getRangerGloomStalkerDerivedFeatureState,
-  [hunterSubclassId]: getRangerHunterDerivedFeatureState,
-  [winterWalkerSubclassId]: getRangerWinterWalkerDerivedFeatureState
-};
+import { getRangerBeastMasterDerivedFeatureState } from "./rangerBeastMaster";
+import { getRangerFeyWandererDerivedFeatureState } from "./rangerFeyWanderer";
+import { getRangerGloomStalkerDerivedFeatureState } from "./rangerGloomStalker";
+import { getRangerHunterDerivedFeatureState } from "./rangerHunter";
+import { getRangerWinterWalkerDerivedFeatureState } from "./rangerWinterWalker";
 
 export function getRangerSubclassDerivedFeatureState(
   character: SubclassRuntimeCharacter
@@ -33,5 +15,18 @@ export function getRangerSubclassDerivedFeatureState(
     return {};
   }
 
-  return rangerSubclassRuntimeRegistry[character.subclassId]?.(character) ?? {};
+  switch (character.subclassId) {
+    case "ranger-beast-master":
+      return getRangerBeastMasterDerivedFeatureState(character);
+    case "ranger-fey-wanderer":
+      return getRangerFeyWandererDerivedFeatureState(character);
+    case "ranger-gloom-stalker":
+      return getRangerGloomStalkerDerivedFeatureState(character);
+    case "ranger-hunter":
+      return getRangerHunterDerivedFeatureState(character);
+    case "ranger-winter-walker":
+      return getRangerWinterWalkerDerivedFeatureState(character);
+    default:
+      return {};
+  }
 }

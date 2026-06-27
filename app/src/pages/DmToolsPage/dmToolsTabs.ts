@@ -1,9 +1,13 @@
 import type { LucideIcon } from "lucide-react";
-import { ScrollText, Swords, Users } from "lucide-react";
+import { BookOpenText, ScrollText, Swords, Users } from "lucide-react";
 
 export const DM_TOOLS_TAB_PARAM = "tab";
 
-export type DmToolsTabId = "campaign-manager" | "party-manager" | "encounter-templates";
+export type DmToolsTabId =
+  | "campaign-manager"
+  | "party-manager"
+  | "encounter-templates"
+  | "custom-spells";
 
 export type DmToolsTabConfig = {
   homeLabel: string;
@@ -32,6 +36,12 @@ export const DM_TOOLS_TABS: DmToolsTabConfig[] = [
     icon: Swords,
     id: "encounter-templates",
     label: "Encounter Templates"
+  },
+  {
+    homeLabel: "Custom Spells",
+    icon: BookOpenText,
+    id: "custom-spells",
+    label: "Custom Spells"
   }
 ];
 

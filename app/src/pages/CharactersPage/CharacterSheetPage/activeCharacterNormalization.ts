@@ -28,6 +28,13 @@ import {
   usesSpellbookForCharacter
 } from "../spellcasting";
 import {
+  getCustomCantripSelectionOptionsForCharacter,
+  getCustomPreparedSpellSelectionOptionsForCharacter,
+  mergeSpellEntriesById,
+  normalizeCharacterCustomSpellSnapshots,
+  pruneCharacterCustomSpellSnapshotsForSelectedIds
+} from "../customSpells";
+import {
   getAlwaysSpellbookSpellIdsForCharacter,
   clearRoundScopedFeatureStateForCharacter,
   normalizeCharacterClassFeatureState
@@ -153,17 +160,37 @@ function normalizeSpellRuntime(character: Character): Character {
     legacySpellcastingEnabled:
       isCustomClassName(character.className) && character.customClass === undefined
   });
+  const normalizedCustomSpellSnapshots = normalizeCharacterCustomSpellSnapshots(
+    character.customSpellSnapshots
+  );
+  const normalizedCustomSpellEntries = normalizedCustomSpellSnapshots.map(
+    (snapshot) => snapshot.spell
+  );
   const rawPersistedCantripIds = normalizeRuntimeSpellIds(character.cantripIds);
   const rawCantripIds = rawPersistedCantripIds;
-  const cantripSelectionOptionIds = new Set(
-    getCantripSelectionOptionsForCharacter(
-      character.className,
-      character.level,
-      character.subclassId,
-      normalizedCustomClass,
-      normalizedClassRules
-    ).map((spell) => spell.id)
+  const defaultCantripSelectionOptions = getCantripSelectionOptionsForCharacter(
+    character.className,
+    character.level,
+    character.subclassId,
+    normalizedCustomClass,
+    normalizedClassRules
   );
+  const customCantripSelectionOptions = getCustomCantripSelectionOptionsForCharacter(
+    normalizedCustomSpellEntries,
+    {
+      classFeatureState: character.classFeatureState,
+      className: character.className,
+      classRules: normalizedClassRules,
+      customClass: normalizedCustomClass,
+      level: character.level,
+      subclassId: character.subclassId
+    }
+  );
+  const cantripSelectionOptions = mergeSpellEntriesById(
+    defaultCantripSelectionOptions,
+    customCantripSelectionOptions
+  );
+  const cantripSelectionOptionIds = new Set(cantripSelectionOptions.map((spell) => spell.id));
   const cantripLimit = getCantripLimitForCharacter(
     character.className,
     character.level,
@@ -189,12 +216,27 @@ function normalizeSpellRuntime(character: Character): Character {
     }
   );
   const rawPreparedSpellIds = normalizeRuntimeSpellIds(character.preparedSpellIds);
-  const preparedSpellSelectionOptions = getPreparedSpellSelectionOptionsForCharacter(
+  const defaultPreparedSpellSelectionOptions = getPreparedSpellSelectionOptionsForCharacter(
     character.className,
     character.level,
     character.subclassId,
     normalizedCustomClass,
     normalizedClassRules
+  );
+  const customPreparedSpellSelectionOptions = getCustomPreparedSpellSelectionOptionsForCharacter(
+    normalizedCustomSpellEntries,
+    {
+      classFeatureState: normalizedClassFeatureState,
+      className: character.className,
+      classRules: normalizedClassRules,
+      customClass: normalizedCustomClass,
+      level: character.level,
+      subclassId: character.subclassId
+    }
+  );
+  const preparedSpellSelectionOptions = mergeSpellEntriesById(
+    defaultPreparedSpellSelectionOptions,
+    customPreparedSpellSelectionOptions
   );
   const preparedSpellSelectionOptionIds = new Set(
     preparedSpellSelectionOptions.map((spell) => spell.id)
@@ -274,6 +316,10 @@ function normalizeSpellRuntime(character: Character): Character {
       ...getSpeciesAlwaysPreparedSpellIdsForCharacter(character)
     ]
   );
+  const normalizedCustomSpellSnapshotsForSelectedIds = pruneCharacterCustomSpellSnapshotsForSelectedIds(
+    normalizedCustomSpellSnapshots,
+    [...normalizedCantripIds, ...normalizedSpellbookSpellIds, ...normalizedPreparedSpellIds]
+  );
   const spellSlotTotals = getSpellSlotTotalsForCharacter(
     character.className,
     character.level,
@@ -291,6 +337,7 @@ function normalizeSpellRuntime(character: Character): Character {
       character.speciesFeatureState
     ),
     classFeatureState: normalizedClassFeatureState,
+    customSpellSnapshots: normalizedCustomSpellSnapshotsForSelectedIds,
     cantripIds: normalizedCantripIds,
     spellbookSpellIds: normalizedSpellbookSpellIds,
     preparedSpellIds: normalizedPreparedSpellIds,

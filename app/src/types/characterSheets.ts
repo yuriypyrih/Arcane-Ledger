@@ -7,6 +7,7 @@ import type {
   CharacterBackgroundChoices,
   CharacterCustomBackgroundConfig,
   CharacterCustomAction,
+  CharacterCustomSpellSnapshot,
   CharacterCompanion,
   CharacterCurrencies,
   CharacterClassRulesConfig,
@@ -88,6 +89,7 @@ export type PortableCharacterSheetSpellcasting = {
   cantripIds?: string[];
   spellbookSpellIds?: string[];
   preparedSpellIds?: string[];
+  customSpellSnapshots?: CharacterCustomSpellSnapshot[];
   spellSlotsExpended?: number[];
 };
 

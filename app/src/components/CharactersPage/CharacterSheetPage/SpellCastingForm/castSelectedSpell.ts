@@ -11,6 +11,7 @@ export function castSelectedSpellWithContext(
     activateFighterPsiWarriorTelekineticMasterSpellCastForCharacter,
     applyRangerWinterWalkerFrozenHauntStatusEntriesForCharacter,
     applySpellCastFeatureEffectsForCharacter,
+    applyCustomSpellDurationToStatusEntries,
     applySpellDurationToStatusEntries,
     applySpellImplementationForCharacter,
     getSpellImplementationStatusOptionsForCharacter,
@@ -45,6 +46,7 @@ export function castSelectedSpellWithContext(
     consumeWizardIllusionistPhantasmalCreaturesUseForCharacter,
     consumeWizardSignatureSpellFreeCastForCharacter,
     createEconomyMultiContextForSpell,
+    customSpellSnapshotsBySpellId,
     druidNaturalRecoveryUsesRemaining,
     fighterPsiWarriorEnergyDiceRemaining,
     fighterPsiWarriorTelekineticMasterConcentrationStatusSourceId,
@@ -226,6 +228,23 @@ export function castSelectedSpellWithContext(
         description: selectedSpell.description
       }
     : selectedSpell;
+  const selectedCustomSpellSnapshot =
+    selectedSpell && customSpellSnapshotsBySpellId instanceof Map
+      ? customSpellSnapshotsBySpellId.get(selectedSpell.id)
+      : null;
+  const applySelectedSpellDurationToStatusEntries = selectedCustomSpellSnapshot
+      ? (
+        statusEntries: Character["statusEntries"],
+        spell: typeof spellForStatusEntries,
+        statusOptions: Parameters<typeof applySpellDurationToStatusEntries>[2]
+      ) =>
+        applyCustomSpellDurationToStatusEntries(
+          statusEntries,
+          spell,
+          selectedCustomSpellSnapshot.customEffects,
+          statusOptions
+        )
+    : applySpellDurationToStatusEntries;
   const concentrationStatusOptions = useTelekineticMaster
     ? {
         sourceId: fighterPsiWarriorTelekineticMasterConcentrationStatusSourceId
@@ -253,7 +272,7 @@ export function castSelectedSpellWithContext(
     sourceSpellSlotLevel: number | null = null
   ): Character => ({
     ...nextCharacter,
-    statusEntries: applySpellDurationToStatusEntries(
+    statusEntries: applySelectedSpellDurationToStatusEntries(
       nextCharacter.statusEntries,
       spellForStatusEntries,
       createSpellStatusOptions(nextCharacter, spellSlotLevel, sourceSpellSlotLevel)
@@ -264,7 +283,7 @@ export function castSelectedSpellWithContext(
     spellSlotLevel: number | null,
     sourceSpellSlotLevel: number | null
   ): Character => {
-    const statusEntries = applySpellDurationToStatusEntries(
+    const statusEntries = applySelectedSpellDurationToStatusEntries(
       nextCharacter.statusEntries,
       spellForStatusEntries,
       createSpellStatusOptions(nextCharacter, spellSlotLevel, sourceSpellSlotLevel)

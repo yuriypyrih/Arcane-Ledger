@@ -192,6 +192,7 @@ export function getSpellConcentrationDuration(
 }
 
 const spellDurationStatusSourceIdPrefix = "spell-duration-";
+const customSpellEffectStatusSourceIdPrefix = "custom-spell-effect-";
 
 type SpellStatusEntrySource = {
   id?: string;
@@ -204,6 +205,12 @@ function getSpellDurationStatusSourceId(
   spell: Pick<SpellStatusEntrySource, "id">
 ): string | undefined {
   return spell.id ? `${spellDurationStatusSourceIdPrefix}${spell.id}` : undefined;
+}
+
+function getCustomSpellEffectStatusSourceId(
+  spell: Pick<SpellStatusEntrySource, "id">
+): string | undefined {
+  return spell.id ? `${customSpellEffectStatusSourceIdPrefix}${spell.id}` : undefined;
 }
 
 function normalizeSpellDurationLabel(label: string): string {
@@ -1281,6 +1288,69 @@ export function applySpellDurationToStatusEntries(
       sourceSpellSkill: options?.sourceSpellSkill ?? null,
       description: getSpellStatusDescription(spell)
     })
+  ]);
+}
+
+export function applyCustomSpellDurationToStatusEntries(
+  value: unknown,
+  spell: SpellStatusEntrySource,
+  customEffects: CharacterCustomTraitEffect[] | undefined,
+  options?: {
+    sourceId?: string;
+    sourceSpellSlotLevel?: number | null;
+    sourceSpellTarget?: CharacterStatusSpellTarget | null;
+    sourceSpellSkill?: SkillName | null;
+  }
+): CharacterStatusEntry[] {
+  const normalizedCustomEffects = normalizeCharacterCustomTraitEffects(customEffects);
+
+  if (normalizedCustomEffects.length === 0) {
+    return applySpellDurationToStatusEntries(value, spell, options);
+  }
+
+  const customSourceId = getCustomSpellEffectStatusSourceId(spell);
+  const createCustomEffectStatusEntry = (duration: CharacterStatusDuration) =>
+    createCharacterStatusEntry({
+      group: STATUS_ENTRY_GROUP.EFFECTS,
+      value: spell.name,
+      source: spell.name,
+      sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+      duration,
+      sourceId: customSourceId,
+      sourceSpellId: spell.id,
+      sourceSpellSlotLevel: options?.sourceSpellSlotLevel ?? null,
+      sourceSpellTarget: options?.sourceSpellTarget ?? null,
+      sourceSpellSkill: options?.sourceSpellSkill ?? null,
+      description: getSpellStatusDescription(spell),
+      customEffects: normalizedCustomEffects
+    });
+
+  if (getSpellConcentrationDuration(spell.duration)) {
+    const entriesWithConcentration = applySpellConcentrationToStatusEntries(value, spell, options);
+
+    return ensureLinkedStatusDependencies([
+      ...entriesWithConcentration.filter((entry) => entry.sourceId !== customSourceId),
+      createCustomEffectStatusEntry({
+        kind: STATUS_DURATION_KIND.LINKED,
+        linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
+        linkedValue: EFFECT_NAME.CONCENTRATION
+      })
+    ]);
+  }
+
+  const duration = getSpellNonConcentrationDuration(spell.duration);
+  const entries = normalizeCharacterStatusEntries(value);
+
+  if (!duration) {
+    return entries;
+  }
+
+  return ensureLinkedStatusDependencies([
+    ...entries.filter(
+      (entry) =>
+        entry.sourceId !== customSourceId && !isGenericSpellDurationStatusEntry(entry, spell)
+    ),
+    createCustomEffectStatusEntry(duration)
   ]);
 }
 

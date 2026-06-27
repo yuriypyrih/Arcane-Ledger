@@ -1,18 +1,15 @@
 import {
-  type AbilityKey,
+  characterCustomTraitDiceValues,
   type CharacterCustomTraitDiceValue,
   type CharacterCustomTraitEffect,
   type CharacterCustomTraitRollMode,
   type CharacterCustomTraitSkillGroupAbility,
   type CharacterCustomTraitValueMode,
   type CharacterStatusEntry
-} from "../../../../../../types";
-import {
-  ALL_SKILLS,
-  characterCustomTraitDiceValues,
-  isSkillName
-} from "../../../../../../types";
-import { WEAPON_COMBAT_TYPE } from "../../../../../../codex/entries";
+} from "../../../../../../types/traits";
+import type { AbilityKey } from "../../../../../../types/characters";
+import { ALL_SKILLS, isSkillName } from "../../../../../../types/skills";
+import { WEAPON_COMBAT_TYPE } from "../../../../../../codex/entries/enums";
 import { skillGroupsByAbility } from "../../../../../../pages/CharactersPage/skillDefinitions";
 import {
   defaultManualStatusDurationDraft,

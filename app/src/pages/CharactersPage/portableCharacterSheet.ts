@@ -578,6 +578,7 @@ export function createPortableCharacterSheet(character: HydratedCharacter): Port
       cantripIds: character.cantripIds,
       spellbookSpellIds: character.spellbookSpellIds,
       preparedSpellIds: character.preparedSpellIds,
+      customSpellSnapshots: character.customSpellSnapshots,
       spellSlotsExpended: character.spellSlotsExpended
     },
     features: {
@@ -692,6 +693,7 @@ export function createHydratedCharacterInputFromPortableSheet(
     cantripIds: record.spellcasting.cantripIds,
     spellbookSpellIds: record.spellcasting.spellbookSpellIds,
     preparedSpellIds: record.spellcasting.preparedSpellIds,
+    customSpellSnapshots: record.spellcasting.customSpellSnapshots,
     spellSlotsExpended: record.spellcasting.spellSlotsExpended,
     shortRestsUsedToday: record.resources.shortRestsUsedToday,
     heroicInspiration: record.resources.heroicInspiration,

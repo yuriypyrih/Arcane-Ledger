@@ -38,6 +38,8 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
     createFeatureActionCardCost,
     createNamedResourceCardUsage,
     createNamedUsageHeaderTags,
+    customCantripOptions,
+    customSpellPreparationOptions,
     diceRollerPopup,
     druidNaturalRecoveryUsesRemaining,
     druidStarMapGuidingBoltUsesRemaining,
@@ -90,6 +92,7 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
     selectedSpellDamageDetailOverride,
     selectedSpellDetectThoughtsDisabled,
     selectedSpellDetectThoughtsFreeCastState,
+    selectedSpellCustomEffects,
     selectedSpellDisplay,
     selectedSpellMagicInitiateAbility,
     selectedSpellMagicInitiateDisabled,
@@ -111,6 +114,7 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
     selectedSpellFrozenHauntOptionState,
     selectedSpellHuntersRimeTemporaryHitPointsFormula,
     selectedSpellIsSpellbookOnly,
+    selectedSpellIsCustom,
     selectedSpellIsWizardSpellMastery,
     selectedSpellMistyWandererDisabled,
     selectedSpellOverchannelDisabled,
@@ -397,6 +401,9 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
           alwaysSpellbookSpellIds={alwaysSpellbookSpellIds}
           cantripLimit={cantripLimit}
           cantripOptions={cantripOptions}
+          character={character}
+          customCantripOptions={customCantripOptions}
+          customSpellPreparationOptions={customSpellPreparationOptions}
           highestSpellSlotLevel={highestSpellSlotLevel}
           knownSpellEntriesById={knownSpellEntriesById}
           getSpellActionShapes={getSpellRowActionShapes}
@@ -431,6 +438,8 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
         <CharacterSpellDrawer
           character={character}
           spell={selectedSpellDisplay ?? selectedSpell}
+          customEffects={selectedSpellCustomEffects}
+          isCustomSpell={selectedSpellIsCustom}
           damageDetailOverride={selectedSpellDamageDetailOverride}
           spellcastingAbilityOverride={selectedSpellMagicInitiateAbility}
           alwaysPrepared={selectedSpellAlwaysPrepared}

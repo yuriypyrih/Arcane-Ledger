@@ -2,6 +2,7 @@ import type {
   BODY_SIZE,
   EquipmentCost,
   FEATS,
+  SpellEntry,
   WeaponDamage,
   WeaponRange,
   WeaponType,
@@ -505,6 +506,14 @@ export type Alignment =
   | "Neutral Evil"
   | "Chaotic Evil";
 
+export type CharacterCustomSpellSnapshot = {
+  bakedAt?: string | null;
+  customEffects?: CharacterCustomTraitEffect[];
+  customSpellId: string;
+  sourceUpdatedAt?: string | null;
+  spell: SpellEntry;
+};
+
 export type Character = {
   id: number;
   name: string;
@@ -550,6 +559,7 @@ export type Character = {
   customEquipment: CharacterCustomEquipment[];
   companions: CharacterCompanion[];
   customActions: CharacterCustomAction[];
+  customSpellSnapshots?: CharacterCustomSpellSnapshot[];
   cantripIds?: string[];
   spellbookSpellIds?: string[];
   preparedSpellIds?: string[];
@@ -609,6 +619,7 @@ export type CharacterDraft = {
   customEquipment: CharacterCustomEquipment[];
   companions: CharacterCompanion[];
   customActions: CharacterCustomAction[];
+  customSpellSnapshots?: CharacterCustomSpellSnapshot[];
   cantripIds?: string[];
   spellbookSpellIds?: string[];
   preparedSpellIds?: string[];

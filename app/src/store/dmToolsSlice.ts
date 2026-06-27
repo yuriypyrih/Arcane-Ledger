@@ -1,5 +1,6 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import type { CampaignDetailRecord, CampaignPatchRecord, CampaignRecord } from "../api/campaigns";
+import type { CustomSpellRecord } from "../api/customSpells";
 import type {
   EncounterTemplateDetailRecord,
   EncounterTemplateRecord
@@ -38,6 +39,9 @@ export type DmToolsState = {
   selectedEncounterTemplatesById: Record<string, EncounterTemplateDetailRecord>;
   selectedEncounterTemplateStatusById: Record<string, DmToolsLoadStatus>;
   selectedEncounterTemplateErrorById: Record<string, string | null>;
+  customSpells: CustomSpellRecord[];
+  customSpellsStatus: DmToolsLoadStatus;
+  customSpellsError: string | null;
 };
 
 const initialState: DmToolsState = {
@@ -64,7 +68,10 @@ const initialState: DmToolsState = {
   encounterTemplatesError: null,
   selectedEncounterTemplatesById: {},
   selectedEncounterTemplateStatusById: {},
-  selectedEncounterTemplateErrorById: {}
+  selectedEncounterTemplateErrorById: {},
+  customSpells: [],
+  customSpellsStatus: "idle",
+  customSpellsError: null
 };
 
 function upsertPartyGroup(partyGroups: PartyGroupRecord[], partyGroup: PartyGroupRecord) {
@@ -90,6 +97,17 @@ function upsertEncounterTemplate(
   }
 
   encounterTemplates.unshift(encounterTemplate);
+}
+
+function upsertCustomSpell(customSpells: CustomSpellRecord[], customSpell: CustomSpellRecord) {
+  const existingIndex = customSpells.findIndex((entry) => entry.id === customSpell.id);
+
+  if (existingIndex >= 0) {
+    customSpells[existingIndex] = customSpell;
+    return;
+  }
+
+  customSpells.unshift(customSpell);
 }
 
 function upsertCampaign(campaigns: CampaignRecord[], campaign: CampaignRecord) {
@@ -357,6 +375,29 @@ const dmToolsSlice = createSlice({
       state.selectedEncounterTemplateErrorById[action.payload.encounterTemplateId] =
         action.payload.error;
     },
+    setCustomSpellsLoading(state) {
+      state.customSpellsStatus = "loading";
+      state.customSpellsError = null;
+    },
+    setCustomSpells(state, action: PayloadAction<CustomSpellRecord[]>) {
+      state.customSpells = action.payload;
+      state.customSpellsStatus = "ready";
+      state.customSpellsError = null;
+    },
+    setCustomSpellsError(state, action: PayloadAction<string>) {
+      state.customSpellsStatus = "error";
+      state.customSpellsError = action.payload;
+    },
+    upsertCustomSpellRecord(state, action: PayloadAction<CustomSpellRecord>) {
+      upsertCustomSpell(state.customSpells, action.payload);
+      state.customSpellsStatus = "ready";
+      state.customSpellsError = null;
+    },
+    removeCustomSpellRecord(state, action: PayloadAction<string>) {
+      state.customSpells = state.customSpells.filter(
+        (customSpell) => customSpell.id !== action.payload
+      );
+    },
     clearDmToolsState() {
       return initialState;
     }
@@ -390,12 +431,17 @@ export const {
   setEncounterTemplates,
   setEncounterTemplatesError,
   setEncounterTemplatesLoading,
+  setCustomSpells,
+  setCustomSpellsError,
+  setCustomSpellsLoading,
   setSelectedEncounterTemplate,
   setSelectedEncounterTemplateError,
   setSelectedEncounterTemplateLoading,
   upsertPartyGroupRecord,
   upsertCampaignRecord,
   upsertEncounterTemplateRecord,
+  upsertCustomSpellRecord,
+  removeCustomSpellRecord,
   upsertPartyMembership
 } = dmToolsSlice.actions;
 export const dmToolsReducer = dmToolsSlice.reducer;

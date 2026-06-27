@@ -1,22 +1,19 @@
-import { WEAPON_COMBAT_TYPE } from "../../codex/entries";
-import type {
-  AbilityKey,
-  CharacterCustomTraitDiceValue,
-  CharacterCustomTraitEffect,
-  CharacterCustomTraitEffectValue,
-  CharacterCustomTraitRollMode,
-  CharacterCustomTraitSkillGroupAbility,
-  CharacterCustomTraitValueMode,
-  CharacterStatusEntry
-} from "../../types";
+import { WEAPON_COMBAT_TYPE } from "../../codex/entries/enums";
 import {
   EFFECT_NAME,
   characterCustomTraitDiceValues,
-  isSkillName,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE,
-  type SkillName
-} from "../../types";
+  type CharacterCustomTraitDiceValue,
+  type CharacterCustomTraitEffect,
+  type CharacterCustomTraitEffectValue,
+  type CharacterCustomTraitRollMode,
+  type CharacterCustomTraitSkillGroupAbility,
+  type CharacterCustomTraitValueMode,
+  type CharacterStatusEntry,
+} from "../../types/traits";
+import type { AbilityKey } from "../../types/characters";
+import { isSkillName, type SkillName } from "../../types/skills";
 import { skillGroupsByAbility } from "./skillDefinitions";
 
 const abilityKeys: AbilityKey[] = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];

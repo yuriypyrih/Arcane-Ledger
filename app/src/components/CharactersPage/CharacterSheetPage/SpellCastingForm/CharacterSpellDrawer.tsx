@@ -26,7 +26,12 @@ import {
   type SpellDescriptionEntry,
   type SpellEntry
 } from "../../../../codex/entries";
-import type { AbilityKey, Character, CharacterCompanion } from "../../../../types";
+import type {
+  AbilityKey,
+  Character,
+  CharacterCompanion,
+  CharacterCustomTraitEffect
+} from "../../../../types";
 import type { RoundTrackerResource } from "../../../../pages/CharactersPage/combat";
 import {
   formatCodexLabel,
@@ -78,6 +83,7 @@ import FeatureActionFacts from "../GameplayForm/widgets/ActionsWidget/FeatureAct
 import FeatureActionHeaderTags from "../GameplayForm/widgets/ActionsWidget/FeatureActionHeaderTags";
 import ActionFooterButtonRow from "../GameplayForm/widgets/ActionsWidget/ActionFooterButtonRow";
 import DiceRollerSettingsButton from "../GameplayForm/widgets/DiceRollerSettingsButton";
+import CustomTraitEffectList from "../GameplayForm/widgets/TraitsConditionsWidget/CustomTraitEffectList";
 import { runWithActionConfirmationToast } from "../actionConfirmationToast";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import gameplayActionStyles from "../GameplayForm/widgets/ActionsWidget/GameplayActionDrawer.module.css";
@@ -237,6 +243,8 @@ type CharacterSpellDrawerProps = {
   spellImplementationCastSource?: SpellImplementationCastSource;
   forcedSpellImplementationOptions?: SpellImplementationOptionValues;
   backdropClassName?: string;
+  customEffects?: CharacterCustomTraitEffect[];
+  isCustomSpell?: boolean;
 };
 
 const slotFreeUseSelectValue = "free-use";
@@ -343,7 +351,9 @@ function CharacterSpellDrawer({
   spellcastingAbilityOverride = null,
   spellImplementationCastSource,
   forcedSpellImplementationOptions,
-  backdropClassName
+  backdropClassName,
+  customEffects = [],
+  isCustomSpell = false
 }: CharacterSpellDrawerProps) {
   const { onBackdropClick, onBackdropPointerDown, onContentClick } =
     useExplicitBackdropClick(onClose);
@@ -575,10 +585,14 @@ function CharacterSpellDrawer({
   const spellTrackingState = getSpellTrackingState(spell);
   const badgeLabel =
     mode === "prepare-preview"
-      ? "Spell preview"
+      ? isCustomSpell
+        ? "Custom Spell Preview"
+        : "Spell preview"
       : mode === "divine-intervention"
         ? "Divine Intervention"
-        : formatCodexLabel(ENTRY_CATEGORIES.SPELLS);
+        : isCustomSpell
+          ? "Custom Spells"
+          : formatCodexLabel(ENTRY_CATEGORIES.SPELLS);
   const closeComponentsTooltip = () => setIsComponentsTooltipOpen(false);
   const closeTrackingKeyword = () => setSelectedTrackingKeyword(null);
   const spellDuration = getSpellDurationDisplayParts(spell.duration);
@@ -984,6 +998,7 @@ function CharacterSpellDrawer({
                 ))}
               </div>
             ) : null}
+            <CustomTraitEffectList effects={customEffects} />
             {isSpellSummonDefinitionRequired && spellSummonDefinitionConfig ? (
               <SummonDefinitionPanel
                 character={character}

@@ -1,29 +1,31 @@
 import {
   ACTION_TYPE,
   ABILITY_TYPES,
-  DAMAGE_TYPE,
   DICE,
   DICE_TYPES,
   DURATION,
   SPELL_COMPONENT,
   TOOL_PROFICIENCIES,
   WEAPON_PROPERTY,
-  type SpellEntry,
-  type SpellCastingTimePart,
-  type SpellDurationPart,
-  type EquipmentCost,
-  type DivinityEntry,
-  type DivinityValue,
-  type SpellHealing,
-  type SpellHealingAmount,
-  type WeaponDamage,
-  type WeaponDamageAmount,
-  type WeaponDamageType,
-  type WEAPON_BASE,
-  type WeaponEntry,
-  type WeaponRange,
-  type WeaponType
-} from "../../codex/entries";
+  type DAMAGE_TYPE,
+  type WEAPON_BASE
+} from "../../codex/entries/enums";
+import type {
+  SpellEntry,
+  SpellCastingTimePart,
+  SpellDurationPart,
+  EquipmentCost,
+  DivinityEntry,
+  DivinityValue,
+  SpellHealing,
+  SpellHealingAmount,
+  WeaponDamage,
+  WeaponDamageAmount,
+  WeaponDamageType,
+  WeaponEntry,
+  WeaponRange,
+  WeaponType
+} from "../../codex/entries/types";
 
 const ALWAYS_UPPERCASE_LABELS = new Set<string>([
   ...Object.values(ABILITY_TYPES),

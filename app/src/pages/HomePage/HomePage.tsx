@@ -23,7 +23,8 @@ import styles from "./HomePage.module.css";
 const dmToolToneClassNames = {
   "campaign-manager": styles.toolToneCampaign,
   "party-manager": styles.toolToneParty,
-  "encounter-templates": styles.toolToneEncounter
+  "encounter-templates": styles.toolToneEncounter,
+  "custom-spells": styles.toolToneCustomSpell
 } satisfies Record<DmToolsTabId, string>;
 
 function HomePage() {

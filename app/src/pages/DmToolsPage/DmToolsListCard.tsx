@@ -12,12 +12,13 @@ export type DmToolsListCardAction = {
 
 type DmToolsListCardProps = {
   actions?: DmToolsListCardAction[];
+  actionMeta?: ReactNode;
   ariaLabel?: string;
   disabled?: boolean;
   icon: ReactNode;
   meta?: ReactNode;
   onClick?: () => void;
-  tone?: "campaign" | "default" | "danger" | "encounter" | "party";
+  tone?: "campaign" | "customSpell" | "default" | "danger" | "encounter" | "party";
   title: ReactNode;
   to?: string;
 };
@@ -57,6 +58,10 @@ function getCardClassName(disabled?: boolean, tone: DmToolsListCardProps["tone"]
     classNames.push(styles.dmToolsListCardEncounter);
   }
 
+  if (tone === "customSpell") {
+    classNames.push(styles.dmToolsListCardCustomSpell);
+  }
+
   if (tone === "danger") {
     classNames.push(styles.dmToolsListCardDanger);
   }
@@ -70,6 +75,7 @@ function getCardClassName(disabled?: boolean, tone: DmToolsListCardProps["tone"]
 
 function DmToolsListCard({
   actions,
+  actionMeta,
   ariaLabel,
   disabled,
   icon,
@@ -101,9 +107,12 @@ function DmToolsListCard({
         <div className={styles.dmToolsListCardMain}>{content}</div>
       )}
 
-      {actions?.length ? (
+      {actionMeta || actions?.length ? (
         <div className={styles.dmToolsListCardActions}>
-          {actions.map((action) => (
+          {actionMeta ? (
+            <span className={styles.dmToolsListCardActionMeta}>{actionMeta}</span>
+          ) : null}
+          {actions?.map((action) => (
             <button
               key={action.label}
               type="button"

@@ -1,6 +1,11 @@
 import clsx from "clsx";
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentProps } from "react";
 import {
+  listCustomSpells,
+  type CustomSpellListScope,
+  type CustomSpellRecord
+} from "../../../../api/customSpells";
+import {
   OverlayBody,
   OverlayCloseButton,
   OverlayHeader,
@@ -11,10 +16,16 @@ import {
 } from "../../../Overlay";
 import SpellListRow from "../../../SpellListRow";
 import type { SpellEntry } from "../../../../codex/entries";
+import type { Character, CharacterCustomTraitEffect } from "../../../../types";
 import {
   getSpellLevel,
   normalizePreparedSpellIds
 } from "../../../../pages/CharactersPage/spellcasting";
+import {
+  getCustomCantripSelectionOptionsForCharacter,
+  getCustomPreparedSpellSelectionOptionsForCharacter,
+  mergeSpellEntriesById
+} from "../../../../pages/CharactersPage/customSpells";
 import type {
   PersistCharacterUpdater,
   SpellManagementMode
@@ -29,6 +40,8 @@ import RadioContainerOption from "../RadioContainerOption";
 import styles from "./SpellCastingForm.module.css";
 import { applySpellManagementDraftToCharacter } from "./spellManagementDrafts";
 import SpellManagementFilterControls from "./SpellManagementFilterControls";
+import { getDmToolsApiErrorMessage } from "../../../../pages/DmToolsPage/dmToolsApiErrors";
+import { useAppSelector } from "../../../../store";
 import {
   emptySpellManagementFilters,
   filterSpellManagementSpells,
@@ -47,9 +60,14 @@ type SpellGroup = {
 type SpellPreparationLevelGroup = Record<number, SpellEntry[]>;
 type SpellSelectionPredicate = (spell: SpellEntry) => boolean;
 type PreparedSpellTab = number | "all";
+type SpellSourceMode = "default" | "custom";
 type PreparedSpellOrderingSnapshot = {
   preparedSpellIds: string[];
   spellbookSpellIds: string[];
+};
+type SpellPreviewOptions = {
+  customEffects?: CharacterCustomTraitEffect[];
+  isCustomSpell?: boolean;
 };
 
 const allPreparedSpellTab = "all";
@@ -65,12 +83,19 @@ type SpellManagementModalProps = {
   alwaysSpellbookSpellIds: string[];
   cantripLimit: number | null;
   cantripOptions: SpellEntry[];
+  character: Character;
+  customCantripOptions: SpellEntry[];
+  customSpellPreparationOptions: SpellEntry[];
   highestSpellSlotLevel: number;
   knownSpellEntriesById: Map<string, SpellEntry>;
   getSpellActionShapes: (spell: SpellEntry) => SpellListRowActionShapes;
   getSpellOutcomeSummary: (spell: SpellEntry) => string;
   onClose: () => void;
-  onOpenSpellDetails: (spell: SpellEntry, viewMode: "prepare-preview") => void;
+  onOpenSpellDetails: (
+    spell: SpellEntry,
+    viewMode: "prepare-preview",
+    options?: SpellPreviewOptions
+  ) => void;
   onPersistCharacter: PersistCharacterUpdater;
   onSpellcastingRulesEnforcementChange: (enabled: boolean) => void;
   preparedSpellLimit: number | null;
@@ -193,6 +218,9 @@ function SpellManagementModal({
   alwaysSpellbookSpellIds,
   cantripLimit,
   cantripOptions,
+  character,
+  customCantripOptions,
+  customSpellPreparationOptions,
   highestSpellSlotLevel,
   knownSpellEntriesById,
   getSpellActionShapes,
@@ -214,14 +242,59 @@ function SpellManagementModal({
   usesSpellbook
 }: SpellManagementModalProps) {
   const isCommittingRef = useRef(false);
-  const spellPreparationLevelGroups = useMemo(
-    () => createSpellPreparationLevelGroups(spellPreparationOptions),
-    [spellPreparationOptions]
+  const authStatus = useAppSelector((state) => state.auth.status);
+  const authUserId = useAppSelector((state) => state.auth.user?.id ?? null);
+  const isAuthenticated = authStatus === "authenticated";
+  const [spellSourceMode, setSpellSourceMode] = useState<SpellSourceMode>("default");
+  const [customSpellScope, setCustomSpellScope] = useState<CustomSpellListScope>("mine");
+  const [customSpellRecords, setCustomSpellRecords] = useState<CustomSpellRecord[]>([]);
+  const [customSpellLoadStatus, setCustomSpellLoadStatus] = useState<
+    "idle" | "loading" | "ready" | "error"
+  >("idle");
+  const [customSpellLoadError, setCustomSpellLoadError] = useState<string | null>(null);
+  const loadedCustomSpellsForAuthRef = useRef<string | null>(null);
+  const loadingCustomSpellsForAuthRef = useRef<string | null>(null);
+  const fetchedCustomSpellEntries = useMemo(
+    () => customSpellRecords.map((record) => record.spell),
+    [customSpellRecords]
   );
-  const firstAvailablePreparedSpellLevel = useMemo(
+  const customSpellRecordsBySpellId = useMemo(
+    () => new Map(customSpellRecords.map((record) => [record.spell.id, record] as const)),
+    [customSpellRecords]
+  );
+  const fetchedCustomCantripOptions = useMemo(
+    () => getCustomCantripSelectionOptionsForCharacter(fetchedCustomSpellEntries, character),
+    [character, fetchedCustomSpellEntries]
+  );
+  const fetchedCustomSpellPreparationOptions = useMemo(
+    () => getCustomPreparedSpellSelectionOptionsForCharacter(fetchedCustomSpellEntries, character),
+    [character, fetchedCustomSpellEntries]
+  );
+  const validationCantripOptions = useMemo(
+    () => mergeSpellEntriesById(cantripOptions, customCantripOptions, fetchedCustomCantripOptions),
+    [cantripOptions, customCantripOptions, fetchedCustomCantripOptions]
+  );
+  const validationSpellPreparationOptions = useMemo(
     () =>
-      spellSlotLevels.find((level) => (spellPreparationLevelGroups[level]?.length ?? 0) > 0) ?? 1,
-    [spellPreparationLevelGroups]
+      mergeSpellEntriesById(
+        spellPreparationOptions,
+        customSpellPreparationOptions,
+        fetchedCustomSpellPreparationOptions
+      ),
+    [
+      customSpellPreparationOptions,
+      fetchedCustomSpellPreparationOptions,
+      spellPreparationOptions
+    ]
+  );
+  const modalKnownSpellEntriesById = useMemo(
+    () =>
+      new Map([
+        ...knownSpellEntriesById,
+        ...validationCantripOptions.map((spell) => [spell.id, spell] as const),
+        ...validationSpellPreparationOptions.map((spell) => [spell.id, spell] as const)
+      ]),
+    [knownSpellEntriesById, validationCantripOptions, validationSpellPreparationOptions]
   );
   const [mode, setMode] = useState<SpellManagementMode>("menu");
   const [isCommitting, setIsCommitting] = useState(false);
@@ -249,6 +322,14 @@ function SpellManagementModal({
   const [preparedSpellFilters, setPreparedSpellFilters] = useState<SpellManagementFilters>(() => ({
     ...emptySpellManagementFilters
   }));
+  const customSourceMessage =
+    spellSourceMode !== "custom"
+      ? null
+      : !isAuthenticated
+        ? "Sign in to choose custom spells."
+        : customSpellLoadStatus === "loading" && fetchedCustomSpellEntries.length === 0
+          ? "Loading custom spells..."
+          : customSpellLoadError;
   const alwaysPreparedSpellIdSet = useMemo(
     () => new Set(alwaysPreparedSpellIds),
     [alwaysPreparedSpellIds]
@@ -258,8 +339,8 @@ function SpellManagementModal({
     [alwaysSpellbookSpellIds]
   );
   const spellPreparationOptionsById = useMemo(
-    () => new Map(spellPreparationOptions.map((spell) => [spell.id, spell] as const)),
-    [spellPreparationOptions]
+    () => new Map(validationSpellPreparationOptions.map((spell) => [spell.id, spell] as const)),
+    [validationSpellPreparationOptions]
   );
   const cantripDraftSet = useMemo(() => new Set(cantripDraftIds), [cantripDraftIds]);
   const cantripOrderingDraftSet = useMemo(
@@ -282,6 +363,54 @@ function SpellManagementModal({
   const spellbookOrderingAccessibleDraftSet = useMemo(
     () => new Set([...preparedSpellOrderingSnapshot.spellbookSpellIds, ...alwaysSpellbookSpellIds]),
     [alwaysSpellbookSpellIds, preparedSpellOrderingSnapshot.spellbookSpellIds]
+  );
+  const allCustomCantripOptions = useMemo(
+    () => mergeSpellEntriesById(customCantripOptions, fetchedCustomCantripOptions),
+    [customCantripOptions, fetchedCustomCantripOptions]
+  );
+  const allCustomSpellPreparationOptions = useMemo(
+    () =>
+      mergeSpellEntriesById(customSpellPreparationOptions, fetchedCustomSpellPreparationOptions),
+    [customSpellPreparationOptions, fetchedCustomSpellPreparationOptions]
+  );
+  const selectedCustomCantripOptions = useMemo(
+    () => allCustomCantripOptions.filter((spell) => cantripDraftSet.has(spell.id)),
+    [allCustomCantripOptions, cantripDraftSet]
+  );
+  const selectedCustomSpellPreparationOptions = useMemo(
+    () =>
+      allCustomSpellPreparationOptions.filter(
+        (spell) => preparedSpellDraftSet.has(spell.id) || spellbookDraftSet.has(spell.id)
+      ),
+    [allCustomSpellPreparationOptions, preparedSpellDraftSet, spellbookDraftSet]
+  );
+  const sourceCantripOptions = useMemo(
+    () =>
+      spellSourceMode === "custom"
+        ? fetchedCustomCantripOptions
+        : mergeSpellEntriesById(cantripOptions, selectedCustomCantripOptions),
+    [cantripOptions, fetchedCustomCantripOptions, selectedCustomCantripOptions, spellSourceMode]
+  );
+  const sourceSpellPreparationOptions = useMemo(
+    () =>
+      spellSourceMode === "custom"
+        ? fetchedCustomSpellPreparationOptions
+        : mergeSpellEntriesById(spellPreparationOptions, selectedCustomSpellPreparationOptions),
+    [
+      fetchedCustomSpellPreparationOptions,
+      selectedCustomSpellPreparationOptions,
+      spellPreparationOptions,
+      spellSourceMode
+    ]
+  );
+  const spellPreparationLevelGroups = useMemo(
+    () => createSpellPreparationLevelGroups(sourceSpellPreparationOptions),
+    [sourceSpellPreparationOptions]
+  );
+  const firstAvailablePreparedSpellLevel = useMemo(
+    () =>
+      spellSlotLevels.find((level) => (spellPreparationLevelGroups[level]?.length ?? 0) > 0) ?? 1,
+    [spellPreparationLevelGroups]
   );
   const isCantripSelected = useCallback(
     (spell: SpellEntry) => cantripDraftSet.has(spell.id),
@@ -318,12 +447,12 @@ function SpellManagementModal({
   );
   const allPreparedSpellOptions = useMemo(
     () =>
-      spellPreparationOptions
+      sourceSpellPreparationOptions
         .filter((spell) =>
           isPreparedSpellLevelAvailable(spell, { allowAllSpellLevels, highestSpellSlotLevel })
         )
         .sort(compareSpellsByName),
-    [allowAllSpellLevels, highestSpellSlotLevel, spellPreparationOptions]
+    [allowAllSpellLevels, highestSpellSlotLevel, sourceSpellPreparationOptions]
   );
   const activePreparedSpellOptions = useMemo(
     () =>
@@ -338,16 +467,16 @@ function SpellManagementModal({
     [activePreparedSpellOptions, spellbookSpellEntriesById]
   );
   const cantripFilterOptions = useMemo(
-    () => getSpellManagementFilterOptions(cantripOptions),
-    [cantripOptions]
+    () => getSpellManagementFilterOptions(sourceCantripOptions),
+    [sourceCantripOptions]
   );
   const preparedSpellFilterOptions = useMemo(
-    () => getSpellManagementFilterOptions(spellPreparationOptions),
-    [spellPreparationOptions]
+    () => getSpellManagementFilterOptions(sourceSpellPreparationOptions),
+    [sourceSpellPreparationOptions]
   );
   const filteredCantripOptions = useMemo(
-    () => filterSpellManagementSpells(cantripOptions, cantripFilters),
-    [cantripFilters, cantripOptions]
+    () => filterSpellManagementSpells(sourceCantripOptions, cantripFilters),
+    [cantripFilters, sourceCantripOptions]
   );
   const orderedFilteredCantripOptions = useMemo(
     () => orderSpellsBySelection(filteredCantripOptions, isCantripSelectedForOrdering),
@@ -413,9 +542,9 @@ function SpellManagementModal({
     () =>
       countTrackedSpellsByLevel(
         [...alwaysPreparedSpellIds, ...preparedSpellDraftIds],
-        knownSpellEntriesById
+        modalKnownSpellEntriesById
       ),
-    [alwaysPreparedSpellIds, knownSpellEntriesById, preparedSpellDraftIds]
+    [alwaysPreparedSpellIds, modalKnownSpellEntriesById, preparedSpellDraftIds]
   );
   const allPreparedSpellSelectedCount = useMemo(
     () =>
@@ -426,7 +555,7 @@ function SpellManagementModal({
     [allPreparedSpellOptions, isPreparedSpellSelected]
   );
   const hasCantripManagement =
-    cantripOptions.length > 0 && (cantripLimit === null || cantripLimit > 0);
+    validationCantripOptions.length > 0 && (cantripLimit === null || cantripLimit > 0);
   const cantripCount = cantripDraftIds.length;
   const spellbookSpellCount = spellbookDraftIds.length;
   const alwaysSpellbookCount = alwaysSpellbookSpellIds.length;
@@ -489,10 +618,11 @@ function SpellManagementModal({
             alwaysSpellbookSpellIds,
             cantripDraftIds,
             cantripLimit,
-            cantripOptions,
+            cantripOptions: validationCantripOptions,
+            customSpellRecords,
             preparedSpellDraftIds,
             preparedSpellLimit,
-            spellPreparationOptions,
+            spellPreparationOptions: validationSpellPreparationOptions,
             spellbookDraftIds,
             usesSpellbook
           })
@@ -509,15 +639,101 @@ function SpellManagementModal({
     alwaysSpellbookSpellIds,
     cantripDraftIds,
     cantripLimit,
-    cantripOptions,
+    customSpellRecords,
     onClose,
     onPersistCharacter,
     preparedSpellDraftIds,
     preparedSpellLimit,
-    spellPreparationOptions,
     spellbookDraftIds,
+    validationCantripOptions,
+    validationSpellPreparationOptions,
     usesSpellbook
   ]);
+
+  useEffect(() => {
+    let didCancel = false;
+    const loadKey =
+      isAuthenticated && authUserId ? `${authUserId}:${customSpellScope}` : null;
+
+    if (spellSourceMode !== "custom") {
+      return () => {
+        didCancel = true;
+      };
+    }
+
+    if (!loadKey) {
+      loadedCustomSpellsForAuthRef.current = null;
+      loadingCustomSpellsForAuthRef.current = null;
+      setCustomSpellRecords([]);
+      setCustomSpellLoadStatus("idle");
+      setCustomSpellLoadError(null);
+      return () => {
+        didCancel = true;
+      };
+    }
+
+    if (loadedCustomSpellsForAuthRef.current === loadKey) {
+      return () => {
+        didCancel = true;
+      };
+    }
+
+    if (loadingCustomSpellsForAuthRef.current === loadKey) {
+      return () => {
+        didCancel = true;
+      };
+    }
+
+    loadingCustomSpellsForAuthRef.current = loadKey;
+    setCustomSpellLoadStatus("loading");
+    setCustomSpellLoadError(null);
+    setCustomSpellRecords([]);
+
+    void listCustomSpells({ scope: customSpellScope, suppressFailureToast: true })
+      .then(({ customSpells }) => {
+        if (!didCancel) {
+          setCustomSpellRecords(customSpells);
+          setCustomSpellLoadStatus("ready");
+          loadedCustomSpellsForAuthRef.current = loadKey;
+        }
+      })
+      .catch((error) => {
+        if (!didCancel) {
+          setCustomSpellRecords([]);
+          setCustomSpellLoadStatus("error");
+          setCustomSpellLoadError(
+            getDmToolsApiErrorMessage(error, "Unable to load custom spells.")
+          );
+          loadedCustomSpellsForAuthRef.current = null;
+        }
+      })
+      .finally(() => {
+        if (loadingCustomSpellsForAuthRef.current === loadKey) {
+          loadingCustomSpellsForAuthRef.current = null;
+        }
+      });
+
+    return () => {
+      didCancel = true;
+      if (loadingCustomSpellsForAuthRef.current === loadKey) {
+        loadingCustomSpellsForAuthRef.current = null;
+      }
+    };
+  }, [authUserId, customSpellScope, isAuthenticated, spellSourceMode]);
+
+  useEffect(() => {
+    if (isAuthenticated || spellSourceMode === "default") {
+      return;
+    }
+
+    loadedCustomSpellsForAuthRef.current = null;
+    loadingCustomSpellsForAuthRef.current = null;
+    setCustomSpellRecords([]);
+    setCustomSpellLoadStatus("idle");
+    setCustomSpellLoadError(null);
+    setCustomSpellScope("mine");
+    setSpellSourceMode("default");
+  }, [isAuthenticated, spellSourceMode]);
 
   useEffect(() => {
     if (allowAllSpellLevels) {
@@ -553,6 +769,40 @@ function SpellManagementModal({
     setMode("prepared-spells");
   }, [refreshPreparedSpellOrderingSnapshot]);
 
+  const handleSpellSourceModeChange = useCallback(
+    (nextSourceMode: SpellSourceMode) => {
+      if (nextSourceMode === spellSourceMode) {
+        return;
+      }
+
+      refreshCantripOrderingSnapshot();
+      refreshPreparedSpellOrderingSnapshot();
+      setCantripFilters({ ...emptySpellManagementFilters });
+      setPreparedSpellFilters({ ...emptySpellManagementFilters });
+      setActivePreparedSpellLevel(allPreparedSpellTab);
+      setSpellSourceMode(nextSourceMode);
+    },
+    [refreshCantripOrderingSnapshot, refreshPreparedSpellOrderingSnapshot, spellSourceMode]
+  );
+
+  const handleCustomSpellScopeChange = useCallback(
+    (nextScope: CustomSpellListScope) => {
+      if (nextScope === customSpellScope) {
+        return;
+      }
+
+      loadedCustomSpellsForAuthRef.current = null;
+      loadingCustomSpellsForAuthRef.current = null;
+      refreshCantripOrderingSnapshot();
+      refreshPreparedSpellOrderingSnapshot();
+      setCantripFilters({ ...emptySpellManagementFilters });
+      setPreparedSpellFilters({ ...emptySpellManagementFilters });
+      setActivePreparedSpellLevel(allPreparedSpellTab);
+      setCustomSpellScope(nextScope);
+    },
+    [customSpellScope, refreshCantripOrderingSnapshot, refreshPreparedSpellOrderingSnapshot]
+  );
+
   const toggleCantripDraft = useCallback(
     (spellId: string) => {
       setCantripDraftIds((current) =>
@@ -573,7 +823,7 @@ function SpellManagementModal({
           usesSpellbook
             ? current.filter((currentSpellId) => spellbookAccessibleDraftSet.has(currentSpellId))
             : current,
-          spellPreparationOptions,
+          validationSpellPreparationOptions,
           preparedSpellLimit,
           alwaysPreparedSpellIds
         );
@@ -598,9 +848,9 @@ function SpellManagementModal({
     [
       alwaysPreparedSpellIds,
       preparedSpellLimit,
-      spellPreparationOptions,
       spellPreparationOptionsById,
       spellbookAccessibleDraftSet,
+      validationSpellPreparationOptions,
       usesSpellbook
     ]
   );
@@ -680,6 +930,105 @@ function SpellManagementModal({
           />
         </button>
       </div>
+    );
+  }
+
+  function renderSpellSourceToggle() {
+    if (!isAuthenticated) {
+      return null;
+    }
+
+    const nextSourceMode = spellSourceMode === "custom" ? "default" : "custom";
+
+    return (
+      <button
+        type="button"
+        className={styles.spellSourceToggle}
+        aria-label={`Switch to ${nextSourceMode === "default" ? "standard" : "custom"} spells`}
+        disabled={isCommitting}
+        onClick={() => handleSpellSourceModeChange(nextSourceMode)}
+      >
+        <span
+          className={clsx(
+            styles.spellSourceToggleSegment,
+            spellSourceMode === "default" && styles.spellSourceToggleSegmentActive
+          )}
+        >
+          Standard
+        </span>
+        <span
+          className={clsx(
+            styles.spellSourceToggleSegment,
+            spellSourceMode === "custom" && styles.spellSourceToggleSegmentActive
+          )}
+        >
+          Custom
+        </span>
+      </button>
+    );
+  }
+
+  function renderCustomSpellScopeToggle() {
+    if (spellSourceMode !== "custom") {
+      return null;
+    }
+
+    const nextScope = customSpellScope === "public" ? "mine" : "public";
+
+    return (
+      <button
+        type="button"
+        className={styles.spellSourceToggle}
+        aria-label={`Show ${nextScope === "public" ? "public" : "my"} custom spells`}
+        disabled={isCommitting}
+        onClick={() => handleCustomSpellScopeChange(nextScope)}
+      >
+        <span
+          className={clsx(
+            styles.spellSourceToggleSegment,
+            customSpellScope === "mine" && styles.spellSourceToggleSegmentActive
+          )}
+        >
+          Mine
+        </span>
+        <span
+          className={clsx(
+            styles.spellSourceToggleSegment,
+            customSpellScope === "public" && styles.spellSourceToggleSegmentActive
+          )}
+        >
+          Public
+        </span>
+      </button>
+    );
+  }
+
+  function renderSpellSourceToggleGroup() {
+    if (!isAuthenticated) {
+      return null;
+    }
+
+    return (
+      <div className={styles.spellSourceToggleGroup}>
+        {renderCustomSpellScopeToggle()}
+        {renderSpellSourceToggle()}
+      </div>
+    );
+  }
+
+  function openSpellPreview(spell: SpellEntry) {
+    const customSpellRecord =
+      spellSourceMode === "custom" ? (customSpellRecordsBySpellId.get(spell.id) ?? null) : null;
+
+    onOpenSpellDetails(
+      spell,
+      "prepare-preview",
+      customSpellRecord
+        ? {
+            customEffects: customSpellRecord.customEffects,
+            isCustomSpell: true
+          }
+        : undefined
     );
   }
 
@@ -783,9 +1132,10 @@ function SpellManagementModal({
                   <SelectionCounter current={cantripCount} total={cantripLimit} />
                 </p>
               </div>
+              {renderSpellSourceToggleGroup()}
             </div>
 
-            {cantripOptions.length > 0 ? (
+            {sourceCantripOptions.length > 0 && !customSourceMessage ? (
               <SpellManagementFilterControls
                 filters={cantripFilters}
                 options={cantripFilterOptions}
@@ -794,15 +1144,21 @@ function SpellManagementModal({
             ) : null}
 
             <div className={clsx(sheetStyles.spellManagementList, styles.preparedSpellList)}>
-              {cantripOptions.length === 0 ? (
+              {customSourceMessage ? (
+                <p className={shared.emptyText}>{customSourceMessage}</p>
+              ) : sourceCantripOptions.length === 0 ? (
                 <p className={shared.emptyText}>
-                  No cantrips are available for this class right now.
+                  {spellSourceMode === "custom"
+                    ? "No custom cantrips are available for this class right now."
+                    : "No cantrips are available for this class right now."}
                 </p>
               ) : cantripGroups.length === 0 ? (
                 <p className={shared.emptyText}>
                   {hasActiveCantripFilters
                     ? "No cantrips match these filters."
-                    : "No cantrips are available for this class right now."}
+                    : spellSourceMode === "custom"
+                      ? "No custom cantrips are available for this class right now."
+                      : "No cantrips are available for this class right now."}
                 </p>
               ) : (
                 cantripGroups.map((group) => (
@@ -820,7 +1176,7 @@ function SpellManagementModal({
                           <li key={spell.id}>
                             <SpellListRow
                               spell={spell}
-                              onClick={() => onOpenSpellDetails(spell, "prepare-preview")}
+                              onClick={() => openSpellPreview(spell)}
                               valueSummary={rowDetails?.valueSummary ?? ""}
                               alwaysPrepared={alwaysPreparedSpellIdSet.has(spell.id)}
                               compactConcentrationDuration
@@ -866,6 +1222,7 @@ function SpellManagementModal({
                   </>
                 ) : null}
               </div>
+              {renderSpellSourceToggleGroup()}
             </div>
 
             <div className={styles.preparedSpellTabRow}>
@@ -921,7 +1278,7 @@ function SpellManagementModal({
               </div>
             </div>
 
-            {spellPreparationOptions.length > 0 ? (
+            {sourceSpellPreparationOptions.length > 0 && !customSourceMessage ? (
               <SpellManagementFilterControls
                 filters={preparedSpellFilters}
                 options={preparedSpellFilterOptions}
@@ -930,16 +1287,21 @@ function SpellManagementModal({
             ) : null}
 
             <div className={clsx(sheetStyles.spellManagementList, styles.preparedSpellList)}>
-              {activePreparedSpellDisplayOptions.length === 0 ? (
+              {customSourceMessage ? (
+                <p className={shared.emptyText}>{customSourceMessage}</p>
+              ) : activePreparedSpellDisplayOptions.length === 0 ? (
                 <p className={shared.emptyText}>
-                  No {getPreparedSpellTabLabel(activePreparedSpellLevel)} are available for this
-                  class and level yet.
+                  {spellSourceMode === "custom"
+                    ? `No custom ${getPreparedSpellTabLabel(activePreparedSpellLevel)} are available for this class and level yet.`
+                    : `No ${getPreparedSpellTabLabel(activePreparedSpellLevel)} are available for this class and level yet.`}
                 </p>
               ) : filteredActivePreparedSpellDisplayOptions.length === 0 ? (
                 <p className={shared.emptyText}>
                   {hasActivePreparedSpellFilters
                     ? `No ${getPreparedSpellTabLabel(activePreparedSpellLevel)} match these filters.`
-                    : `No ${getPreparedSpellTabLabel(activePreparedSpellLevel)} are available for this class and level yet.`}
+                    : spellSourceMode === "custom"
+                      ? `No custom ${getPreparedSpellTabLabel(activePreparedSpellLevel)} are available for this class and level yet.`
+                      : `No ${getPreparedSpellTabLabel(activePreparedSpellLevel)} are available for this class and level yet.`}
                 </p>
               ) : (
                 <ul className={styles.preparedSpellSelectionList}>
@@ -957,7 +1319,7 @@ function SpellManagementModal({
                       <li key={spell.id}>
                         <SpellListRow
                           spell={spell}
-                          onClick={() => onOpenSpellDetails(spell, "prepare-preview")}
+                          onClick={() => openSpellPreview(spell)}
                           valueSummary={rowDetails?.valueSummary ?? ""}
                           alwaysPrepared={isAlwaysPrepared}
                           alwaysSpellbook={isAlwaysSpellbook}

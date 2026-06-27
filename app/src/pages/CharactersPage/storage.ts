@@ -35,6 +35,13 @@ import { normalizeLevelAndXp } from "./experience";
 import { normalizeCustomEquipmentEntries } from "./customEquipment";
 import { normalizeCharacterCustomActions } from "./customActions";
 import { normalizeCharacterCompanions } from "./companions";
+import {
+  getCustomCantripSelectionOptionsForCharacter,
+  getCustomPreparedSpellSelectionOptionsForCharacter,
+  mergeSpellEntriesById,
+  normalizeCharacterCustomSpellSnapshots,
+  pruneCharacterCustomSpellSnapshotsForSelectedIds
+} from "./customSpells";
 import { convertLegacyEquipmentToInventoryItems } from "./legacyEquipmentItems";
 import { normalizeCharacterFeats } from "./feats";
 import { normalizeBackgroundChoices, reconcileBackgroundOriginFeatEntries } from "./backgrounds";
@@ -243,6 +250,7 @@ export function normalizeCharacter(value: unknown): Character | null {
     inventoryItems?: unknown;
     customEquipment?: unknown;
     customActions?: unknown;
+    customSpellSnapshots?: unknown;
     companions?: unknown;
     classFeatureState?: unknown;
     classRules?: unknown;
@@ -321,6 +329,12 @@ export function normalizeCharacter(value: unknown): Character | null {
   const normalizedEquipment = normalizeCharacterEquipmentSelections(rawEquipment);
   const normalizedCustomEquipment = normalizeCustomEquipmentEntries(record.customEquipment);
   const normalizedCustomActions = normalizeCharacterCustomActions(record.customActions);
+  const normalizedCustomSpellSnapshots = normalizeCharacterCustomSpellSnapshots(
+    record.customSpellSnapshots
+  );
+  const normalizedCustomSpellEntries = normalizedCustomSpellSnapshots.map(
+    (snapshot) => snapshot.spell
+  );
   const normalizedInventoryItems = normalizeCharacterInventoryItems([
     ...normalizeCharacterInventoryItems(record.inventoryItems),
     ...convertLegacyEquipmentToInventoryItems(normalizedEquipment, normalizedCustomEquipment)
@@ -367,15 +381,29 @@ export function normalizeCharacter(value: unknown): Character | null {
     normalizedCustomClass,
     normalizedClassRules
   );
-  const cantripSelectionOptionIds = new Set(
-    getCantripSelectionOptionsForCharacter(
-      normalizedClassName,
-      normalizedLevel,
-      normalizedSubclassId,
-      normalizedCustomClass,
-      normalizedClassRules
-    ).map((spell) => spell.id)
+  const defaultCantripSelectionOptions = getCantripSelectionOptionsForCharacter(
+    normalizedClassName,
+    normalizedLevel,
+    normalizedSubclassId,
+    normalizedCustomClass,
+    normalizedClassRules
   );
+  const customCantripSelectionOptions = getCustomCantripSelectionOptionsForCharacter(
+    normalizedCustomSpellEntries,
+    {
+      classFeatureState: preliminaryClassFeatureState,
+      className: normalizedClassName,
+      classRules: normalizedClassRules,
+      customClass: normalizedCustomClass,
+      level: normalizedLevel,
+      subclassId: normalizedSubclassId
+    }
+  );
+  const cantripSelectionOptions = mergeSpellEntriesById(
+    defaultCantripSelectionOptions,
+    customCantripSelectionOptions
+  );
+  const cantripSelectionOptionIds = new Set(cantripSelectionOptions.map((spell) => spell.id));
   const normalizedCantripIds = [...new Set(rawCantripIds)]
     .filter((spellId) => cantripSelectionOptionIds.has(spellId))
     .slice(0, cantripLimit ?? Number.POSITIVE_INFINITY);
@@ -423,12 +451,27 @@ export function normalizeCharacter(value: unknown): Character | null {
     normalizedCustomClass,
     normalizedClassRules
   );
-  const preparedSpellSelectionOptions = getPreparedSpellSelectionOptionsForCharacter(
+  const defaultPreparedSpellSelectionOptions = getPreparedSpellSelectionOptionsForCharacter(
     normalizedClassName,
     normalizedLevel,
     normalizedSubclassId,
     normalizedCustomClass,
     normalizedClassRules
+  );
+  const customPreparedSpellSelectionOptions = getCustomPreparedSpellSelectionOptionsForCharacter(
+    normalizedCustomSpellEntries,
+    {
+      classFeatureState: normalizedClassFeatureState,
+      className: normalizedClassName,
+      classRules: normalizedClassRules,
+      customClass: normalizedCustomClass,
+      level: normalizedLevel,
+      subclassId: normalizedSubclassId
+    }
+  );
+  const preparedSpellSelectionOptions = mergeSpellEntriesById(
+    defaultPreparedSpellSelectionOptions,
+    customPreparedSpellSelectionOptions
   );
   const preparedSpellSelectionOptionIds = new Set(
     preparedSpellSelectionOptions.map((spell) => spell.id)
@@ -497,6 +540,10 @@ export function normalizeCharacter(value: unknown): Character | null {
         speciesChoices: normalizedSpeciesChoices
       })
     ]
+  );
+  const normalizedCustomSpellSnapshotsForSelectedIds = pruneCharacterCustomSpellSnapshotsForSelectedIds(
+    normalizedCustomSpellSnapshots,
+    [...normalizedCantripIds, ...normalizedSpellbookSpellIds, ...normalizedPreparedSpellIds]
   );
   const spellSlotTotals = getSpellSlotTotalsForCharacter(
     normalizedClassName,
@@ -638,6 +685,7 @@ export function normalizeCharacter(value: unknown): Character | null {
     customEquipment: [],
     companions: normalizedCompanions,
     customActions: normalizedCustomActions,
+    customSpellSnapshots: normalizedCustomSpellSnapshotsForSelectedIds,
     cantripIds: normalizedCantripIds,
     spellbookSpellIds: normalizedSpellbookSpellIds,
     preparedSpellIds: normalizedPreparedSpellIds,

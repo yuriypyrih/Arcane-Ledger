@@ -3,6 +3,7 @@ import {
   ADMIN_MAX_CAMPAIGNS,
   ADMIN_MAX_ENCOUNTER_TEMPLATES,
   ADMIN_MAX_PARTY_GROUPS,
+  CUSTOM_SPELLS_MAX,
   KEEPER_MAX_CAMPAIGNS,
   KEEPER_MAX_ENCOUNTER_TEMPLATES,
   KEEPER_MAX_PARTY_GROUPS,
@@ -11,7 +12,7 @@ import {
   USER_MAX_PARTY_GROUPS
 } from "../../constants/QUOTAS";
 
-type DmToolsQuotaKind = "campaigns" | "encounterTemplates" | "partyGroups";
+type DmToolsQuotaKind = "campaigns" | "customSpells" | "encounterTemplates" | "partyGroups";
 
 const DM_TOOLS_QUOTAS: Record<
   DmToolsQuotaKind,
@@ -25,6 +26,11 @@ const DM_TOOLS_QUOTAS: Record<
     adminLimit: ADMIN_MAX_CAMPAIGNS,
     keeperLimit: KEEPER_MAX_CAMPAIGNS,
     userLimit: USER_MAX_CAMPAIGNS
+  },
+  customSpells: {
+    adminLimit: CUSTOM_SPELLS_MAX,
+    keeperLimit: CUSTOM_SPELLS_MAX,
+    userLimit: CUSTOM_SPELLS_MAX
   },
   encounterTemplates: {
     adminLimit: ADMIN_MAX_ENCOUNTER_TEMPLATES,
