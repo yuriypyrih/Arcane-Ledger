@@ -25,7 +25,8 @@ const dmToolToneClassNames = {
   "party-manager": styles.toolToneParty,
   "encounter-templates": styles.toolToneEncounter,
   "custom-spells": styles.toolToneCustomSpell,
-  "custom-items": styles.toolToneCustomItem
+  "custom-items": styles.toolToneCustomItem,
+  "custom-bestiary": styles.toolToneCustomBestiary
 } satisfies Record<DmToolsTabId, string>;
 
 function HomePage() {

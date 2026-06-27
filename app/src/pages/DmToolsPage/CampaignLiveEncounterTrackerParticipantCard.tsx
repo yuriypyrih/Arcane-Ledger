@@ -10,6 +10,7 @@ import HitPointBar from "../../components/CharactersPage/CharacterSheetPage/HitP
 import { DeathSavesReadOnlyIndicator } from "../../components/CharactersPage/CharacterSheetPage/GameplayForm/widgets/DeathSavesIndicator";
 import SheetSurface from "../../components/CharactersPage/CharacterSheetPage/SheetSurface";
 import { getCompanionDisplayType } from "../../components/CharactersPage/CharacterSheetPage/CompanionsSection/companionUtils";
+import { getMonsterArmorClass } from "../../utils/monsters";
 import type {
   CampaignLiveEncounterTrackerCreatureRecord,
   CampaignLiveEncounterTrackerParticipantRecord,
@@ -155,7 +156,9 @@ function getCompanionViewModel(
   companion: PortableEncounterCompanionSummary
 ): ParticipantCardViewModel {
   return {
-    armorClass: normalizeDisplayNumber(companion.inheritedCreatureEntry?.armor_class),
+    armorClass: companion.inheritedCreatureEntry
+      ? getMonsterArmorClass(companion.inheritedCreatureEntry)
+      : null,
     currentHitPoints: normalizeDisplayNumber(companion.currentHitPoints),
     deathSaves: normalizeDeathSaveTrack(companion.deathSaves),
     isMakingDeathSaves:
@@ -188,7 +191,9 @@ function getCreatureViewModel(
   const deathSaves = normalizeDeathSaveTrack(creature.deathSaves);
 
   return {
-    armorClass: normalizeDisplayNumber(creature.inheritedCreatureEntry?.armor_class),
+    armorClass: creature.inheritedCreatureEntry
+      ? getMonsterArmorClass(creature.inheritedCreatureEntry)
+      : null,
     currentHitPoints: normalizeDisplayNumber(creature.currentHitPoints),
     deathSaves,
     isMakingDeathSaves:

@@ -11,7 +11,8 @@ export const MONSTER_TYPE_OPTIONS = [
   "Humanoid",
   "Monstrosity",
   "Ooze",
-  "Plant"
+  "Plant",
+  "Undead"
 ] as const;
 
 export const MONSTER_SOURCE_OPTIONS = [

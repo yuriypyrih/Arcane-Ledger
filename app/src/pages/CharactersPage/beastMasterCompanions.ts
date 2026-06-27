@@ -1,4 +1,5 @@
 import type { Character, CharacterCompanion, MonsterRecord } from "../../types";
+import { getMonsterHitPoints } from "../../utils/monsters";
 import {
   getPrimalBeastTemplate,
   isPrimalBeastKind,
@@ -50,7 +51,9 @@ export function getCompanionStatBlock(
 }
 
 export function getDefaultCompanionMaxHitPoints(companion: CharacterCompanion): number | null {
-  return getCompanionStatBlock(companion)?.hit_points ?? null;
+  const statBlock = getCompanionStatBlock(companion);
+
+  return statBlock ? getMonsterHitPoints(statBlock) : null;
 }
 
 export function normalizeCompanionHitPoints(

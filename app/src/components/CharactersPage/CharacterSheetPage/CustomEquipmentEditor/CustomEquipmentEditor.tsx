@@ -83,11 +83,6 @@ type CustomEquipmentEditorProps = {
   isSaving?: boolean;
   onCancel: () => void;
   onSave: (payload: CustomEquipmentEditorSavePayload) => void;
-  publicToggle?: {
-    checked: boolean;
-    disabled?: boolean;
-    onChange: (checked: boolean) => void;
-  };
 };
 
 type DamageRowDraft = {
@@ -305,8 +300,7 @@ function CustomEquipmentEditor({
   initialStack,
   isSaving = false,
   onCancel,
-  onSave,
-  publicToggle
+  onSave
 }: CustomEquipmentEditorProps) {
   const [draft, setDraft] = useState<EquipmentModsDraft>(() => createDraft(mode, initialStack));
   const [settingsDraft, setSettingsDraft] = useState<CustomEquipmentItemSettingsDraft>(() =>
@@ -604,17 +598,6 @@ function CustomEquipmentEditor({
             </label>
 
             <div className={styles.customEquipmentCheckboxRow}>
-              {publicToggle ? (
-                <label className={styles.customEquipmentCheckbox}>
-                  <input
-                    type="checkbox"
-                    checked={publicToggle.checked}
-                    disabled={publicToggle.disabled || isSaving}
-                    onChange={(event) => publicToggle.onChange(event.target.checked)}
-                  />
-                  <span>Public</span>
-                </label>
-              ) : null}
               <label className={styles.customEquipmentCheckbox}>
                 <input
                   type="checkbox"

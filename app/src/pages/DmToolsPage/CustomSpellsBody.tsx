@@ -262,6 +262,17 @@ function CustomSpellsBody({ panelId, tabId }: CustomSpellsBodyProps) {
         <div className={styles.dmToolsList}>
           {customSpells.map((customSpell) => {
             const canManageCustomSpell = customSpell.ownerId === authUserId;
+            const actionMeta =
+              customSpell.public || customSpellScope === "public" ? (
+                <>
+                  {customSpell.public ? (
+                    <span className={styles.dmToolsListCardPublicPill}>Public</span>
+                  ) : null}
+                  {customSpellScope === "public" ? (
+                    <span>Owner: {customSpell.ownerNickname ?? "Unknown Player"}</span>
+                  ) : null}
+                </>
+              ) : undefined;
             const actions = canManageCustomSpell
               ? [
                   {
@@ -289,11 +300,7 @@ function CustomSpellsBody({ panelId, tabId }: CustomSpellsBodyProps) {
             return (
               <DmToolsListCard
                 key={customSpell.id}
-                actionMeta={
-                  customSpellScope === "public"
-                    ? `Owner: ${customSpell.ownerNickname ?? "Unknown Player"}`
-                    : undefined
-                }
+                actionMeta={actionMeta}
                 icon={<BookOpenText size={18} aria-hidden="true" />}
                 title={customSpell.spell.name}
                 meta={getCustomSpellMeta(customSpell)}

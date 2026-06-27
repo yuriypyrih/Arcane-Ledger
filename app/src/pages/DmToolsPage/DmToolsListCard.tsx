@@ -18,7 +18,15 @@ type DmToolsListCardProps = {
   icon: ReactNode;
   meta?: ReactNode;
   onClick?: () => void;
-  tone?: "campaign" | "customItem" | "customSpell" | "default" | "danger" | "encounter" | "party";
+  tone?:
+    | "campaign"
+    | "customBestiary"
+    | "customItem"
+    | "customSpell"
+    | "default"
+    | "danger"
+    | "encounter"
+    | "party";
   title: ReactNode;
   to?: string;
 };
@@ -64,6 +72,10 @@ function getCardClassName(disabled?: boolean, tone: DmToolsListCardProps["tone"]
 
   if (tone === "customItem") {
     classNames.push(styles.dmToolsListCardCustomItem);
+  }
+
+  if (tone === "customBestiary") {
+    classNames.push(styles.dmToolsListCardCustomBestiary);
   }
 
   if (tone === "danger") {

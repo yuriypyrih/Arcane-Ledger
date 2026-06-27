@@ -17,6 +17,7 @@ export const ADMIN_MAX_ENCOUNTER_TEMPLATES = 40;
 
 export const CUSTOM_SPELLS_MAX = 20;
 export const CUSTOM_ITEMS_MAX = 20;
+export const CUSTOM_BESTIARY_MAX = 20;
 
 export const CAMPAIGN_MAX_SESSION_NOTES = 100;
 export const CAMPAIGN_MAX_PREPARED_ENCOUNTERS = 5;

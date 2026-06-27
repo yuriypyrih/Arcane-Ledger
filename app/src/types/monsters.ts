@@ -44,12 +44,12 @@ export type MonsterAbilityMap = Partial<Record<MonsterAbilityKey, number | null>
 
 export type MonsterSpeedMap = {
   unit?: string | null;
-  walk?: number | null;
-  crawl?: number | null;
-  climb?: number | null;
-  burrow?: number | null;
-  fly?: number | null;
-  swim?: number | null;
+  walk?: number | string | null;
+  crawl?: number | string | null;
+  climb?: number | string | null;
+  burrow?: number | string | null;
+  fly?: number | string | null;
+  swim?: number | string | null;
   hover?: boolean | null;
   [key: string]: boolean | number | string | null | undefined;
 };
@@ -132,7 +132,7 @@ export type MonsterRecord = {
   ability_scores?: MonsterAbilityMap | null;
   actions?: MonsterActionRecord[] | null;
   alignment?: string | null;
-  armor_class?: number | null;
+  armor_class?: number | string | null;
   armor_detail?: string | null;
   blindsight_range?: number | null;
   category?: string | null;
@@ -145,7 +145,7 @@ export type MonsterRecord = {
   environments?: MonsterV2Reference[] | null;
   experience_points?: number | null;
   hit_dice?: string | null;
-  hit_points?: number | null;
+  hit_points?: number | string | null;
   illustration?: MonsterIllustrationRecord | null;
   initiative_bonus?: number | null;
   languages?: MonsterLanguagesRecord | null;

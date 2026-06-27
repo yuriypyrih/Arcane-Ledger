@@ -1,6 +1,11 @@
 import { Pencil, RotateCcw, Search, Trash2 } from "lucide-react";
-import { type ReactNode, useEffect, useId, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useId, useMemo, useRef, useState } from "react";
 import { fetchMonsterByKey, isApiOfflineError } from "../../../../api";
+import {
+  listCustomBestiary,
+  type CustomBestiaryListScope,
+  type CustomBestiaryRecord
+} from "../../../../api/customBestiary";
 import ActionButton from "../../../ActionButton";
 import { useOnlineStatus } from "../../../../lib/useOnlineStatus";
 import {
@@ -31,6 +36,7 @@ import {
   PRIMAL_BEAST_MONSTER_TYPE
 } from "../../../../pages/CharactersPage/companionPrimalBeasts";
 import { useMonsterEntries } from "../../../../pages/CodexPage/useMonsterEntries";
+import { useAppSelector } from "../../../../store";
 import {
   getCachedMonsterEntry,
   getMonsterChallengeRatingNumber,
@@ -67,6 +73,12 @@ import {
   type CompanionDraft
 } from "./companionUtils";
 import MonsterBrowserModal from "./MonsterBrowserModal";
+import {
+  customBestiaryRecordToListItem,
+  filterCustomBestiaryRecords,
+  getCustomBestiaryMonsterByKey,
+  sortCustomBestiaryRecords
+} from "./customBestiaryBrowser";
 import { sanitizeUserInput } from "../../../../utils/userInputSanitization";
 import styles from "./CompanionsSection.module.css";
 
@@ -185,9 +197,12 @@ function CreatureEditorModal({
   showDurationFields = true
 }: CreatureEditorModalProps) {
   const isOnline = useOnlineStatus();
+  const authStatus = useAppSelector((state) => state.auth.status);
+  const authUserId = useAppSelector((state) => state.auth.user?.id ?? null);
   const titleId = useId();
   const deleteTitleId = useId();
   const isEditingExisting = creature !== null;
+  const canUseCustomBestiary = authStatus === "authenticated";
   const isBeastMaster = Boolean(allowPrimalBeasts && character && isBeastMasterCharacter(character));
   const defaultMonsterTypeFilter = isBeastMaster ? PRIMAL_BEAST_MONSTER_TYPE : "all";
   const monsterTypeOptions = useMemo(
@@ -208,6 +223,11 @@ function CreatureEditorModal({
   const [monsterTypeFilter, setMonsterTypeFilter] = useState<string>(defaultMonsterTypeFilter);
   const [monsterSourceFilter, setMonsterSourceFilter] = useState<string>("all");
   const [monsterOrdering, setMonsterOrdering] = useState<MonsterOrdering>("name");
+  const [monsterSourceMode, setMonsterSourceMode] = useState<"standard" | "custom">("standard");
+  const [customBestiaryScope, setCustomBestiaryScope] =
+    useState<CustomBestiaryListScope>("mine");
+  const [customBestiaryRecords, setCustomBestiaryRecords] = useState<CustomBestiaryRecord[]>([]);
+  const [customBestiaryStatus, setCustomBestiaryStatus] = useState<CodexStatus>("ready");
   const [currentPage, setCurrentPage] = useState(1);
   const [previewKey, setPreviewKey] = useState<string | null>(null);
   const [previewMonster, setPreviewMonster] = useState<MonsterRecord | null>(null);
@@ -229,11 +249,13 @@ function CreatureEditorModal({
       return cache;
     }, {})
   );
+  const loadedCustomBestiaryForAuthRef = useRef<string | null>(null);
   const selectedMonsterKey = draft.inheritedCreatureEntry
     ? getMonsterKey(draft.inheritedCreatureEntry)
     : null;
   const isPrimalBeastFilter =
     allowPrimalBeasts && isPrimalBeastMonsterType(monsterTypeFilter);
+  const isCustomBestiaryMode = canUseCustomBestiary && monsterSourceMode === "custom";
   const extraTypeOptions = useMemo(
     () =>
       getExtraTypeOptions([
@@ -244,7 +266,7 @@ function CreatureEditorModal({
     [creatures, draft.inheritedCreatureEntry, draft.type]
   );
   const { payload, status } = useMonsterEntries({
-    enabled: isMonsterBrowserOpen && !isPrimalBeastFilter,
+    enabled: isMonsterBrowserOpen && !isPrimalBeastFilter && !isCustomBestiaryMode,
     page: currentPage,
     limit: COMPANION_MONSTERS_PER_PAGE,
     search: monsterQuery,
@@ -256,12 +278,37 @@ function CreatureEditorModal({
     () => (allowPrimalBeasts ? getPrimalBeastBrowserItems(monsterQuery, monsterOrdering) : []),
     [allowPrimalBeasts, monsterOrdering, monsterQuery]
   );
-  const monsters = isPrimalBeastFilter ? primalBeastItems : (payload?.results ?? []);
-  const totalEntries = isPrimalBeastFilter ? primalBeastItems.length : (payload?.count ?? 0);
-  const browserStatus: CodexStatus = isPrimalBeastFilter ? "ready" : status;
-  const totalPages = isPrimalBeastFilter
-    ? 1
-    : Math.max(1, Math.ceil(totalEntries / COMPANION_MONSTERS_PER_PAGE));
+  const customBestiaryItems = useMemo(() => {
+    const filteredRecords = filterCustomBestiaryRecords(customBestiaryRecords, {
+      query: monsterQuery,
+      type: monsterTypeFilter
+    });
+
+    return sortCustomBestiaryRecords(filteredRecords, monsterOrdering).map(
+      customBestiaryRecordToListItem
+    );
+  }, [customBestiaryRecords, monsterOrdering, monsterQuery, monsterTypeFilter]);
+  const customBestiaryPageItems = useMemo(() => {
+    const startIndex = (currentPage - 1) * COMPANION_MONSTERS_PER_PAGE;
+
+    return customBestiaryItems.slice(startIndex, startIndex + COMPANION_MONSTERS_PER_PAGE);
+  }, [currentPage, customBestiaryItems]);
+  const monsters = isCustomBestiaryMode
+    ? customBestiaryPageItems
+    : isPrimalBeastFilter
+      ? primalBeastItems
+      : (payload?.results ?? []);
+  const totalEntries = isCustomBestiaryMode
+    ? customBestiaryItems.length
+    : isPrimalBeastFilter
+      ? primalBeastItems.length
+      : (payload?.count ?? 0);
+  const browserStatus: CodexStatus = isCustomBestiaryMode
+    ? customBestiaryStatus
+    : isPrimalBeastFilter
+      ? "ready"
+      : status;
+  const totalPages = Math.max(1, Math.ceil(totalEntries / COMPANION_MONSTERS_PER_PAGE));
   const maxHitPoints = parseHitPointDraftValue(draft.maxHitPoints);
   const maxHitPointsInvalid = maxHitPoints === null || maxHitPoints < 1;
   const saveDisabled =
@@ -309,7 +356,70 @@ function CreatureEditorModal({
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [monsterOrdering, monsterQuery, monsterSourceFilter, monsterTypeFilter]);
+  }, [
+    customBestiaryScope,
+    monsterOrdering,
+    monsterQuery,
+    monsterSourceFilter,
+    monsterSourceMode,
+    monsterTypeFilter
+  ]);
+
+  useEffect(() => {
+    if (canUseCustomBestiary || monsterSourceMode !== "custom") {
+      return;
+    }
+
+    setMonsterSourceMode("standard");
+  }, [canUseCustomBestiary, monsterSourceMode]);
+
+  useEffect(() => {
+    let active = true;
+    const loadKey =
+      isMonsterBrowserOpen && isCustomBestiaryMode && authUserId
+        ? `${authUserId}:${customBestiaryScope}`
+        : null;
+
+    if (!loadKey) {
+      return () => {
+        active = false;
+      };
+    }
+
+    if (loadedCustomBestiaryForAuthRef.current === loadKey) {
+      return () => {
+        active = false;
+      };
+    }
+
+    loadedCustomBestiaryForAuthRef.current = loadKey;
+    setCustomBestiaryStatus("loading");
+
+    void listCustomBestiary({
+      scope: customBestiaryScope,
+      suppressFailureToast: true
+    })
+      .then(({ customBestiary }) => {
+        if (!active) {
+          return;
+        }
+
+        setCustomBestiaryRecords(customBestiary);
+        setCustomBestiaryStatus("ready");
+      })
+      .catch((error) => {
+        if (!active) {
+          return;
+        }
+
+        setCustomBestiaryStatus(isApiOfflineError(error) ? "server-unavailable" : "error");
+        loadedCustomBestiaryForAuthRef.current = null;
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [authUserId, customBestiaryScope, isCustomBestiaryMode, isMonsterBrowserOpen]);
 
   useEffect(() => {
     if (currentPage <= totalPages) {
@@ -333,8 +443,15 @@ function CreatureEditorModal({
       const primalBeast = allowPrimalBeasts
         ? getPrimalBeastTemplateByKey(previewKey, character)
         : null;
+      const customBestiaryMonster = getCustomBestiaryMonsterByKey(
+        customBestiaryRecords,
+        previewKey
+      );
       const cachedMonster =
-        primalBeast ?? monsterCache[previewKey] ?? getCachedMonsterEntry(previewKey);
+        primalBeast ??
+        customBestiaryMonster ??
+        monsterCache[previewKey] ??
+        getCachedMonsterEntry(previewKey);
 
       if (cachedMonster) {
         primeMonsterEntryCache(cachedMonster);
@@ -383,7 +500,7 @@ function CreatureEditorModal({
       active = false;
       abortController.abort();
     };
-  }, [allowPrimalBeasts, character, isOnline, monsterCache, previewKey]);
+  }, [allowPrimalBeasts, character, customBestiaryRecords, isOnline, monsterCache, previewKey]);
 
   function handleDraftChange<Key extends keyof CompanionDraft>(
     key: Key,
@@ -405,8 +522,10 @@ function CreatureEditorModal({
       const primalBeast = allowPrimalBeasts
         ? getPrimalBeastTemplateByKey(key, character)
         : null;
+      const customBestiaryMonster = getCustomBestiaryMonsterByKey(customBestiaryRecords, key);
       const resolvedMonster =
         primalBeast ??
+        customBestiaryMonster ??
         (isMonsterRecord(monster)
           ? monster
           : (monsterCache[key] ?? (await fetchMonsterByKey(key))));
@@ -852,9 +971,16 @@ function CreatureEditorModal({
           monsterTypeOptions={monsterTypeOptions}
           ordering={monsterOrdering}
           pendingSelectKey={pendingSelectKey}
+          canUseCustomSource={canUseCustomBestiary}
+          customScope={customBestiaryScope}
+          sourceMode={isCustomBestiaryMode ? "custom" : "standard"}
           title={labels.browseTitle}
           summary={labels.browseSummary}
           onClose={() => setIsMonsterBrowserOpen(false)}
+          onCustomScopeChange={(scope) => {
+            loadedCustomBestiaryForAuthRef.current = null;
+            setCustomBestiaryScope(scope);
+          }}
           onQueryChange={setMonsterQuery}
           onMonsterTypeFilterChange={(value) => {
             setMonsterQuery("");
@@ -870,6 +996,9 @@ function CreatureEditorModal({
           onPageChange={setCurrentPage}
           onOpenMonsterPreview={(monster) => setPreviewKey(getMonsterListItemKey(monster))}
           onSelectMonster={handleSelectMonster}
+          onSourceModeChange={(sourceMode) => {
+            setMonsterSourceMode(sourceMode);
+          }}
         />
       ) : null}
 

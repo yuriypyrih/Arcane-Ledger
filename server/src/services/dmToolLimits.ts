@@ -4,6 +4,7 @@ import {
   ADMIN_MAX_CAMPAIGNS,
   ADMIN_MAX_ENCOUNTER_TEMPLATES,
   ADMIN_MAX_PARTY_GROUPS,
+  CUSTOM_BESTIARY_MAX,
   CUSTOM_ITEMS_MAX,
   CUSTOM_SPELLS_MAX,
   KEEPER_MAX_CAMPAIGNS,
@@ -16,6 +17,7 @@ import {
 
 type DmToolLimitKind =
   | "campaigns"
+  | "customBestiary"
   | "customItems"
   | "customSpells"
   | "encounterTemplates"
@@ -36,6 +38,13 @@ const DM_TOOL_LIMITS: Record<DmToolLimitKind, DmToolLimitConfig> = {
     keeperLimit: KEEPER_MAX_CAMPAIGNS,
     label: "campaigns",
     userLimit: USER_MAX_CAMPAIGNS
+  },
+  customBestiary: {
+    adminLimit: CUSTOM_BESTIARY_MAX,
+    code: "CUSTOM_BESTIARY_LIMIT_REACHED",
+    keeperLimit: CUSTOM_BESTIARY_MAX,
+    label: "custom creatures",
+    userLimit: CUSTOM_BESTIARY_MAX
   },
   customSpells: {
     adminLimit: CUSTOM_SPELLS_MAX,

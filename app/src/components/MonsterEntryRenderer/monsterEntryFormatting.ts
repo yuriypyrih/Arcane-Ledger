@@ -147,6 +147,20 @@ function formatMonsterNumberMap(map: Record<string, number | null | undefined> |
     .join(", ");
 }
 
+function formatMonsterSkills(monster: MonsterRecord) {
+  const displayValue = monster.skill_bonuses_display;
+
+  if (typeof displayValue === "string") {
+    const normalizedDisplayValue = getKnownMonsterText(displayValue);
+
+    if (normalizedDisplayValue) {
+      return normalizedDisplayValue;
+    }
+  }
+
+  return formatMonsterNumberMap(monster.skill_bonuses);
+}
+
 function formatUsageLimit(action: MonsterActionRecord) {
   const usageLimits = action.usage_limits;
 
@@ -345,7 +359,7 @@ export function buildMonsterDetailRows(monster: MonsterRecord): MonsterDetailRow
     },
     {
       label: "Skills",
-      value: formatMonsterNumberMap(monster.skill_bonuses) ?? ""
+      value: formatMonsterSkills(monster) ?? ""
     },
     {
       label: "Damage Vulnerabilities",

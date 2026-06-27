@@ -1,5 +1,6 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import type { CampaignDetailRecord, CampaignPatchRecord, CampaignRecord } from "../api/campaigns";
+import type { CustomBestiaryRecord } from "../api/customBestiary";
 import type { CustomItemRecord } from "../api/customItems";
 import type { CustomSpellRecord } from "../api/customSpells";
 import type {
@@ -40,6 +41,9 @@ export type DmToolsState = {
   selectedEncounterTemplatesById: Record<string, EncounterTemplateDetailRecord>;
   selectedEncounterTemplateStatusById: Record<string, DmToolsLoadStatus>;
   selectedEncounterTemplateErrorById: Record<string, string | null>;
+  customBestiary: CustomBestiaryRecord[];
+  customBestiaryStatus: DmToolsLoadStatus;
+  customBestiaryError: string | null;
   customItems: CustomItemRecord[];
   customItemsStatus: DmToolsLoadStatus;
   customItemsError: string | null;
@@ -73,6 +77,9 @@ const initialState: DmToolsState = {
   selectedEncounterTemplatesById: {},
   selectedEncounterTemplateStatusById: {},
   selectedEncounterTemplateErrorById: {},
+  customBestiary: [],
+  customBestiaryStatus: "idle",
+  customBestiaryError: null,
   customItems: [],
   customItemsStatus: "idle",
   customItemsError: null,
@@ -115,6 +122,20 @@ function upsertCustomSpell(customSpells: CustomSpellRecord[], customSpell: Custo
   }
 
   customSpells.unshift(customSpell);
+}
+
+function upsertCustomBestiary(
+  customBestiary: CustomBestiaryRecord[],
+  customCreature: CustomBestiaryRecord
+) {
+  const existingIndex = customBestiary.findIndex((entry) => entry.id === customCreature.id);
+
+  if (existingIndex >= 0) {
+    customBestiary[existingIndex] = customCreature;
+    return;
+  }
+
+  customBestiary.unshift(customCreature);
 }
 
 function upsertCustomItem(customItems: CustomItemRecord[], customItem: CustomItemRecord) {
@@ -393,6 +414,29 @@ const dmToolsSlice = createSlice({
       state.selectedEncounterTemplateErrorById[action.payload.encounterTemplateId] =
         action.payload.error;
     },
+    setCustomBestiaryLoading(state) {
+      state.customBestiaryStatus = "loading";
+      state.customBestiaryError = null;
+    },
+    setCustomBestiary(state, action: PayloadAction<CustomBestiaryRecord[]>) {
+      state.customBestiary = action.payload;
+      state.customBestiaryStatus = "ready";
+      state.customBestiaryError = null;
+    },
+    setCustomBestiaryError(state, action: PayloadAction<string>) {
+      state.customBestiaryStatus = "error";
+      state.customBestiaryError = action.payload;
+    },
+    upsertCustomBestiaryRecord(state, action: PayloadAction<CustomBestiaryRecord>) {
+      upsertCustomBestiary(state.customBestiary, action.payload);
+      state.customBestiaryStatus = "ready";
+      state.customBestiaryError = null;
+    },
+    removeCustomBestiaryRecord(state, action: PayloadAction<string>) {
+      state.customBestiary = state.customBestiary.filter(
+        (customCreature) => customCreature.id !== action.payload
+      );
+    },
     setCustomItemsLoading(state) {
       state.customItemsStatus = "loading";
       state.customItemsError = null;
@@ -472,6 +516,9 @@ export const {
   setEncounterTemplates,
   setEncounterTemplatesError,
   setEncounterTemplatesLoading,
+  setCustomBestiary,
+  setCustomBestiaryError,
+  setCustomBestiaryLoading,
   setCustomItems,
   setCustomItemsError,
   setCustomItemsLoading,
@@ -484,8 +531,10 @@ export const {
   upsertPartyGroupRecord,
   upsertCampaignRecord,
   upsertEncounterTemplateRecord,
+  upsertCustomBestiaryRecord,
   upsertCustomItemRecord,
   upsertCustomSpellRecord,
+  removeCustomBestiaryRecord,
   removeCustomItemRecord,
   removeCustomSpellRecord,
   upsertPartyMembership

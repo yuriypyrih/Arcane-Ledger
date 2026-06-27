@@ -34,9 +34,13 @@ type MonsterBrowserModalProps = {
   monsterTypeOptions?: string[];
   ordering: MonsterOrdering;
   pendingSelectKey: string | null;
+  canUseCustomSource?: boolean;
+  customScope?: "mine" | "public";
+  sourceMode?: "standard" | "custom";
   summary?: string;
   title?: string;
   onClose: () => void;
+  onCustomScopeChange?: (scope: "mine" | "public") => void;
   onQueryChange: (value: string) => void;
   onMonsterTypeFilterChange: (value: string) => void;
   onMonsterSourceFilterChange: (value: string) => void;
@@ -44,6 +48,7 @@ type MonsterBrowserModalProps = {
   onPageChange: (page: number) => void;
   onOpenMonsterPreview: (monster: MonsterListItem) => void;
   onSelectMonster: (monster: MonsterListItem) => Promise<void>;
+  onSourceModeChange?: (sourceMode: "standard" | "custom") => void;
 };
 
 function MonsterBrowserModal({
@@ -60,18 +65,25 @@ function MonsterBrowserModal({
   monsterTypeOptions = companionMonsterTypeOptions,
   ordering,
   pendingSelectKey,
+  canUseCustomSource = false,
+  customScope = "mine",
+  sourceMode = "standard",
   summary = "Choose a stat block to inherit for this companion.",
   title = "Browse monsters",
   onClose,
+  onCustomScopeChange,
   onQueryChange,
   onMonsterTypeFilterChange,
   onMonsterSourceFilterChange,
   onOrderingChange,
   onPageChange,
   onOpenMonsterPreview,
-  onSelectMonster
+  onSelectMonster,
+  onSourceModeChange
 }: MonsterBrowserModalProps) {
   const titleId = useId();
+  const nextSourceMode = sourceMode === "custom" ? "standard" : "custom";
+  const nextCustomScope = customScope === "public" ? "mine" : "public";
 
   return (
     <SheetModal
@@ -120,6 +132,7 @@ function MonsterBrowserModal({
             <span className={shared.fieldLabel}>Filter Source</span>
             <SelectInput
               value={monsterSourceFilter}
+              disabled={sourceMode === "custom"}
               onChange={(event) => onMonsterSourceFilterChange(event.target.value)}
             >
               <option value="all">All sources</option>
@@ -130,6 +143,69 @@ function MonsterBrowserModal({
               ))}
             </SelectInput>
           </label>
+
+          {canUseCustomSource ? (
+            <div className={styles.browserSourceToggles}>
+              {sourceMode === "custom" ? (
+                <button
+                  type="button"
+                  className={styles.browserSegmentedToggle}
+                  aria-label={`Show ${
+                    nextCustomScope === "public" ? "public" : "my"
+                  } custom creatures`}
+                  onClick={() => onCustomScopeChange?.(nextCustomScope)}
+                >
+                  <span
+                    className={[
+                      styles.browserSegmentedToggleSegment,
+                      customScope === "mine" ? styles.browserSegmentedToggleSegmentActive : ""
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                  >
+                    Mine
+                  </span>
+                  <span
+                    className={[
+                      styles.browserSegmentedToggleSegment,
+                      customScope === "public" ? styles.browserSegmentedToggleSegmentActive : ""
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                  >
+                    Public
+                  </span>
+                </button>
+              ) : null}
+              <button
+                type="button"
+                className={styles.browserSegmentedToggle}
+                aria-label={`Show ${nextSourceMode} creature stat blocks`}
+                onClick={() => onSourceModeChange?.(nextSourceMode)}
+              >
+                <span
+                  className={[
+                    styles.browserSegmentedToggleSegment,
+                    sourceMode === "standard" ? styles.browserSegmentedToggleSegmentActive : ""
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                >
+                  Standard
+                </span>
+                <span
+                  className={[
+                    styles.browserSegmentedToggleSegment,
+                    sourceMode === "custom" ? styles.browserSegmentedToggleSegmentActive : ""
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
+                >
+                  Custom
+                </span>
+              </button>
+            </div>
+          ) : null}
         </div>
 
         <MonsterCodexTable

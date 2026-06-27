@@ -3,6 +3,7 @@ import {
   ADMIN_MAX_CAMPAIGNS,
   ADMIN_MAX_ENCOUNTER_TEMPLATES,
   ADMIN_MAX_PARTY_GROUPS,
+  CUSTOM_BESTIARY_MAX,
   CUSTOM_ITEMS_MAX,
   CUSTOM_SPELLS_MAX,
   KEEPER_MAX_CAMPAIGNS,
@@ -15,6 +16,7 @@ import {
 
 type DmToolsQuotaKind =
   | "campaigns"
+  | "customBestiary"
   | "customItems"
   | "customSpells"
   | "encounterTemplates"
@@ -32,6 +34,11 @@ const DM_TOOLS_QUOTAS: Record<
     adminLimit: ADMIN_MAX_CAMPAIGNS,
     keeperLimit: KEEPER_MAX_CAMPAIGNS,
     userLimit: USER_MAX_CAMPAIGNS
+  },
+  customBestiary: {
+    adminLimit: CUSTOM_BESTIARY_MAX,
+    keeperLimit: CUSTOM_BESTIARY_MAX,
+    userLimit: CUSTOM_BESTIARY_MAX
   },
   customSpells: {
     adminLimit: CUSTOM_SPELLS_MAX,

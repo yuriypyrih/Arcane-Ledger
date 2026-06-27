@@ -356,7 +356,7 @@
 }
 
 .statBlockEditorBody {
-  gap: 1rem;
+  gap: 0.72rem;
 }
 
 @media (max-width: 599px) {
@@ -373,11 +373,11 @@
 
 .statBlockEditorSection {
   display: grid;
-  gap: 0.85rem;
+  gap: 0.62rem;
   border: 1px solid rgba(75, 47, 29, 0.1);
   border-radius: var(--radius-control-lg);
   background: rgba(255, 255, 255, 0.36);
-  padding: 0.9rem;
+  padding: 0.72rem;
 }
 
 :global(html[data-theme="dark"]) .statBlockEditorSection {
@@ -399,14 +399,69 @@
 
 .statBlockEditorGrid {
   display: grid;
-  gap: 0.75rem;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.56rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .statBlockEditorWide {
   display: grid;
-  gap: 0.4rem;
+  gap: 0.32rem;
   grid-column: 1 / -1;
+}
+
+.statBlockAbilityGrid {
+  display: grid;
+  gap: 0.48rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.statBlockCompactInput {
+  border-radius: var(--radius-tiny);
+  min-height: 38px;
+  padding: 0 0.72rem;
+}
+
+.statBlockCompactTextArea {
+  border-radius: var(--radius-tiny);
+  min-height: 86px;
+  padding: 0.62rem 0.72rem;
+}
+
+.statBlockRequiredMarker {
+  color: var(--theme-accent-strong);
+  margin-left: 0.16rem;
+}
+
+.statBlockEditorHeaderActions {
+  display: inline-flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 0.55rem;
+}
+
+.statBlockPublicToggle {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  gap: 0.5rem;
+  border: 1px solid var(--theme-input-border);
+  border-radius: var(--radius-tiny);
+  background: var(--theme-input-background);
+  color: var(--theme-text-primary);
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.25;
+  min-height: 38px;
+  padding: 0 0.72rem;
+  white-space: nowrap;
+}
+
+.statBlockPublicToggle input {
+  accent-color: var(--theme-accent);
+  flex: 0 0 auto;
+  height: 0.95rem;
+  margin: 0;
+  width: 0.95rem;
 }
 
 .dynamicRows,
@@ -420,6 +475,46 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.7rem;
+}
+
+.browserSourceToggles {
+  display: inline-flex;
+  align-items: end;
+  justify-content: flex-end;
+  gap: 0.42rem;
+}
+
+.browserSegmentedToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.18rem;
+  flex: 0 0 auto;
+  width: fit-content;
+  border: 1px solid var(--theme-border-subtle);
+  border-radius: var(--radius-control);
+  background: var(--theme-control-subtle);
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0.18rem;
+}
+
+.browserSegmentedToggleSegment {
+  border: none;
+  border-radius: calc(var(--radius-control) - 2px);
+  background: transparent;
+  color: var(--theme-text-secondary);
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1;
+  padding: 0.34rem 0.48rem;
+  pointer-events: none;
+}
+
+.browserSegmentedToggleSegmentActive {
+  background: var(--theme-surface-panel);
+  color: var(--theme-text-primary);
+  box-shadow: 0 1px 2px rgba(31, 24, 18, 0.12);
 }
 
 .dynamicRow {
@@ -469,11 +564,11 @@
 
 .featureRow {
   display: grid;
-  gap: 0.75rem;
+  gap: 0.56rem;
   border: 1px solid rgba(75, 47, 29, 0.1);
   border-radius: var(--radius-control);
   background: var(--color-panel-surface);
-  padding: 0.78rem;
+  padding: 0.62rem;
 }
 
 :global(html[data-theme="dark"]) .featureRow {
@@ -552,6 +647,7 @@
   }
 
   .statBlockEditorGrid,
+  .statBlockAbilityGrid,
   .featureNumberGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -565,9 +661,11 @@
 
   .editorFooterActions,
   .panelHeader,
+  .browserSourceToggles,
   .dynamicRowsHeader,
   .dynamicRow,
   .featureRowHeader,
+  .statBlockEditorHeaderActions,
   .statBlockEditorFooter {
     display: grid;
     grid-template-columns: 1fr;
@@ -607,6 +705,7 @@
   }
 
   .statBlockEditorGrid,
+  .statBlockAbilityGrid,
   .featureNumberGrid {
     grid-template-columns: 1fr;
   }

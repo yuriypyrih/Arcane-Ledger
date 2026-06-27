@@ -1,6 +1,11 @@
 import { Minus, Plus } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { fetchMonsterByKey, isApiOfflineError } from "../../../../api";
+import {
+  listCustomBestiary,
+  type CustomBestiaryListScope,
+  type CustomBestiaryRecord
+} from "../../../../api/customBestiary";
 import MonsterCodexTable from "../../../CodexPage/MonsterCodexTable";
 import { MONSTER_SOURCE_OPTIONS, MONSTER_TYPE_OPTIONS } from "../../../../constants/monsters";
 import { useOnlineStatus } from "../../../../lib/useOnlineStatus";
@@ -19,6 +24,13 @@ import { MonsterEntryDrawer } from "../../../MonsterEntryRenderer";
 import SearchField from "../../../SearchField";
 import { getDruidWildShapeRulesForCharacter } from "../../../../pages/CharactersPage/classFeatures";
 import { useMonsterEntries } from "../../../../pages/CodexPage/useMonsterEntries";
+import { useAppSelector } from "../../../../store";
+import {
+  customBestiaryRecordToListItem,
+  filterCustomBestiaryRecords,
+  getCustomBestiaryMonsterByKey,
+  sortCustomBestiaryRecords
+} from "../CompanionsSection/customBestiaryBrowser";
 import {
   getCachedMonsterEntry,
   getMonsterChallengeRatingNumber,
@@ -69,6 +81,9 @@ function DruidWildShapeMonsterModal({
 }: DruidWildShapeMonsterModalProps) {
   const rules = getDruidWildShapeRulesForCharacter(character);
   const isOnline = useOnlineStatus();
+  const authStatus = useAppSelector((state) => state.auth.status);
+  const authUserId = useAppSelector((state) => state.auth.user?.id ?? null);
+  const canUseCustomBestiary = authStatus === "authenticated";
   const [query, setQuery] = useState("");
   const [searchResetSignal, setSearchResetSignal] = useState(0);
   const [monsterTypeFilter, setMonsterTypeFilter] = useState<string | null>(
@@ -78,6 +93,11 @@ function DruidWildShapeMonsterModal({
     DEFAULT_VALID_MONSTER_SOURCE
   );
   const [monsterOrdering, setMonsterOrdering] = useState<MonsterOrdering>("cr");
+  const [monsterSourceMode, setMonsterSourceMode] = useState<"standard" | "custom">("standard");
+  const [customBestiaryScope, setCustomBestiaryScope] =
+    useState<CustomBestiaryListScope>("mine");
+  const [customBestiaryRecords, setCustomBestiaryRecords] = useState<CustomBestiaryRecord[]>([]);
+  const [customBestiaryStatus, setCustomBestiaryStatus] = useState<CodexStatus>("ready");
   const [onlyValidBeasts, setOnlyValidBeasts] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [previewKey, setPreviewKey] = useState<string | null>(null);
@@ -91,8 +111,10 @@ function DruidWildShapeMonsterModal({
       return cache;
     }, {})
   );
+  const loadedCustomBestiaryForAuthRef = useRef<string | null>(null);
+  const isCustomBestiaryMode = canUseCustomBestiary && monsterSourceMode === "custom";
   const { payload, status } = useMonsterEntries({
-    enabled: true,
+    enabled: !isCustomBestiaryMode,
     page: currentPage,
     limit: MONSTERS_PER_PAGE,
     search: query,
@@ -101,7 +123,36 @@ function DruidWildShapeMonsterModal({
     source: onlyValidBeasts ? DEFAULT_VALID_MONSTER_SOURCE : monsterSourceFilter,
     ordering: monsterOrdering
   });
-  const totalPages = Math.max(1, Math.ceil((payload?.count ?? 0) / MONSTERS_PER_PAGE));
+  const customBestiaryItems = useMemo(() => {
+    const filteredRecords = filterCustomBestiaryRecords(customBestiaryRecords, {
+      query,
+      type: onlyValidBeasts ? DEFAULT_VALID_MONSTER_TYPE : (monsterTypeFilter ?? "all")
+    }).filter((record) => {
+      if (!onlyValidBeasts) {
+        return true;
+      }
+
+      return isQualifiedWildShapeMonster(
+        customBestiaryRecordToListItem(record),
+        rules?.maxCr ?? null
+      );
+    });
+
+    return sortCustomBestiaryRecords(filteredRecords, monsterOrdering).map(
+      customBestiaryRecordToListItem
+    );
+  }, [customBestiaryRecords, monsterOrdering, monsterTypeFilter, onlyValidBeasts, query, rules?.maxCr]);
+  const customBestiaryPageItems = useMemo(() => {
+    const startIndex = (currentPage - 1) * MONSTERS_PER_PAGE;
+
+    return customBestiaryItems.slice(startIndex, startIndex + MONSTERS_PER_PAGE);
+  }, [currentPage, customBestiaryItems]);
+  const browserMonsters = isCustomBestiaryMode
+    ? customBestiaryPageItems
+    : (payload?.results ?? []);
+  const browserTotalEntries = isCustomBestiaryMode ? customBestiaryItems.length : (payload?.count ?? 0);
+  const browserStatus = isCustomBestiaryMode ? customBestiaryStatus : status;
+  const totalPages = Math.max(1, Math.ceil(browserTotalEntries / MONSTERS_PER_PAGE));
   const selectedMonsterKeySet = useMemo(
     () => new Set(selectedMonsters.map((monster) => getMonsterKey(monster))),
     [selectedMonsters]
@@ -109,7 +160,69 @@ function DruidWildShapeMonsterModal({
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [monsterOrdering, monsterSourceFilter, monsterTypeFilter, onlyValidBeasts, query]);
+  }, [
+    customBestiaryScope,
+    monsterOrdering,
+    monsterSourceFilter,
+    monsterSourceMode,
+    monsterTypeFilter,
+    onlyValidBeasts,
+    query
+  ]);
+
+  useEffect(() => {
+    if (canUseCustomBestiary || monsterSourceMode !== "custom") {
+      return;
+    }
+
+    setMonsterSourceMode("standard");
+  }, [canUseCustomBestiary, monsterSourceMode]);
+
+  useEffect(() => {
+    let active = true;
+    const loadKey =
+      isCustomBestiaryMode && authUserId ? `${authUserId}:${customBestiaryScope}` : null;
+
+    if (!loadKey) {
+      return () => {
+        active = false;
+      };
+    }
+
+    if (loadedCustomBestiaryForAuthRef.current === loadKey) {
+      return () => {
+        active = false;
+      };
+    }
+
+    loadedCustomBestiaryForAuthRef.current = loadKey;
+    setCustomBestiaryStatus("loading");
+
+    void listCustomBestiary({
+      scope: customBestiaryScope,
+      suppressFailureToast: true
+    })
+      .then(({ customBestiary }) => {
+        if (!active) {
+          return;
+        }
+
+        setCustomBestiaryRecords(customBestiary);
+        setCustomBestiaryStatus("ready");
+      })
+      .catch((error) => {
+        if (!active) {
+          return;
+        }
+
+        setCustomBestiaryStatus(isApiOfflineError(error) ? "server-unavailable" : "error");
+        loadedCustomBestiaryForAuthRef.current = null;
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [authUserId, customBestiaryScope, isCustomBestiaryMode]);
 
   useEffect(() => {
     if (currentPage <= totalPages) {
@@ -155,7 +268,12 @@ function DruidWildShapeMonsterModal({
         return;
       }
 
-      const cachedMonster = monsterCache[previewKey] ?? getCachedMonsterEntry(previewKey);
+      const customBestiaryMonster = getCustomBestiaryMonsterByKey(
+        customBestiaryRecords,
+        previewKey
+      );
+      const cachedMonster =
+        customBestiaryMonster ?? monsterCache[previewKey] ?? getCachedMonsterEntry(previewKey);
 
       if (cachedMonster) {
         primeMonsterEntryCache(cachedMonster);
@@ -204,7 +322,7 @@ function DruidWildShapeMonsterModal({
       active = false;
       abortController.abort();
     };
-  }, [isOnline, monsterCache, previewKey]);
+  }, [customBestiaryRecords, isOnline, monsterCache, previewKey]);
 
   function removeMonster(key: string) {
     setNotice(null);
@@ -250,7 +368,10 @@ function DruidWildShapeMonsterModal({
     setNotice(null);
 
     try {
-      const fullMonster = monsterCache[monsterKey] ?? (await fetchMonsterByKey(monsterKey));
+      const fullMonster =
+        getCustomBestiaryMonsterByKey(customBestiaryRecords, monsterKey) ??
+        monsterCache[monsterKey] ??
+        (await fetchMonsterByKey(monsterKey));
 
       setMonsterCache((currentCache) => ({
         ...currentCache,
@@ -377,7 +498,7 @@ function DruidWildShapeMonsterModal({
               <select
                 className={styles.select}
                 value={monsterSourceFilter ?? "ALL"}
-                disabled={onlyValidBeasts}
+                disabled={onlyValidBeasts || isCustomBestiaryMode}
                 onChange={(event) => {
                   setQuery("");
                   setSearchResetSignal((currentSignal) => currentSignal + 1);
@@ -405,12 +526,84 @@ function DruidWildShapeMonsterModal({
                 <span>Only valid beasts</span>
               </span>
             </label>
+
+            {canUseCustomBestiary ? (
+              <div className={styles.sourceToggles}>
+                {isCustomBestiaryMode ? (
+                  <button
+                    type="button"
+                    className={styles.segmentedToggle}
+                    aria-label={`Show ${
+                      customBestiaryScope === "public" ? "my" : "public"
+                    } custom creatures`}
+                    onClick={() => {
+                      loadedCustomBestiaryForAuthRef.current = null;
+                      setCustomBestiaryScope(
+                        customBestiaryScope === "public" ? "mine" : "public"
+                      );
+                    }}
+                  >
+                    <span
+                      className={[
+                        styles.segmentedToggleSegment,
+                        customBestiaryScope === "mine" ? styles.segmentedToggleSegmentActive : ""
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
+                    >
+                      Mine
+                    </span>
+                    <span
+                      className={[
+                        styles.segmentedToggleSegment,
+                        customBestiaryScope === "public" ? styles.segmentedToggleSegmentActive : ""
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
+                    >
+                      Public
+                    </span>
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  className={styles.segmentedToggle}
+                  aria-label={`Show ${
+                    isCustomBestiaryMode ? "standard" : "custom"
+                  } creature stat blocks`}
+                  onClick={() =>
+                    setMonsterSourceMode(isCustomBestiaryMode ? "standard" : "custom")
+                  }
+                >
+                  <span
+                    className={[
+                      styles.segmentedToggleSegment,
+                      !isCustomBestiaryMode ? styles.segmentedToggleSegmentActive : ""
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                  >
+                    Standard
+                  </span>
+                  <span
+                    className={[
+                      styles.segmentedToggleSegment,
+                      isCustomBestiaryMode ? styles.segmentedToggleSegmentActive : ""
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                  >
+                    Custom
+                  </span>
+                </button>
+              </div>
+            ) : null}
           </div>
 
           <MonsterCodexTable
-            monsters={payload?.results ?? []}
-            totalEntries={payload?.count ?? 0}
-            status={status}
+            monsters={browserMonsters}
+            totalEntries={browserTotalEntries}
+            status={browserStatus}
             currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={setCurrentPage}

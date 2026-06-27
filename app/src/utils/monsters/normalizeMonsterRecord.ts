@@ -412,9 +412,17 @@ export function getMonsterArmorClass(monster: Pick<MonsterRecord, "armor_class">
 }
 
 export function getMonsterHitPoints(monster: Pick<MonsterRecord, "hit_points">) {
-  return typeof monster.hit_points === "number" && Number.isFinite(monster.hit_points)
-    ? monster.hit_points
-    : null;
+  if (typeof monster.hit_points === "number" && Number.isFinite(monster.hit_points)) {
+    return monster.hit_points;
+  }
+
+  if (typeof monster.hit_points === "string") {
+    const parsedValue = Number(monster.hit_points.trim());
+
+    return Number.isFinite(parsedValue) ? Math.max(0, Math.floor(parsedValue)) : null;
+  }
+
+  return null;
 }
 
 export function getMonsterInitiativeBonus(monster: Pick<MonsterRecord, "initiative_bonus">) {

@@ -18,6 +18,7 @@ import {
 import { showToast, useAppDispatch, useAppSelector } from "../../store";
 import type { CharacterInventoryItem } from "../../types";
 import { getDmToolsApiErrorMessage } from "./dmToolsApiErrors";
+import styles from "./DmToolsPage.module.css";
 
 type CustomItemEditorModalProps = {
   customItem?: CustomItemRecord | null;
@@ -114,11 +115,22 @@ function CustomItemEditorModal({ customItem, onClose, onSaved }: CustomItemEdito
             Build an item with the same controls used by character inventory custom equipment.
           </OverlaySummary>
         </OverlayHeaderContent>
-        <OverlayCloseButton
-          label="Close custom item editor"
-          disabled={isSaving}
-          onClick={onClose}
-        />
+        <div className={styles.customObjectModalHeaderActions}>
+          <label className={styles.customObjectPublicToggle}>
+            <input
+              type="checkbox"
+              checked={canPublish && isPublic}
+              disabled={isSaving || !canPublish}
+              onChange={(event) => setIsPublic(event.target.checked)}
+            />
+            <span>Public</span>
+          </label>
+          <OverlayCloseButton
+            label="Close custom item editor"
+            disabled={isSaving}
+            onClick={onClose}
+          />
+        </div>
       </OverlayHeader>
 
       <CustomEquipmentEditor
@@ -126,11 +138,6 @@ function CustomItemEditorModal({ customItem, onClose, onSaved }: CustomItemEdito
         externalError={error}
         initialStack={initialStack}
         isSaving={isSaving}
-        publicToggle={{
-          checked: canPublish && isPublic,
-          disabled: !canPublish,
-          onChange: setIsPublic
-        }}
         onCancel={onClose}
         onSave={handleSave}
       />

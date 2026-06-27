@@ -184,11 +184,24 @@ function CustomSpellEditorModal({ customSpell, onClose, onSaved }: CustomSpellEd
           </OverlayTitle>
           <OverlaySummary>Define the spell entry characters can later bake into their sheets.</OverlaySummary>
         </OverlayHeaderContent>
-        <OverlayCloseButton
-          label="Close custom spell editor"
-          disabled={isSaving}
-          onClick={onClose}
-        />
+        <div className={styles.customObjectModalHeaderActions}>
+          <label className={styles.customObjectPublicToggle}>
+            <input
+              type="checkbox"
+              checked={canPublish && draft.public}
+              disabled={isSaving || !canPublish}
+              onChange={(event) =>
+                updateDraft((current) => ({ ...current, public: event.target.checked }))
+              }
+            />
+            <span>Public</span>
+          </label>
+          <OverlayCloseButton
+            label="Close custom spell editor"
+            disabled={isSaving}
+            onClick={onClose}
+          />
+        </div>
       </OverlayHeader>
 
       <form onSubmit={handleSubmit}>
@@ -205,18 +218,6 @@ function CustomSpellEditorModal({ customSpell, onClose, onSaved }: CustomSpellEd
                   updateDraft((current) => ({ ...current, name: event.target.value }))
                 }
               />
-            </label>
-
-            <label className={styles.customSpellPublicToggle}>
-              <input
-                type="checkbox"
-                checked={canPublish && draft.public}
-                disabled={isSaving || !canPublish}
-                onChange={(event) =>
-                  updateDraft((current) => ({ ...current, public: event.target.checked }))
-                }
-              />
-              <span>Public</span>
             </label>
 
             <label className={styles.modalField}>

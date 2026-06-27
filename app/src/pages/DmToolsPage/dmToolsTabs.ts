@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { BookOpenText, Package, ScrollText, Swords, Users } from "lucide-react";
+import { BookOpenText, Package, ScrollText, Skull, Swords, Users } from "lucide-react";
 
 export const DM_TOOLS_TAB_PARAM = "tab";
 
@@ -8,7 +8,8 @@ export type DmToolsTabId =
   | "party-manager"
   | "encounter-templates"
   | "custom-spells"
-  | "custom-items";
+  | "custom-items"
+  | "custom-bestiary";
 
 export type DmToolsTabConfig = {
   homeLabel: string;
@@ -49,6 +50,12 @@ export const DM_TOOLS_TABS: DmToolsTabConfig[] = [
     icon: Package,
     id: "custom-items",
     label: "Custom Items"
+  },
+  {
+    homeLabel: "Custom Bestiary",
+    icon: Skull,
+    id: "custom-bestiary",
+    label: "Custom Bestiary"
   }
 ];
 

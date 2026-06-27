@@ -268,6 +268,17 @@ function CustomItemsBody({ panelId, tabId }: CustomItemsBodyProps) {
           {customItems.map((customItem) => {
             const canManageCustomItem = customItem.ownerId === authUserId;
             const itemName = customItem.item.name ?? "Custom Item";
+            const actionMeta =
+              customItem.public || customItemScope === "public" ? (
+                <>
+                  {customItem.public ? (
+                    <span className={styles.dmToolsListCardPublicPill}>Public</span>
+                  ) : null}
+                  {customItemScope === "public" ? (
+                    <span>Owner: {customItem.ownerNickname ?? "Unknown Player"}</span>
+                  ) : null}
+                </>
+              ) : undefined;
             const actions = canManageCustomItem
               ? [
                   {
@@ -295,11 +306,7 @@ function CustomItemsBody({ panelId, tabId }: CustomItemsBodyProps) {
             return (
               <DmToolsListCard
                 key={customItem.id}
-                actionMeta={
-                  customItemScope === "public"
-                    ? `Owner: ${customItem.ownerNickname ?? "Unknown Player"}`
-                    : undefined
-                }
+                actionMeta={actionMeta}
                 icon={<Package size={18} aria-hidden="true" />}
                 title={itemName}
                 meta={getCustomItemMeta(customItem)}
