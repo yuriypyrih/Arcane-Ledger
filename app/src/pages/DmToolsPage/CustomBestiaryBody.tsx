@@ -1,4 +1,4 @@
-import { PenLine, Plus, Skull, Trash2 } from "lucide-react";
+import { PawPrint, PenLine, Plus, Trash2 } from "lucide-react";
 import { type ReactNode, useEffect, useId, useRef, useState } from "react";
 import {
   deleteCustomBestiary,
@@ -249,13 +249,13 @@ function CustomBestiaryBody({ panelId, tabId }: CustomBestiaryBodyProps) {
       {actionError ? <p className={styles.modalError}>{actionError}</p> : null}
 
       {customBestiaryStatus === "loading" ? (
-        <DmToolsEmptyState icon={<Skull size={18} aria-hidden="true" />}>
+        <DmToolsEmptyState icon={<PawPrint size={18} aria-hidden="true" />}>
           Loading custom creatures...
         </DmToolsEmptyState>
       ) : customBestiaryError ? (
         <p className={styles.modalError}>{customBestiaryError}</p>
       ) : !isAuthenticated ? (
-        <DmToolsEmptyState icon={<Skull size={18} aria-hidden="true" />}>
+        <DmToolsEmptyState icon={<PawPrint size={18} aria-hidden="true" />}>
           Sign in to manage custom creatures.
         </DmToolsEmptyState>
       ) : customBestiary.length > 0 ? (
@@ -302,7 +302,7 @@ function CustomBestiaryBody({ panelId, tabId }: CustomBestiaryBodyProps) {
               <DmToolsListCard
                 key={customCreature.id}
                 actionMeta={actionMeta}
-                icon={<Skull size={18} aria-hidden="true" />}
+                icon={<PawPrint size={18} aria-hidden="true" />}
                 title={creatureName}
                 meta={getCustomCreatureMeta(customCreature)}
                 tone="customBestiary"
@@ -314,7 +314,7 @@ function CustomBestiaryBody({ panelId, tabId }: CustomBestiaryBodyProps) {
           })}
         </div>
       ) : (
-        <DmToolsEmptyState icon={<Skull size={18} aria-hidden="true" />}>
+        <DmToolsEmptyState icon={<PawPrint size={18} aria-hidden="true" />}>
           {customBestiaryScope === "public"
             ? "No public custom creatures yet."
             : "No custom creatures yet."}

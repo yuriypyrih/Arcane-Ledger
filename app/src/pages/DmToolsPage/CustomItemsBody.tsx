@@ -1,4 +1,4 @@
-import { Package, PenLine, Plus, Trash2 } from "lucide-react";
+import { Backpack, PenLine, Plus, Trash2 } from "lucide-react";
 import { lazy, Suspense, type ReactNode, useEffect, useId, useRef, useState } from "react";
 import {
   deleteCustomItem,
@@ -254,13 +254,13 @@ function CustomItemsBody({ panelId, tabId }: CustomItemsBodyProps) {
       {actionError ? <p className={styles.modalError}>{actionError}</p> : null}
 
       {customItemsStatus === "loading" ? (
-        <DmToolsEmptyState icon={<Package size={18} aria-hidden="true" />}>
+        <DmToolsEmptyState icon={<Backpack size={18} aria-hidden="true" />}>
           Loading custom items...
         </DmToolsEmptyState>
       ) : customItemsError ? (
         <p className={styles.modalError}>{customItemsError}</p>
       ) : !isAuthenticated ? (
-        <DmToolsEmptyState icon={<Package size={18} aria-hidden="true" />}>
+        <DmToolsEmptyState icon={<Backpack size={18} aria-hidden="true" />}>
           Sign in to manage custom items.
         </DmToolsEmptyState>
       ) : customItems.length > 0 ? (
@@ -307,7 +307,7 @@ function CustomItemsBody({ panelId, tabId }: CustomItemsBodyProps) {
               <DmToolsListCard
                 key={customItem.id}
                 actionMeta={actionMeta}
-                icon={<Package size={18} aria-hidden="true" />}
+                icon={<Backpack size={18} aria-hidden="true" />}
                 title={itemName}
                 meta={getCustomItemMeta(customItem)}
                 tone="customItem"
@@ -319,7 +319,7 @@ function CustomItemsBody({ panelId, tabId }: CustomItemsBodyProps) {
           })}
         </div>
       ) : (
-        <DmToolsEmptyState icon={<Package size={18} aria-hidden="true" />}>
+        <DmToolsEmptyState icon={<Backpack size={18} aria-hidden="true" />}>
           {customItemScope === "public" ? "No public custom items yet." : "No custom items yet."}
         </DmToolsEmptyState>
       )}

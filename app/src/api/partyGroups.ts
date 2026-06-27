@@ -106,6 +106,20 @@ export type PartyGroupMasterChestEnvelope = {
   masterChest: PartyGroupMasterChestRecord;
 };
 
+export type PartyGroupInventoryMemberRecord = PartyGroupMemberRecord & {
+  currencies: CharacterCurrencies;
+  inventoryItems: CharacterInventoryItem[];
+};
+
+export type PartyGroupInventoriesRecord = {
+  partyGroupId: string;
+  members: PartyGroupInventoryMemberRecord[];
+};
+
+export type PartyGroupInventoriesEnvelope = {
+  partyInventories: PartyGroupInventoriesRecord;
+};
+
 export function listPartyGroups(options?: ApiRequestOptions) {
   return apiGet<PartyGroupListEnvelope>("/party-groups", options);
 }
@@ -147,6 +161,13 @@ export function updatePartyGroupLiveEncounterTurn(
 export function getPartyGroupMasterChest(partyGroupId: string, options?: ApiRequestOptions) {
   return apiGet<PartyGroupMasterChestEnvelope>(
     `/party-groups/${partyGroupId}/master-chest`,
+    options
+  );
+}
+
+export function getPartyGroupInventories(partyGroupId: string, options?: ApiRequestOptions) {
+  return apiGet<PartyGroupInventoriesEnvelope>(
+    `/party-groups/${partyGroupId}/inventories`,
     options
   );
 }

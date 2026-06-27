@@ -7,6 +7,7 @@ import {
   getMemberVisiblePartyGroupDetail,
   getMemberVisiblePartyGroupLiveEncounter,
   getOwnedPartyGroupDetail,
+  getPartyGroupInventories,
   getPartyGroupMasterChest,
   joinPartyGroup,
   leavePartyGroup,
@@ -121,6 +122,17 @@ export const getPartyGroupMasterChestContent = asyncHandler(
   async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
     response.json({
       masterChest: await getPartyGroupMasterChest({
+        ownerId: response.locals.authUser._id,
+        partyGroupId: request.params.partyGroupId ?? ""
+      })
+    });
+  }
+);
+
+export const getPartyGroupInventoryContent = asyncHandler(
+  async (request: Request, response: Response<unknown, AuthenticatedLocals>) => {
+    response.json({
+      partyInventories: await getPartyGroupInventories({
         ownerId: response.locals.authUser._id,
         partyGroupId: request.params.partyGroupId ?? ""
       })

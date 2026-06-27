@@ -38,7 +38,8 @@
 .bodyToolbar {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem;
   min-width: 0;
 }
 
@@ -65,13 +66,104 @@
   color: var(--theme-state-danger);
 }
 
-.readOnlyItem {
-  cursor: default;
+.viewSelector {
+  display: grid;
+  flex: 1 1 240px;
+  gap: 0.22rem;
+  max-width: 280px;
+  min-width: 180px;
+}
+
+.viewSelectorLabel {
+  color: var(--theme-text-secondary);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.itemCard {
+  gap: 0;
+  overflow: hidden;
+  padding: 0;
+}
+
+.itemInspectButton {
+  display: grid;
+  align-items: center;
+  min-width: 0;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0.48rem 0.62rem;
+  text-align: left;
+}
+
+.itemInspectButton:hover,
+.itemInspectButton:focus-visible {
+  background: rgba(75, 47, 29, 0.055);
+  outline: none;
+}
+
+:global(html[data-theme="dark"]) .itemInspectButton:hover,
+:global(html[data-theme="dark"]) .itemInspectButton:focus-visible {
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.itemTransferThumb {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  min-height: 44px;
+  width: 44px;
+  border: 0;
+  border-left: 1px solid rgba(75, 47, 29, 0.12);
+  background: rgba(75, 47, 29, 0.08);
+  color: var(--theme-text-secondary);
+  cursor: pointer;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
+}
+
+.itemTransferThumb:hover:not(:disabled),
+.itemTransferThumb:focus-visible:not(:disabled) {
+  background: rgba(143, 91, 56, 0.18);
+  color: var(--color-ink);
+  outline: none;
+}
+
+:global(html[data-theme="dark"]) .itemTransferThumb {
+  border-left-color: var(--theme-divider);
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-secondary);
+}
+
+:global(html[data-theme="dark"]) .itemTransferThumb:hover:not(:disabled),
+:global(html[data-theme="dark"]) .itemTransferThumb:focus-visible:not(:disabled) {
+  background: var(--theme-control-subtle-hover);
+  color: var(--theme-text-primary);
+}
+
+.itemTransferThumbDisabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .masterChestCurrencyPill {
   align-self: center;
+  flex: 0 1 auto;
   max-width: 100%;
+}
+
+.masterChestCurrencyPill:disabled {
+  cursor: default;
+  opacity: 1;
 }
 
 .currencyModalBackdrop,
@@ -371,7 +463,14 @@
   }
 
   .bodyToolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
     justify-content: stretch;
+  }
+
+  .viewSelector {
+    max-width: none;
+    min-width: 0;
   }
 
   .bodyToolbar .masterChestCurrencyPill {

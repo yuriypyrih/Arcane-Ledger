@@ -1,4 +1,4 @@
-import { BookOpenText, PenLine, Plus, Trash2 } from "lucide-react";
+import { PenLine, Plus, Sparkles, Trash2 } from "lucide-react";
 import { lazy, Suspense, type ReactNode, useEffect, useId, useRef, useState } from "react";
 import {
   deleteCustomSpell,
@@ -249,13 +249,13 @@ function CustomSpellsBody({ panelId, tabId }: CustomSpellsBodyProps) {
       {actionError ? <p className={styles.modalError}>{actionError}</p> : null}
 
       {customSpellsStatus === "loading" ? (
-        <DmToolsEmptyState icon={<BookOpenText size={18} aria-hidden="true" />}>
+        <DmToolsEmptyState icon={<Sparkles size={18} aria-hidden="true" />}>
           Loading custom spells...
         </DmToolsEmptyState>
       ) : customSpellsError ? (
         <p className={styles.modalError}>{customSpellsError}</p>
       ) : !isAuthenticated ? (
-        <DmToolsEmptyState icon={<BookOpenText size={18} aria-hidden="true" />}>
+        <DmToolsEmptyState icon={<Sparkles size={18} aria-hidden="true" />}>
           Sign in to manage custom spells.
         </DmToolsEmptyState>
       ) : customSpells.length > 0 ? (
@@ -301,7 +301,7 @@ function CustomSpellsBody({ panelId, tabId }: CustomSpellsBodyProps) {
               <DmToolsListCard
                 key={customSpell.id}
                 actionMeta={actionMeta}
-                icon={<BookOpenText size={18} aria-hidden="true" />}
+                icon={<Sparkles size={18} aria-hidden="true" />}
                 title={customSpell.spell.name}
                 meta={getCustomSpellMeta(customSpell)}
                 tone="customSpell"
@@ -313,7 +313,7 @@ function CustomSpellsBody({ panelId, tabId }: CustomSpellsBodyProps) {
           })}
         </div>
       ) : (
-        <DmToolsEmptyState icon={<BookOpenText size={18} aria-hidden="true" />}>
+        <DmToolsEmptyState icon={<Sparkles size={18} aria-hidden="true" />}>
           {customSpellScope === "public" ? "No public custom spells yet." : "No custom spells yet."}
         </DmToolsEmptyState>
       )}

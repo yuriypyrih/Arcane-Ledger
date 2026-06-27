@@ -3,6 +3,7 @@ import {
   createPartyGroup,
   deletePartyGroup,
   getPartyGroup,
+  getPartyGroupInventoryContent,
   getPartyGroupLiveEncounter,
   getPartyGroupMasterChestContent,
   getPartyGroupMemberView,
@@ -33,6 +34,7 @@ partyGroupRoutes.patch(
   requireAuth,
   updatePartyGroupLiveEncounterTurn
 );
+partyGroupRoutes.get("/:partyGroupId/inventories", requireAuth, getPartyGroupInventoryContent);
 partyGroupRoutes.get("/:partyGroupId/master-chest", requireAuth, getPartyGroupMasterChestContent);
 partyGroupRoutes.put(
   "/:partyGroupId/master-chest",

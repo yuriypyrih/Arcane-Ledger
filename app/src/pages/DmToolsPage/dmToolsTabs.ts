@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { BookOpenText, Package, ScrollText, Skull, Swords, Users } from "lucide-react";
+import { Backpack, PawPrint, ScrollText, Sparkles, Swords, Users } from "lucide-react";
 
 export const DM_TOOLS_TAB_PARAM = "tab";
 
@@ -41,19 +41,19 @@ export const DM_TOOLS_TABS: DmToolsTabConfig[] = [
   },
   {
     homeLabel: "Custom Spells",
-    icon: BookOpenText,
+    icon: Sparkles,
     id: "custom-spells",
     label: "Custom Spells"
   },
   {
     homeLabel: "Custom Items",
-    icon: Package,
+    icon: Backpack,
     id: "custom-items",
     label: "Custom Items"
   },
   {
     homeLabel: "Custom Bestiary",
-    icon: Skull,
+    icon: PawPrint,
     id: "custom-bestiary",
     label: "Custom Bestiary"
   }

@@ -29,6 +29,8 @@ const dmToolToneClassNames = {
   "custom-bestiary": styles.toolToneCustomBestiary
 } satisfies Record<DmToolsTabId, string>;
 
+const HOME_DM_TOOLS_TABS = DM_TOOLS_TABS.filter(({ id }) => !id.startsWith("custom-"));
+
 function HomePage() {
   const { themeMode, onToggleThemeMode } = useOutletContext<AppShellOutletContext>();
   const { status, user } = useAppSelector((state) => state.auth);
@@ -119,7 +121,7 @@ function HomePage() {
                 </div>
               </div>
               <div className={styles.toolGrid}>
-                {DM_TOOLS_TABS.map(({ homeLabel, icon: ToolIcon, id }) => {
+                {HOME_DM_TOOLS_TABS.map(({ homeLabel, icon: ToolIcon, id }) => {
                   const toolButtonClassName = `${styles.toolButton} ${dmToolToneClassNames[id]}`;
 
                   return (

@@ -219,21 +219,21 @@
 }
 
 .toolToneCustomSpell {
+  --tool-signature: #7a4bb0;
+  --tool-signature-strong: #56307f;
+  --tool-signature-rgb: 122, 75, 176;
+}
+
+.toolToneCustomItem {
   --tool-signature: #8f6a11;
   --tool-signature-strong: #6d500b;
   --tool-signature-rgb: 143, 106, 17;
 }
 
-.toolToneCustomItem {
-  --tool-signature: #23726d;
-  --tool-signature-strong: #175652;
-  --tool-signature-rgb: 35, 114, 109;
-}
-
 .toolToneCustomBestiary {
-  --tool-signature: #7a4bb0;
-  --tool-signature-strong: #56307f;
-  --tool-signature-rgb: 122, 75, 176;
+  --tool-signature: #c56a1b;
+  --tool-signature-strong: #91460f;
+  --tool-signature-rgb: 197, 106, 27;
 }
 
 :global(html[data-theme="dark"]) .toolToneParty {
@@ -249,21 +249,21 @@
 }
 
 :global(html[data-theme="dark"]) .toolToneCustomSpell {
+  --tool-signature: #c7a4f2;
+  --tool-signature-strong: #e1cdf9;
+  --tool-signature-rgb: 199, 164, 242;
+}
+
+:global(html[data-theme="dark"]) .toolToneCustomItem {
   --tool-signature: #e1c56c;
   --tool-signature-strong: #f1dfa4;
   --tool-signature-rgb: 225, 197, 108;
 }
 
-:global(html[data-theme="dark"]) .toolToneCustomItem {
-  --tool-signature: #78d8cf;
-  --tool-signature-strong: #b9f0eb;
-  --tool-signature-rgb: 120, 216, 207;
-}
-
 :global(html[data-theme="dark"]) .toolToneCustomBestiary {
-  --tool-signature: #c7a4f2;
-  --tool-signature-strong: #e1cdf9;
-  --tool-signature-rgb: 199, 164, 242;
+  --tool-signature: #f39a5d;
+  --tool-signature-strong: #ffd0aa;
+  --tool-signature-rgb: 243, 154, 93;
 }
 
 .tabRow {
@@ -810,24 +810,24 @@
 }
 
 .dmToolsListCardCustomSpell .dmToolsListCardIcon {
+  border-color: rgba(122, 75, 176, 0.24);
+  background: rgba(122, 75, 176, 0.14);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42);
+  color: #56307f;
+}
+
+.dmToolsListCardCustomItem .dmToolsListCardIcon {
   border-color: rgba(143, 106, 17, 0.24);
   background: rgba(143, 106, 17, 0.16);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42);
   color: #6d500b;
 }
 
-.dmToolsListCardCustomItem .dmToolsListCardIcon {
-  border-color: rgba(35, 114, 109, 0.24);
-  background: rgba(35, 114, 109, 0.14);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42);
-  color: #175652;
-}
-
 .dmToolsListCardCustomBestiary .dmToolsListCardIcon {
-  border-color: rgba(122, 75, 176, 0.24);
-  background: rgba(122, 75, 176, 0.14);
+  border-color: rgba(197, 106, 27, 0.24);
+  background: rgba(197, 106, 27, 0.16);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42);
-  color: #56307f;
+  color: #91460f;
 }
 
 .dmToolsListCardDanger {
@@ -940,6 +940,15 @@ button.dmToolsListCardMain:disabled {
 }
 
 :global(html[data-theme="dark"]) .dmToolsListCardCustomSpell .dmToolsListCardIcon {
+  border-color: rgba(199, 164, 242, 0.34);
+  background: rgba(199, 164, 242, 0.16);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.075),
+    0 0 18px rgba(199, 164, 242, 0.08);
+  color: #efe2ff;
+}
+
+:global(html[data-theme="dark"]) .dmToolsListCardCustomItem .dmToolsListCardIcon {
   border-color: rgba(225, 197, 108, 0.34);
   background: rgba(225, 197, 108, 0.18);
   box-shadow:
@@ -948,22 +957,13 @@ button.dmToolsListCardMain:disabled {
   color: #fff1bd;
 }
 
-:global(html[data-theme="dark"]) .dmToolsListCardCustomItem .dmToolsListCardIcon {
-  border-color: rgba(120, 216, 207, 0.34);
-  background: rgba(120, 216, 207, 0.16);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.075),
-    0 0 18px rgba(120, 216, 207, 0.08);
-  color: #d6fffb;
-}
-
 :global(html[data-theme="dark"]) .dmToolsListCardCustomBestiary .dmToolsListCardIcon {
-  border-color: rgba(199, 164, 242, 0.34);
-  background: rgba(199, 164, 242, 0.16);
+  border-color: rgba(243, 154, 93, 0.36);
+  background: rgba(243, 154, 93, 0.18);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.075),
-    0 0 18px rgba(199, 164, 242, 0.08);
-  color: #efe2ff;
+    0 0 18px rgba(243, 154, 93, 0.09);
+  color: #ffd0aa;
 }
 
 :global(html[data-theme="dark"]) .dmToolsListCardDanger .dmToolsListCardIcon {

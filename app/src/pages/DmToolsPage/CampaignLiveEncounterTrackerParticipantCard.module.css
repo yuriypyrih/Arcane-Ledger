@@ -23,7 +23,7 @@
 }
 
 :global(html[data-theme="dark"]) .cardNumberedRowActive .cardOrderNumber {
-  color: var(--theme-text-primary);
+  color: #9bd7ff;
 }
 
 .cardDragFrame {
@@ -32,6 +32,8 @@
 
 .card {
   --live-tracker-active-border-color: #2f6de0;
+  --live-tracker-active-glow-color: rgba(47, 109, 224, 0.26);
+  --live-tracker-active-shadow-color: rgba(30, 88, 190, 0.2);
   --live-tracker-affinity-color: transparent;
   --live-tracker-card-action-size: 1.9rem;
   --live-tracker-card-drag-width: 1.9rem;
@@ -49,7 +51,9 @@
 }
 
 :global(html[data-theme="dark"]) .card {
-  --live-tracker-active-border-color: var(--theme-text-primary);
+  --live-tracker-active-border-color: #9bd7ff;
+  --live-tracker-active-glow-color: rgba(155, 215, 255, 0.34);
+  --live-tracker-active-shadow-color: rgba(75, 171, 255, 0.28);
 }
 
 .cardAlly {
@@ -98,14 +102,18 @@
 
   border-color: var(--live-tracker-active-border-color);
   border-left-color: var(--live-tracker-affinity-color);
-  box-shadow: none;
+  box-shadow:
+    0 0 0 2px var(--live-tracker-active-glow-color),
+    0 4px 28px var(--live-tracker-active-shadow-color);
 }
 
 .card.cardActive.cardActive:hover:not(:disabled),
 .card.cardActive.cardActive:focus-within:not(:disabled) {
   border-color: var(--live-tracker-active-border-color);
   border-left-color: var(--live-tracker-affinity-color);
-  box-shadow: none;
+  box-shadow:
+    0 0 0 3px var(--live-tracker-active-glow-color),
+    0 14px 32px var(--live-tracker-active-shadow-color);
 }
 
 .cardDragging {

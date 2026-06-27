@@ -65,6 +65,10 @@ type CharacterSheetMemberSource = {
   updatedAt?: Date | string | null;
 };
 
+type CharacterSheetInventoryMemberSource = CharacterSheetMemberSource & {
+  sheet?: Record<string, unknown> | null;
+};
+
 type PartyGroupMemberUser = {
   id: string;
   nickname: string;
@@ -505,6 +509,24 @@ function toPartyGroupMemberRecord(
   };
 }
 
+function getPortableInventoryGroup(character: CharacterSheetInventoryMemberSource) {
+  return isObjectRecord(character.sheet?.inventory) ? character.sheet.inventory : {};
+}
+
+function toPartyGroupInventoryMemberRecord(
+  character: CharacterSheetInventoryMemberSource,
+  userById: Map<string, PartyGroupMemberUser>
+) {
+  const inventory = getPortableInventoryGroup(character);
+  const inventoryItems = Array.isArray(inventory.items) ? inventory.items : [];
+
+  return {
+    ...toPartyGroupMemberRecord(character, userById),
+    currencies: normalizeMasterChestCurrencies(inventory.currencies),
+    inventoryItems
+  };
+}
+
 async function getPartyGroupDetailFromSource(partyGroup: PartyGroupSource) {
   const characters = (await CharacterSheet.find({
     _id: { $in: partyGroup.characterIds },
@@ -514,24 +536,7 @@ async function getPartyGroupDetailFromSource(partyGroup: PartyGroupSource) {
     .lean()
     .exec()) as CharacterSheetMemberSource[];
   const partyOwnerId = partyGroup.ownerId.toString();
-  const ownerIds = [
-    ...new Set([partyOwnerId, ...characters.map((character) => character.ownerId.toString())])
-  ];
-  const users = await User.find({
-    _id: { $in: ownerIds }
-  })
-    .select("_id nickname")
-    .lean()
-    .exec();
-  const userById = new Map(
-    users.map((user) => [
-      user._id.toString(),
-      {
-        id: user._id.toString(),
-        nickname: user.nickname
-      }
-    ])
-  );
+  const userById = await getUserByIdForPartyMembers(partyOwnerId, characters);
   const owner: PartyGroupOwnerUser = userById.get(partyOwnerId) ?? {
     id: partyOwnerId,
     nickname: "Unknown Player"
@@ -542,6 +547,31 @@ async function getPartyGroupDetailFromSource(partyGroup: PartyGroupSource) {
     owner,
     members: characters.map((character) => toPartyGroupMemberRecord(character, userById))
   };
+}
+
+async function getUserByIdForPartyMembers(
+  partyOwnerId: string,
+  characters: CharacterSheetMemberSource[]
+) {
+  const ownerIds = [
+    ...new Set([partyOwnerId, ...characters.map((character) => character.ownerId.toString())])
+  ];
+  const users = await User.find({
+    _id: { $in: ownerIds }
+  })
+    .select("_id nickname")
+    .lean()
+    .exec();
+
+  return new Map(
+    users.map((user) => [
+      user._id.toString(),
+      {
+        id: user._id.toString(),
+        nickname: user.nickname
+      }
+    ])
+  );
 }
 
 export async function listOwnedPartyGroups(ownerId: Types.ObjectId) {
@@ -668,6 +698,26 @@ export async function getPartyGroupMasterChest(options: {
   const partyGroup = await findMasterChestVisiblePartyGroupSource(options);
 
   return toPartyGroupMasterChestRecord(partyGroup);
+}
+
+export async function getPartyGroupInventories(options: {
+  ownerId: Types.ObjectId;
+  partyGroupId: string;
+}) {
+  const partyGroup = await findMemberVisiblePartyGroupSource(options);
+  const characters = (await CharacterSheet.find({
+    _id: { $in: partyGroup.characterIds },
+    deletedAt: null
+  })
+    .select("_id ownerId summary avatar updatedAt sheet.inventory")
+    .lean()
+    .exec()) as CharacterSheetInventoryMemberSource[];
+  const userById = await getUserByIdForPartyMembers(partyGroup.ownerId.toString(), characters);
+
+  return {
+    partyGroupId: getDocumentId(partyGroup),
+    members: characters.map((character) => toPartyGroupInventoryMemberRecord(character, userById))
+  };
 }
 
 export async function updatePartyGroupMasterChest(options: {

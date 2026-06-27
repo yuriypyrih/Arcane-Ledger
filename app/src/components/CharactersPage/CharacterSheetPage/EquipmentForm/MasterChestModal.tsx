@@ -1,14 +1,17 @@
 import clsx from "clsx";
-import { History, Minus, MoveLeft, MoveRight, Package, Plus, Save } from "lucide-react";
-import { Fragment, useEffect, useMemo, useState, type ReactNode } from "react";
+import { CircleCheck, History, Minus, Plus, RefreshCw, Save } from "lucide-react";
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ReactNode
+} from "react";
 import ActionButton from "../../../ActionButton";
 import { CurrencyBalancePill } from "../../../CurrencyInlineDisplay";
-import {
-  ApiRequestFailedError,
-  getPartyGroupMasterChest,
-  isApiAbortError,
-  updatePartyGroupMasterChest
-} from "../../../../api";
+import { updatePartyGroupMasterChest } from "../../../../api";
 import coinCopperIcon from "../../../../assets/svg/coin-copper.svg";
 import coinElectrumIcon from "../../../../assets/svg/coin-electrum.svg";
 import coinGoldIcon from "../../../../assets/svg/coin.svg";
@@ -23,29 +26,24 @@ import {
   OverlayHeaderContent,
   OverlaySummary,
   OverlayTitle,
-  SheetModal
+  SheetModal,
+  DestructiveConfirmationModal
 } from "../../../Overlay";
 import NumberInput from "../../FormInputs/NumberInput";
+import SelectInput from "../../FormInputs/SelectInput";
 import type { Character, CharacterCurrencies, CharacterInventoryItem, CurrencyKey } from "../../../../types";
-import { createDefaultCurrencies } from "../../../../pages/CharactersPage/constants";
 import {
-  getInventoryItemTotalWeightValue,
-  getInventoryObjectCount,
-  getInventoryRootTransferBlockReason,
-  groupCharacterInventoryItems,
-  INVENTORY_OBJECT_LIMIT,
-  isInventoryContainerItem,
   moveOneInventoryItemCopyBetweenRootInventories,
   normalizeCharacterInventoryItems,
-  type GroupedInventoryItem,
-  type InventoryRootTransferBlockReason
+  type GroupedInventoryItem
 } from "../../../../pages/CharactersPage/inventoryItems";
-import { normalizeCharacterCurrencies } from "../../../../pages/CharactersPage/storage";
-import { formatEquipmentWeight } from "../../../../utils/codex";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
-import { formatCurrencyPillAmount, formatInventoryStackName, normalizeCurrencyAmountInput } from "./equipmentLoadoutModel";
+import { formatCurrencyPillAmount, normalizeCurrencyAmountInput } from "./equipmentLoadoutModel";
 import SheetActionButton from "../SheetActionButton";
 import containerStyles from "./EquipmentContainerManageModal.module.css";
+import MasterChestInventoryColumn from "./MasterChestInventoryColumn";
+import MasterChestItemInspectionDrawer from "./MasterChestItemInspectionDrawer";
+import { getMasterChestTransferBlockTitle } from "./masterChestInventoryUtils";
 import {
   addTransactionCurrency,
   addTransactionItem,
@@ -54,16 +52,14 @@ import {
   parseHistoryEntry,
   type MasterChestTransactionLog
 } from "./masterChestTransactions";
+import {
+  getMasterChestErrorMessage,
+  normalizeMasterChestCurrencies,
+  useMasterChestData
+} from "./useMasterChestData";
 import styles from "./MasterChestModal.module.css";
 
 type MasterChestMode = "player" | "gm";
-
-type MasterChestDraft = {
-  characterCurrencies: CharacterCurrencies;
-  characterInventoryItems: CharacterInventoryItem[];
-  chestCurrencies: CharacterCurrencies;
-  chestInventoryItems: CharacterInventoryItem[];
-};
 
 type MasterChestModalProps = {
   character?: Character;
@@ -92,55 +88,8 @@ const currencyDefinitions: CurrencyDefinition[] = [
   { key: "platinum", label: "Platinum", code: "PP", icon: coinPlatinumIcon }
 ];
 
-function formatWeight(weight: number): string {
-  return formatEquipmentWeight(Math.round(weight * 100) / 100);
-}
-
-function getInventoryWeight(inventoryItems: CharacterInventoryItem[]): number {
-  return inventoryItems.reduce(
-    (totalWeight, entry) => totalWeight + getInventoryItemTotalWeightValue(entry),
-    0
-  );
-}
-
-function createInitialDraft(character: Character | undefined): MasterChestDraft {
-  return {
-    characterCurrencies: normalizeCharacterCurrencies(
-      character?.currencies,
-      createDefaultCurrencies()
-    ),
-    characterInventoryItems: normalizeCharacterInventoryItems(character?.inventoryItems),
-    chestCurrencies: createDefaultCurrencies(),
-    chestInventoryItems: []
-  };
-}
-
-function getMasterChestErrorMessage(error: unknown, fallback: string): string {
-  if (error instanceof ApiRequestFailedError) {
-    if (error.code === "MASTER_CHEST_REVISION_CONFLICT") {
-      return "Master chest changed. Close and reopen it to get the latest contents.";
-    }
-
-    return error.message || fallback;
-  }
-
-  return error instanceof Error ? error.message : fallback;
-}
-
-function getTransferBlockTitle(
-  reason: InventoryRootTransferBlockReason | null,
-  destinationName: string
-): string | undefined {
-  if (reason === "object-limit") {
-    return `${destinationName} limit reached (${INVENTORY_OBJECT_LIMIT}).`;
-  }
-
-  return reason === "invalid" ? "This item cannot be moved." : undefined;
-}
-
-function normalizeCurrencies(value: unknown): CharacterCurrencies {
-  return normalizeCharacterCurrencies(value, createDefaultCurrencies());
-}
+const masterChestViewId = "master-chest";
+const refreshCooldownMs = 5_000;
 
 function getHistoryActionClassName(label: string) {
   if (label === "Transferred-in" || label === "Deposit") {
@@ -162,69 +111,111 @@ function MasterChestModal({
   partyGroupId,
   partyGroupName
 }: MasterChestModalProps) {
-  const [draft, setDraft] = useState<MasterChestDraft>(() => createInitialDraft(character));
-  const [history, setHistory] = useState<string[]>([]);
-  const [loadStatus, setLoadStatus] = useState<"loading" | "ready" | "error">("loading");
-  const [revision, setRevision] = useState<number | null>(null);
+  const refreshConfirmTitleId = useId();
+  const refreshCooldownRef = useRef<number | null>(null);
+  const {
+    draft,
+    error,
+    history,
+    loadMasterChestData,
+    loadStatus,
+    partyInventoryMembers,
+    revision,
+    setDraft,
+    setError
+  } = useMasterChestData({ character, partyGroupId });
   const [activeCurrencyKey, setActiveCurrencyKey] = useState<CurrencyKey>("gold");
   const [currencyAmountDraft, setCurrencyAmountDraft] = useState(0);
   const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useState(false);
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isRefreshCoolingDown, setIsRefreshCoolingDown] = useState(false);
+  const [isRefreshConfirmationOpen, setIsRefreshConfirmationOpen] = useState(false);
+  const [selectedInspectionItem, setSelectedInspectionItem] = useState<GroupedInventoryItem | null>(
+    null
+  );
+  const [selectedViewId, setSelectedViewId] = useState(masterChestViewId);
   const [transactionLog, setTransactionLog] = useState<MasterChestTransactionLog>(
     createEmptyTransactionLog
   );
   const [notice, setNotice] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const isGmMode = mode === "gm";
-  const canTransferItems = mode === "player";
+  const selectedPartyMember =
+    selectedViewId === masterChestViewId
+      ? null
+      : (partyInventoryMembers.find((member) => member.characterId === selectedViewId) ?? null);
+  const isMasterChestView = selectedViewId === masterChestViewId;
+  const canTransferItems = mode === "player" && isMasterChestView;
+  const hasUnsavedTransferDraft = Boolean(createTransactionSummary(transactionLog));
   const activeCurrencyDefinition =
     currencyDefinitions.find((currency) => currency.key === activeCurrencyKey) ??
     currencyDefinitions[3];
   const normalizedCurrencyAmount = Math.max(0, Math.floor(currencyAmountDraft));
   const canDepositCurrency =
+    isMasterChestView &&
     normalizedCurrencyAmount > 0 &&
     (isGmMode || (draft.characterCurrencies[activeCurrencyKey] ?? 0) >= normalizedCurrencyAmount);
   const canWithdrawCurrency =
+    isMasterChestView &&
     normalizedCurrencyAmount > 0 &&
     (draft.chestCurrencies[activeCurrencyKey] ?? 0) >= normalizedCurrencyAmount;
+  const displayCurrencies = selectedPartyMember?.currencies ?? draft.chestCurrencies;
+  const refreshButtonLabel = isRefreshing
+    ? "Refreshing master chest"
+    : isRefreshCoolingDown
+      ? "Refreshed"
+      : "Refresh";
+  const refreshButtonIcon = isRefreshCoolingDown ? (
+    <CircleCheck size={16} aria-hidden="true" />
+  ) : (
+    <RefreshCw size={16} aria-hidden="true" />
+  );
+
+  const clearRefreshCooldown = useCallback(() => {
+    if (refreshCooldownRef.current === null) {
+      return;
+    }
+
+    window.clearTimeout(refreshCooldownRef.current);
+    refreshCooldownRef.current = null;
+  }, []);
+
+  const startRefreshCooldown = useCallback(() => {
+    clearRefreshCooldown();
+    setIsRefreshCoolingDown(true);
+
+    refreshCooldownRef.current = window.setTimeout(() => {
+      refreshCooldownRef.current = null;
+      setIsRefreshCoolingDown(false);
+    }, refreshCooldownMs);
+  }, [clearRefreshCooldown]);
 
   useEffect(() => {
-    const abortController = new AbortController();
+    return () => clearRefreshCooldown();
+  }, [clearRefreshCooldown]);
 
-    setLoadStatus("loading");
-    setError(null);
-    setNotice(null);
-    setHistory([]);
+  useEffect(() => {
+    clearRefreshCooldown();
+    setIsRefreshCoolingDown(false);
+    setSelectedViewId(masterChestViewId);
     setTransactionLog(createEmptyTransactionLog());
+  }, [clearRefreshCooldown, partyGroupId]);
 
-    void getPartyGroupMasterChest(partyGroupId, {
-      signal: abortController.signal,
-      suppressFailureToast: true
-    })
-      .then(({ masterChest }) => {
-        setDraft((currentDraft) => ({
-          ...currentDraft,
-          chestCurrencies: normalizeCurrencies(masterChest.currencies),
-          chestInventoryItems: normalizeCharacterInventoryItems(masterChest.inventoryItems)
-        }));
-        setHistory(Array.isArray(masterChest.history) ? masterChest.history : []);
-        setRevision(masterChest.revision);
-        setLoadStatus("ready");
-      })
-      .catch((loadError) => {
-        if (isApiAbortError(loadError)) {
-          return;
-        }
+  useEffect(() => {
+    if (
+      selectedViewId !== masterChestViewId &&
+      !partyInventoryMembers.some((member) => member.characterId === selectedViewId)
+    ) {
+      setSelectedViewId(masterChestViewId);
+    }
+  }, [partyInventoryMembers, selectedViewId]);
 
-        setError(getMasterChestErrorMessage(loadError, "Unable to load master chest."));
-        setLoadStatus("error");
-      });
-
-    return () => {
-      abortController.abort();
-    };
-  }, [partyGroupId]);
+  useEffect(() => {
+    if (!isMasterChestView) {
+      setIsCurrencyModalOpen(false);
+    }
+  }, [isMasterChestView]);
 
   function moveItem(direction: "deposit" | "withdraw", item: GroupedInventoryItem) {
     if (!canTransferItems) {
@@ -243,7 +234,7 @@ function MasterChestModal({
 
     if (result.blockReason) {
       setNotice(
-        getTransferBlockTitle(
+        getMasterChestTransferBlockTitle(
           result.blockReason,
           direction === "deposit" ? "Master Chest" : "Inventory"
         ) ?? "This item cannot be moved."
@@ -341,7 +332,7 @@ function MasterChestModal({
 
     try {
       const chestInventoryItems = normalizeCharacterInventoryItems(draft.chestInventoryItems);
-      const chestCurrencies = normalizeCurrencies(draft.chestCurrencies);
+      const chestCurrencies = normalizeMasterChestCurrencies(draft.chestCurrencies);
 
       await updatePartyGroupMasterChest(
         partyGroupId,
@@ -357,7 +348,7 @@ function MasterChestModal({
 
       if (mode === "player") {
         onSaveCharacterDraft?.({
-          currencies: normalizeCurrencies(draft.characterCurrencies),
+          currencies: normalizeMasterChestCurrencies(draft.characterCurrencies),
           inventoryItems: normalizeCharacterInventoryItems(draft.characterInventoryItems)
         });
       }
@@ -366,6 +357,44 @@ function MasterChestModal({
       setError(getMasterChestErrorMessage(saveError, "Unable to save master chest."));
     } finally {
       setIsSaving(false);
+    }
+  }
+
+  function handleSelectedViewChange(nextViewId: string) {
+    setSelectedViewId(nextViewId);
+    setNotice(null);
+    setError(null);
+  }
+
+  function handleRefreshRequest() {
+    if (loadStatus === "loading" || isSaving || isRefreshing || isRefreshCoolingDown) {
+      return;
+    }
+
+    if (hasUnsavedTransferDraft) {
+      setIsRefreshConfirmationOpen(true);
+      return;
+    }
+
+    void refreshMasterChestData();
+  }
+
+  async function refreshMasterChestData() {
+    setIsRefreshConfirmationOpen(false);
+    setCurrencyAmountDraft(0);
+    setNotice(null);
+    setSelectedInspectionItem(null);
+    setTransactionLog(createEmptyTransactionLog());
+    setIsRefreshing(true);
+
+    try {
+      const didRefresh = await loadMasterChestData();
+
+      if (didRefresh) {
+        startRefreshCooldown();
+      }
+    } finally {
+      setIsRefreshing(false);
     }
   }
 
@@ -389,6 +418,21 @@ function MasterChestModal({
           </OverlaySummary>
         </OverlayHeaderContent>
         <div className={styles.headerActions}>
+          <ActionButton
+            actionType={isRefreshCoolingDown ? "SUCCESS" : "INFO"}
+            variant="FILL"
+            size="sm"
+            fullWidth={false}
+            icon={refreshButtonIcon}
+            loading={isRefreshing}
+            loadingLabel="Refreshing master chest"
+            disabled={loadStatus === "loading" || isSaving || isRefreshCoolingDown}
+            aria-label={refreshButtonLabel}
+            title={refreshButtonLabel}
+            onClick={handleRefreshRequest}
+          >
+            {isRefreshCoolingDown ? "Refreshed" : "Refresh"}
+          </ActionButton>
           <SheetActionButton
             disabled={loadStatus !== "ready"}
             onClick={() => setIsHistoryModalOpen(true)}
@@ -411,10 +455,29 @@ function MasterChestModal({
       ) : (
         <OverlayBody className={styles.body}>
           <div className={styles.bodyToolbar}>
+            <label className={styles.viewSelector}>
+              <span className={styles.viewSelectorLabel}>View</span>
+              <SelectInput
+                compact
+                value={selectedViewId}
+                onChange={(event) => handleSelectedViewChange(event.target.value)}
+              >
+                <option value={masterChestViewId}>Master Chest</option>
+                {partyInventoryMembers.map((member) => (
+                  <option key={member.characterId} value={member.characterId}>
+                    {`${member.summary.name} (${member.user.nickname})`}
+                  </option>
+                ))}
+              </SelectInput>
+            </label>
             <CurrencyPill
-              currencies={draft.chestCurrencies}
-              disabled={false}
-              onClick={() => setIsCurrencyModalOpen(true)}
+              currencies={displayCurrencies}
+              disabled={!isMasterChestView}
+              onClick={() => {
+                if (isMasterChestView) {
+                  setIsCurrencyModalOpen(true);
+                }
+              }}
             />
           </div>
           <div
@@ -424,22 +487,24 @@ function MasterChestModal({
             )}
           >
             {canTransferItems ? (
-              <InventoryColumn
+              <MasterChestInventoryColumn
                 destinationInventoryItems={draft.chestInventoryItems}
                 destinationName="Master Chest"
                 direction="deposit"
                 inventoryItems={draft.characterInventoryItems}
+                onInspect={setSelectedInspectionItem}
                 onMove={(item) => moveItem("deposit", item)}
                 title="Inventory"
               />
             ) : null}
-            <InventoryColumn
+            <MasterChestInventoryColumn
               destinationInventoryItems={draft.characterInventoryItems}
               destinationName="Inventory"
               direction={canTransferItems ? "withdraw" : "read-only"}
-              inventoryItems={draft.chestInventoryItems}
+              inventoryItems={selectedPartyMember?.inventoryItems ?? draft.chestInventoryItems}
+              onInspect={setSelectedInspectionItem}
               onMove={(item) => moveItem("withdraw", item)}
-              title="Master Chest"
+              title={selectedPartyMember?.summary.name ?? "Master Chest"}
             />
             {notice ? <p className={styles.notice}>{notice}</p> : null}
             {error ? <p className={styles.error}>{error}</p> : null}
@@ -448,23 +513,29 @@ function MasterChestModal({
       )}
 
       <OverlayFooter>
-        <div className={styles.footerActions}>
+        <div
+          className={clsx(
+            isMasterChestView ? styles.footerActions : styles.readOnlyFooterActions
+          )}
+        >
           <ActionButton variant="OUTLINE" onClick={onClose}>
-            {isGmMode ? "Close" : "Cancel"}
+            {isGmMode || !isMasterChestView ? "Close" : "Cancel"}
           </ActionButton>
-          <ActionButton
-            icon={<Save size={16} aria-hidden="true" />}
-            disabled={loadStatus !== "ready" || isSaving}
-            onClick={() => {
-              void saveMasterChest();
-            }}
-          >
-            {isSaving ? "Saving..." : "Save"}
-          </ActionButton>
+          {isMasterChestView ? (
+            <ActionButton
+              icon={<Save size={16} aria-hidden="true" />}
+              disabled={loadStatus !== "ready" || isSaving}
+              onClick={() => {
+                void saveMasterChest();
+              }}
+            >
+              {isSaving ? "Saving..." : "Save"}
+            </ActionButton>
+          ) : null}
         </div>
       </OverlayFooter>
 
-      {isCurrencyModalOpen && loadStatus === "ready" ? (
+      {isCurrencyModalOpen && loadStatus === "ready" && isMasterChestView ? (
         <MasterChestCurrencyModal
           activeCurrencyDefinition={activeCurrencyDefinition}
           activeCurrencyKey={activeCurrencyKey}
@@ -485,131 +556,27 @@ function MasterChestModal({
       {isHistoryModalOpen && loadStatus === "ready" ? (
         <MasterChestHistoryModal history={history} onClose={() => setIsHistoryModalOpen(false)} />
       ) : null}
+
+      <MasterChestItemInspectionDrawer
+        item={selectedInspectionItem}
+        onClose={() => setSelectedInspectionItem(null)}
+      />
+
+      {isRefreshConfirmationOpen ? (
+        <DestructiveConfirmationModal
+          titleId={refreshConfirmTitleId}
+          title="Refresh master chest?"
+          message="Refreshing will discard your unsaved item and currency moves in this modal."
+          confirmLabel="Refresh"
+          cancelLabel="Keep Editing"
+          closeLabel="Close refresh confirmation"
+          onCancel={() => setIsRefreshConfirmationOpen(false)}
+          onConfirm={() => {
+            void refreshMasterChestData();
+          }}
+        />
+      ) : null}
     </SheetModal>
-  );
-}
-
-function InventoryColumn({
-  destinationInventoryItems,
-  destinationName,
-  direction,
-  inventoryItems,
-  onMove,
-  title
-}: {
-  destinationInventoryItems: CharacterInventoryItem[];
-  destinationName: string;
-  direction: "deposit" | "withdraw" | "read-only";
-  inventoryItems: CharacterInventoryItem[];
-  onMove: (item: GroupedInventoryItem) => void;
-  title: string;
-}) {
-  const groupedItems = useMemo(() => groupCharacterInventoryItems(inventoryItems), [inventoryItems]);
-  const inventoryWeight = useMemo(() => getInventoryWeight(inventoryItems), [inventoryItems]);
-  const objectCount = useMemo(() => getInventoryObjectCount(inventoryItems), [inventoryItems]);
-
-  return (
-    <section className={containerStyles.column}>
-      <header className={containerStyles.columnHeader}>
-        <h4>{title}</h4>
-        <div className={containerStyles.columnHeaderMeta}>
-          <span
-            className={clsx(
-              containerStyles.columnHeaderMetric,
-              objectCount >= INVENTORY_OBJECT_LIMIT && containerStyles.columnHeaderMetricLimit
-            )}
-          >
-            {`${objectCount}/${INVENTORY_OBJECT_LIMIT}`}
-          </span>
-          <span className={containerStyles.columnHeaderMetric}>{formatWeight(inventoryWeight)}</span>
-        </div>
-      </header>
-      {groupedItems.length > 0 ? (
-        <ul className={containerStyles.itemList}>
-          {groupedItems.map((item) => (
-            <InventoryColumnItem
-              key={item.stackId}
-              destinationInventoryItems={destinationInventoryItems}
-              destinationName={destinationName}
-              direction={direction}
-              inventoryItems={inventoryItems}
-              item={item}
-              onMove={onMove}
-            />
-          ))}
-        </ul>
-      ) : (
-        <p className={containerStyles.emptyText}>{title} is empty.</p>
-      )}
-    </section>
-  );
-}
-
-function InventoryColumnItem({
-  destinationInventoryItems,
-  destinationName,
-  direction,
-  inventoryItems,
-  item,
-  onMove
-}: {
-  destinationInventoryItems: CharacterInventoryItem[];
-  destinationName: string;
-  direction: "deposit" | "withdraw" | "read-only";
-  inventoryItems: CharacterInventoryItem[];
-  item: GroupedInventoryItem;
-  onMove: (item: GroupedInventoryItem) => void;
-}) {
-  const isReadOnly = direction === "read-only";
-  const blockReason = isReadOnly
-    ? null
-    : getInventoryRootTransferBlockReason(
-        inventoryItems,
-        destinationInventoryItems,
-        item.stackId
-      );
-  const isDisabled = Boolean(blockReason);
-  const isContainer = isInventoryContainerItem(item.stack);
-  const icon =
-    direction === "deposit" ? (
-      <MoveRight size={17} aria-hidden="true" />
-    ) : direction === "withdraw" ? (
-      <MoveLeft size={17} aria-hidden="true" />
-    ) : (
-      <Package size={17} aria-hidden="true" />
-    );
-  const content = (
-    <>
-      <span className={containerStyles.itemText}>
-        <span className={containerStyles.itemName}>{formatInventoryStackName(item)}</span>
-        <span className={containerStyles.itemMeta}>
-          {isContainer ? "Container" : formatWeight(getInventoryItemTotalWeightValue(item.stack))}
-        </span>
-      </span>
-      <span className={containerStyles.itemAction}>{icon}</span>
-    </>
-  );
-
-  if (isReadOnly) {
-    return (
-      <li>
-        <div className={clsx(containerStyles.itemButton, styles.readOnlyItem)}>{content}</div>
-      </li>
-    );
-  }
-
-  return (
-    <li>
-      <button
-        type="button"
-        className={clsx(containerStyles.itemButton, isDisabled && containerStyles.itemButtonDisabled)}
-        disabled={isDisabled}
-        title={getTransferBlockTitle(blockReason, destinationName)}
-        onClick={() => onMove(item)}
-      >
-        {content}
-      </button>
-    </li>
   );
 }
 
