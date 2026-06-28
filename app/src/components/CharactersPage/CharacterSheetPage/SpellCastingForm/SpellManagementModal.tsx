@@ -14,6 +14,7 @@ import {
   SheetModal,
   deferModalCommit
 } from "../../../Overlay";
+import SegmentedToggle from "../../../SegmentedToggle";
 import SpellListRow from "../../../SpellListRow";
 import type { SpellEntry } from "../../../../codex/entries";
 import type { Character, CharacterCustomTraitEffect } from "../../../../types";
@@ -938,33 +939,17 @@ function SpellManagementModal({
       return null;
     }
 
-    const nextSourceMode = spellSourceMode === "custom" ? "default" : "custom";
-
     return (
-      <button
-        type="button"
-        className={styles.spellSourceToggle}
-        aria-label={`Switch to ${nextSourceMode === "default" ? "standard" : "custom"} spells`}
+      <SegmentedToggle
+        ariaLabel="Spell source"
+        value={spellSourceMode}
+        options={[
+          { label: "Standard", value: "default" },
+          { label: "Custom", value: "custom" }
+        ]}
         disabled={isCommitting}
-        onClick={() => handleSpellSourceModeChange(nextSourceMode)}
-      >
-        <span
-          className={clsx(
-            styles.spellSourceToggleSegment,
-            spellSourceMode === "default" && styles.spellSourceToggleSegmentActive
-          )}
-        >
-          Standard
-        </span>
-        <span
-          className={clsx(
-            styles.spellSourceToggleSegment,
-            spellSourceMode === "custom" && styles.spellSourceToggleSegmentActive
-          )}
-        >
-          Custom
-        </span>
-      </button>
+        onValueChange={handleSpellSourceModeChange}
+      />
     );
   }
 
@@ -973,33 +958,17 @@ function SpellManagementModal({
       return null;
     }
 
-    const nextScope = customSpellScope === "public" ? "mine" : "public";
-
     return (
-      <button
-        type="button"
-        className={styles.spellSourceToggle}
-        aria-label={`Show ${nextScope === "public" ? "public" : "my"} custom spells`}
+      <SegmentedToggle
+        ariaLabel="Custom spell scope"
+        value={customSpellScope}
+        options={[
+          { label: "Mine", value: "mine" },
+          { label: "Public", value: "public" }
+        ]}
         disabled={isCommitting}
-        onClick={() => handleCustomSpellScopeChange(nextScope)}
-      >
-        <span
-          className={clsx(
-            styles.spellSourceToggleSegment,
-            customSpellScope === "mine" && styles.spellSourceToggleSegmentActive
-          )}
-        >
-          Mine
-        </span>
-        <span
-          className={clsx(
-            styles.spellSourceToggleSegment,
-            customSpellScope === "public" && styles.spellSourceToggleSegmentActive
-          )}
-        >
-          Public
-        </span>
-      </button>
+        onValueChange={handleCustomSpellScopeChange}
+      />
     );
   }
 

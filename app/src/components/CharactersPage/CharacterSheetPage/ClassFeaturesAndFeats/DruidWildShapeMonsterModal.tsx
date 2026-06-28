@@ -22,6 +22,7 @@ import {
 } from "../../../Overlay";
 import { MonsterEntryDrawer } from "../../../MonsterEntryRenderer";
 import SearchField from "../../../SearchField";
+import SegmentedToggle from "../../../SegmentedToggle";
 import { getDruidWildShapeRulesForCharacter } from "../../../../pages/CharactersPage/classFeatures";
 import { useMonsterEntries } from "../../../../pages/CodexPage/useMonsterEntries";
 import { useAppSelector } from "../../../../store";
@@ -530,72 +531,28 @@ function DruidWildShapeMonsterModal({
             {canUseCustomBestiary ? (
               <div className={styles.sourceToggles}>
                 {isCustomBestiaryMode ? (
-                  <button
-                    type="button"
-                    className={styles.segmentedToggle}
-                    aria-label={`Show ${
-                      customBestiaryScope === "public" ? "my" : "public"
-                    } custom creatures`}
-                    onClick={() => {
+                  <SegmentedToggle
+                    ariaLabel="Custom wild shape creature scope"
+                    value={customBestiaryScope}
+                    options={[
+                      { label: "Mine", value: "mine" },
+                      { label: "Public", value: "public" }
+                    ]}
+                    onValueChange={(nextScope) => {
                       loadedCustomBestiaryForAuthRef.current = null;
-                      setCustomBestiaryScope(
-                        customBestiaryScope === "public" ? "mine" : "public"
-                      );
+                      setCustomBestiaryScope(nextScope);
                     }}
-                  >
-                    <span
-                      className={[
-                        styles.segmentedToggleSegment,
-                        customBestiaryScope === "mine" ? styles.segmentedToggleSegmentActive : ""
-                      ]
-                        .filter(Boolean)
-                        .join(" ")}
-                    >
-                      Mine
-                    </span>
-                    <span
-                      className={[
-                        styles.segmentedToggleSegment,
-                        customBestiaryScope === "public" ? styles.segmentedToggleSegmentActive : ""
-                      ]
-                        .filter(Boolean)
-                        .join(" ")}
-                    >
-                      Public
-                    </span>
-                  </button>
+                  />
                 ) : null}
-                <button
-                  type="button"
-                  className={styles.segmentedToggle}
-                  aria-label={`Show ${
-                    isCustomBestiaryMode ? "standard" : "custom"
-                  } creature stat blocks`}
-                  onClick={() =>
-                    setMonsterSourceMode(isCustomBestiaryMode ? "standard" : "custom")
-                  }
-                >
-                  <span
-                    className={[
-                      styles.segmentedToggleSegment,
-                      !isCustomBestiaryMode ? styles.segmentedToggleSegmentActive : ""
-                    ]
-                      .filter(Boolean)
-                      .join(" ")}
-                  >
-                    Standard
-                  </span>
-                  <span
-                    className={[
-                      styles.segmentedToggleSegment,
-                      isCustomBestiaryMode ? styles.segmentedToggleSegmentActive : ""
-                    ]
-                      .filter(Boolean)
-                      .join(" ")}
-                  >
-                    Custom
-                  </span>
-                </button>
+                <SegmentedToggle
+                  ariaLabel="Wild shape creature stat block source"
+                  value={monsterSourceMode}
+                  options={[
+                    { label: "Standard", value: "standard" },
+                    { label: "Custom", value: "custom" }
+                  ]}
+                  onValueChange={setMonsterSourceMode}
+                />
               </div>
             ) : null}
           </div>

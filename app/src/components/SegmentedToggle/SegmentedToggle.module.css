@@ -1,0 +1,71 @@
+.root {
+  --segmented-toggle-selected-background: var(--gradient-primary-action);
+  --segmented-toggle-selected-color: #f7fbff;
+  --segmented-toggle-focus: rgba(47, 109, 224, 0.45);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22rem;
+  flex: 0 0 auto;
+  width: fit-content;
+  min-height: 40px;
+  border: 1px solid var(--theme-border-subtle);
+  border-radius: var(--radius-control);
+  background: var(--theme-control-subtle);
+  color: inherit;
+  padding: 0.22rem;
+}
+
+.segment {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  min-width: 0;
+  border: 1px solid transparent;
+  border-radius: calc(var(--radius-control) - 2px);
+  background: transparent;
+  color: var(--theme-text-secondary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1;
+  padding: 0 0.72rem;
+  white-space: nowrap;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease,
+    opacity 140ms ease;
+}
+
+.segment:hover:not(:disabled) {
+  background: var(--theme-control-subtle-hover);
+  color: var(--theme-text-primary);
+}
+
+.segment:focus-visible {
+  outline: 2px solid var(--segmented-toggle-focus);
+  outline-offset: 2px;
+}
+
+.segmentSelected {
+  border-color: transparent;
+  background: var(--segmented-toggle-selected-background);
+  color: var(--segmented-toggle-selected-color);
+}
+
+.segmentSelected:hover:not(:disabled) {
+  color: var(--segmented-toggle-selected-color);
+  filter: brightness(1.04);
+}
+
+.segment:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+:global(html[data-theme="dark"]) .root {
+  border-color: var(--theme-border-medium);
+  background: rgba(255, 255, 255, 0.055);
+}

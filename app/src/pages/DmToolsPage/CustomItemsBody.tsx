@@ -18,6 +18,7 @@ import {
 import ActionButton from "../../components/ActionButton";
 import { ItemInspectionHeader } from "../../components/ItemInspection";
 import { DestructiveConfirmationModal } from "../../components/Overlay";
+import SegmentedToggle from "../../components/SegmentedToggle";
 import sheetStyles from "../CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import { buildItemDetailPresentation } from "../ItemCodexEntryPage/itemPresentation";
 import {
@@ -201,40 +202,20 @@ function CustomItemsBody({ panelId, tabId }: CustomItemsBodyProps) {
   }
 
   function renderCustomItemScopeToggle() {
-    const nextScope = customItemScope === "public" ? "mine" : "public";
-
     return (
-      <button
-        type="button"
-        className={styles.segmentedToggle}
-        aria-label={`Show ${nextScope === "public" ? "public" : "my"} custom items`}
-        onClick={() => {
+      <SegmentedToggle
+        ariaLabel="Custom item scope"
+        value={customItemScope}
+        options={[
+          { label: "Mine", value: "mine" },
+          { label: "Public", value: "public" }
+        ]}
+        onValueChange={(nextScope) => {
           loadedCustomItemsForAuthRef.current = null;
           setCustomItemPage(1);
           setCustomItemScope(nextScope);
         }}
-      >
-        <span
-          className={[
-            styles.segmentedToggleSegment,
-            customItemScope === "mine" ? styles.segmentedToggleSegmentActive : ""
-          ]
-            .filter(Boolean)
-            .join(" ")}
-        >
-          Mine
-        </span>
-        <span
-          className={[
-            styles.segmentedToggleSegment,
-            customItemScope === "public" ? styles.segmentedToggleSegmentActive : ""
-          ]
-            .filter(Boolean)
-            .join(" ")}
-        >
-          Public
-        </span>
-      </button>
+      />
     );
   }
 

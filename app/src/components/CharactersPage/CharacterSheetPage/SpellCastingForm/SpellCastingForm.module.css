@@ -192,44 +192,6 @@
   margin-left: auto;
 }
 
-.spellSourceToggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.18rem;
-  flex: 0 0 auto;
-  width: fit-content;
-  border: 1px solid var(--theme-border-subtle);
-  border-radius: var(--radius-control);
-  background: var(--theme-control-subtle);
-  color: inherit;
-  cursor: pointer;
-  font: inherit;
-  padding: 0.18rem;
-}
-
-.spellSourceToggleSegment {
-  border: none;
-  border-radius: calc(var(--radius-control) - 2px);
-  background: transparent;
-  color: var(--theme-text-secondary);
-  font-size: 0.72rem;
-  font-weight: 800;
-  line-height: 1;
-  padding: 0.34rem 0.48rem;
-  pointer-events: none;
-}
-
-.spellSourceToggleSegmentActive {
-  background: var(--theme-surface-panel);
-  color: var(--theme-text-primary);
-  box-shadow: 0 1px 2px rgba(31, 24, 18, 0.12);
-}
-
-.spellSourceToggle:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
 .rulesEnforcementDivider {
   border-top: 1px solid rgba(75, 47, 29, 0.12);
   margin-top: 0.1rem;

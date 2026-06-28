@@ -17,6 +17,10 @@ import {
 } from "../../components/Overlay";
 import { createCharacterInventoryItemFromCustomSource } from "../CharactersPage/inventoryItems";
 import { showToast, useAppDispatch, useAppSelector } from "../../store";
+import {
+  canPublishCustomObject,
+  CUSTOM_OBJECT_PUBLISH_PERMISSION_MESSAGE
+} from "./customObjectPublishPermissions";
 import { getDmToolsApiErrorMessage } from "./dmToolsApiErrors";
 import styles from "./DmToolsPage.module.css";
 
@@ -26,18 +30,18 @@ type CustomItemEditorModalProps = {
   onSaved: (customItem: CustomItemRecord) => void;
 };
 
-function canPublishCustomItems(role: string | null | undefined) {
-  return role === "keeper" || role === "admin";
-}
-
 function CustomItemEditorModal({ customItem, onClose, onSaved }: CustomItemEditorModalProps) {
   const dispatch = useAppDispatch();
   const authUserRole = useAppSelector((state) => state.auth.user?.role ?? null);
-  const canPublish = canPublishCustomItems(authUserRole);
+  const canPublish = canPublishCustomObject(authUserRole);
   const isEditing = Boolean(customItem);
   const [isPublic, setIsPublic] = useState(() => Boolean(customItem?.public));
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const publicToggleDisabled = isSaving || !canPublish;
+  const publicToggleDisabledReason = canPublish
+    ? undefined
+    : CUSTOM_OBJECT_PUBLISH_PERMISSION_MESSAGE;
   const initialStack = useMemo(
     () =>
       customItem
@@ -100,11 +104,20 @@ function CustomItemEditorModal({ customItem, onClose, onSaved }: CustomItemEdito
           </OverlaySummary>
         </OverlayHeaderContent>
         <div className={styles.customObjectModalHeaderActions}>
-          <label className={styles.customObjectPublicToggle}>
+          <label
+            className={[
+              styles.customObjectPublicToggle,
+              publicToggleDisabled ? styles.customObjectPublicToggleDisabled : ""
+            ]
+              .join(" ")
+              .trim()}
+            data-tooltip={publicToggleDisabledReason}
+            aria-disabled={publicToggleDisabled}
+          >
             <input
               type="checkbox"
               checked={canPublish && isPublic}
-              disabled={isSaving || !canPublish}
+              disabled={publicToggleDisabled}
               onChange={(event) => setIsPublic(event.target.checked)}
             />
             <span>Public</span>

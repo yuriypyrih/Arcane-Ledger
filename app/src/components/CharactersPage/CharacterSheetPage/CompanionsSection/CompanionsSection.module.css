@@ -444,6 +444,7 @@
   align-items: center;
   box-sizing: border-box;
   gap: 0.5rem;
+  position: relative;
   border: 1px solid var(--theme-input-border);
   border-radius: var(--radius-tiny);
   background: var(--theme-input-background);
@@ -464,6 +465,51 @@
   width: 0.95rem;
 }
 
+.statBlockPublicToggleDisabled {
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-muted);
+  cursor: help;
+  opacity: 0.72;
+}
+
+.statBlockPublicToggleDisabled input {
+  cursor: help;
+  opacity: 0.62;
+  pointer-events: none;
+}
+
+.statBlockPublicToggleDisabled[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 0.46rem);
+  right: 0;
+  z-index: 5;
+  width: max-content;
+  max-width: min(20rem, 78vw);
+  border: 1px solid var(--theme-border-medium);
+  border-radius: var(--radius-control);
+  background: var(--theme-surface-raised);
+  box-shadow: var(--theme-overlay-shadow);
+  color: var(--theme-text-primary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.35;
+  opacity: 0;
+  padding: 0.5rem 0.62rem;
+  pointer-events: none;
+  transform: translateY(-0.12rem);
+  transition:
+    opacity 120ms ease,
+    transform 120ms ease;
+  white-space: normal;
+}
+
+.statBlockPublicToggleDisabled[data-tooltip]:hover::after {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 .dynamicRows,
 .featureRows {
   display: grid;
@@ -482,39 +528,6 @@
   align-items: end;
   justify-content: flex-end;
   gap: 0.42rem;
-}
-
-.browserSegmentedToggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.18rem;
-  flex: 0 0 auto;
-  width: fit-content;
-  border: 1px solid var(--theme-border-subtle);
-  border-radius: var(--radius-control);
-  background: var(--theme-control-subtle);
-  color: inherit;
-  cursor: pointer;
-  font: inherit;
-  padding: 0.18rem;
-}
-
-.browserSegmentedToggleSegment {
-  border: none;
-  border-radius: calc(var(--radius-control) - 2px);
-  background: transparent;
-  color: var(--theme-text-secondary);
-  font-size: 0.72rem;
-  font-weight: 800;
-  line-height: 1;
-  padding: 0.34rem 0.48rem;
-  pointer-events: none;
-}
-
-.browserSegmentedToggleSegmentActive {
-  background: var(--theme-surface-panel);
-  color: var(--theme-text-primary);
-  box-shadow: 0 1px 2px rgba(31, 24, 18, 0.12);
 }
 
 .dynamicRow {

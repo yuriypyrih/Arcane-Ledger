@@ -13,6 +13,7 @@ import {
   SheetModal
 } from "../../../Overlay";
 import SearchField from "../../../SearchField";
+import SegmentedToggle from "../../../SegmentedToggle";
 import SelectInput from "../../FormInputs/SelectInput";
 import type { CodexStatus, MonsterListItem, MonsterOrdering } from "../../../../types";
 import { getMonsterListItemKey } from "../../../../utils/monsters";
@@ -82,8 +83,6 @@ function MonsterBrowserModal({
   onSourceModeChange
 }: MonsterBrowserModalProps) {
   const titleId = useId();
-  const nextSourceMode = sourceMode === "custom" ? "standard" : "custom";
-  const nextCustomScope = customScope === "public" ? "mine" : "public";
 
   return (
     <SheetModal
@@ -147,63 +146,25 @@ function MonsterBrowserModal({
           {canUseCustomSource ? (
             <div className={styles.browserSourceToggles}>
               {sourceMode === "custom" ? (
-                <button
-                  type="button"
-                  className={styles.browserSegmentedToggle}
-                  aria-label={`Show ${
-                    nextCustomScope === "public" ? "public" : "my"
-                  } custom creatures`}
-                  onClick={() => onCustomScopeChange?.(nextCustomScope)}
-                >
-                  <span
-                    className={[
-                      styles.browserSegmentedToggleSegment,
-                      customScope === "mine" ? styles.browserSegmentedToggleSegmentActive : ""
-                    ]
-                      .filter(Boolean)
-                      .join(" ")}
-                  >
-                    Mine
-                  </span>
-                  <span
-                    className={[
-                      styles.browserSegmentedToggleSegment,
-                      customScope === "public" ? styles.browserSegmentedToggleSegmentActive : ""
-                    ]
-                      .filter(Boolean)
-                      .join(" ")}
-                  >
-                    Public
-                  </span>
-                </button>
+                <SegmentedToggle
+                  ariaLabel="Custom creature scope"
+                  value={customScope}
+                  options={[
+                    { label: "Mine", value: "mine" },
+                    { label: "Public", value: "public" }
+                  ]}
+                  onValueChange={(nextScope) => onCustomScopeChange?.(nextScope)}
+                />
               ) : null}
-              <button
-                type="button"
-                className={styles.browserSegmentedToggle}
-                aria-label={`Show ${nextSourceMode} creature stat blocks`}
-                onClick={() => onSourceModeChange?.(nextSourceMode)}
-              >
-                <span
-                  className={[
-                    styles.browserSegmentedToggleSegment,
-                    sourceMode === "standard" ? styles.browserSegmentedToggleSegmentActive : ""
-                  ]
-                    .filter(Boolean)
-                    .join(" ")}
-                >
-                  Standard
-                </span>
-                <span
-                  className={[
-                    styles.browserSegmentedToggleSegment,
-                    sourceMode === "custom" ? styles.browserSegmentedToggleSegmentActive : ""
-                  ]
-                    .filter(Boolean)
-                    .join(" ")}
-                >
-                  Custom
-                </span>
-              </button>
+              <SegmentedToggle
+                ariaLabel="Creature stat block source"
+                value={sourceMode}
+                options={[
+                  { label: "Standard", value: "standard" },
+                  { label: "Custom", value: "custom" }
+                ]}
+                onValueChange={(nextSourceMode) => onSourceModeChange?.(nextSourceMode)}
+              />
             </div>
           ) : null}
         </div>

@@ -53,6 +53,10 @@ import {
   type CustomSpellDraft,
   type CustomSpellDurationMode
 } from "./customSpellDraft";
+import {
+  canPublishCustomObject,
+  CUSTOM_OBJECT_PUBLISH_PERMISSION_MESSAGE
+} from "./customObjectPublishPermissions";
 import styles from "./DmToolsPage.module.css";
 
 type CustomSpellEditorModalProps = {
@@ -105,10 +109,6 @@ function RequiredFieldLabel({ children }: { children: string }) {
   );
 }
 
-function canPublishCustomSpells(role: string | null | undefined) {
-  return role === "keeper" || role === "admin";
-}
-
 function CustomSpellEditorModal({ customSpell, onClose, onSaved }: CustomSpellEditorModalProps) {
   const titleId = useId();
   const dispatch = useAppDispatch();
@@ -120,7 +120,11 @@ function CustomSpellEditorModal({ customSpell, onClose, onSaved }: CustomSpellEd
   const [isSaving, setIsSaving] = useState(false);
   const isEditing = Boolean(customSpell);
   const isDurationInstantaneous = isCustomSpellDurationInstantaneous(draft);
-  const canPublish = canPublishCustomSpells(authUserRole);
+  const canPublish = canPublishCustomObject(authUserRole);
+  const publicToggleDisabled = isSaving || !canPublish;
+  const publicToggleDisabledReason = canPublish
+    ? undefined
+    : CUSTOM_OBJECT_PUBLISH_PERMISSION_MESSAGE;
   const canSubmit = useMemo(() => isCustomSpellDraftValid(draft) && !isSaving, [draft, isSaving]);
 
   function updateDraft(updater: (current: CustomSpellDraft) => CustomSpellDraft) {
@@ -185,11 +189,20 @@ function CustomSpellEditorModal({ customSpell, onClose, onSaved }: CustomSpellEd
           <OverlaySummary>Define the spell entry characters can later bake into their sheets.</OverlaySummary>
         </OverlayHeaderContent>
         <div className={styles.customObjectModalHeaderActions}>
-          <label className={styles.customObjectPublicToggle}>
+          <label
+            className={[
+              styles.customObjectPublicToggle,
+              publicToggleDisabled ? styles.customObjectPublicToggleDisabled : ""
+            ]
+              .join(" ")
+              .trim()}
+            data-tooltip={publicToggleDisabledReason}
+            aria-disabled={publicToggleDisabled}
+          >
             <input
               type="checkbox"
               checked={canPublish && draft.public}
-              disabled={isSaving || !canPublish}
+              disabled={publicToggleDisabled}
               onChange={(event) =>
                 updateDraft((current) => ({ ...current, public: event.target.checked }))
               }
@@ -204,7 +217,7 @@ function CustomSpellEditorModal({ customSpell, onClose, onSaved }: CustomSpellEd
         </div>
       </OverlayHeader>
 
-      <form onSubmit={handleSubmit}>
+      <form className={styles.customSpellEditorForm} onSubmit={handleSubmit}>
         <OverlayBody>
           <div className={styles.customSpellEditorGrid}>
             <label className={styles.modalField}>

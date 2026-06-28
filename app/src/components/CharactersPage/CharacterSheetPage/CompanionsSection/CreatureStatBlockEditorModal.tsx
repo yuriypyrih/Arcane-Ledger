@@ -39,6 +39,7 @@ import styles from "./CompanionsSection.module.css";
 type PublicToggleConfig = {
   checked: boolean;
   disabled?: boolean;
+  disabledReason?: string;
   onChange: (checked: boolean) => void;
 };
 
@@ -242,7 +243,16 @@ function CreatureStatBlockEditorModal({
         </OverlayHeaderContent>
         <div className={styles.statBlockEditorHeaderActions}>
           {publicToggle ? (
-            <label className={styles.statBlockPublicToggle}>
+            <label
+              className={[
+                styles.statBlockPublicToggle,
+                publicToggle.disabled ? styles.statBlockPublicToggleDisabled : ""
+              ]
+                .join(" ")
+                .trim()}
+              data-tooltip={publicToggle.disabledReason}
+              aria-disabled={publicToggle.disabled}
+            >
               <input
                 type="checkbox"
                 checked={publicToggle.checked}

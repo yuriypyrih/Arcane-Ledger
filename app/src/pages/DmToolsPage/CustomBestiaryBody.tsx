@@ -10,6 +10,7 @@ import ActionButton from "../../components/ActionButton";
 import MonsterEntryDrawer from "../../components/MonsterEntryRenderer/MonsterEntryDrawer";
 import { formatMonsterTitleMeta } from "../../components/MonsterEntryRenderer/monsterEntryFormatting";
 import { DestructiveConfirmationModal } from "../../components/Overlay";
+import SegmentedToggle from "../../components/SegmentedToggle";
 import {
   removeCustomBestiaryRecord,
   setCustomBestiary,
@@ -189,40 +190,20 @@ function CustomBestiaryBody({ panelId, tabId }: CustomBestiaryBodyProps) {
   }
 
   function renderCustomBestiaryScopeToggle() {
-    const nextScope = customBestiaryScope === "public" ? "mine" : "public";
-
     return (
-      <button
-        type="button"
-        className={styles.segmentedToggle}
-        aria-label={`Show ${nextScope === "public" ? "public" : "my"} custom creatures`}
-        onClick={() => {
+      <SegmentedToggle
+        ariaLabel="Custom bestiary scope"
+        value={customBestiaryScope}
+        options={[
+          { label: "Mine", value: "mine" },
+          { label: "Public", value: "public" }
+        ]}
+        onValueChange={(nextScope) => {
           loadedCustomBestiaryForAuthRef.current = null;
           setCustomBestiaryPage(1);
           setCustomBestiaryScope(nextScope);
         }}
-      >
-        <span
-          className={[
-            styles.segmentedToggleSegment,
-            customBestiaryScope === "mine" ? styles.segmentedToggleSegmentActive : ""
-          ]
-            .filter(Boolean)
-            .join(" ")}
-        >
-          Mine
-        </span>
-        <span
-          className={[
-            styles.segmentedToggleSegment,
-            customBestiaryScope === "public" ? styles.segmentedToggleSegmentActive : ""
-          ]
-            .filter(Boolean)
-            .join(" ")}
-        >
-          Public
-        </span>
-      </button>
+      />
     );
   }
 

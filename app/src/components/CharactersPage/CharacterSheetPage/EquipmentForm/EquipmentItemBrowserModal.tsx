@@ -17,6 +17,7 @@ import {
   OverlayTitle,
   SheetModal
 } from "../../../Overlay";
+import SegmentedToggle from "../../../SegmentedToggle";
 import { useItemEntries } from "../../../../pages/CodexPage/useItemEntries";
 import { useItemFilterOptions } from "../../../../pages/CodexPage/useItemFilterOptions";
 import { createCharacterInventoryItemFromCustomSource } from "../../../../pages/CharactersPage/inventoryItems";
@@ -386,69 +387,30 @@ function EquipmentItemBrowserModal({
       return null;
     }
 
-    const nextSourceMode = itemSourceMode === "custom" ? "standard" : "custom";
-    const nextScope = customItemScope === "public" ? "mine" : "public";
-
     return (
       <div className={styles.sourceToggleGroup}>
         {itemSourceMode === "custom" ? (
-          <button
-            type="button"
-            className={styles.sourceToggle}
-            aria-label={`Show ${nextScope === "public" ? "public" : "my"} custom items`}
+          <SegmentedToggle
+            ariaLabel="Custom item scope"
+            value={customItemScope}
+            options={[
+              { label: "Mine", value: "mine" },
+              { label: "Public", value: "public" }
+            ]}
             disabled={isClosing}
-            onClick={() => handleCustomItemScopeChange(nextScope)}
-          >
-            <span
-              className={[
-                styles.sourceToggleSegment,
-                customItemScope === "mine" ? styles.sourceToggleSegmentActive : ""
-              ]
-                .filter(Boolean)
-                .join(" ")}
-            >
-              Mine
-            </span>
-            <span
-              className={[
-                styles.sourceToggleSegment,
-                customItemScope === "public" ? styles.sourceToggleSegmentActive : ""
-              ]
-                .filter(Boolean)
-                .join(" ")}
-            >
-              Public
-            </span>
-          </button>
+            onValueChange={handleCustomItemScopeChange}
+          />
         ) : null}
-        <button
-          type="button"
-          className={styles.sourceToggle}
-          aria-label={`Switch to ${nextSourceMode} items`}
+        <SegmentedToggle
+          ariaLabel="Item source"
+          value={itemSourceMode}
+          options={[
+            { label: "Standard", value: "standard" },
+            { label: "Custom", value: "custom" }
+          ]}
           disabled={isClosing}
-          onClick={() => handleItemSourceModeChange(nextSourceMode)}
-        >
-          <span
-            className={[
-              styles.sourceToggleSegment,
-              itemSourceMode === "standard" ? styles.sourceToggleSegmentActive : ""
-            ]
-              .filter(Boolean)
-              .join(" ")}
-          >
-            Standard
-          </span>
-          <span
-            className={[
-              styles.sourceToggleSegment,
-              itemSourceMode === "custom" ? styles.sourceToggleSegmentActive : ""
-            ]
-              .filter(Boolean)
-              .join(" ")}
-          >
-            Custom
-          </span>
-        </button>
+          onValueChange={handleItemSourceModeChange}
+        />
       </div>
     );
   }

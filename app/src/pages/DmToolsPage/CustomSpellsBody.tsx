@@ -17,6 +17,7 @@ import {
 } from "../../api/customSpells";
 import ActionButton from "../../components/ActionButton";
 import { DestructiveConfirmationModal } from "../../components/Overlay";
+import SegmentedToggle from "../../components/SegmentedToggle";
 import {
   removeCustomSpellRecord,
   setCustomSpells,
@@ -196,40 +197,20 @@ function CustomSpellsBody({ panelId, tabId }: CustomSpellsBodyProps) {
   }
 
   function renderCustomSpellScopeToggle() {
-    const nextScope = customSpellScope === "public" ? "mine" : "public";
-
     return (
-      <button
-        type="button"
-        className={styles.segmentedToggle}
-        aria-label={`Show ${nextScope === "public" ? "public" : "my"} custom spells`}
-        onClick={() => {
+      <SegmentedToggle
+        ariaLabel="Custom spell scope"
+        value={customSpellScope}
+        options={[
+          { label: "Mine", value: "mine" },
+          { label: "Public", value: "public" }
+        ]}
+        onValueChange={(nextScope) => {
           loadedCustomSpellsForAuthRef.current = null;
           setCustomSpellPage(1);
           setCustomSpellScope(nextScope);
         }}
-      >
-        <span
-          className={[
-            styles.segmentedToggleSegment,
-            customSpellScope === "mine" ? styles.segmentedToggleSegmentActive : ""
-          ]
-            .filter(Boolean)
-            .join(" ")}
-        >
-          Mine
-        </span>
-        <span
-          className={[
-            styles.segmentedToggleSegment,
-            customSpellScope === "public" ? styles.segmentedToggleSegmentActive : ""
-          ]
-            .filter(Boolean)
-            .join(" ")}
-        >
-          Public
-        </span>
-      </button>
+      />
     );
   }
 

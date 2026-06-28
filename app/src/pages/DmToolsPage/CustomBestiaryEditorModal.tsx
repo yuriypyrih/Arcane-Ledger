@@ -7,6 +7,10 @@ import {
 import CreatureStatBlockEditorModal from "../../components/CharactersPage/CharacterSheetPage/CompanionsSection/CreatureStatBlockEditorModal";
 import { showToast, useAppDispatch, useAppSelector } from "../../store";
 import type { MonsterRecord } from "../../types";
+import {
+  canPublishCustomObject,
+  CUSTOM_OBJECT_PUBLISH_PERMISSION_MESSAGE
+} from "./customObjectPublishPermissions";
 import { getDmToolsApiErrorMessage } from "./dmToolsApiErrors";
 
 type CustomBestiaryEditorModalProps = {
@@ -15,10 +19,6 @@ type CustomBestiaryEditorModalProps = {
   onSaved: (customCreature: CustomBestiaryRecord) => void;
 };
 
-function canPublishCustomBestiary(role: string | null | undefined) {
-  return role === "keeper" || role === "admin";
-}
-
 function CustomBestiaryEditorModal({
   customCreature,
   onClose,
@@ -26,10 +26,14 @@ function CustomBestiaryEditorModal({
 }: CustomBestiaryEditorModalProps) {
   const dispatch = useAppDispatch();
   const authUserRole = useAppSelector((state) => state.auth.user?.role ?? null);
-  const canPublish = canPublishCustomBestiary(authUserRole);
+  const canPublish = canPublishCustomObject(authUserRole);
   const isEditing = Boolean(customCreature);
   const [isPublic, setIsPublic] = useState(() => Boolean(customCreature?.public));
   const [isSaving, setIsSaving] = useState(false);
+  const publicToggleDisabled = !canPublish || isSaving;
+  const publicToggleDisabledReason = canPublish
+    ? undefined
+    : CUSTOM_OBJECT_PUBLISH_PERMISSION_MESSAGE;
 
   async function handleSave(monster: MonsterRecord) {
     if (isSaving) {
@@ -72,7 +76,8 @@ function CustomBestiaryEditorModal({
       monster={customCreature?.monster ?? null}
       publicToggle={{
         checked: canPublish && isPublic,
-        disabled: !canPublish || isSaving,
+        disabled: publicToggleDisabled,
+        disabledReason: publicToggleDisabledReason,
         onChange: setIsPublic
       }}
       saveLabel={isSaving ? "Saving..." : isEditing ? "Save creature" : "Create creature"}
