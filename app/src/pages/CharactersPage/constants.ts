@@ -6,23 +6,13 @@ import type {
   CharacterDraft,
   CoreStats
 } from "../../types";
+import { speciesEntries } from "../../codex/entries/speciesData";
 import { createDefaultRoundTracker } from "./combat";
 import { defaultCharacterClassRulesConfig, defaultCustomClassConfig } from "./customClass";
 
 export const abilityKeys: AbilityKey[] = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
 
-export const speciesOptions = [
-  "Aasimar",
-  "Dragonborn",
-  "Dwarf",
-  "Elf",
-  "Gnome",
-  "Goliath",
-  "Halfling",
-  "Human",
-  "Orc",
-  "Tiefling"
-];
+export const speciesOptions = speciesEntries.map((entry) => entry.name);
 
 export const alignmentGrid: Alignment[][] = [
   ["Lawful Good", "Neutral Good", "Chaotic Good"],

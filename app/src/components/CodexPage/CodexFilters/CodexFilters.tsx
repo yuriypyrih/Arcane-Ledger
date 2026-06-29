@@ -20,8 +20,10 @@ import {
   ENTRY_CATEGORIES,
   FEAT_CATEGORY,
   MAGIC_SCHOOL,
+  SPECIES_SOURCE_VALUES,
   SPELL_LIST_CLASS,
-  type BackgroundSource
+  type BackgroundSource,
+  type SpeciesSource
 } from "../../../codex/entries";
 import ItemBrowserFilters from "../../ItemBrowser";
 import {
@@ -61,6 +63,7 @@ type CodexFiltersProps = {
   itemRarityFilter: string | null;
   itemSourceFilter: string | null;
   backgroundSourceFilter: BackgroundSource | null;
+  speciesSourceFilter: SpeciesSource | null;
   featCategoryFilter: FEAT_CATEGORY | null;
   featSourceFilter: FeatSource | null;
   itemFilterOptions: ItemFilterOptions | null;
@@ -82,6 +85,7 @@ type CodexFiltersProps = {
   onItemRarityFilterChange: (value: string | null) => void;
   onItemSourceFilterChange: (value: string | null) => void;
   onBackgroundSourceFilterChange: (value: BackgroundSource | null) => void;
+  onSpeciesSourceFilterChange: (value: SpeciesSource | null) => void;
   onFeatCategoryFilterChange: (value: FEAT_CATEGORY | null) => void;
   onFeatSourceFilterChange: (value: FeatSource | null) => void;
 };
@@ -164,6 +168,7 @@ function CodexFilters({
   itemRarityFilter,
   itemSourceFilter,
   backgroundSourceFilter,
+  speciesSourceFilter,
   featCategoryFilter,
   featSourceFilter,
   itemFilterOptions,
@@ -185,6 +190,7 @@ function CodexFilters({
   onItemRarityFilterChange,
   onItemSourceFilterChange,
   onBackgroundSourceFilterChange,
+  onSpeciesSourceFilterChange,
   onFeatCategoryFilterChange,
   onFeatSourceFilterChange
 }: CodexFiltersProps) {
@@ -414,6 +420,28 @@ function CodexFilters({
             {BACKGROUND_SOURCE_VALUES.map((backgroundSource) => (
               <option key={backgroundSource} value={backgroundSource}>
                 {backgroundSource}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : null}
+
+      {category === ENTRY_CATEGORIES.SPECIES ? (
+        <label className={styles.field}>
+          <span>Source</span>
+          <select
+            className={styles.input}
+            value={speciesSourceFilter ?? "ALL"}
+            onChange={(event) =>
+              onSpeciesSourceFilterChange(
+                event.target.value === "ALL" ? null : (event.target.value as SpeciesSource)
+              )
+            }
+          >
+            <option value="ALL">All</option>
+            {SPECIES_SOURCE_VALUES.map((speciesSource) => (
+              <option key={speciesSource} value={speciesSource}>
+                {speciesSource}
               </option>
             ))}
           </select>

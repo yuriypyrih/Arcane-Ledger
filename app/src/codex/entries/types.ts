@@ -237,6 +237,8 @@ export type ItemEntry = BaseCodexEntry<ENTRY_CATEGORIES.ITEMS, ITEM_TYPES> & {
 };
 export const BACKGROUND_SOURCE_VALUES = ["PHB'24", "FRHoF", "EFA"] as const;
 export type BackgroundSource = (typeof BACKGROUND_SOURCE_VALUES)[number];
+export const SPECIES_SOURCE_VALUES = ["PHB'24", "RHW", "EFA"] as const;
+export type SpeciesSource = (typeof SPECIES_SOURCE_VALUES)[number];
 
 export type BackgroundEntry = BaseCodexEntry<ENTRY_CATEGORIES.BACKGROUNDS, BACKGROUND_TYPES> & {
   source: BackgroundSource;
@@ -255,6 +257,7 @@ export type BackgroundEntry = BaseCodexEntry<ENTRY_CATEGORIES.BACKGROUNDS, BACKG
   };
 };
 export type SpeciesEntry = BaseCodexEntry<ENTRY_CATEGORIES.SPECIES, SPECIES_TYPES> & {
+  source: SpeciesSource;
   speed: number;
   size: BODY_SIZE[];
   trackingState?: TRACKER;

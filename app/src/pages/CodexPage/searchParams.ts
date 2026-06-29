@@ -3,8 +3,10 @@ import {
   ENTRY_CATEGORIES,
   FEAT_CATEGORY,
   MAGIC_SCHOOL,
+  SPECIES_SOURCE_VALUES,
   SPELL_LIST_CLASS,
-  type BackgroundSource
+  type BackgroundSource,
+  type SpeciesSource
 } from "../../codex/entries";
 import { MONSTER_SOURCE_OPTIONS, MONSTER_TYPE_OPTIONS } from "../../constants/monsters";
 import {
@@ -50,6 +52,7 @@ export const ITEM_ORDER_PARAM = "itemOrder";
 export const FEAT_CATEGORY_PARAM = "featCategory";
 export const FEAT_SOURCE_PARAM = "featSource";
 export const BACKGROUND_SOURCE_PARAM = "backgroundSource";
+export const SPECIES_SOURCE_PARAM = "speciesSource";
 export const PAGE_PARAM = "page";
 export const QUERY_PARAM = "q";
 
@@ -78,6 +81,7 @@ const ITEM_ARMOR_TYPES = new Set<ItemArmorType>(["light", "medium", "heavy"]);
 const FEAT_CATEGORIES = new Set<FEAT_CATEGORY>(Object.values(FEAT_CATEGORY));
 const FEAT_SOURCES = new Set<FeatSource>(FEAT_SOURCE_VALUES);
 const BACKGROUND_SOURCES = new Set<BackgroundSource>(BACKGROUND_SOURCE_VALUES);
+const SPECIES_SOURCES = new Set<SpeciesSource>(SPECIES_SOURCE_VALUES);
 const SPELL_MAGIC_SCHOOLS = new Set<MAGIC_SCHOOL>(Object.values(MAGIC_SCHOOL));
 const SPELL_SPECIAL_FILTERS = new Set<CodexSpellSpecialFilter>(CODEX_SPELL_SPECIAL_FILTERS);
 
@@ -104,6 +108,7 @@ export type ParsedCodexSearchState = {
   featCategoryFilter: FEAT_CATEGORY | null;
   featSourceFilter: FeatSource | null;
   backgroundSourceFilter: BackgroundSource | null;
+  speciesSourceFilter: SpeciesSource | null;
   currentPage: number;
 };
 
@@ -238,6 +243,10 @@ export function parseCodexSearchState(
       searchParams.get(BACKGROUND_SOURCE_PARAM),
       BACKGROUND_SOURCES
     ),
+    speciesSourceFilter: parseEnumFilter(
+      searchParams.get(SPECIES_SOURCE_PARAM),
+      SPECIES_SOURCES
+    ),
     currentPage: parsePageValue(searchParams.get(PAGE_PARAM))
   };
 }
@@ -282,6 +291,11 @@ export function clearBackgroundSearchParams(searchParams: URLSearchParams): URLS
   return searchParams;
 }
 
+export function clearSpeciesSearchParams(searchParams: URLSearchParams): URLSearchParams {
+  searchParams.delete(SPECIES_SOURCE_PARAM);
+  return searchParams;
+}
+
 export function clearCategoryScopedSearchParams(
   searchParams: URLSearchParams,
   category: CodexFilterCategory
@@ -306,6 +320,10 @@ export function clearCategoryScopedSearchParams(
     clearBackgroundSearchParams(searchParams);
   }
 
+  if (category !== ENTRY_CATEGORIES.SPECIES) {
+    clearSpeciesSearchParams(searchParams);
+  }
+
   return searchParams;
 }
 
@@ -315,6 +333,7 @@ export function clearAllCategoryScopedSearchParams(searchParams: URLSearchParams
   clearItemSearchParams(searchParams);
   clearFeatSearchParams(searchParams);
   clearBackgroundSearchParams(searchParams);
+  clearSpeciesSearchParams(searchParams);
   return searchParams;
 }
 
@@ -340,6 +359,7 @@ export function hasCategoryScopedSearchParams(searchParams: URLSearchParams): bo
     searchParams.has(FEAT_CATEGORY_PARAM) ||
     searchParams.has(FEAT_SOURCE_PARAM) ||
     searchParams.has(BACKGROUND_SOURCE_PARAM) ||
+    searchParams.has(SPECIES_SOURCE_PARAM) ||
     searchParams.has(PAGE_PARAM)
   );
 }

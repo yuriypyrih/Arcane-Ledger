@@ -7,6 +7,7 @@ import {
   getDragonbornDerivedStatusEntriesForCharacter,
   getDragonbornSpeedBonusesForCharacter
 } from "./speciesDragonborn";
+import { getDhampirSpeedBonusesForCharacter } from "./speciesDhampir";
 import {
   getDwarfActionsForCharacter,
   getDwarfDerivedStatusEntriesForCharacter
@@ -116,6 +117,10 @@ export function getSpeciesFeatureContributionsForCharacter(
       actions: dragonbornActions,
       statuses: getDragonbornDerivedStatusEntriesForCharacter(character),
       speedBonuses: getDragonbornSpeedBonusesForCharacter(character)
+    },
+    {
+      source: createSpeciesContribution("species-dhampir-rhw", "Dhampir"),
+      speedBonuses: getDhampirSpeedBonusesForCharacter(character)
     },
     {
       source: createSpeciesContribution("species-dwarf-2024", "Dwarf"),

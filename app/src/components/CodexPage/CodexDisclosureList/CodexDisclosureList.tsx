@@ -85,11 +85,7 @@ function renderEntryTitle(entry: BackgroundEntry | SpeciesEntry): ReactNode {
   return entry.name;
 }
 
-function renderBackgroundSource(entry: BackgroundEntry | SpeciesEntry): ReactNode {
-  if (entry.category !== ENTRY_CATEGORIES.BACKGROUNDS) {
-    return null;
-  }
-
+function renderEntrySource(entry: BackgroundEntry | SpeciesEntry): ReactNode {
   return (
     <span className={styles.entrySource} aria-label={`Source: ${entry.source}`}>
       {entry.source}
@@ -234,10 +230,8 @@ function CodexDisclosureList({ entries, status, category }: CodexDisclosureListP
                     onClick={openTrackingReference}
                   />
                 }
-                endMeta={renderBackgroundSource(entry)}
-                toggleIconPlacement={
-                  entry.category === ENTRY_CATEGORIES.BACKGROUNDS ? "end" : "inline"
-                }
+                endMeta={renderEntrySource(entry)}
+                toggleIconPlacement="end"
                 showDivider={index > 0}
               >
                 <FeatureDisclosureContentStack>

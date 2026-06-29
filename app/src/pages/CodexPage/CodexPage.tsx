@@ -43,6 +43,7 @@ import {
   FEAT_CATEGORY_PARAM,
   FEAT_SOURCE_PARAM,
   BACKGROUND_SOURCE_PARAM,
+  SPECIES_SOURCE_PARAM,
   MONSTERS_PER_PAGE,
   MONSTER_ORDER_PARAM,
   MONSTER_SOURCE_PARAM,
@@ -96,6 +97,7 @@ function CodexPage() {
     itemSourceFilter,
     itemTab,
     backgroundSourceFilter,
+    speciesSourceFilter,
     featCategoryFilter,
     featSourceFilter,
     query,
@@ -278,7 +280,8 @@ function CodexPage() {
         spellClassFilter,
         spellSchoolFilter,
         spellSpecialFilter,
-        backgroundSourceFilter
+        backgroundSourceFilter,
+        speciesSourceFilter
       ),
     [
       category,
@@ -288,7 +291,8 @@ function CodexPage() {
       spellLevelFilter,
       spellSchoolFilter,
       spellSpecialFilter,
-      backgroundSourceFilter
+      backgroundSourceFilter,
+      speciesSourceFilter
     ]
   );
   const sortedEntries = useMemo(() => {
@@ -572,6 +576,16 @@ function CodexPage() {
     },
     [clearSearchForSelectionChange, searchParams, setSearchParams]
   );
+  const handleSpeciesSourceFilterChange = useCallback(
+    (value: typeof speciesSourceFilter) => {
+      const nextSearchParams = new URLSearchParams(searchParams);
+      setSearchParamValue(nextSearchParams, SPECIES_SOURCE_PARAM, value);
+      clearSearchForSelectionChange(nextSearchParams);
+      resetPageSearchParam(nextSearchParams);
+      setSearchParams(nextSearchParams, { replace: true });
+    },
+    [clearSearchForSelectionChange, searchParams, setSearchParams]
+  );
   const handlePageChange = useCallback(
     (page: number) => {
       const nextPage = Math.max(1, Math.min(totalPages, page));
@@ -622,6 +636,7 @@ function CodexPage() {
           itemRarityFilter={itemRarityFilter}
           itemSourceFilter={itemSourceFilter}
           backgroundSourceFilter={backgroundSourceFilter}
+          speciesSourceFilter={speciesSourceFilter}
           featCategoryFilter={featCategoryFilter}
           featSourceFilter={featSourceFilter}
           itemFilterOptions={itemFilterOptionsPayload}
@@ -643,6 +658,7 @@ function CodexPage() {
           onItemRarityFilterChange={handleItemRarityFilterChange}
           onItemSourceFilterChange={handleItemSourceFilterChange}
           onBackgroundSourceFilterChange={handleBackgroundSourceFilterChange}
+          onSpeciesSourceFilterChange={handleSpeciesSourceFilterChange}
           onFeatCategoryFilterChange={handleFeatCategoryFilterChange}
           onFeatSourceFilterChange={handleFeatSourceFilterChange}
         />

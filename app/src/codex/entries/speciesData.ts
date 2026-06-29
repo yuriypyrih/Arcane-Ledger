@@ -1,34 +1,14 @@
-import { BODY_SIZE, ENTRY_CATEGORIES, SPECIES_TYPES, TRACKER } from "./enums";
+import { BODY_SIZE, SPECIES_TYPES, TRACKER } from "./enums";
+import { efaSpeciesEntries } from "./efaSpeciesData";
+import { rhwSpeciesEntries } from "./rhwSpeciesData";
+import { createSpeciesEntry } from "./speciesEntryFactory";
 import type { SpeciesEntry } from "./types";
 
-function createSpeciesEntry(
-  entry: Pick<
-    SpeciesEntry,
-    | "id"
-    | "name"
-    | "speed"
-    | "size"
-    | "trackingState"
-    | "starterPack"
-    | "tags"
-    | "summary"
-    | "description"
-  >
-): SpeciesEntry {
-  return {
-    ...entry,
-    category: ENTRY_CATEGORIES.SPECIES,
-    abilityBonuses: {},
-    innateProficiencies: [],
-    grantedSkillProficiencies: [],
-    grantedToolProficiencies: []
-  };
-}
-
-export const speciesEntries: SpeciesEntry[] = [
+const coreSpeciesEntries: SpeciesEntry[] = [
   createSpeciesEntry({
     id: "species-aasimar-2024",
     name: "Aasimar",
+    source: "PHB'24",
     tags: [SPECIES_TYPES.HUMANOID],
     speed: 30,
     size: [BODY_SIZE.SMALL, BODY_SIZE.MEDIUM],
@@ -56,6 +36,7 @@ export const speciesEntries: SpeciesEntry[] = [
   createSpeciesEntry({
     id: "species-dragonborn-2024",
     name: "Dragonborn",
+    source: "PHB'24",
     tags: [SPECIES_TYPES.HUMANOID, SPECIES_TYPES.DRACONIC_LINEAGE],
     speed: 30,
     size: [BODY_SIZE.MEDIUM],
@@ -81,6 +62,7 @@ export const speciesEntries: SpeciesEntry[] = [
   createSpeciesEntry({
     id: "species-dwarf-2024",
     name: "Dwarf",
+    source: "PHB'24",
     tags: [SPECIES_TYPES.HUMANOID, SPECIES_TYPES.HARDY],
     speed: 30,
     size: [BODY_SIZE.MEDIUM],
@@ -103,6 +85,7 @@ export const speciesEntries: SpeciesEntry[] = [
   createSpeciesEntry({
     id: "species-elf-2024",
     name: "Elf",
+    source: "PHB'24",
     tags: [SPECIES_TYPES.HUMANOID, SPECIES_TYPES.FEY_ANCESTRY, SPECIES_TYPES.ARCANE_AFFINITY],
     speed: 30,
     size: [BODY_SIZE.MEDIUM],
@@ -128,6 +111,7 @@ export const speciesEntries: SpeciesEntry[] = [
   createSpeciesEntry({
     id: "species-gnome-2024",
     name: "Gnome",
+    source: "PHB'24",
     tags: [SPECIES_TYPES.HUMANOID, SPECIES_TYPES.ARCANE_AFFINITY],
     speed: 30,
     size: [BODY_SIZE.SMALL],
@@ -150,6 +134,7 @@ export const speciesEntries: SpeciesEntry[] = [
   createSpeciesEntry({
     id: "species-goliath-2024",
     name: "Goliath",
+    source: "PHB'24",
     tags: [SPECIES_TYPES.HUMANOID, SPECIES_TYPES.HARDY],
     speed: 35,
     size: [BODY_SIZE.MEDIUM],
@@ -177,6 +162,7 @@ export const speciesEntries: SpeciesEntry[] = [
   createSpeciesEntry({
     id: "species-halfling-2024",
     name: "Halfling",
+    source: "PHB'24",
     tags: [SPECIES_TYPES.HUMANOID],
     speed: 30,
     size: [BODY_SIZE.SMALL],
@@ -198,6 +184,7 @@ export const speciesEntries: SpeciesEntry[] = [
   createSpeciesEntry({
     id: "species-human-2024",
     name: "Human",
+    source: "PHB'24",
     tags: [SPECIES_TYPES.HUMANOID],
     speed: 30,
     size: [BODY_SIZE.SMALL, BODY_SIZE.MEDIUM],
@@ -218,6 +205,7 @@ export const speciesEntries: SpeciesEntry[] = [
   createSpeciesEntry({
     id: "species-orc-2024",
     name: "Orc",
+    source: "PHB'24",
     tags: [SPECIES_TYPES.HUMANOID, SPECIES_TYPES.HARDY],
     speed: 30,
     size: [BODY_SIZE.MEDIUM],
@@ -239,6 +227,7 @@ export const speciesEntries: SpeciesEntry[] = [
   createSpeciesEntry({
     id: "species-tiefling-2024",
     name: "Tiefling",
+    source: "PHB'24",
     tags: [SPECIES_TYPES.HUMANOID, SPECIES_TYPES.ARCANE_AFFINITY],
     speed: 30,
     size: [BODY_SIZE.SMALL, BODY_SIZE.MEDIUM],
@@ -260,4 +249,10 @@ export const speciesEntries: SpeciesEntry[] = [
       "<strong>Otherworldly Presence.</strong> You know the Thaumaturgy cantrip. When you cast it with this trait, the spell uses the same spellcasting ability you use for your Fiendish Legacy Trait."
     ]
   })
+];
+
+export const speciesEntries: SpeciesEntry[] = [
+  ...coreSpeciesEntries,
+  ...rhwSpeciesEntries,
+  ...efaSpeciesEntries
 ];
