@@ -1,14 +1,6 @@
 import clsx from "clsx";
-import { CircleCheck, History, Minus, Plus, RefreshCw, Save } from "lucide-react";
-import {
-  Fragment,
-  useCallback,
-  useEffect,
-  useId,
-  useRef,
-  useState,
-  type ReactNode
-} from "react";
+import { CircleCheck, History, Pencil, RefreshCw, Save } from "lucide-react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import ActionButton from "../../../ActionButton";
 import { CurrencyBalancePill } from "../../../CurrencyInlineDisplay";
 import { updatePartyGroupMasterChest } from "../../../../api";
@@ -29,18 +21,33 @@ import {
   SheetModal,
   DestructiveConfirmationModal
 } from "../../../Overlay";
-import NumberInput from "../../FormInputs/NumberInput";
 import SelectInput from "../../FormInputs/SelectInput";
-import type { Character, CharacterCurrencies, CharacterInventoryItem, CurrencyKey } from "../../../../types";
+import type {
+  Character,
+  CharacterCurrencies,
+  CharacterInventoryItem,
+  CurrencyKey,
+  ItemRecord
+} from "../../../../types";
 import {
+  canAddInventoryObject,
+  createCharacterInventoryItem,
+  getItemTransactionCost,
   moveOneInventoryItemCopyBetweenRootInventories,
   normalizeCharacterInventoryItems,
   type GroupedInventoryItem
 } from "../../../../pages/CharactersPage/inventoryItems";
-import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
-import { formatCurrencyPillAmount, normalizeCurrencyAmountInput } from "./equipmentLoadoutModel";
 import SheetActionButton from "../SheetActionButton";
+import type { CustomEquipmentEditorSavePayload } from "../CustomEquipmentEditor";
 import containerStyles from "./EquipmentContainerManageModal.module.css";
+import EquipmentItemBrowserModal, {
+  type EquipmentItemBrowserSelectionOptions
+} from "./EquipmentItemBrowserModal";
+import MasterChestCurrencyModal, {
+  type MasterChestCurrencyDefinition
+} from "./MasterChestCurrencyModal";
+import MasterChestCustomEquipmentModal from "./MasterChestCustomEquipmentModal";
+import MasterChestHistoryModal from "./MasterChestHistoryModal";
 import MasterChestInventoryColumn from "./MasterChestInventoryColumn";
 import MasterChestItemInspectionDrawer from "./MasterChestItemInspectionDrawer";
 import { getMasterChestTransferBlockTitle } from "./masterChestInventoryUtils";
@@ -49,9 +56,20 @@ import {
   addTransactionItem,
   createEmptyTransactionLog,
   createTransactionSummary,
-  parseHistoryEntry,
   type MasterChestTransactionLog
 } from "./masterChestTransactions";
+import {
+  addMasterChestInspectionItem,
+  canAddMasterChestInspectionItem,
+  createMasterChestBrowserInspection,
+  createMasterChestStackInspection,
+  getMasterChestObjectLimitMessage,
+  masterChestInspectionHasContainerContents,
+  removeMasterChestInspectionItem,
+  type MasterChestItemInspection,
+  type MasterChestRemovalAction,
+  type PendingMasterChestItemRemoval
+} from "./masterChestEditing";
 import {
   getMasterChestErrorMessage,
   normalizeMasterChestCurrencies,
@@ -73,14 +91,7 @@ type MasterChestModalProps = {
   partyGroupName?: string;
 };
 
-type CurrencyDefinition = {
-  code: string;
-  icon: string;
-  key: CurrencyKey;
-  label: string;
-};
-
-const currencyDefinitions: CurrencyDefinition[] = [
+const currencyDefinitions: MasterChestCurrencyDefinition[] = [
   { key: "copper", label: "Copper", code: "CP", icon: coinCopperIcon },
   { key: "silver", label: "Silver", code: "SP", icon: coinSilverIcon },
   { key: "electrum", label: "Electrum", code: "EP", icon: coinElectrumIcon },
@@ -91,16 +102,8 @@ const currencyDefinitions: CurrencyDefinition[] = [
 const masterChestViewId = "master-chest";
 const refreshCooldownMs = 5_000;
 
-function getHistoryActionClassName(label: string) {
-  if (label === "Transferred-in" || label === "Deposit") {
-    return styles.historyActionIn;
-  }
-
-  if (label === "Transferred-out" || label === "Withdraw") {
-    return styles.historyActionOut;
-  }
-
-  return undefined;
+function getTransactionItemName(item: Pick<ItemRecord, "name">): string {
+  return item.name?.trim() || "Item";
 }
 
 function MasterChestModal({
@@ -131,9 +134,12 @@ function MasterChestModal({
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isRefreshCoolingDown, setIsRefreshCoolingDown] = useState(false);
   const [isRefreshConfirmationOpen, setIsRefreshConfirmationOpen] = useState(false);
-  const [selectedInspectionItem, setSelectedInspectionItem] = useState<GroupedInventoryItem | null>(
-    null
-  );
+  const [isGmAddModalOpen, setIsGmAddModalOpen] = useState(false);
+  const [isCustomEquipmentModalOpen, setIsCustomEquipmentModalOpen] = useState(false);
+  const [pendingItemRemoval, setPendingItemRemoval] =
+    useState<PendingMasterChestItemRemoval | null>(null);
+  const [selectedInspection, setSelectedInspection] =
+    useState<MasterChestItemInspection | null>(null);
   const [selectedViewId, setSelectedViewId] = useState(masterChestViewId);
   const [transactionLog, setTransactionLog] = useState<MasterChestTransactionLog>(
     createEmptyTransactionLog
@@ -146,6 +152,7 @@ function MasterChestModal({
       ? null
       : (partyInventoryMembers.find((member) => member.characterId === selectedViewId) ?? null);
   const isMasterChestView = selectedViewId === masterChestViewId;
+  const canGmEditChest = isGmMode && isMasterChestView && loadStatus === "ready";
   const canTransferItems = mode === "player" && isMasterChestView;
   const hasUnsavedTransferDraft = Boolean(createTransactionSummary(transactionLog));
   const activeCurrencyDefinition =
@@ -161,6 +168,7 @@ function MasterChestModal({
     normalizedCurrencyAmount > 0 &&
     (draft.chestCurrencies[activeCurrencyKey] ?? 0) >= normalizedCurrencyAmount;
   const displayCurrencies = selectedPartyMember?.currencies ?? draft.chestCurrencies;
+  const displayedInventoryItems = selectedPartyMember?.inventoryItems ?? draft.chestInventoryItems;
   const refreshButtonLabel = isRefreshing
     ? "Refreshing master chest"
     : isRefreshCoolingDown
@@ -199,6 +207,10 @@ function MasterChestModal({
     clearRefreshCooldown();
     setIsRefreshCoolingDown(false);
     setSelectedViewId(masterChestViewId);
+    setIsGmAddModalOpen(false);
+    setIsCustomEquipmentModalOpen(false);
+    setPendingItemRemoval(null);
+    setSelectedInspection(null);
     setTransactionLog(createEmptyTransactionLog());
   }, [clearRefreshCooldown, partyGroupId]);
 
@@ -214,6 +226,9 @@ function MasterChestModal({
   useEffect(() => {
     if (!isMasterChestView) {
       setIsCurrencyModalOpen(false);
+      setIsGmAddModalOpen(false);
+      setIsCustomEquipmentModalOpen(false);
+      setPendingItemRemoval(null);
     }
   }, [isMasterChestView]);
 
@@ -314,6 +329,245 @@ function MasterChestModal({
     setCurrencyAmountDraft(0);
   }
 
+  function openGmAddModal() {
+    if (!canGmEditChest) {
+      return;
+    }
+
+    setNotice(null);
+    setError(null);
+    setSelectedInspection(null);
+    setIsGmAddModalOpen(true);
+  }
+
+  function openGmCustomEquipmentCreator() {
+    if (!canGmEditChest) {
+      return;
+    }
+
+    setIsGmAddModalOpen(false);
+    setIsCustomEquipmentModalOpen(true);
+  }
+
+  function closeGmCustomEquipmentModal() {
+    setIsCustomEquipmentModalOpen(false);
+  }
+
+  function openGmInspectionFromBrowser(
+    item: { key: string },
+    options?: EquipmentItemBrowserSelectionOptions
+  ) {
+    if (!canGmEditChest) {
+      return;
+    }
+
+    setNotice(null);
+    setSelectedInspection(createMasterChestBrowserInspection(item, options));
+  }
+
+  function openInventoryInspection(item: GroupedInventoryItem) {
+    setNotice(null);
+    setSelectedInspection(createMasterChestStackInspection(item));
+  }
+
+  function showMasterChestObjectLimitNotice(inventoryItems = draft.chestInventoryItems) {
+    setNotice(getMasterChestObjectLimitMessage(inventoryItems));
+  }
+
+  function addGmChestItem(inspection: MasterChestItemInspection, item: ItemRecord) {
+    if (!canGmEditChest || !item.key) {
+      return;
+    }
+
+    const itemName = getTransactionItemName(item);
+
+    if (!canAddMasterChestInspectionItem(draft.chestInventoryItems, inspection, item)) {
+      showMasterChestObjectLimitNotice();
+      return;
+    }
+
+    setDraft({
+      ...draft,
+      chestInventoryItems: addMasterChestInspectionItem(
+        draft.chestInventoryItems,
+        inspection,
+        item
+      )
+    });
+    setTransactionLog((currentLog) => addTransactionItem(currentLog, "transferredInItems", itemName));
+    setNotice(null);
+  }
+
+  function buyGmChestItem(inspection: MasterChestItemInspection, item: ItemRecord) {
+    if (!canGmEditChest || !item.key) {
+      return;
+    }
+
+    const transactionCost = getItemTransactionCost(item);
+    const itemName = getTransactionItemName(item);
+
+    if (!transactionCost || transactionCost.amount <= 0) {
+      return;
+    }
+
+    if ((draft.chestCurrencies[transactionCost.currencyKey] ?? 0) < transactionCost.amount) {
+      setNotice(`Not enough ${transactionCost.currency} to buy ${itemName}.`);
+      return;
+    }
+
+    if (!canAddMasterChestInspectionItem(draft.chestInventoryItems, inspection, item)) {
+      showMasterChestObjectLimitNotice();
+      return;
+    }
+
+    setDraft({
+      ...draft,
+      chestCurrencies: {
+        ...draft.chestCurrencies,
+        [transactionCost.currencyKey]:
+          (draft.chestCurrencies[transactionCost.currencyKey] ?? 0) - transactionCost.amount
+      },
+      chestInventoryItems: addMasterChestInspectionItem(
+        draft.chestInventoryItems,
+        inspection,
+        item
+      )
+    });
+    setTransactionLog((currentLog) =>
+      addTransactionCurrency(
+        addTransactionItem(currentLog, "transferredInItems", itemName),
+        "withdrawals",
+        transactionCost.currencyKey,
+        transactionCost.amount
+      )
+    );
+    setNotice(null);
+  }
+
+  function requestGmChestItemRemoval(
+    action: MasterChestRemovalAction,
+    inspection: MasterChestItemInspection,
+    item: ItemRecord
+  ) {
+    if (!canGmEditChest || !item.key) {
+      return;
+    }
+
+    if (masterChestInspectionHasContainerContents(draft.chestInventoryItems, inspection)) {
+      setPendingItemRemoval({ action, inspection, item });
+      return;
+    }
+
+    removeGmChestItem(action, inspection, item);
+  }
+
+  function removeGmChestItem(
+    action: MasterChestRemovalAction,
+    inspection: MasterChestItemInspection,
+    item: ItemRecord
+  ) {
+    if (!canGmEditChest || !item.key) {
+      return;
+    }
+
+    const nextInventoryItems = removeMasterChestInspectionItem(
+      draft.chestInventoryItems,
+      inspection
+    );
+
+    if (nextInventoryItems === draft.chestInventoryItems) {
+      return;
+    }
+
+    const itemName = getTransactionItemName(item);
+
+    if (action === "sell") {
+      const transactionCost = getItemTransactionCost(item, {
+        multiplier: 0.5,
+        rounding: "floor"
+      });
+
+      if (!transactionCost || transactionCost.amount <= 0) {
+        return;
+      }
+
+      setDraft({
+        ...draft,
+        chestCurrencies: {
+          ...draft.chestCurrencies,
+          [transactionCost.currencyKey]:
+            (draft.chestCurrencies[transactionCost.currencyKey] ?? 0) + transactionCost.amount
+        },
+        chestInventoryItems: nextInventoryItems
+      });
+      setTransactionLog((currentLog) =>
+        addTransactionCurrency(
+          addTransactionItem(currentLog, "transferredOutItems", itemName),
+          "deposits",
+          transactionCost.currencyKey,
+          transactionCost.amount
+        )
+      );
+    } else {
+      setDraft({
+        ...draft,
+        chestInventoryItems: nextInventoryItems
+      });
+      setTransactionLog((currentLog) =>
+        addTransactionItem(currentLog, "transferredOutItems", itemName)
+      );
+    }
+
+    setNotice(null);
+  }
+
+  function confirmPendingItemRemoval() {
+    if (!pendingItemRemoval) {
+      return;
+    }
+
+    removeGmChestItem(
+      pendingItemRemoval.action,
+      pendingItemRemoval.inspection,
+      pendingItemRemoval.item
+    );
+    setPendingItemRemoval(null);
+  }
+
+  function saveGmCustomEquipment(payload: CustomEquipmentEditorSavePayload) {
+    if (!canGmEditChest) {
+      return;
+    }
+
+    if (!canAddInventoryObject(draft.chestInventoryItems, { kind: "new-root-stack" })) {
+      showMasterChestObjectLimitNotice();
+      return;
+    }
+
+    const newStack = createCharacterInventoryItem(payload.item, {
+      quantity: 1,
+      mods: payload.mods,
+      chargesTotal: payload.settings.chargesTotal,
+      chargesRecharge: payload.settings.chargesRecharge,
+      storedSpell: payload.settings.storedSpell,
+      featureTags: payload.settings.featureTags,
+      customTag: payload.settings.customTag,
+      spellcastingFocusSources: payload.settings.spellcastingFocusSources,
+      conjuredSource: payload.settings.conjuredSource,
+      conjuredDuration: payload.settings.conjuredDuration
+    });
+
+    setDraft({
+      ...draft,
+      chestInventoryItems: [...draft.chestInventoryItems, newStack]
+    });
+    setTransactionLog((currentLog) =>
+      addTransactionItem(currentLog, "transferredInItems", getTransactionItemName(payload.item))
+    );
+    setNotice(null);
+    setIsCustomEquipmentModalOpen(false);
+  }
+
   async function saveMasterChest() {
     const actorCharacterId = character?.storageMetadata?.sync?.remoteId;
 
@@ -362,6 +616,10 @@ function MasterChestModal({
 
   function handleSelectedViewChange(nextViewId: string) {
     setSelectedViewId(nextViewId);
+    setIsGmAddModalOpen(false);
+    setIsCustomEquipmentModalOpen(false);
+    setPendingItemRemoval(null);
+    setSelectedInspection(null);
     setNotice(null);
     setError(null);
   }
@@ -383,7 +641,10 @@ function MasterChestModal({
     setIsRefreshConfirmationOpen(false);
     setCurrencyAmountDraft(0);
     setNotice(null);
-    setSelectedInspectionItem(null);
+    setIsGmAddModalOpen(false);
+    setIsCustomEquipmentModalOpen(false);
+    setPendingItemRemoval(null);
+    setSelectedInspection(null);
     setTransactionLog(createEmptyTransactionLog());
     setIsRefreshing(true);
 
@@ -455,21 +716,29 @@ function MasterChestModal({
       ) : (
         <OverlayBody className={styles.body}>
           <div className={styles.bodyToolbar}>
-            <label className={styles.viewSelector}>
-              <span className={styles.viewSelectorLabel}>View</span>
-              <SelectInput
-                compact
-                value={selectedViewId}
-                onChange={(event) => handleSelectedViewChange(event.target.value)}
-              >
-                <option value={masterChestViewId}>Master Chest</option>
-                {partyInventoryMembers.map((member) => (
-                  <option key={member.characterId} value={member.characterId}>
-                    {`${member.summary.name} (${member.user.nickname})`}
-                  </option>
-                ))}
-              </SelectInput>
-            </label>
+            <div className={styles.viewControls}>
+              <label className={styles.viewSelector}>
+                <span className={styles.viewSelectorLabel}>View</span>
+                <SelectInput
+                  compact
+                  value={selectedViewId}
+                  onChange={(event) => handleSelectedViewChange(event.target.value)}
+                >
+                  <option value={masterChestViewId}>Master Chest</option>
+                  {partyInventoryMembers.map((member) => (
+                    <option key={member.characterId} value={member.characterId}>
+                      {`${member.summary.name} (${member.user.nickname})`}
+                    </option>
+                  ))}
+                </SelectInput>
+              </label>
+              {isGmMode ? (
+                <SheetActionButton disabled={!canGmEditChest || isSaving} onClick={openGmAddModal}>
+                  <Pencil size={16} aria-hidden="true" />
+                  Edit
+                </SheetActionButton>
+              ) : null}
+            </div>
             <CurrencyPill
               currencies={displayCurrencies}
               disabled={!isMasterChestView}
@@ -492,7 +761,7 @@ function MasterChestModal({
                 destinationName="Master Chest"
                 direction="deposit"
                 inventoryItems={draft.characterInventoryItems}
-                onInspect={setSelectedInspectionItem}
+                onInspect={openInventoryInspection}
                 onMove={(item) => moveItem("deposit", item)}
                 title="Inventory"
               />
@@ -501,8 +770,8 @@ function MasterChestModal({
               destinationInventoryItems={draft.characterInventoryItems}
               destinationName="Inventory"
               direction={canTransferItems ? "withdraw" : "read-only"}
-              inventoryItems={selectedPartyMember?.inventoryItems ?? draft.chestInventoryItems}
-              onInspect={setSelectedInspectionItem}
+              inventoryItems={displayedInventoryItems}
+              onInspect={openInventoryInspection}
               onMove={(item) => moveItem("withdraw", item)}
               title={selectedPartyMember?.summary.name ?? "Master Chest"}
             />
@@ -543,6 +812,7 @@ function MasterChestModal({
           canWithdraw={canWithdrawCurrency}
           characterCurrencies={draft.characterCurrencies}
           chestCurrencies={draft.chestCurrencies}
+          currencies={currencyDefinitions}
           currencyAmountDraft={currencyAmountDraft}
           isGmMode={isGmMode}
           onChangeAmount={setCurrencyAmountDraft}
@@ -557,9 +827,33 @@ function MasterChestModal({
         <MasterChestHistoryModal history={history} onClose={() => setIsHistoryModalOpen(false)} />
       ) : null}
 
+      <EquipmentItemBrowserModal
+        isOpen={isGmAddModalOpen}
+        currencies={draft.chestCurrencies}
+        onClose={() => setIsGmAddModalOpen(false)}
+        onOpenCurrencyModal={() => setIsCurrencyModalOpen(true)}
+        onOpenCustomEquipmentCreator={openGmCustomEquipmentCreator}
+        onItemSelect={openGmInspectionFromBrowser}
+      />
+
+      {isCustomEquipmentModalOpen ? (
+        <MasterChestCustomEquipmentModal
+          onClose={closeGmCustomEquipmentModal}
+          onSave={saveGmCustomEquipment}
+        />
+      ) : null}
+
       <MasterChestItemInspectionDrawer
-        item={selectedInspectionItem}
-        onClose={() => setSelectedInspectionItem(null)}
+        currencies={draft.chestCurrencies}
+        editMode={canGmEditChest}
+        inspection={selectedInspection}
+        inventoryItems={displayedInventoryItems}
+        notice={notice}
+        onAdd={addGmChestItem}
+        onBuy={buyGmChestItem}
+        onClose={() => setSelectedInspection(null)}
+        onRemove={(inspection, item) => requestGmChestItemRemoval("remove", inspection, item)}
+        onSell={(inspection, item) => requestGmChestItemRemoval("sell", inspection, item)}
       />
 
       {isRefreshConfirmationOpen ? (
@@ -574,6 +868,27 @@ function MasterChestModal({
           onConfirm={() => {
             void refreshMasterChestData();
           }}
+        />
+      ) : null}
+
+      {pendingItemRemoval ? (
+        <DestructiveConfirmationModal
+          titleId="master-chest-item-removal-title"
+          title={
+            pendingItemRemoval.action === "sell"
+              ? "Sell container and contents?"
+              : "Remove container and contents?"
+          }
+          message={
+            <>
+              This will delete <strong>{getTransactionItemName(pendingItemRemoval.item)}</strong>{" "}
+              and everything inside it from the master chest.
+            </>
+          }
+          confirmLabel={pendingItemRemoval.action === "sell" ? "Sell" : "Remove"}
+          closeLabel="Close master chest item removal confirmation"
+          onCancel={() => setPendingItemRemoval(null)}
+          onConfirm={confirmPendingItemRemoval}
         />
       ) : null}
     </SheetModal>
@@ -597,225 +912,6 @@ function CurrencyPill({
       onClick={onClick}
     />
   );
-}
-
-function MasterChestCurrencyModal({
-  activeCurrencyDefinition,
-  activeCurrencyKey,
-  canDeposit,
-  canWithdraw,
-  characterCurrencies,
-  chestCurrencies,
-  currencyAmountDraft,
-  isGmMode,
-  onChangeAmount,
-  onChangeCurrency,
-  onClose,
-  onDeposit,
-  onWithdraw
-}: {
-  activeCurrencyDefinition: CurrencyDefinition;
-  activeCurrencyKey: CurrencyKey;
-  canDeposit: boolean;
-  canWithdraw: boolean;
-  characterCurrencies: CharacterCurrencies;
-  chestCurrencies: CharacterCurrencies;
-  currencyAmountDraft: number;
-  isGmMode: boolean;
-  onChangeAmount: (value: number) => void;
-  onChangeCurrency: (value: CurrencyKey) => void;
-  onClose: () => void;
-  onDeposit: () => void;
-  onWithdraw: () => void;
-}) {
-  return (
-    <SheetModal
-      titleId="master-chest-currency-modal-title"
-      onClose={onClose}
-      size="small"
-      backdropClassName={styles.currencyModalBackdrop}
-      panelClassName={styles.currencyModal}
-    >
-      <OverlayHeader>
-        <OverlayHeaderContent>
-          <OverlayEyebrow>Currency</OverlayEyebrow>
-          <OverlayTitle id="master-chest-currency-modal-title">Currency balance</OverlayTitle>
-          <OverlaySummary>Deposit into or withdraw from the master chest.</OverlaySummary>
-        </OverlayHeaderContent>
-        <OverlayCloseButton label="Close currency modal" onClick={onClose} />
-      </OverlayHeader>
-
-      <OverlayBody className={styles.currencyModalBody}>
-        <div className={styles.currencySelectorRow}>
-          {currencyDefinitions.map((currency) => (
-            <div key={currency.key} className={styles.currencySelectorCell}>
-              <span className={styles.currencySelectorHint}>
-                {isGmMode
-                  ? "You: Unlimited"
-                  : `You: ${formatCurrencyPillAmount(characterCurrencies[currency.key] ?? 0)} ${currency.code}`}
-              </span>
-              <button
-                type="button"
-                className={clsx(
-                  styles.currencySelectorButton,
-                  activeCurrencyKey === currency.key && styles.currencySelectorButtonActive
-                )}
-                onClick={() => onChangeCurrency(currency.key)}
-              >
-                <img
-                  src={currency.icon}
-                  alt=""
-                  className={styles.currencySelectorIcon}
-                  aria-hidden="true"
-                />
-                <strong>{formatCurrencyPillAmount(chestCurrencies[currency.key] ?? 0)}</strong>
-                <span>{currency.code}</span>
-              </button>
-            </div>
-          ))}
-        </div>
-
-        <div className={clsx(sheetStyles.currencyDrawerContent, styles.currencyModalActionRow)}>
-          <label className={sheetStyles.currencyDrawerField}>
-            <span className={sheetStyles.currencyDrawerLabel}>
-              {`Amount (${activeCurrencyDefinition.label})`}
-            </span>
-            <NumberInput
-              min={0}
-              className={sheetStyles.currencyDrawerInput}
-              value={currencyAmountDraft}
-              onFocus={(event) => {
-                if (currencyAmountDraft === 0) {
-                  event.currentTarget.select();
-                }
-              }}
-              onChange={(event) =>
-                onChangeAmount(normalizeCurrencyAmountInput(event.target.value, currencyAmountDraft))
-              }
-            />
-          </label>
-        </div>
-      </OverlayBody>
-
-      <OverlayFooter>
-        <div className={styles.currencyModalActions}>
-          <ActionButton
-            actionType="SUCCESS"
-            icon={<Plus size={16} aria-hidden="true" />}
-            disabled={!canDeposit}
-            onClick={onDeposit}
-          >
-            Deposit
-          </ActionButton>
-          <ActionButton
-            actionType="ERROR"
-            icon={<Minus size={16} aria-hidden="true" />}
-            disabled={!canWithdraw}
-            onClick={onWithdraw}
-          >
-            Withdraw
-          </ActionButton>
-        </div>
-      </OverlayFooter>
-    </SheetModal>
-  );
-}
-
-function MasterChestHistoryModal({
-  history,
-  onClose
-}: {
-  history: string[];
-  onClose: () => void;
-}) {
-  return (
-    <SheetModal
-      titleId="master-chest-history-modal-title"
-      onClose={onClose}
-      size="small"
-      backdropClassName={styles.historyModalBackdrop}
-      panelClassName={styles.historyModal}
-    >
-      <OverlayHeader>
-        <OverlayHeaderContent>
-          <OverlayEyebrow>Master Chest</OverlayEyebrow>
-          <OverlayTitle id="master-chest-history-modal-title">History</OverlayTitle>
-          <OverlaySummary>Latest saved transactions.</OverlaySummary>
-        </OverlayHeaderContent>
-        <OverlayCloseButton label="Close history modal" onClick={onClose} />
-      </OverlayHeader>
-
-      <OverlayBody className={styles.historyModalBody}>
-        {history.length > 0 ? (
-          <ol className={styles.historyList}>
-            {history.map((entry, index) => (
-              <li key={`${entry}-${index}`} className={styles.historyItem}>
-                <HistoryEntry entry={entry} />
-              </li>
-            ))}
-          </ol>
-        ) : (
-          <p className={styles.historyEmpty}>No saved transactions yet.</p>
-        )}
-      </OverlayBody>
-
-      <OverlayFooter>
-        <div className={styles.readOnlyFooterActions}>
-          <ActionButton variant="OUTLINE" onClick={onClose}>
-            Close
-          </ActionButton>
-        </div>
-      </OverlayFooter>
-    </SheetModal>
-  );
-}
-
-function HistoryEntry({ entry }: { entry: string }) {
-  const parsedEntry = parseHistoryEntry(entry);
-
-  if (!parsedEntry.timestamp || !parsedEntry.actor || parsedEntry.actions.length === 0) {
-    return <span>{entry}</span>;
-  }
-
-  return (
-    <article className={styles.historyEntryContent}>
-      <header className={styles.historyEntryHeader}>
-        <time className={styles.historyTimestamp}>{parsedEntry.timestamp}</time>
-        <span className={styles.historyActor}>{parsedEntry.actor}</span>
-      </header>
-      <div className={styles.historyActionList}>
-        {parsedEntry.actions.map((action) => (
-          <div key={`${action.label}-${action.content}`} className={styles.historyAction}>
-            <strong
-              className={clsx(
-                styles.historyActionLabel,
-                getHistoryActionClassName(action.label)
-              )}
-            >
-              {action.label}
-            </strong>
-            <span className={styles.historyActionTokens}>
-              {formatHistoryActionContent(action.content)}
-            </span>
-          </div>
-        ))}
-      </div>
-    </article>
-  );
-}
-
-function formatHistoryActionContent(content: string): ReactNode {
-  const entries = content
-    .split(",")
-    .map((entry) => entry.trim())
-    .filter(Boolean);
-
-  return entries.map((entry, index) => (
-    <Fragment key={`${entry}-${index}`}>
-      {index > 0 ? <span className={styles.historyTokenSeparator}> </span> : null}
-      <span className={styles.historyToken}>{entry}</span>
-    </Fragment>
-  ));
 }
 
 export default MasterChestModal;

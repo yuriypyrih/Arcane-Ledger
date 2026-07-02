@@ -12,7 +12,9 @@ import { defaultCharacterClassRulesConfig, defaultCustomClassConfig } from "./cu
 
 export const abilityKeys: AbilityKey[] = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
 
-export const speciesOptions = speciesEntries.map((entry) => entry.name);
+export const speciesOptions = speciesEntries
+  .map((entry) => entry.name)
+  .sort((left, right) => left.localeCompare(right));
 
 export const alignmentGrid: Alignment[][] = [
   ["Lawful Good", "Neutral Good", "Chaotic Good"],

@@ -204,6 +204,11 @@ import { wizardAbjurerArcaneWardActionKey } from "../../../../../../pages/Charac
 import { setWizardDivinerPortentRolls } from "../../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardDivinerPortent";
 import { activateWizardDivinerThirdEye } from "../../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardDivinerThirdEye";
 import {
+  rebornKnowledgeFromPastLifeActionKey,
+  shifterBeasthideOptionKey,
+  shifterShiftingActionKey
+} from "../../../../../../pages/CharactersPage/species";
+import {
   getRogueSneakAttackEffectDefinitions,
   getRogueSneakAttackFormula,
   getRogueSneakAttackFormulaDisplay
@@ -552,6 +557,7 @@ export function renderActionDrawerFooter(context: ActionsWidgetDrawerFooterConte
     isRecklessAttackSelected,
     isSacredWeaponSelected,
     isStunningStrikeSelected,
+    isVampiricBiteSelected,
     isVowOfEnmitySelected,
     natureMagicianOptions,
     onPersistCharacter,
@@ -673,6 +679,8 @@ export function renderActionDrawerFooter(context: ActionsWidgetDrawerFooterConte
     selectedWeaponQuiveringPalmDisabledReason,
     selectedWeaponQuiveringPalmState,
     selectedWeaponQuiveringPalmToggleDisabled,
+    selectedWeaponVampiricBiteState,
+    selectedWeaponVampiricBiteToggleDisabled,
     selectedWeaponRollState,
     selectedWeaponSacredWeaponState,
     selectedWeaponSacredWeaponToggleDisabled,
@@ -713,6 +721,7 @@ export function renderActionDrawerFooter(context: ActionsWidgetDrawerFooterConte
     setIsRecklessAttackSelected,
     setIsSacredWeaponSelected,
     setIsStunningStrikeSelected,
+    setIsVampiricBiteSelected,
     setIsVowOfEnmitySelected,
     setSelectedActionOptionKeys,
     setSelectedArcaneRecoverySelection,
@@ -994,6 +1003,22 @@ export function renderActionDrawerFooter(context: ActionsWidgetDrawerFooterConte
             )}
             application={{ targetLabel: "Damage" }}
             usageKey="quivering-palm"
+          />
+        ) : null}
+        {selectedWeaponVampiricBiteState ? (
+          <FeatureOptInToggle
+            label="Vampiric Bite"
+            checked={isVampiricBiteSelected}
+            disabled={selectedWeaponVampiricBiteToggleDisabled}
+            muted={selectedWeaponVampiricBiteToggleDisabled}
+            onCheckedChange={setIsVampiricBiteSelected}
+            title={selectedWeaponVampiricBiteState.disabledReason ?? undefined}
+            usage={createChargesCardUsage(
+              selectedWeaponVampiricBiteState.usesRemaining,
+              selectedWeaponVampiricBiteState.usesTotal
+            )}
+            application={{ targetLabel: "Damage" }}
+            usageKey="vampiric-bite"
           />
         ) : null}
         {showPsionicStrikeToggle ? (
@@ -2120,6 +2145,32 @@ export function renderActionDrawerFooter(context: ActionsWidgetDrawerFooterConte
     return null;
   }
 
+  if (
+    selectedAction.kind === "feature" &&
+    selectedAction.action.key === shifterShiftingActionKey &&
+    selectedAction.drawer.kind === "options" &&
+    selectedDrawerOption?.key === shifterBeasthideOptionKey
+  ) {
+    const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
+    return (
+      <ActionDiceConfirmFooter
+        actionName={selectedAction.name}
+        confirmLabel={selectedFeaturePrimaryLabel}
+        actionShape={actionShape}
+        actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+        actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+        disabled={
+          selectedDrawerOption.disabled === true ||
+          selectedOptionWarning !== null ||
+          selectedFeatureActionPrimaryDisabledReason !== null
+        }
+        isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
+        onConfirm={confirmActionToast(null, confirmSelectedFeatureOptions)}
+        onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
+      />
+    );
+  }
+
   if (selectedAction.drawer.kind === "options") {
     const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
     const selectedOption = selectedDrawerOption;
@@ -2516,6 +2567,28 @@ export function renderActionDrawerFooter(context: ActionsWidgetDrawerFooterConte
 
   if (selectedAction.drawer.kind !== "confirm") {
     return null;
+  }
+
+  if (
+    selectedAction.kind === "feature" &&
+    selectedAction.action.key === rebornKnowledgeFromPastLifeActionKey &&
+    selectedAction.execute.kind === "activate"
+  ) {
+    const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
+
+    return (
+      <ActionDiceConfirmFooter
+        actionName={selectedAction.name}
+        confirmLabel={selectedFeaturePrimaryLabel}
+        actionShape={actionShape}
+        actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+        actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+        disabled={selectedFeatureActionPrimaryDisabledReason !== null}
+        isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
+        onConfirm={() => executeFeatureActivate(selectedAction.action)}
+        onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
+      />
+    );
   }
 
   if (

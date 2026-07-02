@@ -8,9 +8,15 @@ import {
 } from "../../../../../pages/CharactersPage/deathSaves";
 import type { SpellDescriptionEntry } from "../../../../../codex/entries";
 import { orderDescriptionAdditionSections } from "../../../../../pages/CharactersPage/actionModalDescriptions";
+import type { FeatureIndicator } from "../../../../../pages/CharactersPage/classFeatures";
 import ActionButton from "../../../../ActionButton";
 import DescriptionContent from "../../../../DescriptionContent/DescriptionContent";
 import { useDiceRollerPopup } from "../../../../DicePage/DiceRollerPopup";
+import RollStatePill from "../../../../RollStatePill/RollStatePill";
+import {
+  formatResolvedRollStateDetailText,
+  resolveFeatureIndicators
+} from "../../../../RollStatePill/rollState";
 import {
   OverlayBody,
   OverlayCloseButton,
@@ -37,6 +43,7 @@ type DeathSavesTrackerProps = {
   rollDescription?: string;
   rollFormula?: string;
   rollFormulaDisplay?: string;
+  rollIndicators?: FeatureIndicator[];
   rollMode?: RollMode;
   rollTitle?: string;
   readOnly?: boolean;
@@ -58,6 +65,7 @@ function DeathSavesTracker({
   rollDescription = "Roll a death saving throw.",
   rollFormula = "1d20",
   rollFormulaDisplay = rollFormula,
+  rollIndicators,
   rollMode,
   rollTitle = "Death save",
   readOnly = false,
@@ -75,6 +83,7 @@ function DeathSavesTracker({
     deathSaves.successes > 0 ||
     deathSaves.failures > 0 ||
     deathSaves.resolution === "instant-death";
+  const rollState = resolveFeatureIndicators(rollIndicators);
   const descriptionSections = orderDescriptionAdditionSections(descriptionAdditions);
   const canEdit = !readOnly && Boolean(onReset && onUpdate);
 
@@ -128,6 +137,15 @@ function DeathSavesTracker({
                 <OverlayTitle id={titleId}>{title}</OverlayTitle>
               </OverlayTitleRow>
             </OverlayHeaderContent>
+            {rollState ? (
+              <div className={styles.headerIndicatorStack}>
+                <RollStatePill
+                  tone={rollState.tone}
+                  label={rollState.label}
+                  detailText={formatResolvedRollStateDetailText(rollState)}
+                />
+              </div>
+            ) : null}
             <OverlayCloseButton label="Close death saves" onClick={() => setIsModalOpen(false)} />
           </OverlayHeader>
 

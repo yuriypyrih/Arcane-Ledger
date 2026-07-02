@@ -21,6 +21,7 @@ import {
   getPassivePerceptionForCharacter,
   getProficiencyBonus
 } from "../gameplay";
+import { getSpeciesDescriptionAdditionsForCharacter } from "../species";
 import {
   getHitDiceRemainingForCharacter,
   getHitDiceTotalForCharacter,
@@ -369,6 +370,9 @@ function getSpeedDescriptionAdditions(character: Character): SpellDescriptionEnt
   descriptionAdditions.push(...getAthleteSpeedDescriptionAdditionsForCharacter(character));
   descriptionAdditions.push(
     ...getArtificerCartographerPortalJumpSpeedDescriptionAdditions(character)
+  );
+  descriptionAdditions.push(
+    ...getSpeciesDescriptionAdditionsForCharacter(character, "stat", "speed")
   );
 
   return descriptionAdditions;

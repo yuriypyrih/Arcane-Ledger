@@ -71,7 +71,9 @@ import {
   createPsiWarriorPsionicStrikeDamageBonus
 } from "./fighterPsiWarriorWeapon";
 import {
+  applyDhampirVampiricBiteWeaponAction,
   appendGoliathAttackDescriptionAddition,
+  getDhampirVampiricBiteWeaponOptionState,
   getGoliathAttackOptionStateForCharacter
 } from "../../../../../../pages/CharactersPage/species";
 import {
@@ -102,6 +104,7 @@ type UseSelectedWeaponActionModelArgs = {
   isRecklessAttackSelected: boolean;
   isSacredWeaponSelected: boolean;
   isStunningStrikeSelected: boolean;
+  isVampiricBiteSelected: boolean;
   isVowOfEnmitySelected: boolean;
 };
 
@@ -125,6 +128,7 @@ export function useSelectedWeaponActionModel({
   isRecklessAttackSelected,
   isSacredWeaponSelected,
   isStunningStrikeSelected,
+  isVampiricBiteSelected,
   isVowOfEnmitySelected
 }: UseSelectedWeaponActionModelArgs) {
   const selectedWeaponAction = selectedAction?.kind === "weapon" ? selectedAction.action : null;
@@ -323,6 +327,10 @@ export function useSelectedWeaponActionModel({
     () => getMonkWarriorOfTheOpenHandQuiveringPalmOptionState(character, selectedWeaponAction),
     [character, selectedWeaponAction]
   );
+  const selectedWeaponVampiricBiteState = useMemo(
+    () => getDhampirVampiricBiteWeaponOptionState(character, selectedWeaponAction),
+    [character, selectedWeaponAction]
+  );
   const selectedWeaponHandOfHarmDisabledReason = useMemo(() => {
     if (!selectedWeaponHandOfHarmState) {
       return null;
@@ -466,6 +474,8 @@ export function useSelectedWeaponActionModel({
         );
   const selectedWeaponQuiveringPalmToggleDisabled =
     selectedWeaponQuiveringPalmDisabledReason !== null;
+  const selectedWeaponVampiricBiteToggleDisabled =
+    selectedWeaponVampiricBiteState?.disabled ?? false;
   const selectedImprovedShadowStepState = useMemo(
     () => getMonkWarriorOfShadowImprovedShadowStepOptionState(character, selectedFeatureAction),
     [character, selectedFeatureAction]
@@ -637,6 +647,14 @@ export function useSelectedWeaponActionModel({
       );
     }
 
+    if (
+      isVampiricBiteSelected &&
+      selectedWeaponVampiricBiteState &&
+      !selectedWeaponVampiricBiteToggleDisabled
+    ) {
+      nextAction = applyDhampirVampiricBiteWeaponAction(character, nextAction);
+    }
+
     if (shouldApplyLightWeaponDamagePenalty(character.roundTracker, nextAction)) {
       nextAction = applyLightWeaponDamagePenalty(nextAction);
     }
@@ -655,6 +673,7 @@ export function useSelectedWeaponActionModel({
     isPolarStrikesSelected,
     isRecklessAttackSelected,
     isSacredWeaponSelected,
+    isVampiricBiteSelected,
     isVowOfEnmitySelected,
     isPsionicStrikeSelected,
     selectedWeaponAction,
@@ -685,7 +704,9 @@ export function useSelectedWeaponActionModel({
     selectedWeaponVowOfEnmityState,
     selectedWeaponVowOfEnmityToggleDisabled,
     selectedWeaponPsionicStrikeAvailable,
-    selectedWeaponPsionicStrikeFormula
+    selectedWeaponPsionicStrikeFormula,
+    selectedWeaponVampiricBiteState,
+    selectedWeaponVampiricBiteToggleDisabled
   ]);
   const selectedWeaponAttackFormula = useMemo(
     () =>
@@ -760,6 +781,7 @@ export function useSelectedWeaponActionModel({
     selectedWeaponEmpoweredStrikesState,
     selectedWeaponHandOfHarmState,
     selectedWeaponQuiveringPalmState,
+    selectedWeaponVampiricBiteState,
     selectedWeaponHandOfHarmDisabledReason,
     selectedWeaponStunningStrikeDisabledReason,
     selectedWeaponQuiveringPalmDisabledReason,
@@ -780,6 +802,7 @@ export function useSelectedWeaponActionModel({
     selectedWeaponHandOfHarmToggleDisabled,
     selectedWeaponHandOfHarmUsage,
     selectedWeaponQuiveringPalmToggleDisabled,
+    selectedWeaponVampiricBiteToggleDisabled,
     selectedImprovedShadowStepState,
     selectedWeaponEffectiveAction,
     selectedWeaponAttackFormula,

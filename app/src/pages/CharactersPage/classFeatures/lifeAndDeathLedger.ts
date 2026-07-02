@@ -10,6 +10,7 @@ import {
   createSourcedDescriptionEntries
 } from "../actionModalDescriptions";
 import { normalizeDeathSaveTrack } from "../deathSaves";
+import { getRebornLifeAndDeathDescriptionAdditionsForCharacter } from "../speciesReborn";
 import {
   getEffectiveHitPointMaximumForCharacter,
   reconcileCharacterStatusConsequences
@@ -168,7 +169,8 @@ export function getLifeAndDeathLedgerDescriptionAdditions(
       character,
       "custom",
       barbarianLifeAndDeathLedgerDescriptionTargetKey
-    )
+    ),
+    ...getRebornLifeAndDeathDescriptionAdditionsForCharacter(character)
   ];
 
   if (hasPaladinOathOfTheAncientsUndyingSentinelFeature(character)) {

@@ -9,6 +9,7 @@ export type SpeciesEntryInput = Pick<
   | "speed"
   | "size"
   | "trackingState"
+  | "trackingMessage"
   | "starterPack"
   | "tags"
   | "summary"

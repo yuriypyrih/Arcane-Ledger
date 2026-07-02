@@ -107,6 +107,7 @@ export type CharacterSpellDrawerActionOptions = {
   useGoliathAncestry?: boolean;
   useFeyMagic?: boolean;
   useFiendishLegacy?: boolean;
+  useHexMagic?: boolean;
   useQuickRitual?: boolean;
   useShadowMagic?: boolean;
   useDetectThoughts?: boolean;
@@ -630,6 +631,7 @@ function CharacterSpellDrawer({
       (option) => option.id === "magic-initiate" && option.checked
     ),
     useFeyMagic: allActionOptions.some((option) => option.id === "fey-magic" && option.checked),
+    useHexMagic: allActionOptions.some((option) => option.id === "hex-magic" && option.checked),
     useQuickRitual: isQuickRitualSelected,
     useShadowMagic: allActionOptions.some(
       (option) => option.id === "shadow-magic" && option.checked

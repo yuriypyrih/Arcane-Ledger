@@ -237,7 +237,7 @@ export type ItemEntry = BaseCodexEntry<ENTRY_CATEGORIES.ITEMS, ITEM_TYPES> & {
 };
 export const BACKGROUND_SOURCE_VALUES = ["PHB'24", "FRHoF", "EFA"] as const;
 export type BackgroundSource = (typeof BACKGROUND_SOURCE_VALUES)[number];
-export const SPECIES_SOURCE_VALUES = ["PHB'24", "RHW", "EFA"] as const;
+export const SPECIES_SOURCE_VALUES = ["PHB'24", "MPMM", "RHW", "EFA"] as const;
 export type SpeciesSource = (typeof SPECIES_SOURCE_VALUES)[number];
 
 export type BackgroundEntry = BaseCodexEntry<ENTRY_CATEGORIES.BACKGROUNDS, BACKGROUND_TYPES> & {
@@ -265,6 +265,8 @@ export type SpeciesEntry = BaseCodexEntry<ENTRY_CATEGORIES.SPECIES, SPECIES_TYPE
   starterPack: {
     recommendedBodySize?: BODY_SIZE;
     recommendedDraconicAncestry?: string;
+    recommendedGenasiLineage?: string;
+    recommendedGenasiSpellcastingAbility?: string;
     recommendedGiantAncestry?: string;
     recommendedTieflingLegacy?: string;
     recommendedTieflingSpellcastingAbility?: string;

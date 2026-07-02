@@ -280,6 +280,7 @@ type FeatureActionOptionButtonProps = {
   roundTracker: RoundTrackerAvailability;
   onClick: () => void;
   formatValueLabel: (option: FeatureActionOptionCard) => string;
+  breakdown?: ReactNode;
   selected?: boolean;
   selectionIndicatorType?: "radio" | "checkbox";
   selectionName?: string;
@@ -291,6 +292,7 @@ export function FeatureActionOptionButton({
   roundTracker,
   onClick,
   formatValueLabel,
+  breakdown,
   selected = false,
   selectionIndicatorType = "radio",
   selectionName
@@ -330,9 +332,10 @@ export function FeatureActionOptionButton({
         ) : undefined
       }
       breakdown={
-        breakdownLabel ? (
+        breakdown ??
+        (breakdownLabel ? (
           <span className={styles.optionChoiceBreakdown}>{breakdownLabel}</span>
-        ) : undefined
+        ) : undefined)
       }
       selected={selected}
       onSelect={onClick}

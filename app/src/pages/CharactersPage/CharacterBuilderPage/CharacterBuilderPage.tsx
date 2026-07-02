@@ -1,5 +1,5 @@
 import { ArrowLeft } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { importCharacterSheets } from "../../../api/characters";
 import { createPortableCharacterSheetSyncPayload } from "../../../characterSync/characterSyncRecords";
@@ -56,68 +56,72 @@ function CharacterBuilderPage() {
   const isEditing = existingCharacter !== null;
   const isCharacterLimitReached =
     !isEditing && hasReachedCharacterLimit(characterCount, characterLimit);
-  const emptyCharacter = createEmptyCharacter();
-  const initialValues = existingCharacter
-    ? {
-        ...emptyCharacter,
-        name: existingCharacter.name,
-        species: existingCharacter.species,
-        speciesChoices: existingCharacter.speciesChoices,
-        speciesFeatureState: existingCharacter.speciesFeatureState,
-        className: existingCharacter.className,
-        subclassId: existingCharacter.subclassId ?? "",
-        customClass: existingCharacter.customClass,
-        level: existingCharacter.level,
-        xp: existingCharacter.xp,
-        hitPoints: existingCharacter.hitPoints,
-        currentHitPoints: existingCharacter.currentHitPoints,
-        temporaryHitPoints: existingCharacter.temporaryHitPoints,
-        temporaryHitPointsSource: existingCharacter.temporaryHitPointsSource,
-        maxHitPointsMode: existingCharacter.maxHitPointsMode,
-        attributeMode: existingCharacter.attributeMode,
-        equipment: getCharacterEquipmentNames(existingCharacter.equipment),
-        abilities: {
-          ...emptyCharacter.abilities,
-          ...existingCharacter.abilities
-        },
-        alignment: existingCharacter.alignment,
-        background: existingCharacter.background,
-        backgroundChoices: existingCharacter.backgroundChoices,
-        backgroundNotes: existingCharacter.backgroundNotes,
-        currencies: existingCharacter.currencies,
-        skills: getSelectedClassSkillSelectionsFromEntries(
-          existingCharacter.skillProficiencies,
-          existingCharacter.className
-        ),
-        skillExpertise: getManualSkillExpertiseSelectionsFromEntries(
-          existingCharacter.skillProficiencies
-        ),
-        toolProficiencies: getSelectedClassToolSelectionsFromEntries(
-          existingCharacter.toolProficiencies,
-          existingCharacter.className
-        ),
-        languageProficiencies: existingCharacter.languageProficiencies,
-        savingThrowProficiencies: getSavingThrowSelectionsFromEntries(
-          existingCharacter.savingThrowProficiencies
-        ),
-        hitDiceRemaining: existingCharacter.hitDiceRemaining,
-        statusEntries: existingCharacter.statusEntries,
-        deathSaves: existingCharacter.deathSaves,
-        inventoryItems: existingCharacter.inventoryItems,
-        customEquipment: existingCharacter.customEquipment,
-        cantripIds: existingCharacter.cantripIds,
-        spellbookSpellIds: existingCharacter.spellbookSpellIds,
-        preparedSpellIds: existingCharacter.preparedSpellIds,
-        spellSlotsExpended: existingCharacter.spellSlotsExpended,
-        shortRestsUsedToday: existingCharacter.shortRestsUsedToday,
-        heroicInspiration: existingCharacter.heroicInspiration,
-        coreStats: existingCharacter.coreStats,
-        armorClassFormulaSelection: existingCharacter.armorClassFormulaSelection,
-        classFeatureState: existingCharacter.classFeatureState,
-        feats: existingCharacter.feats,
-        storageMetadata: existingCharacter.storageMetadata
-      }
-    : emptyCharacter;
+  const emptyCharacter = useMemo(() => createEmptyCharacter(), []);
+  const initialValues = useMemo(
+    () =>
+      existingCharacter
+        ? {
+            ...emptyCharacter,
+            name: existingCharacter.name,
+            species: existingCharacter.species,
+            speciesChoices: existingCharacter.speciesChoices,
+            speciesFeatureState: existingCharacter.speciesFeatureState,
+            className: existingCharacter.className,
+            subclassId: existingCharacter.subclassId ?? "",
+            customClass: existingCharacter.customClass,
+            level: existingCharacter.level,
+            xp: existingCharacter.xp,
+            hitPoints: existingCharacter.hitPoints,
+            currentHitPoints: existingCharacter.currentHitPoints,
+            temporaryHitPoints: existingCharacter.temporaryHitPoints,
+            temporaryHitPointsSource: existingCharacter.temporaryHitPointsSource,
+            maxHitPointsMode: existingCharacter.maxHitPointsMode,
+            attributeMode: existingCharacter.attributeMode,
+            equipment: getCharacterEquipmentNames(existingCharacter.equipment),
+            abilities: {
+              ...emptyCharacter.abilities,
+              ...existingCharacter.abilities
+            },
+            alignment: existingCharacter.alignment,
+            background: existingCharacter.background,
+            backgroundChoices: existingCharacter.backgroundChoices,
+            backgroundNotes: existingCharacter.backgroundNotes,
+            currencies: existingCharacter.currencies,
+            skills: getSelectedClassSkillSelectionsFromEntries(
+              existingCharacter.skillProficiencies,
+              existingCharacter.className
+            ),
+            skillExpertise: getManualSkillExpertiseSelectionsFromEntries(
+              existingCharacter.skillProficiencies
+            ),
+            toolProficiencies: getSelectedClassToolSelectionsFromEntries(
+              existingCharacter.toolProficiencies,
+              existingCharacter.className
+            ),
+            languageProficiencies: existingCharacter.languageProficiencies,
+            savingThrowProficiencies: getSavingThrowSelectionsFromEntries(
+              existingCharacter.savingThrowProficiencies
+            ),
+            hitDiceRemaining: existingCharacter.hitDiceRemaining,
+            statusEntries: existingCharacter.statusEntries,
+            deathSaves: existingCharacter.deathSaves,
+            inventoryItems: existingCharacter.inventoryItems,
+            customEquipment: existingCharacter.customEquipment,
+            cantripIds: existingCharacter.cantripIds,
+            spellbookSpellIds: existingCharacter.spellbookSpellIds,
+            preparedSpellIds: existingCharacter.preparedSpellIds,
+            spellSlotsExpended: existingCharacter.spellSlotsExpended,
+            shortRestsUsedToday: existingCharacter.shortRestsUsedToday,
+            heroicInspiration: existingCharacter.heroicInspiration,
+            coreStats: existingCharacter.coreStats,
+            armorClassFormulaSelection: existingCharacter.armorClassFormulaSelection,
+            classFeatureState: existingCharacter.classFeatureState,
+            feats: existingCharacter.feats,
+            storageMetadata: existingCharacter.storageMetadata
+          }
+        : emptyCharacter,
+    [emptyCharacter, existingCharacter]
+  );
 
   useEffect(() => {
     if (parsedCharacterId === undefined || !Number.isFinite(parsedCharacterId)) {

@@ -25,10 +25,12 @@ export type CastSelectedSpellOptions = {
   useRadiantSoul?: boolean;
   useOverchannel?: boolean;
   useMagicInitiate?: boolean;
+  useGenasiLineage?: boolean;
   useGoliathAncestry?: boolean;
   useForestGnome?: boolean;
   useFeyMagic?: boolean;
   useFiendishLegacy?: boolean;
+  useHexMagic?: boolean;
   useQuickRitual?: boolean;
   useShadowMagic?: boolean;
   useDetectThoughts?: boolean;

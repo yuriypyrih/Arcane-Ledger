@@ -3,25 +3,43 @@ import type { Character } from "../../../../../types";
 import {
   getAasimarCelestialRevelationUsesTotal,
   getAasimarHealingHandsUsesTotal,
+  getDhampirVampiricBiteUsesTotal,
   getDragonbornBreathWeaponUsesTotal,
   getDragonbornDraconicFlightUsesTotal,
   getDwarfStonecunningUsesTotal,
+  getGenasiBladeWardBonusActionUsesRemaining,
+  getGenasiBladeWardBonusActionUsesTotal,
+  getGenasiLineageFreeCastUsesRemaining,
+  getGenasiLineageFreeCastUsesTotal,
   getGnomeSpeakWithAnimalsUsesTotal,
   getGoliathGiantAncestryUsesTotal,
   getGoliathLargeFormUsesTotal,
+  getHexbloodEerieTokenUsesTotal,
+  getHexbloodHexMagicUsesTotal,
+  getLupinHowlUsesTotal,
   getOrcAdrenalineRushUsesTotal,
+  getRebornKnowledgeFromPastLifeUsesTotal,
+  getShifterShiftingUsesTotal,
   getTieflingFiendishLegacyUsesTotal,
   isHumanSpecies,
   restoreAasimarCelestialRevelationOnLongRest,
   restoreAasimarHealingHandsOnLongRest,
+  restoreDhampirVampiricBiteOnLongRest,
   restoreDragonbornBreathWeaponOnLongRest,
   restoreDragonbornDraconicFlightOnLongRest,
   restoreDwarfStonecunningOnLongRest,
+  restoreGenasiBladeWardBonusActionUsesOnLongRest,
+  restoreGenasiLineageFreeCastsOnLongRest,
   restoreGnomeSpeakWithAnimalsOnLongRest,
   restoreGoliathGiantAncestryOnLongRest,
   restoreGoliathLargeFormOnLongRest,
+  restoreHexbloodEerieTokenOnLongRest,
+  restoreHexbloodHexMagicOnLongRest,
   restoreHumanResourcefulHeroicInspirationOnLongRest,
+  restoreLupinHowlOnLongRest,
   restoreOrcAdrenalineRushOnLongRest,
+  restoreRebornKnowledgeFromPastLifeOnLongRest,
+  restoreShifterShiftingOnLongRest,
   restoreTieflingFiendishLegacyOnLongRest
 } from "../../../../../pages/CharactersPage/species";
 import {
@@ -578,12 +596,25 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const searingVengeanceUsesTotal = getWarlockSearingVengeanceUsesTotal(character);
   const aasimarHealingHandsUsesTotal = getAasimarHealingHandsUsesTotal(character);
   const aasimarCelestialRevelationUsesTotal = getAasimarCelestialRevelationUsesTotal(character);
+  const dhampirVampiricBiteUsesTotal = getDhampirVampiricBiteUsesTotal(character);
   const dragonbornBreathWeaponUsesTotal = getDragonbornBreathWeaponUsesTotal(character);
   const dragonbornDraconicFlightUsesTotal = getDragonbornDraconicFlightUsesTotal(character);
   const dwarfStonecunningUsesTotal = getDwarfStonecunningUsesTotal(character);
+  const genasiLineageFreeCastUsesTotal = getGenasiLineageFreeCastUsesTotal(character);
+  const genasiLineageFreeCastUsesRemaining = getGenasiLineageFreeCastUsesRemaining(character);
+  const genasiBladeWardBonusActionUsesTotal =
+    getGenasiBladeWardBonusActionUsesTotal(character);
+  const genasiBladeWardBonusActionUsesRemaining =
+    getGenasiBladeWardBonusActionUsesRemaining(character);
   const gnomeSpeakWithAnimalsUsesTotal = getGnomeSpeakWithAnimalsUsesTotal(character);
   const goliathGiantAncestryUsesTotal = getGoliathGiantAncestryUsesTotal(character);
   const goliathLargeFormUsesTotal = getGoliathLargeFormUsesTotal(character);
+  const hexbloodEerieTokenUsesTotal = getHexbloodEerieTokenUsesTotal(character);
+  const hexbloodHexMagicUsesTotal = getHexbloodHexMagicUsesTotal(character);
+  const lupinHowlUsesTotal = getLupinHowlUsesTotal(character);
+  const rebornKnowledgeFromPastLifeUsesTotal =
+    getRebornKnowledgeFromPastLifeUsesTotal(character);
+  const shifterShiftingUsesTotal = getShifterShiftingUsesTotal(character);
   const orcAdrenalineRushUsesTotal = getOrcAdrenalineRushUsesTotal(character);
   const tieflingFiendishLegacyUsesTotal = getTieflingFiendishLegacyUsesTotal(character);
   const hasMysticArcanum = hasWarlockFeature(character, CLASS_FEATURE.MYSTIC_ARCANUM);
@@ -729,6 +760,16 @@ export function createLongRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
+    ...(dhampirVampiricBiteUsesTotal > 0
+      ? [
+          {
+            id: "restore-dhampir-vampiric-bite",
+            label: "Restore Vampiric Bite",
+            apply: (currentCharacter: Character) =>
+              restoreDhampirVampiricBiteOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
     ...(dwarfStonecunningUsesTotal > 0
       ? [
           {
@@ -736,6 +777,37 @@ export function createLongRestOptions(character: Character): RestOption[] {
             label: "Restore Stonecunning",
             apply: (currentCharacter: Character) =>
               restoreDwarfStonecunningOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(genasiLineageFreeCastUsesTotal > 0
+      ? [
+          {
+            id: "restore-genasi-lineage-spellcasting",
+            label: "Restore Genasi Lineage Spellcasting",
+            charges: {
+              current: genasiLineageFreeCastUsesRemaining,
+              total: genasiLineageFreeCastUsesTotal
+            },
+            disabled: genasiLineageFreeCastUsesRemaining >= genasiLineageFreeCastUsesTotal,
+            apply: (currentCharacter: Character) =>
+              restoreGenasiLineageFreeCastsOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(genasiBladeWardBonusActionUsesTotal > 0
+      ? [
+          {
+            id: "restore-genasi-merge-with-stone-blade-ward",
+            label: "Restore Merge with Stone Blade Ward",
+            charges: {
+              current: genasiBladeWardBonusActionUsesRemaining,
+              total: genasiBladeWardBonusActionUsesTotal
+            },
+            disabled:
+              genasiBladeWardBonusActionUsesRemaining >= genasiBladeWardBonusActionUsesTotal,
+            apply: (currentCharacter: Character) =>
+              restoreGenasiBladeWardBonusActionUsesOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),
@@ -766,6 +838,56 @@ export function createLongRestOptions(character: Character): RestOption[] {
             label: "Restore Large Form",
             apply: (currentCharacter: Character) =>
               restoreGoliathLargeFormOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(hexbloodEerieTokenUsesTotal > 0
+      ? [
+          {
+            id: "restore-hexblood-eerie-token",
+            label: "Restore Eerie Token",
+            apply: (currentCharacter: Character) =>
+              restoreHexbloodEerieTokenOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(hexbloodHexMagicUsesTotal > 0
+      ? [
+          {
+            id: "restore-hexblood-hex-magic",
+            label: "Restore Hex Magic",
+            apply: (currentCharacter: Character) =>
+              restoreHexbloodHexMagicOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(lupinHowlUsesTotal > 0
+      ? [
+          {
+            id: "restore-lupin-howl",
+            label: "Restore Howl",
+            apply: (currentCharacter: Character) =>
+              restoreLupinHowlOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(rebornKnowledgeFromPastLifeUsesTotal > 0
+      ? [
+          {
+            id: "restore-reborn-knowledge-from-past-life",
+            label: "Restore Knowledge from a Past Life",
+            apply: (currentCharacter: Character) =>
+              restoreRebornKnowledgeFromPastLifeOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(shifterShiftingUsesTotal > 0
+      ? [
+          {
+            id: "restore-shifter-shifting",
+            label: "Restore Shifting",
+            apply: (currentCharacter: Character) =>
+              restoreShifterShiftingOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),

@@ -29,6 +29,9 @@ type ThemeCandidateConfig = {
 
 export type ActionCardThemeCandidate = {
   cardTheme?: ACTION_CARD_THEME;
+  actionSource?: {
+    type?: string;
+  };
   key?: string;
   name?: string;
   summary?: string;
@@ -296,6 +299,10 @@ export function resolveActionCardTheme(
   action: ActionCardThemeCandidate,
   fallbackTheme: ACTION_CARD_THEME = ACTION_CARD_THEME.FEATURE
 ): ACTION_CARD_THEME {
+  if (action.actionSource?.type === "species") {
+    return ACTION_CARD_THEME.FEATURE;
+  }
+
   if (action.cardTheme) {
     return action.cardTheme;
   }

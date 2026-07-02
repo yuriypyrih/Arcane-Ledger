@@ -7,6 +7,7 @@ import type {
   AbilityScores,
   AttributeMode,
   CharacterBackgroundChoices,
+  CharacterChangelingSkillProficiency,
   CharacterClassRulesConfig,
   CharacterCustomBackgroundConfig,
   CharacterCustomClassConfig,
@@ -106,6 +107,7 @@ import {
   createDefaultSpeciesChoicesForSpecies,
   formatDragonbornDraconicAncestryOptionLabel,
   formatElfLineageOptionLabel,
+  formatGenasiLineageOptionLabel,
   formatGoliathGiantAncestryOptionLabel,
   formatGnomeLineageOptionLabel,
   formatHumanOriginFeatOptionLabel,
@@ -113,17 +115,37 @@ import {
   formatBodySize,
   formatBodySizeOptions,
   getSpeciesBodySizeOptions,
+  getChangelingSkillProficiencyOptionsForSpecies,
   getDragonbornDraconicAncestryOptionsForSpecies,
   getElfLineageOptionsForSpecies,
   getElfSkillProficiencyOptionsForSpecies,
   getElfSpellcastingAbilityOptionsForSpecies,
+  getGenasiLineageOptionsForSpecies,
+  getGenasiSpellcastingAbilityOptionsForSpecies,
   getGoliathGiantAncestryOptionsForSpecies,
   getGnomeLineageOptionsForSpecies,
   getGnomeSpellcastingAbilityOptionsForSpecies,
+  getHexbloodSpellcastingAbilityOptionsForSpecies,
   getHumanOriginFeatOptionsForSpecies,
   getHumanSkillOptionsForSpecies,
+  getKalashtarSkillProficiencyOptionsForSpecies,
+  createKhoravarSkillProficiencyChoiceValue,
+  createKhoravarToolProficiencyChoiceValue,
+  getKhoravarCantripForCharacter,
+  getKhoravarCantripOptionsForSpecies,
+  getKhoravarProficiencyChoiceValueForCharacter,
+  getKhoravarSkillProficiencyOptionsForSpecies,
+  getKhoravarSpellcastingAbilityOptionsForSpecies,
+  getKhoravarToolProficiencyOptionsForSpecies,
+  getLupinSkillProficiencyOptionsForSpecies,
+  parseKhoravarProficiencyChoiceValue,
+  getRebornResistanceOptionsForSpecies,
+  getRebornSkillProficiencyOptionsForSpecies,
+  getShifterSkillProficiencyOptionsForSpecies,
   getSpeciesSpeedBonusesForCharacter,
   getSpeciesSpeedForCharacter,
+  getWarforgedSkillProficiencyOptionsForSpecies,
+  getWarforgedToolProficiencyOptionsForSpecies,
   getTieflingFiendishLegacyOptionsForSpecies,
   getTieflingSpellcastingAbilityOptionsForSpecies,
   normalizeCharacterSpeciesChoices,
@@ -724,6 +746,12 @@ function isBackgroundEquipmentModeReady(
   return value === "equipment" || value === "gold";
 }
 
+function formatDamageTypeChoiceLabel(damageType: string): string {
+  return damageType
+    .toLowerCase()
+    .replace(/(^|\s|-)\S/g, (match) => match.toUpperCase());
+}
+
 function getAbilityPriorityOrder(plan: ClassBuildPlan): AbilityKey[] {
   const preferredAbilities = [plan.primary, plan.secondary, plan.tertiary];
 
@@ -1218,6 +1246,10 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     () => getSpeciesBodySizeOptions(resolvedSpecies),
     [resolvedSpecies]
   );
+  const changelingSkillProficiencyOptions = useMemo(
+    () => getChangelingSkillProficiencyOptionsForSpecies(resolvedSpecies),
+    [resolvedSpecies]
+  );
   const draconicAncestryOptions = useMemo(
     () => getDragonbornDraconicAncestryOptionsForSpecies(resolvedSpecies),
     [resolvedSpecies]
@@ -1234,6 +1266,14 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     () => getElfSpellcastingAbilityOptionsForSpecies(resolvedSpecies),
     [resolvedSpecies]
   );
+  const genasiLineageOptions = useMemo(
+    () => getGenasiLineageOptionsForSpecies(resolvedSpecies),
+    [resolvedSpecies]
+  );
+  const genasiSpellcastingAbilityOptions = useMemo(
+    () => getGenasiSpellcastingAbilityOptionsForSpecies(resolvedSpecies),
+    [resolvedSpecies]
+  );
   const gnomeLineageOptions = useMemo(
     () => getGnomeLineageOptionsForSpecies(resolvedSpecies),
     [resolvedSpecies]
@@ -1246,12 +1286,60 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     () => getGoliathGiantAncestryOptionsForSpecies(resolvedSpecies),
     [resolvedSpecies]
   );
+  const hexbloodSpellcastingAbilityOptions = useMemo(
+    () => getHexbloodSpellcastingAbilityOptionsForSpecies(resolvedSpecies),
+    [resolvedSpecies]
+  );
   const humanSkillProficiencyOptions = useMemo(
     () => getHumanSkillOptionsForSpecies(resolvedSpecies),
     [resolvedSpecies]
   );
   const humanOriginFeatOptions = useMemo(
     () => getHumanOriginFeatOptionsForSpecies(resolvedSpecies),
+    [resolvedSpecies]
+  );
+  const kalashtarSkillProficiencyOptions = useMemo(
+    () => getKalashtarSkillProficiencyOptionsForSpecies(resolvedSpecies),
+    [resolvedSpecies]
+  );
+  const khoravarCantripOptions = useMemo(
+    () => getKhoravarCantripOptionsForSpecies(resolvedSpecies),
+    [resolvedSpecies]
+  );
+  const khoravarSkillProficiencyOptions = useMemo(
+    () => getKhoravarSkillProficiencyOptionsForSpecies(resolvedSpecies),
+    [resolvedSpecies]
+  );
+  const khoravarSpellcastingAbilityOptions = useMemo(
+    () => getKhoravarSpellcastingAbilityOptionsForSpecies(resolvedSpecies),
+    [resolvedSpecies]
+  );
+  const khoravarToolProficiencyOptions = useMemo(
+    () => getKhoravarToolProficiencyOptionsForSpecies(resolvedSpecies),
+    [resolvedSpecies]
+  );
+  const lupinSkillProficiencyOptions = useMemo(
+    () => getLupinSkillProficiencyOptionsForSpecies(resolvedSpecies),
+    [resolvedSpecies]
+  );
+  const rebornResistanceOptions = useMemo(
+    () => getRebornResistanceOptionsForSpecies(resolvedSpecies),
+    [resolvedSpecies]
+  );
+  const rebornSkillProficiencyOptions = useMemo(
+    () => getRebornSkillProficiencyOptionsForSpecies(resolvedSpecies),
+    [resolvedSpecies]
+  );
+  const shifterSkillProficiencyOptions = useMemo(
+    () => getShifterSkillProficiencyOptionsForSpecies(resolvedSpecies),
+    [resolvedSpecies]
+  );
+  const warforgedSkillProficiencyOptions = useMemo(
+    () => getWarforgedSkillProficiencyOptionsForSpecies(resolvedSpecies),
+    [resolvedSpecies]
+  );
+  const warforgedToolProficiencyOptions = useMemo(
+    () => getWarforgedToolProficiencyOptionsForSpecies(resolvedSpecies),
     [resolvedSpecies]
   );
   const tieflingLegacyOptions = useMemo(
@@ -1267,15 +1355,49 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     [resolvedSpecies, resolvedSpeciesChoices]
   );
   const selectedBodySize = normalizedSpeciesChoices?.bodySize ?? "";
+  const selectedChangelingSkillProficiencies = useMemo(
+    () => normalizedSpeciesChoices?.changelingSkillProficiencies ?? [],
+    [normalizedSpeciesChoices]
+  );
   const selectedDraconicAncestry = normalizedSpeciesChoices?.draconicAncestry ?? "";
   const selectedElvenLineage = normalizedSpeciesChoices?.elvenLineage ?? "";
   const selectedElvenSkillProficiency = normalizedSpeciesChoices?.elvenSkillProficiency ?? "";
   const selectedElvenSpellcastingAbility = normalizedSpeciesChoices?.elvenSpellcastingAbility ?? "";
+  const selectedGenasiLineage = normalizedSpeciesChoices?.genasiLineage ?? "";
+  const selectedGenasiSpellcastingAbility = normalizedSpeciesChoices?.genasiSpellcastingAbility ?? "";
   const selectedGnomeLineage = normalizedSpeciesChoices?.gnomeLineage ?? "";
   const selectedGnomeSpellcastingAbility = normalizedSpeciesChoices?.gnomeSpellcastingAbility ?? "";
   const selectedGiantAncestry = normalizedSpeciesChoices?.giantAncestry ?? "";
+  const selectedHexbloodSpellcastingAbility =
+    normalizedSpeciesChoices?.hexbloodSpellcastingAbility ?? "";
   const selectedHumanSkillProficiency = normalizedSpeciesChoices?.humanSkillProficiency ?? "";
   const selectedHumanOriginFeat = normalizedSpeciesChoices?.humanOriginFeat ?? "";
+  const selectedKalashtarSkillProficiency =
+    normalizedSpeciesChoices?.kalashtarSkillProficiency ?? "";
+  const selectedKhoravarCantrip = getKhoravarCantripForCharacter({
+    species: resolvedSpecies,
+    speciesChoices: normalizedSpeciesChoices
+  });
+  const selectedKhoravarCantripId = selectedKhoravarCantrip?.id ?? "";
+  const selectedKhoravarProficiencyChoiceValue =
+    getKhoravarProficiencyChoiceValueForCharacter({
+      species: resolvedSpecies,
+      speciesChoices: normalizedSpeciesChoices
+    });
+  const selectedKhoravarSkillProficiency =
+    normalizedSpeciesChoices?.khoravarSkillProficiency ?? "";
+  const selectedKhoravarSpellcastingAbility =
+    normalizedSpeciesChoices?.khoravarSpellcastingAbility ?? "";
+  const selectedKhoravarToolProficiency =
+    normalizedSpeciesChoices?.khoravarToolProficiency ?? "";
+  const selectedLupinSkillProficiency = normalizedSpeciesChoices?.lupinSkillProficiency ?? "";
+  const selectedRebornResistance = normalizedSpeciesChoices?.rebornResistance ?? "";
+  const selectedRebornSkillProficiency = normalizedSpeciesChoices?.rebornSkillProficiency ?? "";
+  const selectedShifterSkillProficiency = normalizedSpeciesChoices?.shifterSkillProficiency ?? "";
+  const selectedWarforgedSkillProficiency =
+    normalizedSpeciesChoices?.warforgedSkillProficiency ?? "";
+  const selectedWarforgedToolProficiency =
+    normalizedSpeciesChoices?.warforgedToolProficiency ?? "";
   const selectedTieflingLegacy = normalizedSpeciesChoices?.tieflingLegacy ?? "";
   const selectedTieflingSpellcastingAbility =
     normalizedSpeciesChoices?.tieflingSpellcastingAbility ?? "";
@@ -1469,6 +1591,16 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     resolvedBackgroundChoices,
     normalizedSpeciesChoices
   );
+  const changelingSkillSelectOptions = useMemo(
+    () =>
+      [0, 1].map(() =>
+        changelingSkillProficiencyOptions.map((skill) => ({
+          skill,
+          disabled: false
+        }))
+      ),
+    [changelingSkillProficiencyOptions]
+  );
   const humanSkillSelectOptions = useMemo(() => {
     const unavailableSkillSet = new Set(
       resolvedSkillSelections.all.filter((skill) => skill !== selectedHumanSkillProficiency)
@@ -1479,6 +1611,80 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       disabled: selectedHumanSkillProficiency !== skill && unavailableSkillSet.has(skill)
     }));
   }, [humanSkillProficiencyOptions, resolvedSkillSelections.all, selectedHumanSkillProficiency]);
+  const khoravarSkillSelectOptions = useMemo(() => {
+    const unavailableSkillSet = new Set(
+      resolvedSkillSelections.all.filter((skill) => skill !== selectedKhoravarSkillProficiency)
+    );
+
+    return khoravarSkillProficiencyOptions.map((skill) => ({
+      skill,
+      disabled: selectedKhoravarSkillProficiency !== skill && unavailableSkillSet.has(skill)
+    }));
+  }, [
+    khoravarSkillProficiencyOptions,
+    resolvedSkillSelections.all,
+    selectedKhoravarSkillProficiency
+  ]);
+  const khoravarToolSelectOptions = useMemo(() => {
+    const unavailableToolSet = new Set(
+      proficiencyPreviewCollections.toolProficiencies
+        .map((entry) => entry.proficiency)
+        .filter((tool) => tool !== selectedKhoravarToolProficiency)
+    );
+
+    return khoravarToolProficiencyOptions.map((tool) => ({
+      tool,
+      disabled: selectedKhoravarToolProficiency !== tool && unavailableToolSet.has(tool)
+    }));
+  }, [
+    khoravarToolProficiencyOptions,
+    proficiencyPreviewCollections.toolProficiencies,
+    selectedKhoravarToolProficiency
+  ]);
+  const rebornSkillSelectOptions = useMemo(() => {
+    const unavailableSkillSet = new Set(
+      resolvedSkillSelections.all.filter((skill) => skill !== selectedRebornSkillProficiency)
+    );
+
+    return rebornSkillProficiencyOptions.map((skill) => ({
+      skill,
+      disabled: selectedRebornSkillProficiency !== skill && unavailableSkillSet.has(skill)
+    }));
+  }, [
+    rebornSkillProficiencyOptions,
+    resolvedSkillSelections.all,
+    selectedRebornSkillProficiency
+  ]);
+  const warforgedSkillSelectOptions = useMemo(() => {
+    const unavailableSkillSet = new Set(
+      resolvedSkillSelections.all.filter((skill) => skill !== selectedWarforgedSkillProficiency)
+    );
+
+    return warforgedSkillProficiencyOptions.map((skill) => ({
+      skill,
+      disabled: selectedWarforgedSkillProficiency !== skill && unavailableSkillSet.has(skill)
+    }));
+  }, [
+    resolvedSkillSelections.all,
+    selectedWarforgedSkillProficiency,
+    warforgedSkillProficiencyOptions
+  ]);
+  const warforgedToolSelectOptions = useMemo(() => {
+    const unavailableToolSet = new Set(
+      proficiencyPreviewCollections.toolProficiencies
+        .map((entry) => entry.proficiency)
+        .filter((tool) => tool !== selectedWarforgedToolProficiency)
+    );
+
+    return warforgedToolProficiencyOptions.map((tool) => ({
+      tool,
+      disabled: selectedWarforgedToolProficiency !== tool && unavailableToolSet.has(tool)
+    }));
+  }, [
+    proficiencyPreviewCollections.toolProficiencies,
+    selectedWarforgedToolProficiency,
+    warforgedToolProficiencyOptions
+  ]);
   const availableManualSkillOptions = availableSkillOptions;
   const selectedSkillCount = resolvedSkillSelections.manual.length;
   const selectedToolCount = resolvedToolSelections.length;
@@ -1530,6 +1736,9 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     isBackgroundEquipmentSelectionReady;
   const isSpeciesBodySizeReady =
     speciesBodySizeOptions.length <= 1 || Boolean(normalizedSpeciesChoices?.bodySize);
+  const isSpeciesChangelingSkillProficienciesReady =
+    changelingSkillProficiencyOptions.length === 0 ||
+    selectedChangelingSkillProficiencies.length === 2;
   const isSpeciesDraconicAncestryReady =
     draconicAncestryOptions.length === 0 || Boolean(normalizedSpeciesChoices?.draconicAncestry);
   const isSpeciesElvenLineageReady =
@@ -1540,6 +1749,11 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   const isSpeciesElfSpellcastingAbilityReady =
     elfSpellcastingAbilityOptions.length === 0 ||
     Boolean(normalizedSpeciesChoices?.elvenSpellcastingAbility);
+  const isSpeciesGenasiLineageReady =
+    genasiLineageOptions.length === 0 || Boolean(normalizedSpeciesChoices?.genasiLineage);
+  const isSpeciesGenasiSpellcastingAbilityReady =
+    genasiSpellcastingAbilityOptions.length === 0 ||
+    Boolean(normalizedSpeciesChoices?.genasiSpellcastingAbility);
   const isSpeciesGnomeLineageReady =
     gnomeLineageOptions.length === 0 || Boolean(normalizedSpeciesChoices?.gnomeLineage);
   const isSpeciesGnomeSpellcastingAbilityReady =
@@ -1547,11 +1761,43 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     Boolean(normalizedSpeciesChoices?.gnomeSpellcastingAbility);
   const isSpeciesGiantAncestryReady =
     giantAncestryOptions.length === 0 || Boolean(normalizedSpeciesChoices?.giantAncestry);
+  const isSpeciesHexbloodSpellcastingAbilityReady =
+    hexbloodSpellcastingAbilityOptions.length === 0 ||
+    Boolean(normalizedSpeciesChoices?.hexbloodSpellcastingAbility);
   const isSpeciesHumanSkillProficiencyReady =
     humanSkillProficiencyOptions.length === 0 ||
     Boolean(normalizedSpeciesChoices?.humanSkillProficiency);
   const isSpeciesHumanOriginFeatReady =
     humanOriginFeatOptions.length === 0 || Boolean(normalizedSpeciesChoices?.humanOriginFeat);
+  const isSpeciesKalashtarSkillProficiencyReady =
+    kalashtarSkillProficiencyOptions.length === 0 ||
+    Boolean(normalizedSpeciesChoices?.kalashtarSkillProficiency);
+  const isSpeciesKhoravarProficiencyReady =
+    (khoravarSkillProficiencyOptions.length === 0 &&
+      khoravarToolProficiencyOptions.length === 0) ||
+    Boolean(selectedKhoravarProficiencyChoiceValue);
+  const isSpeciesKhoravarCantripReady =
+    khoravarCantripOptions.length === 0 || Boolean(selectedKhoravarCantripId);
+  const isSpeciesKhoravarSpellcastingAbilityReady =
+    khoravarSpellcastingAbilityOptions.length === 0 ||
+    Boolean(normalizedSpeciesChoices?.khoravarSpellcastingAbility);
+  const isSpeciesLupinSkillProficiencyReady =
+    lupinSkillProficiencyOptions.length === 0 ||
+    Boolean(normalizedSpeciesChoices?.lupinSkillProficiency);
+  const isSpeciesRebornResistanceReady =
+    rebornResistanceOptions.length === 0 || Boolean(normalizedSpeciesChoices?.rebornResistance);
+  const isSpeciesRebornSkillProficiencyReady =
+    rebornSkillProficiencyOptions.length === 0 ||
+    Boolean(normalizedSpeciesChoices?.rebornSkillProficiency);
+  const isSpeciesShifterSkillProficiencyReady =
+    shifterSkillProficiencyOptions.length === 0 ||
+    Boolean(normalizedSpeciesChoices?.shifterSkillProficiency);
+  const isSpeciesWarforgedSkillProficiencyReady =
+    warforgedSkillProficiencyOptions.length === 0 ||
+    Boolean(normalizedSpeciesChoices?.warforgedSkillProficiency);
+  const isSpeciesWarforgedToolProficiencyReady =
+    warforgedToolProficiencyOptions.length === 0 ||
+    Boolean(normalizedSpeciesChoices?.warforgedToolProficiency);
   const isSpeciesTieflingLegacyReady =
     tieflingLegacyOptions.length === 0 || Boolean(normalizedSpeciesChoices?.tieflingLegacy);
   const isSpeciesTieflingSpellcastingAbilityReady =
@@ -1580,15 +1826,29 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   const isSpeciesSetupReady =
     isCustomSpeciesReady &&
     isSpeciesBodySizeReady &&
+    isSpeciesChangelingSkillProficienciesReady &&
     isSpeciesDraconicAncestryReady &&
     isSpeciesElvenLineageReady &&
     isSpeciesElfSkillProficiencyReady &&
     isSpeciesElfSpellcastingAbilityReady &&
+    isSpeciesGenasiLineageReady &&
+    isSpeciesGenasiSpellcastingAbilityReady &&
     isSpeciesGnomeLineageReady &&
     isSpeciesGnomeSpellcastingAbilityReady &&
     isSpeciesGiantAncestryReady &&
+    isSpeciesHexbloodSpellcastingAbilityReady &&
     isSpeciesHumanSkillProficiencyReady &&
     isSpeciesHumanOriginFeatReady &&
+    isSpeciesKalashtarSkillProficiencyReady &&
+    isSpeciesKhoravarProficiencyReady &&
+    isSpeciesKhoravarCantripReady &&
+    isSpeciesKhoravarSpellcastingAbilityReady &&
+    isSpeciesLupinSkillProficiencyReady &&
+    isSpeciesRebornResistanceReady &&
+    isSpeciesRebornSkillProficiencyReady &&
+    isSpeciesShifterSkillProficiencyReady &&
+    isSpeciesWarforgedSkillProficiencyReady &&
+    isSpeciesWarforgedToolProficiencyReady &&
     isSpeciesTieflingLegacyReady &&
     isSpeciesTieflingSpellcastingAbilityReady;
   const isBuildSetupReady =
@@ -2563,6 +2823,8 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       values.species,
       values.speciesChoices
     );
+    const requiresChangelingSkillProficiencies =
+      getChangelingSkillProficiencyOptionsForSpecies(values.species).length > 0;
     const requiresDraconicAncestry =
       getDragonbornDraconicAncestryOptionsForSpecies(values.species).length > 0;
     const requiresElvenLineage = getElfLineageOptionsForSpecies(values.species).length > 0;
@@ -2570,28 +2832,83 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       getElfSkillProficiencyOptionsForSpecies(values.species).length > 0;
     const requiresElfSpellcastingAbility =
       getElfSpellcastingAbilityOptionsForSpecies(values.species).length > 0;
+    const requiresGenasiLineage =
+      getGenasiLineageOptionsForSpecies(values.species).length > 0;
+    const requiresGenasiSpellcastingAbility =
+      getGenasiSpellcastingAbilityOptionsForSpecies(values.species).length > 0;
     const requiresGnomeLineage = getGnomeLineageOptionsForSpecies(values.species).length > 0;
     const requiresGnomeSpellcastingAbility =
       getGnomeSpellcastingAbilityOptionsForSpecies(values.species).length > 0;
     const requiresGiantAncestry =
       getGoliathGiantAncestryOptionsForSpecies(values.species).length > 0;
+    const requiresHexbloodSpellcastingAbility =
+      getHexbloodSpellcastingAbilityOptionsForSpecies(values.species).length > 0;
     const requiresHumanSkillProficiency = getHumanSkillOptionsForSpecies(values.species).length > 0;
     const requiresHumanOriginFeat = getHumanOriginFeatOptionsForSpecies(values.species).length > 0;
+    const requiresKalashtarSkillProficiency =
+      getKalashtarSkillProficiencyOptionsForSpecies(values.species).length > 0;
+    const requiresKhoravarProficiency =
+      getKhoravarSkillProficiencyOptionsForSpecies(values.species).length > 0 ||
+      getKhoravarToolProficiencyOptionsForSpecies(values.species).length > 0;
+    const requiresKhoravarCantrip =
+      getKhoravarCantripOptionsForSpecies(values.species).length > 0;
+    const requiresKhoravarSpellcastingAbility =
+      getKhoravarSpellcastingAbilityOptionsForSpecies(values.species).length > 0;
+    const requiresLupinSkillProficiency =
+      getLupinSkillProficiencyOptionsForSpecies(values.species).length > 0;
+    const requiresRebornResistance =
+      getRebornResistanceOptionsForSpecies(values.species).length > 0;
+    const requiresRebornSkillProficiency =
+      getRebornSkillProficiencyOptionsForSpecies(values.species).length > 0;
+    const requiresShifterSkillProficiency =
+      getShifterSkillProficiencyOptionsForSpecies(values.species).length > 0;
+    const requiresWarforgedSkillProficiency =
+      getWarforgedSkillProficiencyOptionsForSpecies(values.species).length > 0;
+    const requiresWarforgedToolProficiency =
+      getWarforgedToolProficiencyOptionsForSpecies(values.species).length > 0;
     const requiresTieflingLegacy =
       getTieflingFiendishLegacyOptionsForSpecies(values.species).length > 0;
     const requiresTieflingSpellcastingAbility =
       getTieflingSpellcastingAbilityOptionsForSpecies(values.species).length > 0;
 
     if (
+      (requiresChangelingSkillProficiencies &&
+        (submittedSpeciesChoices?.changelingSkillProficiencies?.length ?? 0) !== 2) ||
       (requiresDraconicAncestry && !submittedSpeciesChoices?.draconicAncestry) ||
       (requiresElvenLineage && !submittedSpeciesChoices?.elvenLineage) ||
       (requiresElfSkillProficiency && !submittedSpeciesChoices?.elvenSkillProficiency) ||
       (requiresElfSpellcastingAbility && !submittedSpeciesChoices?.elvenSpellcastingAbility) ||
+      (requiresGenasiLineage && !submittedSpeciesChoices?.genasiLineage) ||
+      (requiresGenasiSpellcastingAbility && !submittedSpeciesChoices?.genasiSpellcastingAbility) ||
       (requiresGnomeLineage && !submittedSpeciesChoices?.gnomeLineage) ||
       (requiresGnomeSpellcastingAbility && !submittedSpeciesChoices?.gnomeSpellcastingAbility) ||
       (requiresGiantAncestry && !submittedSpeciesChoices?.giantAncestry) ||
+      (requiresHexbloodSpellcastingAbility &&
+        !submittedSpeciesChoices?.hexbloodSpellcastingAbility) ||
       (requiresHumanSkillProficiency && !submittedSpeciesChoices?.humanSkillProficiency) ||
       (requiresHumanOriginFeat && !submittedSpeciesChoices?.humanOriginFeat) ||
+      (requiresKalashtarSkillProficiency &&
+        !submittedSpeciesChoices?.kalashtarSkillProficiency) ||
+      (requiresKhoravarProficiency &&
+        !getKhoravarProficiencyChoiceValueForCharacter({
+          species: values.species,
+          speciesChoices: submittedSpeciesChoices
+        })) ||
+      (requiresKhoravarCantrip &&
+        !getKhoravarCantripForCharacter({
+          species: values.species,
+          speciesChoices: submittedSpeciesChoices
+        })) ||
+      (requiresKhoravarSpellcastingAbility &&
+        !submittedSpeciesChoices?.khoravarSpellcastingAbility) ||
+      (requiresLupinSkillProficiency && !submittedSpeciesChoices?.lupinSkillProficiency) ||
+      (requiresRebornResistance && !submittedSpeciesChoices?.rebornResistance) ||
+      (requiresRebornSkillProficiency && !submittedSpeciesChoices?.rebornSkillProficiency) ||
+      (requiresShifterSkillProficiency && !submittedSpeciesChoices?.shifterSkillProficiency) ||
+      (requiresWarforgedSkillProficiency &&
+        !submittedSpeciesChoices?.warforgedSkillProficiency) ||
+      (requiresWarforgedToolProficiency &&
+        !submittedSpeciesChoices?.warforgedToolProficiency) ||
       (requiresTieflingLegacy && !submittedSpeciesChoices?.tieflingLegacy) ||
       (requiresTieflingSpellcastingAbility && !submittedSpeciesChoices?.tieflingSpellcastingAbility)
     ) {
@@ -4324,6 +4641,8 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       draconicAncestryOptions.find((option) => option.key === selectedDraconicAncestry) ?? null;
     const selectedElvenLineageOption =
       elfLineageOptions.find((option) => option.key === selectedElvenLineage) ?? null;
+    const selectedGenasiLineageOption =
+      genasiLineageOptions.find((option) => option.key === selectedGenasiLineage) ?? null;
     const selectedGnomeLineageOption =
       gnomeLineageOptions.find((option) => option.key === selectedGnomeLineage) ?? null;
     const selectedGiantAncestryOption =
@@ -4355,6 +4674,16 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                 : "Not configured yet"
             }
           />
+          {changelingSkillProficiencyOptions.length > 0 ? (
+            <CellContainer
+              label="Changeling Instincts"
+              content={
+                selectedChangelingSkillProficiencies.length > 0
+                  ? selectedChangelingSkillProficiencies.join(", ")
+                  : "Choose skills"
+              }
+            />
+          ) : null}
           {draconicAncestryOptions.length > 0 ? (
             <CellContainer
               label="Draconic Ancestry"
@@ -4387,6 +4716,22 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
               content={selectedElvenSpellcastingAbility || "Choose ability"}
             />
           ) : null}
+          {genasiLineageOptions.length > 0 ? (
+            <CellContainer
+              label="Genasi Lineage"
+              content={
+                selectedGenasiLineageOption
+                  ? formatGenasiLineageOptionLabel(selectedGenasiLineageOption)
+                  : "Choose lineage"
+              }
+            />
+          ) : null}
+          {genasiSpellcastingAbilityOptions.length > 0 ? (
+            <CellContainer
+              label="Genasi Spellcasting"
+              content={selectedGenasiSpellcastingAbility || "Choose ability"}
+            />
+          ) : null}
           {gnomeLineageOptions.length > 0 ? (
             <CellContainer
               label="Gnomish Lineage"
@@ -4401,6 +4746,12 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             <CellContainer
               label="Gnome Spellcasting"
               content={selectedGnomeSpellcastingAbility || "Choose ability"}
+            />
+          ) : null}
+          {hexbloodSpellcastingAbilityOptions.length > 0 ? (
+            <CellContainer
+              label="Hex Magic"
+              content={selectedHexbloodSpellcastingAbility || "Choose ability"}
             />
           ) : null}
           {giantAncestryOptions.length > 0 ? (
@@ -4426,6 +4777,80 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                 selectedHumanOriginFeatOption
                   ? formatHumanOriginFeatOptionLabel(selectedHumanOriginFeatOption)
                   : "Choose feat"
+              }
+            />
+          ) : null}
+          {kalashtarSkillProficiencyOptions.length > 0 ? (
+            <CellContainer
+              label="Severed from Dreams"
+              content={selectedKalashtarSkillProficiency || "Choose skill"}
+            />
+          ) : null}
+          {khoravarSkillProficiencyOptions.length > 0 ||
+          khoravarToolProficiencyOptions.length > 0 ? (
+            <CellContainer
+              label="Skill Versatility"
+              content={
+                selectedKhoravarSkillProficiency ||
+                (selectedKhoravarToolProficiency
+                  ? getToolProficiencyLabel(selectedKhoravarToolProficiency)
+                  : "Choose skill or tool")
+              }
+            />
+          ) : null}
+          {khoravarCantripOptions.length > 0 ? (
+            <CellContainer
+              label="Fey Gift"
+              content={selectedKhoravarCantrip?.name || "Choose cantrip"}
+            />
+          ) : null}
+          {khoravarSpellcastingAbilityOptions.length > 0 ? (
+            <CellContainer
+              label="Fey Gift Spellcasting"
+              content={selectedKhoravarSpellcastingAbility || "Choose ability"}
+            />
+          ) : null}
+          {lupinSkillProficiencyOptions.length > 0 ? (
+            <CellContainer
+              label="Werewolf Instincts"
+              content={selectedLupinSkillProficiency || "Choose skill"}
+            />
+          ) : null}
+          {rebornSkillProficiencyOptions.length > 0 ? (
+            <CellContainer
+              label="Knowledge from a Past Life"
+              content={selectedRebornSkillProficiency || "Choose skill"}
+            />
+          ) : null}
+          {rebornResistanceOptions.length > 0 ? (
+            <CellContainer
+              label="Strange Endurance"
+              content={
+                selectedRebornResistance
+                  ? formatDamageTypeChoiceLabel(selectedRebornResistance)
+                  : "Choose resistance"
+              }
+            />
+          ) : null}
+          {shifterSkillProficiencyOptions.length > 0 ? (
+            <CellContainer
+              label="Bestial Instincts"
+              content={selectedShifterSkillProficiency || "Choose skill"}
+            />
+          ) : null}
+          {warforgedSkillProficiencyOptions.length > 0 ? (
+            <CellContainer
+              label="Specialized Design Skill"
+              content={selectedWarforgedSkillProficiency || "Choose skill"}
+            />
+          ) : null}
+          {warforgedToolProficiencyOptions.length > 0 ? (
+            <CellContainer
+              label="Specialized Design Tool"
+              content={
+                selectedWarforgedToolProficiency
+                  ? getToolProficiencyLabel(selectedWarforgedToolProficiency)
+                  : "Choose tool"
               }
             />
           ) : null}
@@ -4487,6 +4912,56 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         )}
 
         <div className={styles.speciesChoiceGrid}>
+          {changelingSkillProficiencyOptions.length > 0
+            ? [0, 1].map((slotIndex) => (
+                <label key={slotIndex} className={styles.field}>
+                  <span>{`Changeling Instincts Skill ${slotIndex + 1}`}</span>
+                  <SelectInput
+                    className={styles.fieldInput}
+                    invalid={
+                      attemptedBuildAdvance &&
+                      !selectedChangelingSkillProficiencies[slotIndex]
+                    }
+                    value={selectedChangelingSkillProficiencies[slotIndex] ?? ""}
+                    onChange={(event) => {
+                      const nextSkills: string[] = [
+                        selectedChangelingSkillProficiencies[0] ?? "",
+                        selectedChangelingSkillProficiencies[1] ?? ""
+                      ];
+                      nextSkills[slotIndex] = event.target.value;
+                      const changelingSkillProficiencies = nextSkills.filter(
+                        (skill): skill is CharacterChangelingSkillProficiency =>
+                          changelingSkillProficiencyOptions.includes(
+                            skill as CharacterChangelingSkillProficiency
+                          )
+                      );
+                      const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                        ...(getValues("speciesChoices") ?? {}),
+                        changelingSkillProficiencies
+                      });
+
+                      setValue("speciesChoices", nextChoices, {
+                        shouldDirty: true,
+                        shouldValidate: true
+                      });
+                    }}
+                  >
+                    <option value="">-</option>
+                    {changelingSkillSelectOptions[slotIndex]?.map((option) => (
+                      <option key={option.skill} value={option.skill} disabled={option.disabled}>
+                        {option.skill}
+                      </option>
+                    ))}
+                  </SelectInput>
+                  {attemptedBuildAdvance && !selectedChangelingSkillProficiencies[slotIndex] ? (
+                    <small className={styles.errorText}>
+                      Choose two Changeling Instincts skills before continuing.
+                    </small>
+                  ) : null}
+                </label>
+              ))
+            : null}
+
           {draconicAncestryOptions.length > 0 ? (
             <label className={styles.field}>
               <span>Draconic Ancestry</span>
@@ -4627,6 +5102,76 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             </label>
           ) : null}
 
+          {genasiLineageOptions.length > 0 ? (
+            <label className={styles.field}>
+              <span>Genasi Lineage</span>
+              <SelectInput
+                className={styles.fieldInput}
+                invalid={attemptedBuildAdvance && !isSpeciesGenasiLineageReady}
+                value={selectedGenasiLineage}
+                onChange={(event) => {
+                  const nextLineage = event.target.value;
+                  const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                    ...(getValues("speciesChoices") ?? {}),
+                    genasiLineage: nextLineage || undefined
+                  });
+
+                  setValue("speciesChoices", nextChoices, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  });
+                }}
+              >
+                <option value="">-</option>
+                {genasiLineageOptions.map((option) => (
+                  <option key={option.key} value={option.key}>
+                    {formatGenasiLineageOptionLabel(option)}
+                  </option>
+                ))}
+              </SelectInput>
+              {attemptedBuildAdvance && !isSpeciesGenasiLineageReady ? (
+                <small className={styles.errorText}>
+                  Choose a Genasi lineage before continuing.
+                </small>
+              ) : null}
+            </label>
+          ) : null}
+
+          {genasiSpellcastingAbilityOptions.length > 0 ? (
+            <label className={styles.field}>
+              <span>Genasi Spellcasting Ability</span>
+              <SelectInput
+                className={styles.fieldInput}
+                invalid={attemptedBuildAdvance && !isSpeciesGenasiSpellcastingAbilityReady}
+                value={selectedGenasiSpellcastingAbility}
+                onChange={(event) => {
+                  const nextAbility = event.target.value;
+                  const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                    ...(getValues("speciesChoices") ?? {}),
+                    genasiSpellcastingAbility: nextAbility || undefined
+                  });
+
+                  setValue("speciesChoices", nextChoices, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  });
+                }}
+              >
+                <option value="">-</option>
+                {genasiSpellcastingAbilityOptions.map((ability) => (
+                  <option key={ability} value={ability}>
+                    {ability}
+                  </option>
+                ))}
+              </SelectInput>
+              {attemptedBuildAdvance && !isSpeciesGenasiSpellcastingAbilityReady ? (
+                <small className={styles.errorText}>
+                  Choose a Genasi spellcasting ability before continuing.
+                </small>
+              ) : null}
+            </label>
+          ) : null}
+
           {gnomeLineageOptions.length > 0 ? (
             <label className={styles.field}>
               <span>Gnomish Lineage</span>
@@ -4697,6 +5242,41 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             </label>
           ) : null}
 
+          {hexbloodSpellcastingAbilityOptions.length > 0 ? (
+            <label className={styles.field}>
+              <span>Hex Magic Spellcasting Ability</span>
+              <SelectInput
+                className={styles.fieldInput}
+                invalid={attemptedBuildAdvance && !isSpeciesHexbloodSpellcastingAbilityReady}
+                value={selectedHexbloodSpellcastingAbility}
+                onChange={(event) => {
+                  const nextAbility = event.target.value;
+                  const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                    ...(getValues("speciesChoices") ?? {}),
+                    hexbloodSpellcastingAbility: nextAbility || undefined
+                  });
+
+                  setValue("speciesChoices", nextChoices, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  });
+                }}
+              >
+                <option value="">-</option>
+                {hexbloodSpellcastingAbilityOptions.map((ability) => (
+                  <option key={ability} value={ability}>
+                    {ability}
+                  </option>
+                ))}
+              </SelectInput>
+              {attemptedBuildAdvance && !isSpeciesHexbloodSpellcastingAbilityReady ? (
+                <small className={styles.errorText}>
+                  Choose a Hex Magic spellcasting ability before continuing.
+                </small>
+              ) : null}
+            </label>
+          ) : null}
+
           {giantAncestryOptions.length > 0 ? (
             <label className={styles.field}>
               <span>Giant Ancestry</span>
@@ -4762,6 +5342,384 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
               {attemptedBuildAdvance && !isSpeciesHumanSkillProficiencyReady ? (
                 <small className={styles.errorText}>
                   Choose a Skillful proficiency before continuing.
+                </small>
+              ) : null}
+            </label>
+          ) : null}
+
+          {kalashtarSkillProficiencyOptions.length > 0 ? (
+            <label className={styles.field}>
+              <span>Severed from Dreams Proficiency</span>
+              <SelectInput
+                className={styles.fieldInput}
+                invalid={attemptedBuildAdvance && !isSpeciesKalashtarSkillProficiencyReady}
+                value={selectedKalashtarSkillProficiency}
+                onChange={(event) => {
+                  const nextSkill = event.target.value;
+                  const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                    ...(getValues("speciesChoices") ?? {}),
+                    kalashtarSkillProficiency: nextSkill || undefined
+                  });
+
+                  setValue("speciesChoices", nextChoices, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  });
+                }}
+              >
+                <option value="">-</option>
+                {kalashtarSkillProficiencyOptions.map((skill) => (
+                  <option key={skill} value={skill}>
+                    {skill}
+                  </option>
+                ))}
+              </SelectInput>
+              {attemptedBuildAdvance && !isSpeciesKalashtarSkillProficiencyReady ? (
+                <small className={styles.errorText}>
+                  Choose a Severed from Dreams skill before continuing.
+                </small>
+              ) : null}
+            </label>
+          ) : null}
+
+          {khoravarSkillProficiencyOptions.length > 0 ||
+          khoravarToolProficiencyOptions.length > 0 ? (
+            <label className={styles.field}>
+              <span>Skill Versatility Proficiency</span>
+              <SelectInput
+                className={styles.fieldInput}
+                invalid={attemptedBuildAdvance && !isSpeciesKhoravarProficiencyReady}
+                value={selectedKhoravarProficiencyChoiceValue}
+                onChange={(event) => {
+                  const nextProficiencyChoice = parseKhoravarProficiencyChoiceValue(
+                    event.target.value
+                  );
+                  const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                    ...(getValues("speciesChoices") ?? {}),
+                    khoravarSkillProficiency:
+                      nextProficiencyChoice.khoravarSkillProficiency,
+                    khoravarToolProficiency: nextProficiencyChoice.khoravarToolProficiency
+                  });
+
+                  setValue("speciesChoices", nextChoices, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  });
+                }}
+              >
+                <option value="">-</option>
+                {khoravarSkillSelectOptions.length > 0 ? (
+                  <optgroup label="Skills">
+                    {khoravarSkillSelectOptions.map((option) => (
+                      <option
+                        key={option.skill}
+                        value={createKhoravarSkillProficiencyChoiceValue(option.skill)}
+                        disabled={option.disabled}
+                      >
+                        {option.skill}
+                      </option>
+                    ))}
+                  </optgroup>
+                ) : null}
+                {khoravarToolSelectOptions.length > 0 ? (
+                  <optgroup label="Tools">
+                    {khoravarToolSelectOptions.map((option) => (
+                      <option
+                        key={option.tool}
+                        value={createKhoravarToolProficiencyChoiceValue(option.tool)}
+                        disabled={option.disabled}
+                      >
+                        {getToolProficiencyLabel(option.tool)}
+                      </option>
+                    ))}
+                  </optgroup>
+                ) : null}
+              </SelectInput>
+              {attemptedBuildAdvance && !isSpeciesKhoravarProficiencyReady ? (
+                <small className={styles.errorText}>
+                  Choose a Skill Versatility skill or tool before continuing.
+                </small>
+              ) : null}
+            </label>
+          ) : null}
+
+          {khoravarCantripOptions.length > 0 ? (
+            <label className={styles.field}>
+              <span>Fey Gift Cantrip</span>
+              <SelectInput
+                className={styles.fieldInput}
+                invalid={attemptedBuildAdvance && !isSpeciesKhoravarCantripReady}
+                value={selectedKhoravarCantripId}
+                onChange={(event) => {
+                  const nextCantripId = event.target.value;
+                  const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                    ...(getValues("speciesChoices") ?? {}),
+                    khoravarCantripId: nextCantripId || undefined
+                  });
+
+                  setValue("speciesChoices", nextChoices, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  });
+                }}
+              >
+                <option value="">-</option>
+                {khoravarCantripOptions.map((spell) => (
+                  <option key={spell.id} value={spell.id}>
+                    {spell.name}
+                  </option>
+                ))}
+              </SelectInput>
+              {attemptedBuildAdvance && !isSpeciesKhoravarCantripReady ? (
+                <small className={styles.errorText}>
+                  Choose a Fey Gift cantrip before continuing.
+                </small>
+              ) : null}
+            </label>
+          ) : null}
+
+          {khoravarSpellcastingAbilityOptions.length > 0 ? (
+            <label className={styles.field}>
+              <span>Fey Gift Spellcasting Ability</span>
+              <SelectInput
+                className={styles.fieldInput}
+                invalid={
+                  attemptedBuildAdvance && !isSpeciesKhoravarSpellcastingAbilityReady
+                }
+                value={selectedKhoravarSpellcastingAbility}
+                onChange={(event) => {
+                  const nextAbility = event.target.value;
+                  const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                    ...(getValues("speciesChoices") ?? {}),
+                    khoravarSpellcastingAbility: nextAbility || undefined
+                  });
+
+                  setValue("speciesChoices", nextChoices, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  });
+                }}
+              >
+                <option value="">-</option>
+                {khoravarSpellcastingAbilityOptions.map((ability) => (
+                  <option key={ability} value={ability}>
+                    {ability}
+                  </option>
+                ))}
+              </SelectInput>
+              {attemptedBuildAdvance && !isSpeciesKhoravarSpellcastingAbilityReady ? (
+                <small className={styles.errorText}>
+                  Choose a Fey Gift spellcasting ability before continuing.
+                </small>
+              ) : null}
+            </label>
+          ) : null}
+
+          {lupinSkillProficiencyOptions.length > 0 ? (
+            <label className={styles.field}>
+              <span>Werewolf Instincts Proficiency</span>
+              <SelectInput
+                className={styles.fieldInput}
+                invalid={attemptedBuildAdvance && !isSpeciesLupinSkillProficiencyReady}
+                value={selectedLupinSkillProficiency}
+                onChange={(event) => {
+                  const nextSkill = event.target.value;
+                  const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                    ...(getValues("speciesChoices") ?? {}),
+                    lupinSkillProficiency: nextSkill || undefined
+                  });
+
+                  setValue("speciesChoices", nextChoices, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  });
+                }}
+              >
+                <option value="">-</option>
+                {lupinSkillProficiencyOptions.map((skill) => (
+                  <option key={skill} value={skill}>
+                    {skill}
+                  </option>
+                ))}
+              </SelectInput>
+              {attemptedBuildAdvance && !isSpeciesLupinSkillProficiencyReady ? (
+                <small className={styles.errorText}>
+                  Choose a Werewolf Instincts skill before continuing.
+                </small>
+              ) : null}
+            </label>
+          ) : null}
+
+          {rebornSkillProficiencyOptions.length > 0 ? (
+            <label className={styles.field}>
+              <span>Knowledge from a Past Life Proficiency</span>
+              <SelectInput
+                className={styles.fieldInput}
+                invalid={attemptedBuildAdvance && !isSpeciesRebornSkillProficiencyReady}
+                value={selectedRebornSkillProficiency}
+                onChange={(event) => {
+                  const nextSkill = event.target.value;
+                  const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                    ...(getValues("speciesChoices") ?? {}),
+                    rebornSkillProficiency: nextSkill || undefined
+                  });
+
+                  setValue("speciesChoices", nextChoices, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  });
+                }}
+              >
+                <option value="">-</option>
+                {rebornSkillSelectOptions.map((option) => (
+                  <option key={option.skill} value={option.skill} disabled={option.disabled}>
+                    {option.skill}
+                  </option>
+                ))}
+              </SelectInput>
+              {attemptedBuildAdvance && !isSpeciesRebornSkillProficiencyReady ? (
+                <small className={styles.errorText}>
+                  Choose a Knowledge from a Past Life skill before continuing.
+                </small>
+              ) : null}
+            </label>
+          ) : null}
+
+          {rebornResistanceOptions.length > 0 ? (
+            <label className={styles.field}>
+              <span>Strange Endurance Resistance</span>
+              <SelectInput
+                className={styles.fieldInput}
+                invalid={attemptedBuildAdvance && !isSpeciesRebornResistanceReady}
+                value={selectedRebornResistance}
+                onChange={(event) => {
+                  const nextResistance = event.target.value;
+                  const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                    ...(getValues("speciesChoices") ?? {}),
+                    rebornResistance: nextResistance || undefined
+                  });
+
+                  setValue("speciesChoices", nextChoices, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  });
+                }}
+              >
+                <option value="">-</option>
+                {rebornResistanceOptions.map((damageType) => (
+                  <option key={damageType} value={damageType}>
+                    {formatDamageTypeChoiceLabel(damageType)}
+                  </option>
+                ))}
+              </SelectInput>
+              {attemptedBuildAdvance && !isSpeciesRebornResistanceReady ? (
+                <small className={styles.errorText}>
+                  Choose a Strange Endurance resistance before continuing.
+                </small>
+              ) : null}
+            </label>
+          ) : null}
+
+          {shifterSkillProficiencyOptions.length > 0 ? (
+            <label className={styles.field}>
+              <span>Bestial Instincts Proficiency</span>
+              <SelectInput
+                className={styles.fieldInput}
+                invalid={attemptedBuildAdvance && !isSpeciesShifterSkillProficiencyReady}
+                value={selectedShifterSkillProficiency}
+                onChange={(event) => {
+                  const nextSkill = event.target.value;
+                  const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                    ...(getValues("speciesChoices") ?? {}),
+                    shifterSkillProficiency: nextSkill || undefined
+                  });
+
+                  setValue("speciesChoices", nextChoices, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  });
+                }}
+              >
+                <option value="">-</option>
+                {shifterSkillProficiencyOptions.map((skill) => (
+                  <option key={skill} value={skill}>
+                    {skill}
+                  </option>
+                ))}
+              </SelectInput>
+              {attemptedBuildAdvance && !isSpeciesShifterSkillProficiencyReady ? (
+                <small className={styles.errorText}>
+                  Choose a Bestial Instincts skill before continuing.
+                </small>
+              ) : null}
+            </label>
+          ) : null}
+
+          {warforgedSkillProficiencyOptions.length > 0 ? (
+            <label className={styles.field}>
+              <span>Specialized Design Skill</span>
+              <SelectInput
+                className={styles.fieldInput}
+                invalid={attemptedBuildAdvance && !isSpeciesWarforgedSkillProficiencyReady}
+                value={selectedWarforgedSkillProficiency}
+                onChange={(event) => {
+                  const nextSkill = event.target.value;
+                  const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                    ...(getValues("speciesChoices") ?? {}),
+                    warforgedSkillProficiency: nextSkill || undefined
+                  });
+
+                  setValue("speciesChoices", nextChoices, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  });
+                }}
+              >
+                <option value="">-</option>
+                {warforgedSkillSelectOptions.map((option) => (
+                  <option key={option.skill} value={option.skill} disabled={option.disabled}>
+                    {option.skill}
+                  </option>
+                ))}
+              </SelectInput>
+              {attemptedBuildAdvance && !isSpeciesWarforgedSkillProficiencyReady ? (
+                <small className={styles.errorText}>
+                  Choose a Specialized Design skill before continuing.
+                </small>
+              ) : null}
+            </label>
+          ) : null}
+
+          {warforgedToolProficiencyOptions.length > 0 ? (
+            <label className={styles.field}>
+              <span>Specialized Design Tool</span>
+              <SelectInput
+                className={styles.fieldInput}
+                invalid={attemptedBuildAdvance && !isSpeciesWarforgedToolProficiencyReady}
+                value={selectedWarforgedToolProficiency}
+                onChange={(event) => {
+                  const nextTool = event.target.value as TOOL_PROFICIENCY | "";
+                  const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
+                    ...(getValues("speciesChoices") ?? {}),
+                    warforgedToolProficiency: nextTool || undefined
+                  });
+
+                  setValue("speciesChoices", nextChoices, {
+                    shouldDirty: true,
+                    shouldValidate: true
+                  });
+                }}
+              >
+                <option value="">-</option>
+                {warforgedToolSelectOptions.map((option) => (
+                  <option key={option.tool} value={option.tool} disabled={option.disabled}>
+                    {getToolProficiencyLabel(option.tool)}
+                  </option>
+                ))}
+              </SelectInput>
+              {attemptedBuildAdvance && !isSpeciesWarforgedToolProficiencyReady ? (
+                <small className={styles.errorText}>
+                  Choose a Specialized Design tool before continuing.
                 </small>
               ) : null}
             </label>

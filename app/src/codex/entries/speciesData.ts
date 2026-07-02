@@ -1,5 +1,6 @@
 import { BODY_SIZE, SPECIES_TYPES, TRACKER } from "./enums";
 import { efaSpeciesEntries } from "./efaSpeciesData";
+import { mpmmSpeciesEntries } from "./mpmmSpeciesData";
 import { rhwSpeciesEntries } from "./rhwSpeciesData";
 import { createSpeciesEntry } from "./speciesEntryFactory";
 import type { SpeciesEntry } from "./types";
@@ -253,6 +254,7 @@ const coreSpeciesEntries: SpeciesEntry[] = [
 
 export const speciesEntries: SpeciesEntry[] = [
   ...coreSpeciesEntries,
+  ...mpmmSpeciesEntries,
   ...rhwSpeciesEntries,
   ...efaSpeciesEntries
 ];

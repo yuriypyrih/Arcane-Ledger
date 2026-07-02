@@ -117,10 +117,14 @@ import {
   createNamedResourceCardUsage
 } from "../../../../../../pages/CharactersPage/classFeatures/cardUsage";
 import {
+  applyDhampirVampiricBiteWeaponAction,
   applyOrcAdrenalineRushForCharacter,
+  consumeDhampirVampiricBiteUseForCharacter,
   consumeGoliathGiantAncestryUseForCharacter,
   getOrcAdrenalineRushUsesRemaining,
-  hasOrcAdrenalineRushCommonActionBonusPath
+  hasOrcAdrenalineRushCommonActionBonusPath,
+  rebornKnowledgeFromPastLifeActionKey,
+  rebornKnowledgeFromPastLifeRollFormula
 } from "../../../../../../pages/CharactersPage/species";
 import { hasExpeditiousRetreatDashBonusActionPath } from "../../../../../../pages/CharactersPage/characterRuntime/spellImplementations";
 import { mantleOfInspirationActionKey } from "../../../../../../pages/CharactersPage/classFeatures/bard/subclasses/bardCollegeOfGlamour";
@@ -505,6 +509,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     isRecklessAttackSelected,
     isSacredWeaponSelected,
     isStunningStrikeSelected,
+    isVampiricBiteSelected,
     isVowOfEnmitySelected,
     natureMagicianOptions,
     nextRollCriticalHitOverride,
@@ -573,6 +578,8 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     selectedWeaponPsionicStrikeFormula,
     selectedWeaponQuiveringPalmState,
     selectedWeaponQuiveringPalmToggleDisabled,
+    selectedWeaponVampiricBiteState,
+    selectedWeaponVampiricBiteToggleDisabled,
     selectedWeaponSacredWeaponState,
     selectedWeaponSacredWeaponToggleDisabled,
     selectedWeaponStunningStrikeState,
@@ -606,6 +613,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     setIsRecklessAttackSelected,
     setIsSacredWeaponSelected,
     setIsStunningStrikeSelected,
+    setIsVampiricBiteSelected,
     setIsVowOfEnmitySelected,
     setSelectedArcaneRecoverySelection,
     setSelectedArcaneWardSpellSlotLevel,
@@ -1812,6 +1820,24 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
       return;
     }
 
+    if (action.key === rebornKnowledgeFromPastLifeActionKey) {
+      if ((action.usesRemaining ?? 0) <= 0) {
+        return;
+      }
+
+      activateFeatureAction(action);
+      openDiceRoller({
+        title: action.name,
+        formula: rebornKnowledgeFromPastLifeRollFormula,
+        formulaDisplay: rebornKnowledgeFromPastLifeRollFormula,
+        description: action.detail,
+        getFullManualToastText: ({ result }) =>
+          `Rolled ${result.total} Knowledge from a Past Life.`
+      });
+      closeActionDrawer();
+      return;
+    }
+
     if (action.key === darkOnesOwnLuckActionKey) {
       activateFeatureAction(action);
       openDiceRoller({
@@ -2142,6 +2168,11 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
       isQuiveringPalmSelected &&
       selectedWeaponQuiveringPalmState !== null &&
       !selectedWeaponQuiveringPalmToggleDisabled;
+    const useVampiricBite =
+      action.attackKind === "unarmed" &&
+      isVampiricBiteSelected &&
+      selectedWeaponVampiricBiteState !== null &&
+      !selectedWeaponVampiricBiteToggleDisabled;
     const useStunningStrike =
       isStunningStrikeSelected &&
       selectedWeaponStunningStrikeState !== null &&
@@ -2181,6 +2212,10 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
         effectiveAction,
         selectedWeaponGoliathAncestryState.damageBonus
       );
+    }
+
+    if (useVampiricBite) {
+      effectiveAction = applyDhampirVampiricBiteWeaponAction(character, effectiveAction);
     }
 
     const damageAction = nextRollCriticalHitOverride
@@ -2261,7 +2296,8 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
       useEldritchSmite ||
       useLifedrinker ||
       useHandOfHarm ||
-      useQuiveringPalm;
+      useQuiveringPalm ||
+      useVampiricBite;
 
     setIsDreadfulStrikeSelected(false);
     setIsColossusSlayerSelected(false);
@@ -2271,6 +2307,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     setIsEmpoweredStrikesSelected(false);
     setIsHandOfHarmSelected(false);
     setIsQuiveringPalmSelected(false);
+    setIsVampiricBiteSelected(false);
     setIsPsionicStrikeSelected(false);
     setIsEldritchSmiteSelected(false);
     setIsLifedrinkerSelected(false);
@@ -2313,6 +2350,10 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
 
         if (useQuiveringPalm) {
           nextCharacter = activateMonkWarriorOfTheOpenHandQuiveringPalmMark(nextCharacter);
+        }
+
+        if (useVampiricBite) {
+          nextCharacter = consumeDhampirVampiricBiteUseForCharacter(nextCharacter);
         }
 
         if (useStunningStrike) {

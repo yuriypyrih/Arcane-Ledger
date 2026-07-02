@@ -103,6 +103,10 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
     selectedSpellFeyMagicFreeCastState,
     selectedSpellFiendishLegacyDisabled,
     selectedSpellFiendishLegacyFreeCastState,
+    selectedSpellGenasiLineageDisabled,
+    selectedSpellGenasiLineageFreeCastState,
+    selectedSpellHexMagicDisabled,
+    selectedSpellHexMagicFreeCastState,
     selectedSpellForestGnomeDisabled,
     selectedSpellForestGnomeFreeCastState,
     selectedSpellGoliathAncestryDisabled,
@@ -139,7 +143,9 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
     selectedSpellSupportsDetectThoughts,
     selectedSpellSupportsEmeraldEnclaveFledgling,
     selectedSpellSupportsFeyMagic,
+    selectedSpellSupportsGenasiLineage,
     selectedSpellSupportsFiendishLegacy,
+    selectedSpellSupportsHexMagic,
     selectedSpellSupportsForestGnome,
     selectedSpellSupportsFeyReinforcements,
     selectedSpellSupportsGoliathAncestry,
@@ -174,7 +180,9 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
     setUseDetectThoughtsOnSelectedSpell,
     setUseEmeraldEnclaveFledglingFreeUseOnSelectedSpell,
     setUseFeyMagicOnSelectedSpell,
+    setUseGenasiLineageOnSelectedSpell,
     setUseFiendishLegacyOnSelectedSpell,
+    setUseHexMagicOnSelectedSpell,
     setUseForestGnomeOnSelectedSpell,
     setUseGoliathAncestryOnSelectedSpell,
     setUseFeyReinforcementsNoConcentrationOnSelectedSpell,
@@ -217,7 +225,9 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
     useDetectThoughtsOnSelectedSpell,
     useEmeraldEnclaveFledglingFreeUseOnSelectedSpell,
     useFeyMagicOnSelectedSpell,
+    useGenasiLineageOnSelectedSpell,
     useFiendishLegacyOnSelectedSpell,
+    useHexMagicOnSelectedSpell,
     useForestGnomeOnSelectedSpell,
     useGoliathAncestryOnSelectedSpell,
     useFeyReinforcementsNoConcentrationOnSelectedSpell,
@@ -457,8 +467,10 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
               useBeguilingMagic: useBeguilingMagicOnSelectedSpell,
               useStarMap: useStarMapOnSelectedSpell,
               useMagicInitiate: useMagicInitiateOnSelectedSpell,
+              useGenasiLineage: useGenasiLineageOnSelectedSpell,
               useForestGnome: useForestGnomeOnSelectedSpell,
               useFiendishLegacy: useFiendishLegacyOnSelectedSpell,
+              useHexMagic: useHexMagicOnSelectedSpell,
               useGoliathAncestry: useGoliathAncestryOnSelectedSpell,
               useFeyMagic: useFeyMagicOnSelectedSpell,
               useQuickRitual: useQuickRitualOnSelectedSpell,
@@ -490,8 +502,10 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
             !selectedSpellCanOnlyBeCastAsRitual &&
             !(selectedSpellSupportsStarMap && useStarMapOnSelectedSpell) &&
             !(selectedSpellSupportsMagicInitiate && useMagicInitiateOnSelectedSpell) &&
+            !(selectedSpellSupportsGenasiLineage && useGenasiLineageOnSelectedSpell) &&
             !(selectedSpellSupportsForestGnome && useForestGnomeOnSelectedSpell) &&
             !(selectedSpellSupportsFiendishLegacy && useFiendishLegacyOnSelectedSpell) &&
+            !(selectedSpellSupportsHexMagic && useHexMagicOnSelectedSpell) &&
             !(selectedSpellSupportsFeyMagic && useFeyMagicOnSelectedSpell) &&
             !(selectedSpellSupportsQuickRitual && useQuickRitualOnSelectedSpell) &&
             !(selectedSpellSupportsShadowMagic && useShadowMagicOnSelectedSpell) &&
@@ -535,15 +549,19 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
                 ? `Psionic Sorcery lets you cast this spell at level ${selectedSpellPsionicSorceryCurrentCost} by spending ${selectedSpellPsionicSorceryCurrentCost} Sorcery Point${selectedSpellPsionicSorceryCurrentCost === 1 ? "" : "s"} instead of a spell slot.`
                 : selectedSpellSupportsStarMap && useStarMapOnSelectedSpell
                   ? "Star Map lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
-                  : selectedSpellSupportsMagicInitiate && useMagicInitiateOnSelectedSpell
-                    ? "Magic Initiate lets you cast this spell at level 1 without expending a spell slot. This use recharges on a Long Rest."
-                    : selectedSpellSupportsForestGnome && useForestGnomeOnSelectedSpell
-                      ? "Forest Gnome lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
-                      : selectedSpellSupportsFiendishLegacy && useFiendishLegacyOnSelectedSpell
-                        ? "Fiendish Legacy lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
-                        : selectedSpellSupportsFeyMagic && useFeyMagicOnSelectedSpell
-                          ? "Fey Magic lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
-                          : selectedSpellSupportsQuickRitual && useQuickRitualOnSelectedSpell
+                    : selectedSpellSupportsMagicInitiate && useMagicInitiateOnSelectedSpell
+                      ? "Magic Initiate lets you cast this spell at level 1 without expending a spell slot. This use recharges on a Long Rest."
+                      : selectedSpellSupportsGenasiLineage && useGenasiLineageOnSelectedSpell
+                        ? "Genasi Lineage lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                        : selectedSpellSupportsForestGnome && useForestGnomeOnSelectedSpell
+                          ? "Forest Gnome lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                          : selectedSpellSupportsFiendishLegacy && useFiendishLegacyOnSelectedSpell
+                            ? "Fiendish Legacy lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                            : selectedSpellSupportsHexMagic && useHexMagicOnSelectedSpell
+                              ? "Hex Magic lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                              : selectedSpellSupportsFeyMagic && useFeyMagicOnSelectedSpell
+                                ? "Fey Magic lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                                : selectedSpellSupportsQuickRitual && useQuickRitualOnSelectedSpell
                             ? "Quick Ritual lets you cast this Ritual spell using its regular casting time without expending a spell slot. This use recharges on a Long Rest."
                             : selectedSpellSupportsShadowMagic && useShadowMagicOnSelectedSpell
                               ? "Shadow Magic lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
@@ -630,8 +648,10 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
           actionOptions={
             selectedSpellSupportsStarMap ||
             selectedSpellSupportsMagicInitiate ||
+            selectedSpellSupportsGenasiLineage ||
             selectedSpellSupportsForestGnome ||
             selectedSpellSupportsFiendishLegacy ||
+            selectedSpellSupportsHexMagic ||
             selectedSpellSupportsGoliathAncestry ||
             selectedSpellSupportsFeyMagic ||
             selectedSpellSupportsQuickRitual ||
@@ -706,6 +726,27 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
                         }
                       ]
                     : []),
+                  ...(selectedSpellSupportsGenasiLineage
+                    ? [
+                        {
+                          id: "genasi-lineage",
+                          label: "Genasi Lineage",
+                          checked: useGenasiLineageOnSelectedSpell,
+                          onCheckedChange: setUseGenasiLineageOnSelectedSpell,
+                          disabled: selectedSpellGenasiLineageDisabled,
+                          headerTags: [
+                            createChargesHeaderTag(
+                              selectedSpellGenasiLineageFreeCastState?.usesRemaining ?? 0,
+                              selectedSpellGenasiLineageFreeCastState?.usesTotal ?? 1
+                            )
+                          ],
+                          usage: createChargesCardUsage(
+                            selectedSpellGenasiLineageFreeCastState?.usesRemaining ?? 0,
+                            selectedSpellGenasiLineageFreeCastState?.usesTotal ?? 1
+                          )
+                        }
+                      ]
+                    : []),
                   ...(selectedSpellSupportsForestGnome
                     ? [
                         {
@@ -744,6 +785,27 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
                           usage: createChargesCardUsage(
                             selectedSpellFiendishLegacyFreeCastState?.usesRemaining ?? 0,
                             selectedSpellFiendishLegacyFreeCastState?.usesTotal ?? 1
+                          )
+                        }
+                      ]
+                    : []),
+                  ...(selectedSpellSupportsHexMagic
+                    ? [
+                        {
+                          id: "hex-magic",
+                          label: "Hex Magic",
+                          checked: useHexMagicOnSelectedSpell,
+                          onCheckedChange: setUseHexMagicOnSelectedSpell,
+                          disabled: selectedSpellHexMagicDisabled,
+                          headerTags: [
+                            createChargesHeaderTag(
+                              selectedSpellHexMagicFreeCastState?.usesRemaining ?? 0,
+                              selectedSpellHexMagicFreeCastState?.usesTotal ?? 1
+                            )
+                          ],
+                          usage: createChargesCardUsage(
+                            selectedSpellHexMagicFreeCastState?.usesRemaining ?? 0,
+                            selectedSpellHexMagicFreeCastState?.usesTotal ?? 1
                           )
                         }
                       ]

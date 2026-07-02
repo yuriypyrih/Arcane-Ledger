@@ -5,6 +5,7 @@ import type {
 } from "../../../../../../../pages/CharactersPage/classFeatures";
 import type { GameplayActionDefinition } from "../../../../../../../pages/CharactersPage/combatActions";
 import { formatFeatureActionOptionValueLabel } from "../../../../../../../pages/CharactersPage/actionOutcome";
+import SpellDescriptionContent from "../../../../../../SpellDescriptionContent";
 import RadioContainerOption from "../../../../RadioContainerOption";
 import { FeatureActionOptionButton } from "../ActionCards";
 import type { RoundTrackerAvailability } from "../types";
@@ -29,9 +30,18 @@ function FeatureOptionsActionBody({
   const selection = drawer?.selection ?? "single-immediate";
   const options = drawer?.options ?? [];
   const selectionLimit = drawer?.selectionLimit ?? options.length;
+  const hasDetailedOptions = options.some(
+    (option) => option.description && option.description.length > 0
+  );
 
   return (
-    <div className={clsx(sharedModalStyles.featureActionOptionGrid)}>
+    <div
+      className={clsx(
+        hasDetailedOptions
+          ? sharedModalStyles.metamagicOptionList
+          : sharedModalStyles.featureActionOptionGrid
+      )}
+    >
       {options.map((option) => {
         const isSelected = selectedOptionKeys.includes(option.key);
         const isDisabled =
@@ -41,12 +51,22 @@ function FeatureOptionsActionBody({
         const resolvedOption = isDisabled ? { ...option, disabled: true } : option;
         const selectionIndicatorType = selection === "multi-confirm" ? "checkbox" : "radio";
         const selectionName = selection === "multi-confirm" ? undefined : action.action.key;
+        const optionBreakdown =
+          resolvedOption.description && resolvedOption.description.length > 0 ? (
+            <SpellDescriptionContent
+              description={resolvedOption.description}
+              className={sharedModalStyles.metamagicOptionDescription}
+              entryClassName={sharedModalStyles.metamagicOptionDescriptionLine}
+              strongClassName={sharedModalStyles.metamagicOptionDescriptionStrong}
+            />
+          ) : undefined;
 
         if (resolvedOption.presentation === "plain") {
           return (
             <RadioContainerOption
               key={option.key}
               header={option.name}
+              breakdown={optionBreakdown}
               selected={isSelected}
               onSelect={() => onToggleOption(option)}
               name={selectionName}
@@ -67,6 +87,7 @@ function FeatureOptionsActionBody({
             selectionName={selectionName}
             onClick={() => onToggleOption(option)}
             formatValueLabel={formatFeatureActionOptionValueLabel}
+            breakdown={optionBreakdown}
           />
         );
       })}

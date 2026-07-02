@@ -35,6 +35,7 @@ import {
   getMageArmorArmorClassModes,
   getSpellArmorClassBonusesForCharacter
 } from "./characterRuntime/spellImplementations";
+import { getSpeciesArmorClassBonusesForCharacter } from "./species";
 
 export type BodyArmorType = "light" | "medium" | "heavy";
 
@@ -686,7 +687,8 @@ export function getArmorClassResolutionForCharacter(character: Character): Armor
   const featureBonuses = [
     ...getArmorClassBonusesForCharacter(character, featureContext),
     ...getSpellArmorClassBonusesForCharacter(character),
-    ...getFeatArmorClassBonusesForCharacter(character, featureContext)
+    ...getFeatArmorClassBonusesForCharacter(character, featureContext),
+    ...getSpeciesArmorClassBonusesForCharacter(character, featureContext)
   ];
   const formulas = modes.map((mode) =>
     buildArmorClassFormulaOption(character, mode, shieldBonus, featureBonuses)

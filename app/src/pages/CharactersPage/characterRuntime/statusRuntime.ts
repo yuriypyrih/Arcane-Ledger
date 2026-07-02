@@ -24,7 +24,8 @@ import {
 import {
   getSpeciesAlwaysPreparedSpellIdsForCharacter,
   getSpeciesDerivedStatusEntriesForCharacter,
-  getSpeciesGrantedCantripEntriesForCharacter
+  getSpeciesGrantedCantripEntriesForCharacter,
+  getSpeciesReactionEntriesForCharacter
 } from "../species";
 import { getDarkvisionSpellDerivedStatusEntriesForCharacter } from "./spellImplementations/darkvision";
 import { getHeroismSpellDerivedStatusEntriesForCharacter } from "./spellImplementations/heroism";
@@ -311,7 +312,8 @@ function createStatusRuntime(character: Character): CharacterStatusRuntime {
   ].sort((left, right) => left.name.localeCompare(right.name));
   const featureReactionEntries = [
     ...getFeatureReactionEntriesForCharacter(character),
-    ...getFeatReactionEntriesForCharacter(character)
+    ...getFeatReactionEntriesForCharacter(character),
+    ...getSpeciesReactionEntriesForCharacter(character)
   ];
   const featureReactionEntriesByStatusId =
     createFeatureReactionEntriesByStatusId(featureReactionEntries);

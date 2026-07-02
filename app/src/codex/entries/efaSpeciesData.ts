@@ -10,7 +10,7 @@ export const efaSpeciesEntries: SpeciesEntry[] = [
     tags: [SPECIES_TYPES.CONSTRUCT],
     speed: 30,
     size: [BODY_SIZE.MEDIUM, BODY_SIZE.SMALL],
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.TRACKED,
     starterPack: {
       recommendedBodySize: BODY_SIZE.MEDIUM
     },
@@ -33,7 +33,7 @@ export const efaSpeciesEntries: SpeciesEntry[] = [
     tags: [SPECIES_TYPES.HUMANOID],
     speed: 30,
     size: [BODY_SIZE.MEDIUM, BODY_SIZE.SMALL],
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.TRACKED,
     starterPack: {
       recommendedBodySize: BODY_SIZE.MEDIUM
     },
@@ -59,7 +59,9 @@ export const efaSpeciesEntries: SpeciesEntry[] = [
     tags: [SPECIES_TYPES.HUMANOID, SPECIES_TYPES.FEY_ANCESTRY],
     speed: 30,
     size: [BODY_SIZE.MEDIUM, BODY_SIZE.SMALL],
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "The Fey Ancestry and Lethargy Resilience are not being tracked. Keep that in mind.",
     starterPack: {
       recommendedBodySize: BODY_SIZE.MEDIUM
     },
@@ -82,7 +84,9 @@ export const efaSpeciesEntries: SpeciesEntry[] = [
     tags: [SPECIES_TYPES.ABERRATION],
     speed: 30,
     size: [BODY_SIZE.MEDIUM],
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "The Mind Link is not being tracked. You can create a custom action or trait if you want to.",
     starterPack: {
       recommendedBodySize: BODY_SIZE.MEDIUM
     },

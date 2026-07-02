@@ -16,6 +16,7 @@ import { canUsePaladinOathOfTheAncientsElderChampionBonusActionPathForSpell } fr
 import { canUseRogueArcaneTricksterMageHandLegerdemainBonusActionPathForSpell } from "../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueArcaneTrickster";
 import { canUseWizardAbjurerSpellBreakerBonusActionPathForSpell } from "../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardAbjurer";
 import { getFeatSpellActionPathContributionsForCharacter } from "../../../pages/CharactersPage/feats/runtime";
+import { getSpeciesSpellActionPathContributionsForCharacter } from "../../../pages/CharactersPage/species";
 import type { RoundTrackerResource } from "../../../pages/CharactersPage/combat";
 import type {
   SpellImplementationCastSource,
@@ -97,7 +98,10 @@ export function getSpellActionPathStates(
     );
   }
 
-  getFeatSpellActionPathContributionsForCharacter(character, spell).forEach((contribution) => {
+  [
+    ...getFeatSpellActionPathContributionsForCharacter(character, spell),
+    ...getSpeciesSpellActionPathContributionsForCharacter(character, spell)
+  ].forEach((contribution) => {
     if (primaryEconomyType !== ECONOMY_TYPE.ACTION) {
       return;
     }

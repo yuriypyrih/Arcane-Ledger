@@ -38,13 +38,15 @@ import {
   transformFeatCommonActionForCharacter,
   transformFeatWeaponActionForCharacter
 } from "../feats/runtime";
-import { getSpeciesActionsForCharacter } from "../species";
-import { getGnomeSavingThrowIndicatorsForCharacter } from "../speciesGnome";
 import {
-  getGoliathAbilityCheckIndicatorsForCharacter,
-  getGoliathSavingThrowIndicatorsForCharacter,
-  getGoliathSkillIndicatorsForCharacter
-} from "../speciesGoliath";
+  getSpeciesAbilityCheckIndicatorsForCharacter,
+  getSpeciesActionsForCharacter,
+  getSpeciesActionOptionsForCharacter,
+  getSpeciesDescriptionAdditionsForCharacter,
+  getSpeciesSavingThrowIndicatorsForCharacter,
+  getSpeciesSkillIndicatorsForCharacter,
+  transformSpeciesWeaponActionForCharacter
+} from "../species";
 import { measureCharacterRuntime } from "../characterRuntime/performance";
 import {
   activateBardicInspiration,
@@ -717,6 +719,8 @@ export function transformWeaponActionForCharacter(
     | "inventoryItems"
     | "customEquipment"
     | "feats"
+    | "species"
+    | "speciesFeatureState"
     | "statusEntries"
   >,
   action: WeaponAction
@@ -731,18 +735,25 @@ export function transformWeaponActionForCharacter(
     ? subclassDerivedState.transformWeaponAction(baseAction)
     : baseAction;
 
-  return transformFeatWeaponActionForCharacter(character, classFeatureAction);
+  return transformSpeciesWeaponActionForCharacter(
+    character,
+    transformFeatWeaponActionForCharacter(character, classFeatureAction)
+  );
 }
 
 export function getFeatureActionOptionsForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState" | "abilities" | "feats">,
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "abilities" | "feats"> &
+    Partial<Pick<Character, "species" | "speciesChoices" | "speciesFeatureState" | "statusEntries">>,
   actionKey: string
 ): FeatureActionOptionCard[] {
   const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
   return [
     ...(baseFeatureState.actionOptions?.[actionKey] ?? []),
-    ...(subclassDerivedState.featureActionOptions?.[actionKey] ?? [])
+    ...(subclassDerivedState.featureActionOptions?.[actionKey] ?? []),
+    ...(character.species
+      ? getSpeciesActionOptionsForCharacter(character as Character, actionKey)
+      : [])
   ];
 }
 
@@ -824,14 +835,8 @@ export function getSavingThrowIndicatorsForCharacter(
   const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
   const customEffectInput = getCharacterCustomTraitEffectInput(character);
-  const gnomeSavingThrowIndicators = character.species
-    ? getGnomeSavingThrowIndicatorsForCharacter({
-        species: character.species,
-        speciesChoices: character.speciesChoices
-      })
-    : {};
-  const goliathSavingThrowIndicators = character.species
-    ? getGoliathSavingThrowIndicatorsForCharacter({
+  const speciesSavingThrowIndicators = character.species
+    ? getSpeciesSavingThrowIndicatorsForCharacter({
         species: character.species,
         speciesChoices: character.speciesChoices,
         statusEntries: character.statusEntries
@@ -841,8 +846,7 @@ export function getSavingThrowIndicatorsForCharacter(
   return mergeIndicatorMaps(
     baseFeatureState.savingThrowIndicators ?? {},
     subclassDerivedState.savingThrowIndicators ?? {},
-    gnomeSavingThrowIndicators,
-    goliathSavingThrowIndicators,
+    speciesSavingThrowIndicators,
     abilityKeys.reduce<SavingThrowIndicatorMap>((indicators, ability) => {
       const abilityIndicators = getCustomTraitSavingThrowRollIndicators(
         customEffectInput,
@@ -865,8 +869,8 @@ export function getAbilityCheckIndicatorsForCharacter(
   const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
   const customEffectInput = getCharacterCustomTraitEffectInput(character);
-  const goliathAbilityCheckIndicators = character.species
-    ? getGoliathAbilityCheckIndicatorsForCharacter({
+  const speciesAbilityCheckIndicators = character.species
+    ? getSpeciesAbilityCheckIndicatorsForCharacter({
         species: character.species,
         speciesChoices: character.speciesChoices,
         statusEntries: character.statusEntries
@@ -876,7 +880,7 @@ export function getAbilityCheckIndicatorsForCharacter(
   return mergeIndicatorMaps(
     baseFeatureState.abilityCheckIndicators ?? {},
     subclassDerivedState.abilityCheckIndicators ?? {},
-    goliathAbilityCheckIndicators,
+    speciesAbilityCheckIndicators,
     abilityKeys.reduce<AbilityCheckIndicatorMap>((indicators, ability) => {
       const abilityIndicators = getCustomTraitAbilityCheckRollIndicators(
         customEffectInput,
@@ -934,8 +938,8 @@ export function getSkillIndicatorsForCharacter(
   const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
   const customEffectInput = getCharacterCustomTraitEffectInput(character);
-  const goliathSkillIndicators = character.species
-    ? getGoliathSkillIndicatorsForCharacter({
+  const speciesSkillIndicators = character.species
+    ? getSpeciesSkillIndicatorsForCharacter({
         species: character.species,
         speciesChoices: character.speciesChoices,
         statusEntries: character.statusEntries
@@ -945,7 +949,7 @@ export function getSkillIndicatorsForCharacter(
   return mergeIndicatorMaps(
     baseFeatureState.skillIndicators ?? {},
     subclassDerivedState.skillIndicators ?? {},
-    goliathSkillIndicators,
+    speciesSkillIndicators,
     ALL_SKILLS.reduce<SkillIndicatorMap>((indicators, skill) => {
       const skillIndicators = getCustomTraitSkillRollIndicators(customEffectInput, skill);
 
@@ -976,10 +980,29 @@ export function getSkillReferenceDescriptionAdditionsForCharacter(
 
 export function getSavingThrowReferenceDescriptionAdditionsForCharacter(
   character: Pick<Character, "className" | "level"> &
-    Partial<Pick<Character, "classFeatureState" | "statusEntries" | "subclassId">>,
+    Partial<
+      Pick<
+        Character,
+        "classFeatureState" | "species" | "speciesChoices" | "statusEntries" | "subclassId"
+      >
+    >,
   ability: AbilityKey
 ): SpellDescriptionEntry[][] {
   const descriptionAdditions: SpellDescriptionEntry[][] = [];
+
+  if (character.species) {
+    descriptionAdditions.push(
+      ...getSpeciesDescriptionAdditionsForCharacter(
+        {
+          species: character.species,
+          speciesChoices: character.speciesChoices,
+          statusEntries: character.statusEntries
+        },
+        "stat",
+        `savingThrow:${ability}`
+      )
+    );
+  }
 
   descriptionAdditions.push(...getWarlockFiendPatronDarkOnesOwnLuckDescriptionAdditions(character));
   descriptionAdditions.push(

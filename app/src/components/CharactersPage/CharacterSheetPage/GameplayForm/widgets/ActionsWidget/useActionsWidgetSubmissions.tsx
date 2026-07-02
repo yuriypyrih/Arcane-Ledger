@@ -105,6 +105,7 @@ import {
 } from "../../../../../../pages/CharactersPage/classFeatures/cardUsage";
 import {
   activateAasimarCelestialRevelationForCharacter,
+  applyShifterBeasthideTemporaryHitPointsRollForCharacter,
   activateDragonbornDraconicFlightForCharacter,
   activateDwarfStonecunningForCharacter,
   activateGoliathLargeFormForCharacter,
@@ -115,6 +116,8 @@ import {
   getGoliathStoneEnduranceDamageReductionFormula,
   getGoliathStoneEnduranceDamageReductionFormulaDisplay,
   getGoliathStormThunderDamageFormula,
+  shifterBeasthideOptionKey,
+  shifterShiftingActionKey,
   spendAasimarHealingHandsForCharacter,
   spendDragonbornBreathWeaponForCharacter
 } from "../../../../../../pages/CharactersPage/species";
@@ -622,7 +625,18 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
         title: option.name,
         formula: option.rollFormula,
         formulaDisplay: option.rollFormulaDisplay,
-        description: option.rollDescription ?? option.detail
+        description: option.rollDescription ?? option.detail,
+        onResolvedResult:
+          action.key === shifterShiftingActionKey && option.key === shifterBeasthideOptionKey
+            ? ({ result }) => {
+                onPersistCharacter((currentCharacter) =>
+                  applyShifterBeasthideTemporaryHitPointsRollForCharacter(
+                    currentCharacter,
+                    result.total
+                  )
+                );
+              }
+            : undefined
       });
     }
 

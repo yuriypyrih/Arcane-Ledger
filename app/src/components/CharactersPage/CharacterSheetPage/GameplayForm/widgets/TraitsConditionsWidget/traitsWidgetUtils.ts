@@ -7,6 +7,9 @@ import {
   getSenseOptions
 } from "../../../../../../pages/CharactersPage/traits";
 import { isCustomFeatureTraitStatusEntry } from "../../../../../../pages/CharactersPage/customTraitEffects";
+import { isChangelingShapeShifterStatusEntry } from "../../../../../../pages/CharactersPage/speciesChangeling";
+import { isHexbloodEerieTokenStatusEntry } from "../../../../../../pages/CharactersPage/speciesHexblood";
+import { isShifterShiftingStatusEntry } from "../../../../../../pages/CharactersPage/speciesShifter";
 import { getSpellEntryById } from "../../../../../../codex/entries";
 import { getSpellLevel } from "../../../../../../pages/CharactersPage/spellLevels";
 import type { CharacterStatusEntry } from "../../../../../../types";
@@ -98,6 +101,14 @@ export function formatTraitEditorOptionLabel(tab: TraitEditorTab, value: string)
 }
 
 export function isStatusEntryRemovable(entry: CharacterStatusEntry): boolean {
+  if (
+    isChangelingShapeShifterStatusEntry(entry) ||
+    isHexbloodEerieTokenStatusEntry(entry) ||
+    isShifterShiftingStatusEntry(entry)
+  ) {
+    return true;
+  }
+
   if (
     entry.duration.kind === STATUS_DURATION_KIND.LINKED ||
     entry.duration.kind === STATUS_DURATION_KIND.CONCENTRATION

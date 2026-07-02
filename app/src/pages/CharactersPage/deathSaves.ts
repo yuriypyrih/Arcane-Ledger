@@ -1,7 +1,12 @@
 import { FEATS, type SpellDescriptionEntry } from "../../codex/entries";
 import type { Character } from "../../types";
 import { createSourcedDescriptionEntries } from "./actionModalDescriptions";
+import type { FeatureIndicator } from "./classFeatures";
 import { hasFeatForCharacter } from "./feats/runtime";
+import {
+  getRebornDeathSaveDescriptionAdditionsForCharacter,
+  hasRebornDeathSaveAdvantageForCharacter
+} from "./speciesReborn";
 
 export type DeathSaveTrackState = {
   successes: number;
@@ -82,7 +87,28 @@ export function getDeathSaveStatusLabel(
 }
 
 export function hasDeathSaveAdvantageForCharacter(character: Character): boolean {
-  return hasFeatForCharacter(character, FEATS.DURABLE);
+  return getDeathSaveAdvantageSourcesForCharacter(character).length > 0;
+}
+
+export function getDeathSaveAdvantageSourcesForCharacter(character: Character): string[] {
+  return [
+    ...(hasFeatForCharacter(character, FEATS.DURABLE) ? ["Durable"] : []),
+    ...(hasRebornDeathSaveAdvantageForCharacter(character) ? ["Escaped Death"] : [])
+  ];
+}
+
+export function getDeathSaveRollIndicatorsForCharacter(character: Character): FeatureIndicator[] {
+  const advantageSources = getDeathSaveAdvantageSourcesForCharacter(character);
+
+  return advantageSources.length > 0
+    ? [
+        {
+          label: "Advantage",
+          tone: "advantage",
+          source: advantageSources
+        }
+      ]
+    : [];
 }
 
 export function getDeathSaveDescriptionAdditionsForCharacter(
@@ -90,13 +116,15 @@ export function getDeathSaveDescriptionAdditionsForCharacter(
 ): SpellDescriptionEntry[][] {
   const descriptionAdditions: SpellDescriptionEntry[][] = [];
 
-  if (hasDeathSaveAdvantageForCharacter(character)) {
+  if (hasFeatForCharacter(character, FEATS.DURABLE)) {
     descriptionAdditions.push(
       createSourcedDescriptionEntries("Durable: Defy Death", [
         "You have Advantage on Death Saving Throws."
       ])
     );
   }
+
+  descriptionAdditions.push(...getRebornDeathSaveDescriptionAdditionsForCharacter(character));
 
   return descriptionAdditions;
 }

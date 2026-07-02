@@ -65,6 +65,15 @@
   background: var(--theme-control-subtle);
 }
 
+.headerIndicatorStack {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
 .triggerInline {
   min-height: 0;
   border-color: transparent;

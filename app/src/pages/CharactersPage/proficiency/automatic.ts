@@ -63,8 +63,21 @@ import {
   normalizeBackgroundChoices
 } from "../backgrounds";
 import { isCustomBackgroundName } from "../customOrigins";
+import { getChangelingSkillProficienciesForCharacter } from "../speciesChangeling";
 import { getElfSkillProficiencyForCharacter } from "../speciesElf";
 import { getHumanSkillProficiencyForCharacter } from "../speciesHuman";
+import { getKalashtarSkillProficiencyForCharacter } from "../speciesKalashtar";
+import {
+  getKhoravarSkillProficiencyForCharacter,
+  getKhoravarToolProficiencyForCharacter
+} from "../speciesKhoravar";
+import { getLupinSkillProficiencyForCharacter } from "../speciesLupin";
+import { getRebornSkillProficiencyForCharacter } from "../speciesReborn";
+import { getShifterSkillProficiencyForCharacter } from "../speciesShifter";
+import {
+  getWarforgedSkillProficiencyForCharacter,
+  getWarforgedToolProficiencyForCharacter
+} from "../speciesWarforged";
 import {
   buildGrantedEntriesFromCollections,
   createArmorEntry,
@@ -207,28 +220,78 @@ function getSpeciesGrantedSkillProficiencies(
     species,
     speciesChoices
   });
+  const changelingSkills = getChangelingSkillProficienciesForCharacter({
+    species,
+    speciesChoices
+  });
   const humanSkill = getHumanSkillProficiencyForCharacter({
+    species,
+    speciesChoices
+  });
+  const kalashtarSkill = getKalashtarSkillProficiencyForCharacter({
+    species,
+    speciesChoices
+  });
+  const khoravarSkill = getKhoravarSkillProficiencyForCharacter({
+    species,
+    speciesChoices
+  });
+  const lupinSkill = getLupinSkillProficiencyForCharacter({
+    species,
+    speciesChoices
+  });
+  const rebornSkill = getRebornSkillProficiencyForCharacter({
+    species,
+    speciesChoices
+  });
+  const shifterSkill = getShifterSkillProficiencyForCharacter({
+    species,
+    speciesChoices
+  });
+  const warforgedSkill = getWarforgedSkillProficiencyForCharacter({
     species,
     speciesChoices
   });
 
   return [
     ...entry.grantedSkillProficiencies,
+    ...changelingSkills,
     ...(elfSkill ? [elfSkill] : []),
-    ...(humanSkill ? [humanSkill] : [])
+    ...(humanSkill ? [humanSkill] : []),
+    ...(kalashtarSkill ? [kalashtarSkill] : []),
+    ...(khoravarSkill ? [khoravarSkill] : []),
+    ...(lupinSkill ? [lupinSkill] : []),
+    ...(rebornSkill ? [rebornSkill] : []),
+    ...(shifterSkill ? [shifterSkill] : []),
+    ...(warforgedSkill ? [warforgedSkill] : [])
   ]
     .map((skill) => normalizeSkillName(skill))
     .filter((skill): skill is SkillName => skill !== null);
 }
 
-function getSpeciesGrantedToolProficiencies(species: string): ToolProficiency[] {
+function getSpeciesGrantedToolProficiencies(
+  species: string,
+  speciesChoices?: CharacterSpeciesChoices
+): ToolProficiency[] {
   const entry = getSpeciesEntryByName(species);
 
   if (!entry) {
     return [];
   }
+  const warforgedTool = getWarforgedToolProficiencyForCharacter({
+    species,
+    speciesChoices
+  });
+  const khoravarTool = getKhoravarToolProficiencyForCharacter({
+    species,
+    speciesChoices
+  });
 
-  return entry.grantedToolProficiencies
+  return [
+    ...entry.grantedToolProficiencies,
+    ...(khoravarTool ? [khoravarTool] : []),
+    ...(warforgedTool ? [warforgedTool] : [])
+  ]
     .filter((toolProficiency): toolProficiency is ToolProficiency =>
       isToolProficiency(toolProficiency)
     );
@@ -369,6 +432,7 @@ function getAutomaticToolEntries(
   className: string,
   species: string,
   background = "",
+  speciesChoices?: CharacterSpeciesChoices,
   backgroundChoices?: CharacterBackgroundChoices,
   selectedClassTools: ToolProficiency[] = []
 ): ToolProficiencyEntry[] {
@@ -385,7 +449,7 @@ function getAutomaticToolEntries(
         PROF_LEVEL.PROFICIENT
       )
     ),
-    ...getSpeciesGrantedToolProficiencies(species).map((toolProficiency) =>
+    ...getSpeciesGrantedToolProficiencies(species, speciesChoices).map((toolProficiency) =>
       createToolEntry(
         toolProficiency,
         PROFICIENCY_SOURCE.SPECIES,
@@ -571,6 +635,7 @@ export function getAutomaticProficiencyCollectionsForCharacter(
     className,
     species,
     background,
+    options?.speciesChoices,
     options?.backgroundChoices,
     normalizedSelectedClassTools
   );

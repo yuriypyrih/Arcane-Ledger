@@ -136,17 +136,22 @@ import {
   getRitualCasterQuickRitualStateForCharacter,
   getShadowTouchedFreeCastStateForCharacter,
   getSpellfireSparkSpellfireFlameStateForCharacter,
-  applyFeatureSpellCastEffectsForCharacter,
+  applyFeatureSpellCastEffectsForCharacter as applyFeatSpellCastEffectsForCharacter,
   getTelepathicDetectThoughtsFreeCastStateForCharacter
 } from "../../../../pages/CharactersPage/feats/runtime";
 import {
   appendGoliathAttackDescriptionAddition,
+  applySpeciesSpellCastEffectsForCharacter,
+  consumeGenasiLineageFreeCastForCharacter,
   consumeGoliathGiantAncestryUseForCharacter,
   consumeGnomeSpeakWithAnimalsFreeCastForCharacter,
+  consumeHexbloodHexMagicFreeCastForCharacter,
   consumeTieflingFiendishLegacyFreeCastForCharacter,
+  getGenasiLineageFreeCastStateForCharacter,
   getGoliathAttackDamageDetail,
   getGoliathAttackOptionStateForCharacter,
   getGnomeSpeakWithAnimalsFreeCastStateForCharacter,
+  getHexbloodHexMagicFreeCastStateForCharacter,
   getSpeciesAlwaysPreparedCantripEntriesForCharacter,
   getSpeciesAlwaysPreparedSpellIdsForCharacter,
   getSpeciesAlwaysPreparedSpellSourceMapForCharacter,
@@ -289,8 +294,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     useState(false);
   const [useStarMapOnSelectedSpell, setUseStarMapOnSelectedSpell] = useState(false);
   const [useMagicInitiateOnSelectedSpell, setUseMagicInitiateOnSelectedSpell] = useState(false);
+  const [useGenasiLineageOnSelectedSpell, setUseGenasiLineageOnSelectedSpell] = useState(false);
   const [useForestGnomeOnSelectedSpell, setUseForestGnomeOnSelectedSpell] = useState(false);
   const [useFiendishLegacyOnSelectedSpell, setUseFiendishLegacyOnSelectedSpell] = useState(false);
+  const [useHexMagicOnSelectedSpell, setUseHexMagicOnSelectedSpell] = useState(false);
   const [useGoliathAncestryOnSelectedSpell, setUseGoliathAncestryOnSelectedSpell] = useState(false);
   const [useFeyMagicOnSelectedSpell, setUseFeyMagicOnSelectedSpell] = useState(false);
   const [useQuickRitualOnSelectedSpell, setUseQuickRitualOnSelectedSpell] = useState(false);
@@ -350,8 +357,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setUseBlessingOfMoonlightOnSelectedSpell(false);
     setUseFeyReinforcementsOnSelectedSpell(false);
     setUseMagicInitiateOnSelectedSpell(false);
+    setUseGenasiLineageOnSelectedSpell(false);
     setUseForestGnomeOnSelectedSpell(false);
     setUseFiendishLegacyOnSelectedSpell(false);
+    setUseHexMagicOnSelectedSpell(false);
     setUseGoliathAncestryOnSelectedSpell(false);
     setUseFeyMagicOnSelectedSpell(false);
     setUseQuickRitualOnSelectedSpell(false);
@@ -1054,6 +1063,13 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const selectedSpellMagicInitiateDisabled =
     selectedSpellMagicInitiateFreeCastState !== null &&
     selectedSpellMagicInitiateFreeCastState.usesRemaining <= 0;
+  const selectedSpellGenasiLineageFreeCastState = selectedSpell
+    ? getGenasiLineageFreeCastStateForCharacter(character, selectedSpell.id)
+    : null;
+  const selectedSpellSupportsGenasiLineage = selectedSpellGenasiLineageFreeCastState !== null;
+  const selectedSpellGenasiLineageDisabled =
+    selectedSpellGenasiLineageFreeCastState !== null &&
+    selectedSpellGenasiLineageFreeCastState.usesRemaining <= 0;
   const selectedSpellForestGnomeFreeCastState = selectedSpell
     ? getGnomeSpeakWithAnimalsFreeCastStateForCharacter(character, selectedSpell.id)
     : null;
@@ -1068,6 +1084,13 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const selectedSpellFiendishLegacyDisabled =
     selectedSpellFiendishLegacyFreeCastState !== null &&
     selectedSpellFiendishLegacyFreeCastState.usesRemaining <= 0;
+  const selectedSpellHexMagicFreeCastState = selectedSpell
+    ? getHexbloodHexMagicFreeCastStateForCharacter(character, selectedSpell.id)
+    : null;
+  const selectedSpellSupportsHexMagic = selectedSpellHexMagicFreeCastState !== null;
+  const selectedSpellHexMagicDisabled =
+    selectedSpellHexMagicFreeCastState !== null &&
+    selectedSpellHexMagicFreeCastState.usesRemaining <= 0;
   const selectedSpellFeyMagicFreeCastState = selectedSpell
     ? getFeyTouchedFreeCastStateForCharacter(character, selectedSpell.id)
     : null;
@@ -1289,8 +1312,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const selectedSpellCastOptionSkipsSpellSlot =
     (selectedSpellSupportsStarMap && useStarMapOnSelectedSpell) ||
     (selectedSpellSupportsMagicInitiate && useMagicInitiateOnSelectedSpell) ||
+    (selectedSpellSupportsGenasiLineage && useGenasiLineageOnSelectedSpell) ||
     (selectedSpellSupportsForestGnome && useForestGnomeOnSelectedSpell) ||
     (selectedSpellSupportsFiendishLegacy && useFiendishLegacyOnSelectedSpell) ||
+    (selectedSpellSupportsHexMagic && useHexMagicOnSelectedSpell) ||
     (selectedSpellSupportsFeyMagic && useFeyMagicOnSelectedSpell) ||
     (selectedSpellSupportsQuickRitual && useQuickRitualOnSelectedSpell) ||
     (selectedSpellSupportsShadowMagic && useShadowMagicOnSelectedSpell) ||
@@ -1323,8 +1348,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     const slotLevel =
       (selectedSpellSupportsStarMap && useStarMapOnSelectedSpell) ||
       (selectedSpellSupportsMagicInitiate && useMagicInitiateOnSelectedSpell) ||
+      (selectedSpellSupportsGenasiLineage && useGenasiLineageOnSelectedSpell) ||
       (selectedSpellSupportsForestGnome && useForestGnomeOnSelectedSpell) ||
       (selectedSpellSupportsFiendishLegacy && useFiendishLegacyOnSelectedSpell) ||
+      (selectedSpellSupportsHexMagic && useHexMagicOnSelectedSpell) ||
       (selectedSpellSupportsFeyMagic && useFeyMagicOnSelectedSpell) ||
       (selectedSpellSupportsQuickRitual && useQuickRitualOnSelectedSpell) ||
       (selectedSpellSupportsShadowMagic && useShadowMagicOnSelectedSpell) ||
@@ -1338,8 +1365,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       (selectedSpellFreeCastSlotLevel !== null && slotLevel === selectedSpellFreeCastSlotLevel) ||
       (selectedSpellSupportsStarMap && useStarMapOnSelectedSpell) ||
       (selectedSpellSupportsMagicInitiate && useMagicInitiateOnSelectedSpell) ||
+      (selectedSpellSupportsGenasiLineage && useGenasiLineageOnSelectedSpell) ||
       (selectedSpellSupportsForestGnome && useForestGnomeOnSelectedSpell) ||
       (selectedSpellSupportsFiendishLegacy && useFiendishLegacyOnSelectedSpell) ||
+      (selectedSpellSupportsHexMagic && useHexMagicOnSelectedSpell) ||
       (selectedSpellSupportsFeyMagic && useFeyMagicOnSelectedSpell) ||
       (selectedSpellSupportsQuickRitual && useQuickRitualOnSelectedSpell) ||
       (selectedSpellSupportsShadowMagic && useShadowMagicOnSelectedSpell) ||
@@ -1361,8 +1390,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpellFreeCastSlotLevel,
     selectedSpellSlotLevel,
     selectedSpellSupportsMagicInitiate,
+    selectedSpellSupportsGenasiLineage,
     selectedSpellSupportsForestGnome,
     selectedSpellSupportsFiendishLegacy,
+    selectedSpellSupportsHexMagic,
     selectedSpellSupportsFeyMagic,
     selectedSpellSupportsQuickRitual,
     selectedSpellSupportsShadowMagic,
@@ -1372,8 +1403,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpellSupportsStarMap,
     spellSlotsExpended,
     useMagicInitiateOnSelectedSpell,
+    useGenasiLineageOnSelectedSpell,
     useForestGnomeOnSelectedSpell,
     useFiendishLegacyOnSelectedSpell,
+    useHexMagicOnSelectedSpell,
     useFeyMagicOnSelectedSpell,
     useQuickRitualOnSelectedSpell,
     useShadowMagicOnSelectedSpell,
@@ -1471,8 +1504,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setUseBlessingOfMoonlightOnSelectedSpell(false);
     setUseStarMapOnSelectedSpell(false);
     setUseMagicInitiateOnSelectedSpell(false);
+    setUseGenasiLineageOnSelectedSpell(false);
     setUseForestGnomeOnSelectedSpell(false);
     setUseFiendishLegacyOnSelectedSpell(false);
+    setUseHexMagicOnSelectedSpell(false);
     setUseGoliathAncestryOnSelectedSpell(false);
     setUseFeyMagicOnSelectedSpell(false);
     setUseQuickRitualOnSelectedSpell(false);
@@ -1520,6 +1555,14 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   }, [selectedSpellMagicInitiateDisabled, selectedSpellSupportsMagicInitiate]);
 
   useEffect(() => {
+    if (!selectedSpellSupportsGenasiLineage || !selectedSpellGenasiLineageDisabled) {
+      return;
+    }
+
+    setUseGenasiLineageOnSelectedSpell(false);
+  }, [selectedSpellGenasiLineageDisabled, selectedSpellSupportsGenasiLineage]);
+
+  useEffect(() => {
     if (!selectedSpellSupportsForestGnome || !selectedSpellForestGnomeDisabled) {
       return;
     }
@@ -1534,6 +1577,14 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
 
     setUseFiendishLegacyOnSelectedSpell(false);
   }, [selectedSpellFiendishLegacyDisabled, selectedSpellSupportsFiendishLegacy]);
+
+  useEffect(() => {
+    if (!selectedSpellSupportsHexMagic || !selectedSpellHexMagicDisabled) {
+      return;
+    }
+
+    setUseHexMagicOnSelectedSpell(false);
+  }, [selectedSpellHexMagicDisabled, selectedSpellSupportsHexMagic]);
 
   useEffect(() => {
     if (selectedSpellSupportsGoliathAncestry && !selectedSpellGoliathAncestryDisabled) {
@@ -2103,6 +2154,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     useMagicInitiate?: boolean;
     useForestGnome?: boolean;
     useFiendishLegacy?: boolean;
+    useHexMagic?: boolean;
     useGoliathAncestry?: boolean;
     useFeyMagic?: boolean;
     useQuickRitual?: boolean;
@@ -2150,14 +2202,37 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         consumeBeguilingMagicOrBardicInspirationForCharacter,
         consumeBlessingOfMoonlightUseForCharacter,
         consumeFeyTouchedFreeCastForCharacter,
+        consumeGenasiLineageFreeCastForCharacter,
         consumeGoliathGiantAncestryUseForCharacter,
         consumeGnomeSpeakWithAnimalsFreeCastForCharacter,
+        consumeHexbloodHexMagicFreeCastForCharacter,
         consumeTieflingFiendishLegacyFreeCastForCharacter,
         consumeMagicInitiateFreeCastForCharacter,
         consumeRitualCasterQuickRitualForCharacter,
         consumeShadowTouchedFreeCastForCharacter,
         consumeTelepathicDetectThoughtsFreeCastForCharacter,
-        applyFeatureSpellCastEffectsForCharacter,
+        applyFeatureSpellCastEffectsForCharacter: (
+          nextCharacter: Character,
+          spell: Pick<SpellEntry, "id" | "spellLevel">,
+          spellCastEffectIds: readonly string[] | null | undefined,
+          effectContext = {}
+        ) => {
+          const nextCharacterWithFeatEffects = applyFeatSpellCastEffectsForCharacter(
+            nextCharacter,
+            spell,
+            spellCastEffectIds,
+            effectContext
+          );
+
+          return nextCharacterWithFeatEffects
+            ? applySpeciesSpellCastEffectsForCharacter(
+                nextCharacterWithFeatEffects,
+                spell,
+                spellCastEffectIds,
+                effectContext
+              )
+            : null;
+        },
         appendSpellSummonCompanionsForCast,
         canAddSpellSummonCompanionsForCast,
         consumeDruidNaturalRecoveryUseForCharacter,
@@ -2212,8 +2287,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         selectedSpellSupportsBoonOfSpellRecall,
         selectedSpellSupportsDetectThoughts,
         selectedSpellSupportsFeyMagic,
+        selectedSpellSupportsGenasiLineage,
         selectedSpellSupportsForestGnome,
         selectedSpellSupportsFiendishLegacy,
+        selectedSpellSupportsHexMagic,
         selectedSpellSupportsFeyReinforcements,
         selectedSpellSupportsGoliathAncestry,
         selectedSpellSupportsMagicInitiate,
@@ -2336,10 +2413,14 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpellMagicInitiateAbility,
     selectedSpellMagicInitiateDisabled,
     selectedSpellMagicInitiateFreeCastState,
+    selectedSpellGenasiLineageDisabled,
+    selectedSpellGenasiLineageFreeCastState,
     selectedSpellForestGnomeDisabled,
     selectedSpellForestGnomeFreeCastState,
     selectedSpellFiendishLegacyDisabled,
     selectedSpellFiendishLegacyFreeCastState,
+    selectedSpellHexMagicDisabled,
+    selectedSpellHexMagicFreeCastState,
     selectedSpellGoliathAncestryDisabled,
     selectedSpellGoliathAncestryState,
     selectedSpellCanCastAsRitualFromSpellbook,
@@ -2387,8 +2468,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpellSupportsEmeraldEnclaveFledgling,
     selectedSpellSupportsDetectThoughts,
     selectedSpellSupportsFeyMagic,
+    selectedSpellSupportsGenasiLineage,
     selectedSpellSupportsForestGnome,
     selectedSpellSupportsFiendishLegacy,
+    selectedSpellSupportsHexMagic,
     selectedSpellSupportsFeyReinforcements,
     selectedSpellSupportsGoliathAncestry,
     selectedSpellSupportsMagicInitiate,
@@ -2424,10 +2507,12 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setUseFeyMagicOnSelectedSpell,
     setUseForestGnomeOnSelectedSpell,
     setUseFiendishLegacyOnSelectedSpell,
+    setUseHexMagicOnSelectedSpell,
     setUseGoliathAncestryOnSelectedSpell,
     setUseFeyReinforcementsNoConcentrationOnSelectedSpell,
     setUseFeyReinforcementsOnSelectedSpell,
     setUseFrozenHauntOnSelectedSpell,
+    setUseGenasiLineageOnSelectedSpell,
     setUseMagicInitiateOnSelectedSpell,
     setUseMistyWandererOnSelectedSpell,
     setUseNaturalRecoveryOnSelectedSpell,
@@ -2465,8 +2550,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     useEmeraldEnclaveFledglingFreeUseOnSelectedSpell,
     useDetectThoughtsOnSelectedSpell,
     useFeyMagicOnSelectedSpell,
+    useGenasiLineageOnSelectedSpell,
     useForestGnomeOnSelectedSpell,
     useFiendishLegacyOnSelectedSpell,
+    useHexMagicOnSelectedSpell,
     useGoliathAncestryOnSelectedSpell,
     useFeyReinforcementsNoConcentrationOnSelectedSpell,
     useFeyReinforcementsOnSelectedSpell,

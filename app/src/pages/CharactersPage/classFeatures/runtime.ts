@@ -22,7 +22,11 @@ import {
   isLightWeaponAction
 } from "../weaponLightProperty";
 import { transformFeatSpellEntryForCharacter } from "../feats/runtime/spellcasting";
-import { getSpeciesSpellEntryForCharacter } from "../species";
+import {
+  activateSpeciesFeatureActionForCharacter,
+  activateSpeciesFeatureActionOptionForCharacter,
+  getSpeciesSpellEntryForCharacter
+} from "../species";
 import { removeCharacterStatusEntry } from "../statusEntries";
 import {
   getCustomTraitAbilityScoreBonuses,
@@ -835,8 +839,11 @@ export function activateFeatureActionForCharacter(
   actionKey: string
 ): Character {
   return clearRoundScopedFeatureStateIfOutOfCombat(
-    getActiveClassFeatureModule(character.className)?.handleAction?.(character, actionKey) ??
-      character
+    activateSpeciesFeatureActionForCharacter(
+      getActiveClassFeatureModule(character.className)?.handleAction?.(character, actionKey) ??
+        character,
+      actionKey
+    )
   );
 }
 
@@ -1829,12 +1836,17 @@ export function activateFeatureActionOptionForCharacter(
   actionKey: string,
   optionKey: string
 ): Character {
-  return clearRoundScopedFeatureStateIfOutOfCombat(
+  const classCharacter =
     getActiveClassFeatureModule(character.className)?.handleActionOption?.(
       character,
       actionKey,
       optionKey
-    ) ?? character
+    ) ?? character;
+
+  return clearRoundScopedFeatureStateIfOutOfCombat(
+    classCharacter !== character
+      ? classCharacter
+      : activateSpeciesFeatureActionOptionForCharacter(character, actionKey, optionKey)
   );
 }
 

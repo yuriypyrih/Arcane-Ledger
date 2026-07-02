@@ -13,6 +13,7 @@ import {
   getLightWeaponFollowUpKind,
   type LightWeaponFollowUpKind
 } from "../../../../../../pages/CharactersPage/weaponLightProperty";
+import { hasShifterLongtoothBonusUnarmedStrikeForCharacter } from "../../../../../../pages/CharactersPage/species";
 import { getEconomyShapeState } from "../../gameplayWidgetUtils";
 
 type RoundTrackerAvailability = {
@@ -29,7 +30,12 @@ type WeaponActionSecondaryEconomyCharacter = Pick<
   Partial<
     Pick<
       Character,
-      "subclassId" | "statusEntries" | "equipment" | "inventoryItems" | "customEquipment"
+      | "species"
+      | "subclassId"
+      | "statusEntries"
+      | "equipment"
+      | "inventoryItems"
+      | "customEquipment"
     >
   >;
 
@@ -61,7 +67,10 @@ export function hasSecondaryBonusWeaponAttackForCharacter(
 ): boolean {
   return (
     hasBattleMagicBonusWeaponAttackForCharacter(character, action.attackKind) ||
-    isMonkMartialArtsUnarmedStrikeAction(character, action)
+    isMonkMartialArtsUnarmedStrikeAction(character, action) ||
+    (character.species
+      ? hasShifterLongtoothBonusUnarmedStrikeForCharacter(character, action)
+      : false)
   );
 }
 
@@ -139,10 +148,6 @@ export function getSecondaryWeaponAttackPathState(
   action: WeaponAction,
   roundTracker: RoundTrackerAvailability
 ): WeaponAttackPathState | null {
-  if (!shouldTrackRoundScopedResources(roundTracker)) {
-    return null;
-  }
-
   const lightFollowUpKind = getLightWeaponFollowUpKind(roundTracker, action);
   const hasFeatureSecondaryPath = hasSecondaryBonusWeaponAttackForCharacter(character, action);
 

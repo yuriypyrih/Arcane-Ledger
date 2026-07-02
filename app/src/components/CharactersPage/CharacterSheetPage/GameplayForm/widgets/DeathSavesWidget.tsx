@@ -3,6 +3,8 @@ import type { Character } from "../../../../../types";
 import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPage/CharacterSheetPage/types";
 import {
   getDeathSaveDescriptionAdditionsForCharacter,
+  getDeathSaveAdvantageSourcesForCharacter,
+  getDeathSaveRollIndicatorsForCharacter,
   hasDeathSaveAdvantageForCharacter
 } from "../../../../../pages/CharactersPage/deathSaves";
 import { formatD20Formula } from "../../../../../pages/CharactersPage/shared";
@@ -21,6 +23,7 @@ function DeathSavesWidget({ character, onPersistCharacter }: DeathSavesWidgetPro
   const deathSaves = normalizeDeathSaves(character.deathSaves);
   const isAtZeroHitPoints = character.currentHitPoints === 0;
   const hasDeathSaveAdvantage = hasDeathSaveAdvantageForCharacter(character);
+  const deathSaveAdvantageSources = getDeathSaveAdvantageSourcesForCharacter(character);
 
   const updateDeathSaves = useCallback(
     (track: "success" | "failure") => {
@@ -110,8 +113,16 @@ function DeathSavesWidget({ character, onPersistCharacter }: DeathSavesWidgetPro
   const deathSaveFormula = formatD20Formula(exhaustionPenalty);
   const exhaustionDescription =
     exhaustionPenalty !== 0 ? ` Exhaustion applies ${exhaustionPenalty} to D20 Tests.` : "";
+  const advantageSourceDescription =
+    deathSaveAdvantageSources.length > 0
+      ? deathSaveAdvantageSources.length === 1
+        ? deathSaveAdvantageSources[0]
+        : `${deathSaveAdvantageSources.slice(0, -1).join(", ")} and ${
+            deathSaveAdvantageSources[deathSaveAdvantageSources.length - 1]
+          }`
+      : "";
   const rollDescription = hasDeathSaveAdvantage
-    ? `Roll a death saving throw with Advantage from Durable.${exhaustionDescription}`
+    ? `Roll a death saving throw with Advantage from ${advantageSourceDescription}.${exhaustionDescription}`
     : `Roll a death saving throw.${exhaustionDescription}`;
 
   if (!isAtZeroHitPoints) {
@@ -122,6 +133,7 @@ function DeathSavesWidget({ character, onPersistCharacter }: DeathSavesWidgetPro
     <DeathSavesTracker
       deathSaves={deathSaves}
       descriptionAdditions={getDeathSaveDescriptionAdditionsForCharacter(character)}
+      rollIndicators={getDeathSaveRollIndicatorsForCharacter(character)}
       rollFormula={deathSaveFormula}
       rollFormulaDisplay={deathSaveFormula}
       rollMode={hasDeathSaveAdvantage ? "advantage" : undefined}

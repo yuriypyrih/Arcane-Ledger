@@ -11,7 +11,10 @@ import { requestImmediateLiveEncounterTrackerSync } from "../../../../liveEncoun
 import { showToast, useAppDispatch, useAppSelector } from "../../../../store";
 import type { Character } from "../../../../types";
 import { getRestDescriptionInjectionsForCharacter } from "../../../../pages/CharactersPage/classFeatures/restDescriptionInjections";
-import { getHumanResourcefulDescriptionEntriesForCharacter } from "../../../../pages/CharactersPage/species";
+import {
+  getHumanResourcefulDescriptionEntriesForCharacter,
+  getWarforgedLongRestDescriptionAdditionsForCharacter
+} from "../../../../pages/CharactersPage/species";
 import { CharacterSheetSectionProfiler } from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetSectionProfiler";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { normalizeRoundTracker } from "../../../../pages/CharactersPage/combat";
@@ -177,6 +180,10 @@ function GameplayForm({
     () => getHumanResourcefulDescriptionEntriesForCharacter(character),
     [character]
   );
+  const warforgedLongRestDescriptionInjections = useMemo(
+    () => getWarforgedLongRestDescriptionAdditionsForCharacter(character),
+    [character]
+  );
   const shortRestDescriptionInjections = useMemo(() => {
     const additions = [
       ...restDescriptionInjections.shortRest,
@@ -205,6 +212,7 @@ function GameplayForm({
       ...restDescriptionInjections.longRest,
       ...chefLongRestDescriptionInjections,
       ...inspiringLeaderRestDescriptionInjections,
+      ...warforgedLongRestDescriptionInjections,
       ...weaponMasterLongRestDescriptionInjections
     ];
     const hasCrafterFeat = characterHasCrafterDiscount({
@@ -240,6 +248,7 @@ function GameplayForm({
     inspiringLeaderRestDescriptionInjections,
     musicianEncouragingSongDescription,
     restDescriptionInjections.longRest,
+    warforgedLongRestDescriptionInjections,
     weaponMasterLongRestDescriptionInjections
   ]);
 

@@ -129,6 +129,7 @@ export type ActionsWidgetUiState = {
   isRecklessAttackSelected: boolean;
   isSacredWeaponSelected: boolean;
   isVowOfEnmitySelected: boolean;
+  isVampiricBiteSelected: boolean;
   isStunningStrikeSelected: boolean;
   isHandOfHarmSelected: boolean;
   isFlurryOfHealingAndHarmSelected: boolean;

@@ -10,7 +10,7 @@ export const rhwSpeciesEntries: SpeciesEntry[] = [
     tags: [SPECIES_TYPES.HUMANOID],
     speed: 30,
     size: [BODY_SIZE.MEDIUM, BODY_SIZE.SMALL],
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.TRACKED,
     starterPack: {
       recommendedBodySize: BODY_SIZE.MEDIUM
     },
@@ -33,7 +33,7 @@ export const rhwSpeciesEntries: SpeciesEntry[] = [
     tags: [SPECIES_TYPES.HUMANOID],
     speed: 30,
     size: [BODY_SIZE.MEDIUM, BODY_SIZE.SMALL],
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.TRACKED,
     starterPack: {
       recommendedBodySize: BODY_SIZE.MEDIUM
     },
@@ -56,7 +56,9 @@ export const rhwSpeciesEntries: SpeciesEntry[] = [
     tags: [SPECIES_TYPES.FEY],
     speed: 30,
     size: [BODY_SIZE.MEDIUM, BODY_SIZE.SMALL],
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "The Distant Message and Remote Viewing is like part of the Eerie Token. They do not have a separate action for those.",
     starterPack: {
       recommendedBodySize: BODY_SIZE.MEDIUM
     },

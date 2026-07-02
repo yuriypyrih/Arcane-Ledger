@@ -26,8 +26,10 @@ export function castSelectedSpellWithContext(
     consumeDruidNaturalRecoveryUseForCharacter,
     consumeDruidStarMapGuidingBoltUseForCharacter,
     consumeFeyTouchedFreeCastForCharacter,
+    consumeGenasiLineageFreeCastForCharacter,
     consumeGoliathGiantAncestryUseForCharacter,
     consumeGnomeSpeakWithAnimalsFreeCastForCharacter,
+    consumeHexbloodHexMagicFreeCastForCharacter,
     consumeTieflingFiendishLegacyFreeCastForCharacter,
     consumeMagicInitiateFreeCastForCharacter,
     consumeRitualCasterQuickRitualForCharacter,
@@ -86,8 +88,10 @@ export function castSelectedSpellWithContext(
     selectedSpellSupportsDetectThoughts,
     selectedSpellSupportsEmeraldEnclaveFledgling,
     selectedSpellSupportsFeyMagic,
+    selectedSpellSupportsGenasiLineage,
     selectedSpellSupportsFiendishLegacy,
     selectedSpellSupportsForestGnome,
+    selectedSpellSupportsHexMagic,
     selectedSpellSupportsFeyReinforcements,
     selectedSpellSupportsGoliathAncestry,
     selectedSpellSupportsMagicInitiate,
@@ -136,9 +140,12 @@ export function castSelectedSpellWithContext(
   const useBeguilingMagic = options?.useBeguilingMagic === true;
   const useStarMap = options?.useStarMap === true && selectedSpellSupportsStarMap;
   const useMagicInitiate = options?.useMagicInitiate === true && selectedSpellSupportsMagicInitiate;
+  const useGenasiLineage =
+    options?.useGenasiLineage === true && selectedSpellSupportsGenasiLineage;
   const useForestGnome = options?.useForestGnome === true && selectedSpellSupportsForestGnome;
   const useFiendishLegacy =
     options?.useFiendishLegacy === true && selectedSpellSupportsFiendishLegacy;
+  const useHexMagic = options?.useHexMagic === true && selectedSpellSupportsHexMagic;
   const useGoliathAncestry =
     options?.useGoliathAncestry === true && selectedSpellSupportsGoliathAncestry;
   const useFeyMagic = options?.useFeyMagic === true && selectedSpellSupportsFeyMagic;
@@ -519,8 +526,10 @@ export function castSelectedSpellWithContext(
   const slotLevel =
     useStarMap ||
     useMagicInitiate ||
+    useGenasiLineage ||
     useForestGnome ||
     useFiendishLegacy ||
+    useHexMagic ||
     useFeyMagic ||
     useQuickRitual ||
     useShadowMagic ||
@@ -547,8 +556,10 @@ export function castSelectedSpellWithContext(
     slotLevel === spellLevel;
   const castsFreeViaStarMap = useStarMap;
   const castsFreeViaMagicInitiate = useMagicInitiate;
+  const castsFreeViaGenasiLineage = useGenasiLineage;
   const castsFreeViaForestGnome = useForestGnome;
   const castsFreeViaFiendishLegacy = useFiendishLegacy;
+  const castsFreeViaHexMagic = useHexMagic;
   const castsFreeViaFeyMagic = useFeyMagic;
   const castsFreeViaQuickRitual = useQuickRitual;
   const castsFreeViaShadowMagic = useShadowMagic;
@@ -568,8 +579,10 @@ export function castSelectedSpellWithContext(
     castsFreeViaNaturalRecovery ||
     castsFreeViaStarMap ||
     castsFreeViaMagicInitiate ||
+    castsFreeViaGenasiLineage ||
     castsFreeViaForestGnome ||
     castsFreeViaFiendishLegacy ||
+    castsFreeViaHexMagic ||
     castsFreeViaFeyMagic ||
     castsFreeViaQuickRitual ||
     castsFreeViaShadowMagic ||
@@ -700,12 +713,23 @@ export function castSelectedSpellWithContext(
       return currentCharacter;
     }
 
+    const nextCharacterWithGenasiLineage = castsFreeViaGenasiLineage
+      ? consumeGenasiLineageFreeCastForCharacter(nextCharacterWithMagicInitiate, selectedSpell.id)
+      : nextCharacterWithMagicInitiate;
+
+    if (
+      castsFreeViaGenasiLineage &&
+      nextCharacterWithGenasiLineage === nextCharacterWithMagicInitiate
+    ) {
+      return currentCharacter;
+    }
+
     const nextCharacterWithForestGnome = castsFreeViaForestGnome
       ? consumeGnomeSpeakWithAnimalsFreeCastForCharacter(
-          nextCharacterWithMagicInitiate,
+          nextCharacterWithGenasiLineage,
           selectedSpell.id
         )
-      : nextCharacterWithMagicInitiate;
+      : nextCharacterWithGenasiLineage;
 
     if (
       castsFreeViaForestGnome &&
@@ -728,11 +752,22 @@ export function castSelectedSpellWithContext(
       return currentCharacter;
     }
 
-    const nextCharacterWithFeyMagic = castsFreeViaFeyMagic
-      ? consumeFeyTouchedFreeCastForCharacter(nextCharacterWithFiendishLegacy, selectedSpell.id)
+    const nextCharacterWithHexMagic = castsFreeViaHexMagic
+      ? consumeHexbloodHexMagicFreeCastForCharacter(
+          nextCharacterWithFiendishLegacy,
+          selectedSpell.id
+        )
       : nextCharacterWithFiendishLegacy;
 
-    if (castsFreeViaFeyMagic && nextCharacterWithFeyMagic === nextCharacterWithFiendishLegacy) {
+    if (castsFreeViaHexMagic && nextCharacterWithHexMagic === nextCharacterWithFiendishLegacy) {
+      return currentCharacter;
+    }
+
+    const nextCharacterWithFeyMagic = castsFreeViaFeyMagic
+      ? consumeFeyTouchedFreeCastForCharacter(nextCharacterWithHexMagic, selectedSpell.id)
+      : nextCharacterWithHexMagic;
+
+    if (castsFreeViaFeyMagic && nextCharacterWithFeyMagic === nextCharacterWithHexMagic) {
       return currentCharacter;
     }
 

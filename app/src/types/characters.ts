@@ -119,18 +119,40 @@ export type CharacterBackgroundChoices = {
 
 export type CharacterSpeciesChoices = {
   bodySize?: BODY_SIZE;
+  changelingSkillProficiencies?: CharacterChangelingSkillProficiency[];
   draconicAncestry?: CharacterDragonbornDraconicAncestry;
   elvenLineage?: CharacterElfLineage;
   elvenSkillProficiency?: CharacterElfSkillProficiency;
   elvenSpellcastingAbility?: CharacterElfSpellcastingAbility;
+  genasiLineage?: CharacterGenasiLineage;
+  genasiSpellcastingAbility?: CharacterGenasiSpellcastingAbility;
   gnomeLineage?: CharacterGnomeLineage;
   gnomeSpellcastingAbility?: CharacterGnomeSpellcastingAbility;
   giantAncestry?: CharacterGoliathGiantAncestry;
+  hexbloodSpellcastingAbility?: CharacterHexbloodSpellcastingAbility;
   humanSkillProficiency?: SkillName;
   humanOriginFeat?: FEATS;
+  kalashtarSkillProficiency?: SkillName;
+  khoravarCantripId?: string;
+  khoravarSkillProficiency?: SkillName;
+  khoravarSpellcastingAbility?: CharacterKhoravarSpellcastingAbility;
+  khoravarToolProficiency?: TOOL_PROFICIENCY;
+  lupinSkillProficiency?: CharacterLupinSkillProficiency;
+  rebornResistance?: CharacterRebornResistance;
+  rebornSkillProficiency?: SkillName;
+  shifterSkillProficiency?: CharacterShifterSkillProficiency;
+  warforgedSkillProficiency?: SkillName;
+  warforgedToolProficiency?: TOOL_PROFICIENCY;
   tieflingLegacy?: CharacterTieflingFiendishLegacy;
   tieflingSpellcastingAbility?: CharacterTieflingSpellcastingAbility;
 };
+
+export type CharacterChangelingSkillProficiency =
+  | "Deception"
+  | "Insight"
+  | "Intimidation"
+  | "Performance"
+  | "Persuasion";
 
 export type CharacterDragonbornDraconicAncestry =
   | "black"
@@ -150,11 +172,29 @@ export type CharacterElfSkillProficiency = "Insight" | "Perception" | "Survival"
 
 export type CharacterElfSpellcastingAbility = Extract<AbilityKey, "INT" | "WIS" | "CHA">;
 
+export type CharacterGenasiLineage = "water" | "fire" | "earth" | "air";
+
+export type CharacterGenasiSpellcastingAbility = Extract<AbilityKey, "INT" | "WIS" | "CHA">;
+
 export type CharacterGnomeLineage = "forest-gnome" | "rock-gnome";
 
 export type CharacterGnomeSpellcastingAbility = Extract<AbilityKey, "INT" | "WIS" | "CHA">;
 
 export type CharacterGoliathGiantAncestry = "cloud" | "fire" | "frost" | "hill" | "stone" | "storm";
+
+export type CharacterHexbloodSpellcastingAbility = Extract<AbilityKey, "INT" | "WIS" | "CHA">;
+
+export type CharacterKhoravarSpellcastingAbility = Extract<AbilityKey, "INT" | "WIS" | "CHA">;
+
+export type CharacterLupinSkillProficiency = "Perception" | "Stealth" | "Survival";
+
+export type CharacterRebornResistance = "COLD" | "NECROTIC" | "POISON";
+
+export type CharacterShifterSkillProficiency =
+  | "Acrobatics"
+  | "Athletics"
+  | "Intimidation"
+  | "Survival";
 
 export type CharacterTieflingFiendishLegacy = "abyssal" | "chthonic" | "infernal";
 
@@ -174,6 +214,15 @@ export type CharacterDwarfFeatureState = {
   stonecunningUsesExpended?: number;
 };
 
+export type CharacterGenasiFeatureState = {
+  freeCastExpendedSpellIds?: string[];
+  bladeWardBonusActionUsesExpended?: number;
+};
+
+export type CharacterDhampirFeatureState = {
+  vampiricBiteUsesExpended?: number;
+};
+
 export type CharacterGnomeFeatureState = {
   speakWithAnimalsUsesExpended?: number;
 };
@@ -181,6 +230,23 @@ export type CharacterGnomeFeatureState = {
 export type CharacterGoliathFeatureState = {
   giantAncestryUsesExpended?: number;
   largeFormExpended?: boolean;
+};
+
+export type CharacterHexbloodFeatureState = {
+  eerieTokenExpended?: boolean;
+  hexMagicExpendedSpellIds?: string[];
+};
+
+export type CharacterLupinFeatureState = {
+  howlUsesExpended?: number;
+};
+
+export type CharacterRebornFeatureState = {
+  knowledgeFromPastLifeUsesExpended?: number;
+};
+
+export type CharacterShifterFeatureState = {
+  shiftingUsesExpended?: number;
 };
 
 export type CharacterOrcFeatureState = {
@@ -194,9 +260,15 @@ export type CharacterTieflingFeatureState = {
 export type CharacterSpeciesFeatureState = {
   aasimar?: CharacterAasimarFeatureState;
   dragonborn?: CharacterDragonbornFeatureState;
+  dhampir?: CharacterDhampirFeatureState;
   dwarf?: CharacterDwarfFeatureState;
+  genasi?: CharacterGenasiFeatureState;
   gnome?: CharacterGnomeFeatureState;
   goliath?: CharacterGoliathFeatureState;
+  hexblood?: CharacterHexbloodFeatureState;
+  lupin?: CharacterLupinFeatureState;
+  reborn?: CharacterRebornFeatureState;
+  shifter?: CharacterShifterFeatureState;
   orc?: CharacterOrcFeatureState;
   tiefling?: CharacterTieflingFeatureState;
 };
