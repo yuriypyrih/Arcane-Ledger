@@ -108,7 +108,7 @@ export const efaSpeciesEntries: SpeciesEntry[] = [
     tags: [SPECIES_TYPES.FEY],
     speed: 30,
     size: [BODY_SIZE.MEDIUM, BODY_SIZE.SMALL],
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.TRACKED,
     starterPack: {
       recommendedBodySize: BODY_SIZE.MEDIUM
     },

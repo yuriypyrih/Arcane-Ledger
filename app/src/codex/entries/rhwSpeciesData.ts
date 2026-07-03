@@ -82,7 +82,9 @@ export const rhwSpeciesEntries: SpeciesEntry[] = [
     tags: [SPECIES_TYPES.HUMANOID],
     speed: 35,
     size: [BODY_SIZE.MEDIUM, BODY_SIZE.SMALL],
-    trackingState: TRACKER.NOT_TRACKED,
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "For the Vampiric Bite - Strengthen you need to remember the amount to add it to the roll yourself.",
     starterPack: {
       recommendedBodySize: BODY_SIZE.MEDIUM
     },

@@ -67,7 +67,7 @@ const coreSpeciesEntries: SpeciesEntry[] = [
     tags: [SPECIES_TYPES.HUMANOID, SPECIES_TYPES.HARDY],
     speed: 30,
     size: [BODY_SIZE.MEDIUM],
-    trackingState: TRACKER.SEMI_TRACKED,
+    trackingState: TRACKER.TRACKED,
     starterPack: {
       recommendedBodySize: BODY_SIZE.MEDIUM
     },
@@ -232,7 +232,7 @@ const coreSpeciesEntries: SpeciesEntry[] = [
     tags: [SPECIES_TYPES.HUMANOID, SPECIES_TYPES.ARCANE_AFFINITY],
     speed: 30,
     size: [BODY_SIZE.SMALL, BODY_SIZE.MEDIUM],
-    trackingState: TRACKER.SEMI_TRACKED,
+    trackingState: TRACKER.TRACKED,
     starterPack: {
       recommendedBodySize: BODY_SIZE.MEDIUM,
       recommendedTieflingLegacy: "infernal",
