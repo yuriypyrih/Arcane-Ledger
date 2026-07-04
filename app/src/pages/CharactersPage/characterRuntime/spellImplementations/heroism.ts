@@ -118,7 +118,9 @@ export function getHeroismSpellDerivedStatusEntriesForCharacter(
       source: heroismStatusValue,
       sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
       duration: {
-        kind: STATUS_DURATION_KIND.INFINITE
+        kind: STATUS_DURATION_KIND.LINKED,
+        linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
+        linkedValue: EFFECT_NAME.CONCENTRATION
       },
       sourceId: heroismFrightenedImmunityStatusSourceId,
       description: "For the duration, you are immune to the Frightened condition."

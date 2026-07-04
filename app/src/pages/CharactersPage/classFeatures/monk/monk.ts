@@ -58,6 +58,7 @@ import {
   hasStatusCondition,
   normalizeCharacterStatusEntries
 } from "../../statusEntries";
+import { getAllDamageButStatusValue } from "../../damageCoverageStatuses";
 import {
   activateMonkWarriorOfMercyHandOfHealing,
   getMonkWarriorOfMercyHandOfHealingFlurryUsesThisTurn,
@@ -170,13 +171,13 @@ const superiorDefenseDurationRounds = 10;
 const deflectEnergySource = "Deflect Energy";
 const selfRestorationStatusSourceId = "feature-monk-self-restoration";
 const superiorDefenseStatusSourceId = "feature-monk-superior-defense";
+const superiorDefenseResistanceStatusSourceId =
+  "feature-monk-superior-defense-resistance-all-damage-but-force";
+const superiorDefenseResistanceValue = getAllDamageButStatusValue(DAMAGE_TYPE.FORCE);
 const monkFocusCommonActionBonusPathKeys = new Set([
   "common-action-dash",
   "common-action-disengage"
 ]);
-const nonForceDamageTypes = (Object.values(DAMAGE_TYPE) as DAMAGE_TYPE[]).filter(
-  (damageType) => damageType !== DAMAGE_TYPE.FORCE
-);
 
 function getMonkFeatureRow(level: number): MonkFeatureClassObj | null {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
@@ -937,26 +938,24 @@ export function getMonkDerivedStatusEntries(
     return derivedEntries;
   }
 
-  derivedEntries.push(
-    ...nonForceDamageTypes.map<DerivedFeatureStatusEntry>((damageType) => ({
-      id: `feature-monk-superior-defense-resistance-${damageType.toLowerCase()}`,
-      sourceId: `feature-monk-superior-defense-resistance-${damageType.toLowerCase()}`,
-      group: STATUS_ENTRY_GROUP.RESISTANCES,
-      value: damageType,
-      source: "Superior Defense",
-      sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
-      duration: superiorDefenseActive
-        ? {
-            kind: STATUS_DURATION_KIND.LINKED,
-            linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
-            linkedValue: "Superior Defense"
-          }
-        : {
-            kind: STATUS_DURATION_KIND.ROUNDS,
-            amount: superiorDefenseRoundsRemaining
-          }
-    }))
-  );
+  derivedEntries.push({
+    id: superiorDefenseResistanceStatusSourceId,
+    sourceId: superiorDefenseResistanceStatusSourceId,
+    group: STATUS_ENTRY_GROUP.RESISTANCES,
+    value: superiorDefenseResistanceValue,
+    source: "Superior Defense",
+    sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+    duration: superiorDefenseActive
+      ? {
+          kind: STATUS_DURATION_KIND.LINKED,
+          linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
+          linkedValue: "Superior Defense"
+        }
+      : {
+          kind: STATUS_DURATION_KIND.ROUNDS,
+          amount: superiorDefenseRoundsRemaining
+        }
+  });
 
   return derivedEntries;
 }

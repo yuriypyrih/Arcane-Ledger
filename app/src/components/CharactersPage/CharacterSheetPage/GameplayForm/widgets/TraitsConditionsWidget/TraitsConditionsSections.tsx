@@ -12,6 +12,7 @@ import {
   getStatusEntryTitle,
   hasStatusEntryDescriptionAdditions
 } from "../../../../../../pages/CharactersPage/traits";
+import { formatCompactDamageDefenseStatusValue } from "../../../../../../pages/CharactersPage/damageCoverageStatuses";
 import type { CharacterStatusEntry } from "../../../../../../types";
 import {
   EFFECT_NAME,
@@ -185,6 +186,12 @@ function TraitsConditionsSections({
             const hasDescriptionAdditions = hasStatusEntryDescriptionAdditions(entry);
             const hasNotes = hasStatusEntryNotes(entry);
             const statusTitle = getStatusEntryTitle(entry);
+            const displayTitle =
+              entry.group === STATUS_ENTRY_GROUP.RESISTANCES ||
+              entry.group === STATUS_ENTRY_GROUP.VULNERABILITIES ||
+              entry.group === STATUS_ENTRY_GROUP.IMMUNITIES
+                ? formatCompactDamageDefenseStatusValue(String(entry.value))
+                : statusTitle;
             const sourceLabel = getStatusEntrySourceLabel(entry);
 
             return (
@@ -213,7 +220,7 @@ function TraitsConditionsSections({
                         </span>
                       ) : (
                         <span className={styles.buttonTitleText} title={statusTitle}>
-                          {statusTitle}
+                          {displayTitle}
                         </span>
                       )}
                       {hasDescriptionAdditions ? (

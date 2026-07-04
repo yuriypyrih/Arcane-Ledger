@@ -3,10 +3,15 @@ import {
   getConditionOptions,
   getDamageTypeOptions,
   getImmunityOptions,
+  getResistanceOptions,
   isExhaustionStatusEntry,
   getSenseOptions
 } from "../../../../../../pages/CharactersPage/traits";
-import { isCustomFeatureTraitStatusEntry } from "../../../../../../pages/CharactersPage/customTraitEffects";
+import { formatDamageDefenseOptionLabel } from "../../../../../../pages/CharactersPage/damageCoverageStatuses";
+import {
+  isCustomFeatureTraitStatusEntry,
+  isCustomTraitDefenseStatusEntry
+} from "../../../../../../pages/CharactersPage/customTraitEffects";
 import { isChangelingShapeShifterStatusEntry } from "../../../../../../pages/CharactersPage/speciesChangeling";
 import { isHexbloodEerieTokenStatusEntry } from "../../../../../../pages/CharactersPage/speciesHexblood";
 import { isShifterShiftingStatusEntry } from "../../../../../../pages/CharactersPage/speciesShifter";
@@ -38,13 +43,14 @@ export const traitEditorTabs: Array<{ id: TraitEditorTab; label: string }> = [
 export const senseOptions = getSenseOptions();
 export const conditionOptions = getConditionOptions();
 export const damageTypeOptions = getDamageTypeOptions();
+export const resistanceOptions = getResistanceOptions();
 export const immunityOptions = getImmunityOptions();
 
 export function createDefaultStatusDraftValues(): Record<TraitEditorTab, string> {
   return {
     conditions: conditionOptions[0] ?? CONDITION_NAME.POISONED,
     senses: senseOptions[0] ?? "Darkvision",
-    resistances: damageTypeOptions[0] ?? "FIRE",
+    resistances: resistanceOptions[0] ?? "FIRE",
     vulnerabilities: damageTypeOptions[0] ?? "FIRE",
     immunities: immunityOptions[0] ?? "FIRE"
   };
@@ -79,6 +85,10 @@ export function getTraitEditorOptions(tab: TraitEditorTab): string[] {
     return immunityOptions;
   }
 
+  if (tab === "resistances") {
+    return resistanceOptions;
+  }
+
   return damageTypeOptions;
 }
 
@@ -88,19 +98,23 @@ export function formatTraitEditorOptionLabel(tab: TraitEditorTab, value: string)
   }
 
   if (tab === "resistances" || tab === "vulnerabilities") {
-    return `${value.charAt(0)}${value.slice(1).toLowerCase()} damage`;
+    return formatDamageDefenseOptionLabel(value);
   }
 
   if (tab === "immunities") {
     return Object.values(CONDITION_NAME).includes(value as CONDITION_NAME)
       ? `${value} condition`
-      : `${value.charAt(0)}${value.slice(1).toLowerCase()} damage`;
+      : formatDamageDefenseOptionLabel(value);
   }
 
   return value;
 }
 
 export function isStatusEntryRemovable(entry: CharacterStatusEntry): boolean {
+  if (isCustomTraitDefenseStatusEntry(entry)) {
+    return false;
+  }
+
   if (
     isChangelingShapeShifterStatusEntry(entry) ||
     isHexbloodEerieTokenStatusEntry(entry) ||

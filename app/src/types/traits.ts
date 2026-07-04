@@ -103,7 +103,11 @@ export enum STATUS_DURATION_PRESET {
   TWENTY_ROUNDS = "TWENTY_ROUNDS"
 }
 
-export type ImmunityValue = DAMAGE_TYPE | CONDITION_NAME;
+export type DamageCoverageStatusValue = "All damage" | `All damage but ${string}`;
+
+export type ResistanceValue = DAMAGE_TYPE | DamageCoverageStatusValue;
+export type VulnerabilityValue = DAMAGE_TYPE;
+export type ImmunityValue = DAMAGE_TYPE | DamageCoverageStatusValue | CONDITION_NAME;
 
 export type CharacterStatusValue = SENSE | EFFECT_NAME | CONDITION_NAME | DAMAGE_TYPE | string;
 export type CharacterStatusSpellTarget = "self" | "other";
@@ -134,6 +138,12 @@ type CharacterCustomTraitNumericValue = {
 type CharacterCustomTraitFlexibleValue = {
   value: CharacterCustomTraitEffectValue;
   valueMode?: CharacterCustomTraitValueMode;
+};
+
+type CharacterCustomTraitDefenseValue<Value extends string> = {
+  value: Value;
+  rollMode?: never;
+  valueMode?: never;
 };
 
 export type CharacterCustomTraitEffect =
@@ -198,7 +208,16 @@ export type CharacterCustomTraitEffect =
       type: "weaponDamage";
       attackKind: "unarmed" | WEAPON_COMBAT_TYPE.MELEE | WEAPON_COMBAT_TYPE.RANGED;
     } & CharacterCustomTraitFlexibleValue &
-      CharacterCustomTraitEffectRoll;
+      CharacterCustomTraitEffectRoll
+  | {
+      type: "resistance";
+    } & CharacterCustomTraitDefenseValue<ResistanceValue>
+  | {
+      type: "vulnerability";
+    } & CharacterCustomTraitDefenseValue<VulnerabilityValue>
+  | {
+      type: "immunity";
+    } & CharacterCustomTraitDefenseValue<ImmunityValue>;
 
 export type CharacterStatusDuration =
   | {

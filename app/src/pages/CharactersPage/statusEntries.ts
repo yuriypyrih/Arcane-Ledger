@@ -20,6 +20,7 @@ import {
 } from "../../types";
 import { sanitizeUserInput } from "../../utils/userInputSanitization";
 import { normalizeCharacterCustomTraitEffects } from "./customTraitEffects";
+import { normalizeDamageCoverageStatusValue } from "./damageCoverageStatuses";
 import { clampInteger } from "./shared";
 
 const senseValues = new Set<SENSE>(Object.values(SENSE));
@@ -412,10 +413,13 @@ function normalizeStatusValue(
     case STATUS_ENTRY_GROUP.SENSES:
       return isSense(value) ? value : null;
     case STATUS_ENTRY_GROUP.RESISTANCES:
+      return isDamageType(value) ? value : normalizeDamageCoverageStatusValue(value);
     case STATUS_ENTRY_GROUP.VULNERABILITIES:
       return isDamageType(value) ? value : null;
     case STATUS_ENTRY_GROUP.IMMUNITIES:
-      return isDamageType(value) || isConditionName(value) ? value : null;
+      return isDamageType(value) || isConditionName(value)
+        ? value
+        : normalizeDamageCoverageStatusValue(value);
     case STATUS_ENTRY_GROUP.CONDITIONS:
       return isConditionName(value) ? value : null;
     default:

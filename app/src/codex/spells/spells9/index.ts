@@ -207,12 +207,13 @@ export const invulnerability: SpellEntry = {
     documentName: "Legacy / Expanded Local",
     ruleset: "legacy-local"
   },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
+  trackingState: TRACKER.TRACKED,
   magicSchool: MAGIC_SCHOOL.ABJURATION,
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  materialSpecified:
+    "a small piece of adamantine worth at least 500 gp, which the spell consumes",
   duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: ["You are immune to all damage until the spell ends."],
   damage: [],

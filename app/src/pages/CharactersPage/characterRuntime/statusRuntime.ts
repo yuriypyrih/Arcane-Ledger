@@ -29,6 +29,8 @@ import {
 } from "../species";
 import { getDarkvisionSpellDerivedStatusEntriesForCharacter } from "./spellImplementations/darkvision";
 import { getHeroismSpellDerivedStatusEntriesForCharacter } from "./spellImplementations/heroism";
+import { getInvulnerabilitySpellDerivedStatusEntriesForCharacter } from "./spellImplementations/spells9";
+import { getCharacterCustomTraitEffectInput } from "./customEffectRuntime";
 import {
   getAlwaysPreparedSpellIds,
   getCantripLimitForCharacter,
@@ -45,6 +47,7 @@ import {
 } from "../spellcasting";
 import { resolveCharacterStatusEntries } from "../statusEntries";
 import { statusGroupOrder, statusGroupTitles } from "../traits";
+import { getCustomTraitDefenseStatusEntries } from "../customTraitEffects";
 import { measureCharacterRuntime } from "./performance";
 
 export type StatusRuntimeSection = {
@@ -64,6 +67,7 @@ export type CharacterStatusRuntime = {
   featDerivedStatusEntries: CharacterStatusEntry[];
   speciesDerivedStatusEntries: CharacterStatusEntry[];
   spellDerivedStatusEntries: CharacterStatusEntry[];
+  customTraitDefenseStatusEntries: CharacterStatusEntry[];
   reactionStatusEntries: CharacterStatusEntry[];
   derivedStatusEntries: CharacterStatusEntry[];
   statusEntries: CharacterStatusEntry[];
@@ -326,13 +330,18 @@ function createStatusRuntime(character: Character): CharacterStatusRuntime {
   const speciesDerivedStatusEntries = getSpeciesDerivedStatusEntriesForCharacter(character);
   const spellDerivedStatusEntries = [
     ...getDarkvisionSpellDerivedStatusEntriesForCharacter(character),
-    ...getHeroismSpellDerivedStatusEntriesForCharacter(character)
+    ...getHeroismSpellDerivedStatusEntriesForCharacter(character),
+    ...getInvulnerabilitySpellDerivedStatusEntriesForCharacter(character)
   ];
+  const customTraitDefenseStatusEntries = getCustomTraitDefenseStatusEntries(
+    getCharacterCustomTraitEffectInput(character)
+  );
   const derivedStatusEntries = [
     ...classDerivedStatusEntries,
     ...featDerivedStatusEntries,
     ...speciesDerivedStatusEntries,
     ...spellDerivedStatusEntries,
+    ...customTraitDefenseStatusEntries,
     ...reactionStatusEntries
   ];
   const statusEntries = resolveCharacterStatusEntries(character.statusEntries, derivedStatusEntries);
@@ -360,6 +369,7 @@ function createStatusRuntime(character: Character): CharacterStatusRuntime {
     featDerivedStatusEntries,
     speciesDerivedStatusEntries,
     spellDerivedStatusEntries,
+    customTraitDefenseStatusEntries,
     reactionStatusEntries,
     derivedStatusEntries,
     statusEntries,

@@ -1,15 +1,25 @@
 import {
+  CONDITION_NAME,
   characterCustomTraitDiceValues,
   type CharacterCustomTraitDiceValue,
   type CharacterCustomTraitEffect,
+  type ImmunityValue,
   type CharacterCustomTraitRollMode,
+  type ResistanceValue,
   type CharacterCustomTraitSkillGroupAbility,
   type CharacterCustomTraitValueMode,
-  type CharacterStatusEntry
+  type CharacterStatusEntry,
+  type VulnerabilityValue
 } from "../../../../../../types/traits";
 import type { AbilityKey } from "../../../../../../types/characters";
 import { ALL_SKILLS, isSkillName } from "../../../../../../types/skills";
 import { WEAPON_COMBAT_TYPE } from "../../../../../../codex/entries/enums";
+import {
+  getDamageTypeOptions,
+  getImmunityOptions,
+  getResistanceOptions
+} from "../../../../../../pages/CharactersPage/traits";
+import { formatDamageDefenseOptionLabel } from "../../../../../../pages/CharactersPage/damageCoverageStatuses";
 import { skillGroupsByAbility } from "../../../../../../pages/CharactersPage/skillDefinitions";
 import {
   defaultManualStatusDurationDraft,
@@ -22,6 +32,13 @@ const skillGroupAbilityKeys: CharacterCustomTraitSkillGroupAbility[] = skillGrou
   .map((group) => group.ability)
   .filter((ability): ability is CharacterCustomTraitSkillGroupAbility => ability !== "CON");
 const allSavingThrowsTarget = "savingThrows";
+const customTraitDefenseTargets = ["resistance", "vulnerability", "immunity"] as const;
+type CustomTraitDefenseTarget = (typeof customTraitDefenseTargets)[number];
+const customTraitDefenseTargetValues = new Set<string>(customTraitDefenseTargets);
+const resistanceEffectValueOptions = getResistanceOptions().map(String);
+const vulnerabilityEffectValueOptions = getDamageTypeOptions().map(String);
+const immunityEffectValueOptions = getImmunityOptions().map(String);
+const immunityConditionValues = new Set<string>(Object.values(CONDITION_NAME));
 
 export type CustomTraitEffectDraft = {
   id: string;
@@ -80,14 +97,51 @@ export function isCustomTraitRollModeDisabledTarget(target: string): boolean {
     trimmedTarget === "actualMaxHitPoints" ||
     trimmedTarget === "armorClass" ||
     trimmedTarget === "speed" ||
-    trimmedTarget === "spellDc"
+    trimmedTarget === "spellDc" ||
+    isCustomTraitDefenseTarget(trimmedTarget)
   );
+}
+
+export function isCustomTraitDefenseTarget(
+  target: string
+): target is CustomTraitDefenseTarget {
+  return customTraitDefenseTargetValues.has(target.trim());
+}
+
+export function getCustomTraitDefenseValueOptions(target: string): string[] {
+  switch (target.trim()) {
+    case "resistance":
+      return resistanceEffectValueOptions;
+    case "vulnerability":
+      return vulnerabilityEffectValueOptions;
+    case "immunity":
+      return immunityEffectValueOptions;
+    default:
+      return [];
+  }
+}
+
+export function formatCustomTraitDefenseValueOptionLabel(
+  target: string,
+  value: string
+): string {
+  return target.trim() === "immunity" && immunityConditionValues.has(value)
+    ? `${value} condition`
+    : formatDamageDefenseOptionLabel(value);
+}
+
+function normalizeCustomTraitDefenseValueForTarget(value: string, target: string): string {
+  const trimmedValue = value.trim();
+  const options = getCustomTraitDefenseValueOptions(target);
+
+  return options.includes(trimmedValue) ? trimmedValue : (options[0] ?? "");
 }
 
 export function doesCustomTraitTargetAllowAbilityValue(target: string): boolean {
   const [type] = target.trim().split(":");
   return (
     type !== "actualMaxHitPoints" &&
+    !isCustomTraitDefenseTarget(type) &&
     type !== "abilityScore" &&
     type !== "abilityModifier" &&
     type !== "savingThrow" &&
@@ -97,6 +151,10 @@ export function doesCustomTraitTargetAllowAbilityValue(target: string): boolean 
 
 export function doesCustomTraitTargetAllowDiceValue(target: string): boolean {
   const [type] = target.trim().split(":");
+
+  if (isCustomTraitDefenseTarget(type)) {
+    return false;
+  }
 
   return (
     type === "initiative" ||
@@ -118,6 +176,20 @@ export function normalizeCustomTraitEffectDraftValueForTarget(
   value: string,
   target: string
 ): string {
+  if (isCustomTraitDefenseTarget(target)) {
+    return normalizeCustomTraitDefenseValueForTarget(value, target);
+  }
+
+  const numericValue = value.trim().length > 0 ? Number(value) : 0;
+
+  if (
+    !isCustomTraitAbilityValue(value) &&
+    !isCustomTraitDiceValue(value) &&
+    !Number.isFinite(numericValue)
+  ) {
+    return "0";
+  }
+
   if (
     (isCustomTraitAbilityValue(value) && !doesCustomTraitTargetAllowAbilityValue(target)) ||
     (isCustomTraitDiceValue(value) && !doesCustomTraitTargetAllowDiceValue(target))
@@ -147,6 +219,9 @@ export const customTraitTargetOptions: CustomTraitTargetOption[] = [
   { value: "initiative", label: "Initiative" },
   { value: "passivePerception", label: "Passive Perception" },
   { value: "speed", label: "Speed" },
+  { value: "resistance", label: "Resistances" },
+  { value: "vulnerability", label: "Vulnerabilities" },
+  { value: "immunity", label: "Immunities" },
   ...abilityKeys.map((ability) => ({
     value: `abilityScore:${ability}`,
     label: `${ability} Ability Score`
@@ -204,6 +279,9 @@ export function createCustomTraitEffectDraftFromEntry(
     case "initiative":
     case "passivePerception":
     case "speed":
+    case "resistance":
+    case "vulnerability":
+    case "immunity":
     case "spellAttack":
     case "spellDc":
     case "savingThrows":
@@ -272,10 +350,30 @@ export function parseCustomTraitEffectDraft(
   draft: CustomTraitEffectDraft
 ): CharacterCustomTraitEffect | null {
   const trimmedTarget = draft.target.trim();
+  const trimmedValue = draft.value.trim();
+
+  if (isCustomTraitDefenseTarget(trimmedTarget)) {
+    const normalizedValue = normalizeCustomTraitDefenseValueForTarget(trimmedValue, trimmedTarget);
+
+    switch (trimmedTarget) {
+      case "resistance":
+        return normalizedValue
+          ? { type: "resistance", value: normalizedValue as ResistanceValue }
+          : null;
+      case "vulnerability":
+        return normalizedValue
+          ? { type: "vulnerability", value: normalizedValue as VulnerabilityValue }
+          : null;
+      case "immunity":
+        return normalizedValue
+          ? { type: "immunity", value: normalizedValue as ImmunityValue }
+          : null;
+    }
+  }
+
   const rollMode = isCustomTraitRollModeDisabledTarget(trimmedTarget)
     ? "normal"
     : normalizeDraftRollMode(draft.rollMode);
-  const trimmedValue = draft.value.trim();
   const valueAsAbility = isCustomTraitAbilityValue(trimmedValue)
     ? (trimmedValue as AbilityKey)
     : null;
@@ -415,6 +513,10 @@ export function parseCustomTraitEffectDraft(
 }
 
 export function isCustomTraitEffectDraftEmpty(draft: CustomTraitEffectDraft): boolean {
+  if (isCustomTraitDefenseTarget(draft.target)) {
+    return false;
+  }
+
   const numericValue = draft.value.trim().length > 0 ? Number(draft.value) : 0;
   const rollMode = isCustomTraitRollModeDisabledTarget(draft.target)
     ? "normal"

@@ -41,9 +41,16 @@ import {
   type Character,
   type CharacterStatusDuration,
   type CharacterStatusEntry,
+  type DamageCoverageStatusValue,
   type ImmunityValue
 } from "../../types";
 import { formatCodexLabel } from "../../utils/codex";
+import {
+  formatDamageDefenseDescriptionTarget,
+  formatDamageDefenseStatusValue,
+  getDamageCoverageStatusOptions,
+  isDamageCoverageStatusValue
+} from "./damageCoverageStatuses";
 import { fighterBanneretTeamTacticsStatusSourceId } from "./classFeatures/fighter/subclasses/fighterBanneretShared";
 import { coronaOfLightStatusSourceId } from "./classFeatures/cleric/subclasses/clericLightDomainShared";
 import {
@@ -759,9 +766,9 @@ export function getStatusEntryTitle(entry: CharacterStatusEntry): string {
     (entry.group === STATUS_ENTRY_GROUP.RESISTANCES ||
       entry.group === STATUS_ENTRY_GROUP.VULNERABILITIES ||
       entry.group === STATUS_ENTRY_GROUP.IMMUNITIES) &&
-    damageTypeValues.has(entry.value as DAMAGE_TYPE)
+    (damageTypeValues.has(entry.value as DAMAGE_TYPE) || isDamageCoverageStatusValue(entry.value))
   ) {
-    return formatCodexLabel(String(entry.value));
+    return formatDamageDefenseStatusValue(String(entry.value));
   }
 
   return typeof entry.value === "string" ? entry.value : formatCodexLabel(String(entry.value));
@@ -1222,17 +1229,17 @@ function getDefaultStatusEntryDescriptionEntries(
       ];
     case STATUS_ENTRY_GROUP.RESISTANCES:
       return [
-        `Resistance to ${valueLabel.toLowerCase()} damage. You usually take half damage from that type unless a rule says otherwise.`
+        `Resistance to ${formatDamageDefenseDescriptionTarget(String(entry.value))}. You usually take half damage from matching damage unless a rule says otherwise.`
       ];
     case STATUS_ENTRY_GROUP.VULNERABILITIES:
       return [
-        `Vulnerability to ${valueLabel.toLowerCase()} damage. You usually take double damage from that type unless a rule says otherwise.`
+        `Vulnerability to ${formatDamageDefenseDescriptionTarget(String(entry.value))}. You usually take double damage from matching damage unless a rule says otherwise.`
       ];
     case STATUS_ENTRY_GROUP.IMMUNITIES:
       return [
         isConditionName(entry.value)
           ? `Immunity to the ${valueLabel} condition. Effects that would apply it have no effect on you unless a rule says otherwise.`
-          : `Immunity to ${valueLabel.toLowerCase()} damage. You usually take no damage from that type unless a rule says otherwise.`
+          : `Immunity to ${formatDamageDefenseDescriptionTarget(String(entry.value))}. You usually take no damage from matching damage unless a rule says otherwise.`
       ];
     case STATUS_ENTRY_GROUP.AURAS:
       return (
@@ -1707,8 +1714,16 @@ export function getDamageTypeOptions(): DAMAGE_TYPE[] {
   return [...Object.values(DAMAGE_TYPE)];
 }
 
+export function getResistanceOptions(): Array<DAMAGE_TYPE | DamageCoverageStatusValue> {
+  return [...Object.values(DAMAGE_TYPE), ...getDamageCoverageStatusOptions()];
+}
+
 export function getImmunityOptions(): ImmunityValue[] {
-  return [...Object.values(DAMAGE_TYPE), ...Object.values(CONDITION_NAME)];
+  return [
+    ...Object.values(DAMAGE_TYPE),
+    ...getDamageCoverageStatusOptions(),
+    ...Object.values(CONDITION_NAME)
+  ];
 }
 
 function formatLinkedStatusDurationLabel(

@@ -8,6 +8,7 @@ import SheetActionButton from "../SheetActionButton";
 import {
   customTraitTargetOptions,
   isCustomTraitEffectDraftEmpty,
+  isCustomTraitDefenseTarget,
   type CustomTraitEffectDraft
 } from "../GameplayForm/widgets/TraitsConditionsWidget/customTraitDraft";
 import styles from "../GameplayForm/widgets/TraitsConditionsWidget/CustomTraitBuilder.module.css";
@@ -58,21 +59,24 @@ function ModEffectsEditor({
         {effects.map((effect, index) => {
           const isOnlyEffect = effects.length === 1;
           const isRemoveDisabled = isOnlyEffect && isCustomTraitEffectDraftEmpty(effect);
+          const showModeControls = !isCustomTraitDefenseTarget(effect.target);
 
           return (
             <div key={effect.id} className={styles.effectCard}>
               <div className={styles.effectCardHeader}>
                 <p className={styles.effectIndex}>{`Effect ${index + 1}`}</p>
-                <div className={styles.effectModeControls}>
-                  <CustomTraitEffectValueModeToggle
-                    effect={effect}
-                    onValueModeChange={(value) => onEffectValueModeChange(effect.id, value)}
-                  />
-                  <CustomTraitEffectRollModeToggle
-                    effect={effect}
-                    onRollModeChange={(value) => onEffectRollModeChange(effect.id, value)}
-                  />
-                </div>
+                {showModeControls ? (
+                  <div className={styles.effectModeControls}>
+                    <CustomTraitEffectValueModeToggle
+                      effect={effect}
+                      onValueModeChange={(value) => onEffectValueModeChange(effect.id, value)}
+                    />
+                    <CustomTraitEffectRollModeToggle
+                      effect={effect}
+                      onRollModeChange={(value) => onEffectRollModeChange(effect.id, value)}
+                    />
+                  </div>
+                ) : null}
               </div>
               <CustomTraitEffectEditorRow
                 effect={effect}

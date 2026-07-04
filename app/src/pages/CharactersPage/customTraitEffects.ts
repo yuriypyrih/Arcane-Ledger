@@ -1,7 +1,9 @@
-import { WEAPON_COMBAT_TYPE } from "../../codex/entries/enums";
+import { DAMAGE_TYPE, WEAPON_COMBAT_TYPE } from "../../codex/entries/enums";
 import {
+  CONDITION_NAME,
   EFFECT_NAME,
   characterCustomTraitDiceValues,
+  STATUS_DURATION_KIND,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE,
   type CharacterCustomTraitDiceValue,
@@ -11,9 +13,16 @@ import {
   type CharacterCustomTraitSkillGroupAbility,
   type CharacterCustomTraitValueMode,
   type CharacterStatusEntry,
+  type ImmunityValue,
+  type ResistanceValue,
+  type VulnerabilityValue,
 } from "../../types/traits";
 import type { AbilityKey } from "../../types/characters";
 import { isSkillName, type SkillName } from "../../types/skills";
+import {
+  formatDamageDefenseOptionLabel,
+  normalizeDamageCoverageStatusValue
+} from "./damageCoverageStatuses";
 import { skillGroupsByAbility } from "./skillDefinitions";
 
 const abilityKeys: AbilityKey[] = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
@@ -39,6 +48,9 @@ const customTraitEffectTypes = new Set<CharacterCustomTraitEffect["type"]>([
   "initiative",
   "passivePerception",
   "speed",
+  "resistance",
+  "vulnerability",
+  "immunity",
   "spellAttack",
   "spellDc",
   "abilityScore",
@@ -58,6 +70,9 @@ const customTraitRollModes = new Set<CharacterCustomTraitRollMode>([
   "disadvantage"
 ]);
 const customTraitValueModes = new Set<CharacterCustomTraitValueMode>(["buff", "debuff"]);
+const damageTypeValues = new Set<DAMAGE_TYPE>(Object.values(DAMAGE_TYPE));
+const conditionValues = new Set<CONDITION_NAME>(Object.values(CONDITION_NAME));
+const customTraitDefenseStatusSourceIdPrefix = "custom-effect-defense:";
 
 export type CustomTraitFlatBonus = {
   label: string;
@@ -128,6 +143,14 @@ function isAbilityKey(value: unknown): value is AbilityKey {
   return typeof value === "string" && abilityKeys.includes(value as AbilityKey);
 }
 
+function isDamageType(value: unknown): value is DAMAGE_TYPE {
+  return typeof value === "string" && damageTypeValues.has(value as DAMAGE_TYPE);
+}
+
+function isConditionName(value: unknown): value is CONDITION_NAME {
+  return typeof value === "string" && conditionValues.has(value as CONDITION_NAME);
+}
+
 function isCustomTraitSkillGroupAbility(
   value: unknown
 ): value is CharacterCustomTraitSkillGroupAbility {
@@ -152,13 +175,15 @@ function isRollModeDisabledEffectType(type: CharacterCustomTraitEffect["type"]):
     type === "actualMaxHitPoints" ||
     type === "armorClass" ||
     type === "speed" ||
-    type === "spellDc"
+    type === "spellDc" ||
+    isCustomTraitDefenseEffectType(type)
   );
 }
 
 function isAbilityValueAllowedEffectType(type: CharacterCustomTraitEffect["type"]): boolean {
   return (
     type !== "actualMaxHitPoints" &&
+    !isCustomTraitDefenseEffectType(type) &&
     type !== "abilityScore" &&
     type !== "abilityModifier" &&
     type !== "savingThrow" &&
@@ -178,18 +203,76 @@ function isDiceValueAllowedEffectType(type: CharacterCustomTraitEffect["type"]):
   );
 }
 
+type CustomTraitDefenseEffect = Extract<
+  CharacterCustomTraitEffect,
+  { type: "resistance" | "vulnerability" | "immunity" }
+>;
+
+export function isCustomTraitDefenseEffectType(
+  value: unknown
+): value is CustomTraitDefenseEffect["type"] {
+  return value === "resistance" || value === "vulnerability" || value === "immunity";
+}
+
+function isCustomTraitDefenseEffect(
+  effect: CharacterCustomTraitEffect
+): effect is CustomTraitDefenseEffect {
+  return isCustomTraitDefenseEffectType(effect.type);
+}
+
+function normalizeCustomTraitResistanceValue(value: unknown): ResistanceValue | null {
+  return isDamageType(value) ? value : normalizeDamageCoverageStatusValue(value);
+}
+
+function normalizeCustomTraitVulnerabilityValue(value: unknown): VulnerabilityValue | null {
+  return isDamageType(value) ? value : null;
+}
+
+function normalizeCustomTraitImmunityValue(value: unknown): ImmunityValue | null {
+  if (isDamageType(value) || isConditionName(value)) {
+    return value;
+  }
+
+  return normalizeDamageCoverageStatusValue(value);
+}
+
+function normalizeCustomTraitDefenseEffect(
+  type: CustomTraitDefenseEffect["type"],
+  value: unknown
+): CustomTraitDefenseEffect | null {
+  switch (type) {
+    case "resistance": {
+      const normalizedValue = normalizeCustomTraitResistanceValue(value);
+      return normalizedValue ? { type, value: normalizedValue } : null;
+    }
+    case "vulnerability": {
+      const normalizedValue = normalizeCustomTraitVulnerabilityValue(value);
+      return normalizedValue ? { type, value: normalizedValue } : null;
+    }
+    case "immunity": {
+      const normalizedValue = normalizeCustomTraitImmunityValue(value);
+      return normalizedValue ? { type, value: normalizedValue } : null;
+    }
+  }
+}
+
 function normalizeCharacterCustomTraitEffect(value: unknown): CharacterCustomTraitEffect | null {
   if (!value || typeof value !== "object") {
     return null;
   }
 
-  const record = value as Partial<CharacterCustomTraitEffect>;
+  const record = value as Record<string, unknown>;
 
   if (!customTraitEffectTypes.has(record.type as CharacterCustomTraitEffect["type"])) {
     return null;
   }
 
   const effectType = record.type as CharacterCustomTraitEffect["type"];
+
+  if (isCustomTraitDefenseEffectType(effectType)) {
+    return normalizeCustomTraitDefenseEffect(effectType, record.value);
+  }
+
   const rollMode = isRollModeDisabledEffectType(effectType)
     ? "normal"
     : normalizeCustomTraitRollMode(record.rollMode);
@@ -207,7 +290,7 @@ function normalizeCharacterCustomTraitEffect(value: unknown): CharacterCustomTra
   const rollModeFields = rollMode === "normal" ? {} : { rollMode };
   const valueModeFields = createValueModeFields(valueMode);
 
-  switch (record.type) {
+  switch (effectType) {
     case "actualMaxHitPoints":
       return typeof normalizedValue === "number"
         ? {
@@ -217,25 +300,70 @@ function normalizeCharacterCustomTraitEffect(value: unknown): CharacterCustomTra
           }
         : null;
     case "armorClass":
+      return {
+        type: "armorClass",
+        value: normalizedValue,
+        ...valueModeFields,
+        ...rollModeFields
+      };
     case "initiative":
+      return {
+        type: "initiative",
+        value: normalizedValue,
+        ...valueModeFields,
+        ...rollModeFields
+      };
     case "passivePerception":
+      return {
+        type: "passivePerception",
+        value: normalizedValue,
+        ...valueModeFields,
+        ...rollModeFields
+      };
     case "speed":
+      return {
+        type: "speed",
+        value: normalizedValue,
+        ...valueModeFields,
+        ...rollModeFields
+      };
     case "spellAttack":
+      return {
+        type: "spellAttack",
+        value: normalizedValue,
+        ...valueModeFields,
+        ...rollModeFields
+      };
     case "spellDc":
+      return {
+        type: "spellDc",
+        value: normalizedValue,
+        ...valueModeFields,
+        ...rollModeFields
+      };
     case "savingThrows":
       return {
-        type: record.type,
+        type: "savingThrows",
         value: normalizedValue,
         ...valueModeFields,
         ...rollModeFields
       };
     case "abilityScore":
-    case "abilityModifier":
-      return isAbilityKey(record.ability)
+      return isAbilityKey(record.ability) && typeof normalizedValue === "number"
         ? {
-            type: record.type,
+            type: "abilityScore",
             ability: record.ability,
-            value: normalizedValue as number,
+            value: normalizedValue,
+            ...valueModeFields,
+            ...rollModeFields
+          }
+        : null;
+    case "abilityModifier":
+      return isAbilityKey(record.ability) && typeof normalizedValue === "number"
+        ? {
+            type: "abilityModifier",
+            ability: record.ability,
+            value: normalizedValue,
             ...valueModeFields,
             ...rollModeFields
           }
@@ -243,7 +371,7 @@ function normalizeCharacterCustomTraitEffect(value: unknown): CharacterCustomTra
     case "savingThrow":
       return isAbilityKey(record.ability)
         ? {
-            type: record.type,
+            type: "savingThrow",
             ability: record.ability,
             value: normalizedValue,
             ...valueModeFields,
@@ -384,6 +512,118 @@ export function isCustomFeatureTraitStatusEntry(
     entry.value !== EFFECT_NAME.CONCENTRATION &&
     Array.isArray(entry.customEffects)
   );
+}
+
+function getCustomTraitDefenseStatusGroup(
+  effect: CustomTraitDefenseEffect
+): STATUS_ENTRY_GROUP.RESISTANCES | STATUS_ENTRY_GROUP.VULNERABILITIES | STATUS_ENTRY_GROUP.IMMUNITIES {
+  switch (effect.type) {
+    case "resistance":
+      return STATUS_ENTRY_GROUP.RESISTANCES;
+    case "vulnerability":
+      return STATUS_ENTRY_GROUP.VULNERABILITIES;
+    case "immunity":
+      return STATUS_ENTRY_GROUP.IMMUNITIES;
+  }
+}
+
+function getCustomTraitDefenseStatusSourceId(parts: Array<string | number>): string {
+  return `${customTraitDefenseStatusSourceIdPrefix}${parts.map((part) => String(part)).join(":")}`;
+}
+
+export function isCustomTraitDefenseStatusEntry(
+  entry: Pick<CharacterStatusEntry, "sourceId"> | null | undefined
+): boolean {
+  return entry?.sourceId?.startsWith(customTraitDefenseStatusSourceIdPrefix) === true;
+}
+
+function createCustomTraitDefenseStatusEntry(options: {
+  sourceKey: string;
+  sourceLabel: string;
+  sourceIndex: number;
+  effect: CustomTraitDefenseEffect;
+  effectIndex: number;
+  duration: CharacterStatusEntry["duration"];
+  description?: string;
+}): CharacterStatusEntry {
+  const sourceId = getCustomTraitDefenseStatusSourceId([
+    options.sourceKey,
+    options.sourceIndex,
+    options.effectIndex,
+    options.effect.type,
+    options.effect.value
+  ]);
+
+  return {
+    id: sourceId,
+    group: getCustomTraitDefenseStatusGroup(options.effect),
+    value: options.effect.value,
+    source: options.sourceLabel,
+    sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+    duration: options.duration,
+    sourceId,
+    rangeFeet: null,
+    ...(options.description ? { description: options.description } : {})
+  };
+}
+
+function createCustomTraitDefenseLinkedDuration(
+  entry: Pick<CharacterStatusEntry, "group" | "value">
+): CharacterStatusEntry["duration"] {
+  return {
+    kind: STATUS_DURATION_KIND.LINKED,
+    linkedGroup: entry.group,
+    linkedValue: entry.value
+  };
+}
+
+export function getCustomTraitDefenseStatusEntries(
+  input: CustomTraitBonusInput
+): CharacterStatusEntry[] {
+  const statusEntries = Array.isArray(input) ? input : input?.statusEntries;
+  const effectSources = Array.isArray(input) ? [] : (input?.effectSources ?? []);
+  const statusDefenseEntries = (statusEntries ?? []).flatMap((entry, sourceIndex) => {
+    if (entry.disabled || !isCustomFeatureTraitStatusEntry(entry)) {
+      return [];
+    }
+
+    const label = String(entry.value).trim() || entry.source;
+    const sourceKey = entry.id || entry.sourceId || label;
+
+    return entry.customEffects.flatMap((effect, effectIndex) =>
+      isCustomTraitDefenseEffect(effect)
+        ? [
+            createCustomTraitDefenseStatusEntry({
+              sourceKey,
+              sourceLabel: label,
+              sourceIndex,
+              effect,
+              effectIndex,
+              duration: createCustomTraitDefenseLinkedDuration(entry),
+              description: entry.description
+            })
+          ]
+        : []
+    );
+  });
+  const itemDefenseEntries = effectSources.flatMap((source, sourceIndex) =>
+    source.effects.flatMap((effect, effectIndex) =>
+      isCustomTraitDefenseEffect(effect)
+        ? [
+            createCustomTraitDefenseStatusEntry({
+              sourceKey: source.label,
+              sourceLabel: source.label,
+              sourceIndex,
+              effect,
+              effectIndex,
+              duration: { kind: STATUS_DURATION_KIND.INFINITE }
+            })
+          ]
+        : []
+    )
+  );
+
+  return [...statusDefenseEntries, ...itemDefenseEntries];
 }
 
 export function getCustomTraitArmorClassBonuses(
@@ -590,6 +830,12 @@ export function formatCharacterCustomTraitEffectTargetLabel(
       return "Passive Perception";
     case "speed":
       return "Speed";
+    case "resistance":
+      return "Resistances";
+    case "vulnerability":
+      return "Vulnerabilities";
+    case "immunity":
+      return "Immunities";
     case "spellAttack":
       return "Spell Attack";
     case "spellDc":
@@ -627,6 +873,10 @@ function createCustomTraitFlatBonus(
   label: string,
   effect: CharacterCustomTraitEffect
 ): CustomTraitFlatBonus | null {
+  if (isCustomTraitDefenseEffect(effect)) {
+    return null;
+  }
+
   const multiplier = getCustomTraitEffectValueMultiplier(effect);
 
   if (typeof effect.value === "number") {
@@ -728,9 +978,19 @@ function formatCharacterCustomTraitRollMode(effect: CharacterCustomTraitEffect):
   return null;
 }
 
+function formatCharacterCustomTraitDefenseEffectValue(effect: CustomTraitDefenseEffect): string {
+  return effect.type === "immunity" && isConditionName(effect.value)
+    ? `${effect.value} condition`
+    : formatDamageDefenseOptionLabel(effect.value);
+}
+
 export function formatCharacterCustomTraitEffectSummary(
   effect: CharacterCustomTraitEffect
 ): string {
+  if (isCustomTraitDefenseEffect(effect)) {
+    return `${formatCharacterCustomTraitEffectTargetLabel(effect)}: ${formatCharacterCustomTraitDefenseEffectValue(effect)}`;
+  }
+
   const parts = [
     typeof effect.value === "number" && effect.value === 0
       ? null

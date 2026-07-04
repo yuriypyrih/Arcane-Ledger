@@ -15,6 +15,10 @@ import { abilityKeys } from "./constants";
 import { getCharacterRuntime, type CharacterRuntime } from "./characterRuntime/characterRuntime";
 import type { CharacterCombatSummaryCoreStats } from "./characterRuntime/combatSummaryCoreStats";
 import { getCharacterClassDisplayName, getCharacterSpeciesDisplayName } from "./customOrigins";
+import {
+  formatDamageDefenseStatusValue,
+  isDamageCoverageStatusValue
+} from "./damageCoverageStatuses";
 import { normalizeDeathSaveTrack } from "./deathSaves";
 import type { SkillRow } from "./skills";
 
@@ -53,7 +57,7 @@ function getStatusEntryLabel(entry: CharacterStatusEntry): string {
       : entry.group === STATUS_ENTRY_GROUP.RESISTANCES ||
           entry.group === STATUS_ENTRY_GROUP.VULNERABILITIES ||
           entry.group === STATUS_ENTRY_GROUP.IMMUNITIES
-        ? formatCodexLabel(value)
+        ? formatDamageDefenseStatusValue(value)
         : value;
 
   return entry.group === STATUS_ENTRY_GROUP.SENSES && typeof entry.rangeFeet === "number"
@@ -74,7 +78,7 @@ function getStatusLabels(
 }
 
 function isDamageStatusEntry(entry: CharacterStatusEntry): boolean {
-  return damageTypeValues.has(String(entry.value));
+  return damageTypeValues.has(String(entry.value)) || isDamageCoverageStatusValue(entry.value);
 }
 
 function isConditionStatusEntry(entry: CharacterStatusEntry): boolean {

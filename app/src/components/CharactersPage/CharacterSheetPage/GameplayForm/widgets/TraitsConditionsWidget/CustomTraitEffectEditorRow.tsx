@@ -10,6 +10,9 @@ import {
   customTraitDiceValueOptions,
   doesCustomTraitTargetAllowAbilityValue,
   doesCustomTraitTargetAllowDiceValue,
+  formatCustomTraitDefenseValueOptionLabel,
+  getCustomTraitDefenseValueOptions,
+  isCustomTraitDefenseTarget,
   isCustomTraitRollModeDisabledTarget
 } from "./customTraitDraft";
 import styles from "./CustomTraitEffectEditorRow.module.css";
@@ -126,8 +129,12 @@ function CustomTraitEffectEditorRow({
   onValueChange,
   onRemove
 }: CustomTraitEffectEditorRowProps) {
+  const isDefenseTarget = isCustomTraitDefenseTarget(effect.target);
   const allowAbilityValues = doesCustomTraitTargetAllowAbilityValue(effect.target);
   const allowDiceValues = doesCustomTraitTargetAllowDiceValue(effect.target);
+  const defenseValueOptions = isDefenseTarget
+    ? getCustomTraitDefenseValueOptions(effect.target)
+    : [];
 
   return (
     <div className={styles.row}>
@@ -146,18 +153,24 @@ function CustomTraitEffectEditorRow({
       <label className={shared.field}>
         <span className={shared.fieldLabel}>Value</span>
         <SelectInput value={effect.value} onChange={(event) => onValueChange(event.target.value)}>
-          {valueOptions.map((option) => (
-            <option
-              key={option.value}
-              value={option.value}
-              disabled={
-                (option.kind === "ability" && !allowAbilityValues) ||
-                (option.kind === "dice" && !allowDiceValues)
-              }
-            >
-              {option.label}
-            </option>
-          ))}
+          {isDefenseTarget
+            ? defenseValueOptions.map((option) => (
+                <option key={option} value={option}>
+                  {formatCustomTraitDefenseValueOptionLabel(effect.target, option)}
+                </option>
+              ))
+            : valueOptions.map((option) => (
+                <option
+                  key={option.value}
+                  value={option.value}
+                  disabled={
+                    (option.kind === "ability" && !allowAbilityValues) ||
+                    (option.kind === "dice" && !allowDiceValues)
+                  }
+                >
+                  {option.label}
+                </option>
+              ))}
         </SelectInput>
       </label>
 
