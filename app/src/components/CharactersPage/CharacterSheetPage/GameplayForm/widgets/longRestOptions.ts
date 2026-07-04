@@ -347,6 +347,7 @@ import {
 import { getMagicTemporaryHitPointsFeatureForCharacter } from "../../../../../pages/CharactersPage/classFeatures/magicTemporaryHitPoints";
 import { CLASS_FEATURE } from "../../../../../codex/entries";
 import {
+  applyBoonOfBountifulHealthTemporaryHitPointsBonus,
   collectFeatDerivedState,
   restoreBoonOfFateImproveFateForCharacter,
   restoreBoonOfRecoveryDiceForCharacter,
@@ -577,6 +578,11 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const giftOfTheProtectorsUsesTotal = getWarlockGiftOfTheProtectorsUsesTotal(character);
   const warlockCelestialResilienceTemporaryHitPoints =
     getWarlockCelestialResilienceTemporaryHitPoints(character);
+  const displayedWarlockCelestialResilienceTemporaryHitPoints =
+    applyBoonOfBountifulHealthTemporaryHitPointsBonus(
+      character,
+      warlockCelestialResilienceTemporaryHitPoints
+    );
   const arcaneRecoveryUsesTotal = getArcaneRecoveryUsesTotal(character);
   const wizardBladesongUsesTotal = getWizardBladesongUsesTotal(character);
   const wizardIllusionistIllusorySelfUsesTotal =
@@ -1131,7 +1137,7 @@ export function createLongRestOptions(character: Character): RestOption[] {
           {
             id: "gain-celestial-resilience-temporary-hit-points",
             label: "Gain Celestial Resilience Temporary Hit Points",
-            detail: `Gain ${warlockCelestialResilienceTemporaryHitPoints} Temporary Hit Points.`,
+            detail: `Gain ${displayedWarlockCelestialResilienceTemporaryHitPoints} Temporary Hit Points.`,
             emphasis: "feature",
             apply: (currentCharacter: Character) =>
               applyWarlockCelestialResilienceTemporaryHitPoints(currentCharacter)

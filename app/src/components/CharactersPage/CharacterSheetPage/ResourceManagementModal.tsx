@@ -1,5 +1,7 @@
 import type { CSSProperties, ReactNode } from "react";
+import type { SpellDescriptionEntry } from "../../../codex/entries";
 import ActionButton from "../../ActionButton";
+import DescriptionContent from "../../DescriptionContent/DescriptionContent";
 import {
   OverlayBody,
   OverlayCloseButton,
@@ -11,6 +13,7 @@ import {
   OverlayTitleRow,
   SheetModal
 } from "../../Overlay";
+import sheetStyles from "../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import styles from "./ResourceManagementModal.module.css";
 
 const RESOURCE_MANAGEMENT_DESCRIPTION =
@@ -53,6 +56,7 @@ type ResourceManagementModalProps = {
   actions: ResourceManagementModalAction[];
   eyebrow?: string;
   description?: string;
+  additionalDescription?: SpellDescriptionEntry[][];
   titleAccessory?: ReactNode;
   columnCount?: number;
 };
@@ -66,6 +70,7 @@ function ResourceManagementModal({
   columnCount,
   eyebrow = "RESOURCE MANAGEMENT",
   description = RESOURCE_MANAGEMENT_DESCRIPTION,
+  additionalDescription = [],
   titleAccessory
 }: ResourceManagementModalProps) {
   function handleActionClick(action: ResourceManagementModalAction) {
@@ -98,6 +103,19 @@ function ResourceManagementModal({
 
       <OverlayBody className={styles.body}>
         <p className={styles.description}>{description}</p>
+        {additionalDescription.length > 0 ? (
+          <div className={styles.additionalDescription}>
+            {additionalDescription.map((descriptionSection, index) => (
+              <DescriptionContent
+                key={index}
+                description={descriptionSection}
+                className={styles.additionalDescriptionSection}
+                entryClassName={sheetStyles.spellDrawerDescriptionLine}
+                strongClassName={sheetStyles.spellDrawerDescriptionStrong}
+              />
+            ))}
+          </div>
+        ) : null}
       </OverlayBody>
 
       <OverlayFooter className={styles.footer}>

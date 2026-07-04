@@ -9,10 +9,11 @@ export const epicBoonFeatDefinitions: FeatDefinition[] = [
     prerequisite: "Level 19+",
     description: [
       "You gain the following benefits.",
-      "<strong>Ability Score Increase.</strong> Increase one ability score of your choice by 1, to a maximum of 30. <link:tracked>Tracked</link>",
-      "<strong>Peerless Aim.</strong> When you miss with an attack roll, you can hit instead. Once you use this benefit, you can't use it again until the start of your next turn. <link:not-tracked>Not Tracked</link>"
+      "<strong>Ability Score Increase.</strong> Increase one ability score of your choice by 1, to a maximum of 30.",
+      "<strong>Peerless Aim.</strong> When you miss with an attack roll, you can hit instead. Once you use this benefit, you can't use it again until the start of your next turn."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage: "The Peerless Aim is not tracked. You have to remember it."
   },
   {
     feat: FEATS.BOON_OF_DIMENSIONAL_TRAVEL,

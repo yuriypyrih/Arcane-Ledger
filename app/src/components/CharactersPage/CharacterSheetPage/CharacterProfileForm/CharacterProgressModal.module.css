@@ -9,7 +9,15 @@
 }
 
 .progressMetaItem {
+  border-color: rgba(75, 47, 29, 0.14);
   background: rgba(58, 104, 186, 0.09);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+:global(html[data-theme="dark"]) .progressMetaItem {
+  border-color: var(--theme-border-medium);
+  background: var(--theme-surface-raised);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
 }
 
 .progressMetaItemRight {
@@ -46,9 +54,17 @@
 .progressRowCard {
   display: grid;
   gap: 0.7rem;
+  border: 1px solid rgba(75, 47, 29, 0.12);
   border-radius: var(--radius-field);
-  background: rgba(75, 47, 29, 0.055);
+  background: var(--theme-surface-panel);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.46);
   padding: 0.88rem 0.92rem;
+}
+
+:global(html[data-theme="dark"]) .progressRowCard {
+  border-color: var(--theme-border-medium);
+  background: var(--theme-surface-raised);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
 }
 
 .progressRow {

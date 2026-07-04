@@ -12,10 +12,14 @@ import { clampNumber } from "../../../../../pages/CharactersPage/CharacterSheetP
 import { useBodyScrollLock } from "../../../../../lib/useBodyScrollLock";
 import {
   getHitDiceRemainingForCharacter,
-  getHitDieFormulaForClass
 } from "../../../../../pages/CharactersPage/gameplay";
+import {
+  getHitDieFormulaForClass,
+  getHitDieMaximumForClass
+} from "../../../../../pages/CharactersPage/hitDice";
 import { getAbilityModifierForCharacter } from "../../../../../pages/CharactersPage/abilities";
 import { getEffectiveHitPointMaximumForCharacter } from "../../../../../pages/CharactersPage/traits";
+import { hasBoonOfBountifulHealthForCharacter } from "../../../../../pages/CharactersPage/feats/runtime";
 import type { RestDescriptionInjectionSection } from "../../../../../pages/CharactersPage/classFeatures/restDescriptionInjections";
 import {
   formatFormulaCell,
@@ -140,6 +144,44 @@ function getHitDiceHealingFormulaCell(character: Character, count: number) {
   });
 }
 
+function getMaximumHitDiceHealingForCount(character: Character, count: number): number {
+  if (count <= 0) {
+    return 0;
+  }
+
+  const hitDieMaximum = getHitDieMaximumForClass(
+    character.className,
+    character.customClass,
+    character.classRules
+  );
+  const constitutionModifier = getAbilityModifierForCharacter(character, "CON");
+
+  return Math.max(1, count * (hitDieMaximum + constitutionModifier));
+}
+
+function getMaximumHitDiceHealingFormulaCell(character: Character, count: number) {
+  if (count <= 0) {
+    return {
+      value: "0 Healing"
+    };
+  }
+
+  const hitDieMaximum = getHitDieMaximumForClass(
+    character.className,
+    character.customClass,
+    character.classRules
+  );
+  const constitutionModifier = getAbilityModifierForCharacter(character, "CON");
+  const formula = formatFormulaTerms([
+    `${count} x (${hitDieMaximum} ${formatSignedFormulaTerm(constitutionModifier, "CON")})`
+  ]);
+
+  return {
+    value: `${getMaximumHitDiceHealingForCount(character, count)} Healing`,
+    breakdown: `Boon of Bountiful Health: ${formula}`
+  };
+}
+
 function CampButton({
   character,
   onPersistCharacter,
@@ -165,10 +207,11 @@ function CampButton({
     availableHitDice,
     Math.max(0, Math.floor(shortRestHitDiceCount))
   );
-  const hitDiceHealingFormulaCell = getHitDiceHealingFormulaCell(
-    character,
-    normalizedShortRestHitDiceCount
-  );
+  const hasBountifulHealth = hasBoonOfBountifulHealthForCharacter(character);
+  const usesMaximumHitDiceHealing = hasBountifulHealth && normalizedShortRestHitDiceCount > 0;
+  const hitDiceHealingFormulaCell = usesMaximumHitDiceHealing
+    ? getMaximumHitDiceHealingFormulaCell(character, normalizedShortRestHitDiceCount)
+    : getHitDiceHealingFormulaCell(character, normalizedShortRestHitDiceCount);
   const selectedRestAdditionalDescription =
     selectedRestType === "short"
       ? shortRestAdditionalDescription.length > 0
@@ -267,6 +310,10 @@ function CampButton({
       restType === "short"
         ? Math.min(availableHitDice, Math.max(0, Math.floor(shortRestHitDiceCount)))
         : 0;
+    const shouldUseMaximumHitDiceHealing =
+      restType === "short" &&
+      hitDiceToSpend > 0 &&
+      hasBoonOfBountifulHealthForCharacter(character);
 
     onPersistCharacter((currentCharacter) => {
       const availableOptions =
@@ -283,7 +330,7 @@ function CampButton({
       }, currentCharacter);
       const currentHitDiceRemaining = getHitDiceRemainingForCharacter(restedCharacter);
 
-      return {
+      const nextCharacter = {
         ...restedCharacter,
         hitDiceRemaining:
           restType === "short"
@@ -294,11 +341,18 @@ function CampButton({
             ? clampNumber((restedCharacter.shortRestsUsedToday ?? 0) + 1, 0, 2, 0)
             : 0
       };
+
+      return shouldUseMaximumHitDiceHealing
+        ? applyRolledHealingToCharacter(
+            nextCharacter,
+            getMaximumHitDiceHealingForCount(nextCharacter, hitDiceToSpend)
+          )
+        : nextCharacter;
     });
 
     closePopup();
 
-    if (restType === "short" && hitDiceToSpend > 0) {
+    if (restType === "short" && hitDiceToSpend > 0 && !shouldUseMaximumHitDiceHealing) {
       const formula = getHitDiceFormulaForCount(character, hitDiceToSpend);
       const formulaDisplay = getHitDiceFormulaDisplayForCount(character, hitDiceToSpend);
 
@@ -487,7 +541,7 @@ function CampButton({
                   onClick={confirmRest}
                   disabled={!selectedRestType}
                   icon={
-                    selectedRestType === "short" ? (
+                    selectedRestType === "short" && !hasBountifulHealth ? (
                       <img src={d20Icon} alt="" className={styles.restButtonIcon} />
                     ) : undefined
                   }
@@ -495,7 +549,7 @@ function CampButton({
                 >
                   Rest
                 </ActionButton>
-                {selectedRestType === "short" ? (
+                {selectedRestType === "short" && !hasBountifulHealth ? (
                   <DiceRollerSettingsButton
                     actionName="Short Rest Hit Dice"
                     ariaLabel="Open short rest dice settings"

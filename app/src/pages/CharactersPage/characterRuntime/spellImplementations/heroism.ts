@@ -9,7 +9,7 @@ import {
   type CharacterStatusSpellTarget
 } from "../../../../types";
 import { getAbilityModifierForCharacter } from "../../abilities";
-import { swapTemporaryHitPointsAssignment } from "../../shared";
+import { swapSystemTemporaryHitPointsAssignmentForCharacter } from "../../feats/runtime";
 import { getSpellcastingAbilityForCharacterSpell } from "../../shared/spellcastingAbility";
 import { normalizeCharacterStatusEntries } from "../../statusEntries";
 import type {
@@ -83,9 +83,8 @@ export function applyHeroismRoundStartTemporaryHitPointsForCharacter(
     return character;
   }
 
-  const nextTemporaryHitPointsAssignment = swapTemporaryHitPointsAssignment(
-    character.temporaryHitPoints,
-    character.temporaryHitPointsSource,
+  const nextTemporaryHitPointsAssignment = swapSystemTemporaryHitPointsAssignmentForCharacter(
+    character,
     temporaryHitPoints,
     heroismTemporaryHitPointsSource
   );

@@ -23,6 +23,16 @@
   color: var(--theme-text-secondary);
 }
 
+.additionalDescription {
+  display: grid;
+  gap: 0.72rem;
+}
+
+.additionalDescriptionSection {
+  display: grid;
+  gap: 0.45rem;
+}
+
 .footer {
   border-top: 1px solid rgba(75, 47, 29, 0.12);
   background: linear-gradient(180deg, rgba(255, 252, 245, 0.24), rgba(246, 236, 221, 0.92));

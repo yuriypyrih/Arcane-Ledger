@@ -29,9 +29,9 @@ import type {
   FeatureSpeedBonus,
   SkillIndicatorMap
 } from "./classFeatures/types";
+import { swapSystemTemporaryHitPointsAssignmentForCharacter } from "./feats/runtime";
 import { skillGroupsByAbility } from "./skillDefinitions";
 import { formatFormulaCell } from "./shared/formulas";
-import { swapTemporaryHitPointsAssignment } from "./shared/temporaryHitPoints";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "./statusEntries";
 import type { WeaponAction } from "./gameplay";
 
@@ -502,9 +502,8 @@ export function activateShifterShiftingForCharacter(
   const state = getShifterFeatureState(character);
   const statusName = `${shiftingName}/${option.name}`;
   const temporaryHitPoints = getShifterTemporaryHitPoints(character);
-  const nextTemporaryHitPoints = swapTemporaryHitPointsAssignment(
-    character.temporaryHitPoints,
-    character.temporaryHitPointsSource,
+  const nextTemporaryHitPoints = swapSystemTemporaryHitPointsAssignmentForCharacter(
+    character,
     temporaryHitPoints,
     statusName
   );
@@ -547,9 +546,8 @@ export function applyShifterBeasthideTemporaryHitPointsRollForCharacter(
   }
 
   const grantedTemporaryHitPoints = Math.max(0, Math.floor(temporaryHitPointsTotal));
-  const nextTemporaryHitPoints = swapTemporaryHitPointsAssignment(
-    character.temporaryHitPoints,
-    character.temporaryHitPointsSource,
+  const nextTemporaryHitPoints = swapSystemTemporaryHitPointsAssignmentForCharacter(
+    character,
     grantedTemporaryHitPoints,
     `${shiftingName}/Beasthide`
   );

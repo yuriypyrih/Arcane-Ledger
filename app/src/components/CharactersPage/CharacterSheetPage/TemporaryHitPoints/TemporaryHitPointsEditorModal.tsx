@@ -1,5 +1,7 @@
 import type { ChangeEvent } from "react";
+import type { SpellDescriptionEntry } from "../../../../codex/entries";
 import ActionButton from "../../../ActionButton";
+import DescriptionContent from "../../../DescriptionContent/DescriptionContent";
 import NumberInput from "../../FormInputs/NumberInput";
 import {
   OverlayBody,
@@ -11,6 +13,7 @@ import {
   OverlayTitleRow,
   SheetModal
 } from "../../../Overlay";
+import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import styles from "./TemporaryHitPointsEditorModal.module.css";
 
 type TemporaryHitPointsEditorModalProps = {
@@ -18,6 +21,7 @@ type TemporaryHitPointsEditorModalProps = {
   title: string;
   closeLabel: string;
   description: string;
+  additionalDescription?: SpellDescriptionEntry[][];
   sourceLabel?: string;
   fieldLabel: string;
   value: number;
@@ -44,6 +48,7 @@ function TemporaryHitPointsEditorModal({
   title,
   closeLabel,
   description,
+  additionalDescription = [],
   sourceLabel,
   fieldLabel,
   value,
@@ -77,6 +82,19 @@ function TemporaryHitPointsEditorModal({
 
       <OverlayBody className={styles.body}>
         <p className={styles.description}>{description}</p>
+        {additionalDescription.length > 0 ? (
+          <div className={styles.additionalDescription}>
+            {additionalDescription.map((descriptionSection, index) => (
+              <DescriptionContent
+                key={index}
+                description={descriptionSection}
+                className={styles.additionalDescriptionSection}
+                entryClassName={sheetStyles.spellDrawerDescriptionLine}
+                strongClassName={sheetStyles.spellDrawerDescriptionStrong}
+              />
+            ))}
+          </div>
+        ) : null}
 
         {sourceLabel ? (
           <p className={styles.source}>

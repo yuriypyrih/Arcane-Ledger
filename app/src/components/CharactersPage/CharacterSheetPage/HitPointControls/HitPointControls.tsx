@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { HeartMinus, HeartPlus } from "lucide-react";
 import type { ChangeEvent, ReactNode } from "react";
 import { useState } from "react";
+import type { SpellDescriptionEntry } from "../../../../codex/entries";
 import NumberInput from "../../FormInputs/NumberInput";
 import { clampNumber } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import { normalizeTemporaryHitPoints } from "../GameplayForm/gameplayStateUtils";
@@ -18,6 +19,7 @@ type HitPointControlsProps = {
   statusText?: string;
   extraTemporaryHitPointControl?: ReactNode;
   temporaryHitPointsDescription?: string;
+  temporaryHitPointsAdditionalDescription?: SpellDescriptionEntry[][];
   className?: string;
   readOnly?: boolean;
   showSummary?: boolean;
@@ -35,6 +37,7 @@ function HitPointControls({
   statusText,
   extraTemporaryHitPointControl,
   temporaryHitPointsDescription,
+  temporaryHitPointsAdditionalDescription,
   className,
   readOnly = false,
   showSummary = true,
@@ -90,6 +93,7 @@ function HitPointControls({
                   temporaryHitPoints={normalizedTemporaryHitPoints}
                   temporaryHitPointsSource={temporaryHitPointsSource}
                   description={temporaryHitPointsDescription}
+                  additionalDescription={temporaryHitPointsAdditionalDescription}
                   readOnly={readOnly}
                   onSaveTemporaryHitPoints={onSaveTemporaryHitPoints}
                 />

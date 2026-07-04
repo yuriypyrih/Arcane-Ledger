@@ -27,7 +27,8 @@ import { normalizeCharacterStatusEntries } from "../../statusEntries";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import type { WeaponAction } from "../../gameplay";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../spellSlots";
-import { clampNumber, swapTemporaryHitPointsAssignment } from "../../shared";
+import { swapSystemTemporaryHitPointsAssignmentForCharacter } from "../../feats/runtime";
+import { clampNumber } from "../../shared";
 import type {
   DerivedFeatureStatusEntry,
   FeatureActionCard,
@@ -1060,9 +1061,8 @@ export function activateDruidWildShape(character: Character, monsterKey: string)
     return character;
   }
 
-  const nextTemporaryHitPointsAssignment = swapTemporaryHitPointsAssignment(
-    character.temporaryHitPoints,
-    character.temporaryHitPointsSource,
+  const nextTemporaryHitPointsAssignment = swapSystemTemporaryHitPointsAssignmentForCharacter(
+    character,
     getDruidWildShapeTemporaryHitPoints(character),
     druidWildShapeSource
   );

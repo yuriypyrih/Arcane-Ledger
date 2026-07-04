@@ -11,6 +11,7 @@ import {
 } from "./classFeatures/wizard/subclasses/wizardBladesinger";
 import {
   getArcheryWeaponActionDescriptionAdditionsForCharacter,
+  getBoonOfBloodshedWeaponActionDescriptionAdditionsForCharacter,
   getBoonOfCombatProwessWeaponActionDescriptionAdditionsForCharacter,
   getBoonOfDimensionalTravelWeaponActionDescriptionAdditionsForCharacter,
   getBoonOfIrresistibleOffenseWeaponActionDescriptionAdditionsForCharacter,
@@ -183,6 +184,9 @@ export function getWeaponActionDrawerDescriptionAdditions(
   }
 
   injectedSections.push(...getSavageAttackerWeaponActionDescriptionAdditions(character));
+  injectedSections.push(
+    ...getBoonOfBloodshedWeaponActionDescriptionAdditionsForCharacter(character, action)
+  );
   injectedSections.push(
     ...getBoonOfCombatProwessWeaponActionDescriptionAdditionsForCharacter(character, action)
   );

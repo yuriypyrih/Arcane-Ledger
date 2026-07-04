@@ -22,6 +22,7 @@ import { createSourcedDescriptionEntries } from "../../../../pages/CharactersPag
 import { crafterFastCraftingRuleText } from "../../../../pages/CharactersPage/feats/crafter";
 import {
   characterHasCrafterDiscount,
+  getBoonOfBountifulHealthShortRestDescriptionAdditionsForCharacter,
   getChefLongRestDescriptionAdditionsForCharacter,
   getChefShortRestDescriptionAdditionsForCharacter,
   getInspiringLeaderRestDescriptionAdditionsForCharacter,
@@ -176,6 +177,10 @@ function GameplayForm({
     () => getWeaponMasterLongRestDescriptionAdditionsForCharacter(character),
     [character]
   );
+  const bountifulHealthShortRestDescriptionInjections = useMemo(
+    () => getBoonOfBountifulHealthShortRestDescriptionAdditionsForCharacter(character),
+    [character]
+  );
   const humanResourcefulLongRestDescription = useMemo(
     () => getHumanResourcefulDescriptionEntriesForCharacter(character),
     [character]
@@ -188,7 +193,8 @@ function GameplayForm({
     const additions = [
       ...restDescriptionInjections.shortRest,
       ...chefShortRestDescriptionInjections,
-      ...inspiringLeaderRestDescriptionInjections
+      ...inspiringLeaderRestDescriptionInjections,
+      ...bountifulHealthShortRestDescriptionInjections
     ];
 
     if (musicianEncouragingSongDescription.length > 0) {
@@ -202,6 +208,7 @@ function GameplayForm({
 
     return additions;
   }, [
+    bountifulHealthShortRestDescriptionInjections,
     chefShortRestDescriptionInjections,
     inspiringLeaderRestDescriptionInjections,
     musicianEncouragingSongDescription,

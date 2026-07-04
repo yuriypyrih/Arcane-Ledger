@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { Character } from "../../../../../types";
 import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { getCharacterRuntime } from "../../../../../pages/CharactersPage/characterRuntime/characterRuntime";
+import { getBoonOfBountifulHealthTemporaryHitPointsDescriptionAdditionsForCharacter } from "../../../../../pages/CharactersPage/feats/runtime";
 import HitPointControls from "../../HitPointControls/HitPointControls";
 import MagicTemporaryHitPoints from "../../MagicTemporaryHitPoints";
 import TemporaryHitPoints from "../../TemporaryHitPoints";
@@ -34,6 +35,10 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
   const [isLedgerModalOpen, setIsLedgerModalOpen] = useState(false);
   const combatSummary = useMemo(() => getCharacterRuntime(character).combatSummary, [character]);
   const hitPoints = combatSummary.hitPoints;
+  const temporaryHitPointsAdditionalDescription = useMemo(
+    () => getBoonOfBountifulHealthTemporaryHitPointsDescriptionAdditionsForCharacter(character),
+    [character]
+  );
 
   useEffect(() => {
     if (normalizeMaxHitPointsMode(character.maxHitPointsMode) !== "automatic") {
@@ -71,6 +76,7 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
               temporaryHitPoints={hitPoints.temporaryHitPoints}
               temporaryHitPointsSource={character.temporaryHitPointsSource}
               description={hitPoints.temporaryHitPointsDescription}
+              additionalDescription={temporaryHitPointsAdditionalDescription}
               onSaveTemporaryHitPoints={(value) =>
                 onPersistCharacter((currentCharacter) =>
                   assignManualTemporaryHitPointsForCharacter(currentCharacter, value)
@@ -120,6 +126,7 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
         statusText={hitPoints.statusLabel}
         showSummary={false}
         temporaryHitPointsDescription={hitPoints.temporaryHitPointsDescription}
+        temporaryHitPointsAdditionalDescription={temporaryHitPointsAdditionalDescription}
         onDamage={(amount) =>
           onPersistCharacter((currentCharacter) => applyDamageToCharacter(currentCharacter, amount))
         }

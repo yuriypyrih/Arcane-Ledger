@@ -1,5 +1,5 @@
 import type { Character } from "../../../../types";
-import { swapTemporaryHitPointsAssignment } from "../../shared";
+import { swapSystemTemporaryHitPointsAssignmentForCharacter } from "../../feats/runtime";
 
 export const falseLifeSpellId = "spell-false-life";
 export const falseLifeTemporaryHitPointsSource = "False Life";
@@ -72,9 +72,8 @@ export function applyFalseLifeTemporaryHitPointsToCharacter(
 ): Character {
   return {
     ...character,
-    ...swapTemporaryHitPointsAssignment(
-      character.temporaryHitPoints,
-      character.temporaryHitPointsSource,
+    ...swapSystemTemporaryHitPointsAssignmentForCharacter(
+      character,
       temporaryHitPoints,
       source
     )

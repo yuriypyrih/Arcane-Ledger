@@ -4,6 +4,9 @@ import { getFeatDefinition, getFeatLabel } from "..";
 import {
   filterDescriptionEntries,
   isArcheryWeaponActionDescriptionEntry,
+  isBoonOfBloodshedDescriptionEntry,
+  isBoonOfBountifulHealthAugmentedHealthDescriptionEntry,
+  isBoonOfBountifulHealthSuperiorRecuperationDescriptionEntry,
   isBoonOfCombatProwessPeerlessAimDescriptionEntry,
   isBoonOfDimensionalTravelBlinkStepsDescriptionEntry,
   isBoonOfIrresistibleOffenseDescriptionEntry,
@@ -75,6 +78,9 @@ export const featDescriptionTargetKeys = {
   savingThrowConcentration: "savingThrow:CON:concentration",
   shortRest: "shortRest",
   longRest: "longRest",
+  temporaryHitPointsBoonOfBountifulHealth: "temporary-hit-points:boon-of-bountiful-health",
+  hitDiceBoonOfBountifulHealth: "hit-dice:boon-of-bountiful-health",
+  shortRestBoonOfBountifulHealth: "short-rest:boon-of-bountiful-health",
   musicianEncouragingSong: "musician:encouraging-song",
   initiativeRallyingCry: "purple-dragon-rook:rallying-cry",
   initiativeFamilyFirst: "zhentarim-ruffian:family-first",
@@ -83,6 +89,7 @@ export const featDescriptionTargetKeys = {
   weaponChargerChargeAttack: "charger:charge-attack",
   weaponArchery: "archery",
   weaponDueling: "dueling",
+  weaponBoonOfBloodshed: "boon-of-bloodshed",
   weaponBoonOfCombatProwess: "boon-of-combat-prowess:peerless-aim",
   weaponBoonOfDimensionalTravel: "boon-of-dimensional-travel:blink-steps",
   weaponBoonOfIrresistibleOffense: "boon-of-irresistible-offense",
@@ -214,6 +221,27 @@ const featDescriptionContributionDefinitions: FeatDescriptionContributionDefinit
     predicate: (entry) => entry.includes("Encouraging Song")
   },
   {
+    feat: FEATS.BOON_OF_BOUNTIFUL_HEALTH,
+    target: "rest",
+    targetKey: featDescriptionTargetKeys.shortRestBoonOfBountifulHealth,
+    sourceLabel: "Boon of Bountiful Health: Superior Recuperation",
+    predicate: isBoonOfBountifulHealthSuperiorRecuperationDescriptionEntry
+  },
+  {
+    feat: FEATS.BOON_OF_BOUNTIFUL_HEALTH,
+    target: "custom",
+    targetKey: featDescriptionTargetKeys.temporaryHitPointsBoonOfBountifulHealth,
+    sourceLabel: "Boon of Bountiful Health: Augmented Health",
+    predicate: isBoonOfBountifulHealthAugmentedHealthDescriptionEntry
+  },
+  {
+    feat: FEATS.BOON_OF_BOUNTIFUL_HEALTH,
+    target: "custom",
+    targetKey: featDescriptionTargetKeys.hitDiceBoonOfBountifulHealth,
+    sourceLabel: "Boon of Bountiful Health: Superior Recuperation",
+    predicate: isBoonOfBountifulHealthSuperiorRecuperationDescriptionEntry
+  },
+  {
     feat: FEATS.PURPLE_DRAGON_ROOK,
     target: "initiative",
     targetKey: featDescriptionTargetKeys.initiativeRallyingCry,
@@ -294,6 +322,12 @@ const featDescriptionContributionDefinitions: FeatDescriptionContributionDefinit
     target: "weaponAction",
     targetKey: featDescriptionTargetKeys.weaponDueling,
     predicate: isDuelingWeaponActionDescriptionEntry
+  },
+  {
+    feat: FEATS.BOON_OF_BLOODSHED,
+    target: "weaponAction",
+    targetKey: featDescriptionTargetKeys.weaponBoonOfBloodshed,
+    predicate: isBoonOfBloodshedDescriptionEntry
   },
   {
     feat: FEATS.BOON_OF_COMBAT_PROWESS,

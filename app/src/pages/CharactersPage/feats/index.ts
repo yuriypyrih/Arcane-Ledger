@@ -38,6 +38,12 @@ export function getFeatTrackingState(feat: FEATS): TRACKER {
   return getFeatDefinition(feat)?.trackingState ?? TRACKER.NOT_TRACKED;
 }
 
+export function getFeatTrackingMessage(feat: FEATS): string | undefined {
+  const trackingMessage = getFeatDefinition(feat)?.trackingMessage?.trim();
+
+  return trackingMessage ? trackingMessage : undefined;
+}
+
 export function getFeatSource(definition: FeatDefinition) {
   return definition.source ?? DEFAULT_FEAT_SOURCE;
 }

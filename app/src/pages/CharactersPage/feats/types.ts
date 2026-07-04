@@ -7,11 +7,11 @@ import type {
   SkillName,
   WEAPON_PROFICIENCY
 } from "../../../types";
-import type { FEAT_CATEGORY, FEATS } from "../../../codex/entries";
+import type { FEAT_CATEGORY, FEATS, TRACKER } from "../../../codex/entries";
 import type { TOOL_PROFICIENCY } from "../../../types";
 import type { FeatSource } from "./source";
 
-export type FeatDefinition = FeatureMapEntry & {
+export type FeatDefinition = Omit<FeatureMapEntry, "trackingState" | "trackingMessage"> & {
   feat: FEATS;
   label: string;
   category: FEAT_CATEGORY;
@@ -20,6 +20,8 @@ export type FeatDefinition = FeatureMapEntry & {
   prerequisite?: string;
   requirements?: FeatRequirement[];
   repeatable?: boolean;
+  trackingState?: TRACKER;
+  trackingMessage?: string;
 };
 
 export type FeatProficiencyRequirement =

@@ -32,6 +32,10 @@ type EpicBoonWeaponActionContext = {
   attackKind: "weapon" | "unarmed";
 };
 
+type BoonOfBloodshedActionContext = {
+  attackKind: "weapon" | "unarmed";
+};
+
 type ThrownWeaponFightingWeaponActionContext = {
   attackKind: "weapon" | "unarmed";
   properties?: WEAPON_PROPERTY[];
@@ -109,6 +113,10 @@ function isDuelingWeaponAction(action: DuelingWeaponActionContext): boolean {
 
 function isEpicBoonWeaponAction(action: EpicBoonWeaponActionContext): boolean {
   return action.attackKind === "weapon";
+}
+
+function isBoonOfBloodshedAction(action: BoonOfBloodshedActionContext): boolean {
+  return action.attackKind === "weapon" || action.attackKind === "unarmed";
 }
 
 function isThrownWeaponFightingWeaponAction(
@@ -306,6 +314,19 @@ export function getDuelingWeaponActionDescriptionAdditionsForCharacter(
         character,
         "weaponAction",
         featDescriptionTargetKeys.weaponDueling
+      )
+    : [];
+}
+
+export function getBoonOfBloodshedWeaponActionDescriptionAdditionsForCharacter(
+  character: FeatRuntimeCharacter,
+  action: BoonOfBloodshedActionContext
+): SpellDescriptionEntry[][] {
+  return isBoonOfBloodshedAction(action)
+    ? getFeatDescriptionAdditionsForTarget(
+        character,
+        "weaponAction",
+        featDescriptionTargetKeys.weaponBoonOfBloodshed
       )
     : [];
 }
@@ -580,6 +601,36 @@ export function getWeaponMasterLongRestDescriptionAdditionsForCharacter(
     section.some((entry) =>
       typeof entry === "string" ? entry.includes(getFeatLabel(FEATS.WEAPON_MASTER)) : false
     )
+  );
+}
+
+export function getBoonOfBountifulHealthTemporaryHitPointsDescriptionAdditionsForCharacter(
+  character: FeatRuntimeCharacter
+): SpellDescriptionEntry[][] {
+  return getFeatDescriptionAdditionsForTarget(
+    character,
+    "custom",
+    featDescriptionTargetKeys.temporaryHitPointsBoonOfBountifulHealth
+  );
+}
+
+export function getBoonOfBountifulHealthHitDiceDescriptionAdditionsForCharacter(
+  character: FeatRuntimeCharacter
+): SpellDescriptionEntry[][] {
+  return getFeatDescriptionAdditionsForTarget(
+    character,
+    "custom",
+    featDescriptionTargetKeys.hitDiceBoonOfBountifulHealth
+  );
+}
+
+export function getBoonOfBountifulHealthShortRestDescriptionAdditionsForCharacter(
+  character: FeatRuntimeCharacter
+): SpellDescriptionEntry[][] {
+  return getFeatDescriptionAdditionsForTarget(
+    character,
+    "rest",
+    featDescriptionTargetKeys.shortRestBoonOfBountifulHealth
   );
 }
 

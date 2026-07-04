@@ -20,6 +20,7 @@ import { getCharacterRuntime } from "../../../../pages/CharactersPage/characterR
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { getRollModeFromIndicators } from "../../../RollStatePill/rollState";
 import {
+  getBoonOfBountifulHealthHitDiceDescriptionAdditionsForCharacter,
   getPurpleDragonRookRallyingCryStateForCharacter,
   hasZhentarimRuffianForCharacter
 } from "../../../../pages/CharactersPage/feats/runtime";
@@ -88,6 +89,8 @@ export function useCoreStatReferenceDrawer(
   const hitDiceRemaining = coreStats.hitDiceSummary.remaining;
   const hitDiceTotal = coreStats.hitDiceSummary.total;
   const hitDieLabel = coreStats.hitDiceSummary.label;
+  const hitDiceAdditionalDescription =
+    getBoonOfBountifulHealthHitDiceDescriptionAdditionsForCharacter(character);
   const resolvedSelectedStatReference =
     selectedStatReference?.keyword === "Armor Class"
       ? {
@@ -226,6 +229,7 @@ export function useCoreStatReferenceDrawer(
           closeLabel="Close hit dice resource management"
           onClose={() => setIsHitDiceManagementOpen(false)}
           description="Manually spend or restore Hit Dice outside of a rest."
+          additionalDescription={hitDiceAdditionalDescription}
           titleAccessory={hitDieLabel}
           actions={[
             {

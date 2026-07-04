@@ -15,7 +15,7 @@ import {
 import { createSourcedDescriptionEntries } from "./actionModalDescriptions";
 import { createChargesCardUsage, createChargesHeaderTag } from "./classFeatures/cardUsage";
 import type { FeatureActionCard } from "./classFeatures/types";
-import { swapTemporaryHitPointsAssignment } from "./shared";
+import { swapSystemTemporaryHitPointsAssignmentForCharacter } from "./feats/runtime";
 
 type OrcRuntimeCharacter = Pick<Character, "species"> &
   Partial<Pick<Character, "level" | "speciesFeatureState">>;
@@ -190,9 +190,8 @@ export function applyOrcAdrenalineRushForCharacter(character: Character): Charac
 
   return {
     ...characterWithSpentCharge,
-    ...swapTemporaryHitPointsAssignment(
-      characterWithSpentCharge.temporaryHitPoints,
-      characterWithSpentCharge.temporaryHitPointsSource,
+    ...swapSystemTemporaryHitPointsAssignmentForCharacter(
+      characterWithSpentCharge,
       temporaryHitPoints,
       "Adrenaline Rush"
     )

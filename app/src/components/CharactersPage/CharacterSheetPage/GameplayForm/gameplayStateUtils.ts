@@ -5,7 +5,10 @@ import {
   clearRoundScopedFeatureStateForCharacter,
   removeFeatureStatusEntryForCharacter
 } from "../../../../pages/CharactersPage/classFeatures";
-import { getBoonOfFortitudeHealingBonusForCharacter } from "../../../../pages/CharactersPage/feats/runtime";
+import {
+  getBoonOfFortitudeHealingBonusForCharacter,
+  swapSystemTemporaryHitPointsAssignmentForCharacter
+} from "../../../../pages/CharactersPage/feats/runtime";
 import {
   advanceCharacterStatusEntries,
   normalizeCharacterStatusEntries
@@ -107,9 +110,8 @@ export function applyRolledTemporaryHitPointsToCharacter(
 
   return {
     ...character,
-    ...swapTemporaryHitPointsAssignment(
-      character.temporaryHitPoints,
-      character.temporaryHitPointsSource,
+    ...swapSystemTemporaryHitPointsAssignmentForCharacter(
+      character,
       grantedTemporaryHitPoints,
       source
     )

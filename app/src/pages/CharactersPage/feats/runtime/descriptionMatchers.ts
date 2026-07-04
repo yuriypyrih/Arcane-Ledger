@@ -86,6 +86,25 @@ export function isDuelingWeaponActionDescriptionEntry(entry: string): boolean {
   return entry.trim().length > 0;
 }
 
+export function isBoonOfBloodshedDescriptionEntry(entry: string): boolean {
+  return (
+    entry.startsWith("<strong>Killer's Fortune.</strong>") ||
+    entry.startsWith("<strong>Power from Pain.</strong>")
+  );
+}
+
+export function isBoonOfBountifulHealthAugmentedHealthDescriptionEntry(
+  entry: string
+): boolean {
+  return entry.startsWith("<strong>Augmented Health.</strong>");
+}
+
+export function isBoonOfBountifulHealthSuperiorRecuperationDescriptionEntry(
+  entry: string
+): boolean {
+  return entry.startsWith("<strong>Superior Recuperation.</strong>");
+}
+
 export function isBoonOfCombatProwessPeerlessAimDescriptionEntry(entry: string): boolean {
   return entry.startsWith("<strong>Peerless Aim.</strong>");
 }

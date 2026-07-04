@@ -361,6 +361,9 @@ export const frhofEpicBoonFeatDefinitions: FeatDefinition[] = [
     category: FEAT_CATEGORY.EPIC_BOON,
     page: 42,
     prerequisite: "Level 19+",
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "The Killer's Fortune and Power from Pain are displayed in the weapon action cards but you have to remember to use them yourself.",
     description: [
       "You gain the following benefits.",
       "<strong>Ability Score Increase.</strong> Increase one ability score of your choice by 1, to a maximum of 30.",
@@ -372,6 +375,7 @@ export const frhofEpicBoonFeatDefinitions: FeatDefinition[] = [
     feat: FEATS.BOON_OF_BOUNTIFUL_HEALTH,
     label: "Boon of Bountiful Health",
     category: FEAT_CATEGORY.EPIC_BOON,
+    trackingState: TRACKER.TRACKED,
     page: 42,
     prerequisite: "Level 19+",
     description: [
@@ -385,6 +389,9 @@ export const frhofEpicBoonFeatDefinitions: FeatDefinition[] = [
     feat: FEATS.BOON_OF_COMMUNICATION,
     label: "Boon of Communication",
     category: FEAT_CATEGORY.EPIC_BOON,
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "The Cunning Speaker, Gifted Interpeter, and Mental Communication are not tracked. You have to remember these traits.",
     page: 42,
     prerequisite: "Level 19+",
     description: [

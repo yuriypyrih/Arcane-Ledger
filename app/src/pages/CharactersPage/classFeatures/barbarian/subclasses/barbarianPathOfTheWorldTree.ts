@@ -12,7 +12,7 @@ import type { Character, CharacterRageFeatureState } from "../../../../../types"
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { normalizeRoundTracker, shouldTrackRoundScopedResources } from "../../../combat";
 import type { WeaponAction } from "../../../gameplay";
-import { swapTemporaryHitPointsAssignment } from "../../../shared";
+import { swapSystemTemporaryHitPointsAssignmentForCharacter } from "../../../feats/runtime";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import type { FeatureActionCard } from "../../types";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
@@ -214,9 +214,8 @@ export function getBarbarianPathOfTheWorldTreeRageTemporaryHitPointsAssignment(
     };
   }
 
-  return swapTemporaryHitPointsAssignment(
-    character.temporaryHitPoints,
-    character.temporaryHitPointsSource,
+  return swapSystemTemporaryHitPointsAssignmentForCharacter(
+    character,
     vitalityOfTheTreeTemporaryHitPoints,
     barbarianWorldTreeVitalitySurgeTemporaryHitPointsSource
   );

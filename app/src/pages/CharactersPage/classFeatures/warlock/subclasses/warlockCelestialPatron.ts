@@ -20,7 +20,7 @@ import {
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
 } from "../../../featureContributions";
-import { swapTemporaryHitPointsAssignment } from "../../../shared";
+import { swapSystemTemporaryHitPointsAssignmentForCharacter } from "../../../feats/runtime";
 import {
   createFeatureActionCardCost,
   createNamedResourceCardUsage,
@@ -540,9 +540,8 @@ export function applyWarlockCelestialPatronCelestialResilienceTemporaryHitPoints
 
   return {
     ...character,
-    ...swapTemporaryHitPointsAssignment(
-      character.temporaryHitPoints,
-      character.temporaryHitPointsSource,
+    ...swapSystemTemporaryHitPointsAssignmentForCharacter(
+      character,
       grantedTemporaryHitPoints,
       celestialResilienceName
     )

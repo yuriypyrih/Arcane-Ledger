@@ -40,8 +40,8 @@ import {
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
 } from "../../../featureContributions";
+import { swapSystemTemporaryHitPointsAssignmentForCharacter } from "../../../feats/runtime";
 import { skillGroupsByAbility } from "../../../skillDefinitions";
-import { swapTemporaryHitPointsAssignment } from "../../../shared/temporaryHitPoints";
 import {
   createCharacterStatusEntry,
   normalizeCharacterStatusEntries
@@ -1117,9 +1117,8 @@ export function activateArtificerArmorerDefensiveField(character: Character): Ch
 
   return {
     ...character,
-    ...swapTemporaryHitPointsAssignment(
-      character.temporaryHitPoints,
-      character.temporaryHitPointsSource,
+    ...swapSystemTemporaryHitPointsAssignmentForCharacter(
+      character,
       temporaryHitPoints,
       defensiveFieldName
     )

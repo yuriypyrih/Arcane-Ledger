@@ -22,7 +22,7 @@ import {
 } from "../../../featureContributions";
 import { getProficiencyBonus } from "../../../gameplay";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellSlots";
-import { swapTemporaryHitPointsAssignment } from "../../../shared";
+import { swapSystemTemporaryHitPointsAssignmentForCharacter } from "../../../feats/runtime";
 import { formatFormulaCell, formatSignedFormulaTerm } from "../../../shared/formulas";
 import {
   createChargesAndUsageHeaderTags,
@@ -285,9 +285,8 @@ export function applyWarlockFiendPatronDarkOnesBlessing(character: Character): C
 
   return {
     ...character,
-    ...swapTemporaryHitPointsAssignment(
-      character.temporaryHitPoints,
-      character.temporaryHitPointsSource,
+    ...swapSystemTemporaryHitPointsAssignmentForCharacter(
+      character,
       grantedTemporaryHitPoints,
       darkOnesBlessingName
     )

@@ -344,7 +344,7 @@ export const featRuntimeCapabilityMatrix = {
   },
   [FEATS.BOON_OF_BOUNTIFUL_HEALTH]: {
     feat: FEATS.BOON_OF_BOUNTIFUL_HEALTH,
-    capabilities: ["abilityBonus", "choice"]
+    capabilities: ["abilityBonus", "choice", "hitPoints", "restRecovery"]
   },
   [FEATS.BOON_OF_BRIGHT_SUN]: {
     feat: FEATS.BOON_OF_BRIGHT_SUN,

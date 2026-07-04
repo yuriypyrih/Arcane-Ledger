@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { ChessRook } from "lucide-react";
 import { useEffect, useState } from "react";
+import type { SpellDescriptionEntry } from "../../../../codex/entries";
 import styles from "./TemporaryHitPoints.module.css";
 import {
   normalizeTemporaryHitPoints,
@@ -13,6 +14,7 @@ type TemporaryHitPointsProps = {
   temporaryHitPointsSource?: string;
   modalTitle?: string;
   description?: string;
+  additionalDescription?: SpellDescriptionEntry[][];
   readOnly?: boolean;
   onSaveTemporaryHitPoints?: (value: number) => void;
 };
@@ -22,6 +24,7 @@ function TemporaryHitPoints({
   temporaryHitPointsSource,
   modalTitle = "Temporary Hit Points",
   description = "When taking damage the temporary hit points are consumed first. They do not stack and they vanish after resting at a camp.",
+  additionalDescription = [],
   readOnly = false,
   onSaveTemporaryHitPoints
 }: TemporaryHitPointsProps) {
@@ -109,6 +112,7 @@ function TemporaryHitPoints({
           title={modalTitle}
           closeLabel="Close temporary hit points modal"
           description={description}
+          additionalDescription={additionalDescription}
           sourceLabel={
             normalizedTemporaryHitPoints > 0 ? normalizedTemporaryHitPointsSource : undefined
           }
