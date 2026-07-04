@@ -461,7 +461,7 @@ function getSpeciesEntry(species: string): SpeciesEntry | null {
 }
 
 function getSpeciesDescriptionSection(entry: SpeciesEntry, heading: string): string[] {
-  const description = entry.description.filter(
+  const description = entry.rulesDescription.filter(
     (descriptionEntry): descriptionEntry is string => typeof descriptionEntry === "string"
   );
   const startIndex = description.findIndex((descriptionEntry) =>
@@ -687,9 +687,7 @@ export function formatBodySizeOptions(bodySizes: readonly BODY_SIZE[]): string {
 }
 
 function formatDamageTypeLabel(damageType: string): string {
-  return damageType
-    .toLowerCase()
-    .replace(/(^|\s|-)\S/g, (match) => match.toUpperCase());
+  return damageType.toLowerCase().replace(/(^|\s|-)\S/g, (match) => match.toUpperCase());
 }
 
 export function getSpeciesBodySizeOptions(species: string): BODY_SIZE[] {
@@ -725,10 +723,8 @@ export function normalizeCharacterSpeciesChoices(
   const rebornResistanceOptions = getRebornResistanceOptionsForSpecies(species);
   const rebornSkillProficiencyOptions = getRebornSkillProficiencyOptionsForSpecies(species);
   const shifterSkillProficiencyOptions = getShifterSkillProficiencyOptionsForSpecies(species);
-  const warforgedSkillProficiencyOptions =
-    getWarforgedSkillProficiencyOptionsForSpecies(species);
-  const warforgedToolProficiencyOptions =
-    getWarforgedToolProficiencyOptionsForSpecies(species);
+  const warforgedSkillProficiencyOptions = getWarforgedSkillProficiencyOptionsForSpecies(species);
+  const warforgedToolProficiencyOptions = getWarforgedToolProficiencyOptionsForSpecies(species);
   const tieflingLegacyOptions = getTieflingFiendishLegacyOptionsForSpecies(species);
   const tieflingSpellcastingAbilityOptions =
     getTieflingSpellcastingAbilityOptionsForSpecies(species);
@@ -773,9 +769,7 @@ export function normalizeCharacterSpeciesChoices(
   const draconicAncestry = normalizeDragonbornDraconicAncestry(record.draconicAncestry);
   const elvenLineage = normalizeElfLineage(record.elvenLineage);
   const elvenSkillProficiency = normalizeElfSkillProficiency(record.elvenSkillProficiency);
-  const elvenSpellcastingAbility = normalizeElfSpellcastingAbility(
-    record.elvenSpellcastingAbility
-  );
+  const elvenSpellcastingAbility = normalizeElfSpellcastingAbility(record.elvenSpellcastingAbility);
   const genasiLineage = normalizeGenasiLineage(record.genasiLineage);
   const genasiSpellcastingAbility = normalizeGenasiSpellcastingAbility(
     record.genasiSpellcastingAbility
@@ -800,15 +794,11 @@ export function normalizeCharacterSpeciesChoices(
   const khoravarSpellcastingAbility = normalizeKhoravarSpellcastingAbility(
     record.khoravarSpellcastingAbility
   );
-  const khoravarToolProficiency = normalizeKhoravarToolProficiency(
-    record.khoravarToolProficiency
-  );
+  const khoravarToolProficiency = normalizeKhoravarToolProficiency(record.khoravarToolProficiency);
   const lupinSkillProficiency = normalizeLupinSkillProficiency(record.lupinSkillProficiency);
   const rebornResistance = normalizeRebornResistance(record.rebornResistance);
   const rebornSkillProficiency = normalizeRebornSkillProficiency(record.rebornSkillProficiency);
-  const shifterSkillProficiency = normalizeShifterSkillProficiency(
-    record.shifterSkillProficiency
-  );
+  const shifterSkillProficiency = normalizeShifterSkillProficiency(record.shifterSkillProficiency);
   const warforgedSkillProficiency = normalizeWarforgedSkillProficiency(
     record.warforgedSkillProficiency
   );
@@ -938,17 +928,11 @@ export function normalizeCharacterSpeciesChoices(
     normalizedChoices.rebornResistance = rebornResistance;
   }
 
-  if (
-    rebornSkillProficiency &&
-    rebornSkillProficiencyOptions.includes(rebornSkillProficiency)
-  ) {
+  if (rebornSkillProficiency && rebornSkillProficiencyOptions.includes(rebornSkillProficiency)) {
     normalizedChoices.rebornSkillProficiency = rebornSkillProficiency;
   }
 
-  if (
-    shifterSkillProficiency &&
-    shifterSkillProficiencyOptions.includes(shifterSkillProficiency)
-  ) {
+  if (shifterSkillProficiency && shifterSkillProficiencyOptions.includes(shifterSkillProficiency)) {
     normalizedChoices.shifterSkillProficiency = shifterSkillProficiency;
   }
 
@@ -1192,8 +1176,7 @@ export function getSpeciesChoiceSummaryItemsForCharacter(
       species: character.species,
       speciesChoices: choices
     });
-    const lineageOption =
-      genasiLineageOptions.find((option) => option.key === lineage) ?? null;
+    const lineageOption = genasiLineageOptions.find((option) => option.key === lineage) ?? null;
 
     items.push({
       label: "Genasi Lineage",
@@ -1578,16 +1561,12 @@ export function normalizeSpeciesStatusEntriesForCharacter(
         : entry
     );
   } else {
-    statusEntries = statusEntries.filter(
-      (entry) => !isChangelingShapeShifterStatusEntry(entry)
-    );
+    statusEntries = statusEntries.filter((entry) => !isChangelingShapeShifterStatusEntry(entry));
   }
 
   if (isHexbloodSpecies(character.species)) {
     statusEntries = statusEntries.map((entry) =>
-      isHexbloodEerieTokenStatusEntry(entry)
-        ? normalizeHexbloodEerieTokenStatusEntry(entry)
-        : entry
+      isHexbloodEerieTokenStatusEntry(entry) ? normalizeHexbloodEerieTokenStatusEntry(entry) : entry
     );
   } else {
     statusEntries = statusEntries.filter((entry) => !isHexbloodEerieTokenStatusEntry(entry));
@@ -2093,7 +2072,9 @@ export function getSpeciesSpellcastingAbilityForCharacter(
   character: Pick<Character, "species"> & Partial<Pick<Character, "speciesChoices">>,
   spellId: string
 ): AbilityKey | null {
-  return collectSpeciesContributionState(character).spellcastingAbilityBySpellId.get(spellId) ?? null;
+  return (
+    collectSpeciesContributionState(character).spellcastingAbilityBySpellId.get(spellId) ?? null
+  );
 }
 
 export function getSpeciesSpellEntryForCharacter(

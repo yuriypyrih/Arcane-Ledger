@@ -49,7 +49,16 @@ export type BoonOfFateState = {
 };
 
 export type BoonOfRecoveryState = {
+  lastStandExpended?: boolean;
   recoverVitalityDiceExpended?: number;
+};
+
+export type BoonOfRevelryState = {
+  irresistibleDanceExpended?: boolean;
+};
+
+export type BoonOfTerrorState = {
+  fleeFoolsExpended?: boolean;
 };
 
 export type BoonOfSkillChoice = {
@@ -352,6 +361,8 @@ export type CharacterFeatEntry = {
   boonOfFate?: BoonOfFateState;
   boonOfIrresistibleOffense?: BoonOfIrresistibleOffenseChoice;
   boonOfRecovery?: BoonOfRecoveryState;
+  boonOfRevelry?: BoonOfRevelryState;
+  boonOfTerror?: BoonOfTerrorState;
   boonOfSkill?: BoonOfSkillChoice;
   epicBoonAbilityChoice?: EpicBoonAbilityChoice;
   skilled?: SkilledChoice;

@@ -9,6 +9,7 @@ import {
   isBoonOfBountifulHealthSuperiorRecuperationDescriptionEntry,
   isBoonOfCombatProwessPeerlessAimDescriptionEntry,
   isBoonOfDimensionalTravelBlinkStepsDescriptionEntry,
+  isBoonOfFortunesFavorSavingThrowRerollDescriptionEntry,
   isBoonOfIrresistibleOffenseDescriptionEntry,
   isBoonOfSpeedEscapeArtistDescriptionEntry,
   isChargerChargeAttackDescriptionEntry,
@@ -76,6 +77,7 @@ export const featDescriptionTargetKeys = {
   savingThrowCha: "savingThrow:CHA",
   savingThrowDex: "savingThrow:DEX",
   savingThrowConcentration: "savingThrow:CON:concentration",
+  savingThrowBoonOfFortunesFavor: "savingThrow:boon-of-fortunes-favor",
   shortRest: "shortRest",
   longRest: "longRest",
   temporaryHitPointsBoonOfBountifulHealth: "temporary-hit-points:boon-of-bountiful-health",
@@ -286,6 +288,13 @@ const featDescriptionContributionDefinitions: FeatDescriptionContributionDefinit
     targetKey: featDescriptionTargetKeys.savingThrowConcentration,
     sourceLabel: "War Caster: Concentration",
     predicate: isWarCasterConcentrationDescriptionEntry
+  },
+  {
+    feat: FEATS.BOON_OF_FORTUNES_FAVOR,
+    target: "stat",
+    targetKey: featDescriptionTargetKeys.savingThrowBoonOfFortunesFavor,
+    sourceLabel: "Boon of Fortune's Favor",
+    predicate: isBoonOfFortunesFavorSavingThrowRerollDescriptionEntry
   },
   {
     feat: FEATS.MEDIUM_ARMOR_MASTER,

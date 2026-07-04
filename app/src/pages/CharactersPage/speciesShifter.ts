@@ -114,7 +114,7 @@ function getShifterEntry(species = shifterName): SpeciesEntry | null {
 }
 
 function getShifterDescriptionSection(heading: string): SpellDescriptionEntry[] {
-  const description = getShifterEntry()?.description.filter(
+  const description = getShifterEntry()?.rulesDescription.filter(
     (descriptionEntry): descriptionEntry is string => typeof descriptionEntry === "string"
   );
 
@@ -212,8 +212,7 @@ function getShifterShiftingStatusOptionKey(
   }
 
   const option = shifterShiftingOptions.find(
-    (shiftingOption) =>
-      entry.sourceId === getShifterShiftingStatusSourceId(shiftingOption.key)
+    (shiftingOption) => entry.sourceId === getShifterShiftingStatusSourceId(shiftingOption.key)
   );
 
   return option?.key ?? null;
@@ -405,7 +404,9 @@ export function getShifterSkillProficiencyForCharacter(
     return null;
   }
 
-  return normalizeShifterSkillProficiency(character.speciesChoices?.shifterSkillProficiency) ?? null;
+  return (
+    normalizeShifterSkillProficiency(character.speciesChoices?.shifterSkillProficiency) ?? null
+  );
 }
 
 export function getShifterShiftingUsesTotal(
@@ -612,8 +613,7 @@ export function getShifterDerivedStatusEntriesForCharacter(
       value: SENSE.DARKVISION,
       sourceId: shifterDarkvisionSourceId,
       rangeFeet: 60,
-      description:
-        darkvisionDescription || "You have Darkvision with a range of 60 feet."
+      description: darkvisionDescription || "You have Darkvision with a range of 60 feet."
     })
   ];
 }
@@ -635,8 +635,7 @@ export function getShifterArmorClassBonusesForCharacter(
 export function getShifterSpeedBonusesForCharacter(
   character: Pick<Character, "species"> & Partial<Pick<Character, "statusEntries">>
 ): FeatureSpeedBonus[] {
-  return isShifterSpecies(character.species) &&
-    hasActiveShifterShifting(character, "swiftstride")
+  return isShifterSpecies(character.species) && hasActiveShifterShifting(character, "swiftstride")
     ? [
         {
           label: "Swiftstride",
@@ -691,8 +690,7 @@ export function getShifterSkillIndicatorsForCharacter(
     return {};
   }
 
-  const wisdomSkills =
-    skillGroupsByAbility.find((group) => group.ability === "WIS")?.skills ?? [];
+  const wisdomSkills = skillGroupsByAbility.find((group) => group.ability === "WIS")?.skills ?? [];
 
   return wisdomSkills.reduce<SkillIndicatorMap>((indicators, skill) => {
     indicators[skill] = [wildhuntAdvantageIndicator];

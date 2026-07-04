@@ -2,6 +2,10 @@
   grid-column: 1 / -1;
 }
 
+.emptyStateText {
+  color: var(--theme-text-muted);
+}
+
 .spellThiefFieldGroup {
   display: grid;
   gap: 0.8rem;

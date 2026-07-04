@@ -63,7 +63,7 @@ function getDragonbornEntry(): SpeciesEntry | null {
 }
 
 function getDragonbornDescriptionSection(heading: string): SpellDescriptionEntry[] {
-  const description = getDragonbornEntry()?.description.filter(
+  const description = getDragonbornEntry()?.rulesDescription.filter(
     (descriptionEntry): descriptionEntry is string => typeof descriptionEntry === "string"
   );
 

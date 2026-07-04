@@ -125,6 +125,12 @@ export function isBoonOfEnergyResistanceEnergyRedirectionDescriptionEntry(
   return entry.startsWith("<strong>Energy Redirection.</strong>");
 }
 
+export function isBoonOfFortunesFavorSavingThrowRerollDescriptionEntry(
+  entry: string
+): boolean {
+  return entry.startsWith("<strong>Saving Throw Reroll.</strong>");
+}
+
 export function isBoonOfFateImproveFateDescriptionEntry(entry: string): boolean {
   return entry.startsWith("<strong>Improve Fate.</strong>");
 }
@@ -145,6 +151,30 @@ export function isBoonOfNightSpiritDescriptionEntry(entry: string): boolean {
 
 export function isBoonOfRecoveryRecoverVitalityDescriptionEntry(entry: string): boolean {
   return entry.startsWith("<strong>Recover Vitality.</strong>");
+}
+
+export function isBoonOfRecoveryLastStandDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Last Stand.</strong>");
+}
+
+export function isBoonOfRevelryIrresistibleDanceDescriptionEntry(entry: string): boolean {
+  return (
+    entry.startsWith("<strong>Inspire Dance.</strong>") ||
+    entry.startsWith("When you cast the spell, it requires no spell components") ||
+    entry.startsWith("<strong>Sing Out.</strong>")
+  );
+}
+
+export function isBoonOfTerrorFearlessDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Fearless.</strong>");
+}
+
+export function isBoonOfTerrorFleeFoolsDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Flee, Fools!</strong>");
+}
+
+export function isBoonOfPoisonMasteryAntitoxicDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Antitoxic.</strong>");
 }
 
 export function isBoonOfSpeedEscapeArtistDescriptionEntry(entry: string): boolean {

@@ -406,6 +406,7 @@ export const frhofEpicBoonFeatDefinitions: FeatDefinition[] = [
     feat: FEATS.BOON_OF_DESPERATE_RESILIENCE,
     label: "Boon of Desperate Resilience",
     category: FEAT_CATEGORY.EPIC_BOON,
+    trackingState: TRACKER.TRACKED,
     page: 42,
     prerequisite: "Level 19+",
     description: [
@@ -418,6 +419,9 @@ export const frhofEpicBoonFeatDefinitions: FeatDefinition[] = [
     feat: FEATS.BOON_OF_EXQUISITE_RADIANCE,
     label: "Boon of Exquisite Radiance",
     category: FEAT_CATEGORY.EPIC_BOON,
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "The Eternal Rest and Powerful Radiance are not being tracked. You have to remember them during play.",
     page: 42,
     prerequisite: "Level 19+",
     description: [
@@ -459,6 +463,7 @@ export const frhofEpicBoonFeatDefinitions: FeatDefinition[] = [
     feat: FEATS.BOON_OF_FORTUNES_FAVOR,
     label: "Boon of Fortune's Favor",
     category: FEAT_CATEGORY.EPIC_BOON,
+    trackingState: TRACKER.TRACKED,
     page: 43,
     prerequisite: "Level 19+",
     description: [
@@ -485,6 +490,8 @@ export const frhofEpicBoonFeatDefinitions: FeatDefinition[] = [
     feat: FEATS.BOON_OF_POISON_MASTERY,
     label: "Boon of Poison Mastery",
     category: FEAT_CATEGORY.EPIC_BOON,
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage: "Perfect Poisoner is not tracked. You have to remember it during play.",
     page: 43,
     prerequisite: "Level 19+",
     description: [
@@ -498,6 +505,7 @@ export const frhofEpicBoonFeatDefinitions: FeatDefinition[] = [
     feat: FEATS.BOON_OF_REVELRY,
     label: "Boon of Revelry",
     category: FEAT_CATEGORY.EPIC_BOON,
+    trackingState: TRACKER.TRACKED,
     page: 43,
     prerequisite: "Level 19+",
     description: [
@@ -525,6 +533,7 @@ export const frhofEpicBoonFeatDefinitions: FeatDefinition[] = [
     feat: FEATS.BOON_OF_TERROR,
     label: "Boon of Terror",
     category: FEAT_CATEGORY.EPIC_BOON,
+    trackingState: TRACKER.TRACKED,
     page: 43,
     prerequisite: "Level 19+",
     description: [

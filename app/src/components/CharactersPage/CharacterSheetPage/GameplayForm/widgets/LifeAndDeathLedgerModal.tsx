@@ -10,6 +10,7 @@ import {
   isArtificerSoulOfArtificeCheatDeathAvailable
 } from "../../../../../pages/CharactersPage/classFeatures/artificer/artificer";
 import {
+  applyLifeAndDeathBoonOfRecoveryLastStandForCharacter,
   applyLifeAndDeathGiftOfTheProtectorsForCharacter,
   applyLifeAndDeathRelentlessRageForCharacter,
   applyLifeAndDeathSafeHavenForCharacter,
@@ -19,6 +20,7 @@ import {
   getLifeAndDeathLedgerHeaderItems,
   hasLifeAndDeathGiftOfTheProtectorsFeature,
   hasLifeAndDeathSearingVengeanceFeature,
+  isLifeAndDeathBoonOfRecoveryLastStandAvailable,
   isLifeAndDeathGiftOfTheProtectorsAvailable,
   isLifeAndDeathRelentlessRageAvailable,
   isLifeAndDeathSafeHavenAvailable,
@@ -103,6 +105,8 @@ function LifeAndDeathLedgerModal({
   const searingVengeanceAvailable = isLifeAndDeathSearingVengeanceAvailable(character);
   const hasGiftOfTheProtectors = hasLifeAndDeathGiftOfTheProtectorsFeature(character);
   const giftOfTheProtectorsAvailable = isLifeAndDeathGiftOfTheProtectorsAvailable(character);
+  const boonOfRecoveryLastStandAvailable =
+    isLifeAndDeathBoonOfRecoveryLastStandAvailable(character);
   const safeHavenRelevant = isLifeAndDeathSafeHavenRelevant(character);
   const safeHavenAvailable = isLifeAndDeathSafeHavenAvailable(character);
   const descriptionSections = useMemo(
@@ -183,6 +187,15 @@ function LifeAndDeathLedgerModal({
     onClose();
   }
 
+  function useBoonOfRecoveryLastStand() {
+    onPersistCharacter(
+      (currentCharacter) =>
+        applyLifeAndDeathBoonOfRecoveryLastStandForCharacter(currentCharacter),
+      classResourcePersistOptions
+    );
+    onClose();
+  }
+
   function useSafeHaven() {
     onPersistCharacter(
       (currentCharacter) => applyLifeAndDeathSafeHavenForCharacter(currentCharacter),
@@ -227,6 +240,15 @@ function LifeAndDeathLedgerModal({
             label: "Use Gift of the Protectors",
             onClick: useGiftOfTheProtectors,
             disabled: !giftOfTheProtectorsAvailable
+          }
+        ]
+      : []),
+    ...(boonOfRecoveryLastStandAvailable
+      ? [
+          {
+            key: "boon-of-recovery-last-stand",
+            label: "Use Last Stand",
+            onClick: useBoonOfRecoveryLastStand
           }
         ]
       : []),

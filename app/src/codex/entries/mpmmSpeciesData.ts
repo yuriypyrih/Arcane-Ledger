@@ -17,7 +17,7 @@ export const mpmmSpeciesEntries: SpeciesEntry[] = [
       recommendedGenasiSpellcastingAbility: "CHA"
     },
     summary: "",
-    description: [
+    rulesDescription: [
       "<strong>Creature Type.</strong> Humanoid.",
       "<strong>Size.</strong> Medium (about 4-7 feet tall) or Small (about 2-4 feet tall), chosen when you select this species.",
       "<strong>Speed.</strong> 30 feet.",

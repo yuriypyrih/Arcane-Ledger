@@ -166,7 +166,7 @@ function getGenasiEntry(species = "Genasi"): SpeciesEntry | null {
 }
 
 function getGenasiDescriptionSection(heading: string): SpellDescriptionEntry[] {
-  const description = getGenasiEntry()?.description.filter(
+  const description = getGenasiEntry()?.rulesDescription.filter(
     (descriptionEntry): descriptionEntry is string => typeof descriptionEntry === "string"
   );
 
@@ -298,9 +298,7 @@ function isGenasiSpellWithoutMaterialComponent(
   return (
     lineageOption?.spellsByLevel.some(
       (spell) =>
-        spell.spellId === spellId &&
-        spell.withoutMaterialComponent === true &&
-        level >= spell.level
+        spell.spellId === spellId && spell.withoutMaterialComponent === true && level >= spell.level
     ) ?? false
   );
 }
@@ -337,9 +335,7 @@ export function normalizeGenasiFeatureState(value: unknown): CharacterGenasiFeat
 
   return {
     freeCastExpendedSpellIds: clampExpendedSpellIds(record.freeCastExpendedSpellIds),
-    bladeWardBonusActionUsesExpended: clampExpendedUses(
-      record.bladeWardBonusActionUsesExpended
-    )
+    bladeWardBonusActionUsesExpended: clampExpendedUses(record.bladeWardBonusActionUsesExpended)
   };
 }
 
@@ -524,9 +520,7 @@ export function restoreGenasiLineageFreeCastsOnLongRest(character: Character): C
   });
 }
 
-export function getGenasiBladeWardBonusActionUsesTotal(
-  character: GenasiRuntimeCharacter
-): number {
+export function getGenasiBladeWardBonusActionUsesTotal(character: GenasiRuntimeCharacter): number {
   return isEarthGenasi(character) ? getSpeciesProficiencyBonus(character.level ?? 1) : 0;
 }
 
@@ -545,9 +539,7 @@ export function getGenasiBladeWardBonusActionUsesRemaining(
   );
 }
 
-export function consumeGenasiBladeWardBonusActionUseForCharacter(
-  character: Character
-): Character {
+export function consumeGenasiBladeWardBonusActionUseForCharacter(character: Character): Character {
   if (getGenasiBladeWardBonusActionUsesRemaining(character) <= 0) {
     return character;
   }

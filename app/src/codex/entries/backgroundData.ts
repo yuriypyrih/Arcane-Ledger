@@ -15,9 +15,13 @@ import {
 } from "./enums";
 import { efaBackgroundEntries } from "./efaBackgroundData";
 import { frhofBackgroundEntries } from "./frhofBackgroundData";
+import {
+  addBackgroundDescription,
+  type BackgroundEntryWithoutDescription
+} from "./backgroundDescriptions";
 import type { BackgroundEntry } from "./types";
 
-export const backgroundEntries: BackgroundEntry[] = [
+const coreBackgroundEntries: BackgroundEntryWithoutDescription[] = [
   {
     id: "background-acolyte-2024",
     name: "Acolyte",
@@ -512,7 +516,11 @@ export const backgroundEntries: BackgroundEntry[] = [
       ]
     },
     summary: ""
-  },
+  }
+];
+
+export const backgroundEntries: BackgroundEntry[] = [
+  ...coreBackgroundEntries.map(addBackgroundDescription),
   ...frhofBackgroundEntries,
   ...efaBackgroundEntries
 ];

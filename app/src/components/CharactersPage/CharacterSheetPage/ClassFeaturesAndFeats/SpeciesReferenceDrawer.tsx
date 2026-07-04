@@ -75,8 +75,11 @@ function SpeciesReferenceDrawer({
       </OverlayHeader>
 
       <OverlayBody className={styles.keywordDrawerBody}>
+        {speciesEntry.description ? (
+          <p className={featureDisclosureStyles.descriptionLine}>{speciesEntry.description}</p>
+        ) : null}
         <DescriptionContent
-          description={speciesEntry.description}
+          description={speciesEntry.rulesDescription}
           className={featureDisclosureStyles.descriptionList}
           entryClassName={featureDisclosureStyles.descriptionLine}
           linkClassName={featureDisclosureStyles.inlineLinkButton}

@@ -13,10 +13,14 @@ import {
   FEATS,
   SPELL_LIST_CLASS
 } from "./enums";
+import {
+  addBackgroundDescription,
+  type BackgroundEntryWithoutDescription
+} from "./backgroundDescriptions";
 import type { BackgroundEntry } from "./types";
 
 type FrhofBackgroundSeed = Omit<
-  BackgroundEntry,
+  BackgroundEntryWithoutDescription,
   "category" | "source" | "summary" | "starterPack"
 > & {
   starterPack: Omit<BackgroundEntry["starterPack"], "recommendedStartingEquipmentIndex"> & {
@@ -29,7 +33,7 @@ const goldAlternative = starterPackChoice(starterPackCurrency(50, CURRENCY_TYPE.
 function createFrhofBackgroundEntry(seed: FrhofBackgroundSeed): BackgroundEntry {
   const { starterPack, ...entry } = seed;
 
-  return {
+  return addBackgroundDescription({
     ...entry,
     category: ENTRY_CATEGORIES.BACKGROUNDS,
     source: "FRHoF",
@@ -38,7 +42,7 @@ function createFrhofBackgroundEntry(seed: FrhofBackgroundSeed): BackgroundEntry 
       ...starterPack
     },
     summary: ""
-  };
+  });
 }
 
 export const frhofBackgroundEntries: BackgroundEntry[] = [

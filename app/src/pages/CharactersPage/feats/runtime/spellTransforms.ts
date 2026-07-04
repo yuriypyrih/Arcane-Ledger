@@ -4,6 +4,7 @@ import { formatCodexLabel } from "../../../../utils/codex";
 import { appendSourcedDescriptionAddition } from "../../actionModalDescriptions";
 import { getFeatLabel } from "..";
 import {
+  boonOfRevelryIrresistibleDanceSpellId,
   emeraldEnclaveFledglingSpeakWithAnimalsSpellId,
   elementalAdeptEnergyMasteryDescription,
   feyTouchedFeyMagicDescription,
@@ -18,6 +19,7 @@ import {
 import {
   isBoonOfDimensionalTravelBlinkStepsDescriptionEntry,
   isBoonOfIrresistibleOffenseDescriptionEntry,
+  isBoonOfRevelryIrresistibleDanceDescriptionEntry,
   isBoonOfSpellRecallFreeCastingDescriptionEntry,
   isEmeraldEnclaveFledglingSpeakWithAnimalsDescriptionEntry,
   isPiercerWeaponActionDescriptionEntry,
@@ -104,6 +106,24 @@ export function transformFeatSpellEntryForEntries(
         ? appendSourcedDescriptionAddition(
             currentSpell,
             getFeatLabel(FEATS.BOON_OF_SPELL_RECALL),
+            description
+          )
+        : currentSpell;
+    }
+
+    if (
+      entry.feat === FEATS.BOON_OF_REVELRY &&
+      currentSpell.id === boonOfRevelryIrresistibleDanceSpellId
+    ) {
+      const description = getFeatDescriptionSlice(
+        FEATS.BOON_OF_REVELRY,
+        isBoonOfRevelryIrresistibleDanceDescriptionEntry
+      );
+
+      return description.length > 0
+        ? appendSourcedDescriptionAddition(
+            currentSpell,
+            getFeatLabel(FEATS.BOON_OF_REVELRY),
             description
           )
         : currentSpell;

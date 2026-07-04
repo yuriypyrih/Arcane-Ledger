@@ -1,5 +1,5 @@
 import { FEATS, type ReactionEntry, type SpellDescriptionEntry, type SpellEntry } from "../../../../codex/entries";
-import type { Character, ItemRecord } from "../../../../types";
+import type { Character, CharacterFeatEntry, ItemRecord } from "../../../../types";
 import { getAbilityModifierForCharacter } from "../../abilities";
 import type { FeatureActionCard } from "../../classFeatures/types";
 import {
@@ -9,6 +9,7 @@ import {
 } from "../../featureContributions";
 import { getHitDiceRemainingForCharacter, getHitDieFormulaForClass } from "../../hitDice";
 import {
+  boonOfRevelryIrresistibleDanceSpellId,
   feyTouchedMistyStepSpellId,
   shadowTouchedInvisibilitySpellId,
   spellfireSparkSacredFlameSpellId,
@@ -530,6 +531,31 @@ export function getBoonOfRecoveryRecoverVitalityStateForCharacter(
   };
 }
 
+export function getBoonOfRecoveryLastStandStateForCharacter(
+  character: FeatRuntimeCharacter
+): {
+  available: boolean;
+  expended: boolean;
+  usesRemaining: number;
+  usesTotal: number;
+} | null {
+  const derivedState = collectFeatDerivedState(character);
+
+  if (
+    !derivedState.hasBoonOfRecovery ||
+    derivedState.boonOfRecoveryLastStandTotal <= 0
+  ) {
+    return null;
+  }
+
+  return {
+    available: derivedState.boonOfRecoveryLastStandRemaining > 0,
+    expended: derivedState.boonOfRecoveryLastStandRemaining <= 0,
+    usesRemaining: derivedState.boonOfRecoveryLastStandRemaining,
+    usesTotal: derivedState.boonOfRecoveryLastStandTotal
+  };
+}
+
 export function getBoonOfRecoveryRecoverVitalityFormula(diceCount: number): string {
   const normalizedDiceCount = Math.max(1, Math.min(10, Math.floor(Number(diceCount) || 1)));
 
@@ -585,9 +611,56 @@ export function spendBoonOfRecoveryDiceForCharacter(
     : character;
 }
 
-export function restoreBoonOfRecoveryDiceForCharacter(character: Character): Character {
+export function spendBoonOfRecoveryLastStandForCharacter(character: Character): Character {
   const derivedState = collectFeatDerivedState(character);
-  let didRestoreRecoverVitalityDice = false;
+  let didSpendLastStand = false;
+
+  if (
+    !derivedState.hasBoonOfRecovery ||
+    derivedState.boonOfRecoveryLastStandRemaining <= 0
+  ) {
+    return character;
+  }
+
+  const feats = derivedState.normalizedFeats.map((entry) => {
+    if (
+      didSpendLastStand ||
+      entry.feat !== FEATS.BOON_OF_RECOVERY ||
+      entry.boonOfRecovery?.lastStandExpended === true
+    ) {
+      return entry;
+    }
+
+    didSpendLastStand = true;
+
+    return {
+      ...entry,
+      boonOfRecovery: {
+        ...(entry.boonOfRecovery ?? {}),
+        lastStandExpended: true
+      }
+    };
+  });
+
+  return didSpendLastStand
+    ? {
+        ...character,
+        feats
+      }
+    : character;
+}
+
+function hasBoonOfRecoveryResourceStateValues(
+  state: CharacterFeatEntry["boonOfRecovery"]
+): boolean {
+  return Boolean(
+    state?.lastStandExpended === true || (state?.recoverVitalityDiceExpended ?? 0) > 0
+  );
+}
+
+export function restoreBoonOfRecoveryForCharacter(character: Character): Character {
+  const derivedState = collectFeatDerivedState(character);
+  let didRestoreBoonOfRecovery = false;
 
   if (!derivedState.hasBoonOfRecovery) {
     return character;
@@ -596,20 +669,227 @@ export function restoreBoonOfRecoveryDiceForCharacter(character: Character): Cha
   const feats = derivedState.normalizedFeats.map((entry) => {
     if (
       entry.feat !== FEATS.BOON_OF_RECOVERY ||
-      (entry.boonOfRecovery?.recoverVitalityDiceExpended ?? 0) <= 0
+      !hasBoonOfRecoveryResourceStateValues(entry.boonOfRecovery)
     ) {
       return entry;
     }
 
-    didRestoreRecoverVitalityDice = true;
+    didRestoreBoonOfRecovery = true;
+    const boonOfRecovery = {
+      ...entry.boonOfRecovery,
+      lastStandExpended: undefined,
+      recoverVitalityDiceExpended: undefined
+    };
 
     return {
       ...entry,
-      boonOfRecovery: undefined
+      boonOfRecovery: hasBoonOfRecoveryResourceStateValues(boonOfRecovery)
+        ? boonOfRecovery
+        : undefined
     };
   });
 
-  return didRestoreRecoverVitalityDice
+  return didRestoreBoonOfRecovery
+    ? {
+        ...character,
+        feats
+      }
+    : character;
+}
+
+export function restoreBoonOfRecoveryDiceForCharacter(character: Character): Character {
+  return restoreBoonOfRecoveryForCharacter(character);
+}
+
+export function getBoonOfTerrorFleeFoolsStateForCharacter(
+  character: FeatRuntimeCharacter
+): {
+  available: boolean;
+  expended: boolean;
+  usesRemaining: number;
+  usesTotal: number;
+} | null {
+  const derivedState = collectFeatDerivedState(character);
+
+  if (!derivedState.hasBoonOfTerror || derivedState.boonOfTerrorFleeFoolsTotal <= 0) {
+    return null;
+  }
+
+  return {
+    available: derivedState.boonOfTerrorFleeFoolsRemaining > 0,
+    expended: derivedState.boonOfTerrorFleeFoolsRemaining <= 0,
+    usesRemaining: derivedState.boonOfTerrorFleeFoolsRemaining,
+    usesTotal: derivedState.boonOfTerrorFleeFoolsTotal
+  };
+}
+
+export function spendBoonOfTerrorFleeFoolsForCharacter(character: Character): Character {
+  const derivedState = collectFeatDerivedState(character);
+  let didSpendFleeFools = false;
+
+  if (!derivedState.hasBoonOfTerror || derivedState.boonOfTerrorFleeFoolsRemaining <= 0) {
+    return character;
+  }
+
+  const feats = derivedState.normalizedFeats.map((entry) => {
+    if (
+      didSpendFleeFools ||
+      entry.feat !== FEATS.BOON_OF_TERROR ||
+      entry.boonOfTerror?.fleeFoolsExpended === true
+    ) {
+      return entry;
+    }
+
+    didSpendFleeFools = true;
+
+    return {
+      ...entry,
+      boonOfTerror: {
+        ...(entry.boonOfTerror ?? {}),
+        fleeFoolsExpended: true
+      }
+    };
+  });
+
+  return didSpendFleeFools
+    ? {
+        ...character,
+        feats
+      }
+    : character;
+}
+
+export function restoreBoonOfTerrorFleeFoolsForCharacter(character: Character): Character {
+  const derivedState = collectFeatDerivedState(character);
+  let didRestoreFleeFools = false;
+
+  if (!derivedState.hasBoonOfTerror) {
+    return character;
+  }
+
+  const feats = derivedState.normalizedFeats.map((entry) => {
+    if (
+      entry.feat !== FEATS.BOON_OF_TERROR ||
+      entry.boonOfTerror?.fleeFoolsExpended !== true
+    ) {
+      return entry;
+    }
+
+    didRestoreFleeFools = true;
+
+    return {
+      ...entry,
+      boonOfTerror: undefined
+    };
+  });
+
+  return didRestoreFleeFools
+    ? {
+        ...character,
+        feats
+      }
+    : character;
+}
+
+export function getBoonOfRevelryIrresistibleDanceFreeCastStateForCharacter(
+  character: FeatRuntimeCharacter,
+  spellId: string
+): {
+  available: boolean;
+  expended: boolean;
+  usesRemaining: number;
+  usesTotal: number;
+} | null {
+  if (spellId !== boonOfRevelryIrresistibleDanceSpellId) {
+    return null;
+  }
+
+  const entries =
+    collectFeatDerivedState(character).boonOfRevelryIrresistibleDanceFreeCastEntries;
+
+  if (entries.length === 0) {
+    return null;
+  }
+
+  const usesRemaining = entries.filter((entry) => !entry.expended).length;
+
+  return {
+    available: usesRemaining > 0,
+    expended: usesRemaining <= 0,
+    usesRemaining,
+    usesTotal: entries.length
+  };
+}
+
+export function consumeBoonOfRevelryIrresistibleDanceFreeCastForCharacter(
+  character: Character,
+  spellId: string
+): Character {
+  const derivedState = collectFeatDerivedState(character);
+  let didSpendFreeCast = false;
+
+  if (
+    spellId !== boonOfRevelryIrresistibleDanceSpellId ||
+    derivedState.boonOfRevelryIrresistibleDanceFreeCastEntries.every((entry) => entry.expended)
+  ) {
+    return character;
+  }
+
+  const feats = derivedState.normalizedFeats.map((entry) => {
+    if (
+      didSpendFreeCast ||
+      entry.feat !== FEATS.BOON_OF_REVELRY ||
+      entry.boonOfRevelry?.irresistibleDanceExpended === true
+    ) {
+      return entry;
+    }
+
+    didSpendFreeCast = true;
+
+    return {
+      ...entry,
+      boonOfRevelry: {
+        ...(entry.boonOfRevelry ?? {}),
+        irresistibleDanceExpended: true
+      }
+    };
+  });
+
+  return didSpendFreeCast
+    ? {
+        ...character,
+        feats
+      }
+    : character;
+}
+
+export function restoreBoonOfRevelryIrresistibleDanceFreeCastForCharacter(
+  character: Character
+): Character {
+  const derivedState = collectFeatDerivedState(character);
+  let didRestoreFreeCast = false;
+
+  if (derivedState.boonOfRevelryIrresistibleDanceFreeCastEntries.length === 0) {
+    return character;
+  }
+
+  const feats = derivedState.normalizedFeats.map((entry) => {
+    if (
+      entry.feat !== FEATS.BOON_OF_REVELRY ||
+      entry.boonOfRevelry?.irresistibleDanceExpended !== true
+    ) {
+      return entry;
+    }
+
+    didRestoreFreeCast = true;
+
+    return {
+      ...entry,
+      boonOfRevelry: undefined
+    };
+  });
+
+  return didRestoreFreeCast
     ? {
         ...character,
         feats

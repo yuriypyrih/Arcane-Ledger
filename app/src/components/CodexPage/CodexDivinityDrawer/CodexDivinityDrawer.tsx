@@ -57,6 +57,7 @@ type CodexDivinityDrawerProps = {
   footer?: ReactNode;
   onClose: () => void;
   backdropClassName?: string;
+  stacked?: boolean;
 };
 
 function renderUsesIcon(icon?: FeatureActionIcon) {
@@ -195,7 +196,8 @@ function CodexDivinityDrawer({
   children,
   footer,
   onClose,
-  backdropClassName
+  backdropClassName,
+  stacked = false
 }: CodexDivinityDrawerProps) {
   const [selectedSpellReference, setSelectedSpellReference] = useState<SpellEntry | null>(null);
   const [selectedKeyword, setSelectedKeyword] = useState<ResolvedKeywordReference | null>(null);
@@ -228,6 +230,7 @@ function CodexDivinityDrawer({
         titleId="codex-divinity-drawer-title"
         onClose={onClose}
         backdropClassName={backdropClassName}
+        stacked={stacked}
         onEscape={() => {
           if (selectedFeatReference) {
             setSelectedFeatReference(null);
@@ -336,6 +339,7 @@ function CodexDivinityDrawer({
           <CodexSpellDrawer
             spell={selectedSpellReference}
             backdropClassName={backdropClassName}
+            stacked
             onClose={() => setSelectedSpellReference(null)}
           />
         ) : null}
@@ -351,6 +355,7 @@ function CodexDivinityDrawer({
             ]}
             badgeLabel="Keyword"
             backdropClassName={backdropClassName}
+            stacked
             onClose={() => setSelectedKeyword(null)}
           />
         ) : null}
@@ -359,6 +364,7 @@ function CodexDivinityDrawer({
             feat={selectedFeatReference.feat}
             label={selectedFeatReference.label}
             backdropClassName={backdropClassName}
+            stacked
             onClose={() => setSelectedFeatReference(null)}
           />
         ) : null}

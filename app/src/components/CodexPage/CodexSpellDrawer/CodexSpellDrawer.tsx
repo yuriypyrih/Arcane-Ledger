@@ -62,6 +62,7 @@ type CodexSpellDrawerProps = {
   spell: SpellEntry;
   onClose: () => void;
   backdropClassName?: string;
+  stacked?: boolean;
   customEffects?: CharacterCustomTraitEffect[];
   isCustomSpell?: boolean;
 };
@@ -76,6 +77,7 @@ function CodexSpellDrawer({
   spell,
   onClose,
   backdropClassName,
+  stacked = false,
   customEffects = [],
   isCustomSpell = false
 }: CodexSpellDrawerProps) {
@@ -110,6 +112,7 @@ function CodexSpellDrawer({
         titleId="codex-spell-drawer-title"
         onClose={onClose}
         backdropClassName={backdropClassName}
+        stacked={stacked}
         onEscape={() => {
           if (selectedFeatReference) {
             setSelectedFeatReference(null);
@@ -249,6 +252,7 @@ function CodexSpellDrawer({
             ]}
             badgeLabel="Keyword"
             backdropClassName={backdropClassName}
+            stacked
             onClose={() => setIsComponentsTooltipOpen(false)}
           />
         ) : null}
@@ -256,6 +260,7 @@ function CodexSpellDrawer({
           <CodexSpellDrawer
             spell={selectedSpellReference}
             backdropClassName={backdropClassName}
+            stacked
             onClose={() => setSelectedSpellReference(null)}
           />
         ) : null}
@@ -263,6 +268,7 @@ function CodexSpellDrawer({
           <CodexDivinityDrawer
             divinity={selectedDivinityReference}
             backdropClassName={backdropClassName}
+            stacked
             onClose={() => setSelectedDivinityReference(null)}
           />
         ) : null}
@@ -278,6 +284,7 @@ function CodexSpellDrawer({
             ]}
             badgeLabel="Keyword"
             backdropClassName={backdropClassName}
+            stacked
             onClose={() => setSelectedKeyword(null)}
           />
         ) : null}
@@ -286,6 +293,7 @@ function CodexSpellDrawer({
             feat={selectedFeatReference.feat}
             label={selectedFeatReference.label}
             backdropClassName={backdropClassName}
+            stacked
             onClose={() => setSelectedFeatReference(null)}
           />
         ) : null}

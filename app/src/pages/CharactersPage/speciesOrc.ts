@@ -30,7 +30,7 @@ function getOrcEntry(species = "Orc"): SpeciesEntry | null {
 }
 
 function getOrcDescriptionSection(heading: string): SpellDescriptionEntry[] {
-  const description = getOrcEntry()?.description.filter(
+  const description = getOrcEntry()?.rulesDescription.filter(
     (descriptionEntry): descriptionEntry is string => typeof descriptionEntry === "string"
   );
 

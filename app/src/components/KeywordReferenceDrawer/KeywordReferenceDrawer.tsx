@@ -37,6 +37,7 @@ type KeywordReferenceDrawerProps = {
   entries: KeywordReference[];
   onClose: () => void;
   backdropClassName?: string;
+  stacked?: boolean;
   badgeLabel?: string;
 };
 
@@ -55,6 +56,7 @@ function KeywordReferenceDrawer({
   entries,
   onClose,
   backdropClassName,
+  stacked = false,
   badgeLabel = "Reference"
 }: KeywordReferenceDrawerProps) {
   const [selectedSpellReference, setSelectedSpellReference] = useState<SpellEntry | null>(null);
@@ -120,6 +122,7 @@ function KeywordReferenceDrawer({
           onClose();
         }}
         backdropClassName={clsx(backdropClassName)}
+        stacked={stacked}
       >
         <OverlayHeader>
           <OverlayHeaderContent>
@@ -181,6 +184,7 @@ function KeywordReferenceDrawer({
           <CodexSpellDrawer
             spell={selectedSpellReference}
             backdropClassName={backdropClassName}
+            stacked
             onClose={() => setSelectedSpellReference(null)}
           />
         ) : null}
@@ -188,6 +192,7 @@ function KeywordReferenceDrawer({
           <CodexDivinityDrawer
             divinity={selectedDivinityReference}
             backdropClassName={backdropClassName}
+            stacked
             onClose={() => setSelectedDivinityReference(null)}
           />
         ) : null}
@@ -203,6 +208,7 @@ function KeywordReferenceDrawer({
             ]}
             badgeLabel="Keyword"
             backdropClassName={backdropClassName}
+            stacked
             onClose={() => setSelectedKeyword(null)}
           />
         ) : null}
@@ -211,6 +217,7 @@ function KeywordReferenceDrawer({
             feat={selectedFeatReference.feat}
             label={selectedFeatReference.label}
             backdropClassName={backdropClassName}
+            stacked
             onClose={() => setSelectedFeatReference(null)}
           />
         ) : null}

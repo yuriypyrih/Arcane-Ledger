@@ -23,6 +23,7 @@ export function castSelectedSpellWithContext(
     closeSelectedSpell,
     consumeBeguilingMagicOrBardicInspirationForCharacter,
     consumeBlessingOfMoonlightUseForCharacter,
+    consumeBoonOfRevelryIrresistibleDanceFreeCastForCharacter,
     consumeDruidNaturalRecoveryUseForCharacter,
     consumeDruidStarMapGuidingBoltUseForCharacter,
     consumeFeyTouchedFreeCastForCharacter,
@@ -85,6 +86,7 @@ export function castSelectedSpellWithContext(
     selectedSpellSlotLevel,
     selectedSpellSupportsBewitchingMagic,
     selectedSpellSupportsBoonOfSpellRecall,
+    selectedSpellSupportsBoonOfRevelry,
     selectedSpellSupportsDetectThoughts,
     selectedSpellSupportsEmeraldEnclaveFledgling,
     selectedSpellSupportsFeyMagic,
@@ -155,6 +157,8 @@ export function castSelectedSpellWithContext(
     options?.useDetectThoughts === true && selectedSpellSupportsDetectThoughts;
   const useBoonOfSpellRecall =
     options?.useBoonOfSpellRecall === true && selectedSpellSupportsBoonOfSpellRecall;
+  const useBoonOfRevelry =
+    options?.useBoonOfRevelry === true && selectedSpellSupportsBoonOfRevelry;
   const selectedSpellCastEffectIds = Array.isArray(options?.spellCastEffectIds)
     ? options.spellCastEffectIds
     : [];
@@ -534,6 +538,7 @@ export function castSelectedSpellWithContext(
     useQuickRitual ||
     useShadowMagic ||
     useDetectThoughts ||
+    useBoonOfRevelry ||
     useBoonOfSpellRecall ||
     useEmeraldEnclaveFledglingFreeUse ||
     useStepsOfTheFey ||
@@ -564,6 +569,7 @@ export function castSelectedSpellWithContext(
   const castsFreeViaQuickRitual = useQuickRitual;
   const castsFreeViaShadowMagic = useShadowMagic;
   const castsFreeViaDetectThoughts = useDetectThoughts;
+  const castsFreeViaBoonOfRevelry = useBoonOfRevelry;
   const castsFreeViaBoonOfSpellRecall = useBoonOfSpellRecall;
   const castsFreeViaEmeraldEnclaveFledgling = useEmeraldEnclaveFledglingFreeUse;
   const castsFreeViaPsionicSorcery = usePsionicSorcery && sorceryPointsRemaining >= slotLevel;
@@ -587,6 +593,7 @@ export function castSelectedSpellWithContext(
     castsFreeViaQuickRitual ||
     castsFreeViaShadowMagic ||
     castsFreeViaDetectThoughts ||
+    castsFreeViaBoonOfRevelry ||
     castsFreeViaBoonOfSpellRecall ||
     castsFreeViaEmeraldEnclaveFledgling ||
     castsFreeViaPsionicSorcery ||
@@ -801,11 +808,25 @@ export function castSelectedSpellWithContext(
       return currentCharacter;
     }
 
+    const nextCharacterWithBoonOfRevelry = castsFreeViaBoonOfRevelry
+      ? consumeBoonOfRevelryIrresistibleDanceFreeCastForCharacter(
+          nextCharacterWithDetectThoughts,
+          selectedSpell.id
+        )
+      : nextCharacterWithDetectThoughts;
+
+    if (
+      castsFreeViaBoonOfRevelry &&
+      nextCharacterWithBoonOfRevelry === nextCharacterWithDetectThoughts
+    ) {
+      return currentCharacter;
+    }
+
     const nextCharacterWithSpellcast = {
-      ...nextCharacterWithDetectThoughts,
+      ...nextCharacterWithBoonOfRevelry,
       spellSlotsExpended:
         castsWithoutSpellSlot && !shouldSpendFrozenHauntFallbackSlot
-          ? nextCharacterWithDetectThoughts.spellSlotsExpended
+          ? nextCharacterWithBoonOfRevelry.spellSlotsExpended
           : nextSpellSlotsExpended
     };
     const sourceSpellSlotLevel = shouldSpendFrozenHauntFallbackSlot

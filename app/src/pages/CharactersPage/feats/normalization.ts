@@ -57,6 +57,8 @@ import type {
   BoonOfFateState,
   BoonOfIrresistibleOffenseChoice,
   BoonOfRecoveryState,
+  BoonOfRevelryState,
+  BoonOfTerrorState,
   BoonOfSkillChoice,
   CharacterFeatSource,
   EpicBoonAbilityChoice,
@@ -333,6 +335,8 @@ export function normalizeCharacterFeats(
     const boonOfRecovery =
       feat === FEATS.BOON_OF_RECOVERY && record.boonOfRecovery
         ? {
+            lastStandExpended:
+              record.boonOfRecovery.lastStandExpended === true ? true : undefined,
             recoverVitalityDiceExpended: Math.max(
               0,
               Math.min(
@@ -340,6 +344,20 @@ export function normalizeCharacterFeats(
                 Math.floor(Number(record.boonOfRecovery.recoverVitalityDiceExpended) || 0)
               )
             )
+          }
+        : undefined;
+    const boonOfRevelry =
+      feat === FEATS.BOON_OF_REVELRY && record.boonOfRevelry
+        ? {
+            irresistibleDanceExpended:
+              record.boonOfRevelry.irresistibleDanceExpended === true ? true : undefined
+          }
+        : undefined;
+    const boonOfTerror =
+      feat === FEATS.BOON_OF_TERROR && record.boonOfTerror
+        ? {
+            fleeFoolsExpended:
+              record.boonOfTerror.fleeFoolsExpended === true ? true : undefined
           }
         : undefined;
     const boonOfSkill =
@@ -521,6 +539,8 @@ export function normalizeCharacterFeats(
         boonOfFate,
         boonOfIrresistibleOffense,
         boonOfRecovery,
+        boonOfRevelry,
+        boonOfTerror,
         boonOfSkill,
         epicBoonAbilityChoice,
         skilled,
@@ -587,6 +607,8 @@ export function createCharacterFeatEntry(
     boonOfFate?: BoonOfFateState;
     boonOfIrresistibleOffense?: BoonOfIrresistibleOffenseChoice;
     boonOfRecovery?: BoonOfRecoveryState;
+    boonOfRevelry?: BoonOfRevelryState;
+    boonOfTerror?: BoonOfTerrorState;
     boonOfSkill?: BoonOfSkillChoice;
     epicBoonAbilityChoice?: EpicBoonAbilityChoice;
     skilled?: SkilledChoice;
@@ -656,6 +678,8 @@ export function createCharacterFeatEntry(
     boonOfIrresistibleOffense:
       feat === FEATS.BOON_OF_IRRESISTIBLE_OFFENSE ? options?.boonOfIrresistibleOffense : undefined,
     boonOfRecovery: feat === FEATS.BOON_OF_RECOVERY ? options?.boonOfRecovery : undefined,
+    boonOfRevelry: feat === FEATS.BOON_OF_REVELRY ? options?.boonOfRevelry : undefined,
+    boonOfTerror: feat === FEATS.BOON_OF_TERROR ? options?.boonOfTerror : undefined,
     boonOfSkill: feat === FEATS.BOON_OF_SKILL ? options?.boonOfSkill : undefined,
     epicBoonAbilityChoice: epicBoonAbilityIncreaseFeatOptions.has(feat)
       ? options?.epicBoonAbilityChoice

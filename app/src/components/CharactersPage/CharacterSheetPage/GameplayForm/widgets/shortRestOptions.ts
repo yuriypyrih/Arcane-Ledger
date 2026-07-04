@@ -269,9 +269,11 @@ import { CLASS_FEATURE } from "../../../../../codex/entries";
 import {
   applyBoonOfBountifulHealthTemporaryHitPointsBonus,
   getBoonOfFateImproveFateStateForCharacter,
+  getBoonOfTerrorFleeFoolsStateForCharacter,
   getCultOfDragonInitiateInspiredByFearStateForCharacter,
   getMageSlayerGuardedMindStateForCharacter,
   restoreBoonOfFateImproveFateForCharacter,
+  restoreBoonOfTerrorFleeFoolsForCharacter,
   restoreCultOfDragonInitiateInspiredByFearForCharacter,
   restoreMageSlayerGuardedMindForCharacter
 } from "../../../../../pages/CharactersPage/feats/runtime";
@@ -373,6 +375,7 @@ export function createShortRestOptions(character: Character): RestOption[] {
     );
   const clairvoyantCombatantUsesTotal = getWarlockClairvoyantCombatantUsesTotal(character);
   const boonOfFateImproveFateState = getBoonOfFateImproveFateStateForCharacter(character);
+  const boonOfTerrorFleeFoolsState = getBoonOfTerrorFleeFoolsStateForCharacter(character);
   const cultOfDragonInitiateInspiredByFearState =
     getCultOfDragonInitiateInspiredByFearStateForCharacter(character);
   const mageSlayerGuardedMindState = getMageSlayerGuardedMindStateForCharacter(character);
@@ -430,6 +433,23 @@ export function createShortRestOptions(character: Character): RestOption[] {
               cultOfDragonInitiateInspiredByFearState.usesTotal,
             apply: (currentCharacter: Character) =>
               restoreCultOfDragonInitiateInspiredByFearForCharacter(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(boonOfTerrorFleeFoolsState
+      ? [
+          {
+            id: "restore-boon-of-terror-flee-fools",
+            label: "Restore Flee, Fools!",
+            charges: {
+              current: boonOfTerrorFleeFoolsState.usesRemaining,
+              total: boonOfTerrorFleeFoolsState.usesTotal
+            },
+            disabled:
+              boonOfTerrorFleeFoolsState.usesRemaining >=
+              boonOfTerrorFleeFoolsState.usesTotal,
+            apply: (currentCharacter: Character) =>
+              restoreBoonOfTerrorFleeFoolsForCharacter(currentCharacter)
           } satisfies RestOption
         ]
       : []),

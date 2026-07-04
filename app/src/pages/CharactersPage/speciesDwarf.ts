@@ -33,7 +33,7 @@ function getDwarfEntry(): SpeciesEntry | null {
 }
 
 function getDwarfDescriptionSection(heading: string): SpellDescriptionEntry[] {
-  const description = getDwarfEntry()?.description.filter(
+  const description = getDwarfEntry()?.rulesDescription.filter(
     (descriptionEntry): descriptionEntry is string => typeof descriptionEntry === "string"
   );
 

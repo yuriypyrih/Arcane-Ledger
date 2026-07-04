@@ -348,9 +348,13 @@ import { getMagicTemporaryHitPointsFeatureForCharacter } from "../../../../../pa
 import { CLASS_FEATURE } from "../../../../../codex/entries";
 import {
   applyBoonOfBountifulHealthTemporaryHitPointsBonus,
+  boonOfRevelryIrresistibleDanceSpellId,
   collectFeatDerivedState,
+  getBoonOfRevelryIrresistibleDanceFreeCastStateForCharacter,
   restoreBoonOfFateImproveFateForCharacter,
-  restoreBoonOfRecoveryDiceForCharacter,
+  restoreBoonOfRecoveryForCharacter,
+  restoreBoonOfRevelryIrresistibleDanceFreeCastForCharacter,
+  restoreBoonOfTerrorFleeFoolsForCharacter,
   restoreCultOfDragonInitiateInspiredByFearForCharacter,
   restoreFeyTouchedFreeCastsForCharacter,
   restoreLuckyPointsForCharacter,
@@ -428,6 +432,13 @@ export function createLongRestOptions(character: Character): RestOption[] {
     featDerivedState.spellfireSparkSpellfireFlameTotal;
   const boonOfRecoveryDiceAreFull =
     featDerivedState.boonOfRecoveryDiceRemaining >= featDerivedState.boonOfRecoveryDiceTotal;
+  const boonOfRecoveryLastStandIsFull =
+    featDerivedState.boonOfRecoveryLastStandRemaining >=
+    featDerivedState.boonOfRecoveryLastStandTotal;
+  const boonOfRecoveryIsFull = boonOfRecoveryDiceAreFull && boonOfRecoveryLastStandIsFull;
+  const boonOfTerrorFleeFoolsIsFull =
+    featDerivedState.boonOfTerrorFleeFoolsRemaining >=
+    featDerivedState.boonOfTerrorFleeFoolsTotal;
   const mageSlayerGuardedMindAreFull =
     featDerivedState.mageSlayerGuardedMindRemaining >= featDerivedState.mageSlayerGuardedMindTotal;
   const magicInitiateFreeCastsAreFull =
@@ -440,6 +451,15 @@ export function createLongRestOptions(character: Character): RestOption[] {
     restoreShadowTouchedFreeCastsForCharacter(character) === character;
   const telepathicDetectThoughtsFreeCastIsFull =
     restoreTelepathicDetectThoughtsFreeCastForCharacter(character) === character;
+  const boonOfRevelryIrresistibleDanceFreeCastState =
+    getBoonOfRevelryIrresistibleDanceFreeCastStateForCharacter(
+      character,
+      boonOfRevelryIrresistibleDanceSpellId
+    );
+  const boonOfRevelryIrresistibleDanceFreeCastIsFull =
+    !boonOfRevelryIrresistibleDanceFreeCastState ||
+    boonOfRevelryIrresistibleDanceFreeCastState.usesRemaining >=
+      boonOfRevelryIrresistibleDanceFreeCastState.usesTotal;
   const arcaneWardResetAvailable =
     restoreWizardAbjurerArcaneWardOnLongRest(character) !== character;
   const temporaryHitPoints = normalizeTemporaryHitPoints(character.temporaryHitPoints);
@@ -992,6 +1012,21 @@ export function createLongRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
+    ...(featDerivedState.hasBoonOfTerror
+      ? [
+          {
+            id: "restore-boon-of-terror-flee-fools",
+            label: "Restore Flee, Fools!",
+            charges: {
+              current: featDerivedState.boonOfTerrorFleeFoolsRemaining,
+              total: featDerivedState.boonOfTerrorFleeFoolsTotal
+            },
+            disabled: boonOfTerrorFleeFoolsIsFull,
+            apply: (currentCharacter: Character) =>
+              restoreBoonOfTerrorFleeFoolsForCharacter(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
     ...(featDerivedState.hasPurpleDragonRook
       ? [
           {
@@ -1025,15 +1060,12 @@ export function createLongRestOptions(character: Character): RestOption[] {
     ...(featDerivedState.hasBoonOfRecovery
       ? [
           {
-            id: "restore-boon-of-recovery-dice",
-            label: "Restore Recover Vitality dice",
-            charges: {
-              current: featDerivedState.boonOfRecoveryDiceRemaining,
-              total: featDerivedState.boonOfRecoveryDiceTotal
-            },
-            disabled: boonOfRecoveryDiceAreFull,
+            id: "restore-boon-of-recovery",
+            label: "Restore Boon of Recovery",
+            detail: "Recover Vitality dice and Last Stand",
+            disabled: boonOfRecoveryIsFull,
             apply: (currentCharacter: Character) =>
-              restoreBoonOfRecoveryDiceForCharacter(currentCharacter)
+              restoreBoonOfRecoveryForCharacter(currentCharacter)
           } satisfies RestOption
         ]
       : []),
@@ -1112,6 +1144,21 @@ export function createLongRestOptions(character: Character): RestOption[] {
             disabled: telepathicDetectThoughtsFreeCastIsFull,
             apply: (currentCharacter: Character) =>
               restoreTelepathicDetectThoughtsFreeCastForCharacter(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(boonOfRevelryIrresistibleDanceFreeCastState
+      ? [
+          {
+            id: "restore-boon-of-revelry-irresistible-dance",
+            label: "Restore Boon of Revelry free cast",
+            charges: {
+              current: boonOfRevelryIrresistibleDanceFreeCastState.usesRemaining,
+              total: boonOfRevelryIrresistibleDanceFreeCastState.usesTotal
+            },
+            disabled: boonOfRevelryIrresistibleDanceFreeCastIsFull,
+            apply: (currentCharacter: Character) =>
+              restoreBoonOfRevelryIrresistibleDanceFreeCastForCharacter(currentCharacter)
           } satisfies RestOption
         ]
       : []),

@@ -43,9 +43,16 @@ type CodexFeatDrawerProps = {
   label?: string;
   onClose: () => void;
   backdropClassName?: string;
+  stacked?: boolean;
 };
 
-function CodexFeatDrawer({ feat, label, onClose, backdropClassName }: CodexFeatDrawerProps) {
+function CodexFeatDrawer({
+  feat,
+  label,
+  onClose,
+  backdropClassName,
+  stacked = false
+}: CodexFeatDrawerProps) {
   const featDefinition = getFeatDefinition(feat);
   const [selectedSpellReference, setSelectedSpellReference] = useState<SpellEntry | null>(null);
   const [selectedDivinityReference, setSelectedDivinityReference] = useState<DivinityEntry | null>(
@@ -74,6 +81,7 @@ function CodexFeatDrawer({ feat, label, onClose, backdropClassName }: CodexFeatD
         titleId="codex-feat-drawer-title"
         onClose={onClose}
         backdropClassName={backdropClassName}
+        stacked={stacked}
         onEscape={() => {
           if (selectedFeatReference) {
             setSelectedFeatReference(null);
@@ -143,6 +151,7 @@ function CodexFeatDrawer({ feat, label, onClose, backdropClassName }: CodexFeatD
           <CodexSpellDrawer
             spell={selectedSpellReference}
             backdropClassName={backdropClassName}
+            stacked
             onClose={() => setSelectedSpellReference(null)}
           />
         ) : null}
@@ -150,6 +159,7 @@ function CodexFeatDrawer({ feat, label, onClose, backdropClassName }: CodexFeatD
           <CodexDivinityDrawer
             divinity={selectedDivinityReference}
             backdropClassName={backdropClassName}
+            stacked
             onClose={() => setSelectedDivinityReference(null)}
           />
         ) : null}
@@ -165,6 +175,7 @@ function CodexFeatDrawer({ feat, label, onClose, backdropClassName }: CodexFeatD
             ]}
             badgeLabel="Keyword"
             backdropClassName={backdropClassName}
+            stacked
             onClose={() => setSelectedKeyword(null)}
           />
         ) : null}
@@ -173,6 +184,7 @@ function CodexFeatDrawer({ feat, label, onClose, backdropClassName }: CodexFeatD
             feat={selectedFeatReference.feat}
             label={selectedFeatReference.label}
             backdropClassName={backdropClassName}
+            stacked
             onClose={() => setSelectedFeatReference(null)}
           />
         ) : null}

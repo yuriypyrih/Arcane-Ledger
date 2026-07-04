@@ -112,6 +112,7 @@ export type CharacterSpellDrawerActionOptions = {
   useShadowMagic?: boolean;
   useDetectThoughts?: boolean;
   useBoonOfSpellRecall?: boolean;
+  useBoonOfRevelry?: boolean;
   spellCastEffectIds?: string[];
   spellActionPathId?: string | null;
   spellImplementationCastSource?: SpellImplementationCastSource;
@@ -638,6 +639,9 @@ function CharacterSpellDrawer({
     ),
     useDetectThoughts: allActionOptions.some(
       (option) => option.id === "detect-thoughts" && option.checked
+    ),
+    useBoonOfRevelry: allActionOptions.some(
+      (option) => option.id === "boon-of-revelry" && option.checked
     ),
     spellCastEffectIds: [],
     spellImplementationOptions: activeSpellImplementationOptionValues,

@@ -243,6 +243,7 @@ export type SpeciesSource = (typeof SPECIES_SOURCE_VALUES)[number];
 export type BackgroundEntry = BaseCodexEntry<ENTRY_CATEGORIES.BACKGROUNDS, BACKGROUND_TYPES> & {
   source: BackgroundSource;
   page: number;
+  description: string;
   abilityScoreOptions: [AbilityKey, AbilityKey, AbilityKey];
   originFeat: FEATS;
   originFeatSpellList?: SPELL_LIST_CLASS.CLERIC | SPELL_LIST_CLASS.DRUID | SPELL_LIST_CLASS.WIZARD;
@@ -271,7 +272,8 @@ export type SpeciesEntry = BaseCodexEntry<ENTRY_CATEGORIES.SPECIES, SPECIES_TYPE
     recommendedTieflingLegacy?: string;
     recommendedTieflingSpellcastingAbility?: string;
   };
-  description: SpellDescriptionEntry[];
+  description: string;
+  rulesDescription: SpellDescriptionEntry[];
   abilityBonuses: Partial<Record<ABILITY_TYPES, number>>;
   innateProficiencies: GENERAL_PROFICIENCIES[];
   grantedSkillProficiencies: SkillName[];

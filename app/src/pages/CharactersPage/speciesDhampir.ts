@@ -39,7 +39,7 @@ function getDhampirEntry(): SpeciesEntry | null {
 }
 
 function getDhampirDescriptionSection(heading: string): SpellDescriptionEntry[] {
-  const description = getDhampirEntry()?.description.filter(
+  const description = getDhampirEntry()?.rulesDescription.filter(
     (descriptionEntry): descriptionEntry is string => typeof descriptionEntry === "string"
   );
 
@@ -72,7 +72,7 @@ function getDhampirDescriptionSection(heading: string): SpellDescriptionEntry[] 
 
 function getDhampirVampiricBiteDescription(): SpellDescriptionEntry[] {
   const entry = getDhampirEntry();
-  const description = entry?.description.filter(
+  const description = entry?.rulesDescription.filter(
     (descriptionEntry): descriptionEntry is string => typeof descriptionEntry === "string"
   );
   const startIndex =
@@ -278,8 +278,7 @@ export function applyDhampirVampiricBiteWeaponAction(
 
   const constitutionModifier = getAbilityModifierBreakdownForCharacter(character, "CON");
   const damageFormula = replaceLeadingDamageFormula(action.damageFormula, "1d4");
-  const totalDamageModifier =
-    constitutionModifier.total + getNumericDamageBonusTotal(action);
+  const totalDamageModifier = constitutionModifier.total + getNumericDamageBonusTotal(action);
 
   return {
     ...action,
@@ -301,10 +300,7 @@ export function getDhampirWeaponActionForCharacter(
   character: Pick<Character, "species">,
   action: WeaponAction
 ): WeaponAction {
-  if (
-    !isDhampirSpecies(character.species) ||
-    action.attackKind !== "unarmed"
-  ) {
+  if (!isDhampirSpecies(character.species) || action.attackKind !== "unarmed") {
     return action;
   }
 

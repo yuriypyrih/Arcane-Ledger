@@ -58,7 +58,7 @@ function getHumanEntry(species = "Human"): SpeciesEntry | null {
 }
 
 function getHumanDescriptionSection(heading: string): SpellDescriptionEntry[] {
-  const description = getHumanEntry()?.description.filter(
+  const description = getHumanEntry()?.rulesDescription.filter(
     (descriptionEntry): descriptionEntry is string => typeof descriptionEntry === "string"
   );
 

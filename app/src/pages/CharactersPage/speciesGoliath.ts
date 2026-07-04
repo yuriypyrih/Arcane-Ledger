@@ -123,7 +123,7 @@ function getGoliathEntry(): SpeciesEntry | null {
 }
 
 function getGoliathDescriptionSection(heading: string): SpellDescriptionEntry[] {
-  const description = getGoliathEntry()?.description.filter(
+  const description = getGoliathEntry()?.rulesDescription.filter(
     (descriptionEntry): descriptionEntry is string => typeof descriptionEntry === "string"
   );
 

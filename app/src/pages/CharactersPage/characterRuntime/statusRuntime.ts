@@ -31,6 +31,7 @@ import { getDarkvisionSpellDerivedStatusEntriesForCharacter } from "./spellImple
 import { getHeroismSpellDerivedStatusEntriesForCharacter } from "./spellImplementations/heroism";
 import { getInvulnerabilitySpellDerivedStatusEntriesForCharacter } from "./spellImplementations/spells9";
 import { getCharacterCustomTraitEffectInput } from "./customEffectRuntime";
+import { getConditionalFeatStatusEntriesForCharacter } from "./featConditionalStatusRuntime";
 import {
   getAlwaysPreparedSpellIds,
   getCantripLimitForCharacter,
@@ -326,7 +327,10 @@ function createStatusRuntime(character: Character): CharacterStatusRuntime {
     featureReactionEntries
   );
   const classDerivedStatusEntries = getDerivedFeatureStatusEntriesForCharacter(character);
-  const featDerivedStatusEntries = getFeatDerivedStatusEntriesForCharacter(character);
+  const featDerivedStatusEntries = [
+    ...getFeatDerivedStatusEntriesForCharacter(character),
+    ...getConditionalFeatStatusEntriesForCharacter(character)
+  ];
   const speciesDerivedStatusEntries = getSpeciesDerivedStatusEntriesForCharacter(character);
   const spellDerivedStatusEntries = [
     ...getDarkvisionSpellDerivedStatusEntriesForCharacter(character),

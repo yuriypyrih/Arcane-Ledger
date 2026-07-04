@@ -49,7 +49,7 @@ function getRebornEntry(): SpeciesEntry | null {
 }
 
 function getRebornDescriptionSection(heading: string): SpellDescriptionEntry[] {
-  const description = getRebornEntry()?.description.filter(
+  const description = getRebornEntry()?.rulesDescription.filter(
     (descriptionEntry): descriptionEntry is string => typeof descriptionEntry === "string"
   );
 
@@ -91,9 +91,7 @@ function getEscapedDeathDescriptionAddition(): SpellDescriptionEntry[] {
 
   return createSourcedDescriptionEntries(
     escapedDeathName,
-    description.length > 0
-      ? description
-      : ["You have Advantage on Death Saving Throws."]
+    description.length > 0 ? description : ["You have Advantage on Death Saving Throws."]
   );
 }
 
@@ -176,9 +174,7 @@ function createRebornStatusEntry(
   };
 }
 
-function getRebornKnowledgeFromPastLifeAction(
-  character: RebornActionCharacter
-): FeatureActionCard {
+function getRebornKnowledgeFromPastLifeAction(character: RebornActionCharacter): FeatureActionCard {
   const total = getRebornKnowledgeFromPastLifeUsesTotal(character);
   const remaining = getRebornKnowledgeFromPastLifeUsesRemaining(character);
   const description = getKnowledgeFromPastLifeDescription();
@@ -220,9 +216,7 @@ export function normalizeRebornSkillProficiency(value: unknown): SkillName | und
   return typeof value === "string" && isSkillName(value) ? value : undefined;
 }
 
-export function normalizeRebornResistance(
-  value: unknown
-): CharacterRebornResistance | undefined {
+export function normalizeRebornResistance(value: unknown): CharacterRebornResistance | undefined {
   return typeof value === "string" && rebornResistanceOptionSet.has(value)
     ? (value as CharacterRebornResistance)
     : undefined;
@@ -232,9 +226,7 @@ export function normalizeRebornFeatureState(value: unknown): CharacterRebornFeat
   const record = value && typeof value === "object" ? (value as Record<string, unknown>) : {};
 
   return {
-    knowledgeFromPastLifeUsesExpended: clampExpendedUses(
-      record.knowledgeFromPastLifeUsesExpended
-    )
+    knowledgeFromPastLifeUsesExpended: clampExpendedUses(record.knowledgeFromPastLifeUsesExpended)
   };
 }
 
@@ -242,9 +234,7 @@ export function getRebornSkillProficiencyOptionsForSpecies(species: string): Ski
   return isRebornSpecies(species) ? [...ALL_SKILLS] : [];
 }
 
-export function getRebornResistanceOptionsForSpecies(
-  species: string
-): CharacterRebornResistance[] {
+export function getRebornResistanceOptionsForSpecies(species: string): CharacterRebornResistance[] {
   return isRebornSpecies(species) ? [...rebornResistanceOptions] : [];
 }
 
@@ -300,9 +290,7 @@ export function spendRebornKnowledgeFromPastLifeForCharacter(character: Characte
   });
 }
 
-export function restoreRebornKnowledgeFromPastLifeOnLongRest(
-  character: Character
-): Character {
+export function restoreRebornKnowledgeFromPastLifeOnLongRest(character: Character): Character {
   if (getRebornKnowledgeFromPastLifeUsesTotal(character) <= 0) {
     return character;
   }

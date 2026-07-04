@@ -22,10 +22,11 @@ export const epicBoonFeatDefinitions: FeatDefinition[] = [
     prerequisite: "Level 19+",
     description: [
       "You gain the following benefits.",
-      "<strong>Ability Score Increase.</strong> Increase one ability score of your choice by 1, to a maximum of 30. <link:tracked>Tracked</link>",
-      "<strong>Blink Steps.</strong> Immediately after you take the Attack action or the Magic action, you can teleport up to 30 feet to an unoccupied space you can see. <link:not-tracked>Not Tracked</link>"
+      "<strong>Ability Score Increase.</strong> Increase one ability score of your choice by 1, to a maximum of 30.",
+      "<strong>Blink Steps.</strong> Immediately after you take the Attack action or the Magic action, you can teleport up to 30 feet to an unoccupied space you can see."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage: "The Link Steps is not being tracked and you have to remember it during play."
   },
   {
     feat: FEATS.BOON_OF_FATE,
@@ -34,10 +35,10 @@ export const epicBoonFeatDefinitions: FeatDefinition[] = [
     prerequisite: "Level 19+",
     description: [
       "You gain the following benefits.",
-      "<strong>Ability Score Increase.</strong> Increase one ability score of your choice by 1, to a maximum of 30. <link:tracked>Tracked</link>",
-      "<strong>Improve Fate.</strong> When you or another creature within 60 feet of you succeeds on or fails a D20 Test, you can roll 2d4 and apply the total rolled as a bonus or penalty to the d20 roll. Once you use this benefit, you can't use it again until you roll Initiative or finish a Short Rest or Long Rest. <link:not-tracked>Not Tracked</link>"
+      "<strong>Ability Score Increase.</strong> Increase one ability score of your choice by 1, to a maximum of 30.",
+      "<strong>Improve Fate.</strong> When you or another creature within 60 feet of you succeeds on or fails a D20 Test, you can roll 2d4 and apply the total rolled as a bonus or penalty to the d20 roll. Once you use this benefit, you can't use it again until you roll Initiative or finish a Short Rest or Long Rest."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   {
     feat: FEATS.BOON_OF_IRRESISTIBLE_OFFENSE,
@@ -46,11 +47,13 @@ export const epicBoonFeatDefinitions: FeatDefinition[] = [
     prerequisite: "Level 19+",
     description: [
       "You gain the following benefits.",
-      "<strong>Ability Score Increase.</strong> Increase your Strength or Dexterity score by 1, to a maximum of 30. <link:tracked>Tracked</link>",
-      "<strong>Overcome Defenses.</strong> The Bludgeoning, Piercing, and Slashing damage you deal always ignores Resistance. <link:not-tracked>Not Tracked</link>",
-      "<strong>Overwhelming Strike.</strong> When you roll a 20 on the d20 for an attack roll, you can deal extra damage to the target equal to the ability score increased by this feat. The extra damage's type is the same as the attack's type. <link:not-tracked>Not Tracked</link>"
+      "<strong>Ability Score Increase.</strong> Increase your Strength or Dexterity score by 1, to a maximum of 30.",
+      "<strong>Overcome Defenses.</strong> The Bludgeoning, Piercing, and Slashing damage you deal always ignores Resistance.",
+      "<strong>Overwhelming Strike.</strong> When you roll a 20 on the d20 for an attack roll, you can deal extra damage to the target equal to the ability score increased by this feat. The extra damage's type is the same as the attack's type."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "The Overcome Defenses and Overwhelming Strike are not being tracked. You have to remember them during play."
   },
   {
     feat: FEATS.BOON_OF_THE_NIGHT_SPIRIT,
@@ -72,10 +75,12 @@ export const epicBoonFeatDefinitions: FeatDefinition[] = [
     prerequisite: "Level 19+, Spellcasting or Pact Magic Feature",
     description: [
       "You gain the following benefits.",
-      "<strong>Ability Score Increase.</strong> Increase your Intelligence, Wisdom, or Charisma score by 1, to a maximum of 30. <link:tracked>Tracked</link>",
-      "<strong>Free Casting.</strong> Whenever you cast a spell with a level 1-4 spell slot, roll 1d4. If the number you roll is the same as the slot's level, the slot isn't expended. <link:not-tracked>Not Tracked</link>"
+      "<strong>Ability Score Increase.</strong> Increase your Intelligence, Wisdom, or Charisma score by 1, to a maximum of 30.",
+      "<strong>Free Casting.</strong> Whenever you cast a spell with a level 1-4 spell slot, roll 1d4. If the number you roll is the same as the slot's level, the slot isn't expended."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "The Free Casting is not being tracked. Roll the dice yourself and just take back your spell slot manually if needed."
   },
   {
     feat: FEATS.BOON_OF_TRUESIGHT,
@@ -100,7 +105,7 @@ export const epicBoonFeatDefinitions: FeatDefinition[] = [
       "<strong>Energy Resistances.</strong> You gain Resistance to two of the following damage types of your choice: Acid, Cold, Fire, Lightning, Necrotic, Poison, Psychic, Radiant, or Thunder. Whenever you finish a Long Rest, you can change your choices.",
       "<strong>Energy Redirection.</strong> When you take damage of one of the types chosen for the Energy Resistances benefit, you can take a Reaction to direct damage of the same type toward another creature you can see within 60 feet of yourself that isn't behind Total Cover. If you do so, that creature must succeed on a Dexterity saving throw (DC 8 plus your Constitution modifier and Proficiency Bonus) or take damage equal to 2d12 plus your Constitution modifier."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   {
     feat: FEATS.BOON_OF_FORTITUDE,
@@ -112,7 +117,7 @@ export const epicBoonFeatDefinitions: FeatDefinition[] = [
       "<strong>Ability Score Increase.</strong> Increase one ability score of your choice by 1, to a maximum of 30.",
       "<strong>Fortified Health.</strong> Your Hit Point maximum increases by 40. In addition, whenever you regain Hit Points, you can regain additional Hit Points equal to your Constitution modifier. Once you've regained these additional Hit Points, you can't do so again until the start of your next turn."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   {
     feat: FEATS.BOON_OF_RECOVERY,
@@ -125,7 +130,7 @@ export const epicBoonFeatDefinitions: FeatDefinition[] = [
       "<strong>Last Stand.</strong> When you would be reduced to 0 Hit Points, you can drop to 1 Hit Point instead and regain a number of Hit Points equal to half your Hit Point maximum. Once you use this benefit, you can't use it again until you finish a Long Rest.",
       "<strong>Recover Vitality.</strong> You have a pool of ten d10s. As a Bonus Action, you can expend dice from the pool, roll those dice, and regain a number of Hit Points equal to the roll's total. You regain all the expended dice when you finish a Long Rest."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   {
     feat: FEATS.BOON_OF_SKILL,
@@ -138,7 +143,7 @@ export const epicBoonFeatDefinitions: FeatDefinition[] = [
       "<strong>All-Around Adept.</strong> You gain proficiency in all skills.",
       "<strong>Expertise.</strong> Choose one skill in which you lack Expertise. You gain Expertise in that skill."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   {
     feat: FEATS.BOON_OF_SPEED,
@@ -151,6 +156,6 @@ export const epicBoonFeatDefinitions: FeatDefinition[] = [
       "<strong>Escape Artist.</strong> As a Bonus Action, you can take the Disengage action, which also ends the Grappled condition on you.",
       "<strong>Quickness.</strong> Your Speed increases by 30 feet."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.TRACKED
   }
 ];

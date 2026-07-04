@@ -114,7 +114,9 @@ function TraitsConditionsWidget({
         </header>
 
         {statusSections.length === 0 ? (
-          <p className={shared.emptyText}>No traits or conditions.</p>
+          <p className={clsx(shared.emptyText, styles.emptyStateText)}>
+            No traits or conditions.
+          </p>
         ) : (
           <TraitsConditionsSections
             sections={statusSections}

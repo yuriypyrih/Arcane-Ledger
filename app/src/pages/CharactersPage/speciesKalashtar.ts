@@ -33,7 +33,7 @@ function getKalashtarEntry(): SpeciesEntry | null {
 }
 
 function getKalashtarDescriptionSection(heading: string): SpellDescriptionEntry[] {
-  const description = getKalashtarEntry()?.description.filter(
+  const description = getKalashtarEntry()?.rulesDescription.filter(
     (descriptionEntry): descriptionEntry is string => typeof descriptionEntry === "string"
   );
 
@@ -120,9 +120,9 @@ export function getKalashtarSkillProficiencyForCharacter(
     return null;
   }
 
-  return normalizeKalashtarSkillProficiency(
-    character.speciesChoices?.kalashtarSkillProficiency
-  ) ?? null;
+  return (
+    normalizeKalashtarSkillProficiency(character.speciesChoices?.kalashtarSkillProficiency) ?? null
+  );
 }
 
 export function getKalashtarDerivedStatusEntriesForCharacter(

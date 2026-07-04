@@ -25,7 +25,7 @@ function getHalflingDescriptionSection(
   entry: SpeciesEntry,
   heading: string
 ): SpellDescriptionEntry[] {
-  const description = entry.description.filter(
+  const description = entry.rulesDescription.filter(
     (descriptionEntry): descriptionEntry is string => typeof descriptionEntry === "string"
   );
   const startIndex = description.findIndex((descriptionEntry) =>

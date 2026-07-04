@@ -755,6 +755,16 @@ export function getWarCasterConcentrationDescriptionAdditionsForCharacter(
   );
 }
 
+export function getBoonOfFortunesFavorSavingThrowRerollDescriptionAdditionsForCharacter(
+  character: FeatRuntimeCharacter
+): SpellDescriptionEntry[][] {
+  return getFeatDescriptionAdditionsForTarget(
+    character,
+    "stat",
+    featDescriptionTargetKeys.savingThrowBoonOfFortunesFavor
+  );
+}
+
 export function getMageSlayerGuardedMindStateForCharacter(character: FeatRuntimeCharacter): {
   available: boolean;
   expended: boolean;

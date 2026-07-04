@@ -15,10 +15,16 @@ export const skulkerBlindsightStatusSourceId = "feat-skulker-blindsight";
 export const telepathicUtteranceStatusSourceId = "feat-telepathic-utterance";
 export const boonOfEnergyResistanceStatusSourceIdPrefix = "feat-boon-energy-resistance-";
 export const boonOfNightSpiritStatusSourceId = "feat-boon-night-spirit";
+export const boonOfPoisonMasteryAntitoxicStatusSourceIdPrefix =
+  "feat-boon-poison-mastery-antitoxic-";
+export const boonOfTerrorFearlessStatusSourceIdPrefix =
+  "feat-boon-terror-fearless-";
 
 export const defensiveDuelistParryReactionEntryId = "reaction-defensive-duelist-parry";
 export const boonOfEnergyResistanceReactionEntryId =
   "reaction-boon-of-energy-resistance-energy-redirection";
+export const boonOfTerrorFleeFoolsReactionEntryId =
+  "reaction-boon-of-terror-flee-fools";
 export const interceptionReactionEntryId = "reaction-interception";
 export const polearmMasterReactiveStrikeReactionEntryId =
   "reaction-polearm-master-reactive-strike";
@@ -43,6 +49,7 @@ export const feyTouchedMistyStepSpellId = "spell-misty-step";
 export const telekineticMageHandSpellId = "spell-mage-hand";
 export const telepathicDetectThoughtsSpellId = "spell-detect-thoughts";
 export const shadowTouchedInvisibilitySpellId = "spell-invisibility";
+export const boonOfRevelryIrresistibleDanceSpellId = "spell-irresistible-dance";
 export const emeraldEnclaveFledglingSpeakWithAnimalsSpellId =
   "spell-speak-with-animals";
 export const spellfireSparkSacredFlameSpellId = "spell-sacred-flame";

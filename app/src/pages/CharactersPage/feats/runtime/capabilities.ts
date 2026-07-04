@@ -356,7 +356,7 @@ export const featRuntimeCapabilityMatrix = {
   },
   [FEATS.BOON_OF_DESPERATE_RESILIENCE]: {
     feat: FEATS.BOON_OF_DESPERATE_RESILIENCE,
-    capabilities: ["abilityBonus", "choice"]
+    capabilities: ["abilityBonus", "choice", "status"]
   },
   [FEATS.BOON_OF_EXQUISITE_RADIANCE]: {
     feat: FEATS.BOON_OF_EXQUISITE_RADIANCE,
@@ -376,7 +376,7 @@ export const featRuntimeCapabilityMatrix = {
   },
   [FEATS.BOON_OF_POISON_MASTERY]: {
     feat: FEATS.BOON_OF_POISON_MASTERY,
-    capabilities: ["abilityBonus", "choice"]
+    capabilities: ["abilityBonus", "choice", "status"]
   },
   [FEATS.BOON_OF_REVELRY]: {
     feat: FEATS.BOON_OF_REVELRY,
@@ -388,7 +388,7 @@ export const featRuntimeCapabilityMatrix = {
   },
   [FEATS.BOON_OF_TERROR]: {
     feat: FEATS.BOON_OF_TERROR,
-    capabilities: ["abilityBonus", "choice"]
+    capabilities: ["abilityBonus", "choice", "proficiency", "reaction", "status"]
   },
   [FEATS.COLD_CASTER]: { feat: FEATS.COLD_CASTER, capabilities: ["abilityBonus", "choice"] },
   [FEATS.DRAGONSCARRED]: {

@@ -2518,6 +2518,7 @@ function ClassFeaturesAndFeats({
       {selectedSpellReference ? (
         <CodexSpellDrawer
           spell={selectedSpellReference}
+          backdropClassName={styles.linkedReferenceDrawerBackdrop}
           onClose={() => setSelectedSpellReference(null)}
         />
       ) : null}
@@ -2525,6 +2526,7 @@ function ClassFeaturesAndFeats({
         <CodexDivinityDrawer
           divinity={selectedDivinityReference}
           character={character}
+          backdropClassName={styles.linkedReferenceDrawerBackdrop}
           onClose={() => setSelectedDivinityReference(null)}
         />
       ) : null}

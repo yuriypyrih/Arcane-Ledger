@@ -10,6 +10,7 @@ import {
   type CharacterFeatEntry,
   type CrafterChoice,
   LANGUAGE_PROFICIENCY,
+  SKILL,
   type LanguageProficiency,
   type LanguageProficiencyEntry,
   type HarperAgentChoice,
@@ -261,6 +262,24 @@ function getFeatProficiencyGrantDescriptors(
           })),
           {
             skill: featEntry.boonOfSkill.skillExpertise,
+            level: PROF_LEVEL.EXPERT
+          }
+        ]
+      }
+    ];
+  }
+
+  if (featEntry.feat === FEATS.BOON_OF_TERROR) {
+    return [
+      {
+        label: "Boon of Terror",
+        skillLevels: [
+          {
+            skill: SKILL.INTIMIDATION,
+            level: PROF_LEVEL.PROFICIENT
+          },
+          {
+            skill: SKILL.INTIMIDATION,
             level: PROF_LEVEL.EXPERT
           }
         ]

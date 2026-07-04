@@ -1,6 +1,7 @@
 import {
   CLASS_FEATURE,
   ELDRITCH_INVOCATION,
+  FEATS,
   getEldritchInvocationEntryById,
   type SpellDescriptionEntry
 } from "../../../codex/entries";
@@ -10,6 +11,15 @@ import {
   createSourcedDescriptionEntries
 } from "../actionModalDescriptions";
 import { normalizeDeathSaveTrack } from "../deathSaves";
+import { getFeatDefinition } from "../feats";
+import {
+  getBoonOfRecoveryLastStandStateForCharacter,
+  spendBoonOfRecoveryLastStandForCharacter
+} from "../feats/runtime";
+import {
+  filterDescriptionEntries,
+  isBoonOfRecoveryLastStandDescriptionEntry
+} from "../feats/runtime/descriptionMatchers";
 import { getRebornLifeAndDeathDescriptionAdditionsForCharacter } from "../speciesReborn";
 import {
   getEffectiveHitPointMaximumForCharacter,
@@ -143,6 +153,21 @@ export function isLifeAndDeathSafeHavenAvailable(character: Character): boolean 
   );
 }
 
+export function hasLifeAndDeathBoonOfRecoveryLastStandFeature(character: Character): boolean {
+  return (getBoonOfRecoveryLastStandStateForCharacter(character)?.usesTotal ?? 0) > 0;
+}
+
+export function isLifeAndDeathBoonOfRecoveryLastStandAvailable(
+  character: Character
+): boolean {
+  const lastStandState = getBoonOfRecoveryLastStandStateForCharacter(character);
+
+  return (
+    Boolean(lastStandState?.available) &&
+    isLifeAndDeathUnconscious(character)
+  );
+}
+
 export function hasActiveLifeAndDeathLedgerFeature(character: Character): boolean {
   return (
     isArtificerSoulOfArtificeCheatDeathAvailable(character) ||
@@ -151,6 +176,7 @@ export function hasActiveLifeAndDeathLedgerFeature(character: Character): boolea
     (isLifeAndDeathUnconscious(character) && isLifeAndDeathSearingVengeanceAvailable(character)) ||
     (isLifeAndDeathUnconscious(character) &&
       isLifeAndDeathGiftOfTheProtectorsAvailable(character)) ||
+    isLifeAndDeathBoonOfRecoveryLastStandAvailable(character) ||
     isLifeAndDeathSafeHavenRelevant(character)
   );
 }
@@ -217,6 +243,20 @@ export function getLifeAndDeathLedgerDescriptionAdditions(
     }
   }
 
+  if (hasLifeAndDeathBoonOfRecoveryLastStandFeature(character)) {
+    const boonOfRecoveryDescription = getFeatDefinition(FEATS.BOON_OF_RECOVERY)?.description ?? [];
+    const lastStandDescription = filterDescriptionEntries(
+      boonOfRecoveryDescription,
+      isBoonOfRecoveryLastStandDescriptionEntry
+    );
+
+    if (lastStandDescription.length > 0) {
+      descriptionAdditions.push(
+        createSourcedDescriptionEntries("Boon of Recovery", lastStandDescription)
+      );
+    }
+  }
+
   return descriptionAdditions;
 }
 
@@ -274,6 +314,21 @@ export function getLifeAndDeathLedgerHeaderItems(
         key: "gift-of-the-protectors-uses",
         label: "Gift of the Protectors",
         current: getWarlockGiftOfTheProtectorsUsesRemaining(character),
+        total
+      });
+    }
+  }
+
+  if (hasLifeAndDeathBoonOfRecoveryLastStandFeature(character)) {
+    const lastStandState = getBoonOfRecoveryLastStandStateForCharacter(character);
+    const total = lastStandState?.usesTotal ?? 0;
+
+    if (total > 0) {
+      headerItems.push({
+        kind: "dots",
+        key: "boon-of-recovery-last-stand-uses",
+        label: "Last Stand",
+        current: lastStandState?.usesRemaining ?? 0,
         total
       });
     }
@@ -352,6 +407,32 @@ export function applyLifeAndDeathGiftOfTheProtectorsForCharacter(character: Char
   return reconcileCharacterStatusConsequences({
     ...characterWithSpentUse,
     currentHitPoints: 1,
+    deathSaves: {
+      successes: 0,
+      failures: 0
+    }
+  });
+}
+
+export function applyLifeAndDeathBoonOfRecoveryLastStandForCharacter(
+  character: Character
+): Character {
+  if (!isLifeAndDeathBoonOfRecoveryLastStandAvailable(character)) {
+    return character;
+  }
+
+  const characterWithSpentUse = spendBoonOfRecoveryLastStandForCharacter(character);
+
+  if (characterWithSpentUse === character) {
+    return character;
+  }
+
+  return reconcileCharacterStatusConsequences({
+    ...characterWithSpentUse,
+    currentHitPoints: Math.max(
+      1,
+      Math.floor(getEffectiveHitPointMaximumForCharacter(characterWithSpentUse) / 2)
+    ),
     deathSaves: {
       successes: 0,
       failures: 0

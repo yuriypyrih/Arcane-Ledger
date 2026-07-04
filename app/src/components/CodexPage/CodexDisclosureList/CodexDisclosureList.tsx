@@ -134,6 +134,9 @@ function CodexDisclosureList({ entries, status, category }: CodexDisclosureListP
 
       return (
         <>
+          {entry.description ? (
+            <p className={featureDisclosureStyles.descriptionLine}>{entry.description}</p>
+          ) : null}
           <DetailLine label="Ability Scores">
             {formatBackgroundAbilityScoreOptions(entry)}
           </DetailLine>
@@ -158,8 +161,11 @@ function CodexDisclosureList({ entries, status, category }: CodexDisclosureListP
 
     return (
       <>
+        {entry.description ? (
+          <p className={featureDisclosureStyles.descriptionLine}>{entry.description}</p>
+        ) : null}
         <DescriptionContent
-          description={entry.description}
+          description={entry.rulesDescription}
           className={featureDisclosureStyles.descriptionList}
           entryClassName={featureDisclosureStyles.descriptionLine}
           linkClassName={featureDisclosureStyles.inlineLinkButton}

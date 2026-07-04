@@ -80,7 +80,7 @@ function getGnomeEntry(species = "Gnome"): SpeciesEntry | null {
 }
 
 function getGnomeDescriptionSection(heading: string): SpellDescriptionEntry[] {
-  const description = getGnomeEntry()?.description.filter(
+  const description = getGnomeEntry()?.rulesDescription.filter(
     (descriptionEntry): descriptionEntry is string => typeof descriptionEntry === "string"
   );
 

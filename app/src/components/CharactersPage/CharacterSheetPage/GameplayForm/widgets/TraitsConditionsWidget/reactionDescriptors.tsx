@@ -93,11 +93,14 @@ import {
 } from "../../../../../../codex/entries";
 import {
   boonOfEnergyResistanceReactionEntryId,
+  boonOfTerrorFleeFoolsReactionEntryId,
+  getBoonOfTerrorFleeFoolsStateForCharacter,
   defensiveDuelistParryReactionEntryId,
   interceptionReactionEntryId,
   polearmMasterReactiveStrikeReactionEntryId,
   protectionReactionEntryId,
-  shieldMasterReactionEntryId
+  shieldMasterReactionEntryId,
+  spendBoonOfTerrorFleeFoolsForCharacter
 } from "../../../../../../pages/CharactersPage/feats/runtime";
 import {
   characterHasHeldInterceptionEquipment,
@@ -565,6 +568,33 @@ function createEnergyRedirectionReactionRollRequest(
   };
 }
 
+function getBoonOfTerrorFleeFoolsReactionFacts(
+  context: ReactionDescriptorContext
+): FeatureActionFact[] {
+  const charismaModifier = getAbilityModifierForCharacter(context.character, "CHA");
+  const proficiencyBonus = getProficiencyBonus(context.character.level);
+  const saveDc = 8 + charismaModifier + proficiencyBonus;
+  const displayTerms = [
+    "DC 8 (Base)",
+    formatSignedFormulaTerm(charismaModifier, "CHA"),
+    formatSignedFormulaTerm(proficiencyBonus, "Prof. Bonus")
+  ];
+  const formulaCell = formatFormulaCell({
+    formula: String(saveDc),
+    displayTerms,
+    breakdownTerms: displayTerms
+  });
+
+  return [
+    {
+      label: "Wisdom Saving Throw Formula",
+      value: `WIS DC ${saveDc} = ${formulaCell.value}`,
+      breakdown: formulaCell.breakdown,
+      fullWidth: true
+    }
+  ];
+}
+
 function getInterceptionReactionFacts(context: ReactionDescriptorContext): FeatureActionFact[] {
   return [
     {
@@ -951,6 +981,24 @@ const descriptors: ReactionDescriptor[] = [
     createRollRequest: createEnergyRedirectionReactionRollRequest,
     getFacts: getEnergyRedirectionReactionFacts,
     getFactsSectionTitle: () => "Formulas"
+  },
+  {
+    id: boonOfTerrorFleeFoolsReactionEntryId,
+    getFacts: getBoonOfTerrorFleeFoolsReactionFacts,
+    getFactsSectionTitle: () => "Saving Throw",
+    getResourceWarning: (context) => {
+      const state = getBoonOfTerrorFleeFoolsStateForCharacter(context.character);
+
+      return state && state.usesRemaining > 0 ? null : "No Flee, Fools! charges remaining.";
+    },
+    getResourceSummary: () => null,
+    getHeaderTags: (context) => {
+      const state = getBoonOfTerrorFleeFoolsStateForCharacter(context.character);
+
+      return state ? [createChargesHeaderTag(state.usesRemaining, state.usesTotal)] : [];
+    },
+    apply: spendBoonOfTerrorFleeFoolsForCharacter,
+    skipReactionWhenUnchanged: true
   },
   {
     id: interceptionReactionEntryId,

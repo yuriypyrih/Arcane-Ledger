@@ -34,6 +34,7 @@ import {
 } from "../../../../pages/CharactersPage/classFeatures";
 import { getFeatureDescriptionForCharacter } from "../../../../pages/CharactersPage/classFeatures/featureDescriptions";
 import {
+  getBoonOfFortunesFavorSavingThrowRerollDescriptionAdditionsForCharacter,
   getMageSlayerGuardedMindDescriptionAdditionsForCharacter,
   getMageSlayerGuardedMindStateForCharacter,
   getShieldMasterInterposeShieldDescriptionAdditionsForCharacter,
@@ -273,6 +274,9 @@ function getAbilityDescriptionAdditions(
   );
   descriptionAdditions.push(
     ...getWarCasterConcentrationDescriptionAdditionsForCharacter(character, ability)
+  );
+  descriptionAdditions.push(
+    ...getBoonOfFortunesFavorSavingThrowRerollDescriptionAdditionsForCharacter(character)
   );
 
   return descriptionAdditions.length > 0 ? descriptionAdditions : undefined;

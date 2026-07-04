@@ -7,11 +7,15 @@ import {
   starterPackItem,
   starterPackSelectedTool
 } from "../classes/starterPack";
+import {
+  addBackgroundDescription,
+  type BackgroundEntryWithoutDescription
+} from "./backgroundDescriptions";
 import { BACKGROUND_TYPES, CURRENCY_TYPE, ENTRY_CATEGORIES, FEATS } from "./enums";
 import type { BackgroundEntry } from "./types";
 
 type EfaBackgroundSeed = Omit<
-  BackgroundEntry,
+  BackgroundEntryWithoutDescription,
   "category" | "source" | "summary" | "starterPack"
 > & {
   starterPack: Omit<BackgroundEntry["starterPack"], "recommendedStartingEquipmentIndex"> & {
@@ -24,7 +28,7 @@ const goldAlternative = starterPackChoice(starterPackCurrency(50, CURRENCY_TYPE.
 function createEfaBackgroundEntry(seed: EfaBackgroundSeed): BackgroundEntry {
   const { starterPack, ...entry } = seed;
 
-  return {
+  return addBackgroundDescription({
     ...entry,
     category: ENTRY_CATEGORIES.BACKGROUNDS,
     source: "EFA",
@@ -33,7 +37,7 @@ function createEfaBackgroundEntry(seed: EfaBackgroundSeed): BackgroundEntry {
       ...starterPack
     },
     summary: ""
-  };
+  });
 }
 
 export const efaBackgroundEntries: BackgroundEntry[] = [

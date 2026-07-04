@@ -90,6 +90,8 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
     selectedSpellCanOnlyBeCastAsRitual,
     selectedSpellCastWarning,
     selectedSpellDamageDetailOverride,
+    selectedSpellBoonOfRevelryDisabled,
+    selectedSpellBoonOfRevelryFreeCastState,
     selectedSpellDetectThoughtsDisabled,
     selectedSpellDetectThoughtsFreeCastState,
     selectedSpellCustomEffects,
@@ -140,6 +142,7 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
     selectedSpellSupportsBewitchingMagic,
     selectedSpellSupportsBlessingOfMoonlight,
     selectedSpellSupportsBoonOfSpellRecall,
+    selectedSpellSupportsBoonOfRevelry,
     selectedSpellSupportsDetectThoughts,
     selectedSpellSupportsEmeraldEnclaveFledgling,
     selectedSpellSupportsFeyMagic,
@@ -177,6 +180,7 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
     setUseBewitchingMagicOnSelectedSpell,
     setUseBlessingOfMoonlightOnSelectedSpell,
     setUseBoonOfSpellRecallOnSelectedSpell,
+    setUseBoonOfRevelryOnSelectedSpell,
     setUseDetectThoughtsOnSelectedSpell,
     setUseEmeraldEnclaveFledglingFreeUseOnSelectedSpell,
     setUseFeyMagicOnSelectedSpell,
@@ -222,6 +226,7 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
     useBewitchingMagicOnSelectedSpell,
     useBlessingOfMoonlightOnSelectedSpell,
     useBoonOfSpellRecallOnSelectedSpell,
+    useBoonOfRevelryOnSelectedSpell,
     useDetectThoughtsOnSelectedSpell,
     useEmeraldEnclaveFledglingFreeUseOnSelectedSpell,
     useFeyMagicOnSelectedSpell,
@@ -477,6 +482,7 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
               useShadowMagic: useShadowMagicOnSelectedSpell,
               useDetectThoughts: useDetectThoughtsOnSelectedSpell,
               useBoonOfSpellRecall: useBoonOfSpellRecallOnSelectedSpell,
+              useBoonOfRevelry: useBoonOfRevelryOnSelectedSpell,
               useBlessingOfMoonlight: useBlessingOfMoonlightOnSelectedSpell,
               useFeyReinforcements: useFeyReinforcementsOnSelectedSpell,
               useFeyReinforcementsNoConcentration:
@@ -511,6 +517,7 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
             !(selectedSpellSupportsShadowMagic && useShadowMagicOnSelectedSpell) &&
             !(selectedSpellSupportsDetectThoughts && useDetectThoughtsOnSelectedSpell) &&
             !(selectedSpellSupportsBoonOfSpellRecall && useBoonOfSpellRecallOnSelectedSpell) &&
+            !(selectedSpellSupportsBoonOfRevelry && useBoonOfRevelryOnSelectedSpell) &&
             !(
               selectedSpellSupportsEmeraldEnclaveFledgling &&
               useEmeraldEnclaveFledglingFreeUseOnSelectedSpell
@@ -571,10 +578,13 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
                                 : selectedSpellSupportsBoonOfSpellRecall &&
                                     useBoonOfSpellRecallOnSelectedSpell
                                   ? "Free Casting prevents this cast from expending a spell slot."
-                                  : selectedSpellSupportsEmeraldEnclaveFledgling &&
-                                      useEmeraldEnclaveFledglingFreeUseOnSelectedSpell
-                                    ? "Emerald Enclave Fledgling lets you cast this spell without expending a spell slot."
-                                    : selectedSpellSupportsStepsOfTheFey &&
+                                  : selectedSpellSupportsBoonOfRevelry &&
+                                      useBoonOfRevelryOnSelectedSpell
+                                    ? "Boon of Revelry lets you cast Irresistible Dance without expending a spell slot. This use recharges on a Long Rest."
+                                    : selectedSpellSupportsEmeraldEnclaveFledgling &&
+                                        useEmeraldEnclaveFledglingFreeUseOnSelectedSpell
+                                      ? "Emerald Enclave Fledgling lets you cast this spell without expending a spell slot."
+                                      : selectedSpellSupportsStepsOfTheFey &&
                                         useStepsOfTheFeyOnSelectedSpell
                                       ? selectedSpellSupportsBewitchingMagic &&
                                         useBewitchingMagicOnSelectedSpell
@@ -658,6 +668,7 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
             selectedSpellSupportsShadowMagic ||
             selectedSpellSupportsDetectThoughts ||
             selectedSpellSupportsBoonOfSpellRecall ||
+            selectedSpellSupportsBoonOfRevelry ||
             selectedSpellSupportsPsionicSorcery ||
             selectedSpellSupportsBeguilingMagic ||
             selectedSpellSupportsBlessingOfMoonlight ||
@@ -925,6 +936,27 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
                           label: "Free Casting",
                           checked: useBoonOfSpellRecallOnSelectedSpell,
                           onCheckedChange: setUseBoonOfSpellRecallOnSelectedSpell
+                        }
+                      ]
+                    : []),
+                  ...(selectedSpellSupportsBoonOfRevelry
+                    ? [
+                        {
+                          id: "boon-of-revelry",
+                          label: "Boon of Revelry",
+                          checked: useBoonOfRevelryOnSelectedSpell,
+                          onCheckedChange: setUseBoonOfRevelryOnSelectedSpell,
+                          disabled: selectedSpellBoonOfRevelryDisabled,
+                          headerTags: [
+                            createChargesHeaderTag(
+                              selectedSpellBoonOfRevelryFreeCastState?.usesRemaining ?? 0,
+                              selectedSpellBoonOfRevelryFreeCastState?.usesTotal ?? 1
+                            )
+                          ],
+                          usage: createChargesCardUsage(
+                            selectedSpellBoonOfRevelryFreeCastState?.usesRemaining ?? 0,
+                            selectedSpellBoonOfRevelryFreeCastState?.usesTotal ?? 1
+                          )
                         }
                       ]
                     : []),

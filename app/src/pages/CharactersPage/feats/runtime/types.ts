@@ -82,6 +82,11 @@ export type FeatDerivedState = {
     spellId: string;
     expended: boolean;
   }>;
+  boonOfRevelryIrresistibleDanceFreeCastEntries: Array<{
+    featEntryId: string;
+    spellId: string;
+    expended: boolean;
+  }>;
   abilityScoreBonuses: FeatureAbilityScoreBonus[];
   speedBonuses: FeatureSpeedBonus[];
   hitPointMaximumBonus: number;
@@ -103,6 +108,7 @@ export type FeatDerivedState = {
   hasBoonOfFate: boolean;
   hasBoonOfRecovery: boolean;
   hasBoonOfSpellRecall: boolean;
+  hasBoonOfTerror: boolean;
   hasLucky: boolean;
   hasMageSlayer: boolean;
   hasMagicInitiate: boolean;
@@ -123,6 +129,10 @@ export type FeatDerivedState = {
   boonOfFateImproveFateTotal: number;
   boonOfRecoveryDiceRemaining: number;
   boonOfRecoveryDiceTotal: number;
+  boonOfRecoveryLastStandRemaining: number;
+  boonOfRecoveryLastStandTotal: number;
+  boonOfTerrorFleeFoolsRemaining: number;
+  boonOfTerrorFleeFoolsTotal: number;
   mageSlayerGuardedMindRemaining: number;
   mageSlayerGuardedMindTotal: number;
   ritualCasterQuickRitualRemaining: number;

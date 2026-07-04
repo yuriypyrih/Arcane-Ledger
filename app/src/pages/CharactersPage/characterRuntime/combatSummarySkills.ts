@@ -141,7 +141,7 @@ function getSkillFormulaDisplayTerms(row: SkillRow, d20Minimum: number | null = 
   if (row.proficiencyMultiplier === 1) {
     terms.push(formatSignedFormulaTerm(row.proficiencyContribution, "Proficiency Bonus"));
   } else if (row.proficiencyMultiplier === 2) {
-    terms.push(formatSignedFormulaTerm(row.proficiencyContribution, "Proficiency Bonus x2"));
+    terms.push(formatSignedFormulaTerm(row.proficiencyContribution, "Expertise Bonus"));
   }
 
   row.bonusEntries.forEach((entry) => {

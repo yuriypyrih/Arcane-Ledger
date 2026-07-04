@@ -468,6 +468,12 @@ function CodexEntryPage() {
                 {"rarity" in entry ? <RarityPill rarity={entry.rarity} /> : null}
               </div>
               {entry.summary.trim().length > 0 ? <p>{entry.summary}</p> : null}
+              {entry.category === ENTRY_CATEGORIES.BACKGROUNDS ||
+              entry.category === ENTRY_CATEGORIES.SPECIES ? (
+                entry.description ? (
+                  <p>{entry.description}</p>
+                ) : null
+              ) : null}
 
               <div className={styles.detailsGrid}>
                 {"tags" in entry && entry.category !== ENTRY_CATEGORIES.BACKGROUNDS ? (
@@ -582,7 +588,7 @@ function CodexEntryPage() {
 
               {entry.category === ENTRY_CATEGORIES.SPECIES ? (
                 <SpellDescriptionContent
-                  description={entry.description}
+                  description={entry.rulesDescription}
                   className={featureDisclosureStyles.descriptionList}
                   entryClassName={featureDisclosureStyles.descriptionLine}
                   linkClassName={featureDisclosureStyles.inlineLinkButton}

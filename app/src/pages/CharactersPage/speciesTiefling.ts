@@ -121,7 +121,7 @@ function getTieflingEntry(species = "Tiefling"): SpeciesEntry | null {
 }
 
 function getTieflingDescriptionSection(heading: string): SpellDescriptionEntry[] {
-  const description = getTieflingEntry()?.description.filter(
+  const description = getTieflingEntry()?.rulesDescription.filter(
     (descriptionEntry): descriptionEntry is string => typeof descriptionEntry === "string"
   );
 

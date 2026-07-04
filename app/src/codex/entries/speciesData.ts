@@ -18,7 +18,7 @@ const coreSpeciesEntries: SpeciesEntry[] = [
       recommendedBodySize: BODY_SIZE.MEDIUM
     },
     summary: "",
-    description: [
+    rulesDescription: [
       "<strong>Creature Type.</strong> Humanoid.",
       "<strong>Size.</strong> Medium (about 4-7 feet tall) or Small (about 2-4 feet tall), chosen when you select this species.",
       "<strong>Speed.</strong> 30 feet.",
@@ -47,7 +47,7 @@ const coreSpeciesEntries: SpeciesEntry[] = [
       recommendedDraconicAncestry: "black"
     },
     summary: "",
-    description: [
+    rulesDescription: [
       "<strong>Creature Type.</strong> Humanoid.",
       "<strong>Size.</strong> Medium (about 5-7 feet tall).",
       "<strong>Speed.</strong> 30 feet.",
@@ -72,7 +72,7 @@ const coreSpeciesEntries: SpeciesEntry[] = [
       recommendedBodySize: BODY_SIZE.MEDIUM
     },
     summary: "",
-    description: [
+    rulesDescription: [
       "<strong>Creature Type.</strong> Humanoid.",
       "<strong>Size.</strong> Medium (about 4-5 feet tall).",
       "<strong>Speed.</strong> 30 feet.",
@@ -95,7 +95,7 @@ const coreSpeciesEntries: SpeciesEntry[] = [
       recommendedBodySize: BODY_SIZE.MEDIUM
     },
     summary: "",
-    description: [
+    rulesDescription: [
       "<strong>Creature Type.</strong> Humanoid.",
       "<strong>Size.</strong> Medium (about 5-6 feet tall).",
       "<strong>Speed.</strong> 30 feet.",
@@ -121,7 +121,7 @@ const coreSpeciesEntries: SpeciesEntry[] = [
       recommendedBodySize: BODY_SIZE.SMALL
     },
     summary: "",
-    description: [
+    rulesDescription: [
       "<strong>Creature Type.</strong> Humanoid.",
       "<strong>Size.</strong> Small (about 3-4 feet tall).",
       "<strong>Speed.</strong> 30 feet.",
@@ -145,7 +145,7 @@ const coreSpeciesEntries: SpeciesEntry[] = [
       recommendedGiantAncestry: "cloud"
     },
     summary: "",
-    description: [
+    rulesDescription: [
       "<strong>Creature Type.</strong> Humanoid.",
       "<strong>Size.</strong> Medium (about 7-8 feet tall).",
       "<strong>Speed.</strong> 35 feet.",
@@ -172,7 +172,7 @@ const coreSpeciesEntries: SpeciesEntry[] = [
       recommendedBodySize: BODY_SIZE.SMALL
     },
     summary: "",
-    description: [
+    rulesDescription: [
       "<strong>Creature Type.</strong> Humanoid.",
       "<strong>Size.</strong> Small (about 2-3 feet tall).",
       "<strong>Speed.</strong> 30 feet.",
@@ -194,7 +194,7 @@ const coreSpeciesEntries: SpeciesEntry[] = [
       recommendedBodySize: BODY_SIZE.MEDIUM
     },
     summary: "",
-    description: [
+    rulesDescription: [
       "<strong>Creature Type.</strong> Humanoid.",
       "<strong>Size.</strong> Medium (about 4-7 feet tall) or Small (about 2-4 feet tall), chosen when you select this species.",
       "<strong>Speed.</strong> 30 feet.",
@@ -215,7 +215,7 @@ const coreSpeciesEntries: SpeciesEntry[] = [
       recommendedBodySize: BODY_SIZE.MEDIUM
     },
     summary: "",
-    description: [
+    rulesDescription: [
       "<strong>Creature Type.</strong> Humanoid.",
       "<strong>Size.</strong> Medium (about 6-7 feet tall).",
       "<strong>Speed.</strong> 30 feet.",
@@ -239,7 +239,7 @@ const coreSpeciesEntries: SpeciesEntry[] = [
       recommendedTieflingSpellcastingAbility: "CHA"
     },
     summary: "",
-    description: [
+    rulesDescription: [
       "<strong>Creature Type.</strong> Humanoid.",
       "<strong>Size.</strong> Medium (about 4-7 feet tall) or Small (about 3-4 feet tall), chosen when you select this species.",
       "<strong>Speed.</strong> 30 feet.",

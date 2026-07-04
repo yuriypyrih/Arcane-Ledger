@@ -15,7 +15,7 @@ export const efaSpeciesEntries: SpeciesEntry[] = [
       recommendedBodySize: BODY_SIZE.MEDIUM
     },
     summary: "",
-    description: [
+    rulesDescription: [
       "<strong>Creature Type.</strong> Construct.",
       "<strong>Size.</strong> Medium (about 6-8 feet tall) or Small (about 3-4 feet tall), chosen when you select this species.",
       "<strong>Speed.</strong> 30 feet.",
@@ -38,7 +38,7 @@ export const efaSpeciesEntries: SpeciesEntry[] = [
       recommendedBodySize: BODY_SIZE.MEDIUM
     },
     summary: "",
-    description: [
+    rulesDescription: [
       "<strong>Creature Type.</strong> Humanoid.",
       "<strong>Size.</strong> Medium (about 4-7 feet tall) or Small (about 2-4 feet tall), chosen when you select this species.",
       "<strong>Speed.</strong> 30 feet.",
@@ -66,7 +66,7 @@ export const efaSpeciesEntries: SpeciesEntry[] = [
       recommendedBodySize: BODY_SIZE.MEDIUM
     },
     summary: "",
-    description: [
+    rulesDescription: [
       "<strong>Creature Type.</strong> Humanoid.",
       "<strong>Size.</strong> Medium (about 4-6 feet tall) or Small (about 2-4 feet tall), chosen when you select this species.",
       "<strong>Speed.</strong> 30 feet.",
@@ -91,7 +91,7 @@ export const efaSpeciesEntries: SpeciesEntry[] = [
       recommendedBodySize: BODY_SIZE.MEDIUM
     },
     summary: "",
-    description: [
+    rulesDescription: [
       "<strong>Creature Type.</strong> Aberration.",
       "<strong>Size.</strong> Medium (about 6-7 feet tall).",
       "<strong>Speed.</strong> 30 feet.",
@@ -113,7 +113,7 @@ export const efaSpeciesEntries: SpeciesEntry[] = [
       recommendedBodySize: BODY_SIZE.MEDIUM
     },
     summary: "",
-    description: [
+    rulesDescription: [
       "<strong>Creature Type.</strong> Fey.",
       "<strong>Size.</strong> Medium (about 4-7 feet tall) or Small (about 2-4 feet tall), chosen when you select this species.",
       "<strong>Speed.</strong> 30 feet.",

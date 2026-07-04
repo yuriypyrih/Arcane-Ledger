@@ -59,7 +59,7 @@ function getHexbloodDescriptionSection(
     stopBeforeHeading?: string;
   } = {}
 ): SpellDescriptionEntry[] {
-  const description = getHexbloodEntry()?.description.filter(
+  const description = getHexbloodEntry()?.rulesDescription.filter(
     (descriptionEntry): descriptionEntry is string => typeof descriptionEntry === "string"
   );
 

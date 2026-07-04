@@ -1,5 +1,11 @@
-import { FEATS, WEAPON_COMBAT_TYPE, type SpellDescriptionEntry } from "../../../../codex/entries";
 import {
+  DAMAGE_TYPE,
+  FEATS,
+  WEAPON_COMBAT_TYPE,
+  type SpellDescriptionEntry
+} from "../../../../codex/entries";
+import {
+  CONDITION_NAME,
   SENSE,
   STATUS_DURATION_KIND,
   STATUS_ENTRY_GROUP,
@@ -50,6 +56,7 @@ import {
   actorStatusSourceId,
   boonOfEnergyResistanceStatusSourceIdPrefix,
   heavyArmorMasterDamageReductionStatusSourceId,
+  boonOfPoisonMasteryAntitoxicStatusSourceIdPrefix,
   lordsAllianceAgentStatusSourceId,
   mageSlayerConcentrationBreakerStatusSourceId,
   sentinelGuardianHaltStatusSourceId,
@@ -64,6 +71,7 @@ import {
   zhentarimRuffianExploitOpeningStatusSourceId
 } from "./constants";
 import {
+  getBoonOfRevelryIrresistibleDanceSpellEntry,
   getEmeraldEnclaveFledglingSpellEntry,
   getFeatCantripEntries,
   getFeyTouchedSpellEntries,
@@ -78,6 +86,7 @@ import { transformFeatSpellEntryForEntries } from "./spellTransforms";
 import {
   filterDescriptionEntries,
   isBoonOfEnergyResistanceEnergyResistancesDescriptionEntry,
+  isBoonOfPoisonMasteryAntitoxicDescriptionEntry,
   isHeavyArmorMasterDamageReductionDescriptionEntry,
   isMageSlayerConcentrationBreakerDescriptionEntry,
   isSentinelGuardianHaltDescriptionEntry,
@@ -95,6 +104,8 @@ const feyTouchedFreeCastContributionId = "feat-fey-touched-free-cast";
 const shadowTouchedFreeCastContributionId = "feat-shadow-touched-free-cast";
 const telepathicDetectThoughtsFreeCastContributionId =
   "feat-telepathic-detect-thoughts-free-cast";
+const boonOfRevelryIrresistibleDanceFreeCastContributionId =
+  "feat-boon-of-revelry-irresistible-dance-free-cast";
 
 function normalizeFeatRuntimeLevel(value: unknown): number {
   const parsed = Number(value);
@@ -287,6 +298,23 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
             spellcastingAbility: entry.spellfireSpark.spellcastingAbility
           }
         );
+      }
+    }
+
+    if (entry.feat === FEATS.BOON_OF_REVELRY) {
+      const irresistibleDance = getBoonOfRevelryIrresistibleDanceSpellEntry(entry);
+
+      if (irresistibleDance) {
+        contribution.spellGrants!.push({
+          kind: "always-prepared-spell",
+          spell: irresistibleDance,
+          sourceLabel: getFeatLabel(entry.feat),
+          freeCast: {
+            id: boonOfRevelryIrresistibleDanceFreeCastContributionId,
+            entryId: entry.id,
+            expended: entry.boonOfRevelry?.irresistibleDanceExpended === true
+          }
+        });
       }
     }
 
@@ -936,6 +964,30 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
       });
     }
 
+    if (entry.feat === FEATS.BOON_OF_POISON_MASTERY) {
+      const description = filterDescriptionEntries(
+        getFeatDescription(FEATS.BOON_OF_POISON_MASTERY),
+        isBoonOfPoisonMasteryAntitoxicDescriptionEntry
+      );
+
+      [DAMAGE_TYPE.POISON, CONDITION_NAME.POISONED].forEach((immunity) => {
+        const sourceId = `${boonOfPoisonMasteryAntitoxicStatusSourceIdPrefix}${entry.id}-${immunity.toLowerCase()}`;
+
+        derivedStatusEntries.push({
+          id: sourceId,
+          group: STATUS_ENTRY_GROUP.IMMUNITIES,
+          value: immunity,
+          source: "Boon of Poison Mastery",
+          sourceType: STATUS_ENTRY_SOURCE_TYPE.FEAT,
+          duration: {
+            kind: STATUS_DURATION_KIND.INFINITE
+          },
+          sourceId,
+          description: description.join("\n")
+        });
+      });
+    }
+
     if (entry.feat === FEATS.SKULKER) {
       derivedStatusEntries.push({
         id: `${skulkerBlindsightStatusSourceId}-${entry.id}`,
@@ -1017,6 +1069,20 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
         recovery: "longRest" as const
       },
       {
+        id: "feat-boon-of-recovery-last-stand",
+        label: "Last Stand",
+        remaining: epicBoonResourceState.boonOfRecoveryLastStandRemaining,
+        total: epicBoonResourceState.boonOfRecoveryLastStandTotal,
+        recovery: "longRest" as const
+      },
+      {
+        id: "feat-boon-of-terror-flee-fools",
+        label: "Flee, Fools!",
+        remaining: epicBoonResourceState.boonOfTerrorFleeFoolsRemaining,
+        total: epicBoonResourceState.boonOfTerrorFleeFoolsTotal,
+        recovery: "shortRest" as const
+      },
+      {
         id: "feat-mage-slayer-guarded-mind",
         label: "Guarded Mind",
         remaining: generalResourceState.mageSlayerGuardedMindRemaining,
@@ -1043,7 +1109,7 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
         getOriginFeatActionsForCharacter(character, derivedState, getFeatDescriptionSlice),
       (character, derivedState) =>
         getGeneralFeatActionsForCharacter(character, derivedState, getFeatDescriptionSlice),
-      (_character, derivedState) =>
+      (character, derivedState) =>
         getEpicBoonFeatActionsForCharacter(derivedState, getFeatDescriptionSlice)
     ],
     reactions: [
@@ -1195,6 +1261,10 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
     compiledContributionState,
     telepathicDetectThoughtsFreeCastContributionId
   );
+  const boonOfRevelryIrresistibleDanceFreeCastEntries = projectFeatFreeCastEntries(
+    compiledContributionState,
+    boonOfRevelryIrresistibleDanceFreeCastContributionId
+  );
 
   return {
     contributions: compiledContributionState.contributions,
@@ -1216,6 +1286,7 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
     feyTouchedFreeCastEntries,
     shadowTouchedFreeCastEntries,
     telepathicDetectThoughtsFreeCastEntries: finalTelepathicDetectThoughtsFreeCastEntries,
+    boonOfRevelryIrresistibleDanceFreeCastEntries,
     abilityScoreBonuses: compiledContributionState.abilityScoreBonuses,
     speedBonuses: compiledContributionState.speedBonuses,
     hitPointMaximumBonus: compiledContributionState.hitPointMaximumBonus,
@@ -1237,6 +1308,7 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
     hasBoonOfFate: epicBoonResourceState.hasBoonOfFate,
     hasBoonOfRecovery: epicBoonResourceState.hasBoonOfRecovery,
     hasBoonOfSpellRecall: epicBoonResourceState.hasBoonOfSpellRecall,
+    hasBoonOfTerror: epicBoonResourceState.hasBoonOfTerror,
     hasLucky: originResourceState.hasLucky,
     hasMageSlayer: generalResourceState.hasMageSlayer,
     hasMagicInitiate: featSet.has(FEATS.MAGIC_INITIATE),
@@ -1263,6 +1335,12 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
     boonOfFateImproveFateTotal: epicBoonResourceState.boonOfFateImproveFateTotal,
     boonOfRecoveryDiceRemaining: epicBoonResourceState.boonOfRecoveryDiceRemaining,
     boonOfRecoveryDiceTotal: epicBoonResourceState.boonOfRecoveryDiceTotal,
+    boonOfRecoveryLastStandRemaining:
+      epicBoonResourceState.boonOfRecoveryLastStandRemaining,
+    boonOfRecoveryLastStandTotal: epicBoonResourceState.boonOfRecoveryLastStandTotal,
+    boonOfTerrorFleeFoolsRemaining:
+      epicBoonResourceState.boonOfTerrorFleeFoolsRemaining,
+    boonOfTerrorFleeFoolsTotal: epicBoonResourceState.boonOfTerrorFleeFoolsTotal,
     mageSlayerGuardedMindRemaining: generalResourceState.mageSlayerGuardedMindRemaining,
     mageSlayerGuardedMindTotal: generalResourceState.mageSlayerGuardedMindTotal,
     ritualCasterQuickRitualRemaining: generalResourceState.ritualCasterQuickRitualRemaining,

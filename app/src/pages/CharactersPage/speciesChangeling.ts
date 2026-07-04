@@ -57,7 +57,7 @@ export function isChangelingSpecies(species: string): boolean {
 }
 
 function getSpeciesDescriptionSection(entry: SpeciesEntry, heading: string): string[] {
-  const description = entry.description.filter(
+  const description = entry.rulesDescription.filter(
     (descriptionEntry): descriptionEntry is string => typeof descriptionEntry === "string"
   );
   const startIndex = description.findIndex((descriptionEntry) =>

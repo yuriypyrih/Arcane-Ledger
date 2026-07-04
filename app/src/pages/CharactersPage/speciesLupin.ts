@@ -46,7 +46,7 @@ function getLupinEntry(species = lupinName): SpeciesEntry | null {
 }
 
 function getLupinDescriptionSection(heading: string): SpellDescriptionEntry[] {
-  const description = getLupinEntry()?.description.filter(
+  const description = getLupinEntry()?.rulesDescription.filter(
     (descriptionEntry): descriptionEntry is string => typeof descriptionEntry === "string"
   );
 
@@ -124,10 +124,7 @@ function getLupinFeatureState(
   return character.speciesFeatureState?.lupin ?? {};
 }
 
-function setLupinFeatureState(
-  character: Character,
-  state: CharacterLupinFeatureState
-): Character {
+function setLupinFeatureState(character: Character, state: CharacterLupinFeatureState): Character {
   return {
     ...character,
     speciesFeatureState: {
@@ -196,8 +193,7 @@ function getLupinHowlAction(character: LupinActionCharacter): FeatureActionCard 
   const total = getLupinHowlUsesTotal(character);
   const remaining = getLupinHowlUsesRemaining(character);
   const description = getHowlDescription();
-  const disabledReason =
-    remaining <= 0 ? "Howl recharges when you finish a Long Rest." : undefined;
+  const disabledReason = remaining <= 0 ? "Howl recharges when you finish a Long Rest." : undefined;
   const facts = [getLupinHowlSaveDcFact(character)];
 
   return {

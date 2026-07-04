@@ -7,6 +7,7 @@ import {
 import { getSpellEntriesForSpellListClass } from "../../../../codex/classes/spellAccess";
 import type { CharacterFeatEntry, MagicInitiateChoice } from "../../../../types";
 import {
+  boonOfRevelryIrresistibleDanceSpellId,
   emeraldEnclaveFledglingSpeakWithAnimalsSpellId,
   feyTouchedMistyStepSpellId,
   shadowTouchedInvisibilitySpellId,
@@ -125,6 +126,16 @@ export function getSpellfireSparkSacredFlameSpellEntry(
   }
 
   return getSpellEntryById(spellfireSparkSacredFlameSpellId);
+}
+
+export function getBoonOfRevelryIrresistibleDanceSpellEntry(
+  entry: CharacterFeatEntry
+): SpellEntry | null {
+  if (entry.feat !== FEATS.BOON_OF_REVELRY) {
+    return null;
+  }
+
+  return getSpellEntryById(boonOfRevelryIrresistibleDanceSpellId);
 }
 
 export function getFeyTouchedSpellEntries(entry: CharacterFeatEntry): SpellEntry[] {

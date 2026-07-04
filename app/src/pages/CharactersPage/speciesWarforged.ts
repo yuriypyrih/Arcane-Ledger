@@ -40,7 +40,7 @@ function getWarforgedEntry(): SpeciesEntry | null {
 }
 
 function getWarforgedDescriptionSection(heading: string): SpellDescriptionEntry[] {
-  const description = getWarforgedEntry()?.description.filter(
+  const description = getWarforgedEntry()?.rulesDescription.filter(
     (descriptionEntry): descriptionEntry is string => typeof descriptionEntry === "string"
   );
 
@@ -106,23 +106,17 @@ export function normalizeWarforgedSkillProficiency(value: unknown): SkillName | 
   return typeof value === "string" && isSkillName(value) ? value : undefined;
 }
 
-export function normalizeWarforgedToolProficiency(
-  value: unknown
-): TOOL_PROFICIENCY | undefined {
+export function normalizeWarforgedToolProficiency(value: unknown): TOOL_PROFICIENCY | undefined {
   return typeof value === "string" && toolProficiencySet.has(value)
     ? (value as TOOL_PROFICIENCY)
     : undefined;
 }
 
-export function getWarforgedSkillProficiencyOptionsForSpecies(
-  species: string
-): SkillName[] {
+export function getWarforgedSkillProficiencyOptionsForSpecies(species: string): SkillName[] {
   return isWarforgedSpecies(species) ? [...ALL_SKILLS] : [];
 }
 
-export function getWarforgedToolProficiencyOptionsForSpecies(
-  species: string
-): TOOL_PROFICIENCY[] {
+export function getWarforgedToolProficiencyOptionsForSpecies(species: string): TOOL_PROFICIENCY[] {
   return isWarforgedSpecies(species) ? [...groupedToolProficiencyOptions] : [];
 }
 
@@ -133,9 +127,9 @@ export function getWarforgedSkillProficiencyForCharacter(
     return null;
   }
 
-  return normalizeWarforgedSkillProficiency(
-    character.speciesChoices?.warforgedSkillProficiency
-  ) ?? null;
+  return (
+    normalizeWarforgedSkillProficiency(character.speciesChoices?.warforgedSkillProficiency) ?? null
+  );
 }
 
 export function getWarforgedToolProficiencyForCharacter(
@@ -145,9 +139,9 @@ export function getWarforgedToolProficiencyForCharacter(
     return null;
   }
 
-  return normalizeWarforgedToolProficiency(
-    character.speciesChoices?.warforgedToolProficiency
-  ) ?? null;
+  return (
+    normalizeWarforgedToolProficiency(character.speciesChoices?.warforgedToolProficiency) ?? null
+  );
 }
 
 export function getWarforgedDerivedStatusEntriesForCharacter(

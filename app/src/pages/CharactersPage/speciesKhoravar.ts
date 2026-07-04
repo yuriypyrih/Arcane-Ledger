@@ -57,7 +57,7 @@ function getKhoravarEntry(): SpeciesEntry | null {
 }
 
 function getKhoravarDescriptionSection(heading: string): SpellDescriptionEntry[] {
-  const description = getKhoravarEntry()?.description.filter(
+  const description = getKhoravarEntry()?.rulesDescription.filter(
     (descriptionEntry): descriptionEntry is string => typeof descriptionEntry === "string"
   );
 
@@ -137,9 +137,7 @@ export function normalizeKhoravarSkillProficiency(value: unknown): SkillName | u
   return typeof value === "string" && isSkillName(value) ? value : undefined;
 }
 
-export function normalizeKhoravarToolProficiency(
-  value: unknown
-): TOOL_PROFICIENCY | undefined {
+export function normalizeKhoravarToolProficiency(value: unknown): TOOL_PROFICIENCY | undefined {
   return typeof value === "string" && toolProficiencySet.has(value)
     ? (value as TOOL_PROFICIENCY)
     : undefined;
@@ -165,9 +163,7 @@ export function getKhoravarSkillProficiencyOptionsForSpecies(species: string): S
   return isKhoravarSpecies(species) ? [...ALL_SKILLS] : [];
 }
 
-export function getKhoravarToolProficiencyOptionsForSpecies(
-  species: string
-): TOOL_PROFICIENCY[] {
+export function getKhoravarToolProficiencyOptionsForSpecies(species: string): TOOL_PROFICIENCY[] {
   return isKhoravarSpecies(species) ? [...groupedToolProficiencyOptions] : [];
 }
 
@@ -218,9 +214,9 @@ export function getKhoravarSkillProficiencyForCharacter(
     return null;
   }
 
-  return normalizeKhoravarSkillProficiency(
-    character.speciesChoices?.khoravarSkillProficiency
-  ) ?? null;
+  return (
+    normalizeKhoravarSkillProficiency(character.speciesChoices?.khoravarSkillProficiency) ?? null
+  );
 }
 
 export function getKhoravarToolProficiencyForCharacter(
@@ -230,9 +226,9 @@ export function getKhoravarToolProficiencyForCharacter(
     return null;
   }
 
-  return normalizeKhoravarToolProficiency(
-    character.speciesChoices?.khoravarToolProficiency
-  ) ?? null;
+  return (
+    normalizeKhoravarToolProficiency(character.speciesChoices?.khoravarToolProficiency) ?? null
+  );
 }
 
 export function getKhoravarProficiencyChoiceValueForCharacter(

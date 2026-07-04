@@ -10,6 +10,7 @@ type SheetDrawerProps = {
   children: ReactNode;
   backdropClassName?: string;
   drawerClassName?: string;
+  stacked?: boolean;
 };
 
 function SheetDrawer({
@@ -18,7 +19,8 @@ function SheetDrawer({
   onEscape,
   children,
   backdropClassName,
-  drawerClassName
+  drawerClassName,
+  stacked = false
 }: SheetDrawerProps) {
   const { onBackdropClick, onBackdropPointerDown, onContentClick } = useDismissableOverlay({
     isOpen: true,
@@ -32,7 +34,13 @@ function SheetDrawer({
 
   return createPortal(
     <div
-      className={[styles.drawerBackdrop, backdropClassName ?? ""].join(" ").trim()}
+      className={[
+        styles.drawerBackdrop,
+        stacked ? styles.drawerBackdropStacked : "",
+        backdropClassName ?? ""
+      ]
+        .join(" ")
+        .trim()}
       role="presentation"
       onClick={onBackdropClick}
       onPointerDown={onBackdropPointerDown}
