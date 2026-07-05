@@ -1,0 +1,70 @@
+.workspace {
+  display: grid;
+  align-items: start;
+  gap: var(--space-section-gap);
+  grid-template-areas:
+    "party tracker"
+    "notes encounters";
+  grid-template-columns:
+    minmax(17rem, 0.82fr)
+    minmax(0, 1.48fr);
+}
+
+.partyPanel,
+.trackerPanel,
+.encountersPanel,
+.notesPanel {
+  min-width: 0;
+}
+
+.partyPanel {
+  grid-area: party;
+}
+
+.trackerPanel {
+  grid-area: tracker;
+}
+
+.partyPanel,
+.trackerPanel {
+  height: 100%;
+}
+
+.encountersPanel {
+  grid-area: encounters;
+}
+
+.notesPanel {
+  align-content: start;
+  grid-area: notes;
+}
+
+.encountersList {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.notesList {
+  max-height: min(58rem, calc(100vh - 18rem));
+}
+
+@media (min-width: 1200px) {
+  .notesPanel {
+    position: sticky;
+    top: var(--space-section-gap);
+  }
+}
+
+@media (max-width: 859px) {
+  .workspace {
+    grid-template-areas:
+      "party"
+      "tracker"
+      "encounters"
+      "notes";
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .notesList {
+    max-height: 400px;
+  }
+}

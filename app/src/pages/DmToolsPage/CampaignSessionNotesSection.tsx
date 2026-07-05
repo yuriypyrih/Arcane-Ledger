@@ -19,7 +19,9 @@ import DmToolsListCard from "./DmToolsListCard";
 import styles from "./DmToolsPage.module.css";
 
 type CampaignSessionNotesSectionProps = {
+  className?: string;
   campaign: CampaignDetailRecord;
+  listClassName?: string;
 };
 
 function getDeleteSessionNoteMessage(note: CampaignSessionNoteRecord): ReactNode {
@@ -30,7 +32,11 @@ function getDeleteSessionNoteMessage(note: CampaignSessionNoteRecord): ReactNode
   );
 }
 
-function CampaignSessionNotesSection({ campaign }: CampaignSessionNotesSectionProps) {
+function CampaignSessionNotesSection({
+  className,
+  campaign,
+  listClassName
+}: CampaignSessionNotesSectionProps) {
   const deleteTitleId = useId();
   const dispatch = useAppDispatch();
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
@@ -97,37 +103,44 @@ function CampaignSessionNotesSection({ campaign }: CampaignSessionNotesSectionPr
   }
 
   return (
-    <section className={styles.membersPanel} aria-labelledby="campaign-session-notes-title">
+    <section
+      className={[styles.membersPanel, className].filter(Boolean).join(" ")}
+      aria-labelledby="campaign-session-notes-title"
+    >
       <div className={styles.memberPanelHeader}>
         <div>
           <h3 id="campaign-session-notes-title" className={styles.bodyTitle}>
             Session Notes
           </h3>
         </div>
-        <span className={styles.memberCount}>
-          {campaign.sessionNotes.length}/{CAMPAIGN_MAX_SESSION_NOTES} notes
-        </span>
-      </div>
-
-      <div className={styles.panelActionsRow}>
-        <ActionButton
-          icon={<Plus size={16} aria-hidden="true" />}
-          disabled={isAtSessionNoteLimit}
-          fullWidth={false}
-          title={isAtSessionNoteLimit ? sessionNoteLimitMessage : undefined}
-          onClick={() => {
-            setActionError(null);
-            setIsCreatingNote(true);
-          }}
-        >
-          Add Note
-        </ActionButton>
+        <div className={styles.headerActions}>
+          <span className={styles.memberCount}>
+            {campaign.sessionNotes.length}/{CAMPAIGN_MAX_SESSION_NOTES} notes
+          </span>
+          <ActionButton
+            icon={<Plus size={16} aria-hidden="true" />}
+            disabled={isAtSessionNoteLimit}
+            fullWidth={false}
+            size="sm"
+            title={isAtSessionNoteLimit ? sessionNoteLimitMessage : undefined}
+            onClick={() => {
+              setActionError(null);
+              setIsCreatingNote(true);
+            }}
+          >
+            Add Note
+          </ActionButton>
+        </div>
       </div>
 
       {actionError ? <p className={styles.modalError}>{actionError}</p> : null}
 
       {campaign.sessionNotes.length > 0 ? (
-        <div className={`${styles.dmToolsList} ${styles.sessionNotesList}`}>
+        <div
+          className={[styles.dmToolsList, styles.sessionNotesList, listClassName]
+            .filter(Boolean)
+            .join(" ")}
+        >
           {campaign.sessionNotes.map((note, index) => (
             <DmToolsListCard
               key={note.id}

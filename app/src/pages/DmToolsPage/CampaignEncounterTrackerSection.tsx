@@ -13,9 +13,13 @@ import styles from "./DmToolsPage.module.css";
 
 type CampaignEncounterTrackerSectionProps = {
   campaign: CampaignDetailRecord;
+  className?: string;
 };
 
-function CampaignEncounterTrackerSection({ campaign }: CampaignEncounterTrackerSectionProps) {
+function CampaignEncounterTrackerSection({
+  campaign,
+  className
+}: CampaignEncounterTrackerSectionProps) {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [isRemovingTracker, setIsRemovingTracker] = useState(false);
@@ -48,7 +52,9 @@ function CampaignEncounterTrackerSection({ campaign }: CampaignEncounterTrackerS
 
   return (
     <section
-      className={`${styles.membersPanel} ${styles.campaignDetailSummaryPanel}`}
+      className={[styles.membersPanel, styles.campaignDetailSummaryPanel, className]
+        .filter(Boolean)
+        .join(" ")}
       aria-labelledby="campaign-encounter-tracker-title"
     >
       <div className={styles.memberPanelHeader}>

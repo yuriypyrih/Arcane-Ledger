@@ -22,7 +22,9 @@ import DmToolsListCard from "./DmToolsListCard";
 import styles from "./DmToolsPage.module.css";
 
 type CampaignPreparedEncountersSectionProps = {
+  className?: string;
   campaign: CampaignDetailRecord;
+  listClassName?: string;
   onStartEncounter: (encounter: CampaignPreparedEncounterRecord) => Promise<void>;
 };
 
@@ -35,7 +37,9 @@ function getDeletePreparedEncounterMessage(encounter: CampaignPreparedEncounterR
 }
 
 function CampaignPreparedEncountersSection({
+  className,
   campaign,
+  listClassName,
   onStartEncounter
 }: CampaignPreparedEncountersSectionProps) {
   const deleteEncounterTitleId = useId();
@@ -109,50 +113,54 @@ function CampaignPreparedEncountersSection({
   }
 
   return (
-    <section className={styles.membersPanel} aria-labelledby="campaign-prepared-encounters-title">
+    <section
+      className={[styles.membersPanel, className].filter(Boolean).join(" ")}
+      aria-labelledby="campaign-prepared-encounters-title"
+    >
       <div className={styles.memberPanelHeader}>
         <div>
           <h3 id="campaign-prepared-encounters-title" className={styles.bodyTitle}>
             Prepared Encounters
           </h3>
         </div>
-        <span className={styles.memberCount}>
-          {campaign.preparedEncounters.length}/{CAMPAIGN_MAX_PREPARED_ENCOUNTERS} encounters
-        </span>
-      </div>
-
-      <div className={styles.panelActionsRow}>
-        <ActionButton
-          icon={<Plus size={16} aria-hidden="true" />}
-          disabled={isAtPreparedEncounterLimit}
-          fullWidth={false}
-          title={isAtPreparedEncounterLimit ? preparedEncounterLimitMessage : undefined}
-          onClick={() => {
-            setActionError(null);
-            setIsCreateModalOpen(true);
-          }}
-        >
-          Create Encounter
-        </ActionButton>
-        <ActionButton
-          icon={<Download size={16} aria-hidden="true" />}
-          variant="OUTLINE"
-          disabled={isAtPreparedEncounterLimit}
-          fullWidth={false}
-          title={isAtPreparedEncounterLimit ? preparedEncounterLimitMessage : undefined}
-          onClick={() => {
-            setActionError(null);
-            setIsCopyModalOpen(true);
-          }}
-        >
-          Import Template
-        </ActionButton>
+        <div className={styles.headerActions}>
+          <span className={styles.memberCount}>
+            {campaign.preparedEncounters.length}/{CAMPAIGN_MAX_PREPARED_ENCOUNTERS} encounters
+          </span>
+          <ActionButton
+            icon={<Plus size={16} aria-hidden="true" />}
+            disabled={isAtPreparedEncounterLimit}
+            fullWidth={false}
+            size="sm"
+            title={isAtPreparedEncounterLimit ? preparedEncounterLimitMessage : undefined}
+            onClick={() => {
+              setActionError(null);
+              setIsCreateModalOpen(true);
+            }}
+          >
+            Create Encounter
+          </ActionButton>
+          <ActionButton
+            icon={<Download size={16} aria-hidden="true" />}
+            variant="OUTLINE"
+            disabled={isAtPreparedEncounterLimit}
+            fullWidth={false}
+            size="sm"
+            title={isAtPreparedEncounterLimit ? preparedEncounterLimitMessage : undefined}
+            onClick={() => {
+              setActionError(null);
+              setIsCopyModalOpen(true);
+            }}
+          >
+            Import Template
+          </ActionButton>
+        </div>
       </div>
 
       {actionError ? <p className={styles.modalError}>{actionError}</p> : null}
 
       {campaign.preparedEncounters.length > 0 ? (
-        <div className={styles.dmToolsList}>
+        <div className={[styles.dmToolsList, listClassName].filter(Boolean).join(" ")}>
           {campaign.preparedEncounters.map((encounter) => (
             <DmToolsListCard
               key={encounter.id}

@@ -12,9 +12,10 @@ import styles from "./DmToolsPage.module.css";
 
 type CampaignSelectedPartySectionProps = {
   campaign: CampaignDetailRecord;
+  className?: string;
 };
 
-function CampaignSelectedPartySection({ campaign }: CampaignSelectedPartySectionProps) {
+function CampaignSelectedPartySection({ campaign, className }: CampaignSelectedPartySectionProps) {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const [isPickerOpen, setIsPickerOpen] = useState(false);
@@ -44,7 +45,9 @@ function CampaignSelectedPartySection({ campaign }: CampaignSelectedPartySection
 
   return (
     <section
-      className={`${styles.membersPanel} ${styles.campaignDetailSummaryPanel}`}
+      className={[styles.membersPanel, styles.campaignDetailSummaryPanel, className]
+        .filter(Boolean)
+        .join(" ")}
       aria-labelledby="campaign-party-title"
     >
       <div className={styles.memberPanelHeader}>

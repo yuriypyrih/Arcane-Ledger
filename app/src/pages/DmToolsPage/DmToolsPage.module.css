@@ -608,28 +608,6 @@
   padding: 0.36rem 0.56rem;
 }
 
-.campaignDetailLayout {
-  display: grid;
-  align-items: start;
-  gap: var(--space-section-gap);
-  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
-}
-
-.campaignDetailColumn {
-  display: grid;
-  align-content: start;
-  gap: var(--space-section-gap);
-  min-width: 0;
-}
-
-.panelActionsRow {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 0.55rem;
-  margin-top: -0.3rem;
-}
-
 .inlineIconButtonGlyph {
   display: inline-grid;
   place-items: center;
@@ -1127,6 +1105,7 @@ button.dmToolsListCardMain:disabled {
 .selectedPartyEmptyRow {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   justify-content: flex-start;
   gap: 1rem;
 }
@@ -1237,6 +1216,7 @@ button.dmToolsListCardMain:disabled {
 .memberPanelHeader {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 1rem;
 }
@@ -1478,7 +1458,6 @@ button.dmToolsListCardMain:disabled {
 }
 
 @media (max-width: 599px) {
-  .campaignDetailLayout,
   .liveTrackerLayout {
     grid-template-columns: 1fr;
   }
@@ -1499,11 +1478,6 @@ button.dmToolsListCardMain:disabled {
 
   .headerActions {
     justify-content: flex-start;
-  }
-
-  .panelActionsRow {
-    justify-content: flex-start;
-    margin-top: 0;
   }
 
   .modalFooterActions {

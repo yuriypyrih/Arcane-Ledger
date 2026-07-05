@@ -24,6 +24,7 @@ import CampaignPreparedEncountersSection from "./CampaignPreparedEncountersSecti
 import CampaignSelectedPartySection from "./CampaignSelectedPartySection";
 import CampaignSessionNotesSection from "./CampaignSessionNotesSection";
 import CampaignVisibilitySettingsButton from "./CampaignVisibilitySettingsSection";
+import detailStyles from "./CampaignDetailPage.module.css";
 import { getDmToolsApiErrorMessage } from "./dmToolsApiErrors";
 import EditCampaignModal from "./EditCampaignModal";
 import styles from "./DmToolsPage.module.css";
@@ -127,18 +128,29 @@ function CampaignDetailPage() {
           <p className={styles.modalError}>{error}</p>
         ) : campaign ? (
           <>
-            <div className={styles.campaignDetailLayout}>
-              <div className={styles.campaignDetailColumn}>
-                <CampaignSelectedPartySection campaign={campaign} />
-                <CampaignSessionNotesSection campaign={campaign} />
-              </div>
-              <div className={styles.campaignDetailColumn}>
-                <CampaignEncounterTrackerSection campaign={campaign} />
-                <CampaignPreparedEncountersSection
-                  campaign={campaign}
-                  onStartEncounter={handleStartEncounter}
-                />
-              </div>
+            <div className={detailStyles.workspace}>
+              <CampaignSelectedPartySection
+                campaign={campaign}
+                className={detailStyles.partyPanel}
+              />
+
+              <CampaignEncounterTrackerSection
+                campaign={campaign}
+                className={detailStyles.trackerPanel}
+              />
+
+              <CampaignPreparedEncountersSection
+                campaign={campaign}
+                className={detailStyles.encountersPanel}
+                listClassName={detailStyles.encountersList}
+                onStartEncounter={handleStartEncounter}
+              />
+
+              <CampaignSessionNotesSection
+                campaign={campaign}
+                className={detailStyles.notesPanel}
+                listClassName={detailStyles.notesList}
+              />
             </div>
 
             {isEditModalOpen ? (
