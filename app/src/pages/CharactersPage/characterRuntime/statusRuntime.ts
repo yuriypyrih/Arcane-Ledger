@@ -244,11 +244,7 @@ function createStatusRuntime(character: Character): CharacterStatusRuntime {
         character.classRules
       ),
       ...featAlwaysPreparedSpellEntries.map((spell) => spell.id),
-      ...getSpeciesAlwaysPreparedSpellIdsForCharacter({
-        species: character.species,
-        level: character.level,
-        speciesChoices: character.speciesChoices
-      })
+      ...getSpeciesAlwaysPreparedSpellIdsForCharacter(character)
     ])
   ];
   const alwaysPreparedSpellEntries = alwaysPreparedSpellIds

@@ -7,8 +7,10 @@ import CellContainer from "../../../../../../components/CellContainer/CellContai
 import ConcentrationLabel from "../../../../../../components/ConcentrationLabel";
 import DescriptionContent from "../../../../../../components/DescriptionContent/DescriptionContent";
 import KeywordReferenceDrawer from "../../../../../../components/KeywordReferenceDrawer/KeywordReferenceDrawer";
-import CodexDivinityDrawer from "../../../../../CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
-import CodexSpellDrawer from "../../../../../CodexPage/CodexSpellDrawer/CodexSpellDrawer";
+import {
+  LazyCodexDivinityDrawer as CodexDivinityDrawer,
+  LazyCodexSpellDrawer as CodexSpellDrawer
+} from "../../../../../CodexPage/LazyCodexReferenceDrawers";
 import {
   OverlayBody,
   OverlayCloseButton,

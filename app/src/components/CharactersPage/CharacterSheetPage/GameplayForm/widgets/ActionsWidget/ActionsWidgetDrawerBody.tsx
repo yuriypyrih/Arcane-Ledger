@@ -297,7 +297,9 @@ import {
 import { ArcaneWardActionFooter } from "./ArcaneWardActionFooter";
 import { BardicInspirationActionFooter } from "./BardicInspirationActionFooter";
 import { BeastMasterReviveActionFooter } from "./BeastMasterReviveActionFooter";
-import CodexDivinityDrawer from "../../../../../CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
+import {
+  LazyCodexDivinityDrawer as CodexDivinityDrawer
+} from "../../../../../CodexPage/LazyCodexReferenceDrawers";
 import BlessingOfTheTricksterActionBody from "./BlessingOfTheTricksterActionBody";
 import { ClericPreserveLifeActionBody } from "./ClericPreserveLifeAction";
 import DiceRollerSettingsButton from "../DiceRollerSettingsButton";

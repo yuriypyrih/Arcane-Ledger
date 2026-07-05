@@ -613,38 +613,6 @@ export const dominateBeast: SpellEntry = {
   spellLevel: 4
 };
 
-export const egoWhip: SpellEntry = {
-  id: "spell-ego-whip",
-  name: "Ego Whip",
-  category: ENTRY_CATEGORIES.SPELLS,
-  source: {
-    documentKey: "legacy-local",
-    documentName: "Legacy / Expanded Local",
-    ruleset: "legacy-local"
-  },
-  trackingState: TRACKER.SEMI_TRACKED,
-  trackingMessage: spellDurationOnlyTrackingMessage,
-  magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
-  castingTime: [ACTION_TYPE.ACTION],
-  range: "30 feet",
-  components: [SPELL_COMPONENT.V],
-  duration: [DURATION.CONCENTRATION, "up to 1 minute"],
-  description: [
-    "You lash the mind of one creature you can see within range, filling it with despair. The target must succeed on an Intelligence saving throw or suffer Disadvantage on attack rolls, ability checks, and saving throws, and it can't cast spells. At the end of each of its turns, the target can make another Intelligence saving throw. On a success, the spell ends on the target."
-  ],
-  isSavingThrowSpell: true,
-  savingThrowAbility: ABILITY_TYPES.INT,
-  damage: [],
-  healing: [],
-  spellLists: [
-    SPELL_LIST_CLASS.BARD,
-    SPELL_LIST_CLASS.SORCERER,
-    SPELL_LIST_CLASS.WARLOCK,
-    SPELL_LIST_CLASS.WIZARD
-  ],
-  spellLevel: 4
-};
-
 export const elementalBane: SpellEntry = {
   id: "spell-elemental-bane",
   name: "Elemental Bane",
@@ -1968,7 +1936,6 @@ export const spellEntries4: SpellEntry[] = [
   dimensionDoor,
   divination,
   dominateBeast,
-  egoWhip,
   elementalBane,
   fabricate,
   faithfulHound,

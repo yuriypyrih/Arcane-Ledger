@@ -57,17 +57,6 @@ function SpellSlotActionSheet({
           disabled: expendedSlots <= 0,
           ariaLabel: `Reset all level ${slotLevel} spell slots`
         },
-        ...(onIncreaseMaximum
-          ? [
-              {
-                label: "Max +1",
-                onClick: onIncreaseMaximum,
-                disabled: isMaximumSlotLimitReached,
-                keepOpen: true,
-                ariaLabel: `Increase maximum level ${slotLevel} spell slots by 1`
-              }
-            ]
-          : []),
         ...(onDecreaseMaximum
           ? [
               {
@@ -76,6 +65,17 @@ function SpellSlotActionSheet({
                 disabled: totalSlots <= 0,
                 keepOpen: true,
                 ariaLabel: `Decrease maximum level ${slotLevel} spell slots by 1`
+              }
+            ]
+          : []),
+        ...(onIncreaseMaximum
+          ? [
+              {
+                label: "Max +1",
+                onClick: onIncreaseMaximum,
+                disabled: isMaximumSlotLimitReached,
+                keepOpen: true,
+                ariaLabel: `Increase maximum level ${slotLevel} spell slots by 1`
               }
             ]
           : [])

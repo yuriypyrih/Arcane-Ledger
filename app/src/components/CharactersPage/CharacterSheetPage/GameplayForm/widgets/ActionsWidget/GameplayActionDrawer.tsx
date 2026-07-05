@@ -7,9 +7,11 @@ import type {
 } from "../../../../../../codex/entries";
 import DescriptionContent from "../../../../../DescriptionContent/DescriptionContent";
 import KeywordReferenceDrawer from "../../../../../KeywordReferenceDrawer/KeywordReferenceDrawer";
-import CodexDivinityDrawer from "../../../../../CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
-import CodexFeatDrawer from "../../../../../CodexPage/CodexFeatDrawer/CodexFeatDrawer";
-import CodexSpellDrawer from "../../../../../CodexPage/CodexSpellDrawer/CodexSpellDrawer";
+import {
+  LazyCodexDivinityDrawer as CodexDivinityDrawer,
+  LazyCodexFeatDrawer as CodexFeatDrawer,
+  LazyCodexSpellDrawer as CodexSpellDrawer
+} from "../../../../../CodexPage/LazyCodexReferenceDrawers";
 import {
   OverlayBody,
   OverlayCloseButton,

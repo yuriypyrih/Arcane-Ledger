@@ -8,8 +8,10 @@ import {
 import type { WarlockEldritchInvocationOption } from "../../../../pages/CharactersPage/classFeatures/warlock/warlock";
 import { getFeatDefinition } from "../../../../pages/CharactersPage/feats";
 import DescriptionContent from "../../../DescriptionContent/DescriptionContent";
-import CodexDivinityDrawer from "../../../CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
-import CodexSpellDrawer from "../../../CodexPage/CodexSpellDrawer/CodexSpellDrawer";
+import {
+  LazyCodexDivinityDrawer as CodexDivinityDrawer,
+  LazyCodexSpellDrawer as CodexSpellDrawer
+} from "../../../CodexPage/LazyCodexReferenceDrawers";
 import { FeatureTrackingBadgeButton } from "../../../FeatureDisclosure";
 import KeywordReferenceDrawer from "../../../KeywordReferenceDrawer/KeywordReferenceDrawer";
 import {

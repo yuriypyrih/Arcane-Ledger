@@ -45,6 +45,7 @@ import {
   applyFeatureSpellCastEffects,
   compileFeatureContributions,
   getFeatureDescriptionAdditions,
+  type CompiledFeatureContributionState,
   type FeatureContributionSpec,
   type FeatureDescriptionContributionTarget,
   type FeatureSpellActionPathContribution,
@@ -1937,11 +1938,30 @@ function getAasimarFeatureContributionsForCharacter(
   ];
 }
 
-function collectSpeciesContributionState(character: SpeciesContributionCharacter) {
-  return compileFeatureContributions([
+type CompiledSpeciesContributionState = CompiledFeatureContributionState;
+
+const speciesContributionStateCache = new WeakMap<
+  SpeciesContributionCharacter,
+  CompiledSpeciesContributionState
+>();
+
+function collectSpeciesContributionState(
+  character: SpeciesContributionCharacter
+): CompiledSpeciesContributionState {
+  const cachedState = speciesContributionStateCache.get(character);
+
+  if (cachedState) {
+    return cachedState;
+  }
+
+  const compiledState = compileFeatureContributions([
     ...getAasimarFeatureContributionsForCharacter(character),
     ...getSpeciesFeatureContributionsForCharacter(character)
   ]);
+
+  speciesContributionStateCache.set(character, compiledState);
+
+  return compiledState;
 }
 
 export function getSpeciesActionsForCharacter(character: Character): FeatureActionCard[] {

@@ -71,8 +71,10 @@ import {
 } from "../../../../pages/CharactersPage/customOrigins";
 import { hasBuiltInSpellcastingForCharacter } from "../../../../pages/CharactersPage/spellcasting";
 import { resolveKeywordReference } from "../../../../utils/codex/renderCodexRichText";
-import CodexDivinityDrawer from "../../../CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
-import CodexSpellDrawer from "../../../CodexPage/CodexSpellDrawer";
+import {
+  LazyCodexDivinityDrawer as CodexDivinityDrawer,
+  LazyCodexSpellDrawer as CodexSpellDrawer
+} from "../../../CodexPage/LazyCodexReferenceDrawers";
 import { FeatureTrackingBadgeButton } from "../../../FeatureDisclosure";
 import KeywordReferenceDrawer from "../../../KeywordReferenceDrawer/KeywordReferenceDrawer";
 import SelectInput from "../../FormInputs/SelectInput";

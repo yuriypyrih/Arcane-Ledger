@@ -47,6 +47,7 @@ import {
   getSpeciesSkillIndicatorsForCharacter,
   transformSpeciesWeaponActionForCharacter
 } from "../species";
+import type { SpeciesContributionCharacter } from "../speciesContributions";
 import { measureCharacterRuntime } from "../characterRuntime/performance";
 import {
   activateBardicInspiration,
@@ -836,11 +837,7 @@ export function getSavingThrowIndicatorsForCharacter(
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
   const customEffectInput = getCharacterCustomTraitEffectInput(character);
   const speciesSavingThrowIndicators = character.species
-    ? getSpeciesSavingThrowIndicatorsForCharacter({
-        species: character.species,
-        speciesChoices: character.speciesChoices,
-        statusEntries: character.statusEntries
-      })
+    ? getSpeciesSavingThrowIndicatorsForCharacter(character as SpeciesContributionCharacter)
     : {};
 
   return mergeIndicatorMaps(
@@ -870,11 +867,7 @@ export function getAbilityCheckIndicatorsForCharacter(
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
   const customEffectInput = getCharacterCustomTraitEffectInput(character);
   const speciesAbilityCheckIndicators = character.species
-    ? getSpeciesAbilityCheckIndicatorsForCharacter({
-        species: character.species,
-        speciesChoices: character.speciesChoices,
-        statusEntries: character.statusEntries
-      })
+    ? getSpeciesAbilityCheckIndicatorsForCharacter(character as SpeciesContributionCharacter)
     : {};
 
   return mergeIndicatorMaps(
@@ -939,11 +932,7 @@ export function getSkillIndicatorsForCharacter(
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
   const customEffectInput = getCharacterCustomTraitEffectInput(character);
   const speciesSkillIndicators = character.species
-    ? getSpeciesSkillIndicatorsForCharacter({
-        species: character.species,
-        speciesChoices: character.speciesChoices,
-        statusEntries: character.statusEntries
-      })
+    ? getSpeciesSkillIndicatorsForCharacter(character as SpeciesContributionCharacter)
     : {};
 
   return mergeIndicatorMaps(
@@ -993,11 +982,7 @@ export function getSavingThrowReferenceDescriptionAdditionsForCharacter(
   if (character.species) {
     descriptionAdditions.push(
       ...getSpeciesDescriptionAdditionsForCharacter(
-        {
-          species: character.species,
-          speciesChoices: character.speciesChoices,
-          statusEntries: character.statusEntries
-        },
+        character as SpeciesContributionCharacter,
         "stat",
         `savingThrow:${ability}`
       )

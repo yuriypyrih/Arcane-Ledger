@@ -1,9 +1,11 @@
 import { ArrowLeft } from "lucide-react";
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import CodexDivinityDrawer from "../../components/CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
-import CodexFeatDrawer from "../../components/CodexPage/CodexFeatDrawer/CodexFeatDrawer";
-import CodexSpellDrawer from "../../components/CodexPage/CodexSpellDrawer/CodexSpellDrawer";
+import {
+  LazyCodexDivinityDrawer as CodexDivinityDrawer,
+  LazyCodexFeatDrawer as CodexFeatDrawer,
+  LazyCodexSpellDrawer as CodexSpellDrawer
+} from "../../components/CodexPage/LazyCodexReferenceDrawers";
 import ClassProgressionTable from "../../components/CodexPage/ClassProgressionTable";
 import CellContainer from "../../components/CellContainer/CellContainer";
 import { getClassSignatureStyle } from "../../components/CharactersPage/classSignature";

@@ -7,7 +7,9 @@ import FeatCodexList from "../../components/CodexPage/FeatCodexList";
 import ItemCodexTable from "../../components/CodexPage/ItemCodexTable";
 import { sanitizeItemBrowserScopedFilters } from "../../components/ItemBrowser/itemBrowser";
 import MonsterCodexTable from "../../components/CodexPage/MonsterCodexTable";
-import CodexSpellDrawer from "../../components/CodexPage/CodexSpellDrawer";
+import {
+  LazyCodexSpellDrawer as CodexSpellDrawer
+} from "../../components/CodexPage/LazyCodexReferenceDrawers";
 import { trackAnalyticsEvent } from "../../lib/analytics";
 import { MONSTER_SOURCE_OPTIONS, MONSTER_TYPE_OPTIONS } from "../../constants/monsters";
 import {
