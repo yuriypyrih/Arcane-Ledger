@@ -23,6 +23,8 @@ import {
 import { MonsterEntryDrawer } from "../../../MonsterEntryRenderer";
 import SearchField from "../../../SearchField";
 import SegmentedToggle from "../../../SegmentedToggle";
+import Checkbox from "../../FormInputs/Checkbox";
+import SelectInput from "../../FormInputs/SelectInput";
 import { getDruidWildShapeRulesForCharacter } from "../../../../pages/CharactersPage/classFeatures";
 import { useMonsterEntries } from "../../../../pages/CodexPage/useMonsterEntries";
 import { useAppSelector } from "../../../../store";
@@ -71,7 +73,11 @@ function isQualifiedWildShapeMonster(
   const typeLabel = monster.typeKey ?? monster.typeName ?? "";
   const challengeRating = getMonsterChallengeRatingNumber(monster);
 
-  return typeLabel.trim().toLowerCase() === "beast" && challengeRating !== null && challengeRating <= maxCr;
+  return (
+    typeLabel.trim().toLowerCase() === "beast" &&
+    challengeRating !== null &&
+    challengeRating <= maxCr
+  );
 }
 
 function DruidWildShapeMonsterModal({
@@ -95,8 +101,7 @@ function DruidWildShapeMonsterModal({
   );
   const [monsterOrdering, setMonsterOrdering] = useState<MonsterOrdering>("cr");
   const [monsterSourceMode, setMonsterSourceMode] = useState<"standard" | "custom">("standard");
-  const [customBestiaryScope, setCustomBestiaryScope] =
-    useState<CustomBestiaryListScope>("mine");
+  const [customBestiaryScope, setCustomBestiaryScope] = useState<CustomBestiaryListScope>("mine");
   const [customBestiaryRecords, setCustomBestiaryRecords] = useState<CustomBestiaryRecord[]>([]);
   const [customBestiaryStatus, setCustomBestiaryStatus] = useState<CodexStatus>("ready");
   const [onlyValidBeasts, setOnlyValidBeasts] = useState(true);
@@ -142,16 +147,23 @@ function DruidWildShapeMonsterModal({
     return sortCustomBestiaryRecords(filteredRecords, monsterOrdering).map(
       customBestiaryRecordToListItem
     );
-  }, [customBestiaryRecords, monsterOrdering, monsterTypeFilter, onlyValidBeasts, query, rules?.maxCr]);
+  }, [
+    customBestiaryRecords,
+    monsterOrdering,
+    monsterTypeFilter,
+    onlyValidBeasts,
+    query,
+    rules?.maxCr
+  ]);
   const customBestiaryPageItems = useMemo(() => {
     const startIndex = (currentPage - 1) * MONSTERS_PER_PAGE;
 
     return customBestiaryItems.slice(startIndex, startIndex + MONSTERS_PER_PAGE);
   }, [currentPage, customBestiaryItems]);
-  const browserMonsters = isCustomBestiaryMode
-    ? customBestiaryPageItems
-    : (payload?.results ?? []);
-  const browserTotalEntries = isCustomBestiaryMode ? customBestiaryItems.length : (payload?.count ?? 0);
+  const browserMonsters = isCustomBestiaryMode ? customBestiaryPageItems : (payload?.results ?? []);
+  const browserTotalEntries = isCustomBestiaryMode
+    ? customBestiaryItems.length
+    : (payload?.count ?? 0);
   const browserStatus = isCustomBestiaryMode ? customBestiaryStatus : status;
   const totalPages = Math.max(1, Math.ceil(browserTotalEntries / MONSTERS_PER_PAGE));
   const selectedMonsterKeySet = useMemo(
@@ -475,7 +487,7 @@ function DruidWildShapeMonsterModal({
 
             <label className={styles.field}>
               <span>Type</span>
-              <select
+              <SelectInput
                 className={styles.select}
                 value={monsterTypeFilter ?? "ALL"}
                 disabled={onlyValidBeasts}
@@ -491,12 +503,12 @@ function DruidWildShapeMonsterModal({
                     {monsterType}
                   </option>
                 ))}
-              </select>
+              </SelectInput>
             </label>
 
             <label className={styles.field}>
               <span>Source</span>
-              <select
+              <SelectInput
                 className={styles.select}
                 value={monsterSourceFilter ?? "ALL"}
                 disabled={onlyValidBeasts || isCustomBestiaryMode}
@@ -512,17 +524,17 @@ function DruidWildShapeMonsterModal({
                     {monsterSource}
                   </option>
                 ))}
-              </select>
+              </SelectInput>
             </label>
 
             <label className={`${styles.field} ${styles.checkboxField}`}>
               <span>Filter</span>
               <span className={styles.checkboxLabel}>
-                <input
-                  type="checkbox"
-                  className={styles.checkbox}
+                <Checkbox
+                  rootAs="span"
+                  markerClassName={styles.checkbox}
                   checked={onlyValidBeasts}
-                  onChange={(event) => setOnlyValidBeasts(event.target.checked)}
+                  onCheckedChange={setOnlyValidBeasts}
                 />
                 <span>Only valid beasts</span>
               </span>

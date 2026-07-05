@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import type { CSSProperties, ReactNode } from "react";
+import Checkbox from "../../FormInputs/Checkbox";
 import styles from "./RadioContainerOption.module.css";
 
 export type RadioContainerOptionProps = {
@@ -55,14 +56,24 @@ function RadioContainerOption({
         </div>
       ) : null}
       <div className={styles.label}>
-        <input
-          type={indicatorType}
-          name={name}
-          checked={selected}
-          disabled={disabled}
-          onChange={onSelect}
-          className={styles.input}
-        />
+        {indicatorType === "checkbox" ? (
+          <Checkbox
+            rootAs="span"
+            checked={selected}
+            disabled={disabled}
+            onCheckedChange={onSelect}
+            className={styles.checkboxIndicator}
+          />
+        ) : (
+          <input
+            type="radio"
+            name={name}
+            checked={selected}
+            disabled={disabled}
+            onChange={onSelect}
+            className={styles.input}
+          />
+        )}
         <div className={styles.content}>
           <div className={styles.headerLine}>
             <div className={styles.header}>{header}</div>

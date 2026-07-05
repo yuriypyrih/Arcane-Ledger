@@ -27,6 +27,7 @@ export type CustomSpellInput = {
   ritual?: boolean;
   spellLevel: number;
   spellLists: string[];
+  summoningSpell?: boolean;
 };
 
 export type CustomSpellListEnvelope = {

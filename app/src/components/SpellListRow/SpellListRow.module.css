@@ -152,13 +152,8 @@
 }
 
 .selectableCheckbox {
-  accent-color: #2f78ff;
   margin: 0;
   pointer-events: none;
-}
-
-:global(html[data-theme="dark"]) .selectableCheckbox {
-  accent-color: var(--theme-accent);
 }
 
 .name {

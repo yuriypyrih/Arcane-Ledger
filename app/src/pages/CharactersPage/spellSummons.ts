@@ -1,6 +1,7 @@
-import type { SpellEntry } from "../../codex/entries";
+import { DURATION, type SpellEntry } from "../../codex/entries";
 import {
   STATUS_DURATION_KIND,
+  STATUS_DURATION_ROUND_TICK,
   type Character,
   type CharacterCompanion,
   type CharacterStatusDuration
@@ -282,12 +283,97 @@ const spellSummonDefinitionConfigs: Record<string, SpellSummonDefinitionConfig> 
   }
 };
 
+function parseDurationAmount(value: string): number | null {
+  const amount = Math.floor(Number(value));
+
+  return Number.isFinite(amount) && amount > 0 ? amount : null;
+}
+
+function getCustomSpellSummonDuration(
+  duration: Pick<SpellEntry, "duration">["duration"] | undefined
+): CharacterStatusDuration | undefined {
+  if (!duration || duration.length === 0) {
+    return undefined;
+  }
+
+  const isConcentration = duration[0] === DURATION.CONCENTRATION;
+  const durationText = String(isConcentration ? (duration[1] ?? "") : (duration[0] ?? ""))
+    .trim()
+    .toLowerCase();
+
+  if (!durationText || durationText === "instantaneous") {
+    return undefined;
+  }
+
+  if (durationText === "infinite") {
+    return { kind: STATUS_DURATION_KIND.INFINITE };
+  }
+
+  const durationMatch = durationText.match(/^(\d+)\s+(round|minute|hour|day)s?$/);
+
+  if (!durationMatch) {
+    return undefined;
+  }
+
+  const amount = parseDurationAmount(durationMatch[1]);
+
+  if (amount === null) {
+    return undefined;
+  }
+
+  switch (durationMatch[2]) {
+    case "round":
+      return {
+        kind: STATUS_DURATION_KIND.ROUNDS,
+        amount,
+        tickOn: STATUS_DURATION_ROUND_TICK.ROUND_END
+      };
+    case "hour":
+      return {
+        kind: STATUS_DURATION_KIND.HOURS,
+        amount
+      };
+    case "day":
+      return {
+        kind: STATUS_DURATION_KIND.DAYS,
+        amount
+      };
+    case "minute":
+    default:
+      return {
+        kind: STATUS_DURATION_KIND.MINUTES,
+        amount
+      };
+  }
+}
+
 export function getSpellSummonDefinitionConfig(
-  spell: Pick<SpellEntry, "id"> | string | null | undefined
+  spell:
+    | (Pick<SpellEntry, "id"> & Partial<Pick<SpellEntry, "duration" | "summoningSpell">>)
+    | string
+    | null
+    | undefined
 ): SpellSummonDefinitionConfig | null {
   const spellId = typeof spell === "string" ? spell : spell?.id;
 
-  return spellId ? (spellSummonDefinitionConfigs[spellId] ?? null) : null;
+  if (!spellId) {
+    return null;
+  }
+
+  const configuredDefinition = spellSummonDefinitionConfigs[spellId];
+
+  if (configuredDefinition) {
+    return configuredDefinition;
+  }
+
+  if (spell && typeof spell !== "string" && spell.summoningSpell === true) {
+    return {
+      spellId,
+      defaultDuration: getCustomSpellSummonDuration(spell.duration)
+    };
+  }
+
+  return null;
 }
 
 export function canAddSpellSummonCompanionsForCast(

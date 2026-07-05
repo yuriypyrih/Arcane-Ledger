@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import Checkbox from "../../../FormInputs/Checkbox";
 import RadioContainerOption from "../../RadioContainerOption";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import type { RestOption } from "./restOptions";
@@ -53,14 +54,12 @@ function CampRestOption({ option, selected, onToggle }: CampRestOptionProps) {
   }
 
   return (
-    <label className={sheetStyles.restChecklistItem}>
-      <input
-        type="checkbox"
-        checked={selected}
-        onChange={() => onToggle(option.id)}
-      />
-      <span>{option.label}</span>
-    </label>
+    <Checkbox
+      className={sheetStyles.restChecklistItem}
+      checked={selected}
+      onCheckedChange={() => onToggle(option.id)}
+      label={option.label}
+    />
   );
 }
 

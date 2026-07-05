@@ -361,14 +361,6 @@
   background: var(--theme-control-subtle-hover);
 }
 
-.customEquipmentCheckbox input {
-  accent-color: #2f78ff;
-}
-
-:global(html[data-theme="dark"]) .customEquipmentCheckbox input {
-  accent-color: var(--theme-accent);
-}
-
 .customEquipmentCheckbox span {
   color: var(--color-ink);
   font-size: 0.78rem;

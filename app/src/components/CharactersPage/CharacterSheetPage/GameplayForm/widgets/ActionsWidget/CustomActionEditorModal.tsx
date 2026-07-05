@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { Check, Plus } from "lucide-react";
 import ActionButton from "../../../../../ActionButton";
+import Checkbox from "../../../../FormInputs/Checkbox";
 import NumberInput from "../../../../FormInputs/NumberInput";
 import SelectInput from "../../../../FormInputs/SelectInput";
 import TextAreaInput from "../../../../FormInputs/TextAreaInput";
@@ -163,14 +164,12 @@ function CustomActionEditorModal({
         </div>
 
         <section className={styles.editorSection}>
-          <label className={styles.checkboxRow}>
-            <input
-              type="checkbox"
-              checked={draft.hasEffects}
-              onChange={(event) => onHasEffectsChange(event.target.checked)}
-            />
-            <span>Targets/Effects upon Use</span>
-          </label>
+          <Checkbox
+            className={styles.checkboxRow}
+            checked={draft.hasEffects}
+            onCheckedChange={onHasEffectsChange}
+            label="Targets/Effects upon Use"
+          />
 
           {draft.hasEffects ? (
             <div className={styles.sectionStack}>
@@ -198,14 +197,12 @@ function CustomActionEditorModal({
         </section>
 
         <section className={styles.editorSection}>
-          <label className={styles.checkboxRow}>
-            <input
-              type="checkbox"
-              checked={draft.hasCharges}
-              onChange={(event) => onHasChargesChange(event.target.checked)}
-            />
-            <span>Charges</span>
-          </label>
+          <Checkbox
+            className={styles.checkboxRow}
+            checked={draft.hasCharges}
+            onCheckedChange={onHasChargesChange}
+            label="Charges"
+          />
 
           {draft.hasCharges ? (
             <>
@@ -223,14 +220,13 @@ function CustomActionEditorModal({
                 <div className={shared.field}>
                   <span className={styles.maxFieldHeader}>
                     <span className={shared.fieldLabel}>MAX (10)</span>
-                    <label className={styles.inlineCheckbox}>
-                      <input
-                        type="checkbox"
-                        checked={isProficiencyBonusMax}
-                        onChange={(event) => onChargesMaxModeChange(event.target.checked)}
-                      />
-                      <span>Prof. Bonus</span>
-                    </label>
+                    <Checkbox
+                      className={styles.inlineCheckbox}
+                      compact
+                      checked={isProficiencyBonusMax}
+                      onCheckedChange={onChargesMaxModeChange}
+                      label="Prof. Bonus"
+                    />
                   </span>
                   {isProficiencyBonusMax ? (
                     <TextInput value="Equal to Prof. Bonus" readOnly disabled />

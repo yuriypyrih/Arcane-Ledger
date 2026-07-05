@@ -65,6 +65,7 @@ export type CustomSpellInput = {
   ritual?: boolean;
   spellLevel: number;
   spellLists: string[];
+  summoningSpell?: boolean;
 };
 
 type CustomSpellSource = CustomSpellRecord & {
@@ -335,7 +336,8 @@ export function normalizeCustomSpellInput(
       maxItems: VALID_SPELL_LISTS.size,
       maxLength: CUSTOM_SPELL_SHORT_TEXT_MAX_LENGTH,
       validValues: VALID_SPELL_LISTS
-    })
+    }),
+    summoningSpell: Boolean(value.summoningSpell)
   };
 
   assertSerializedSize(normalizedInput);
@@ -376,7 +378,8 @@ export function toCustomSpellRecord(
       healing: [],
       spellLists: customSpell.spellLists,
       spellLevel: customSpell.spellLevel,
-      ritual: customSpell.ritual
+      ritual: customSpell.ritual,
+      summoningSpell: Boolean(customSpell.summoningSpell)
     },
     customEffects: customSpell.customEffects ?? [],
     createdAt: toIsoTimestamp(customSpell.createdAt),

@@ -7,6 +7,7 @@ import {
 } from "../../api/customSpells";
 import ActionButton from "../../components/ActionButton";
 import ModEffectsEditor from "../../components/CharactersPage/CharacterSheetPage/ModEffectsEditor";
+import Checkbox from "../../components/CharactersPage/FormInputs/Checkbox";
 import NumberInput from "../../components/CharactersPage/FormInputs/NumberInput";
 import SelectInput from "../../components/CharactersPage/FormInputs/SelectInput";
 import TextAreaInput from "../../components/CharactersPage/FormInputs/TextAreaInput";
@@ -57,6 +58,7 @@ import {
   canPublishCustomObject,
   CUSTOM_OBJECT_PUBLISH_PERMISSION_MESSAGE
 } from "./customObjectPublishPermissions";
+import CustomSpellAdditionalSettings from "./CustomSpellAdditionalSettings";
 import styles from "./DmToolsPage.module.css";
 
 type CustomSpellEditorModalProps = {
@@ -78,7 +80,11 @@ const durationOptions: Array<{ label: string; value: CustomSpellDurationMode }> 
   { label: "Infinite", value: "infinite" }
 ];
 
-function toggleArrayValue<TValue extends string>(values: TValue[], value: TValue, checked: boolean) {
+function toggleArrayValue<TValue extends string>(
+  values: TValue[],
+  value: TValue,
+  checked: boolean
+) {
   if (checked) {
     return values.includes(value) ? values : [...values, value];
   }
@@ -186,29 +192,29 @@ function CustomSpellEditorModal({ customSpell, onClose, onSaved }: CustomSpellEd
           <OverlayTitle id={titleId}>
             {isEditing ? "Edit Custom Spell" : "Create Custom Spell"}
           </OverlayTitle>
-          <OverlaySummary>Define the spell entry characters can later bake into their sheets.</OverlaySummary>
+          <OverlaySummary>
+            Define the spell entry characters can later bake into their sheets.
+          </OverlaySummary>
         </OverlayHeaderContent>
         <div className={styles.customObjectModalHeaderActions}>
-          <label
+          <Checkbox
             className={[
               styles.customObjectPublicToggle,
               publicToggleDisabled ? styles.customObjectPublicToggleDisabled : ""
             ]
               .join(" ")
               .trim()}
-            data-tooltip={publicToggleDisabledReason}
-            aria-disabled={publicToggleDisabled}
-          >
-            <input
-              type="checkbox"
-              checked={canPublish && draft.public}
-              disabled={publicToggleDisabled}
-              onChange={(event) =>
-                updateDraft((current) => ({ ...current, public: event.target.checked }))
-              }
-            />
-            <span>Public</span>
-          </label>
+            rootProps={{
+              "aria-disabled": publicToggleDisabled,
+              "data-tooltip": publicToggleDisabledReason
+            }}
+            checked={canPublish && draft.public}
+            disabled={publicToggleDisabled}
+            onCheckedChange={(checked) =>
+              updateDraft((current) => ({ ...current, public: checked }))
+            }
+            label="Public"
+          />
           <OverlayCloseButton
             label="Close custom spell editor"
             disabled={isSaving}
@@ -342,31 +348,25 @@ function CustomSpellEditorModal({ customSpell, onClose, onSaved }: CustomSpellEd
                 />
               </label>
             ) : null}
-
           </div>
 
           <section className={styles.customSpellEditorSection}>
             <span className={styles.modalFieldLabel}>Components</span>
             <div className={styles.checkboxGrid}>
               {Object.values(SPELL_COMPONENT).map((component) => (
-                <label key={component} className={styles.checkboxPill}>
-                  <input
-                    type="checkbox"
-                    checked={draft.components.includes(component)}
-                    disabled={isSaving}
-                    onChange={(event) =>
-                      updateDraft((current) => ({
-                        ...current,
-                        components: toggleArrayValue(
-                          current.components,
-                          component,
-                          event.target.checked
-                        )
-                      }))
-                    }
-                  />
-                  <span>{component}</span>
-                </label>
+                <Checkbox
+                  key={component}
+                  className={styles.checkboxPill}
+                  checked={draft.components.includes(component)}
+                  disabled={isSaving}
+                  onCheckedChange={(checked) =>
+                    updateDraft((current) => ({
+                      ...current,
+                      components: toggleArrayValue(current.components, component, checked)
+                    }))
+                  }
+                  label={component}
+                />
               ))}
             </div>
 
@@ -392,41 +392,34 @@ function CustomSpellEditorModal({ customSpell, onClose, onSaved }: CustomSpellEd
             <span className={styles.modalFieldLabel}>Spell Lists</span>
             <div className={styles.checkboxGrid}>
               {Object.values(SPELL_LIST_CLASS).map((spellList) => (
-                <label key={spellList} className={styles.checkboxPill}>
-                  <input
-                    type="checkbox"
-                    checked={draft.spellLists.includes(spellList)}
-                    disabled={isSaving}
-                    onChange={(event) =>
-                      updateDraft((current) => ({
-                        ...current,
-                        spellLists: toggleArrayValue(
-                          current.spellLists,
-                          spellList,
-                          event.target.checked
-                        )
-                      }))
-                    }
-                  />
-                  <span>{formatCodexLabel(spellList)}</span>
-                </label>
+                <Checkbox
+                  key={spellList}
+                  className={styles.checkboxPill}
+                  checked={draft.spellLists.includes(spellList)}
+                  disabled={isSaving}
+                  onCheckedChange={(checked) =>
+                    updateDraft((current) => ({
+                      ...current,
+                      spellLists: toggleArrayValue(current.spellLists, spellList, checked)
+                    }))
+                  }
+                  label={formatCodexLabel(spellList)}
+                />
               ))}
             </div>
           </section>
 
-          <section className={styles.customSpellEditorSection}>
-            <label className={styles.checkboxRow}>
-              <input
-                type="checkbox"
-                checked={draft.ritual}
-                disabled={isSaving}
-                onChange={(event) =>
-                  updateDraft((current) => ({ ...current, ritual: event.target.checked }))
-                }
-              />
-              <span>Ritual</span>
-            </label>
-          </section>
+          <CustomSpellAdditionalSettings
+            disabled={isSaving}
+            ritual={draft.ritual}
+            summoningSpell={draft.summoningSpell}
+            onRitualChange={(checked) =>
+              updateDraft((current) => ({ ...current, ritual: checked }))
+            }
+            onSummoningSpellChange={(checked) =>
+              updateDraft((current) => ({ ...current, summoningSpell: checked }))
+            }
+          />
 
           <label className={styles.modalField}>
             <span className={styles.modalFieldLabel}>Description</span>
@@ -503,7 +496,13 @@ function CustomSpellEditorModal({ customSpell, onClose, onSaved }: CustomSpellEd
           <div className={styles.modalFooterActions}>
             <ActionButton
               type="submit"
-              icon={isEditing ? <Save size={16} aria-hidden="true" /> : <Plus size={16} aria-hidden="true" />}
+              icon={
+                isEditing ? (
+                  <Save size={16} aria-hidden="true" />
+                ) : (
+                  <Plus size={16} aria-hidden="true" />
+                )
+              }
               disabled={!canSubmit}
               loading={isSaving}
               loadingLabel="Saving custom spell"

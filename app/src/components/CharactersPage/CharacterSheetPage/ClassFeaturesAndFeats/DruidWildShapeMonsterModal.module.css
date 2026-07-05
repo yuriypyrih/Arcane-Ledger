@@ -198,6 +198,7 @@
 
 .input,
 .select {
+  --select-input-height: 42px;
   border: 1px solid rgba(75, 47, 29, 0.18);
   border-radius: var(--radius-control);
   background: rgba(255, 255, 255, 0.84);
@@ -219,7 +220,6 @@
 }
 
 .checkbox {
-  accent-color: #5f8a44;
   margin: 0;
 }
 
@@ -317,6 +317,7 @@
   .input,
   .select,
   .checkboxLabel {
+    --select-input-height: 38px;
     min-height: 38px;
   }
 
@@ -431,6 +432,7 @@
   .input,
   .select,
   .checkboxLabel {
+    --select-input-height: 34px;
     min-height: 34px;
   }
 

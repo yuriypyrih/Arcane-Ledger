@@ -52,7 +52,6 @@
 .portentRollUsedCheckbox {
   width: 16px;
   height: 16px;
-  accent-color: #25508d;
 }
 
 @media (max-width: 599px) {

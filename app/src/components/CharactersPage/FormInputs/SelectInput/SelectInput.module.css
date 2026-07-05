@@ -1,12 +1,27 @@
 .select {
+  appearance: none;
+  -webkit-appearance: none;
+  --select-input-height: 54px;
   box-sizing: border-box;
   border: 1px solid var(--theme-input-border);
   border-radius: var(--radius-field);
   background-color: var(--theme-input-background);
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    calc(100% - 1.18rem) 50%,
+    calc(100% - 0.9rem) 50%;
+  background-repeat: no-repeat;
+  background-size:
+    0.36rem 0.36rem,
+    0.36rem 0.36rem;
   color: var(--theme-input-text);
   font: inherit;
+  height: var(--select-input-height);
+  line-height: calc(var(--select-input-height) - 2px);
   max-width: 100%;
-  min-height: 54px;
+  min-height: var(--select-input-height);
   min-width: 0;
   padding: 0 3rem 0 1rem;
   transition:
@@ -23,8 +38,8 @@
 }
 
 .selectCompact {
+  --select-input-height: 38px;
   border-radius: var(--radius-tiny);
-  min-height: 38px;
   padding: 0 2.5rem 0 0.8rem;
 }
 

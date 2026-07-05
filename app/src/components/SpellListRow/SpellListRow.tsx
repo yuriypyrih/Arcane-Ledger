@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { memo, type ReactNode } from "react";
 import { DURATION, type SpellEntry } from "../../codex/entries";
 import ActionShape, { getActionShapeForCastingTime, type ActionShapeType } from "../ActionShape";
+import Checkbox from "../CharactersPage/FormInputs/Checkbox";
 import SheetSurface from "../CharactersPage/CharacterSheetPage/SheetSurface";
 import ConcentrationLabel from "../ConcentrationLabel";
 import SpellSubtitle from "../SpellSubtitle";
@@ -206,8 +207,8 @@ function SpellListRow({
             disabled={disabled}
             onClick={onSelect}
           >
-            <input
-              type="checkbox"
+            <Checkbox
+              rootAs="span"
               checked={isSelected}
               readOnly
               tabIndex={-1}

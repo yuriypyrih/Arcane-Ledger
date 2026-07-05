@@ -1084,7 +1084,7 @@ function CharacterSpellDrawer({
                           checked={isRitualCastingSelected && !isQuickRitualSelected}
                           disabled={ritualCastingRequired || isQuickRitualSelected}
                           onCheckedChange={setIsRitualCastingSelected}
-                          checkboxAccentColor="#c96c14"
+                          checkboxActionType="WARNING"
                         />
                       ) : null}
                       {visibleActionOptions.map((option) => {

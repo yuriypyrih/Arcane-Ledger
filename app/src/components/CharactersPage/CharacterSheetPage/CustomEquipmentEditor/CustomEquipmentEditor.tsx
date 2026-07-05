@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { Check, Plus, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import Checkbox from "../../FormInputs/Checkbox";
 import NumberInput from "../../FormInputs/NumberInput";
 import SelectInput from "../../FormInputs/SelectInput";
 import TextAreaInput from "../../FormInputs/TextAreaInput";
@@ -217,7 +218,10 @@ function getCostDraft(item: ItemRecord | null, mods: CharacterItemMods | undefin
   return mods?.cost ?? parseItemCost(item?.cost) ?? defaultCost;
 }
 
-function inferWeaponBase(item: ItemRecord | null, mods: CharacterItemMods | undefined): WEAPON_BASE {
+function inferWeaponBase(
+  item: ItemRecord | null,
+  mods: CharacterItemMods | undefined
+): WEAPON_BASE {
   if (mods?.weapon?.baseWeapon) {
     return mods.weapon.baseWeapon;
   }
@@ -284,7 +288,8 @@ function createDraft(
     rangeLong: mods?.weapon?.range?.long ?? 60,
     ammunition: mods?.weapon?.range?.ammunition ?? "",
     versatileDamage: createDamageRowsFromDamage(
-      mods?.weapon?.versatileDamage ?? adaptedWeapon?.versatileDamage ?? [[DICE.D8, DAMAGE_TYPE.SLASHING]]
+      mods?.weapon?.versatileDamage ??
+        adaptedWeapon?.versatileDamage ?? [[DICE.D8, DAMAGE_TYPE.SLASHING]]
     ),
     armorType: resolvedArmorType,
     armorClass,
@@ -417,18 +422,15 @@ function CustomEquipmentEditor({
     });
   }
 
-  function handleEffectRollModeChange(
-    effectId: string,
-    value: CustomTraitEffectDraft["rollMode"]
-  ) {
+  function handleEffectRollModeChange(effectId: string, value: CustomTraitEffectDraft["rollMode"]) {
     patchDraft({
       effects: draft.effects.map((effect) =>
         effect.id === effectId
           ? {
-            ...effect,
-            rollMode: isCustomTraitEffectRollModeDisabled(effect) ? "normal" : value
-          }
-        : effect
+              ...effect,
+              rollMode: isCustomTraitEffectRollModeDisabled(effect) ? "normal" : value
+            }
+          : effect
       )
     });
   }
@@ -526,7 +528,9 @@ function CustomEquipmentEditor({
     if (selectedCategory === "armor") {
       mods.armor = {
         armorType: draft.armorType,
-        armorClass: Math.floor(clampNumber(draft.armorClass, 0, 30, draft.armorType === "shield" ? 2 : 11))
+        armorClass: Math.floor(
+          clampNumber(draft.armorClass, 0, 30, draft.armorType === "shield" ? 2 : 11)
+        )
       };
     }
 
@@ -631,22 +635,18 @@ function CustomEquipmentEditor({
             </label>
 
             <div className={styles.customEquipmentCheckboxRow}>
-              <label className={styles.customEquipmentCheckbox}>
-                <input
-                  type="checkbox"
-                  checked={draft.isMagicItem}
-                  onChange={(event) => patchDraft({ isMagicItem: event.target.checked })}
-                />
-                <span>Magic</span>
-              </label>
-              <label className={styles.customEquipmentCheckbox}>
-                <input
-                  type="checkbox"
-                  checked={draft.requiresAttunement}
-                  onChange={(event) => patchDraft({ requiresAttunement: event.target.checked })}
-                />
-                <span>Attunement</span>
-              </label>
+              <Checkbox
+                className={styles.customEquipmentCheckbox}
+                checked={draft.isMagicItem}
+                onCheckedChange={(isMagicItem) => patchDraft({ isMagicItem })}
+                label="Magic"
+              />
+              <Checkbox
+                className={styles.customEquipmentCheckbox}
+                checked={draft.requiresAttunement}
+                onCheckedChange={(requiresAttunement) => patchDraft({ requiresAttunement })}
+                label="Attunement"
+              />
             </div>
           </div>
 
@@ -685,7 +685,9 @@ function CustomEquipmentEditor({
                 step={0.1}
                 value={draft.weight}
                 onChange={(event) =>
-                  patchDraft({ weight: normalizeNumericInput(event.target.valueAsNumber, draft.weight) })
+                  patchDraft({
+                    weight: normalizeNumericInput(event.target.valueAsNumber, draft.weight)
+                  })
                 }
               />
             </label>
@@ -868,7 +870,9 @@ function CustomEquipmentEditor({
                       value={draft.rangeNormal}
                       onChange={(event) =>
                         patchDraft({
-                          rangeNormal: Math.floor(clampNumber(event.target.valueAsNumber, 1, 9999, 20))
+                          rangeNormal: Math.floor(
+                            clampNumber(event.target.valueAsNumber, 1, 9999, 20)
+                          )
                         })
                       }
                     />
@@ -880,7 +884,9 @@ function CustomEquipmentEditor({
                       value={draft.rangeLong}
                       onChange={(event) =>
                         patchDraft({
-                          rangeLong: Math.floor(clampNumber(event.target.valueAsNumber, 1, 9999, 60))
+                          rangeLong: Math.floor(
+                            clampNumber(event.target.valueAsNumber, 1, 9999, 60)
+                          )
                         })
                       }
                     />
@@ -999,7 +1005,12 @@ function CustomEquipmentEditor({
                 onChange={(event) =>
                   patchDraft({
                     armorClass: Math.floor(
-                      clampNumber(event.target.valueAsNumber, 0, 30, draft.armorType === "shield" ? 2 : 11)
+                      clampNumber(
+                        event.target.valueAsNumber,
+                        0,
+                        30,
+                        draft.armorType === "shield" ? 2 : 11
+                      )
                     )
                   })
                 }

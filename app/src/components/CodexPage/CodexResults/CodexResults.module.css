@@ -88,7 +88,13 @@
 }
 
 .classCard {
-  --class-card-text-backdrop: linear-gradient(90deg, rgba(251, 242, 230, 1) 0,rgba(251, 242, 230, 1) 100px, rgba(251, 242, 230, 0) 200px);
+  --class-card-text-backdrop: linear-gradient(
+    90deg,
+    rgba(251, 242, 230, 1) 0,
+    rgba(251, 242, 230, 1) 100px,
+    rgba(251, 242, 230, 0) 200px
+  );
+  gap: 0.48rem;
   overflow: hidden;
   border: 2px solid rgba(75, 47, 29, 0.42);
   background:
@@ -204,20 +210,20 @@
 :global(html[data-theme="dark"]) .classCard::before {
   opacity: 0.84;
   -webkit-mask-image: radial-gradient(
-    ellipse 200px 228px at left top,
-    #000 0%,
-    #000 38%,
-    rgba(0, 0, 0, 0.64) 51%,
-    rgba(0, 0, 0, 0.18) 63%,
-    rgba(0, 0, 0, 0) 72%
+    circle at calc(var(--class-signature-corner-size, 250px) - 20px) 180px,
+    rgba(0, 0, 0, 0) 0,
+    rgba(0, 0, 0, 0) 180px,
+    rgba(0, 0, 0, 0.08) 190px,
+    rgba(0, 0, 0, 0.56) 200px,
+    #000 240px
   );
   mask-image: radial-gradient(
-    ellipse 200px 228px at left top,
-    #000 0%,
-    #000 38%,
-    rgba(0, 0, 0, 0.64) 51%,
-    rgba(0, 0, 0, 0.18) 63%,
-    rgba(0, 0, 0, 0) 72%
+    circle at calc(var(--class-signature-corner-size, 250px) - 20px) 180px,
+    rgba(0, 0, 0, 0) 0,
+    rgba(0, 0, 0, 0) 180px,
+    rgba(0, 0, 0, 0.08) 190px,
+    rgba(0, 0, 0, 0.56) 200px,
+    #000 240px
   );
 }
 
@@ -297,11 +303,14 @@
   max-width: 100%;
   border-radius: var(--radius-tiny);
   background: var(--class-card-text-backdrop);
-  padding: 0.16rem 0.82rem 0.18rem 0.36rem;
+  padding: 0.2rem 0.94rem 0.24rem 0.44rem;
 }
 
 .classCard h4 {
   color: var(--theme-text-primary);
+  font-size: 1.28rem;
+  font-weight: 800;
+  line-height: 1.12;
 }
 
 .tableWrapper {

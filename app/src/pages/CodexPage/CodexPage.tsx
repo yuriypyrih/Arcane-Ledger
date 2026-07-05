@@ -45,6 +45,7 @@ import {
   BACKGROUND_SOURCE_PARAM,
   SPECIES_SOURCE_PARAM,
   MONSTERS_PER_PAGE,
+  MONSTER_CHALLENGE_RATING_PARAM,
   MONSTER_ORDER_PARAM,
   MONSTER_SOURCE_PARAM,
   MONSTER_TYPE_PARAM,
@@ -86,6 +87,7 @@ function CodexPage() {
     itemArmorTypeFilter,
     itemAttackTypeFilter,
     monsterOrdering,
+    monsterChallengeRatingFilter,
     monsterSourceFilter,
     monsterTypeFilter,
     itemCategoryFilter,
@@ -156,6 +158,7 @@ function CodexPage() {
     limit: MONSTERS_PER_PAGE,
     search: query,
     type: monsterTypeFilter,
+    challengeRatingBucket: monsterChallengeRatingFilter,
     source: monsterSourceFilter,
     ordering: monsterOrdering
   });
@@ -428,6 +431,16 @@ function CodexPage() {
     },
     [clearSearchForSelectionChange, searchParams, setSearchParams]
   );
+  const handleMonsterChallengeRatingFilterChange = useCallback(
+    (value: typeof monsterChallengeRatingFilter) => {
+      const nextSearchParams = new URLSearchParams(searchParams);
+      setSearchParamValue(nextSearchParams, MONSTER_CHALLENGE_RATING_PARAM, value);
+      clearSearchForSelectionChange(nextSearchParams);
+      resetPageSearchParam(nextSearchParams);
+      setSearchParams(nextSearchParams, { replace: true });
+    },
+    [clearSearchForSelectionChange, searchParams, setSearchParams]
+  );
   const handleMonsterOrderingChange = useCallback(
     (value: MonsterOrdering) => {
       const nextSearchParams = new URLSearchParams(searchParams);
@@ -626,6 +639,7 @@ function CodexPage() {
           monsterTypeOptions={MONSTER_TYPE_OPTIONS}
           monsterSourceFilter={monsterSourceFilter}
           monsterSourceOptions={MONSTER_SOURCE_OPTIONS}
+          monsterChallengeRatingFilter={monsterChallengeRatingFilter}
           itemTab={sanitizedItemFilters.tab}
           itemCategoryFilter={sanitizedItemFilters.category}
           itemAttackTypeFilter={sanitizedItemFilters.attackType}
@@ -648,6 +662,7 @@ function CodexPage() {
           onSpellSpecialFilterChange={handleSpellSpecialFilterChange}
           onMonsterTypeFilterChange={handleMonsterTypeFilterChange}
           onMonsterSourceFilterChange={handleMonsterSourceFilterChange}
+          onMonsterChallengeRatingFilterChange={handleMonsterChallengeRatingFilterChange}
           onItemTabChange={handleItemTabChange}
           onItemCategoryFilterChange={handleItemCategoryFilterChange}
           onItemAttackTypeFilterChange={handleItemAttackTypeFilterChange}

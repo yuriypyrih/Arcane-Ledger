@@ -1,5 +1,6 @@
 import type { MonsterListItem, MonsterOrdering, MonsterRecord, PaginatedApiResponse } from "../types";
 import { apiGet, type ApiRequestOptions } from "./client";
+import type { MonsterChallengeRatingBucket } from "../constants/monsters";
 
 export type FetchMonsterListParams = {
   page?: number;
@@ -7,6 +8,7 @@ export type FetchMonsterListParams = {
   search?: string;
   type?: string;
   challengeRating?: number;
+  challengeRatingBucket?: MonsterChallengeRatingBucket;
   maxChallengeRating?: number;
   source?: string;
   ordering?: MonsterOrdering;
@@ -19,6 +21,7 @@ export async function fetchMonsterList(
     search,
     type,
     challengeRating,
+    challengeRatingBucket,
     maxChallengeRating,
     source,
     ordering = "name"
@@ -44,6 +47,10 @@ export async function fetchMonsterList(
 
   if (challengeRating !== undefined) {
     searchParams.set("challenge_rating", String(challengeRating));
+  }
+
+  if (challengeRatingBucket) {
+    searchParams.set("challengeRatingBucket", challengeRatingBucket);
   }
 
   if (maxChallengeRating !== undefined) {

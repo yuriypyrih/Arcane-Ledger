@@ -12,6 +12,7 @@ import {
   OverlayTitle,
   SheetModal
 } from "../../../Overlay";
+import Checkbox from "../../FormInputs/Checkbox";
 import SelectInput from "../../FormInputs/SelectInput";
 import TextAreaInput from "../../FormInputs/TextAreaInput";
 import TextInput from "../../FormInputs/TextInput";
@@ -243,24 +244,22 @@ function CreatureStatBlockEditorModal({
         </OverlayHeaderContent>
         <div className={styles.statBlockEditorHeaderActions}>
           {publicToggle ? (
-            <label
+            <Checkbox
               className={[
                 styles.statBlockPublicToggle,
                 publicToggle.disabled ? styles.statBlockPublicToggleDisabled : ""
               ]
                 .join(" ")
                 .trim()}
-              data-tooltip={publicToggle.disabledReason}
-              aria-disabled={publicToggle.disabled}
-            >
-              <input
-                type="checkbox"
-                checked={publicToggle.checked}
-                disabled={publicToggle.disabled}
-                onChange={(event) => publicToggle.onChange(event.target.checked)}
-              />
-              <span>Public</span>
-            </label>
+              rootProps={{
+                "aria-disabled": publicToggle.disabled,
+                "data-tooltip": publicToggle.disabledReason
+              }}
+              checked={publicToggle.checked}
+              disabled={publicToggle.disabled}
+              onCheckedChange={publicToggle.onChange}
+              label="Public"
+            />
           ) : null}
           <OverlayCloseButton label="Close stat block editor" onClick={onClose} />
         </div>

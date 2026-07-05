@@ -1,6 +1,11 @@
 import type { NextFunction, Request, Response } from "express";
 import { AppError } from "../errors/AppError.js";
-import type { MonsterListQuery, MonsterListQueryLocals, MonsterOrdering } from "../types/monster.js";
+import type {
+  MonsterChallengeRatingBucket,
+  MonsterListQuery,
+  MonsterListQueryLocals,
+  MonsterOrdering
+} from "../types/monster.js";
 
 const ALLOWED_ORDERINGS = new Set<MonsterOrdering>([
   "name",
@@ -13,6 +18,12 @@ const ALLOWED_ORDERINGS = new Set<MonsterOrdering>([
   "-document",
   "cr",
   "-cr"
+]);
+const ALLOWED_CHALLENGE_RATING_BUCKETS = new Set<MonsterChallengeRatingBucket>([
+  "0",
+  "<1",
+  ...Array.from({ length: 28 }, (_, index) => String(index + 2) as MonsterChallengeRatingBucket),
+  "30+"
 ]);
 
 function readSingleQueryValue(value: unknown, name: string): string | undefined {
@@ -82,6 +93,23 @@ function parseChallengeRatingValue(value: string | undefined, parameter = "chall
   return parsedValue;
 }
 
+function parseChallengeRatingBucketValue(
+  value: string | undefined
+): MonsterChallengeRatingBucket | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  if (!ALLOWED_CHALLENGE_RATING_BUCKETS.has(value as MonsterChallengeRatingBucket)) {
+    throw new AppError("Unsupported challenge rating bucket.", 400, "INVALID_QUERY", {
+      parameter: "challengeRatingBucket",
+      allowedValues: [...ALLOWED_CHALLENGE_RATING_BUCKETS]
+    });
+  }
+
+  return value as MonsterChallengeRatingBucket;
+}
+
 function normalizeOptionalString(value: string | undefined): string | undefined {
   const normalizedValue = value?.trim();
 
@@ -101,6 +129,9 @@ function buildMonsterListQuery(request: Request): MonsterListQuery {
     readSingleQueryValue(request.query.maxChallengeRating, "maxChallengeRating") ??
     readSingleQueryValue(request.query.max_cr, "max_cr") ??
     readSingleQueryValue(request.query.maxCr, "maxCr");
+  const challengeRatingBucketValue =
+    readSingleQueryValue(request.query.challengeRatingBucket, "challengeRatingBucket") ??
+    readSingleQueryValue(request.query.challenge_rating_bucket, "challenge_rating_bucket");
 
   return {
     search: normalizeOptionalString(readSingleQueryValue(request.query.search, "search")),
@@ -108,6 +139,7 @@ function buildMonsterListQuery(request: Request): MonsterListQuery {
     limit: parsePositiveInteger(readSingleQueryValue(request.query.limit, "limit"), "limit", 20, 100),
     ordering: parseOrdering(readSingleQueryValue(request.query.ordering, "ordering")),
     challengeRating: parseChallengeRatingValue(challengeRatingValue),
+    challengeRatingBucket: parseChallengeRatingBucketValue(challengeRatingBucketValue),
     maxChallengeRating: parseChallengeRatingValue(maxChallengeRatingValue, "max_challenge_rating"),
     type: normalizeOptionalString(readSingleQueryValue(request.query.type, "type")),
     source: sourceValue

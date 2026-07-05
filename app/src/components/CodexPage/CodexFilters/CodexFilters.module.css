@@ -97,6 +97,25 @@
   padding: 0 1rem;
 }
 
+select.input {
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: var(--theme-surface-panel);
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    calc(100% - 1.18rem) 50%,
+    calc(100% - 0.9rem) 50%;
+  background-repeat: no-repeat;
+  background-size:
+    0.36rem 0.36rem,
+    0.36rem 0.36rem;
+  height: 54px;
+  line-height: 52px;
+  padding-right: 2.7rem;
+}
+
 @media (max-width: 899px) {
   .controls {
     gap: 0.65rem;
@@ -138,6 +157,12 @@
   .input {
     min-height: 44px;
     padding: 0 0.78rem;
+  }
+
+  select.input {
+    height: 44px;
+    line-height: 42px;
+    padding-right: 2.5rem;
   }
 }
 
@@ -181,5 +206,11 @@
     min-height: 38px;
     padding: 0 0.65rem;
     font-size: 0.9rem;
+  }
+
+  select.input {
+    height: 38px;
+    line-height: 36px;
+    padding-right: 2.35rem;
   }
 }

@@ -28,11 +28,6 @@
   cursor: not-allowed;
 }
 
-.toggleContent input {
-  accent-color: #2f78ff;
-  margin: 0;
-}
-
 .metaGroup {
   align-items: center;
   color: var(--color-ink);

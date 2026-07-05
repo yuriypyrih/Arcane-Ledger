@@ -408,6 +408,7 @@
 }
 
 .wildCompanionSelect {
+  --select-input-height: 44px;
   width: 100%;
 }
 

@@ -71,18 +71,8 @@
   );
   --theme-temp-hit-points-ring: rgba(234, 197, 84, 0.18);
   --theme-temp-hit-points-glow: rgba(245, 204, 70, 0.24);
-  --theme-temp-hit-points-bar: linear-gradient(
-    90deg,
-    #fff2bd 0%,
-    #f4d06c 54%,
-    #dca23f 100%
-  );
-  --theme-magic-temp-hit-points-bar: linear-gradient(
-    90deg,
-    #e7f7ff 0%,
-    #9dd8ff 52%,
-    #5facf0 100%
-  );
+  --theme-temp-hit-points-bar: linear-gradient(90deg, #fff2bd 0%, #f4d06c 54%, #dca23f 100%);
+  --theme-magic-temp-hit-points-bar: linear-gradient(90deg, #e7f7ff 0%, #9dd8ff 52%, #5facf0 100%);
   --theme-magic-temp-hit-points-text: #15507d;
   --theme-magic-temp-hit-points-icon: #5facf0;
   --theme-magic-temp-hit-points-border: rgba(69, 143, 214, 0.58);
@@ -202,18 +192,8 @@
   );
   --theme-temp-hit-points-ring: rgba(216, 183, 99, 0.12);
   --theme-temp-hit-points-glow: rgba(216, 169, 70, 0.13);
-  --theme-temp-hit-points-bar: linear-gradient(
-    90deg,
-    #f4d47d 0%,
-    #e6ba5a 54%,
-    #d69d3b 100%
-  );
-  --theme-magic-temp-hit-points-bar: linear-gradient(
-    90deg,
-    #ccefff 0%,
-    #86cfff 52%,
-    #4c9ee8 100%
-  );
+  --theme-temp-hit-points-bar: linear-gradient(90deg, #f4d47d 0%, #e6ba5a 54%, #d69d3b 100%);
+  --theme-magic-temp-hit-points-bar: linear-gradient(90deg, #ccefff 0%, #86cfff 52%, #4c9ee8 100%);
   --theme-magic-temp-hit-points-text: #9fd7ff;
   --theme-magic-temp-hit-points-icon: #86cfff;
   --theme-magic-temp-hit-points-border: rgba(134, 207, 255, 0.36);
@@ -382,9 +362,9 @@ textarea {
 
 :root[data-theme="dark"]
   :where(
-    input:not([type="button"]):not([type="submit"]):not([type="reset"]):not(
-        [type="checkbox"]
-      ):not([type="radio"]):not([type="range"]):not([type="file"]),
+    input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not(
+        [type="radio"]
+      ):not([type="range"]):not([type="file"]),
     textarea,
     select
   ) {
@@ -401,9 +381,9 @@ textarea {
 
 :root[data-theme="dark"]
   :where(
-    input:not([type="button"]):not([type="submit"]):not([type="reset"]):not(
-        [type="checkbox"]
-      ):not([type="radio"]):not([type="range"]):not([type="file"]),
+    input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not(
+        [type="radio"]
+      ):not([type="range"]):not([type="file"]),
     textarea,
     select
   )::placeholder {
@@ -412,9 +392,9 @@ textarea {
 
 :root[data-theme="dark"]
   :where(
-    input:not([type="button"]):not([type="submit"]):not([type="reset"]):not(
-        [type="checkbox"]
-      ):not([type="radio"]):not([type="range"]):not([type="file"]),
+    input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not(
+        [type="radio"]
+      ):not([type="range"]):not([type="file"]),
     textarea,
     select
   ):focus {
@@ -425,9 +405,9 @@ textarea {
 
 :root[data-theme="dark"]
   :where(
-    input:not([type="button"]):not([type="submit"]):not([type="reset"]):not(
-        [type="checkbox"]
-      ):not([type="radio"]):not([type="range"]):not([type="file"]),
+    input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not(
+        [type="radio"]
+      ):not([type="range"]):not([type="file"]),
     textarea,
     select
   ):disabled {
@@ -440,9 +420,9 @@ textarea {
 
 :root[data-theme="dark"]
   :where(
-    input:not([type="button"]):not([type="submit"]):not([type="reset"]):not(
-        [type="checkbox"]
-      ):not([type="radio"]):not([type="range"]):not([type="file"]),
+    input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not(
+        [type="radio"]
+      ):not([type="range"]):not([type="file"]),
     textarea,
     select
   ):is(:invalid, :out-of-range, [aria-invalid="true"], [data-range-invalid="true"]) {
@@ -451,9 +431,9 @@ textarea {
 
 :root[data-theme="dark"]
   :where(
-    input:not([type="button"]):not([type="submit"]):not([type="reset"]):not(
-        [type="checkbox"]
-      ):not([type="radio"]):not([type="range"]):not([type="file"]),
+    input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not(
+        [type="radio"]
+      ):not([type="range"]):not([type="file"]),
     textarea,
     select
   ):is(:invalid, :out-of-range, [aria-invalid="true"], [data-range-invalid="true"]):focus {
@@ -466,7 +446,7 @@ textarea {
   color: var(--theme-text-primary);
 }
 
-:root[data-theme="dark"] :where(input[type="checkbox"], input[type="radio"]) {
+:root[data-theme="dark"] :where(input[type="radio"]) {
   accent-color: var(--theme-accent);
 }
 

@@ -49,6 +49,7 @@
 }
 
 .compactSlotSelect {
+  --select-input-height: 44px;
   width: 100%;
   min-height: 44px;
   border-radius: var(--radius-control);
@@ -117,12 +118,14 @@
 }
 
 .featureActionSelect {
+  --select-input-height: 36px;
   min-height: 36px;
   min-width: 168px;
   width: auto;
 }
 
 .featureActionStandaloneSelectField .featureActionSelect {
+  --select-input-height: 46px;
   min-height: 46px;
   width: 100%;
 }

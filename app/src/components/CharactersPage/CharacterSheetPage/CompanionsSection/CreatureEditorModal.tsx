@@ -20,6 +20,7 @@ import {
   SheetModal
 } from "../../../Overlay";
 import MonsterEntryDrawer from "../../../MonsterEntryRenderer/MonsterEntryDrawer";
+import Checkbox from "../../FormInputs/Checkbox";
 import SelectInput from "../../FormInputs/SelectInput";
 import TextAreaInput from "../../FormInputs/TextAreaInput";
 import TextInput from "../../FormInputs/TextInput";
@@ -145,15 +146,13 @@ function sortMonsterListItems(
       case "cr":
         return (
           (getMonsterChallengeRatingNumber(left) ?? 0) -
-            (getMonsterChallengeRatingNumber(right) ?? 0) ||
-          left.name.localeCompare(right.name)
+            (getMonsterChallengeRatingNumber(right) ?? 0) || left.name.localeCompare(right.name)
         );
       case "-challenge_rating":
       case "-cr":
         return (
           (getMonsterChallengeRatingNumber(right) ?? 0) -
-            (getMonsterChallengeRatingNumber(left) ?? 0) ||
-          left.name.localeCompare(right.name)
+            (getMonsterChallengeRatingNumber(left) ?? 0) || left.name.localeCompare(right.name)
         );
       case "name":
       default:
@@ -203,13 +202,17 @@ function CreatureEditorModal({
   const deleteTitleId = useId();
   const isEditingExisting = creature !== null;
   const canUseCustomBestiary = authStatus === "authenticated";
-  const isBeastMaster = Boolean(allowPrimalBeasts && character && isBeastMasterCharacter(character));
+  const isBeastMaster = Boolean(
+    allowPrimalBeasts && character && isBeastMasterCharacter(character)
+  );
   const defaultMonsterTypeFilter = isBeastMaster ? PRIMAL_BEAST_MONSTER_TYPE : "all";
   const monsterTypeOptions = useMemo(
     () =>
       allowPrimalBeasts
         ? companionMonsterTypeOptions
-        : companionMonsterTypeOptions.filter((typeOption) => typeOption !== PRIMAL_BEAST_MONSTER_TYPE),
+        : companionMonsterTypeOptions.filter(
+            (typeOption) => typeOption !== PRIMAL_BEAST_MONSTER_TYPE
+          ),
     [allowPrimalBeasts]
   );
   const [draft, setDraft] = useState<CompanionDraft>(() =>
@@ -224,8 +227,7 @@ function CreatureEditorModal({
   const [monsterSourceFilter, setMonsterSourceFilter] = useState<string>("all");
   const [monsterOrdering, setMonsterOrdering] = useState<MonsterOrdering>("name");
   const [monsterSourceMode, setMonsterSourceMode] = useState<"standard" | "custom">("standard");
-  const [customBestiaryScope, setCustomBestiaryScope] =
-    useState<CustomBestiaryListScope>("mine");
+  const [customBestiaryScope, setCustomBestiaryScope] = useState<CustomBestiaryListScope>("mine");
   const [customBestiaryRecords, setCustomBestiaryRecords] = useState<CustomBestiaryRecord[]>([]);
   const [customBestiaryStatus, setCustomBestiaryStatus] = useState<CodexStatus>("ready");
   const [currentPage, setCurrentPage] = useState(1);
@@ -253,8 +255,7 @@ function CreatureEditorModal({
   const selectedMonsterKey = draft.inheritedCreatureEntry
     ? getMonsterKey(draft.inheritedCreatureEntry)
     : null;
-  const isPrimalBeastFilter =
-    allowPrimalBeasts && isPrimalBeastMonsterType(monsterTypeFilter);
+  const isPrimalBeastFilter = allowPrimalBeasts && isPrimalBeastMonsterType(monsterTypeFilter);
   const isCustomBestiaryMode = canUseCustomBestiary && monsterSourceMode === "custom";
   const extraTypeOptions = useMemo(
     () =>
@@ -324,7 +325,9 @@ function CreatureEditorModal({
     !isDeprecatedMonsterRecord(draft.inheritedCreatureEntry);
 
   useEffect(() => {
-    setDraft(creature ? createDraftFromCompanion(creature) : createEmptyCompanionDraft(initialDraft));
+    setDraft(
+      creature ? createDraftFromCompanion(creature) : createEmptyCompanionDraft(initialDraft)
+    );
     setShowValidation(false);
     setMonsterNotice(null);
     setIsStatBlockEditorOpen(false);
@@ -519,9 +522,7 @@ function CreatureEditorModal({
     setMonsterNotice(null);
 
     try {
-      const primalBeast = allowPrimalBeasts
-        ? getPrimalBeastTemplateByKey(key, character)
-        : null;
+      const primalBeast = allowPrimalBeasts ? getPrimalBeastTemplateByKey(key, character) : null;
       const customBestiaryMonster = getCustomBestiaryMonsterByKey(customBestiaryRecords, key);
       const resolvedMonster =
         primalBeast ??
@@ -893,13 +894,11 @@ function CreatureEditorModal({
             {showSeparateInitiativeToggle ? (
               <label className={`${shared.field} ${styles.initiativeToggleField}`}>
                 <span className={styles.initiativeToggleLabel}>
-                  <input
-                    type="checkbox"
+                  <Checkbox
+                    rootAs="span"
                     checked={draft.separateInitiative}
                     disabled={isSaving || isDeleting}
-                    onChange={(event) =>
-                      handleDraftChange("separateInitiative", event.target.checked)
-                    }
+                    onCheckedChange={(checked) => handleDraftChange("separateInitiative", checked)}
                   />
                   <span>Separate initiative</span>
                 </span>
@@ -934,7 +933,11 @@ function CreatureEditorModal({
         <OverlayFooter className={styles.editorFooter}>
           {isEditingExisting && onRemoveCreature ? (
             <div className={styles.editorFooterActions}>
-              <ActionButton onClick={() => void handleSave()} disabled={saveDisabled} loading={isSaving}>
+              <ActionButton
+                onClick={() => void handleSave()}
+                disabled={saveDisabled}
+                loading={isSaving}
+              >
                 {labels.saveButton}
               </ActionButton>
               <ActionButton
@@ -949,7 +952,11 @@ function CreatureEditorModal({
               </ActionButton>
             </div>
           ) : (
-            <ActionButton onClick={() => void handleSave()} disabled={saveDisabled} loading={isSaving}>
+            <ActionButton
+              onClick={() => void handleSave()}
+              disabled={saveDisabled}
+              loading={isSaving}
+            >
               {isEditingExisting ? labels.saveButton : labels.createButton}
             </ActionButton>
           )}

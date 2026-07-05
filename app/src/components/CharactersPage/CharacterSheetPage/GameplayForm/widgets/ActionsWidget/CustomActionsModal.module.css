@@ -164,17 +164,6 @@
   color: var(--theme-text-secondary);
 }
 
-.checkboxRow input,
-.inlineCheckbox input {
-  accent-color: var(--color-accent);
-  margin: 0;
-}
-
-:global(html[data-theme="dark"]) .checkboxRow input,
-:global(html[data-theme="dark"]) .inlineCheckbox input {
-  accent-color: var(--theme-accent);
-}
-
 .chargeHint {
   color: var(--theme-text-secondary);
   font-size: 0.82rem;

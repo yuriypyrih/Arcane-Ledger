@@ -1,4 +1,4 @@
-import { MailCheck, UserPlus } from "lucide-react";
+import { UserPlus } from "lucide-react";
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { registerAccount, resendEmailVerification } from "../../api/auth";
@@ -12,6 +12,7 @@ import {
   USER_NICKNAME_MIN_LENGTH
 } from "./authNickname";
 import { getApiErrorMessage } from "./authPageUtils";
+import RegisterConfirmationView from "./RegisterConfirmationView";
 import styles from "./AuthPages.module.css";
 
 const RESEND_VERIFICATION_DELAY_SECONDS = 30;
@@ -118,8 +119,24 @@ function RegisterPage() {
 
   const resendButtonLabel =
     resendCooldownSeconds > 0 ? `Resend Email (${resendCooldownSeconds})` : "Resend Email";
-  const canShowResendVerification = Boolean(message && registeredEmail);
+  const canShowResendVerification = Boolean(
+    message && registeredEmail && (resendCooldownSeconds <= 0 || resendUsed)
+  );
   const resendDisabled = resendCooldownSeconds > 0 || resendUsed;
+
+  if (message && registeredEmail) {
+    return (
+      <RegisterConfirmationView
+        canShowResendVerification={canShowResendVerification}
+        message={message}
+        resendButtonLabel={resendButtonLabel}
+        resendDisabled={resendDisabled}
+        resendUsed={resendUsed}
+        resending={resending}
+        onResendVerification={handleResendVerification}
+      />
+    );
+  }
 
   return (
     <section className={styles.page}>
@@ -165,12 +182,6 @@ function RegisterPage() {
           </label>
 
           {error ? <div className={`${styles.message} ${styles.error}`}>{error}</div> : null}
-          {message ? (
-            <div className={`${styles.message} ${styles.success}`}>
-              <MailCheck size={15} aria-hidden="true" />
-              <span>{message}</span>
-            </div>
-          ) : null}
 
           <div className={styles.actions}>
             <ActionButton
@@ -180,18 +191,6 @@ function RegisterPage() {
             >
               Register
             </ActionButton>
-            {canShowResendVerification ? (
-              <ActionButton
-                icon={<MailCheck size={16} aria-hidden="true" />}
-                loading={resending}
-                variant="OUTLINE"
-                type="button"
-                disabled={resendDisabled}
-                onClick={handleResendVerification}
-              >
-                {resendUsed ? "Verification Email Sent" : resendButtonLabel}
-              </ActionButton>
-            ) : null}
           </div>
         </form>
 

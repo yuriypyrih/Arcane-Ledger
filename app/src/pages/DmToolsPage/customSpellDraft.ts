@@ -57,6 +57,7 @@ export type CustomSpellDraft = {
   ritual: boolean;
   spellLevel: number;
   spellLists: SPELL_LIST_CLASS[];
+  summoningSpell: boolean;
 };
 
 const DURATION_MODE_UNITS: Partial<Record<CustomSpellDurationMode, string>> = {
@@ -196,7 +197,8 @@ export function createDefaultCustomSpellDraft(): CustomSpellDraft {
     range: "Self",
     ritual: false,
     spellLevel: 0,
-    spellLists: []
+    spellLists: [],
+    summoningSpell: false
   };
 }
 
@@ -222,7 +224,8 @@ export function createCustomSpellDraftFromRecord(record: CustomSpellRecord): Cus
     range: spell.range,
     ritual: Boolean(spell.ritual),
     spellLevel: spell.spellLevel,
-    spellLists: spell.spellLists
+    spellLists: spell.spellLists,
+    summoningSpell: Boolean(spell.summoningSpell)
   };
 }
 
@@ -271,7 +274,8 @@ export function parseCustomSpellDraft(draft: CustomSpellDraft): CustomSpellInput
     range: normalizeDraftText(draft.range, CUSTOM_SPELL_RANGE_MAX_LENGTH),
     ritual: draft.ritual,
     spellLevel: clampInteger(draft.spellLevel, 0, 9, 0),
-    spellLists: Array.from(new Set(draft.spellLists))
+    spellLists: Array.from(new Set(draft.spellLists)),
+    summoningSpell: draft.summoningSpell
   };
 }
 

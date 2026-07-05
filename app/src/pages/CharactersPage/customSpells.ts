@@ -137,7 +137,8 @@ function normalizeCustomSpellEntry(value: unknown, customSpellId: string): Spell
     healing: [],
     spellLists,
     spellLevel: normalizeSpellLevel(value.spellLevel),
-    ritual: Boolean(value.ritual)
+    ritual: Boolean(value.ritual),
+    summoningSpell: Boolean(value.summoningSpell)
   };
 }
 

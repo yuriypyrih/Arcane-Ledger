@@ -176,6 +176,7 @@ export type SpellEntry = {
   spellLists: SPELL_LIST_CLASS[];
   spellLevel: number;
   ritual?: boolean;
+  summoningSpell?: boolean;
 };
 export type DivinityEntry = {
   id: string;

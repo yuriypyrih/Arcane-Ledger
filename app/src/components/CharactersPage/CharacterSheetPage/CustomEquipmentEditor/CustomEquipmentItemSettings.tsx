@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { Plus, Trash2 } from "lucide-react";
+import Checkbox from "../../FormInputs/Checkbox";
 import NumberInput from "../../FormInputs/NumberInput";
 import SelectInput from "../../FormInputs/SelectInput";
 import TextInput from "../../FormInputs/TextInput";
@@ -145,7 +146,10 @@ function CustomEquipmentItemSettings({
         ? {
             chargesEnabled: true,
             chargesTotal: normalizeItemSettingPositiveInteger(draft.chargesTotal, 1),
-            storedSpellChargeCost: normalizeItemSettingPositiveInteger(draft.storedSpellChargeCost, 1)
+            storedSpellChargeCost: normalizeItemSettingPositiveInteger(
+              draft.storedSpellChargeCost,
+              1
+            )
           }
         : {})
     });
@@ -172,7 +176,9 @@ function CustomEquipmentItemSettings({
       return;
     }
 
-    onChange({ storedSpellIds: storedSpellIds.filter((_, currentIndex) => currentIndex !== index) });
+    onChange({
+      storedSpellIds: storedSpellIds.filter((_, currentIndex) => currentIndex !== index)
+    });
   }
 
   return (
@@ -211,16 +217,12 @@ function CustomEquipmentItemSettings({
                 />
               </label>
               <div className={styles.customEquipmentRechargeRow}>
-                <label className={styles.customEquipmentCheckbox}>
-                  <input
-                    type="checkbox"
-                    checked={draft.chargesRechargeEnabled}
-                    onChange={(event) =>
-                      onChange({ chargesRechargeEnabled: event.target.checked })
-                    }
-                  />
-                  <span>AUTO-RECHARGE-ABLE</span>
-                </label>
+                <Checkbox
+                  className={styles.customEquipmentCheckbox}
+                  checked={draft.chargesRechargeEnabled}
+                  onCheckedChange={(chargesRechargeEnabled) => onChange({ chargesRechargeEnabled })}
+                  label="AUTO-RECHARGE-ABLE"
+                />
                 <label className={styles.customEquipmentField}>
                   <span>Short Rest</span>
                   <NumberInput
@@ -316,9 +318,7 @@ function CustomEquipmentItemSettings({
             header="Spellcasting Focus"
             subheader="Display this item with spellcasting focus equipment."
             selected={draft.spellcastingFocusEnabled}
-            onSelect={() =>
-              onChange({ spellcastingFocusEnabled: !draft.spellcastingFocusEnabled })
-            }
+            onSelect={() => onChange({ spellcastingFocusEnabled: !draft.spellcastingFocusEnabled })}
             indicatorType="checkbox"
             className={styles.customEquipmentChoiceOption}
           />

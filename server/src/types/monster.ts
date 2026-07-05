@@ -10,6 +10,8 @@ export type MonsterOrdering =
   | "document"
   | "-document";
 
+export type MonsterChallengeRatingBucket = "0" | "<1" | "30+" | `${number}`;
+
 export type MonsterAbilityKey =
   | "strength"
   | "dexterity"
@@ -190,6 +192,7 @@ export type MonsterListQuery = {
   limit: number;
   ordering?: MonsterOrdering;
   challengeRating?: number;
+  challengeRatingBucket?: MonsterChallengeRatingBucket;
   maxChallengeRating?: number;
   type?: string;
   source?: string;

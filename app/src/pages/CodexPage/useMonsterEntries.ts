@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { fetchMonsterList, isApiOfflineError } from "../../api";
+import type { MonsterChallengeRatingBucket } from "../../constants/monsters";
 import { useOnlineStatus } from "../../lib/useOnlineStatus";
 import type { CodexStatus, MonsterListItem, MonsterOrdering, PaginatedApiResponse } from "../../types";
 
@@ -9,6 +10,7 @@ type UseMonsterEntriesOptions = {
   limit: number;
   search: string;
   type: string | null;
+  challengeRatingBucket?: MonsterChallengeRatingBucket | null;
   maxCr?: number | null;
   source: string | null;
   ordering: MonsterOrdering;
@@ -20,6 +22,7 @@ export function useMonsterEntries({
   limit,
   search,
   type,
+  challengeRatingBucket,
   maxCr,
   source,
   ordering
@@ -53,6 +56,7 @@ export function useMonsterEntries({
             limit,
             search: search.trim() || undefined,
             type: type ?? undefined,
+            challengeRatingBucket: challengeRatingBucket ?? undefined,
             maxChallengeRating: maxCr ?? undefined,
             source: source ?? undefined,
             ordering
@@ -81,7 +85,7 @@ export function useMonsterEntries({
       active = false;
       abortController.abort();
     };
-  }, [enabled, isOnline, limit, maxCr, ordering, page, search, source, type]);
+  }, [challengeRatingBucket, enabled, isOnline, limit, maxCr, ordering, page, search, source, type]);
 
   return {
     payload,

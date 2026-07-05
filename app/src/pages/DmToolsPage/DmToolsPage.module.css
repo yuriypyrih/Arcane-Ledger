@@ -239,6 +239,7 @@
   flex-wrap: wrap;
   gap: 0.42rem;
   margin-bottom: calc(var(--space-section-gap) * -1);
+  min-height: 54px;
   padding-inline: 0.18rem;
 }
 
@@ -250,13 +251,11 @@
   border: 1px solid rgba(var(--tool-signature-rgb, 162, 77, 45), 0.34);
   border-bottom: none;
   border-radius: var(--radius-control-lg) var(--radius-control-lg) 0 0;
-  background:
-    linear-gradient(
-      180deg,
-      rgba(var(--tool-signature-rgb, 162, 77, 45), 0.16),
-      rgba(var(--tool-signature-rgb, 162, 77, 45), 0.065)
-    ),
-    var(--theme-surface-panel);
+  background: color-mix(
+    in srgb,
+    rgb(var(--tool-signature-rgb, 162, 77, 45)) 18%,
+    var(--theme-surface-panel)
+  );
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.68),
     0 5px 12px rgba(var(--tool-signature-rgb, 162, 77, 45), 0.08);
@@ -271,7 +270,8 @@
     background-color 140ms ease,
     border-color 140ms ease,
     box-shadow 140ms ease,
-    color 140ms ease;
+    color 140ms ease,
+    min-height 140ms ease;
 }
 
 .tabButton::after {
@@ -296,14 +296,13 @@
 .tabButton:hover,
 .tabButton:focus-visible {
   border-color: rgba(var(--tool-signature-rgb, 162, 77, 45), 0.5);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(var(--tool-signature-rgb, 162, 77, 45), 0.22),
-      rgba(var(--tool-signature-rgb, 162, 77, 45), 0.1)
-    ),
-    var(--theme-surface-panel);
+  background: color-mix(
+    in srgb,
+    rgb(var(--tool-signature-rgb, 162, 77, 45)) 23%,
+    var(--theme-surface-panel)
+  );
   color: var(--tool-signature-strong, var(--theme-text-primary));
+  min-height: 50px;
 }
 
 .tabButton:hover::after,
@@ -319,23 +318,27 @@
 
 .tabButtonActive {
   border-color: rgba(var(--tool-signature-rgb, 162, 77, 45), 0.66);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(var(--tool-signature-rgb, 162, 77, 45), 0.28),
-      rgba(var(--tool-signature-rgb, 162, 77, 45), 0.14)
-    ),
-    var(--theme-surface-panel);
+  background: color-mix(
+    in srgb,
+    rgb(var(--tool-signature-rgb, 162, 77, 45)) 28%,
+    var(--theme-surface-panel)
+  );
   box-shadow:
     0 -1px 0 rgba(var(--tool-signature-rgb, 162, 77, 45), 0.2),
     0 7px 16px rgba(var(--tool-signature-rgb, 162, 77, 45), 0.13),
     var(--theme-section-shadow);
   color: var(--tool-signature-strong, var(--theme-text-primary));
+  min-height: 54px;
 }
 
 .tabButtonActive::after {
   height: 4px;
   background: var(--tool-signature, var(--theme-accent));
+}
+
+.tabButtonActive:hover,
+.tabButtonActive:focus-visible {
+  min-height: 54px;
 }
 
 :global(html[data-theme="dark"]) .tabButton {
@@ -539,14 +542,6 @@
   white-space: nowrap;
 }
 
-.customObjectPublicToggle input {
-  accent-color: var(--theme-accent);
-  flex: 0 0 auto;
-  height: 1rem;
-  margin: 0;
-  width: 1rem;
-}
-
 .customObjectPublicToggleDisabled {
   border-color: var(--theme-border-subtle);
   background: var(--theme-control-subtle);
@@ -611,12 +606,6 @@
   font-weight: 800;
   min-height: 36px;
   padding: 0.36rem 0.56rem;
-}
-
-.checkboxPill input,
-.checkboxRow input {
-  accent-color: var(--theme-accent);
-  margin: 0;
 }
 
 .campaignDetailLayout {
@@ -1539,5 +1528,4 @@ button.dmToolsListCardMain:disabled {
   .linkRow {
     grid-template-columns: minmax(0, 1fr) auto auto;
   }
-
 }

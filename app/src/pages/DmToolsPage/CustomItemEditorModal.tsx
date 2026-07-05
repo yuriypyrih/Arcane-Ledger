@@ -1,12 +1,9 @@
 import { useMemo, useState } from "react";
-import {
-  createCustomItem,
-  updateCustomItem,
-  type CustomItemRecord
-} from "../../api/customItems";
+import { createCustomItem, updateCustomItem, type CustomItemRecord } from "../../api/customItems";
 import CustomEquipmentEditor, {
   type CustomEquipmentEditorSavePayload
 } from "../../components/CharactersPage/CharacterSheetPage/CustomEquipmentEditor/CustomEquipmentEditor";
+import Checkbox from "../../components/CharactersPage/FormInputs/Checkbox";
 import {
   OverlayCloseButton,
   OverlayHeader,
@@ -104,24 +101,22 @@ function CustomItemEditorModal({ customItem, onClose, onSaved }: CustomItemEdito
           </OverlaySummary>
         </OverlayHeaderContent>
         <div className={styles.customObjectModalHeaderActions}>
-          <label
+          <Checkbox
             className={[
               styles.customObjectPublicToggle,
               publicToggleDisabled ? styles.customObjectPublicToggleDisabled : ""
             ]
               .join(" ")
               .trim()}
-            data-tooltip={publicToggleDisabledReason}
-            aria-disabled={publicToggleDisabled}
-          >
-            <input
-              type="checkbox"
-              checked={canPublish && isPublic}
-              disabled={publicToggleDisabled}
-              onChange={(event) => setIsPublic(event.target.checked)}
-            />
-            <span>Public</span>
-          </label>
+            rootProps={{
+              "aria-disabled": publicToggleDisabled,
+              "data-tooltip": publicToggleDisabledReason
+            }}
+            checked={canPublish && isPublic}
+            disabled={publicToggleDisabled}
+            onCheckedChange={setIsPublic}
+            label="Public"
+          />
           <OverlayCloseButton
             label="Close custom item editor"
             disabled={isSaving}

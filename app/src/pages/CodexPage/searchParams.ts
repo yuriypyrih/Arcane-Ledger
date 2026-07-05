@@ -8,7 +8,12 @@ import {
   type BackgroundSource,
   type SpeciesSource
 } from "../../codex/entries";
-import { MONSTER_SOURCE_OPTIONS, MONSTER_TYPE_OPTIONS } from "../../constants/monsters";
+import {
+  isMonsterChallengeRatingBucket,
+  MONSTER_SOURCE_OPTIONS,
+  MONSTER_TYPE_OPTIONS,
+  type MonsterChallengeRatingBucket
+} from "../../constants/monsters";
 import {
   FEAT_SOURCE_VALUES,
   type FeatSource
@@ -38,6 +43,7 @@ export const SPELL_SCHOOL_PARAM = "spellSchool";
 export const SPELL_SPECIAL_PARAM = "spellSpecial";
 export const MONSTER_TYPE_PARAM = "monsterType";
 export const MONSTER_SOURCE_PARAM = "monsterSource";
+export const MONSTER_CHALLENGE_RATING_PARAM = "monsterChallengeRating";
 export const MONSTER_ORDER_PARAM = "monsterOrder";
 export const ITEM_CATEGORY_PARAM = "itemCategory";
 export const ITEM_TAB_PARAM = "itemTab";
@@ -94,6 +100,7 @@ export type ParsedCodexSearchState = {
   spellSpecialFilter: CodexSpellSpecialFilter | null;
   monsterTypeFilter: string | null;
   monsterSourceFilter: string | null;
+  monsterChallengeRatingFilter: MonsterChallengeRatingBucket | null;
   monsterOrdering: MonsterOrdering;
   itemTab: ItemBrowserTab;
   itemCategoryFilter: string | null;
@@ -222,6 +229,11 @@ export function parseCodexSearchState(
     ),
     monsterTypeFilter: parseMonsterTypeFilter(searchParams.get(MONSTER_TYPE_PARAM)),
     monsterSourceFilter: parseMonsterSourceFilter(searchParams.get(MONSTER_SOURCE_PARAM)),
+    monsterChallengeRatingFilter: isMonsterChallengeRatingBucket(
+      searchParams.get(MONSTER_CHALLENGE_RATING_PARAM)
+    )
+      ? (searchParams.get(MONSTER_CHALLENGE_RATING_PARAM) as MonsterChallengeRatingBucket)
+      : null,
     monsterOrdering: parseMonsterOrdering(searchParams.get(MONSTER_ORDER_PARAM)),
     itemTab:
       parseEnumFilter(searchParams.get(ITEM_TAB_PARAM), ITEM_TABS) ?? DEFAULT_ITEM_BROWSER_TAB,
@@ -262,6 +274,7 @@ export function clearSpellSearchParams(searchParams: URLSearchParams): URLSearch
 export function clearMonsterSearchParams(searchParams: URLSearchParams): URLSearchParams {
   searchParams.delete(MONSTER_TYPE_PARAM);
   searchParams.delete(MONSTER_SOURCE_PARAM);
+  searchParams.delete(MONSTER_CHALLENGE_RATING_PARAM);
   searchParams.delete(MONSTER_ORDER_PARAM);
   return searchParams;
 }
@@ -345,6 +358,7 @@ export function hasCategoryScopedSearchParams(searchParams: URLSearchParams): bo
     searchParams.has(SPELL_SPECIAL_PARAM) ||
     searchParams.has(MONSTER_TYPE_PARAM) ||
     searchParams.has(MONSTER_SOURCE_PARAM) ||
+    searchParams.has(MONSTER_CHALLENGE_RATING_PARAM) ||
     searchParams.has(MONSTER_ORDER_PARAM) ||
     searchParams.has(ITEM_TAB_PARAM) ||
     searchParams.has(ITEM_CATEGORY_PARAM) ||

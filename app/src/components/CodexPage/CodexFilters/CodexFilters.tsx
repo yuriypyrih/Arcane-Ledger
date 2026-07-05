@@ -37,7 +37,9 @@ import type {
   ItemFilterOptions,
   ItemProficiencyType
 } from "../../../types";
+import type { MonsterChallengeRatingBucket } from "../../../constants/monsters";
 import SearchField from "../../SearchField";
+import MonsterChallengeRatingFilter from "./MonsterChallengeRatingFilter";
 import styles from "./CodexFilters.module.css";
 
 type CodexFiltersProps = {
@@ -53,6 +55,7 @@ type CodexFiltersProps = {
   monsterTypeOptions: readonly string[];
   monsterSourceFilter: string | null;
   monsterSourceOptions: readonly string[];
+  monsterChallengeRatingFilter: MonsterChallengeRatingBucket | null;
   itemTab: ItemBrowserTab;
   itemCategoryFilter: string | null;
   itemAttackTypeFilter: ItemAttackType | null;
@@ -75,6 +78,7 @@ type CodexFiltersProps = {
   onSpellSpecialFilterChange: (value: CodexSpellSpecialFilter | null) => void;
   onMonsterTypeFilterChange: (value: string | null) => void;
   onMonsterSourceFilterChange: (value: string | null) => void;
+  onMonsterChallengeRatingFilterChange: (value: MonsterChallengeRatingBucket | null) => void;
   onItemTabChange: (value: ItemBrowserTab) => void;
   onItemCategoryFilterChange: (value: string | null) => void;
   onItemAttackTypeFilterChange: (value: ItemAttackType | null) => void;
@@ -158,6 +162,7 @@ function CodexFilters({
   monsterTypeOptions,
   monsterSourceFilter,
   monsterSourceOptions,
+  monsterChallengeRatingFilter,
   itemTab,
   itemCategoryFilter,
   itemAttackTypeFilter,
@@ -180,6 +185,7 @@ function CodexFilters({
   onSpellSpecialFilterChange,
   onMonsterTypeFilterChange,
   onMonsterSourceFilterChange,
+  onMonsterChallengeRatingFilterChange,
   onItemTabChange,
   onItemCategoryFilterChange,
   onItemAttackTypeFilterChange,
@@ -358,6 +364,11 @@ function CodexFilters({
               ))}
             </select>
           </label>
+
+          <MonsterChallengeRatingFilter
+            value={monsterChallengeRatingFilter}
+            onChange={onMonsterChallengeRatingFilterChange}
+          />
         </>
       ) : null}
 

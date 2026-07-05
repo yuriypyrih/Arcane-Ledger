@@ -48,6 +48,10 @@
   margin: 0.16rem 0 0;
 }
 
+.checkboxIndicator {
+  margin-top: 0.16rem;
+}
+
 .content {
   display: grid;
   gap: 0.32rem;

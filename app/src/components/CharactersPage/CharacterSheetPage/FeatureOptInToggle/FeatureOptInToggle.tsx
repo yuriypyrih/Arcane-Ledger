@@ -1,4 +1,6 @@
 import clsx from "clsx";
+import type { ActionButtonType } from "../../../ActionButton";
+import Checkbox from "../../FormInputs/Checkbox";
 import FeatureUsageLabel from "../FeatureUsageLabel";
 import { renderFeatureUsageIcon } from "../featureUsageIcons";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
@@ -44,7 +46,7 @@ type FeatureOptInToggleProps = {
   metaItems?: FeatureOptInToggleMetaItem[];
   muted?: boolean;
   className?: string;
-  checkboxAccentColor?: string;
+  checkboxActionType?: ActionButtonType;
 };
 
 function normalizeMetaIcon(icon?: FeatureOptInToggleIconKind): FeatureActionIcon | undefined {
@@ -82,7 +84,7 @@ function FeatureOptInToggle({
   metaItems = [],
   muted = false,
   className,
-  checkboxAccentColor
+  checkboxActionType = "INFO"
 }: FeatureOptInToggleProps) {
   const visibleMetaItems = metaItems.filter(
     (item) => item.kind !== "tracker" || Math.max(0, Math.floor(item.total)) > 0
@@ -99,12 +101,12 @@ function FeatureOptInToggle({
       )}
     >
       <label className={styles.toggleContent} title={title ?? undefined}>
-        <input
-          type="checkbox"
+        <Checkbox
+          rootAs="span"
           checked={checked}
           disabled={disabled}
-          onChange={(event) => onCheckedChange(event.target.checked)}
-          style={checkboxAccentColor ? { accentColor: checkboxAccentColor } : undefined}
+          onCheckedChange={onCheckedChange}
+          actionType={checkboxActionType}
         />
         <span>{label}</span>
         {usage ? (

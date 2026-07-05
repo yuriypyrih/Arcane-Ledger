@@ -2,6 +2,7 @@ import type { FilterQuery, SortOrder } from "mongoose";
 import { MonsterModel } from "../models/Monster.js";
 import type { MonsterListQuery, MonsterOrdering, MonsterRecord } from "../types/monster.js";
 import { serializeMonsterListItem, serializeMonsterRecord } from "../utils/serializers.js";
+import { createChallengeRatingBucketFilter } from "./monsterChallengeRatingFilters.js";
 
 function escapeRegularExpression(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -65,6 +66,10 @@ function buildMonsterFilter(query: MonsterListQuery): FilterQuery<MonsterRecord>
     appendFilterClause(filter, {
       $or: [{ challenge_rating: challengeRatingFilter }, { cr: challengeRatingFilter }]
     });
+  }
+
+  if (query.challengeRatingBucket !== undefined) {
+    appendFilterClause(filter, createChallengeRatingBucketFilter(query.challengeRatingBucket));
   }
 
   if (query.source) {

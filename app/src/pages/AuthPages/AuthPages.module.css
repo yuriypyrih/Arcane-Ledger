@@ -82,6 +82,14 @@
   padding: 0.72rem 0.86rem;
 }
 
+.message svg {
+  flex: 0 0 auto;
+}
+
+.message span {
+  min-width: 0;
+}
+
 .error {
   border: 1px solid rgba(165, 55, 34, 0.25);
   background: rgba(165, 55, 34, 0.08);
@@ -109,6 +117,16 @@
 
 .actions > * {
   flex: 1 1 160px;
+}
+
+.confirmationPanel {
+  display: grid;
+  gap: 1rem;
+}
+
+.confirmationMessage {
+  align-items: flex-start;
+  font-size: 0.95rem;
 }
 
 .linkRow {

@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { useState } from "react";
 import type { Character, CharacterWizardPortentRoll } from "../../../../../../types";
 import { getWizardDivinerPortentRolls } from "../../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardDivinerPortent";
+import Checkbox from "../../../../FormInputs/Checkbox";
 import sharedModalStyles from "./FeatureActionModal.module.css";
 import styles from "./PortentActionBody.module.css";
 
@@ -93,15 +94,13 @@ function PortentActionBody({ character, onSubmit }: PortentActionBodyProps) {
               />
             </label>
 
-            <label className={styles.portentRollUsedLabel}>
-              <input
-                className={styles.portentRollUsedCheckbox}
-                type="checkbox"
-                checked={draftRoll.used}
-                onChange={(event) => updateDraftRoll(index, { used: event.target.checked })}
-              />
-              <span>Mark as used</span>
-            </label>
+            <Checkbox
+              className={styles.portentRollUsedLabel}
+              markerClassName={styles.portentRollUsedCheckbox}
+              checked={draftRoll.used}
+              onCheckedChange={(used) => updateDraftRoll(index, { used })}
+              label="Mark as used"
+            />
           </div>
         ))}
       </div>

@@ -23,6 +23,7 @@ import {
   OverlayTitleRow,
   SheetModal
 } from "../../../../Overlay";
+import Checkbox from "../../../FormInputs/Checkbox";
 import RadioContainerOption from "../../RadioContainerOption";
 import styles from "./DiceRollerSettingsModal.module.css";
 
@@ -170,27 +171,25 @@ function DiceRollerSettingsModal({ onClose }: DiceRollerSettingsModalProps) {
               const disabled = selectedOverrideValue !== null && !checked;
 
               return (
-                <label
+                <Checkbox
                   key={option.value}
                   className={[
                     styles.overrideRow,
                     checked ? styles.overrideRowSelected : "",
                     disabled ? styles.overrideRowDisabled : ""
                   ].join(" ")}
-                >
-                  <input
-                    type="checkbox"
-                    className={styles.overrideCheckbox}
-                    checked={checked}
-                    disabled={disabled}
-                    onChange={() => toggleNextRollOverride(option.value)}
-                  />
-                  <span className={styles.overrideLabel}>
-                    Force{option.value === "critical_hit" ? " a " : " "}
-                    <span className={styles[option.toneClassName]}>{option.label}</span> to the next
-                    roll.
-                  </span>
-                </label>
+                  markerClassName={styles.overrideCheckbox}
+                  checked={checked}
+                  disabled={disabled}
+                  onCheckedChange={() => toggleNextRollOverride(option.value)}
+                  label={
+                    <span className={styles.overrideLabel}>
+                      Force{option.value === "critical_hit" ? " a " : " "}
+                      <span className={styles[option.toneClassName]}>{option.label}</span> to the
+                      next roll.
+                    </span>
+                  }
+                />
               );
             })}
           </div>

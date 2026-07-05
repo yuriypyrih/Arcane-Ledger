@@ -15,6 +15,7 @@ export type CustomSpellRecord = {
   ritual: boolean;
   spellLevel: number;
   spellLists: string[];
+  summoningSpell: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 };
@@ -80,6 +81,10 @@ const customSpellSchema = new Schema<CustomSpellRecord>(
       default: []
     },
     ritual: {
+      type: Boolean,
+      default: false
+    },
+    summoningSpell: {
       type: Boolean,
       default: false
     },

@@ -37,6 +37,7 @@ import {
 } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import Checkbox from "../../FormInputs/Checkbox";
 import RadioContainerOption from "../RadioContainerOption";
 import styles from "./SpellCastingForm.module.css";
 import { applySpellManagementDraftToCharacter } from "./spellManagementDrafts";
@@ -204,8 +205,7 @@ function isPreparedSpellLevelAvailable(
   const spellLevel = getSpellLevel(spell);
 
   return (
-    spellLevel > 0 &&
-    (options.allowAllSpellLevels || spellLevel <= options.highestSpellSlotLevel)
+    spellLevel > 0 && (options.allowAllSpellLevels || spellLevel <= options.highestSpellSlotLevel)
   );
 }
 
@@ -282,11 +282,7 @@ function SpellManagementModal({
         customSpellPreparationOptions,
         fetchedCustomSpellPreparationOptions
       ),
-    [
-      customSpellPreparationOptions,
-      fetchedCustomSpellPreparationOptions,
-      spellPreparationOptions
-    ]
+    [customSpellPreparationOptions, fetchedCustomSpellPreparationOptions, spellPreparationOptions]
   );
   const modalKnownSpellEntriesById = useMemo(
     () =>
@@ -314,9 +310,8 @@ function SpellManagementModal({
       preparedSpellIds: selectedPreparedSpellIds,
       spellbookSpellIds: selectedManualSpellbookSpellIds
     }));
-  const [activePreparedSpellLevel, setActivePreparedSpellLevel] = useState<PreparedSpellTab>(
-    allPreparedSpellTab
-  );
+  const [activePreparedSpellLevel, setActivePreparedSpellLevel] =
+    useState<PreparedSpellTab>(allPreparedSpellTab);
   const [cantripFilters, setCantripFilters] = useState<SpellManagementFilters>(() => ({
     ...emptySpellManagementFilters
   }));
@@ -653,8 +648,7 @@ function SpellManagementModal({
 
   useEffect(() => {
     let didCancel = false;
-    const loadKey =
-      isAuthenticated && authUserId ? `${authUserId}:${customSpellScope}` : null;
+    const loadKey = isAuthenticated && authUserId ? `${authUserId}:${customSpellScope}` : null;
 
     if (spellSourceMode !== "custom") {
       return () => {
@@ -899,8 +893,8 @@ function SpellManagementModal({
           disabled={isSpellbookToggleDisabled}
         >
           <span className={styles.wizardSelectionLabel}>Spellbook</span>
-          <input
-            type="checkbox"
+          <Checkbox
+            rootAs="span"
             checked={isInSpellbook}
             readOnly
             tabIndex={-1}
@@ -921,8 +915,8 @@ function SpellManagementModal({
           disabled={isPrepareDisabled}
         >
           <span className={styles.wizardSelectionLabel}>Prepared</span>
-          <input
-            type="checkbox"
+          <Checkbox
+            rootAs="span"
             checked={isPrepared}
             readOnly
             tabIndex={-1}
@@ -1085,9 +1079,7 @@ function SpellManagementModal({
               header="Spellcasting rules enforcement"
               subheader="Your class will enforce their spellcasting rules"
               selected={spellcastingRulesEnforced}
-              onSelect={() =>
-                onSpellcastingRulesEnforcementChange(!spellcastingRulesEnforced)
-              }
+              onSelect={() => onSpellcastingRulesEnforcementChange(!spellcastingRulesEnforced)}
               disabled={spellcastingRulesEnforcementDisabled || isCommitting}
               indicatorType="checkbox"
             />
@@ -1173,9 +1165,7 @@ function SpellManagementModal({
             <div className={styles.preparedSpellStatusRow}>
               <div>
                 <p className={styles.preparedSpellStatusLabel}>
-                  <span>
-                    {usesSpellbook ? "Spellbook and prepared spells" : "Prepared spells"}
-                  </span>
+                  <span>{usesSpellbook ? "Spellbook and prepared spells" : "Prepared spells"}</span>
                   <SelectionCounter current={preparedSpellCount} total={preparedSpellLimit} />
                 </p>
                 {usesSpellbook ? (
