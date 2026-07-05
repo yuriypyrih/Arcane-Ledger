@@ -1,7 +1,12 @@
 import clsx from "clsx";
 import { Check, Plus } from "lucide-react";
 import { useId } from "react";
-import { MONSTER_SOURCE_OPTIONS } from "../../../../constants/monsters";
+import {
+  isMonsterChallengeRatingBucket,
+  MONSTER_CHALLENGE_RATING_BUCKET_OPTIONS,
+  MONSTER_SOURCE_OPTIONS,
+  type MonsterChallengeRatingBucket
+} from "../../../../constants/monsters";
 import MonsterCodexTable from "../../../CodexPage/MonsterCodexTable";
 import {
   OverlayBody,
@@ -32,6 +37,7 @@ type MonsterBrowserModalProps = {
   selectedMonsterKey: string | null;
   monsterTypeFilter: string;
   monsterSourceFilter: string;
+  monsterChallengeRatingFilter: MonsterChallengeRatingBucket | null;
   monsterTypeOptions?: string[];
   ordering: MonsterOrdering;
   pendingSelectKey: string | null;
@@ -45,6 +51,7 @@ type MonsterBrowserModalProps = {
   onQueryChange: (value: string) => void;
   onMonsterTypeFilterChange: (value: string) => void;
   onMonsterSourceFilterChange: (value: string) => void;
+  onMonsterChallengeRatingFilterChange: (value: MonsterChallengeRatingBucket | null) => void;
   onOrderingChange: (value: MonsterOrdering) => void;
   onPageChange: (page: number) => void;
   onOpenMonsterPreview: (monster: MonsterListItem) => void;
@@ -63,6 +70,7 @@ function MonsterBrowserModal({
   selectedMonsterKey,
   monsterTypeFilter,
   monsterSourceFilter,
+  monsterChallengeRatingFilter,
   monsterTypeOptions = companionMonsterTypeOptions,
   ordering,
   pendingSelectKey,
@@ -76,6 +84,7 @@ function MonsterBrowserModal({
   onQueryChange,
   onMonsterTypeFilterChange,
   onMonsterSourceFilterChange,
+  onMonsterChallengeRatingFilterChange,
   onOrderingChange,
   onPageChange,
   onOpenMonsterPreview,
@@ -113,12 +122,12 @@ function MonsterBrowserModal({
           </label>
 
           <label className={shared.field}>
-            <span className={shared.fieldLabel}>Filter Type</span>
+            <span className={shared.fieldLabel}>Type</span>
             <SelectInput
               value={monsterTypeFilter}
               onChange={(event) => onMonsterTypeFilterChange(event.target.value)}
             >
-              <option value="all">All monster types</option>
+              <option value="all">All</option>
               {monsterTypeOptions.map((typeOption) => (
                 <option key={typeOption} value={typeOption}>
                   {typeOption}
@@ -128,16 +137,36 @@ function MonsterBrowserModal({
           </label>
 
           <label className={shared.field}>
-            <span className={shared.fieldLabel}>Filter Source</span>
+            <span className={shared.fieldLabel}>Source</span>
             <SelectInput
               value={monsterSourceFilter}
               disabled={sourceMode === "custom"}
               onChange={(event) => onMonsterSourceFilterChange(event.target.value)}
             >
-              <option value="all">All sources</option>
+              <option value="all">All</option>
               {MONSTER_SOURCE_OPTIONS.map((sourceOption) => (
                 <option key={sourceOption} value={sourceOption}>
                   {sourceOption}
+                </option>
+              ))}
+            </SelectInput>
+          </label>
+
+          <label className={shared.field}>
+            <span className={shared.fieldLabel}>Challenge Rating</span>
+            <SelectInput
+              value={monsterChallengeRatingFilter ?? "all"}
+              onChange={(event) => {
+                const nextValue = event.target.value;
+                onMonsterChallengeRatingFilterChange(
+                  isMonsterChallengeRatingBucket(nextValue) ? nextValue : null
+                );
+              }}
+            >
+              <option value="all">All</option>
+              {MONSTER_CHALLENGE_RATING_BUCKET_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
                 </option>
               ))}
             </SelectInput>

@@ -1,4 +1,8 @@
 import type { CustomBestiaryRecord } from "../../../../api/customBestiary";
+import {
+  matchesMonsterChallengeRatingBucket,
+  type MonsterChallengeRatingBucket
+} from "../../../../constants/monsters";
 import type { MonsterListItem, MonsterOrdering, MonsterRecord } from "../../../../types";
 import {
   getMonsterChallengeRatingNumber,
@@ -27,6 +31,7 @@ export function customBestiaryRecordToListItem(record: CustomBestiaryRecord): Mo
 export function filterCustomBestiaryRecords(
   records: CustomBestiaryRecord[],
   options: {
+    challengeRatingBucket?: MonsterChallengeRatingBucket | null;
     query: string;
     type: string;
   }
@@ -43,8 +48,12 @@ export function filterCustomBestiaryRecords(
       normalizedType === "all" ||
       monster.type?.key?.toLowerCase() === normalizedType ||
       getMonsterTypeName(monster)?.toLowerCase() === normalizedType;
+    const challengeRatingMatches = matchesMonsterChallengeRatingBucket(
+      getMonsterChallengeRatingNumber(monster),
+      options.challengeRatingBucket ?? null
+    );
 
-    return nameMatches && typeMatches;
+    return nameMatches && typeMatches && challengeRatingMatches;
   });
 }
 

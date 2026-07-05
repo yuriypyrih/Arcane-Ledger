@@ -19,7 +19,7 @@
 }
 
 .select {
-  --select-input-height: 46px;
+  --select-input-custom-height: 46px;
   min-height: 46px;
 }
 

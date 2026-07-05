@@ -162,7 +162,7 @@
 }
 
 .skillLevelSelect {
-  --select-input-height: 34px;
+  --select-input-custom-height: 34px;
   min-height: 34px;
   border-radius: var(--radius-tiny);
   padding-right: 2rem;

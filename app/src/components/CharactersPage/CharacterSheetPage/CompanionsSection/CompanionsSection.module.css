@@ -270,7 +270,12 @@
 .browserControls {
   display: grid;
   gap: 0.8rem;
+  align-items: end;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.browserControls > label {
+  min-width: 0;
 }
 
 .monsterTable {
@@ -289,7 +294,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(75, 47, 29, 0.14);
+  border: 1px solid rgba(75, 47, 29, 0.08);
   border-radius: 4px;
   background: var(--color-panel-surface);
   color: var(--color-ink);
@@ -299,10 +304,22 @@
   padding: 0;
 }
 
+:global(html[data-theme="dark"]) .selectMonsterButton {
+  border-color: rgba(221, 230, 242, 0.1);
+  background: var(--theme-surface-panel);
+  color: var(--theme-text-primary);
+}
+
 .selectMonsterButtonSelected {
   background: rgba(143, 91, 56, 0.16);
   border-color: rgba(143, 91, 56, 0.42);
   color: var(--color-accent);
+}
+
+:global(html[data-theme="dark"]) .selectMonsterButtonSelected {
+  border-color: var(--theme-accent);
+  background: rgba(143, 91, 56, 0.24);
+  color: var(--theme-accent);
 }
 
 .drawerBody {
@@ -526,8 +543,17 @@
 .browserSourceToggles {
   display: inline-flex;
   align-items: end;
+  flex-wrap: nowrap;
   justify-content: flex-end;
+  justify-self: end;
   gap: 0.42rem;
+  grid-column: 1 / -1;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.browserSourceToggles > * {
+  flex: 0 0 auto;
 }
 
 .dynamicRow {
@@ -623,7 +649,6 @@
 
   .browserControls {
     gap: 0.58rem;
-    grid-template-columns: 1fr;
   }
 
   .browserControls input,
@@ -674,7 +699,6 @@
 
   .editorFooterActions,
   .panelHeader,
-  .browserSourceToggles,
   .dynamicRowsHeader,
   .dynamicRow,
   .featureRowHeader,
@@ -700,7 +724,7 @@
   }
 
   .browserControls select {
-    padding-right: 2.25rem;
+    padding-right: 1.9rem;
   }
 
   .monsterTable {

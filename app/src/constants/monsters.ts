@@ -58,3 +58,32 @@ export function isMonsterChallengeRatingBucket(
     MONSTER_CHALLENGE_RATING_BUCKET_VALUES.has(value as MonsterChallengeRatingBucket)
   );
 }
+
+export function matchesMonsterChallengeRatingBucket(
+  challengeRating: number | null,
+  bucket: MonsterChallengeRatingBucket | null
+) {
+  if (bucket === null) {
+    return true;
+  }
+
+  if (bucket === "0") {
+    return challengeRating === null || challengeRating === 0;
+  }
+
+  if (challengeRating === null) {
+    return false;
+  }
+
+  if (bucket === "<1") {
+    return challengeRating > 0 && challengeRating <= 1;
+  }
+
+  if (bucket === "30+") {
+    return challengeRating >= 30;
+  }
+
+  const bucketCeiling = Number(bucket);
+
+  return challengeRating > bucketCeiling - 1 && challengeRating <= bucketCeiling;
+}

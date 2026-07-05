@@ -1,7 +1,8 @@
 .select {
   appearance: none;
   -webkit-appearance: none;
-  --select-input-height: 54px;
+  --select-input-responsive-height: 54px;
+  --select-input-height: var(--select-input-custom-height, var(--select-input-responsive-height));
   box-sizing: border-box;
   border: 1px solid var(--theme-input-border);
   border-radius: var(--radius-field);
@@ -31,6 +32,27 @@
   width: 100%;
 }
 
+@media (max-width: 899px) {
+  .select {
+    --select-input-responsive-height: 44px;
+    background-position:
+      calc(100% - 1.08rem) 50%,
+      calc(100% - 0.8rem) 50%;
+    padding: 0 2.65rem 0 0.78rem;
+  }
+}
+
+@media (max-width: 599px) {
+  .select {
+    --select-input-responsive-height: 38px;
+    background-position:
+      calc(100% - 1rem) 50%,
+      calc(100% - 0.74rem) 50%;
+    font-size: 0.9rem;
+    padding: 0 2.45rem 0 0.65rem;
+  }
+}
+
 .select:focus {
   outline: none;
   border-color: var(--theme-input-focus-border);
@@ -38,7 +60,7 @@
 }
 
 .selectCompact {
-  --select-input-height: 38px;
+  --select-input-custom-height: 38px;
   border-radius: var(--radius-tiny);
   padding: 0 2.5rem 0 0.8rem;
 }

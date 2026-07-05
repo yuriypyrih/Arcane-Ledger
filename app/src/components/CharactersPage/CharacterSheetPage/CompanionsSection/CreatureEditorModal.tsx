@@ -6,6 +6,10 @@ import {
   type CustomBestiaryListScope,
   type CustomBestiaryRecord
 } from "../../../../api/customBestiary";
+import {
+  matchesMonsterChallengeRatingBucket,
+  type MonsterChallengeRatingBucket
+} from "../../../../constants/monsters";
 import ActionButton from "../../../ActionButton";
 import { useOnlineStatus } from "../../../../lib/useOnlineStatus";
 import {
@@ -82,6 +86,15 @@ import {
 } from "./customBestiaryBrowser";
 import { sanitizeUserInput } from "../../../../utils/userInputSanitization";
 import styles from "./CompanionsSection.module.css";
+
+function filterMonsterListItemsByChallengeRating(
+  items: MonsterListItem[],
+  bucket: MonsterChallengeRatingBucket | null
+) {
+  return items.filter((item) =>
+    matchesMonsterChallengeRatingBucket(getMonsterChallengeRatingNumber(item), bucket)
+  );
+}
 
 type CreatureEditorLabels = {
   createTitle: string;
@@ -225,6 +238,8 @@ function CreatureEditorModal({
   const [monsterSearchResetSignal, setMonsterSearchResetSignal] = useState(0);
   const [monsterTypeFilter, setMonsterTypeFilter] = useState<string>(defaultMonsterTypeFilter);
   const [monsterSourceFilter, setMonsterSourceFilter] = useState<string>("all");
+  const [monsterChallengeRatingFilter, setMonsterChallengeRatingFilter] =
+    useState<MonsterChallengeRatingBucket | null>(null);
   const [monsterOrdering, setMonsterOrdering] = useState<MonsterOrdering>("name");
   const [monsterSourceMode, setMonsterSourceMode] = useState<"standard" | "custom">("standard");
   const [customBestiaryScope, setCustomBestiaryScope] = useState<CustomBestiaryListScope>("mine");
@@ -272,15 +287,18 @@ function CreatureEditorModal({
     limit: COMPANION_MONSTERS_PER_PAGE,
     search: monsterQuery,
     type: monsterTypeFilter === "all" ? null : monsterTypeFilter,
+    challengeRatingBucket: monsterChallengeRatingFilter,
     source: monsterSourceFilter === "all" ? null : monsterSourceFilter,
     ordering: monsterOrdering
   });
-  const primalBeastItems = useMemo(
-    () => (allowPrimalBeasts ? getPrimalBeastBrowserItems(monsterQuery, monsterOrdering) : []),
-    [allowPrimalBeasts, monsterOrdering, monsterQuery]
-  );
+  const primalBeastItems = useMemo(() => {
+    const items = allowPrimalBeasts ? getPrimalBeastBrowserItems(monsterQuery, monsterOrdering) : [];
+
+    return filterMonsterListItemsByChallengeRating(items, monsterChallengeRatingFilter);
+  }, [allowPrimalBeasts, monsterChallengeRatingFilter, monsterOrdering, monsterQuery]);
   const customBestiaryItems = useMemo(() => {
     const filteredRecords = filterCustomBestiaryRecords(customBestiaryRecords, {
+      challengeRatingBucket: monsterChallengeRatingFilter,
       query: monsterQuery,
       type: monsterTypeFilter
     });
@@ -288,7 +306,13 @@ function CreatureEditorModal({
     return sortCustomBestiaryRecords(filteredRecords, monsterOrdering).map(
       customBestiaryRecordToListItem
     );
-  }, [customBestiaryRecords, monsterOrdering, monsterQuery, monsterTypeFilter]);
+  }, [
+    customBestiaryRecords,
+    monsterChallengeRatingFilter,
+    monsterOrdering,
+    monsterQuery,
+    monsterTypeFilter
+  ]);
   const customBestiaryPageItems = useMemo(() => {
     const startIndex = (currentPage - 1) * COMPANION_MONSTERS_PER_PAGE;
 
@@ -361,6 +385,7 @@ function CreatureEditorModal({
     setCurrentPage(1);
   }, [
     customBestiaryScope,
+    monsterChallengeRatingFilter,
     monsterOrdering,
     monsterQuery,
     monsterSourceFilter,
@@ -975,6 +1000,7 @@ function CreatureEditorModal({
           selectedMonsterKey={selectedMonsterKey}
           monsterTypeFilter={monsterTypeFilter}
           monsterSourceFilter={monsterSourceFilter}
+          monsterChallengeRatingFilter={monsterChallengeRatingFilter}
           monsterTypeOptions={monsterTypeOptions}
           ordering={monsterOrdering}
           pendingSelectKey={pendingSelectKey}
@@ -998,6 +1024,11 @@ function CreatureEditorModal({
             setMonsterQuery("");
             setMonsterSearchResetSignal((currentSignal) => currentSignal + 1);
             setMonsterSourceFilter(value);
+          }}
+          onMonsterChallengeRatingFilterChange={(value) => {
+            setMonsterQuery("");
+            setMonsterSearchResetSignal((currentSignal) => currentSignal + 1);
+            setMonsterChallengeRatingFilter(value);
           }}
           onOrderingChange={setMonsterOrdering}
           onPageChange={setCurrentPage}
