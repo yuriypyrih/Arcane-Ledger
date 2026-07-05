@@ -88,6 +88,7 @@ import { hasFeatForCharacter } from "./feats/runtime";
 import {
   formatCustomTraitBonusFormulaTerm,
   formatCustomTraitBonusRollFormulaTerm,
+  getCustomTraitWeaponAttackBonuses,
   getCustomTraitPassivePerceptionBonuses,
   type CustomTraitBonusInput
 } from "./customTraitEffects";
@@ -154,10 +155,7 @@ export type WeaponAction = {
   abilityModifier: number;
   cardBaseAbilityModifier: number;
   abilityModifierBonusEntries: AbilityModifierBonusEntry[];
-  attackBonusEntries?: Array<{
-    label: string;
-    value: number;
-  }>;
+  attackBonusEntries?: WeaponAttackBonusEntry[];
   damageAbility?: AbilityKey;
   damageAbilityFormulaLabel?: string;
   damageAbilityModifierBaseValue?: number;
@@ -190,6 +188,16 @@ export type WeaponAction = {
   }>;
   inventoryStackId?: string;
   inventoryFeatureTags?: CharacterInventoryFeatureTag[];
+};
+
+export type WeaponAttackBonusEntry = {
+  label: string;
+  value: number;
+  formula?: string;
+  formulaMultiplier?: 1 | -1;
+  abilityModifierSource?: AbilityKey;
+  abilityModifierMultiplier?: 1 | -1;
+  formulaSourceLabel?: string;
 };
 
 const weaponActionsByCharacter = new WeakMap<Character, WeaponAction[]>();
@@ -629,6 +637,29 @@ function resolveFeatureDamageBonusEntry(
   };
 }
 
+function resolveWeaponAttackBonusEntry(
+  character: Parameters<typeof getAbilitySourcedFeatureBonusValue>[0],
+  entry: {
+    label: string;
+    value: number;
+    formula?: string;
+    formulaMultiplier?: 1 | -1;
+    abilityModifierSource?: AbilityKey;
+    abilityModifierMultiplier?: 1 | -1;
+    formulaSourceLabel?: string;
+  }
+): WeaponAttackBonusEntry {
+  return {
+    label: entry.label,
+    value: getAbilitySourcedFeatureBonusValue(character, entry),
+    formula: entry.formula,
+    formulaMultiplier: entry.formulaMultiplier,
+    abilityModifierSource: entry.abilityModifierSource,
+    abilityModifierMultiplier: entry.abilityModifierMultiplier,
+    formulaSourceLabel: entry.formulaSourceLabel
+  };
+}
+
 function getDamageBonusTotal(damageBonusEntries: FeatureDamageBonus[]): number {
   return damageBonusEntries.reduce((total, entry) => total + (entry.value ?? 0), 0);
 }
@@ -816,6 +847,9 @@ export function createWeaponAction(
           bonusEntries: [] as AbilityModifierBonusEntry[],
           total: options.abilityModifier
         };
+  const customTraitEffectInput = options.skipFeatureDerivedLookups
+    ? undefined
+    : getCharacterCustomTraitEffectInput(character);
   const damageBonusEntries = [
     ...(options.damageBonusEntries ?? []),
     ...(options.skipFeatureDerivedLookups
@@ -876,15 +910,23 @@ export function createWeaponAction(
         properties: options.properties
       });
   const exhaustionPenalty = getExhaustionD20TestPenalty(character.statusEntries);
-  const attackBonusEntries =
-    exhaustionPenalty !== 0
+  const customAttackBonusEntries = options.skipFeatureDerivedLookups
+    ? []
+    : getCustomTraitWeaponAttackBonuses(customTraitEffectInput, {
+        attackKind: options.attackKind,
+        combatType: options.combatType ?? null
+      }).map((entry) => resolveWeaponAttackBonusEntry(character, entry));
+  const attackBonusEntries = [
+    ...(exhaustionPenalty !== 0
       ? [
           {
             label: "Exhaustion",
             value: exhaustionPenalty
           }
         ]
-      : [];
+      : []),
+    ...customAttackBonusEntries
+  ];
   const isBatteringRootsEligible = options.skipFeatureDerivedLookups
     ? false
     : getAdditionalWeaponMasteriesForCharacter(character, {

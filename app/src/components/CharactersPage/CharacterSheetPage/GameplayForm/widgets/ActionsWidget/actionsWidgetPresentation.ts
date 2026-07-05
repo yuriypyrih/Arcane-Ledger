@@ -4,7 +4,10 @@ import type { ItemRecord, MonsterRecord } from "../../../../../../types";
 import { buildItemDetailPresentation } from "../../../../../../pages/ItemCodexEntryPage/itemPresentation";
 import { adaptItemWeapon } from "../../../../../../utils/items/adaptItemWeapon";
 import WeaponMasteryStatusLabel from "../../../../../WeaponMasteryStatusLabel/WeaponMasteryStatusLabel";
-import type { WeaponAction } from "../../../../../../pages/CharactersPage/gameplay";
+import type {
+  WeaponAction,
+  WeaponAttackBonusEntry
+} from "../../../../../../pages/CharactersPage/gameplay";
 import type { AbilityModifierBonusEntry } from "../../../../../../pages/CharactersPage/abilities";
 import {
   formatCustomTraitBonusFormulaTerm,
@@ -333,17 +336,38 @@ export function appendRollModifier(baseFormula: string, modifier: number) {
   return `${baseFormula}${modifier > 0 ? "+" : ""}${modifier}`;
 }
 
+function formatWeaponAttackBonusBreakdownEntry(entry: WeaponAttackBonusEntry): string | null {
+  const customFormulaTerm = formatCustomTraitBonusFormulaTerm({
+    value: entry.value,
+    formula: entry.formula,
+    formulaMultiplier: entry.formulaMultiplier,
+    abilityModifierSource: entry.abilityModifierSource,
+    formulaSourceLabel: entry.formulaSourceLabel
+  });
+
+  if (customFormulaTerm) {
+    return customFormulaTerm;
+  }
+
+  return entry.value !== 0 ? formatSignedFormulaTerm(entry.value, entry.label) : null;
+}
+
 export function getWeaponAttackFormulaPresentation(
   action: WeaponAction
 ): WeaponFormulaPresentation {
   const attackBonusEntries = action.attackBonusEntries ?? [];
   const attackBonusTotal = attackBonusEntries.reduce((total, entry) => total + entry.value, 0);
+  const attackBonusFormulaTerms = attackBonusEntries
+    .map((entry) => formatCustomTraitBonusRollFormulaTerm(entry))
+    .filter((entry): entry is string => entry !== null);
   const attackModifier = action.abilityModifier + action.proficiencyBonus + attackBonusTotal;
   const abilityFormulaLabel = action.abilityFormulaLabel ?? action.ability;
   const breakdownEntries = [
     formatSignedFormulaTerm(action.abilityModifierBaseValue, abilityFormulaLabel),
     ...action.abilityModifierBonusEntries.map((entry) => formatAbilityModifierBonusEntry(entry)),
-    ...attackBonusEntries.map((entry) => formatSignedFormulaTerm(entry.value, entry.label))
+    ...attackBonusEntries
+      .map((entry) => formatWeaponAttackBonusBreakdownEntry(entry))
+      .filter((entry): entry is string => entry !== null)
   ];
 
   if (action.proficiencyBonus !== 0) {
@@ -356,7 +380,7 @@ export function getWeaponAttackFormulaPresentation(
 
   return {
     label: "Attack Roll Formula",
-    value: joinWeaponFormulaTerms(["d20", `${attackModifier}`]),
+    value: joinWeaponFormulaTerms(["d20", `${attackModifier}`, ...attackBonusFormulaTerms]),
     breakdown: formatFormulaBreakdown(breakdownEntries)
   };
 }

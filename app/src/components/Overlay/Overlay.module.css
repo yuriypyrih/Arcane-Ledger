@@ -203,7 +203,10 @@
 
 .footer {
   border-top: 1px solid var(--theme-divider);
+  box-sizing: border-box;
+  flex: 0 0 auto;
   padding: 0.9rem var(--overlay-panel-inline-padding) var(--overlay-panel-bottom-padding);
+  width: 100%;
 }
 
 .detailsGrid {

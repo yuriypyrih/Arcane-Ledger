@@ -4,7 +4,8 @@ import type {
   CharacterCustomActionEconomy,
   CharacterCustomTraitEffect,
   CharacterCustomTraitRollMode,
-  CharacterCustomTraitValueMode
+  CharacterCustomTraitValueMode,
+  CharacterCustomTraitWeaponFormulaTarget
 } from "../../../../../../types";
 import { sanitizeUserInput } from "../../../../../../utils/userInputSanitization";
 import {
@@ -17,8 +18,9 @@ import {
 import {
   createCustomTraitEffectDraft,
   createCustomTraitEffectDraftFromEntry,
+  isCustomTraitEffectRollModeDisabled,
   isCustomTraitEffectDraftEmpty,
-  isCustomTraitRollModeDisabledTarget,
+  normalizeDraftWeaponFormulaTarget,
   normalizeCustomTraitEffectDraftValueForTarget,
   parseCustomTraitEffectDraft,
   type CustomTraitEffectDraft
@@ -261,12 +263,19 @@ export function updateCustomActionDraftEffectTarget(
     ...draft,
     effects: draft.effects.map((effect) =>
       effect.id === effectId
-        ? {
-            ...effect,
-            target: value,
-            value: normalizeCustomTraitEffectDraftValueForTarget(effect.value, value),
-            rollMode: isCustomTraitRollModeDisabledTarget(value) ? "normal" : effect.rollMode
-          }
+        ? (() => {
+            const nextEffect = {
+              ...effect,
+              target: value,
+              value: normalizeCustomTraitEffectDraftValueForTarget(effect.value, value)
+            };
+            return {
+              ...nextEffect,
+              rollMode: isCustomTraitEffectRollModeDisabled(nextEffect)
+                ? "normal"
+                : effect.rollMode
+            };
+          })()
         : effect
     )
   };
@@ -296,8 +305,34 @@ export function updateCustomActionDraftEffectRollMode(
       effect.id === effectId
         ? {
             ...effect,
-            rollMode: isCustomTraitRollModeDisabledTarget(effect.target) ? "normal" : value
+            rollMode: isCustomTraitEffectRollModeDisabled(effect) ? "normal" : value
           }
+        : effect
+    )
+  };
+}
+
+export function updateCustomActionDraftEffectWeaponFormulaTarget(
+  draft: CustomActionDraft,
+  effectId: string,
+  value: CharacterCustomTraitWeaponFormulaTarget
+): CustomActionDraft {
+  return {
+    ...draft,
+    effects: draft.effects.map((effect) =>
+      effect.id === effectId
+        ? (() => {
+            const nextEffect = {
+              ...effect,
+              weaponFormulaTarget: normalizeDraftWeaponFormulaTarget(value)
+            };
+            return {
+              ...nextEffect,
+              rollMode: isCustomTraitEffectRollModeDisabled(nextEffect)
+                ? "normal"
+                : effect.rollMode
+            };
+          })()
         : effect
     )
   };
@@ -317,7 +352,8 @@ export function removeCustomActionDraftEffect(
               target: "",
               value: "0",
               valueMode: "buff",
-              rollMode: "normal"
+              rollMode: "normal",
+              weaponFormulaTarget: "damage"
             }
           : effect
       )

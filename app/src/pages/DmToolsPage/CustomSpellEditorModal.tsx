@@ -31,7 +31,6 @@ import { showToast, useAppDispatch, useAppSelector } from "../../store";
 import { formatCodexLabel } from "../../utils/codex/formatCodexLabel";
 import {
   createCustomTraitEffectDraft,
-  isCustomTraitRollModeDisabledTarget,
   normalizeCustomTraitEffectDraftValueForTarget
 } from "../../components/CharactersPage/CharacterSheetPage/GameplayForm/widgets/TraitsConditionsWidget/customTraitDraft";
 import { getDmToolsApiErrorMessage } from "./dmToolsApiErrors";
@@ -50,6 +49,7 @@ import {
   setCustomSpellDraftEffectTarget,
   setCustomSpellDraftEffectValue,
   setCustomSpellDraftEffectValueMode,
+  setCustomSpellDraftEffectWeaponFormulaTarget,
   type CustomSpellDraft,
   type CustomSpellDurationMode
 } from "./customSpellDraft";
@@ -461,8 +461,7 @@ function CustomSpellEditorModal({ customSpell, onClose, onSaved }: CustomSpellEd
                       current,
                       effectId,
                       value,
-                      normalizeCustomTraitEffectDraftValueForTarget,
-                      isCustomTraitRollModeDisabledTarget
+                      normalizeCustomTraitEffectDraftValueForTarget
                     )
                   )
                 }
@@ -477,6 +476,11 @@ function CustomSpellEditorModal({ customSpell, onClose, onSaved }: CustomSpellEd
                 onEffectRollModeChange={(effectId, value) =>
                   updateDraft((current) =>
                     setCustomSpellDraftEffectRollMode(current, effectId, value)
+                  )
+                }
+                onEffectWeaponFormulaTargetChange={(effectId, value) =>
+                  updateDraft((current) =>
+                    setCustomSpellDraftEffectWeaponFormulaTarget(current, effectId, value)
                   )
                 }
                 onRemoveEffect={(effectId) =>

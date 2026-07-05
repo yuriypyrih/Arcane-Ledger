@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { CircleCheck, History, Pencil, RefreshCw, Save } from "lucide-react";
+import { CircleCheck, History, Plus, RefreshCw, Save } from "lucide-react";
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import ActionButton from "../../../ActionButton";
 import { CurrencyBalancePill } from "../../../CurrencyInlineDisplay";
@@ -734,8 +734,8 @@ function MasterChestModal({
               </label>
               {isGmMode ? (
                 <SheetActionButton disabled={!canGmEditChest || isSaving} onClick={openGmAddModal}>
-                  <Pencil size={16} aria-hidden="true" />
-                  Edit
+                  <Plus size={16} aria-hidden="true" />
+                  Add Item
                 </SheetActionButton>
               ) : null}
             </div>

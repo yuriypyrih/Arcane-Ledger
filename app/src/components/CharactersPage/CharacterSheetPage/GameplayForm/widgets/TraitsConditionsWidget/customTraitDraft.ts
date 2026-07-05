@@ -8,6 +8,7 @@ import {
   type ResistanceValue,
   type CharacterCustomTraitSkillGroupAbility,
   type CharacterCustomTraitValueMode,
+  type CharacterCustomTraitWeaponFormulaTarget,
   type CharacterStatusEntry,
   type VulnerabilityValue
 } from "../../../../../../types/traits";
@@ -46,6 +47,7 @@ export type CustomTraitEffectDraft = {
   value: string;
   valueMode: CharacterCustomTraitValueMode;
   rollMode: CharacterCustomTraitRollMode;
+  weaponFormulaTarget: CharacterCustomTraitWeaponFormulaTarget;
 };
 
 export type CustomTraitDraft = {
@@ -77,6 +79,12 @@ function normalizeDraftValueMode(value: CharacterCustomTraitValueMode): Characte
   return value === "debuff" ? "debuff" : "buff";
 }
 
+export function normalizeDraftWeaponFormulaTarget(
+  value: CharacterCustomTraitWeaponFormulaTarget
+): CharacterCustomTraitWeaponFormulaTarget {
+  return value === "attack" ? "attack" : "damage";
+}
+
 export function isCustomTraitAbilityValue(value: string): boolean {
   return abilityKeys.includes(value.trim() as AbilityKey);
 }
@@ -106,6 +114,18 @@ export function isCustomTraitDefenseTarget(
   target: string
 ): target is CustomTraitDefenseTarget {
   return customTraitDefenseTargetValues.has(target.trim());
+}
+
+export function isCustomTraitWeaponTarget(target: string): boolean {
+  const [type, rawDetail] = target.trim().split(":");
+  return (
+    type === "weaponDamage" &&
+    ["unarmed", WEAPON_COMBAT_TYPE.MELEE, WEAPON_COMBAT_TYPE.RANGED].includes(rawDetail)
+  );
+}
+
+export function isCustomTraitEffectRollModeDisabled(effect: CustomTraitEffectDraft): boolean {
+  return isCustomTraitRollModeDisabledTarget(effect.target);
 }
 
 export function getCustomTraitDefenseValueOptions(target: string): string[] {
@@ -172,6 +192,14 @@ export const customTraitDiceValueOptions = characterCustomTraitDiceValues.map((v
   label: value.replace(/^1d/i, "D")
 }));
 
+export const customTraitWeaponFormulaTargetOptions: Array<{
+  value: CharacterCustomTraitWeaponFormulaTarget;
+  label: string;
+}> = [
+  { value: "damage", label: "Damage" },
+  { value: "attack", label: "Attack" }
+];
+
 export function normalizeCustomTraitEffectDraftValueForTarget(
   value: string,
   target: string
@@ -201,7 +229,7 @@ export function normalizeCustomTraitEffectDraftValueForTarget(
 }
 
 function createRollModeFields(effect: CustomTraitEffectDraft) {
-  const rollMode = isCustomTraitRollModeDisabledTarget(effect.target)
+  const rollMode = isCustomTraitEffectRollModeDisabled(effect)
     ? "normal"
     : normalizeDraftRollMode(effect.rollMode);
 
@@ -256,7 +284,8 @@ export function createCustomTraitEffectDraft(): CustomTraitEffectDraft {
     target: "",
     value: "0",
     valueMode: "buff",
-    rollMode: "normal"
+    rollMode: "normal",
+    weaponFormulaTarget: "damage"
   };
 }
 
@@ -290,7 +319,8 @@ export function createCustomTraitEffectDraftFromEntry(
         target: effect.type,
         value: String(effect.value),
         valueMode: effect.valueMode ?? "buff",
-        rollMode: effect.rollMode ?? "normal"
+        rollMode: effect.rollMode ?? "normal",
+        weaponFormulaTarget: "damage"
       };
     case "abilityScore":
     case "abilityModifier":
@@ -300,7 +330,8 @@ export function createCustomTraitEffectDraftFromEntry(
         target: `${effect.type}:${effect.ability}`,
         value: String(effect.value),
         valueMode: effect.valueMode ?? "buff",
-        rollMode: effect.rollMode ?? "normal"
+        rollMode: effect.rollMode ?? "normal",
+        weaponFormulaTarget: "damage"
       };
     case "skill":
       return {
@@ -308,7 +339,8 @@ export function createCustomTraitEffectDraftFromEntry(
         target: `${effect.type}:${effect.skill}`,
         value: String(effect.value),
         valueMode: effect.valueMode ?? "buff",
-        rollMode: effect.rollMode ?? "normal"
+        rollMode: effect.rollMode ?? "normal",
+        weaponFormulaTarget: "damage"
       };
     case "skillGroup":
       return {
@@ -316,7 +348,8 @@ export function createCustomTraitEffectDraftFromEntry(
         target: `${effect.type}:${effect.ability}`,
         value: String(effect.value),
         valueMode: effect.valueMode ?? "buff",
-        rollMode: effect.rollMode ?? "normal"
+        rollMode: effect.rollMode ?? "normal",
+        weaponFormulaTarget: "damage"
       };
     case "weaponDamage":
       return {
@@ -324,7 +357,8 @@ export function createCustomTraitEffectDraftFromEntry(
         target: `${effect.type}:${effect.attackKind}`,
         value: String(effect.value),
         valueMode: effect.valueMode ?? "buff",
-        rollMode: effect.rollMode ?? "normal"
+        rollMode: effect.rollMode ?? "normal",
+        weaponFormulaTarget: effect.weaponFormulaTarget ?? "damage"
       };
     default:
       return createCustomTraitEffectDraft();
@@ -371,7 +405,10 @@ export function parseCustomTraitEffectDraft(
     }
   }
 
-  const rollMode = isCustomTraitRollModeDisabledTarget(trimmedTarget)
+  const rollMode = isCustomTraitEffectRollModeDisabled({
+    ...draft,
+    target: trimmedTarget
+  })
     ? "normal"
     : normalizeDraftRollMode(draft.rollMode);
   const valueAsAbility = isCustomTraitAbilityValue(trimmedValue)
@@ -497,12 +534,14 @@ export function parseCustomTraitEffectDraft(
     type === "weaponDamage" &&
     ["unarmed", WEAPON_COMBAT_TYPE.MELEE, WEAPON_COMBAT_TYPE.RANGED].includes(rawDetail)
   ) {
+    const weaponFormulaTarget = normalizeDraftWeaponFormulaTarget(draft.weaponFormulaTarget);
     return {
       type: "weaponDamage",
       attackKind: rawDetail as Extract<
         CharacterCustomTraitEffect,
         { type: "weaponDamage" }
       >["attackKind"],
+      ...(weaponFormulaTarget === "attack" ? { weaponFormulaTarget } : {}),
       value: normalizedValue,
       ...valueModeFields,
       ...rollModeFields
@@ -518,7 +557,7 @@ export function isCustomTraitEffectDraftEmpty(draft: CustomTraitEffectDraft): bo
   }
 
   const numericValue = draft.value.trim().length > 0 ? Number(draft.value) : 0;
-  const rollMode = isCustomTraitRollModeDisabledTarget(draft.target)
+  const rollMode = isCustomTraitEffectRollModeDisabled(draft)
     ? "normal"
     : normalizeDraftRollMode(draft.rollMode);
 

@@ -60,10 +60,14 @@
 }
 
 .cardButton {
+  appearance: none;
+  -webkit-appearance: none;
   border: 0;
   background: transparent;
+  color: inherit;
   cursor: pointer;
   display: block;
+  font: inherit;
   height: 100%;
   padding: 0;
   text-align: left;
@@ -294,6 +298,10 @@
   border-radius: var(--radius-tiny);
   background: var(--class-card-text-backdrop);
   padding: 0.16rem 0.82rem 0.18rem 0.36rem;
+}
+
+.classCard h4 {
+  color: var(--theme-text-primary);
 }
 
 .tableWrapper {

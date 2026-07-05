@@ -35,13 +35,15 @@ import type {
   CharacterItemModCategory,
   CharacterItemMods,
   CharacterCustomTraitValueMode,
+  CharacterCustomTraitWeaponFormulaTarget,
   CustomArmorType,
   ItemRecord
 } from "../../../../types";
 import {
   createCustomTraitEffectDraft,
   createCustomTraitEffectDraftFromEntry,
-  isCustomTraitRollModeDisabledTarget,
+  isCustomTraitEffectRollModeDisabled,
+  normalizeDraftWeaponFormulaTarget,
   normalizeCustomTraitEffectDraftValueForTarget,
   parseCustomTraitEffectDraft,
   type CustomTraitEffectDraft
@@ -381,12 +383,19 @@ function CustomEquipmentEditor({
     patchDraft({
       effects: draft.effects.map((effect) =>
         effect.id === effectId
-          ? {
-              ...effect,
-              target: value,
-              value: normalizeCustomTraitEffectDraftValueForTarget(effect.value, value),
-              rollMode: isCustomTraitRollModeDisabledTarget(value) ? "normal" : effect.rollMode
-            }
+          ? (() => {
+              const nextEffect = {
+                ...effect,
+                target: value,
+                value: normalizeCustomTraitEffectDraftValueForTarget(effect.value, value)
+              };
+              return {
+                ...nextEffect,
+                rollMode: isCustomTraitEffectRollModeDisabled(nextEffect)
+                  ? "normal"
+                  : effect.rollMode
+              };
+            })()
           : effect
       )
     });
@@ -416,9 +425,33 @@ function CustomEquipmentEditor({
       effects: draft.effects.map((effect) =>
         effect.id === effectId
           ? {
-              ...effect,
-              rollMode: isCustomTraitRollModeDisabledTarget(effect.target) ? "normal" : value
-            }
+            ...effect,
+            rollMode: isCustomTraitEffectRollModeDisabled(effect) ? "normal" : value
+          }
+        : effect
+      )
+    });
+  }
+
+  function handleEffectWeaponFormulaTargetChange(
+    effectId: string,
+    value: CharacterCustomTraitWeaponFormulaTarget
+  ) {
+    patchDraft({
+      effects: draft.effects.map((effect) =>
+        effect.id === effectId
+          ? (() => {
+              const nextEffect = {
+                ...effect,
+                weaponFormulaTarget: normalizeDraftWeaponFormulaTarget(value)
+              };
+              return {
+                ...nextEffect,
+                rollMode: isCustomTraitEffectRollModeDisabled(nextEffect)
+                  ? "normal"
+                  : effect.rollMode
+              };
+            })()
           : effect
       )
     });
@@ -1004,6 +1037,7 @@ function CustomEquipmentEditor({
               onEffectValueChange={handleEffectValueChange}
               onEffectValueModeChange={handleEffectValueModeChange}
               onEffectRollModeChange={handleEffectRollModeChange}
+              onEffectWeaponFormulaTargetChange={handleEffectWeaponFormulaTargetChange}
               onRemoveEffect={handleRemoveEffect}
             />
           </>

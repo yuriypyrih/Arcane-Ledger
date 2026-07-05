@@ -114,6 +114,7 @@ export type CharacterStatusSpellTarget = "self" | "other";
 
 export type CharacterCustomTraitRollMode = "normal" | "advantage" | "disadvantage";
 export type CharacterCustomTraitValueMode = "buff" | "debuff";
+export type CharacterCustomTraitWeaponFormulaTarget = "attack" | "damage";
 export type CharacterCustomTraitSkillGroupAbility = Exclude<AbilityKey, "CON">;
 export const characterCustomTraitDiceValues = [
   "1d4",
@@ -207,6 +208,7 @@ export type CharacterCustomTraitEffect =
   | {
       type: "weaponDamage";
       attackKind: "unarmed" | WEAPON_COMBAT_TYPE.MELEE | WEAPON_COMBAT_TYPE.RANGED;
+      weaponFormulaTarget?: CharacterCustomTraitWeaponFormulaTarget;
     } & CharacterCustomTraitFlexibleValue &
       CharacterCustomTraitEffectRoll
   | {

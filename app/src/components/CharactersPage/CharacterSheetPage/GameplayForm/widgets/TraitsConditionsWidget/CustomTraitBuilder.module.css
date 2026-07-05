@@ -100,16 +100,22 @@
 
 .effectCardHeader {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
   gap: 0.65rem;
   justify-content: space-between;
+  min-width: 0;
 }
 
 .effectModeControls {
   display: inline-flex;
   align-items: center;
+  flex: 0 1 auto;
+  flex-wrap: wrap;
   gap: 0.52rem;
   justify-content: flex-end;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .effectIndex {

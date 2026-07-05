@@ -9,13 +9,16 @@ import {
 import type {
   CharacterCustomTraitEffect,
   CharacterCustomTraitRollMode,
-  CharacterCustomTraitValueMode
+  CharacterCustomTraitValueMode,
+  CharacterCustomTraitWeaponFormulaTarget
 } from "../../types";
 import { sanitizeUserInput } from "../../utils/userInputSanitization";
 import {
   createCustomTraitEffectDraft,
   createCustomTraitEffectDraftFromEntry,
+  isCustomTraitEffectRollModeDisabled,
   isCustomTraitEffectDraftEmpty,
+  normalizeDraftWeaponFormulaTarget,
   parseCustomTraitEffectDraft,
   type CustomTraitEffectDraft
 } from "../../components/CharactersPage/CharacterSheetPage/GameplayForm/widgets/TraitsConditionsWidget/customTraitDraft";
@@ -276,19 +279,25 @@ export function setCustomSpellDraftEffectTarget(
   draft: CustomSpellDraft,
   effectId: string,
   target: string,
-  normalizeValueForTarget: (value: string, target: string) => string,
-  isRollModeDisabledTarget: (target: string) => boolean
+  normalizeValueForTarget: (value: string, target: string) => string
 ): CustomSpellDraft {
   return {
     ...draft,
     effects: draft.effects.map((effect) =>
       effect.id === effectId
-        ? {
-            ...effect,
-            target,
-            value: normalizeValueForTarget(effect.value, target),
-            rollMode: isRollModeDisabledTarget(target) ? "normal" : effect.rollMode
-          }
+        ? (() => {
+            const nextEffect = {
+              ...effect,
+              target,
+              value: normalizeValueForTarget(effect.value, target)
+            };
+            return {
+              ...nextEffect,
+              rollMode: isCustomTraitEffectRollModeDisabled(nextEffect)
+                ? "normal"
+                : effect.rollMode
+            };
+          })()
         : effect
     )
   };
@@ -326,7 +335,38 @@ export function setCustomSpellDraftEffectRollMode(
   return {
     ...draft,
     effects: draft.effects.map((effect) =>
-      effect.id === effectId ? { ...effect, rollMode } : effect
+      effect.id === effectId
+        ? {
+            ...effect,
+            rollMode: isCustomTraitEffectRollModeDisabled(effect) ? "normal" : rollMode
+          }
+        : effect
+    )
+  };
+}
+
+export function setCustomSpellDraftEffectWeaponFormulaTarget(
+  draft: CustomSpellDraft,
+  effectId: string,
+  weaponFormulaTarget: CharacterCustomTraitWeaponFormulaTarget
+): CustomSpellDraft {
+  return {
+    ...draft,
+    effects: draft.effects.map((effect) =>
+      effect.id === effectId
+        ? (() => {
+            const nextEffect = {
+              ...effect,
+              weaponFormulaTarget: normalizeDraftWeaponFormulaTarget(weaponFormulaTarget)
+            };
+            return {
+              ...nextEffect,
+              rollMode: isCustomTraitEffectRollModeDisabled(nextEffect)
+                ? "normal"
+                : effect.rollMode
+            };
+          })()
+        : effect
     )
   };
 }

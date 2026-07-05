@@ -7,26 +7,24 @@
 
 .modeGroup,
 .rollModeGroup {
-  display: inline-grid;
-  border: 0;
-  margin: 0;
-  min-width: 0;
-  padding: 0;
-}
-
-.modeOptions {
   display: inline-flex;
+  flex-wrap: nowrap;
   gap: 0.18rem;
+  min-inline-size: 0;
+  min-width: 0;
 }
 
 .modeOption {
+  appearance: none;
   align-items: center;
   border: 1px solid rgba(37, 80, 141, 0.16);
   border-radius: var(--radius-pill);
+  box-sizing: border-box;
   background: rgba(255, 255, 255, 0.72);
   color: var(--color-ink);
   cursor: pointer;
   display: inline-flex;
+  font: inherit;
   font-size: 0.72rem;
   font-weight: 700;
   justify-content: center;
@@ -34,6 +32,7 @@
   min-height: 26px;
   min-width: 40px;
   padding: 0 0.42rem;
+  white-space: nowrap;
 }
 
 :global(html[data-theme="dark"]) .modeOption {
@@ -42,57 +41,48 @@
   color: var(--theme-text-primary);
 }
 
-.modeOption:has(input:checked) {
+.modeOptionSelected {
   border-color: rgba(37, 80, 141, 0.32);
   background: rgba(37, 80, 141, 0.12);
 }
 
-:global(html[data-theme="dark"]) .modeOption:has(input:checked) {
+:global(html[data-theme="dark"]) .modeOptionSelected {
   border-color: rgba(156, 188, 255, 0.42);
   background: rgba(156, 188, 255, 0.12);
   color: var(--theme-accent-strong);
 }
 
-.modeOption:has(input[value="buff"]:checked),
-.modeOption:has(input[value="advantage"]:checked) {
+.modeOptionPositive {
   border-color: #ccd8c5;
   background: #e4ebdf;
   color: #4f6f46;
 }
 
-:global(html[data-theme="dark"]) .modeOption:has(input[value="buff"]:checked),
-:global(html[data-theme="dark"]) .modeOption:has(input[value="advantage"]:checked) {
+:global(html[data-theme="dark"]) .modeOptionPositive {
   border-color: rgba(101, 199, 125, 0.36);
   background: rgba(101, 199, 125, 0.13);
   color: var(--theme-state-success);
 }
 
-.modeOption:has(input[value="debuff"]:checked),
-.modeOption:has(input[value="disadvantage"]:checked) {
+.modeOptionNegative {
   border-color: #dfc9c2;
   background: #efe1dd;
   color: #79493f;
 }
 
-:global(html[data-theme="dark"]) .modeOption:has(input[value="debuff"]:checked),
-:global(html[data-theme="dark"]) .modeOption:has(input[value="disadvantage"]:checked) {
+:global(html[data-theme="dark"]) .modeOptionNegative {
   border-color: rgba(232, 116, 102, 0.34);
   background: rgba(232, 116, 102, 0.12);
   color: var(--theme-state-danger);
 }
 
-.rollModeGroup:disabled .modeOption {
+.rollModeGroupDisabled .modeOption {
   cursor: not-allowed;
   opacity: 0.48;
 }
 
-.modeOption input {
-  position: absolute;
-  inline-size: 1px;
-  block-size: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
+.modeOption:disabled {
+  cursor: not-allowed;
 }
 
 .removeButton {

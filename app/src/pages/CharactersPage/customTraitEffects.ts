@@ -12,6 +12,7 @@ import {
   type CharacterCustomTraitRollMode,
   type CharacterCustomTraitSkillGroupAbility,
   type CharacterCustomTraitValueMode,
+  type CharacterCustomTraitWeaponFormulaTarget,
   type CharacterStatusEntry,
   type ImmunityValue,
   type ResistanceValue,
@@ -70,6 +71,10 @@ const customTraitRollModes = new Set<CharacterCustomTraitRollMode>([
   "disadvantage"
 ]);
 const customTraitValueModes = new Set<CharacterCustomTraitValueMode>(["buff", "debuff"]);
+const customTraitWeaponFormulaTargets = new Set<CharacterCustomTraitWeaponFormulaTarget>([
+  "attack",
+  "damage"
+]);
 const damageTypeValues = new Set<DAMAGE_TYPE>(Object.values(DAMAGE_TYPE));
 const conditionValues = new Set<CONDITION_NAME>(Object.values(CONDITION_NAME));
 const customTraitDefenseStatusSourceIdPrefix = "custom-effect-defense:";
@@ -113,6 +118,14 @@ function normalizeCustomTraitValueMode(value: unknown): CharacterCustomTraitValu
   return customTraitValueModes.has(value as CharacterCustomTraitValueMode)
     ? (value as CharacterCustomTraitValueMode)
     : "buff";
+}
+
+function normalizeCustomTraitWeaponFormulaTarget(
+  value: unknown
+): CharacterCustomTraitWeaponFormulaTarget {
+  return customTraitWeaponFormulaTargets.has(value as CharacterCustomTraitWeaponFormulaTarget)
+    ? (value as CharacterCustomTraitWeaponFormulaTarget)
+    : "damage";
 }
 
 function normalizeCustomTraitEffectValue(
@@ -168,6 +181,11 @@ export function isCharacterCustomTraitDiceValue(
 
 function createValueModeFields(valueMode: CharacterCustomTraitValueMode) {
   return valueMode === "debuff" ? { valueMode } : {};
+}
+
+function createWeaponFormulaTargetFields(value: unknown) {
+  const weaponFormulaTarget = normalizeCustomTraitWeaponFormulaTarget(value);
+  return weaponFormulaTarget === "attack" ? { weaponFormulaTarget } : {};
 }
 
 function isRollModeDisabledEffectType(type: CharacterCustomTraitEffect["type"]): boolean {
@@ -273,6 +291,10 @@ function normalizeCharacterCustomTraitEffect(value: unknown): CharacterCustomTra
     return normalizeCustomTraitDefenseEffect(effectType, record.value);
   }
 
+  const weaponFormulaTarget =
+    effectType === "weaponDamage"
+      ? normalizeCustomTraitWeaponFormulaTarget(record.weaponFormulaTarget)
+      : null;
   const rollMode = isRollModeDisabledEffectType(effectType)
     ? "normal"
     : normalizeCustomTraitRollMode(record.rollMode);
@@ -411,6 +433,7 @@ function normalizeCharacterCustomTraitEffect(value: unknown): CharacterCustomTra
               CharacterCustomTraitEffect,
               { type: "weaponDamage" }
             >["attackKind"],
+            ...createWeaponFormulaTargetFields(weaponFormulaTarget),
             value: normalizedValue,
             ...valueModeFields,
             ...rollModeFields
@@ -721,6 +744,42 @@ export function getCustomTraitSkillBonuses(
   );
 }
 
+function getCustomTraitWeaponFormulaTarget(
+  effect: Extract<CharacterCustomTraitEffect, { type: "weaponDamage" }>
+): CharacterCustomTraitWeaponFormulaTarget {
+  return effect.weaponFormulaTarget ?? "damage";
+}
+
+function doesCustomTraitWeaponEffectApplyToContext(
+  effect: Extract<CharacterCustomTraitEffect, { type: "weaponDamage" }>,
+  context: {
+    attackKind: "weapon" | "unarmed";
+    combatType?: WEAPON_COMBAT_TYPE | null;
+  }
+): boolean {
+  if (effect.attackKind === "unarmed") {
+    return context.attackKind === "unarmed";
+  }
+
+  return context.attackKind === "weapon" && context.combatType === effect.attackKind;
+}
+
+export function getCustomTraitWeaponAttackBonuses(
+  statusEntries: CustomTraitBonusInput,
+  context: {
+    attackKind: "weapon" | "unarmed";
+    combatType?: WEAPON_COMBAT_TYPE | null;
+  }
+): CustomTraitFlatBonus[] {
+  return mapCustomTraitBonuses(statusEntries, (effect) => {
+    if (effect.type !== "weaponDamage" || getCustomTraitWeaponFormulaTarget(effect) !== "attack") {
+      return false;
+    }
+
+    return doesCustomTraitWeaponEffectApplyToContext(effect, context);
+  });
+}
+
 export function getCustomTraitWeaponDamageBonuses(
   statusEntries: CustomTraitBonusInput,
   context: {
@@ -729,15 +788,11 @@ export function getCustomTraitWeaponDamageBonuses(
   }
 ): CustomTraitFlatBonus[] {
   return mapCustomTraitBonuses(statusEntries, (effect) => {
-    if (effect.type !== "weaponDamage") {
+    if (effect.type !== "weaponDamage" || getCustomTraitWeaponFormulaTarget(effect) !== "damage") {
       return false;
     }
 
-    if (effect.attackKind === "unarmed") {
-      return context.attackKind === "unarmed";
-    }
-
-    return context.attackKind === "weapon" && context.combatType === effect.attackKind;
+    return doesCustomTraitWeaponEffectApplyToContext(effect, context);
   });
 }
 
@@ -802,11 +857,7 @@ export function getCustomTraitWeaponAttackRollIndicators(
       return false;
     }
 
-    if (effect.attackKind === "unarmed") {
-      return context.attackKind === "unarmed";
-    }
-
-    return context.attackKind === "weapon" && context.combatType === effect.attackKind;
+    return doesCustomTraitWeaponEffectApplyToContext(effect, context);
   });
 }
 
@@ -852,12 +903,17 @@ export function formatCharacterCustomTraitEffectTargetLabel(
       return effect.skill;
     case "skillGroup":
       return `${effect.ability} Skills`;
-    case "weaponDamage":
-      return effect.attackKind === "unarmed"
-        ? "Unarmed Strike"
-        : effect.attackKind === WEAPON_COMBAT_TYPE.MELEE
-          ? "Melee Weapons"
-          : "Ranged Weapons";
+    case "weaponDamage": {
+      const targetLabel =
+        effect.attackKind === "unarmed"
+          ? "Unarmed Strike"
+          : effect.attackKind === WEAPON_COMBAT_TYPE.MELEE
+            ? "Melee Weapons"
+            : "Ranged Weapons";
+      const formulaTargetLabel =
+        getCustomTraitWeaponFormulaTarget(effect) === "attack" ? "Attack" : "Damage";
+      return `${targetLabel} ${formulaTargetLabel}`;
+    }
     default:
       return "Effect";
   }

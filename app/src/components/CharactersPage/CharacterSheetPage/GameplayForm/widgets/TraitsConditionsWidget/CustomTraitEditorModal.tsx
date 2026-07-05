@@ -16,7 +16,8 @@ import type { CustomTraitDraft } from "./customTraitDraft";
 import type { ManualStatusDurationType } from "./manualStatusDuration";
 import type {
   CharacterCustomTraitRollMode,
-  CharacterCustomTraitValueMode
+  CharacterCustomTraitValueMode,
+  CharacterCustomTraitWeaponFormulaTarget
 } from "../../../../../../types";
 import styles from "./TraitEditorModal.module.css";
 
@@ -38,6 +39,10 @@ type CustomTraitEditorModalProps = {
     effectId: string,
     value: CharacterCustomTraitRollMode
   ) => void;
+  onCustomTraitEffectWeaponFormulaTargetChange: (
+    effectId: string,
+    value: CharacterCustomTraitWeaponFormulaTarget
+  ) => void;
   onAddCustomTraitEffect: () => void;
   onRemoveCustomTraitEffect: (effectId: string) => void;
   onCreate: () => void;
@@ -56,6 +61,7 @@ function CustomTraitEditorModal({
   onCustomTraitEffectValueChange,
   onCustomTraitEffectValueModeChange,
   onCustomTraitEffectRollModeChange,
+  onCustomTraitEffectWeaponFormulaTargetChange,
   onAddCustomTraitEffect,
   onRemoveCustomTraitEffect,
   onCreate,
@@ -88,6 +94,7 @@ function CustomTraitEditorModal({
           onEffectValueChange={onCustomTraitEffectValueChange}
           onEffectValueModeChange={onCustomTraitEffectValueModeChange}
           onEffectRollModeChange={onCustomTraitEffectRollModeChange}
+          onEffectWeaponFormulaTargetChange={onCustomTraitEffectWeaponFormulaTargetChange}
           onAddEffect={onAddCustomTraitEffect}
           onRemoveEffect={onRemoveCustomTraitEffect}
         />

@@ -1,8 +1,13 @@
 import { Plus } from "lucide-react";
-import type { CharacterCustomTraitRollMode, CharacterCustomTraitValueMode } from "../../../../types";
+import type {
+  CharacterCustomTraitRollMode,
+  CharacterCustomTraitValueMode,
+  CharacterCustomTraitWeaponFormulaTarget
+} from "../../../../types";
 import CustomTraitEffectEditorRow, {
   CustomTraitEffectRollModeToggle,
-  CustomTraitEffectValueModeToggle
+  CustomTraitEffectValueModeToggle,
+  CustomTraitEffectWeaponFormulaTargetToggle
 } from "../GameplayForm/widgets/TraitsConditionsWidget/CustomTraitEffectEditorRow";
 import SheetActionButton from "../SheetActionButton";
 import {
@@ -21,6 +26,10 @@ type ModEffectsEditorProps = {
   onEffectValueChange: (effectId: string, value: string) => void;
   onEffectValueModeChange: (effectId: string, value: CharacterCustomTraitValueMode) => void;
   onEffectRollModeChange: (effectId: string, value: CharacterCustomTraitRollMode) => void;
+  onEffectWeaponFormulaTargetChange: (
+    effectId: string,
+    value: CharacterCustomTraitWeaponFormulaTarget
+  ) => void;
   onRemoveEffect: (effectId: string) => void;
 };
 
@@ -32,6 +41,7 @@ function ModEffectsEditor({
   onEffectValueChange,
   onEffectValueModeChange,
   onEffectRollModeChange,
+  onEffectWeaponFormulaTargetChange,
   onRemoveEffect
 }: ModEffectsEditorProps) {
   const isAtEffectLimit = effects.length >= maxEffects;
@@ -67,6 +77,12 @@ function ModEffectsEditor({
                 <p className={styles.effectIndex}>{`Effect ${index + 1}`}</p>
                 {showModeControls ? (
                   <div className={styles.effectModeControls}>
+                    <CustomTraitEffectWeaponFormulaTargetToggle
+                      effect={effect}
+                      onWeaponFormulaTargetChange={(value) =>
+                        onEffectWeaponFormulaTargetChange(effect.id, value)
+                      }
+                    />
                     <CustomTraitEffectValueModeToggle
                       effect={effect}
                       onValueModeChange={(value) => onEffectValueModeChange(effect.id, value)}

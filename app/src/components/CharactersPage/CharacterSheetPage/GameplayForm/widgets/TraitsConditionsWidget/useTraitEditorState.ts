@@ -4,6 +4,7 @@ import type {
   CharacterCustomTraitEffect,
   CharacterCustomTraitRollMode,
   CharacterCustomTraitValueMode,
+  CharacterCustomTraitWeaponFormulaTarget,
   CharacterStatusDuration,
   CharacterStatusEntry,
   CharacterStatusValue
@@ -28,9 +29,10 @@ import {
   createCustomTraitEffectDraft,
   createCustomTraitDraftFromStatusEntry,
   createDefaultCustomTraitDraft,
+  isCustomTraitEffectRollModeDisabled,
   isCustomTraitDraftValid,
   isCustomTraitEffectDraftEmpty,
-  isCustomTraitRollModeDisabledTarget,
+  normalizeDraftWeaponFormulaTarget,
   normalizeCustomTraitEffectDraftValueForTarget,
   parseCustomTraitEffectDraft,
   type CustomTraitDraft
@@ -289,14 +291,19 @@ export function useTraitEditorState({ onPersistCharacter }: UseTraitEditorStateO
           ...current,
           effects: current.effects.map((effect) =>
             effect.id === effectId
-              ? {
-                  ...effect,
-                  target: value,
-                  value: normalizeCustomTraitEffectDraftValueForTarget(effect.value, value),
-                  rollMode: isCustomTraitRollModeDisabledTarget(value)
-                    ? "normal"
-                    : effect.rollMode
-                }
+              ? (() => {
+                  const nextEffect = {
+                    ...effect,
+                    target: value,
+                    value: normalizeCustomTraitEffectDraftValueForTarget(effect.value, value)
+                  };
+                  return {
+                    ...nextEffect,
+                    rollMode: isCustomTraitEffectRollModeDisabled(nextEffect)
+                      ? "normal"
+                      : effect.rollMode
+                  };
+                })()
               : effect
           )
         })),
@@ -337,8 +344,31 @@ export function useTraitEditorState({ onPersistCharacter }: UseTraitEditorStateO
             effect.id === effectId
               ? {
                   ...effect,
-                  rollMode: isCustomTraitRollModeDisabledTarget(effect.target) ? "normal" : value
+                  rollMode: isCustomTraitEffectRollModeDisabled(effect) ? "normal" : value
                 }
+              : effect
+          )
+        })),
+      onCustomTraitEffectWeaponFormulaTargetChange: (
+        effectId: string,
+        value: CharacterCustomTraitWeaponFormulaTarget
+      ) =>
+        setCustomTraitDraft((current) => ({
+          ...current,
+          effects: current.effects.map((effect) =>
+            effect.id === effectId
+              ? (() => {
+                  const nextEffect = {
+                    ...effect,
+                    weaponFormulaTarget: normalizeDraftWeaponFormulaTarget(value)
+                  };
+                  return {
+                    ...nextEffect,
+                    rollMode: isCustomTraitEffectRollModeDisabled(nextEffect)
+                      ? "normal"
+                      : effect.rollMode
+                  };
+                })()
               : effect
           )
         })),
@@ -359,7 +389,8 @@ export function useTraitEditorState({ onPersistCharacter }: UseTraitEditorStateO
                         target: "",
                         value: "0",
                         valueMode: "buff",
-                        rollMode: "normal"
+                        rollMode: "normal",
+                        weaponFormulaTarget: "damage"
                       }
                     : effect
                 )

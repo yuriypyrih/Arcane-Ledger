@@ -1,19 +1,24 @@
+import clsx from "clsx";
 import { Trash2 } from "lucide-react";
 import SelectInput from "../../../../FormInputs/SelectInput";
 import shared from "../../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import type {
   CharacterCustomTraitRollMode,
-  CharacterCustomTraitValueMode
+  CharacterCustomTraitValueMode,
+  CharacterCustomTraitWeaponFormulaTarget
 } from "../../../../../../types";
 import type { CustomTraitEffectDraft, CustomTraitTargetOption } from "./customTraitDraft";
 import {
+  customTraitWeaponFormulaTargetOptions,
   customTraitDiceValueOptions,
   doesCustomTraitTargetAllowAbilityValue,
   doesCustomTraitTargetAllowDiceValue,
   formatCustomTraitDefenseValueOptionLabel,
   getCustomTraitDefenseValueOptions,
+  isCustomTraitEffectRollModeDisabled,
   isCustomTraitDefenseTarget,
-  isCustomTraitRollModeDisabledTarget
+  isCustomTraitWeaponTarget,
+  normalizeDraftWeaponFormulaTarget
 } from "./customTraitDraft";
 import styles from "./CustomTraitEffectEditorRow.module.css";
 
@@ -35,6 +40,11 @@ type CustomTraitEffectRollModeToggleProps = {
 type CustomTraitEffectValueModeToggleProps = {
   effect: CustomTraitEffectDraft;
   onValueModeChange: (value: CharacterCustomTraitValueMode) => void;
+};
+
+type CustomTraitEffectWeaponFormulaTargetToggleProps = {
+  effect: CustomTraitEffectDraft;
+  onWeaponFormulaTargetChange: (value: CharacterCustomTraitWeaponFormulaTarget) => void;
 };
 
 const rollModeOptions: Array<{ value: CharacterCustomTraitRollMode; label: string }> = [
@@ -65,27 +75,46 @@ const valueOptions = [
   }))
 ];
 
+function getModeOptionClassName(value: string, isSelected: boolean) {
+  return clsx(
+    styles.modeOption,
+    isSelected && styles.modeOptionSelected,
+    isSelected &&
+      (value === "buff" || value === "advantage") &&
+      styles.modeOptionPositive,
+    isSelected &&
+      (value === "debuff" || value === "disadvantage") &&
+      styles.modeOptionNegative
+  );
+}
+
 export function CustomTraitEffectValueModeToggle({
   effect,
   onValueModeChange
 }: CustomTraitEffectValueModeToggleProps) {
   return (
-    <fieldset className={styles.modeGroup} aria-label="Buff or debuff">
-      <div className={styles.modeOptions}>
-        {valueModeOptions.map((option) => (
-          <label key={option.value} className={styles.modeOption}>
-            <input
-              type="radio"
-              name={`value-mode-${effect.id}`}
-              value={option.value}
-              checked={effect.valueMode === option.value}
-              onChange={() => onValueModeChange(option.value)}
-            />
+    <div className={styles.modeGroup} role="radiogroup" aria-label="Buff or debuff">
+      {valueModeOptions.map((option) => {
+        const isSelected = effect.valueMode === option.value;
+
+        return (
+          <button
+            key={option.value}
+            type="button"
+            className={getModeOptionClassName(option.value, isSelected)}
+            role="radio"
+            aria-checked={isSelected}
+            onClick={() => {
+              if (!isSelected) {
+                onValueModeChange(option.value);
+              }
+            }}
+          >
             <span>{option.label}</span>
-          </label>
-        ))}
-      </div>
-    </fieldset>
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -93,30 +122,74 @@ export function CustomTraitEffectRollModeToggle({
   effect,
   onRollModeChange
 }: CustomTraitEffectRollModeToggleProps) {
-  const rollModeDisabled = isCustomTraitRollModeDisabledTarget(effect.target);
+  const rollModeDisabled = isCustomTraitEffectRollModeDisabled(effect);
   const selectedRollMode = rollModeDisabled ? "normal" : effect.rollMode;
 
   return (
-    <fieldset
-      className={styles.rollModeGroup}
-      disabled={rollModeDisabled}
+    <div
+      className={clsx(styles.rollModeGroup, rollModeDisabled && styles.rollModeGroupDisabled)}
+      role="radiogroup"
+      aria-disabled={rollModeDisabled}
       aria-label="Roll mode"
     >
-      <div className={styles.modeOptions}>
-        {rollModeOptions.map((option) => (
-          <label key={option.value} className={styles.modeOption}>
-            <input
-              type="radio"
-              name={`roll-mode-${effect.id}`}
-              value={option.value}
-              checked={selectedRollMode === option.value}
-              onChange={() => onRollModeChange(option.value)}
-            />
+      {rollModeOptions.map((option) => {
+        const isSelected = selectedRollMode === option.value;
+
+        return (
+          <button
+            key={option.value}
+            type="button"
+            className={getModeOptionClassName(option.value, isSelected)}
+            role="radio"
+            aria-checked={isSelected}
+            disabled={rollModeDisabled}
+            onClick={() => {
+              if (!isSelected) {
+                onRollModeChange(option.value);
+              }
+            }}
+          >
             <span>{option.label}</span>
-          </label>
-        ))}
-      </div>
-    </fieldset>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+export function CustomTraitEffectWeaponFormulaTargetToggle({
+  effect,
+  onWeaponFormulaTargetChange
+}: CustomTraitEffectWeaponFormulaTargetToggleProps) {
+  if (!isCustomTraitWeaponTarget(effect.target)) {
+    return null;
+  }
+
+  const selectedFormulaTarget = normalizeDraftWeaponFormulaTarget(effect.weaponFormulaTarget);
+
+  return (
+    <div className={styles.modeGroup} role="radiogroup" aria-label="Attack or damage formula">
+      {customTraitWeaponFormulaTargetOptions.map((option) => {
+        const isSelected = selectedFormulaTarget === option.value;
+
+        return (
+          <button
+            key={option.value}
+            type="button"
+            className={getModeOptionClassName(option.value, isSelected)}
+            role="radio"
+            aria-checked={isSelected}
+            onClick={() => {
+              if (!isSelected) {
+                onWeaponFormulaTargetChange(option.value);
+              }
+            }}
+          >
+            <span>{option.label.toUpperCase()}</span>
+          </button>
+        );
+      })}
+    </div>
   );
 }
 

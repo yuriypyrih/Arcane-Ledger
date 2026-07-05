@@ -16,6 +16,7 @@ import {
   updateCustomActionDraftEffectRollMode,
   updateCustomActionDraftEffectTarget,
   updateCustomActionDraftEffectValueMode,
+  updateCustomActionDraftEffectWeaponFormulaTarget,
   type CustomActionDraft
 } from "./customActionDraft";
 import { createCustomTraitEffectDraft } from "../TraitsConditionsWidget/customTraitDraft";
@@ -147,6 +148,14 @@ export function useCustomActionsEditor({
             setDraft((current) =>
               current
                 ? updateCustomActionDraftEffectRollMode(current, effectId, value)
+                : current
+            ),
+          onEffectWeaponFormulaTargetChange: (effectId: string, value: Parameters<
+            typeof updateCustomActionDraftEffectWeaponFormulaTarget
+          >[2]) =>
+            setDraft((current) =>
+              current
+                ? updateCustomActionDraftEffectWeaponFormulaTarget(current, effectId, value)
                 : current
             ),
           onAddEffect: () =>

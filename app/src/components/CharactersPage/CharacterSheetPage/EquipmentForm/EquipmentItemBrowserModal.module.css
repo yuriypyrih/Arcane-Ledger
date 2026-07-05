@@ -52,26 +52,48 @@
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  border: 1px solid rgba(75, 47, 29, 0.14);
+  border: 1px solid transparent;
   border-radius: var(--radius-pill);
-  background: rgba(255, 250, 241, 0.95);
-  color: var(--color-accent);
-  cursor: pointer;
-  font: inherit;
-  min-height: 40px;
-  padding: 0.45rem 0.8rem;
-}
-
-.customButton {
-  border-color: transparent;
   background: rgba(75, 47, 29, 0.1);
   color: var(--color-ink);
+  cursor: pointer;
+  font: inherit;
   font-weight: 700;
+  min-height: 40px;
+  padding: 0.45rem 0.8rem;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    color 140ms ease;
+}
+
+.customButton:hover:not(:disabled),
+.customButton:focus-visible:not(:disabled) {
+  background: rgba(75, 47, 29, 0.16);
+}
+
+.customButton:focus-visible {
+  outline: 2px solid var(--theme-focus-ring);
+  outline-offset: 2px;
 }
 
 .customButton:disabled {
   cursor: wait;
   opacity: 0.58;
+}
+
+:global(html[data-theme="dark"]) .customButton {
+  border-color: var(--theme-border-medium);
+  background: var(--theme-control-subtle);
+  color: var(--theme-text-primary);
+}
+
+:global(html[data-theme="dark"]) .customButton:hover:not(:disabled),
+:global(html[data-theme="dark"]) .customButton:focus-visible:not(:disabled) {
+  border-color: var(--theme-border-medium);
+  background: var(--theme-control-subtle-hover);
+  box-shadow: 0 0 0 2px var(--theme-focus-ring);
 }
 
 .sourceToggleGroup {

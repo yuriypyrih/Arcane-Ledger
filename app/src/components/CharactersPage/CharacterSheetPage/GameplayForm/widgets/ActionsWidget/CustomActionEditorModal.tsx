@@ -20,7 +20,8 @@ import ModEffectsEditor from "../../../ModEffectsEditor";
 import type {
   CharacterCustomActionEconomy,
   CharacterCustomTraitRollMode,
-  CharacterCustomTraitValueMode
+  CharacterCustomTraitValueMode,
+  CharacterCustomTraitWeaponFormulaTarget
 } from "../../../../../../types";
 import {
   CUSTOM_ACTION_CHARGES_MAX,
@@ -58,6 +59,10 @@ type CustomActionEditorModalProps = {
   onEffectValueChange: (effectId: string, value: string) => void;
   onEffectValueModeChange: (effectId: string, value: CharacterCustomTraitValueMode) => void;
   onEffectRollModeChange: (effectId: string, value: CharacterCustomTraitRollMode) => void;
+  onEffectWeaponFormulaTargetChange: (
+    effectId: string,
+    value: CharacterCustomTraitWeaponFormulaTarget
+  ) => void;
   onAddEffect: () => void;
   onRemoveEffect: (effectId: string) => void;
   onHasChargesChange: (value: boolean) => void;
@@ -85,6 +90,7 @@ function CustomActionEditorModal({
   onEffectValueChange,
   onEffectValueModeChange,
   onEffectRollModeChange,
+  onEffectWeaponFormulaTargetChange,
   onAddEffect,
   onRemoveEffect,
   onHasChargesChange,
@@ -184,6 +190,7 @@ function CustomActionEditorModal({
                 onEffectValueChange={onEffectValueChange}
                 onEffectValueModeChange={onEffectValueModeChange}
                 onEffectRollModeChange={onEffectRollModeChange}
+                onEffectWeaponFormulaTargetChange={onEffectWeaponFormulaTargetChange}
                 onRemoveEffect={onRemoveEffect}
               />
             </div>
