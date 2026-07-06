@@ -9,6 +9,7 @@ import {
 import { getAllDamageButStatusValue } from "../damageCoverageStatuses";
 import { getFeatDefinition } from "../feats";
 import { hasFeatForCharacter } from "../feats/runtime";
+import { getBoonOfFuriousStormBloodiedImmunityStatusEntries } from "../feats/runtime/furiousStorm";
 import { isCharacterBloodied } from "../bloodied";
 
 const boonOfDesperateResilienceSource = "Boon of Desperate Resilience";
@@ -47,12 +48,23 @@ function getBoonOfDesperateResilienceStatusEntry(): CharacterStatusEntry {
 export function getConditionalFeatStatusEntriesForCharacter(
   character: Character
 ): CharacterStatusEntry[] {
-  if (
-    !hasFeatForCharacter(character, FEATS.BOON_OF_DESPERATE_RESILIENCE) ||
-    !isCharacterBloodied(character)
-  ) {
+  if (!isCharacterBloodied(character)) {
     return [];
   }
 
-  return [getBoonOfDesperateResilienceStatusEntry()];
+  const statusEntries: CharacterStatusEntry[] = [];
+
+  if (hasFeatForCharacter(character, FEATS.BOON_OF_DESPERATE_RESILIENCE)) {
+    statusEntries.push(getBoonOfDesperateResilienceStatusEntry());
+  }
+
+  if (hasFeatForCharacter(character, FEATS.BOON_OF_FURIOUS_STORM)) {
+    statusEntries.push(
+      ...getBoonOfFuriousStormBloodiedImmunityStatusEntries(
+        (feat) => getFeatDefinition(feat)?.description ?? []
+      )
+    );
+  }
+
+  return statusEntries;
 }

@@ -723,6 +723,106 @@ export function getBoonOfTerrorFleeFoolsStateForCharacter(
   };
 }
 
+export function getBoonOfSoulDrinkerSiphonLifeStateForCharacter(
+  character: FeatRuntimeCharacter
+): {
+  available: boolean;
+  expended: boolean;
+  usesRemaining: number;
+  usesTotal: number;
+} | null {
+  const derivedState = collectFeatDerivedState(character);
+
+  if (
+    !derivedState.hasBoonOfSoulDrinker ||
+    derivedState.boonOfSoulDrinkerSiphonLifeTotal <= 0
+  ) {
+    return null;
+  }
+
+  return {
+    available: derivedState.boonOfSoulDrinkerSiphonLifeRemaining > 0,
+    expended: derivedState.boonOfSoulDrinkerSiphonLifeRemaining <= 0,
+    usesRemaining: derivedState.boonOfSoulDrinkerSiphonLifeRemaining,
+    usesTotal: derivedState.boonOfSoulDrinkerSiphonLifeTotal
+  };
+}
+
+export function spendBoonOfSoulDrinkerSiphonLifeForCharacter(
+  character: Character
+): Character {
+  const derivedState = collectFeatDerivedState(character);
+  let didSpendSiphonLife = false;
+
+  if (
+    !derivedState.hasBoonOfSoulDrinker ||
+    derivedState.boonOfSoulDrinkerSiphonLifeRemaining <= 0
+  ) {
+    return character;
+  }
+
+  const feats = derivedState.normalizedFeats.map((entry) => {
+    if (
+      didSpendSiphonLife ||
+      entry.feat !== FEATS.BOON_OF_SOUL_DRINKER ||
+      entry.boonOfSoulDrinker?.siphonLifeExpended === true
+    ) {
+      return entry;
+    }
+
+    didSpendSiphonLife = true;
+
+    return {
+      ...entry,
+      boonOfSoulDrinker: {
+        ...(entry.boonOfSoulDrinker ?? {}),
+        siphonLifeExpended: true
+      }
+    };
+  });
+
+  return didSpendSiphonLife
+    ? {
+        ...character,
+        feats
+      }
+    : character;
+}
+
+export function restoreBoonOfSoulDrinkerSiphonLifeForCharacter(
+  character: Character
+): Character {
+  const derivedState = collectFeatDerivedState(character);
+  let didRestoreSiphonLife = false;
+
+  if (!derivedState.hasBoonOfSoulDrinker) {
+    return character;
+  }
+
+  const feats = derivedState.normalizedFeats.map((entry) => {
+    if (
+      entry.feat !== FEATS.BOON_OF_SOUL_DRINKER ||
+      entry.boonOfSoulDrinker?.siphonLifeExpended !== true
+    ) {
+      return entry;
+    }
+
+    didRestoreSiphonLife = true;
+
+    return {
+      ...entry,
+      boonOfSoulDrinker: undefined
+    };
+  });
+
+  return didRestoreSiphonLife
+    ? {
+        ...character,
+        feats
+      }
+    : character;
+}
+
 export function spendBoonOfTerrorFleeFoolsForCharacter(character: Character): Character {
   const derivedState = collectFeatDerivedState(character);
   let didSpendFleeFools = false;

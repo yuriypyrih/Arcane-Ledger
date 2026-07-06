@@ -26,6 +26,10 @@
   background: rgba(240, 247, 255, 0.78);
 }
 
+.root.selected:hover {
+  border-color: #2f78ff;
+}
+
 .selected {
   border-color: #2f78ff;
 }
@@ -122,6 +126,10 @@
 :global(html[data-theme="dark"]) .root:hover {
   border-color: var(--theme-border-medium);
   background: var(--theme-surface-raised);
+}
+
+:global(html[data-theme="dark"]) .root.selected:hover {
+  border-color: var(--theme-accent);
 }
 
 :global(html[data-theme="dark"]) .selected {

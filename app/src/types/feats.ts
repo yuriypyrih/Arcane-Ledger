@@ -57,6 +57,10 @@ export type BoonOfRevelryState = {
   irresistibleDanceExpended?: boolean;
 };
 
+export type BoonOfSoulDrinkerState = {
+  siphonLifeExpended?: boolean;
+};
+
 export type BoonOfTerrorState = {
   fleeFoolsExpended?: boolean;
 };
@@ -362,6 +366,7 @@ export type CharacterFeatEntry = {
   boonOfIrresistibleOffense?: BoonOfIrresistibleOffenseChoice;
   boonOfRecovery?: BoonOfRecoveryState;
   boonOfRevelry?: BoonOfRevelryState;
+  boonOfSoulDrinker?: BoonOfSoulDrinkerState;
   boonOfTerror?: BoonOfTerrorState;
   boonOfSkill?: BoonOfSkillChoice;
   epicBoonAbilityChoice?: EpicBoonAbilityChoice;

@@ -40,6 +40,8 @@ import {
   getFightingStyleReactionEntries,
   hasDefenseFightingStyle
 } from "./fightingStyle";
+import { getBoonOfFuriousStormResistanceStatusEntries } from "./furiousStorm";
+import { getBoonOfSoulDrinkerResistanceStatusEntries } from "./soulDrinker";
 import {
   getGeneralFeatReactionEntries,
   getGeneralFeatResourceState,
@@ -1083,6 +1085,13 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
         recovery: "shortRest" as const
       },
       {
+        id: "feat-boon-of-soul-drinker-siphon-life",
+        label: "Siphon Life",
+        remaining: epicBoonResourceState.boonOfSoulDrinkerSiphonLifeRemaining,
+        total: epicBoonResourceState.boonOfSoulDrinkerSiphonLifeTotal,
+        recovery: "shortRest" as const
+      },
+      {
         id: "feat-mage-slayer-guarded-mind",
         label: "Guarded Mind",
         remaining: generalResourceState.mageSlayerGuardedMindRemaining,
@@ -1110,7 +1119,7 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
       (character, derivedState) =>
         getGeneralFeatActionsForCharacter(character, derivedState, getFeatDescriptionSlice),
       (character, derivedState) =>
-        getEpicBoonFeatActionsForCharacter(derivedState, getFeatDescriptionSlice)
+        getEpicBoonFeatActionsForCharacter(character, derivedState, getFeatDescriptionSlice)
     ],
     reactions: [
       ...getOriginFeatReactionEntries(featSet, getFeatDescriptionSlice),
@@ -1120,6 +1129,8 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
     ],
     statuses: [
       ...getFightingStyleDerivedStatusEntries(normalizedFeats),
+      ...getBoonOfFuriousStormResistanceStatusEntries(normalizedFeats, getFeatDescription),
+      ...getBoonOfSoulDrinkerResistanceStatusEntries(normalizedFeats, getFeatDescription),
       ...getEpicBoonDerivedStatusEntries(normalizedFeats, getFeatDescription)
     ],
     speedBonuses: [
@@ -1307,6 +1318,7 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
     hasFeyTouched: featSet.has(FEATS.FEY_TOUCHED),
     hasBoonOfFate: epicBoonResourceState.hasBoonOfFate,
     hasBoonOfRecovery: epicBoonResourceState.hasBoonOfRecovery,
+    hasBoonOfSoulDrinker: epicBoonResourceState.hasBoonOfSoulDrinker,
     hasBoonOfSpellRecall: epicBoonResourceState.hasBoonOfSpellRecall,
     hasBoonOfTerror: epicBoonResourceState.hasBoonOfTerror,
     hasLucky: originResourceState.hasLucky,
@@ -1338,6 +1350,10 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
     boonOfRecoveryLastStandRemaining:
       epicBoonResourceState.boonOfRecoveryLastStandRemaining,
     boonOfRecoveryLastStandTotal: epicBoonResourceState.boonOfRecoveryLastStandTotal,
+    boonOfSoulDrinkerSiphonLifeRemaining:
+      epicBoonResourceState.boonOfSoulDrinkerSiphonLifeRemaining,
+    boonOfSoulDrinkerSiphonLifeTotal:
+      epicBoonResourceState.boonOfSoulDrinkerSiphonLifeTotal,
     boonOfTerrorFleeFoolsRemaining:
       epicBoonResourceState.boonOfTerrorFleeFoolsRemaining,
     boonOfTerrorFleeFoolsTotal: epicBoonResourceState.boonOfTerrorFleeFoolsTotal,

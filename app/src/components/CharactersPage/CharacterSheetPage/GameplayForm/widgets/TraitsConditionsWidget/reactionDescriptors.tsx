@@ -93,13 +93,16 @@ import {
 } from "../../../../../../codex/entries";
 import {
   boonOfEnergyResistanceReactionEntryId,
+  boonOfSoulDrinkerSiphonLifeReactionEntryId,
   boonOfTerrorFleeFoolsReactionEntryId,
+  getBoonOfSoulDrinkerSiphonLifeStateForCharacter,
   getBoonOfTerrorFleeFoolsStateForCharacter,
   defensiveDuelistParryReactionEntryId,
   interceptionReactionEntryId,
   polearmMasterReactiveStrikeReactionEntryId,
   protectionReactionEntryId,
   shieldMasterReactionEntryId,
+  spendBoonOfSoulDrinkerSiphonLifeForCharacter,
   spendBoonOfTerrorFleeFoolsForCharacter
 } from "../../../../../../pages/CharactersPage/feats/runtime";
 import {
@@ -117,6 +120,7 @@ import {
   formatSignedFormulaTerm
 } from "../../../../../../pages/CharactersPage/shared/formulas";
 import { getSpellSaveFormulaCell } from "../../../../../../pages/CharactersPage/shared/spellFormulas";
+import { getEffectiveHitPointMaximumForCharacter } from "../../../../../../pages/CharactersPage/traits";
 import DruidCosmicOmenReactionBody from "./DruidCosmicOmenReactionBody";
 import RadioContainerOption from "../../../RadioContainerOption";
 import {
@@ -288,6 +292,27 @@ function applySpellThief(
       })
     ]
   };
+}
+
+function applyBoonOfSoulDrinkerSiphonLife(currentCharacter: Character): Character {
+  const spentCharacter = spendBoonOfSoulDrinkerSiphonLifeForCharacter(currentCharacter);
+
+  if (spentCharacter === currentCharacter) {
+    return currentCharacter;
+  }
+
+  const effectiveHitPointMaximum = getEffectiveHitPointMaximumForCharacter(spentCharacter);
+  const nextCurrentHitPoints = Math.min(
+    effectiveHitPointMaximum,
+    Math.max(0, Math.floor(Number(spentCharacter.currentHitPoints) || 0)) + 50
+  );
+
+  return nextCurrentHitPoints === spentCharacter.currentHitPoints
+    ? spentCharacter
+    : {
+        ...spentCharacter,
+        currentHitPoints: nextCurrentHitPoints
+      };
 }
 
 function applyEldritchCannonDetonate(
@@ -998,6 +1023,22 @@ const descriptors: ReactionDescriptor[] = [
       return state ? [createChargesHeaderTag(state.usesRemaining, state.usesTotal)] : [];
     },
     apply: spendBoonOfTerrorFleeFoolsForCharacter,
+    skipReactionWhenUnchanged: true
+  },
+  {
+    id: boonOfSoulDrinkerSiphonLifeReactionEntryId,
+    getResourceWarning: (context) => {
+      const state = getBoonOfSoulDrinkerSiphonLifeStateForCharacter(context.character);
+
+      return state && state.usesRemaining > 0 ? null : "No Siphon Life charges remaining.";
+    },
+    getResourceSummary: () => null,
+    getHeaderTags: (context) => {
+      const state = getBoonOfSoulDrinkerSiphonLifeStateForCharacter(context.character);
+
+      return state ? [createChargesHeaderTag(state.usesRemaining, state.usesTotal)] : [];
+    },
+    apply: applyBoonOfSoulDrinkerSiphonLife,
     skipReactionWhenUnchanged: true
   },
   {

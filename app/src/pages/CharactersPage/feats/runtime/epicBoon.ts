@@ -19,13 +19,19 @@ import {
   createBoonOfRecoveryRecoverVitalityAction
 } from "./actions";
 import {
+  createBoonOfBrightSunDaylightPresenceAction,
+  getBoonOfBrightSunDaylightPresenceDescription
+} from "./brightSun";
+import {
   boonOfEnergyResistanceReactionEntryId,
   boonOfNightSpiritStatusSourceId,
+  boonOfSoulDrinkerSiphonLifeReactionEntryId,
   boonOfTerrorFearlessStatusSourceIdPrefix,
   boonOfTerrorFleeFoolsReactionEntryId
 } from "./constants";
 import {
   filterDescriptionEntries,
+  isBoonOfBrightSunDaylightPresenceDescriptionEntry,
   isBoonOfEnergyResistanceEnergyRedirectionDescriptionEntry,
   isBoonOfFateImproveFateDescriptionEntry,
   isBoonOfNightSpiritDescriptionEntry,
@@ -33,7 +39,8 @@ import {
   isBoonOfTerrorFearlessDescriptionEntry,
   isBoonOfTerrorFleeFoolsDescriptionEntry
 } from "./descriptionMatchers";
-import type { FeatDerivedState } from "./types";
+import { isBoonOfSoulDrinkerSiphonLifeDescriptionEntry } from "./soulDrinker";
+import type { FeatDerivedState, FeatRuntimeCharacter } from "./types";
 
 type FeatDescriptionGetter = (feat: FEATS) => SpellDescriptionEntry[];
 type FeatDescriptionSliceGetter = (
@@ -44,6 +51,7 @@ type FeatDescriptionSliceGetter = (
 export type EpicBoonFeatResourceState = {
   hasBoonOfFate: boolean;
   hasBoonOfRecovery: boolean;
+  hasBoonOfSoulDrinker: boolean;
   hasBoonOfSpellRecall: boolean;
   hasBoonOfTerror: boolean;
   boonOfFateImproveFateRemaining: number;
@@ -52,6 +60,8 @@ export type EpicBoonFeatResourceState = {
   boonOfRecoveryDiceTotal: number;
   boonOfRecoveryLastStandRemaining: number;
   boonOfRecoveryLastStandTotal: number;
+  boonOfSoulDrinkerSiphonLifeRemaining: number;
+  boonOfSoulDrinkerSiphonLifeTotal: number;
   boonOfTerrorFleeFoolsRemaining: number;
   boonOfTerrorFleeFoolsTotal: number;
 };
@@ -90,10 +100,17 @@ export function getEpicBoonFeatResourceState(
     (entry) =>
       entry.feat === FEATS.BOON_OF_TERROR && entry.boonOfTerror?.fleeFoolsExpended === true
   );
+  const boonOfSoulDrinkerSiphonLifeTotal = featSet.has(FEATS.BOON_OF_SOUL_DRINKER) ? 1 : 0;
+  const boonOfSoulDrinkerSiphonLifeExpended = normalizedFeats.some(
+    (entry) =>
+      entry.feat === FEATS.BOON_OF_SOUL_DRINKER &&
+      entry.boonOfSoulDrinker?.siphonLifeExpended === true
+  );
 
   return {
     hasBoonOfFate: featSet.has(FEATS.BOON_OF_FATE),
     hasBoonOfRecovery: featSet.has(FEATS.BOON_OF_RECOVERY),
+    hasBoonOfSoulDrinker: featSet.has(FEATS.BOON_OF_SOUL_DRINKER),
     hasBoonOfSpellRecall: featSet.has(FEATS.BOON_OF_SPELL_RECALL),
     hasBoonOfTerror: featSet.has(FEATS.BOON_OF_TERROR),
     boonOfFateImproveFateRemaining:
@@ -107,6 +124,9 @@ export function getEpicBoonFeatResourceState(
     boonOfRecoveryLastStandRemaining:
       boonOfRecoveryLastStandTotal > 0 && !boonOfRecoveryLastStandExpended ? 1 : 0,
     boonOfRecoveryLastStandTotal,
+    boonOfSoulDrinkerSiphonLifeRemaining:
+      boonOfSoulDrinkerSiphonLifeTotal > 0 && !boonOfSoulDrinkerSiphonLifeExpended ? 1 : 0,
+    boonOfSoulDrinkerSiphonLifeTotal,
     boonOfTerrorFleeFoolsRemaining:
       boonOfTerrorFleeFoolsTotal > 0 && !boonOfTerrorFleeFoolsExpended ? 1 : 0,
     boonOfTerrorFleeFoolsTotal
@@ -241,14 +261,43 @@ export function getEpicBoonReactionEntries(
     });
   }
 
+  if (normalizedFeats.some((entry) => entry.feat === FEATS.BOON_OF_SOUL_DRINKER)) {
+    reactions.push({
+      id: boonOfSoulDrinkerSiphonLifeReactionEntryId,
+      reaction: REACTION.SIPHON_LIFE,
+      name: "Siphon Life",
+      sourceType: "feat",
+      sourceLabel: "Boon of the Soul Drinker",
+      description: filterDescriptionEntries(
+        getFeatDescription(FEATS.BOON_OF_SOUL_DRINKER),
+        isBoonOfSoulDrinkerSiphonLifeDescriptionEntry
+      )
+    });
+  }
+
   return reactions;
 }
 
 export function getEpicBoonFeatActionsForCharacter(
+  character: FeatRuntimeCharacter,
   derivedState: FeatDerivedState,
   getFeatDescriptionSlice: FeatDescriptionSliceGetter
 ): FeatureActionCard[] {
   const actions: FeatureActionCard[] = [];
+
+  if (derivedState.featSet.has(FEATS.BOON_OF_BRIGHT_SUN)) {
+    actions.push(
+      createBoonOfBrightSunDaylightPresenceAction(
+        character,
+        getBoonOfBrightSunDaylightPresenceDescription(
+          getFeatDescriptionSlice(
+            FEATS.BOON_OF_BRIGHT_SUN,
+            isBoonOfBrightSunDaylightPresenceDescriptionEntry
+          )
+        )
+      )
+    );
+  }
 
   if (derivedState.hasBoonOfFate) {
     actions.push(

@@ -354,6 +354,7 @@ import {
   restoreBoonOfFateImproveFateForCharacter,
   restoreBoonOfRecoveryForCharacter,
   restoreBoonOfRevelryIrresistibleDanceFreeCastForCharacter,
+  restoreBoonOfSoulDrinkerSiphonLifeForCharacter,
   restoreBoonOfTerrorFleeFoolsForCharacter,
   restoreCultOfDragonInitiateInspiredByFearForCharacter,
   restoreFeyTouchedFreeCastsForCharacter,
@@ -439,6 +440,9 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const boonOfTerrorFleeFoolsIsFull =
     featDerivedState.boonOfTerrorFleeFoolsRemaining >=
     featDerivedState.boonOfTerrorFleeFoolsTotal;
+  const boonOfSoulDrinkerSiphonLifeIsFull =
+    featDerivedState.boonOfSoulDrinkerSiphonLifeRemaining >=
+    featDerivedState.boonOfSoulDrinkerSiphonLifeTotal;
   const mageSlayerGuardedMindAreFull =
     featDerivedState.mageSlayerGuardedMindRemaining >= featDerivedState.mageSlayerGuardedMindTotal;
   const magicInitiateFreeCastsAreFull =
@@ -1024,6 +1028,21 @@ export function createLongRestOptions(character: Character): RestOption[] {
             disabled: boonOfTerrorFleeFoolsIsFull,
             apply: (currentCharacter: Character) =>
               restoreBoonOfTerrorFleeFoolsForCharacter(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(featDerivedState.hasBoonOfSoulDrinker
+      ? [
+          {
+            id: "restore-boon-of-soul-drinker-siphon-life",
+            label: "Restore Siphon Life",
+            charges: {
+              current: featDerivedState.boonOfSoulDrinkerSiphonLifeRemaining,
+              total: featDerivedState.boonOfSoulDrinkerSiphonLifeTotal
+            },
+            disabled: boonOfSoulDrinkerSiphonLifeIsFull,
+            apply: (currentCharacter: Character) =>
+              restoreBoonOfSoulDrinkerSiphonLifeForCharacter(currentCharacter)
           } satisfies RestOption
         ]
       : []),

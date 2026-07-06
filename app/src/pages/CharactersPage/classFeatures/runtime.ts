@@ -22,6 +22,7 @@ import {
   isLightWeaponAction
 } from "../weaponLightProperty";
 import { transformFeatSpellEntryForCharacter } from "../feats/runtime/spellcasting";
+import { activateBoonOfBrightSunDaylightPresenceForCharacter } from "../feats/runtime/brightSun";
 import {
   activateSpeciesFeatureActionForCharacter,
   activateSpeciesFeatureActionOptionForCharacter,
@@ -839,9 +840,12 @@ export function activateFeatureActionForCharacter(
   actionKey: string
 ): Character {
   return clearRoundScopedFeatureStateIfOutOfCombat(
-    activateSpeciesFeatureActionForCharacter(
-      getActiveClassFeatureModule(character.className)?.handleAction?.(character, actionKey) ??
-        character,
+    activateBoonOfBrightSunDaylightPresenceForCharacter(
+      activateSpeciesFeatureActionForCharacter(
+        getActiveClassFeatureModule(character.className)?.handleAction?.(character, actionKey) ??
+          character,
+        actionKey
+      ),
       actionKey
     )
   );

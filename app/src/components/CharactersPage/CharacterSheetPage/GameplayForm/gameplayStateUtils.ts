@@ -14,6 +14,7 @@ import {
   normalizeCharacterStatusEntries
 } from "../../../../pages/CharactersPage/statusEntries";
 import { applyHeroismRoundStartTemporaryHitPointsForCharacter } from "../../../../pages/CharactersPage/characterRuntime/spellImplementations/heroism";
+import { applyBoonOfBrightSunDaylightPresenceTurnStartTemporaryHitPointsForCharacter } from "../../../../pages/CharactersPage/feats/runtime/brightSunTemporaryHitPoints";
 import { advanceCharacterCompanionDurations } from "../../../../pages/CharactersPage/companions";
 import {
   getEffectiveHitPointMaximumForCharacter,
@@ -174,8 +175,10 @@ function advanceTimedStatusesForTurnStart(character: Character): Character {
 }
 
 export function startCharacterTurn(character: Character): Character {
-  const nextCharacter = applyHeroismRoundStartTemporaryHitPointsForCharacter(
-    advanceFeatureStateForNewRound(advanceTimedStatusesForTurnStart(character))
+  const nextCharacter = applyBoonOfBrightSunDaylightPresenceTurnStartTemporaryHitPointsForCharacter(
+    applyHeroismRoundStartTemporaryHitPointsForCharacter(
+      advanceFeatureStateForNewRound(advanceTimedStatusesForTurnStart(character))
+    )
   );
 
   return {

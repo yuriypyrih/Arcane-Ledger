@@ -62,11 +62,13 @@ export const epicBoonFeatDefinitions: FeatDefinition[] = [
     prerequisite: "Level 19+",
     description: [
       "You gain the following benefits.",
-      "<strong>Ability Score Increase.</strong> Increase one ability score of your choice by 1, to a maximum of 30. <link:tracked>Tracked</link>",
-      "<strong>Merge with Shadows.</strong> While within Dim Light or Darkness, you can give yourself the Invisible condition as a Bonus Action. The condition ends on you immediately after you take an action, a Bonus Action, or a Reaction. <link:not-tracked>Not Tracked</link>",
-      "<strong>Shadowy Form.</strong> While within Dim Light or Darkness, you have Resistance to all damage except Psychic and Radiant. <link:not-tracked>Not Tracked</link>"
+      "<strong>Ability Score Increase.</strong> Increase one ability score of your choice by 1, to a maximum of 30.",
+      "<strong>Merge with Shadows.</strong> While within Dim Light or Darkness, you can give yourself the Invisible condition as a Bonus Action. The condition ends on you immediately after you take an action, a Bonus Action, or a Reaction.",
+      "<strong>Shadowy Form.</strong> While within Dim Light or Darkness, you have Resistance to all damage except Psychic and Radiant."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "The Merge with Shadows and Shadowy Form are not tracked. You have to remember them during play."
   },
   {
     feat: FEATS.BOON_OF_SPELL_RECALL,

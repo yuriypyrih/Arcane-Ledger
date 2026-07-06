@@ -372,7 +372,7 @@ export const featRuntimeCapabilityMatrix = {
   },
   [FEATS.BOON_OF_FURIOUS_STORM]: {
     feat: FEATS.BOON_OF_FURIOUS_STORM,
-    capabilities: ["abilityBonus", "choice"]
+    capabilities: ["abilityBonus", "choice", "status"]
   },
   [FEATS.BOON_OF_POISON_MASTERY]: {
     feat: FEATS.BOON_OF_POISON_MASTERY,
@@ -384,7 +384,7 @@ export const featRuntimeCapabilityMatrix = {
   },
   [FEATS.BOON_OF_SOUL_DRINKER]: {
     feat: FEATS.BOON_OF_SOUL_DRINKER,
-    capabilities: ["abilityBonus", "choice"]
+    capabilities: ["abilityBonus", "choice", "reaction", "restRecovery", "status"]
   },
   [FEATS.BOON_OF_TERROR]: {
     feat: FEATS.BOON_OF_TERROR,

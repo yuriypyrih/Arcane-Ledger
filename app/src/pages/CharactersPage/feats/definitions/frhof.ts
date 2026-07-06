@@ -457,7 +457,8 @@ export const frhofEpicBoonFeatDefinitions: FeatDefinition[] = [
       "<strong>Ability Score Increase.</strong> Increase your Constitution, Wisdom, or Charisma by 1, to a maximum of 30.",
       "<strong>Daylight Presence.</strong> As a Bonus Action, you radiate a 30-foot Emanation of Bright Light that is sunlight. If any of the Emanation's area overlaps with an area of Darkness created by a spell, that spell is dispelled. The Emanation lasts until you dismiss it (no action required), die, or have the Incapacitated condition.",
       "<strong>Fortifying Light.</strong> When your Daylight Presence is active, at the start of each of your turns, you and allies you can see in your Daylight Presence gain 10 Temporary Hit Points."
-    ]
+    ],
+    trackingState: TRACKER.TRACKED
   }),
   createFrhofFeatDefinition({
     feat: FEATS.BOON_OF_FORTUNES_FAVOR,
@@ -484,7 +485,10 @@ export const frhofEpicBoonFeatDefinitions: FeatDefinition[] = [
       "<strong>Ability Score Increase.</strong> Increase your Intelligence, Wisdom, or Charisma by 1, to a maximum of 30.",
       "<strong>Eye of the Storm.</strong> You have Resistance to Lightning and Thunder damage. While you are Bloodied, you have Immunity to Lightning and Thunder damage.",
       "<strong>Storm's Strength.</strong> Creatures have Disadvantage on saving throws against your spells that deal Lightning or Thunder damage."
-    ]
+    ],
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "The Sotrm's Strength is not being tracked, you have to remember it during play."
   }),
   createFrhofFeatDefinition({
     feat: FEATS.BOON_OF_POISON_MASTERY,
@@ -527,7 +531,8 @@ export const frhofEpicBoonFeatDefinitions: FeatDefinition[] = [
       "<strong>Ability Score Increase.</strong> Increase one ability score of your choice by 1, to a maximum of 30.",
       "<strong>Grave Resistance.</strong> You have Resistance to Cold damage and Necrotic damage.",
       "<strong>Siphon Life.</strong> When an enemy within 120 feet of you is reduced to 0 Hit Points, you can take a Reaction to regain 50 Hit Points. Once you use this benefit, you can't use it again until you finish a Short or Long Rest."
-    ]
+    ],
+    trackingState: TRACKER.TRACKED
   }),
   createFrhofFeatDefinition({
     feat: FEATS.BOON_OF_TERROR,

@@ -25,6 +25,8 @@ export const boonOfEnergyResistanceReactionEntryId =
   "reaction-boon-of-energy-resistance-energy-redirection";
 export const boonOfTerrorFleeFoolsReactionEntryId =
   "reaction-boon-of-terror-flee-fools";
+export const boonOfSoulDrinkerSiphonLifeReactionEntryId =
+  "reaction-boon-of-soul-drinker-siphon-life";
 export const interceptionReactionEntryId = "reaction-interception";
 export const polearmMasterReactiveStrikeReactionEntryId =
   "reaction-polearm-master-reactive-strike";
@@ -40,6 +42,10 @@ export const cultOfDragonInitiateDragonsTerrorActionKey =
 export const cultOfDragonInitiateInspiredByFearActionKey =
   "feat-cult-of-the-dragon-initiate-inspired-by-fear";
 export const boonOfFateImproveFateActionKey = "feat-boon-of-fate-improve-fate";
+export const boonOfBrightSunDaylightPresenceActionKey =
+  "feat-boon-of-bright-sun-daylight-presence";
+export const boonOfBrightSunDaylightPresenceStatusSourceId =
+  "feat-boon-of-bright-sun-daylight-presence";
 export const boonOfRecoveryRecoverVitalityActionKey =
   "feat-boon-of-recovery-recover-vitality";
 export const durableSpeedyRecoveryActionKey = "feat-durable-speedy-recovery";

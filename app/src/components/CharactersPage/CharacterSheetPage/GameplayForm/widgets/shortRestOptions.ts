@@ -269,10 +269,12 @@ import { CLASS_FEATURE } from "../../../../../codex/entries";
 import {
   applyBoonOfBountifulHealthTemporaryHitPointsBonus,
   getBoonOfFateImproveFateStateForCharacter,
+  getBoonOfSoulDrinkerSiphonLifeStateForCharacter,
   getBoonOfTerrorFleeFoolsStateForCharacter,
   getCultOfDragonInitiateInspiredByFearStateForCharacter,
   getMageSlayerGuardedMindStateForCharacter,
   restoreBoonOfFateImproveFateForCharacter,
+  restoreBoonOfSoulDrinkerSiphonLifeForCharacter,
   restoreBoonOfTerrorFleeFoolsForCharacter,
   restoreCultOfDragonInitiateInspiredByFearForCharacter,
   restoreMageSlayerGuardedMindForCharacter
@@ -375,6 +377,8 @@ export function createShortRestOptions(character: Character): RestOption[] {
     );
   const clairvoyantCombatantUsesTotal = getWarlockClairvoyantCombatantUsesTotal(character);
   const boonOfFateImproveFateState = getBoonOfFateImproveFateStateForCharacter(character);
+  const boonOfSoulDrinkerSiphonLifeState =
+    getBoonOfSoulDrinkerSiphonLifeStateForCharacter(character);
   const boonOfTerrorFleeFoolsState = getBoonOfTerrorFleeFoolsStateForCharacter(character);
   const cultOfDragonInitiateInspiredByFearState =
     getCultOfDragonInitiateInspiredByFearStateForCharacter(character);
@@ -450,6 +454,23 @@ export function createShortRestOptions(character: Character): RestOption[] {
               boonOfTerrorFleeFoolsState.usesTotal,
             apply: (currentCharacter: Character) =>
               restoreBoonOfTerrorFleeFoolsForCharacter(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(boonOfSoulDrinkerSiphonLifeState
+      ? [
+          {
+            id: "restore-boon-of-soul-drinker-siphon-life",
+            label: "Restore Siphon Life",
+            charges: {
+              current: boonOfSoulDrinkerSiphonLifeState.usesRemaining,
+              total: boonOfSoulDrinkerSiphonLifeState.usesTotal
+            },
+            disabled:
+              boonOfSoulDrinkerSiphonLifeState.usesRemaining >=
+              boonOfSoulDrinkerSiphonLifeState.usesTotal,
+            apply: (currentCharacter: Character) =>
+              restoreBoonOfSoulDrinkerSiphonLifeForCharacter(currentCharacter)
           } satisfies RestOption
         ]
       : []),

@@ -58,6 +58,7 @@ import type {
   BoonOfIrresistibleOffenseChoice,
   BoonOfRecoveryState,
   BoonOfRevelryState,
+  BoonOfSoulDrinkerState,
   BoonOfTerrorState,
   BoonOfSkillChoice,
   CharacterFeatSource,
@@ -353,6 +354,13 @@ export function normalizeCharacterFeats(
               record.boonOfRevelry.irresistibleDanceExpended === true ? true : undefined
           }
         : undefined;
+    const boonOfSoulDrinker =
+      feat === FEATS.BOON_OF_SOUL_DRINKER && record.boonOfSoulDrinker
+        ? {
+            siphonLifeExpended:
+              record.boonOfSoulDrinker.siphonLifeExpended === true ? true : undefined
+          }
+        : undefined;
     const boonOfTerror =
       feat === FEATS.BOON_OF_TERROR && record.boonOfTerror
         ? {
@@ -540,6 +548,7 @@ export function normalizeCharacterFeats(
         boonOfIrresistibleOffense,
         boonOfRecovery,
         boonOfRevelry,
+        boonOfSoulDrinker,
         boonOfTerror,
         boonOfSkill,
         epicBoonAbilityChoice,
@@ -608,6 +617,7 @@ export function createCharacterFeatEntry(
     boonOfIrresistibleOffense?: BoonOfIrresistibleOffenseChoice;
     boonOfRecovery?: BoonOfRecoveryState;
     boonOfRevelry?: BoonOfRevelryState;
+    boonOfSoulDrinker?: BoonOfSoulDrinkerState;
     boonOfTerror?: BoonOfTerrorState;
     boonOfSkill?: BoonOfSkillChoice;
     epicBoonAbilityChoice?: EpicBoonAbilityChoice;
@@ -679,6 +689,8 @@ export function createCharacterFeatEntry(
       feat === FEATS.BOON_OF_IRRESISTIBLE_OFFENSE ? options?.boonOfIrresistibleOffense : undefined,
     boonOfRecovery: feat === FEATS.BOON_OF_RECOVERY ? options?.boonOfRecovery : undefined,
     boonOfRevelry: feat === FEATS.BOON_OF_REVELRY ? options?.boonOfRevelry : undefined,
+    boonOfSoulDrinker:
+      feat === FEATS.BOON_OF_SOUL_DRINKER ? options?.boonOfSoulDrinker : undefined,
     boonOfTerror: feat === FEATS.BOON_OF_TERROR ? options?.boonOfTerror : undefined,
     boonOfSkill: feat === FEATS.BOON_OF_SKILL ? options?.boonOfSkill : undefined,
     epicBoonAbilityChoice: epicBoonAbilityIncreaseFeatOptions.has(feat)

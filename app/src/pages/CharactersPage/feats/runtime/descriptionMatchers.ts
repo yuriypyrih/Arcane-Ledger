@@ -135,6 +135,13 @@ export function isBoonOfFateImproveFateDescriptionEntry(entry: string): boolean 
   return entry.startsWith("<strong>Improve Fate.</strong>");
 }
 
+export function isBoonOfBrightSunDaylightPresenceDescriptionEntry(entry: string): boolean {
+  return (
+    entry.startsWith("<strong>Daylight Presence.</strong>") ||
+    entry.startsWith("<strong>Fortifying Light.</strong>")
+  );
+}
+
 export function isBoonOfIrresistibleOffenseDescriptionEntry(entry: string): boolean {
   return (
     entry.startsWith("<strong>Overcome Defenses.</strong>") ||
