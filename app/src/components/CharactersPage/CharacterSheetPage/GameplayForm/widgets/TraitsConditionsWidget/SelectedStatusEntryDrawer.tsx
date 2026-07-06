@@ -21,7 +21,10 @@ import {
 } from "../../../../../../pages/CharactersPage/classFeatures";
 import { getAbilityModifierBreakdownForCharacter } from "../../../../../../pages/CharactersPage/abilities";
 import { isCustomFeatureTraitStatusEntry } from "../../../../../../pages/CharactersPage/customTraitEffects";
-import { actorStatusSourceId } from "../../../../../../pages/CharactersPage/feats/runtime";
+import {
+  actorStatusSourceId,
+  boonOfFluidFormsShapechangerStatusSourceId
+} from "../../../../../../pages/CharactersPage/feats/runtime";
 import { getProficiencyBonus } from "../../../../../../pages/CharactersPage/gameplay";
 import {
   formatFormulaCell,
@@ -215,6 +218,10 @@ function SelectedStatusEntryDrawerContent({
     removeStatusEntry(selectedStatusEntry!);
   }
 
+  function endSelectedMonsterBackedStatus() {
+    removeStatusEntry(selectedStatusEntry);
+  }
+
   function detonateSelectedQuiveringPalm() {
     if (
       selectedStatusEntry?.sourceId !== monkWarriorOfTheOpenHandQuiveringPalmStatusSourceId ||
@@ -282,6 +289,35 @@ function SelectedStatusEntryDrawerContent({
             <TraitNotesFooterControls editor={wildShapeNotesEditor} />
             <ActionButton actionType="ERROR" variant="OUTLINE" onClick={endSelectedWildShape}>
               End Wild Shape
+            </ActionButton>
+          </div>
+        }
+      />
+    );
+  }
+
+  if (selectedStatusEntry.monsterEntry) {
+    const isFluidFormsShapechanger =
+      selectedStatusEntry.sourceId === boonOfFluidFormsShapechangerStatusSourceId;
+
+    return (
+      <MonsterEntryDrawer
+        monster={selectedStatusEntry.monsterEntry}
+        status="ready"
+        badgeLabel={isFluidFormsShapechanger ? "Shapechanger" : selectedStatusEntry.source}
+        onClose={() => setSelectedStatusEntryId(null)}
+        contentSurface="plain"
+        showHeaderDivider
+        bodyFooter={<TraitNotesBody editor={wildShapeNotesEditor} />}
+        footer={
+          <div className={styles.wildShapeFooterContent}>
+            <TraitNotesFooterControls editor={wildShapeNotesEditor} />
+            <ActionButton
+              actionType="ERROR"
+              variant="OUTLINE"
+              onClick={endSelectedMonsterBackedStatus}
+            >
+              {isFluidFormsShapechanger ? "End Shapechanger" : "End Trait"}
             </ActionButton>
           </div>
         }

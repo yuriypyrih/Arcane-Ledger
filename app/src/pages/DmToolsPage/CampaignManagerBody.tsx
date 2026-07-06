@@ -3,6 +3,7 @@ import { type ReactNode, useEffect, useId, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { deleteCampaign, listCampaigns, type CampaignRecord } from "../../api/campaigns";
 import ActionButton from "../../components/ActionButton";
+import MemberCount from "../../components/MemberCount";
 import { DestructiveConfirmationModal } from "../../components/Overlay";
 import {
   removeCampaignRecord,
@@ -80,7 +81,9 @@ function CampaignManagerBody({ panelId, tabId }: CampaignManagerBodyProps) {
       })
       .catch((error) => {
         if (!didCancel) {
-          dispatch(setCampaignsError(getDmToolsApiErrorMessage(error, "Unable to load campaigns.")));
+          dispatch(
+            setCampaignsError(getDmToolsApiErrorMessage(error, "Unable to load campaigns."))
+          );
           loadedCampaignsForAuthRef.current = null;
         }
       });
@@ -156,15 +159,15 @@ function CampaignManagerBody({ panelId, tabId }: CampaignManagerBodyProps) {
         </div>
         <div className={styles.headerActions}>
           {isAuthenticated ? (
-            <span className={styles.memberCount}>
-              {campaigns.length}/{campaignLimit} campaigns
-            </span>
+            <MemberCount current={campaigns.length} total={campaignLimit} label="campaigns" />
           ) : null}
           <ActionButton
             icon={<Plus size={16} aria-hidden="true" />}
             disabled={isAtCampaignLimit}
             fullWidth={false}
-            title={isAtCampaignLimit ? `You can create up to ${campaignLimit} campaigns.` : undefined}
+            title={
+              isAtCampaignLimit ? `You can create up to ${campaignLimit} campaigns.` : undefined
+            }
             onClick={handleCreateClick}
           >
             Create Campaign

@@ -7,6 +7,7 @@ import {
   type EncounterTemplateRecord
 } from "../../api/encounterTemplates";
 import ActionButton from "../../components/ActionButton";
+import MemberCount from "../../components/MemberCount";
 import { DestructiveConfirmationModal } from "../../components/Overlay";
 import {
   removeEncounterTemplateRecord,
@@ -171,9 +172,11 @@ function EncounterTemplatesBody({ panelId, tabId }: EncounterTemplatesBodyProps)
         </div>
         <div className={styles.headerActions}>
           {isAuthenticated ? (
-            <span className={styles.memberCount}>
-              {encounterTemplates.length}/{encounterTemplateLimit} templates
-            </span>
+            <MemberCount
+              current={encounterTemplates.length}
+              total={encounterTemplateLimit}
+              label="templates"
+            />
           ) : null}
           <ActionButton
             icon={<Plus size={16} aria-hidden="true" />}

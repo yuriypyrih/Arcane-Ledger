@@ -355,6 +355,11 @@
   color: var(--theme-text-secondary);
 }
 
+.fluidFormsPickerButton {
+  justify-self: start;
+  margin-left: 0;
+}
+
 .wildShapePreviewDrawerBackdrop {
   z-index: 48;
 }

@@ -12,6 +12,7 @@ import {
   CharacterRowIconButton
 } from "../../components/CharactersPage/CharacterRow";
 import MasterChestModal from "../../components/CharactersPage/CharacterSheetPage/EquipmentForm/MasterChestModal";
+import MemberCount from "../../components/MemberCount";
 import { DestructiveConfirmationModal } from "../../components/Overlay";
 import { PARTY_GROUP_MAX_MEMBERS } from "../../constants/QUOTAS";
 import {
@@ -250,9 +251,11 @@ function PartyGroupDetailPage() {
                     Members
                   </h3>
                 </div>
-                <span className={styles.memberCount}>
-                  {partyGroup.memberCount}/{PARTY_GROUP_MAX_MEMBERS} members
-                </span>
+                <MemberCount
+                  current={partyGroup.memberCount}
+                  total={PARTY_GROUP_MAX_MEMBERS}
+                  label="members"
+                />
               </div>
 
               {partyGroup.members.length > 0 ? (

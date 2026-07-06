@@ -55,6 +55,7 @@ import type {
   AbilityScoreImprovementChoice,
   BoonOfEnergyResistanceChoice,
   BoonOfFateState,
+  BoonOfFluidFormsState,
   BoonOfIrresistibleOffenseChoice,
   BoonOfRecoveryState,
   BoonOfRevelryState,
@@ -333,6 +334,13 @@ export function normalizeCharacterFeats(
             improveFateExpended: record.boonOfFate.improveFateExpended === true ? true : undefined
           }
         : undefined;
+    const boonOfFluidForms =
+      feat === FEATS.BOON_OF_FLUID_FORMS && record.boonOfFluidForms
+        ? {
+            shapechangerExpended:
+              record.boonOfFluidForms.shapechangerExpended === true ? true : undefined
+          }
+        : undefined;
     const boonOfRecovery =
       feat === FEATS.BOON_OF_RECOVERY && record.boonOfRecovery
         ? {
@@ -545,6 +553,7 @@ export function normalizeCharacterFeats(
         crafter,
         boonOfEnergyResistance,
         boonOfFate,
+        boonOfFluidForms,
         boonOfIrresistibleOffense,
         boonOfRecovery,
         boonOfRevelry,
@@ -614,6 +623,7 @@ export function createCharacterFeatEntry(
     crafter?: CrafterChoice;
     boonOfEnergyResistance?: BoonOfEnergyResistanceChoice;
     boonOfFate?: BoonOfFateState;
+    boonOfFluidForms?: BoonOfFluidFormsState;
     boonOfIrresistibleOffense?: BoonOfIrresistibleOffenseChoice;
     boonOfRecovery?: BoonOfRecoveryState;
     boonOfRevelry?: BoonOfRevelryState;
@@ -685,6 +695,8 @@ export function createCharacterFeatEntry(
     boonOfEnergyResistance:
       feat === FEATS.BOON_OF_ENERGY_RESISTANCE ? options?.boonOfEnergyResistance : undefined,
     boonOfFate: feat === FEATS.BOON_OF_FATE ? options?.boonOfFate : undefined,
+    boonOfFluidForms:
+      feat === FEATS.BOON_OF_FLUID_FORMS ? options?.boonOfFluidForms : undefined,
     boonOfIrresistibleOffense:
       feat === FEATS.BOON_OF_IRRESISTIBLE_OFFENSE ? options?.boonOfIrresistibleOffense : undefined,
     boonOfRecovery: feat === FEATS.BOON_OF_RECOVERY ? options?.boonOfRecovery : undefined,

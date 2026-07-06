@@ -6,7 +6,10 @@ import {
   LazyCodexFeatDrawer as CodexFeatDrawer,
   LazyCodexSpellDrawer as CodexSpellDrawer
 } from "../../components/CodexPage/LazyCodexReferenceDrawers";
-import ClassProgressionTable from "../../components/CodexPage/ClassProgressionTable";
+import {
+  BackgroundEntryOverviewItems,
+  ClassEntryOverviewItems
+} from "../../components/CodexPage/EntryOverviewContent/EntryOverviewContent";
 import CellContainer from "../../components/CellContainer/CellContainer";
 import { getClassSignatureStyle } from "../../components/CharactersPage/classSignature";
 import {
@@ -20,12 +23,6 @@ import RarityPill from "../../components/CodexPage/RarityPill";
 import KeywordReferenceDrawer from "../../components/KeywordReferenceDrawer/KeywordReferenceDrawer";
 import SpellDescriptionContent from "../../components/SpellDescriptionContent";
 import SpellSubtitle from "../../components/SpellSubtitle";
-import {
-  formatBackgroundAbilityScoreOptions,
-  formatBackgroundEquipmentOptions,
-  formatBackgroundOriginFeat,
-  formatBackgroundProficiencies
-} from "../../components/CodexPage/backgroundPresentation";
 import {
   CLASS_FEATURE,
   ENTRY_CATEGORIES,
@@ -61,20 +58,9 @@ import sheetStyles from "../CharactersPage/CharacterSheetPage/CharacterSheetPage
 import { isShieldArmorEntry } from "../CharactersPage/armor";
 import { getKeywordReferences } from "../CharactersPage/keywordDescriptions";
 import {
-  getClassProficiencyProfile,
-  getEquipmentProficiencyLabelsForClass,
-  getPrimaryAbilityForClass,
-  getSavingThrowAbilityKeysForClass
-} from "../CharactersPage/proficiencyClassData";
-import {
   getSpellAttackFormulaCell,
   getSpellSaveFormulaCell
 } from "../CharactersPage/shared/spellFormulas";
-import { getToolProficiencyLabel } from "../CharactersPage/proficiencyOptions";
-import {
-  formatStarterPackStartingEquipmentSummary,
-  getLevelOneWeaponMasteryCountForClass
-} from "../../codex/classes/starterPack";
 import { useCodexEntry } from "./useCodexEntry";
 import styles from "./CodexEntryPage.module.css";
 
@@ -91,33 +77,6 @@ function BackToCompendiumLabel() {
       <span>Back to compendium</span>
     </>
   );
-}
-
-function formatSelectableProficiencyList(values: string[], count: number): string {
-  if (values.length === 0 || count <= 0) {
-    return "None";
-  }
-
-  return `Choose ${count}: ${values.join(", ")}`;
-}
-
-function formatClassToolProficiencyList(className: string): string {
-  const profile = getClassProficiencyProfile(className);
-  const grantedTools = (profile?.grantedToolProficiencies ?? []).map((entry) =>
-    getToolProficiencyLabel(entry)
-  );
-  const selectableTools = (profile?.toolProficiencyChoices ?? []).map((entry) =>
-    getToolProficiencyLabel(entry)
-  );
-  const selectableCount = profile?.toolProficiencyChoiceCount ?? 0;
-  const parts = [
-    ...grantedTools,
-    selectableTools.length > 0 && selectableCount > 0
-      ? `Choose ${selectableCount}: ${selectableTools.join(", ")}`
-      : null
-  ].filter((value): value is string => value !== null);
-
-  return parts.length > 0 ? parts.join(" | ") : "None";
 }
 
 type ResolvedFeatureItem = {
@@ -198,30 +157,8 @@ function CodexEntryPage() {
     entry?.category === ENTRY_CATEGORIES.SPELLS;
   const classFeatureItems =
     entry?.category === ENTRY_CATEGORIES.CLASSES ? createResolvedFeatureItems(entry.features) : [];
-  const classPrimaryAbility =
-    entry?.category === ENTRY_CATEGORIES.CLASSES ? getPrimaryAbilityForClass(entry.name) : null;
-  const classStarterPack =
-    entry?.category === ENTRY_CATEGORIES.CLASSES ? (entry.starterPack ?? null) : null;
-  const classSavingThrows =
-    entry?.category === ENTRY_CATEGORIES.CLASSES
-      ? getSavingThrowAbilityKeysForClass(entry.name)
-      : [];
-  const classProfile =
-    entry?.category === ENTRY_CATEGORIES.CLASSES ? getClassProficiencyProfile(entry.name) : null;
-  const classEquipmentLabels =
-    entry?.category === ENTRY_CATEGORIES.CLASSES
-      ? getEquipmentProficiencyLabelsForClass(entry.name)
-      : { weapons: [], armor: [] };
   const classSubclassEntries =
     entry?.category === ENTRY_CATEGORIES.CLASSES ? getSubclassEntriesForClass(entry.name) : [];
-  const classStartingEquipment =
-    entry?.category === ENTRY_CATEGORIES.CLASSES && classStarterPack
-      ? formatStarterPackStartingEquipmentSummary(classStarterPack.startingEquipment)
-      : "None";
-  const classWeaponMasteryCount =
-    entry?.category === ENTRY_CATEGORIES.CLASSES
-      ? (classStarterPack?.weaponMasteryCount ?? getLevelOneWeaponMasteryCountForClass(entry.name))
-      : 0;
   const classFeaturesSectionKey =
     entry?.category === ENTRY_CATEGORIES.CLASSES ? `class-features-${entry.id}` : null;
   const pageStyle =
@@ -486,75 +423,15 @@ function CodexEntryPage() {
                 ) : null}
 
                 {entry.category === ENTRY_CATEGORIES.CLASSES ? (
-                  <>
-                    <div className={styles.detailItem}>
-                      <span>Primary Ability</span>
-                      <strong>
-                        {classStarterPack?.primaryAbilityLabel ??
-                          (classPrimaryAbility ? formatCodexLabel(classPrimaryAbility) : "None")}
-                      </strong>
-                    </div>
-                    <div className={styles.detailItem}>
-                      <span>Hit Point Die</span>
-                      <strong>
-                        {classStarterPack?.hitPointDieLabel ?? formatCodexLabel(entry.hitPointDie)}
-                      </strong>
-                    </div>
-                    <div className={styles.detailItem}>
-                      <span>Saving Throws</span>
-                      <strong>
-                        {classSavingThrows.length > 0 ? formatCodexList(classSavingThrows) : "None"}
-                      </strong>
-                    </div>
-                    <div className={styles.detailItem}>
-                      <span>Weapon Proficiencies</span>
-                      <strong>
-                        {classEquipmentLabels.weapons.length > 0
-                          ? classEquipmentLabels.weapons.join(", ")
-                          : "None"}
-                      </strong>
-                    </div>
-                    <div className={styles.detailItem}>
-                      <span>Weapon Masteries</span>
-                      <strong>
-                        {classWeaponMasteryCount > 0 ? classWeaponMasteryCount : "None"}
-                      </strong>
-                    </div>
-                    <div className={styles.detailItem}>
-                      <span>Armor Training</span>
-                      <strong>
-                        {classEquipmentLabels.armor.length > 0
-                          ? classEquipmentLabels.armor.join(", ")
-                          : "None"}
-                      </strong>
-                    </div>
-                    <div className={styles.detailItem}>
-                      <span>Possible Skill Proficiencies</span>
-                      <strong>
-                        {formatSelectableProficiencyList(
-                          classProfile?.skillProficiencyOptions ?? [],
-                          classProfile?.skillProficiencyCount ?? 0
-                        )}
-                      </strong>
-                    </div>
-                    <div className={styles.detailItem}>
-                      <span>Tool Proficiencies</span>
-                      <strong>{formatClassToolProficiencyList(entry.name)}</strong>
-                    </div>
-                    <div className={styles.detailItem}>
-                      <span>Starting Equipment</span>
-                      <strong>{classStartingEquipment}</strong>
-                    </div>
-                    {entry.features.length > 0 ? (
-                      <div className={`${styles.detailItem} ${styles.detailItemFullWidth}`}>
-                        <span>Level Progression</span>
-                        <ClassProgressionTable
-                          featureRows={entry.features}
-                          subclassEntries={classSubclassEntries}
-                        />
-                      </div>
-                    ) : null}
-                  </>
+                  <ClassEntryOverviewItems
+                    entry={entry}
+                    subclassEntries={classSubclassEntries}
+                    linkClassName={featureDisclosureStyles.inlineLinkButton}
+                    onOpenKeyword={setSelectedKeywordReference}
+                    onOpenSpell={setSelectedSpellReference}
+                    onOpenDivinity={setSelectedDivinityReference}
+                    onOpenFeat={(feat, label) => setSelectedFeatReference({ feat, label })}
+                  />
                 ) : null}
 
                 {entry.category === ENTRY_CATEGORIES.SPECIES ? (
@@ -567,24 +444,14 @@ function CodexEntryPage() {
                 ) : null}
 
                 {entry.category === ENTRY_CATEGORIES.BACKGROUNDS ? (
-                  <>
-                    <div className={styles.detailItem}>
-                      <span>Ability Scores</span>
-                      <strong>{formatBackgroundAbilityScoreOptions(entry)}</strong>
-                    </div>
-                    <div className={styles.detailItem}>
-                      <span>Feat</span>
-                      <strong>{formatBackgroundOriginFeat(entry)}</strong>
-                    </div>
-                    <div className={styles.detailItem}>
-                      <span>Skill + Tool Proficiencies</span>
-                      <strong>{formatBackgroundProficiencies(entry)}</strong>
-                    </div>
-                    <div className={`${styles.detailItem} ${styles.detailItemFullWidth}`}>
-                      <span>Equipment</span>
-                      <strong>{formatBackgroundEquipmentOptions(entry)}</strong>
-                    </div>
-                  </>
+                  <BackgroundEntryOverviewItems
+                    entry={entry}
+                    linkClassName={featureDisclosureStyles.inlineLinkButton}
+                    onOpenKeyword={setSelectedKeywordReference}
+                    onOpenSpell={setSelectedSpellReference}
+                    onOpenDivinity={setSelectedDivinityReference}
+                    onOpenFeat={(feat, label) => setSelectedFeatReference({ feat, label })}
+                  />
                 ) : null}
               </div>
 

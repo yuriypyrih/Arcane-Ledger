@@ -1,14 +1,5 @@
 import { PenLine, Plus, Sparkles, Trash2 } from "lucide-react";
-import {
-  lazy,
-  Suspense,
-  type ReactNode,
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState
-} from "react";
+import { lazy, Suspense, type ReactNode, useEffect, useId, useMemo, useRef, useState } from "react";
 import {
   deleteCustomSpell,
   listCustomSpells,
@@ -16,6 +7,7 @@ import {
   type CustomSpellRecord
 } from "../../api/customSpells";
 import ActionButton from "../../components/ActionButton";
+import MemberCount from "../../components/MemberCount";
 import { DestructiveConfirmationModal } from "../../components/Overlay";
 import SegmentedToggle from "../../components/SegmentedToggle";
 import {
@@ -31,10 +23,7 @@ import {
 import { formatCodexLabel, formatSpellLevelLabel } from "../../utils/codex/formatCodexLabel";
 import CustomSpellEditorModal from "./CustomSpellEditorModal";
 import { getDmToolsApiErrorMessage } from "./dmToolsApiErrors";
-import {
-  clampDmToolsPage,
-  getDmToolsPageItems
-} from "./dmToolsPagination";
+import { clampDmToolsPage, getDmToolsPageItems } from "./dmToolsPagination";
 import { getDmToolsQuotaForRole } from "./dmToolsQuotas";
 import DmToolsEmptyState from "./DmToolsEmptyState";
 import DmToolsListCard from "./DmToolsListCard";
@@ -130,9 +119,7 @@ function CustomSpellsBody({ panelId, tabId }: CustomSpellsBodyProps) {
       .catch((error) => {
         if (!didCancel) {
           dispatch(
-            setCustomSpellsError(
-              getDmToolsApiErrorMessage(error, "Unable to load custom spells.")
-            )
+            setCustomSpellsError(getDmToolsApiErrorMessage(error, "Unable to load custom spells."))
           );
           loadedCustomSpellsForAuthRef.current = null;
         }
@@ -228,11 +215,11 @@ function CustomSpellsBody({ panelId, tabId }: CustomSpellsBodyProps) {
         </div>
         <div className={styles.headerActions}>
           {isAuthenticated ? (
-            <span className={styles.memberCount}>
+            <MemberCount>
               {customSpellScope === "public"
                 ? `${customSpells.length} public`
                 : `${customSpells.length}/${customSpellLimit} spells`}
-            </span>
+            </MemberCount>
           ) : null}
           {isAuthenticated ? renderCustomSpellScopeToggle() : null}
           <ActionButton

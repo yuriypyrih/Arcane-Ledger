@@ -45,6 +45,14 @@ function buildMonsterFilter(query: MonsterListQuery): FilterQuery<MonsterRecord>
     appendFilterClause(filter, {
       $or: [{ "type.key": typeMatch }, { type: typeMatch }]
     });
+  } else if (query.types?.length) {
+    const typeMatches = query.types.map(createCaseInsensitiveExactMatch);
+    appendFilterClause(filter, {
+      $or: [
+        ...typeMatches.map((typeMatch) => ({ "type.key": typeMatch })),
+        ...typeMatches.map((typeMatch) => ({ type: typeMatch }))
+      ]
+    });
   }
 
   if (query.challengeRating !== undefined && query.maxChallengeRating !== undefined) {

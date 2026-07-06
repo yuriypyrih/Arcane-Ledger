@@ -1221,27 +1221,6 @@ button.dmToolsListCardMain:disabled {
   gap: 1rem;
 }
 
-.memberCount {
-  border: 1px solid rgba(75, 47, 29, 0.16);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.44);
-  color: var(--theme-text-secondary);
-  font-size: 0.78rem;
-  font-weight: 800;
-  line-height: 1;
-  padding: 0.36rem 0.52rem;
-  white-space: nowrap;
-}
-
-:global(html[data-theme="dark"]) .memberCount {
-  border-color: var(--theme-border-medium);
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.095), rgba(255, 255, 255, 0.055)),
-    var(--theme-surface-raised);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  color: var(--theme-text-primary);
-}
-
 .emptyActionState {
   border: none;
   background: transparent;

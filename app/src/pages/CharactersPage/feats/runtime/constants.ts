@@ -46,6 +46,10 @@ export const boonOfBrightSunDaylightPresenceActionKey =
   "feat-boon-of-bright-sun-daylight-presence";
 export const boonOfBrightSunDaylightPresenceStatusSourceId =
   "feat-boon-of-bright-sun-daylight-presence";
+export const boonOfFluidFormsShapechangerActionKey =
+  "feat-boon-of-fluid-forms-shapechanger";
+export const boonOfFluidFormsShapechangerStatusSourceId =
+  "feat-boon-of-fluid-forms-shapechanger";
 export const boonOfRecoveryRecoverVitalityActionKey =
   "feat-boon-of-recovery-recover-vitality";
 export const durableSpeedyRecoveryActionKey = "feat-durable-speedy-recovery";

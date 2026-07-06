@@ -3,6 +3,7 @@ import { type ReactNode, useEffect, useId, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { deletePartyGroup, listPartyGroups, type PartyGroupRecord } from "../../api/partyGroups";
 import ActionButton from "../../components/ActionButton";
+import MemberCount from "../../components/MemberCount";
 import { DestructiveConfirmationModal } from "../../components/Overlay";
 import {
   removePartyGroupRecord,
@@ -161,9 +162,11 @@ function PartyManagerBody({ panelId, tabId }: PartyManagerBodyProps) {
         </div>
         <div className={styles.headerActions}>
           {isAuthenticated ? (
-            <span className={styles.memberCount}>
-              {partyGroups.length}/{partyGroupLimit} party groups
-            </span>
+            <MemberCount
+              current={partyGroups.length}
+              total={partyGroupLimit}
+              label="party groups"
+            />
           ) : null}
           <ActionButton
             icon={<Plus size={16} aria-hidden="true" />}

@@ -1,0 +1,55 @@
+.body {
+  gap: 0.8rem;
+}
+
+.guideItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  border-radius: var(--radius-control-lg);
+  background: rgba(75, 47, 29, 0.05);
+  padding: 0.85rem;
+}
+
+:global(html[data-theme="dark"]) .guideItem {
+  background: var(--theme-surface-subtle);
+}
+
+.guideIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-height: 34px;
+  min-width: 34px;
+  border-radius: var(--radius-pill);
+  background: rgba(75, 47, 29, 0.09);
+  color: var(--color-accent);
+}
+
+:global(html[data-theme="dark"]) .guideIcon {
+  background: var(--theme-control-subtle);
+  color: var(--theme-accent-strong);
+}
+
+.guideContent {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.guideTitle {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: 0.96rem;
+}
+
+:global(html[data-theme="dark"]) .guideTitle {
+  color: var(--theme-text-primary);
+}
+
+.guideText {
+  margin: 0;
+  color: var(--theme-text-secondary);
+  line-height: 1.5;
+}

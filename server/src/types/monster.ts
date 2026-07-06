@@ -195,6 +195,7 @@ export type MonsterListQuery = {
   challengeRatingBucket?: MonsterChallengeRatingBucket;
   maxChallengeRating?: number;
   type?: string;
+  types?: string[];
   source?: string;
 };
 

@@ -7,6 +7,7 @@ import {
   type CustomBestiaryRecord
 } from "../../api/customBestiary";
 import ActionButton from "../../components/ActionButton";
+import MemberCount from "../../components/MemberCount";
 import MonsterEntryDrawer from "../../components/MonsterEntryRenderer/MonsterEntryDrawer";
 import { formatMonsterTitleMeta } from "../../components/MonsterEntryRenderer/monsterEntryFormatting";
 import { DestructiveConfirmationModal } from "../../components/Overlay";
@@ -23,10 +24,7 @@ import {
 } from "../../store";
 import CustomBestiaryEditorModal from "./CustomBestiaryEditorModal";
 import { getDmToolsApiErrorMessage } from "./dmToolsApiErrors";
-import {
-  clampDmToolsPage,
-  getDmToolsPageItems
-} from "./dmToolsPagination";
+import { clampDmToolsPage, getDmToolsPageItems } from "./dmToolsPagination";
 import { getDmToolsQuotaForRole } from "./dmToolsQuotas";
 import DmToolsEmptyState from "./DmToolsEmptyState";
 import DmToolsListCard from "./DmToolsListCard";
@@ -62,14 +60,15 @@ function CustomBestiaryBody({ panelId, tabId }: CustomBestiaryBodyProps) {
   const customBestiaryStatus = useAppSelector((state) => state.dmTools.customBestiaryStatus);
   const customBestiaryError = useAppSelector((state) => state.dmTools.customBestiaryError);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
-  const [editingCustomCreature, setEditingCustomCreature] =
-    useState<CustomBestiaryRecord | null>(null);
+  const [editingCustomCreature, setEditingCustomCreature] = useState<CustomBestiaryRecord | null>(
+    null
+  );
   const [pendingDeleteCustomCreature, setPendingDeleteCustomCreature] =
     useState<CustomBestiaryRecord | null>(null);
-  const [previewCustomCreature, setPreviewCustomCreature] =
-    useState<CustomBestiaryRecord | null>(null);
-  const [customBestiaryScope, setCustomBestiaryScope] =
-    useState<CustomBestiaryListScope>("mine");
+  const [previewCustomCreature, setPreviewCustomCreature] = useState<CustomBestiaryRecord | null>(
+    null
+  );
+  const [customBestiaryScope, setCustomBestiaryScope] = useState<CustomBestiaryListScope>("mine");
   const [customBestiaryPage, setCustomBestiaryPage] = useState(1);
   const [isDeletingCustomCreature, setIsDeletingCustomCreature] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -86,15 +85,12 @@ function CustomBestiaryBody({ panelId, tabId }: CustomBestiaryBodyProps) {
   );
 
   useEffect(() => {
-    setCustomBestiaryPage((currentPage) =>
-      clampDmToolsPage(currentPage, customBestiary.length)
-    );
+    setCustomBestiaryPage((currentPage) => clampDmToolsPage(currentPage, customBestiary.length));
   }, [customBestiary.length]);
 
   useEffect(() => {
     let didCancel = false;
-    const loadKey =
-      isAuthenticated && authUserId ? `${authUserId}:${customBestiaryScope}` : null;
+    const loadKey = isAuthenticated && authUserId ? `${authUserId}:${customBestiaryScope}` : null;
 
     if (!loadKey) {
       loadedCustomBestiaryForAuthRef.current = null;
@@ -181,9 +177,7 @@ function CustomBestiaryBody({ panelId, tabId }: CustomBestiaryBodyProps) {
       );
       setPendingDeleteCustomCreature(null);
     } catch (deleteError) {
-      setActionError(
-        getDmToolsApiErrorMessage(deleteError, "Unable to delete custom creature.")
-      );
+      setActionError(getDmToolsApiErrorMessage(deleteError, "Unable to delete custom creature."));
     } finally {
       setIsDeletingCustomCreature(false);
     }
@@ -221,11 +215,11 @@ function CustomBestiaryBody({ panelId, tabId }: CustomBestiaryBodyProps) {
         </div>
         <div className={styles.headerActions}>
           {isAuthenticated ? (
-            <span className={styles.memberCount}>
+            <MemberCount>
               {customBestiaryScope === "public"
                 ? `${customBestiary.length} public`
                 : `${customBestiary.length}/${customBestiaryLimit} creatures`}
-            </span>
+            </MemberCount>
           ) : null}
           {isAuthenticated ? renderCustomBestiaryScopeToggle() : null}
           <ActionButton

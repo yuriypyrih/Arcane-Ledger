@@ -1,6 +1,7 @@
 import type { SpellDescriptionEntry, SpellDurationPart } from "../../codex/entries";
 import { DAMAGE_TYPE, DURATION } from "../../codex/entries";
 import { DEFAULT_TEXTAREA_MAX_LENGTH } from "../../constants/inputLimits";
+import { normalizeMonsterRecord } from "../../utils/monsters";
 import {
   CONDITION_NAME,
   EFFECT_NAME,
@@ -531,6 +532,7 @@ function normalizeStatusEntry(value: unknown): CharacterStatusEntry | null {
     kind: STATUS_DURATION_KIND.INFINITE
   };
   const descriptionAdditions = normalizeStatusDescriptionAdditions(record.descriptionAdditions);
+  const monsterEntry = normalizeMonsterRecord(record.monsterEntry);
 
   const runtimeOverride = record.runtimeOverride === true;
 
@@ -575,6 +577,7 @@ function normalizeStatusEntry(value: unknown): CharacterStatusEntry | null {
     customEffects: Array.isArray(record.customEffects)
       ? normalizeCharacterCustomTraitEffects(record.customEffects)
       : undefined,
+    monsterEntry: monsterEntry ?? undefined,
     notes: normalizeStatusNotes(record.notes),
     runtimeOverride: runtimeOverride ? true : undefined,
     runtimeOverrideKey: runtimeOverride
@@ -714,11 +717,13 @@ export function createCharacterStatusEntry(options: {
   description?: string;
   descriptionAdditions?: SpellDescriptionEntry[][];
   customEffects?: CharacterCustomTraitEffect[];
+  monsterEntry?: CharacterStatusEntry["monsterEntry"];
   notes?: string;
   runtimeOverride?: boolean;
   runtimeOverrideKey?: string;
 }): CharacterStatusEntry {
   const descriptionAdditions = normalizeStatusDescriptionAdditions(options.descriptionAdditions);
+  const monsterEntry = normalizeMonsterRecord(options.monsterEntry);
   const notes = normalizeStatusNotes(options.notes);
   const runtimeOverride = options.runtimeOverride === true;
 
@@ -751,6 +756,7 @@ export function createCharacterStatusEntry(options: {
     customEffects: Array.isArray(options.customEffects)
       ? normalizeCharacterCustomTraitEffects(options.customEffects)
       : undefined,
+    monsterEntry: monsterEntry ?? undefined,
     notes,
     runtimeOverride: runtimeOverride ? true : undefined,
     runtimeOverrideKey: runtimeOverride

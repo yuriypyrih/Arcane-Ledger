@@ -7,6 +7,7 @@ export type FetchMonsterListParams = {
   limit?: number;
   search?: string;
   type?: string;
+  types?: string[];
   challengeRating?: number;
   challengeRatingBucket?: MonsterChallengeRatingBucket;
   maxChallengeRating?: number;
@@ -20,6 +21,7 @@ export async function fetchMonsterList(
     limit = 50,
     search,
     type,
+    types,
     challengeRating,
     challengeRatingBucket,
     maxChallengeRating,
@@ -39,6 +41,10 @@ export async function fetchMonsterList(
 
   if (type) {
     searchParams.set("type", type);
+  }
+
+  if (types?.length) {
+    searchParams.set("types", types.join(","));
   }
 
   if (source) {

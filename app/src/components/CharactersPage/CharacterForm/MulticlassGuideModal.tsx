@@ -40,10 +40,10 @@ function MulticlassGuideModal({ onClose }: MulticlassGuideModalProps) {
             of room to tune the sheet around the exact parts of another class you want to represent.
           </p>
           <p className={styles.sectionText}>
-            If you are going horizontal and spreading levels across many classes, Custom is usually
-            the better starting point. It removes predefined class-feature baggage, keeps the core
-            sheet tools unrestricted, and leaves the build in your hands. Multiclass-style play
-            works best once you are comfortable with Arcane Ledger customization and modding.
+            If you are going horizontal and spreading levels across many classes, Custom class is
+            usually the better starting point. It removes predefined class-feature baggage, keeps
+            the core sheet tools unrestricted, and leaves the build in your hands. Multiclass-style
+            play works best once you are comfortable with Arcane Ledger customization and modding.
           </p>
         </section>
       </OverlayBody>

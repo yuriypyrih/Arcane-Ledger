@@ -23,6 +23,10 @@ import {
   getBoonOfBrightSunDaylightPresenceDescription
 } from "./brightSun";
 import {
+  createBoonOfFluidFormsShapechangerAction,
+  isBoonOfFluidFormsShapechangerDrawerDescriptionEntry
+} from "./fluidForms";
+import {
   boonOfEnergyResistanceReactionEntryId,
   boonOfNightSpiritStatusSourceId,
   boonOfSoulDrinkerSiphonLifeReactionEntryId,
@@ -50,12 +54,15 @@ type FeatDescriptionSliceGetter = (
 
 export type EpicBoonFeatResourceState = {
   hasBoonOfFate: boolean;
+  hasBoonOfFluidForms: boolean;
   hasBoonOfRecovery: boolean;
   hasBoonOfSoulDrinker: boolean;
   hasBoonOfSpellRecall: boolean;
   hasBoonOfTerror: boolean;
   boonOfFateImproveFateRemaining: number;
   boonOfFateImproveFateTotal: number;
+  boonOfFluidFormsShapechangerRemaining: number;
+  boonOfFluidFormsShapechangerTotal: number;
   boonOfRecoveryDiceRemaining: number;
   boonOfRecoveryDiceTotal: number;
   boonOfRecoveryLastStandRemaining: number;
@@ -74,6 +81,12 @@ export function getEpicBoonFeatResourceState(
   const boonOfFateImproveFateExpended = normalizedFeats.some(
     (entry) =>
       entry.feat === FEATS.BOON_OF_FATE && entry.boonOfFate?.improveFateExpended === true
+  );
+  const boonOfFluidFormsShapechangerTotal = featSet.has(FEATS.BOON_OF_FLUID_FORMS) ? 1 : 0;
+  const boonOfFluidFormsShapechangerExpended = normalizedFeats.some(
+    (entry) =>
+      entry.feat === FEATS.BOON_OF_FLUID_FORMS &&
+      entry.boonOfFluidForms?.shapechangerExpended === true
   );
   const boonOfRecoveryDiceTotal = featSet.has(FEATS.BOON_OF_RECOVERY) ? 10 : 0;
   const boonOfRecoveryLastStandTotal = featSet.has(FEATS.BOON_OF_RECOVERY) ? 1 : 0;
@@ -109,6 +122,7 @@ export function getEpicBoonFeatResourceState(
 
   return {
     hasBoonOfFate: featSet.has(FEATS.BOON_OF_FATE),
+    hasBoonOfFluidForms: featSet.has(FEATS.BOON_OF_FLUID_FORMS),
     hasBoonOfRecovery: featSet.has(FEATS.BOON_OF_RECOVERY),
     hasBoonOfSoulDrinker: featSet.has(FEATS.BOON_OF_SOUL_DRINKER),
     hasBoonOfSpellRecall: featSet.has(FEATS.BOON_OF_SPELL_RECALL),
@@ -116,6 +130,9 @@ export function getEpicBoonFeatResourceState(
     boonOfFateImproveFateRemaining:
       boonOfFateImproveFateTotal > 0 && !boonOfFateImproveFateExpended ? 1 : 0,
     boonOfFateImproveFateTotal,
+    boonOfFluidFormsShapechangerRemaining:
+      boonOfFluidFormsShapechangerTotal > 0 && !boonOfFluidFormsShapechangerExpended ? 1 : 0,
+    boonOfFluidFormsShapechangerTotal,
     boonOfRecoveryDiceRemaining: Math.max(
       0,
       boonOfRecoveryDiceTotal - boonOfRecoveryDiceExpended
@@ -305,6 +322,19 @@ export function getEpicBoonFeatActionsForCharacter(
         derivedState.boonOfFateImproveFateRemaining,
         derivedState.boonOfFateImproveFateTotal,
         getFeatDescriptionSlice(FEATS.BOON_OF_FATE, isBoonOfFateImproveFateDescriptionEntry)
+      )
+    );
+  }
+
+  if (derivedState.hasBoonOfFluidForms) {
+    actions.push(
+      createBoonOfFluidFormsShapechangerAction(
+        derivedState.boonOfFluidFormsShapechangerRemaining,
+        derivedState.boonOfFluidFormsShapechangerTotal,
+        getFeatDescriptionSlice(
+          FEATS.BOON_OF_FLUID_FORMS,
+          isBoonOfFluidFormsShapechangerDrawerDescriptionEntry
+        )
       )
     );
   }

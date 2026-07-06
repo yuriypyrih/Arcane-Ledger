@@ -55,10 +55,6 @@
   display: none;
 }
 
-.listCount {
-  color: var(--theme-text-secondary);
-}
-
 .list {
   display: grid;
   gap: 0.75rem;

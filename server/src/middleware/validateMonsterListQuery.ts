@@ -116,6 +116,17 @@ function normalizeOptionalString(value: string | undefined): string | undefined 
   return normalizedValue ? normalizedValue : undefined;
 }
 
+function normalizeOptionalStringList(value: string | undefined): string[] | undefined {
+  const normalizedEntries = value
+    ?.split(",")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+
+  return normalizedEntries && normalizedEntries.length > 0
+    ? Array.from(new Set(normalizedEntries))
+    : undefined;
+}
+
 function buildMonsterListQuery(request: Request): MonsterListQuery {
   const sourceValue =
     normalizeOptionalString(readSingleQueryValue(request.query.source, "source")) ??
@@ -142,6 +153,10 @@ function buildMonsterListQuery(request: Request): MonsterListQuery {
     challengeRatingBucket: parseChallengeRatingBucketValue(challengeRatingBucketValue),
     maxChallengeRating: parseChallengeRatingValue(maxChallengeRatingValue, "max_challenge_rating"),
     type: normalizeOptionalString(readSingleQueryValue(request.query.type, "type")),
+    types: normalizeOptionalStringList(
+      readSingleQueryValue(request.query.types, "types") ??
+        readSingleQueryValue(request.query.type__in, "type__in")
+    ),
     source: sourceValue
   };
 }

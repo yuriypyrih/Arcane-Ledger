@@ -95,7 +95,10 @@ import {
   type FeatureActionHeaderTag,
   type FeatureActionOptionCard
 } from "../../../../../../pages/CharactersPage/classFeatures";
-import { applyFeatureSpellCastEffectsForCharacter } from "../../../../../../pages/CharactersPage/feats/runtime";
+import {
+  activateBoonOfFluidFormsShapechangerForCharacter,
+  applyFeatureSpellCastEffectsForCharacter
+} from "../../../../../../pages/CharactersPage/feats/runtime";
 import { bardicInspirationActionKey } from "../../../../../../pages/CharactersPage/classFeatures/bard/bard";
 import {
   createChargesCardUsage,
@@ -490,6 +493,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     selectedSpellfireBurstTarget,
     selectedThirdEyeOptionKey,
     selectedBlessingOfTheTricksterTarget,
+    selectedFluidFormsMonster,
     selectedWildShapeMonsterSlug,
     selectedStarryFormConstellation,
     selectedWildCompanionResource,
@@ -1670,6 +1674,36 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     closeActionDrawer();
   }
 
+  function submitBoonOfFluidFormsShapechanger() {
+    if (!selectedFeatureAction || !selectedFluidFormsMonster) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      const roundTrackerResource = getRoundTrackerResourceForEconomyType(
+        selectedFeatureAction.economyType
+      );
+      const preparedCharacter = prepareCharacterForResourceConsumption(
+        currentCharacter,
+        roundTrackerResource
+      );
+      const nextCharacter = activateBoonOfFluidFormsShapechangerForCharacter(
+        preparedCharacter,
+        selectedFluidFormsMonster
+      );
+
+      if (nextCharacter === preparedCharacter) {
+        return currentCharacter;
+      }
+
+      return roundTrackerResource
+        ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
+        : nextCharacter;
+    });
+
+    closeActionDrawer();
+  }
+
   function submitStarryForm() {
     if (!selectedFeatureAction || !selectedStarryFormConstellation) {
       return;
@@ -2492,6 +2526,7 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
     submitPortent,
     submitThirdEye,
     submitBlessingOfTheTrickster,
+    submitBoonOfFluidFormsShapechanger,
     submitWildShape,
     submitStarryForm,
     submitWildCompanion,

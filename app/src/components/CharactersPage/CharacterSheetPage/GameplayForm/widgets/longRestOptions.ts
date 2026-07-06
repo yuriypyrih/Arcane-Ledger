@@ -352,6 +352,7 @@ import {
   collectFeatDerivedState,
   getBoonOfRevelryIrresistibleDanceFreeCastStateForCharacter,
   restoreBoonOfFateImproveFateForCharacter,
+  restoreBoonOfFluidFormsShapechangerForCharacter,
   restoreBoonOfRecoveryForCharacter,
   restoreBoonOfRevelryIrresistibleDanceFreeCastForCharacter,
   restoreBoonOfSoulDrinkerSiphonLifeForCharacter,
@@ -422,6 +423,9 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const luckyPointsAreFull = featDerivedState.luckyPointsRemaining >= luckyPointsTotal;
   const boonOfFateImproveFateIsFull =
     featDerivedState.boonOfFateImproveFateRemaining >= featDerivedState.boonOfFateImproveFateTotal;
+  const boonOfFluidFormsShapechangerIsFull =
+    featDerivedState.boonOfFluidFormsShapechangerRemaining >=
+    featDerivedState.boonOfFluidFormsShapechangerTotal;
   const cultOfDragonInitiateInspiredByFearIsFull =
     featDerivedState.cultOfDragonInitiateInspiredByFearRemaining >=
     featDerivedState.cultOfDragonInitiateInspiredByFearTotal;
@@ -998,6 +1002,21 @@ export function createLongRestOptions(character: Character): RestOption[] {
             disabled: boonOfFateImproveFateIsFull,
             apply: (currentCharacter: Character) =>
               restoreBoonOfFateImproveFateForCharacter(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(featDerivedState.hasBoonOfFluidForms
+      ? [
+          {
+            id: "restore-boon-of-fluid-forms-shapechanger",
+            label: "Restore Shapechanger",
+            charges: {
+              current: featDerivedState.boonOfFluidFormsShapechangerRemaining,
+              total: featDerivedState.boonOfFluidFormsShapechangerTotal
+            },
+            disabled: boonOfFluidFormsShapechangerIsFull,
+            apply: (currentCharacter: Character) =>
+              restoreBoonOfFluidFormsShapechangerForCharacter(currentCharacter)
           } satisfies RestOption
         ]
       : []),

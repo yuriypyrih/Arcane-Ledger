@@ -31,6 +31,11 @@ import {
 import { FEATS } from "../../../codex/entries";
 import { getClassStarterPack } from "../../../codex/classes/starterPack";
 import {
+  getBackgroundEntryByName,
+  getClassEntryByName,
+  getSpeciesEntryByName
+} from "../../../codex/selectors";
+import {
   CUSTOM_ABILITY_SCORE_MAX,
   POINT_BUY_BUDGET,
   abilityKeys,
@@ -195,6 +200,11 @@ import OriginFeatSetupControls from "./OriginFeatSetupControls";
 import { useCharacterFormPendingAction } from "./useCharacterFormPendingAction";
 import { sanitizeUserInput } from "../../../utils/userInputSanitization";
 import MulticlassGuideModal from "./MulticlassGuideModal";
+import StartingGuideModal from "./StartingGuideModal";
+import CharacterReferenceDrawers, {
+  type CharacterReferenceDrawerKind
+} from "./CharacterReferenceDrawers";
+import ReferenceSelectField from "./ReferenceSelectField";
 import styles from "./CharacterForm.module.css";
 
 type CharacterFormProps = {
@@ -747,9 +757,7 @@ function isBackgroundEquipmentModeReady(
 }
 
 function formatDamageTypeChoiceLabel(damageType: string): string {
-  return damageType
-    .toLowerCase()
-    .replace(/(^|\s|-)\S/g, (match) => match.toUpperCase());
+  return damageType.toLowerCase().replace(/(^|\s|-)\S/g, (match) => match.toUpperCase());
 }
 
 function getAbilityPriorityOrder(plan: ClassBuildPlan): AbilityKey[] {
@@ -1064,7 +1072,10 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   const [wizardStep, setWizardStep] = useState<CreationStep>(1);
   const [stepOneSnapshot, setStepOneSnapshot] = useState<CharacterFormValues | null>(null);
   const [attemptedBuildAdvance, setAttemptedBuildAdvance] = useState(false);
+  const [isStartingGuideOpen, setIsStartingGuideOpen] = useState(false);
   const [isMulticlassGuideOpen, setIsMulticlassGuideOpen] = useState(false);
+  const [activeReferenceDrawer, setActiveReferenceDrawer] =
+    useState<CharacterReferenceDrawerKind | null>(null);
   const [starterPackWarnings, setStarterPackWarnings] = useState<string[]>([]);
   const { hasPendingAction, pendingAction, runPendingAction } = useCharacterFormPendingAction();
   const initialFormValues = useMemo(
@@ -1364,7 +1375,8 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   const selectedElvenSkillProficiency = normalizedSpeciesChoices?.elvenSkillProficiency ?? "";
   const selectedElvenSpellcastingAbility = normalizedSpeciesChoices?.elvenSpellcastingAbility ?? "";
   const selectedGenasiLineage = normalizedSpeciesChoices?.genasiLineage ?? "";
-  const selectedGenasiSpellcastingAbility = normalizedSpeciesChoices?.genasiSpellcastingAbility ?? "";
+  const selectedGenasiSpellcastingAbility =
+    normalizedSpeciesChoices?.genasiSpellcastingAbility ?? "";
   const selectedGnomeLineage = normalizedSpeciesChoices?.gnomeLineage ?? "";
   const selectedGnomeSpellcastingAbility = normalizedSpeciesChoices?.gnomeSpellcastingAbility ?? "";
   const selectedGiantAncestry = normalizedSpeciesChoices?.giantAncestry ?? "";
@@ -1379,32 +1391,62 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     speciesChoices: normalizedSpeciesChoices
   });
   const selectedKhoravarCantripId = selectedKhoravarCantrip?.id ?? "";
-  const selectedKhoravarProficiencyChoiceValue =
-    getKhoravarProficiencyChoiceValueForCharacter({
-      species: resolvedSpecies,
-      speciesChoices: normalizedSpeciesChoices
-    });
-  const selectedKhoravarSkillProficiency =
-    normalizedSpeciesChoices?.khoravarSkillProficiency ?? "";
+  const selectedKhoravarProficiencyChoiceValue = getKhoravarProficiencyChoiceValueForCharacter({
+    species: resolvedSpecies,
+    speciesChoices: normalizedSpeciesChoices
+  });
+  const selectedKhoravarSkillProficiency = normalizedSpeciesChoices?.khoravarSkillProficiency ?? "";
   const selectedKhoravarSpellcastingAbility =
     normalizedSpeciesChoices?.khoravarSpellcastingAbility ?? "";
-  const selectedKhoravarToolProficiency =
-    normalizedSpeciesChoices?.khoravarToolProficiency ?? "";
+  const selectedKhoravarToolProficiency = normalizedSpeciesChoices?.khoravarToolProficiency ?? "";
   const selectedLupinSkillProficiency = normalizedSpeciesChoices?.lupinSkillProficiency ?? "";
   const selectedRebornResistance = normalizedSpeciesChoices?.rebornResistance ?? "";
   const selectedRebornSkillProficiency = normalizedSpeciesChoices?.rebornSkillProficiency ?? "";
   const selectedShifterSkillProficiency = normalizedSpeciesChoices?.shifterSkillProficiency ?? "";
   const selectedWarforgedSkillProficiency =
     normalizedSpeciesChoices?.warforgedSkillProficiency ?? "";
-  const selectedWarforgedToolProficiency =
-    normalizedSpeciesChoices?.warforgedToolProficiency ?? "";
+  const selectedWarforgedToolProficiency = normalizedSpeciesChoices?.warforgedToolProficiency ?? "";
   const selectedTieflingLegacy = normalizedSpeciesChoices?.tieflingLegacy ?? "";
   const selectedTieflingSpellcastingAbility =
     normalizedSpeciesChoices?.tieflingSpellcastingAbility ?? "";
   const hasSubclassSelection = !isCustomClassSelected;
-  const availableSubclassOptions = isCustomClassSelected
-    ? []
-    : getSubclassOptionsForClassName(resolvedClassName);
+  const availableSubclassOptions = useMemo(
+    () => (isCustomClassSelected ? [] : getSubclassOptionsForClassName(resolvedClassName)),
+    [isCustomClassSelected, resolvedClassName]
+  );
+  const selectedClassReferenceEntry = useMemo(
+    () => (isCustomClassSelected ? null : getClassEntryByName(resolvedClassName)),
+    [isCustomClassSelected, resolvedClassName]
+  );
+  const selectedSubclassReferenceEntry = useMemo(() => {
+    if (!hasSubclassSelection || isCustomSubclassSelected) {
+      return null;
+    }
+
+    return availableSubclassOptions.find((subclass) => subclass.id === resolvedSubclassId) ?? null;
+  }, [
+    availableSubclassOptions,
+    hasSubclassSelection,
+    isCustomSubclassSelected,
+    resolvedSubclassId
+  ]);
+  const normalizedResolvedSubclassId = useMemo(
+    () => normalizeSubclassId(resolvedSubclassId, resolvedClassName, resolvedCustomSubclass) ?? "",
+    [resolvedClassName, resolvedCustomSubclass, resolvedSubclassId]
+  );
+  const isSubclassSelectInvalid =
+    Boolean(errors.subclassId) &&
+    resolvedClassName.trim().length > 0 &&
+    hasSubclassSelection &&
+    normalizedResolvedSubclassId.length === 0;
+  const selectedSpeciesReferenceEntry = useMemo(
+    () => (isCustomSpeciesSelected ? null : getSpeciesEntryByName(resolvedSpecies)),
+    [isCustomSpeciesSelected, resolvedSpecies]
+  );
+  const selectedBackgroundReferenceEntry = useMemo(
+    () => (isCustomBackgroundSelected ? null : getBackgroundEntryByName(resolvedBackground)),
+    [isCustomBackgroundSelected, resolvedBackground]
+  );
   const starterPack = getResolvedStarterPack(resolvedClassName);
   const configuredStarterPack = isCustomClassSelected
     ? null
@@ -1650,11 +1692,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       skill,
       disabled: selectedRebornSkillProficiency !== skill && unavailableSkillSet.has(skill)
     }));
-  }, [
-    rebornSkillProficiencyOptions,
-    resolvedSkillSelections.all,
-    selectedRebornSkillProficiency
-  ]);
+  }, [rebornSkillProficiencyOptions, resolvedSkillSelections.all, selectedRebornSkillProficiency]);
   const warforgedSkillSelectOptions = useMemo(() => {
     const unavailableSkillSet = new Set(
       resolvedSkillSelections.all.filter((skill) => skill !== selectedWarforgedSkillProficiency)
@@ -1773,8 +1811,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     kalashtarSkillProficiencyOptions.length === 0 ||
     Boolean(normalizedSpeciesChoices?.kalashtarSkillProficiency);
   const isSpeciesKhoravarProficiencyReady =
-    (khoravarSkillProficiencyOptions.length === 0 &&
-      khoravarToolProficiencyOptions.length === 0) ||
+    (khoravarSkillProficiencyOptions.length === 0 && khoravarToolProficiencyOptions.length === 0) ||
     Boolean(selectedKhoravarProficiencyChoiceValue);
   const isSpeciesKhoravarCantripReady =
     khoravarCantripOptions.length === 0 || Boolean(selectedKhoravarCantripId);
@@ -1882,8 +1919,31 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     setWizardStep(1);
     setStepOneSnapshot(null);
     setAttemptedBuildAdvance(false);
+    setActiveReferenceDrawer(null);
     setStarterPackWarnings([]);
   }, [initialValues, isEditing, reset]);
+
+  useEffect(() => {
+    if (!activeReferenceDrawer) {
+      return;
+    }
+
+    const hasActiveReference =
+      (activeReferenceDrawer === "class" && selectedClassReferenceEntry) ||
+      (activeReferenceDrawer === "subclass" && selectedSubclassReferenceEntry) ||
+      (activeReferenceDrawer === "species" && selectedSpeciesReferenceEntry) ||
+      (activeReferenceDrawer === "background" && selectedBackgroundReferenceEntry);
+
+    if (!hasActiveReference) {
+      setActiveReferenceDrawer(null);
+    }
+  }, [
+    activeReferenceDrawer,
+    selectedBackgroundReferenceEntry,
+    selectedClassReferenceEntry,
+    selectedSpeciesReferenceEntry,
+    selectedSubclassReferenceEntry
+  ]);
 
   useEffect(() => {
     const currentSkills = getValues("skills") ?? [];
@@ -2832,8 +2892,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       getElfSkillProficiencyOptionsForSpecies(values.species).length > 0;
     const requiresElfSpellcastingAbility =
       getElfSpellcastingAbilityOptionsForSpecies(values.species).length > 0;
-    const requiresGenasiLineage =
-      getGenasiLineageOptionsForSpecies(values.species).length > 0;
+    const requiresGenasiLineage = getGenasiLineageOptionsForSpecies(values.species).length > 0;
     const requiresGenasiSpellcastingAbility =
       getGenasiSpellcastingAbilityOptionsForSpecies(values.species).length > 0;
     const requiresGnomeLineage = getGnomeLineageOptionsForSpecies(values.species).length > 0;
@@ -2850,8 +2909,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     const requiresKhoravarProficiency =
       getKhoravarSkillProficiencyOptionsForSpecies(values.species).length > 0 ||
       getKhoravarToolProficiencyOptionsForSpecies(values.species).length > 0;
-    const requiresKhoravarCantrip =
-      getKhoravarCantripOptionsForSpecies(values.species).length > 0;
+    const requiresKhoravarCantrip = getKhoravarCantripOptionsForSpecies(values.species).length > 0;
     const requiresKhoravarSpellcastingAbility =
       getKhoravarSpellcastingAbilityOptionsForSpecies(values.species).length > 0;
     const requiresLupinSkillProficiency =
@@ -2887,8 +2945,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         !submittedSpeciesChoices?.hexbloodSpellcastingAbility) ||
       (requiresHumanSkillProficiency && !submittedSpeciesChoices?.humanSkillProficiency) ||
       (requiresHumanOriginFeat && !submittedSpeciesChoices?.humanOriginFeat) ||
-      (requiresKalashtarSkillProficiency &&
-        !submittedSpeciesChoices?.kalashtarSkillProficiency) ||
+      (requiresKalashtarSkillProficiency && !submittedSpeciesChoices?.kalashtarSkillProficiency) ||
       (requiresKhoravarProficiency &&
         !getKhoravarProficiencyChoiceValueForCharacter({
           species: values.species,
@@ -2905,10 +2962,8 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       (requiresRebornResistance && !submittedSpeciesChoices?.rebornResistance) ||
       (requiresRebornSkillProficiency && !submittedSpeciesChoices?.rebornSkillProficiency) ||
       (requiresShifterSkillProficiency && !submittedSpeciesChoices?.shifterSkillProficiency) ||
-      (requiresWarforgedSkillProficiency &&
-        !submittedSpeciesChoices?.warforgedSkillProficiency) ||
-      (requiresWarforgedToolProficiency &&
-        !submittedSpeciesChoices?.warforgedToolProficiency) ||
+      (requiresWarforgedSkillProficiency && !submittedSpeciesChoices?.warforgedSkillProficiency) ||
+      (requiresWarforgedToolProficiency && !submittedSpeciesChoices?.warforgedToolProficiency) ||
       (requiresTieflingLegacy && !submittedSpeciesChoices?.tieflingLegacy) ||
       (requiresTieflingSpellcastingAbility && !submittedSpeciesChoices?.tieflingSpellcastingAbility)
     ) {
@@ -3003,10 +3058,12 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   function renderWizardStepBadge(step: CreationStep, label: string) {
     const isActive = wizardStep === step;
     const isDone = wizardStep > step;
+    const isPending = !isActive && !isDone;
     const className = clsx(
       styles.stepBadge,
       isActive && styles.stepBadgeActive,
       isDone && styles.stepBadgeDone,
+      isPending && styles.stepBadgePending,
       isDone && styles.stepBadgeButton
     );
 
@@ -3025,7 +3082,12 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     }
 
     return (
-      <span key={step} className={className} aria-current={isActive ? "step" : undefined}>
+      <span
+        key={step}
+        className={className}
+        aria-current={isActive ? "step" : undefined}
+        aria-disabled={isPending ? true : undefined}
+      >
         {label}
       </span>
     );
@@ -3155,9 +3217,24 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
           </div>
 
           <div className={styles.profileRow}>
-            <label className={styles.field}>
-              <span>Class</span>
+            <ReferenceSelectField
+              label="Class"
+              selectId="character-class-select"
+              canOpenReference={Boolean(selectedClassReferenceEntry)}
+              referenceLabel={
+                selectedClassReferenceEntry
+                  ? `Open ${selectedClassReferenceEntry.name} reference`
+                  : "Open class reference"
+              }
+              onOpenReference={() => setActiveReferenceDrawer("class")}
+              error={
+                errors.className ? (
+                  <small className={styles.errorText}>{errors.className.message}</small>
+                ) : null
+              }
+            >
               <SelectInput
+                id="character-class-select"
                 className={styles.fieldInput}
                 invalid={Boolean(errors.className)}
                 {...classRegistration}
@@ -3244,16 +3321,23 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                 </option>
                 <option value={CUSTOM_CLASS_NAME}>{CUSTOM_CLASS_NAME}</option>
               </SelectInput>
-              {errors.className ? (
-                <small className={styles.errorText}>{errors.className.message}</small>
-              ) : null}
-            </label>
+            </ReferenceSelectField>
 
-            <label className={styles.field}>
-              <span>Subclass</span>
+            <ReferenceSelectField
+              label="Subclass"
+              selectId="character-subclass-select"
+              canOpenReference={Boolean(selectedSubclassReferenceEntry)}
+              referenceLabel={
+                selectedSubclassReferenceEntry
+                  ? `Open ${selectedSubclassReferenceEntry.name} reference`
+                  : "Open subclass reference"
+              }
+              onOpenReference={() => setActiveReferenceDrawer("subclass")}
+            >
               <SelectInput
+                id="character-subclass-select"
                 className={styles.fieldInput}
-                invalid={Boolean(errors.subclassId)}
+                invalid={isSubclassSelectInvalid}
                 disabled={!hasSubclassSelection}
                 {...register("subclassId", {
                   validate: (value) =>
@@ -3299,13 +3383,28 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                   </>
                 ) : null}
               </SelectInput>
-            </label>
+            </ReferenceSelectField>
           </div>
 
           <div className={styles.profileRow}>
-            <label className={styles.field}>
-              <span>Species</span>
+            <ReferenceSelectField
+              label="Species"
+              selectId="character-species-select"
+              canOpenReference={Boolean(selectedSpeciesReferenceEntry)}
+              referenceLabel={
+                selectedSpeciesReferenceEntry
+                  ? `Open ${selectedSpeciesReferenceEntry.name} reference`
+                  : "Open species reference"
+              }
+              onOpenReference={() => setActiveReferenceDrawer("species")}
+              error={
+                errors.species ? (
+                  <small className={styles.errorText}>{errors.species.message}</small>
+                ) : null
+              }
+            >
               <SelectInput
+                id="character-species-select"
                 className={styles.fieldInput}
                 invalid={Boolean(errors.species)}
                 {...speciesRegistration}
@@ -3348,14 +3447,26 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                 </option>
                 <option value={CUSTOM_SPECIES_NAME}>{CUSTOM_SPECIES_NAME}</option>
               </SelectInput>
-              {errors.species ? (
-                <small className={styles.errorText}>{errors.species.message}</small>
-              ) : null}
-            </label>
+            </ReferenceSelectField>
 
-            <label className={styles.field}>
-              <span>Background</span>
+            <ReferenceSelectField
+              label="Background"
+              selectId="character-background-select"
+              canOpenReference={Boolean(selectedBackgroundReferenceEntry)}
+              referenceLabel={
+                selectedBackgroundReferenceEntry
+                  ? `Open ${selectedBackgroundReferenceEntry.name} reference`
+                  : "Open background reference"
+              }
+              onOpenReference={() => setActiveReferenceDrawer("background")}
+              error={
+                errors.background ? (
+                  <small className={styles.errorText}>{errors.background.message}</small>
+                ) : null
+              }
+            >
               <SelectInput
+                id="character-background-select"
                 className={styles.fieldInput}
                 invalid={Boolean(errors.background)}
                 {...backgroundRegistration}
@@ -3396,10 +3507,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                 </option>
                 <option value={CUSTOM_BACKGROUND_NAME}>{CUSTOM_BACKGROUND_NAME}</option>
               </SelectInput>
-              {errors.background ? (
-                <small className={styles.errorText}>{errors.background.message}</small>
-              ) : null}
-            </label>
+            </ReferenceSelectField>
           </div>
         </div>
 
@@ -4919,8 +5027,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                   <SelectInput
                     className={styles.fieldInput}
                     invalid={
-                      attemptedBuildAdvance &&
-                      !selectedChangelingSkillProficiencies[slotIndex]
+                      attemptedBuildAdvance && !selectedChangelingSkillProficiencies[slotIndex]
                     }
                     value={selectedChangelingSkillProficiencies[slotIndex] ?? ""}
                     onChange={(event) => {
@@ -5396,8 +5503,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                   );
                   const nextChoices = normalizeCharacterSpeciesChoices(resolvedSpecies, {
                     ...(getValues("speciesChoices") ?? {}),
-                    khoravarSkillProficiency:
-                      nextProficiencyChoice.khoravarSkillProficiency,
+                    khoravarSkillProficiency: nextProficiencyChoice.khoravarSkillProficiency,
                     khoravarToolProficiency: nextProficiencyChoice.khoravarToolProficiency
                   });
 
@@ -5483,9 +5589,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
               <span>Fey Gift Spellcasting Ability</span>
               <SelectInput
                 className={styles.fieldInput}
-                invalid={
-                  attemptedBuildAdvance && !isSpeciesKhoravarSpellcastingAbilityReady
-                }
+                invalid={attemptedBuildAdvance && !isSpeciesKhoravarSpellcastingAbilityReady}
                 value={selectedKhoravarSpellcastingAbility}
                 onChange={(event) => {
                   const nextAbility = event.target.value;
@@ -5922,10 +6026,22 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             </p>
           </>
         ) : (
-          <div className={styles.wizardProgress} aria-label="Character creation steps">
-            {renderWizardStepBadge(1, "1. Core profile")}
-            {renderWizardStepBadge(2, "2. Build setup")}
-            {renderWizardStepBadge(3, "3. Notes")}
+          <div className={styles.progressCardContent}>
+            <div className={styles.wizardProgress} aria-label="Character creation steps">
+              {renderWizardStepBadge(1, "1. Core profile")}
+              {renderWizardStepBadge(2, "2. Build setup")}
+              {renderWizardStepBadge(3, "3. Notes")}
+            </div>
+            <button
+              type="button"
+              className={styles.startingGuideButton}
+              onClick={() => setIsStartingGuideOpen(true)}
+              aria-label="Open starting guide"
+              title="Starting Guide"
+            >
+              <CircleHelp size={16} aria-hidden="true" />
+              <span>Starting Guide</span>
+            </button>
           </div>
         )}
       </section>
@@ -6092,8 +6208,19 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
           </div>
         </section>
       </form>
+      <CharacterReferenceDrawers
+        activeReference={activeReferenceDrawer}
+        backgroundEntry={selectedBackgroundReferenceEntry}
+        classEntry={selectedClassReferenceEntry}
+        speciesEntry={selectedSpeciesReferenceEntry}
+        subclassEntry={selectedSubclassReferenceEntry}
+        onClose={() => setActiveReferenceDrawer(null)}
+      />
       {isMulticlassGuideOpen ? (
         <MulticlassGuideModal onClose={() => setIsMulticlassGuideOpen(false)} />
+      ) : null}
+      {isStartingGuideOpen ? (
+        <StartingGuideModal onClose={() => setIsStartingGuideOpen(false)} />
       ) : null}
     </div>
   );

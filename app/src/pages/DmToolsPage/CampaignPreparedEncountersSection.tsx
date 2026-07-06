@@ -8,11 +8,9 @@ import {
   type CampaignPreparedEncounterRecord
 } from "../../api/campaigns";
 import ActionButton from "../../components/ActionButton";
+import MemberCount from "../../components/MemberCount";
 import { DestructiveConfirmationModal } from "../../components/Overlay";
-import {
-  CAMPAIGN_MAX_PREPARED_ENCOUNTERS,
-  ENCOUNTER_MAX_CREATURES
-} from "../../constants/QUOTAS";
+import { CAMPAIGN_MAX_PREPARED_ENCOUNTERS, ENCOUNTER_MAX_CREATURES } from "../../constants/QUOTAS";
 import { patchSelectedCampaign, useAppDispatch } from "../../store";
 import CampaignCopyEncounterTemplateModal from "./CampaignCopyEncounterTemplateModal";
 import CampaignPreparedEncounterModal from "./CampaignPreparedEncounterModal";
@@ -104,9 +102,7 @@ function CampaignPreparedEncountersSection({
     try {
       await onStartEncounter(encounter);
     } catch (startError) {
-      setActionError(
-        getDmToolsApiErrorMessage(startError, "Unable to start live encounter.")
-      );
+      setActionError(getDmToolsApiErrorMessage(startError, "Unable to start live encounter."));
     } finally {
       setStartingEncounterId(null);
     }
@@ -124,9 +120,11 @@ function CampaignPreparedEncountersSection({
           </h3>
         </div>
         <div className={styles.headerActions}>
-          <span className={styles.memberCount}>
-            {campaign.preparedEncounters.length}/{CAMPAIGN_MAX_PREPARED_ENCOUNTERS} encounters
-          </span>
+          <MemberCount
+            current={campaign.preparedEncounters.length}
+            total={CAMPAIGN_MAX_PREPARED_ENCOUNTERS}
+            label="encounters"
+          />
           <ActionButton
             icon={<Plus size={16} aria-hidden="true" />}
             disabled={isAtPreparedEncounterLimit}

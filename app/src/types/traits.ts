@@ -1,5 +1,6 @@
 import type { DAMAGE_TYPE, SpellDescriptionEntry, WEAPON_COMBAT_TYPE } from "../codex/entries";
 import type { AbilityKey } from "./characters";
+import type { MonsterRecord } from "./monsters";
 import type { SkillName } from "./skills";
 
 export enum STATUS_ENTRY_GROUP {
@@ -276,6 +277,7 @@ export type CharacterStatusEntry = {
   description?: string;
   descriptionAdditions?: SpellDescriptionEntry[][];
   customEffects?: CharacterCustomTraitEffect[];
+  monsterEntry?: MonsterRecord;
   notes?: string;
   runtimeOverride?: boolean;
   runtimeOverrideKey?: string;

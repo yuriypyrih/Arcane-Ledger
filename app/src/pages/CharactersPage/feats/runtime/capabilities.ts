@@ -364,7 +364,7 @@ export const featRuntimeCapabilityMatrix = {
   },
   [FEATS.BOON_OF_FLUID_FORMS]: {
     feat: FEATS.BOON_OF_FLUID_FORMS,
-    capabilities: ["abilityBonus", "choice"]
+    capabilities: ["abilityBonus", "actionCard", "choice", "restRecovery", "status"]
   },
   [FEATS.BOON_OF_FORTUNES_FAVOR]: {
     feat: FEATS.BOON_OF_FORTUNES_FAVOR,

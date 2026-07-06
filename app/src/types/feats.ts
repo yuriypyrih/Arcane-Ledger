@@ -48,6 +48,10 @@ export type BoonOfFateState = {
   improveFateExpended?: boolean;
 };
 
+export type BoonOfFluidFormsState = {
+  shapechangerExpended?: boolean;
+};
+
 export type BoonOfRecoveryState = {
   lastStandExpended?: boolean;
   recoverVitalityDiceExpended?: number;
@@ -363,6 +367,7 @@ export type CharacterFeatEntry = {
   crafter?: CrafterChoice;
   boonOfEnergyResistance?: BoonOfEnergyResistanceChoice;
   boonOfFate?: BoonOfFateState;
+  boonOfFluidForms?: BoonOfFluidFormsState;
   boonOfIrresistibleOffense?: BoonOfIrresistibleOffenseChoice;
   boonOfRecovery?: BoonOfRecoveryState;
   boonOfRevelry?: BoonOfRevelryState;

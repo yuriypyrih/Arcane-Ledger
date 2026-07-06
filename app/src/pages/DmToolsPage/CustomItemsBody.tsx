@@ -1,14 +1,5 @@
 import { Backpack, PenLine, Plus, Trash2 } from "lucide-react";
-import {
-  lazy,
-  Suspense,
-  type ReactNode,
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState
-} from "react";
+import { lazy, Suspense, type ReactNode, useEffect, useId, useMemo, useRef, useState } from "react";
 import {
   deleteCustomItem,
   listCustomItems,
@@ -17,6 +8,7 @@ import {
 } from "../../api/customItems";
 import ActionButton from "../../components/ActionButton";
 import { ItemInspectionHeader } from "../../components/ItemInspection";
+import MemberCount from "../../components/MemberCount";
 import { DestructiveConfirmationModal } from "../../components/Overlay";
 import SegmentedToggle from "../../components/SegmentedToggle";
 import sheetStyles from "../CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
@@ -33,10 +25,7 @@ import {
 } from "../../store";
 import CustomItemEditorModal from "./CustomItemEditorModal";
 import { getDmToolsApiErrorMessage } from "./dmToolsApiErrors";
-import {
-  clampDmToolsPage,
-  getDmToolsPageItems
-} from "./dmToolsPagination";
+import { clampDmToolsPage, getDmToolsPageItems } from "./dmToolsPagination";
 import { getDmToolsQuotaForRole } from "./dmToolsQuotas";
 import DmToolsEmptyState from "./DmToolsEmptyState";
 import DmToolsListCard from "./DmToolsListCard";
@@ -45,9 +34,7 @@ import styles from "./DmToolsPage.module.css";
 
 const EquipmentInventoryItemDrawer = lazy(
   () =>
-    import(
-      "../../components/CharactersPage/CharacterSheetPage/EquipmentForm/EquipmentInventoryItemDrawer"
-    )
+    import("../../components/CharactersPage/CharacterSheetPage/EquipmentForm/EquipmentInventoryItemDrawer")
 );
 
 type CustomItemsBodyProps = {
@@ -58,8 +45,8 @@ type CustomItemsBodyProps = {
 function getDeleteCustomItemMessage(customItem: CustomItemRecord): ReactNode {
   return (
     <>
-      Delete <strong>{customItem.item.name ?? "this custom item"}</strong>. Characters that
-      already added this item keep their saved inventory snapshot.
+      Delete <strong>{customItem.item.name ?? "this custom item"}</strong>. Characters that already
+      added this item keep their saved inventory snapshot.
     </>
   );
 }
@@ -87,8 +74,9 @@ function CustomItemsBody({ panelId, tabId }: CustomItemsBodyProps) {
   const customItemsError = useAppSelector((state) => state.dmTools.customItemsError);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [editingCustomItem, setEditingCustomItem] = useState<CustomItemRecord | null>(null);
-  const [pendingDeleteCustomItem, setPendingDeleteCustomItem] =
-    useState<CustomItemRecord | null>(null);
+  const [pendingDeleteCustomItem, setPendingDeleteCustomItem] = useState<CustomItemRecord | null>(
+    null
+  );
   const [previewCustomItem, setPreviewCustomItem] = useState<CustomItemRecord | null>(null);
   const [customItemScope, setCustomItemScope] = useState<CustomItemListScope>("mine");
   const [customItemPage, setCustomItemPage] = useState(1);
@@ -233,11 +221,11 @@ function CustomItemsBody({ panelId, tabId }: CustomItemsBodyProps) {
         </div>
         <div className={styles.headerActions}>
           {isAuthenticated ? (
-            <span className={styles.memberCount}>
+            <MemberCount>
               {customItemScope === "public"
                 ? `${customItems.length} public`
                 : `${customItems.length}/${customItemLimit} items`}
-            </span>
+            </MemberCount>
           ) : null}
           {isAuthenticated ? renderCustomItemScopeToggle() : null}
           <ActionButton

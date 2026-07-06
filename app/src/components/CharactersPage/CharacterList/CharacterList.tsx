@@ -3,6 +3,7 @@ import { useId, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { PartyMembershipRecord } from "../../../api/partyGroups";
 import ActionButton from "../../ActionButton";
+import MemberCount from "../../MemberCount";
 import { DestructiveConfirmationModal } from "../../Overlay";
 import type { CharacterRosterEntry } from "../../../pages/CharactersPage/characterRoster";
 import { hasReachedCharacterLimit } from "../../../pages/CharactersPage/characterLimits";
@@ -95,9 +96,12 @@ function CharacterList({
         <div className={styles.listTitleRow}>
           <h3 className={styles.title}>Your arsenal of Characters</h3>
           <div className={styles.listHeaderActions}>
-            <span className={styles.listCount}>
-              {characters.length}/{characterLimit} total
-            </span>
+            <MemberCount
+              current={characters.length}
+              total={characterLimit}
+              label="characters"
+              aria-label={`${characters.length}/${characterLimit} characters`}
+            />
             <ActionButton
               icon={<Plus size={16} aria-hidden="true" />}
               fullWidth={false}

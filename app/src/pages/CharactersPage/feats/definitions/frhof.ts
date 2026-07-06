@@ -444,7 +444,10 @@ export const frhofEpicBoonFeatDefinitions: FeatDefinition[] = [
       "Your game statistics are replaced by the stat block of the chosen form, but you retain your creature type; alignment; personality; Intelligence, Wisdom, and Charisma scores; Hit Points; Hit Point Dice; proficiencies; and ability to communicate. If you have the Spellcasting or Pact Magic feature, you retain it too. Upon shape-shifting, you determine whether your equipment drops to the ground or changes in size and shape to fit the new form while you're in it.",
       "Once you use this benefit, you can't do so again until you finish a Long Rest.",
       "<strong>Hardy Transformation.</strong> When you gain Temporary Hit Points when you shape-shift, increase that number of Temporary Hit Points by 20."
-    ]
+    ],
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "The Hardy Transformation is working for the shapechanger. However, for other forms of shape shifting, like Druid's Wildshape, you have to remember to add those additional tempHP yourself."
   }),
   createFrhofFeatDefinition({
     feat: FEATS.BOON_OF_BRIGHT_SUN,

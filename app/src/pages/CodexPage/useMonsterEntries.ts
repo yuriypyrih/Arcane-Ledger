@@ -10,6 +10,7 @@ type UseMonsterEntriesOptions = {
   limit: number;
   search: string;
   type: string | null;
+  types?: string[] | null;
   challengeRatingBucket?: MonsterChallengeRatingBucket | null;
   maxCr?: number | null;
   source: string | null;
@@ -22,6 +23,7 @@ export function useMonsterEntries({
   limit,
   search,
   type,
+  types,
   challengeRatingBucket,
   maxCr,
   source,
@@ -30,6 +32,7 @@ export function useMonsterEntries({
   const isOnline = useOnlineStatus();
   const [payload, setPayload] = useState<PaginatedApiResponse<MonsterListItem> | null>(null);
   const [status, setStatus] = useState<CodexStatus>(enabled ? "loading" : "ready");
+  const typesKey = types?.join("|") ?? "";
 
   useEffect(() => {
     if (!enabled) {
@@ -56,6 +59,7 @@ export function useMonsterEntries({
             limit,
             search: search.trim() || undefined,
             type: type ?? undefined,
+            types: typesKey ? typesKey.split("|") : undefined,
             challengeRatingBucket: challengeRatingBucket ?? undefined,
             maxChallengeRating: maxCr ?? undefined,
             source: source ?? undefined,
@@ -85,7 +89,19 @@ export function useMonsterEntries({
       active = false;
       abortController.abort();
     };
-  }, [challengeRatingBucket, enabled, isOnline, limit, maxCr, ordering, page, search, source, type]);
+  }, [
+    challengeRatingBucket,
+    enabled,
+    isOnline,
+    limit,
+    maxCr,
+    ordering,
+    page,
+    search,
+    source,
+    type,
+    typesKey
+  ]);
 
   return {
     payload,

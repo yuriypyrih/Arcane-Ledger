@@ -174,6 +174,7 @@ export type FeatureActionFormKind =
   | "artificer-transmute-magic-item"
   | "arcane-recovery"
   | "blessing-of-the-trickster"
+  | "boon-fluid-forms-shapechanger"
   | "brutal-strike"
   | "dragonborn-breath-weapon"
   | "dragonborn-draconic-flight"

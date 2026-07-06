@@ -10,6 +10,7 @@ import {
   getInheritedEntryLabel
 } from "../../components/CharactersPage/CharacterSheetPage/CompanionsSection/companionUtils";
 import shared from "../../components/CharactersPage/CharacterSheetPage/CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import MemberCount from "../../components/MemberCount";
 import { DestructiveConfirmationModal } from "../../components/Overlay";
 import { useBodyScrollLock } from "../../lib/useBodyScrollLock";
 import type { DmToolsLoadStatus } from "../../store";
@@ -102,8 +103,9 @@ function EncounterCreatureBuilder({
   const [isCreatingCreature, setIsCreatingCreature] = useState(false);
   const [editingCreatureId, setEditingCreatureId] = useState<string | null>(null);
   const [selectedCreatureId, setSelectedCreatureId] = useState<string | null>(null);
-  const [pendingDeleteCreature, setPendingDeleteCreature] =
-    useState<CharacterCompanion | null>(null);
+  const [pendingDeleteCreature, setPendingDeleteCreature] = useState<CharacterCompanion | null>(
+    null
+  );
   const [isDeletingCreature, setIsDeletingCreature] = useState(false);
   const [duplicatingCreatureId, setDuplicatingCreatureId] = useState<string | null>(null);
   const creatures = useMemo(
@@ -244,9 +246,7 @@ function EncounterCreatureBuilder({
                 </button>
               ) : null}
               {onEditResource ? (
-                <DmToolsEditButton onClick={onEditResource}>
-                  Edit
-                </DmToolsEditButton>
+                <DmToolsEditButton onClick={onEditResource}>Edit</DmToolsEditButton>
               ) : null}
             </div>
           ) : null}
@@ -272,9 +272,11 @@ function EncounterCreatureBuilder({
                   </h3>
                 </div>
                 <div className={styles.headerActions}>
-                  <span className={styles.memberCount}>
-                    {creatures.length}/{resource.maxCreatures} creatures
-                  </span>
+                  <MemberCount
+                    current={creatures.length}
+                    total={resource.maxCreatures}
+                    label="creatures"
+                  />
                   <ActionButton
                     icon={<Plus size={16} aria-hidden="true" />}
                     disabled={isAtCreatureLimit}
@@ -299,9 +301,7 @@ function EncounterCreatureBuilder({
                         isAtCreatureLimit || duplicatingCreatureId !== null || isDeletingCreature
                       }
                       duplicateTitle={
-                        isAtCreatureLimit
-                          ? creatureLimitMessage
-                          : `Duplicate ${creature.name}`
+                        isAtCreatureLimit ? creatureLimitMessage : `Duplicate ${creature.name}`
                       }
                       predisposition="hostile"
                       sourceLabel={getCompanionSourceLabel(creature)}

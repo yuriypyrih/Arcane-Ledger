@@ -73,6 +73,8 @@ export type ActionsWidgetUiState = {
   selectedActionOptionKeys: string[];
   selectedChannelDivinityOptionKey: string | null;
   selectedFontOfMagicSelection: FontOfMagicSelection | null;
+  selectedFluidFormsMonster: MonsterRecord | null;
+  isFluidFormsMonsterModalOpen: boolean;
   selectedWildShapeMonsterSlug: string | null;
   selectedWildCompanionResource: WildCompanionResourceKind;
   selectedBardicInspirationSpellSlotLevel: number | null;
@@ -197,6 +199,8 @@ export type ActionsWidgetExecutionContext = ActionsWidgetContextBag &
   Pick<
     ActionsWidgetUiStateResult,
     | "setSelectedActionOptionKeys"
+    | "setSelectedFluidFormsMonster"
+    | "setIsFluidFormsMonsterModalOpen"
     | "setSelectedWildShapeMonsterSlug"
     | "setSelectedWildCompanionResource"
     | "setSelectedBardicInspirationSpellSlotLevel"
@@ -223,6 +227,10 @@ export type ActionsWidgetDrawerBodyContext = ActionsWidgetContextBag &
     ActionsWidgetUiStateResult,
     | "selectedActionOptionKeys"
     | "setSelectedActionOptionKeys"
+    | "selectedFluidFormsMonster"
+    | "setSelectedFluidFormsMonster"
+    | "isFluidFormsMonsterModalOpen"
+    | "setIsFluidFormsMonsterModalOpen"
     | "setSelectedWildShapeMonsterSlug"
     | "setSelectedWildShapePreviewSlug"
     | "setSelectedStarryFormConstellation"

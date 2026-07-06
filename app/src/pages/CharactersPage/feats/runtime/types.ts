@@ -106,6 +106,7 @@ export type FeatDerivedState = {
   hasHealer: boolean;
   hasFeyTouched: boolean;
   hasBoonOfFate: boolean;
+  hasBoonOfFluidForms: boolean;
   hasBoonOfRecovery: boolean;
   hasBoonOfSoulDrinker: boolean;
   hasBoonOfSpellRecall: boolean;
@@ -128,6 +129,8 @@ export type FeatDerivedState = {
   spellfireSparkSpellfireFlameTotal: number;
   boonOfFateImproveFateRemaining: number;
   boonOfFateImproveFateTotal: number;
+  boonOfFluidFormsShapechangerRemaining: number;
+  boonOfFluidFormsShapechangerTotal: number;
   boonOfRecoveryDiceRemaining: number;
   boonOfRecoveryDiceTotal: number;
   boonOfRecoveryLastStandRemaining: number;

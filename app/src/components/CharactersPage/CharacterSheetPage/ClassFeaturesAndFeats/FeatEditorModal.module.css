@@ -33,6 +33,7 @@
 }
 
 .tabButton {
+  box-sizing: border-box;
   border: none;
   border-radius: var(--radius-pill);
   background: transparent;
@@ -40,7 +41,9 @@
   cursor: pointer;
   font: inherit;
   min-height: 36px;
-  padding: 0 0.86rem;
+  min-width: 6.75rem;
+  padding: 0 1.05rem;
+  text-align: center;
   white-space: nowrap;
 }
 
@@ -51,7 +54,6 @@
 .tabButtonActive {
   background: rgba(255, 255, 255, 0.95);
   color: var(--color-ink);
-  padding: 0.16rem 1.05rem;
   box-shadow: 0 8px 18px rgba(54, 34, 21, 0.08);
 }
 
@@ -109,7 +111,7 @@
 }
 
 .featTabButton {
-  flex: 0 0 auto;
+  flex: 1 0 6.75rem;
 }
 
 .optionScrollArea {

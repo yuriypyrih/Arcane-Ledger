@@ -398,6 +398,7 @@ import ArtificerArcaneFirearmActionBody from "./forms/ArtificerArcaneFirearmActi
 import ArtificerEldritchCannonActionBody from "./forms/ArtificerEldritchCannonActionBody";
 import ExperimentalElixirActionBody from "./forms/ExperimentalElixirActionBody";
 import FeatureOptionsActionBody from "./forms/FeatureOptionsActionBody";
+import FluidFormsShapechangerActionBody from "./forms/FluidFormsShapechangerActionBody";
 import FontOfMagicActionBody from "./forms/FontOfMagicActionBody";
 import MetamagicOptionsActionBody from "./forms/MetamagicOptionsActionBody";
 import MagicItemTinkerActionBody from "./forms/MagicItemTinkerActionBody";
@@ -519,6 +520,8 @@ export function renderActionDrawerBody(context: ActionsWidgetDrawerBodyContext) 
     selectedFlurryOfHealingAndHarmDisabledReason,
     selectedFlurryOfHealingAndHarmUsesRemaining,
     selectedFlurryOfHealingAndHarmUsesTotal,
+    selectedFluidFormsMonster,
+    isFluidFormsMonsterModalOpen,
     selectedFontOfMagicSelection,
     selectedFontOfMagicWarning,
     selectedHandOfHealingActionPathStates,
@@ -640,6 +643,8 @@ export function renderActionDrawerBody(context: ActionsWidgetDrawerBodyContext) 
     setSelectedChannelDivinityOptionKey,
     setSelectedDivineInterventionSpell,
     setSelectedExperimentalElixirOptionKey,
+    setSelectedFluidFormsMonster,
+    setIsFluidFormsMonsterModalOpen,
     setSelectedFontOfMagicSelection,
     setSelectedHealingLightDiceCount,
     setSelectedHealingLightTarget,
@@ -1082,6 +1087,17 @@ export function renderActionDrawerBody(context: ActionsWidgetDrawerBodyContext) 
         <SpellfireBurstActionBody
           selectedTarget={selectedSpellfireBurstTarget}
           onSelectTarget={setSelectedSpellfireBurstTarget}
+        />
+      );
+    }
+
+    if (selectedAction.drawer.formKind === "boon-fluid-forms-shapechanger") {
+      return (
+        <FluidFormsShapechangerActionBody
+          selectedMonster={selectedFluidFormsMonster}
+          isPickerOpen={isFluidFormsMonsterModalOpen}
+          onPickerOpenChange={setIsFluidFormsMonsterModalOpen}
+          onSelectMonster={setSelectedFluidFormsMonster}
         />
       );
     }

@@ -697,6 +697,7 @@ export function renderActionDrawerFooter(context: ActionsWidgetDrawerFooterConte
     selectedWildCompanionSpellSlotLevel,
     selectedWildResurgenceMode,
     selectedWildResurgenceSpellSlotLevel,
+    selectedFluidFormsMonster,
     selectedWildShapeMonster,
     selectedWildShapeMonsterSlug,
     setIsClairvoyantCombatantSelected,
@@ -790,6 +791,7 @@ export function renderActionDrawerFooter(context: ActionsWidgetDrawerFooterConte
     submitSorcererSpellfireBurst,
     submitSorcererWarpingImplosion,
     submitSorcererWildMagicSurge,
+    submitBoonOfFluidFormsShapechanger,
     submitStarryForm,
     submitThirdEye,
     submitWarriorOfTheGods,
@@ -2344,6 +2346,31 @@ export function renderActionDrawerFooter(context: ActionsWidgetDrawerFooterConte
             shape="bonusAction"
             isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
             multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+            className={styles.footerActionShape}
+          />
+        }
+      >
+        {selectedFeaturePrimaryLabel}
+      </ActionButton>
+    );
+  }
+
+  if (
+    selectedAction.kind === "feature" &&
+    selectedAction.drawer.kind === "custom-form" &&
+    selectedAction.drawer.formKind === "boon-fluid-forms-shapechanger"
+  ) {
+    return (
+      <ActionButton
+        className={styles.footerActionButton}
+        onClick={confirmSelectedActionToast(submitBoonOfFluidFormsShapechanger)}
+        disabled={
+          !selectedFluidFormsMonster || selectedFeatureActionPrimaryDisabledReason !== null
+        }
+        trailingBadge={
+          <ActionShape
+            shape="action"
+            isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
             className={styles.footerActionShape}
           />
         }

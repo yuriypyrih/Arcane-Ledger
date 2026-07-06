@@ -18,6 +18,7 @@ import {
 } from "../../../store";
 import { copyTextToClipboard } from "../../../utils/copyTextToClipboard";
 import ActionButton from "../../ActionButton";
+import MemberCount from "../../MemberCount";
 import { CharacterRowBase } from "../CharacterRow";
 import {
   DestructiveConfirmationModal,
@@ -215,9 +216,11 @@ function CharacterPartyGroupModal({
                   <h4 id={`${titleId}-members`} className={styles.sectionTitle}>
                     Members
                   </h4>
-                  <span className={styles.memberCount}>
-                    {partyGroup.memberCount}/{partyGroup.maxMembers} members
-                  </span>
+                  <MemberCount
+                    current={partyGroup.memberCount}
+                    total={partyGroup.maxMembers}
+                    label="members"
+                  />
                 </div>
 
                 {partyGroup.members.length > 0 ? (

@@ -45,6 +45,9 @@
 }
 
 .stepBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid transparent;
   border-radius: var(--radius-pill);
   background: rgba(75, 47, 29, 0.08);
@@ -53,7 +56,14 @@
   font-size: 0.82rem;
   font-weight: 600;
   letter-spacing: 0.04em;
+  min-height: 34px;
   padding: 0.4rem 0.8rem;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease,
+    color 160ms ease,
+    opacity 160ms ease;
 }
 
 :global(html[data-theme="dark"]) .stepBadge {
@@ -65,35 +75,75 @@
 .stepBadgeActive {
   background: #fffaf1;
   border-color: #2f78ff;
-  box-shadow: 0 8px 18px rgba(54, 34, 21, 0.08);
+  box-shadow:
+    inset 0 0 0 1px rgba(47, 120, 255, 0.28),
+    0 10px 22px rgba(47, 120, 255, 0.14);
   color: var(--color-ink);
+  font-weight: 800;
 }
 
 :global(html[data-theme="dark"]) .stepBadgeActive {
-  border-color: rgba(156, 188, 255, 0.42);
-  background: rgba(156, 188, 255, 0.12);
-  box-shadow: var(--theme-section-shadow);
+  border-color: rgba(156, 188, 255, 0.56);
+  background: rgba(156, 188, 255, 0.14);
+  box-shadow:
+    inset 0 0 0 1px rgba(156, 188, 255, 0.22),
+    0 10px 22px rgba(0, 0, 0, 0.24);
   color: var(--theme-text-primary);
 }
 
 .stepBadgeDone {
-  background: rgba(143, 91, 56, 0.2);
-  color: var(--color-ink);
+  border-color: rgba(47, 120, 255, 0.22);
+  background: rgba(47, 120, 255, 0.08);
+  color: var(--color-accent);
+  font-weight: 700;
 }
 
 :global(html[data-theme="dark"]) .stepBadgeDone {
+  border-color: rgba(156, 188, 255, 0.24);
   background: rgba(156, 188, 255, 0.1);
   color: var(--theme-accent-strong);
+}
+
+.stepBadgePending {
+  border-color: rgba(75, 47, 29, 0.1);
+  background: rgba(75, 47, 29, 0.035);
+  color: var(--theme-text-secondary);
+  opacity: 0.64;
+}
+
+:global(html[data-theme="dark"]) .stepBadgePending {
+  border-color: var(--theme-border-subtle);
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--theme-text-secondary);
+  opacity: 0.56;
+}
+
+.stepBadgeButton {
+  cursor: pointer;
 }
 
 .stepBadgeButton:hover {
   background: rgba(47, 120, 255, 0.12);
   border-color: rgba(47, 120, 255, 0.32);
+  box-shadow: 0 8px 18px rgba(47, 120, 255, 0.1);
+  color: #1d5fd6;
 }
 
 :global(html[data-theme="dark"]) .stepBadgeButton:hover {
   background: rgba(156, 188, 255, 0.16);
   border-color: rgba(156, 188, 255, 0.44);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.22);
+  color: var(--theme-text-primary);
+}
+
+.stepBadgeButton:focus-visible {
+  outline: 2px solid var(--theme-focus-ring);
+  outline-offset: 2px;
+}
+
+.stepBadgeButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
 }
 
 .form {
@@ -205,6 +255,55 @@
   gap: 0.8rem;
 }
 
+.progressCardContent {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+.startingGuideButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border: 1px solid rgba(75, 47, 29, 0.16);
+  border-radius: var(--radius-field);
+  background: rgba(255, 250, 241, 0.82);
+  color: var(--color-accent);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 800;
+  min-height: 40px;
+  margin-left: auto;
+  padding: 0 0.9rem;
+}
+
+:global(html[data-theme="dark"]) .startingGuideButton {
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-control-subtle);
+  color: var(--theme-accent-strong);
+}
+
+.startingGuideButton:hover,
+.startingGuideButton:focus-visible {
+  border-color: rgba(47, 120, 255, 0.32);
+  background: rgba(47, 120, 255, 0.1);
+}
+
+:global(html[data-theme="dark"]) .startingGuideButton:hover,
+:global(html[data-theme="dark"]) .startingGuideButton:focus-visible {
+  border-color: rgba(156, 188, 255, 0.34);
+  background: var(--theme-control-subtle-hover);
+}
+
+.startingGuideButton:focus-visible {
+  outline: 2px solid var(--theme-focus-ring);
+  outline-offset: 2px;
+}
+
 .actionsCard {
   padding-block: var(--space-card-padding-tight);
 }
@@ -278,15 +377,79 @@
   min-width: 0;
 }
 
-.field span {
+.field span,
+.fieldLabel {
   color: var(--theme-text-secondary);
   font-size: 0.88rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
+.fieldLabel {
+  width: fit-content;
+}
+
 .fieldInput {
   width: 100%;
+}
+
+select.fieldInput:has(option[value=""]:checked) {
+  color: var(--theme-text-secondary);
+}
+
+select.fieldInput option {
+  color: var(--theme-input-text);
+}
+
+select.fieldInput option[value=""] {
+  color: var(--theme-text-secondary);
+}
+
+.referenceSelectRow {
+  display: grid;
+  align-items: stretch;
+  gap: 0.5rem;
+  grid-template-columns: minmax(0, 1fr) 54px;
+}
+
+.referenceButton {
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid rgba(75, 47, 29, 0.16);
+  border-radius: var(--radius-field);
+  background: rgba(255, 250, 241, 0.82);
+  color: var(--color-accent);
+  cursor: pointer;
+  min-height: 54px;
+  padding: 0;
+}
+
+:global(html[data-theme="dark"]) .referenceButton {
+  border-color: var(--theme-border-subtle);
+  background: var(--theme-control-subtle);
+  color: var(--theme-accent-strong);
+}
+
+.referenceButton:hover:not(:disabled),
+.referenceButton:focus-visible:not(:disabled) {
+  border-color: rgba(47, 120, 255, 0.32);
+  background: rgba(47, 120, 255, 0.1);
+}
+
+:global(html[data-theme="dark"]) .referenceButton:hover:not(:disabled),
+:global(html[data-theme="dark"]) .referenceButton:focus-visible:not(:disabled) {
+  border-color: rgba(156, 188, 255, 0.34);
+  background: var(--theme-control-subtle-hover);
+}
+
+.referenceButton:focus-visible {
+  outline: 2px solid var(--theme-focus-ring);
+  outline-offset: 2px;
+}
+
+.referenceButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
 }
 
 .helperText,
@@ -772,6 +935,14 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .referenceSelectRow {
+    grid-template-columns: minmax(0, 1fr) 44px;
+  }
+
+  .referenceButton {
+    min-height: 44px;
+  }
+
   .loadoutGrid,
   .classSetupGrid,
   .speciesChoiceGrid {
@@ -799,6 +970,14 @@
 
   .choiceGrid {
     grid-template-columns: 1fr;
+  }
+
+  .referenceSelectRow {
+    grid-template-columns: minmax(0, 1fr) 38px;
+  }
+
+  .referenceButton {
+    min-height: 38px;
   }
 
   .alignmentGrid {

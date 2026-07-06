@@ -1064,6 +1064,13 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
         recovery: "longRest" as const
       },
       {
+        id: "feat-boon-of-fluid-forms-shapechanger",
+        label: "Shapechanger",
+        remaining: epicBoonResourceState.boonOfFluidFormsShapechangerRemaining,
+        total: epicBoonResourceState.boonOfFluidFormsShapechangerTotal,
+        recovery: "longRest" as const
+      },
+      {
         id: "feat-boon-of-recovery-dice",
         label: "Recover Vitality Dice",
         remaining: epicBoonResourceState.boonOfRecoveryDiceRemaining,
@@ -1317,6 +1324,7 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
     hasHealer: featSet.has(FEATS.HEALER),
     hasFeyTouched: featSet.has(FEATS.FEY_TOUCHED),
     hasBoonOfFate: epicBoonResourceState.hasBoonOfFate,
+    hasBoonOfFluidForms: epicBoonResourceState.hasBoonOfFluidForms,
     hasBoonOfRecovery: epicBoonResourceState.hasBoonOfRecovery,
     hasBoonOfSoulDrinker: epicBoonResourceState.hasBoonOfSoulDrinker,
     hasBoonOfSpellRecall: epicBoonResourceState.hasBoonOfSpellRecall,
@@ -1345,6 +1353,10 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
       originResourceState.spellfireSparkSpellfireFlameTotal,
     boonOfFateImproveFateRemaining: epicBoonResourceState.boonOfFateImproveFateRemaining,
     boonOfFateImproveFateTotal: epicBoonResourceState.boonOfFateImproveFateTotal,
+    boonOfFluidFormsShapechangerRemaining:
+      epicBoonResourceState.boonOfFluidFormsShapechangerRemaining,
+    boonOfFluidFormsShapechangerTotal:
+      epicBoonResourceState.boonOfFluidFormsShapechangerTotal,
     boonOfRecoveryDiceRemaining: epicBoonResourceState.boonOfRecoveryDiceRemaining,
     boonOfRecoveryDiceTotal: epicBoonResourceState.boonOfRecoveryDiceTotal,
     boonOfRecoveryLastStandRemaining:
