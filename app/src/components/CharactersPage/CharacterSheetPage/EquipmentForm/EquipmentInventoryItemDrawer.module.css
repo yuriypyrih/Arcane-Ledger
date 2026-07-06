@@ -204,11 +204,11 @@
 }
 
 .toneNeutral {
-  color: var(--theme-text-secondary);
+  color: var(--theme-text-primary);
 }
 
 :global(html[data-theme="dark"]) .toneNeutral {
-  color: var(--theme-text-secondary);
+  color: var(--theme-text-primary);
 }
 
 .tonePositive {

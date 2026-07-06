@@ -78,7 +78,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Hop Up.</strong> When you have the Prone condition, you can right yourself with only 5 feet of movement.",
       "<strong>Jumping.</strong> You can make a running Long or High Jump after moving only 5 feet."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   {
     feat: FEATS.CHARGER,
@@ -91,7 +91,8 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Improved Dash.</strong> When you take the Dash action, your Speed increases by 10 feet for that action.",
       "<strong>Charge Attack.</strong> If you move at least 10 feet in a straight line toward a target immediately before hitting it with a melee attack roll as part of the Attack action, choose one of the following effects: gain a 1d8 bonus to the attack's damage roll, or push the target up to 10 feet away if it is no more than one size larger than you. You can use this benefit only once on each of your turns."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage: "For the Charge Attack you have to calculate it yourself."
   },
   {
     feat: FEATS.CHEF,
@@ -105,7 +106,9 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Replenishing Meal.</strong> As part of a Short Rest, you can cook special food if you have ingredients and Cook's Utensils on hand. You can prepare enough of this food for a number of creatures equal to 4 plus your Proficiency Bonus. At the end of the Short Rest, any creature who eats the food and spends one or more Hit Dice to regain Hit Points regains an extra 1d8 Hit Points.",
       "<strong>Bolstering Treats.</strong> With 1 hour of work or when you finish a Long Rest, you can cook a number of treats equal to your Proficiency Bonus if you have ingredients and Cook's Utensils on hand. These special treats last 8 hours after being made. A creature can use a Bonus Action to eat one of those treats to gain a number of Temporary Hit Points equal to your Proficiency Bonus."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "The Replenishing Meal and Bolstering Treats are not being tracked. On Short/Long Rest you can create some custom items to represend those meals."
   },
   {
     feat: FEATS.CROSSBOW_EXPERT,
