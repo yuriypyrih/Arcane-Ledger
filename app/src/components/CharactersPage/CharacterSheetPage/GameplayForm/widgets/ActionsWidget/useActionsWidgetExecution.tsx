@@ -1369,7 +1369,10 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
     closeActionDrawer();
   }
 
-  function executeFeatureActivate(action: FeatureActionCard) {
+  function executeFeatureActivate(
+    action: FeatureActionCard,
+    economyTypeOverride: EconomyType | null = null
+  ) {
     const effectKind =
       action.execute?.kind === "activate" ? (action.execute.effectKind ?? "default") : "default";
 
@@ -1949,7 +1952,7 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
       return;
     }
 
-    activateFeatureAction(action);
+    activateFeatureAction(action, economyTypeOverride);
     if (action.key === sorcererTidesOfChaosActionKey) {
       dispatch(setNextRollModeOverride("advantage"));
     }

@@ -5,6 +5,9 @@ import { FEATS, getFeatureTrackingState, type SpellEntry } from "../../../../cod
 import { abilityKeys } from "../../../../pages/CharactersPage/constants";
 import {
   boonOfEnergyResistanceDamageTypeOptions,
+  coldCasterAbilityOptions,
+  dragonscarredAbilityOptions,
+  dragonscarredDamageTypeOptions,
   elementalAdeptAbilityOptions,
   elementalAdeptDamageTypeOptions,
   feyTouchedAbilityOptions,
@@ -37,8 +40,10 @@ import {
   weaponMasterAbilityOptions,
   weaponMasterMasteryOptions,
   getAbilityScoreImprovementSummary,
+  coldCasterRayOfFrostSpellId,
   getEpicBoonAbilityChoiceSummary,
   getEpicBoonAbilityOptions,
+  getColdCasterCantripOptions,
   getFeatAbilityIncreaseMaxScore,
   getMagicInitiateCantripOptions,
   emeraldEnclaveFledglingSpellcastingAbilityOptions,
@@ -105,7 +110,9 @@ import {
   getPendingBoonOfSkillChoiceSummary,
   getPendingChargerChoiceSummary,
   getPendingChefChoiceSummary,
+  getPendingColdCasterChoiceSummary,
   getPendingCrusherChoiceSummary,
+  getPendingDragonscarredChoiceSummary,
   getPendingDualWielderChoiceSummary,
   getPendingElementalAdeptChoiceSummary,
   getPendingFeyTouchedChoiceSummary,
@@ -149,7 +156,9 @@ import {
   isPendingBlessedWarriorChoiceValid,
   isPendingBoonOfEnergyResistanceChoiceValid,
   isPendingBoonOfSkillChoiceValid,
+  isPendingColdCasterChoiceValid,
   isPendingCrafterChoiceValid,
+  isPendingDragonscarredChoiceValid,
   isPendingDruidicWarriorChoiceValid,
   isPendingEmeraldEnclaveFledglingChoiceValid,
   isPendingHarperAgentChoiceValid,
@@ -207,8 +216,10 @@ import type {
   PendingBlessedWarriorChoice,
   PendingBoonOfEnergyResistanceChoice,
   PendingBoonOfSkillChoice,
+  PendingColdCasterChoice,
   PendingCrafterChoice,
   PendingCultOfDragonInitiateChoice,
+  PendingDragonscarredChoice,
   PendingDruidicWarriorChoice,
   PendingEmeraldEnclaveFledglingChoice,
   PendingElementalAdeptChoice,
@@ -261,6 +272,7 @@ type FeatEditorCardProps = {
   editingFeatEntryId: string | null;
   pendingFeatState: PendingFeatState;
   blessedWarriorCantripOptions: SpellEntry[];
+  coldCasterKnowsRayOfFrost: boolean;
   druidicWarriorCantripOptions: SpellEntry[];
   hideFooter?: boolean;
   renderTrackingButton: TrackingButtonRenderer;
@@ -307,6 +319,8 @@ type FeatEditorCardProps = {
   onSavePendingBoonOfIrresistibleOffense: () => void;
   onSavePendingBoonOfSkillChoice: () => void;
   onSavePendingBlessedWarriorChoice: () => void;
+  onSavePendingColdCasterChoice: () => void;
+  onSavePendingDragonscarredChoice: () => void;
   onSavePendingCrafterChoice: () => void;
   onSavePendingDruidicWarriorChoice: () => void;
   onSavePendingEpicBoonAbilityChoice: () => void;
@@ -347,6 +361,25 @@ type BoonOfSkillChoiceEditorProps = {
   onCancel: () => void;
   onSave: () => void;
   onChange: (nextChoice: PendingBoonOfSkillChoice) => void;
+};
+
+type ColdCasterChoiceEditorProps = {
+  choice: PendingColdCasterChoice;
+  knowsRayOfFrost: boolean;
+  summary: string | null;
+  isValid: boolean;
+  onCancel: () => void;
+  onSave: () => void;
+  onChange: (nextChoice: PendingColdCasterChoice) => void;
+};
+
+type DragonscarredChoiceEditorProps = {
+  choice: PendingDragonscarredChoice;
+  summary: string | null;
+  isValid: boolean;
+  onCancel: () => void;
+  onSave: () => void;
+  onChange: (nextChoice: PendingDragonscarredChoice) => void;
 };
 
 type FeyTouchedChoiceEditorProps = {
@@ -653,6 +686,144 @@ function BoonOfEnergyResistanceChoiceEditor({
       {summary ? <p className={modalStyles.summary}>{summary}</p> : null}
       {!isValid ? (
         <p className={modalStyles.validation}>Choose two different energy damage types.</p>
+      ) : null}
+    </InlineEditorFrame>
+  );
+}
+
+function ColdCasterChoiceEditor({
+  choice,
+  knowsRayOfFrost,
+  summary,
+  isValid,
+  onCancel,
+  onSave,
+  onChange
+}: ColdCasterChoiceEditorProps) {
+  const cantripOptions = knowsRayOfFrost
+    ? getColdCasterCantripOptions().filter((spell) => spell.id !== coldCasterRayOfFrostSpellId)
+    : getColdCasterCantripOptions().filter((spell) => spell.id === coldCasterRayOfFrostSpellId);
+
+  return (
+    <InlineEditorFrame
+      title="Cold Caster"
+      cancelLabel="Cancel cold caster selection"
+      onCancel={onCancel}
+      footer={
+        <div className={modalStyles.editorActions}>
+          <ActionButton
+            icon={<Plus size={16} />}
+            fullWidth={false}
+            disabled={!isValid}
+            onClick={onSave}
+          >
+            Add Feat
+          </ActionButton>
+        </div>
+      }
+    >
+      <div className={modalStyles.singleFieldGrid}>
+        <SelectField
+          label="Ability"
+          value={choice.ability}
+          options={coldCasterAbilityOptions.map((ability) => ({
+            label: ability,
+            value: ability
+          }))}
+          onChange={(nextValue) =>
+            onChange({
+              ...choice,
+              ability: nextValue as PendingColdCasterChoice["ability"]
+            })
+          }
+        />
+        <SelectField
+          label="Wizard Cantrip"
+          value={choice.cantripId}
+          disabled={!knowsRayOfFrost}
+          options={cantripOptions.map((spell) => ({
+            label: spell.name,
+            value: spell.id
+          }))}
+          onChange={(nextValue) =>
+            onChange({
+              ...choice,
+              cantripId: nextValue
+            })
+          }
+        />
+      </div>
+      {summary ? <p className={modalStyles.summary}>{summary}</p> : null}
+      {!isValid ? (
+        <p className={modalStyles.validation}>
+          {knowsRayOfFrost
+            ? "Choose a Wizard cantrip other than Ray of Frost."
+            : "Ray of Frost is selected because you do not already know it."}
+        </p>
+      ) : null}
+    </InlineEditorFrame>
+  );
+}
+
+function DragonscarredChoiceEditor({
+  choice,
+  summary,
+  isValid,
+  onCancel,
+  onSave,
+  onChange
+}: DragonscarredChoiceEditorProps) {
+  return (
+    <InlineEditorFrame
+      title="Dragonscarred"
+      cancelLabel="Cancel dragonscarred selection"
+      onCancel={onCancel}
+      footer={
+        <div className={modalStyles.editorActions}>
+          <ActionButton
+            icon={<Plus size={16} />}
+            fullWidth={false}
+            disabled={!isValid}
+            onClick={onSave}
+          >
+            Add Feat
+          </ActionButton>
+        </div>
+      }
+    >
+      <div className={modalStyles.singleFieldGrid}>
+        <SelectField
+          label="Ability"
+          value={choice.ability}
+          options={dragonscarredAbilityOptions.map((ability) => ({
+            label: ability,
+            value: ability
+          }))}
+          onChange={(nextValue) =>
+            onChange({
+              ...choice,
+              ability: nextValue as PendingDragonscarredChoice["ability"]
+            })
+          }
+        />
+        <SelectField
+          label="Damage Type"
+          value={choice.damageType}
+          options={dragonscarredDamageTypeOptions.map((damageType) => ({
+            label: formatCodexLabel(damageType),
+            value: damageType
+          }))}
+          onChange={(nextValue) =>
+            onChange({
+              ...choice,
+              damageType: nextValue as PendingDragonscarredChoice["damageType"]
+            })
+          }
+        />
+      </div>
+      {summary ? <p className={modalStyles.summary}>{summary}</p> : null}
+      {!isValid ? (
+        <p className={modalStyles.validation}>Choose a Dragonscarred damage type.</p>
       ) : null}
     </InlineEditorFrame>
   );
@@ -2153,6 +2324,7 @@ function renderInlineEditor({
   editingFeatEntryId,
   pendingFeatState,
   blessedWarriorCantripOptions,
+  coldCasterKnowsRayOfFrost,
   druidicWarriorCantripOptions,
   onPendingFeatStateChange,
   onSavePendingAbilityScoreImprovement,
@@ -2193,6 +2365,8 @@ function renderInlineEditor({
   onSavePendingBoonOfIrresistibleOffense,
   onSavePendingBoonOfSkillChoice,
   onSavePendingBlessedWarriorChoice,
+  onSavePendingColdCasterChoice,
+  onSavePendingDragonscarredChoice,
   onSavePendingCrafterChoice,
   onSavePendingDruidicWarriorChoice,
   onSavePendingEpicBoonAbilityChoice,
@@ -2403,6 +2577,64 @@ function renderInlineEditor({
             elementalAdeptChoice: current.elementalAdeptChoice
               ? nextChoice
               : current.elementalAdeptChoice
+          }))
+        }
+      />
+    );
+  }
+
+  if (featDefinition.feat === FEATS.COLD_CASTER && pendingFeatState.coldCasterChoice) {
+    const coldCasterChoice = pendingFeatState.coldCasterChoice;
+
+    return (
+      <ColdCasterChoiceEditor
+        choice={coldCasterChoice}
+        knowsRayOfFrost={coldCasterKnowsRayOfFrost}
+        summary={getPendingColdCasterChoiceSummary(
+          coldCasterChoice,
+          coldCasterKnowsRayOfFrost
+        )}
+        isValid={isPendingColdCasterChoiceValid(coldCasterChoice, coldCasterKnowsRayOfFrost)}
+        onCancel={() =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            coldCasterChoice: null
+          }))
+        }
+        onSave={onSavePendingColdCasterChoice}
+        onChange={(nextChoice) =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            coldCasterChoice: current.coldCasterChoice
+              ? nextChoice
+              : current.coldCasterChoice
+          }))
+        }
+      />
+    );
+  }
+
+  if (featDefinition.feat === FEATS.DRAGONSCARRED && pendingFeatState.dragonscarredChoice) {
+    const dragonscarredChoice = pendingFeatState.dragonscarredChoice;
+
+    return (
+      <DragonscarredChoiceEditor
+        choice={dragonscarredChoice}
+        summary={getPendingDragonscarredChoiceSummary(dragonscarredChoice)}
+        isValid={isPendingDragonscarredChoiceValid(dragonscarredChoice)}
+        onCancel={() =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            dragonscarredChoice: null
+          }))
+        }
+        onSave={onSavePendingDragonscarredChoice}
+        onChange={(nextChoice) =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            dragonscarredChoice: current.dragonscarredChoice
+              ? nextChoice
+              : current.dragonscarredChoice
           }))
         }
       />
@@ -3758,6 +3990,7 @@ function FeatEditorCard({
   editingFeatEntryId,
   pendingFeatState,
   blessedWarriorCantripOptions,
+  coldCasterKnowsRayOfFrost,
   druidicWarriorCantripOptions,
   hideFooter = false,
   renderTrackingButton,
@@ -3804,6 +4037,8 @@ function FeatEditorCard({
   onSavePendingBoonOfIrresistibleOffense,
   onSavePendingBoonOfSkillChoice,
   onSavePendingBlessedWarriorChoice,
+  onSavePendingColdCasterChoice,
+  onSavePendingDragonscarredChoice,
   onSavePendingCrafterChoice,
   onSavePendingDruidicWarriorChoice,
   onSavePendingEpicBoonAbilityChoice,
@@ -3918,6 +4153,7 @@ function FeatEditorCard({
         editingFeatEntryId,
         pendingFeatState,
         blessedWarriorCantripOptions,
+        coldCasterKnowsRayOfFrost,
         druidicWarriorCantripOptions,
         onPendingFeatStateChange,
         onSavePendingAbilityScoreImprovement,
@@ -3958,6 +4194,8 @@ function FeatEditorCard({
         onSavePendingBoonOfIrresistibleOffense,
         onSavePendingBoonOfSkillChoice,
         onSavePendingBlessedWarriorChoice,
+        onSavePendingColdCasterChoice,
+        onSavePendingDragonscarredChoice,
         onSavePendingCrafterChoice,
         onSavePendingDruidicWarriorChoice,
         onSavePendingEpicBoonAbilityChoice,

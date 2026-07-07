@@ -10,8 +10,10 @@ import type {
   CharacterFeatEntry,
   ChargerChoice,
   ChefChoice,
+  ColdCasterChoice,
   CrusherChoice,
   CultOfDragonInitiateChoice,
+  DragonscarredChoice,
   DualWielderChoice,
   ElementalAdeptChoice,
   CrafterChoice,
@@ -64,6 +66,7 @@ import type {
   BoonOfSkillChoice,
   CharacterFeatSource,
   EpicBoonAbilityChoice,
+  FairyTricksterState,
   SkilledChoice
 } from "../../../types/feats";
 import { formatCodexLabel } from "../../../utils/codex";
@@ -77,8 +80,10 @@ import {
   normalizeBoonOfSkillChoice,
   normalizeChargerChoice,
   normalizeChefChoice,
+  normalizeColdCasterChoice,
   normalizeCrusherChoice,
   normalizeCultOfDragonInitiateChoice,
+  normalizeDragonscarredChoice,
   normalizeDualWielderChoice,
   normalizeEmeraldEnclaveFledglingChoice,
   normalizeElementalAdeptChoice,
@@ -381,6 +386,12 @@ export function normalizeCharacterFeats(
     const athlete = feat === FEATS.ATHLETE ? normalizeAthleteChoice(record.athlete) : undefined;
     const charger = feat === FEATS.CHARGER ? normalizeChargerChoice(record.charger) : undefined;
     const chef = feat === FEATS.CHEF ? normalizeChefChoice(record.chef) : undefined;
+    const coldCaster =
+      feat === FEATS.COLD_CASTER ? normalizeColdCasterChoice(record.coldCaster) : undefined;
+    const dragonscarred =
+      feat === FEATS.DRAGONSCARRED
+        ? normalizeDragonscarredChoice(record.dragonscarred)
+        : undefined;
     const crusher = feat === FEATS.CRUSHER ? normalizeCrusherChoice(record.crusher) : undefined;
     const dualWielder =
       feat === FEATS.DUAL_WIELDER ? normalizeDualWielderChoice(record.dualWielder) : undefined;
@@ -491,6 +502,18 @@ export function normalizeCharacterFeats(
       feat === FEATS.PURPLE_DRAGON_ROOK
         ? normalizePurpleDragonRookChoice(record.purpleDragonRook)
         : undefined;
+    const fairyTrickster =
+      feat === FEATS.FAIRY_TRICKSTER && record.fairyTrickster
+        ? {
+            flusteringStrikeExpended: Math.max(
+              0,
+              Math.min(
+                6,
+                Math.floor(Number(record.fairyTrickster.flusteringStrikeExpended) || 0)
+              )
+            )
+          }
+        : undefined;
     const spellfireSpark =
       feat === FEATS.SPELLFIRE_SPARK
         ? normalizeSpellfireSparkChoice(record.spellfireSpark, currentLevel)
@@ -515,6 +538,8 @@ export function normalizeCharacterFeats(
         athlete,
         charger,
         chef,
+        coldCaster,
+        dragonscarred,
         crusher,
         dualWielder,
         elementalAdept,
@@ -564,6 +589,7 @@ export function normalizeCharacterFeats(
         skilled,
         harperAgent,
         purpleDragonRook,
+        fairyTrickster,
         spellfireSpark,
         musician,
         lucky
@@ -581,6 +607,8 @@ export function createCharacterFeatEntry(
     athlete?: AthleteChoice;
     charger?: ChargerChoice;
     chef?: ChefChoice;
+    coldCaster?: ColdCasterChoice;
+    dragonscarred?: DragonscarredChoice;
     crusher?: CrusherChoice;
     dualWielder?: DualWielderChoice;
     elementalAdept?: ElementalAdeptChoice;
@@ -618,6 +646,7 @@ export function createCharacterFeatEntry(
     emeraldEnclaveFledgling?: EmeraldEnclaveFledglingChoice;
     harperAgent?: HarperAgentChoice;
     purpleDragonRook?: PurpleDragonRookChoice;
+    fairyTrickster?: FairyTricksterState;
     spellfireSpark?: SpellfireSparkChoice;
     musician?: MusicianChoice;
     crafter?: CrafterChoice;
@@ -645,6 +674,8 @@ export function createCharacterFeatEntry(
     athlete: feat === FEATS.ATHLETE ? options?.athlete : undefined,
     charger: feat === FEATS.CHARGER ? options?.charger : undefined,
     chef: feat === FEATS.CHEF ? options?.chef : undefined,
+    coldCaster: feat === FEATS.COLD_CASTER ? options?.coldCaster : undefined,
+    dragonscarred: feat === FEATS.DRAGONSCARRED ? options?.dragonscarred : undefined,
     crusher: feat === FEATS.CRUSHER ? options?.crusher : undefined,
     dualWielder: feat === FEATS.DUAL_WIELDER ? options?.dualWielder : undefined,
     elementalAdept: feat === FEATS.ELEMENTAL_ADEPT ? options?.elementalAdept : undefined,
@@ -688,6 +719,7 @@ export function createCharacterFeatEntry(
     harperAgent: feat === FEATS.HARPER_AGENT ? options?.harperAgent : undefined,
     purpleDragonRook:
       feat === FEATS.PURPLE_DRAGON_ROOK ? options?.purpleDragonRook : undefined,
+    fairyTrickster: feat === FEATS.FAIRY_TRICKSTER ? options?.fairyTrickster : undefined,
     spellfireSpark:
       feat === FEATS.SPELLFIRE_SPARK ? options?.spellfireSpark : undefined,
     musician: feat === FEATS.MUSICIAN ? options?.musician : undefined,

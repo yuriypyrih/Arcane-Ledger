@@ -1,5 +1,6 @@
 import type { SpellDescriptionEntry } from "../../../../codex/entries";
 import type { AbilityKey, CharacterFeatEntry } from "../../../../types";
+import { createSourcedDescriptionEntries } from "../../actionModalDescriptions";
 import { getAbilityModifierForCharacter } from "../../abilities";
 import { ACTION_CARD_THEME } from "../../actionCardTheme";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
@@ -24,6 +25,7 @@ import {
   cultOfDragonInitiateDragonsTerrorActionKey,
   cultOfDragonInitiateInspiredByFearActionKey,
   durableSpeedyRecoveryActionKey,
+  fairyTricksterFlusteringStrikeActionKey,
   luckyFeatActionKey,
   telekineticShoveActionKey
 } from "./constants";
@@ -150,9 +152,17 @@ function getCultOfDragonInitiateDragonsTerrorSavingThrowFact(
 export function createCultOfDragonInitiateDragonsTerrorAction(
   character: FeatRuntimeCharacter,
   normalizedFeats: CharacterFeatEntry[],
-  description: SpellDescriptionEntry[]
+  description: SpellDescriptionEntry[],
+  options: {
+    fearsomePowerDescription?: SpellDescriptionEntry[];
+  } = {}
 ): FeatureActionCard {
   const facts = [getCultOfDragonInitiateDragonsTerrorSavingThrowFact(character, normalizedFeats)];
+  const fearsomePowerDescription = options.fearsomePowerDescription ?? [];
+  const descriptionAdditions =
+    fearsomePowerDescription.length > 0
+      ? [createSourcedDescriptionEntries("Dragonscarred", fearsomePowerDescription)]
+      : [];
 
   return {
     key: cultOfDragonInitiateDragonsTerrorActionKey,
@@ -165,9 +175,12 @@ export function createCultOfDragonInitiateDragonsTerrorAction(
     detail: "Instill fear in a creature you can see.",
     breakdown: "Frighten nearby creature",
     economyType: ECONOMY_TYPE.ACTION,
+    alternateEconomyTypes:
+      fearsomePowerDescription.length > 0 ? [ECONOMY_TYPE.BONUS_ACTION] : undefined,
     actionCategory: ACTION_CATEGORY.MAGIC,
     cardTheme: ACTION_CARD_THEME.FEATURE,
     description,
+    descriptionAdditions: descriptionAdditions.length > 0 ? descriptionAdditions : undefined,
     facts,
     drawer: {
       kind: "confirm",
@@ -340,6 +353,90 @@ export function createTelekineticShoveAction(
     execute: {
       kind: "activate",
       label: "Use Telekinetic Shove"
+    }
+  };
+}
+
+function getFairyTricksterFlusteringStrikeSavingThrowFact(
+  character: FeatRuntimeCharacter,
+  ability: AbilityKey,
+  normalizedFeats: CharacterFeatEntry[]
+): NonNullable<FeatureActionCard["facts"]>[number] {
+  const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
+  const abilityModifier = getAbilityModifierForCharacter(
+    {
+      ...character,
+      feats: normalizedFeats
+    },
+    ability
+  );
+  const saveDc = 8 + abilityModifier + proficiencyBonus;
+  const displayTerms = [
+    "DC 8 (Base)",
+    formatSignedFormulaTerm(abilityModifier, ability),
+    formatSignedFormulaTerm(proficiencyBonus, "Prof. Bonus")
+  ];
+  const formulaCell = formatFormulaCell({
+    formula: String(saveDc),
+    displayTerms,
+    breakdownTerms: displayTerms
+  });
+
+  return {
+    label: "Wisdom Saving Throw Formula",
+    value: `WIS DC ${saveDc} = ${formulaCell.value}`,
+    breakdown: formulaCell.breakdown,
+    fullWidth: true
+  };
+}
+
+export function createFairyTricksterFlusteringStrikeAction(
+  character: FeatRuntimeCharacter,
+  ability: AbilityKey,
+  normalizedFeats: CharacterFeatEntry[],
+  remaining: number,
+  total: number,
+  description: SpellDescriptionEntry[]
+): FeatureActionCard {
+  const chargesTag = createChargesHeaderTag(remaining, total);
+  const facts = [
+    getFairyTricksterFlusteringStrikeSavingThrowFact(character, ability, normalizedFeats)
+  ];
+  const disabledReason =
+    remaining > 0 ? undefined : "Flustering Strike recharges when you finish a Long Rest.";
+
+  return {
+    key: fairyTricksterFlusteringStrikeActionKey,
+    name: "Flustering Strike",
+    actionSource: {
+      type: "feat",
+      name: "Fairy Trickster"
+    },
+    summary: `Charge ${remaining}/${total}`,
+    detail: "Fluster a creature you hit with an attack roll.",
+    breakdown: "Disrupt saving throws",
+    economyType: ECONOMY_TYPE.FREE,
+    actionCategory: ACTION_CATEGORY.FEATURE,
+    usesRemaining: remaining,
+    usesTotal: total,
+    hideUsesTrackerOnCard: true,
+    cardUsage: createChargesCardUsage(remaining, total),
+    disabled: remaining <= 0,
+    disabledReason,
+    description,
+    facts,
+    headerTags: [chargesTag],
+    drawer: {
+      kind: "confirm",
+      description,
+      facts,
+      factsSectionTitle: "Saving Throw",
+      confirmLabel: "Use Flustering Strike",
+      headerTags: [chargesTag]
+    },
+    execute: {
+      kind: "activate",
+      label: "Use Flustering Strike"
     }
   };
 }

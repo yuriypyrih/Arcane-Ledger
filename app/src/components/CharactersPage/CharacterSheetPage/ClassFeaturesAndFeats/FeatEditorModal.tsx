@@ -46,6 +46,7 @@ type FeatEditorModalProps = {
   editingFeatEntryId: string | null;
   pendingFeatState: PendingFeatState;
   blessedWarriorCantripOptions: SpellEntry[];
+  coldCasterKnowsRayOfFrost: boolean;
   druidicWarriorCantripOptions: SpellEntry[];
   onClose: () => void;
   onSelectCategory: (category: FEAT_CATEGORY) => void;
@@ -93,6 +94,8 @@ type FeatEditorModalProps = {
   onSavePendingBoonOfIrresistibleOffense: () => void;
   onSavePendingBoonOfSkillChoice: () => void;
   onSavePendingBlessedWarriorChoice: () => void;
+  onSavePendingColdCasterChoice: () => void;
+  onSavePendingDragonscarredChoice: () => void;
   onSavePendingCrafterChoice: () => void;
   onSavePendingDruidicWarriorChoice: () => void;
   onSavePendingEpicBoonAbilityChoice: () => void;
@@ -143,6 +146,7 @@ function FeatEditorModal({
   editingFeatEntryId,
   pendingFeatState,
   blessedWarriorCantripOptions,
+  coldCasterKnowsRayOfFrost,
   druidicWarriorCantripOptions,
   onClose,
   onSelectCategory,
@@ -190,6 +194,8 @@ function FeatEditorModal({
   onSavePendingBoonOfIrresistibleOffense,
   onSavePendingBoonOfSkillChoice,
   onSavePendingBlessedWarriorChoice,
+  onSavePendingColdCasterChoice,
+  onSavePendingDragonscarredChoice,
   onSavePendingCrafterChoice,
   onSavePendingDruidicWarriorChoice,
   onSavePendingEpicBoonAbilityChoice,
@@ -282,6 +288,7 @@ function FeatEditorModal({
                 editingFeatEntryId={editingFeatEntryId}
                 pendingFeatState={pendingFeatState}
                 blessedWarriorCantripOptions={blessedWarriorCantripOptions}
+                coldCasterKnowsRayOfFrost={coldCasterKnowsRayOfFrost}
                 druidicWarriorCantripOptions={druidicWarriorCantripOptions}
                 renderTrackingButton={renderTrackingButton}
                 onOpenFeatReference={onOpenFeatReference}
@@ -329,6 +336,8 @@ function FeatEditorModal({
                 onSavePendingBoonOfIrresistibleOffense={onSavePendingBoonOfIrresistibleOffense}
                 onSavePendingBoonOfSkillChoice={onSavePendingBoonOfSkillChoice}
                 onSavePendingBlessedWarriorChoice={onSavePendingBlessedWarriorChoice}
+                onSavePendingColdCasterChoice={onSavePendingColdCasterChoice}
+                onSavePendingDragonscarredChoice={onSavePendingDragonscarredChoice}
                 onSavePendingCrafterChoice={onSavePendingCrafterChoice}
                 onSavePendingDruidicWarriorChoice={onSavePendingDruidicWarriorChoice}
                 onSavePendingEpicBoonAbilityChoice={onSavePendingEpicBoonAbilityChoice}

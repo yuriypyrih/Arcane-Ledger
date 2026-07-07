@@ -98,6 +98,7 @@ import {
   isZhentarimRuffianExploitOpeningDescriptionEntry
 } from "./descriptionMatchers";
 import { getFeatDescriptionContributions } from "./descriptionContributions";
+import { getDragonscarredResistanceStatusEntries } from "./dragonscarred";
 import type { FeatDerivedState, FeatRuntimeCharacter } from "./types";
 
 const featDerivedStateCache = new WeakMap<object, Map<number, FeatDerivedState>>();
@@ -271,6 +272,19 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
       }
     }
 
+    if (entry.feat === FEATS.COLD_CASTER && entry.coldCaster) {
+      const coldCaster = entry.coldCaster;
+
+      featCantripEntries.forEach((cantrip) => {
+        contribution.spellGrants!.push({
+          kind: "always-prepared-cantrip",
+          spell: cantrip,
+          sourceLabel: getFeatLabel(entry.feat),
+          spellcastingAbility: coldCaster.ability
+        });
+      });
+    }
+
     if (entry.feat === FEATS.EMERALD_ENCLAVE_FLEDGLING && entry.emeraldEnclaveFledgling) {
       const speakWithAnimals = getEmeraldEnclaveFledglingSpellEntry(entry);
 
@@ -441,6 +455,22 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
       abilityScoreBonuses.push({
         ability: entry.charger.ability,
         label: "Charger",
+        value: 1,
+        maxScore: 20,
+        order
+      });
+    } else if (entry.feat === FEATS.COLD_CASTER && entry.coldCaster) {
+      abilityScoreBonuses.push({
+        ability: entry.coldCaster.ability,
+        label: "Cold Caster",
+        value: 1,
+        maxScore: 20,
+        order
+      });
+    } else if (entry.feat === FEATS.DRAGONSCARRED && entry.dragonscarred) {
+      abilityScoreBonuses.push({
+        ability: entry.dragonscarred.ability,
+        label: "Dragonscarred",
         value: 1,
         maxScore: 20,
         order
@@ -1015,6 +1045,7 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
   const generalResourceState = getGeneralFeatResourceState(
     normalizedFeats,
     featSet,
+    level,
     telepathicDetectThoughtsFreeCastEntries
   );
   const epicBoonResourceState = getEpicBoonFeatResourceState(normalizedFeats, featSet);
@@ -1054,6 +1085,13 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
         label: "Spellfire Flame",
         remaining: originResourceState.spellfireSparkSpellfireFlameRemaining,
         total: originResourceState.spellfireSparkSpellfireFlameTotal,
+        recovery: "longRest" as const
+      },
+      {
+        id: "feat-fairy-trickster-flustering-strike",
+        label: "Flustering Strike",
+        remaining: generalResourceState.fairyTricksterFlusteringStrikeRemaining,
+        total: generalResourceState.fairyTricksterFlusteringStrikeTotal,
         recovery: "longRest" as const
       },
       {
@@ -1136,6 +1174,7 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
     ],
     statuses: [
       ...getFightingStyleDerivedStatusEntries(normalizedFeats),
+      ...getDragonscarredResistanceStatusEntries(normalizedFeats, getFeatDescription),
       ...getBoonOfFuriousStormResistanceStatusEntries(normalizedFeats, getFeatDescription),
       ...getBoonOfSoulDrinkerResistanceStatusEntries(normalizedFeats, getFeatDescription),
       ...getEpicBoonDerivedStatusEntries(normalizedFeats, getFeatDescription)
@@ -1321,6 +1360,7 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
     hasCrafterDiscount: featSet.has(FEATS.CRAFTER),
     hasCultOfDragonInitiate: originResourceState.hasCultOfDragonInitiate,
     hasDefenseFightingStyle: hasDefenseFightingStyle(featSet),
+    hasFairyTrickster: generalResourceState.hasFairyTrickster,
     hasHealer: featSet.has(FEATS.HEALER),
     hasFeyTouched: featSet.has(FEATS.FEY_TOUCHED),
     hasBoonOfFate: epicBoonResourceState.hasBoonOfFate,
@@ -1351,6 +1391,10 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
       originResourceState.spellfireSparkSpellfireFlameRemaining,
     spellfireSparkSpellfireFlameTotal:
       originResourceState.spellfireSparkSpellfireFlameTotal,
+    fairyTricksterFlusteringStrikeRemaining:
+      generalResourceState.fairyTricksterFlusteringStrikeRemaining,
+    fairyTricksterFlusteringStrikeTotal:
+      generalResourceState.fairyTricksterFlusteringStrikeTotal,
     boonOfFateImproveFateRemaining: epicBoonResourceState.boonOfFateImproveFateRemaining,
     boonOfFateImproveFateTotal: epicBoonResourceState.boonOfFateImproveFateTotal,
     boonOfFluidFormsShapechangerRemaining:

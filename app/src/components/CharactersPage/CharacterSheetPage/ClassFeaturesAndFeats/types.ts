@@ -16,7 +16,9 @@ import type {
   Character,
   CharacterFeatEntry,
   CharacterFeatSource,
+  ColdCasterChoice,
   CultOfDragonInitiateChoice,
+  DragonscarredChoice,
   EmeraldEnclaveFledglingChoice,
   CrafterChoice,
   DruidicWarriorChoice,
@@ -308,6 +310,16 @@ export type PendingBlessedWarriorChoice = {
   cantripIds: [string, string];
 };
 
+export type PendingColdCasterChoice = {
+  ability: ColdCasterChoice["ability"];
+  cantripId: string;
+};
+
+export type PendingDragonscarredChoice = {
+  ability: DragonscarredChoice["ability"];
+  damageType: DragonscarredChoice["damageType"];
+};
+
 export type PendingDruidicWarriorChoice = {
   cantripIds: [string, string];
 };
@@ -407,6 +419,8 @@ export type PendingFeatState = {
   boonOfIrresistibleOffense: PendingBoonOfIrresistibleOffense | null;
   boonOfSkillChoice: PendingBoonOfSkillChoice | null;
   blessedWarriorChoice: PendingBlessedWarriorChoice | null;
+  coldCasterChoice: PendingColdCasterChoice | null;
+  dragonscarredChoice: PendingDragonscarredChoice | null;
   crafterChoice: PendingCrafterChoice | null;
   druidicWarriorChoice: PendingDruidicWarriorChoice | null;
   magicInitiateChoice: PendingMagicInitiateChoice | null;

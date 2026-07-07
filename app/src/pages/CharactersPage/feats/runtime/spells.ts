@@ -91,6 +91,12 @@ export function getFeatCantripEntries(entry: CharacterFeatEntry): SpellEntry[] {
     });
   }
 
+  if (entry.feat === FEATS.COLD_CASTER && entry.coldCaster) {
+    const cantrip = getSpellEntryById(entry.coldCaster.cantripId);
+
+    return cantrip?.spellLevel === 0 ? [cantrip] : [];
+  }
+
   return [];
 }
 

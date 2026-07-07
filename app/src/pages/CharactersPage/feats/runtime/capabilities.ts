@@ -390,10 +390,13 @@ export const featRuntimeCapabilityMatrix = {
     feat: FEATS.BOON_OF_TERROR,
     capabilities: ["abilityBonus", "choice", "proficiency", "reaction", "status"]
   },
-  [FEATS.COLD_CASTER]: { feat: FEATS.COLD_CASTER, capabilities: ["abilityBonus", "choice"] },
+  [FEATS.COLD_CASTER]: {
+    feat: FEATS.COLD_CASTER,
+    capabilities: ["abilityBonus", "choice", "spellGrant", "spellTransform"]
+  },
   [FEATS.DRAGONSCARRED]: {
     feat: FEATS.DRAGONSCARRED,
-    capabilities: ["abilityBonus", "choice"]
+    capabilities: ["abilityBonus", "actionCard", "choice", "status"]
   },
   [FEATS.ENCLAVE_MAGIC]: {
     feat: FEATS.ENCLAVE_MAGIC,
@@ -401,7 +404,7 @@ export const featRuntimeCapabilityMatrix = {
   },
   [FEATS.FAIRY_TRICKSTER]: {
     feat: FEATS.FAIRY_TRICKSTER,
-    capabilities: ["abilityBonus", "choice"]
+    capabilities: ["abilityBonus", "actionCard", "choice", "commonActionTransform", "restRecovery"]
   },
   [FEATS.GENIE_MAGIC]: {
     feat: FEATS.GENIE_MAGIC,
@@ -429,7 +432,7 @@ export const featRuntimeCapabilityMatrix = {
   },
   [FEATS.SPELLFIRE_ADEPT]: {
     feat: FEATS.SPELLFIRE_ADEPT,
-    capabilities: ["abilityBonus", "choice"]
+    capabilities: ["abilityBonus", "choice", "spellTransform"]
   },
   [FEATS.STREET_JUSTICE]: {
     feat: FEATS.STREET_JUSTICE,

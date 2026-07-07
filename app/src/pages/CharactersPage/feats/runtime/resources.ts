@@ -14,6 +14,7 @@ import {
   shadowTouchedInvisibilitySpellId,
   spellfireSparkSacredFlameSpellId,
   spellfireSparkSpellfireFlameSpellCastEffectId,
+  fairyTricksterFlusteringStrikeActionKey,
   telepathicDetectThoughtsSpellId
 } from "./constants";
 import { getFeatItemAdditionalDescription } from "./itemAdditions";
@@ -96,6 +97,31 @@ export function getCultOfDragonInitiateInspiredByFearStateForCharacter(
   };
 }
 
+export function getFairyTricksterFlusteringStrikeStateForCharacter(
+  character: FeatRuntimeCharacter
+): {
+  available: boolean;
+  expended: boolean;
+  usesRemaining: number;
+  usesTotal: number;
+} | null {
+  const derivedState = collectFeatDerivedState(character);
+
+  if (
+    !derivedState.hasFairyTrickster ||
+    derivedState.fairyTricksterFlusteringStrikeTotal <= 0
+  ) {
+    return null;
+  }
+
+  return {
+    available: derivedState.fairyTricksterFlusteringStrikeRemaining > 0,
+    expended: derivedState.fairyTricksterFlusteringStrikeRemaining <= 0,
+    usesRemaining: derivedState.fairyTricksterFlusteringStrikeRemaining,
+    usesTotal: derivedState.fairyTricksterFlusteringStrikeTotal
+  };
+}
+
 export function spendCultOfDragonInitiateInspiredByFearForCharacter(
   character: Character
 ): Character {
@@ -131,6 +157,87 @@ export function spendCultOfDragonInitiateInspiredByFearForCharacter(
   });
 
   return didSpendInspiredByFear
+    ? {
+        ...character,
+        feats
+      }
+    : character;
+}
+
+export function spendFairyTricksterFlusteringStrikeForCharacter(
+  character: Character
+): Character {
+  const derivedState = collectFeatDerivedState(character);
+  let didSpendFlusteringStrike = false;
+
+  if (
+    !derivedState.hasFairyTrickster ||
+    derivedState.fairyTricksterFlusteringStrikeRemaining <= 0
+  ) {
+    return character;
+  }
+
+  const feats = derivedState.normalizedFeats.map((entry) => {
+    if (didSpendFlusteringStrike || entry.feat !== FEATS.FAIRY_TRICKSTER) {
+      return entry;
+    }
+
+    const currentExpended = Math.max(
+      0,
+      Math.floor(entry.fairyTrickster?.flusteringStrikeExpended ?? 0)
+    );
+
+    if (currentExpended >= derivedState.fairyTricksterFlusteringStrikeTotal) {
+      return entry;
+    }
+
+    didSpendFlusteringStrike = true;
+
+    return {
+      ...entry,
+      fairyTrickster: {
+        ...(entry.fairyTrickster ?? {}),
+        flusteringStrikeExpended: currentExpended + 1
+      }
+    };
+  });
+
+  return didSpendFlusteringStrike
+    ? {
+        ...character,
+        feats
+      }
+    : character;
+}
+
+export function restoreFairyTricksterFlusteringStrikeForCharacter(
+  character: Character
+): Character {
+  const derivedState = collectFeatDerivedState(character);
+  let didRestoreFlusteringStrike = false;
+
+  if (!derivedState.hasFairyTrickster) {
+    return character;
+  }
+
+  const feats = derivedState.normalizedFeats.map((entry) => {
+    if (
+      entry.feat !== FEATS.FAIRY_TRICKSTER ||
+      !entry.fairyTrickster ||
+      !entry.fairyTrickster.flusteringStrikeExpended
+    ) {
+      return entry;
+    }
+
+    didRestoreFlusteringStrike = true;
+
+    return {
+      ...entry,
+      fairyTrickster: undefined
+    };
+  });
+
+  return didRestoreFlusteringStrike
     ? {
         ...character,
         feats
@@ -1567,4 +1674,15 @@ export function resetLuckyPointForCharacter(character: Character): Character {
 
 export function restoreLuckyPointsForCharacter(character: Character): Character {
   return setLuckyPointsExpendedForCharacter(character, () => 0);
+}
+
+export function activateFeatActionForCharacter(
+  character: Character,
+  actionKey: string
+): Character {
+  if (actionKey === fairyTricksterFlusteringStrikeActionKey) {
+    return spendFairyTricksterFlusteringStrikeForCharacter(character);
+  }
+
+  return character;
 }

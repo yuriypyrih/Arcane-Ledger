@@ -21,9 +21,11 @@ import {
   isBoonOfIrresistibleOffenseDescriptionEntry,
   isBoonOfRevelryIrresistibleDanceDescriptionEntry,
   isBoonOfSpellRecallFreeCastingDescriptionEntry,
+  isColdCasterFrostbiteDescriptionEntry,
   isEmeraldEnclaveFledglingSpeakWithAnimalsDescriptionEntry,
   isPiercerWeaponActionDescriptionEntry,
   isPoisonerPotentPoisonDescriptionEntry,
+  isSpellfireAdeptSpellfireDescriptionEntry,
   isSpellfireSparkSpellfireFlameDescriptionEntry,
   isSpellSniperDescriptionEntry,
   isTelekineticMinorTelekinesisDescriptionEntry,
@@ -139,6 +141,38 @@ export function transformFeatSpellEntryForEntries(
         `Elemental Adept: Energy Mastery (${formatCodexLabel(entry.elementalAdept.damageType)})`,
         [elementalAdeptEnergyMasteryDescription]
       );
+    }
+
+    if (
+      entry.feat === FEATS.COLD_CASTER &&
+      doesSpellDealDamageType(currentSpell, DAMAGE_TYPE.COLD)
+    ) {
+      const description = getFeatDescriptionSlice(
+        FEATS.COLD_CASTER,
+        isColdCasterFrostbiteDescriptionEntry
+      );
+
+      return description.length > 0
+        ? appendSourcedDescriptionAddition(currentSpell, "Cold Caster", description)
+        : currentSpell;
+    }
+
+    if (
+      entry.feat === FEATS.SPELLFIRE_ADEPT &&
+      doesSpellDealDamageType(currentSpell, DAMAGE_TYPE.RADIANT)
+    ) {
+      const description = getFeatDescriptionSlice(
+        FEATS.SPELLFIRE_ADEPT,
+        isSpellfireAdeptSpellfireDescriptionEntry
+      );
+
+      return description.length > 0
+        ? appendSourcedDescriptionAddition(
+            currentSpell,
+            getFeatLabel(FEATS.SPELLFIRE_ADEPT),
+            description
+          )
+        : currentSpell;
     }
 
     if (

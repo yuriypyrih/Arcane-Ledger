@@ -17,8 +17,10 @@ import type {
   AbilityKey,
   BlessedWarriorChoice,
   CharacterFeatEntry,
+  ColdCasterChoice,
   CrusherChoice,
   CultOfDragonInitiateChoice,
+  DragonscarredChoice,
   DualWielderChoice,
   ElementalAdeptChoice,
   EmeraldEnclaveFledglingChoice,
@@ -81,6 +83,9 @@ import {
 import { getPurpleDragonRookChoiceSummary } from "./purpleDragonRook";
 import {
   boonOfEnergyResistanceDamageTypeOptions,
+  coldCasterAbilityOptions,
+  dragonscarredAbilityOptions,
+  dragonscarredDamageTypeOptions,
   emeraldEnclaveFledglingSpellcastingAbilityOptions,
   elementalAdeptAbilityOptions,
   elementalAdeptDamageTypeOptions,
@@ -119,6 +124,7 @@ import {
 
 const abilityKeySet = new Set<AbilityKey>(abilityKeys);
 const skillNameSet = new Set<SkillName>(ALL_SKILLS);
+export const coldCasterRayOfFrostSpellId = "spell-ray-of-frost";
 
 function normalizeFeatSpellId(value: string): string {
   return value.trim();
@@ -136,10 +142,19 @@ const druidicWarriorCantripOptions = getSpellEntriesForSpellListClass(
 const druidicWarriorCantripOptionsById = new Map(
   druidicWarriorCantripOptions.map((spell) => [spell.id, spell] as const)
 );
+const coldCasterWizardCantripOptions = getSpellEntriesForSpellListClass(
+  SPELL_LIST_CLASS.WIZARD
+).filter((spell) => spell.spellLevel === 0);
+const coldCasterWizardCantripOptionsById = new Map(
+  coldCasterWizardCantripOptions.map((spell) => [spell.id, spell] as const)
+);
 const magicInitiateSpellListOptionSet = new Set<SPELL_LIST_CLASS>(magicInitiateSpellListOptions);
 const magicInitiateSpellcastingAbilityOptionSet = new Set<AbilityKey>(
   magicInitiateSpellcastingAbilityOptions
 );
+const coldCasterAbilityOptionSet = new Set<AbilityKey>(coldCasterAbilityOptions);
+const dragonscarredAbilityOptionSet = new Set<AbilityKey>(dragonscarredAbilityOptions);
+const dragonscarredDamageTypeOptionSet = new Set<DAMAGE_TYPE>(dragonscarredDamageTypeOptions);
 const emeraldEnclaveFledglingSpellcastingAbilityOptionSet = new Set<AbilityKey>(
   emeraldEnclaveFledglingSpellcastingAbilityOptions
 );
@@ -390,6 +405,51 @@ export function normalizeChargerChoice(value: unknown): ChargerChoice | undefine
   if (record.ability === "STR" || record.ability === "DEX") {
     return {
       ability: record.ability
+    };
+  }
+
+  return undefined;
+}
+
+export function normalizeColdCasterChoice(value: unknown): ColdCasterChoice | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const record = value as Partial<ColdCasterChoice>;
+  const cantripId =
+    typeof record.cantripId === "string" ? normalizeFeatSpellId(record.cantripId) : "";
+
+  if (
+    typeof record.ability === "string" &&
+    coldCasterAbilityOptionSet.has(record.ability as AbilityKey) &&
+    coldCasterWizardCantripOptionsById.has(cantripId)
+  ) {
+    return {
+      ability: record.ability as ColdCasterChoice["ability"],
+      cantripId
+    };
+  }
+
+  return undefined;
+}
+
+export function normalizeDragonscarredChoice(value: unknown): DragonscarredChoice | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const record = value as Partial<DragonscarredChoice>;
+
+  if (
+    typeof record.ability === "string" &&
+    typeof record.damageType === "string" &&
+    dragonscarredAbilityOptionSet.has(record.ability as AbilityKey) &&
+    dragonscarredDamageTypeOptionSet.has(record.damageType as DAMAGE_TYPE)
+  ) {
+    return {
+      ability: record.ability as DragonscarredChoice["ability"],
+      damageType: record.damageType as DragonscarredChoice["damageType"]
     };
   }
 
@@ -1484,6 +1544,20 @@ export function getChargerChoiceSummary(choice?: ChargerChoice): string | null {
   return choice ? `${choice.ability} +1` : null;
 }
 
+export function getColdCasterChoiceSummary(choice?: ColdCasterChoice): string | null {
+  if (!choice) {
+    return null;
+  }
+
+  const cantripName = coldCasterWizardCantripOptionsById.get(choice.cantripId)?.name;
+
+  return cantripName ? `${choice.ability} +1, ${cantripName}` : `${choice.ability} +1`;
+}
+
+export function getDragonscarredChoiceSummary(choice?: DragonscarredChoice): string | null {
+  return choice ? `${choice.ability} +1, ${formatCodexLabel(choice.damageType)} Resistance` : null;
+}
+
 export function getChefChoiceSummary(choice?: ChefChoice): string | null {
   return choice ? `${choice.ability} +1` : null;
 }
@@ -1759,6 +1833,14 @@ export function getCharacterFeatSummary(entry: CharacterFeatEntry): string | nul
     return getChargerChoiceSummary(entry.charger);
   }
 
+  if (entry.feat === FEATS.COLD_CASTER) {
+    return getColdCasterChoiceSummary(entry.coldCaster);
+  }
+
+  if (entry.feat === FEATS.DRAGONSCARRED) {
+    return getDragonscarredChoiceSummary(entry.dragonscarred);
+  }
+
   if (entry.feat === FEATS.CHEF) {
     return getChefChoiceSummary(entry.chef);
   }
@@ -1916,6 +1998,10 @@ export function getBlessedWarriorCantripOptions(): SpellEntry[] {
 
 export function getDruidicWarriorCantripOptions(): SpellEntry[] {
   return druidicWarriorCantripOptions;
+}
+
+export function getColdCasterCantripOptions(): SpellEntry[] {
+  return coldCasterWizardCantripOptions;
 }
 
 export function getMagicInitiateCantripOptions(

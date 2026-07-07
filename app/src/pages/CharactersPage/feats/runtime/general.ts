@@ -6,8 +6,10 @@ import {
 } from "../../../../codex/entries";
 import type { CharacterFeatEntry } from "../../../../types";
 import type { FeatureActionCard, FeatureSpeedBonus } from "../../classFeatures/types";
+import { getProficiencyBonus } from "../../gameplay";
 import {
   createDurableSpeedyRecoveryAction,
+  createFairyTricksterFlusteringStrikeAction,
   createTelekineticShoveAction
 } from "./actions";
 import {
@@ -20,6 +22,7 @@ import {
   filterDescriptionEntries,
   isDefensiveDuelistParryDescriptionEntry,
   isDurableSpeedyRecoveryDescriptionEntry,
+  isFairyTricksterFlusteringStrikeDescriptionEntry,
   isPolearmMasterReactiveStrikeDescriptionEntry,
   isShieldMasterInterposeShieldDescriptionEntry,
   isTelekineticShoveDescriptionEntry,
@@ -34,9 +37,12 @@ type FeatDescriptionSliceGetter = (
 ) => SpellDescriptionEntry[];
 
 export type GeneralFeatResourceState = {
+  hasFairyTrickster: boolean;
   hasMageSlayer: boolean;
   hasRitualCaster: boolean;
   hasTelepathic: boolean;
+  fairyTricksterFlusteringStrikeRemaining: number;
+  fairyTricksterFlusteringStrikeTotal: number;
   mageSlayerGuardedMindRemaining: number;
   mageSlayerGuardedMindTotal: number;
   ritualCasterQuickRitualRemaining: number;
@@ -48,8 +54,25 @@ export type GeneralFeatResourceState = {
 export function getGeneralFeatResourceState(
   normalizedFeats: CharacterFeatEntry[],
   featSet: ReadonlySet<FEATS>,
+  level: number,
   telepathicDetectThoughtsFreeCastEntries: FeatDerivedState["telepathicDetectThoughtsFreeCastEntries"]
 ): GeneralFeatResourceState {
+  const fairyTricksterFlusteringStrikeTotal = featSet.has(FEATS.FAIRY_TRICKSTER)
+    ? getProficiencyBonus(level)
+    : 0;
+  const fairyTricksterFlusteringStrikeExpended = Math.max(
+    0,
+    Math.min(
+      fairyTricksterFlusteringStrikeTotal,
+      normalizedFeats.reduce(
+        (total, entry) =>
+          entry.feat === FEATS.FAIRY_TRICKSTER
+            ? total + (entry.fairyTrickster?.flusteringStrikeExpended ?? 0)
+            : total,
+        0
+      )
+    )
+  );
   const mageSlayerGuardedMindTotal = featSet.has(FEATS.MAGE_SLAYER) ? 1 : 0;
   const mageSlayerGuardedMindExpended = normalizedFeats.some(
     (entry) => entry.feat === FEATS.MAGE_SLAYER && entry.mageSlayer?.guardedMindExpended === true
@@ -67,9 +90,15 @@ export function getGeneralFeatResourceState(
   ).length;
 
   return {
+    hasFairyTrickster: featSet.has(FEATS.FAIRY_TRICKSTER),
     hasMageSlayer: featSet.has(FEATS.MAGE_SLAYER),
     hasRitualCaster: featSet.has(FEATS.RITUAL_CASTER),
     hasTelepathic: featSet.has(FEATS.TELEPATHIC),
+    fairyTricksterFlusteringStrikeRemaining: Math.max(
+      0,
+      fairyTricksterFlusteringStrikeTotal - fairyTricksterFlusteringStrikeExpended
+    ),
+    fairyTricksterFlusteringStrikeTotal,
     mageSlayerGuardedMindRemaining:
       mageSlayerGuardedMindTotal > 0 && !mageSlayerGuardedMindExpended ? 1 : 0,
     mageSlayerGuardedMindTotal,
@@ -185,6 +214,9 @@ export function getGeneralFeatActionsForCharacter(
   const telekineticEntry = derivedState.normalizedFeats.find(
     (entry) => entry.feat === FEATS.TELEKINETIC && entry.telekinetic
   );
+  const fairyTricksterEntry = derivedState.normalizedFeats.find(
+    (entry) => entry.feat === FEATS.FAIRY_TRICKSTER
+  );
 
   if (telekineticEntry?.telekinetic) {
     actions.push(
@@ -193,6 +225,22 @@ export function getGeneralFeatActionsForCharacter(
         telekineticEntry.telekinetic.ability,
         derivedState.normalizedFeats,
         getFeatDescriptionSlice(FEATS.TELEKINETIC, isTelekineticShoveDescriptionEntry)
+      )
+    );
+  }
+
+  if (derivedState.hasFairyTrickster) {
+    actions.push(
+      createFairyTricksterFlusteringStrikeAction(
+        character,
+        fairyTricksterEntry?.epicBoonAbilityChoice?.ability ?? "DEX",
+        derivedState.normalizedFeats,
+        derivedState.fairyTricksterFlusteringStrikeRemaining,
+        derivedState.fairyTricksterFlusteringStrikeTotal,
+        getFeatDescriptionSlice(
+          FEATS.FAIRY_TRICKSTER,
+          isFairyTricksterFlusteringStrikeDescriptionEntry
+        )
       )
     );
   }

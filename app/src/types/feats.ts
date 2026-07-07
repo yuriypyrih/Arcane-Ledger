@@ -86,6 +86,25 @@ export type ChefChoice = {
   ability: "CON" | "WIS";
 };
 
+export type ColdCasterChoice = {
+  ability: "INT" | "WIS" | "CHA";
+  cantripId: string;
+};
+
+export type DragonscarredChoice = {
+  ability: "CON" | "CHA";
+  damageType:
+    | DAMAGE_TYPE.ACID
+    | DAMAGE_TYPE.COLD
+    | DAMAGE_TYPE.FIRE
+    | DAMAGE_TYPE.LIGHTNING
+    | DAMAGE_TYPE.POISON;
+};
+
+export type FairyTricksterState = {
+  flusteringStrikeExpended?: number;
+};
+
 export type CrusherChoice = {
   ability: "STR" | "CON";
 };
@@ -325,6 +344,8 @@ export type CharacterFeatEntry = {
   athlete?: AthleteChoice;
   charger?: ChargerChoice;
   chef?: ChefChoice;
+  coldCaster?: ColdCasterChoice;
+  dragonscarred?: DragonscarredChoice;
   crusher?: CrusherChoice;
   dualWielder?: DualWielderChoice;
   elementalAdept?: ElementalAdeptChoice;
@@ -363,6 +384,7 @@ export type CharacterFeatEntry = {
   spellfireSpark?: SpellfireSparkChoice;
   harperAgent?: HarperAgentChoice;
   purpleDragonRook?: PurpleDragonRookChoice;
+  fairyTrickster?: FairyTricksterState;
   musician?: MusicianChoice;
   crafter?: CrafterChoice;
   boonOfEnergyResistance?: BoonOfEnergyResistanceChoice;

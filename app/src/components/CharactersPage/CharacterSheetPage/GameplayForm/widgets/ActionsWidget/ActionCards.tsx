@@ -16,7 +16,6 @@ import {
   resolveActionCardTheme
 } from "../../../../../../pages/CharactersPage/actionCardTheme";
 import {
-  createEconomyMultiContextForFeatureAction,
   createEconomyMultiContextForFeatureActionOption,
   getSharedEconomyMultiCountForCharacterAction
 } from "../../../../../../pages/CharactersPage/classFeatures";
@@ -32,6 +31,7 @@ import {
   resolveKeywordReference,
   type ResolvedKeywordReference
 } from "../../../../../../utils/codex/renderCodexRichText";
+import { getFeatureActionPathStates } from "./featureActionEconomy";
 import { getWeaponAttackPathStates } from "./weaponActionEconomy";
 import { ActionCardThemeTexture, getActionCardThemeClassNames } from "./actionCardThemeStyles";
 import styles from "./ActionCards.module.css";
@@ -220,18 +220,13 @@ export function FeatureActionCardButton({
   roundTracker,
   onClick
 }: FeatureActionCardButtonProps) {
-  const actionShape = getActionShapeForEconomyType(action.economyType);
-  const sharedEconomyMultiCount = getSharedEconomyMultiCountForCharacterAction(
-    character,
-    createEconomyMultiContextForFeatureAction(action)
-  );
-  const economyShapeState = getEconomyShapeState(
-    action.economyType,
-    roundTracker,
-    (action.economyMultiCount ?? 0) + sharedEconomyMultiCount
-  );
+  const actionPaths = getFeatureActionPathStates(character, action, roundTracker);
+  const primaryPath = actionPaths[0] ?? null;
+  const hasAlternatePath = actionPaths.length > 1;
   const isUnavailable =
-    action.disabled === true || (!action.ignoreEconomyAvailability && !economyShapeState.isUsable);
+    action.disabled === true ||
+    (!action.ignoreEconomyAvailability && actionPaths.every((path) => !path.shapeState.isUsable));
+  const hasAdditionalPathUses = actionPaths.some((path) => path.additionalUseCount > 0);
   const cardTheme = resolveActionCardTheme(action);
 
   return (
@@ -242,7 +237,7 @@ export function FeatureActionCardButton({
         styles.actionCard,
         getActionCardThemeClassNames(cardTheme),
         isUnavailable && styles.actionCardUnavailable,
-        economyShapeState.multiCount > 0 && styles.actionCardMulti,
+        hasAdditionalPathUses && styles.actionCardMulti,
         styles.featureButton,
         action.isActive && styles.featureButtonActive
       )}
@@ -250,12 +245,44 @@ export function FeatureActionCardButton({
       onClick={() => onClick(action)}
     >
       <ActionCardThemeTexture theme={cardTheme} />
-      {actionShape ? (
+      {hasAlternatePath ? (
+        <span className={styles.shapeBadgeRow} aria-hidden="true">
+          {actionPaths.map((path) => {
+            const actionShape = getActionShapeForEconomyType(path.economyType);
+
+            if (!actionShape) {
+              return null;
+            }
+
+            return (
+              <span key={`${action.key}-${path.id}`} className={styles.shapeBadgeMeta}>
+                <span
+                  className={clsx(
+                    styles.shapeBadge,
+                    path.id === "secondary" && styles.shapeBadgeSecondary
+                  )}
+                >
+                  <ActionShape
+                    shape={actionShape}
+                    isSelected={path.shapeState.isAvailable}
+                    multiCount={path.shapeState.multiCount}
+                    showMultiCountLabel={false}
+                    size="small"
+                  />
+                </span>
+                {path.additionalUseCount > 0 ? (
+                  <span className={styles.shapeBadgeCount}>{`x${path.totalUseCount}`}</span>
+                ) : null}
+              </span>
+            );
+          })}
+        </span>
+      ) : primaryPath && getActionShapeForEconomyType(primaryPath.economyType) ? (
         <span className={styles.shapeBadge} aria-hidden="true">
           <ActionShape
-            shape={actionShape}
-            isSelected={economyShapeState.isAvailable}
-            multiCount={economyShapeState.multiCount}
+            shape={getActionShapeForEconomyType(primaryPath.economyType)!}
+            isSelected={primaryPath.shapeState.isAvailable}
+            multiCount={primaryPath.shapeState.multiCount}
             size="small"
           />
         </span>

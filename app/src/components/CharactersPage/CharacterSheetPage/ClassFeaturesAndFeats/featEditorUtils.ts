@@ -2,6 +2,8 @@ import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { DAMAGE_TYPE, FEATS, type SpellEntry } from "../../../../codex/entries";
 import {
   boonOfEnergyResistanceDamageTypeOptions,
+  dragonscarredAbilityOptions,
+  dragonscarredDamageTypeOptions,
   elementalAdeptAbilityOptions,
   elementalAdeptDamageTypeOptions,
   feyTouchedAbilityOptions,
@@ -42,8 +44,13 @@ import {
   getChefChoiceSummary,
   getCharacterFeatSourceLabel,
   getCharacterFeatSummary,
+  coldCasterAbilityOptions,
+  coldCasterRayOfFrostSpellId,
+  getColdCasterCantripOptions,
+  getColdCasterChoiceSummary,
   getCrusherChoiceSummary,
   getDualWielderChoiceSummary,
+  getDragonscarredChoiceSummary,
   getEmeraldEnclaveFledglingChoiceSummary,
   getElementalAdeptChoiceSummary,
   getFeyTouchedChoiceSummary,
@@ -121,8 +128,10 @@ import type {
   CharacterFeatEntry,
   ChargerChoice,
   ChefChoice,
+  ColdCasterChoice,
   CrusherChoice,
   CultOfDragonInitiateChoice,
+  DragonscarredChoice,
   DualWielderChoice,
   ElementalAdeptChoice,
   EmeraldEnclaveFledglingChoice,
@@ -174,7 +183,9 @@ import type {
   PendingBoonOfSkillChoice,
   PendingChargerChoice,
   PendingChefChoice,
+  PendingColdCasterChoice,
   PendingCrusherChoice,
+  PendingDragonscarredChoice,
   PendingDualWielderChoice,
   PendingElementalAdeptChoice,
   PendingCrafterChoice,
@@ -356,6 +367,8 @@ export function createEmptyPendingFeatState(): PendingFeatState {
     boonOfIrresistibleOffense: null,
     boonOfSkillChoice: null,
     blessedWarriorChoice: null,
+    coldCasterChoice: null,
+    dragonscarredChoice: null,
     crafterChoice: null,
     druidicWarriorChoice: null,
     magicInitiateChoice: null,
@@ -407,6 +420,31 @@ export function createDefaultPendingAthleteChoice(): PendingAthleteChoice {
 export function createDefaultPendingChargerChoice(): PendingChargerChoice {
   return {
     ability: "STR"
+  };
+}
+
+export function createDefaultPendingColdCasterChoice(
+  knowsRayOfFrost: boolean
+): PendingColdCasterChoice {
+  const fallbackCantrip =
+    getColdCasterCantripOptions().find((spell) =>
+      knowsRayOfFrost
+        ? spell.id !== coldCasterRayOfFrostSpellId
+        : spell.id === coldCasterRayOfFrostSpellId
+    )?.id ??
+    getColdCasterCantripOptions()[0]?.id ??
+    "";
+
+  return {
+    ability: "INT",
+    cantripId: fallbackCantrip
+  };
+}
+
+export function createDefaultPendingDragonscarredChoice(): PendingDragonscarredChoice {
+  return {
+    ability: "CON",
+    damageType: DAMAGE_TYPE.ACID
   };
 }
 
@@ -710,6 +748,7 @@ export function createDefaultPendingSkilledChoice(): PendingSkilledChoice {
 export function createPendingFeatStateForFeat(
   feat: FEATS,
   options: {
+    coldCasterKnowsRayOfFrost?: boolean;
     languageProficiencies?: readonly LanguageProficiencyEntry[];
     editingFeatEntryId?: string | null;
   } = {}
@@ -746,6 +785,22 @@ export function createPendingFeatStateForFeat(
     return {
       ...createEmptyPendingFeatState(),
       chargerChoice: createDefaultPendingChargerChoice()
+    };
+  }
+
+  if (feat === FEATS.COLD_CASTER) {
+    return {
+      ...createEmptyPendingFeatState(),
+      coldCasterChoice: createDefaultPendingColdCasterChoice(
+        options.coldCasterKnowsRayOfFrost === true
+      )
+    };
+  }
+
+  if (feat === FEATS.DRAGONSCARRED) {
+    return {
+      ...createEmptyPendingFeatState(),
+      dragonscarredChoice: createDefaultPendingDragonscarredChoice()
     };
   }
 
@@ -1151,6 +1206,26 @@ export function createPendingFeatStateForEntry(entry: CharacterFeatEntry): Pendi
       ...createEmptyPendingFeatState(),
       chargerChoice: {
         ability: entry.charger.ability
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.COLD_CASTER && entry.coldCaster) {
+    return {
+      ...createEmptyPendingFeatState(),
+      coldCasterChoice: {
+        ability: entry.coldCaster.ability,
+        cantripId: entry.coldCaster.cantripId
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.DRAGONSCARRED && entry.dragonscarred) {
+    return {
+      ...createEmptyPendingFeatState(),
+      dragonscarredChoice: {
+        ability: entry.dragonscarred.ability,
+        damageType: entry.dragonscarred.damageType
       }
     };
   }
@@ -1639,6 +1714,77 @@ export function decodePendingChargerChoice(choice: PendingChargerChoice): Charge
 
 export function getPendingChargerChoiceSummary(choice: PendingChargerChoice): string | null {
   return getChargerChoiceSummary(decodePendingChargerChoice(choice) ?? undefined);
+}
+
+export function decodePendingColdCasterChoice(
+  choice: PendingColdCasterChoice,
+  knowsRayOfFrost = true
+): ColdCasterChoice | null {
+  const hasValidAbility = coldCasterAbilityOptions.includes(choice.ability);
+  const hasValidCantrip = getColdCasterCantripOptions().some(
+    (spell) => spell.id === choice.cantripId
+  );
+
+  if (!hasValidAbility || !hasValidCantrip) {
+    return null;
+  }
+
+  if (!knowsRayOfFrost && choice.cantripId !== coldCasterRayOfFrostSpellId) {
+    return null;
+  }
+
+  if (knowsRayOfFrost && choice.cantripId === coldCasterRayOfFrostSpellId) {
+    return null;
+  }
+
+  return {
+    ability: choice.ability,
+    cantripId: choice.cantripId
+  };
+}
+
+export function isPendingColdCasterChoiceValid(
+  choice: PendingColdCasterChoice,
+  knowsRayOfFrost: boolean
+): boolean {
+  return decodePendingColdCasterChoice(choice, knowsRayOfFrost) !== null;
+}
+
+export function getPendingColdCasterChoiceSummary(
+  choice: PendingColdCasterChoice,
+  knowsRayOfFrost = true
+): string | null {
+  return getColdCasterChoiceSummary(
+    decodePendingColdCasterChoice(choice, knowsRayOfFrost) ?? undefined
+  );
+}
+
+export function decodePendingDragonscarredChoice(
+  choice: PendingDragonscarredChoice
+): DragonscarredChoice | null {
+  if (
+    !dragonscarredAbilityOptions.includes(choice.ability) ||
+    !dragonscarredDamageTypeOptions.includes(choice.damageType)
+  ) {
+    return null;
+  }
+
+  return {
+    ability: choice.ability,
+    damageType: choice.damageType
+  };
+}
+
+export function isPendingDragonscarredChoiceValid(
+  choice: PendingDragonscarredChoice
+): boolean {
+  return decodePendingDragonscarredChoice(choice) !== null;
+}
+
+export function getPendingDragonscarredChoiceSummary(
+  choice: PendingDragonscarredChoice
+): string | null {
+  return getDragonscarredChoiceSummary(decodePendingDragonscarredChoice(choice) ?? undefined);
 }
 
 export function decodePendingChefChoice(choice: PendingChefChoice): ChefChoice | null {

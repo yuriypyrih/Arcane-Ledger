@@ -17,12 +17,24 @@ export function isChargerChargeAttackDescriptionEntry(entry: string): boolean {
   return entry.startsWith("<strong>Charge Attack.</strong>");
 }
 
+export function isColdCasterFrostbiteDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Frostbite.</strong>");
+}
+
 export function isCultOfDragonInitiateDragonsTerrorDescriptionEntry(entry: string): boolean {
   return entry.startsWith("<strong>Dragon's Terror.</strong>");
 }
 
 export function isCultOfDragonInitiateInspiredByFearDescriptionEntry(entry: string): boolean {
   return entry.startsWith("<strong>Inspired by Fear.</strong>");
+}
+
+export function isDragonscarredDamageResistanceDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Damage Resistance.</strong>");
+}
+
+export function isDragonscarredFearsomePowerDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Fearsome Power.</strong>");
 }
 
 export function isEmeraldEnclaveFledglingSpeakWithAnimalsDescriptionEntry(
@@ -33,6 +45,17 @@ export function isEmeraldEnclaveFledglingSpeakWithAnimalsDescriptionEntry(
 
 export function isEmeraldEnclaveFledglingTagTeamDescriptionEntry(entry: string): boolean {
   return entry.startsWith("<strong>Tag Team.</strong>");
+}
+
+export function isFairyTricksterFlusteringStrikeDescriptionEntry(entry: string): boolean {
+  return (
+    entry.startsWith("<strong>Flustering Strike.</strong>") ||
+    entry.startsWith("You can use this benefit a number of times equal to your Proficiency Bonus")
+  );
+}
+
+export function isFairyTricksterFaerieTrodTrotterDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Faerie Trod Trotter.</strong>");
 }
 
 export function isHarperAgentDistractingMelodyDescriptionEntry(entry: string): boolean {
@@ -52,6 +75,13 @@ export function isSpellfireSparkMagicAbsorptionDescriptionEntry(entry: string): 
 
 export function isSpellfireSparkSpellfireFlameDescriptionEntry(entry: string): boolean {
   return entry.startsWith("<strong>Spellfire Flame.</strong>");
+}
+
+export function isSpellfireAdeptSpellfireDescriptionEntry(entry: string): boolean {
+  return (
+    entry.startsWith("<strong>Fueled Spellfire.</strong>") ||
+    entry.startsWith("<strong>Searing Spellfire.</strong>")
+  );
 }
 
 export function isTyroOfTheGauntletStandAsOneDescriptionEntry(entry: string): boolean {

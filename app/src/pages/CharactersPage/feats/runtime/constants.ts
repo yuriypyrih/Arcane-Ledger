@@ -53,6 +53,8 @@ export const boonOfFluidFormsShapechangerStatusSourceId =
 export const boonOfRecoveryRecoverVitalityActionKey =
   "feat-boon-of-recovery-recover-vitality";
 export const durableSpeedyRecoveryActionKey = "feat-durable-speedy-recovery";
+export const fairyTricksterFlusteringStrikeActionKey =
+  "feat-fairy-trickster-flustering-strike";
 export const telekineticShoveActionKey = "feat-telekinetic-shove";
 
 export const feyTouchedMistyStepSpellId = "spell-misty-step";

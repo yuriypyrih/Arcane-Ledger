@@ -245,6 +245,7 @@ function EldritchInvocationLessonsFeatEditor({
         editingFeatEntryId={null}
         pendingFeatState={pendingFeatState}
         blessedWarriorCantripOptions={[]}
+        coldCasterKnowsRayOfFrost={false}
         druidicWarriorCantripOptions={[]}
         hideFooter
         renderTrackingButton={renderTrackingButton}
@@ -294,6 +295,8 @@ function EldritchInvocationLessonsFeatEditor({
         onSavePendingBoonOfIrresistibleOffense={noopSavePendingChoice}
         onSavePendingBoonOfSkillChoice={noopSavePendingChoice}
         onSavePendingBlessedWarriorChoice={noopSavePendingChoice}
+        onSavePendingColdCasterChoice={noopSavePendingChoice}
+        onSavePendingDragonscarredChoice={noopSavePendingChoice}
         onSavePendingCultOfDragonInitiateChoice={
           savePendingCultOfDragonInitiateChoice
         }

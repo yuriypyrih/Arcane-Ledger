@@ -358,6 +358,7 @@ import {
   restoreBoonOfSoulDrinkerSiphonLifeForCharacter,
   restoreBoonOfTerrorFleeFoolsForCharacter,
   restoreCultOfDragonInitiateInspiredByFearForCharacter,
+  restoreFairyTricksterFlusteringStrikeForCharacter,
   restoreFeyTouchedFreeCastsForCharacter,
   restoreLuckyPointsForCharacter,
   restoreMageSlayerGuardedMindForCharacter,
@@ -429,6 +430,9 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const cultOfDragonInitiateInspiredByFearIsFull =
     featDerivedState.cultOfDragonInitiateInspiredByFearRemaining >=
     featDerivedState.cultOfDragonInitiateInspiredByFearTotal;
+  const fairyTricksterFlusteringStrikeIsFull =
+    featDerivedState.fairyTricksterFlusteringStrikeRemaining >=
+    featDerivedState.fairyTricksterFlusteringStrikeTotal;
   const purpleDragonRookRallyingCryIsFull =
     featDerivedState.purpleDragonRookRallyingCryRemaining >=
     featDerivedState.purpleDragonRookRallyingCryTotal;
@@ -1032,6 +1036,21 @@ export function createLongRestOptions(character: Character): RestOption[] {
             disabled: cultOfDragonInitiateInspiredByFearIsFull,
             apply: (currentCharacter: Character) =>
               restoreCultOfDragonInitiateInspiredByFearForCharacter(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(featDerivedState.hasFairyTrickster
+      ? [
+          {
+            id: "restore-fairy-trickster-flustering-strike",
+            label: "Restore Flustering Strike",
+            charges: {
+              current: featDerivedState.fairyTricksterFlusteringStrikeRemaining,
+              total: featDerivedState.fairyTricksterFlusteringStrikeTotal
+            },
+            disabled: fairyTricksterFlusteringStrikeIsFull,
+            apply: (currentCharacter: Character) =>
+              restoreFairyTricksterFlusteringStrikeForCharacter(currentCharacter)
           } satisfies RestOption
         ]
       : []),

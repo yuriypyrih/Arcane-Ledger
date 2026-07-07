@@ -312,6 +312,7 @@ export type FeatureActionCard = {
   breakdown?: string;
   breakdownTone?: "default" | "danger";
   economyType: EconomyType;
+  alternateEconomyTypes?: EconomyType[];
   actionCategory: ActionCategory;
   economyMultiCount?: number;
   usesLabel?: string;

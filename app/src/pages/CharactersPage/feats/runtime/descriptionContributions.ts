@@ -21,6 +21,7 @@ import {
   isDualWielderEnhancedDualWieldingDescriptionEntry,
   isDuelingWeaponActionDescriptionEntry,
   isEmeraldEnclaveFledglingTagTeamDescriptionEntry,
+  isFairyTricksterFaerieTrodTrotterDescriptionEntry,
   isGreatWeaponMasterHeavyWeaponMasteryDescriptionEntry,
   isGreatWeaponMasterHewDescriptionEntry,
   isHarperAgentDistractingMelodyDescriptionEntry,
@@ -66,6 +67,7 @@ export const featDescriptionTargetKeys = {
   commonActionChargerDash: "charger:improved-dash",
   commonActionSpeedyDash: "speedy:dash-over-difficult-terrain",
   commonActionBoonOfSpeedDisengage: "boon-of-speed:escape-artist",
+  commonActionFairyTricksterDisengage: "fairy-trickster:faerie-trod-trotter",
   commonActionKeenMindStudy: "keen-mind:quick-study",
   commonActionObservantSearch: "observant:quick-search",
   commonActionSkulkerHide: "skulker:hide",
@@ -140,6 +142,13 @@ const featDescriptionContributionDefinitions: FeatDescriptionContributionDefinit
     targetKey: featDescriptionTargetKeys.commonActionBoonOfSpeedDisengage,
     targetPredicateId: "common-action-disengage",
     predicate: isBoonOfSpeedEscapeArtistDescriptionEntry
+  },
+  {
+    feat: FEATS.FAIRY_TRICKSTER,
+    target: "commonAction",
+    targetKey: featDescriptionTargetKeys.commonActionFairyTricksterDisengage,
+    targetPredicateId: "common-action-disengage",
+    predicate: isFairyTricksterFaerieTrodTrotterDescriptionEntry
   },
   {
     feat: FEATS.KEEN_MIND,

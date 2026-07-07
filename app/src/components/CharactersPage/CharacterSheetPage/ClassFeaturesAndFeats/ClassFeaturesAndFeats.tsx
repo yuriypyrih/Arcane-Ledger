@@ -18,10 +18,15 @@ import { getMonkDeflectAttacksDescription } from "../../../../codex/classes/monk
 import {
   getBlessedWarriorCantripOptions,
   getCharacterFeatSummary,
+  coldCasterRayOfFrostSpellId,
   getDruidicWarriorCantripOptions,
   getFeatDefinition,
   getFeatDefinitionsByCategory
 } from "../../../../pages/CharactersPage/feats";
+import {
+  getFeatAlwaysPreparedCantripEntriesForCharacter,
+  getFeatGrantedCantripEntriesForCharacter
+} from "../../../../pages/CharactersPage/feats/runtime";
 import {
   getWarlockEldritchInvocationInputStatusForCharacter,
   getWarlockPactOfTheBladeConjuredItemKeyFromSelectionIdsForCharacter,
@@ -53,6 +58,8 @@ import {
   normalizeCharacterSpeciesChoices,
   normalizeCharacterSpeciesFeatureState,
   normalizeSpeciesStatusEntriesForCharacter,
+  getSpeciesAlwaysPreparedCantripEntriesForCharacter,
+  getSpeciesGrantedCantripEntriesForCharacter,
   reconcileHumanOriginFeatEntries
 } from "../../../../pages/CharactersPage/species";
 import {
@@ -103,8 +110,10 @@ import {
   decodePendingBoonOfSkillChoice,
   decodePendingChargerChoice,
   decodePendingChefChoice,
+  decodePendingColdCasterChoice,
   decodePendingCultOfDragonInitiateChoice,
   decodePendingCrusherChoice,
+  decodePendingDragonscarredChoice,
   decodePendingDualWielderChoice,
   decodePendingEmeraldEnclaveFledglingChoice,
   decodePendingElementalAdeptChoice,
@@ -198,6 +207,34 @@ function isLessonsOfTheFirstOnesFeatEntry(
     entry.source.type === "eldritch-invocation" &&
     entry.source.invocation === ELDRITCH_INVOCATION.LESSONS_OF_THE_FIRST_ONES
   );
+}
+
+function doesDraftCharacterKnowCantrip(
+  character: Character,
+  draftFeats: CharacterFeatEntry[],
+  cantripId: string,
+  excludedFeatEntryId: string | null = null
+): boolean {
+  const lookupCharacter = {
+    ...character,
+    feats: draftFeats.filter((entry) => entry.id !== excludedFeatEntryId)
+  };
+  const knownCantripIds = new Set(character.cantripIds ?? []);
+
+  getFeatGrantedCantripEntriesForCharacter(lookupCharacter).forEach((spell) => {
+    knownCantripIds.add(spell.id);
+  });
+  getFeatAlwaysPreparedCantripEntriesForCharacter(lookupCharacter).forEach((spell) => {
+    knownCantripIds.add(spell.id);
+  });
+  getSpeciesGrantedCantripEntriesForCharacter(lookupCharacter).forEach((spell) => {
+    knownCantripIds.add(spell.id);
+  });
+  getSpeciesAlwaysPreparedCantripEntriesForCharacter(lookupCharacter).forEach((spell) => {
+    knownCantripIds.add(spell.id);
+  });
+
+  return knownCantripIds.has(cantripId);
 }
 
 function ClassFeaturesAndFeats({
@@ -390,6 +427,16 @@ function ClassFeaturesAndFeats({
   const blessedWarriorCantripOptions = useMemo(() => getBlessedWarriorCantripOptions(), []);
   const druidicWarriorCantripOptions = useMemo(() => getDruidicWarriorCantripOptions(), []);
   const selectedFeats = useMemo(() => character.feats ?? [], [character.feats]);
+  const coldCasterKnowsRayOfFrost = useMemo(
+    () =>
+      doesDraftCharacterKnowCantrip(
+        character,
+        featEditorDraft.feats,
+        coldCasterRayOfFrostSpellId,
+        editingFeatEntryId
+      ),
+    [character, editingFeatEntryId, featEditorDraft.feats]
+  );
   const selectedInvocationIds = useMemo(
     () => getWarlockInvocationSelectionIdsForCharacter(character),
     [character]
@@ -942,6 +989,11 @@ function ClassFeaturesAndFeats({
     }
 
     const pendingState = createPendingFeatStateForFeat(feat, {
+      coldCasterKnowsRayOfFrost: doesDraftCharacterKnowCantrip(
+        character,
+        featEditorDraftRef.current.feats,
+        coldCasterRayOfFrostSpellId
+      ),
       languageProficiencies: featEditorDraftRef.current.languageProficiencies
     });
 
@@ -1071,6 +1123,54 @@ function ClassFeaturesAndFeats({
     upsertFeatForContext(
       createContextualFeatEntry(FEATS.CHARGER, {
         charger
+      })
+    );
+  }
+
+  function savePendingColdCasterChoice() {
+    const choice = pendingFeatState.coldCasterChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const coldCaster = decodePendingColdCasterChoice(
+      choice,
+      doesDraftCharacterKnowCantrip(
+        character,
+        featEditorDraftRef.current.feats,
+        coldCasterRayOfFrostSpellId,
+        editingFeatEntryId
+      )
+    );
+
+    if (!coldCaster) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.COLD_CASTER, {
+        coldCaster
+      })
+    );
+  }
+
+  function savePendingDragonscarredChoice() {
+    const choice = pendingFeatState.dragonscarredChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const dragonscarred = decodePendingDragonscarredChoice(choice);
+
+    if (!dragonscarred) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.DRAGONSCARRED, {
+        dragonscarred
       })
     );
   }
@@ -2395,6 +2495,7 @@ function ClassFeaturesAndFeats({
           editingFeatEntryId={editingFeatEntryId}
           pendingFeatState={pendingFeatState}
           blessedWarriorCantripOptions={blessedWarriorCantripOptions}
+          coldCasterKnowsRayOfFrost={coldCasterKnowsRayOfFrost}
           druidicWarriorCantripOptions={druidicWarriorCantripOptions}
           onClose={closeFeatEditor}
           onSelectCategory={setActiveFeatCategory}
@@ -2442,6 +2543,8 @@ function ClassFeaturesAndFeats({
           onSavePendingBoonOfIrresistibleOffense={savePendingBoonOfIrresistibleOffense}
           onSavePendingBoonOfSkillChoice={savePendingBoonOfSkillChoice}
           onSavePendingBlessedWarriorChoice={savePendingBlessedWarriorChoice}
+          onSavePendingColdCasterChoice={savePendingColdCasterChoice}
+          onSavePendingDragonscarredChoice={savePendingDragonscarredChoice}
           onSavePendingCultOfDragonInitiateChoice={savePendingCultOfDragonInitiateChoice}
           onSavePendingEmeraldEnclaveFledglingChoice={savePendingEmeraldEnclaveFledglingChoice}
           onSavePendingHarperAgentChoice={savePendingHarperAgentChoice}

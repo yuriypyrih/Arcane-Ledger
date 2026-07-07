@@ -122,7 +122,9 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Firing in Melee.</strong> Being within 5 feet of an enemy doesn't impose Disadvantage on your attack rolls with crossbows.",
       "<strong>Dual Wielding.</strong> When you make the extra attack of the Light property, you can add your ability modifier to the damage of the extra attack if that attack is with a crossbow that has the Light property and you aren't already adding that modifier to the damage."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "The Ingore Loading, Firing in Melee, and Dual Wielding descriptions are being displayed inside crossbow weapon aciton drawers but that is all."
   },
   {
     feat: FEATS.CRUSHER,
@@ -135,7 +137,9 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Push.</strong> Once per turn, when you hit a creature with an attack that deals Bludgeoning damage, you can move it 5 feet to an unoccupied space if the target is no more than one size larger than you.",
       "<strong>Enhanced Critical.</strong> When you score a Critical Hit that deals Bludgeoning damage to a creature, attack rolls against that creature have Advantage until the start of your next turn."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "The Push and Enchacned Critical are displayed to the weapons action drawers but is all."
   },
   {
     feat: FEATS.DEFENSIVE_DUELIST,
@@ -147,7 +151,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Ability Score Increase.</strong> Increase your Dexterity score by 1, to a maximum of 20.",
       "<strong>Parry.</strong> If you're holding a Finesse weapon and another creature hits you with a melee attack, you can take a Reaction to add your Proficiency Bonus to your Armor Class, potentially causing the attack to miss you. You gain this bonus to your AC against melee attacks until the start of your next turn."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   {
     feat: FEATS.DUAL_WIELDER,
@@ -160,7 +164,9 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Enhanced Dual Wielding.</strong> When you take the Attack action on your turn and attack with a weapon that has the Light property, you can make one extra attack as a Bonus Action later on the same turn with a different weapon, which must be a Melee weapon that lacks the Two-Handed property. You don't add your ability modifier to the extra attack's damage unless that modifier is negative.",
       "<strong>Quick Draw.</strong> You can draw or stow two weapons that lack the Two-Handed property when you would normally be able to draw or stow only one."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "The Enhanced Dual Wielding and Quick Draw descriptions are displayed in the weapon aciton drawers but that is all."
   },
   {
     feat: FEATS.DURABLE,
@@ -173,7 +179,7 @@ export const generalFeatDefinitions: FeatDefinition[] = [
       "<strong>Defy Death.</strong> You have Advantage on Death Saving Throws.",
       "<strong>Speedy Recovery.</strong> As a Bonus Action, you can expend one of your Hit Point Dice, roll the die, and regain a number of Hit Points equal to the roll."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   {
     feat: FEATS.ELEMENTAL_ADEPT,

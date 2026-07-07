@@ -103,6 +103,7 @@ export type FeatDerivedState = {
   hasCrafterDiscount: boolean;
   hasCultOfDragonInitiate: boolean;
   hasDefenseFightingStyle: boolean;
+  hasFairyTrickster: boolean;
   hasHealer: boolean;
   hasFeyTouched: boolean;
   hasBoonOfFate: boolean;
@@ -127,6 +128,8 @@ export type FeatDerivedState = {
   purpleDragonRookRallyingCryTotal: number;
   spellfireSparkSpellfireFlameRemaining: number;
   spellfireSparkSpellfireFlameTotal: number;
+  fairyTricksterFlusteringStrikeRemaining: number;
+  fairyTricksterFlusteringStrikeTotal: number;
   boonOfFateImproveFateRemaining: number;
   boonOfFateImproveFateTotal: number;
   boonOfFluidFormsShapechangerRemaining: number;

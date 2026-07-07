@@ -15,6 +15,7 @@ import { tyroOfTheGauntletStandAsOneReactionEntryId } from "./constants";
 import {
   isCultOfDragonInitiateDragonsTerrorDescriptionEntry,
   isCultOfDragonInitiateInspiredByFearDescriptionEntry,
+  isDragonscarredFearsomePowerDescriptionEntry,
   isTyroOfTheGauntletStandAsOneDescriptionEntry
 } from "./descriptionMatchers";
 import type { FeatDerivedState, FeatRuntimeCharacter } from "./types";
@@ -177,7 +178,15 @@ export function getOriginFeatActionsForCharacter(
         getFeatDescriptionSlice(
           FEATS.CULT_OF_THE_DRAGON_INITIATE,
           isCultOfDragonInitiateDragonsTerrorDescriptionEntry
-        )
+        ),
+        derivedState.featSet.has(FEATS.DRAGONSCARRED)
+          ? {
+              fearsomePowerDescription: getFeatDescriptionSlice(
+                FEATS.DRAGONSCARRED,
+                isDragonscarredFearsomePowerDescriptionEntry
+              )
+            }
+          : undefined
       ),
       createCultOfDragonInitiateInspiredByFearAction(
         derivedState.cultOfDragonInitiateInspiredByFearRemaining,

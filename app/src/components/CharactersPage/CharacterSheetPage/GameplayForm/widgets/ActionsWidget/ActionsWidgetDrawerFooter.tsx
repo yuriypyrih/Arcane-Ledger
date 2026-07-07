@@ -597,6 +597,7 @@ export function renderActionDrawerFooter(context: ActionsWidgetDrawerFooterConte
     selectedExperimentalElixirOptionKey,
     selectedExperimentalElixirSpellSlotLevel,
     selectedFeatureAction,
+    selectedFeatureActionPathStates,
     selectedFeatureActionPrimaryDisabledReason,
     selectedFlurryOfBlowsPrimaryDisabledReason,
     selectedFlurryOfHealingAndHarmDisabledReason,
@@ -1723,6 +1724,27 @@ export function renderActionDrawerFooter(context: ActionsWidgetDrawerFooterConte
               : selectedCommonActionSecondaryDisabledReason
         }))}
         onConfirmPath={(economyType) => executeCommonAction(selectedAction.action, economyType)}
+      />
+    );
+  }
+
+  if (
+    selectedAction.kind === "feature" &&
+    selectedAction.drawer.kind === "confirm" &&
+    selectedAction.execute.kind === "activate" &&
+    selectedFeatureActionPathStates.length > 1
+  ) {
+    return (
+      <CommonActionFooter
+        confirmLabel={selectedFeaturePrimaryLabel}
+        actionPaths={selectedFeatureActionPathStates.map((path) => ({
+          ...path,
+          disabledReason:
+            path.disabledReason ?? selectedFeatureActionPrimaryDisabledReason
+        }))}
+        onConfirmPath={(economyType) =>
+          executeFeatureActivate(selectedAction.action, economyType)
+        }
       />
     );
   }

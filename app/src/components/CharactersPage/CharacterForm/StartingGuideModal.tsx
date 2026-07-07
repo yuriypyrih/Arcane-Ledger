@@ -52,7 +52,6 @@ function StartingGuideModal({ onClose }: StartingGuideModalProps) {
           <OverlayTitleRow>
             <OverlayTitle id="starting-guide-modal-title">Starting Guide</OverlayTitle>
           </OverlayTitleRow>
-          <OverlaySummary>Welcome to the Arcane Ledger character creation guide!</OverlaySummary>
         </OverlayHeaderContent>
         <OverlayCloseButton label="Close starting guide" onClick={onClose} />
       </OverlayHeader>

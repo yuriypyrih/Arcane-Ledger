@@ -171,7 +171,10 @@ export const frhofGeneralFeatDefinitions: FeatDefinition[] = [
       "<strong>Ability Score Increase.</strong> Increase your Intelligence, Wisdom, or Charisma by 1, to a maximum of 20.",
       "<strong>Cantrip.</strong> You learn the <spell:Ray of Frost>Ray of Frost</spell> cantrip. If you already know it, you learn a different Wizard cantrip of your choice. The spell's spellcasting ability is the ability increased by this feat.",
       "<strong>Frostbite.</strong> Once per turn when you hit a creature with an attack roll and deal Cold damage, you can temporarily negate the creature's defenses. The creature subtracts 1d4 from the next saving throw it makes before the end of your next turn."
-    ]
+    ],
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "The Frostbite description is dispalyed on spells that deal Cold damage but that is all."
   }),
   createFrhofFeatDefinition({
     feat: FEATS.DRAGONSCARRED,
@@ -185,7 +188,8 @@ export const frhofGeneralFeatDefinitions: FeatDefinition[] = [
       "<strong>Ability Score Increase.</strong> Increase your Constitution or Charisma by 1, to a maximum of 20.",
       "<strong>Damage Resistance.</strong> When you gain this feat, choose Acid, Cold, Fire, Lightning, or Poison. You have Resistance to the chosen damage type.",
       "<strong>Fearsome Power.</strong> When you deal damage to a creature as part of the Attack or Magic action on your turn, you can use the Dragon's Terror benefit of the Cult of the Dragon Initiate feat as a Bonus Action this turn."
-    ]
+    ],
+    trackingState: TRACKER.TRACKED
   }),
   createFrhofFeatDefinition({
     feat: FEATS.ENCLAVE_MAGIC,
@@ -213,7 +217,8 @@ export const frhofGeneralFeatDefinitions: FeatDefinition[] = [
       "<strong>Faerie Trod Trotter.</strong> When you take the Disengage action on your turn, Difficult Terrain doesn't cost you extra movement for the rest of that turn.",
       "<strong>Flustering Strike.</strong> When you hit a creature with an attack roll, you can attempt to fluster the target. The target must succeed on a Wisdom saving throw (DC 8 plus the ability modifier of the score increased by this feat and your Proficiency Bonus) or have Disadvantage on saving throws until the end of your next turn.",
       "You can use this benefit a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest."
-    ]
+    ],
+    trackingState: TRACKER.TRACKED
   }),
   createFrhofFeatDefinition({
     feat: FEATS.GENIE_MAGIC,
@@ -275,7 +280,10 @@ export const frhofGeneralFeatDefinitions: FeatDefinition[] = [
       "<strong>14-17.</strong> You gain a +2 bonus to AC for 1 minute, potentially turning the triggering spell into a miss if it was a spell attack.",
       "<strong>18-19.</strong> Any flammable, nonmagical object within 10 feet of the triggering spell's caster that isn't being worn or carried by another creature bursts into flame, takes 1d4 Fire damage, and is burning.",
       "<strong>20.</strong> The triggering spell dissipates with no effect, and the action, Bonus Action, or Reaction used to cast it is wasted. If that spell was cast with a spell slot, the slot isn't expended."
-    ]
+    ],
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "The Mythal Ward exists as a reaction that rolls the D20 but it does not provide the effect. Apply the effects yourself."
   }),
   createFrhofFeatDefinition({
     feat: FEATS.ORDERS_RESILIENCE,
@@ -322,7 +330,10 @@ export const frhofGeneralFeatDefinitions: FeatDefinition[] = [
       "<strong>Ability Score Increase.</strong> Increase your Intelligence, Wisdom, or Charisma by 1, to a maximum of 20.",
       "<strong>Fueled Spellfire.</strong> Once per turn, when a spell you cast deals Radiant damage, you can expend up to two Hit Point Dice, roll them, and add the total rolled to one damage roll of the spell.",
       "<strong>Searing Spellfire.</strong> When you make a damage roll that deals Radiant damage, it ignores Resistance to Radiant damage."
-    ]
+    ],
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "The descriptions of Fueled Spellfire and Searing Spellfire are displayed in spells that deal Radiant damage but you have to consume the Hit Point Dic, roll them, and add the damage yourself to the total."
   }),
   createFrhofFeatDefinition({
     feat: FEATS.STREET_JUSTICE,
@@ -336,7 +347,10 @@ export const frhofGeneralFeatDefinitions: FeatDefinition[] = [
       "<strong>Headlock.</strong> Your allies have Advantage on attack rolls against a creature Grappled by you.",
       "<strong>Sturdy Knot.</strong> When you use Chain, Manacles, or Rope to bind a creature, add your Proficiency Bonus to the DC to escape or burst the Chain, Manacles, or Rope.",
       "<strong>Tough Talk.</strong> A creature's Hostile attitude doesn't impose Disadvantage on your Charisma (Intimidation) checks to influence that creature."
-    ]
+    ],
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "The Headlock, Sturdy Knot, and Tough Talk are not being tracked. You have to remember then during play."
   }),
   createFrhofFeatDefinition({
     feat: FEATS.ZHENTARIM_TACTICS,

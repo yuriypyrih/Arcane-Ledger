@@ -33,6 +33,7 @@ import type {
 import type { DiceRollerRequest } from "../../../../../DicePage/DiceRollerPopup";
 import type { ArcaneWardSpellSlotOption } from "./arcaneWardAction";
 import type { CommonActionPathState } from "./commonActionEconomy";
+import type { FeatureActionPathState } from "./featureActionEconomy";
 
 export type RoundTrackerAvailability = {
   isInCombat?: boolean;
@@ -271,4 +272,5 @@ export type ActionsWidgetDrawerBodyContext = ActionsWidgetContextBag &
 export type ActionsWidgetDrawerFooterContext = ActionsWidgetDrawerBodyContext & {
   onPersistCharacter: PersistCharacterUpdater;
   selectedCommonActionPathStates: CommonActionPathState[];
+  selectedFeatureActionPathStates: FeatureActionPathState[];
 };

@@ -392,6 +392,10 @@ import CommonActionsModal from "./CommonActionsModal";
 import CustomActionEditorModal from "./CustomActionEditorModal";
 import CustomActionsModal from "./CustomActionsModal";
 import { getCommonActionPathStates } from "./commonActionEconomy";
+import {
+  getFeatureActionPathStates,
+  hasFeatureActionAlternateEconomyPath
+} from "./featureActionEconomy";
 import { getMonkHandOfHealingActionPathStates } from "./monkHandOfHealingActionUtils";
 import ArcaneRecoveryActionBody from "./forms/ArcaneRecoveryActionBody";
 import BrutalStrikeActionBody from "./forms/BrutalStrikeActionBody";
@@ -1152,6 +1156,17 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
     return getMonkHandOfHealingActionPathStates(character, selectedAction.action, roundTracker);
   }, [character, roundTracker, selectedAction]);
+  const selectedFeatureActionPathStates = useMemo(() => {
+    if (
+      !selectedAction ||
+      selectedAction.kind !== "feature" ||
+      !hasFeatureActionAlternateEconomyPath(selectedAction.action)
+    ) {
+      return [];
+    }
+
+    return getFeatureActionPathStates(character, selectedAction.action, roundTracker);
+  }, [character, roundTracker, selectedAction]);
   const selectedCommonActionPathStates = useMemo(() => {
     if (
       !selectedAction ||
@@ -1248,6 +1263,17 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       );
     }
 
+    if (
+      selectedAction.kind === "feature" &&
+      selectedFeatureActionPathStates.length > 1
+    ) {
+      if (selectedFeatureActionPathStates.some((path) => path.shapeState.isUsable)) {
+        return null;
+      }
+
+      return selectedFeatureActionPathStates[0]?.disabledReason ?? selectedActionPrimaryWarning;
+    }
+
     if (selectedAction.kind !== "weapon") {
       return selectedActionPrimaryWarning;
     }
@@ -1271,6 +1297,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedCommonActionPathStates,
     selectedCommonActionPrimaryPathState,
     selectedCommonActionSecondaryPathState,
+    selectedFeatureActionPathStates,
     selectedWeaponAttackPathStates,
     selectedWeaponPrimaryAttackPathState,
     selectedWeaponSecondaryAttackPathState
@@ -2397,6 +2424,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedClairvoyantCombatantUsesRemaining,
     selectedClairvoyantCombatantUsesTotal,
     selectedCommonActionPathStates,
+    selectedFeatureActionPathStates,
     selectedCommonActionPrimaryDisabledReason,
     selectedCommonActionSecondaryDisabledReason,
     selectedCrownOfSpellfireBlockedReason,

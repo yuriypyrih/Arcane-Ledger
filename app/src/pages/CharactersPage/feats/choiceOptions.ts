@@ -10,6 +10,8 @@ export const magicInitiateSpellListOptions = [
 ] as const;
 
 export const magicInitiateSpellcastingAbilityOptions = ["INT", "WIS", "CHA"] as const;
+export const coldCasterAbilityOptions = magicInitiateSpellcastingAbilityOptions;
+export const dragonscarredAbilityOptions = ["CON", "CHA"] as const;
 export const emeraldEnclaveFledglingSpellcastingAbilityOptions =
   magicInitiateSpellcastingAbilityOptions;
 export const elementalAdeptAbilityOptions = ["INT", "WIS", "CHA"] as const;
@@ -20,6 +22,14 @@ export const elementalAdeptDamageTypeOptions = [
   DAMAGE_TYPE.FIRE,
   DAMAGE_TYPE.LIGHTNING,
   DAMAGE_TYPE.THUNDER
+] as const;
+
+export const dragonscarredDamageTypeOptions = [
+  DAMAGE_TYPE.ACID,
+  DAMAGE_TYPE.COLD,
+  DAMAGE_TYPE.FIRE,
+  DAMAGE_TYPE.LIGHTNING,
+  DAMAGE_TYPE.POISON
 ] as const;
 
 export const boonOfEnergyResistanceDamageTypeOptions = [
