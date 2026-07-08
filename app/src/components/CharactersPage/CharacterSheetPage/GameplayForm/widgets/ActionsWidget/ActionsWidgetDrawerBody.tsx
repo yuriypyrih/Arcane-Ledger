@@ -400,6 +400,7 @@ import ExperimentalElixirActionBody from "./forms/ExperimentalElixirActionBody";
 import FeatureOptionsActionBody from "./forms/FeatureOptionsActionBody";
 import FluidFormsShapechangerActionBody from "./forms/FluidFormsShapechangerActionBody";
 import FontOfMagicActionBody from "./forms/FontOfMagicActionBody";
+import GenieMagicActionBody from "./forms/GenieMagicActionBody";
 import MetamagicOptionsActionBody from "./forms/MetamagicOptionsActionBody";
 import MagicItemTinkerActionBody from "./forms/MagicItemTinkerActionBody";
 import MysticArcanumActionBody from "./forms/MysticArcanumActionBody";
@@ -521,6 +522,7 @@ export function renderActionDrawerBody(context: ActionsWidgetDrawerBodyContext) 
     selectedFlurryOfHealingAndHarmUsesRemaining,
     selectedFlurryOfHealingAndHarmUsesTotal,
     selectedFluidFormsMonster,
+    selectedGenieMagicSpell,
     isFluidFormsMonsterModalOpen,
     selectedFontOfMagicSelection,
     selectedFontOfMagicWarning,
@@ -644,6 +646,7 @@ export function renderActionDrawerBody(context: ActionsWidgetDrawerBodyContext) 
     setSelectedDivineInterventionSpell,
     setSelectedExperimentalElixirOptionKey,
     setSelectedFluidFormsMonster,
+    setSelectedGenieMagicSpell,
     setIsFluidFormsMonsterModalOpen,
     setSelectedFontOfMagicSelection,
     setSelectedHealingLightDiceCount,
@@ -1098,6 +1101,15 @@ export function renderActionDrawerBody(context: ActionsWidgetDrawerBodyContext) 
           isPickerOpen={isFluidFormsMonsterModalOpen}
           onPickerOpenChange={setIsFluidFormsMonsterModalOpen}
           onSelectMonster={setSelectedFluidFormsMonster}
+        />
+      );
+    }
+
+    if (selectedAction.drawer.formKind === "genie-magic-wish-magic") {
+      return (
+        <GenieMagicActionBody
+          selectedSpell={selectedGenieMagicSpell}
+          onSpellSelect={setSelectedGenieMagicSpell}
         />
       );
     }

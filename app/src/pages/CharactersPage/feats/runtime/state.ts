@@ -75,6 +75,7 @@ import {
 import {
   getBoonOfRevelryIrresistibleDanceSpellEntry,
   getEmeraldEnclaveFledglingSpellEntry,
+  getEnclaveMagicBeastSenseSpellEntry,
   getFeatCantripEntries,
   getFeyTouchedSpellEntries,
   getMagicInitiateLevelOneSpellEntry,
@@ -294,6 +295,19 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
           spell: speakWithAnimals,
           sourceLabel: getFeatLabel(entry.feat),
           spellcastingAbility: entry.emeraldEnclaveFledgling.spellcastingAbility
+        });
+      }
+    }
+
+    if (entry.feat === FEATS.ENCLAVE_MAGIC) {
+      const beastSense = getEnclaveMagicBeastSenseSpellEntry(entry);
+
+      if (beastSense) {
+        contribution.spellGrants!.push({
+          kind: "always-prepared-spell",
+          spell: beastSense,
+          sourceLabel: getFeatLabel(entry.feat),
+          spellcastingAbility: entry.epicBoonAbilityChoice?.ability ?? "WIS"
         });
       }
     }
@@ -1095,6 +1109,41 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
         recovery: "longRest" as const
       },
       {
+        id: "feat-enclave-magic-two-hearts-one-mind",
+        label: "Two Hearts, One Mind",
+        remaining: generalResourceState.enclaveMagicTwoHeartsOneMindRemaining,
+        total: generalResourceState.enclaveMagicTwoHeartsOneMindTotal,
+        recovery: "longRest" as const
+      },
+      {
+        id: "feat-genie-magic-wish-magic",
+        label: "Wish Magic",
+        remaining: generalResourceState.genieMagicWishMagicRemaining,
+        total: generalResourceState.genieMagicWishMagicTotal,
+        recovery: "longRest" as const
+      },
+      {
+        id: "feat-lordly-resolve-standard-bearer",
+        label: "Standard Bearer",
+        remaining: generalResourceState.lordlyResolveStandardBearerRemaining,
+        total: generalResourceState.lordlyResolveStandardBearerTotal,
+        recovery: "longRest" as const
+      },
+      {
+        id: "feat-mythal-touched-mythal-ward",
+        label: "Mythal Ward",
+        remaining: generalResourceState.mythalTouchedMythalWardRemaining,
+        total: generalResourceState.mythalTouchedMythalWardTotal,
+        recovery: "longRest" as const
+      },
+      {
+        id: "feat-purple-dragon-commandant-encourage-ally",
+        label: "Encourage Ally",
+        remaining: generalResourceState.purpleDragonCommandantEncourageAllyRemaining,
+        total: generalResourceState.purpleDragonCommandantEncourageAllyTotal,
+        recovery: "longRest" as const
+      },
+      {
         id: "feat-boon-of-fate-improve-fate",
         label: "Improve Fate",
         remaining: epicBoonResourceState.boonOfFateImproveFateRemaining,
@@ -1360,7 +1409,9 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
     hasCrafterDiscount: featSet.has(FEATS.CRAFTER),
     hasCultOfDragonInitiate: originResourceState.hasCultOfDragonInitiate,
     hasDefenseFightingStyle: hasDefenseFightingStyle(featSet),
+    hasEnclaveMagic: generalResourceState.hasEnclaveMagic,
     hasFairyTrickster: generalResourceState.hasFairyTrickster,
+    hasGenieMagic: generalResourceState.hasGenieMagic,
     hasHealer: featSet.has(FEATS.HEALER),
     hasFeyTouched: featSet.has(FEATS.FEY_TOUCHED),
     hasBoonOfFate: epicBoonResourceState.hasBoonOfFate,
@@ -1370,8 +1421,11 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
     hasBoonOfSpellRecall: epicBoonResourceState.hasBoonOfSpellRecall,
     hasBoonOfTerror: epicBoonResourceState.hasBoonOfTerror,
     hasLucky: originResourceState.hasLucky,
+    hasLordlyResolve: generalResourceState.hasLordlyResolve,
     hasMageSlayer: generalResourceState.hasMageSlayer,
     hasMagicInitiate: featSet.has(FEATS.MAGIC_INITIATE),
+    hasMythalTouched: generalResourceState.hasMythalTouched,
+    hasPurpleDragonCommandant: generalResourceState.hasPurpleDragonCommandant,
     hasPurpleDragonRook: originResourceState.hasPurpleDragonRook,
     hasRitualCaster: generalResourceState.hasRitualCaster,
     hasShadowTouched: featSet.has(FEATS.SHADOW_TOUCHED),
@@ -1395,6 +1449,16 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
       generalResourceState.fairyTricksterFlusteringStrikeRemaining,
     fairyTricksterFlusteringStrikeTotal:
       generalResourceState.fairyTricksterFlusteringStrikeTotal,
+    enclaveMagicTwoHeartsOneMindRemaining:
+      generalResourceState.enclaveMagicTwoHeartsOneMindRemaining,
+    enclaveMagicTwoHeartsOneMindTotal:
+      generalResourceState.enclaveMagicTwoHeartsOneMindTotal,
+    genieMagicWishMagicRemaining: generalResourceState.genieMagicWishMagicRemaining,
+    genieMagicWishMagicTotal: generalResourceState.genieMagicWishMagicTotal,
+    lordlyResolveStandardBearerRemaining:
+      generalResourceState.lordlyResolveStandardBearerRemaining,
+    lordlyResolveStandardBearerTotal:
+      generalResourceState.lordlyResolveStandardBearerTotal,
     boonOfFateImproveFateRemaining: epicBoonResourceState.boonOfFateImproveFateRemaining,
     boonOfFateImproveFateTotal: epicBoonResourceState.boonOfFateImproveFateTotal,
     boonOfFluidFormsShapechangerRemaining:
@@ -1415,6 +1479,12 @@ function createFeatDerivedState(feats: unknown, level: number): FeatDerivedState
     boonOfTerrorFleeFoolsTotal: epicBoonResourceState.boonOfTerrorFleeFoolsTotal,
     mageSlayerGuardedMindRemaining: generalResourceState.mageSlayerGuardedMindRemaining,
     mageSlayerGuardedMindTotal: generalResourceState.mageSlayerGuardedMindTotal,
+    mythalTouchedMythalWardRemaining: generalResourceState.mythalTouchedMythalWardRemaining,
+    mythalTouchedMythalWardTotal: generalResourceState.mythalTouchedMythalWardTotal,
+    purpleDragonCommandantEncourageAllyRemaining:
+      generalResourceState.purpleDragonCommandantEncourageAllyRemaining,
+    purpleDragonCommandantEncourageAllyTotal:
+      generalResourceState.purpleDragonCommandantEncourageAllyTotal,
     ritualCasterQuickRitualRemaining: generalResourceState.ritualCasterQuickRitualRemaining,
     ritualCasterQuickRitualTotal: generalResourceState.ritualCasterQuickRitualTotal,
     telepathicDetectThoughtsRemaining: generalResourceState.telepathicDetectThoughtsRemaining,

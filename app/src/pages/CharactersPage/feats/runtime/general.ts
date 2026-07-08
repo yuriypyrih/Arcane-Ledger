@@ -10,10 +10,18 @@ import { getProficiencyBonus } from "../../gameplay";
 import {
   createDurableSpeedyRecoveryAction,
   createFairyTricksterFlusteringStrikeAction,
+  createGenieMagicWishMagicAction,
+  createPurpleDragonCommandantEncourageAllyAction,
   createTelekineticShoveAction
 } from "./actions";
 import {
+  createLordlyResolveStandardBearerAction,
+  hasActiveLordlyResolveStandardBearerStatus,
+  isLordlyResolveStandardBearerDescriptionEntry
+} from "./lordlyResolve";
+import {
   defensiveDuelistParryReactionEntryId,
+  mythalTouchedMythalWardReactionEntryId,
   polearmMasterReactiveStrikeReactionEntryId,
   shieldMasterReactionEntryId,
   warCasterReactiveSpellReactionEntryId
@@ -23,7 +31,10 @@ import {
   isDefensiveDuelistParryDescriptionEntry,
   isDurableSpeedyRecoveryDescriptionEntry,
   isFairyTricksterFlusteringStrikeDescriptionEntry,
+  isGenieMagicWishMagicDescriptionEntry,
+  isMythalTouchedMythalWardDescriptionEntry,
   isPolearmMasterReactiveStrikeDescriptionEntry,
+  isPurpleDragonCommandantEncourageAllyDescriptionEntry,
   isShieldMasterInterposeShieldDescriptionEntry,
   isTelekineticShoveDescriptionEntry,
   isWarCasterReactiveSpellDescriptionEntry
@@ -37,14 +48,29 @@ type FeatDescriptionSliceGetter = (
 ) => SpellDescriptionEntry[];
 
 export type GeneralFeatResourceState = {
+  hasEnclaveMagic: boolean;
   hasFairyTrickster: boolean;
+  hasGenieMagic: boolean;
+  hasLordlyResolve: boolean;
   hasMageSlayer: boolean;
+  hasMythalTouched: boolean;
+  hasPurpleDragonCommandant: boolean;
   hasRitualCaster: boolean;
   hasTelepathic: boolean;
   fairyTricksterFlusteringStrikeRemaining: number;
   fairyTricksterFlusteringStrikeTotal: number;
+  enclaveMagicTwoHeartsOneMindRemaining: number;
+  enclaveMagicTwoHeartsOneMindTotal: number;
+  genieMagicWishMagicRemaining: number;
+  genieMagicWishMagicTotal: number;
+  lordlyResolveStandardBearerRemaining: number;
+  lordlyResolveStandardBearerTotal: number;
   mageSlayerGuardedMindRemaining: number;
   mageSlayerGuardedMindTotal: number;
+  mythalTouchedMythalWardRemaining: number;
+  mythalTouchedMythalWardTotal: number;
+  purpleDragonCommandantEncourageAllyRemaining: number;
+  purpleDragonCommandantEncourageAllyTotal: number;
   ritualCasterQuickRitualRemaining: number;
   ritualCasterQuickRitualTotal: number;
   telepathicDetectThoughtsRemaining: number;
@@ -73,6 +99,54 @@ export function getGeneralFeatResourceState(
       )
     )
   );
+  const mythalTouchedMythalWardTotal = featSet.has(FEATS.MYTHAL_TOUCHED)
+    ? getProficiencyBonus(level)
+    : 0;
+  const mythalTouchedMythalWardExpended = Math.max(
+    0,
+    Math.min(
+      mythalTouchedMythalWardTotal,
+      normalizedFeats.reduce(
+        (total, entry) =>
+          entry.feat === FEATS.MYTHAL_TOUCHED
+            ? total + (entry.mythalTouched?.mythalWardExpended ?? 0)
+            : total,
+        0
+      )
+    )
+  );
+  const genieMagicWishMagicTotal = featSet.has(FEATS.GENIE_MAGIC) ? 1 : 0;
+  const genieMagicWishMagicExpended = normalizedFeats.some(
+    (entry) => entry.feat === FEATS.GENIE_MAGIC && entry.genieMagic?.wishMagicExpended === true
+  );
+  const lordlyResolveStandardBearerTotal = featSet.has(FEATS.LORDLY_RESOLVE) ? 1 : 0;
+  const lordlyResolveStandardBearerExpended = normalizedFeats.some(
+    (entry) =>
+      entry.feat === FEATS.LORDLY_RESOLVE &&
+      entry.lordlyResolve?.standardBearerExpended === true
+  );
+  const enclaveMagicTwoHeartsOneMindTotal = featSet.has(FEATS.ENCLAVE_MAGIC) ? 1 : 0;
+  const enclaveMagicTwoHeartsOneMindExpended = normalizedFeats.some(
+    (entry) =>
+      entry.feat === FEATS.ENCLAVE_MAGIC &&
+      entry.enclaveMagic?.twoHeartsOneMindExpended === true
+  );
+  const purpleDragonCommandantEncourageAllyTotal = featSet.has(FEATS.PURPLE_DRAGON_COMMANDANT)
+    ? getProficiencyBonus(level)
+    : 0;
+  const purpleDragonCommandantEncourageAllyExpended = Math.max(
+    0,
+    Math.min(
+      purpleDragonCommandantEncourageAllyTotal,
+      normalizedFeats.reduce(
+        (total, entry) =>
+          entry.feat === FEATS.PURPLE_DRAGON_COMMANDANT
+            ? total + (entry.purpleDragonCommandant?.encourageAllyExpended ?? 0)
+            : total,
+        0
+      )
+    )
+  );
   const mageSlayerGuardedMindTotal = featSet.has(FEATS.MAGE_SLAYER) ? 1 : 0;
   const mageSlayerGuardedMindExpended = normalizedFeats.some(
     (entry) => entry.feat === FEATS.MAGE_SLAYER && entry.mageSlayer?.guardedMindExpended === true
@@ -90,8 +164,13 @@ export function getGeneralFeatResourceState(
   ).length;
 
   return {
+    hasEnclaveMagic: featSet.has(FEATS.ENCLAVE_MAGIC),
     hasFairyTrickster: featSet.has(FEATS.FAIRY_TRICKSTER),
+    hasGenieMagic: featSet.has(FEATS.GENIE_MAGIC),
+    hasLordlyResolve: featSet.has(FEATS.LORDLY_RESOLVE),
     hasMageSlayer: featSet.has(FEATS.MAGE_SLAYER),
+    hasMythalTouched: featSet.has(FEATS.MYTHAL_TOUCHED),
+    hasPurpleDragonCommandant: featSet.has(FEATS.PURPLE_DRAGON_COMMANDANT),
     hasRitualCaster: featSet.has(FEATS.RITUAL_CASTER),
     hasTelepathic: featSet.has(FEATS.TELEPATHIC),
     fairyTricksterFlusteringStrikeRemaining: Math.max(
@@ -99,9 +178,28 @@ export function getGeneralFeatResourceState(
       fairyTricksterFlusteringStrikeTotal - fairyTricksterFlusteringStrikeExpended
     ),
     fairyTricksterFlusteringStrikeTotal,
+    enclaveMagicTwoHeartsOneMindRemaining:
+      enclaveMagicTwoHeartsOneMindTotal > 0 && !enclaveMagicTwoHeartsOneMindExpended ? 1 : 0,
+    enclaveMagicTwoHeartsOneMindTotal,
+    genieMagicWishMagicRemaining:
+      genieMagicWishMagicTotal > 0 && !genieMagicWishMagicExpended ? 1 : 0,
+    genieMagicWishMagicTotal,
+    lordlyResolveStandardBearerRemaining:
+      lordlyResolveStandardBearerTotal > 0 && !lordlyResolveStandardBearerExpended ? 1 : 0,
+    lordlyResolveStandardBearerTotal,
     mageSlayerGuardedMindRemaining:
       mageSlayerGuardedMindTotal > 0 && !mageSlayerGuardedMindExpended ? 1 : 0,
     mageSlayerGuardedMindTotal,
+    mythalTouchedMythalWardRemaining: Math.max(
+      0,
+      mythalTouchedMythalWardTotal - mythalTouchedMythalWardExpended
+    ),
+    mythalTouchedMythalWardTotal,
+    purpleDragonCommandantEncourageAllyRemaining: Math.max(
+      0,
+      purpleDragonCommandantEncourageAllyTotal - purpleDragonCommandantEncourageAllyExpended
+    ),
+    purpleDragonCommandantEncourageAllyTotal,
     ritualCasterQuickRitualRemaining: Math.max(
       0,
       ritualCasterQuickRitualTotal - ritualCasterQuickRitualExpended
@@ -202,6 +300,20 @@ export function getGeneralFeatReactionEntries(
     });
   }
 
+  if (featSet.has(FEATS.MYTHAL_TOUCHED)) {
+    reactionEntries.push({
+      id: mythalTouchedMythalWardReactionEntryId,
+      reaction: REACTION.MYTHAL_WARD,
+      name: "Mythal Ward",
+      sourceType: "feat",
+      sourceLabel: "Mythal Touched",
+      description: filterDescriptionEntries(
+        getFeatDescription(FEATS.MYTHAL_TOUCHED),
+        isMythalTouchedMythalWardDescriptionEntry
+      )
+    });
+  }
+
   return reactionEntries;
 }
 
@@ -216,6 +328,9 @@ export function getGeneralFeatActionsForCharacter(
   );
   const fairyTricksterEntry = derivedState.normalizedFeats.find(
     (entry) => entry.feat === FEATS.FAIRY_TRICKSTER
+  );
+  const purpleDragonCommandantEntry = derivedState.normalizedFeats.find(
+    (entry) => entry.feat === FEATS.PURPLE_DRAGON_COMMANDANT
   );
 
   if (telekineticEntry?.telekinetic) {
@@ -240,6 +355,44 @@ export function getGeneralFeatActionsForCharacter(
         getFeatDescriptionSlice(
           FEATS.FAIRY_TRICKSTER,
           isFairyTricksterFlusteringStrikeDescriptionEntry
+        )
+      )
+    );
+  }
+
+  if (derivedState.hasGenieMagic) {
+    actions.push(
+      createGenieMagicWishMagicAction(
+        character,
+        derivedState.genieMagicWishMagicRemaining,
+        derivedState.genieMagicWishMagicTotal,
+        getFeatDescriptionSlice(FEATS.GENIE_MAGIC, isGenieMagicWishMagicDescriptionEntry)
+      )
+    );
+  }
+
+  if (derivedState.hasLordlyResolve) {
+    actions.push(
+      createLordlyResolveStandardBearerAction(
+        derivedState.lordlyResolveStandardBearerRemaining,
+        derivedState.lordlyResolveStandardBearerTotal,
+        hasActiveLordlyResolveStandardBearerStatus(character.statusEntries),
+        getFeatDescriptionSlice(FEATS.LORDLY_RESOLVE, isLordlyResolveStandardBearerDescriptionEntry)
+      )
+    );
+  }
+
+  if (derivedState.hasPurpleDragonCommandant) {
+    actions.push(
+      createPurpleDragonCommandantEncourageAllyAction(
+        character,
+        purpleDragonCommandantEntry?.epicBoonAbilityChoice?.ability ?? "STR",
+        derivedState.normalizedFeats,
+        derivedState.purpleDragonCommandantEncourageAllyRemaining,
+        derivedState.purpleDragonCommandantEncourageAllyTotal,
+        getFeatDescriptionSlice(
+          FEATS.PURPLE_DRAGON_COMMANDANT,
+          isPurpleDragonCommandantEncourageAllyDescriptionEntry
         )
       )
     );

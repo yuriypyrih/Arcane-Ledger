@@ -96,15 +96,19 @@ import {
 import {
   boonOfFateImproveFateActionKey,
   boonOfRecoveryRecoverVitalityActionKey,
+  collectFeatDerivedState,
   consumeBoonOfFateImproveFateForCharacter,
   cultOfDragonInitiateInspiredByFearActionKey,
   durableSpeedyRecoveryActionKey,
   getBoonOfRecoveryRecoverVitalityFormula,
   getDurableSpeedyRecoveryHealingFormulaForCharacter,
+  purpleDragonCommandantEncourageAllyActionKey,
   spendBoonOfRecoveryDiceForCharacter,
   spendCultOfDragonInitiateInspiredByFearForCharacter,
-  spendDurableSpeedyRecoveryHitDieForCharacter
+  spendDurableSpeedyRecoveryHitDieForCharacter,
+  spendPurpleDragonCommandantEncourageAllyForCharacter
 } from "../../../../../../pages/CharactersPage/feats/runtime";
+import { getPurpleDragonCommandantEncourageAllyFormula } from "../../../../../../pages/CharactersPage/feats/runtime/actions";
 import { restoreHeroicInspirationForCharacter } from "../../../../../../pages/CharactersPage/heroicInspiration";
 import { getHitDiceRemainingForCharacter } from "../../../../../../pages/CharactersPage/hitDice";
 import { bardicInspirationActionKey } from "../../../../../../pages/CharactersPage/classFeatures/bard/bard";
@@ -288,6 +292,7 @@ import {
   CLASS_FEATURE,
   ACTION_TYPE,
   DAMAGE_TYPE,
+  FEATS,
   MAGIC_SCHOOL,
   type SpellEntry
 } from "../../../../../../codex/entries";
@@ -1585,6 +1590,52 @@ export function useActionsWidgetExecution(context: ActionsWidgetExecutionContext
         formulaDisplay: "2d4",
         description: "Roll 2d4 and apply the total as a bonus or penalty to the D20 Test.",
         getFullManualToastText: ({ result }) => `Rolled ${result.total} Improve Fate.`
+      });
+
+      closeActionDrawer();
+      return;
+    }
+
+    if (action.key === purpleDragonCommandantEncourageAllyActionKey) {
+      if ((action.usesRemaining ?? 0) <= 0) {
+        return;
+      }
+
+      const featState = collectFeatDerivedState(character);
+      const featEntry = featState.normalizedFeats.find(
+        (entry) => entry.feat === FEATS.PURPLE_DRAGON_COMMANDANT
+      );
+      const formula = getPurpleDragonCommandantEncourageAllyFormula(
+        character,
+        featEntry?.epicBoonAbilityChoice?.ability ?? "STR",
+        featState.normalizedFeats
+      );
+
+      onPersistCharacter((currentCharacter) => {
+        const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
+        const preparedCharacter = prepareCharacterForResourceConsumption(
+          currentCharacter,
+          roundTrackerResource
+        );
+        const nextCharacter =
+          spendPurpleDragonCommandantEncourageAllyForCharacter(preparedCharacter);
+
+        if (nextCharacter === preparedCharacter) {
+          return currentCharacter;
+        }
+
+        return roundTrackerResource
+          ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
+          : nextCharacter;
+      });
+
+      openDiceRoller({
+        title: "Encourage Ally",
+        formula: formula.formula,
+        formulaDisplay: formula.formulaDisplay,
+        description: "Roll Temporary Hit Points for the ally you bolster.",
+        getFullManualToastText: ({ result }) =>
+          `Rolled ${result.total} Encourage Ally Temporary Hit Points.`
       });
 
       closeActionDrawer();

@@ -97,7 +97,8 @@ import {
 } from "../../../../../../pages/CharactersPage/classFeatures";
 import {
   activateBoonOfFluidFormsShapechangerForCharacter,
-  applyFeatureSpellCastEffectsForCharacter
+  applyFeatureSpellCastEffectsForCharacter,
+  spendGenieMagicWishMagicForCharacter
 } from "../../../../../../pages/CharactersPage/feats/runtime";
 import { bardicInspirationActionKey } from "../../../../../../pages/CharactersPage/classFeatures/bard/bard";
 import {
@@ -2122,6 +2123,8 @@ export function useActionsWidgetSubmissions(context: ActionsWidgetSubmissionCont
         nextCharacter = consumeArtificerUnerringPathUseForCharacter(preparedCharacter);
       } else if (fixedSpellExecute.effectKind === "conjured-cauldron") {
         nextCharacter = consumeArtificerConjuredCauldronUseForCharacter(preparedCharacter);
+      } else if (fixedSpellExecute.effectKind === "genie-magic") {
+        nextCharacter = spendGenieMagicWishMagicForCharacter(preparedCharacter);
       }
 
       if (

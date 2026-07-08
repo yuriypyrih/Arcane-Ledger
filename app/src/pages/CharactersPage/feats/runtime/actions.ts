@@ -18,7 +18,11 @@ import {
   getHitDiceTotalForCharacter,
   getHitDieLabelForCharacter
 } from "../../hitDice";
-import { formatFormulaCell, formatSignedFormulaTerm } from "../../shared/formulas";
+import {
+  formatFormulaCell,
+  formatFormulaTerms,
+  formatSignedFormulaTerm
+} from "../../shared/formulas";
 import {
   boonOfFateImproveFateActionKey,
   boonOfRecoveryRecoverVitalityActionKey,
@@ -26,7 +30,9 @@ import {
   cultOfDragonInitiateInspiredByFearActionKey,
   durableSpeedyRecoveryActionKey,
   fairyTricksterFlusteringStrikeActionKey,
+  genieMagicWishMagicActionKey,
   luckyFeatActionKey,
+  purpleDragonCommandantEncourageAllyActionKey,
   telekineticShoveActionKey
 } from "./constants";
 import type { FeatRuntimeCharacter } from "./types";
@@ -437,6 +443,172 @@ export function createFairyTricksterFlusteringStrikeAction(
     execute: {
       kind: "activate",
       label: "Use Flustering Strike"
+    }
+  };
+}
+
+export function getGenieMagicWishMagicSpellSlotLevel(level: number): number {
+  if (level >= 17) {
+    return 3;
+  }
+
+  if (level >= 11) {
+    return 2;
+  }
+
+  return 1;
+}
+
+export function createGenieMagicWishMagicAction(
+  character: FeatRuntimeCharacter,
+  remaining: number,
+  total: number,
+  description: SpellDescriptionEntry[]
+): FeatureActionCard {
+  const chargesTag = createChargesHeaderTag(remaining, total);
+  const spellSlotLevel = getGenieMagicWishMagicSpellSlotLevel(character.level ?? 1);
+  const disabledReason =
+    remaining > 0 ? undefined : "Wish Magic recharges when you finish a Long Rest.";
+
+  return {
+    key: genieMagicWishMagicActionKey,
+    name: "Wish Magic",
+    actionSource: {
+      type: "feat",
+      name: "Genie Magic"
+    },
+    summary: `Charge ${remaining}/${total}`,
+    detail: `Cast a Sorcerer spell as level ${spellSlotLevel}.`,
+    breakdown: "Open chosen spell",
+    economyType: ECONOMY_TYPE.ACTION,
+    actionCategory: ACTION_CATEGORY.MAGIC,
+    usesRemaining: remaining,
+    usesTotal: total,
+    hideUsesTrackerOnCard: true,
+    cardUsage: createChargesCardUsage(remaining, total),
+    disabled: remaining <= 0,
+    disabledReason,
+    description,
+    headerTags: [chargesTag],
+    drawer: {
+      kind: "custom-form",
+      formKind: "genie-magic-wish-magic",
+      description,
+      confirmLabel: "Open Spell",
+      headerTags: [chargesTag]
+    },
+    execute: {
+      kind: "spell",
+      spellSource: "fixed",
+      effectKind: "genie-magic",
+      spellLevel: spellSlotLevel,
+      freeCastSlotLevel: spellSlotLevel,
+      actionConsumesSpellSlot: false,
+      actionLabel: "Cast with Wish Magic",
+      actionContextText: "Using Wish Magic",
+      actionAvailabilityText: `Cast at level ${spellSlotLevel} without expending a spell slot.`
+    }
+  };
+}
+
+function formatNumericFormulaTerm(value: number): string {
+  if (value === 0) {
+    return "";
+  }
+
+  return value > 0 ? `+${value}` : `${value}`;
+}
+
+export function getPurpleDragonCommandantEncourageAllyFormula(
+  character: FeatRuntimeCharacter,
+  ability: AbilityKey,
+  normalizedFeats: CharacterFeatEntry[]
+): {
+  abilityModifier: number;
+  formula: string;
+  formulaDisplay: string;
+  formulaFact: NonNullable<FeatureActionCard["facts"]>[number];
+} {
+  const abilityModifier = getAbilityModifierForCharacter(
+    {
+      ...character,
+      feats: normalizedFeats
+    },
+    ability
+  );
+  const formula = `2d6${formatNumericFormulaTerm(abilityModifier)}`;
+  const displayTerms = ["2d6", formatSignedFormulaTerm(abilityModifier, ability)];
+  const formulaDisplay = formatFormulaTerms(displayTerms);
+  const formulaCell = formatFormulaCell({
+    formula,
+    displayTerms,
+    breakdownTerms: displayTerms,
+    resultLabel: "Temporary HP"
+  });
+
+  return {
+    abilityModifier,
+    formula,
+    formulaDisplay,
+    formulaFact: {
+      label: "Temporary Hit Points Formula",
+      value: formulaCell.value,
+      breakdown: formulaCell.breakdown,
+      fullWidth: true
+    }
+  };
+}
+
+export function createPurpleDragonCommandantEncourageAllyAction(
+  character: FeatRuntimeCharacter,
+  ability: AbilityKey,
+  normalizedFeats: CharacterFeatEntry[],
+  remaining: number,
+  total: number,
+  description: SpellDescriptionEntry[]
+): FeatureActionCard {
+  const chargesTag = createChargesHeaderTag(remaining, total);
+  const formula = getPurpleDragonCommandantEncourageAllyFormula(
+    character,
+    ability,
+    normalizedFeats
+  );
+  const facts = [formula.formulaFact];
+  const disabledReason =
+    remaining > 0 ? undefined : "Encourage Ally recharges when you finish a Long Rest.";
+
+  return {
+    key: purpleDragonCommandantEncourageAllyActionKey,
+    name: "Encourage Ally",
+    actionSource: {
+      type: "feat",
+      name: "Purple Dragon Commandant"
+    },
+    summary: `Charge ${remaining}/${total}`,
+    detail: "Bolster an ally with Temporary Hit Points.",
+    breakdown: "Grant temporary hit points",
+    economyType: ECONOMY_TYPE.BONUS_ACTION,
+    actionCategory: ACTION_CATEGORY.FEATURE,
+    usesRemaining: remaining,
+    usesTotal: total,
+    hideUsesTrackerOnCard: true,
+    cardUsage: createChargesCardUsage(remaining, total),
+    disabled: remaining <= 0,
+    disabledReason,
+    description,
+    facts,
+    headerTags: [chargesTag],
+    drawer: {
+      kind: "confirm",
+      description,
+      facts,
+      factsSectionTitle: "Temporary Hit Points",
+      confirmLabel: "Roll Encourage Ally",
+      headerTags: [chargesTag]
+    },
+    execute: {
+      kind: "activate",
+      label: "Roll Encourage Ally"
     }
   };
 }

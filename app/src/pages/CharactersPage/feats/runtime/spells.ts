@@ -9,6 +9,7 @@ import type { CharacterFeatEntry, MagicInitiateChoice } from "../../../../types"
 import {
   boonOfRevelryIrresistibleDanceSpellId,
   emeraldEnclaveFledglingSpeakWithAnimalsSpellId,
+  enclaveMagicBeastSenseSpellId,
   feyTouchedMistyStepSpellId,
   shadowTouchedInvisibilitySpellId,
   spellfireSparkSacredFlameSpellId,
@@ -122,6 +123,14 @@ export function getEmeraldEnclaveFledglingSpellEntry(
   }
 
   return getSpellEntryById(emeraldEnclaveFledglingSpeakWithAnimalsSpellId);
+}
+
+export function getEnclaveMagicBeastSenseSpellEntry(entry: CharacterFeatEntry): SpellEntry | null {
+  if (entry.feat !== FEATS.ENCLAVE_MAGIC) {
+    return null;
+  }
+
+  return getSpellEntryById(enclaveMagicBeastSenseSpellId);
 }
 
 export function getSpellfireSparkSacredFlameSpellEntry(

@@ -100,6 +100,7 @@ import {
   boonOfFateImproveFateActionKey,
   durableSpeedyRecoveryActionKey,
   luckyFeatActionKey,
+  purpleDragonCommandantEncourageAllyActionKey,
   resetLuckyPointForCharacter,
   restoreLuckyPointsForCharacter,
   spendLuckyPointForCharacter
@@ -460,6 +461,7 @@ const rollingFeatureActionKeys = new Set([
   hurlThroughHellActionKey,
   monkElementalBurstActionKey,
   monkPatientDefenseActionKey,
+  purpleDragonCommandantEncourageAllyActionKey,
   monkWholenessOfBodyActionKey,
   rogueSoulknifePsychicTeleportationActionKey,
   rogueSoulknifePsychicWhispersActionKey,
@@ -1179,6 +1181,27 @@ export function renderActionDrawerFooter(context: ActionsWidgetDrawerFooterConte
         actionShape={null}
         actionShapeAvailable
         actionShapeMultiCount={0}
+        disabled={selectedFeatureActionPrimaryDisabledReason !== null}
+        isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
+        onConfirm={() => executeFeatureActivate(selectedAction.action)}
+        onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
+      />
+    );
+  }
+
+  if (
+    selectedAction.kind === "feature" &&
+    selectedAction.drawer.kind === "confirm" &&
+    selectedAction.execute.kind === "activate" &&
+    selectedAction.action.key === purpleDragonCommandantEncourageAllyActionKey
+  ) {
+    return (
+      <ActionDiceConfirmFooter
+        actionName={selectedAction.action.name}
+        confirmLabel={selectedFeaturePrimaryLabel}
+        actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
+        actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+        actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
         disabled={selectedFeatureActionPrimaryDisabledReason !== null}
         isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
         onConfirm={() => executeFeatureActivate(selectedAction.action)}
@@ -2609,6 +2632,35 @@ export function renderActionDrawerFooter(context: ActionsWidgetDrawerFooterConte
             isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
             className={styles.footerActionShape}
           />
+        }
+      >
+        {selectedFeaturePrimaryLabel}
+      </ActionButton>
+    );
+  }
+
+  if (
+    selectedAction.kind === "feature" &&
+    selectedAction.drawer.kind === "custom-form" &&
+    selectedAction.drawer.formKind === "genie-magic-wish-magic" &&
+    selectedAction.execute.kind === "spell"
+  ) {
+    const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
+
+    return (
+      <ActionButton
+        className={styles.footerActionButton}
+        onClick={() => setIsFixedSpellDrawerOpen(true)}
+        disabled={selectedFeatureActionPrimaryDisabledReason !== null}
+        trailingBadge={
+          actionShape ? (
+            <ActionShape
+              shape={actionShape}
+              isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
+              multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+              className={styles.footerActionShape}
+            />
+          ) : null
         }
       >
         {selectedFeaturePrimaryLabel}

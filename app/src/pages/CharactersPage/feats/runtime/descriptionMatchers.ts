@@ -58,6 +58,23 @@ export function isFairyTricksterFaerieTrodTrotterDescriptionEntry(entry: string)
   return entry.startsWith("<strong>Faerie Trod Trotter.</strong>");
 }
 
+export function isGenieMagicWishMagicDescriptionEntry(entry: string): boolean {
+  return (
+    entry.startsWith("<strong>Wish Magic.</strong>") ||
+    entry.startsWith("When you reach level 11,") ||
+    entry.startsWith("When you reach level 17,")
+  );
+}
+
+export function isMythalTouchedMythalWardDescriptionEntry(entry: string): boolean {
+  return (
+    entry.startsWith("<strong>Mythal Ward.</strong>") ||
+    entry.startsWith("You can use this benefit a number of times equal to your Proficiency Bonus") ||
+    entry.startsWith("<strong>Mythal-Touched Magic.</strong>") ||
+    /^<strong>\d+(?:-\d+)?\.<\/strong>/.test(entry)
+  );
+}
+
 export function isHarperAgentDistractingMelodyDescriptionEntry(entry: string): boolean {
   return entry.startsWith("<strong>Distracting Melody.</strong>");
 }
@@ -67,6 +84,10 @@ export function isPurpleDragonRookRallyingCryDescriptionEntry(entry: string): bo
     entry.startsWith("<strong>Rallying Cry.</strong>") ||
     entry.startsWith("Once you use this benefit,")
   );
+}
+
+export function isPurpleDragonCommandantEncourageAllyDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Encourage Ally.</strong>");
 }
 
 export function isSpellfireSparkMagicAbsorptionDescriptionEntry(entry: string): boolean {

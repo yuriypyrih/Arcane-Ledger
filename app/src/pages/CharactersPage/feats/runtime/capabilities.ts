@@ -400,7 +400,7 @@ export const featRuntimeCapabilityMatrix = {
   },
   [FEATS.ENCLAVE_MAGIC]: {
     feat: FEATS.ENCLAVE_MAGIC,
-    capabilities: ["abilityBonus", "choice"]
+    capabilities: ["abilityBonus", "choice", "restRecovery", "spellGrant"]
   },
   [FEATS.FAIRY_TRICKSTER]: {
     feat: FEATS.FAIRY_TRICKSTER,
@@ -408,7 +408,7 @@ export const featRuntimeCapabilityMatrix = {
   },
   [FEATS.GENIE_MAGIC]: {
     feat: FEATS.GENIE_MAGIC,
-    capabilities: ["abilityBonus", "choice"]
+    capabilities: ["abilityBonus", "actionCard", "choice", "restRecovery"]
   },
   [FEATS.HARPER_TEAMWORK]: {
     feat: FEATS.HARPER_TEAMWORK,
@@ -416,11 +416,11 @@ export const featRuntimeCapabilityMatrix = {
   },
   [FEATS.LORDLY_RESOLVE]: {
     feat: FEATS.LORDLY_RESOLVE,
-    capabilities: ["abilityBonus", "choice"]
+    capabilities: ["abilityBonus", "actionCard", "choice", "restRecovery", "status"]
   },
   [FEATS.MYTHAL_TOUCHED]: {
     feat: FEATS.MYTHAL_TOUCHED,
-    capabilities: ["abilityBonus", "choice"]
+    capabilities: ["abilityBonus", "choice", "reaction", "restRecovery"]
   },
   [FEATS.ORDERS_RESILIENCE]: {
     feat: FEATS.ORDERS_RESILIENCE,
@@ -428,7 +428,7 @@ export const featRuntimeCapabilityMatrix = {
   },
   [FEATS.PURPLE_DRAGON_COMMANDANT]: {
     feat: FEATS.PURPLE_DRAGON_COMMANDANT,
-    capabilities: ["abilityBonus", "choice"]
+    capabilities: ["abilityBonus", "actionCard", "choice", "restRecovery", "weaponActionTransform"]
   },
   [FEATS.SPELLFIRE_ADEPT]: {
     feat: FEATS.SPELLFIRE_ADEPT,

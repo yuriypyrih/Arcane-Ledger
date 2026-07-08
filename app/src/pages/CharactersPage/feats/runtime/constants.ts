@@ -28,6 +28,8 @@ export const boonOfTerrorFleeFoolsReactionEntryId =
 export const boonOfSoulDrinkerSiphonLifeReactionEntryId =
   "reaction-boon-of-soul-drinker-siphon-life";
 export const interceptionReactionEntryId = "reaction-interception";
+export const mythalTouchedMythalWardReactionEntryId =
+  "reaction-mythal-touched-mythal-ward";
 export const polearmMasterReactiveStrikeReactionEntryId =
   "reaction-polearm-master-reactive-strike";
 export const protectionReactionEntryId = "reaction-protection";
@@ -55,6 +57,13 @@ export const boonOfRecoveryRecoverVitalityActionKey =
 export const durableSpeedyRecoveryActionKey = "feat-durable-speedy-recovery";
 export const fairyTricksterFlusteringStrikeActionKey =
   "feat-fairy-trickster-flustering-strike";
+export const genieMagicWishMagicActionKey = "feat-genie-magic-wish-magic";
+export const lordlyResolveStandardBearerActionKey =
+  "feat-lordly-resolve-standard-bearer";
+export const lordlyResolveStandardBearerStatusSourceId =
+  "feat-lordly-resolve-standard-bearer";
+export const purpleDragonCommandantEncourageAllyActionKey =
+  "feat-purple-dragon-commandant-encourage-ally";
 export const telekineticShoveActionKey = "feat-telekinetic-shove";
 
 export const feyTouchedMistyStepSpellId = "spell-misty-step";
@@ -64,6 +73,7 @@ export const shadowTouchedInvisibilitySpellId = "spell-invisibility";
 export const boonOfRevelryIrresistibleDanceSpellId = "spell-irresistible-dance";
 export const emeraldEnclaveFledglingSpeakWithAnimalsSpellId =
   "spell-speak-with-animals";
+export const enclaveMagicBeastSenseSpellId = "spell-beast-sense";
 export const spellfireSparkSacredFlameSpellId = "spell-sacred-flame";
 export const spellfireSparkSpellfireFlameResourceId =
   "feat-spellfire-spark-spellfire-flame";

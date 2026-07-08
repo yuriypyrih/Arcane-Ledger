@@ -105,6 +105,26 @@ export type FairyTricksterState = {
   flusteringStrikeExpended?: number;
 };
 
+export type EnclaveMagicState = {
+  twoHeartsOneMindExpended?: boolean;
+};
+
+export type GenieMagicState = {
+  wishMagicExpended?: boolean;
+};
+
+export type LordlyResolveState = {
+  standardBearerExpended?: boolean;
+};
+
+export type MythalTouchedState = {
+  mythalWardExpended?: number;
+};
+
+export type PurpleDragonCommandantState = {
+  encourageAllyExpended?: number;
+};
+
 export type CrusherChoice = {
   ability: "STR" | "CON";
 };
@@ -385,6 +405,11 @@ export type CharacterFeatEntry = {
   harperAgent?: HarperAgentChoice;
   purpleDragonRook?: PurpleDragonRookChoice;
   fairyTrickster?: FairyTricksterState;
+  enclaveMagic?: EnclaveMagicState;
+  genieMagic?: GenieMagicState;
+  lordlyResolve?: LordlyResolveState;
+  mythalTouched?: MythalTouchedState;
+  purpleDragonCommandant?: PurpleDragonCommandantState;
   musician?: MusicianChoice;
   crafter?: CrafterChoice;
   boonOfEnergyResistance?: BoonOfEnergyResistanceChoice;

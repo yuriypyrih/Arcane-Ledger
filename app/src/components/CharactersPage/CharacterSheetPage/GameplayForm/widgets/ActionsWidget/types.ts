@@ -75,6 +75,7 @@ export type ActionsWidgetUiState = {
   selectedChannelDivinityOptionKey: string | null;
   selectedFontOfMagicSelection: FontOfMagicSelection | null;
   selectedFluidFormsMonster: MonsterRecord | null;
+  selectedGenieMagicSpell: SpellEntry | null;
   isFluidFormsMonsterModalOpen: boolean;
   selectedWildShapeMonsterSlug: string | null;
   selectedWildCompanionResource: WildCompanionResourceKind;
@@ -230,6 +231,8 @@ export type ActionsWidgetDrawerBodyContext = ActionsWidgetContextBag &
     | "setSelectedActionOptionKeys"
     | "selectedFluidFormsMonster"
     | "setSelectedFluidFormsMonster"
+    | "selectedGenieMagicSpell"
+    | "setSelectedGenieMagicSpell"
     | "isFluidFormsMonsterModalOpen"
     | "setIsFluidFormsMonsterModalOpen"
     | "setSelectedWildShapeMonsterSlug"

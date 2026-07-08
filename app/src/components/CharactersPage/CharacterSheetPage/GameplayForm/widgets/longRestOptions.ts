@@ -358,11 +358,16 @@ import {
   restoreBoonOfSoulDrinkerSiphonLifeForCharacter,
   restoreBoonOfTerrorFleeFoolsForCharacter,
   restoreCultOfDragonInitiateInspiredByFearForCharacter,
+  restoreEnclaveMagicTwoHeartsOneMindForCharacter,
   restoreFairyTricksterFlusteringStrikeForCharacter,
   restoreFeyTouchedFreeCastsForCharacter,
+  restoreGenieMagicWishMagicForCharacter,
+  restoreLordlyResolveStandardBearerForCharacter,
   restoreLuckyPointsForCharacter,
   restoreMageSlayerGuardedMindForCharacter,
   restoreMagicInitiateFreeCastsForCharacter,
+  restoreMythalTouchedMythalWardForCharacter,
+  restorePurpleDragonCommandantEncourageAllyForCharacter,
   restorePurpleDragonRookRallyingCryForCharacter,
   restoreRitualCasterQuickRitualForCharacter,
   restoreShadowTouchedFreeCastsForCharacter,
@@ -433,6 +438,20 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const fairyTricksterFlusteringStrikeIsFull =
     featDerivedState.fairyTricksterFlusteringStrikeRemaining >=
     featDerivedState.fairyTricksterFlusteringStrikeTotal;
+  const enclaveMagicTwoHeartsOneMindIsFull =
+    featDerivedState.enclaveMagicTwoHeartsOneMindRemaining >=
+    featDerivedState.enclaveMagicTwoHeartsOneMindTotal;
+  const genieMagicWishMagicIsFull =
+    featDerivedState.genieMagicWishMagicRemaining >= featDerivedState.genieMagicWishMagicTotal;
+  const lordlyResolveStandardBearerIsFull =
+    featDerivedState.lordlyResolveStandardBearerRemaining >=
+    featDerivedState.lordlyResolveStandardBearerTotal;
+  const mythalTouchedMythalWardIsFull =
+    featDerivedState.mythalTouchedMythalWardRemaining >=
+    featDerivedState.mythalTouchedMythalWardTotal;
+  const purpleDragonCommandantEncourageAllyIsFull =
+    featDerivedState.purpleDragonCommandantEncourageAllyRemaining >=
+    featDerivedState.purpleDragonCommandantEncourageAllyTotal;
   const purpleDragonRookRallyingCryIsFull =
     featDerivedState.purpleDragonRookRallyingCryRemaining >=
     featDerivedState.purpleDragonRookRallyingCryTotal;
@@ -1051,6 +1070,81 @@ export function createLongRestOptions(character: Character): RestOption[] {
             disabled: fairyTricksterFlusteringStrikeIsFull,
             apply: (currentCharacter: Character) =>
               restoreFairyTricksterFlusteringStrikeForCharacter(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(featDerivedState.hasEnclaveMagic
+      ? [
+          {
+            id: "restore-enclave-magic-two-hearts-one-mind",
+            label: "Restore Two Hearts, One Mind",
+            charges: {
+              current: featDerivedState.enclaveMagicTwoHeartsOneMindRemaining,
+              total: featDerivedState.enclaveMagicTwoHeartsOneMindTotal
+            },
+            disabled: enclaveMagicTwoHeartsOneMindIsFull,
+            apply: (currentCharacter: Character) =>
+              restoreEnclaveMagicTwoHeartsOneMindForCharacter(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(featDerivedState.hasGenieMagic
+      ? [
+          {
+            id: "restore-genie-magic-wish-magic",
+            label: "Restore Wish Magic",
+            charges: {
+              current: featDerivedState.genieMagicWishMagicRemaining,
+              total: featDerivedState.genieMagicWishMagicTotal
+            },
+            disabled: genieMagicWishMagicIsFull,
+            apply: (currentCharacter: Character) =>
+              restoreGenieMagicWishMagicForCharacter(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(featDerivedState.hasLordlyResolve
+      ? [
+          {
+            id: "restore-lordly-resolve-standard-bearer",
+            label: "Restore Standard Bearer",
+            charges: {
+              current: featDerivedState.lordlyResolveStandardBearerRemaining,
+              total: featDerivedState.lordlyResolveStandardBearerTotal
+            },
+            disabled: lordlyResolveStandardBearerIsFull,
+            apply: (currentCharacter: Character) =>
+              restoreLordlyResolveStandardBearerForCharacter(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(featDerivedState.hasMythalTouched
+      ? [
+          {
+            id: "restore-mythal-touched-mythal-ward",
+            label: "Restore Mythal Ward",
+            charges: {
+              current: featDerivedState.mythalTouchedMythalWardRemaining,
+              total: featDerivedState.mythalTouchedMythalWardTotal
+            },
+            disabled: mythalTouchedMythalWardIsFull,
+            apply: (currentCharacter: Character) =>
+              restoreMythalTouchedMythalWardForCharacter(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(featDerivedState.hasPurpleDragonCommandant
+      ? [
+          {
+            id: "restore-purple-dragon-commandant-encourage-ally",
+            label: "Restore Encourage Ally",
+            charges: {
+              current: featDerivedState.purpleDragonCommandantEncourageAllyRemaining,
+              total: featDerivedState.purpleDragonCommandantEncourageAllyTotal
+            },
+            disabled: purpleDragonCommandantEncourageAllyIsFull,
+            apply: (currentCharacter: Character) =>
+              restorePurpleDragonCommandantEncourageAllyForCharacter(currentCharacter)
           } satisfies RestOption
         ]
       : []),

@@ -103,7 +103,9 @@ export type FeatDerivedState = {
   hasCrafterDiscount: boolean;
   hasCultOfDragonInitiate: boolean;
   hasDefenseFightingStyle: boolean;
+  hasEnclaveMagic: boolean;
   hasFairyTrickster: boolean;
+  hasGenieMagic: boolean;
   hasHealer: boolean;
   hasFeyTouched: boolean;
   hasBoonOfFate: boolean;
@@ -113,8 +115,11 @@ export type FeatDerivedState = {
   hasBoonOfSpellRecall: boolean;
   hasBoonOfTerror: boolean;
   hasLucky: boolean;
+  hasLordlyResolve: boolean;
   hasMageSlayer: boolean;
   hasMagicInitiate: boolean;
+  hasMythalTouched: boolean;
+  hasPurpleDragonCommandant: boolean;
   hasPurpleDragonRook: boolean;
   hasRitualCaster: boolean;
   hasShadowTouched: boolean;
@@ -130,6 +135,12 @@ export type FeatDerivedState = {
   spellfireSparkSpellfireFlameTotal: number;
   fairyTricksterFlusteringStrikeRemaining: number;
   fairyTricksterFlusteringStrikeTotal: number;
+  enclaveMagicTwoHeartsOneMindRemaining: number;
+  enclaveMagicTwoHeartsOneMindTotal: number;
+  genieMagicWishMagicRemaining: number;
+  genieMagicWishMagicTotal: number;
+  lordlyResolveStandardBearerRemaining: number;
+  lordlyResolveStandardBearerTotal: number;
   boonOfFateImproveFateRemaining: number;
   boonOfFateImproveFateTotal: number;
   boonOfFluidFormsShapechangerRemaining: number;
@@ -144,6 +155,10 @@ export type FeatDerivedState = {
   boonOfTerrorFleeFoolsTotal: number;
   mageSlayerGuardedMindRemaining: number;
   mageSlayerGuardedMindTotal: number;
+  mythalTouchedMythalWardRemaining: number;
+  mythalTouchedMythalWardTotal: number;
+  purpleDragonCommandantEncourageAllyRemaining: number;
+  purpleDragonCommandantEncourageAllyTotal: number;
   ritualCasterQuickRitualRemaining: number;
   ritualCasterQuickRitualTotal: number;
   telepathicDetectThoughtsRemaining: number;

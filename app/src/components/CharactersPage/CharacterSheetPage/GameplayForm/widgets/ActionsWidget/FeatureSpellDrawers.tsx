@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import CharacterSpellDrawer, {
   type CharacterSpellDrawerActionOptions
 } from "../../../SpellCastingForm/CharacterSpellDrawer";
-import type { Character } from "../../../../../../types";
+import type { AbilityKey, Character } from "../../../../../../types";
 import type { SpellEntry } from "../../../../../../codex/entries";
 import type {
   FeatureActionCard,
@@ -66,6 +66,7 @@ type FeatureSpellDrawersProps = {
   fixedSpellFreeCastSlotLevel: number | null;
   fixedSpellActionContextText: string | null;
   fixedSpellActionAvailabilityText: string | null;
+  fixedSpellcastingAbilityOverride: AbilityKey | null;
   fixedSpellFacts: FeatureActionFact[];
   fixedSpellShowActionDiceControls: boolean;
   isDiceRollerSettingsOpen: boolean;
@@ -107,6 +108,16 @@ type FeatureSpellDrawersProps = {
 };
 
 const emptySpellSlots = Array.from({ length: 9 }, () => 0);
+
+function createLockedFreeCastSpellSlots(slotLevel: number | null): number[] {
+  const slots = [...emptySpellSlots];
+
+  if (slotLevel !== null && slotLevel >= 1 && slotLevel <= slots.length) {
+    slots[slotLevel - 1] = 1;
+  }
+
+  return slots;
+}
 
 function createBeguilingMagicOption({
   checked,
@@ -201,6 +212,7 @@ function FeatureSpellDrawers({
   fixedSpellFreeCastSlotLevel,
   fixedSpellActionContextText,
   fixedSpellActionAvailabilityText,
+  fixedSpellcastingAbilityOverride,
   fixedSpellFacts,
   fixedSpellShowActionDiceControls,
   isDiceRollerSettingsOpen,
@@ -256,6 +268,20 @@ function FeatureSpellDrawers({
   const fixedSpellAlwaysPreparedSources = getSpellSourceLabels(
     alwaysPreparedSpellSourceMap,
     fixedSpellDisplay?.id
+  );
+  const fixedSpellDrawerSlotTotals = useMemo(
+    () =>
+      fixedSpellExecute?.effectKind === "genie-magic"
+        ? createLockedFreeCastSpellSlots(fixedSpellFreeCastSlotLevel)
+        : fixedSpellSlotTotals,
+    [fixedSpellExecute?.effectKind, fixedSpellFreeCastSlotLevel, fixedSpellSlotTotals]
+  );
+  const fixedSpellDrawerSlotsRemaining = useMemo(
+    () =>
+      fixedSpellExecute?.effectKind === "genie-magic"
+        ? createLockedFreeCastSpellSlots(fixedSpellFreeCastSlotLevel)
+        : fixedSpellSlotsRemaining,
+    [fixedSpellExecute?.effectKind, fixedSpellFreeCastSlotLevel, fixedSpellSlotsRemaining]
   );
   const divineInterventionSpellDisplay = useMemo(
     () =>
@@ -332,8 +358,8 @@ function FeatureSpellDrawers({
           alwaysPrepared={fixedSpellAlwaysPrepared}
           alwaysPreparedSources={fixedSpellAlwaysPreparedSources}
           mode="standard"
-          spellSlotTotals={fixedSpellSlotTotals}
-          spellSlotsRemaining={fixedSpellSlotsRemaining}
+          spellSlotTotals={fixedSpellDrawerSlotTotals}
+          spellSlotsRemaining={fixedSpellDrawerSlotsRemaining}
           selectedSpellSlotLevel={selectedFixedSpellSlotLevel}
           onSelectedSpellSlotLevelChange={onSelectedFixedSpellSlotLevelChange}
           onClose={onCloseFixedSpellDrawer}
@@ -356,6 +382,7 @@ function FeatureSpellDrawers({
           freeCastSlotLevel={fixedSpellFreeCastSlotLevel}
           actionContextText={fixedSpellActionContextText}
           actionAvailabilityText={fixedSpellActionAvailabilityText}
+          spellcastingAbilityOverride={fixedSpellcastingAbilityOverride}
           facts={fixedSpellFacts}
           factsSectionTitle={null}
           showActionDiceControls={fixedSpellShowActionDiceControls}

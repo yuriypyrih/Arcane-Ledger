@@ -75,6 +75,7 @@ export type GameplayActionDrawerDefinition =
       kind: "custom-form";
       formKind: NonNullable<FeatureActionDrawerConfig["formKind"]>;
       options?: FeatureActionOptionCard[];
+      confirmLabel?: string;
     })
   | (GameplayActionDrawerBase & {
       kind: "spell-list";
@@ -395,6 +396,7 @@ function createFeatureActionDrawer(
       facts,
       factsSectionTitle,
       headerTags,
+      confirmLabel,
       formKind:
         action.drawer?.formKind ??
         (execute.kind === "custom-form" ? execute.formKind : "lay-on-hands"),

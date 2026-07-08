@@ -87,6 +87,7 @@ import {
   wizardBladesingerSongOfDefenseReactionId
 } from "../../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardBladesinger";
 import {
+  FEATS,
   ABILITY_TYPES,
   type ReactionEntry,
   type SpellEntry
@@ -97,13 +98,16 @@ import {
   boonOfTerrorFleeFoolsReactionEntryId,
   getBoonOfSoulDrinkerSiphonLifeStateForCharacter,
   getBoonOfTerrorFleeFoolsStateForCharacter,
+  getMythalTouchedMythalWardStateForCharacter,
   defensiveDuelistParryReactionEntryId,
   interceptionReactionEntryId,
+  mythalTouchedMythalWardReactionEntryId,
   polearmMasterReactiveStrikeReactionEntryId,
   protectionReactionEntryId,
   shieldMasterReactionEntryId,
   spendBoonOfSoulDrinkerSiphonLifeForCharacter,
-  spendBoonOfTerrorFleeFoolsForCharacter
+  spendBoonOfTerrorFleeFoolsForCharacter,
+  spendMythalTouchedMythalWardForCharacter
 } from "../../../../../../pages/CharactersPage/feats/runtime";
 import {
   characterHasHeldInterceptionEquipment,
@@ -620,6 +624,57 @@ function getBoonOfTerrorFleeFoolsReactionFacts(
   ];
 }
 
+function getMythalTouchedMythalWardAbility(character: Character) {
+  return (
+    character.feats?.find((entry) => entry.feat === FEATS.MYTHAL_TOUCHED)
+      ?.epicBoonAbilityChoice?.ability ?? "INT"
+  );
+}
+
+function getMythalTouchedMythalWardReactionFacts(
+  context: ReactionDescriptorContext
+): FeatureActionFact[] {
+  const ability = getMythalTouchedMythalWardAbility(context.character);
+  const abilityModifier = getAbilityModifierForCharacter(context.character, ability);
+  const proficiencyBonus = getProficiencyBonus(context.character.level);
+  const saveDc = 8 + abilityModifier + proficiencyBonus;
+  const displayTerms = [
+    "DC 8 (Base)",
+    formatSignedFormulaTerm(abilityModifier, ability),
+    formatSignedFormulaTerm(proficiencyBonus, "Prof. Bonus")
+  ];
+  const formulaCell = formatFormulaCell({
+    formula: String(saveDc),
+    displayTerms,
+    breakdownTerms: displayTerms
+  });
+
+  return [
+    {
+      label: "Mythal Ward DC Formula",
+      value: `${formatCodexLabel(ability)} DC ${saveDc} = ${formulaCell.value}`,
+      breakdown: formulaCell.breakdown,
+      fullWidth: true
+    }
+  ];
+}
+
+function createMythalTouchedMythalWardRollRequest(): DiceRollerRequest {
+  return {
+    title: "Mythal Ward",
+    description: "Mythal-Touched Magic table roll",
+    formula: "1d20",
+    formulaDisplay: "1d20",
+    entries: [
+      {
+        label: "Table Result",
+        formula: "1d20",
+        formulaDisplay: "1d20"
+      }
+    ]
+  };
+}
+
 function getInterceptionReactionFacts(context: ReactionDescriptorContext): FeatureActionFact[] {
   return [
     {
@@ -1039,6 +1094,26 @@ const descriptors: ReactionDescriptor[] = [
       return state ? [createChargesHeaderTag(state.usesRemaining, state.usesTotal)] : [];
     },
     apply: applyBoonOfSoulDrinkerSiphonLife,
+    skipReactionWhenUnchanged: true
+  },
+  {
+    id: mythalTouchedMythalWardReactionEntryId,
+    footerActionName: "Mythal Ward",
+    createRollRequest: createMythalTouchedMythalWardRollRequest,
+    getFacts: getMythalTouchedMythalWardReactionFacts,
+    getFactsSectionTitle: () => "Saving Throw",
+    getResourceWarning: (context) => {
+      const state = getMythalTouchedMythalWardStateForCharacter(context.character);
+
+      return state && state.usesRemaining > 0 ? null : "No Mythal Ward charges remaining.";
+    },
+    getResourceSummary: () => null,
+    getHeaderTags: (context) => {
+      const state = getMythalTouchedMythalWardStateForCharacter(context.character);
+
+      return state ? [createChargesHeaderTag(state.usesRemaining, state.usesTotal)] : [];
+    },
+    apply: spendMythalTouchedMythalWardForCharacter,
     skipReactionWhenUnchanged: true
   },
   {

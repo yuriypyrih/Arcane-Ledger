@@ -3,6 +3,7 @@ import type { RollMode } from "../../../types";
 import type { AbilityKey, Character } from "../../../types";
 import { isInnateSorceryActiveForSpell } from "../classFeatures/sorcerer/innateSorcerySpell";
 import { getAbilityModifierForCharacter } from "../abilities";
+import { getFeatAttackRollIndicatorsForCharacter } from "../feats/runtime/weaponAttackIndicators";
 import { getProficiencyBonus } from "../gameplay";
 import { getExhaustionD20TestPenalty } from "../statusEntries";
 import { getCharacterCustomTraitEffectInput } from "../characterRuntime/customEffectRuntime";
@@ -100,7 +101,7 @@ function formatSpellAttackFormulaBreakdown(
 
 function getSpellAttackRollModeState(
   innateSorceryActive: boolean,
-  customIndicators: CustomTraitRollIndicator[]
+  customIndicators: Array<Pick<CustomTraitRollIndicator, "source" | "tone">>
 ): Pick<SpellAttackRollFormula, "rollMode" | "rollModeBreakdownTerms"> {
   const advantageSources = [
     innateSorceryActive ? "Innate Sorcery" : null,
@@ -272,7 +273,17 @@ export function getSpellAttackRollFormulaForCharacter(
   const innateSorceryActive = isInnateSorceryActiveForSpell(character, spell);
   const rollModeState = getSpellAttackRollModeState(
     innateSorceryActive,
-    getCustomTraitSpellAttackRollIndicators(customTraitEffectInput)
+    [
+      ...getCustomTraitSpellAttackRollIndicators(customTraitEffectInput),
+      ...getFeatAttackRollIndicatorsForCharacter(character).flatMap((indicator) =>
+        (Array.isArray(indicator.source) ? indicator.source : [indicator.source]).map(
+          (source) => ({
+            source,
+            tone: indicator.tone
+          })
+        )
+      )
+    ]
   );
   const formulaBreakdownTerms = [
     formatSignedFormulaTerm(proficiencyBonus, "Prof. Bonus"),

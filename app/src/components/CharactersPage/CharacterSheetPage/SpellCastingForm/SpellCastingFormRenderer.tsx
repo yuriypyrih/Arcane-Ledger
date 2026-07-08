@@ -94,6 +94,8 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
     selectedSpellBoonOfRevelryFreeCastState,
     selectedSpellDetectThoughtsDisabled,
     selectedSpellDetectThoughtsFreeCastState,
+    selectedSpellEnclaveMagicTwoHeartsOneMindDisabled,
+    selectedSpellEnclaveMagicTwoHeartsOneMindState,
     selectedSpellCustomEffects,
     selectedSpellDisplay,
     selectedSpellMagicInitiateAbility,
@@ -145,6 +147,7 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
     selectedSpellSupportsBoonOfRevelry,
     selectedSpellSupportsDetectThoughts,
     selectedSpellSupportsEmeraldEnclaveFledgling,
+    selectedSpellSupportsEnclaveMagicTwoHeartsOneMind,
     selectedSpellSupportsFeyMagic,
     selectedSpellSupportsGenasiLineage,
     selectedSpellSupportsFiendishLegacy,
@@ -183,6 +186,7 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
     setUseBoonOfRevelryOnSelectedSpell,
     setUseDetectThoughtsOnSelectedSpell,
     setUseEmeraldEnclaveFledglingFreeUseOnSelectedSpell,
+    setUseTwoHeartsOneMindOnSelectedSpell,
     setUseFeyMagicOnSelectedSpell,
     setUseGenasiLineageOnSelectedSpell,
     setUseFiendishLegacyOnSelectedSpell,
@@ -229,6 +233,7 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
     useBoonOfRevelryOnSelectedSpell,
     useDetectThoughtsOnSelectedSpell,
     useEmeraldEnclaveFledglingFreeUseOnSelectedSpell,
+    useTwoHeartsOneMindOnSelectedSpell,
     useFeyMagicOnSelectedSpell,
     useGenasiLineageOnSelectedSpell,
     useFiendishLegacyOnSelectedSpell,
@@ -500,7 +505,8 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
               useRadiantSoul: useRadiantSoulOnSelectedSpell,
               useOverchannel: useOverchannelOnSelectedSpell,
               useEmeraldEnclaveFledglingFreeUse:
-                useEmeraldEnclaveFledglingFreeUseOnSelectedSpell
+                useEmeraldEnclaveFledglingFreeUseOnSelectedSpell,
+              useTwoHeartsOneMind: useTwoHeartsOneMindOnSelectedSpell
             })
           }
           actionConsumesSpellSlot={
@@ -521,6 +527,10 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
             !(
               selectedSpellSupportsEmeraldEnclaveFledgling &&
               useEmeraldEnclaveFledglingFreeUseOnSelectedSpell
+            ) &&
+            !(
+              selectedSpellSupportsEnclaveMagicTwoHeartsOneMind &&
+              useTwoHeartsOneMindOnSelectedSpell
             ) &&
             !(selectedSpellSupportsPsionicSorcery && usePsionicSorceryOnSelectedSpell) &&
             !(selectedSpellSupportsStepsOfTheFey && useStepsOfTheFeyOnSelectedSpell) &&
@@ -584,6 +594,9 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
                                     : selectedSpellSupportsEmeraldEnclaveFledgling &&
                                         useEmeraldEnclaveFledglingFreeUseOnSelectedSpell
                                       ? "Emerald Enclave Fledgling lets you cast this spell without expending a spell slot."
+                                      : selectedSpellSupportsEnclaveMagicTwoHeartsOneMind &&
+                                          useTwoHeartsOneMindOnSelectedSpell
+                                        ? "Two Hearts, One Mind lets you cast Beast Sense without expending a spell slot. This casting doesn't require Concentration and lasts 1 hour."
                                       : selectedSpellSupportsStepsOfTheFey &&
                                         useStepsOfTheFeyOnSelectedSpell
                                       ? selectedSpellSupportsBewitchingMagic &&
@@ -669,6 +682,7 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
             selectedSpellSupportsDetectThoughts ||
             selectedSpellSupportsBoonOfSpellRecall ||
             selectedSpellSupportsBoonOfRevelry ||
+            selectedSpellSupportsEnclaveMagicTwoHeartsOneMind ||
             selectedSpellSupportsPsionicSorcery ||
             selectedSpellSupportsBeguilingMagic ||
             selectedSpellSupportsBlessingOfMoonlight ||
@@ -956,6 +970,27 @@ export function renderSpellCastingForm(context: SpellCastingFormRendererContext)
                           usage: createChargesCardUsage(
                             selectedSpellBoonOfRevelryFreeCastState?.usesRemaining ?? 0,
                             selectedSpellBoonOfRevelryFreeCastState?.usesTotal ?? 1
+                          )
+                        }
+                      ]
+                    : []),
+                  ...(selectedSpellSupportsEnclaveMagicTwoHeartsOneMind
+                    ? [
+                        {
+                          id: "enclave-magic-two-hearts-one-mind",
+                          label: "Two Hearts, One Mind",
+                          checked: useTwoHeartsOneMindOnSelectedSpell,
+                          onCheckedChange: setUseTwoHeartsOneMindOnSelectedSpell,
+                          disabled: selectedSpellEnclaveMagicTwoHeartsOneMindDisabled,
+                          headerTags: [
+                            createChargesHeaderTag(
+                              selectedSpellEnclaveMagicTwoHeartsOneMindState?.usesRemaining ?? 0,
+                              selectedSpellEnclaveMagicTwoHeartsOneMindState?.usesTotal ?? 1
+                            )
+                          ],
+                          usage: createChargesCardUsage(
+                            selectedSpellEnclaveMagicTwoHeartsOneMindState?.usesRemaining ?? 0,
+                            selectedSpellEnclaveMagicTwoHeartsOneMindState?.usesTotal ?? 1
                           )
                         }
                       ]

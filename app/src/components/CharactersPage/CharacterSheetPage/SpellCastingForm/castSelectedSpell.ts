@@ -36,6 +36,7 @@ export function castSelectedSpellWithContext(
     consumeRitualCasterQuickRitualForCharacter,
     consumeShadowTouchedFreeCastForCharacter,
     consumeTelepathicDetectThoughtsFreeCastForCharacter,
+    spendEnclaveMagicTwoHeartsOneMindForCharacter,
     applyFeatureSpellCastEffectsForCharacter,
     appendSpellSummonCompanionsForCast,
     canAddSpellSummonCompanionsForCast,
@@ -89,6 +90,7 @@ export function castSelectedSpellWithContext(
     selectedSpellSupportsBoonOfRevelry,
     selectedSpellSupportsDetectThoughts,
     selectedSpellSupportsEmeraldEnclaveFledgling,
+    selectedSpellSupportsEnclaveMagicTwoHeartsOneMind,
     selectedSpellSupportsFeyMagic,
     selectedSpellSupportsGenasiLineage,
     selectedSpellSupportsFiendishLegacy,
@@ -182,6 +184,9 @@ export function castSelectedSpellWithContext(
   const useEmeraldEnclaveFledglingFreeUse =
     options?.useEmeraldEnclaveFledglingFreeUse === true &&
     selectedSpellSupportsEmeraldEnclaveFledgling;
+  const useTwoHeartsOneMind =
+    options?.useTwoHeartsOneMind === true &&
+    selectedSpellSupportsEnclaveMagicTwoHeartsOneMind;
   const spellImplementationOptions = options?.spellImplementationOptions ?? {};
   const spellImplementationCastSource =
     options?.spellImplementationCastSource ??
@@ -231,7 +236,14 @@ export function castSelectedSpellWithContext(
   const frozenHauntFallbackSlotLevel = useFrozenHaunt
     ? (options?.frozenHauntFallbackSlotLevel ?? null)
     : null;
-  const spellForStatusEntries = useFeyReinforcementsNoConcentration
+  const spellForStatusEntries = useTwoHeartsOneMind
+    ? {
+        id: selectedSpell.id,
+        name: selectedSpell.name,
+        duration: ["1 hour"],
+        description: selectedSpell.description
+      }
+    : useFeyReinforcementsNoConcentration
     ? {
         id: selectedSpell.id,
         name: selectedSpell.name,
@@ -541,6 +553,7 @@ export function castSelectedSpellWithContext(
     useBoonOfRevelry ||
     useBoonOfSpellRecall ||
     useEmeraldEnclaveFledglingFreeUse ||
+    useTwoHeartsOneMind ||
     useStepsOfTheFey ||
     useBewitchingMagic ||
     useMistyWanderer ||
@@ -572,6 +585,7 @@ export function castSelectedSpellWithContext(
   const castsFreeViaBoonOfRevelry = useBoonOfRevelry;
   const castsFreeViaBoonOfSpellRecall = useBoonOfSpellRecall;
   const castsFreeViaEmeraldEnclaveFledgling = useEmeraldEnclaveFledglingFreeUse;
+  const castsFreeViaTwoHeartsOneMind = useTwoHeartsOneMind;
   const castsFreeViaPsionicSorcery = usePsionicSorcery && sorceryPointsRemaining >= slotLevel;
   const castsFreeViaStepsOfTheFey = useStepsOfTheFey;
   const castsFreeViaBewitchingMagic = useBewitchingMagic;
@@ -596,6 +610,7 @@ export function castSelectedSpellWithContext(
     castsFreeViaBoonOfRevelry ||
     castsFreeViaBoonOfSpellRecall ||
     castsFreeViaEmeraldEnclaveFledgling ||
+    castsFreeViaTwoHeartsOneMind ||
     castsFreeViaPsionicSorcery ||
     castsFreeViaStepsOfTheFey ||
     castsFreeViaBewitchingMagic ||
@@ -822,11 +837,22 @@ export function castSelectedSpellWithContext(
       return currentCharacter;
     }
 
+    const nextCharacterWithTwoHeartsOneMind = castsFreeViaTwoHeartsOneMind
+      ? spendEnclaveMagicTwoHeartsOneMindForCharacter(nextCharacterWithBoonOfRevelry)
+      : nextCharacterWithBoonOfRevelry;
+
+    if (
+      castsFreeViaTwoHeartsOneMind &&
+      nextCharacterWithTwoHeartsOneMind === nextCharacterWithBoonOfRevelry
+    ) {
+      return currentCharacter;
+    }
+
     const nextCharacterWithSpellcast = {
-      ...nextCharacterWithBoonOfRevelry,
+      ...nextCharacterWithTwoHeartsOneMind,
       spellSlotsExpended:
         castsWithoutSpellSlot && !shouldSpendFrozenHauntFallbackSlot
-          ? nextCharacterWithBoonOfRevelry.spellSlotsExpended
+          ? nextCharacterWithTwoHeartsOneMind.spellSlotsExpended
           : nextSpellSlotsExpended
     };
     const sourceSpellSlotLevel = shouldSpendFrozenHauntFallbackSlot

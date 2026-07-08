@@ -16,6 +16,7 @@ import type {
   DragonscarredChoice,
   DualWielderChoice,
   ElementalAdeptChoice,
+  EnclaveMagicState,
   CrafterChoice,
   DruidicWarriorChoice,
   EmeraldEnclaveFledglingChoice,
@@ -67,6 +68,10 @@ import type {
   CharacterFeatSource,
   EpicBoonAbilityChoice,
   FairyTricksterState,
+  GenieMagicState,
+  LordlyResolveState,
+  MythalTouchedState,
+  PurpleDragonCommandantState,
   SkilledChoice
 } from "../../../types/feats";
 import { formatCodexLabel } from "../../../utils/codex";
@@ -514,6 +519,47 @@ export function normalizeCharacterFeats(
             )
           }
         : undefined;
+    const enclaveMagic =
+      feat === FEATS.ENCLAVE_MAGIC && record.enclaveMagic
+        ? {
+            twoHeartsOneMindExpended:
+              record.enclaveMagic.twoHeartsOneMindExpended === true
+          }
+        : undefined;
+    const genieMagic =
+      feat === FEATS.GENIE_MAGIC && record.genieMagic
+        ? {
+            wishMagicExpended: record.genieMagic.wishMagicExpended === true
+          }
+        : undefined;
+    const lordlyResolve =
+      feat === FEATS.LORDLY_RESOLVE && record.lordlyResolve
+        ? {
+            standardBearerExpended:
+              record.lordlyResolve.standardBearerExpended === true ? true : undefined
+          }
+        : undefined;
+    const mythalTouched =
+      feat === FEATS.MYTHAL_TOUCHED && record.mythalTouched
+        ? {
+            mythalWardExpended: Math.max(
+              0,
+              Math.min(6, Math.floor(Number(record.mythalTouched.mythalWardExpended) || 0))
+            )
+          }
+        : undefined;
+    const purpleDragonCommandant =
+      feat === FEATS.PURPLE_DRAGON_COMMANDANT && record.purpleDragonCommandant
+        ? {
+            encourageAllyExpended: Math.max(
+              0,
+              Math.min(
+                6,
+                Math.floor(Number(record.purpleDragonCommandant.encourageAllyExpended) || 0)
+              )
+            )
+          }
+        : undefined;
     const spellfireSpark =
       feat === FEATS.SPELLFIRE_SPARK
         ? normalizeSpellfireSparkChoice(record.spellfireSpark, currentLevel)
@@ -590,6 +636,11 @@ export function normalizeCharacterFeats(
         harperAgent,
         purpleDragonRook,
         fairyTrickster,
+        enclaveMagic,
+        genieMagic,
+        lordlyResolve,
+        mythalTouched,
+        purpleDragonCommandant,
         spellfireSpark,
         musician,
         lucky
@@ -647,6 +698,11 @@ export function createCharacterFeatEntry(
     harperAgent?: HarperAgentChoice;
     purpleDragonRook?: PurpleDragonRookChoice;
     fairyTrickster?: FairyTricksterState;
+    enclaveMagic?: EnclaveMagicState;
+    genieMagic?: GenieMagicState;
+    lordlyResolve?: LordlyResolveState;
+    mythalTouched?: MythalTouchedState;
+    purpleDragonCommandant?: PurpleDragonCommandantState;
     spellfireSpark?: SpellfireSparkChoice;
     musician?: MusicianChoice;
     crafter?: CrafterChoice;
@@ -720,6 +776,12 @@ export function createCharacterFeatEntry(
     purpleDragonRook:
       feat === FEATS.PURPLE_DRAGON_ROOK ? options?.purpleDragonRook : undefined,
     fairyTrickster: feat === FEATS.FAIRY_TRICKSTER ? options?.fairyTrickster : undefined,
+    enclaveMagic: feat === FEATS.ENCLAVE_MAGIC ? options?.enclaveMagic : undefined,
+    genieMagic: feat === FEATS.GENIE_MAGIC ? options?.genieMagic : undefined,
+    lordlyResolve: feat === FEATS.LORDLY_RESOLVE ? options?.lordlyResolve : undefined,
+    mythalTouched: feat === FEATS.MYTHAL_TOUCHED ? options?.mythalTouched : undefined,
+    purpleDragonCommandant:
+      feat === FEATS.PURPLE_DRAGON_COMMANDANT ? options?.purpleDragonCommandant : undefined,
     spellfireSpark:
       feat === FEATS.SPELLFIRE_SPARK ? options?.spellfireSpark : undefined,
     musician: feat === FEATS.MUSICIAN ? options?.musician : undefined,

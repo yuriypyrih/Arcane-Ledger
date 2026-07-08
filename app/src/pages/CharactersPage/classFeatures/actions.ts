@@ -35,6 +35,7 @@ import {
 import { getCharacterCustomTraitEffectInput } from "../characterRuntime/customEffectRuntime";
 import {
   getFeatActionsForCharacter,
+  getFeatWeaponAttackIndicatorsForCharacter,
   transformFeatCommonActionForCharacter,
   transformFeatWeaponActionForCharacter
 } from "../feats/runtime";
@@ -1022,7 +1023,19 @@ export function getSkillRollD20MinimumForCharacter(
 
 export function getWeaponAttackIndicatorsForCharacter(
   character: Pick<Character, "className" | "statusEntries"> &
-    Partial<Pick<Character, "inventoryItems" | "subclassId">>,
+    Partial<
+      Pick<
+        Character,
+        | "currentHitPoints"
+        | "customSpecies"
+        | "feats"
+        | "hitPoints"
+        | "inventoryItems"
+        | "level"
+        | "species"
+        | "subclassId"
+      >
+    >,
   context?: {
     attackKind: "weapon" | "unarmed";
     combatType?: WEAPON_COMBAT_TYPE | null;
@@ -1033,6 +1046,7 @@ export function getWeaponAttackIndicatorsForCharacter(
 
   return [
     ...(subclassDerivedState.weaponAttackIndicators ?? []),
+    ...getFeatWeaponAttackIndicatorsForCharacter(character),
     ...(context
       ? getCustomTraitWeaponAttackRollIndicators(customTraitEffectInput, context)
       : [])

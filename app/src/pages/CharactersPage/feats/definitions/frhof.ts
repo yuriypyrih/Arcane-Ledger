@@ -203,7 +203,10 @@ export const frhofGeneralFeatDefinitions: FeatDefinition[] = [
       "<strong>Ability Score Increase.</strong> Increase your Intelligence, Wisdom, or Charisma by 1, to a maximum of 20.",
       "<strong>Friend to Animals.</strong> You have Advantage on ability checks when taking the Influence action with Beasts.",
       "<strong>Two Hearts, One Mind.</strong> You always have the <spell:Beast Sense>Beast Sense</spell> spell prepared. You can cast it once without a spell slot, and you regain the ability to cast it in that way when you finish a Long Rest. When you cast it without a spell slot using this feature, it doesn't require Concentration. You can also cast the spell using any spell slots you have of the appropriate level. The spell's spellcasting ability is the ability increased by this feat."
-    ]
+    ],
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "The Friend to Animals is not being tracked, you have to remember it during play."
   }),
   createFrhofFeatDefinition({
     feat: FEATS.FAIRY_TRICKSTER,
@@ -232,7 +235,8 @@ export const frhofGeneralFeatDefinitions: FeatDefinition[] = [
       "<strong>Wish Magic.</strong> As a Magic action, you can cast a level 1 spell of your choice from the Sorcerer spell list that has a casting time of an action. Once you use this benefit, you can't do so again until you finish a Long Rest. The spell's spellcasting ability is the ability increased by this feat.",
       "When you reach level 11, the spell you cast with this feat is cast as though using a level 2 spell slot.",
       "When you reach level 17, the spell is cast as though using a level 3 spell slot."
-    ]
+    ],
+    trackingState: TRACKER.TRACKED
   }),
   createFrhofFeatDefinition({
     feat: FEATS.HARPER_TEAMWORK,
@@ -246,7 +250,10 @@ export const frhofGeneralFeatDefinitions: FeatDefinition[] = [
       "<strong>Ability Score Increase.</strong> Increase your Dexterity or Charisma by 1, to a maximum of 20.",
       "<strong>Withering Wordplay.</strong> When you take the Help action to assist an ally's attack roll against an enemy, that enemy also has Disadvantage on the first saving throw it makes before the start of your next turn.",
       "<strong>Inspiring Willpower.</strong> If you succeed on a saving throw to end the Frightened or Paralyzed condition on yourself, you can choose one ally you can see within 30 feet of yourself that has the same condition. That condition immediately ends for that ally."
-    ]
+    ],
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "The Withering Wordplay and Inspiring Willpwer are not being tracked, you have to remember them during play."
   }),
   createFrhofFeatDefinition({
     feat: FEATS.LORDLY_RESOLVE,
@@ -255,6 +262,7 @@ export const frhofGeneralFeatDefinitions: FeatDefinition[] = [
     page: 40,
     prerequisite: "Level 4+, Lords' Alliance Agent",
     requirements: [level4Requirement, featRequirement(FEATS.LORDS_ALLIANCE_AGENT)],
+    trackingState: TRACKER.TRACKED,
     description: [
       "You gain the following benefits.",
       "<strong>Ability Score Increase.</strong> Increase your Strength or Charisma by 1, to a maximum of 20.",
@@ -297,7 +305,10 @@ export const frhofGeneralFeatDefinitions: FeatDefinition[] = [
       "<strong>Ability Score Increase.</strong> Increase your Strength, Wisdom, or Charisma by 1, to a maximum of 20.",
       "<strong>Resurge.</strong> When you have the Prone condition, you can right yourself with only 5 feet of movement.",
       "<strong>Stronger Together.</strong> If you are within 5 feet of an ally that doesn't have the Incapacitated condition, you and that ally have Advantage on Strength saving throws. You can't use this benefit while you have the Incapacitated condition."
-    ]
+    ],
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "The Resurge and Stronger Together are not being tracked, you have to remember them during play."
   }),
   createFrhofFeatDefinition({
     feat: FEATS.PURPLE_DRAGON_COMMANDANT,
@@ -313,7 +324,8 @@ export const frhofGeneralFeatDefinitions: FeatDefinition[] = [
       "<strong>Ability Score Increase.</strong> Increase your Strength or Dexterity by 1, to a maximum of 20.",
       "<strong>Encourage Ally.</strong> As a Bonus Action, you bolster one ally you can see within 30 feet. The ally gains Temporary Hit Points equal to 2d6 plus the modifier of the ability score increased by this feat. You can take this Bonus Action a number of times equal to your Proficiency Bonus, and you regain all uses when you finish a Long Rest.",
       "<strong>Last Stand.</strong> You have Advantage on attack rolls while Bloodied."
-    ]
+    ],
+    trackingState: TRACKER.TRACKED
   }),
   createFrhofFeatDefinition({
     feat: FEATS.SPELLFIRE_ADEPT,
@@ -364,7 +376,10 @@ export const frhofGeneralFeatDefinitions: FeatDefinition[] = [
       "<strong>Ability Score Increase.</strong> Increase your Dexterity or Charisma by 1, to a maximum of 20.",
       "<strong>Retaliate.</strong> Immediately after a creature within 5 feet of you hits you with a melee attack, you can make an Opportunity Attack against that creature.",
       "<strong>Versatile Merc.</strong> When you finish a Long Rest, choose a skill in which you have proficiency. You have Expertise in that skill until you finish your next Long Rest."
-    ]
+    ],
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "The Retaliate and Versatile Merc are not being tracked. You have to remember them during play and pick the expertise MANUALLY on each long rest."
   })
 ];
 

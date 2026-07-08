@@ -37,6 +37,7 @@ export type CastSelectedSpellOptions = {
   useBoonOfSpellRecall?: boolean;
   useBoonOfRevelry?: boolean;
   useEmeraldEnclaveFledglingFreeUse?: boolean;
+  useTwoHeartsOneMind?: boolean;
   useBewitchingMagic?: boolean;
   useNaturalRecovery?: boolean;
   useMistyWanderer?: boolean;

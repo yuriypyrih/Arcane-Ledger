@@ -15,9 +15,16 @@ import {
   spellfireSparkSacredFlameSpellId,
   spellfireSparkSpellfireFlameSpellCastEffectId,
   fairyTricksterFlusteringStrikeActionKey,
+  enclaveMagicBeastSenseSpellId,
+  lordlyResolveStandardBearerActionKey,
+  purpleDragonCommandantEncourageAllyActionKey,
   telepathicDetectThoughtsSpellId
 } from "./constants";
 import { getFeatItemAdditionalDescription } from "./itemAdditions";
+import {
+  applyLordlyResolveStandardBearerStatusForCharacter,
+  hasActiveLordlyResolveStandardBearerStatus
+} from "./lordlyResolve";
 import { collectFeatDerivedState, hasFeatForCharacter } from "./state";
 import type { FeatRuntimeCharacter } from "./types";
 
@@ -119,6 +126,125 @@ export function getFairyTricksterFlusteringStrikeStateForCharacter(
     expended: derivedState.fairyTricksterFlusteringStrikeRemaining <= 0,
     usesRemaining: derivedState.fairyTricksterFlusteringStrikeRemaining,
     usesTotal: derivedState.fairyTricksterFlusteringStrikeTotal
+  };
+}
+
+export function getGenieMagicWishMagicStateForCharacter(
+  character: FeatRuntimeCharacter
+): {
+  available: boolean;
+  expended: boolean;
+  usesRemaining: number;
+  usesTotal: number;
+} | null {
+  const derivedState = collectFeatDerivedState(character);
+
+  if (!derivedState.hasGenieMagic || derivedState.genieMagicWishMagicTotal <= 0) {
+    return null;
+  }
+
+  return {
+    available: derivedState.genieMagicWishMagicRemaining > 0,
+    expended: derivedState.genieMagicWishMagicRemaining <= 0,
+    usesRemaining: derivedState.genieMagicWishMagicRemaining,
+    usesTotal: derivedState.genieMagicWishMagicTotal
+  };
+}
+
+export function getEnclaveMagicTwoHeartsOneMindStateForCharacter(
+  character: FeatRuntimeCharacter
+): {
+  available: boolean;
+  expended: boolean;
+  usesRemaining: number;
+  usesTotal: number;
+} | null {
+  const derivedState = collectFeatDerivedState(character);
+
+  if (!derivedState.hasEnclaveMagic || derivedState.enclaveMagicTwoHeartsOneMindTotal <= 0) {
+    return null;
+  }
+
+  return {
+    available: derivedState.enclaveMagicTwoHeartsOneMindRemaining > 0,
+    expended: derivedState.enclaveMagicTwoHeartsOneMindRemaining <= 0,
+    usesRemaining: derivedState.enclaveMagicTwoHeartsOneMindRemaining,
+    usesTotal: derivedState.enclaveMagicTwoHeartsOneMindTotal
+  };
+}
+
+export function getMythalTouchedMythalWardStateForCharacter(
+  character: FeatRuntimeCharacter
+): {
+  available: boolean;
+  expended: boolean;
+  usesRemaining: number;
+  usesTotal: number;
+} | null {
+  const derivedState = collectFeatDerivedState(character);
+
+  if (
+    !derivedState.hasMythalTouched ||
+    derivedState.mythalTouchedMythalWardTotal <= 0
+  ) {
+    return null;
+  }
+
+  return {
+    available: derivedState.mythalTouchedMythalWardRemaining > 0,
+    expended: derivedState.mythalTouchedMythalWardRemaining <= 0,
+    usesRemaining: derivedState.mythalTouchedMythalWardRemaining,
+    usesTotal: derivedState.mythalTouchedMythalWardTotal
+  };
+}
+
+export function getLordlyResolveStandardBearerStateForCharacter(
+  character: FeatRuntimeCharacter
+): {
+  available: boolean;
+  expended: boolean;
+  usesRemaining: number;
+  usesTotal: number;
+} | null {
+  const derivedState = collectFeatDerivedState(character);
+
+  if (
+    !derivedState.hasLordlyResolve ||
+    derivedState.lordlyResolveStandardBearerTotal <= 0
+  ) {
+    return null;
+  }
+
+  return {
+    available: derivedState.lordlyResolveStandardBearerRemaining > 0,
+    expended: derivedState.lordlyResolveStandardBearerRemaining <= 0,
+    usesRemaining: derivedState.lordlyResolveStandardBearerRemaining,
+    usesTotal: derivedState.lordlyResolveStandardBearerTotal
+  };
+}
+
+export function getPurpleDragonCommandantEncourageAllyStateForCharacter(
+  character: FeatRuntimeCharacter
+): {
+  available: boolean;
+  expended: boolean;
+  usesRemaining: number;
+  usesTotal: number;
+} | null {
+  const derivedState = collectFeatDerivedState(character);
+
+  if (
+    !derivedState.hasPurpleDragonCommandant ||
+    derivedState.purpleDragonCommandantEncourageAllyTotal <= 0
+  ) {
+    return null;
+  }
+
+  return {
+    available: derivedState.purpleDragonCommandantEncourageAllyRemaining > 0,
+    expended: derivedState.purpleDragonCommandantEncourageAllyRemaining <= 0,
+    usesRemaining: derivedState.purpleDragonCommandantEncourageAllyRemaining,
+    usesTotal: derivedState.purpleDragonCommandantEncourageAllyTotal
   };
 }
 
@@ -238,6 +364,394 @@ export function restoreFairyTricksterFlusteringStrikeForCharacter(
   });
 
   return didRestoreFlusteringStrike
+    ? {
+        ...character,
+        feats
+      }
+    : character;
+}
+
+export function spendGenieMagicWishMagicForCharacter(character: Character): Character {
+  const derivedState = collectFeatDerivedState(character);
+  let didSpendWishMagic = false;
+
+  if (!derivedState.hasGenieMagic || derivedState.genieMagicWishMagicRemaining <= 0) {
+    return character;
+  }
+
+  const feats = derivedState.normalizedFeats.map((entry) => {
+    if (
+      didSpendWishMagic ||
+      entry.feat !== FEATS.GENIE_MAGIC ||
+      entry.genieMagic?.wishMagicExpended === true
+    ) {
+      return entry;
+    }
+
+    didSpendWishMagic = true;
+
+    return {
+      ...entry,
+      genieMagic: {
+        ...(entry.genieMagic ?? {}),
+        wishMagicExpended: true
+      }
+    };
+  });
+
+  return didSpendWishMagic
+    ? {
+        ...character,
+        feats
+      }
+    : character;
+}
+
+export function restoreGenieMagicWishMagicForCharacter(character: Character): Character {
+  const derivedState = collectFeatDerivedState(character);
+  let didRestoreWishMagic = false;
+
+  if (!derivedState.hasGenieMagic) {
+    return character;
+  }
+
+  const feats = derivedState.normalizedFeats.map((entry) => {
+    if (
+      entry.feat !== FEATS.GENIE_MAGIC ||
+      !entry.genieMagic ||
+      entry.genieMagic.wishMagicExpended !== true
+    ) {
+      return entry;
+    }
+
+    didRestoreWishMagic = true;
+
+    return {
+      ...entry,
+      genieMagic: {
+        ...entry.genieMagic,
+        wishMagicExpended: undefined
+      }
+    };
+  });
+
+  return didRestoreWishMagic
+    ? {
+        ...character,
+        feats
+      }
+    : character;
+}
+
+export function spendLordlyResolveStandardBearerForCharacter(character: Character): Character {
+  const derivedState = collectFeatDerivedState(character);
+  let didSpendStandardBearer = false;
+
+  if (
+    !derivedState.hasLordlyResolve ||
+    derivedState.lordlyResolveStandardBearerRemaining <= 0 ||
+    hasActiveLordlyResolveStandardBearerStatus(character.statusEntries)
+  ) {
+    return character;
+  }
+
+  const feats = derivedState.normalizedFeats.map((entry) => {
+    if (
+      didSpendStandardBearer ||
+      entry.feat !== FEATS.LORDLY_RESOLVE ||
+      entry.lordlyResolve?.standardBearerExpended === true
+    ) {
+      return entry;
+    }
+
+    didSpendStandardBearer = true;
+
+    return {
+      ...entry,
+      lordlyResolve: {
+        ...(entry.lordlyResolve ?? {}),
+        standardBearerExpended: true
+      }
+    };
+  });
+
+  return didSpendStandardBearer
+    ? applyLordlyResolveStandardBearerStatusForCharacter({
+        ...character,
+        feats
+      })
+    : character;
+}
+
+export function restoreLordlyResolveStandardBearerForCharacter(
+  character: Character
+): Character {
+  const derivedState = collectFeatDerivedState(character);
+  let didRestoreStandardBearer = false;
+
+  if (!derivedState.hasLordlyResolve) {
+    return character;
+  }
+
+  const feats = derivedState.normalizedFeats.map((entry) => {
+    if (
+      entry.feat !== FEATS.LORDLY_RESOLVE ||
+      !entry.lordlyResolve ||
+      entry.lordlyResolve.standardBearerExpended !== true
+    ) {
+      return entry;
+    }
+
+    didRestoreStandardBearer = true;
+
+    return {
+      ...entry,
+      lordlyResolve: undefined
+    };
+  });
+
+  return didRestoreStandardBearer
+    ? {
+        ...character,
+        feats
+      }
+    : character;
+}
+
+export function canUseEnclaveMagicTwoHeartsOneMindForSpell(
+  character: FeatRuntimeCharacter,
+  spellId: string
+): boolean {
+  const derivedState = collectFeatDerivedState(character);
+
+  return spellId === enclaveMagicBeastSenseSpellId && derivedState.hasEnclaveMagic;
+}
+
+export function spendEnclaveMagicTwoHeartsOneMindForCharacter(character: Character): Character {
+  const derivedState = collectFeatDerivedState(character);
+  let didSpendTwoHeartsOneMind = false;
+
+  if (
+    !derivedState.hasEnclaveMagic ||
+    derivedState.enclaveMagicTwoHeartsOneMindRemaining <= 0
+  ) {
+    return character;
+  }
+
+  const feats = derivedState.normalizedFeats.map((entry) => {
+    if (
+      didSpendTwoHeartsOneMind ||
+      entry.feat !== FEATS.ENCLAVE_MAGIC ||
+      entry.enclaveMagic?.twoHeartsOneMindExpended === true
+    ) {
+      return entry;
+    }
+
+    didSpendTwoHeartsOneMind = true;
+
+    return {
+      ...entry,
+      enclaveMagic: {
+        ...(entry.enclaveMagic ?? {}),
+        twoHeartsOneMindExpended: true
+      }
+    };
+  });
+
+  return didSpendTwoHeartsOneMind
+    ? {
+        ...character,
+        feats
+      }
+    : character;
+}
+
+export function restoreEnclaveMagicTwoHeartsOneMindForCharacter(
+  character: Character
+): Character {
+  const derivedState = collectFeatDerivedState(character);
+  let didRestoreTwoHeartsOneMind = false;
+
+  if (!derivedState.hasEnclaveMagic) {
+    return character;
+  }
+
+  const feats = derivedState.normalizedFeats.map((entry) => {
+    if (
+      entry.feat !== FEATS.ENCLAVE_MAGIC ||
+      !entry.enclaveMagic ||
+      entry.enclaveMagic.twoHeartsOneMindExpended !== true
+    ) {
+      return entry;
+    }
+
+    didRestoreTwoHeartsOneMind = true;
+
+    return {
+      ...entry,
+      enclaveMagic: {
+        ...entry.enclaveMagic,
+        twoHeartsOneMindExpended: undefined
+      }
+    };
+  });
+
+  return didRestoreTwoHeartsOneMind
+    ? {
+        ...character,
+        feats
+      }
+    : character;
+}
+
+export function spendMythalTouchedMythalWardForCharacter(character: Character): Character {
+  const derivedState = collectFeatDerivedState(character);
+  let didSpendMythalWard = false;
+
+  if (!derivedState.hasMythalTouched || derivedState.mythalTouchedMythalWardRemaining <= 0) {
+    return character;
+  }
+
+  const feats = derivedState.normalizedFeats.map((entry) => {
+    if (didSpendMythalWard || entry.feat !== FEATS.MYTHAL_TOUCHED) {
+      return entry;
+    }
+
+    const currentExpended = Math.max(
+      0,
+      Math.floor(entry.mythalTouched?.mythalWardExpended ?? 0)
+    );
+
+    if (currentExpended >= derivedState.mythalTouchedMythalWardTotal) {
+      return entry;
+    }
+
+    didSpendMythalWard = true;
+
+    return {
+      ...entry,
+      mythalTouched: {
+        ...(entry.mythalTouched ?? {}),
+        mythalWardExpended: currentExpended + 1
+      }
+    };
+  });
+
+  return didSpendMythalWard
+    ? {
+        ...character,
+        feats
+      }
+    : character;
+}
+
+export function restoreMythalTouchedMythalWardForCharacter(character: Character): Character {
+  const derivedState = collectFeatDerivedState(character);
+  let didRestoreMythalWard = false;
+
+  if (!derivedState.hasMythalTouched) {
+    return character;
+  }
+
+  const feats = derivedState.normalizedFeats.map((entry) => {
+    if (
+      entry.feat !== FEATS.MYTHAL_TOUCHED ||
+      !entry.mythalTouched ||
+      !entry.mythalTouched.mythalWardExpended
+    ) {
+      return entry;
+    }
+
+    didRestoreMythalWard = true;
+
+    return {
+      ...entry,
+      mythalTouched: undefined
+    };
+  });
+
+  return didRestoreMythalWard
+    ? {
+        ...character,
+        feats
+      }
+    : character;
+}
+
+export function spendPurpleDragonCommandantEncourageAllyForCharacter(
+  character: Character
+): Character {
+  const derivedState = collectFeatDerivedState(character);
+  let didSpendEncourageAlly = false;
+
+  if (
+    !derivedState.hasPurpleDragonCommandant ||
+    derivedState.purpleDragonCommandantEncourageAllyRemaining <= 0
+  ) {
+    return character;
+  }
+
+  const feats = derivedState.normalizedFeats.map((entry) => {
+    if (didSpendEncourageAlly || entry.feat !== FEATS.PURPLE_DRAGON_COMMANDANT) {
+      return entry;
+    }
+
+    const currentExpended = Math.max(
+      0,
+      Math.floor(entry.purpleDragonCommandant?.encourageAllyExpended ?? 0)
+    );
+
+    if (currentExpended >= derivedState.purpleDragonCommandantEncourageAllyTotal) {
+      return entry;
+    }
+
+    didSpendEncourageAlly = true;
+
+    return {
+      ...entry,
+      purpleDragonCommandant: {
+        ...(entry.purpleDragonCommandant ?? {}),
+        encourageAllyExpended: currentExpended + 1
+      }
+    };
+  });
+
+  return didSpendEncourageAlly
+    ? {
+        ...character,
+        feats
+      }
+    : character;
+}
+
+export function restorePurpleDragonCommandantEncourageAllyForCharacter(
+  character: Character
+): Character {
+  const derivedState = collectFeatDerivedState(character);
+  let didRestoreEncourageAlly = false;
+
+  if (!derivedState.hasPurpleDragonCommandant) {
+    return character;
+  }
+
+  const feats = derivedState.normalizedFeats.map((entry) => {
+    if (
+      entry.feat !== FEATS.PURPLE_DRAGON_COMMANDANT ||
+      !entry.purpleDragonCommandant ||
+      !entry.purpleDragonCommandant.encourageAllyExpended
+    ) {
+      return entry;
+    }
+
+    didRestoreEncourageAlly = true;
+
+    return {
+      ...entry,
+      purpleDragonCommandant: undefined
+    };
+  });
+
+  return didRestoreEncourageAlly
     ? {
         ...character,
         feats
@@ -1682,6 +2196,14 @@ export function activateFeatActionForCharacter(
 ): Character {
   if (actionKey === fairyTricksterFlusteringStrikeActionKey) {
     return spendFairyTricksterFlusteringStrikeForCharacter(character);
+  }
+
+  if (actionKey === purpleDragonCommandantEncourageAllyActionKey) {
+    return spendPurpleDragonCommandantEncourageAllyForCharacter(character);
+  }
+
+  if (actionKey === lordlyResolveStandardBearerActionKey) {
+    return spendLordlyResolveStandardBearerForCharacter(character);
   }
 
   return character;

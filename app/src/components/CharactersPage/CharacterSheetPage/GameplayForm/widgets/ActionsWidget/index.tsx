@@ -101,6 +101,7 @@ import {
   createNamedUsageHeaderTags,
   createNamedResourceCardUsage
 } from "../../../../../../pages/CharactersPage/classFeatures/cardUsage";
+import { genieMagicWishMagicActionKey } from "../../../../../../pages/CharactersPage/feats/runtime";
 import {
   getGoliathAttackDamageDetail,
   getGoliathAttackOptionStateForCharacter
@@ -261,6 +262,7 @@ import {
   CLASS_FEATURE,
   ACTION_TYPE,
   DAMAGE_TYPE,
+  FEATS,
   MAGIC_SCHOOL,
   type SpellEntry
 } from "../../../../../../codex/entries";
@@ -487,6 +489,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setSelectedFontOfMagicSelection,
     selectedFluidFormsMonster,
     setSelectedFluidFormsMonster,
+    selectedGenieMagicSpell,
+    setSelectedGenieMagicSpell,
     isFluidFormsMonsterModalOpen,
     setIsFluidFormsMonsterModalOpen,
     selectedWildShapeMonsterSlug,
@@ -1334,6 +1338,12 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedAction?.kind === "feature"
       ? (selectedAction.drawer.blockedReason ?? selectedCrownOfSpellfireBlockedReason ?? null)
       : null;
+  const selectedGenieMagicWishMagicSelectionWarning =
+    selectedAction?.kind === "feature" &&
+    selectedAction.action.key === genieMagicWishMagicActionKey &&
+    selectedGenieMagicSpell === null
+      ? "Choose a spell."
+      : null;
   const selectedRageSelectionWarning = useMemo(() => {
     if (
       selectedAction?.kind !== "feature" ||
@@ -1372,6 +1382,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedAction?.kind === "feature"
       ? (selectedActionWarning ??
         selectedActionBlockedReason ??
+        selectedGenieMagicWishMagicSelectionWarning ??
         selectedAction.action.disabledReason ??
         null)
       : null;
@@ -1541,6 +1552,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedOptionWarning ??
     selectedLayOnHandsWarning ??
     selectedWildShapeSelectionWarning ??
+    selectedGenieMagicWishMagicSelectionWarning ??
     (selectedAction?.kind === "feature" &&
     selectedAction.drawer.kind === "custom-form" &&
     selectedAction.drawer.formKind === "font-of-magic" &&
@@ -1572,12 +1584,37 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               }
             ]
           : (selectedAction?.drawer.headerTags ?? []);
-  const fixedSpellExecute =
+  const baseFixedSpellExecute =
     selectedAction?.kind === "feature" &&
     selectedAction.execute.kind === "spell" &&
     selectedAction.execute.spellSource === "fixed"
       ? selectedAction.execute
       : null;
+  const fixedSpellExecute = useMemo(() => {
+    if (!baseFixedSpellExecute) {
+      return null;
+    }
+
+    if (selectedFeatureAction?.key !== genieMagicWishMagicActionKey) {
+      return baseFixedSpellExecute;
+    }
+
+    if (!selectedGenieMagicSpell) {
+      return baseFixedSpellExecute;
+    }
+
+    const spellSlotLevel =
+      baseFixedSpellExecute.freeCastSlotLevel ??
+      baseFixedSpellExecute.spellLevel ??
+      selectedGenieMagicSpell.spellLevel;
+
+    return {
+      ...baseFixedSpellExecute,
+      spellId: selectedGenieMagicSpell.id,
+      spellLevel: spellSlotLevel,
+      freeCastSlotLevel: spellSlotLevel
+    };
+  }, [baseFixedSpellExecute, selectedFeatureAction?.key, selectedGenieMagicSpell]);
   const fixedSpellEntry = useMemo(
     () => (fixedSpellExecute ? getFixedSpellEntryForExecute(character, fixedSpellExecute) : null),
     [character, fixedSpellExecute]
@@ -1611,6 +1648,17 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     fixedSpellExecute?.effectKind === "mantle-of-majesty"
       ? "Using Mantle of Majesty"
       : (fixedSpellExecute?.actionContextText ?? null);
+  const genieMagicSpellcastingAbility = useMemo(
+    () =>
+      (feats ?? []).find((entry) => entry.feat === FEATS.GENIE_MAGIC)?.epicBoonAbilityChoice
+        ?.ability ??
+      "INT",
+    [feats]
+  );
+  const fixedSpellcastingAbilityOverride =
+    selectedFeatureAction?.key === genieMagicWishMagicActionKey
+      ? genieMagicSpellcastingAbility
+      : null;
   const selectedActionSpellEntry =
     fixedSpellEntry ?? selectedDivineInterventionSpell ?? selectedMysticArcanumSpell;
   const channelDivinityUsesTotal = getChannelDivinityUsesTotalForCharacter(character);
@@ -1632,7 +1680,11 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       return null;
     }
 
-    const baseDamageDetail = getSpellDamageDetailForCharacter(character, fixedSpellEntry);
+    const baseDamageDetail = getSpellDamageDetailForCharacter(
+      character,
+      fixedSpellEntry,
+      fixedSpellcastingAbilityOverride
+    );
     const elementalSmiteDamageDetail = useElementalSmiteOnActionSpell
       ? getPaladinOathOfTheNobleGeniesElementalSmiteDamageDetail(
           baseDamageDetail,
@@ -1649,6 +1701,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   }, [
     character,
     fixedSpellEntry,
+    fixedSpellcastingAbilityOverride,
     selectedElementalSmiteOptionOnActionSpell,
     selectedActionSpellGoliathAncestryState,
     useElementalSmiteOnActionSpell,
@@ -2208,6 +2261,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedFontOfMagicWarning,
     selectedFontOfMagicSelection,
     selectedFluidFormsMonster,
+    selectedGenieMagicSpell,
     isFluidFormsMonsterModalOpen,
     selectedFeatureActionPrimaryDisabledReason,
     selectedActionEconomyShapeState,
@@ -2348,6 +2402,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     openWeaponDetailReference,
     setSelectedActionOptionKeys,
     setSelectedFluidFormsMonster,
+    setSelectedGenieMagicSpell,
     setIsFluidFormsMonsterModalOpen,
     setSelectedWildShapeMonsterSlug,
     setSelectedWildShapePreviewSlug,
@@ -2675,6 +2730,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         fixedSpellFreeCastSlotLevel={fixedSpellFreeCastSlotLevel}
         fixedSpellActionContextText={fixedSpellActionContextText}
         fixedSpellActionAvailabilityText={fixedSpellActionAvailabilityText}
+        fixedSpellcastingAbilityOverride={fixedSpellcastingAbilityOverride}
         fixedSpellFacts={fixedSpellFacts}
         fixedSpellShowActionDiceControls={
           fixedSpellImplementationUsesDiceControls ||

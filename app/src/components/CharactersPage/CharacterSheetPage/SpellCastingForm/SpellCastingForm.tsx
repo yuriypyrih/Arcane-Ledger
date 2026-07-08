@@ -130,14 +130,17 @@ import {
   consumeRitualCasterQuickRitualForCharacter,
   consumeShadowTouchedFreeCastForCharacter,
   consumeTelepathicDetectThoughtsFreeCastForCharacter,
+  canUseEnclaveMagicTwoHeartsOneMindForSpell,
   canUseEmeraldEnclaveFledglingSpeakWithAnimalsForSpell,
   canUseBoonOfSpellRecallFreeCastingForSpell,
+  getEnclaveMagicTwoHeartsOneMindStateForCharacter,
   getFeyTouchedFreeCastStateForCharacter,
   getBoonOfRevelryIrresistibleDanceFreeCastStateForCharacter,
   getMagicInitiateFreeCastStateForCharacter,
   getRitualCasterQuickRitualStateForCharacter,
   getShadowTouchedFreeCastStateForCharacter,
   getSpellfireSparkSpellfireFlameStateForCharacter,
+  spendEnclaveMagicTwoHeartsOneMindForCharacter,
   applyFeatureSpellCastEffectsForCharacter as applyFeatSpellCastEffectsForCharacter,
   getTelepathicDetectThoughtsFreeCastStateForCharacter
 } from "../../../../pages/CharactersPage/feats/runtime";
@@ -312,6 +315,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     useEmeraldEnclaveFledglingFreeUseOnSelectedSpell,
     setUseEmeraldEnclaveFledglingFreeUseOnSelectedSpell
   ] = useState(false);
+  const [useTwoHeartsOneMindOnSelectedSpell, setUseTwoHeartsOneMindOnSelectedSpell] =
+    useState(false);
   const [useFeyReinforcementsOnSelectedSpell, setUseFeyReinforcementsOnSelectedSpell] =
     useState(false);
   const [usePhantasmalCreaturesOnSelectedSpell, setUsePhantasmalCreaturesOnSelectedSpell] =
@@ -1141,6 +1146,15 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     canUseEmeraldEnclaveFledglingSpeakWithAnimalsForSpell(character, selectedSpell.id);
   const selectedSpellCanCastAsEmeraldEnclaveFledglingRitual =
     selectedSpellSupportsEmeraldEnclaveFledgling && selectedSpell?.ritual === true;
+  const selectedSpellEnclaveMagicTwoHeartsOneMindState = selectedSpell
+    ? getEnclaveMagicTwoHeartsOneMindStateForCharacter(character)
+    : null;
+  const selectedSpellSupportsEnclaveMagicTwoHeartsOneMind =
+    selectedSpell !== null &&
+    canUseEnclaveMagicTwoHeartsOneMindForSpell(character, selectedSpell.id);
+  const selectedSpellEnclaveMagicTwoHeartsOneMindDisabled =
+    selectedSpellEnclaveMagicTwoHeartsOneMindState !== null &&
+    selectedSpellEnclaveMagicTwoHeartsOneMindState.usesRemaining <= 0;
   const selectedSpellMagicInitiateAbility = selectedSpell
     ? getSpellcastingAbilityOverrideForSpell(selectedSpell.id)
     : null;
@@ -1335,6 +1349,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     (selectedSpellSupportsBoonOfRevelry && useBoonOfRevelryOnSelectedSpell) ||
     (selectedSpellSupportsEmeraldEnclaveFledgling &&
       useEmeraldEnclaveFledglingFreeUseOnSelectedSpell) ||
+    (selectedSpellSupportsEnclaveMagicTwoHeartsOneMind &&
+      useTwoHeartsOneMindOnSelectedSpell) ||
     (selectedSpellSupportsPsionicSorcery && usePsionicSorceryOnSelectedSpell) ||
     (selectedSpellSupportsStepsOfTheFey && useStepsOfTheFeyOnSelectedSpell) ||
     (selectedSpellSupportsBewitchingMagic && useBewitchingMagicOnSelectedSpell) ||
@@ -1371,7 +1387,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       (selectedSpellSupportsBoonOfSpellRecall && useBoonOfSpellRecallOnSelectedSpell) ||
       (selectedSpellSupportsBoonOfRevelry && useBoonOfRevelryOnSelectedSpell) ||
       (selectedSpellSupportsEmeraldEnclaveFledgling &&
-        useEmeraldEnclaveFledglingFreeUseOnSelectedSpell)
+        useEmeraldEnclaveFledglingFreeUseOnSelectedSpell) ||
+      (selectedSpellSupportsEnclaveMagicTwoHeartsOneMind &&
+        useTwoHeartsOneMindOnSelectedSpell)
         ? minimumSlotLevel
         : clampNumber(selectedSpellSlotLevel, minimumSlotLevel, 9, minimumSlotLevel);
     const castsWithoutSpellSlot =
@@ -1389,7 +1407,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       (selectedSpellSupportsBoonOfSpellRecall && useBoonOfSpellRecallOnSelectedSpell) ||
       (selectedSpellSupportsBoonOfRevelry && useBoonOfRevelryOnSelectedSpell) ||
       (selectedSpellSupportsEmeraldEnclaveFledgling &&
-        useEmeraldEnclaveFledglingFreeUseOnSelectedSpell);
+        useEmeraldEnclaveFledglingFreeUseOnSelectedSpell) ||
+      (selectedSpellSupportsEnclaveMagicTwoHeartsOneMind &&
+        useTwoHeartsOneMindOnSelectedSpell);
 
     if (castsWithoutSpellSlot) {
       return spellSlotsExpended;
@@ -1415,6 +1435,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpellSupportsBoonOfSpellRecall,
     selectedSpellSupportsBoonOfRevelry,
     selectedSpellSupportsEmeraldEnclaveFledgling,
+    selectedSpellSupportsEnclaveMagicTwoHeartsOneMind,
     selectedSpellSupportsStarMap,
     spellSlotsExpended,
     useMagicInitiateOnSelectedSpell,
@@ -1429,6 +1450,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     useBoonOfSpellRecallOnSelectedSpell,
     useBoonOfRevelryOnSelectedSpell,
     useEmeraldEnclaveFledglingFreeUseOnSelectedSpell,
+    useTwoHeartsOneMindOnSelectedSpell,
     useStarMapOnSelectedSpell
   ]);
   const selectedSpellFrozenHauntOptionState = useMemo(
@@ -1532,6 +1554,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setUseBoonOfSpellRecallOnSelectedSpell(false);
     setUseBoonOfRevelryOnSelectedSpell(false);
     setUseEmeraldEnclaveFledglingFreeUseOnSelectedSpell(false);
+    setUseTwoHeartsOneMindOnSelectedSpell(false);
     setUseFeyReinforcementsOnSelectedSpell(false);
     setUsePhantasmalCreaturesOnSelectedSpell(false);
     setUseStepsOfTheFeyOnSelectedSpell(false);
@@ -1666,6 +1689,20 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
 
     setUseEmeraldEnclaveFledglingFreeUseOnSelectedSpell(false);
   }, [selectedSpellSupportsEmeraldEnclaveFledgling]);
+
+  useEffect(() => {
+    if (
+      selectedSpellSupportsEnclaveMagicTwoHeartsOneMind &&
+      !selectedSpellEnclaveMagicTwoHeartsOneMindDisabled
+    ) {
+      return;
+    }
+
+    setUseTwoHeartsOneMindOnSelectedSpell(false);
+  }, [
+    selectedSpellEnclaveMagicTwoHeartsOneMindDisabled,
+    selectedSpellSupportsEnclaveMagicTwoHeartsOneMind
+  ]);
 
   useEffect(() => {
     if (selectedSpellSupportsPsionicSorcery && !selectedSpellPsionicSorceryDisabled) {
@@ -2203,6 +2240,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     useBoonOfSpellRecall?: boolean;
     useBoonOfRevelry?: boolean;
     useEmeraldEnclaveFledglingFreeUse?: boolean;
+    useTwoHeartsOneMind?: boolean;
     spellCastEffectIds?: string[];
     spellActionPathId?: string | null;
     spellImplementationCastSource?: SpellImplementationCastSource;
@@ -2238,6 +2276,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         consumeRitualCasterQuickRitualForCharacter,
         consumeShadowTouchedFreeCastForCharacter,
         consumeTelepathicDetectThoughtsFreeCastForCharacter,
+        spendEnclaveMagicTwoHeartsOneMindForCharacter,
         applyFeatureSpellCastEffectsForCharacter: (
           nextCharacter: Character,
           spell: Pick<SpellEntry, "id" | "spellLevel">,
@@ -2311,6 +2350,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         selectedSpellSlotLevel,
         selectedSpellSupportsBewitchingMagic,
         selectedSpellSupportsEmeraldEnclaveFledgling,
+        selectedSpellSupportsEnclaveMagicTwoHeartsOneMind,
         selectedSpellSupportsBoonOfSpellRecall,
         selectedSpellSupportsDetectThoughts,
         selectedSpellSupportsFeyMagic,
@@ -2459,6 +2499,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpellDamageDetailOverride,
     selectedSpellDetectThoughtsDisabled,
     selectedSpellDetectThoughtsFreeCastState,
+    selectedSpellEnclaveMagicTwoHeartsOneMindDisabled,
+    selectedSpellEnclaveMagicTwoHeartsOneMindState,
     selectedSpellDisplay,
     selectedSpellCustomEffects,
     selectedSpellFacts,
@@ -2496,6 +2538,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpellSupportsBoonOfSpellRecall,
     selectedSpellSupportsBoonOfRevelry,
     selectedSpellSupportsEmeraldEnclaveFledgling,
+    selectedSpellSupportsEnclaveMagicTwoHeartsOneMind,
     selectedSpellSupportsDetectThoughts,
     selectedSpellSupportsFeyMagic,
     selectedSpellSupportsGenasiLineage,
@@ -2534,6 +2577,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setUseBoonOfSpellRecallOnSelectedSpell,
     setUseBoonOfRevelryOnSelectedSpell,
     setUseEmeraldEnclaveFledglingFreeUseOnSelectedSpell,
+    setUseTwoHeartsOneMindOnSelectedSpell,
     setUseDetectThoughtsOnSelectedSpell,
     setUseFeyMagicOnSelectedSpell,
     setUseForestGnomeOnSelectedSpell,
@@ -2580,6 +2624,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     useBoonOfSpellRecallOnSelectedSpell,
     useBoonOfRevelryOnSelectedSpell,
     useEmeraldEnclaveFledglingFreeUseOnSelectedSpell,
+    useTwoHeartsOneMindOnSelectedSpell,
     useDetectThoughtsOnSelectedSpell,
     useFeyMagicOnSelectedSpell,
     useGenasiLineageOnSelectedSpell,
