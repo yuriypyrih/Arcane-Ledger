@@ -202,7 +202,9 @@ export const bardFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
       "<strong>Number of Uses.</strong> You can confer a Bardic Inspiration die a number of times equal to your <link:CHA>Charisma</link> modifier, minimum of once, and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>.",
       "<strong>At Higher Levels.</strong> Your Bardic Inspiration die changes when you reach certain Bard levels. The die becomes a <strong>d8</strong> at level 5, a <strong>d10</strong> at level 10, and a <strong>d12</strong> at level 15."
     ],
-    trackingState: TRACKER.TRACKED
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "You have the Bonus Action card for the Bardic Inspiration where you can find all the information regarding it and choosing either to expend the Bardic useges or the spell slots but you have to remember who did you give the Bardic Die to and what they can do with it."
   },
   [CLASS_FEATURE.SPELLCASTING]: {
     description: [

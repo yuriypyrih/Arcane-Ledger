@@ -136,7 +136,7 @@ function SupportPage() {
       <section className={styles.page}>
         <div className={styles.panel}>
           <div className={styles.header}>
-            <p className={styles.eyebrow}>Support</p>
+            <p className={styles.eyebrow}>Support & Feedback</p>
             <h2 className={styles.title}>Loading</h2>
           </div>
         </div>
@@ -152,12 +152,12 @@ function SupportPage() {
     <section className={styles.page}>
       <div className={`${styles.panel} ${styles.supportPanel}`}>
         <div className={styles.header}>
-          <p className={styles.eyebrow}>Support</p>
+          <p className={styles.eyebrow}>Support & Feedback</p>
           <h2 className={styles.title}>How can we help?</h2>
           <p className={styles.text}>
-            Hi! Send a ticket with any issues, feedback, or ideas for improving Arcane Ledger.
-            Your note will reach the Admin, and if a reply is needed, the Admin will reach back
-            through your account email.
+            Hi! Send a ticket with any issues, feedback, or ideas for improving Arcane Ledger. Your
+            note will reach the Admin, and if a reply is needed, the Admin will reach back through
+            your account email.
           </p>
         </div>
 

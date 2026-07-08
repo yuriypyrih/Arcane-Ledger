@@ -129,14 +129,17 @@ export const bardSubclassEntries: SubclassEntry[] = [
           "Once you use this benefit, you can't use it again until you finish a <link:long-rest>Long Rest</link>.",
           "You can also restore your use of it by expending one use of your Bardic Inspiration (no action required)."
         ],
-        trackingState: TRACKER.SEMI_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage: "The duration of Charmed/Frightened on enemies is not tracked."
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,
         CLASS_FEATURE.MANTLE_OF_INSPIRATION,
         {
           description: [...mantleOfInspirationDescription],
-          trackingState: TRACKER.SEMI_TRACKED
+          trackingState: TRACKER.SEMI_TRACKED,
+          trackingMessage:
+            "The effect you do on others is not tracked. They have to apply it themselves."
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.MANTLE_OF_MAJESTY, {
@@ -148,7 +151,7 @@ export const bardSubclassEntries: SubclassEntry[] = [
         CLASS_FEATURE.UNBREAKABLE_MAJESTY,
         {
           description: [...unbreakableMajestyDescription],
-          trackingState: TRACKER.SEMI_TRACKED
+          trackingState: TRACKER.TRACKED
         }
       )
     ]
@@ -167,7 +170,7 @@ export const bardSubclassEntries: SubclassEntry[] = [
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.CUTTING_WORDS, {
         description: [...cuttingWordsDescription],
-        trackingState: TRACKER.SEMI_TRACKED
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.MAGICAL_DISCOVERIES, {
         description: [
@@ -183,7 +186,9 @@ export const bardSubclassEntries: SubclassEntry[] = [
           "When you make an ability check or attack roll and fail, you can expend one use of your Bardic Inspiration; roll the Bardic Inspiration die, and add the number rolled to the <strong>d20</strong>, potentially turning a failure into a success.",
           "On a failure, the Bardic Inspiration isn't expended."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "The description is displayed in all skills, abiltiy checks, and weapon action drawers but you have to add the bardic die yourself. And on fail, remove it from your pool."
       })
     ]
   },
@@ -203,7 +208,9 @@ export const bardSubclassEntries: SubclassEntry[] = [
           "<strong>Lunar Vitality.</strong> Once per turn when you restore Hit Points to a creature with a spell, you can expend a Bardic Inspiration die and increase the amount of Hit Points restored by a number equal to a roll of the Bardic Inspiration die.",
           "The creature's Speed also increases by 10 feet until the end of its next turn."
         ],
-        trackingState: TRACKER.SEMI_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "For the Lunar Vitality, you have to roll the barid die youself and consume it."
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.PRIMAL_LORE, {
         description: [
@@ -233,7 +240,9 @@ export const bardSubclassEntries: SubclassEntry[] = [
           "The creature remains Invisible until the start of its next turn.",
           "<strong>Vibrance of the Full Moon.</strong> When you use Lunar Vitality, you can roll <strong>1d6</strong> and use the number rolled in place of expending a Bardic Inspiration die."
         ],
-        trackingState: TRACKER.SEMI_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "The descriptions are shown in the drawers but the effect is up to you to enforce it upon the creatures."
       })
     ]
   },
@@ -252,7 +261,9 @@ export const bardSubclassEntries: SubclassEntry[] = [
           "<strong>Defense.</strong> When the creature is hit by an attack roll, that creature can use its Reaction to roll the Bardic Inspiration die and add the number rolled to its <link:Armor Class>AC</link> against that attack, potentially causing the attack to miss.",
           "<strong>Offense.</strong> Immediately after the creature hits a target with an attack roll, the creature can roll the Bardic Inspiration die and add the number rolled to the attack's damage against the target."
         ],
-        trackingState: TRACKER.SEMI_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "The description of this class feature is shown in the Bardic Inspiration drawer but it is up to the creature to enforce the effect."
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.MARTIAL_TRAINING, {
         description: [

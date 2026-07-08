@@ -31,13 +31,13 @@ export const blessingOfTheTricksterDescription = [
 ] as const;
 
 export const invokeDuplicityDescription = [
-  "As a Bonus Action, you can expend one use of your Channel Divinity to create a perfect visual illusion of yourself in an unoccupied space you can see within 30 feet of yourself. <link:tracked>Tracked</link>",
+  "As a Bonus Action, you can expend one use of your Channel Divinity to create a perfect visual illusion of yourself in an unoccupied space you can see within 30 feet of yourself.",
   "The illusion is intangible and doesn't occupy its space. It lasts for 1 minute, but it ends early if you dismiss it, no action required, or have the <link:Incapacitated>Incapacitated</link> condition.",
   "The illusion is animated and mimics your expressions and gestures.",
   "While it persists, you gain the following benefits.",
   "<strong>Cast Spells.</strong> You can cast spells as though you were in the illusion's space, but you must use your own senses.",
   "<strong>Distract.</strong> When both you and your illusion are within 5 feet of a creature that can see the illusion, you have <link:Advantage>Advantage</link> on attack rolls against that creature, given how distracting the illusion is to the target.",
-  "<strong>Move.</strong> As a Bonus Action, you can move the illusion up to 30 feet to an unoccupied space you can see that is within 120 feet of yourself. <link:not-tracked>Not Tracked</link>"
+  "<strong>Move.</strong> As a Bonus Action, you can move the illusion up to 30 feet to an unoccupied space you can see that is within 120 feet of yourself."
 ] as const;
 
 export const trickstersTranspositionDescription = [
@@ -46,8 +46,8 @@ export const trickstersTranspositionDescription = [
 
 export const improvedDuplicityDescription = [
   "The illusion of your Invoke Duplicity has grown more powerful in the following ways.",
-  "<strong>Shared Distraction.</strong> When you and your allies make attack rolls against a creature within 5 feet of the illusion, the attack rolls have <link:Advantage>Advantage</link>. <link:not-tracked>Not Tracked</link>",
-  "<strong>Healing Illusion.</strong> When the illusion ends, you or a creature of your choice within 5 feet of it regains a number of Hit Points equal to your Cleric level. <link:not-tracked>Not Tracked</link>"
+  "<strong>Shared Distraction.</strong> When you and your allies make attack rolls against a creature within 5 feet of the illusion, the attack rolls have <link:Advantage>Advantage</link>.",
+  "<strong>Healing Illusion.</strong> When the illusion ends, you or a creature of your choice within 5 feet of it regains a number of Hit Points equal to your Cleric level."
 ] as const;
 
 export const radianceOfTheDawnDescription = [
@@ -172,25 +172,33 @@ export const clericSubclassEntries: SubclassEntry[] = [
           "When a spell you cast with a spell slot restores Hit Points to a creature, that creature regains additional Hit Points on the turn you cast the spell.",
           "The additional Hit Points equal 2 plus the spell slot's level."
         ],
-        trackingState: TRACKER.SEMI_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "The description is shown where it should be shown but the effect is not being tracked."
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.PRESERVE_LIFE, {
         description: [...preserveLifeDescription],
-        trackingState: TRACKER.SEMI_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "You can find this magic action inside the Channel Divinity but the effect is not being tracked."
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.BLESSED_HEALER, {
         description: [
           "The healing spells you cast on others heal you as well.",
           "Immediately after you cast a spell with a spell slot that restores Hit Points to one creature other than you, you regain Hit Points equal to 2 plus the spell slot's level."
         ],
-        trackingState: TRACKER.SEMI_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "The description is shown where it should be shown but the effect is not being tracked."
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_17, CLASS_FEATURE.SUPREME_HEALING, {
         description: [
           "When you would normally roll one or more dice to restore Hit Points to a creature with a spell or Channel Divinity, don't roll those dice for the healing; instead use the highest number possible for each die.",
           "For example, instead of restoring <strong>2d6</strong> Hit Points to a creature with a spell, you restore 12."
         ],
-        trackingState: TRACKER.SEMI_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "The description is shown where it should be shown but the effect is not being tracked."
       })
     ]
   },
@@ -221,24 +229,26 @@ export const clericSubclassEntries: SubclassEntry[] = [
             "Any magical Darkness, such as that created by the <spell:Darkness>Darkness</spell> spell, in that area is dispelled.",
             "Additionally, each creature of your choice in that area must make a <link:Constitution Saving Throw>Constitution saving throw</link>, taking <link:Radiant>Radiant</link> damage equal to <strong>2d10</strong> plus your Cleric level on a failed save or half as much damage on a successful one."
           ],
-          trackingState: TRACKER.SEMI_TRACKED
+          trackingState: TRACKER.SEMI_TRACKED,
+          trackingMessage:
+            "You can find this magic action inside the Channel Divinity but the effect is not being tracked."
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.WARDING_FLARE, {
         description: [...wardingFlareDescription],
-        trackingState: TRACKER.SEMI_TRACKED
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_6,
         CLASS_FEATURE.IMPROVED_WARDING_FLARE,
         {
           description: [...improvedWardingFlareDescription],
-          trackingState: TRACKER.SEMI_TRACKED
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_17, CLASS_FEATURE.CORONA_OF_LIGHT, {
         description: [...coronaOfLightDescription],
-        trackingState: TRACKER.SEMI_TRACKED
+        trackingState: TRACKER.TRACKED
       })
     ]
   },
@@ -269,24 +279,28 @@ export const clericSubclassEntries: SubclassEntry[] = [
         CLASS_FEATURE.BLESSING_OF_THE_TRICKSTER,
         {
           description: [...blessingOfTheTricksterDescription],
-          trackingState: TRACKER.SEMI_TRACKED
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.INVOKE_DUPLICITY, {
         description: [...invokeDuplicityDescription],
-        trackingState: TRACKER.SEMI_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "You can find this magic action inside the Channel Divinity but the Move/Bonus_Action effect is not being tracked so you have to remember that."
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_6,
         CLASS_FEATURE.TRICKSTERS_TRANSPOSITION,
         {
           description: [...trickstersTranspositionDescription],
-          trackingState: TRACKER.SEMI_TRACKED
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_17, CLASS_FEATURE.IMPROVED_DUPLICITY, {
         description: [...improvedDuplicityDescription],
-        trackingState: TRACKER.SEMI_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "The description is being shown where it needs to be but the effects are not being tracked."
       })
     ]
   },
@@ -319,10 +333,11 @@ export const clericSubclassEntries: SubclassEntry[] = [
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.GUIDED_STRIKE, {
         description: [
           "When you or a creature within 30 feet of you misses with an attack roll, you can expend one use of your Channel Divinity and give that roll a +10 bonus, potentially causing it to hit.",
-          "When you use this feature to benefit another creature's attack roll, you must take a Reaction to do so.",
-          "(The reaction is fully <link:tracked>Tracked</link> but for the personal benefit simply remove one Channel Divinity usage yourself)"
+          "When you use this feature to benefit another creature's attack roll, you must take a Reaction to do so."
         ],
-        trackingState: TRACKER.SEMI_TRACKED
+        trackingState: TRACKER.SEMI_TRACKED,
+        trackingMessage:
+          "The reaciton works exactly as described. But for the self-ish benefit since it does not use a reaction you have to remove one Channel Divinity yourself."
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.WAR_GODS_BLESSING, {
         description: [

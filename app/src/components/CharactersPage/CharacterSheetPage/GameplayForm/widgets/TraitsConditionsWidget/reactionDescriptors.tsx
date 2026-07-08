@@ -49,6 +49,7 @@ import {
   expendBardicInspirationUseForCharacter,
   expendFighterPsiWarriorEnergyDieForCharacter,
   expendSorceryPointForCharacter,
+  getBardicInspirationDieForCharacter,
   getFighterIndomitableUsesRemainingForCharacter,
   getFighterPsiWarriorEnergyDiceRemainingForCharacter,
   getFighterPsiWarriorEnergyDiceTotalForCharacter,
@@ -692,6 +693,33 @@ function createInterceptionReactionRollRequest(
   };
 }
 
+function createCuttingWordsReactionRollRequest(
+  context: ReactionDescriptorContext
+): DiceRollerRequest | null {
+  const bardicDie = getBardicInspirationDieForCharacter(context.character);
+
+  if (!bardicDie) {
+    return null;
+  }
+
+  const formula = `1${String(bardicDie).toLowerCase()}`;
+  const formulaDisplay = `${formula} Bardic Inspiration`;
+
+  return {
+    title: "Cutting Words",
+    description: "Cutting Words Bardic Inspiration die roll",
+    formula,
+    formulaDisplay,
+    entries: [
+      {
+        label: "Bardic Inspiration Die",
+        formula,
+        formulaDisplay
+      }
+    ]
+  };
+}
+
 const descriptors: ReactionDescriptor[] = [
   {
     id: artificerFlashOfGeniusReactionEntryId,
@@ -760,8 +788,17 @@ const descriptors: ReactionDescriptor[] = [
   },
   {
     id: "reaction-cutting-words",
-    getResourceWarning: (context) =>
-      context.bardicInspirationUsesRemaining <= 0 ? "No Bardic Inspiration uses remaining." : null,
+    footerActionName: "Cutting Words",
+    createRollRequest: createCuttingWordsReactionRollRequest,
+    getResourceWarning: (context) => {
+      if (!getBardicInspirationDieForCharacter(context.character)) {
+        return "No Bardic Inspiration die available.";
+      }
+
+      return context.bardicInspirationUsesRemaining <= 0
+        ? "No Bardic Inspiration uses remaining."
+        : null;
+    },
     apply: expendBardicInspirationUseForCharacter,
     skipReactionWhenUnchanged: true
   },

@@ -3,6 +3,7 @@ import {
   CLASS_FEATURE,
   getReactionEntryById,
   SPELL_LIST_CLASS,
+  type SpellDescriptionEntry,
   type SpellEntry
 } from "../../../../../codex/entries";
 import type {
@@ -12,11 +13,16 @@ import type {
   SkillProficiencyEntry
 } from "../../../../../types";
 import {
+  appendFeatureSourcedDescriptionAddition,
+  createFeatureSourcedDescriptionEntries
+} from "../../../actionModalDescriptions";
+import {
   compileFeatureContributions,
   createSubclassContributionSource,
   projectCompiledContributionsToSubclassDerivedFeatureState,
   type FeatureContributionSpec
 } from "../../../featureContributions";
+import type { WeaponAction } from "../../../gameplay";
 import {
   PROFICIENCY_OVERRIDE_POLICY,
   PROFICIENCY_SOURCE,
@@ -37,6 +43,8 @@ type BardLoreCharacter = Pick<Character, "className"> &
   Partial<
     Pick<Character, "level" | "subclassId" | "classFeatureState">
   >;
+type BardLoreFeatureCharacter = Pick<Character, "className"> &
+  Partial<Pick<Character, "level" | "subclassId">>;
 
 export function hasBardCollegeOfLoreBonusProficienciesFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
@@ -56,6 +64,58 @@ export function hasBardCollegeOfLoreMagicalDiscoveriesFeature(
     character.subclassId === collegeOfLoreSubclassId &&
     (character.level ?? 0) >= 6
   );
+}
+
+export function hasBardCollegeOfLorePeerlessSkillFeature(
+  character: BardLoreFeatureCharacter
+): boolean {
+  return (
+    character.className === "Bard" &&
+    character.subclassId === collegeOfLoreSubclassId &&
+    (character.level ?? 0) >= 14
+  );
+}
+
+export function getBardCollegeOfLorePeerlessSkillDescriptionAdditions(
+  character: BardLoreFeatureCharacter
+): SpellDescriptionEntry[][] {
+  if (!hasBardCollegeOfLorePeerlessSkillFeature(character)) {
+    return [];
+  }
+
+  const description = getFeatureDescriptionForCharacter(character, CLASS_FEATURE.PEERLESS_SKILL);
+
+  return description.length > 0
+    ? [
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.PEERLESS_SKILL,
+          description,
+          "Peerless Skill"
+        )
+      ]
+    : [];
+}
+
+function getBardCollegeOfLorePeerlessSkillWeaponAction(
+  character: BardLoreFeatureCharacter,
+  action: WeaponAction
+): WeaponAction {
+  if (!hasBardCollegeOfLorePeerlessSkillFeature(character)) {
+    return action;
+  }
+
+  const description = getFeatureDescriptionForCharacter(character, CLASS_FEATURE.PEERLESS_SKILL);
+
+  return description.length > 0
+    ? appendFeatureSourcedDescriptionAddition(
+        action,
+        character,
+        CLASS_FEATURE.PEERLESS_SKILL,
+        description,
+        "Peerless Skill"
+      )
+    : action;
 }
 
 export function normalizeBardCollegeOfLoreBonusProficiencySelections(value: unknown): SkillName[] {
@@ -265,6 +325,27 @@ export function collectBardCollegeOfLoreContributions(
         entryId: CLASS_FEATURE.MAGICAL_DISCOVERIES
       }),
       alwaysPreparedSpellIds: getBardCollegeOfLoreMagicalDiscoveriesSpellIds(character)
-    }
+    },
+    ...(hasBardCollegeOfLorePeerlessSkillFeature(character)
+      ? [
+          {
+            source: createSubclassContributionSource({
+              id: `${collegeOfLoreSubclassId}-peerless-skill`,
+              label: "Peerless Skill",
+              entryId: CLASS_FEATURE.PEERLESS_SKILL
+            }),
+            weaponActionTransforms: [
+              {
+                id: "bard-college-of-lore-peerless-skill-weapon-action",
+                transform: (_runtimeCharacter: Character, action: unknown) =>
+                  getBardCollegeOfLorePeerlessSkillWeaponAction(
+                    character,
+                    action as WeaponAction
+                  )
+              }
+            ]
+          }
+        ]
+      : [])
   ];
 }

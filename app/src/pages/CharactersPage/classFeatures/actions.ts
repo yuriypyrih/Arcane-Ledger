@@ -90,6 +90,7 @@ import {
   setBardPrimalLoreSkillSelection,
   setBardExpertiseSelections
 } from "./bard/bard";
+import { getBardCollegeOfLorePeerlessSkillDescriptionAdditions } from "./bard/subclasses/bardCollegeOfLore";
 import { normalizeFeatureActionCardUsage } from "./cardUsage";
 import {
   activateBarbarianBerserkerRetaliation,
@@ -970,6 +971,7 @@ export function getSkillReferenceDescriptionAdditionsForCharacter(
     descriptionAdditions.push(...getBarbarianIndomitableMightDescriptionAdditions(character));
   }
 
+  descriptionAdditions.push(...getBardCollegeOfLorePeerlessSkillDescriptionAdditions(character));
   descriptionAdditions.push(...getWarlockFiendPatronDarkOnesOwnLuckDescriptionAdditions(character));
 
   return descriptionAdditions;

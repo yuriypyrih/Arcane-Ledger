@@ -35,6 +35,7 @@ import {
   type FeatureIndicator
 } from "../../../../pages/CharactersPage/classFeatures";
 import { getFeatureDescriptionForCharacter } from "../../../../pages/CharactersPage/classFeatures/featureDescriptions";
+import { getBardCollegeOfLorePeerlessSkillDescriptionAdditions } from "../../../../pages/CharactersPage/classFeatures/bard/subclasses/bardCollegeOfLore";
 import {
   getBoonOfFortunesFavorSavingThrowRerollDescriptionAdditionsForCharacter,
   getMageSlayerGuardedMindDescriptionAdditionsForCharacter,
@@ -264,6 +265,7 @@ function getAbilityDescriptionAdditions(
   }
 
   descriptionAdditions.push(...getFanaticalFocusDescriptionAdditions(character));
+  descriptionAdditions.push(...getBardCollegeOfLorePeerlessSkillDescriptionAdditions(character));
   descriptionAdditions.push(...getMonkFeatureDescriptionAdditions(character, "stat", ability));
   descriptionAdditions.push(
     ...getSavingThrowReferenceDescriptionAdditionsForCharacter(character, ability)

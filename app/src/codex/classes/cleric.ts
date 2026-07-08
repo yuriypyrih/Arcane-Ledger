@@ -258,15 +258,19 @@ export const clericFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> =
       "<strong>Divine Strike.</strong> The extra damage of your Divine Strike increases to <strong>2d8</strong>.",
       "<strong>Potent Spellcasting.</strong> When you cast a Cleric cantrip and deal damage to a creature with it, you can give vitality to yourself or another creature within 60 feet of yourself, granting a number of Temporary Hit Points equal to twice your Wisdom modifier."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "The Potent Spellcasting ability to grant temporary hit points is up to you to give. It is not automatic."
   },
   [CLASS_FEATURE.GREATER_DIVINE_INTERVENTION]: {
     description: [
       "You can call on even more powerful divine intervention.",
-      "When you use your Divine Intervention feature, you can choose <spell:Wish>Wish</spell> when you select a spell. <link:tracked>Tracked</link>",
-      "If you do so, you can't use Divine Intervention again until you finish <strong>2d4</strong> <link:long-rest>Long Rests</link>. (This is <link:not-tracked>Not Tracked</link> but you can roll the dice and keep skipping the Divine Intervenation reset during Long Rest)."
+      "When you use your Divine Intervention feature, you can choose <spell:Wish>Wish</spell> when you select a spell.",
+      "If you do so, you can't use Divine Intervention again until you finish <strong>2d4</strong> <link:long-rest>Long Rests</link>."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED,
+    trackingMessage:
+      "If you choose to use Wish this way - you have to roll the dice and keep skipping the Divine Intervenation reset during Long Rest since that part is not tracked by the app."
   }
 };
 

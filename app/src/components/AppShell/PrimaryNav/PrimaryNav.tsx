@@ -290,11 +290,7 @@ function PrimaryNav({
                   aria-label="Loading"
                   aria-live="polite"
                 >
-                  <LoaderCircle
-                    className={styles.lazyLoadingIcon}
-                    size={15}
-                    aria-hidden="true"
-                  />
+                  <LoaderCircle className={styles.lazyLoadingIcon} size={15} aria-hidden="true" />
                   <span className={styles.lazyLoadingText}>Loading</span>
                 </span>
               ) : null}
@@ -315,9 +311,7 @@ function PrimaryNav({
               <span>{syncBadge.label}</span>
             </button>
           ) : (
-            <span
-              className={`${styles.syncStatusBadge} ${syncBadgeToneClasses[syncBadge.tone]}`}
-            >
+            <span className={`${styles.syncStatusBadge} ${syncBadgeToneClasses[syncBadge.tone]}`}>
               <SyncBadgeIcon size={14} aria-hidden="true" />
               <span>{syncBadge.label}</span>
             </span>
@@ -346,9 +340,7 @@ function PrimaryNav({
             <button
               type="button"
               className={
-                accountMenuOpen
-                  ? `${styles.navButton} ${styles.navLinkActive}`
-                  : styles.navButton
+                accountMenuOpen ? `${styles.navButton} ${styles.navLinkActive}` : styles.navButton
               }
               aria-haspopup="menu"
               aria-expanded={accountMenuOpen}
@@ -393,7 +385,7 @@ function PrimaryNav({
                   onClick={handleSupport}
                 >
                   <Headset size={15} aria-hidden="true" />
-                  <span>Support</span>
+                  <span>Support & Feedback</span>
                 </button>
                 {user?.role === "admin" ? (
                   <button

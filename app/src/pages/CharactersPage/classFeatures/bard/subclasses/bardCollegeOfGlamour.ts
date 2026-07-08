@@ -1,4 +1,10 @@
-import { CLASS_FEATURE, MAGIC_SCHOOL, type SpellEntry } from "../../../../../codex/entries";
+import {
+  ABILITY_TYPES,
+  CLASS_FEATURE,
+  MAGIC_SCHOOL,
+  SPELL_LIST_CLASS,
+  type SpellEntry
+} from "../../../../../codex/entries";
 import {
   mantleOfInspirationDescription,
   mantleOfMajestyDescription,
@@ -25,6 +31,7 @@ import {
   createCharacterStatusEntry,
   normalizeCharacterStatusEntries
 } from "../../../statusEntries";
+import { getSpellSaveFormulaCell } from "../../../shared/spellFormulas";
 import {
   createChargesAndUsageHeaderTags,
   createChargesOrResourceCardUsage,
@@ -33,7 +40,7 @@ import {
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import { transformSpellToBonusAction } from "../../subclassRuntime";
-import type { FeatureActionCard } from "../../types";
+import type { FeatureActionCard, FeatureActionFact } from "../../types";
 import {
   expendBardicInspirationUse,
   getBardicInspirationUsesRemaining,
@@ -555,6 +562,35 @@ export function activateBardCollegeOfGlamourMantleOfInspiration(character: Chara
   return expendBardicInspirationUse(character);
 }
 
+function getBardCollegeOfGlamourUnbreakableMajestyFacts(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureActionFact[] {
+  if (!hasCollegeOfGlamourUnbreakableMajesty(character)) {
+    return [];
+  }
+
+  const spellDcFormulaCell = getSpellSaveFormulaCell(
+    {
+      isAttackSpell: false,
+      isSavingThrowSpell: true,
+      savingThrowAbility: ABILITY_TYPES.CHA,
+      spellLists: [SPELL_LIST_CLASS.BARD]
+    },
+    character as Character
+  );
+
+  return spellDcFormulaCell
+    ? [
+        {
+          label: "Charisma DC Formula",
+          value: spellDcFormulaCell.content,
+          breakdown: spellDcFormulaCell.breakdown,
+          fullWidth: true
+        }
+      ]
+    : [];
+}
+
 function getBardCollegeOfGlamourFeatureActions(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): FeatureActionCard[] {
@@ -706,6 +742,7 @@ function getBardCollegeOfGlamourFeatureActions(
         usesTotal,
         isActive: unbreakableMajestyActive,
         description: [...unbreakableMajestyDescription],
+        facts: getBardCollegeOfGlamourUnbreakableMajestyFacts(character),
         drawer: {
           kind: "confirm",
           eyebrow: "College of Glamour"

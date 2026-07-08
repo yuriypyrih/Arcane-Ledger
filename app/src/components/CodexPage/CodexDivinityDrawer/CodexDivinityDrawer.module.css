@@ -59,6 +59,10 @@
   width: 14px;
 }
 
+:global(html[data-theme="dark"]) .resourceAssetIcon {
+  filter: brightness(0) invert(1) opacity(0.92);
+}
+
 .resourceBadgeSupplementary {
   color: var(--theme-text-secondary);
   font-size: 0.72rem;
